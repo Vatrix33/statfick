@@ -1,0 +1,86 @@
+{
+  "id": "archivist",
+  "name": "Archivist",
+  "color": "blue",
+  "requirements": {
+    "level": 20,
+    "classes": {
+      "scholar": 5
+    },
+    "other": {
+      "type": "known-spell-count",
+      "count": 20
+    }
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Spell learning costs 10% less.",
+      "effects": [
+        {
+          "type": "spell-learning-cost-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Mind permanent bonus +5%.",
+      "effects": [
+        {
+          "type": "stat-permanent-percent",
+          "target": "mind",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Field Notes: after victory, choose an observed spell and receive a rare Archived: [Spell name] consumable instead of learning it.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "field-notes",
+          "name": "Field Notes",
+          "description": "Record enemy spells cast in combat. After victory, choose one observed spell no higher than your highest known tier to receive an Archived consumable that casts it once.",
+          "effect": {
+            "type": "archive-enemy-spells"
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Spell learning costs another 10% less.",
+      "effects": [
+        {
+          "type": "spell-learning-cost-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Open Ledger: copy the target's last cast spell at 70% power, once per combat.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "open-ledger",
+          "name": "Open Ledger",
+          "description": "Copy the targeted enemy's last cast spell at 70% power, once per combat.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "enemy",
+          "onActivateEffects": [
+            {
+              "type": "copy-enemy-spell",
+              "powerPercent": 70
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "id": "gambit",
+  "name": "Gambit",
+  "color": "blue",
+  "requirements": {
+    "level": 20,
+    "classes": {
+      "jester": 3
+    },
+    "other": null
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Luck permanent bonus +5%.",
+      "effects": [
+        {
+          "type": "stat-permanent-percent",
+          "target": "luck",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Weapon Accuracy +16%.",
+      "effects": [
+        {
+          "type": "weapon-hit-percent",
+          "amount": 16
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Second Chance: the first missed normal Attack each turn refunds 1 Action Point.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "second-chance",
+          "name": "Second Chance",
+          "description": "Once per turn, if your normal Attack misses, regain 1 Action Point.",
+          "effect": {
+            "type": "gambit-miss-refund-ap",
+            "amount": 1
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Weapon Crit Rating +5.",
+      "effects": [
+        {
+          "type": "weapon-crit-flat",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Double Down: wager 3 AP on a strike with +20% Accuracy and +40% damage; a hit refunds 2 AP, but a miss ends your turn.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "double-down",
+          "name": "Double Down",
+          "description": "Wager 3 AP on a strike with +20% Accuracy and +40% damage. On hit, recover 2 AP; on miss, your turn ends. Once per combat.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "enemy",
+          "actionPoints": 3,
+          "onActivateEffects": [
+            {
+              "type": "gambit-strike",
+              "refundAp": 2,
+              "hitPercent": 20,
+              "powerPercent": 40
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

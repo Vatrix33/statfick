@@ -1,0 +1,20 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "dryad-matriarch-level-18",
+  "name": "Dryad Matriarch",
+  "level": 18,
+  "raceId": "dryad",
+  "classLevels": { "monster": 3, "mage": 5, "druid": 7, "spellcaster": 3 },
+  "stats": { "strength": 30, "vitality": 47, "mind": 70, "dexterity": 45, "intelligence": 66, "wisdom": 74, "speed": 48, "luck": 44 },
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": [
+    "summon-juvenile-wolf-nature-summon",
+    "leaf-bolt-nature-damage",
+    "touch-grass-nature-support",
+    "summon-juvenile-bear-nature-summon",
+    "return-to-form-nature-damage",
+    "thorns-shot-nature-damage"
+  ]
+}

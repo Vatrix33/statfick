@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The Statventure engine: one assembly, namespaces Statventure.*. -->
+  <PropertyGroup>
+    <RootNamespace>Statventure</RootNamespace>
+    <AssemblyName>Statventure</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Ahwoo.BRUTAL.Core" Version="2026.10.1" />
+    <PackageReference Include="Ahwoo.BRUTAL.Glfw" Version="2026.10.4" />
+    <PackageReference Include="Ahwoo.BRUTAL.Vulkan" Version="$(BrutalVersion)" />
+    <PackageReference Include="Ahwoo.BRUTAL.Vulkan.Abstractions" Version="$(BrutalVersion)" />
+    <PackageReference Include="Ahwoo.BRUTAL.Vulkan.Vma" Version="$(BrutalVersion)" />
+    <PackageReference Include="Ahwoo.BRUTAL.Stb" Version="$(BrutalVersion)" />
+    <PackageReference Include="Ahwoo.BRUTAL.Gltf" Version="$(BrutalVersion)" />
+    <PackageReference Include="Ahwoo.BRUTAL.FreeType" Version="2026.10.1" />
+    <PackageReference Include="Ahwoo.BRUTAL.OpenAl" Version="$(BrutalVersion)" />
+    <PackageReference Include="HarfBuzzSharp" Version="$(HarfBuzzSharpVersion)" />
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.Linux" Version="$(HarfBuzzSharpVersion)" />
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.Win32" Version="$(HarfBuzzSharpVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Engine shaders, compiled to SPIR-V by Tools/ShaderCompiler before the build. -->
+    <EmbeddedResource Include="Shaders/Bin/*.spv" LogicalName="Statventure.Shaders.%(Filename).spv" />
+    <EmbeddedResource Include="UI/Resources/*.png" LogicalName="Statventure.UI.%(Filename).png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Statventure.Tests" />
+    <InternalsVisibleTo Include="UiBenchmark" />
+  </ItemGroup>
+</Project>

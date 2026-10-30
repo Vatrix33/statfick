@@ -1,0 +1,8 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "reed-merfolk-level-26", "name": "Reed Merfolk", "level": 26, "raceId": "merfolk", "element": "water",
+  "classLevels": { "monster": 3, "warrior": 5, "rogue": 5, "ambusher": 7, "gladiator": 6 },
+  "stats": { "strength": 65, "vitality": 71, "mind": 46, "dexterity": 80, "intelligence": 44, "wisdom": 55, "speed": 84, "luck": 48 },
+  "inventory": ["forge-weapon-2-spear+lance", "forge-armor-leather-armor"],
+  "equipment": { "primaryHand": "forge-weapon-2-spear+lance", "offHand": "forge-weapon-2-spear+lance", "armor": "forge-armor-leather-armor", "artifact1": null, "artifact2": null }, "knownSpells": [],
+  "drops": [{ "itemId": "artifact-arrowtip-rain-artifact", "chance": 1 }]
+}

@@ -1,0 +1,46 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "earth-elemental-level-25",
+  "name": "Earth Elemental",
+  "level": 25,
+  "raceId": "elemental",
+  "classLevels": {
+    "monster": 3,
+    "mage": 5,
+    "warrior": 5,
+    "spellblade": 5,
+    "spellcaster": 7
+  },
+  "stats": {
+    "strength": 70,
+    "vitality": 82,
+    "mind": 58,
+    "dexterity": 38,
+    "intelligence": 78,
+    "wisdom": 62,
+    "speed": 30,
+    "luck": 28
+  },
+  "inventory": [
+    "forge-weapon-1-mace",
+    "forge-armor-tower-shield"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-mace",
+    "offHand": "forge-armor-tower-shield",
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "knocked-earth-damage",
+    "minor-fortify-earth-support",
+    "rock-bolt-earth-damage",
+    "spell-bolt-basic-damage",
+    "dragonbreath-erode-earth-damage",
+    "quick-drill-earth-damage",
+    "rock-body-earth-support",
+    "petrifying-grasp-earth-damage"
+  ]
+}

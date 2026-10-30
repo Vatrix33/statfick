@@ -1,0 +1,19 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "satyr-scout-level-7",
+  "name": "Satyr Scout",
+  "level": 7,
+  "raceId": "satyr",
+  "classLevels": { "monster": 3, "rogue": 4 },
+  "stats": { "strength": 25, "vitality": 24, "mind": 20, "dexterity": 30, "intelligence": 21, "wisdom": 19, "speed": 31, "luck": 23 },
+  "inventory": ["forge-weapon-1-dagger", "forge-armor-leather-armor+scale-armor"],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-dagger",
+    "offHand": null,
+    "armor": "forge-armor-leather-armor+scale-armor",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

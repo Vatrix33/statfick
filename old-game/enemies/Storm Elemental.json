@@ -1,0 +1,42 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "storm-elemental-level-50",
+  "name": "Storm Elemental",
+  "level": 50,
+  "raceId": "elemental",
+  "classLevels": {
+    "monster": 3,
+    "mage": 5,
+    "spellcaster": 7,
+    "wizard": 7,
+    "electromancer": 9,
+    "aeromancer": 9,
+    "energist": 5,
+    "sage": 5
+  },
+  "stats": {
+    "strength": 63,
+    "vitality": 83,
+    "mind": 132,
+    "dexterity": 89,
+    "intelligence": 136,
+    "wisdom": 100,
+    "speed": 119,
+    "luck": 60
+  },
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "tempest-circuit-lightning-damage",
+    "thunderbrand-lightning-damage",
+    "hurricane-choir-wind-damage",
+    "lightning-bolt-lightning-damage"
+  ]
+}

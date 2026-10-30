@@ -1,0 +1,43 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "apostle-of-talos-level-38",
+  "name": "Apostle of Talos",
+  "level": 38,
+  "raceId": "orc",
+  "classLevels": {
+    "warrior": 5,
+    "knight": 7,
+    "weaponmaster": 7,
+    "soldier": 6,
+    "bulwark": 7,
+    "berserker": 6
+  },
+  "stats": {
+    "strength": 70,
+    "vitality": 100,
+    "mind": 40,
+    "dexterity": 65,
+    "intelligence": 35,
+    "wisdom": 40,
+    "speed": 66,
+    "luck": 15
+  },
+  "inventory": [
+    "forge-weapon-2-greatsword+zweihander",
+    "forge-armor-full-plate+splint-mail"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-greatsword+zweihander",
+    "offHand": "forge-weapon-2-greatsword+zweihander",
+    "armor": "forge-armor-full-plate+splint-mail",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "maxHpPercent": 250,
+  "knownSpells": [
+    "call-the-storm-lightning-unique"
+  ],
+  "drops": [],
+  "aiProfile": "talos-apostle"
+}

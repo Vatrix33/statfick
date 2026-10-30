@@ -1,0 +1,6 @@
+Level Requirement: None
+Class Requirement: Guardian Level 7
+Other Requirement: None
+
+This class provides further features like the Guardian class and boosts them
+This class has 5 Levels and its color is blue

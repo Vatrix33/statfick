@@ -1,0 +1,6 @@
+Level Requirement: None
+Class Requirement: Rogue Level 5
+Other Requirement: You had the first turn 50 times
+
+THis class focuses on moving your turn right before an opponents. If you have a turn right before an enemy, you gain buffs on attacks against that enemy
+This class has 4 Levels and its color is blue

@@ -1,0 +1,40 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "raging-water-spirit-level-17",
+  "name": "Raging Water Spirit",
+  "level": 17,
+  "raceId": "elemental",
+  "classLevels": {
+    "monster": 3,
+    "mage": 5,
+    "spellcaster": 7,
+    "sorcerer": 2
+  },
+  "stats": {
+    "strength": 26,
+    "vitality": 40,
+    "mind": 58,
+    "dexterity": 26,
+    "intelligence": 69,
+    "wisdom": 54,
+    "speed": 29,
+    "luck": 26
+  },
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "water-bolt-water-damage",
+    "mending-spring-water-support",
+    "seablade-water-damage",
+    "soothing-rain-water-support",
+    "lesser-cascade-water-damage",
+    "summon-water-spirit-water-summon"
+  ]
+}

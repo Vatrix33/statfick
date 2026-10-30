@@ -1,0 +1,44 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "void-stalker-impid-level-16",
+  "name": "Void Stalker",
+  "level": 16,
+  "raceId": "impid",
+  "classLevels": {
+    "monster": 3,
+    "rogue": 5,
+    "mage": 5,
+    "warlock": 3
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 28,
+    "vitality": 32,
+    "mind": 38,
+    "dexterity": 46,
+    "intelligence": 44,
+    "wisdom": 34,
+    "speed": 52,
+    "luck": 25
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "dark-bolt-dark-damage",
+    "hellstride-dark-support",
+    "dark-siphon-dark-damage",
+    "spellstop-dark-support",
+    "abyssal-bolt-dark-damage",
+    "night-mantle-dark-support"
+  ],
+  "activeSkills": {}
+}

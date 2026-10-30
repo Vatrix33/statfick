@@ -1,0 +1,36 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "harpy-huntress-level-15",
+  "name": "Harpy Huntress",
+  "level": 15,
+  "raceId": "harpy",
+  "classLevels": {
+    "monster": 3,
+    "archer": 5,
+    "rogue": 5,
+    "sharpshooter": 2
+  },
+  "stats": {
+    "strength": 31,
+    "vitality": 34,
+    "mind": 24,
+    "dexterity": 55,
+    "intelligence": 24,
+    "wisdom": 24,
+    "speed": 60,
+    "luck": 39
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

@@ -1,0 +1,20 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "nature-spirit-level-15",
+  "name": "Nature Spirit",
+  "level": 15,
+  "raceId": "elemental",
+  "classLevels": { "monster": 3, "mage": 5, "druid": 7 },
+  "stats": { "strength": 25, "vitality": 44, "mind": 57, "dexterity": 28, "intelligence": 55, "wisdom": 62, "speed": 31, "luck": 29 },
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": [
+    "summon-juvenile-wolf-nature-summon",
+    "leaf-bolt-nature-damage",
+    "touch-grass-nature-support",
+    "summon-juvenile-bear-nature-summon",
+    "return-to-form-nature-damage",
+    "thorns-shot-nature-damage"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "greater-earth-spirit-level-18",
+  "name": "Greater Earth Spirit",
+  "level": 18,
+  "raceId": "elemental",
+  "classLevels": {
+    "monster": 3,
+    "mage": 5,
+    "spellcaster": 7,
+    "sorcerer": 3
+  },
+  "stats": {
+    "strength": 27,
+    "vitality": 51,
+    "mind": 61,
+    "dexterity": 27,
+    "intelligence": 72,
+    "wisdom": 55,
+    "speed": 27,
+    "luck": 27
+  },
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "rock-bolt-earth-damage",
+    "minor-fortify-earth-support",
+    "knocked-earth-damage",
+    "rock-body-earth-support",
+    "dragonbreath-erode-earth-damage",
+    "quick-drill-earth-damage"
+  ]
+}

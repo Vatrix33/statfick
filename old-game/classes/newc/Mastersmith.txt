@@ -1,0 +1,6 @@
+Level Requirement: 45
+Class Requirement: Smith Level 5
+Other Requirement: None
+
+This class allows the ability to further upgrade weapons and increases the effects of weapon parts
+This class has 4 Levels and its color is purple

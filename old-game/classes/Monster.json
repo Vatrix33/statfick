@@ -1,0 +1,55 @@
+{
+  "id": "monster",
+  "name": "Monster",
+  "requirements": {
+    "level": 1,
+    "classes": {},
+    "other": {
+      "type": "race-playability",
+      "playable": false,
+      "description": "Non-playable race"
+    }
+  },
+  "maxLevel": 3,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Increase all basic stats by 10%.",
+      "effects": [
+        {
+          "type": "all-stats-permanent-percent",
+          "amount": 10,
+          "description": "All basic stat permanent bonuses +10%"
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Increase maximum HP by 10% and maximum Mana by 5%.",
+      "effects": [
+        {
+          "type": "max-hp-percent",
+          "amount": 10,
+          "description": "Maximum HP +10%"
+        },
+        {
+          "type": "max-mana-percent",
+          "amount": 5,
+          "description": "Maximum Mana +5%"
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Fulfill Level 5 Warrior, Archer, Mage, and Rogue class prerequisites.",
+      "effects": [
+        {
+          "type": "class-requirement-bypass",
+          "classes": ["warrior", "archer", "mage", "rogue"],
+          "requiredLevel": 5,
+          "description": "Warrior, Archer, Mage, and Rogue Level 5 prerequisites are fulfilled"
+        }
+      ]
+    }
+  ]
+}

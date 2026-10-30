@@ -1,0 +1,56 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "lesser-imp-monster-level-1",
+  "name": "Lesser Imp",
+  "level": 1,
+  "raceId": "impid",
+  "classLevels": {
+    "monster": 1
+  },
+  "perkPoints": 0,
+  "stats": {
+    "strength": 10,
+    "vitality": 10,
+    "mind": 10,
+    "dexterity": 10,
+    "intelligence": 10,
+    "wisdom": 10,
+    "speed": 10,
+    "luck": 10
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "temporaryBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "temporaryDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "currentHp": 9,
+  "currentMana": 5,
+  "inventory": ["forge-weapon-1-dagger"],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-dagger",
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [],
+  "activeSkills": {}
+}

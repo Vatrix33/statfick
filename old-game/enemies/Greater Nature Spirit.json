@@ -1,0 +1,20 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "greater-nature-spirit-level-20",
+  "name": "Greater Nature Spirit",
+  "level": 20,
+  "raceId": "elemental",
+  "classLevels": { "monster": 3, "mage": 5, "druid": 7, "spellcaster": 5 },
+  "stats": { "strength": 31, "vitality": 57, "mind": 76, "dexterity": 34, "intelligence": 74, "wisdom": 82, "speed": 38, "luck": 35 },
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": [
+    "summon-juvenile-wolf-nature-summon",
+    "leaf-bolt-nature-damage",
+    "touch-grass-nature-support",
+    "summon-juvenile-bear-nature-summon",
+    "return-to-form-nature-damage",
+    "thorns-shot-nature-damage"
+  ]
+}

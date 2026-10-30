@@ -1,0 +1,39 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "stone-giant-level-48",
+  "name": "Stone Giant",
+  "level": 48,
+  "raceId": "giant",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "barbarian": 6,
+    "brawler": 5,
+    "great-beast": 10,
+    "stonebreaker": 3,
+    "guardian": 7,
+    "slayer": 7
+  },
+  "stats": {
+    "strength": 129,
+    "vitality": 138,
+    "mind": 42,
+    "dexterity": 53,
+    "intelligence": 46,
+    "wisdom": 50,
+    "speed": 40,
+    "luck": 35
+  },
+  "inventory": [
+    "forge-weapon-1-mace+flail"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-mace+flail",
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

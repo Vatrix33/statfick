@@ -1,0 +1,56 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "archdevil-saffron-unique-level-66",
+  "name": "Archdevil Saffron",
+  "unique": true,
+  "level": 66,
+  "raceId": "devil",
+  "element": "fire",
+  "classLevels": {
+    "raid-boss": 1, "mage": 5, "spellcaster": 7, "wizard": 7,
+    "pyromancer": 9, "umbramancer": 5, "sage": 5, "sorcerer": 5,
+    "energist": 5, "great-mage": 7, "scholar": 5, "hierophant": 5
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 75, "vitality": 100, "mind": 155, "dexterity": 75,
+    "intelligence": 170, "wisdom": 130, "speed": 80, "luck": 75
+  },
+  "manualAllocations": {
+    "strength": 0, "vitality": 25, "mind": 80, "dexterity": 0,
+    "intelligence": 95, "wisdom": 55, "speed": 5, "luck": 0
+  },
+  "resistances": { "fire": 25, "dark": 15 },
+  "inventory": ["weapon-masterwork-hellish-rebuke-40-hmrub3-hfsta-elred", "armor-masterwork-seventh-cycle-40-hmmyt-hmslk-hmbor-s1"], "noDropItems": ["weapon-masterwork-hellish-rebuke-40-hmrub3-hfsta-elred", "armor-masterwork-seventh-cycle-40-hmmyt-hmslk-hmbor-s1"],
+  "equipment": {
+    "primaryHand": "weapon-masterwork-hellish-rebuke-40-hmrub3-hfsta-elred", "offHand": null,
+    "armor": "armor-masterwork-seventh-cycle-40-hmmyt-hmslk-hmbor-s1", "artifact1": null, "artifact2": null
+  },
+  "startingAllies": [
+    { "enemyId": "great-devil-servant-protector-level-56", "count": 1 },
+    { "enemyId": "great-devil-servant-reaver-level-56", "count": 1 },
+    { "enemyId": "great-devil-servant-archer-level-56", "count": 1 }
+  ],
+  "maxHpPercent": 590,
+  "aiProfile": "saffron", "introCinematic": "saffron",
+  "infernalSacrifice": { "servants": ["great-devil-servant-protector-level-56", "great-devil-servant-reaver-level-56", "great-devil-servant-archer-level-56"], "belowPercent": 35, "healPercent": 10, "powerPercent": 15, "returnTurns": 3 },
+  "knownSpells": [
+    "fire-bolt-fire-damage", "minor-firewall-fire-damage", "ember-brand-fire-damage",
+    "fire-whip-fire-damage", "burning-cloak-fire-support", "ashfall-fire-damage",
+    "dragonbreath-cinderstorm-fire-damage", "phoenix-mantle-fire-support", "flame-spiral-fire-damage",
+    "inferno-orb-fire-damage", "hellfire-wave-fire-damage", "ember-lance-fire-damage",
+    "solar-lance-fire-damage", "burning-horizon-fire-damage",
+    "dragonbreath-crown-of-embers-fire-damage", "phoenix-spear-fire-damage", "phoenix-ward-fire-support",
+    "cinder-flood-fire-damage", "sunforge-lance-fire-damage", "phoenix-renewal-fire-support",
+    "dark-bolt-dark-damage", "shade-needle-dark-damage", "dark-siphon-dark-damage",
+    "umbral-hook-dark-damage", "abyssal-bolt-dark-damage", "night-mantle-dark-support",
+    "curse-of-frailty-dark-damage", "void-lance-dark-damage", "nightpiercer-dark-damage",
+    "spell-bolt-basic-damage", "magic-shield-basic-support", "reinforce-basic-support"
+  ],
+  "drops": [
+    { "itemId": "masterwork-hellish-rebuke", "chance": 12 },
+    { "itemId": "masterwork-seventh-cycle", "chance": 6 }
+  ]
+}

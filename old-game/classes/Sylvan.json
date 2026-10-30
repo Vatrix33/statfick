@@ -1,0 +1,8 @@
+{
+  "id": "sylvan", "name": "Sylvan", "requirements": { "level": 30, "classes": {}, "other": { "type": "race-in-list", "raceIds": ["elf", "dark-elf"] } }, "maxLevel": 3,
+  "levels": [
+    { "level": 1, "description": "Gain Forest Soul: regenerate 4% maximum Mana at the start of each combat turn.", "effects": [{ "type": "passive", "id": "forest-soul", "name": "Forest Soul", "description": "Restore 4% maximum Mana at the start of each combat turn.", "effect": { "type": "turn-start-restore-percent", "mana": 4 } }] },
+    { "level": 2, "description": "Maximum Mana +20% and Mind permanent bonus +5%.", "effects": [{ "type": "max-mana-percent", "amount": 20 }, { "type": "stat-permanent-percent", "target": "mind", "amount": 5 }] },
+    { "level": 3, "description": "Unlock Sylvan Renewal: once a day, restore 30% maximum Mana immediately and another 6% at the start of each of your next three turns.", "effects": [{ "type": "skill", "id": "sylvan-renewal", "name": "Sylvan Renewal", "description": "Once a day, restore 30% Mana now and 6% at the start of each of your next three turns.", "cooldown": "daily", "combatOnly": true, "target": "self", "durationTurns": 3, "onActivateEffects": [{ "type": "restore-resource-percent", "mana": 30 }, { "type": "turn-start-restore-percent", "mana": 6, "durationTurns": 3 }] }] }
+  ]
+}

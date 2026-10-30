@@ -1,0 +1,85 @@
+{
+  "id": "element-siphon",
+  "name": "Element Siphon",
+  "color": "blue",
+  "requirements": {
+    "level": 30,
+    "classes": {
+      "spellcaster": 7
+    },
+    "other": {
+      "type": "known-element-count",
+      "count": 6
+    }
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Incoming elemental spell damage -10%.",
+      "effects": [
+        {
+          "type": "incoming-spell-damage-percent",
+          "amount": -10
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Maximum Mana +8%.",
+      "effects": [
+        {
+          "type": "max-mana-percent",
+          "amount": 8
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Arcane Intake: restore Mana equal to 20% of hostile elemental spell damage taken.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "arcane-intake",
+          "name": "Arcane Intake",
+          "description": "Restore Mana equal to 20% of hostile elemental spell damage taken.",
+          "effect": {
+            "type": "mana-from-elemental-spell-damage",
+            "amount": 20
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Spell power +5%.",
+      "effects": [
+        {
+          "type": "spell-power-percent",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Siphon Charge: change your next spell to the last non-physical element an enemy hit you with.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "siphon-charge",
+          "name": "Siphon Charge",
+          "description": "After taking elemental damage from an enemy, change your next spell to that element. Once per combat.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": false,
+          "durationSpells": 1,
+          "onActivateEffects": [
+            {
+              "type": "attune-last-hit-element"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

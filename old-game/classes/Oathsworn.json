@@ -1,0 +1,12 @@
+{
+  "id": "oathsworn", "name": "Oathsworn", "color": "purple", "requirements": { "level": 10, "classes": { "knight": 4, "hierophant": 4 }, "excludes": ["paladin"], "other": { "type": "forbidden-known-spells", "elements": ["dark", "blood"], "description": "Know no Dark or Blood spells" } }, "maxLevel": 7,
+  "levels": [
+    { "level": 1, "description": "Strength and Mind +5%.", "effects": [{ "type": "stat-permanent-percent", "target": "strength", "amount": 5 }, { "type": "stat-permanent-percent", "target": "mind", "amount": 5 }] },
+    { "level": 2, "description": "Maximum Mana +10%.", "effects": [{ "type": "max-mana-percent", "amount": 10 }] },
+    { "level": 3, "description": "Gain Arcane Vow: deal 15% more damage to Monsters and take 10% less damage from them.", "effects": [{ "type": "passive", "id": "arcane-vow", "name": "Arcane Vow", "description": "Deal 15% more damage to Monster-class enemies and take 10% less damage from them.", "effects": [{ "type": "damage-percent-vs-class", "classId": "monster", "amount": 15 }, { "type": "incoming-damage-percent-vs-class", "classId": "monster", "amount": -10 }] }] },
+    { "level": 4, "description": "Armor permanent bonus +10%.", "effects": [{ "type": "defense-permanent-percent", "target": "armor", "amount": 10 }] },
+    { "level": 5, "description": "Maximum Mana +10%; Basic and Holy spell power +10%.", "effects": [{ "type": "max-mana-percent", "amount": 10 }, { "type": "spell-power-percent", "element": "basic", "amount": 10 }, { "type": "spell-power-percent", "element": "holy", "amount": 10 }] },
+    { "level": 6, "description": "Weapon power +10%.", "effects": [{ "type": "weapon-power-percent", "amount": 10 }] },
+    { "level": 7, "description": "Unlock Divine Smite: once per combat, spend 10% maximum Mana to empower your next weapon hit with additional Holy damage equal to 15% maximum Mana.", "effects": [{ "type": "skill", "id": "divine-smite", "name": "Divine Smite", "description": "Once per combat, spend 10% maximum Mana. Your next weapon hit deals bonus Holy damage equal to 15% maximum Mana.", "combatOnly": true, "cooldown": "combat", "durationAttacks": 1, "manaCostMaxPercent": 10, "onHitEffects": [{ "type": "bonus-damage-max-mana-percent", "amount": 15, "element": "holy" }] }] }
+  ]
+}

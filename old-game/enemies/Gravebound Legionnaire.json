@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "gravebound-legionnaire-level-68", "name": "Gravebound Legionnaire", "level": 68,
+  "raceId": "undead", "resistances": { "death": 35, "dark": 20, "holy": -35 },
+  "classLevels": { "warrior": 5, "knight": 7, "heavy-knight": 5, "black-knight": 5, "soldier": 6, "guardian": 7, "weaponmaster": 7, "monster": 3, "gladiator": 6, "bulwark": 7, "berserker": 6, "champion": 4 },
+  "stats": { "strength": 166, "vitality": 177, "mind": 108, "dexterity": 109, "intelligence": 105, "wisdom": 113, "speed": 104, "luck": 94 },
+  "inventory": ["forge-weapon-1-mace+flail", "forge-armor-tower-shield+kite-shield", "forge-armor-full-plate"],
+  "equipment": { "primaryHand": "forge-weapon-1-mace+flail", "offHand": "forge-armor-tower-shield+kite-shield", "armor": "forge-armor-full-plate", "artifact1": null, "artifact2": null },
+  "knownSpells": ["dark-bolt-dark-damage", "shade-needle-dark-damage", "dark-siphon-dark-damage", "spellstop-dark-support", "umbral-hook-dark-damage", "night-drain-dark-damage", "night-mantle-dark-support", "curse-of-frailty-dark-damage", "void-lance-dark-damage", "black-sanctuary-dark-support"]
+}

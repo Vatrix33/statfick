@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "sand-wraith-level-47", "name": "Sand Wraith", "level": 47,
+  "raceId": "undead", "element": "earth", "resistances": { "earth": 35, "wind": 20, "water": -20 },
+  "classLevels": { "monster": 3, "mage": 5, "spellcaster": 7, "wizard": 7, "geomancer": 9, "shadow": 6 },
+  "stats": { "strength": 62, "vitality": 98, "mind": 126, "dexterity": 88, "intelligence": 126, "wisdom": 104, "speed": 86, "luck": 75 },
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": ["petrifying-grasp-earth-damage", "obsidian-spire-earth-damage", "sundering-rift-earth-damage", "grave-chill-death-damage"]
+}

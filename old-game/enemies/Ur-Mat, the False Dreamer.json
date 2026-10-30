@@ -1,0 +1,50 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "ur-mat-false-dreamer-unique-level-90", "name": "Ur-Mat, the False Dreamer",
+  "unique": true, "level": 90, "raceId": "dark-elf", "element": "dark",
+  "classLevels": {
+    "sharmat": 3, "raid-boss": 1, "mage": 5, "spellcaster": 7, "wizard": 7,
+    "sorcerer": 5, "great-mage": 7, "umbramancer": 9, "hierophant": 9,
+    "scholar": 5, "wise-man": 5, "warlock": 7, "summoner": 2, "dreamweaver": 5, "warrior": 5, "spellblade": 5, "rogue": 3
+  },
+  "stats": { "strength": 152, "vitality": 180, "mind": 352, "dexterity": 180, "intelligence": 100, "wisdom": 100, "speed": 110, "luck": 88 },
+  "baseArmor": 25, "maxHpPercent": 500, "maxManaPercent": 35, "turnStartManaPercent": 5,
+  "initialSkillCharges": { "sharmat:lucid-change": 1 },
+  "resistances": { "dark": 30, "basic": 15, "fire": 15 },
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": [
+    "eventide-absolute-dark-damage", "axiom-unbound-basic-damage", "blackened-horizon-dark-damage",
+    "sovereigns-nightlance-dark-damage", "null-star-basic-damage", "absolute-aether-basic-damage",
+    "void-crown-dark-damage", "summon-black-dragon-dark-summon", "arterial-ruin-blood-damage",
+    "tideborn-refuge-water-support", "elderwood-renewal-nature-support", "seraphic-shelter-holy-support",
+    "gravesong-death-damage", "dark-bolt-dark-damage", "summon-lesser-imp-dark-summon",
+    "magic-shield-basic-support", "spell-bolt-basic-damage", "minor-boost-wind-support",
+    "minor-fortify-earth-support", "axiom-lance-basic-damage", "fracture-the-law-basic-damage"
+  ],
+  "phaseTransitions": [{
+    "thresholdHpPercent": 15, "unskippable": true, "name": "Ur-Mat, the False Dreamer", "healMaxHpPercent": 0,
+    "statBonuses": {}, "defenseBonuses": {}, "knownSpells": [],
+    "activateSkill": "sharmat:lucid-change", "cinematic": "ur-mat-lucid",
+    "announcement": "The false dream breaks. Ur-Mat invokes Lucid Change!"
+  }],
+  "aiProfile": "ur-mat", "introCinematic": "ur-mat",
+  "dreamLaws": {
+    "everyTurns": 3, "randomStart": true, "doubleAfterPhase": true,
+    "laws": [
+      { "id": "blades-of-glass", "name": "Blades of Glass", "description": "Heroes' weapon damage is halved.", "foes": [{ "type": "outgoing-attack-damage-percent", "amount": -50, "attackKinds": ["melee", "ranged"] }] },
+      { "id": "rebounding-words", "name": "Rebounding Words", "description": "Heroes' spells rebound 30% of their damage onto the caster.", "foes": [{ "type": "spell-rebound-percent", "amount": 30 }] },
+      { "id": "inverted-mercy", "name": "Inverted Mercy", "description": "Healing on heroes is halved, and every heal wounds them for 25% of it.", "foes": [{ "type": "inverted-mercy", "amount": -50, "hp": 25 }] },
+      { "id": "slowed-time", "name": "Slowed Time", "description": "Heroes lose 1 AP each turn and 25% Speed.", "foes": [{ "type": "stat-percent", "target": "speed", "amount": -25 }], "apLoss": 1 },
+      { "id": "echoing-spells", "name": "Echoing Spells", "description": "His damaging spells strike a second time at 50% power.", "allies": [{ "type": "spell-echo-percent", "amount": 50 }] },
+      { "id": "sealed-names", "name": "Sealed Names", "description": "Heroes cannot use their class skills.", "foes": [{ "type": "skills-sealed", "amount": 1 }] },
+      { "id": "dreamers-ward", "name": "Dreamer's Ward", "description": "He takes 30% less damage.", "allies": [{ "type": "incoming-weapon-damage-percent", "amount": -30 }, { "type": "incoming-spell-damage-percent", "amount": -30 }] }
+    ]
+  },
+  "drops": [
+    { "itemId": "masterwork-keening", "chance": 10 },
+    { "itemId": "artifact-wraithguard-artifact", "chance": 10 },
+    { "itemId": "masterwork-sunder", "chance": 10 },
+    { "itemId": "key-item-gem-of-false-dreams", "chance": 5 }
+  ]
+}

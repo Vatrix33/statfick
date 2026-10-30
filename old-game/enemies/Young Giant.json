@@ -1,0 +1,36 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "young-giant-level-17",
+  "name": "Young Giant",
+  "level": 17,
+  "raceId": "giant",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "barbarian": 6,
+    "brawler": 3
+  },
+  "stats": {
+    "strength": 76,
+    "vitality": 65,
+    "mind": 26,
+    "dexterity": 32,
+    "intelligence": 28,
+    "wisdom": 26,
+    "speed": 29,
+    "luck": 27
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

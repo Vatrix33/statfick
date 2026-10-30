@@ -1,0 +1,10 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "shore-wyrm-level-30", "name": "Shore Wyrm",
+  "level": 30, "raceId": "dragon", "element": "water",
+  "classLevels": { "beast": 3, "monster": 3, "warrior": 5, "mage": 5, "spellcaster": 7, "aquamancer": 7 },
+  "stats": { "strength": 89, "vitality": 91, "mind": 77, "dexterity": 72, "intelligence": 73, "wisdom": 72, "speed": 69, "luck": 44 },
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": ["water-bolt-water-damage", "tide-ward-water-support", "seablade-water-damage", "lesser-cascade-water-damage", "tidal-spear-water-damage", "pressure-wave-water-damage", "dragonbreath-drowning-torrent-water-damage"]
+}

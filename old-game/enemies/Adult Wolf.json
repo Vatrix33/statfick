@@ -1,0 +1,70 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "adult-wolf-beast-level-5",
+  "name": "Adult Wolf",
+  "level": 5,
+  "raceId": "wolf",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 2
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 21,
+    "vitality": 18,
+    "mind": 14,
+    "dexterity": 18,
+    "intelligence": 14,
+    "wisdom": 14,
+    "speed": 19,
+    "luck": 14
+  },
+  "manualAllocations": {
+    "strength": 7,
+    "vitality": 4,
+    "mind": 0,
+    "dexterity": 4,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 5,
+    "luck": 0
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "temporaryBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "temporaryDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "currentHp": 33,
+  "currentMana": 13,
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [],
+  "activeSkills": {},
+  "drops": [{ "itemId": "masterwork-claw-of-beowulf", "chance": 2 }]
+}

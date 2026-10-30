@@ -1,0 +1,195 @@
+using System.Collections.Concurrent;
+
+namespace Statventure.Text;
+
+/// <summary>A face chosen for a style, with what a browser would synthesize.</summary>
+public readonly record struct ResolvedFont(FontFace Face, bool SyntheticBold, bool SyntheticOblique);
+
+/// <summary>
+/// The fonts a game uses, by family, weight and style, with CSS font matching: the weight order of
+/// CSS Fonts 4 §5.2, italic before oblique before normal, bold synthesized for 600+ when only a face
+/// of 500 or lighter exists, oblique synthesized when no italic face exists.
+/// </summary>
+public sealed class FontLibrary : IDisposable
+{
+    readonly nint _freeType;
+    readonly List<FontFace> _faces = [];
+    readonly List<string> _fallbackFamilies = [];
+    // Layout can run on several threads (documents, tests): lookups don't lock, misses do.
+    readonly ConcurrentDictionary<FontKey, ResolvedFont?> _cache = new();
+    readonly ConcurrentDictionary<(int Face, bool Bold, bool Oblique, int Codepoint), ResolvedFont?> _fallbacks = new();
+
+    readonly record struct FontKey(string Family, int Weight, bool Italic)
+    {
+        public bool Equals(FontKey other) => Weight == other.Weight && Italic == other.Italic && string.Equals(Family, other.Family, StringComparison.OrdinalIgnoreCase);
+
+        public override int GetHashCode() => HashCode.Combine(StringComparer.OrdinalIgnoreCase.GetHashCode(Family), Weight, Italic);
+    }
+
+    void ForgetResolved()
+    {
+        _cache.Clear();
+        _fallbacks.Clear();
+    }
+    readonly Dictionary<string, string> _generic = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The family used when none of a style's families exist (the first added face's, if unset).</summary>
+    public string? DefaultFamily { get; set; }
+
+    /// <summary>Maps a generic or missing family name (serif, sans-serif, Georgia ...) to a loaded family.</summary>
+    public void SetGeneric(string name, string family)
+    {
+        lock (_lock)
+        {
+            _generic[name] = family;
+            ForgetResolved();
+        }
+    }
+
+    /// <summary>The default family, matched for weight and style.</summary>
+    public ResolvedFont? ResolveDefault(int weight, bool italic) =>
+        _faces.Count == 0 ? null : Resolve(DefaultFamily ?? _faces[0].Family, weight, italic);
+
+    public IReadOnlyList<FontFace> Faces => _faces;
+
+    public FontLibrary()
+    {
+        Core.NativeLibraries.Install();
+        FreeType.Check(FreeType.InitFreeType(out _freeType), "FT_Init_FreeType");
+    }
+
+    internal nint FreeTypeLibrary => _freeType;
+
+    /// <summary>Adds a font file; <paramref name="weightMax"/> gives a range ("font-weight: 500 600").</summary>
+    public FontFace Add(ReadOnlySpan<byte> data, string family, int weight = 400, bool italic = false, int? weightMax = null)
+    {
+        var face = new FontFace(_freeType, data, family, weight, weightMax ?? weight, italic);
+        lock (_lock)
+        {
+            _faces.Add(face);
+            ForgetResolved();
+        }
+        return face;
+    }
+
+    public FontFace AddFile(string path, string family, int weight = 400, bool italic = false, int? weightMax = null) =>
+        Add(File.ReadAllBytes(path), family, weight, italic, weightMax);
+
+    /// <summary>Families tried, in order, for characters the requested family doesn't have.</summary>
+    public void AddFallback(string family)
+    {
+        lock (_lock)
+        {
+            _fallbackFamilies.Add(family);
+            ForgetResolved();
+        }
+    }
+
+    /// <summary>The first family in the list that exists, matched for weight and style; null if none.</summary>
+    public ResolvedFont? Resolve(IReadOnlyList<string> families, int weight, bool italic)
+    {
+        foreach (var family in families)
+            if (Resolve(family, weight, italic) is { } resolved)
+                return resolved;
+        return null;
+    }
+
+    readonly Lock _lock = new();
+
+    public ResolvedFont? Resolve(string family, int weight, bool italic)
+    {
+        if (_cache.TryGetValue(new FontKey(family, weight, italic), out var cached))
+            return cached;
+        lock (_lock)
+            return ResolveLocked(family, weight, italic);
+    }
+
+    ResolvedFont? ResolveLocked(string family, int weight, bool italic)
+    {
+        var key = new FontKey(family, weight, italic);
+        if (_cache.TryGetValue(key, out var cached))
+            return cached;
+        var candidates = _faces.Where(f => string.Equals(f.Family, family, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (candidates.Count == 0 && _generic.TryGetValue(family, out var mapped) && !string.Equals(mapped, family, StringComparison.OrdinalIgnoreCase))
+        {
+            var viaGeneric = ResolveLocked(mapped, weight, italic);
+            _cache[key] = viaGeneric;
+            return viaGeneric;
+        }
+        ResolvedFont? result = null;
+        if (candidates.Count > 0)
+        {
+            // Style first: the requested style if any face has it, otherwise the other one.
+            var styled = candidates.Where(f => f.Italic == italic).ToList();
+            if (styled.Count == 0)
+                styled = candidates;
+            var face = MatchWeight(styled, weight);
+            var faceWeight = Math.Min(Math.Max(weight, face.Weight), face.WeightMax);
+            result = new ResolvedFont(face, weight >= 600 && faceWeight <= 500, italic && !face.Italic);
+        }
+        _cache[key] = result;
+        return result;
+    }
+
+    /// <summary>The weight matching order of CSS Fonts 4 §5.2.</summary>
+    static FontFace MatchWeight(List<FontFace> faces, int desired)
+    {
+        var exact = faces.FirstOrDefault(f => desired >= f.Weight && desired <= f.WeightMax);
+        if (exact is not null)
+            return exact;
+        IEnumerable<FontFace> heavier = faces.Where(f => f.Weight > desired).OrderBy(f => f.Weight);
+        IEnumerable<FontFace> lighter = faces.Where(f => f.WeightMax < desired).OrderByDescending(f => f.WeightMax);
+        IEnumerable<FontFace> order;
+        if (desired >= 400 && desired <= 500)
+            order = heavier.Where(f => f.Weight <= 500).Concat(lighter).Concat(heavier.Where(f => f.Weight > 500));
+        else if (desired < 400)
+            order = lighter.Concat(heavier);
+        else
+            order = heavier.Concat(lighter);
+        return order.First();
+    }
+
+    /// <summary>
+    /// The last resort for a character no loaded family has (for example the system's fonts, as a
+    /// browser falls back to them): given the character and the face it was wanted in.
+    /// </summary>
+    public Func<int, ResolvedFont, ResolvedFont?>? CharacterFallback
+    {
+        get => _characterFallback;
+        set
+        {
+            _characterFallback = value;
+            _fallbacks.Clear();
+        }
+    }
+
+    Func<int, ResolvedFont, ResolvedFont?>? _characterFallback;
+
+    /// <summary>A face that has the character: the resolved one, else the fallback families in order, else <see cref="CharacterFallback"/>.</summary>
+    public ResolvedFont? ResolveFor(int codepoint, ResolvedFont preferred)
+    {
+        if (preferred.Face.Has(codepoint))
+            return preferred;
+        var key = (preferred.Face.Id, preferred.SyntheticBold, preferred.SyntheticOblique, codepoint);
+        if (_fallbacks.TryGetValue(key, out var known))
+            return known;
+        ResolvedFont? found = null;
+        foreach (var family in _fallbackFamilies)
+            if (Resolve(family, preferred.Face.Weight, preferred.Face.Italic) is { } fallback && fallback.Face.Has(codepoint))
+            {
+                found = fallback with { SyntheticBold = preferred.SyntheticBold || fallback.SyntheticBold, SyntheticOblique = preferred.SyntheticOblique || fallback.SyntheticOblique };
+                break;
+            }
+        found ??= _characterFallback?.Invoke(codepoint, preferred);
+        _fallbacks[key] = found;
+        return found;
+    }
+
+    public void Dispose()
+    {
+        foreach (var face in _faces)
+            face.Dispose();
+        _faces.Clear();
+        FreeType.DoneFreeType(_freeType);
+    }
+}

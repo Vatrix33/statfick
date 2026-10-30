@@ -1,0 +1,57 @@
+[
+  {
+    "id": "key-item-gem-of-false-dreams",
+    "name": "Gem of False Dreams",
+    "type": "key-item",
+    "rarity": "masterwork",
+    "description": "A strange gem of unknown origins. Grants the holder unimaginable power when used.",
+    "priceSilver": 0,
+    "catalogueAvailable": true,
+    "shopAvailable": false,
+    "playerSellable": false
+  },
+  {
+    "id": "key-item-vial-of-dragonblood",
+    "name": "Vial of Dragonblood",
+    "type": "key-item",
+    "rarity": "masterwork",
+    "description": "A vial of blood obtained from a dragon. Only the brave or foolish dare to drink it.",
+    "priceSilver": 0,
+    "catalogueAvailable": true,
+    "shopAvailable": false,
+    "playerSellable": false
+  },
+  {
+    "id": "key-item-blood-crystal",
+    "name": "Blood Crystal",
+    "type": "key-item",
+    "rarity": "masterwork",
+    "description": "A crimson crystal in the shape of a heart. Can be used to replace one's own heart.",
+    "priceSilver": 0,
+    "catalogueAvailable": true,
+    "shopAvailable": false,
+    "playerSellable": false
+  },
+  {
+    "id": "key-item-shadow-crystal",
+    "name": "Shadow Crystal",
+    "type": "key-item",
+    "rarity": "masterwork",
+    "description": "A shard of black glass. Looking through it reveals the truth of the world.",
+    "priceSilver": 0,
+    "catalogueAvailable": true,
+    "shopAvailable": false,
+    "playerSellable": false
+  },
+  {
+    "id": "key-item-phylactery-core",
+    "name": "Phylactery Core",
+    "type": "key-item",
+    "rarity": "masterwork",
+    "description": "A soul-bound core required to transcend mortality. Consumed when acquiring the Lich class.",
+    "priceSilver": 0,
+    "catalogueAvailable": true,
+    "shopAvailable": false,
+    "playerSellable": false
+  }
+]

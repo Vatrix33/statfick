@@ -1,0 +1,70 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "goblin-archer-level-3",
+  "name": "Goblin Archer",
+  "level": 3,
+  "raceId": "goblin",
+  "classLevels": {
+    "archer": 3
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 12,
+    "vitality": 12,
+    "mind": 12,
+    "dexterity": 19,
+    "intelligence": 12,
+    "wisdom": 12,
+    "speed": 14,
+    "luck": 13
+  },
+  "manualAllocations": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 7,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 2,
+    "luck": 1
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "temporaryBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "temporaryDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "currentHp": 12,
+  "currentMana": 6,
+  "inventory": [
+    "forge-weapon-2-shortbow",
+    "forge-armor-garb"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-shortbow",
+    "offHand": "forge-weapon-2-shortbow",
+    "armor": "forge-armor-garb",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [],
+  "activeSkills": {}
+}

@@ -1,0 +1,70 @@
+{
+  "id": "warlock",
+  "name": "Warlock",
+  "requirements": {
+    "level": 1,
+    "classes": { "mage": 5 },
+    "other": { "type": "known-spells", "element": "dark", "count": 3, "description": "3 Dark spells known" }
+  },
+  "maxLevel": 7,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Increase Intelligence by 5%.",
+      "effects": [{ "type": "stat-permanent-percent", "target": "intelligence", "amount": 5, "description": "Intelligence permanent bonus +5%" }]
+    },
+    {
+      "level": 2,
+      "description": "Dark spells cost 10% less Mana.",
+      "effects": [{ "type": "spell-cost-percent", "element": "dark", "amount": 10, "description": "Dark spell Mana cost −10%" }]
+    },
+    {
+      "level": 3,
+      "description": "Increase maximum Mana by 10%.",
+      "effects": [{ "type": "max-mana-percent", "amount": 10, "description": "Maximum Mana +10%" }]
+    },
+    {
+      "level": 4,
+      "description": "Gain the Pactbound passive.",
+      "effects": [{
+        "type": "passive",
+        "id": "pactbound",
+        "name": "Pactbound",
+        "condition": "Always active",
+        "description": "Dark spells gain 10% power, and you take 15% less damage from Dark spells.",
+        "effects": [
+          { "type": "spell-power-percent", "element": "dark", "amount": 10 },
+          { "type": "incoming-spell-damage-percent", "element": "dark", "amount": -15 }
+        ]
+      }]
+    },
+    {
+      "level": 5,
+      "description": "Increase Mind by 5%.",
+      "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 5, "description": "Mind permanent bonus +5%" }]
+    },
+    {
+      "level": 6,
+      "description": "Dark spells cost 30% less to learn.",
+      "effects": [{ "type": "spell-learning-cost-percent", "element": "dark", "amount": 30, "description": "Dark spell learning cost −30%" }]
+    },
+    {
+      "level": 7,
+      "description": "Unlock Dark Ascendance.",
+      "effects": [{
+        "type": "skill",
+        "id": "dark-ascendance",
+        "name": "Dark Ascendance",
+        "combatOnly": true,
+        "cooldown": "combat",
+        "durationTurns": 3,
+        "description": "For 3 turns, Dark spells gain 30% power and cost 20% less Mana, but you take 10% more damage. Can be used once per combat.",
+        "effects": [
+          { "type": "spell-power-percent", "element": "dark", "amount": 30 },
+          { "type": "spell-cost-percent", "element": "dark", "amount": 20 },
+          { "type": "incoming-damage-percent", "amount": 10 }
+        ]
+      }]
+    }
+  ]
+}

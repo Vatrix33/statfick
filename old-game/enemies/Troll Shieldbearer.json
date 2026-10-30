@@ -1,0 +1,35 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "troll-shieldbearer-level-20",
+  "name": "Troll Shieldbearer",
+  "level": 20,
+  "raceId": "troll",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "knight": 5,
+    "guardian": 5
+  },
+  "stats": {
+    "strength": 44,
+    "vitality": 74,
+    "mind": 22,
+    "dexterity": 34,
+    "intelligence": 20,
+    "wisdom": 22,
+    "speed": 30,
+    "luck": 24
+  },
+  "inventory": [],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-mace",
+    "offHand": "forge-armor-tower-shield",
+    "armor": "forge-armor-splint-mail",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [],
+  "maxHpPercent": 90,
+  "aiProfile": "troll-guard"
+}

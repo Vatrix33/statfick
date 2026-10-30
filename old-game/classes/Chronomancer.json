@@ -1,0 +1,91 @@
+{
+  "id": "chronomancer",
+  "name": "Chronomancer",
+  "color": "blue",
+  "requirements": {
+    "level": 45,
+    "classes": {
+      "wizard": 7
+    },
+    "other": {
+      "type": "known-spells",
+      "element": "basic",
+      "count": 10
+    }
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Basic spell costs -5%.",
+      "effects": [
+        {
+          "type": "spell-cost-percent",
+          "amount": 5,
+          "element": "basic"
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Mind permanent bonus +5%.",
+      "effects": [
+        {
+          "type": "stat-permanent-percent",
+          "target": "mind",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Temporal Drift: your turn counter fills 8% faster without changing Speed.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "temporal-drift",
+          "name": "Temporal Drift",
+          "description": "Your combat turn counter fills 8% faster, without changing Speed.",
+          "effect": {
+            "type": "turn-meter-gain-percent",
+            "amount": 8
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Basic spell power +10%.",
+      "effects": [
+        {
+          "type": "spell-power-percent",
+          "amount": 10,
+          "element": "basic"
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Time Shift: advance your turn counter by 250 and delay an enemy's by 250.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "time-shift",
+          "name": "Time Shift",
+          "description": "Advance your turn counter by 250 and delay the chosen enemy's by 250.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "enemy",
+          "onActivateEffects": [
+            {
+              "type": "shift-turn-meters",
+              "allyAmount": 250,
+              "enemyAmount": -250
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

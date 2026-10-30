@@ -1,0 +1,7 @@
+Level Requirement: None
+Class Requirement: None
+Other Requirement: 180+ Dexterity Stat
+
+A class focused on Evasion and boosting the Dexterity stat
+It has 6 Levels and has the Blue color
+Its skill should provide the effects of the Evade action for 5 turns

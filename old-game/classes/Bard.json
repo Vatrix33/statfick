@@ -1,0 +1,57 @@
+{
+  "id": "bard",
+  "name": "Bard",
+  "requirements": {
+    "level": 1,
+    "classes": {},
+    "other": { "type": "stat-threshold", "stat": "luck", "amount": 50, "description": "At least 50 Luck" }
+  },
+  "maxLevel": 5,
+  "levels": [
+    { "level": 1, "description": "Increase Luck by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "luck", "amount": 5 }] },
+    { "level": 2, "description": "Increase Mind by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 5 }] },
+    {
+      "level": 3,
+      "description": "Gain the Fortunate Refrain passive.",
+      "effects": [{
+        "type": "passive",
+        "id": "fortunate-refrain",
+        "name": "Fortunate Refrain",
+        "condition": "Always active",
+        "description": "Increase Luck by another 5% and reduce spell Mana costs by 5%.",
+        "effects": [
+          { "type": "stat-permanent-percent", "target": "luck", "amount": 5 },
+          { "type": "spell-cost-percent", "amount": 5 }
+        ]
+      }]
+    },
+    {
+      "level": 4,
+      "description": "Increase maximum Mana and spell power by 5%.",
+      "effects": [
+        { "type": "max-mana-percent", "amount": 5 },
+        { "type": "spell-power-percent", "amount": 5 }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Heroic Ballad.",
+      "effects": [{
+        "type": "skill",
+        "id": "heroic-ballad",
+        "name": "Heroic Ballad",
+        "combatOnly": true,
+        "cooldown": "daily",
+        "durationTurns": 3,
+        "target": "all-allies",
+        "description": "All allies gain 10% to all basic stats, 20% Accuracy, and 20% Evasion for 3 turns. Can be used once per day.",
+        "effects": [],
+        "onActivateEffects": [
+          { "type": "all-stats-percent", "amount": 10, "durationTurns": 3 },
+          { "type": "weapon-hit-percent", "amount": 20, "durationTurns": 3 },
+          { "type": "defense-percent", "target": "evasion", "amount": 20, "durationTurns": 3 }
+        ]
+      }]
+    }
+  ]
+}

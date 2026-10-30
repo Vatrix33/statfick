@@ -1,0 +1,17 @@
+{
+  "id": "umbramancer",
+  "name": "Umbramancer",
+  "requirements": { "level": 20, "classes": {}, "anyClasses": { "spellcaster": 7, "wizard": 7 }, "other": { "type": "known-spells", "element": "dark", "count": 7, "description": "Know at least 7 Dark spells" } },
+  "maxLevel": 9,
+  "levels": [
+    { "level": 1, "description": "Increase Dark spell power by 10%.", "effects": [{ "type": "spell-power-percent", "element": "dark", "amount": 10 }] },
+    { "level": 2, "description": "Increase Intelligence by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "intelligence", "amount": 5 }] },
+    { "level": 3, "description": "Unlock Shadow Veil.", "effects": [{ "type": "skill", "id": "shadow-veil", "name": "Shadow Veil", "combatOnly": true, "cooldown": "combat", "durationTurns": 2, "description": "For 2 turns, gain 50% Evasion and 20% Dark spell power. Once per combat.", "effects": [{ "type": "spell-power-percent", "element": "dark", "amount": 20 }], "onActivateEffects": [{ "type": "defense-percent", "target": "evasion", "amount": 50, "durationTurns": 2 }] }] },
+    { "level": 4, "description": "Dark spells cost 10% less Mana.", "effects": [{ "type": "spell-cost-percent", "element": "dark", "amount": 10 }] },
+    { "level": 5, "description": "Gain the Eclipse Born passive.", "effects": [{ "type": "passive", "id": "eclipse-born", "name": "Eclipse Born", "condition": "Always active", "description": "Dark spells gain 20% power, but Holy spells deal 10% more damage to you.", "effects": [{ "type": "spell-power-percent", "element": "dark", "amount": 20 }, { "type": "incoming-spell-damage-percent", "element": "holy", "amount": 10 }] }] },
+    { "level": 6, "description": "Increase maximum Mana by 10%.", "effects": [{ "type": "max-mana-percent", "amount": 10 }] },
+    { "level": 7, "description": "Dark spells deal 15% more damage.", "effects": [{ "type": "spell-damage-percent", "element": "dark", "amount": 15 }] },
+    { "level": 8, "description": "Dark spells cost 30% less to learn.", "effects": [{ "type": "spell-learning-cost-percent", "element": "dark", "amount": 30 }] },
+    { "level": 9, "description": "Unlock Total Eclipse.", "effects": [{ "type": "skill", "id": "total-eclipse", "name": "Total Eclipse", "combatOnly": true, "cooldown": "daily", "instant": true, "actionPoints": 2, "manaCostMaxPercent": 12, "description": "Reduce every enemy's basic stats by 20% for 3 turns. Costs 12% maximum Mana and 2 AP. Once per day.", "effects": [], "onActivateEffects": [{ "type": "apply-skill-effects", "element": "dark", "effects": [{ "type": "all-stats-percent", "amount": -20, "recipient": "all-enemies", "durationTurns": 3 }] }] }] }
+  ]
+}

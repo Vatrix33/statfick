@@ -1,0 +1,25 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "gaian-avatar-of-the-land-unique-level-53", "name": "Gaian, Avatar of the Land",
+  "unique": true, "level": 53, "raceId": "elemental", "element": "earth",
+  "classLevels": {
+    "raid-boss": 1, "monster": 3, "warrior": 5, "knight": 7,
+    "weaponmaster": 7, "bulwark": 7, "soldier": 6, "berserker": 6, "brawler": 6, "energist": 5
+  },
+  "perkPoints": 0, "availablePoints": 0,
+  "stats": { "strength": 94, "vitality": 212, "mind": 72, "dexterity": 62, "intelligence": 62, "wisdom": 67, "speed": 73, "luck": 62 },
+  "manualAllocations": { "strength": 32, "vitality": 150, "mind": 10, "dexterity": 0, "intelligence": 0, "wisdom": 5, "speed": 11, "luck": 0 },
+  "inventory": ["weapon-masterwork-jackhammer-30-elmyt-abrei-hmbir-s0"], "noDropItems": ["weapon-masterwork-jackhammer-30-elmyt-abrei-hmbir-s0"],
+  "equipment": { "primaryHand": "weapon-masterwork-jackhammer-30-elmyt-abrei-hmbir-s0", "offHand": "weapon-masterwork-jackhammer-30-elmyt-abrei-hmbir-s0", "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": [],
+  "startingAllies": [{ "enemyId": "jungle-core-level-50", "count": 2 }],
+  "livingAllyProtection": { "enemyId": "jungle-core-level-50", "amount": 25 },
+  "maxHpPercent": 720,
+  "aiProfile": "gaian", "introCinematic": "gaian",
+  "heartCores": { "enemyId": "jungle-core-level-50", "regrowTurns": 3, "severed": { "turns": 2, "damageTakenPercent": 30, "apLoss": 2 } },
+  "drops": [
+    { "itemId": "masterwork-jackhammer", "chance": 12 },
+    { "itemId": "masterwork-soulbound-barrier", "chance": 8 },
+    { "itemId": "artifact-titanfall-artifact", "chance": 5 }
+  ]
+}

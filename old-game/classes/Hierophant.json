@@ -1,0 +1,17 @@
+{
+  "id": "hierophant",
+  "name": "Hierophant",
+  "requirements": { "level": 20, "classes": {}, "anyClasses": { "spellcaster": 7, "wizard": 7 }, "other": { "type": "known-spells", "element": "basic", "count": 7, "description": "Know at least 7 Basic spells" } },
+  "maxLevel": 9,
+  "levels": [
+    { "level": 1, "description": "Increase Basic spell power by 10%.", "effects": [{ "type": "spell-power-percent", "element": "basic", "amount": 10 }] },
+    { "level": 2, "description": "Increase Intelligence and Wisdom by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "intelligence", "amount": 5 }, { "type": "stat-permanent-percent", "target": "wisdom", "amount": 5 }] },
+    { "level": 3, "description": "Unlock Arcane Compression.", "effects": [{ "type": "skill", "id": "arcane-compression", "name": "Arcane Compression", "combatOnly": true, "cooldown": "combat", "durationSpells": 1, "requiredSpellElement": "basic", "description": "Your next Basic spell gains 25% power and uses 1 fewer Action Point. Once per combat.", "effects": [{ "type": "spell-power-percent", "element": "basic", "amount": 25 }, { "type": "spell-action-points-flat", "element": "basic", "amount": -1 }] }] },
+    { "level": 4, "description": "Basic spells cost 10% less Mana.", "effects": [{ "type": "spell-cost-percent", "element": "basic", "amount": 10 }] },
+    { "level": 5, "description": "Gain the Perfect Formula passive.", "effects": [{ "type": "passive", "id": "perfect-formula", "name": "Perfect Formula", "condition": "Always active", "description": "Basic spells gain 15% power and use 1 fewer Action Point, to a minimum of 1.", "effects": [{ "type": "spell-power-percent", "element": "basic", "amount": 15 }, { "type": "spell-action-points-flat", "element": "basic", "amount": -1 }] }] },
+    { "level": 6, "description": "Increase maximum Mana by 10%.", "effects": [{ "type": "max-mana-percent", "amount": 10 }] },
+    { "level": 7, "description": "Basic spells deal 15% more damage.", "effects": [{ "type": "spell-damage-percent", "element": "basic", "amount": 15 }] },
+    { "level": 8, "description": "Basic spells cost 30% less to learn.", "effects": [{ "type": "spell-learning-cost-percent", "element": "basic", "amount": 30 }] },
+    { "level": 9, "description": "Unlock Arcane Echo.", "effects": [{ "type": "skill", "id": "arcane-echo", "name": "Arcane Echo", "combatOnly": true, "cooldown": "daily", "durationSpells": 1, "requiredSpellElement": "basic", "description": "Your next Basic spell gains 20% power and is cast two additional times without additional Mana or Action Points. Once per day.", "effects": [{ "type": "spell-power-percent", "element": "basic", "amount": 20 }, { "type": "repeat-spell", "amount": 2 }] }] }
+  ]
+}

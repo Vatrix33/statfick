@@ -1,0 +1,90 @@
+{
+  "id": "sanguine-medic",
+  "name": "Sanguine Medic",
+  "color": "blue",
+  "requirements": {
+    "level": 1,
+    "classes": {
+      "hemomancer": 5,
+      "priest": 5
+    },
+    "other": null
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Maximum HP +5%.",
+      "effects": [
+        {
+          "type": "max-hp-percent",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Blood and Holy spell power +5%.",
+      "effects": [
+        {
+          "type": "spell-power-percent",
+          "amount": 5,
+          "elements": [
+            "blood",
+            "holy"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Red Triage: healing an ally is 20% stronger while you are below half HP.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "red-triage",
+          "name": "Red Triage",
+          "description": "Healing you give allies is 20% stronger while you are below 50% HP.",
+          "effect": {
+            "type": "low-hp-healing-percent",
+            "amount": 20,
+            "threshold": 50
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Maximum HP +5%.",
+      "effects": [
+        {
+          "type": "max-hp-percent",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Blood Transfusion: spend 15% maximum HP to heal an ally for 30% maximum HP.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "blood-transfusion",
+          "name": "Blood Transfusion",
+          "description": "Spend 15% of your maximum HP to restore 30% of an ally's maximum HP.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "ally",
+          "onActivateEffects": [
+            {
+              "type": "blood-transfusion",
+              "hpCostPercent": 15,
+              "healPercent": 30
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

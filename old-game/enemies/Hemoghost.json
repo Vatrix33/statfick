@@ -1,0 +1,41 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "hemoghost-level-11",
+  "name": "Hemoghost",
+  "level": 11,
+  "raceId": "elemental",
+  "classLevels": {
+    "monster": 3,
+    "mage": 4,
+    "vampire": 4
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 18,
+    "vitality": 36,
+    "mind": 38,
+    "dexterity": 18,
+    "intelligence": 46,
+    "wisdom": 34,
+    "speed": 20,
+    "luck": 18
+  },
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "blood-bolt-blood-damage",
+    "drain-blood-damage",
+    "piercing-blood-blood-damage",
+    "time-of-the-month-blood-support",
+    "hemorrhage-lance-blood-damage"
+  ],
+  "activeSkills": {}
+}

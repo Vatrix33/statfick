@@ -1,0 +1,148 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "juila-grand-forest-matriach-unique-level-22",
+  "name": "Juila the Grand Forest Matriarch",
+  "formerNames": [
+    "Juila the Grand Forest Matriach"
+  ],
+  "unique": true,
+  "level": 22,
+  "raceId": "dryad",
+  "element": "nature",
+  "classLevels": {
+    "mage": 5,
+    "spellcaster": 7,
+    "botanomancer": 9,
+    "raid-boss": 1
+  },
+  "stats": {
+    "strength": 38,
+    "vitality": 90,
+    "mind": 38,
+    "dexterity": 44,
+    "intelligence": 60,
+    "wisdom": 34,
+    "speed": 42,
+    "luck": 55
+  },
+  "maxHpPercent": 335,
+  "turnStartManaPercent": 10,
+  "baseArmor": 37,
+  "inventory": [
+    "forge-weapon-2-staff~rare@nature"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-staff~rare@nature",
+    "offHand": "forge-weapon-2-staff~rare@nature",
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "leaf-bolt-nature-damage",
+    "thorns-shot-nature-damage",
+    "bramble-bind-nature-damage",
+    "return-to-form-nature-damage",
+    "greater-regrowth-nature-support",
+    "verdant-renewal-nature-support",
+    "ancient-bark-nature-support",
+    "touch-grass-nature-support",
+    "wheel-of-the-year-nature-unique"
+  ],
+  "drops": [
+    {
+      "itemId": "masterwork-rootbark",
+      "chance": 8
+    }
+  ],
+  "aiProfile": "juila",
+  "introCinematic": "juila",
+  "seasonCycle": {
+    "turns": 2,
+    "seasons": [
+      {
+        "id": "spring",
+        "name": "Spring Bloom",
+        "spirit": "blossom-sprite-level-20",
+        "omen": "Buds swell on every branch.",
+        "description": "Juila's side regrows 4% of its maximum HP each turn and receives 15% more healing.",
+        "allies": [
+          {
+            "type": "turn-start-restore-percent",
+            "hp": 4
+          },
+          {
+            "type": "healing-received-percent",
+            "amount": 15
+          }
+        ],
+        "foes": []
+      },
+      {
+        "id": "summer",
+        "name": "High Summer",
+        "spirit": "sunhorn-stag-level-20",
+        "omen": "The canopy blazes with heat.",
+        "description": "Juila's side gains 20% spell power and 10% Speed.",
+        "allies": [
+          {
+            "type": "spell-power-percent",
+            "amount": 20
+          },
+          {
+            "type": "stat-percent",
+            "target": "speed",
+            "amount": 10
+          }
+        ],
+        "foes": []
+      },
+      {
+        "id": "autumn",
+        "name": "Autumn Withering",
+        "spirit": "harvest-wisp-level-20",
+        "omen": "Leaves begin to turn and fall.",
+        "description": "The heroes wither: they lose 2% of their maximum HP each turn and receive 30% less healing.",
+        "allies": [],
+        "foes": [
+          {
+            "type": "turn-start-max-hp-loss-percent",
+            "amount": 2
+          },
+          {
+            "type": "healing-received-percent",
+            "amount": -30
+          }
+        ]
+      },
+      {
+        "id": "winter",
+        "name": "Deep Winter",
+        "spirit": "rime-wolf-level-20",
+        "omen": "Frost creeps over the roots.",
+        "description": "Juila's side takes 20% less damage; the heroes lose 15% Speed, and each of her turns roots a hero, who loses 2 AP on their next turn.",
+        "allies": [
+          {
+            "type": "incoming-weapon-damage-percent",
+            "amount": -20
+          },
+          {
+            "type": "incoming-spell-damage-percent",
+            "amount": -20
+          }
+        ],
+        "foes": [
+          {
+            "type": "stat-percent",
+            "target": "speed",
+            "amount": -15
+          }
+        ],
+        "roots": {
+          "ap": 2
+        }
+      }
+    ]
+  }
+}

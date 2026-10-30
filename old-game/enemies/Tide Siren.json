@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "tide-siren-level-24", "name": "Tide Siren",
+  "level": 24, "raceId": "siren", "element": "water",
+  "classLevels": { "mage": 5, "spellcaster": 7, "aquamancer": 9, "bard": 3 },
+  "stats": { "strength": 33, "vitality": 49, "mind": 87, "dexterity": 51, "intelligence": 91, "wisdom": 81, "speed": 57, "luck": 58 },
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": ["water-bolt-water-damage", "mending-spring-water-support", "tide-ward-water-support", "seablade-water-damage", "soothing-rain-water-support", "lesser-cascade-water-damage", "tidal-spear-water-damage", "mending-current-water-support", "deluge-water-damage", "restoration-tide-water-support"]
+}

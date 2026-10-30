@@ -1,0 +1,49 @@
+{
+  "id": "beast",
+  "name": "Beast",
+  "requirements": {
+    "level": 1,
+    "classes": {},
+    "other": {
+      "type": "race-playability",
+      "playable": false,
+      "description": "Non-playable race"
+    }
+  },
+  "maxLevel": 3,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Fight with natural Beast Claws: 2 AP attacks that grow stronger with your level.",
+      "effects": [
+        {
+          "type": "natural-weapon",
+          "weapon": "beast-claws",
+          "description": "Fight with natural Beast Claws when no weapon is held"
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Increase Strength, Vitality, Dexterity, and Speed by 10%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "strength", "amount": 10 },
+        { "type": "stat-permanent-percent", "target": "vitality", "amount": 10 },
+        { "type": "stat-permanent-percent", "target": "dexterity", "amount": 10 },
+        { "type": "stat-permanent-percent", "target": "speed", "amount": 10 }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Fulfill Level 5 Warrior, Archer, Mage, and Rogue class prerequisites.",
+      "effects": [
+        {
+          "type": "class-requirement-bypass",
+          "classes": ["warrior", "archer", "mage", "rogue"],
+          "requiredLevel": 5,
+          "description": "Warrior, Archer, Mage, and Rogue Level 5 prerequisites are fulfilled"
+        }
+      ]
+    }
+  ]
+}

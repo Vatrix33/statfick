@@ -1,0 +1,11 @@
+{
+  "name": "stat-fick-tests",
+  "productName": "Stat Fick Tests",
+  "desktopName": "stat-fick-tests.desktop",
+  "version": "1.0.0",
+  "description": "Headless test client for the live Stat Fick game folder",
+  "author": "Stat Fick",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "headless-main.cjs"
+}

@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "duskpine-wraith-level-69", "name": "Duskpine Wraith", "level": 69,
+  "raceId": "undead", "resistances": { "death": 40, "dark": 30, "holy": -40 },
+  "classLevels": { "mage": 5, "spellcaster": 7, "wizard": 7, "necromancer": 9, "warlock": 7, "great-mage": 7, "scholar": 5, "wise-man": 5, "summoner": 7, "sage": 5, "energist": 5 },
+  "stats": { "strength": 68, "vitality": 104, "mind": 194, "dexterity": 99, "intelligence": 169, "wisdom": 177, "speed": 132, "luck": 120 },
+  "inventory": ["forge-weapon-1-wand"],
+  "equipment": { "primaryHand": "forge-weapon-1-wand", "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": ["dimming-touch-death-damage", "summon-call-of-the-dead-death-summon", "health-grasp-death-damage", "eerie-shock-death-damage", "death-bolt-death-damage", "soul-leech-death-damage", "grave-chill-death-damage", "deathwave-death-damage", "night-drain-dark-damage", "void-lance-dark-damage", "black-sanctuary-dark-support"]
+}

@@ -1,0 +1,86 @@
+{
+  "id": "pilgrim",
+  "name": "Pilgrim",
+  "requirements": {
+    "level": 1,
+    "classes": {
+      "priest": 4,
+      "traveler": 3
+    },
+    "other": null
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Travel speed +1 km/h.",
+      "effects": [
+        {
+          "type": "travel-speed-flat",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Camping Supplies retention chance +25%.",
+      "effects": [
+        {
+          "type": "camping-supply-retention-chance",
+          "amount": 25
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Pilgrim's Blessing: after travelling 60 km, the party gains 10% Armor and Evasion until resting.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "pilgrims-blessing",
+          "name": "Pilgrim's Blessing",
+          "description": "After travelling at least 60 km since resting, the party gains 10% Armor and 10% Evasion.",
+          "effect": {
+            "type": "journey-party-defense-percent",
+            "amount": 10,
+            "kilometers": 60
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Quest Reputation rewards +10%.",
+      "effects": [
+        {
+          "type": "quest-reputation-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Roadside Prayer: restore 15% HP and Mana to all allies once per combat.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "roadside-prayer",
+          "name": "Roadside Prayer",
+          "description": "Restore 15% maximum HP and Mana to all living allies.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "all-allies",
+          "onActivateEffects": [
+            {
+              "type": "restore-resource-percent",
+              "hp": 15,
+              "mana": 15,
+              "recipient": "all-allies"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

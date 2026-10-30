@@ -1,0 +1,55 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "violet-dragon-level-60",
+  "name": "Violet Dragon",
+  "level": 60,
+  "raceId": "dragon",
+  "element": "death",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 3,
+    "dragonkin": 7,
+    "mage": 5,
+    "spellcaster": 7,
+    "necromancer": 9,
+    "warrior": 5,
+    "great-mage": 6
+  },
+  "stats": {
+    "strength": 137,
+    "vitality": 145,
+    "mind": 152,
+    "dexterity": 104,
+    "intelligence": 154,
+    "wisdom": 125,
+    "speed": 99,
+    "luck": 98
+  },
+  "resistances": {
+    "death": 35,
+    "holy": -40
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "dragonbreath-grave-tempest-death-damage",
+    "necropolis-aegis-death-support",
+    "sepulcher-verdict-death-damage",
+    "summon-undead-hulk-death-summon",
+    "withering-choir-death-damage",
+    "deathwave-death-damage",
+    "grave-chill-death-damage",
+    "dragonbreath-sepulchral-miasma-death-damage"
+  ]
+}

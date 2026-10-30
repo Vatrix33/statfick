@@ -1,0 +1,14 @@
+<Project>
+  <!-- Settings shared by every Statventure project. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Deterministic>true</Deterministic>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <BrutalVersion>2026.10.2</BrutalVersion>
+    <HarfBuzzSharpVersion>14.2.1.301</HarfBuzzSharpVersion>
+  </PropertyGroup>
+</Project>

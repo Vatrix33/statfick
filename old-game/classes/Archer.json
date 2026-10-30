@@ -1,0 +1,92 @@
+{
+  "id": "archer",
+  "name": "Archer",
+  "requirements": {
+    "level": 1,
+    "classes": {},
+    "other": null
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Increase Dexterity by 5%.",
+      "effects": [
+        {
+          "type": "stat-permanent-percent",
+          "target": "dexterity",
+          "amount": 5,
+          "description": "Dexterity permanent bonus +5%"
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Equipped bows gain 2 more power.",
+      "effects": [
+        {
+          "type": "weapon-power-percent",
+          "weaponType": "bow",
+          "amount": 5,
+          "description": "Bow power +5%"
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain the Single Target passive.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "single-target",
+          "name": "Single Target",
+          "condition": "While wielding a bow",
+          "description": "Increase Accuracy with bows by 8%. This effect is reduced by 2% for each enemy in combat.",
+          "effect": {
+            "type": "conditional-weapon-hit-percent-per-enemy",
+            "weaponType": "bow",
+            "amount": 8,
+            "reductionPerEnemy": 2,
+            "minimum": 0,
+            "description": "Bow Accuracy +8%, reduced by 2% per enemy in combat"
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Increase your Accuracy with ranged weapons by 10%.",
+      "effects": [
+        {
+          "type": "weapon-hit-percent",
+          "weaponType": "ranged",
+          "amount": 10,
+          "description": "Ranged weapon Accuracy +10%"
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Sharpshoot.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "sharpshoot",
+          "name": "Sharpshoot",
+          "combatOnly": true,
+          "description": "Your next attack with a bow gains 40% Accuracy. You can use this skill once a day.",
+          "durationAttacks": 1,
+          "cooldown": "daily",
+          "effects": [
+            {
+              "type": "weapon-hit-percent",
+              "weaponType": "bow",
+              "amount": 40,
+              "description": "Bow Accuracy +40% for the next attack"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

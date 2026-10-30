@@ -1,0 +1,93 @@
+{
+  "id": "riverstrider",
+  "name": "Riverstrider",
+  "requirements": {
+    "level": 18,
+    "classes": {},
+    "anyClasses": {
+      "traveler": 3,
+      "aquamancer": 3
+    },
+    "other": null
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "River-crossing speed +2 km/h.",
+      "effects": [
+        {
+          "type": "river-speed-flat",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Water spell power +5%.",
+      "effects": [
+        {
+          "type": "spell-power-percent",
+          "amount": 5,
+          "element": "water"
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Flowstep: Evasion +16% while in River zones.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "flowstep",
+          "name": "Flowstep",
+          "description": "Evasion +16% in River zones.",
+          "effect": {
+            "type": "conditional-defense-percent",
+            "condition": "river-zone",
+            "target": "evasion",
+            "amount": 16
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "River-crossing speed +2 km/h.",
+      "effects": [
+        {
+          "type": "river-speed-flat",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock River Dance: Evasion +20% for two turns and restore 10% Mana.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "river-dance",
+          "name": "River Dance",
+          "description": "Gain +20% Evasion for two turns and restore 10% maximum Mana.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "durationTurns": 2,
+          "onActivateEffects": [
+            {
+              "type": "defense-percent",
+              "target": "evasion",
+              "amount": 20,
+              "durationTurns": 2
+            },
+            {
+              "type": "restore-resource-percent",
+              "mana": 10
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "shadow", "name": "Shadow", "requirements": { "level": 18, "classes": { "rogue": 5 }, "other": null }, "maxLevel": 6,
+  "levels": [
+    { "level": 1, "description": "Evasion +10%.", "effects": [{ "type": "defense-permanent-percent", "target": "evasion", "amount": 10 }] },
+    { "level": 2, "description": "Speed +5%.", "effects": [{ "type": "stat-permanent-percent", "target": "speed", "amount": 5 }] },
+    { "level": 3, "description": "Gain Low Profile: when a non-summoned ally lives, enemies reduce their targeting priority toward you by 10.", "effects": [{ "type": "passive", "id": "low-profile", "name": "Low Profile", "description": "With another living non-summoned ally, enemies are less likely to target you (−10 AI target priority).", "effect": { "type": "target-priority-flat", "amount": -10 } }] },
+    { "level": 4, "description": "Luck +5%.", "effects": [{ "type": "stat-permanent-percent", "target": "luck", "amount": 5 }] },
+    { "level": 5, "description": "Weapon Accuracy +20%.", "effects": [{ "type": "weapon-hit-percent", "amount": 20 }] },
+    { "level": 6, "description": "Unlock Vanish: once per combat, gain 30% Evasion and further lower enemy targeting priority by 30 for two personal turns.", "effects": [{ "type": "skill", "id": "vanish", "name": "Vanish", "description": "Once per combat, gain 30% Evasion and reduce your AI target priority by 30 for two personal turns. No AP cost.", "combatOnly": true, "cooldown": "combat", "durationTurns": 2, "onActivateEffects": [{ "type": "defense-percent", "target": "evasion", "amount": 30, "durationTurns": 2 }, { "type": "target-priority-flat", "amount": -30, "durationTurns": 2 }] }] }
+  ]
+}

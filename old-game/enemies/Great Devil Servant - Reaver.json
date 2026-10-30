@@ -1,0 +1,27 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "great-devil-servant-reaver-level-56", "name": "Great Devil Servant - Reaver",
+  "level": 56, "raceId": "devil",
+  "classLevels": {
+    "warrior": 5, "knight": 7, "weaponmaster": 7, "berserker": 6,
+    "soldier": 6, "rogue": 5, "assassin": 6, "brawler": 6,
+    "poisoner": 7, "shadow": 1
+  },
+  "perkPoints": 0, "availablePoints": 0,
+  "stats": {
+    "strength": 170, "vitality": 110, "mind": 65, "dexterity": 100,
+    "intelligence": 65, "wisdom": 65, "speed": 90, "luck": 75
+  },
+  "manualAllocations": {
+    "strength": 105, "vitality": 45, "mind": 0, "dexterity": 35,
+    "intelligence": 0, "wisdom": 0, "speed": 25, "luck": 10
+  },
+  "inventory": ["forge-weapon-2-greatsword+zweihander", "forge-armor-leather-armor"],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-greatsword+zweihander", "offHand": "forge-weapon-2-greatsword+zweihander",
+    "armor": "forge-armor-leather-armor", "artifact1": null, "artifact2": null
+  },
+  "maxHpPercent": 300,
+  "aiProfile": "devil-servant",
+  "knownSpells": [], "drops": []
+}

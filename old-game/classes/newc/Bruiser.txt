@@ -1,0 +1,6 @@
+Level Requirements: Level 30+
+Class Requirements: Warrior Level 5 or Rogue Level 5
+Other Requirements: Strength and Vitality are your highest and second-highest stats
+
+This class focuses on dealing increased weapon attack damage the more HP you have
+This class has 7 Levels

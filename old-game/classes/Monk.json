@@ -1,0 +1,13 @@
+{
+  "id": "monk", "name": "Monk", "requirements": { "level": 6, "classes": {}, "other": { "type": "unarmed-attacks", "count": 30, "description": "30 unarmed attacks used" } }, "maxLevel": 8,
+  "levels": [
+    { "level": 1, "description": "Unarmed attacks deal 50% more damage.", "effects": [{ "type": "unarmed-power-percent", "amount": 50 }] },
+    { "level": 2, "description": "Unarmed attacks gain 20% Accuracy.", "effects": [{ "type": "unarmed-hit-percent", "amount": 20 }] },
+    { "level": 3, "description": "Unlock Stunning Strike.", "effects": [{ "type": "skill", "id": "stunning-strike", "name": "Stunning Strike", "combatOnly": true, "cooldown": "combat", "durationAttacks": 1, "requiredWeaponType": "unarmed", "description": "Your next unarmed attack has a 20% chance to stun the enemy for 1 turn. Can be used once per combat.", "effects": [], "onHitEffects": [{ "type": "stun-chance", "weaponType": "unarmed", "amount": 20, "durationTurns": 1 }] }] },
+    { "level": 4, "description": "Increase Strength by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "strength", "amount": 5 }] },
+    { "level": 5, "description": "Increase Wisdom by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "wisdom", "amount": 5 }] },
+    { "level": 6, "description": "Unarmed attacks gain an additional 0.1× Wisdom scaling.", "effects": [{ "type": "unarmed-scaling", "stat": "wisdom", "amount": 0.1 }] },
+    { "level": 7, "description": "Increase Speed by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "speed", "amount": 5 }] },
+    { "level": 8, "description": "Gain the Discipline Training passive.", "effects": [{ "type": "passive", "id": "discipline-training", "name": "Discipline Training", "condition": "When hit by a spell", "description": "Take 5% less spell damage, with a 10% chance to reduce that hit by a further 20%.", "effects": [{ "type": "incoming-spell-damage-percent", "amount": -5 }, { "type": "incoming-spell-extra-reduction-chance", "chance": 10, "amount": 20 }] }] }
+  ]
+}

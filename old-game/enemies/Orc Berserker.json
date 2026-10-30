@@ -1,0 +1,19 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "orc-berserker-level-14",
+  "name": "Orc Berserker",
+  "level": 14,
+  "raceId": "orc",
+  "classLevels": { "monster": 3, "warrior": 5, "barbarian": 6 },
+  "stats": { "strength": 52, "vitality": 45, "mind": 22, "dexterity": 32, "intelligence": 22, "wisdom": 21, "speed": 31, "luck": 22 },
+  "inventory": ["forge-weapon-2-greataxe+axe", "forge-armor-leather-armor"],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-greataxe+axe",
+    "offHand": null,
+    "armor": "forge-armor-leather-armor",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

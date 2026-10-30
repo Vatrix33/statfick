@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "sanguine-oracle-level-62", "name": "Sanguine Oracle", "level": 62,
+  "raceId": "undead", "resistances": { "blood": 40, "dark": 25, "holy": -35 },
+  "classLevels": { "monster": 3, "vampire": 4, "mage": 5, "spellcaster": 7, "hemomancer": 9, "warlock": 7, "great-mage": 7, "scholar": 5, "wise-man": 5, "summoner": 7, "wizard": 3 },
+  "stats": { "strength": 80, "vitality": 120, "mind": 166, "dexterity": 93, "intelligence": 160, "wisdom": 168, "speed": 116, "luck": 106 },
+  "inventory": ["forge-weapon-1-wand", "forge-armor-robe"],
+  "equipment": { "primaryHand": "forge-weapon-1-wand", "offHand": null, "armor": "forge-armor-robe", "artifact1": null, "artifact2": null },
+  "knownSpells": ["hemorrhage-lance-blood-damage", "crimson-renewal-blood-support", "heartpiercer-blood-damage", "crimson-nova-blood-damage", "sanguine-pact-blood-support", "scarlet-surge-blood-damage", "sanguine-lance-blood-damage", "night-drain-dark-damage", "curse-of-frailty-dark-damage", "summon-hemoghost-blood-summon", "summon-void-stalker-dark-summon"]
+}

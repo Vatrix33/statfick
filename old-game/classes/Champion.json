@@ -1,0 +1,64 @@
+{
+  "id": "champion",
+  "name": "Champion",
+  "requirements": {
+    "level": 40,
+    "classes": {},
+    "anyClasses": { "slayer": 5, "gladiator": 5 },
+    "other": null
+  },
+  "maxLevel": 4,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Increase Strength and Vitality by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "strength", "amount": 5 },
+        { "type": "stat-permanent-percent", "target": "vitality", "amount": 5 }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Gain the Arena Champion passive.",
+      "effects": [{
+        "type": "passive",
+        "id": "arena-champion",
+        "name": "Arena Champion",
+        "condition": "While enemies remain",
+        "description": "Gain 2% Strength and Vitality per living enemy and 10% weapon Accuracy.",
+        "effects": [
+          { "type": "stat-permanent-percent-per-enemy", "target": "strength", "amount": 2 },
+          { "type": "stat-permanent-percent-per-enemy", "target": "vitality", "amount": 2 },
+          { "type": "weapon-hit-percent", "amount": 10 }
+        ]
+      }]
+    },
+    {
+      "level": 3,
+      "description": "Increase maximum HP and weapon power by 10%.",
+      "effects": [
+        { "type": "max-hp-percent", "amount": 10 },
+        { "type": "weapon-power-percent", "amount": 10 }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Unlock Champion's Challenge.",
+      "effects": [{
+        "type": "skill",
+        "id": "champions-challenge",
+        "name": "Champion's Challenge",
+        "combatOnly": true,
+        "cooldown": "daily",
+        "durationTurns": 3,
+        "target": "enemy",
+        "description": "Enter a protected duel with one enemy for 3 turns. During it, deal 25% more damage and take 15% less damage. Can be used once per day.",
+        "effects": [
+          { "type": "outgoing-damage-percent", "amount": 25 },
+          { "type": "incoming-damage-percent", "amount": -15 }
+        ],
+        "onActivateEffects": [{ "type": "start-duel", "durationTurns": 3 }]
+      }]
+    }
+  ]
+}

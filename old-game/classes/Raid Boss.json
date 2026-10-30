@@ -1,0 +1,17 @@
+{
+  "id": "raid-boss",
+  "name": "Raid Boss",
+  "requirements": { "level": 1, "classes": {}, "other": { "type": "unobtainable", "description": "Unobtainable" } },
+  "maxLevel": 1,
+  "levels": [
+    { "level": 1, "description": "Gain the Grand Enemy passive.", "effects": [
+      { "type": "passive", "id": "grand-enemy", "name": "Grand Enemy", "condition": "Always active", "description": "Increase maximum HP and Mana by 70%, all basic stats by 30%, grant 300% normal EXP when defeated, and gain 3 Action Points each turn.", "effects": [
+        { "type": "max-hp-percent", "amount": 70 },
+        { "type": "max-mana-percent", "amount": 70 },
+        { "type": "all-stats-permanent-percent", "amount": 30 },
+        { "type": "experience-reward-multiplier", "amount": 3 },
+        { "type": "action-points-flat", "amount": 3 }
+      ] }
+    ] }
+  ]
+}

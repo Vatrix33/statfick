@@ -1,0 +1,109 @@
+{
+  "id": "bulwark",
+  "name": "Bulwark",
+  "requirements": {
+    "level": 20,
+    "classes": {
+      "knight": 4
+    },
+    "other": {
+      "type": "defensive-actions",
+      "count": 10
+    }
+  },
+  "maxLevel": 7,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Armor +16%.",
+      "effects": [
+        {
+          "type": "defense-permanent-percent",
+          "amount": 16,
+          "target": "armor"
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Guard's armor bonus improves by 10%.",
+      "effects": [
+        {
+          "type": "stance-bonus-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Maximum HP +8%.",
+      "effects": [
+        {
+          "type": "max-hp-percent",
+          "amount": 8
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Gain Wall of Steel: take 10% less damage while Guarding.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "wall-of-steel",
+          "name": "Wall of Steel",
+          "description": "Take 10% less damage while Guarding.",
+          "effect": {
+            "type": "stance-incoming-damage-percent",
+            "amount": -10,
+            "stance": "guard"
+          }
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Shield armor +12%.",
+      "effects": [
+        {
+          "type": "equipment-armor-percent",
+          "amount": 12,
+          "armorType": "shield"
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Guard's armor bonus improves by another 10%.",
+      "effects": [
+        {
+          "type": "stance-bonus-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 7,
+      "description": "Unlock Interpose: protect an ally from attacks for two of their turns.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "interpose",
+          "name": "Interpose",
+          "description": "Guard one ally for two of their turns, intercepting attacks against them.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "ally",
+          "durationTurns": 2,
+          "onActivateEffects": [
+            {
+              "type": "guard-ally",
+              "durationTurns": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

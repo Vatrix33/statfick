@@ -1,0 +1,37 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "goblin-warlord-level-17",
+  "name": "Goblin Warlord",
+  "level": 17,
+  "raceId": "goblin",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "barbarian": 6,
+    "brawler": 3
+  },
+  "stats": {
+    "strength": 56,
+    "vitality": 50,
+    "mind": 26,
+    "dexterity": 34,
+    "intelligence": 26,
+    "wisdom": 26,
+    "speed": 31,
+    "luck": 26
+  },
+  "inventory": [
+    "forge-weapon-1-mace+flail",
+    "forge-armor-full-plate+splint-mail",
+    "forge-armor-kite-shield"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-mace+flail",
+    "offHand": "forge-armor-kite-shield",
+    "armor": "forge-armor-full-plate+splint-mail",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

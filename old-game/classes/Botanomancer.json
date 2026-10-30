@@ -1,0 +1,17 @@
+{
+  "id": "botanomancer",
+  "name": "Botanomancer",
+  "requirements": { "level": 20, "classes": {}, "anyClasses": { "spellcaster": 7, "wizard": 7 }, "other": { "type": "known-spells", "element": "nature", "count": 7, "description": "Know at least 7 Nature spells" } },
+  "maxLevel": 9,
+  "levels": [
+    { "level": 1, "description": "Increase Nature spell power by 10%.", "effects": [{ "type": "spell-power-percent", "element": "nature", "amount": 10 }] },
+    { "level": 2, "description": "Increase Wisdom by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "wisdom", "amount": 5 }] },
+    { "level": 3, "description": "Unlock Regenerative Bloom.", "effects": [{ "type": "skill", "id": "regenerative-bloom", "name": "Regenerative Bloom", "combatOnly": true, "cooldown": "combat", "durationTurns": 3, "target": "all-allies", "actionPoints": 1, "description": "For 3 turns, every living ally restores 5% maximum HP at the start of their turn. Once per combat.", "effects": [], "onActivateEffects": [{ "type": "turn-start-restore-percent", "hp": 5, "amount": 0, "durationTurns": 3 }] }] },
+    { "level": 4, "description": "Nature spells cost 10% less Mana.", "effects": [{ "type": "spell-cost-percent", "element": "nature", "amount": 10 }] },
+    { "level": 5, "description": "Gain the Cycle of Growth passive.", "effects": [{ "type": "passive", "id": "cycle-of-growth", "name": "Cycle of Growth", "condition": "Always active", "description": "Nature spells gain 15% power and maximum HP increases by 10%.", "effects": [{ "type": "spell-power-percent", "element": "nature", "amount": 15 }, { "type": "max-hp-percent", "amount": 10 }] }] },
+    { "level": 6, "description": "Increase maximum Mana by 10%.", "effects": [{ "type": "max-mana-percent", "amount": 10 }] },
+    { "level": 7, "description": "Nature spells deal 15% more damage.", "effects": [{ "type": "spell-damage-percent", "element": "nature", "amount": 15 }] },
+    { "level": 8, "description": "Nature spells cost 30% less to learn.", "effects": [{ "type": "spell-learning-cost-percent", "element": "nature", "amount": 30 }] },
+    { "level": 9, "description": "Unlock Call of the Ancient Pack.", "effects": [{ "type": "skill", "id": "call-of-the-ancient-pack", "name": "Call of the Ancient Pack", "combatOnly": true, "cooldown": "daily", "instant": true, "actionPoints": 2, "description": "Summon 2 random animal allies of a suitable level. Once per day.", "effects": [], "onActivateEffects": [{ "type": "random-animal-summon", "count": 2, "minimumLevel": 5, "maximumLevel": 13 }] }] }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "vampire", "name": "Vampire",
+  "requirements": { "level": 1, "classes": {}, "other": { "type": "inventory-item", "itemId": "key-item-blood-crystal", "consume": true, "description": "Blood Crystal (consumed on acquisition)" } },
+  "maxLevel": 4,
+  "levels": [
+    { "level": 1, "description": "Unlock Bloodfeed.", "effects": [{
+      "type": "skill", "id": "bloodfeed", "name": "Bloodfeed", "combatOnly": true, "cooldown": "combat", "usesPerCombat": 3, "durationAttacks": 1, "requiredWeaponType": "melee",
+      "description": "Your next melee attack loses 40% Accuracy. On hit, heal 50% of damage dealt, reduce all basic stats of the enemy by 10% for 5 turns, and gain 2 Blood Supplies. Can be used 3 times per combat.",
+      "effects": [{ "id": "bloodfeed-hit-penalty", "type": "weapon-hit-percent", "weaponType": "melee", "amount": -40 }],
+      "onHitEffects": [{ "type": "lifesteal-percent", "weaponType": "melee", "amount": 50 }, { "type": "target-all-stats-percent", "weaponType": "melee", "amount": -10, "durationTurns": 5 }, { "type": "blood-supplies-flat", "weaponType": "melee", "amount": 2 }]
+    }] },
+    { "level": 2, "description": "Gain the Heart of Crimson passive.", "effects": [{ "type": "passive", "id": "heart-of-crimson", "name": "Heart of Crimson", "condition": "At the start of each turn while Blood Supplies remain", "description": "Consume 1 Blood Supply at turn start to restore 10% maximum HP and 5% maximum Mana.", "effects": [{ "type": "blood-supply-turn-restore", "hp": 10, "mana": 5 }] }] },
+    { "level": 3, "description": "Increase all basic stats by 5%.", "effects": [{ "type": "all-stats-permanent-percent", "amount": 5 }] },
+    { "level": 4, "description": "Blood spells cost 30% less Mana.", "effects": [{ "type": "spell-cost-percent", "element": "blood", "amount": 30 }] }
+  ]
+}

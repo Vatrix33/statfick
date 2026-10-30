@@ -1,0 +1,36 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "dire-wolf-level-16",
+  "name": "Dire Wolf",
+  "level": 16,
+  "raceId": "wolf",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 3
+  },
+  "stats": {
+    "strength": 47,
+    "vitality": 45,
+    "mind": 25,
+    "dexterity": 39,
+    "intelligence": 25,
+    "wisdom": 25,
+    "speed": 51,
+    "luck": 28
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [],
+  "drops": [{ "itemId": "masterwork-claw-of-beowulf", "chance": 2 }]
+}

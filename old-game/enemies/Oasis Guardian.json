@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "oasis-guardian-level-38", "name": "Oasis Guardian", "level": 38,
+  "raceId": "elemental", "element": "water", "resistances": { "water": 30, "nature": 25, "fire": -20 },
+  "classLevels": { "monster": 3, "mage": 5, "spellcaster": 7, "aquamancer": 9, "botanomancer": 9, "druid": 5 },
+  "stats": { "strength": 68, "vitality": 92, "mind": 110, "dexterity": 74, "intelligence": 111, "wisdom": 107, "speed": 81, "luck": 67 },
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": ["tidal-spear-water-damage", "mending-current-water-support", "rainveil-water-support", "briar-volley-nature-damage", "regrowth-nature-support", "rooting-lance-nature-damage"]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "lich",
+  "name": "Lich",
+  "color": "purple",
+  "requirements": {
+    "level": 1,
+    "classes": {},
+    "other": { "type": "inventory-item", "itemId": "key-item-phylactery-core", "consume": true, "description": "Phylactery Core (consumed on acquisition)" }
+  },
+  "maxLevel": 5,
+  "levels": [
+    { "level": 1, "description": "Gain Immortal Body.", "effects": [{ "type": "passive", "id": "immortal-body", "name": "Immortal Body", "condition": "While you have Mana", "description": "Damage cannot reduce you below 1 HP while you have Mana; further damage drains Mana instead.", "effect": { "type": "lich-mana-barrier" } }] },
+    { "level": 2, "description": "Restore 5% maximum Mana at the start of each turn.", "effects": [{ "type": "turn-start-restore-percent", "mana": 5 }] },
+    { "level": 3, "description": "Increase maximum Mana by 10%.", "effects": [{ "type": "max-mana-percent", "amount": 10 }] },
+    { "level": 4, "description": "Death spells cost 50% less Mana.", "effects": [{ "type": "spell-cost-percent", "element": "death", "amount": 50 }] },
+    { "level": 5, "description": "Unlock Lord of Death.", "effects": [{ "type": "skill", "id": "lord-of-death", "name": "Lord of Death", "combatOnly": true, "cooldown": "daily", "instant": true, "description": "Summon 3 Undead Thralls with 100% increased base stats. Once per day.", "effects": [], "onActivateEffects": [{ "type": "apply-skill-effects", "element": "death", "effects": [{ "type": "summon-friendly", "enemyId": "undead-thrall", "count": 3, "summonBaseStatsPercent": 100 }] }] }] }
+  ]
+}

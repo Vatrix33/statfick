@@ -1,0 +1,99 @@
+{
+  "id": "druid",
+  "name": "Druid",
+  "requirements": {
+    "level": 1,
+    "classes": { "mage": 5 },
+    "other": {
+      "type": "known-spells",
+      "element": "nature",
+      "count": 3,
+      "description": "3 Nature spells known"
+    }
+  },
+  "maxLevel": 7,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Nature spells cost 15% less Mana.",
+      "effects": [
+        { "type": "spell-cost-percent", "element": "nature", "amount": 15, "description": "Nature spell Mana cost −15%" }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Unlock One with the World.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "one-with-the-world",
+          "name": "One with the World",
+          "combatOnly": true,
+          "description": "Increase all basic stats by 10% for 5 turns. While active, Nature spells cost 15% less Mana and gain 30% power. Can only be used once per day.",
+          "durationTurns": 5,
+          "cooldown": "daily",
+          "effects": [
+            { "type": "all-stats-permanent-percent", "amount": 10, "description": "All basic stat permanent bonuses +10%" },
+            { "type": "spell-cost-percent", "element": "nature", "amount": 15, "description": "Nature spell Mana cost −15%" },
+            { "type": "spell-power-percent", "element": "nature", "amount": 30, "description": "Nature spell power +30%" }
+          ]
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Increase Mind and Wisdom by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "mind", "amount": 5, "description": "Mind permanent bonus +5%" },
+        { "type": "stat-permanent-percent", "target": "wisdom", "amount": 5, "description": "Wisdom permanent bonus +5%" }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Nature spells cost 50% less to learn.",
+      "effects": [
+        { "type": "spell-learning-cost-percent", "element": "nature", "amount": 50, "description": "Nature spell learning cost −50%" }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Gain the Preservation of Nature passive.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "preservation-of-nature",
+          "name": "Preservation of Nature",
+          "condition": "Always active",
+          "description": "Take 20% less damage from Nature spells. Your Nature spells have their power increased by 20%.",
+          "effects": [
+            { "type": "incoming-spell-damage-percent", "element": "nature", "amount": -20 },
+            { "type": "spell-power-percent", "element": "nature", "amount": 20 }
+          ]
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Increase Mind by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "mind", "amount": 5, "description": "Mind permanent bonus +5%" }
+      ]
+    },
+    {
+      "level": 7,
+      "description": "Gain the Call of Nature passive.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "call-of-nature",
+          "name": "Call of Nature",
+          "condition": "When falling below 10% maximum HP",
+          "description": "When you fall below 10% of your maximum HP, summon a random friendly Beast whose level is less than half of yours. Activates once per day.",
+          "effects": [
+            { "type": "low-health-random-summon", "hpThresholdPercent": 10, "classId": "beast", "maxLevelFactor": 0.5, "cooldown": "daily" }
+          ]
+        }
+      ]
+    }
+  ]
+}

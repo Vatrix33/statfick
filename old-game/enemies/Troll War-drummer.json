@@ -1,0 +1,33 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "troll-war-drummer-level-20",
+  "name": "Troll War-drummer",
+  "level": 20,
+  "raceId": "troll",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "strategist": 5
+  },
+  "stats": {
+    "strength": 52,
+    "vitality": 60,
+    "mind": 30,
+    "dexterity": 36,
+    "intelligence": 22,
+    "wisdom": 26,
+    "speed": 34,
+    "luck": 26
+  },
+  "inventory": [],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-club",
+    "offHand": null,
+    "armor": "forge-armor-brigandine",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [],
+  "maxHpPercent": 90
+}

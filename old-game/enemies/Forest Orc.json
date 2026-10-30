@@ -1,0 +1,19 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "forest-orc-level-8",
+  "name": "Forest Orc",
+  "level": 8,
+  "raceId": "orc",
+  "classLevels": { "monster": 3, "warrior": 5 },
+  "stats": { "strength": 36, "vitality": 33, "mind": 17, "dexterity": 24, "intelligence": 18, "wisdom": 17, "speed": 22, "luck": 17 },
+  "inventory": ["forge-weapon-2-greataxe+axe", "forge-armor-leather-armor+scale-armor"],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-greataxe+axe",
+    "offHand": null,
+    "armor": "forge-armor-leather-armor+scale-armor",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

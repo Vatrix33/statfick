@@ -1,0 +1,7 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "sand-giant-level-40", "name": "Sand Giant", "level": 40, "raceId": "giant",
+  "classLevels": { "monster": 3, "warrior": 5, "knight": 7, "weaponmaster": 7, "gladiator": 7, "bulwark": 7, "soldier": 4 },
+  "stats": { "strength": 119, "vitality": 113, "mind": 53, "dexterity": 65, "intelligence": 50, "wisdom": 51, "speed": 61, "luck": 42 },
+  "inventory": ["forge-weapon-2-greatsword+zweihander", "forge-armor-full-plate+splint-mail"],
+  "equipment": { "primaryHand": "forge-weapon-2-greatsword+zweihander", "offHand": "forge-weapon-2-greatsword+zweihander", "armor": "forge-armor-full-plate+splint-mail", "artifact1": null, "artifact2": null }, "knownSpells": []
+}

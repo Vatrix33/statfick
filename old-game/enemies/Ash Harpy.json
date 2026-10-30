@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "ash-harpy-level-28", "name": "Ash Harpy",
+  "level": 28, "raceId": "harpy", "element": "fire",
+  "classLevels": { "monster": 3, "archer": 5, "rogue": 5, "hunter": 7, "ambusher": 7, "sharpshooter": 1 },
+  "stats": { "strength": 55, "vitality": 60, "mind": 43, "dexterity": 83, "intelligence": 46, "wisdom": 51, "speed": 84, "luck": 43 },
+  "inventory": ["forge-weapon-2-longbow+compoundbow"],
+  "equipment": { "primaryHand": "forge-weapon-2-longbow+compoundbow", "offHand": "forge-weapon-2-longbow+compoundbow", "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": []
+}

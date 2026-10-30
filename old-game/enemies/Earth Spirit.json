@@ -1,0 +1,38 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "earth-spirit-level-14",
+  "name": "Earth Spirit",
+  "level": 14,
+  "raceId": "elemental",
+  "classLevels": {
+    "monster": 3,
+    "mage": 5,
+    "spellcaster": 6
+  },
+  "stats": {
+    "strength": 23,
+    "vitality": 42,
+    "mind": 48,
+    "dexterity": 23,
+    "intelligence": 57,
+    "wisdom": 42,
+    "speed": 23,
+    "luck": 23
+  },
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "rock-bolt-earth-damage",
+    "minor-fortify-earth-support",
+    "knocked-earth-damage",
+    "rock-body-earth-support",
+    "quick-drill-earth-damage"
+  ]
+}

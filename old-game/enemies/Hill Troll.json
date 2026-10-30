@@ -1,0 +1,35 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "hill-troll-level-14",
+  "name": "Hill Troll",
+  "level": 14,
+  "raceId": "troll",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "barbarian": 6
+  },
+  "stats": {
+    "strength": 53,
+    "vitality": 53,
+    "mind": 23,
+    "dexterity": 31,
+    "intelligence": 23,
+    "wisdom": 23,
+    "speed": 31,
+    "luck": 23
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

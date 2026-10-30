@@ -1,0 +1,17 @@
+{
+  "id": "aquamancer",
+  "name": "Aquamancer",
+  "requirements": { "level": 20, "classes": {}, "anyClasses": { "spellcaster": 7, "wizard": 7 }, "other": { "type": "known-spells", "element": "water", "count": 7, "description": "Know at least 7 Water spells" } },
+  "maxLevel": 9,
+  "levels": [
+    { "level": 1, "description": "Increase Water spell power by 10%.", "effects": [{ "type": "spell-power-percent", "element": "water", "amount": 10 }] },
+    { "level": 2, "description": "Increase Mind by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 5 }] },
+    { "level": 3, "description": "Unlock Replenishing Tide.", "effects": [{ "type": "skill", "id": "replenishing-tide", "name": "Replenishing Tide", "combatOnly": true, "cooldown": "combat", "instant": true, "actionPoints": 1, "description": "Restore 20% maximum HP and 15% maximum Mana. Once per combat.", "effects": [], "onActivateEffects": [{ "type": "restore-resource-percent", "hp": 20, "mana": 15 }] }] },
+    { "level": 4, "description": "Water spells cost 10% less Mana.", "effects": [{ "type": "spell-cost-percent", "element": "water", "amount": 10 }] },
+    { "level": 5, "description": "Gain the Living Current passive.", "effects": [{ "type": "passive", "id": "living-current", "name": "Living Current", "condition": "Always active", "description": "Water spells gain 10% power and cost an additional 10% less Mana.", "effects": [{ "type": "spell-power-percent", "element": "water", "amount": 10 }, { "type": "spell-cost-percent", "element": "water", "amount": 10 }] }] },
+    { "level": 6, "description": "Increase maximum Mana by 10%.", "effects": [{ "type": "max-mana-percent", "amount": 10 }] },
+    { "level": 7, "description": "Water spells deal 15% more damage.", "effects": [{ "type": "spell-damage-percent", "element": "water", "amount": 15 }] },
+    { "level": 8, "description": "Water spells cost 30% less to learn.", "effects": [{ "type": "spell-learning-cost-percent", "element": "water", "amount": 30 }] },
+    { "level": 9, "description": "Unlock Sovereign Tide.", "effects": [{ "type": "skill", "id": "sovereign-tide", "name": "Sovereign Tide", "combatOnly": true, "cooldown": "daily", "durationSpells": 1, "requiredSpellElement": "water", "description": "Your next Water spell gains 25% power and is cast a second time without additional Mana or Action Points. Once per day.", "effects": [{ "type": "spell-power-percent", "element": "water", "amount": 25 }, { "type": "repeat-spell", "amount": 1 }] }] }
+  ]
+}

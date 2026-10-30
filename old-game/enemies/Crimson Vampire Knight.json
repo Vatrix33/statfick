@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "crimson-vampire-knight-level-55", "name": "Crimson Vampire Knight", "level": 55,
+  "raceId": "undead", "resistances": { "blood": 30, "dark": 25, "holy": -30 },
+  "classLevels": { "vampire": 4, "warrior": 5, "knight": 7, "heavy-knight": 5, "black-knight": 5, "soldier": 6, "guardian": 7, "weaponmaster": 7, "monster": 3, "gladiator": 6 },
+  "stats": { "strength": 140, "vitality": 147, "mind": 98, "dexterity": 97, "intelligence": 98, "wisdom": 104, "speed": 89, "luck": 80 },
+  "inventory": ["forge-weapon-1-longsword+rapier", "forge-armor-kite-shield+tower-shield", "forge-armor-full-plate+splint-mail"],
+  "equipment": { "primaryHand": "forge-weapon-1-longsword+rapier", "offHand": "forge-armor-kite-shield+tower-shield", "armor": "forge-armor-full-plate+splint-mail", "artifact1": null, "artifact2": null },
+  "knownSpells": ["dark-bolt-dark-damage", "shade-needle-dark-damage", "dark-siphon-dark-damage", "spellstop-dark-support", "umbral-hook-dark-damage", "night-drain-dark-damage", "night-mantle-dark-support", "curse-of-frailty-dark-damage", "void-lance-dark-damage", "black-sanctuary-dark-support", "crimson-nova-blood-damage"]
+}

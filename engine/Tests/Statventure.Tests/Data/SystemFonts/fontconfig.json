@@ -1,0 +1,23 @@
+{
+  "file NotoEmoji-Regular.ttf": "NotoEmoji-Regular.ttf",
+  "file NotoSansCJK-Regular.ttc": "NotoSansCJK-Regular.ttc",
+  "file NotoSansMath-Regular.ttf": "NotoSansMath-Regular.ttf",
+  "file NotoSansSymbols2-Regular.ttf": "NotoSansSymbols2-Regular.ttf",
+  "match Adwaita Mono:weight=bold": "AdwaitaMono-Bold.ttf",
+  "match Adwaita Mono:weight=regular": "AdwaitaMono-Regular.ttf",
+  "match Adwaita Sans:weight=bold": "AdwaitaSans-Regular.ttf",
+  "match Adwaita Sans:weight=regular": "AdwaitaSans-Regular.ttf",
+  "match Arial": "LiberationSans-Regular.ttf",
+  "match Arial:slant=italic": "LiberationSans-Italic.ttf",
+  "match Arial:weight=bold": "LiberationSans-Bold.ttf",
+  "match Arial:weight=bold:slant=italic": "LiberationSans-BoldItalic.ttf",
+  "match Monospace": "NotoSansMono-Regular.ttf",
+  "match Monospace:slant=italic": "NotoSansMono-Regular.ttf",
+  "match Monospace:weight=bold": "NotoSansMono-Bold.ttf",
+  "match Monospace:weight=bold:slant=italic": "NotoSansMono-Bold.ttf",
+  "match Times New Roman": "LiberationSerif-Regular.ttf",
+  "match Times New Roman:slant=italic": "LiberationSerif-Italic.ttf",
+  "match Times New Roman:weight=bold": "LiberationSerif-Bold.ttf",
+  "match Times New Roman:weight=bold:slant=italic": "LiberationSerif-BoldItalic.ttf",
+  "match sans-serif:charset=21e7:weight=medium": "AdwaitaSans-Regular.ttf"
+}

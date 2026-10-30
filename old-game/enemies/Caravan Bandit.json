@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "caravan-bandit-level-44", "name": "Caravan Bandit", "level": 44,
+  "raceId": "human",
+  "classLevels": { "warrior": 5, "rogue": 5, "archer": 5, "hunter": 7, "ambusher": 7, "thief": 5, "soldier": 3, "weaponmaster": 7 },
+  "stats": { "strength": 93, "vitality": 87, "mind": 56, "dexterity": 103, "intelligence": 59, "wisdom": 62, "speed": 106, "luck": 73 },
+  "inventory": ["forge-weapon-1-longsword+rapier", "forge-armor-brigandine"],
+  "equipment": { "primaryHand": "forge-weapon-1-longsword+rapier", "offHand": null, "armor": "forge-armor-brigandine", "artifact1": null, "artifact2": null },
+  "knownSpells": []
+}

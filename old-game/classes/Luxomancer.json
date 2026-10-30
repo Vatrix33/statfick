@@ -1,0 +1,17 @@
+{
+  "id": "luxomancer",
+  "name": "Luxomancer",
+  "requirements": { "level": 20, "classes": {}, "anyClasses": { "spellcaster": 7, "wizard": 7 }, "other": { "type": "known-spells", "element": "holy", "count": 7, "description": "Know at least 7 Holy spells" } },
+  "maxLevel": 9,
+  "levels": [
+    { "level": 1, "description": "Increase Holy spell power by 10%.", "effects": [{ "type": "spell-power-percent", "element": "holy", "amount": 10 }] },
+    { "level": 2, "description": "Increase Mind by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 5 }] },
+    { "level": 3, "description": "Unlock Healing Halo.", "effects": [{ "type": "skill", "id": "healing-halo", "name": "Healing Halo", "combatOnly": true, "cooldown": "combat", "instant": true, "target": "all-allies", "actionPoints": 1, "description": "Restore HP to all living allies. Healing scales with Mind. Once per combat.", "effects": [], "onActivateEffects": [{ "type": "apply-skill-effects", "element": "holy", "basePower": 15, "primary": { "stat": "mind", "ratio": 0.5 }, "effects": [{ "type": "heal", "amount": "power", "recipient": "all-allies" }] }] }] },
+    { "level": 4, "description": "Holy spells cost 10% less Mana.", "effects": [{ "type": "spell-cost-percent", "element": "holy", "amount": 10 }] },
+    { "level": 5, "description": "Gain the Sacred Radiance passive.", "effects": [{ "type": "passive", "id": "sacred-radiance", "name": "Sacred Radiance", "condition": "Always active", "description": "Holy spells gain 15% power and you take 20% less Dark spell damage.", "effects": [{ "type": "spell-power-percent", "element": "holy", "amount": 15 }, { "type": "incoming-spell-damage-percent", "element": "dark", "amount": -20 }] }] },
+    { "level": 6, "description": "Increase maximum Mana by 10%.", "effects": [{ "type": "max-mana-percent", "amount": 10 }] },
+    { "level": 7, "description": "Holy spells deal 15% more damage.", "effects": [{ "type": "spell-damage-percent", "element": "holy", "amount": 15 }] },
+    { "level": 8, "description": "Holy spells cost 30% less to learn.", "effects": [{ "type": "spell-learning-cost-percent", "element": "holy", "amount": 30 }] },
+    { "level": 9, "description": "Unlock Miracle.", "effects": [{ "type": "skill", "id": "miracle", "name": "Miracle", "combatOnly": true, "cooldown": "daily", "instant": true, "target": "all-allies", "actionPoints": 2, "manaCostMaxPercent": 15, "description": "Greatly heal every living ally and remove one random debuff from each. Costs 15% maximum Mana and 2 AP. Once per day.", "effects": [], "onActivateEffects": [{ "type": "apply-skill-effects", "element": "holy", "basePower": 25, "primary": { "stat": "mind", "ratio": 0.8 }, "effects": [{ "type": "heal", "amount": "power", "recipient": "all-allies" }, { "type": "remove-random-debuff", "amount": 1, "recipient": "all-allies" }] }] }] }
+  ]
+}

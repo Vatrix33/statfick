@@ -1,0 +1,101 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "great-imp-jiruan-unique-level-18",
+  "name": "Great Imp Ji'ruan",
+  "unique": true,
+  "level": 18,
+  "raceId": "demon",
+  "classLevels": {
+    "monster": 3,
+    "summoner": 7,
+    "mage": 5,
+    "spellcaster": 3
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 25,
+    "vitality": 80,
+    "mind": 70,
+    "dexterity": 45,
+    "intelligence": 62,
+    "wisdom": 50,
+    "speed": 46,
+    "luck": 30
+  },
+  "manualAllocations": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "temporaryBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": {
+    "armor": 0,
+    "evasion": 0
+  },
+  "temporaryDefenseBonuses": {
+    "armor": 0,
+    "evasion": 0
+  },
+  "baseArmor": 20,
+  "maxHpPercent": 30,
+  "maxManaPercent": 50,
+  "aiProfile": "jiruan",
+  "introCinematic": "jiruan",
+  "currentHp": 1,
+  "currentMana": 1,
+  "inventory": [
+    "forge-weapon-1-rapier~rare"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-rapier~rare",
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "summon-lesser-imp-dark-summon",
+    "summon-imp-retinue-dark-summon",
+    "dark-bolt-dark-damage",
+    "shade-needle-dark-damage",
+    "umbral-hook-dark-damage",
+    "dark-siphon-dark-damage",
+    "curse-of-frailty-dark-damage",
+    "hellstride-dark-support"
+  ],
+  "activeSkills": {},
+  "experienceRewardMultiplier": 1.3,
+  "moneyRewardMultiplier": 1.3,
+  "drops": [
+    {
+      "itemId": "masterwork-impshield",
+      "chance": 10
+    }
+  ]
+}

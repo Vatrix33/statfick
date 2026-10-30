@@ -1,0 +1,102 @@
+{
+  "id": "plaguebinder",
+  "name": "Plaguebinder",
+  "requirements": {
+    "level": 25,
+    "classes": {},
+    "anyClasses": {
+      "warlock": 5,
+      "necromancer": 5
+    },
+    "other": null
+  },
+  "maxLevel": 6,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Dark and Death spell power +5%.",
+      "effects": [
+        {
+          "type": "spell-power-percent",
+          "amount": 5,
+          "elements": [
+            "dark",
+            "death"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Mind permanent bonus +5%.",
+      "effects": [
+        {
+          "type": "stat-permanent-percent",
+          "target": "mind",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Contagion: afflictions on a defeated enemy spread to one other enemy.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "contagion",
+          "name": "Contagion",
+          "description": "When an enemy dies with poison or curse, its remaining affliction spreads to one other enemy.",
+          "effect": {
+            "type": "spread-affliction-on-kill"
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Dark and Death spell costs -5%.",
+      "effects": [
+        {
+          "type": "spell-cost-percent",
+          "amount": 5,
+          "elements": [
+            "dark",
+            "death"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Spell power +5%.",
+      "effects": [
+        {
+          "type": "spell-power-percent",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Unlock Pestilent Cloud: poison all living enemies for 6% of their maximum HP per turn for three turns.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "pestilent-cloud",
+          "name": "Pestilent Cloud",
+          "description": "Poison all living enemies for 6% of their maximum HP at the start of each turn for three turns.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "onActivateEffects": [
+            {
+              "type": "poison-all-enemies",
+              "percentMaxHp": 6,
+              "durationTurns": 3
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

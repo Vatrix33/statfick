@@ -1,0 +1,12 @@
+{
+  "id": "strategist", "name": "Strategist", "requirements": { "level": 20, "classes": {}, "other": { "type": "full-party-defensive-actions", "count": 15 } }, "maxLevel": 7,
+  "levels": [
+    { "level": 1, "description": "All allies gain 5% Speed in combat.", "effects": [{ "type": "party-stat-percent", "targets": ["speed"], "amount": 5 }] },
+    { "level": 2, "description": "Your Mind permanent bonus +5%.", "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 5 }] },
+    { "level": 3, "description": "All allies gain 5% Dexterity in combat.", "effects": [{ "type": "party-stat-percent", "targets": ["dexterity"], "amount": 5 }] },
+    { "level": 4, "description": "Gain Coordinated Defense: allied Guard and Evade favored defenses improve by an extra 15%.", "effects": [{ "type": "passive", "id": "coordinated-defense", "name": "Coordinated Defense", "description": "All living allies gain an extra 15% favored defense from Guard or Evade.", "effect": { "type": "party-stance-bonus-percent", "amount": 15 } }] },
+    { "level": 5, "description": "All allies gain 5% Luck in combat.", "effects": [{ "type": "party-stat-percent", "targets": ["luck"], "amount": 5 }] },
+    { "level": 6, "description": "Your Evasion +20%.", "effects": [{ "type": "defense-permanent-percent", "target": "evasion", "amount": 20 }] },
+    { "level": 7, "description": "Unlock Focus Fire: once per combat, mark one enemy; every ally deals 20% more damage to it until it falls.", "effects": [{ "type": "skill", "id": "focus-fire", "name": "Focus Fire", "description": "Once per combat, mark a target. All allies deal 20% more damage to it until it falls.", "cooldown": "combat", "combatOnly": true, "target": "enemy", "canDeactivate": false, "effects": [{ "type": "tactical-mark", "damagePercent": 20, "turnAdvance": 0 }] }] }
+  ]
+}

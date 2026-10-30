@@ -1,0 +1,54 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "crimson-dragon-level-60",
+  "name": "Crimson Dragon",
+  "level": 60,
+  "raceId": "dragon",
+  "element": "blood",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 3,
+    "dragonkin": 7,
+    "mage": 5,
+    "spellcaster": 7,
+    "hemomancer": 9,
+    "warrior": 5,
+    "great-mage": 6
+  },
+  "stats": {
+    "strength": 152,
+    "vitality": 143,
+    "mind": 133,
+    "dexterity": 119,
+    "intelligence": 136,
+    "wisdom": 108,
+    "speed": 118,
+    "luck": 93
+  },
+  "resistances": {
+    "blood": 35,
+    "holy": -40
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "hematic-storm-blood-damage",
+    "scarlet-execution-blood-damage",
+    "vessel-covenant-blood-support",
+    "crimson-nova-blood-damage",
+    "crimson-pact-blood-support",
+    "dragonbreath-crimson-deluge-blood-damage",
+    "summon-hemoghost-blood-summon"
+  ]
+}

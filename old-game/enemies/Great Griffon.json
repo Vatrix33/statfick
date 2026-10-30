@@ -1,0 +1,36 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "great-griffon-level-18",
+  "name": "Great Griffon",
+  "level": 18,
+  "raceId": "griffon",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 3,
+    "archer": 2
+  },
+  "stats": {
+    "strength": 50,
+    "vitality": 46,
+    "mind": 27,
+    "dexterity": 53,
+    "intelligence": 27,
+    "wisdom": 27,
+    "speed": 61,
+    "luck": 34
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

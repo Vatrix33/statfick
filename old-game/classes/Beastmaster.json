@@ -1,0 +1,55 @@
+{
+  "id": "beastmaster",
+  "name": "Beastmaster",
+  "requirements": {
+    "level": 1,
+    "classes": { "summoner": 3 },
+    "other": { "type": "known-summon-spells", "element": "nature", "count": 1, "description": "At least 1 Nature Summon spell known" }
+  },
+  "maxLevel": 7,
+  "levels": [
+    { "level": 1, "description": "Summon spells cost 15% less Mana.", "effects": [{ "type": "spell-cost-percent", "summonOnly": true, "amount": 15 }] },
+    { "level": 2, "description": "Increase Mind by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 5 }] },
+    {
+      "level": 3,
+      "description": "Gain the Animal Companion passive.",
+      "effects": [{
+        "type": "passive",
+        "id": "animal-companion",
+        "name": "Animal Companion",
+        "condition": "At the start of combat",
+        "description": "At combat start, summon a random friendly wolf, bear, or griffon whose level is no higher than half of yours.",
+        "effects": [{
+          "type": "combat-start-random-animal",
+          "name": "Animal Companion",
+          "raceIds": ["wolf", "bear", "griffon"],
+          "maxLevelFactor": 0.5,
+          "count": 1
+        }]
+      }]
+    },
+    { "level": 4, "description": "Your summons' base stats increase by 15%.", "effects": [{ "type": "summon-base-stats-percent", "amount": 15 }] },
+    { "level": 5, "description": "Increase maximum Mana by 10%.", "effects": [{ "type": "max-mana-percent", "amount": 10 }] },
+    { "level": 6, "description": "Your summons' base stats increase by another 15%.", "effects": [{ "type": "summon-base-stats-percent", "amount": 15 }] },
+    {
+      "level": 7,
+      "description": "Unlock Call the Pack.",
+      "effects": [{
+        "type": "skill",
+        "id": "call-the-pack",
+        "name": "Call the Pack",
+        "combatOnly": true,
+        "cooldown": "daily",
+        "instant": true,
+        "description": "Summon two random friendly wolves, bears, or griffons whose levels are no higher than half of yours. Can be used once per day.",
+        "effects": [],
+        "onActivateEffects": [{
+          "type": "random-animal-summon",
+          "raceIds": ["wolf", "bear", "griffon"],
+          "maxLevelFactor": 0.5,
+          "count": 2
+        }]
+      }]
+    }
+  ]
+}

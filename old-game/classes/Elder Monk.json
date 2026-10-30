@@ -1,0 +1,9 @@
+{
+  "id": "elder-monk", "name": "Elder Monk", "color": "blue", "requirements": { "level": 45, "classes": { "monk": 8 }, "other": null }, "maxLevel": 4,
+  "levels": [
+    { "level": 1, "description": "Unarmed power +35%.", "effects": [{ "type": "unarmed-power-percent", "amount": 35 }] },
+    { "level": 2, "description": "Stunning Strike gains 15 percentage points of stun chance.", "effects": [{ "type": "skill-upgrade", "skillId": "monk:stunning-strike", "onHitAmountFlat": 15, "onHitType": "stun-chance" }] },
+    { "level": 3, "description": "Unlock Inner Fist: once per combat, your next unarmed attack deals 65% more damage and heals you for 25% of damage dealt.", "effects": [{ "type": "skill", "id": "inner-fist", "name": "Inner Fist", "combatOnly": true, "cooldown": "combat", "durationAttacks": 1, "requiredWeaponType": "unarmed", "description": "Once per combat, your next unarmed attack gains 65% power and heals you for 25% of its damage.", "effects": [{ "type": "unarmed-power-percent", "amount": 65 }], "onHitEffects": [{ "type": "lifesteal-percent", "amount": 25 }] }] },
+    { "level": 4, "description": "Gain Perfect Form: unarmed attacks gain another 0.2× Wisdom scaling and you take 10% less spell damage.", "effects": [{ "type": "passive", "id": "perfect-form", "name": "Perfect Form", "description": "Unarmed attacks gain 0.2× Wisdom scaling; incoming spell damage is reduced by 10%.", "effects": [{ "type": "unarmed-scaling", "stat": "wisdom", "amount": 0.2 }, { "type": "incoming-spell-damage-percent", "amount": -10 }] }] }
+  ]
+}

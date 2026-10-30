@@ -1,0 +1,11 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "jungle-treant-level-56", "name": "Jungle Treant", "level": 56, "raceId": "treant",
+  "classLevels": { "beast": 3, "great-beast": 10, "monster": 3, "warrior": 5, "guardian": 7, "soldier": 6, "bulwark": 7, "stonebreaker": 3, "brawler": 6, "berserker": 6 },
+  "stats": { "strength": 152, "vitality": 178, "mind": 72, "dexterity": 68, "intelligence": 71, "wisdom": 80, "speed": 48, "luck": 50 },
+  "baseArmor": 34, "resistances": { "nature": 30, "fire": -40 },
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": []
+}

@@ -1,0 +1,45 @@
+{
+  "id": "guardian",
+  "name": "Guardian",
+  "requirements": {
+    "level": 1,
+    "classes": { "knight": 3 },
+    "other": { "type": "party-highest-max-hp", "description": "Most maximum HP in the party" }
+  },
+  "maxLevel": 7,
+  "levels": [
+    { "level": 1, "description": "Increase Vitality by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "vitality", "amount": 5 }] },
+    { "level": 2, "description": "Increase Armor by 10%.", "effects": [{ "type": "defense-permanent-percent", "target": "armor", "amount": 10 }] },
+    {
+      "level": 3,
+      "description": "Gain the Interpose passive.",
+      "effects": [{
+        "type": "passive",
+        "id": "interpose",
+        "name": "Interpose",
+        "condition": "When an ally is targeted by a single-target attack",
+        "description": "You have a 35% chance to intercept a single-target melee, ranged, or spell attack aimed at an ally.",
+        "effects": [{ "type": "intercept-ally-attack-chance", "amount": 35 }]
+      }]
+    },
+    { "level": 4, "description": "Increase maximum HP by 10%.", "effects": [{ "type": "max-hp-percent", "amount": 10 }] },
+    { "level": 5, "description": "Shields grant 25% more Armor.", "effects": [{ "type": "equipment-armor-percent", "armorType": "shield", "amount": 25 }] },
+    { "level": 6, "description": "Take 10% less damage from all sources.", "effects": [{ "type": "incoming-damage-percent", "amount": -10 }] },
+    {
+      "level": 7,
+      "description": "Unlock Aegis Bond.",
+      "effects": [{
+        "type": "skill",
+        "id": "aegis-bond",
+        "name": "Aegis Bond",
+        "combatOnly": true,
+        "cooldown": "combat",
+        "durationTurns": 3,
+        "target": "ally",
+        "description": "Choose an ally. For 3 turns, all single-target melee, ranged, and spell attacks against that ally are redirected to you, and your Armor increases by 20%. Can be used once per combat.",
+        "effects": [{ "type": "defense-permanent-percent", "target": "armor", "amount": 20 }],
+        "onActivateEffects": [{ "type": "guard-ally", "durationTurns": 3 }]
+      }]
+    }
+  ]
+}

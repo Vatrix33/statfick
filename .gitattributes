@@ -1,0 +1,19 @@
+# Text files are stored and checked out with LF everywhere (Windows too): the scripts need it and
+# the tests compare reference files byte for byte.
+* text=auto eol=lf
+# Binary data.
+*.png binary
+*.gz binary
+*.ttf binary
+*.otf binary
+*.ttc binary
+*.mp3 binary
+*.ogg binary
+*.wav binary
+*.ico binary
+*.icns binary
+*.spv binary
+*.blend binary
+*.glb binary
+# Kept exactly as the old game has it (CRLF).
+/old-game/classes/newc/Bruiser.txt -text

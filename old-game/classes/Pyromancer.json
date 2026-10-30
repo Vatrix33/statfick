@@ -1,0 +1,17 @@
+{
+  "id": "pyromancer",
+  "name": "Pyromancer",
+  "requirements": { "level": 20, "classes": {}, "anyClasses": { "spellcaster": 7, "wizard": 7 }, "other": { "type": "known-spells", "element": "fire", "count": 7, "description": "Know at least 7 Fire spells" } },
+  "maxLevel": 9,
+  "levels": [
+    { "level": 1, "description": "Increase Fire spell power by 10%.", "effects": [{ "type": "spell-power-percent", "element": "fire", "amount": 10 }] },
+    { "level": 2, "description": "Increase Intelligence by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "intelligence", "amount": 5 }] },
+    { "level": 3, "description": "Unlock Kindle.", "effects": [{ "type": "skill", "id": "kindle", "name": "Kindle", "combatOnly": true, "cooldown": "combat", "durationSpells": 1, "requiredSpellElement": "fire", "description": "Your next Fire spell gains 40% power and costs 25% less Mana. Once per combat.", "effects": [{ "type": "spell-power-percent", "element": "fire", "amount": 40 }, { "type": "spell-cost-percent", "element": "fire", "amount": 25 }] }] },
+    { "level": 4, "description": "Fire spells cost 10% less Mana.", "effects": [{ "type": "spell-cost-percent", "element": "fire", "amount": 10 }] },
+    { "level": 5, "description": "Gain the Kindled Soul passive.", "effects": [{ "type": "passive", "id": "kindled-soul", "name": "Kindled Soul", "condition": "Always active", "description": "Fire spells deal 15% more damage and you take 20% less Fire spell damage.", "effects": [{ "type": "spell-damage-percent", "element": "fire", "amount": 15 }, { "type": "incoming-spell-damage-percent", "element": "fire", "amount": -20 }] }] },
+    { "level": 6, "description": "Increase maximum Mana by 10%.", "effects": [{ "type": "max-mana-percent", "amount": 10 }] },
+    { "level": 7, "description": "Fire spells deal 15% more damage.", "effects": [{ "type": "spell-damage-percent", "element": "fire", "amount": 15 }] },
+    { "level": 8, "description": "Fire spells cost 30% less to learn.", "effects": [{ "type": "spell-learning-cost-percent", "element": "fire", "amount": 30 }] },
+    { "level": 9, "description": "Unlock Living Inferno.", "effects": [{ "type": "skill", "id": "living-inferno", "name": "Living Inferno", "combatOnly": true, "cooldown": "daily", "durationTurns": 3, "description": "For 3 turns, Fire spells gain 50% power and cost 25% less Mana, but you take 10% more damage. Once per day.", "effects": [{ "type": "spell-power-percent", "element": "fire", "amount": 50 }, { "type": "spell-cost-percent", "element": "fire", "amount": 25 }, { "type": "incoming-damage-percent", "amount": 10 }] }] }
+  ]
+}

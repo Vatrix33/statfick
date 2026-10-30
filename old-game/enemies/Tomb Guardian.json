@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "tomb-guardian-level-50", "name": "Tomb Guardian", "level": 50,
+  "raceId": "undead", "baseArmor": 18,
+  "classLevels": { "monster": 3, "warrior": 5, "knight": 7, "heavy-knight": 5, "guardian": 7, "bulwark": 7, "soldier": 6 },
+  "stats": { "strength": 129, "vitality": 140, "mind": 65, "dexterity": 70, "intelligence": 58, "wisdom": 80, "speed": 65, "luck": 50 },
+  "inventory": ["forge-weapon-1-mace+flail", "forge-armor-full-plate+splint-mail", "forge-armor-kite-shield+tower-shield"],
+  "equipment": { "primaryHand": "forge-weapon-1-mace+flail", "offHand": "forge-armor-kite-shield+tower-shield", "armor": "forge-armor-full-plate+splint-mail", "artifact1": null, "artifact2": null },
+  "knownSpells": []
+}

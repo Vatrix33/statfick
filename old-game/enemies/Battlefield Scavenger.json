@@ -1,0 +1,8 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "battlefield-scavenger-level-65", "name": "Battlefield Scavenger", "level": 65,
+  "raceId": "human", "classLevels": { "warrior": 5, "rogue": 5, "archer": 5, "hunter": 7, "ambusher": 7, "thief": 5, "soldier": 3, "weaponmaster": 7, "stalker": 4, "shadow": 6, "eminence": 4, "gladiator": 7 },
+  "stats": { "strength": 128, "vitality": 123, "mind": 77, "dexterity": 145, "intelligence": 81, "wisdom": 87, "speed": 158, "luck": 122 },
+  "inventory": ["forge-weapon-1-dagger", "forge-weapon-1-dagger", "forge-armor-brigandine"],
+  "equipment": { "primaryHand": "forge-weapon-1-dagger", "offHand": "forge-weapon-1-dagger", "armor": "forge-armor-brigandine", "artifact1": null, "artifact2": null },
+  "knownSpells": []
+}

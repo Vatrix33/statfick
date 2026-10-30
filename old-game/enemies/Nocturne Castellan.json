@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "nocturne-castellan-level-70", "name": "Nocturne Castellan", "level": 70,
+  "raceId": "undead", "resistances": { "blood": 40, "dark": 35, "holy": -35 },
+  "classLevels": { "vampire": 4, "warrior": 5, "knight": 7, "heavy-knight": 5, "black-knight": 5, "soldier": 6, "guardian": 7, "weaponmaster": 7, "monster": 3, "gladiator": 7, "bulwark": 7, "berserker": 6, "mage": 1 },
+  "stats": { "strength": 169, "vitality": 183, "mind": 126, "dexterity": 111, "intelligence": 130, "wisdom": 122, "speed": 110, "luck": 108 },
+  "inventory": ["forge-weapon-1-longsword+rapier", "forge-armor-tower-shield+kite-shield", "forge-armor-full-plate"],
+  "equipment": { "primaryHand": "forge-weapon-1-longsword+rapier", "offHand": "forge-armor-tower-shield+kite-shield", "armor": "forge-armor-full-plate", "artifact1": null, "artifact2": null },
+  "knownSpells": ["dark-bolt-dark-damage", "shade-needle-dark-damage", "dark-siphon-dark-damage", "spellstop-dark-support", "umbral-hook-dark-damage", "night-drain-dark-damage", "night-mantle-dark-support", "curse-of-frailty-dark-damage", "void-lance-dark-damage", "black-sanctuary-dark-support", "crimson-nova-blood-damage", "sanguine-lance-blood-damage"]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "vampire-lord", "name": "Vampire Lord", "requirements": { "level": 40, "classes": { "vampire": 4 }, "other": null }, "maxLevel": 3,
+  "levels": [
+    { "level": 1, "description": "Bloodfeed no longer loses Accuracy and can be used 5 times per combat.", "effects": [{ "type": "skill-upgrade", "skillId": "vampire:bloodfeed", "usesPerCombat": 5, "removeEffectId": "bloodfeed-hit-penalty" }] },
+    { "level": 2, "description": "Heart of Crimson restores an additional 10% HP and 5% Mana.", "effects": [{ "type": "passive-upgrade", "passiveId": "vampire:heart-of-crimson", "hp": 10, "mana": 5 }] },
+    { "level": 3, "description": "Unlock Blood Frenzy.", "effects": [{
+      "type": "skill", "id": "blood-frenzy", "name": "Blood Frenzy", "combatOnly": true, "cooldown": "daily", "cooldownDays": 7, "durationTurns": 3, "requiredResource": "blood-supplies", "minimumResource": 1,
+      "description": "Consume all Blood Supplies. Increase all basic stats by 10% per stack for 3 turns and restore 10% HP and Mana at each turn start. Afterwards, set HP and Mana to 10. Can be used once every 7 days.", "effects": [],
+      "onActivateEffects": [{ "type": "consume-all-blood-supplies-stat-percent", "amountPerStack": 10 }, { "type": "turn-start-restore-percent", "hp": 10, "mana": 10, "durationTurns": 3 }],
+      "onExpireEffects": [{ "type": "set-resources-flat", "hp": 10, "mana": 10 }]
+    }] }
+  ]
+}

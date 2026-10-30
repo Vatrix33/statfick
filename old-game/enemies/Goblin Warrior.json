@@ -1,0 +1,70 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "goblin-warrior-level-4",
+  "name": "Goblin Warrior",
+  "level": 4,
+  "raceId": "goblin",
+  "classLevels": {
+    "warrior": 4
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 21,
+    "vitality": 18,
+    "mind": 13,
+    "dexterity": 15,
+    "intelligence": 13,
+    "wisdom": 13,
+    "speed": 13,
+    "luck": 13
+  },
+  "manualAllocations": {
+    "strength": 8,
+    "vitality": 5,
+    "mind": 0,
+    "dexterity": 2,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "temporaryBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "temporaryDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "currentHp": 26,
+  "currentMana": 8,
+  "inventory": [
+    "forge-weapon-1-longsword+rapier",
+    "forge-armor-garb"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-longsword+rapier",
+    "offHand": null,
+    "armor": "forge-armor-garb",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [],
+  "activeSkills": {}
+}

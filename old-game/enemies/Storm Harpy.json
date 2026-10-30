@@ -1,0 +1,8 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "storm-harpy-level-29", "name": "Storm Harpy", "level": 29, "raceId": "harpy", "element": "lightning",
+  "classLevels": { "monster": 3, "archer": 5, "hunter": 7, "mage": 5, "spellcaster": 7, "rogue": 2 },
+  "stats": { "strength": 55, "vitality": 62, "mind": 77, "dexterity": 85, "intelligence": 84, "wisdom": 64, "speed": 91, "luck": 53 },
+  "inventory": ["forge-weapon-2-longbow+compoundbow"],
+  "equipment": { "primaryHand": "forge-weapon-2-longbow+compoundbow", "offHand": "forge-weapon-2-longbow+compoundbow", "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": ["lightning-bolt-lightning-damage", "spark-lightning-damage", "lightning-spear-lightning-damage", "chain-lightning-lightning-damage", "quick-gust-wind-damage", "gale-step-wind-support"]
+}

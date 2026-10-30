@@ -1,0 +1,54 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "yellow-dragon-level-60",
+  "name": "Yellow Dragon",
+  "level": 60,
+  "raceId": "dragon",
+  "element": "lightning",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 3,
+    "dragonkin": 7,
+    "mage": 5,
+    "spellcaster": 7,
+    "electromancer": 9,
+    "warrior": 5,
+    "great-mage": 6
+  },
+  "stats": {
+    "strength": 133,
+    "vitality": 134,
+    "mind": 135,
+    "dexterity": 127,
+    "intelligence": 145,
+    "wisdom": 105,
+    "speed": 141,
+    "luck": 93
+  },
+  "resistances": {
+    "lightning": 35,
+    "earth": -40
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "summon-lightning-elemental-lightning-summon",
+    "tempest-circuit-lightning-damage",
+    "thunderbrand-lightning-damage",
+    "chain-resonance-lightning-damage",
+    "static-surge-lightning-support",
+    "dragonbreath-thunder-maw-lightning-damage",
+    "chain-lightning-lightning-damage"
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "juvenile-wolf-beast-level-2",
+  "name": "Juvenile Wolf",
+  "level": 2,
+  "raceId": "wolf",
+  "classLevels": {
+    "beast": 2
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 14,
+    "vitality": 11,
+    "mind": 11,
+    "dexterity": 12,
+    "intelligence": 11,
+    "wisdom": 11,
+    "speed": 12,
+    "luck": 11
+  },
+  "manualAllocations": {
+    "strength": 3,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 1,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 1,
+    "luck": 0
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "temporaryBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "temporaryDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "currentHp": 13,
+  "currentMana": 7,
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [],
+  "activeSkills": {},
+  "drops": [{ "itemId": "masterwork-claw-of-beowulf", "chance": 2 }]
+}

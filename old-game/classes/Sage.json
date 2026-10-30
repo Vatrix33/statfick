@@ -1,0 +1,10 @@
+{
+  "id": "sage", "name": "Sage", "color": "blue", "requirements": { "level": 1, "classes": {}, "anyClasses": { "spellcaster": 7, "wizard": 7 }, "other": { "type": "mana-exceeds-hp" } }, "maxLevel": 5,
+  "levels": [
+    { "level": 1, "description": "Maximum Mana +20%.", "effects": [{ "type": "max-mana-percent", "amount": 20 }] },
+    { "level": 2, "description": "Mind +5%.", "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 5 }] },
+    { "level": 3, "description": "Unlock Mana Well: once per combat, restore 25% maximum Mana to all living allies.", "effects": [{ "type": "skill", "id": "mana-well", "name": "Mana Well", "description": "Once per combat, restore 25% maximum Mana to all living allies. Costs 1 AP.", "combatOnly": true, "cooldown": "combat", "instant": true, "target": "all-allies", "actionPoints": 1, "onActivateEffects": [{ "type": "restore-resource-percent", "recipient": "all-allies", "mana": 25 }] }] },
+    { "level": 4, "description": "Maximum Mana +20%.", "effects": [{ "type": "max-mana-percent", "amount": 20 }] },
+    { "level": 5, "description": "Gain Deep Reservoir: maximum Mana +20%; restore 4% maximum Mana at the start of each combat turn.", "effects": [{ "type": "passive", "id": "deep-reservoir", "name": "Deep Reservoir", "description": "Maximum Mana +20%; regenerate 4% maximum Mana at the start of each combat turn.", "effects": [{ "type": "max-mana-percent", "amount": 20 }, { "type": "turn-start-restore-percent", "mana": 4 }] }] }
+  ]
+}

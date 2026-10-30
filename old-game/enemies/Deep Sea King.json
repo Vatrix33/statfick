@@ -1,0 +1,94 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "deep-sea-king-unique-level-32",
+  "name": "Deep Sea King",
+  "unique": true,
+  "level": 32,
+  "raceId": "merfolk",
+  "classLevels": {
+    "raid-boss": 1,
+    "warrior": 5,
+    "rogue": 5,
+    "weaponmaster": 7,
+    "gladiator": 7,
+    "soldier": 6,
+    "monster": 1
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 93,
+    "vitality": 40,
+    "mind": 41,
+    "dexterity": 70,
+    "intelligence": 41,
+    "wisdom": 41,
+    "speed": 60,
+    "luck": 41
+  },
+  "manualAllocations": {
+    "strength": 39,
+    "vitality": 17,
+    "mind": 0,
+    "dexterity": 49,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 19,
+    "luck": 0
+  },
+  "inventory": [
+    "weapon-masterwork-royal-trident-20-hmmyt-elque-dwman-s0",
+    "forge-armor-brigandine"
+  ],
+  "equipment": {
+    "primaryHand": "weapon-masterwork-royal-trident-20-hmmyt-elque-dwman-s0",
+    "offHand": null,
+    "armor": "forge-armor-brigandine",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "maxHpPercent": 740,
+  "noDropItems": [
+    "weapon-masterwork-royal-trident-20-hmmyt-elque-dwman-s0",
+    "forge-armor-brigandine"
+  ],
+  "knownSpells": [],
+  "aiProfile": "deep-sea-king",
+  "introCinematic": "deep-sea-king",
+  "royalDuel": {
+    "durationTurns": 2,
+    "outsideDamagePercent": -50,
+    "triumph": {
+      "healPercent": 10,
+      "damagePercent": 10,
+      "maxStacks": 5
+    },
+    "honor": [
+      {
+        "type": "outgoing-attack-damage-percent",
+        "amount": 15,
+        "attackKinds": [
+          "melee",
+          "ranged"
+        ]
+      },
+      {
+        "type": "spell-power-percent",
+        "amount": 15
+      },
+      {
+        "type": "defense-percent",
+        "target": "armor",
+        "amount": 20
+      }
+    ],
+    "honorTurns": 2
+  },
+  "drops": [
+    {
+      "itemId": "masterwork-royal-trident",
+      "chance": 12
+    }
+  ]
+}

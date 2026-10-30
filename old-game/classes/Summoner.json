@@ -1,0 +1,95 @@
+{
+  "id": "summoner",
+  "name": "Summoner",
+  "requirements": {
+    "level": 1,
+    "classes": { "mage": 5 },
+    "other": {
+      "type": "summon-spells-used",
+      "count": 10,
+      "description": "10 summon spells used"
+    }
+  },
+  "maxLevel": 7,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Summon spells cost 30% less Mana.",
+      "effects": [
+        { "type": "spell-cost-percent", "summonOnly": true, "amount": 30 }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Increase Mind by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "mind", "amount": 5 }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain the Overprotective passive.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "overprotective",
+          "name": "Overprotective",
+          "condition": "While one of your summoned creatures is alive",
+          "description": "While a summoned creature of yours is alive, you cannot be attacked.",
+          "effects": [
+            { "type": "untargetable-while-own-summon-alive" }
+          ]
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Increase Speed by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "speed", "amount": 5 }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Double Summon.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "double-summon",
+          "name": "Double Summon",
+          "combatOnly": true,
+          "cooldown": "daily",
+          "durationSummonSpells": 1,
+          "description": "Your next summon spell costs no Mana and uses only 2 Action Points. Can be used once per day.",
+          "effects": [
+            { "type": "spell-cost-percent", "summonOnly": true, "amount": 100 },
+            { "type": "spell-action-points-set", "summonOnly": true, "amount": 2 }
+          ]
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Increase Mind by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "mind", "amount": 5 }
+      ]
+    },
+    {
+      "level": 7,
+      "description": "Gain the Powerful Friends passive.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "powerful-friends",
+          "name": "Powerful Friends",
+          "condition": "When you summon a creature",
+          "description": "Creatures you summon have their base stats increased by 20%.",
+          "effects": [
+            { "type": "summon-base-stats-percent", "amount": 20 }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "bog-troll-level-36", "name": "Bog Troll", "level": 36, "raceId": "troll",
+  "classLevels": { "monster": 3, "warrior": 5, "barbarian": 7, "brawler": 6, "stonebreaker": 3, "soldier": 6, "guardian": 6 },
+  "stats": { "strength": 108, "vitality": 121, "mind": 48, "dexterity": 54, "intelligence": 43, "wisdom": 49, "speed": 44, "luck": 38 },
+  "baseArmor": 12,
+  "inventory": ["forge-weapon-2-greataxe+axe"],
+  "equipment": { "primaryHand": "forge-weapon-2-greataxe+axe", "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": []
+}

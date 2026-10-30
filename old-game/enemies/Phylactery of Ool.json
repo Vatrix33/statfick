@@ -1,0 +1,15 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "phylactery-of-ool-level-78", "name": "Phylactery of Ool", "level": 78, "raceId": "undead", "element": "death",
+  "inert": true,
+  "classLevels": {},
+  "perkPoints": 0, "availablePoints": 0,
+  "stats": { "strength": 0, "vitality": 120, "mind": 0, "dexterity": 0, "intelligence": 0, "wisdom": 0, "speed": 97, "luck": 0 },
+  "manualAllocations": { "strength": 0, "vitality": 0, "mind": 0, "dexterity": 0, "intelligence": 0, "wisdom": 0, "speed": 0, "luck": 0 },
+  "resistances": { "death": 50, "dark": 35, "holy": -35 },
+  "baseArmor": 40, "maxHpPercent": 3000,
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": [],
+  "drops": []
+}

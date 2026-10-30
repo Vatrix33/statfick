@@ -1,0 +1,45 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "wind-elemental-level-25",
+  "name": "Wind Elemental",
+  "level": 25,
+  "raceId": "elemental",
+  "classLevels": {
+    "monster": 3,
+    "mage": 5,
+    "warrior": 5,
+    "spellblade": 5,
+    "spellcaster": 7
+  },
+  "stats": {
+    "strength": 32,
+    "vitality": 45,
+    "mind": 62,
+    "dexterity": 62,
+    "intelligence": 82,
+    "wisdom": 68,
+    "speed": 72,
+    "luck": 30
+  },
+  "inventory": [
+    "forge-weapon-1-wand"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-wand",
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "minor-boost-wind-support",
+    "quick-gust-wind-damage",
+    "wind-bolt-wind-damage",
+    "spell-bolt-basic-damage",
+    "allgust-wind-damage",
+    "backwind-wind-support",
+    "deflect-missiles-wind-support",
+    "razor-squall-wind-damage"
+  ]
+}

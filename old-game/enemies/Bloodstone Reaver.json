@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "bloodstone-reaver-level-58", "name": "Bloodstone Reaver", "level": 58,
+  "raceId": "undead", "resistances": { "blood": 30, "dark": 20, "holy": -30 },
+  "classLevels": { "vampire": 4, "warrior": 5, "berserker": 6, "soldier": 6, "weaponmaster": 7, "gladiator": 7, "hunter": 7, "archer": 5, "rogue": 5, "thief": 5, "monster": 1 },
+  "stats": { "strength": 147, "vitality": 130, "mind": 83, "dexterity": 124, "intelligence": 75, "wisdom": 81, "speed": 111, "luck": 92 },
+  "inventory": ["forge-weapon-2-greataxe+axe", "forge-armor-brigandine"],
+  "equipment": { "primaryHand": "forge-weapon-2-greataxe+axe", "offHand": null, "armor": "forge-armor-brigandine", "artifact1": null, "artifact2": null },
+  "knownSpells": ["bloodbrand-blood-support", "crimson-renewal-blood-support"]
+}

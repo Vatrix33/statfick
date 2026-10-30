@@ -1,0 +1,22 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "jungle-core-level-50", "name": "Jungle Core", "level": 50, "raceId": "elemental", "element": "nature",
+  "classLevels": { "monster": 3, "mage": 5, "spellcaster": 7, "wizard": 7, "geomancer": 9, "botanomancer": 9, "sage": 5, "scholar": 5 },
+  "perkPoints": 0, "availablePoints": 0,
+  "stats": { "strength": 59, "vitality": 89, "mind": 124, "dexterity": 59, "intelligence": 124, "wisdom": 89, "speed": 65, "luck": 59 },
+  "manualAllocations": { "strength": 0, "vitality": 30, "mind": 65, "dexterity": 0, "intelligence": 65, "wisdom": 30, "speed": 6, "luck": 0 },
+  "baseArmor": 0,
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": [
+    "rock-bolt-earth-damage", "minor-fortify-earth-support", "pebble-spray-earth-damage",
+    "rock-body-earth-support", "stone-spike-earth-damage", "faultline-earth-damage",
+    "stone-bastion-earth-support", "petrifying-grasp-earth-damage", "mountain-crusher-earth-damage",
+    "fortress-of-stone-earth-support", "sundering-rift-earth-damage", "obsidian-spire-earth-damage",
+    "leaf-bolt-nature-damage", "touch-grass-nature-support", "sapling-guard-nature-support",
+    "thorns-shot-nature-damage", "bramble-bind-nature-damage", "regrowth-nature-support",
+    "briar-volley-nature-damage", "vine-whip-nature-damage", "verdant-eruption-nature-damage",
+    "greater-regrowth-nature-support", "briarstorm-nature-damage", "verdant-renewal-nature-support"
+  ],
+  "drops": []
+}

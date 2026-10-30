@@ -1,0 +1,84 @@
+{
+  "id": "flagbearer",
+  "name": "Flagbearer",
+  "color": "blue",
+  "requirements": {
+    "level": 1,
+    "classes": {
+      "strategist": 5
+    },
+    "other": {
+      "type": "companion-count",
+      "count": 2
+    }
+  },
+  "maxLevel": 4,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Living companions gain +5% Strength and Dexterity in combat.",
+      "effects": [
+        {
+          "type": "party-stat-percent",
+          "amount": 5,
+          "targets": [
+            "strength",
+            "dexterity"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Armor +10%.",
+      "effects": [
+        {
+          "type": "defense-permanent-percent",
+          "amount": 10,
+          "target": "armor"
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Rallying Colors: living companions gain +5% Speed.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "rallying-colors",
+          "name": "Rallying Colors",
+          "description": "Living companions gain +5% Speed while you remain standing.",
+          "effect": {
+            "type": "party-stat-percent",
+            "targets": [
+              "speed"
+            ],
+            "amount": 5
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Unlock Raise Standard: create a fragile standard that grants allies +15% damage until destroyed.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "raise-standard",
+          "name": "Raise Standard",
+          "description": "Raise a fragile battle standard. While it lives, allies deal 15% more damage; enemies can destroy it.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "onActivateEffects": [
+            {
+              "type": "raise-standard",
+              "hpPercent": 15,
+              "damagePercent": 15
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

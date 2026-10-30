@@ -1,0 +1,39 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "crag-troll-level-45",
+  "name": "Crag Troll",
+  "level": 45,
+  "raceId": "troll",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "barbarian": 6,
+    "brawler": 5,
+    "great-beast": 10,
+    "soldier": 6,
+    "slayer": 7,
+    "stonebreaker": 3
+  },
+  "stats": {
+    "strength": 112,
+    "vitality": 119,
+    "mind": 39,
+    "dexterity": 54,
+    "intelligence": 40,
+    "wisdom": 43,
+    "speed": 48,
+    "luck": 36
+  },
+  "inventory": [
+    "forge-weapon-1-mace+flail"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-mace+flail",
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

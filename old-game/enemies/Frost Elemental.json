@@ -1,0 +1,43 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "frost-elemental-level-55",
+  "name": "Frost Elemental",
+  "level": 55,
+  "raceId": "elemental",
+  "classLevels": {
+    "monster": 3,
+    "mage": 5,
+    "spellcaster": 7,
+    "wizard": 7,
+    "cryomancer": 9,
+    "geomancer": 9,
+    "sage": 5,
+    "energist": 5,
+    "guardian": 5
+  },
+  "stats": {
+    "strength": 76,
+    "vitality": 104,
+    "mind": 131,
+    "dexterity": 83,
+    "intelligence": 137,
+    "wisdom": 110,
+    "speed": 91,
+    "luck": 60
+  },
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "glacial-eclipse-ice-damage",
+    "absolute-spear-ice-damage",
+    "seismic-crown-earth-damage",
+    "ice-bolt-ice-damage"
+  ]
+}

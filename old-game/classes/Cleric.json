@@ -1,0 +1,25 @@
+{
+  "id": "cleric", "name": "Cleric",
+  "requirements": { "level": 1, "classes": { "warrior": 5 }, "other": { "type": "known-spells", "element": "holy", "count": 3, "description": "3 Holy spells known" } },
+  "maxLevel": 7,
+  "levels": [
+    { "level": 1, "description": "Increase Wisdom by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "wisdom", "amount": 5 }] },
+    { "level": 2, "description": "Holy spells cost 10% less Mana.", "effects": [{ "type": "spell-cost-percent", "element": "holy", "amount": 10 }] },
+    { "level": 3, "description": "Increase Mind by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 5 }] },
+    { "level": 4, "description": "Gain the Holy Warrior passive.", "effects": [{
+      "type": "passive", "id": "holy-warrior", "name": "Holy Warrior", "condition": "Against Demons and Devils",
+      "description": "Take 20% less damage from Dark spells. While fighting a Demon or Devil, increase all basic stats by 10%.",
+      "effects": [
+        { "type": "incoming-spell-damage-percent", "element": "dark", "amount": -20 },
+        { "type": "conditional-all-stats-permanent-percent", "condition": "opponent-race", "raceIds": ["demon", "devil"], "amount": 10 }
+      ]
+    }] },
+    { "level": 5, "description": "Unlock Combat Prayer.", "effects": [{
+      "type": "skill", "id": "combat-prayer", "name": "Combat Prayer", "combatOnly": true, "cooldown": "daily", "durationTurns": 3, "target": "all-allies",
+      "description": "You and all allies gain 20% Accuracy and 20% Evasion for 3 turns. Can be used once per day.", "effects": [],
+      "onActivateEffects": [{ "type": "weapon-hit-percent", "amount": 20, "durationTurns": 3 }, { "type": "defense-percent", "target": "evasion", "amount": 20, "durationTurns": 3 }]
+    }] },
+    { "level": 6, "description": "Increase Vitality by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "vitality", "amount": 5 }] },
+    { "level": 7, "description": "Holy spells cost 30% less to learn.", "effects": [{ "type": "spell-learning-cost-percent", "element": "holy", "amount": 30 }] }
+  ]
+}

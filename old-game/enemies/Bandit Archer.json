@@ -1,0 +1,70 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "human-bandit-archer-level-4",
+  "name": "Bandit Archer",
+  "level": 4,
+  "raceId": "human",
+  "classLevels": {
+    "archer": 4
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 13,
+    "vitality": 14,
+    "mind": 13,
+    "dexterity": 23,
+    "intelligence": 13,
+    "wisdom": 13,
+    "speed": 15,
+    "luck": 15
+  },
+  "manualAllocations": {
+    "strength": 0,
+    "vitality": 1,
+    "mind": 0,
+    "dexterity": 10,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 2,
+    "luck": 2
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "temporaryBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "temporaryDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "currentHp": 35,
+  "currentMana": 23,
+  "inventory": [
+    "forge-weapon-2-shortbow",
+    "forge-armor-leather-armor"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-shortbow",
+    "offHand": "forge-weapon-2-shortbow",
+    "armor": "forge-armor-leather-armor",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [],
+  "activeSkills": {}
+}

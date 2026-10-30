@@ -1,0 +1,33 @@
+{
+  "id": "hunter",
+  "name": "Hunter",
+  "requirements": { "level": 1, "classes": { "archer": 5 }, "other": null },
+  "maxLevel": 7,
+  "levels": [
+    { "level": 1, "description": "Increase damage with bows by 10%.", "effects": [
+      { "type": "weapon-power-percent", "weaponType": "bow", "amount": 10, "description": "Bow power +10%" }
+    ] },
+    { "level": 2, "description": "Increase Evasion by 10%, plus another 10% while not wearing Heavy Armor.", "effects": [
+      { "type": "defense-permanent-percent", "target": "evasion", "amount": 10, "description": "Evasion +10%" },
+      { "type": "conditional-defense-percent", "condition": "no-heavy-armor", "target": "evasion", "amount": 10, "description": "Evasion +10% while not wearing Heavy Armor" }
+    ] },
+    { "level": 3, "description": "Gain the Silent Killer passive.", "effects": [
+      { "type": "passive", "id": "silent-killer", "name": "Silent Killer", "condition": "When attacking an enemy before its first turn", "description": "Weapon attacks against an enemy that has not taken a turn yet deal 25% more damage.", "effect": { "type": "weapon-damage-before-first-turn-percent", "amount": 25 } }
+    ] },
+    { "level": 4, "description": "Increase Speed by 5%, plus another 5% while not wearing Heavy Armor.", "effects": [
+      { "type": "stat-permanent-percent", "target": "speed", "amount": 5, "description": "Speed permanent bonus +5%" },
+      { "type": "conditional-stat-permanent-percent", "condition": "no-heavy-armor", "target": "speed", "amount": 5, "description": "Speed permanent bonus +5% while not wearing Heavy Armor" }
+    ] },
+    { "level": 5, "description": "Increase Luck by 5%.", "effects": [
+      { "type": "stat-permanent-percent", "target": "luck", "amount": 5, "description": "Luck permanent bonus +5%" }
+    ] },
+    { "level": 6, "description": "Increase Dexterity by 5%.", "effects": [
+      { "type": "stat-permanent-percent", "target": "dexterity", "amount": 5, "description": "Dexterity permanent bonus +5%" }
+    ] },
+    { "level": 7, "description": "Unlock Hunter's Mark.", "effects": [
+      { "type": "skill", "id": "hunters-mark", "name": "Hunter's Mark", "description": "Mark the targeted enemy. You deal 10% more weapon and spell damage to it, and weapon attacks against it gain 40% Accuracy. If your weapon attack or spell defeats it, this skill refreshes; otherwise it can only be used once per day.", "cooldown": "daily", "combatOnly": true, "target": "enemy", "canDeactivate": false, "effects": [
+        { "type": "mark-target", "damagePercent": 10, "hitPercent": 40, "description": "Marked target takes 10% more damage and grants +40% Accuracy" }
+      ] }
+    ] }
+  ]
+}

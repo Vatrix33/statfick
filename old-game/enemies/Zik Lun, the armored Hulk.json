@@ -1,0 +1,128 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "zik-lun-armored-hulk-unique-level-24",
+  "name": "Zik Lun, the armored Hulk",
+  "unique": true,
+  "level": 24,
+  "raceId": "troll",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "knight": 7,
+    "weaponmaster": 7,
+    "gladiator": 2
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 58,
+    "vitality": 40,
+    "mind": 30,
+    "dexterity": 38,
+    "intelligence": 27,
+    "wisdom": 29,
+    "speed": 36,
+    "luck": 27
+  },
+  "permanentDefenseBonuses": {
+    "armor": 40,
+    "evasion": 0
+  },
+  "temporaryDefenseBonuses": {
+    "armor": 0,
+    "evasion": 0
+  },
+  "currentHp": 1,
+  "currentMana": 1,
+  "inventory": [
+    "forge-weapon-2-greathammer",
+    "forge-armor-full-plate~rare"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-greathammer",
+    "offHand": "forge-weapon-2-greathammer",
+    "armor": "forge-armor-full-plate~rare",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "war-horn-basic-unique"
+  ],
+  "activeSkills": {},
+  "drops": [
+    {
+      "itemId": "masterwork-giantslayer",
+      "chance": 8
+    }
+  ],
+  "aiProfile": "zik-lun",
+  "introCinematic": "zik-lun",
+  "warband": {
+    "guard": "troll-shieldbearer-level-20",
+    "drummer": "troll-war-drummer-level-20",
+    "drumPercent": 50,
+    "orders": {
+      "charge": {
+        "name": "Charge!",
+        "description": "The warband hits harder and hunts one hero, who takes more damage from attacks.",
+        "allies": [
+          {
+            "type": "outgoing-attack-damage-percent",
+            "amount": 10,
+            "attackKinds": [
+              "melee",
+              "ranged"
+            ]
+          }
+        ],
+        "prey": [
+          {
+            "type": "incoming-attack-damage-percent",
+            "amount": 10
+          }
+        ]
+      },
+      "hold": {
+        "name": "Hold the Line!",
+        "description": "The warband's Armor rises and the Shieldbearer takes every single-target blow meant for Zik Lun.",
+        "allies": [
+          {
+            "type": "defense-percent",
+            "target": "armor",
+            "amount": 30
+          }
+        ],
+        "ward": true
+      },
+      "regroup": {
+        "name": "Regroup!",
+        "description": "The warband shakes off its hindrances and recovers some HP.",
+        "healPercent": 8,
+        "cleanse": true
+      }
+    },
+    "vengeance": {
+      "damagePercent": 10,
+      "speedPercent": 6,
+      "maxStacks": 5
+    },
+    "loseHeart": [
+      {
+        "type": "outgoing-attack-damage-percent",
+        "amount": -30,
+        "attackKinds": [
+          "melee",
+          "ranged"
+        ]
+      },
+      {
+        "type": "defense-percent",
+        "target": "armor",
+        "amount": -25
+      }
+    ],
+    "hornEveryTurns": 3
+  },
+  "maxHpPercent": 455
+}

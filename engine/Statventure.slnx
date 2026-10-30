@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Engine/">
+    <Project Path="Engine/Statventure/Statventure.csproj" />
+  </Folder>
+  <Folder Name="/Samples/">
+    <Project Path="Samples/Statventure.Sandbox/Statventure.Sandbox.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/Statventure.Tests/Statventure.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Tools/">
+    <Project Path="Tools/ShaderCompiler/ShaderCompiler.csproj" />
+    <Project Path="Tools/UiBenchmark/UiBenchmark.csproj" />
+  </Folder>
+</Solution>

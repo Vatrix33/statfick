@@ -1,0 +1,24 @@
+{
+  "id": "chaos-cultist",
+  "name": "Chaos Cultist",
+  "requirements": {
+    "level": 50,
+    "classes": { "cultist": 7 },
+    "other": { "type": "summon-spells-used", "element": "dark", "count": 100, "description": "Use 100 Dark-Element summon spells" }
+  },
+  "maxLevel": 3,
+  "levels": [
+    { "level": 1, "description": "Gain the Void Tear passive.", "effects": [{
+      "type": "passive", "id": "void-tear", "name": "Void Tear", "condition": "At the start of combat",
+      "description": "Whenever combat starts, automatically cast a random Tier 3 or lower Dark-Element summon spell you know.",
+      "effects": [{ "type": "combat-start-random-summon-spell", "element": "dark", "maxTier": 3, "name": "Void Tear" }]
+    }] },
+    { "level": 2, "description": "Increase Mind by 10%.", "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 10 }] },
+    { "level": 3, "description": "Unlock Grand Demon Summoning.", "effects": [{
+      "type": "skill", "id": "grand-demon-summoning", "name": "Grand Demon Summoning", "combatOnly": true, "cooldown": "daily", "actionPoints": 5, "durationSummonSpells": 1,
+      "description": "Use 5 Action Points and become stunned on your next turn. Your next summon spell costs no Mana, costs 5 Action Points, and summons one additional creature. Can only be used once per day.",
+      "effects": [{ "type": "spell-cost-percent", "summonOnly": true, "amount": 100 }, { "type": "spell-action-points-set", "summonOnly": true, "amount": 5, "exact": true }, { "type": "additional-summon-count", "amount": 1 }],
+      "onActivateEffects": [{ "type": "stun", "amount": 1, "durationTurns": 1 }]
+    }] }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "id": "reaver",
+  "name": "Reaver",
+  "color": "blue",
+  "requirements": {
+    "level": 25,
+    "classes": {},
+    "anyClasses": {
+      "barbarian": 5,
+      "berserker": 6
+    },
+    "other": null
+  },
+  "maxLevel": 7,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Weapon power +5%.",
+      "effects": [
+        {
+          "type": "weapon-power-percent",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Strength permanent bonus +5%.",
+      "effects": [
+        {
+          "type": "stat-permanent-percent",
+          "target": "strength",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Killing Momentum: killing an enemy advances your turn counter by 200.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "killing-momentum",
+          "name": "Killing Momentum",
+          "description": "Killing an enemy advances your turn counter by 200.",
+          "effect": {
+            "type": "kill-turn-advance",
+            "amount": 200
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Damage to enemies below 35% HP +10%.",
+      "effects": [
+        {
+          "type": "damage-percent-vs-low-hp",
+          "amount": 10,
+          "threshold": 35
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Weapon Armor Pierce +10%.",
+      "effects": [
+        {
+          "type": "weapon-armor-pierce-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Weapon Accuracy +10%.",
+      "effects": [
+        {
+          "type": "weapon-hit-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 7,
+      "description": "Unlock Final Blow: strike one enemy for +35% damage if it is below 35% HP.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "final-blow",
+          "name": "Final Blow",
+          "description": "Strike one enemy. Deal 35% more damage if it is below 35% HP.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "enemy",
+          "onActivateEffects": [
+            {
+              "type": "execute-strike",
+              "threshold": 35,
+              "damagePercent": 35
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

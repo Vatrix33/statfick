@@ -1,0 +1,4960 @@
+{
+ "selection-paint": {
+  "pageSelection": "field",
+  "log": [
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "focus #t",
+   "focusin #t",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "pointerdown #t",
+   "mousedown #t detail=2",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=2",
+   "click #t detail=2",
+   "dblclick #t detail=2",
+   "select #t",
+   "blur #t",
+   "focusout #t",
+   "focus #t",
+   "focusin #t",
+   "pointerdown #p1",
+   "mousedown #p1 detail=1",
+   "blur #t",
+   "focusout #t",
+   "selectionchange document",
+   "selectionchange document",
+   "selectionchange document",
+   "pointerup #p2",
+   "mouseup #p2 detail=1",
+   "click body detail=1",
+   "pointerdown #p3",
+   "mousedown #p3 detail=1",
+   "selectionchange document",
+   "pointerup #p3",
+   "mouseup #p3 detail=1",
+   "click #p3 detail=1",
+   "pointerdown #p3",
+   "mousedown #p3 detail=2",
+   "selectionchange document",
+   "pointerup #p3",
+   "mouseup #p3 detail=2",
+   "click #p3 detail=2",
+   "dblclick #p3 detail=2",
+   "pointerdown #u",
+   "mousedown #u detail=1",
+   "focus #u",
+   "focusin #u",
+   "selectionchange #u",
+   "pointerup #u",
+   "mouseup #u detail=1",
+   "click #u detail=1",
+   "pointerdown #u",
+   "mousedown #u detail=2",
+   "selectionchange #u",
+   "pointerup #u",
+   "mouseup #u detail=2",
+   "click #u detail=2",
+   "dblclick #u detail=2",
+   "select #u",
+   "pointerdown #e",
+   "mousedown #e detail=1",
+   "blur #u",
+   "focusout #u",
+   "focus #e",
+   "focusin #e",
+   "selectionchange #e",
+   "pointerup #e",
+   "mouseup #e detail=1",
+   "click #e detail=1"
+  ],
+  "states": {
+   "#t": {
+    "value": "alpha beta gamma",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     6,
+     10,
+     "forward"
+    ],
+    "states": ":valid"
+   },
+   "#e": {
+    "value": "",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":hover :focus :focus-visible :valid :placeholder-shown"
+   },
+   "#u": {
+    "value": "custom colours",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     6,
+     "forward"
+    ],
+    "states": ":valid"
+   },
+   "#p1": {
+    "states": ""
+   },
+   "#p2": {
+    "states": ""
+   },
+   "#p3": {
+    "states": ""
+   }
+  },
+  "activeElement": "#e",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   402.42425537109375,
+   242.4242401123047
+  ]
+ },
+ "resize": {
+  "pageSelection": null,
+  "log": [
+   "pointerdown #a",
+   "mousedown #a detail=1",
+   "pointerup #a",
+   "mouseup #a detail=1",
+   "click #a detail=1",
+   "pointerdown #d",
+   "mousedown #d detail=1",
+   "pointerup html",
+   "mouseup html detail=1",
+   "click html detail=1"
+  ],
+  "states": {
+   "#a": {
+    "value": "some text",
+    "size": [
+     "226px",
+     "95px"
+    ],
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":valid"
+   },
+   "#d": {
+    "size": [
+     "100px",
+     "120px"
+    ],
+    "states": ""
+   }
+  },
+  "activeElement": null,
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [
+   {
+    "states": {
+     "#a": {
+      "value": "some text",
+      "size": [
+       "226px",
+       "95px"
+      ],
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":hover :valid"
+     },
+     "#d": {
+      "size": [
+       "100px",
+       "60px"
+      ],
+      "states": ""
+     }
+    },
+    "activeElement": null,
+    "pageSelection": null
+   },
+   {
+    "states": {
+     "#a": {
+      "value": "some text",
+      "size": [
+       "226px",
+       "95px"
+      ],
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#d": {
+      "size": [
+       "100px",
+       "120px"
+      ],
+      "states": ""
+     }
+    },
+    "activeElement": null,
+    "pageSelection": null
+   }
+  ],
+  "viewport": [
+   402.42425537109375,
+   301.2121276855469
+  ]
+ },
+ "field-scroll": {
+  "pageSelection": "field",
+  "log": [
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "focus #t",
+   "focusin #t",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "keydown #t key=\"End\"",
+   "scroll #t",
+   "scrollend #t",
+   "selectionchange #t",
+   "keyup #t key=\"End\"",
+   "keydown #t key=\"Home\"",
+   "scroll #t",
+   "scrollend #t",
+   "selectionchange #t",
+   "keyup #t key=\"Home\"",
+   "selectionchange #t",
+   "keydown #t key=\"ArrowRight\"",
+   "keyup #t key=\"ArrowRight\"",
+   "pointerdown #a",
+   "mousedown #a detail=1",
+   "blur #t",
+   "focusout #t",
+   "focus #a",
+   "focusin #a",
+   "selectionchange #a",
+   "pointerup #a",
+   "mouseup #a detail=1",
+   "click #a detail=1",
+   "keydown #a key=\"PageDown\"",
+   "scroll #a",
+   "scrollend #a",
+   "scroll document",
+   "scrollend document",
+   "selectionchange #a",
+   "keyup #a key=\"PageDown\"",
+   "keydown #a key=\"PageDown\"",
+   "scroll #a",
+   "scrollend #a",
+   "scrollend document",
+   "selectionchange #a",
+   "keyup #a key=\"PageDown\"",
+   "keydown #a key=\"PageUp\"",
+   "scroll #a",
+   "scrollend #a",
+   "scrollend document",
+   "selectionchange #a",
+   "keyup #a key=\"PageUp\"",
+   "keydown #a key=\"ArrowDown\"",
+   "selectionchange #a",
+   "keyup #a key=\"ArrowDown\"",
+   "keydown #a key=\"ArrowDown\"",
+   "selectionchange #a",
+   "keyup #a key=\"ArrowDown\"",
+   "keydown #a key=\"ArrowDown\"",
+   "scroll #a",
+   "scrollend #a",
+   "selectionchange #a",
+   "keyup #a key=\"ArrowDown\"",
+   "keydown #a key=\"End\"",
+   "scroll #a",
+   "scrollend #a",
+   "selectionchange #a",
+   "keyup #a key=\"End\"",
+   "keydown #a key=\"PageUp\"",
+   "select #a",
+   "selectionchange #a",
+   "keyup #a key=\"PageUp\"",
+   "pointerdown #a",
+   "mousedown #a detail=1",
+   "pointerup #a",
+   "mouseup #a detail=1",
+   "click #a detail=1",
+   "selectionchange #a",
+   "keydown #a key=\"PageDown\"",
+   "scroll #a",
+   "scrollend #a",
+   "scroll document",
+   "scrollend document",
+   "selectionchange #a",
+   "keyup #a key=\"PageDown\""
+  ],
+  "states": {
+   "#t": {
+    "value": "another quite long value for the field",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     38,
+     38,
+     "forward"
+    ],
+    "states": ":valid"
+   },
+   "#a": {
+    "value": "line one\nline two\nline three\nline four\nline five\nline six\nline seven\nline eight\nline nine\nline ten\nline eleven\nline twelve",
+    "scroll": [
+     0,
+     174.5454559326172
+    ],
+    "selection": [
+     122,
+     122,
+     "forward"
+    ],
+    "states": ":focus :focus-visible :valid"
+   }
+  },
+  "activeElement": "#a",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   90.90909576416016
+  ],
+  "snapshots": [
+   {
+    "states": {
+     "#t": {
+      "value": "the quick brown fox jumps over the lazy dog",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       8,
+       8,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     },
+     "#a": {
+      "value": "line one\nline two\nline three\nline four\nline five\nline six\nline seven\nline eight\nline nine\nline ten\nline eleven\nline twelve",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "the quick brown fox jumps over the lazy dog",
+      "scroll": [
+       196.96969604492188,
+       0
+      ],
+      "selection": [
+       43,
+       43,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     },
+     "#a": {
+      "value": "line one\nline two\nline three\nline four\nline five\nline six\nline seven\nline eight\nline nine\nline ten\nline eleven\nline twelve",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "the quick brown fox jumps over the lazy dog",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     },
+     "#a": {
+      "value": "line one\nline two\nline three\nline four\nline five\nline six\nline seven\nline eight\nline nine\nline ten\nline eleven\nline twelve",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "another quite long value for the field",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       38,
+       38,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     },
+     "#a": {
+      "value": "line one\nline two\nline three\nline four\nline five\nline six\nline seven\nline eight\nline nine\nline ten\nline eleven\nline twelve",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "another quite long value for the field",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       38,
+       38,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     },
+     "#a": {
+      "value": "line one\nline two\nline three\nline four\nline five\nline six\nline seven\nline eight\nline nine\nline ten\nline eleven\nline twelve",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "another quite long value for the field",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       38,
+       38,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#a": {
+      "value": "line one\nline two\nline three\nline four\nline five\nline six\nline seven\nline eight\nline nine\nline ten\nline eleven\nline twelve",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       8,
+       8,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#a",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "another quite long value for the field",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       38,
+       38,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#a": {
+      "value": "line one\nline two\nline three\nline four\nline five\nline six\nline seven\nline eight\nline nine\nline ten\nline eleven\nline twelve",
+      "scroll": [
+       0,
+       40.60606002807617
+      ],
+      "selection": [
+       27,
+       27,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#a",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "another quite long value for the field",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       38,
+       38,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#a": {
+      "value": "line one\nline two\nline three\nline four\nline five\nline six\nline seven\nline eight\nline nine\nline ten\nline eleven\nline twelve",
+      "scroll": [
+       0,
+       79.3939437866211
+      ],
+      "selection": [
+       48,
+       48,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#a",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "another quite long value for the field",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       38,
+       38,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#a": {
+      "value": "line one\nline two\nline three\nline four\nline five\nline six\nline seven\nline eight\nline nine\nline ten\nline eleven\nline twelve",
+      "scroll": [
+       0,
+       40.60606002807617
+      ],
+      "selection": [
+       27,
+       27,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#a",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "another quite long value for the field",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       38,
+       38,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#a": {
+      "value": "line one\nline two\nline three\nline four\nline five\nline six\nline seven\nline eight\nline nine\nline ten\nline eleven\nline twelve",
+      "scroll": [
+       0,
+       56.3636360168457
+      ],
+      "selection": [
+       57,
+       57,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#a",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "another quite long value for the field",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       38,
+       38,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#a": {
+      "value": "line one\nline two\nline three\nline four\nline five\nline six\nline seven\nline eight\nline nine\nline ten\nline eleven\nline twelve",
+      "scroll": [
+       0,
+       172.72727966308594
+      ],
+      "selection": [
+       122,
+       122,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#a",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "another quite long value for the field",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       38,
+       38,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#a": {
+      "value": "line one\nline two\nline three\nline four\nline five\nline six\nline seven\nline eight\nline nine\nline ten\nline eleven\nline twelve",
+      "scroll": [
+       0,
+       172.72727966308594
+      ],
+      "selection": [
+       98,
+       122,
+       "backward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#a",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "another quite long value for the field",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       38,
+       38,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#a": {
+      "value": "line one\nline two\nline three\nline four\nline five\nline six\nline seven\nline eight\nline nine\nline ten\nline eleven\nline twelve",
+      "scroll": [
+       0,
+       174.5454559326172
+      ],
+      "selection": [
+       122,
+       122,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#a",
+    "pageSelection": "field"
+   }
+  ],
+  "viewport": [
+   387.2727355957031,
+   301.2121276855469
+  ]
+ },
+ "decoration-selection": {
+  "pageSelection": "field",
+  "log": [
+   "pointerdown #p1",
+   "mousedown #p1 detail=1",
+   "selectionchange document",
+   "selectionchange document",
+   "selectionchange document",
+   "pointerup #p2",
+   "mouseup #p2 detail=1",
+   "click body detail=1",
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "focus #t",
+   "focusin #t",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "pointerdown #t",
+   "mousedown #t detail=2",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=2",
+   "click #t detail=2",
+   "dblclick #t detail=2",
+   "select #t"
+  ],
+  "states": {
+   "#p1": {
+    "states": ""
+   },
+   "#p2": {
+    "states": ""
+   },
+   "#t": {
+    "value": "underlined field gyp",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     11,
+     16,
+     "forward"
+    ],
+    "states": ":hover :focus :focus-visible :valid"
+   },
+   "#e": {
+    "value": "",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":valid :placeholder-shown"
+   }
+  },
+  "activeElement": "#t",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   422.42425537109375,
+   201.21212768554688
+  ]
+ },
+ "focus-rings": {
+  "pageSelection": null,
+  "log": [
+   "keydown body key=\"Tab\"",
+   "focus #b",
+   "focusin #b",
+   "keyup #b key=\"Tab\"",
+   "keydown #b key=\"Tab\"",
+   "blur #b",
+   "focusout #b",
+   "focus #c",
+   "focusin #c",
+   "keyup #c key=\"Tab\"",
+   "keydown #c key=\"Tab\"",
+   "blur #c",
+   "focusout #c",
+   "focus #r",
+   "focusin #r",
+   "keyup #r key=\"Tab\"",
+   "keydown #r key=\"Tab\"",
+   "blur #r",
+   "focusout #r",
+   "focus #s",
+   "focusin #s",
+   "keyup #s key=\"Tab\"",
+   "keydown #s key=\"Tab\"",
+   "blur #s",
+   "focusout #s",
+   "focus #sb",
+   "focusin #sb",
+   "keyup #sb key=\"Tab\"",
+   "keydown #sb key=\"Tab\"",
+   "blur #sb",
+   "focusout #sb",
+   "focus #l",
+   "focusin #l",
+   "keyup #l key=\"Tab\"",
+   "keydown #l key=\"Tab\"",
+   "blur #l",
+   "focusout #l",
+   "focus #o",
+   "focusin #o",
+   "keyup #o key=\"Tab\"",
+   "keydown #o key=\"Tab\"",
+   "blur #o",
+   "focusout #o",
+   "focus #t",
+   "focusin #t",
+   "keyup #t key=\"Tab\"",
+   "keydown #t key=\"Tab\"",
+   "blur #t",
+   "focusout #t",
+   "focus #rd",
+   "focusin #rd",
+   "keyup #rd key=\"Tab\"",
+   "keydown #rd key=\"Tab\"",
+   "blur #rd",
+   "focusout #rd",
+   "focus #sp",
+   "focusin #sp",
+   "keyup #sp key=\"Tab\"",
+   "keydown #sp key=\"Tab\"",
+   "blur #sp",
+   "focusout #sp",
+   "focus #z",
+   "focusin #z",
+   "keyup #z key=\"Tab\""
+  ],
+  "states": {
+   "#b": {
+    "states": ":valid"
+   },
+   "#c": {
+    "value": "on",
+    "checked": false,
+    "states": ":valid"
+   },
+   "#r": {
+    "value": "on",
+    "checked": false,
+    "states": ":indeterminate :valid"
+   },
+   "#s": {
+    "value": "One",
+    "selectedIndex": 0,
+    "states": ":valid"
+   },
+   "#sb": {
+    "states": ":valid"
+   },
+   "#l": {
+    "states": ""
+   },
+   "#o": {
+    "states": ""
+   },
+   "#t": {
+    "states": ""
+   },
+   "#rd": {
+    "states": ""
+   },
+   "#sp": {
+    "states": ""
+   },
+   "#z": {
+    "states": ":focus :focus-visible"
+   }
+  },
+  "activeElement": "#z",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   421.2121276855469,
+   261.2121276855469
+  ]
+ },
+ "field-mouse": {
+  "pageSelection": "field",
+  "log": [
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "focus #t",
+   "focusin #t",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "selectionchange #t",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "select #t",
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "selectionchange #t",
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "pointerdown #t",
+   "mousedown #t detail=2",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=2",
+   "click #t detail=2",
+   "dblclick #t detail=2",
+   "select #t",
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "selectionchange #t",
+   "pointerdown #t",
+   "mousedown #t detail=2",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=2",
+   "click #t detail=2",
+   "dblclick #t detail=2",
+   "select #t",
+   "pointerdown #t",
+   "mousedown #t detail=3",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=3",
+   "click #t detail=3",
+   "select #t",
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "selectionchange #t",
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "select #t",
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "selectionchange #t",
+   "selectionchange #t",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "select #t"
+  ],
+  "states": {
+   "#t": {
+    "value": "alpha beta gamma",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     2,
+     13,
+     "backward"
+    ],
+    "states": ":hover :focus :focus-visible :valid"
+   }
+  },
+  "activeElement": "#t",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [
+   {
+    "states": {
+     "#t": {
+      "value": "alpha beta gamma",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       2,
+       2,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "alpha beta gamma",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       2,
+       13,
+       "forward"
+      ],
+      "states": ":hover :active :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "alpha beta gamma",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       2,
+       13,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "alpha beta gamma",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       4,
+       4,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "alpha beta gamma",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       6,
+       10,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "alpha beta gamma",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       16,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "alpha beta gamma",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       2,
+       13,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "alpha beta gamma",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       2,
+       13,
+       "backward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   }
+  ],
+  "viewport": [
+   402.42425537109375,
+   201.21212768554688
+  ]
+ },
+ "page-select": {
+  "pageSelection": {
+   "anchor": "#p1/0:0",
+   "focus": "#p2/0:22",
+   "text": "Some words to select here.Second paragraph line."
+  },
+  "log": [
+   "pointerdown #p1",
+   "mousedown #p1 detail=1",
+   "selectionchange document",
+   "pointerup #p1",
+   "mouseup #p1 detail=1",
+   "click #p1 detail=1",
+   "pointerdown #p1",
+   "mousedown #p1 detail=1",
+   "selectionchange document",
+   "selectionchange document",
+   "pointerup #p2",
+   "mouseup #p2 detail=1",
+   "click body detail=1",
+   "pointerdown #p1",
+   "mousedown #p1 detail=1",
+   "pointerup #p1",
+   "mouseup #p1 detail=1",
+   "click #p1 detail=1",
+   "selectionchange document",
+   "pointerdown #p1",
+   "mousedown #p1 detail=2",
+   "selectionchange document",
+   "pointerup #p1",
+   "mouseup #p1 detail=2",
+   "click #p1 detail=2",
+   "dblclick #p1 detail=2",
+   "pointerdown #p1",
+   "mousedown #p1 detail=1",
+   "pointerup #p1",
+   "mouseup #p1 detail=1",
+   "click #p1 detail=1",
+   "selectionchange document",
+   "pointerdown #p1",
+   "mousedown #p1 detail=2",
+   "selectionchange document",
+   "pointerup #p1",
+   "mouseup #p1 detail=2",
+   "click #p1 detail=2",
+   "dblclick #p1 detail=2",
+   "pointerdown #p1",
+   "mousedown #p1 detail=3",
+   "selectionchange document",
+   "pointerup #p1",
+   "mouseup #p1 detail=3",
+   "click #p1 detail=3",
+   "pointerdown #p1",
+   "mousedown #p1 detail=1",
+   "pointerup #p1",
+   "mouseup #p1 detail=1",
+   "click #p1 detail=1",
+   "selectionchange document",
+   "pointerdown #p2",
+   "mousedown #p2 detail=1",
+   "selectionchange document",
+   "pointerup #p2",
+   "mouseup #p2 detail=1",
+   "click #p2 detail=1",
+   "pointerdown html",
+   "mousedown html detail=1",
+   "selectionchange document",
+   "pointerup html",
+   "mouseup html detail=1",
+   "click html detail=1",
+   "keydown body key=\"a\"",
+   "selectionchange document",
+   "keyup body key=\"a\""
+  ],
+  "states": {
+   "#p1": {
+    "states": ""
+   },
+   "#p2": {
+    "states": ""
+   }
+  },
+  "activeElement": null,
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [
+   {
+    "states": {
+     "#p1": {
+      "states": ":hover"
+     },
+     "#p2": {
+      "states": ""
+     }
+    },
+    "activeElement": null,
+    "pageSelection": {
+     "anchor": "#p1/0:6",
+     "focus": "#p1/0:6",
+     "text": ""
+    }
+   },
+   {
+    "states": {
+     "#p1": {
+      "states": ":active"
+     },
+     "#p2": {
+      "states": ":hover"
+     }
+    },
+    "activeElement": null,
+    "pageSelection": {
+     "anchor": "#p1/0:6",
+     "focus": "#p2/0:7",
+     "text": "ords to select here.Second "
+    }
+   },
+   {
+    "states": {
+     "#p1": {
+      "states": ""
+     },
+     "#p2": {
+      "states": ":hover"
+     }
+    },
+    "activeElement": null,
+    "pageSelection": {
+     "anchor": "#p1/0:6",
+     "focus": "#p2/0:7",
+     "text": "ords to select here.Second "
+    }
+   },
+   {
+    "states": {
+     "#p1": {
+      "states": ":hover"
+     },
+     "#p2": {
+      "states": ""
+     }
+    },
+    "activeElement": null,
+    "pageSelection": {
+     "anchor": "#p1/0:14",
+     "focus": "#p1/0:20",
+     "text": "select"
+    }
+   },
+   {
+    "states": {
+     "#p1": {
+      "states": ":hover"
+     },
+     "#p2": {
+      "states": ""
+     }
+    },
+    "activeElement": null,
+    "pageSelection": {
+     "anchor": "#p1/0:0",
+     "focus": "#p2:0",
+     "text": "Some words to select here."
+    }
+   },
+   {
+    "states": {
+     "#p1": {
+      "states": ""
+     },
+     "#p2": {
+      "states": ":hover"
+     }
+    },
+    "activeElement": null,
+    "pageSelection": {
+     "anchor": "#p2/0:7",
+     "focus": "#p2/0:7",
+     "text": ""
+    }
+   },
+   {
+    "states": {
+     "#p1": {
+      "states": ""
+     },
+     "#p2": {
+      "states": ""
+     }
+    },
+    "activeElement": null,
+    "pageSelection": {
+     "anchor": "#p1/0:0",
+     "focus": "#p1/0:0",
+     "text": ""
+    }
+   },
+   {
+    "states": {
+     "#p1": {
+      "states": ""
+     },
+     "#p2": {
+      "states": ""
+     }
+    },
+    "activeElement": null,
+    "pageSelection": {
+     "anchor": "#p1/0:0",
+     "focus": "#p2/0:22",
+     "text": "Some words to select here.Second paragraph line."
+    }
+   }
+  ],
+  "viewport": [
+   402.42425537109375,
+   221.21212768554688
+  ]
+ },
+ "edit-basic": {
+  "pageSelection": {
+   "anchor": "body:0",
+   "focus": "body:0",
+   "text": ""
+  },
+  "log": [
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "focus #t",
+   "focusin #t",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "keydown #t key=\"H\"",
+   "keypress #t key=\"H\"",
+   "beforeinput #t inputType=insertText data=\"H\"",
+   "input #t inputType=insertText data=\"H\" value=\"H\"",
+   "selectionchange #t",
+   "keyup #t key=\"H\"",
+   "keydown #t key=\"e\"",
+   "keypress #t key=\"e\"",
+   "beforeinput #t inputType=insertText data=\"e\"",
+   "input #t inputType=insertText data=\"e\" value=\"He\"",
+   "selectionchange #t",
+   "keyup #t key=\"e\"",
+   "keydown #t key=\"l\"",
+   "keypress #t key=\"l\"",
+   "beforeinput #t inputType=insertText data=\"l\"",
+   "input #t inputType=insertText data=\"l\" value=\"Hel\"",
+   "selectionchange #t",
+   "keyup #t key=\"l\"",
+   "keydown #t key=\"l\"",
+   "keypress #t key=\"l\"",
+   "beforeinput #t inputType=insertText data=\"l\"",
+   "input #t inputType=insertText data=\"l\" value=\"Hell\"",
+   "selectionchange #t",
+   "keyup #t key=\"l\"",
+   "keydown #t key=\"o\"",
+   "keypress #t key=\"o\"",
+   "beforeinput #t inputType=insertText data=\"o\"",
+   "input #t inputType=insertText data=\"o\" value=\"Hello\"",
+   "selectionchange #t",
+   "keyup #t key=\"o\"",
+   "keydown #t key=\"Backspace\"",
+   "beforeinput #t inputType=deleteContentBackward",
+   "input #t inputType=deleteContentBackward value=\"Hell\"",
+   "selectionchange #t",
+   "keyup #t key=\"Backspace\"",
+   "keydown #t key=\"ArrowLeft\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowLeft\"",
+   "keydown #t key=\"ArrowLeft\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowLeft\"",
+   "keydown #t key=\"x\"",
+   "keypress #t key=\"x\"",
+   "beforeinput #t inputType=insertText data=\"x\"",
+   "input #t inputType=insertText data=\"x\" value=\"Hexll\"",
+   "selectionchange #t",
+   "keyup #t key=\"x\"",
+   "keydown #t key=\"Delete\"",
+   "beforeinput #t inputType=deleteContentForward",
+   "input #t inputType=deleteContentForward value=\"Hexl\"",
+   "keyup #t key=\"Delete\"",
+   "keydown #t key=\"Home\"",
+   "selectionchange #t",
+   "keyup #t key=\"Home\"",
+   "keydown #t key=\"ArrowRight\"",
+   "select #t",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowRight\"",
+   "keydown #t key=\"ArrowRight\"",
+   "select #t",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowRight\"",
+   "keydown #t key=\"J\"",
+   "keypress #t key=\"J\"",
+   "beforeinput #t inputType=insertText data=\"J\"",
+   "input #t inputType=insertText data=\"J\" value=\"Jxl\"",
+   "selectionchange #t",
+   "keyup #t key=\"J\"",
+   "keydown #t key=\"End\"",
+   "selectionchange #t",
+   "keyup #t key=\"End\"",
+   "keydown #t key=\"ArrowLeft\"",
+   "select #t",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowLeft\"",
+   "keydown #t key=\"Backspace\"",
+   "beforeinput #t inputType=deleteContentBackward",
+   "input #t inputType=deleteContentBackward value=\"Jx\"",
+   "selectionchange #t",
+   "keyup #t key=\"Backspace\"",
+   "keydown #t key=\"a\"",
+   "select #t",
+   "selectionchange #t",
+   "keyup #t key=\"a\"",
+   "keydown #t key=\"w\"",
+   "keypress #t key=\"w\"",
+   "beforeinput #t inputType=insertText data=\"w\"",
+   "input #t inputType=insertText data=\"w\" value=\"w\"",
+   "selectionchange #t",
+   "keyup #t key=\"w\"",
+   "keydown #t key=\"ArrowLeft\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowLeft\"",
+   "keydown #t key=\"ArrowRight\"",
+   "select #t",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowRight\"",
+   "keydown #t key=\"ArrowLeft\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowLeft\"",
+   "change #t value=\"w\"",
+   "blur #t",
+   "focusout #t"
+  ],
+  "states": {
+   "#t": {
+    "value": "w",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":hover :valid :user-valid"
+   }
+  },
+  "activeElement": null,
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [
+   {
+    "states": {
+     "#t": {
+      "value": "Hexll",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       3,
+       3,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Hexl",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       2,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Jx",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       2,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "w",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   }
+  ],
+  "viewport": [
+   402.42425537109375,
+   201.21212768554688
+  ]
+ },
+ "edit-words": {
+  "pageSelection": "field",
+  "log": [
+   "focus #t",
+   "focusin #t",
+   "selectionchange #t",
+   "keydown #t key=\"Home\"",
+   "keyup #t key=\"Home\"",
+   "keydown #t key=\"ArrowRight\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowRight\"",
+   "keydown #t key=\"ArrowRight\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowRight\"",
+   "keydown #t key=\"ArrowRight\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowRight\"",
+   "keydown #t key=\"ArrowRight\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowRight\"",
+   "keydown #t key=\"ArrowRight\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowRight\"",
+   "keydown #t key=\"ArrowRight\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowRight\"",
+   "keydown #t key=\"ArrowRight\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowRight\"",
+   "keydown #t key=\"ArrowRight\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowRight\"",
+   "keydown #t key=\"ArrowRight\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowRight\"",
+   "keydown #t key=\"ArrowLeft\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowLeft\"",
+   "keydown #t key=\"ArrowLeft\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowLeft\"",
+   "keydown #t key=\"ArrowLeft\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowLeft\"",
+   "keydown #t key=\"ArrowLeft\"",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowLeft\"",
+   "keydown #t key=\"ArrowLeft\"",
+   "select #t",
+   "selectionchange #t",
+   "keyup #t key=\"ArrowLeft\"",
+   "keydown #t key=\"End\"",
+   "selectionchange #t",
+   "keyup #t key=\"End\"",
+   "keydown #t key=\"Backspace\"",
+   "beforeinput #t inputType=deleteWordBackward",
+   "input #t inputType=deleteWordBackward value=\"Don't stop: 3.14 apples, (big) foo-bar  \"",
+   "selectionchange #t",
+   "keyup #t key=\"Backspace\"",
+   "keydown #t key=\"Backspace\"",
+   "beforeinput #t inputType=deleteWordBackward",
+   "input #t inputType=deleteWordBackward value=\"Don't stop: 3.14 apples, (big) foo-\"",
+   "selectionchange #t",
+   "keyup #t key=\"Backspace\"",
+   "keydown #t key=\"Home\"",
+   "selectionchange #t",
+   "keyup #t key=\"Home\"",
+   "keydown #t key=\"Delete\"",
+   "beforeinput #t inputType=deleteWordForward",
+   "input #t inputType=deleteWordForward value=\" stop: 3.14 apples, (big) foo-\"",
+   "keyup #t key=\"Delete\"",
+   "keydown #t key=\"Delete\"",
+   "beforeinput #t inputType=deleteWordForward",
+   "input #t inputType=deleteWordForward value=\": 3.14 apples, (big) foo-\"",
+   "keyup #t key=\"Delete\"",
+   "keydown #t key=\"Backspace\"",
+   "beforeinput #t inputType=deleteSoftLineBackward",
+   "keyup #t key=\"Backspace\""
+  ],
+  "states": {
+   "#t": {
+    "value": ": 3.14 apples, (big) foo-",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":focus :focus-visible :valid"
+   }
+  },
+  "activeElement": "#t",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  end",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       5,
+       5,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  end",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       10,
+       10,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  end",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       11,
+       11,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  end",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       16,
+       16,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  end",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       23,
+       23,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  end",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       24,
+       24,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  end",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       26,
+       26,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  end",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       29,
+       29,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  end",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       30,
+       30,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  end",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       29,
+       29,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  end",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       26,
+       26,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  end",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       25,
+       25,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  end",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       23,
+       23,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  end",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       17,
+       23,
+       "backward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-bar  ",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       40,
+       40,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "Don't stop: 3.14 apples, (big) foo-",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       35,
+       35,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": " stop: 3.14 apples, (big) foo-",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": ": 3.14 apples, (big) foo-",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   }
+  ],
+  "viewport": [
+   502.42425537109375,
+   201.21212768554688
+  ]
+ },
+ "edit-limits": {
+  "pageSelection": {
+   "anchor": "body:2",
+   "focus": "body:2",
+   "text": ""
+  },
+  "log": [
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "focus #t",
+   "focusin #t",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "keydown #t key=\"a\"",
+   "keypress #t key=\"a\"",
+   "beforeinput #t inputType=insertText data=\"a\"",
+   "input #t inputType=insertText data=\"a\" value=\"a\"",
+   "selectionchange #t",
+   "keyup #t key=\"a\"",
+   "keydown #t key=\"b\"",
+   "keypress #t key=\"b\"",
+   "beforeinput #t inputType=insertText data=\"b\"",
+   "input #t inputType=insertText data=\"b\" value=\"ab\"",
+   "selectionchange #t",
+   "keyup #t key=\"b\"",
+   "keydown #t key=\"c\"",
+   "keypress #t key=\"c\"",
+   "beforeinput #t inputType=insertText data=\"c\"",
+   "input #t inputType=insertText data=\"c\" value=\"abc\"",
+   "selectionchange #t",
+   "keyup #t key=\"c\"",
+   "keydown #t key=\"d\"",
+   "keypress #t key=\"d\"",
+   "beforeinput #t inputType=insertText data=\"d\"",
+   "keyup #t key=\"d\"",
+   "pointerdown #n",
+   "mousedown #n detail=1",
+   "change #t value=\"abc\"",
+   "blur #t",
+   "focusout #t",
+   "focus #n",
+   "focusin #n",
+   "selectionchange #n",
+   "pointerup #n",
+   "mouseup #n detail=1",
+   "click #n detail=1",
+   "keydown #n key=\"1\"",
+   "keypress #n key=\"1\"",
+   "beforeinput #n inputType=insertText data=\"1\"",
+   "input #n inputType=insertText data=\"1\" value=\"1\"",
+   "selectionchange #n",
+   "keyup #n key=\"1\"",
+   "keydown #n key=\"a\"",
+   "keypress #n key=\"a\"",
+   "beforeinput #n inputType=insertText data=\"a\"",
+   "keyup #n key=\"a\"",
+   "keydown #n key=\"2\"",
+   "keypress #n key=\"2\"",
+   "beforeinput #n inputType=insertText data=\"2\"",
+   "input #n inputType=insertText data=\"2\" value=\"12\"",
+   "selectionchange #n",
+   "keyup #n key=\"2\"",
+   "keydown #n key=\".\"",
+   "keypress #n key=\".\"",
+   "beforeinput #n inputType=insertText data=\".\"",
+   "input #n inputType=insertText data=\".\" value=\"12\"",
+   "selectionchange #n",
+   "keyup #n key=\".\"",
+   "keydown #n key=\"-\"",
+   "keypress #n key=\"-\"",
+   "beforeinput #n inputType=insertText data=\"-\"",
+   "input #n inputType=insertText data=\"-\" value=\"\"",
+   "selectionchange #n",
+   "keyup #n key=\"-\"",
+   "keydown #n key=\"e\"",
+   "keypress #n key=\"e\"",
+   "beforeinput #n inputType=insertText data=\"e\"",
+   "input #n inputType=insertText data=\"e\" value=\"\"",
+   "selectionchange #n",
+   "keyup #n key=\"e\"",
+   "keydown #n key=\"Backspace\"",
+   "beforeinput #n inputType=deleteContentBackward",
+   "input #n inputType=deleteContentBackward value=\"\"",
+   "selectionchange #n",
+   "keyup #n key=\"Backspace\"",
+   "keydown #n key=\"5\"",
+   "keypress #n key=\"5\"",
+   "beforeinput #n inputType=insertText data=\"5\"",
+   "input #n inputType=insertText data=\"5\" value=\"\"",
+   "selectionchange #n",
+   "keyup #n key=\"5\"",
+   "blur #n",
+   "focusout #n"
+  ],
+  "states": {
+   "#t": {
+    "value": "abc",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     3,
+     3,
+     "forward"
+    ],
+    "states": ":valid :user-valid"
+   },
+   "#n": {
+    "value": "",
+    "scroll": [
+     0,
+     0
+    ],
+    "states": ":hover :invalid :user-invalid"
+   }
+  },
+  "activeElement": null,
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   402.42425537109375,
+   201.21212768554688
+  ]
+ },
+ "edit-undo": {
+  "pageSelection": "field",
+  "log": [
+   "pointerdown #t",
+   "mousedown #t detail=1",
+   "focus #t",
+   "focusin #t",
+   "selectionchange #t",
+   "pointerup #t",
+   "mouseup #t detail=1",
+   "click #t detail=1",
+   "keydown #t key=\"o\"",
+   "keypress #t key=\"o\"",
+   "beforeinput #t inputType=insertText data=\"o\"",
+   "input #t inputType=insertText data=\"o\" value=\"o\"",
+   "selectionchange #t",
+   "keyup #t key=\"o\"",
+   "keydown #t key=\"n\"",
+   "keypress #t key=\"n\"",
+   "beforeinput #t inputType=insertText data=\"n\"",
+   "input #t inputType=insertText data=\"n\" value=\"on\"",
+   "selectionchange #t",
+   "keyup #t key=\"n\"",
+   "keydown #t key=\"e\"",
+   "keypress #t key=\"e\"",
+   "beforeinput #t inputType=insertText data=\"e\"",
+   "input #t inputType=insertText data=\"e\" value=\"one\"",
+   "selectionchange #t",
+   "keyup #t key=\"e\"",
+   "keydown #t key=\" \"",
+   "keypress #t key=\" \"",
+   "beforeinput #t inputType=insertText data=\" \"",
+   "input #t inputType=insertText data=\" \" value=\"one \"",
+   "selectionchange #t",
+   "keyup #t key=\" \"",
+   "keydown #t key=\"t\"",
+   "keypress #t key=\"t\"",
+   "beforeinput #t inputType=insertText data=\"t\"",
+   "input #t inputType=insertText data=\"t\" value=\"one t\"",
+   "selectionchange #t",
+   "keyup #t key=\"t\"",
+   "keydown #t key=\"w\"",
+   "keypress #t key=\"w\"",
+   "beforeinput #t inputType=insertText data=\"w\"",
+   "input #t inputType=insertText data=\"w\" value=\"one tw\"",
+   "selectionchange #t",
+   "keyup #t key=\"w\"",
+   "keydown #t key=\"o\"",
+   "keypress #t key=\"o\"",
+   "beforeinput #t inputType=insertText data=\"o\"",
+   "input #t inputType=insertText data=\"o\" value=\"one two\"",
+   "selectionchange #t",
+   "keyup #t key=\"o\"",
+   "keydown #t key=\"Backspace\"",
+   "beforeinput #t inputType=deleteContentBackward",
+   "input #t inputType=deleteContentBackward value=\"one tw\"",
+   "selectionchange #t",
+   "keyup #t key=\"Backspace\"",
+   "keydown #t key=\"Backspace\"",
+   "beforeinput #t inputType=deleteContentBackward",
+   "input #t inputType=deleteContentBackward value=\"one t\"",
+   "selectionchange #t",
+   "keyup #t key=\"Backspace\"",
+   "keydown #t key=\"z\"",
+   "beforeinput #t inputType=historyUndo",
+   "input #t inputType=historyUndo value=\"one two\"",
+   "selectionchange #t",
+   "keyup #t key=\"z\"",
+   "keydown #t key=\"z\"",
+   "beforeinput #t inputType=historyUndo",
+   "input #t inputType=historyUndo value=\"\"",
+   "selectionchange #t",
+   "keyup #t key=\"z\"",
+   "keydown #t key=\"Z\"",
+   "beforeinput #t inputType=historyRedo",
+   "input #t inputType=historyRedo value=\"one two\"",
+   "selectionchange #t",
+   "keyup #t key=\"Z\"",
+   "keydown #t key=\"y\"",
+   "beforeinput #t inputType=historyRedo",
+   "input #t inputType=historyRedo value=\"one t\"",
+   "selectionchange #t",
+   "keyup #t key=\"y\"",
+   "keydown #t key=\"z\"",
+   "beforeinput #t inputType=historyUndo",
+   "input #t inputType=historyUndo value=\"one two\"",
+   "selectionchange #t",
+   "keyup #t key=\"z\"",
+   "keydown #t key=\"z\"",
+   "beforeinput #t inputType=historyUndo",
+   "input #t inputType=historyUndo value=\"\"",
+   "selectionchange #t",
+   "keyup #t key=\"z\"",
+   "keydown #t key=\"z\"",
+   "keyup #t key=\"z\""
+  ],
+  "states": {
+   "#t": {
+    "value": "",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":hover :focus :focus-visible :valid"
+   }
+  },
+  "activeElement": "#t",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [
+   {
+    "states": {
+     "#t": {
+      "value": "one two",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       7,
+       7,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "one two",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       7,
+       7,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "one t",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       5,
+       5,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#t": {
+      "value": "",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#t",
+    "pageSelection": "field"
+   }
+  ],
+  "viewport": [
+   402.42425537109375,
+   201.21212768554688
+  ]
+ },
+ "edit-focus": {
+  "pageSelection": "field",
+  "log": [
+   "focus #a",
+   "focusin #a",
+   "selectionchange #a",
+   "keydown #a key=\"Tab\"",
+   "blur #a",
+   "focusout #a",
+   "focus #b",
+   "focusin #b",
+   "select #b",
+   "selectionchange #b",
+   "keyup #b key=\"Tab\"",
+   "keydown #b key=\"Tab\"",
+   "blur #b",
+   "focusout #b",
+   "focus #c",
+   "focusin #c",
+   "selectionchange #c",
+   "keyup #c key=\"Tab\"",
+   "keydown #c key=\"Tab\"",
+   "blur #c",
+   "focusout #c",
+   "focus #b",
+   "focusin #b",
+   "selectionchange #b",
+   "keyup #b key=\"Tab\"",
+   "pointerdown #b",
+   "mousedown #b detail=1",
+   "pointerup #b",
+   "mouseup #b detail=1",
+   "click #b detail=1",
+   "selectionchange #b",
+   "blur #b",
+   "focusout #b",
+   "focus #a",
+   "focusin #a",
+   "selectionchange #a"
+  ],
+  "states": {
+   "#a": {
+    "value": "alpha",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":focus :focus-visible :valid"
+   },
+   "#b": {
+    "value": "bravo",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":hover :valid"
+   },
+   "#c": {
+    "value": "charlie",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":valid"
+   }
+  },
+  "activeElement": "#a",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [
+   {
+    "states": {
+     "#a": {
+      "value": "alpha",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#b": {
+      "value": "bravo",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#c": {
+      "value": "charlie",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": null,
+    "pageSelection": null
+   },
+   {
+    "states": {
+     "#a": {
+      "value": "alpha",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     },
+     "#b": {
+      "value": "bravo",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#c": {
+      "value": "charlie",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#a",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#a": {
+      "value": "alpha",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#b": {
+      "value": "bravo",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       5,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     },
+     "#c": {
+      "value": "charlie",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#b",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#a": {
+      "value": "alpha",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#b": {
+      "value": "bravo",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       5,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#c": {
+      "value": "charlie",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     }
+    },
+    "activeElement": "#c",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#a": {
+      "value": "alpha",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#b": {
+      "value": "bravo",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       5,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     },
+     "#c": {
+      "value": "charlie",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#b",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#a": {
+      "value": "alpha",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#b": {
+      "value": "bravo",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":hover :focus :focus-visible :valid"
+     },
+     "#c": {
+      "value": "charlie",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#b",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#a": {
+      "value": "alpha",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     },
+     "#b": {
+      "value": "bravo",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":hover :valid"
+     },
+     "#c": {
+      "value": "charlie",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#a",
+    "pageSelection": "field"
+   }
+  ],
+  "viewport": [
+   402.42425537109375,
+   201.21212768554688
+  ]
+ },
+ "press-hover": {
+  "pageSelection": {
+   "anchor": "#a:0",
+   "focus": "#b:0",
+   "text": ""
+  },
+  "log": [
+   "pointerdown #a",
+   "mousedown #a detail=1",
+   "selectionchange document",
+   "selectionchange document",
+   "pointerup #b",
+   "mouseup #b detail=1",
+   "click #outer detail=1",
+   "pointerdown #c",
+   "mousedown #c detail=1",
+   "pointerup #c",
+   "mouseup #c detail=1",
+   "click #c detail=1"
+  ],
+  "states": {
+   "#outer": {
+    "states": ":hover"
+   },
+   "#a": {
+    "states": ""
+   },
+   "#b": {
+    "states": ""
+   },
+   "#c": {
+    "states": ":hover :valid"
+   }
+  },
+  "activeElement": null,
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [
+   {
+    "states": {
+     "#outer": {
+      "states": ":hover :active"
+     },
+     "#a": {
+      "states": ":hover :active"
+     },
+     "#b": {
+      "states": ""
+     },
+     "#c": {
+      "states": ":valid"
+     }
+    },
+    "activeElement": null,
+    "pageSelection": {
+     "anchor": "#a:0",
+     "focus": "#a:0",
+     "text": ""
+    }
+   },
+   {
+    "states": {
+     "#outer": {
+      "states": ":hover :active"
+     },
+     "#a": {
+      "states": ":active"
+     },
+     "#b": {
+      "states": ":hover"
+     },
+     "#c": {
+      "states": ":valid"
+     }
+    },
+    "activeElement": null,
+    "pageSelection": {
+     "anchor": "#a:0",
+     "focus": "#b:0",
+     "text": ""
+    }
+   },
+   {
+    "states": {
+     "#outer": {
+      "states": ":hover"
+     },
+     "#a": {
+      "states": ""
+     },
+     "#b": {
+      "states": ":hover"
+     },
+     "#c": {
+      "states": ":valid"
+     }
+    },
+    "activeElement": null,
+    "pageSelection": {
+     "anchor": "#a:0",
+     "focus": "#b:0",
+     "text": ""
+    }
+   },
+   {
+    "states": {
+     "#outer": {
+      "states": ":hover :active"
+     },
+     "#a": {
+      "states": ""
+     },
+     "#b": {
+      "states": ""
+     },
+     "#c": {
+      "states": ":hover :active :valid"
+     }
+    },
+    "activeElement": null,
+    "pageSelection": {
+     "anchor": "#a:0",
+     "focus": "#b:0",
+     "text": ""
+    }
+   }
+  ],
+  "viewport": [
+   401.2121276855469,
+   201.21212768554688
+  ]
+ },
+ "number-spin": {
+  "pageSelection": "field",
+  "log": [
+   "pointerdown #n",
+   "mousedown #n detail=1",
+   "focus #n",
+   "focusin #n",
+   "beforeinput #n inputType=insertText data=\"5\"",
+   "input #n value=\"5\"",
+   "gotpointercapture #n",
+   "selectionchange #n",
+   "beforeinput #n inputType=insertText data=\"6\"",
+   "input #n value=\"6\"",
+   "selectionchange #n",
+   "beforeinput #n inputType=insertText data=\"7\"",
+   "input #n value=\"7\"",
+   "selectionchange #n",
+   "beforeinput #n inputType=insertText data=\"8\"",
+   "input #n value=\"8\"",
+   "selectionchange #n",
+   "beforeinput #n inputType=insertText data=\"9\"",
+   "input #n value=\"9\"",
+   "selectionchange #n",
+   "pointerup #n",
+   "mouseup #n detail=1",
+   "change #n value=\"9\"",
+   "lostpointercapture #n",
+   "click #n detail=1",
+   "pointerdown #n",
+   "mousedown #n detail=1",
+   "beforeinput #n inputType=insertText data=\"8\"",
+   "input #n value=\"8\"",
+   "gotpointercapture #n",
+   "selectionchange #n",
+   "pointerup #n",
+   "mouseup #n detail=1",
+   "change #n value=\"8\"",
+   "lostpointercapture #n",
+   "click #n detail=1",
+   "wheel #n",
+   "beforeinput #n inputType=insertText data=\"7\"",
+   "input #n value=\"7\"",
+   "selectionchange #n",
+   "wheel #n",
+   "beforeinput #n inputType=insertText data=\"8\"",
+   "input #n value=\"8\"",
+   "selectionchange #n",
+   "keydown #n key=\"ArrowUp\"",
+   "beforeinput #n inputType=insertText data=\"9\"",
+   "input #n value=\"9\"",
+   "change #n value=\"9\"",
+   "selectionchange #n",
+   "keyup #n key=\"ArrowUp\"",
+   "keydown #n key=\"ArrowDown\"",
+   "beforeinput #n inputType=insertText data=\"8\"",
+   "input #n value=\"8\"",
+   "change #n value=\"8\"",
+   "selectionchange #n",
+   "keyup #n key=\"ArrowDown\"",
+   "pointerdown #e",
+   "mousedown #e detail=1",
+   "blur #n",
+   "focusout #n",
+   "focus #e",
+   "focusin #e",
+   "beforeinput #e inputType=insertText data=\"1\"",
+   "input #e value=\"1\"",
+   "gotpointercapture #e",
+   "selectionchange #e",
+   "pointerup #e",
+   "mouseup #e detail=1",
+   "change #e value=\"1\"",
+   "lostpointercapture #e",
+   "click #e detail=1",
+   "pointerdown #m",
+   "mousedown #m detail=1",
+   "blur #e",
+   "focusout #e",
+   "focus #m",
+   "focusin #m",
+   "beforeinput #m inputType=insertText data=\"3\"",
+   "input #m value=\"3\"",
+   "gotpointercapture #m",
+   "selectionchange #m",
+   "pointerup #m",
+   "mouseup #m detail=1",
+   "change #m value=\"3\"",
+   "lostpointercapture #m",
+   "click #m detail=1",
+   "keydown #m key=\"ArrowUp\"",
+   "keyup #m key=\"ArrowUp\"",
+   "keydown #m key=\"ArrowUp\"",
+   "keyup #m key=\"ArrowUp\"",
+   "keydown #m key=\"ArrowDown\"",
+   "beforeinput #m inputType=insertText data=\"2.5\"",
+   "input #m value=\"2.5\"",
+   "change #m value=\"2.5\"",
+   "selectionchange #m",
+   "keyup #m key=\"ArrowDown\""
+  ],
+  "states": {
+   "#n": {
+    "value": "8",
+    "scroll": [
+     0,
+     0
+    ],
+    "states": ":valid"
+   },
+   "#e": {
+    "value": "1",
+    "scroll": [
+     0,
+     0
+    ],
+    "states": ":valid"
+   },
+   "#m": {
+    "value": "2.5",
+    "scroll": [
+     0,
+     0
+    ],
+    "states": ":focus :focus-visible :valid"
+   }
+  },
+  "activeElement": "#m",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   401.2121276855469,
+   201.21212768554688
+  ]
+ },
+ "range": {
+  "pageSelection": null,
+  "log": [
+   "pointerdown #r",
+   "mousedown #r detail=1",
+   "input #r value=\"17\"",
+   "focus #r",
+   "focusin #r",
+   "gotpointercapture #r",
+   "pointerup #r",
+   "mouseup #r detail=1",
+   "change #r value=\"17\"",
+   "lostpointercapture #r",
+   "click #r detail=1",
+   "pointerdown #r",
+   "mousedown #r detail=1",
+   "gotpointercapture #r",
+   "input #r value=\"34\"",
+   "input #r value=\"72\"",
+   "input #r value=\"100\"",
+   "pointerup #r",
+   "mouseup #r detail=1",
+   "change #r value=\"100\"",
+   "lostpointercapture #r",
+   "click #r detail=1",
+   "keydown #r key=\"ArrowLeft\"",
+   "input #r value=\"99\"",
+   "change #r value=\"99\"",
+   "keyup #r key=\"ArrowLeft\"",
+   "keydown #r key=\"PageDown\"",
+   "input #r value=\"89\"",
+   "change #r value=\"89\"",
+   "keyup #r key=\"PageDown\"",
+   "keydown #r key=\"Home\"",
+   "input #r value=\"0\"",
+   "change #r value=\"0\"",
+   "keyup #r key=\"Home\"",
+   "keydown #r key=\"ArrowDown\"",
+   "keyup #r key=\"ArrowDown\"",
+   "keydown #r key=\"End\"",
+   "input #r value=\"100\"",
+   "change #r value=\"100\"",
+   "keyup #r key=\"End\"",
+   "pointerdown #s",
+   "mousedown #s detail=1",
+   "blur #r",
+   "focusout #r",
+   "focus #s",
+   "focusin #s",
+   "gotpointercapture #s",
+   "pointerup #s",
+   "mouseup #s detail=1",
+   "lostpointercapture #s",
+   "click #s detail=1",
+   "keydown #s key=\"ArrowRight\"",
+   "input #s value=\"5.1\"",
+   "change #s value=\"5.1\"",
+   "keyup #s key=\"ArrowRight\"",
+   "keydown #s key=\"PageUp\"",
+   "input #s value=\"6.1\"",
+   "change #s value=\"6.1\"",
+   "keyup #s key=\"PageUp\""
+  ],
+  "states": {
+   "#r": {
+    "value": "100",
+    "states": ":valid"
+   },
+   "#s": {
+    "value": "6.1",
+    "states": ":hover :focus :focus-visible :valid"
+   }
+  },
+  "activeElement": "#s",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [
+   {
+    "states": {
+     "#r": {
+      "value": "72",
+      "states": ":hover :active :focus :valid"
+     },
+     "#s": {
+      "value": "5",
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#r",
+    "pageSelection": null
+   }
+  ],
+  "viewport": [
+   401.2121276855469,
+   201.21212768554688
+  ]
+ },
+ "select-keys": {
+  "pageSelection": null,
+  "log": [
+   "focus #s",
+   "focusin #s",
+   "keydown #s key=\"ArrowDown\"",
+   "input #s value=\"Cherry\"",
+   "change #s value=\"Cherry\"",
+   "keyup #s key=\"ArrowDown\"",
+   "keydown #s key=\"ArrowRight\"",
+   "input #s value=\"Coconut\"",
+   "change #s value=\"Coconut\"",
+   "keyup #s key=\"ArrowRight\"",
+   "keydown #s key=\"ArrowUp\"",
+   "input #s value=\"Cherry\"",
+   "change #s value=\"Cherry\"",
+   "keyup #s key=\"ArrowUp\"",
+   "keydown #s key=\"ArrowLeft\"",
+   "input #s value=\"Apple\"",
+   "change #s value=\"Apple\"",
+   "keyup #s key=\"ArrowLeft\"",
+   "keydown #s key=\"End\"",
+   "input #s value=\"Fig\"",
+   "change #s value=\"Fig\"",
+   "keyup #s key=\"End\"",
+   "keydown #s key=\"ArrowDown\"",
+   "keyup #s key=\"ArrowDown\"",
+   "keydown #s key=\"Home\"",
+   "input #s value=\"Apple\"",
+   "change #s value=\"Apple\"",
+   "keyup #s key=\"Home\"",
+   "keydown #s key=\"PageDown\"",
+   "input #s value=\"Coconut\"",
+   "change #s value=\"Coconut\"",
+   "keyup #s key=\"PageDown\"",
+   "keydown #s key=\"PageUp\"",
+   "input #s value=\"Apple\"",
+   "change #s value=\"Apple\"",
+   "keyup #s key=\"PageUp\"",
+   "keydown #s key=\"c\"",
+   "keypress #s key=\"c\"",
+   "input #s value=\"Cherry\"",
+   "change #s value=\"Cherry\"",
+   "keyup #s key=\"c\"",
+   "keydown #s key=\"c\"",
+   "keypress #s key=\"c\"",
+   "input #s value=\"Coconut\"",
+   "change #s value=\"Coconut\"",
+   "keyup #s key=\"c\"",
+   "keydown #s key=\"c\"",
+   "keypress #s key=\"c\"",
+   "input #s value=\"Cherry\"",
+   "change #s value=\"Cherry\"",
+   "keyup #s key=\"c\"",
+   "keydown #s key=\"d\"",
+   "keypress #s key=\"d\"",
+   "input #s value=\"Date\"",
+   "change #s value=\"Date\"",
+   "keyup #s key=\"d\"",
+   "keydown #s key=\"a\"",
+   "keypress #s key=\"a\"",
+   "keyup #s key=\"a\"",
+   "blur #s",
+   "focusout #s"
+  ],
+  "states": {
+   "#s": {
+    "value": "Date",
+    "selectedIndex": 4,
+    "states": ":valid :user-valid"
+   }
+  },
+  "activeElement": null,
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   401.2121276855469,
+   201.21212768554688
+  ]
+ },
+ "select-popup-keys": {
+  "pageSelection": null,
+  "log": [
+   "focus #s",
+   "focusin #s",
+   "keydown #s key=\"Enter\"",
+   "keypress #s key=\"Enter\"",
+   "input #s value=\"Three\"",
+   "change #s value=\"Three\"",
+   "click #s detail=0",
+   "keyup #s key=\"Enter\"",
+   "keydown #s key=\" \"",
+   "keypress #s key=\" \"",
+   "input #s value=\"Four\"",
+   "change #s value=\"Four\"",
+   "keyup #s key=\"Escape\"",
+   "keydown #s key=\"ArrowDown\"",
+   "keyup #s key=\"Escape\"",
+   "keydown #s key=\"F4\"",
+   "input #s value=\"Three\"",
+   "change #s value=\"Three\"",
+   "click #s detail=0",
+   "keyup #s key=\"Tab\""
+  ],
+  "states": {
+   "#s": {
+    "value": "Three",
+    "selectedIndex": 2,
+    "states": ":focus :focus-visible :valid :user-valid"
+   }
+  },
+  "activeElement": "#s",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [
+   {
+    "states": {
+     "#s": {
+      "value": "One",
+      "selectedIndex": 0,
+      "states": ":focus :focus-visible :valid :open"
+     }
+    },
+    "activeElement": "#s",
+    "pageSelection": null
+   },
+   {
+    "states": {
+     "#s": {
+      "value": "Three",
+      "selectedIndex": 2,
+      "states": ":focus :focus-visible :valid :user-valid"
+     }
+    },
+    "activeElement": "#s",
+    "pageSelection": null
+   },
+   {
+    "states": {
+     "#s": {
+      "value": "Four",
+      "selectedIndex": 3,
+      "states": ":focus :focus-visible :valid :user-valid :open"
+     }
+    },
+    "activeElement": "#s",
+    "pageSelection": null
+   }
+  ],
+  "viewport": [
+   401.2121276855469,
+   301.2121276855469
+  ]
+ },
+ "select-popup-press": {
+  "pageSelection": null,
+  "log": [
+   "pointerdown #s",
+   "mousedown #s detail=1",
+   "focus #s",
+   "focusin #s",
+   "pointerup #s",
+   "mouseup #s detail=1",
+   "click #s detail=1",
+   "pointerdown #b",
+   "mousedown #b detail=1",
+   "blur #s",
+   "focusout #s",
+   "focus #b",
+   "focusin #b",
+   "pointerup #b",
+   "mouseup #b detail=1",
+   "click #b detail=1",
+   "pointerdown #s",
+   "mousedown #s detail=1",
+   "blur #b",
+   "focusout #b",
+   "focus #s",
+   "focusin #s",
+   "pointerup #s",
+   "mouseup #s detail=1",
+   "click #s detail=1",
+   "pointerdown #s",
+   "mousedown #s detail=2",
+   "pointerup #s",
+   "mouseup #s detail=2",
+   "click #s detail=2",
+   "dblclick #s detail=2",
+   "pointerdown #s",
+   "mousedown #s detail=3",
+   "pointerup #s",
+   "mouseup #s detail=3",
+   "click #s detail=3",
+   "input #s value=\"Two\"",
+   "change #s value=\"Two\"",
+   "pointerdown #b",
+   "mousedown #b detail=1",
+   "blur #s",
+   "focusout #s",
+   "focus #b",
+   "focusin #b",
+   "pointerup #b",
+   "mouseup #b detail=1",
+   "click #b detail=1"
+  ],
+  "states": {
+   "#s": {
+    "value": "Two",
+    "selectedIndex": 1,
+    "states": ":valid :user-valid"
+   },
+   "#b": {
+    "states": ":hover :focus :valid"
+   }
+  },
+  "activeElement": "#b",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [
+   {
+    "states": {
+     "#s": {
+      "value": "One",
+      "selectedIndex": 0,
+      "states": ":hover :focus :focus-visible :valid :open"
+     },
+     "#b": {
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#s",
+    "pageSelection": null
+   },
+   {
+    "states": {
+     "#s": {
+      "value": "One",
+      "selectedIndex": 0,
+      "states": ":valid"
+     },
+     "#b": {
+      "states": ":hover :focus :valid"
+     }
+    },
+    "activeElement": "#b",
+    "pageSelection": null
+   }
+  ],
+  "viewport": [
+   401.2121276855469,
+   301.2121276855469
+  ]
+ },
+ "search-cancel": {
+  "pageSelection": "field",
+  "log": [
+   "pointerdown #q",
+   "mousedown #q detail=1",
+   "focus #q",
+   "focusin #q",
+   "selectionchange #q",
+   "pointerup #q",
+   "mouseup #q detail=1",
+   "click #q detail=1",
+   "pointerdown #q",
+   "mousedown #q detail=1",
+   "pointerup #q",
+   "mouseup #q detail=1",
+   "click #q detail=1",
+   "input #q value=\"\"",
+   "search #q",
+   "selectionchange #q",
+   "keydown #q key=\"Escape\"",
+   "input #q value=\"\"",
+   "search #q",
+   "keyup #q key=\"Escape\"",
+   "keydown #q key=\"Escape\"",
+   "keyup #q key=\"Escape\""
+  ],
+  "states": {
+   "#q": {
+    "value": "",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":focus :focus-visible :valid"
+   }
+  },
+  "activeElement": "#q",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   401.2121276855469,
+   201.21212768554688
+  ]
+ },
+ "checkbox": {
+  "pageSelection": {
+   "anchor": "#l2/0:2",
+   "focus": "#l2/0:2",
+   "text": ""
+  },
+  "log": [
+   "pointerdown #c1",
+   "mousedown #c1 detail=1",
+   "focus #c1",
+   "focusin #c1",
+   "pointerup #c1",
+   "mouseup #c1 detail=1",
+   "click #c1 detail=1 checked=true",
+   "input #c1 value=\"on\" checked=true",
+   "change #c1 value=\"on\" checked=true",
+   "pointerdown #c1",
+   "mousedown #c1 detail=2",
+   "pointerup #c1",
+   "mouseup #c1 detail=2",
+   "click #c1 detail=2 checked=false",
+   "input #c1 value=\"on\" checked=false",
+   "change #c1 value=\"on\" checked=false",
+   "dblclick #c1 detail=2",
+   "pointerdown #c2",
+   "mousedown #c2 detail=1",
+   "blur #c1",
+   "focusout #c1",
+   "focus #c2",
+   "focusin #c2",
+   "pointerup #c2",
+   "mouseup #c2 detail=1",
+   "click #c2 detail=1 checked=false",
+   "pointerdown #c3",
+   "mousedown #c3 detail=1",
+   "blur #c2",
+   "focusout #c2",
+   "focus #c3",
+   "focusin #c3",
+   "pointerup #c3",
+   "mouseup #c3 detail=1",
+   "click #c3 detail=1 checked=true",
+   "input #c3 value=\"on\" checked=true",
+   "change #c3 value=\"on\" checked=true",
+   "pointerdown #c3",
+   "mousedown #c3 detail=2",
+   "pointerup #c3",
+   "mouseup #c3 detail=2",
+   "click #c3 detail=2 checked=false",
+   "input #c3 value=\"on\" checked=false",
+   "change #c3 value=\"on\" checked=false",
+   "dblclick #c3 detail=2",
+   "pointerdown #l1",
+   "mousedown #l1 detail=1",
+   "blur #c3",
+   "focusout #c3",
+   "selectionchange document",
+   "pointerup #l1",
+   "mouseup #l1 detail=1",
+   "click #l1 detail=1",
+   "focus #c4",
+   "focusin #c4",
+   "click #c4 detail=1 checked=true",
+   "input #c4 value=\"on\" checked=true",
+   "change #c4 value=\"on\" checked=true",
+   "pointerdown #l2",
+   "mousedown #l2 detail=1",
+   "blur #c4",
+   "focusout #c4",
+   "selectionchange document",
+   "pointerup #l2",
+   "mouseup #l2 detail=1",
+   "click #l2 detail=1",
+   "focus #c5",
+   "focusin #c5",
+   "click #c5 detail=1 checked=true",
+   "input #c5 value=\"on\" checked=true",
+   "change #c5 value=\"on\" checked=true",
+   "pointerdown #c6",
+   "mousedown #c6 detail=1",
+   "blur #c5",
+   "focusout #c5",
+   "focus #c6",
+   "focusin #c6",
+   "pointerup #c6",
+   "mouseup #c6 detail=1",
+   "click #c6 detail=1 checked=true",
+   "input #c6 value=\"on\" checked=true",
+   "change #c6 value=\"on\" checked=true"
+  ],
+  "states": {
+   "#c1": {
+    "value": "on",
+    "checked": false,
+    "states": ":valid :user-valid"
+   },
+   "#c2": {
+    "value": "on",
+    "checked": true,
+    "states": ":checked :valid"
+   },
+   "#c3": {
+    "value": "on",
+    "checked": false,
+    "states": ":invalid :user-invalid"
+   },
+   "#l1": {
+    "states": ""
+   },
+   "#c4": {
+    "value": "on",
+    "checked": true,
+    "states": ":checked :valid :user-valid"
+   },
+   "#l2": {
+    "states": ""
+   },
+   "#c5": {
+    "value": "on",
+    "checked": true,
+    "states": ":checked :valid :user-valid"
+   },
+   "#c6": {
+    "value": "on",
+    "checked": true,
+    "states": ":checked :focus :valid :user-valid"
+   }
+  },
+  "activeElement": "#c6",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   401.2121276855469,
+   201.21212768554688
+  ]
+ },
+ "radio": {
+  "pageSelection": null,
+  "log": [
+   "pointerdown #r1",
+   "mousedown #r1 detail=1",
+   "focus #r1",
+   "focusin #r1",
+   "pointerup #r1",
+   "mouseup #r1 detail=1",
+   "click #r1 detail=1 checked=true",
+   "input #r1 value=\"on\" checked=true",
+   "change #r1 value=\"on\" checked=true",
+   "pointerdown #r2",
+   "mousedown #r2 detail=1",
+   "blur #r1",
+   "focusout #r1",
+   "focus #r2",
+   "focusin #r2",
+   "pointerup #r2",
+   "mouseup #r2 detail=1",
+   "click #r2 detail=1 checked=true",
+   "input #r2 value=\"on\" checked=true",
+   "change #r2 value=\"on\" checked=true",
+   "keydown #r2 key=\"ArrowRight\"",
+   "blur #r2",
+   "focusout #r2",
+   "focus #r3",
+   "focusin #r3",
+   "click #r3 detail=0 checked=true",
+   "input #r3 value=\"on\" checked=true",
+   "change #r3 value=\"on\" checked=true",
+   "keyup #r3 key=\"ArrowRight\"",
+   "keydown #r3 key=\"ArrowDown\"",
+   "blur #r3",
+   "focusout #r3",
+   "focus #r1",
+   "focusin #r1",
+   "click #r1 detail=0 checked=true",
+   "input #r1 value=\"on\" checked=true",
+   "change #r1 value=\"on\" checked=true",
+   "keyup #r1 key=\"ArrowDown\"",
+   "keydown #r1 key=\"ArrowLeft\"",
+   "blur #r1",
+   "focusout #r1",
+   "focus #r3",
+   "focusin #r3",
+   "click #r3 detail=0 checked=true",
+   "input #r3 value=\"on\" checked=true",
+   "change #r3 value=\"on\" checked=true",
+   "keyup #r3 key=\"ArrowLeft\"",
+   "keydown #r3 key=\"ArrowUp\"",
+   "blur #r3",
+   "focusout #r3",
+   "focus #r2",
+   "focusin #r2",
+   "click #r2 detail=0 checked=true",
+   "input #r2 value=\"on\" checked=true",
+   "change #r2 value=\"on\" checked=true",
+   "keyup #r2 key=\"ArrowUp\"",
+   "keydown #r2 key=\" \"",
+   "keypress #r2 key=\" \"",
+   "keyup #r2 key=\" \"",
+   "pointerdown #r4",
+   "mousedown #r4 detail=1",
+   "blur #r2",
+   "focusout #r2",
+   "focus #r4",
+   "focusin #r4",
+   "pointerup #r4",
+   "mouseup #r4 detail=1",
+   "click #r4 detail=1 checked=true"
+  ],
+  "states": {
+   "#r1": {
+    "value": "on",
+    "checked": false,
+    "states": ":valid :user-valid"
+   },
+   "#r2": {
+    "value": "on",
+    "checked": true,
+    "states": ":checked :valid :user-valid"
+   },
+   "#r3": {
+    "value": "on",
+    "checked": false,
+    "states": ":valid :user-valid"
+   },
+   "#r4": {
+    "value": "on",
+    "checked": false,
+    "states": ":focus :valid"
+   },
+   "#r5": {
+    "value": "on",
+    "checked": true,
+    "states": ":checked :valid"
+   }
+  },
+  "activeElement": "#r4",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   401.2121276855469,
+   201.21212768554688
+  ]
+ },
+ "checkbox-keys": {
+  "pageSelection": null,
+  "log": [
+   "focus #c",
+   "focusin #c",
+   "keydown #c key=\" \"",
+   "keypress #c key=\" \"",
+   "keyup #c key=\" \"",
+   "click #c detail=0 checked=true",
+   "input #c value=\"on\" checked=true",
+   "change #c value=\"on\" checked=true",
+   "keydown #c key=\" \"",
+   "keypress #c key=\" \"",
+   "blur #c",
+   "focusout #c",
+   "keyup body key=\" \"",
+   "focus #c",
+   "focusin #c",
+   "keydown #c key=\"Enter\"",
+   "keypress #c key=\"Enter\"",
+   "click #b detail=0",
+   "submit #f submitter=#b",
+   "keyup #c key=\"Enter\""
+  ],
+  "states": {
+   "#f": {
+    "states": ":valid"
+   },
+   "#c": {
+    "value": "on",
+    "checked": true,
+    "states": ":checked :focus :focus-visible :valid :user-valid"
+   },
+   "#b": {
+    "states": ":valid"
+   }
+  },
+  "activeElement": "#c",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   401.2121276855469,
+   201.21212768554688
+  ]
+ },
+ "details": {
+  "pageSelection": {
+   "anchor": "#sp/0:3",
+   "focus": "#sp/0:3",
+   "text": ""
+  },
+  "log": [
+   "pointerdown #s1",
+   "mousedown #s1 detail=1",
+   "focus #s1",
+   "focusin #s1",
+   "selectionchange document",
+   "pointerup #s1",
+   "mouseup #s1 detail=1",
+   "click #s1 detail=1",
+   "toggle #d1 closed->open",
+   "pointerdown #s1",
+   "mousedown #s1 detail=2",
+   "selectionchange document",
+   "pointerup #s1",
+   "mouseup #s1 detail=2",
+   "click #s1 detail=2",
+   "dblclick #s1 detail=2",
+   "toggle #d1 open->closed",
+   "pointerdown #sp",
+   "mousedown #sp detail=1",
+   "selectionchange document",
+   "pointerup #sp",
+   "mouseup #sp detail=1",
+   "click #sp detail=1",
+   "toggle #d1 closed->open",
+   "pointerdown #sb",
+   "mousedown #sb detail=1",
+   "blur #s1",
+   "focusout #s1",
+   "focus #sb",
+   "focusin #sb",
+   "pointerup #sb",
+   "mouseup #sb detail=1",
+   "click #sb detail=1",
+   "blur #sb",
+   "focusout #sb",
+   "focus #s2",
+   "focusin #s2",
+   "keydown #s2 key=\"Enter\"",
+   "keypress #s2 key=\"Enter\"",
+   "click #s2 detail=0",
+   "toggle #d2 open->closed",
+   "keyup #s2 key=\"Enter\"",
+   "keydown #s2 key=\" \"",
+   "keypress #s2 key=\" \"",
+   "keyup #s2 key=\" \"",
+   "click #s2 detail=0",
+   "toggle #d2 closed->open",
+   "toggle #d2 open->closed",
+   "toggle #d2 closed->open"
+  ],
+  "states": {
+   "#d1": {
+    "open": true,
+    "states": ":hover :open"
+   },
+   "#s1": {
+    "states": ":hover"
+   },
+   "#sp": {
+    "states": ""
+   },
+   "#sb": {
+    "states": ":hover :valid"
+   },
+   "#d2": {
+    "open": true,
+    "states": ":open"
+   },
+   "#s2": {
+    "states": ":focus :focus-visible"
+   }
+  },
+  "activeElement": "#s2",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   401.2121276855469,
+   301.2121276855469
+  ]
+ },
+ "buttons": {
+  "pageSelection": null,
+  "log": [
+   "pointerdown #b1",
+   "mousedown #b1 detail=1",
+   "focus #b1",
+   "focusin #b1",
+   "pointerup #b1",
+   "mouseup #b1 detail=1",
+   "click #b1 detail=1",
+   "keydown #b1 key=\" \"",
+   "keypress #b1 key=\" \"",
+   "keyup #b1 key=\" \"",
+   "click #b1 detail=0",
+   "keydown #b1 key=\"Enter\"",
+   "keypress #b1 key=\"Enter\"",
+   "click #b1 detail=0",
+   "keyup #b1 key=\"Enter\"",
+   "pointerdown #b2",
+   "blur #b1",
+   "focusout #b1",
+   "pointerup #b2",
+   "pointerdown #sp",
+   "pointerup #sp",
+   "focus #i1",
+   "focusin #i1",
+   "keydown #i1 key=\" \"",
+   "keypress #i1 key=\" \"",
+   "keyup #i1 key=\" \"",
+   "click #i1 detail=0",
+   "keydown #i1 key=\"Enter\"",
+   "keypress #i1 key=\"Enter\"",
+   "click #i1 detail=0",
+   "keyup #i1 key=\"Enter\"",
+   "click #b1 untrusted detail=0"
+  ],
+  "states": {
+   "#wrap": {
+    "states": ":hover"
+   },
+   "#b1": {
+    "states": ":valid"
+   },
+   "#b2": {
+    "states": ""
+   },
+   "#b3": {
+    "states": ":hover"
+   },
+   "#sp": {
+    "states": ":hover"
+   },
+   "#i1": {
+    "value": "Four",
+    "states": ":focus :focus-visible"
+   }
+  },
+  "activeElement": "#i1",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   401.2121276855469,
+   201.21212768554688
+  ]
+ },
+ "form-submit": {
+  "pageSelection": {
+   "anchor": "#f:3",
+   "focus": "#f:3",
+   "text": ""
+  },
+  "log": [
+   "pointerdown #r",
+   "mousedown #r detail=1",
+   "focus #r",
+   "focusin #r",
+   "pointerup #r",
+   "mouseup #r detail=1",
+   "click #r detail=1",
+   "reset #f",
+   "selectionchange #t",
+   "selectionchange #n",
+   "pointerdown #s",
+   "mousedown #s detail=1",
+   "blur #r",
+   "focusout #r",
+   "focus #s",
+   "focusin #s",
+   "pointerup #s",
+   "mouseup #s detail=1",
+   "click #s detail=1",
+   "invalid #n",
+   "blur #s",
+   "focusout #s",
+   "focus #n",
+   "focusin #n",
+   "selectionchange #n",
+   "selectionchange #n",
+   "pointerdown #s",
+   "mousedown #s detail=2",
+   "blur #n",
+   "focusout #n",
+   "focus #s",
+   "focusin #s",
+   "pointerup #s",
+   "mouseup #s detail=2",
+   "click #s detail=2",
+   "submit #f submitter=#s",
+   "dblclick #s detail=2",
+   "pointerdown #c",
+   "mousedown #c detail=1",
+   "blur #s",
+   "focusout #s",
+   "focus #c",
+   "focusin #c",
+   "pointerup #c",
+   "mouseup #c detail=1",
+   "click #c detail=1 checked=false",
+   "input #c value=\"on\" checked=false",
+   "change #c value=\"on\" checked=false",
+   "pointerdown #r",
+   "mousedown #r detail=1",
+   "blur #c",
+   "focusout #c",
+   "focus #r",
+   "focusin #r",
+   "pointerup #r",
+   "mouseup #r detail=1",
+   "click #r detail=1",
+   "reset #f",
+   "selectionchange #t"
+  ],
+  "states": {
+   "#f": {
+    "states": ":invalid"
+   },
+   "#t": {
+    "value": "",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":invalid"
+   },
+   "#n": {
+    "value": "3",
+    "scroll": [
+     0,
+     0
+    ],
+    "states": ":valid"
+   },
+   "#c": {
+    "value": "on",
+    "checked": true,
+    "states": ":checked :valid"
+   },
+   "#s": {
+    "states": ":valid"
+   },
+   "#r": {
+    "states": ":focus"
+   }
+  },
+  "activeElement": "#r",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   401.2121276855469,
+   301.2121276855469
+  ]
+ },
+ "implicit-submission": {
+  "pageSelection": "field",
+  "log": [
+   "pointerdown #t1",
+   "mousedown #t1 detail=1",
+   "focus #t1",
+   "focusin #t1",
+   "selectionchange #t1",
+   "pointerup #t1",
+   "mouseup #t1 detail=1",
+   "click #t1 detail=1",
+   "keydown #t1 key=\"Enter\"",
+   "keypress #t1 key=\"Enter\"",
+   "beforeinput #t1 inputType=insertLineBreak",
+   "click #s1 detail=0",
+   "submit #f1 submitter=#s1",
+   "keyup #t1 key=\"Enter\"",
+   "pointerdown #t2",
+   "mousedown #t2 detail=1",
+   "blur #t1",
+   "focusout #t1",
+   "focus #t2",
+   "focusin #t2",
+   "selectionchange #t2",
+   "pointerup #t2",
+   "mouseup #t2 detail=1",
+   "click #t2 detail=1",
+   "keydown #t2 key=\"Enter\"",
+   "keypress #t2 key=\"Enter\"",
+   "beforeinput #t2 inputType=insertLineBreak",
+   "submit #f2 submitter=null",
+   "search #t2",
+   "keyup #t2 key=\"Enter\"",
+   "pointerdown #t3",
+   "mousedown #t3 detail=1",
+   "blur #t2",
+   "focusout #t2",
+   "focus #t3",
+   "focusin #t3",
+   "selectionchange #t3",
+   "pointerup #t3",
+   "mouseup #t3 detail=1",
+   "click #t3 detail=1",
+   "keydown #t3 key=\"Enter\"",
+   "keypress #t3 key=\"Enter\"",
+   "beforeinput #t3 inputType=insertLineBreak",
+   "keyup #t3 key=\"Enter\"",
+   "pointerdown #t5",
+   "mousedown #t5 detail=1",
+   "blur #t3",
+   "focusout #t3",
+   "focus #t5",
+   "focusin #t5",
+   "selectionchange #t5",
+   "pointerup #t5",
+   "mouseup #t5 detail=1",
+   "click #t5 detail=1",
+   "keydown #t5 key=\"Enter\"",
+   "keypress #t5 key=\"Enter\"",
+   "beforeinput #t5 inputType=insertLineBreak",
+   "keyup #t5 key=\"Enter\""
+  ],
+  "states": {
+   "#f1": {
+    "states": ":valid"
+   },
+   "#t1": {
+    "value": "",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":valid :user-valid"
+   },
+   "#b1": {
+    "states": ""
+   },
+   "#s1": {
+    "states": ":valid"
+   },
+   "#f2": {
+    "states": ":valid"
+   },
+   "#t2": {
+    "value": "",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":valid :user-valid"
+   },
+   "#f3": {
+    "states": ":valid"
+   },
+   "#t3": {
+    "value": "",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":valid"
+   },
+   "#t4": {
+    "value": "",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":valid"
+   },
+   "#f4": {
+    "states": ":hover :valid"
+   },
+   "#t5": {
+    "value": "",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":hover :focus :focus-visible :valid"
+   },
+   "#s5": {
+    "states": ""
+   }
+  },
+  "activeElement": "#t5",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   401.2121276855469,
+   301.2121276855469
+  ]
+ },
+ "animation-events": {
+  "pageSelection": null,
+  "log": [
+   "transitionrun #both property=color elapsed=0",
+   "transitionstart #both property=color elapsed=0",
+   "animationstart #both name=grow elapsed=0",
+   "animationiteration #both name=grow elapsed=0.1",
+   "animationiteration #both name=grow elapsed=0.2",
+   "transitionend #both property=color elapsed=0.2",
+   "animationend #both name=grow elapsed=0.3",
+   "transitionrun #both property=color elapsed=0",
+   "transitionstart #both property=color elapsed=0",
+   "transitionrun #delayed property=color elapsed=0",
+   "transitioncancel #delayed property=color elapsed=0",
+   "transitionrun #rev property=color elapsed=0",
+   "transitionstart #rev property=color elapsed=0",
+   "transitionend #both property=color elapsed=0.2",
+   "transitioncancel #rev property=color elapsed=0.4",
+   "transitionrun #rev property=color elapsed=0",
+   "transitionstart #rev property=color elapsed=0",
+   "animationstart #loop name=grow elapsed=0.6",
+   "animationiteration #loop name=grow elapsed=0.9",
+   "transitionend #rev property=color elapsed=0.4",
+   "animationcancel #loop name=grow elapsed=0.5",
+   "animationstart #pseudo name=grow elapsed=0 pseudo=::before",
+   "animationend #pseudo name=grow elapsed=0.1 pseudo=::before",
+   "animationstart #victim name=grow elapsed=0",
+   "animationstart #kid name=grow elapsed=0",
+   "animationcancel #victim name=grow elapsed=0.4",
+   "transitionrun #neg property=color elapsed=0.1",
+   "transitionstart #neg property=color elapsed=0.1",
+   "animationstart #victim name=grow elapsed=0",
+   "transitionend #neg property=color elapsed=0.4"
+  ],
+  "states": {
+   "#both": {
+    "states": ""
+   },
+   "#delayed": {
+    "states": ""
+   },
+   "#rev": {
+    "states": ""
+   },
+   "#loop": {
+    "states": ""
+   },
+   "#pseudo": {
+    "states": ""
+   },
+   "#go": {
+    "states": ":focus :valid"
+   },
+   "#hider": {
+    "states": ""
+   },
+   "#victim": {
+    "states": ""
+   },
+   "#holder": {
+    "states": ""
+   },
+   "#neg": {
+    "states": ":hover"
+   }
+  },
+  "activeElement": "#go",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [],
+  "viewport": [
+   421.2121276855469,
+   221.21212768554688
+  ]
+ },
+ "inert": {
+  "pageSelection": null,
+  "log": [
+   "pointerdown #base",
+   "mousedown #base detail=1",
+   "selectionchange document",
+   "pointerup #base",
+   "mouseup #base detail=1",
+   "click #base detail=1",
+   "keydown body key=\"Tab\"",
+   "focus #out",
+   "focusin #out",
+   "keyup #out key=\"Tab\"",
+   "pointerdown #base",
+   "mousedown #base detail=1",
+   "blur #out",
+   "focusout #out",
+   "pointerup #base",
+   "mouseup #base detail=1",
+   "click #base detail=1",
+   "pointerdown #inner",
+   "mousedown #inner detail=1",
+   "focus #inner",
+   "focusin #inner",
+   "pointerup #inner",
+   "mouseup #inner detail=1",
+   "click #inner detail=1",
+   "blur #inner",
+   "focusout #inner",
+   "focus #inner-field",
+   "focusin #inner-field",
+   "selectionchange #inner-field",
+   "blur #inner-field",
+   "focusout #inner-field",
+   "keydown body key=\"Tab\"",
+   "focus #out",
+   "focusin #out",
+   "keyup #out key=\"Tab\""
+  ],
+  "states": {
+   "#base": {
+    "states": ":hover"
+   },
+   "#menu": {
+    "states": ""
+   },
+   "#inner": {
+    "states": ":valid"
+   },
+   "#inner-field": {
+    "value": "inside",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":valid"
+   },
+   "#words": {
+    "states": ""
+   },
+   "#out": {
+    "states": ":focus :focus-visible :valid"
+   },
+   "#field": {
+    "value": "",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":valid"
+   }
+  },
+  "activeElement": "#out",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": [
+   {
+    "states": {
+     "#base": {
+      "states": ":hover"
+     },
+     "#menu": {
+      "states": ""
+     },
+     "#inner": {
+      "states": ":valid"
+     },
+     "#inner-field": {
+      "value": "inside",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#words": {
+      "states": ""
+     },
+     "#out": {
+      "states": ":valid"
+     },
+     "#field": {
+      "value": "",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": null,
+    "pageSelection": {
+     "anchor": "#base:0",
+     "focus": "#base:0",
+     "text": ""
+    }
+   },
+   {
+    "states": {
+     "#base": {
+      "states": ":hover"
+     },
+     "#menu": {
+      "states": ""
+     },
+     "#inner": {
+      "states": ":valid"
+     },
+     "#inner-field": {
+      "value": "inside",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#words": {
+      "states": ""
+     },
+     "#out": {
+      "states": ":focus :focus-visible :valid"
+     },
+     "#field": {
+      "value": "",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#out",
+    "pageSelection": {
+     "anchor": "#base:0",
+     "focus": "#base:0",
+     "text": ""
+    }
+   },
+   {
+    "states": {
+     "#base": {
+      "states": ":hover"
+     },
+     "#menu": {
+      "states": ""
+     },
+     "#inner": {
+      "states": ":valid"
+     },
+     "#inner-field": {
+      "value": "inside",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#words": {
+      "states": ""
+     },
+     "#out": {
+      "states": ":focus :focus-visible :valid"
+     },
+     "#field": {
+      "value": "",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#out",
+    "pageSelection": {
+     "anchor": "#base:0",
+     "focus": "#base:0",
+     "text": ""
+    }
+   },
+   {
+    "states": {
+     "#base": {
+      "states": ":hover"
+     },
+     "#menu": {
+      "states": ""
+     },
+     "#inner": {
+      "states": ":valid"
+     },
+     "#inner-field": {
+      "value": "inside",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#words": {
+      "states": ""
+     },
+     "#out": {
+      "states": ":valid"
+     },
+     "#field": {
+      "value": "",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": null,
+    "pageSelection": {
+     "anchor": "#base:0",
+     "focus": "#base:0",
+     "text": ""
+    }
+   },
+   {
+    "states": {
+     "#base": {
+      "states": ""
+     },
+     "#menu": {
+      "states": ":hover"
+     },
+     "#inner": {
+      "states": ":hover :focus :valid"
+     },
+     "#inner-field": {
+      "value": "inside",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#words": {
+      "states": ""
+     },
+     "#out": {
+      "states": ":valid"
+     },
+     "#field": {
+      "value": "",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#inner",
+    "pageSelection": {
+     "anchor": "#base:0",
+     "focus": "#base:0",
+     "text": ""
+    }
+   },
+   {
+    "states": {
+     "#base": {
+      "states": ""
+     },
+     "#menu": {
+      "states": ":hover"
+     },
+     "#inner": {
+      "states": ":hover :valid"
+     },
+     "#inner-field": {
+      "value": "inside",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":focus :focus-visible :valid"
+     },
+     "#words": {
+      "states": ""
+     },
+     "#out": {
+      "states": ":valid"
+     },
+     "#field": {
+      "value": "",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#inner-field",
+    "pageSelection": "field"
+   },
+   {
+    "states": {
+     "#base": {
+      "states": ""
+     },
+     "#menu": {
+      "states": ":hover"
+     },
+     "#inner": {
+      "states": ":hover :valid"
+     },
+     "#inner-field": {
+      "value": "inside",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#words": {
+      "states": ""
+     },
+     "#out": {
+      "states": ":valid"
+     },
+     "#field": {
+      "value": "",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": null,
+    "pageSelection": null
+   },
+   {
+    "states": {
+     "#base": {
+      "states": ""
+     },
+     "#menu": {
+      "states": ":hover"
+     },
+     "#inner": {
+      "states": ":hover :valid"
+     },
+     "#inner-field": {
+      "value": "inside",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#words": {
+      "states": ""
+     },
+     "#out": {
+      "states": ":focus :focus-visible :valid"
+     },
+     "#field": {
+      "value": "",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#out",
+    "pageSelection": null
+   },
+   {
+    "states": {
+     "#base": {
+      "states": ":hover"
+     },
+     "#menu": {
+      "states": ""
+     },
+     "#inner": {
+      "states": ":valid"
+     },
+     "#inner-field": {
+      "value": "inside",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     },
+     "#words": {
+      "states": ""
+     },
+     "#out": {
+      "states": ":focus :focus-visible :valid"
+     },
+     "#field": {
+      "value": "",
+      "scroll": [
+       0,
+       0
+      ],
+      "selection": [
+       0,
+       0,
+       "forward"
+      ],
+      "states": ":valid"
+     }
+    },
+    "activeElement": "#out",
+    "pageSelection": null
+   }
+  ],
+  "viewport": [
+   402.42425537109375,
+   202.4242401123047
+  ]
+ }
+}

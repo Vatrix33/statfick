@@ -1,0 +1,65 @@
+{
+  "id": "stonebreaker",
+  "name": "Stonebreaker",
+  "requirements": {
+    "level": 30,
+    "classes": {},
+    "other": {
+      "type": "race",
+      "raceId": "dwarf",
+      "description": "Race: Dwarf"
+    }
+  },
+  "maxLevel": 3,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Gain the Bones of Iron passive.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "bones-of-iron",
+          "name": "Bones of Iron",
+          "condition": "Always",
+          "description": "Reduce all melee or ranged damage taken by 10%. You cannot be stunned.",
+          "effects": [
+            { "type": "incoming-attack-damage-percent", "attackKinds": ["melee", "ranged"], "amount": -10 },
+            { "type": "stun-immunity" }
+          ]
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Heavy Armor provides 30% more Armor.",
+      "effects": [
+        { "type": "equipment-armor-percent", "armorType": "heavy", "amount": 30 }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Unlock Mighty Shatter.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "mighty-shatter",
+          "name": "Mighty Shatter",
+          "combatOnly": true,
+          "description": "Your next melee attack deals 100% more damage and stuns the enemy. The next melee or ranged hit you take deals 50% more damage. Can only be used once per day.",
+          "cooldown": "daily",
+          "durationAttacks": 1,
+          "requiredWeaponType": "melee",
+          "effects": [
+            { "type": "weapon-power-percent", "weaponType": "melee", "amount": 100 }
+          ],
+          "onHitEffects": [
+            { "type": "stun", "weaponType": "melee", "durationTurns": 1 }
+          ],
+          "afterAttackEffects": [
+            { "type": "incoming-attack-damage-percent", "attackKinds": ["melee", "ranged"], "amount": 50, "durationHits": 1 }
+          ]
+        }
+      ]
+    }
+  ]
+}

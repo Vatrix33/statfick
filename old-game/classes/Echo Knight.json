@@ -1,0 +1,105 @@
+{
+  "id": "echo-knight",
+  "name": "Echo Knight",
+  "color": "blue",
+  "requirements": {
+    "level": 35,
+    "classes": {
+      "knight": 7,
+      "summoner": 4
+    },
+    "other": null
+  },
+  "maxLevel": 7,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Weapon Accuracy +10%.",
+      "effects": [
+        {
+          "type": "weapon-hit-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Armor +10%.",
+      "effects": [
+        {
+          "type": "defense-permanent-percent",
+          "amount": 10,
+          "target": "armor"
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Echo Blade: once per turn, your first weapon hit echoes for 15% of its damage.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "echo-blade",
+          "name": "Echo Blade",
+          "description": "Your first successful weapon hit each turn repeats for 15% damage.",
+          "effect": {
+            "type": "echo-weapon-hit",
+            "amount": 15
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Weapon power +5%.",
+      "effects": [
+        {
+          "type": "weapon-power-percent",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Maximum HP +5%.",
+      "effects": [
+        {
+          "type": "max-hp-percent",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Echo Blade repeat damage rises by 10%.",
+      "effects": [
+        {
+          "type": "echo-weapon-hit",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 7,
+      "description": "Unlock Spectral Double: repeat your next successful weapon attack at 50% damage.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "spectral-double",
+          "name": "Spectral Double",
+          "description": "Your next successful weapon hit repeats at 50% damage. Once per combat.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": false,
+          "durationAttacks": 1,
+          "effects": [
+            {
+              "type": "echo-next-attack-percent",
+              "amount": 50
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

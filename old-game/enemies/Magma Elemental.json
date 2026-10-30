@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "magma-elemental-level-36", "name": "Magma Elemental",
+  "level": 36, "raceId": "elemental", "element": "fire", "resistances": { "fire": 40, "earth": 20, "water": -25 },
+  "classLevels": { "monster": 3, "mage": 5, "spellcaster": 7, "pyromancer": 9, "geomancer": 9, "energist": 3 },
+  "stats": { "strength": 74, "vitality": 88, "mind": 110, "dexterity": 50, "intelligence": 117, "wisdom": 92, "speed": 49, "luck": 46 },
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": ["fire-bolt-fire-damage", "flame-spiral-fire-damage", "dragonbreath-cinderstorm-fire-damage", "summon-greater-fire-spirit-fire-summon", "inferno-orb-fire-damage", "hellfire-wave-fire-damage", "burning-horizon-fire-damage", "faultline-earth-damage", "stone-bastion-earth-support", "petrifying-grasp-earth-damage", "mountain-crusher-earth-damage", "fortress-of-stone-earth-support", "obsidian-spire-earth-damage", "sundering-rift-earth-damage"]
+}

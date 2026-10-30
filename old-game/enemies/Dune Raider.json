@@ -1,0 +1,7 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "dune-raider-level-36", "name": "Dune Raider", "level": 36, "raceId": "human",
+  "classLevels": { "archer": 5, "hunter": 7, "sharpshooter": 5, "rogue": 5, "ambusher": 7, "warrior": 5, "soldier": 2 },
+  "stats": { "strength": 78, "vitality": 74, "mind": 52, "dexterity": 101, "intelligence": 54, "wisdom": 57, "speed": 106, "luck": 60 },
+  "inventory": ["forge-weapon-2-compoundbow+longbow", "forge-armor-brigandine"],
+  "equipment": { "primaryHand": "forge-weapon-2-compoundbow+longbow", "offHand": "forge-weapon-2-compoundbow+longbow", "armor": "forge-armor-brigandine", "artifact1": null, "artifact2": null }, "knownSpells": []
+}

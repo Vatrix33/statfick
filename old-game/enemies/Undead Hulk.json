@@ -1,0 +1,21 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "undead-hulk-level-23",
+  "name": "Undead Hulk",
+  "level": 23,
+  "raceId": "undead",
+  "classLevels": { "monster": 3, "beast": 3, "warrior": 5, "barbarian": 6, "brawler": 6 },
+  "stats": { "strength": 72, "vitality": 90, "mind": 23, "dexterity": 34, "intelligence": 19, "wisdom": 22, "speed": 27, "luck": 20 },
+  "baseArmor": 18,
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

@@ -1,0 +1,95 @@
+{
+  "id": "cartographer",
+  "name": "Cartographer",
+  "requirements": {
+    "level": 1,
+    "classes": {
+      "traveler": 3
+    },
+    "other": {
+      "type": "distance-traveled",
+      "kilometers": 1500
+    }
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Travel speed +1 km/h.",
+      "effects": [
+        {
+          "type": "travel-speed-flat",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Wilderness encounter chance -10%.",
+      "effects": [
+        {
+          "type": "encounter-chance-percent",
+          "amount": -10
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Surveyor's Eye: reveal the current zone and nearby points of interest on the map.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "surveyors-eye",
+          "name": "Surveyor's Eye",
+          "description": "The map displays the current zone and highlights nearby towns and quest markers.",
+          "effect": {
+            "type": "surveyors-eye"
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Travel speed +1 km/h; Camping Supplies retention chance +20%.",
+      "effects": [
+        {
+          "type": "travel-speed-flat",
+          "amount": 1
+        },
+        {
+          "type": "camping-supply-retention-chance",
+          "amount": 20
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Charted Course: all allies gain 20% Evasion and 20% weapon Accuracy for two turns in combat.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "charted-course",
+          "name": "Charted Course",
+          "description": "In combat, all allies gain 20% Evasion and 20% weapon Accuracy for two turns. Once per combat.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "all-allies",
+          "onActivateEffects": [
+            {
+              "type": "defense-percent",
+              "target": "evasion",
+              "amount": 20,
+              "durationTurns": 2
+            },
+            {
+              "type": "weapon-hit-percent",
+              "amount": 20,
+              "durationTurns": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

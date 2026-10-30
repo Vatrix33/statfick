@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "lava-stalker-level-33", "name": "Lava Stalker",
+  "level": 33, "raceId": "lizardman", "element": "fire",
+  "classLevels": { "dragonblood": 3, "warrior": 5, "rogue": 5, "shadow": 6, "thief": 1, "ambusher": 7, "weaponmaster": 6 },
+  "stats": { "strength": 84, "vitality": 72, "mind": 53, "dexterity": 85, "intelligence": 58, "wisdom": 49, "speed": 89, "luck": 53 },
+  "inventory": ["forge-weapon-1-longsword+rapier", "forge-armor-scale-armor"],
+  "equipment": { "primaryHand": "forge-weapon-1-longsword+rapier", "offHand": null, "armor": "forge-armor-scale-armor", "artifact1": null, "artifact2": null },
+  "knownSpells": []
+}

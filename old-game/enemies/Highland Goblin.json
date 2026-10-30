@@ -1,0 +1,35 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "highland-goblin-level-10",
+  "name": "Highland Goblin",
+  "level": 10,
+  "raceId": "goblin",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "rogue": 2
+  },
+  "stats": {
+    "strength": 37,
+    "vitality": 31,
+    "mind": 19,
+    "dexterity": 26,
+    "intelligence": 19,
+    "wisdom": 19,
+    "speed": 23,
+    "luck": 19
+  },
+  "inventory": [
+    "forge-weapon-1-longsword+rapier",
+    "forge-armor-leather-armor+scale-armor"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-longsword+rapier",
+    "offHand": null,
+    "armor": "forge-armor-leather-armor+scale-armor",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

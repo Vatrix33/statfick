@@ -1,0 +1,127 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "anatemis-white-star-unique-level-100",
+  "name": "Anatemis, the White Star",
+  "unique": true,
+  "level": 100,
+  "raceId": "dragon",
+  "element": "basic",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 3,
+    "dragonkin": 7,
+    "mage": 5,
+    "spellcaster": 7,
+    "wizard": 7,
+    "great-mage": 7,
+    "sorcerer": 5,
+    "hierophant": 9,
+    "scholar": 5,
+    "wise-man": 5,
+    "weaponmaster": 7,
+    "guardian": 7,
+    "raid-boss": 1,
+    "spellblade": 5,
+    "warrior": 5,
+    "soldier": 2
+  },
+  "stats": {
+    "strength": 0,
+    "vitality": 322,
+    "mind": 332,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 172
+  },
+  "permanentBonuses": { "strength": -70, "vitality": 0, "mind": 0, "dexterity": -70, "intelligence": -85, "wisdom": -85, "speed": -85, "luck": 0 },
+  "baseArmor": 56,
+  "maxHpPercent": 110,
+  "maxManaPercent": 20,
+  "permanentDefenseBonuses": { "armor": 15, "evasion": 0 },
+  "resistances": {
+    "basic": 35,
+    "fire": 22,
+    "water": 22,
+    "earth": 22,
+    "wind": 22,
+    "ice": 22,
+    "lightning": 22,
+    "holy": 22,
+    "dark": 22,
+    "nature": 22,
+    "blood": 22,
+    "death": 22
+  },
+  "naturalWeapon": "stardragon-claws",
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "null-star-basic-damage",
+    "absolute-aether-basic-damage",
+    "fracture-the-law-basic-damage",
+    "axiom-lance-basic-damage",
+    "axiom-unbound-basic-damage",
+    "solar-pike-fire-damage",
+    "tideborn-refuge-water-support",
+    "mantlebreaker-earth-damage",
+    "skyglass-spear-wind-damage",
+    "glacial-silence-ice-damage",
+    "thunderhead-verdict-lightning-damage",
+    "seraphic-shelter-holy-support",
+    "blackened-horizon-dark-damage",
+    "elderwood-renewal-nature-support",
+    "arterial-ruin-blood-damage",
+    "gravesong-death-damage"
+  ],
+  "phaseTransitions": [
+    {
+      "thresholdHpPercent": 50,
+      "name": "Anatemis, the Golden Star",
+      "healMaxHpPercent": 10,
+      "statBonuses": { "intelligence": 30, "wisdom": 30 },
+      "defenseBonuses": { "armor": 15 },
+      "knownSpells": [],
+      "announcement": "White starlight turns to gold. Anatemis rises with renewed power!",
+      "cinematic": "anatemis-golden"
+    },
+    {
+      "thresholdHpPercent": 15,
+      "name": "Anatemis, the Zenith of Dragonkind",
+      "healMaxHpPercent": 25,
+      "statBonuses": {
+        "strength": 25,
+        "vitality": 25,
+        "mind": 25,
+        "dexterity": 25,
+        "intelligence": 25,
+        "wisdom": 25,
+        "speed": 25,
+        "luck": 25
+      },
+      "defenseBonuses": {},
+      "knownSpells": [],
+      "announcement": "Anatemis ignites as the Zenith of Dragonkind. The heavens answer!",
+      "cinematic": "anatemis-zenith"
+    }
+  ],
+  "aiProfile": "anatemis", "introCinematic": "anatemis",
+  "starTrials": {
+    "mirror": { "reflectPercent": 25, "breakPercent": 20, "reformTurns": 3 },
+    "sunfall": { "fromPhase": 1, "damagePercent": 50, "deflectPercent": 8 },
+    "supernova": { "fromPhase": 2, "chargeTurns": 3, "damagePercent": 60, "collapsePercent": 15, "staggerAp": 2 }
+  },
+  "drops": [
+    { "itemId": "masterwork-quasar-jet", "chance": 10 },
+    { "itemId": "masterwork-golden-apex", "chance": 8 }
+  ]
+}

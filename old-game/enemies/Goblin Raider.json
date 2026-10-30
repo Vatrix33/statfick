@@ -1,0 +1,35 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "goblin-raider-level-13",
+  "name": "Goblin Raider",
+  "level": 13,
+  "raceId": "goblin",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "rogue": 5
+  },
+  "stats": {
+    "strength": 46,
+    "vitality": 39,
+    "mind": 22,
+    "dexterity": 32,
+    "intelligence": 22,
+    "wisdom": 22,
+    "speed": 28,
+    "luck": 22
+  },
+  "inventory": [
+    "forge-weapon-2-greataxe+axe",
+    "forge-armor-chainmail"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-greataxe+axe",
+    "offHand": null,
+    "armor": "forge-armor-chainmail",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

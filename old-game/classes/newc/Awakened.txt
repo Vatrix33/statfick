@@ -1,0 +1,6 @@
+Level Requirement: 60
+Class Requirement: Sorcerer Level 7 or Wizard Level 7
+Other Requirement: You won a combat with 10% or less HP remaining
+
+This class focuses on using HP as a ressource for casting spells, greatly increasing their power
+This class has 5 Levels and has the golden color

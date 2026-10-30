@@ -1,0 +1,32 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "stormforged-giant-level-90",
+  "name": "Stormforged Giant",
+  "level": 90,
+  "raceId": "giant",
+  "element": "lightning",
+  "classLevels": {
+    "monster": 3, "warrior": 5, "great-beast": 10,
+    "barbarian": 7, "brawler": 6, "stonebreaker": 3,
+    "soldier": 6, "guardian": 7, "slayer": 7,
+    "weaponmaster": 7, "heavy-knight": 5, "mage": 5,
+    "spellcaster": 7, "electromancer": 9, "berserker": 3
+  },
+  "stats": {
+    "strength": 232, "vitality": 220, "mind": 115, "dexterity": 104,
+    "intelligence": 118, "wisdom": 113, "speed": 95, "luck": 75
+  },
+  "resistances": { "lightning": 40, "earth": -25 },
+  "inventory": ["forge-weapon-1-mace+flail"],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-mace+flail", "offHand": null,
+    "armor": null, "artifact1": null, "artifact2": null
+  },
+  "knownSpells": [
+    "thunderbrand-lightning-damage", "tempest-circuit-lightning-damage",
+    "dragonbreath-thunder-crown-lightning-damage", "volt-pike-lightning-damage",
+    "thunder-judgment-lightning-damage", "chain-resonance-lightning-damage",
+    "static-surge-lightning-support"
+  ]
+}

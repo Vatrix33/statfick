@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "dust-revenant-level-52", "name": "Dust Revenant", "level": 52,
+  "raceId": "undead", "element": "death", "resistances": { "death": 35, "earth": 15, "holy": -25 },
+  "classLevels": { "monster": 3, "mage": 5, "spellcaster": 7, "wizard": 7, "necromancer": 9, "umbramancer": 9, "sage": 5 },
+  "stats": { "strength": 65, "vitality": 110, "mind": 145, "dexterity": 84, "intelligence": 140, "wisdom": 122, "speed": 96, "luck": 80 },
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": ["grave-lance-death-damage", "grave-sentence-death-damage", "deathwave-death-damage", "nightfall-surge-dark-damage", "summon-undead-hulk-death-summon"]
+}

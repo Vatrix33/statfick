@@ -1,0 +1,8 @@
+{
+  "id": "noble", "name": "Noble", "requirements": { "level": 30, "classes": {}, "other": { "type": "race", "raceId": "human", "description": "Race: Human" } }, "maxLevel": 3,
+  "levels": [
+    { "level": 1, "description": "Gain the Important Presence passive.", "effects": [{ "type": "passive", "id": "important-presence", "name": "Important Presence", "condition": "When completing Guild quests", "description": "Gain 20% more money and 50% more Reputation from quests.", "effects": [{ "type": "quest-money-percent", "amount": 20 }, { "type": "quest-reputation-percent", "amount": 50 }] }] },
+    { "level": 2, "description": "Wearing Clothing increases Evasion by 10%.", "effects": [{ "type": "conditional-defense-percent", "condition": "clothing", "target": "evasion", "amount": 10 }] },
+    { "level": 3, "description": "Unlock Grand Inspiration.", "effects": [{ "type": "skill", "id": "grand-inspiration", "name": "Grand Inspiration", "combatOnly": true, "cooldown": "daily", "durationTurns": 2, "target": "all-allies", "description": "All allies gain 40% Accuracy and 40% Evasion for 2 turns. Can be used once per day.", "effects": [], "onActivateEffects": [{ "type": "weapon-hit-percent", "amount": 40, "durationTurns": 2 }, { "type": "defense-percent", "target": "evasion", "amount": 40, "durationTurns": 2 }] }] }
+  ]
+}

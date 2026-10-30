@@ -1,0 +1,35 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "mountain-bear-level-15",
+  "name": "Mountain Bear",
+  "level": 15,
+  "raceId": "bear",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 2
+  },
+  "stats": {
+    "strength": 48,
+    "vitality": 51,
+    "mind": 24,
+    "dexterity": 32,
+    "intelligence": 24,
+    "wisdom": 24,
+    "speed": 31,
+    "luck": 25
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

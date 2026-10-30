@@ -1,0 +1,45 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "ice-elemental-level-25",
+  "name": "Ice Elemental",
+  "level": 25,
+  "raceId": "elemental",
+  "classLevels": {
+    "monster": 3,
+    "mage": 5,
+    "warrior": 5,
+    "spellblade": 5,
+    "spellcaster": 7
+  },
+  "stats": {
+    "strength": 68,
+    "vitality": 70,
+    "mind": 60,
+    "dexterity": 45,
+    "intelligence": 80,
+    "wisdom": 65,
+    "speed": 38,
+    "luck": 28
+  },
+  "inventory": [
+    "forge-weapon-2-greatsword"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-greatsword",
+    "offHand": "forge-weapon-2-greatsword",
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "ice-bolt-ice-damage",
+    "ice-shield-ice-support",
+    "minor-cold-ice-support",
+    "spell-bolt-basic-damage",
+    "dragonbreath-frost-form-ice-damage",
+    "icy-burst-ice-damage",
+    "sudden-spike-ice-damage",
+    "glacial-prison-ice-damage"
+  ]
+}

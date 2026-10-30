@@ -1,0 +1,10 @@
+{
+  "id": "enlightened", "name": "Enlightened", "requirements": { "level": 10, "classes": {}, "other": { "type": "defensive-actions", "count": 25 } }, "maxLevel": 5,
+  "levels": [
+    { "level": 1, "description": "Guard and Evade improve their favored defense by an extra 10%.", "effects": [{ "type": "stance-bonus-percent", "amount": 10 }] },
+    { "level": 2, "description": "Mind permanent bonus +5%.", "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 5 }] },
+    { "level": 3, "description": "Unlock Read Intent: once per combat, reveal a targeted enemy's most likely next action.", "effects": [{ "type": "skill", "id": "read-intent", "name": "Read Intent", "description": "Reveal the selected enemy's most likely next action. Free, once per combat. Enemy plans may change as battle changes.", "cooldown": "combat", "combatOnly": true, "target": "enemy", "instant": true, "effects": [{ "type": "read-intent" }] }] },
+    { "level": 4, "description": "Guard and Evade improve their favored defense by another 10%.", "effects": [{ "type": "stance-bonus-percent", "amount": 10 }] },
+    { "level": 5, "description": "Gain the Measured Defense passive: take 10% less damage while Guarding or Evading.", "effects": [{ "type": "passive", "id": "measured-defense", "name": "Measured Defense", "description": "Take 10% less damage while Guarding or Evading.", "effect": { "type": "stance-incoming-damage-percent", "amount": -10 } }] }
+  ]
+}

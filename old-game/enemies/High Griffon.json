@@ -1,0 +1,42 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "high-griffon-level-52",
+  "name": "High Griffon",
+  "level": 52,
+  "raceId": "griffon",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 3,
+    "archer": 5,
+    "ambusher": 7,
+    "slayer": 7,
+    "stalker": 4,
+    "shadow": 6,
+    "eminence": 4,
+    "brawler": 3
+  },
+  "stats": {
+    "strength": 103,
+    "vitality": 101,
+    "mind": 52,
+    "dexterity": 113,
+    "intelligence": 55,
+    "wisdom": 52,
+    "speed": 128,
+    "luck": 57
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "nightwood-vampire-level-72", "name": "Nightwood Vampire", "level": 72,
+  "raceId": "undead", "resistances": { "blood": 40, "death": 25, "dark": 25, "holy": -35 },
+  "classLevels": { "monster": 3, "vampire": 4, "mage": 5, "spellcaster": 7, "hemomancer": 9, "warlock": 7, "great-mage": 7, "scholar": 5, "wise-man": 5, "summoner": 7, "wizard": 3, "necromancer": 9, "sage": 1 },
+  "stats": { "strength": 88, "vitality": 129, "mind": 190, "dexterity": 107, "intelligence": 172, "wisdom": 185, "speed": 131, "luck": 121 },
+  "inventory": ["forge-weapon-1-wand", "forge-armor-robe"],
+  "equipment": { "primaryHand": "forge-weapon-1-wand", "offHand": null, "armor": "forge-armor-robe", "artifact1": null, "artifact2": null },
+  "knownSpells": ["hemorrhage-lance-blood-damage", "crimson-renewal-blood-support", "heartpiercer-blood-damage", "crimson-nova-blood-damage", "sanguine-pact-blood-support", "scarlet-surge-blood-damage", "sanguine-lance-blood-damage", "summon-hemoghost-blood-summon", "dimming-touch-death-damage", "summon-call-of-the-dead-death-summon", "health-grasp-death-damage", "eerie-shock-death-damage", "death-bolt-death-damage", "soul-leech-death-damage", "grave-chill-death-damage", "night-drain-dark-damage", "void-lance-dark-damage"]
+}

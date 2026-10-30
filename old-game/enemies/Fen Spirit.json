@@ -1,0 +1,14 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "fen-spirit-level-43", "name": "Fen Spirit", "level": 43, "raceId": "elemental", "element": "nature",
+  "classLevels": { "monster": 3, "mage": 5, "spellcaster": 7, "druid": 7, "botanomancer": 9, "wizard": 7, "sage": 5 },
+  "stats": { "strength": 53, "vitality": 74, "mind": 122, "dexterity": 74, "intelligence": 116, "wisdom": 112, "speed": 83, "luck": 72 },
+  "resistances": { "nature": 30, "fire": -30 },
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": [
+    "return-to-form-nature-damage", "thorns-shot-nature-damage", "bramble-bind-nature-damage",
+    "briar-volley-nature-damage", "regrowth-nature-support", "verdant-eruption-nature-damage",
+    "greater-regrowth-nature-support", "ancient-bark-nature-support", "rooting-lance-nature-damage"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "vulcanic-ram-level-50", "name": "Vulcanic Ram", "level": 50, "raceId": "elemental", "element": "fire",
+  "classLevels": { "warrior": 5, "knight": 7, "bulwark": 7, "weaponmaster": 7, "soldier": 6, "berserker": 6, "monster": 3, "beast": 3, "great-beast": 6 },
+  "stats": { "strength": 192, "vitality": 160, "mind": 90, "dexterity": 75, "intelligence": 54, "wisdom": 58, "speed": 93, "luck": 32 },
+  "baseArmor": 65, "permanentDefenseBonuses": { "armor": 35, "evasion": 0 },
+  "resistances": { "fire": 50, "earth": 20 },
+  "naturalWeapon": "vulcanic-ram-horns",
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": ["vulcanic-charge-fire-unique"], "drops": []
+}

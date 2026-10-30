@@ -1,0 +1,17 @@
+{
+  "id": "hemomancer",
+  "name": "Hemomancer",
+  "requirements": { "level": 20, "classes": {}, "anyClasses": { "spellcaster": 7, "wizard": 7 }, "other": { "type": "known-spells", "element": "blood", "count": 7, "description": "Know at least 7 Blood spells" } },
+  "maxLevel": 9,
+  "levels": [
+    { "level": 1, "description": "Increase Blood spell power by 10%.", "effects": [{ "type": "spell-power-percent", "element": "blood", "amount": 10 }] },
+    { "level": 2, "description": "Increase Vitality by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "vitality", "amount": 5 }] },
+    { "level": 3, "description": "Unlock Blood Channel.", "effects": [{ "type": "skill", "id": "blood-channel", "name": "Blood Channel", "combatOnly": true, "cooldown": "combat", "instant": true, "description": "Sacrifice 15% maximum HP without falling below 1 HP to restore 30% maximum Mana. Once per combat.", "effects": [], "onActivateEffects": [{ "type": "resource-exchange", "element": "blood", "hpCostPercent": 15, "manaRestorePercent": 30 }] }] },
+    { "level": 4, "description": "Blood spells cost 10% less Mana.", "effects": [{ "type": "spell-cost-percent", "element": "blood", "amount": 10 }] },
+    { "level": 5, "description": "Gain the Blood Is Power passive.", "effects": [{ "type": "passive", "id": "blood-is-power", "name": "Blood Is Power", "condition": "Always active", "description": "Blood spells gain 25% power and maximum HP increases by 5%.", "effects": [{ "type": "spell-power-percent", "element": "blood", "amount": 25 }, { "type": "max-hp-percent", "amount": 5 }] }] },
+    { "level": 6, "description": "Increase maximum Mana by 10%.", "effects": [{ "type": "max-mana-percent", "amount": 10 }] },
+    { "level": 7, "description": "Blood spells deal 15% more damage.", "effects": [{ "type": "spell-damage-percent", "element": "blood", "amount": 15 }] },
+    { "level": 8, "description": "Blood spells cost 30% less to learn.", "effects": [{ "type": "spell-learning-cost-percent", "element": "blood", "amount": 30 }] },
+    { "level": 9, "description": "Unlock Crimson Apotheosis.", "effects": [{ "type": "skill", "id": "crimson-apotheosis", "name": "Crimson Apotheosis", "combatOnly": true, "cooldown": "daily", "durationTurns": 3, "description": "Sacrifice 25% maximum HP to restore 50% maximum Mana; for 3 turns, gain 60% Blood spell power and 15% to all basic stats. Once per day.", "effects": [{ "type": "spell-power-percent", "element": "blood", "amount": 60 }], "onActivateEffects": [{ "type": "resource-exchange", "element": "blood", "hpCostPercent": 25, "manaRestorePercent": 50 }, { "type": "all-stats-percent", "amount": 15, "durationTurns": 3 }] }] }
+  ]
+}

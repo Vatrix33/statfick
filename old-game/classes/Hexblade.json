@@ -1,0 +1,91 @@
+{
+  "id": "hexblade",
+  "name": "Hexblade",
+  "color": "blue",
+  "requirements": {
+    "level": 1,
+    "classes": {
+      "spellblade": 5
+    },
+    "other": {
+      "type": "known-spells",
+      "element": "dark",
+      "count": 5
+    }
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Dark spell power +10%.",
+      "effects": [
+        {
+          "type": "spell-power-percent",
+          "amount": 10,
+          "element": "dark"
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Weapon Accuracy +10%.",
+      "effects": [
+        {
+          "type": "weapon-hit-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Cursed Edge: weapon hits curse targets, lowering Armor by 10% for two turns.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "cursed-edge",
+          "name": "Cursed Edge",
+          "description": "Weapon hits reduce target Armor by 10% for two of its turns.",
+          "effect": {
+            "type": "hex-on-hit",
+            "armorPercent": 10,
+            "durationTurns": 2
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Dark spell cost -10%.",
+      "effects": [
+        {
+          "type": "spell-cost-percent",
+          "amount": 10,
+          "element": "dark"
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Hexbrand: mark one enemy, increasing damage dealt to it by 20%.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "hexbrand",
+          "name": "Hexbrand",
+          "description": "Mark an enemy so your attacks and spells deal 20% more damage to it.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "enemy",
+          "effects": [
+            {
+              "type": "mark-target",
+              "damagePercent": 20,
+              "hitPercent": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

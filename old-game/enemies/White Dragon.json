@@ -1,0 +1,54 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "white-dragon-level-60",
+  "name": "White Dragon",
+  "level": 60,
+  "raceId": "dragon",
+  "element": "ice",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 3,
+    "dragonkin": 7,
+    "mage": 5,
+    "spellcaster": 7,
+    "cryomancer": 9,
+    "warrior": 5,
+    "great-mage": 6
+  },
+  "stats": {
+    "strength": 142,
+    "vitality": 160,
+    "mind": 142,
+    "dexterity": 107,
+    "intelligence": 138,
+    "wisdom": 122,
+    "speed": 102,
+    "luck": 91
+  },
+  "resistances": {
+    "ice": 35,
+    "fire": -40
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "absolute-spear-ice-damage",
+    "frozen-mercy-ice-support",
+    "glacial-eclipse-ice-damage",
+    "dragonbreath-winter-dominion-ice-damage",
+    "frost-prison-ice-damage",
+    "absolute-zero-ice-damage",
+    "dragonbreath-rimefang-ice-damage"
+  ]
+}

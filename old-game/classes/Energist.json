@@ -1,0 +1,63 @@
+{
+  "id": "energist",
+  "name": "Energist",
+  "requirements": {
+    "level": 20,
+    "classes": {},
+    "other": { "type": "resource-ratio", "resource": "mana", "comparedTo": "hp", "percent": 70, "description": "Maximum Mana is at least 70% of maximum HP" }
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Increase maximum HP and Mana by 5%.",
+      "effects": [
+        { "type": "max-hp-percent", "amount": 5 },
+        { "type": "max-mana-percent", "amount": 5 }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Increase Vitality and Mind by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "vitality", "amount": 5 },
+        { "type": "stat-permanent-percent", "target": "mind", "amount": 5 }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain the Inner Current passive.",
+      "effects": [{
+        "type": "passive",
+        "id": "inner-current",
+        "name": "Inner Current",
+        "condition": "At the start of each turn",
+        "description": "At the start of each turn, restore 3% maximum HP and 5% maximum Mana.",
+        "effects": [{ "type": "turn-start-restore-percent", "hp": 3, "mana": 5 }]
+      }]
+    },
+    {
+      "level": 4,
+      "description": "Spells cost 10% less Mana and maximum HP increases by another 5%.",
+      "effects": [
+        { "type": "spell-cost-percent", "amount": 10 },
+        { "type": "max-hp-percent", "amount": 5 }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Equilibrium.",
+      "effects": [{
+        "type": "skill",
+        "id": "equilibrium",
+        "name": "Equilibrium",
+        "combatOnly": true,
+        "cooldown": "combat",
+        "instant": true,
+        "description": "Restore 20% maximum HP and 20% maximum Mana. Can be used once per combat.",
+        "effects": [],
+        "onActivateEffects": [{ "type": "restore-resource-percent", "hp": 20, "mana": 20 }]
+      }]
+    }
+  ]
+}

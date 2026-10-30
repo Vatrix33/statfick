@@ -1,0 +1,36 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "elder-troll-level-19",
+  "name": "Elder Troll",
+  "level": 19,
+  "raceId": "troll",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "barbarian": 6,
+    "brawler": 5
+  },
+  "stats": {
+    "strength": 68,
+    "vitality": 70,
+    "mind": 28,
+    "dexterity": 38,
+    "intelligence": 28,
+    "wisdom": 28,
+    "speed": 38,
+    "luck": 28
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

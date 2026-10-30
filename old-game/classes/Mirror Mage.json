@@ -1,0 +1,74 @@
+{
+  "id": "mirror-mage",
+  "name": "Mirror Mage",
+  "color": "blue",
+  "requirements": {
+    "level": 40,
+    "classes": {
+      "wizard": 7
+    },
+    "other": null
+  },
+  "maxLevel": 4,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Incoming spell damage -10%.",
+      "effects": [
+        {
+          "type": "incoming-spell-damage-percent",
+          "amount": -10
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Gain Reflective Veil: reflect 15% of hostile spell damage back to the caster.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "reflective-veil",
+          "name": "Reflective Veil",
+          "description": "Reflect 15% of hostile spell damage taken back to its caster.",
+          "effect": {
+            "type": "reflect-spell-damage-percent",
+            "amount": 15
+          }
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Mind permanent bonus +5%.",
+      "effects": [
+        {
+          "type": "stat-permanent-percent",
+          "target": "mind",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Unlock Spell Mirror: copy the target's last spell at 75% power, once per combat.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "spell-mirror",
+          "name": "Spell Mirror",
+          "description": "Copy the target's last cast spell at 75% power. Once per combat.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "enemy",
+          "onActivateEffects": [
+            {
+              "type": "copy-enemy-spell",
+              "powerPercent": 75
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

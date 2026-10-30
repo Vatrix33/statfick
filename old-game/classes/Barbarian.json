@@ -1,0 +1,91 @@
+{
+  "id": "barbarian",
+  "name": "Barbarian",
+  "requirements": {
+    "level": 1,
+    "classes": {
+      "warrior": 5
+    },
+    "other": {
+      "type": "armor-condition",
+      "condition": "no-light-or-heavy-armor",
+      "description": "No Light or Heavy Armor equipped"
+    }
+  },
+  "maxLevel": 7,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Increase Strength by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "strength", "amount": 5 }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Unlock Rage.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "rage",
+          "name": "Rage",
+          "combatOnly": true,
+          "description": "Rage for 5 turns. Take 20% less damage, deal 20% more damage, and gain 30% Armor Pierce with attacks. While raging, you can only Attack, Run, or end your turn. Can only be used once per combat.",
+          "cooldown": "combat",
+          "durationTurns": 5,
+          "effects": [
+            { "type": "incoming-damage-percent", "amount": -20 },
+            { "type": "outgoing-damage-percent", "amount": 20 },
+            { "type": "weapon-armor-pierce-percent", "amount": 30 },
+            { "type": "action-restriction", "allowedActions": ["attack", "run"] }
+          ]
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Increase Vitality by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "vitality", "amount": 5 }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Increase Speed by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "speed", "amount": 5 }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Gain the Seeing Red passive.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "seeing-red",
+          "name": "Seeing Red",
+          "condition": "When attacking the same enemy as on your previous turn",
+          "description": "When attacking an enemy you attacked on your previous turn, you deal 10% more damage to it.",
+          "effects": [
+            { "type": "repeat-target-damage-percent", "amount": 10 }
+          ]
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Increase Accuracy with melee weapons by 20%.",
+      "effects": [
+        { "type": "weapon-hit-percent", "weaponType": "melee", "amount": 20 }
+      ]
+    },
+    {
+      "level": 7,
+      "description": "Increase Strength and Vitality permanent bonuses by 5% each.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "strength", "amount": 5 },
+        { "type": "stat-permanent-percent", "target": "vitality", "amount": 5 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "duskpine-wolf-level-60", "name": "Duskpine Wolf", "level": 60,
+  "raceId": "wolf", "resistances": { "ice": 10 },
+  "classLevels": { "beast": 3, "great-beast": 10, "monster": 3, "warrior": 5, "barbarian": 7, "berserker": 6, "rogue": 5, "ambusher": 7, "stalker": 4, "slayer": 7, "gladiator": 3 },
+  "stats": { "strength": 139, "vitality": 132, "mind": 70, "dexterity": 129, "intelligence": 63, "wisdom": 71, "speed": 168, "luck": 83 },
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": [],
+  "drops": [{ "itemId": "masterwork-claw-of-beowulf", "chance": 2 }]
+}

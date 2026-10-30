@@ -1,0 +1,17 @@
+{
+  "id": "aeromancer",
+  "name": "Aeromancer",
+  "requirements": { "level": 20, "classes": {}, "anyClasses": { "spellcaster": 7, "wizard": 7 }, "other": { "type": "known-spells", "element": "wind", "count": 7, "description": "Know at least 7 Wind spells" } },
+  "maxLevel": 9,
+  "levels": [
+    { "level": 1, "description": "Increase Wind spell power by 10%.", "effects": [{ "type": "spell-power-percent", "element": "wind", "amount": 10 }] },
+    { "level": 2, "description": "Increase Speed by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "speed", "amount": 5 }] },
+    { "level": 3, "description": "Unlock Tailwind.", "effects": [{ "type": "skill", "id": "tailwind", "name": "Tailwind", "combatOnly": true, "cooldown": "combat", "durationTurns": 2, "target": "all-allies", "actionPoints": 1, "description": "For 2 turns, all allies gain 20% Speed and 20% Evasion. Once per combat.", "effects": [], "onActivateEffects": [{ "type": "stat-percent", "target": "speed", "amount": 20, "durationTurns": 2 }, { "type": "defense-percent", "target": "evasion", "amount": 20, "durationTurns": 2 }] }] },
+    { "level": 4, "description": "Wind spells cost 10% less Mana.", "effects": [{ "type": "spell-cost-percent", "element": "wind", "amount": 10 }] },
+    { "level": 5, "description": "Gain the Weightless Casting passive.", "effects": [{ "type": "passive", "id": "weightless-casting", "name": "Weightless Casting", "condition": "Always active", "description": "Wind spells use 1 fewer Action Point, to a minimum of 1.", "effects": [{ "type": "spell-action-points-flat", "element": "wind", "amount": -1 }] }] },
+    { "level": 6, "description": "Increase maximum Mana by 10%.", "effects": [{ "type": "max-mana-percent", "amount": 10 }] },
+    { "level": 7, "description": "Wind spells deal 15% more damage.", "effects": [{ "type": "spell-damage-percent", "element": "wind", "amount": 15 }] },
+    { "level": 8, "description": "Wind spells cost 30% less to learn.", "effects": [{ "type": "spell-learning-cost-percent", "element": "wind", "amount": 30 }] },
+    { "level": 9, "description": "Unlock Eye of the Storm.", "effects": [{ "type": "skill", "id": "eye-of-the-storm", "name": "Eye of the Storm", "combatOnly": true, "cooldown": "daily", "durationTurns": 3, "target": "all-allies", "actionPoints": 1, "description": "For 3 turns, all allies gain 30% Speed and 30% Evasion; Wind spell power rises by 40%. Once per day.", "effects": [], "onActivateEffects": [{ "type": "stat-percent", "target": "speed", "amount": 30, "durationTurns": 3 }, { "type": "defense-percent", "target": "evasion", "amount": 30, "durationTurns": 3 }, { "type": "spell-power-percent", "element": "wind", "amount": 40, "durationTurns": 3 }] }] }
+  ]
+}

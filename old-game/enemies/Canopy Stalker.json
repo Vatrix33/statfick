@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "canopy-stalker-level-45", "name": "Canopy Stalker", "level": 45, "raceId": "lizardman",
+  "classLevels": { "monster": 3, "rogue": 5, "hunter": 7, "archer": 5, "sharpshooter": 5, "ambusher": 7, "stalker": 4, "thief": 5, "warrior": 4 },
+  "stats": { "strength": 86, "vitality": 88, "mind": 70, "dexterity": 106, "intelligence": 76, "wisdom": 75, "speed": 120, "luck": 89 },
+  "inventory": ["forge-weapon-2-compoundbow+longbow", "forge-armor-brigandine"],
+  "equipment": { "primaryHand": "forge-weapon-2-compoundbow+longbow", "offHand": null, "armor": "forge-armor-brigandine", "artifact1": null, "artifact2": null },
+  "knownSpells": []
+}

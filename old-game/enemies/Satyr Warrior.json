@@ -1,0 +1,19 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "satyr-warrior-level-12",
+  "name": "Satyr Warrior",
+  "level": 12,
+  "raceId": "satyr",
+  "classLevels": { "monster": 3, "warrior": 5, "rogue": 4 },
+  "stats": { "strength": 43, "vitality": 38, "mind": 23, "dexterity": 39, "intelligence": 23, "wisdom": 22, "speed": 40, "luck": 28 },
+  "inventory": ["forge-weapon-2-greataxe+axe", "forge-armor-leather-armor"],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-greataxe+axe",
+    "offHand": null,
+    "armor": "forge-armor-leather-armor",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

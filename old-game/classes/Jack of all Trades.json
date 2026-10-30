@@ -1,0 +1,20 @@
+{
+  "id": "jack-of-all-trades",
+  "name": "Jack of all Trades",
+  "requirements": {
+    "level": 1,
+    "classes": { "warrior": 3, "archer": 3, "mage": 3, "rogue": 3 },
+    "other": null
+  },
+  "maxLevel": 4,
+  "levels": [
+    { "level": 1, "description": "Increase Strength, Dexterity, Intelligence, and Luck by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "strength", "amount": 5 }, { "type": "stat-permanent-percent", "target": "dexterity", "amount": 5 }, { "type": "stat-permanent-percent", "target": "intelligence", "amount": 5 }, { "type": "stat-permanent-percent", "target": "luck", "amount": 5 }] },
+    { "level": 2, "description": "Gain the Learner of All, Master of None passive.", "effects": [{
+      "type": "passive", "id": "learner-of-all-master-of-none", "name": "Learner of All, Master of None", "condition": "For each class at level 3 or higher",
+      "description": "Increase all basic stats by 2% for each class you have reached level 3 in.",
+      "effects": [{ "type": "all-stats-permanent-percent-per-class-level", "minimumLevel": 3, "amount": 2 }]
+    }] },
+    { "level": 3, "description": "Increase Armor and Evasion by 10%.", "effects": [{ "type": "defense-permanent-percent", "target": "armor", "amount": 10 }, { "type": "defense-permanent-percent", "target": "evasion", "amount": 10 }] },
+    { "level": 4, "description": "Warrior, Archer, Mage, and Rogue level 5 prerequisites for other classes are fulfilled.", "effects": [{ "type": "class-requirement-bypass", "classes": ["warrior", "archer", "mage", "rogue"], "requiredLevel": 5 }] }
+  ]
+}

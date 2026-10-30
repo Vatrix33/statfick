@@ -1,0 +1,17 @@
+{
+  "id": "electromancer",
+  "name": "Electromancer",
+  "requirements": { "level": 20, "classes": {}, "anyClasses": { "spellcaster": 7, "wizard": 7 }, "other": { "type": "known-spells", "element": "lightning", "count": 7, "description": "Know at least 7 Lightning spells" } },
+  "maxLevel": 9,
+  "levels": [
+    { "level": 1, "description": "Increase Lightning spell power by 10%.", "effects": [{ "type": "spell-power-percent", "element": "lightning", "amount": 10 }] },
+    { "level": 2, "description": "Increase Intelligence by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "intelligence", "amount": 5 }] },
+    { "level": 3, "description": "Unlock Voltaic Overcharge.", "effects": [{ "type": "skill", "id": "voltaic-overcharge", "name": "Voltaic Overcharge", "combatOnly": true, "cooldown": "combat", "durationSpells": 1, "requiredSpellElement": "lightning", "description": "Your next Lightning spell gains 50% power but costs 20% more Mana. Once per combat.", "effects": [{ "type": "spell-power-percent", "element": "lightning", "amount": 50 }, { "type": "spell-cost-percent", "element": "lightning", "amount": -20 }] }] },
+    { "level": 4, "description": "Lightning spells cost 10% less Mana.", "effects": [{ "type": "spell-cost-percent", "element": "lightning", "amount": 10 }] },
+    { "level": 5, "description": "Gain the Static Momentum passive.", "effects": [{ "type": "passive", "id": "static-momentum", "name": "Static Momentum", "condition": "Always active", "description": "Lightning spells gain 20% power and Speed increases by 5%.", "effects": [{ "type": "spell-power-percent", "element": "lightning", "amount": 20 }, { "type": "stat-permanent-percent", "target": "speed", "amount": 5 }] }] },
+    { "level": 6, "description": "Increase maximum Mana by 10%.", "effects": [{ "type": "max-mana-percent", "amount": 10 }] },
+    { "level": 7, "description": "Lightning spells deal 15% more damage.", "effects": [{ "type": "spell-damage-percent", "element": "lightning", "amount": 15 }] },
+    { "level": 8, "description": "Lightning spells cost 30% less to learn.", "effects": [{ "type": "spell-learning-cost-percent", "element": "lightning", "amount": 30 }] },
+    { "level": 9, "description": "Unlock Chain Overload.", "effects": [{ "type": "skill", "id": "chain-overload", "name": "Chain Overload", "combatOnly": true, "cooldown": "daily", "instant": true, "actionPoints": 2, "manaCostMaxPercent": 12, "description": "Deal Lightning damage to every enemy. Costs 12% maximum Mana and 2 AP. Once per day.", "effects": [], "onActivateEffects": [{ "type": "apply-skill-effects", "element": "lightning", "basePower": 24, "primary": { "stat": "intelligence", "ratio": 0.6 }, "secondary": { "stat": "speed", "ratio": 0.4 }, "effects": [{ "type": "damage", "amount": "power", "recipient": "all-enemies" }] }] }] }
+  ]
+}

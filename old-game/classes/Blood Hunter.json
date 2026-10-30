@@ -1,0 +1,33 @@
+{
+  "id": "blood-hunter",
+  "name": "Blood Hunter",
+  "requirements": { "level": 1, "classes": { "hunter": 7 }, "other": { "type": "known-spells", "element": "blood", "count": 5, "description": "At least 5 Blood spells known" } },
+  "maxLevel": 5,
+  "levels": [
+    { "level": 1, "description": "Blood spells cost 10% less Mana.", "effects": [
+      { "type": "spell-cost-percent", "element": "blood", "amount": 10 }
+    ] },
+    { "level": 2, "description": "Increase weapon power and Blood spell power by 10%.", "effects": [
+      { "type": "weapon-power-percent", "amount": 10 },
+      { "type": "spell-power-percent", "element": "blood", "amount": 10 }
+    ] },
+    { "level": 3, "description": "Increase maximum HP by 10%.", "effects": [
+      { "type": "max-hp-percent", "amount": 10 }
+    ] },
+    { "level": 4, "description": "Gain the Blood Quarry passive, upgrading Hunter's Mark.", "effects": [{
+      "type": "passive", "id": "blood-quarry", "name": "Blood Quarry", "condition": "Against Undead and Vampires",
+      "description": "Hunter's Mark grants another 10% damage and 10% Accuracy. You also deal 20% more damage to Undead and enemies with the Vampire or Vampire Lord class.",
+      "effects": [
+        { "type": "skill-upgrade", "skillId": "hunter:hunters-mark", "markDamagePercentFlat": 10, "markHitPercent": 10 },
+        { "type": "damage-percent-vs-race", "raceIds": ["undead"], "amount": 20 },
+        { "type": "damage-percent-vs-class", "classIds": ["vampire", "vampire-lord"], "amount": 20 }
+      ]
+    }] },
+    { "level": 5, "description": "Unlock Crimson Pursuit.", "effects": [{
+      "type": "skill", "id": "crimson-pursuit", "name": "Crimson Pursuit", "combatOnly": true, "cooldown": "combat", "usesPerCombat": 1, "durationAttacks": 3,
+      "description": "Your next 3 weapon attacks gain 30% power and restore HP equal to 25% of damage dealt. Once per combat.",
+      "effects": [{ "type": "weapon-power-percent", "amount": 30 }],
+      "onHitEffects": [{ "type": "lifesteal-percent", "amount": 25 }]
+    }] }
+  ]
+}

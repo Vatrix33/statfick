@@ -1,0 +1,15 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "merfolk-reef-guard-level-27",
+  "name": "Merfolk Reef Guard",
+  "level": 27,
+  "raceId": "merfolk",
+  "element": "water",
+  "classLevels": { "monster": 3, "warrior": 5, "knight": 7, "bulwark": 7, "weaponmaster": 5 },
+  "stats": { "strength": 76, "vitality": 88, "mind": 46, "dexterity": 62, "intelligence": 43, "wisdom": 59, "speed": 53, "luck": 39 },
+  "inventory": ["forge-weapon-1-mace+flail", "forge-armor-kite-shield", "forge-armor-scale-armor"],
+  "equipment": { "primaryHand": "forge-weapon-1-mace+flail", "offHand": "forge-armor-kite-shield", "armor": "forge-armor-scale-armor", "artifact1": null, "artifact2": null },
+  "knownSpells": [],
+  "drops": [{ "itemId": "artifact-arrowtip-rain-artifact", "chance": 1 }]
+}

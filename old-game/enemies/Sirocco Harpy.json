@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "sirocco-harpy-level-42", "name": "Sirocco Harpy", "level": 42,
+  "raceId": "harpy", "classLevels": { "monster": 3, "beast": 3, "rogue": 5, "warrior": 5, "ambusher": 7, "shadow": 6, "soldier": 4 },
+  "stats": { "strength": 76, "vitality": 82, "mind": 60, "dexterity": 112, "intelligence": 68, "wisdom": 66, "speed": 119, "luck": 64 },
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": ["wind-shear-wind-damage", "skyward-rush-wind-damage"]
+}

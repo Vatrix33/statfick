@@ -1,0 +1,95 @@
+{
+  "id": "spellbreaker",
+  "name": "Spellbreaker",
+  "color": "blue",
+  "requirements": {
+    "level": 30,
+    "classes": {},
+    "anyClasses": {
+      "enlightened": 5,
+      "spellblade": 5
+    },
+    "other": null
+  },
+  "maxLevel": 6,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Incoming spell damage -10%.",
+      "effects": [
+        {
+          "type": "incoming-spell-damage-percent",
+          "amount": -10
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Guard's favored defense +10%.",
+      "effects": [
+        {
+          "type": "stance-bonus-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Countercast: while Guarding, the first spell aimed at you each turn has a 25% chance to fizzle.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "countercast",
+          "name": "Countercast",
+          "description": "While Guarding, the first hostile spell aimed at you each turn has a 25% chance to fizzle.",
+          "effect": {
+            "type": "guard-spell-interrupt-percent",
+            "amount": 25
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Weapon Accuracy +10%.",
+      "effects": [
+        {
+          "type": "weapon-hit-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Incoming spell damage -5%.",
+      "effects": [
+        {
+          "type": "incoming-spell-damage-percent",
+          "amount": -5
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Unlock Mute Sigil: suppress a target's next spell by 40%.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "mute-sigil",
+          "name": "Mute Sigil",
+          "description": "Reduce one enemy's next spell damage or healing by 40%.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "enemy",
+          "onActivateEffects": [
+            {
+              "type": "mute-next-spell-percent",
+              "amount": 40
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "pyramid-sentinel-level-55", "name": "Pyramid Sentinel", "level": 55,
+  "raceId": "elemental", "element": "earth", "resistances": { "earth": 45, "fire": 20, "water": -20 }, "baseArmor": 22,
+  "classLevels": { "monster": 3, "warrior": 5, "knight": 7, "heavy-knight": 5, "guardian": 7, "mage": 5, "spellcaster": 7, "geomancer": 9 },
+  "stats": { "strength": 124, "vitality": 140, "mind": 135, "dexterity": 78, "intelligence": 122, "wisdom": 105, "speed": 72, "luck": 60 },
+  "inventory": ["forge-weapon-1-mace+flail", "forge-armor-full-plate+splint-mail", "forge-armor-kite-shield+tower-shield"],
+  "equipment": { "primaryHand": "forge-weapon-1-mace+flail", "offHand": "forge-armor-kite-shield+tower-shield", "armor": "forge-armor-full-plate+splint-mail", "artifact1": null, "artifact2": null },
+  "knownSpells": ["stone-bastion-earth-support", "obsidian-spire-earth-damage", "sundering-rift-earth-damage", "summon-greater-earth-spirit-earth-summon"]
+}

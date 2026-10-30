@@ -1,0 +1,27 @@
+{
+  "id": "dragonkin",
+  "name": "Dragonkin",
+  "requirements": { "level": 1, "classes": {}, "other": { "type": "inventory-item", "itemId": "key-item-vial-of-dragonblood", "consume": true, "skillCharge": "dragonkin:draconic-flight", "description": "Vial of Dragonblood (consumed on acquisition)" } },
+  "maxLevel": 7,
+  "levels": [
+    { "level": 1, "description": "Increase all basic stats by 10%.", "effects": [{ "type": "all-stats-permanent-percent", "amount": 10 }] },
+    { "level": 2, "description": "Increase maximum HP by 10%.", "effects": [{ "type": "max-hp-percent", "amount": 10 }] },
+    { "level": 3, "description": "Increase Armor by 25%.", "effects": [{ "type": "defense-permanent-percent", "target": "armor", "amount": 25 }] },
+    { "level": 4, "description": "Unlock Draconic Flight.", "effects": [{
+      "type": "skill", "id": "draconic-flight", "name": "Draconic Flight", "combatOnly": true, "cooldown": "item", "requiredItemId": "key-item-vial-of-dragonblood", "durationTurns": 5,
+      "description": "Increase Speed and Evasion by 50% for 5 turns. While active, melee attacks against you lose 50% Accuracy. Each new use requires a Vial of Dragonblood.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "speed", "amount": 50 },
+        { "type": "defense-permanent-percent", "target": "evasion", "amount": 50 },
+        { "type": "incoming-weapon-hit-percent", "weaponType": "melee", "amount": -50 }
+      ]
+    }] },
+    { "level": 5, "description": "Increase maximum Mana by 10%.", "effects": [{ "type": "max-mana-percent", "amount": 10 }] },
+    { "level": 6, "description": "Increase Vitality by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "vitality", "amount": 5 }] },
+    { "level": 7, "description": "Gain the Draconic Heart passive.", "effects": [{
+      "type": "passive", "id": "draconic-heart", "name": "Draconic Heart", "condition": "Always active",
+      "description": "Take 10% less damage from melee and ranged attacks. Restore 3% maximum HP at the start of each turn.",
+      "effects": [{ "type": "incoming-attack-damage-percent", "attackKinds": ["melee", "ranged"], "amount": -10 }, { "type": "turn-start-restore-percent", "hp": 3 }]
+    }] }
+  ]
+}

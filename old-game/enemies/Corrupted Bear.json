@@ -1,0 +1,69 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "corrupted-bear-beast-level-10",
+  "name": "Corrupted Bear",
+  "level": 10,
+  "raceId": "demon",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 7
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 34,
+    "vitality": 41,
+    "mind": 19,
+    "dexterity": 23,
+    "intelligence": 19,
+    "wisdom": 19,
+    "speed": 23,
+    "luck": 19
+  },
+  "manualAllocations": {
+    "strength": 15,
+    "vitality": 22,
+    "mind": 0,
+    "dexterity": 4,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 4,
+    "luck": 0
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "temporaryBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "temporaryDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "currentHp": 156,
+  "currentMana": 42,
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [],
+  "activeSkills": {}
+}

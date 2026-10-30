@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "vampire-stalker-level-49", "name": "Vampire Stalker", "level": 49,
+  "raceId": "undead", "resistances": { "blood": 25, "dark": 15, "holy": -25 },
+  "classLevels": { "vampire": 4, "rogue": 5, "thief": 5, "ambusher": 7, "shadow": 6, "archer": 5, "hunter": 7, "blood-hunter": 5, "warrior": 5 },
+  "stats": { "strength": 84, "vitality": 94, "mind": 67, "dexterity": 129, "intelligence": 75, "wisdom": 74, "speed": 131, "luck": 91 },
+  "inventory": ["forge-weapon-1-dagger", "forge-weapon-1-dagger", "forge-armor-brigandine"],
+  "equipment": { "primaryHand": "forge-weapon-1-dagger", "offHand": "forge-weapon-1-dagger", "armor": "forge-armor-brigandine", "artifact1": null, "artifact2": null },
+  "knownSpells": ["piercing-blood-blood-damage", "coagulate-blood-support", "hemorrhage-lance-blood-damage", "crimson-renewal-blood-support", "bloodbrand-blood-support"]
+}

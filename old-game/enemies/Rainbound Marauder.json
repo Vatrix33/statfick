@@ -1,0 +1,7 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "rainbound-marauder-level-21", "name": "Rainbound Marauder", "level": 21, "raceId": "human",
+  "classLevels": { "warrior": 5, "rogue": 5, "ambusher": 7, "thief": 4 },
+  "stats": { "strength": 58, "vitality": 54, "mind": 37, "dexterity": 69, "intelligence": 42, "wisdom": 42, "speed": 73, "luck": 48 },
+  "inventory": ["forge-weapon-1-longsword+rapier", "forge-weapon-1-dagger", "forge-armor-leather-armor"],
+  "equipment": { "primaryHand": "forge-weapon-1-longsword+rapier", "offHand": "forge-weapon-1-dagger", "armor": "forge-armor-leather-armor", "artifact1": null, "artifact2": null }, "knownSpells": []
+}

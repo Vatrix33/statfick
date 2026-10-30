@@ -1,0 +1,26 @@
+{
+  "id": "joker",
+  "name": "Joker",
+  "requirements": {
+    "level": 1,
+    "classes": {},
+    "anyClasses": { "jack-of-all-trades": 4, "jester": 5 },
+    "other": { "type": "stat-threshold", "stat": "luck", "amount": 220, "description": "220 Luck" }
+  },
+  "maxLevel": 3,
+  "levels": [
+    { "level": 1, "description": "Gain the All Things Random passive.", "effects": [{
+      "type": "passive", "id": "all-things-random", "name": "All Things Random", "condition": "Whenever you deal damage",
+      "description": "When you deal damage, you have a chance equal to 0.2× Luck percent to increase it by a random 0.1× to 0.4× Luck percent.",
+      "effects": [{ "type": "random-damage-percent", "chancePerLuck": 0.2, "minimumPerLuck": 0.1, "maximumPerLuck": 0.4 }]
+    }] },
+    { "level": 2, "description": "Increase Luck by 10%.", "effects": [{ "type": "stat-permanent-percent", "target": "luck", "amount": 10 }] },
+    { "level": 3, "description": "Unlock The World Revolving.", "effects": [{
+      "type": "skill", "id": "the-world-revolving", "name": "The World Revolving", "combatOnly": true, "cooldown": "daily",
+      "dynamicDurationTurns": { "base": 4, "stat": "luck", "per": 80 },
+      "description": "Your spells cost 80% less Mana and use 1 fewer Action Point for 4 turns, plus 1 turn per 80 Luck. While active, spell damage is reduced by 65%. Afterwards, you are stunned for 3 turns. Can only be used once per day.",
+      "effects": [{ "type": "spell-cost-percent", "amount": 80 }, { "type": "spell-action-points-flat", "amount": -1 }, { "type": "spell-damage-percent", "amount": -65 }],
+      "onExpireEffects": [{ "type": "stun", "durationTurns": 3 }]
+    }] }
+  ]
+}

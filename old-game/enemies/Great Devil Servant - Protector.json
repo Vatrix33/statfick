@@ -1,0 +1,27 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "great-devil-servant-protector-level-56", "name": "Great Devil Servant - Protector",
+  "level": 56, "raceId": "devil",
+  "classLevels": {
+    "warrior": 5, "knight": 7, "heavy-knight": 5, "guardian": 7,
+    "bulwark": 7, "soldier": 6, "weaponmaster": 7, "strategist": 7,
+    "general": 5
+  },
+  "perkPoints": 0, "availablePoints": 0,
+  "stats": {
+    "strength": 115, "vitality": 180, "mind": 65, "dexterity": 80,
+    "intelligence": 65, "wisdom": 80, "speed": 90, "luck": 65
+  },
+  "manualAllocations": {
+    "strength": 50, "vitality": 115, "mind": 0, "dexterity": 15,
+    "intelligence": 0, "wisdom": 15, "speed": 25, "luck": 0
+  },
+  "inventory": ["forge-weapon-1-longsword+rapier", "forge-armor-kite-shield+tower-shield", "forge-armor-full-plate+splint-mail"],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-longsword+rapier", "offHand": "forge-armor-kite-shield+tower-shield",
+    "armor": "forge-armor-full-plate+splint-mail", "artifact1": null, "artifact2": null
+  },
+  "maxHpPercent": 300,
+  "aiProfile": "devil-servant",
+  "knownSpells": [], "drops": []
+}

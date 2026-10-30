@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Compiles GLSL shaders to SPIR-V for Vulkan 1.3; run by Tools/Scripts/build.sh before the engine build. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Statventure.Tools.ShaderCompiler</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Ahwoo.BRUTAL.Core" Version="2026.10.1" />
+    <PackageReference Include="Ahwoo.BRUTAL.ShaderC" Version="$(BrutalVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../Engine/Statventure/Core/NativeLibraries.cs" Link="NativeLibraries.cs" />
+  </ItemGroup>
+</Project>

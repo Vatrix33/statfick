@@ -1,0 +1,12 @@
+{
+  "id": "demon-lord",
+  "name": "Demon Lord",
+  "color": "gold",
+  "requirements": { "level": 92, "classes": {}, "excludes": ["hero"] },
+  "maxLevel": 3,
+  "levels": [
+    { "level": 1, "description": "Increase all basic stats by 15%.", "effects": [{ "type": "all-stats-permanent-percent", "amount": 15 }] },
+    { "level": 2, "description": "Gain Symbol of Terror.", "effects": [{ "type": "passive", "id": "symbol-of-terror", "name": "Symbol of Terror", "condition": "While alive in combat", "description": "All enemies lose 10% basic stats. You deal 50% more damage to targets below half HP.", "effects": [{ "type": "enemy-base-stats-percent", "amount": -10 }, { "type": "damage-percent-vs-low-hp", "threshold": 50, "amount": 50 }] }] },
+    { "level": 3, "description": "Unlock World Ender.", "effects": [{ "type": "skill", "id": "world-ender", "name": "World Ender", "combatOnly": true, "cooldown": "combat", "description": "Your next damaging attack or spell deals 300% more damage and gains 50% armor pierce. On hit, burn target Mana equal to 25% of damage dealt. Once per combat.", "effects": [{ "type": "next-damage-overload", "damagePercent": 300, "armorPiercePercent": 50, "manaBurnPercent": 25 }] }] }
+  ]
+}

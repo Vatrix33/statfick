@@ -1,0 +1,24 @@
+{
+  "id": "sharmat",
+  "name": "Sharmat",
+  "requirements": { "level": 1, "classes": {}, "other": { "type": "inventory-item", "itemId": "key-item-gem-of-false-dreams", "consume": true, "skillCharge": "sharmat:lucid-change", "description": "Gem of False Dreams (consumed on acquisition)" } },
+  "maxLevel": 3,
+  "levels": [
+    { "level": 1, "description": "Increase all basic stats by 10%.", "effects": [
+      { "type": "all-stats-permanent-percent", "amount": 10, "description": "All basic stat permanent bonuses +10%" }
+    ] },
+    { "level": 2, "description": "Gain the Dreamstate passive.", "effects": [
+      { "type": "passive", "id": "dreamstate", "name": "Dreamstate", "condition": "Always active", "description": "Take 10% less damage from all sources.", "effect": { "type": "incoming-damage-percent", "amount": -10 } }
+    ] },
+    { "level": 3, "description": "Unlock Lucid Change.", "effects": [
+      { "type": "skill", "id": "lucid-change", "name": "Lucid Change", "description": "Fully restore HP and Mana and refresh all other skills. Increase all basic stats by 20% and halve spell Mana costs for the battle. At the start of each later turn, lose 10% maximum HP as irreducible damage. The first use is charged by the Gem consumed to acquire Sharmat; each later use consumes another Gem of False Dreams.", "cooldown": "item", "requiredItemId": "key-item-gem-of-false-dreams", "combatOnly": true, "canDeactivate": false, "effects": [
+        { "type": "all-stats-permanent-percent", "amount": 20, "description": "All basic stat permanent bonuses +20%" },
+        { "type": "spell-cost-multiplier", "amount": 0.5, "description": "Spell Mana cost ×0.5" }
+      ], "onActivateEffects": [
+        { "type": "restore-full-resources", "description": "Fully restore HP and Mana" },
+        { "type": "refresh-other-skills", "description": "Refresh all other skills" },
+        { "type": "turn-start-max-hp-loss-percent", "amount": 10, "description": "Lose 10% maximum HP at the start of each later turn" }
+      ] }
+    ] }
+  ]
+}

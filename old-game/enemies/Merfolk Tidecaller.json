@@ -1,0 +1,15 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "merfolk-tidecaller-level-27",
+  "name": "Merfolk Tidecaller",
+  "level": 27,
+  "raceId": "merfolk",
+  "element": "water",
+  "classLevels": { "monster": 3, "mage": 5, "spellcaster": 7, "aquamancer": 9, "energist": 3 },
+  "stats": { "strength": 43, "vitality": 58, "mind": 95, "dexterity": 61, "intelligence": 92, "wisdom": 79, "speed": 64, "luck": 46 },
+  "inventory": ["forge-weapon-2-staff", "forge-armor-robe"],
+  "equipment": { "primaryHand": "forge-weapon-2-staff", "offHand": "forge-weapon-2-staff", "armor": "forge-armor-robe", "artifact1": null, "artifact2": null },
+  "knownSpells": ["water-bolt-water-damage", "mending-spring-water-support", "tide-ward-water-support", "seablade-water-damage", "soothing-rain-water-support", "lesser-cascade-water-damage", "tidal-spear-water-damage", "mending-current-water-support", "pressure-wave-water-damage"],
+  "drops": [{ "itemId": "artifact-arrowtip-rain-artifact", "chance": 1 }]
+}

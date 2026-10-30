@@ -1,0 +1,19 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "orc-chieftain-level-19",
+  "name": "Orc Chieftain",
+  "level": 19,
+  "raceId": "orc",
+  "classLevels": { "monster": 3, "warrior": 5, "barbarian": 7, "brawler": 4 },
+  "stats": { "strength": 67, "vitality": 60, "mind": 28, "dexterity": 40, "intelligence": 28, "wisdom": 27, "speed": 37, "luck": 29 },
+  "inventory": ["forge-weapon-2-greataxe+axe", "forge-armor-full-plate+splint-mail"],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-greataxe+axe",
+    "offHand": null,
+    "armor": "forge-armor-full-plate+splint-mail",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

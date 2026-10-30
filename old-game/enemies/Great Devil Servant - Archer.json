@@ -1,0 +1,27 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "great-devil-servant-archer-level-56", "name": "Great Devil Servant - Archer",
+  "level": 56, "raceId": "devil",
+  "classLevels": {
+    "archer": 5, "sharpshooter": 5, "hunter": 7, "warrior": 5,
+    "weaponmaster": 7, "rogue": 5, "assassin": 6, "soldier": 6,
+    "poisoner": 7, "shadow": 3
+  },
+  "perkPoints": 0, "availablePoints": 0,
+  "stats": {
+    "strength": 75, "vitality": 85, "mind": 65, "dexterity": 155,
+    "intelligence": 65, "wisdom": 65, "speed": 100, "luck": 130
+  },
+  "manualAllocations": {
+    "strength": 10, "vitality": 20, "mind": 0, "dexterity": 90,
+    "intelligence": 0, "wisdom": 0, "speed": 35, "luck": 65
+  },
+  "inventory": ["forge-weapon-2-longbow+shortbow", "forge-armor-leather-armor"],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-longbow+shortbow", "offHand": "forge-weapon-2-longbow+shortbow",
+    "armor": "forge-armor-leather-armor", "artifact1": null, "artifact2": null
+  },
+  "maxHpPercent": 300,
+  "aiProfile": "devil-servant",
+  "knownSpells": [], "drops": []
+}

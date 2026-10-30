@@ -1,0 +1,46 @@
+{
+  "id": "weaponmaster",
+  "name": "Weaponmaster",
+  "requirements": { "level": 20, "classes": { "warrior": 5 }, "other": null },
+  "maxLevel": 7,
+  "levels": [
+    { "level": 1, "description": "All weapons gain 2 base power.", "effects": [{ "type": "weapon-power-percent", "amount": 5 }] },
+    { "level": 2, "description": "Increase weapon Accuracy by 10%.", "effects": [{ "type": "weapon-hit-percent", "amount": 10 }] },
+    {
+      "level": 3,
+      "description": "Gain the Masterful Grip passive.",
+      "effects": [{
+        "type": "passive",
+        "id": "masterful-grip",
+        "name": "Masterful Grip",
+        "condition": "While wielding any weapon",
+        "description": "All weapons gain an additional 0.2× Strength and 0.2× Dexterity scaling.",
+        "effects": [
+          { "type": "weapon-scaling", "stat": "strength", "amount": 0.2 },
+          { "type": "weapon-scaling", "stat": "dexterity", "amount": 0.2 }
+        ]
+      }]
+    },
+    { "level": 4, "description": "Gain 10% Armor Pierce with weapon attacks.", "effects": [{ "type": "weapon-armor-pierce-percent", "amount": 10 }] },
+    { "level": 5, "description": "Increase weapon Crit Rating by 5.", "effects": [{ "type": "weapon-crit-flat", "amount": 5 }] },
+    { "level": 6, "description": "Increase weapon power by 15%.", "effects": [{ "type": "weapon-power-percent", "amount": 15 }] },
+    {
+      "level": 7,
+      "description": "Unlock Perfect Form.",
+      "effects": [{
+        "type": "skill",
+        "id": "perfect-form",
+        "name": "Perfect Form",
+        "combatOnly": true,
+        "cooldown": "daily",
+        "durationAttacks": 3,
+        "description": "Your next 3 weapon attacks gain 20% power, 20% Accuracy, and 10 Crit Rating. Can be used once per day.",
+        "effects": [
+          { "type": "weapon-power-percent", "amount": 20 },
+          { "type": "weapon-hit-percent", "amount": 20 },
+          { "type": "weapon-crit-flat", "amount": 10 }
+        ]
+      }]
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "id": "madman",
+  "name": "Madman",
+  "requirements": {
+    "level": 1,
+    "classes": {},
+    "other": {
+      "type": "inventory-item",
+      "itemId": "key-item-shadow-crystal",
+      "consume": true,
+      "description": "Shadow Crystal (consumed on acquisition)"
+    }
+  },
+  "maxLevel": 3,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Gain the World Without Veil passive.",
+      "effects": [{
+        "type": "passive",
+        "id": "world-without-veil",
+        "name": "World Without Veil",
+        "condition": "Always active",
+        "description": "Armor and Evasion are locked at 0. Increase maximum HP by 50% and all damage dealt by 30%.",
+        "effects": [
+          { "type": "defense-cap", "target": "armor", "amount": 0 },
+          { "type": "defense-cap", "target": "evasion", "amount": 0 },
+          { "type": "max-hp-percent", "amount": 50 },
+          { "type": "outgoing-damage-percent", "amount": 30 }
+        ]
+      }]
+    },
+    {
+      "level": 2,
+      "description": "Increase all basic stats by 10%.",
+      "effects": [{ "type": "all-stats-permanent-percent", "amount": 10 }]
+    },
+    {
+      "level": 3,
+      "description": "Unlock Mad Revelation.",
+      "effects": [{
+        "type": "skill",
+        "id": "mad-revelation",
+        "name": "Mad Revelation",
+        "combatOnly": true,
+        "cooldown": "daily",
+        "durationTurns": 3,
+        "description": "For 3 turns, increase all basic stats by 30%, double all damage dealt, and make every weapon attack hit and critically strike, but take 15% more damage. Can be used once per day.",
+        "effects": [
+          { "type": "all-stats-permanent-percent", "amount": 30 },
+          { "type": "outgoing-damage-percent", "amount": 100 },
+          { "type": "incoming-damage-percent", "amount": 15 },
+          { "type": "weapon-hit-always" },
+          { "type": "weapon-crit-always" }
+        ]
+      }]
+    }
+  ]
+}

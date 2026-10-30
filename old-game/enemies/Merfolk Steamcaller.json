@@ -1,0 +1,15 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "merfolk-steamcaller-level-29",
+  "name": "Merfolk Steamcaller",
+  "level": 29,
+  "raceId": "merfolk",
+  "element": "water",
+  "classLevels": { "monster": 3, "mage": 5, "spellcaster": 7, "aquamancer": 9, "riverstrider": 5 },
+  "stats": { "strength": 45, "vitality": 67, "mind": 95, "dexterity": 64, "intelligence": 96, "wisdom": 78, "speed": 72, "luck": 50 },
+  "inventory": ["forge-weapon-1-wand", "forge-armor-robe"],
+  "equipment": { "primaryHand": "forge-weapon-1-wand", "offHand": null, "armor": "forge-armor-robe", "artifact1": null, "artifact2": null },
+  "knownSpells": ["water-bolt-water-damage", "mending-spring-water-support", "tide-ward-water-support", "seablade-water-damage", "lesser-cascade-water-damage", "rainveil-water-support", "tidal-spear-water-damage", "mending-current-water-support", "pressure-wave-water-damage", "fire-bolt-fire-damage", "fire-whip-fire-damage"],
+  "drops": [{ "itemId": "artifact-arrowtip-rain-artifact", "chance": 1 }]
+}

@@ -1,0 +1,36 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "bandit-captain-level-15",
+  "name": "Bandit Captain",
+  "level": 15,
+  "raceId": "human",
+  "classLevels": {
+    "warrior": 5,
+    "rogue": 5,
+    "knight": 5
+  },
+  "stats": {
+    "strength": 47,
+    "vitality": 44,
+    "mind": 24,
+    "dexterity": 39,
+    "intelligence": 24,
+    "wisdom": 24,
+    "speed": 34,
+    "luck": 28
+  },
+  "inventory": [
+    "forge-weapon-1-longsword+rapier",
+    "forge-armor-leather-armor",
+    "forge-armor-kite-shield"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-longsword+rapier",
+    "offHand": "forge-armor-kite-shield",
+    "armor": "forge-armor-leather-armor",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

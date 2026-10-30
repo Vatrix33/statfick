@@ -1,0 +1,40 @@
+{
+  "id": "templar",
+  "name": "Templar",
+  "requirements": { "level": 1, "classes": {}, "anyClasses": { "cleric": 7, "priest": 7 }, "other": null },
+  "maxLevel": 6,
+  "levels": [
+    { "level": 1, "description": "Increase Strength and Wisdom by 5%.", "effects": [
+      { "type": "stat-permanent-percent", "target": "strength", "amount": 5 },
+      { "type": "stat-permanent-percent", "target": "wisdom", "amount": 5 }
+    ] },
+    { "level": 2, "description": "Increase Holy spell power by 15%.", "effects": [
+      { "type": "spell-power-percent", "element": "holy", "amount": 15 }
+    ] },
+    { "level": 3, "description": "Increase Armor by 15%.", "effects": [
+      { "type": "defense-permanent-percent", "target": "armor", "amount": 15 }
+    ] },
+    { "level": 4, "description": "Increase maximum HP and maximum Mana by 10%.", "effects": [
+      { "type": "max-hp-percent", "amount": 10 },
+      { "type": "max-mana-percent", "amount": 10 }
+    ] },
+    { "level": 5, "description": "Gain the Consecrated Arms passive.", "effects": [{
+      "type": "passive", "id": "consecrated-arms", "name": "Consecrated Arms", "condition": "Against Demons, Devils, and Undead",
+      "description": "Deal 20% more damage to Demons, Devils, and Undead, and take 20% less damage from Dark spells.",
+      "effects": [
+        { "type": "damage-percent-vs-race", "raceIds": ["demon", "devil", "undead"], "amount": 20 },
+        { "type": "incoming-spell-damage-percent", "element": "dark", "amount": -20 }
+      ]
+    }] },
+    { "level": 6, "description": "Unlock Templar's Aegis.", "effects": [{
+      "type": "skill", "id": "templars-aegis", "name": "Templar's Aegis", "combatOnly": true, "cooldown": "daily", "durationTurns": 3, "target": "all-allies", "actionPoints": 1,
+      "description": "For 3 turns, all allies take 20% less damage, gain 25% Armor, and gain 20% Accuracy. Costs 1 AP and can be used once per day.",
+      "effects": [],
+      "onActivateEffects": [
+        { "type": "incoming-damage-percent", "amount": -20, "durationTurns": 3 },
+        { "type": "defense-percent", "target": "armor", "amount": 25, "durationTurns": 3 },
+        { "type": "weapon-hit-percent", "amount": 20, "durationTurns": 3 }
+      ]
+    }] }
+  ]
+}

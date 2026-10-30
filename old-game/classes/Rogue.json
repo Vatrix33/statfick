@@ -1,0 +1,90 @@
+{
+  "id": "rogue",
+  "name": "Rogue",
+  "requirements": {
+    "level": 1,
+    "classes": {},
+    "other": null
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Increase Speed by 5%.",
+      "effects": [
+        {
+          "type": "stat-permanent-percent",
+          "target": "speed",
+          "amount": 5,
+          "description": "Speed permanent bonus +5%"
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "While wearing Light Armor or Clothing, increase Evasion by 10%.",
+      "effects": [
+        {
+          "type": "conditional-defense-percent",
+          "condition": "light-or-clothing",
+          "target": "evasion",
+          "amount": 10,
+          "description": "Evasion +10% while wearing Light Armor or Clothing"
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain the Crit Sense passive.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "crit-sense",
+          "name": "Crit Sense",
+          "condition": "While using a one-handed weapon or bow",
+          "description": "One-handed weapons and bows gain 10 Crit Rating.",
+          "effect": {
+            "type": "weapon-crit-flat",
+            "weaponType": "one-handed-or-bow",
+            "amount": 10
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Increase Accuracy with one-handed weapons or bows by 10%.",
+      "effects": [
+        {
+          "type": "weapon-hit-percent",
+          "weaponType": "one-handed-or-bow",
+          "amount": 10,
+          "description": "One-handed weapon and bow Accuracy +10%"
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Lucky Hit.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "lucky-hit",
+          "name": "Lucky Hit",
+          "combatOnly": true,
+          "description": "Your next attack gains 15 Crit Rating. You can use this skill once a day.",
+          "durationAttacks": 1,
+          "cooldown": "daily",
+          "effects": [
+            {
+              "type": "weapon-crit-flat",
+              "weaponType": "all",
+              "amount": 15,
+              "description": "Weapon Crit Rating +15 for the next attack"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

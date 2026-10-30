@@ -1,0 +1,25 @@
+{
+  "id": "heavy-knight",
+  "name": "Heavy Knight",
+  "requirements": {
+    "level": 1,
+    "classes": { "knight": 5 },
+    "other": { "type": "equipment-condition", "condition": "heavy-armor-and-shield", "description": "Heavy Armor and a Shield equipped" }
+  },
+  "maxLevel": 5,
+  "levels": [
+    { "level": 1, "description": "Unlock Taunt.", "effects": [{
+      "type": "skill", "id": "taunt", "name": "Taunt", "combatOnly": true, "cooldown": "none", "durationTurns": 1,
+      "description": "Until your next turn, enemies have a 50% chance to target you instead of an ally.",
+      "effects": [], "onActivateEffects": [{ "type": "taunt-chance", "amount": 50, "durationTurns": 1 }]
+    }] },
+    { "level": 2, "description": "Increase Armor by 10%.", "effects": [{ "type": "defense-permanent-percent", "target": "armor", "amount": 10 }] },
+    { "level": 3, "description": "Increase maximum HP by 5%.", "effects": [{ "type": "max-hp-percent", "amount": 5 }] },
+    { "level": 4, "description": "Increase Strength by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "strength", "amount": 5 }] },
+    { "level": 5, "description": "Gain the Ramping Defense passive.", "effects": [{
+      "type": "passive", "id": "ramping-defense", "name": "Ramping Defense", "condition": "When taking melee or ranged damage",
+      "description": "Each time you take melee or ranged damage, increase Armor by 2% for the rest of combat, up to 100%.",
+      "effects": [{ "type": "armor-percent-on-weapon-hit", "amount": 2, "maximum": 100 }]
+    }] }
+  ]
+}

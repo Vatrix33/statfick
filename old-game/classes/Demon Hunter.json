@@ -1,0 +1,11 @@
+{
+  "id": "demon-hunter", "name": "Demon Hunter", "requirements": { "level": 1, "classes": { "hunter": 7 }, "other": { "type": "race-kills", "raceIds": ["devil", "demon", "impid"], "count": 40 } }, "maxLevel": 6,
+  "levels": [
+    { "level": 1, "description": "Deal 15% more damage to Devils, Demons, and Impids.", "effects": [{ "type": "damage-percent-vs-race", "raceIds": ["devil", "demon", "impid"], "amount": 15 }] },
+    { "level": 2, "description": "Luck permanent bonus +5%.", "effects": [{ "type": "stat-permanent-percent", "target": "luck", "amount": 5 }] },
+    { "level": 3, "description": "Take 10% less damage from Devils, Demons, and Impids.", "effects": [{ "type": "incoming-damage-percent-vs-race", "raceIds": ["devil", "demon", "impid"], "amount": -10 }] },
+    { "level": 4, "description": "Gain the Fiend's Bane passive, improving Hunter's Mark by 15% damage and 20% Accuracy.", "effects": [{ "type": "passive", "id": "fiends-bane", "name": "Fiend's Bane", "description": "Hunter's Mark grants another 15% damage and 20% Accuracy; your attacks deal another 10% damage to Devils, Demons, and Impids.", "effects": [{ "type": "skill-upgrade", "skillId": "hunter:hunters-mark", "markDamagePercentFlat": 15, "markHitPercent": 20 }, { "type": "damage-percent-vs-race", "raceIds": ["devil", "demon", "impid"], "amount": 10 }] }] },
+    { "level": 5, "description": "Strength permanent bonus +5%.", "effects": [{ "type": "stat-permanent-percent", "target": "strength", "amount": 5 }] },
+    { "level": 6, "description": "Unlock Exorcising Strike: once per combat, your next attack deals 40% more damage, or 100% more against Devils, Demons, and Impids.", "effects": [{ "type": "skill", "id": "exorcising-strike", "name": "Exorcising Strike", "description": "Once per combat, your next weapon attack gains 40% power, plus 60% more against Devils, Demons, and Impids.", "cooldown": "combat", "combatOnly": true, "durationAttacks": 1, "effects": [{ "type": "weapon-power-percent", "amount": 40 }, { "type": "weapon-power-percent-vs-race", "raceIds": ["devil", "demon", "impid"], "amount": 60 }] }] }
+  ]
+}

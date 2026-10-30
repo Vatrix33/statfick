@@ -1,0 +1,35 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "harpy-skirmisher-level-12",
+  "name": "Harpy Skirmisher",
+  "level": 12,
+  "raceId": "harpy",
+  "classLevels": {
+    "monster": 3,
+    "archer": 5,
+    "rogue": 4
+  },
+  "stats": {
+    "strength": 28,
+    "vitality": 28,
+    "mind": 21,
+    "dexterity": 44,
+    "intelligence": 21,
+    "wisdom": 21,
+    "speed": 49,
+    "luck": 31
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

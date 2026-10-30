@@ -1,0 +1,95 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "nygheir-the-wounded-unique-level-23",
+  "name": "Nygheir the Wounded",
+  "unique": true,
+  "level": 23,
+  "raceId": "dragon",
+  "element": "earth",
+  "classLevels": {
+    "beast": 3,
+    "monster": 3,
+    "warrior": 5,
+    "mage": 5,
+    "knight": 2,
+    "raid-boss": 1,
+    "guardian": 5
+  },
+  "stats": {
+    "strength": 30,
+    "vitality": 78,
+    "mind": 61,
+    "dexterity": 89,
+    "intelligence": 20,
+    "wisdom": 51,
+    "speed": 0,
+    "luck": 35
+  },
+  "baseArmor": 28,
+  "maxHpPercent": 136,
+  "permanentBonuses": {
+    "speed": -25
+  },
+  "permanentDefenseBonuses": {
+    "armor": 0,
+    "evasion": -80
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "stonecrust-earth-unique"
+  ],
+  "phaseTransition": {
+    "thresholdHpPercent": 25,
+    "name": "Nygheir the Scarred",
+    "announcement": "Old wounds remember: Nygheir the Scarred rises from the memory of an old war, its scars burning like molten rock!",
+    "healMaxHpPercent": 40,
+    "statBonuses": {
+      "intelligence": 10,
+      "wisdom": 10
+    },
+    "defenseBonuses": {
+      "armor": 20
+    },
+    "knownSpells": [
+      "rock-bolt-earth-damage",
+      "stone-spike-earth-damage",
+      "faultline-earth-damage",
+      "petrifying-grasp-earth-damage",
+      "quake-hammer-earth-damage",
+      "mountain-crusher-earth-damage",
+      "dragonbreath-erode-earth-damage"
+    ],
+    "animation": "earth-shatter",
+    "unskippable": true,
+    "cinematic": "nygheir-phase"
+  },
+  "experienceRewardMultiplier": 1.4,
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 1
+    },
+    {
+      "itemId": "artifact-second-wind-artifact",
+      "chance": 12
+    }
+  ],
+  "aiProfile": "nygheir",
+  "introCinematic": "nygheir",
+  "oldWounds": {
+    "count": 3,
+    "bleedPercent": 2,
+    "damageTakenPercent": 10,
+    "rageDamagePercent": 12,
+    "burstAtPhase": 1
+  }
+}

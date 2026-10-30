@@ -1,0 +1,71 @@
+{
+  "id": "priest",
+  "name": "Priest",
+  "requirements": {
+    "level": 1,
+    "classes": { "mage": 5 },
+    "other": { "type": "known-spells", "element": "holy", "count": 3, "description": "3 Holy spells known" }
+  },
+  "maxLevel": 7,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Increase Wisdom by 5%.",
+      "effects": [{ "type": "stat-permanent-percent", "target": "wisdom", "amount": 5, "description": "Wisdom permanent bonus +5%" }]
+    },
+    {
+      "level": 2,
+      "description": "Holy spells cost 10% less Mana.",
+      "effects": [{ "type": "spell-cost-percent", "element": "holy", "amount": 10, "description": "Holy spell Mana cost −10%" }]
+    },
+    {
+      "level": 3,
+      "description": "Increase Mind by 5%.",
+      "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 5, "description": "Mind permanent bonus +5%" }]
+    },
+    {
+      "level": 4,
+      "description": "Gain the Blessed Vessel passive.",
+      "effects": [{
+        "type": "passive",
+        "id": "blessed-vessel",
+        "name": "Blessed Vessel",
+        "condition": "Always active",
+        "description": "Increase maximum HP by 10% and take 15% less damage from Dark spells.",
+        "effects": [
+          { "type": "max-hp-percent", "amount": 10 },
+          { "type": "incoming-spell-damage-percent", "element": "dark", "amount": -15 }
+        ]
+      }]
+    },
+    {
+      "level": 5,
+      "description": "Holy spells gain 10% power.",
+      "effects": [{ "type": "spell-power-percent", "element": "holy", "amount": 10, "description": "Holy spell power +10%" }]
+    },
+    {
+      "level": 6,
+      "description": "Increase maximum Mana by 10%.",
+      "effects": [{ "type": "max-mana-percent", "amount": 10, "description": "Maximum Mana +10%" }]
+    },
+    {
+      "level": 7,
+      "description": "Unlock Sanctuary.",
+      "effects": [{
+        "type": "skill",
+        "id": "sanctuary",
+        "name": "Sanctuary",
+        "combatOnly": true,
+        "cooldown": "daily",
+        "durationTurns": 3,
+        "target": "all-allies",
+        "description": "You and all allies take 15% less damage and restore 5% maximum HP at the start of each turn for 3 turns. Can be used once per day.",
+        "effects": [],
+        "onActivateEffects": [
+          { "type": "incoming-damage-percent", "amount": -15, "durationTurns": 3 },
+          { "type": "turn-start-restore-percent", "hp": 5, "durationTurns": 3 }
+        ]
+      }]
+    }
+  ]
+}

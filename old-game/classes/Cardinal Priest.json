@@ -1,0 +1,32 @@
+{
+  "id": "cardinal-priest",
+  "name": "Cardinal Priest",
+  "requirements": { "level": 55, "classes": { "priest": 7 }, "other": null },
+  "maxLevel": 4,
+  "levels": [
+    { "level": 1, "description": "Increase Holy spell power by 20%.", "effects": [
+      { "type": "spell-power-percent", "element": "holy", "amount": 20 }
+    ] },
+    { "level": 2, "description": "Increase Wisdom by 10% and maximum Mana by 15%.", "effects": [
+      { "type": "stat-permanent-percent", "target": "wisdom", "amount": 10 },
+      { "type": "max-mana-percent", "amount": 15 }
+    ] },
+    { "level": 3, "description": "Gain the Cardinal's Benediction passive.", "effects": [{
+      "type": "passive", "id": "cardinals-benediction", "name": "Cardinal's Benediction", "condition": "While in the party",
+      "description": "Reduce the Mana cost of every party member's spells by 10% and your Holy spell learning costs by 50%.",
+      "effects": [
+        { "type": "party-spell-cost-percent", "amount": 10 },
+        { "type": "spell-learning-cost-percent", "element": "holy", "amount": 50 }
+      ]
+    }] },
+    { "level": 4, "description": "Unlock Pontifical Decree.", "effects": [{
+      "type": "skill", "id": "pontifical-decree", "name": "Pontifical Decree", "combatOnly": true, "cooldown": "daily", "durationTurns": 3, "target": "all-allies", "actionPoints": 1,
+      "description": "For 3 turns, all allies take 25% less damage and restore 7% maximum HP and 5% maximum Mana at the start of each turn. Costs 1 AP and can be used once per day.",
+      "effects": [],
+      "onActivateEffects": [
+        { "type": "incoming-damage-percent", "amount": -25, "durationTurns": 3 },
+        { "type": "turn-start-restore-percent", "hp": 7, "mana": 5, "durationTurns": 3 }
+      ]
+    }] }
+  ]
+}

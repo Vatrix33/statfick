@@ -1,0 +1,26 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "satyr-grovekeeper-level-16",
+  "name": "Satyr Grovekeeper",
+  "level": 16,
+  "raceId": "satyr",
+  "classLevels": { "monster": 3, "mage": 5, "druid": 7, "spellcaster": 1 },
+  "stats": { "strength": 30, "vitality": 37, "mind": 56, "dexterity": 34, "intelligence": 53, "wisdom": 56, "speed": 42, "luck": 35 },
+  "inventory": ["forge-weapon-2-staff"],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-staff",
+    "offHand": "forge-weapon-2-staff",
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "summon-juvenile-wolf-nature-summon",
+    "leaf-bolt-nature-damage",
+    "touch-grass-nature-support",
+    "summon-juvenile-bear-nature-summon",
+    "return-to-form-nature-damage",
+    "thorns-shot-nature-damage"
+  ]
+}

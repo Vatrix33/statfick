@@ -1,0 +1,431 @@
+[
+  {
+    "id": "human",
+    "name": "Human",
+    "playable": true,
+    "icon": "objects/race-human.svg",
+    "statModifiers": { "strength": 2, "vitality": 1, "mind": -3, "dexterity": -1, "intelligence": 1, "wisdom": 0, "speed": -1, "luck": 1 },
+    "passive": {
+      "id": "rulers-of-the-world",
+      "name": "Rulers of the World",
+      "condition": "Every fifth character level",
+      "description": "Gain 2 additional maximum HP every fifth character level.",
+      "effects": [{ "type": "max-hp-per-levels", "amount": 2, "interval": 5 }]
+    }
+  },
+  {
+    "id": "elf",
+    "name": "Elf",
+    "playable": true,
+    "icon": "objects/race-elf.svg",
+    "statModifiers": { "strength": -2, "vitality": -2, "mind": 3, "dexterity": 1, "intelligence": 1, "wisdom": 1, "speed": 0, "luck": -2 },
+    "passive": {
+      "id": "sylvan-heritage",
+      "name": "Sylvan Heritage",
+      "condition": "Always active",
+      "description": "Gain 1 additional maximum Mana every fifth character level. All spells cost 3% less Mana.",
+      "effects": [
+        { "type": "max-mana-per-levels", "amount": 1, "interval": 5 },
+        { "type": "spell-cost-percent", "amount": 3 }
+      ]
+    }
+  },
+  {
+    "id": "dark-elf",
+    "name": "Dark Elf",
+    "playable": true,
+    "icon": "objects/race-dark-elf.svg",
+    "statModifiers": { "strength": -1, "vitality": -2, "mind": 2, "dexterity": 2, "intelligence": 1, "wisdom": 1, "speed": 1, "luck": -3 },
+    "passive": {
+      "id": "sylvan-heritage",
+      "name": "Sylvan Heritage",
+      "condition": "Always active",
+      "description": "Gain 1 additional maximum Mana every fifth character level. All spells cost 3% less Mana.",
+      "effects": [
+        { "type": "max-mana-per-levels", "amount": 1, "interval": 5 },
+        { "type": "spell-cost-percent", "amount": 3 }
+      ]
+    }
+  },
+  {
+    "id": "dwarf",
+    "name": "Dwarf",
+    "playable": true,
+    "icon": "objects/race-dwarf.svg",
+    "statModifiers": { "strength": 2, "vitality": 3, "mind": -2, "dexterity": 0, "intelligence": -2, "wisdom": -1, "speed": -1, "luck": 1 },
+    "passive": {
+      "id": "mountainborn",
+      "name": "Mountainborn",
+      "condition": "Always active",
+      "description": "Your Armor increases by 8%.",
+      "effects": [{ "type": "defense-permanent-percent", "target": "armor", "amount": 8 }]
+    }
+  },
+  {
+    "id": "hobbit",
+    "name": "Hobbit",
+    "playable": true,
+    "icon": "objects/race-hobbit.svg",
+    "statModifiers": { "strength": -3, "vitality": -2, "mind": 0, "dexterity": 2, "intelligence": 0, "wisdom": 0, "speed": 1, "luck": 2 },
+    "passive": {
+      "id": "nimble-stature",
+      "name": "Nimble Stature",
+      "condition": "Always active",
+      "description": "Increase Evasion by 15%. You cannot wear Heavy Armor.",
+      "effects": [
+        { "type": "defense-permanent-percent", "target": "evasion", "amount": 15 },
+        { "type": "equipment-restriction", "category": "armor", "typeName": "heavy" }
+      ]
+    }
+  },
+  {
+    "id": "lizardman",
+    "name": "Lizardman",
+    "playable": true,
+    "icon": "objects/race-lizardman.svg",
+    "statModifiers": { "strength": 1, "vitality": 0, "mind": -1, "dexterity": 2, "intelligence": -2, "wisdom": -1, "speed": 3, "luck": 0 },
+    "passive": {
+      "id": "mud-runner",
+      "name": "Mud Runner",
+      "condition": "While in combat",
+      "description": "Increase Evasion by 2 for each enemy in combat.",
+      "effects": [
+        { "type": "defense-flat-per-enemy", "target": "evasion", "amount": 2 }
+      ]
+    }
+  },
+  {
+    "id": "goblin",
+    "name": "Goblin",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": -5, "vitality": -7, "mind": -9, "dexterity": -6, "intelligence": -8, "wisdom": -9, "speed": -4, "luck": -8 },
+    "passive": {
+      "id": "creature-of-greed",
+      "name": "Creature of Greed",
+      "condition": "Always active",
+      "description": "Increase Evasion by 5%.",
+      "effects": [{ "type": "defense-permanent-percent", "target": "evasion", "amount": 5 }]
+    }
+  },
+  {
+    "id": "impid",
+    "name": "Impid",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": -6, "vitality": -7, "mind": -8, "dexterity": -3, "intelligence": -7, "wisdom": -7, "speed": -2, "luck": -9 },
+    "passive": {
+      "id": "demonic-lineage",
+      "name": "Demonic Lineage",
+      "condition": "Always active",
+      "description": "Take 50% more damage from Holy-element spells. Gain 2 additional maximum HP per character level.",
+      "effects": [
+        { "type": "incoming-spell-damage-percent", "element": "holy", "amount": 50 },
+        { "type": "max-hp-per-levels", "amount": 2, "interval": 1 }
+      ]
+    }
+  },
+  {
+    "id": "wolf",
+    "name": "Wolf",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": -4, "vitality": -7, "mind": -8, "dexterity": -3, "intelligence": -8, "wisdom": -6, "speed": -2, "luck": -5 },
+    "passive": {
+      "id": "beast-instinct",
+      "name": "Beast Instinct",
+      "condition": "Always active",
+      "description": "Increase Evasion by 15%. Reduce Armor by 50%.",
+      "effects": [
+        { "type": "defense-permanent-percent", "target": "evasion", "amount": 15 },
+        { "type": "defense-permanent-percent", "target": "armor", "amount": -50 }
+      ]
+    }
+  },
+  {
+    "id": "bear",
+    "name": "Bear",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": -3, "vitality": -4, "mind": -9, "dexterity": -6, "intelligence": -8, "wisdom": -7, "speed": -7, "luck": -5 },
+    "passive": {
+      "id": "beast-instinct",
+      "name": "Beast Instinct",
+      "condition": "Always active",
+      "description": "Increase Evasion by 15%. Reduce Armor by 50%.",
+      "effects": [
+        { "type": "defense-permanent-percent", "target": "evasion", "amount": 15 },
+        { "type": "defense-permanent-percent", "target": "armor", "amount": -50 }
+      ]
+    }
+  },
+  {
+    "id": "griffon",
+    "name": "Griffon",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": 1, "vitality": 3, "mind": -6, "dexterity": -2, "intelligence": -7, "wisdom": -5, "speed": 1, "luck": -5 },
+    "passive": {
+      "id": "beast-instinct",
+      "name": "Beast Instinct",
+      "condition": "Always active",
+      "description": "Increase Evasion by 15%. Reduce Armor by 50%.",
+      "effects": [
+        { "type": "defense-permanent-percent", "target": "evasion", "amount": 15 },
+        { "type": "defense-permanent-percent", "target": "armor", "amount": -50 }
+      ]
+    }
+  },
+  {
+    "id": "orc",
+    "name": "Orc",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": 3, "vitality": 1, "mind": -7, "dexterity": -4, "intelligence": -4, "wisdom": -5, "speed": -2, "luck": -7 },
+    "passive": {
+      "id": "creature-of-wrath",
+      "name": "Creature of Wrath",
+      "condition": "Always active",
+      "description": "Increase Strength by 15%. Reduce Armor and Evasion by 30%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "strength", "amount": 15 },
+        { "type": "defense-permanent-percent", "target": "armor", "amount": -30 },
+        { "type": "defense-permanent-percent", "target": "evasion", "amount": -30 }
+      ]
+    }
+  },
+  {
+    "id": "demon",
+    "name": "Demon",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": 4, "vitality": 7, "mind": -2, "dexterity": 1, "intelligence": -3, "wisdom": -5, "speed": 3, "luck": -10 },
+    "passive": {
+      "id": "voidborne",
+      "name": "Voidborne",
+      "condition": "Always active",
+      "description": "Take 80% more damage from Holy-element spells. Take no damage from Dark-element spells. Gain 3 additional maximum HP and 1 additional maximum Mana per character level.",
+      "effects": [
+        { "type": "incoming-spell-damage-percent", "element": "holy", "amount": 80 },
+        { "type": "incoming-spell-damage-percent", "element": "dark", "amount": -100 },
+        { "type": "max-hp-per-levels", "amount": 3, "interval": 1 },
+        { "type": "max-mana-per-levels", "amount": 1, "interval": 1 }
+      ]
+    }
+  },
+  {
+    "id": "devil",
+    "name": "Devil",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": 2, "vitality": 4, "mind": 8, "dexterity": 1, "intelligence": 3, "wisdom": 1, "speed": -3, "luck": -10 },
+    "passive": {
+      "id": "hellborne",
+      "name": "Hellborne",
+      "condition": "Always active",
+      "description": "Take 60% more damage from Holy-element spells. Gain 2 additional maximum HP and 2 additional maximum Mana per character level.",
+      "effects": [
+        { "type": "incoming-spell-damage-percent", "element": "holy", "amount": 60 },
+        { "type": "max-hp-per-levels", "amount": 2, "interval": 1 },
+        { "type": "max-mana-per-levels", "amount": 2, "interval": 1 }
+      ]
+    }
+  },
+  {
+    "id": "elemental",
+    "name": "Elemental",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": -1, "vitality": 5, "mind": 4, "dexterity": -3, "intelligence": 0, "wisdom": -1, "speed": -6, "luck": -2 },
+    "passive": {
+      "id": "manaborn",
+      "name": "Manaborn",
+      "condition": "Always active",
+      "description": "Take 50% less damage from spells. Evasion is always 0 and cannot be increased.",
+      "effects": [
+        { "type": "incoming-spell-damage-percent", "amount": -50 },
+        { "type": "defense-cap", "target": "evasion", "amount": 0 }
+      ]
+    }
+  },
+  {
+    "id": "giant",
+    "name": "Giant",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": 8, "vitality": 7, "mind": -4, "dexterity": -8, "intelligence": 1, "wisdom": -2, "speed": -7, "luck": -1 },
+    "passive": {
+      "id": "large-form",
+      "name": "Large Form",
+      "condition": "Always active",
+      "description": "Gain +2 to every basic stat whenever you level up. Evasion is reduced by 90% and Armor is increased by 20%.",
+      "effects": [
+        { "type": "all-stats-flat-per-level-up", "amount": 2 },
+        { "type": "defense-permanent-percent", "target": "evasion", "amount": -90 },
+        { "type": "defense-permanent-percent", "target": "armor", "amount": 20 }
+      ]
+    }
+  },
+  {
+    "id": "dragon",
+    "name": "Dragon",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": 6, "vitality": 10, "mind": 2, "dexterity": -3, "intelligence": 3, "wisdom": 4, "speed": 1, "luck": 0 },
+    "passive": {
+      "id": "creature-of-legend",
+      "name": "Creature of Legend",
+      "condition": "Always active",
+      "description": "Gain +2 to every basic stat whenever you level up. Armor is increased by 60%, spell damage taken is reduced by 30%, and Dragonbreath spells cost 80% less Mana.",
+      "effects": [
+        { "type": "all-stats-flat-per-level-up", "amount": 2 },
+        { "type": "defense-permanent-percent", "target": "armor", "amount": 60 },
+        { "type": "incoming-spell-damage-percent", "amount": -30 },
+        { "type": "spell-cost-percent", "amount": 80, "namePrefix": "Dragonbreath" }
+      ]
+    }
+  },
+  {
+    "id": "troll",
+    "name": "Troll",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": 5, "vitality": 6, "mind": -3, "dexterity": -4, "intelligence": -2, "wisdom": -3, "speed": 1, "luck": -4 },
+    "passive": {
+      "id": "creature-of-gluttony",
+      "name": "Creature of Gluttony",
+      "condition": "At the start of each turn unless recently damaged by Fire",
+      "description": "Restore 5% of maximum HP at the start of each turn unless Fire damage was taken during the previous 5 turns.",
+      "effects": [{ "type": "turn-start-restore-percent", "hp": 5, "unlessDamagedByElement": "fire", "lookbackTurns": 5 }]
+    }
+  },
+  {
+    "id": "siren",
+    "name": "Siren",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": -2, "vitality": 1, "mind": 8, "dexterity": -2, "intelligence": 6, "wisdom": 4, "speed": -4, "luck": 3 },
+    "passive": {
+      "id": "creature-of-lust",
+      "name": "Creature of Lust",
+      "condition": "When dealing spell damage",
+      "description": "Enemies damaged by your spells lose Mana equal to 20% of the damage dealt.",
+      "effects": [{ "type": "spell-damage-mana-burn-percent", "amount": 20 }]
+    }
+  },
+  {
+    "id": "harpy",
+    "name": "Harpy",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": 2, "vitality": -1, "mind": 3, "dexterity": 5, "intelligence": -1, "wisdom": -2, "speed": 7, "luck": 3 },
+    "passive": {
+      "id": "creature-of-pride",
+      "name": "Creature of Pride",
+      "condition": "Always active",
+      "description": "Increase Evasion by 20%. Spells against you have a 5% chance to miss.",
+      "effects": [
+        { "type": "defense-permanent-percent", "target": "evasion", "amount": 20 },
+        { "type": "incoming-spell-miss-chance", "amount": 5 }
+      ]
+    }
+  },
+  {
+    "id": "satyr",
+    "name": "Satyr",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": 4, "vitality": 3, "mind": -1, "dexterity": 0, "intelligence": 1, "wisdom": -2, "speed": 5, "luck": 1 },
+    "passive": {
+      "id": "creature-of-sloth",
+      "name": "Creature of Sloth",
+      "condition": "Always active",
+      "description": "You cannot be debuffed.",
+      "effects": [{ "type": "debuff-immunity" }]
+    }
+  },
+  {
+    "id": "lamia",
+    "name": "Lamia",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": 1, "vitality": -4, "mind": 2, "dexterity": 4, "intelligence": 1, "wisdom": 1, "speed": -3, "luck": 7 },
+    "passive": {
+      "id": "creature-of-envy",
+      "name": "Creature of Envy",
+      "condition": "While an enemy has greater maximum HP",
+      "description": "If an enemy has more maximum HP than you, increase Strength and Intelligence by 15%.",
+      "effects": [{ "type": "conditional-stats-percent-vs-higher-max-hp", "targets": ["strength", "intelligence"], "amount": 15 }]
+    }
+  },
+  {
+    "id": "undead",
+    "name": "Undead",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": -3, "vitality": -8, "mind": -5, "dexterity": -2, "intelligence": -9, "wisdom": -8, "speed": -3, "luck": -10 },
+    "passive": {
+      "id": "unliving",
+      "name": "Unliving",
+      "condition": "Always active",
+      "description": "HP cannot be restored and spells cannot be cast. Lethal damage has an 80% chance to leave you at 1 HP, reduced by 20 percentage points after every successful activation. Holy, Nature, and Blood damage bypass this effect.",
+      "effects": [
+        { "type": "healing-disabled" },
+        { "type": "spellcasting-disabled" },
+        { "type": "death-save-decay", "initialChance": 80, "reduction": 20, "excludedElements": ["holy", "nature", "blood"] }
+      ]
+    }
+  },
+  {
+    "id": "treant",
+    "name": "Treant",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": 4, "vitality": 7, "mind": -3, "dexterity": -5, "intelligence": -3, "wisdom": 3, "speed": -6, "luck": -2 },
+    "passive": {
+      "id": "living-bark",
+      "name": "Living Bark",
+      "condition": "Always active",
+      "description": "Increase Armor by 35%. Take 50% less Nature spell damage and 50% more Fire spell damage.",
+      "effects": [
+        { "type": "defense-permanent-percent", "target": "armor", "amount": 35 },
+        { "type": "incoming-spell-damage-percent", "element": "nature", "amount": -50 },
+        { "type": "incoming-spell-damage-percent", "element": "fire", "amount": 50 }
+      ]
+    }
+  },
+  {
+    "id": "dryad",
+    "name": "Dryad",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": -4, "vitality": -2, "mind": 5, "dexterity": 2, "intelligence": 4, "wisdom": 6, "speed": 2, "luck": 3 },
+    "passive": {
+      "id": "spirit-of-the-grove",
+      "name": "Spirit of the Grove",
+      "condition": "Always active",
+      "description": "Take 50% less Nature spell damage. Nature spells gain 20% power.",
+      "effects": [
+        { "type": "incoming-spell-damage-percent", "element": "nature", "amount": -50 },
+        { "type": "spell-power-percent", "element": "nature", "amount": 20 }
+      ]
+    }
+  },
+  {
+    "id": "merfolk",
+    "name": "Merfolk",
+    "playable": false,
+    "icon": null,
+    "statModifiers": { "strength": 1, "vitality": 3, "mind": 1, "dexterity": 2, "intelligence": -2, "wisdom": 0, "speed": -1, "luck": -2 },
+    "passive": {
+      "id": "fishman-physiology",
+      "name": "Fishman Physiology",
+      "condition": "Always active",
+      "description": "Amphibious fishmen take 20% less Water spell damage, but 10% more Fire spell damage.",
+      "effects": [
+        { "type": "incoming-spell-damage-percent", "element": "water", "amount": -20 },
+        { "type": "incoming-spell-damage-percent", "element": "fire", "amount": 10 }
+      ]
+    }
+  }
+]

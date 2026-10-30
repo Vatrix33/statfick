@@ -1,0 +1,23 @@
+{
+  "id": "cultist",
+  "name": "Cultist",
+  "requirements": {
+    "level": 1,
+    "classes": {},
+    "other": { "type": "summon-spells-used", "element": "dark", "count": 10, "description": "Use 10 Dark-Element summon spells" }
+  },
+  "maxLevel": 7,
+  "levels": [
+    { "level": 1, "description": "Increase Mind by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 5 }] },
+    { "level": 2, "description": "Summon spells cost 20% less Mana, increased to 30% for Dark-Element summon spells.", "effects": [{ "type": "spell-cost-percent", "summonOnly": true, "amount": 20 }, { "type": "spell-cost-percent", "summonOnly": true, "element": "dark", "amount": 10 }] },
+    { "level": 3, "description": "Unlock Summon Ritual.", "effects": [{
+      "type": "skill", "id": "summon-ritual", "name": "Summon Ritual", "combatOnly": true, "cooldown": "combat", "actionPoints": 5, "durationSummonSpells": 1,
+      "description": "Use 5 Action Points. Your next summon spell costs 50% less Mana and its summoned creatures gain 10% to all basic stats. Can only be used once per combat.",
+      "effects": [{ "type": "spell-cost-percent", "summonOnly": true, "amount": 50 }, { "type": "summon-base-stats-percent", "amount": 10 }]
+    }] },
+    { "level": 4, "description": "Increase Mind by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 5 }] },
+    { "level": 5, "description": "Increase Speed by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "speed", "amount": 5 }] },
+    { "level": 6, "description": "Gain the Dark Rituals passive.", "effects": [{ "type": "passive", "id": "dark-rituals", "name": "Dark Rituals", "condition": "When using non-Dark summon spells", "description": "Your non-Dark summon spells are treated as Dark-Element spells.", "effects": [{ "type": "summon-spells-treated-as-element", "element": "dark" }] }] },
+    { "level": 7, "description": "Increase Intelligence and Wisdom by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "intelligence", "amount": 5 }, { "type": "stat-permanent-percent", "target": "wisdom", "amount": 5 }] }
+  ]
+}

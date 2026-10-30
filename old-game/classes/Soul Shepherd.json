@@ -1,0 +1,86 @@
+{
+  "id": "soul-shepherd",
+  "name": "Soul Shepherd",
+  "color": "blue",
+  "requirements": {
+    "level": 35,
+    "classes": {
+      "summoner": 7
+    },
+    "other": null
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Summon base stats +10%.",
+      "effects": [
+        {
+          "type": "summon-base-stats-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Summon spell costs -10%.",
+      "effects": [
+        {
+          "type": "spell-cost-percent",
+          "amount": 10,
+          "summonOnly": true
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Soul Reclaim: when a friendly summon dies, recover 5% maximum HP and Mana.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "soul-reclaim",
+          "name": "Soul Reclaim",
+          "description": "When a friendly summon dies, recover 5% maximum HP and Mana.",
+          "effect": {
+            "type": "summon-death-resource-percent",
+            "hp": 5,
+            "mana": 5
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Summon base stats +10%.",
+      "effects": [
+        {
+          "type": "summon-base-stats-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Spirit Shelter: all friendly summons gain +25% Armor for two turns.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "spirit-shelter",
+          "name": "Spirit Shelter",
+          "description": "All living friendly summons gain +25% Armor for two turns.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "onActivateEffects": [
+            {
+              "type": "buff-summons-defense-percent",
+              "target": "armor",
+              "amount": 25,
+              "durationTurns": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

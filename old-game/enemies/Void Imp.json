@@ -1,0 +1,68 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "void-imp-monster-level-12",
+  "name": "Void Imp",
+  "level": 12,
+  "raceId": "impid",
+  "classLevels": {
+    "monster": 3,
+    "rogue": 4
+  },
+  "perkPoints": 0,
+  "stats": {
+    "strength": 20,
+    "vitality": 18,
+    "mind": 14,
+    "dexterity": 36,
+    "intelligence": 18,
+    "wisdom": 18,
+    "speed": 42,
+    "luck": 22
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "temporaryBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": {
+    "armor": 0,
+    "evasion": 0
+  },
+  "temporaryDefenseBonuses": {
+    "armor": 0,
+    "evasion": 0
+  },
+  "currentHp": 1,
+  "currentMana": 1,
+  "inventory": [
+    "forge-weapon-1-dagger"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-dagger",
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [],
+  "activeSkills": {},
+  "resistances": {
+    "dark": 25
+  }
+}

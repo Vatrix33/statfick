@@ -1,0 +1,9 @@
+{
+  "id": "stalker", "name": "Stalker", "requirements": { "level": 12, "classes": { "rogue": 5 }, "other": null }, "maxLevel": 4,
+  "levels": [
+    { "level": 1, "description": "Gain Trail Sense: the map reveals which enemy types can be tracked in your current zone.", "effects": [{ "type": "passive", "id": "trail-sense", "name": "Trail Sense", "description": "The map lists enemy types available for tracking in your current zone.", "effect": { "type": "map-track-enemies" } }] },
+    { "level": 2, "description": "Speed permanent bonus +5%.", "effects": [{ "type": "stat-permanent-percent", "target": "speed", "amount": 5 }] },
+    { "level": 3, "description": "Weapon Accuracy +20%.", "effects": [{ "type": "weapon-hit-percent", "amount": 20 }] },
+    { "level": 4, "description": "Unlock Track Quarry: once per day, choose an enemy type in the current unsafe zone and force an encounter with one of them.", "effects": [{ "type": "skill", "id": "track-quarry", "name": "Track Quarry", "description": "Once per day on the map, choose a local enemy type and initiate an encounter with one of them. Safe zones have no quarry.", "cooldown": "daily", "mapOnly": true, "instant": true, "effects": [{ "type": "track-quarry" }] }] }
+  ]
+}

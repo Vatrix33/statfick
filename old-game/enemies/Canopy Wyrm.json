@@ -1,0 +1,16 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "canopy-wyrm-level-65", "name": "Canopy Wyrm", "level": 65, "raceId": "dragon", "element": "nature",
+  "classLevels": { "beast": 3, "great-beast": 10, "monster": 3, "dragonkin": 7, "mage": 5, "spellcaster": 7, "botanomancer": 9, "wizard": 7, "warrior": 5, "great-mage": 7, "guardian": 2 },
+  "stats": { "strength": 170, "vitality": 164, "mind": 152, "dexterity": 134, "intelligence": 173, "wisdom": 143, "speed": 151, "luck": 104 },
+  "resistances": { "nature": 35, "fire": -40 },
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": [
+    "verdant-eruption-nature-damage", "greater-regrowth-nature-support", "ancient-bark-nature-support",
+    "rooting-lance-nature-damage", "briarstorm-nature-damage", "verdant-renewal-nature-support",
+    "dragonbreath-blight-bloom-nature-damage", "verdant-tempest-nature-damage",
+    "summon-elder-treant-nature-summon"
+  ]
+}

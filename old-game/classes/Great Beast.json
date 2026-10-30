@@ -1,0 +1,119 @@
+{
+  "id": "great-beast",
+  "name": "Great Beast",
+  "requirements": {
+    "level": 1,
+    "classes": {
+      "beast": 3
+    },
+    "other": {
+      "type": "race-playability",
+      "playable": false,
+      "description": "Non-playable race"
+    }
+  },
+  "maxLevel": 10,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Increase maximum HP by 10%.",
+      "effects": [
+        { "type": "max-hp-percent", "amount": 10, "description": "Maximum HP +10%" }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Increase Speed by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "speed", "amount": 5, "description": "Speed permanent bonus +5%" }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Increase Dexterity by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "dexterity", "amount": 5, "description": "Dexterity permanent bonus +5%" }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Increase Strength by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "strength", "amount": 5, "description": "Strength permanent bonus +5%" }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Increase Vitality by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "vitality", "amount": 5, "description": "Vitality permanent bonus +5%" }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Beast Claws gain 5 power.",
+      "effects": [
+        {
+          "type": "weapon-power-percent",
+          "itemId": "natural-beast-claws",
+          "amount": 10,
+          "description": "Beast Claws power +10%"
+        }
+      ]
+    },
+    {
+      "level": 7,
+      "description": "Gain the Terrifying Beast passive.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "terrifying-beast",
+          "name": "Terrifying Beast",
+          "condition": "Against enemies with a lower character level",
+          "description": "Enemies with a lower Level than you have their Strength reduced by 5% and lose 20% Evasion.",
+          "targetEffects": [
+            { "type": "stat-percent", "target": "strength", "amount": -5 },
+            { "type": "defense-percent", "target": "evasion", "amount": -20 }
+          ]
+        }
+      ]
+    },
+    {
+      "level": 8,
+      "description": "Increase maximum HP by another 10%.",
+      "effects": [
+        { "type": "max-hp-percent", "amount": 10, "description": "Maximum HP +10%" }
+      ]
+    },
+    {
+      "level": 9,
+      "description": "Increase Strength and Dexterity by 10%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "strength", "amount": 10, "description": "Strength permanent bonus +10%" },
+        { "type": "stat-permanent-percent", "target": "dexterity", "amount": 10, "description": "Dexterity permanent bonus +10%" }
+      ]
+    },
+    {
+      "level": 10,
+      "description": "Unlock Mighty Charge.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "mighty-charge",
+          "name": "Mighty Charge",
+          "combatOnly": true,
+          "description": "Your next attack gains 50% Accuracy and cannot crit. Reduce your Evasion by 50% for 2 turns. Can only be used once per combat.",
+          "durationAttacks": 1,
+          "cooldown": "combat",
+          "effects": [
+            { "type": "weapon-hit-percent", "amount": 50, "description": "Weapon Accuracy +50% for the next attack" },
+            { "type": "weapon-crit-disabled", "description": "The next attack cannot critically hit" }
+          ],
+          "onActivateEffects": [
+            { "type": "defense-percent", "target": "evasion", "amount": -50, "durationTurns": 2, "description": "Evasion −50% for 2 turns" }
+          ]
+        }
+      ]
+    }
+  ]
+}

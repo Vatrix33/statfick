@@ -1,0 +1,114 @@
+{
+  "id": "drakeslayer",
+  "name": "Drakeslayer",
+  "requirements": {
+    "level": 1,
+    "classes": {
+      "hunter": 7
+    },
+    "other": {
+      "type": "race-kills",
+      "raceIds": [
+        "dragon"
+      ],
+      "count": 3
+    }
+  },
+  "maxLevel": 6,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Damage against Dragons +10%.",
+      "effects": [
+        {
+          "type": "damage-percent-vs-race",
+          "amount": 10,
+          "raceIds": [
+            "dragon"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Incoming Dragon damage -10%.",
+      "effects": [
+        {
+          "type": "incoming-damage-percent-vs-race",
+          "amount": -10,
+          "raceIds": [
+            "dragon"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Breath Reader: take 15% less spell damage from Dragons.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "breath-reader",
+          "name": "Breath Reader",
+          "description": "Take 15% less spell damage from Dragon-race enemies.",
+          "effect": {
+            "type": "incoming-spell-damage-percent-vs-race",
+            "raceIds": [
+              "dragon"
+            ],
+            "amount": -15
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Weapon Armor Pierce +10%.",
+      "effects": [
+        {
+          "type": "weapon-armor-pierce-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Damage against Dragons +10%.",
+      "effects": [
+        {
+          "type": "damage-percent-vs-race",
+          "amount": 10,
+          "raceIds": [
+            "dragon"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Unlock Drake's Tell: mark a Dragon to gain 30% Accuracy and 15% damage against it.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "drakes-tell",
+          "name": "Drake's Tell",
+          "description": "Mark a Dragon. Gain 30% Accuracy and 15% damage against it.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "enemy",
+          "requiredTargetRaceIds": [
+            "dragon"
+          ],
+          "effects": [
+            {
+              "type": "mark-target",
+              "hitPercent": 30,
+              "damagePercent": 15
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

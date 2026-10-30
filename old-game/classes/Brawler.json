@@ -1,0 +1,26 @@
+{
+  "id": "brawler",
+  "name": "Brawler",
+  "requirements": {
+    "level": 1,
+    "classes": {},
+    "other": { "type": "unarmed-attacks", "count": 5, "description": "Use 5 unarmed attacks" }
+  },
+  "maxLevel": 6,
+  "levels": [
+    { "level": 1, "description": "Increase Strength and Vitality by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "strength", "amount": 5 }, { "type": "stat-permanent-percent", "target": "vitality", "amount": 5 }] },
+    { "level": 2, "description": "Unarmed attacks gain 2 additional base power.", "effects": [{ "type": "unarmed-power-flat", "amount": 2 }] },
+    { "level": 3, "description": "Unlock Rough Battle.", "effects": [{
+      "type": "skill", "id": "rough-battle", "name": "Rough Battle", "combatOnly": true, "cooldown": "daily", "durationTurns": 3,
+      "description": "For 3 turns, take 10% less melee damage and gain 10% Armor Pierce with unarmed and melee attacks. Can only be used once per day.",
+      "effects": [{ "type": "incoming-attack-damage-percent", "attackKinds": ["melee"], "amount": -10 }, { "type": "weapon-armor-pierce-percent", "weaponType": "melee", "amount": 10 }]
+    }] },
+    { "level": 4, "description": "Increase Strength by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "strength", "amount": 5 }] },
+    { "level": 5, "description": "Increase Evasion by 20%.", "effects": [{ "type": "defense-permanent-percent", "target": "evasion", "amount": 20 }] },
+    { "level": 6, "description": "Gain the Tavern Brawler passive.", "effects": [{
+      "type": "passive", "id": "tavern-brawler", "name": "Tavern Brawler", "condition": "When making a melee attack",
+      "description": "Melee attacks have a 30% chance to deal 2–10 additional damage.",
+      "effects": [{ "type": "melee-random-bonus-damage", "chance": 30, "minimum": 2, "maximum": 10 }]
+    }] }
+  ]
+}

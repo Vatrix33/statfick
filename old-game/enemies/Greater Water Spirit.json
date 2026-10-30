@@ -1,0 +1,38 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "greater-water-spirit-level-13",
+  "name": "Greater Water Spirit",
+  "level": 13,
+  "raceId": "elemental",
+  "classLevels": {
+    "monster": 3,
+    "mage": 5,
+    "spellcaster": 5
+  },
+  "stats": {
+    "strength": 22,
+    "vitality": 32,
+    "mind": 44,
+    "dexterity": 22,
+    "intelligence": 52,
+    "wisdom": 42,
+    "speed": 24,
+    "luck": 22
+  },
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "water-bolt-water-damage",
+    "mending-spring-water-support",
+    "seablade-water-damage",
+    "soothing-rain-water-support",
+    "lesser-cascade-water-damage"
+  ]
+}

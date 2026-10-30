@@ -1,0 +1,36 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "glacier-giant-level-85",
+  "name": "Glacier Giant",
+  "level": 85,
+  "raceId": "giant",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "great-beast": 10,
+    "barbarian": 7,
+    "brawler": 6,
+    "stonebreaker": 3,
+    "soldier": 6,
+    "guardian": 7,
+    "slayer": 7,
+    "weaponmaster": 7,
+    "heavy-knight": 5,
+    "berserker": 6,
+    "gladiator": 7,
+    "champion": 4,
+    "enlightened": 2
+  },
+  "stats": {
+    "strength": 223, "vitality": 235, "mind": 75, "dexterity": 90,
+    "intelligence": 79, "wisdom": 88, "speed": 65, "luck": 62
+  },
+  "resistances": { "ice": 35, "fire": -25 },
+  "inventory": ["forge-weapon-2-greatsword+zweihander"],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-greatsword+zweihander", "offHand": null,
+    "armor": null, "artifact1": null, "artifact2": null
+  },
+  "knownSpells": []
+}

@@ -1,0 +1,87 @@
+{
+  "id": "knight",
+  "name": "Knight",
+  "requirements": {
+    "level": 1,
+    "classes": { "warrior": 5 },
+    "other": null
+  },
+  "maxLevel": 7,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Increase Strength by 10% while wearing Heavy Armor.",
+      "effects": [
+        { "type": "conditional-stat-permanent-percent", "condition": "heavy-armor", "target": "strength", "amount": 10, "description": "Strength permanent bonus +10% while wearing Heavy Armor" }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Increase Vitality by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "vitality", "amount": 5, "description": "Vitality permanent bonus +5%" }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain the Last Stand passive.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "last-stand",
+          "name": "Last Stand",
+          "condition": "While below 10% maximum HP",
+          "description": "While below 10% of your maximum HP, increase all basic stats by 20%.",
+          "effects": [
+            { "type": "conditional-all-stats-permanent-percent", "condition": "hp-below-percent", "threshold": 10, "amount": 20 }
+          ]
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "All melee weapons gain an additional 0.2× Strength scaling.",
+      "effects": [
+        { "type": "weapon-scaling", "weaponType": "melee", "stat": "strength", "amount": 0.2, "description": "Melee weapons gain 0.2× Strength scaling" }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Increase Armor by 10%.",
+      "effects": [
+        { "type": "defense-permanent-percent", "target": "armor", "amount": 10, "description": "Armor permanent bonus +10%" }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Increase maximum HP by 10%.",
+      "effects": [
+        { "type": "max-hp-percent", "amount": 10, "description": "Maximum HP +10%" }
+      ]
+    },
+    {
+      "level": 7,
+      "description": "Unlock All or Nothing.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "all-or-nothing",
+          "name": "All or Nothing",
+          "combatOnly": true,
+          "description": "Your next attack deals triple damage, always hits, and cannot critically hit. Afterwards, weapon attacks against you always hit and deal 50% more damage for 3 turns. Can only be used once per day.",
+          "durationAttacks": 1,
+          "cooldown": "daily",
+          "effects": [
+            { "type": "weapon-power-multiplier", "amount": 3, "description": "Next attack power ×3" },
+            { "type": "weapon-hit-always", "description": "The next attack always hits" },
+            { "type": "weapon-crit-disabled", "description": "The next attack cannot critically hit" }
+          ],
+          "afterAttackEffects": [
+            { "type": "incoming-weapon-hit-always", "amount": 1, "durationTurns": 3, "description": "Incoming weapon attacks always hit for 3 turns" },
+            { "type": "incoming-weapon-damage-percent", "amount": 50, "durationTurns": 3, "description": "Take 50% more weapon damage for 3 turns" }
+          ]
+        }
+      ]
+    }
+  ]
+}

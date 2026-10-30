@@ -1,0 +1,100 @@
+{
+  "id": "sunstrider",
+  "name": "Sunstrider",
+  "color": "purple",
+  "requirements": {
+    "level": 25,
+    "classes": {
+      "luxomancer": 5,
+      "priest": 5
+    },
+    "other": null
+  },
+  "maxLevel": 6,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Holy spell costs -10% during daylight; -5% at night.",
+      "effects": [
+        {
+          "type": "daylight-spell-cost-percent",
+          "amount": 10,
+          "element": "holy",
+          "nightAmount": 5
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Speed permanent bonus +5% during daylight.",
+      "effects": [
+        {
+          "type": "daylight-stat-permanent-percent",
+          "amount": 5,
+          "target": "speed"
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Solar Reserve: Holy spells gain 15% power by day and 5% by night.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "solar-reserve",
+          "name": "Solar Reserve",
+          "description": "Holy spell power +15% from 06:00 to 18:00, +5% at night.",
+          "effect": {
+            "type": "daylight-spell-power-percent",
+            "element": "holy",
+            "amount": 15,
+            "nightAmount": 5
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Maximum Mana +10%.",
+      "effects": [
+        {
+          "type": "max-mana-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Holy spell costs -5% at all hours.",
+      "effects": [
+        {
+          "type": "spell-cost-percent",
+          "amount": 5,
+          "element": "holy"
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Unlock Sunflare: deal Holy damage to all enemies; 30 by day, 15 by night.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "sunflare",
+          "name": "Sunflare",
+          "description": "Deal 30 Holy damage to all enemies by day, 15 by night.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "onActivateEffects": [
+            {
+              "type": "sunflare",
+              "dayDamage": 30,
+              "nightDamage": 15
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

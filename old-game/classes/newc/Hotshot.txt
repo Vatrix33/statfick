@@ -1,0 +1,6 @@
+Level Requirement: None
+Class Requirement: Archer Level 5
+Other Requirement: You attacked 4 different enemies in 2 turns 3 times
+
+THis class focuses on spamming archery attacks, hitting multiple enemies but at a weaker power
+It has 7 Levels and its color is blue

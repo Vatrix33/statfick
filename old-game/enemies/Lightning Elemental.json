@@ -1,0 +1,46 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "lightning-elemental-level-25",
+  "name": "Lightning Elemental",
+  "level": 25,
+  "raceId": "elemental",
+  "classLevels": {
+    "monster": 3,
+    "mage": 5,
+    "warrior": 5,
+    "spellblade": 5,
+    "spellcaster": 7
+  },
+  "stats": {
+    "strength": 45,
+    "vitality": 50,
+    "mind": 58,
+    "dexterity": 68,
+    "intelligence": 82,
+    "wisdom": 62,
+    "speed": 68,
+    "luck": 30
+  },
+  "inventory": [
+    "forge-weapon-1-longsword",
+    "forge-weapon-1-longsword"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-longsword",
+    "offHand": "forge-weapon-1-longsword",
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "electrocute-lightning-damage",
+    "lightning-bolt-lightning-damage",
+    "spark-lightning-damage",
+    "spell-bolt-basic-damage",
+    "1000-seagulls-lightning-damage",
+    "forecast-lightning-support",
+    "lightning-spear-lightning-damage",
+    "chain-lightning-lightning-damage"
+  ]
+}

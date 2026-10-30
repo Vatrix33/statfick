@@ -1,0 +1,65 @@
+{
+  "id": "quartermaster",
+  "name": "Quartermaster",
+  "requirements": {
+    "level": 20,
+    "classes": {},
+    "other": {
+      "type": "companion-count",
+      "count": 2
+    }
+  },
+  "maxLevel": 3,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Consumable items have a 15% chance not to be spent when used.",
+      "effects": [
+        {
+          "type": "consumable-retention-chance",
+          "amount": 15
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Gain Shared Supplies: all allies restore 5% more HP and Mana from consumables.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "shared-supplies",
+          "name": "Shared Supplies",
+          "description": "Consumables restore 5% more of maximum HP and Mana to allies.",
+          "effect": {
+            "type": "party-consumable-power-percent",
+            "amount": 5
+          }
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Unlock Emergency Rations: restore 10% HP and Mana to all living allies once per combat.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "emergency-rations",
+          "name": "Emergency Rations",
+          "description": "Restore 10% maximum HP and Mana to all living allies.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "all-allies",
+          "onActivateEffects": [
+            {
+              "type": "restore-resource-percent",
+              "hp": 10,
+              "mana": 10,
+              "recipient": "all-allies"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

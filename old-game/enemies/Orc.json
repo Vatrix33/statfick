@@ -1,0 +1,70 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "orc-warrior-level-3",
+  "name": "Orc",
+  "level": 3,
+  "raceId": "orc",
+  "classLevels": {
+    "warrior": 3
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 18,
+    "vitality": 15,
+    "mind": 12,
+    "dexterity": 13,
+    "intelligence": 12,
+    "wisdom": 12,
+    "speed": 12,
+    "luck": 12
+  },
+  "manualAllocations": {
+    "strength": 6,
+    "vitality": 3,
+    "mind": 0,
+    "dexterity": 1,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "temporaryBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "temporaryDefenseBonuses": { "armor": 0, "evasion": 0 },
+  "currentHp": 39,
+  "currentMana": 12,
+  "inventory": [
+    "forge-weapon-1-mace+flail",
+    "forge-armor-garb"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-mace+flail",
+    "offHand": null,
+    "armor": "forge-armor-garb",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [],
+  "activeSkills": {}
+}

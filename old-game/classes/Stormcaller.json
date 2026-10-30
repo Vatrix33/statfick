@@ -1,0 +1,116 @@
+{
+  "id": "stormcaller",
+  "name": "Stormcaller",
+  "color": "purple",
+  "requirements": {
+    "level": 30,
+    "classes": {
+      "aeromancer": 5,
+      "electromancer": 5
+    },
+    "other": null
+  },
+  "maxLevel": 7,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Wind and Lightning spell power +5%.",
+      "effects": [
+        {
+          "type": "spell-power-percent",
+          "amount": 5,
+          "elements": [
+            "wind",
+            "lightning"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Speed permanent bonus +5%.",
+      "effects": [
+        {
+          "type": "stat-permanent-percent",
+          "target": "speed",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Storm Rhythm: alternating Wind and Lightning spells builds up to 20 charges, each adding 5% spell power.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "storm-rhythm",
+          "name": "Storm Rhythm",
+          "description": "Alternating Wind and Lightning spells builds up to 20 charges; each grants 5% spell power.",
+          "effect": {
+            "type": "storm-alternation-charge",
+            "amount": 5,
+            "maximum": 20
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Wind and Lightning spell costs -5%.",
+      "effects": [
+        {
+          "type": "spell-cost-percent",
+          "amount": 5,
+          "elements": [
+            "wind",
+            "lightning"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Lightning spell power +5%.",
+      "effects": [
+        {
+          "type": "spell-power-percent",
+          "amount": 5,
+          "element": "lightning"
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Wind spell power +5%.",
+      "effects": [
+        {
+          "type": "spell-power-percent",
+          "amount": 5,
+          "element": "wind"
+        }
+      ]
+    },
+    {
+      "level": 7,
+      "description": "Unlock Stormburst: spend all Storm charges to damage every enemy and advance allies' turns.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "stormburst",
+          "name": "Stormburst",
+          "description": "Consume Storm charges to deal 10 damage per charge to all enemies and advance allies' turn counters by 60 per charge.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "onActivateEffects": [
+            {
+              "type": "stormburst",
+              "damagePerCharge": 10,
+              "turnAdvancePerCharge": 60
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

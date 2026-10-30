@@ -1,0 +1,25 @@
+{
+  "id": "sorcerer",
+  "name": "Sorcerer",
+  "requirements": {
+    "level": 30,
+    "classes": { "mage": 5 },
+    "other": { "type": "known-spell-count", "count": 20, "description": "Know 20 different spells" }
+  },
+  "maxLevel": 5,
+  "levels": [
+    { "level": 1, "description": "Spells cost 5% less Mana.", "effects": [{ "type": "spell-cost-percent", "amount": 5 }] },
+    { "level": 2, "description": "Increase Intelligence and Wisdom by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "intelligence", "amount": 5 }, { "type": "stat-permanent-percent", "target": "wisdom", "amount": 5 }] },
+    { "level": 3, "description": "Gain the Sorcery Point passive.", "effects": [{
+      "type": "passive", "id": "sorcery-point", "name": "Sorcery Point", "condition": "When casting spells",
+      "description": "Each time you cast a spell, gain 1 Sorcery Point. Take 1% less spell damage for every 2 Sorcery Points.",
+      "effects": [{ "type": "sorcery-point-on-spell", "amount": 1 }, { "type": "incoming-spell-damage-percent-per-sorcery-points", "amount": 1, "points": 2 }]
+    }] },
+    { "level": 4, "description": "Increase Evasion by 10%.", "effects": [{ "type": "defense-permanent-percent", "target": "evasion", "amount": 10 }] },
+    { "level": 5, "description": "Unlock Sorcery Blast.", "effects": [{
+      "type": "skill", "id": "sorcery-blast", "name": "Sorcery Blast", "combatOnly": true, "cooldown": "none", "instant": true,
+      "target": "enemy", "actionPoints": 2, "requiredSorceryPoints": 1, "consumeSorceryPoints": true, "damagePerSorceryPoint": 5, "element": "basic",
+      "description": "Use 2 Action Points and all Sorcery Points. Deal 5 Basic damage to one target for every point spent.", "effects": []
+    }] }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "bloodrock-sentinel-level-66", "name": "Bloodrock Sentinel", "level": 66,
+  "raceId": "undead", "resistances": { "blood": 35, "dark": 30, "holy": -30 },
+  "classLevels": { "vampire": 4, "warrior": 5, "knight": 7, "heavy-knight": 5, "black-knight": 5, "soldier": 6, "guardian": 7, "weaponmaster": 7, "monster": 3, "gladiator": 7, "bulwark": 7, "berserker": 3 },
+  "stats": { "strength": 161, "vitality": 174, "mind": 108, "dexterity": 102, "intelligence": 106, "wisdom": 112, "speed": 100, "luck": 90 },
+  "inventory": ["forge-weapon-1-mace+flail", "forge-armor-tower-shield+kite-shield", "forge-armor-full-plate"],
+  "equipment": { "primaryHand": "forge-weapon-1-mace+flail", "offHand": "forge-armor-tower-shield+kite-shield", "armor": "forge-armor-full-plate", "artifact1": null, "artifact2": null },
+  "knownSpells": ["dark-bolt-dark-damage", "shade-needle-dark-damage", "dark-siphon-dark-damage", "spellstop-dark-support", "umbral-hook-dark-damage", "night-drain-dark-damage", "night-mantle-dark-support", "curse-of-frailty-dark-damage", "void-lance-dark-damage", "black-sanctuary-dark-support", "crimson-nova-blood-damage"]
+}

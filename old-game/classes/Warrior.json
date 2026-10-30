@@ -1,0 +1,101 @@
+{
+  "id": "warrior",
+  "name": "Warrior",
+  "requirements": {
+    "level": 1,
+    "classes": {},
+    "other": null
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Increase Strength by 5%.",
+      "effects": [
+        {
+          "type": "stat-permanent-percent",
+          "target": "strength",
+          "amount": 5,
+          "description": "Strength permanent bonus +5%"
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Heavy Armor's Evasion penalty is 20% smaller.",
+      "effects": [
+        {
+          "type": "heavy-armor-evasion-penalty-reduction",
+          "condition": "heavy-armor",
+          "amount": 20,
+          "description": "Heavy Armor Evasion penalty −20%"
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain the Warrior Spirit passive.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "warrior-spirit",
+          "name": "Warrior Spirit",
+          "condition": "When fighting 2 or more enemies",
+          "description": "When fighting 2 or more enemies, you gain a 5% boost to armor.",
+          "effect": {
+            "type": "defense-percent",
+            "target": "armor",
+            "amount": 5
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Increase your Accuracy with melee weapons by 10%.",
+      "effects": [
+        {
+          "type": "weapon-hit-percent",
+          "weaponType": "melee",
+          "amount": 10,
+          "description": "Melee weapon Accuracy +10%"
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Battle Cry.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "battle-cry",
+          "name": "Battle Cry",
+          "combatOnly": true,
+          "description": "Decrease your armor by 15% to increase your Strength and Evasion by 10% for 3 turns. You can use this skill once a day.",
+          "durationTurns": 3,
+          "cooldown": "daily",
+          "effects": [
+            {
+              "type": "defense-permanent-percent",
+              "target": "armor",
+              "amount": -15,
+              "description": "Armor permanent bonus −15%"
+            },
+            {
+              "type": "stat-permanent-percent",
+              "target": "strength",
+              "amount": 10,
+              "description": "Strength permanent bonus +10%"
+            },
+            {
+              "type": "defense-permanent-percent",
+              "target": "evasion",
+              "amount": 10,
+              "description": "Evasion permanent bonus +10%"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

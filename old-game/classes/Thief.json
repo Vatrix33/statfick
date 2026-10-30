@@ -1,0 +1,10 @@
+{
+  "id": "thief", "name": "Thief", "requirements": { "level": 1, "classes": { "rogue": 5 }, "other": null }, "maxLevel": 5,
+  "levels": [
+    { "level": 1, "description": "Increase Luck by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "luck", "amount": 5 }] },
+    { "level": 2, "description": "Gain the Greedy Loot passive.", "effects": [{ "type": "passive", "id": "greedy-loot", "name": "Greedy Loot", "condition": "When enemies drop money", "description": "Increase money dropped by enemies by 15%.", "effect": { "type": "enemy-money-percent", "amount": 15 } }] },
+    { "level": 3, "description": "Increase Speed by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "speed", "amount": 5 }] },
+    { "level": 4, "description": "Increase Evasion by 20%.", "effects": [{ "type": "defense-permanent-percent", "target": "evasion", "amount": 20 }] },
+    { "level": 5, "description": "Unlock Grand Theft.", "effects": [{ "type": "skill", "id": "grand-theft", "name": "Grand Theft", "combatOnly": true, "cooldown": "daily", "durationAttacks": 1, "description": "If your next attack critically hits, steal the equipped weapon from the enemy. Can be used once per day.", "effects": [], "onHitEffects": [{ "type": "steal-equipped-weapon-on-crit" }] }] }
+  ]
+}

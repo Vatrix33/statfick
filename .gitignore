@@ -1,0 +1,19 @@
+# Build output
+bin/
+obj/
+/engine/Engine/Statventure/Shaders/Bin/
+/engine/Tests/Statventure.Tests/Actual/
+/runtime/
+# One machine's settings
+/engine/Tools/Scripts/env.local.sh
+/engine/Tools/Scripts/env.local.ps1
+# The old game's executables and Electron builds (rebuilt from old-game/desktop with npm)
+/old-game/Stat Fick.AppImage
+/old-game/Stat Fick.exe
+/old-game/tests/*.AppImage
+/old-game/desktop/release/
+node_modules/
+# Editors
+.vs/
+.idea/
+*.user

@@ -1,0 +1,7 @@
+Level Requirement: None
+Class Requirement: Quartermaster Level 3
+Other Requirement: None
+
+This class grants the ability to disassemble weapons into their seperate parts and recombining them into new weapons
+It has 5 Levels and its color is blue
+The first feature of this class is the passive that grants smith the ability to do its thing

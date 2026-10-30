@@ -1,0 +1,33 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "ancient-frost-dragon-level-88",
+  "name": "Ancient Frost Dragon",
+  "level": 88,
+  "raceId": "dragon",
+  "element": "ice",
+  "classLevels": {
+    "beast": 3, "great-beast": 10, "monster": 3, "dragonkin": 7,
+    "mage": 5, "spellcaster": 7, "wizard": 7, "cryomancer": 9,
+    "great-mage": 7, "warrior": 5, "sorcerer": 5,
+    "weaponmaster": 7, "slayer": 7, "guardian": 6
+  },
+  "stats": {
+    "strength": 189, "vitality": 209, "mind": 200, "dexterity": 156,
+    "intelligence": 216, "wisdom": 188, "speed": 151, "luck": 125
+  },
+  "resistances": { "ice": 45, "fire": -35 },
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null, "offHand": null,
+    "armor": null, "artifact1": null, "artifact2": null
+  },
+  "knownSpells": [
+    "glacial-eclipse-ice-damage", "absolute-spear-ice-damage",
+    "permafrost-torrent-ice-damage", "glacial-lance-ice-damage",
+    "whiteout-veil-ice-support", "zero-horizon-ice-damage",
+    "everfrost-spike-ice-damage", "glacial-silence-ice-damage",
+    "winters-needle-ice-damage"
+  ]
+}

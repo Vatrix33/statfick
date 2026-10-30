@@ -1,0 +1,44 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "mountain-lamia-level-54",
+  "name": "Mountain Lamia",
+  "level": 54,
+  "raceId": "lamia",
+  "classLevels": {
+    "monster": 3,
+    "rogue": 5,
+    "mage": 5,
+    "spellblade": 5,
+    "spellcaster": 7,
+    "warlock": 7,
+    "ambusher": 7,
+    "cryomancer": 9,
+    "thief": 5
+  },
+  "stats": {
+    "strength": 91,
+    "vitality": 99,
+    "mind": 112,
+    "dexterity": 115,
+    "intelligence": 110,
+    "wisdom": 98,
+    "speed": 101,
+    "luck": 82
+  },
+  "inventory": [
+    "forge-weapon-2-spear+lance"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-spear+lance",
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "abyssal-pressure-water-damage",
+    "glacial-eclipse-ice-damage",
+    "aether-severance-basic-damage"
+  ]
+}

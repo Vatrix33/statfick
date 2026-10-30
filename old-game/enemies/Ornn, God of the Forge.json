@@ -1,0 +1,37 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "ornn-god-of-the-forge-unique-level-48", "name": "Ornn, God of the Forge",
+  "unique": true, "level": 48, "raceId": "giant", "element": "fire",
+  "classLevels": { "raid-boss": 1, "warrior": 5, "knight": 7, "heavy-knight": 5, "guardian": 7, "bulwark": 7, "soldier": 6, "weaponmaster": 7, "berserker": 3 },
+  "stats": { "strength": 20, "vitality": 40, "mind": 78, "dexterity": 65, "intelligence": 80, "wisdom": 96, "speed": 30, "luck": 20 },
+  "baseArmor": 45, "permanentDefenseBonuses": { "armor": 0, "evasion": 0 }, "permanentBonuses": { "speed": -53 }, "maxHpPercent": 95,
+  "resistances": { "fire": 40, "earth": 15 },
+  "inventory": ["weapon-masterwork-anvil-hammer-30-hfmyt-abrei-rtrei-s0", "armor-masterwork-godforged-plate-30-hfmyt-hmslk-hmbor-s0"], "noDropItems": ["weapon-masterwork-anvil-hammer-30-hfmyt-abrei-rtrei-s0", "armor-masterwork-godforged-plate-30-hfmyt-hmslk-hmbor-s0"],
+  "equipment": { "primaryHand": "weapon-masterwork-anvil-hammer-30-hfmyt-abrei-rtrei-s0", "offHand": null, "armor": "armor-masterwork-godforged-plate-30-hfmyt-hmslk-hmbor-s0", "artifact1": null, "artifact2": null },
+  "knownSpells": [],
+  "aiProfile": "ornn", "introCinematic": "ornn",
+  "reforge": {
+    "firstTurn": 1, "everyTurns": 3, "spoilPercent": 15, "spoilApLoss": 2, "guard": "vulcanic-ram-level-50",
+    "tempers": [
+      { "id": "molten-edge", "name": "Molten Edge", "favor": "always",
+        "description": "His hammer glows white-hot: every blow adds Fire damage and leaves a burn.",
+        "effects": [{ "type": "molten-strike", "amount": 30, "burnPercent": 3, "burnTurns": 2 }, { "type": "outgoing-attack-damage-percent", "amount": 10, "attackKinds": ["melee", "ranged"] }] },
+      { "id": "hardened-plate", "name": "Hardened Plate", "favor": "wounded",
+        "description": "His plate is tempered hard: far more armor, and every blow and spell against him is weakened.",
+        "effects": [{ "type": "defense-percent", "target": "armor", "amount": 50 }, { "type": "incoming-weapon-damage-percent", "amount": -15 }, { "type": "incoming-spell-damage-percent", "amount": -15 }] },
+      { "id": "spiked-plate", "name": "Spiked Plate", "favor": "melee",
+        "description": "Molten spikes stud his plate: melee attackers take a third of their damage back as fire.",
+        "effects": [{ "type": "melee-retaliation-percent", "amount": 33, "element": "fire" }] }
+    ]
+  },
+  "phaseTransitions": [{
+    "thresholdHpPercent": 50, "name": "Ornn, God of the Forge", "healMaxHpPercent": 0,
+    "statBonuses": {}, "defenseBonuses": {}, "knownSpells": [],
+    "summons": [{ "enemyId": "vulcanic-ram-level-50", "count": 1 }],
+    "cinematic": "ornn-phase", "announcement": "Ornn strikes his anvil. The Vulcanic Ram erupts from the forge!"
+  }],
+  "drops": [
+    { "itemId": "masterwork-anvil-hammer", "chance": 12, "guaranteedOnFirstKill": true },
+    { "itemId": "masterwork-godforged-plate", "chance": 8 }
+  ]
+}

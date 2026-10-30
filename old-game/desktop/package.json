@@ -1,0 +1,31 @@
+{
+  "name": "stat-fick",
+  "productName": "Stat Fick",
+  "desktopName": "stat-fick.desktop",
+  "version": "1.0.0",
+  "description": "Standalone Stat Fick RPG character sheet and adventure game",
+  "author": "Stat Fick",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "build:linux": "electron-builder --linux AppImage --x64 --publish never",
+    "build:windows": "electron-builder --win portable --x64 --publish never"
+  },
+  "devDependencies": { "electron": "44.5.0", "electron-builder": "26.15.3" },
+  "build": {
+    "appId": "com.statfick.desktop",
+    "asar": true,
+    "npmRebuild": false,
+    "files": ["main.cjs", "preload.cjs", "assets.cjs", "icons/*", "package.json"],
+    "directories": { "output": "release", "buildResources": "icons" },
+    "linux": {
+      "target": "AppImage", "category": "Game", "icon": "icons/icon.png",
+      "artifactName": "Stat Fick.AppImage", "executableName": "stat-fick", "syncDesktopName": true,
+      "desktop": { "entry": { "Comment": "Stat Fick standalone character sheet and adventure game" } }
+    },
+    "win": { "target": "portable", "icon": "icons/icon.ico", "artifactName": "Stat Fick.exe" },
+    "portable": { "requestExecutionLevel": "user" }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "harvest-wisp-level-20",
+  "name": "Harvest Wisp",
+  "level": 20,
+  "raceId": "elemental",
+  "element": "nature",
+  "classLevels": {
+    "monster": 3,
+    "mage": 5,
+    "spellcaster": 3
+  },
+  "perkPoints": 0,
+  "stats": {
+    "strength": 15,
+    "vitality": 45,
+    "mind": 62,
+    "dexterity": 30,
+    "intelligence": 68,
+    "wisdom": 55,
+    "speed": 50,
+    "luck": 40
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "temporaryBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": {
+    "armor": 0,
+    "evasion": 0
+  },
+  "temporaryDefenseBonuses": {
+    "armor": 0,
+    "evasion": 0
+  },
+  "currentHp": 1,
+  "currentMana": 1,
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "bramble-bind-nature-damage",
+    "vine-whip-nature-damage",
+    "return-to-form-nature-damage"
+  ],
+  "activeSkills": {},
+  "resistances": {
+    "nature": 25
+  }
+}

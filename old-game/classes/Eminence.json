@@ -1,0 +1,9 @@
+{
+  "id": "eminence", "name": "Eminence", "color": "blue", "requirements": { "level": 1, "classes": { "shadow": 6 }, "other": { "type": "flawless-victories", "count": 7 } }, "maxLevel": 4,
+  "levels": [
+    { "level": 1, "description": "Weapon power +10%.", "effects": [{ "type": "weapon-power-percent", "amount": 10 }] },
+    { "level": 2, "description": "Unlock Untouched Edge: once per combat, empower your next weapon hit by up to 60% based on damage taken this combat.", "effects": [{ "type": "skill", "id": "untouched-edge", "name": "Untouched Edge", "description": "Once per combat, your next weapon attack gains up to 60% power. The bonus shrinks as cumulative damage taken in this combat approaches 50% of maximum HP.", "combatOnly": true, "cooldown": "combat", "durationAttacks": 1, "effects": [{ "type": "weapon-power-percent-by-untouched", "maxAmount": 60, "cutoffPercent": 50 }] }] },
+    { "level": 3, "description": "Luck +5%.", "effects": [{ "type": "stat-permanent-percent", "target": "luck", "amount": 5 }] },
+    { "level": 4, "description": "Gain Unscathed Presence: all damage +50% at zero damage taken, falling linearly to no bonus after taking damage equal to 50% maximum HP.", "effects": [{ "type": "passive", "id": "unscathed-presence", "name": "Unscathed Presence", "description": "All damage gains up to 50%, reduced by cumulative damage taken this combat; zero bonus after taking 50% maximum HP damage.", "effect": { "type": "damage-percent-by-untouched", "maxAmount": 50, "cutoffPercent": 50 } }] }
+  ]
+}

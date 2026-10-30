@@ -1,0 +1,37 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "harpy-matriarch-level-19",
+  "name": "Harpy Matriarch",
+  "level": 19,
+  "raceId": "harpy",
+  "classLevels": {
+    "monster": 3,
+    "archer": 5,
+    "rogue": 5,
+    "sharpshooter": 5,
+    "jester": 1
+  },
+  "stats": {
+    "strength": 36,
+    "vitality": 43,
+    "mind": 28,
+    "dexterity": 66,
+    "intelligence": 28,
+    "wisdom": 28,
+    "speed": 72,
+    "luck": 49
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

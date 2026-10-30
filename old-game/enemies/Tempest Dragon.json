@@ -1,0 +1,37 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "tempest-dragon-level-92",
+  "name": "Tempest Dragon",
+  "level": 92,
+  "raceId": "dragon",
+  "element": "lightning",
+  "classLevels": {
+    "beast": 3, "great-beast": 10, "monster": 3, "dragonkin": 7,
+    "mage": 5, "spellcaster": 7, "wizard": 7, "electromancer": 9,
+    "great-mage": 7, "warrior": 5, "sorcerer": 5,
+    "aeromancer": 9, "weaponmaster": 7,
+    "slayer": 7, "champion": 1
+  },
+  "stats": {
+    "strength": 195, "vitality": 202, "mind": 211, "dexterity": 167,
+    "intelligence": 231, "wisdom": 184, "speed": 190, "luck": 137
+  },
+  "resistances": { "lightning": 45, "wind": 25, "earth": -35 },
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null, "offHand": null,
+    "armor": null, "artifact1": null, "artifact2": null
+  },
+  "knownSpells": [
+    "tempest-circuit-lightning-damage", "thunderbrand-lightning-damage",
+    "dragonbreath-thunder-crown-lightning-damage", "volt-pike-lightning-damage",
+    "storm-dominion-lightning-damage", "thunderbolt-ascendant-lightning-damage",
+    "dragonbreath-storm-of-ages-lightning-damage", "thunderhead-verdict-lightning-damage",
+    "dragonbreath-sky-rupture-wind-damage", "skyglass-spear-wind-damage",
+    "hurricane-choir-wind-damage", "zephyr-execution-wind-damage",
+    "aerial-riposte-wind-support", "control-weather-wind-support",
+    "skyfall-chorus-wind-damage"
+  ]
+}

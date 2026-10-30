@@ -1,0 +1,6 @@
+Level Requirement: None
+Class Requirement: Weaponmaster Level 7 and Bard Level 5
+Other Requirement: None
+
+This class focuses on buffing teammates while attacking
+This class has 7 Levels and its color is purple

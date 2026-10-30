@@ -1,0 +1,14 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "mossback-lamia-level-48", "name": "Mossback Lamia", "level": 48, "raceId": "lamia",
+  "classLevels": { "monster": 3, "rogue": 5, "mage": 5, "spellblade": 5, "spellcaster": 7, "druid": 7, "botanomancer": 9, "thief": 5, "warrior": 2 },
+  "stats": { "strength": 90, "vitality": 99, "mind": 110, "dexterity": 109, "intelligence": 115, "wisdom": 103, "speed": 99, "luck": 85 },
+  "resistances": { "nature": 20, "fire": -20 },
+  "inventory": ["forge-weapon-2-spear+lance"],
+  "equipment": { "primaryHand": "forge-weapon-2-spear+lance", "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": [
+    "thorns-shot-nature-damage", "bramble-bind-nature-damage", "briar-volley-nature-damage",
+    "regrowth-nature-support", "verdant-eruption-nature-damage", "greater-regrowth-nature-support",
+    "ancient-bark-nature-support", "rooting-lance-nature-damage", "briarstorm-nature-damage"
+  ]
+}

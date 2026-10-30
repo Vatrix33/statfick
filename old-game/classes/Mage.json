@@ -1,0 +1,97 @@
+{
+  "id": "mage",
+  "name": "Mage",
+  "requirements": {
+    "level": 1,
+    "classes": {},
+    "other": null
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Pick 2 out of 5 random non-Dark, non-Blood, non-Nature Tier 1 spells to learn.",
+      "effects": [
+        {
+          "type": "choose-random-spells",
+          "id": "mage-apprentice-spells",
+          "tier": 1,
+          "options": 5,
+          "picks": 2,
+          "excludedElements": ["dark", "blood", "nature"],
+          "description": "Choose 2 of 5 random eligible Tier 1 spells to learn"
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Spells of Tier 2 or lower cost 5% less Mana.",
+      "effects": [
+        {
+          "type": "spell-cost-percent",
+          "maxTier": 2,
+          "amount": 5,
+          "description": "Tier 2 or lower spell Mana cost −5%"
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain the Magic Apprentice passive.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "magic-apprentice",
+          "name": "Magic Apprentice",
+          "condition": "When learning Tier 2 or lower spells",
+          "description": "Spells of Tier 2 or lower have halved learning costs.",
+          "effect": {
+            "type": "spell-learning-cost-percent",
+            "maxTier": 2,
+            "amount": 50,
+            "description": "Tier 2 or lower spell learning cost −50%"
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Increase Wisdom by 5%.",
+      "effects": [
+        {
+          "type": "stat-permanent-percent",
+          "target": "wisdom",
+          "amount": 5,
+          "description": "Wisdom permanent bonus +5%"
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Mana Overload.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "mana-overload",
+          "name": "Mana Overload",
+          "combatOnly": true,
+          "description": "Your next spell costs double the Mana and has its power increased by 100%. You can use this skill once a day.",
+          "durationSpells": 1,
+          "cooldown": "daily",
+          "effects": [
+            {
+              "type": "spell-cost-multiplier",
+              "amount": 2,
+              "description": "Next spell Mana cost ×2"
+            },
+            {
+              "type": "spell-power-percent",
+              "amount": 100,
+              "description": "Next spell power +100%"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

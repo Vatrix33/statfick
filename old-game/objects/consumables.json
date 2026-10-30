@@ -1,0 +1,151 @@
+[
+  {
+    "id": "consumable-camping-supplies",
+    "name": "Camping Supplies",
+    "description": "Allows you to camp anywhere.",
+    "rarity": "common",
+    "priceSilver": 80,
+    "mapAction": "camp",
+    "effects": []
+  },
+  {
+    "id": "consumable-spring-trap",
+    "name": "Spring Trap",
+    "description": "Triggers when an enemy uses a melee attack, dealing either 20 damage or 10% of that enemy's maximum HP, whichever is lower.",
+    "rarity": "common",
+    "priceSilver": 150,
+    "effects": [
+      { "type": "trap-spring", "amount": 10, "cap": 20, "recipient": "self" }
+    ]
+  },
+  {
+    "id": "consumable-spell-rune-trap",
+    "name": "Spell Rune Trap",
+    "description": "Triggers when an enemy damages you with a ranged attack or spell, reducing that damage by 10% and dealing the prevented damage to the attacker.",
+    "rarity": "uncommon",
+    "priceSilver": 800,
+    "effects": [
+      { "type": "trap-spell-rune", "amount": 10, "recipient": "self" }
+    ]
+  },
+  {
+    "id": "consumable-sentry-trap",
+    "name": "Sentry Trap",
+    "description": "Place around yourself or an ally. When an enemy attacks them, deal either 25 damage or 10% of that enemy's maximum HP, whichever is lower.",
+    "rarity": "common",
+    "priceSilver": 200,
+    "effects": [
+      { "type": "trap-sentry", "amount": 10, "cap": 25, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-potion-of-lesser-health",
+    "name": "Potion of Lesser Health",
+    "description": "Heals 25 HP plus 10% of the target's maximum HP.",
+    "rarity": "common",
+    "potionResource": "hp",
+    "priceSilver": 450,
+    "effects": [
+      { "type": "heal", "amount": 25, "maxPercent": 10, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-potion-of-health",
+    "name": "Potion of Health",
+    "description": "Heals 50 HP plus 15% of the target's maximum HP.",
+    "rarity": "uncommon",
+    "potionResource": "hp",
+    "priceSilver": 1200,
+    "effects": [
+      { "type": "heal", "amount": 50, "maxPercent": 15, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-potion-of-lesser-mana",
+    "name": "Potion of Lesser Mana",
+    "description": "Restores 10 Mana plus 5% of the target's maximum Mana.",
+    "rarity": "common",
+    "potionResource": "mana",
+    "priceSilver": 400,
+    "effects": [
+      { "type": "restore-mana", "amount": 10, "maxPercent": 5, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-potion-of-mana",
+    "name": "Potion of Mana",
+    "description": "Restores 20 Mana plus 10% of the target's maximum Mana.",
+    "rarity": "uncommon",
+    "potionResource": "mana",
+    "priceSilver": 1000,
+    "effects": [
+      { "type": "restore-mana", "amount": 20, "maxPercent": 10, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-potion-of-greater-health",
+    "name": "Potion of Greater Health",
+    "description": "Heals 75 HP plus 15% of the target's maximum HP.",
+    "rarity": "rare",
+    "potionResource": "hp",
+    "priceSilver": 3500,
+    "effects": [
+      { "type": "heal", "amount": 75, "maxPercent": 15, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-potion-of-greater-mana",
+    "name": "Potion of Greater Mana",
+    "description": "Restores 30 Mana plus 15% of the target's maximum Mana.",
+    "rarity": "rare",
+    "potionResource": "mana",
+    "priceSilver": 3000,
+    "effects": [
+      { "type": "restore-mana", "amount": 30, "maxPercent": 15, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-potion-of-superior-health",
+    "name": "Potion of Superior Health",
+    "description": "Heals 100 HP plus 20% of the target's maximum HP.",
+    "rarity": "epic",
+    "potionResource": "hp",
+    "priceSilver": 8000,
+    "effects": [
+      { "type": "heal", "amount": 100, "maxPercent": 20, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-potion-of-superior-mana",
+    "name": "Potion of Superior Mana",
+    "description": "Restores 40 Mana plus 20% of the target's maximum Mana.",
+    "rarity": "epic",
+    "potionResource": "mana",
+    "priceSilver": 7000,
+    "effects": [
+      { "type": "restore-mana", "amount": 40, "maxPercent": 20, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-potion-of-ultimate-health",
+    "name": "Potion of Ultimate Health",
+    "description": "Heals 200 HP plus 25% of the target's maximum HP.",
+    "rarity": "legendary",
+    "potionResource": "hp",
+    "priceSilver": 18000,
+    "effects": [
+      { "type": "heal", "amount": 200, "maxPercent": 25, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-potion-of-ultimate-mana",
+    "name": "Potion of Ultimate Mana",
+    "description": "Restores 50 Mana plus 20% of the target's maximum Mana.",
+    "rarity": "legendary",
+    "potionResource": "mana",
+    "priceSilver": 16000,
+    "effects": [
+      { "type": "restore-mana", "amount": 50, "maxPercent": 20, "recipient": "friendly-target" }
+    ]
+  }
+]

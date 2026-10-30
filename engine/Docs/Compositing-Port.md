@@ -1,0 +1,188 @@
+# Compositing port (LCD vs grayscale text)
+
+User decision (2026-10-24): match Chromium exactly — text is grayscale where Chromium 152 puts it in a
+cc layer that can't use LCD text, LCD elsewhere. This needs Blink's layerization.
+
+## Ground truth
+
+`contentTracing` with `disabled-by-default-cc.debug` (+ `devtools.timeline.layers`, `viz.quads`) records
+`LayerTreeHostImpl:snapshot` instant events. `args.snapshot.active_tree.layers` (with `children`) has,
+per cc layer: `layer_name` (Blink debug name: "LayoutFlexibleBox (positioned) ASIDE id='x' class='y'"),
+`compositing_reason_ids` (e.g. RootScroller, OverflowScrolling, FixedPosition, BackdropFilter, Overlap,
+Scrollbar, Canvas, WillChangeTransform), `layer_quad` (screen quad), `contents_opaque`,
+`lcd_text_disallowed_reason` (none, no-text, background-color-not-opaque, contents-not-opaque, …),
+`owner_node`, `draws_content`. The renderer's tree is the one with a "LayoutView" layer.
+
+Findings on the game (2026-10-24, 1× and 1.65 alike): the root scrolling contents layer is opaque (LCD);
+the fixed side menu (`.main-tools`, fixed + scroller) is its own layer by **Overlap** (MergeFixedLayers:
+fixed-only transforms try to merge first) and not opaque (its box shadow widens the layer) → grayscale;
+modal layers are FixedPosition + BackdropFilter; their scrolling panels and later siblings that overlap
+become Overlap layers; scrollbars are their own layers (RasterInducingScroll is stable on Linux).
+
+## Blink rules collected (Chromium 152)
+
+- LCD text preference: DSF ≥ 1.5 → kIgnored; else kStronglyPreferred (WidgetBase::ComputeLCDTextPreference).
+- Direct reasons (CompositingReasonFinder::DirectReasonsForPaintProperties): animations of
+  transform/scale/rotate/translate/opacity/filter/backdrop-filter; will-change (transform,
+  opacity, filter, backdrop-filter, …; top/left/… → WillChangeOther); 3D transforms; perspective/
+  preserve-3d with 3D descendants; root scroller; fixed position when the layout viewport has
+  overflow (kFixedPosition), sticky with a scroll-dependent offset; backdrop-filter; 3D scene leaf.
+- Composited scrolling (PaintArtifactCompositor::ComputeNeedsCompositedScrolling): direct reasons →
+  yes; not user scrollable → no; select / <input> scrollers prefer non-composited; if LCD preference
+  isn't kStronglyPreferred → yes; else yes only when the first chunk after the ScrollHitTest chunk
+  (skipping chunks in the same transform as the hit test) is in the scroll translation, the overflow
+  clip, the same effect, and its rect_known_to_be_opaque contains the scroll contents rect.
+- Layerize (Layerizer::LayerizeGroup): chunks grouped by effect recursively; each chunk → pending
+  layer (types: ScrollHitTest layer if composited scroll, foreign, scrollbar layer (RasterInducingScroll
+  → every scrollbar with a scroll translation), other). A new layer whose nearest directly composited
+  transform is seen for the first time can't merge (except fixed-only / sticky-only transforms:
+  MergeFixedLayers, MergeStickyLayers stable). Else try merging into earlier layers in the group
+  (reverse order, distance limit 0x10000000); stop at the first that MightOverlap → overlap layer.
+  Subgroups that produced exactly one layer may be decomposited (DecompositeEffect: no direct
+  reasons, CanUpcastWith, blend mode rules) and then merged like a chunk.
+- PendingLayer::CanMerge: CanUpcastWith (same effect; transforms in the same compositing boundary —
+  same nearest directly composited ancestor, or fixed-only/sticky-only mergeable; same nearest
+  composited scroll translation; clip chains within the boundary; scroll translations covered);
+  sparsity: merged area − (home + guest) ≤ 10000·DPR²; opaque: MaximumCoveredRect of mapped rects;
+  text_known_to_be_on_opaque_background rules; with kStronglyPreferred, refuse merges that would lose
+  LCD text of a side that had it.
+- Opaque: DrawingDisplayItem::CalculateRectKnownToBeOpaqueForRecord (≤ 8 ops; Save skipped, ClipRect
+  narrows; DrawRect/IRect/RRect (inset 0.3·radius)/opaque images with opaque solid colour or opaque
+  shader and no colour-changing flags; MaximumCoveredRect). Chunk: rect_known_to_be_opaque =
+  MaximumCoveredRect over items; text_known_to_be_on_opaque_background = each text item's visual rect
+  inside the chunk's opaque rect so far.
+- cc layer: contents_opaque = background colour not transparent && rect_known_to_be_opaque contains the
+  layer rect; else contents_opaque_for_text = has text && text known on opaque background. cc
+  LCD disallowed: will-change transform (node or ancestors), transform animation, filter/backdrop
+  filter effect node (lcd_text_disallowed_by_*), non-integral offset (unless raster translation
+  aligns), !contents_opaque_for_text.
+- Save layers in a layer's display list: SaveLayerAlpha keeps LCD (kInitWithPrevious) unless the
+  list has a SaveLayerOp (filter, blend mode); isolation groups (opacity 1) around blending
+  descendants.
+
+## Status (2026-10-25)
+
+**All 22 game screens composite exactly like Chromium** (`CompositingReferenceTests`: every screen
+at 1× and 1.65; layer for layer: owner, screen rect ±1.5 px, contents opaque, LCD-disallowed reason).
+The shop was finished on 2026-10-25 (see "Shop, finished" below). Full suite then: 467 tests, all
+pass (493 at the end of M5, 2026-10-30).
+
+The painter runs two passes per frame (`UiPainter.Paint`): an analysis pass (`Traverse(canvas,
+analyze: true)`: `PaintTarget` in record-only mode — everything is "drawn", nothing reaches the
+canvas) that builds the property trees, records paint chunks and runs the layerizer; then the draw
+pass, which walks the same chunk sequence and sets `Canvas.TextLcd` from each chunk's verdict
+(`PaintChunk.LcdText`). Opacity layers start from the backdrop only when their effect has LCD text.
+The old heuristics (ScanLayerEffects, grayscale scopes) and the `SV_OLD_HINT` switch are gone.
+
+### Files
+
+- `UI/Paint/Compositing/PropertyTrees.cs` — transform/clip/effect/scroll nodes (screen space).
+- `UI/Paint/Compositing/PropertyTreeBuilder.cs` — Blink's property tree builder subset (see rules).
+- `UI/Paint/Compositing/Geometry.cs` — gfx rect semantics, GeometryMapper (visual rects, visibility
+  limit, overlap with scroll ranges).
+- `UI/Paint/Compositing/Layerizer.cs` — PaintChunk, PendingLayer, LayerizeGroup, Merge, DecompositeEffect,
+  composited scrolling, background colour, cc LCD reason, hit test opaqueness union.
+- `UI/Paint/PaintTarget.cs` — chunk recording: `UseState`, `BeginItem/EndItem` (display items),
+  `Record` (DrawingDisplayItem opaque/background analysis), `RecordScrollHitTest`, `RecordScrollbar`,
+  `RecordForeign`, `RecordScrollingBackground`, `BeginLayer/EndLayer` (subsequences), `SuppressChunks`.
+- `UI/Paint/UiPainter*.cs` — calls the above where Blink paints each thing.
+- `UI/Paint/UiPainter.Svg.cs` — inline SVG: transforms from computed styles (TransformHelper), Blink's
+  bounding boxes, one display item per shape; `UI/Style/SvgTransformList.cs` — the transform
+  attribute (parser and CSS mapping).
+- Test: `Tests/Statventure.Tests/Ui/CompositingReferenceTests.cs`; references
+  `Reference/scaled/game-layers@1.json` / `@1.65.json` (`Tools/Scripts/make-layer-references.sh <scale>`).
+- **Debugging:** `COMPOSITING_CHUNKS=1 dotnet test … --filter "FullyQualifiedName~CompositingReference&DisplayName~shop"`
+  lists each engine layer's first 40 chunks (owner, bounds, drawable, opaque rect, background colour,
+  text flags, clip, effect). Blink sources for Chromium 152 are cached in
+  `~/.cache/stat-fick-build/reference-src/chromium-152-source` (see the README there; fetch more with the googlesource `?format=TEXT` URL, tag 152.0.7977.89, and keep them in that folder).
+
+### Rules ported on 2026-10-25 (each one fixed screens)
+
+- **Paint order:** flex and grid items paint atomically (`IsPaintedAtomically`, like inline blocks:
+  all phases in the parent's foreground phase, in order-modified order) — `UiPainter.PaintsAtomically`.
+  A stacked layer is painted as a **subsequence** that forces new chunks before and after when its
+  border box state differs from the last chunk's, it has ≥ 2 descendant PaintLayers, its hit-test
+  transparency differs from the current chunk's, or joining the last chunk would be sparse
+  (> 10000·dpr² + both areas) — `PaintLayerPainter::ShouldCreateSubsequence`.
+- **Display items:** a box decoration item's visual rect is the box's self ink overflow (border box +
+  outer shadows' reach of 1.5 × blur + spread, + outline), not its drawings; items that draw nothing
+  aren't recorded. Opaque analysis (`CalculateRectKnownToBeOpaqueForRecord`): ≤ 8 ops counting saves
+  and clips, a restore or rounded clip ends it, so **any outer box shadow makes the item non-opaque**
+  (Blink draws shadows first inside save/clip/restore); results are clipped to the visual rect and the
+  item's own clips. The background colour candidate is separate: first plain fill, ignoring the
+  8-op limit (gradients aren't candidates).
+- **Document background:** the base colour fills the pixel-snapped document rect (not the viewport),
+  skipped when the root background is opaque.
+- **Backdrop filters** are effect properties, not drawings (no chunk item).
+- **Hit test data:** every visible box records its border box (snapped) with an opaqueness:
+  transparent for pointer-events: none (still recorded), mixed with border radius, else opaque;
+  cc's `UnionHitTestOpaqueness`. An inline SVG records its border box even when it takes input at its
+  overflowing shapes.
+- **Scrollers:** scroll node only for `NeedsScrollAndScrollTranslation` (content overflowing an
+  auto/scroll axis by whole pixels, or scrolled, or overscroll-behavior not auto) — overflow: hidden
+  boxes don't get one otherwise. Scroll node rects are whole pixels (contents size snapped half up).
+  Scrollbars (non-overlay) record in the background phase before the scrolling background; an
+  auto/scroll box records its scrolling-contents hit test (contents rect + borders) in its contents
+  state, with the background when it goes there.
+- **Paint offset translations** (`NeedsPaintOffsetTranslation`): boxes needing a scroll node, with
+  scrollbars or a resizer, SVG roots, backdrop filters, effect will-change/animations get a translation
+  node of their own; fixed-to-view boxes always do (FixedPosition reason only when the page
+  overflows). This decides which clips limit a layer's bounds (VisibilityLimit needs the clip in the
+  layer's own transform), e.g. backdrop-filter panels aren't clipped by an ancestor's overflow.
+- **SVG roots:** contents in a replaced-content transform node, clipped to the content box unless
+  overflow is visible. Replaced content is one display item in the box's contents state.
+- **Effects:** `isolation: isolate` alone makes no effect node (only around blending descendants,
+  opacity, blend, backdrop filter, mask — `NeedsEffectIgnoringClipPathAnd2DScale`).
+- **Canvas:** a drawn `<canvas>` (the host gives it a surface texture) is a foreign layer (reason Canvas).
+
+### Shop, finished (2026-10-25)
+
+- **Capture setup:** the shop rolls its stock with `Math.random` as it opens, and the layer traces
+  (`make-layer-references.sh`) are a separate run from the screen captures, so the trace showed other
+  items than the captured markup (that was the "disabled buy button" difference). `game-capture.js`
+  now seeds `Math.random` (mulberry32, seed 0x5eed) around `Shop.open`; all game references were
+  captured again (only the shop changed; script `?v=` stamps and combat idle delays still differ
+  between runs, harmlessly).
+- **UA sheet (Blink svg.css):** `svg:not(:root), symbol, image, marker, pattern, foreignObject
+  { overflow: hidden }` (clip at the content box, as overflow-clip-margin: content-box) and SVG
+  elements' `transform-origin: 0 0` (`svg *`). This fixed `svg.sb-live`'s bounds. Blink's replaced
+  elements never scroll, so an inline svg isn't a scroll container (`LayoutBox.IsScrollContainer`);
+  flex and grid automatic minimum sizes now look at the axis's computed overflow value
+  (`IsOverflowValueScrollableX/Y`: hidden, scroll, auto), as FlexLayoutAlgorithm::ShouldApplyAutoMinSize
+  and CalculateIntrinsicMinimumContribution do.
+- **SVG transforms from CSS (user decision 2026-10-25):** the capture's freeze sheet
+  (`transform: none !important`) overrides the SVG `transform` attribute in Chromium (it's CSS
+  transform's presentation attribute), so the weapon art's sword stood upright, overflowing its box,
+  and the sparse merge rule split the svg's filter group into two layers. Ported: the attribute
+  parsed as SVGTransformList::ParseInternal and mapped to CSS as SVGTransformList::CssValue
+  (`Style/SvgTransformList.cs`, a presentational hint shared by attribute text so styles can still be
+  shared; changes restyle the element); `transform-box`; SVG children painted, hit tested and
+  measured with TransformHelper::ComputeTransform (reference box fill-box/stroke-box/view-box from
+  0 0, zoomed reference box, unzoomed translation); CSS `matrix()` translations zoomed
+  (TransformBuilder). Blink's SVG geometry: object bounding boxes (rect/ellipse geometry, tight path
+  bounds = SkPath::computeTightBounds, containers' unions), ApproximateStrokeBoundingBox, and **each
+  shape is a display item whose visual rect is its stroke box enclosed in whole user units**
+  (SVGDrawingRecorder) — that is what gives Chromium's fractional layer quads. SVG elements' client
+  rects are their object bounding boxes through their transforms (Element::ClientQuads).
+- **Unnamed layers:** Chromium reports no debug name for the first layer of the weapon art's filter
+  group (its first chunk's client recorded none); the test treats an empty Chromium name as unnamed.
+
+### Known differences left (SVG)
+
+- SVG children with running transform animations get composited transform nodes in Chromium
+  (directly composited, own layers); the engine paints them inside their svg's layer. Transform,
+  opacity and filter property nodes for SVG children aren't built (group opacity is applied per shape,
+  filtered shapes aren't drawn). Fill, stroke and opacity come from attributes and style attributes
+  only (user decision: no full Blink SVG styling).
+- A stroke-box reference box uses the approximate stroke box (Blink strokes the path for it); SVG
+  text has no bounding box (it isn't drawn).
+- Path antialiasing differs from Skia at edges (user decision 2026-10-25: keep the canvas's
+  rasterizer); the `svg-transforms` paint fixture compares at tolerance 60 and checks geometry
+  exactly through the element boxes at 1.65 and 1.98.
+
+### Next
+
+Compositing is done for every captured screen. Text pixels in composited layers are covered by
+GamePaintTests (they pass with the per-chunk LCD verdicts). Nothing is left here; M5 is finished
+(2026-10-30, 493 tests). Come back to this doc when a change moves layers or LCD verdicts
+(`CompositingReferenceTests` fails) or when new screens are captured.

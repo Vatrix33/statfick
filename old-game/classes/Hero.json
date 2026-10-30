@@ -1,0 +1,12 @@
+{
+  "id": "hero",
+  "name": "Hero",
+  "color": "gold",
+  "requirements": { "level": 92, "classes": {}, "excludes": ["demon-lord"] },
+  "maxLevel": 3,
+  "levels": [
+    { "level": 1, "description": "Increase all basic stats by 15%.", "effects": [{ "type": "all-stats-permanent-percent", "amount": 15 }] },
+    { "level": 2, "description": "Gain Heroic Inspiration.", "effects": [{ "type": "passive", "id": "heroic-inspiration", "name": "Heroic Inspiration", "condition": "While alive in combat", "description": "All other allies gain 10% basic stats. You and all allies restore 5% maximum HP and Mana at the start of each turn.", "effects": [{ "type": "allied-base-stats-percent", "amount": 10 }, { "type": "team-turn-start-restore-percent", "hp": 5, "mana": 5 }] }] },
+    { "level": 3, "description": "Unlock World Saver.", "effects": [{ "type": "skill", "id": "world-saver", "name": "World Saver", "combatOnly": true, "cooldown": "combat", "description": "Your next damaging attack or spell cannot be reduced. After it lands, your team takes 35% less damage for 4 of your turns. Once per combat.", "effects": [{ "type": "next-damage-unreducible" }] }] }
+  ]
+}

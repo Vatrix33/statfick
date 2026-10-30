@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A visual test bed for the engine. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Statventure.Sandbox</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Engine/Statventure/Statventure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The game's fonts (as the tests use them). -->
+    <None Include="../../Tests/Statventure.Tests/Data/Fonts/**" LinkBase="Data/Fonts" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

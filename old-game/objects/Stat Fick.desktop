@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Stat Fick
+Comment=Open Stat Fick in its own standalone desktop window
+Path=/run/media/system/M.2_2TB/Stat Fick Repo/old-game
+Exec="/run/media/system/M.2_2TB/Stat Fick Repo/old-game/Stat Fick.AppImage"
+Icon=/run/media/system/M.2_2TB/Stat Fick Repo/old-game/objects/stat-fick-icon.svg
+Terminal=false
+StartupNotify=true
+StartupWMClass=stat-fick
+Categories=Utility;

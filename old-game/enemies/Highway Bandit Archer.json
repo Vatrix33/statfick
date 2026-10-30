@@ -1,0 +1,34 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "highway-bandit-archer-level-10",
+  "name": "Highway Bandit Archer",
+  "level": 10,
+  "raceId": "human",
+  "classLevels": {
+    "archer": 5,
+    "rogue": 5
+  },
+  "stats": {
+    "strength": 24,
+    "vitality": 27,
+    "mind": 19,
+    "dexterity": 43,
+    "intelligence": 19,
+    "wisdom": 19,
+    "speed": 34,
+    "luck": 29
+  },
+  "inventory": [
+    "forge-weapon-2-longbow+compoundbow",
+    "forge-armor-coat"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-longbow+compoundbow",
+    "offHand": "forge-weapon-2-longbow+compoundbow",
+    "armor": "forge-armor-coat",
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

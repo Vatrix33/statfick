@@ -1,0 +1,45 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "water-elemental-level-25",
+  "name": "Water Elemental",
+  "level": 25,
+  "raceId": "elemental",
+  "classLevels": {
+    "monster": 3,
+    "mage": 5,
+    "warrior": 5,
+    "spellblade": 5,
+    "spellcaster": 7
+  },
+  "stats": {
+    "strength": 38,
+    "vitality": 58,
+    "mind": 68,
+    "dexterity": 62,
+    "intelligence": 84,
+    "wisdom": 72,
+    "speed": 42,
+    "luck": 30
+  },
+  "inventory": [
+    "forge-weapon-2-spear"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-spear",
+    "offHand": "forge-weapon-2-spear",
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "mending-spring-water-support",
+    "summon-water-spirit-water-summon",
+    "water-bolt-water-damage",
+    "spell-bolt-basic-damage",
+    "lesser-cascade-water-damage",
+    "seablade-water-damage",
+    "soothing-rain-water-support",
+    "tidal-spear-water-damage"
+  ]
+}

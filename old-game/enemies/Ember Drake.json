@@ -1,0 +1,10 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "ember-drake-level-40", "name": "Ember Drake",
+  "level": 40, "raceId": "dragon", "element": "fire", "resistances": { "fire": 30, "water": -15 },
+  "classLevels": { "beast": 3, "monster": 3, "mage": 5, "spellcaster": 7, "pyromancer": 9, "geomancer": 9, "warrior": 4 },
+  "stats": { "strength": 113, "vitality": 121, "mind": 103, "dexterity": 81, "intelligence": 101, "wisdom": 94, "speed": 78, "luck": 54 },
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": ["fire-bolt-fire-damage", "flame-spiral-fire-damage", "phoenix-mantle-fire-support", "inferno-orb-fire-damage", "hellfire-wave-fire-damage", "ember-lance-fire-damage", "dragonbreath-starfire-fire-damage", "faultline-earth-damage", "stone-bastion-earth-support", "petrifying-grasp-earth-damage", "mountain-crusher-earth-damage", "fortress-of-stone-earth-support", "obsidian-spire-earth-damage", "sundering-rift-earth-damage"]
+}

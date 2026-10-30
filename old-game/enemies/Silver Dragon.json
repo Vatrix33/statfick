@@ -1,0 +1,55 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "silver-dragon-level-60",
+  "name": "Silver Dragon",
+  "level": 60,
+  "raceId": "dragon",
+  "element": "basic",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 3,
+    "dragonkin": 7,
+    "mage": 5,
+    "spellcaster": 7,
+    "hierophant": 9,
+    "warrior": 5,
+    "great-mage": 6
+  },
+  "stats": {
+    "strength": 135,
+    "vitality": 145,
+    "mind": 145,
+    "dexterity": 110,
+    "intelligence": 153,
+    "wisdom": 126,
+    "speed": 112,
+    "luck": 100
+  },
+  "resistances": {
+    "basic": 35,
+    "dark": -40
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "aether-severance-basic-damage",
+    "arcane-cataclysm-basic-damage",
+    "arcane-reversal-basic-support",
+    "spellbreaker-lance-basic-damage",
+    "mana-bastion-basic-support",
+    "arcane-barrage-basic-damage",
+    "arcane-lance-basic-damage",
+    "dragonbreath-aether-storm-basic-damage"
+  ]
+}

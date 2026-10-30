@@ -1,0 +1,20 @@
+{
+  "id": "trap-layer",
+  "name": "Trap Layer",
+  "requirements": { "level": 1, "classes": { "rogue": 5 }, "other": { "type": "traps-used", "count": 3, "description": "3 traps used" } },
+  "maxLevel": 4,
+  "levels": [
+    { "level": 1, "description": "Your traps deal 50% more damage.", "effects": [
+      { "type": "trap-damage-percent", "amount": 50, "description": "Trap damage +50%" }
+    ] },
+    { "level": 2, "description": "Your traps gain 50% Armor Pierce.", "effects": [
+      { "type": "trap-armor-pierce-percent", "amount": 50, "description": "Trap Armor Pierce +50%" }
+    ] },
+    { "level": 3, "description": "Placing a trap has a 30% chance not to consume it.", "effects": [
+      { "type": "trap-retention-chance", "amount": 30, "description": "30% chance to retain a placed trap" }
+    ] },
+    { "level": 4, "description": "Each trap you place can trigger one additional time.", "effects": [
+      { "type": "trap-additional-triggers", "amount": 1, "description": "Placed traps gain 1 additional trigger" }
+    ] }
+  ]
+}

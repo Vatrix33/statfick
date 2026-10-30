@@ -1,0 +1,25 @@
+{
+  "id": "paladin", "name": "Paladin",
+  "requirements": { "level": 10, "classes": {}, "anyClasses": { "knight": 4, "cleric": 4 }, "excludes": ["oathsworn"], "other": { "type": "forbidden-known-spells", "elements": ["dark", "blood"], "description": "No Dark or Blood spells known" } },
+  "maxLevel": 7,
+  "levels": [
+    { "level": 1, "description": "Increase Strength by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "strength", "amount": 5 }] },
+    { "level": 2, "description": "Increase Mind by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 5 }] },
+    { "level": 3, "description": "Gain the Sworn Oath passive.", "effects": [{
+      "type": "passive", "id": "sworn-oath", "name": "Sworn Oath", "condition": "Against Monsters", "description": "Deal 10% more damage to Monsters and take 10% less damage from Monsters.",
+      "effects": [{ "type": "damage-percent-vs-class", "classId": "monster", "amount": 10 }, { "type": "incoming-damage-percent-vs-class", "classId": "monster", "amount": -10 }]
+    }] },
+    { "level": 4, "description": "Increase maximum Mana by 5%.", "effects": [{ "type": "max-mana-percent", "amount": 5 }] },
+    { "level": 5, "description": "Unlock Divine Smite.", "effects": [{
+      "type": "skill", "id": "divine-smite", "name": "Divine Smite", "combatOnly": true, "cooldown": "combat", "usesPerCombat": 1, "durationAttacks": 1,
+      "description": "Spend 10% maximum Mana. Your next attack deals additional Holy damage equal to 10% maximum Mana.", "effects": [],
+      "onHitEffects": [{ "type": "bonus-damage-max-mana-percent", "amount": 10, "element": "holy" }], "manaCostMaxPercent": 10
+    }] },
+    { "level": 6, "description": "Increase Armor by 10%.", "effects": [{ "type": "defense-permanent-percent", "target": "armor", "amount": 10 }] },
+    { "level": 7, "description": "Unlock Banish Evil.", "effects": [{
+      "type": "skill", "id": "banish-evil", "name": "Banish Evil", "combatOnly": true, "cooldown": "daily", "durationAttacks": 1,
+      "description": "Your next attack deals 50% more damage against a Demon or Devil. Can be used once per day.",
+      "effects": [{ "type": "weapon-power-percent-vs-race", "raceIds": ["demon", "devil"], "amount": 50 }]
+    }] }
+  ]
+}

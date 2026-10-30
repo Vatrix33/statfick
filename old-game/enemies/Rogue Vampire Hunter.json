@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "rogue-vampire-hunter-level-71", "name": "Rogue Vampire Hunter", "level": 71,
+  "raceId": "human", "resistances": { "blood": 15, "dark": 10 },
+  "classLevels": { "hunter": 7, "blood-hunter": 5, "rogue": 5, "shadow": 6, "ambusher": 7, "stalker": 4, "soldier": 6, "weaponmaster": 7, "warrior": 5, "archer": 5, "thief": 5, "gladiator": 7, "enlightened": 2 },
+  "stats": { "strength": 146, "vitality": 142, "mind": 116, "dexterity": 166, "intelligence": 109, "wisdom": 120, "speed": 181, "luck": 132 },
+  "inventory": ["forge-weapon-1-longsword+rapier", "forge-weapon-1-dagger", "forge-armor-brigandine"],
+  "equipment": { "primaryHand": "forge-weapon-1-longsword+rapier", "offHand": "forge-weapon-1-dagger", "armor": "forge-armor-brigandine", "artifact1": null, "artifact2": null },
+  "knownSpells": ["piercing-blood-blood-damage", "coagulate-blood-support", "hemorrhage-lance-blood-damage", "crimson-renewal-blood-support", "bloodbrand-blood-support"]
+}

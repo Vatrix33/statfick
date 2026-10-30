@@ -1,0 +1,8 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "coastal-corsair-level-20", "name": "Coastal Corsair",
+  "level": 20, "raceId": "human", "classLevels": { "warrior": 5, "rogue": 5, "ambusher": 7, "traveler": 3 },
+  "stats": { "strength": 49, "vitality": 54, "mind": 37, "dexterity": 62, "intelligence": 36, "wisdom": 39, "speed": 65, "luck": 46 },
+  "inventory": ["forge-weapon-1-longsword+rapier", "forge-weapon-1-dagger", "forge-armor-leather-armor"],
+  "equipment": { "primaryHand": "forge-weapon-1-longsword+rapier", "offHand": "forge-weapon-1-dagger", "armor": "forge-armor-leather-armor", "artifact1": null, "artifact2": null },
+  "knownSpells": []
+}

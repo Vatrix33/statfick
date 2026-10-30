@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "bloodsand-vampire-level-47", "name": "Bloodsand Vampire", "level": 47,
+  "raceId": "undead", "resistances": { "blood": 25, "dark": 15, "holy": -25 },
+  "classLevels": { "vampire": 4, "warrior": 5, "rogue": 5, "archer": 5, "hunter": 7, "blood-hunter": 5, "ambusher": 7, "shadow": 6, "soldier": 3 },
+  "stats": { "strength": 103, "vitality": 101, "mind": 74, "dexterity": 111, "intelligence": 77, "wisdom": 74, "speed": 114, "luck": 80 },
+  "inventory": ["forge-weapon-1-longsword+rapier", "forge-armor-brigandine"],
+  "equipment": { "primaryHand": "forge-weapon-1-longsword+rapier", "offHand": null, "armor": "forge-armor-brigandine", "artifact1": null, "artifact2": null },
+  "knownSpells": ["piercing-blood-blood-damage", "coagulate-blood-support", "hemorrhage-lance-blood-damage", "crimson-renewal-blood-support", "bloodbrand-blood-support"]
+}

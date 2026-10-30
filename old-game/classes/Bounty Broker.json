@@ -1,0 +1,82 @@
+{
+  "id": "bounty-broker",
+  "name": "Bounty Broker",
+  "requirements": {
+    "level": 1,
+    "classes": {},
+    "anyClasses": {
+      "hunter": 4,
+      "salesman": 2
+    },
+    "other": {
+      "type": "guild-quests-completed",
+      "count": 5
+    }
+  },
+  "maxLevel": 4,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Guild quest Reputation rewards +10%.",
+      "effects": [
+        {
+          "type": "quest-reputation-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Guild quest money rewards +10%; the Guild offers one additional regular quest choice.",
+      "effects": [
+        {
+          "type": "quest-money-percent",
+          "amount": 10
+        },
+        {
+          "type": "guild-quest-choice-flat",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Contract Sense: deal 10% more damage to an active Guild quest target.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "contract-sense",
+          "name": "Contract Sense",
+          "description": "Deal 10% more damage to enemies named by your active Clear or Hunt Guild quest.",
+          "effect": {
+            "type": "damage-percent-vs-quest-target",
+            "amount": 10
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Unlock Bounty Mark: once per combat, mark an enemy so allies deal 10% more damage to it.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "bounty-mark",
+          "name": "Bounty Mark",
+          "description": "Mark an enemy. All allies deal 10% more damage to it until it falls.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "enemy",
+          "effects": [
+            {
+              "type": "tactical-mark",
+              "damagePercent": 10,
+              "turnAdvance": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

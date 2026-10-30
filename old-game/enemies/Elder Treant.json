@@ -1,0 +1,21 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "elder-treant-level-20",
+  "name": "Elder Treant",
+  "level": 20,
+  "raceId": "treant",
+  "classLevels": { "beast": 3, "great-beast": 10, "monster": 3, "warrior": 4 },
+  "stats": { "strength": 70, "vitality": 82, "mind": 31, "dexterity": 35, "intelligence": 31, "wisdom": 40, "speed": 24, "luck": 29 },
+  "baseArmor": 25,
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}

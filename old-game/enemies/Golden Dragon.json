@@ -1,0 +1,55 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "golden-dragon-level-60",
+  "name": "Golden Dragon",
+  "level": 60,
+  "raceId": "dragon",
+  "element": "holy",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 3,
+    "dragonkin": 7,
+    "mage": 5,
+    "spellcaster": 7,
+    "luxomancer": 9,
+    "warrior": 5,
+    "great-mage": 6
+  },
+  "stats": {
+    "strength": 145,
+    "vitality": 155,
+    "mind": 146,
+    "dexterity": 109,
+    "intelligence": 138,
+    "wisdom": 137,
+    "speed": 104,
+    "luck": 102
+  },
+  "resistances": {
+    "holy": 35,
+    "dark": -40
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "judgment-of-noon-holy-damage",
+    "seraphic-lance-holy-damage",
+    "sanctuary-hymn-holy-support",
+    "mercy-of-the-sun-holy-support",
+    "dawns-edict-holy-damage",
+    "solar-verdict-holy-damage",
+    "greater-heal-holy-support",
+    "dragonbreath-dawnfire-holy-damage"
+  ]
+}

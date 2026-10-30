@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "mire-stalker-level-39", "name": "Mire Stalker", "level": 39, "raceId": "lizardman",
+  "classLevels": { "monster": 3, "rogue": 5, "hunter": 7, "thief": 5, "ambusher": 7, "stalker": 4, "monk": 8 },
+  "stats": { "strength": 77, "vitality": 83, "mind": 58, "dexterity": 87, "intelligence": 68, "wisdom": 65, "speed": 102, "luck": 76 },
+  "inventory": ["forge-weapon-1-dagger", "forge-weapon-1-dagger"],
+  "equipment": { "primaryHand": "forge-weapon-1-dagger", "offHand": "forge-weapon-1-dagger", "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": []
+}

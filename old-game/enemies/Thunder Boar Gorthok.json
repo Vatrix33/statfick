@@ -1,0 +1,23 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "thunder-boar-gorthok-level-40",
+  "name": "Thunder Boar Gorthok",
+  "level": 40,
+  "raceId": "orc",
+  "element": "lightning",
+  "classLevels": { "monster": 3, "beast": 3, "great-beast": 10, "warrior": 5, "weaponmaster": 7, "berserker": 6, "soldier": 6 },
+  "stats": { "strength": 110, "vitality": 100, "mind": 40, "dexterity": 60, "intelligence": 45, "wisdom": 45, "speed": 65, "luck": 22 },
+  "maxHpPercent": 40,
+  "naturalWeapon": "beast-claws",
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": ["thunderbolt-of-talos-lightning-unique"],
+  "drops": []
+}

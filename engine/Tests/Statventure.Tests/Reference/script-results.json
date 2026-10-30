@@ -1,0 +1,190 @@
+{
+ "microtasks": {
+  "log": [
+   "f0 task",
+   "f0 async-start",
+   "f0 task-end",
+   "f0 micro1",
+   "f0 then1",
+   "f0 after-await1",
+   "f0 micro-nested",
+   "f0 after-await2",
+   "f0 timeout0",
+   "f0 micro-in-timeout",
+   "f0 timeout0b",
+   "f1 raf",
+   "f1 micro-in-raf",
+   "f1 raf-b",
+   "f1 timeout-from-raf",
+   "f2 raf2"
+  ]
+ },
+ "listeners": {
+  "log": [
+   "f0 script click",
+   "f0 L1",
+   "f0 L2",
+   "f0 after script click",
+   "f0 M1",
+   "f0 M2",
+   "f2 native click request",
+   "f2 L1",
+   "f2 M1",
+   "f2 L2",
+   "f2 M2"
+  ]
+ },
+ "timers": {
+  "log": [
+   "f0 ids true",
+   "f0 interval 1",
+   "f0 interval 2",
+   "f0 interval 3",
+   "f1 first",
+   "f1 third true"
+  ]
+ },
+ "matchmedia": {
+  "log": [
+   "f0 matches false",
+   "f1 raf",
+   "f2 request resize",
+   "f2 raf",
+   "f2 resize 300",
+   "f2 change true (max-width: 350px)",
+   "f3 raf",
+   "f4 raf",
+   "f5 raf"
+  ]
+ },
+ "frame-order": {
+  "log": [
+   "f1 raf A",
+   "f1 micro-in-raf A",
+   "f1 scroll",
+   "f1 animationstart",
+   "f1 micro-after-animationstart",
+   "f2 raf B"
+  ]
+ },
+ "resize-observer": {
+  "log": [
+   "f1 raf",
+   "f1 first b 0,0 30.296875x20 content 30.296875x20 border 30.296875x20 dev 30x20",
+   "f1 ro a 7,5 100.296875x50 content 100.296875x50 border 118.296875x64 dev 101x50 | h 0,0 0x0 content 0x0 border 0x0 dev 0x0 | s 0,0 0x0 content 0x0 border 0x0 dev 0x0 | b 0,0 30.296875x20 content 30.296875x20 border 30.296875x20 dev 30x20 same true",
+   "f1 micro after ro",
+   "f2 resize a",
+   "f2 ro a 7,5 120.5x50 content 120.5x50 border 138.5x64 dev 121x50 same true",
+   "f2 micro after ro",
+   "f3 pad b, show h",
+   "f3 ro b 3,3 30.296875x20 content 30.296875x20 border 36.296875x26 dev 30x20 same true",
+   "f3 micro after ro",
+   "f4 same box again, disconnect first",
+   "f4 ro b 3,3 40x20 content 40x20 border 46x26 dev 40x20 same true",
+   "f4 micro after ro"
+  ]
+ },
+ "resize-observer-depth": {
+  "log": [
+   "f1 raf",
+   "f1 tick",
+   "f1 ro 1 outer=100 inner=80 deep=60",
+   "f1 ro 2 deep=20",
+   "f1 error ResizeObserver loop completed with undelivered notifications.",
+   "f2 tick",
+   "f2 ro 3 outer=300 inner=200 deep=30",
+   "f3 tick"
+  ]
+ },
+ "resize-observer-window": {
+  "log": [
+   "f1 raf",
+   "f1 ro 192",
+   "f2 request resize",
+   "f2 raf",
+   "f2 resize 300x200",
+   "f2 change true",
+   "f3 raf",
+   "f3 ro 142",
+   "f4 raf"
+  ]
+ },
+ "animate-playback": {
+  "log": [
+   "f0 animate running pending true start null current 0 same true",
+   "f0 cancel b running",
+   "f0 b idle current null pending false",
+   "f0 b rejected AbortError",
+   "f0 b oncancel current null",
+   "f1 raf running 0 opacity 0.00",
+   "f1 ready running pending false start at frame true current 1",
+   "f2 raf running 1 opacity 0.14",
+   "f3 raf running 2 opacity 0.28",
+   "f4 raf running 3 opacity 0.42",
+   "f5 raf running 4 opacity 0.56",
+   "f6 raf running 5 opacity 0.70",
+   "f7 raf running 6 opacity 0.84",
+   "f8 raf running 7 opacity 0.98",
+   "f8 finished finished current 119 opacity 1.00",
+   "f8 onfinish current 119 timeline 1",
+   "f9 raf finished 7 opacity 1.00",
+   "f10 raf finished 7 opacity 1.00",
+   "f11 raf finished 7 opacity 1.00"
+  ]
+ },
+ "animate-sampling": {
+  "log": [
+   "f0 offsets 0:0.00 100:78.35 250:45.40 300:40.72 500:35.49 700:37.60 900:39.69 999:40.00 1000:0.00 paused",
+   "f0 spaced 0:0.00 200:50.00 400:100.00 600:75.00 800:50.00 900:125.00 1000:0.00 paused",
+   "f0 neutral 0:0.00 250:25.00 500:50.00 1000:100.00 1500:100.00 paused",
+   "f0 timing 0:0.00 50:0.00 100:0.00 200:12.92 500:100.00 550:96.89 900:0.00 1100:50.00 1149:50.00 1150:50.00 1500:50.00 paused",
+   "f0 reverse 0:100.00 100:100.00 300:50.00 500:0.00 600:0.00 paused",
+   "f0 alternate-reverse 0:100.00 100:50.00 200:0.00 300:50.00 500:50.00 600:0.00 700:0.00 paused",
+   "f0 steps 0:0.00 100:0.00 150:0.00 200:25.00 399:50.00 500:100.00 600:100.00 paused",
+   "f0 steps-start 0:50.00 100:50.00 199:50.00 200:100.00 300:100.00 400:100.00 500:100.00 paused",
+   "f0 keyframe-steps 0:0.00 100:0.00 399:0.00 400:0.00 paused",
+   "f0 zero-duration 0:0.00 99:0.00 100:100.00 200:100.00 paused",
+   "f0 infinite 0:0.00 150:50.00 300:0.00 450:50.00 3000:0.00 3150:50.00 paused",
+   "f0 opacity-overshoot 100:0.553 400:1.000 600:1.000 800:1.000 paused",
+   "f0 summon 0:48.00,11.00,60.00x30.00 100:31.27,8.49,93.47x46.73 200:27.22,7.88,101.56x50.78 300:27.07,7.86,101.85x50.93 400:27.65,7.95,100.71x50.35 519:28.00,8.00,100.00x50.00 paused",
+   "f0 fall 0:28.00,8.00,100.00x50.00 100:27.29,6.13,101.42x52.90 186:25.95,2.29,104.11x58.83 300:23.91,-4.78,108.18x69.59 500:27.55,-17.94,100.90x109.62 619:46.06,-11.13,63.87x106.16 620:28.00,8.00,100.00x50.00 paused",
+   "f0 hop 0:28.00,8.00,100.00x50.00 76:14.12,3.37,100.00x50.00 152:15.13,3.71,100.00x50.00 250:23.10,6.37,100.00x50.00 379:28.00,8.00,100.00x50.00 paused",
+   "f0 retreat 0:28.00,8.00,100.00x50.00 90:35.66,8.00,82.97x50.00 180:56.03,8.00,37.72x50.00 500:-32.89,8.00,100.00x50.00 900:-212.00,8.00,100.00x50.00 1000:-212.00,8.00,100.00x50.00 paused"
+  ]
+ },
+ "animate-control": {
+  "log": [
+   "f0 b ready",
+   "f0 b finished finished 0",
+   "f0 b onfinish",
+   "f2 a pause paused pending true",
+   "f2 a paused ready paused 1",
+   "f4 a still 1",
+   "f4 a play running pending true",
+   "f4 a resumed ready 2",
+   "f6 a before finish 3",
+   "f6 a finish finished 1000 same promise true",
+   "f6 a first finished finished",
+   "f6 c finished 5",
+   "f6 a onfinish 1000",
+   "f7 a replay running 0 new promise true",
+   "f8 a cancel idle null start null",
+   "f8 a second rejected AbortError",
+   "f8 a oncancel",
+   "f9 a seek paused 500 start null"
+  ]
+ },
+ "animate-composite": {
+  "log": [
+   "f0 css 100.00",
+   "f0 over css 75.00",
+   "f0 stacked 175.00",
+   "f0 first only 50.00",
+   "f0 important 7.00",
+   "f3 hidden finished finished",
+   "f3 shown opacity 1",
+   "f3 removed finished finished",
+   "f3 removed onfinish"
+  ]
+ }
+}

@@ -1,0 +1,47 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "radiant-sentinel-level-18",
+  "name": "Radiant Sentinel",
+  "level": 18,
+  "raceId": "elemental",
+  "element": "holy",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "mage": 5,
+    "cleric": 5
+  },
+  "stats": {
+    "strength": 45,
+    "vitality": 56,
+    "mind": 52,
+    "dexterity": 32,
+    "intelligence": 55,
+    "wisdom": 64,
+    "speed": 36,
+    "luck": 30
+  },
+  "resistances": {
+    "holy": 25,
+    "dark": -20
+  },
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "holy-bolt-holy-damage",
+    "lesser-heal-holy-support",
+    "blessing-of-dawn-holy-support",
+    "radiant-seal-holy-support",
+    "holy-target-holy-damage",
+    "greater-heal-holy-support",
+    "luminous-verdict-holy-damage",
+    "consecrated-ward-holy-support"
+  ]
+}

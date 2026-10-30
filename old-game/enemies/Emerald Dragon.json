@@ -1,0 +1,55 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "emerald-dragon-level-60",
+  "name": "Emerald Dragon",
+  "level": 60,
+  "raceId": "dragon",
+  "element": "nature",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 3,
+    "dragonkin": 7,
+    "mage": 5,
+    "spellcaster": 7,
+    "botanomancer": 9,
+    "warrior": 5,
+    "great-mage": 6
+  },
+  "stats": {
+    "strength": 143,
+    "vitality": 161,
+    "mind": 140,
+    "dexterity": 115,
+    "intelligence": 129,
+    "wisdom": 127,
+    "speed": 105,
+    "luck": 101
+  },
+  "resistances": {
+    "nature": 35,
+    "fire": -40
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "rootbreaker-nature-damage",
+    "thorn-dominion-nature-damage",
+    "worldroot-balm-nature-support",
+    "summon-elder-treant-nature-summon",
+    "briarstorm-nature-damage",
+    "verdant-eruption-nature-damage",
+    "regrowth-nature-support",
+    "dragonbreath-blight-bloom-nature-damage"
+  ]
+}

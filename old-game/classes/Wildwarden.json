@@ -1,0 +1,92 @@
+{
+  "id": "wildwarden",
+  "name": "Wildwarden",
+  "requirements": {
+    "level": 1,
+    "classes": {
+      "beastmaster": 5
+    },
+    "other": {
+      "type": "known-summon-spells",
+      "element": "nature",
+      "count": 1
+    }
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Nature summon spells cost 10% less Mana.",
+      "effects": [
+        {
+          "type": "spell-cost-percent",
+          "amount": 10,
+          "element": "nature",
+          "summonOnly": true
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Forest-zone Armor +10%.",
+      "effects": [
+        {
+          "type": "conditional-defense-percent",
+          "amount": 10,
+          "condition": "forest-zone",
+          "target": "armor"
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Pack Guardian: animal summons take 10% less damage while you live.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "pack-guardian",
+          "name": "Pack Guardian",
+          "description": "Friendly animal summons take 10% less damage while you are alive.",
+          "effect": {
+            "type": "animal-summon-incoming-damage-percent",
+            "amount": -10
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Summon base stats +10%.",
+      "effects": [
+        {
+          "type": "summon-base-stats-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Shield the Pack: all friendly animal summons gain +20% Armor for two turns.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "shield-the-pack",
+          "name": "Shield the Pack",
+          "description": "All friendly animal summons gain 20% Armor for two turns.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "onActivateEffects": [
+            {
+              "type": "buff-summons-defense-percent",
+              "target": "armor",
+              "amount": 20,
+              "durationTurns": 2,
+              "animalOnly": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

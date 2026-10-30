@@ -1,0 +1,55 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "bronze-dragon-level-60",
+  "name": "Bronze Dragon",
+  "level": 60,
+  "raceId": "dragon",
+  "element": "earth",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 3,
+    "dragonkin": 7,
+    "mage": 5,
+    "spellcaster": 7,
+    "geomancer": 9,
+    "warrior": 5,
+    "great-mage": 6
+  },
+  "stats": {
+    "strength": 165,
+    "vitality": 171,
+    "mind": 124,
+    "dexterity": 102,
+    "intelligence": 125,
+    "wisdom": 109,
+    "speed": 94,
+    "luck": 85
+  },
+  "resistances": {
+    "earth": 35,
+    "water": -40
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "meteor-spire-earth-damage",
+    "seismic-crown-earth-damage",
+    "summon-earth-elemental-earth-summon",
+    "mountain-shelter-earth-support",
+    "obsidian-spire-earth-damage",
+    "mountain-crusher-earth-damage",
+    "stone-bastion-earth-support",
+    "dragonbreath-erode-earth-damage"
+  ]
+}

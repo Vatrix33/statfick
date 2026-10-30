@@ -1,0 +1,27 @@
+{
+  "id": "wizard",
+  "name": "Wizard",
+  "requirements": {
+    "level": 1,
+    "classes": { "mage": 5 },
+    "other": { "type": "stat-comparison", "left": "wisdom", "operator": "greater-than", "right": "intelligence", "description": "Wisdom higher than Intelligence" }
+  },
+  "maxLevel": 7,
+  "levels": [
+    { "level": 1, "description": "Increase Wisdom by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "wisdom", "amount": 5 }] },
+    { "level": 2, "description": "Increase Intelligence by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "intelligence", "amount": 5 }] },
+    { "level": 3, "description": "Basic-Element spells cost 5% less Mana.", "effects": [{ "type": "spell-cost-percent", "element": "basic", "amount": 5 }] },
+    { "level": 4, "description": "Spells cost 5% less to learn.", "effects": [{ "type": "spell-learning-cost-percent", "amount": 5 }] },
+    { "level": 5, "description": "Unlock Doubled Spell.", "effects": [{
+      "type": "skill", "id": "doubled-spell", "name": "Doubled Spell", "combatOnly": true, "cooldown": "daily", "durationSpells": 1,
+      "description": "Your next spell costs 2 more Action Points and is cast a second time for no additional Mana. Can only be used once per day.",
+      "effects": [{ "type": "spell-action-points-flat", "amount": 2 }, { "type": "repeat-spell", "amount": 1 }]
+    }] },
+    { "level": 6, "description": "Increase Mind by 5%.", "effects": [{ "type": "stat-permanent-percent", "target": "mind", "amount": 5 }] },
+    { "level": 7, "description": "Gain the Knowledge Guide passive.", "effects": [{
+      "type": "passive", "id": "knowledge-guide", "name": "Knowledge Guide", "condition": "When another party member knows the spell",
+      "description": "If any other character in your party knows a spell, its learning cost is reduced by 50% for party members who do not know it.",
+      "effects": [{ "type": "party-spell-learning-cost-percent", "amount": 50 }]
+    }] }
+  ]
+}

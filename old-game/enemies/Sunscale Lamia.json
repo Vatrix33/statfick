@@ -1,0 +1,8 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "sunscale-lamia-level-45", "name": "Sunscale Lamia", "level": 45,
+  "raceId": "lamia", "classLevels": { "monster": 3, "rogue": 5, "mage": 5, "spellblade": 5, "pyromancer": 9, "ambusher": 7, "soldier": 4 },
+  "stats": { "strength": 88, "vitality": 91, "mind": 108, "dexterity": 108, "intelligence": 110, "wisdom": 85, "speed": 98, "luck": 71 },
+  "inventory": ["forge-weapon-2-spear+lance"],
+  "equipment": { "primaryHand": "forge-weapon-2-spear+lance", "offHand": "forge-weapon-2-spear+lance", "armor": null, "artifact1": null, "artifact2": null },
+  "knownSpells": ["fire-bolt-fire-damage", "inferno-orb-fire-damage", "burning-horizon-fire-damage"]
+}

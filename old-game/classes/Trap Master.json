@@ -1,0 +1,18 @@
+{
+  "id": "trap-master",
+  "name": "Trap Master",
+  "requirements": { "level": 30, "classes": { "trap-layer": 4 }, "other": null },
+  "maxLevel": 3,
+  "levels": [
+    { "level": 1, "description": "Your traps deal 50% more damage and gain 50% Armor Pierce.", "effects": [
+      { "type": "trap-damage-percent", "amount": 50, "description": "Trap damage +50%" },
+      { "type": "trap-armor-pierce-percent", "amount": 50, "description": "Trap Armor Pierce +50%" }
+    ] },
+    { "level": 2, "description": "Gain an additional 20% chance not to consume a placed trap.", "effects": [
+      { "type": "trap-retention-chance", "amount": 20, "description": "Trap retention chance +20%" }
+    ] },
+    { "level": 3, "description": "You can have 2 traps active at the same time.", "effects": [
+      { "type": "trap-limit-flat", "amount": 1, "description": "Active trap limit +1" }
+    ] }
+  ]
+}

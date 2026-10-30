@@ -1,0 +1,48 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "mountain-wyrm-level-20",
+  "name": "Mountain Wyrm",
+  "level": 20,
+  "raceId": "dragon",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 3,
+    "dragonkin": 4
+  },
+  "stats": {
+    "strength": 78,
+    "vitality": 77,
+    "mind": 49,
+    "dexterity": 46,
+    "intelligence": 51,
+    "wisdom": 48,
+    "speed": 50,
+    "luck": 32
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "fire-bolt-fire-damage",
+    "dragonbreath-minor-ignition-fire-damage",
+    "dragonbreath-erode-earth-damage"
+  ],
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 0.5,
+      "minimum": 1,
+      "maximum": 1
+    }
+  ]
+}

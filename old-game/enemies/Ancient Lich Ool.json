@@ -1,0 +1,61 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "ancient-lich-ool-unique-level-78",
+  "name": "Ancient Lich Ool",
+  "unique": true,
+  "level": 78,
+  "raceId": "undead",
+  "element": "death",
+  "classLevels": {
+    "raid-boss": 1, "lich": 5, "mage": 5, "spellcaster": 7,
+    "wizard": 7, "necromancer": 9, "great-mage": 7, "sage": 5,
+    "scholar": 5, "wise-man": 5, "energist": 5, "sorcerer": 5,
+    "summoner": 2, "hierophant": 5
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 87, "vitality": 102, "mind": 177, "dexterity": 87,
+    "intelligence": 205, "wisdom": 162, "speed": 97, "luck": 87
+  },
+  "manualAllocations": {
+    "strength": 0, "vitality": 15, "mind": 90, "dexterity": 0,
+    "intelligence": 118, "wisdom": 75, "speed": 10, "luck": 0
+  },
+  "resistances": { "death": 35, "dark": 20, "holy": -35 },
+  "inventory": ["weapon-masterwork-staff-of-the-guild-50-imhem3-hmsta-imgry"], "noDropItems": ["weapon-masterwork-staff-of-the-guild-50-imhem3-hmsta-imgry"],
+  "equipment": {
+    "primaryHand": "weapon-masterwork-staff-of-the-guild-50-imhem3-hmsta-imgry", "offHand": "weapon-masterwork-staff-of-the-guild-50-imhem3-hmsta-imgry",
+    "armor": null, "artifact1": null, "artifact2": null
+  },
+  "startingSummons": [{ "enemyId": "gravebound-legionnaire-level-68", "count": 3 }],
+  "startingAllies": [{ "enemyId": "phylactery-of-ool-level-78", "count": 1 }],
+  "unlivingCaster": true,
+  "phylactery": {
+    "enemyId": "phylactery-of-ool-level-78", "guards": ["gravebound-legionnaire-level-68"], "guardAiProfile": "grave-guard",
+    "reformRounds": 2, "reformHpPercent": 50,
+    "broken": { "effects": [{ "type": "spell-power-percent", "amount": -20 }] },
+    "cinematic": "ool-phylactery"
+  },
+  "maxHpPercent": 900,
+  "aiProfile": "ool", "introCinematic": "ool",
+  "knownSpells": [
+    "dimming-touch-death-damage", "death-bolt-death-damage", "summon-call-of-the-dead-death-summon",
+    "health-grasp-death-damage", "eerie-shock-death-damage", "soul-leech-death-damage",
+    "soul-rend-death-damage", "grave-chill-death-damage", "death-ward-death-support",
+    "pale-requiem-death-damage", "deathwave-death-damage", "soul-extinction-death-damage",
+    "grave-aegis-death-support", "grave-lance-death-damage", "summon-undead-hulk-death-summon",
+    "withering-choir-death-damage", "grave-sentence-death-damage", "mourning-bell-death-damage",
+    "dragonbreath-grave-tempest-death-damage", "sepulcher-verdict-death-damage", "necropolis-aegis-death-support",
+    "grave-chorus-death-damage", "pallbearer-s-touch-death-damage", "tomb-ward-death-support",
+    "ossuary-storm-death-damage", "last-requiem-death-damage",
+    "spell-bolt-basic-damage", "magic-shield-basic-support", "reinforce-basic-support",
+    "overcharge-cannon-basic-damage", "mana-needle-basic-damage", "power-shot-basic-damage", "manastrike-basic-damage"
+  ],
+  "drops": [
+    { "itemId": "key-item-phylactery-core", "chance": 20 },
+    { "itemId": "masterwork-staff-of-the-guild", "chance": 8 },
+    { "itemId": "masterwork-heartless-enricher", "chance": 5 }
+  ]
+}

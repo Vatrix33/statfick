@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Times the UI engine on the game's captured screens (Tools/Scripts/benchmark.sh): styles, layout and painting, cold and after changes. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Statventure.Tools.UiBenchmark</RootNamespace>
+    <TieredPGO>true</TieredPGO>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The tests own the captured screens, their stylesheet and the test fonts. -->
+    <ProjectReference Include="../../Tests/Statventure.Tests/Statventure.Tests.csproj" />
+  </ItemGroup>
+</Project>

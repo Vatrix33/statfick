@@ -1,0 +1,55 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "blue-dragon-level-60",
+  "name": "Blue Dragon",
+  "level": 60,
+  "raceId": "dragon",
+  "element": "water",
+  "classLevels": {
+    "beast": 3,
+    "great-beast": 10,
+    "monster": 3,
+    "dragonkin": 7,
+    "mage": 5,
+    "spellcaster": 7,
+    "aquamancer": 9,
+    "warrior": 5,
+    "great-mage": 6
+  },
+  "stats": {
+    "strength": 135,
+    "vitality": 152,
+    "mind": 142,
+    "dexterity": 115,
+    "intelligence": 134,
+    "wisdom": 127,
+    "speed": 107,
+    "luck": 94
+  },
+  "resistances": {
+    "water": 35,
+    "lightning": -40
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "abyssal-pressure-water-damage",
+    "tidal-rupture-water-damage",
+    "summon-water-elemental-water-summon",
+    "life-current-water-support",
+    "abyssal-torrent-water-damage",
+    "deluge-water-damage",
+    "tidal-spear-water-damage",
+    "dragonbreath-drowning-torrent-water-damage"
+  ]
+}

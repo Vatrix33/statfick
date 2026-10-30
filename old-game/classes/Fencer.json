@@ -1,0 +1,101 @@
+{
+  "id": "fencer",
+  "name": "Fencer",
+  "requirements": {
+    "level": 18,
+    "classes": {
+      "rogue": 5
+    },
+    "other": {
+      "type": "one-handed-attacks",
+      "count": 7
+    }
+  },
+  "maxLevel": 6,
+  "levels": [
+    {
+      "level": 1,
+      "description": "One-handed sword Accuracy +20% with an empty off-hand.",
+      "effects": [
+        {
+          "type": "fencer-weapon-hit-percent",
+          "amount": 20
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Evasion +10% with an empty off-hand and one-handed sword.",
+      "effects": [
+        {
+          "type": "fencer-evasion-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Riposte: counterattack once per turn after a foe misses you.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "riposte",
+          "name": "Riposte",
+          "description": "While using a one-handed sword with an empty off-hand, counterattack at 35% damage after a foe misses you. Once per turn.",
+          "effect": {
+            "type": "fencer-riposte",
+            "amount": 35
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "One-handed sword power +10% with an empty off-hand.",
+      "effects": [
+        {
+          "type": "fencer-weapon-power-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "One-handed sword Crit Rating +5 with an empty off-hand.",
+      "effects": [
+        {
+          "type": "fencer-weapon-crit-flat",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Unlock Perfect Lunge: your next one-handed sword attack gains 40% Accuracy and 25% power.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "perfect-lunge",
+          "name": "Perfect Lunge",
+          "description": "Your next one-handed sword attack gains 40% Accuracy and 25% power.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": false,
+          "durationAttacks": 1,
+          "requiredWeaponType": "one-handed",
+          "requiredLoadout": "fencer",
+          "effects": [
+            {
+              "type": "weapon-hit-percent",
+              "amount": 40
+            },
+            {
+              "type": "weapon-power-percent",
+              "amount": 25
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

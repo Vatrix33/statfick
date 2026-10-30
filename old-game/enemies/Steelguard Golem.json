@@ -1,0 +1,13 @@
+{
+  "format": "stat-fick-enemy", "version": 1,
+  "id": "steelguard-golem-level-35", "name": "Steelguard Golem", "level": 35, "raceId": "elemental", "element": "earth",
+  "classLevels": { "monster": 3, "warrior": 5, "knight": 7, "guardian": 7, "bulwark": 7, "soldier": 6 },
+  "perkPoints": 0, "availablePoints": 0,
+  "stats": { "strength": 64, "vitality": 104, "mind": 50, "dexterity": 59, "intelligence": 44, "wisdom": 54, "speed": 69, "luck": 44 },
+  "manualAllocations": { "strength": 20, "vitality": 60, "mind": 6, "dexterity": 15, "intelligence": 0, "wisdom": 10, "speed": 25, "luck": 0 },
+  "baseArmor": 65,
+  "inventory": ["forge-weapon-1-mace+flail", "forge-armor-kite-shield+tower-shield"],
+  "equipment": { "primaryHand": "forge-weapon-1-mace+flail", "offHand": "forge-armor-kite-shield+tower-shield", "armor": null, "artifact1": null, "artifact2": null },
+  "noDropItems": ["forge-weapon-1-mace+flail", "forge-armor-kite-shield+tower-shield"],
+  "knownSpells": [], "drops": []
+}

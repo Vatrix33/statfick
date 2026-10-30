@@ -1,0 +1,58 @@
+{
+  "id": "spell-sniper",
+  "name": "Spell Sniper",
+  "requirements": {
+    "level": 1,
+    "classes": { "archer": 3, "mage": 3 },
+    "other": { "type": "known-spell-count", "count": 3, "description": "3 different spells known" }
+  },
+  "maxLevel": 5,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Increase Dexterity and Intelligence by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "dexterity", "amount": 5 },
+        { "type": "stat-permanent-percent", "target": "intelligence", "amount": 5 }
+      ]
+    },
+    { "level": 2, "description": "Increase maximum Mana by 5%.", "effects": [{ "type": "max-mana-percent", "amount": 5 }] },
+    {
+      "level": 3,
+      "description": "Gain the Arcane Ballistics passive.",
+      "effects": [{
+        "type": "passive",
+        "id": "arcane-ballistics",
+        "name": "Arcane Ballistics",
+        "condition": "While wielding a bow",
+        "description": "Bows gain an additional 0.2× Intelligence scaling.",
+        "effects": [{ "type": "weapon-scaling", "weaponType": "bow", "stat": "intelligence", "amount": 0.2 }]
+      }]
+    },
+    {
+      "level": 4,
+      "description": "Bows gain 10% Accuracy and all spells gain 5% power.",
+      "effects": [
+        { "type": "weapon-hit-percent", "weaponType": "bow", "amount": 10 },
+        { "type": "spell-power-percent", "amount": 5 }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Unlock Spellshot.",
+      "effects": [{
+        "type": "skill",
+        "id": "spellshot",
+        "name": "Spellshot",
+        "combatOnly": true,
+        "cooldown": "combat",
+        "durationAttacks": 1,
+        "requiredWeaponType": "bow",
+        "manaCostMaxPercent": 10,
+        "description": "Spend 10% maximum Mana. Your next bow attack deals additional Basic damage equal to 15% maximum Mana. Can be used once per combat.",
+        "effects": [],
+        "onHitEffects": [{ "type": "bonus-damage-max-mana-percent", "amount": 15, "element": "basic", "weaponType": "bow" }]
+      }]
+    }
+  ]
+}

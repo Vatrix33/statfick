@@ -1,0 +1,71 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "pale-monarch-level-80",
+  "name": "Pale Monarch",
+  "level": 80,
+  "raceId": "undead",
+  "element": "death",
+  "resistances": {
+    "death": 50,
+    "dark": 35,
+    "holy": -45
+  },
+  "classLevels": {
+    "mage": 5,
+    "spellcaster": 7,
+    "wizard": 7,
+    "necromancer": 9,
+    "warlock": 7,
+    "great-mage": 7,
+    "scholar": 5,
+    "wise-man": 5,
+    "summoner": 7,
+    "sage": 5,
+    "energist": 5,
+    "lich": 5,
+    "monster": 3,
+    "sorcerer": 3
+  },
+  "stats": {
+    "strength": 85,
+    "vitality": 150,
+    "mind": 245,
+    "dexterity": 110,
+    "intelligence": 195,
+    "wisdom": 210,
+    "speed": 140,
+    "luck": 145
+  },
+  "baseArmor": 18,
+  "inventory": ["forge-weapon-1-wand"],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-wand",
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "dimming-touch-death-damage",
+    "summon-call-of-the-dead-death-summon",
+    "health-grasp-death-damage",
+    "eerie-shock-death-damage",
+    "death-bolt-death-damage",
+    "soul-leech-death-damage",
+    "grave-chill-death-damage",
+    "deathwave-death-damage",
+    "night-drain-dark-damage",
+    "void-lance-dark-damage",
+    "black-sanctuary-dark-support",
+    "summon-undead-hulk-death-summon",
+    "withering-choir-death-damage",
+    "necropolis-aegis-death-support",
+    "grave-chorus-death-damage",
+    "void-crown-dark-damage",
+    "ossuary-storm-death-damage",
+    "last-requiem-death-damage",
+    "blackened-horizon-dark-damage",
+    "gravesong-death-damage"
+  ]
+}

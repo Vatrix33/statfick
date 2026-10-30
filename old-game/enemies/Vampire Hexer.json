@@ -1,0 +1,9 @@
+{
+  "format": "stat-fick-enemy", "version": 1, "id": "vampire-hexer-level-52", "name": "Vampire Hexer", "level": 52,
+  "raceId": "undead", "resistances": { "blood": 35, "dark": 20, "holy": -30 },
+  "classLevels": { "monster": 3, "vampire": 4, "mage": 5, "spellcaster": 7, "hemomancer": 9, "warlock": 7, "great-mage": 7, "scholar": 5, "wise-man": 5 },
+  "stats": { "strength": 70, "vitality": 108, "mind": 148, "dexterity": 89, "intelligence": 142, "wisdom": 127, "speed": 98, "luck": 94 },
+  "inventory": ["forge-weapon-1-wand", "forge-armor-robe"],
+  "equipment": { "primaryHand": "forge-weapon-1-wand", "offHand": null, "armor": "forge-armor-robe", "artifact1": null, "artifact2": null },
+  "knownSpells": ["hemorrhage-lance-blood-damage", "crimson-renewal-blood-support", "heartpiercer-blood-damage", "crimson-nova-blood-damage", "sanguine-pact-blood-support", "scarlet-surge-blood-damage", "sanguine-lance-blood-damage", "night-drain-dark-damage", "curse-of-frailty-dark-damage", "night-mantle-dark-support"]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "traveler",
+  "name": "Traveler",
+  "requirements": { "level": 10, "classes": {}, "other": { "type": "distance-traveled", "kilometers": 600, "description": "600 km traveled" } },
+  "maxLevel": 3,
+  "levels": [
+    { "level": 1, "description": "Increase traveling speed by 1 km/h.", "effects": [
+      { "type": "travel-speed-flat", "amount": 1, "description": "Travel speed +1 km/h" }
+    ] },
+    { "level": 2, "description": "Using Camping Supplies has a 50% chance to recover the item.", "effects": [
+      { "type": "camping-supply-retention-chance", "amount": 50, "description": "50% chance to retain Camping Supplies" }
+    ] },
+    { "level": 3, "description": "Gain The Road Ahead passive.", "effects": [
+      { "type": "passive", "id": "the-road-ahead", "name": "The Road Ahead", "condition": "While in combat", "description": "Increase Speed by 4% for each living enemy in combat.", "effect": { "type": "stat-permanent-percent-per-enemy", "target": "speed", "amount": 4 } }
+    ] }
+  ]
+}

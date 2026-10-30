@@ -1,0 +1,43 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "harpy-sentinel-level-46",
+  "name": "Harpy Sentinel",
+  "level": 46,
+  "raceId": "harpy",
+  "classLevels": {
+    "monster": 3,
+    "archer": 5,
+    "rogue": 5,
+    "sharpshooter": 5,
+    "ambusher": 7,
+    "soldier": 6,
+    "stalker": 4,
+    "shadow": 6,
+    "eminence": 4
+  },
+  "stats": {
+    "strength": 65,
+    "vitality": 78,
+    "mind": 59,
+    "dexterity": 116,
+    "intelligence": 63,
+    "wisdom": 58,
+    "speed": 123,
+    "luck": 63
+  },
+  "naturalWeapon": "beast-claws",
+  "inventory": [
+    
+  ],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "skyward-rush-wind-damage"
+  ]
+}

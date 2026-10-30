@@ -1,0 +1,67 @@
+{
+  "id": "courier",
+  "name": "Courier",
+  "requirements": {
+    "level": 1,
+    "classes": {
+      "traveler": 3
+    },
+    "other": {
+      "type": "guild-travel-quests-completed",
+      "count": 15
+    }
+  },
+  "maxLevel": 3,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Travel speed +2 km/h.",
+      "effects": [
+        {
+          "type": "travel-speed-flat",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Gain Dispatch Guard: Armor and Evasion +10% while carrying a Travel or Escort Guild quest.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "dispatch-guard",
+          "name": "Dispatch Guard",
+          "description": "Armor and Evasion +10% while carrying an active Travel or Escort Guild quest.",
+          "effect": {
+            "type": "quest-defense-percent",
+            "amount": 10
+          }
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Unlock Haste the Route: all allies gain 15% Speed for two turns in combat.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "haste-the-route",
+          "name": "Haste the Route",
+          "description": "In combat, all allies gain 15% Speed for two turns. Once per combat.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": true,
+          "target": "all-allies",
+          "onActivateEffects": [
+            {
+              "type": "stat-percent",
+              "target": "speed",
+              "amount": 15,
+              "durationTurns": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

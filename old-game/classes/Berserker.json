@@ -1,0 +1,69 @@
+{
+  "id": "berserker",
+  "name": "Berserker",
+  "requirements": {
+    "level": 15,
+    "classes": {},
+    "anyClasses": { "warrior": 5, "archer": 5 },
+    "other": {
+      "type": "multi-kill-combats",
+      "kills": 3,
+      "count": 5,
+      "description": "Kill at least 3 enemies in one combat 5 times"
+    }
+  },
+  "maxLevel": 6,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Increase weapon power by 15%.",
+      "effects": [{ "type": "weapon-power-percent", "amount": 15 }]
+    },
+    {
+      "level": 2,
+      "description": "Increase maximum HP by 10%.",
+      "effects": [{ "type": "max-hp-percent", "amount": 10 }]
+    },
+    {
+      "level": 3,
+      "description": "Gain the Battle Hunger passive.",
+      "effects": [{
+        "type": "passive",
+        "id": "battle-hunger",
+        "name": "Battle Hunger",
+        "condition": "While enemies remain",
+        "description": "Deal 5% more damage for each living enemy, up to 25%.",
+        "effects": [{ "type": "outgoing-damage-percent-per-enemy", "amount": 5, "maximumEnemies": 5 }]
+      }]
+    },
+    {
+      "level": 4,
+      "description": "Increase Strength and Dexterity by 5%.",
+      "effects": [
+        { "type": "stat-permanent-percent", "target": "strength", "amount": 5 },
+        { "type": "stat-permanent-percent", "target": "dexterity", "amount": 5 }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Increase weapon Crit Rating by 10.",
+      "effects": [{ "type": "weapon-crit-flat", "amount": 10 }]
+    },
+    {
+      "level": 6,
+      "description": "Unlock Rampage.",
+      "effects": [{
+        "type": "skill",
+        "id": "rampage",
+        "name": "Rampage",
+        "combatOnly": true,
+        "cooldown": "combat",
+        "instant": true,
+        "actionPoints": 3,
+        "description": "Attack every living enemy once with your primary weapon at 75% damage. Off-hand attacks are not triggered. Can be used once per combat.",
+        "effects": [],
+        "onActivateEffects": [{ "type": "weapon-attack-all-enemies", "damageMultiplier": 0.75 }]
+      }]
+    }
+  ]
+}

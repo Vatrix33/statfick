@@ -1,0 +1,107 @@
+{
+  "id": "poisoner",
+  "name": "Poisoner",
+  "requirements": {
+    "level": 15,
+    "classes": {
+      "rogue": 5
+    },
+    "other": null
+  },
+  "maxLevel": 7,
+  "levels": [
+    {
+      "level": 1,
+      "description": "Weapon Accuracy +10%.",
+      "effects": [
+        {
+          "type": "weapon-hit-percent",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "description": "Dexterity permanent bonus +5%.",
+      "effects": [
+        {
+          "type": "stat-permanent-percent",
+          "target": "dexterity",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "description": "Gain Toxic Edge: successful weapon hits poison for 3% of target maximum HP per turn for two turns.",
+      "effects": [
+        {
+          "type": "passive",
+          "id": "toxic-edge",
+          "name": "Toxic Edge",
+          "description": "Your weapon hits poison targets for 3% of their maximum HP per turn for two turns.",
+          "effect": {
+            "type": "poison-on-hit",
+            "percentMaxHp": 3,
+            "durationTurns": 2
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "description": "Poisoned targets heal 20% less.",
+      "effects": [
+        {
+          "type": "poison-healing-reduction-percent",
+          "amount": 20
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "description": "Weapon Crit Rating +5.",
+      "effects": [
+        {
+          "type": "weapon-crit-flat",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "description": "Toxic Edge damage +2% of target maximum HP per turn.",
+      "effects": [
+        {
+          "type": "poison-on-hit",
+          "percentMaxHp": 2,
+          "durationTurns": 2
+        }
+      ]
+    },
+    {
+      "level": 7,
+      "description": "Unlock Noxious Coating: your next two weapon hits add 2% maximum-HP poison damage and lower target Accuracy by 20%.",
+      "effects": [
+        {
+          "type": "skill",
+          "id": "noxious-coating",
+          "name": "Noxious Coating",
+          "description": "Your next two weapon hits add 2% maximum-HP poison damage and reduce target Accuracy by 20% for two turns.",
+          "combatOnly": true,
+          "cooldown": "combat",
+          "instant": false,
+          "durationAttacks": 2,
+          "effects": [
+            {
+              "type": "enhanced-poison-on-hit",
+              "percentMaxHp": 2,
+              "hitPercentPenalty": 20,
+              "durationTurns": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

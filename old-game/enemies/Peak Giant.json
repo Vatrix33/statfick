@@ -1,0 +1,40 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "peak-giant-level-56",
+  "name": "Peak Giant",
+  "level": 56,
+  "raceId": "giant",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "barbarian": 6,
+    "brawler": 5,
+    "great-beast": 10,
+    "stonebreaker": 3,
+    "soldier": 6,
+    "guardian": 7,
+    "slayer": 7
+  },
+  "stats": {
+    "strength": 150,
+    "vitality": 150,
+    "mind": 54,
+    "dexterity": 61,
+    "intelligence": 54,
+    "wisdom": 57,
+    "speed": 45,
+    "luck": 41
+  },
+  "inventory": [
+    "forge-weapon-1-mace+flail"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-mace+flail",
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": []
+}
