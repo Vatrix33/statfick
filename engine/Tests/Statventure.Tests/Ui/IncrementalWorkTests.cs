@@ -102,6 +102,39 @@ public class IncrementalWorkTests
         Assert.True(document.IsDirty);
     }
 
+    /// <summary>Gives the button the inline style <paramref name="from"/>, then <paramref name="to"/>: the boxes the second change laid out, and whether it repaints.</summary>
+    static (long LaidOut, bool Repaints) Restyle(string from, string to)
+    {
+        var document = Build();
+        var button = Button(document);
+        button.SetAttribute("style", from);
+        document.Update();
+        document.Painted();
+        Assert.False(document.IsDirty);
+        var before = Work(document);
+        button.SetAttribute("style", to);
+        document.Update();
+        return (Work(document).Layouts - before.Layouts, document.IsDirty);
+    }
+
+    [Fact]
+    public void ABorderStyleChangeWithTheSameWidthsRepaintsWithoutLayout()
+    {
+        // The UA style's button:active (outset to inset), as Blink's ComputedStyle::DiffNeedsFullLayout compares used widths.
+        Assert.Equal((0, true), Restyle("border: 2px outset rgb(100, 100, 100)", "border: 2px inset rgb(100, 100, 100)"));
+        // none and hidden borders are 0 wide, whatever their widths.
+        Assert.Equal(0, Restyle("border: 2px none", "border: 2px hidden").LaidOut);
+        Assert.Equal(0, Restyle("border: 2px none", "border: 5px hidden").LaidOut);
+    }
+
+    [Fact]
+    public void ABorderChangeOfUsedWidthsLaysOut()
+    {
+        Assert.InRange(Restyle("border: 2px solid", "border: 3px solid").LaidOut, 1, 80);
+        Assert.InRange(Restyle("border: 2px none", "border: 2px solid").LaidOut, 1, 80);
+        Assert.InRange(Restyle("border: 2px solid", "border: 2px solid; border-left-style: none").LaidOut, 1, 80);
+    }
+
     [Fact]
     public void ScrollingRepaintsWithoutLayout()
     {
