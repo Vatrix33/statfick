@@ -41,7 +41,7 @@ def eevee_engine():
 
 
 def reset():
-    for collection in (bpy.data.objects, bpy.data.meshes, bpy.data.materials, bpy.data.cameras, bpy.data.armatures):
+    for collection in (bpy.data.objects, bpy.data.meshes, bpy.data.materials, bpy.data.cameras, bpy.data.armatures, bpy.data.lights):
         for block in list(collection):
             collection.remove(block)
 
@@ -68,6 +68,9 @@ def setup_render(scene, spec):
         if prop.identifier.startswith("use_stamp"):
             setattr(render, prop.identifier, False)
     scene.eevee.taa_render_samples = 64
+    # Only the sun lights surfaces: no screen-space or ray-traced bounces (the world is black to them).
+    scene.eevee.use_raytracing = False
+    scene.eevee.use_fast_gi = False
     # Linear values go out as sRGB with nothing else applied, as the engine's sRGB target encodes them.
     scene.display_settings.display_device = "sRGB"
     scene.view_settings.view_transform = "Standard"
@@ -78,15 +81,74 @@ def setup_render(scene, spec):
 
 
 def setup_world(scene, background):
+    """The background colour seen by the camera only: to light it's black, as in the lizardman test
+    (which had no world), so only the sun lights surfaces."""
     world = scene.world or bpy.data.worlds.new("World")
     scene.world = world
     nodes = world.node_tree.nodes
     nodes.clear()
-    node = nodes.new("ShaderNodeBackground")
-    node.inputs["Color"].default_value = (*hex_to_linear(background), 1)
-    node.inputs["Strength"].default_value = 1
+    seen = nodes.new("ShaderNodeBackground")
+    seen.inputs["Color"].default_value = (*hex_to_linear(background), 1)
+    dark = nodes.new("ShaderNodeBackground")
+    dark.inputs["Color"].default_value = (0, 0, 0, 1)
+    path = nodes.new("ShaderNodeLightPath")
+    mix = nodes.new("ShaderNodeMixShader")
     output = nodes.new("ShaderNodeOutputWorld")
-    world.node_tree.links.new(node.outputs["Background"], output.inputs["Surface"])
+    links = world.node_tree.links
+    links.new(path.outputs["Is Camera Ray"], mix.inputs[0])
+    links.new(dark.outputs[0], mix.inputs[1])
+    links.new(seen.outputs[0], mix.inputs[2])
+    links.new(mix.outputs[0], output.inputs["Surface"])
+
+
+def add_sun(scene, spec):
+    """A sun shining from the direction given (toward the light), of the strength given; no shadows
+    (step 5) and no angular size (the engine's sun is a direction)."""
+    light = bpy.data.lights.new("sun", "SUN")
+    light.energy = spec["strength"]
+    light.angle = 0
+    light.use_shadow = False
+    sun = bpy.data.objects.new("sun", light)
+    scene.collection.objects.link(sun)
+    # A sun shines down its local −Z.
+    sun.rotation_euler = (-to_blender(spec["direction"])).to_track_quat("-Z", "Y").to_euler()
+
+
+def srgb(c):
+    return c * 12.92 if c <= 0.0031308 else 1.055 * c ** (1 / 2.4) - 0.055
+
+
+def shadow_of(lit_linear, style):
+    """The lizardman's shadow tone: the lit tone mixed toward the ink in sRGB."""
+    ink = [((int(style["ink"].lstrip("#"), 16) >> shift) & 255) / 255 for shift in (16, 8, 0)]
+    return tuple(srgb_to_linear(srgb(c) + (i - srgb(c)) * style["shadowMix"]) for c, i in zip(lit_linear, ink))
+
+
+def toon_material(name, lit, shadow, band):
+    """The lizardman test's cel material: a white Diffuse BSDF through Shader to RGB and RGB to BW
+    into a constant colour ramp (shadow below the band edge, lit from it), shown as emission."""
+    material = bpy.data.materials.new(name)
+    nodes = material.node_tree.nodes
+    nodes.clear()
+    diffuse = nodes.new("ShaderNodeBsdfDiffuse")
+    diffuse.inputs["Color"].default_value = (1, 1, 1, 1)
+    to_rgb = nodes.new("ShaderNodeShaderToRGB")
+    bw = nodes.new("ShaderNodeRGBToBW")
+    ramp = nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.interpolation = "CONSTANT"
+    ramp.color_ramp.elements[0].position = 0
+    ramp.color_ramp.elements[0].color = (*shadow, 1)
+    ramp.color_ramp.elements[1].position = band
+    ramp.color_ramp.elements[1].color = (*lit, 1)
+    emission = nodes.new("ShaderNodeEmission")
+    output = nodes.new("ShaderNodeOutputMaterial")
+    links = material.node_tree.links
+    links.new(diffuse.outputs[0], to_rgb.inputs[0])
+    links.new(to_rgb.outputs[0], bw.inputs[0])
+    links.new(bw.outputs[0], ramp.inputs[0])
+    links.new(ramp.outputs[0], emission.inputs[0])
+    links.new(emission.outputs[0], output.inputs["Surface"])
+    return material
 
 
 def flat_material(name, linear):
@@ -121,9 +183,10 @@ def slot_of(name):
     return name[:-4] if len(name) > 4 and name[-4] == "." and name[-3:].isdigit() else name
 
 
-def add_model(scene, path, spec, palette):
-    """Imports a .glb, places it by the matrix (glTF coordinates) and shows each material as the colour
-    its palette slot gives, or its own base colour when the palette has no such slot."""
+def add_model(scene, path, spec, palette, shadows, style):
+    """Imports a .glb, places it by the matrix (glTF coordinates) and cel-shades each material in the
+    tones its palette slot gives (lit, and shadow if the palette has one), or its own base colour
+    when the palette has no such slot; shadow tones the palette doesn't give come from the style."""
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=path)
     imported = [o for o in bpy.data.objects if o not in before]
@@ -136,18 +199,20 @@ def add_model(scene, path, spec, palette):
             obj.parent = holder
     # The importer keeps glTF's material name, base colour (Principled BSDF) and doubleSided (backface
     # culling). Each material is replaced once: a mesh used by two objects shares its slots.
-    flats = {}
+    replaced = {}
     for obj in imported:
         for slot in getattr(obj, "material_slots", []):
             source = slot.material
-            if source is None or source in flats.values():
+            if source is None or source in replaced.values():
                 continue
-            if source not in flats:
-                colour = palette.get(slot_of(source.name))
-                linear = hex_to_linear(colour) if colour else tuple(principled_base_color(source))
-                flats[source] = flat_material(f"flat-{source.name}", linear)
-                flats[source].use_backface_culling = source.use_backface_culling
-            slot.material = flats[source]
+            if source not in replaced:
+                slot_name = slot_of(source.name)
+                colour = palette.get(slot_name)
+                lit = hex_to_linear(colour) if colour else tuple(principled_base_color(source))
+                shadow = hex_to_linear(shadows[slot_name]) if colour and slot_name in shadows else shadow_of(lit, style)
+                replaced[source] = toon_material(f"toon-{source.name}", lit, shadow, style["bandEdge"])
+                replaced[source].use_backface_culling = source.use_backface_culling
+            slot.material = replaced[source]
 
 
 def principled_base_color(material):
@@ -196,11 +261,13 @@ def main():
         setup_render(scene, spec)
         setup_world(scene, spec["background"])
         add_camera(scene, spec["camera"])
+        if spec.get("sun"):
+            add_sun(scene, spec["sun"])
         for index, obj in enumerate(spec["objects"]):
             add_object(scene, index, data["shapes"][obj["shape"]], obj)
         models = os.path.normpath(os.path.join(os.path.dirname(scenes_path), data["modelFolder"]))
         for model in spec.get("models", []):
-            add_model(scene, os.path.join(models, model["file"]), model, spec.get("palette", {}))
+            add_model(scene, os.path.join(models, model["file"]), model, spec.get("palette", {}), spec.get("shadows", {}), spec["style"])
         scene.render.filepath = os.path.join(output, f"r3d-{spec['name']}.png")
         bpy.ops.render.render(write_still=True)
         print("wrote", scene.render.filepath)

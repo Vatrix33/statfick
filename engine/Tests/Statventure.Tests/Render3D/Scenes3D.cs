@@ -71,13 +71,17 @@ public sealed record ModelObject3D(string File, Vector3 Translation, Vector3 Rot
 }
 
 /// <summary>
-/// A test scene rendered by Blender (Tools/BlenderReference) and by the engine: shapes, models, and
-/// the palette slots (name to "#rrggbb") the models' materials take.
+/// A test scene rendered by Blender (Tools/BlenderReference) and by the engine: shapes (flat
+/// colours), models (cel-shaded), the palette slots (name to "#rrggbb") the models' materials take,
+/// shadow tones the palette gives some slots, the sun and the cel style.
 /// </summary>
 public sealed record Scene3D(string Name, int Width, int Height, string Background, Camera3D Camera, Object3D[] Objects)
 {
     public ModelObject3D[] Models { get; init; } = [];
     public Dictionary<string, string> Palette { get; init; } = [];
+    public Dictionary<string, string> Shadows { get; init; } = [];
+    public SunLight? Sun { get; init; }
+    public CelStyle Style { get; init; } = CelStyle.Default;
 }
 
 public static class Scenes3D
@@ -90,6 +94,9 @@ public static class Scenes3D
         Box(new(1.3f, -0.2f, -0.6f), new(0, -20, 10), new(0.6f, 1.6f, 0.6f), "#4a6a8a"),
         Box(new(-0.9f, -0.75f, 0.6f), new(0, 15, 0), new(1.8f, 0.4f, 0.9f), "#6a8a4a"),
     ];
+
+    /// <summary>The lizardman test's sun: from the upper right, on the viewer's side (Blender's (1, −0.7, 1.1)), strength 3.</summary>
+    static readonly SunLight Lizardman = new(new(1, 1.1f, 0.7f), 3);
 
     public static readonly Scene3D[] All =
     [
@@ -110,12 +117,39 @@ public static class Scenes3D
         {
             Models = [new("blocks.glb", Vector3.Zero, Vector3.Zero)],
             Palette = new() { ["metal.base"] = "#5f6a78", ["metal.trim"] = "#b08a3c", ["cloth"] = "#3f4f8f" },
+            Sun = new SunLight(new(-0.8f, 1.2f, -0.5f), 3),
         },
         // A skinned model in its rest pose (drawn unskinned: the joints' bind transforms place it where its node does), side view, orthographic.
         new("model-rigged", 240, 320, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.3f, 1.1f, 5), new(0.3f, 1.1f, 0), OrthographicHeight: 2.8f), [])
         {
             Models = [new("rigged.glb", new(-0.1f, 0, 0), new(0, 30, 0))],
             Palette = new() { ["skin"] = "#8a6a52" },
+            Sun = Lizardman,
+        },
+        // Cel shading: band edges across smooth surfaces (a sphere scaled unevenly, a torus), flat
+        // faces, a slot whose shadow tone the palette gives (metal.base), a colour no palette names
+        // (stone), a double-sided card seen from behind, a mirrored smooth cone; the lizardman's sun.
+        new("cel-shapes", 420, 240, "#d8cbb0", new Camera3D(Projection.Perspective, new(0.2f, 1.5f, 4.4f), new(0.1f, 0.45f, 0), FieldOfViewDegrees: 38), [])
+        {
+            Models = [new("shapes.glb", Vector3.Zero, Vector3.Zero)],
+            Palette = new() { ["cloth"] = "#7b5a3a", ["metal.base"] = "#8a8f96", ["metal.trim"] = "#c9a46a" },
+            Shadows = new() { ["metal.base"] = "#2f3540" },
+            Sun = Lizardman,
+        },
+        // Close up, the band edge runs across large smooth surfaces, where a small error in where it
+        // falls moves it by pixels (a band edge 5% off shifts it about 2 pixels here).
+        new("cel-closeup", 320, 320, "#d8cbb0", new Camera3D(Projection.Perspective, new(-1.05f, 0.75f, 1.55f), new(-0.95f, 0.5f, 0), FieldOfViewDegrees: 40), [])
+        {
+            Models = [new("shapes.glb", Vector3.Zero, Vector3.Zero)],
+            Palette = new() { ["cloth"] = "#7b5a3a", ["metal.base"] = "#8a8f96", ["metal.trim"] = "#c9a46a" },
+            Sun = Lizardman,
+        },
+        // The same shapes in the battle view (orthographic, from the side) under a low sun from the left: other band positions.
+        new("cel-side", 420, 200, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.1f, 0.5f, 6), new(0.1f, 0.5f, 0), OrthographicHeight: 1.9f), [])
+        {
+            Models = [new("shapes.glb", Vector3.Zero, new(0, -15, 0))],
+            Palette = new() { ["cloth"] = "#3f4f8f", ["metal.base"] = "#5f6a78", ["metal.trim"] = "#b08a3c" },
+            Sun = new SunLight(new(-1, 0.35f, 0.6f), 3),
         },
     ];
 }

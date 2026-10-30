@@ -81,17 +81,17 @@ public class Render3DReferenceTests(GpuFixture gpu)
                     meshes[o.Shape] = mesh = Mesh.FromTriangles(device, o.Shape.Positions, o.Shape.Triangles);
                 return new DrawItem(mesh, o.Model, Colors.LinearFromHex(o.Color));
             }).ToList();
-            var palette = new Palette(scene.Palette);
+            var palette = new Palette(scene.Palette, scene.Shadows);
             foreach (var placed in scene.Models)
             {
                 var model = Model.Load(device, Path.Combine(ModelDirectory, placed.File));
                 models.Add(model);
-                model.Draw(items, placed.Model, palette);
+                model.Draw(items, placed.Model, palette, scene.Style);
             }
             using var target = new RenderTarget3D(device, scene.Width, scene.Height);
             var renderer = new Renderer3D(device);
             var frame = device.BeginFrame();
-            renderer.Render(frame, target, scene.Camera.ToCamera(), items, Colors.LinearFromHex(scene.Background));
+            renderer.Render(frame, target, scene.Camera.ToCamera(), items, Colors.LinearFromHex(scene.Background), scene.Sun ?? default, scene.Style);
             device.EndFrame(frame);
             device.WaitIdle();
             return new RgbaImage(scene.Width, scene.Height, target.Resolved.ReadPixels());
@@ -171,11 +171,12 @@ public class Render3DReferenceTests(GpuFixture gpu)
     /// <summary>
     /// The scenes for Tools/BlenderReference/render_scenes.py: shapes, each object's model matrix
     /// (columns) and colour, models (files in <c>modelFolder</c>, relative to this file) with their
-    /// matrices and the palette, the camera.
+    /// matrices, the palette and shadow tones, the sun, the cel style, the camera.
     /// </summary>
     static string SceneFile()
     {
         static float[] V(Vector3 v) => [v.X, v.Y, v.Z];
+        static string Hex(Vector4 srgb) => $"#{(int)MathF.Round(srgb.X * 255):x2}{(int)MathF.Round(srgb.Y * 255):x2}{(int)MathF.Round(srgb.Z * 255):x2}";
         // A System.Numerics row (row vectors) is a column of the same matrix for column vectors, as glTF stores them.
         static float[][] Columns(Matrix4x4 m) =>
         [
@@ -206,6 +207,9 @@ public class Render3DReferenceTests(GpuFixture gpu)
             objects = s.Objects.Select(o => new { shape = o.Shape.Name, matrix = Columns(o.Model), color = o.Color }).ToArray(),
             models = s.Models.Select(m => new { file = m.File, matrix = Columns(m.Model) }).ToArray(),
             palette = s.Palette,
+            shadows = s.Shadows,
+            sun = s.Sun is { } sun ? new { direction = V(sun.Direction), strength = sun.Strength } : null,
+            style = new { ink = Hex(s.Style.Ink), shadowMix = s.Style.ShadowMix, bandEdge = s.Style.BandEdge },
         });
         return JsonSerializer.Serialize(new { modelFolder = "../Data/Models", shapes, scenes }, new JsonSerializerOptions { WriteIndented = true }) + "\n";
     }

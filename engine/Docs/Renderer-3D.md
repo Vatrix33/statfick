@@ -22,6 +22,13 @@ shadow, glow, cast shadows drawn as ink. It also renders 3D views into the UI (p
 - **glTF reader** (step 2): BRUTAL's glTF package (`Ahwoo.BRUTAL.Gltf`) parses the .glb container
   and its JSON; the engine decodes accessors (component types, strides, sparse) and builds the node
   hierarchy, materials and skins itself. M9's converter reuses it.
+- **Cel shading** (step 3): the lizardman test's rule. Two tones: lit is the slot's colour; shadow
+  is that colour mixed 42% toward the ink `#130e0b` (in sRGB, as the lizardman script mixed),
+  unless the palette gives the slot its own shadow tone. The band edge is where a white diffuse
+  surface lit by a sun of strength 3 falls below 0.3; EEVEE's diffuse is strength/π · N·L, so the
+  edge is at N·L 0.314, 71.7° from the light. Engine defaults, settable per scene. Band edges are
+  antialiased like Blender's render, over about a pixel from how fast the light changes on screen
+  (not shaded per MSAA sample).
 - **Colours: palette slots** (step 2). Each Blender material names a slot (`metal.base`,
   `metal.trim`, `cloth`, `skin`, …); the engine fills the slots from a palette when it draws, so one
   sword model shows in every metal and one robe in every cloth, as the old game's palettes (metals
@@ -109,6 +116,13 @@ come up.
   translated rig (so a skinned mesh placed by its node instead of its joints shows). Scenes place
   models (`Scene3D.Models`) and give the palette; Blender reads them with its own glTF importer and
   shows each material as its slot's palette colour or its base colour, keeping its backface culling.
+- **Cel shading in Blender** (`render_scenes.py`): model materials become the lizardman test's toon
+  material: a white Diffuse BSDF → Shader to RGB → RGB to BW → constant colour ramp (shadow tone at
+  0, lit tone from the band edge) → emission; the shadow tone from the palette or mixed toward the
+  ink in sRGB. The sun has no angular size and no shadows yet. The world shows the background to
+  camera rays only (Light Path "Is Camera Ray"), black to lighting, as the lizardman test had no
+  world; ray tracing and fast GI are off, so only the sun lights surfaces. Measured: EEVEE's white
+  diffuse under a sun is strength/π · N·L (0.9546 · cos for strength 3). Shapes stay flat emission.
 - **Reproducible:** Blender's PNG stamps (date, render time) are off, so re-running the script on
   unchanged scenes writes the same bytes (models too).
 - **Comparison** (`Render3DReferenceTests.Compare`): a pixel whose 3×3 neighbourhood in the
@@ -159,4 +173,15 @@ Started 2026-10-30.
   the models' structure and colours and decodes a hand-written file (interleaved and quantized
   attributes, 8-bit indices, strip, fan, sparse positions, missing normals, a matrix node). Found
   by the references: a skinned mesh must be placed by its joints, not its node.
-- **Next: step 3, cel shading.**
+- **Step 3, cel shading (2026-10-30, 521 tests): done.** `mesh_cel.frag`: Blender's toon chain as
+  arithmetic (strength/π · max(N·L, 0) against the band edge, the normal flipped on back faces), the
+  band edge antialiased by `fwidth`; normals by the model's inverse transpose, centroid-sampled.
+  `SunLight`, `CelStyle` (ink, shadow mix, band edge; the lizardman's values by default, shadow
+  tones mixed in sRGB), `Palette` shadow tones per slot, `DrawItem.Shading` (models cel, shapes
+  flat). Scenes `cel-shapes` (smooth sphere scaled unevenly, torus, flat box, a palette shadow tone,
+  a colour no palette names, a double-sided card seen from behind, a mirrored smooth cone),
+  `cel-closeup` (band edges across large surfaces), `cel-side` (orthographic, low sun from the left);
+  `model-blocks` and `model-rigged` are cel-shaded now. All match Blender with interiors exact.
+  Checked by breaking the rules: no back-face flip, normals by the model matrix and a band edge 2%
+  off each fail.
+- **Next: step 4, ink lines** (against Freestyle).

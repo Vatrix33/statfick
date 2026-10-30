@@ -74,6 +74,41 @@ def cone_mesh(name, segments, radius1, radius2, depth, smooth, m):
     return mesh
 
 
+def uv_sphere_mesh(name, radius, m):
+    bm = bmesh.new()
+    bm.loops.layers.uv.new("UVMap")
+    bmesh.ops.create_uvsphere(bm, u_segments=32, v_segments=16, radius=radius, calc_uvs=True)
+    mesh = bpy.data.meshes.new(name)
+    bm.to_mesh(mesh)
+    bm.free()
+    mesh.materials.append(m)
+    mesh.shade_smooth()
+    return mesh
+
+
+def torus_mesh(name, major, minor, m, rings=32, sides=12):
+    bm = bmesh.new()
+    for r in range(rings):
+        a = 2 * math.pi * r / rings
+        for t in range(sides):
+            b = 2 * math.pi * t / sides
+            d = major + minor * math.cos(b)
+            bm.verts.new((d * math.cos(a), d * math.sin(a), minor * math.sin(b)))
+    bm.verts.ensure_lookup_table()
+    for r in range(rings):
+        for t in range(sides):
+            a, b = r * sides + t, r * sides + (t + 1) % sides
+            c, d = ((r + 1) % rings) * sides + (t + 1) % sides, ((r + 1) % rings) * sides + t
+            bm.faces.new((bm.verts[a], bm.verts[d], bm.verts[c], bm.verts[b]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    mesh = bpy.data.meshes.new(name)
+    bm.to_mesh(mesh)
+    bm.free()
+    mesh.materials.append(m)
+    mesh.shade_smooth()
+    return mesh
+
+
 def export(path, **options):
     bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", export_animations=False, export_apply=True,
                               export_extras=False, export_image_format="NONE", **options)
@@ -164,10 +199,32 @@ def rigged(path):
     export(path, export_skins=True)
 
 
+def shapes(path):
+    """Cel shading test shapes: a smooth sphere scaled unevenly (normals by the inverse transpose), a
+    smooth torus, a flat box in a colour no palette names, a double-sided card seen from behind (its
+    back is lit only with the normal flipped), and a smooth tilted cone mirrored (negative scale)."""
+    cloth = material("cloth", "#7b5a3a")
+    metal = material("metal.base", "#8a8f96")
+    trim = material("metal.trim", "#c9a46a")
+    stone = material("stone", "#6b6258")
+    card = material("cloth", "#5d2f4e", culled=False)  # becomes "cloth.001"
+    mesh_object("Ball", uv_sphere_mesh("ball", 0.5, cloth), location=(-1.5, 0, 0.5), scale=(1.3, 1.0, 0.75))
+    mesh_object("Ring", torus_mesh("ring", 0.42, 0.16, metal), location=(-0.25, 0.1, 0.55), rotation=(65, 0, 20))
+    box = box_mesh("box", (0.6, 0.6, 0.6), [stone])
+    mesh_object("Box", box, location=(0.85, 0.2, 0.35), rotation=(20, 0, 35))
+    plane = bpy.data.meshes.new("card")
+    plane.from_pydata([(-0.3, 0, -0.4), (0.3, 0, -0.4), (0.3, 0, 0.4), (-0.3, 0, 0.4)], [], [(0, 3, 2, 1)])
+    plane.materials.append(card)
+    # Its front faces +Y, away from the camera; turned 30° about Z its back faces the sun.
+    mesh_object("Card", plane, location=(0.55, -0.6, 0.45), rotation=(0, 0, 30))
+    mesh_object("Spike", cone_mesh("spike", 24, 0.28, 0.0, 0.9, True, trim), location=(1.75, 0, 0.5), rotation=(0, 35, 0), scale=(-1, 1, 1))
+    export(path)
+
+
 def main():
     output = sys.argv[sys.argv.index("--") + 1]
     os.makedirs(output, exist_ok=True)
-    for name, build in (("blocks", blocks), ("rigged", rigged)):
+    for name, build in (("blocks", blocks), ("rigged", rigged), ("shapes", shapes)):
         reset()
         build(os.path.join(output, name + ".glb"))
 

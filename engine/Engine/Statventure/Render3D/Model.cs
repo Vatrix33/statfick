@@ -17,6 +17,8 @@ public sealed class Model : IDisposable
     readonly Matrix4x4[] _world;
     readonly bool[] _reached;
 
+    static readonly Palette Empty = new();
+
     public ModelData Data { get; }
 
     Model(GpuDevice device, ModelData data)
@@ -80,9 +82,15 @@ public sealed class Model : IDisposable
 
     public static Model Load(GpuDevice device, string path) => Create(device, ModelData.Load(path));
 
-    /// <summary>Adds a draw item per primitive of every node in the scene, placed by <paramref name="transform"/> (model to world).</summary>
-    public void Draw(List<DrawItem> items, Matrix4x4 transform, Palette? palette = null)
+    /// <summary>
+    /// Adds a cel-shaded draw item per primitive of every node in the scene, placed by
+    /// <paramref name="transform"/> (model to world), in the tones <paramref name="palette"/> and
+    /// <paramref name="style"/> give its materials.
+    /// </summary>
+    public void Draw(List<DrawItem> items, Matrix4x4 transform, Palette? palette = null, CelStyle? style = null)
     {
+        palette ??= Empty;
+        style ??= CelStyle.Default;
         for (var node = 0; node < Data.Nodes.Count; node++)
         {
             var meshIndex = Data.Nodes[node].Mesh;
@@ -93,10 +101,11 @@ public sealed class Model : IDisposable
             for (var p = 0; p < primitives.Count; p++)
             {
                 var material = Data.MaterialOf(primitives[p]);
-                var color = palette?.Resolve(material) ?? material.BaseColor;
-                items.Add(skinned != null
-                    ? new DrawItem(skinned[p], transform, color, material.DoubleSided)
-                    : new DrawItem(_meshes[meshIndex][p], _world[node] * transform, color, material.DoubleSided));
+                var (lit, shadow) = palette.Resolve(material, style);
+                var item = skinned != null
+                    ? new DrawItem(skinned[p], transform, lit, material.DoubleSided)
+                    : new DrawItem(_meshes[meshIndex][p], _world[node] * transform, lit, material.DoubleSided);
+                items.Add(item with { Shading = Shading.Cel, Shadow = shadow });
             }
         }
     }
