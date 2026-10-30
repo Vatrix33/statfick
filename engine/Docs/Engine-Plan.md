@@ -5,9 +5,9 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-10-30):** M5 is finished (ticked below). The project is one git repo (`../`, see
-`../CLAUDE.md`), pushed to the private GitHub repo `github.com/Vatrix33/statfick`; the old game's builds are
-its release `old-game-2026-10-16`. Waiting for the user's go before M6 (3D renderer).
+**Current task (2026-10-30):** M6, the 3D renderer (the user's go 2026-10-30; decisions under "Decisions for
+M6"). Design doc and step plan: `Docs/Renderer-3D.md`. The project is one git repo (`../`, see `../CLAUDE.md`),
+on the private GitHub repo `github.com/Vatrix33/statfick`.
 When the user says to start M6, first ask the M6 questions under "Open questions for later milestones" below
 (all at once, with the question tool), record the answers, and only then plan and write code.
 
@@ -60,11 +60,7 @@ questions arise, ask them instantly and do not improvise anything."
 
 **Open questions for later milestones** (ask each before starting that milestone; the answers decide
 the design and the tests):
-- **M6 3D renderer:** What is the reference for correct cel shading and ink lines — Blender renders of
-  the same models (golden tests against Blender), the game's current sprites, or the look of the earlier Blender
-  lizardman test (cel shading + Freestyle; its files went when `Stat Fick/` was cleared)? Ink lines a fixed screen width or scaling with zoom? Shadows on the
-  battle stage and the map? The map camera: perspective or orthographic, zoom range? Anti-aliasing
-  method, minimum GPU and frame-rate target? glTF as the Blender export format?
+- **M6 3D renderer:** answered 2026-10-30 (see "Decisions for M6" below).
 - **M7 Animation:** which animation set each character, enemy and boss needs (full sets were decided
   on 2026-10-16; which clips: idle, attacks, casts, hits, deaths, walks…)? In-place or root motion? Who approves the first
   model before the rest are made?
@@ -130,6 +126,15 @@ Source tree:
 - Web Animations (2026-10-30): port the core of `element.animate`: keyframes with offsets and per-keyframe easing; duration, delay, endDelay, iterations, direction, fill, easing; the animation object with Finished/Ready tasks, Cancel/Finish/Pause/Play, PlayState, CurrentTime, StartTime, finish and cancel events; composited after CSS animations as in Blink; each part tested against Chromium. (Not the game's subset only, not the full API: no KeyframeEffect objects, playbackRate, commitStyles, replace, composite modes or getAnimations.)
 - Keyframes in C# (2026-10-30): dictionaries of CSS text with typed options, e.g. `el.Animate([new Keyframe { ["transform"] = "translateY(0)", ["opacity"] = "1" }, new Keyframe { Offset = 0.3, ["transform"] = "translateY(-6%)" }], new AnimateOptions { Duration = 620, Easing = "ease-in", Fill = FillMode.None })`; times in ms as SetTimeout. (Not @keyframes text, not anonymous objects.)
 - Path antialiasing (2026-10-25): keep the canvas's own path rasterizer (quarter-pixel cached positions, polygon-flattened curves, its own stroker). Path edges may differ from Skia's by up to ~60 levels; it's a known difference, and SVG paint fixtures compare at a tolerance that covers edge antialiasing. Porting Skia's analytic AA and stroker for paths was not chosen.
+
+**Decisions for M6 (2026-10-30):**
+- Reference for the look: Blender renders of the same test models (cel shading in the game's palette, Freestyle ink lines, as in the lizardman test); the engine's renders are compared with them like the UI with Chromium: shading bands and colours closely, lines with a tolerance.
+- Ink lines (outlines and inner edges) have a fixed width on screen, scaled with the display's pixel density, whatever the model's size or zoom.
+- Shadows: real-time cast shadows on the battle stage and the map, drawn in the art style (shadowed areas take the darker palette tone and hatching).
+- Map camera: orthographic, straight down, as the current map (labels, markers and travel lines map over 1:1; zoom 1–10× of fit); the 3D terrain gives relief, light and shadows.
+- Anti-aliasing: MSAA 4×.
+- Target: Vulkan 1.3 GPUs from about 2016 on (GTX 1050, RX 470, recent Intel integrated) at 60 fps in 1080p.
+- Models come out of Blender as glTF 2.0 binary (.glb); M9 converts them into the packs.
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
