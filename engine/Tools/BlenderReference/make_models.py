@@ -31,6 +31,32 @@ def material(name, hex_color, culled=True):
     return m
 
 
+def glowing_material(name, hex_color, emission_hex, strength=1.0):
+    """A Principled material of this colour that also emits: cel-shaded and glowing (the lizardman's blade)."""
+    m = material(name, hex_color)
+    value = int(emission_hex.lstrip("#"), 16)
+    principled = m.node_tree.nodes["Principled BSDF"]
+    principled.inputs["Emission Color"].default_value = (*[srgb_to_linear(((value >> s) & 255) / 255) for s in (16, 8, 0)], 1)
+    principled.inputs["Emission Strength"].default_value = strength
+    return m
+
+
+def shader_material(name, hex_color, kind):
+    """An Emission shader alone (flat and glowing: the lizardman's badge) or a Background shader (flat,
+    no glow, exported unlit: its pupils)."""
+    value = int(hex_color.lstrip("#"), 16)
+    colour = (*[srgb_to_linear(((value >> s) & 255) / 255) for s in (16, 8, 0)], 1)
+    m = bpy.data.materials.new(name)
+    nodes = m.node_tree.nodes
+    nodes.clear()
+    shader = nodes.new("ShaderNodeEmission" if kind == "emission" else "ShaderNodeBackground")
+    shader.inputs["Color"].default_value = colour
+    output = nodes.new("ShaderNodeOutputMaterial")
+    m.node_tree.links.new(shader.outputs[0], output.inputs["Surface"])
+    m.use_backface_culling = True
+    return m
+
+
 def reset():
     for collection in (bpy.data.objects, bpy.data.meshes, bpy.data.materials, bpy.data.armatures):
         for block in list(collection):
@@ -234,6 +260,7 @@ def shapes(path):
     back is lit only with the normal flipped), and a smooth tilted cone mirrored (negative scale)."""
     cloth = material("cloth", "#7b5a3a")
     metal = material("metal.base", "#8a8f96")
+    metal["hatch"] = 0  # no hatching in its shadow (a material custom property, exported as extras)
     trim = material("metal.trim", "#c9a46a")
     stone = material("stone", "#6b6258")
     card = material("cloth", "#5d2f4e", culled=False)  # becomes "cloth.001"
@@ -284,10 +311,27 @@ def fringe(path):
     export(path)
 
 
+def glowing(path):
+    """A figure with the lizardman's three kinds of special material: a blade that is cel-shaded and
+    glows (Principled with emission), a badge drawn flat that glows (an Emission shader) and a pupil
+    drawn flat without glow (a Background shader)."""
+    cloth = material("cloth", "#5d6f7d")
+    skin = material("skin", "#7fa35a")
+    blade = glowing_material("metal.base", "#88b5ac", "#bffff0")
+    badge = shader_material("badge", "#ffe27a", "emission")
+    pupil = shader_material("pupil", "#0d0907", "background")
+    mesh_object("Body", cone_mesh("body", 16, 0.26, 0.22, 1.1, True, cloth), location=(0, 0, 0.55))
+    mesh_object("Head", uv_sphere_mesh("head", 0.2, skin), location=(0, 0, 1.32))
+    mesh_object("Blade", box_mesh("blade", (0.08, 0.05, 0.95), [blade]), location=(0.42, -0.25, 0.95), rotation=(0, 28, 0))
+    mesh_object("Badge", box_mesh("badge", (0.14, 0.03, 0.14), [badge]), location=(-0.04, -0.25, 0.85))
+    mesh_object("Pupil", uv_sphere_mesh("pupil", 0.035, pupil), location=(0.07, -0.18, 1.36))
+    export(path)
+
+
 def main():
     output = sys.argv[sys.argv.index("--") + 1]
     os.makedirs(output, exist_ok=True)
-    for name, build in (("blocks", blocks), ("rigged", rigged), ("shapes", shapes), ("stage", stage), ("fringe", fringe)):
+    for name, build in (("blocks", blocks), ("rigged", rigged), ("shapes", shapes), ("stage", stage), ("fringe", fringe), ("glowing", glowing)):
         reset()
         build(os.path.join(output, name + ".glb"))
 

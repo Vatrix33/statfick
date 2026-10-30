@@ -207,6 +207,15 @@ public static class Scenes3D
             Models = [new("fringe.glb", Vector3.Zero, Vector3.Zero, Scenery: true)],
             Sun = new SunLight(new(-0.55f, 1.3f, -0.35f), 3),
         },
+        // Glow (Docs/Renderer-3D.md, "Glow"): a figure whose blade (cel-shaded) and badge (flat) glow
+        // and whose pupil is flat without glow, in front of the shapes: the halo lies over them and the
+        // background but behind the figure.
+        new("glow-figure", 360, 300, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.3f, 1.4f, 5), new(0.3f, 0.85f, 0), OrthographicHeight: 2.0f), [])
+        {
+            Models = [new("shapes.glb", new(0.2f, 0.2f, -1.6f), Vector3.Zero), new("glowing.glb", new(0.1f, 0, 0.3f), new(0, -15, 0))],
+            Palette = new() { ["cloth"] = "#7b5a3a", ["metal.base"] = "#8a8f96", ["metal.trim"] = "#c9a46a" },
+            Sun = Lizardman,
+        },
         // The same shapes in the battle view (orthographic, from the side) under a low sun from the left: other band positions.
         new("cel-side", 420, 200, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.1f, 0.5f, 6), new(0.1f, 0.5f, 0), OrthographicHeight: 1.9f), [])
         {

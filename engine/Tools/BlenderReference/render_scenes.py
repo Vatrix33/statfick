@@ -1,9 +1,10 @@
 # Renders the 3D test scenes (Tests/Statventure.Tests/Reference/r3d-scenes.json, written by the
 # tests) with Blender's EEVEE into Golden/r3d-<scene>.png: the look the engine's 3D renderer is
 # compared with (Docs/Renderer-3D.md). Scenes with models also get their Freestyle ink lines alone
-# in Golden/r3d-<scene>-ink.png (the alpha is the lines' coverage). Run by
-# Tools/Scripts/make-blender-references.sh:
-#   blender -b --factory-startup --python render_scenes.py -- <scenes.json> <output folder> [scene ...]
+# in Golden/r3d-<scene>-ink.png (the alpha is the lines' coverage). Scenes with glowing parts also
+# write those parts alone and their models' coverage into <glow folder>/<scene>-glow.png and
+# -mask.png, which compose_glow.py turns into the halo. Run by Tools/Scripts/make-blender-references.sh:
+#   blender -b --factory-startup --python render_scenes.py -- <scenes.json> <output folder> <glow folder> [scene ...]
 #
 # The scenes are in glTF's coordinates (right-handed, Y up); Blender's are Z up, so every position
 # and direction goes through GLTF_TO_BLENDER, as Blender's glTF importer converts them. Models are
@@ -15,6 +16,7 @@ import sys
 
 import bmesh
 import bpy
+from bpy_extras.object_utils import world_to_camera_view
 from mathutils import Matrix, Vector
 
 GLTF_TO_BLENDER = Matrix(((1, 0, 0), (0, 0, -1), (0, 1, 0)))
@@ -44,6 +46,7 @@ def eevee_engine():
 
 
 def reset():
+    GLOWS.clear()
     for collection in (bpy.data.objects, bpy.data.meshes, bpy.data.materials, bpy.data.cameras, bpy.data.armatures, bpy.data.lights, bpy.data.linestyles):
         for block in list(collection):
             collection.remove(block)
@@ -131,11 +134,43 @@ def shadow_of(lit_linear, style):
     return tuple(srgb_to_linear(srgb(c) + (i - srgb(c)) * style["shadowMix"]) for c, i in zip(lit_linear, ink))
 
 
-def toon_material(name, lit, shadow, band, unshadowed=None):
+def hatch_amount(nodes, links, in_shadow, hatch):
+    """The engine's hatching (Docs/Renderer-3D.md, "Hatching"): lines across the screen, `spacing`
+    pixels apart and `width` wide, at `angle` (clockwise from the right, Y down), from the model's
+    anchor (pixels); on a line and in shadow, a sample takes `ink` of the ink. Window coordinates
+    run 0..1 over the render, Y up; per sample, so EEVEE's samples antialias the lines."""
+    def op(operation, a, b=None, c=None):
+        node = nodes.new("ShaderNodeMath")
+        node.operation = operation
+        for index, value in enumerate((a, b, c)):
+            if value is None:
+                continue
+            if isinstance(value, (int, float)):
+                node.inputs[index].default_value = value
+            else:
+                links.new(value, node.inputs[index])
+        return node.outputs[0]
+    coordinates = nodes.new("ShaderNodeTexCoord")
+    split = nodes.new("ShaderNodeSeparateXYZ")
+    links.new(coordinates.outputs["Window"], split.inputs[0])
+    width, height = hatch["size"]
+    x = op("MULTIPLY", split.outputs["X"], width)
+    y = op("MULTIPLY_ADD", split.outputs["Y"], -height, height)
+    nx, ny = -math.sin(math.radians(hatch["angle"])), math.cos(math.radians(hatch["angle"]))
+    ax, ay = hatch["anchor"]
+    across = op("ADD", op("MULTIPLY", op("SUBTRACT", x, ax), nx), op("MULTIPLY", op("SUBTRACT", y, ay), ny))
+    phase = op("FRACT", op("MULTIPLY_ADD", across, 1 / hatch["spacing"], 0.5))
+    distance = op("MULTIPLY", op("ABSOLUTE", op("SUBTRACT", phase, 0.5)), hatch["spacing"])
+    on_line = op("LESS_THAN", distance, hatch["width"] / 2)
+    return op("MULTIPLY", op("MULTIPLY", on_line, in_shadow), hatch["ink"])
+
+
+def toon_material(name, lit, shadow, band, unshadowed=None, hatch=None):
     """The lizardman test's cel material: a white Diffuse BSDF through Shader to RGB and RGB to BW
     into a constant colour ramp (shadow below the band edge, lit from it), shown as emission. With
     `unshadowed` (the sun's direction and strength), the light is Lambert's from nodes instead,
-    strength / π · N·L: the same light without shadows, for models that don't receive them."""
+    strength / π · N·L: the same light without shadows, for models that don't receive them. With
+    `hatch`, samples in shadow on a hatch line mix toward the ink."""
     material = bpy.data.materials.new(name)
     nodes = material.node_tree.nodes
     nodes.clear()
@@ -174,7 +209,19 @@ def toon_material(name, lit, shadow, band, unshadowed=None):
     emission = nodes.new("ShaderNodeEmission")
     output = nodes.new("ShaderNodeOutputMaterial")
     links.new(source, ramp.inputs[0])
-    links.new(ramp.outputs[0], emission.inputs[0])
+    colour = ramp.outputs[0]
+    if hatch:
+        in_shadow = nodes.new("ShaderNodeMath")
+        in_shadow.operation = "LESS_THAN"
+        in_shadow.inputs[1].default_value = band
+        links.new(source, in_shadow.inputs[0])
+        mix = nodes.new("ShaderNodeMix")
+        mix.data_type = "RGBA"
+        links.new(hatch_amount(nodes, links, in_shadow.outputs[0], hatch), mix.inputs["Factor"])
+        links.new(colour, mix.inputs[6])
+        mix.inputs[7].default_value = (*hatch["inkColour"], 1)
+        colour = mix.outputs[2]
+    links.new(colour, emission.inputs[0])
     links.new(emission.outputs[0], output.inputs["Surface"])
     return material
 
@@ -287,12 +334,7 @@ def setup_ink(scene, style, noink):
 def render_ink(scene, path):
     """The ink lines alone: every surface held out over a transparent film, so the PNG's alpha is the
     lines' coverage."""
-    holdout = bpy.data.materials.new("holdout")
-    nodes = holdout.node_tree.nodes
-    nodes.clear()
-    hold = nodes.new("ShaderNodeHoldout")
-    output = nodes.new("ShaderNodeOutputMaterial")
-    holdout.node_tree.links.new(hold.outputs[0], output.inputs["Surface"])
+    holdout = holdout_material()
     for obj in scene.objects:
         for slot in getattr(obj, "material_slots", []):
             slot.material = holdout
@@ -307,7 +349,7 @@ def render_ink(scene, path):
     scene.render.image_settings.color_mode = "RGB"
 
 
-def add_model(scene, path, spec, palette, shadows, style, unshadowed=None):
+def add_model(scene, path, spec, palette, shadows, style, unshadowed=None, scale=1):
     """Imports a .glb, places it by the matrix (glTF coordinates) and cel-shades each material in the
     tones its palette slot gives (lit, and shadow if the palette has one), or its own base colour
     when the palette has no such slot; shadow tones the palette doesn't give come from the style."""
@@ -322,8 +364,18 @@ def add_model(scene, path, spec, palette, shadows, style, unshadowed=None):
         if obj.parent is None:
             obj.parent = holder
     imported.append(holder)
-    # The importer keeps glTF's material name, base colour (Principled BSDF) and doubleSided (backface
-    # culling). Each material is replaced once: a mesh used by two objects shares its slots.
+    # The hatching moves with the model: anchored where its origin is on screen (pixels, Y down).
+    bpy.context.view_layer.update()
+    seen = world_to_camera_view(scene, scene.camera, holder.matrix_world.translation)
+    width, height = scene.render.resolution_x, scene.render.resolution_y
+    hatch = {
+        "size": (width, height), "anchor": (seen.x * width, (1 - seen.y) * height),
+        "spacing": style["hatchSpacing"] * scale, "width": style["hatchWidth"] * scale,
+        "angle": style["hatchAngle"], "ink": style["hatchInk"], "inkColour": hex_to_linear(style["ink"]),
+    }
+    # The importer keeps glTF's material name, base colour (Principled BSDF), emission and doubleSided
+    # (backface culling); an unlit material comes back as an Emission shader without a Principled
+    # BSDF. Each material is replaced once: a mesh used by two objects shares its slots.
     replaced = {}
     for obj in imported:
         for slot in getattr(obj, "material_slots", []):
@@ -333,12 +385,88 @@ def add_model(scene, path, spec, palette, shadows, style, unshadowed=None):
             if source not in replaced:
                 slot_name = slot_of(source.name)
                 colour = palette.get(slot_name)
-                lit = hex_to_linear(colour) if colour else tuple(principled_base_color(source))
-                shadow = hex_to_linear(shadows[slot_name]) if colour and slot_name in shadows else shadow_of(lit, style)
-                replaced[source] = toon_material(f"toon-{source.name}", lit, shadow, style["bandEdge"], unshadowed)
-                replaced[source].use_backface_culling = source.use_backface_culling
+                kind, base, emission = material_kind(source)
+                if kind == "unlit":
+                    flat = flat_material(f"unlit-{source.name}", hex_to_linear(colour) if colour else base)
+                elif kind == "emission":
+                    flat = flat_material(f"emission-{source.name}", emission)
+                    GLOWS[flat] = emission
+                else:
+                    lit = hex_to_linear(colour) if colour else tuple(base)
+                    shadow = hex_to_linear(shadows[slot_name]) if colour and slot_name in shadows else shadow_of(lit, style)
+                    hatched = source.get("hatch", 1) != 0
+                    flat = toon_material(f"toon-{source.name}", lit, shadow, style["bandEdge"], unshadowed, hatch if hatched else None)
+                    if any(emission):
+                        GLOWS[flat] = emission
+                flat.use_backface_culling = source.use_backface_culling
+                replaced[source] = flat
             slot.material = replaced[source]
     return imported
+
+
+# Replaced materials that glow, and their glow colours (linear).
+GLOWS = {}
+
+
+def material_kind(material):
+    """How the Blender shader marks a material (Docs/Renderer-3D.md, "Glow"): "unlit" (glTF unlit, which
+    the importer rebuilds around an Emission shader), "emission" (an Emission shader alone: a
+    Principled BSDF with a black base and only emission) or "lit"; its base colour and its emission
+    (colour times strength), linear."""
+    nodes = material.node_tree.nodes
+    principled = next((n for n in nodes if n.bl_idname == "ShaderNodeBsdfPrincipled"), None)
+    if principled is None:
+        emission = next(n for n in nodes if n.bl_idname == "ShaderNodeEmission")
+        return "unlit", tuple(emission.inputs["Color"].default_value[:3]), (0, 0, 0)
+    base = tuple(principled.inputs["Base Color"].default_value[:3])
+    strength = principled.inputs["Emission Strength"].default_value
+    emission = tuple(c * strength for c in principled.inputs["Emission Color"].default_value[:3])
+    return ("emission" if any(emission) and not any(base) else "lit"), base, emission
+
+
+def render_glow(scene, placed, folder, name):
+    """For compose_glow.py: the glowing parts alone in their glow colours over a transparent film, as
+    the lizardman's glow render (everything else hidden), and the coverage of the models they belong
+    to (their halo goes behind them)."""
+    glowing = [objects for objects in placed if any(slot.material in GLOWS for o in objects for slot in getattr(o, "material_slots", []))]
+    if not glowing:
+        return
+    saved = {o: [slot.material for slot in o.material_slots] for o in scene.objects if o.type == "MESH"}
+    scene.render.film_transparent = True
+    scene.render.image_settings.color_mode = "RGBA"
+    for o in saved:
+        lights = [GLOWS.get(m) for m in saved[o]]
+        o.hide_render = not any(lights)
+        for slot, light in zip(o.material_slots, lights):
+            slot.material = flat_material("glow", light) if light else holdout_material()
+    scene.render.filepath = os.path.join(folder, f"{name}-glow.png")
+    bpy.ops.render.render(write_still=True)
+    print("wrote", scene.render.filepath)
+    owners = {o for objects in glowing for o in objects}
+    white = flat_material("mask", (1, 1, 1))
+    for o in saved:
+        o.hide_render = o not in owners
+        for slot in o.material_slots:
+            slot.material = white
+    scene.render.filepath = os.path.join(folder, f"{name}-mask.png")
+    bpy.ops.render.render(write_still=True)
+    print("wrote", scene.render.filepath)
+    for o, materials in saved.items():
+        o.hide_render = False
+        for slot, m in zip(o.material_slots, materials):
+            slot.material = m
+    scene.render.film_transparent = False
+    scene.render.image_settings.color_mode = "RGB"
+
+
+def holdout_material():
+    holdout = bpy.data.materials.new("holdout")
+    nodes = holdout.node_tree.nodes
+    nodes.clear()
+    hold = nodes.new("ShaderNodeHoldout")
+    output = nodes.new("ShaderNodeOutputMaterial")
+    holdout.node_tree.links.new(hold.outputs[0], output.inputs["Surface"])
+    return holdout
 
 
 def principled_base_color(material):
@@ -375,10 +503,11 @@ def add_camera(scene, spec):
 
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:]
-    scenes_path, output = argv[0], argv[1]
+    scenes_path, output, glow_folder = argv[0], argv[1], argv[2]
+    os.makedirs(glow_folder, exist_ok=True)
     with open(scenes_path) as f:
         data = json.load(f)
-    only = set(argv[2:])
+    only = set(argv[3:])
     scene = bpy.context.scene
     for spec in data["scenes"]:
         if only and spec["name"] not in only:
@@ -396,11 +525,16 @@ def main():
             add_object(scene, index, data["shapes"][obj["shape"]], obj)
         models = os.path.normpath(os.path.join(os.path.dirname(scenes_path), data["modelFolder"]))
         placed = [add_model(scene, os.path.join(models, model["file"]), model, spec.get("palette", {}), spec.get("shadows", {}), spec["style"],
-                            None if model.get("scenery") else unshadowed)
+                            None if model.get("scenery") else unshadowed, spec.get("scale", 1))
                   for model in spec.get("models", [])]
         scene.render.filepath = os.path.join(output, f"r3d-{spec['name']}.png")
         bpy.ops.render.render(write_still=True)
         print("wrote", scene.render.filepath)
+        stale = [os.path.join(glow_folder, f"{spec['name']}-{part}.png") for part in ("glow", "mask")]
+        for path in stale:
+            if os.path.exists(path):
+                os.remove(path)
+        render_glow(scene, placed, glow_folder, spec["name"])
         if placed:
             # Baking joins and converts meshes, which loses their imported normals: only after the
             # shading render (Freestyle works from face normals).

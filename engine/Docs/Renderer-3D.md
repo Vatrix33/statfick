@@ -29,6 +29,17 @@ shadow, glow, cast shadows drawn as ink. It also renders 3D views into the UI (p
   edge is at N·L 0.314, 71.7° from the light. Engine defaults, settable per scene. Band edges are
   antialiased like Blender's render, over about a pixel from how fast the light changes on screen
   (not shaded per MSAA sample).
+- **Hatching** (step 6): in every shadow-tone area (a model's shadow side, cast shadows on
+  scenery), as the lizardman hatched: lines 6 px apart, 1 px wide, at 72°, 35% toward the ink (the
+  old game's battle sprites in a 1080p window), times the device scale. Screen-aligned and moving
+  with its model (anchored to the model's origin on screen). A material with `hatch = 0` (glTF
+  material extras) has none (the lizardman's crest and blade).
+- **Glow** (step 6), marked by the Blender shader: a Principled BSDF with emission is cel-shaded and
+  glows in its emission colour (the lizardman's blade); an Emission shader alone is drawn flat in
+  that colour and glows (its badge, emblem); a Background shader is drawn flat without glow (its
+  pupils; KHR_materials_unlit). The look is the lizardman's halo (`compose.py`): the glowing parts in
+  their colours blurred by 8 px with the alpha boosted 2.2×, a 2.5 px blur over it, all behind the
+  whole model (around its outline, never over its own parts); sizes times the device scale.
 - **Shadows** (step 5): everything casts shadows; only scenery (the battle stage, the map terrain
   and its features; the game marks scenery models) receives them. Characters, enemies and items keep
   the lizardman's shading, without shadows (not even their own). Edges are softened by the sun's
@@ -147,6 +158,26 @@ come up.
   - The tone: the light band gives lit or shadow (antialiased, as before), then blends toward the
     shadow tone by the hidden share of the sun (`mix(shadow, tone, visibility)`): what averaging
     EEVEE's per-sample two-tone results gives.
+- **Hatching, how it's drawn** (`mesh_cel.frag`): the model's origin (`DrawItem.Anchor`) projected to
+  pixels anchors lines across the screen at the hatch angle; the nearest line's share of the pixel
+  is the exact box filter of a straight band (the pixel square projected across the lines is a
+  trapezoid); the colour mixes toward the ink by hatch ink × line share × the pixel's shadow share
+  (Blender mixes each sample in shadow on a line, and averages). Materials: `ModelMaterial.Hatch`
+  from the `hatch` material extra (read from the glTF JSON: BRUTAL drops extras).
+- **Glow, how it's drawn** (`Renderer3D.RenderGlow`): materials carry `Emission` (glTF emissive ×
+  KHR_materials_emissive_strength) and `Unlit` (KHR_materials_unlit); `EmissionOnly` is no base
+  colour with emission (an Emission shader). Draw items: unlit → flat, no glow; emission only →
+  flat in the emission, glowing; otherwise cel and glowing when emissive (`DrawItem.Glow`). Passes,
+  between the 3D pass and the ink lines, in images made when a view first glows:
+  1. `glow.frag`: the glowing items alone (their own depth test), sRGB-encoded glow colours, and
+     each pixel's model and view depth;
+  2. `glow_blur.frag`: Pillow's GaussianBlur (BoxBlur.c: an extended box of 2·whole + 1 pixels and
+     one more at each end at the fractional weight, three passes per axis, edges repeated) of the
+     premultiplied sources, at 8 px and 2.5 px times the device scale (`Renderer3D.BoxOf`);
+  3. `glow_owner.frag`: the nearest glowing pixel's model and depth within the halo's reach;
+  4. `glow_composite.frag`: compose.py's halo in sRGB (wide blur, straight colours, alpha × 2.2
+     capped; the core over it), laid over the view by the share of the pixel's samples that are
+     neither its model nor nearer than its glowing parts; then copied back into `Resolved`.
 - Cameras keep the vertical extent fixed and widen with the aspect ratio (a Blender camera with
   sensor fit vertical): perspective by a vertical field of view, orthographic by the height of the
   world in view (Blender's orthographic scale). `Camera.View` is `Matrix4x4.CreateLookAt`.
@@ -183,6 +214,17 @@ come up.
   camera rays only (Light Path "Is Camera Ray"), black to lighting, as the lizardman test had no
   world; ray tracing and fast GI are off, so only the sun lights surfaces. Measured: EEVEE's white
   diffuse under a sun is strength/π · N·L (0.9546 · cos for strength 3). Shapes stay flat emission.
+- **Hatching in Blender**: the toon material gets the engine's line pattern from Window coordinates
+  (times the render size, Y flipped), anchored at the model's origin on screen
+  (`world_to_camera_view`); on a line (distance under half the width) and in shadow (the ramp's
+  input under the band edge), a sample mixes toward the ink by the hatch ink. Materials with
+  `hatch = 0` (the importer keeps it as a custom property) have none.
+- **Glow in Blender**: imported materials are sorted by their shader (an Emission shader without a
+  Principled BSDF: unlit; a Principled BSDF with a black base and emission: emission only); unlit
+  and emission-only parts become flat emission. After the shading render, two more: the glowing
+  parts alone in their glow colours (everything else hidden, film transparent) and the coverage of
+  the models they belong to, into `Actual/blender-glow/`. `compose_glow.py` (Pillow) then lays the
+  halo into `Golden/r3d-<scene>.png` as `compose.py` did, held back where those models cover.
 - **Shadows in Blender**: in scenes with scenery, the sun casts shadows with its angle and
   `use_shadow_jitter` (no overblur): the exact disc light, 64 shadow origins over the samples.
   Scenery's materials keep the toon chain (Shader to RGB takes the shadow); other models' light is
@@ -309,4 +351,13 @@ Started 2026-10-30.
   marched toward the disc darkens fringes under floating parts; long thin shadows near the
   threshold break into dashes in both renderers. Not measured yet: the cost on a 2016-class GPU
   (16 depth passes of the casters; 64 fetches per receiver pixel).
-- **Next: step 6, hatching and glow.**
+- **Step 6, hatching and glow (2026-10-30, 543 tests): done.** User decisions: hatching 6 px apart,
+  1 px wide, 72°, 35% ink, in all shadow areas, moving with each model, `hatch = 0` per material;
+  glow marked by the Blender shader, the lizardman's halo (8 px with alpha × 2.2, a 2.5 px core,
+  behind the model). Recovered `compose.py` from the lizardman session for the glow's exact rule;
+  measured the old game's sprite hatching (`sprite-kit.js` `hatch`) and glow (`.sp-glow`) for the
+  options. Test model `glowing.glb` (a glowing blade, a flat glowing badge, an unlit pupil), scene
+  `glow-figure`; every model scene now hatched. Checked by breaking: hatching fixed to the screen,
+  `hatch = 0` ignored, another angle, spacing 20% wider and none; no glow, a halo over its own
+  model, a wide blur 20% larger and no alpha boost each fail.
+- **Next: step 7, GPU skinning.**

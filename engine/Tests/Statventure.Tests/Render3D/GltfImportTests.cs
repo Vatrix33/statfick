@@ -102,6 +102,36 @@ public class GltfImportTests
         Near(new Vector3(0.2f, 0, 0), world[model.Nodes.ToList().IndexOf(tube)].Translation);
     }
 
+    [Fact]
+    public void BlenderShadersMarkGlowAndUnlit()
+    {
+        var model = ModelData.Load(ModelPath("glowing.glb"));
+        ModelMaterial Named(string name) => model.Materials.Single(m => m.Name == name);
+        // Principled BSDF with emission: cel-shaded, glowing.
+        var blade = Named("metal.base");
+        Assert.True(Vector3.Distance(new Vector3(Colors.LinearFromHex("#bffff0").X, Colors.LinearFromHex("#bffff0").Y, Colors.LinearFromHex("#bffff0").Z), blade.Emission) < 1e-5f);
+        Assert.False(blade.Unlit || blade.EmissionOnly);
+        // An Emission shader alone: no base colour, only emission.
+        Assert.True(Named("badge").EmissionOnly);
+        // A Background shader: unlit, no glow.
+        var pupil = Named("pupil");
+        Assert.True(pupil.Unlit);
+        Assert.Equal(Vector3.Zero, pupil.Emission);
+        // hatch = 0 on a material (its extras).
+        Assert.Equal(["metal.base"], ModelData.Load(ModelPath("shapes.glb")).Materials.Where(m => !m.Hatch).Select(m => m.Name));
+    }
+
+    [Theory]
+    [InlineData(8f, 7, 0.46875f)]
+    [InlineData(2.5f, 2, 0.0301205f)]
+    public void GlowBlursAsPillowsGaussianBlur(float sigma, int whole, float fraction)
+    {
+        // Pillow's BoxBlur.c _gaussian_blur_radius for three passes, which the lizardman's compose.py used.
+        var box = Renderer3D.BoxOf(sigma);
+        Assert.Equal(whole, box.Whole);
+        Assert.Equal(fraction, box.Fraction, 1e-5f);
+    }
+
     [Theory]
     [InlineData("tube-1", "tube-1")]
     [InlineData("metal.base", "metal.base")]

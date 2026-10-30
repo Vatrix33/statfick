@@ -109,11 +109,19 @@ public sealed class Model : IDisposable
                 var item = skinned != null
                     ? new DrawItem(skinned[p], transform, lit, material.DoubleSided)
                     : new DrawItem(_meshes[meshIndex][p], _world[node] * transform, lit, material.DoubleSided);
-                items.Add(item with
+                item = item with
                 {
                     Shading = Shading.Cel, Shadow = shadow, Group = group, Part = node + 1, Ink = Data.Nodes[node].Ink,
-                    CastsShadow = true, ReceivesShadows = scenery,
-                });
+                    CastsShadow = true, ReceivesShadows = scenery, Hatch = material.Hatch, Anchor = transform.Translation,
+                    Glow = material.Emission,
+                };
+                // Unlit (a Background shader): flat in its colour. An Emission shader alone: flat in
+                // its emission, glowing. Neither is hatched (Docs/Renderer-3D.md, "Glow").
+                if (material.Unlit)
+                    item = item with { Shading = Shading.Flat, Hatch = false, Glow = Vector3.Zero };
+                else if (material.EmissionOnly)
+                    item = item with { Shading = Shading.Flat, Color = new Vector4(material.Emission, 1), Hatch = false };
+                items.Add(item);
             }
         }
     }

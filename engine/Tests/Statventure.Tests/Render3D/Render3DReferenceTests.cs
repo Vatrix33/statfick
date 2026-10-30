@@ -402,7 +402,10 @@ public class Render3DReferenceTests(GpuFixture gpu)
             {
                 ink = Hex(s.Style.Ink), shadowMix = s.Style.ShadowMix, bandEdge = s.Style.BandEdge,
                 outlineWidth = s.Style.OutlineWidth * s.Scale, innerWidth = s.Style.InnerWidth * s.Scale, creaseAngle = s.Style.CreaseAngle,
+                hatchSpacing = s.Style.HatchSpacing, hatchWidth = s.Style.HatchWidth, hatchAngle = s.Style.HatchAngle, hatchInk = s.Style.HatchInk,
+                glowWide = s.Style.GlowWide, glowCore = s.Style.GlowCore, glowBoost = s.Style.GlowBoost,
             },
+            scale = s.Scale,
         });
         return JsonSerializer.Serialize(new { modelFolder = "../Data/Models", shapes, scenes }, new JsonSerializerOptions { WriteIndented = true }) + "\n";
     }

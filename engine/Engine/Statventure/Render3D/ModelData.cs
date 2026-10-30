@@ -25,7 +25,10 @@ public sealed record ModelMesh(string Name, IReadOnlyList<ModelPrimitive> Primit
 /// <summary>
 /// A material: its name, which names a palette slot (Docs/Renderer-3D.md, "Colours: palette slots"),
 /// its base colour (linear, glTF's baseColorFactor) for when the palette has no such slot, and
-/// whether back faces show.
+/// whether back faces show. From the Blender shader (Docs/Renderer-3D.md, "Glow"): its emission
+/// (linear, glTF's emissiveFactor times KHR_materials_emissive_strength), which makes it glow, and
+/// whether it's unlit (a Background shader, KHR_materials_unlit). <see cref="Hatch"/> is false for
+/// a material with the custom property <c>hatch = 0</c> (material extras).
 /// </summary>
 public sealed record ModelMaterial(string Name, Vector4 BaseColor, bool DoubleSided)
 {
@@ -33,6 +36,12 @@ public sealed record ModelMaterial(string Name, Vector4 BaseColor, bool DoubleSi
     public static readonly ModelMaterial Default = new("", Vector4.One, false);
 
     public string Slot => Palette.SlotOf(Name);
+    public Vector3 Emission { get; init; }
+    public bool Unlit { get; init; }
+    public bool Hatch { get; init; } = true;
+
+    /// <summary>An Emission shader alone: no base colour, only emission (drawn flat in it, glowing).</summary>
+    public bool EmissionOnly => !Unlit && Emission != Vector3.Zero && BaseColor.X == 0 && BaseColor.Y == 0 && BaseColor.Z == 0;
 }
 
 /// <summary>

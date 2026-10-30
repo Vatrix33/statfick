@@ -312,8 +312,16 @@
         "bandEdge": 0.3,
         "outlineWidth": 3.5,
         "innerWidth": 2,
-        "creaseAngle": 120
-      }
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
     },
     {
       "name": "perspective-boxes",
@@ -474,8 +482,16 @@
         "bandEdge": 0.3,
         "outlineWidth": 3.5,
         "innerWidth": 2,
-        "creaseAngle": 120
-      }
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
     },
     {
       "name": "shapes-roll",
@@ -606,8 +622,16 @@
         "bandEdge": 0.3,
         "outlineWidth": 3.5,
         "innerWidth": 2,
-        "creaseAngle": 120
-      }
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
     },
     {
       "name": "model-blocks",
@@ -690,8 +714,16 @@
         "bandEdge": 0.3,
         "outlineWidth": 3.5,
         "innerWidth": 2,
-        "creaseAngle": 120
-      }
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
     },
     {
       "name": "model-rigged",
@@ -772,8 +804,16 @@
         "bandEdge": 0.3,
         "outlineWidth": 3.5,
         "innerWidth": 2,
-        "creaseAngle": 120
-      }
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
     },
     {
       "name": "cel-shapes",
@@ -858,8 +898,16 @@
         "bandEdge": 0.3,
         "outlineWidth": 3.5,
         "innerWidth": 2,
-        "creaseAngle": 120
-      }
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
     },
     {
       "name": "cel-closeup",
@@ -942,8 +990,16 @@
         "bandEdge": 0.3,
         "outlineWidth": 3.5,
         "innerWidth": 2,
-        "creaseAngle": 120
-      }
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
     },
     {
       "name": "ink-models",
@@ -1057,8 +1113,16 @@
         "bandEdge": 0.3,
         "outlineWidth": 3.5,
         "innerWidth": 2,
-        "creaseAngle": 120
-      }
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
     },
     {
       "name": "cel-shapes-2x",
@@ -1143,8 +1207,16 @@
         "bandEdge": 0.3,
         "outlineWidth": 7,
         "innerWidth": 4,
-        "creaseAngle": 120
-      }
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 2
     },
     {
       "name": "shadow-stage",
@@ -1288,8 +1360,16 @@
         "bandEdge": 0.3,
         "outlineWidth": 3.5,
         "innerWidth": 2,
-        "creaseAngle": 120
-      }
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
     },
     {
       "name": "shadow-side",
@@ -1433,8 +1513,16 @@
         "bandEdge": 0.3,
         "outlineWidth": 3.5,
         "innerWidth": 2,
-        "creaseAngle": 120
-      }
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
     },
     {
       "name": "shadow-map",
@@ -1578,8 +1666,16 @@
         "bandEdge": 0.3,
         "outlineWidth": 3.5,
         "innerWidth": 2,
-        "creaseAngle": 120
-      }
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
     },
     {
       "name": "shadow-fringe",
@@ -1658,8 +1754,138 @@
         "bandEdge": 0.3,
         "outlineWidth": 3.5,
         "innerWidth": 2,
-        "creaseAngle": 120
-      }
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
+    },
+    {
+      "name": "glow-figure",
+      "width": 360,
+      "height": 300,
+      "background": "#b8b0a0",
+      "camera": {
+        "projection": "orthographic",
+        "position": [
+          0.3,
+          1.4,
+          5
+        ],
+        "target": [
+          0.3,
+          0.85,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 40,
+        "orthographicHeight": 2,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "shapes.glb",
+          "matrix": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0.2,
+              0.2,
+              -1.6,
+              1
+            ]
+          ],
+          "scenery": false
+        },
+        {
+          "file": "glowing.glb",
+          "matrix": [
+            [
+              0.9659258,
+              0,
+              0.25881904,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              -0.25881904,
+              0,
+              0.9659258,
+              0
+            ],
+            [
+              0.1,
+              0,
+              0.3,
+              1
+            ]
+          ],
+          "scenery": false
+        }
+      ],
+      "palette": {
+        "cloth": "#7b5a3a",
+        "metal.base": "#8a8f96",
+        "metal.trim": "#c9a46a"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          1,
+          1.1,
+          0.7
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#130e0b",
+        "shadowMix": 0.42,
+        "bandEdge": 0.3,
+        "outlineWidth": 3.5,
+        "innerWidth": 2,
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
     },
     {
       "name": "cel-side",
@@ -1742,8 +1968,16 @@
         "bandEdge": 0.3,
         "outlineWidth": 3.5,
         "innerWidth": 2,
-        "creaseAngle": 120
-      }
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
     }
   ]
 }

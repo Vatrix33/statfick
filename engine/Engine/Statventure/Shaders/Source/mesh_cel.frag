@@ -66,6 +66,36 @@ float sunVisibility(vec3 world, vec3 normal)
     return lit / 16.0;
 }
 
+// How much of this pixel the nearest hatch line covers: a band of the hatch width across the
+// screen, its lines a spacing apart from the model's anchor, against the pixel's square (whose
+// projection across the lines is a trapezoid: the exact box filter of a straight band).
+float squareShare(float x, float a, float b)
+{
+    // The part of a unit square, projected on a direction with |components| a ≥ b, lying below x (from its centre).
+    float reach = 0.5 * (a + b), level = 0.5 * (a - b);
+    float s = abs(x);
+    float inner;
+    if (s >= reach)
+        inner = 0.5;
+    else if (b < 1e-4 || s <= level)
+        inner = s / a;
+    else
+        inner = level / a + (reach * (s - level) - 0.5 * (s * s - level * level)) / (a * b);
+    return 0.5 + sign(x) * min(inner, 0.5);
+}
+
+float hatchLine()
+{
+    vec4 clip = pc.scene.viewProjection * vec4(pc.draw.anchor, 1.0);
+    vec2 anchor = (clip.xy / clip.w * 0.5 + 0.5) * pc.scene.viewport;
+    vec2 n = pc.scene.hatchNormal;
+    float t = dot(gl_FragCoord.xy - anchor, n);
+    float d = t - pc.scene.hatchSpacing * round(t / pc.scene.hatchSpacing);
+    float a = max(abs(n.x), abs(n.y)), b = min(abs(n.x), abs(n.y));
+    float w = 0.5 * pc.scene.hatchWidth;
+    return squareShare(w - d, a, b) - squareShare(-w - d, a, b);
+}
+
 void main()
 {
     vec3 n = normalize(vNormal);
@@ -77,5 +107,9 @@ void main()
     if (pc.draw.receivesShadows != 0u && pc.scene.shadowMap != ~0u && lit > 0.0)
         lit *= sunVisibility(vWorld, n);
     outColor = mix(pc.draw.shadow, pc.draw.color, lit);
+    // Hatching where in shadow: Blender mixes each sample in shadow toward the ink on a line, so the
+    // pixel takes the line's share times its shadow's.
+    if (pc.draw.hatch != 0u && lit < 1.0)
+        outColor = mix(outColor, vec4(pc.scene.ink.rgb, 1.0), pc.scene.hatchInk * hatchLine() * (1.0 - lit));
     outSurface = surfaceRecord(vView);
 }

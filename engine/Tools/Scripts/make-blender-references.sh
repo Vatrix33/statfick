@@ -3,7 +3,9 @@
 # 1. Tools/BlenderReference/make_models.py builds the test models and exports them as .glb into
 #    Tests/Statventure.Tests/Data/Models (the script is their source);
 # 2. Tools/BlenderReference/render_scenes.py renders the test scenes with EEVEE into
-#    Tests/Statventure.Tests/Golden/r3d-*.png.
+#    Tests/Statventure.Tests/Golden/r3d-*.png (and glowing parts into Actual/blender-glow);
+# 3. Tools/BlenderReference/compose_glow.py lays the glow's halo into them (Pillow, as the lizardman's
+#    compose.py).
 # Run the tests once first: they write Tests/Statventure.Tests/Reference/r3d-scenes.json.
 # Extra arguments name the scenes to render (all by default). Blender comes from $STATVENTURE_BLENDER,
 # else `blender` on the PATH, else the Flatpak org.blender.Blender.
@@ -28,4 +30,5 @@ run() {
   echo "$log" | grep -E "^wrote|Error" || true
 }
 run "$STATVENTURE_SOURCE/Tools/BlenderReference/make_models.py" -- "$TESTS/Data/Models"
-run "$STATVENTURE_SOURCE/Tools/BlenderReference/render_scenes.py" -- "$TESTS/Reference/r3d-scenes.json" "$TESTS/Golden" "$@"
+run "$STATVENTURE_SOURCE/Tools/BlenderReference/render_scenes.py" -- "$TESTS/Reference/r3d-scenes.json" "$TESTS/Golden" "$TESTS/Actual/blender-glow" "$@"
+python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/compose_glow.py" "$TESTS/Reference/r3d-scenes.json" "$TESTS/Golden" "$TESTS/Actual/blender-glow"

@@ -36,8 +36,35 @@ public sealed class RenderTarget3D : IDisposable
     public GpuImage Edges { get; }
     public GpuImage ShadowMap { get; }
 
+    readonly GpuDevice _device;
+    GlowImages? _glow;
+
+    /// <summary>
+    /// The glow's images (Docs/Renderer-3D.md, "Glow"), made when a view first glows: the glowing
+    /// parts (sRGB-encoded colour; model and depth) and their depth test, the blur's two working
+    /// images and its two results, the halo's owners (two passes), and the composited view.
+    /// </summary>
+    internal sealed record GlowImages(GpuImage Source, GpuImage Owner, GpuImage Depth, GpuImage BlurA, GpuImage BlurB, GpuImage Wide, GpuImage Core,
+        GpuImage OwnerA, GpuImage OwnerB, GpuImage Composite)
+    {
+        public IEnumerable<GpuImage> All => [Source, Owner, Depth, BlurA, BlurB, Wide, Core, OwnerA, OwnerB, Composite];
+    }
+
+    internal GlowImages Glow => _glow ??= new GlowImages(
+        GpuImage.CreateRenderTarget(_device, Width, Height, VkFormat.R8G8B8A8UNorm),
+        GpuImage.CreateRenderTarget(_device, Width, Height, SurfaceFormat),
+        GpuImage.CreateDepth(_device, Width, Height, DepthFormat),
+        GpuImage.CreateRenderTarget(_device, Width, Height, VkFormat.R16G16B16A16SFloat),
+        GpuImage.CreateRenderTarget(_device, Width, Height, VkFormat.R16G16B16A16SFloat),
+        GpuImage.CreateRenderTarget(_device, Width, Height, VkFormat.R16G16B16A16SFloat),
+        GpuImage.CreateRenderTarget(_device, Width, Height, VkFormat.R16G16B16A16SFloat),
+        GpuImage.CreateRenderTarget(_device, Width, Height, SurfaceFormat),
+        GpuImage.CreateRenderTarget(_device, Width, Height, SurfaceFormat),
+        GpuImage.CreateRenderTarget(_device, Width, Height, ColorFormat));
+
     public RenderTarget3D(GpuDevice device, int width, int height)
     {
+        _device = device;
         Width = width;
         Height = height;
         Color = GpuImage.CreateRenderTarget(device, width, height, ColorFormat, Samples);
@@ -63,6 +90,8 @@ public sealed class RenderTarget3D : IDisposable
         Surface.Dispose();
         Edges.Dispose();
         ShadowMap.Dispose();
+        foreach (var image in _glow?.All ?? [])
+            image.Dispose();
     }
 }
 
@@ -93,6 +122,12 @@ public readonly record struct DrawItem(Mesh Mesh, Matrix4x4 Model, Vector4 Color
     public bool CastsShadow { get; init; }
     /// <summary>Receives shadows: scenery (the stage, terrain and its features).</summary>
     public bool ReceivesShadows { get; init; }
+    /// <summary>Hatched in shadow (cel-shaded items; Docs/Renderer-3D.md, "Hatching").</summary>
+    public bool Hatch { get; init; }
+    /// <summary>Where its model is (world): the hatching moves with it.</summary>
+    public Vector3 Anchor { get; init; }
+    /// <summary>Its glow colour (linear; zero: none; Docs/Renderer-3D.md, "Glow").</summary>
+    public Vector3 Glow { get; init; }
 }
 
 /// <summary>
@@ -119,6 +154,15 @@ public sealed record CelStyle(Vector4 Ink, float ShadowMix, float BandEdge)
     public float OutlineWidth { get; init; } = 3.5f;
     public float InnerWidth { get; init; } = 2f;
     public float CreaseAngle { get; init; } = 120f;
+    /// <summary>Hatching in shadow: lines this far apart and this wide (pixels at device scale 1), at this angle (degrees, clockwise from the right on screen), this far toward the ink.</summary>
+    public float HatchSpacing { get; init; } = 6;
+    public float HatchWidth { get; init; } = 1;
+    public float HatchAngle { get; init; } = 72;
+    public float HatchInk { get; init; } = 0.35f;
+    /// <summary>The glow's halo (the lizardman's compose.py): the wide blur's and the core's Gaussian radius (standard deviation, pixels at device scale 1) and the wide halo's alpha boost.</summary>
+    public float GlowWide { get; init; } = 8;
+    public float GlowCore { get; init; } = 2.5f;
+    public float GlowBoost { get; init; } = 2.2f;
 
     /// <summary>The shadow tone (linear) of a lit tone (linear): mixed toward the ink in sRGB, as the lizardman script mixed.</summary>
     public Vector4 ShadowOf(Vector4 lit)
@@ -147,6 +191,8 @@ public sealed class Renderer3D(GpuDevice device)
         public Vector4 Shadow;
         public uint Surface;
         public uint ReceivesShadows;
+        public Vector3 Anchor;
+        public uint Hatch;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -162,6 +208,12 @@ public sealed class Renderer3D(GpuDevice device)
         public uint ShadowMap;
         public float ShadowTexel;
         public float ShadowFar;
+        public Vector4 Ink;
+        public Vector2 Viewport;
+        public Vector2 HatchNormal;
+        public float HatchSpacing;
+        public float HatchWidth;
+        public float HatchInk;
     }
 
     /// <summary>The 16 directions over the sun's disc (a Vogel spiral: even over its area), in units of its radius.</summary>
@@ -202,6 +254,37 @@ public sealed class Renderer3D(GpuDevice device)
         public ulong Vertices;
         public ulong Draw;
         public ulong Scene;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct BlurPush
+    {
+        public uint Source;
+        public int Radius;
+        public float Fraction;
+        public int Horizontal;
+        public Vector2 Size;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct OwnerPush
+    {
+        public uint Source;
+        public int Reach;
+        public int Horizontal;
+        public uint Pad;
+        public Vector2 Size;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct CompositePush
+    {
+        public uint Scene;
+        public uint Wide;
+        public uint Core;
+        public uint Owner;
+        public uint Surfaces;
+        public float Boost;
     }
 
     readonly Pipeline?[] _pipelines = new Pipeline?[8];
@@ -258,7 +341,106 @@ public sealed class Renderer3D(GpuDevice device)
         Cull = VkCullModeFlags.None,
     });
 
-    Pipeline? _edges, _lines, _shadow;
+    Pipeline? _edges, _lines, _shadow, _glowSource, _glowBlur, _glowOwner, _glowComposite;
+
+    Pipeline GlowSourcePipeline => _glowSource ??= device.Pipelines.Get(new GraphicsPipelineDesc
+    {
+        VertexShader = "mesh.vert",
+        FragmentShader = "glow.frag",
+        Blend = BlendMode.Opaque,
+        ColorFormats = [VkFormat.R8G8B8A8UNorm, RenderTarget3D.SurfaceFormat],
+        DepthFormat = RenderTarget3D.DepthFormat,
+        DepthTest = true,
+        DepthWrite = true,
+        DepthCompare = VkCompareOp.Greater,
+    });
+
+    Pipeline FullscreenPipeline(string fragment, VkFormat format) => device.Pipelines.Get(new GraphicsPipelineDesc
+    {
+        VertexShader = "fullscreen.vert",
+        FragmentShader = fragment,
+        Blend = BlendMode.Opaque,
+        ColorFormats = [format],
+    });
+
+    /// <summary>
+    /// Pillow's GaussianBlur radius as its extended box (BoxBlur.c, after Gwosdek et al.): three
+    /// passes of a box of 2·whole + 1 pixels and one more at each end weighted by the fraction.
+    /// </summary>
+    internal static (int Whole, float Fraction) BoxOf(float sigma)
+    {
+        var variance = sigma * sigma / 3;
+        var length = MathF.Sqrt(12 * variance + 1);
+        var whole = (int)MathF.Floor((length - 1) / 2);
+        var fraction = (2 * whole + 1) * (whole * (whole + 1) - 3 * variance) / (6 * (variance - (whole + 1) * (whole + 1)));
+        return (whole, fraction);
+    }
+
+    /// <summary>
+    /// The lizardman's glow (Docs/Renderer-3D.md, "Glow"): the glowing parts drawn alone, blurred
+    /// wide and tight as compose.py did, and laid over the view behind their models.
+    /// </summary>
+    void RenderGlow(Frame frame, RenderTarget3D target, IReadOnlyList<DrawItem> items, uint[] models, ulong sceneAddress, CelStyle style, float scale)
+    {
+        var commands = frame.Commands;
+        var glow = target.Glow;
+        var size = new Vector2(target.Width, target.Height);
+        commands.BeginRendering(
+            [new ColorAttachment(glow.Source, LoadAction.Clear, Vector4.Zero), new ColorAttachment(glow.Owner, LoadAction.Clear, Vector4.Zero)],
+            new DepthAttachment(glow.Depth, LoadAction.Clear, 0f));
+        commands.BindPipeline(GlowSourcePipeline);
+        for (var i = 0; i < items.Count; i++)
+        {
+            var item = items[i];
+            if (item.Glow == Vector3.Zero)
+                continue;
+            // The glow colour rides in the shadow tone's place.
+            var draw = frame.Upload<DrawData>([new DrawData { Model = item.Model, NormalMatrix = item.Model, Shadow = new Vector4(item.Glow, 1), Surface = models[i] }]);
+            commands.BindIndexBuffer(item.Mesh.Indices);
+            commands.Push(new Push { Vertices = item.Mesh.Vertices.Address, Draw = draw, Scene = sceneAddress });
+            commands.DrawIndexed(item.Mesh.IndexCount);
+        }
+        commands.EndRendering();
+
+        void Pass(Pipeline pipeline, GpuImage source, GpuImage destination, Action push)
+        {
+            commands.Transition(source, VkImageLayout.ShaderReadOnlyOptimal);
+            commands.BeginRendering(new ColorAttachment(destination, LoadAction.DontCare));
+            commands.BindPipeline(pipeline);
+            push();
+            commands.Draw(3);
+            commands.EndRendering();
+        }
+        var blur = FullscreenPipeline("glow_blur.frag", VkFormat.R16G16B16A16SFloat);
+        foreach (var (sigma, result) in new[] { (style.GlowWide * scale, glow.Wide), (style.GlowCore * scale, glow.Core) })
+        {
+            var (whole, fraction) = BoxOf(sigma);
+            GpuImage[] chain = [glow.Source, glow.BlurA, glow.BlurB, glow.BlurA, glow.BlurB, glow.BlurA, result];
+            for (var k = 0; k < 6; k++)
+            {
+                var push = new BlurPush { Source = (uint)chain[k].BindlessIndex, Radius = whole, Fraction = fraction, Horizontal = k < 3 ? 1 : 0, Size = size };
+                Pass(blur, chain[k], chain[k + 1], () => commands.Push(push));
+            }
+        }
+        var reach = 3 * (BoxOf(style.GlowWide * scale).Whole + 1) + 1;
+        var owner = FullscreenPipeline("glow_owner.frag", RenderTarget3D.SurfaceFormat);
+        Pass(owner, glow.Owner, glow.OwnerA, () => commands.Push(new OwnerPush { Source = (uint)glow.Owner.BindlessIndex, Reach = reach, Horizontal = 1, Size = size }));
+        Pass(owner, glow.OwnerA, glow.OwnerB, () => commands.Push(new OwnerPush { Source = (uint)glow.OwnerA.BindlessIndex, Reach = reach, Horizontal = 0, Size = size }));
+        foreach (var image in new[] { glow.Wide, glow.Core, glow.OwnerB, target.Surface })
+            commands.Transition(image, VkImageLayout.ShaderReadOnlyOptimal);
+        Pass(FullscreenPipeline("glow_composite.frag", RenderTarget3D.ColorFormat), target.Resolved, glow.Composite, () => commands.Push(new CompositePush
+        {
+            Scene = (uint)target.Resolved.BindlessIndex,
+            Wide = (uint)glow.Wide.BindlessIndex,
+            Core = (uint)glow.Core.BindlessIndex,
+            Owner = (uint)glow.OwnerB.BindlessIndex,
+            Surfaces = (uint)target.Surface.BindlessIndex,
+            Boost = style.GlowBoost,
+        }));
+        commands.Transition(glow.Composite, VkImageLayout.TransferSrcOptimal);
+        commands.Transition(target.Resolved, VkImageLayout.TransferDstOptimal);
+        commands.CopyImage(glow.Composite, target.Resolved, 0, 0, target.Width, target.Height);
+    }
 
     /// <summary>
     /// The sun's view for the shadow map: orthographic along the light, fitted around the receivers
@@ -364,6 +546,13 @@ public sealed class Renderer3D(GpuDevice device)
             Band = style.BandEdge,
             Orthographic = orthographic ? 1u : 0u,
             ShadowMap = uint.MaxValue,
+            Ink = Colors.ToLinear(style.Ink),
+            Viewport = new Vector2(target.Width, target.Height),
+            // Lines run at the hatch angle (clockwise from the right, Y down); their normal is a quarter turn on.
+            HatchNormal = new Vector2(-MathF.Sin(style.HatchAngle * MathF.PI / 180), MathF.Cos(style.HatchAngle * MathF.PI / 180)),
+            HatchSpacing = style.HatchSpacing * scale,
+            HatchWidth = style.HatchWidth * scale,
+            HatchInk = style.HatchInk,
         };
         if (direction != Vector3.Zero && sun.Strength > 0 && FitShadow(items, camera, aspect, direction, tanHalfAngle) is { } fit)
         {
@@ -411,13 +600,15 @@ public sealed class Renderer3D(GpuDevice device)
         commands.SetViewport(0, 0, target.Width, target.Height);
         commands.SetScissor(0, 0, target.Width, target.Height);
         // Model ids for the surface records, by group; past the 10 bits they repeat.
-        var models = new Dictionary<object, uint>(ReferenceEqualityComparer.Instance);
+        var groups = new Dictionary<object, uint>(ReferenceEqualityComparer.Instance);
         uint next = 0;
         uint NewModel() => next++ % MaxModels + 1;
+        var models = items.Select(item => item.Group is null ? NewModel() : groups.TryGetValue(item.Group, out var known) ? known : groups[item.Group] = NewModel()).ToArray();
         var ink = false;
-        foreach (var item in items)
+        for (var index = 0; index < items.Count; index++)
         {
-            var model = item.Group is null ? NewModel() : models.TryGetValue(item.Group, out var known) ? known : models[item.Group] = NewModel();
+            var item = items[index];
+            var model = models[index];
             ink |= item.Ink;
             commands.BindPipeline(MeshPipeline(item.Shading, item.DoubleSided, item.Model.GetDeterminant() < 0));
             var normalMatrix = Matrix4x4.Invert(item.Model, out var inverse) ? Matrix4x4.Transpose(inverse) : item.Model;
@@ -429,12 +620,17 @@ public sealed class Renderer3D(GpuDevice device)
                 Shadow = item.Shadow,
                 Surface = model | ((uint)item.Part & 255) << 10 | (item.Ink ? 1u << 18 : 0),
                 ReceivesShadows = item.ReceivesShadows ? 1u : 0,
+                Anchor = item.Anchor,
+                Hatch = item.Hatch ? 1u : 0,
             }]);
             commands.BindIndexBuffer(item.Mesh.Indices);
             commands.Push(new Push { Vertices = item.Mesh.Vertices.Address, Draw = draw, Scene = sceneAddress });
             commands.DrawIndexed(item.Mesh.IndexCount);
         }
         commands.EndRendering();
+
+        if (!InkCoverageOnly && items.Any(i => i.Glow != Vector3.Zero))
+            RenderGlow(frame, target, items, models, sceneAddress, style, scale);
 
         var outline = style.OutlineWidth * scale;
         var inner = style.InnerWidth * scale;
