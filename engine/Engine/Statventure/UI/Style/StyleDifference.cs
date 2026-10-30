@@ -18,7 +18,8 @@ public enum StyleChange
 /// <summary>
 /// Compares two computed styles field by field (structurally, arrays and records included) and
 /// says what the difference requires. Every field of <see cref="ComputedStyle"/> counts as
-/// affecting layout unless it is listed here as paint-only, as not rendered, or as changing boxes.
+/// affecting layout unless it is listed here as paint-only, as not rendered, as changing boxes, or as
+/// a border style or width (layout only when a used width changes).
 /// </summary>
 public static class StyleDifference
 {
@@ -51,6 +52,16 @@ public static class StyleDifference
         nameof(ComputedStyle.OutlineOffset), nameof(ComputedStyle.ObjectFit), nameof(ComputedStyle.ClipRect),
     ];
 
+    /// <summary>
+    /// Border styles and widths (Blink's kBorderWidth group): a change needs layout only when a used
+    /// width differs (0 for none and hidden), otherwise only painting (ComputedStyle::DiffNeedsFullLayout).
+    /// </summary>
+    static readonly string[] BorderFields =
+    [
+        nameof(ComputedStyle.BorderTopWidth), nameof(ComputedStyle.BorderRightWidth), nameof(ComputedStyle.BorderBottomWidth), nameof(ComputedStyle.BorderLeftWidth),
+        nameof(ComputedStyle.BorderTopStyle), nameof(ComputedStyle.BorderRightStyle), nameof(ComputedStyle.BorderBottomStyle), nameof(ComputedStyle.BorderLeftStyle),
+    ];
+
     /// <summary>Fields that don't render: the animation engine reads transitions and animations as styles change; custom properties reach the properties that use them.</summary>
     static readonly string[] IgnoredFields =
     [
@@ -64,16 +75,17 @@ public static class StyleDifference
         nameof(ComputedStyle.OverscrollBehaviorX), nameof(ComputedStyle.OverscrollBehaviorY),
     ];
 
-    static readonly Func<ComputedStyle, ComputedStyle, bool> BoxEqual, LayoutEqual, PaintEqual, AllEqual;
+    static readonly Func<ComputedStyle, ComputedStyle, bool> BoxEqual, LayoutEqual, BorderEqual, PaintEqual, AllEqual;
 
     static StyleDifference()
     {
         var fields = typeof(ComputedStyle).GetFields(BindingFlags.Public | BindingFlags.Instance);
-        var known = BoxFields.Concat(PaintFields).Concat(IgnoredFields).ToHashSet();
+        var known = BoxFields.Concat(PaintFields).Concat(BorderFields).Concat(IgnoredFields).ToHashSet();
         foreach (var name in known)
             if (fields.All(f => f.Name != name))
                 throw new InvalidOperationException("StyleDifference names a field ComputedStyle doesn't have: " + name);
         BoxEqual = Comparer(fields.Where(f => BoxFields.Contains(f.Name)));
+        BorderEqual = Comparer(fields.Where(f => BorderFields.Contains(f.Name)));
         PaintEqual = Comparer(fields.Where(f => PaintFields.Contains(f.Name)));
         LayoutEqual = Comparer(fields.Where(f => !known.Contains(f.Name)));
         AllEqual = Comparer(fields.Where(f => f.Name != nameof(ComputedStyle.Custom)));
@@ -105,10 +117,13 @@ public static class StyleDifference
         // Transforms and filters make a box the containing block of positioned descendants.
         if (!BoxEqual(a, b) || ContainsPositioned(a) != ContainsPositioned(b) || ContainsFixed(a) != ContainsFixed(b))
             return StyleChange.Box;
-        if (!LayoutEqual(a, b))
+        if (!LayoutEqual(a, b) || !UsedBorderWidthsEqual(a, b))
             return StyleChange.Layout;
-        return PaintEqual(a, b) ? StyleChange.None : StyleChange.Paint;
+        return PaintEqual(a, b) && BorderEqual(a, b) ? StyleChange.None : StyleChange.Paint;
     }
+
+    static bool UsedBorderWidthsEqual(ComputedStyle a, ComputedStyle b) =>
+        a.BorderTop == b.BorderTop && a.BorderRight == b.BorderRight && a.BorderBottom == b.BorderBottom && a.BorderLeft == b.BorderLeft;
 
     /// <summary>The box is the containing block of absolutely positioned descendants.</summary>
     public static bool ContainsPositioned(ComputedStyle s) => s.Position != PositionKind.Static || s.HasTransform || s.Filters.Length > 0 || s.WillChangeContainsFixed;
