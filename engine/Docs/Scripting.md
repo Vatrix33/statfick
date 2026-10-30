@@ -72,7 +72,8 @@ frame waits for the next.
   keep their observers alive (weak list in the document, as Blink's controller).
 
 **matchMedia:** `Matches` reads the current environment; the change event is per list, when its
-result differs from the one last reported.
+result differs from the one last reported. A list with listeners stays alive when game code drops it
+(Blink's HasPendingActivity); one without is held weakly.
 
 **Web Animations** (user decisions 2026-10-30: the core of `element.animate`, keyframes as
 dictionaries of CSS text; animation.cc, pending_animations.cc, timing*.cc, keyframe_effect_model.cc,

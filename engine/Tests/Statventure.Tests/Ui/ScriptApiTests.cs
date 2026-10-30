@@ -124,6 +124,29 @@ public class ScriptApiTests
     }
 
     [Fact]
+    public void ListenersKeepWhatTheyListenToAlive()
+    {
+        // As in Blink: a media query list with a listener and an observer with targets live on
+        // when game code drops them (a garbage collection must not lose their events).
+        var document = Document("""<div id="a" style="width: 50%; height: 10px"></div>""");
+        var log = new List<string>();
+        document.RunScript(() =>
+        {
+            document.MatchMedia("(max-width: 350px)").AddChangeListener(e => log.Add("change " + e.Matches));
+            new UiResizeObserver(document, entries => log.Add("resize " + entries[0].ContentRect.Width)).Observe(document.GetElementById("a")!);
+        });
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        document.Update(1 / 60.0);
+        document.SetViewport(300, 300);
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        document.Update(2 / 60.0);
+        Assert.Equal(["resize 192", "change True", "resize 142"], log);
+    }
+
+    [Fact]
     public void DelayCompletesAtItsTimer()
     {
         var document = Document("");

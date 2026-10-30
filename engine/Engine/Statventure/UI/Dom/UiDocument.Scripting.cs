@@ -211,6 +211,16 @@ public sealed partial class UiDocument
     // ---------- Media query lists and resize ----------
 
     readonly List<WeakReference<UiMediaQueryList>> _mediaQueryLists = [];
+    // Lists with listeners stay alive (Blink's MediaQueryList::HasPendingActivity), even when game code drops them.
+    readonly HashSet<UiMediaQueryList> _listenedMediaQueryLists = [];
+
+    internal void ListenersChanged(UiMediaQueryList list, bool any)
+    {
+        if (any)
+            _listenedMediaQueryLists.Add(list);
+        else
+            _listenedMediaQueryLists.Remove(list);
+    }
 
     /// <summary>window.matchMedia.</summary>
     public UiMediaQueryList MatchMedia(string query)
@@ -280,9 +290,14 @@ public sealed class UiMediaQueryList
     {
         if (!_listeners.Contains(listener))
             _listeners.Add(listener);
+        _document.ListenersChanged(this, any: true);
     }
 
-    public void RemoveChangeListener(Action<UiMediaQueryListEvent> listener) => _listeners.Remove(listener);
+    public void RemoveChangeListener(Action<UiMediaQueryListEvent> listener)
+    {
+        _listeners.Remove(listener);
+        _document.ListenersChanged(this, any: _listeners.Count > 0);
+    }
 
     internal void Reevaluate(Css.MediaEnvironment environment)
     {
