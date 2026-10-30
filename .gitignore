@@ -4,6 +4,7 @@ obj/
 /engine/Engine/Statventure/Shaders/Bin/
 /engine/Tests/Statventure.Tests/Actual/
 /runtime/
+/release/
 # One machine's settings
 /engine/Tools/Scripts/env.local.sh
 /engine/Tools/Scripts/env.local.ps1

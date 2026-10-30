@@ -136,6 +136,7 @@ Source tree:
 - Remote work: Claude Code cloud sessions (also from the phone app) and a Windows PC. The cloud gets a setup script (no GPU: software Vulkan). Windows must build, run and test (PowerShell scripts, test fonts from the repo); Chromium reference captures stay Linux/cloud only.
 - The project notes kept in Claude's local memory move into the repo docs (cloud sessions don't see that memory). The reference source cache stays out (re-downloadable).
 - Git workflow: cloud sessions push their own branch and open a pull request that the user merges on GitHub; sessions on the PC commit to `main` and push. The repo goes into the user's existing, empty private GitHub repo `github.com/Vatrix33/statfick`; commits carry `meistervatrix@gmail.com`; this PC logs in with the GitHub CLI (`gh`).
+- Downloads (2026-10-30): everything on GitHub stays private. The old game goes up as a release in the private repo (Linux and Windows zips: the executable with the game files it reads); for others, the user shares the same zips through another site with a secret link.
 
 ## Progress
 
