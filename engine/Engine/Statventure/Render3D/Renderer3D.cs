@@ -18,7 +18,8 @@ public sealed class RenderTarget3D : IDisposable
     public const VkFormat ColorFormat = VkFormat.R8G8B8A8SRGB;
     public const VkFormat DepthFormat = VkFormat.D32SFloat;
     public const VkFormat SurfaceFormat = VkFormat.R32G32UInt;
-    public const VkFormat EdgeFormat = VkFormat.R16UInt;
+    public const VkFormat EdgeFormat = VkFormat.R32UInt;
+    public const VkFormat FeatureFormat = VkFormat.R32G32B32A32UInt;
     public const VkSampleCountFlags Samples = VkSampleCountFlags._4Bit;
     /// <summary>
     /// A shadow map's size: 16 maps, one per direction over the sun's disc, fitted to the visible
@@ -35,6 +36,9 @@ public sealed class RenderTarget3D : IDisposable
     public GpuImage Surface { get; }
     public GpuImage Edges { get; }
     public GpuImage ShadowMap { get; }
+    /// <summary>The nearest feature edge point at each pixel (feature.frag) and its depth test.</summary>
+    public GpuImage Features { get; }
+    public GpuImage FeatureDepth { get; }
 
     readonly GpuDevice _device;
     GlowImages? _glow;
@@ -80,6 +84,8 @@ public sealed class RenderTarget3D : IDisposable
         });
         Edges = GpuImage.CreateRenderTarget(device, width, height, EdgeFormat);
         ShadowMap = GpuImage.CreateDepth(device, ShadowSize * ShadowTiles, ShadowSize * ShadowTiles, DepthFormat, sampled: true);
+        Features = GpuImage.CreateRenderTarget(device, width, height, FeatureFormat);
+        FeatureDepth = GpuImage.CreateDepth(device, width, height, DepthFormat);
     }
 
     public void Dispose()
@@ -90,6 +96,8 @@ public sealed class RenderTarget3D : IDisposable
         Surface.Dispose();
         Edges.Dispose();
         ShadowMap.Dispose();
+        Features.Dispose();
+        FeatureDepth.Dispose();
         foreach (var image in _glow?.All ?? [])
             image.Dispose();
     }
@@ -128,6 +136,10 @@ public readonly record struct DrawItem(Mesh Mesh, Matrix4x4 Model, Vector4 Color
     public Vector3 Anchor { get; init; }
     /// <summary>Its glow colour (linear; zero: none; Docs/Renderer-3D.md, "Glow").</summary>
     public Vector3 Glow { get; init; }
+    /// <summary>Posed on the GPU before drawing (a skinned mesh; Docs/Renderer-3D.md, "GPU skinning").</summary>
+    public SkinJob? Skin { get; init; }
+    /// <summary>Its mesh's creases and open edges for the ink lines.</summary>
+    public FeatureEdges? Features { get; init; }
 }
 
 /// <summary>
@@ -232,6 +244,17 @@ public sealed class Renderer3D(GpuDevice device)
         public Vector2 Size;
         public Vector2 HalfExtent;
         public float CreaseCos;
+        public uint Features;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct FeaturePush
+    {
+        public ulong Vertices;
+        public ulong Edges;
+        public ulong Draw;
+        public ulong Scene;
+        public float CreaseCos;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -254,6 +277,83 @@ public sealed class Renderer3D(GpuDevice device)
         public ulong Vertices;
         public ulong Draw;
         public ulong Scene;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct SkinPush
+    {
+        public ulong Rest;
+        public ulong Influences;
+        public ulong Joints;
+        public ulong Posed;
+        public uint Count;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct NormalsPush
+    {
+        public ulong Posed;
+        public ulong Fans;
+        public ulong Indices;
+        public uint Count;
+    }
+
+    /// <summary>Per frame in flight: device memory for posed vertices, reused from the frame's start.</summary>
+    readonly GpuBuffer?[] _arenas = new GpuBuffer?[8];
+    readonly long[] _arenaFrames = new long[8];
+    readonly ulong[] _arenaUsed = new ulong[8];
+
+    /// <summary>
+    /// Skins every item with a skinning job (Docs/Renderer-3D.md, "GPU skinning"): skin.comp moves the
+    /// vertices into this frame's device memory, normals.comp recomputes their normals; returns each
+    /// item's vertex address for drawing.
+    /// </summary>
+    ulong[] Skin(Frame frame, IReadOnlyList<DrawItem> items)
+    {
+        var addresses = items.Select(i => i.Mesh.Vertices.Address).ToArray();
+        var jobs = Enumerable.Range(0, items.Count).Where(i => items[i].Skin != null).ToList();
+        if (jobs.Count == 0)
+            return addresses;
+        var slot = frame.Slot.Index;
+        if (_arenaFrames[slot] != frame.Number)
+            (_arenaFrames[slot], _arenaUsed[slot]) = (frame.Number, 0);
+        var need = _arenaUsed[slot] + (ulong)jobs.Sum(i => (items[i].Mesh.VertexCount * 32 + 255) / 256 * 256);
+        if (_arenas[slot] is not { } arena || arena.Size < need)
+        {
+            // A bigger buffer: this frame's earlier posed vertices stay in the old one (released later).
+            _arenas[slot]?.Dispose();
+            _arenas[slot] = arena = GpuBuffer.Create(device, Math.Max(need * 2, 1 << 20), VkBufferUsageFlags.StorageBufferBit, MemoryKind.Device);
+            _arenaUsed[slot] = 0;
+        }
+        var commands = frame.Commands;
+        var posed = new ulong[items.Count];
+        commands.BindPipeline(device.Pipelines.GetCompute("skin.comp"));
+        foreach (var i in jobs)
+        {
+            var job = items[i].Skin!;
+            posed[i] = arena.Address + _arenaUsed[slot];
+            _arenaUsed[slot] += (ulong)(job.Rest.VertexCount * 32 + 255) / 256 * 256;
+            commands.Push(new SkinPush
+            {
+                Rest = job.Rest.Vertices.Address,
+                Influences = job.Influences.Address,
+                Joints = frame.Upload<Matrix4x4>(job.Joints),
+                Posed = posed[i],
+                Count = (uint)job.Rest.VertexCount,
+            });
+            commands.Dispatch((job.Rest.VertexCount + 63) / 64);
+        }
+        commands.MemoryBarrier();
+        commands.BindPipeline(device.Pipelines.GetCompute("normals.comp"));
+        foreach (var i in jobs)
+        {
+            var job = items[i].Skin!;
+            commands.Push(new NormalsPush { Posed = posed[i], Fans = job.Fans.Address, Indices = job.Rest.Indices.Address, Count = (uint)job.Rest.VertexCount });
+            commands.Dispatch((job.Rest.VertexCount + 63) / 64);
+            addresses[i] = posed[i];
+        }
+        commands.MemoryBarrier();
+        return addresses;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -341,7 +441,19 @@ public sealed class Renderer3D(GpuDevice device)
         Cull = VkCullModeFlags.None,
     });
 
-    Pipeline? _edges, _lines, _shadow, _glowSource, _glowBlur, _glowOwner, _glowComposite;
+    Pipeline FeaturePipeline => _feature ??= device.Pipelines.Get(new GraphicsPipelineDesc
+    {
+        VertexShader = "feature.vert",
+        FragmentShader = "feature.frag",
+        Blend = BlendMode.Opaque,
+        ColorFormats = [RenderTarget3D.FeatureFormat],
+        DepthFormat = RenderTarget3D.DepthFormat,
+        DepthTest = true,
+        DepthWrite = true,
+        DepthCompare = VkCompareOp.Greater,
+    });
+
+    Pipeline? _feature, _edges, _lines, _shadow, _glowSource, _glowBlur, _glowOwner, _glowComposite;
 
     Pipeline GlowSourcePipeline => _glowSource ??= device.Pipelines.Get(new GraphicsPipelineDesc
     {
@@ -380,7 +492,7 @@ public sealed class Renderer3D(GpuDevice device)
     /// The lizardman's glow (Docs/Renderer-3D.md, "Glow"): the glowing parts drawn alone, blurred
     /// wide and tight as compose.py did, and laid over the view behind their models.
     /// </summary>
-    void RenderGlow(Frame frame, RenderTarget3D target, IReadOnlyList<DrawItem> items, uint[] models, ulong sceneAddress, CelStyle style, float scale)
+    void RenderGlow(Frame frame, RenderTarget3D target, IReadOnlyList<DrawItem> items, ulong[] vertices, uint[] models, ulong sceneAddress, CelStyle style, float scale)
     {
         var commands = frame.Commands;
         var glow = target.Glow;
@@ -397,7 +509,7 @@ public sealed class Renderer3D(GpuDevice device)
             // The glow colour rides in the shadow tone's place.
             var draw = frame.Upload<DrawData>([new DrawData { Model = item.Model, NormalMatrix = item.Model, Shadow = new Vector4(item.Glow, 1), Surface = models[i] }]);
             commands.BindIndexBuffer(item.Mesh.Indices);
-            commands.Push(new Push { Vertices = item.Mesh.Vertices.Address, Draw = draw, Scene = sceneAddress });
+            commands.Push(new Push { Vertices = vertices[i], Draw = draw, Scene = sceneAddress });
             commands.DrawIndexed(item.Mesh.IndexCount);
         }
         commands.EndRendering();
@@ -458,11 +570,10 @@ public sealed class Renderer3D(GpuDevice device)
         {
             if (!item.CastsShadow && !item.ReceivesShadows)
                 continue;
+            var (low, high) = item.Skin is { } skin ? (skin.BoundsMin, skin.BoundsMax) : (item.Mesh.BoundsMin, item.Mesh.BoundsMax);
             for (var corner = 0; corner < 8; corner++)
             {
-                var local = new Vector3((corner & 1) == 0 ? item.Mesh.BoundsMin.X : item.Mesh.BoundsMax.X,
-                    (corner & 2) == 0 ? item.Mesh.BoundsMin.Y : item.Mesh.BoundsMax.Y,
-                    (corner & 4) == 0 ? item.Mesh.BoundsMin.Z : item.Mesh.BoundsMax.Z);
+                var local = new Vector3((corner & 1) == 0 ? low.X : high.X, (corner & 2) == 0 ? low.Y : high.Y, (corner & 4) == 0 ? low.Z : high.Z);
                 var world = Vector3.Transform(local, item.Model);
                 var light = Vector3.Transform(world, view);
                 worldMin = Vector3.Min(worldMin, world);
@@ -534,6 +645,7 @@ public sealed class Renderer3D(GpuDevice device)
     {
         style ??= CelStyle.Default;
         var commands = frame.Commands;
+        var vertices = Skin(frame, items);
         var aspect = (float)target.Width / target.Height;
         var orthographic = camera.Projection == Projection.Orthographic;
         var direction = sun.Direction.LengthSquared() > 0 ? Vector3.Normalize(sun.Direction) : Vector3.Zero;
@@ -559,8 +671,8 @@ public sealed class Renderer3D(GpuDevice device)
             var lightViewProjection = fit.View * fit.Projection;
             commands.BeginRendering([], new DepthAttachment(target.ShadowMap, LoadAction.Clear, 0f));
             commands.BindPipeline(ShadowPipeline);
-            var draws = items.Where(i => i.CastsShadow)
-                .Select(i => (i.Mesh, Draw: frame.Upload<DrawData>([new DrawData { Model = i.Model, NormalMatrix = i.Model }]))).ToList();
+            var draws = Enumerable.Range(0, items.Count).Where(i => items[i].CastsShadow)
+                .Select(i => (items[i].Mesh, Vertices: vertices[i], Draw: frame.Upload<DrawData>([new DrawData { Model = items[i].Model, NormalMatrix = items[i].Model }]))).ToList();
             for (var tile = 0; tile < SunDisc.Length; tile++)
             {
                 // Seen from a point of the sun's disc, the scene shifts by its distance times the
@@ -573,10 +685,10 @@ public sealed class Renderer3D(GpuDevice device)
                 int x = tile % RenderTarget3D.ShadowTiles * RenderTarget3D.ShadowSize, y = tile / RenderTarget3D.ShadowTiles * RenderTarget3D.ShadowSize;
                 commands.SetViewport(x, y, RenderTarget3D.ShadowSize, RenderTarget3D.ShadowSize);
                 commands.SetScissor(x, y, RenderTarget3D.ShadowSize, RenderTarget3D.ShadowSize);
-                foreach (var (mesh, draw) in draws)
+                foreach (var (mesh, shadowVertices, draw) in draws)
                 {
                     commands.BindIndexBuffer(mesh.Indices);
-                    commands.Push(new Push { Vertices = mesh.Vertices.Address, Draw = draw, Scene = shadowAddress });
+                    commands.Push(new Push { Vertices = shadowVertices, Draw = draw, Scene = shadowAddress });
                     commands.DrawIndexed(mesh.IndexCount);
                 }
             }
@@ -605,6 +717,7 @@ public sealed class Renderer3D(GpuDevice device)
         uint NewModel() => next++ % MaxModels + 1;
         var models = items.Select(item => item.Group is null ? NewModel() : groups.TryGetValue(item.Group, out var known) ? known : groups[item.Group] = NewModel()).ToArray();
         var ink = false;
+        var drawAddresses = new ulong[items.Count];
         for (var index = 0; index < items.Count; index++)
         {
             var item = items[index];
@@ -623,14 +736,15 @@ public sealed class Renderer3D(GpuDevice device)
                 Anchor = item.Anchor,
                 Hatch = item.Hatch ? 1u : 0,
             }]);
+            drawAddresses[index] = draw;
             commands.BindIndexBuffer(item.Mesh.Indices);
-            commands.Push(new Push { Vertices = item.Mesh.Vertices.Address, Draw = draw, Scene = sceneAddress });
+            commands.Push(new Push { Vertices = vertices[index], Draw = draw, Scene = sceneAddress });
             commands.DrawIndexed(item.Mesh.IndexCount);
         }
         commands.EndRendering();
 
         if (!InkCoverageOnly && items.Any(i => i.Glow != Vector3.Zero))
-            RenderGlow(frame, target, items, models, sceneAddress, style, scale);
+            RenderGlow(frame, target, items, vertices, models, sceneAddress, style, scale);
 
         var outline = style.OutlineWidth * scale;
         var inner = style.InnerWidth * scale;
@@ -641,6 +755,18 @@ public sealed class Renderer3D(GpuDevice device)
         }
         if (!ink || outline <= 0 && inner <= 0)
             return;
+        // Feature edges: the meshes' creases and open edges, each pixel near one recording its nearest point.
+        var creaseCos = MathF.Cos((180 - style.CreaseAngle) * MathF.PI / 180);
+        commands.BeginRendering(new ColorAttachment(target.Features, LoadAction.Clear, Vector4.Zero), new DepthAttachment(target.FeatureDepth, LoadAction.Clear, 0f));
+        commands.BindPipeline(FeaturePipeline);
+        for (var index = 0; index < items.Count; index++)
+            if (items[index] is { Ink: true, Features: { } features })
+            {
+                commands.Push(new FeaturePush { Vertices = vertices[index], Edges = features.Buffer.Address, Draw = drawAddresses[index], Scene = sceneAddress, CreaseCos = creaseCos });
+                commands.Draw(features.Count * 6);
+            }
+        commands.EndRendering();
+        commands.Transition(target.Features, VkImageLayout.ShaderReadOnlyOptimal);
         var tanY = MathF.Tan(camera.VerticalFieldOfView / 2);
         var halfExtent = orthographic ? new Vector2(camera.OrthographicHeight / 2 * aspect, camera.OrthographicHeight / 2) : new Vector2(tanY * aspect, tanY);
         commands.Transition(target.Surface, VkImageLayout.ShaderReadOnlyOptimal);
@@ -653,7 +779,8 @@ public sealed class Renderer3D(GpuDevice device)
             Size = new Vector2(target.Width, target.Height),
             HalfExtent = halfExtent,
             // Faces meeting at less than the crease angle: their normals are more than 180° minus it apart.
-            CreaseCos = MathF.Cos((180 - style.CreaseAngle) * MathF.PI / 180),
+            CreaseCos = creaseCos,
+            Features = (uint)target.Features.BindlessIndex,
         });
         commands.Draw(3);
         commands.EndRendering();

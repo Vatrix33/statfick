@@ -29,6 +29,11 @@ shadow, glow, cast shadows drawn as ink. It also renders 3D views into the UI (p
   edge is at N·L 0.314, 71.7° from the light. Engine defaults, settable per scene. Band edges are
   antialiased like Blender's render, over about a pixel from how fast the light changes on screen
   (not shaded per MSAA sample).
+- **GPU skinning** (step 7): linear blend skinning (glTF's and Blender's default), 4 influences per
+  vertex (JOINTS_0/WEIGHTS_0, Blender's export default). A posed mesh's normals are recomputed from
+  the bent surface as Blender does (measured: its posed normals are the deformed mesh's own smooth
+  normals, each vertex averaging its faces weighted by their corner angles, sharp edges kept); the
+  bone matrices would turn them up to about 4° off at a bend.
 - **Hatching** (step 6): in every shadow-tone area (a model's shadow side, cast shadows on
   scenery), as the lizardman hatched: lines 6 px apart, 1 px wide, at 72°, 35% toward the ink (the
   old game's battle sprites in a 1080p window), times the device scale. Screen-aligned and moving
@@ -65,6 +70,10 @@ shadow, glow, cast shadows drawn as ink. It also renders 3D views into the UI (p
     window), times the device scale. Ink `#130e0b`.
   - Parts without lines: a custom property on the Blender object, `ink = 0`, exported as glTF node
     extras (the lizardman kept them in a "nolines" collection).
+  - Mesh feature edges (user decision during step 7): where a part lies on another (an armour plate
+    on a body, a strap, a belt) the per-pixel tests see one continuous surface, but Freestyle inks
+    the plate's own creases and open edges. So each mesh's feature edges are found at load and
+    inked where they lie on the visible surface (intersections still get none).
 - **Colours: palette slots** (step 2). Each Blender material names a slot (`metal.base`,
   `metal.trim`, `cloth`, `skin`, …); the engine fills the slots from a palette when it draws, so one
   sword model shows in every metal and one robe in every cloth, as the old game's palettes (metals
@@ -178,6 +187,25 @@ come up.
   4. `glow_composite.frag`: compose.py's halo in sRGB (wide blur, straight colours, alpha × 2.2
      capped; the core over it), laid over the view by the share of the pixel's samples that are
      neither its model nor nearer than its glowing parts; then copied back into `Resolved`.
+- **Feature edges, how they're drawn** (`Model.FeaturesOf`, `feature.vert/.frag`): at load a mesh's
+  primitives are welded by position; every edge with one face (open) or more than two is kept, every
+  edge between two faces keeps the cosine of their normals' angle (the crease test is the style's, at
+  draw; crease status is taken at rest). Each frame (after skinning) every edge is a thin quad on
+  screen; a pixel within 0.75 px of it records the nearest point (its offset), its view depth and
+  the edge's part; the depth test keeps the nearest edge. `ink_edges.frag` keeps the point where it
+  isn't behind the visible surface (that surface's plane carried to the point, half a pixel's worth
+  of depth; two pixels' worth where the surface is seen nearly edge-on) and its part has ink;
+  `ink_lines.frag` inks it as an inner line.
+- **GPU skinning, how it's done** (`Renderer3D.Skin`, `skin.comp`, `normals.comp`): `Model.Draw`
+  takes a `ModelPose` (local transforms for some nodes) and gives each skinned primitive a
+  `SkinJob` (its joint matrices: inverse bind matrix, then the joint's posed transform; posed bounds
+  for the shadow fit). Before any pass, skin.comp blends each vertex's four joint matrices into a
+  per-frame device buffer (one per frame in flight, reset at the frame's first use), then
+  normals.comp recomputes each vertex's normal as the angle-weighted sum of the triangles in its
+  fan; every pass draws from the posed buffer. Fans: Blender's importer shades a face flat when all
+  its normals equal its face normal, and posed such a face keeps its own normal (measured); so a
+  skinned primitive's flat triangles get vertices of their own at load (one-triangle fans), and the
+  smooth ones share fans by rest position and normal (a seam's split vertices share theirs).
 - Cameras keep the vertical extent fixed and widen with the aspect ratio (a Blender camera with
   sensor fit vertical): perspective by a vertical field of view, orthographic by the height of the
   world in view (Blender's orthographic scale). `Camera.View` is `Matrix4x4.CreateLookAt`.
@@ -219,6 +247,11 @@ come up.
   (`world_to_camera_view`); on a line (distance under half the width) and in shadow (the ramp's
   input under the band edge), a sample mixes toward the ink by the hatch ink. Materials with
   `hatch = 0` (the importer keeps it as a custom property) have none.
+- **Poses in Blender**: the test writes each posed joint's deformation in model space (back from its
+  rest transform, then its posed one: the same for every skin using the joint) into the scene file;
+  `render_scenes.py` sets each bone's pose matrix to that deformation in armature space times its
+  rest matrix, parents first. Measured: Blender's posed vertices are the engine's deformation to
+  3·10⁻⁷.
 - **Glow in Blender**: imported materials are sorted by their shader (an Emission shader without a
   Principled BSDF: unlit; a Principled BSDF with a black base and emission: emission only); unlit
   and emission-only parts become flat emission. After the shading render, two more: the glowing
@@ -360,4 +393,19 @@ Started 2026-10-30.
   `glow-figure`; every model scene now hatched. Checked by breaking: hatching fixed to the screen,
   `hatch = 0` ignored, another angle, spacing 20% wider and none; no glow, a halo over its own
   model, a wide blur 20% larger and no alpha boost each fail.
-- **Next: step 7, GPU skinning.**
+- **Step 7, GPU skinning (2026-10-30, 547 tests): done.** User decisions: normals recomputed from
+  the bent surface like Blender, linear blend skinning, 4 influences; and, found while testing poses,
+  mesh feature edges for the ink lines. `ModelPose`, `SkinJob`, `Renderer3D.Skin` (skin.comp,
+  normals.comp, a device arena per frame in flight), flat faces apart for skinned primitives,
+  feature edges (`FeatureEdges`, feature.vert/.frag, `ink_edges` visibility). The CPU skinning at
+  rest from step 2 is gone (rest is a pose without overrides). `rigged.glb` gained a fin (flat,
+  12 segments, lying 5 mm off the tube), `glowing.glb` a belt lying on the body; scenes `pose-side`
+  and `pose-perspective`. Found on the way: Blender recomputes posed normals (custom = auto normals
+  after import) and shades all-flat faces per face; a joint's deformation for the reference must be
+  skin-independent (posed after the inverse of rest, not the inverse bind matrix, which carries its
+  mesh's place); an unsubdivided box skinned across a bend folds along its faces' diagonals (test
+  models need subdivisions where they bend); a thin face seen edge-on is a sliver MSAA samples
+  differently. Checked by breaking: normals turned with the bones, flat faces averaged, joint
+  matrices in the other order and one influence each fail `pose-*`; without feature edges the belt's
+  lines go missing (`glow-figure`).
+- **Next: step 8, terrain and particles.**

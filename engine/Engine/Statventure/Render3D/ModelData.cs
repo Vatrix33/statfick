@@ -18,6 +18,8 @@ public sealed class ModelPrimitive
     public required uint[] Indices { get; init; }
     /// <summary>An index into <see cref="ModelData.Materials"/>, or −1 for glTF's default material.</summary>
     public int Material { get; init; } = -1;
+    /// <summary>Vertices of flat faces given vertices of their own for skinning (Model), else null.</summary>
+    internal uint[]? FlatVertices { get; init; }
 }
 
 public sealed record ModelMesh(string Name, IReadOnlyList<ModelPrimitive> Primitives);
@@ -56,6 +58,23 @@ public sealed record ModelNode(string Name, int Parent, IReadOnlyList<int> Child
     public bool Ink { get; init; } = true;
 }
 
+/// <summary>
+/// A pose (Docs/Renderer-3D.md, "GPU skinning"): local translation, rotation and scale for some
+/// nodes; the rest keep the file's. Animations (M7) will fill these.
+/// </summary>
+public sealed class ModelPose
+{
+    readonly Dictionary<int, (Vector3 Translation, Quaternion Rotation, Vector3 Scale)> _nodes = [];
+
+    public ModelPose Set(int node, Vector3 translation, Quaternion rotation, Vector3 scale)
+    {
+        _nodes[node] = (translation, rotation, scale);
+        return this;
+    }
+
+    public bool TryGet(int node, out (Vector3 Translation, Quaternion Rotation, Vector3 Scale) local) => _nodes.TryGetValue(node, out local);
+}
+
 /// <summary>A skin: the nodes acting as joints and their inverse bind matrices (model space to joint space).</summary>
 public sealed record ModelSkin(string Name, IReadOnlyList<int> Joints, IReadOnlyList<Matrix4x4> InverseBindMatrices, int Skeleton);
 
@@ -74,8 +93,11 @@ public sealed class ModelData
     public ModelMaterial MaterialOf(ModelPrimitive primitive) =>
         primitive.Material < 0 ? ModelMaterial.Default : Materials[primitive.Material];
 
-    /// <summary>Every node's transform to model space (its local transform after its ancestors').</summary>
-    public Matrix4x4[] WorldMatrices()
+    /// <summary>
+    /// Every node's transform to model space (its local transform after its ancestors'), in
+    /// <paramref name="pose"/> where it gives a node's local transform.
+    /// </summary>
+    public Matrix4x4[] WorldMatrices(ModelPose? pose = null)
     {
         var world = new Matrix4x4[Nodes.Count];
         var stack = new Stack<(int Node, Matrix4x4 Parent)>();
@@ -84,7 +106,10 @@ public sealed class ModelData
         while (stack.Count > 0)
         {
             var (node, parent) = stack.Pop();
-            world[node] = Nodes[node].Local * parent;
+            var local = pose != null && pose.TryGet(node, out var posed)
+                ? Matrix4x4.CreateScale(posed.Scale) * Matrix4x4.CreateFromQuaternion(posed.Rotation) * Matrix4x4.CreateTranslation(posed.Translation)
+                : Nodes[node].Local;
+            world[node] = local * parent;
             foreach (var child in Nodes[node].Children)
                 stack.Push((child, world[node]));
         }

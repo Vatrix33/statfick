@@ -31,6 +31,9 @@ def main():
         view.alpha_composite(halo)
         view.convert("RGB").save(path)
         print("wrote", path)
+        # Used up: a later run that doesn't render this scene must not lay its halo in again.
+        os.remove(glow_path)
+        os.remove(os.path.join(folder, f"{spec['name']}-mask.png"))
 
 
 main()

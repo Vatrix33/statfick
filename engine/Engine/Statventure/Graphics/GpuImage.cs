@@ -207,6 +207,7 @@ public static class Formats
         VkFormat.R16UInt => 2,
         VkFormat.R8G8UNorm => 2,
         VkFormat.R16G16B16A16SFloat or VkFormat.R32G32UInt => 8,
+        VkFormat.R32G32B32A32UInt => 16,
         VkFormat.R32G32B32A32SFloat => 16,
         VkFormat.R16SFloat => 2,
         VkFormat.R32SFloat => 4,

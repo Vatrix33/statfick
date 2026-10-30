@@ -206,7 +206,7 @@ def blocks(path):
 
 
 def rigged(path):
-    """A tube on a two-bone armature (weights by height), exported in its rest pose."""
+    """A smooth tube and a flat fin on a two-bone armature (weights by height), exported in its rest pose."""
     skin = material("skin", "#a9805e")
     arm_data = bpy.data.armatures.new("rig")
     rig = bpy.data.objects.new("Rig", arm_data)
@@ -251,6 +251,27 @@ def rigged(path):
             upper_group.add([v.index], t, "REPLACE")
     modifier = tube.modifiers.new("Armature", "ARMATURE")
     modifier.object = rig
+    # A flat-shaded fin lying on the tube (5 mm off it, as a plate on a body), weighted like it: under
+    # a bend its faces must stay flat and its edges keep their ink. Cut into 12 lengths, as a plate or
+    # strap that bends would be (a box of 8 vertices folds along its faces' diagonals).
+    fin_mesh = box_mesh("fin", (0.06, 0.3, 1.2), [material("metal.trim", "#c9a46a")])
+    bm = bmesh.new()
+    bm.from_mesh(fin_mesh)
+    upright = [e for e in bm.edges if abs(e.verts[0].co.z - e.verts[1].co.z) > 1.0]
+    bmesh.ops.subdivide_edges(bm, edges=upright, cuts=11, use_grid_fill=True)
+    bm.to_mesh(fin_mesh)
+    bm.free()
+    fin = mesh_object("Fin", fin_mesh, rig, location=(0.235, 0, 1.0))
+    bpy.context.view_layer.update()
+    fin_lower, fin_upper = fin.vertex_groups.new(name="Lower"), fin.vertex_groups.new(name="Upper")
+    for v in fin.data.vertices:
+        z = (fin.matrix_world @ v.co).z
+        t = min(max((z - 0.6) / 0.8, 0), 1)
+        if t < 1:
+            fin_lower.add([v.index], 1 - t, "REPLACE")
+        if t > 0:
+            fin_upper.add([v.index], t, "REPLACE")
+    fin.modifiers.new("Armature", "ARMATURE").object = rig
     export(path, export_skins=True)
 
 
@@ -314,7 +335,7 @@ def fringe(path):
 def glowing(path):
     """A figure with the lizardman's three kinds of special material: a blade that is cel-shaded and
     glows (Principled with emission), a badge drawn flat that glows (an Emission shader) and a pupil
-    drawn flat without glow (a Background shader)."""
+    drawn flat without glow (a Background shader); and a belt lying on its body."""
     cloth = material("cloth", "#5d6f7d")
     skin = material("skin", "#7fa35a")
     blade = glowing_material("metal.base", "#88b5ac", "#bffff0")
@@ -325,6 +346,27 @@ def glowing(path):
     mesh_object("Blade", box_mesh("blade", (0.08, 0.05, 0.95), [blade]), location=(0.42, -0.25, 0.95), rotation=(0, 28, 0))
     mesh_object("Badge", box_mesh("badge", (0.14, 0.03, 0.14), [badge]), location=(-0.04, -0.25, 0.85))
     mesh_object("Pupil", uv_sphere_mesh("pupil", 0.035, pupil), location=(0.07, -0.18, 1.36))
+    # A belt lying on the body (5 mm off it, 8 cm tall, its sides thinner than a pixel on screen): its
+    # edges are creases of its own mesh that only the meshes' feature edges find (the belt and the body
+    # look like one surface to a per-pixel test).
+    belt = bpy.data.meshes.new("belt")
+    bm = bmesh.new()
+    segments, inner, outer, low, high = 24, 0.236, 0.247, 0.46, 0.54
+    rings = []
+    for z in (low, high):
+        for r in (outer, inner):
+            rings.append([bm.verts.new((r * math.cos(2 * math.pi * k / segments), r * math.sin(2 * math.pi * k / segments), z)) for k in range(segments)])
+    out_low, in_low, out_high, in_high = rings
+    for k in range(segments):
+        n = (k + 1) % segments
+        bm.faces.new((out_low[k], out_low[n], out_high[n], out_high[k]))   # outside
+        bm.faces.new((in_low[n], in_low[k], in_high[k], in_high[n]))       # inside
+        bm.faces.new((out_high[k], out_high[n], in_high[n], in_high[k]))   # top
+        bm.faces.new((in_low[k], in_low[n], out_low[n], out_low[k]))       # bottom
+    bm.to_mesh(belt)
+    bm.free()
+    belt.materials.append(material("belt", "#5a4232"))
+    mesh_object("Belt", belt)
     export(path)
 
 

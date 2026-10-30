@@ -364,6 +364,8 @@ def add_model(scene, path, spec, palette, shadows, style, unshadowed=None, scale
         if obj.parent is None:
             obj.parent = holder
     imported.append(holder)
+    if spec.get("pose"):
+        pose_model(imported, holder, spec["pose"])
     # The hatching moves with the model: anchored where its origin is on screen (pixels, Y down).
     bpy.context.view_layer.update()
     seen = world_to_camera_view(scene, scene.camera, holder.matrix_world.translation)
@@ -402,6 +404,26 @@ def add_model(scene, path, spec, palette, shadows, style, unshadowed=None, scale
                 replaced[source] = flat
             slot.material = replaced[source]
     return imported
+
+
+def pose_model(imported, holder, pose):
+    """Poses the model's armature so each joint deforms the mesh by the matrix the engine computed
+    (glTF model space, columns): Blender deforms by a bone's pose matrix times its rest matrix's
+    inverse (armature space), so the pose matrix is that deformation, brought into armature space,
+    times the rest matrix. The scene file gives each matrix as 16 numbers, column by column. Parents first, as Blender reads a child's matrix against its parent's pose."""
+    to_blender4 = GLTF_TO_BLENDER.to_4x4()
+    for rig in (o for o in imported if o.type == "ARMATURE"):
+        bpy.context.view_layer.update()
+        armature = rig.matrix_world.copy()
+        bones = sorted(rig.pose.bones, key=lambda b: len(b.parent_recursive))
+        for bone in bones:
+            if bone.name not in pose:
+                continue
+            flat = pose[bone.name]
+            deformation = column_matrix([flat[c * 4:c * 4 + 4] for c in range(4)])
+            world = holder.matrix_world @ to_blender4 @ deformation @ to_blender4.inverted() @ holder.matrix_world.inverted()
+            bone.matrix = armature.inverted() @ world @ armature @ bone.bone.matrix_local
+            bpy.context.view_layer.update()
 
 
 # Replaced materials that glow, and their glow colours (linear).

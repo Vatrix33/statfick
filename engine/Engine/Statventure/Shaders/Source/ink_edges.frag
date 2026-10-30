@@ -11,12 +11,18 @@
 // All eight samples of the two pixels place it: a straight edge crossing the two-pixel strip leaves
 // as much of the strip on the first pixel's side as the distance at which it crosses the strip's
 // middle, and the samples on that side count that in quarters.
+// A mesh's feature edges (feature.frag: creases and open edges, as Freestyle finds them on the mesh)
+// add the nearest point on an edge at a pixel, kept where the edge lies on the visible surface
+// (within two pixels' worth of depth) and its part has ink: a plate's edge lying on a body, which
+// the per-pixel tests above see as one continuous surface.
 // Out: bits 0-1, the line to the right neighbour (1 inner, 2 outline); bits 2-4, the samples of
 // the two pixels on this pixel's side, less one (the crossing at (count) / 4 from this pixel's
-// left); bits 5-9 the same toward the pixel below (crossing from its top).
+// left); bits 5-9 the same toward the pixel below (crossing from its top); bit 10, a feature edge
+// point, its offset from the pixel's centre in bits 11-15 and 16-20 (−0.75..0.75 in 31 steps).
 #include "common.glsl"
 
 layout(set = 0, binding = 0) uniform utexture2DMS SurfaceSamples[];
+layout(set = 0, binding = 0) uniform utexture2D UintTextures[];
 layout(push_constant, scalar) uniform Push
 {
     uint surfaces;
@@ -25,6 +31,7 @@ layout(push_constant, scalar) uniform Push
     // Perspective: tan of half the field of view across and up; orthographic: half the view's width and height.
     vec2 halfExtent;
     float creaseCos;
+    uint features;
 } pc;
 
 layout(location = 0) in vec2 vUv;
@@ -48,13 +55,19 @@ Surface load(ivec2 p, int sampleIndex)
     return s;
 }
 
-// The view ray through a pixel's centre: origin and direction (z −1, so the distance along it is the depth).
-void ray(ivec2 p, out vec3 origin, out vec3 direction)
+// The view ray through a point on screen (pixels): origin and direction (z −1, so the distance along it is the depth).
+void rayAt(vec2 point, out vec3 origin, out vec3 direction)
 {
-    vec2 ndc = (vec2(p) + 0.5) / pc.size * 2.0 - 1.0;
+    vec2 ndc = point / pc.size * 2.0 - 1.0;
     vec2 v = vec2(ndc.x, -ndc.y) * pc.halfExtent;
     origin = pc.orthographic != 0u ? vec3(v, 0.0) : vec3(0.0);
     direction = pc.orthographic != 0u ? vec3(0.0, 0.0, -1.0) : vec3(v, -1.0);
+}
+
+// The view ray through a pixel's centre.
+void ray(ivec2 p, out vec3 origin, out vec3 direction)
+{
+    rayAt(vec2(p) + 0.5, origin, direction);
 }
 
 // How wide a pixel is at a depth.
@@ -168,5 +181,33 @@ void main()
     Surface s = load(p, 0);
     uint right = p.x + 1 < size.x ? edge(p, s, p + ivec2(1, 0)) : 0u;
     uint down = p.y + 1 < size.y ? edge(p, s, p + ivec2(0, 1)) : 0u;
-    outEdges = right | (down << 5);
+    uint result = right | (down << 5);
+    uvec4 feature = texelFetch(usampler2D(UintTextures[nonuniformEXT(pc.features)], Samplers[SAMPLER_NEAREST_CLAMP]), p, 0);
+    if (feature.w != 0u && ((feature.x >> 18) & 1u) != 0u)
+    {
+        // The edge point is seen when it isn't behind the visible surface: that surface's plane, carried
+        // to the point, within half a pixel's worth of depth (Freestyle's visibility is exact). A
+        // surface seen nearly edge-on predicts nothing; there, within two pixels' worth.
+        float depth = uintBitsToFloat(feature.y);
+        vec2 offset = (vec2(feature.z & 31u, (feature.z >> 5) & 31u) / 31.0 * 2.0 - 1.0) * 0.75;
+        bool visible = s.model == 0u;
+        if (!visible)
+        {
+            vec3 origin, direction, pointOrigin, pointDirection;
+            ray(p, origin, direction);
+            rayAt(vec2(p) + 0.5 + offset, pointOrigin, pointDirection);
+            float across = dot(s.normal, pointDirection);
+            float pixel = pixelSize(min(depth, s.depth));
+            if (abs(across) > 0.25 * length(pointDirection))
+            {
+                float surface = dot(s.normal, origin + direction * s.depth - pointOrigin) / across;
+                visible = depth <= surface + 0.5 * pixel + 1e-4 * depth;
+            }
+            else
+                visible = depth <= s.depth + 2.0 * pixel + 1e-4 * depth;
+        }
+        if (visible)
+            result |= 1u << 10 | (feature.z & 1023u) << 11;
+    }
+    outEdges = result;
 }

@@ -270,7 +270,7 @@ public class Render3DReferenceTests(GpuFixture gpu)
             {
                 var model = Model.Load(device, Path.Combine(ModelDirectory, placed.File));
                 models.Add(model);
-                model.Draw(items, placed.Model, palette, scene.Style, placed.Scenery);
+                model.Draw(items, placed.Model, palette, scene.Style, placed.Scenery, placed.PoseOf(model.Data));
             }
             using var target = new RenderTarget3D(device, scene.Width, scene.Height);
             var renderer = new Renderer3D(device) { InkCoverageOnly = inkOnly };
@@ -358,6 +358,29 @@ public class Render3DReferenceTests(GpuFixture gpu)
     }
 
     /// <summary>
+    /// What each joint of a posed model does to what it moves (glTF model space, columns): back from
+    /// its rest transform, then its transform in the pose. The same for every skin that uses the joint
+    /// (an inverse bind matrix also carries its own mesh's place); Blender poses its bones to deform the same.
+    /// </summary>
+    static Dictionary<string, float[]>? Deformations(ModelObject3D placed)
+    {
+        if (placed.Pose.Count == 0)
+            return null;
+        var data = ModelData.Load(Path.Combine(ModelDirectory, placed.File));
+        var rest = data.WorldMatrices();
+        var world = data.WorldMatrices(placed.PoseOf(data));
+        var result = new Dictionary<string, float[]>();
+        foreach (var skin in data.Skins)
+            for (var j = 0; j < skin.Joints.Count; j++)
+            {
+                Matrix4x4.Invert(rest[skin.Joints[j]], out var back);
+                var m = back * world[skin.Joints[j]];
+                result[data.Nodes[skin.Joints[j]].Name] = [m.M11, m.M12, m.M13, m.M14, m.M21, m.M22, m.M23, m.M24, m.M31, m.M32, m.M33, m.M34, m.M41, m.M42, m.M43, m.M44];
+            }
+        return result;
+    }
+
+    /// <summary>
     /// The scenes for Tools/BlenderReference/render_scenes.py: shapes, each object's model matrix
     /// (columns) and colour, models (files in <c>modelFolder</c>, relative to this file) with their
     /// matrices, the palette and shadow tones, the sun, the cel style, the camera.
@@ -394,7 +417,7 @@ public class Render3DReferenceTests(GpuFixture gpu)
                 far = s.Camera.Far,
             },
             objects = s.Objects.Select(o => new { shape = o.Shape.Name, matrix = Columns(o.Model), color = o.Color }).ToArray(),
-            models = s.Models.Select(m => new { file = m.File, matrix = Columns(m.Model), scenery = m.Scenery }).ToArray(),
+            models = s.Models.Select(m => new { file = m.File, matrix = Columns(m.Model), scenery = m.Scenery, pose = Deformations(m) }).ToArray(),
             palette = s.Palette,
             shadows = s.Shadows,
             sun = s.Sun is { } sun ? new { direction = V(sun.Direction), strength = sun.Strength, angle = sun.Angle } : null,

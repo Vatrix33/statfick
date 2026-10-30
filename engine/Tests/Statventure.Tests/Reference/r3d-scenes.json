@@ -690,7 +690,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         }
       ],
       "palette": {
@@ -782,7 +783,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         }
       ],
       "palette": {
@@ -872,7 +874,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         }
       ],
       "palette": {
@@ -966,7 +969,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         }
       ],
       "palette": {
@@ -1058,7 +1062,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         },
         {
           "file": "rigged.glb",
@@ -1088,7 +1093,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         }
       ],
       "palette": {
@@ -1181,7 +1187,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         }
       ],
       "palette": {
@@ -1275,7 +1282,8 @@
               1
             ]
           ],
-          "scenery": true
+          "scenery": true,
+          "pose": null
         },
         {
           "file": "shapes.glb",
@@ -1305,7 +1313,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         },
         {
           "file": "rigged.glb",
@@ -1335,7 +1344,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         }
       ],
       "palette": {
@@ -1428,7 +1438,8 @@
               1
             ]
           ],
-          "scenery": true
+          "scenery": true,
+          "pose": null
         },
         {
           "file": "shapes.glb",
@@ -1458,7 +1469,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         },
         {
           "file": "rigged.glb",
@@ -1488,7 +1500,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         }
       ],
       "palette": {
@@ -1581,7 +1594,8 @@
               1
             ]
           ],
-          "scenery": true
+          "scenery": true,
+          "pose": null
         },
         {
           "file": "shapes.glb",
@@ -1611,7 +1625,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         },
         {
           "file": "rigged.glb",
@@ -1641,7 +1656,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         }
       ],
       "palette": {
@@ -1734,7 +1750,8 @@
               1
             ]
           ],
-          "scenery": true
+          "scenery": true,
+          "pose": null
         }
       ],
       "palette": {},
@@ -1822,7 +1839,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         },
         {
           "file": "glowing.glb",
@@ -1852,13 +1870,270 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         }
       ],
       "palette": {
         "cloth": "#7b5a3a",
         "metal.base": "#8a8f96",
         "metal.trim": "#c9a46a"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          1,
+          1.1,
+          0.7
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#130e0b",
+        "shadowMix": 0.42,
+        "bandEdge": 0.3,
+        "outlineWidth": 3.5,
+        "innerWidth": 2,
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
+    },
+    {
+      "name": "pose-side",
+      "width": 260,
+      "height": 320,
+      "background": "#b8b0a0",
+      "camera": {
+        "projection": "orthographic",
+        "position": [
+          0.3,
+          2.2,
+          5
+        ],
+        "target": [
+          0.3,
+          1,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 40,
+        "orthographicHeight": 2.6,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "rigged.glb",
+          "matrix": [
+            [
+              0.9396926,
+              0,
+              -0.34202015,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0.34202015,
+              0,
+              0.9396926,
+              0
+            ],
+            [
+              -0.1,
+              0,
+              0,
+              1
+            ]
+          ],
+          "scenery": false,
+          "pose": {
+            "Lower": [
+              0.9781476,
+              -0.20791171,
+              0,
+              0,
+              0.20791171,
+              0.9781476,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0.004370481,
+              0.041582342,
+              0,
+              1
+            ],
+            "Upper": [
+              0.75749373,
+              0.6203884,
+              -0.20327751,
+              0,
+              -0.65250736,
+              0.72944474,
+              -0.20529154,
+              0,
+              0.020919247,
+              0.2881471,
+              0.9573577,
+              0,
+              0.90892035,
+              0.12462515,
+              0.24594703,
+              1
+            ]
+          }
+        }
+      ],
+      "palette": {
+        "skin": "#8a6a52"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          1,
+          1.1,
+          0.7
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#130e0b",
+        "shadowMix": 0.42,
+        "bandEdge": 0.3,
+        "outlineWidth": 3.5,
+        "innerWidth": 2,
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1
+    },
+    {
+      "name": "pose-perspective",
+      "width": 320,
+      "height": 300,
+      "background": "#d8cbb0",
+      "camera": {
+        "projection": "perspective",
+        "position": [
+          1.6,
+          2.2,
+          3.4
+        ],
+        "target": [
+          0.2,
+          0.9,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 45,
+        "orthographicHeight": 4,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "rigged.glb",
+          "matrix": [
+            [
+              0.8660254,
+              0,
+              0.5,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              -0.5,
+              0,
+              0.8660254,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "scenery": false,
+          "pose": {
+            "Lower": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.9396926,
+              0.34202015,
+              0,
+              0,
+              -0.34202015,
+              0.9396926,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "Upper": [
+              0.9265906,
+              0.26965722,
+              -0.2621353,
+              0,
+              -0.36122057,
+              0.83210975,
+              -0.42084825,
+              0,
+              0.10464058,
+              0.48464268,
+              0.86843073,
+              0,
+              0.3759024,
+              0.053651452,
+              0.81529546,
+              1
+            ]
+          }
+        }
+      ],
+      "palette": {
+        "skin": "#a9805e"
       },
       "shadows": {},
       "sun": {
@@ -1944,7 +2219,8 @@
               1
             ]
           ],
-          "scenery": false
+          "scenery": false,
+          "pose": null
         }
       ],
       "palette": {

@@ -1,7 +1,7 @@
 #version 460
 // Ink lines, pass 2 (Docs/Renderer-3D.md, "Ink lines"): each line centred on the edge points
 // ink_edges.frag found: where an edge crosses the middle of a pixel and its right (lower)
-// neighbour. The line covers what lies within half its width of an edge point, so ends come out
+// neighbour, and the nearest points on the meshes' feature edges (inner lines). The line covers what lies within half its width of an edge point, so ends come out
 // round and coverage falls off over a pixel. Drawn over the 3D view with straight alpha.
 #include "common.glsl"
 
@@ -37,7 +37,12 @@ void main()
             // Pixel c's edge points, from this pixel's centre: the crossing lies (count) / 4 from
             // c's left (top), on the middle row (column) of c.
             uint right = e & 31u;
-            uint down = e >> 5;
+            uint down = (e >> 5) & 31u;
+            if ((e & (1u << 10)) != 0u)
+            {
+                vec2 offset = (vec2((e >> 11) & 31u, (e >> 16) & 31u) / 31.0 * 2.0 - 1.0) * 0.75;
+                inner = min(inner, length(vec2(dx, dy) + offset));
+            }
             if (right != 0u)
             {
                 float d = length(vec2(dx, dy) + vec2(float((right >> 2) + 1u) / 4.0 - 0.5, 0.0));

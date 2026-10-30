@@ -66,6 +66,25 @@ public sealed record Camera3D(Projection Projection, Vector3 Position, Vector3 T
 /// </summary>
 public sealed record ModelObject3D(string File, Vector3 Translation, Vector3 RotationDegrees, float Scale = 1, bool Scenery = false)
 {
+    /// <summary>A pose: joints (by node name) turned in their own frame by these degrees about X, then Y, then Z.</summary>
+    public Dictionary<string, Vector3> Pose { get; init; } = [];
+
+    public ModelPose? PoseOf(ModelData data)
+    {
+        if (Pose.Count == 0)
+            return null;
+        var pose = new ModelPose();
+        foreach (var (name, degrees) in Pose)
+        {
+            var node = data.Nodes.Select((n, i) => (n, i)).Single(x => x.n.Name == name);
+            var turn = Quaternion.CreateFromRotationMatrix(Matrix4x4.CreateRotationX(degrees.X * MathF.PI / 180)
+                * Matrix4x4.CreateRotationY(degrees.Y * MathF.PI / 180) * Matrix4x4.CreateRotationZ(degrees.Z * MathF.PI / 180));
+            // The turn first, in the joint's own frame, then its rest rotation.
+            pose.Set(node.i, node.n.Translation, node.n.Rotation * turn, node.n.Scale);
+        }
+        return pose;
+    }
+
     public Matrix4x4 Model =>
         Matrix4x4.CreateScale(Scale)
         * Matrix4x4.CreateRotationX(RotationDegrees.X * MathF.PI / 180)
@@ -214,6 +233,23 @@ public static class Scenes3D
         {
             Models = [new("shapes.glb", new(0.2f, 0.2f, -1.6f), Vector3.Zero), new("glowing.glb", new(0.1f, 0, 0.3f), new(0, -15, 0))],
             Palette = new() { ["cloth"] = "#7b5a3a", ["metal.base"] = "#8a8f96", ["metal.trim"] = "#c9a46a" },
+            Sun = Lizardman,
+        },
+        // GPU skinning (Docs/Renderer-3D.md, "GPU skinning"): the rigged tube and its flat fin bent at
+        // both joints, seen from the side and in perspective: positions by linear blend skinning,
+        // normals recomputed from the bent surface (the fin's faces stay flat).
+        new("pose-side", 260, 320, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.3f, 2.2f, 5), new(0.3f, 1.0f, 0), OrthographicHeight: 2.6f), [])
+        {
+            Models = [new("rigged.glb", new(-0.1f, 0, 0), new(0, 20, 0)) { Pose = new() { ["Lower"] = new(0, 0, -12), ["Upper"] = new(0, 0, 55) } }],
+            Palette = new() { ["skin"] = "#8a6a52" },
+            Sun = Lizardman,
+        },
+        // (A stronger twist about the upper bone turns the fin's thin side face edge-on into a sliver
+        // under a pixel wide, which MSAA's four samples catch differently from Blender's 64.)
+        new("pose-perspective", 320, 300, "#d8cbb0", new Camera3D(Projection.Perspective, new(1.6f, 2.2f, 3.4f), new(0.2f, 0.9f, 0), FieldOfViewDegrees: 45), [])
+        {
+            Models = [new("rigged.glb", Vector3.Zero, new(0, -30, 0)) { Pose = new() { ["Lower"] = new(20, 0, 0), ["Upper"] = new(-40, 10, 30) } }],
+            Palette = new() { ["skin"] = "#a9805e" },
             Sun = Lizardman,
         },
         // The same shapes in the battle view (orthographic, from the side) under a low sun from the left: other band positions.

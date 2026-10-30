@@ -1,0 +1,42 @@
+#version 460
+// GPU skinning, pass 2 (Docs/Renderer-3D.md, "GPU skinning"): normals recomputed from the moved
+// surface, as Blender does for a posed mesh: each vertex sums the normals of the triangles in its
+// smoothing fan (the vertices that share its rest position and normal: sharp edges stay sharp),
+// each weighted by the triangle's angle at that corner.
+#include "common.glsl"
+struct MeshVertex { vec3 position; vec3 normal; vec2 uv; };
+layout(buffer_reference, scalar) readonly buffer MeshVertices { MeshVertex items[]; };
+
+layout(local_size_x = 64) in;
+
+layout(buffer_reference, scalar) buffer PosedVertices { MeshVertex items[]; };
+layout(buffer_reference, scalar) readonly buffer Fans { uint items[]; };
+layout(buffer_reference, scalar) readonly buffer Indices { uint items[]; };
+// fans: count + 1 offsets, then the entries: triangle · 4 + corner.
+layout(push_constant, scalar) uniform NormalsPush { PosedVertices posed; Fans fans; Indices indices; uint count; } normals;
+
+void main()
+{
+    uint i = gl_GlobalInvocationID.x;
+    if (i >= normals.count)
+        return;
+    vec3 sum = vec3(0.0);
+    uint first = normals.fans.items[i], last = normals.fans.items[i + 1];
+    for (uint e = first; e < last; e++)
+    {
+        uint entry = normals.fans.items[normals.count + 1u + e];
+        uint triangle = entry >> 2, corner = entry & 3u;
+        vec3 a = normals.posed.items[normals.indices.items[triangle * 3u + corner]].position;
+        vec3 b = normals.posed.items[normals.indices.items[triangle * 3u + (corner + 1u) % 3u]].position;
+        vec3 c = normals.posed.items[normals.indices.items[triangle * 3u + (corner + 2u) % 3u]].position;
+        vec3 face = cross(b - a, c - a);
+        float area = length(face);
+        if (area <= 0.0)
+            continue;
+        float angle = acos(clamp(dot(normalize(b - a), normalize(c - a)), -1.0, 1.0));
+        sum += face / area * angle;
+    }
+    float length2 = dot(sum, sum);
+    if (length2 > 0.0)
+        normals.posed.items[i].normal = sum * inversesqrt(length2);
+}
