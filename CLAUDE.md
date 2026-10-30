@@ -27,6 +27,10 @@ Where this is worked on (decided 2026-10-30):
 - **A Windows PC**: build, run and test with `engine\Tools\Scripts\setup.ps1` (once), `build.ps1`,
   `test.ps1`. No reference captures there.
 
+Git (decided 2026-10-30): the repo is private on GitHub (the user's existing repo). Cloud sessions
+push their own branch and open a pull request, which the user merges on GitHub; sessions on the
+user's PC commit finished steps to `main` and push. Pull before starting work on either side.
+
 The tests give the same results on all three: they act as Chromium on Linux with the reference PC's
 font settings, and take system fonts from the repo (`engine/Tests/Statventure.Tests/Infrastructure/`
 `ReferencePlatform.cs`, `SystemFonts.cs`).

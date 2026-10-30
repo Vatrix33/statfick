@@ -135,6 +135,7 @@ Source tree:
 - On this PC both move into one repo folder, `/run/media/system/M.2_2TB/Stat Fick Repo/`, which becomes the only working copy (scripts, docs and notes follow the new paths).
 - Remote work: Claude Code cloud sessions (also from the phone app) and a Windows PC. The cloud gets a setup script (no GPU: software Vulkan). Windows must build, run and test (PowerShell scripts, test fonts from the repo); Chromium reference captures stay Linux/cloud only.
 - The project notes kept in Claude's local memory move into the repo docs (cloud sessions don't see that memory). The reference source cache stays out (re-downloadable).
+- Git workflow: cloud sessions push their own branch and open a pull request that the user merges on GitHub; sessions on the PC commit to `main` and push. The repo goes into the user's existing, empty GitHub repo; this PC logs in with the GitHub CLI (`gh`).
 
 ## Progress
 
