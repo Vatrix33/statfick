@@ -17,6 +17,7 @@ namespace Statventure.Tests.Render3D;
 public class Render3DReferenceTests(GpuFixture gpu)
 {
     static string ReferenceDirectory => Path.Combine(Path.GetDirectoryName(Golden.GoldenPath("x"))!, "..", "Reference");
+    internal static string ModelDirectory => Path.Combine(Path.GetDirectoryName(Golden.GoldenPath("x"))!, "..", "Data", "Models");
 
     public static TheoryData<string> SceneNames => new(Scenes3D.All.Select(s => s.Name));
 
@@ -55,29 +56,42 @@ public class Render3DReferenceTests(GpuFixture gpu)
         var actual = Render(scene);
         var expected = ImageFile.Load(reference);
         var problems = Compare(expected, actual);
+        var actualPath = Golden.ActualPath("r3d-" + name);
         if (problems.Length > 0)
         {
-            ImageFile.SavePng(Golden.ActualPath("r3d-" + name), actual);
-            Assert.Fail($"{name}: {problems}; render in {Golden.ActualPath("r3d-" + name)}");
+            ImageFile.SavePng(actualPath, actual);
+            Assert.Fail($"{name}: {problems}; render in {actualPath}");
         }
+        if (Environment.GetEnvironmentVariable("STATVENTURE_KEEP_RENDERS") == "1")
+            ImageFile.SavePng(actualPath, actual);
+        else if (File.Exists(actualPath))
+            File.Delete(actualPath);
     }
 
     internal RgbaImage Render(Scene3D scene)
     {
         var device = gpu.Device;
         var meshes = new Dictionary<Shape3D, Mesh>();
+        var models = new List<Model>();
         try
         {
             var items = scene.Objects.Select(o =>
             {
                 if (!meshes.TryGetValue(o.Shape, out var mesh))
                     meshes[o.Shape] = mesh = Mesh.FromTriangles(device, o.Shape.Positions, o.Shape.Triangles);
-                return new DrawItem(mesh, o.Model, Colors.FromHex(o.Color));
+                return new DrawItem(mesh, o.Model, Colors.LinearFromHex(o.Color));
             }).ToList();
+            var palette = new Palette(scene.Palette);
+            foreach (var placed in scene.Models)
+            {
+                var model = Model.Load(device, Path.Combine(ModelDirectory, placed.File));
+                models.Add(model);
+                model.Draw(items, placed.Model, palette);
+            }
             using var target = new RenderTarget3D(device, scene.Width, scene.Height);
             var renderer = new Renderer3D(device);
             var frame = device.BeginFrame();
-            renderer.Render(frame, target, scene.Camera.ToCamera(), items, Colors.FromHex(scene.Background));
+            renderer.Render(frame, target, scene.Camera.ToCamera(), items, Colors.LinearFromHex(scene.Background));
             device.EndFrame(frame);
             device.WaitIdle();
             return new RgbaImage(scene.Width, scene.Height, target.Resolved.ReadPixels());
@@ -86,17 +100,21 @@ public class Render3DReferenceTests(GpuFixture gpu)
         {
             foreach (var mesh in meshes.Values)
                 mesh.Dispose();
+            foreach (var model in models)
+                model.Dispose();
         }
     }
 
     /// <summary>
     /// Inside (the reference's 3×3 neighbourhood is one colour): every channel within 2. On an edge,
-    /// MSAA 4× covers a pixel in quarters where Blender filters 64 samples, which differ by up to 46
-    /// levels (2.9 on average) in these scenes; an edge half a pixel out differs by 65 or more (8 on
-    /// average). So each edge pixel within 56 and all of them within 4 on average. Returns what
-    /// failed, or "".
+    /// MSAA 4× covers a pixel in quarters and resolves it alone, where Blender filters 64 samples
+    /// across neighbouring pixels: they differ by up to 0.61 of the edge's local contrast (the 3×3
+    /// neighbourhood's range), 3.1 levels on average. An edge half a pixel out differs by about 9 on
+    /// average; a missing or extra feature by about the whole contrast. So each edge pixel within 0.7
+    /// of its local contrast (or 8 levels), and all of them within 4 on average. Returns what failed,
+    /// or "".
     /// </summary>
-    internal static string Compare(RgbaImage expected, RgbaImage actual, int insideTolerance = 2, int edgeTolerance = 56, double edgeMean = 4)
+    internal static string Compare(RgbaImage expected, RgbaImage actual, int insideTolerance = 2, double edgeContrast = 0.7, int edgeFloor = 8, double edgeMean = 4)
     {
         if (expected.Width != actual.Width || expected.Height != actual.Height)
             return $"size {actual.Width}x{actual.Height}, reference {expected.Width}x{expected.Height}";
@@ -108,14 +126,20 @@ public class Render3DReferenceTests(GpuFixture gpu)
             for (var x = 0; x < w; x++)
             {
                 var i = (y * w + x) * 4;
-                var uniform = true;
-                for (var dy = -1; dy <= 1 && uniform; dy++)
-                    for (var dx = -1; dx <= 1 && uniform; dx++)
+                Span<int> low = [255, 255, 255], high = [0, 0, 0];
+                for (var dy = -1; dy <= 1; dy++)
+                    for (var dx = -1; dx <= 1; dx++)
                     {
                         int nx = Math.Clamp(x + dx, 0, w - 1), ny = Math.Clamp(y + dy, 0, h - 1);
                         var j = (ny * w + nx) * 4;
-                        uniform = e[j] == e[i] && e[j + 1] == e[i + 1] && e[j + 2] == e[i + 2];
+                        for (var c = 0; c < 3; c++)
+                        {
+                            low[c] = Math.Min(low[c], e[j + c]);
+                            high[c] = Math.Max(high[c], e[j + c]);
+                        }
                     }
+                var contrast = Math.Max(high[0] - low[0], Math.Max(high[1] - low[1], high[2] - low[2]));
+                var uniform = contrast == 0;
                 var diff = 0;
                 for (var c = 0; c < 3; c++)
                     diff = Math.Max(diff, Math.Abs(e[i + c] - a[i + c]));
@@ -130,7 +154,7 @@ public class Render3DReferenceTests(GpuFixture gpu)
                     worstEdge = Math.Max(worstEdge, diff);
                     edgeCount++;
                     edgeSum += diff;
-                    if (diff > edgeTolerance)
+                    if (diff > edgeFloor && diff > edgeContrast * contrast)
                         edgeBad++;
                 }
             }
@@ -138,13 +162,17 @@ public class Render3DReferenceTests(GpuFixture gpu)
         if (insideBad > 0)
             text.Append($"{insideBad} inside pixels differ (worst {worstInside}) ");
         if (edgeBad > 0)
-            text.Append($"{edgeBad} edge pixels differ beyond {edgeTolerance} (worst {worstEdge}) ");
+            text.Append($"{edgeBad} edge pixels differ beyond {edgeContrast} of their contrast (worst {worstEdge}) ");
         if (edgeCount > 0 && (double)edgeSum / edgeCount > edgeMean)
             text.Append($"edges differ by {(double)edgeSum / edgeCount:F1} on average ");
         return text.ToString().Trim();
     }
 
-    /// <summary>The scenes for Tools/BlenderReference/render_scenes.py: shapes, each object's model matrix (column vectors) and colour, the camera.</summary>
+    /// <summary>
+    /// The scenes for Tools/BlenderReference/render_scenes.py: shapes, each object's model matrix
+    /// (columns) and colour, models (files in <c>modelFolder</c>, relative to this file) with their
+    /// matrices and the palette, the camera.
+    /// </summary>
     static string SceneFile()
     {
         static float[] V(Vector3 v) => [v.X, v.Y, v.Z];
@@ -176,7 +204,9 @@ public class Render3DReferenceTests(GpuFixture gpu)
                 far = s.Camera.Far,
             },
             objects = s.Objects.Select(o => new { shape = o.Shape.Name, matrix = Columns(o.Model), color = o.Color }).ToArray(),
+            models = s.Models.Select(m => new { file = m.File, matrix = Columns(m.Model) }).ToArray(),
+            palette = s.Palette,
         });
-        return JsonSerializer.Serialize(new { shapes, scenes }, new JsonSerializerOptions { WriteIndented = true }) + "\n";
+        return JsonSerializer.Serialize(new { modelFolder = "../Data/Models", shapes, scenes }, new JsonSerializerOptions { WriteIndented = true }) + "\n";
     }
 }

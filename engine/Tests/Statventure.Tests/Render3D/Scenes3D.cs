@@ -59,8 +59,26 @@ public sealed record Camera3D(Projection Projection, Vector3 Position, Vector3 T
     };
 }
 
-/// <summary>A test scene rendered by Blender (Tools/BlenderReference) and by the engine.</summary>
-public sealed record Scene3D(string Name, int Width, int Height, string Background, Camera3D Camera, Object3D[] Objects);
+/// <summary>A test model (Data/Models/&lt;File&gt;, made by Tools/BlenderReference/make_models.py) placed by a rotation (degrees about X, then Y, then Z), a uniform scale and a translation.</summary>
+public sealed record ModelObject3D(string File, Vector3 Translation, Vector3 RotationDegrees, float Scale = 1)
+{
+    public Matrix4x4 Model =>
+        Matrix4x4.CreateScale(Scale)
+        * Matrix4x4.CreateRotationX(RotationDegrees.X * MathF.PI / 180)
+        * Matrix4x4.CreateRotationY(RotationDegrees.Y * MathF.PI / 180)
+        * Matrix4x4.CreateRotationZ(RotationDegrees.Z * MathF.PI / 180)
+        * Matrix4x4.CreateTranslation(Translation);
+}
+
+/// <summary>
+/// A test scene rendered by Blender (Tools/BlenderReference) and by the engine: shapes, models, and
+/// the palette slots (name to "#rrggbb") the models' materials take.
+/// </summary>
+public sealed record Scene3D(string Name, int Width, int Height, string Background, Camera3D Camera, Object3D[] Objects)
+{
+    public ModelObject3D[] Models { get; init; } = [];
+    public Dictionary<string, string> Palette { get; init; } = [];
+}
 
 public static class Scenes3D
 {
@@ -85,5 +103,19 @@ public static class Scenes3D
             [new(Shape3D.Tetrahedron, new(-0.6f, 0, 0), new(0, 30, 0), Vector3.One, "#a05a3c"),
              new(Shape3D.Prism, new(1.0f, -0.1f, -0.3f), new(10, -40, 5), new(1.2f, 1, 1.4f), "#3c6aa0"),
              new(Shape3D.Cube, new(2.6f, 0.4f, -0.5f), new(0, 20, 0), new(1, 1.5f, 1), "#5a8a5a")]),
+        // A glTF model: a node hierarchy, two materials on one mesh, a mesh used by two nodes (one
+        // mirrored, both sunk into the slab), a double-sided banner seen from behind, palette slots
+        // (cloth.001 takes cloth) next to materials the palette doesn't name (stone, glow).
+        new("model-blocks", 360, 270, "#d8cbb0", new Camera3D(Projection.Perspective, new(-1.2f, 2.6f, -3.6f), new(0, 0.7f, 0), FieldOfViewDegrees: 40), [])
+        {
+            Models = [new("blocks.glb", Vector3.Zero, Vector3.Zero)],
+            Palette = new() { ["metal.base"] = "#5f6a78", ["metal.trim"] = "#b08a3c", ["cloth"] = "#3f4f8f" },
+        },
+        // A skinned model in its rest pose (drawn unskinned: the joints' bind transforms place it where its node does), side view, orthographic.
+        new("model-rigged", 240, 320, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.3f, 1.1f, 5), new(0.3f, 1.1f, 0), OrthographicHeight: 2.8f), [])
+        {
+            Models = [new("rigged.glb", new(-0.1f, 0, 0), new(0, 30, 0))],
+            Palette = new() { ["skin"] = "#8a6a52" },
+        },
     ];
 }

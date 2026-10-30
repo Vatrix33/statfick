@@ -1,4 +1,5 @@
 {
+  "modelFolder": "../Data/Models",
   "shapes": {
     "cube": {
       "positions": [
@@ -300,7 +301,9 @@
           ],
           "color": "#6a8a4a"
         }
-      ]
+      ],
+      "models": [],
+      "palette": {}
     },
     {
       "name": "perspective-boxes",
@@ -450,7 +453,9 @@
           ],
           "color": "#8a4a6a"
         }
-      ]
+      ],
+      "models": [],
+      "palette": {}
     },
     {
       "name": "shapes-roll",
@@ -570,7 +575,137 @@
           ],
           "color": "#5a8a5a"
         }
-      ]
+      ],
+      "models": [],
+      "palette": {}
+    },
+    {
+      "name": "model-blocks",
+      "width": 360,
+      "height": 270,
+      "background": "#d8cbb0",
+      "camera": {
+        "projection": "perspective",
+        "position": [
+          -1.2,
+          2.6,
+          -3.6
+        ],
+        "target": [
+          0,
+          0.7,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 40,
+        "orthographicHeight": 4,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "blocks.glb",
+          "matrix": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        }
+      ],
+      "palette": {
+        "metal.base": "#5f6a78",
+        "metal.trim": "#b08a3c",
+        "cloth": "#3f4f8f"
+      }
+    },
+    {
+      "name": "model-rigged",
+      "width": 240,
+      "height": 320,
+      "background": "#b8b0a0",
+      "camera": {
+        "projection": "orthographic",
+        "position": [
+          0.3,
+          1.1,
+          5
+        ],
+        "target": [
+          0.3,
+          1.1,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 40,
+        "orthographicHeight": 2.8,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "rigged.glb",
+          "matrix": [
+            [
+              0.8660254,
+              0,
+              -0.5,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0.5,
+              0,
+              0.8660254,
+              0
+            ],
+            [
+              -0.1,
+              0,
+              0,
+              1
+            ]
+          ]
+        }
+      ],
+      "palette": {
+        "skin": "#8a6a52"
+      }
     }
   ]
 }

@@ -1,10 +1,11 @@
 # Renders the 3D test scenes (Tests/Statventure.Tests/Reference/r3d-scenes.json, written by the
 # tests) with Blender's EEVEE into Golden/r3d-<scene>.png: the look the engine's 3D renderer is
 # compared with (Docs/Renderer-3D.md). Run by Tools/Scripts/make-blender-references.sh:
-#   blender -b --factory-startup --python render_scenes.py -- <scenes.json> <output folder>
+#   blender -b --factory-startup --python render_scenes.py -- <scenes.json> <output folder> [scene ...]
 #
 # The scenes are in glTF's coordinates (right-handed, Y up); Blender's are Z up, so every position
-# and direction goes through GLTF_TO_BLENDER, as Blender's glTF importer converts them.
+# and direction goes through GLTF_TO_BLENDER, as Blender's glTF importer converts them. Models are
+# read by Blender's own glTF importer, so the engine's reader is checked against it.
 import json
 import math
 import os
@@ -40,7 +41,7 @@ def eevee_engine():
 
 
 def reset():
-    for collection in (bpy.data.objects, bpy.data.meshes, bpy.data.materials, bpy.data.cameras):
+    for collection in (bpy.data.objects, bpy.data.meshes, bpy.data.materials, bpy.data.cameras, bpy.data.armatures):
         for block in list(collection):
             collection.remove(block)
 
@@ -62,6 +63,10 @@ def setup_render(scene, spec):
     render.image_settings.file_format = "PNG"
     render.image_settings.color_mode = "RGB"
     render.image_settings.color_depth = "8"
+    # No date, render time or file name in the PNG: a render of an unchanged scene stays byte for byte the same.
+    for prop in render.bl_rna.properties:
+        if prop.identifier.startswith("use_stamp"):
+            setattr(render, prop.identifier, False)
     scene.eevee.taa_render_samples = 64
     # Linear values go out as sRGB with nothing else applied, as the engine's sRGB target encodes them.
     scene.display_settings.display_device = "sRGB"
@@ -84,13 +89,13 @@ def setup_world(scene, background):
     world.node_tree.links.new(node.outputs["Background"], output.inputs["Surface"])
 
 
-def flat_material(name, color):
-    """An unlit colour: emission of strength 1 shows the colour itself (step 1 draws flat colours)."""
+def flat_material(name, linear):
+    """An unlit colour: emission of strength 1 shows the colour itself (flat colours so far)."""
     material = bpy.data.materials.new(name)
     nodes = material.node_tree.nodes
     nodes.clear()
     emission = nodes.new("ShaderNodeEmission")
-    emission.inputs["Color"].default_value = (*hex_to_linear(color), 1)
+    emission.inputs["Color"].default_value = (*linear, 1)
     emission.inputs["Strength"].default_value = 1
     output = nodes.new("ShaderNodeOutputMaterial")
     material.node_tree.links.new(emission.outputs["Emission"], output.inputs["Surface"])
@@ -106,9 +111,50 @@ def add_object(scene, index, shape, spec):
     mesh = bpy.data.meshes.new(f"{spec['shape']}-{index}")
     mesh.from_pydata([tuple(v) for v in vertices], [], faces)
     mesh.update()
-    mesh.materials.append(flat_material(f"color-{index}", spec["color"]))
+    mesh.materials.append(flat_material(f"color-{index}", hex_to_linear(spec["color"])))
     obj = bpy.data.objects.new(mesh.name, mesh)
     scene.collection.objects.link(obj)
+
+
+def slot_of(name):
+    """A material name's palette slot: without the ".001"-style suffix Blender gives a second material of a name."""
+    return name[:-4] if len(name) > 4 and name[-4] == "." and name[-3:].isdigit() else name
+
+
+def add_model(scene, path, spec, palette):
+    """Imports a .glb, places it by the matrix (glTF coordinates) and shows each material as the colour
+    its palette slot gives, or its own base colour when the palette has no such slot."""
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=path)
+    imported = [o for o in bpy.data.objects if o not in before]
+    to_blender4 = GLTF_TO_BLENDER.to_4x4()
+    holder = bpy.data.objects.new("placement", None)
+    scene.collection.objects.link(holder)
+    holder.matrix_world = to_blender4 @ column_matrix(spec["matrix"]) @ to_blender4.inverted()
+    for obj in imported:
+        if obj.parent is None:
+            obj.parent = holder
+    # The importer keeps glTF's material name, base colour (Principled BSDF) and doubleSided (backface
+    # culling). Each material is replaced once: a mesh used by two objects shares its slots.
+    flats = {}
+    for obj in imported:
+        for slot in getattr(obj, "material_slots", []):
+            source = slot.material
+            if source is None or source in flats.values():
+                continue
+            if source not in flats:
+                colour = palette.get(slot_of(source.name))
+                linear = hex_to_linear(colour) if colour else tuple(principled_base_color(source))
+                flats[source] = flat_material(f"flat-{source.name}", linear)
+                flats[source].use_backface_culling = source.use_backface_culling
+            slot.material = flats[source]
+
+
+def principled_base_color(material):
+    for node in material.node_tree.nodes:
+        if node.bl_idname == "ShaderNodeBsdfPrincipled":
+            return node.inputs["Base Color"].default_value[:3]
+    return material.diffuse_color[:3]
 
 
 def add_camera(scene, spec):
@@ -152,6 +198,9 @@ def main():
         add_camera(scene, spec["camera"])
         for index, obj in enumerate(spec["objects"]):
             add_object(scene, index, data["shapes"][obj["shape"]], obj)
+        models = os.path.normpath(os.path.join(os.path.dirname(scenes_path), data["modelFolder"]))
+        for model in spec.get("models", []):
+            add_model(scene, os.path.join(models, model["file"]), model, spec.get("palette", {}))
         scene.render.filepath = os.path.join(output, f"r3d-{spec['name']}.png")
         bpy.ops.render.render(write_still=True)
         print("wrote", scene.render.filepath)
