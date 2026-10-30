@@ -5,8 +5,9 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-10-30):** M5 is finished (ticked below). The project is now one git repo (`../`, see
-`../CLAUDE.md`), ready to push to a private GitHub repo. Waiting for the user's go before M6 (3D renderer).
+**Current task (2026-10-30):** M5 is finished (ticked below). The project is one git repo (`../`, see
+`../CLAUDE.md`), pushed to the private GitHub repo `github.com/Vatrix33/statfick`; the old game's builds are
+its release `old-game-2026-10-16`. Waiting for the user's go before M6 (3D renderer).
 When the user says to start M6, first ask the M6 questions under "Open questions for later milestones" below
 (all at once, with the question tool), record the answers, and only then plan and write code.
 
