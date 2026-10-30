@@ -104,13 +104,17 @@ def setup_world(scene, background):
     links.new(mix.outputs[0], output.inputs["Surface"])
 
 
-def add_sun(scene, spec):
-    """A sun shining from the direction given (toward the light), of the strength given; no shadows
-    (step 5) and no angular size (the engine's sun is a direction)."""
+def add_sun(scene, spec, shadows):
+    """A sun shining from the direction given (toward the light), of the strength given. With
+    shadows (a scene with scenery), its angular size softens them, jittered over the samples: the
+    exact disc light. Without, it's a direction, as in steps 3 and 4."""
     light = bpy.data.lights.new("sun", "SUN")
     light.energy = spec["strength"]
-    light.angle = 0
-    light.use_shadow = False
+    light.angle = math.radians(spec["angle"]) if shadows else 0
+    light.use_shadow = shadows
+    if shadows:
+        light.use_shadow_jitter = True
+        light.shadow_jitter_overblur = 0
     sun = bpy.data.objects.new("sun", light)
     scene.collection.objects.link(sun)
     # A sun shines down its local −Z.
@@ -127,16 +131,40 @@ def shadow_of(lit_linear, style):
     return tuple(srgb_to_linear(srgb(c) + (i - srgb(c)) * style["shadowMix"]) for c, i in zip(lit_linear, ink))
 
 
-def toon_material(name, lit, shadow, band):
+def toon_material(name, lit, shadow, band, unshadowed=None):
     """The lizardman test's cel material: a white Diffuse BSDF through Shader to RGB and RGB to BW
-    into a constant colour ramp (shadow below the band edge, lit from it), shown as emission."""
+    into a constant colour ramp (shadow below the band edge, lit from it), shown as emission. With
+    `unshadowed` (the sun's direction and strength), the light is Lambert's from nodes instead,
+    strength / π · N·L: the same light without shadows, for models that don't receive them."""
     material = bpy.data.materials.new(name)
     nodes = material.node_tree.nodes
     nodes.clear()
-    diffuse = nodes.new("ShaderNodeBsdfDiffuse")
-    diffuse.inputs["Color"].default_value = (1, 1, 1, 1)
-    to_rgb = nodes.new("ShaderNodeShaderToRGB")
-    bw = nodes.new("ShaderNodeRGBToBW")
+    links = material.node_tree.links
+    if unshadowed:
+        direction, strength = unshadowed
+        # The Geometry node's normal already faces the viewer on back faces (EEVEE flips it).
+        geometry = nodes.new("ShaderNodeNewGeometry")
+        dot = nodes.new("ShaderNodeVectorMath")
+        dot.operation = "DOT_PRODUCT"
+        links.new(geometry.outputs["Normal"], dot.inputs[0])
+        dot.inputs[1].default_value = tuple(direction)
+        clamp = nodes.new("ShaderNodeMath")
+        clamp.operation = "MAXIMUM"
+        clamp.inputs[1].default_value = 0
+        links.new(dot.outputs["Value"], clamp.inputs[0])
+        light = nodes.new("ShaderNodeMath")
+        light.operation = "MULTIPLY"
+        light.inputs[1].default_value = strength / math.pi
+        links.new(clamp.outputs[0], light.inputs[0])
+        source = light.outputs[0]
+    else:
+        diffuse = nodes.new("ShaderNodeBsdfDiffuse")
+        diffuse.inputs["Color"].default_value = (1, 1, 1, 1)
+        to_rgb = nodes.new("ShaderNodeShaderToRGB")
+        bw = nodes.new("ShaderNodeRGBToBW")
+        links.new(diffuse.outputs[0], to_rgb.inputs[0])
+        links.new(to_rgb.outputs[0], bw.inputs[0])
+        source = bw.outputs[0]
     ramp = nodes.new("ShaderNodeValToRGB")
     ramp.color_ramp.interpolation = "CONSTANT"
     ramp.color_ramp.elements[0].position = 0
@@ -145,10 +173,7 @@ def toon_material(name, lit, shadow, band):
     ramp.color_ramp.elements[1].color = (*lit, 1)
     emission = nodes.new("ShaderNodeEmission")
     output = nodes.new("ShaderNodeOutputMaterial")
-    links = material.node_tree.links
-    links.new(diffuse.outputs[0], to_rgb.inputs[0])
-    links.new(to_rgb.outputs[0], bw.inputs[0])
-    links.new(bw.outputs[0], ramp.inputs[0])
+    links.new(source, ramp.inputs[0])
     links.new(ramp.outputs[0], emission.inputs[0])
     links.new(emission.outputs[0], output.inputs["Surface"])
     return material
@@ -282,7 +307,7 @@ def render_ink(scene, path):
     scene.render.image_settings.color_mode = "RGB"
 
 
-def add_model(scene, path, spec, palette, shadows, style):
+def add_model(scene, path, spec, palette, shadows, style, unshadowed=None):
     """Imports a .glb, places it by the matrix (glTF coordinates) and cel-shades each material in the
     tones its palette slot gives (lit, and shadow if the palette has one), or its own base colour
     when the palette has no such slot; shadow tones the palette doesn't give come from the style."""
@@ -310,7 +335,7 @@ def add_model(scene, path, spec, palette, shadows, style):
                 colour = palette.get(slot_name)
                 lit = hex_to_linear(colour) if colour else tuple(principled_base_color(source))
                 shadow = hex_to_linear(shadows[slot_name]) if colour and slot_name in shadows else shadow_of(lit, style)
-                replaced[source] = toon_material(f"toon-{source.name}", lit, shadow, style["bandEdge"])
+                replaced[source] = toon_material(f"toon-{source.name}", lit, shadow, style["bandEdge"], unshadowed)
                 replaced[source].use_backface_culling = source.use_backface_culling
             slot.material = replaced[source]
     return imported
@@ -362,12 +387,16 @@ def main():
         setup_render(scene, spec)
         setup_world(scene, spec["background"])
         add_camera(scene, spec["camera"])
+        # Only scenery receives shadows; the rest is lit by Lambert's law alone (Docs/Renderer-3D.md, "Shadows").
+        shadows = any(m.get("scenery") for m in spec.get("models", []))
         if spec.get("sun"):
-            add_sun(scene, spec["sun"])
+            add_sun(scene, spec["sun"], shadows)
+        unshadowed = (to_blender(spec["sun"]["direction"]).normalized(), spec["sun"]["strength"]) if shadows else None
         for index, obj in enumerate(spec["objects"]):
             add_object(scene, index, data["shapes"][obj["shape"]], obj)
         models = os.path.normpath(os.path.join(os.path.dirname(scenes_path), data["modelFolder"]))
-        placed = [add_model(scene, os.path.join(models, model["file"]), model, spec.get("palette", {}), spec.get("shadows", {}), spec["style"])
+        placed = [add_model(scene, os.path.join(models, model["file"]), model, spec.get("palette", {}), spec.get("shadows", {}), spec["style"],
+                            None if model.get("scenery") else unshadowed)
                   for model in spec.get("models", [])]
         scene.render.filepath = os.path.join(output, f"r3d-{spec['name']}.png")
         bpy.ops.render.render(write_still=True)

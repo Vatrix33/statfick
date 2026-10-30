@@ -8,6 +8,7 @@
 
 layout(location = 0) centroid out vec3 vNormal;
 layout(location = 1) out vec3 vView;
+layout(location = 2) out vec3 vWorld;
 
 void main()
 {
@@ -15,5 +16,6 @@ void main()
     vec4 world = pc.draw.model * vec4(v.position, 1.0);
     vNormal = mat3(pc.draw.normalMatrix) * v.normal;
     vView = (pc.scene.view * world).xyz;
+    vWorld = world.xyz;
     gl_Position = pc.scene.viewProjection * world;
 }

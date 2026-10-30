@@ -250,10 +250,44 @@ def shapes(path):
     export(path)
 
 
+def stage(path):
+    """Scenery for shadows: a ground slab (its top at 0), a smooth rock, a wall, and a ring standing
+    on edge whose shadow has a hole."""
+    ground = material("ground", "#9a8a68")
+    stone = material("stone", "#6b6258")
+    mesh_object("Ground", box_mesh("ground", (6, 4, 0.2), [ground]), location=(0, 0, -0.1))
+    bm = bmesh.new()
+    bm.loops.layers.uv.new("UVMap")
+    bmesh.ops.create_icosphere(bm, subdivisions=2, radius=0.35, calc_uvs=True)
+    rock = bpy.data.meshes.new("rock")
+    bm.to_mesh(rock)
+    bm.free()
+    rock.materials.append(stone)
+    rock.shade_smooth()
+    mesh_object("Rock", rock, location=(-1.9, 0.9, 0.15), scale=(1, 0.8, 0.7))
+    mesh_object("Wall", box_mesh("wall", (0.25, 1.2, 1.4), [stone]), location=(2.3, 0.6, 0.7), rotation=(0, 0, 15))
+    mesh_object("Arch", torus_mesh("arch", 0.5, 0.1, stone), location=(-0.6, 1.3, 0.6), rotation=(90, 0, 20))
+    export(path)
+
+
+def fringe(path):
+    """Wide shadow fringes: a ground tile, a tall pole, and a bar floating 1.5 m up on two thin posts
+    (a floating part: light passes under it), so a 3° sun spreads their shadows' fringes over many pixels."""
+    ground = material("ground", "#9a8a68")
+    stone = material("stone", "#6b6258")
+    mesh_object("Ground", box_mesh("tile", (3, 2.4, 0.1), [ground]), location=(0, 0, -0.05))
+    mesh_object("Pole", cone_mesh("pole", 12, 0.06, 0.06, 2.0, True, stone), location=(-0.9, 0.3, 1.0))
+    mesh_object("Bar", box_mesh("bar", (1.2, 0.16, 0.12), [stone]), location=(0.35, 0.1, 1.5))
+    post = box_mesh("post", (0.04, 0.04, 1.44), [stone])
+    mesh_object("PostA", post, location=(-0.2, 0.1, 0.72))
+    mesh_object("PostB", post, location=(0.9, 0.1, 0.72))
+    export(path)
+
+
 def main():
     output = sys.argv[sys.argv.index("--") + 1]
     os.makedirs(output, exist_ok=True)
-    for name, build in (("blocks", blocks), ("rigged", rigged), ("shapes", shapes)):
+    for name, build in (("blocks", blocks), ("rigged", rigged), ("shapes", shapes), ("stage", stage), ("fringe", fringe)):
         reset()
         build(os.path.join(output, name + ".glb"))
 

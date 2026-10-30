@@ -59,8 +59,12 @@ public sealed record Camera3D(Projection Projection, Vector3 Position, Vector3 T
     };
 }
 
-/// <summary>A test model (Data/Models/&lt;File&gt;, made by Tools/BlenderReference/make_models.py) placed by a rotation (degrees about X, then Y, then Z), a uniform scale and a translation.</summary>
-public sealed record ModelObject3D(string File, Vector3 Translation, Vector3 RotationDegrees, float Scale = 1)
+/// <summary>
+/// A test model (Data/Models/&lt;File&gt;, made by Tools/BlenderReference/make_models.py) placed by a
+/// rotation (degrees about X, then Y, then Z), a uniform scale and a translation; scenery receives
+/// shadows.
+/// </summary>
+public sealed record ModelObject3D(string File, Vector3 Translation, Vector3 RotationDegrees, float Scale = 1, bool Scenery = false)
 {
     public Matrix4x4 Model =>
         Matrix4x4.CreateScale(Scale)
@@ -166,6 +170,42 @@ public static class Scenes3D
             Shadows = new() { ["metal.base"] = "#2f3540" },
             Sun = Lizardman,
             Scale = 2,
+        },
+        // Shadows on scenery (Docs/Renderer-3D.md, "Shadows"): the stage receives the shadows of the
+        // shapes and the tube standing on it, and its own (the ring's has a hole); the shapes and the
+        // tube receive none. The sun is 3° across, softening shadows further from their casters.
+        new("shadow-stage", 420, 280, "#b8b0a0", new Camera3D(Projection.Perspective, new(0.6f, 3.2f, 5.2f), new(0.2f, 0.2f, -0.3f), FieldOfViewDegrees: 44), [])
+        {
+            Models = [new("stage.glb", Vector3.Zero, Vector3.Zero, Scenery: true), new("shapes.glb", Vector3.Zero, Vector3.Zero), new("rigged.glb", new(-1.2f, 0, 0.6f), new(0, 20, 0), 0.8f)],
+            Palette = new() { ["cloth"] = "#7b5a3a", ["metal.base"] = "#8a8f96", ["metal.trim"] = "#c9a46a", ["skin"] = "#a9805e" },
+            Sun = new SunLight(new(0.9f, 1.4f, 0.8f), 3),
+        },
+        // The battle view: orthographic from the side, a little from above, the sun from the left. (A
+        // lower sun casts long thin shadows whose soft edges sit right at the two-tone threshold: both
+        // renderers break them into dashes, in different places.)
+        new("shadow-side", 420, 220, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0, 1.6f, 6), new(0, 0.5f, 0), OrthographicHeight: 2.6f), [])
+        {
+            Models = [new("stage.glb", Vector3.Zero, Vector3.Zero, Scenery: true), new("shapes.glb", Vector3.Zero, Vector3.Zero), new("rigged.glb", new(-1.2f, 0, 0.6f), new(0, 20, 0), 0.8f)],
+            Palette = new() { ["cloth"] = "#3f4f8f", ["metal.base"] = "#5f6a78", ["metal.trim"] = "#b08a3c", ["skin"] = "#a9805e" },
+            Sun = new SunLight(new(-1, 1, 0.5f), 3),
+        },
+        // The map view: orthographic, from above (up is −Z), the sun from the south-west. Tilted 4° off
+        // straight down: seen exactly from above every vertical face is edge-on, which Freestyle can't
+        // place (it draws the slab's sides thin and the upright card as a stray line).
+        new("shadow-map", 360, 260, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0, 8, 0.56f), new(0, 0, 0), OrthographicHeight: 4.2f) { Up = -Vector3.UnitZ },
+            [])
+        {
+            Models = [new("stage.glb", Vector3.Zero, Vector3.Zero, Scenery: true), new("shapes.glb", Vector3.Zero, Vector3.Zero), new("rigged.glb", new(-1.2f, 0, 0.6f), new(0, 20, 0), 0.8f)],
+            Palette = new() { ["cloth"] = "#7b5a3a", ["metal.base"] = "#8a8f96", ["metal.trim"] = "#c9a46a", ["skin"] = "#a9805e" },
+            Sun = new SunLight(new(-0.7f, 1.3f, 0.9f), 3),
+        },
+        // Wide fringes: a pole and a bar floating 1.5 m up cast long shadows seen from (nearly) above at
+        // about 200 px/m, where a 3° sun spreads the fringe over 15 pixels or so: the sun's size, the
+        // blend across the fringe and light passing under a floating part all show.
+        new("shadow-fringe", 400, 320, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.2f, 6, 0.42f), new(0.2f, 0, 0), OrthographicHeight: 1.6f) { Up = -Vector3.UnitZ }, [])
+        {
+            Models = [new("fringe.glb", Vector3.Zero, Vector3.Zero, Scenery: true)],
+            Sun = new SunLight(new(-0.55f, 1.3f, -0.35f), 3),
         },
         // The same shapes in the battle view (orthographic, from the side) under a low sun from the left: other band positions.
         new("cel-side", 420, 200, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.1f, 0.5f, 6), new(0.1f, 0.5f, 0), OrthographicHeight: 1.9f), [])

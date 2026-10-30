@@ -29,6 +29,18 @@ shadow, glow, cast shadows drawn as ink. It also renders 3D views into the UI (p
   edge is at N·L 0.314, 71.7° from the light. Engine defaults, settable per scene. Band edges are
   antialiased like Blender's render, over about a pixel from how fast the light changes on screen
   (not shaded per MSAA sample).
+- **Shadows** (step 5): everything casts shadows; only scenery (the battle stage, the map terrain
+  and its features; the game marks scenery models) receives them. Characters, enemies and items keep
+  the lizardman's shading, without shadows (not even their own). Edges are softened by the sun's
+  size (Blender's sun angle: 3° by default, settable) as Blender renders it: across a shadow's
+  fringe the two tones blend by the share of the sun that's visible (EEVEE thresholds each sample's
+  hard shadow from one point of the sun, then averages them), sharp near the caster and softer
+  further away; everything else stays two-tone. (First answered after a wrong description of mine,
+  a crisp edge moved inward; asked again.) No ink
+  outline on cast shadows. Shadow maps fitted to the visible area (orthographic views of bounded
+  areas need no cascades): 16 maps of 1024², one per direction over the sun's disc as Blender renders
+  a sized sun (it jitters 64), in one 4096² atlas, 64 MB. (First decided as one 2048² map; a single
+  map can't tell "under" from "behind" for floating parts, so its fringes came out wrong.)
 - **Ink lines** (step 4): screen-space. After drawing, a pass finds edges per pixel from model and
   object IDs, depth and face normals, then draws each line centred on its edge at the set width,
   with soft edges and round ends; only visible lines (as Freestyle's visible-only linesets).
@@ -121,6 +133,20 @@ come up.
     blended over the resolved colour with straight alpha in linear.
   - Needs 4× MSAA R32G32_UINT colour attachments that can be sampled (checked: RADV, lavapipe;
     Vulkan 1.3 desktop GPUs have it).
+- **Shadows, how they're made** (`Renderer3D.FitShadow`, `mesh_cel.frag`):
+  - Draw items carry `CastsShadow` (models: all) and `ReceivesShadows` (`Model.Draw(..., scenery)`).
+  - The sun's view: orthographic along the light, fitted to the receivers the camera sees (the
+    frustum between the nearest and farthest the scene reaches, in the light's view), widened by
+    the largest shear, deep enough for every caster; reversed depth.
+  - 16 maps, one per direction over the sun's disc (a Vogel spiral, even over its area), each the
+    centre's view sheared by distance (x' = x + u·tan(angle/2)·distance), rendered into the tiles of
+    a 4096² atlas (1024² each), casters both sides.
+  - A receiver's visibility: in each map its place is its place in the centre's view moved by the
+    direction's offset times its distance; the four texels about it are compared and blended
+    bilinearly; the point is pushed out along its normal by 1.5 texels. The mean over 16 maps.
+  - The tone: the light band gives lit or shadow (antialiased, as before), then blends toward the
+    shadow tone by the hidden share of the sun (`mix(shadow, tone, visibility)`): what averaging
+    EEVEE's per-sample two-tone results gives.
 - Cameras keep the vertical extent fixed and widen with the aspect ratio (a Blender camera with
   sensor fit vertical): perspective by a vertical field of view, orthographic by the height of the
   world in view (Blender's orthographic scale). `Camera.View` is `Matrix4x4.CreateLookAt`.
@@ -157,6 +183,12 @@ come up.
   camera rays only (Light Path "Is Camera Ray"), black to lighting, as the lizardman test had no
   world; ray tracing and fast GI are off, so only the sun lights surfaces. Measured: EEVEE's white
   diffuse under a sun is strength/π · N·L (0.9546 · cos for strength 3). Shapes stay flat emission.
+- **Shadows in Blender**: in scenes with scenery, the sun casts shadows with its angle and
+  `use_shadow_jitter` (no overblur): the exact disc light, 64 shadow origins over the samples.
+  Scenery's materials keep the toon chain (Shader to RGB takes the shadow); other models' light is
+  Lambert's from nodes (Geometry normal · sun direction × strength / π: the Geometry normal already
+  faces the viewer on back faces), without shadows. Scenes without scenery are unchanged (no
+  shadows, a point sun).
 - **Ink lines in Blender**: after the shading render, each model's parts with ink are joined into one
   object (skins applied, parents cleared keeping places, coincident vertices welded back so a
   material seam is the crease it was in Blender rather than two open borders), so Freestyle's
@@ -189,6 +221,17 @@ come up.
   (measured 0.05-0.09); the engine's ink in the 7×7 pixels about each Freestyle line pixel 0.75 to
   1.33 times Freestyle's for all but 3% (measured 1%). Checked: missing creases, lines 20% thin,
   lines on parts without ink and outlines only against the background each fail.
+- **Shadow comparison** (`CompareShadowed`, for scenes with scenery): the engine also renders the
+  scene without shadows; where that render has a geometric edge (non-uniform 3×3), pixels are
+  compared as in `Compare`, with one stray pixel in 10,000 allowed (a sub-pixel band edge or contact
+  shadow shaded once per pixel against Blender's per sample; measured up to 5). Inside surfaces: at
+  most 0.2% of pixels may differ by more than 16 levels (measured 0.12%), and the summed difference
+  from Blender may be at most a tenth of the summed difference between Blender and the shadowless
+  render (measured at most 0.079). Fringes differ by single pixels up to about 10 levels: Blender
+  averages 64 jittered maps, the engine 16 (its blend steps by sixteenths). The `shadow-fringe` scene
+  (a pole and a floating bar seen from above at about 200 px/m, fringes ~15 px wide) is the one
+  that tells the sun's size: hard shadows, a sun 30% too small or too large, shadows on characters
+  and no shadows each fail.
 
 ## Steps
 
@@ -252,4 +295,18 @@ Started 2026-10-30.
   predicts no depth (false inner lines inside outlines); Freestyle's degenerate edge-on case.
   Not measured yet: the passes' cost on a 2016-class GPU (per pixel: 12-16 surface fetches, then
   49 edge fetches at 3.5 px).
-- **Next: step 5, shadows.**
+- **Step 5, shadows (2026-10-30, 538 tests): done.** User decisions: scenery receives, everything
+  casts; soft edges from a 3° sun as Blender renders them (a gradient across the fringe; first
+  answered after a wrong description of mine, asked again); no ink on shadows; maps fitted to the
+  view, 16 maps of 1024² (first one 2048² map; one map can't tell "under" from "behind" for
+  floating parts, asked again). `SunLight.Angle`, `Mesh.BoundsMin/Max`, `DrawItem.CastsShadow/
+  ReceivesShadows`, `Model.Draw(..., scenery)`, `FitShadow`, the shadow pass (`shadow.frag`), the
+  visibility lookup in `mesh_cel.frag`. Test models `stage.glb` (ground, rock, wall, a standing ring)
+  and `fringe.glb`; scenes `shadow-stage` (perspective), `shadow-side` (the battle view),
+  `shadow-map` (the map view, 4° off straight down: Freestyle can't place faces exactly edge-on),
+  `shadow-fringe`. Found on the way: Blender's Geometry normal already faces the viewer on back
+  faces; a sized sun through EEVEE's ramp is a gradient, not a moved edge; one shadow map with rays
+  marched toward the disc darkens fringes under floating parts; long thin shadows near the
+  threshold break into dashes in both renderers. Not measured yet: the cost on a 2016-class GPU
+  (16 depth passes of the casters; 64 fetches per receiver pixel).
+- **Next: step 6, hatching and glow.**

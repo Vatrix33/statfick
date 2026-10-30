@@ -14,29 +14,40 @@ public struct Vertex3D(Vector3 position, Vector3 normal, Vector2 uv)
     public Vector2 Uv = uv;
 }
 
-/// <summary>Triangles on the GPU: vertices pulled by their buffer's address, 32-bit indices.</summary>
+/// <summary>Triangles on the GPU: vertices pulled by their buffer's address, 32-bit indices, and their bounds.</summary>
 public sealed class Mesh : IDisposable
 {
     public GpuBuffer Vertices { get; }
     public GpuBuffer Indices { get; }
     public int IndexCount { get; }
     public int VertexCount { get; }
+    /// <summary>The smallest and largest vertex position (the mesh's own space).</summary>
+    public Vector3 BoundsMin { get; }
+    public Vector3 BoundsMax { get; }
 
-    Mesh(GpuBuffer vertices, GpuBuffer indices, int vertexCount, int indexCount)
+    Mesh(GpuBuffer vertices, GpuBuffer indices, int vertexCount, int indexCount, Vector3 boundsMin, Vector3 boundsMax)
     {
         Vertices = vertices;
         Indices = indices;
         VertexCount = vertexCount;
         IndexCount = indexCount;
+        BoundsMin = boundsMin;
+        BoundsMax = boundsMax;
     }
 
     public static Mesh Create(GpuDevice device, ReadOnlySpan<Vertex3D> vertices, ReadOnlySpan<uint> indices)
     {
         if (vertices.Length == 0 || indices.Length == 0 || indices.Length % 3 != 0)
             throw new ArgumentException("a mesh needs vertices and whole triangles");
+        var (min, max) = (new Vector3(float.MaxValue), new Vector3(float.MinValue));
+        foreach (var vertex in vertices)
+        {
+            min = Vector3.Min(min, vertex.Position);
+            max = Vector3.Max(max, vertex.Position);
+        }
         var vertexBuffer = GpuBuffer.CreateWithData(device, vertices, VkBufferUsageFlags.StorageBufferBit);
         var indexBuffer = GpuBuffer.CreateWithData(device, indices, VkBufferUsageFlags.IndexBufferBit);
-        return new Mesh(vertexBuffer, indexBuffer, vertices.Length, indices.Length);
+        return new Mesh(vertexBuffer, indexBuffer, vertices.Length, indices.Length, min, max);
     }
 
     /// <summary>

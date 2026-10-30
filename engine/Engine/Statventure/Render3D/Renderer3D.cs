@@ -20,6 +20,12 @@ public sealed class RenderTarget3D : IDisposable
     public const VkFormat SurfaceFormat = VkFormat.R32G32UInt;
     public const VkFormat EdgeFormat = VkFormat.R16UInt;
     public const VkSampleCountFlags Samples = VkSampleCountFlags._4Bit;
+    /// <summary>
+    /// A shadow map's size: 16 maps, one per direction over the sun's disc, fitted to the visible
+    /// area, in a 4×4 atlas (Docs/Renderer-3D.md, "Shadows").
+    /// </summary>
+    public const int ShadowSize = 1024;
+    public const int ShadowTiles = 4;
 
     public int Width { get; }
     public int Height { get; }
@@ -28,6 +34,7 @@ public sealed class RenderTarget3D : IDisposable
     public GpuImage Resolved { get; }
     public GpuImage Surface { get; }
     public GpuImage Edges { get; }
+    public GpuImage ShadowMap { get; }
 
     public RenderTarget3D(GpuDevice device, int width, int height)
     {
@@ -45,6 +52,7 @@ public sealed class RenderTarget3D : IDisposable
             Usage = VkImageUsageFlags.ColorAttachmentBit | VkImageUsageFlags.SampledBit,
         });
         Edges = GpuImage.CreateRenderTarget(device, width, height, EdgeFormat);
+        ShadowMap = GpuImage.CreateDepth(device, ShadowSize * ShadowTiles, ShadowSize * ShadowTiles, DepthFormat, sampled: true);
     }
 
     public void Dispose()
@@ -54,6 +62,7 @@ public sealed class RenderTarget3D : IDisposable
         Resolved.Dispose();
         Surface.Dispose();
         Edges.Dispose();
+        ShadowMap.Dispose();
     }
 }
 
@@ -80,13 +89,21 @@ public readonly record struct DrawItem(Mesh Mesh, Matrix4x4 Model, Vector4 Color
     public object? Group { get; init; }
     public int Part { get; init; }
     public bool Ink { get; init; }
+    /// <summary>Casts a shadow (Docs/Renderer-3D.md, "Shadows").</summary>
+    public bool CastsShadow { get; init; }
+    /// <summary>Receives shadows: scenery (the stage, terrain and its features).</summary>
+    public bool ReceivesShadows { get; init; }
 }
 
 /// <summary>
-/// The sun: the direction toward it (world space, normalised when drawn) and its strength as a
-/// Blender sun's (irradiance; a white diffuse surface facing it shows strength / π).
+/// The sun: the direction toward it (world space, normalised when drawn), its strength as a Blender
+/// sun's (irradiance; a white diffuse surface facing it shows strength / π) and its angular
+/// diameter in degrees (Blender's sun angle), which softens shadows.
 /// </summary>
-public readonly record struct SunLight(Vector3 Direction, float Strength);
+public readonly record struct SunLight(Vector3 Direction, float Strength)
+{
+    public float Angle { get; init; } = 3;
+}
 
 /// <summary>
 /// How cel shading turns light into tones and draws ink (Docs/Renderer-3D.md, "Cel shading", "Ink
@@ -129,6 +146,7 @@ public sealed class Renderer3D(GpuDevice device)
         public Vector4 Color;
         public Vector4 Shadow;
         public uint Surface;
+        public uint ReceivesShadows;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -139,7 +157,20 @@ public sealed class Renderer3D(GpuDevice device)
         public Vector4 Sun;
         public float Band;
         public uint Orthographic;
+        public Matrix4x4 LightViewProjection;
+        public Vector4 ShadowScale;
+        public uint ShadowMap;
+        public float ShadowTexel;
+        public float ShadowFar;
     }
+
+    /// <summary>The 16 directions over the sun's disc (a Vogel spiral: even over its area), in units of its radius.</summary>
+    static readonly Vector2[] SunDisc = Enumerable.Range(0, 16).Select(i =>
+    {
+        var r = MathF.Sqrt((i + 0.5f) / 16);
+        var a = i * 2.39996323f;
+        return new Vector2(r * MathF.Cos(a), r * MathF.Sin(a));
+    }).ToArray();
 
     [StructLayout(LayoutKind.Sequential)]
     struct EdgesPush
@@ -213,7 +244,104 @@ public sealed class Renderer3D(GpuDevice device)
         ColorFormats = [RenderTarget3D.ColorFormat],
     });
 
-    Pipeline? _edges, _lines;
+    Pipeline ShadowPipeline => _shadow ??= device.Pipelines.Get(new GraphicsPipelineDesc
+    {
+        VertexShader = "mesh.vert",
+        FragmentShader = "shadow.frag",
+        Blend = BlendMode.Opaque,
+        ColorFormats = [],
+        DepthFormat = RenderTarget3D.DepthFormat,
+        DepthTest = true,
+        DepthWrite = true,
+        DepthCompare = VkCompareOp.Greater,
+        // Both sides cast: open and single-sided meshes block light too.
+        Cull = VkCullModeFlags.None,
+    });
+
+    Pipeline? _edges, _lines, _shadow;
+
+    /// <summary>
+    /// The sun's view for the shadow map: orthographic along the light, fitted around the receivers
+    /// the camera sees (widened by how far a shadow's soft edge can reach) and deep enough for every
+    /// caster. Null when nothing receives shadows in view.
+    /// </summary>
+    static (Matrix4x4 View, Matrix4x4 Projection, Vector2 Size, float Depth, float Far)? FitShadow(IReadOnlyList<DrawItem> items, Camera camera, float aspect, Vector3 toward, float tanHalfAngle)
+    {
+        var up = MathF.Abs(toward.Y) < 0.99f ? Vector3.UnitY : Vector3.UnitZ;
+        var view = Matrix4x4.CreateLookAt(Vector3.Zero, -toward, up);
+        Vector3 casterMin = new(float.MaxValue), casterMax = new(float.MinValue);
+        Vector3 receiverMin = new(float.MaxValue), receiverMax = new(float.MinValue);
+        Vector3 worldMin = new(float.MaxValue), worldMax = new(float.MinValue);
+        foreach (var item in items)
+        {
+            if (!item.CastsShadow && !item.ReceivesShadows)
+                continue;
+            for (var corner = 0; corner < 8; corner++)
+            {
+                var local = new Vector3((corner & 1) == 0 ? item.Mesh.BoundsMin.X : item.Mesh.BoundsMax.X,
+                    (corner & 2) == 0 ? item.Mesh.BoundsMin.Y : item.Mesh.BoundsMax.Y,
+                    (corner & 4) == 0 ? item.Mesh.BoundsMin.Z : item.Mesh.BoundsMax.Z);
+                var world = Vector3.Transform(local, item.Model);
+                var light = Vector3.Transform(world, view);
+                worldMin = Vector3.Min(worldMin, world);
+                worldMax = Vector3.Max(worldMax, world);
+                if (item.CastsShadow)
+                    (casterMin, casterMax) = (Vector3.Min(casterMin, light), Vector3.Max(casterMax, light));
+                if (item.ReceivesShadows)
+                    (receiverMin, receiverMax) = (Vector3.Min(receiverMin, light), Vector3.Max(receiverMax, light));
+            }
+        }
+        if (receiverMin.X > receiverMax.X)
+            return null;
+        // The camera's view of the scene's depth: its frustum between the nearest and farthest the
+        // scene's bounds reach from it, in the light's view.
+        var cameraView = camera.View;
+        float nearest = float.MaxValue, farthest = 0;
+        for (var corner = 0; corner < 8; corner++)
+        {
+            var world = new Vector3((corner & 1) == 0 ? worldMin.X : worldMax.X, (corner & 2) == 0 ? worldMin.Y : worldMax.Y, (corner & 4) == 0 ? worldMin.Z : worldMax.Z);
+            var depth = -Vector3.Transform(world, cameraView).Z;
+            nearest = MathF.Min(nearest, depth);
+            farthest = MathF.Max(farthest, depth);
+        }
+        nearest = MathF.Max(nearest, camera.Near);
+        farthest = MathF.Min(farthest, camera.Far);
+        Matrix4x4.Invert(cameraView, out var cameraToWorld);
+        var tanY = MathF.Tan(camera.VerticalFieldOfView / 2);
+        Vector2 seenMin = new(float.MaxValue), seenMax = new(float.MinValue);
+        foreach (var depth in new[] { nearest, farthest })
+        {
+            var half = camera.Projection == Projection.Orthographic
+                ? new Vector2(camera.OrthographicHeight / 2 * aspect, camera.OrthographicHeight / 2)
+                : new Vector2(tanY * aspect, tanY) * depth;
+            for (var corner = 0; corner < 4; corner++)
+            {
+                var point = new Vector3((corner & 1) == 0 ? -half.X : half.X, (corner & 2) == 0 ? -half.Y : half.Y, -depth);
+                var light = Vector3.Transform(Vector3.Transform(point, cameraToWorld), view);
+                seenMin = Vector2.Min(seenMin, new Vector2(light.X, light.Y));
+                seenMax = Vector2.Max(seenMax, new Vector2(light.X, light.Y));
+            }
+        }
+        // The maps for directions off the sun's centre are sheared by distance times the half angle
+        // (distances from the light's view plane through the origin).
+        var reach = MathF.Max(MathF.Abs(casterMin.Z), MathF.Max(MathF.Abs(casterMax.Z), MathF.Max(MathF.Abs(receiverMin.Z), MathF.Abs(receiverMax.Z)))) * tanHalfAngle;
+        var min = Vector2.Max(seenMin, new Vector2(receiverMin.X, receiverMin.Y)) - new Vector2(reach);
+        var max = Vector2.Min(seenMax, new Vector2(receiverMax.X, receiverMax.Y)) + new Vector2(reach);
+        if (min.X >= max.X || min.Y >= max.Y)
+            return null;
+        // Light-view depth: the light looks down −Z; distances from the casters nearest it to the farthest receiver.
+        float near = -MathF.Max(casterMax.Z, receiverMax.Z), far = -MathF.Min(casterMin.Z, receiverMin.Z);
+        near -= 0.01f * (far - near) + 1e-3f;
+        far += 0.01f * (far - near) + 1e-3f;
+        var size = max - min;
+        // Reversed depth, as the camera's: 1 nearest the light; Y flipped for Vulkan.
+        var projection = new Matrix4x4(
+            2 / size.X, 0, 0, 0,
+            0, -2 / size.Y, 0, 0,
+            0, 0, 1 / (far - near), 0,
+            -(max.X + min.X) / size.X, (max.Y + min.Y) / size.Y, far / (far - near), 1);
+        return (view, projection, size, far - near, far);
+    }
 
     /// <summary>
     /// Clears the target to <paramref name="background"/> (linear), draws the items seen by
@@ -227,14 +355,53 @@ public sealed class Renderer3D(GpuDevice device)
         var aspect = (float)target.Width / target.Height;
         var orthographic = camera.Projection == Projection.Orthographic;
         var direction = sun.Direction.LengthSquared() > 0 ? Vector3.Normalize(sun.Direction) : Vector3.Zero;
-        var sceneAddress = frame.Upload<SceneData>([new SceneData
+        var tanHalfAngle = MathF.Tan(sun.Angle / 2 * MathF.PI / 180);
+        var scene = new SceneData
         {
             ViewProjection = camera.ViewProjection(aspect),
             View = camera.View,
             Sun = new Vector4(direction, sun.Strength / MathF.PI),
             Band = style.BandEdge,
             Orthographic = orthographic ? 1u : 0u,
-        }]);
+            ShadowMap = uint.MaxValue,
+        };
+        if (direction != Vector3.Zero && sun.Strength > 0 && FitShadow(items, camera, aspect, direction, tanHalfAngle) is { } fit)
+        {
+            var lightViewProjection = fit.View * fit.Projection;
+            commands.BeginRendering([], new DepthAttachment(target.ShadowMap, LoadAction.Clear, 0f));
+            commands.BindPipeline(ShadowPipeline);
+            var draws = items.Where(i => i.CastsShadow)
+                .Select(i => (i.Mesh, Draw: frame.Upload<DrawData>([new DrawData { Model = i.Model, NormalMatrix = i.Model }]))).ToList();
+            for (var tile = 0; tile < SunDisc.Length; tile++)
+            {
+                // Seen from a point of the sun's disc, the scene shifts by its distance times the
+                // offset: a shear of the centre's view (x' = x − u·tan·z, z running from the light).
+                var u = SunDisc[tile] * tanHalfAngle;
+                var shear = Matrix4x4.Identity;
+                shear.M31 = -u.X;
+                shear.M32 = -u.Y;
+                var shadowAddress = frame.Upload<SceneData>([scene with { ViewProjection = fit.View * shear * fit.Projection, View = fit.View }]);
+                int x = tile % RenderTarget3D.ShadowTiles * RenderTarget3D.ShadowSize, y = tile / RenderTarget3D.ShadowTiles * RenderTarget3D.ShadowSize;
+                commands.SetViewport(x, y, RenderTarget3D.ShadowSize, RenderTarget3D.ShadowSize);
+                commands.SetScissor(x, y, RenderTarget3D.ShadowSize, RenderTarget3D.ShadowSize);
+                foreach (var (mesh, draw) in draws)
+                {
+                    commands.BindIndexBuffer(mesh.Indices);
+                    commands.Push(new Push { Vertices = mesh.Vertices.Address, Draw = draw, Scene = shadowAddress });
+                    commands.DrawIndexed(mesh.IndexCount);
+                }
+            }
+            commands.EndRendering();
+            commands.Transition(target.ShadowMap, VkImageLayout.ShaderReadOnlyOptimal);
+            scene.LightViewProjection = lightViewProjection;
+            // Shadow-map units per world unit: across, up (V runs down) and toward the light; the
+            // sun's half angle as a tangent.
+            scene.ShadowScale = new Vector4(1 / fit.Size.X, -1 / fit.Size.Y, 1 / fit.Depth, tanHalfAngle);
+            scene.ShadowMap = (uint)target.ShadowMap.BindlessIndex;
+            scene.ShadowTexel = MathF.Max(fit.Size.X, fit.Size.Y) / RenderTarget3D.ShadowSize;
+            scene.ShadowFar = fit.Far;
+        }
+        var sceneAddress = frame.Upload<SceneData>([scene]);
         commands.BeginRendering(
             [
                 new ColorAttachment(target.Color, LoadAction.Clear, background, target.Resolved, Store: false),
@@ -261,6 +428,7 @@ public sealed class Renderer3D(GpuDevice device)
                 Color = item.Color,
                 Shadow = item.Shadow,
                 Surface = model | ((uint)item.Part & 255) << 10 | (item.Ink ? 1u << 18 : 0),
+                ReceivesShadows = item.ReceivesShadows ? 1u : 0,
             }]);
             commands.BindIndexBuffer(item.Mesh.Indices);
             commands.Push(new Push { Vertices = item.Mesh.Vertices.Address, Draw = draw, Scene = sceneAddress });

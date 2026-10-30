@@ -55,9 +55,13 @@ public class Render3DReferenceTests(GpuFixture gpu)
         var reference = Golden.GoldenPath("r3d-" + name);
         Assert.True(File.Exists(reference), $"no Blender reference for {name}: run Tools/Scripts/make-blender-references.sh");
         // The shading alone: the lines are compared with Freestyle's on their own (TheEngineInksWhatFreestyleInked).
-        var actual = Render(scene with { Style = scene.Style with { OutlineWidth = 0, InnerWidth = 0 } });
+        var unlined = scene with { Style = scene.Style with { OutlineWidth = 0, InnerWidth = 0 } };
+        var actual = Render(unlined);
         var expected = ImageFile.Load(reference);
-        var problems = Compare(expected, actual);
+        // Scenes with scenery receive shadows: their soft fringes are compared on their own terms.
+        var problems = scene.Models.Any(m => m.Scenery)
+            ? CompareShadowed(expected, actual, Render(unlined with { Models = [.. unlined.Models.Select(m => m with { Scenery = false })] }))
+            : Compare(expected, actual);
         var actualPath = Golden.ActualPath("r3d-" + name);
         if (problems.Length > 0)
         {
@@ -98,6 +102,63 @@ public class Render3DReferenceTests(GpuFixture gpu)
         for (var i = 0; i < coverage.Length; i++)
             coverage[i] = alpha ? image.Pixels[i * 4 + 3] / 255f : Colors.ToLinear(image.Pixels[i * 4] / 255f);
         return coverage;
+    }
+
+    /// <summary>
+    /// A scene with cast shadows (Docs/Renderer-3D.md, "Shadows"). Pixels on the geometry's edges (as
+    /// the engine draws the scene without shadows) are compared as in <see cref="Compare"/>. Inside
+    /// surfaces the shadows' soft fringes are a sampled average, Blender's of 64 jittered maps at its
+    /// own resolution, the engine's of 16 maps at 1024²: single pixels in a fringe differ by up to
+    /// about 10 levels (the engine's blend steps by sixteenths), and the thinnest shadows wander. So,
+    /// inside surfaces: at most 0.2% of pixels differ by more than 16 levels (measured: at most
+    /// 0.12%), and the difference left over is at most a tenth of the shadows' own (the summed
+    /// difference from Blender over the summed difference between Blender and the engine without
+    /// shadows; measured: at most 0.079, in the fringe scene). On the geometry's edges, one pixel in
+    /// 10,000 may stray (measured: up to 5): scenery shades a sub-pixel sliver of a band edge or a
+    /// contact shadow once per pixel where Blender shades each sample. Checked: hard shadows, a sun
+    /// 30% too small or too large, shadows on characters and no shadows each fail.
+    /// </summary>
+    internal static string CompareShadowed(RgbaImage expected, RgbaImage actual, RgbaImage unshadowed)
+    {
+        int w = expected.Width, h = expected.Height;
+        byte[] e = expected.Pixels, a = actual.Pixels, u = unshadowed.Pixels;
+        var onGeometry = new bool[w * h];
+        long inside = 0, far = 0;
+        double left = 0, signal = 0;
+        for (var y = 0; y < h; y++)
+            for (var x = 0; x < w; x++)
+            {
+                var i = (y * w + x) * 4;
+                var uniform = true;
+                for (var dy = -1; dy <= 1 && uniform; dy++)
+                    for (var dx = -1; dx <= 1 && uniform; dx++)
+                    {
+                        var j = (Math.Clamp(y + dy, 0, h - 1) * w + Math.Clamp(x + dx, 0, w - 1)) * 4;
+                        uniform = u[j] == u[i] && u[j + 1] == u[i + 1] && u[j + 2] == u[i + 2];
+                    }
+                if (!uniform)
+                {
+                    onGeometry[y * w + x] = true;
+                    continue;
+                }
+                int difference = 0, shadow = 0;
+                for (var c = 0; c < 3; c++)
+                {
+                    difference = Math.Max(difference, Math.Abs(e[i + c] - a[i + c]));
+                    shadow = Math.Max(shadow, Math.Abs(e[i + c] - u[i + c]));
+                }
+                inside++;
+                if (difference > 16)
+                    far++;
+                left += difference;
+                signal += shadow;
+            }
+        var text = new StringBuilder(Compare(expected, actual, only: (x, y) => onGeometry[y * w + x], strays: w * h / 10000));
+        if (far > 0.002 * inside)
+            text.Append($" {far} of {inside} pixels inside surfaces differ by more than 16");
+        if (signal > 0 && left / signal > 0.1)
+            text.Append($" {left / signal:P1} of the shadows' difference left over");
+        return text.ToString().Trim();
     }
 
     /// <summary>
@@ -209,7 +270,7 @@ public class Render3DReferenceTests(GpuFixture gpu)
             {
                 var model = Model.Load(device, Path.Combine(ModelDirectory, placed.File));
                 models.Add(model);
-                model.Draw(items, placed.Model, palette, scene.Style);
+                model.Draw(items, placed.Model, palette, scene.Style, placed.Scenery);
             }
             using var target = new RenderTarget3D(device, scene.Width, scene.Height);
             var renderer = new Renderer3D(device) { InkCoverageOnly = inkOnly };
@@ -237,7 +298,8 @@ public class Render3DReferenceTests(GpuFixture gpu)
     /// of its local contrast (or 8 levels), and all of them within 4 on average. Returns what failed,
     /// or "".
     /// </summary>
-    internal static string Compare(RgbaImage expected, RgbaImage actual, int insideTolerance = 2, double edgeContrast = 0.7, int edgeFloor = 8, double edgeMean = 4)
+    internal static string Compare(RgbaImage expected, RgbaImage actual, int insideTolerance = 2, double edgeContrast = 0.7, int edgeFloor = 8, double edgeMean = 4,
+        Func<int, int, bool>? only = null, int strays = 0)
     {
         if (expected.Width != actual.Width || expected.Height != actual.Height)
             return $"size {actual.Width}x{actual.Height}, reference {expected.Width}x{expected.Height}";
@@ -248,6 +310,8 @@ public class Render3DReferenceTests(GpuFixture gpu)
         for (var y = 0; y < h; y++)
             for (var x = 0; x < w; x++)
             {
+                if (only != null && !only(x, y))
+                    continue;
                 var i = (y * w + x) * 4;
                 Span<int> low = [255, 255, 255], high = [0, 0, 0];
                 for (var dy = -1; dy <= 1; dy++)
@@ -282,6 +346,8 @@ public class Render3DReferenceTests(GpuFixture gpu)
                 }
             }
         var text = new StringBuilder();
+        if (insideBad + edgeBad <= strays)
+            insideBad = edgeBad = 0;
         if (insideBad > 0)
             text.Append($"{insideBad} inside pixels differ (worst {worstInside}) ");
         if (edgeBad > 0)
@@ -328,10 +394,10 @@ public class Render3DReferenceTests(GpuFixture gpu)
                 far = s.Camera.Far,
             },
             objects = s.Objects.Select(o => new { shape = o.Shape.Name, matrix = Columns(o.Model), color = o.Color }).ToArray(),
-            models = s.Models.Select(m => new { file = m.File, matrix = Columns(m.Model) }).ToArray(),
+            models = s.Models.Select(m => new { file = m.File, matrix = Columns(m.Model), scenery = m.Scenery }).ToArray(),
             palette = s.Palette,
             shadows = s.Shadows,
-            sun = s.Sun is { } sun ? new { direction = V(sun.Direction), strength = sun.Strength } : null,
+            sun = s.Sun is { } sun ? new { direction = V(sun.Direction), strength = sun.Strength, angle = sun.Angle } : null,
             style = new
             {
                 ink = Hex(s.Style.Ink), shadowMix = s.Style.ShadowMix, bandEdge = s.Style.BandEdge,
