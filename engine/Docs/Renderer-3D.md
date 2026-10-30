@@ -52,6 +52,42 @@ come up.
   does: `Shaders/Source/common.glsl`).
 - Renders go to an MSAA 4× colour and depth target, resolved to a single-sample image the canvas
   can composite (3D views inside the UI) or the window shows.
+- Colour targets are sRGB (`R8G8B8A8SRGB`): shaders output linear values, the hardware encodes them
+  and averages MSAA samples in linear, as Blender's Standard view transform encodes its linear
+  render. Palette colours are given in sRGB (`Colors.FromHex`) and converted with `Colors.ToLinear`.
+- Matrices are System.Numerics' (row vectors, `v * M`). Uploaded as they are, GLSL reads each row as
+  a column, so the shaders multiply `M * v`. A System.Numerics row is therefore a column of the
+  column-vector matrix, which is also glTF's storage order.
+- **Front faces are counter-clockwise** (`VkFrontFace.CounterClockwise`), back faces culled. The
+  projection's Y flip makes up point up in Vulkan's y-down framebuffer, so the picture is upright,
+  not mirrored, and glTF's counter-clockwise triangles stay counter-clockwise on screen (Vulkan's
+  "counter-clockwise" is as seen on screen). Clockwise culled the front faces: with flat colours a
+  single box still looked right, only boxes cutting through each other showed it.
+- Cameras keep the vertical extent fixed and widen with the aspect ratio (a Blender camera with
+  sensor fit vertical): perspective by a vertical field of view, orthographic by the height of the
+  world in view (Blender's orthographic scale). `Camera.View` is `Matrix4x4.CreateLookAt`.
+
+## Reference harness
+
+- **Scenes:** `Tests/Statventure.Tests/Render3D/Scenes3D.cs` (shapes as positions and
+  counter-clockwise triangles, objects with scale, rotation X then Y then Z, translation and an sRGB
+  colour, a camera, size, background). The tests write them to `Reference/r3d-scenes.json`
+  (`Render3DReferenceTests.TheSceneFileIsUpToDate`: shapes, each object's model matrix as four
+  columns, the camera).
+- **Blender:** `Tools/BlenderReference/render_scenes.py`, run by
+  `Tools/Scripts/make-blender-references.sh [scene ...]` (Blender from `$STATVENTURE_BLENDER`, else
+  `blender` on the PATH, else the Flatpak; always `-b --factory-startup` and absolute paths, since
+  the Flatpak starts in its own folder and has a private /tmp). It converts glTF coordinates to
+  Blender's as the glTF importer does (`(x, y, z)` → `(x, −z, y)`), bakes each object's matrix into
+  its vertices, builds the camera from the look-at axes (sensor fit vertical, lens from the field of
+  view, orthographic scale from the height), and renders with EEVEE: 64 samples, filter 1.0 px,
+  Standard view transform, no dither, flat colours as emission of strength 1 on a world background.
+  Writes `Golden/r3d-<scene>.png`.
+- **Comparison** (`Render3DReferenceTests.Compare`): a pixel whose 3×3 neighbourhood in the
+  reference is one colour must match within 2 levels; edge pixels within 56 each and 4 on average.
+  MSAA 4× covers a pixel in quarters where EEVEE filters 64 samples; that differs by up to 46 levels
+  (2.9 on average) in the step 1 scenes, while an edge half a pixel out differs by 65 or more (about
+  8 on average). On failure the render goes to `Actual/r3d-<scene>.png`.
 
 ## Steps
 
@@ -71,4 +107,14 @@ come up.
 
 ## Status
 
-Started 2026-10-30. Next: step 1.
+Started 2026-10-30.
+
+- **Step 1, core (2026-10-30, 501 tests): done.** `Engine/Statventure/Render3D/`: `Camera`
+  (orthographic and perspective, reversed depth), `Mesh` (vertices pulled by address, 32-bit
+  indices; `FromTriangles` gives flat faces), `RenderTarget3D` (MSAA 4× sRGB colour, D32 float
+  depth, resolve target), `Renderer3D` (flat-colour pipeline `mesh.vert` / `mesh_flat.frag`, depth
+  compare Greater cleared to 0). The Blender reference harness and three scenes: `ortho-boxes`,
+  `perspective-boxes` (a box cutting through another), `shapes-roll` (slanted faces, a wide aspect,
+  a rolled camera, shapes cut by the frame). Interior pixels match Blender exactly; edges within the
+  MSAA tolerance. Passes on the GPU and on lavapipe.
+- **Next: step 2, glTF import.**

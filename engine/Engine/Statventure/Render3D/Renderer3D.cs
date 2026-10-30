@@ -1,0 +1,120 @@
+using System.Numerics;
+using System.Runtime.InteropServices;
+using Brutal.VulkanApi;
+using Statventure.Graphics;
+
+namespace Statventure.Render3D;
+
+/// <summary>
+/// Where a 3D view is drawn: an MSAA 4× colour and depth target, resolved into
+/// <see cref="Resolved"/>, a single-sample image the window shows or the canvas composites. Colour
+/// is sRGB: shaders work with linear values and the hardware encodes them (and averages the MSAA
+/// samples), as Blender converts its linear render for display.
+/// </summary>
+public sealed class RenderTarget3D : IDisposable
+{
+    public const VkFormat ColorFormat = VkFormat.R8G8B8A8SRGB;
+    public const VkFormat DepthFormat = VkFormat.D32SFloat;
+    public const VkSampleCountFlags Samples = VkSampleCountFlags._4Bit;
+
+    public int Width { get; }
+    public int Height { get; }
+    public GpuImage Color { get; }
+    public GpuImage Depth { get; }
+    public GpuImage Resolved { get; }
+
+    public RenderTarget3D(GpuDevice device, int width, int height)
+    {
+        Width = width;
+        Height = height;
+        Color = GpuImage.CreateRenderTarget(device, width, height, ColorFormat, Samples);
+        Depth = GpuImage.CreateDepth(device, width, height, DepthFormat, Samples);
+        Resolved = GpuImage.CreateRenderTarget(device, width, height, ColorFormat);
+    }
+
+    public void Dispose()
+    {
+        Color.Dispose();
+        Depth.Dispose();
+        Resolved.Dispose();
+    }
+}
+
+/// <summary>One mesh to draw: where it is (its model matrix) and its colour (sRGB, as a palette gives it).</summary>
+public readonly record struct DrawItem(Mesh Mesh, Matrix4x4 Model, Vector4 Color);
+
+/// <summary>
+/// Draws meshes into a <see cref="RenderTarget3D"/>: depth tested (reversed depth), back faces
+/// culled, MSAA 4×. Step 1 of M6: flat colours (Docs/Renderer-3D.md).
+/// </summary>
+public sealed class Renderer3D(GpuDevice device)
+{
+    [StructLayout(LayoutKind.Sequential)]
+    struct DrawData
+    {
+        public Matrix4x4 Model;
+        public Vector4 Color;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct Push
+    {
+        public ulong Vertices;
+        public ulong Draw;
+        public ulong Camera;
+    }
+
+    Pipeline FlatPipeline => device.Pipelines.Get(new GraphicsPipelineDesc
+    {
+        VertexShader = "mesh.vert",
+        FragmentShader = "mesh_flat.frag",
+        Blend = BlendMode.Opaque,
+        ColorFormats = [RenderTarget3D.ColorFormat],
+        DepthFormat = RenderTarget3D.DepthFormat,
+        DepthTest = true,
+        DepthWrite = true,
+        DepthCompare = VkCompareOp.Greater,
+        // The projection's Y flip makes up point up in Vulkan's y-down framebuffer, so the picture is
+        // upright, not mirrored, and glTF's counter-clockwise front faces stay counter-clockwise.
+        Cull = VkCullModeFlags.BackBit,
+        FrontFace = VkFrontFace.CounterClockwise,
+        Samples = RenderTarget3D.Samples,
+    });
+
+    /// <summary>Clears the target to <paramref name="background"/> (sRGB), draws the items seen by <paramref name="camera"/> and resolves.</summary>
+    public void Render(Frame frame, RenderTarget3D target, Camera camera, IReadOnlyList<DrawItem> items, Vector4 background)
+    {
+        var commands = frame.Commands;
+        var viewProjection = camera.ViewProjection((float)target.Width / target.Height);
+        var cameraAddress = frame.Upload<Matrix4x4>([viewProjection]);
+        var clear = Colors.ToLinear(background);
+        commands.BeginRendering(new ColorAttachment(target.Color, LoadAction.Clear, clear, target.Resolved, Store: false),
+            new DepthAttachment(target.Depth, LoadAction.Clear, 0f));
+        commands.SetViewport(0, 0, target.Width, target.Height);
+        commands.SetScissor(0, 0, target.Width, target.Height);
+        commands.BindPipeline(FlatPipeline);
+        foreach (var item in items)
+        {
+            var draw = frame.Upload<DrawData>([new DrawData { Model = item.Model, Color = Colors.ToLinear(item.Color) }]);
+            commands.BindIndexBuffer(item.Mesh.Indices);
+            commands.Push(new Push { Vertices = item.Mesh.Vertices.Address, Draw = draw, Camera = cameraAddress });
+            commands.DrawIndexed(item.Mesh.IndexCount);
+        }
+        commands.EndRendering();
+    }
+}
+
+/// <summary>sRGB colours (as palettes and pickers give them) and the linear values shaders work with.</summary>
+public static class Colors
+{
+    public static float ToLinear(float c) => c <= 0.04045f ? c / 12.92f : MathF.Pow((c + 0.055f) / 1.055f, 2.4f);
+
+    public static Vector4 ToLinear(Vector4 c) => new(ToLinear(c.X), ToLinear(c.Y), ToLinear(c.Z), c.W);
+
+    /// <summary>"#rrggbb" to an sRGB colour (alpha 1).</summary>
+    public static Vector4 FromHex(string hex)
+    {
+        var value = Convert.ToUInt32(hex.TrimStart('#'), 16);
+        return new Vector4(((value >> 16) & 255) / 255f, ((value >> 8) & 255) / 255f, (value & 255) / 255f, 1);
+    }
+}
