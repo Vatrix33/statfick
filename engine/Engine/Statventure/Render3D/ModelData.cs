@@ -38,9 +38,14 @@ public sealed record ModelMaterial(string Name, Vector4 BaseColor, bool DoubleSi
 /// <summary>
 /// A node of the hierarchy: its local transform (as the file's matrix, or translation, rotation and
 /// scale, which animations later drive), the mesh it shows and the skin that deforms it (−1: none).
+/// <see cref="Ink"/> is false for parts drawn without ink lines (the Blender object's custom
+/// property <c>ink = 0</c>, exported as node extras).
 /// </summary>
 public sealed record ModelNode(string Name, int Parent, IReadOnlyList<int> Children, Matrix4x4 Local,
-    Vector3 Translation, Quaternion Rotation, Vector3 Scale, int Mesh, int Skin);
+    Vector3 Translation, Quaternion Rotation, Vector3 Scale, int Mesh, int Skin)
+{
+    public bool Ink { get; init; } = true;
+}
 
 /// <summary>A skin: the nodes acting as joints and their inverse bind matrices (model space to joint space).</summary>
 public sealed record ModelSkin(string Name, IReadOnlyList<int> Joints, IReadOnlyList<Matrix4x4> InverseBindMatrices, int Skeleton);

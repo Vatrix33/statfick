@@ -85,12 +85,14 @@ public sealed class Model : IDisposable
     /// <summary>
     /// Adds a cel-shaded draw item per primitive of every node in the scene, placed by
     /// <paramref name="transform"/> (model to world), in the tones <paramref name="palette"/> and
-    /// <paramref name="style"/> give its materials.
+    /// <paramref name="style"/> give its materials. The items make one model for the ink lines (its
+    /// outline goes around all of them); each node is a part, with lines unless its <c>ink</c> is 0.
     /// </summary>
     public void Draw(List<DrawItem> items, Matrix4x4 transform, Palette? palette = null, CelStyle? style = null)
     {
         palette ??= Empty;
         style ??= CelStyle.Default;
+        var group = new object();
         for (var node = 0; node < Data.Nodes.Count; node++)
         {
             var meshIndex = Data.Nodes[node].Mesh;
@@ -105,7 +107,7 @@ public sealed class Model : IDisposable
                 var item = skinned != null
                     ? new DrawItem(skinned[p], transform, lit, material.DoubleSided)
                     : new DrawItem(_meshes[meshIndex][p], _world[node] * transform, lit, material.DoubleSided);
-                items.Add(item with { Shading = Shading.Cel, Shadow = shadow });
+                items.Add(item with { Shading = Shading.Cel, Shadow = shadow, Group = group, Part = node + 1, Ink = Data.Nodes[node].Ink });
             }
         }
     }

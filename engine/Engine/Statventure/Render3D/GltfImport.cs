@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Numerics;
+using System.Text.Json;
 using Brutal.GltfApi;
 using Brutal.Numerics;
 
@@ -10,6 +11,7 @@ namespace Statventure.Render3D;
 /// the container and the JSON; this decodes the accessors (component types, normalisation, strides,
 /// matrix column padding, sparse values) as the specification lays them out, and builds the
 /// hierarchy, materials and skins. Points and lines are skipped (the engine draws its own ink lines).
+/// BRUTAL drops extras, so the nodes' <c>ink</c> extra is read from the JSON here.
 /// </summary>
 public static class GltfImport
 {
@@ -25,6 +27,10 @@ public static class GltfImport
                 throw new NotSupportedException($"{path} requires the glTF extension {extension}");
         var reader = new AccessorReader(loader, path);
         var nodes = ReadNodes(gltf, path);
+        var inkless = InklessNodes(path);
+        for (var i = 0; i < nodes.Length; i++)
+            if (inkless.Contains(i))
+                nodes[i] = nodes[i] with { Ink = false };
         return new ModelData
         {
             Nodes = nodes,
@@ -35,6 +41,29 @@ public static class GltfImport
                 ? scenes[gltf.Scene ?? 0].Nodes ?? []
                 : Enumerable.Range(0, nodes.Length).Where(i => nodes[i].Parent < 0).ToArray(),
         };
+    }
+
+    /// <summary>Nodes whose extras say <c>"ink": 0</c> (or false): a Blender object's custom property, exported with the extras.</summary>
+    static HashSet<int> InklessNodes(string path)
+    {
+        var bytes = File.ReadAllBytes(path);
+        ReadOnlySpan<byte> json = bytes;
+        // A .glb: a 12-byte header, then the JSON chunk (length, type "JSON", data).
+        if (bytes.Length >= 20 && BinaryPrimitives.ReadUInt32LittleEndian(bytes) == 0x46546C67)
+            json = bytes.AsSpan(20, (int)BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(12)));
+        using var document = JsonDocument.Parse(json.ToArray());
+        var inkless = new HashSet<int>();
+        if (!document.RootElement.TryGetProperty("nodes"u8, out var nodes))
+            return inkless;
+        var index = 0;
+        foreach (var node in nodes.EnumerateArray())
+        {
+            if (node.TryGetProperty("extras"u8, out var extras) && extras.ValueKind == JsonValueKind.Object && extras.TryGetProperty("ink"u8, out var ink)
+                && (ink.ValueKind == JsonValueKind.False || ink.ValueKind == JsonValueKind.Number && ink.GetDouble() == 0))
+                inkless.Add(index);
+            index++;
+        }
+        return inkless;
     }
 
     static ModelNode[] ReadNodes(Gltf gltf, string path)

@@ -196,11 +196,17 @@ public static class Formats
 
     public static bool IsBgra(VkFormat format) => format is VkFormat.B8G8R8A8UNorm or VkFormat.B8G8R8A8SRGB;
 
+    /// <summary>Unsigned or signed integer colour formats (an MSAA resolve can only take one sample of these).</summary>
+    public static bool IsInteger(VkFormat format) =>
+        format is VkFormat.R8UInt or VkFormat.R16UInt or VkFormat.R32UInt or VkFormat.R32G32UInt or VkFormat.R32G32B32A32UInt
+            or VkFormat.R8SInt or VkFormat.R16SInt or VkFormat.R32SInt or VkFormat.R32G32SInt or VkFormat.R32G32B32A32SInt;
+
     public static int BytesPerPixel(VkFormat format) => format switch
     {
-        VkFormat.R8UNorm => 1,
+        VkFormat.R8UNorm or VkFormat.R8UInt => 1,
+        VkFormat.R16UInt => 2,
         VkFormat.R8G8UNorm => 2,
-        VkFormat.R16G16B16A16SFloat => 8,
+        VkFormat.R16G16B16A16SFloat or VkFormat.R32G32UInt => 8,
         VkFormat.R32G32B32A32SFloat => 16,
         VkFormat.R16SFloat => 2,
         VkFormat.R32SFloat => 4,

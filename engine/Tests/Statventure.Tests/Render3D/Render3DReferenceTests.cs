@@ -20,6 +20,7 @@ public class Render3DReferenceTests(GpuFixture gpu)
     internal static string ModelDirectory => Path.Combine(Path.GetDirectoryName(Golden.GoldenPath("x"))!, "..", "Data", "Models");
 
     public static TheoryData<string> SceneNames => new(Scenes3D.All.Select(s => s.Name));
+    public static TheoryData<string> InkedSceneNames => new(Scenes3D.All.Where(s => s.Models.Length > 0).Select(s => s.Name));
 
     [Fact]
     public void TheSceneFileIsUpToDate()
@@ -53,7 +54,8 @@ public class Render3DReferenceTests(GpuFixture gpu)
         var scene = Scenes3D.All.Single(s => s.Name == name);
         var reference = Golden.GoldenPath("r3d-" + name);
         Assert.True(File.Exists(reference), $"no Blender reference for {name}: run Tools/Scripts/make-blender-references.sh");
-        var actual = Render(scene);
+        // The shading alone: the lines are compared with Freestyle's on their own (TheEngineInksWhatFreestyleInked).
+        var actual = Render(scene with { Style = scene.Style with { OutlineWidth = 0, InnerWidth = 0 } });
         var expected = ImageFile.Load(reference);
         var problems = Compare(expected, actual);
         var actualPath = Golden.ActualPath("r3d-" + name);
@@ -68,7 +70,128 @@ public class Render3DReferenceTests(GpuFixture gpu)
             File.Delete(actualPath);
     }
 
-    internal RgbaImage Render(Scene3D scene)
+    [Theory]
+    [MemberData(nameof(InkedSceneNames))]
+    public void TheEngineInksWhatFreestyleInked(string name)
+    {
+        var scene = Scenes3D.All.Single(s => s.Name == name);
+        var reference = Golden.GoldenPath("r3d-" + name + "-ink");
+        Assert.True(File.Exists(reference), $"no Freestyle reference for {name}: run Tools/Scripts/make-blender-references.sh");
+        var actual = Render(scene, inkOnly: true);
+        var actualPath = Golden.ActualPath("r3d-" + name + "-ink");
+        if (Environment.GetEnvironmentVariable("STATVENTURE_KEEP_RENDERS") == "1")
+            ImageFile.SavePng(actualPath, actual);
+        var problems = CompareInk(InkCoverage(ImageFile.Load(reference), alpha: true), InkCoverage(actual, alpha: false), actual.Width);
+        if (problems.Length > 0)
+        {
+            ImageFile.SavePng(actualPath, actual);
+            Assert.Fail($"{name}: {problems}; lines in {actualPath}");
+        }
+        if (Environment.GetEnvironmentVariable("STATVENTURE_KEEP_RENDERS") != "1" && File.Exists(actualPath))
+            File.Delete(actualPath);
+    }
+
+    /// <summary>Line coverage 0..1: Freestyle's alpha, or the engine's white-on-black coverage (sRGB-encoded in the target).</summary>
+    internal static float[] InkCoverage(RgbaImage image, bool alpha)
+    {
+        var coverage = new float[image.Width * image.Height];
+        for (var i = 0; i < coverage.Length; i++)
+            coverage[i] = alpha ? image.Pixels[i * 4 + 3] / 255f : Colors.ToLinear(image.Pixels[i * 4] / 255f);
+        return coverage;
+    }
+
+    /// <summary>
+    /// Ink lines against Freestyle's, which strokes edges where the engine finds them per pixel
+    /// (Docs/Renderer-3D.md, "Ink lines"). Measured over the reference scenes: every Freestyle line
+    /// pixel (coverage ≥ 0.5) has an engine line pixel within one pixel but for 0.1%; engine line
+    /// pixels away from any Freestyle line are at most 1.7% (a corner where a part without ink meets
+    /// another); the total ink is within 1.5%; coverage differs by 0.05-0.09 on average over line
+    /// pixels; around a Freestyle line pixel, the engine's ink in the 7×7 pixels about it is 0.75 to
+    /// 1.33 times Freestyle's but for 1% (line ends, corners). Checked: missing creases, lines 20%
+    /// thin, lines on parts without ink, and outlines only against the background (a model over
+    /// another gets an inner line: 8.5% of line pixels out of the local range) each fail one of:
+    /// misses ≤ 2%, extras ≤ 3%, total ink within 10%, mean coverage difference ≤ 0.12, local ink
+    /// out of range ≤ 3%.
+    /// </summary>
+    internal static string CompareInk(float[] expected, float[] actual, int width)
+    {
+        var height = expected.Length / width;
+        float Near(float[] map, int x, int y)
+        {
+            var best = 0f;
+            for (var dy = -1; dy <= 1; dy++)
+                for (var dx = -1; dx <= 1; dx++)
+                    best = Math.Max(best, map[Math.Clamp(y + dy, 0, height - 1) * width + Math.Clamp(x + dx, 0, width - 1)]);
+            return best;
+        }
+        int lines = 0, engineLines = 0, missed = 0, extra = 0, covered = 0;
+        double ink = 0, engineInk = 0, difference = 0;
+        for (var y = 0; y < height; y++)
+            for (var x = 0; x < width; x++)
+            {
+                var i = y * width + x;
+                float e = expected[i], a = actual[i];
+                ink += e;
+                engineInk += a;
+                if (e > 0.02f || a > 0.02f)
+                {
+                    covered++;
+                    difference += Math.Abs(e - a);
+                }
+                if (e >= 0.5f)
+                {
+                    lines++;
+                    if (Near(actual, x, y) < 0.5f)
+                        missed++;
+                }
+                if (a >= 0.5f)
+                {
+                    engineLines++;
+                    if (Near(expected, x, y) < 0.5f)
+                        extra++;
+                }
+            }
+        // The local width: ink in the 7×7 pixels about each Freestyle line pixel, from summed-area tables.
+        double[] Sums(float[] map)
+        {
+            var sums = new double[(width + 1) * (height + 1)];
+            for (var y = 0; y < height; y++)
+            {
+                double row = 0;
+                for (var x = 0; x < width; x++)
+                {
+                    row += map[y * width + x];
+                    sums[(y + 1) * (width + 1) + x + 1] = sums[y * (width + 1) + x + 1] + row;
+                }
+            }
+            return sums;
+        }
+        var (expectedSums, actualSums) = (Sums(expected), Sums(actual));
+        double Box(double[] sums, int x, int y)
+        {
+            int x0 = Math.Max(0, x - 3), y0 = Math.Max(0, y - 3), x1 = Math.Min(width, x + 4), y1 = Math.Min(height, y + 4);
+            return sums[y1 * (width + 1) + x1] - sums[y0 * (width + 1) + x1] - sums[y1 * (width + 1) + x0] + sums[y0 * (width + 1) + x0];
+        }
+        var unlike = 0;
+        for (var y = 0; y < height; y++)
+            for (var x = 0; x < width; x++)
+                if (expected[y * width + x] >= 0.5f && Box(actualSums, x, y) / Box(expectedSums, x, y) is < 0.75 or > 1.33)
+                    unlike++;
+        var text = new StringBuilder();
+        if (unlike > 0.03 * lines)
+            text.Append($"{unlike} of {lines} line pixels with unlike ink about them ");
+        if (missed > 0.02 * lines)
+            text.Append($"{missed} of {lines} line pixels missed ");
+        if (extra > 0.03 * engineLines)
+            text.Append($"{extra} of {engineLines} line pixels where Freestyle has none ");
+        if (ink == 0 ? engineInk > 0 : Math.Abs(engineInk / ink - 1) > 0.1)
+            text.Append($"ink {engineInk:F0} against {ink:F0} ");
+        if (covered > 0 && difference / covered > 0.12)
+            text.Append($"coverage differs by {difference / covered:F3} on average ");
+        return text.ToString().Trim();
+    }
+
+    internal RgbaImage Render(Scene3D scene, bool inkOnly = false)
     {
         var device = gpu.Device;
         var meshes = new Dictionary<Shape3D, Mesh>();
@@ -89,9 +212,9 @@ public class Render3DReferenceTests(GpuFixture gpu)
                 model.Draw(items, placed.Model, palette, scene.Style);
             }
             using var target = new RenderTarget3D(device, scene.Width, scene.Height);
-            var renderer = new Renderer3D(device);
+            var renderer = new Renderer3D(device) { InkCoverageOnly = inkOnly };
             var frame = device.BeginFrame();
-            renderer.Render(frame, target, scene.Camera.ToCamera(), items, Colors.LinearFromHex(scene.Background), scene.Sun ?? default, scene.Style);
+            renderer.Render(frame, target, scene.Camera.ToCamera(), items, Colors.LinearFromHex(scene.Background), scene.Sun ?? default, scene.Style, scene.Scale);
             device.EndFrame(frame);
             device.WaitIdle();
             return new RgbaImage(scene.Width, scene.Height, target.Resolved.ReadPixels());
@@ -209,7 +332,11 @@ public class Render3DReferenceTests(GpuFixture gpu)
             palette = s.Palette,
             shadows = s.Shadows,
             sun = s.Sun is { } sun ? new { direction = V(sun.Direction), strength = sun.Strength } : null,
-            style = new { ink = Hex(s.Style.Ink), shadowMix = s.Style.ShadowMix, bandEdge = s.Style.BandEdge },
+            style = new
+            {
+                ink = Hex(s.Style.Ink), shadowMix = s.Style.ShadowMix, bandEdge = s.Style.BandEdge,
+                outlineWidth = s.Style.OutlineWidth * s.Scale, innerWidth = s.Style.InnerWidth * s.Scale, creaseAngle = s.Style.CreaseAngle,
+            },
         });
         return JsonSerializer.Serialize(new { modelFolder = "../Data/Models", shapes, scenes }, new JsonSerializerOptions { WriteIndented = true }) + "\n";
     }

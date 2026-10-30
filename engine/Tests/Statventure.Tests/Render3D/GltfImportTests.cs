@@ -27,6 +27,8 @@ public class GltfImportTests
         Assert.Equal(["Banner", "Base", "BlockA", "BlockB"], model.Nodes[stand].Children.Select(c => model.Nodes[c].Name).Order());
         Assert.Equal(Find("Base"), model.Nodes[Find("Pillar")].Parent);
         Assert.Equal(Find("Pillar"), model.Nodes[Find("Cap")].Parent);
+        // BlockA has the custom property ink = 0 (no ink lines), exported as extras; the rest have lines.
+        Assert.Equal(["BlockA"], model.Nodes.Where(n => !n.Ink).Select(n => n.Name));
         // One mesh, two nodes: the second mirrored, so its triangles wind the other way.
         Assert.Equal(model.Nodes[Find("BlockA")].Mesh, model.Nodes[Find("BlockB")].Mesh);
         var world = model.WorldMatrices();
@@ -150,6 +152,8 @@ public class GltfImportTests
             Assert.Equal([0u, 1, 2, 3, 4, 5], fan.Indices);
 
             // A matrix node (translation 2, 3, 4) over a node with translation, rotation (90° about Z) and scale 2.
+            // The child's extras say ink: false; the root's say nothing about ink.
+            Assert.Equal((true, false), (model.Nodes[0].Ink, model.Nodes[1].Ink));
             var world = model.WorldMatrices();
             Near(new Vector3(3, 5, 4), Vector3.Transform(Vector3.UnitX, world[1]));
             Assert.Equal(new Vector3(2, 2, 2), model.Nodes[1].Scale);
@@ -219,8 +223,8 @@ public class GltfImportTests
             ["scenes"] = new[] { new { nodes = new[] { 0 } } },
             ["nodes"] = new object[]
             {
-                new { name = "root", matrix = new float[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 2, 3, 4, 1 }, children = new[] { 1 } },
-                new { name = "child", translation = new float[] { 1, 0, 0 }, rotation = new[] { 0, 0, MathF.Sqrt(0.5f), MathF.Sqrt(0.5f) }, scale = new float[] { 2, 2, 2 }, mesh = 0 },
+                new { name = "root", matrix = new float[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 2, 3, 4, 1 }, children = new[] { 1 }, extras = new { note = "x" } },
+                new { name = "child", translation = new float[] { 1, 0, 0 }, rotation = new[] { 0, 0, MathF.Sqrt(0.5f), MathF.Sqrt(0.5f) }, scale = new float[] { 2, 2, 2 }, mesh = 0, extras = new { ink = false } },
             },
             ["meshes"] = new[]
             {

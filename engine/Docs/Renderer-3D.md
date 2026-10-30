@@ -29,6 +29,19 @@ shadow, glow, cast shadows drawn as ink. It also renders 3D views into the UI (p
   edge is at N·L 0.314, 71.7° from the light. Engine defaults, settable per scene. Band edges are
   antialiased like Blender's render, over about a pixel from how fast the light changes on screen
   (not shaded per MSAA sample).
+- **Ink lines** (step 4): screen-space. After drawing, a pass finds edges per pixel from model and
+  object IDs, depth and face normals, then draws each line centred on its edge at the set width,
+  with soft edges and round ends; only visible lines (as Freestyle's visible-only linesets).
+  - Outline per model: each model (a character with its gear, an item, a piece of scenery) gets the
+    thick outline wherever it meets anything else. (The lizardman used Freestyle's external
+    contour, which only met empty background because it was rendered alone.)
+  - Inner lines, thin, the lizardman's set: silhouettes (one part over another), open mesh edges,
+    creases where faces meet sharper than 120° (face normals more than 60° apart). No lines at
+    colour boundaries.
+  - Widths at device scale 1: outline 3.5 px, inner 2 px (the old game's battle sprites in a 1080p
+    window), times the device scale. Ink `#130e0b`.
+  - Parts without lines: a custom property on the Blender object, `ink = 0`, exported as glTF node
+    extras (the lizardman kept them in a "nolines" collection).
 - **Colours: palette slots** (step 2). Each Blender material names a slot (`metal.base`,
   `metal.trim`, `cloth`, `skin`, …); the engine fills the slots from a palette when it draws, so one
   sword model shows in every metal and one robe in every cloth, as the old game's palettes (metals
@@ -87,6 +100,27 @@ come up.
 - **Skinned meshes are placed by their joints**: glTF ignores the transform of the node a skinned
   mesh hangs on. Each vertex goes through its joints' inverse bind matrix and joint transform, mixed
   by its weights. Until GPU skinning (step 7) `Model` does this once on the CPU, at rest.
+- **Ink lines, how they're found** (`ink_edges.frag`, `ink_lines.frag`):
+  - The 3D pass writes a surface record per sample next to the colour (`RenderTarget3D.Surface`,
+    R32G32_UINT, MSAA 4×, `mesh_surface.glsl`): the model id (10 bits, per `DrawItem.Group`; ids
+    repeat past 1023 models in a view), the part (8 bits, the node), the ink flag, the face normal
+    in view space turned toward the viewer (octahedral, 6+6 bits; from the screen derivatives of the
+    view position, so it's the triangle's own) and the view depth.
+  - Pass 1 decides, for each pixel and its right and lower neighbours (sample 0 of each), whether
+    their boundary carries a line: the nearer side owns it and needs ink; another model or the
+    background on the other side: the outline; within a model, a break in the surface (neither
+    side's depth, carried on from the pixel behind it or along its face plane, reaches the other's
+    within two pixels' worth): an inner line; two parts meeting without a break: none (Freestyle
+    draws no intersections); within a part, face normals more than 180° minus the crease angle
+    apart: an inner line. Faces less than the crease angle apart with one nearly edge-on
+    (|N·V| < 0.25) count as continuous: their planes predict nothing. All eight samples of the two
+    pixels then place the line: the samples on the first pixel's side, over 4, are where a straight
+    edge crosses the middle of the two-pixel strip (a quarter-pixel step).
+  - Pass 2 draws each line centred on those crossing points: coverage = clamp(half width − distance
+    to the nearest point + 0.5), over a reach of half the widest line plus one pixel (7×7 at 3.5 px),
+    blended over the resolved colour with straight alpha in linear.
+  - Needs 4× MSAA R32G32_UINT colour attachments that can be sampled (checked: RADV, lavapipe;
+    Vulkan 1.3 desktop GPUs have it).
 - Cameras keep the vertical extent fixed and widen with the aspect ratio (a Blender camera with
   sensor fit vertical): perspective by a vertical field of view, orthographic by the height of the
   world in view (Blender's orthographic scale). `Camera.View` is `Matrix4x4.CreateLookAt`.
@@ -123,8 +157,23 @@ come up.
   camera rays only (Light Path "Is Camera Ray"), black to lighting, as the lizardman test had no
   world; ray tracing and fast GI are off, so only the sun lights surfaces. Measured: EEVEE's white
   diffuse under a sun is strength/π · N·L (0.9546 · cos for strength 3). Shapes stay flat emission.
+- **Ink lines in Blender**: after the shading render, each model's parts with ink are joined into one
+  object (skins applied, parents cleared keeping places, coincident vertices welded back so a
+  material seam is the crease it was in Blender rather than two open borders), so Freestyle's
+  per-object "Contour" is the per-model outline. Parts with `ink = 0` go to a collection both
+  linesets leave out. Linesets: "Outline" (Contour) and "Inner" (silhouette, border, crease at the
+  crease angle), visible only, round caps, widths in pixels times the scene's device scale. Then a
+  second render with every surface held out over a transparent film: `Golden/r3d-<scene>-ink.png`,
+  whose alpha is the lines' coverage. The engine renders its line coverage alone for the test
+  (`Renderer3D.InkCoverageOnly`) and its shading without lines (widths 0).
+- **Freestyle's limits seen:** a face seen exactly edge-on (a flat top under a level orthographic
+  side view) is neither clearly contour nor not, and Freestyle draws it thin with odd corners; the
+  test camera looks slightly down. A face a pixel tall is shaded once per pixel under MSAA (Blender
+  per sample); test cameras avoid such slivers.
 - **Reproducible:** Blender's PNG stamps (date, render time) are off, so re-running the script on
-  unchanged scenes writes the same bytes (models too).
+  unchanged scenes writes the same bytes. The glTF exporter orders triangles differently from run to
+  run (not by Python's hash seed), so `make_models.py` puts each index buffer's triangles in one
+  order after export (each starting at its smallest index, winding kept, sorted).
 - **Comparison** (`Render3DReferenceTests.Compare`): a pixel whose 3×3 neighbourhood in the
   reference is one colour must match within 2 levels. On an edge MSAA 4× covers the pixel in
   quarters and resolves it alone, where EEVEE filters 64 samples across neighbouring pixels: they
@@ -133,6 +182,13 @@ come up.
   contrast. So each edge pixel within 0.7 of its local contrast (or 8 levels), all within 4 on
   average. Checked: drawing mirrored nodes with the wrong winding, or culling double-sided
   materials, fails `model-blocks` clearly. On failure the render goes to `Actual/r3d-<scene>.png`.
+- **Ink comparison** (`Render3DReferenceTests.CompareInk`, on coverage maps): Freestyle line pixels
+  (coverage ≥ 0.5) without an engine line pixel within one pixel ≤ 2% (measured 0.1%); engine line
+  pixels away from any Freestyle line ≤ 3% (measured 1.7%, a corner where a part without ink meets
+  another); total ink within 10% (measured 1.5%); mean coverage difference over line pixels ≤ 0.12
+  (measured 0.05-0.09); the engine's ink in the 7×7 pixels about each Freestyle line pixel 0.75 to
+  1.33 times Freestyle's for all but 3% (measured 1%). Checked: missing creases, lines 20% thin,
+  lines on parts without ink and outlines only against the background each fail.
 
 ## Steps
 
@@ -184,4 +240,16 @@ Started 2026-10-30.
   `model-blocks` and `model-rigged` are cel-shaded now. All match Blender with interiors exact.
   Checked by breaking the rules: no back-face flip, normals by the model matrix and a band edge 2%
   off each fail.
-- **Next: step 4, ink lines** (against Freestyle).
+- **Step 4, ink lines (2026-10-30, 530 tests): done.** User decisions: outline per model, 3.5 px
+  outline and 2 px inner lines (times the device scale), the lizardman's inner set (silhouettes,
+  open edges, creases sharper than 120°), `ink = 0` object property, screen-space technique.
+  Surface records in the 3D pass, `ink_edges.frag` and `ink_lines.frag`, `DrawItem.Group`/`Part`/
+  `Ink`, `CelStyle.OutlineWidth`/`InnerWidth`/`CreaseAngle`, `Render(..., scale)`; the node extra
+  `ink` read from the glTF JSON (BRUTAL drops extras); integer MSAA resolves take sample 0
+  (`CommandList`). Freestyle references for every model scene, a two-model scene (`ink-models`) and
+  a 2× device-scale scene (`cel-shapes-2x`). Found on the way: edges decided by sample 0 alone sat up
+  to ±0.5 px off (all four samples place them to a quarter pixel); a face plane seen nearly edge-on
+  predicts no depth (false inner lines inside outlines); Freestyle's degenerate edge-on case.
+  Not measured yet: the passes' cost on a 2016-class GPU (per pixel: 12-16 surface fetches, then
+  49 edge fetches at 3.5 px).
+- **Next: step 5, shadows.**

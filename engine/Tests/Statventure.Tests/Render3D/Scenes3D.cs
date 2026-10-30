@@ -82,6 +82,8 @@ public sealed record Scene3D(string Name, int Width, int Height, string Backgrou
     public Dictionary<string, string> Shadows { get; init; } = [];
     public SunLight? Sun { get; init; }
     public CelStyle Style { get; init; } = CelStyle.Default;
+    /// <summary>The device scale: ink line widths are the style's times it.</summary>
+    public float Scale { get; init; } = 1;
 }
 
 public static class Scenes3D
@@ -119,8 +121,11 @@ public static class Scenes3D
             Palette = new() { ["metal.base"] = "#5f6a78", ["metal.trim"] = "#b08a3c", ["cloth"] = "#3f4f8f" },
             Sun = new SunLight(new(-0.8f, 1.2f, -0.5f), 3),
         },
-        // A skinned model in its rest pose (drawn unskinned: the joints' bind transforms place it where its node does), side view, orthographic.
-        new("model-rigged", 240, 320, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.3f, 1.1f, 5), new(0.3f, 1.1f, 0), OrthographicHeight: 2.8f), [])
+        // A skinned model in its rest pose (placed by its joints, not its node), side view, orthographic,
+        // from somewhat above: Freestyle can't tell whether a face seen exactly edge-on (the tube's
+        // flat top under a level side view) is a contour and draws it thin with odd corners, and a
+        // cap seen as a sliver a pixel tall is shaded once per pixel under MSAA (Blender per sample).
+        new("model-rigged", 240, 320, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.3f, 2.6f, 5), new(0.3f, 1.1f, 0), OrthographicHeight: 2.8f), [])
         {
             Models = [new("rigged.glb", new(-0.1f, 0, 0), new(0, 30, 0))],
             Palette = new() { ["skin"] = "#8a6a52" },
@@ -143,6 +148,24 @@ public static class Scenes3D
             Models = [new("shapes.glb", Vector3.Zero, Vector3.Zero)],
             Palette = new() { ["cloth"] = "#7b5a3a", ["metal.base"] = "#8a8f96", ["metal.trim"] = "#c9a46a" },
             Sun = Lizardman,
+        },
+        // Two models: the rigged tube in front of the shapes gets its outline against them (each
+        // model is outlined where it meets anything else), the shapes theirs against the background.
+        new("ink-models", 400, 260, "#d8cbb0", new Camera3D(Projection.Perspective, new(0.4f, 1.3f, 4.6f), new(0.2f, 0.6f, 0), FieldOfViewDegrees: 40), [])
+        {
+            Models = [new("shapes.glb", Vector3.Zero, Vector3.Zero), new("rigged.glb", new(0.2f, -0.2f, 0.9f), new(0, 20, -12), 0.7f)],
+            Palette = new() { ["cloth"] = "#7b5a3a", ["metal.base"] = "#8a8f96", ["metal.trim"] = "#c9a46a", ["skin"] = "#a9805e" },
+            Sun = Lizardman,
+        },
+        // On a screen with twice the pixel density: twice the size and twice the ink widths (lines are a
+        // fixed width on screen, times the device scale).
+        new("cel-shapes-2x", 840, 480, "#d8cbb0", new Camera3D(Projection.Perspective, new(0.2f, 1.5f, 4.4f), new(0.1f, 0.45f, 0), FieldOfViewDegrees: 38), [])
+        {
+            Models = [new("shapes.glb", Vector3.Zero, Vector3.Zero)],
+            Palette = new() { ["cloth"] = "#7b5a3a", ["metal.base"] = "#8a8f96", ["metal.trim"] = "#c9a46a" },
+            Shadows = new() { ["metal.base"] = "#2f3540" },
+            Sun = Lizardman,
+            Scale = 2,
         },
         // The same shapes in the battle view (orthographic, from the side) under a low sun from the left: other band positions.
         new("cel-side", 420, 200, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.1f, 0.5f, 6), new(0.1f, 0.5f, 0), OrthographicHeight: 1.9f), [])

@@ -5,8 +5,10 @@
 #
 # Material names are palette slots (metal.base, cloth, ...); a second material named like a first
 # gets Blender's ".001" suffix, which the engine strips.
+import json
 import math
 import os
+import struct
 import sys
 
 import bmesh
@@ -109,16 +111,42 @@ def torus_mesh(name, major, minor, m, rings=32, sides=12):
     return mesh
 
 
+def canonical_triangles(path):
+    """Puts each primitive's triangles in one order: the exporter's order changes from run to run
+    (the same triangles), and the models should be the same bytes when nothing changed. Each
+    triangle starts at its smallest index (its winding kept); the triangles are sorted."""
+    data = bytearray(open(path, "rb").read())
+    length = struct.unpack_from("<I", data, 12)[0]
+    gltf = json.loads(data[20:20 + length])
+    binary = 20 + length + 8
+    formats = {5121: "B", 5123: "H", 5125: "I"}
+    for mesh in gltf["meshes"]:
+        for primitive in mesh["primitives"]:
+            if primitive.get("mode", 4) != 4 or "indices" not in primitive:
+                continue
+            accessor = gltf["accessors"][primitive["indices"]]
+            view = gltf["bufferViews"][accessor["bufferView"]]
+            offset = binary + view.get("byteOffset", 0) + accessor.get("byteOffset", 0)
+            code = "<" + str(accessor["count"]) + formats[accessor["componentType"]]
+            indices = struct.unpack_from(code, data, offset)
+            triangles = [indices[i:i + 3] for i in range(0, len(indices), 3)]
+            triangles = sorted(min(t[k:] + t[:k] for k in range(3)) for t in triangles)
+            struct.pack_into(code, data, offset, *[i for t in triangles for i in t])
+    open(path, "wb").write(data)
+
+
 def export(path, **options):
+    # Extras carry the objects' custom properties (ink = 0: no ink lines).
     bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", export_animations=False, export_apply=True,
-                              export_extras=False, export_image_format="NONE", **options)
+                              export_extras=True, export_image_format="NONE", **options)
+    canonical_triangles(path)
     print("wrote", path)
 
 
 def blocks(path):
     """A small node hierarchy: a slab with two materials (the top in a slot), a smooth pillar and a
     cone cap as its descendants, a double-sided banner seen from behind, and one box mesh used by two
-    nodes, the second mirrored (negative scale), both sunk into the slab."""
+    nodes, the second mirrored (negative scale), both sunk into the slab; the first has no ink lines."""
     stone = material("stone", "#6b6258")
     cloth = material("cloth", "#7b5a3a")
     metal = material("metal.base", "#8a8f96")
@@ -145,7 +173,8 @@ def blocks(path):
     mesh_object("Banner", plane, stand, location=(-0.55, -0.35, 0.95), rotation=(0, 0, 20))
 
     block = box_mesh("block", (0.35, 0.5, 0.25), [glow])
-    mesh_object("BlockA", block, stand, location=(-0.6, 0.45, 0.3), rotation=(0, 0, 25))
+    # Drawn without ink lines (the lizardman's "nolines" details): a custom property, exported as extras.
+    mesh_object("BlockA", block, stand, location=(-0.6, 0.45, 0.3), rotation=(0, 0, 25))["ink"] = 0
     mesh_object("BlockB", block, stand, location=(0.75, -0.45, 0.28), rotation=(0, 0, -30), scale=(-1, 1, 1))
     export(path)
 

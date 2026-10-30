@@ -1,6 +1,8 @@
 # Renders the 3D test scenes (Tests/Statventure.Tests/Reference/r3d-scenes.json, written by the
 # tests) with Blender's EEVEE into Golden/r3d-<scene>.png: the look the engine's 3D renderer is
-# compared with (Docs/Renderer-3D.md). Run by Tools/Scripts/make-blender-references.sh:
+# compared with (Docs/Renderer-3D.md). Scenes with models also get their Freestyle ink lines alone
+# in Golden/r3d-<scene>-ink.png (the alpha is the lines' coverage). Run by
+# Tools/Scripts/make-blender-references.sh:
 #   blender -b --factory-startup --python render_scenes.py -- <scenes.json> <output folder> [scene ...]
 #
 # The scenes are in glTF's coordinates (right-handed, Y up); Blender's are Z up, so every position
@@ -11,6 +13,7 @@ import math
 import os
 import sys
 
+import bmesh
 import bpy
 from mathutils import Matrix, Vector
 
@@ -41,7 +44,7 @@ def eevee_engine():
 
 
 def reset():
-    for collection in (bpy.data.objects, bpy.data.meshes, bpy.data.materials, bpy.data.cameras, bpy.data.armatures, bpy.data.lights):
+    for collection in (bpy.data.objects, bpy.data.meshes, bpy.data.materials, bpy.data.cameras, bpy.data.armatures, bpy.data.lights, bpy.data.linestyles):
         for block in list(collection):
             collection.remove(block)
 
@@ -183,6 +186,102 @@ def slot_of(name):
     return name[:-4] if len(name) > 4 and name[-4] == "." and name[-3:].isdigit() else name
 
 
+def bake_model(objects, noink):
+    """One object per model for Freestyle, whose "Contour" outlines each object: the model's parts
+    with ink are joined (skins applied at rest, parents cleared keeping their places); parts with
+    ink = 0 (the importer turns extras into custom properties) go to the collection the linesets
+    leave out."""
+    meshes = [o for o in objects if o.type == "MESH"]
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in meshes:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
+    bpy.ops.object.make_single_user(object=True, obdata=True)
+    bpy.ops.object.convert(target="MESH")
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in objects:
+        if o.name in bpy.context.view_layer.objects:
+            o.select_set(True)
+    bpy.ops.object.parent_clear(type="CLEAR_KEEP_TRANSFORM")
+    bpy.ops.object.select_all(action="DESELECT")
+    inked = [o for o in meshes if o.get("ink", 1) != 0]
+    for o in meshes:
+        if o.get("ink", 1) == 0:
+            for collection in list(o.users_collection):
+                collection.objects.unlink(o)
+            noink.objects.link(o)
+    if len(inked) > 1:
+        for o in inked:
+            o.select_set(True)
+        bpy.context.view_layer.objects.active = inked[0]
+        bpy.ops.object.join()
+    bpy.ops.object.select_all(action="DESELECT")
+    # glTF splits a mesh's materials into primitives with their own vertices; welded again, the
+    # edge where they meet is the crease it was in Blender rather than two open borders on top of
+    # each other (which Freestyle draws only in pieces).
+    for o in [o for o in bpy.context.scene.objects if o.type == "MESH" and o.name not in noink.objects]:
+        bm = bmesh.new()
+        bm.from_mesh(o.data)
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+        bm.to_mesh(o.data)
+        bm.free()
+
+
+def setup_ink(scene, style, noink):
+    """The lizardman's Freestyle setup per model: the outline is each (baked) model's contour; inner
+    lines are silhouettes, open edges and creases sharper than the crease angle; visible lines only,
+    round caps, widths in pixels."""
+    render = scene.render
+    render.line_thickness_mode = "ABSOLUTE"
+    settings = bpy.context.view_layer.freestyle_settings
+    settings.crease_angle = math.radians(style["creaseAngle"])
+    settings.use_smoothness = False
+    settings.use_culling = False
+    for lineset in list(settings.linesets):
+        settings.linesets.remove(lineset)
+    for name, width, outline in (("Outline", style["outlineWidth"], True), ("Inner", style["innerWidth"], False)):
+        lineset = settings.linesets.new(name)
+        lineset.linestyle = bpy.data.linestyles.new(name)
+        lineset.linestyle.color = (1, 1, 1)
+        lineset.linestyle.thickness = width
+        lineset.linestyle.caps = "ROUND"
+        lineset.select_by_visibility = True
+        lineset.visibility = "VISIBLE"
+        lineset.select_by_edge_types = True
+        lineset.select_by_collection = True
+        lineset.collection = noink
+        lineset.collection_negation = "EXCLUSIVE"
+        lineset.select_silhouette = not outline
+        lineset.select_border = not outline
+        lineset.select_crease = not outline
+        lineset.select_material_boundary = False
+        lineset.select_contour = outline
+        lineset.select_external_contour = False
+
+
+def render_ink(scene, path):
+    """The ink lines alone: every surface held out over a transparent film, so the PNG's alpha is the
+    lines' coverage."""
+    holdout = bpy.data.materials.new("holdout")
+    nodes = holdout.node_tree.nodes
+    nodes.clear()
+    hold = nodes.new("ShaderNodeHoldout")
+    output = nodes.new("ShaderNodeOutputMaterial")
+    holdout.node_tree.links.new(hold.outputs[0], output.inputs["Surface"])
+    for obj in scene.objects:
+        for slot in getattr(obj, "material_slots", []):
+            slot.material = holdout
+    scene.render.use_freestyle = True
+    scene.render.film_transparent = True
+    scene.render.image_settings.color_mode = "RGBA"
+    scene.render.filepath = path
+    bpy.ops.render.render(write_still=True)
+    print("wrote", path)
+    scene.render.use_freestyle = False
+    scene.render.film_transparent = False
+    scene.render.image_settings.color_mode = "RGB"
+
+
 def add_model(scene, path, spec, palette, shadows, style):
     """Imports a .glb, places it by the matrix (glTF coordinates) and cel-shades each material in the
     tones its palette slot gives (lit, and shadow if the palette has one), or its own base colour
@@ -197,6 +296,7 @@ def add_model(scene, path, spec, palette, shadows, style):
     for obj in imported:
         if obj.parent is None:
             obj.parent = holder
+    imported.append(holder)
     # The importer keeps glTF's material name, base colour (Principled BSDF) and doubleSided (backface
     # culling). Each material is replaced once: a mesh used by two objects shares its slots.
     replaced = {}
@@ -213,6 +313,7 @@ def add_model(scene, path, spec, palette, shadows, style):
                 replaced[source] = toon_material(f"toon-{source.name}", lit, shadow, style["bandEdge"])
                 replaced[source].use_backface_culling = source.use_backface_culling
             slot.material = replaced[source]
+    return imported
 
 
 def principled_base_color(material):
@@ -266,11 +367,21 @@ def main():
         for index, obj in enumerate(spec["objects"]):
             add_object(scene, index, data["shapes"][obj["shape"]], obj)
         models = os.path.normpath(os.path.join(os.path.dirname(scenes_path), data["modelFolder"]))
-        for model in spec.get("models", []):
-            add_model(scene, os.path.join(models, model["file"]), model, spec.get("palette", {}), spec.get("shadows", {}), spec["style"])
+        placed = [add_model(scene, os.path.join(models, model["file"]), model, spec.get("palette", {}), spec.get("shadows", {}), spec["style"])
+                  for model in spec.get("models", [])]
         scene.render.filepath = os.path.join(output, f"r3d-{spec['name']}.png")
         bpy.ops.render.render(write_still=True)
         print("wrote", scene.render.filepath)
+        if placed:
+            # Baking joins and converts meshes, which loses their imported normals: only after the
+            # shading render (Freestyle works from face normals).
+            noink = bpy.data.collections.get("noink") or bpy.data.collections.new("noink")
+            if noink.name not in scene.collection.children:
+                scene.collection.children.link(noink)
+            for objects in placed:
+                bake_model(objects, noink)
+            setup_ink(scene, spec["style"], noink)
+            render_ink(scene, os.path.join(output, f"r3d-{spec['name']}-ink.png"))
 
 
 main()

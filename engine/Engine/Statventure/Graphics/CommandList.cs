@@ -123,7 +123,9 @@ public sealed unsafe class CommandList
                 LoadOp = LoadOp(color.Load),
                 StoreOp = color.Store ? VkAttachmentStoreOp.Store : VkAttachmentStoreOp.DontCare,
                 ClearValue = clear,
-                ResolveMode = color.Resolve is null ? VkResolveModeFlags.None : VkResolveModeFlags.AverageBit,
+                // Integer formats can't be averaged: their resolve takes sample 0.
+                ResolveMode = color.Resolve is null ? VkResolveModeFlags.None
+                    : Formats.IsInteger(color.Target.Format) ? VkResolveModeFlags.SampleZeroBit : VkResolveModeFlags.AverageBit,
                 ResolveImageView = color.Resolve?.View ?? default,
                 ResolveImageLayout = color.Resolve is null ? VkImageLayout.Undefined : VkImageLayout.ColorAttachmentOptimal,
             };
