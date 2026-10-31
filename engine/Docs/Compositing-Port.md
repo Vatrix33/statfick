@@ -133,7 +133,8 @@ The old heuristics (ScanLayerEffects, grayscale scopes) and the `SV_OLD_HINT` sw
   overflow is visible. Replaced content is one display item in the box's contents state.
 - **Effects:** `isolation: isolate` alone makes no effect node (only around blending descendants,
   opacity, blend, backdrop filter, mask — `NeedsEffectIgnoringClipPathAnd2DScale`).
-- **Canvas:** a drawn `<canvas>` (the host gives it a surface texture) is a foreign layer (reason Canvas).
+- **Canvas:** a drawn `<canvas>` (the host gives it a surface texture) is a foreign layer (reason Canvas),
+  as is a `<surface>` showing a 3D view (`UiHost.Views`, Docs/Renderer-3D.md, "3D views in the UI").
 
 ### Shop, finished (2026-10-25)
 

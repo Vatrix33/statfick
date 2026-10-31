@@ -2,7 +2,8 @@
 
 The 3D renderer draws the game's Blender models (characters, enemies, items), the battle stage and
 the map terrain in the game's ink style: cel shading in palette colours, ink lines, hatching in
-shadow, glow, cast shadows drawn as ink. It also renders 3D views into the UI (portraits, previews).
+shadow, glow, cast shadows drawn as ink, with particles for effects. Every 3D view, from a portrait
+to the battle and the map, is a `surface` element in the UI.
 
 ## Decisions (user, 2026-10-30)
 
@@ -206,14 +207,18 @@ come up.
   flat in the emission, glowing; otherwise cel and glowing when emissive (`DrawItem.Glow`). Passes,
   between the 3D pass and the ink lines, in images made when a view first glows:
   1. `glow.frag`: the glowing items alone (their own depth test), sRGB-encoded glow colours, and
-     each pixel's model and view depth;
+     each pixel's model and view depth; then glowing particles (`particle_glow.frag`,
+     `particle_owner.frag`: their shapes blended in, their owner id 1023 where they cover half a
+     pixel);
   2. `glow_blur.frag`: Pillow's GaussianBlur (BoxBlur.c: an extended box of 2·whole + 1 pixels and
      one more at each end at the fractional weight, three passes per axis, edges repeated) of the
      premultiplied sources, at 8 px and 2.5 px times the device scale (`Renderer3D.BoxOf`);
   3. `glow_owner.frag`: the nearest glowing pixel's model and depth within the halo's reach;
   4. `glow_composite.frag`: compose.py's halo in sRGB (wide blur, straight colours, alpha × 2.2
      capped; the core over it), laid over the view by the share of the pixel's samples that are
-     neither its model nor nearer than its glowing parts; then copied back into `Resolved`.
+     neither its model nor nearer than its glowing parts (over a transparent view, laid on as
+     alpha_composite lays one image on another, adding its alpha); then copied back into
+     `Resolved`.
 - **Feature edges, how they're drawn** (`Model.FeaturesOf`, `feature.vert/.frag`): at load a mesh's
   primitives are welded by position; every edge with one face (open) or more than two is kept, every
   edge between two faces keeps the cosine of their normals' angle (the crease test is the style's, at
@@ -306,9 +311,11 @@ come up.
 
 - **Scenes:** `Tests/Statventure.Tests/Render3D/Scenes3D.cs` (shapes as positions and
   counter-clockwise triangles, objects with scale, rotation X then Y then Z, translation and an sRGB
-  colour, a camera, size, background). The tests write them to `Reference/r3d-scenes.json`
-  (`Render3DReferenceTests.TheSceneFileIsUpToDate`: shapes, each object's model matrix as four
-  columns, the camera).
+  colour, a camera, size, background; and as the steps came: placed models with poses, a palette and
+  shadow tones, the sun, the cel style and device scale, a terrain, the clock, particle emitters).
+  The tests write them to `Reference/r3d-scenes.json` (`Render3DReferenceTests.TheSceneFileIsUpToDate`:
+  shapes, each object's model matrix as four columns, the camera, the models' matrices and joint
+  deformations, the style, the terrain, and each particle as the engine draws it).
 - **Blender:** `Tools/BlenderReference/render_scenes.py`, run by
   `Tools/Scripts/make-blender-references.sh [scene ...]` (Blender from `$STATVENTURE_BLENDER`, else
   `blender` on the PATH, else the Flatpak; always `-b --factory-startup` and absolute paths, since

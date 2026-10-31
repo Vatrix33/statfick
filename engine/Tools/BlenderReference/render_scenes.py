@@ -1,9 +1,12 @@
 # Renders the 3D test scenes (Tests/Statventure.Tests/Reference/r3d-scenes.json, written by the
 # tests) with Blender's EEVEE into Golden/r3d-<scene>.png: the look the engine's 3D renderer is
-# compared with (Docs/Renderer-3D.md). Scenes with models also get their Freestyle ink lines alone
-# in Golden/r3d-<scene>-ink.png (the alpha is the lines' coverage). Scenes with glowing parts also
-# write those parts alone and their models' coverage into <glow folder>/<scene>-glow.png and
-# -mask.png, which compose_glow.py turns into the halo. Run by Tools/Scripts/make-blender-references.sh:
+# compared with (Docs/Renderer-3D.md). Scenes with models or terrain also get their Freestyle ink
+# lines alone in Golden/r3d-<scene>-ink.png (the alpha is the lines' coverage). Scenes with glowing
+# parts also write those parts alone and their models' coverage into <glow folder>/<scene>-glow.png
+# and -mask.png, which compose_glow.py turns into the halo; scenes with particles write them alone,
+# the rest held out, into <scene>-particles.png, which compose_glow.py lays over the view. Terrain is
+# rebuilt from the engine's test terrain (make_terrain.py), particles from the quads the engine
+# draws. Run by Tools/Scripts/make-blender-references.sh:
 #   blender -b --factory-startup --python render_scenes.py -- <scenes.json> <output folder> <glow folder> [scene ...]
 #
 # The scenes are in glTF's coordinates (right-handed, Y up); Blender's are Z up, so every position

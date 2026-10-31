@@ -86,7 +86,7 @@ the design and the tests):
 | The repo (on the PC: `/run/media/system/M.2_2TB/Stat Fick Repo/`; private on GitHub) | `engine/` (this tree: engine, port, tests, tools, asset sources) and `old-game/` (the JavaScript game, the port's reference). `../CLAUDE.md` covers the machines it's worked on. |
 | `$STATVENTURE_GAME` (on the PC `/run/media/system/M.2_2TB/Stat Fick/`, set in the git-ignored `Tools/Scripts/env.local.sh`; elsewhere `runtime/` in the repo) | Only what the game needs to run (the build output). |
 | `~/.cache/stat-fick-build/` (Windows: `%LOCALAPPDATA%\stat-fick-build`) | The .NET SDK (unless the system has one), the NuGet cache, Electron 44.5.0 for the harnesses (`electron-44.5.0/`), and on the PC the BRUTAL source for reference. All re-downloadable. |
-| `~/.cache/stat-fick-build/reference-src/` | Upstream sources the engine ports from (Chromium 152, Skia, skrifa, read-fonts) and the game's cc traces; README inside. Only on the PC, not in the repo (user decision 2026-10-30). Re-downloadable. |
+| `~/.cache/stat-fick-build/reference-src/` | Upstream sources the engine ports from (Chromium 152, Skia, skrifa, read-fonts, Blender's Freestyle) and the game's cc traces; README inside. Only on the PC, not in the repo (user decision 2026-10-30). Re-downloadable. |
 
 Source tree:
 

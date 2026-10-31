@@ -4,9 +4,10 @@
 #    builds the test models and exports them as .glb into Tests/Statventure.Tests/Data/Models (the
 #    scripts are their source);
 # 2. Tools/BlenderReference/render_scenes.py renders the test scenes with EEVEE into
-#    Tests/Statventure.Tests/Golden/r3d-*.png (and glowing parts into Actual/blender-glow);
+#    Tests/Statventure.Tests/Golden/r3d-*.png (and r3d-*-ink.png, Freestyle's lines), and into
+#    Actual/blender-glow the glowing parts, their models' coverage and the particles alone;
 # 3. Tools/BlenderReference/compose_glow.py lays the glow's halo into them (Pillow, as the lizardman's
-#    compose.py).
+#    compose.py), then the particles over all (in linear light), using those files up.
 # Run the tests once first: they write Tests/Statventure.Tests/Reference/r3d-scenes.json.
 # Extra arguments name the scenes to render (all by default). Blender comes from $STATVENTURE_BLENDER,
 # else `blender` on the PATH, else the Flatpak org.blender.Blender.
