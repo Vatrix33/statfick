@@ -154,15 +154,18 @@ public sealed record AnimationTrack(string Node, bool Relative, AnimationCurve? 
 /// </summary>
 public sealed class AnimationClip
 {
-    public AnimationClip(string name, IReadOnlyList<AnimationTrack> tracks)
+    public AnimationClip(string name, IReadOnlyList<AnimationTrack> tracks, IReadOnlyList<ModelAnimationEvent>? events = null)
     {
         Name = name;
         Tracks = tracks;
+        Events = events ?? [];
         Duration = tracks.SelectMany(t => new[] { t.Translation, t.Rotation, t.Scale }).Where(c => c != null).Select(c => c!.End).DefaultIfEmpty(0).Max();
     }
 
     public string Name { get; }
     public IReadOnlyList<AnimationTrack> Tracks { get; }
+    /// <summary>Its events (Blender's pose markers), in time order: seconds from the clip's start.</summary>
+    public IReadOnlyList<ModelAnimationEvent> Events { get; }
     /// <summary>Seconds from the clip's start (time 0, as glTF counts) to its last key.</summary>
     public float Duration { get; }
 
@@ -198,7 +201,7 @@ public sealed class AnimationClip
             }
             tracks.Add(new AnimationTrack(node.Name, relative, translation, rotation, scale));
         }
-        return new AnimationClip(animation.Name, tracks);
+        return new AnimationClip(animation.Name, tracks, animation.Events);
     }
 
     /// <summary>A bone channel's keys relative to the node's rest: t_b = S⁻¹·R⁻¹·(t − t_rest), q_b = q_rest⁻¹·q, s_b = s / s_rest.</summary>

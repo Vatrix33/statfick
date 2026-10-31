@@ -243,7 +243,21 @@ public class AnimationReferenceTests(ITestOutputHelper output)
         d[2], d[6], d[10], 0,
         d[3], d[7], d[11], 1);
 
-    internal sealed record Reference(Dictionary<string, Vector3[]> Bones, double[] Times, List<Dictionary<string, float[]>> Poses);
+    internal sealed record Reference(Dictionary<string, Vector3[]> Bones, double[] Times, List<Dictionary<string, float[]>> Poses, (string Name, double Frame)[]? Markers);
+
+    [Theory]
+    [MemberData(nameof(SceneNames))]
+    public void ClipEventsAreTheActionsMarkers(string name)
+    {
+        var scene = AnimationScenes.All.Single(s => s.Name == name);
+        if (scene.Layers != null)
+            return;
+        var reference = Load(name);
+        var source = ModelData.Load(Path.Combine(Render3DReferenceTests.ModelDirectory, scene.Model + ".glb"));
+        var clip = AnimationClip.AllOf(source).Single(c => c.Name == scene.Clip);
+        Assert.NotNull(reference.Markers);
+        Assert.Equal(reference.Markers!.Select(m => (m.Name, Math.Round(m.Frame / AnimationScenes.Fps, 9))), clip.Events.Select(e => (e.Name, Math.Round(e.Time, 9))));
+    }
 
     internal static Reference Load(string scene)
     {
@@ -257,7 +271,10 @@ public class AnimationReferenceTests(ITestOutputHelper output)
         var times = root.GetProperty("times").EnumerateArray().Select(t => t.GetDouble()).ToArray();
         var poses = root.GetProperty("poses").EnumerateArray()
             .Select(p => p.EnumerateObject().ToDictionary(b => b.Name, b => b.Value.EnumerateArray().Select(v => v.GetSingle()).ToArray())).ToList();
-        return new Reference(bones, times, poses);
+        var markers = root.TryGetProperty("markers", out var list)
+            ? list.EnumerateArray().Select(m => (m.GetProperty("name").GetString()!, m.GetProperty("frame").GetDouble())).ToArray()
+            : null;
+        return new Reference(bones, times, poses, markers);
 
         static Vector3 Point(JsonElement e) => new(e[0].GetSingle(), e[1].GetSingle(), e[2].GetSingle());
     }

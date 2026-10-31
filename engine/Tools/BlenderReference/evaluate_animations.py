@@ -58,12 +58,15 @@ def evaluate(scene, folder):
         rig.animation_data.action = action
         rig.animation_data.action_slot = action.slots[0]
         start = action.frame_range[0]
+        markers = [{"name": m.name, "frame": m.frame - start} for m in sorted(action.pose_markers, key=lambda m: (m.frame, m.name))]
     world = rig.matrix_world
     bones = {}
     for bone in rig.data.bones:
         head = TO_GLTF @ world @ bone.head_local
         tail = TO_GLTF @ world @ bone.tail_local
         bones[bone.name] = {"head": numbers(head), "tail": numbers(tail)}
+    if scene.get("layers"):
+        markers = None
     poses = []
     for time in scene["times"]:
         frame = start + time * fps
@@ -78,7 +81,11 @@ def evaluate(scene, folder):
         poses.append(pose)
     path = os.path.join(folder, "anim-" + scene["name"] + ".json")
     with open(path, "w") as f:
-        json.dump({"bones": bones, "times": scene["times"], "poses": poses}, f, separators=(",", ":"))
+        out = {"bones": bones, "times": scene["times"], "poses": poses}
+        if markers is not None:
+            # The action's pose markers (frames from its first frame): the clip's events must be these.
+            out["markers"] = markers
+        json.dump(out, f, separators=(",", ":"))
     print("wrote", path)
 
 

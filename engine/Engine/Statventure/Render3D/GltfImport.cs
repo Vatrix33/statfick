@@ -28,7 +28,7 @@ public static class GltfImport
                 throw new NotSupportedException($"{path} requires the glTF extension {extension}");
         var reader = new AccessorReader(loader, path);
         var nodes = ReadNodes(gltf, path);
-        var (inkless, unhatched) = SwitchedOff(path);
+        var (inkless, unhatched, events) = ExtrasOf(path);
         for (var i = 0; i < nodes.Length; i++)
             if (inkless.Contains(i))
                 nodes[i] = nodes[i] with { Ink = false };
@@ -42,7 +42,10 @@ public static class GltfImport
             Meshes = (gltf.Meshes ?? []).Select(m => ReadMesh(reader, m)).ToArray(),
             Materials = materials,
             Skins = (gltf.Skins ?? []).Select(s => ReadSkin(reader, s)).ToArray(),
-            Animations = (gltf.Animations ?? []).Select((a, i) => ReadAnimation(reader, a, i, nodes.Length)).ToArray(),
+            Animations = (gltf.Animations ?? []).Select((a, i) => ReadAnimation(reader, a, i, nodes.Length) with
+            {
+                Events = events.TryGetValue(i, out var list) ? list : [],
+            }).ToArray(),
             Roots = gltf.Scenes is { Length: > 0 } scenes
                 ? scenes[gltf.Scene ?? 0].Nodes ?? []
                 : Enumerable.Range(0, nodes.Length).Where(i => nodes[i].Parent < 0).ToArray(),
@@ -50,10 +53,13 @@ public static class GltfImport
     }
 
     /// <summary>
-    /// Nodes whose extras say <c>"ink": 0</c> and materials whose extras say <c>"hatch": 0</c> (or
-    /// false): Blender's custom properties on objects and materials, exported with the extras.
+    /// What the extras say (BRUTAL drops them, so they're read from the JSON): nodes whose extras say
+    /// <c>"ink": 0</c> and materials whose extras say <c>"hatch": 0</c> (or false), Blender's custom
+    /// properties on objects and materials; and each animation's <c>"events"</c>, a list of
+    /// <c>{name, time}</c> (the action's pose markers copied by the export script), sorted by time
+    /// (stable, so two markers at one frame keep their order).
     /// </summary>
-    static (HashSet<int> Inkless, HashSet<int> Unhatched) SwitchedOff(string path)
+    static (HashSet<int> Inkless, HashSet<int> Unhatched, Dictionary<int, ModelAnimationEvent[]> Events) ExtrasOf(string path)
     {
         var bytes = File.ReadAllBytes(path);
         ReadOnlySpan<byte> json = bytes;
@@ -61,7 +67,24 @@ public static class GltfImport
         if (bytes.Length >= 20 && BinaryPrimitives.ReadUInt32LittleEndian(bytes) == 0x46546C67)
             json = bytes.AsSpan(20, (int)BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(12)));
         using var document = JsonDocument.Parse(json.ToArray());
-        return (Off(document.RootElement, "nodes"u8, "ink"u8), Off(document.RootElement, "materials"u8, "hatch"u8));
+        var root = document.RootElement;
+        var events = new Dictionary<int, ModelAnimationEvent[]>();
+        if (root.TryGetProperty("animations"u8, out var animations))
+        {
+            var index = 0;
+            foreach (var animation in animations.EnumerateArray())
+            {
+                if (animation.TryGetProperty("extras"u8, out var extras) && extras.ValueKind == JsonValueKind.Object
+                    && extras.TryGetProperty("events"u8, out var list) && list.ValueKind == JsonValueKind.Array)
+                    events[index] = list.EnumerateArray()
+                        .Where(e => e.ValueKind == JsonValueKind.Object && e.TryGetProperty("name"u8, out var n) && n.ValueKind == JsonValueKind.String
+                            && e.TryGetProperty("time"u8, out var t) && t.ValueKind == JsonValueKind.Number)
+                        .Select(e => new ModelAnimationEvent(e.GetProperty("name"u8).GetString()!, e.GetProperty("time"u8).GetDouble()))
+                        .OrderBy(e => e.Time).ToArray();
+                index++;
+            }
+        }
+        return (Off(root, "nodes"u8, "ink"u8), Off(root, "materials"u8, "hatch"u8), events);
 
         static HashSet<int> Off(JsonElement root, ReadOnlySpan<byte> list, ReadOnlySpan<byte> property)
         {

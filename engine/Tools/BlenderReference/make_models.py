@@ -497,9 +497,23 @@ def curves(action):
     return action.layers[0].strips[0].channelbag(action.slots[0]).fcurves
 
 
+def export_markers(action):
+    """Copies the action's pose markers into its custom property "events" (Docs/Animation.md: clip
+    events), which the exporter writes as the glTF animation's extras (it exports no markers): a
+    list of {name, time}, the time in seconds from the clip's start (the action's first frame, where
+    the exporter's slide to zero puts time 0), in frame order."""
+    fps = bpy.context.scene.render.fps / bpy.context.scene.render.fps_base
+    first = action.frame_range[0]
+    markers = sorted(action.pose_markers, key=lambda m: (m.frame, m.name))
+    if markers:
+        action["events"] = [{"name": m.name, "time": (m.frame - first) / fps} for m in markers]
+
+
 def stack_actions(rig, actions):
     """Puts each action on an NLA track of its own (the exporter's ACTIONS mode exports those), no
-    action active, every bone back at rest."""
+    action active, every bone back at rest; the actions' markers go into their extras."""
+    for action in actions:
+        export_markers(action)
     rig.animation_data.action = None
     for action in actions:
         track = rig.animation_data.nla_tracks.new()
@@ -581,6 +595,7 @@ def figure(path):
         keys(rig, swing, frame, "chest", rotation=((0, 1, 0), twist))
         keys(rig, swing, frame, "hips", rotation=((1, 0, 0), lean))
     swing.pose_markers.new("hit").frame = 20
+    swing.pose_markers.new("whoosh").frame = 9
 
     twist = bpy.data.actions.new("twist")
     for frame, turn in ((1, 0), (21, 135), (41, 270), (61, 0)):
@@ -599,6 +614,12 @@ def figure(path):
         keys(rig, pulse, frame, "head", scale=(1 + 0.4 * k, 1 - 0.3 * k, 1 + 0.4 * k))
         keys(rig, pulse, frame, "hips", location=(0.05 * k, 0, 0.02 * k))
         keys(rig, pulse, frame, "chest", rotation=((0, 0, 1), 25 * k))
+
+    # Markers on the first and the last frame, and two at one frame.
+    pulse.pose_markers.new("start").frame = 1
+    pulse.pose_markers.new("end").frame = 41
+    idle.pose_markers.new("breath").frame = 61
+    idle.pose_markers.new("blink").frame = 61
 
     stack_actions(rig, (idle, swing, twist, pulse))
     export(path, **ANIMATED)

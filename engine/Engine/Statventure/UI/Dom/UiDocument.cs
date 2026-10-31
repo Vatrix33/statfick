@@ -724,11 +724,13 @@ public sealed partial class UiDocument
             // frame's scroll steps; they're dispatched after them. A microtask checkpoint follows
             // the update (DocumentAnimations::UpdateAnimationTimingForAnimationFrame).
             Animations.UpdateTiming(time);
+            AdvanceFrameClients(time);
             EventLoop.PerformMicrotaskCheckpoint();
             DispatchResizeEvent();
             DispatchScrollEvents();
             NotifyMediaQueryLists();
             DispatchAnimationEvents();
+            DispatchFrameClientEvents();
             RunFrameCallbacks(time);
             // selectionchange comes after the frame's scroll events (Chromium renders right after input, its tasks wait).
             RunTasks(late: true);

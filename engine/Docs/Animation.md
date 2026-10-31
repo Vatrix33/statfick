@@ -62,6 +62,12 @@ Asked before the milestone started; the answers are also in `Docs/Engine-Plan.md
   layer tests bake the reference actions' rotation curves to a unit key per frame before Blender
   evaluates them, and check the NLA rule exactly. (Not exporting the raw lengths as extras, not
   slerp fades.)
+- **Clip events** (asked during step 4): every acting strip fires its markers (influence above 0,
+  also while fading in or out; held strips fire nothing); events are queued while the frame's
+  animations update (in time order, every marker a long frame passes, each loop included) and
+  dispatched in the same frame step as CSS animation events, also awaitable as Tasks; jumping a
+  strip's time (seeking, restarting) fires nothing. A marker's name is the event, nothing more
+  (the game's data decides what each name does).
 - **Model approval (port time):** the user approves the first model of each rig (the first humanoid
   with gear and its full clip set, as renders and a playing view; then the first quadruped, griffon,
   dragon, wisp and core) before the rest of that rig is made. M7 itself animates test models only.
@@ -148,6 +154,24 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   come as float32 seconds). Sampled rotations are taken with w ≥ 0 before blending (glTF keeps no
   sign; Blender's keys within a half turn of rest have w ≥ 0). `AnimationStack.Add` puts a strip on
   a new top layer: a cross-fade is such a strip with a blend-in.
+- **Events** (`ModelAnimation.Events`, `AnimationClip.Events`, `AnimationStack.CollectEvents`,
+  `Animator`): the export script (`make_models.py`'s `export_markers`, called by `stack_actions`)
+  writes each action's pose markers as its custom property `events`, a list of `{name, time}` (time
+  in seconds from the action's first frame, where the exporter's slide to zero puts clip time 0),
+  which the exporter writes as the animation's extras; `GltfImport` reads them from the JSON (BRUTAL
+  drops extras), sorted by time (stable). `CollectEvents(from, to)` finds, per strip, each marker
+  of its part once per pass (cycle; reversed strips pass it backwards) at Start + pass · period +
+  offset, inside the strip's range (so never while held), where the layer's acting strip is this
+  one and its influence is above 0; the interval is (from, to] (times within the epsilon count as
+  one, so an event at a frame's time belongs to that frame); sorted by time, events within the
+  epsilon of a run's first as one moment ordered by layer (bottom first), pass and marker. An
+  `Animator` holds a stack and its clock (`Time`, `Rate`): `Advance(seconds)` queues the events
+  passed, `Seek` jumps without, `DispatchEvents` delivers them to `Event` and to `Next(name)` tasks
+  (continuations asynchronous: microtasks under a document). A document runs `IUiFrameClient`s
+  (`UiDocument.AddFrameClient`): advanced by the time since their last frame right after the CSS
+  animation timing update, their events dispatched right after the frame's CSS animation events
+  (before frame callbacks), each delivery as game code (`EnterScript`/`ExitScript`: its microtasks
+  run after it).
 - **Known differences from Blender's NLA:** fades of hand-keyed rotations (the user's decision
   above: Blender mixes raw, non-unit curve values between keys); rotations more than a half turn
   from rest (Blender blends the stored sign, the engine w ≥ 0; a Combine power of such a quaternion
@@ -285,4 +309,17 @@ Started 2026-10-31 (decisions asked and recorded).
   Replace, its rotation order swapped, scales added, locations mixed, influence ignored; Replace
   rotations slerped, smoothstep ramps, every channel replaced, Hold Forward reaching back, no Hold
   before a first strip, reversal ignored, the scale inverted, no strip-end case, the influence at
-  the unclamped time, rotations taken with w ≤ 0 each fail a scene. Next: step 4 (events).
+  the unclamped time, rotations taken with w ≤ 0 each fail a scene.
+- **Step 4, events (2026-10-31, 609 tests): done.** User decisions: every acting strip fires,
+  queued like CSS animation events (awaitable), names only. Markers exported as extras, read into
+  clips; `CollectEvents`, `Animator`, `IUiFrameClient` in `UiDocument`'s frame steps. The figure's
+  actions carry markers (the swing's whoosh and hit, two at one frame in the idle, the pulse's first
+  and last frame); Blender's markers are written to the single-clip references and the clips'
+  events must be them (`ClipEventsAreTheActionsMarkers`); `AnimationEventTests` covers the rules.
+  Found on the way: a check that held strips don't fire was redundant (events lie inside the strip,
+  where it's never held), and so is the end-of-strip check unless one step spans the end; events "at
+  one time" differ by float32 noise, so same-moment ordering needs the epsilon. Checked by
+  breaking: influence 0 firing, events at the previous frame's time firing again, reversed strips
+  passing markers forwards, unsorted events, same-moment passes or layers out of order, markers past
+  a fractional last pass, clip events before CSS animation events, deliveries not run as game code
+  and seeking that fires each fail a test. Next: step 5 (state machines).

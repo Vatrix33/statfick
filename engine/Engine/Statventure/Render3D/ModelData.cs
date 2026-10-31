@@ -96,8 +96,17 @@ public sealed record ModelAnimationChannel(int Node, AnimationPath Path, Animati
     public int Components => Path == AnimationPath.Rotation ? 4 : 3;
 }
 
-/// <summary>A glTF animation: one clip (a Blender action, Docs/Animation.md).</summary>
-public sealed record ModelAnimation(string Name, IReadOnlyList<ModelAnimationChannel> Channels);
+/// <summary>A clip event: a Blender pose marker's name and its time in seconds from the clip's start (Docs/Animation.md, "Clip events").</summary>
+public sealed record ModelAnimationEvent(string Name, double Time);
+
+/// <summary>
+/// A glTF animation: one clip (a Blender action, Docs/Animation.md), with the events its extras
+/// list (the action's pose markers, which the export script copies there), in time order.
+/// </summary>
+public sealed record ModelAnimation(string Name, IReadOnlyList<ModelAnimationChannel> Channels)
+{
+    public IReadOnlyList<ModelAnimationEvent> Events { get; init; } = [];
+}
 
 /// <summary>A model as read from a .glb (<see cref="GltfImport"/>): in glTF's coordinates, right-handed, Y up, metres.</summary>
 public sealed class ModelData

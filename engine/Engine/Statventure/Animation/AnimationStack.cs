@@ -102,6 +102,9 @@ public sealed class AnimationStrip(ClipBinding clip)
     }
 }
 
+/// <summary>A clip event a strip fired: the marker's name, the time on the stack's clock, the layer (bottom 0) and the strip.</summary>
+public readonly record struct ClipEvent(string Name, double Time, int Layer, AnimationStrip Strip);
+
 /// <summary>A layer of strips (an NLA track): strips in time order, not overlapping.</summary>
 public sealed class AnimationLayer
 {
@@ -172,6 +175,67 @@ public sealed class AnimationStack(Skeleton skeleton)
             _upper.Clear();
             strip.Clip.Sample(strip.ClipTimeAt(at), _upper);
             Blend(into, _upper, strip.Mode, influence);
+        }
+    }
+
+    /// <summary>
+    /// The events strips pass after <paramref name="from"/> up to and including <paramref name="to"/>
+    /// (seconds on the stack's clock), in time order (then bottom layer first, then each strip's
+    /// passes in order): each marker of a strip's clip part, once per pass through the part (its
+    /// cycles; reversed strips pass the part backwards), fired where the strip acts at that moment
+    /// (the layer's strip there, within its range rather than held, influence above 0; Docs/Animation.md,
+    /// "Clip events"). Times within <see cref="AnimationStrip.Epsilon"/> count as one: an event at a
+    /// frame's time belongs to that frame.
+    /// </summary>
+    public void CollectEvents(double from, double to, List<ClipEvent> into)
+    {
+        if (!(to > from))
+            return;
+        var found = new List<(ClipEvent Event, int Pass, int Marker)>();
+        for (var l = 0; l < Layers.Count; l++)
+        {
+            var layer = Layers[l];
+            if (layer.Muted)
+                continue;
+            foreach (var strip in layer.Strips)
+            {
+                var markers = strip.Clip.Clip.Events;
+                if (markers.Count == 0 || strip.End <= from + AnimationStrip.Epsilon || strip.Start > to + AnimationStrip.Epsilon)
+                    continue;
+                var scale = Math.Abs(strip.Scale);
+                var period = (strip.ClipEnd - strip.ClipStart is var part && part != 0 ? part : 1.0 / 60) * scale;
+                var passes = (int)Math.Ceiling(strip.Repeat - 1e-9);
+                var firstPass = Math.Max(0, (int)Math.Floor((from - strip.Start) / period) - 1);
+                var lastPass = Math.Min(passes - 1, (int)Math.Floor((to - strip.Start) / period) + 1);
+                for (var pass = firstPass; pass <= lastPass; pass++)
+                    for (var m = 0; m < markers.Count; m++)
+                    {
+                        var marker = markers[m];
+                        if (marker.Time < strip.ClipStart - AnimationStrip.Epsilon || marker.Time > strip.ClipEnd + AnimationStrip.Epsilon)
+                            continue;
+                        var offset = (strip.Reversed ? strip.ClipEnd - marker.Time : marker.Time - strip.ClipStart) * scale;
+                        var time = strip.Start + pass * period + offset;
+                        if (time > strip.End + AnimationStrip.Epsilon || time <= from + AnimationStrip.Epsilon || time > to + AnimationStrip.Epsilon)
+                            continue;
+                        // Within its range (events lie there), so not held: acting if its influence is above 0.
+                        if (layer.StripAt(time) is not var (acting, _) || acting != strip || strip.InfluenceAt(time) <= 0)
+                            continue;
+                        found.Add((new ClipEvent(marker.Name, time, l, strip), pass, strip.Reversed ? markers.Count - 1 - m : m));
+                    }
+            }
+        }
+        // By time; events within the epsilon of the first of a run count as one moment, ordered by
+        // layer, pass and marker (float32 clip lengths put a pass's end and the next pass's start
+        // a few 10⁻⁸ s apart).
+        found.Sort((a, b) => a.Event.Time.CompareTo(b.Event.Time));
+        for (var run = 0; run < found.Count;)
+        {
+            var end = run + 1;
+            while (end < found.Count && found[end].Event.Time - found[run].Event.Time <= AnimationStrip.Epsilon)
+                end++;
+            foreach (var (e, _, _) in found.GetRange(run, end - run).OrderBy(f => f.Event.Layer).ThenBy(f => f.Pass).ThenBy(f => f.Marker))
+                into.Add(e);
+            run = end;
         }
     }
 

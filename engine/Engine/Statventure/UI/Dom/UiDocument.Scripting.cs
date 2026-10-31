@@ -37,6 +37,36 @@ public sealed partial class UiDocument
     /// <summary>Runs <paramref name="script"/> as a task now (game code started from outside the loop: setup, the host).</summary>
     public void RunScript(Action script) => EventLoop.RunTask(script);
 
+    // ---------- Frame clients ----------
+
+    readonly List<(IUiFrameClient Client, double LastFrame)> _frameClients = [];
+
+    /// <summary>
+    /// Animates something with the document's frames (an animator of 3D models, Docs/Animation.md):
+    /// each frame it's advanced by the time since its last frame (nothing on its first) right after
+    /// the CSS animation timing update, and its events are dispatched right after the frame's CSS
+    /// animation events.
+    /// </summary>
+    public void AddFrameClient(IUiFrameClient client) => _frameClients.Add((client, double.NaN));
+
+    public void RemoveFrameClient(IUiFrameClient client) => _frameClients.RemoveAll(c => c.Client == client);
+
+    void AdvanceFrameClients(double time)
+    {
+        for (var i = 0; i < _frameClients.Count; i++)
+        {
+            var (client, last) = _frameClients[i];
+            _frameClients[i] = (client, time);
+            client.AdvanceFrame(double.IsNaN(last) ? 0 : Math.Max(0, time - last));
+        }
+    }
+
+    void DispatchFrameClientEvents()
+    {
+        foreach (var (client, _) in _frameClients.ToArray())
+            client.DispatchFrameEvents(EventLoop);
+    }
+
     // ---------- The animation clock ----------
 
     double _animationFrameTime;
