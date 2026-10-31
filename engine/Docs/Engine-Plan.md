@@ -5,27 +5,25 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-10-31):** none: M6, the 3D renderer, is done (all nine steps; design doc and status:
-`Docs/Renderer-3D.md`). Wait for the user's go before M7, then first ask M7's open questions below. The project is one git repo (`../`, see `../CLAUDE.md`),
-on the private GitHub repo `github.com/Vatrix33/statfick`.
-Before each later milestone (M7 on) starts, first ask its questions under "Open questions for later milestones"
+**Current task (2026-10-31):** M7, animation (the user's go on 2026-10-31). Its questions are answered
+("Decisions for M7" below); design doc, rules and step plan: `Docs/Animation.md` (its Status section
+says which step is next). The project is one git repo (`../`, see `../CLAUDE.md`), on the private
+GitHub repo `github.com/Vatrix33/statfick`.
+Before each later milestone (M8 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code.
 
-**Starting M7 (animation):** give it its own design doc (`Docs/Animation.md`), as M6 has
-`Docs/Renderer-3D.md`. What M6 leaves for it: `ModelPose` (local translation, rotation and scale per
-node; the rest keep the file's) is what animation fills; `Model.Draw(..., pose)` poses the hierarchy and
-skins on the GPU (linear blend, 4 influences, normals recomputed as Blender does); `View3D` redraws when
-its items are set again, so an animated view sets them each frame. Not there yet: `GltfImport` reads no
-glTF animations (channels, samplers, interpolation), and the test models carry no actions (`rigged.glb`,
-a tube on two bones, is exported in its rest pose by `Tools/BlenderReference/make_models.py`). The
-reference method carries over: Blender poses the same model (`render_scenes.py`'s `pose_model`, see
-"Poses in Blender" in `Docs/Renderer-3D.md`), so sampled clips can be checked against Blender's own
-evaluation of its actions at the same times, the shading and ink against its renders.
+**What M6 left for M7:** `ModelPose` (local translation, rotation and scale per node; the rest keep the
+file's) is what animation fills; `Model.Draw(..., pose)` poses the hierarchy and skins on the GPU
+(linear blend, 4 influences, normals recomputed as Blender does); `View3D` redraws when its items are
+set again, so an animated view sets them each frame. The reference method carries over: Blender
+evaluates the same actions (see "Method" in `Docs/Animation.md`), and renders posed models as in M6
+("Poses in Blender" in `Docs/Renderer-3D.md`).
 
 **Design docs by area** (read the one for the area you work on): `Docs/Compositing-Port.md` (Blink
 compositing, LCD vs grayscale text, inline SVG transforms), `Docs/Scripting.md` (event loop, frame
 callbacks, matchMedia, ResizeObserver, Web Animations), `Docs/Renderer-3D.md` (the 3D renderer, M6:
-its decisions, how each part works, the Blender reference harness and comparisons, each step's status). The rest of M0–M5 is described in Progress below.
+its decisions, how each part works, the Blender reference harness and comparisons, each step's status),
+`Docs/Animation.md` (animation, M7: decisions, the Blender and glTF rules it ports, steps, status). The rest of M0–M5 is described in Progress below.
 A new area (M6 on) gets its own design doc in `Docs/`.
 
 **Method.** For the 3D areas (M6 on) the reference is Blender instead: the same scenes rendered by
@@ -75,11 +73,7 @@ questions arise, ask them instantly and do not improvise anything."
 **Open questions for later milestones** (ask each before starting that milestone; the answers decide
 the design and the tests):
 - **M6 3D renderer:** answered 2026-10-30 (see "Decisions for M6" below).
-- **M7 Animation:** which animation set each character, enemy and boss needs (full sets were decided
-  on 2026-10-16; which clips: idle, attacks, casts, hits, deaths, walks…)? In-place or root motion? Who approves the first
-  model before the rest are made? Where clip events (a hit's frame, a footstep's sound) are authored:
-  in Blender (glTF has no markers, so in extras) or in the game's data? Are state machines (which
-  clip follows which, cross-fade times) written in C# or as data for the editor (M11)?
+- **M7 Animation:** answered 2026-10-31 (see "Decisions for M7" below).
 - **M8 Audio:** must the C# synthesizer match the old JavaScript one sample for sample (offline renders
   compared) or by ear? Are sound effects synthesized as now? Output sample rate and latency?
 - **M9 Assets and data:** pack layout (which data in which pack), compression, mod or loose-folder
@@ -163,6 +157,19 @@ Source tree:
 - Shadows (step 5): everything casts shadows; only scenery (the battle stage, the map terrain and its features; the game marks scenery models) receives them. Characters, enemies and items keep the lizardman's shading (no shadows on them, not even their own). Shadow edges are softened by the sun's size (Blender's sun angle, 3° by default, settable) as Blender renders it: across a shadow's fringe the shadow tone and the lit tone blend by how much of the sun is visible (EEVEE thresholds each sample's hard shadow, then averages), sharp near the caster, softer further away; everything else stays two-tone. (First answered after my wrong description, "crisp edge moved inward"; asked again on 2026-10-30.) No ink outline on cast shadows. Shadow maps fitted to the visible area (orthographic views of bounded areas need no cascades): first decided as one 2048² map; after the soft-shadow correction (a single map can't tell "under" from "behind" for floating parts), 16 maps of 1024², one per direction over the sun's disc as Blender renders a sized sun (it uses 64), in one 4096² atlas (64 MB).
 - Ink lines (step 4): screen-space. After drawing, a pass finds edges per pixel from model and object IDs, depth and face normals, then draws each line centred on its edge at the set width, with soft edges and round ends (only visible lines, as Freestyle's visible-only linesets). Outline per model: each model (a character with its gear, an item, a piece of scenery) gets the thick outline wherever it meets anything else (the lizardman's external contour, which only met empty background because it was rendered alone). Inner lines, thin: the lizardman's set: silhouettes (one part over another), open mesh edges, creases where faces meet sharper than 120° (face normals more than 60° apart); no lines at colour boundaries. Widths at device scale 1: outline 3.5 px, inner 2 px (the old game's battle sprites in a 1080p window), times the device scale. Ink colour `#130e0b`. Parts without lines: a custom property on the Blender object (`ink = 0`), exported as glTF node extras (the lizardman's "nolines" collection).
 - Model colours (step 2): palette slots. Each Blender material names a slot (e.g. `metal.base`, `metal.trim`, `cloth`, `skin`); the engine fills slots from a palette when it draws, so one sword model shows in every metal and one robe in every cloth, as the old game's palettes do. Materials that name no slot in the palette (glows, fixed details) keep their own colour.
+
+**Decisions for M7 (2026-10-31, asked before the milestone started; all the recommended options):**
+- Clip set: every pose the old battle stage plays, per rig, with the melee swing split into weapon families. Humanoids (players, companions, humanoid enemies): idle and stunned loops; advance and return (the lunge), flee; attacks: one-handed swing (sword, axe, mace, club, hammer), two-handed swing (greatsword, greataxe, two-handed hammer), thrust (spear, trident, rapier), dagger stab, staff/wand strike, unarmed punch, off-hand swing; shooting: bow (bow, longbow, greatbow), crossbow; cast, skill, item, drink, meditate; guard and evade (enter, then hold); hurt, critical hurt, stumble; death, victory. Quadrupeds (wolf, bear, boar, stag, ram): idle, bite/pounce, horn charge, hurt, stumble, stunned, death, victory. Griffon and dragon: the quadruped set and a wing attack. Wisp and core: idle (float), attack pulse, hurt, death. Bosses: their rig's set plus phase change, transform, an intro entrance and their specials (asked per boss at port time). (Not one attack per weapon kind, not the old game's set only.)
+- Root motion: none. Clips animate in place (the model's origin stays; hips may bob, hop or fall); the game moves the whole model for lunges, knock-backs and fleeing, as the old game moves the sprite, so a lunge reaches every target whatever the distance.
+- Clip events (a hit landing, a bow's release, a footstep): authored in Blender as pose markers in each action; the export script copies them into an action custom property, which Blender's glTF exporter writes as the animation's extras (it exports no markers itself: checked in its 5.2 source); the engine reads them.
+- State machines: data. Per rig a graph of states (clip, speed, loop), transitions (conditions on parameters, triggers, cross-fade time) and any-state entries (hurt, death); M7 builds the format, the runtime and a C# builder; the packs carry it (M9) and the editor edits it (M11); the game sets parameters and triggers.
+- Layers and cross-fades: Blender's NLA rules. Layers stack like NLA tracks: each replaces only the channels its clip keys, by its influence; additive layers combine on top as NLA's Combine mode does; a cross-fade is a linear influence ramp (an NLA strip's blend in/out); tested against Blender's NLA evaluation. Clips are exported with the exporter's "Force keeping channels for bones" off, so a clip's glTF channels are the ones its action keys (checked in the exporter's source: by default every bone is written into every clip). (Not explicit bone masks, not one clip at a time.)
+- Clip data: glTF's sampled animation. Clips are animated at 60 fps in Blender (the game's frame rate) and exported sampled every frame (the exporter's default, which bakes constraints, IK and drivers into keys); the engine interpolates as glTF specifies. Checked against Blender's own evaluation of the actions: exactly at frames, within a measured tolerance between them. (Not 30 fps, not Blender's F-curves ported.)
+- Clip sharing: by bone names, as Blender applies an action to another armature. One clip set per rig family (humanoid, quadruped, griffon, dragon, wisp, core); models of a family share bone names and differ in proportions (races, sexes, builds); a clip plays on any of them with each channel taken relative to that bone's rest pose. Bosses and odd enemies can add clips of their own.
+- Gear: rigid items (weapons, shields, helmets, quivers) are their own models attached to socket bones in the rig (hand.R, hand.L, back, head …); armour and clothing that bends are meshes skinned to the wearer's skeleton by bone names.
+- Secondary motion (capes, tails, hair, banners, wings): keyed by the animator in each clip, as the old game's loops were authored; no simulation (no spring bones).
+- Shape keys: none. Everything moves by bones (a jaw or eyelids are bones); no glTF morph targets.
+- Model approval (port time): the user approves the first model of each rig before the rest of that rig is made: first the first humanoid (with gear and its full clip set, shown as renders and a playing view), then the first quadruped, griffon, dragon, wisp and core. M7 itself animates test models only.
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
@@ -344,6 +351,7 @@ Source tree:
   - **M6 step 8, particles (2026-10-31, 566 tests, `Docs/Renderer-3D.md`):** user decisions (asked in three rounds): motion computed from age, sizes in metres, per-effect proportions and ink width (centred on the edge), smoothstep growth and fading, start/end palette colours mixed in sRGB evenly, depth-tested without shadows or hatching, emitters with bursts, streams and trails from a point, ball or cone with seeded ranges. `Particles.cs`, particle shaders, a premultiplied 16-bit particle layer drawn after the ink lines against the scene's depth and laid over the view; glowing particles feed the glow. Blender lays a node-built quad per particle, rendered alone with the scene held out and laid on in linear light after the halo. Mutations of every rule fail the `particles` scene; frame-border pixels are no longer compared (EEVEE's samples reach past the frame).
   - **M6 step 9, 3D views in the UI (2026-10-31, 573 tests, `Docs/Renderer-3D.md`):** user decisions: every 3D view is a `surface` element (battle and map too), background colour or transparent per view, redraw only on change, picking now. `View3D` (renders on a set property, a moved camera, a new size or scale, or `Invalidate`; a straight-alpha sRGB picture for the canvas; picking from kept surface records), `SurfaceViews` in `UiHost.Views`, the glow composite over transparent views. Tested against the direct render, an `<img>` of the same picture inside a turned, translucent, rounded frame at scales 1 and 2, and picking through CSS transforms; mutations of each rule fail.
   - **M6 done (2026-10-31, 573 tests):** ticked. Not measured on a 2016-class GPU (this PC's RX 9070 takes 0.8-1.4 ms a 1080p frame for the test scenes).
+  - **M7 started (2026-10-31):** the user's go; the eleven open questions asked and answered ("Decisions for M7"); design doc, the Blender and glTF rules to port (NLA blending, strip time, pose channels, Appendix C) and the seven steps in `Docs/Animation.md`. Blender 5.2.0's animation sources are in `~/.cache/stat-fick-build/reference-src/blender-anim/`, the glTF specification in `reference-src/gltf/`.
   - **Left for the port, not M5:** the game listens for `visibilitychange` and `pagehide` (map.js pauses travel); the window host doesn't send them yet.
 
 ## Milestones
