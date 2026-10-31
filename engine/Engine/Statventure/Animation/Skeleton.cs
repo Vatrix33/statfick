@@ -134,6 +134,15 @@ public sealed class ClipBinding
     public AnimationClip Clip { get; }
     public Skeleton Skeleton { get; }
 
+    /// <summary>The skeleton's nodes whose given channel the clip drives.</summary>
+    public IEnumerable<int> NodesDriving(ChannelSet channel) => _tracks.Where(t => channel switch
+    {
+        ChannelSet.Translation => t.Track.Translation != null,
+        ChannelSet.Rotation => t.Track.Rotation != null,
+        ChannelSet.Scale => t.Track.Scale != null,
+        _ => false,
+    }).Select(t => t.Node);
+
     /// <summary>Writes the clip's channels at <paramref name="time"/> (seconds) into the buffer, marking them set.</summary>
     public void Sample(double time, PoseBuffer into)
     {
@@ -150,6 +159,11 @@ public sealed class ClipBinding
             if (track.Rotation is { } rotation)
             {
                 rotation.Evaluate(time, value);
+                // glTF keeps no quaternion's sign (Blender's exporter writes w ≥ 0), but Blender's NLA
+                // blends the stored components: w ≥ 0 is what keys within a half turn of rest store.
+                if (value[3] < 0)
+                    for (var c = 0; c < 4; c++)
+                        value[c] = -value[c];
                 value.CopyTo(into.Rotation.AsSpan(4 * node, 4));
                 into.Set[node] |= ChannelSet.Rotation;
             }

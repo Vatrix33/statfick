@@ -40,7 +40,18 @@ public class AnimationReferenceTests(ITestOutputHelper output)
         var path = Path.Combine(ReferenceDirectory, "anim-scenes.json");
         var text = JsonSerializer.Serialize(new
         {
-            scenes = AnimationScenes.All.Select(s => new { name = s.Name, model = s.Model, clip = s.Clip, target = s.Target, times = s.Times }),
+            scenes = AnimationScenes.All.Select(s => new
+            {
+                name = s.Name, model = s.Model, clip = s.Layers == null ? s.Clip : null, target = s.Target, times = s.Times,
+                layers = s.Layers?.Select(layer => layer.Select(strip => new
+                {
+                    clip = strip.Clip, start = strip.Start, clipStart = strip.ClipStart, clipEnd = strip.ClipEnd, scale = strip.Scale,
+                    repeat = strip.Repeat, blendIn = strip.BlendIn, blendOut = strip.BlendOut, influence = strip.Influence,
+                    mode = strip.Mode == BlendMode.Replace ? "REPLACE" : "COMBINE",
+                    extrapolation = strip.Extrapolation switch { Extrapolation.Hold => "HOLD", Extrapolation.HoldForward => "HOLD_FORWARD", _ => "NOTHING" },
+                    reversed = strip.Reversed,
+                })),
+            }),
         }, new JsonSerializerOptions { WriteIndented = true, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }) + "\n";
         if (!File.Exists(path) || File.ReadAllText(path) != text)
             File.WriteAllText(path, text);
@@ -53,6 +64,12 @@ public class AnimationReferenceTests(ITestOutputHelper output)
     {
         var scene = AnimationScenes.All.Single(s => s.Name == name);
         var result = Compare(scene);
+        if (scene.Layers != null)
+        {
+            output.WriteLine($"{name}: largest distance {result.OnFrame * 1000:F5} mm, at most {result.Ratio:F2} of the allowance ({result.Worst})");
+            Assert.True(result.Ratio <= 1, $"{name}: a bone is off by {result.Ratio:F2} times its allowance ({result.Worst})");
+            return;
+        }
         output.WriteLine($"{name}: on frames {result.OnFrame * 1000:F5} mm; between frames {result.Between * 1000:F4} mm, at most {result.Ratio:F2} of the allowance ({result.Worst})");
         Assert.True(result.OnFrame <= OnFrameTolerance, $"{name}: a bone is {result.OnFrame * 1000:F4} mm off on a frame ({result.Worst})");
         Assert.True(result.Ratio <= 1, $"{name}: a bone is off between frames by {result.Ratio:F2} times what interpolating the samples allows ({result.Worst})");
@@ -69,9 +86,12 @@ public class AnimationReferenceTests(ITestOutputHelper output)
     {
         var reference = Load(scene.Name);
         var source = ModelData.Load(Path.Combine(Render3DReferenceTests.ModelDirectory, scene.Model + ".glb"));
-        var clip = AnimationClip.AllOf(source).Single(c => c.Name == scene.Clip);
+        var clips = AnimationClip.AllOf(source);
         var model = scene.Target == null ? source : ModelData.Load(Path.Combine(Render3DReferenceTests.ModelDirectory, scene.Target + ".glb"));
         var skeleton = new Skeleton(model);
+        if (scene.Layers != null)
+            return CompareLayers(scene, reference, clips, model, skeleton);
+        var clip = clips.Single(c => c.Name == scene.Clip);
         var binding = new ClipBinding(clip, skeleton);
         var rest = model.WorldMatrices();
         var inverseRest = rest.Select(Inverse).ToArray();
@@ -130,6 +150,88 @@ public class AnimationReferenceTests(ITestOutputHelper output)
             }
         }
         return new Comparison(onFrame, between, ratio, worst);
+    }
+
+    /// <summary>
+    /// The angle (radians) by which Blender's float32 quaternion power (pow_qt_fl_normalized) can
+    /// miss: acosf of w is quantised near 1, where one float step below 1 (2⁻²⁴) is already
+    /// acos(1 − 2⁻²⁴) ≈ √(2·2⁻²⁴) of a half angle, so the angle (twice it) can be off by 2·√(2·2⁻²⁴).
+    /// </summary>
+    public static readonly double CombineQuantum = 2 * Math.Sqrt(2 * Math.Pow(2, -24));
+
+    /// <summary>
+    /// A layered scene: the engine's stack against Blender's NLA at the times where every acting
+    /// strip samples its clip on a frame (elsewhere Blender evaluates its curves between the
+    /// exported samples); every bone's rest head and tail in model space within the on-frame
+    /// tolerance, plus for each joint up its chain whose rotation a Combine strip sets, Blender's
+    /// float32 quantum (<see cref="CombineQuantum"/>) times the point's distance from that joint.
+    /// At least a third of the times must be such times.
+    /// </summary>
+    static Comparison CompareLayers(AnimationScene scene, Reference reference, AnimationClip[] clips, ModelData model, Skeleton skeleton)
+    {
+        var stack = Stack(scene, clips, skeleton);
+        var rest = model.WorldMatrices();
+        double onFrame = 0, worstError = -1;
+        var worst = "";
+        var compared = 0;
+        for (var i = 0; i < scene.Times.Length; i++)
+        {
+            var time = scene.Times[i];
+            var onFrames = stack.Layers.All(layer => layer.StripAt(time) is not var (strip, at) || strip.InfluenceAt(at) <= 0
+                || AnimationScene.OnFrame(strip.ClipTimeAt(at)));
+            if (!onFrames)
+                continue;
+            compared++;
+            var posed = model.WorldMatrices(stack.Pose(time));
+            var combined = stack.Layers.Select(layer => layer.StripAt(time)).Where(a => a is { Strip.Mode: BlendMode.Combine } acting && acting.Strip.InfluenceAt(acting.Time) > 0)
+                .SelectMany(a => a!.Value.Strip.Clip.NodesDriving(ChannelSet.Rotation)).ToHashSet();
+            foreach (var (bone, ends) in reference.Bones)
+            {
+                var node = skeleton.Find(bone);
+                Assert.True(node >= 0, $"{scene.Name}: the model has no node {bone}");
+                var deformation = Inverse(rest[node]) * posed[node];
+                var blender = Deformation(reference.Poses[i][bone]);
+                foreach (var end in ends)
+                {
+                    var point = Vector3.Transform(end, deformation);
+                    var allowed = OnFrameTolerance;
+                    for (var joint = node; joint >= 0; joint = model.Nodes[joint].Parent)
+                        if (combined.Contains(joint))
+                            allowed += CombineQuantum * Vector3.Distance(point, posed[joint].Translation);
+                    var error = (double)Vector3.Distance(point, Vector3.Transform(end, blender));
+                    onFrame = Math.Max(onFrame, error);
+                    if (error / allowed > worstError)
+                    {
+                        worstError = error / allowed;
+                        worst = $"worst: {bone} at {time * AnimationScenes.Fps:F2} frames, {error * 1000:F4} mm, {error / allowed:F2} of its allowance";
+                    }
+                }
+            }
+        }
+        Assert.True(compared * 3 >= scene.Times.Length, $"{scene.Name}: only {compared} of {scene.Times.Length} times have every strip on a frame");
+        return new Comparison(onFrame, 0, worstError, worst + $" ({compared} of {scene.Times.Length} times compared)");
+    }
+
+    /// <summary>The scene's layers as the engine's stack.</summary>
+    internal static AnimationStack Stack(AnimationScene scene, AnimationClip[] clips, Skeleton skeleton)
+    {
+        var stack = new AnimationStack(skeleton);
+        foreach (var layerScene in scene.Layers!)
+        {
+            var layer = new AnimationLayer();
+            foreach (var s in layerScene)
+            {
+                var clip = clips.Single(c => c.Name == s.Clip);
+                layer.Strips.Add(new AnimationStrip(new ClipBinding(clip, skeleton))
+                {
+                    Start = s.Start, ClipStart = s.ClipStart, ClipEnd = s.ClipEnd ?? clip.Duration, Scale = s.Scale, Repeat = s.Repeat,
+                    BlendIn = s.BlendIn, BlendOut = s.BlendOut, Influence = s.Influence, Mode = s.Mode, Extrapolation = s.Extrapolation,
+                    Reversed = s.Reversed,
+                });
+            }
+            stack.Layers.Add(layer);
+        }
+        return stack;
     }
 
     static Matrix4x4 Inverse(Matrix4x4 m) => Matrix4x4.Invert(m, out var inverse) ? inverse : throw new InvalidOperationException("a singular transform");

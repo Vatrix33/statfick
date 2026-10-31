@@ -54,6 +54,14 @@ Asked before the milestone started; the answers are also in `Docs/Engine-Plan.md
   to the wearer's skeleton by bone names.
 - **Secondary motion** (capes, tails, hair, banners, wings) is keyed in each clip; no simulation.
 - **Bones only:** no shape keys (glTF morph targets); a jaw or eyelids are bones.
+- **Fades of rotations** (asked during step 3): the engine blends the clips' unit quaternions by
+  Blender's component rule. Blender's NLA mixes its quaternion F-curves' raw values, which aren't
+  unit length between an action's keys (each component is interpolated: halfway through the test
+  swing's first turn they're 0.79 long), so mid-fade, where both clips turn the same bone, Blender's
+  NLA preview can differ from the game by a few degrees (4° on the test swing's 0.15 s fade). The
+  layer tests bake the reference actions' rotation curves to a unit key per frame before Blender
+  evaluates them, and check the NLA rule exactly. (Not exporting the raw lengths as extras, not
+  slerp fades.)
 - **Model approval (port time):** the user approves the first model of each rig (the first humanoid
   with gear and its full clip set, as renders and a playing view; then the first quadruped, griffon,
   dragon, wisp and core) before the rest of that rig is made. M7 itself animates test models only.
@@ -124,6 +132,31 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   local transform is rest · T(t_b)·R(q_b normalised)·S(s_b), composed as translation, rotation and
   scale (exact while the rest scale is uniform; Blender's bones have none); unset channels are rest.
 
+- **Layers** (`Animation/AnimationStack.cs`): an `AnimationStack` holds `AnimationLayer`s (NLA
+  tracks, bottom first), each a time-ordered list of `AnimationStrip`s (Blender's strip settings in
+  seconds: start, the clip's part, scale, repeat, reversed, blend in and out, a fixed influence or
+  none, Replace or Combine, extrapolation). `AnimationLayer.StripAt` ports nlastrips_ctime_get_strip
+  (ranges with both ends; Hold reaching back only on a layer's first strip; between strips the
+  earlier one at its end unless it extrapolates nothing; outside a strip it's evaluated at its
+  clamped start or end, so a held strip with a blend there has influence 0);
+  `AnimationStrip.InfluenceAt` the linear ramps with Blender's setters' limits (blend-in at most the
+  length, blend-out at most what the blend-in leaves); `ClipTimeAt` nlastrip_get_frame_actionclip.
+  `Evaluate` clears the buffer to the defaults (rest), then per layer samples the acting strip's
+  clip into a scratch buffer and blends it in where it's set: Replace per component, Combine with
+  locations added, scales times (s / 1)^i and normalised quaternions times the upper's power. Times
+  within 10⁻⁶ s count as one (`AnimationStrip.Epsilon`; Blender compares float frames, clip lengths
+  come as float32 seconds). Sampled rotations are taken with w ≥ 0 before blending (glTF keeps no
+  sign; Blender's keys within a half turn of rest have w ≥ 0). `AnimationStack.Add` puts a strip on
+  a new top layer: a cross-fade is such a strip with a blend-in.
+- **Known differences from Blender's NLA:** fades of hand-keyed rotations (the user's decision
+  above: Blender mixes raw, non-unit curve values between keys); rotations more than a half turn
+  from rest (Blender blends the stored sign, the engine w ≥ 0; a Combine power of such a quaternion
+  turns the long way in Blender); Blender's float32 quaternion power quantises rotations under about
+  0.03° (the engine computes in double); constraints are baked into clips, so layering clips with IK
+  blends the baked results where Blender would solve the IK again on the blended pose; a plain node's
+  (object's) channel that some strip keys but none sets at the moment goes to Blender's defaults
+  (location 0) in Blender and to its rest in the engine (game rigs animate bones).
+
 ## Reference harness
 
 - **Test models with actions** (`Tools/BlenderReference/make_models.py`): `figure.glb`, a humanoid
@@ -151,6 +184,18 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   tail and, per time, its deformation in model space (posed after the inverse of rest, the armature
   object's world included) converted to glTF's coordinates (C·D·C⁻¹ with C: (x, y, z) → (x, z, −y);
   joint nodes keep Blender's bone axes, so a joint's glTF world is C times its Blender world).
+- **Layered scenes** (`AnimationScenes`: `Layers`, lists of `StripScene`s): the harness removes the
+  builder's NLA tracks and builds the scene's (`build_layers`: each strip created at its start frame,
+  its action range from the clip's part, then scale, repeat, `frame_start_ui` to its exact start
+  (`frame_start` would change its length), direction, blend type, extrapolation, blend in and out
+  after the length, and a fixed influence by setting the one key of the influence F-curve that
+  `use_animated_influence` creates, which otherwise holds 0). Before that, `bake_rotations` replaces
+  every used action's quaternion curves by a unit key per frame (the "Fades of rotations" decision).
+  Scene time 0 is scene frame 0. The test compares only the times where every acting strip samples
+  its clip on a frame (within 10⁻⁴ of one), at least a third of the scene's; Replace stacks within
+  the on-frame tolerance, joints a Combine strip rotates also within Blender's float32 quantum
+  (2·√(2·2⁻²⁴) ≈ 6.9·10⁻⁴ rad times the point's distance from the joint: acosf near w = 1).
+  `STATVENTURE_ANIM_DETAIL=1` prints every larger error.
 - **Times** (`AnimationScenes.TimesFor`): every other frame, the middle of every frame, a quarter
   into every fifth, and one time before the start and one after the end (clamping).
 - **Comparison** (`AnimationReferenceTests.Compare`): on frames, every bone's rest head and tail
@@ -222,4 +267,22 @@ Started 2026-10-31 (decisions asked and recorded).
   armature). On frames within 0.0005 mm, between frames at most 0.72 of the allowance. Checked by
   breaking: channels played as absolute local transforms (a naive by-name playback) pass every
   same-model scene and fail both stocky scenes; ignoring the target's rest rotation (its roll) fails
-  them all. Next: step 3 (layers and cross-fades as Blender's NLA).
+  them all.
+- **Step 3, layers and cross-fades (2026-10-31, 592 tests): done.** User decision during the step:
+  fades blend unit samples (Blender's NLA mixes raw, non-unit quaternion curve values between keys:
+  4° apart mid-fade on the test swing; exporting the lengths or slerp fades were not chosen).
+  `AnimationStack`, `AnimationLayer`, `AnimationStrip`, `ClipBinding.NodesDriving`; the figure's
+  fourth action "pulse"; scenes `nla-replace` (an idle under a swing blending in and out),
+  `nla-combine` (an idle and a pulse added over a held swing at fixed influences), `nla-timing`
+  (parts, half and double speed, fractional and reversed repeats, holds both ways, blends on held
+  strips, a part's end at a strip's end), `stocky-nla`; `AnimationStackTests` (blend limits, a
+  cross-fade). Measured: Replace stacks within 0.001 mm of Blender, Combine within half its float32
+  quantum (0.4 mm at the head where Blender drops a 0.01° rotation). Found on the way: Blender's
+  quaternion curves aren't unit between keys (the decision above); its float32 power drops tiny
+  rotations; frame classification and strip ends need a tolerance (float32 clip lengths); test
+  clips that end where they start hide the strip-end rule, and blends only on unheld strips hide
+  where held strips are evaluated (both scenes extended). Checked by breaking: Combine mixed like
+  Replace, its rotation order swapped, scales added, locations mixed, influence ignored; Replace
+  rotations slerped, smoothstep ramps, every channel replaced, Hold Forward reaching back, no Hold
+  before a first strip, reversal ignored, the scale inverted, no strip-end case, the influence at
+  the unclamped time, rotations taken with w ≤ 0 each fail a scene. Next: step 4 (events).

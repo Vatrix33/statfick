@@ -536,7 +536,8 @@ def figure(path):
     (a 0.6 s one-handed swing with eased keys; the exporter writes quaternions with w >= 0, so the
     upper arm's change sign where its local rotation passes 180°) and "twist" (the left hand turns
     270° about its own axis, and the head snaps between poses with constant keys, which export as
-    STEP)."""
+    STEP); and "pulse" (0.67 s: the head squashes by scale, the hips shift, the chest turns about its
+    own Z) for the layer tests."""
     bpy.context.scene.render.fps, bpy.context.scene.render.fps_base = 60, 1
     rig = armature("Figure", FIGURE_BONES)
     bone = {b[0]: b for b in FIGURE_BONES}
@@ -591,7 +592,15 @@ def figure(path):
             for point in curve.keyframe_points:
                 point.interpolation = "CONSTANT"
 
-    stack_actions(rig, (idle, swing, twist))
+    # Big enough to tell the NLA's Combine rules apart: scales multiply by powers, locations add,
+    # rotations about other axes than the swing's multiply in order.
+    pulse = bpy.data.actions.new("pulse")
+    for frame, k in ((1, 0), (21, 1), (41, 0)):
+        keys(rig, pulse, frame, "head", scale=(1 + 0.4 * k, 1 - 0.3 * k, 1 + 0.4 * k))
+        keys(rig, pulse, frame, "hips", location=(0.05 * k, 0, 0.02 * k))
+        keys(rig, pulse, frame, "chest", rotation=((0, 0, 1), 25 * k))
+
+    stack_actions(rig, (idle, swing, twist, pulse))
     export(path, **ANIMATED)
 
 
