@@ -68,6 +68,15 @@ public sealed class StateMachine
     /// <summary>The state a layer is in (the target of its latest transition).</summary>
     public string StateOf(string layer) => LayerNamed(layer).Current.Name;
 
+    /// <summary>The state a fade entry of one of the machine's layers plays.</summary>
+    public string StateNameOf(FadeEntry entry)
+    {
+        foreach (var layer in _layers)
+            if (layer.StateOf.TryGetValue(entry, out var state))
+                return state.Name;
+        throw new ArgumentException("the entry isn't one of the machine's");
+    }
+
     /// <summary>The fade layer a machine layer plays on.</summary>
     public FadeLayer FadesOf(string layer) => LayerNamed(layer).Fades;
 

@@ -20,10 +20,12 @@ public sealed record StripScene(string Clip, double Start, double ClipStart = 0,
 /// stack instead (layers bottom first, each a list of strips), and <see cref="Clip"/> is unused; the
 /// layers <see cref="Transitions"/> lists have a transition strip in each gap between their strips
 /// in Blender, a fade layer in the engine (each strip fading in over the gap before it, strips held
-/// outside their ranges).
+/// outside their ranges). <see cref="Items"/> are item models on socket bones of the wearer (the
+/// target, else the model) and <see cref="Clothing"/> garments made on the figure, skinned to the
+/// wearer by bone names (Docs/Animation.md, "Gear in detail").
 /// </summary>
 public sealed record AnimationScene(string Name, string Model, string Clip, double[] Times, string? Target = null, StripScene[][]? Layers = null,
-    int[]? Transitions = null)
+    int[]? Transitions = null, (string Model, string Socket)[]? Items = null, string[]? Clothing = null)
 {
     /// <summary>
     /// A time that falls on one of the clip's 60 fps frames, where Blender's evaluation and the
@@ -53,6 +55,9 @@ public static class AnimationScenes
             times.Add((k + 0.25) / Fps);
         return [.. times];
     }
+
+    /// <summary>Every other frame of a clip of <paramref name="frames"/> frames.</summary>
+    static double[] EveryOtherFrame(int frames) => Enumerable.Range(0, frames / 2 + 1).Select(k => 2.0 * k / Fps).ToArray();
 
     /// <summary>Every frame from 0 to <paramref name="seconds"/>.</summary>
     static double[] Frames(double seconds) => Enumerable.Range(0, (int)Math.Round(seconds * Fps) + 1).Select(k => (double)k / Fps).ToArray();
@@ -122,6 +127,11 @@ public static class AnimationScenes
             [new("swing", 0, Extrapolation: Extrapolation.Hold)],
             [new("idle", 0, ClipEnd: 0.8, Mode: BlendMode.Combine, Extrapolation: Extrapolation.Hold), new("pulse", 1.2, Mode: BlendMode.Combine)],
         ], Transitions: [1]),
+        // Gear: a sword in the hand socket, a pennant (an item with bones) on the back socket and the
+        // tabard, on the figure (the body the tabard is made on) and on the stocky figure (where
+        // Blender's Armature modifier deforms it by the stocky bones relative to their rest).
+        new("gear-figure", "figure", "swing", EveryOtherFrame(36), Items: [("sword", "socket.hand.R"), ("pennant", "socket.back")], Clothing: ["tabard"]),
+        new("gear-stocky", "figure", "idle", EveryOtherFrame(120), Target: "stocky", Items: [("sword", "socket.hand.R")], Clothing: ["tabard"]),
         // The Replace stack on the stocky figure: clips found by bone names, then layered.
         new("stocky-nla", "figure", "", Frames(2), Target: "stocky", Layers: ReplaceLayers),
     ];

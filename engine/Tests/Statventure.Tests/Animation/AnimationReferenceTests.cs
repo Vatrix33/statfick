@@ -44,6 +44,8 @@ public class AnimationReferenceTests(ITestOutputHelper output)
             {
                 name = s.Name, model = s.Model, clip = s.Layers == null ? s.Clip : null, target = s.Target, times = s.Times,
                 transitions = s.Transitions,
+                items = s.Items?.Select(i => new { model = i.Model, socket = i.Socket }),
+                clothing = s.Clothing,
                 layers = s.Layers?.Select(layer => layer.Select(strip => new
                 {
                     clip = strip.Clip, start = strip.Start, clipStart = strip.ClipStart, clipEnd = strip.ClipEnd, scale = strip.Scale,

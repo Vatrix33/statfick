@@ -67,6 +67,10 @@ def evaluate(scene, folder):
         bones[bone.name] = {"head": numbers(head), "tail": numbers(tail)}
     if scene.get("layers"):
         markers = None
+    items = attach_items(rig, scene.get("items") or [])
+    clothing = dress(rig, scene.get("clothing") or [])
+    item_poses = {name: [] for name in items}
+    clothing_poses = {name: [] for name in clothing}
     poses = []
     for time in scene["times"]:
         frame = start + time * fps
@@ -79,14 +83,67 @@ def evaluate(scene, folder):
             deformation = TO_GLTF @ world @ bone.matrix @ bone.bone.matrix_local.inverted() @ world.inverted() @ TO_GLTF.inverted()
             pose[bone.name] = numbers([deformation[r][c] for r in range(3) for c in range(4)])
         poses.append(pose)
+        for name, obj in items.items():
+            # An object's glTF transform converts its axes too: C · M · C⁻¹.
+            m = TO_GLTF @ obj.matrix_world @ TO_GLTF.inverted()
+            item_poses[name].append(numbers([m[r][c] for r in range(3) for c in range(4)]))
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        for name, obj in clothing.items():
+            evaluated = obj.evaluated_get(depsgraph)
+            mesh = evaluated.to_mesh()
+            clothing_poses[name].append([numbers(TO_GLTF @ evaluated.matrix_world @ v.co) for v in mesh.vertices])
+            evaluated.to_mesh_clear()
     path = os.path.join(folder, "anim-" + scene["name"] + ".json")
     with open(path, "w") as f:
         out = {"bones": bones, "times": scene["times"], "poses": poses}
+        if items:
+            out["items"] = item_poses
+        if clothing:
+            out["clothing"] = {name: {"rest": [numbers(TO_GLTF @ obj.matrix_world @ v.co) for v in obj.data.vertices], "posed": clothing_poses[name]}
+                               for name, obj in clothing.items()}
         if markers is not None:
             # The action's pose markers (frames from its first frame): the clip's events must be these.
             out["markers"] = markers
         json.dump(out, f, separators=(",", ":"))
     print("wrote", path)
+
+
+def attach_items(rig, specs):
+    """Item models on socket bones, as an artist parents them: each root object of the item parented
+    to the bone (Blender places a bone's children at its tail, so the parent inverse moves back by the
+    bone's length to its head) with its own transform in the item kept: the item's axes are the
+    bone's. Its own actions don't play. Returns the root objects by "item/object" name."""
+    roots = {}
+    for spec in specs:
+        before = set(bpy.data.objects)
+        make_models.BUILDERS[spec["model"]](None)
+        bone = rig.data.bones[spec["socket"]]
+        for obj in sorted(set(bpy.data.objects) - before, key=lambda o: o.name):
+            if obj.animation_data:
+                for track in obj.animation_data.nla_tracks:
+                    track.mute = True
+                obj.animation_data.action = None
+            if obj.parent is not None:
+                continue
+            # Its transform in the item (a root's basis: matrix_world isn't updated until the depsgraph is).
+            local = obj.matrix_basis.copy()
+            obj.parent = rig
+            obj.parent_type = "BONE"
+            obj.parent_bone = bone.name
+            obj.matrix_parent_inverse = Matrix.Translation((0, -bone.length, 0))
+            obj.matrix_basis = local
+            roots[spec["model"] + "/" + obj.name] = obj
+    return roots
+
+
+def dress(rig, names):
+    """Garments made on the figure's body, deformed by the wearer's armature (its Armature modifier
+    points at the wearer, whatever its proportions: Blender's rule). Only the tabard exists."""
+    clothing = {}
+    for name in names:
+        assert name == "tabard"
+        clothing[name] = make_models.tabard_mesh(rig, make_models.DEFORMING(make_models.FIGURE_BONES))
+    return clothing
 
 
 def bake_rotations(action):

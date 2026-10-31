@@ -250,6 +250,51 @@ public class StateMachineTests
         Assert.Equal(3 * Frame, entered.Result.Time, 9);
     }
 
+    [Fact]
+    public void AnItemPlaysItsClipOfTheStatesNameWithTheWearersFades()
+    {
+        var rig = new Rig();
+        var pennant = ModelData.Load(Path.Combine(Render3DReferenceTests.ModelDirectory, "pennant.glb"));
+        var item = new ItemAnimation(pennant, rig.Machine);
+        var flagSwing = new ClipBinding(AnimationClip.AllOf(pennant).Single(c => c.Name == "swing"), item.Skeleton);
+        var flag = item.Skeleton.Find("flag");
+        // Idle and none: the pennant has no such clips, so it rests.
+        rig.Play(3);
+        Assert.False(item.Pose(rig.Animator.Time).TryGet(flag, out _));
+        // The wearer enters "swing" at frame 4 with a 0.1 s fade: the pennant's "swing" fades in with it,
+        // on the wearer's clock and speed (double here: the swing speed parameter).
+        rig.Machine.SetFloat("swingSpeed", 2);
+        rig.Machine.SetTrigger("attack");
+        rig.Play(4);
+        double t = rig.Animator.Time, start = 4 * Frame, weight = (t - start) / 0.1;
+        Expect(item, flagSwing, (t - start) * 2, weight, t);
+        // After the fade the pennant's clip alone.
+        rig.Play(3);
+        t = rig.Animator.Time;
+        Expect(item, flagSwing, (t - start) * 2, 1, t);
+        // Hurt (no pennant clip): the pennant fades back to rest as the wearer fades into hurt.
+        rig.Machine.SetTrigger("hurt");
+        rig.Play(2);
+        t = rig.Animator.Time;
+        var hurtStart = t - Frame;
+        Expect(item, flagSwing, (t - start) * 2, 1 - (t - hurtStart) / 0.05, t);
+    }
+
+    /// <summary>The item's pose at <paramref name="time"/> is its rest mixed toward its clip at <paramref name="clipTime"/> by <paramref name="weight"/>.</summary>
+    static void Expect(ItemAnimation item, ClipBinding clip, double clipTime, double weight, double time)
+    {
+        var expected = new PoseBuffer(item.Skeleton);
+        var side = new PoseBuffer(item.Skeleton);
+        clip.Sample(clipTime, side);
+        expected.MixToward(side, weight);
+        var pose = item.Pose(time);
+        var want = expected.ToPose();
+        var node = item.Skeleton.Find("flag");
+        Assert.True(pose.TryGet(node, out var got));
+        Assert.True(want.TryGet(node, out var wanted));
+        Assert.True(Math.Abs(System.Numerics.Quaternion.Dot(got.Rotation, wanted.Rotation)) > 1 - 1e-9, $"flag at {time * 60:F2}: {got.Rotation} instead of {wanted.Rotation}");
+    }
+
     static void Same(AnimationStack expected, AnimationStack actual, double time)
     {
         var a = new PoseBuffer(expected.Skeleton);

@@ -87,6 +87,14 @@ Asked before the milestone started; the answers are also in `Docs/Engine-Plan.md
   keeps playing as it fades out, the incoming plays as it fades in), mixed by Blender's transition
   rule; Blender's transition strips apply that rule to held poses, and the tests check the rule
   against them with held clips. (Not frozen as Blender's transitions.)
+- **Gear in detail** (asked during step 6): sockets are dedicated non-deforming bones named
+  `socket.<slot>` (socket.hand.R, socket.hand.L, socket.back, socket.head, socket.hip.L …) parented to
+  the bone that carries them; an item's origin is its grip and its axes line up with the socket's;
+  clips may key a socket. Clothing worn by a body of other proportions deforms as Blender's
+  Armature modifier deforms it (by the wearer's bones relative to the wearer's rest), so it fits
+  only the body it was made on: garments are made per body type. Items may have their own bones and
+  clips: when the wearer's state machine enters a state, the item plays its clip of the same name
+  (if it has one) on the same clock.
 - **Model approval (port time):** the user approves the first model of each rig (the first humanoid
   with gear and its full clip set, as renders and a playing view; then the first quadruped, griffon,
   dragon, wisp and core) before the rest of that rig is made. M7 itself animates test models only.
@@ -218,6 +226,18 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   then `Prune`, and queues notices and events together (at one moment: left, entered, clip events);
   `StateChanged`, `Entered(layer, state)` and `Left(layer, state)` deliver and await them like clip
   events.
+- **Gear** (`Animation/Gear.cs`): `Socket` finds a `socket.<slot>` node; an item's transform is
+  C⁻¹ (glTF object axes back to Blender's, (x, y, z) → (x, −z, y)), then the socket's posed world,
+  then the wearer's transform: Blender's exporter keeps a bone's axes in its joint node but converts
+  objects', so an item whose axes line up with its socket in Blender needs the conversion undone.
+  `Garment` binds a clothing model's joints to the wearer's nodes by name and gives each matched
+  joint its rest world times the wearer bone's deformation (rest⁻¹ · posed): Blender's Armature
+  modifier on the wearer (on the body it was made on, glTF's skinning; on another body no refit);
+  `Model.Draw(..., world: ...)` draws it from those matrices. `ItemAnimation` mirrors the wearer's
+  machine layers into fade layers of the item's own stack: each wearer entry gets an item entry with
+  the same fade, playing the item's clip named like the state (start, scale and repeat copied from
+  the wearer's strip each time, so speed changes follow) or nothing. Gear is drawn with the wearer's
+  owner (one model: one outline, one glow mask) and its hatch anchor (`Model.Draw(..., anchor: ...)`).
 - **Known differences from Blender's NLA:** fades of hand-keyed rotations (the user's decision
   above: Blender mixes raw, non-unit curve values between keys); rotations more than a half turn
   from rest (Blender blends the stored sign, the engine w ≥ 0; a Combine power of such a quaternion
@@ -266,6 +286,19 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   the on-frame tolerance, joints a Combine strip rotates also within Blender's float32 quantum
   (2·√(2·2⁻²⁴) ≈ 6.9·10⁻⁴ rad times the point's distance from the joint: acosf near w = 1).
   `STATVENTURE_ANIM_DETAIL=1` prints every larger error.
+- **Gear scenes** (`AnimationScenes`: `Items`, `Clothing`): the harness builds the items and parents
+  each of their root objects to its socket bone as an artist would (Blender places a bone's children
+  at its tail, so the parent inverse moves back by the bone's length; the root's own transform in
+  the item is its `matrix_basis`, as `matrix_world` isn't updated until the depsgraph runs), and the
+  tabard bound to the wearer's armature by its Armature modifier (made on the figure, also on the
+  stocky armature: Blender's rule). Written per time: each item root's world as a glTF object
+  (C · M · C⁻¹) and the tabard's evaluated vertices; `GearReferenceTests` compares item origins and
+  axes and every tabard vertex (CPU skinning with the garment's matrices, matched by rest position).
+- **Rendered gear** (`Scenes3D` "gear-swing", `GearedFigure`): placed models now take a placement
+  matrix, node world matrices instead of a pose (written to the scene file as each joint's
+  deformation) and a group; `render_scenes.py` joins a group's models for the glow mask and the
+  ink and anchors their hatching at the group's first model's origin, and clears imported animation
+  data (the importer's active action would override the scene's pose).
 - **Times** (`AnimationScenes.TimesFor`): every other frame, the middle of every frame, a quarter
   into every fifth, and one time before the start and one after the end (clamping).
 - **Comparison** (`AnimationReferenceTests.Compare`): on frames, every bone's rest head and tail
@@ -391,4 +424,20 @@ Started 2026-10-31 (decisions asked and recorded).
   up, the state's own transitions first, any-state transitions always restarting, exit transitions
   at the update's time, speeds taking effect at the update's end, any condition sufficing, left
   notices at the update's time, entered before left and clip events collected before the
-  transitions each fail a test. Next: step 6 (gear).
+  transitions each fail a test.
+- **Step 6, gear (2026-10-31, 631 tests): done.** User decisions: dedicated `socket.<slot>` bones,
+  clothing deformed as Blender's Armature modifier (garments per body type), items with bones and
+  clips of their own played with the wearer's states. `Socket`, `Garment`, `ItemAnimation`,
+  `StateMachine.StateNameOf`, `Model.Draw` world and anchor parameters; test models: socket bones on
+  both figures, `sword.glb`, `tabard.glb`, `pennant.glb`; Blender scenes `gear-figure` and
+  `gear-stocky` (items within 0.0012 mm, garment vertices within 0.0002 mm) and the rendered
+  `gear-swing` (shading and ink match). Found on the way: the exporter converts objects' axes but not
+  bones', so items need C⁻¹ at their socket; in the harness a fresh object's `matrix_world` is stale
+  (use its basis); the importer's active action overrode the render scene's pose (the M6 models had
+  no animations); a character with its gear is one model (M6's outline rule), so gear takes the
+  wearer's owner and hatch anchor, and the harness groups them; at 30° the raised arm's top face
+  was a sliver (turned to 40°); the flag needed the sun behind it before the hatch anchor could be
+  tested. Checked by breaking: items without the axis conversion, garments by glTF's bind (passes
+  on the figure, fails on the stocky one), the garment deformation in the other order, item clips
+  ignoring the wearer's speed or fades, gear as a model of its own and gear hatched from its own
+  origin each fail a test. Next: step 7 (animated views).

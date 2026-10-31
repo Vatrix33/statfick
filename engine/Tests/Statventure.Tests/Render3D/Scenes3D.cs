@@ -1,3 +1,4 @@
+using Statventure.Animation;
 using System.Numerics;
 using Statventure.Render3D;
 
@@ -33,13 +34,22 @@ public sealed record Shape3D(string Name, Vector3[] Positions, int[] Triangles)
 /// <summary>A placed shape: scale, rotation (degrees about X, then Y, then Z) and translation, and an sRGB colour.</summary>
 public sealed record Object3D(Shape3D Shape, Vector3 Translation, Vector3 RotationDegrees, Vector3 Scale, string Color)
 {
-    public Matrix4x4 Model =>
-        Matrix4x4.CreateScale(Scale)
+    /// <summary>Every node's world matrix (model space) instead of a pose: a model posed by an animator, a garment by its wearer (Docs/Animation.md).</summary>
+    public Func<ModelData, Matrix4x4[]>? World { get; init; }
+
+    /// <summary>The model-to-world transform instead of rotation, scale and translation (an item at its socket).</summary>
+    public Matrix4x4? Placement { get; init; }
+
+    /// <summary>Models of one group are one model (a character with its gear): one outline, one glow mask, the first one's origin anchoring the hatching.</summary>
+    public string? Group { get; init; }
+
+    public Matrix4x4 Model => Placement ?? Matrix4x4.CreateScale(Scale)
         * Matrix4x4.CreateRotationX(RotationDegrees.X * MathF.PI / 180)
         * Matrix4x4.CreateRotationY(RotationDegrees.Y * MathF.PI / 180)
         * Matrix4x4.CreateRotationZ(RotationDegrees.Z * MathF.PI / 180)
         * Matrix4x4.CreateTranslation(Translation);
 }
+
 
 /// <summary>A camera as the scene file gives it to Blender (field of view in degrees).</summary>
 public sealed record Camera3D(Projection Projection, Vector3 Position, Vector3 Target, float FieldOfViewDegrees = 40, float OrthographicHeight = 4, float Near = 0.1f, float Far = 50)
@@ -85,12 +95,58 @@ public sealed record ModelObject3D(string File, Vector3 Translation, Vector3 Rot
         return pose;
     }
 
-    public Matrix4x4 Model =>
-        Matrix4x4.CreateScale(Scale)
+    /// <summary>Every node's world matrix (model space) instead of a pose: a model posed by an animator, a garment by its wearer (Docs/Animation.md).</summary>
+    public Func<ModelData, Matrix4x4[]>? World { get; init; }
+
+    /// <summary>The model-to-world transform instead of rotation, scale and translation (an item at its socket).</summary>
+    public Matrix4x4? Placement { get; init; }
+
+    /// <summary>Models of one group are one model (a character with its gear): one outline, one glow mask, the first one's origin anchoring the hatching.</summary>
+    public string? Group { get; init; }
+
+    public Matrix4x4 Model => Placement ?? Matrix4x4.CreateScale(Scale)
         * Matrix4x4.CreateRotationX(RotationDegrees.X * MathF.PI / 180)
         * Matrix4x4.CreateRotationY(RotationDegrees.Y * MathF.PI / 180)
         * Matrix4x4.CreateRotationZ(RotationDegrees.Z * MathF.PI / 180)
         * Matrix4x4.CreateTranslation(Translation);
+}
+
+/// <summary>
+/// The geared test figure (Docs/Animation.md, step 6): the figure 13 frames into its swing, turned
+/// 40° about Y (at 30° the raised arm's top face is a sliver seen edge-on, which MSAA shades once per
+/// pixel and Blender per sample), with the sword in its hand socket, the pennant on its back socket playing its own
+/// swing at the same time, and the tabard deformed by the figure's bones; one group.
+/// </summary>
+static class GearedFigure
+{
+    const double Time = 13 / 60.0;
+    static readonly Matrix4x4 Placement = Matrix4x4.CreateRotationY(40 * MathF.PI / 180);
+    static ModelData Load(string file) => ModelData.Load(Path.Combine(Render3DReferenceTests.ModelDirectory, file));
+    static readonly Lazy<(ModelData Figure, Skeleton Skeleton, Matrix4x4[] RestWorld, Matrix4x4[] Posed)> Figure = new(() =>
+    {
+        var figure = Load("figure.glb");
+        var skeleton = new Skeleton(figure);
+        var swing = new ClipBinding(AnimationClip.AllOf(figure).Single(c => c.Name == "swing"), skeleton);
+        return (figure, skeleton, figure.WorldMatrices(), figure.WorldMatrices(swing.Pose(Time)));
+    });
+
+    static Matrix4x4 AtSocket(string socket) => new Socket(Figure.Value.Skeleton, socket).ItemTransform(Figure.Value.Posed, Placement);
+
+    public static ModelObject3D[] Models =>
+    [
+        new("figure.glb", Vector3.Zero, Vector3.Zero) { Placement = Placement, World = _ => Figure.Value.Posed, Group = "hero" },
+        new("tabard.glb", Vector3.Zero, Vector3.Zero)
+        {
+            Placement = Placement, Group = "hero",
+            World = tabard => new Garment(tabard, Figure.Value.Skeleton).WorldMatrices(Figure.Value.RestWorld, Figure.Value.Posed),
+        },
+        new("sword.glb", Vector3.Zero, Vector3.Zero) { Placement = AtSocket("socket.hand.R"), Group = "hero" },
+        new("pennant.glb", Vector3.Zero, Vector3.Zero)
+        {
+            Placement = AtSocket("socket.back"), Group = "hero",
+            World = pennant => pennant.WorldMatrices(new ClipBinding(AnimationClip.AllOf(pennant).Single(c => c.Name == "swing"), new Skeleton(pennant)).Pose(Time)),
+        },
+    ];
 }
 
 /// <summary>
@@ -243,6 +299,15 @@ public static class Scenes3D
             Models = [new("shapes.glb", new(0.2f, 0.2f, -1.6f), Vector3.Zero), new("glowing.glb", new(0.1f, 0, 0.3f), new(0, -15, 0))],
             Palette = new() { ["cloth"] = "#7b5a3a", ["metal.base"] = "#8a8f96", ["metal.trim"] = "#c9a46a" },
             Sun = Lizardman,
+        },
+        // Gear (Docs/Animation.md, step 6): the geared figure mid-swing, one model with its sword,
+        // pennant and tabard (one outline, the hatching anchored at its origin, which the flag's
+        // shadowed side shows: the sun is behind it, on the left), shaded and inked.
+        new("gear-swing", 300, 360, "#d8cbb0", new Camera3D(Projection.Orthographic, new(2.4f, 1.6f, 3.2f), new(0, 1.05f, 0), OrthographicHeight: 2.5f), [])
+        {
+            Models = GearedFigure.Models,
+            Palette = new() { ["cloth"] = "#7a3b3b", ["skin"] = "#c49a74", ["metal.base"] = "#a8b0b8", ["metal.trim"] = "#c9a46a", ["wood"] = "#7a5a3a" },
+            Sun = new(new(-1, 0.7f, -0.9f), 3),
         },
         // GPU skinning (Docs/Renderer-3D.md, "GPU skinning"): the rigged tube and its flat fin bent at
         // both joints, seen from the side and in perspective: positions by linear blend skinning,

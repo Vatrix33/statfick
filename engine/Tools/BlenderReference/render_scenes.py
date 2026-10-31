@@ -359,6 +359,10 @@ def add_model(scene, path, spec, palette, shadows, style, unshadowed=None, scale
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=path)
     imported = [o for o in bpy.data.objects if o not in before]
+    # The importer gives an animated model's armature its first clip as the active action, which
+    # would override the scene's pose when the depsgraph evaluates: the scene poses it by hand.
+    for obj in imported:
+        obj.animation_data_clear()
     to_blender4 = GLTF_TO_BLENDER.to_4x4()
     holder = bpy.data.objects.new("placement", None)
     scene.collection.objects.link(holder)
@@ -369,9 +373,11 @@ def add_model(scene, path, spec, palette, shadows, style, unshadowed=None, scale
     imported.append(holder)
     if spec.get("pose"):
         pose_model(imported, holder, spec["pose"])
-    # The hatching moves with the model: anchored where its origin is on screen (pixels, Y down).
+    # The hatching moves with the model: anchored where its origin is on screen (pixels, Y down); a
+    # model in a group (a character with its gear) at the group's anchor.
     bpy.context.view_layer.update()
-    seen = world_to_camera_view(scene, scene.camera, holder.matrix_world.translation)
+    anchor = to_blender(spec["anchor"]) if spec.get("anchor") else holder.matrix_world.translation
+    seen = world_to_camera_view(scene, scene.camera, anchor)
     width, height = scene.render.resolution_x, scene.render.resolution_y
     hatch = {
         "size": (width, height), "anchor": (seen.x * width, (1 - seen.y) * height),
@@ -905,6 +911,18 @@ def main():
         placed = [add_model(scene, os.path.join(models, model["file"]), model, spec.get("palette", {}), spec.get("shadows", {}), spec["style"],
                             None if model.get("scenery") else unshadowed, spec.get("scale", 1))
                   for model in spec.get("models", [])]
+        # Models of one group (a character with its gear, Docs/Animation.md) are one model for the
+        # glow's mask and the ink's outline.
+        grouped, groups = [], {}
+        for model, objects in zip(spec.get("models", []), placed):
+            if model.get("group"):
+                if model["group"] not in groups:
+                    groups[model["group"]] = []
+                    grouped.append(groups[model["group"]])
+                groups[model["group"]].extend(objects)
+            else:
+                grouped.append(objects)
+        placed = grouped
         spec_time[0] = spec.get("time", 0)
         if spec.get("terrain"):
             seen = world_to_camera_view(scene, scene.camera, to_blender(spec["terrain"]["translation"]))

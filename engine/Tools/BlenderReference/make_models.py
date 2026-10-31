@@ -541,6 +541,13 @@ for side, sign in (("L", 1), ("R", -1)):
         (f"shin.{side}", (sign * 0.11, -0.01, 0.52), (sign * 0.11, 0.02, 0.1), f"thigh.{side}", True),
         (f"foot.{side}", (sign * 0.11, 0.02, 0.1), (sign * 0.11, -0.13, 0.03), f"shin.{side}", True),
     ]
+# Socket bones (Docs/Animation.md, "Gear in detail"): non-deforming, an item's grip at the head, its
+# axes the bone's (a blade along the bone's Y).
+FIGURE_BONES += [
+    ("socket.hand.R", (-0.34, -0.06, 0.88), (-0.34, -0.2, 0.92), "hand.R", False, False),
+    ("socket.back", (0, 0.12, 1.35), (0.1, 0.13, 1.5), "chest", False, False),
+]
+DEFORMING = lambda bones: [b[0] for b in bones if len(b) <= 5 or b[5]]
 
 
 def figure(path):
@@ -555,7 +562,7 @@ def figure(path):
     bpy.context.scene.render.fps, bpy.context.scene.render.fps_base = 60, 1
     rig = armature("Figure", FIGURE_BONES)
     bone = {b[0]: b for b in FIGURE_BONES}
-    groups = [b[0] for b in FIGURE_BONES]
+    groups = DEFORMING(FIGURE_BONES)
     cloth, skin = material("cloth", "#6a4f7a"), material("skin", "#c49a74")
 
     def build(bm, deform):
@@ -677,6 +684,10 @@ for side, sign in (("L", 1), ("R", -1)):
         (f"shin.{side}", (sign * 0.14, -0.01, 0.35), (sign * 0.14, 0.02, 0.08), f"thigh.{side}", True),
         (f"foot.{side}", (sign * 0.14, 0.02, 0.08), (sign * 0.14, -0.12, 0.02), f"shin.{side}", True),
     ]
+STOCKY_BONES += [
+    ("socket.hand.R", (-0.45, -0.06, 0.64), (-0.45, -0.2, 0.68), "hand.R", False, False),
+    ("socket.back", (0, 0.16, 0.98), (0.1, 0.17, 1.12), "chest", False, False),
+]
 
 
 def stocky(path):
@@ -685,7 +696,7 @@ def stocky(path):
     bpy.context.scene.render.fps, bpy.context.scene.render.fps_base = 60, 1
     rig = armature("Stocky", STOCKY_BONES)
     bone = {b[0]: b for b in STOCKY_BONES}
-    groups = [b[0] for b in STOCKY_BONES]
+    groups = DEFORMING(STOCKY_BONES)
     cloth, skin, hair = material("cloth", "#4f6a3a"), material("skin", "#b8876a"), material("hair", "#6b4a2e")
 
     def build(bm, deform):
@@ -711,9 +722,112 @@ def stocky(path):
     export(path, export_skins=True)
 
 
+def sword(path):
+    """A sword for the hand socket: its origin is the grip, the blade along +Y (Blender's object
+    axes, which the socket bone's axes match), a guard across X, metal and cloth slots."""
+    blade = mesh_object("Blade", box_mesh("blade", (0.05, 0.8, 0.012), [material("metal.base", "#a8b0b8")]), location=(0, 0.5, 0))
+    mesh_object("Guard", box_mesh("guard", (0.2, 0.03, 0.03), [material("metal.trim", "#c9a46a")]), blade, location=(0, -0.4, 0))
+    mesh_object("Grip", cone_mesh("grip", 8, 0.018, 0.018, 0.2, True, material("cloth", "#5a3a2a")), location=(0, 0, 0), rotation=(-90, 0, 0))
+    export(path)
+
+
+def tabard_mesh(rig, groups):
+    """A tabard skinned to a rig of the figure's bones: a front and a back panel over the torso down
+    to mid-thigh, each cut into a grid; weighted by height to chest, spine and hips, below the hips
+    blending into the thigh of its side (two influences at most)."""
+    cloth = material("cloth", "#8a2f2f", culled=False)
+
+    def weights(x, z):
+        if z >= 1.3:
+            return {"chest": 1.0}
+        if z >= 1.1:
+            t = (z - 1.1) / 0.2
+            return {"spine": 1 - t, "chest": t} if t > 0 else {"spine": 1.0}
+        if z >= 0.95:
+            t = (z - 0.95) / 0.15
+            return {"hips": 1 - t, "spine": t} if t > 0 else {"hips": 1.0}
+        thigh = "thigh.L" if x > 0 else "thigh.R"
+        t = min((0.95 - z) / 0.35, 1) * min(abs(x) / 0.12, 1)
+        return {"hips": 1 - t, thigh: t} if t > 0 else {"hips": 1.0}
+
+    def build(bm, deform):
+        for y, flip in ((-0.15, False), (0.14, True)):
+            columns, rows = 6, 12
+            grid = [[None] * (columns + 1) for _ in range(rows + 1)]
+            for r in range(rows + 1):
+                z = 0.6 + 0.85 * r / rows
+                for c in range(columns + 1):
+                    x = -0.14 + 0.28 * c / columns
+                    vert = bm.verts.new((x, y, z))
+                    for bone_name, w in weights(x, z).items():
+                        vert[deform][groups.index(bone_name)] = w
+                    grid[r][c] = vert
+            for r in range(rows):
+                for c in range(columns):
+                    quad = (grid[r][c], grid[r][c + 1], grid[r + 1][c + 1], grid[r + 1][c])
+                    bm.faces.new(tuple(reversed(quad)) if flip else quad)
+
+    bm = bmesh.new()
+    deform = bm.verts.layers.deform.verify()
+    build(bm, deform)
+    mesh = bpy.data.meshes.new("tabard")
+    bm.to_mesh(mesh)
+    bm.free()
+    mesh.materials.append(cloth)
+    obj = mesh_object("Tabard", mesh, rig)
+    for group in groups:
+        obj.vertex_groups.new(name=group)
+    obj.modifiers.new("Armature", "ARMATURE").object = rig
+    return obj
+
+
+def tabard(path):
+    """The tabard on a rig of the figure's bones (the body it's made on), exported with that rig: the
+    engine binds its joints to a wearer's bones by name."""
+    rig = armature("Figure", FIGURE_BONES)
+    tabard_mesh(rig, DEFORMING(FIGURE_BONES))
+    export(path, export_skins=True)
+
+
+def pennant(path):
+    """An item with bones of its own: a pole (its origin the grip, along +Y) with a flag on a second
+    bone, and a clip named like the wearer's "swing" state, in which the flag waves (60 fps)."""
+    bpy.context.scene.render.fps, bpy.context.scene.render.fps_base = 60, 1
+    rig = armature("Pennant", [
+        ("pole", (0, -0.1, 0), (0, 1.1, 0), None, False),
+        ("flag", (0, 1.1, 0), (0.3, 1.1, 0), "pole", True),
+    ])
+    groups = ["pole", "flag"]
+
+    def build(bm, deform):
+        chain_tube(bm, deform, groups, [("pole", (0, -0.1, 0), (0, 1.1, 0))], [0.012, 0.012], 0, segments=6, step=0.1)
+        columns, rows = 6, 3
+        grid = [[None] * (columns + 1) for _ in range(rows + 1)]
+        for r in range(rows + 1):
+            for c in range(columns + 1):
+                vert = bm.verts.new((0.35 * c / columns, 1.1 - 0.25 * r / rows, 0))
+                t = min(c / 2, 1)
+                if t < 1:
+                    vert[deform][groups.index("pole")] = 1 - t
+                if t > 0:
+                    vert[deform][groups.index("flag")] = t
+                grid[r][c] = vert
+        for r in range(rows):
+            for c in range(columns):
+                bm.faces.new((grid[r][c], grid[r][c + 1], grid[r + 1][c + 1], grid[r + 1][c])).material_index = 1
+
+    skinned_mesh("pennant", rig, groups, [material("wood", "#7a5a3a"), material("cloth", "#3a5a8a", culled=False)], build)
+    rig.animation_data_create()
+    swing = bpy.data.actions.new("swing")
+    for frame, angle in ((1, 0), (11, 35), (25, -25), (37, 0)):
+        keys(rig, swing, frame, "flag", rotation=((0, 1, 0), angle))
+    stack_actions(rig, (swing,))
+    export(path, **ANIMATED)
+
+
 # Builders by model name (evaluate_animations.py builds the animated ones again).
 BUILDERS = {"blocks": blocks, "rigged": rigged, "shapes": shapes, "stage": stage, "fringe": fringe, "glowing": glowing,
-            "figure": figure, "reach": reach, "stocky": stocky}
+            "figure": figure, "reach": reach, "stocky": stocky, "sword": sword, "tabard": tabard, "pennant": pennant}
 
 
 def main():

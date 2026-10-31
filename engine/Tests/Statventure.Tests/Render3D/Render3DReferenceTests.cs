@@ -350,11 +350,15 @@ public class Render3DReferenceTests(GpuFixture gpu)
                 return new DrawItem(mesh, o.Model, Colors.LinearFromHex(o.Color));
             }).ToList();
             var palette = new Palette(scene.Palette, scene.Shadows);
+            var groups = new Dictionary<string, (object Owner, Vector3 Anchor)>();
             foreach (var placed in scene.Models)
             {
                 var model = Model.Load(device, Path.Combine(ModelDirectory, placed.File));
                 models.Add(model);
-                model.Draw(items, placed.Model, palette, scene.Style, placed.Scenery, placed.PoseOf(model.Data));
+                // A group (a character with its gear) is one model: one owner, the first one's origin anchoring the hatching.
+                (object Owner, Vector3 Anchor)? group = placed.Group == null ? null
+                    : groups.TryGetValue(placed.Group, out var known) ? known : groups[placed.Group] = (new object(), placed.Model.Translation);
+                model.Draw(items, placed.Model, palette, scene.Style, placed.Scenery, placed.PoseOf(model.Data), group?.Owner, placed.World?.Invoke(model.Data), group?.Anchor);
             }
             if (scene.Terrain is { } placedTerrain)
             {
@@ -467,11 +471,11 @@ public class Render3DReferenceTests(GpuFixture gpu)
     /// </summary>
     static Dictionary<string, float[]>? Deformations(ModelObject3D placed)
     {
-        if (placed.Pose.Count == 0)
+        if (placed.Pose.Count == 0 && placed.World == null)
             return null;
         var data = ModelData.Load(Path.Combine(ModelDirectory, placed.File));
         var rest = data.WorldMatrices();
-        var world = data.WorldMatrices(placed.PoseOf(data));
+        var world = placed.World?.Invoke(data) ?? data.WorldMatrices(placed.PoseOf(data));
         var result = new Dictionary<string, float[]>();
         foreach (var skin in data.Skins)
             for (var j = 0; j < skin.Joints.Count; j++)
@@ -520,7 +524,11 @@ public class Render3DReferenceTests(GpuFixture gpu)
                 far = s.Camera.Far,
             },
             objects = s.Objects.Select(o => new { shape = o.Shape.Name, matrix = Columns(o.Model), color = o.Color }).ToArray(),
-            models = s.Models.Select(m => new { file = m.File, matrix = Columns(m.Model), scenery = m.Scenery, pose = Deformations(m) }).ToArray(),
+            models = s.Models.Select(m => new
+            {
+                file = m.File, matrix = Columns(m.Model), scenery = m.Scenery, pose = Deformations(m), group = m.Group,
+                anchor = m.Group == null ? null : V(s.Models.First(o => o.Group == m.Group).Model.Translation),
+            }).ToArray(),
             palette = s.Palette,
             shadows = s.Shadows,
             sun = s.Sun is { } sun ? new { direction = V(sun.Direction), strength = sun.Strength, angle = sun.Angle } : null,

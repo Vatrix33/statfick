@@ -260,15 +260,19 @@ public sealed class Model : IDisposable
     /// outline goes around all of them); each node is a part, with lines unless its <c>ink</c> is 0.
     /// Every model casts shadows; <paramref name="scenery"/> (the stage, terrain and its features)
     /// also receives them (Docs/Renderer-3D.md, "Shadows"). <paramref name="pose"/> moves nodes and
-    /// joints; skinned meshes are posed on the GPU when drawn. <paramref name="owner"/> is the
-    /// items' group, which a 3D view's picking gives back (a new object when none is given).
+    /// joints; skinned meshes are posed on the GPU when drawn. <paramref name="world"/>, when given,
+    /// is every node's world matrix instead (a garment deformed by its wearer's bones,
+    /// Docs/Animation.md). <paramref name="owner"/> is the items' group, which a 3D view's picking
+    /// gives back (a new object when none is given): gear drawn with its wearer's owner is one model
+    /// with it (one outline, one glow mask). The hatching is anchored at <paramref name="anchor"/> on
+    /// screen (world space; the transform's origin when none is given): gear takes its wearer's.
     /// </summary>
     public void Draw(List<DrawItem> items, Matrix4x4 transform, Palette? palette = null, CelStyle? style = null, bool scenery = false, ModelPose? pose = null,
-        object? owner = null)
+        object? owner = null, Matrix4x4[]? world = null, Vector3? anchor = null)
     {
         palette ??= Empty;
         style ??= CelStyle.Default;
-        var world = pose == null ? _rest : Data.WorldMatrices(pose);
+        world ??= pose == null ? _rest : Data.WorldMatrices(pose);
         var group = owner ?? new object();
         for (var node = 0; node < Data.Nodes.Count; node++)
         {
@@ -290,7 +294,7 @@ public sealed class Model : IDisposable
                 item = item with
                 {
                     Shading = Shading.Cel, Shadow = shadow, Group = group, Part = node + 1, Ink = Data.Nodes[node].Ink,
-                    CastsShadow = true, ReceivesShadows = scenery, Hatch = material.Hatch, Anchor = transform.Translation,
+                    CastsShadow = true, ReceivesShadows = scenery, Hatch = material.Hatch, Anchor = anchor ?? transform.Translation,
                     Glow = material.Emission, Features = _features[meshIndex][p],
                 };
                 // Unlit (a Background shader): flat in its colour. An Emission shader alone: flat in
