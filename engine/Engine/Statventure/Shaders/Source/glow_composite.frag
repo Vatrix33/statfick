@@ -2,7 +2,9 @@
 // Glow, pass 4 (Docs/Renderer-3D.md, "Glow"): the lizardman's halo, as compose.py made it in 8-bit
 // sRGB: the wide blur with its alpha boosted (its colours kept), the tight blur over it, laid over
 // the view behind the whole model it belongs to: a sample of that model, or of anything nearer than
-// its glowing parts, hides it.
+// its glowing parts, hides it. Over a transparent view (premultiplied, linear) the halo is laid on
+// as compose.py's alpha_composite lays one image over another: in sRGB, straight colours, adding
+// its alpha.
 #include "common.glsl"
 
 layout(set = 0, binding = 0) uniform utexture2D UintTextures[];
@@ -32,7 +34,8 @@ void main()
 {
     ivec2 p = ivec2(gl_FragCoord.xy);
     vec4 scene = fetch(pc.scene, p);
-    vec3 under = vec3(encode(scene.r), encode(scene.g), encode(scene.b));
+    vec3 straight = scene.a > 0.0 ? scene.rgb / scene.a : vec3(0.0);
+    vec3 under = vec3(encode(straight.r), encode(straight.g), encode(straight.b));
     vec4 wide = fetch(pc.wide, p);
     vec4 core = fetch(pc.core, p);
     // Straight colours: compose.py's "RGBa" to "RGBA", then the wide halo's alpha times the boost.
@@ -51,6 +54,8 @@ void main()
         bool behind = model == 0u || model != owner.x && uintBitsToFloat(s.y) > uintBitsToFloat(owner.y);
         open += owner.x != 0u && behind ? 0.25 : 0.0;
     }
-    vec3 result = halo * open + under * (1.0 - alpha * open);
-    outColor = vec4(decode(result.r), decode(result.g), decode(result.b), scene.a);
+    float shown = alpha * open;
+    float a = shown + scene.a * (1.0 - shown);
+    vec3 result = a > 0.0 ? (halo * open + under * scene.a * (1.0 - shown)) / a : vec3(0.0);
+    outColor = vec4(vec3(decode(result.r), decode(result.g), decode(result.b)) * a, a);
 }

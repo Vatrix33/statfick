@@ -48,6 +48,11 @@ shadow, glow, cast shadows drawn as ink. It also renders 3D views into the UI (p
   scene, casting no shadows, not hatched; emitters: bursts, steady streams and trails (following a
   moving object), from a point, sphere or cone, each particle's speed, size, life and spin drawn
   from ranges with a fixed seed.
+- **3D views in the UI** (step 9, asked 2026-10-31): every 3D view is a `surface` element (a replaced
+  element the UI lays out, clips and layers like an image), the battle and the map included; each
+  view has a background colour or none (transparent: edges, ink lines and the glow's halo blend over
+  what's behind); a view renders only when its scene, camera or size changes or the game asks; and
+  a view can say which model and part (and how deep) is under a point, for pointer events.
 - **GPU skinning** (step 7): linear blend skinning (glTF's and Blender's default), 4 influences per
   vertex (JOINTS_0/WEIGHTS_0, Blender's export default). A posed mesh's normals are recomputed from
   the bent surface as Blender does (measured: its posed normals are the deformed mesh's own smooth
@@ -273,6 +278,26 @@ come up.
   colour, both times the opacity. Glowing particles join the glow's source (their shape in their
   colour, sRGB-encoded, premultiplied, far to near) and own the halo (model id 1023, their depth)
   where they cover half a pixel; they hold no halo back themselves, as their layer goes on top.
+- **3D views in the UI, how they're shown** (`View3D`, `UI.SurfaceViews`, `view_picture.frag`): a
+  view holds a scene (items, particles, camera, background or none, sun, style, time) and its own
+  `RenderTarget3D`; `UiHost.Views` (a `SurfaceViews`) shows views in `surface` elements, the UI's
+  replaced element for engine pictures (natural size 300×150 like a canvas, laid out and styled by
+  CSS, painted as its own layer over its content box). Each frame, before the UI paints, every shown
+  view whose element is laid out updates at its content box's size in device pixels and the
+  document's zoom (so ink lines keep their width on screen): it renders only if one of its
+  properties was set, its camera's settings differ from its last picture's, its size or scale
+  changed, or it was invalidated. A render ends with view_picture.frag turning the resolved
+  picture (premultiplied linear light) into what the canvas takes as an image: straight colours,
+  sRGB-encoded, 8-bit (an opaque view's bytes unchanged), so a transparent view's edges blend over
+  the UI as an image's do. A transparent view clears to nothing; ink lines and particles blend in
+  premultiplied, and the glow's halo is laid on as compose.py's alpha_composite lays one image on
+  another (straight colours in sRGB, adding its alpha). Picking: the main pass resolves sample 0 of
+  the surface records into `RenderTarget3D.Records`, which is copied into one of two CPU-readable
+  buffers per render (so the last submitted copy stays readable); `View3D.Pick` reads the model id,
+  part and depth at a pixel (waiting for that frame if need be) and gives back what the id stood for
+  (`Renderer3D.Render` returns it: an item's group, which `Model.Draw` and `Terrain.Draw` take as
+  their owner, or the item); `SurfaceViews.Pick` maps a viewport point through the element's CSS
+  transforms into its picture.
 - Cameras keep the vertical extent fixed and widen with the aspect ratio (a Blender camera with
   sensor fit vertical): perspective by a vertical field of view, orthographic by the height of the
   world in view (Blender's orthographic scale). `Camera.View` is `Matrix4x4.CreateLookAt`.
@@ -553,4 +578,19 @@ Started 2026-10-30.
   mixed in linear light, a linear fade, unstretched sparks, hard puffs, no depth test, near-to-far
   order, no particle glow and reversed spin each fail `particles`; particles before the lines fail
   `ParticlesCoverTheInkBehindThem`.
-- **Next: step 9, 3D views inside the UI.**
+- **Step 9, 3D views in the UI (2026-10-31, 573 tests): done.** User decisions: every 3D view a
+  `surface` element (the battle and the map too), a background colour or transparent per view, a
+  new picture only on change, picking in this step. `View3D`, `SurfaceViews` (in `UiHost.Views`),
+  view_picture.frag, `RenderTarget3D.Records`/`KeepRecords`, `Frame.SubmittedValue`, owners for
+  `Model.Draw`/`Terrain.Draw`, the glow composite over transparent views. `View3DTests`: renders
+  only on change; an opaque picture is the scene's render byte for byte; a transparent one is clear
+  around the models, the same inside, and its edges laid back over the background in linear light
+  are the opaque view; the glow's halo over a transparent background, laid on in sRGB, is the opaque
+  view; a surface element in a turned, translucent, rounded frame paints exactly as an image of the
+  same picture at device scales 1 and 2; picking finds each part's owner, part and depth, also
+  through a turned and scaled element. Checked by breaking: a premultiplied picture, views sized in
+  CSS px, picking without the element's transform, an unwatched camera, a part off by one and a halo
+  that keeps the view's alpha each fail.
+- **M6 done (2026-10-31, 573 tests).** Measured on this PC's Radeon RX 9070: 0.8-1.4 ms a 1080p
+  frame for the terrain, particle and glow scenes (`Renderer3D.Render` with submission and wait); a
+  2016-class GPU (the target) is untested.

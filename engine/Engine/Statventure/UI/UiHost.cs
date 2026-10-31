@@ -36,6 +36,9 @@ public sealed class UiHost : IDisposable
 
     public UiDocument Document { get; }
 
+    /// <summary>The 3D views shown in the document's surface elements (Docs/Renderer-3D.md, "3D views in the UI").</summary>
+    public SurfaceViews Views { get; }
+
     /// <summary>Loads an image by url (RGBA, not premultiplied); null when there is none.</summary>
     public Func<string, RgbaImage?>? LoadImage { get; set; }
 
@@ -71,10 +74,12 @@ public sealed class UiHost : IDisposable
         document.Clipboard = new SystemClipboard();
         document.CaretBlinkInterval = SystemSettings.CaretBlinkInterval;
         document.Layout.Context.ImageSize = url => Image(url) is { } image ? new Vector2(image.Pixels.Width, image.Pixels.Height) : null;
+        Views = new SurfaceViews(document);
         _painter = new UiPainter(document)
         {
             ImageTexture = url => Texture(url)?.BindlessIndex,
             TextResource = url => LoadText?.Invoke(url),
+            SurfaceTexture = Views.Texture,
         };
         _canvas = new CanvasRenderer(gpu);
         _input = new UiHostInput(document.Input, Window.KeyName) { WheelNotch = Platform.PlatformBehaviour.Windows ? 100 : 120 };
@@ -190,9 +195,13 @@ public sealed class UiHost : IDisposable
         return result;
     }
 
-    /// <summary>Paints the document into <paramref name="target"/> (the window's pixels; the document already works in device pixels).</summary>
+    /// <summary>
+    /// Paints the document into <paramref name="target"/> (the window's pixels; the document already
+    /// works in device pixels), its 3D views rendered first where they changed.
+    /// </summary>
     public void Render(Frame frame, GpuImage target)
     {
+        Views.Update(frame);
         _canvas.Begin(target.Width, target.Height);
         _painter.Paint(_canvas);
         _canvas.Render(frame, target);

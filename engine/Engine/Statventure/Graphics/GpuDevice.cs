@@ -401,6 +401,7 @@ public sealed unsafe partial class GpuDevice : IDisposable
         }
         else
             frame.Slot.LastValue = Submit(new ReadOnlySpan<VkCommandBuffer>(&handle, 1), [], []);
+        frame.SubmittedValue = frame.Slot.LastValue;
         CloseScope(frame.Slot.LastValue);
         _frameNumber++;
     }

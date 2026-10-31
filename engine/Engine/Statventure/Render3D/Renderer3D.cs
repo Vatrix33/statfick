@@ -45,6 +45,16 @@ public sealed class RenderTarget3D : IDisposable
     readonly GpuDevice _device;
     GlowImages? _glow;
     (GpuImage Layer, GpuImage Resolved)? _particles;
+    GpuImage? _records;
+
+    /// <summary>
+    /// Keep sample 0 of each pixel's surface record in <see cref="Records"/> after drawing (model,
+    /// part, depth: for picking, Docs/Renderer-3D.md, "3D views in the UI").
+    /// </summary>
+    public bool KeepRecords { get; set; }
+
+    /// <summary>The surface records' sample 0 (one per pixel), kept when <see cref="KeepRecords"/> is set.</summary>
+    public GpuImage Records => _records ??= GpuImage.CreateRenderTarget(_device, Width, Height, SurfaceFormat);
 
     /// <summary>The particles' layer (MSAA 4×) and its resolve, made when a view first shows particles.</summary>
     internal (GpuImage Layer, GpuImage Resolved) Particles => _particles ??= (
@@ -110,6 +120,7 @@ public sealed class RenderTarget3D : IDisposable
             image.Dispose();
         _particles?.Layer.Dispose();
         _particles?.Resolved.Dispose();
+        _records?.Dispose();
     }
 }
 
@@ -761,11 +772,13 @@ public sealed class Renderer3D(GpuDevice device)
     }
 
     /// <summary>
-    /// Clears the target to <paramref name="background"/> (linear), draws the items seen by
-    /// <paramref name="camera"/> under <paramref name="sun"/>, resolves, and draws the ink lines of
-    /// the items that have them at <paramref name="scale"/> (the device scale) times the style's widths.
+    /// Clears the target to <paramref name="background"/> (linear, premultiplied; alpha 0 leaves it
+    /// transparent), draws the items seen by <paramref name="camera"/> under <paramref name="sun"/>,
+    /// resolves, draws the ink lines of the items that have them at <paramref name="scale"/> (the
+    /// device scale) times the style's widths, then the particles. Returns what each model id in the
+    /// surface records stands for: an item's group, or the item itself when it has none.
     /// </summary>
-    public void Render(Frame frame, RenderTarget3D target, Camera camera, IReadOnlyList<DrawItem> items, Vector4 background, SunLight sun, CelStyle? style = null, float scale = 1,
+    public object?[] Render(Frame frame, RenderTarget3D target, Camera camera, IReadOnlyList<DrawItem> items, Vector4 background, SunLight sun, CelStyle? style = null, float scale = 1,
         float time = 0, IReadOnlyList<Particle>? particles = null)
     {
         style ??= CelStyle.Default;
@@ -843,7 +856,7 @@ public sealed class Renderer3D(GpuDevice device)
         commands.BeginRendering(
             [
                 new ColorAttachment(target.Color, LoadAction.Clear, background, target.Resolved, Store: false),
-                new ColorAttachment(target.Surface, LoadAction.Clear, Vector4.Zero),
+                new ColorAttachment(target.Surface, LoadAction.Clear, Vector4.Zero, target.KeepRecords ? target.Records : null),
             ],
             new DepthAttachment(target.Depth, LoadAction.Clear, 0f, Store: quads.Length > 0));
         commands.SetViewport(0, 0, target.Width, target.Height);
@@ -853,6 +866,9 @@ public sealed class Renderer3D(GpuDevice device)
         uint next = 0;
         uint NewModel() => next++ % MaxModels + 1;
         var models = items.Select(item => item.Group is null ? NewModel() : groups.TryGetValue(item.Group, out var known) ? known : groups[item.Group] = NewModel()).ToArray();
+        var owners = new object?[MaxModels + 1];
+        for (var index = 0; index < items.Count; index++)
+            owners[models[index]] ??= items[index].Group ?? items[index];
         var ink = false;
         var drawAddresses = new ulong[items.Count];
         for (var index = 0; index < items.Count; index++)
@@ -894,7 +910,7 @@ public sealed class Renderer3D(GpuDevice device)
         if (ink && (outline > 0 || inner > 0))
             RenderInk(frame, target, camera, items, vertices, drawAddresses, sceneAddress, style, outline, inner);
         if (quads.Length == 0)
-            return;
+            return owners;
         // The particles over everything, ink lines included: blended into their own layer against the
         // scene's depth, resolved, and laid over the view.
         var (layer, resolved) = target.Particles;
@@ -912,6 +928,7 @@ public sealed class Renderer3D(GpuDevice device)
         commands.Push((uint)resolved.BindlessIndex);
         commands.Draw(3);
         commands.EndRendering();
+        return owners;
     }
 
     /// <summary>The ink lines (Docs/Renderer-3D.md, "Ink lines"): feature edges, the edges pass, the lines over the view.</summary>

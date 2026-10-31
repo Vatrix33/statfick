@@ -238,13 +238,15 @@ public sealed class Terrain : IDisposable
     /// receives shadows, is hatched in shadow, has ink lines), one model; the ground in the covers'
     /// tones, each chunk at the coarsest stride whose cells are still about 2 pixels on screen
     /// (<paramref name="camera"/> on a target <paramref name="viewportHeight"/> pixels tall); the
-    /// water in the palette's <c>water</c> tones.
+    /// water in the palette's <c>water</c> tones. <paramref name="owner"/> is the items' group, which a
+    /// 3D view's picking gives back (a new object when none is given).
     /// </summary>
-    public void Draw(List<DrawItem> items, Vector3 translation, Camera camera, int viewportHeight, Palette? palette = null, CelStyle? style = null)
+    public void Draw(List<DrawItem> items, Vector3 translation, Camera camera, int viewportHeight, Palette? palette = null, CelStyle? style = null,
+        object? owner = null)
     {
         palette ??= new Palette();
         style ??= CelStyle.Default;
-        var group = new object();
+        var group = owner ?? new object();
         var tones = Data.CoverSlots.SelectMany(slot =>
         {
             var (lit, shadow) = palette.Resolve(new ModelMaterial(slot, new Vector4(0.5f, 0.5f, 0.5f, 1), false), style);

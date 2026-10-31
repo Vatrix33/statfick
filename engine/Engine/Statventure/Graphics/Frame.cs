@@ -92,6 +92,9 @@ public sealed class Frame
     public CommandList Commands { get; }
     public long Number { get; }
 
+    /// <summary>The timeline value the frame's work signals when it finishes (0 until it's submitted; <see cref="GpuDevice.WaitFor"/>).</summary>
+    public ulong SubmittedValue { get; internal set; }
+
     internal Frame(GpuDevice device, FrameSlot slot, long number)
     {
         Device = device;

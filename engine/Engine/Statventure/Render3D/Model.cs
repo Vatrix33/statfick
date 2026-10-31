@@ -260,14 +260,16 @@ public sealed class Model : IDisposable
     /// outline goes around all of them); each node is a part, with lines unless its <c>ink</c> is 0.
     /// Every model casts shadows; <paramref name="scenery"/> (the stage, terrain and its features)
     /// also receives them (Docs/Renderer-3D.md, "Shadows"). <paramref name="pose"/> moves nodes and
-    /// joints; skinned meshes are posed on the GPU when drawn.
+    /// joints; skinned meshes are posed on the GPU when drawn. <paramref name="owner"/> is the
+    /// items' group, which a 3D view's picking gives back (a new object when none is given).
     /// </summary>
-    public void Draw(List<DrawItem> items, Matrix4x4 transform, Palette? palette = null, CelStyle? style = null, bool scenery = false, ModelPose? pose = null)
+    public void Draw(List<DrawItem> items, Matrix4x4 transform, Palette? palette = null, CelStyle? style = null, bool scenery = false, ModelPose? pose = null,
+        object? owner = null)
     {
         palette ??= Empty;
         style ??= CelStyle.Default;
         var world = pose == null ? _rest : Data.WorldMatrices(pose);
-        var group = new object();
+        var group = owner ?? new object();
         for (var node = 0; node < Data.Nodes.Count; node++)
         {
             var meshIndex = Data.Nodes[node].Mesh;
