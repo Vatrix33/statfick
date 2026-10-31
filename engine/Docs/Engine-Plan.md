@@ -11,12 +11,26 @@ on the private GitHub repo `github.com/Vatrix33/statfick`.
 Before each later milestone (M7 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code.
 
+**Starting M7 (animation):** give it its own design doc (`Docs/Animation.md`), as M6 has
+`Docs/Renderer-3D.md`. What M6 leaves for it: `ModelPose` (local translation, rotation and scale per
+node; the rest keep the file's) is what animation fills; `Model.Draw(..., pose)` poses the hierarchy and
+skins on the GPU (linear blend, 4 influences, normals recomputed as Blender does); `View3D` redraws when
+its items are set again, so an animated view sets them each frame. Not there yet: `GltfImport` reads no
+glTF animations (channels, samplers, interpolation), and the test models carry no actions (`rigged.glb`,
+a tube on two bones, is exported in its rest pose by `Tools/BlenderReference/make_models.py`). The
+reference method carries over: Blender poses the same model (`render_scenes.py`'s `pose_model`, see
+"Poses in Blender" in `Docs/Renderer-3D.md`), so sampled clips can be checked against Blender's own
+evaluation of its actions at the same times, the shading and ink against its renders.
+
 **Design docs by area** (read the one for the area you work on): `Docs/Compositing-Port.md` (Blink
 compositing, LCD vs grayscale text, inline SVG transforms), `Docs/Scripting.md` (event loop, frame
-callbacks, matchMedia, ResizeObserver, Web Animations). The rest of M0–M5 is described in Progress below.
+callbacks, matchMedia, ResizeObserver, Web Animations), `Docs/Renderer-3D.md` (the 3D renderer, M6:
+its decisions, how each part works, the Blender reference harness and comparisons, each step's status). The rest of M0–M5 is described in Progress below.
 A new area (M6 on) gets its own design doc in `Docs/`.
 
-**Method.** Everything the old game shows behaves as Chromium 152 (the game's Electron) behaves:
+**Method.** For the 3D areas (M6 on) the reference is Blender instead: the same scenes rendered by
+Blender 5.2, its rule ported and the engine tested against its renders (`Docs/Renderer-3D.md`, "Method").
+Everything the old game shows behaves as Chromium 152 (the game's Electron) behaves:
 1. Get ground truth first: capture references with the harnesses (`Tools/Scripts/make-*-references.sh`;
    Electron apps that `Tools/Scripts/chromium.sh` runs in Chromium 152 (Electron 44.5.0 from npm, the
    old game's): `Tools/InputReference` (real input), `Tools/PaintReference` (screenshots, any scale),
@@ -63,7 +77,9 @@ the design and the tests):
 - **M6 3D renderer:** answered 2026-10-30 (see "Decisions for M6" below).
 - **M7 Animation:** which animation set each character, enemy and boss needs (full sets were decided
   on 2026-10-16; which clips: idle, attacks, casts, hits, deaths, walks…)? In-place or root motion? Who approves the first
-  model before the rest are made?
+  model before the rest are made? Where clip events (a hit's frame, a footstep's sound) are authored:
+  in Blender (glTF has no markers, so in extras) or in the game's data? Are state machines (which
+  clip follows which, cross-fade times) written in C# or as data for the editor (M11)?
 - **M8 Audio:** must the C# synthesizer match the old JavaScript one sample for sample (offline renders
   compared) or by ear? Are sound effects synthesized as now? Output sample rate and latency?
 - **M9 Assets and data:** pack layout (which data in which pack), compression, mod or loose-folder

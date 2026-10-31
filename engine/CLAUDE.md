@@ -19,5 +19,10 @@ the user and wait for their go-ahead before starting the next one.
   before a step counts as done. They pass the same on the PC's GPU, on a CPU Vulkan (the cloud) and
   on Windows: they act as Chromium on Linux with the reference PC's fonts and font settings.
 - Chromium 152 for references: `Tools/Scripts/chromium.sh` (Electron 44.5.0 from npm).
+- Blender 5.2 for the 3D references (M6 on): `Tools/Scripts/make-blender-references.sh [scene ...]`
+  (`Docs/Renderer-3D.md`, "Reference harness"; on the PC the Flatpak, run headless). Its renders and
+  test models are committed, so the tests run where there's no Blender (the cloud).
+- On the PC a step is also checked on the CPU Vulkan the cloud uses (Mesa's lavapipe):
+  `VK_DRIVER_FILES=/usr/share/vulkan/icd.d/lvp_icd.x86_64.json VK_ICD_FILENAMES=$VK_DRIVER_FILES Tools/Scripts/test.sh`.
 - Reference sources: `~/.cache/stat-fick-build/reference-src/` (save new downloads there).
 - Notes kept from earlier sessions (history, gotchas, recipes): `Docs/Notes.md`.
