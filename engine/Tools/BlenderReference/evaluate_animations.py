@@ -1,5 +1,7 @@
 # Evaluates the test models' actions in Blender at the times the tests ask and writes every bone's
-# pose (Docs/Animation.md, "Method"): Tests/Statventure.Tests/Golden/anim-<scene>.json.
+# pose (Docs/Animation.md, "Method"): Tests/Statventure.Tests/Golden/anim-<scene>.json. A scene with
+# a "target" plays the model's action on the target model's armature instead (clips shared by bone
+# names) and writes the target's bones.
 # Run by Tools/Scripts/make-blender-references.sh:
 #   blender -b --factory-startup --python evaluate_animations.py -- <anim-scenes.json> <golden folder> [scene ...]
 #
@@ -32,6 +34,13 @@ def evaluate(scene, folder):
     make_models.reset()
     make_models.BUILDERS[scene["model"]](None)
     rig = next(o for o in bpy.data.objects if o.type == "ARMATURE")
+    if scene.get("target"):
+        # Another model of the rig family plays the model's action: Blender finds each F-curve's bone
+        # by name (pose.bones["name"]) and applies its channels on that bone's own rest.
+        make_models.BUILDERS[scene["target"]](None)
+        rig = next(o for o in bpy.data.objects if o.type == "ARMATURE" and o is not rig)
+    if rig.animation_data is None:
+        rig.animation_data_create()
     # The builder leaves the actions on NLA tracks for the exporter; a scene plays one as the active
     # action over nothing else.
     for track in rig.animation_data.nla_tracks:

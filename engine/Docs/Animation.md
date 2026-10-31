@@ -131,7 +131,9 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   per side; a body of tubes skinned with two influences at most), with "idle" (2 s loop: the hips'
   location, the chest's rotation and scale, arm and head rotations), "swing" (0.6 s, fast eased
   rotations; a pose marker "hit") and "twist" (a 270° turn about a bone's axis; the head's keys
-  CONSTANT, exported as STEP); `reach.glb`, a two-bone arm bent by an IK constraint toward a keyed
+  CONSTANT, exported as STEP; the neck nods in the idle too); `stocky.glb`, a stockier model of the
+  same rig family without actions (the same bone names, other proportions, the upper arms rolled
+  30°, no neck: the head hangs on the chest; a beard bone no clip moves); `reach.glb`, a two-bone arm bent by an IK constraint toward a keyed
   target bone (only the target is keyed; the arm's rotations come from the solver, baked by the
   export). Scene frame rate 60 fps, keys from frame 1. Exported with `ANIMATED`: skins, animations
   in "ACTIONS" mode (each action on an NLA track of its own becomes one glTF animation), always
@@ -143,7 +145,9 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   `Animation/AnimationScenes.cs`), builds each scene's model again with `make_models.py`'s builder
   (imported as a module; a path of None skips the export), mutes the NLA tracks, makes the scene's
   action the active one and evaluates it at each time (`frame_set` with a subframe; frame = the
-  action's first frame + time × 60). Writes `Golden/anim-<scene>.json`: each bone's rest head and
+  action's first frame + time × 60). A scene with a `target` builds that model too and plays the
+  model's action on the target's armature (its slot assigned explicitly); Blender finds each
+  F-curve's bone by name (`pose.bones["name"]`) and applies the channels on that bone's own rest. Writes `Golden/anim-<scene>.json`: each bone's rest head and
   tail and, per time, its deformation in model space (posed after the inverse of rest, the armature
   object's world included) converted to glTF's coordinates (C·D·C⁻¹ with C: (x, y, z) → (x, z, −y);
   joint nodes keep Blender's bone axes, so a joint's glTF world is C times its Blender world).
@@ -211,5 +215,11 @@ Started 2026-10-31 (decisions asked and recorded).
   space failed the IK arm, whose bones bend more than its end. Checked by breaking: slerp the long
   way, a normalised lerp, STEP interpolated, cubic tangents unscaled or rotations unnormalised,
   joint channels kept absolute, plain nodes made relative, the basis before the rest, translations
-  not divided by the rest scale, no clamping and an off segment search each fail a test. Next:
-  step 2 (a second figure with other proportions; Blender plays the first figure's actions on it).
+  not divided by the rest scale, no clamping and an off segment search each fail a test.
+- **Step 2, clips shared by bone names (2026-10-31, 586 tests): done.** The binding by name and the
+  channels on each model's own rest came with step 1; this step checks them against Blender:
+  `stocky.glb` and the scenes `stocky-idle` and `stocky-swing` (the figure's actions on the stocky
+  armature). On frames within 0.0005 mm, between frames at most 0.72 of the allowance. Checked by
+  breaking: channels played as absolute local transforms (a naive by-name playback) pass every
+  same-model scene and fail both stocky scenes; ignoring the target's rest rotation (its roll) fails
+  them all. Next: step 3 (layers and cross-fades as Blender's NLA).

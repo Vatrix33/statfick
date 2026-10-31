@@ -40,8 +40,8 @@ public class AnimationReferenceTests(ITestOutputHelper output)
         var path = Path.Combine(ReferenceDirectory, "anim-scenes.json");
         var text = JsonSerializer.Serialize(new
         {
-            scenes = AnimationScenes.All.Select(s => new { name = s.Name, model = s.Model, clip = s.Clip, times = s.Times }),
-        }, new JsonSerializerOptions { WriteIndented = true }) + "\n";
+            scenes = AnimationScenes.All.Select(s => new { name = s.Name, model = s.Model, clip = s.Clip, target = s.Target, times = s.Times }),
+        }, new JsonSerializerOptions { WriteIndented = true, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }) + "\n";
         if (!File.Exists(path) || File.ReadAllText(path) != text)
             File.WriteAllText(path, text);
         Assert.NotEmpty(AnimationScenes.All);
@@ -68,9 +68,10 @@ public class AnimationReferenceTests(ITestOutputHelper output)
     internal static Comparison Compare(AnimationScene scene)
     {
         var reference = Load(scene.Name);
-        var model = ModelData.Load(Path.Combine(Render3DReferenceTests.ModelDirectory, scene.Model + ".glb"));
+        var source = ModelData.Load(Path.Combine(Render3DReferenceTests.ModelDirectory, scene.Model + ".glb"));
+        var clip = AnimationClip.AllOf(source).Single(c => c.Name == scene.Clip);
+        var model = scene.Target == null ? source : ModelData.Load(Path.Combine(Render3DReferenceTests.ModelDirectory, scene.Target + ".glb"));
         var skeleton = new Skeleton(model);
-        var clip = AnimationClip.AllOf(model).Single(c => c.Name == scene.Clip);
         var binding = new ClipBinding(clip, skeleton);
         var rest = model.WorldMatrices();
         var inverseRest = rest.Select(Inverse).ToArray();

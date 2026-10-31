@@ -385,7 +385,7 @@ def glowing(path):
 
 
 def armature(name, bones, location=(0, 0, 0)):
-    """An armature object with these bones: (name, head, tail, parent, connected[, deform])."""
+    """An armature object with these bones: (name, head, tail, parent, connected[, deform[, roll in degrees]])."""
     data = bpy.data.armatures.new(name.lower())
     rig = bpy.data.objects.new(name, data)
     bpy.context.scene.collection.objects.link(rig)
@@ -398,6 +398,7 @@ def armature(name, bones, location=(0, 0, 0)):
         edit = data.edit_bones.new(bone_name)
         edit.head, edit.tail = head, tail
         edit.use_deform = bone[5] if len(bone) > 5 else True
+        edit.roll = math.radians(bone[6]) if len(bone) > 6 else 0
         if parent:
             edit.parent = made[parent]
             edit.use_connect = connected
@@ -531,7 +532,7 @@ for side, sign in (("L", 1), ("R", -1)):
 def figure(path):
     """The animation test figure: a humanoid rig like the game's (hips, spine, chest, neck, head,
     arms, legs), a smooth body skinned to it, and three actions at 60 fps: "idle" (a two-second
-    loop: the hips bob, the chest turns and swells by scale, the arms sway, the head nods), "swing"
+    loop: the hips bob, the chest turns and swells by scale, the arms sway, the neck and head nod), "swing"
     (a 0.6 s one-handed swing with eased keys; the exporter writes quaternions with w >= 0, so the
     upper arm's change sign where its local rotation passes 180°) and "twist" (the left hand turns
     270° about its own axis, and the head snaps between poses with constant keys, which export as
@@ -570,6 +571,7 @@ def figure(path):
         keys(rig, idle, frame, "upper_arm.L", rotation=((1, 0, 0), 4 * k))
         keys(rig, idle, frame, "upper_arm.R", rotation=((1, 0, 0), -4 * k))
         keys(rig, idle, frame, "head", rotation=((1, 0, 0), 3 * k))
+        keys(rig, idle, frame, "neck", rotation=((1, 0, 0), 2 * k))
 
     swing = bpy.data.actions.new("swing")
     for frame, arm, fore, twist, lean in ((1, 0, 0, 0, 0), (13, -150, -40, 20, 5), (23, -10, -10, -10, 2), (37, 0, 0, 0, 0)):
@@ -626,9 +628,62 @@ def reach(path):
     export(path, **ANIMATED)
 
 
+# A stockier figure of the same rig family (Docs/Animation.md: clips are shared by bone names): the
+# same bone names but other proportions, the upper arms rolled 30° (their own axes turned), no neck
+# (the head hangs on the chest) and a bone the figure lacks (a beard).
+STOCKY_BONES = [
+    ("hips", (0, 0, 0.62), (0, 0, 0.76), None, False),
+    ("spine", (0, 0, 0.76), (0, 0, 0.92), "hips", True),
+    ("chest", (0, 0, 0.92), (0, 0, 1.1), "spine", True),
+    ("head", (0, 0, 1.1), (0, 0, 1.32), "chest", True),
+    ("beard", (0, -0.11, 1.17), (0, -0.13, 1.05), "head", False),
+]
+for side, sign in (("L", 1), ("R", -1)):
+    STOCKY_BONES += [
+        (f"upper_arm.{side}", (sign * 0.24, 0, 1.06), (sign * 0.38, 0.03, 0.86), "chest", False, True, sign * 30),
+        (f"forearm.{side}", (sign * 0.38, 0.03, 0.86), (sign * 0.44, -0.02, 0.68), f"upper_arm.{side}", True),
+        (f"hand.{side}", (sign * 0.44, -0.02, 0.68), (sign * 0.46, -0.03, 0.6), f"forearm.{side}", True),
+        (f"thigh.{side}", (sign * 0.13, 0, 0.62), (sign * 0.14, -0.01, 0.35), "hips", False),
+        (f"shin.{side}", (sign * 0.14, -0.01, 0.35), (sign * 0.14, 0.02, 0.08), f"thigh.{side}", True),
+        (f"foot.{side}", (sign * 0.14, 0.02, 0.08), (sign * 0.14, -0.12, 0.02), f"shin.{side}", True),
+    ]
+
+
+def stocky(path):
+    """The stocky figure in its rest pose, without actions of its own: the tests play the figure's
+    clips on it, and Blender plays the figure's actions on its armature."""
+    bpy.context.scene.render.fps, bpy.context.scene.render.fps_base = 60, 1
+    rig = armature("Stocky", STOCKY_BONES)
+    bone = {b[0]: b for b in STOCKY_BONES}
+    groups = [b[0] for b in STOCKY_BONES]
+    cloth, skin, hair = material("cloth", "#4f6a3a"), material("skin", "#b8876a"), material("hair", "#6b4a2e")
+
+    def build(bm, deform):
+        chain_tube(bm, deform, groups, [("hips", (0, 0, 0.56), (0, 0, 0.76)), ("spine", (0, 0, 0.76), (0, 0, 0.92)),
+                                        ("chest", (0, 0, 0.92), (0, 0, 1.12))], [0.17, 0.16, 0.18, 0.21], 0, segments=14, depth=0.7)
+        head = bmesh.ops.create_uvsphere(bm, u_segments=16, v_segments=10, radius=0.13, matrix=Matrix.Translation((0, 0, 1.22)))["verts"]
+        weighted(bm, deform, groups, head, "head")
+        beard = bmesh.ops.create_cube(bm, size=1, matrix=Matrix.Translation((0, -0.12, 1.1)) @ Matrix.Diagonal((0.12, 0.05, 0.14, 1)))["verts"]
+        weighted(bm, deform, groups, beard, "beard")
+        for face in bm.faces:
+            if all(v in beard for v in face.verts):
+                face.material_index = 2
+        for side in ("L", "R"):
+            arm = [(n, bone[n][1], bone[n][2]) for n in (f"upper_arm.{side}", f"forearm.{side}", f"hand.{side}")]
+            chain_tube(bm, deform, groups, arm, [0.06, 0.055, 0.05, 0.045], 1)
+            leg = [(n, bone[n][1], bone[n][2]) for n in (f"thigh.{side}", f"shin.{side}")]
+            chain_tube(bm, deform, groups, leg, [0.085, 0.07, 0.06], 1, segments=12)
+            x = 0.14 if side == "L" else -0.14
+            foot = bmesh.ops.create_cube(bm, size=1, matrix=Matrix.Translation((x, -0.04, 0.04)) @ Matrix.Diagonal((0.1, 0.2, 0.07, 1)))["verts"]
+            weighted(bm, deform, groups, foot, f"foot.{side}")
+
+    skinned_mesh("body", rig, groups, [cloth, skin, hair], build)
+    export(path, export_skins=True)
+
+
 # Builders by model name (evaluate_animations.py builds the animated ones again).
 BUILDERS = {"blocks": blocks, "rigged": rigged, "shapes": shapes, "stage": stage, "fringe": fringe, "glowing": glowing,
-            "figure": figure, "reach": reach}
+            "figure": figure, "reach": reach, "stocky": stocky}
 
 
 def main():

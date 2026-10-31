@@ -4,9 +4,11 @@ namespace Statventure.Tests.Animation;
 /// An animation reference scene (Docs/Animation.md, "Method"): a test model (Data/Models, built by
 /// Tools/BlenderReference/make_models.py), a clip of it, and the times (seconds from the clip's
 /// start) at which Blender evaluates its action (Tools/BlenderReference/evaluate_animations.py,
-/// Golden/anim-&lt;name&gt;.json) and the engine samples the exported clip.
+/// Golden/anim-&lt;name&gt;.json) and the engine samples the exported clip. With a
+/// <see cref="Target"/> the clip plays on that model (found by bone names, on its own rest pose), as
+/// Blender plays the action on the target's armature.
 /// </summary>
-public sealed record AnimationScene(string Name, string Model, string Clip, double[] Times)
+public sealed record AnimationScene(string Name, string Model, string Clip, double[] Times, string? Target = null)
 {
     /// <summary>A time that falls on one of the clip's 60 fps frames, where Blender's evaluation and the exported samples agree exactly.</summary>
     public static bool OnFrame(double time) => Math.Abs(time * AnimationScenes.Fps - Math.Round(time * AnimationScenes.Fps)) < 1e-6;
@@ -45,5 +47,9 @@ public static class AnimationScenes
         new("figure-twist", "figure", "twist", TimesFor(60)),
         // An IK constraint baked into the clip by the exporter's sampling.
         new("reach-reach", "reach", "reach", TimesFor(60)),
+        // The figure's clips on the stocky figure: other proportions, rolled upper arms, no neck (the
+        // idle's neck channel is left out), a beard bone no clip moves.
+        new("stocky-idle", "figure", "idle", TimesFor(120), Target: "stocky"),
+        new("stocky-swing", "figure", "swing", TimesFor(36), Target: "stocky"),
     ];
 }
