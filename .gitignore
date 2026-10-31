@@ -18,3 +18,4 @@ node_modules/
 .vs/
 .idea/
 *.user
+__pycache__/
