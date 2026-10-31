@@ -1,4 +1,4 @@
-// A stand-in for Chromium's third_party/fdlibm/overflowing-math.h: just what Blink's fdlibm uses (Tools/FdlibmReference/reference.cc).
+// A stand-in for Chromium's third_party/fdlibm/overflowing-math.h: just what Blink's fdlibm uses (Tools/NativeReference/fdlibm.cc).
 #pragma once
 #include <cstdint>
 #include <type_traits>

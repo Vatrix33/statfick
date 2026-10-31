@@ -32,6 +32,20 @@ internal sealed class AudioGraph
     public double CurrentTime => CurrentSampleFrame / SampleRate;
     public AudioDestinationNode Destination { get; }
 
+    readonly Dictionary<OscillatorType, PeriodicWave> _basicWaves = [];
+
+    /// <summary>BaseAudioContext::GetPeriodicWave: the built-in shape's tables, made once per context.</summary>
+    internal PeriodicWave BasicWave(OscillatorType type)
+    {
+        if (!_basicWaves.TryGetValue(type, out var wave))
+            _basicWaves[type] = wave = PeriodicWave.Basic(SampleRateF, type);
+        return wave;
+    }
+
+    /// <summary>createPeriodicWave(real, imag, { disableNormalization }).</summary>
+    public PeriodicWave CreatePeriodicWave(ReadOnlySpan<float> real, ReadOnlySpan<float> imag, bool disableNormalization = false) =>
+        PeriodicWave.Create(SampleRateF, real, imag, disableNormalization);
+
     internal void NotifyEnded(AudioScheduledSourceNode source) => _ended.Add(source);
     internal void NotifyStarted(AudioScheduledSourceNode source) => _activeSources.Add(source);
 

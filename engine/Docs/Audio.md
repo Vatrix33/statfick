@@ -28,6 +28,10 @@ Asked before the milestone started; also in `Docs/Engine-Plan.md`, "Decisions fo
 - **Sound effects:** synthesized from the same nodes (one-shot patches as data), on an effects bus,
   triggered by the game or by clip events (Docs/Animation.md); no audio files. Which sounds the
   game gets is decided at port time.
+- **The FFT (asked during step 2):** Chromium 152 computes Web Audio's FFTs (periodic wave tables,
+  the convolver) with the RustFFT 6.4.1 crate, which on this PC's CPU (AVX2 + FMA) runs its AVX/FMA
+  algorithms; the engine ports exactly those, bit for bit, emulating AVX and FMA on CPUs without
+  them. (Not RustFFT's scalar path or pffft within a rounding bound.)
 - **Output:** at the audio device's own rate, as Chromium's AudioContext runs, in 128-frame quanta,
   about 20 ms queued ahead.
 
@@ -60,7 +64,9 @@ As M3–M5 did with Chromium:
    the old game's themes through `Music.renderOffline`. Renders are committed as references, so the
    tests run anywhere.
 2. **Port the rule** from Blink's source (`~/.cache/stat-fick-build/reference-src/chromium-152-source/webaudio/`:
-   `modules/webaudio` handlers and `platform/audio` DSP, the x86 vector math, Chromium's pffft),
+   `modules/webaudio` handlers and `platform/audio` DSP, the x86 vector math and kernels; the
+   RustFFT 6.4.1 crate in `~/.cache/stat-fick-build/reference-src/rustfft-6.4.1/`; glibc 2.43's
+   float functions in `.../reference-src/glibc-2.43/`),
    in the same float operations and order, rather than tuning until renders match.
 3. **Test against the reference** within float rounding (the bound worked out per rule from float32
    precision, not fitted); every rule gets a test that fails when the rule is broken.
@@ -77,7 +83,8 @@ As M3–M5 did with Chromium:
 3. **Biquad filters:** the coefficient formulas of each type the composer uses (and the rest Blink
    has), parameter automation, the filter state.
 4. **Convolver and stereo panner:** Blink's Reverb (normalization, partitioned FFT convolution with
-   pffft, the background stage threading reproduced deterministically), the panner's equal-power law.
+   the Rust FFT, the background stage threading reproduced deterministically), the panner's
+   equal-power law.
 5. **Dynamics compressor:** Blink's compressor kernel (pre-delay, detector, knee curve, makeup gain).
 6. **The game synthesizer:** the composer ported onto the private nodes (instruments, rooms,
    performances, the sequencer), the master chain and theme fades; the theme data generated as C#
@@ -128,8 +135,8 @@ of step 6, not these nodes.
 - **`Fdlibm.cs`:** fdlibm's exp and pow as Blink builds them (`third_party/fdlibm`): Blink computes
   its exponentials, the discrete time constant, detune and exponential ramps with them, and the C
   library's give other results in about 6-7 % of such inputs (an ulp off). Checked bit for bit against
-  Blink's own fdlibm, built natively by `Tools/Scripts/make-fdlibm-reference.sh` from
-  `Tools/FdlibmReference` (Chromium 152's V8 can't be the reference: its `Math.exp` is no longer
+  Blink's own fdlibm, built natively by `Tools/Scripts/make-native-references.sh` from
+  `Tools/NativeReference` (Chromium 152's V8 can't be the reference: its `Math.exp` is no longer
   fdlibm, node 24's still is, and V8's `Math.pow` is the C library's).
 
 **Single-threaded:** Blink renders on an audio thread and applies the main thread's changes at the
@@ -157,6 +164,51 @@ C# twin; the tests write `Reference/audio-fixtures.json` for the harness. A scri
 `ctx.suspend(t).then(...)` (the twin's `Suspend`) to change the graph while rendering, as the game's
 scheduler and theme fades do. Noise comes from the composer's mulberry32 in both languages.
 
+### Oscillators and periodic waves (step 2)
+
+- **`RustFft.cs`:** Chromium 152 doesn't use pffft for Web Audio: the `WebAudioRustFft` feature is
+  stable, so Blink's FFTFrame calls `rustfft_ffi.rs` (RustFFT 6.4.1). Its planner picks the AVX/FMA
+  algorithms on this CPU (user decision, "The FFT"): for f32 powers of two, a 256- or 512-point AVX
+  butterfly (512 when log2 of the length is a multiple of 3), then MixedRadix 16/8/4/2xn stages
+  (`plan_mixed_radix`). Ported: `V8`, one AVX register of four complex floats with the intrinsics
+  the code uses (adds and multiplies lane by lane, `fmaddsub`/`fmsubadd` fused, the shuffles as bit
+  moves; AVX and FMA instructions when the CPU has them, the same lane arithmetic otherwise);
+  RustFFT's column butterflies 2/4/8/16/32 with their rotations and twiddles, Butterfly128/256/512Avx,
+  MixedRadix4xn and 8xnAvx (the lengths Web Audio needs: 1024 = 256 × 4, 2048 = 256 × 8, 4096 = 512
+  × 8, 8192 = 256 × 8 × 4, 16384 = 256 × 8 × 8); twiddles in double with the C library's cos and sin,
+  rounded to float. `RealFft` is Blink's even-size real FFT around a half-size complex one (its
+  packing in num-complex's unfused float arithmetic; DC in real[0], Nyquist in imag[0]; the inverse
+  scaled by 1 / half size).
+- **`Libm.cs`:** glibc 2.43's exp2f and log2f, which Blink calls for detune (std::exp2) and pitch
+  ranges (log2f): not correctly rounded (about 20 000 and 45 000 floats differ from a double result
+  rounded). x86-64 glibc picks variants built with FMA on CPUs that have it; ported with those fused
+  steps, though the unfused SSE2 variants give the same float for every input (counted by the native
+  reference), so the CPU's choice doesn't matter. Checked against the system's glibc on all 2³²
+  floats (`Tools/Scripts/make-native-references.sh` hashes them; `LibmTests` checks every 4099th,
+  all of them with `STATVENTURE_EXHAUSTIVE=1`). On Linux .NET's MathF calls glibc too; the port makes
+  Windows give the same results.
+- **`PeriodicWave.cs`:** PeriodicWaveImpl: 2048-point tables up to 24 kHz, 4096 up to 88.2 kHz, else
+  16384; one table per third of an octave (36 at 48 kHz), each the inverse FFT of the harmonics a
+  fundamental in its range keeps below Nyquist (culled by pow(2, −cents/1200)), normalized by the
+  first table's peak (unless disabled); the four basic shapes from their Fourier series; the pair
+  of tables around a frequency and the factor between them.
+- **`Oscillator.cs`:** OscillatorHandler with the SSE2 kernels (`oscillator_kernel_sse2.cc`,
+  fetched into the reference sources): phase increments per sample when frequency or detune is
+  automated (detune's multipliers, frequency clamped to Nyquist), else one frequency per quantum;
+  the k-rate vector path (four float read positions, wrapped in float), its scalar tail and the
+  a-rate kernel (positions in double), linear interpolation between table samples and between the
+  two ranges' tables, 3- and 5-point Lagrange interpolation for increments under 0.3 and 0.16;
+  start between frames; the shape changed while playing; stopping oscillators nothing pulls.
+  Blink's quirks kept: k-rate parameters are read twice a quantum; a note starting mid-quantum takes
+  the quantum's increments from its first frame; the k-rate path advances its position by n · incr
+  as a float product.
+
+**Reading the tables out:** at 16 384, 32 768 and 131 072 Hz an 8 Hz oscillator steps exactly one
+sample of the second range's table per frame (no interpolation), and 32 Hz every fourth sample of
+the eighth range's; these fixtures (`osc-tables-*`) show Chromium's tables for every shape, one
+table size and FFT plan per rate. (Rust can't be installed here to build RustFFT natively, so the
+renders are the FFT's reference.)
+
 ## Status
 
 - **Step 1, harness and render core: done (2026-10-31, 681 tests).** 39 fixtures (buffer sources:
@@ -178,6 +230,18 @@ scheduler and theme fades do. Noise comes from the composer's mulberry32 in both
 - **Chromium quirk kept:** `cancelAndHoldAtTime` during a `setTargetAtTime` followed by a ramp
   starts the ramp from 0, not from the held value (param-cancel-hold-target; the game's fades hold
   linear ramps, which work as expected).
-- **Next: step 2, oscillators and periodic waves.** Blink's x86 oscillator kernel
-  (`modules/webaudio/cpu/x86/oscillator_kernel_sse2.cc`) is now in the reference sources too; the
-  oscillator's detune uses the C library's `exp2` (glibc on Linux), unlike the rest.
+- **Step 2, oscillators and periodic waves: done (2026-10-31, 707 tests).** User decision on the
+  way: the FFT is RustFFT's AVX path (Chromium 152's Web Audio FFT). 18 fixtures (the tables read out at three
+  rates for every shape and a custom wave; each shape playing; custom waves with and without
+  normalization; frequency swept; detune automated alone and with frequency; constant detune and a
+  note starting mid-quantum during a sweep; LFOs at 2.5 and 0.4 Hz (3- and 5-point), one on a gain;
+  frequency modulated by another oscillator, across zero; a negative frequency; near Nyquist, detuned
+  past it; a shape change while playing; detuned above Nyquist and back; a steady note starting
+  between frames after the first quantum; 22.05 and 96 kHz) match Chromium bit for bit. Unit tests:
+  an oscillator nothing pulls finishing, errors, the forward real FFT against a direct DFT (the
+  convolver's, compared with Chromium in step 4), exp2f and log2f against glibc. 36 mutations of
+  the rules: 31 fail a test; the other 5 are exact identities (1/1024 and 2/2048, halving before or
+  after rounding, a float or a double quotient of floats) or glibc's fused steps, which change no
+  float result. Blink quirk worth knowing: an automated oscillator ignores its start's fraction of
+  a frame (the k-rate frequency it would scale by is 0 there).
+- **Next: step 3, biquad filters.**

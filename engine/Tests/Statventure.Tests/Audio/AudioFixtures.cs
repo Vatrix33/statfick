@@ -44,6 +44,13 @@ internal sealed class AudioFixtureRun(AudioGraph graph)
 
     public GainNode Gain() => new(Graph);
 
+    public OscillatorNode Osc(OscillatorType type, float frequency)
+    {
+        var osc = new OscillatorNode(Graph, type);
+        osc.Frequency.Value = frequency;
+        return osc;
+    }
+
     /// <summary>The fixtures' DC source: a buffer of 128 ones looped from 0, so a gain after it outputs its own values.</summary>
     public AudioBufferSourceNode Dc()
     {
@@ -110,7 +117,7 @@ internal static class AudioFixtures
         new(name, channels, length, rate, Prelude + script, build, tolerance);
 
     static AudioFixture[]? s_all;
-    public static AudioFixture[] All => s_all ??= [.. Core()];
+    public static AudioFixture[] All => s_all ??= [.. Core(), .. Oscillators()];
 
     static IEnumerable<AudioFixture> Core()
     {
@@ -639,5 +646,253 @@ internal static class AudioFixtures
             b.Connect(g);
             b.Start(0.15);
         });
+    }
+
+    /// <summary>JavaScript helpers for the oscillator fixtures (after the prelude).</summary>
+    const string OscPrelude = """
+        const osc = (type, frequency) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = frequency; return o; };
+
+        """;
+
+    static AudioFixture O(string name, int channels, int length, float rate, string script, Action<AudioFixtureRun> build, double tolerance = 0) =>
+        F(name, channels, length, rate, OscPrelude + script, build, tolerance);
+
+    static readonly (string Js, OscillatorType Type)[] Shapes =
+        [("sine", OscillatorType.Sine), ("square", OscillatorType.Square), ("sawtooth", OscillatorType.Sawtooth), ("triangle", OscillatorType.Triangle)];
+
+    // A custom wave like the composer's (imaginary harmonics, real zeros), and one with both parts and no normalization.
+    static readonly float[] Harmonics = [0, 1, 0.6f, 0.3f, 0.45f, 0.1f, 0.25f, 0.05f, 0.12f];
+    static readonly float[] RealParts = [0, 0.2f, -0.4f, 0, 0.3f, 0, 0, 0.15f, 0];
+
+    static string Js(float[] values) => string.Join(", ", values.Select(v => v.ToString("R", System.Globalization.CultureInfo.InvariantCulture)));
+
+    static IEnumerable<AudioFixture> Oscillators()
+    {
+        // ---------- The wave tables, read out ----------
+
+        // At these rates an 8 Hz oscillator steps exactly one sample of its second range's table per
+        // frame (rate · 1/8 is the table size, 8 Hz the lowest fundamental: no interpolation), and
+        // 32 Hz every fourth sample of the eighth range's. Each rate has its own table size: the
+        // Rust FFT's 1024-, 2048- and 8192-point plans.
+        foreach (var (rate, size, shapes) in new (float, int, int)[] { (16384, 2048, 5), (32768, 4096, 5), (131072, 16384, 2) })
+        {
+            var period = size;
+            var count = shapes;
+            yield return O($"osc-tables-{size}", 1, count * (period + period / 4), rate, $$"""
+                const real = new Float32Array([{{Js(RealParts)}}]), imag = new Float32Array([{{Js(Harmonics)}}]);
+                const custom = ctx.createPeriodicWave(real.map(() => 0), imag);
+                const shapes = ["sawtooth", "custom", "square", "triangle", "sine"].slice(0, {{count}});
+                let t = 0;
+                shapes.forEach(shape => {
+                  for (const [frequency, frames] of [[8, {{period}}], [32, {{period / 4}}]]) {
+                    const o = shape === "custom" ? osc("sine", frequency) : osc(shape, frequency);
+                    if (shape === "custom") o.setPeriodicWave(custom);
+                    o.connect(out); o.start(t / ctx.sampleRate); t += frames; o.stop(t / ctx.sampleRate);
+                  }
+                });
+                """, r =>
+            {
+                var custom = r.G.CreatePeriodicWave(new float[RealParts.Length], Harmonics);
+                OscillatorType[] order = [OscillatorType.Sawtooth, OscillatorType.Custom, OscillatorType.Square, OscillatorType.Triangle, OscillatorType.Sine];
+                var t = 0;
+                foreach (var shape in order.Take(count))
+                    foreach (var (frequency, frames) in new[] { (8f, period), (32f, period / 4) })
+                    {
+                        var o = r.Osc(shape == OscillatorType.Custom ? OscillatorType.Sine : shape, frequency);
+                        if (shape == OscillatorType.Custom)
+                            o.SetPeriodicWave(custom);
+                        o.Connect(r.G.Destination);
+                        o.Start(t / (double)r.G.SampleRateF);
+                        t += frames;
+                        o.Stop(t / (double)r.G.SampleRateF);
+                    }
+            });
+        }
+
+        // ---------- Playing ----------
+
+        foreach (var (js, type) in Shapes)
+            yield return O($"osc-{js}", 1, 4096, 48000, $$"""
+                const o = osc("{{js}}", 431.7); o.connect(out); o.start(0.0010021); o.stop(0.0781);
+                """, r =>
+            {
+                var o = r.Osc(type, 431.7f);
+                o.Connect(r.G.Destination);
+                o.Start(0.0010021);
+                o.Stop(0.0781);
+            });
+
+        yield return O("osc-custom", 1, 4096, 44100, $$"""
+            const a = osc("sine", 220); a.setPeriodicWave(ctx.createPeriodicWave(new Float32Array({{Harmonics.Length}}), new Float32Array([{{Js(Harmonics)}}])));
+            a.connect(out); a.start(0); a.stop(0.04);
+            const b = osc("sine", 330); b.setPeriodicWave(ctx.createPeriodicWave(new Float32Array([{{Js(RealParts)}}]), new Float32Array([{{Js(Harmonics)}}]), { disableNormalization: true }));
+            b.connect(out); b.start(0.05);
+            """, r =>
+        {
+            var a = r.Osc(OscillatorType.Sine, 220);
+            a.SetPeriodicWave(r.G.CreatePeriodicWave(new float[Harmonics.Length], Harmonics));
+            a.Connect(r.G.Destination);
+            a.Start(0);
+            a.Stop(0.04);
+            var b = r.Osc(OscillatorType.Sine, 330);
+            b.SetPeriodicWave(r.G.CreatePeriodicWave(RealParts, Harmonics, disableNormalization: true));
+            b.Connect(r.G.Destination);
+            b.Start(0.05);
+        });
+
+        // Frequency swept (a-rate: a phase increment and a pair of tables per sample).
+        yield return O("osc-frequency-automation", 1, 12000, 48000, """
+            const o = osc("sawtooth", 100); o.connect(out);
+            o.frequency.setValueAtTime(100, 0.01); o.frequency.exponentialRampToValueAtTime(6000, 0.12); o.frequency.linearRampToValueAtTime(40, 0.24);
+            o.start(0.0021);
+            """, r =>
+        {
+            var o = r.Osc(OscillatorType.Sawtooth, 100);
+            o.Connect(r.G.Destination);
+            o.Frequency.SetValueAtTime(100, 0.01).ExponentialRampToValueAtTime(6000, 0.12).LinearRampToValueAtTime(40, 0.24);
+            o.Start(0.0021);
+        });
+
+        // Detune automated alone (its multipliers become the increments), then with the frequency.
+        yield return O("osc-detune-automation", 1, 12000, 48000, """
+            const o = osc("square", 300); o.connect(out);
+            o.detune.setValueAtTime(0, 0); o.detune.linearRampToValueAtTime(1200, 0.08); o.detune.setTargetAtTime(-700, 0.1, 0.03);
+            o.start(0);
+            const p = osc("triangle", 500); p.connect(out);
+            p.frequency.setValueAtTime(500, 0.13); p.frequency.linearRampToValueAtTime(250, 0.2);
+            p.detune.setValueAtTime(-300, 0.13); p.detune.linearRampToValueAtTime(400, 0.24);
+            p.start(0.13);
+            """, r =>
+        {
+            var o = r.Osc(OscillatorType.Square, 300);
+            o.Connect(r.G.Destination);
+            o.Detune.SetValueAtTime(0, 0).LinearRampToValueAtTime(1200, 0.08).SetTargetAtTime(-700, 0.1, 0.03);
+            o.Start(0);
+            var p = r.Osc(OscillatorType.Triangle, 500);
+            p.Connect(r.G.Destination);
+            p.Frequency.SetValueAtTime(500, 0.13).LinearRampToValueAtTime(250, 0.2);
+            p.Detune.SetValueAtTime(-300, 0.13).LinearRampToValueAtTime(400, 0.24);
+            p.Start(0.13);
+        });
+
+        // A constant detune (k-rate multiplier), and a note starting mid-quantum while its frequency
+        // moves (Blink takes the quantum's increments from its first frame).
+        yield return O("osc-detune-and-late-start", 1, 6000, 48000, """
+            const o = osc("sawtooth", 261.6); o.detune.value = 37; o.connect(out); o.start(0); o.stop(0.05);
+            const p = osc("sine", 700); p.connect(out);
+            p.frequency.setValueAtTime(700, 0); p.frequency.linearRampToValueAtTime(1500, 0.12);
+            p.start(0.0600417);
+            """, r =>
+        {
+            var o = r.Osc(OscillatorType.Sawtooth, 261.6f);
+            o.Detune.Value = 37;
+            o.Connect(r.G.Destination);
+            o.Start(0);
+            o.Stop(0.05);
+            var p = r.Osc(OscillatorType.Sine, 700);
+            p.Connect(r.G.Destination);
+            p.Frequency.SetValueAtTime(700, 0).LinearRampToValueAtTime(1500, 0.12);
+            p.Start(0.0600417);
+        });
+
+        // Low frequencies (3- and 5-point interpolation), as the composer's LFOs, one modulating a gain.
+        yield return O("osc-lfo", 1, 24000, 48000, """
+            const a = osc("sine", 2.5); a.connect(out); a.start(0);
+            const b = osc("triangle", 0.4); const depth = gain(0.3); b.connect(depth);
+            const g = gain(0.5); dc().connect(g).connect(out); depth.connect(g.gain); b.start(0.001);
+            """, r =>
+        {
+            var a = r.Osc(OscillatorType.Sine, 2.5f);
+            a.Connect(r.G.Destination);
+            a.Start(0);
+            var b = r.Osc(OscillatorType.Triangle, 0.4f);
+            var depth = r.Gain(0.3f);
+            b.Connect(depth);
+            var g = r.Gain(0.5f);
+            r.Dc().Connect(g).Connect(r.G.Destination);
+            depth.Connect(g.Gain);
+            b.Start(0.001);
+        });
+
+        // An oscillator driving another's frequency (audio-rate input, frequency crossing zero), and a
+        // negative frequency.
+        yield return O("osc-modulated-frequency", 1, 8192, 48000, """
+            const carrier = osc("sine", 300); carrier.connect(out); carrier.start(0);
+            const modulator = osc("sine", 47); const depth = gain(450); modulator.connect(depth).connect(carrier.frequency); modulator.start(0);
+            const n = osc("sawtooth", -330); n.connect(out); n.start(0.1);
+            """, r =>
+        {
+            var carrier = r.Osc(OscillatorType.Sine, 300);
+            carrier.Connect(r.G.Destination);
+            carrier.Start(0);
+            var modulator = r.Osc(OscillatorType.Sine, 47);
+            modulator.Connect(r.Gain(450)).Connect(carrier.Frequency);
+            modulator.Start(0);
+            var n = r.Osc(OscillatorType.Sawtooth, -330);
+            n.Connect(r.G.Destination);
+            n.Start(0.1);
+        });
+
+        // Near Nyquist (the top ranges, few partials), detuned past it (clamped), and the shape changed while playing.
+        yield return O("osc-high-and-type-change", 1, 8192, 48000, """
+            const a = osc("square", 9000); a.connect(out); a.start(0); a.stop(0.05);
+            const b = osc("sawtooth", 15000); b.detune.value = 1200; b.connect(out); b.start(0.05); b.stop(0.1);
+            const c = osc("triangle", 880); c.connect(out); c.start(0.1);
+            ctx.suspend(0.13).then(() => { c.type = "square"; ctx.resume(); });
+            """, r =>
+        {
+            var a = r.Osc(OscillatorType.Square, 9000);
+            a.Connect(r.G.Destination);
+            a.Start(0);
+            a.Stop(0.05);
+            var b = r.Osc(OscillatorType.Sawtooth, 15000);
+            b.Detune.Value = 1200;
+            b.Connect(r.G.Destination);
+            b.Start(0.05);
+            b.Stop(0.1);
+            var c = r.Osc(OscillatorType.Triangle, 880);
+            c.Connect(r.G.Destination);
+            c.Start(0.1);
+            r.Suspend(0.13, () => c.Type = OscillatorType.Square);
+        });
+
+        // Detuned above Nyquist and back down: the increments are clamped meanwhile (the top tables are
+        // silent), which sets the phase the sweep comes back with.
+        yield return O("osc-above-nyquist", 1, 8192, 48000, """
+            const o = osc("sawtooth", 15000); o.connect(out);
+            o.detune.setValueAtTime(1200, 0); o.detune.linearRampToValueAtTime(-4000, 0.15);
+            o.start(0);
+            """, r =>
+        {
+            var o = r.Osc(OscillatorType.Sawtooth, 15000);
+            o.Connect(r.G.Destination);
+            o.Detune.SetValueAtTime(1200, 0).LinearRampToValueAtTime(-4000, 0.15);
+            o.Start(0);
+        });
+
+        // A steady note starting between frames after the first quantum (the k-rate path takes the
+        // start's fraction of a frame into its phase).
+        yield return O("osc-steady-late-start", 1, 4096, 48000, """
+            const o = osc("square", 377.3); o.connect(out); o.start(0.0123456); o.stop(0.07);
+            """, r =>
+        {
+            var o = r.Osc(OscillatorType.Square, 377.3f);
+            o.Connect(r.G.Destination);
+            o.Start(0.0123456);
+            o.Stop(0.07);
+        });
+
+        // Other sample rates: 22.05 kHz (2048-point tables) and 96 kHz (16384-point).
+        foreach (var rate in new[] { 22050f, 96000f })
+            yield return O($"osc-rate-{rate / 1000:0.##}k".Replace('.', '_'), 1, 6000, rate, """
+                const o = osc("sawtooth", 523.25); o.connect(out); o.start(0.001);
+                o.frequency.setValueAtTime(523.25, 0.02); o.frequency.exponentialRampToValueAtTime(90, 0.05);
+                """, r =>
+            {
+                var o = r.Osc(OscillatorType.Sawtooth, 523.25f);
+                o.Connect(r.G.Destination);
+                o.Start(0.001);
+                o.Frequency.SetValueAtTime(523.25f, 0.02).ExponentialRampToValueAtTime(90, 0.05);
+            });
     }
 }

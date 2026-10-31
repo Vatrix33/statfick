@@ -6,7 +6,7 @@ namespace Statventure.Tests.Audio;
 
 /// <summary>
 /// The engine's fdlibm exp and pow give Blink's results bit for bit (Reference/fdlibm.json, from
-/// Blink's own fdlibm built by Tools/Scripts/make-fdlibm-reference.sh) on inputs like Web Audio's;
+/// Blink's own fdlibm built by Tools/Scripts/make-native-references.sh) on inputs like Web Audio's;
 /// .NET's Math.Exp and Math.Pow don't, which is why the port exists.
 /// </summary>
 public class FdlibmTests

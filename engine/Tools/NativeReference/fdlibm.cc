@@ -2,7 +2,7 @@
 // Chromium 152 builds it for Web Audio, built here against small stand-ins for the Chromium headers
 // it includes, in shim/) evaluated on inputs like Web Audio's: exp for setTargetAtTime and the
 // discrete time constants, pow for detune and exponential ramps. Prints JSON: inputs and results as
-// the hex of their IEEE bits. Built and run by Tools/Scripts/make-fdlibm-reference.sh.
+// the hex of their IEEE bits. Built and run by Tools/Scripts/make-native-references.sh.
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
