@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Makes the 3D test models and references with Blender 5.2 (Docs/Renderer-3D.md):
-# 1. Tools/BlenderReference/make_models.py builds the test models and exports them as .glb into
-#    Tests/Statventure.Tests/Data/Models (the script is their source);
+# 1. Tools/BlenderReference/make_terrain.py writes the test terrain (Data/Terrain) and make_models.py
+#    builds the test models and exports them as .glb into Tests/Statventure.Tests/Data/Models (the
+#    scripts are their source);
 # 2. Tools/BlenderReference/render_scenes.py renders the test scenes with EEVEE into
 #    Tests/Statventure.Tests/Golden/r3d-*.png (and glowing parts into Actual/blender-glow);
 # 3. Tools/BlenderReference/compose_glow.py lays the glow's halo into them (Pillow, as the lizardman's
@@ -29,6 +30,7 @@ run() {
   fi
   echo "$log" | grep -E "^wrote|Error" || true
 }
+python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/make_terrain.py" "$TESTS/Data/Terrain" >/dev/null
 run "$STATVENTURE_SOURCE/Tools/BlenderReference/make_models.py" -- "$TESTS/Data/Models"
 run "$STATVENTURE_SOURCE/Tools/BlenderReference/render_scenes.py" -- "$TESTS/Reference/r3d-scenes.json" "$TESTS/Golden" "$TESTS/Actual/blender-glow" "$@"
 python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/compose_glow.py" "$TESTS/Reference/r3d-scenes.json" "$TESTS/Golden" "$TESTS/Actual/blender-glow"

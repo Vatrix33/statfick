@@ -110,6 +110,10 @@ public enum Shading
     Flat,
     /// <summary>Two tones from the sun (Docs/Renderer-3D.md, "Cel shading").</summary>
     Cel,
+    /// <summary>Cel-shaded in the covers' tones, blended (<see cref="DrawItem.Terrain"/>; Docs/Renderer-3D.md, "Terrain").</summary>
+    Terrain,
+    /// <summary>Cel-shaded with a rippling normal (Docs/Renderer-3D.md, "Terrain").</summary>
+    Water,
 }
 
 /// <summary>
@@ -140,6 +144,8 @@ public readonly record struct DrawItem(Mesh Mesh, Matrix4x4 Model, Vector4 Color
     public SkinJob? Skin { get; init; }
     /// <summary>Its mesh's creases and open edges for the ink lines.</summary>
     public FeatureEdges? Features { get; init; }
+    /// <summary>A terrain chunk's cover blending (<see cref="Shading.Terrain"/>).</summary>
+    public TerrainShade? Terrain { get; init; }
 }
 
 /// <summary>
@@ -205,6 +211,7 @@ public sealed class Renderer3D(GpuDevice device)
         public uint ReceivesShadows;
         public Vector3 Anchor;
         public uint Hatch;
+        public ulong Extra;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -226,6 +233,7 @@ public sealed class Renderer3D(GpuDevice device)
         public float HatchSpacing;
         public float HatchWidth;
         public float HatchInk;
+        public float Time;
     }
 
     /// <summary>The 16 directions over the sun's disc (a Vogel spiral: even over its area), in units of its radius.</summary>
@@ -296,6 +304,19 @@ public sealed class Renderer3D(GpuDevice device)
         public ulong Fans;
         public ulong Indices;
         public uint Count;
+    }
+
+    /// <summary>A terrain's cover blending as terrain.frag reads it (TerrainShade): a 32-byte head, then the tones.</summary>
+    static ulong UploadTerrain(Frame frame, TerrainShade shade)
+    {
+        static float Bits(int value) => BitConverter.Int32BitsToSingle(value);
+        Vector4[] block =
+        [
+            new Vector4(shade.Origin.X, shade.Origin.Y, shade.CellSize, Bits(shade.Covers.BindlessIndex)),
+            new Vector4(Bits(shade.Width), Bits(shade.Depth), Bits(shade.Tones.Length / 2), 0),
+            .. shade.Tones,
+        ];
+        return frame.Upload<Vector4>(block);
     }
 
     /// <summary>Per frame in flight: device memory for posed vertices, reused from the frame's start.</summary>
@@ -387,7 +408,7 @@ public sealed class Renderer3D(GpuDevice device)
         public float Boost;
     }
 
-    readonly Pipeline?[] _pipelines = new Pipeline?[8];
+    readonly Pipeline?[] _pipelines = new Pipeline?[16];
 
     /// <param name="mirrored">
     /// The model matrix mirrors (a negative determinant), which turns counter-clockwise triangles
@@ -397,7 +418,13 @@ public sealed class Renderer3D(GpuDevice device)
         _pipelines[(int)shading * 4 + (doubleSided ? 2 : 0) + (mirrored ? 1 : 0)] ??= device.Pipelines.Get(new GraphicsPipelineDesc
         {
             VertexShader = "mesh.vert",
-            FragmentShader = shading == Shading.Cel ? "mesh_cel.frag" : "mesh_flat.frag",
+            FragmentShader = shading switch
+            {
+                Shading.Cel => "mesh_cel.frag",
+                Shading.Terrain => "terrain.frag",
+                Shading.Water => "water.frag",
+                _ => "mesh_flat.frag",
+            },
             Blend = BlendMode.Opaque,
             ColorFormats = [RenderTarget3D.ColorFormat, RenderTarget3D.SurfaceFormat],
             DepthFormat = RenderTarget3D.DepthFormat,
@@ -453,7 +480,7 @@ public sealed class Renderer3D(GpuDevice device)
         DepthCompare = VkCompareOp.Greater,
     });
 
-    Pipeline? _feature, _edges, _lines, _shadow, _glowSource, _glowBlur, _glowOwner, _glowComposite;
+    Pipeline? _feature, _edges, _lines, _shadow, _glowSource;
 
     Pipeline GlowSourcePipeline => _glowSource ??= device.Pipelines.Get(new GraphicsPipelineDesc
     {
@@ -641,7 +668,8 @@ public sealed class Renderer3D(GpuDevice device)
     /// <paramref name="camera"/> under <paramref name="sun"/>, resolves, and draws the ink lines of
     /// the items that have them at <paramref name="scale"/> (the device scale) times the style's widths.
     /// </summary>
-    public void Render(Frame frame, RenderTarget3D target, Camera camera, IReadOnlyList<DrawItem> items, Vector4 background, SunLight sun, CelStyle? style = null, float scale = 1)
+    public void Render(Frame frame, RenderTarget3D target, Camera camera, IReadOnlyList<DrawItem> items, Vector4 background, SunLight sun, CelStyle? style = null, float scale = 1,
+        float time = 0)
     {
         style ??= CelStyle.Default;
         var commands = frame.Commands;
@@ -665,6 +693,7 @@ public sealed class Renderer3D(GpuDevice device)
             HatchSpacing = style.HatchSpacing * scale,
             HatchWidth = style.HatchWidth * scale,
             HatchInk = style.HatchInk,
+            Time = time,
         };
         if (direction != Vector3.Zero && sun.Strength > 0 && FitShadow(items, camera, aspect, direction, tanHalfAngle) is { } fit)
         {
@@ -735,6 +764,7 @@ public sealed class Renderer3D(GpuDevice device)
                 ReceivesShadows = item.ReceivesShadows ? 1u : 0,
                 Anchor = item.Anchor,
                 Hatch = item.Hatch ? 1u : 0,
+                Extra = item.Terrain is { } terrain ? UploadTerrain(frame, terrain) : 0,
             }]);
             drawAddresses[index] = draw;
             commands.BindIndexBuffer(item.Mesh.Indices);

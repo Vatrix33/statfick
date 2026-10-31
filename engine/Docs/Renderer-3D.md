@@ -29,6 +29,17 @@ shadow, glow, cast shadows drawn as ink. It also renders 3D views into the UI (p
   edge is at N·L 0.314, 71.7° from the light. Engine defaults, settable per scene. Band edges are
   antialiased like Blender's render, over about a pixel from how fast the light changes on screen
   (not shaded per MSAA sample).
+- **Terrain** (step 8): per region a 16-bit height image and a cover image on one grid (each point's
+  cover: a palette slot), made in Blender (first versions can be generated from today's field
+  functions); the engine builds the ground in chunks with level of detail; trees, rocks and ruins are
+  placed Blender models. Covers blend softly over three cells around a boundary, the boundary warped
+  so it doesn't follow the grid. Water is shaded: a surface at the water level in its palette tones
+  with the light band, broken by two sine wave trains (about 1.5 m and 0.6 m long, crossing,
+  drifting) that tilt its normal by up to about 8°.
+- **Particles** (step 8): flat camera-facing shapes drawn in the shader (disc, ring, spark stretched
+  along its motion, puff with a soft edge, shard), in palette colours, optionally ink-outlined,
+  glowing through the glow pass; size and opacity follow each particle's age (grow in, shrink and
+  fade out), blended over the scene.
 - **GPU skinning** (step 7): linear blend skinning (glTF's and Blender's default), 4 influences per
   vertex (JOINTS_0/WEIGHTS_0, Blender's export default). A posed mesh's normals are recomputed from
   the bent surface as Blender does (measured: its posed normals are the deformed mesh's own smooth
@@ -143,9 +154,12 @@ come up.
     background on the other side: the outline; within a model, a break in the surface (neither
     side's depth, carried on from the pixel behind it or along its face plane, reaches the other's
     within two pixels' worth): an inner line; two parts meeting without a break: none (Freestyle
-    draws no intersections); within a part, face normals more than 180° minus the crease angle
-    apart: an inner line. Faces less than the crease angle apart with one nearly edge-on
-    (|N·V| < 0.25) count as continuous: their planes predict nothing. All eight samples of the two
+    draws no intersections, nor where two surfaces cross between the pixels, as water meets a bank,
+    while both face the viewer, |N·V| > 0.2); within a part, face normals more than 180° minus the
+    crease angle apart: an inner line. Faces less than the crease angle apart with one nearly
+    edge-on (|N·V| < 0.25) count as continuous (their planes predict nothing) unless their depths
+    lie further apart than twice the depth a surface at that angle runs across a pixel (a pixel's
+    width over |N·V|): a fold, as a hill's crest before the slope behind it. All eight samples of the two
     pixels then place the line: the samples on the first pixel's side, over 4, are where a straight
     edge crosses the middle of the two-pixel strip (a quarter-pixel step).
   - Pass 2 draws each line centred on those crossing points: coverage = clamp(half width − distance
@@ -153,7 +167,7 @@ come up.
     blended over the resolved colour with straight alpha in linear.
   - Needs 4× MSAA R32G32_UINT colour attachments that can be sampled (checked: RADV, lavapipe;
     Vulkan 1.3 desktop GPUs have it).
-- **Shadows, how they're made** (`Renderer3D.FitShadow`, `mesh_cel.frag`):
+- **Shadows, how they're made** (`Renderer3D.FitShadow`, `mesh_lighting.glsl`):
   - Draw items carry `CastsShadow` (models: all) and `ReceivesShadows` (`Model.Draw(..., scenery)`).
   - The sun's view: orthographic along the light, fitted to the receivers the camera sees (the
     frustum between the nearest and farthest the scene reaches, in the light's view), widened by
@@ -167,7 +181,7 @@ come up.
   - The tone: the light band gives lit or shadow (antialiased, as before), then blends toward the
     shadow tone by the hidden share of the sun (`mix(shadow, tone, visibility)`): what averaging
     EEVEE's per-sample two-tone results gives.
-- **Hatching, how it's drawn** (`mesh_cel.frag`): the model's origin (`DrawItem.Anchor`) projected to
+- **Hatching, how it's drawn** (`mesh_lighting.glsl`): the model's origin (`DrawItem.Anchor`) projected to
   pixels anchors lines across the screen at the hatch angle; the nearest line's share of the pixel
   is the exact box filter of a straight band (the pixel square projected across the lines is a
   trapezoid); the colour mixes toward the ink by hatch ink × line share × the pixel's shadow share
@@ -206,6 +220,27 @@ come up.
   its normals equal its face normal, and posed such a face keeps its own normal (measured); so a
   skinned primitive's flat triangles get vertices of their own at load (one-triangle fans), and the
   smooth ones share fans by rest position and normal (a seam's split vertices share theirs).
+- **Terrain, how it's drawn** (`Terrain`, `terrain.frag`, `water.frag`): `TerrainData.Load` reads a
+  JSON (grid width and depth in points, cell size, the 16-bit height image mapped onto heightMin to
+  heightMax, the cover image with each point's cover as an index into `covers`, palette slots, and
+  the water level). The ground is cut into chunks of 32 cells, each built at strides 1, 2, 4 and 8,
+  every cell split along the reference's diagonal, smooth normals weighted by corner angles
+  (Blender's). Along its borders a chunk keeps every grid point at every stride (a border cell is a
+  fan about a point inside it), so neighbouring chunks share their border vertices whatever their
+  strides: no cracks, and no vertex on another's edge (such T-junctions left single-pixel gaps
+  where rasterization rounds). Each frame a chunk takes the coarsest stride whose cells are still
+  about 2 pixels on screen. One model (scenery: casts and receives shadows, hatched, inked): the
+  ground as part 1, the water as part 2 (casting no shadow). terrain.frag finds the pixel's place on
+  the grid, warps it by a fixed sum of sines (0.45 · (sin(0.93 y + 1.3) + 0.5 sin(0.37 (x + y) +
+  0.4)) across, 0.45 · (sin(0.81 x + 2.1) + 0.5 sin(0.41 (x − y) + 1.7)) along), weighs the 4×4 grid
+  points about it by a separable tent of radius 1.5 cells and mixes their covers' tones (lit and
+  shadow from the palette), then shades through the toon chain (`celTone` in mesh_lighting.glsl,
+  shared with mesh_cel.frag and water.frag). The water is a quad at its level over the whole grid;
+  water.frag tilts its normal by the gradient of two sine trains at the scene's time
+  (`Renderer3D.Render(..., time)`): 1.5 m long, toward (cos 20°, sin 20°), slope 0.08, 0.3 m/s;
+  0.6 m long, toward (cos 115°, sin 115°), slope 0.06, 0.18 m/s; in the palette's `water` tones.
+  The map is open at its edge: seen from beside it, the water shows under the land (the map camera
+  never looks there).
 - Cameras keep the vertical extent fixed and widen with the aspect ratio (a Blender camera with
   sensor fit vertical): perspective by a vertical field of view, orthographic by the height of the
   world in view (Blender's orthographic scale). `Camera.View` is `Matrix4x4.CreateLookAt`.
@@ -264,6 +299,13 @@ come up.
   Lambert's from nodes (Geometry normal · sun direction × strength / π: the Geometry normal already
   faces the viewer on back faces), without shadows. Scenes without scenery are unchanged (no
   shadows, a point sun).
+- **Terrain in Blender**: `make_terrain.py` (Pillow) writes the test terrain (`Data/Terrain/test.json`,
+  a 16-bit height image, the cover image and a one-hot copy of it for Blender's nodes);
+  `render_scenes.py` rebuilds the engine's grid mesh (the same diagonal), smooth-shaded, and blends
+  the covers in nodes as terrain.frag does (the same warp, the 4×4 tents over the one-hot image),
+  through the toon chain. The water is a mesh at its level made of the terrain's cells and inset by
+  a millimetre, both for Freestyle (below), its normal from the same wave trains in nodes. Terrain
+  and water are one object for the ink, as in the engine.
 - **Ink lines in Blender**: after the shading render, each model's parts with ink are joined into one
   object (skins applied, parents cleared keeping places, coincident vertices welded back so a
   material seam is the crease it was in Blender rather than two open borders), so Freestyle's
@@ -275,14 +317,23 @@ come up.
   (`Renderer3D.InkCoverageOnly`) and its shading without lines (widths 0).
 - **Freestyle's limits seen:** a face seen exactly edge-on (a flat top under a level orthographic
   side view) is neither clearly contour nor not, and Freestyle draws it thin with odd corners; the
-  test camera looks slightly down. A face a pixel tall is shaded once per pixel under MSAA (Blender
+  test camera looks slightly down. Contour or not is decided per view edge by a vote of its
+  segments, each casting a ray behind itself for the shape there (ViewMapBuilder.cpp,
+  `computeCumulativeVisibility`, `findOccludee`); the ray only meets triangles its image-space grid
+  holds for that cell, placed by their corners' projections, so a long edge's real projection
+  strays from the chord between them and borders lying just above it find nothing behind
+  (an outline where the same object lies behind); and a ray along the very edge of a triangle hits
+  or misses as rounding falls. A water quad of two triangles under the terrain's borders did both:
+  some borders were outlines, others not, changing with unrelated objects in the scene (they change
+  the grid). Hence the reference's water of terrain cells, inset a millimetre. A face a pixel tall is shaded once per pixel under MSAA (Blender
   per sample); test cameras avoid such slivers.
 - **Reproducible:** Blender's PNG stamps (date, render time) are off, so re-running the script on
   unchanged scenes writes the same bytes. The glTF exporter orders triangles differently from run to
   run (not by Python's hash seed), so `make_models.py` puts each index buffer's triangles in one
   order after export (each starting at its smallest index, winding kept, sorted).
 - **Comparison** (`Render3DReferenceTests.Compare`): a pixel whose 3×3 neighbourhood in the
-  reference is one colour must match within 2 levels. On an edge MSAA 4× covers the pixel in
+  reference is one colour must match within 2 levels (not on the frame's edge, whose neighbours are
+  partly out of view: a wave band just outside it shades the edge pixel). On an edge MSAA 4× covers the pixel in
   quarters and resolves it alone, where EEVEE filters 64 samples across neighbouring pixels: they
   differ by up to 0.61 of the edge's local contrast (the 3×3 range), about 3 levels on average. An
   edge half a pixel out differs by about 9 on average; a missing or extra feature by about the whole
@@ -290,23 +341,33 @@ come up.
   average. Checked: drawing mirrored nodes with the wrong winding, or culling double-sided
   materials, fails `model-blocks` clearly. On failure the render goes to `Actual/r3d-<scene>.png`.
 - **Ink comparison** (`Render3DReferenceTests.CompareInk`, on coverage maps): Freestyle line pixels
-  (coverage ≥ 0.5) without an engine line pixel within one pixel ≤ 2% (measured 0.1%); engine line
-  pixels away from any Freestyle line ≤ 3% (measured 1.7%, a corner where a part without ink meets
-  another); total ink within 10% (measured 1.5%); mean coverage difference over line pixels ≤ 0.12
-  (measured 0.05-0.09); the engine's ink in the 7×7 pixels about each Freestyle line pixel 0.75 to
-  1.33 times Freestyle's for all but 3% (measured 1%). Checked: missing creases, lines 20% thin,
-  lines on parts without ink and outlines only against the background each fail.
-- **Shadow comparison** (`CompareShadowed`, for scenes with scenery): the engine also renders the
-  scene without shadows; where that render has a geometric edge (non-uniform 3×3), pixels are
-  compared as in `Compare`, with one stray pixel in 10,000 allowed (a sub-pixel band edge or contact
-  shadow shaded once per pixel against Blender's per sample; measured up to 5). Inside surfaces: at
-  most 0.2% of pixels may differ by more than 16 levels (measured 0.12%), and the summed difference
-  from Blender may be at most a tenth of the summed difference between Blender and the shadowless
-  render (measured at most 0.079). Fringes differ by single pixels up to about 10 levels: Blender
+  (coverage ≥ 0.5) without an engine line pixel within one pixel ≤ 2% (measured 0.31%); engine line
+  pixels away from any Freestyle line ≤ 3% (measured 2.85%: where surfaces meet seen almost
+  edge-on, the fin on the bent tube in `pose-side` or a hill's far slope going into the lake, the
+  engine can't tell two surfaces crossing from a silhouette; and a corner where a part without ink
+  meets another); total ink within 10% (measured 2.4%); mean coverage difference over line pixels
+  ≤ 0.12 (measured 0.03-0.08); the engine's ink in the 7×7 pixels about each Freestyle line pixel
+  0.75 to 1.33 times Freestyle's for all but 3% (measured 1.3%). Checked: missing creases, lines 20%
+  thin, lines on parts without ink and outlines only against the background each fail, and a fold
+  taken for a surface running on fails `terrain-oblique`.
+- **Shadow comparison** (`CompareShadowed`, for scenes with scenery where a cast shadow falls in
+  view; without one, as `Compare`, since the measure below is then 1 by definition): the engine also
+  renders the scene without shadows; where that render has a geometric edge (non-uniform 3×3),
+  pixels are compared as in `Compare`, with one stray pixel in 10,000 allowed (a sub-pixel band edge
+  or contact shadow shaded once per pixel against Blender's per sample; measured up to 7). Inside
+  surfaces: at most 0.2% of pixels may differ by more than 16 levels (measured 0.15%), and the
+  summed difference from Blender may be at most a tenth of the summed difference between Blender and
+  the shadowless render (measured at most 0.091). Fringes differ by single pixels up to about 10 levels: Blender
   averages 64 jittered maps, the engine 16 (its blend steps by sixteenths). The `shadow-fringe` scene
   (a pole and a floating bar seen from above at about 200 px/m, fringes ~15 px wide) is the one
   that tells the sun's size: hard shadows, a sun 30% too small or too large, shadows on characters
   and no shadows each fail.
+- **Terrain chunks** (`TheTerrainsLevelsMeetWithoutCracks`): the reference scenes draw every chunk
+  at stride 1 (cells 4-6 pixels on screen), so the levels are checked on their own: both terrain
+  views drawn with the four chunks at strides 1, 2, 4 and 8 over a magenta background and without
+  the water (which would fill a crack from below) show no background where the full-resolution
+  terrain covers a pixel and the pixels about it. Borders at the chunk's stride fail (370 and 34
+  pixels), as does a border cell cut so its border points lie on another triangle's edge (1 pixel).
 
 ## Steps
 
@@ -408,4 +469,28 @@ Started 2026-10-30.
   differently. Checked by breaking: normals turned with the bones, flat faces averaged, joint
   matrices in the other order and one influence each fail `pose-*`; without feature edges the belt's
   lines go missing (`glow-figure`).
-- **Next: step 8, terrain and particles.**
+- **Step 8, terrain (2026-10-31, 555 tests): done; particles next.** User decisions: height and
+  cover maps, covers blended softly over three cells, shaded water with two wave trains (and for
+  the particles: shapes drawn in the shader, shrinking and fading with age). `TerrainData`,
+  `Terrain` (chunks, strides 1-8 with full-resolution borders), terrain.frag, water.frag, the toon
+  chain moved into mesh_lighting.glsl, the scene clock (`Render(..., time)`); `make_terrain.py`,
+  `add_terrain` in `render_scenes.py`; scenes `terrain-map`, `terrain-oblique` (its near edge inside
+  the map) and `terrain-water` (the lake under a 19° sun), and the chunk test. Found on the way:
+  Freestyle decides outline or not by rays behind each segment through a grid that places
+  triangles by their corners, so a two-triangle water quad under the terrain's borders made some
+  borders outlines and others not (the reference's water is now the terrain's cells, inset 1 mm); a
+  fold within the terrain (a crest before the slope behind it) went uninked, as one side was nearly
+  edge-on (the edge-on exception now ends at twice a pixel's run of depth); looking past the map's
+  open edge showed the water under the land, its contact shadow late by the 1.5-texel normal offset
+  (a smaller offset brings acne back elsewhere; the camera moved); a chunk's border vertices placed
+  on a coarser neighbour's edge left single-pixel gaps (borders are full resolution now); the
+  waves sat far above the band edge in both views, so nothing tested them (`terrain-water`); world
+  positions interpolated at the centroid kept covers off under-water samples at shores but matched
+  Blender worse than the pixel centre overall (Blender filters over 1.5 px), so the centre stays;
+  the shadow comparison's "difference left over" is 1 when no cast shadow is in view. Checked by
+  breaking: no warp, a blend 20% wider and no blending fail `terrain-map` and `terrain-oblique`;
+  flat water, frozen waves, one wave train, waves 20% flatter and the long wave 10% longer fail
+  `terrain-water`; borders at the chunk's stride fail the chunk test; the old edge-on rule fails
+  `terrain-oblique` (3.5% of its line pixels missed). Not covered by references: level of detail
+  against Blender (the test cells are large on screen) and performance on a 2016-class GPU.
+- **Next: step 8, particles.**

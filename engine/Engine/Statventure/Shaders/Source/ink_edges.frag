@@ -120,15 +120,28 @@ float facing(Surface a, ivec2 p)
 
 // The surface breaks between a and b: neither runs on to the other's depth, within two pixels'
 // worth of depth at the nearer one. Within a part, faces less than the crease angle apart with
-// one seen almost edge-on go on: there a face's plane runs nearly along the view ray and predicts
-// nothing (the pixel behind it is often another surface).
+// one seen almost edge-on go on unless their depths lie further apart than twice the depth a
+// surface at that angle runs across a pixel (a pixel's width over how squarely it faces; twice, as
+// a curved surface turns further edge-on between the two): there a face's plane runs nearly along
+// the view ray and predicts nothing (the pixel behind it is often another surface), but a fold, as
+// a hill's crest before the slope behind it, leaves more depth between them.
 bool broken(Surface a, ivec2 pa, Surface b, ivec2 pb)
 {
     float depth = min(a.depth, b.depth);
     float tolerance = 2.0 * pixelSize(depth) + 1e-4 * depth;
-    if (abs(predictedDepth(a, pa, pb) - b.depth) <= tolerance || abs(predictedDepth(b, pb, pa) - a.depth) <= tolerance)
+    float aAtB = predictedDepth(a, pa, pb), bAtA = predictedDepth(b, pb, pa);
+    if (abs(aAtB - b.depth) <= tolerance || abs(bAtA - a.depth) <= tolerance)
         return false;
-    return !(a.part == b.part && dot(a.normal, b.normal) >= pc.creaseCos && min(facing(a, pa), facing(b, pb)) < 0.25);
+    float edgeOn = min(facing(a, pa), facing(b, pb));
+    // The two surfaces cross between the pixels (the one nearer at one pixel is the farther at the
+    // other): they meet, as water meets a bank, and Freestyle draws no intersections. Only where both
+    // face the viewer: a curved surface's grazing plane at its silhouette carried a pixel on can land
+    // behind what's there and fake a crossing.
+    if ((a.depth - bAtA) * (aAtB - b.depth) < 0.0 && edgeOn > 0.2)
+        return false;
+    if (a.part == b.part && dot(a.normal, b.normal) >= pc.creaseCos && edgeOn < 0.25)
+        return abs(a.depth - b.depth) > 2.0 * pixelSize(depth) / max(edgeOn, 1e-3);
+    return true;
 }
 
 // 0: no line, 1: an inner line, 2: an outline.

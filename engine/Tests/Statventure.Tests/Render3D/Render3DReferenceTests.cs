@@ -18,9 +18,10 @@ public class Render3DReferenceTests(GpuFixture gpu)
 {
     static string ReferenceDirectory => Path.Combine(Path.GetDirectoryName(Golden.GoldenPath("x"))!, "..", "Reference");
     internal static string ModelDirectory => Path.Combine(Path.GetDirectoryName(Golden.GoldenPath("x"))!, "..", "Data", "Models");
+    internal static string TerrainDirectory => Path.Combine(Path.GetDirectoryName(Golden.GoldenPath("x"))!, "..", "Data", "Terrain");
 
     public static TheoryData<string> SceneNames => new(Scenes3D.All.Select(s => s.Name));
-    public static TheoryData<string> InkedSceneNames => new(Scenes3D.All.Where(s => s.Models.Length > 0).Select(s => s.Name));
+    public static TheoryData<string> InkedSceneNames => new(Scenes3D.All.Where(s => s.Models.Length > 0 || s.Terrain != null).Select(s => s.Name));
 
     [Fact]
     public void TheSceneFileIsUpToDate()
@@ -54,13 +55,16 @@ public class Render3DReferenceTests(GpuFixture gpu)
         var scene = Scenes3D.All.Single(s => s.Name == name);
         var reference = Golden.GoldenPath("r3d-" + name);
         Assert.True(File.Exists(reference), $"no Blender reference for {name}: run Tools/Scripts/make-blender-references.sh");
+        var shadowed = scene.Models.Any(m => m.Scenery) || scene.Terrain != null;
         // The shading alone: the lines are compared with Freestyle's on their own (TheEngineInksWhatFreestyleInked).
         var unlined = scene with { Style = scene.Style with { OutlineWidth = 0, InnerWidth = 0 } };
         var actual = Render(unlined);
         var expected = ImageFile.Load(reference);
-        // Scenes with scenery receive shadows: their soft fringes are compared on their own terms.
-        var problems = scene.Models.Any(m => m.Scenery)
-            ? CompareShadowed(expected, actual, Render(unlined with { Models = [.. unlined.Models.Select(m => m with { Scenery = false })] }))
+        // Scenes with scenery receive shadows: their soft fringes are compared on their own terms, where
+        // one falls in view (else the scene is one without shadows).
+        var unshadowed = shadowed ? Render(unlined, shadows: false) : null;
+        var problems = unshadowed != null && !unshadowed.Pixels.AsSpan().SequenceEqual(actual.Pixels)
+            ? CompareShadowed(expected, actual, unshadowed)
             : Compare(expected, actual);
         var actualPath = Golden.ActualPath("r3d-" + name);
         if (problems.Length > 0)
@@ -95,6 +99,45 @@ public class Render3DReferenceTests(GpuFixture gpu)
             File.Delete(actualPath);
     }
 
+    /// <summary>
+    /// The terrain's chunks meet without cracks whatever their levels (Docs/Renderer-3D.md, "Terrain"):
+    /// drawn with its four chunks at strides 1, 2, 4 and 8, each next to chunks of two others, no
+    /// background shows where the terrain at full resolution covers a pixel and the pixels about it.
+    /// Without the water, which would fill a crack from below. (The reference scenes draw every chunk
+    /// at stride 1: their cells are 4-6 pixels on screen.) Checked: chunk borders at the chunk's
+    /// stride fail (370 and 34 pixels), as does a border cell cut so that its border points lie on
+    /// another triangle's edge (one pixel, where rounding opens the edge).
+    /// </summary>
+    [Theory]
+    [InlineData("terrain-map")]
+    [InlineData("terrain-oblique")]
+    public void TheTerrainsLevelsMeetWithoutCracks(string name)
+    {
+        var scene = Scenes3D.All.Single(s => s.Name == name);
+        scene = scene with { Background = "#ff00ff", Models = [], Style = scene.Style with { OutlineWidth = 0, InnerWidth = 0 } };
+        var full = Render(scene, shadows: false, water: false);
+        var mixed = Render(scene, shadows: false, terrainLevels: chunk => chunk % 4, water: false);
+        int w = full.Width, h = full.Height;
+        // How magenta a pixel is: the background's share shows as red and blue above green.
+        int Background(byte[] p, int x, int y)
+        {
+            var i = (y * w + x) * 4;
+            return Math.Min(p[i], p[i + 2]) - p[i + 1];
+        }
+        var cracks = 0;
+        for (var y = 1; y < h - 1; y++)
+            for (var x = 1; x < w - 1; x++)
+            {
+                var covered = true;
+                for (var dy = -1; dy <= 1 && covered; dy++)
+                    for (var dx = -1; dx <= 1 && covered; dx++)
+                        covered = Background(full.Pixels, x + dx, y + dy) <= 0;
+                if (covered && Background(mixed.Pixels, x, y) > 8)
+                    cracks++;
+            }
+        Assert.True(cracks == 0, $"{name}: {cracks} pixels show the background between chunks");
+    }
+
     /// <summary>Line coverage 0..1: Freestyle's alpha, or the engine's white-on-black coverage (sRGB-encoded in the target).</summary>
     internal static float[] InkCoverage(RgbaImage image, bool alpha)
     {
@@ -111,12 +154,12 @@ public class Render3DReferenceTests(GpuFixture gpu)
     /// own resolution, the engine's of 16 maps at 1024²: single pixels in a fringe differ by up to
     /// about 10 levels (the engine's blend steps by sixteenths), and the thinnest shadows wander. So,
     /// inside surfaces: at most 0.2% of pixels differ by more than 16 levels (measured: at most
-    /// 0.12%), and the difference left over is at most a tenth of the shadows' own (the summed
+    /// 0.15%), and the difference left over is at most a tenth of the shadows' own (the summed
     /// difference from Blender over the summed difference between Blender and the engine without
-    /// shadows; measured: at most 0.079, in the fringe scene). On the geometry's edges, one pixel in
-    /// 10,000 may stray (measured: up to 5): scenery shades a sub-pixel sliver of a band edge or a
-    /// contact shadow once per pixel where Blender shades each sample. Checked: hard shadows, a sun
-    /// 30% too small or too large, shadows on characters and no shadows each fail.
+    /// shadows; measured: at most 0.091, in the fringe scene). On the geometry's edges, one pixel in
+    /// 10,000 may stray (measured: up to 7, on the terrain): scenery shades a sub-pixel sliver of a
+    /// band edge or a contact shadow once per pixel where Blender shades each sample. Checked: hard
+    /// shadows, a sun 30% too small or too large, shadows on characters and no shadows each fail.
     /// </summary>
     internal static string CompareShadowed(RgbaImage expected, RgbaImage actual, RgbaImage unshadowed)
     {
@@ -164,15 +207,18 @@ public class Render3DReferenceTests(GpuFixture gpu)
     /// <summary>
     /// Ink lines against Freestyle's, which strokes edges where the engine finds them per pixel
     /// (Docs/Renderer-3D.md, "Ink lines"). Measured over the reference scenes: every Freestyle line
-    /// pixel (coverage ≥ 0.5) has an engine line pixel within one pixel but for 0.1%; engine line
-    /// pixels away from any Freestyle line are at most 1.7% (a corner where a part without ink meets
-    /// another); the total ink is within 1.5%; coverage differs by 0.05-0.09 on average over line
-    /// pixels; around a Freestyle line pixel, the engine's ink in the 7×7 pixels about it is 0.75 to
-    /// 1.33 times Freestyle's but for 1% (line ends, corners). Checked: missing creases, lines 20%
+    /// pixel (coverage ≥ 0.5) has an engine line pixel within one pixel but for 0.15%; engine line
+    /// pixels away from any Freestyle line are at most 2.9% (where surfaces meet seen almost edge-on,
+    /// the fin on the bent tube or a hill's far slope going into the lake: there the engine can't tell
+    /// two surfaces crossing from a silhouette; and a corner where a part without ink meets another);
+    /// the total ink is within 2.4%; coverage differs by 0.03-0.08 on average over line pixels; around
+    /// a Freestyle line pixel, the engine's ink in the 7×7 pixels about it is 0.75 to 1.33 times
+    /// Freestyle's but for 1.1% (line ends, corners). Checked: missing creases, lines 20%
     /// thin, lines on parts without ink, and outlines only against the background (a model over
     /// another gets an inner line: 8.5% of line pixels out of the local range) each fail one of:
     /// misses ≤ 2%, extras ≤ 3%, total ink within 10%, mean coverage difference ≤ 0.12, local ink
-    /// out of range ≤ 3%.
+    /// out of range ≤ 3%; and a crest before the slope behind it (a fold within a part seen almost
+    /// edge-on) taken for a surface running on fails terrain-oblique (3.5% of its line pixels missed).
     /// </summary>
     internal static string CompareInk(float[] expected, float[] actual, int width)
     {
@@ -252,11 +298,12 @@ public class Render3DReferenceTests(GpuFixture gpu)
         return text.ToString().Trim();
     }
 
-    internal RgbaImage Render(Scene3D scene, bool inkOnly = false)
+    internal RgbaImage Render(Scene3D scene, bool inkOnly = false, bool shadows = true, Func<int, int>? terrainLevels = null, bool water = true)
     {
         var device = gpu.Device;
         var meshes = new Dictionary<Shape3D, Mesh>();
         var models = new List<Model>();
+        Terrain? terrain = null;
         try
         {
             var items = scene.Objects.Select(o =>
@@ -272,10 +319,21 @@ public class Render3DReferenceTests(GpuFixture gpu)
                 models.Add(model);
                 model.Draw(items, placed.Model, palette, scene.Style, placed.Scenery, placed.PoseOf(model.Data));
             }
+            if (scene.Terrain is { } placedTerrain)
+            {
+                terrain = Terrain.Load(device, Path.Combine(TerrainDirectory, placedTerrain.File));
+                terrain.ForcedLevel = terrainLevels;
+                terrain.Draw(items, placedTerrain.Translation, scene.Camera.ToCamera(), scene.Height, palette, scene.Style);
+            }
+            if (!water)
+                items.RemoveAll(i => i.Shading == Shading.Water);
+            // Without shadows: nothing receives them (the geometry's edges for CompareShadowed).
+            if (!shadows)
+                items = items.Select(i => i with { ReceivesShadows = false }).ToList();
             using var target = new RenderTarget3D(device, scene.Width, scene.Height);
             var renderer = new Renderer3D(device) { InkCoverageOnly = inkOnly };
             var frame = device.BeginFrame();
-            renderer.Render(frame, target, scene.Camera.ToCamera(), items, Colors.LinearFromHex(scene.Background), scene.Sun ?? default, scene.Style, scene.Scale);
+            renderer.Render(frame, target, scene.Camera.ToCamera(), items, Colors.LinearFromHex(scene.Background), scene.Sun ?? default, scene.Style, scene.Scale, scene.Time);
             device.EndFrame(frame);
             device.WaitIdle();
             return new RgbaImage(scene.Width, scene.Height, target.Resolved.ReadPixels());
@@ -286,11 +344,13 @@ public class Render3DReferenceTests(GpuFixture gpu)
                 mesh.Dispose();
             foreach (var model in models)
                 model.Dispose();
+            terrain?.Dispose();
         }
     }
 
     /// <summary>
-    /// Inside (the reference's 3×3 neighbourhood is one colour): every channel within 2. On an edge,
+    /// Inside (the reference's 3×3 neighbourhood is one colour, away from the frame's edge): every
+    /// channel within 2. On an edge,
     /// MSAA 4× covers a pixel in quarters and resolves it alone, where Blender filters 64 samples
     /// across neighbouring pixels: they differ by up to 0.61 of the edge's local contrast (the 3×3
     /// neighbourhood's range), 3.1 levels on average. An edge half a pixel out differs by about 9 on
@@ -326,7 +386,8 @@ public class Render3DReferenceTests(GpuFixture gpu)
                         }
                     }
                 var contrast = Math.Max(high[0] - low[0], Math.Max(high[1] - low[1], high[2] - low[2]));
-                var uniform = contrast == 0;
+                // A pixel on the frame's edge has neighbours out of view: never counted as inside.
+                var uniform = contrast == 0 && x > 0 && y > 0 && x < w - 1 && y < h - 1;
                 var diff = 0;
                 for (var c = 0; c < 3; c++)
                     diff = Math.Max(diff, Math.Abs(e[i + c] - a[i + c]));
@@ -429,7 +490,9 @@ public class Render3DReferenceTests(GpuFixture gpu)
                 glowWide = s.Style.GlowWide, glowCore = s.Style.GlowCore, glowBoost = s.Style.GlowBoost,
             },
             scale = s.Scale,
+            terrain = s.Terrain is { } t ? new { file = t.File, translation = V(t.Translation) } : null,
+            time = s.Time,
         });
-        return JsonSerializer.Serialize(new { modelFolder = "../Data/Models", shapes, scenes }, new JsonSerializerOptions { WriteIndented = true }) + "\n";
+        return JsonSerializer.Serialize(new { modelFolder = "../Data/Models", terrainFolder = "../Data/Terrain", shapes, scenes }, new JsonSerializerOptions { WriteIndented = true }) + "\n";
     }
 }

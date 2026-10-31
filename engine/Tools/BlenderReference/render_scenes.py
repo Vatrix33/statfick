@@ -406,6 +406,227 @@ def add_model(scene, path, spec, palette, shadows, style, unshadowed=None, scale
     return imported
 
 
+def node_math(nodes, links, operation, a, b=None, c=None):
+    """A Math node on values (numbers or sockets); returns its output."""
+    node = nodes.new("ShaderNodeMath")
+    node.operation = operation
+    for index, value in enumerate((a, b, c)):
+        if value is None:
+            continue
+        if isinstance(value, (int, float)):
+            node.inputs[index].default_value = value
+        else:
+            links.new(value, node.inputs[index])
+    return node.outputs[0]
+
+
+def vector_math(nodes, links, operation, a, b=None, scale=None):
+    node = nodes.new("ShaderNodeVectorMath")
+    node.operation = operation
+    for index, value in enumerate((a, b)):
+        if value is None:
+            continue
+        if isinstance(value, (tuple, list)):
+            node.inputs[index].default_value = value
+        else:
+            links.new(value, node.inputs[index])
+    if scale is not None:
+        if isinstance(scale, (int, float)):
+            node.inputs["Scale"].default_value = scale
+        else:
+            links.new(scale, node.inputs["Scale"])
+    return node.outputs["Value" if operation in ("DOT_PRODUCT", "LENGTH", "DISTANCE") else "Vector"]
+
+
+def gltf_xz(nodes, links):
+    """The shading point's glTF X and Z (Blender's X and −Y) as two sockets."""
+    geometry = nodes.new("ShaderNodeNewGeometry")
+    split = nodes.new("ShaderNodeSeparateXYZ")
+    links.new(geometry.outputs["Position"], split.inputs[0])
+    return split.outputs["X"], node_math(nodes, links, "MULTIPLY", split.outputs["Y"], -1)
+
+
+def cel_from_tones(material, nodes, links, lit, shadow, band, hatch, normal=None, colour_nodes=True):
+    """The lizardman's toon chain with tones from sockets: Diffuse BSDF (with `normal`) through Shader to
+    RGB and RGB to BW, lit tone from the band edge, hatching in shadow, shown as emission."""
+    diffuse = nodes.new("ShaderNodeBsdfDiffuse")
+    diffuse.inputs["Color"].default_value = (1, 1, 1, 1)
+    if normal is not None:
+        links.new(normal, diffuse.inputs["Normal"])
+    to_rgb = nodes.new("ShaderNodeShaderToRGB")
+    bw = nodes.new("ShaderNodeRGBToBW")
+    links.new(diffuse.outputs[0], to_rgb.inputs[0])
+    links.new(to_rgb.outputs[0], bw.inputs[0])
+    lit_factor = node_math(nodes, links, "GREATER_THAN", bw.outputs[0], band - 1e-7)
+    mix = nodes.new("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    links.new(lit_factor, mix.inputs["Factor"])
+    for socket, value in ((mix.inputs[6], shadow), (mix.inputs[7], lit)):
+        if isinstance(value, tuple):
+            socket.default_value = (*value, 1)
+        else:
+            links.new(value, socket)
+    colour = mix.outputs[2]
+    if hatch:
+        in_shadow = node_math(nodes, links, "LESS_THAN", bw.outputs[0], band)
+        ink = nodes.new("ShaderNodeMix")
+        ink.data_type = "RGBA"
+        links.new(hatch_amount(nodes, links, in_shadow, hatch), ink.inputs["Factor"])
+        links.new(colour, ink.inputs[6])
+        ink.inputs[7].default_value = (*hatch["inkColour"], 1)
+        colour = ink.outputs[2]
+    emission = nodes.new("ShaderNodeEmission")
+    output = nodes.new("ShaderNodeOutputMaterial")
+    links.new(colour, emission.inputs[0])
+    links.new(emission.outputs[0], output.inputs["Surface"])
+
+
+def data_image(path):
+    """An image as data (no colour conversion), its pixels as floats."""
+    image = bpy.data.images.load(path, check_existing=False)
+    image.colorspace_settings.name = "Non-Color"
+    image.reload()
+    return image
+
+
+def add_terrain(scene, spec, folder, palette, style, hatch):
+    """The engine's terrain (Docs/Renderer-3D.md, "Terrain") rebuilt: the same grid mesh (each cell
+    split along the same diagonal), smooth-shaded; its tones blended from the covers as terrain.frag
+    does (the same warp, the 4×4 points about a point weighted by tents of radius 1.5 cells, read from
+    the one-hot cover image), lit through the toon chain; the water a quad at its level, its normal
+    tilted by the same two wave trains at the scene's time."""
+    with open(os.path.join(folder, spec["file"])) as f:
+        meta = json.load(f)
+    width, depth, cell = meta["width"], meta["depth"], meta["cellSize"]
+    low, high = meta["heightMin"], meta["heightMax"]
+    ox, oy, oz = spec["translation"]
+    heights_image = data_image(os.path.join(folder, meta["height"]))
+    pixels = list(heights_image.pixels)
+    channels = heights_image.channels
+    # Blender keeps an image's rows bottom up; the file's first row is z = 0.
+    def h(i, j):
+        return low + pixels[((depth - 1 - j) * width + i) * channels] * (high - low)
+    vertices = [to_blender((ox + i * cell, oy + h(i, j), oz + j * cell)) for j in range(depth) for i in range(width)]
+    faces = []
+    for j in range(depth - 1):
+        for i in range(width - 1):
+            p00, p01, p11, p10 = j * width + i, (j + 1) * width + i, (j + 1) * width + i + 1, j * width + i + 1
+            faces += [(p00, p01, p11), (p00, p11, p10)]
+    mesh = bpy.data.meshes.new("terrain")
+    mesh.from_pydata([tuple(v) for v in vertices], [], faces)
+    mesh.update()
+    mesh.shade_smooth()
+    ground = bpy.data.objects.new("terrain", mesh)
+    scene.collection.objects.link(ground)
+
+    material = bpy.data.materials.new("terrain")
+    nodes = material.node_tree.nodes
+    nodes.clear()
+    links = material.node_tree.links
+    x, z = gltf_xz(nodes, links)
+    gx = node_math(nodes, links, "DIVIDE", node_math(nodes, links, "SUBTRACT", x, ox), cell)
+    gy = node_math(nodes, links, "DIVIDE", node_math(nodes, links, "SUBTRACT", z, oz), cell)
+    def sine(a, b, c, k, phase):
+        # sin(k·(a·gx + b·gy) + phase), the warp's terms
+        inner = node_math(nodes, links, "ADD", node_math(nodes, links, "MULTIPLY", gx, k * a), node_math(nodes, links, "MULTIPLY", gy, k * b))
+        return node_math(nodes, links, "SINE", node_math(nodes, links, "ADD", inner, phase))
+    wx = node_math(nodes, links, "MULTIPLY", node_math(nodes, links, "ADD", sine(0, 1, 0, 0.93, 1.3), node_math(nodes, links, "MULTIPLY", sine(1, 1, 0, 0.37, 0.4), 0.5)), 0.45)
+    wy = node_math(nodes, links, "MULTIPLY", node_math(nodes, links, "ADD", sine(1, 0, 0, 0.81, 2.1), node_math(nodes, links, "MULTIPLY", sine(1, -1, 0, 0.41, 1.7), 0.5)), 0.45)
+    gx = node_math(nodes, links, "ADD", gx, wx)
+    gy = node_math(nodes, links, "ADD", gy, wy)
+    fx, fy = node_math(nodes, links, "FLOOR", gx), node_math(nodes, links, "FLOOR", gy)
+    onehot = data_image(os.path.join(folder, os.path.splitext(meta["cover"])[0] + "-onehot.png"))
+    total = None
+    sums = None
+    for dy in (-1, 0, 1, 2):
+        for dx in (-1, 0, 1, 2):
+            px, py = node_math(nodes, links, "ADD", fx, dx), node_math(nodes, links, "ADD", fy, dy)
+            tent_x = node_math(nodes, links, "MAXIMUM", node_math(nodes, links, "SUBTRACT", 1, node_math(nodes, links, "DIVIDE", node_math(nodes, links, "ABSOLUTE", node_math(nodes, links, "SUBTRACT", gx, px)), 1.5)), 0)
+            tent_y = node_math(nodes, links, "MAXIMUM", node_math(nodes, links, "SUBTRACT", 1, node_math(nodes, links, "DIVIDE", node_math(nodes, links, "ABSOLUTE", node_math(nodes, links, "SUBTRACT", gy, py)), 1.5)), 0)
+            weight = node_math(nodes, links, "MULTIPLY", tent_x, tent_y)
+            # The point's cover, clamped to the grid: u from its column, v from its row (rows bottom up).
+            u = node_math(nodes, links, "DIVIDE", node_math(nodes, links, "ADD", node_math(nodes, links, "MINIMUM", node_math(nodes, links, "MAXIMUM", px, 0), width - 1), 0.5), width)
+            v = node_math(nodes, links, "SUBTRACT", 1, node_math(nodes, links, "DIVIDE", node_math(nodes, links, "ADD", node_math(nodes, links, "MINIMUM", node_math(nodes, links, "MAXIMUM", py, 0), depth - 1), 0.5), depth))
+            uv = nodes.new("ShaderNodeCombineXYZ")
+            links.new(u, uv.inputs["X"])
+            links.new(v, uv.inputs["Y"])
+            texture = nodes.new("ShaderNodeTexImage")
+            texture.image = onehot
+            texture.interpolation = "Closest"
+            texture.extension = "EXTEND"
+            links.new(uv.outputs[0], texture.inputs["Vector"])
+            weighted = vector_math(nodes, links, "SCALE", texture.outputs["Color"], scale=weight)
+            sums = weighted if sums is None else vector_math(nodes, links, "ADD", sums, weighted)
+            total = weight if total is None else node_math(nodes, links, "ADD", total, weight)
+    share = vector_math(nodes, links, "SCALE", sums, scale=node_math(nodes, links, "DIVIDE", 1, total))
+    split = nodes.new("ShaderNodeSeparateXYZ")
+    links.new(share, split.inputs[0])
+    tones = []
+    for slot in meta["covers"]:
+        colour = palette.get(slot)
+        lit = hex_to_linear(colour) if colour else (0.5, 0.5, 0.5)
+        tones.append((lit, shadow_of(lit, style)))
+    def blend(which):
+        result = None
+        for c, socket in enumerate(("X", "Y", "Z")[:len(tones)]):
+            term = vector_math(nodes, links, "SCALE", tones[c][which], scale=split.outputs[socket])
+            result = term if result is None else vector_math(nodes, links, "ADD", result, term)
+        return result
+    cel_from_tones(material, nodes, links, blend(0), blend(1), style["bandEdge"], hatch)
+    mesh.materials.append(material)
+    placed = [ground]
+
+    if meta.get("waterLevel") is not None:
+        level = meta["waterLevel"]
+        # For Freestyle, which outlines a border only when nothing of its own object lies behind: the
+        # quad is made of the terrain's cells, as its grid places a triangle by its corners' projections
+        # (a long edge's projection strays from the chord between them, and the borders right above
+        # it would miss the water behind them), and inset by a millimetre, as the terrain's borders lie
+        # right over the quad's (the ray looking behind them would hit its edge or miss it as rounding
+        # falls).
+        inset = 0.001
+        xs = [inset] + [i * cell for i in range(1, width - 1)] + [(width - 1) * cell - inset]
+        zs = [inset] + [j * cell for j in range(1, depth - 1)] + [(depth - 1) * cell - inset]
+        corners = [to_blender((ox + a, oy + level, oz + b)) for b in zs for a in xs]
+        cells = []
+        for j in range(depth - 1):
+            for i in range(width - 1):
+                p00, p01, p11, p10 = j * width + i, (j + 1) * width + i, (j + 1) * width + i + 1, j * width + i + 1
+                cells += [(p00, p01, p11), (p00, p11, p10)]
+        water_mesh = bpy.data.meshes.new("water")
+        water_mesh.from_pydata([tuple(c) for c in corners], [], cells)
+        water = bpy.data.objects.new("water", water_mesh)
+        water.visible_shadow = False
+        scene.collection.objects.link(water)
+        wm = bpy.data.materials.new("water")
+        wn, wl = wm.node_tree.nodes, wm.node_tree.links
+        wn.clear()
+        x, z = gltf_xz(wn, wl)
+        def train(dx, dz, length, steep, speed):
+            phase = node_math(wn, wl, "MULTIPLY", node_math(wn, wl, "SUBTRACT", node_math(wn, wl, "ADD", node_math(wn, wl, "MULTIPLY", x, dx), node_math(wn, wl, "MULTIPLY", z, dz)), speed * spec_time[0]), 2 * math.pi / length)
+            c = node_math(wn, wl, "MULTIPLY", node_math(wn, wl, "COSINE", phase), steep)
+            return node_math(wn, wl, "MULTIPLY", c, dx), node_math(wn, wl, "MULTIPLY", c, dz)
+        a = train(0.93969262, 0.34202014, 1.5, 0.08, 0.3)
+        b = train(-0.42261826, 0.90630779, 0.6, 0.06, 0.18)
+        gxs, gzs = node_math(wn, wl, "ADD", a[0], b[0]), node_math(wn, wl, "ADD", a[1], b[1])
+        # glTF normal (−gx, 1, −gz) is Blender's (−gx, gz, 1).
+        normal = wn.new("ShaderNodeCombineXYZ")
+        wl.new(node_math(wn, wl, "MULTIPLY", gxs, -1), normal.inputs["X"])
+        wl.new(gzs, normal.inputs["Y"])
+        normal.inputs["Z"].default_value = 1
+        unit = vector_math(wn, wl, "NORMALIZE", normal.outputs[0])
+        colour = palette.get("water")
+        lit = hex_to_linear(colour) if colour else (0.2, 0.35, 0.5)
+        cel_from_tones(wm, wn, wl, lit, shadow_of(lit, style), style["bandEdge"], hatch, normal=unit)
+        water_mesh.materials.append(wm)
+        placed.append(water)
+    return placed
+
+
+# The scene's clock, for the water's waves (set per scene).
+spec_time = [0.0]
+
+
 def pose_model(imported, holder, pose):
     """Poses the model's armature so each joint deforms the mesh by the matrix the engine computed
     (glTF model space, columns): Blender deforms by a bone's pose matrix times its rest matrix's
@@ -539,7 +760,7 @@ def main():
         setup_world(scene, spec["background"])
         add_camera(scene, spec["camera"])
         # Only scenery receives shadows; the rest is lit by Lambert's law alone (Docs/Renderer-3D.md, "Shadows").
-        shadows = any(m.get("scenery") for m in spec.get("models", []))
+        shadows = any(m.get("scenery") for m in spec.get("models", [])) or bool(spec.get("terrain"))
         if spec.get("sun"):
             add_sun(scene, spec["sun"], shadows)
         unshadowed = (to_blender(spec["sun"]["direction"]).normalized(), spec["sun"]["strength"]) if shadows else None
@@ -549,6 +770,17 @@ def main():
         placed = [add_model(scene, os.path.join(models, model["file"]), model, spec.get("palette", {}), spec.get("shadows", {}), spec["style"],
                             None if model.get("scenery") else unshadowed, spec.get("scale", 1))
                   for model in spec.get("models", [])]
+        spec_time[0] = spec.get("time", 0)
+        if spec.get("terrain"):
+            seen = world_to_camera_view(scene, scene.camera, to_blender(spec["terrain"]["translation"]))
+            width, height = scene.render.resolution_x, scene.render.resolution_y
+            hatch = {
+                "size": (width, height), "anchor": (seen.x * width, (1 - seen.y) * height),
+                "spacing": spec["style"]["hatchSpacing"] * spec.get("scale", 1), "width": spec["style"]["hatchWidth"] * spec.get("scale", 1),
+                "angle": spec["style"]["hatchAngle"], "ink": spec["style"]["hatchInk"], "inkColour": hex_to_linear(spec["style"]["ink"]),
+            }
+            terrain_folder = os.path.normpath(os.path.join(os.path.dirname(scenes_path), data["terrainFolder"]))
+            placed.append(add_terrain(scene, spec["terrain"], terrain_folder, spec.get("palette", {}), spec["style"], hatch))
         scene.render.filepath = os.path.join(output, f"r3d-{spec['name']}.png")
         bpy.ops.render.render(write_still=True)
         print("wrote", scene.render.filepath)

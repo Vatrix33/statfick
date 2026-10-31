@@ -107,6 +107,10 @@ public sealed record Scene3D(string Name, int Width, int Height, string Backgrou
     public CelStyle Style { get; init; } = CelStyle.Default;
     /// <summary>The device scale: ink line widths are the style's times it.</summary>
     public float Scale { get; init; } = 1;
+    /// <summary>A terrain (Data/Terrain/&lt;File&gt;, from Tools/BlenderReference/make_terrain.py) placed at a point.</summary>
+    public (string File, Vector3 Translation)? Terrain { get; init; }
+    /// <summary>The scene's clock in seconds (the water's waves).</summary>
+    public float Time { get; init; }
 }
 
 public static class Scenes3D
@@ -251,6 +255,36 @@ public static class Scenes3D
             Models = [new("rigged.glb", Vector3.Zero, new(0, -30, 0)) { Pose = new() { ["Lower"] = new(20, 0, 0), ["Upper"] = new(-40, 10, 30) } }],
             Palette = new() { ["skin"] = "#a9805e" },
             Sun = Lizardman,
+        },
+        // Terrain (Docs/Renderer-3D.md, "Terrain"): hills, a peak of rock, a lake with a sandy shore and
+        // its water, covers blended over three cells, the shapes standing on it casting shadows; the map
+        // view (orthographic, 4° off straight down, see shadow-map) and a low perspective over the lake,
+        // its near edge inside the map (seen from in front, past its open edge, the water shows under
+        // the land, which the map view never shows).
+        new("terrain-map", 360, 270, "#b8b0a0", new Camera3D(Projection.Orthographic, new(15.75f, 30, 13.85f), new(15.75f, 0, 11.75f), OrthographicHeight: 24, Far: 80) { Up = -Vector3.UnitZ }, [])
+        {
+            Terrain = ("test.json", Vector3.Zero),
+            Models = [new("shapes.glb", new(20, 2.6f, 18), new(0, 30, 0), 2.5f)],
+            Palette = new() { ["grass"] = "#6f8a4f", ["rock"] = "#8a8478", ["sand"] = "#c8b088", ["water"] = "#3f6f8f", ["cloth"] = "#7b5a3a", ["metal.base"] = "#8a8f96", ["metal.trim"] = "#c9a46a" },
+            Sun = new SunLight(new(-0.6f, 1.4f, 0.8f), 3),
+            Time = 1.5f,
+        },
+        new("terrain-oblique", 400, 260, "#b8b0a0", new Camera3D(Projection.Perspective, new(10, 11, 31), new(14, 0.5f, 7), FieldOfViewDegrees: 50, Far: 120), [])
+        {
+            Terrain = ("test.json", Vector3.Zero),
+            Models = [new("shapes.glb", new(20, 2.6f, 18), new(0, 30, 0), 2.5f)],
+            Palette = new() { ["grass"] = "#6f8a4f", ["rock"] = "#8a8478", ["sand"] = "#c8b088", ["water"] = "#3f6f8f", ["cloth"] = "#7b5a3a", ["metal.base"] = "#8a8f96", ["metal.trim"] = "#c9a46a" },
+            Sun = new SunLight(new(0.7f, 1.1f, 0.9f), 3),
+            Time = 1.5f,
+        },
+        // The lake close up under a low sun (19° up, from the front right, clear of the banks), the
+        // water's light near the band edge: its two wave trains break the band into stripes.
+        new("terrain-water", 360, 240, "#b8b0a0", new Camera3D(Projection.Perspective, new(7, 6.5f, 19), new(9, 0.4f, 12.5f), FieldOfViewDegrees: 45, Far: 80), [])
+        {
+            Terrain = ("test.json", Vector3.Zero),
+            Palette = new() { ["grass"] = "#6f8a4f", ["rock"] = "#8a8478", ["sand"] = "#c8b088", ["water"] = "#3f6f8f" },
+            Sun = new SunLight(new(0.473f, 0.326f, 0.819f), 3),
+            Time = 1.5f,
         },
         // The same shapes in the battle view (orthographic, from the side) under a low sun from the left: other band positions.
         new("cel-side", 420, 200, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.1f, 0.5f, 6), new(0.1f, 0.5f, 0), OrthographicHeight: 1.9f), [])

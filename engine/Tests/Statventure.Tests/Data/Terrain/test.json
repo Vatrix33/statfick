@@ -1,0 +1,15 @@
+{
+  "height": "test-height.png",
+  "cover": "test-cover.png",
+  "width": 64,
+  "depth": 48,
+  "cellSize": 0.5,
+  "heightMin": -1.0,
+  "heightMax": 5.0,
+  "covers": [
+    "grass",
+    "rock",
+    "sand"
+  ],
+  "waterLevel": 0.4
+}

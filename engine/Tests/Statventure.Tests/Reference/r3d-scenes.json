@@ -1,5 +1,6 @@
 {
   "modelFolder": "../Data/Models",
+  "terrainFolder": "../Data/Terrain",
   "shapes": {
     "cube": {
       "positions": [
@@ -321,7 +322,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "perspective-boxes",
@@ -491,7 +494,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "shapes-roll",
@@ -631,7 +636,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "model-blocks",
@@ -724,7 +731,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "model-rigged",
@@ -815,7 +824,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "cel-shapes",
@@ -910,7 +921,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "cel-closeup",
@@ -1003,7 +1016,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "ink-models",
@@ -1128,7 +1143,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "cel-shapes-2x",
@@ -1223,7 +1240,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 2
+      "scale": 2,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "shadow-stage",
@@ -1379,7 +1398,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "shadow-side",
@@ -1535,7 +1556,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "shadow-map",
@@ -1691,7 +1714,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "shadow-fringe",
@@ -1780,7 +1805,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "glow-figure",
@@ -1904,7 +1931,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "pose-side",
@@ -2032,7 +2061,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     },
     {
       "name": "pose-perspective",
@@ -2160,7 +2191,292 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
+    },
+    {
+      "name": "terrain-map",
+      "width": 360,
+      "height": 270,
+      "background": "#b8b0a0",
+      "camera": {
+        "projection": "orthographic",
+        "position": [
+          15.75,
+          30,
+          13.85
+        ],
+        "target": [
+          15.75,
+          0,
+          11.75
+        ],
+        "up": [
+          -0,
+          -0,
+          -1
+        ],
+        "fieldOfViewDegrees": 40,
+        "orthographicHeight": 24,
+        "near": 0.1,
+        "far": 80
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "shapes.glb",
+          "matrix": [
+            [
+              2.1650634,
+              0,
+              -1.25,
+              0
+            ],
+            [
+              0,
+              2.5,
+              0,
+              0
+            ],
+            [
+              1.25,
+              0,
+              2.1650634,
+              0
+            ],
+            [
+              20,
+              2.6,
+              18,
+              1
+            ]
+          ],
+          "scenery": false,
+          "pose": null
+        }
+      ],
+      "palette": {
+        "grass": "#6f8a4f",
+        "rock": "#8a8478",
+        "sand": "#c8b088",
+        "water": "#3f6f8f",
+        "cloth": "#7b5a3a",
+        "metal.base": "#8a8f96",
+        "metal.trim": "#c9a46a"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          -0.6,
+          1.4,
+          0.8
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#130e0b",
+        "shadowMix": 0.42,
+        "bandEdge": 0.3,
+        "outlineWidth": 3.5,
+        "innerWidth": 2,
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1,
+      "terrain": {
+        "file": "test.json",
+        "translation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "time": 1.5
+    },
+    {
+      "name": "terrain-oblique",
+      "width": 400,
+      "height": 260,
+      "background": "#b8b0a0",
+      "camera": {
+        "projection": "perspective",
+        "position": [
+          10,
+          11,
+          31
+        ],
+        "target": [
+          14,
+          0.5,
+          7
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 50,
+        "orthographicHeight": 4,
+        "near": 0.1,
+        "far": 120
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "shapes.glb",
+          "matrix": [
+            [
+              2.1650634,
+              0,
+              -1.25,
+              0
+            ],
+            [
+              0,
+              2.5,
+              0,
+              0
+            ],
+            [
+              1.25,
+              0,
+              2.1650634,
+              0
+            ],
+            [
+              20,
+              2.6,
+              18,
+              1
+            ]
+          ],
+          "scenery": false,
+          "pose": null
+        }
+      ],
+      "palette": {
+        "grass": "#6f8a4f",
+        "rock": "#8a8478",
+        "sand": "#c8b088",
+        "water": "#3f6f8f",
+        "cloth": "#7b5a3a",
+        "metal.base": "#8a8f96",
+        "metal.trim": "#c9a46a"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          0.7,
+          1.1,
+          0.9
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#130e0b",
+        "shadowMix": 0.42,
+        "bandEdge": 0.3,
+        "outlineWidth": 3.5,
+        "innerWidth": 2,
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1,
+      "terrain": {
+        "file": "test.json",
+        "translation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "time": 1.5
+    },
+    {
+      "name": "terrain-water",
+      "width": 360,
+      "height": 240,
+      "background": "#b8b0a0",
+      "camera": {
+        "projection": "perspective",
+        "position": [
+          7,
+          6.5,
+          19
+        ],
+        "target": [
+          9,
+          0.4,
+          12.5
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 45,
+        "orthographicHeight": 4,
+        "near": 0.1,
+        "far": 80
+      },
+      "objects": [],
+      "models": [],
+      "palette": {
+        "grass": "#6f8a4f",
+        "rock": "#8a8478",
+        "sand": "#c8b088",
+        "water": "#3f6f8f"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          0.473,
+          0.326,
+          0.819
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#130e0b",
+        "shadowMix": 0.42,
+        "bandEdge": 0.3,
+        "outlineWidth": 3.5,
+        "innerWidth": 2,
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1,
+      "terrain": {
+        "file": "test.json",
+        "translation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "time": 1.5
     },
     {
       "name": "cel-side",
@@ -2253,7 +2569,9 @@
         "glowCore": 2.5,
         "glowBoost": 2.2
       },
-      "scale": 1
+      "scale": 1,
+      "terrain": null,
+      "time": 0
     }
   ]
 }
