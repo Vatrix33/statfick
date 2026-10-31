@@ -119,9 +119,15 @@ public sealed class ItemAnimation
     /// <summary>The item's pose at <paramref name="time"/> (the wearer's animator's clock), after bringing its layers in step with the wearer's.</summary>
     public ModelPose Pose(double time, ModelPose? into = null)
     {
-        Sync();
-        Stack.Evaluate(time, _buffer);
+        Evaluate(time, _buffer);
         return _buffer.ToPose(into);
+    }
+
+    /// <summary>The item's channels at <paramref name="time"/> into <paramref name="into"/>.</summary>
+    public void Evaluate(double time, PoseBuffer into)
+    {
+        Sync();
+        Stack.Evaluate(time, into);
     }
 
     void Sync()

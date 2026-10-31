@@ -238,6 +238,18 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   the same fade, playing the item's clip named like the state (start, scale and repeat copied from
   the wearer's strip each time, so speed changes follow) or nothing. Gear is drawn with the wearer's
   owner (one model: one outline, one glow mask) and its hatch anchor (`Model.Draw(..., anchor: ...)`).
+- **Animated views** (`Animation/AnimatedView.cs`): an `Actor` is a model with its animator,
+  transform, palette, items (`ActorItem`: a model on a socket, optionally an `ItemAnimation`) and
+  garments (`ActorGarment`); `Refresh` evaluates its pose (and its items') at the animator's time
+  and says whether any channel value, its transform or its gear changed; `Draw` adds its draw items
+  (the figure, items at their sockets, garments from their world matrices, all with the actor's
+  owner and hatch anchor). An `AnimatedView` (an `IUiFrameClient` holding a `View3D`) advances its
+  actors' animators each frame by the time since its last frame times its `Rate` (the battle pace;
+  the old game's "slow" stretches durations by 1.5, a rate of 1 / 1.5) in the frame's animation
+  timing update, so clips run on the clock CSS and Web Animations run on; it sets the view's items
+  only when something changed (a held clip or a rate of 0 draws nothing new), and dispatches the
+  animators' events and notices with the frame's animation events. The host shows the view in a
+  `surface` element as any view (`SurfaceViews`).
 - **Known differences from Blender's NLA:** fades of hand-keyed rotations (the user's decision
   above: Blender mixes raw, non-unit curve values between keys); rotations more than a half turn
   from rest (Blender blends the stored sign, the engine w ≥ 0; a Combine power of such a quaternion
@@ -347,7 +359,7 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
 
 ## Status
 
-Started 2026-10-31 (decisions asked and recorded).
+Started 2026-10-31 (decisions asked and recorded); done 2026-10-31.
 
 - **Step 1, clips from glTF (2026-10-31, 584 tests): done.** `ModelAnimation` in `GltfImport`,
   `AnimationClip`/`AnimationCurve`/`AnimationTrack`, `Skeleton`/`PoseBuffer`/`ClipBinding`;
@@ -440,4 +452,16 @@ Started 2026-10-31 (decisions asked and recorded).
   tested. Checked by breaking: items without the axis conversion, garments by glTF's bind (passes
   on the figure, fails on the stocky one), the garment deformation in the other order, item clips
   ignoring the wearer's speed or fades, gear as a model of its own and gear hatched from its own
-  origin each fail a test. Next: step 7 (animated views).
+  origin each fail a test.
+- **Step 7, animated views (2026-10-31, 635 tests): done.** `Actor`, `ActorItem`, `ActorGarment`,
+  `AnimatedView`, `ItemAnimation.Evaluate`. `AnimatedViewTests`: the view is drawn on every frame a
+  pose changes and not after a clip holds its last frame, again when the figure moves, not while the
+  rate is 0; its picture is the figure at its clock's time byte for byte; its clock is the document's
+  (an element animation started with it reads the same time each frame, and at the slow pace 1 /
+  1.5 of it); the cost is measured. Measured on this PC (Ryzen, RX 9070): the frame's animation work
+  (advancing, transitions, events, poses, draw items) 45-75 µs per geared figure (sword and tabard,
+  two machine layers), 1.1-1.8 ms a frame for 24; a 1080p frame of the 24 figures 1.5 ms on the GPU
+  (`STATVENTURE_MEASURE=1` runs that measurement). A 2016-class GPU is untested (as in M6). Checked
+  by breaking: items set every frame, a moved figure not seen, the view's rate ignored and the pose
+  a frame late each fail a test.
+- **M7 done (2026-10-31, 635 tests).**

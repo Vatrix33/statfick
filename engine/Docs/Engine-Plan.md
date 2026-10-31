@@ -5,10 +5,9 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-10-31):** M7, animation (the user's go on 2026-10-31). Its questions are answered
-("Decisions for M7" below); design doc, rules and step plan: `Docs/Animation.md` (its Status section
-says which step is next). The project is one git repo (`../`, see `../CLAUDE.md`), on the private
-GitHub repo `github.com/Vatrix33/statfick`.
+**Current task (2026-10-31):** none: M7, animation, is done (all seven steps; design doc and status:
+`Docs/Animation.md`). Wait for the user's go before M8, then first ask M8's open questions below. The
+project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo `github.com/Vatrix33/statfick`.
 Before each later milestone (M8 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code.
 
@@ -363,6 +362,8 @@ Source tree:
   - **M7 step 4, events (2026-10-31, 609 tests):** user decisions: every acting strip fires its markers, queued like CSS animation events (awaitable), names only. Pose markers exported as animation extras (`events`), read into clips; `AnimationStack.CollectEvents`, `Animator` (clock, rate, seek, `Event`, `Next(name)`), `IUiFrameClient` run by `UiDocument` (advanced after the CSS timing update, dispatched after the CSS animation events, before frame callbacks). Blender's markers checked against the clips; every firing rule mutation-checked.
   - **M7 step 5, state machines (2026-10-31, 622 tests):** user decisions recorded above ("State machines in detail", "Clips during state machine fades"). `FadeLayer` (Blender's NLA transition rule applied to fading entries), `StateMachineDefinition` + `StateMachineBuilder` (data records), `StateMachine` (parameters, transitions by exit time or conditions, triggers, any-state priority, restarts, speed parameters, interrupted fades, entered/left notices) and the `Animator` delivering notices with clip events. The mixing rule matches Blender's transition strips (made headless through the NLA editor's operator); 15 mutations each fail a test.
   - **M7 step 6, gear (2026-10-31, 631 tests):** user decisions ("Gear in detail"): `socket.<slot>` bones, clothing as Blender's Armature modifier deforms it, items with their own clips played with the wearer's states. `Socket` (C⁻¹ then the socket's world: the exporter converts objects' axes, not bones'), `Garment`, `ItemAnimation`, `Model.Draw` world and anchor parameters; gear is one model with its wearer (owner, hatch anchor). Blender references: item placement and garment vertices on the figure and the stocky figure, and a rendered geared figure; mutations of each rule fail a test.
+  - **M7 step 7, animated views (2026-10-31, 635 tests):** `Actor` (a model, its animator, transform, palette, items and garments; refreshed and drawn as one model) and `AnimatedView` (a frame client advancing its actors on the document's clock at its rate, giving its `View3D` new items only when something changed, dispatching their events). The picture matches a direct render of the pose at the clock's time; the clock matches an element animation's. Cost on this PC: 45-75 µs of animation work per geared figure per frame, a 1080p frame of 24 figures 1.5 ms on the GPU.
+  - **M7 done (2026-10-31, 635 tests):** ticked. Fifteen user decisions in all (the eleven up front, then fades of rotations, clip events, state machine details and fades, gear), each rule checked against Blender 5.2 where Blender defines it (clips, retargeting, NLA layers and transitions, markers, sockets, garments, renders) and mutation-checked.
   - **Left for the port, not M5:** the game listens for `visibilitychange` and `pagehide` (map.js pauses travel); the window host doesn't send them yet.
 
 ## Milestones
@@ -404,7 +405,7 @@ Each milestone is finished only when its tests pass.
   - Cel shading in palette colours, ink lines (silhouette and inner edges), hatching, glow.
   - Orthographic and perspective cameras, terrain, particles.
   - 3D views inside the UI (portraits, previews).
-- [ ] **M7 Animation:**
+- [x] **M7 Animation:**
   - Skeletons and clips from glTF, sampling, cross-fades, layers.
   - Events, state machines.
 - [ ] **M8 Audio:**
