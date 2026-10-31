@@ -105,11 +105,52 @@ public sealed class AnimationStrip(ClipBinding clip)
 /// <summary>A clip event a strip fired: the marker's name, the time on the stack's clock, the layer (bottom 0) and the strip.</summary>
 public readonly record struct ClipEvent(string Name, double Time, int Layer, AnimationStrip Strip);
 
+/// <summary>A layer of an <see cref="AnimationStack"/>: an NLA track (<see cref="AnimationLayer"/>) or a state machine's cross-fading layer (<see cref="FadeLayer"/>).</summary>
+public abstract class StackLayer
+{
+    public bool Muted { get; set; }
+
+    /// <summary>Puts the layer's channels at <paramref name="time"/> onto <paramref name="accumulated"/> (what the layers below give).</summary>
+    internal abstract void Apply(double time, PoseBuffer accumulated, AnimationStack stack);
+
+    /// <summary>The events its strips pass in (from, to] (see <see cref="AnimationStack.CollectEvents"/>).</summary>
+    internal abstract void CollectEvents(int index, double from, double to, List<(ClipEvent Event, int Pass, int Marker)> found);
+
+    /// <summary>
+    /// Each marker of a strip's clip part, once per pass through the part (its cycles; reversed
+    /// strips pass it backwards), at Start + pass · period + offset, inside the strip's range and in
+    /// (from, to], where <paramref name="acting"/> says the strip acts.
+    /// </summary>
+    internal static void StripEvents(AnimationStrip strip, int layer, double from, double to, Func<double, bool> acting, List<(ClipEvent, int, int)> found)
+    {
+        var markers = strip.Clip.Clip.Events;
+        if (markers.Count == 0 || strip.End <= from + AnimationStrip.Epsilon || strip.Start > to + AnimationStrip.Epsilon)
+            return;
+        var scale = Math.Abs(strip.Scale);
+        var period = (strip.ClipEnd - strip.ClipStart is var part && part != 0 ? part : 1.0 / 60) * scale;
+        var passes = double.IsPositiveInfinity(strip.Repeat) ? int.MaxValue : (int)Math.Ceiling(strip.Repeat - 1e-9);
+        var firstPass = (int)Math.Max(0, Math.Floor((from - strip.Start) / period) - 1);
+        var lastPass = (int)Math.Min(passes - 1.0, Math.Floor((to - strip.Start) / period) + 1);
+        for (var pass = firstPass; pass <= lastPass; pass++)
+            for (var m = 0; m < markers.Count; m++)
+            {
+                var marker = markers[m];
+                if (marker.Time < strip.ClipStart - AnimationStrip.Epsilon || marker.Time > strip.ClipEnd + AnimationStrip.Epsilon)
+                    continue;
+                var offset = (strip.Reversed ? strip.ClipEnd - marker.Time : marker.Time - strip.ClipStart) * scale;
+                var time = strip.Start + pass * period + offset;
+                if (time > strip.End + AnimationStrip.Epsilon || time <= from + AnimationStrip.Epsilon || time > to + AnimationStrip.Epsilon)
+                    continue;
+                if (acting(time))
+                    found.Add((new ClipEvent(marker.Name, time, layer, strip), pass, strip.Reversed ? markers.Count - 1 - m : m));
+            }
+    }
+}
+
 /// <summary>A layer of strips (an NLA track): strips in time order, not overlapping.</summary>
-public sealed class AnimationLayer
+public sealed class AnimationLayer : StackLayer
 {
     public List<AnimationStrip> Strips { get; } = [];
-    public bool Muted { get; set; }
 
     /// <summary>
     /// The strip that acts at <paramref name="time"/> and the time it's evaluated at
@@ -136,22 +177,136 @@ public sealed class AnimationLayer
         }
         return null;
     }
+
+    internal override void Apply(double time, PoseBuffer accumulated, AnimationStack stack)
+    {
+        if (StripAt(time) is not var (strip, at))
+            return;
+        var influence = strip.InfluenceAt(at);
+        if (influence <= 0)
+            return;
+        var upper = stack.Rent();
+        strip.Clip.Sample(strip.ClipTimeAt(at), upper);
+        AnimationStack.Blend(accumulated, upper, strip.Mode, influence);
+        stack.Return(upper);
+    }
+
+    internal override void CollectEvents(int index, double from, double to, List<(ClipEvent, int, int)> found)
+    {
+        foreach (var strip in Strips)
+            // Within its range (events lie there), so not held: acting if its influence is above 0.
+            StripEvents(strip, index, from, to, time => StripAt(time) is var (acting, _) && acting == strip && strip.InfluenceAt(time) > 0, found);
+    }
 }
 
 /// <summary>
-/// Layers of strips evaluated as Blender evaluates an NLA stack (Docs/Animation.md): bottom first,
-/// every channel starting from its default (the rest pose); each layer's acting strip changes only
-/// the channels its clip keys, by its influence and blend mode (anim_sys.cc).
+/// A cross-fade within a layer: a strip (null: nothing, an empty state) fading in from
+/// <see cref="FadeStart"/> over <see cref="FadeDuration"/> seconds over what its layer showed before.
+/// </summary>
+public sealed class FadeEntry(AnimationStrip? strip, double fadeStart, double fadeDuration)
+{
+    public AnimationStrip? Strip { get; } = strip;
+    public double FadeStart { get; } = fadeStart;
+    public double FadeDuration { get; } = fadeDuration;
+
+    /// <summary>Its share at <paramref name="time"/>: a linear ramp from 0 to 1 (a fade of no length: 1 from its start).</summary>
+    public double WeightAt(double time) => FadeDuration <= 0
+        ? (time >= FadeStart - AnimationStrip.Epsilon ? 1 : 0)
+        : Math.Clamp((time - FadeStart) / FadeDuration, 0, 1);
+
+    /// <summary>When it's fully in.</summary>
+    public double FullAt => FadeStart + Math.Max(FadeDuration, 0);
+}
+
+/// <summary>
+/// A state machine's layer (Docs/Animation.md, "State machines in detail"): entries oldest first,
+/// each cross-fading over what the entries before it give, by Blender's NLA transition rule
+/// (nlastrip_evaluate_transition): both sides are the layers below with that side's strip blended on
+/// (its blend mode, a channel it doesn't key keeps the lower value), then mixed over every channel by
+/// the fade's share, as Replace mixes. So a channel only the outgoing clip keys eases back to the
+/// layers below, and a fade starting during another fades over the current mix. Each strip is held
+/// outside its range (both ways) and plays through its fade.
+/// </summary>
+public sealed class FadeLayer : StackLayer
+{
+    public List<FadeEntry> Entries { get; } = [];
+
+    internal override void Apply(double time, PoseBuffer accumulated, AnimationStack stack)
+    {
+        PoseBuffer? mix = null;
+        foreach (var entry in Entries)
+        {
+            var weight = entry.WeightAt(time);
+            if (weight <= 0)
+                continue;
+            var side = stack.Rent();
+            side.CopyFrom(accumulated);
+            if (entry.Strip is { } strip)
+            {
+                var upper = stack.Rent();
+                strip.Clip.Sample(strip.ClipTimeAt(Math.Clamp(time, strip.Start, strip.End)), upper);
+                AnimationStack.Blend(side, upper, strip.Mode, strip.Influence ?? 1);
+                stack.Return(upper);
+            }
+            if (mix == null)
+            {
+                mix = stack.Rent();
+                mix.CopyFrom(accumulated);
+            }
+            mix.MixToward(side, weight);
+            stack.Return(side);
+        }
+        if (mix != null)
+        {
+            accumulated.CopyFrom(mix);
+            stack.Return(mix);
+        }
+    }
+
+    /// <summary>An entry's share of the layer's result: its own fade times what each later entry has not yet covered.</summary>
+    public double ShareAt(int entry, double time)
+    {
+        var share = Entries[entry].WeightAt(time);
+        for (var j = entry + 1; j < Entries.Count && share > 0; j++)
+            share *= 1 - Entries[j].WeightAt(time);
+        return share;
+    }
+
+    internal override void CollectEvents(int index, double from, double to, List<(ClipEvent, int, int)> found)
+    {
+        for (var e = 0; e < Entries.Count; e++)
+            if (Entries[e].Strip is { } strip)
+            {
+                var entry = e;
+                StripEvents(strip, index, from, to, time => ShareAt(entry, time) > 0, found);
+            }
+    }
+}
+
+/// <summary>
+/// Layers evaluated as Blender evaluates an NLA stack (Docs/Animation.md): bottom first, every
+/// channel starting from its default (the rest pose); each NLA layer's acting strip changes only the
+/// channels its clip keys, by its influence and blend mode (anim_sys.cc); a state machine's layers
+/// cross-fade their states (<see cref="FadeLayer"/>).
 /// </summary>
 public sealed class AnimationStack(Skeleton skeleton)
 {
-    readonly PoseBuffer _upper = new(skeleton);
+    readonly Stack<PoseBuffer> _free = [];
 
     public Skeleton Skeleton { get; } = skeleton;
     /// <summary>Bottom first.</summary>
-    public List<AnimationLayer> Layers { get; } = [];
+    public List<StackLayer> Layers { get; } = [];
 
-    /// <summary>A new layer on top with this strip on it.</summary>
+    internal PoseBuffer Rent()
+    {
+        var buffer = _free.Count > 0 ? _free.Pop() : new PoseBuffer(Skeleton);
+        buffer.Clear();
+        return buffer;
+    }
+
+    internal void Return(PoseBuffer buffer) => _free.Push(buffer);
+
+    /// <summary>A new NLA layer on top with this strip on it.</summary>
     public AnimationStrip Add(ClipBinding clip, double start, Action<AnimationStrip>? setup = null)
     {
         var strip = new AnimationStrip(clip) { Start = start };
@@ -166,16 +321,8 @@ public sealed class AnimationStack(Skeleton skeleton)
     {
         into.Clear();
         foreach (var layer in Layers)
-        {
-            if (layer.Muted || layer.StripAt(time) is not var (strip, at))
-                continue;
-            var influence = strip.InfluenceAt(at);
-            if (influence <= 0)
-                continue;
-            _upper.Clear();
-            strip.Clip.Sample(strip.ClipTimeAt(at), _upper);
-            Blend(into, _upper, strip.Mode, influence);
-        }
+            if (!layer.Muted)
+                layer.Apply(time, into, this);
     }
 
     /// <summary>
@@ -183,9 +330,9 @@ public sealed class AnimationStack(Skeleton skeleton)
     /// (seconds on the stack's clock), in time order (then bottom layer first, then each strip's
     /// passes in order): each marker of a strip's clip part, once per pass through the part (its
     /// cycles; reversed strips pass the part backwards), fired where the strip acts at that moment
-    /// (the layer's strip there, within its range rather than held, influence above 0; Docs/Animation.md,
-    /// "Clip events"). Times within <see cref="AnimationStrip.Epsilon"/> count as one: an event at a
-    /// frame's time belongs to that frame.
+    /// (an NLA layer's strip there, within its range rather than held, influence above 0; a fade
+    /// layer's entry with a share above 0; Docs/Animation.md, "Clip events"). Times within
+    /// <see cref="AnimationStrip.Epsilon"/> count as one: an event at a frame's time belongs to that frame.
     /// </summary>
     public void CollectEvents(double from, double to, List<ClipEvent> into)
     {
@@ -193,37 +340,8 @@ public sealed class AnimationStack(Skeleton skeleton)
             return;
         var found = new List<(ClipEvent Event, int Pass, int Marker)>();
         for (var l = 0; l < Layers.Count; l++)
-        {
-            var layer = Layers[l];
-            if (layer.Muted)
-                continue;
-            foreach (var strip in layer.Strips)
-            {
-                var markers = strip.Clip.Clip.Events;
-                if (markers.Count == 0 || strip.End <= from + AnimationStrip.Epsilon || strip.Start > to + AnimationStrip.Epsilon)
-                    continue;
-                var scale = Math.Abs(strip.Scale);
-                var period = (strip.ClipEnd - strip.ClipStart is var part && part != 0 ? part : 1.0 / 60) * scale;
-                var passes = (int)Math.Ceiling(strip.Repeat - 1e-9);
-                var firstPass = Math.Max(0, (int)Math.Floor((from - strip.Start) / period) - 1);
-                var lastPass = Math.Min(passes - 1, (int)Math.Floor((to - strip.Start) / period) + 1);
-                for (var pass = firstPass; pass <= lastPass; pass++)
-                    for (var m = 0; m < markers.Count; m++)
-                    {
-                        var marker = markers[m];
-                        if (marker.Time < strip.ClipStart - AnimationStrip.Epsilon || marker.Time > strip.ClipEnd + AnimationStrip.Epsilon)
-                            continue;
-                        var offset = (strip.Reversed ? strip.ClipEnd - marker.Time : marker.Time - strip.ClipStart) * scale;
-                        var time = strip.Start + pass * period + offset;
-                        if (time > strip.End + AnimationStrip.Epsilon || time <= from + AnimationStrip.Epsilon || time > to + AnimationStrip.Epsilon)
-                            continue;
-                        // Within its range (events lie there), so not held: acting if its influence is above 0.
-                        if (layer.StripAt(time) is not var (acting, _) || acting != strip || strip.InfluenceAt(time) <= 0)
-                            continue;
-                        found.Add((new ClipEvent(marker.Name, time, l, strip), pass, strip.Reversed ? markers.Count - 1 - m : m));
-                    }
-            }
-        }
+            if (!Layers[l].Muted)
+                Layers[l].CollectEvents(l, from, to, found);
         // By time; events within the epsilon of the first of a run count as one moment, ordered by
         // layer, pass and marker (float32 clip lengths put a pass's end and the next pass's start
         // a few 10⁻⁸ s apart).
@@ -253,7 +371,7 @@ public sealed class AnimationStack(Skeleton skeleton)
     /// and multiplies normalised quaternions, lower · upper^influence (nla_combine_value,
     /// nla_combine_quaternion).
     /// </summary>
-    static void Blend(PoseBuffer lower, PoseBuffer upper, BlendMode mode, double influence)
+    internal static void Blend(PoseBuffer lower, PoseBuffer upper, BlendMode mode, double influence)
     {
         for (var node = 0; node < upper.Set.Length; node++)
         {

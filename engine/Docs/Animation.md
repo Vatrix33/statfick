@@ -68,6 +68,25 @@ Asked before the milestone started; the answers are also in `Docs/Engine-Plan.md
   dispatched in the same frame step as CSS animation events, also awaitable as Tasks; jumping a
   strip's time (seeking, restarting) fires nothing. A marker's name is the event, nothing more
   (the game's data decides what each name does).
+- **State machines in detail** (asked during step 5): a machine has layers, each with its own
+  states and transitions on its own NLA tracks (Replace or Combine per layer; a layer can be empty
+  and play nothing). Changing state cross-fades within the layer; the outgoing clip fades out
+  fully, so channels only it keyed go back to what the layers below give (Blender's NLA transition
+  rule). Conditions: bool, int, float and trigger parameters (a trigger is used up by the
+  transition that uses it, otherwise kept until used or reset); a transition's conditions compare
+  them (==, !=, <, >, ≤, ≥) and must all hold, optionally only after the state's clip has played to
+  a point (its end or a share of it); any-state transitions are checked before the current state's;
+  the first that holds wins; a transition restarts the state its layer is already in only if its
+  "may restart" flag is set (off by default). A transition starting during another cross-fade on
+  the same layer fades over the current blend. A state's speed is a number or a float parameter's
+  value, times the animator's rate. Cross-fade times are seconds of the animator's clock. The game
+  also hears each layer's state entered (when its transition starts) and left (when the outgoing
+  clip has faded out), delivered and awaitable like clip events. M7 defines the graph as data
+  records built with a C# builder; M9 adds the pack form and loader, M11 the editor.
+- **Clips during state machine fades** (asked during step 5): both play through (the outgoing
+  keeps playing as it fades out, the incoming plays as it fades in), mixed by Blender's transition
+  rule; Blender's transition strips apply that rule to held poses, and the tests check the rule
+  against them with held clips. (Not frozen as Blender's transitions.)
 - **Model approval (port time):** the user approves the first model of each rig (the first humanoid
   with gear and its full clip set, as renders and a playing view; then the first quadruped, griffon,
   dragon, wisp and core) before the rest of that rig is made. M7 itself animates test models only.
@@ -172,6 +191,33 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   animation timing update, their events dispatched right after the frame's CSS animation events
   (before frame callbacks), each delivery as game code (`EnterScript`/`ExitScript`: its microtasks
   run after it).
+- **Fade layers** (`FadeLayer`, `FadeEntry`; `AnimationStack.Layers` holds `StackLayer`s: NLA
+  `AnimationLayer`s and fade layers): entries oldest first, each a strip (or nothing) fading in
+  linearly from `FadeStart` over `FadeDuration`. Evaluation is Blender's transition rule
+  (nlastrip_evaluate_transition) applied in turn: each side is a copy of the layers below with
+  its strip blended on (its mode; channels it doesn't key keep the lower values), and the running
+  mix moves toward it by its weight on every channel either side sets (`PoseBuffer.MixToward`,
+  Replace's component mix). Strips are held outside their ranges both ways and play through the
+  fade. An entry's share is its weight times what each later entry hasn't covered (`ShareAt`); its
+  markers fire while the share is above 0.
+- **State machines** (`StateMachineDefinition.cs`: records and `StateMachineBuilder`;
+  `StateMachine.cs`): the definition is validated (names resolve, conditions fit their parameters,
+  every transition has conditions or an exit time, exit times only from states with clips). The
+  runtime puts a fade layer per machine layer on top of the stack, each starting in its entry state
+  at full weight. `Update(from, to)`, layer by layer: a changed speed parameter re-times the current
+  strip at `from` keeping its place; then transitions in time order: candidates are the any-state
+  transitions (not into the current state unless they may restart it), then the state's own; all
+  conditions must hold (they're constant within an update); a transition with an exit time is due
+  at the exact moment its state reaches it if that falls in the interval, any other (or one whose
+  exit time had passed before its conditions held) at `to`, never before the last transition taken;
+  the earliest wins, ties by priority; triggers it tests are reset; the new state becomes a fade
+  entry (its clip as a strip from that moment: scale 1 / speed, looping forever or played once and
+  held, the layer's blend mode) with an entered notice. `Prune(to)` drops entries a later fully
+  faded-in entry covers, each with a left notice at the moment it was first covered (that entry's
+  fade end). The `Animator` takes a machine: each `Advance` runs `Update`, collects clip events,
+  then `Prune`, and queues notices and events together (at one moment: left, entered, clip events);
+  `StateChanged`, `Entered(layer, state)` and `Left(layer, state)` deliver and await them like clip
+  events.
 - **Known differences from Blender's NLA:** fades of hand-keyed rotations (the user's decision
   above: Blender mixes raw, non-unit curve values between keys); rotations more than a half turn
   from rest (Blender blends the stored sign, the engine w ≥ 0; a Combine power of such a quaternion
@@ -322,4 +368,27 @@ Started 2026-10-31 (decisions asked and recorded).
   breaking: influence 0 firing, events at the previous frame's time firing again, reversed strips
   passing markers forwards, unsorted events, same-moment passes or layers out of order, markers past
   a fractional last pass, clip events before CSS animation events, deliveries not run as game code
-  and seeking that fires each fail a test. Next: step 5 (state machines).
+  and seeking that fires each fail a test.
+- **Step 5, state machines (2026-10-31, 622 tests): done.** User decisions (two rounds and two
+  follow-ups): layers of states, Blender's transition rule for cross-fades, parameters with exit
+  times, fades over the current blend, speeds from numbers or parameters, state notices, data
+  records now, fades in seconds, restarts per transition (off by default), triggers kept until used,
+  both clips playing through fades. `FadeLayer`, `StackLayer`, `PoseBuffer.CopyFrom`/`MixToward`,
+  `StateMachineDefinition`/`Builder`, `StateMachine`, the `Animator`'s notices. Blender: transition
+  strips made headless with the NLA editor's operator (the factory startup has a window; its largest
+  area turned into an NLA editor), scenes `nla-transition` (Replace sides, the outgoing half a swing
+  held mid-swing) and `nla-transition-combine`: within 0.001 mm and within the Combine quantum.
+  `StateMachineTests`: validation, entry states, triggers at the update's time, exit times at their
+  exact moment (also inside a frame), triggers kept, priority, restarts, all conditions, speed
+  parameters re-timing, interrupted fades with every clip playing, notice order and awaiting.
+  Found on the way: an outgoing clip held at its last frame was the rest pose, which hid the
+  channel-union rule in the Replace scene (now held mid-swing); every exit fell on a frame, which
+  hid exact exit moments (a 1.25× swing now exits at 29.8 frames); a transition due at the update's
+  time could be placed just before a just-taken exit (now never before it), and notices need a
+  stable sort; an entry is left as soon as any later entry is fully in (an interrupted fade's oldest
+  side goes first). Checked by breaking: mixing only the incoming side's channels, sides not over the
+  layers below, smoothstep fades, unheld strips, shares ignoring later entries, triggers never used
+  up, the state's own transitions first, any-state transitions always restarting, exit transitions
+  at the update's time, speeds taking effect at the update's end, any condition sufficing, left
+  notices at the update's time, entered before left and clip events collected before the
+  transitions each fail a test. Next: step 6 (gear).

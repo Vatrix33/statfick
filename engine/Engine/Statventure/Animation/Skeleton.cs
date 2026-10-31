@@ -75,6 +75,43 @@ public sealed class PoseBuffer
         }
     }
 
+    /// <summary>Takes every value and flag of <paramref name="other"/> (of the same skeleton).</summary>
+    public void CopyFrom(PoseBuffer other)
+    {
+        Array.Copy(other.Translation, Translation, Translation.Length);
+        Array.Copy(other.Rotation, Rotation, Rotation.Length);
+        Array.Copy(other.Scale, Scale, Scale.Length);
+        Array.Copy(other.Set, Set, Set.Length);
+        Array.Copy(other.Relative, Relative, Relative.Length);
+    }
+
+    /// <summary>
+    /// Mixes toward <paramref name="other"/> by <paramref name="weight"/> on every channel either has
+    /// set, component by component as Replace mixes (Blender's transitions blend all channels); the
+    /// unset side holds its default (both sides of a fade start from the same lower values).
+    /// </summary>
+    public void MixToward(PoseBuffer other, double weight)
+    {
+        for (var node = 0; node < Set.Length; node++)
+        {
+            var set = Set[node] | other.Set[node];
+            if (set == ChannelSet.None)
+                continue;
+            if (other.Set[node] != ChannelSet.None)
+                Relative[node] = other.Relative[node];
+            Set[node] = set;
+            if ((set & ChannelSet.Translation) != 0)
+                for (var c = 3 * node; c < 3 * node + 3; c++)
+                    Translation[c] = Translation[c] * (1 - weight) + other.Translation[c] * weight;
+            if ((set & ChannelSet.Rotation) != 0)
+                for (var c = 4 * node; c < 4 * node + 4; c++)
+                    Rotation[c] = Rotation[c] * (1 - weight) + other.Rotation[c] * weight;
+            if ((set & ChannelSet.Scale) != 0)
+                for (var c = 3 * node; c < 3 * node + 3; c++)
+                    Scale[c] = Scale[c] * (1 - weight) + other.Scale[c] * weight;
+        }
+    }
+
     /// <summary>
     /// The pose these channels give: for each node with a channel set, a bone's local transform is
     /// its rest transform times its channels (T(location)·R·S after the rest, Blender's

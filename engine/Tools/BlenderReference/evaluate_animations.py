@@ -51,7 +51,7 @@ def evaluate(scene, folder):
         rig.animation_data.action = None
         for name in sorted({strip["clip"] for layer in scene["layers"] for strip in layer}):
             bake_rotations(bpy.data.actions[name])
-        build_layers(rig, scene["layers"], fps)
+        build_layers(rig, scene["layers"], fps, scene.get("transitions") or ())
         start = 0
     else:
         action = bpy.data.actions[scene["clip"]]
@@ -109,13 +109,30 @@ def bake_rotations(action):
                 point.interpolation = "LINEAR"
 
 
-def build_layers(rig, layers, fps):
+def add_transitions(rig, track):
+    """Transition strips in the gaps between the track's strips: Blender makes them only with the
+    NLA editor's operator, which needs an NLA editor: the window's largest area becomes one."""
+    for other in rig.animation_data.nla_tracks:
+        other.select = other == track
+        for strip in other.strips:
+            strip.select = other == track
+    window = bpy.context.window
+    area = max(window.screen.areas, key=lambda a: a.width * a.height)
+    area.type = "NLA_EDITOR"
+    region = next(r for r in area.regions if r.type == "WINDOW")
+    rig.select_set(True)
+    bpy.context.view_layer.objects.active = rig
+    with bpy.context.temp_override(window=window, screen=window.screen, area=area, region=region):
+        bpy.ops.nla.transition_add()
+
+
+def build_layers(rig, layers, fps, transitions=()):
     """NLA tracks as the scene's layers (bottom first): each strip placed at its start (seconds times
     the frame rate), its action range the clip's part (clip time 0 is the action's first frame, as
     the exporter slides it), then scale, repeat, direction, blend type, extrapolation, blend in and
     out (after the length, which clamps them, in then out as Blender's setters do) and a fixed
     influence (an influence F-curve whose one key holds the value)."""
-    for layer in layers:
+    for index, layer in enumerate(layers):
         track = rig.animation_data.nla_tracks.new()
         for number, spec in enumerate(layer):
             action = bpy.data.actions[spec["clip"]]
@@ -136,6 +153,8 @@ def build_layers(rig, layers, fps):
                 strip.use_animated_influence = True
                 for point in strip.fcurves.find("influence").keyframe_points:
                     point.co[1] = point.handle_left[1] = point.handle_right[1] = spec["influence"]
+        if index in transitions:
+            add_transitions(rig, track)
 
 
 def main():

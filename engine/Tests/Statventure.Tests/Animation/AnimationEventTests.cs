@@ -139,7 +139,7 @@ public class AnimationEventTests
         stack.Layers[1].Muted = true;
         Assert.Equal(2, Play(stack, 2).Count);
         stack.Layers[1].Muted = false;
-        stack.Layers[1].Strips[0].Start = 0;
+        ((AnimationLayer)stack.Layers[1]).Strips[0].Start = 0;
         // In time order, then bottom layer first.
         Assert.Equal([("whoosh", 0), ("whoosh", 1), ("hit", 0), ("hit", 1)], Play(stack, 2).Select(f => (f.Event.Name, f.Event.Layer)));
     }

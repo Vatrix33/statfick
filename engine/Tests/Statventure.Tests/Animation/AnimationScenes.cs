@@ -17,9 +17,13 @@ public sealed record StripScene(string Clip, double Start, double ClipStart = 0,
 /// Golden/anim-&lt;name&gt;.json) and the engine samples the exported clip. With a
 /// <see cref="Target"/> the clip plays on that model (found by bone names, on its own rest pose), as
 /// Blender plays the action on the target's armature. With <see cref="Layers"/> the scene is an NLA
-/// stack instead (layers bottom first, each a list of strips), and <see cref="Clip"/> is unused.
+/// stack instead (layers bottom first, each a list of strips), and <see cref="Clip"/> is unused; the
+/// layers <see cref="Transitions"/> lists have a transition strip in each gap between their strips
+/// in Blender, a fade layer in the engine (each strip fading in over the gap before it, strips held
+/// outside their ranges).
 /// </summary>
-public sealed record AnimationScene(string Name, string Model, string Clip, double[] Times, string? Target = null, StripScene[][]? Layers = null)
+public sealed record AnimationScene(string Name, string Model, string Clip, double[] Times, string? Target = null, StripScene[][]? Layers = null,
+    int[]? Transitions = null)
 {
     /// <summary>
     /// A time that falls on one of the clip's 60 fps frames, where Blender's evaluation and the
@@ -102,6 +106,22 @@ public static class AnimationScenes
             [new("swing", 0.25, Scale: 0.5, Repeat: 2, Reversed: true, BlendOut: 0.1),
              new("swing", 1.5, ClipStart: 0.1, ClipEnd: 0.4, Extrapolation: Extrapolation.Nothing)],
         ]),
+        // Blender's transition rule (the state machines' cross-fades): over an idle, the first half of
+        // a swing (held mid-swing, not at rest) then a pulse with a transition between them: both
+        // sides over the idle (the swing alone keys the forearm, the pulse alone the head's scale and
+        // the hips' location, both the chest's rotation), mixed over every channel by the
+        // transition's progress.
+        new("nla-transition", "figure", "", Frames(2), Layers:
+        [
+            [new("idle", 0, Repeat: 2, Extrapolation: Extrapolation.Hold)],
+            [new("swing", 0.2, ClipEnd: 0.3, Extrapolation: Extrapolation.Hold), new("pulse", 0.8)],
+        ], Transitions: [1]),
+        // The same with Combine strips on both sides over a held swing.
+        new("nla-transition-combine", "figure", "", Frames(2), Layers:
+        [
+            [new("swing", 0, Extrapolation: Extrapolation.Hold)],
+            [new("idle", 0, ClipEnd: 0.8, Mode: BlendMode.Combine, Extrapolation: Extrapolation.Hold), new("pulse", 1.2, Mode: BlendMode.Combine)],
+        ], Transitions: [1]),
         // The Replace stack on the stocky figure: clips found by bone names, then layered.
         new("stocky-nla", "figure", "", Frames(2), Target: "stocky", Layers: ReplaceLayers),
     ];

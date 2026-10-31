@@ -43,6 +43,7 @@ public class AnimationReferenceTests(ITestOutputHelper output)
             scenes = AnimationScenes.All.Select(s => new
             {
                 name = s.Name, model = s.Model, clip = s.Layers == null ? s.Clip : null, target = s.Target, times = s.Times,
+                transitions = s.Transitions,
                 layers = s.Layers?.Select(layer => layer.Select(strip => new
                 {
                     clip = strip.Clip, start = strip.Start, clipStart = strip.ClipStart, clipEnd = strip.ClipEnd, scale = strip.Scale,
@@ -177,14 +178,13 @@ public class AnimationReferenceTests(ITestOutputHelper output)
         for (var i = 0; i < scene.Times.Length; i++)
         {
             var time = scene.Times[i];
-            var onFrames = stack.Layers.All(layer => layer.StripAt(time) is not var (strip, at) || strip.InfluenceAt(at) <= 0
-                || AnimationScene.OnFrame(strip.ClipTimeAt(at)));
+            var onFrames = Acting(stack, time).All(a => AnimationScene.OnFrame(a.Strip.ClipTimeAt(a.At)));
             if (!onFrames)
                 continue;
             compared++;
             var posed = model.WorldMatrices(stack.Pose(time));
-            var combined = stack.Layers.Select(layer => layer.StripAt(time)).Where(a => a is { Strip.Mode: BlendMode.Combine } acting && acting.Strip.InfluenceAt(acting.Time) > 0)
-                .SelectMany(a => a!.Value.Strip.Clip.NodesDriving(ChannelSet.Rotation)).ToHashSet();
+            var combined = Acting(stack, time).Where(a => a.Strip.Mode == BlendMode.Combine)
+                .SelectMany(a => a.Strip.Clip.NodesDriving(ChannelSet.Rotation)).ToHashSet();
             foreach (var (bone, ends) in reference.Bones)
             {
                 var node = skeleton.Find(bone);
@@ -212,24 +212,48 @@ public class AnimationReferenceTests(ITestOutputHelper output)
         return new Comparison(onFrame, 0, worstError, worst + $" ({compared} of {scene.Times.Length} times compared)");
     }
 
+    /// <summary>The strips that act at <paramref name="time"/> and the time each is evaluated at.</summary>
+    static IEnumerable<(AnimationStrip Strip, double At)> Acting(AnimationStack stack, double time)
+    {
+        foreach (var layer in stack.Layers)
+            if (layer is AnimationLayer track && track.StripAt(time) is var (strip, at) && strip.InfluenceAt(at) > 0)
+                yield return (strip, at);
+            else if (layer is FadeLayer fades)
+                for (var e = 0; e < fades.Entries.Count; e++)
+                    if (fades.Entries[e].Strip is { } faded && fades.ShareAt(e, time) > 0)
+                        yield return (faded, Math.Clamp(time, faded.Start, faded.End));
+    }
+
     /// <summary>The scene's layers as the engine's stack.</summary>
     internal static AnimationStack Stack(AnimationScene scene, AnimationClip[] clips, Skeleton skeleton)
     {
         var stack = new AnimationStack(skeleton);
-        foreach (var layerScene in scene.Layers!)
+        for (var l = 0; l < scene.Layers!.Length; l++)
         {
-            var layer = new AnimationLayer();
-            foreach (var s in layerScene)
+            var strips = scene.Layers[l].Select(s =>
             {
                 var clip = clips.Single(c => c.Name == s.Clip);
-                layer.Strips.Add(new AnimationStrip(new ClipBinding(clip, skeleton))
+                return new AnimationStrip(new ClipBinding(clip, skeleton))
                 {
                     Start = s.Start, ClipStart = s.ClipStart, ClipEnd = s.ClipEnd ?? clip.Duration, Scale = s.Scale, Repeat = s.Repeat,
                     BlendIn = s.BlendIn, BlendOut = s.BlendOut, Influence = s.Influence, Mode = s.Mode, Extrapolation = s.Extrapolation,
                     Reversed = s.Reversed,
-                });
+                };
+            }).ToList();
+            if (scene.Transitions?.Contains(l) == true)
+            {
+                // Each strip fades in over the gap before it (Blender's transition strip there).
+                var fades = new FadeLayer();
+                for (var i = 0; i < strips.Count; i++)
+                    fades.Entries.Add(i == 0 ? new FadeEntry(strips[i], double.NegativeInfinity, 0) : new FadeEntry(strips[i], strips[i - 1].End, strips[i].Start - strips[i - 1].End));
+                stack.Layers.Add(fades);
             }
-            stack.Layers.Add(layer);
+            else
+            {
+                var layer = new AnimationLayer();
+                layer.Strips.AddRange(strips);
+                stack.Layers.Add(layer);
+            }
         }
         return stack;
     }
