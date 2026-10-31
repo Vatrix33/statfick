@@ -11,12 +11,17 @@ project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo 
 Before each later milestone (M8 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code.
 
-**What M6 left for M7:** `ModelPose` (local translation, rotation and scale per node; the rest keep the
-file's) is what animation fills; `Model.Draw(..., pose)` poses the hierarchy and skins on the GPU
-(linear blend, 4 influences, normals recomputed as Blender does); `View3D` redraws when its items are
-set again, so an animated view sets them each frame. The reference method carries over: Blender
-evaluates the same actions (see "Method" in `Docs/Animation.md`), and renders posed models as in M6
-("Poses in Blender" in `Docs/Renderer-3D.md`).
+**What M7 leaves for the port:** figures are `Actor`s in an `AnimatedView` (added to the document as a
+frame client, shown in a `surface` element); their clips come from the .glb files (exported with
+`make_models.py`'s `ANIMATED` settings, markers by `export_markers`), shared by bone names within a rig
+family; a rig's state machine is built with `StateMachineBuilder` (pack form in M9, editor in M11); gear
+is `ActorItem`s on `socket.<slot>` bones and `ActorGarment`s; the battle pace is the view's `Rate`.
+
+**Starting M8 (audio):** checked on 2026-10-31: BRUTAL's OpenAL package is referenced (since M0) but the
+engine has no audio code yet; the old game's only audio is the music synthesizer (`music-composer.js`,
+`music.js`) on Chromium's Web Audio, which is the reference (Electron 44.5.0 can render it offline with an
+OfflineAudioContext; no audio reference harness exists yet). Outside the music scripts the old game plays
+no sounds at all, so sound effects would be new scope.
 
 **Design docs by area** (read the one for the area you work on): `Docs/Compositing-Port.md` (Blink
 compositing, LCD vs grayscale text, inline SVG transforms), `Docs/Scripting.md` (event loop, frame
@@ -74,7 +79,8 @@ the design and the tests):
 - **M6 3D renderer:** answered 2026-10-30 (see "Decisions for M6" below).
 - **M7 Animation:** answered 2026-10-31 (see "Decisions for M7" below).
 - **M8 Audio:** must the C# synthesizer match the old JavaScript one sample for sample (offline renders
-  compared) or by ear? Are sound effects synthesized as now? Output sample rate and latency?
+  compared) or by ear? The old game has no sound effects (only the music synthesizer): should M8 add
+  them (synthesized, or samples), or leave them out? Output sample rate and latency?
 - **M9 Assets and data:** pack layout (which data in which pack), compression, mod or loose-folder
   overrides, where saves and settings live on Linux and Windows, settings file format, JSON import and
   export of characters?

@@ -106,7 +106,7 @@ to the battle and the map, is a `surface` element in the UI.
   palette (glows, fixed details) keeps its own base colour.
 
 Already decided on 2026-10-16: characters, enemies and items are real-time 3D models with full
-animation sets (animation itself is M7); battles keep the fixed orthographic side view on a 3D stage;
+animation sets (animation itself is M7, `Docs/Animation.md`); battles keep the fixed orthographic side view on a 3D stage;
 the map is 3D terrain seen from above.
 
 ## Method
@@ -309,6 +309,11 @@ come up.
 
 ## Reference harness
 
+(M7 added to these scenes: models placed by a matrix, posed by node world matrices and grouped, a
+character with its gear being one model for the glow mask, the ink and the hatching's anchor; and
+imported animation data cleared, so an animated model keeps the scene's pose. See
+`Docs/Animation.md`, "Rendered gear".)
+
 - **Scenes:** `Tests/Statventure.Tests/Render3D/Scenes3D.cs` (shapes as positions and
   counter-clockwise triangles, objects with scale, rotation X then Y then Z, translation and an sRGB
   colour, a camera, size, background; and as the steps came: placed models with poses, a palette and
@@ -458,7 +463,7 @@ come up.
 4. **Ink lines:** silhouettes and inner edges at a fixed screen width, against Freestyle.
 5. **Shadows:** shadow maps; shadowed areas in the shadow tone.
 6. **Hatching and glow.**
-7. **GPU skinning:** joint matrices from a pose (sampling animations is M7).
+7. **GPU skinning:** joint matrices from a pose (sampling animations is M7, `Docs/Animation.md`).
 8. **Terrain** (a height field under the orthographic top-down camera) **and particles.**
 9. **3D views inside the UI:** an element showing a 3D scene, composited by the canvas.
 

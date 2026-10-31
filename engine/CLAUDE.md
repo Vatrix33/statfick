@@ -20,8 +20,9 @@ the user and wait for their go-ahead before starting the next one.
   on Windows: they act as Chromium on Linux with the reference PC's fonts and font settings.
 - Chromium 152 for references: `Tools/Scripts/chromium.sh` (Electron 44.5.0 from npm).
 - Blender 5.2 for the 3D references (M6 on): `Tools/Scripts/make-blender-references.sh [scene ...]`
-  (`Docs/Renderer-3D.md`, "Reference harness"; on the PC the Flatpak, run headless). Its renders and
-  test models are committed, so the tests run where there's no Blender (the cloud).
+  (`Docs/Renderer-3D.md`, "Reference harness"; on the PC the Flatpak, run headless). It also evaluates
+  the animation scenes (`Docs/Animation.md`, "Reference harness": poses, NLA stacks, gear). Its renders,
+  evaluations and test models are committed, so the tests run where there's no Blender (the cloud).
 - On the PC a step is also checked on the CPU Vulkan the cloud uses (Mesa's lavapipe):
   `VK_DRIVER_FILES=/usr/share/vulkan/icd.d/lvp_icd.x86_64.json VK_ICD_FILENAMES=$VK_DRIVER_FILES Tools/Scripts/test.sh`.
 - Reference sources: `~/.cache/stat-fick-build/reference-src/` (save new downloads there).
