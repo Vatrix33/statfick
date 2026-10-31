@@ -109,8 +109,13 @@ public sealed record Scene3D(string Name, int Width, int Height, string Backgrou
     public float Scale { get; init; } = 1;
     /// <summary>A terrain (Data/Terrain/&lt;File&gt;, from Tools/BlenderReference/make_terrain.py) placed at a point.</summary>
     public (string File, Vector3 Translation)? Terrain { get; init; }
-    /// <summary>The scene's clock in seconds (the water's waves).</summary>
+    /// <summary>The scene's clock in seconds (the water's waves, the particles' ages).</summary>
     public float Time { get; init; }
+    /// <summary>Particle emitters (Docs/Renderer-3D.md, "Particles"), shown at <see cref="Time"/>.</summary>
+    public ParticleEmitter[] Particles { get; init; } = [];
+
+    /// <summary>The particles alive at the scene's time, in its palette's colours.</summary>
+    public Particle[] ParticlesNow() => [.. Particles.SelectMany(e => e.At(Time, new Palette(Palette, Shadows)))];
 }
 
 public static class Scenes3D
@@ -285,6 +290,77 @@ public static class Scenes3D
             Palette = new() { ["grass"] = "#6f8a4f", ["rock"] = "#8a8478", ["sand"] = "#c8b088", ["water"] = "#3f6f8f" },
             Sun = new SunLight(new(0.473f, 0.326f, 0.819f), 3),
             Time = 1.5f,
+        },
+        // Particles (Docs/Renderer-3D.md, "Particles") a second into their effects: sparks thrown up
+        // (glowing; kept in view: the reference holds a halo back only by its own model, the engine also
+        // where something is nearer), rings growing from a point, puffs rising from a stream (some behind
+        // the block), shards tumbling (inked), a glowing trail of discs passing in front; colours between
+        // their two palette slots, fading, overlapping at different depths.
+        new("particles", 400, 300, "#b8b0a0", new Camera3D(Projection.Perspective, new(0.3f, 1.5f, 4.4f), new(0, 0.8f, 0), FieldOfViewDegrees: 40),
+            [Box(new(0.55f, 0.35f, -0.1f), new(0, 20, 0), new(0.55f, 0.7f, 0.5f), "#6a5a4a"), Box(new(0, -0.1f, 0), Vector3.Zero, new(4, 0.2f, 2.5f), "#8a8070")])
+        {
+            Palette = new() { ["spark"] = "#fff0a0", ["ember"] = "#ff8a30", ["ash"] = "#5a3a30", ["smoke"] = "#d8d0c8", ["soot"] = "#706860", ["slate"] = "#4a5a7a", ["frost"] = "#a0d0f0" },
+            Time = 1,
+            Particles =
+            [
+                new()
+                {
+                    Effect = new()
+                    {
+                        Shape = new ParticleShape.Spark(0.3f, 0.06f), StartColor = "spark", EndColor = "ember", Glow = true,
+                        Life = new(1.2f, 1.6f), Size = new(0.07f, 0.1f), Speed = new(2, 3.2f), Spawn = new ParticleSpawn.Cone(new(0.3f, 1, 0.2f), 30),
+                        Gravity = new(0, -4, 0), FadeOut = 0.3f,
+                    },
+                    Seed = 11, Path = ParticleEmitter.At(new(-1.1f, 0.05f, 0.2f)), Start = 0.4f, Burst = 10,
+                },
+                new()
+                {
+                    Effect = new()
+                    {
+                        Shape = new ParticleShape.Ring(0.22f), StartColor = "frost", EndColor = "spark", OutlineWidth = 2,
+                        Life = new(1.6f, 2.2f), Size = new(0.6f, 1.0f), Speed = 0, Spawn = new ParticleSpawn.Point(), GrowIn = 0.6f, FadeOut = 0.3f,
+                    },
+                    Seed = 12, Path = ParticleEmitter.At(new(-0.2f, 1.2f, -0.6f)), Burst = 1,
+                },
+                new()
+                {
+                    Effect = new()
+                    {
+                        Shape = new ParticleShape.Ring(0.4f), StartColor = "frost", EndColor = "frost", OutlineWidth = 1.5f, Opacity = 0.8f,
+                        Life = 2, Size = 0.5f, Speed = 0, Spawn = new ParticleSpawn.Point(), GrowIn = 0.8f,
+                    },
+                    Seed = 13, Path = ParticleEmitter.At(new(-0.6f, 1.5f, -1.0f)), Start = 0.3f, Burst = 1,
+                },
+                new()
+                {
+                    Effect = new()
+                    {
+                        Shape = new ParticleShape.Puff(0.6f), StartColor = "soot", EndColor = "smoke", Opacity = 0.75f,
+                        Life = new(2, 3), Size = new(0.35f, 0.55f), Speed = new(0.15f, 0.3f), Spawn = new ParticleSpawn.Sphere(0.25f),
+                        Gravity = new(0, 0.4f, 0), Drag = 0.5f, GrowIn = 0.3f, FadeOut = 0.4f,
+                    },
+                    Seed = 14, Path = ParticleEmitter.At(new(0.9f, 0.3f, -0.6f)), Rate = 6, Duration = 1,
+                },
+                new()
+                {
+                    Effect = new()
+                    {
+                        Shape = new ParticleShape.Shard(0.32f), StartColor = "frost", EndColor = "slate", OutlineWidth = 1.5f,
+                        Life = new(1.5f, 2), Size = new(0.14f, 0.22f), Speed = new(1.4f, 2.2f), Spawn = new ParticleSpawn.Cone(new(-0.2f, 1, 0.5f), 45),
+                        Gravity = new(0, -5, 0), Angle = new(0, 180), Spin = new(-240, 240),
+                    },
+                    Seed = 15, Path = ParticleEmitter.At(new(0.2f, 0.05f, 0.8f)), Start = 0.4f, Burst = 7,
+                },
+                new()
+                {
+                    Effect = new()
+                    {
+                        Shape = new ParticleShape.Disc(), StartColor = "spark", EndColor = "ash", Glow = true, OutlineWidth = 1,
+                        Life = 0.9f, Size = new(0.08f, 0.11f), Speed = 0, Spawn = new ParticleSpawn.Point(), GrowIn = 0.15f, FadeOut = 0.6f,
+                    },
+                    Seed = 16, Path = t => new(-1.6f + 2.2f * t, 1.0f + 0.25f * MathF.Sin(3 * t), 0.9f), Rate = 9, Duration = 1,
+                },
+            ],
         },
         // The same shapes in the battle view (orthographic, from the side) under a low sun from the left: other band positions.
         new("cel-side", 420, 200, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.1f, 0.5f, 6), new(0.1f, 0.5f, 0), OrthographicHeight: 1.9f), [])

@@ -39,7 +39,15 @@ shadow, glow, cast shadows drawn as ink. It also renders 3D views into the UI (p
 - **Particles** (step 8): flat camera-facing shapes drawn in the shader (disc, ring, spark stretched
   along its motion, puff with a soft edge, shard), in palette colours, optionally ink-outlined,
   glowing through the glow pass; size and opacity follow each particle's age (grow in, shrink and
-  fade out), blended over the scene.
+  fade out), blended over the scene. Asked on 2026-10-31: motion computed from age (start, velocity,
+  gravity, drag, spin; deterministic, rewindable, no collisions); sizes in world units; each
+  effect sets its shapes' proportions (ring thickness, spark width and stretch, shard length and
+  width, puff softness) and its ink line's width (pixels times the device scale, centred on the
+  shape's edge as model lines are); growing in and shrinking/fading out eased (smoothstep); colour
+  from a start to an end palette slot, mixed in sRGB evenly over the life; depth-tested against the
+  scene, casting no shadows, not hatched; emitters: bursts, steady streams and trails (following a
+  moving object), from a point, sphere or cone, each particle's speed, size, life and spin drawn
+  from ranges with a fixed seed.
 - **GPU skinning** (step 7): linear blend skinning (glTF's and Blender's default), 4 influences per
   vertex (JOINTS_0/WEIGHTS_0, Blender's export default). A posed mesh's normals are recomputed from
   the bent surface as Blender does (measured: its posed normals are the deformed mesh's own smooth
@@ -241,6 +249,30 @@ come up.
   0.6 m long, toward (cos 115°, sin 115°), slope 0.06, 0.18 m/s; in the palette's `water` tones.
   The map is open at its edge: seen from beside it, the water shows under the land (the map camera
   never looks there).
+- **Particles, how they're drawn** (`Particles.cs`, `particle*.vert/.frag`): an effect
+  (`ParticleEffect`) gives the shape and its proportions (`ParticleShape.Disc`, `Ring(thickness)`,
+  `Spark(width, stretch)`, `Puff(softness)`, `Shard(width)`), start and end palette slots, opacity,
+  ink line width, glow, and the ranges of life, size, speed, angle and spin, gravity, drag, the
+  grow-in and fade-out shares and, for trails, the share of the emitter's velocity carried. An
+  emitter (`ParticleEmitter`) releases a burst and/or a stream from its path (a fixed point or a
+  moving object's place over time), each particle numbered, born at the burst or at n / rate, its
+  draws from SplitMix64 over (seed, number, channel); spawns: a point (every direction), a ball
+  (positions even through it, outward) or a cone (directions even over its cap). At time t each live
+  particle is computed from its age: under gravity g and drag k, v = g/k + (v₀ − g/k)·e^(−kt) and
+  x = x₀ + g/k·t + (v₀ − g/k)(1 − e^(−kt))/k (without drag, x₀ + v₀t + gt²/2); size times
+  smoothstep growing in and 1 − smoothstep fading out, opacity times the latter; colour mixed in
+  sRGB by age. `ParticleQuad.Of` makes each a quad in the view plane (the camera's right and up,
+  turned by its angle; a spark's along its motion across the view, as long as its size plus the
+  distance it moves in its stretch time) with a pixel's width at its depth and its shape's measures
+  in metres. The renderer sorts them far to near and, after the ink lines, draws them into a
+  multisampled layer (16-bit float, premultiplied) against the scene's depth (tested, not written),
+  resolves it and lays it over the view (premultiplied blending, in linear): particles hide lines
+  behind them. particle.frag takes the shape's signed distance from its edge (exact for circle,
+  ring, capsule and rhombus), its coverage as a pixel-wide ramp, a puff's fade (smoothstep over its
+  outer part), the ink line within half its width of the edge (the lines' coverage rule), ink over
+  colour, both times the opacity. Glowing particles join the glow's source (their shape in their
+  colour, sRGB-encoded, premultiplied, far to near) and own the halo (model id 1023, their depth)
+  where they cover half a pixel; they hold no halo back themselves, as their layer goes on top.
 - Cameras keep the vertical extent fixed and widen with the aspect ratio (a Blender camera with
   sensor fit vertical): perspective by a vertical field of view, orthographic by the height of the
   world in view (Blender's orthographic scale). `Camera.View` is `Matrix4x4.CreateLookAt`.
@@ -292,7 +324,9 @@ come up.
   and emission-only parts become flat emission. After the shading render, two more: the glowing
   parts alone in their glow colours (everything else hidden, film transparent) and the coverage of
   the models they belong to, into `Actual/blender-glow/`. `compose_glow.py` (Pillow) then lays the
-  halo into `Golden/r3d-<scene>.png` as `compose.py` did, held back where those models cover.
+  halo into `Golden/r3d-<scene>.png` as `compose.py` did, held back where those models cover. The
+  engine also holds a halo back where anything is nearer than its glowing part, which this doesn't
+  model: test scenes keep glowing parts in view.
 - **Shadows in Blender**: in scenes with scenery, the sun casts shadows with its angle and
   `use_shadow_jitter` (no overblur): the exact disc light, 64 shadow origins over the samples.
   Scenery's materials keep the toon chain (Shader to RGB takes the shadow); other models' light is
@@ -306,6 +340,16 @@ come up.
   through the toon chain. The water is a mesh at its level made of the terrain's cells and inset by
   a millimetre, both for Freestyle (below), its normal from the same wave trains in nodes. Terrain
   and water are one object for the ink, as in the engine.
+- **Particles in Blender**: the scene file gives each particle as the engine draws it
+  (`ParticleQuad`: centre, axes, half sizes, pixel width, shape measures, colour, opacity, line
+  width); `render_scenes.py` lays a quad for each (its object at the centre, UVs across it) with a
+  material computing the same signed distances in nodes, per sample: inside below 0, on the line
+  within half its width, ink over colour times opacity, emission mixed with transparency, blended
+  (EEVEE sorts blended objects by their origin's view depth, as the engine sorts). The shading
+  render leaves them out; after it they're rendered alone over a transparent film with everything
+  else held out (`<scene>-particles.png`), and `compose_glow.py` lays that over the view after the
+  halo, mixing in linear light, as the engine lays its particle layer. Glowing particles join the
+  glow render (their shape in their colour) and stay out of its mask.
 - **Ink lines in Blender**: after the shading render, each model's parts with ink are joined into one
   object (skins applied, parents cleared keeping places, coincident vertices welded back so a
   material seam is the crease it was in Blender rather than two open borders), so Freestyle's
@@ -332,8 +376,9 @@ come up.
   run (not by Python's hash seed), so `make_models.py` puts each index buffer's triangles in one
   order after export (each starting at its smallest index, winding kept, sorted).
 - **Comparison** (`Render3DReferenceTests.Compare`): a pixel whose 3×3 neighbourhood in the
-  reference is one colour must match within 2 levels (not on the frame's edge, whose neighbours are
-  partly out of view: a wave band just outside it shades the edge pixel). On an edge MSAA 4× covers the pixel in
+  reference is one colour must match within 2 levels. The frame's outermost pixels aren't compared:
+  EEVEE's jittered samples reach past the frame, so an edge just outside (a wave band, a slab's
+  edge) shades them, where the engine's samples stay inside. On an edge MSAA 4× covers the pixel in
   quarters and resolves it alone, where EEVEE filters 64 samples across neighbouring pixels: they
   differ by up to 0.61 of the edge's local contrast (the 3×3 range), about 3 levels on average. An
   edge half a pixel out differs by about 9 on average; a missing or extra feature by about the whole
@@ -469,7 +514,7 @@ Started 2026-10-30.
   differently. Checked by breaking: normals turned with the bones, flat faces averaged, joint
   matrices in the other order and one influence each fail `pose-*`; without feature edges the belt's
   lines go missing (`glow-figure`).
-- **Step 8, terrain (2026-10-31, 555 tests): done; particles next.** User decisions: height and
+- **Step 8, terrain and particles (2026-10-31, 566 tests): done.** Terrain first: User decisions: height and
   cover maps, covers blended softly over three cells, shaded water with two wave trains (and for
   the particles: shapes drawn in the shader, shrinking and fading with age). `TerrainData`,
   `Terrain` (chunks, strides 1-8 with full-resolution borders), terrain.frag, water.frag, the toon
@@ -493,4 +538,19 @@ Started 2026-10-30.
   `terrain-water`; borders at the chunk's stride fail the chunk test; the old edge-on rule fails
   `terrain-oblique` (3.5% of its line pixels missed). Not covered by references: level of detail
   against Blender (the test cells are large on screen) and performance on a 2016-class GPU.
-- **Next: step 8, particles.**
+  Then the particles (user decisions above: motion from age, world-unit sizes, proportions and ink
+  width per effect, eased growth and fading, two palette colours mixed in sRGB, depth-tested
+  without shadows, bursts, streams and trails): `Particles.cs` (effects, emitters, closed-form
+  motion, `ParticleQuad`), particle.vert/.frag, particle_glow/_owner/_composite.frag, the particle
+  layer in `RenderTarget3D`; Blender quads with node-built shapes, a particle render held out by the
+  scene, laid on in `compose_glow.py`; scene `particles` (sparks, rings, puffs behind a block, inked
+  shards, a glowing trail), `ParticleTests` (the closed form against Runge-Kutta steps, seeded
+  draws, burst and stream counts, spawn spreads, trails, the curves and the sRGB mix, quads) and
+  `ParticlesCoverTheInkBehindThem`. Found on the way: sparks fallen below the ground glowed over it
+  in Blender, as compose.py holds a halo back only by its own model (the scene keeps them in view);
+  the frame's outermost pixels can't be compared (EEVEE's jittered samples reach past the frame,
+  so an edge just outside shades them). Checked by breaking: the line outside the edge, colours
+  mixed in linear light, a linear fade, unstretched sparks, hard puffs, no depth test, near-to-far
+  order, no particle glow and reversed spin each fail `particles`; particles before the lines fail
+  `ParticlesCoverTheInkBehindThem`.
+- **Next: step 9, 3D views inside the UI.**

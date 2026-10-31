@@ -138,6 +138,43 @@ public class Render3DReferenceTests(GpuFixture gpu)
         Assert.True(cracks == 0, $"{name}: {cracks} pixels show the background between chunks");
     }
 
+    /// <summary>
+    /// Particles lie over the ink lines behind them (Docs/Renderer-3D.md, "Particles"; the references
+    /// can't tell, as Blender's shading renders have no lines): an opaque disc in front of a pixel of
+    /// a model's outline shows its own colour there, not the ink. Checked: particles drawn before the
+    /// lines fail.
+    /// </summary>
+    [Fact]
+    public void ParticlesCoverTheInkBehindThem()
+    {
+        var scene = Scenes3D.All.Single(s => s.Name == "cel-shapes");
+        var plain = Render(scene);
+        int w = plain.Width, h = plain.Height;
+        var ink = scene.Style.Ink * 255;
+        // The darkest pixel near the middle: on a line.
+        var (x, y) = Enumerable.Range(h / 4, h / 2).SelectMany(py => Enumerable.Range(w / 4, w / 2).Select(px => (px, py)))
+            .MinBy(p => plain.Pixels[(p.py * w + p.px) * 4] + plain.Pixels[(p.py * w + p.px) * 4 + 1] + plain.Pixels[(p.py * w + p.px) * 4 + 2]);
+        Assert.True(Math.Abs(plain.Pixels[(y * w + x) * 4] - ink.X) < 12, "no ink line found");
+        // A disc 12 pixels across, just past the near plane on that pixel's ray.
+        var camera = scene.Camera.ToCamera();
+        Matrix4x4.Invert(camera.ViewProjection((float)w / h), out var unproject);
+        var near = Vector4.Transform(new Vector4((x + 0.5f) / w * 2 - 1, (y + 0.5f) / h * 2 - 1, 0.95f, 1), unproject);
+        var place = new Vector3(near.X, near.Y, near.Z) / near.W;
+        var depth = -Vector3.Transform(place, camera.View).Z;
+        var size = 12 * 2 * depth * MathF.Tan(camera.VerticalFieldOfView / 2) / h;
+        var disc = new ParticleEmitter
+        {
+            Effect = new()
+            {
+                Shape = new ParticleShape.Disc(), StartColor = "glint", EndColor = "glint", Life = 10, Size = size, Speed = 0, Spawn = new ParticleSpawn.Point(),
+            },
+            Seed = 1, Path = ParticleEmitter.At(place), Burst = 1,
+        };
+        var covered = Render(scene with { Palette = new(scene.Palette) { ["glint"] = "#20c0a0" }, Particles = [disc] });
+        var i = (y * w + x) * 4;
+        Assert.Equal([0x20, 0xc0, 0xa0], new[] { (int)covered.Pixels[i], covered.Pixels[i + 1], covered.Pixels[i + 2] });
+    }
+
     /// <summary>Line coverage 0..1: Freestyle's alpha, or the engine's white-on-black coverage (sRGB-encoded in the target).</summary>
     internal static float[] InkCoverage(RgbaImage image, bool alpha)
     {
@@ -333,7 +370,8 @@ public class Render3DReferenceTests(GpuFixture gpu)
             using var target = new RenderTarget3D(device, scene.Width, scene.Height);
             var renderer = new Renderer3D(device) { InkCoverageOnly = inkOnly };
             var frame = device.BeginFrame();
-            renderer.Render(frame, target, scene.Camera.ToCamera(), items, Colors.LinearFromHex(scene.Background), scene.Sun ?? default, scene.Style, scene.Scale, scene.Time);
+            renderer.Render(frame, target, scene.Camera.ToCamera(), items, Colors.LinearFromHex(scene.Background), scene.Sun ?? default, scene.Style, scene.Scale, scene.Time,
+                scene.ParticlesNow());
             device.EndFrame(frame);
             device.WaitIdle();
             return new RgbaImage(scene.Width, scene.Height, target.Resolved.ReadPixels());
@@ -349,8 +387,9 @@ public class Render3DReferenceTests(GpuFixture gpu)
     }
 
     /// <summary>
-    /// Inside (the reference's 3×3 neighbourhood is one colour, away from the frame's edge): every
-    /// channel within 2. On an edge,
+    /// The frame's outermost pixels aren't compared: Blender's jittered samples reach past the frame,
+    /// so an edge just outside shades them. Inside (the reference's 3×3 neighbourhood is one colour):
+    /// every channel within 2. On an edge,
     /// MSAA 4× covers a pixel in quarters and resolves it alone, where Blender filters 64 samples
     /// across neighbouring pixels: they differ by up to 0.61 of the edge's local contrast (the 3×3
     /// neighbourhood's range), 3.1 levels on average. An edge half a pixel out differs by about 9 on
@@ -372,6 +411,10 @@ public class Render3DReferenceTests(GpuFixture gpu)
             {
                 if (only != null && !only(x, y))
                     continue;
+                // The frame's outermost pixels: Blender's jittered samples reach past the frame (an
+                // edge just outside shades them), the engine's stay inside.
+                if (x == 0 || y == 0 || x == w - 1 || y == h - 1)
+                    continue;
                 var i = (y * w + x) * 4;
                 Span<int> low = [255, 255, 255], high = [0, 0, 0];
                 for (var dy = -1; dy <= 1; dy++)
@@ -386,8 +429,7 @@ public class Render3DReferenceTests(GpuFixture gpu)
                         }
                     }
                 var contrast = Math.Max(high[0] - low[0], Math.Max(high[1] - low[1], high[2] - low[2]));
-                // A pixel on the frame's edge has neighbours out of view: never counted as inside.
-                var uniform = contrast == 0 && x > 0 && y > 0 && x < w - 1 && y < h - 1;
+                var uniform = contrast == 0;
                 var diff = 0;
                 for (var c = 0; c < 3; c++)
                     diff = Math.Max(diff, Math.Abs(e[i + c] - a[i + c]));
@@ -492,6 +534,23 @@ public class Render3DReferenceTests(GpuFixture gpu)
             scale = s.Scale,
             terrain = s.Terrain is { } t ? new { file = t.File, translation = V(t.Translation) } : null,
             time = s.Time,
+            // Each particle as the engine draws it (ParticleQuad): Blender lays a quad for each.
+            particles = s.ParticlesNow().Select(p => ParticleQuad.Of(p, s.Camera.ToCamera(), s.Height, s.Scale)).Select(q => new
+            {
+                centre = V(q.Centre),
+                axisU = V(q.AxisU),
+                axisV = V(q.AxisV),
+                halfU = q.HalfU,
+                halfV = q.HalfV,
+                pixel = q.Pixel,
+                shape = q.Shape,
+                p0 = q.P0,
+                p1 = q.P1,
+                color = new[] { q.Color.X, q.Color.Y, q.Color.Z },
+                opacity = q.Opacity,
+                outline = q.Outline,
+                glow = q.Glow,
+            }).ToArray(),
         });
         return JsonSerializer.Serialize(new { modelFolder = "../Data/Models", terrainFolder = "../Data/Terrain", shapes, scenes }, new JsonSerializerOptions { WriteIndented = true }) + "\n";
     }

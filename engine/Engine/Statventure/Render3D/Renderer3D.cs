@@ -20,6 +20,8 @@ public sealed class RenderTarget3D : IDisposable
     public const VkFormat SurfaceFormat = VkFormat.R32G32UInt;
     public const VkFormat EdgeFormat = VkFormat.R32UInt;
     public const VkFormat FeatureFormat = VkFormat.R32G32B32A32UInt;
+    /// <summary>The particle layer: premultiplied linear colour, blended and resolved at 16-bit float.</summary>
+    public const VkFormat ParticleFormat = VkFormat.R16G16B16A16SFloat;
     public const VkSampleCountFlags Samples = VkSampleCountFlags._4Bit;
     /// <summary>
     /// A shadow map's size: 16 maps, one per direction over the sun's disc, fitted to the visible
@@ -42,6 +44,12 @@ public sealed class RenderTarget3D : IDisposable
 
     readonly GpuDevice _device;
     GlowImages? _glow;
+    (GpuImage Layer, GpuImage Resolved)? _particles;
+
+    /// <summary>The particles' layer (MSAA 4×) and its resolve, made when a view first shows particles.</summary>
+    internal (GpuImage Layer, GpuImage Resolved) Particles => _particles ??= (
+        GpuImage.CreateRenderTarget(_device, Width, Height, ParticleFormat, Samples),
+        GpuImage.CreateRenderTarget(_device, Width, Height, ParticleFormat));
 
     /// <summary>
     /// The glow's images (Docs/Renderer-3D.md, "Glow"), made when a view first glows: the glowing
@@ -100,6 +108,8 @@ public sealed class RenderTarget3D : IDisposable
         FeatureDepth.Dispose();
         foreach (var image in _glow?.All ?? [])
             image.Dispose();
+        _particles?.Layer.Dispose();
+        _particles?.Resolved.Dispose();
     }
 }
 
@@ -197,8 +207,8 @@ public sealed record CelStyle(Vector4 Ink, float ShadowMix, float BandEdge)
 /// </summary>
 public sealed class Renderer3D(GpuDevice device)
 {
-    /// <summary>Model ids in a surface record have 10 bits (0 is the background).</summary>
-    const int MaxModels = 1023;
+    /// <summary>Model ids in a surface record have 10 bits (0 is the background, 1023 the particles in the glow's owner records).</summary>
+    const int MaxModels = 1022;
 
     [StructLayout(LayoutKind.Sequential)]
     struct DrawData
@@ -234,6 +244,33 @@ public sealed class Renderer3D(GpuDevice device)
         public float HatchWidth;
         public float HatchInk;
         public float Time;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct ParticleData
+    {
+        public Vector3 Centre;
+        public float Pixel;
+        public Vector3 AxisU;
+        public float HalfU;
+        public Vector3 AxisV;
+        public float HalfV;
+        public Vector4 Color;
+        public uint Shape;
+        public float P0;
+        public float P1;
+        public float Outline;
+        public float Opacity;
+        public float Depth;
+        public uint Glow;
+        public uint Pad;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct ParticlePush
+    {
+        public ulong Quads;
+        public ulong Scene;
     }
 
     /// <summary>The 16 directions over the sun's disc (a Vogel spiral: even over its area), in units of its radius.</summary>
@@ -480,7 +517,50 @@ public sealed class Renderer3D(GpuDevice device)
         DepthCompare = VkCompareOp.Greater,
     });
 
-    Pipeline? _feature, _edges, _lines, _shadow, _glowSource;
+    Pipeline? _feature, _edges, _lines, _shadow, _glowSource, _particle, _particleGlow, _particleOwner, _particleComposite;
+
+    Pipeline ParticlePipeline => _particle ??= device.Pipelines.Get(new GraphicsPipelineDesc
+    {
+        VertexShader = "particle.vert",
+        FragmentShader = "particle.frag",
+        Blend = BlendMode.Premultiplied,
+        ColorFormats = [RenderTarget3D.ParticleFormat],
+        DepthFormat = RenderTarget3D.DepthFormat,
+        DepthTest = true,
+        DepthCompare = VkCompareOp.Greater,
+        Samples = RenderTarget3D.Samples,
+    });
+
+    Pipeline ParticleGlowPipeline => _particleGlow ??= device.Pipelines.Get(new GraphicsPipelineDesc
+    {
+        VertexShader = "particle.vert",
+        FragmentShader = "particle_glow.frag",
+        Blend = BlendMode.Premultiplied,
+        ColorFormats = [VkFormat.R8G8B8A8UNorm],
+        DepthFormat = RenderTarget3D.DepthFormat,
+        DepthTest = true,
+        DepthCompare = VkCompareOp.Greater,
+    });
+
+    Pipeline ParticleOwnerPipeline => _particleOwner ??= device.Pipelines.Get(new GraphicsPipelineDesc
+    {
+        VertexShader = "particle.vert",
+        FragmentShader = "particle_owner.frag",
+        Blend = BlendMode.Opaque,
+        ColorFormats = [RenderTarget3D.SurfaceFormat],
+        DepthFormat = RenderTarget3D.DepthFormat,
+        DepthTest = true,
+        DepthWrite = true,
+        DepthCompare = VkCompareOp.Greater,
+    });
+
+    Pipeline ParticleCompositePipeline => _particleComposite ??= device.Pipelines.Get(new GraphicsPipelineDesc
+    {
+        VertexShader = "fullscreen.vert",
+        FragmentShader = "particle_composite.frag",
+        Blend = BlendMode.Premultiplied,
+        ColorFormats = [RenderTarget3D.ColorFormat],
+    });
 
     Pipeline GlowSourcePipeline => _glowSource ??= device.Pipelines.Get(new GraphicsPipelineDesc
     {
@@ -519,14 +599,15 @@ public sealed class Renderer3D(GpuDevice device)
     /// The lizardman's glow (Docs/Renderer-3D.md, "Glow"): the glowing parts drawn alone, blurred
     /// wide and tight as compose.py did, and laid over the view behind their models.
     /// </summary>
-    void RenderGlow(Frame frame, RenderTarget3D target, IReadOnlyList<DrawItem> items, ulong[] vertices, uint[] models, ulong sceneAddress, CelStyle style, float scale)
+    void RenderGlow(Frame frame, RenderTarget3D target, IReadOnlyList<DrawItem> items, ulong[] vertices, uint[] models, ulong sceneAddress, CelStyle style, float scale,
+        (ulong Address, int Count, int Glowing) particles)
     {
         var commands = frame.Commands;
         var glow = target.Glow;
         var size = new Vector2(target.Width, target.Height);
         commands.BeginRendering(
             [new ColorAttachment(glow.Source, LoadAction.Clear, Vector4.Zero), new ColorAttachment(glow.Owner, LoadAction.Clear, Vector4.Zero)],
-            new DepthAttachment(glow.Depth, LoadAction.Clear, 0f));
+            new DepthAttachment(glow.Depth, LoadAction.Clear, 0f, Store: particles.Glowing > 0));
         commands.BindPipeline(GlowSourcePipeline);
         for (var i = 0; i < items.Count; i++)
         {
@@ -540,6 +621,22 @@ public sealed class Renderer3D(GpuDevice device)
             commands.DrawIndexed(item.Mesh.IndexCount);
         }
         commands.EndRendering();
+        if (particles.Glowing > 0)
+        {
+            // Glowing particles (only they are in the list then): their shapes blended into the
+            // source, far to near, then their owner records where they cover half a pixel.
+            var push = new ParticlePush { Quads = particles.Address, Scene = sceneAddress };
+            commands.BeginRendering(new ColorAttachment(glow.Source), new DepthAttachment(glow.Depth, LoadAction.Load, 0f, Store: true));
+            commands.BindPipeline(ParticleGlowPipeline);
+            commands.Push(push);
+            commands.Draw(particles.Glowing * 6);
+            commands.EndRendering();
+            commands.BeginRendering(new ColorAttachment(glow.Owner), new DepthAttachment(glow.Depth, LoadAction.Load, 0f));
+            commands.BindPipeline(ParticleOwnerPipeline);
+            commands.Push(push);
+            commands.Draw(particles.Glowing * 6);
+            commands.EndRendering();
+        }
 
         void Pass(Pipeline pipeline, GpuImage source, GpuImage destination, Action push)
         {
@@ -669,10 +766,21 @@ public sealed class Renderer3D(GpuDevice device)
     /// the items that have them at <paramref name="scale"/> (the device scale) times the style's widths.
     /// </summary>
     public void Render(Frame frame, RenderTarget3D target, Camera camera, IReadOnlyList<DrawItem> items, Vector4 background, SunLight sun, CelStyle? style = null, float scale = 1,
-        float time = 0)
+        float time = 0, IReadOnlyList<Particle>? particles = null)
     {
         style ??= CelStyle.Default;
         var commands = frame.Commands;
+        // Particles in front of the camera, far to near; the glowing ones also on their own.
+        var quads = InkCoverageOnly || particles is null ? [] : particles.Select(p => ParticleQuad.Of(p, camera, target.Height, scale))
+            .Where(q => q.Opacity > 0 && q.Depth > camera.Near).OrderByDescending(q => q.Depth).ToArray();
+        ParticleData Data(ParticleQuad q) => new()
+        {
+            Centre = q.Centre, Pixel = q.Pixel, AxisU = q.AxisU, HalfU = q.HalfU, AxisV = q.AxisV, HalfV = q.HalfV, Color = q.Color,
+            Shape = (uint)q.Shape, P0 = q.P0, P1 = q.P1, Outline = q.Outline, Opacity = q.Opacity, Depth = q.Depth, Glow = q.Glow ? 1u : 0,
+        };
+        var glowingQuads = quads.Where(q => q.Glow).ToArray();
+        var particleAddress = quads.Length > 0 ? frame.Upload<ParticleData>(quads.Select(Data).ToArray()) : 0;
+        var glowingAddress = glowingQuads.Length > 0 ? frame.Upload<ParticleData>(glowingQuads.Select(Data).ToArray()) : 0;
         var vertices = Skin(frame, items);
         var aspect = (float)target.Width / target.Height;
         var orthographic = camera.Projection == Projection.Orthographic;
@@ -737,7 +845,7 @@ public sealed class Renderer3D(GpuDevice device)
                 new ColorAttachment(target.Color, LoadAction.Clear, background, target.Resolved, Store: false),
                 new ColorAttachment(target.Surface, LoadAction.Clear, Vector4.Zero),
             ],
-            new DepthAttachment(target.Depth, LoadAction.Clear, 0f));
+            new DepthAttachment(target.Depth, LoadAction.Clear, 0f, Store: quads.Length > 0));
         commands.SetViewport(0, 0, target.Width, target.Height);
         commands.SetScissor(0, 0, target.Width, target.Height);
         // Model ids for the surface records, by group; past the 10 bits they repeat.
@@ -773,8 +881,8 @@ public sealed class Renderer3D(GpuDevice device)
         }
         commands.EndRendering();
 
-        if (!InkCoverageOnly && items.Any(i => i.Glow != Vector3.Zero))
-            RenderGlow(frame, target, items, vertices, models, sceneAddress, style, scale);
+        if (!InkCoverageOnly && (items.Any(i => i.Glow != Vector3.Zero) || glowingQuads.Length > 0))
+            RenderGlow(frame, target, items, vertices, models, sceneAddress, style, scale, (glowingAddress, quads.Length, glowingQuads.Length));
 
         var outline = style.OutlineWidth * scale;
         var inner = style.InnerWidth * scale;
@@ -783,8 +891,36 @@ public sealed class Renderer3D(GpuDevice device)
             commands.BeginRendering(new ColorAttachment(target.Resolved, LoadAction.Clear, new Vector4(0, 0, 0, 1)));
             commands.EndRendering();
         }
-        if (!ink || outline <= 0 && inner <= 0)
+        if (ink && (outline > 0 || inner > 0))
+            RenderInk(frame, target, camera, items, vertices, drawAddresses, sceneAddress, style, outline, inner);
+        if (quads.Length == 0)
             return;
+        // The particles over everything, ink lines included: blended into their own layer against the
+        // scene's depth, resolved, and laid over the view.
+        var (layer, resolved) = target.Particles;
+        commands.BeginRendering(new ColorAttachment(layer, LoadAction.Clear, Vector4.Zero, resolved, Store: false),
+            new DepthAttachment(target.Depth, LoadAction.Load, 0f));
+        commands.SetViewport(0, 0, target.Width, target.Height);
+        commands.SetScissor(0, 0, target.Width, target.Height);
+        commands.BindPipeline(ParticlePipeline);
+        commands.Push(new ParticlePush { Quads = particleAddress, Scene = sceneAddress });
+        commands.Draw(quads.Length * 6);
+        commands.EndRendering();
+        commands.Transition(resolved, VkImageLayout.ShaderReadOnlyOptimal);
+        commands.BeginRendering(new ColorAttachment(target.Resolved));
+        commands.BindPipeline(ParticleCompositePipeline);
+        commands.Push((uint)resolved.BindlessIndex);
+        commands.Draw(3);
+        commands.EndRendering();
+    }
+
+    /// <summary>The ink lines (Docs/Renderer-3D.md, "Ink lines"): feature edges, the edges pass, the lines over the view.</summary>
+    void RenderInk(Frame frame, RenderTarget3D target, Camera camera, IReadOnlyList<DrawItem> items, ulong[] vertices, ulong[] drawAddresses, ulong sceneAddress,
+        CelStyle style, float outline, float inner)
+    {
+        var commands = frame.Commands;
+        var aspect = (float)target.Width / target.Height;
+        var orthographic = camera.Projection == Projection.Orthographic;
         // Feature edges: the meshes' creases and open edges, each pixel near one recording its nearest point.
         var creaseCos = MathF.Cos((180 - style.CreaseAngle) * MathF.PI / 180);
         commands.BeginRendering(new ColorAttachment(target.Features, LoadAction.Clear, Vector4.Zero), new DepthAttachment(target.FeatureDepth, LoadAction.Clear, 0f));

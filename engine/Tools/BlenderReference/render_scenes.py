@@ -667,14 +667,20 @@ def material_kind(material):
     return ("emission" if any(emission) and not any(base) else "lit"), base, emission
 
 
-def render_glow(scene, placed, folder, name):
+def render_glow(scene, placed, folder, name, particles=()):
     """For compose_glow.py: the glowing parts alone in their glow colours over a transparent film, as
     the lizardman's glow render (everything else hidden), and the coverage of the models they belong
-    to (their halo goes behind them)."""
+    to (their halo goes behind them). Glowing particles join the first as their shapes in their
+    colours; they hold no halo back (the engine lays its particles over the halo)."""
     glowing = [objects for objects in placed if any(slot.material in GLOWS for o in objects for slot in getattr(o, "material_slots", []))]
-    if not glowing:
+    glowing_particles = [(o, quad) for o, quad in particles if quad["glow"]]
+    if not glowing and not glowing_particles:
         return
-    saved = {o: [slot.material for slot in o.material_slots] for o in scene.objects if o.type == "MESH"}
+    mine = {o for o, _ in particles}
+    saved = {o: [slot.material for slot in o.material_slots] for o in scene.objects if o.type == "MESH" and o not in mine}
+    for o, quad in glowing_particles:
+        o.hide_render = False
+        o.material_slots[0].material = particle_material(f"{o.name}-glow", quad, (0, 0, 0), glow_only=True)
     scene.render.film_transparent = True
     scene.render.image_settings.color_mode = "RGBA"
     for o in saved:
@@ -686,6 +692,8 @@ def render_glow(scene, placed, folder, name):
     bpy.ops.render.render(write_still=True)
     print("wrote", scene.render.filepath)
     owners = {o for objects in glowing for o in objects}
+    for o, _ in glowing_particles:
+        o.hide_render = True
     white = flat_material("mask", (1, 1, 1))
     for o in saved:
         o.hide_render = o not in owners
@@ -698,6 +706,9 @@ def render_glow(scene, placed, folder, name):
         o.hide_render = False
         for slot, m in zip(o.material_slots, materials):
             slot.material = m
+    for o, quad in glowing_particles:
+        o.hide_render = True
+        o.material_slots[0].material = bpy.data.materials[o.name]
     scene.render.film_transparent = False
     scene.render.image_settings.color_mode = "RGB"
 
@@ -744,6 +755,127 @@ def add_camera(scene, spec):
     scene.camera = camera
 
 
+def particle_material(name, quad, ink, glow_only=False):
+    """A particle's look (Docs/Renderer-3D.md, "Particles") as particle.frag draws it, but per sample:
+    the shape's signed distance from its edge in metres (from the quad's UV), inside below 0 (a puff
+    fading over its outer part), the ink line within half its width of the edge; the ink over the
+    colour, both times the opacity, as emission blended over what's behind (EEVEE sorts blended
+    objects by their origin, the particle's centre). For the glow's render, the shape alone in its
+    colour."""
+    material = bpy.data.materials.new(name)
+    material.surface_render_method = "BLENDED"
+    nodes = material.node_tree.nodes
+    nodes.clear()
+    links = material.node_tree.links
+
+    def m(operation, a, b=None, c=None):
+        return node_math(nodes, links, operation, a, b, c)
+
+    def length(a, b):
+        return m("SQRT", m("ADD", m("MULTIPLY", a, a), m("MULTIPLY", b, b)))
+
+    coords = nodes.new("ShaderNodeTexCoord")
+    split = nodes.new("ShaderNodeSeparateXYZ")
+    links.new(coords.outputs["UV"], split.inputs[0])
+    x = m("MULTIPLY", m("SUBTRACT", split.outputs["X"], 0.5), 2 * quad["halfU"])
+    y = m("MULTIPLY", m("SUBTRACT", split.outputs["Y"], 0.5), 2 * quad["halfV"])
+    r = length(x, y)
+    p0, p1, shape = quad["p0"], quad["p1"], quad["shape"]
+    fade = None
+    if shape == 1:  # ring
+        d = m("SUBTRACT", m("ABSOLUTE", m("SUBTRACT", r, (p0 + p1) / 2)), (p0 - p1) / 2)
+    elif shape == 2:  # spark: a capsule along U
+        d = m("SUBTRACT", length(m("MAXIMUM", m("SUBTRACT", m("ABSOLUTE", x), p0), 0), y), p1)
+    elif shape == 3:  # puff
+        d = m("SUBTRACT", r, p0)
+        t = m("MINIMUM", m("MAXIMUM", m("DIVIDE", m("SUBTRACT", r, p1), max(p0 - p1, 1e-9)), 0), 1)
+        fade = m("SUBTRACT", 1, m("MULTIPLY", m("MULTIPLY", t, t), m("SUBTRACT", 3, m("MULTIPLY", t, 2))))
+    elif shape == 4:  # shard: a rhombus (Inigo Quilez's sdRhombus)
+        ax, ay = m("ABSOLUTE", x), m("ABSOLUTE", y)
+        bx, by = p0, p1
+        across = m("SUBTRACT", m("MULTIPLY", m("SUBTRACT", bx, m("MULTIPLY", ax, 2)), bx), m("MULTIPLY", m("SUBTRACT", by, m("MULTIPLY", ay, 2)), by))
+        h = m("MINIMUM", m("MAXIMUM", m("DIVIDE", across, bx * bx + by * by), -1), 1)
+        qx = m("SUBTRACT", ax, m("MULTIPLY", m("SUBTRACT", 1, h), 0.5 * bx))
+        qy = m("SUBTRACT", ay, m("MULTIPLY", m("ADD", 1, h), 0.5 * by))
+        side = m("SIGN", m("SUBTRACT", m("ADD", m("MULTIPLY", ax, by), m("MULTIPLY", ay, bx)), bx * by))
+        d = m("MULTIPLY", length(qx, qy), side)
+    else:  # disc
+        d = m("SUBTRACT", r, p0)
+    pixels = m("DIVIDE", d, quad["pixel"])
+    inside = m("LESS_THAN", pixels, 0)
+    shape_alpha = m("MULTIPLY", inside if fade is None else m("MULTIPLY", inside, fade), quad["opacity"])
+    colour = tuple(quad["color"])
+    emission = nodes.new("ShaderNodeEmission")
+    emission.inputs["Strength"].default_value = 1
+    if quad["outline"] > 0 and not glow_only:
+        on_line = m("LESS_THAN", m("ABSOLUTE", pixels), quad["outline"] / 2)
+        alpha = m("ADD", m("MULTIPLY", on_line, quad["opacity"]), m("MULTIPLY", m("SUBTRACT", 1, on_line), shape_alpha))
+        towards_ink = vector_math(nodes, links, "SCALE", tuple(i - c for i, c in zip(ink, colour)), scale=on_line)
+        links.new(vector_math(nodes, links, "ADD", towards_ink, colour), emission.inputs["Color"])
+    else:
+        alpha = shape_alpha
+        emission.inputs["Color"].default_value = (*colour, 1)
+    transparent = nodes.new("ShaderNodeBsdfTransparent")
+    mixer = nodes.new("ShaderNodeMixShader")
+    links.new(alpha, mixer.inputs["Fac"])
+    links.new(transparent.outputs[0], mixer.inputs[1])
+    links.new(emission.outputs["Emission"], mixer.inputs[2])
+    output = nodes.new("ShaderNodeOutputMaterial")
+    links.new(mixer.outputs[0], output.inputs["Surface"])
+    return material
+
+
+def add_particles(scene, quads, ink):
+    """Each particle as the engine draws it (the scene file's ParticleQuads): a quad facing the camera,
+    its object at the particle's centre, UVs across it, its look in nodes. Hidden until wanted."""
+    placed = []
+    for index, quad in enumerate(quads):
+        centre = Vector(quad["centre"])
+        u, v = Vector(quad["axisU"]) * quad["halfU"], Vector(quad["axisV"]) * quad["halfV"]
+        origin = to_blender(centre)
+        mesh = bpy.data.meshes.new(f"particle{index}")
+        mesh.from_pydata([tuple(to_blender(c) - origin) for c in (centre - u - v, centre + u - v, centre + u + v, centre - u + v)], [], [(0, 1, 2, 3)])
+        layer = mesh.uv_layers.new(name="UVMap")
+        for loop, corner in zip(layer.data, ((0, 0), (1, 0), (1, 1), (0, 1))):
+            loop.uv = corner
+        mesh.materials.append(particle_material(f"particle{index}", quad, ink))
+        obj = bpy.data.objects.new(f"particle{index}", mesh)
+        obj.location = origin
+        obj.hide_render = True
+        scene.collection.objects.link(obj)
+        placed.append((obj, quad))
+    return placed
+
+
+def render_particles(scene, particles, folder, name):
+    """For compose_glow.py: the particles alone over a transparent film, everything else held out (so
+    what's in front still hides them), to be laid over the view after the glow, as the engine lays
+    its particle layer over everything."""
+    mine = {o for o, _ in particles}
+    others = [o for o in scene.objects if o.type == "MESH" and o not in mine]
+    saved = {o: [slot.material for slot in o.material_slots] for o in others}
+    holdout = holdout_material()
+    for o in others:
+        if not o.material_slots:
+            o.data.materials.append(holdout)
+        for slot in o.material_slots:
+            slot.material = holdout
+    for o in mine:
+        o.hide_render = False
+    scene.render.film_transparent = True
+    scene.render.image_settings.color_mode = "RGBA"
+    scene.render.filepath = os.path.join(folder, f"{name}-particles.png")
+    bpy.ops.render.render(write_still=True)
+    print("wrote", scene.render.filepath)
+    for o, materials in saved.items():
+        for slot, material in zip(o.material_slots, materials):
+            slot.material = material
+    for o in mine:
+        o.hide_render = True
+    scene.render.film_transparent = False
+    scene.render.image_settings.color_mode = "RGB"
+
+
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:]
     scenes_path, output, glow_folder = argv[0], argv[1], argv[2]
@@ -781,14 +913,17 @@ def main():
             }
             terrain_folder = os.path.normpath(os.path.join(os.path.dirname(scenes_path), data["terrainFolder"]))
             placed.append(add_terrain(scene, spec["terrain"], terrain_folder, spec.get("palette", {}), spec["style"], hatch))
+        particles = add_particles(scene, spec.get("particles", []), hex_to_linear(spec["style"]["ink"]))
         scene.render.filepath = os.path.join(output, f"r3d-{spec['name']}.png")
         bpy.ops.render.render(write_still=True)
         print("wrote", scene.render.filepath)
-        stale = [os.path.join(glow_folder, f"{spec['name']}-{part}.png") for part in ("glow", "mask")]
+        stale = [os.path.join(glow_folder, f"{spec['name']}-{part}.png") for part in ("glow", "mask", "particles")]
         for path in stale:
             if os.path.exists(path):
                 os.remove(path)
-        render_glow(scene, placed, glow_folder, spec["name"])
+        render_glow(scene, placed, glow_folder, spec["name"], particles)
+        if particles:
+            render_particles(scene, particles, glow_folder, spec["name"])
         if placed:
             # Baking joins and converts meshes, which loses their imported normals: only after the
             # shading render (Freestyle works from face normals).
