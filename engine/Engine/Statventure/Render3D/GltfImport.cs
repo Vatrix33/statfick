@@ -42,6 +42,7 @@ public static class GltfImport
             Meshes = (gltf.Meshes ?? []).Select(m => ReadMesh(reader, m)).ToArray(),
             Materials = materials,
             Skins = (gltf.Skins ?? []).Select(s => ReadSkin(reader, s)).ToArray(),
+            Animations = (gltf.Animations ?? []).Select((a, i) => ReadAnimation(reader, a, i, nodes.Length)).ToArray(),
             Roots = gltf.Scenes is { Length: > 0 } scenes
                 ? scenes[gltf.Scene ?? 0].Nodes ?? []
                 : Enumerable.Range(0, nodes.Length).Where(i => nodes[i].Parent < 0).ToArray(),
@@ -128,6 +129,51 @@ public static class GltfImport
             Emission = new Vector3(m.EmissiveFactor.X, m.EmissiveFactor.Y, m.EmissiveFactor.Z) * strength,
             Unlit = extensions.ContainsKey("KHR_materials_unlit"),
         };
+    }
+
+    /// <summary>
+    /// An animation's channels with their samplers' keys (glTF 2.0, "Animations"): times from the
+    /// input accessor (scalars), values from the output accessor (normalised integer rotations
+    /// decoded by glTF's formulas). Channels on morph target weights and channels without a node
+    /// (left to extensions) are skipped.
+    /// </summary>
+    static ModelAnimation ReadAnimation(AccessorReader reader, Brutal.GltfApi.Animation a, int index, int nodeCount)
+    {
+        var samplers = a.Samplers ?? [];
+        var channels = new List<ModelAnimationChannel>();
+        foreach (var c in a.Channels ?? [])
+        {
+            if (c.Target.Node is not int node || c.Target.Path == AnimationChannelTarget.PathEnum.Weights)
+                continue;
+            if (node < 0 || node >= nodeCount || c.Sampler < 0 || c.Sampler >= samplers.Length)
+                throw new InvalidDataException($"{reader.Path}: animation {index} has a channel on a node or sampler that doesn't exist");
+            var sampler = samplers[c.Sampler];
+            var path = c.Target.Path switch
+            {
+                AnimationChannelTarget.PathEnum.Translation => AnimationPath.Translation,
+                AnimationChannelTarget.PathEnum.Rotation => AnimationPath.Rotation,
+                _ => AnimationPath.Scale,
+            };
+            var interpolation = sampler.Interpolation switch
+            {
+                AnimationSampler.InterpolationEnum.Step => AnimationInterpolation.Step,
+                AnimationSampler.InterpolationEnum.Cubicspline => AnimationInterpolation.CubicSpline,
+                _ => AnimationInterpolation.Linear,
+            };
+            var times = reader.Floats(sampler.Input, Accessor.TypeEnum.Scalar);
+            var values = reader.Floats(sampler.Output, path == AnimationPath.Rotation ? Accessor.TypeEnum.Vec4 : Accessor.TypeEnum.Vec3);
+            var components = path == AnimationPath.Rotation ? 4 : 3;
+            var perKey = interpolation == AnimationInterpolation.CubicSpline ? 3 * components : components;
+            if (times.Length == 0 || values.Length != times.Length * perKey)
+                throw new InvalidDataException($"{reader.Path}: animation {index} has a sampler whose output doesn't match its {times.Length} keys");
+            if (interpolation == AnimationInterpolation.CubicSpline && times.Length < 2)
+                throw new InvalidDataException($"{reader.Path}: animation {index} has a CUBICSPLINE sampler with fewer than 2 keys");
+            for (var k = 1; k < times.Length; k++)
+                if (!(times[k] > times[k - 1]))
+                    throw new InvalidDataException($"{reader.Path}: animation {index} has key times that don't increase");
+            channels.Add(new ModelAnimationChannel(node, path, interpolation, times, values));
+        }
+        return new ModelAnimation(a.Name ?? "", channels);
     }
 
     static ModelSkin ReadSkin(AccessorReader reader, Skin s)

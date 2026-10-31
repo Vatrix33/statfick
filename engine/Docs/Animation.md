@@ -107,6 +107,63 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   start, action length · scale) / scale; at the strip's very end with a whole number of repeats it is
   the action's end (not its start). Reversed strips count back from the end.
 
+## How it's done
+
+- **Clips** (`Animation/AnimationClip.cs`): `GltfImport` reads each glTF animation into
+  `ModelData.Animations` (`ModelAnimation`: channels with their node, path, interpolation, key times
+  and values as the file stores them; morph target weights skipped). `AnimationClip.From` groups the
+  channels by node into `AnimationTrack`s named after the node. A channel on a skin joint (a Blender
+  bone) is turned into its rest-relative value at load (`Relative`): t_b = S⁻¹·R⁻¹·(t − t_rest),
+  q_b = q_rest⁻¹·q, s_b = s / s_rest (cubic tangents through the linear part only); this commutes
+  with sampling, as the rest is fixed. Other nodes' channels stay their local transform (Blender's
+  objects have no rest). `AnimationCurve.Evaluate` samples Appendix C in double precision.
+- **Skeletons and poses** (`Animation/Skeleton.cs`): a `Skeleton` finds a model's nodes by name
+  (joints before other nodes of the same name); a `ClipBinding` binds a clip's tracks to them (tracks
+  for missing nodes are left out); `PoseBuffer` holds each node's channel values and which are set
+  (Blender's blend domain), rotations as four free numbers; `ToPose` builds the `ModelPose`: a bone's
+  local transform is rest · T(t_b)·R(q_b normalised)·S(s_b), composed as translation, rotation and
+  scale (exact while the rest scale is uniform; Blender's bones have none); unset channels are rest.
+
+## Reference harness
+
+- **Test models with actions** (`Tools/BlenderReference/make_models.py`): `figure.glb`, a humanoid
+  rig like the game's (hips, spine, chest, neck, head; upper arm, forearm, hand, thigh, shin, foot
+  per side; a body of tubes skinned with two influences at most), with "idle" (2 s loop: the hips'
+  location, the chest's rotation and scale, arm and head rotations), "swing" (0.6 s, fast eased
+  rotations; a pose marker "hit") and "twist" (a 270° turn about a bone's axis; the head's keys
+  CONSTANT, exported as STEP); `reach.glb`, a two-bone arm bent by an IK constraint toward a keyed
+  target bone (only the target is keyed; the arm's rotations come from the solver, baked by the
+  export). Scene frame rate 60 fps, keys from frame 1. Exported with `ANIMATED`: skins, animations
+  in "ACTIONS" mode (each action on an NLA track of its own becomes one glTF animation), always
+  sampled, every frame, "Force keeping channels for bones" off, slide to zero (each clip starts at
+  0 s).
+- **Blender's evaluation** (`Tools/BlenderReference/evaluate_animations.py`, run by
+  `make-blender-references.sh` after the renders; scene names as extra arguments limit it): reads
+  `Reference/anim-scenes.json` (written by `AnimationReferenceTests.TheSceneFileIsUpToDate` from
+  `Animation/AnimationScenes.cs`), builds each scene's model again with `make_models.py`'s builder
+  (imported as a module; a path of None skips the export), mutes the NLA tracks, makes the scene's
+  action the active one and evaluates it at each time (`frame_set` with a subframe; frame = the
+  action's first frame + time × 60). Writes `Golden/anim-<scene>.json`: each bone's rest head and
+  tail and, per time, its deformation in model space (posed after the inverse of rest, the armature
+  object's world included) converted to glTF's coordinates (C·D·C⁻¹ with C: (x, y, z) → (x, z, −y);
+  joint nodes keep Blender's bone axes, so a joint's glTF world is C times its Blender world).
+- **Times** (`AnimationScenes.TimesFor`): every other frame, the middle of every frame, a quarter
+  into every fifth, and one time before the start and one after the end (clamping).
+- **Comparison** (`AnimationReferenceTests.Compare`): on frames, every bone's rest head and tail
+  through the engine's and Blender's deformations within 2·10⁻⁵ m (measured: under 6·10⁻⁷ m).
+  Between frames Blender evaluates its curves and the engine interpolates samples h apart, which
+  errs by at most h²/8 · f'': each bone's head and tail in its parent's posed frame (moved only by
+  its own channels) may be off by 1.5/8 of the larger second difference of those points at the
+  frames around, plus 2·10⁻⁵ m. Points in model space would mix a chain's bones, whose curvatures
+  can cancel (an IK chain's end follows its smooth target while each bone's rotation bends), so the
+  measure is per bone.
+- **Hand-written files** (`AnimationClipTests`): what Blender's sampled export doesn't produce and
+  the formulas themselves, against values worked out by hand: STEP holding, slerp the short way and
+  exactly (24° a fifth of the way through 120°, which a normalised lerp misses by 2°), CUBICSPLINE
+  with tangents times the segment's duration and rotations normalised, clamping to the first value
+  (not its in-tangent), snorm16 rotations, a joint resting turned and scaled 2, a plain node's
+  absolute channel, channels for nodes a model lacks.
+
 ## Steps
 
 1. **Clips from glTF.** `GltfImport` reads the animations (channels, samplers; STEP, LINEAR,
@@ -138,4 +195,21 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
 
 ## Status
 
-Started 2026-10-31 (decisions asked and recorded; nothing built yet).
+Started 2026-10-31 (decisions asked and recorded).
+
+- **Step 1, clips from glTF (2026-10-31, 584 tests): done.** `ModelAnimation` in `GltfImport`,
+  `AnimationClip`/`AnimationCurve`/`AnimationTrack`, `Skeleton`/`PoseBuffer`/`ClipBinding`;
+  `figure.glb` and `reach.glb` with actions, `evaluate_animations.py`; scenes `figure-idle`,
+  `figure-swing`, `figure-twist`, `reach-reach` and `AnimationClipTests`. Measured: on frames every
+  bone within 0.0006 mm of Blender (the baked IK included); between frames up to 3.6 mm in the
+  parent's frame (the swing's forearm, 9 mm at the hand in model space), at most 0.73 of the
+  interpolation allowance. Found on the way: the exporter writes every quaternion with w ≥ 0, so
+  samples change sign where a local rotation passes 180° (the swing's upper arm, the IK arm), which
+  only the short-way slerp follows; Blender's IK solution moves like the square root of the
+  target's motion where the chain starts fully stretched, which no sampling follows between frames
+  (the test arm's target now starts within reach); judging between-frame errors by points in model
+  space failed the IK arm, whose bones bend more than its end. Checked by breaking: slerp the long
+  way, a normalised lerp, STEP interpolated, cubic tangents unscaled or rotations unnormalised,
+  joint channels kept absolute, plain nodes made relative, the basis before the rest, translations
+  not divided by the rest scale, no clamping and an off segment search each fail a test. Next:
+  step 2 (a second figure with other proportions; Blender plays the first figure's actions on it).

@@ -7,9 +7,11 @@
 #    Tests/Statventure.Tests/Golden/r3d-*.png (and r3d-*-ink.png, Freestyle's lines), and into
 #    Actual/blender-glow the glowing parts, their models' coverage and the particles alone;
 # 3. Tools/BlenderReference/compose_glow.py lays the glow's halo into them (Pillow, as the lizardman's
-#    compose.py), then the particles over all (in linear light), using those files up.
-# Run the tests once first: they write Tests/Statventure.Tests/Reference/r3d-scenes.json.
-# Extra arguments name the scenes to render (all by default). Blender comes from $STATVENTURE_BLENDER,
+#    compose.py), then the particles over all (in linear light), using those files up;
+# 4. Tools/BlenderReference/evaluate_animations.py evaluates the animated models' actions at the
+#    animation scenes' times (Docs/Animation.md) into Tests/Statventure.Tests/Golden/anim-*.json.
+# Run the tests once first: they write Tests/Statventure.Tests/Reference/r3d-scenes.json and
+# anim-scenes.json. Extra arguments name the scenes to render or evaluate (all by default). Blender comes from $STATVENTURE_BLENDER,
 # else `blender` on the PATH, else the Flatpak org.blender.Blender.
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
@@ -35,3 +37,4 @@ python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/make_terrain.py" "$TESTS/Dat
 run "$STATVENTURE_SOURCE/Tools/BlenderReference/make_models.py" -- "$TESTS/Data/Models"
 run "$STATVENTURE_SOURCE/Tools/BlenderReference/render_scenes.py" -- "$TESTS/Reference/r3d-scenes.json" "$TESTS/Golden" "$TESTS/Actual/blender-glow" "$@"
 python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/compose_glow.py" "$TESTS/Reference/r3d-scenes.json" "$TESTS/Golden" "$TESTS/Actual/blender-glow"
+run "$STATVENTURE_SOURCE/Tools/BlenderReference/evaluate_animations.py" -- "$TESTS/Reference/anim-scenes.json" "$TESTS/Golden" "$@"

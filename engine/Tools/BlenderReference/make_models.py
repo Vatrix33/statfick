@@ -13,7 +13,7 @@ import sys
 
 import bmesh
 import bpy
-from mathutils import Matrix
+from mathutils import Matrix, Quaternion, Vector
 
 
 def srgb_to_linear(c):
@@ -58,7 +58,7 @@ def shader_material(name, hex_color, kind):
 
 
 def reset():
-    for collection in (bpy.data.objects, bpy.data.meshes, bpy.data.materials, bpy.data.armatures):
+    for collection in (bpy.data.objects, bpy.data.meshes, bpy.data.materials, bpy.data.armatures, bpy.data.actions):
         for block in list(collection):
             collection.remove(block)
 
@@ -162,11 +162,25 @@ def canonical_triangles(path):
 
 
 def export(path, **options):
+    """Exports the scene as a .glb. A path of None only builds it (evaluate_animations.py builds the
+    animated models again to evaluate their actions)."""
+    if path is None:
+        return
     # Extras carry the objects' custom properties (ink = 0: no ink lines).
-    bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", export_animations=False, export_apply=True,
-                              export_extras=True, export_image_format="NONE", **options)
+    settings = dict(export_format="GLB", export_animations=False, export_apply=True, export_extras=True,
+                    export_image_format="NONE")
+    settings.update(options)
+    bpy.ops.export_scene.gltf(filepath=path, **settings)
     canonical_triangles(path)
     print("wrote", path)
+
+
+# Animated models (Docs/Animation.md): actions are animated at 60 fps and exported sampled every
+# frame, each as a glTF animation of its own (the "ACTIONS" mode exports the actions on NLA tracks),
+# starting at 0 s, with only the channels the action keys ("Force keeping channels for bones" off;
+# by default the exporter writes every bone into every clip).
+ANIMATED = dict(export_skins=True, export_animations=True, export_animation_mode="ACTIONS", export_force_sampling=True,
+                export_frame_step=1, export_optimize_animation_keep_anim_armature=False, export_anim_slide_to_zero=True)
 
 
 def blocks(path):
@@ -370,12 +384,260 @@ def glowing(path):
     export(path)
 
 
+def armature(name, bones, location=(0, 0, 0)):
+    """An armature object with these bones: (name, head, tail, parent, connected[, deform])."""
+    data = bpy.data.armatures.new(name.lower())
+    rig = bpy.data.objects.new(name, data)
+    bpy.context.scene.collection.objects.link(rig)
+    rig.location = location
+    bpy.context.view_layer.objects.active = rig
+    bpy.ops.object.mode_set(mode="EDIT")
+    made = {}
+    for bone in bones:
+        bone_name, head, tail, parent, connected = bone[:5]
+        edit = data.edit_bones.new(bone_name)
+        edit.head, edit.tail = head, tail
+        edit.use_deform = bone[5] if len(bone) > 5 else True
+        if parent:
+            edit.parent = made[parent]
+            edit.use_connect = connected
+        made[bone_name] = edit
+    bpy.ops.object.mode_set(mode="OBJECT")
+    return rig
+
+
+def chain_tube(bm, deform, groups, chain, radii, material_index, segments=10, step=0.04, blend=0.04, depth=1.0):
+    """A closed tube along a chain of bones [(bone, head, tail)], its radius going from radii[i] at
+    the chain's i-th point to the next (depth scales it front to back), rings about every `step`.
+    Each ring follows its bone, blended linearly over `blend` either side of an inner joint (two
+    influences at most, as the exporter keeps four)."""
+    points = [Vector(chain[0][1])] + [Vector(c[2]) for c in chain]
+    lengths = [(points[i + 1] - points[i]).length for i in range(len(chain))]
+    starts = [sum(lengths[:i]) for i in range(len(chain))]
+    total = sum(lengths)
+    count = max(2, round(total / step) + 1)
+    rings = []
+    for r in range(count):
+        s = total * r / (count - 1)
+        i = min(len(chain) - 1, max(k for k in range(len(chain)) if starts[k] <= s + 1e-9))
+        u = (s - starts[i]) / lengths[i]
+        position = points[i].lerp(points[i + 1], u)
+        radius = radii[i] + (radii[i + 1] - radii[i]) * u
+        direction = (points[i + 1] - points[i]).normalized()
+        side = direction.cross(Vector((0, 1, 0)))
+        if side.length < 1e-3:
+            side = direction.cross(Vector((1, 0, 0)))
+        side.normalize()
+        front = side.cross(direction).normalized()
+        weights = {chain[i][0]: 1.0}
+        for j in range(1, len(chain)):
+            if abs(s - starts[j]) < blend:
+                t = (s - starts[j] + blend) / (2 * blend)
+                weights = {chain[j - 1][0]: 1 - t, chain[j][0]: t}
+        ring = []
+        for k in range(segments):
+            a = 2 * math.pi * k / segments
+            vert = bm.verts.new(position + radius * (math.cos(a) * side + depth * math.sin(a) * front))
+            for bone, w in weights.items():
+                if w > 0:
+                    vert[deform][groups.index(bone)] = w
+            ring.append(vert)
+        rings.append(ring)
+    for r in range(count - 1):
+        for k in range(segments):
+            n = (k + 1) % segments
+            bm.faces.new((rings[r][k], rings[r][n], rings[r + 1][n], rings[r + 1][k])).material_index = material_index
+    bm.faces.new(list(reversed(rings[0]))).material_index = material_index
+    bm.faces.new(rings[-1]).material_index = material_index
+
+
+def weighted(bm, deform, groups, verts, bone):
+    for vert in verts:
+        vert[deform][groups.index(bone)] = 1.0
+
+
+def skinned_mesh(name, rig, groups, materials, build):
+    """A smooth mesh skinned to the rig: build(bm, deform layer) adds its parts."""
+    bm = bmesh.new()
+    deform = bm.verts.layers.deform.verify()
+    build(bm, deform)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    mesh = bpy.data.meshes.new(name)
+    bm.to_mesh(mesh)
+    bm.free()
+    for m in materials:
+        mesh.materials.append(m)
+    mesh.shade_smooth()
+    obj = mesh_object(name.capitalize(), mesh, rig)
+    for group in groups:
+        obj.vertex_groups.new(name=group)
+    obj.modifiers.new("Armature", "ARMATURE").object = rig
+    return obj
+
+
+def keys(rig, action, frame, bone, rotation=None, location=None, scale=None):
+    """Keys a pose bone in this action: rotation as (axis, degrees) in the bone's rest space,
+    location in metres and scale, both in the bone's rest space (Blender's pose channels)."""
+    rig.animation_data.action = action
+    pose = rig.pose.bones[bone]
+    pose.rotation_mode = "QUATERNION"
+    if rotation is not None:
+        pose.rotation_quaternion = Quaternion(rotation[0], math.radians(rotation[1]))
+        pose.keyframe_insert("rotation_quaternion", frame=frame)
+    if location is not None:
+        pose.location = location
+        pose.keyframe_insert("location", frame=frame)
+    if scale is not None:
+        pose.scale = scale
+        pose.keyframe_insert("scale", frame=frame)
+
+
+def curves(action):
+    return action.layers[0].strips[0].channelbag(action.slots[0]).fcurves
+
+
+def stack_actions(rig, actions):
+    """Puts each action on an NLA track of its own (the exporter's ACTIONS mode exports those), no
+    action active, every bone back at rest."""
+    rig.animation_data.action = None
+    for action in actions:
+        track = rig.animation_data.nla_tracks.new()
+        track.name = action.name
+        track.strips.new(action.name, int(action.frame_range[0]), action)
+    for pose in rig.pose.bones:
+        pose.location, pose.rotation_quaternion, pose.scale = (0, 0, 0), (1, 0, 0, 0), (1, 1, 1)
+
+
+# The test figure's bones (Blender's coordinates: Z up, the figure faces -Y): name, head, tail,
+# parent, connected. Mirrored left to right.
+FIGURE_BONES = [
+    ("hips", (0, 0, 0.95), (0, 0, 1.1), None, False),
+    ("spine", (0, 0, 1.1), (0, 0, 1.3), "hips", True),
+    ("chest", (0, 0, 1.3), (0, 0, 1.5), "spine", True),
+    ("neck", (0, 0, 1.5), (0, 0, 1.6), "chest", True),
+    ("head", (0, 0, 1.6), (0, 0, 1.84), "neck", True),
+]
+for side, sign in (("L", 1), ("R", -1)):
+    FIGURE_BONES += [
+        (f"upper_arm.{side}", (sign * 0.19, 0, 1.46), (sign * 0.27, 0.02, 1.19), "chest", False),
+        (f"forearm.{side}", (sign * 0.27, 0.02, 1.19), (sign * 0.33, -0.02, 0.94), f"upper_arm.{side}", True),
+        (f"hand.{side}", (sign * 0.33, -0.02, 0.94), (sign * 0.35, -0.03, 0.84), f"forearm.{side}", True),
+        (f"thigh.{side}", (sign * 0.1, 0, 0.95), (sign * 0.11, -0.01, 0.52), "hips", False),
+        (f"shin.{side}", (sign * 0.11, -0.01, 0.52), (sign * 0.11, 0.02, 0.1), f"thigh.{side}", True),
+        (f"foot.{side}", (sign * 0.11, 0.02, 0.1), (sign * 0.11, -0.13, 0.03), f"shin.{side}", True),
+    ]
+
+
+def figure(path):
+    """The animation test figure: a humanoid rig like the game's (hips, spine, chest, neck, head,
+    arms, legs), a smooth body skinned to it, and three actions at 60 fps: "idle" (a two-second
+    loop: the hips bob, the chest turns and swells by scale, the arms sway, the head nods), "swing"
+    (a 0.6 s one-handed swing with eased keys; the exporter writes quaternions with w >= 0, so the
+    upper arm's change sign where its local rotation passes 180°) and "twist" (the left hand turns
+    270° about its own axis, and the head snaps between poses with constant keys, which export as
+    STEP)."""
+    bpy.context.scene.render.fps, bpy.context.scene.render.fps_base = 60, 1
+    rig = armature("Figure", FIGURE_BONES)
+    bone = {b[0]: b for b in FIGURE_BONES}
+    groups = [b[0] for b in FIGURE_BONES]
+    cloth, skin = material("cloth", "#6a4f7a"), material("skin", "#c49a74")
+
+    def build(bm, deform):
+        chain_tube(bm, deform, groups, [("hips", (0, 0, 0.88), (0, 0, 1.1)), ("spine", (0, 0, 1.1), (0, 0, 1.3)),
+                                        ("chest", (0, 0, 1.3), (0, 0, 1.52))], [0.13, 0.12, 0.14, 0.18], 0, segments=14, depth=0.65)
+        chain_tube(bm, deform, groups, [("neck", (0, 0, 1.49), (0, 0, 1.6)), ("head", (0, 0, 1.6), (0, 0, 1.64))], [0.05, 0.05, 0.05], 1, step=0.03, blend=0.02)
+        head = bmesh.ops.create_uvsphere(bm, u_segments=16, v_segments=10, radius=0.12, matrix=Matrix.Translation((0, 0, 1.72)))["verts"]
+        weighted(bm, deform, groups, head, "head")
+        for side in ("L", "R"):
+            arm = [(n, bone[n][1], bone[n][2]) for n in (f"upper_arm.{side}", f"forearm.{side}", f"hand.{side}")]
+            chain_tube(bm, deform, groups, arm, [0.05, 0.045, 0.04, 0.035], 1)
+            leg = [(n, bone[n][1], bone[n][2]) for n in (f"thigh.{side}", f"shin.{side}")]
+            chain_tube(bm, deform, groups, leg, [0.075, 0.06, 0.05], 1, segments=12)
+            x = 0.11 if side == "L" else -0.11
+            foot = bmesh.ops.create_cube(bm, size=1, matrix=Matrix.Translation((x, -0.05, 0.05)) @ Matrix.Diagonal((0.09, 0.22, 0.08, 1)))["verts"]
+            weighted(bm, deform, groups, foot, f"foot.{side}")
+        for face in bm.faces:
+            if face.material_index not in (0, 1):
+                face.material_index = 1
+
+    skinned_mesh("body", rig, groups, [cloth, skin], build)
+    rig.animation_data_create()
+
+    idle = bpy.data.actions.new("idle")
+    for frame, k in ((1, 0), (61, 1), (121, 0)):
+        keys(rig, idle, frame, "hips", location=(0, -0.015 * k, 0))
+        keys(rig, idle, frame, "chest", rotation=((1, 0, 0), 3 * k), scale=(1 + 0.03 * k, 1, 1 + 0.03 * k))
+        keys(rig, idle, frame, "upper_arm.L", rotation=((1, 0, 0), 4 * k))
+        keys(rig, idle, frame, "upper_arm.R", rotation=((1, 0, 0), -4 * k))
+        keys(rig, idle, frame, "head", rotation=((1, 0, 0), 3 * k))
+
+    swing = bpy.data.actions.new("swing")
+    for frame, arm, fore, twist, lean in ((1, 0, 0, 0, 0), (13, -150, -40, 20, 5), (23, -10, -10, -10, 2), (37, 0, 0, 0, 0)):
+        keys(rig, swing, frame, "upper_arm.R", rotation=((1, 0, 0), arm))
+        keys(rig, swing, frame, "forearm.R", rotation=((1, 0, 0), fore))
+        keys(rig, swing, frame, "chest", rotation=((0, 1, 0), twist))
+        keys(rig, swing, frame, "hips", rotation=((1, 0, 0), lean))
+    swing.pose_markers.new("hit").frame = 20
+
+    twist = bpy.data.actions.new("twist")
+    for frame, turn in ((1, 0), (21, 135), (41, 270), (61, 0)):
+        keys(rig, twist, frame, "hand.L", rotation=((0, 1, 0), turn))
+    for frame, look in ((1, 0), (16, 20), (31, -20), (46, 0), (61, 0)):
+        keys(rig, twist, frame, "head", rotation=((0, 0, 1), look))
+    for curve in curves(twist):
+        if 'pose.bones["head"]' in curve.data_path:
+            for point in curve.keyframe_points:
+                point.interpolation = "CONSTANT"
+
+    stack_actions(rig, (idle, swing, twist))
+    export(path, **ANIMATED)
+
+
+def reach(path):
+    """An arm of two bones on a base, bent by an IK constraint toward a target bone that the "reach"
+    action moves (60 fps, 1 s): only the target is keyed; the arm's rotations come from the IK
+    solver and are baked into the exported clip by sampling. The target stays inside the arm's
+    reach: at full stretch the solution moves like the square root of the target's motion, which no
+    sampling follows between frames."""
+    bpy.context.scene.render.fps, bpy.context.scene.render.fps_base = 60, 1
+    rig = armature("Reach", [
+        ("base", (0, 0, 0), (0, 0, 0.2), None, False),
+        ("upper", (0, 0, 0.2), (0, -0.05, 0.75), "base", True),
+        ("lower", (0, -0.05, 0.75), (0, 0, 1.3), "upper", True),
+        ("target", (0, 0, 1.2), (0, 0, 1.3), None, False, False),
+        ("pole", (0, -0.8, 0.75), (0, -0.8, 0.85), None, False, False),
+    ])
+    groups = ["base", "upper", "lower"]
+
+    def build(bm, deform):
+        chain_tube(bm, deform, groups, [("base", (0, 0, 0), (0, 0, 0.2)), ("upper", (0, 0, 0.2), (0, -0.05, 0.75)),
+                                        ("lower", (0, -0.05, 0.75), (0, 0, 1.3))], [0.07, 0.06, 0.05, 0.04], 0)
+
+    skinned_mesh("arm", rig, groups, [material("skin", "#c49a74")], build)
+    ik = rig.pose.bones["lower"].constraints.new("IK")
+    ik.target, ik.subtarget = rig, "target"
+    ik.pole_target, ik.pole_subtarget, ik.pole_angle = rig, "pole", math.radians(-90)
+    ik.chain_count = 2
+    rig.animation_data_create()
+    action = bpy.data.actions.new("reach")
+    for frame, place in ((1, (0, 0, 0)), (21, (0.35, -0.45, 0.2)), (41, (-0.3, -0.3, 0.3)), (61, (0, 0, 0))):
+        keys(rig, action, frame, "target", location=place)
+    stack_actions(rig, (action,))
+    export(path, **ANIMATED)
+
+
+# Builders by model name (evaluate_animations.py builds the animated ones again).
+BUILDERS = {"blocks": blocks, "rigged": rigged, "shapes": shapes, "stage": stage, "fringe": fringe, "glowing": glowing,
+            "figure": figure, "reach": reach}
+
+
 def main():
     output = sys.argv[sys.argv.index("--") + 1]
     os.makedirs(output, exist_ok=True)
-    for name, build in (("blocks", blocks), ("rigged", rigged), ("shapes", shapes), ("stage", stage), ("fringe", fringe), ("glowing", glowing)):
+    for name, build in BUILDERS.items():
         reset()
         build(os.path.join(output, name + ".glb"))
 
 
-main()
+if __name__ == "__main__":
+    main()

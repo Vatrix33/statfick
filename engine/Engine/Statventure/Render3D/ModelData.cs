@@ -60,7 +60,7 @@ public sealed record ModelNode(string Name, int Parent, IReadOnlyList<int> Child
 
 /// <summary>
 /// A pose (Docs/Renderer-3D.md, "GPU skinning"): local translation, rotation and scale for some
-/// nodes; the rest keep the file's. Animations (M7) will fill these.
+/// nodes; the rest keep the file's. Animations fill these (Docs/Animation.md).
 /// </summary>
 public sealed class ModelPose
 {
@@ -78,6 +78,27 @@ public sealed class ModelPose
 /// <summary>A skin: the nodes acting as joints and their inverse bind matrices (model space to joint space).</summary>
 public sealed record ModelSkin(string Name, IReadOnlyList<int> Joints, IReadOnlyList<Matrix4x4> InverseBindMatrices, int Skeleton);
 
+/// <summary>The node property a glTF animation channel drives (morph target weights are not read: the engine animates bones only).</summary>
+public enum AnimationPath { Translation, Rotation, Scale }
+
+/// <summary>How a glTF animation sampler interpolates between its keys (glTF 2.0, Appendix C).</summary>
+public enum AnimationInterpolation { Step, Linear, CubicSpline }
+
+/// <summary>
+/// A glTF animation channel with its sampler, as the file gives them: the node, the property, the
+/// keys' times in seconds from the animation's start, and their values (3 components per key for
+/// translation and scale, 4 for rotation as x, y, z, w; with CUBICSPLINE each key holds its
+/// in-tangent, value and out-tangent in that order).
+/// </summary>
+public sealed record ModelAnimationChannel(int Node, AnimationPath Path, AnimationInterpolation Interpolation, float[] Times, float[] Values)
+{
+    /// <summary>Components of the property: 4 for rotation, 3 otherwise.</summary>
+    public int Components => Path == AnimationPath.Rotation ? 4 : 3;
+}
+
+/// <summary>A glTF animation: one clip (a Blender action, Docs/Animation.md).</summary>
+public sealed record ModelAnimation(string Name, IReadOnlyList<ModelAnimationChannel> Channels);
+
 /// <summary>A model as read from a .glb (<see cref="GltfImport"/>): in glTF's coordinates, right-handed, Y up, metres.</summary>
 public sealed class ModelData
 {
@@ -85,6 +106,8 @@ public sealed class ModelData
     public required IReadOnlyList<ModelMesh> Meshes { get; init; }
     public required IReadOnlyList<ModelMaterial> Materials { get; init; }
     public required IReadOnlyList<ModelSkin> Skins { get; init; }
+    /// <summary>The file's animations (Docs/Animation.md), in file order.</summary>
+    public IReadOnlyList<ModelAnimation> Animations { get; init; } = [];
     /// <summary>The scene's root nodes.</summary>
     public required IReadOnlyList<int> Roots { get; init; }
 
