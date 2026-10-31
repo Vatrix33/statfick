@@ -5,10 +5,11 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-10-31):** none: M7, animation, is done (all seven steps; design doc and status:
-`Docs/Animation.md`). Wait for the user's go before M8, then first ask M8's open questions below. The
-project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo `github.com/Vatrix33/statfick`.
-Before each later milestone (M8 on) starts, first ask its questions under "Open questions for later milestones"
+**Current task (2026-10-31):** M8, audio (the user's go on 2026-10-31). Its questions are answered
+("Decisions for M8" below); design doc, survey of the old game's audio, method and step plan:
+`Docs/Audio.md` (its Status section says which step is next). The project is one git repo (`../`, see
+`../CLAUDE.md`), on the private GitHub repo `github.com/Vatrix33/statfick`.
+Before each later milestone (M9 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code.
 
 **What M7 leaves for the port:** figures are `Actor`s in an `AnimatedView` (added to the document as a
@@ -27,7 +28,8 @@ no sounds at all, so sound effects would be new scope.
 compositing, LCD vs grayscale text, inline SVG transforms), `Docs/Scripting.md` (event loop, frame
 callbacks, matchMedia, ResizeObserver, Web Animations), `Docs/Renderer-3D.md` (the 3D renderer, M6:
 its decisions, how each part works, the Blender reference harness and comparisons, each step's status),
-`Docs/Animation.md` (animation, M7: decisions, the Blender and glTF rules it ports, steps, status). The rest of M0–M5 is described in Progress below.
+`Docs/Animation.md` (animation, M7: decisions, the Blender and glTF rules it ports, steps, status),
+`Docs/Audio.md` (audio, M8: decisions, the old game's audio, method, steps, status). The rest of M0–M5 is described in Progress below.
 A new area (M6 on) gets its own design doc in `Docs/`.
 
 **Method.** For the 3D areas (M6 on) the reference is Blender instead: the same scenes rendered by
@@ -78,9 +80,7 @@ questions arise, ask them instantly and do not improvise anything."
 the design and the tests):
 - **M6 3D renderer:** answered 2026-10-30 (see "Decisions for M6" below).
 - **M7 Animation:** answered 2026-10-31 (see "Decisions for M7" below).
-- **M8 Audio:** must the C# synthesizer match the old JavaScript one sample for sample (offline renders
-  compared) or by ear? The old game has no sound effects (only the music synthesizer): should M8 add
-  them (synthesized, or samples), or leave them out? Output sample rate and latency?
+- **M8 Audio:** answered 2026-10-31 (see "Decisions for M8" below).
 - **M9 Assets and data:** pack layout (which data in which pack), compression, mod or loose-folder
   overrides, where saves and settings live on Linux and Windows, settings file format, JSON import and
   export of characters?
@@ -180,6 +180,14 @@ Source tree:
 - Clips during state machine fades (asked 2026-10-31, step 5): both play through: the outgoing state's clip keeps playing while it fades out, the incoming starts playing as it fades in, mixed by Blender's transition rule (which Blender's transition strips apply to held poses; the rule is tested against them with held clips). (Not frozen as Blender's transitions, which would start every action later by its fade time.)
 - Gear in detail (asked 2026-10-31, step 6): sockets are dedicated non-deforming bones named `socket.<slot>` (socket.hand.R, socket.hand.L, socket.back, socket.head, socket.hip.L …) parented to the bone that carries them; an item's origin is its grip and its axes line up with the socket's; clips may key a socket. Clothing on a body of other proportions deforms as Blender's Armature modifier deforms it (by the wearer's bones relative to the wearer's rest), so it fits only the body it was made on and garments are made per body type. Items may have their own bones and clips: when the wearer's state machine enters a state, the item plays its clip of the same name (if it has one) on the same clock. (Not attaching to deforming bones with per-item offsets, not glTF's bind-pose refit, not rigid items only.)
 - Model approval (port time): the user approves the first model of each rig before the rest of that rig is made: first the first humanoid (with gear and its full clip set, shown as renders and a playing view), then the first quadruped, griffon, dragon, wisp and core. M7 itself animates test models only.
+
+**Decisions for M8 (2026-10-31, asked before the milestone started):**
+- Fidelity: the music matches the old game's sample for sample, within float rounding: Chromium 152's Web Audio processing is ported (the oscillators' band-limited wavetables, the biquad formulas, the AudioParam automation timeline, 128-frame render quanta, delay, convolver, compressor, stereo panner, buffer sources) and offline renders of every theme are compared with Chromium's (its OfflineAudioContext, randomness seeded), as M3–M5 did for text and layout. (Not the same graph with own DSP, not by ear.)
+- API: a game synthesizer (instruments, voices, a sequencer, effects and buses shaped for the game); the old music scripts (music.js's score engine, music-composer.js, the themes) are rewritten onto it, producing the same sound. (The recommended Web Audio-like API was not chosen.) Inside, ported Blink processing nodes stay private: each instrument builds the same small graph per note as the old scripts did, so renders match Chromium exactly; the game sees only themes, cross-fades, effects and bus volumes. (Not fused per-instrument routines.)
+- Music data in M8: generated C# data records (a script reads the old JavaScript data in the harness's Chromium and writes them into the engine's source); M9 adds the pack form, M11 the editor. (Not generated JSON.)
+- Sound effects: synthesized from the same nodes (one-shot patches as data), on an effects bus, triggered by the game or by clip events (footsteps, hits); no audio files. Which sounds the game gets is decided at port time. (Not effects from audio files, not none.)
+- The old score engine (asked 2026-10-31): dropped. Every one of music.js's 24 original scores is replaced at load by a remastered theme from music-composer.js (38 themes and the regional battle arrangements); only the composer, its themes and music.js's master chain are ported. (Not ported as a fallback.)
+- Output: at the audio device's own rate, as Chromium's AudioContext runs (OpenAL Soft reports it), in 128-frame quanta, about 20 ms queued ahead. (Not a fixed 48 kHz, not ~60 ms.)
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
@@ -370,6 +378,7 @@ Source tree:
   - **M7 step 6, gear (2026-10-31, 631 tests):** user decisions ("Gear in detail"): `socket.<slot>` bones, clothing as Blender's Armature modifier deforms it, items with their own clips played with the wearer's states. `Socket` (C⁻¹ then the socket's world: the exporter converts objects' axes, not bones'), `Garment`, `ItemAnimation`, `Model.Draw` world and anchor parameters; gear is one model with its wearer (owner, hatch anchor). Blender references: item placement and garment vertices on the figure and the stocky figure, and a rendered geared figure; mutations of each rule fail a test.
   - **M7 step 7, animated views (2026-10-31, 635 tests):** `Actor` (a model, its animator, transform, palette, items and garments; refreshed and drawn as one model) and `AnimatedView` (a frame client advancing its actors on the document's clock at its rate, giving its `View3D` new items only when something changed, dispatching their events). The picture matches a direct render of the pose at the clock's time; the clock matches an element animation's. Cost on this PC: 45-75 µs of animation work per geared figure per frame, a 1080p frame of 24 figures 1.5 ms on the GPU.
   - **M7 done (2026-10-31, 635 tests):** ticked. Fifteen user decisions in all (the eleven up front, then fades of rotations, clip events, state machine details and fades, gear), each rule checked against Blender 5.2 where Blender defines it (clips, retargeting, NLA layers and transitions, markers, sockets, garments, renders) and mutation-checked.
+  - **M8 started (2026-10-31):** the user's go; the questions asked and answered in two rounds plus one found on the way (the old score engine, dropped) ("Decisions for M8"); design doc `Docs/Audio.md`. Chromium 152's Web Audio sources (Blink's `modules/webaudio`, `platform/audio`, the x86 vector math, pffft) are in `~/.cache/stat-fick-build/reference-src/chromium-152-source/webaudio/`.
   - **Left for the port, not M5:** the game listens for `visibilitychange` and `pagehide` (map.js pauses travel); the window host doesn't send them yet.
 
 ## Milestones
