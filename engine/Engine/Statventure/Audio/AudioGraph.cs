@@ -9,6 +9,10 @@ internal enum ChannelCountMode { Max, ClampedMax, Explicit }
 /// destination's input, each node processed once per quantum. Single-threaded: connections and
 /// automation take effect at once, and sources' ended callbacks run after the quantum in which
 /// they finished (where Blink's main thread would see them a little later, at no fixed time).
+/// Blink's connection counting is kept: a finished source releases its count after the quantum,
+/// which disables its outputs (and, down the line, those of nodes left with nothing feeding them;
+/// nodes that ring finish their tail first, then are disabled at once, where Blink's main thread
+/// does it some time later).
 /// </summary>
 internal sealed class AudioGraph
 {
@@ -16,6 +20,7 @@ internal sealed class AudioGraph
 
     readonly List<AudioScheduledSourceNode> _ended = [];
     readonly List<AudioScheduledSourceNode> _activeSources = [];
+    readonly List<AudioNode> _tailProcessing = [];
 
     public AudioGraph(float sampleRate, int channels = 2)
     {
@@ -47,7 +52,35 @@ internal sealed class AudioGraph
         PeriodicWave.Create(SampleRateF, real, imag, disableNormalization);
 
     internal void NotifyEnded(AudioScheduledSourceNode source) => _ended.Add(source);
-    internal void NotifyStarted(AudioScheduledSourceNode source) => _activeSources.Add(source);
+
+    /// <summary>NotifySourceNodeStartedProcessing: a started source holds a connection count until it has finished.</summary>
+    internal void NotifyStarted(AudioScheduledSourceNode source)
+    {
+        _activeSources.Add(source);
+        source.MakeConnection();
+    }
+
+    internal void AddTailProcessing(AudioNode node)
+    {
+        if (!_tailProcessing.Contains(node))
+            _tailProcessing.Add(node);
+    }
+
+    internal void RemoveTailProcessing(AudioNode node) => _tailProcessing.Remove(node);
+
+    /// <summary>UpdateTailProcessingHandlers: nodes whose tail has passed are done (and disabled: Blink's main thread does that later).</summary>
+    void UpdateTailProcessing()
+    {
+        for (var k = _tailProcessing.Count; k > 0; k--)
+        {
+            var node = _tailProcessing[k - 1];
+            if (node.PropagatesSilenceNow)
+            {
+                _tailProcessing.RemoveAt(k - 1);
+                node.DisableOutputs();
+            }
+        }
+    }
 
     /// <summary>
     /// One render quantum into <paramref name="bus"/> (OfflineAudioDestinationHandler::RenderIfNotSuspended):
@@ -58,17 +91,23 @@ internal sealed class AudioGraph
     {
         if (bus.NumberOfChannels != Destination.ChannelCount || bus.Length != RenderQuantumFrames)
             throw new ArgumentException("the bus must have the destination's channels and a quantum's frames", nameof(bus));
+        // HandlePreRenderTasks: deferred tasks (the tail list), then stoppable sources.
+        UpdateTailProcessing();
         foreach (var source in _activeSources)
             source.HandleStoppableSourceNode();
         var rendered = Destination.Input(0).Pull(bus, RenderQuantumFrames);
         if (rendered != bus)
             bus.CopyFrom(rendered);
-        CurrentSampleFrame += RenderQuantumFrames;
-        _activeSources.RemoveAll(s => s.HasFinished);
-        if (_ended.Count == 0)
-            return;
+        // HandlePostRenderTasks: BreakConnections (finished sources release their count), deferred tasks.
         var ended = _ended.ToArray();
         _ended.Clear();
+        foreach (var source in ended)
+        {
+            source.BreakConnection();
+            _activeSources.Remove(source);
+        }
+        UpdateTailProcessing();
+        CurrentSampleFrame += RenderQuantumFrames;
         foreach (var source in ended)
             source.RaiseEnded();
     }
@@ -104,6 +143,8 @@ internal abstract class AudioNode
     readonly List<AudioNodeOutput> _outputs = [];
     double _lastProcessingTime = -1;
     double _lastNonSilentTime;
+    int _connectionRefCount;
+    bool _isDisabled;
     int _channelCount = 2;
     ChannelCountMode _channelCountMode = ChannelCountMode.Max;
 
@@ -205,7 +246,88 @@ internal abstract class AudioNode
     protected virtual double TailTime => 0;
     protected virtual double LatencyTime => 0;
 
+    /// <summary>Nodes that ring on after their input stops (filters, convolvers, compressors) finish that tail before they're disabled.</summary>
+    protected virtual bool RequiresTailProcessing => false;
+
     protected virtual bool PropagatesSilence => _lastNonSilentTime + LatencyTime + TailTime < Graph.CurrentTime;
+    internal bool PropagatesSilenceNow => PropagatesSilence;
+
+    // ---------- Connection counting and disabled outputs (AudioHandler) ----------
+
+    /// <summary>MakeConnection: one more input connection (or a source started); re-enables the node's outputs.</summary>
+    internal void MakeConnection()
+    {
+        _connectionRefCount++;
+        Graph.RemoveTailProcessing(this);
+        if (_isDisabled && _connectionRefCount > 0)
+            EnableOutputs();
+    }
+
+    /// <summary>BreakConnectionWithLock: one connection fewer; at none, the outputs are disabled.</summary>
+    internal void BreakConnection()
+    {
+        _connectionRefCount--;
+        if (_connectionRefCount == 0)
+            DisableOutputsIfNecessary();
+    }
+
+    void DisableOutputsIfNecessary()
+    {
+        if (_connectionRefCount <= 1 && !_isDisabled)
+        {
+            if (RequiresTailProcessing)
+                Graph.AddTailProcessing(this);
+            else
+                DisableOutputs();
+        }
+    }
+
+    /// <summary>DisableOutputs: this node's outputs, then those of the nodes they fed that are left with at most one connection.</summary>
+    internal void DisableOutputs()
+    {
+        var worklist = new List<AudioNode>();
+        DisableOutputsInternal(worklist);
+        while (worklist.Count > 0)
+        {
+            var node = worklist[^1];
+            worklist.RemoveAt(worklist.Count - 1);
+            if (!node._isDisabled && node._connectionRefCount <= 1)
+            {
+                if (node.RequiresTailProcessing)
+                    Graph.AddTailProcessing(node);
+                else
+                    node.DisableOutputsInternal(worklist);
+            }
+        }
+    }
+
+    void DisableOutputsInternal(List<AudioNode> worklist)
+    {
+        _isDisabled = true;
+        foreach (var output in _outputs)
+            output.DisableAndEnqueue(worklist);
+    }
+
+    void EnableOutputs()
+    {
+        var worklist = new List<AudioNode>();
+        EnableOutputsInternal(worklist);
+        while (worklist.Count > 0)
+        {
+            var node = worklist[^1];
+            worklist.RemoveAt(worklist.Count - 1);
+            Graph.RemoveTailProcessing(node);
+            if (node._isDisabled && node._connectionRefCount > 0)
+                node.EnableOutputsInternal(worklist);
+        }
+    }
+
+    void EnableOutputsInternal(List<AudioNode> worklist)
+    {
+        _isDisabled = false;
+        foreach (var output in _outputs)
+            output.EnableAndEnqueue(worklist);
+    }
 
     internal void ProcessIfNecessary(int frames)
     {
@@ -264,28 +386,59 @@ internal abstract class AudioNode
 internal sealed class AudioNodeInput
 {
     readonly List<AudioNodeOutput> _outputs = [];
+    readonly List<AudioNodeOutput> _disabledOutputs = [];
     AudioBus _summingBus = new(1, AudioGraph.RenderQuantumFrames);
 
     internal AudioNodeInput(AudioNode node) => Node = node;
 
     public AudioNode Node { get; }
+    /// <summary>The enabled connections (rendered and counted for channels); disabled ones stay connected but aren't heard.</summary>
     public IReadOnlyList<AudioNodeOutput> Connections => _outputs;
     public bool IsConnected => _outputs.Count > 0;
 
+    /// <summary>AudioNodeWiring::Connect.</summary>
     internal void Connect(AudioNodeOutput output)
     {
-        if (_outputs.Contains(output))
+        if (_outputs.Contains(output) || _disabledOutputs.Contains(output))
             return;
-        _outputs.Add(output);
+        (output.IsEnabled ? _outputs : _disabledOutputs).Add(output);
         output.AddInput(this);
-        ChangedOutputs();
+        if (output.IsEnabled)
+            ChangedOutputs();
+        Node.MakeConnection();
     }
 
+    /// <summary>AudioNodeWiring::Disconnect.</summary>
     internal bool Disconnect(AudioNodeOutput output)
     {
-        if (!_outputs.Remove(output))
+        var wasEnabled = _outputs.Remove(output);
+        if (!wasEnabled && !_disabledOutputs.Remove(output))
             return false;
         output.RemoveInput(this);
+        if (wasEnabled)
+            ChangedOutputs();
+        Node.BreakConnection();
+        return true;
+    }
+
+    /// <summary>AudioNodeWiring::Disable: true when the connection was enabled.</summary>
+    internal bool Disable(AudioNodeOutput output)
+    {
+        if (_disabledOutputs.Contains(output))
+            return false;
+        _disabledOutputs.Add(output);
+        _outputs.Remove(output);
+        ChangedOutputs();
+        return true;
+    }
+
+    /// <summary>AudioNodeWiring::Enable: true when the connection was disabled.</summary>
+    internal bool Enable(AudioNodeOutput output)
+    {
+        if (_outputs.Contains(output))
+            return false;
+        _outputs.Add(output);
+        _disabledOutputs.Remove(output);
         ChangedOutputs();
         return true;
     }
@@ -354,6 +507,27 @@ internal sealed class AudioNodeOutput
     public AudioNode Node { get; }
     public int NumberOfChannels { get; private set; }
     public bool IsConnected => _inputs.Count > 0 || _params.Count > 0;
+    public bool IsEnabled { get; private set; } = true;
+
+    internal void DisableAndEnqueue(List<AudioNode> worklist)
+    {
+        if (!IsEnabled)
+            return;
+        IsEnabled = false;
+        foreach (var input in _inputs)
+            if (input.Disable(this))
+                worklist.Add(input.Node);
+    }
+
+    internal void EnableAndEnqueue(List<AudioNode> worklist)
+    {
+        if (IsEnabled)
+            return;
+        IsEnabled = true;
+        foreach (var input in _inputs)
+            if (input.Enable(this))
+                worklist.Add(input.Node);
+    }
 
     internal void AddInput(AudioNodeInput input) => _inputs.Add(input);
     internal void RemoveInput(AudioNodeInput input) => _inputs.Remove(input);

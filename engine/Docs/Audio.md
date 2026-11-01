@@ -32,6 +32,10 @@ Asked before the milestone started; also in `Docs/Engine-Plan.md`, "Decisions fo
   the convolver) with the RustFFT 6.4.1 crate, which on this PC's CPU (AVX2 + FMA) runs its AVX/FMA
   algorithms; the engine ports exactly those, bit for bit, emulating AVX and FMA on CPUs without
   them. (Not RustFFT's scalar path or pffft within a rounding bound.)
+- **The convolver's partitioning (asked during step 4):** always the offline structure (stage FFTs
+  doubling from 128 to 32768 points, all on the audio thread), as the references render it; not
+  Chromium's live structure (2048-point stages, later ones on a background thread). The big
+  stages' cost is measured in step 7.
 - **Output:** at the audio device's own rate, as Chromium's AudioContext runs, in 128-frame quanta,
   about 20 ms queued ahead.
 
@@ -144,8 +148,8 @@ next quantum; here a change takes effect at once, and a source's `Ended` runs af
 which it finished (Blink's main thread sees it some time later, at no fixed point).
 
 **Left out because they never change the output:** Blink's copies of the graph for the audio thread
-(rendering connections), disabled outputs of nodes whose inputs are all gone, and the tail-processing
-list keeping such nodes alive (a node with no input connections outputs silence either way).
+(rendering connections). (Disabled outputs were left out at first too, but they do change the
+output: ported in step 4, see "Connection counting".)
 
 **Chromium's summing order is not fixed.** An input sums its connections in the order of a hash set
 of pointers, which changes from run to run: seven renders of a three-term mix gave two different
@@ -236,6 +240,37 @@ gave differences of 2 · 10⁻⁵ after the filters, not one ulp, because their 
 last-bit difference along. Fixtures keep to two terms per sum (exact in either order); the theme
 comparisons (step 6) need a bound from Chromium's own spread (several renders of the same theme).
 
+### Connection counting (step 4)
+
+Blink counts each node's connections (one per input connection, one while a source plays). After
+the quantum in which a source finishes, it releases its count; a node left without any disables its
+outputs, and so, down the line, does every node fed only by disabled outputs, except nodes that ring
+(biquads, convolvers, compressors), which first finish their tail (the tail-processing list). A
+disabled output stays connected but its input doesn't hear or count it: channel counts follow the
+enabled connections only, so a stereo convolver whose stereo source has finished rings on in mono,
+and a node whose last input is disabled zeroes its output (silent) a quantum earlier than one still
+fed silence. A new connection into a disabled node enables it and those after it again. A convolver
+starts disabled until something connects into it. Blink disables a node that finished its tail on
+the main thread, some time later; the engine does it at once (the only part not at a fixed point).
+Garbage collection in Chromium also disconnects nodes no script holds (`AudioNode::Dispose`), at no
+fixed time; the engine has no such step (the game's nodes are let go explicitly).
+
+### The convolver and the stereo panner (step 4)
+
+- **`Convolver.cs`:** Blink's Reverb, ReverbConvolver, ReverbConvolverStage, FFTConvolver,
+  DirectConvolver and the accumulation buffer: per response channel (at least two convolvers), a
+  64-frame direct stage (vector_math::Conv, each output summed in kernel order) and FFT stages of
+  128, 256, ... 32768 points (the offline structure, user decision), each staggered by a render
+  phase and delayed to its place, overlap-added; the FFT frames are Blink's on the Rust FFT (64- to
+  16384-point complex plans: Butterfly64Avx added). The response is normalized by its RMS power
+  (Vsvesq's AVX summing order: Chromium's copy of the response sits at a 32-byte boundary, which the
+  renders confirm), calibrated to −58 dB at 44.1 kHz with fdlibm's powf. The output is stereo unless
+  input and response are both mono; the tail is the response's length. Responses of 4 channels
+  aren't supported (the engine's buffers are mono or stereo).
+- **`StereoPanner.cs`:** StereoPannerHandler and StereoPanner: the equal-power law with fdlibm's cos
+  and sin in double, per sample while the pan moves, else once a quantum; mono inputs spread, stereo
+  ones folded toward the panned side.
+
 ## Status
 
 - **Step 1, harness and render core: done (2026-10-31, 681 tests).** 39 fixtures (buffer sources:
@@ -282,4 +317,14 @@ comparisons (step 6) need a bound from Chromium's own spread (several renders of
   doubles' last bits that vanish in the float result (the recursion's association, dividing by a0,
   the C library's sin), lengthen tails by a frame (below a quantum), or are optimizations (in-place
   pulling, coefficients once when constant).
-- **Next: step 4, the convolver and the stereo panner.**
+- **Step 4, the convolver and the stereo panner: done (2026-11-01, 742 tests).** User decision on
+  the way: the offline partitioning. Connection counting and disabled outputs ported (found when
+  two fixtures failed: a stereo room rings on in mono once its stereo source has finished). 12
+  fixtures (mono, stereo and long rooms up to and past 32768-point stages, stereo inputs through
+  stereo and mono rooms, unnormalized, silence past the tail between two sounds; mono and stereo
+  panning, constant and swept, at 0 and the ends; notes panned into a room; a node disabled and
+  enabled again) match Chromium bit for bit. 23 mutations: 19 fail a test; the rest change no
+  sample (the stages' render-phase stagger only moves when their FFTs run; a convolver starting
+  disabled and disabling past the first node only change silent flags; disabling a node after its
+  tail happens on Chromium's main thread at no fixed time).
+- **Next: step 5, the dynamics compressor.**

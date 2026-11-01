@@ -45,6 +45,38 @@ internal sealed class AudioFixtureRun(AudioGraph graph)
 
     public GainNode Gain() => new(Graph);
 
+    /// <summary>The fixtures' room response: noise decaying by <paramref name="decay"/> a frame (in double, as the script does).</summary>
+    public AudioBuffer Room(int channels, int length, double seed, double decay)
+    {
+        var buffer = new AudioBuffer(channels, length, Graph.SampleRateF);
+        for (var c = 0; c < channels; c++)
+        {
+            var random = Mulberry32((uint)(seed + c * 7919));
+            var data = buffer.GetChannelData(c);
+            var amplitude = 1.0;
+            for (var i = 0; i < length; i++)
+            {
+                data[i] = (float)((random() * 2 - 1) * amplitude);
+                amplitude *= decay;
+            }
+        }
+        return buffer;
+    }
+
+    public ConvolverNode Convolver(AudioBuffer buffer, bool normalize = true)
+    {
+        var convolver = new ConvolverNode(Graph) { Normalize = normalize };
+        convolver.Buffer = buffer;
+        return convolver;
+    }
+
+    public StereoPannerNode Panner(float pan)
+    {
+        var panner = new StereoPannerNode(Graph);
+        panner.Pan.Value = pan;
+        return panner;
+    }
+
     public BiquadFilterNode Filter(BiquadFilterType type, float frequency)
     {
         var filter = new BiquadFilterNode(Graph, type);
@@ -128,7 +160,7 @@ internal static class AudioFixtures
         new(name, channels, length, rate, Prelude + script, build, tolerance);
 
     static AudioFixture[]? s_all;
-    public static AudioFixture[] All => s_all ??= [.. Core(), .. Oscillators(), .. Biquads()];
+    public static AudioFixture[] All => s_all ??= [.. Core(), .. Oscillators(), .. Biquads(), .. Rooms()];
 
     static IEnumerable<AudioFixture> Core()
     {
@@ -1185,5 +1217,176 @@ internal static class AudioFixtures
             f.Q.Value = -20;
             g.Connect(f).Connect(r.G.Destination);
         }, Exact);
+    }
+
+    /// <summary>JavaScript helpers for the convolver and panner fixtures (after the filter prelude).</summary>
+    const string RoomPrelude = """
+        const room = (channels, length, seed, decay) => { const b = ctx.createBuffer(channels, length, ctx.sampleRate); for (let c = 0; c < channels; c++) { const d = b.getChannelData(c), r = mulberry(seed + c * 7919); let amplitude = 1; for (let i = 0; i < length; i++) { d[i] = (r() * 2 - 1) * amplitude; amplitude *= decay; } } return b; };
+        const convolver = (buffer, normalize = true) => { const c = ctx.createConvolver(); c.normalize = normalize; c.buffer = buffer; return c; };
+        const panner = pan => { const p = ctx.createStereoPanner(); p.pan.value = pan; return p; };
+
+        """;
+
+    static AudioFixture R(string name, int channels, int length, float rate, string script, Action<AudioFixtureRun> build, double tolerance = 0) =>
+        B(name, channels, length, rate, RoomPrelude + script, build, tolerance);
+
+    static IEnumerable<AudioFixture> Rooms()
+    {
+        // ---------- The convolver ----------
+
+        // A short mono room on a mono burst: the direct stage and FFT stages of 128 to 4096 points; the
+        // node stops once the response's length has passed after the input fell silent.
+        yield return R("conv-mono", 1, 8192, 48000, """
+            const c = convolver(room(1, 3000, 60, 0.9985)); c.connect(out);
+            const s = source(noise(1, 2000, 61)); s.connect(c); s.start(0.001);
+            """, r =>
+        {
+            var c = r.Convolver(r.Room(1, 3000, 60, 0.9985));
+            c.Connect(r.G.Destination);
+            var s = r.Source(r.Noise(1, 2000, 61));
+            s.Connect(c);
+            s.Start(0.001);
+        });
+
+        // A long stereo room (stages up to 32768 points) on a mono input: stereo out.
+        yield return R("conv-stereo-room", 2, 28672, 48000, """
+            const c = convolver(room(2, 24000, 62, 0.99985)); c.connect(out);
+            const s = source(noise(1, 2000, 63)); s.connect(c); s.start(0);
+            """, r =>
+        {
+            var c = r.Convolver(r.Room(2, 24000, 62, 0.99985));
+            c.Connect(r.G.Destination);
+            var s = r.Source(r.Noise(1, 2000, 63));
+            s.Connect(c);
+            s.Start(0);
+        });
+
+        // A room longer than 32768 frames (as the composer's are): the stages past it stay at 32768
+        // points and are staggered by their render phase (a pre-delay before their FFT blocks).
+        yield return R("conv-long-room", 1, 45056, 48000, """
+            const c = convolver(room(1, 40000, 76, 0.99992)); c.connect(out);
+            const s = source(noise(1, 1500, 77)); s.connect(c); s.start(0);
+            """, r =>
+        {
+            var c = r.Convolver(r.Room(1, 40000, 76, 0.99992));
+            c.Connect(r.G.Destination);
+            var s = r.Source(r.Noise(1, 1500, 77));
+            s.Connect(c);
+            s.Start(0);
+        });
+
+        // Stereo in through a stereo room, not normalized; stereo in through a mono room.
+        yield return R("conv-stereo-input", 2, 12000, 44100, """
+            const a = convolver(room(2, 5000, 64, 0.999), false); a.connect(out);
+            const s = source(noise(2, 3000, 65)); s.connect(a); s.start(0);
+            const b = convolver(room(1, 4000, 66, 0.9992)); b.connect(out);
+            const t = source(noise(2, 2000, 67)); t.connect(b); t.start(0.12);
+            """, r =>
+        {
+            var a = r.Convolver(r.Room(2, 5000, 64, 0.999), normalize: false);
+            a.Connect(r.G.Destination);
+            var s = r.Source(r.Noise(2, 3000, 65));
+            s.Connect(a);
+            s.Start(0);
+            var b = r.Convolver(r.Room(1, 4000, 66, 0.9992));
+            b.Connect(r.G.Destination);
+            var t = r.Source(r.Noise(2, 2000, 67));
+            t.Connect(b);
+            t.Start(0.12);
+        });
+
+        // Silent past its tail, the node stops (its stages' block positions freeze); the next sound resumes them.
+        yield return R("conv-silence-between", 1, 16384, 48000, """
+            const c = convolver(room(1, 2500, 68, 0.998)); c.connect(out);
+            const a = source(noise(1, 700, 69)); a.connect(c); a.start(0);
+            const b = source(noise(1, 900, 70)); b.connect(c); b.start(0.2001);
+            """, r =>
+        {
+            var c = r.Convolver(r.Room(1, 2500, 68, 0.998));
+            c.Connect(r.G.Destination);
+            var a = r.Source(r.Noise(1, 700, 69));
+            a.Connect(c);
+            a.Start(0);
+            var b = r.Source(r.Noise(1, 900, 70));
+            b.Connect(c);
+            b.Start(0.2001);
+        });
+
+        // ---------- The stereo panner ----------
+
+        // Mono: a constant pan (one value a quantum), then swept across (per sample); stereo: swept
+        // across zero (the near side gets the far one), and held at 0 and at the ends.
+        yield return R("panner-mono", 2, 8192, 48000, """
+            const p = panner(-0.4); p.connect(out); const s = source(noise(1, 8192, 71)); s.connect(p); s.start(0);
+            p.pan.setValueAtTime(-0.4, 0.05); p.pan.linearRampToValueAtTime(1, 0.15);
+            """, r =>
+        {
+            var p = r.Panner(-0.4f);
+            p.Connect(r.G.Destination);
+            var s = r.Source(r.Noise(1, 8192, 71));
+            s.Connect(p);
+            s.Start(0);
+            p.Pan.SetValueAtTime(-0.4f, 0.05).LinearRampToValueAtTime(1, 0.15);
+        });
+
+        yield return R("panner-stereo", 2, 12000, 48000, """
+            const p = panner(0.3); p.connect(out); const s = source(noise(2, 12000, 72)); s.connect(p); s.start(0);
+            p.pan.setValueAtTime(-1, 0.05); p.pan.linearRampToValueAtTime(1, 0.15);
+            ctx.suspend(0.17).then(() => { p.pan.value = 0; ctx.resume(); });
+            ctx.suspend(0.2).then(() => { p.pan.value = -1; ctx.resume(); });
+            ctx.suspend(0.22).then(() => { p.pan.value = 1; ctx.resume(); });
+            """, r =>
+        {
+            var p = r.Panner(0.3f);
+            p.Connect(r.G.Destination);
+            var s = r.Source(r.Noise(2, 12000, 72));
+            s.Connect(p);
+            s.Start(0);
+            p.Pan.SetValueAtTime(-1, 0.05).LinearRampToValueAtTime(1, 0.15);
+            r.Suspend(0.17, () => p.Pan.Value = 0);
+            r.Suspend(0.2, () => p.Pan.Value = -1);
+            r.Suspend(0.22, () => p.Pan.Value = 1);
+        });
+
+        // A finished stereo source disables a gain it alone fed (the gain is left mono, unheard); a new
+        // mono source connected to the gain enables it again.
+        yield return R("graph-disabled-and-reenabled", 2, 8192, 48000, """
+            const g = gain(0.7); g.connect(out); const a = source(noise(2, 1500, 74)); a.connect(g); a.start(0);
+            const b = source(noise(1, 2000, 75));
+            ctx.suspend(0.08).then(() => { b.connect(g); b.start(ctx.currentTime + 0.001); ctx.resume(); });
+            """, r =>
+        {
+            var g = r.Gain(0.7f);
+            g.Connect(r.G.Destination);
+            var a = r.Source(r.Noise(2, 1500, 74));
+            a.Connect(g);
+            a.Start(0);
+            var b = r.Source(r.Noise(1, 2000, 75));
+            r.Suspend(0.08, () =>
+            {
+                b.Connect(g);
+                b.Start(r.G.CurrentTime + 0.001);
+            });
+        });
+
+        // The composer's send: notes panned into a room (a convolver after panners, as its mix does).
+        yield return R("panner-into-room", 2, 16384, 48000, """
+            const c = convolver(room(2, 6000, 73, 0.9993)); c.connect(out);
+            [[-0.6, 0, 196], [0.5, 0.04, 293.66]].forEach(([pan, when, frequency]) => {
+              const o = osc("triangle", frequency); const p = panner(pan); o.connect(p).connect(c); o.start(when); o.stop(when + 0.08);
+            });
+            """, r =>
+        {
+            var c = r.Convolver(r.Room(2, 6000, 73, 0.9993));
+            c.Connect(r.G.Destination);
+            foreach (var (pan, when, frequency) in new[] { (-0.6f, 0.0, 196f), (0.5f, 0.04, 293.66f) })
+            {
+                var o = r.Osc(OscillatorType.Triangle, frequency);
+                var p = r.Panner(pan);
+                o.Connect(p).Connect(c);
+                o.Start(when);
+                o.Stop(when + 0.08);
+            }
+        });
     }
 }

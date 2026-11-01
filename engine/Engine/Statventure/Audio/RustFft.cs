@@ -307,14 +307,14 @@ internal abstract class ComplexFft
     /// <summary>The transform of <paramref name="input"/> into <paramref name="output"/> (different buffers, <see cref="Length"/> complex each).</summary>
     public abstract void Transform(ReadOnlySpan<float> input, Span<float> output);
 
-    /// <summary>FftPlannerAvx's plan for a power of two of 128 or more (the lengths Web Audio needs).</summary>
+    /// <summary>FftPlannerAvx's plan for a power of two of 64 or more (the lengths Web Audio needs).</summary>
     public static ComplexFft Plan(int length, bool inverse)
     {
-        if (length < 128 || (length & (length - 1)) != 0)
-            throw new NotSupportedException($"FFT length {length}: only powers of two from 128 are ported");
+        if (length < 64 || (length & (length - 1)) != 0)
+            throw new NotSupportedException($"FFT length {length}: only powers of two from 64 are ported");
         var power2 = System.Numerics.BitOperations.Log2((uint)length);
         if (power2 <= 9)
-            return Butterfly(length, inverse);
+            return Butterfly(length, inverse); // 64, 128, 256, 512: butterflies of their own
         // plan_mixed_radix_base: a 512 butterfly when the power of two is a multiple of 3, else 256.
         var basePower = power2 % 3 == 0 ? 9 : 8;
         var radixes = new List<int>();
@@ -344,11 +344,56 @@ internal abstract class ComplexFft
 
     static ComplexFft Butterfly(int length, bool inverse) => length switch
     {
+        64 => new Butterfly64Avx(inverse),
         128 => new Butterfly128Avx(inverse),
         256 => new Butterfly256Avx(inverse),
         512 => new Butterfly512Avx(inverse),
         _ => throw new NotSupportedException($"butterfly {length}"),
     };
+}
+
+/// <summary>Butterfly64Avx: 8 × 8, columns of butterfly 8, twiddled, transposed, and butterfly 8 again.</summary>
+internal sealed class Butterfly64Avx : ComplexFft
+{
+    readonly V8[] _twiddles;
+    readonly V8 _rotation;
+
+    public Butterfly64Avx(bool inverse) : base(64, inverse)
+    {
+        _twiddles = AvxComplex.SeparatedColumnTwiddles(8, 8, inverse);
+        _rotation = AvxComplex.MakeRotation90(inverse);
+    }
+
+    public override void Transform(ReadOnlySpan<float> input, Span<float> output)
+    {
+        Span<V8> rows = stackalloc V8[8];
+        Span<V8> mid0 = stackalloc V8[8];
+        Span<V8> mid1 = stackalloc V8[8];
+        for (var r = 0; r < 8; r++)
+            rows[r] = V8.Load(input, 8 * r);
+        AvxComplex.Butterfly8(rows, _rotation, mid0);
+        for (var r = 1; r < 8; r++)
+            mid0[r] = AvxComplex.MulComplex(mid0[r], _twiddles[r - 1]);
+        for (var r = 0; r < 8; r++)
+            rows[r] = V8.Load(input, 8 * r + 4);
+        AvxComplex.Butterfly8(rows, _rotation, mid1);
+        for (var r = 1; r < 8; r++)
+            mid1[r] = AvxComplex.MulComplex(mid1[r], _twiddles[r - 1 + 7]);
+        // transpose_8x8_f32
+        Span<V8> transposed0 = stackalloc V8[8];
+        Span<V8> transposed1 = stackalloc V8[8];
+        AvxComplex.Transpose4Packed(mid0[..4], transposed0[..4]);
+        AvxComplex.Transpose4Packed(mid1[..4], transposed0[4..]);
+        AvxComplex.Transpose4Packed(mid0[4..], transposed1[..4]);
+        AvxComplex.Transpose4Packed(mid1[4..], transposed1[4..]);
+        Span<V8> result = stackalloc V8[8];
+        AvxComplex.Butterfly8(transposed0, _rotation, result);
+        for (var r = 0; r < 8; r++)
+            result[r].Store(output, 8 * r);
+        AvxComplex.Butterfly8(transposed1, _rotation, result);
+        for (var r = 0; r < 8; r++)
+            result[r].Store(output, 8 * r + 4);
+    }
 }
 
 /// <summary>Butterfly128Avx: 8 × 16, columns of butterfly 8 then rows of butterfly 16.</summary>

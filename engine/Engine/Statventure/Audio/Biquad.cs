@@ -483,6 +483,7 @@ internal sealed class BiquadFilterNode : AudioNode
     }
 
     protected override double TailTime => _tailTime;
+    protected override bool RequiresTailProcessing => true;
 
     internal override void CheckNumberOfChannelsForInput(AudioNodeInput input)
     {
