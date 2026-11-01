@@ -1,6 +1,9 @@
 // The C library reference (Docs/Audio.md): this system's glibc exp2f and log2f, which Chromium on
 // this PC calls for the oscillator's detune and the periodic waves' pitch ranges, and log10f and
-// powf(10, y) (the decibel conversions; powf over every y with x = 10). Prints JSON: the
+// powf(10, y) (the decibel conversions; powf over every y with x = 10); and its double pow, which
+// V8 calls for JavaScript's ** and Math.pow (step 6), over the argument families of the engine's
+// Tests/.../Audio/JsMathTests.cs (MathArguments), drawn from mulberry32 in the same order: each
+// family's result hash and first 8 results. Prints JSON: the
 // FNV-1a hash of the results' bits over every float, and over every 4099th (the tests' sample), NaN
 // results counted as one canonical NaN; and "unfusedDiffers": how many floats give another result
 // with the same algorithm left unfused (glibc's SSE2 variant, compiled here) than glibc's own (its
@@ -79,6 +82,99 @@ static float Unfused_log2f(float x) {
   return (float)y;
 }
 
+static uint64_t Bits64(double d) {
+  uint64_t u;
+  memcpy(&u, &d, 8);
+  return u;
+}
+
+static double FromBits64(uint64_t u) {
+  double d;
+  memcpy(&d, &u, 8);
+  return d;
+}
+
+static uint64_t Mix64(uint64_t hash, double result) {
+  uint64_t bits = isnan(result) ? 0x7ff8000000000000ull : Bits64(result);
+  for (int i = 0; i < 8; i++) {
+    hash ^= (bits >> (8 * i)) & 0xff;
+    hash *= 0x100000001b3ull;
+  }
+  return hash;
+}
+
+// mulberry32, as the composer and MathArguments draw it.
+static uint32_t state;
+static uint32_t Next(void) {
+  state += 0x6D2B79F5u;
+  uint32_t t = state;
+  t = (t ^ (t >> 15)) * (t | 1);
+  t ^= t + (t ^ (t >> 7)) * (t | 61);
+  return t ^ (t >> 14);
+}
+static double Uniform(void) { return Next() / 4294967296.0; }
+static double RandomBits(void) {
+  uint64_t hi = Next();
+  uint64_t lo = Next();
+  return FromBits64(hi << 32 | lo);
+}
+
+static const double kSpecialX[] = {0.0, -0.0, INFINITY, -INFINITY, NAN, 1, -1, 2, -2, 0.5,
+                                   4.9406564584124654e-324, -4.9406564584124654e-324, 2.2250738585072014e-308,
+                                   1.7976931348623157e308, -1.7976931348623157e308,
+                                   0x1.fffffffffffffp-1, 0x1.0000000000001p0, 10, -10, 3};
+static const double kSpecialY[] = {0.0, -0.0, INFINITY, -INFINITY, NAN, 0.5, -0.5, 1, -1, 2, -2, 3, -3,
+                                   0x1p-70, -0x1p-70, 0x1p70, -0x1p70, 1075, -1075, 0.35, 1e-300};
+
+static double Special(const double *specials, uint32_t count) {
+  uint32_t index = Next() % (count + 4);
+  return index < count ? specials[index] : RandomBits();
+}
+
+static void PowFamily(const char *name, int family, int last) {
+  state = (uint32_t)(family + 1) * 7919u;
+  uint64_t hash = 0xcbf29ce484222325ull;
+  printf("\"%s\":{\"first\":[", name);
+  for (int i = 0; i < (1 << 22); i++) {
+    double x, y;
+    if (family == 0) {
+      uint64_t hi = Next();
+      uint64_t lo = Next();
+      x = FromBits64((hi << 32 | lo) & 0x7fefffffffffffffull);
+      y = (Uniform() * 2 - 1) * 8;
+    } else if (family == 1) {
+      x = 0.5 + Uniform() * 1.5;
+      y = (Uniform() * 2 - 1) * 2048;
+    } else if (family == 2) {
+      x = -(1e-3 + Uniform() * 1e3);
+      double coin = Uniform();
+      double u = Uniform();
+      y = coin < 0.5 ? floor(u * 81) - 40 : (u * 2 - 1) * 40;
+    } else if (family == 3) {
+      x = Special(kSpecialX, sizeof kSpecialX / sizeof *kSpecialX);
+      y = Special(kSpecialY, sizeof kSpecialY / sizeof *kSpecialY);
+    } else {
+      int m = (int)(Next() % 700) - 300;
+      if (i % 3 == 0) {
+        x = 2;
+        y = (m - 69) / 12.0;
+      } else if (i % 3 == 1) {
+        x = (20 + Uniform() * 20000) / 330;
+        y = 0.35;
+      } else {
+        double d = 0.3 + Uniform() * 4.7;
+        double a = 20 + Uniform() * 20000;
+        x = 0.001;
+        y = 1 / (d * a);
+      }
+    }
+    double r = pow(x, y);
+    hash = Mix64(hash, r);
+    if (i < 8) printf("%s\"%016llx\"", i ? "," : "", (unsigned long long)(isnan(r) ? 0x7ff8000000000000ull : Bits64(r)));
+  }
+  printf("],\"hash\":\"%016llx\"}%s", (unsigned long long)hash, last ? "" : ",");
+}
+
 int main(void) {
   long exp2_unfused_differs = 0, log2_unfused_differs = 0;
   const uint64_t kOffset = 0xcbf29ce484222325ull;
@@ -107,9 +203,13 @@ int main(void) {
          "\"exp2f\":{\"all\":\"%016llx\",\"sample\":\"%016llx\",\"unfusedDiffers\":%ld},"
          "\"log2f\":{\"all\":\"%016llx\",\"sample\":\"%016llx\",\"unfusedDiffers\":%ld},"
          "\"log10f\":{\"all\":\"%016llx\",\"sample\":\"%016llx\",\"unfusedDiffers\":0},"
-         "\"pow10f\":{\"all\":\"%016llx\",\"sample\":\"%016llx\",\"unfusedDiffers\":0}}\n",
+         "\"pow10f\":{\"all\":\"%016llx\",\"sample\":\"%016llx\",\"unfusedDiffers\":0},",
          GLIBC_VERSION_STRING, (unsigned long long)exp2_all, (unsigned long long)exp2_sample, exp2_unfused_differs,
          (unsigned long long)log2_all, (unsigned long long)log2_sample, log2_unfused_differs,
          (unsigned long long)log10_all, (unsigned long long)log10_sample,
          (unsigned long long)pow10_all, (unsigned long long)pow10_sample);
+  printf("\"pow\":{");
+  const char *families[] = {"random", "nearOne", "negative", "special", "composer"};
+  for (int f = 0; f < 5; f++) PowFamily(families[f], f, f == 4);
+  printf("}}\n");
 }

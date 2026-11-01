@@ -400,7 +400,7 @@ internal sealed class AudioParam
         // A unity-gain summing junction over the inputs (Blink's summing bus with the values as its
         // channel memory), mixed down to mono; k-rate takes only the first value.
         var junction = new SpanJunction(values[..(sampleAccurate ? values.Length : 1)]);
-        foreach (var input in _inputs)
+        foreach (var input in AudioGraph.InSummingOrder(_inputs, Graph, orderFree: 1))
             junction.Add(input.Pull(null, AudioGraph.RenderQuantumFrames));
         if (!sampleAccurate)
             values.Fill(values[0]);

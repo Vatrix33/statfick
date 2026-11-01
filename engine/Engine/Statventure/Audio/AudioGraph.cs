@@ -37,6 +37,20 @@ internal sealed class AudioGraph
     public double CurrentTime => CurrentSampleFrame / SampleRate;
     public AudioDestinationNode Destination { get; }
 
+    /// <summary>
+    /// For the tests only (Docs/Audio.md, step 6's fixture sums): when set before the graph is built,
+    /// every node output gets a random key from it and inputs sum their connections in key order,
+    /// as Chromium's pointer hash sets order them differently on every run.
+    /// </summary>
+    internal Random? SummingOrder { get; set; }
+
+    /// <summary>
+    /// The connections in the order they sum. A node input starts from zero, so two connections sum
+    /// alike in either order; a parameter adds its connections to its own values, so two already don't.
+    /// </summary>
+    internal static IEnumerable<AudioNodeOutput> InSummingOrder(List<AudioNodeOutput> outputs, AudioGraph graph, int orderFree = 2) =>
+        graph.SummingOrder != null && outputs.Count > orderFree ? outputs.OrderBy(o => o.OrderKey) : outputs;
+
     readonly Dictionary<OscillatorType, PeriodicWave> _basicWaves = [];
 
     /// <summary>BaseAudioContext::GetPeriodicWave: the built-in shape's tables, made once per context.</summary>
@@ -483,7 +497,7 @@ internal sealed class AudioNodeInput
             return _summingBus;
         }
         _summingBus.Zero();
-        foreach (var output in _outputs)
+        foreach (var output in AudioGraph.InSummingOrder(_outputs, Node.Graph))
             _summingBus.SumFrom(output.Pull(null, frames), Node.ChannelInterpretation);
         return _summingBus;
     }
@@ -492,6 +506,9 @@ internal sealed class AudioNodeInput
 /// <summary>A node's output (Blink's AudioNodeOutput): its bus, its channel count, its connections to inputs and parameters.</summary>
 internal sealed class AudioNodeOutput
 {
+    /// <summary>Its place in a shuffled summing order (<see cref="AudioGraph.SummingOrder"/>).</summary>
+    internal long OrderKey { get; }
+
     readonly List<AudioNodeInput> _inputs = [];
     readonly List<AudioParam> _params = [];
     AudioBus _bus;
@@ -500,6 +517,7 @@ internal sealed class AudioNodeOutput
     internal AudioNodeOutput(AudioNode node, int channels)
     {
         Node = node;
+        OrderKey = node.Graph.SummingOrder?.NextInt64() ?? 0;
         NumberOfChannels = channels;
         _bus = new AudioBus(channels, AudioGraph.RenderQuantumFrames);
     }

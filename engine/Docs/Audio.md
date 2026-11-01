@@ -38,6 +38,36 @@ Asked before the milestone started; also in `Docs/Engine-Plan.md`, "Decisions fo
   stages' cost is measured in step 7.
 - **Output:** at the audio device's own rate, as Chromium's AudioContext runs, in 128-frame quanta,
   about 20 ms queued ahead.
+- **Step 6 (asked 2026-11-01, before its code):**
+  - *Theme data:* records of the authored specs as `MusicThemes.all()` returns them (55 themes, the
+    regional battle arrangements expanded, loudness trims applied); `compile()` and `lint()` ported
+    and run at load, lint as a test.
+  - *Instruments, percussion, rooms:* generated records too; an instrument's kind picks the C# code
+    for its per-note graph; modes and chord qualities are constants beside the compiler.
+  - *Theme checks:* committed fixtures for every instrument kind, percussion voice, texture, room,
+    the master chain and fades; the 55 full themes in an opt-in test (`STATVENTURE_THEMES=1`)
+    against four Chromium renders per theme kept in the build cache (first rule: each engine
+    sample inside their per-sample min/max widened by their largest spread; changed, see below).
+    The full renders are too big to commit (67 minutes, 1.5 GB of float32 per render, gzip 93 %);
+    Chromium's own renders differ on almost every sample by up to 2e-4 (its summing order).
+  - *exp and pow:* V8 15.2's `Math.exp` is LLVM libc's correctly rounded exp (Chromium 152's pin),
+    ported line for line. `Math.pow` and `**` are `std::pow`, the system glibc 2.43 pow (its FMA
+    variant on this CPU); re-asked once that was found: glibc's `e_pow.c` is ported as `__pow_fma`
+    runs it. Both checked against V8's results.
+  - *Theme API:* string ids (`"alder-vale"`, `"combat@alder-vale"`, boss ids), `Play(id)` with
+    music.js's fades, `Stop()`; choosing the theme (`desiredTheme`) comes with the game port.
+  - *Voice cleanup:* at the end of the render quantum in which a voice's first source ended; the
+    fixtures make Chromium do the same by suspending its render every quantum.
+  - *Fixture sums (asked during step 6):* fixtures whose notes sum three or more inputs at a node
+    pass if Chromium's render lies inside the per-sample min/max of 16 engine renders with the node
+    inputs summed in shuffled orders (a seeded test hook), widened by their largest spread (first 4;
+    re-asked when 4 undersampled thunder's 5 summed bursts and the gong's 6 partials). The
+    float-rounding bound doesn't survive the IIR filters after such sums (a choir note: Chromium's
+    own renders 6.4e-7 apart).
+  - *The full themes' rule (asked after the first run):* the engine renders each theme in 4
+    shuffled summing orders too; at every sample its range and Chromium's 4-run range must come
+    within the larger of the two spreads (the first rule, one engine render inside Chromium's range,
+    failed 6 of 55 themes by summing order alone).
 
 ## What the old game uses (surveyed 2026-10-31)
 
@@ -65,8 +95,9 @@ As M3–M5 did with Chromium:
 1. **Reference first.** A harness (`Tools/AudioReference`, an Electron app run by
    `Tools/Scripts/chromium.sh`) renders in Chromium 152's OfflineAudioContext: small fixtures (a
    graph in JavaScript and its C# twin, a fraction of a second each) for each node and rule, and
-   the old game's themes through `Music.renderOffline`. Renders are committed as references, so the
-   tests run anywhere.
+   the old game's themes through `Music.renderOffline`. Fixture renders are committed as references,
+   so the tests run anywhere; the full themes' renders are too big and stay in the build cache
+   (step 6's decisions).
 2. **Port the rule** from Blink's source (`~/.cache/stat-fick-build/reference-src/chromium-152-source/webaudio/`:
    `modules/webaudio` handlers and `platform/audio` DSP, the x86 vector math and kernels; the
    RustFFT 6.4.1 crate in `~/.cache/stat-fick-build/reference-src/rustfft-6.4.1/`; glibc 2.43's
@@ -287,6 +318,94 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   asin, checked by the native reference. The tail (5 × 0.325 s) and latency (the look-ahead)
   decide when a silent compressor stops; its state then freezes until the next sound.
 
+### The game synthesizer (step 6)
+
+`Engine/Statventure/Audio/Music/` and three math files; the game sees `Soundtrack`.
+
+- **JavaScript's numbers (`JsMath.cs`, `LlvmLibc.cs`, `Libm.Pow.cs`):** the composer's arithmetic is
+  JavaScript doubles, so its `Math.exp`, `**`/`Math.pow` and `Math.round` are V8 15.2's.
+  `Math.exp` is LLVM libc's correctly rounded exp (`src/__support/math/exp.h` at 3ea89f43, the
+  revision Chromium 152 pins; V8's `base::ieee754::exp` calls it), ported with its double pass,
+  double-double pass and 128-bit dyadic floats (`DyadicFloat128`, with the multiword
+  `quick_mul_hi` that drops the low words' product), built as Chromium builds it for x86-64: no
+  FMA, so `multiply_add` is a product and a sum and exact products are Dekker's. `**` and
+  `Math.pow` are V8's `math::pow` (`src/numbers/ieee754.cc`: NaN exponents, ±∞ exponents of ±1,
+  `x²` and `√(x + 0)` special cases), then `std::pow` (the flag `use_std_math_pow` is on), which in
+  Electron on Linux is the system glibc's pow: glibc 2.43's `e_pow.c` as x86-64's FMA variant
+  `__ieee754_pow_fma` computes it. Which multiply-adds GCC fused was read from the system
+  libm.so.6's machine code (the ifunc resolver picks it on CPUs with FMA and AVX2): every
+  single-use `a·b + c`, except in the subnormal branch of the special case, where `scale · tmp`
+  has a second use in another block and stays a rounded product. `Math.round` is V8's: the ceiling,
+  less one when that is more than half away.
+- **The data (`ThemeData.cs`, `MusicData.g.cs`):** records for themes, sections, layers,
+  harmonies, doublings, instruments, percussion voices and rooms, each property named after the
+  JavaScript key it holds (`t` → `Type`, `dbl` → `Doublings`, a drums layer's `p` →
+  `Drums`, in the spec's order, which decides the order of random draws). `MusicData.g.cs` is
+  generated by `Tools/Scripts/make-music-data.sh`: the harness's Chromium loads music-composer.js and
+  music-themes.js, and `Tools/AudioReference/music.cjs` writes `MusicThemes.all()` (55 themes: 17
+  regions, the battle theme, its 17 regional arrangements already expanded by `arrange`, 20 boss
+  themes, the loudness trims applied) and the composer's 34 instruments, 21 percussion voices and 7
+  rooms as C#; an unknown key stops it, so nothing is dropped.
+- **The score (`Score.cs`):** `compile` and `lint` ported: scale degrees, chord numerals with their
+  qualities and sevenths, bars (an empty last one dropped), chord lines (held "." chords lengthen
+  the entry before; `%` repeats a bar), melodies with ties, rests and accents, sections with `like`
+  (one level, key by key), the form and loop point. JavaScript's semantics kept where they show:
+  numbers are doubles, `Math.round` is V8's, a held chord shares its chord object (entries merge by
+  identity), note steps may be fractional (and then never play), notes by step keep insertion
+  order. All themes compile when `Soundtrack` is first used.
+- **The composer (`GraphBuilder.cs`, `Composer.cs`):** `Performance` is music-composer.js's
+  `perform`: the theme's EQ (34 Hz highpass, 140 Hz shelf, 2.6 kHz presence), dry gain, room
+  (`impulse`: smoothed seeded noise decaying over the room's length, darkening, with seven early
+  reflections) behind a send, a channel per instrument (and per percussion voice and texture) with
+  its send level; the per-note graphs of each instrument kind (bowed and brass voices into a
+  lowpass, with a resonance, tremolo and vibrato; a choir's formant bank; organ and wind periodic
+  waves, the flute's breath noise and chiff; Karplus-Strong plucks (`pluckBuffer`, cached per
+  instrument and note, cleared past 220) at a playback rate through body and highpass filters;
+  mallet partials below the clamped Nyquist; glass with tremolo; a sine sub), the percussion
+  (pitch sweeps, noise bursts, metal partials, swells, thunder), the textures, and the sequencer
+  (`step`: the form looping after its end, swing, dynamics across a section, bar filters, voice-led
+  pads, drones, arpeggio/bass/pulse patterns with held steps, strums, melodies and lines with
+  doublings and harmonies, drums with rolls and flams, hits tuned to degrees or chords, drips).
+  Every random draw (mulberry32 seeded with the theme id's FNV hash), double computation and Web
+  Audio call is in the script's order, through `GraphBuilder`: one call each for node creation,
+  `param.value =`, the automation calls, connections, starts and stops, types, buffers, loops,
+  periodic waves and `onended` cleanups. The builder also holds the per-context kit (two seconds of
+  noise, periodic waves by harmonics, plucks, rooms), as the composer's `WeakMap` per context did.
+  A cleanup disconnects a finished voice's nodes at the end of the quantum in which its first
+  source ended (step 6's decision).
+- **The soundtrack (`Soundtrack.cs`):** music.js for the composer's themes: the master gain (0.58 ×
+  the volume; 1 for exports) into the limiter (−18 dB, knee 18, ratio 3, attack 6 ms, release
+  220 ms); `Play(id)` (sync: the old bus held and ramped to 0 over 0.55 s and disconnected 1.8 s
+  later, the new performance's bus from 0 to 1 over 0.8 s, its first step 60 ms ahead; the theme
+  playing does nothing); `Stop()`; `Volume` (a 40 ms ramp); `Schedule()`, to be called before each
+  render quantum (step 7's renderer): due timers at the first quantum boundary at or after their
+  time, then every step starting within 0.2 s (music.js's 45 ms timer schedules the same notes; a
+  note's nodes being made earlier or later changes nothing heard). music.js's old score engine's
+  delay and hall are left out: no theme feeds them (the master fixtures include them in Chromium
+  and match). `RenderOffline(id)` is music.js's `renderOffline`.
+- **How it is checked:** the math against the system's pow (`Reference/libm.json`, native) and
+  against V8 run by Electron as Node (`Reference/v8-math.json`, `make-v8-math-reference.sh`): five
+  argument families of 4 Mi each, drawn from mulberry32 the same way in C, JavaScript and C#
+  (random doubles, near 1 with large exponents, negative bases, specials, the composer's own
+  arguments; for exp also every room response's arguments at 44.1 and 48 kHz), plus exp's slow
+  passes on their own. The score and composer against the old composer in Chromium
+  (`Reference/music-scores.json`, `music-logs.json`, `make-music-references.sh`): every theme's
+  compiled score as a digest, lint's findings (none in the themes; small specs with clashes in
+  `Reference/lint-specs.json`), and the whole performance of every theme (renderOffline's steps
+  plus 64 past the loop point; at 44.1 kHz, six themes also at 48 kHz) on a recording stand-in
+  context, the same lines as `GraphBuilder`'s log, hashed per step: 2.7 million calls, all equal.
+  Rendered fixtures (`MusicFixtures.cs`, quanta fixtures: Chromium suspends every quantum so its
+  cleanups land where the engine's do; `at(time, fn)` and `quantum(fn)` hooks): every instrument
+  kind, every percussion voice, the textures, an ensemble looping past its end, strums and lines, a
+  long room at 44.1 kHz, the master chain and switching with fades and a volume change. Those
+  without sums of three or more match exactly; the others pass the shuffled-sums rule
+  (`AudioGraph.SummingOrder`, a test-only seeded key per node output: inputs sum in key order, as
+  Chromium's pointer hash sets order them; 16 orders). The full themes: `test-themes.sh` (Release,
+  about 25 minutes) against the build cache's references from `make-theme-references.sh` (four
+  renders through music.js's own renderOffline with a suspend every quantum, 2.6 GB): the engine
+  renders each theme in four shuffled orders, and at every sample the two sides' ranges must come
+  within the larger spread.
+
 ## Status
 
 - **Step 1, harness and render core: done (2026-10-31, 681 tests).** 39 fixtures (buffer sources:
@@ -352,6 +471,30 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   versions of a function where both are near correctly rounded and agree on every input the
   renders reach (each function is checked bit for bit on its own), or fold a release constant in
   double (an ulp that vanishes in the float rates).
-- **Next: step 6, the game synthesizer** (the composer, its themes, the master chain and fades;
-  theme renders compared within Chromium's own spread). Needed first: Chromium 152's V8 `Math.exp`
-  (not fdlibm) for the composer's room responses.
+- **Step 6, the game synthesizer: done (2026-11-01, 974 tests).** User decisions on the way
+  (Decisions, "Step 6"): theme data as the authored specs, instruments as records, fixtures plus
+  opt-in full themes, the JavaScript math ported (exp from LLVM libc; pow re-asked once V8 turned
+  out to call glibc's), string theme ids, cleanups at the quantum's end, the shuffled-sums rule for
+  fixtures (16 orders, re-asked when 4 undersampled). The math: glibc's pow, V8's `**` and exp equal
+  their references on 5 × 4 Mi arguments each and every room response's arguments. The composer:
+  all 55 themes compile to the old composer's scores (digest, lint), three small specs cover the
+  chord forms and clashes the themes don't have, and all 61 performances (55 at 44.1 kHz, 6 at 48
+  kHz, 64 steps past the loop) make the old composer's 2.7 million Web Audio calls with the same
+  bits, step by step. 30 synthesizer fixtures match Chromium: 12 exactly, 18 by the shuffled-sums
+  rule (also against each of 4 separate Chromium runs). All 55 full themes pass the opt-in check (`test-themes.sh`, 21.5 minutes; Chromium's own 4-run
+  spread per theme 2.3e-5 to 5.6e-4); the first rule (one engine render inside Chromium's range)
+  had failed 6 of them by summing order alone. 47 mutations: 39 fail a
+  test; the other 8 change nothing a test or a listener can see: five equivalents (a tiny exponent
+  gives 1.0 either way, a split constant of 2²⁷ splits exactly too, lint's clash distance can't be
+  0, pads re-centre after the first placement, a bus already faded to 0 can be disconnected
+  early), one only slows exp (the subnormal rounding test always passes on to the 128-bit pass),
+  and two below observable precision (pow's fused reduction differs only within 2⁻³⁵ of a
+  half-integer; the low bits of the double-double pass's 1/720).
+- **Found on the way:** V8 15.2's `math::pow` calls `std::pow` (the flag `use_std_math_pow` is on
+  outside AIX), so `**` is the system C library's pow, not LLVM libc's (which isn't correctly
+  rounded at this revision either); music.js's delay and hall get no input from the composer's
+  themes and change no sample; the engine's Debug build renders a theme about 10 times slower than
+  Release (Release: about 8 times faster than real time offline, with every note scheduled up front).
+- **Next: step 7, output** (OpenAL Soft at the device's rate, 128-frame quanta about 20 ms ahead,
+  an audio thread calling `Soundtrack.Schedule` before each quantum, buses with volumes, device
+  changes, no device; measure the convolver's big stages and live voices' cost).

@@ -25,7 +25,7 @@ public class AudioReferenceTests
     public void TheFixtureFileIsUpToDate()
     {
         var path = Path.Combine(ReferenceDirectory, "audio-fixtures.json");
-        var fixtures = AudioFixtures.All.Select(f => new { f.Name, f.Channels, f.Length, f.Rate, f.Script });
+        var fixtures = AudioFixtures.All.Select(f => new { f.Name, f.Channels, f.Length, f.Rate, f.Script, f.Quanta });
         var text = JsonSerializer.Serialize(fixtures, Json) + "\n";
         if (!File.Exists(path) || File.ReadAllText(path) != text)
             File.WriteAllText(path, text);
@@ -41,13 +41,19 @@ public class AudioReferenceTests
         Assert.True(File.Exists(path), $"no Chromium render of '{name}': run Tools/Scripts/make-audio-references.sh {name}");
         var expected = Load(path, fixture.Channels, fixture.Length);
         var actual = Render(fixture);
-        var tolerance = fixture.Tolerance switch
+        string? report;
+        if (fixture.Tolerance == AudioFixtures.ShuffledSums)
+            report = CompareWithShuffledSums(expected, fixture);
+        else
         {
-            AudioFixtures.Exact => 0,
-            0 => SmallestNormal,
-            var t => t,
-        };
-        var report = Compare(expected, actual, tolerance);
+            var tolerance = fixture.Tolerance switch
+            {
+                AudioFixtures.Exact => 0,
+                0 => SmallestNormal,
+                var t => t,
+            };
+            report = Compare(expected, actual, tolerance);
+        }
         if (report != null)
         {
             Save(ActualPath(name), actual);
@@ -60,10 +66,50 @@ public class AudioReferenceTests
     /// <summary>The smallest normal float: Chromium renders with denormals flushed to zero.</summary>
     internal const double SmallestNormal = 1.1754943508222875e-38;
 
-    /// <summary>Renders the fixture's twin as the harness renders its script: built at time 0, suspended where it asked, <see cref="AudioFixture.Length"/> frames.</summary>
-    internal static float[][] Render(AudioFixture fixture)
+    /// <summary>How many shuffled summing orders the rule renders (user decision, step 6: 4 missed sums of 5–6 terms).</summary>
+    const int ShuffledOrders = 16;
+
+    /// <summary>
+    /// Step 6's rule for fixtures whose nodes sum three or more inputs (Docs/Audio.md): the engine
+    /// renders the fixture with its sums in 16 shuffled orders; Chromium's render must lie inside their
+    /// per-sample range, widened by their largest spread (at least the smallest normal float).
+    /// </summary>
+    static string? CompareWithShuffledSums(float[][] expected, AudioFixture fixture)
     {
-        var graph = new AudioGraph(fixture.Rate, fixture.Channels);
+        var renders = Enumerable.Range(1, ShuffledOrders).AsParallel().AsOrdered().Select(seed => Render(fixture, new Random(seed))).ToArray();
+        double spread = SmallestNormal;
+        for (var c = 0; c < expected.Length; c++)
+            for (var i = 0; i < expected[c].Length; i++)
+            {
+                double low = renders.Min(r => r[c][i]), high = renders.Max(r => r[c][i]);
+                spread = Math.Max(spread, high - low);
+            }
+        var over = 0;
+        var worst = 0.0;
+        (int Channel, int Frame)? first = null;
+        for (var c = 0; c < expected.Length; c++)
+            for (var i = 0; i < expected[c].Length; i++)
+            {
+                double low = renders.Min(r => r[c][i]), high = renders.Max(r => r[c][i]), value = expected[c][i];
+                var outside = Math.Max(low - spread - value, value - high - spread);
+                if (!(outside <= 0))
+                {
+                    over++;
+                    first ??= (c, i);
+                    worst = Math.Max(worst, outside);
+                }
+            }
+        if (over == 0)
+            return null;
+        var (fc, fi) = first!.Value;
+        return $"{over} samples lie outside the engine's {ShuffledOrders} summing orders (spread {spread:G3}) by up to {worst:G3}; first at channel {fc} frame {fi} " +
+            $"(Chromium {expected[fc][fi]:G9}, engine {string.Join(" / ", renders.Select(r => r[fc][fi].ToString("G9")))})";
+    }
+
+    /// <summary>Renders the fixture's twin as the harness renders its script: built at time 0, suspended where it asked, <see cref="AudioFixture.Length"/> frames.</summary>
+    internal static float[][] Render(AudioFixture fixture, Random? summingOrder = null)
+    {
+        var graph = new AudioGraph(fixture.Rate, fixture.Channels) { SummingOrder = summingOrder };
         var run = new AudioFixtureRun(graph);
         fixture.Build(run);
         var result = new float[fixture.Channels][];
@@ -74,6 +120,9 @@ public class AudioReferenceTests
         {
             if (run.Suspends.Remove(graph.CurrentSampleFrame, out var actions))
                 foreach (var action in actions)
+                    action();
+            if (graph.CurrentSampleFrame > 0)
+                foreach (var action in run.EveryQuantum)
                     action();
             graph.RenderQuantum(bus);
             var count = Math.Min(AudioGraph.RenderQuantumFrames, fixture.Length - done);

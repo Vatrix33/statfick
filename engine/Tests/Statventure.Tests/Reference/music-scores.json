@@ -1,0 +1,314 @@
+{
+ "alder-vale": {
+  "digest": "ea0dc75c7a28edc9",
+  "lines": 247,
+  "lint": []
+ },
+ "stoneveil-foothills": {
+  "digest": "71e761ea1d59dd06",
+  "lines": 245,
+  "lint": []
+ },
+ "high-stoneveil": {
+  "digest": "87c8e72b59c2e36e",
+  "lines": 205,
+  "lint": []
+ },
+ "stoneveil-summit": {
+  "digest": "018fb322b650d6ec",
+  "lines": 197,
+  "lint": []
+ },
+ "verdant-reach": {
+  "digest": "64bafc8d874b8708",
+  "lines": 221,
+  "lint": []
+ },
+ "stormwake-hills": {
+  "digest": "70119638ac5c02c5",
+  "lines": 219,
+  "lint": []
+ },
+ "gloamfen-marsh": {
+  "digest": "139a57ac06d74de1",
+  "lines": 209,
+  "lint": []
+ },
+ "verdigris-jungle": {
+  "digest": "aa5b6ec65a75c128",
+  "lines": 219,
+  "lint": []
+ },
+ "mirrormere-basin": {
+  "digest": "db2fc08f00dd7f54",
+  "lines": 213,
+  "lint": []
+ },
+ "saffron-expanse": {
+  "digest": "a520ff0b291f359d",
+  "lines": 237,
+  "lint": []
+ },
+ "deep-desert": {
+  "digest": "da06313819eda1a3",
+  "lines": 223,
+  "lint": []
+ },
+ "crimson-divide": {
+  "digest": "1aaa1f203b866d81",
+  "lines": 221,
+  "lint": []
+ },
+ "bloodstone-coast": {
+  "digest": "018326590ffa16ee",
+  "lines": 207,
+  "lint": []
+ },
+ "ancient-battlefield": {
+  "digest": "954e27d7def7abbb",
+  "lines": 219,
+  "lint": []
+ },
+ "duskpine-forest": {
+  "digest": "2ad2a8f9bd88959d",
+  "lines": 199,
+  "lint": []
+ },
+ "sunward-coast": {
+  "digest": "4ee3bf8646fbc4b1",
+  "lines": 225,
+  "lint": []
+ },
+ "cinder-isle": {
+  "digest": "04ea732a1547b9ce",
+  "lines": 211,
+  "lint": []
+ },
+ "combat": {
+  "digest": "3ddd798937c7f4b9",
+  "lines": 296,
+  "lint": []
+ },
+ "combat@alder-vale": {
+  "digest": "b3c926e1216cbb04",
+  "lines": 298,
+  "lint": []
+ },
+ "combat@stoneveil-foothills": {
+  "digest": "9e0fc97d1e29b1aa",
+  "lines": 295,
+  "lint": []
+ },
+ "combat@high-stoneveil": {
+  "digest": "d931fc6562d370c7",
+  "lines": 295,
+  "lint": []
+ },
+ "combat@stoneveil-summit": {
+  "digest": "e43f3e15788e97e7",
+  "lines": 292,
+  "lint": []
+ },
+ "combat@verdant-reach": {
+  "digest": "39db74d6795ad676",
+  "lines": 295,
+  "lint": []
+ },
+ "combat@stormwake-hills": {
+  "digest": "6af65eb780c85652",
+  "lines": 302,
+  "lint": []
+ },
+ "combat@gloamfen-marsh": {
+  "digest": "ec68a38c29020e27",
+  "lines": 295,
+  "lint": []
+ },
+ "combat@verdigris-jungle": {
+  "digest": "ce75c6b81200c6a1",
+  "lines": 294,
+  "lint": []
+ },
+ "combat@mirrormere-basin": {
+  "digest": "af0c877e6d662509",
+  "lines": 292,
+  "lint": []
+ },
+ "combat@saffron-expanse": {
+  "digest": "5f51dd1371c3d425",
+  "lines": 294,
+  "lint": []
+ },
+ "combat@deep-desert": {
+  "digest": "3c9779abeed9ac3b",
+  "lines": 293,
+  "lint": []
+ },
+ "combat@crimson-divide": {
+  "digest": "0fc43ba5077ed867",
+  "lines": 294,
+  "lint": []
+ },
+ "combat@bloodstone-coast": {
+  "digest": "0c98a367fb19d2d4",
+  "lines": 296,
+  "lint": []
+ },
+ "combat@ancient-battlefield": {
+  "digest": "e26e17d5a29a6b4a",
+  "lines": 295,
+  "lint": []
+ },
+ "combat@duskpine-forest": {
+  "digest": "9ce39435e9ee2c9e",
+  "lines": 295,
+  "lint": []
+ },
+ "combat@sunward-coast": {
+  "digest": "28b413bcee069631",
+  "lines": 295,
+  "lint": []
+ },
+ "combat@cinder-isle": {
+  "digest": "63ba513091e2fe6e",
+  "lines": 295,
+  "lint": []
+ },
+ "great-imp-jiruan": {
+  "digest": "df5ce001ec7cb9cd",
+  "lines": 260,
+  "lint": []
+ },
+ "juila-grand-forest-matriach": {
+  "digest": "0c6622e909eb28c7",
+  "lines": 309,
+  "lint": []
+ },
+ "tankina-disciple-of-talos": {
+  "digest": "d66fba114692c6c5",
+  "lines": 309,
+  "lint": []
+ },
+ "tankina-chosen-of-talos": {
+  "digest": "30fff0d9a0da6fbd",
+  "lines": 324,
+  "lint": []
+ },
+ "archdevil-saffron": {
+  "digest": "082637c5241d3687",
+  "lines": 240,
+  "lint": []
+ },
+ "anatemis-white-star": {
+  "digest": "a7ca0002d1ece19c",
+  "lines": 196,
+  "lint": []
+ },
+ "anatemis-golden-star": {
+  "digest": "f9513460e11ce5d9",
+  "lines": 195,
+  "lint": []
+ },
+ "anatemis-zenith": {
+  "digest": "ecbbd02da0483810",
+  "lines": 194,
+  "lint": []
+ },
+ "ur-mat-false-dreamer": {
+  "digest": "1b3401b78b0d20f7",
+  "lines": 194,
+  "lint": []
+ },
+ "ur-mat-lucid-change": {
+  "digest": "10b50f559660800f",
+  "lines": 208,
+  "lint": []
+ },
+ "ancient-lich-ool": {
+  "digest": "d1fbd5ad3fe08f20",
+  "lines": 250,
+  "lint": []
+ },
+ "ancient-lich-ool-mortal": {
+  "digest": "7cb5d58f606e867d",
+  "lines": 242,
+  "lint": []
+ },
+ "gaian-avatar-of-the-land": {
+  "digest": "2f46fda837c77223",
+  "lines": 196,
+  "lint": []
+ },
+ "gaian-severed": {
+  "digest": "757aa03607393a28",
+  "lines": 47,
+  "lint": []
+ },
+ "ornn-god-of-the-forge": {
+  "digest": "a360e7e96477f784",
+  "lines": 222,
+  "lint": []
+ },
+ "ornn-forge-erupts": {
+  "digest": "2e17ad1ccdc27042",
+  "lines": 293,
+  "lint": []
+ },
+ "deep-sea-king": {
+  "digest": "17a7a6df1fbca8bb",
+  "lines": 377,
+  "lint": []
+ },
+ "zik-lun-armored-hulk": {
+  "digest": "0ccf87c6f6944815",
+  "lines": 337,
+  "lint": []
+ },
+ "nygheir-the-wounded": {
+  "digest": "8fc41780697a91aa",
+  "lines": 271,
+  "lint": []
+ },
+ "nygheir-the-scarred": {
+  "digest": "280229ff7d7d4249",
+  "lines": 265,
+  "lint": []
+ },
+ "lintSpecs": {
+  "lint-clashes": {
+   "digest": "f078bbd3e4d15348",
+   "lines": 53,
+   "lint": [
+    "lint-clashes/A bar 1: degree 2 over 1",
+    "lint-clashes/A bar 2: degree 1 over 4",
+    "lint-clashes/A bar 4: degree 1 over 1",
+    "lint-clashes/B bar 1: degree 5 over 6",
+    "lint-clashes/B bar 2: degree 4 over 2m7",
+    "lint-clashes/B bar 3: degree 3 over 5M7",
+    "lint-clashes/B bar 3: degree 5 over 5M7",
+    "lint-clashes/B bar 4: degree 1 over 1sus4"
+   ]
+  },
+  "lint-minor": {
+   "digest": "d6d19dd57f648836",
+   "lines": 17,
+   "lint": [
+    "lint-minor/intro bar 1: degree 2 over 1",
+    "lint-minor/intro bar 3: degree 11 over 1",
+    "lint-minor/intro bar 4: degree 11 over 5M"
+   ]
+  },
+  "score-forms": {
+   "digest": "b104a3aec62b57e1",
+   "lines": 62,
+   "lint": [
+    "score-forms/A bar 2: degree 8 over 7dim7",
+    "score-forms/A bar 3: degree 3 over b6sus2",
+    "score-forms/A bar 4: degree 2 over 2m7",
+    "score-forms/B bar 2: degree 8 over 7dim7",
+    "score-forms/B bar 3: degree 3 over b6sus2",
+    "score-forms/B bar 4: degree 2 over 2m7"
+   ]
+  }
+ }
+}

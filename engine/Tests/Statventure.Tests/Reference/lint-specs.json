@@ -1,0 +1,99 @@
+[
+ {
+  "id": "lint-clashes",
+  "title": "lint-clashes",
+  "tempo": 90,
+  "meter": [
+   2,
+   2
+  ],
+  "tonic": 62,
+  "mode": "dorian",
+  "room": "hall",
+  "sections": {
+   "A": {
+    "chords": "1 | 4 | 5 . | 1",
+    "mel": "2/2 3/2 | 3/1 4/1 #4/2 | 7/2 1'/2 | b2/4",
+    "layers": [
+     {
+      "t": "mel",
+      "i": "flute"
+     }
+    ]
+   },
+   "B": {
+    "like": "A",
+    "chords": "6 | 2m7 | 5M7 | 1sus4",
+    "dyn": 1.1
+   }
+  },
+  "form": [
+   "A",
+   "B",
+   "A"
+  ],
+  "loop": 1
+ },
+ {
+  "id": "lint-minor",
+  "title": "lint-minor",
+  "tempo": 120,
+  "meter": [
+   3,
+   2
+  ],
+  "tonic": 57,
+  "mode": "harmonic",
+  "room": "cathedral",
+  "sections": {
+   "intro": {
+    "chords": "1 | b2 | 1 | 5M",
+    "mel": "1/2 2/2 3/2 | b2/6 | 7,/3 1/3 | #4/4 5/2"
+   }
+  },
+  "form": [
+   "intro"
+  ]
+ },
+ {
+  "id": "score-forms",
+  "title": "score-forms",
+  "tempo": 100,
+  "meter": [
+   4,
+   2
+  ],
+  "tonic": 60,
+  "mode": "lydian",
+  "room": "forest",
+  "sections": {
+   "A": {
+    "chords": "1 7dim7 | % | #4aug b6sus2 . 55 | 2m7 |",
+    "mel": "3/2 -/2 _/2 4/1 #4/1! | 5/4 5/2 _/2 | 6/2 7/2 1'/2 2'/2 | 3'/8",
+    "layers": [
+     {
+      "t": "mel",
+      "i": "flute"
+     }
+    ]
+   },
+   "B": {
+    "like": "A",
+    "dynTo": 1.2,
+    "layers": [
+     {
+      "t": "line",
+      "i": "whistle",
+      "notes": "1/4 2/4 | 3/8"
+     }
+    ]
+   }
+  },
+  "form": [
+   "A",
+   "B",
+   "B"
+  ],
+  "loop": 2
+ }
+]

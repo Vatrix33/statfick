@@ -9,5 +9,5 @@ TESTS="$STATVENTURE_SOURCE/Tests/Statventure.Tests"
 ONLY=()
 if [ $# -gt 0 ]; then ONLY=("--only=$(IFS=,; echo "$*")"); fi
 timeout 1800 "$STATVENTURE_SCRIPTS/chromium.sh" "$STATVENTURE_SOURCE/Tools/AudioReference" \
-  --fixtures="$TESTS/Reference/audio-fixtures.json" --out="$TESTS/Golden/audio" "${ONLY[@]}" \
+  --fixtures="$TESTS/Reference/audio-fixtures.json" --out="$TESTS/Golden/audio" --old-game="$STATVENTURE_SOURCE/../old-game/scripts" "${ONLY[@]}" \
   2> >(grep -v "radv is not a conformant\|dbus\|Fontconfig" >&2)

@@ -8,7 +8,7 @@ namespace Statventure.Audio;
 /// though the unfused SSE2 variants give the same float for every input. Checked on all 2³² floats
 /// against the system's glibc (Docs/Audio.md).
 /// </summary>
-internal static class Libm
+internal static partial class Libm
 {
     static uint AsUInt(float f) => BitConverter.SingleToUInt32Bits(f);
     static float AsFloat(uint u) => BitConverter.UInt32BitsToSingle(u);

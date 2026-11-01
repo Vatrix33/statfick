@@ -10,7 +10,7 @@ namespace Statventure.Tests.Audio;
 /// smallest normal float (Chromium flushes denormals to zero, the engine mostly doesn't);
 /// <see cref="AudioFixtures.Exact"/> means no difference at all.
 /// </summary>
-internal sealed record AudioFixture(string Name, int Channels, int Length, float Rate, string Script, Action<AudioFixtureRun> Build, double Tolerance = 0);
+internal sealed record AudioFixture(string Name, int Channels, int Length, float Rate, string Script, Action<AudioFixtureRun> Build, double Tolerance = 0, bool Quanta = false);
 
 /// <summary>A fixture's twin being built: its graph, and code to run while the render is suspended (OfflineAudioContext.suspend).</summary>
 internal sealed class AudioFixtureRun(AudioGraph graph)
@@ -18,6 +18,8 @@ internal sealed class AudioFixtureRun(AudioGraph graph)
     public AudioGraph Graph { get; } = graph;
     public AudioGraph G => Graph;
     internal SortedList<long, List<Action>> Suspends { get; } = [];
+    /// <summary>quantum(fn) in a quanta fixture: run at every quantum boundary after the first, after that frame's suspends.</summary>
+    internal List<Action> EveryQuantum { get; } = [];
 
     /// <summary>ctx.suspend(when).then(...): <paramref name="when"/> · rate truncated to a frame, rounded up to a quantum.</summary>
     public void Suspend(double when, Action action)
@@ -133,7 +135,7 @@ internal sealed class AudioFixtureRun(AudioGraph graph)
     }
 }
 
-internal static class AudioFixtures
+internal static partial class AudioFixtures
 {
     /// <summary>JavaScript helpers every fixture script starts with, the twins of <see cref="AudioFixtureRun"/>'s.</summary>
     const string Prelude = """
@@ -156,11 +158,14 @@ internal static class AudioFixtures
     /// <summary>A tolerance of none: for fixtures whose denormals the engine flushes as Chromium does.</summary>
     public const double Exact = -1;
 
+    /// <summary>The engine's own summing-order spread (step 6): for fixtures whose nodes sum three or more inputs before filters.</summary>
+    public const double ShuffledSums = -2;
+
     static AudioFixture F(string name, int channels, int length, float rate, string script, Action<AudioFixtureRun> build, double tolerance = 0) =>
         new(name, channels, length, rate, Prelude + script, build, tolerance);
 
     static AudioFixture[]? s_all;
-    public static AudioFixture[] All => s_all ??= [.. Core(), .. Oscillators(), .. Biquads(), .. Rooms(), .. Compressors()];
+    public static AudioFixture[] All => s_all ??= [.. Core(), .. Oscillators(), .. Biquads(), .. Rooms(), .. Compressors(), .. Synthesizer()];
 
     static IEnumerable<AudioFixture> Core()
     {
