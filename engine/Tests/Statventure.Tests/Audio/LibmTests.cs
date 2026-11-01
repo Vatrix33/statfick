@@ -5,7 +5,7 @@ using Statventure.Tests.Infrastructure;
 namespace Statventure.Tests.Audio;
 
 /// <summary>
-/// The engine's exp2f and log2f give this system's glibc results (Reference/libm.json, from
+/// The engine's exp2f, log2f, log10f and powf(10, y) give this system's glibc results (Reference/libm.json, from
 /// Tools/Scripts/make-native-references.sh): hashes of every result over every 4099th float, or over
 /// all 2³² with STATVENTURE_EXHAUSTIVE=1 (a few minutes). On Linux .NET's MathF calls glibc too;
 /// the port is there so Windows (its C runtime differs) gives the same results.
@@ -50,4 +50,10 @@ public class LibmTests
 
     [Fact]
     public void Log2fIsGlibcs() => Check("log2f", Libm.Log2f);
+
+    [Fact]
+    public void Log10fIsGlibcs() => Check("log10f", Libm.Log10f);
+
+    [Fact]
+    public void PowfOf10IsGlibcs() => Check("pow10f", y => Libm.Powf(10, y));
 }

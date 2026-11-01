@@ -511,4 +511,61 @@ internal static class Fdlibm
         }
         return n;
     }
+
+    /// <summary>fdlibm's float wrappers: the double functions rounded to float.</summary>
+    public static float Powf(float x, float y) => (float)Pow(x, y);
+    public static float Asinf(double x) => (float)Asin(x);
+
+    public static double Asin(double x)
+    {
+        const double one = 1.0, huge = 1.000e+300, pio2_hi = 1.57079632679489655800e+00, pio2_lo = 6.12323399573676603587e-17,
+            pio4_hi = 7.85398163397448278999e-01, pS0 = 1.66666666666666657415e-01, pS1 = -3.25565818622400915405e-01,
+            pS2 = 2.01212532134862925881e-01, pS3 = -4.00555345006794114027e-02, pS4 = 7.91534994289814532176e-04,
+            pS5 = 3.47933107596021167570e-05, qS1 = -2.40339491173441421878e+00, qS2 = 2.02094576023350569471e+00,
+            qS3 = -6.88283971605453293030e-01, qS4 = 7.70381505559019352791e-02;
+        double t = 0, w, p, q, c, r, s;
+        var hx = High(x);
+        var ix = hx & 0x7FFFFFFF;
+        if (ix >= 0x3FF00000)
+        {
+            var lx = Low(x);
+            if (((ix - 0x3FF00000) | (int)lx) == 0)
+                return x * pio2_hi + x * pio2_lo;
+            return double.NaN;
+        }
+        if (ix < 0x3FE00000)
+        {
+            if (ix < 0x3E400000)
+            {
+                if (huge + x > one)
+                    return x;
+            }
+            else
+                t = x * x;
+            p = t * (pS0 + t * (pS1 + t * (pS2 + t * (pS3 + t * (pS4 + t * pS5)))));
+            q = one + t * (qS1 + t * (qS2 + t * (qS3 + t * qS4)));
+            w = p / q;
+            return x + x * w;
+        }
+        w = one - Math.Abs(x);
+        t = w * 0.5;
+        p = t * (pS0 + t * (pS1 + t * (pS2 + t * (pS3 + t * (pS4 + t * pS5)))));
+        q = one + t * (qS1 + t * (qS2 + t * (qS3 + t * qS4)));
+        s = Math.Sqrt(t);
+        if (ix >= 0x3FEF3333)
+        {
+            w = p / q;
+            t = pio2_hi - (2.0 * (s + s * w) - pio2_lo);
+        }
+        else
+        {
+            w = WithLow(s, 0);
+            c = (t - w * w) / (s + w);
+            r = p / q;
+            p = 2.0 * s * r - (pio2_lo - 2.0 * c);
+            q = pio4_hi - 2.0 * w;
+            t = pio4_hi - (p - q);
+        }
+        return hx > 0 ? t : -t;
+    }
 }

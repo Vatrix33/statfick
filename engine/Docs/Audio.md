@@ -271,6 +271,22 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   and sin in double, per sample while the pan moves, else once a quantum; mono inputs spread, stereo
   ones folded toward the panned side.
 
+### The dynamics compressor (step 5)
+
+- **`DynamicsCompressor.cs`:** DynamicsCompressorHandler and DynamicsCompressor: five k-rate
+  parameters; a 6 ms look-ahead; per block of 32 frames, the gain the detector wants (fdlibm's
+  asinf), the adaptive release (a polynomial over four zones, its constants folded in float as
+  Blink's constexpr floats are) or the attack (fdlibm's powf), then per frame the detector, the gain
+  warped by sin, the soft knee (an exponential whose curvature is found in 15 bisection steps) and
+  the ratio's slope above it, the makeup gain (powf(1/saturate(1), 0.6)), the reduction metered.
+  The decibel conversions are Blink's audio_utilities, on the C library's powf and log10f: glibc
+  2.43's powf (FMA variant; on x = 10 the unfused one gives the same floats) and log10f
+  (CORE-MATH, correctly rounded), ported into `Libm.cs` and checked on all 2³² floats. The knee's
+  `exp` and the warp's `sin` are the C library's in double, rounded to float: fdlibm's give the
+  same float for every float argument (checked natively), so the port uses those. Also fdlibm's
+  asin, checked by the native reference. The tail (5 × 0.325 s) and latency (the look-ahead)
+  decide when a silent compressor stops; its state then freezes until the next sound.
+
 ## Status
 
 - **Step 1, harness and render core: done (2026-10-31, 681 tests).** 39 fixtures (buffer sources:
@@ -327,4 +343,15 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   sample (the stages' render-phase stagger only moves when their FFTs run; a convolver starting
   disabled and disabling past the first node only change silent flags; disabling a node after its
   tail happens on Chromium's main thread at no fixed time).
-- **Next: step 5, the dynamics compressor.**
+- **Step 5, the dynamics compressor: done (2026-11-01, 750 tests).** 5 fixtures (the defaults on
+  loud noise then a soft tone; music.js's master chain on chords; k-rate parameters ramped with a
+  hard knee, the hardest ratio, no attack and the longest release on a mono input; the tail at a
+  low rate; silence past the tail and look-ahead freezing a slow release, then a second burst)
+  match Chromium bit for bit, but the master chain, whose three chords sum in Chromium's changing
+  order (an ulp apart). 18 mutations: 15 fail a test; the other 3 swap fdlibm's and glibc's
+  versions of a function where both are near correctly rounded and agree on every input the
+  renders reach (each function is checked bit for bit on its own), or fold a release constant in
+  double (an ulp that vanishes in the float rates).
+- **Next: step 6, the game synthesizer** (the composer, its themes, the master chain and fades;
+  theme renders compared within Chromium's own spread). Needed first: Chromium 152's V8 `Math.exp`
+  (not fdlibm) for the composer's room responses.

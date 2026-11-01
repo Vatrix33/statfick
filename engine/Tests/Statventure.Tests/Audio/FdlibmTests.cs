@@ -5,7 +5,7 @@ using Statventure.Tests.Infrastructure;
 namespace Statventure.Tests.Audio;
 
 /// <summary>
-/// The engine's fdlibm exp, pow, sin, cos, log and expf give Blink's results bit for bit (Reference/fdlibm.json, from
+/// The engine's fdlibm exp, pow, sin, cos, log, asin and expf give Blink's results bit for bit (Reference/fdlibm.json, from
 /// Blink's own fdlibm built by Tools/Scripts/make-native-references.sh) on inputs like Web Audio's;
 /// .NET's Math.Exp and Math.Pow don't, which is why the port exists.
 /// </summary>
@@ -69,6 +69,21 @@ public class FdlibmTests
             if (BitConverter.DoubleToInt64Bits(Fdlibm.Sin(x)) != BitConverter.DoubleToInt64Bits(FromHex(c[1])))
                 mismatches++;
             if (BitConverter.DoubleToInt64Bits(Fdlibm.Cos(x)) != BitConverter.DoubleToInt64Bits(FromHex(c[2])))
+                mismatches++;
+        }
+        Assert.Equal(1500, cases);
+        Assert.Equal(0, mismatches);
+    }
+
+    [Fact]
+    public void AsinIsBlinks()
+    {
+        using var reference = Reference();
+        int cases = 0, mismatches = 0;
+        foreach (var c in reference.RootElement.GetProperty("asin"u8).EnumerateArray())
+        {
+            cases++;
+            if (BitConverter.DoubleToInt64Bits(Fdlibm.Asin(FromHex(c[0]))) != BitConverter.DoubleToInt64Bits(FromHex(c[1])))
                 mismatches++;
         }
         Assert.Equal(1500, cases);

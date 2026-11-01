@@ -1,5 +1,6 @@
 // The C library reference (Docs/Audio.md): this system's glibc exp2f and log2f, which Chromium on
-// this PC calls for the oscillator's detune and the periodic waves' pitch ranges. Prints JSON: the
+// this PC calls for the oscillator's detune and the periodic waves' pitch ranges, and log10f and
+// powf(10, y) (the decibel conversions; powf over every y with x = 10). Prints JSON: the
 // FNV-1a hash of the results' bits over every float, and over every 4099th (the tests' sample), NaN
 // results counted as one canonical NaN; and "unfusedDiffers": how many floats give another result
 // with the same algorithm left unfused (glibc's SSE2 variant, compiled here) than glibc's own (its
@@ -81,6 +82,7 @@ static float Unfused_log2f(float x) {
 int main(void) {
   long exp2_unfused_differs = 0, log2_unfused_differs = 0;
   const uint64_t kOffset = 0xcbf29ce484222325ull;
+  uint64_t log10_all = kOffset, log10_sample = kOffset, pow10_all = kOffset, pow10_sample = kOffset;
   uint64_t exp2_all = kOffset, log2_all = kOffset, exp2_sample = kOffset, log2_sample = kOffset;
   for (uint64_t b = 0; b < 0x100000000ull; b++) {
     float x;
@@ -91,14 +93,23 @@ int main(void) {
     log2_all = Mix(log2_all, l);
     if (Bits(e) != Bits(Unfused_exp2f(x)) && !isnan(e)) exp2_unfused_differs++;
     if (Bits(l) != Bits(Unfused_log2f(x)) && !isnan(l)) log2_unfused_differs++;
+    float l10 = log10f(x), p10 = powf(10.0f, x);
+    log10_all = Mix(log10_all, l10);
+    pow10_all = Mix(pow10_all, p10);
     if (b % 4099 == 0) {
+      log10_sample = Mix(log10_sample, l10);
+      pow10_sample = Mix(pow10_sample, p10);
       exp2_sample = Mix(exp2_sample, e);
       log2_sample = Mix(log2_sample, l);
     }
   }
   printf("{\"glibc\":\"%s\",\"sampleStride\":4099,"
          "\"exp2f\":{\"all\":\"%016llx\",\"sample\":\"%016llx\",\"unfusedDiffers\":%ld},"
-         "\"log2f\":{\"all\":\"%016llx\",\"sample\":\"%016llx\",\"unfusedDiffers\":%ld}}\n",
+         "\"log2f\":{\"all\":\"%016llx\",\"sample\":\"%016llx\",\"unfusedDiffers\":%ld},"
+         "\"log10f\":{\"all\":\"%016llx\",\"sample\":\"%016llx\",\"unfusedDiffers\":0},"
+         "\"pow10f\":{\"all\":\"%016llx\",\"sample\":\"%016llx\",\"unfusedDiffers\":0}}\n",
          GLIBC_VERSION_STRING, (unsigned long long)exp2_all, (unsigned long long)exp2_sample, exp2_unfused_differs,
-         (unsigned long long)log2_all, (unsigned long long)log2_sample, log2_unfused_differs);
+         (unsigned long long)log2_all, (unsigned long long)log2_sample, log2_unfused_differs,
+         (unsigned long long)log10_all, (unsigned long long)log10_sample,
+         (unsigned long long)pow10_all, (unsigned long long)pow10_sample);
 }

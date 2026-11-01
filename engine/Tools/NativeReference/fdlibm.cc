@@ -2,7 +2,8 @@
 // Chromium 152 builds it for Web Audio, built here against small stand-ins for the Chromium headers
 // it includes, in shim/) evaluated on inputs like Web Audio's: exp for setTargetAtTime and the
 // discrete time constants, pow for detune and exponential ramps. Prints JSON: inputs and results as
-// the hex of their IEEE bits; sin, cos, log and expf for the biquad's coefficients and tail. Built and run by Tools/Scripts/make-native-references.sh.
+// the hex of their IEEE bits; sin, cos, log and expf for the biquad's coefficients and tail; asin
+// for the compressor. Built and run by Tools/Scripts/make-native-references.sh.
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -77,6 +78,12 @@ int main() {
     const int kind = i % 3;
     const double x = kind == 0 ? 1 - Random() * 0.01 : kind == 1 ? Random() * 1000 : 1 / 32768.0 / (Random() * 4 + 1e-6);
     std::printf("%s[\"%016llx\",\"%016llx\"]", i ? "," : "", Bits(x), Bits(fdlibm::log(x)));
+  }
+  std::printf("],\"asin\":[");
+  for (int i = 0; i < kCases; i++) {
+    const int kind = i % 3;
+    const double x = kind == 0 ? Fround(Random()) : kind == 1 ? Random() * 0.5 : 0.975 + Random() * 0.025;
+    std::printf("%s[\"%016llx\",\"%016llx\"]", i ? "," : "", Bits(x), Bits(fdlibm::asin(x)));
   }
   std::printf("],\"expf\":[");
   for (int i = 0; i < kCases; i++) {

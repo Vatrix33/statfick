@@ -160,7 +160,7 @@ internal static class AudioFixtures
         new(name, channels, length, rate, Prelude + script, build, tolerance);
 
     static AudioFixture[]? s_all;
-    public static AudioFixture[] All => s_all ??= [.. Core(), .. Oscillators(), .. Biquads(), .. Rooms()];
+    public static AudioFixture[] All => s_all ??= [.. Core(), .. Oscillators(), .. Biquads(), .. Rooms(), .. Compressors()];
 
     static IEnumerable<AudioFixture> Core()
     {
@@ -1387,6 +1387,118 @@ internal static class AudioFixtures
                 o.Start(when);
                 o.Stop(when + 0.08);
             }
+        });
+    }
+
+    /// <summary>JavaScript helpers for the compressor fixtures (after the room prelude).</summary>
+    const string CompressorPrelude = """
+        const compressor = (threshold, knee, ratio, attack, release) => { const c = ctx.createDynamicsCompressor(); c.threshold.value = threshold; c.knee.value = knee; c.ratio.value = ratio; c.attack.value = attack; c.release.value = release; return c; };
+
+        """;
+
+    static AudioFixture K(string name, int channels, int length, float rate, string script, Action<AudioFixtureRun> build, double tolerance = 0) =>
+        R(name, channels, length, rate, CompressorPrelude + script, build, tolerance);
+
+    static DynamicsCompressorNode Compressor(AudioFixtureRun r, float threshold, float knee, float ratio, float attack, float release)
+    {
+        var c = new DynamicsCompressorNode(r.G);
+        c.Threshold.Value = threshold;
+        c.Knee.Value = knee;
+        c.Ratio.Value = ratio;
+        c.Attack.Value = attack;
+        c.Release.Value = release;
+        return c;
+    }
+
+    static IEnumerable<AudioFixture> Compressors()
+    {
+        // The defaults on loud noise then a quieter tone: attack, then release.
+        yield return K("comp-default", 2, 12000, 48000, """
+            const c = ctx.createDynamicsCompressor(); c.connect(out);
+            const n = source(noise(2, 3000, 80)); const loud = gain(2.5); n.connect(loud).connect(c); n.start(0.002);
+            const o = osc("sine", 330); const soft = gain(0.2); o.connect(soft).connect(c); o.start(0.08); o.stop(0.24);
+            """, r =>
+        {
+            var c = new DynamicsCompressorNode(r.G);
+            c.Connect(r.G.Destination);
+            var n = r.Source(r.Noise(2, 3000, 80));
+            n.Connect(r.Gain(2.5f)).Connect(c);
+            n.Start(0.002);
+            var o = r.Osc(OscillatorType.Sine, 330);
+            o.Connect(r.Gain(0.2f)).Connect(c);
+            o.Start(0.08);
+            o.Stop(0.24);
+        });
+
+        // music.js's master chain: a 0.58 gain into the limiter (−18 dB, knee 18, ratio 3, 6 ms, 220 ms) on chords.
+        yield return K("comp-master-chain", 2, 24000, 48000, """
+            const master = gain(0.58); const limiter = compressor(-18, 18, 3, 0.006, 0.22); master.connect(limiter).connect(out);
+            [[130.81, 0, 0.9], [196, 0.02, 0.7], [261.63, 0.05, 0.5], [98, 0.25, 1.4]].forEach(([frequency, when, level]) => {
+              const o = osc("sawtooth", frequency); const g = gain(level); o.connect(g).connect(master); o.start(when); o.stop(when + 0.18);
+            });
+            """, r =>
+        {
+            var master = r.Gain(0.58f);
+            var limiter = Compressor(r, -18, 18, 3, 0.006f, 0.22f);
+            master.Connect(limiter).Connect(r.G.Destination);
+            foreach (var (frequency, when, level) in new[] { (130.81f, 0.0, 0.9f), (196f, 0.02, 0.7f), (261.63f, 0.05, 0.5f), (98f, 0.25, 1.4f) })
+            {
+                var o = r.Osc(OscillatorType.Sawtooth, frequency);
+                o.Connect(r.Gain(level)).Connect(master);
+                o.Start(when);
+                o.Stop(when + 0.18);
+            }
+        }, SumOrder(4, 4)); // three notes sum into the master in Chromium's changing order (an ulp apart)
+
+        // k-rate parameters moving: the threshold ramped, a hard knee, the hardest ratio, no attack, the
+        // longest release; a mono input (the output is stereo).
+        yield return K("comp-automated", 2, 16384, 44100, """
+            const c = compressor(-60, 0, 20, 0, 1); c.connect(out);
+            c.threshold.setValueAtTime(-60, 0); c.threshold.linearRampToValueAtTime(-10, 0.3);
+            c.ratio.setValueAtTime(20, 0.2); c.ratio.linearRampToValueAtTime(2, 0.35);
+            const n = source(noise(1, 16384, 81)); n.connect(c); n.start(0);
+            """, r =>
+        {
+            var c = Compressor(r, -60, 0, 20, 0, 1);
+            c.Connect(r.G.Destination);
+            c.Threshold.SetValueAtTime(-60, 0).LinearRampToValueAtTime(-10, 0.3);
+            c.Ratio.SetValueAtTime(20, 0.2).LinearRampToValueAtTime(2, 0.35);
+            var n = r.Source(r.Noise(1, 16384, 81));
+            n.Connect(c);
+            n.Start(0);
+        });
+
+        // Silence past the tail (5 × 0.325 s) plus the look-ahead stops the node and freezes its gain; a
+        // second burst meets the gain where it froze (a slow release from deep compression, still moving). At 22.05 kHz the look-ahead (132 frames) is more
+        // than a quantum: the node stops at frame 37120 (36992 without the latency, 21000 or so with a
+        // shorter tail), and the burst starts at 37130.
+        yield return K("comp-tail-and-latency", 1, 38912, 22050, """
+            const c = compressor(-50, 0, 20, 0.003, 1); c.connect(out);
+            const a = source(noise(1, 1102, 83)); const g = gain(10); a.connect(g).connect(c); a.start(0);
+            const b = source(noise(1, 1500, 84)); const h = gain(3); b.connect(h).connect(c); b.start(37130 / 22050);
+            """, r =>
+        {
+            var c = Compressor(r, -50, 0, 20, 0.003f, 1);
+            c.Connect(r.G.Destination);
+            var a = r.Source(r.Noise(1, 1102, 83));
+            a.Connect(r.Gain(10)).Connect(c);
+            a.Start(0);
+            var b = r.Source(r.Noise(1, 1500, 84));
+            b.Connect(r.Gain(3)).Connect(c);
+            b.Start(37130 / 22050.0);
+        });
+
+        // The tail (5 × 0.325 s) after a burst, at a low rate so the render reaches its end; mono out.
+        yield return K("comp-tail", 1, 16384, 8000, """
+            const c = ctx.createDynamicsCompressor(); c.connect(out);
+            const n = source(noise(1, 800, 82)); const loud = gain(3); n.connect(loud).connect(c); n.start(0);
+            """, r =>
+        {
+            var c = new DynamicsCompressorNode(r.G);
+            c.Connect(r.G.Destination);
+            var n = r.Source(r.Noise(1, 800, 82));
+            n.Connect(r.Gain(3)).Connect(c);
+            n.Start(0);
         });
     }
 }
