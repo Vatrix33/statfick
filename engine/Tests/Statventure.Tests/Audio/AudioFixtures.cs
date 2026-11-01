@@ -7,7 +7,8 @@ namespace Statventure.Tests.Audio;
 /// (Tools/AudioReference), <see cref="Build"/> builds its twin on the engine's nodes.
 /// <see cref="Tolerance"/> is the largest difference a sample may show, worked out from float32
 /// precision for what Chromium leaves undetermined (the order its inputs sum in); 0 means the
-/// smallest normal float (Chromium flushes denormals to zero, the engine doesn't).
+/// smallest normal float (Chromium flushes denormals to zero, the engine mostly doesn't);
+/// <see cref="AudioFixtures.Exact"/> means no difference at all.
 /// </summary>
 internal sealed record AudioFixture(string Name, int Channels, int Length, float Rate, string Script, Action<AudioFixtureRun> Build, double Tolerance = 0);
 
@@ -43,6 +44,13 @@ internal sealed class AudioFixtureRun(AudioGraph graph)
     }
 
     public GainNode Gain() => new(Graph);
+
+    public BiquadFilterNode Filter(BiquadFilterType type, float frequency)
+    {
+        var filter = new BiquadFilterNode(Graph, type);
+        filter.Frequency.Value = frequency;
+        return filter;
+    }
 
     public OscillatorNode Osc(OscillatorType type, float frequency)
     {
@@ -113,11 +121,14 @@ internal static class AudioFixtures
     /// </summary>
     static double SumOrder(int terms, double magnitude) => 2 * terms * Math.Pow(2, -24) * magnitude;
 
+    /// <summary>A tolerance of none: for fixtures whose denormals the engine flushes as Chromium does.</summary>
+    public const double Exact = -1;
+
     static AudioFixture F(string name, int channels, int length, float rate, string script, Action<AudioFixtureRun> build, double tolerance = 0) =>
         new(name, channels, length, rate, Prelude + script, build, tolerance);
 
     static AudioFixture[]? s_all;
-    public static AudioFixture[] All => s_all ??= [.. Core(), .. Oscillators()];
+    public static AudioFixture[] All => s_all ??= [.. Core(), .. Oscillators(), .. Biquads()];
 
     static IEnumerable<AudioFixture> Core()
     {
@@ -894,5 +905,285 @@ internal static class AudioFixtures
                 o.Start(0.001);
                 o.Frequency.SetValueAtTime(523.25f, 0.02).ExponentialRampToValueAtTime(90, 0.05);
             });
+    }
+
+    /// <summary>JavaScript helpers for the biquad fixtures (after the oscillator prelude).</summary>
+    const string FilterPrelude = """
+        const filter = (type, frequency) => { const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = frequency; return f; };
+
+        """;
+
+    static AudioFixture B(string name, int channels, int length, float rate, string script, Action<AudioFixtureRun> build, double tolerance = 0) =>
+        O(name, channels, length, rate, FilterPrelude + script, build, tolerance);
+
+    static IEnumerable<AudioFixture> Biquads()
+    {
+        // Each type on a noise burst, ringing out after it until its tail has passed (then the node stops).
+        foreach (var (type, js, frequency, q, gain, rate) in new (BiquadFilterType, string, float, float, float, float)[]
+        {
+            (BiquadFilterType.Lowpass, "lowpass", 900, 12, 0, 48000),
+            (BiquadFilterType.Highpass, "highpass", 2500, -3, 0, 48000),
+            (BiquadFilterType.Bandpass, "bandpass", 1200, 4, 0, 44100),
+            (BiquadFilterType.Lowshelf, "lowshelf", 300, 1, 9, 48000),
+            (BiquadFilterType.Highshelf, "highshelf", 4000, 1, -7, 48000),
+            (BiquadFilterType.Peaking, "peaking", 1800, 2, 8, 44100),
+            (BiquadFilterType.Notch, "notch", 700, 5, 0, 48000),
+            (BiquadFilterType.Allpass, "allpass", 1500, 1.5f, 0, 48000),
+        })
+            yield return B($"biquad-{js}", 1, 6000, rate, $$"""
+                const f = filter("{{js}}", {{frequency}}); f.Q.value = {{q}}; f.gain.value = {{gain}};
+                const s = source(noise(1, 1500, 40)); s.connect(f).connect(out); s.start(0.001);
+                """, r =>
+            {
+                var f = r.Filter(type, frequency);
+                f.Q.Value = q;
+                f.Gain.Value = gain;
+                var s = r.Source(r.Noise(1, 1500, 40));
+                s.Connect(f).Connect(r.G.Destination);
+                s.Start(0.001);
+            });
+
+        // Coefficients per frame while the cutoff sweeps, Q rises and detune moves.
+        yield return B("biquad-frequency-automation", 1, 12000, 48000, """
+            const o = osc("sawtooth", 110); const f = filter("lowpass", 200); o.connect(f).connect(out); o.start(0);
+            f.frequency.setValueAtTime(200, 0.01); f.frequency.exponentialRampToValueAtTime(8000, 0.15);
+            f.Q.setValueAtTime(1, 0); f.Q.setTargetAtTime(15, 0.05, 0.04);
+            f.detune.setValueAtTime(0, 0.16); f.detune.linearRampToValueAtTime(-1200, 0.24);
+            """, r =>
+        {
+            var o = r.Osc(OscillatorType.Sawtooth, 110);
+            var f = r.Filter(BiquadFilterType.Lowpass, 200);
+            o.Connect(f).Connect(r.G.Destination);
+            o.Start(0);
+            f.Frequency.SetValueAtTime(200, 0.01).ExponentialRampToValueAtTime(8000, 0.15);
+            f.Q.SetValueAtTime(1, 0).SetTargetAtTime(15, 0.05, 0.04);
+            f.Detune.SetValueAtTime(0, 0.16).LinearRampToValueAtTime(-1200, 0.24);
+        });
+
+        yield return B("biquad-gain-automation", 1, 8192, 48000, """
+            const s = source(noise(1, 8192, 41)); const p = filter("peaking", 2000); p.Q.value = 1.5;
+            const l = filter("lowshelf", 250); s.connect(p).connect(l).connect(out); s.start(0);
+            p.gain.setValueAtTime(-12, 0); p.gain.linearRampToValueAtTime(15, 0.12);
+            l.gain.setValueAtTime(6, 0.04); l.gain.setTargetAtTime(-9, 0.08, 0.02);
+            """, r =>
+        {
+            var s = r.Source(r.Noise(1, 8192, 41));
+            var p = r.Filter(BiquadFilterType.Peaking, 2000);
+            p.Q.Value = 1.5f;
+            var l = r.Filter(BiquadFilterType.Lowshelf, 250);
+            s.Connect(p).Connect(l).Connect(r.G.Destination);
+            s.Start(0);
+            p.Gain.SetValueAtTime(-12, 0).LinearRampToValueAtTime(15, 0.12);
+            l.Gain.SetValueAtTime(6, 0.04).SetTargetAtTime(-9, 0.08, 0.02);
+        });
+
+        // Events ahead: sample-accurate but constant within most quanta (coefficients once a quantum),
+        // a constant detune (exp2f), and values changed while rendering (the k-rate path's change check),
+        // including the edges: cutoff 0, Nyquist, Q below 0.
+        yield return B("biquad-held-and-changed", 1, 12000, 48000, """
+            const s = source(noise(1, 12000, 42)); const f = filter("bandpass", 600); f.detune.value = 700;
+            s.connect(f).connect(out); s.start(0);
+            f.frequency.setValueAtTime(900, 0.05); f.frequency.setValueAtTime(1500, 0.08);
+            ctx.suspend(0.1).then(() => { f.Q.value = 6; ctx.resume(); });
+            ctx.suspend(0.13).then(() => { f.frequency.value = 0; ctx.resume(); });
+            ctx.suspend(0.16).then(() => { f.frequency.value = 24000; ctx.resume(); });
+            ctx.suspend(0.19).then(() => { f.frequency.value = 3000; f.Q.value = -2; ctx.resume(); });
+            ctx.suspend(0.22).then(() => { f.Q.value = 3; f.detune.value = 0; ctx.resume(); });
+            """, r =>
+        {
+            var s = r.Source(r.Noise(1, 12000, 42));
+            var f = r.Filter(BiquadFilterType.Bandpass, 600);
+            f.Detune.Value = 700;
+            s.Connect(f).Connect(r.G.Destination);
+            s.Start(0);
+            f.Frequency.SetValueAtTime(900, 0.05).SetValueAtTime(1500, 0.08);
+            r.Suspend(0.1, () => f.Q.Value = 6);
+            r.Suspend(0.13, () => f.Frequency.Value = 0);
+            r.Suspend(0.16, () => f.Frequency.Value = 24000);
+            r.Suspend(0.19, () =>
+            {
+                f.Frequency.Value = 3000;
+                f.Q.Value = -2;
+            });
+            r.Suspend(0.22, () =>
+            {
+                f.Q.Value = 3;
+                f.Detune.Value = 0;
+            });
+        });
+
+        // The other edges: peaking, allpass and notch at Q 0, shelves at the ends.
+        foreach (var (js, type, setup) in new (string, BiquadFilterType, (string Js, Action<BiquadFilterNode> Cs))[]
+        {
+            ("peaking", BiquadFilterType.Peaking, ("f.Q.value = 0; f.gain.value = 6;", f => { f.Q.Value = 0; f.Gain.Value = 6; })),
+            ("allpass", BiquadFilterType.Allpass, ("f.Q.value = 0;", f => f.Q.Value = 0)),
+            ("notch", BiquadFilterType.Notch, ("f.Q.value = 0;", f => f.Q.Value = 0)),
+            ("lowshelf", BiquadFilterType.Lowshelf, ("f.frequency.value = 24000; f.gain.value = -6;", f => { f.Frequency.Value = 24000; f.Gain.Value = -6; })),
+            ("highshelf", BiquadFilterType.Highshelf, ("f.frequency.value = 0; f.gain.value = 4;", f => { f.Frequency.Value = 0; f.Gain.Value = 4; })),
+        })
+            yield return B($"biquad-edge-{js}", 1, 2048, 48000, $$"""
+                const f = filter("{{js}}", 1000); {{setup.Js}}
+                const s = source(noise(1, 1500, 43)); s.connect(f).connect(out); s.start(0);
+                """, r =>
+            {
+                var f = r.Filter(type, 1000);
+                setup.Cs(f);
+                var s = r.Source(r.Noise(1, 1500, 43));
+                s.Connect(f).Connect(r.G.Destination);
+                s.Start(0);
+            });
+
+        // Stereo (a filter per channel); a stereo source joining a mono one changes the channel count
+        // (new, cleared filters); a type change resets the state.
+        yield return B("biquad-channels-and-type", 2, 9600, 48000, """
+            const f = filter("lowpass", 1500); f.Q.value = 8; f.connect(out);
+            const m = source(noise(1, 9600, 44)); m.connect(f); m.start(0);
+            const st = source(noise(2, 9600, 45));
+            ctx.suspend(0.05).then(() => { st.connect(f); st.start(ctx.currentTime); ctx.resume(); });
+            ctx.suspend(0.12).then(() => { f.type = "highpass"; ctx.resume(); });
+            """, r =>
+        {
+            var f = r.Filter(BiquadFilterType.Lowpass, 1500);
+            f.Q.Value = 8;
+            f.Connect(r.G.Destination);
+            var m = r.Source(r.Noise(1, 9600, 44));
+            m.Connect(f);
+            m.Start(0);
+            var st = r.Source(r.Noise(2, 9600, 45));
+            r.Suspend(0.05, () =>
+            {
+                st.Connect(f);
+                st.Start(r.G.CurrentTime);
+            });
+            r.Suspend(0.12, () => f.Type = BiquadFilterType.Highpass);
+        });
+
+        // The input taken away while the filter rings: it rings on (zeros in) until its tail has passed.
+        yield return B("biquad-input-removed", 1, 9600, 48000, """
+            const f = filter("bandpass", 440); f.Q.value = 30; f.connect(out);
+            const s = source(noise(1, 9600, 46)); s.connect(f); s.start(0);
+            ctx.suspend(0.03).then(() => { s.disconnect(); ctx.resume(); });
+            """, r =>
+        {
+            var f = r.Filter(BiquadFilterType.Bandpass, 440);
+            f.Q.Value = 30;
+            f.Connect(r.G.Destination);
+            var s = r.Source(r.Noise(1, 9600, 46));
+            s.Connect(f);
+            s.Start(0);
+            r.Suspend(0.03, () => s.Disconnect());
+        });
+
+        // The composer's master EQ (music-composer.js: a highpass at 34 Hz, a low shelf at 140 Hz, a
+        // presence peak at 2600 Hz) on notes, and an LFO moving a cutoff (as its wind does). At most two
+        // notes sound at once: Chromium sums three in an order that changes from run to run, and the
+        // EQ's low poles carry that last-bit difference along (to about 2 · 10⁻⁵).
+        yield return B("biquad-eq-and-lfo", 1, 12000, 48000, """
+            const lowCut = filter("highpass", 34); lowCut.Q.value = 0.7;
+            const lowShelf = filter("lowshelf", 140); lowShelf.gain.value = -3;
+            const presence = filter("peaking", 2600); presence.Q.value = 0.8; presence.gain.value = 2;
+            lowCut.connect(lowShelf).connect(presence).connect(out);
+            [[110, 0], [164.81, 0.06], [220, 0.12]].forEach(([frequency, when]) => { const o = osc("sawtooth", frequency); o.connect(lowCut); o.start(when); o.stop(when + 0.1); });
+            const wind = filter("bandpass", 900); wind.Q.value = 2; wind.connect(out);
+            const n = source(noise(1, 12000, 47)); n.connect(wind); n.start(0);
+            const lfo = osc("sine", 0.7); const sweep = gain(260); lfo.connect(sweep).connect(wind.frequency); lfo.start(0);
+            """, r =>
+        {
+            var lowCut = r.Filter(BiquadFilterType.Highpass, 34);
+            lowCut.Q.Value = 0.7f;
+            var lowShelf = r.Filter(BiquadFilterType.Lowshelf, 140);
+            lowShelf.Gain.Value = -3;
+            var presence = r.Filter(BiquadFilterType.Peaking, 2600);
+            presence.Q.Value = 0.8f;
+            presence.Gain.Value = 2;
+            lowCut.Connect(lowShelf).Connect(presence).Connect(r.G.Destination);
+            foreach (var (frequency, when) in new[] { (110f, 0.0), (164.81f, 0.06), (220f, 0.12) })
+            {
+                var o = r.Osc(OscillatorType.Sawtooth, frequency);
+                o.Connect(lowCut);
+                o.Start(when);
+                o.Stop(when + 0.1);
+            }
+            var wind = r.Filter(BiquadFilterType.Bandpass, 900);
+            wind.Q.Value = 2;
+            wind.Connect(r.G.Destination);
+            var n = r.Source(r.Noise(1, 12000, 47));
+            n.Connect(wind);
+            n.Start(0);
+            var lfo = r.Osc(OscillatorType.Sine, 0.7f);
+            lfo.Connect(r.Gain(260)).Connect(wind.Frequency);
+            lfo.Start(0);
+        });
+
+        // A denormal input reads as zero (DAZ): the engine's gain makes 1e-39 where Chromium's flushes
+        // it, and a wide 120 dB peak (b0 near 48 000) would lift that into the normal floats.
+        yield return B("biquad-denormal-input", 1, 1024, 48000, """
+            const g = gain(1e-39); dc().connect(g); const f = filter("peaking", 12000); f.Q.value = 0.01; f.gain.value = 120;
+            g.connect(f).connect(out);
+            """, r =>
+        {
+            var g = r.Gain(1e-39f);
+            r.Dc().Connect(g);
+            var f = r.Filter(BiquadFilterType.Peaking, 12000);
+            f.Q.Value = 0.01f;
+            f.Gain.Value = 120;
+            g.Connect(f).Connect(r.G.Destination);
+        }, Exact);
+
+        // The filter falls silent (its tail passed) while its cutoff glides on; the next sound meets the
+        // cutoff where the glide got to.
+        yield return B("biquad-silent-automation", 1, 12000, 48000, """
+            const f = filter("lowpass", 4000); f.Q.value = 6; f.connect(out);
+            f.frequency.setValueAtTime(4000, 0); f.frequency.setTargetAtTime(300, 0.02, 0.04);
+            const a = source(noise(1, 1000, 49)); a.connect(f); a.start(0);
+            const b = source(noise(1, 2000, 50)); b.connect(f); b.start(0.16);
+            """, r =>
+        {
+            var f = r.Filter(BiquadFilterType.Lowpass, 4000);
+            f.Q.Value = 6;
+            f.Connect(r.G.Destination);
+            f.Frequency.SetValueAtTime(4000, 0).SetTargetAtTime(300, 0.02, 0.04);
+            var a = r.Source(r.Noise(1, 1000, 49));
+            a.Connect(f);
+            a.Start(0);
+            var b = r.Source(r.Noise(1, 2000, 50));
+            b.Connect(f);
+            b.Start(0.16);
+        });
+
+        // All four parameters k-rate while automated: one set of coefficients a quantum.
+        yield return B("biquad-k-rate", 1, 8192, 48000, """
+            const o = osc("square", 150); const f = filter("lowpass", 300); o.connect(f).connect(out); o.start(0);
+            for (const p of [f.frequency, f.Q, f.gain, f.detune]) p.automationRate = "k-rate";
+            f.frequency.setValueAtTime(300, 0); f.frequency.linearRampToValueAtTime(5000, 0.15); f.Q.setTargetAtTime(10, 0.02, 0.05);
+            """, r =>
+        {
+            var o = r.Osc(OscillatorType.Square, 150);
+            var f = r.Filter(BiquadFilterType.Lowpass, 300);
+            o.Connect(f).Connect(r.G.Destination);
+            o.Start(0);
+            foreach (var p in new[] { f.Frequency, f.Q, f.Gain, f.Detune })
+                p.IsAudioRate = false;
+            f.Frequency.SetValueAtTime(300, 0).LinearRampToValueAtTime(5000, 0.15);
+            f.Q.SetTargetAtTime(10, 0.02, 0.05);
+        });
+
+        // A one-sample pulse through a damped filter whose input stays unsilent zeros: the response
+        // decays through the denormals, which Chromium flushes to zero.
+        yield return B("biquad-denormal-decay", 1, 3072, 48000, """
+            const g = gain(0); dc().connect(g); const idle = source(noise(1, 128, 48)); idle.connect(g.gain);
+            g.gain.setValueAtTime(1, 0.001); g.gain.setValueAtTime(0, 0.001 + 1 / 48000);
+            const f = filter("lowpass", 3000); f.Q.value = -20; g.connect(f).connect(out);
+            """, r =>
+        {
+            var g = r.Gain(0);
+            r.Dc().Connect(g);
+            var idle = r.Source(r.Noise(1, 128, 48));
+            idle.Connect(g.Gain);
+            g.Gain.SetValueAtTime(1, 0.001).SetValueAtTime(0, 0.001 + 1 / 48000.0);
+            var f = r.Filter(BiquadFilterType.Lowpass, 3000);
+            f.Q.Value = -20;
+            g.Connect(f).Connect(r.G.Destination);
+        }, Exact);
     }
 }

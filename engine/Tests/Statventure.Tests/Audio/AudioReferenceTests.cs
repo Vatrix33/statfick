@@ -41,7 +41,13 @@ public class AudioReferenceTests
         Assert.True(File.Exists(path), $"no Chromium render of '{name}': run Tools/Scripts/make-audio-references.sh {name}");
         var expected = Load(path, fixture.Channels, fixture.Length);
         var actual = Render(fixture);
-        var report = Compare(expected, actual, fixture.Tolerance == 0 ? SmallestNormal : fixture.Tolerance);
+        var tolerance = fixture.Tolerance switch
+        {
+            AudioFixtures.Exact => 0,
+            0 => SmallestNormal,
+            var t => t,
+        };
+        var report = Compare(expected, actual, tolerance);
         if (report != null)
         {
             Save(ActualPath(name), actual);

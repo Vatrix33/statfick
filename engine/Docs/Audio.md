@@ -209,6 +209,33 @@ the eighth range's; these fixtures (`osc-tables-*`) show Chromium's tables for e
 table size and FFT plan per rate. (Rust can't be installed here to build RustFFT natively, so the
 renders are the FFT's reference.)
 
+### Biquad filters (step 3)
+
+- **`Biquad.cs`:** Blink's Biquad (platform/audio/biquad.cc) per channel: the Audio EQ Cookbook
+  coefficients of all eight types with fdlibm's sin and cos and its float expf for the decibels
+  (`pow10`; Q is in dB for lowpass and highpass), their edge cases (cutoff 0 or Nyquist, Q of 0 or
+  below), normalized by multiplying with 1/a0; the direct form I recursion in double over float
+  samples, with coefficients per frame while a parameter moves. Chromium renders with denormals
+  flushed (FTZ and DAZ): here a denormal input reads as zero and a result below the smallest
+  normal float becomes zero, so filter decays match to the bit (a fixture checks it exactly).
+  `TailFrame` ports the tail analysis (real, complex and repeated poles, the root finder, until the
+  response is below 1/32768, at most 30 s): it decides which quantum a filter whose input has
+  fallen silent stops in. libc++'s complex arithmetic is reproduced; its `hypot` is the C
+  library's, here .NET's (an ulp at most, which could only move the stop at an exact tie).
+- **`BiquadFilterNode`:** BiquadFilterHandler: the four parameters checked for sample-accurate
+  values (all a-rate by default; per-frame coefficients when one moves within the quantum, once
+  when they hold still), else recomputed only when a value changed (Blink reads k-rate values twice
+  then); the input pulled into the output's own bus (in place); a type change or a change of the
+  input's channel count clears the filters' state; while silent, the parameters still advance.
+- **`Fdlibm.cs`:** now also sin, cos (with their kernels and the argument reduction up to 2¹⁹ · π/2),
+  log and expf, checked against Blink's fdlibm by the native reference.
+
+**Summing order through filters:** Chromium's run-to-run summing order (step 1) matters more ahead
+of low filters: three notes summed into the composer's master EQ (a 34 Hz highpass, a 140 Hz shelf)
+gave differences of 2 · 10⁻⁵ after the filters, not one ulp, because their poles near 1 carry the
+last-bit difference along. Fixtures keep to two terms per sum (exact in either order); the theme
+comparisons (step 6) need a bound from Chromium's own spread (several renders of the same theme).
+
 ## Status
 
 - **Step 1, harness and render core: done (2026-10-31, 681 tests).** 39 fixtures (buffer sources:
@@ -244,4 +271,15 @@ renders are the FFT's reference.)
   after rounding, a float or a double quotient of floats) or glibc's fused steps, which change no
   float result. Blink quirk worth knowing: an automated oscillator ignores its start's fraction of
   a frame (the k-rate frequency it would scale by is 0 there).
-- **Next: step 3, biquad filters.**
+- **Step 3, biquad filters: done (2026-11-01, 733 tests).** 23 fixtures (each type on a noise burst ringing
+  out until its tail passes; frequency, Q and detune automated; gain automated on a peak and a
+  shelf; scheduled events constant within quanta, a constant detune and values changed while
+  rendering, cutoff 0 and Nyquist, Q below 0; the edges of peaking, allpass and notch at Q 0 and
+  the shelves at the ends; stereo, a channel count change and a type change; the input removed
+  while ringing; the composer's master EQ on notes and an LFO on a cutoff; k-rate parameters;
+  automation while silent; a decay into the denormals and a denormal input through a 120 dB peak,
+  compared exactly) match Chromium bit for bit. 31 mutations: 24 fail a test; the rest change only
+  doubles' last bits that vanish in the float result (the recursion's association, dividing by a0,
+  the C library's sin), lengthen tails by a frame (below a quantum), or are optimizations (in-place
+  pulling, coefficients once when constant).
+- **Next: step 4, the convolver and the stereo panner.**

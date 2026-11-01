@@ -1,7 +1,7 @@
 namespace Statventure.Audio;
 
 /// <summary>
-/// fdlibm's exp and pow as Chromium builds them (third_party/fdlibm/ieee754.cc, from V8): Blink's
+/// fdlibm's exp, pow, log, sin, cos and expf as Chromium builds them (third_party/fdlibm/ieee754.cc, from V8): Blink's
 /// Web Audio uses these rather than the C library, so the results are the same on every platform
 /// (Docs/Audio.md). A line-for-line port on the IEEE words.
 /// </summary>
@@ -280,5 +280,235 @@ internal static class Fdlibm
         else
             z = WithHigh(z, High(z) + (int)((uint)n << 20));
         return s * z;
+    }
+
+    /// <summary>fdlibm's expf: exp in double, rounded to float (Blink's biquad pow10).</summary>
+    public static float Expf(float x) => (float)Exp(x);
+
+    public static double Log(double x)
+    {
+        const double ln2Hi = 6.93147180369123816490e-01, ln2Lo = 1.90821492927058770002e-10, two54 = 1.80143985094819840000e+16,
+            Lg1 = 6.666666666666735130e-01, Lg2 = 3.999999999940941908e-01, Lg3 = 2.857142874366239149e-01, Lg4 = 2.222219843214978396e-01,
+            Lg5 = 1.818357216161805012e-01, Lg6 = 1.531383769920937332e-01, Lg7 = 1.479819860511658591e-01;
+        int hx = High(x);
+        var lx = Low(x);
+        var k = 0;
+        if (hx < 0x00100000)
+        {
+            if (((hx & 0x7FFFFFFF) | (int)lx) == 0)
+                return double.NegativeInfinity;
+            if (hx < 0)
+                return double.NaN;
+            k -= 54;
+            x *= two54;
+            hx = High(x);
+        }
+        if (hx >= 0x7FF00000)
+            return x + x;
+        k += (hx >> 20) - 1023;
+        hx &= 0x000FFFFF;
+        var i = (hx + 0x95F64) & 0x100000;
+        x = WithHigh(x, hx | (i ^ 0x3FF00000));
+        k += i >> 20;
+        var f = x - 1.0;
+        double dk;
+        if ((0x000FFFFF & (2 + hx)) < 3)
+        {
+            if (f == 0)
+            {
+                if (k == 0)
+                    return 0;
+                dk = k;
+                return dk * ln2Hi + dk * ln2Lo;
+            }
+            var r = f * f * (0.5 - 0.33333333333333333 * f);
+            if (k == 0)
+                return f - r;
+            dk = k;
+            return dk * ln2Hi - ((r - dk * ln2Lo) - f);
+        }
+        var s = f / (2.0 + f);
+        dk = k;
+        var z = s * s;
+        i = hx - 0x6147A;
+        var w = z * z;
+        var j = 0x6B851 - hx;
+        var t1 = w * (Lg2 + w * (Lg4 + w * Lg6));
+        var t2 = z * (Lg1 + w * (Lg3 + w * (Lg5 + w * Lg7)));
+        i |= j;
+        var R = t2 + t1;
+        if (i > 0)
+        {
+            var hfsq = 0.5 * f * f;
+            if (k == 0)
+                return f - (hfsq - s * (hfsq + R));
+            return dk * ln2Hi - ((hfsq - (s * (hfsq + R) + dk * ln2Lo)) - f);
+        }
+        if (k == 0)
+            return f - s * (f - R);
+        return dk * ln2Hi - ((s * (f - R) - dk * ln2Lo) - f);
+    }
+
+    public static double Sin(double x)
+    {
+        var ix = High(x) & 0x7FFFFFFF;
+        if (ix <= 0x3FE921FB)
+            return KernelSin(x, 0, 0);
+        if (ix >= 0x7FF00000)
+            return x - x;
+        var n = RemPio2(x, out var y0, out var y1);
+        return (n & 3) switch
+        {
+            0 => KernelSin(y0, y1, 1),
+            1 => KernelCos(y0, y1),
+            2 => -KernelSin(y0, y1, 1),
+            _ => -KernelCos(y0, y1),
+        };
+    }
+
+    public static double Cos(double x)
+    {
+        var ix = High(x) & 0x7FFFFFFF;
+        if (ix <= 0x3FE921FB)
+            return KernelCos(x, 0);
+        if (ix >= 0x7FF00000)
+            return x - x;
+        var n = RemPio2(x, out var y0, out var y1);
+        return (n & 3) switch
+        {
+            0 => KernelCos(y0, y1),
+            1 => -KernelSin(y0, y1, 1),
+            2 => -KernelCos(y0, y1),
+            _ => KernelSin(y0, y1, 1),
+        };
+    }
+
+    static double KernelCos(double x, double y)
+    {
+        const double C1 = 4.16666666666666019037e-02, C2 = -1.38888888888741095749e-03, C3 = 2.48015872894767294178e-05,
+            C4 = -2.75573143513906633035e-07, C5 = 2.08757232129817482790e-09, C6 = -1.13596475577881948265e-11;
+        var ix = High(x) & 0x7FFFFFFF;
+        if (ix < 0x3E400000 && (int)x == 0)
+            return 1;
+        var z = x * x;
+        var r = z * (C1 + z * (C2 + z * (C3 + z * (C4 + z * (C5 + z * C6)))));
+        if (ix < 0x3FD33333)
+            return 1 - (0.5 * z - (z * r - x * y));
+        var qx = ix > 0x3FE90000 ? 0.28125 : Words(ix - 0x00200000, 0);
+        var iz = 0.5 * z - qx;
+        var a = 1 - qx;
+        return a - (iz - (z * r - x * y));
+    }
+
+    static double KernelSin(double x, double y, int iy)
+    {
+        const double S1 = -1.66666666666666324348e-01, S2 = 8.33333333332248946124e-03, S3 = -1.98412698298579493134e-04,
+            S4 = 2.75573137070700676789e-06, S5 = -2.50507602534068634195e-08, S6 = 1.58969099521155010221e-10;
+        var ix = High(x) & 0x7FFFFFFF;
+        if (ix < 0x3E400000 && (int)x == 0)
+            return x;
+        var z = x * x;
+        var v = z * x;
+        var r = S2 + z * (S3 + z * (S4 + z * (S5 + z * S6)));
+        if (iy == 0)
+            return x + v * (S1 + z * r);
+        return x - ((z * (0.5 * y - v * r) - y) - v * S1);
+    }
+
+    static readonly int[] NPio2Hw =
+    [
+        0x3FF921FB, 0x400921FB, 0x4012D97C, 0x401921FB, 0x401F6A7A, 0x4022D97C, 0x4025FDBB, 0x402921FB, 0x402C463A, 0x402F6A7A,
+        0x4031475C, 0x4032D97C, 0x40346B9C, 0x4035FDBB, 0x40378FDB, 0x403921FB, 0x403AB41B, 0x403C463A, 0x403DD85A, 0x403F6A7A,
+        0x40407E4C, 0x4041475C, 0x4042106C, 0x4042D97C, 0x4043A28C, 0x40446B9C, 0x404534AC, 0x4045FDBB, 0x4046C6CB, 0x40478FDB,
+        0x404858EB, 0x404921FB,
+    ];
+
+    /// <summary>__ieee754_rem_pio2 up to 2^19 · π/2 (Web Audio's angles are within π); larger arguments aren't ported.</summary>
+    static int RemPio2(double x, out double y0, out double y1)
+    {
+        const double invpio2 = 6.36619772367581382433e-01, pio2_1 = 1.57079632673412561417e+00, pio2_1t = 6.07710050650619224932e-11,
+            pio2_2 = 6.07710050630396597660e-11, pio2_2t = 2.02226624879595063154e-21, pio2_3 = 2.02226624871116645580e-21,
+            pio2_3t = 8.47842766036889956997e-32;
+        var hx = High(x);
+        var ix = hx & 0x7FFFFFFF;
+        double z;
+        if (ix <= 0x3FE921FB)
+        {
+            y0 = x;
+            y1 = 0;
+            return 0;
+        }
+        if (ix < 0x4002D97C)
+        {
+            if (hx > 0)
+            {
+                z = x - pio2_1;
+                if (ix != 0x3FF921FB)
+                {
+                    y0 = z - pio2_1t;
+                    y1 = (z - y0) - pio2_1t;
+                }
+                else
+                {
+                    z -= pio2_2;
+                    y0 = z - pio2_2t;
+                    y1 = (z - y0) - pio2_2t;
+                }
+                return 1;
+            }
+            z = x + pio2_1;
+            if (ix != 0x3FF921FB)
+            {
+                y0 = z + pio2_1t;
+                y1 = (z - y0) + pio2_1t;
+            }
+            else
+            {
+                z += pio2_2;
+                y0 = z + pio2_2t;
+                y1 = (z - y0) + pio2_2t;
+            }
+            return -1;
+        }
+        if (ix > 0x413921FB)
+            throw new NotSupportedException("fdlibm's reduction of arguments beyond 2^19·π/2 isn't ported");
+        var t = Math.Abs(x);
+        var n = (int)(t * invpio2 + 0.5);
+        double fn = n;
+        var r = t - fn * pio2_1;
+        var w = fn * pio2_1t;
+        if (n < 32 && ix != NPio2Hw[n - 1])
+            y0 = r - w;
+        else
+        {
+            var j = ix >> 20;
+            y0 = r - w;
+            var i = j - ((High(y0) >> 20) & 0x7FF);
+            if (i > 16)
+            {
+                t = r;
+                w = fn * pio2_2;
+                r = t - w;
+                w = fn * pio2_2t - ((t - r) - w);
+                y0 = r - w;
+                i = j - ((High(y0) >> 20) & 0x7FF);
+                if (i > 49)
+                {
+                    t = r;
+                    w = fn * pio2_3;
+                    r = t - w;
+                    w = fn * pio2_3t - ((t - r) - w);
+                    y0 = r - w;
+                }
+            }
+        }
+        y1 = (r - y0) - w;
+        if (hx < 0)
+        {
+            y0 = -y0;
+            y1 = -y1;
+            return -n;
+        }
+        return n;
     }
 }
