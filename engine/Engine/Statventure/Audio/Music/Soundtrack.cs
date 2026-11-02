@@ -56,6 +56,9 @@ public sealed class Soundtrack
 
     AudioGraph Graph => _builder.Graph;
 
+    /// <summary>The composer's two seconds of noise on this graph (the sound effects use it too).</summary>
+    internal AudioBuffer Noise => ComposerKit.For(_builder).Noise;
+
     /// <summary>The theme playing (as the audio thread last applied the calls), or null.</summary>
     public string? Theme { get; private set; }
 

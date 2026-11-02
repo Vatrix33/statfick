@@ -37,6 +37,9 @@ internal sealed class AudioGraph
     public double CurrentTime => CurrentSampleFrame / SampleRate;
     public AudioDestinationNode Destination { get; }
 
+    /// <summary>Sources started and not yet finished, for the tests.</summary>
+    internal int ActiveSources => _activeSources.Count;
+
     /// <summary>
     /// For the tests only (Docs/Audio.md, step 6's fixture sums): when set before the graph is built,
     /// every node output gets a random key from it and inputs sum their connections in key order,

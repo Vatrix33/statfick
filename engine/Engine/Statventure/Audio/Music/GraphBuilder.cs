@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
@@ -286,11 +287,21 @@ internal sealed class GraphBuilder
 /// <summary>A room made ahead: its impulse response and the convolver kernels for it (normalized, as the composer's convolvers are).</summary>
 internal sealed record PreparedRoom(AudioBuffer Buffer, Reverb.Prepared Response)
 {
-    /// <summary>Makes <paramref name="roomName"/>'s response at <paramref name="sampleRate"/> and its kernels; safe on any thread.</summary>
-    public static PreparedRoom Make(string roomName, float sampleRate)
+    static readonly ConcurrentDictionary<(string Room, float Rate), Lazy<PreparedRoom>> s_rooms = new();
+
+    /// <summary>
+    /// <paramref name="roomName"/>'s response at <paramref name="sampleRate"/> and its kernels, made once
+    /// per process (safe on any thread; another caller waits for the one making it), or null for an unknown room.
+    /// </summary>
+    public static PreparedRoom? Get(string roomName, float sampleRate)
     {
-        var buffer = new AudioBuffer(2, Performance.ResponseLength(roomName, sampleRate), sampleRate);
-        Performance.FillImpulse(roomName, buffer);
-        return new PreparedRoom(buffer, Reverb.Prepare(buffer, normalize: true, responseAlignment: 0));
+        if (!MusicData.Rooms.ContainsKey(roomName))
+            return null;
+        return s_rooms.GetOrAdd((roomName, sampleRate), key => new Lazy<PreparedRoom>(() =>
+        {
+            var buffer = new AudioBuffer(2, Performance.ResponseLength(key.Room, key.Rate), key.Rate);
+            Performance.FillImpulse(key.Room, buffer);
+            return new PreparedRoom(buffer, Reverb.Prepare(buffer, normalize: true, responseAlignment: 0));
+        })).Value;
     }
 }

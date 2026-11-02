@@ -5,12 +5,19 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-11-02):** M8, audio (the user's go on 2026-10-31; steps 1–7 done, step 8 next). Its questions are answered
-("Decisions for M8" below); design doc, survey of the old game's audio, method and step plan:
-`Docs/Audio.md` (its Status section says which step is next). The project is one git repo (`../`, see
-`../CLAUDE.md`), on the private GitHub repo `github.com/Vatrix33/statfick`.
+**Current task (2026-11-02):** none: M8 (audio) is done and ticked; M9 starts only on the user's go. The project is
+one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo `github.com/Vatrix33/statfick`.
 Before each later milestone (M9 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code.
+
+**What M8 leaves for the port:** `Application.Audio` is the sound (paused while the window is minimized):
+`Audio.Music.Play("combat@alder-vale")` with music.js's fades, `Stop`, `Music.Volume` (music.js's, before its
+limiter), `MasterVolume`, `EffectsVolume`; `Soundtrack.Themes` lists the 55 ids. The game ports `desiredTheme`
+(region theme, else `alder-vale`; in battle `combat@<region>` if it exists, else `combat`; a boss's theme, else
+`combat`) and saves the volumes (M9). Effects: `Audio.Effects.Register(id, patch)`, `Play(id, volume, pan, pitch)`,
+`Actor.Sounds` (event name → effect, pan, volume); which sounds exist is decided at port time. The old game's one
+slider is the music volume. `test-themes.sh` (with `make-theme-references.sh` once on a machine, 2.6 GB) whenever
+the synthesizer changes.
 
 **What M7 leaves for the port:** figures are `Actor`s in an `AnimatedView` (added to the document as a
 frame client, shown in a `surface` element); their clips come from the .glb files (exported with
@@ -90,7 +97,7 @@ the design and the tests):
   mode (the old game has one)?
 - **M12 Packaging:** shipped folder layout and executable name, self-contained .NET, installer or
   archive per platform, icon, versioning, updates, crash log location?
-- **At port time:** UI symbols outside Lato and STIX (⚙ ✦ ☾ ↓ ＋ ⚔ ♟ …); how the inline SVG art and its
+- **At port time:** which sounds the game gets (sound effect patches); UI symbols outside Lato and STIX (⚙ ✦ ☾ ↓ ＋ ⚔ ♟ …); how the inline SVG art and its
   transforms map to the Blender remakes; the grabbing cursor's design; the level of detail of the item
   models.
 
@@ -209,6 +216,13 @@ Source tree:
   - Minimized window: all audio pauses and resumes where it was when the window is restored. (Not the old game's stop-and-restart of the theme, which was recommended; not playing on.)
   - Threading: the game's calls (Play, Stop, volumes) are queued and applied by the audio thread before its next quantum, their "now" the graph's time then; no locks while rendering. (Not a graph lock.)
   - Theme starts (asked during step 7, after measuring: a theme start cost 12–23 ms in one quantum on the audio thread, 10–13 ms of it the room convolver's setup, about the whole 21 ms buffer): a worker prepares all 7 rooms' impulse responses and convolver kernels once when the audio system starts, shared by every theme in the room (each convolver keeps only its running state); a theme start then costs about 1–3 ms. (Not preparing on each Play with the switch delayed, not a 60 ms buffer.)
+- Step 8's questions (asked 2026-11-02, before its code):
+  - Patch form: a patch is a list of layers, each a tone (a wave or harmonics, with a frequency sweep) or a noise burst, through an optional filter, with its own delay, attack, level and decay, as the composer's percussion voices are built. (Not any node graph as data, not composer voices only.)
+  - Room: effects are dry, straight to the effects bus. (Not a shared effects room, not the theme's room.)
+  - Clip events: an actor has a table from event name to patch, and the engine plays the patch when the event is delivered; game code can also call `Effects.Play(id, volume, pan, pitch)`. (Not game code subscribing every time, not markers naming patches.)
+  - Variation: a patch may give pitch and level ranges, drawn per play from a seeded mulberry32, so tests and replays repeat; no range means no variation. (Not none.)
+  - Position: pan and volume come from the caller, through the stereo panner; an actor's table uses a pan and volume the game sets on the actor. (Not world positions with a listener.)
+  - Voice limits: per patch (4 by default) and 32 overall; past a limit the oldest voice of that patch (or overall) fades out over 5 ms and the new one plays. (Not dropping new ones, not no limits.)
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
@@ -406,7 +420,8 @@ Source tree:
   - **M8 step 4, convolver and stereo panner (2026-11-01, 742 tests):** user decision: the offline partitioning of the convolver always. `Audio/Convolver.cs` (Reverb with its stages, FFT and direct convolvers, normalization with Vsvesq's AVX summing order), `Audio/StereoPanner.cs`, Butterfly64Avx; and Blink's connection counting with disabled outputs and the tail-processing list in `AudioGraph.cs` (it changes the sound: a stereo room rings on in mono once its stereo source has finished). 12 fixtures match Chromium bit for bit; 19 of 23 mutations fail a test, the rest change no sample.
   - **M8 step 5, dynamics compressor (2026-11-01, 750 tests):** `Audio/DynamicsCompressor.cs` ports Blink's compressor (look-ahead, adaptive release, soft knee, makeup gain, metering); glibc 2.43's powf and log10f added to `Audio/Libm.cs` (checked on all 2³² floats), fdlibm's asin; the C library's exp and sin there are replaced by fdlibm's, which give the same floats on every float input (checked natively). 5 fixtures match Chromium (one within the summing-order bound); 15 of 18 mutations fail a test.
   - **M8 step 6, the game synthesizer (2026-11-01, 974 tests):** user decisions recorded above ("Step 6's questions"; pow, fixture sums, the order count and the full themes' rule re-asked with data). `Audio/Music/`: `ThemeData.cs` (records), `MusicData.g.cs` (generated by `make-music-data.sh` from the old JavaScript in Chromium: 55 themes, 34 instruments, 21 percussion voices, 7 rooms), `Score.cs` (compile, lint), `GraphBuilder.cs` (every Web Audio call of the composer, optionally logged; the per-context kit), `Composer.cs` (`Performance`: rooms, channels, every instrument kind, percussion, textures, the sequencer), `Soundtrack.cs` (public: music.js's master chain, `Play(id)` with its fades, `Stop`, `Volume`, `Schedule` per quantum, `RenderOffline`); `Audio/JsMath.cs`, `Audio/LlvmLibc.cs` (V8's `Math.exp`: LLVM libc's correctly rounded exp with its double-double and 128-bit passes), `Audio/Libm.Pow.cs` (glibc 2.43's pow as its FMA variant runs, the fused steps read from libm.so.6's machine code). Checked: math hashes against the system pow and Electron's V8 (`make-v8-math-reference.sh`); every theme's compiled score, lint and whole performance (2.7 million calls) equal to the old composer's on a recording stand-in context (`make-music-references.sh`); 30 rendered fixtures (12 exact, 18 by the shuffled-sums rule: a seeded test hook sums node inputs in shuffled orders, 16 orders); all 55 full themes opt-in (`make-theme-references.sh` → 2.6 GB in the build cache, `test-themes.sh`) with both sides' summing orders sampled. 39 of 47 mutations fail a test, the rest are equivalent, speed-only or below observable precision.
-  - **M8 step 7, the output (2026-11-02, 990 tests):** user decisions recorded above ("Step 7's questions"; theme starts asked after measuring). `Audio/AudioSystem.cs` (public, `Application.Audio`: the graph at the device's rate, master and effects buses, the soundtrack, the audio thread, game calls queued and applied before the next quantum, paused while the window is minimized), `Audio/Output/AudioOutput.cs` (OpenAL Soft: 4 queued buffers of about 5 ms, direct channels, HRTF and limiter off; follows the default device, renders silently at the real-time pace without one); rooms' responses and convolver kernels prepared at start by a worker and shared (`Reverb.Prepared`, `PreparedRoom`), a warm-up render for the JIT, the FFT's scratch arrays from a pool. Measured by `Tools/AudioBenchmark` (`audio-benchmark.sh`): 71 minutes of music live at 48 kHz, mean 0.23 ms of the 2.67 ms budget, 99.9th percentile 2.08 ms, worst 12.9 ms; no underruns in repeated runs on this PC's headset with theme switches. Checked: a loopback device gives samples back bit for bit; the buses' fixture matches Chromium; the opt-in themes still pass (55 of 55); 14 of 16 mutations fail a test, the other 2 change no defined behaviour. Not checked automatically: moving to a really different device, a device lost or appearing, a real window minimize.
+  - **M8 step 7, the output (2026-11-02, 990 tests):** user decisions recorded above ("Step 7's questions"; theme starts asked after measuring). `Audio/AudioSystem.cs` (public, `Application.Audio`: the graph at the device's rate, master and effects buses, the soundtrack, the audio thread, game calls queued and applied before the next quantum, paused while the window is minimized), `Audio/Output/AudioOutput.cs` (OpenAL Soft: 4 queued buffers of about 5 ms, direct channels, HRTF and limiter off; follows the default device, renders silently at the real-time pace without one); rooms' responses and convolver kernels prepared at start by a worker and shared (`Reverb.Prepared`, `PreparedRoom`), a warm-up render for the JIT, the FFT's scratch arrays from a pool. Measured by `Tools/AudioBenchmark` (`audio-benchmark.sh`): 71 minutes of music live at 48 kHz, mean 0.23 ms of the 2.67 ms budget, 99.9th percentile 2.08 ms, worst 12.9 ms; no underruns in repeated runs on this PC's headset with theme switches. Checked: a loopback device gives samples back bit for bit; the buses' fixture matches Chromium; the opt-in themes still pass (55 of 55); 17 of 19 mutations fail a test, the other 2 change no defined behaviour. Not checked automatically: moving to a really different device, a device lost or appearing, a real window minimize.
+  - **M8 step 8, sound effects (2026-11-02, 1013 tests):** user decisions recorded above ("Step 8's questions"). `Audio/Effects/`: `EffectPatch` records (layers of tones and noise, filters, envelopes as the composer's percussion, optional ranges, voice limits), `SoundEffects` (`Register`, `Play`, `Seed`; voices dry on the effects bus, the oldest stolen with a 5 ms fade past a patch's limit or 32 overall, cleaned up at the end of their last quantum), `ActorSounds` (`Actor.Sounds`: clip event name → effect). 12 fixtures against Chromium, unit tests, and 32 mutations that all fail a test; 32 voices add 0.13 ms to a quantum's mean. **M8 done (all 8 steps).**
   - **Left for the port, not M5:** the game listens for `visibilitychange` and `pagehide` (map.js pauses travel); the window host doesn't send them yet.
 
 ## Milestones
@@ -451,7 +466,7 @@ Each milestone is finished only when its tests pass.
 - [x] **M7 Animation:**
   - Skeletons and clips from glTF, sampling, cross-fades, layers.
   - Events, state machines.
-- [ ] **M8 Audio:**
+- [x] **M8 Audio:**
   - OpenAL Soft streaming, a mixer with buses and fades.
   - Synthesizer: oscillators, noise, envelopes, biquad filters, convolution reverb, panning, sample-accurate scheduling.
   - Offline rendering for tests.

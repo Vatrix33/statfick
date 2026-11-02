@@ -7,6 +7,41 @@ using Statventure.Audio;
 
 const int Rate = 48000;
 var budget = AudioGraph.RenderQuantumFrames * 1000.0 / Rate;
+if (args.Contains("--effects"))
+{
+    // A theme with effects on top: a two-layer patch started every 20 ms, voices at the overall limit.
+    var id = args.First(a => a != "--effects");
+    foreach (var run in new[] { "warm-up", "theme alone", "with 32 voices" })
+    {
+        var system = new AudioSystem(new AudioGraph(Rate, 2));
+        system.RoomsReady.Wait();
+        for (var i = 0; i < 40; i++)
+            system.Effects.Register($"p{i}", new EffectPatch
+            {
+                Layers = [
+                    new EffectLayer { Source = EffectSource.Sine, Frequency = 200 + 40 * i, FrequencyTo = 100, Length = 1 },
+                    new EffectLayer { Source = EffectSource.Noise, Filter = new EffectFilter { Type = EffectFilterType.Bandpass, Frequency = 1000 + 100 * i, Q = 3 }, Level = 0.3, Length = 1 },
+                ],
+                Level = 0.05,
+            });
+        system.Music.Play(id);
+        var bus = new AudioBus(2, AudioGraph.RenderQuantumFrames);
+        var times = new List<double>();
+        var quanta = 30 * Rate / AudioGraph.RenderQuantumFrames;
+        for (var q = 0; q < quanta; q++)
+        {
+            if (run == "with 32 voices" && q % 8 == 0)
+                system.Effects.Play($"p{q / 8 % 40}");
+            var begin = Stopwatch.GetTimestamp();
+            system.BeforeQuantum();
+            system.Graph.RenderQuantum(bus);
+            times.Add((Stopwatch.GetTimestamp() - begin) * 1000.0 / Stopwatch.Frequency);
+        }
+        var sorted = times.Order().ToArray();
+        Console.WriteLine($"{id}, {run}: mean {times.Average():F3} ms, p99 {sorted[(int)(0.99 * sorted.Length)]:F3}, p99.9 {sorted[(int)(0.999 * sorted.Length)]:F3}, max {sorted[^1]:F3}, over budget {times.Count(t => t > budget)} of {times.Count}, voices {system.Effects.ActiveVoices}");
+    }
+    return;
+}
 if (args.Contains("--live"))
 {
     // Plays through the real default device, silently (the master bus at 0), and counts underruns.

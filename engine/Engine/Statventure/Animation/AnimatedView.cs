@@ -1,4 +1,5 @@
 using System.Numerics;
+using Statventure.Audio;
 using Statventure.Render3D;
 using Statventure.UI.Dom;
 
@@ -23,7 +24,11 @@ public sealed class Actor
         Animator = animator;
         _pose = new PoseBuffer(animator.Stack.Skeleton);
         _lastPose = new PoseBuffer(animator.Stack.Skeleton);
+        animator.Event += clipEvent => Sounds?.OnEvent(clipEvent.Name);
     }
+
+    /// <summary>What the figure's clip events sound like (Docs/Audio.md, step 8): played when its animator delivers them.</summary>
+    public ActorSounds? Sounds { get; set; }
 
     public Model Model { get; }
     public Animator Animator { get; }

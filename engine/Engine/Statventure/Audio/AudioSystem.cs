@@ -32,6 +32,9 @@ public sealed class AudioSystem : IDisposable
     internal AudioSystem(IAudioOutput output, bool startThread = true) : this(new AudioGraph(output.SampleRate, 2))
     {
         _output = output;
+        // The basic waves' tables now, so a first sawtooth doesn't make them on the audio thread.
+        foreach (var shape in new[] { OscillatorType.Sine, OscillatorType.Square, OscillatorType.Sawtooth, OscillatorType.Triangle })
+            _graph.BasicWave(shape);
         if (startThread)
         {
             _thread = new Thread(Run) { Name = "Statventure audio", IsBackground = true, Priority = ThreadPriority.Highest };
@@ -51,7 +54,8 @@ public sealed class AudioSystem : IDisposable
         var graph = new AudioGraph(_graph.SampleRateF, 2);
         var master = new GainNode(graph);
         master.Connect(graph.Destination);
-        var music = new Soundtrack(graph, master, preparedRooms: RoomFor);
+        var rate = graph.SampleRateF;
+        var music = new Soundtrack(graph, master, preparedRooms: name => PreparedRoom.Get(name, rate));
         var bus = new AudioBus(2, AudioGraph.RenderQuantumFrames);
         foreach (var id in new[] { "alder-vale", "combat", "great-imp-jiruan" })
         {
@@ -73,36 +77,30 @@ public sealed class AudioSystem : IDisposable
         _effects = new GainNode(_graph);
         _effects.Connect(_master);
         // A worker makes all the rooms' responses and convolver kernels now, so starting a theme on the
-        // audio thread only connects nodes (step 7's decision: a room's setup took 10–13 ms there).
-        // One worker, the rooms in turn (about 0.1 s), leaving the other cores to the game and the audio thread.
+        // audio thread only connects nodes (step 7's decision: a room's setup took 10–13 ms there). One
+        // worker, the rooms in turn, leaving the other cores to the game and the audio thread; they are
+        // kept for the process, per rate, as they never change.
         var rate = _graph.SampleRateF;
-        var sources = MusicData.Rooms.Keys.ToDictionary(name => name, _ => new TaskCompletionSource<PreparedRoom>(TaskCreationOptions.RunContinuationsAsynchronously));
-        _rooms = sources.ToDictionary(pair => pair.Key, pair => pair.Value.Task);
+        var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        RoomsReady = ready.Task;
         new Thread(() =>
         {
-            foreach (var (name, source) in sources)
-                try
-                {
-                    source.SetResult(PreparedRoom.Make(name, rate));
-                }
-                catch (Exception exception)
-                {
-                    source.SetException(exception);
-                }
+            foreach (var name in MusicData.Rooms.Keys)
+                PreparedRoom.Get(name, rate);
+            ready.SetResult();
         }) { Name = "Statventure audio rooms", IsBackground = true, Priority = ThreadPriority.BelowNormal }.Start();
-        Music = new Soundtrack(_graph, _master, dispatch: Post, preparedRooms: RoomFor);
+        Music = new Soundtrack(_graph, _master, dispatch: Post, preparedRooms: name => PreparedRoom.Get(name, rate));
+        Effects = new SoundEffects(_graph, _effects, Music.Noise, Post);
     }
 
-    readonly Dictionary<string, Task<PreparedRoom>> _rooms;
-
     /// <summary>Done when every room is prepared.</summary>
-    internal Task RoomsReady => Task.WhenAll(_rooms.Values);
-
-    /// <summary>A room prepared by the worker (waiting for it if the audio thread asks before it is done), or null for a room it doesn't know.</summary>
-    PreparedRoom? RoomFor(string name) => _rooms.TryGetValue(name, out var task) ? task.GetAwaiter().GetResult() : null;
+    internal Task RoomsReady { get; }
 
     /// <summary>The music: themes, their fades, the music volume.</summary>
     public Soundtrack Music { get; }
+
+    /// <summary>The sound effects: patches played one-shot on the effects bus.</summary>
+    public SoundEffects Effects { get; }
 
     /// <summary>The rate the graph renders at.</summary>
     public int SampleRate => (int)_graph.SampleRateF;
@@ -145,7 +143,7 @@ public sealed class AudioSystem : IDisposable
     /// <summary>The master bus's gain, for the measuring tools (silent runs).</summary>
     internal AudioParam MasterGain => _master.Gain;
 
-    /// <summary>The effects bus, which sound effects play into (step 8).</summary>
+    /// <summary>The effects bus, which <see cref="Effects"/> play into.</summary>
     internal GainNode EffectsBus => _effects;
 
     internal AudioGraph Graph => _graph;

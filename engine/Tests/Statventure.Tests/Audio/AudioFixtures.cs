@@ -165,7 +165,7 @@ internal static partial class AudioFixtures
         new(name, channels, length, rate, Prelude + script, build, tolerance);
 
     static AudioFixture[]? s_all;
-    public static AudioFixture[] All => s_all ??= [.. Core(), .. Oscillators(), .. Biquads(), .. Rooms(), .. Compressors(), .. Synthesizer()];
+    public static AudioFixture[] All => s_all ??= [.. Core(), .. Oscillators(), .. Biquads(), .. Rooms(), .. Compressors(), .. Synthesizer(), .. Effects()];
 
     static IEnumerable<AudioFixture> Core()
     {

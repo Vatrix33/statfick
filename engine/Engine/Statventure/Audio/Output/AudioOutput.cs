@@ -255,9 +255,7 @@ internal sealed class OpenAlOutput : IAudioOutput
         try
         {
             _device!.Reopen(null!, Untouched);
-            // What was queued is dropped (a device change is heard anyway); rewinding isn't an underrun.
-            _source.Rewind();
-            Reclaim();
+            // The source carries on, its queue with it (a source a lost device stopped is restarted by Maintain).
             Reopens++;
             Log.Info("Audio", $"moved to {_device.AllDevicesSpecifier} (rendering at {SampleRate} Hz, the device at {DeviceRate(_device)})");
         }

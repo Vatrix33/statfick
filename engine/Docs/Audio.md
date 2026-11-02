@@ -81,6 +81,14 @@ Asked before the milestone started; also in `Docs/Engine-Plan.md`, "Decisions fo
   - *Theme starts (asked after measuring):* the 7 rooms' impulse responses and convolver kernels
     are prepared once by a worker when the audio system starts and shared (a theme start had cost
     12–23 ms on the audio thread, about the whole buffer).
+- **Step 8 (asked 2026-11-02, before its code):**
+  - *Patches:* layers of tones (a wave or harmonics, a frequency sweep) and noise bursts, an
+    optional filter, each with its delay, attack, level and decay.
+  - *Room:* dry, straight to the effects bus.
+  - *Clip events:* a table per actor from event name to patch; `Effects.Play` for game code.
+  - *Variation:* optional pitch and level ranges per patch, from a seeded mulberry32.
+  - *Position:* pan and volume from the caller (set on the actor for its table).
+  - *Voice limits:* per patch (4 by default) and 32 overall; past one, the oldest fades over 5 ms.
 
 ## What the old game uses (surveyed 2026-10-31)
 
@@ -438,8 +446,8 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   to left, right to right; on more speakers the others stay silent), 4 queued buffers of whole
   quanta of about 5 ms (256 frames at 44.1 and 48 kHz, 512 at 96 kHz), stereo float32 at the graph's
   rate. OpenAL's buffer-completed event wakes the thread. Its default-device event, or a lost
-  connection, reopens the device on the new default; the graph keeps its rate and OpenAL resamples
-  if the new device's differs. Without a device the buffers are taken at the real-time pace (20 ms
+  connection, reopens the device on the new default, the source carrying on with its queue; the
+  graph keeps its rate and OpenAL resamples if the new device's differs. Without a device the buffers are taken at the real-time pace (20 ms
   ahead of a clock) and dropped, and a device is looked for every second. Pausing pauses the
   source: OpenAL Soft declicks, fading the next 64 frames out, and on resuming plays again from the
   paused place with a 64-frame fade-in.
@@ -466,7 +474,9 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   samples peaking past ±1 and gives them back bit for bit at 48 and 44.1 kHz (so no panning, HRTF,
   limiter or resampling), and pauses and resumes as described; the audio thread's buffers equal the
   same calls rendered directly; a call lands at the next quantum; pausing freezes the graph; without
-  a device the pace is real time; the default device keeps the graph near real time; rooms shared
+  a device the frames taken stay a fixed amount ahead of a clock; the default device moves the graph
+  and paces it (never far ahead of the clock; under load it may fall behind, so how close it stays
+  is measured, not asserted); rooms shared
   sound as rooms made on the spot (two themes in the hall cross-fading); and the `output-buses`
   fixture matches Chromium: music.js's chain into a master bus, a tone on an effects bus, the
   master, effects and music volumes ramped while the music plays. Also OpenAL's reported HRTF
@@ -476,6 +486,44 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   PC's default output; OpenAL resamples since buffers keep the graph's rate), a device lost or
   appearing (the code paths exist, no test machine loses one), and `Application` pausing on a real
   minimize (needs a window manager; the pause itself is tested).
+
+### Sound effects (step 8)
+
+`Engine/Statventure/Audio/Effects/`; the game sees `AudioSystem.Effects` and `Actor.Sounds`.
+
+- **Patches (`EffectPatch.cs`):** records: a patch has layers, a level, a voice limit (4 by default)
+  and optional pitch and level ranges; a layer is a tone (sine, square, sawtooth, triangle, or
+  harmonics as sine terms) with an optional exponential frequency sweep, or looping noise, through
+  an optional filter (any of Blink's types, its frequency also sweeping, with Q and gain), with a
+  delay, attack, level and length. The envelope is the composer's percussion one: from 0.0001 linearly
+  to the level over the attack, then a target of 0 with a time constant of a quarter of the
+  length; the layer stops 50 ms after its length. Sweeps take 0.6 of the length by default, as the
+  composer's. Frequencies are scaled by the play's pitch (noise itself isn't) and clamped to 30 Hz …
+  Nyquist − 200 Hz, as the composer clamps them. M8 has patches as records made in code; M9 adds
+  the pack form, M11 the editor. Which sounds the game gets is decided at port time.
+- **`SoundEffects`:** `Register(id, patch)` (on the game's thread; a harmonics layer's periodic wave is
+  made there, not on the audio thread) and `Play(id, volume, pan, pitch)`, queued and applied before
+  the next quantum like the music's calls. A play draws the patch's pitch, then its level, then
+  each noise layer's start offset (0–1.5 s into the composer's two seconds of noise) from a
+  mulberry32 (`Seed` starts it anew, for replays), and builds a voice: layers into a gain into a
+  stereo panner into the effects bus, dry. Past the patch's limit, or 32 voices overall, the
+  oldest voice (of that patch, or overall) holds its gain, ramps it to 0 over 5 ms and stops its sources,
+  no longer counting. The layer that stops last cleans the voice up, its nodes disconnected at the
+  end of that quantum, as the composer's notes are.
+- **`ActorSounds` (`Actor.Sounds`):** a table from clip event name to effect, with a pan and volume
+  the game sets; the actor plays the effect when its animator delivers the event (the markers
+  exported from Blender, on the game's thread); events not in the table play nothing.
+- **How it is checked:** 12 fixtures against Chromium, with the same graph stated in JavaScript from
+  the same patch JSON (the old game has no effects to take it from, so what they show is that
+  the engine's nodes render the graph as Chromium's do, including the defaults, written separately
+  on each side): tones and sweeps, the other waves, harmonics through a sweeping filter, noise through
+  four filter types, a ringing filter cut by the cleanup, noise looping past its end, clamping, the
+  caller's volume, pan and pitch, per-play ranges, a patch's limit and the overall one. Unit tests:
+  refused calls, voices released, the limits, a stolen voice's sources stopping, repeatable seeds,
+  no range meaning no variation, effects through their bus (its volume and the master's scale them,
+  the music's doesn't), and an actor's table on the figure's real markers, sample for sample as
+  a direct play. Measured (`audio-benchmark.sh --effects`, Release, 48 kHz): 32 two-layer voices with
+  a new one every 21 ms add 0.13 ms to a quantum's mean of 0.26 ms, on a battle theme.
 
 ## Status
 
@@ -571,7 +619,7 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   buses, no limiter on the mix, following the default device, silence without one, pausing when
   minimized, calls applied at a quantum, rooms prepared at start. Measuring also led to the FFT's
   scratch arrays coming from a pool (no value changes). All 55 full themes still pass the opt-in check (20 minutes), run again since the FFT and
-  convolver changed underneath them. 16 mutations: 14 fail a test;
+  convolver changed underneath them. 19 mutations: 17 fail a test;
   the other 2 are the order of queued calls and scheduling within a quantum (music.js has no
   defined order either, and it only shows if a step's turn falls in that very quantum) and not
   sharing the kernels (speed only).
@@ -581,5 +629,17 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   effect on Linux without privileges, so the workers are kept few and low rather than relying on
   the audio thread's priority; test scratch files are lost when a session restarts (the mutation
   runner now lives in `~/.cache/stat-fick-build/claude-work/audio/`).
-- **Next: step 8, sound effects** (one-shot patches as data on the effects bus, triggered from game code
-  and clip events; tests against Chromium renders of the same patches).
+- **Step 8, sound effects: done (2026-11-02, 1013 tests).** User decisions (Decisions, "Step 8"): layers
+  of tones and noise, dry, a table per actor, optional seeded ranges, pan and volume from the
+  caller, limits per patch and overall. 12 fixtures match Chromium, 10 exactly and the 2 limit ones
+  by the shuffled-sums rule, also against 4 separate Chromium runs. 32 mutations all fail a test (three
+  survived at first and showed real gaps: the test parser supplied its own defaults, nothing played
+  the default limit, nothing saw a stolen voice's sources keep running). The opt-in theme check wasn't
+  run again: the synthesizer's renders didn't change since step 7's run.
+- **Found on the way:** a timing test failed once in three whole-suite runs on lavapipe. It assumed the
+  graph stays close to the wall clock, but the device's consumption paces it, so under load it
+  legitimately falls behind; the pace tests now assert what always holds (7 suite runs in a row
+  pass). Rewinding the source on a reopen only dropped queued audio: the source carries on, so
+  that's gone. Fixture parsers must leave a missing key to the record's default, or defaults go untested.
+- **M8 is done.** All 8 steps. Next: M9 only on the user's go, asking its open questions first
+  (`Docs/Engine-Plan.md`, "Open questions for later milestones").
