@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 
@@ -429,13 +430,15 @@ internal sealed class Butterfly128Avx : ComplexFft
                 transposed[i * 2 + 1].Store(output, columnset * 32 + i * 8 + 4);
             }
         }
-        var buffer = output.ToArray();
+        var buffer = ArrayPool<float>.Shared.Rent(output.Length);
+        output.CopyTo(buffer);
         for (var columnset = 0; columnset < 2; columnset++)
         {
             var c = columnset;
             AvxComplex.Butterfly16(i => V8.Load(buffer, c * 4 + i * 8), (d, i) => d.Store(buffer, c * 4 + i * 8), _twiddle16a, _twiddle16b, _rotation);
         }
-        buffer.CopyTo(output);
+        buffer.AsSpan(0, output.Length).CopyTo(output);
+        ArrayPool<float>.Shared.Return(buffer);
     }
 }
 
@@ -472,13 +475,15 @@ internal sealed class Butterfly256Avx : ComplexFft
                 transposed[i * 2 + 1].Store(output, columnset * 32 + i * 8 + 4);
             }
         }
-        var buffer = output.ToArray();
+        var buffer = ArrayPool<float>.Shared.Rent(output.Length);
+        output.CopyTo(buffer);
         for (var columnset = 0; columnset < 2; columnset++)
         {
             var c = columnset;
             AvxComplex.Butterfly32(i => V8.Load(buffer, c * 4 + i * 8), (d, i) => d.Store(buffer, c * 4 + i * 8), _twiddles32, _rotation);
         }
-        buffer.CopyTo(output);
+        buffer.AsSpan(0, output.Length).CopyTo(output);
+        ArrayPool<float>.Shared.Return(buffer);
     }
 }
 
@@ -501,7 +506,8 @@ internal sealed class Butterfly512Avx : ComplexFft
     public override void Transform(ReadOnlySpan<float> input, Span<float> output)
     {
         const int TwiddlesPerColumn = 15;
-        var source = input.ToArray();
+        var source = ArrayPool<float>.Shared.Rent(input.Length);
+        input.CopyTo(source);
         var mid = new V8[16];
         Span<V8> twiddled = stackalloc V8[4];
         Span<V8> transposed = stackalloc V8[4];
@@ -521,13 +527,16 @@ internal sealed class Butterfly512Avx : ComplexFft
                     transposed[k].Store(output, columnset * 64 + k * 16 + 4 * chunk);
             }
         }
-        var buffer = output.ToArray();
+        var buffer = ArrayPool<float>.Shared.Rent(output.Length);
+        output.CopyTo(buffer);
         for (var columnset = 0; columnset < 4; columnset++)
         {
             var c = columnset;
             AvxComplex.Butterfly32(i => V8.Load(buffer, c * 4 + i * 16), (d, i) => d.Store(buffer, c * 4 + i * 16), _twiddles32, _rotation);
         }
-        buffer.CopyTo(output);
+        buffer.AsSpan(0, output.Length).CopyTo(output);
+        ArrayPool<float>.Shared.Return(buffer);
+        ArrayPool<float>.Shared.Return(source);
     }
 }
 
@@ -562,7 +571,7 @@ internal sealed class MixedRadixAvx : ComplexFft
     {
         var rows = _rows;
         var lengthPerRow = _inner.Length;
-        var columnsDone = new float[2 * Length];
+        var columnsDone = ArrayPool<float>.Shared.Rent(2 * Length);
         Span<V8> column = stackalloc V8[rows];
         Span<V8> butterflied = stackalloc V8[rows];
         for (var c = 0; c < lengthPerRow / 4; c++)
@@ -578,7 +587,7 @@ internal sealed class MixedRadixAvx : ComplexFft
             for (var i = 1; i < rows; i++)
                 AvxComplex.MulComplex(_twiddles[c * (rows - 1) + i - 1], butterflied[i]).Store(columnsDone, indexBase + lengthPerRow * i);
         }
-        var rowsDone = new float[2 * Length];
+        var rowsDone = ArrayPool<float>.Shared.Rent(2 * Length);
         for (var r = 0; r < rows; r++)
             _inner.Transform(columnsDone.AsSpan(2 * r * lengthPerRow, 2 * lengthPerRow), rowsDone.AsSpan(2 * r * lengthPerRow, 2 * lengthPerRow));
         Span<V8> transposed = stackalloc V8[rows];
@@ -595,6 +604,8 @@ internal sealed class MixedRadixAvx : ComplexFft
             for (var k = 0; k < rows; k++)
                 transposed[k].Store(output, outputBase + 4 * k);
         }
+        ArrayPool<float>.Shared.Return(columnsDone);
+        ArrayPool<float>.Shared.Return(rowsDone);
     }
 }
 
@@ -635,7 +646,8 @@ internal sealed class RealFft
     /// <summary>do_fft_even: the half-size complex FFT of the samples, then the spectrum reconstructed.</summary>
     public void Forward(ReadOnlySpan<float> data, Span<float> real, Span<float> imag)
     {
-        var z = new float[Size];
+        var rented = ArrayPool<float>.Shared.Rent(Size);
+        var z = rented.AsSpan(0, Size);
         _forward.Transform(data[..Size], z);
         real[0] = z[0] + z[1];
         imag[0] = z[0] - z[1];
@@ -659,12 +671,14 @@ internal sealed class RealFft
             real[middle] = z[2 * middle];
             imag[middle] = -z[2 * middle + 1];
         }
+        ArrayPool<float>.Shared.Return(rented);
     }
 
     /// <summary>do_inverse_fft_even: the half-size complex input prepared, its inverse FFT, scaled by 2 / size.</summary>
     public void Inverse(ReadOnlySpan<float> real, ReadOnlySpan<float> imag, Span<float> data)
     {
-        var z = new float[Size];
+        var rented = ArrayPool<float>.Shared.Rent(Size);
+        var z = rented.AsSpan(0, Size);
         z[0] = 0.5f * (real[0] + imag[0]);
         z[1] = 0.5f * (real[0] - imag[0]);
         for (var k = 1; k <= _limit; k++)
@@ -690,9 +704,12 @@ internal sealed class RealFft
             z[2 * middle] = real[middle];
             z[2 * middle + 1] = -imag[middle];
         }
-        var result = new float[Size];
+        var rentedResult = ArrayPool<float>.Shared.Rent(Size);
+        var result = rentedResult.AsSpan(0, Size);
         _inverse.Transform(z, result);
         for (var i = 0; i < Size; i++)
             data[i] = result[i] * _scale;
+        ArrayPool<float>.Shared.Return(rented);
+        ArrayPool<float>.Shared.Return(rentedResult);
     }
 }

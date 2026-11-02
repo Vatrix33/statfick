@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Brutal.VulkanApi;
+using Statventure.Audio;
 using Statventure.Graphics;
 using Statventure.Imaging;
 using Statventure.Platform;
@@ -12,6 +13,8 @@ public sealed record ApplicationOptions
     public bool VSync { get; init; } = true;
     /// <summary>Where the log file goes (null: console only).</summary>
     public string? LogFile { get; init; }
+    /// <summary>Whether to open the sound output (<see cref="Application.Audio"/>).</summary>
+    public bool Audio { get; init; } = true;
 }
 
 /// <summary>Time for one update.</summary>
@@ -31,6 +34,8 @@ public abstract class Application : IDisposable
     public GpuDevice Gpu { get; private set; } = null!;
     public Swapchain Swapchain { get; private set; } = null!;
     public Input Input => Window.Input;
+    /// <summary>The sound: music and effects (null when <see cref="ApplicationOptions.Audio"/> is off). Paused while the window is minimized.</summary>
+    public AudioSystem? Audio { get; private set; }
     public bool Running { get; private set; }
 
     protected Application(ApplicationOptions options)
@@ -65,18 +70,32 @@ public abstract class Application : IDisposable
             Window = Window.Create(Options.Window);
             Gpu = GpuDevice.Create(new GpuDeviceOptions { ApplicationName = Options.Window.Title });
             Swapchain = new Swapchain(Gpu, Window, Options.VSync);
+            if (Options.Audio)
+                Audio = new AudioSystem();
             Load();
             Running = true;
             var clock = Stopwatch.StartNew();
             var last = 0.0;
             long frames = 0;
+            var pausedAudio = false;
             while (Running && !Window.CloseRequested)
             {
                 Window.PollEvents();
                 if (Window.IsMinimized)
                 {
+                    // All sound pauses while minimized and goes on where it was (step 7's decision).
+                    if (Audio is { Paused: false } audio)
+                    {
+                        audio.Pause();
+                        pausedAudio = true;
+                    }
                     Window.WaitEvents();
                     continue;
+                }
+                if (pausedAudio)
+                {
+                    Audio?.Resume();
+                    pausedAudio = false;
                 }
                 Input.BeginFrame();
                 var now = clock.Elapsed.TotalSeconds;
@@ -144,6 +163,8 @@ public abstract class Application : IDisposable
             Swapchain?.Dispose();
             Gpu.Dispose();
         }
+        Audio?.Dispose();
+        Audio = null;
         Window?.Dispose();
         Log.CloseFile();
         Gpu = null!;

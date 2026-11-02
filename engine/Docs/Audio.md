@@ -68,6 +68,19 @@ Asked before the milestone started; also in `Docs/Engine-Plan.md`, "Decisions fo
     shuffled summing orders too; at every sample its range and Chromium's 4-run range must come
     within the larger of the two spreads (the first rule, one engine render inside Chromium's range,
     failed 6 of 55 themes by summing order alone).
+- **Step 7 (asked 2026-11-01, before its code):**
+  - *Streaming:* an audio thread feeds an OpenAL streaming source queued buffers (4 × 5 ms).
+  - *Output path untouched:* direct channels, HRTF off, OpenAL's limiter off, the device's rate.
+  - *Volumes:* music = `Soundtrack.Volume` (before the limiter, as music.js); effects on the
+    effects bus; master last on the mix; 40 ms ramps.
+  - *Headroom:* none; past ±1 the system clips, as with Chromium.
+  - *Device changes:* follow the default device, keep the graph's rate (OpenAL resamples).
+  - *No device:* keep rendering in real time, silently.
+  - *Minimized:* pause all audio, resume where it was (not the old game's restart).
+  - *Threading:* game calls queued, applied before the next quantum; no locks while rendering.
+  - *Theme starts (asked after measuring):* the 7 rooms' impulse responses and convolver kernels
+    are prepared once by a worker when the audio system starts and shared (a theme start had cost
+    12–23 ms on the audio thread, about the whole buffer).
 
 ## What the old game uses (surveyed 2026-10-31)
 
@@ -406,6 +419,64 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   renders each theme in four shuffled orders, and at every sample the two sides' ranges must come
   within the larger spread.
 
+### The output (step 7)
+
+`Engine/Statventure/Audio/AudioSystem.cs`, `Audio/Output/AudioOutput.cs`; `Application.Audio`.
+
+- **`AudioSystem` (public):** an audio graph at the output's rate (the device's own, read from
+  OpenAL's `ALC_FREQUENCY`; 48 kHz without a device), a master bus (`MasterVolume`, the last gain on
+  the mix) with the effects bus (`EffectsVolume`) and the music (`Music`: the `Soundtrack`, music.js's
+  master gain and limiter, into the master bus) on it. Every volume ramps as music.js's setVolume
+  does (hold the current value, 40 ms linear). The game's calls (`Music.Play`, `Stop`, the volumes)
+  are queued and applied by the audio thread before its next quantum, then the soundtrack schedules
+  its steps, then the quantum renders; nothing locks while rendering. The audio thread renders
+  whole buffers whenever the output can take one; a rendering error is logged once and silence
+  follows. `Pause`/`Resume`; `Application` pauses all audio while its window is minimized (step 7's
+  decision) and creates the system unless `ApplicationOptions.Audio` is off.
+- **`OpenAlOutput`:** OpenAL Soft 1.25.2 (the BRUTAL package's natives): the default device, a
+  context with HRTF and OpenAL's output limiter off, a streaming source with direct channels (left
+  to left, right to right; on more speakers the others stay silent), 4 queued buffers of whole
+  quanta of about 5 ms (256 frames at 44.1 and 48 kHz, 512 at 96 kHz), stereo float32 at the graph's
+  rate. OpenAL's buffer-completed event wakes the thread. Its default-device event, or a lost
+  connection, reopens the device on the new default; the graph keeps its rate and OpenAL resamples
+  if the new device's differs. Without a device the buffers are taken at the real-time pace (20 ms
+  ahead of a clock) and dropped, and a device is looked for every second. Pausing pauses the
+  source: OpenAL Soft declicks, fading the next 64 frames out, and on resuming plays again from the
+  paused place with a 64-frame fade-in.
+- **Rooms prepared ahead (step 7's decision):** a theme start built its room on the audio thread
+  (12–23 ms in one quantum, about the whole buffer). Now a worker thread makes the 7 rooms'
+  responses and convolver kernels when the system starts (`PreparedRoom`, `Reverb.Prepared`: each
+  response channel's stage kernels, which never change), and every convolver of that room shares
+  them, keeping only its own running state; then a second of three themes is rendered into a
+  throwaway graph so the JIT has compiled the composer before the first theme change (a cold first
+  start had cost about 60 ms). A theme start now costs about 3–7 ms on the audio thread.
+- **No garbage on the audio thread's big FFTs:** the FFT's scratch arrays (2 × length floats, 128 KB
+  for the 32768-point convolver stage, so large-object-heap ones) come from the shared array pool;
+  every one is written before it is read, so no value changes. Full collections during a minute of
+  music fell from about 90 to 3.
+- **Measured** (`Tools/Scripts/audio-benchmark.sh`, Release, 48 kHz, every theme played live with
+  its steps scheduled 0.2 s ahead): 71 minutes of music at a mean of 0.23 ms per quantum of the
+  2.67 ms budget (under 9 %), 99th percentile 1.32 ms, 99.9th 2.08 ms, worst 12.9 ms, 478 of 1.6
+  million quanta over budget (before the two changes above: 99th percentile 2.2 ms, worst 35–60 ms,
+  9927 over). The big convolver stages take up to about 5 ms in one quantum; the worst cases are
+  theme starts, within the 21 ms queued. On this PC's headset through PipeWire (`--live`, silent
+  master): no underruns over repeated 12–30 s runs with theme switches every 4 s (one, its time not
+  logged, in an earlier run before the rooms' worker became a single low-priority thread).
+- **How it is checked:** a loopback device (OpenAL mixing into memory, no hardware) gets random
+  samples peaking past ±1 and gives them back bit for bit at 48 and 44.1 kHz (so no panning, HRTF,
+  limiter or resampling), and pauses and resumes as described; the audio thread's buffers equal the
+  same calls rendered directly; a call lands at the next quantum; pausing freezes the graph; without
+  a device the pace is real time; the default device keeps the graph near real time; rooms shared
+  sound as rooms made on the spot (two themes in the hall cross-fading); and the `output-buses`
+  fixture matches Chromium: music.js's chain into a master bus, a tone on an effects bus, the
+  master, effects and music volumes ramped while the music plays. Also OpenAL's reported HRTF
+  status (direct channels bypass HRTF, so the sound alone can't show it), left and right in the
+  buffers, the buffer sizes, and the reopening path on the same device.
+- **Not checked automatically:** moving to a really different device or rate (it would switch this
+  PC's default output; OpenAL resamples since buffers keep the graph's rate), a device lost or
+  appearing (the code paths exist, no test machine loses one), and `Application` pausing on a real
+  minimize (needs a window manager; the pause itself is tested).
+
 ## Status
 
 - **Step 1, harness and render core: done (2026-10-31, 681 tests).** 39 fixtures (buffer sources:
@@ -495,6 +566,20 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   rounded at this revision either); music.js's delay and hall get no input from the composer's
   themes and change no sample; the engine's Debug build renders a theme about 10 times slower than
   Release (Release: about 8 times faster than real time offline, with every note scheduled up front).
-- **Next: step 7, output** (OpenAL Soft at the device's rate, 128-frame quanta about 20 ms ahead,
-  an audio thread calling `Soundtrack.Schedule` before each quantum, buses with volumes, device
-  changes, no device; measure the convolver's big stages and live voices' cost).
+- **Step 7, the output: done (2026-11-02, 990 tests).** User decisions on the way (Decisions,
+  "Step 7"): queued buffers, an untouched output path, music.js's volume with effects and master
+  buses, no limiter on the mix, following the default device, silence without one, pausing when
+  minimized, calls applied at a quantum, rooms prepared at start. Measuring also led to the FFT's
+  scratch arrays coming from a pool (no value changes). All 55 full themes still pass the opt-in check (20 minutes), run again since the FFT and
+  convolver changed underneath them. 16 mutations: 14 fail a test;
+  the other 2 are the order of queued calls and scheduling within a quantum (music.js has no
+  defined order either, and it only shows if a step's turn falls in that very quantum) and not
+  sharing the kernels (speed only).
+- **Found on the way:** OpenAL Soft passes direct-channel float samples through bit for bit, peaks past
+  ±1 included; it declicks a source's pause and resume over 64 frames; direct channels bypass HRTF;
+  this PC's default sink is a USB headset at 48 kHz; .NET's raised thread priorities may have no
+  effect on Linux without privileges, so the workers are kept few and low rather than relying on
+  the audio thread's priority; test scratch files are lost when a session restarts (the mutation
+  runner now lives in `~/.cache/stat-fick-build/claude-work/audio/`).
+- **Next: step 8, sound effects** (one-shot patches as data on the effects bus, triggered from game code
+  and clip events; tests against Chromium renders of the same patches).

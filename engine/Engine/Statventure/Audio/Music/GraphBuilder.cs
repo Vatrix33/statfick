@@ -35,6 +35,9 @@ internal sealed class GraphBuilder
     /// <summary>The composer's per-context resources (music-composer.js's kit); made on first use.</summary>
     internal ComposerKit? Kit { get; set; }
 
+    /// <summary>Rooms prepared off the audio thread (step 7): a room's response and its convolver kernels, or null to make them here.</summary>
+    internal Func<string, PreparedRoom?>? PreparedRooms { get; set; }
+
     public bool Logging => _log != null;
 
     void Log(string line) => _log?.Add(line);
@@ -250,9 +253,9 @@ internal sealed class GraphBuilder
             Log($"{Id(source)}.buffer={BufferLine(buffer)}");
     }
 
-    public void SetBuffer(ConvolverNode convolver, AudioBuffer buffer)
+    public void SetBuffer(ConvolverNode convolver, AudioBuffer buffer, Reverb.Prepared? prepared = null)
     {
-        convolver.Buffer = buffer;
+        convolver.SetBuffer(buffer, prepared);
         if (Logging)
             Log($"{Id(convolver)}.buffer={BufferLine(buffer)}");
     }
@@ -277,5 +280,17 @@ internal sealed class GraphBuilder
         };
         if (Logging)
             Log($"{Id(first)}.onended={string.Join(",", nodes.Select(Id))}");
+    }
+}
+
+/// <summary>A room made ahead: its impulse response and the convolver kernels for it (normalized, as the composer's convolvers are).</summary>
+internal sealed record PreparedRoom(AudioBuffer Buffer, Reverb.Prepared Response)
+{
+    /// <summary>Makes <paramref name="roomName"/>'s response at <paramref name="sampleRate"/> and its kernels; safe on any thread.</summary>
+    public static PreparedRoom Make(string roomName, float sampleRate)
+    {
+        var buffer = new AudioBuffer(2, Performance.ResponseLength(roomName, sampleRate), sampleRate);
+        Performance.FillImpulse(roomName, buffer);
+        return new PreparedRoom(buffer, Reverb.Prepare(buffer, normalize: true, responseAlignment: 0));
     }
 }

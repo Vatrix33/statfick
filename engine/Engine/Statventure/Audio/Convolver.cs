@@ -188,30 +188,41 @@ internal sealed class ReverbConvolverStage
     int _accumulationReadIndex, _preReadWriteIndex;
     long _framesProcessed;
 
-    public ReverbConvolverStage(ReadOnlySpan<float> impulseResponse, int totalLatency, int stageOffset, int stageLength, int fftSize,
-        int renderPhase, int renderSliceSize, ReverbAccumulationBuffer accumulation, float scale, bool directMode)
+    /// <summary>A stage's kernel, which never changes once made: the FFT of its slice of the response, or the first stage's frames.</summary>
+    internal sealed record Kernel(int StageOffset, int StageLength, int FftSize, bool Direct, FftFrame? Spectrum, float[]? Frames);
+
+    public static Kernel MakeKernel(ReadOnlySpan<float> impulseResponse, int stageOffset, int stageLength, int fftSize, float scale, bool directMode)
     {
-        _accumulation = accumulation;
         if (!directMode)
         {
-            _kernel = new FftFrame(fftSize);
-            _kernel.DoPaddedFft(impulseResponse.Slice(stageOffset, stageLength));
+            var spectrum = new FftFrame(fftSize);
+            spectrum.DoPaddedFft(impulseResponse.Slice(stageOffset, stageLength));
             if (scale != 1)
-                _kernel.Scale(scale);
+                spectrum.Scale(scale);
+            return new Kernel(stageOffset, stageLength, fftSize, false, spectrum, null);
+        }
+        var directKernel = new float[fftSize / 2];
+        impulseResponse[..stageLength].CopyTo(directKernel);
+        if (scale != 1)
+            VectorMath.Vsmul(directKernel.AsSpan(0, stageLength), scale, directKernel.AsSpan(0, stageLength));
+        return new Kernel(stageOffset, stageLength, fftSize, true, null, directKernel);
+    }
+
+    public ReverbConvolverStage(Kernel kernel, int totalLatency, int renderPhase, int renderSliceSize, ReverbAccumulationBuffer accumulation)
+    {
+        _accumulation = accumulation;
+        var fftSize = kernel.FftSize;
+        if (!kernel.Direct)
+        {
+            _kernel = kernel.Spectrum;
             _fftConvolver = new FftConvolver(fftSize);
         }
         else
-        {
-            var directKernel = new float[fftSize / 2];
-            impulseResponse[..stageLength].CopyTo(directKernel);
-            if (scale != 1)
-                VectorMath.Vsmul(directKernel.AsSpan(0, stageLength), scale, directKernel.AsSpan(0, stageLength));
-            _directConvolver = new DirectConvolver(renderSliceSize, directKernel);
-        }
+            _directConvolver = new DirectConvolver(renderSliceSize, kernel.Frames!);
         _temporary = new float[renderSliceSize];
-        var totalDelay = stageOffset + totalLatency;
+        var totalDelay = kernel.StageOffset + totalLatency;
         var halfSize = fftSize / 2;
-        if (!directMode && totalDelay >= halfSize)
+        if (!kernel.Direct && totalDelay >= halfSize)
             totalDelay -= halfSize;
         var maxPreDelayLength = Math.Min(halfSize, totalDelay);
         _preDelayLength = totalDelay > 0 ? renderPhase % maxPreDelayLength : 0;
@@ -281,28 +292,34 @@ internal sealed class ReverbConvolver
     readonly List<ReverbConvolverStage> _stages = [];
     readonly ReverbAccumulationBuffer _accumulation;
 
-    public ReverbConvolver(ReadOnlySpan<float> impulseResponse, int renderSliceSize, int maxFftSize, int renderPhaseStart, float scale)
+    /// <summary>The stage kernels of one response channel, in stage order (shared by every convolver of that response).</summary>
+    public static ReverbConvolverStage.Kernel[] MakeKernels(ReadOnlySpan<float> impulseResponse, int maxFftSize, float scale)
     {
-        _accumulation = new ReverbAccumulationBuffer(impulseResponse.Length + renderSliceSize);
+        var kernels = new List<ReverbConvolverStage.Kernel>();
         var totalLength = impulseResponse.Length;
         var stageOffset = 0;
-        var i = 0;
         var fftSize = MinFftSize;
         while (stageOffset < totalLength)
         {
             var stageSize = fftSize / 2;
             if (stageSize + stageOffset > totalLength)
                 stageSize = totalLength - stageOffset;
-            var renderPhase = renderPhaseStart + i * renderSliceSize;
             var direct = stageOffset == 0;
-            _stages.Add(new ReverbConvolverStage(impulseResponse, 0, stageOffset, stageSize, fftSize, renderPhase, renderSliceSize, _accumulation, scale, direct));
+            kernels.Add(ReverbConvolverStage.MakeKernel(impulseResponse, stageOffset, stageSize, fftSize, scale, direct));
             stageOffset += stageSize;
-            i++;
             if (!direct)
                 fftSize *= 2;
             if (fftSize > maxFftSize)
                 fftSize = maxFftSize;
         }
+        return [.. kernels];
+    }
+
+    public ReverbConvolver(ReverbConvolverStage.Kernel[] kernels, int responseLength, int renderSliceSize, int renderPhaseStart)
+    {
+        _accumulation = new ReverbAccumulationBuffer(responseLength + renderSliceSize);
+        for (var i = 0; i < kernels.Length; i++)
+            _stages.Add(new ReverbConvolverStage(kernels[i], 0, renderPhaseStart + i * renderSliceSize, renderSliceSize, _accumulation));
     }
 
     public void Process(ReadOnlySpan<float> source, Span<float> destination)
@@ -334,16 +351,33 @@ internal sealed class Reverb
     readonly List<ReverbConvolver> _convolvers = [];
     readonly AudioBus? _temp;
 
-    public Reverb(AudioBuffer response, bool normalize, int responseAlignment)
+    /// <summary>
+    /// What a response's convolvers share and never change (step 7's decision: prepared once, off the
+    /// audio thread, for the composer's rooms): its length, channels, and each channel's stage kernels,
+    /// scaled by the normalization.
+    /// </summary>
+    internal sealed record Prepared(int Length, int Channels, float SampleRate, ReverbConvolverStage.Kernel[][] Kernels);
+
+    public static Prepared Prepare(AudioBuffer response, bool normalize, int responseAlignment)
     {
-        ResponseLength = response.Length;
-        ResponseChannels = response.NumberOfChannels;
         var scale = normalize ? NormalizationScale(response, responseAlignment) : 1;
+        var kernels = new ReverbConvolverStage.Kernel[response.NumberOfChannels][];
+        for (var c = 0; c < kernels.Length; c++)
+            kernels[c] = ReverbConvolver.MakeKernels(response.GetChannelData(c), MaxFftSize, scale);
+        return new Prepared(response.Length, response.NumberOfChannels, response.SampleRate, kernels);
+    }
+
+    public Reverb(AudioBuffer response, bool normalize, int responseAlignment) : this(Prepare(response, normalize, responseAlignment)) { }
+
+    public Reverb(Prepared prepared)
+    {
+        ResponseLength = prepared.Length;
+        ResponseChannels = prepared.Channels;
         var count = Math.Max(ResponseChannels, 2);
         var renderPhase = 0;
         for (var i = 0; i < count; i++)
         {
-            _convolvers.Add(new ReverbConvolver(response.GetChannelData(Math.Min(i, ResponseChannels - 1)), AudioGraph.RenderQuantumFrames, MaxFftSize, renderPhase, scale));
+            _convolvers.Add(new ReverbConvolver(prepared.Kernels[Math.Min(i, ResponseChannels - 1)], ResponseLength, AudioGraph.RenderQuantumFrames, renderPhase));
             renderPhase += AudioGraph.RenderQuantumFrames;
         }
         if (ResponseChannels == 4)
@@ -512,12 +546,21 @@ internal sealed class ConvolverNode : AudioNode
                 _buffer = null;
                 return;
             }
-            if (value.SampleRate != Graph.SampleRateF)
-                throw new NotSupportedException($"the buffer's rate ({value.SampleRate}) isn't the context's ({Graph.SampleRateF})");
-            _reverb = new Reverb(value, Normalize, ResponseAlignment);
-            _buffer = value;
-            Output(0).SetNumberOfChannels(NumberOfOutputChannels(Input(0).NumberOfChannels, value.NumberOfChannels));
+            SetBuffer(value, null);
         }
+    }
+
+    /// <summary>The prepared response for <paramref name="buffer"/> as this node would make it (normalized or not), for sharing.</summary>
+    internal Reverb.Prepared Prepare(AudioBuffer buffer) => Reverb.Prepare(buffer, Normalize, ResponseAlignment);
+
+    /// <summary>buffer = <paramref name="value"/>, with its response already prepared (it must be <paramref name="value"/>'s, made with this node's Normalize).</summary>
+    internal void SetBuffer(AudioBuffer value, Reverb.Prepared? prepared)
+    {
+        if (value.SampleRate != Graph.SampleRateF)
+            throw new NotSupportedException($"the buffer's rate ({value.SampleRate}) isn't the context's ({Graph.SampleRateF})");
+        _reverb = prepared != null ? new Reverb(prepared) : new Reverb(value, Normalize, ResponseAlignment);
+        _buffer = value;
+        Output(0).SetNumberOfChannels(NumberOfOutputChannels(Input(0).NumberOfChannels, value.NumberOfChannels));
     }
 
     static int NumberOfOutputChannels(int inputChannels, int responseChannels) => Math.Clamp(Math.Max(inputChannels, responseChannels), 1, 2);

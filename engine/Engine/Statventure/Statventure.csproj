@@ -29,5 +29,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Statventure.Tests" />
     <InternalsVisibleTo Include="UiBenchmark" />
+    <InternalsVisibleTo Include="AudioBenchmark" />
   </ItemGroup>
 </Project>

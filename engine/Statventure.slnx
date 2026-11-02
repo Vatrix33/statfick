@@ -11,5 +11,6 @@
   <Folder Name="/Tools/">
     <Project Path="Tools/ShaderCompiler/ShaderCompiler.csproj" />
     <Project Path="Tools/UiBenchmark/UiBenchmark.csproj" />
+    <Project Path="Tools/AudioBenchmark/AudioBenchmark.csproj" />
   </Folder>
 </Solution>

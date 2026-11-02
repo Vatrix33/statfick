@@ -124,6 +124,49 @@ internal static partial class AudioFixtures
 
         """;
 
+    /// <summary>music.js's sync, retire, stop, schedule and setVolume for the composer's themes (they need `master` and `volume`).</summary>
+    const string MusicFunctions = """
+        // music.js's sync, retire, stop, schedule and setVolume, for themes of the composer.
+        let activeBus = null, activePerformance = null, activeTheme = null, nextNoteTime = 0, step = 0;
+        const retire = bus => {
+          if (!bus) return;
+          const now = ctx.currentTime;
+          bus.gain.cancelAndHoldAtTime(now);
+          bus.gain.linearRampToValueAtTime(0, now + 0.55);
+          at(now + 1.8, () => bus.disconnect());
+        };
+        const schedule = () => {
+          if (!activeBus) return;
+          if (nextNoteTime < ctx.currentTime - 0.5) nextNoteTime = ctx.currentTime + 0.04;
+          while (nextNoteTime < ctx.currentTime + 0.2) {
+            activePerformance.step(step, nextNoteTime);
+            nextNoteTime += activePerformance.stepSeconds;
+            step++;
+          }
+        };
+        const play = (id, spec) => {
+          if (id === activeTheme) return;
+          retire(activeBus);
+          activePerformance = MusicComposer.perform(ctx, MusicComposer.compile(spec), master);
+          activeBus = activePerformance.bus;
+          activeBus.gain.setValueAtTime(0, ctx.currentTime);
+          activeBus.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.8);
+          activeTheme = id;
+          step = 0;
+          nextNoteTime = ctx.currentTime + 0.06;
+          schedule();
+        };
+        const stop = () => { retire(activeBus); activeBus = null; activeTheme = null; activePerformance = null; };
+        const setVolume = value => {
+          volume = Math.max(0, Math.min(1, value));
+          const now = ctx.currentTime;
+          master.gain.cancelScheduledValues(now);
+          master.gain.setValueAtTime(master.gain.value, now);
+          master.gain.linearRampToValueAtTime(0.58 * volume, now + 0.04);
+        };
+
+        """;
+
     /// <summary>A theme with its own sections, form and loop.</summary>
     static string Song(string id, double tempo, int beats, int sub, string sections, string form, int loop = 0, string room = "chamber", string extra = "") =>
         $$"""{ "id": "{{id}}", "title": "{{id}}", "tempo": {{tempo}}, "meter": [{{beats}}, {{sub}}], "tonic": 60, "mode": "dorian", "room": "{{room}}"{{extra}}, "sections": { {{sections}} }, "form": [{{form}}], "loop": {{loop}} }""";
@@ -259,45 +302,7 @@ internal static partial class AudioFixtures
 
         var first = Theme("synth-fade-a", 120, "1 | 4 | 5 | 1", """{ "t": "pad", "i": "violins", "o": 0, "v": 0.7, "n": 2 }, { "t": "bass", "i": "sub", "o": -2, "v": 0.7, "p": "1" }""");
         var second = Theme("synth-fade-b", 100, "6 | 4", """{ "t": "drone", "i": "organ", "o": 0, "v": 0.6, "deg": ["1"], "every": 2 }, { "t": "drums", "v": 0.6, "p": { "frame": "x." } }""");
-        yield return F("synth-fades", 2, (int)Math.Ceiling(4.6 * 22050), 22050, "let volume = 1;\n" + MasterChain + $$"""
-            // music.js's sync, retire, stop, schedule and setVolume, for themes of the composer.
-            let activeBus = null, activePerformance = null, activeTheme = null, nextNoteTime = 0, step = 0;
-            const retire = bus => {
-              if (!bus) return;
-              const now = ctx.currentTime;
-              bus.gain.cancelAndHoldAtTime(now);
-              bus.gain.linearRampToValueAtTime(0, now + 0.55);
-              at(now + 1.8, () => bus.disconnect());
-            };
-            const schedule = () => {
-              if (!activeBus) return;
-              if (nextNoteTime < ctx.currentTime - 0.5) nextNoteTime = ctx.currentTime + 0.04;
-              while (nextNoteTime < ctx.currentTime + 0.2) {
-                activePerformance.step(step, nextNoteTime);
-                nextNoteTime += activePerformance.stepSeconds;
-                step++;
-              }
-            };
-            const play = (id, spec) => {
-              if (id === activeTheme) return;
-              retire(activeBus);
-              activePerformance = MusicComposer.perform(ctx, MusicComposer.compile(spec), master);
-              activeBus = activePerformance.bus;
-              activeBus.gain.setValueAtTime(0, ctx.currentTime);
-              activeBus.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.8);
-              activeTheme = id;
-              step = 0;
-              nextNoteTime = ctx.currentTime + 0.06;
-              schedule();
-            };
-            const stop = () => { retire(activeBus); activeBus = null; activeTheme = null; activePerformance = null; };
-            const setVolume = value => {
-              volume = Math.max(0, Math.min(1, value));
-              const now = ctx.currentTime;
-              master.gain.cancelScheduledValues(now);
-              master.gain.setValueAtTime(master.gain.value, now);
-              master.gain.linearRampToValueAtTime(0.58 * volume, now + 0.04);
-            };
+        yield return F("synth-fades", 2, (int)Math.Ceiling(4.6 * 22050), 22050, "let volume = 1;\n" + MasterChain + MusicFunctions + $$"""
             play("a", {{first}});
             quantum(schedule);
             at(0.7, () => setVolume(0.5));
@@ -315,6 +320,52 @@ internal static partial class AudioFixtures
             r.Suspend(1.2, () => soundtrack.Play("a", a));
             r.Suspend(1.5, () => soundtrack.Play("b", b));
             r.Suspend(2.9, soundtrack.Stop);
+        }, ShuffledSums) with { Quanta = true };
+
+        // ---- The audio system's mixer (step 7): music.js's chain into the master bus, a tone on the effects bus, every volume ramped. ----
+        var busTheme = Theme("synth-buses", 120, "1 | 5", """{ "t": "pad", "i": "violins", "o": 0, "v": 0.8, "n": 2 }, { "t": "bass", "i": "sub", "o": -2, "v": 0.7, "p": "1" }""");
+        yield return F("output-buses", 2, (int)Math.Ceiling(1.2 * 22050), 22050, """
+            let volume = 1;
+            const bus = ctx.createGain();
+            bus.connect(ctx.destination);
+            const effects = ctx.createGain();
+            effects.connect(bus);
+
+            """ + MasterChain.Replace("limiter.connect(ctx.destination);", "limiter.connect(bus);") + MusicFunctions + $$"""
+            const tone = ctx.createOscillator();
+            tone.frequency.value = 660;
+            const toneLevel = ctx.createGain();
+            toneLevel.gain.value = 0.2;
+            tone.connect(toneLevel);
+            toneLevel.connect(effects);
+            tone.start(0);
+            const ramp = (param, value) => {
+              const now = ctx.currentTime;
+              param.cancelScheduledValues(now);
+              param.setValueAtTime(param.value, now);
+              param.linearRampToValueAtTime(value, now + 0.04);
+            };
+            play("a", {{busTheme}});
+            quantum(schedule);
+            at(0.3, () => ramp(bus.gain, 0.5));
+            at(0.45, () => ramp(effects.gain, 0.2));
+            at(0.6, () => setVolume(0.4));
+            at(0.8, () => ramp(bus.gain, 1));
+            """, r =>
+        {
+            var system = new AudioSystem(r.G);
+            var tone = new OscillatorNode(r.G);
+            tone.Frequency.Value = 660;
+            var toneLevel = r.Gain(0.2f);
+            tone.Connect(toneLevel);
+            toneLevel.Connect(system.EffectsBus);
+            tone.Start(0);
+            system.Music.Play("a", Score.Compile(ThemeJson.Parse(busTheme)));
+            r.EveryQuantum.Add(system.BeforeQuantum);
+            r.Suspend(0.3, () => system.MasterVolume = 0.5);
+            r.Suspend(0.45, () => system.EffectsVolume = 0.2);
+            r.Suspend(0.6, () => system.Music.Volume = 0.4);
+            r.Suspend(0.8, () => system.MasterVolume = 1);
         }, ShuffledSums) with { Quanta = true };
     }
 }

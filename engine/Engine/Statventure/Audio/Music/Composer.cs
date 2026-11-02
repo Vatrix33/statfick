@@ -38,6 +38,8 @@ internal sealed class ComposerKit
     public Dictionary<string, PeriodicWave> Waves { get; } = [];
     public Dictionary<string, PluckTable> Plucks { get; } = [];
     public Dictionary<string, AudioBuffer> Rooms { get; } = [];
+    /// <summary>The convolver kernels made for a room's buffer off the audio thread (step 7), shared by every performance in it.</summary>
+    public Dictionary<AudioBuffer, Reverb.Prepared> PreparedResponses { get; } = new(ReferenceEqualityComparer.Instance);
 
     public static ComposerKit For(GraphBuilder builder)
     {
@@ -102,7 +104,8 @@ internal sealed class Performance
         _g.Connect(_dry, lowCut);
         var room = MusicData.Rooms.GetValueOrDefault(compiled.Room) ?? MusicData.Rooms["hall"];
         var reverb = _g.Convolver();
-        _g.SetBuffer(reverb, Impulse(compiled.Room));
+        var response = Impulse(compiled.Room);
+        _g.SetBuffer(reverb, response, _kit.PreparedResponses.GetValueOrDefault(response));
         var wet = _g.Gain();
         _g.Value(wet.Gain, room.Wet * compiled.Gain * 2.2);
         _send = _g.Gain();
@@ -160,10 +163,31 @@ internal sealed class Performance
     {
         if (_kit.Rooms.TryGetValue(roomName, out var cached))
             return cached;
-        var room = MusicData.Rooms.GetValueOrDefault(roomName) ?? MusicData.Rooms["hall"];
-        var rate = _g.SampleRate;
-        var length = (int)Math.Ceiling(room.Seconds * rate);
-        var buffer = _g.Buffer(2, length);
+        AudioBuffer buffer;
+        if (_g.PreparedRooms?.Invoke(roomName) is { } prepared)
+        {
+            buffer = prepared.Buffer;
+            _kit.PreparedResponses[buffer] = prepared.Response;
+        }
+        else
+        {
+            buffer = _g.Buffer(2, ResponseLength(roomName, _g.SampleRate));
+            FillImpulse(roomName, buffer);
+        }
+        _kit.Rooms[roomName] = buffer;
+        return buffer;
+    }
+
+    static RoomSpec Room(string roomName) => MusicData.Rooms.GetValueOrDefault(roomName) ?? MusicData.Rooms["hall"];
+
+    internal static int ResponseLength(string roomName, double rate) => (int)Math.Ceiling(Room(roomName).Seconds * rate);
+
+    /// <summary>impulse()'s samples, into a stereo buffer of <see cref="ResponseLength"/> frames at the buffer's rate.</summary>
+    internal static void FillImpulse(string roomName, AudioBuffer buffer)
+    {
+        var room = Room(roomName);
+        double rate = buffer.SampleRate;
+        var length = buffer.Length;
         for (var channel = 0; channel < 2; channel++)
         {
             var samples = buffer.GetChannelData(channel);
@@ -183,8 +207,6 @@ internal sealed class Performance
                 samples[at] = (float)(samples[at] + (random.Next() < 0.5 ? -1 : 1) * (0.5 - k * 0.05));
             }
         }
-        _kit.Rooms[roomName] = buffer;
-        return buffer;
     }
 
     /// <summary>Karplus-Strong: a noise burst circulating in a damped delay line of one period.</summary>

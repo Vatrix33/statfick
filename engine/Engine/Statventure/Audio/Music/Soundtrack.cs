@@ -7,7 +7,9 @@ namespace Statventure.Audio;
 /// in over 0.8 s, scheduling steps 0.2 s ahead. Themes are named by the old game's ids
 /// ("alder-vale", "combat@alder-vale", a boss's id); which one plays is the game's choice. The
 /// renderer calls <see cref="Schedule"/> before each render quantum (music.js runs it every 45 ms;
-/// the notes come out the same, all of them being scheduled ahead of their time).
+/// the notes come out the same, all of them being scheduled ahead of their time). Under an
+/// <see cref="AudioSystem"/> the game's calls are queued and applied by the audio thread before its
+/// next quantum (step 7's decision), "now" being the graph's time then.
 /// </summary>
 public sealed class Soundtrack
 {
@@ -18,6 +20,7 @@ public sealed class Soundtrack
     readonly GraphBuilder _builder;
     readonly GainNode _master;
     readonly List<(double Time, Action Action)> _timers = [];
+    readonly Action<Action>? _dispatch;
     Performance? _performance;
     GainNode? _bus;
     double _nextNoteTime;
@@ -33,9 +36,11 @@ public sealed class Soundtrack
     /// (renderOffline) keep the original loudness whatever the volume. The old score engine's delay and
     /// hall are left out: no theme feeds them, so they only ever add zeros.
     /// </summary>
-    internal Soundtrack(AudioGraph graph, AudioNode destination, double volume = 1, bool export = false)
+    internal Soundtrack(AudioGraph graph, AudioNode destination, double volume = 1, bool export = false, Action<Action>? dispatch = null,
+        Func<string, PreparedRoom?>? preparedRooms = null)
     {
-        _builder = new GraphBuilder(graph);
+        _builder = new GraphBuilder(graph) { PreparedRooms = preparedRooms };
+        _dispatch = dispatch;
         _volume = Math.Clamp(volume, 0, 1);
         _master = new GainNode(graph);
         _master.Gain.Value = (float)(MasterLevel * (export ? 1 : _volume));
@@ -51,8 +56,17 @@ public sealed class Soundtrack
 
     AudioGraph Graph => _builder.Graph;
 
-    /// <summary>The theme playing, or null.</summary>
+    /// <summary>The theme playing (as the audio thread last applied the calls), or null.</summary>
     public string? Theme { get; private set; }
+
+    /// <summary>Runs <paramref name="action"/> on the audio thread before its next quantum, or now without one.</summary>
+    void Dispatch(Action action)
+    {
+        if (_dispatch != null)
+            _dispatch(action);
+        else
+            action();
+    }
 
     /// <summary>The volume, 0 to 1: the master gain ramps to 0.58 × it over 40 ms (music.js's setVolume).</summary>
     public double Volume
@@ -62,12 +76,17 @@ public sealed class Soundtrack
         {
             if (!double.IsFinite(value))
                 return;
-            _volume = Math.Clamp(value, 0, 1);
-            var now = Graph.CurrentTime;
-            _master.Gain.CancelScheduledValues(now);
-            _master.Gain.SetValueAtTime(_master.Gain.Value, now);
-            _master.Gain.LinearRampToValueAtTime((float)(MasterLevel * _volume), now + 0.04);
+            var volume = _volume = Math.Clamp(value, 0, 1);
+            Dispatch(() => ApplyVolume(volume));
         }
+    }
+
+    void ApplyVolume(double volume)
+    {
+        var now = Graph.CurrentTime;
+        _master.Gain.CancelScheduledValues(now);
+        _master.Gain.SetValueAtTime(_master.Gain.Value, now);
+        _master.Gain.LinearRampToValueAtTime((float)(MasterLevel * volume), now + 0.04);
     }
 
     /// <summary>A performance of <paramref name="compiled"/> into the master gain, as renderOffline makes it.</summary>
@@ -80,11 +99,9 @@ public sealed class Soundtrack
     /// </summary>
     public void Play(string themeId)
     {
-        if (themeId == Theme)
-            return;
         if (!Compiled.Value.TryGetValue(themeId, out var compiled))
             throw new ArgumentException($"No theme '{themeId}'", nameof(themeId));
-        Play(themeId, compiled);
+        Dispatch(() => Play(themeId, compiled));
     }
 
     /// <summary><see cref="Play(string)"/> of a compiled theme (the tests' small themes).</summary>
@@ -105,7 +122,9 @@ public sealed class Soundtrack
     }
 
     /// <summary>Fades the theme playing out (music.js's stop).</summary>
-    public void Stop()
+    public void Stop() => Dispatch(StopNow);
+
+    void StopNow()
     {
         Retire(_bus);
         _bus = null;
@@ -125,10 +144,11 @@ public sealed class Soundtrack
     }
 
     /// <summary>
-    /// Before each render quantum: runs the timers that are due (at the first quantum boundary at or
-    /// after their time) and schedules every step that starts within 0.2 s (music.js's schedule).
+    /// Before each render quantum, on the thread that renders: runs the timers that are due (at the
+    /// first quantum boundary at or after their time) and schedules every step that starts within
+    /// 0.2 s (music.js's schedule).
     /// </summary>
-    public void Schedule()
+    internal void Schedule()
     {
         var now = Graph.CurrentTime;
         for (var i = 0; i < _timers.Count;)
