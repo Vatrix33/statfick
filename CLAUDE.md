@@ -12,7 +12,8 @@ The user's standing rules:
   recommended one first) and record the answer with its date in `engine/Docs/Engine-Plan.md`. Never
   improvise or carry on with an assumed answer.
 - Stop when a milestone is finished; wait for the user's go before the next.
-- `engine/Tools/Scripts/test.sh` must pass in full before a step counts as done.
+- `engine/Tools/Scripts/test.sh` must pass in full before a step counts as done (on the PC on the GPU and on lavapipe),
+  and new tests must be shown able to fail by breaking each rule they cover.
 - Keep the docs current after every step (they are the only notes a cloud session has).
 
 Where this is worked on (decided 2026-10-30):
@@ -30,6 +31,9 @@ Where this is worked on (decided 2026-10-30):
 Git (decided 2026-10-30): the repo is private on GitHub (the user's existing repo). Cloud sessions
 push their own branch and open a pull request, which the user merges on GitHub; sessions on the
 user's PC commit finished steps to `main` and push. Pull before starting work on either side.
+Commits carry the user's email and end with the attribution line your environment gives:
+`git -c user.email=meistervatrix@gmail.com commit ...`. Push with
+`GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=/bin/false SSH_ASKPASS= git push -q origin main`. Everything on GitHub stays private.
 
 The tests give the same results on all three: they act as Chromium on Linux with the reference PC's
 font settings, and take system fonts from the repo (`engine/Tests/Statventure.Tests/Infrastructure/`
