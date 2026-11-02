@@ -23,6 +23,13 @@ the user and wait for their go-ahead before starting the next one.
   (`Docs/Renderer-3D.md`, "Reference harness"; on the PC the Flatpak, run headless). It also evaluates
   the animation scenes (`Docs/Animation.md`, "Reference harness": poses, NLA stacks, gear). Its renders,
   evaluations and test models are committed, so the tests run where there's no Blender (the cloud).
+- Audio (M8, `Docs/Audio.md`): `Tools/Scripts/play-theme.sh [theme] [--volume 0-100]` plays the music on the real
+  device, to listen to it (in a real terminal; testing it from a script, send only volume 0).
+  `Tools/Scripts/audio-benchmark.sh [--split | --start [--warm] | --live | --effects] [theme ...]` times it (Release).
+  References: `make-audio-references.sh [names]` (fixtures), `make-music-data.sh` (`MusicData.g.cs` from the old
+  JavaScript), `make-music-references.sh`, `make-native-references.sh`, `make-v8-math-reference.sh`. After changing the
+  synthesizer also run `test-themes.sh` (about 20 minutes; `make-theme-references.sh` once per machine first, 2.6 GB
+  in the build cache, half an hour or more); the normal suite doesn't need those.
 - On the PC a step is also checked on the CPU Vulkan the cloud uses (Mesa's lavapipe):
   `VK_DRIVER_FILES=/usr/share/vulkan/icd.d/lvp_icd.x86_64.json VK_ICD_FILENAMES=$VK_DRIVER_FILES Tools/Scripts/test.sh`.
 - Reference sources: `~/.cache/stat-fick-build/reference-src/` (save new downloads there).

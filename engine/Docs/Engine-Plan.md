@@ -5,7 +5,7 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-11-02):** none: M8 (audio) is done and ticked; M9 starts only on the user's go. The project is
+**Current task (2026-11-02):** none: M8 (audio) is done and ticked (all its checks numeric; the user is to listen with `Tools/Scripts/play-theme.sh`, and it hasn't run on Windows yet); M9 starts only on the user's go. The project is
 one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo `github.com/Vatrix33/statfick`.
 Before each later milestone (M9 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code.
@@ -17,7 +17,7 @@ limiter), `MasterVolume`, `EffectsVolume`; `Soundtrack.Themes` lists the 55 ids.
 `combat`) and saves the volumes (M9). Effects: `Audio.Effects.Register(id, patch)`, `Play(id, volume, pan, pitch)`,
 `Actor.Sounds` (event name → effect, pan, volume); which sounds exist is decided at port time. The old game's one
 slider is the music volume. `test-themes.sh` (with `make-theme-references.sh` once on a machine, 2.6 GB) whenever
-the synthesizer changes.
+the synthesizer changes; `play-theme.sh <theme>` plays a theme to listen to it.
 
 **What M7 leaves for the port:** figures are `Actor`s in an `AnimatedView` (added to the document as a
 frame client, shown in a `surface` element); their clips come from the .glb files (exported with

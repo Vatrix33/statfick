@@ -1,7 +1,7 @@
 // Times the audio engine as the game runs it (Docs/Audio.md, step 7): each theme played through the
 // AudioSystem's mixer at 48 kHz, its steps scheduled 0.2 s ahead before each quantum, for one pass of
 // its form plus 4.5 s; every quantum's render time against the real-time budget (128 frames:
-// 2.67 ms). Arguments name themes (all by default).
+// 2.67 ms). Arguments name themes (all by default); see Tools/Scripts/audio-benchmark.sh for the other modes.
 using System.Diagnostics;
 using Statventure.Audio;
 
