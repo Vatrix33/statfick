@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Plays the game's music through the default output device, to listen to it (Tools/Scripts/play-theme.sh). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Statventure.Tools.PlayTheme</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Engine/Statventure/Statventure.csproj" />
+  </ItemGroup>
+</Project>

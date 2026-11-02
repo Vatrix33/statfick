@@ -12,5 +12,6 @@
     <Project Path="Tools/ShaderCompiler/ShaderCompiler.csproj" />
     <Project Path="Tools/UiBenchmark/UiBenchmark.csproj" />
     <Project Path="Tools/AudioBenchmark/AudioBenchmark.csproj" />
+    <Project Path="Tools/PlayTheme/PlayTheme.csproj" />
   </Folder>
 </Solution>

@@ -482,6 +482,12 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   master, effects and music volumes ramped while the music plays. Also OpenAL's reported HRTF
   status (direct channels bypass HRTF, so the sound alone can't show it), left and right in the
   buffers, the buffer sizes, and the reopening path on the same device.
+- **Listening:** `Tools/Scripts/play-theme.sh [theme] [--volume 0-100]` (`Tools/PlayTheme`, on the public API
+  only) lists the themes or plays one, looping, through the default device; while it plays, type another
+  theme to change to it with the game's fades, or a volume; Enter alone quits. It needs a real
+  terminal: with no input it quits at once. A theme started right after launch logs one underrun
+  (the JIT on first use, while the warm-up still runs), before the first note and so not heard; a
+  theme started later (1.5 s in, in the `--live` runs) doesn't.
 - **Not checked automatically:** moving to a really different device or rate (it would switch this
   PC's default output; OpenAL resamples since buffers keep the graph's rate), a device lost or
   appearing (the code paths exist, no test machine loses one), and `Application` pausing on a real

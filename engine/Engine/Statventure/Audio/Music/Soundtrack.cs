@@ -21,6 +21,7 @@ public sealed class Soundtrack
     readonly GainNode _master;
     readonly List<(double Time, Action Action)> _timers = [];
     readonly Action<Action>? _dispatch;
+    readonly Func<string, PreparedRoom?>? _preparedRooms;
     Performance? _performance;
     GainNode? _bus;
     double _nextNoteTime;
@@ -40,6 +41,7 @@ public sealed class Soundtrack
         Func<string, PreparedRoom?>? preparedRooms = null)
     {
         _builder = new GraphBuilder(graph) { PreparedRooms = preparedRooms };
+        _preparedRooms = preparedRooms;
         _dispatch = dispatch;
         _volume = Math.Clamp(volume, 0, 1);
         _master = new GainNode(graph);
@@ -104,6 +106,8 @@ public sealed class Soundtrack
     {
         if (!Compiled.Value.TryGetValue(themeId, out var compiled))
             throw new ArgumentException($"No theme '{themeId}'", nameof(themeId));
+        // If the worker is still preparing this room (just after start), the caller waits for it, not the audio thread.
+        _preparedRooms?.Invoke(compiled.Room);
         Dispatch(() => Play(themeId, compiled));
     }
 
