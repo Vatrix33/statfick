@@ -6,9 +6,8 @@ The engine is finished, fully tested, before the game is ported onto it.
 ## How to continue (read this first)
 
 **Current task (2026-11-02):** M9 (assets and data) is next; nothing of it is started. It starts on the user's go (a new
-chat asked to start M9 has it). Follow "Starting M9" just below. M8 (audio) is done and ticked; all its checks are
-numeric: the user is to listen with `Tools/Scripts/play-theme.sh` (ask how that went if they haven't said, a problem
-there comes before M9), and it hasn't run on Windows yet. The project is one git repo (`../`, see `../CLAUDE.md`), on
+chat asked to start M9 has it). Follow "Starting M9" just below. M8 (audio) is done and ticked; the user has listened with
+`Tools/Scripts/play-theme.sh` and is happy with it (2026-11-02), and it hasn't run on Windows yet. The project is one git repo (`../`, see `../CLAUDE.md`), on
 the private GitHub repo `github.com/Vatrix33/statfick`.
 Before each later milestone (M9 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code.

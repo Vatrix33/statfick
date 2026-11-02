@@ -488,8 +488,9 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   terminal: with no input it quits at once. A theme started right after launch logs one underrun
   (the JIT on first use, while the warm-up still runs), before the first note and so not heard; a
   theme started later (1.5 s in, in the `--live` runs) doesn't.
-- **Not run or heard yet:** nobody has listened to the engine's output so far, all the checks being
-  numeric (`play-theme.sh` is there for that), and none of the audio has run on Windows (the package
+- **Heard, but not run on Windows:** the user listened with `play-theme.sh` on 2026-11-02: all fine. The noise
+  layers many themes open with (`tex`, `swell`, from the old game's theme data) sound a little like a wave; a minor
+  nitpick the user chose to keep, so they stay. None of the audio has run on Windows (the package
   ships OpenAL Soft for it; all the math is ported so results should match Linux's).
 - **Not checked automatically:** moving to a really different device or rate (it would switch this
   PC's default output; OpenAL resamples since buffers keep the graph's rate), a device lost or
@@ -650,5 +651,5 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   legitimately falls behind; the pace tests now assert what always holds (7 suite runs in a row
   pass). Rewinding the source on a reopen only dropped queued audio: the source carries on, so
   that's gone. Fixture parsers must leave a missing key to the record's default, or defaults go untested.
-- **M8 is done.** All 8 steps; listening with `play-theme.sh` is with the user. Next: M9 only on the user's go, asking its open questions first
+- **M8 is done.** All 8 steps, and the user has listened and is happy with it (2026-11-02). Next: M9 only on the user's go, asking its open questions first
   (`Docs/Engine-Plan.md`, "Open questions for later milestones").
