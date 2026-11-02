@@ -5,14 +5,19 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-11-02):** M9 (assets and data) is next; nothing of it is started. It starts on the user's go (a new
-chat asked to start M9 has it). Follow "Starting M9" just below. M8 (audio) is done and ticked; the user has listened with
+**Current task (2026-11-02):** M9 (assets and data) started on 2026-11-02 with the user's go. Its questions were asked and
+answered the same day ("Decisions for M9" below, every answer the recommended option); the design doc is `Docs/Assets.md`
+(decisions, what exists checked against the code, method, the proposed on-disk design, nine proposed steps with their
+dependencies, the open format questions per step, status). The session managing M9 splits the work into steps from that
+proposal; nothing of M9's code exists yet. M8 (audio) is done and ticked; the user has listened with
 `Tools/Scripts/play-theme.sh` and is happy with it (2026-11-02), and it hasn't run on Windows yet. The project is one git repo (`../`, see `../CLAUDE.md`), on
 the private GitHub repo `github.com/Vatrix33/statfick`.
-Before each later milestone (M9 on) starts, first ask its questions under "Open questions for later milestones"
+Before each later milestone (M10 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code.
 
-**Starting M9, in order:**
+**Starting M9, in order (done 2026-11-02; kept as the record of how it started):** steps 1–5 were done on 2026-11-02 (the
+answers are "Decisions for M9", the design doc `Docs/Assets.md`); what remains is step 6, from `Docs/Assets.md`, "Steps",
+asking each step's open questions there first.
 1. `git pull`, then read the rest of this section and the last entries of `Docs/Notes.md`.
 2. Check the code and existing packages against the facts below (they were checked on 2026-11-02), and work out what
    each question really needs deciding.
@@ -30,7 +35,9 @@ reading of the old game's saves); Linux and Windows only; no OS dialogs, so Save
 in-game UI (M5's decisions); models come from Blender as `.glb` and M9 converts them into the packs, reusing
 `GltfImport` (M6); music and effects have no audio files (M8).
 
-*What exists (checked 2026-11-02):* no pack, virtual file system, serialization or save code yet, and `Assets/` is empty.
+*What exists (checked 2026-11-02; kept as it was: `Docs/Assets.md`, "What exists", rechecks it against the code and
+corrects three details: `Assets/` doesn't exist rather than being empty, `FontLibrary` already loads faces from memory, and
+the old game's class and enemy sizes below are disk usage, not content):* no pack, virtual file system, serialization or save code yet, and `Assets/` is empty.
 Today's loading: `ModelData.Load(path)` and `Model.Load` read `.glb` paths (`Render3D/GltfImport.cs`); `Terrain.cs`
 reads a JSON description and its height and cover maps by path; `Text/FontLibrary.cs` reads font files by path; shaders
 (`Shaders/Bin/*.spv`) and the UI's PNGs are embedded resources in the assembly; the tests read the old game's stylesheets
@@ -48,13 +55,30 @@ and armour have no table: they're forged by rules in the scripts. `music/` (61 M
 game data. Its saves: a character is one JSON text, kept in `localStorage` (`emberfall-character-stats`) and saved or
 loaded as a file through dialogs (`app.js`: saving around line 1788, `importCharacterText` at 1896; `desktop/main.cjs`), which
 is what the open question on JSON import and export of characters is about.
-*Questions this survey adds to the plan's list (undecided, ask them too):* does M9 convert the old game's tables into packs, or
+*Questions this survey added (answered 2026-11-02: "Scope", "Shaders and the UI's PNGs" and "Music data" in "Decisions for
+M9"):* does M9 convert the old game's tables into packs, or
 only build the format and loaders with the port converting them later? Do shaders and the UI's PNGs stay embedded in the
 assembly or move into packs? Does `MusicData.g.cs` go once themes are in a pack, and what then checks them against the old game?
 
 *Its method:* the pack format is the engine's own, with no Chromium or Blender behaviour to match, so its rules are checked
 by round trips and by damaged or old-version files; whatever is read from the old game's files should match what the old
 game itself gets from them in the harness's Chromium, as `make-music-data.sh` does for the music.
+
+**Small tasks left from earlier milestones (recorded 2026-11-02, to do later on the user's go):**
+- Window host: send `visibilitychange` and `pagehide` (the old game's map.js pauses travel on them; M5's Progress, "Left for
+  the port, not M5", says the host doesn't send them yet). A contained change in `UI/UiHost.cs`, plus an input-reference check.
+- Repo housekeeping: add `.claude/` to the root `.gitignore` (worker worktrees live in `.claude/worktrees/` inside the repo and
+  show as untracked).
+- Windows: nothing since the move to GitHub (2026-10-30) has run on Windows; M6, M7 and M8 never did. A `win-x64` build of the
+  engine, tests and tools from Linux would catch compile-time breaks; running needs the user's Windows PC
+  (`Tools\Scripts\setup.ps1`, `build.ps1`, `test.ps1`).
+- Stale paths: `Docs/Notes.md` said `Stat Fick Source/Docs/Engine-Plan.md` in two places (text copied from the old memory;
+  the folder is `engine/` now); fixed on 2026-11-02.
+- Not checked here, needs hardware or a window manager: audio on a really different device, a device lost or appearing, a
+  real window minimize (`Docs/Audio.md`, Status).
+- The "Known differences" lists (`Docs/Compositing-Port.md`, "Known differences left (SVG)"; `Docs/Scripting.md`, "Known
+  differences left"; `Docs/Animation.md`, "Known differences from Blender's NLA"; M5's Progress, "Known differences left (not
+  yet ported)") are accepted differences, not tasks, unless the port finds the game needs one.
 
 **How each step is finished** (the user's standing rules, for every step of every milestone):
 1. Tests: `Tools/Scripts/test.sh` passes in full on the GPU and on lavapipe (the variables are in `CLAUDE.md`). Don't tune
@@ -89,7 +113,8 @@ compositing, LCD vs grayscale text, inline SVG transforms), `Docs/Scripting.md` 
 callbacks, matchMedia, ResizeObserver, Web Animations), `Docs/Renderer-3D.md` (the 3D renderer, M6:
 its decisions, how each part works, the Blender reference harness and comparisons, each step's status),
 `Docs/Animation.md` (animation, M7: decisions, the Blender and glTF rules it ports, steps, status),
-`Docs/Audio.md` (audio, M8: decisions, the old game's audio, method, steps, status). The rest of M0–M5 is described in Progress below.
+`Docs/Audio.md` (audio, M8: decisions, the old game's audio, method, steps, status), `Docs/Assets.md` (assets and data,
+M9: decisions, what exists, method, the proposed on-disk design, steps with their dependencies, open questions, status). The rest of M0–M5 is described in Progress below.
 A new area (M6 on) gets its own design doc in `Docs/`.
 
 **Method.** For the 3D areas (M6 on) the reference is Blender instead: the same scenes rendered by
@@ -141,9 +166,8 @@ the design and the tests):
 - **M6 3D renderer:** answered 2026-10-30 (see "Decisions for M6" below).
 - **M7 Animation:** answered 2026-10-31 (see "Decisions for M7" below).
 - **M8 Audio:** answered 2026-10-31 (see "Decisions for M8" below).
-- **M9 Assets and data:** pack layout (which data in which pack), compression, mod or loose-folder
-  overrides, where saves and settings live on Linux and Windows, settings file format, JSON import and
-  export of characters?
+- **M9 Assets and data:** answered 2026-11-02 (see "Decisions for M9" below); the data-format details the
+  answers leave open are listed per step in `Docs/Assets.md`, "Open questions".
 - **M10 Scene and sequencer:** how cutscenes are authored (editor timeline, code, Blender export), and
   whether they can be skipped?
 - **M11 Editor:** what it must edit (items, enemies, spells, shops, map…), separate app or in-game dev
@@ -276,6 +300,22 @@ Source tree:
   - Variation: a patch may give pitch and level ranges, drawn per play from a seeded mulberry32, so tests and replays repeat; no range means no variation. (Not none.)
   - Position: pan and volume come from the caller, through the stereo panner; an actor's table uses a pan and volume the game sets on the actor. (Not world positions with a listener.)
   - Voice limits: per patch (4 by default) and 32 overall; past a limit the oldest voice of that patch (or overall) fades out over 5 ms and the new one plays. (Not dropping new ones, not no limits.)
+
+**Decisions for M9 (2026-11-02, asked before the milestone started):** every answer was the recommended option.
+- Pack layout: one pack per area: `models.pak` (meshes, clips with their markers, state machines), `audio.pak` (themes, instruments, percussion, rooms, effect patches), `ui.pak` (compiled stylesheets, fonts, images), `world.pak` (terrain, map data), `data.pak` (the game's tables, once the port defines their records). Classes stay loose `.json` (decided 2026-10-16). (Not one game.pak, not a core pack plus packs per region.)
+- Compression: Brotli per entry, from .NET's `System.IO.Compression`; an entry that doesn't shrink is stored raw (flagged). No new package. (Not Deflate, not Zstandard (a new package), not none.)
+- Hashes: SHA-256 from the framework, per entry plus one over the index; used to detect damaged files and for the editor's change detection. (Not an own CRC32C or xxHash, not the System.IO.Hashing package.)
+- Versioning: a version number per record type, fields by position, upgrade code on read for every past layout; fixture files of the old versions are committed and tested, so a layout change can't break old files unnoticed. The same for pack records, saves and settings. (Not tagged fields, not no versioning.)
+- Overrides: the virtual file system mounts the game's packs in order, then extra packs from a mods folder, then the loose development folder on top; later mounts win per path. A mod is just another pack; the development folder gives the live-editing and Reload workflow. (Not the development folder only, not no overrides.)
+- Where saves and settings live: one per-user game folder on each system, Linux `~/.local/share/stat-fick/` (honouring `$XDG_DATA_HOME`), Windows `%APPDATA%\Stat Fick\`; saves and settings side by side; it is what the in-game "Open game folder" opens. (Not XDG's data/config split, not next to the executable.)
+- Save format: binary versioned records with the same serializer and versioning as the packs' data, hashed, written atomically (a temporary file, then a rename), keeping a backup of the previous save. (Not JSON text, not binary plus a JSON mirror.)
+- Character export and import: kept. Save Character writes the current save as readable JSON of the new save format (versioned; not the old game's format: old saves aren't imported, decided 2026-10-16), Load Character reads one back; the default folder is Documents, as in the old game; through the in-game file picker (M5: no OS dialogs). So every record has a JSON form as well as its binary one. (Not a copy of the binary save, not dropping the feature.)
+- Settings: `settings.json` in the game folder, System.Text.Json, with a version field; unknown keys are kept, missing ones take their defaults. Which settings exist is decided at port time (the old game has battlePace, combatAnimations, battleUi and battleSpeed in `scripts/settings.js` and the music volume in `music.js`; the port adds the master and effects volumes (M8), zoom, window state, display preferences). (Not a binary record, not INI.)
+- Scope: M9 packs the engine's own data (models with clips and state machines; themes, instruments, percussion, rooms; effect patches; terrain; compiled stylesheets; fonts) and builds the format, the virtual file system, the serializer, the packer and importer tools, saves and settings. The old game's tables (enemies, spells, artifacts, consumables, key items, races) are converted at port time, when their C# records exist, checked against the old game in Chromium as the music is. (Not converting the tables now, as records or as JSON entries.)
+- Shaders and the UI's PNGs: the SPIR-V shaders and the UI's PNGs stay embedded resources of the engine assembly: they're the engine's, not game data, and the engine and its tests work without a pack. (Not an engine.pak.)
+- Music data: `MusicData.g.cs` goes. `make-music-data.sh` becomes the music importer: it reads the old scripts in Chromium as now and writes the records into `audio.pak`; the engine loads the themes from the pack; the existing checks (the exact call logs of all 55 themes against `music-logs.json`, the opt-in theme renders of `test-themes.sh`) run on the pack-loaded data. (Not keeping the .g.cs as the source or as a test reference.)
+- The packs are the source of truth: committed in the repo in `engine/Assets/Packs/` (the Folders table's `Assets/`, the asset sources; the folder is made by the first step that commits a pack) and copied into the game folder (`$STATVENTURE_GAME`) by the build; importers fill them, the editor (M11) edits them. Binary diffs in git are the accepted cost, so the engine offers a text (JSON) dump of a pack for review. (Not packs built at each build from text sources, not a committed text dump beside each pack.)
+- What these leave open (data-format details, run-time locations, the save's behaviour, the file picker, the class loader) is listed per step in `Docs/Assets.md`, "Open questions", with recommendations, to be asked before the step that needs it.
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
@@ -475,6 +515,7 @@ Source tree:
   - **M8 step 6, the game synthesizer (2026-11-01, 974 tests):** user decisions recorded above ("Step 6's questions"; pow, fixture sums, the order count and the full themes' rule re-asked with data). `Audio/Music/`: `ThemeData.cs` (records), `MusicData.g.cs` (generated by `make-music-data.sh` from the old JavaScript in Chromium: 55 themes, 34 instruments, 21 percussion voices, 7 rooms), `Score.cs` (compile, lint), `GraphBuilder.cs` (every Web Audio call of the composer, optionally logged; the per-context kit), `Composer.cs` (`Performance`: rooms, channels, every instrument kind, percussion, textures, the sequencer), `Soundtrack.cs` (public: music.js's master chain, `Play(id)` with its fades, `Stop`, `Volume`, `Schedule` per quantum, `RenderOffline`); `Audio/JsMath.cs`, `Audio/LlvmLibc.cs` (V8's `Math.exp`: LLVM libc's correctly rounded exp with its double-double and 128-bit passes), `Audio/Libm.Pow.cs` (glibc 2.43's pow as its FMA variant runs, the fused steps read from libm.so.6's machine code). Checked: math hashes against the system pow and Electron's V8 (`make-v8-math-reference.sh`); every theme's compiled score, lint and whole performance (2.7 million calls) equal to the old composer's on a recording stand-in context (`make-music-references.sh`); 30 rendered fixtures (12 exact, 18 by the shuffled-sums rule: a seeded test hook sums node inputs in shuffled orders, 16 orders); all 55 full themes opt-in (`make-theme-references.sh` → 2.6 GB in the build cache, `test-themes.sh`) with both sides' summing orders sampled. 39 of 47 mutations fail a test, the rest are equivalent, speed-only or below observable precision.
   - **M8 step 7, the output (2026-11-02, 990 tests):** user decisions recorded above ("Step 7's questions"; theme starts asked after measuring). `Audio/AudioSystem.cs` (public, `Application.Audio`: the graph at the device's rate, master and effects buses, the soundtrack, the audio thread, game calls queued and applied before the next quantum, paused while the window is minimized), `Audio/Output/AudioOutput.cs` (OpenAL Soft: 4 queued buffers of about 5 ms, direct channels, HRTF and limiter off; follows the default device, renders silently at the real-time pace without one); rooms' responses and convolver kernels prepared at start by a worker and shared (`Reverb.Prepared`, `PreparedRoom`), a warm-up render for the JIT, the FFT's scratch arrays from a pool. Measured by `Tools/AudioBenchmark` (`audio-benchmark.sh`): 71 minutes of music live at 48 kHz, mean 0.23 ms of the 2.67 ms budget, 99.9th percentile 2.08 ms, worst 12.9 ms; no underruns in repeated runs on this PC's headset with theme switches. Checked: a loopback device gives samples back bit for bit; the buses' fixture matches Chromium; the opt-in themes still pass (55 of 55); 17 of 19 mutations fail a test, the other 2 change no defined behaviour. Not checked automatically: moving to a really different device, a device lost or appearing, a real window minimize.
   - **M8 step 8, sound effects (2026-11-02, 1013 tests):** user decisions recorded above ("Step 8's questions"). `Audio/Effects/`: `EffectPatch` records (layers of tones and noise, filters, envelopes as the composer's percussion, optional ranges, voice limits), `SoundEffects` (`Register`, `Play`, `Seed`; voices dry on the effects bus, the oldest stolen with a 5 ms fade past a patch's limit or 32 overall, cleaned up at the end of their last quantum), `ActorSounds` (`Actor.Sounds`: clip event name → effect). 12 fixtures against Chromium, unit tests, and 32 mutations that all fail a test; 32 voices add 0.13 ms to a quantum's mean. **M8 done (all 8 steps).**
+  - **M9 started (2026-11-02):** the user's go; the thirteen questions asked and answered, all with the recommended options ("Decisions for M9"); design doc `Docs/Assets.md`: the present loaders and data checked against the code (three details of the plan's survey corrected), the method, a proposed on-disk design (packs, records in binary and JSON, the virtual file system, the game folder with saves, settings and character files, the importers), nine proposed steps with the files each touches and which can run side by side, and 27 open questions with recommendations, each to be asked before its step. No code yet.
   - **Left for the port, not M5:** the game listens for `visibilitychange` and `pagehide` (map.js pauses travel); the window host doesn't send them yet.
 
 ## Milestones
