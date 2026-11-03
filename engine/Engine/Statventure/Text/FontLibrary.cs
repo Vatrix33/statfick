@@ -60,10 +60,23 @@ public sealed class FontLibrary : IDisposable
 
     internal nint FreeTypeLibrary => _freeType;
 
+    /// <summary>
+    /// Held while a face of this library is made or destroyed, and while its LCD filter is set and
+    /// used: FreeType wants those one at a time per library (freetype.h, FT_Library and FT_Face),
+    /// while glyphs of different faces may load at once (each face has its own lock,
+    /// <see cref="FontFace.FreeTypeLock"/>).
+    /// </summary>
+    internal readonly Lock FreeTypeLock = new();
+
+    /// <summary>The LCD filter last set on this library (FreeType keeps one per library); -1 before any.</summary>
+    internal int LcdFilter = -1;
+
     /// <summary>Adds a font file; <paramref name="weightMax"/> gives a range ("font-weight: 500 600").</summary>
     public FontFace Add(ReadOnlySpan<byte> data, string family, int weight = 400, bool italic = false, int? weightMax = null)
     {
-        var face = new FontFace(_freeType, data, family, weight, weightMax ?? weight, italic);
+        FontFace face;
+        lock (FreeTypeLock)
+            face = new FontFace(this, data, family, weight, weightMax ?? weight, italic);
         lock (_lock)
         {
             _faces.Add(face);

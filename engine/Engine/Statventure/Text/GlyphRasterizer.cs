@@ -18,18 +18,18 @@ public sealed record GlyphBitmap(int Width, int Height, int Left, int Top, byte[
 public static unsafe class GlyphRasterizer
 {
     public const int SubpixelSteps = 4;
-    static int _lcdFilter = -1;
 
     public static GlyphBitmap Render(FontFace face, uint glyph, float sizePixels, int subpixel, bool syntheticBold, bool syntheticOblique, FontRenderSettings? settings = null, bool lcd = false)
+    {
+        lock (face.FreeTypeLock)
+            return RenderLocked(face, glyph, sizePixels, subpixel, syntheticBold, syntheticOblique, settings, lcd);
+    }
+
+    static GlyphBitmap RenderLocked(FontFace face, uint glyph, float sizePixels, int subpixel, bool syntheticBold, bool syntheticOblique, FontRenderSettings? settings, bool lcd)
     {
         settings ??= FontRenderSettings.Grayscale;
         lcd &= settings.IsSubpixel;
         var ft = face.FtFace;
-        if (lcd && _lcdFilter != settings.LcdFilter)
-        {
-            FreeType.LibrarySetLcdFilter(face.FtLibrary, settings.LcdFilter);
-            _lcdFilter = settings.LcdFilter;
-        }
         FreeType.Check(FreeType.SetCharSize(ft, new CLong(0), new CLong((nint)MathF.Round(sizePixels * 64f)), 72, 72), "FT_Set_Char_Size");
         var matrix = new FreeType.Matrix
         {
@@ -54,7 +54,24 @@ public static unsafe class GlyphRasterizer
             FreeType.OutlineEmboldenXY(&slot->OutlineStart, new CLong((nint)strength), new CLong((nint)strength));
             FreeType.OutlineTranslate(&slot->OutlineStart, new CLong((nint)(-strength / 2)), new CLong((nint)(-strength / 2)));
         }
-        FreeType.Check(FreeType.RenderGlyph(slot, lcd ? FreeType.RenderModeLcd : FreeType.RenderModeNormal), "FT_Render_Glyph");
+        if (lcd)
+        {
+            // The LCD filter is the library's (each FontLibrary is a FreeType library of its own),
+            // shared by its faces: set and used with the library held. (BRUTAL's FreeType is built
+            // without subpixel rendering, so setting it answers Unimplemented_Feature and changes nothing.)
+            var library = face.Library;
+            lock (library.FreeTypeLock)
+            {
+                if (library.LcdFilter != settings.LcdFilter)
+                {
+                    FreeType.LibrarySetLcdFilter(library.FreeTypeLibrary, settings.LcdFilter);
+                    library.LcdFilter = settings.LcdFilter;
+                }
+                FreeType.Check(FreeType.RenderGlyph(slot, FreeType.RenderModeLcd), "FT_Render_Glyph");
+            }
+        }
+        else
+            FreeType.Check(FreeType.RenderGlyph(slot, FreeType.RenderModeNormal), "FT_Render_Glyph");
         FreeType.SetTransform(ft, null, null);
         var bitmap = slot->Bitmap;
         var height = (int)bitmap.Rows;

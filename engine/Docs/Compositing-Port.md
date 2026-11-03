@@ -95,6 +95,12 @@ The old heuristics (ScanLayerEffects, grayscale scopes) and the `SV_OLD_HINT` sw
   lists each engine layer's first 40 chunks (owner, bounds, drawable, opaque rect, background colour,
   text flags, clip, effect). Blink sources for Chromium 152 are cached in
   `~/.cache/stat-fick-build/reference-src/chromium-152-source` (see the README there; fetch more with the googlesource `?format=TEXT` URL, tag 152.0.7977.89, and keep them in that folder).
+- **Threads (2026-11-03):** the analysis pass isn't pure layout: underlines that skip ink load glyph outlines
+  from FreeType (`GlyphOutlines`; of the captured screens only the map's, its underlined destinations), and
+  the tests run it on many threads sharing fonts. A FreeType face takes one thread at a time, so everything
+  that uses a face's FreeType state holds `FontFace.FreeTypeLock` (`FreeTypeThreadingTests`); before that,
+  `map` failed now and then in a full run (a NullReferenceException reading an outline another thread's
+  glyph load was replacing).
 
 ### Rules ported on 2026-10-25 (each one fixed screens)
 

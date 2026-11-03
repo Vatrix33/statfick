@@ -15,7 +15,17 @@ public sealed unsafe class FontFace : IDisposable
     readonly Face _hbFace;
     internal readonly Font HbFont;
     internal readonly FreeType.FaceRec* FtFace;
-    internal readonly nint FtLibrary;
+    /// <summary>The library the face was made in (FreeType's library state: the LCD filter, making and destroying faces).</summary>
+    internal readonly FontLibrary Library;
+
+    /// <summary>
+    /// Held while anything uses <see cref="FtFace"/>: FreeType lets one thread at a time use a face
+    /// (freetype.h, FT_Face), and its size, transform, glyph slot, character map walk and stream are
+    /// shared by everything that reads glyphs from it (outlines for skipping ink, glyph images, the
+    /// autohinter), on whatever thread lays out, paints or draws. Only the face's fixed fields and its
+    /// table directory (a table's length) can be read without it. HarfBuzz needs no lock.
+    /// </summary>
+    internal readonly Lock FreeTypeLock = new();
 
     public int Id { get; }
     public string Family { get; }
@@ -43,17 +53,18 @@ public sealed unsafe class FontFace : IDisposable
     /// <summary>The width of the font's bounding box (head xMax - xMin) in font units.</summary>
     public int BoundsWidth { get; }
 
-    internal FontFace(nint library, ReadOnlySpan<byte> data, string family, int weight, int weightMax, bool italic)
+    /// <summary>A face of <paramref name="library"/> (made with the library's <see cref="FontLibrary.FreeTypeLock"/> held).</summary>
+    internal FontFace(FontLibrary library, ReadOnlySpan<byte> data, string family, int weight, int weightMax, bool italic)
     {
         Id = Interlocked.Increment(ref _nextId);
-        FtLibrary = library;
+        Library = library;
         Family = family;
         Weight = weight;
         WeightMax = Math.Max(weight, weightMax);
         Italic = italic;
         _data = (byte*)NativeMemory.Alloc((nuint)data.Length);
         data.CopyTo(new Span<byte>(_data, data.Length));
-        FreeType.Check(FreeType.NewMemoryFace(library, _data, new CLong(data.Length), new CLong(0), out FtFace), "FT_New_Memory_Face");
+        FreeType.Check(FreeType.NewMemoryFace(library.FreeTypeLibrary, _data, new CLong(data.Length), new CLong(0), out FtFace), "FT_New_Memory_Face");
         _blob = new Blob((nint)_data, data.Length, MemoryMode.ReadOnly);
         _hbFace = new Face(_blob, 0);
         HbFont = new Font(_hbFace);
@@ -122,7 +133,9 @@ public sealed unsafe class FontFace : IDisposable
         HbFont.Dispose();
         _hbFace.Dispose();
         _blob.Dispose();
-        FreeType.DoneFace(FtFace);
+        // FreeType destroys a library's faces one at a time, as it makes them.
+        lock (Library.FreeTypeLock)
+            FreeType.DoneFace(FtFace);
         NativeMemory.Free(_data);
     }
 }

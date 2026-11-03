@@ -72,6 +72,13 @@ public static unsafe class GlyphOutlines
 
     static List<Vector2[]> Load(FontFace face, uint glyph, float size, bool syntheticBold, bool syntheticOblique)
     {
+        // The face's size, transform and glyph slot are shared with whatever else uses it now.
+        lock (face.FreeTypeLock)
+            return LoadLocked(face, glyph, size, syntheticBold, syntheticOblique);
+    }
+
+    static List<Vector2[]> LoadLocked(FontFace face, uint glyph, float size, bool syntheticBold, bool syntheticOblique)
+    {
         var ft = face.FtFace;
         FreeType.Check(FreeType.SetCharSize(ft, new CLong(0), new CLong((nint)MathF.Round(size * 64f)), 72, 72), "FT_Set_Char_Size");
         var matrix = new FreeType.Matrix

@@ -59,28 +59,36 @@ internal sealed unsafe class AutohintFont
         GlyphCount = (int)ft->NumGlyphs.Value;
         IsSymbol = ft->Charmap is null || *(uint*)((byte*)ft->Charmap + sizeof(nint)) == Tag("symb");
         var mappings = new List<(int, uint)>();
-        uint glyph;
-        var code = FreeType.GetFirstChar(ft, &glyph);
-        while (glyph != 0)
+        byte[]? post, os2, head;
+        // The character map's walk keeps its place in the face, and reading tables moves its stream.
+        lock (face.FreeTypeLock)
         {
-            mappings.Add(((int)code.Value, glyph));
-            code = FreeType.GetNextChar(ft, code, &glyph);
+            uint glyph;
+            var code = FreeType.GetFirstChar(ft, &glyph);
+            while (glyph != 0)
+            {
+                mappings.Add(((int)code.Value, glyph));
+                code = FreeType.GetNextChar(ft, code, &glyph);
+            }
+            Gsub = Table("GSUB");
+            post = Table("post");
+            os2 = Table("OS/2");
+            head = os2 is { Length: >= 64 } ? null : Table("head");
         }
         Mappings = [.. mappings];
         _map = new Dictionary<int, uint>(Mappings.Length);
         foreach (var (c, g) in Mappings)
             _map[c] = g;
-        Gsub = Table("GSUB");
-        var post = Table("post");
         IsFixedPitch = post is { Length: >= 16 } && (post[12] | post[13] | post[14] | post[15]) != 0;
-        if (Table("OS/2") is { Length: >= 64 } os2)
+        if (os2 is { Length: >= 64 })
             IsItalic = ((os2[62] << 8 | os2[63]) & 0x0201) != 0;
-        else if (Table("head") is { Length: >= 46 } head)
+        else if (head is { Length: >= 46 })
             IsItalic = ((head[44] << 8 | head[45]) & 2) != 0;
     }
 
     static uint Tag(string tag) => (uint)(tag[0] << 24 | tag[1] << 16 | tag[2] << 8 | tag[3]);
 
+    /// <summary>A table's bytes, or null (with the face's FreeType lock held).</summary>
     byte[]? Table(string tag)
     {
         CULong length = default;
@@ -105,29 +113,33 @@ internal sealed unsafe class AutohintFont
         advance = 0;
         if (glyph >= (uint)GlyphCount)
             return false;
-        var ft = _face.FtFace;
-        if (FreeType.LoadGlyph(ft, glyph, FreeType.LoadNoScale | FreeType.LoadNoBitmap) != 0)
-            return false;
-        var slot = ft->Glyph;
-        advance = (int)slot->Metrics.HoriAdvance.Value;
-        var outline = (FreeType.Outline*)&slot->OutlineStart;
-        var start = 0;
-        for (var c = 0; c < outline->ContourCount; c++)
+        // The face's glyph slot (and its transform) are shared with whatever else uses it now.
+        lock (_face.FreeTypeLock)
         {
-            int end = outline->Contours[c];
-            for (var i = start; i <= end && i < outline->PointCount; i++)
+            var ft = _face.FtFace;
+            if (FreeType.LoadGlyph(ft, glyph, FreeType.LoadNoScale | FreeType.LoadNoBitmap) != 0)
+                return false;
+            var slot = ft->Glyph;
+            advance = (int)slot->Metrics.HoriAdvance.Value;
+            var outline = (FreeType.Outline*)&slot->OutlineStart;
+            var start = 0;
+            for (var c = 0; c < outline->ContourCount; c++)
             {
-                var flags = (outline->Tags[i] & 3) switch
+                int end = outline->Contours[c];
+                for (var i = start; i <= end && i < outline->PointCount; i++)
                 {
-                    1 => PointFlags.OnCurve,
-                    2 => PointFlags.OffCurveCubic,
-                    _ => PointFlags.None,
-                };
-                sink.Add(new UnscaledPoint((short)outline->Points[i].X.Value, (short)outline->Points[i].Y.Value, flags, i == start));
+                    var flags = (outline->Tags[i] & 3) switch
+                    {
+                        1 => PointFlags.OnCurve,
+                        2 => PointFlags.OffCurveCubic,
+                        _ => PointFlags.None,
+                    };
+                    sink.Add(new UnscaledPoint((short)outline->Points[i].X.Value, (short)outline->Points[i].Y.Value, flags, i == start));
+                }
+                start = end + 1;
             }
-            start = end + 1;
+            return true;
         }
-        return true;
     }
 
     /// <summary>A glyph's advance width in font units (glyph_metrics(Size::unscaled()).advance_width), or null.</summary>
@@ -135,10 +147,13 @@ internal sealed unsafe class AutohintFont
     {
         if (glyph >= (uint)GlyphCount)
             return null;
-        var ft = _face.FtFace;
-        if (FreeType.LoadGlyph(ft, glyph, FreeType.LoadNoScale | FreeType.LoadNoBitmap) != 0)
-            return null;
-        return (int)ft->Glyph->Metrics.HoriAdvance.Value;
+        lock (_face.FreeTypeLock)
+        {
+            var ft = _face.FtFace;
+            if (FreeType.LoadGlyph(ft, glyph, FreeType.LoadNoScale | FreeType.LoadNoBitmap) != 0)
+                return null;
+            return (int)ft->Glyph->Metrics.HoriAdvance.Value;
+        }
     }
 
     /// <summary>Each glyph's style (skrifa's GlyphStyles, computed once per font).</summary>

@@ -142,6 +142,8 @@ public static unsafe class SkiaGlyphs
                 return known;
             CULong length = default;
             const uint glyf = ('g' << 24) | ('l' << 16) | ('y' << 8) | 'f';
+            // Asking only for the length reads the face's table directory, which never changes (no
+            // stream or slot): no need for the face's lock.
             var has = FreeType.LoadSfntTable(face.FtFace, new CULong(glyf), new CLong(0), null, &length) == 0;
             TrueTypeFaces[(nint)face.FtFace] = has;
             return has;
@@ -157,25 +159,31 @@ public static unsafe class SkiaGlyphs
         // Slight hinting of TrueType outlines is skrifa's autohinter in light mode (Skia forces it for glyf fonts).
         if (hinting == TextHinting.Slight && HasGlyf(face))
             return AutohintedOutline(face, glyph, size);
-        var ft = face.FtFace;
-        // skrifa's Size: (ppem * 64) as i32.
-        FreeType.Check(FreeType.SetCharSize(ft, new CLong(0), new CLong((nint)(int)(size * 64f)), 72, 72), "FT_Set_Char_Size");
-        FreeType.SetTransform(ft, null, null);
         var flags = FreeType.LoadNoBitmap | hinting switch
         {
             TextHinting.None => FreeType.LoadNoHinting,
             TextHinting.Slight => FreeType.LoadTargetLight,
             _ => FreeType.LoadTargetNormal | (HasGlyf(face) ? FreeType.LoadForceAutohint : 0),
         };
-        if (FreeType.LoadGlyph(ft, glyph, flags) != 0)
-            return null;
-        var outline = (FreeType.Outline*)&ft->Glyph->OutlineStart;
-        var points = new ContourPoint[outline->PointCount];
-        for (var i = 0; i < points.Length; i++)
-            points[i] = PointAt(outline, i);
-        var ends = new int[outline->ContourCount];
-        for (var c = 0; c < ends.Length; c++)
-            ends[c] = outline->Contours[c];
+        ContourPoint[] points;
+        int[] ends;
+        // The face's size, transform and glyph slot are shared with whatever else uses it now.
+        lock (face.FreeTypeLock)
+        {
+            var ft = face.FtFace;
+            // skrifa's Size: (ppem * 64) as i32.
+            FreeType.Check(FreeType.SetCharSize(ft, new CLong(0), new CLong((nint)(int)(size * 64f)), 72, 72), "FT_Set_Char_Size");
+            FreeType.SetTransform(ft, null, null);
+            if (FreeType.LoadGlyph(ft, glyph, flags) != 0)
+                return null;
+            var outline = (FreeType.Outline*)&ft->Glyph->OutlineStart;
+            points = new ContourPoint[outline->PointCount];
+            for (var i = 0; i < points.Length; i++)
+                points[i] = PointAt(outline, i);
+            ends = new int[outline->ContourCount];
+            for (var c = 0; c < ends.Length; c++)
+                ends[c] = outline->Contours[c];
+        }
         return PathOf(points, ends);
     }
 
