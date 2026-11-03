@@ -327,6 +327,34 @@ Source tree:
   - A `settings.json` that doesn't parse: defaults, kept as `settings.broken.json`, logged (Q18). The picker: M9 gives export and import functions, the Documents folder and folder listings; the picker screen is made at port time (Q19).
   - Content: one entry per `.glb` holding its `ModelData`, state machines separate (Q20); one entry per theme, instrument, percussion voice, room and effect patch plus a theme-order list (Q21), with the records' own JSON names (Q22); a compiled stylesheet is the parsed and prepared rules as tokens, checked at import, tested by comparing computed styles with the text-parsed sheet (Q23); fonts registered from `@font-face` rules as Chromium does (Q24); images stored as PNG or SVG bytes, decoded at load (Q25); terrain as 16-bit samples plus the range, converted at load as today (Q26); the class loader at port time, M9 only mounting the shipped `classes/` folder so it can be overridden (Q27).
 
+**Decisions for the window's visibility (2026-11-03, the small task "send `visibilitychange` and `pagehide`"; asked after
+probing Chromium 152 under Xvfb with and without a window manager; every answer the recommended option):**
+- While the window is minimized, the document runs as Chromium 152 runs a hidden page: timers and tasks keep running, but
+  timers wake at most once a second (Blink's aligned wake-ups, and its longer limit after five minutes hidden, as
+  captured), with no frames, painting or frame callbacks. A battle's timers keep coming slowly, as in the old game. The
+  sound still pauses (M8's decision). (Not everything paused while minimized.)
+- When the window closes, the document gets Chromium's unload sequence without `beforeunload`: `pagehide` (persisted
+  false), `visibilitychange` to hidden (with `webkitvisibilitychange`), `unload`, with Chromium's event properties; nothing
+  in the document can keep the window open. (Not also a cancellable `beforeunload`, not `pagehide` only.)
+- Wayland: GLFW 3.5.1 (BRUTAL's) can't tell that a window is minimized on Wayland (its `_glfwWindowIconifiedWayland`
+  always answers no), so the engine takes GLFW's report as it is: on Wayland a minimized window stays visible to the
+  document (and the sound doesn't pause), a known difference to check on the PC. X11 and Windows report it. (Not forcing
+  XWayland, not a patched GLFW now.)
+- Asked the same day after reading Blink's scheduler (`page_scheduler_impl.cc`, `frame_scheduler_impl.cc`,
+  `wake_up_budget_pool.cc`, `cpu_time_budget_pool.cc`, `dom_timer.cc`, `audio_stream_monitor.cc`):
+  - Audible pages: ported, by the output's level. Blink doesn't throttle a hidden page that is audible or was in the last
+    30 s; the engine's `AudioSystem` measures its output as Chromium's audio service does (a power monitor, audible
+    above about −72 dBFS, polled 15 times a second), and the document counts as audible while it is and for 30 s after.
+    Minimizing with music on gives full-speed timers for 30 s, then throttling, as in the old game. (Not "a theme or
+    effect is playing" as the proxy, not always silent.)
+  - The CPU-time budget: ported, charging the engine's own measured task times (tests inject the costs): 10 s after the
+    page is hidden, throttled timer tasks spend a budget (1 s at the start, refilling at 1% of the time, at most 3 s)
+    and wait while it is below zero, as Blink's background CPU-time budget pool. (Not left out.)
+
+**Decision for the repo housekeeping task (2026-11-03):** the root `.gitignore` ignores `/.claude/worktrees/` (the worker
+worktrees) and `/.claude/settings.local.json` (one machine's settings), not the whole `.claude/` folder, so shared Claude
+Code files (`.claude/settings.json`, hooks, skills) can still be committed. (Not ignoring all of `.claude/`.)
+
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
 - On this PC both move into one repo folder, `/run/media/system/M.2_2TB/Stat Fick Repo/`, which becomes the only working copy (scripts, docs and notes follow the new paths).
