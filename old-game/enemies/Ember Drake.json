@@ -6,5 +6,13 @@
   "naturalWeapon": "beast-claws",
   "inventory": [],
   "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
-  "knownSpells": ["fire-bolt-fire-damage", "flame-spiral-fire-damage", "phoenix-mantle-fire-support", "inferno-orb-fire-damage", "hellfire-wave-fire-damage", "ember-lance-fire-damage", "dragonbreath-starfire-fire-damage", "faultline-earth-damage", "stone-bastion-earth-support", "petrifying-grasp-earth-damage", "mountain-crusher-earth-damage", "fortress-of-stone-earth-support", "obsidian-spire-earth-damage", "sundering-rift-earth-damage"]
+  "knownSpells": ["fire-bolt-fire-damage", "flame-spiral-fire-damage", "phoenix-mantle-fire-support", "inferno-orb-fire-damage", "hellfire-wave-fire-damage", "ember-lance-fire-damage", "dragonbreath-starfire-fire-damage", "faultline-earth-damage", "stone-bastion-earth-support", "petrifying-grasp-earth-damage", "mountain-crusher-earth-damage", "fortress-of-stone-earth-support", "obsidian-spire-earth-damage", "sundering-rift-earth-damage"],
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 0.5,
+      "minimum": 1,
+      "maximum": 1
+    }
+  ]
 }

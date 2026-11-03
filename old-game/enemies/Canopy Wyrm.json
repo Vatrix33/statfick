@@ -12,5 +12,13 @@
     "rooting-lance-nature-damage", "briarstorm-nature-damage", "verdant-renewal-nature-support",
     "dragonbreath-blight-bloom-nature-damage", "verdant-tempest-nature-damage",
     "summon-elder-treant-nature-summon"
+  ],
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 0.5,
+      "minimum": 1,
+      "maximum": 1
+    }
   ]
 }

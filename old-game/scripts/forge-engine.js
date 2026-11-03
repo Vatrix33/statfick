@@ -61,6 +61,13 @@
     vampiric: { parts: ["jewel", "gem", "inscription"], effects: [SE("power", 8, OFFENSIVE), SE("cost", -8, { ...OFFENSIVE, excludeElement: "blood" }), SE("cost", 8, { ...OFFENSIVE, element: "blood" })], restricted: true },
     hearthforge: { parts: ["handle", "inscription"], effects: [SE("cost", 5), SE("power", 3)] },
   };
+  /* A Matching weapon (every part by one maker; a masterwork calls it Flawless) adds a bonus of its own
+     per maker, different from the maker's usual one (user decision 2026-11-03). Staffs, wands, armor
+     and shields don't; Outlaw adds nothing. */
+  const MATCHING_BONUS = {
+    roundtable: { finalPct: 3 }, dwarven: { pierce: 5 }, elven: { hit: 5 }, "boreal-bolt": { basePowerPct: 5 },
+    abyss: { crit: 5 }, hellmade: { secondaryPct: 5 }, hearthforge: { hit: 3, crit: 3 },
+  };
   const MAKER_IDS = Object.keys(MAKERS);
   const MAKER_BY_CODE = Object.fromEntries(MAKER_IDS.map(id => [MAKERS[id].code, id]));
 
@@ -458,6 +465,14 @@
 
   /* ---------- Derived stats ---------- */
   const EFFECT_KEYS = ["finalPct", "basePowerPct", "primaryPct", "secondaryPct", "hit", "crit", "pierce", "spellCost", "pricePct"];
+  // The maker of a weapon whose parts all come from one maker (its name says Matching, or Flawless), else null.
+  function matchingMaker(spec) {
+    if (!WEAPONS[spec.type] || WEAPONS[spec.type].caster) return null;
+    const parts = spec.parts.filter(Boolean);
+    return parts.length > 1 && parts.every(part => part.maker === parts[0].maker) ? parts[0].maker : null;
+  }
+  const matchingBonus = spec => MATCHING_BONUS[matchingMaker(spec)] || null;
+  const matchingBonusText = spec => matchingBonus(spec) ? effectText(matchingBonus(spec)) : "";
   function totals(spec) {
     const sum = Object.fromEntries(EFFECT_KEYS.map(key => [key, 0]));
     if (WEAPONS[spec.type]?.caster) return { ...sum, element: null, secondaryStat: null, runeElement: null };
@@ -469,6 +484,8 @@
       if (material.effect.element) element = material.effect.element;
       if (index > 0) for (const key of EFFECT_KEYS) sum[key] += MAKERS[part.maker].effect[key] || 0;
     });
+    const matching = matchingBonus(spec);
+    if (matching) for (const key of EFFECT_KEYS) sum[key] += matching[key] || 0;
     for (const runeId of spec.runes) {
       const effect = RUNES[runeId].effect;
       for (const key of EFFECT_KEYS) sum[key] += effect[key] || 0;
@@ -507,10 +524,9 @@
 
   /* ---------- Names and words ---------- */
   function statPrefix(spec, sum = totals(spec)) {
-    const parts = spec.parts.filter(Boolean);
     // Masterworks take the same prefixes under names of their own.
     const named = prefix => spec.masterwork ? MASTERWORK_PREFIXES[prefix] || "" : prefix;
-    if (parts.length > 1 && parts.every(part => part.maker === parts[0].maker)) return named("Matching");
+    if (matchingMaker(spec)) return named("Matching");
     const scores = [
       ["Empowered", Math.max(sum.finalPct, sum.basePowerPct, sum.primaryPct, sum.secondaryPct)],
       ["Piercing", sum.pierce], ["Surehit", sum.hit], ["Critical", sum.crit],
@@ -1591,6 +1607,7 @@
   const api = {
     RARITIES, CRIT, MAKERS, MAKER_IDS, CASTER_MAKERS, CASTER_HANDLES, STONES, INKS, TIERS, CASTER_IDS, REGULAR_IDS, tierOdds, casterEffects, spellEffectText, describePart, MATERIALS, SHAPES, WEAPONS, WEAPON_IDS, RUNES, RUNE_IDS, ELEMENT_PREFIX, ELEMENT_NAMES, STAT_SHORT, STAT_NAMES, ELEMENT_SHARE,
     levelCurve, rarityOdds, rollSlots, partOptions, generate, encode, decode, isForgedId, totals, stats, price, name, statPrefix, description, effectText, runeText,
+    MATCHING_BONUS, matchingMaker, matchingBonusText,
     item, buildItem, MASTERWORKS, MASTERWORK_IDS, MASTERWORK_PREFIXES, MASTERWORK_MYTHILIUM_CHANCE, generateMasterwork, fixedMasterworkId, masterworkTemplateKey, masterworkTemplateId, NATURAL_WEAPONS, naturalWeapon, isTemplateId, templateSpec, LEGACY_ITEMS, migrateLegacyItems, runeConflict, withRune, withoutRune, runePrice, runeRemovalPrice, runeFitPrice, runeItemId, runeOfItem, RUNE_FIT_SHARE, RUNE_REMOVAL_MULTIPLIER, armCharacter,
     ARMORS, ARMOR_IDS, ARMOR_PARTS, ARMOR_MAKERS, ARMOR_MATERIALS, ARMOR_RUNE_RESIST, ARMOR_ELEMENT_PREFIX, ALL_ELEMENTS, generateArmor, armorTotals, armorEffectText, armorRuneText, isArmorSpec,
   };

@@ -41,5 +41,13 @@
     "dragonbreath-crown-of-embers-fire-damage",
     "phoenix-spear-fire-damage",
     "dragonbreath-erode-earth-damage"
+  ],
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 0.5,
+      "minimum": 1,
+      "maximum": 1
+    }
   ]
 }

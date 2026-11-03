@@ -50,5 +50,13 @@
     "frost-prison-ice-damage",
     "absolute-zero-ice-damage",
     "dragonbreath-rimefang-ice-damage"
+  ],
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 0.5,
+      "minimum": 1,
+      "maximum": 1
+    }
   ]
 }

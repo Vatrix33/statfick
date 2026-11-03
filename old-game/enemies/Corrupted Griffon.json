@@ -41,18 +41,7 @@
     "speed": 0,
     "luck": 0
   },
-  "temporaryBonuses": {
-    "strength": 0,
-    "vitality": 0,
-    "mind": 0,
-    "dexterity": 0,
-    "intelligence": 0,
-    "wisdom": 0,
-    "speed": 0,
-    "luck": 0
-  },
   "permanentDefenseBonuses": { "armor": 0, "evasion": 0 },
-  "temporaryDefenseBonuses": { "armor": 0, "evasion": 0 },
   "currentHp": 168,
   "currentMana": 51,
   "naturalWeapon": "beast-claws",

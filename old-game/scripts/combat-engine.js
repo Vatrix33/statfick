@@ -85,18 +85,26 @@
     const added = modifiers.reduce((sum, modifier) => sum + (Number(modifier) || 0), 0);
     return Math.max(0, Math.floor((Number(base) || 0) + added));
   }
+  // The EXP a level needs: an enemy of that level's EXP times the victories the curve below asks for.
   function experienceRequired(level) {
-    const enemyLevel = Math.max(1, Math.floor(Number(level) || 1));
-    return (enemyLevel + 1) * 100;
+    return enemyExperience(level) * sameLevelVictories(level);
   }
+  // Victories over enemies of one's own level per level-up (user decision 2026-11-03): a fast start,
+  // 3–6 up to level 12 (51 to reach it), then a curve rising to 24 at level 99 (1265 to reach 100).
+  // The EXP targets follow it; enemies' EXP stays as it was.
+  const EARLY_VICTORIES = [3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6];
   function sameLevelVictories(level) {
     const enemyLevel = Math.max(1, Math.floor(Number(level) || 1));
-    if (enemyLevel === 1) return 5;
-    if (enemyLevel === 2) return 6;
-    return Math.min(12, 8 + Math.floor((enemyLevel - 3) / 10));
+    if (enemyLevel <= EARLY_VICTORIES.length) return EARLY_VICTORIES[enemyLevel - 1];
+    const t = Math.min(1, (enemyLevel - 12) / 87);
+    return Math.round(7 + 17 * Math.pow(t, 1.5));
   }
+  // An enemy's EXP, kept as it was before the 2026-11-03 curve (user decision): (level + 1) × 100 over
+  // 5 (level 1), 6 (level 2), then 8 rising by one every ten levels to 12 from level 43.
   function enemyExperience(level) {
-    return Math.ceil(experienceRequired(level) / sameLevelVictories(level));
+    const enemyLevel = Math.max(1, Math.floor(Number(level) || 1));
+    const share = enemyLevel === 1 ? 5 : enemyLevel === 2 ? 6 : Math.min(12, 8 + Math.floor((enemyLevel - 3) / 10));
+    return Math.ceil((enemyLevel + 1) * 100 / share);
   }
   function meditate(maxMana, mind, luck) { return Math.max(0, Math.floor(maxMana * 0.2 + mind * 0.5 + luck * 0.2)); }
   function escape(speed, luck, enemySpeed) { return Math.max(5, chance(50 + speed * 0.5 + luck * 0.2 - enemySpeed * 0.4)); }

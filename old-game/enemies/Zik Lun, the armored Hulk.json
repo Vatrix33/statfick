@@ -29,10 +29,6 @@
     "armor": 40,
     "evasion": 0
   },
-  "temporaryDefenseBonuses": {
-    "armor": 0,
-    "evasion": 0
-  },
   "currentHp": 1,
   "currentMana": 1,
   "inventory": [

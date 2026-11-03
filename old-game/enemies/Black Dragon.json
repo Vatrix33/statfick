@@ -51,5 +51,13 @@
     "summon-void-stalker-dark-summon",
     "summon-imp-retinue-dark-summon",
     "dragonbreath-intimidate-dark-support"
+  ],
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 0.5,
+      "minimum": 1,
+      "maximum": 1
+    }
   ]
 }

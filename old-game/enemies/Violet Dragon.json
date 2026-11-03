@@ -51,5 +51,13 @@
     "deathwave-death-damage",
     "grave-chill-death-damage",
     "dragonbreath-sepulchral-miasma-death-damage"
+  ],
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 0.5,
+      "minimum": 1,
+      "maximum": 1
+    }
   ]
 }

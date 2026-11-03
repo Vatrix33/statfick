@@ -274,6 +274,41 @@ The user's main project is **Stat Fick**, a vanilla-JS fantasy RPG (character sh
 - Look: dragon rig `constellations`, `aurora` (wing bands), `lightCrown`, `mirror` (gleams), `corona` (Golden), `heartStar` (+`nova`); catalog `phases` 1 gold / 2 white-gold. Intro `anatemis` (a star falls onto the Frozen Crown), `anatemis-golden` (sun rises), `anatemis-zenith` (bloom of rings) via `starScene`. The old `#anatemis-cinematic` markup and `playPhaseCinematic` are now unused (left in place). Music `anatemis-white-star` (D dorian hymn, replaces the old score, trim 3.45), `anatemis-golden-star` (march, 2.18), `anatemis-zenith` (choral finale, 1.33), switched on `phaseIndex`.
 - Tests: `claude-work/an-rework-checks.js` appended to `anatemis-browser.js` and `an-drops-checks.js` replacing `anatemis-drops-browser.js`, via `patch_an.py` (also party-loot and guild-information fixtures, the lifecycle catalogue fixture and smoke `weapons >= 0`). `rt-launch.sh` key `an`, `an-stats.sh`. Regression after the rework: unchanged 28/38.
 
+**Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
+`engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in
+the engine's way. The list's rune slotting sound was left out: the port adds proper sound effects instead.
+- **Money:** the purse (`.currency-input`) is disabled outside Dev Mode (`updateEditingControls`, with a "Enable Dev Mode
+  to edit money" tooltip on each field and `.sidebar-purse.is-locked` for the cursor). Money still changes through play.
+- **Dev Mode text:** "Dev-mode · On/Off" (`#editing-status`, `.brand-subtitle`) is gone; "Stat Fick" and the ✦ toggle
+  stay, whose lit or faded look and tooltip show the state. The shorter brand lets the top bar fit on one row at 1440 px
+  (as it already did in wider windows), so "Return to combat" sits beside the name there.
+- **Temporary bonuses are gone:** no "Temporary bonus" fields on the sheet (the eight attributes, Armor, Evasion) or on
+  companion sheets; `temporaryBonuses` and `temporaryDefenseBonuses` left the character record, saves, `withActor`'s
+  swap and the enemy files (all were zero). Old saves load with their temporary values dropped. `combineBonuses` became
+  `bonusValues` (a numeric copy of the permanent bonuses).
+- **Equipment slots:** an item's (or the empty slot's) button fills its whole field in every slot, top-aligned, also when
+  a taller slot sets the row's height (the shield next to a weapon filled half its field).
+- **The selected target:** on the stage a larger, brighter marker (18 px, glowing), a pulsing ring at the target's feet
+  (`.battle-actor-shadow::after`, `battle-target-ring`) and a gold-edged name tag (green for allies); in the classic
+  view a 3 px border with a soft glow, also on bosses (`is-unique` used to override the target's look).
+- **Levelling:** `sameLevelVictories` is a fast start (3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6 for levels 1–11; 51 to reach 12),
+  then `round(7 + 17 × ((level − 12) / 87)^1.5)`, up to 24 at 99 (186 victories to reach 30, 388 to 50, 1265 to 100;
+  before 83, 251, 475, 1075). Enemies' EXP is unchanged (`enemyExperience`: (level + 1) × 100 over the old 5, 6, then
+  8–12 victories); `experienceRequired` = an enemy's EXP × the victories, so the targets grow (level 1 needs 120, 12
+  needs 1141, 50 needs 5100, 99 needs 20016). Asked because keeping (level + 1) × 100 would have flattened enemy EXP
+  from level 50 on.
+- **Vial of Dragonblood:** every dragon-race enemy drops it at 0.5% (Mountain Wyrm's chance; 20 more, Anatemis
+  included); Nygheir keeps 1%.
+- **Matching weapons:** `ForgeRules.MATCHING_BONUS` adds a bonus per maker when every part comes from one maker
+  (`matchingMaker`; masterworks call it Flawless): Roundtable +3% final power, Dwarven +5% armor pierce, Elven +5
+  Accuracy, Boreal Bolt +5% base power, Abyss +5 Crit Rating, Hellmade +5% secondary scaling, Hearthforge +3 Accuracy and
+  +3 Crit Rating, Outlaw nothing; not staffs, wands, armor or shields. `totals` adds it; the parts list shows it after
+  the parts ("Matching bonus · Every part by …").
+- **Tests:** `test-client/tests/small-changes-browser.js`, one entry per rule (`runPurseDevModeChecks`,
+  `runDevModeTextChecks`, `runTemporaryBoostChecks`, `runEquipmentFillChecks`, `runTargetHighlightChecks`,
+  `runLevellingCurveChecks`, `runDragonbloodDropChecks`, `runMatchingBonusChecks`; `runSmallChangeChecks` runs all);
+  each fails on the game as it was before. `cinder-bosses` and `adventure-improvements` no longer set temporary bonuses.
+
 **Simulator fix and re-tune (2026-10-11):** `claude-work/ny-sim.js` used to pile every level above 20 into one class past its cap, so parties above Level 20 were badly under-built (6 wasted levels at 26, 15 at 35, 27 at 47). Archetypes now have a `growth` list of fitting classes filled up to each class's cap and level requirement (`ju-sim.js` got the same fix). With fair parties the four earlier bosses won 90–100%, so the user had all four re-tuned (96-fight batches): Juila `maxHpPercent` 210 → 335 (prepared L25 43%); Nygheir 75 → 136 (prepared L26 45%; his check asserts 136); Zik Lun 240 → 455 (standard L26 90%); Deep Sea King 260 → 740 and Dex 58 → 70 (prepared L35 33%; Dex 72–80 drops him to ~17–21%, a cliff). Older balance lines above give pre-fix numbers. `ny-sim.js` takes `OVR='{"<enemy name>":{"maxHpPercent":…,"stats":{…}}}'` for trial numbers without editing enemy files; `claude-work/rt-launch.sh <tag> <ju|ny|zl|dk> <runs> '<override>'` runs one boss with its agreed party.
 
 **Work files:** the session scratchpad was removed mid-session. Use `~/.cache/stat-fick-build/claude-work` for test scripts and the extracted test client (`client/regress.sh` runs the full regression).
@@ -299,6 +334,14 @@ The user's main project is **Stat Fick**, a vanilla-JS fantasy RPG (character sh
   - `settings-companions` looks for the "Hit chance" label, which is now "Accuracy".
   - `adventure-improvements` presses S for the removed Spell Shop.
 A change is safe when these results stay identical.
+- 2026-11-03, a cloud session (Xvfb, lavapipe): every zero-argument function of the 41 files in `test-client/tests/` run
+  as its own entry (`chromium.sh old-game/test-client --script=<file> --call=<fn>`, three at a time), plus the smoke,
+  enemies, lifecycle and combat suites: 57 runs, 44 pass and 13 fail. Failing: `adventure-improvements`
+  (`runAdventureImprovementsChecks` and `runMapImprovementChecks`: a missing element), `bloody-mary`, `combat-lifecycle`
+  (only inside its suite), `music`, `newc`, `settings-companions`, `shop`, `talos-edge` and the combat suite (both the
+  Barbarian failure), `trap`, and two flaky ones that passed on reruns: `map-speed` (travel timing) and
+  `runCompanionImportChecks`. The small changes of that day left these results the same (the flaky two passed), and
+  added `small-changes-browser.js` (9 entries, all passing).
 
 **Known failure:** The combat suite fails "Legacy bonus-choice cancellation makes no changes and does not spend money". The cause is the 2026-10-06 edit that made Barbarian level 7 grant both STR and VIT +5% instead of a choice. The Church of Talos prompt for older saves that never recorded the choice became unreachable. The failure stops the combat suite early, so run `enemies` and `lifecycle` separately.
 

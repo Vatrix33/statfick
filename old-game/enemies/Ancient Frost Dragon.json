@@ -29,5 +29,13 @@
     "whiteout-veil-ice-support", "zero-horizon-ice-damage",
     "everfrost-spike-ice-damage", "glacial-silence-ice-damage",
     "winters-needle-ice-damage"
+  ],
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 0.5,
+      "minimum": 1,
+      "maximum": 1
+    }
   ]
 }

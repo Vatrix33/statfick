@@ -6,7 +6,10 @@ The engine is finished, fully tested, before the game is ported onto it.
 ## How to continue (read this first)
 
 **Current task (2026-11-03):** the small tasks left from earlier milestones were done on 2026-11-03 (below, "Small tasks
-left from earlier milestones"; Progress, "Small tasks"). M9 (assets and data) started on 2026-11-02 with the user's go. Its questions were asked and
+left from earlier milestones"; Progress, "Small tasks"). The same day a cloud session made the user's small changes to
+the old game ("Decisions for the old game's small changes" below; `../old-game/Docs/Notes.md`, "Small changes
+(2026-11-03)"); the engine's tests don't depend on them (their stylesheet copy and captures are unchanged, so the
+captured screens still show the game before them; `make-game-references.sh` takes both afresh, together). M9 (assets and data) started on 2026-11-02 with the user's go. Its questions were asked and
 answered the same day ("Decisions for M9" below, every answer the recommended option); the design doc is `Docs/Assets.md`
 (decisions, what exists checked against the code, method, the on-disk design, nine steps with their dependencies, the 27
 format details asked after it, status). The session managing M9 splits the work into steps from that plan; nothing of
@@ -376,6 +379,27 @@ tests, lavapipe's rendering among them, took the 4 cores. (Not looser bounds on 
 **Decision for the repo housekeeping task (2026-11-03):** the root `.gitignore` ignores `/.claude/worktrees/` (the worker
 worktrees) and `/.claude/settings.local.json` (one machine's settings), not the whole `.claude/` folder, so shared Claude
 Code files (`.claude/settings.json`, hooks, skills) can still be committed. (Not ignoring all of `.claude/`.)
+
+**Decisions for the old game's small changes (2026-11-03, the user's list; asked before the code):** the details and
+what was done are in `../old-game/Docs/Notes.md`, "Small changes (2026-11-03)". Checked first against the engine work:
+none of them gets in its way (the tests use a copy of the stylesheet and frozen captures; the game's tables are converted
+at port time). The rune slotting sound was left out of the old game; the port adds proper sound effects instead
+("Decisions for M8").
+- Levelling: a fast start, then a steeper curve: 3–6 same-level kills per level up to 12 (51 to reach 12), rising to 24
+  per level at 99 (186 to reach 30, 388 to 50, 1265 to 100; today 83, 251, 475, 1075). EXP targets stay (level+1)×100.
+  (Not ending at 18 or 14 per level.)
+- Vial of Dragonblood: every dragon-race enemy drops it at 0.5% (Mountain Wyrm's chance), Anatemis included; Nygheir
+  keeps 1%. (Not 1% for all, not ordinary dragons only.)
+- Matching weapons (all parts by one maker; masterworks' Flawless included, not armour, shields, staffs or wands) get a
+  bonus of their own per maker, different from its usual one: Roundtable +3% final power, Dwarven +5% armor pierce,
+  Elven +5 Accuracy, Boreal Bolt +5% base power, Abyss +5 Crit Rating, Hellmade +5% secondary scaling, Hearthforge +3
+  Accuracy and +3 Crit Rating, Outlaw nothing. (Not half or all of its usual bonus again, not doubled.)
+- The selected target: stage, a larger, brighter marker, a pulsing gold ring at its feet and a gold edge on its name
+  tag; classic, a thicker border with a soft glow. (Not a "Target" label, not dimming the others.)
+- Temporary boost fields: removed from the player's sheet and the companions'; saved temporary values stop counting.
+- Dev Mode: the "Dev-mode · On/Off" text is hidden; "Stat Fick" and the ✦ button stay. (Not hiding the name too.)
+- Equipment slots: the item or empty-slot button fills its whole field in every slot. (Not the off-hand only.)
+- Money (the purse) can be edited only in Dev Mode.
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
