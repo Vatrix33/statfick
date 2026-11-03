@@ -610,6 +610,20 @@ Asked during step 4 (user, 2026-11-03; every answer the recommended option):
   the other settings are used; the value stays in the file until the setting is set. (Not the whole
   file treated as broken.)
 
+Asked during step 5 (user, 2026-11-03; the recommended option; numbered S5-n as step 3's were):
+
+- **S5-1. A model or state machine that reads but breaks its rules** (possible only from a hand-edited JSON
+  form in the development folder or a mod's pack: the importer and the builder check them) is checked at
+  load: `ModelData.Load(files, path)` checks what `GltfImport` checks plus the indices it leaves to BRUTAL
+  (node, mesh, skin, material and root indices; joint indices against the skin; attribute lengths and
+  indices against the vertex count; channel nodes, key counts, increasing key times), and
+  `StateMachineDefinition.Load(files, path)` runs `Validate()`; a failure is a `DataFileException` naming
+  the pack and entry or the file, as an unreadable record is. Q6's "no data used unchecked", and an
+  out-of-range joint index would otherwise read past the GPU's joint matrices. (Not state machines only,
+  not nothing at load.) Accepted with it, as the step chose them: the record type names `model.*` and
+  `animation.*`, field numbers in the declarations' order, and machines anywhere by path, nothing tying
+  one to a model.
+
 ## How it works
 
 Filled in as the steps are done.
@@ -953,6 +967,76 @@ Namespace `Statventure.Storage`. Tests: `Tests/Statventure.Tests/Storage/`, data
   `settings.broken.json` replaced; the old game's 10 MiB limit; folders 0700 and files 0600 on Linux;
   `mods/` not made here.
 
+### Models and state machines in packs (step 5)
+
+Code: `Render3D/ModelData.cs` (the model's record types, `ModelData.Load(files, path)`), `Render3D/ModelImporter.cs`,
+`Render3D/Model.cs` (`Model.Load(device, files, path)`), `Animation/StateMachineDefinition.cs` (the state machine's
+record types, `StateMachineDefinition.Load(files, path)`), `Packs/VirtualFileSystem.cs` (`Problem`). Tests:
+`Tests/Statventure.Tests/Render3D/ModelPackTests.cs`,
+`Render3D/ModelValidationTests.cs`, `Tests/Statventure.Tests/Animation/StateMachineRecordTests.cs`; layouts and
+fixtures in `Data/Records/` (`model` and `animation.state-machine`, each holding a value of every type it uses).
+No pack is committed (Q1).
+
+- **The model record** (Q20) is `ModelData` as `GltfImport` gives it, field by field, all version 1:
+  `model` (nodes, meshes, materials, skins, animations (default none), roots); `model.node` (name, parent,
+  children, local: the matrix as read, TRS times the file's matrix; translation, rotation, scale, mesh, skin (−1:
+  none), ink (default true)); `model.mesh` (name, primitives); `model.primitive` (positions, normals, texCoords,
+  joints and weights (null when absent), indices, material (default −1)); `model.joints` (j0–j3, the four
+  `uint16` joint indices of a vertex); `model.material` (name, baseColor, doubleSided, emission, unlit, hatch
+  (default true)); `model.skin` (name, joints, inverseBindMatrices, skeleton); `model.animation` (name, channels,
+  events (default none)); `model.channel` (node, path `translation`/`rotation`/`scale`, interpolation
+  `step`/`linear`/`cubicSpline`, times and values as the file stores them, `float32`); `model.event` (name, time in
+  seconds). Derived values aren't stored: a material's slot and whether it is emission only, a primitive's
+  `FlatVertices` (made by `Model`). Floats go bit for bit, so a model from a pack, or from its JSON form (shortest
+  round-trip numbers), is `GltfImport`'s bit for bit.
+- **The importer** (`ModelImporter`, `[Importer("models", ".glb")]`; S3-3): each `.glb` of a folder being packed
+  becomes one record entry at its path without the ending (`models/figure.glb` → `models/figure`) holding
+  `GltfImport.Load` of the file, checked as a loaded model is (`ModelData.Validate`, below), so no pack holds a
+  model that won't load. A file `GltfImport` can't read, or whose model breaks a rule, stops the packing with a
+  `DataFileException` naming it ("the models importer: …"). `.gltf` isn't taken (Blender's exports are `.glb`; a
+  `.gltf`'s buffers would be files of their own).
+- **Loading** (S5-1): `ModelData.Load(files, path)` takes `files.Load<ModelData>(path)` (a pack's binary form, or
+  a loose `<path>.json` in the development folder; step 3's errors: a file, a record of another type, one that
+  doesn't read) and checks it with `ModelData.Validate()`, which throws an `InvalidDataException` naming the part
+  at fault: children in range, none its own child or the child of two nodes, each node's parent the node that
+  lists it; nodes' meshes and skins, primitives' materials (−1 or in range); roots in range and without a
+  parent; a primitive's normals, texture coordinates, joints and weights one per vertex, its indices whole
+  triangles within its vertices; skins' joints and skeleton nodes, at least as many inverse bind matrices as
+  joints; every joint index (all four) within the skin of each node showing the mesh (skin.comp reads the joint
+  matrices by them); channels' nodes, values as many as the keys need (three per key for a cubic spline), at
+  least two keys for a cubic spline, key times that increase (NaN doesn't). `GltfImport` itself checks the
+  hierarchy, attribute lengths, indices, inverse bind matrices and channels while reading; the ranges of the
+  node, mesh, skin, material and root indices and the joint indices it left to BRUTAL's parser (which doesn't
+  check a material's: a `.glb` patched to name material 9 of 3 reads, and only the importer's check stops it).
+  A failure is a `DataFileException` naming the pack and entry or the loose file ("not a valid model: mesh
+  0 (Body), primitive 0 has the index 3 beyond its 3 vertices"), the `InvalidDataException` inside, made by
+  `VirtualFileSystem.Problem(path, problem, inner)` (added by this step for every loader that checks what it
+  read, steps 6 and 8 too): the topmost mount's pack and entry, or its loose file with no entry, as the file
+  system's own errors name them; a path no mount has is a `FileNotFoundException`. `Model.Load(device,
+  files, path)` makes the GPU model from the checked data, as `Model.Load(device, path)` does from a `.glb`,
+  which stays (the tests and the Blender harness read the `.glb` files).
+- **State machines** (Q20: entries of their own): `animation.state-machine` (name, parameters, layers),
+  `animation.parameter` (name, kind `bool`/`int`/`float`/`trigger`, default (0)), `animation.layer` (name, mode
+  `replace`/`combine`, entry, states, transitions), `animation.state` (name, clip (null: an empty state; must be
+  given), speed (1), speedParameter (null), loop (false)), `animation.transition` (from (null: from any state; must
+  be given), to, conditions, exitTime (null), duration (0), mayRestart (false)), `animation.condition` (parameter,
+  compare `equal`/`notEqual`/`less`/`greater`/`lessOrEqual`/`greaterOrEqual` (`equal`), value (1)): the M7 records'
+  constructor parameters and their defaults. They are written in their JSON form (by hand, by the editor in
+  M11, or as `RecordSerializer.ToJson` of a machine the builder made) anywhere in the folder packed, and packed by
+  step 3's rule for records' JSON forms (`models/machines/humanoid.json` → the record `models/machines/humanoid`);
+  nothing ties a machine to a model by path (S5-1). `StateMachineDefinition.Load(files, path)` takes
+  `files.Load<StateMachineDefinition>(path)` and runs `Validate()` (M7's rules); a machine that doesn't validate is
+  a `DataFileException` naming the pack and entry or the loose file ("not a valid state machine: broken/base: a
+  transition shut → nowhere names a state that doesn't exist"), the `ArgumentException` inside.
+- **Sizes of a model's JSON form** (a fact for the editor's and the dump's later work: a committed
+  `models.pak` shows in `git diff` as this): `figure.glb` (105 KB) is a 123 KB record, 24 KB stored, and its JSON
+  form (extract, the development folder, the dump) is 22,286 lines and 700 KB: each vertex's joints an object of
+  six lines (1,328 of them), a float list (a channel's times and values) a number per line, a list of vectors on
+  one line (its positions 34,655 characters). That is the serializer's JSON form (step 2) applied to meshes; a
+  more compact form for the editor or the dump would be a later choice.
+- **Checked by hand:** `packer pack` of a folder with two `.glb` files and a machine's JSON form, `list`,
+  `verify`, `dump` (the records' JSON forms), `extract` and packing the extraction again (the same bytes).
+
 ## Status
 
 - **Nothing implemented yet** (2026-11-02). The decisions and the 27 format details are recorded, the
@@ -1030,3 +1114,19 @@ Namespace `Statventure.Storage`. Tests: `Tests/Statventure.Tests/Storage/`, data
   even when they fail (`HeldWriter`): a held writer's foreground thread kept a failing test from ending,
   which `mutate.py` read as a survivor after its 600 s timeout. Not checked: Windows (`File.Replace`
   there, the RoamingAppData and Documents known folders, Explorer).
+- **Step 5, models and state machines in packs, done (2026-11-03):** ("How it works", step 5); one
+  question asked on the way (S5-1: checked at load, as recommended), the step's record type names, field
+  numbers and machines anywhere by path accepted with it. 65 new tests: the 12 test models packed by the
+  models importer equal `GltfImport`'s bit for bit from the pack and from their extracted JSON form, each
+  `.glb` one record at its path without the ending, the importer taking `.glb` only, a `.glb` it can't read
+  or whose model breaks a rule naming the file; four Blender scenes (gear-swing, shadow-stage, glow-figure,
+  model-blocks: nine of the twelve models) drawn from pack-loaded models match their goldens as the
+  file-loaded ones do; each of the model's rules broken once (39 cases, indices at their limits) with its
+  own problem, named as the pack and entry or the loose file, also through `Model.Load`; the M7 state
+  machines through both forms, one written by hand in JSON, machines packed beside a model and loaded from
+  the pack and a loose folder, the figure and the humanoid machine from a pack playing as the `.glb` and the
+  built machine do (notices, events and every frame's pose), a machine that doesn't validate;
+  `VirtualFileSystem.Problem` on each kind of mount; layouts and fixtures of the 16 new record types. The
+  full suite passes on the GPU and on lavapipe (1600 tests). Mutations: 96 (the records' fields, defaults,
+  names, numbers and enum orders; the importer; the loads; `Problem`; each check and each limit), all fail a
+  test. Nothing in this doc turned out wrong. Not checked: Windows.

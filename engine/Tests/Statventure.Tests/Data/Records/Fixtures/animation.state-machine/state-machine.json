@@ -1,0 +1,159 @@
+{
+  "$types": {
+    "animation.state-machine": 1,
+    "animation.parameter": 1,
+    "animation.layer": 1,
+    "animation.state": 1,
+    "animation.transition": 1,
+    "animation.condition": 1
+  },
+  "name": "full",
+  "parameters": [
+    {
+      "name": "dead",
+      "kind": "bool",
+      "default": 1
+    },
+    {
+      "name": "combo",
+      "kind": "int",
+      "default": 2
+    },
+    {
+      "name": "speed",
+      "kind": "float",
+      "default": 1.5
+    },
+    {
+      "name": "attack",
+      "kind": "trigger",
+      "default": 0
+    }
+  ],
+  "layers": [
+    {
+      "name": "base",
+      "mode": "replace",
+      "entry": "idle",
+      "states": [
+        {
+          "name": "idle",
+          "clip": "idle",
+          "speed": 1,
+          "loop": true
+        },
+        {
+          "name": "run",
+          "clip": "twist",
+          "speed": 1.25,
+          "speedParameter": "speed",
+          "loop": true
+        }
+      ],
+      "transitions": [
+        {
+          "from": "idle",
+          "to": "run",
+          "conditions": [
+            {
+              "parameter": "combo",
+              "compare": "notEqual",
+              "value": 0
+            },
+            {
+              "parameter": "speed",
+              "compare": "greater",
+              "value": 0.5
+            }
+          ],
+          "duration": 0.25,
+          "mayRestart": false
+        },
+        {
+          "from": "run",
+          "to": "idle",
+          "conditions": [
+            {
+              "parameter": "speed",
+              "compare": "lessOrEqual",
+              "value": 0.5
+            }
+          ],
+          "exitTime": 0.75,
+          "duration": 0.5,
+          "mayRestart": false
+        },
+        {
+          "from": null,
+          "to": "idle",
+          "conditions": [
+            {
+              "parameter": "dead",
+              "compare": "equal",
+              "value": 1
+            }
+          ],
+          "duration": 0.1,
+          "mayRestart": true
+        }
+      ]
+    },
+    {
+      "name": "upper",
+      "mode": "combine",
+      "entry": "none",
+      "states": [
+        {
+          "name": "none",
+          "clip": null,
+          "speed": 1,
+          "loop": false
+        },
+        {
+          "name": "swing",
+          "clip": "swing",
+          "speed": 2,
+          "loop": false
+        }
+      ],
+      "transitions": [
+        {
+          "from": "none",
+          "to": "swing",
+          "conditions": [
+            {
+              "parameter": "attack",
+              "compare": "equal",
+              "value": 1
+            },
+            {
+              "parameter": "combo",
+              "compare": "less",
+              "value": 3
+            },
+            {
+              "parameter": "combo",
+              "compare": "greaterOrEqual",
+              "value": 1
+            },
+            {
+              "parameter": "speed",
+              "compare": "equal",
+              "value": 1.5
+            }
+          ],
+          "duration": 0.1,
+          "mayRestart": false
+        },
+        {
+          "from": "swing",
+          "to": "none",
+          "conditions": [],
+          "exitTime": 1,
+          "duration": 0.15,
+          "mayRestart": false
+        }
+      ]
+    }
+  ]
+}

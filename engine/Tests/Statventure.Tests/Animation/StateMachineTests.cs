@@ -18,7 +18,7 @@ public class StateMachineTests
     const double Frame = 1 / 60.0;
 
     /// <summary>A humanoid-like machine on the figure's clips: idle (2 s loop), swing (0.6 s), pulse (0.67 s), twist (1 s).</summary>
-    static StateMachineDefinition Humanoid() => new StateMachineBuilder("humanoid")
+    internal static StateMachineDefinition Humanoid() => new StateMachineBuilder("humanoid")
         .Trigger("attack").Trigger("hurt").Bool("dead").Float("swingSpeed", 1).Int("combo")
         .Layer("base", BlendMode.Replace, "idle", l => l
             .State("idle", "idle", loop: true)

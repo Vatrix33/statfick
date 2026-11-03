@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Brutal.VulkanApi;
 using Statventure.Graphics;
+using Statventure.Packs;
 
 namespace Statventure.Render3D;
 
@@ -251,7 +252,11 @@ public sealed class Model : IDisposable
             GpuBuffer.CreateWithData<uint>(device, fans.ToArray(), VkBufferUsageFlags.StorageBufferBit));
     }
 
+    /// <summary>A model from a .glb (or .gltf) file (<see cref="GltfImport"/>).</summary>
     public static Model Load(GpuDevice device, string path) => Create(device, ModelData.Load(path));
+
+    /// <summary>A model from the game's data: the model record at <paramref name="path"/> (<see cref="ModelData.Load(VirtualFileSystem, string)"/>).</summary>
+    public static Model Load(GpuDevice device, VirtualFileSystem files, string path) => Create(device, ModelData.Load(files, path));
 
     /// <summary>
     /// Adds a cel-shaded draw item per primitive of every node in the scene, placed by

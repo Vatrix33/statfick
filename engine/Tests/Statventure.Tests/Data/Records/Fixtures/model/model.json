@@ -1,0 +1,230 @@
+{
+  "$types": {
+    "model": 1,
+    "model.node": 1,
+    "model.mesh": 1,
+    "model.primitive": 1,
+    "model.joints": 1,
+    "model.material": 1,
+    "model.skin": 1,
+    "model.animation": 1,
+    "model.channel": 1,
+    "model.event": 1
+  },
+  "nodes": [
+    {
+      "name": "Rig",
+      "parent": -1,
+      "children": [
+        1,
+        2
+      ],
+      "local": [0.87758255, 0.47942555, 0, 0, -0.9588511, 1.7551651, 0, 0, 0, 0, 1, 0, 0.25, 1.5, 0, 1],
+      "translation": [0.25, 1.5, -0],
+      "rotation": [0, 0, 0.24740396, 0.9689124],
+      "scale": [1, 2, 1],
+      "mesh": -1,
+      "skin": -1,
+      "ink": true
+    },
+    {
+      "name": "Bone",
+      "parent": 0,
+      "children": [],
+      "local": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0.75, 0, 1],
+      "translation": [0, 0.75, 0],
+      "rotation": [0, 0, 0, 1],
+      "scale": [1, 1, 1],
+      "mesh": -1,
+      "skin": -1,
+      "ink": true
+    },
+    {
+      "name": "Body",
+      "parent": 0,
+      "children": [],
+      "local": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+      "translation": [0, 0, 0],
+      "rotation": [0, 0, 0, 1],
+      "scale": [1, 1, 1],
+      "mesh": 0,
+      "skin": 0,
+      "ink": false
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Body",
+      "primitives": [
+        {
+          "positions": [[0, 0, 0],[1, 0, 0],[0, 1, 1E-40]
+          ],
+          "normals": [[0, 0, 1],[0, 0, 1],[0, 0.6, 0.8]
+          ],
+          "texCoords": [[0, 0],[1, 0],[0, 1]
+          ],
+          "joints": [
+            {
+              "j0": 0,
+              "j1": 0,
+              "j2": 0,
+              "j3": 0
+            },
+            {
+              "j0": 0,
+              "j1": 1,
+              "j2": 0,
+              "j3": 0
+            },
+            {
+              "j0": 1,
+              "j1": 0,
+              "j2": 0,
+              "j3": 1
+            }
+          ],
+          "weights": [[1, 0, 0, 0],[0.5, 0.5, 0, 0],[0.25, 0.25, 0.25, 0.25]
+          ],
+          "indices": [
+            0,
+            1,
+            2
+          ],
+          "material": 0
+        },
+        {
+          "positions": [[2, 0, 0],[3, 0, 0],[2, 1, 0]
+          ],
+          "normals": [[-0, -0, -1],[-0, -0, -1],[-0, -0, -1]
+          ],
+          "indices": [
+            0,
+            2,
+            1
+          ],
+          "material": -1
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "cloth.001",
+      "baseColor": [0.5, 0.25, 0.125, 1],
+      "doubleSided": true,
+      "emission": [0.75, 0.5, 0],
+      "unlit": false,
+      "hatch": false
+    },
+    {
+      "name": "glow",
+      "baseColor": [0, 0, 0, 1],
+      "doubleSided": false,
+      "emission": [0, 0, 0],
+      "unlit": true,
+      "hatch": true
+    }
+  ],
+  "skins": [
+    {
+      "name": "Armature",
+      "joints": [
+        0,
+        1
+      ],
+      "inverseBindMatrices": [[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -0.75, 0, 1]
+      ],
+      "skeleton": 0
+    }
+  ],
+  "animations": [
+    {
+      "name": "swing",
+      "channels": [
+        {
+          "node": 1,
+          "path": "translation",
+          "interpolation": "linear",
+          "times": [
+            0,
+            0.5
+          ],
+          "values": [
+            0,
+            0.75,
+            0,
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "node": 1,
+          "path": "rotation",
+          "interpolation": "cubicSpline",
+          "times": [
+            0,
+            0.5
+          ],
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0.1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0.2,
+            0.98,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "node": 0,
+          "path": "scale",
+          "interpolation": "step",
+          "times": [
+            0.25
+          ],
+          "values": [
+            1,
+            1.5,
+            1
+          ]
+        }
+      ],
+      "events": [
+        {
+          "name": "hit",
+          "time": 0.25
+        },
+        {
+          "name": "end",
+          "time": 0.5
+        }
+      ]
+    },
+    {
+      "name": "rest",
+      "channels": [],
+      "events": []
+    }
+  ],
+  "roots": [
+    0
+  ]
+}

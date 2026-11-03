@@ -1,0 +1,4 @@
+animation.parameter 1
+  1 name: string (required)
+  2 kind: enum int32 {bool = 0, int = 1, float = 2, trigger = 3} (required)
+  3 default: float64 = 0

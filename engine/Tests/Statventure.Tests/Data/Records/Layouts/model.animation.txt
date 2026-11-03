@@ -1,0 +1,4 @@
+model.animation 1
+  1 name: string (required)
+  2 channels: list<model.channel> (required)
+  3 events: list<model.event> = []

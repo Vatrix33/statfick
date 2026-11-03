@@ -1,0 +1,6 @@
+model.channel 1
+  1 node: int32 (required)
+  2 path: enum int32 {translation = 0, rotation = 1, scale = 2} (required)
+  3 interpolation: enum int32 {step = 0, linear = 1, cubicSpline = 2} (required)
+  4 times: list<float32> (required)
+  5 values: list<float32> (required)

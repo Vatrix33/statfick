@@ -1,7 +1,12 @@
+using Statventure.Packs;
+using Statventure.Records;
+
 namespace Statventure.Animation;
 
 // A state machine as data (Docs/Animation.md, "State machines in detail"): plain records the C#
-// builder makes; M9 gives them a pack form and M11 an editor. Everything is found by name.
+// builder makes, and records of their own in the packs (M9: Docs/Assets.md, "How it works", "Models and
+// state machines in packs"; types animation.*), written as their JSON form; M11 gives them an editor.
+// Everything is found by name.
 
 /// <summary>The kinds of parameters a machine's conditions test.</summary>
 public enum ParameterKind
@@ -17,10 +22,13 @@ public enum ParameterKind
 public enum Compare { Equal, NotEqual, Less, Greater, LessOrEqual, GreaterOrEqual }
 
 /// <summary>A parameter and its starting value (bools and triggers: 0 or 1).</summary>
-public sealed record ParameterDefinition(string Name, ParameterKind Kind, double Default = 0);
+[Record("animation.parameter", 1)]
+public sealed record ParameterDefinition([property: Field(1)] string Name, [property: Field(2)] ParameterKind Kind, [property: Field(3)] double Default = 0);
 
 /// <summary>A test of one parameter; for a trigger, whether it's set.</summary>
-public sealed record ConditionDefinition(string Parameter, Compare Compare = Compare.Equal, double Value = 1)
+[Record("animation.condition", 1)]
+public sealed record ConditionDefinition([property: Field(1)] string Parameter, [property: Field(2)] Compare Compare = Compare.Equal,
+    [property: Field(3)] double Value = 1)
 {
     public static ConditionDefinition Trigger(string name) => new(name);
     public static ConditionDefinition Is(string name) => new(name, Compare.Equal, 1);
@@ -33,7 +41,9 @@ public sealed record ConditionDefinition(string Parameter, Compare Compare = Com
 /// parameter's value when <see cref="SpeedParameter"/> names one; times the animator's rate) and
 /// whether the clip loops (else it holds its last frame).
 /// </summary>
-public sealed record StateDefinition(string Name, string? Clip, double Speed = 1, string? SpeedParameter = null, bool Loop = false);
+[Record("animation.state", 1)]
+public sealed record StateDefinition([property: Field(1)] string Name, [property: Field(2)] string? Clip, [property: Field(3)] double Speed = 1,
+    [property: Field(4)] string? SpeedParameter = null, [property: Field(5)] bool Loop = false);
 
 /// <summary>
 /// A transition from a state (null: from any state, checked before the current state's own) to
@@ -42,16 +52,44 @@ public sealed record StateDefinition(string Name, string? Clip, double Speed = 1
 /// over <see cref="Duration"/> seconds. It enters the state its layer is already in only if
 /// <see cref="MayRestart"/>.
 /// </summary>
-public sealed record TransitionDefinition(string? From, string To, IReadOnlyList<ConditionDefinition> Conditions, double? ExitTime = null,
-    double Duration = 0, bool MayRestart = false);
+[Record("animation.transition", 1)]
+public sealed record TransitionDefinition([property: Field(1)] string? From, [property: Field(2)] string To,
+    [property: Field(3)] IReadOnlyList<ConditionDefinition> Conditions, [property: Field(4)] double? ExitTime = null, [property: Field(5)] double Duration = 0,
+    [property: Field(6)] bool MayRestart = false);
 
 /// <summary>A layer of states: its blend mode over the layers below, its entry state, states and transitions (in priority order).</summary>
-public sealed record LayerDefinition(string Name, BlendMode Mode, string Entry, IReadOnlyList<StateDefinition> States,
-    IReadOnlyList<TransitionDefinition> Transitions);
+[Record("animation.layer", 1)]
+public sealed record LayerDefinition([property: Field(1)] string Name, [property: Field(2)] BlendMode Mode, [property: Field(3)] string Entry,
+    [property: Field(4)] IReadOnlyList<StateDefinition> States, [property: Field(5)] IReadOnlyList<TransitionDefinition> Transitions);
 
-/// <summary>A state machine: its parameters and layers (bottom first).</summary>
-public sealed record StateMachineDefinition(string Name, IReadOnlyList<ParameterDefinition> Parameters, IReadOnlyList<LayerDefinition> Layers)
+/// <summary>
+/// A state machine: its parameters and layers (bottom first). In the game's data it is a record entry of
+/// its own (<c>animation.state-machine</c>), packed from its JSON form.
+/// </summary>
+[Record("animation.state-machine", 1)]
+public sealed record StateMachineDefinition([property: Field(1)] string Name, [property: Field(2)] IReadOnlyList<ParameterDefinition> Parameters,
+    [property: Field(3)] IReadOnlyList<LayerDefinition> Layers)
 {
+    /// <summary>
+    /// The state machine at <paramref name="path"/> in the game's data (a record entry, or its JSON form in
+    /// the development folder), validated (<see cref="Validate"/>; S5-1): a <see cref="DataFileException"/>
+    /// naming the pack and entry or the loose file when it isn't a readable state machine record or doesn't
+    /// validate.
+    /// </summary>
+    public static StateMachineDefinition Load(VirtualFileSystem files, string path)
+    {
+        var definition = files.Load<StateMachineDefinition>(path);
+        try
+        {
+            definition.Validate();
+        }
+        catch (ArgumentException problem)
+        {
+            throw files.Problem(path, $"not a valid state machine: {problem.Message}", problem);
+        }
+        return definition;
+    }
+
     /// <summary>Throws when a name doesn't resolve or a condition doesn't fit its parameter.</summary>
     public void Validate()
     {

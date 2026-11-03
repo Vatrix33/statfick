@@ -1,0 +1,8 @@
+model.primitive 1
+  1 positions: list<vector3> (required)
+  2 normals: list<vector3> (required)
+  3 texCoords: list<vector2>? = null
+  4 joints: list<model.joints>? = null
+  5 weights: list<vector4>? = null
+  6 indices: list<uint32> (required)
+  7 material: int32 = -1

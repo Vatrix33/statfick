@@ -1,0 +1,7 @@
+animation.transition 1
+  1 from: string? (required)
+  2 to: string (required)
+  3 conditions: list<animation.condition> (required)
+  4 exitTime: float64? = null
+  5 duration: float64 = 0
+  6 mayRestart: bool = false

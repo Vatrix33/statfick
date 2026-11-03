@@ -157,6 +157,17 @@ public sealed class VirtualFileSystem : IDisposable
         return Use(table => table.Sources.TryGetValue(path, out var source) ? source.Origin(path) : null);
     }
 
+    /// <summary>
+    /// An error about what <paramref name="path"/> holds that the reader found itself (a record that reads but
+    /// breaks its type's rules), naming the topmost mount's pack and entry, or its loose file, as the file
+    /// system's own errors do; a <see cref="FileNotFoundException"/> when no mount has the path.
+    /// </summary>
+    public DataFileException Problem(string path, string problem, Exception? inner = null)
+    {
+        PackPath.Check(path);
+        return Use(table => Find(table, path).Problem(path, problem, inner));
+    }
+
     /// <summary>Every path below <paramref name="folder"/> ("" for all), at any depth, in ordinal order, each once.</summary>
     public IReadOnlyList<string> List(string folder = "")
     {

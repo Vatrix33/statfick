@@ -1,0 +1,6 @@
+animation.layer 1
+  1 name: string (required)
+  2 mode: enum int32 {replace = 0, combine = 1} (required)
+  3 entry: string (required)
+  4 states: list<animation.state> (required)
+  5 transitions: list<animation.transition> (required)

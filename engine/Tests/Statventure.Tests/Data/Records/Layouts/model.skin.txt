@@ -1,0 +1,5 @@
+model.skin 1
+  1 name: string (required)
+  2 joints: list<int32> (required)
+  3 inverseBindMatrices: list<matrix4x4> (required)
+  4 skeleton: int32 (required)

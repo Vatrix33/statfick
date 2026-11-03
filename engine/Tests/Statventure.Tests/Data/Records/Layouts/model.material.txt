@@ -1,0 +1,7 @@
+model.material 1
+  1 name: string (required)
+  2 baseColor: vector4 (required)
+  3 doubleSided: bool (required)
+  4 emission: vector3 = [0, 0, 0]
+  5 unlit: bool = false
+  6 hatch: bool = true

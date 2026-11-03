@@ -1,0 +1,4 @@
+animation.state-machine 1
+  1 name: string (required)
+  2 parameters: list<animation.parameter> (required)
+  3 layers: list<animation.layer> (required)

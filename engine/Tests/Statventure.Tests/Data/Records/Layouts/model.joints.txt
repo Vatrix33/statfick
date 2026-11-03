@@ -1,0 +1,5 @@
+model.joints 1
+  1 j0: uint16 (required)
+  2 j1: uint16 (required)
+  3 j2: uint16 (required)
+  4 j3: uint16 (required)

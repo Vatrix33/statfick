@@ -1,0 +1,6 @@
+animation.state 1
+  1 name: string (required)
+  2 clip: string? (required)
+  3 speed: float64 = 1
+  4 speedParameter: string? = null
+  5 loop: bool = false

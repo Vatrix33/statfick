@@ -1,0 +1,4 @@
+animation.condition 1
+  1 parameter: string (required)
+  2 compare: enum int32 {equal = 0, notEqual = 1, less = 2, greater = 3, lessOrEqual = 4, greaterOrEqual = 5} = "equal"
+  3 value: float64 = 1

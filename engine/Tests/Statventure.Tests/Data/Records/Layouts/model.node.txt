@@ -1,0 +1,11 @@
+model.node 1
+  1 name: string (required)
+  2 parent: int32 (required)
+  3 children: list<int32> (required)
+  4 local: matrix4x4 (required)
+  5 translation: vector3 (required)
+  6 rotation: quaternion (required)
+  7 scale: vector3 (required)
+  8 mesh: int32 (required)
+  9 skin: int32 (required)
+  10 ink: bool = true

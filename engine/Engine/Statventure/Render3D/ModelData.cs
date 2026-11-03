@@ -1,28 +1,37 @@
 using System.Numerics;
+using Statventure.Packs;
+using Statventure.Records;
 
 namespace Statventure.Render3D;
 
+// A model's data is a record (Docs/Assets.md, "How it works", "Models and state machines in packs"): one
+// entry of models.pak per .glb holding what GltfImport reads from it (ModelImporter), its types model.*.
+
 /// <summary>The four joints a skinned vertex follows (glTF's JOINTS_0), as indices into its skin's joints.</summary>
-public readonly record struct JointIndices(ushort J0, ushort J1, ushort J2, ushort J3);
+[Record("model.joints", 1)]
+public readonly record struct JointIndices([property: Field(1)] ushort J0, [property: Field(2)] ushort J1, [property: Field(3)] ushort J2,
+    [property: Field(4)] ushort J3);
 
 /// <summary>Triangles with one material: vertex attributes as glTF gives them, 32-bit indices.</summary>
+[Record("model.primitive", 1)]
 public sealed class ModelPrimitive
 {
-    public required Vector3[] Positions { get; init; }
+    [Field(1)] public required Vector3[] Positions { get; init; }
     /// <summary>The file's normals, or flat face normals when it has none (as glTF asks).</summary>
-    public required Vector3[] Normals { get; init; }
-    public Vector2[]? TexCoords { get; init; }
-    public JointIndices[]? Joints { get; init; }
-    public Vector4[]? Weights { get; init; }
+    [Field(2)] public required Vector3[] Normals { get; init; }
+    [Field(3)] public Vector2[]? TexCoords { get; init; }
+    [Field(4)] public JointIndices[]? Joints { get; init; }
+    [Field(5)] public Vector4[]? Weights { get; init; }
     /// <summary>Counter-clockwise triangles (strips and fans are turned into lists).</summary>
-    public required uint[] Indices { get; init; }
+    [Field(6)] public required uint[] Indices { get; init; }
     /// <summary>An index into <see cref="ModelData.Materials"/>, or −1 for glTF's default material.</summary>
-    public int Material { get; init; } = -1;
-    /// <summary>Vertices of flat faces given vertices of their own for skinning (Model), else null.</summary>
+    [Field(7)] public int Material { get; init; } = -1;
+    /// <summary>Vertices of flat faces given vertices of their own for skinning (Model), else null; not part of the record.</summary>
     internal uint[]? FlatVertices { get; init; }
 }
 
-public sealed record ModelMesh(string Name, IReadOnlyList<ModelPrimitive> Primitives);
+[Record("model.mesh", 1)]
+public sealed record ModelMesh([property: Field(1)] string Name, [property: Field(2)] IReadOnlyList<ModelPrimitive> Primitives);
 
 /// <summary>
 /// A material: its name, which names a palette slot (Docs/Renderer-3D.md, "Colours: palette slots"),
@@ -32,15 +41,16 @@ public sealed record ModelMesh(string Name, IReadOnlyList<ModelPrimitive> Primit
 /// whether it's unlit (a Background shader, KHR_materials_unlit). <see cref="Hatch"/> is false for
 /// a material with the custom property <c>hatch = 0</c> (material extras).
 /// </summary>
-public sealed record ModelMaterial(string Name, Vector4 BaseColor, bool DoubleSided)
+[Record("model.material", 1)]
+public sealed record ModelMaterial([property: Field(1)] string Name, [property: Field(2)] Vector4 BaseColor, [property: Field(3)] bool DoubleSided)
 {
     /// <summary>glTF's default material: white, one-sided.</summary>
     public static readonly ModelMaterial Default = new("", Vector4.One, false);
 
     public string Slot => Palette.SlotOf(Name);
-    public Vector3 Emission { get; init; }
-    public bool Unlit { get; init; }
-    public bool Hatch { get; init; } = true;
+    [Field(4)] public Vector3 Emission { get; init; }
+    [Field(5)] public bool Unlit { get; init; }
+    [Field(6)] public bool Hatch { get; init; } = true;
 
     /// <summary>An Emission shader alone: no base colour, only emission (drawn flat in it, glowing).</summary>
     public bool EmissionOnly => !Unlit && Emission != Vector3.Zero && BaseColor.X == 0 && BaseColor.Y == 0 && BaseColor.Z == 0;
@@ -52,10 +62,12 @@ public sealed record ModelMaterial(string Name, Vector4 BaseColor, bool DoubleSi
 /// <see cref="Ink"/> is false for parts drawn without ink lines (the Blender object's custom
 /// property <c>ink = 0</c>, exported as node extras).
 /// </summary>
-public sealed record ModelNode(string Name, int Parent, IReadOnlyList<int> Children, Matrix4x4 Local,
-    Vector3 Translation, Quaternion Rotation, Vector3 Scale, int Mesh, int Skin)
+[Record("model.node", 1)]
+public sealed record ModelNode([property: Field(1)] string Name, [property: Field(2)] int Parent, [property: Field(3)] IReadOnlyList<int> Children,
+    [property: Field(4)] Matrix4x4 Local, [property: Field(5)] Vector3 Translation, [property: Field(6)] Quaternion Rotation, [property: Field(7)] Vector3 Scale,
+    [property: Field(8)] int Mesh, [property: Field(9)] int Skin)
 {
-    public bool Ink { get; init; } = true;
+    [Field(10)] public bool Ink { get; init; } = true;
 }
 
 /// <summary>
@@ -76,7 +88,9 @@ public sealed class ModelPose
 }
 
 /// <summary>A skin: the nodes acting as joints and their inverse bind matrices (model space to joint space).</summary>
-public sealed record ModelSkin(string Name, IReadOnlyList<int> Joints, IReadOnlyList<Matrix4x4> InverseBindMatrices, int Skeleton);
+[Record("model.skin", 1)]
+public sealed record ModelSkin([property: Field(1)] string Name, [property: Field(2)] IReadOnlyList<int> Joints,
+    [property: Field(3)] IReadOnlyList<Matrix4x4> InverseBindMatrices, [property: Field(4)] int Skeleton);
 
 /// <summary>The node property a glTF animation channel drives (morph target weights are not read: the engine animates bones only).</summary>
 public enum AnimationPath { Translation, Rotation, Scale }
@@ -90,37 +104,165 @@ public enum AnimationInterpolation { Step, Linear, CubicSpline }
 /// translation and scale, 4 for rotation as x, y, z, w; with CUBICSPLINE each key holds its
 /// in-tangent, value and out-tangent in that order).
 /// </summary>
-public sealed record ModelAnimationChannel(int Node, AnimationPath Path, AnimationInterpolation Interpolation, float[] Times, float[] Values)
+[Record("model.channel", 1)]
+public sealed record ModelAnimationChannel([property: Field(1)] int Node, [property: Field(2)] AnimationPath Path,
+    [property: Field(3)] AnimationInterpolation Interpolation, [property: Field(4)] float[] Times, [property: Field(5)] float[] Values)
 {
     /// <summary>Components of the property: 4 for rotation, 3 otherwise.</summary>
     public int Components => Path == AnimationPath.Rotation ? 4 : 3;
 }
 
 /// <summary>A clip event: a Blender pose marker's name and its time in seconds from the clip's start (Docs/Animation.md, "Clip events").</summary>
-public sealed record ModelAnimationEvent(string Name, double Time);
+[Record("model.event", 1)]
+public sealed record ModelAnimationEvent([property: Field(1)] string Name, [property: Field(2)] double Time);
 
 /// <summary>
 /// A glTF animation: one clip (a Blender action, Docs/Animation.md), with the events its extras
 /// list (the action's pose markers, which the export script copies there), in time order.
 /// </summary>
-public sealed record ModelAnimation(string Name, IReadOnlyList<ModelAnimationChannel> Channels)
+[Record("model.animation", 1)]
+public sealed record ModelAnimation([property: Field(1)] string Name, [property: Field(2)] IReadOnlyList<ModelAnimationChannel> Channels)
 {
-    public IReadOnlyList<ModelAnimationEvent> Events { get; init; } = [];
+    [Field(3)] public IReadOnlyList<ModelAnimationEvent> Events { get; init; } = [];
 }
 
-/// <summary>A model as read from a .glb (<see cref="GltfImport"/>): in glTF's coordinates, right-handed, Y up, metres.</summary>
+/// <summary>
+/// A model as read from a .glb (<see cref="GltfImport"/>): in glTF's coordinates, right-handed, Y up,
+/// metres. Also the record a models.pak entry holds (<c>model</c>; <see cref="ModelImporter"/>).
+/// </summary>
+[Record("model", 1)]
 public sealed class ModelData
 {
-    public required IReadOnlyList<ModelNode> Nodes { get; init; }
-    public required IReadOnlyList<ModelMesh> Meshes { get; init; }
-    public required IReadOnlyList<ModelMaterial> Materials { get; init; }
-    public required IReadOnlyList<ModelSkin> Skins { get; init; }
+    [Field(1)] public required IReadOnlyList<ModelNode> Nodes { get; init; }
+    [Field(2)] public required IReadOnlyList<ModelMesh> Meshes { get; init; }
+    [Field(3)] public required IReadOnlyList<ModelMaterial> Materials { get; init; }
+    [Field(4)] public required IReadOnlyList<ModelSkin> Skins { get; init; }
     /// <summary>The file's animations (Docs/Animation.md), in file order.</summary>
-    public IReadOnlyList<ModelAnimation> Animations { get; init; } = [];
+    [Field(5)] public IReadOnlyList<ModelAnimation> Animations { get; init; } = [];
     /// <summary>The scene's root nodes.</summary>
-    public required IReadOnlyList<int> Roots { get; init; }
+    [Field(6)] public required IReadOnlyList<int> Roots { get; init; }
 
+    /// <summary>Reads a .glb (or .gltf) file (<see cref="GltfImport"/>).</summary>
     public static ModelData Load(string path) => GltfImport.Load(path);
+
+    /// <summary>
+    /// The model at <paramref name="path"/> in the game's data (a models.pak entry such as
+    /// <c>models/figure</c>, made from <c>models/figure.glb</c> by <see cref="ModelImporter"/>, or its
+    /// JSON form in the development folder), checked (<see cref="Validate"/>; S5-1): a
+    /// <see cref="DataFileException"/> naming the pack and entry or the loose file when it isn't a
+    /// readable model record or breaks a rule.
+    /// </summary>
+    public static ModelData Load(VirtualFileSystem files, string path)
+    {
+        var model = files.Load<ModelData>(path);
+        try
+        {
+            model.Validate();
+        }
+        catch (InvalidDataException problem)
+        {
+            throw files.Problem(path, $"not a valid model: {problem.Message}", problem);
+        }
+        return model;
+    }
+
+    /// <summary>
+    /// Throws an <see cref="InvalidDataException"/> when the model breaks a rule a model from
+    /// <see cref="GltfImport"/> keeps (Docs/Assets.md, S5-1): each node the child of at most one node,
+    /// never its own, its parent the node that lists it; nodes' meshes and skins, primitives' materials,
+    /// roots (nodes without a parent), skins' joints and skeletons and channels' nodes that exist; a
+    /// primitive's attributes one per vertex, whole triangles, indices within its vertices, and joint
+    /// indices within the skin of every node that shows it; a skin's inverse bind matrices for all its
+    /// joints; a channel's values as many as its keys need, a cubic spline at least two keys, and key
+    /// times that increase. A model from a pack or a loose folder breaks them only if it was edited.
+    /// </summary>
+    public void Validate()
+    {
+        static void Fail(string problem) => throw new InvalidDataException(problem);
+        var count = Nodes.Count;
+        var parents = new int[count];
+        Array.Fill(parents, -1);
+        for (var i = 0; i < count; i++)
+            foreach (var child in Nodes[i].Children)
+            {
+                if (child < 0 || child >= count)
+                    Fail($"node {i} ({Nodes[i].Name}) has a child {child} that doesn't exist");
+                if (child == i || parents[child] >= 0)
+                    Fail($"node {child} ({Nodes[child].Name}) is its own child or the child of two nodes");
+                parents[child] = i;
+            }
+        for (var i = 0; i < count; i++)
+        {
+            var node = Nodes[i];
+            if (node.Parent != parents[i])
+                Fail($"node {i} ({node.Name}) has the parent {node.Parent}, but {(parents[i] < 0 ? "no node" : $"node {parents[i]}")} lists it as a child");
+            if (node.Mesh < -1 || node.Mesh >= Meshes.Count)
+                Fail($"node {i} ({node.Name}) shows mesh {node.Mesh}, which doesn't exist");
+            if (node.Skin < -1 || node.Skin >= Skins.Count)
+                Fail($"node {i} ({node.Name}) has skin {node.Skin}, which doesn't exist");
+        }
+        foreach (var root in Roots)
+            if (root < 0 || root >= count || Nodes[root].Parent >= 0)
+                Fail($"the root {root} isn't a node without a parent");
+        for (var m = 0; m < Meshes.Count; m++)
+            for (var p = 0; p < Meshes[m].Primitives.Count; p++)
+            {
+                var primitive = Meshes[m].Primitives[p];
+                var where = $"mesh {m} ({Meshes[m].Name}), primitive {p}";
+                var vertices = primitive.Positions.Length;
+                foreach (var (name, length) in new[] { ("normals", (int?)primitive.Normals.Length), ("texCoords", primitive.TexCoords?.Length),
+                             ("joints", primitive.Joints?.Length), ("weights", primitive.Weights?.Length) })
+                    if (length is { } l && l != vertices)
+                        Fail($"{where} has {l} {name} for {vertices} vertices");
+                if (primitive.Indices.Length % 3 != 0)
+                    Fail($"{where} has {primitive.Indices.Length} indices, not whole triangles");
+                foreach (var index in primitive.Indices)
+                    if (index >= vertices)
+                        Fail($"{where} has the index {index} beyond its {vertices} vertices");
+                if (primitive.Material < -1 || primitive.Material >= Materials.Count)
+                    Fail($"{where} has material {primitive.Material}, which doesn't exist");
+            }
+        for (var s = 0; s < Skins.Count; s++)
+        {
+            var skin = Skins[s];
+            foreach (var joint in skin.Joints)
+                if (joint < 0 || joint >= count)
+                    Fail($"skin {s} ({skin.Name}) has the joint {joint}, which isn't a node");
+            if (skin.InverseBindMatrices.Count < skin.Joints.Count)
+                Fail($"skin {s} ({skin.Name}) has {skin.Joints.Count} joints but {skin.InverseBindMatrices.Count} inverse bind matrices");
+            if (skin.Skeleton < -1 || skin.Skeleton >= count)
+                Fail($"skin {s} ({skin.Name}) has the skeleton {skin.Skeleton}, which isn't a node");
+        }
+        // Joint indices index the skin of each node showing the mesh: the GPU reads its joint matrices by them.
+        for (var i = 0; i < count; i++)
+        {
+            if (Nodes[i].Mesh < 0 || Nodes[i].Skin < 0)
+                continue;
+            var joints = Skins[Nodes[i].Skin].Joints.Count;
+            var primitives = Meshes[Nodes[i].Mesh].Primitives;
+            for (var p = 0; p < primitives.Count; p++)
+                foreach (var j in primitives[p].Joints ?? [])
+                    if (Math.Max(Math.Max(j.J0, j.J1), Math.Max(j.J2, j.J3)) is var highest && highest >= joints)
+                        Fail($"node {i} ({Nodes[i].Name}) shows mesh {Nodes[i].Mesh}, whose primitive {p} has the joint index {highest} beyond its skin's {joints} joints");
+        }
+        for (var a = 0; a < Animations.Count; a++)
+            for (var c = 0; c < Animations[a].Channels.Count; c++)
+            {
+                var channel = Animations[a].Channels[c];
+                var where = $"animation {a} ({Animations[a].Name}), channel {c}";
+                if (channel.Node < 0 || channel.Node >= count)
+                    Fail($"{where} drives node {channel.Node}, which doesn't exist");
+                var cubic = channel.Interpolation == AnimationInterpolation.CubicSpline;
+                var perKey = channel.Components * (cubic ? 3 : 1);
+                if (channel.Times.Length == 0 || channel.Values.Length != channel.Times.Length * perKey)
+                    Fail($"{where} has {channel.Values.Length} values for {channel.Times.Length} keys");
+                if (cubic && channel.Times.Length < 2)
+                    Fail($"{where} is a cubic spline with fewer than 2 keys");
+                for (var k = 1; k < channel.Times.Length; k++)
+                    if (!(channel.Times[k] > channel.Times[k - 1]))
+                        Fail($"{where} has key times that don't increase");
+            }
+    }
 
     public ModelMaterial MaterialOf(ModelPrimitive primitive) =>
         primitive.Material < 0 ? ModelMaterial.Default : Materials[primitive.Material];

@@ -1,0 +1,3 @@
+model.event 1
+  1 name: string (required)
+  2 time: float64 (required)
