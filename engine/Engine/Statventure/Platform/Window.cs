@@ -67,6 +67,9 @@ public sealed class Window : IDisposable
         };
         native.OnFocus += (_, focus) =>
             Input.Push(new InputEvent(focus == GlfwFocusEvent.LostFocus ? InputEventKind.FocusLost : InputEventKind.FocusGained));
+        // Minimizing (X11 and Windows; Wayland's xdg-shell never tells, so GLFW never calls this there).
+        native.OnIconify += (_, iconify) =>
+            Input.Push(new InputEvent(iconify == GlfwIconifyEvent.Restored ? InputEventKind.Restored : InputEventKind.Minimized));
         // Caps Lock and Num Lock come with the modifiers (the keypad's keys depend on Num Lock).
         native.SetInputMode(GlfwInputMode.LockKeyMods, 1);
         native.OnFramebufferSize += (_, size) => FramebufferResized?.Invoke(size.X, size.Y);
@@ -98,6 +101,28 @@ public sealed class Window : IDisposable
     /// <summary>Sleeps until an event arrives (used while minimized).</summary>
     public static void WaitEvents() => Glfw.WaitEvents();
 
+    /// <summary>Sleeps until an event arrives or <paramref name="seconds"/> have passed.</summary>
+    public static void WaitEvents(double seconds) => Glfw.WaitEventsTimeout(Math.Max(seconds, 0));
+
+    /// <summary>Wakes a thread sleeping in <see cref="WaitEvents()"/> (callable from any thread).</summary>
+    public static void PostEmptyEvent() => Glfw.PostEmptyEvent();
+
+    double? _wakeUp;
+
+    /// <summary>
+    /// Asks the loop that sleeps while the window is minimized to wake within
+    /// <paramref name="seconds"/> (a hidden document's next timer); the earliest request wins.
+    /// </summary>
+    public void RequestWakeUp(double seconds) => _wakeUp = _wakeUp is { } earlier ? Math.Min(earlier, seconds) : seconds;
+
+    /// <summary>The earliest wake-up requested since the last call (seconds from the request), and forgets it.</summary>
+    public double? TakeWakeUp()
+    {
+        var wakeUp = _wakeUp;
+        _wakeUp = null;
+        return wakeUp;
+    }
+
     public static bool VulkanSupported => Glfw.VulkanSupported();
 
     /// <summary>The instance extensions Vulkan needs to draw into windows on this system.</summary>
@@ -124,7 +149,8 @@ public sealed class Window : IDisposable
     /// <summary>Pixels per logical unit (1 on normal screens, 2 on double-density ones).</summary>
     public float ContentScale => Width > 0 ? FramebufferWidth / (float)Width : Native.ContentScale.X;
 
-    public bool IsMinimized => FramebufferWidth == 0 || FramebufferHeight == 0;
+    /// <summary>The window is minimized: GLFW says so (X11, Windows; never on Wayland) or there is nothing to draw into (Windows).</summary>
+    public bool IsMinimized => Native.IsIconified || FramebufferWidth == 0 || FramebufferHeight == 0;
 
     public bool CloseRequested
     {

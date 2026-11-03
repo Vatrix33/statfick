@@ -244,3 +244,9 @@ internal sealed class EventListeners
         }
     }
 }
+
+/// <summary>pagehide and pageshow (PageTransitionEvent): <see cref="Persisted"/> when the page goes into or comes from the back-forward cache (never here).</summary>
+public class UiPageTransitionEvent(string type, bool persisted) : UiEvent(type, true, true)
+{
+    public bool Persisted { get; } = persisted;
+}

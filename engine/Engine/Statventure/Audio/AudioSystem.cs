@@ -32,6 +32,7 @@ public sealed class AudioSystem : IDisposable
     internal AudioSystem(IAudioOutput output, bool startThread = true) : this(new AudioGraph(output.SampleRate, 2))
     {
         _output = output;
+        _audibility = new Audibility(output.SampleRate);
         // The basic waves' tables now, so a first sawtooth doesn't make them on the audio thread.
         foreach (var shape in new[] { OscillatorType.Sine, OscillatorType.Square, OscillatorType.Sawtooth, OscillatorType.Triangle })
             _graph.BasicWave(shape);
@@ -173,6 +174,16 @@ public sealed class AudioSystem : IDisposable
 
     public bool Paused => _pauseRequested;
 
+    Audibility? _audibility;
+
+    /// <summary>
+    /// Whether the output is audible now, as Chromium's audio service tells a page's scheduler (its
+    /// power over −72.25 dBFS, polled 15 times a second, silent after 100 ms below; silent while
+    /// paused). The window host passes it to the document, whose hidden timers aren't throttled
+    /// while it is (Docs/Audio.md, "Audibility").
+    /// </summary>
+    public bool Audible => _audibility?.Audible ?? false;
+
     /// <summary>Queues <paramref name="action"/> for the audio thread, before its next quantum.</summary>
     internal void Post(Action action) => _commands.Enqueue(action);
 
@@ -217,15 +228,24 @@ public sealed class AudioSystem : IDisposable
         var output = _output!;
         var buffer = new float[output.BufferFrames * 2];
         var waitMilliseconds = Math.Max(1, output.BufferFrames * 1000 / output.SampleRate / 2);
+        var audibility = _audibility!;
+        var clock = Stopwatch.StartNew();
+        audibility.Start(clock.Elapsed.TotalSeconds);
         while (!_stop)
         {
             if (_pauseRequested != _paused)
             {
                 _paused = _pauseRequested;
                 if (_paused)
+                {
                     output.Pause();
+                    audibility.Stop();
+                }
                 else
+                {
                     output.Resume();
+                    audibility.Start(clock.Elapsed.TotalSeconds);
+                }
             }
             if (_paused)
             {
@@ -242,8 +262,11 @@ public sealed class AudioSystem : IDisposable
                         buffer.AsSpan().Clear();
                     else
                         RenderBuffer(buffer);
+                    // What goes to the device is what the power monitor scans (OutputController::OnMoreData).
+                    audibility.Scan(buffer, 2);
                     output.Write(buffer);
                 }
+                audibility.Poll(clock.Elapsed.TotalSeconds);
                 output.Maintain();
                 if (writable == 0)
                     output.Wait(waitMilliseconds);

@@ -1,5 +1,7 @@
 // The Statventure sandbox: a window showing engine features as they are built.
-//   dotnet run -- [--capture file.png] [--frames N]
+//   dotnet run -- [--capture file.png] [--frames N] [--log-visibility]
+// --log-visibility logs the document's visibility, page and focus events and a 250 ms timer's
+// firings (to see minimizing, restoring and closing the window: Docs/Scripting.md, "Hidden documents").
 using Statventure.Core;
 using Statventure.Graphics;
 using Statventure.Imaging;
@@ -10,15 +12,17 @@ using Statventure.UI.Dom;
 
 string? capture = null;
 var captureFrame = 30;
+var logVisibility = false;
 for (var i = 0; i < args.Length; i++)
 {
     if (args[i] == "--capture") capture = args[++i];
     else if (args[i] == "--frames") captureFrame = int.Parse(args[++i]);
+    else if (args[i] == "--log-visibility") logVisibility = true;
 }
-using var sandbox = new Sandbox(capture, captureFrame);
+using var sandbox = new Sandbox(capture, captureFrame, logVisibility);
 sandbox.Run();
 
-sealed class Sandbox(string? capture, int captureFrame) : Application(new ApplicationOptions
+sealed class Sandbox(string? capture, int captureFrame, bool logVisibility) : Application(new ApplicationOptions
 {
     Window = new WindowOptions { Title = "Statventure Sandbox", Width = 960, Height = 600 },
 })
@@ -92,7 +96,13 @@ sealed class Sandbox(string? capture, int captureFrame) : Application(new Applic
         var document = new UiDocument(fonts);
         document.AddStylesheet(Css, "sandbox");
         Markup.SetInnerHtml(document.Body, Html);
-        _host = new UiHost(Window, Gpu, document) { LoadImage = url => url == "sandbox:grab" ? GrabCursor() : null };
+        _host = new UiHost(Window, Gpu, document) { LoadImage = url => url == "sandbox:grab" ? GrabCursor() : null, Audio = Audio };
+        if (logVisibility)
+        {
+            foreach (var type in new[] { "visibilitychange", "pagehide", "unload", "focus", "blur" })
+                document.AddEventListener(type, e => Log.Info("Sandbox", $"{document.PerformanceNow:F0} ms: {e.Type} ({document.VisibilityState})"), capture: true);
+            document.RunScript(() => document.SetInterval(() => Log.Info("Sandbox", $"{document.PerformanceNow:F0} ms: timer ({document.VisibilityState})"), 250));
+        }
     }
 
     /// <summary>A 16 px ring with a dot, drawn here (the game's cursor images come with its assets).</summary>

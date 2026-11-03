@@ -23,6 +23,9 @@ internal sealed class UiHostInput(UiInput document, Func<Key, int, string?> keyN
     /// <summary>Pixels a wheel notch scrolls.</summary>
     public float WheelNotch { get; set; } = 120;
 
+    /// <summary>Where minimizing (true) and restoring (false) go: the document's visibility.</summary>
+    public Action<bool>? Visibility { get; set; }
+
     /// <summary>Passes a frame's events on in order.</summary>
     public void Dispatch(IReadOnlyList<InputEvent> events)
     {
@@ -92,6 +95,12 @@ internal sealed class UiHostInput(UiInput document, Func<Key, int, string?> keyN
                 break;
             case InputEventKind.FocusGained:
                 input.WindowFocus();
+                break;
+            case InputEventKind.Minimized:
+                Visibility?.Invoke(true);
+                break;
+            case InputEventKind.Restored:
+                Visibility?.Invoke(false);
                 break;
         }
     }

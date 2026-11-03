@@ -44,6 +44,10 @@ public abstract class Application : IDisposable
     }
 
     protected virtual void Load() { }
+    /// <summary>
+    /// Once per frame; while the window is minimized also at the wake-ups asked for with
+    /// <see cref="Platform.Window.RequestWakeUp"/> (and on events), without drawing.
+    /// </summary>
     protected virtual void Update(in GameTime time) { }
     /// <summary>Draws the frame into <paramref name="target"/> (the swapchain image).</summary>
     protected abstract void Render(Frame frame, GpuImage target, in GameTime time);
@@ -89,7 +93,19 @@ public abstract class Application : IDisposable
                         audio.Pause();
                         pausedAudio = true;
                     }
-                    Window.WaitEvents();
+                    // No frames while minimized, but updates go on (a hidden document's tasks and its
+                    // throttled timers, Docs/Scripting.md "Hidden documents"); the loop sleeps until
+                    // the next wake-up asked for (Window.RequestWakeUp) or an event.
+                    Input.BeginFrame();
+                    var hiddenNow = clock.Elapsed.TotalSeconds;
+                    Update(new GameTime(hiddenNow, Math.Min(hiddenNow - last, 0.25), frames));
+                    last = hiddenNow;
+                    if (!Running || Window.CloseRequested)
+                        break;
+                    if (Window.TakeWakeUp() is { } wait)
+                        Window.WaitEvents(wait);
+                    else
+                        Window.WaitEvents();
                     continue;
                 }
                 if (pausedAudio)

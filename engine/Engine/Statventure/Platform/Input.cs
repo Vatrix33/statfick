@@ -15,6 +15,10 @@ public enum InputEventKind
     MouseLeave,
     FocusLost,
     FocusGained,
+    /// <summary>The window was minimized (GLFW's iconify; never reported on Wayland).</summary>
+    Minimized,
+    /// <summary>The window came back from being minimized.</summary>
+    Restored,
 }
 
 /// <summary>One input event. Positions are in logical units (window coordinates, not pixels).</summary>

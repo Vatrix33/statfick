@@ -23,8 +23,9 @@ Where this is worked on (decided 2026-10-30):
 - **Claude Code cloud sessions** (claude.ai/code, also from the phone app): Ubuntu 24.04, no GPU.
   The environment's setup script is `engine/Tools/Scripts/cloud-setup.sh` (.NET 10, Vulkan on the CPU
   via Mesa's lavapipe, Xvfb, Electron 44.5.0). The tests pass on the CPU Vulkan as on the GPU.
-  Reference captures run under Xvfb. Fetching Chromium or Skia source needs `chromium.googlesource.com`
-  and `skia.googlesource.com` added to the environment's allowed domains.
+  Reference captures run under Xvfb. Fetching Chromium or Skia source from googlesource needs
+  `chromium.googlesource.com` and `skia.googlesource.com` added to the environment's allowed domains; without
+  them, GitHub's mirror works: `https://raw.githubusercontent.com/chromium/chromium/152.0.7977.89/<path>`.
 - **A Windows PC**: build, run and test with `engine\Tools\Scripts\setup.ps1` (once), `build.ps1`,
   `test.ps1`. No reference captures there.
 
