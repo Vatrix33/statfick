@@ -1,0 +1,10 @@
+terrain 1
+  1 width: int32 (required)
+  2 depth: int32 (required)
+  3 cellSize: float32 (required)
+  4 heightMin: float32 (required)
+  5 heightMax: float32 (required)
+  6 heightSamples: list<uint16> (required)
+  7 covers: bytes (required)
+  8 coverSlots: list<string> (required)
+  9 waterLevel: float32? = null

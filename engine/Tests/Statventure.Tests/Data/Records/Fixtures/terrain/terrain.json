@@ -1,0 +1,25 @@
+{
+  "$types": {
+    "terrain": 1
+  },
+  "width": 3,
+  "depth": 2,
+  "cellSize": 0.5,
+  "heightMin": -1,
+  "heightMax": 5,
+  "heightSamples": [
+    0,
+    65535,
+    1,
+    32768,
+    12345,
+    65534
+  ],
+  "covers": "AAECAQAC",
+  "coverSlots": [
+    "grass",
+    "rock",
+    "sand"
+  ],
+  "waterLevel": 0.4
+}

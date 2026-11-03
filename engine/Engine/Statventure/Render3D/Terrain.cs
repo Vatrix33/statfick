@@ -3,55 +3,154 @@ using System.Text.Json;
 using Brutal.StbApi;
 using Brutal.VulkanApi;
 using Statventure.Graphics;
+using Statventure.Packs;
+using Statventure.Records;
 
 namespace Statventure.Render3D;
 
 /// <summary>
-/// A region's terrain (Docs/Renderer-3D.md, "Terrain"): a grid of points, each with a height and a
-/// cover (an index into <see cref="CoverSlots"/>, palette slots), <see cref="CellSize"/> metres apart
-/// along X and Z, and the water level (none: no water). Read from a metadata file naming a 16-bit
-/// height image (0..65535 over HeightMin..HeightMax) and an 8-bit cover image, one pixel a point,
-/// the image's first row at Z = 0.
+/// A region's terrain (Docs/Renderer-3D.md, "Terrain"): a grid of <see cref="Width"/> × <see cref="Depth"/>
+/// points, each with a height and a cover (an index into <see cref="CoverSlots"/>, palette slots),
+/// <see cref="CellSize"/> metres apart along X and Z, and the water level (none: no water). The heights
+/// are 16-bit samples (0..65535 over <see cref="HeightMin"/>..<see cref="HeightMax"/>), turned into
+/// metres when first read (<see cref="Heights"/>); points row by row, the first row at Z = 0.
+/// Read from a description naming a height image and a cover image, one pixel a point
+/// (<see cref="Load(string)"/>), or from the game's data (<see cref="Load(VirtualFileSystem, string)"/>):
+/// the record a world.pak entry holds (<c>terrain</c>; <see cref="TerrainImporter"/>; Docs/Assets.md,
+/// Q26, S8-2).
 /// </summary>
+[Record("terrain", 1)]
 public sealed class TerrainData
 {
-    public required int Width { get; init; }
-    public required int Depth { get; init; }
-    public required float CellSize { get; init; }
-    public required float[] Heights { get; init; }
-    public required byte[] Covers { get; init; }
-    public required string[] CoverSlots { get; init; }
-    public float? WaterLevel { get; init; }
+    float[]? _heights;
+
+    [Field(1)] public required int Width { get; init; }
+    [Field(2)] public required int Depth { get; init; }
+    [Field(3)] public required float CellSize { get; init; }
+    /// <summary>The height of the sample 0.</summary>
+    [Field(4)] public required float HeightMin { get; init; }
+    /// <summary>The height of the sample 65535.</summary>
+    [Field(5)] public required float HeightMax { get; init; }
+    /// <summary>Each point's height as a 16-bit sample of the range (the height image's pixels).</summary>
+    [Field(6)] public required ushort[] HeightSamples { get; init; }
+    /// <summary>Each point's cover: an index into <see cref="CoverSlots"/>.</summary>
+    [Field(7)] public required byte[] Covers { get; init; }
+    [Field(8)] public required string[] CoverSlots { get; init; }
+    [Field(9)] public float? WaterLevel { get; init; }
+
+    /// <summary>Each point's height in metres: <c>min + s / 65535 · (max − min)</c> in floats, as M6's loader turned the image's samples (not part of the record).</summary>
+    public float[] Heights => _heights ??= ToHeights(HeightSamples, HeightMin, HeightMax);
 
     public float HeightAt(int i, int j) => Heights[Math.Clamp(j, 0, Depth - 1) * Width + Math.Clamp(i, 0, Width - 1)];
 
+    static float[] ToHeights(ushort[] samples, float low, float high)
+    {
+        var heights = new float[samples.Length];
+        for (var i = 0; i < heights.Length; i++)
+            heights[i] = low + samples[i] / 65535f * (high - low);
+        return heights;
+    }
+
+    /// <summary>
+    /// Reads a terrain description (JSON: <c>width</c> and <c>depth</c> in points, <c>cellSize</c>,
+    /// <c>heightMin</c> and <c>heightMax</c>, the <c>height</c> and <c>cover</c> images' file names,
+    /// <c>covers</c>: the slot names, <c>waterLevel</c>: a number or none) and its two images, named
+    /// relative to its folder. An <see cref="InvalidDataException"/> (a <see cref="JsonException"/>
+    /// for text that isn't JSON) when it can't be used.
+    /// </summary>
     public static TerrainData Load(string path)
     {
-        using var document = JsonDocument.Parse(File.ReadAllBytes(path));
-        var root = document.RootElement;
         var folder = Path.GetDirectoryName(Path.GetFullPath(path))!;
-        int width = root.GetProperty("width"u8).GetInt32(), depth = root.GetProperty("depth"u8).GetInt32();
-        float low = root.GetProperty("heightMin"u8).GetSingle(), high = root.GetProperty("heightMax"u8).GetSingle();
-        var heightImage = Stb.Load16(Path.Combine(folder, root.GetProperty("height"u8).GetString()!), 1);
-        if (heightImage.IsNull() || heightImage.Width != width || heightImage.Height != depth)
-            throw new InvalidDataException($"{path}: the height image isn't {width}x{depth} 16-bit");
-        var heights = new float[width * depth];
         try
         {
-            var samples = heightImage.AsSpan();
-            for (var i = 0; i < heights.Length; i++)
-                heights[i] = low + samples[i] / 65535f * (high - low);
+            return FromDescription(File.ReadAllBytes(path), name => File.ReadAllBytes(Path.Combine(folder, name)));
+        }
+        catch (InvalidDataException problem)
+        {
+            throw new InvalidDataException($"{path}: {problem.Message}", problem);
+        }
+    }
+
+    /// <summary>
+    /// The terrain at <paramref name="path"/> in the game's data (a world.pak entry such as
+    /// <c>world/terrain/vale</c>, made from <c>world/terrain/vale.terrain.json</c> by
+    /// <see cref="TerrainImporter"/>, or its JSON form in the development folder), checked as the
+    /// description's loader checks its images (<see cref="Validate"/>): a <see cref="DataFileException"/>
+    /// naming the pack and entry or the loose file when it isn't a readable terrain record or breaks a rule.
+    /// </summary>
+    public static TerrainData Load(VirtualFileSystem files, string path)
+    {
+        var terrain = files.Load<TerrainData>(path);
+        try
+        {
+            terrain.Validate();
+        }
+        catch (InvalidDataException problem)
+        {
+            throw files.Problem(path, $"not a valid terrain: {problem.Message}", problem);
+        }
+        return terrain;
+    }
+
+    /// <summary>
+    /// Throws an <see cref="InvalidDataException"/> unless the grid is at least 1 × 1 and has a height
+    /// sample and a cover for each point: what the description's loader checks of its images (each
+    /// <see cref="Width"/> × <see cref="Depth"/>). A terrain from a pack or a loose folder breaks it
+    /// only if it was edited.
+    /// </summary>
+    public void Validate()
+    {
+        if (Width < 1 || Depth < 1)
+            throw new InvalidDataException($"the grid is {Width}x{Depth} points");
+        var points = (long)Width * Depth;
+        if (HeightSamples.Length != points)
+            throw new InvalidDataException($"{HeightSamples.Length} height samples for {Width}x{Depth} points");
+        if (Covers.Length != points)
+            throw new InvalidDataException($"{Covers.Length} covers for {Width}x{Depth} points");
+    }
+
+    /// <summary>
+    /// A terrain from its description's bytes, its images read by name through <paramref name="read"/>
+    /// (decoded by stb_image: the height image at 16 bits, the cover image at 8, each as one grey
+    /// channel, as M6's loader did). Keys other than the description's are ignored; a missing
+    /// <c>waterLevel</c>, or one that isn't a number, is no water.
+    /// </summary>
+    internal static TerrainData FromDescription(byte[] description, Func<string, byte[]> read)
+    {
+        using var document = JsonDocument.Parse(description);
+        var root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object)
+            throw new InvalidDataException("the description isn't a JSON object");
+        int width = Whole(root, "width"), depth = Whole(root, "depth");
+        var cellSize = Get(root, "cellSize", JsonValueKind.Number).GetSingle();
+        float low = Get(root, "heightMin", JsonValueKind.Number).GetSingle(), high = Get(root, "heightMax", JsonValueKind.Number).GetSingle();
+        string heightFile = Get(root, "height", JsonValueKind.String).GetString()!, coverFile = Get(root, "cover", JsonValueKind.String).GetString()!;
+        var slots = Get(root, "covers", JsonValueKind.Array).EnumerateArray().Select((slot, i) => slot.ValueKind == JsonValueKind.String
+            ? slot.GetString()!
+            : throw new InvalidDataException($"covers[{i}] isn't a string")).ToArray();
+        float? waterLevel = root.TryGetProperty("waterLevel"u8, out var water) && water.ValueKind == JsonValueKind.Number ? water.GetSingle() : null;
+        var heightImage = Stb.Load16FromMemory(read(heightFile), 1);
+        if (heightImage.IsNull())
+            throw new InvalidDataException($"the height image {heightFile} isn't an image stb_image reads");
+        ushort[] samples;
+        try
+        {
+            if (heightImage.Width != width || heightImage.Height != depth)
+                throw new InvalidDataException($"the height image {heightFile} is {heightImage.Width}x{heightImage.Height}, not {width}x{depth}");
+            samples = heightImage.AsSpan().ToArray();
         }
         finally
         {
             heightImage.Dispose();
         }
-        var coverImage = Stb.Load(Path.Combine(folder, root.GetProperty("cover"u8).GetString()!), 1);
-        if (coverImage.IsNull() || coverImage.Width != width || coverImage.Height != depth)
-            throw new InvalidDataException($"{path}: the cover image isn't {width}x{depth}");
+        var coverImage = Stb.LoadFromMemory(read(coverFile), 1);
+        if (coverImage.IsNull())
+            throw new InvalidDataException($"the cover image {coverFile} isn't an image stb_image reads");
         byte[] covers;
         try
         {
+            if (coverImage.Width != width || coverImage.Height != depth)
+                throw new InvalidDataException($"the cover image {coverFile} is {coverImage.Width}x{coverImage.Height}, not {width}x{depth}");
             covers = coverImage.AsSpan().ToArray();
         }
         finally
@@ -62,13 +161,23 @@ public sealed class TerrainData
         {
             Width = width,
             Depth = depth,
-            CellSize = root.GetProperty("cellSize"u8).GetSingle(),
-            Heights = heights,
+            CellSize = cellSize,
+            HeightMin = low,
+            HeightMax = high,
+            HeightSamples = samples,
             Covers = covers,
-            CoverSlots = root.GetProperty("covers"u8).EnumerateArray().Select(c => c.GetString()!).ToArray(),
-            WaterLevel = root.TryGetProperty("waterLevel"u8, out var water) && water.ValueKind == JsonValueKind.Number ? water.GetSingle() : null,
+            CoverSlots = slots,
+            WaterLevel = waterLevel,
         };
     }
+
+    static JsonElement Get(JsonElement root, string key, JsonValueKind kind) =>
+        root.TryGetProperty(key, out var value) && value.ValueKind == kind
+            ? value
+            : throw new InvalidDataException($"the description has no {kind.ToString().ToLowerInvariant()} \"{key}\"");
+
+    static int Whole(JsonElement root, string key) =>
+        Get(root, key, JsonValueKind.Number).TryGetInt32(out var value) ? value : throw new InvalidDataException($"\"{key}\" isn't a whole number");
 }
 
 /// <summary>
@@ -127,7 +236,11 @@ public sealed class Terrain : IDisposable
 
     public static Terrain Create(GpuDevice device, TerrainData data) => new(device, data);
 
+    /// <summary>A terrain from its description (<see cref="TerrainData.Load(string)"/>).</summary>
     public static Terrain Load(GpuDevice device, string path) => Create(device, TerrainData.Load(path));
+
+    /// <summary>A terrain from the game's data: the terrain record at <paramref name="path"/> (<see cref="TerrainData.Load(VirtualFileSystem, string)"/>).</summary>
+    public static Terrain Load(GpuDevice device, VirtualFileSystem files, string path) => Create(device, TerrainData.Load(files, path));
 
     static Vector3 Point(TerrainData data, int i, int j) => new(i * data.CellSize, data.HeightAt(i, j), j * data.CellSize);
 

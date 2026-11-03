@@ -90,9 +90,11 @@ Nothing of M9 yet: no pack, virtual file system, serializer, save or settings co
   `LayerDefinition`) are positional records, built with `StateMachineBuilder` and checked by
   `Validate()`; only the M7 tests' machines exist.
 - **Terrain** (`Render3D/Terrain.cs`): `TerrainData.Load(path)` reads a JSON description naming a
-  16-bit height PNG and an 8-bit cover PNG beside it (BRUTAL's Stb, by path; Stb also has
-  `LoadFromMemory` and `Load16FromMemory`) and turns the samples into float heights
-  (`low + s / 65535f · (high − low)`). Only the 64×48 test terrain exists
+  height PNG read at 16 bits and a cover PNG read at 8 bits beside it, each as one grey channel
+  (BRUTAL's Stb, by path; Stb also has `LoadFromMemory` and `Load16FromMemory`), and turns the samples
+  into float heights (`low + s / 65535f · (high − low)`). (Corrected 2026-11-03, step 8: this said a
+  "16-bit height PNG", but Stb's `Load16` takes 8-bit PNGs too, widening each value v to v · 257, and
+  colour PNGs, turned to grey; the loader refused neither.) Only the 64×48 test terrain exists
   (`Tests/Statventure.Tests/Data/Terrain/`).
 - **Fonts** (`Text/FontLibrary.cs`): `Add(ReadOnlySpan<byte>, family, weight, italic, weightMax)`
   already loads a face from memory (`FT_New_Memory_Face`); `AddFile(path)` only reads the file for it
@@ -331,9 +333,9 @@ game's five font faces); every importer is tested on the test assets, packed ins
   as Chromium does: the engine starts honouring `@font-face` (Q24). Images are stored as their PNG or
   SVG bytes (raw, by the no-shrink rule) and decoded at load (Q25). The port's stylesheet joins
   `ui.pak` when it's written.
-- **Terrain (`world.pak`):** the description and its two PNGs into a `TerrainData` record holding the
-  16-bit samples and the height range, turned into floats at load exactly as today (Q26). Map data
-  comes with the port.
+- **Terrain (`world.pak`):** the description (`<name>.terrain.json`, S8-1) and its two PNGs into a
+  `TerrainData` record (`terrain`, S8-2) holding the 16-bit samples and the height range, turned into
+  floats at load exactly as today (Q26). Map data comes with the port.
 - **The old game's tables (`data.pak`):** at port time (decision "Scope"); the class record and
   loader too, M9 only mounting the shipped `classes/` folder (Q27).
 
@@ -581,7 +583,7 @@ step 4, running beside it, asked Q38 on):
   error), which adds records and files and may read other files of the folder, which then aren't packed
   themselves; then records' JSON forms become records and every other file goes in as it is. A source
   whose name doesn't say what it is gets a distinguishing ending (a terrain description, e.g.
-  `<name>.terrain.json`: step 8's to settle). The packer looks for importers in the engine's assembly.
+  `<name>.terrain.json`: step 8's to settle; settled as that, S8-1). The packer looks for importers in the engine's assembly.
   (Not by name per command, `packer import <importer> …`; not both.)
 - **S3-4. The game's packs** in `Application.Data` are the five area packs by name, in the order
   `models`, `audio`, `ui`, `world`, `data`, each mounted if it is in `packs/`; other files there are
@@ -654,6 +656,23 @@ Asked during step 6 (user, 2026-11-03; every answer the recommended option):
   (`~/.cache/stat-fick-build/music-data/`), emptied by `make-music-data.sh` and kept for inspection,
   not into the repo: the pack is the source of truth, and `git diff` shows its dump. (Not
   `engine/Assets/Sources/audio/`, ignored or committed.)
+
+Asked during step 8 (user, 2026-11-03; both the recommended option; numbered S8-n as steps 3 and 5 did):
+
+- **S8-1. A terrain description's name ends in `.terrain.json`** (`world/terrain/vale.terrain.json`), the
+  terrain importer's ending (S3-3): it stays a JSON file for editors and tools, and the longest-ending
+  rule keeps it apart from records' JSON forms. In the development folder, where no importer runs (Q7),
+  such a file is only a file. The committed test terrain keeps its name (`Data/Terrain/test.json`, read
+  by the Blender harness); the tests copy it under the importer's ending. (Not `<name>.terrain`.)
+- **S8-2. The terrain record** is `TerrainData` itself, the record `terrain` version 1: `width`,
+  `depth` (int32), `cellSize`, `heightMin`, `heightMax` (float32), `heightSamples` (a list of uint16,
+  the height image's samples row by row from Z = 0), `covers` (bytes, each point's index into the
+  slots; base64 in JSON), `coverSlots` (strings), `waterLevel` (float32 or null: no water; the
+  default), all but `waterLevel` required. The C# names stay, so the record's `covers` are the points'
+  indices while a description's `covers` key lists the slot names; the float heights aren't stored.
+  (Not `world.terrain`; not names following the description's keys.) Accepted with it: the check at
+  load is what the description's loader checks (a sample and a cover for each of the grid's points),
+  and a description's unknown keys are ignored as before.
 
 ## How it works
 
@@ -1141,6 +1160,62 @@ the importer `Tools/Scripts/make-music-data.sh` with `Tools/AudioReference/music
   `Data.Reloaded` is step 9's (Reload). The packer still rebuilds `audio.pak` whole from the importer's
   folder: once the pack holds the port's effect patches too, the "update" command above is needed.
 
+### Terrain in packs (step 8)
+
+Code: `Render3D/Terrain.cs` (`TerrainData`: the record, its loaders and check; `Terrain.Load(device, files,
+path)`), `Render3D/TerrainImporter.cs`. Tests: `Tests/Statventure.Tests/Render3D/TerrainPackTests.cs`,
+`Render3D/TerrainPackRenderTests.cs`; the layout and fixture in `Data/Records/` (`terrain`). No pack is
+committed (Q1).
+
+- **The record** (Q26, S8-2): `terrain` 1 (`Layouts/terrain.txt`). `Heights`, the floats the GPU terrain is
+  built from, aren't stored: they are worked out from the samples when first read, by M6's formula in
+  floats (`min + s / 65535f · (max − min)`), so the test terrain's heights are bit for bit what M6's loader
+  gave (pinned by their SHA-256, taken before the change) and the Blender comparisons hold. A
+  `ushort[]` is the serializer's list of numbers: in JSON one number per line (the test terrain's
+  JSON form has 3,072 lines of samples; a 512 × 512 region would have 262,144), in binary a block of
+  2 bytes each, and the covers one base64 string, 1 byte each.
+- **The description** (`TerrainData.Load(path)`, and the importer through the same parser): a JSON
+  object with `width` and `depth` (whole numbers), `cellSize`, `heightMin`, `heightMax` (numbers),
+  `height` and `cover` (the images' file names, relative to the description's folder), `covers` (the
+  slot names, strings), and `waterLevel` (a number; missing or anything else: no water); other keys are
+  ignored. The images are decoded from memory by Stb as M6's loader decoded them by path (the same
+  decoder): the height image at 16 bits as one grey channel (an 8-bit image's v becomes v · 257, a
+  colour image grey), the cover image at 8. Each must be `width` × `depth`. A description that can't be
+  used is an `InvalidDataException` naming the problem ("the description has no number "width"", ""depth"
+  isn't a whole number", "covers[1] isn't a string", "the height image h.png is 64x48, not 32x48", "the
+  cover image c.png isn't an image stb_image reads"), from `Load(path)` with the description's path
+  before it; text that isn't JSON a `JsonException`. (M6's loader threw whatever `JsonElement` threw for a
+  missing key and said "isn't WxD 16-bit" for both a wrong size and an unreadable image; a null slot name,
+  which it took and which failed later when drawn, is refused now: a record can't hold one.)
+- **The importer** (`TerrainImporter`, `[Importer("world", ".terrain.json")]`; S3-3, S8-1): each
+  `<name>.terrain.json` of a folder being packed becomes one record entry at its path without the ending
+  (`world/terrain/vale.terrain.json` → `world/terrain/vale`). Its images are read through the context
+  (`ReadSource`) at `<the description's folder>/<name>`, so they aren't packed themselves; a name may go
+  into a subfolder (`maps/h.png`) but not up (`../h.png` breaks the path rule). Another image beside them
+  (the test terrain's one-hot cover image, Blender's) is packed as a file. A problem stops the packing
+  with a `DataFileException` naming the description ("the world importer: …", step 3's wrapping): every
+  problem of the description above, an image the folder hasn't ("No 'world/terrain/h.png' in the folder
+  being packed"), a name outside the path rule, an image another importer takes.
+- **Loading** (`TerrainData.Load(files, path)`): `files.Load<TerrainData>(path)` (a pack's binary form or a
+  loose `<path>.json`; step 3's errors), then `Validate()`, which checks what the description's loader
+  checks of its images: the grid at least 1 × 1, and `width` × `depth` samples and covers (counted in 64
+  bits). A failure is a `DataFileException` naming the pack and entry, or the loose file with no entry
+  ("not a valid terrain: 3 height samples for 2x2 points"), the `InvalidDataException` inside, made by
+  `VirtualFileSystem.Problem` (step 5's).
+  `Terrain.Load(device, files, path)` makes the GPU terrain from the checked data. Not checked, as before:
+  cover indices beyond the slots and more than 16 slots (terrain.frag weighs a point whose cover has no
+  slot without a tone, darkening the ground there, and blends at most 16 covers; it reads nothing out of
+  bounds), nor finite or positive sizes and heights.
+- **Tests** (`TerrainPackTests`, 14; `TerrainPackRenderTests`, 4): the description-loaded test terrain
+  against M6's hashes; the pack-loaded and the JSON-form-loaded terrain equal to it field by field, floats
+  by their bits (the derived heights included); the pack's entries; the importer's ending and name; images
+  relative to the description's folder (a description at the top of the folder and one deeper); 23
+  unusable descriptions each failing the packing with its problem; 8-bit images (grey, as RGBA), unknown keys,
+  a water level that isn't a number; six broken records refused at load from a pack and from a loose
+  folder (and by `Terrain.Load` before the GPU); the smallest valid grids; a file or another record type
+  where a terrain is asked for; both forms with and without water; the three terrain scenes drawn from the
+  pack against their Blender renders and pixel for pixel against the description-loaded terrain's.
+
 ## Status
 
 - **Nothing implemented yet** (2026-11-02). The decisions and the 27 format details are recorded, the
@@ -1244,3 +1319,15 @@ the importer `Tools/Scripts/make-music-data.sh` with `Tools/AudioReference/music
   lavapipe (1658 tests); `test-themes.sh`: all 55 themes pass on the pack-loaded data (21 minutes). Mutations: 62, 61 fail a test; the one survivor, the rooms not prepared ahead, changes no sample (`Play` prepares a missing room on the caller's thread, so only when the work is done changes: step 7's speed decision, measured by `audio-benchmark.sh --start`). Found on the way: M8's tests
   never refused a patch with a negative attack or delay or with an empty harmonics list (now tested, through
   loading and `Register`). Not checked: Windows.
+- **Step 8, terrain into `world.pak`, done (2026-11-03):** ("How it works", step 8); two questions asked on
+  the way (S8-1, S8-2, both as recommended). `TerrainData` is the record `terrain` (the 16-bit samples
+  and the range, the heights converted at load as M6's loader did, bit for bit), `TerrainImporter` takes
+  `<name>.terrain.json` with its two images, `TerrainData.Load(files, path)` and `Terrain.Load(device,
+  files, path)` load and check it. 18 tests in `Tests/Statventure.Tests/Render3D/` (`TerrainPackTests`,
+  `TerrainPackRenderTests`). No pack committed (Q1). One point of this doc was wrong and is corrected above
+  ("What exists"): the height image isn't only 16-bit, Stb's `Load16` takes 8-bit and colour PNGs too.
+  The full suite passes on the GPU and on lavapipe (1686 tests). Mutations: 52 (the record's name,
+  version, numbers, required fields and default; the height conversion, three ways of changing its float
+  arithmetic among them; both loaders, the check and its limits, the problem's naming through
+  `VirtualFileSystem.Problem`; every key, kind and image check of the parser; the importer's ending,
+  name, folder, record path and reading through the context), all fail a test. Not checked: Windows.
