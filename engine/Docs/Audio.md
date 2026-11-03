@@ -28,6 +28,10 @@ Asked before the milestone started; also in `Docs/Engine-Plan.md`, "Decisions fo
 - **Sound effects:** synthesized from the same nodes (one-shot patches as data), on an effects bus,
   triggered by the game or by clip events (Docs/Animation.md); no audio files. Which sounds the
   game gets is decided at port time.
+- **The port adds sound effects (user decision 2026-11-03):** the finished port has proper sound
+  effects. The old game has none (music only), so the port makes them as new work: it asks which
+  sounds the game gets and makes them as effect patches. The first one asked for: a small sound
+  when a rune is slotted (Docs/Engine-Plan.md, "Decisions for M8").
 - **The FFT (asked during step 2):** Chromium 152 computes Web Audio's FFTs (periodic wave tables,
   the convolver) with the RustFFT 6.4.1 crate, which on this PC's CPU (AVX2 + FMA) runs its AVX/FMA
   algorithms; the engine ports exactly those, bit for bit, emulating AVX and FMA on CPUs without

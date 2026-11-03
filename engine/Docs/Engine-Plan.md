@@ -110,7 +110,8 @@ what needs the user's machines):**
 limiter), `MasterVolume`, `EffectsVolume`; `Soundtrack.Themes` lists the 55 ids. The game ports `desiredTheme`
 (region theme, else `alder-vale`; in battle `combat@<region>` if it exists, else `combat`; a boss's theme, else
 `combat`) and saves the volumes (M9). Effects: `Audio.Effects.Register(id, patch)`, `Play(id, volume, pan, pitch)`,
-`Actor.Sounds` (event name → effect, pan, volume); which sounds exist is decided at port time. The old game's one
+`Actor.Sounds` (event name → effect, pan, volume); the port must give the game proper sound effects (user decision
+2026-11-03, "Decisions for M8"; the first asked for: slotting a rune), which ones is asked at port time. The old game's one
 slider is the music volume. `test-themes.sh` (with `make-theme-references.sh` once on a machine, 2.6 GB) whenever
 the synthesizer changes; `play-theme.sh <theme>` plays a theme to listen to it.
 
@@ -186,7 +187,8 @@ the design and the tests):
   mode (the old game has one)?
 - **M12 Packaging:** shipped folder layout and executable name, self-contained .NET, installer or
   archive per platform, icon, versioning, updates, crash log location?
-- **At port time:** which sounds the game gets (sound effect patches); UI symbols outside Lato and STIX (⚙ ✦ ☾ ↓ ＋ ⚔ ♟ …); how the inline SVG art and its
+- **At port time:** which sounds the game gets (sound effect patches; the port must add proper sound effects, user
+  decision 2026-11-03 in "Decisions for M8", the rune slotting sound among them); UI symbols outside Lato and STIX (⚙ ✦ ☾ ↓ ＋ ⚔ ♟ …); how the inline SVG art and its
   transforms map to the Blender remakes; the grabbing cursor's design; the level of detail of the item
   models.
 
@@ -282,6 +284,10 @@ Source tree:
 - API: a game synthesizer (instruments, voices, a sequencer, effects and buses shaped for the game); the old music scripts (music.js's score engine, music-composer.js, the themes) are rewritten onto it, producing the same sound. (The recommended Web Audio-like API was not chosen.) Inside, ported Blink processing nodes stay private: each instrument builds the same small graph per note as the old scripts did, so renders match Chromium exactly; the game sees only themes, cross-fades, effects and bus volumes. (Not fused per-instrument routines.)
 - Music data in M8: generated C# data records (a script reads the old JavaScript data in the harness's Chromium and writes them into the engine's source); M9 adds the pack form, M11 the editor. (Not generated JSON.)
 - Sound effects: synthesized from the same nodes (one-shot patches as data), on an effects bus, triggered by the game or by clip events (footsteps, hits); no audio files. Which sounds the game gets is decided at port time. (Not effects from audio files, not none.)
+  - **The port adds them (user decision 2026-11-03):** the finished port has proper sound effects. The old game has
+    none (music only), so they are new work in the port, not something carried over: the port plans them as part of its
+    work, asks which sounds the game gets and makes them as effect patches (above). The first one asked for: a small
+    sound when a rune is slotted (from the user's list of small changes to the old game, 2026-11-03).
 - The old score engine (asked 2026-10-31): dropped. Every one of music.js's 24 original scores is replaced at load by a remastered theme from music-composer.js (38 themes and the regional battle arrangements); only the composer, its themes and music.js's master chain are ported. (Not ported as a fallback.)
 - The FFT (asked 2026-10-31, during step 2): Chromium 152's Web Audio FFT is the RustFFT 6.4.1 crate (`WebAudioRustFft` is stable), which on this PC's CPU (AVX2 + FMA) runs its AVX/FMA algorithms. Port exactly those (AVX butterflies, mixed-radix stages, FMA where it fuses), bit for bit with this PC's Chromium; CPUs without AVX/FMA get the same bits emulated. (Not RustFFT's scalar path or pffft compared within a rounding bound.)
 - The convolver's partitioning (asked 2026-11-01, during step 4): Chromium splits an impulse response differently offline (stage FFTs doubling from 128 to 32768 points, all in the render loop) and live (stages of 2048 points up to 12288 frames, the larger later ones on a background thread). The engine always runs the offline structure on the audio thread, bit for bit with the references; the cost of the big stages is measured in step 7. (Not the live structure, with or without a background thread.)
