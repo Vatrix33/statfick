@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Security.Cryptography;
 
 namespace Statventure.Text;
 
@@ -8,7 +9,10 @@ public readonly record struct ResolvedFont(FontFace Face, bool SyntheticBold, bo
 /// <summary>
 /// The fonts a game uses, by family, weight and style, with CSS font matching: the weight order of
 /// CSS Fonts 4 §5.2, italic before oblique before normal, bold synthesized for 600+ when only a face
-/// of 500 or lighter exists, oblique synthesized when no italic face exists.
+/// of 500 or lighter exists, oblique synthesized when no italic face exists. Faces come from code
+/// (<see cref="Add"/>, as a platform's fonts) or from stylesheets' @font-face rules
+/// (<see cref="AcquireSheetFace"/>, Q24): a family some sheet face has is matched among the sheet faces
+/// only, as Chromium matches a document's @font-face families before the platform's fonts.
 /// </summary>
 public sealed class FontLibrary : IDisposable
 {
@@ -46,11 +50,95 @@ public sealed class FontLibrary : IDisposable
         }
     }
 
-    /// <summary>The default family, matched for weight and style.</summary>
-    public ResolvedFont? ResolveDefault(int weight, bool italic) =>
-        _faces.Count == 0 ? null : Resolve(DefaultFamily ?? _faces[0].Family, weight, italic);
+    /// <summary>The default family, matched for weight and style (unset: the first face added in code, else the first sheet face).</summary>
+    public ResolvedFont? ResolveDefault(int weight, bool italic)
+    {
+        var family = DefaultFamily;
+        if (family is null)
+            lock (_lock)
+                family = _faces.Count > 0 ? _faces[0].Family : _sheetFaces.Count > 0 ? _sheetFaces[0].Face.Family : null;
+        return family is null ? null : Resolve(family, weight, italic);
+    }
 
+    /// <summary>The faces added in code (<see cref="Add"/>).</summary>
     public IReadOnlyList<FontFace> Faces => _faces;
+
+    /// <summary>A face made from a stylesheet's @font-face rule, with the descriptors and data it was made from and how many sheets use it.</summary>
+    sealed class SheetFace(FontFace face, byte[] hash)
+    {
+        public FontFace Face { get; } = face;
+        public byte[] Hash { get; } = hash;
+        public int Users = 1;
+
+        public bool Is(byte[] hash, string family, int weight, int weightMax, bool italic) =>
+            Face.Family == family && Face.Weight == weight && Face.WeightMax == Math.Max(weight, weightMax) && Face.Italic == italic && Hash.AsSpan().SequenceEqual(hash);
+    }
+
+    readonly List<SheetFace> _sheetFaces = [];
+    // Sheet faces no sheet uses any more: out of matching, kept until the library goes (layout may still hold them).
+    readonly List<FontFace> _retired = [];
+
+    /// <summary>The faces stylesheets' @font-face rules added and still use, in the order they were first added.</summary>
+    public IReadOnlyList<FontFace> SheetFaces
+    {
+        get
+        {
+            lock (_lock)
+                return [.. _sheetFaces.Select(f => f.Face)];
+        }
+    }
+
+    /// <summary>
+    /// A face for a stylesheet's @font-face rule (Q24): made from <paramref name="data"/>, or the face already
+    /// made from the same data and descriptors, which then has one more user. Each acquisition is given back
+    /// with <see cref="ReleaseSheetFace"/> when the sheet goes. A family some sheet face has hides the faces
+    /// added in code for that family. FreeType failing to read the data throws.
+    /// </summary>
+    public FontFace AcquireSheetFace(ReadOnlySpan<byte> data, string family, int weight = 400, bool italic = false, int? weightMax = null)
+    {
+        var max = weightMax ?? weight;
+        var hash = SHA256.HashData(data);
+        lock (_lock)
+        {
+            if (_sheetFaces.Find(f => f.Is(hash, family, weight, max, italic)) is { } known)
+            {
+                known.Users++;
+                return known.Face;
+            }
+        }
+        FontFace face;
+        lock (FreeTypeLock)
+            face = new FontFace(this, data, family, weight, max, italic);
+        lock (_lock)
+        {
+            // Another thread may have made the same face meanwhile.
+            if (_sheetFaces.Find(f => f.Is(hash, family, weight, max, italic)) is { } known)
+            {
+                known.Users++;
+                _retired.Add(face);
+                return known.Face;
+            }
+            _sheetFaces.Add(new SheetFace(face, hash));
+            ForgetResolved();
+        }
+        return face;
+    }
+
+    /// <summary>Gives back one acquisition of a sheet face; when no sheet uses it, it is matched no more.</summary>
+    public void ReleaseSheetFace(FontFace face)
+    {
+        lock (_lock)
+        {
+            var index = _sheetFaces.FindIndex(f => f.Face == face);
+            if (index < 0)
+                throw new InvalidOperationException($"{face} isn't a sheet face of this library");
+            if (--_sheetFaces[index].Users > 0)
+                return;
+            _sheetFaces.RemoveAt(index);
+            _retired.Add(face);
+            ForgetResolved();
+        }
+    }
 
     public FontLibrary()
     {
@@ -122,7 +210,11 @@ public sealed class FontLibrary : IDisposable
         var key = new FontKey(family, weight, italic);
         if (_cache.TryGetValue(key, out var cached))
             return cached;
-        var candidates = _faces.Where(f => string.Equals(f.Family, family, StringComparison.OrdinalIgnoreCase)).ToList();
+        // A family a stylesheet's @font-face defines is matched among those faces only, the later rules first
+        // (Chromium's FontFaceCache before the platform's fonts); else among the faces added in code.
+        var candidates = Enumerable.Reverse(_sheetFaces).Select(f => f.Face).Where(f => string.Equals(f.Family, family, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (candidates.Count == 0)
+            candidates = _faces.Where(f => string.Equals(f.Family, family, StringComparison.OrdinalIgnoreCase)).ToList();
         if (candidates.Count == 0 && _generic.TryGetValue(family, out var mapped) && !string.Equals(mapped, family, StringComparison.OrdinalIgnoreCase))
         {
             var viaGeneric = ResolveLocked(mapped, weight, italic);
@@ -203,6 +295,10 @@ public sealed class FontLibrary : IDisposable
         foreach (var face in _faces)
             face.Dispose();
         _faces.Clear();
+        foreach (var face in _sheetFaces.Select(f => f.Face).Concat(_retired))
+            face.Dispose();
+        _sheetFaces.Clear();
+        _retired.Clear();
         FreeType.DoneFreeType(_freeType);
     }
 }

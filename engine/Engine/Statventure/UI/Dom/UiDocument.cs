@@ -1,4 +1,5 @@
 using System.Numerics;
+using Statventure.Packs;
 using Statventure.Text;
 using Statventure.UI.Css;
 using Statventure.UI.Layout;
@@ -221,6 +222,50 @@ public sealed partial class UiDocument
 
     // ---------- Stylesheets and environment ----------
 
+    VirtualFileSystem? _files;
+    // The faces each author sheet's @font-face rules added to the font library (Q24).
+    readonly Dictionary<Stylesheet, List<FontFace>> _sheetFaces = [];
+
+    /// <summary>
+    /// The game's data the document reads (Docs/Assets.md, "UI"; S7-1, S7-4; the game sets
+    /// <c>Application.Data</c>): every url (a stylesheet's, the markup's) is a data path in it from its root.
+    /// With one, the @font-face rules of the author sheets are honoured: each face's font is read from it
+    /// and added to <see cref="Fonts"/> when its sheet is added (or when this is set), and given back when
+    /// the sheet is removed; a font that isn't there or doesn't load is an error naming the sheet (a
+    /// <see cref="DataFileException"/> naming the pack and entry of a compiled sheet, an
+    /// <see cref="InvalidDataException"/> naming one parsed from text), and nothing changes. Without one,
+    /// @font-face rules are ignored (the fonts are the library's). The host reads images and SVG text from it.
+    /// </summary>
+    public VirtualFileSystem? Files
+    {
+        get => _files;
+        set
+        {
+            if (ReferenceEquals(value, _files))
+                return;
+            var added = new Dictionary<Stylesheet, List<FontFace>>();
+            try
+            {
+                if (value is not null)
+                    foreach (var sheet in _authorSheets.Keys)
+                        added[sheet] = AcquireFaces(sheet, value);
+            }
+            catch
+            {
+                foreach (var faces in added.Values)
+                    ReleaseFaces(faces);
+                throw;
+            }
+            foreach (var faces in _sheetFaces.Values)
+                ReleaseFaces(faces);
+            _sheetFaces.Clear();
+            foreach (var (sheet, faces) in added)
+                _sheetFaces[sheet] = faces;
+            _files = value;
+            InvalidateLayout();
+        }
+    }
+
     public Stylesheet AddStylesheet(string css, string name = "")
     {
         var sheet = Stylesheet.Parse(css, name);
@@ -228,8 +273,16 @@ public sealed partial class UiDocument
         return sheet;
     }
 
+    /// <summary>Adds an author sheet; with <see cref="Files"/>, its @font-face fonts are loaded first (an error leaves the document as it was).</summary>
     public void AddStylesheet(Stylesheet sheet)
     {
+        if (_files is not null && !_sheetFaces.ContainsKey(sheet))
+        {
+            var faces = AcquireFaces(sheet, _files);
+            _sheetFaces[sheet] = faces;
+            if (faces.Count > 0)
+                InvalidateLayout();
+        }
         Styles.Add(sheet);
         _authorSheets[sheet] = true;
     }
@@ -238,6 +291,83 @@ public sealed partial class UiDocument
     {
         Styles.Remove(sheet);
         _authorSheets.Remove(sheet);
+        if (_sheetFaces.Remove(sheet, out var faces))
+        {
+            ReleaseFaces(faces);
+            if (faces.Count > 0)
+                InvalidateLayout();
+        }
+    }
+
+    /// <summary>The faces of a sheet's @font-face rules, read from <paramref name="files"/> (all or none: a failure gives back those already taken).</summary>
+    List<FontFace> AcquireFaces(Stylesheet sheet, VirtualFileSystem files)
+    {
+        var faces = new List<FontFace>();
+        try
+        {
+            foreach (var rule in sheet.FontFaces)
+            {
+                FontFaceDescriptors descriptors;
+                try
+                {
+                    descriptors = FontFaceDescriptors.Of(rule);
+                }
+                catch (InvalidDataException problem)
+                {
+                    throw SheetProblem(sheet, problem.Message, problem);
+                }
+                byte[] data;
+                try
+                {
+                    data = files.ReadAllBytes(descriptors.Source);
+                }
+                catch (Exception problem) when (problem is IOException or ArgumentException)
+                {
+                    throw SheetProblem(sheet, $"the @font-face font '{descriptors.Source}' of {descriptors.Family} can't be read: {problem.Message}", problem);
+                }
+                try
+                {
+                    faces.Add(Fonts.AcquireSheetFace(data, descriptors.Family, descriptors.Weight, descriptors.Italic, descriptors.WeightMax));
+                }
+                catch (Exception problem) when (problem is not OutOfMemoryException)
+                {
+                    throw SheetProblem(sheet, $"the @font-face font '{descriptors.Source}' of {descriptors.Family} doesn't load: {problem.Message}", problem);
+                }
+            }
+        }
+        catch
+        {
+            ReleaseFaces(faces);
+            throw;
+        }
+        return faces;
+    }
+
+    void ReleaseFaces(List<FontFace> faces)
+    {
+        foreach (var face in faces)
+            Fonts.ReleaseSheetFace(face);
+    }
+
+    /// <summary>
+    /// A problem with a sheet's fonts, naming the sheet: a <see cref="DataFileException"/> naming its pack and
+    /// entry (or loose file) when it was loaded from the data, else an <see cref="InvalidDataException"/> naming it.
+    /// </summary>
+    static Exception SheetProblem(Stylesheet sheet, string problem, Exception inner)
+    {
+        if (sheet.LoadedFrom is { } loaded)
+        {
+            try
+            {
+                return loaded.Files.Problem(loaded.Path, problem, inner);
+            }
+            catch (Exception gone) when (gone is ObjectDisposedException or FileNotFoundException)
+            {
+                // The data it came from is gone (disposed, or reloaded without it): its path names it.
+                return new InvalidDataException($"the stylesheet '{loaded.Path}': {problem}", inner);
+            }
+        }
+        return new InvalidDataException($"the stylesheet '{sheet.Name}': {problem}", inner);
     }
 
     /// <summary>The viewport size in window units (DIPs; CSS px at zoom 1) and the reduced-motion preference.</summary>

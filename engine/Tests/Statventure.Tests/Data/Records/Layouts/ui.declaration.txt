@@ -1,0 +1,5 @@
+ui.declaration 1
+  1 property: string (required)
+  2 value: list<ui.token> (required)
+  3 important: bool = false
+  4 shorthand: string? = null

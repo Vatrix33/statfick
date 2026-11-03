@@ -20,6 +20,7 @@ the user and wait for their go-ahead before starting the next one.
   on Windows: they act as Chromium on Linux with the reference PC's fonts and font settings.
 - Packs (`.pak`, `Docs/Assets.md`) in `git diff` as their dumps: once per clone, from the repo's root,
   `git config diff.pak.textconv engine/Tools/Packer/textconv.sh`.
+  `Tools/Scripts/make-ui-pack.sh` makes `Assets/Packs/ui.pak` (the old game's five fonts and their licences).
 - Chromium 152 for references: `Tools/Scripts/chromium.sh` (Electron 44.5.0 from npm).
 - A minimized window's document (hidden documents: visibility, unloading, Blink's timer throttling; `Docs/Scripting.md`,
   "Hidden documents"): references from `Tools/Scripts/make-visibility-references.sh` (about six minutes);

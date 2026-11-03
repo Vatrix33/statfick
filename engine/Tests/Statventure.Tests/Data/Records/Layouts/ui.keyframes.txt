@@ -1,0 +1,4 @@
+ui.keyframes 1
+  1 name: string (required)
+  2 frames: list<ui.keyframe> (required)
+  3 media: list<ui.token>? = null

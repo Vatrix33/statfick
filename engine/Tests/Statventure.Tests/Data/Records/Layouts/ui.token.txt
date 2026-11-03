@@ -1,0 +1,5 @@
+ui.token 1
+  1 kind: enum int32 {ident = 0, function = 1, atKeyword = 2, hash = 3, idHash = 4, string = 5, url = 6, number = 7, integer = 8, percentage = 9, dimension = 10, integerDimension = 11, whitespace = 12, delim = 13, colon = 14, semicolon = 15, comma = 16, leftBracket = 17, rightBracket = 18, leftParen = 19, rightParen = 20, leftBrace = 21, rightBrace = 22} (required)
+  2 text: string? = null
+  3 number: float64? = null
+  4 unit: string? = null

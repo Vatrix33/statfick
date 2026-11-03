@@ -1,0 +1,2 @@
+ui.font-face 1
+  1 descriptors: list<ui.declaration> (required)

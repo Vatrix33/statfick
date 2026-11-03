@@ -1,0 +1,4 @@
+ui.style-rule 1
+  1 selectors: list<ui.token> (required)
+  2 declarations: list<ui.declaration> (required)
+  3 media: list<ui.token>? = null

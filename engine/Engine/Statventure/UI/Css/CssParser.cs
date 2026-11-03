@@ -8,7 +8,11 @@ public sealed record CssDeclaration(string Property, List<CssToken> Value, bool 
 public abstract record CssRule;
 
 /// <summary>A style rule; <see cref="Order"/> is its position in the cascade (later wins at equal specificity).</summary>
-public sealed record CssStyleRule(SelectorList Selectors, List<CssDeclaration> Declarations, int Order) : CssRule;
+public sealed record CssStyleRule(SelectorList Selectors, List<CssDeclaration> Declarations, int Order) : CssRule
+{
+    /// <summary>The selector list's tokens, as parsed (what a compiled stylesheet keeps of it).</summary>
+    public List<CssToken> SelectorTokens { get; init; } = [];
+}
 
 public sealed record CssMediaRule(MediaQuery Query, List<CssRule> Rules) : CssRule;
 
@@ -26,14 +30,18 @@ public sealed class MediaQuery
     readonly List<string> _types = [];
     public string Text { get; }
 
-    MediaQuery(string text)
+    /// <summary>The query's tokens, as parsed (what a compiled stylesheet keeps of it).</summary>
+    public IReadOnlyList<CssToken> Tokens { get; }
+
+    MediaQuery(string text, List<CssToken> tokens)
     {
         Text = text;
+        Tokens = tokens;
     }
 
     public static MediaQuery Parse(List<CssToken> prelude)
     {
-        var query = new MediaQuery(string.Concat(prelude.Select(t => t.ToString())).Trim());
+        var query = new MediaQuery(string.Concat(prelude.Select(t => t.ToString())).Trim(), [.. prelude]);
         foreach (var part in CssParser.SplitOnCommas(prelude))
         {
             var features = new List<(string, double, string)>();
@@ -108,15 +116,34 @@ public sealed class MediaQuery
 /// </summary>
 public readonly record struct MediaEnvironment(float Width, float Height, bool ReducedMotion = false, float Zoom = 1, float DeviceScale = 1);
 
+/// <summary>
+/// What parsing a stylesheet left out, as the UI importer checks it (Docs/Assets.md, "UI"; S7-2): rules
+/// whose selectors the engine can't parse, and everything else skipped (at-rules it doesn't handle,
+/// declarations and keyframe selectors that don't parse, stray tokens).
+/// </summary>
+public sealed class CssParseDiagnostics
+{
+    /// <summary>The selector lists whose rules were dropped, as written.</summary>
+    public List<string> DroppedSelectors { get; } = [];
+
+    /// <summary>What else was left out, in words.</summary>
+    public List<string> Skipped { get; } = [];
+}
+
 /// <summary>Parses stylesheets (CSS Syntax Level 3 §5) into style, media, keyframes and font-face rules.</summary>
 public static class CssParser
 {
-    public static List<CssRule> ParseStylesheet(string text, ref int order)
+    public static List<CssRule> ParseStylesheet(string text, ref int order) => ParseStylesheet(text, ref order, null);
+
+    /// <summary>Parses a stylesheet, noting in <paramref name="diagnostics"/> what it leaves out.</summary>
+    public static List<CssRule> ParseStylesheet(string text, ref int order, CssParseDiagnostics? diagnostics)
     {
         var tokens = CssTokenizer.Tokenize(text);
         var position = 0;
-        return ParseRules(tokens, ref position, topLevel: true, ref order);
+        return ParseRules(tokens, ref position, topLevel: true, ref order, diagnostics);
     }
+
+    static string Text(IEnumerable<CssToken> tokens) => string.Concat(tokens.Select(t => t.ToString())).Trim();
 
     public static List<CssRule> ParseStylesheet(string text)
     {
@@ -124,7 +151,7 @@ public static class CssParser
         return ParseStylesheet(text, ref order);
     }
 
-    static List<CssRule> ParseRules(List<CssToken> tokens, ref int position, bool topLevel, ref int order)
+    static List<CssRule> ParseRules(List<CssToken> tokens, ref int position, bool topLevel, ref int order, CssParseDiagnostics? diagnostics)
     {
         var rules = new List<CssRule>();
         while (position < tokens.Count)
@@ -143,6 +170,7 @@ public static class CssParser
                     return rules;
                 }
                 position++;
+                diagnostics?.Skipped.Add("an unmatched '}'");
                 continue;
             }
             if (token.Type == CssTokenType.AtKeyword)
@@ -154,6 +182,9 @@ public static class CssParser
                     prelude.Add(tokens[position++]);
                 if (position >= tokens.Count || tokens[position].Type == CssTokenType.Semicolon)
                 {
+                    // @charset only names the file's encoding (the engine reads UTF-8).
+                    if (name != "charset" || position >= tokens.Count)
+                        diagnostics?.Skipped.Add(position >= tokens.Count ? $"an @{name} rule without a block" : $"the statement @{name} {Text(prelude)}");
                     position++;
                     continue;
                 }
@@ -161,17 +192,18 @@ public static class CssParser
                 switch (name)
                 {
                     case "media":
-                        rules.Add(new CssMediaRule(MediaQuery.Parse(Trim(prelude)), ParseRules(tokens, ref position, topLevel: false, ref order)));
+                        rules.Add(new CssMediaRule(MediaQuery.Parse(Trim(prelude)), ParseRules(tokens, ref position, topLevel: false, ref order, diagnostics)));
                         break;
                     case "keyframes":
                     case "-webkit-keyframes":
-                        rules.Add(ParseKeyframes(string.Concat(Trim(prelude).Select(t => t.Type == CssTokenType.String ? t.Value : t.ToString())), tokens, ref position));
+                        rules.Add(ParseKeyframes(string.Concat(Trim(prelude).Select(t => t.Type == CssTokenType.String ? t.Value : t.ToString())), tokens, ref position, diagnostics));
                         break;
                     case "font-face":
-                        rules.Add(new CssFontFaceRule(ParseDeclarations(BlockContents(tokens, ref position))));
+                        rules.Add(new CssFontFaceRule(ParseDeclarations(BlockContents(tokens, ref position), diagnostics)));
                         break;
                     default:
                         BlockContents(tokens, ref position);
+                        diagnostics?.Skipped.Add($"an @{name} rule (the engine doesn't handle it)");
                         break;
                 }
                 continue;
@@ -181,12 +213,17 @@ public static class CssParser
             while (position < tokens.Count && tokens[position].Type != CssTokenType.LeftBrace)
                 selectorTokens.Add(tokens[position++]);
             if (position >= tokens.Count)
+            {
+                diagnostics?.Skipped.Add($"a rule without a block: {Text(selectorTokens)}");
                 break;
+            }
             position++;
-            var declarations = ParseDeclarations(BlockContents(tokens, ref position));
+            var declarations = ParseDeclarations(BlockContents(tokens, ref position), diagnostics);
             var selectors = SelectorParser.ParseList(Trim(selectorTokens));
             if (selectors is not null)
-                rules.Add(new CssStyleRule(selectors, declarations, order++));
+                rules.Add(new CssStyleRule(selectors, declarations, order++) { SelectorTokens = Trim(selectorTokens) });
+            else
+                diagnostics?.DroppedSelectors.Add(Text(selectorTokens));
         }
         return rules;
     }
@@ -208,8 +245,10 @@ public static class CssParser
         return contents;
     }
 
-    static CssKeyframesRule ParseKeyframes(string name, List<CssToken> tokens, ref int position)
+    static CssKeyframesRule ParseKeyframes(string name, List<CssToken> tokens, ref int position, CssParseDiagnostics? diagnostics)
     {
+        if (name.Trim().Length == 0)
+            diagnostics?.Skipped.Add("a @keyframes rule without a name");
         var frames = new List<CssKeyframe>();
         var body = BlockContents(tokens, ref position);
         var at = 0;
@@ -219,10 +258,18 @@ public static class CssParser
             while (at < body.Count && body[at].Type != CssTokenType.LeftBrace)
                 selector.Add(body[at++]);
             if (at >= body.Count)
+            {
+                if (Trim(selector).Count > 0)
+                    diagnostics?.Skipped.Add($"a keyframe without a block in @keyframes {name.Trim()}: {Text(selector)}");
                 break;
+            }
             at++;
-            var declarations = ParseDeclarations(BlockContents(body, ref at));
-            var offsets = SplitOnCommas(Trim(selector)).Select(part =>
+            var declarations = ParseDeclarations(BlockContents(body, ref at), diagnostics);
+            var parts = SplitOnCommas(Trim(selector));
+            // Chromium drops a keyframe whose selector list has an invalid part, or an offset outside 0%–100%.
+            if (parts.Any(part => KeyframeOffset(part) is not (>= 0 and <= 1)))
+                diagnostics?.Skipped.Add($"a keyframe selector that doesn't parse in @keyframes {name.Trim()}: {Text(selector)}");
+            var offsets = parts.Select(part =>
             {
                 var t = Trim(part);
                 if (t.Count == 0)
@@ -239,8 +286,24 @@ public static class CssParser
         return new CssKeyframesRule(name.Trim(), frames);
     }
 
+    /// <summary>A keyframe selector's offset (from = 0, to = 1, a percentage / 100), or null when it isn't one.</summary>
+    static double? KeyframeOffset(List<CssToken> part)
+    {
+        var t = Trim(part);
+        if (t.Count != 1)
+            return null;
+        if (t[0].IsIdent("from"))
+            return 0;
+        if (t[0].IsIdent("to"))
+            return 1;
+        return t[0].Type == CssTokenType.Percentage ? t[0].Number / 100 : null;
+    }
+
     /// <summary>Parses "prop: value; prop: value !important" (also used for inline styles).</summary>
-    public static List<CssDeclaration> ParseDeclarations(List<CssToken> tokens)
+    public static List<CssDeclaration> ParseDeclarations(List<CssToken> tokens) => ParseDeclarations(tokens, null);
+
+    /// <summary>Parses declarations, noting in <paramref name="diagnostics"/> the ones that don't parse.</summary>
+    public static List<CssDeclaration> ParseDeclarations(List<CssToken> tokens, CssParseDiagnostics? diagnostics)
     {
         var declarations = new List<CssDeclaration>();
         var at = 0;
@@ -250,11 +313,13 @@ public static class CssParser
                 at++;
             if (at >= tokens.Count)
                 break;
+            var start = at;
             if (tokens[at].Type != CssTokenType.Ident)
             {
                 // Skip to the next declaration.
                 while (at < tokens.Count && tokens[at].Type != CssTokenType.Semicolon)
                     at++;
+                diagnostics?.Skipped.Add($"a declaration that doesn't parse: {Text(tokens.GetRange(start, at - start))}");
                 continue;
             }
             var name = tokens[at++].Value;
@@ -264,6 +329,7 @@ public static class CssParser
             {
                 while (at < tokens.Count && tokens[at].Type != CssTokenType.Semicolon)
                     at++;
+                diagnostics?.Skipped.Add($"a declaration that doesn't parse: {Text(tokens.GetRange(start, at - start))}");
                 continue;
             }
             at++;

@@ -1,6 +1,9 @@
 using System.Numerics;
+using System.Text;
+using Statventure.Core;
 using Statventure.Graphics;
 using Statventure.Imaging;
+using Statventure.Packs;
 using Statventure.Platform;
 using Statventure.UI.Dom;
 using Statventure.UI.Paint;
@@ -14,7 +17,8 @@ namespace Statventure.UI;
 /// becomes the window's (system shapes, cursor images), the system's clipboard, caret blink time
 /// and reduced-motion setting become the document's, and every frame updates and paints it at the
 /// window's pixel density. Images and text resources (SVG) come from <see cref="LoadImage"/> and
-/// <see cref="LoadText"/>. A minimized window's document is hidden (visibilitychange; no frames,
+/// <see cref="LoadText"/>, else from the document's data (<see cref="UiDocument.Files"/>: PNG images
+/// decoded, SVG read as text; S7-1, S7-4, Q25). A minimized window's document is hidden (visibilitychange; no frames,
 /// its timers throttled as Chromium's, with the sound's audibility from <see cref="Audio"/>), and
 /// the document unloads when the host goes (pagehide, unload).
 /// </summary>
@@ -25,6 +29,7 @@ public sealed class UiHost : IDisposable
     readonly UiPainter _painter;
     readonly CanvasRenderer _canvas;
     readonly Dictionary<string, LoadedImage?> _images = [];
+    readonly UiResources _resources;
     readonly UiHostInput _input;
     Vector2 _viewport;
     float _scale;
@@ -38,14 +43,25 @@ public sealed class UiHost : IDisposable
 
     public UiDocument Document { get; }
 
+    /// <summary>The painter (for tests: the text resources it reads).</summary>
+    internal UiPainter Painter => _painter;
+
     /// <summary>The 3D views shown in the document's surface elements (Docs/Renderer-3D.md, "3D views in the UI").</summary>
     public SurfaceViews Views { get; }
 
-    /// <summary>Loads an image by url (RGBA, not premultiplied); null when there is none.</summary>
-    public Func<string, RgbaImage?>? LoadImage { get; set; }
+    /// <summary>Loads an image by url (RGBA, not premultiplied); null when there is none (then the document's data is read).</summary>
+    public Func<string, RgbaImage?>? LoadImage
+    {
+        get => _resources.LoadImage;
+        set => _resources.LoadImage = value;
+    }
 
-    /// <summary>Loads a text resource by url (SVG images); null when there is none.</summary>
-    public Func<string, string?>? LoadText { get; set; }
+    /// <summary>Loads a text resource by url (SVG images); null when there is none (then the document's data is read).</summary>
+    public Func<string, string?>? LoadText
+    {
+        get => _resources.LoadText;
+        set => _resources.LoadText = value;
+    }
 
     /// <summary>
     /// The application's sound: whether it is audible becomes the document's
@@ -79,6 +95,7 @@ public sealed class UiHost : IDisposable
         _window = window;
         _gpu = gpu;
         Document = document;
+        _resources = new UiResources(document, message => Log.Warning("UI", message));
         document.Clipboard = new SystemClipboard();
         document.CaretBlinkInterval = SystemSettings.CaretBlinkInterval;
         document.Layout.Context.ImageSize = url => Image(url) is { } image ? new Vector2(image.Pixels.Width, image.Pixels.Height) : null;
@@ -86,7 +103,7 @@ public sealed class UiHost : IDisposable
         _painter = new UiPainter(document)
         {
             ImageTexture = url => Texture(url)?.BindlessIndex,
-            TextResource = url => LoadText?.Invoke(url),
+            TextResource = _resources.Text,
             SurfaceTexture = Views.Texture,
         };
         _canvas = new CanvasRenderer(gpu);
@@ -115,7 +132,7 @@ public sealed class UiHost : IDisposable
     {
         if (_images.TryGetValue(url, out var image))
             return image;
-        image = LoadImage?.Invoke(url) is { Width: > 0, Height: > 0 } pixels ? new LoadedImage { Pixels = pixels } : null;
+        image = _resources.Image(url) is { Width: > 0, Height: > 0 } pixels ? new LoadedImage { Pixels = pixels } : null;
         _images[url] = image;
         return image;
     }
@@ -247,5 +264,104 @@ public sealed class UiHost : IDisposable
         foreach (var image in _images.Values)
             image?.Texture?.Dispose();
         _images.Clear();
+    }
+}
+
+/// <summary>
+/// The images and SVG text a document's urls name (Docs/Assets.md, "UI"; S7-1, S7-4, Q25): what the game's
+/// callbacks give, else the file at that data path in the document's data (<see cref="UiDocument.Files"/>),
+/// a PNG decoded to RGBA, an SVG's UTF-8 text. An image or SVG that isn't there (or isn't a data path, or is
+/// a record), isn't a PNG, doesn't decode or isn't UTF-8 shows nothing and is reported once per url, as
+/// Chromium shows a broken image; a damaged pack entry stays an error (Q6). SVG images (<c>.svg</c>, and
+/// <c>data:image/svg+xml</c> urls, which the painter reads itself) aren't images here.
+/// </summary>
+internal sealed class UiResources(UiDocument document, Action<string> report)
+{
+    static readonly UTF8Encoding Utf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+    static readonly byte[] PngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+
+    readonly HashSet<string> _reported = new(StringComparer.Ordinal);
+
+    public Func<string, RgbaImage?>? LoadImage { get; set; }
+    public Func<string, string?>? LoadText { get; set; }
+
+    /// <summary>The image a url names, or null.</summary>
+    public RgbaImage? Image(string url)
+    {
+        if (LoadImage?.Invoke(url) is { } given)
+            return given;
+        if (document.Files is not { } files || IsSvg(url))
+            return null;
+        if (url.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            Report(url, "is a data: url of a kind the engine doesn't decode (only SVG)");
+            return null;
+        }
+        if (Read(files, url) is not { } bytes)
+            return null;
+        if (!bytes.AsSpan().StartsWith(PngSignature))
+        {
+            Report(url, "isn't a PNG image");
+            return null;
+        }
+        try
+        {
+            return ImageFile.Load(bytes);
+        }
+        catch (InvalidDataException)
+        {
+            Report(url, "doesn't decode as a PNG image");
+            return null;
+        }
+    }
+
+    /// <summary>The text an SVG url names, or null.</summary>
+    public string? Text(string url)
+    {
+        if (LoadText?.Invoke(url) is { } given)
+            return given;
+        if (document.Files is not { } files || Read(files, url) is not { } bytes)
+            return null;
+        var start = bytes.AsSpan().StartsWith((ReadOnlySpan<byte>)[0xEF, 0xBB, 0xBF]) ? 3 : 0;
+        try
+        {
+            return Utf8.GetString(bytes, start, bytes.Length - start);
+        }
+        catch (DecoderFallbackException)
+        {
+            Report(url, "isn't UTF-8 text");
+            return null;
+        }
+    }
+
+    static bool IsSvg(string url) =>
+        url.EndsWith(".svg", StringComparison.OrdinalIgnoreCase) || url.StartsWith("data:image/svg+xml", StringComparison.OrdinalIgnoreCase);
+
+    byte[]? Read(VirtualFileSystem files, string url)
+    {
+        if (PackPath.Problem(url) is { } problem)
+        {
+            Report(url, $"isn't a data path ({problem})");
+            return null;
+        }
+        if (!files.Exists(url))
+        {
+            Report(url, "isn't in the game's data");
+            return null;
+        }
+        if (files.IsRecord(url))
+        {
+            Report(url, "is a record, not a file");
+            return null;
+        }
+        return files.ReadAllBytes(url);
+    }
+
+    void Report(string url, string why)
+    {
+        lock (_reported)
+            if (!_reported.Add(url))
+                return;
+        report($"'{url}' {why}: it shows nothing");
     }
 }

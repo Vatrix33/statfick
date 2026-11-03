@@ -12,7 +12,9 @@ namespace Statventure.Tests.Ui;
 /// The game's own screens must lay out as the game's browser lays them out: each captured state
 /// (markup, environment and measured boxes, Golden/game-ui.json.gz from
 /// Tools/Scripts/make-game-references.sh) is laid out with the game's stylesheet and compared box
-/// for box. Transforms and animations are frozen in both, so this checks layout alone.
+/// for box. Transforms and animations are frozen in both, so this checks layout alone. Since M9 step 7
+/// the game's stylesheet is the compiled one (<see cref="GameStylesheets.Compiled"/>), loaded from a pack
+/// the UI importer made, so every test of the game's screens goes through it.
 /// </summary>
 public class GameLayoutTests
 {
@@ -23,8 +25,6 @@ public class GameLayoutTests
         return JsonDocument.Parse(stream).RootElement;
     });
 
-    static readonly Lazy<Stylesheet> GameStyles = new(() =>
-        Stylesheet.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Data", "Game", "styles.css")), "styles.css"));
 
     const string Freeze = "*, *::before, *::after { animation: none !important; transition: none !important; transform: none !important; translate: none !important; rotate: none !important; scale: none !important; }";
 
@@ -33,12 +33,13 @@ public class GameLayoutTests
     [Fact]
     public void TheEngineKnowsEveryPropertyTheGameUses()
     {
-        Assert.Empty(GameStyles.Value.UnknownProperties);
+        Assert.Empty(GameStylesheets.Parsed.UnknownProperties);
     }
 
     /// <param name="buildTree">False: only the environment and stylesheets (the caller adds the tree).</param>
     /// <param name="deviceScale">The screen's device scale the state was captured at.</param>
-    public static UiDocument Build(JsonElement state, bool buildTree = true, float deviceScale = 1)
+    /// <param name="styles">The game's stylesheet (default: the compiled one).</param>
+    public static UiDocument Build(JsonElement state, bool buildTree = true, float deviceScale = 1, Stylesheet? styles = null)
     {
         var document = new UiDocument(TestFonts.LibraryWithSystemFallback);
         document.SetZoom(deviceScale);
@@ -49,7 +50,7 @@ public class GameLayoutTests
         document.SetViewport(size.X, size.Y, state.GetProperty("reducedMotion").GetBoolean());
         var images = state.GetProperty("images").EnumerateObject().ToDictionary(p => p.Name, p => new Vector2(p.Value[0].GetSingle(), p.Value[1].GetSingle()));
         document.Layout.Context.ImageSize = src => images.TryGetValue(src, out var size) ? size : null;
-        document.AddStylesheet(GameStyles.Value);
+        document.AddStylesheet(styles ?? GameStylesheets.Compiled);
         foreach (var style in state.GetProperty("styles").EnumerateArray())
             document.AddStylesheet(style.GetString()!, "inline");
         document.AddStylesheet(Freeze, "freeze");

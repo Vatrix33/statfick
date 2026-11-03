@@ -1,0 +1,3 @@
+ui.keyframe 1
+  1 offsets: list<float32> (required)
+  2 declarations: list<ui.declaration> (required)

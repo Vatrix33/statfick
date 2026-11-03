@@ -73,6 +73,9 @@ Nothing of M9 yet: no pack, virtual file system, serializer, save or settings co
   read by `GameLayoutTests`). Nothing writes to `$STATVENTURE_GAME` yet: `build.sh` and `build.ps1`
   build into each project's `bin/`, and there is no game executable before the port (M12 does the
   shipped layout). (Since step 9 the build publishes the sandbox there with `packs/` beside it: S9-A.)
+  (Corrected 2026-11-03, step 7: the fonts' names there have capitals, `Lato-Regular.ttf`, which the path
+  rule refuses, so they can't be packed from that folder as they are: `make-ui-pack.sh` copies them under
+  names that follow it, `ui/fonts/lato-regular.ttf`, S7-5.)
 - **Models** (`Render3D/GltfImport.cs`, `ModelData.cs`, `Model.cs`): `GltfImport.Load(path)` gives a
   `ModelData`: `ModelNode` records (name, parent, children, matrix and TRS, mesh, skin, `Ink`), meshes
   of `ModelPrimitive`s (a class with init properties: positions, normals, texture coordinates,
@@ -337,7 +340,11 @@ game's five font faces); every importer is tested on the test assets, packed ins
   stylesheet's `@font-face` rules (family, style, weight range, `src: url()` through the file system),
   as Chromium does: the engine starts honouring `@font-face` (Q24). Images are stored as their PNG or
   SVG bytes (raw, by the no-shrink rule) and decoded at load (Q25). The port's stylesheet joins
-  `ui.pak` when it's written.
+  `ui.pak` when it's written. (Corrected 2026-11-03, step 7: "no dropped rule" would refuse the old
+  game's own `styles.css`, whose two rules for Firefox, `progress::-moz-progress-bar`, Chromium drops
+  too: a rule naming another browser's prefixed pseudo-class or pseudo-element is dropped and logged
+  instead, S7-2; "every `url()` in the packs" is checked against the folder being packed, the only data
+  the importer knows, S7-1; and an SVG's text is stored compressed when Brotli shrinks it, as any entry.)
 - **Terrain (`world.pak`):** the description (`<name>.terrain.json`, S8-1) and its two PNGs into a
   `TerrainData` record (`terrain`, S8-2) holding the 16-bit samples and the height range, turned into
   floats at load exactly as today (Q26). Map data comes with the port.
@@ -706,6 +713,61 @@ did):
   gone from the data stays playable until the game quits, and patches registered in code stay. (Not the new
   library only from the next `Play` of another theme; not a restart after every Reload; not leaving the sound
   out of Reload.)
+
+Asked during step 7 (user, 2026-11-03; every answer the recommended option; numbered S7-n):
+
+- **S7-1. A url names data by its full path:** every url, in stylesheets and in the UI's markup (`img
+  src`, `cursor`, `background`), is a data path from the root under the path rule
+  (`url("ui/fonts/lato-regular.ttf")`, `<img src="ui/images/x.png">`): one form for sheets and markup;
+  the importer stores the urls as written; `data:` urls stay as they are; a relative path (`../x`), an
+  `http:` url, a path outside the rule or one naming no file of the folder being packed is refused at
+  import. The old game's five font urls (`objects/fonts/Lato-Regular.ttf`) aren't data paths: the test
+  of its stylesheet compiles a copy with only those five rewritten (font sources are in no computed
+  style). (Not resolved relative to the sheet's own path as a browser resolves them.)
+- **S7-2. What compiling refuses:** a rule whose selector the engine can't parse, except one naming
+  another browser's prefixed pseudo-class or pseudo-element (`-moz-`, `-ms-`, `-o-`), which Chromium
+  drops too: dropped and logged; an at-rule the engine doesn't handle (`@supports`, `@import`, `@layer`,
+  `@container` …; `@charset` allowed); an unknown property; a value the engine can't parse for a
+  property it takes. Properties it deliberately ignores (`fill`, `touch-action` …) stay allowed and are
+  dropped, as parsing drops them. (Not every dropped rule refused, the old stylesheet's test then
+  compiling a copy without its two `-moz-` rules; not dropped rules only logged.)
+- **S7-3. The compiled form's layout:** the rule structure as records, everything inside as CSS tokens:
+  a style rule's selector tokens, its media query's tokens (or none) and its prepared declarations
+  (property, value tokens, important, the pending shorthand); keyframes with their name, media and
+  frames (offsets and the declarations as written, which the style engine prepares as before); a font
+  face's descriptors as written; a token's kind, text, number and unit, fields that don't apply null
+  and left out of the JSON form. Selectors and media queries are parsed from their tokens by the
+  engine's own parser at load, so the format doesn't follow the selector matcher's internals. (Not
+  selectors and media queries as structured records, each new pseudo-class a new layout version.)
+- **S7-4. Fonts and images at run time:** `UiDocument.Files` (the game sets it to `Application.Data`):
+  with it the author sheets' @font-face rules are honoured; `Stylesheet.Load(files, path)` gives a
+  compiled sheet, checked at load; `UiHost` reads images (PNG, decoded) and SVG text from the document's
+  data when its `LoadImage`/`LoadText` callbacks give nothing. A @font-face font that isn't in the data
+  or doesn't load (a mod or the development folder can cause it) is an error naming the sheet that
+  stops the game, as a damaged entry does (Q6, S6-3); an image or SVG that is missing or doesn't decode
+  shows nothing and is logged once, as Chromium shows a broken image (markup names images freely).
+  (Not both errors; not both as Chromium.)
+- **S7-5. Where the fonts are packed from:** `Tools/Scripts/make-ui-pack.sh` copies the five faces from
+  `old-game/objects/fonts/` into a scratch folder in the build cache under names that follow the path
+  rule (`ui/fonts/lato-regular.ttf`, `lato-semibold.ttf`, `lato-bold.ttf`, `stixtwotext-regular.otf`,
+  `stixtwotext-italic.otf`) and packs it into `engine/Assets/Packs/ui.pak` (S6-5's way: the pack is the
+  source of truth, git gets no third copy). (Not a committed source folder `engine/Assets/Sources/ui/`.)
+- **S7-6. The licence texts** go into the pack too, `ui/fonts/lato-ofl.txt` and `ui/fonts/stix-ofl.txt`:
+  the OFL asks every copy of the fonts to carry the licence, and the font files hold only its name and
+  URL. (Not the five faces only, the licences left to M12's packaging.)
+
+Accepted with them (internal design the step proposed): the importer `[Importer("ui", ".css")]` takes
+`.css` only (it can't claim `.png` or `.svg`: step 8's terrain importer reads its PNG maps as its own
+sources), a compiled sheet at its path without the ending (`ui/styles/<name>`), fonts and images files
+at their paths (`ui/fonts/…`, `ui/images/…`); record types `ui.*`, fields numbered in declaration order;
+fonts loaded when a sheet is added, no swap period (the references wait for `document.fonts.ready`); a
+@font-face family hides the library's own faces of that name, as Chromium matches a document's
+@font-face families before the platform's fonts; faces from the same data and descriptors shared within
+a font library and given back when the sheet goes; the descriptors honoured: font-family, src (one
+`url()` with an optional `format("truetype"|"opentype")`), font-style normal or italic, font-weight (a
+number, a range, `normal`, `bold`), font-display (no effect), anything else refused at import and at
+load; the tests' plan (the game screens on the compiled sheet, their documents without a file system so
+their fonts stay `TestFonts`'; @font-face from the pack checked against `TestFonts`' registration).
 
 ## How it works
 
@@ -1332,6 +1394,116 @@ helper `Core/TestApplication.cs`: a real application with a small window, as `Ap
   doesn't match its hash (damaged)". With the mod's alder-vale given another id it stopped when the sound
   started (after the window, as step 6's order has it), naming the mod and entry.
 
+### Stylesheets, fonts and images in `ui.pak` (step 7)
+
+Code: `UI/Css/StylesheetRecords.cs` (the record types), `UI/Css/CssParser.cs` (`CssParseDiagnostics`: what
+parsing leaves out), `UI/Css/FontFaceDescriptors.cs`, `UI/Style/Stylesheet.cs` (`Compile`, `ToRecord`,
+`FromRecord`, `Load`), `UI/StylesheetImporter.cs`, `Text/FontLibrary.cs` (sheet faces), `UI/Dom/UiDocument.cs`
+(`Files`, @font-face), `UI/UiHost.cs` (`UiResources`); the pack `engine/Assets/Packs/ui.pak`, made by
+`Tools/Scripts/make-ui-pack.sh`. Tests in `Tests/Statventure.Tests/Ui/`: `StylesheetCompileTests`,
+`CompiledGameStylesTests`, `FontFaceRuleTests`, `UiResourcesTests` (with `UiHostResourceTests`), the helper
+`GameStylesheets`; layouts and the fixture (`ui.stylesheet/every-kind`) in `Data/Records/`.
+
+- **The records** (S7-3), all version 1: `ui.stylesheet` (rules, keyframes, fontFaces), `ui.style-rule`
+  (selectors: tokens, declarations, media: tokens or null), `ui.declaration` (property, value: tokens,
+  important (false), shorthand (null): in a style rule prepared, a longhand by its canonical name or a
+  custom property, a longhand of a shorthand whose value holds var() keeping the whole value and naming
+  the shorthand; in keyframes and font faces as written), `ui.keyframes` (name, frames, media),
+  `ui.keyframe` (offsets: float32s, declarations), `ui.font-face` (descriptors), `ui.token` (kind, text,
+  number, unit; the last three null where they don't apply). A token's kind is `CssTokenType` with the
+  token's flag folded in (`integer` and `integerDimension` for numbers written as integers, `idHash` for a
+  hash that starts as an identifier), so a kind says which fields it has: numbers on the five numeric
+  kinds, units on the two dimension kinds; text is the token's value as the tokenizer and the shorthands
+  give it (a whitespace's " ", a comma made by a shorthand ","), null when empty. Every token the engine
+  makes has an exact record (`CssTokenRecord.From` checks the round trip); a record whose fields don't fit
+  its kind is refused at load. What a declaration's `HasVar` and `Keyword` are is worked out again from its
+  tokens (sizes and times below).
+- **Compiling** (`Stylesheet.Compile(text, fileExists)`, S7-2): the text is parsed and prepared exactly as
+  `Stylesheet.Parse` does, with `CssParseDiagnostics` collecting what the parser leaves out and `Prepare`
+  telling each declaration it drops for an unknown property or a value it can't parse. Problems: a rule
+  whose selector doesn't parse, unless the selector names a pseudo-class or pseudo-element with another
+  browser's prefix (`:-moz-focusring`, `::-ms-clear`, `:-o-prefocus`: dropped, listed in `Dropped`); an
+  at-rule other than @media, @keyframes, @-webkit-keyframes and @font-face (a block or a statement; the
+  statement @charset allowed); a declaration that doesn't parse (no name or no colon, CSS nesting among
+  them), a stray `}`, a rule or keyframe without a block, a @keyframes without a name, a keyframe selector
+  that doesn't parse (any part not `from`, `to` or a percentage from 0% to 100%: Chromium drops the whole
+  keyframe); an unknown property and a value the engine can't parse, in style rules and in keyframes (a
+  keyframe's !important declarations aside, which CSS ignores); a @font-face the engine can't honour or one
+  inside @media (the engine registers fonts unconditionally); a `url()` (an unquoted url token or
+  `url("…")`, in any declaration, keyframe or descriptor) that isn't a `data:` url (any case) or a data path
+  under the path rule, or that names a file `fileExists` doesn't know. `Files` lists the data paths the urls
+  name. Properties the engine deliberately ignores are dropped without a problem. The record is made from
+  the parsed sheet (`ToRecord`; the parsed rules keep their selector and media tokens for it:
+  `CssStyleRule.SelectorTokens`, `MediaQuery.Tokens`). `Stylesheet.Parse` now also counts the rules dropped
+  for their selectors (`DroppedRules`, which nothing set before).
+- **Loading** (`Stylesheet.Load(files, path)`, `FromRecord`): the record is read (`files.Load`), each rule's
+  selectors and media query parsed from their tokens by the engine's parser, and checked again as importing
+  checks it (S5-1's rule): a token that doesn't fit its kind, a selector that doesn't parse, a declaration
+  whose property isn't a longhand by its canonical name or a custom property (`--` alone refused), whose value
+  the engine can't parse (unless it holds var() or is a CSS-wide keyword), or whose pending shorthand isn't
+  a shorthand (by its canonical name) setting the property or comes without var(); a keyframe whose offsets
+  are none or outside 0–1 (NaN too), or whose declarations parsing would drop, or naming a pending
+  shorthand; a @font-face the engine can't honour; a url that is neither `data:` nor a data path. A problem
+  is a `DataFileException` named through `VirtualFileSystem.Problem` ("not a valid stylesheet: rule 12
+  (.a): 'color: 12px' isn't a value the engine can parse"). The sheet is the one its text parses to, part
+  for part, with the rules' order as their positions, named by its path, remembering where it came from
+  (`LoadedFrom`); its rules keep no unprepared declarations.
+- **Sizes and load times** (facts for the editor's and the dump's later work, as step 5 noted a model's
+  JSON form; measured on the old game's sheet, 2941 rules and 20,275 prepared declarations, Debug build, a
+  machine loaded by other workers' runs): the compiled record is 1.79 MB, stored as 78 KB (Brotli); its JSON
+  form (the dump, `extract`, the development folder) is 12.5 MB and 576,293 lines, each token an object of
+  two to four keys. The sheet parses from its text in 70–80 ms and loads from a pack in 95–180 ms (reading
+  the record 30–70 ms, checking it and building the sheet 45–90 ms): the compiled form is checked, not
+  faster. A more compact form for the editor or the dump (tokens as text, say) would be a later choice.
+- **The importer** (`StylesheetImporter`, `[Importer("ui", ".css")]`): each `.css` (UTF-8, a byte order mark
+  allowed; anything else refused) is compiled with the folder's files as `fileExists` and becomes the record
+  at its path without the ending; problems stop the packing as a `DataFileException` naming the file ("the
+  ui importer: 3 problems: …", at most 20 shown, then "and n more"); dropped rules are logged (Info,
+  "Data"). A url naming a file another importer takes as its source passes the check but has no entry (a
+  terrain's PNG map): not worth a rule while nothing names one.
+- **Fonts** (Q24, S7-4): `FontFaceDescriptors.Of(rule)` reads a @font-face as the engine honours it (the
+  family: a string, or identifiers joined by single spaces, not a generic family or a CSS-wide keyword; one
+  `url()` source naming a data path with an optional `format()` of `truetype` or `opentype`, as a string or
+  an identifier; `font-style` normal or italic; `font-weight` one or two of a whole number 1–1000, `normal`
+  (400) or `bold` (700), a range swapped when the first is larger, as Blink does; `font-display` one of its
+  five keywords, no effect; the last of a repeated descriptor wins), anything else an
+  `InvalidDataException`. `UiDocument.Files` set, each author sheet's faces are read and added to the
+  document's `FontLibrary` when the sheet is added (or when `Files` is set: then for every author sheet,
+  all or nothing), given back when it is removed (or `Files` changes), and the layout is redone when faces
+  come or go. A face that can't be had (the rule, the read, FreeType) is an error naming the sheet: a
+  `DataFileException` naming its pack and entry or loose file when it was loaded from the data, else an
+  `InvalidDataException` naming the sheet (its name, or its path when its data is gone); the faces already
+  taken for it are given back and nothing changes. `FontLibrary.AcquireSheetFace(data, family, weight,
+  italic, weightMax)` gives the face made from the same data (SHA-256) and descriptors if there is one, with
+  one more user, else makes it (a race between threads ends with one face); `ReleaseSheetFace` takes a user
+  away, and the last one takes it out of matching (it is disposed with the library, since layout may still
+  hold it). A family some sheet face has is matched among the sheet faces only, the later ones first (Chromium's
+  FontFaceCache before the platform's fonts; a later equal @font-face wins); `ResolveDefault` takes the
+  first sheet face's family when the library has no face of its own and no `DefaultFamily`. Documents sharing
+  a library share its sheet faces (the game has one document; Chromium's are per document).
+- **Images and SVG text** (Q25, S7-4): `UiHost` reads them through `UiResources`: what `LoadImage` /
+  `LoadText` give first, else the document's data: a PNG (by its signature) decoded with `ImageFile.Load`
+  (Stb) when first asked for, an SVG's UTF-8 text (a byte order mark dropped). An SVG (`.svg`, or a
+  `data:image/svg+xml` url, which the painter decodes itself) isn't an image to decode. A url that isn't a
+  data path, isn't there, is a record, isn't a PNG, doesn't decode or isn't UTF-8, or another `data:` url,
+  gives nothing and is logged once per url (Warning, "UI"); a damaged pack entry stays an error (Q6).
+- **The pack** (Q1, S7-5, S7-6): `make-ui-pack.sh` empties `$STATVENTURE_CACHE/ui-data/`, copies the five
+  faces and the two licence texts there under `ui/fonts/` (`lato-regular.ttf`, `lato-semibold.ttf`,
+  `lato-bold.ttf`, `stixtwotext-regular.otf`, `stixtwotext-italic.otf`, `lato-ofl.txt`, `stix-ofl.txt`) and
+  packs the folder into `engine/Assets/Packs/ui.pak` (7 entries, 999 KB; unchanged entries keep their stored
+  bytes). The game's own sheet and images join that folder at port time.
+- **Tests:** the old game's sheet (`GameStylesheets`: the tests' copy with its five font urls rewritten,
+  compiled by the importer into a pack made in the test run with the tests' font copies) gives the same
+  computed styles as the text-parsed sheet on the 22 captured screens (11 states at device scales 1 and
+  1.65), element by element and for
+  ::before, ::after, ::placeholder, ::selection, ::marker and the controls' parts, the important longhands
+  too; the two hold the same rules part for part; and since `GameLayoutTests.Build` takes the compiled
+  sheet, every test of the game's screens (layout, paint, hit testing, compositing, at 1 and 1.65) runs on
+  it. The committed pack's faces from the game's @font-face rules are `TestFonts`' (descriptors, metrics,
+  matching at every weight, text laid out the same); the compile, load, descriptor, font and resource rules
+  each tested at their limits; the committed pack's contents (the old game's files byte for byte) and its
+  repacking to the same bytes; the fixture of every record type and token kind.
+
 ## Status
 
 - **Nothing implemented yet** (2026-11-02). The decisions and the 27 format details are recorded, the
@@ -1467,3 +1639,17 @@ helper `Core/TestApplication.cs`: a real application with a small window, as `Ap
   packs copied again, copied in place, the temporary file left): each fails the check script
   (`claude-work/m9/step9/build-mutations.py`, `build-rules.sh`). Not checked: Windows (`build.ps1` not run: no PowerShell
   here).
+- **Step 7, stylesheets, fonts and images into `ui.pak`, done (2026-11-03):** ("How it works", step 7); six
+  questions asked on the way (S7-1–S7-6, all as recommended), the step's internal design accepted with them.
+  The committed `engine/Assets/Packs/ui.pak` holds the old game's five font faces and their two licence
+  texts (7 entries, 999 KB), made by `Tools/Scripts/make-ui-pack.sh`; it passes `CommittedPackTests` and
+  repacks to the same bytes. The old game's stylesheet, compiled by the UI importer in the test run, gives
+  the text-parsed sheet's computed styles on all 22 captured screens, and every test of the game's screens
+  now runs on it; @font-face from the pack gives `TestFonts`' faces. 191 new tests in
+  `Tests/Statventure.Tests/Ui/`. Two points of this doc were wrong and are corrected above ("What exists",
+  "Importers"): the fonts' names in `old-game/objects/fonts/` break the path rule (renamed when packed), and
+  "no dropped rule" would refuse the old stylesheet itself (two `-moz-` rules Chromium drops too, S7-2).
+  Found on the way: the engine's own user-agent sheet sets `word-spacing` and `text-indent`, which the
+  engine doesn't know (it stays parsed and embedded, so nothing refuses it); `Stylesheet.DroppedRules` was
+  never set. The full suite passes on the GPU and on lavapipe (1907 tests). Mutations: 175 (`~/.cache/stat-fick-build/claude-work/m9/step7-mutations.json`, made by `make-step7-mutations.py` beside it): 162 fail a test; one was malformed (renaming a token kind's member breaks the code naming it; the layout guard is covered by two kinds' numbers swapped); 12 survived, all accounted for. Seven were gaps, closed and then killed (`step7-rerun.json`): keyframes under @media and an !important keyframe declaration were missing from the sample sheet (three mutations; added, its fixture recorded again), a malformed declaration inside an otherwise valid @font-face, family names joined by a comma without a space, a face of another weight with the same range end, and setting `Files` failing at a second sheet after the first's faces were taken. Three were redundant code, removed: the `::` branch of the other-browsers check (the loop meets a pseudo-element's second colon, whose next token is the name), the problems' de-duplication (nothing makes one twice; each is now listed as found) and the `IsShorthand` test of a pending shorthand (a name that isn't one has no longhands). Two can't differ in results, only in work: acquiring a sheet face looks for an existing one before making one (without it the face is made and retired as a duplicate, kept until the library goes: memory and time only), and setting `Files` to the file system it already has returns at once (otherwise its faces are taken again, the old ones given back and the layout redone). Not
+  checked: Windows.
