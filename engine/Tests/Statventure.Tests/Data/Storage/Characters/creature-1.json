@@ -1,0 +1,18 @@
+{
+  "$types": {
+    "test.creature": 1,
+    "test.limb": 1
+  },
+  "name": "Ogre",
+  "legs": 2,
+  "limbs": [
+    {
+      "kind": "arm",
+      "length": 0.75
+    },
+    {
+      "kind": "tail",
+      "length": 2.1
+    }
+  ]
+}

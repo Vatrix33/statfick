@@ -1,0 +1,49 @@
+{
+  "$types": {
+    "test.creature": 3,
+    "test.limb": 2,
+    "test.move": 2,
+    "test.walk": 1,
+    "test.leap": 2,
+    "test.fly": 1
+  },
+  "name": "Ogre",
+  "limbs": [
+    {
+      "kind": "arm",
+      "length": 0.75
+    },
+    {
+      "kind": "leg",
+      "length": 1.25
+    },
+    {
+      "kind": "leg",
+      "length": 1.25
+    },
+    {
+      "kind": "tail",
+      "length": 2.1
+    }
+  ],
+  "speed": 1.5,
+  "title": "the Grim",
+  "moves": [
+    {
+      "$type": "test.walk",
+      "cue": "step",
+      "pace": 0.8
+    },
+    {
+      "$type": "test.leap",
+      "cue": "jump",
+      "height": 3.3,
+      "spin": true
+    },
+    {
+      "$type": "test.fly",
+      "cue": "soar",
+      "altitude": 12.5
+    }
+  ]
+}

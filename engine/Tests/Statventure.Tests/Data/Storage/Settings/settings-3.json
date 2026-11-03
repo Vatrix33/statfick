@@ -1,0 +1,11 @@
+{
+  "version": 3,
+  "musicVolume": 0.8,
+  "fromAMod": {
+    "kept": [
+      true,
+      2.5
+    ]
+  },
+  "battlePace": "fast"
+}

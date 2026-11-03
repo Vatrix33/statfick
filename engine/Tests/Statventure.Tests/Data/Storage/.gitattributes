@@ -1,0 +1,2 @@
+# The committed save files (Docs/Assets.md, "A save file") are binary.
+*.dat binary

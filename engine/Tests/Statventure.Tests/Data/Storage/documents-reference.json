@@ -1,0 +1,712 @@
+{
+  "about": "Electron's app.getPath(\"documents\") on Linux per case, from Tools/DocumentsReference (make-documents-reference.sh)",
+  "electron": "44.5.0",
+  "chrome": "152.0.7977.130",
+  "cases": [
+    {
+      "name": "no-user-dirs-file",
+      "env": {},
+      "files": {},
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "standard",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "# This file is written by xdg-user-dirs-update\nXDG_DESKTOP_DIR=\"$HOME/Desktop\"\nXDG_DOWNLOAD_DIR=\"$HOME/Downloads\"\nXDG_DOCUMENTS_DIR=\"$HOME/Documents\"\nXDG_MUSIC_DIR=\"$HOME/Music\"\n"
+        }
+      },
+      "documents": "<home>/Documents",
+      "created": [
+        {
+          "folder": "<home>/Documents",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "localized",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/Dokumente\"\n"
+        }
+      },
+      "documents": "<home>/Dokumente",
+      "created": [
+        {
+          "folder": "<home>/Dokumente",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Dokumente"
+    },
+    {
+      "name": "absolute",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"<home>/abs/documents\"\n"
+        }
+      },
+      "documents": "<home>/abs/documents",
+      "created": [
+        {
+          "folder": "<home>/abs",
+          "mode": "700"
+        },
+        {
+          "folder": "<home>/abs/documents",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/abs/documents"
+    },
+    {
+      "name": "home-alone",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME\"\n"
+        }
+      },
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "relative",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"Documents\"\n"
+        }
+      },
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "dollar-home-without-slash",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOMEDocs\"\n"
+        }
+      },
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "trailing-slashes",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/Docs//\"\n"
+        }
+      },
+      "documents": "<home>/Docs",
+      "created": [
+        {
+          "folder": "<home>/Docs",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Docs//"
+    },
+    {
+      "name": "home-slash",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/\"\n"
+        }
+      },
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "root",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"/\"\n"
+        }
+      },
+      "documents": "/",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "double-slash-inside",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"<home>//abs//docs\"\n"
+        }
+      },
+      "documents": "<home>//abs//docs",
+      "created": [
+        {
+          "folder": "<home>/abs",
+          "mode": "700"
+        },
+        {
+          "folder": "<home>/abs/docs",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>//abs//docs"
+    },
+    {
+      "name": "existing-file",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/taken\"\n"
+        },
+        "taken": {
+          "text": "a file, not a folder"
+        }
+      },
+      "documents": "<home>/taken",
+      "created": [],
+      "dotnet": "<home>/taken"
+    },
+    {
+      "name": "nested-missing",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/a/b/c\"\n"
+        }
+      },
+      "documents": "<home>/a/b/c",
+      "created": [
+        {
+          "folder": "<home>/a",
+          "mode": "700"
+        },
+        {
+          "folder": "<home>/a/b",
+          "mode": "700"
+        },
+        {
+          "folder": "<home>/a/b/c",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/a/b/c"
+    },
+    {
+      "name": "last-wins",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/First\"\nXDG_DOCUMENTS_DIR=\"$HOME/Second\"\n"
+        }
+      },
+      "documents": "<home>/Second",
+      "created": [
+        {
+          "folder": "<home>/Second",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/First"
+    },
+    {
+      "name": "invalid-later-line-keeps-earlier",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/Kept\"\nXDG_DOCUMENTS_DIR=\"relative/path\"\n"
+        }
+      },
+      "documents": "<home>/Kept",
+      "created": [
+        {
+          "folder": "<home>/Kept",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Kept"
+    },
+    {
+      "name": "spaces-and-tabs",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "  \tXDG_DOCUMENTS_DIR \t= \t\"$HOME/Spaced Out\"\n"
+        }
+      },
+      "documents": "<home>/Spaced Out",
+      "created": [
+        {
+          "folder": "<home>/Spaced Out",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Spaced Out"
+    },
+    {
+      "name": "escapes",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/My \\\"Docs\\\" \\\\ \\x\"\n"
+        }
+      },
+      "documents": "<home>/My \"Docs\" \\ x",
+      "created": [
+        {
+          "folder": "<home>/My \"Docs\" \\ x",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/My \\"
+    },
+    {
+      "name": "unclosed-quote",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/Open"
+        }
+      },
+      "documents": "<home>/Open",
+      "created": [
+        {
+          "folder": "<home>/Open",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "backslash-at-end",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/end\\"
+        }
+      },
+      "documents": "<home>/end\\",
+      "created": [
+        {
+          "folder": "<home>/end\\",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "escape-before-the-end",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/end\\x"
+        }
+      },
+      "documents": "<home>/endx",
+      "created": [
+        {
+          "folder": "<home>/endx",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "text-after-quote",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/Docs\" # a comment\n"
+        }
+      },
+      "documents": "<home>/Docs",
+      "created": [
+        {
+          "folder": "<home>/Docs",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Docs"
+    },
+    {
+      "name": "comment",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "# XDG_DOCUMENTS_DIR=\"$HOME/Commented\"\n"
+        }
+      },
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "no-equals",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR \"$HOME/NoEquals\"\n"
+        }
+      },
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "no-quote",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=$HOME/NoQuote\n"
+        }
+      },
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "lowercase-key",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "xdg_documents_dir=\"$HOME/Lower\"\n"
+        }
+      },
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "longer-key",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIRS=\"$HOME/Longer\"\n"
+        }
+      },
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "other-keys-only",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DESKTOP_DIR=\"$HOME/Desktop\"\nXDG_MUSIC_DIR=\"$HOME/Music\"\n"
+        }
+      },
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "crlf",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/Windows\"\r\n"
+        }
+      },
+      "documents": "<home>/Windows",
+      "created": [
+        {
+          "folder": "<home>/Windows",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Windows"
+    },
+    {
+      "name": "crlf-unclosed",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/Crlf\r\n"
+        }
+      },
+      "documents": "<home>/Crlf\r",
+      "created": [
+        {
+          "folder": "<home>/Crlf\r",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "non-ascii",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/Документы\"\n"
+        }
+      },
+      "documents": "<home>/Документы",
+      "created": [
+        {
+          "folder": "<home>/Документы",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Документы"
+    },
+    {
+      "name": "not-utf8",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "base64": "WERHX0RPQ1VNRU5UU19ESVI9IiRIT01FL0JhZP/+eCIK"
+        }
+      },
+      "documents": "<home>/Bad��x",
+      "created": [
+        {
+          "folder": "<home>/Bad��x",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Bad��x"
+    },
+    {
+      "name": "nul-byte",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "base64": "WERHX0RPQ1VNRU5UU19ESVI9IiRIT01FL051bABUYWlsIgo="
+        }
+      },
+      "documents": "<home>/Nul",
+      "created": [
+        {
+          "folder": "<home>/Nul",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Nul\u0000Tail"
+    },
+    {
+      "name": "long-line-cut",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n"
+        }
+      },
+      "error": "Failed to get 'documents' path",
+      "created": [],
+      "dotnet": "<home>/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "name": "long-line-piece",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxXDG_DOCUMENTS_DIR=\"$HOME/Piece\"\n"
+        }
+      },
+      "documents": "<home>/Piece",
+      "created": [
+        {
+          "folder": "<home>/Piece",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "line-of-511",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"\nXDG_DOCUMENTS_DIR=\"$HOME/AfterExact\"\n"
+        }
+      },
+      "documents": "<home>/AfterExact",
+      "created": [
+        {
+          "folder": "<home>/AfterExact",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "name": "dirs-file-is-a-folder",
+      "env": {},
+      "files": {
+        ".config/user-dirs.dirs/x": {
+          "text": ""
+        }
+      },
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "config-home",
+      "env": {
+        "XDG_CONFIG_HOME": "<home>/cfg"
+      },
+      "files": {
+        "cfg/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/FromConfigHome\"\n"
+        },
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/FromDotConfig\"\n"
+        }
+      },
+      "documents": "<home>/FromConfigHome",
+      "created": [
+        {
+          "folder": "<home>/FromConfigHome",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/FromConfigHome"
+    },
+    {
+      "name": "config-home-without-file",
+      "env": {
+        "XDG_CONFIG_HOME": "<home>/cfg"
+      },
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/FromDotConfig\"\n"
+        }
+      },
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "config-home-empty",
+      "env": {
+        "XDG_CONFIG_HOME": ""
+      },
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/FromDotConfig\"\n"
+        }
+      },
+      "documents": "<home>/FromDotConfig",
+      "created": [
+        {
+          "folder": "<home>/FromDotConfig",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/FromDotConfig"
+    },
+    {
+      "name": "config-home-relative",
+      "env": {
+        "XDG_CONFIG_HOME": "rel"
+      },
+      "files": {
+        "rel/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/FromRelative\"\n"
+        }
+      },
+      "cwd": "<home>",
+      "documents": "<home>/FromRelative",
+      "created": [
+        {
+          "folder": "<home>/FromRelative",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "config-home-trailing-slash",
+      "env": {
+        "XDG_CONFIG_HOME": "<home>/cfg/"
+      },
+      "files": {
+        "cfg/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/FromSlash\"\n"
+        }
+      },
+      "documents": "<home>/FromSlash",
+      "created": [
+        {
+          "folder": "<home>/FromSlash",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/FromSlash"
+    },
+    {
+      "name": "documents-variable-only",
+      "env": {
+        "XDG_DOCUMENTS_DIR": "<home>/from-variable"
+      },
+      "files": {},
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/from-variable"
+    },
+    {
+      "name": "home-trailing-slash",
+      "env": {
+        "HOME": "<home>/"
+      },
+      "files": {
+        ".config/user-dirs.dirs": {
+          "text": "XDG_DOCUMENTS_DIR=\"$HOME/Docs\"\n"
+        }
+      },
+      "documents": "<home>//Docs",
+      "created": [
+        {
+          "folder": "<home>/Docs",
+          "mode": "700"
+        }
+      ],
+      "dotnet": "<home>/Docs"
+    },
+    {
+      "name": "home-trailing-slash-without-file",
+      "env": {
+        "HOME": "<home>/"
+      },
+      "files": {},
+      "documents": "<home>",
+      "created": [],
+      "dotnet": "<home>/Documents"
+    },
+    {
+      "name": "home-unset",
+      "env": {
+        "HOME": null
+      },
+      "files": {},
+      "documents": "/tmp",
+      "created": [],
+      "dotnet": "/home/Vatrix33/Documents"
+    },
+    {
+      "name": "home-empty",
+      "env": {
+        "HOME": ""
+      },
+      "files": {},
+      "error": "Failed to get 'documents' path",
+      "created": [],
+      "dotnet": "/home/Vatrix33/Documents"
+    }
+  ]
+}

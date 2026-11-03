@@ -40,7 +40,9 @@ def main(list_path):
                 if " 0 Error(s)" not in built:
                     outcome = "BUILD FAILED"
                 else:
-                    tested = shell(f"timeout 600 dotnet test Tests/Statventure.Tests --no-build -nologo --filter '{mutation['filter']}' 2>&1 | grep -E 'Passed!|Failed!'").strip()
+                    # grep -a: a test's output can hold raw control bytes, and plain grep then calls it binary
+                    # and prints nothing, which would read as a survivor.
+                    tested = shell(f"timeout 600 dotnet test Tests/Statventure.Tests --no-build -nologo --filter '{mutation['filter']}' 2>&1 | grep -aE 'Passed!|Failed!'").strip()
                     outcome = ("killed: " if "Failed!" in tested else "SURVIVED: ") + tested
             finally:
                 open(path, "w").write(original)

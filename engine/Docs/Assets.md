@@ -261,32 +261,43 @@ versioned.
   a pure function of the system, the environment and the home folder, so the tests check every case
   without touching the real folder. It holds `settings.json`, `saves/` and `mods/`.
 - **Save slots** (Q15): named slots with free names the player gives, each its own file and backup:
-  `saves/<name>.dat` and `saves/<name>.dat.bak`, the names under the path rule (Q4); the engine lists
-  the folder, there's no fixed count, and the slot screen is the port's. Not compressed.
-- **A save file:** a header (magic, file format version, payload length, the payload's SHA-256), then
-  the payload, a record (its type and version table, then the fields) through the serializer.
-  Written to a temporary file in the same folder, flushed to disk, then put in place with the
-  previous save kept as the backup (`File.Replace`: one call on Windows; on Linux two renames, so a
-  crash between them leaves the backup). Which record the save is belongs to the port; M9 tests with
-  test records.
+  `saves/<name>.dat` and `saves/<name>.dat.bak`, the names under the path rule (Q4), at most 100
+  characters (Q40); the engine lists the folder, there's no fixed count, and the slot screen is the
+  port's. Not compressed. A slot can be deleted: its save and backup go, files kept aside stay (Q41).
+- **A save file:** a 48-byte header (magic `SVSV`, file format version, payload length, the payload's
+  SHA-256; Q38), then the payload, a record (its type and version table, then the fields) through the
+  serializer. Written to a temporary file in the same folder, flushed to disk, then put in place with
+  the previous save kept as the backup (`File.Replace`: one call on Windows; on Linux .NET removes the
+  old backup, hard-links the save as the new backup and renames the new file over the save, so the save
+  is never missing and a crash can only leave the backup missing; corrected 2026-11-03, the first
+  draft said two renames). Which record the save is belongs to the port; M9 tests with test records.
 - **When a save is written** (Q16): whenever the game asks, as the old game's `saveCharacter` after
   every change: the record is serialized at once on the caller's thread and written by a background
   writer (the latest state wins), flushed on quit.
 - **A damaged or unreadable save** (Q17): nothing is loaded. The engine reports the slot as damaged,
   with its backup's state (readable, damaged or missing), and the game asks the player what to do
-  (use the backup, start new); the damaged file is kept aside, never deleted.
+  (use the backup, start new); the damaged file is kept aside, never deleted: when the slot is next
+  written, as `<name>.dat.damaged` (`-2`, `-3` … when taken), and a damaged backup a write would
+  replace likewise as `<name>.dat.bak.damaged`; loading only reports (Q39).
 - **Settings:** `settings.json`, `{ "version": n, … }`, read with System.Text.Json into a JSON object
   that keeps every key; typed get and set with defaults; upgrades per version; written atomically when
   changed (the old game wrote its preferences on every change). A file that doesn't parse: the
-  defaults are used, the file is kept as `settings.broken.json`, and it is logged (Q18).
+  defaults are used, the file is kept as `settings.broken.json`, and it is logged (Q18); so is one a
+  newer game wrote (Q42). A value of the wrong type gives that setting's default, logged; the other
+  settings are used (Q43).
 - **Character files:** Save Character writes the save record's JSON form (indented, with its type and
   version table), `stat-fick-character.json` in Documents by default as in the old game; Load
   Character reads one and upgrades an older version; which slot it goes into is the port's screen.
-  Documents: on Linux the XDG documents folder, as Electron's `app.getPath("documents")` gives it (to
-  be captured in the harness; what .NET's `SpecialFolder.MyDocuments` returns on Linux is to be
-  compared with it), on Windows the Documents known folder. M9 gives the functions (export to and
-  import from a path, the Documents folder, a folder's listing); the picker screen is made at port
-  time with the other screens (Q19).
+  Documents: on Linux the XDG documents folder, as Electron's `app.getPath("documents")` gives it
+  (captured in 46 environments by `Tools/Scripts/make-documents-reference.sh`): Chromium's lookup of
+  `XDG_DOCUMENTS_DIR` in `user-dirs.dirs`, the home folder when there is none, and the folder made
+  (mode 0700, with its parents) when it is missing, failing when it can't be made; .NET's
+  `SpecialFolder.MyDocuments` is no stand-in: it gives another folder in 31 of the 46 cases (with no
+  entry `~/Documents`, Chromium the home folder; the first entry, not the last; the
+  `XDG_DOCUMENTS_DIR` variable; and without `DoNotVerify` "" for a missing folder). On Windows the
+  Documents known folder. M9 gives the functions (export to and import from a path, the Documents
+  folder, a folder's listing); the picker screen is made at port time with the other screens (Q19).
+  (Corrected 2026-11-03: the first draft knew neither the folder's making nor the differences.)
 - **Open game folder:** opens the game folder in the system's file manager (`xdg-open`, Explorer); it
   isn't a dialog.
 
@@ -574,6 +585,31 @@ step 4, running beside it, asked Q38 on):
   names; a folder named that doesn't exist is an error. (Not the engine reading `--dev` from the command
   line itself; not the option only.)
 
+Asked during step 4 (user, 2026-11-03; every answer the recommended option):
+
+- **Q38. The save file's header:** 48 bytes, little-endian: the magic `SVSV`, the format version
+  (u32, 1), the payload's length (u64), the payload's SHA-256; then exactly the payload. A short file,
+  another magic, a length that doesn't match or a hash mismatch is damage; a format version above 1 is
+  a newer format (unreadable). (Not 64 bytes with flags and reserved bytes as the pack's header.)
+- **Q39. Keeping a damaged save aside:** when the slot is next written, never by loading: loading only
+  reports; when the game then writes the slot (after "use the backup" or "start new"), the save it
+  would replace, damaged or unreadable, is kept as `saves/<name>.dat.damaged` (`-2`, `-3` … when taken,
+  never overwritten), the new save put in place and the backup left as it is; a damaged backup a write
+  would replace is kept the same way (`<name>.dat.bak.damaged`). If the player decides nothing, the slot
+  stays as it was. (Not kept aside at once when loading finds it, not a `saves/damaged/` folder with
+  dates.)
+- **Q40. Slot names** have at most 100 characters, so every file of a slot fits Linux's and Windows'
+  255-character file names and the paths stay under Windows' classic 260. (Not 255 less the longest
+  suffix.)
+- **Q41. Deleting a slot:** `Delete(name)` removes the save and its backup; files kept aside stay; the
+  port's screen asks the player first. (Not moved aside as `.deleted`, not left to the port.)
+- **Q42. A `settings.json` of a newer version** than the game's is treated as one that doesn't parse
+  (Q18): the defaults, the file kept as `settings.broken.json`, logged. (Not its known keys used with
+  the file left unwritten.)
+- **Q43. A setting of the wrong type** (`"musicVolume": "loud"`) gives that setting's default, logged;
+  the other settings are used; the value stays in the file until the setting is set. (Not the whole
+  file treated as broken.)
+
 ## How it works
 
 Filled in as the steps are done.
@@ -827,6 +863,96 @@ the records are step 2's test types).
   engine's record types and importers; the port's own record types will need it to load the game's
   assembly too.
 
+### The game folder, saves, settings and character files (step 4: `Engine/Statventure/Storage/`)
+
+Namespace `Statventure.Storage`. Tests: `Tests/Statventure.Tests/Storage/`, data in
+`Tests/Statventure.Tests/Data/Storage/` (its own `.gitattributes` makes `*.dat` binary).
+
+- **The folder** (`GameFolder.Locate(system, environment, home, roamingAppData)`, pure;
+  `ForThisMachine()`): Linux `$XDG_DATA_HOME` when it is absolute (the XDG specification ignores a
+  relative one, as .NET's LocalApplicationData does), else `<home>/.local/share`, then `stat-fick`;
+  Windows the RoamingAppData known folder, then `Stat Fick`. `GameStorage(folder)` is the folder at
+  run time (tests give their own): `SettingsFile`, `Saves` (`saves/`), `ModsFolder` (`mods/`, only its
+  path: step 9 mounts it). Folders are made on the first write; on Linux every missing level with mode
+  0700 (made level by level: .NET's `Directory.CreateDirectory(path, mode)` gives the mode to the last
+  folder only), files 0600.
+- **The background writer** (`BackgroundWriter`, internal; one per `GameStorage`, shared by saves and
+  settings): the caller prepares the bytes; one writer thread does each file's work in the order the
+  files were first asked for; a file asked for again before its work started keeps only the latest
+  work (the latest state wins), asked for while it runs the new work follows. The thread is a
+  foreground thread that ends when nothing is left, so the process can't end before pending files are
+  written; `GameStorage.Flush()` and `Dispose()` wait for them (the game calls one when it quits;
+  `Application.cs` doesn't yet: step 9 or the port). A failure is logged (Error, "Storage") and raised
+  as `GameStorage.WriteFailed` (file, error) on the writer thread; the next request tries again.
+- **The save file** (`SaveFile`; Q38): `Write(value)` and `Wrap(payload)` make the 48-byte header
+  (`SVSV`, u32 1, u64 payload length, SHA-256 of the payload) and the payload (the record's binary
+  form, `RecordSerializer.ToBinary`); `Check` and `Read<T>` give a `SaveState`: `Missing`, `Readable`
+  (with the value, upgraded), `Damaged` (fewer bytes than the header, another magic, version 0, a
+  length that isn't what follows, a hash mismatch), or `Unreadable` (intact but not readable here: a
+  format version above 1, a record version newer than the engine's or of another record type, or a
+  file the system won't let it read), each with its problem in words. Reading never throws for what
+  the file holds.
+- **Slots** (`SaveSlots`; Q15–Q17, Q39–Q41): names one path-rule name, no `/`, at most 100 characters
+  (`NameProblem`, `IsValidName`; every call checks: `ArgumentException`). `List()` gives the slots
+  whose save or backup is in `saves/` (other files, such as `.tmp`, `.damaged` and names outside the
+  rule, aren't slots) in ordinal order, with which files are there and the last write time.
+  `Save(name, value)` serializes at once (a value its declaration refuses throws there) and hands the
+  file to the writer, which writes `<name>.dat.tmp` (flushed to disk) and then, by the save it would
+  replace: none, a move into place (a backup that is there stays); readable, the backup checked first
+  (damaged or unreadable: kept aside as `<name>.dat.bak.damaged…`), then `File.Replace(temporary, save,
+  backup)`; damaged or unreadable, `File.Replace(temporary, save, <name>.dat.damaged…)`, which keeps it
+  aside in the same call and leaves the backup alone (Q39). Kept-aside names: `.damaged`, else
+  `.damaged-2`, `-3` …, the first nothing has. `Load<T>(name)` changes no file: a `SaveSlotReading<T>`
+  with the save's reading and, when that isn't readable, the backup's (Q17: nothing loaded; "use the
+  backup" is saving `Backup.Value` into the slot, "start new" saving a new record). `List`, `Load` and
+  `Exists` wait for the slot's pending save. `Delete(name)` drops a pending save, waits for one being
+  written, and deletes the save, the backup and a stale `.tmp`, not files kept aside (Q41). A stale
+  `.tmp` left by a crash is never read and is written over by the slot's next save; a save missing
+  beside its backup (deleted by hand: .NET's `File.Replace` never leaves the save missing on Linux)
+  loads nothing and reports the backup, and the next save leaves that backup as it is.
+- **Settings** (`GameStorage.LoadSettings(version, upgrades)`, `Settings`; Q18, Q42, Q43): the file
+  is read into a `JsonObject` that keeps every key in its order (a byte order mark allowed; comments,
+  trailing commas and repeated keys not); it must be an object with a whole-number `version` from 1 up
+  to the game's, else (or when an upgrade throws, or it can't be read) the defaults are used and the file
+  is moved over `settings.broken.json`, logged (Warning) and given as `Problem`. The upgrades, one per
+  past version (each must be given), change the object in place, without the version key, which the
+  engine keeps. `Get<T>(key, default)`: the default when the key is missing, null or doesn't convert
+  (logged once per key); `Set<T>(key, value)`: refuses the key `version` and values JSON can't hold
+  (NaN) before anything changes, writes only when the value changes (by the writer, into `.tmp` then
+  renamed over the file). System.Text.Json with camelCase property names and enums as camelCase names
+  (integers refused), strict numbers; the file indented by two spaces, LF, a final line end, `version`
+  first, characters outside the BMP escaped as the records' JSON form does.
+- **Character files** (`CharacterFile`; Q19): `Export(file, value)` writes the record's JSON form
+  (`RecordSerializer.ToJsonUtf8`) to a file beside the target (random name), flushed, then renamed over
+  it (a failure removes it, the old file stays); `Import<T>(file)` reads and upgrades. The old game's
+  limit holds both ways (`desktop/main.cjs`): more than 10 MiB is refused (`InvalidDataException`).
+  `DefaultName` is `stat-fick-character.json`.
+- **Documents** (`DocumentsFolder`): `Locate(system, environment, readFile, windowsDocuments)` (pure)
+  is Chromium 152's lookup on Linux: `$XDG_CONFIG_HOME/user-dirs.dirs` (or `$HOME/.config/…`), read in
+  `fgets`'s 511-byte pieces each cut at a NUL, the last line `XDG_DOCUMENTS_DIR="$HOME/…"` or `"/…"`
+  (blanks around `=`, backslash escapes, up to the closing quote or the end), else `$HOME` (`/tmp`
+  without HOME), with `FilePath::StripTrailingSeparators`; on Windows the Documents known folder.
+  `Ensure(folder)` is Chromium's `create_dir`: a path where something is stays as it is (a file too);
+  else it is made with its parents (0700), and `IOException` when it can't be (an empty path, a name
+  over 255 characters, no permission). `ForThisMachine()` is both. Tested against
+  `Data/Storage/documents-reference.json`: Electron's answer and the folders it made in 46 environments
+  (`Tools/DocumentsReference`, `Tools/Scripts/make-documents-reference.sh`, about a minute), with .NET's
+  `MyDocuments` beside it for the comparison.
+- **The picker's listings** (`FolderListing`): `List(folder)` gives every entry directly in it (name,
+  full path, folder or file, size, last write time, hidden: a dot-file on Linux, the attribute on
+  Windows) in ordinal order; `Roots()` is `/` on Linux, the ready drives on Windows.
+- **Open game folder** (`GameStorage.OpenInFileManager()`): makes the folder, then as Electron's
+  `shell.openPath` (the old game's menu item): Linux `xdg-open <folder>` from its parent folder with
+  `MM_NOTTTY=1`, not waited for (Electron's Wayland activation token isn't ported); Windows the shell's
+  "open" (Explorer). Gives whether it launched; a failure is logged (Warning).
+- **Decided as internal design (2026-11-03, accepted with the step's questions):** a slot is there when
+  its save or backup is; a save missing beside its backup is reported the Q17 way; states `Unreadable`
+  beside `Damaged`; one writer for saves and settings on a foreground thread; loading waits for the
+  slot's pending save; failed writes logged, raised and retried by the next request; settings that must
+  be a whole-number version from 1, enums by camelCase name, written only on change, an older
+  `settings.broken.json` replaced; the old game's 10 MiB limit; folders 0700 and files 0600 on Linux;
+  `mods/` not made here.
+
 ## Status
 
 - **Nothing implemented yet** (2026-11-02). The decisions and the 27 format details are recorded, the
@@ -878,3 +1004,29 @@ the records are step 2's test types).
   reported as a survivor with no result only because its test output held raw control bytes, which
   `mutate.py`'s `grep` treats as binary; run by hand it fails 12 tests. Not checked: Windows (the
   driver's script).
+- **Step 4, the game folder, saves, settings and character files, done (2026-11-03):**
+  `Engine/Statventure/Storage/` ("How it works", step 4);
+  six format details asked on the way (Q38–Q43, all as recommended). 177 tests in
+  `Tests/Statventure.Tests/Storage/`: the folder per system and environment; the Documents folder
+  against Electron in 46 environments (the folders it made and their modes too); the save header byte
+  for byte, every truncation and every flipped bit; slots listed, written and read back, the backup,
+  names; the writer (the latest state wins, waits, a foreground thread, failures retried); damage and
+  unreadable saves reported with the backup's state and kept aside on the next write, never
+  overwritten; interrupted writes (a stale temporary file, a save missing beside its backup); deleting;
+  old-version saves and character files (test.creature 1–3) upgraded; settings defaults, unknown keys,
+  upgrades from committed files of versions 1–3, values of every kind, writing only on change, 19 kinds
+  of unusable file kept as `settings.broken.json`; export then import giving the same save; the 10 MiB
+  limit; listings; the file manager's command; the log lines. Three points of this doc were wrong and
+  are corrected above: .NET's `File.Replace` on Linux (a hard link, not two renames), Electron's
+  `getPath("documents")` making the folder, and `MyDocuments` being no stand-in. The full suite passes
+  on the GPU and on lavapipe (1535 tests). Mutations: 137 (after one line found redundant was
+  removed), 135 fail a test after one gap was closed (a backslash just before the end of an unclosed
+  value: a 46th reference case, Electron gives `<home>/endx`) and two malformed mutations were replaced
+  (each had left an `if` without its statement). The 2 survivors can't differ: the writer without the
+  flush to disk (only a crash shows it) and settings' `AllowDuplicateProperties = false` (`JsonObject`
+  itself refuses a repeated key when it is first read, also reported as an unusable file; the option
+  states the rule at the parse). The removed line made `Settings.Set` serialize a value twice to refuse
+  NaN: `JsonSerializer.SerializeToNode` already refuses it. The tests that hold the writer release it
+  even when they fail (`HeldWriter`): a held writer's foreground thread kept a failing test from ending,
+  which `mutate.py` read as a survivor after its 600 s timeout. Not checked: Windows (`File.Replace`
+  there, the RoamingAppData and Documents known folders, Explorer).

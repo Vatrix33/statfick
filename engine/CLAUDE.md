@@ -24,6 +24,8 @@ the user and wait for their go-ahead before starting the next one.
 - A minimized window's document (hidden documents: visibility, unloading, Blink's timer throttling; `Docs/Scripting.md`,
   "Hidden documents"): references from `Tools/Scripts/make-visibility-references.sh` (about six minutes);
   `Samples/Statventure.Sandbox` with `--log-visibility` logs what a real minimize, restore and close do.
+- The Documents folder (M9, character files; `Docs/Assets.md`): `Tools/Scripts/make-documents-reference.sh` captures
+  Electron's `app.getPath("documents")` (and .NET's `MyDocuments` beside it) in 46 environments (about a minute).
 - Blender 5.2 for the 3D references (M6 on): `Tools/Scripts/make-blender-references.sh [scene ...]`
   (`Docs/Renderer-3D.md`, "Reference harness"; on the PC the Flatpak, run headless). It also evaluates
   the animation scenes (`Docs/Animation.md`, "Reference harness": poses, NLA stacks, gear). Its renders,

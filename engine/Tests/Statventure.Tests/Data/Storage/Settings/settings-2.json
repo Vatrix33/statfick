@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "musicVolume": 0.8,
+  "pace": "fast",
+  "fromAMod": {
+    "kept": [true, 2.5]
+  }
+}
