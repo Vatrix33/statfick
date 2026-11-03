@@ -15,4 +15,10 @@ public static class TestPaths
         Environment.GetEnvironmentVariable("STATVENTURE_OLD_GAME") is { Length: > 0 } folder
             ? folder
             : Path.GetFullPath(Path.Combine(ProjectDirectory(), "..", "..", "..", "old-game"));
+
+    /// <summary>
+    /// The game's committed packs, the source of truth (Docs/Assets.md, "Packs are the source of
+    /// truth"): the repo's engine/Assets/Packs/ (made by the first step that commits a pack).
+    /// </summary>
+    public static string Packs => Path.GetFullPath(Path.Combine(ProjectDirectory(), "..", "..", "Assets", "Packs"));
 }

@@ -351,14 +351,15 @@ Order: **1 and 2** side by side; then **3** (after 1 and 2) beside **4** (after 
      test types with several versions; a layout changed without a new version caught.
    - Format details: Q10–Q13; asked during the step: Q32–Q37.
 3. **Records in packs, the packer's JSON input and dump, `Application.Data`.** After 1 and 2.
-   - Changes `Engine/Statventure/Packs/` (record entries, `Load<T>`), `Tools/Packer/` (JSON-form input,
-     `dump`, the importer attribute), `Engine/Statventure/Core/Application.cs` (`Data`: the game's packs,
+   - Changes `Engine/Statventure/Packs/` (record entries, `Load<T>`, the importer attribute: it is in the
+     engine, since importers are engine classes and the engine can't reference the packer; this list
+     first put it in `Tools/Packer/`), `Tools/Packer/` (JSON-form input, `dump`, the diff driver's
+     script), `Engine/Statventure/Core/Application.cs` (`Data`: the game's packs,
      the `classes/` folder and the development folder), `Tests/Statventure.Tests/Infrastructure/TestPaths.cs`
      (`Packs`: the repo's `engine/Assets/Packs/`), `Tests/Statventure.Tests/Packs/`, `../.gitattributes`
-     (the `*.pak` diff driver) and the setup scripts or docs that give each clone its one `git config`
-     line for it (Q14).
+     (the `*.pak` diff driver) and `engine/CLAUDE.md` (the one `git config` line per clone; Q14).
    - Tests: a record from a pack and its JSON form in a loose folder load equal; the dump.
-   - Format details: Q1, Q3, Q7, Q14.
+   - Format details: Q1, Q3, Q7, Q14; asked during the step: S3-1–S3-5.
 4. **Game folder, save slots, settings, character files.** After 2 only; runs beside 3 and 5–8.
    - Creates `Engine/Statventure/Storage/` (the game folder, the save slots with their background
      writer, settings, character files, opening the game folder), `Tests/Statventure.Tests/Storage/`,
@@ -536,6 +537,43 @@ forms the questions above left open:
 - **Q37. Adding a subtype to a union is a new version of the union:** its tag list is part of its
   layout signature. (Not tags that may only be added without a new version.)
 
+Asked during step 3 (user, 2026-11-03; every answer the recommended option; numbered S3-n because
+step 4, running beside it, asked Q38 on):
+
+- **S3-1. Which loose `.json` files are records:** by content, one rule everywhere. A `.json` file
+  whose top-level object starts with the key `"$types"` (as every record's JSON form does) is the
+  record at its path without `.json`, and only that; every other file is a file at its own path. The
+  packer's input, mounted loose folders (the development folder, `classes/`) and `extract`'s output
+  (records written as `<path>.json`) follow it, so a pack and its extracted folder hold and list the
+  same entries. Each loose `.json` file's first bytes are read at mount and on Reload; one whose start
+  isn't valid JSON fails the mount naming it (a broken record file never lets the pack's record show
+  through). The writer refuses a file entry holding a record's JSON form. (Not by name, a loose
+  `<path>.json` answering both `Load<T>(path)` and reads of the file, with listings that differ from the
+  pack's.)
+- **S3-2. The dump:** one JSON document: the format version and entry count, then each entry in path
+  order with its path, kind (`record` or `file`), content length, stored form (`brotli` or `raw`) and
+  stored length, SHA-256; a record also its JSON form (the current versions, as extract writes it; a
+  type not known, or a record that doesn't read, shows the problem instead); a file that is UTF-8 text
+  without control characters but tab, CR and LF also its text as an array of lines; other files nothing
+  more; no offsets (they move whenever an earlier entry changes). (Not content only, without the stored
+  form and the text; not binary files' whole content as base64.)
+- **S3-3. Importers** are chosen by the ending of the source file's name: `[Importer("models", ".glb")]`
+  on a class implementing `IImporter.Import(ImportContext)`; packing a folder sends each file with a
+  declared ending through its importer (the longest ending wins, two importers with one ending are an
+  error), which adds records and files and may read other files of the folder, which then aren't packed
+  themselves; then records' JSON forms become records and every other file goes in as it is. A source
+  whose name doesn't say what it is gets a distinguishing ending (a terrain description, e.g.
+  `<name>.terrain.json`: step 8's to settle). The packer looks for importers in the engine's assembly.
+  (Not by name per command, `packer import <importer> …`; not both.)
+- **S3-4. The game's packs** in `Application.Data` are the five area packs by name, in the order
+  `models`, `audio`, `ui`, `world`, `data`, each mounted if it is in `packs/`; other files there are
+  ignored, and no `packs/` folder (the engine's tests, the sandbox) means no packs. Then `classes/`, the
+  mods (step 9) and the development folder. (Not every `.pak` in `packs/`.)
+- **S3-5. The development folder** is `ApplicationOptions.DevelopmentFolder`, which the game's own
+  command line fills at port time, else the folder the environment variable `STATVENTURE_DEV_FOLDER`
+  names; a folder named that doesn't exist is an error. (Not the engine reading `--dev` from the command
+  line itself; not the option only.)
+
 ## How it works
 
 Filled in as the steps are done.
@@ -569,8 +607,8 @@ engine's functions. Tests: `Tests/Statventure.Tests/Packs/`.
 
   Then the entries' stored bytes, one after another from byte 64 in ordinal path order, then the
   index, which ends the file. An index entry: the path's length (u16) and its ASCII bytes, the offset,
-  stored length and content length (u64 each), the flags (u32: bit 0 compressed; step 3 adds the record
-  bit) and the SHA-256 of the content (62 bytes plus the path). An empty pack is the 64-byte header.
+  stored length and content length (u64 each), the flags (u32: bit 0 compressed, bit 1 a record, added
+  by step 3) and the SHA-256 of the content (62 bytes plus the path). An empty pack is the 64-byte header.
 - **Opening** (`PackFile.Open`) reads the header and the index and refuses, with a
   `DataFileException` naming the pack (and the entry when one is at fault): a file shorter than the
   header; another magic; a version other than 1; header flags; an index that doesn't run from inside
@@ -589,7 +627,8 @@ engine's functions. Tests: `Tests/Statventure.Tests/Packs/`.
   bytes after the stream), then the content's SHA-256 compared with the index's, on every read: nothing
   is cached. A bit flipped in a compressed stream can leave the content as it was (the window size of a
   short stream, say); the content is then right and is given. `Verify` reads every entry and lists the
-  damaged ones; `ExtractTo` writes every entry as a file.
+  damaged ones; `ExtractTo` writes every entry as a file (since step 3 in its loose form: a record as
+  its JSON form at `<path>.json`).
 - **Writing** (`PackWriter`): entries are added by path (a duplicate, or an entry where another has its
   folder, is refused) or from a folder (every file at any depth, hidden ones too, each name checked).
   Each content is hashed and Brotli-compressed at quality 11 with a 22-bit window (entries in parallel;
@@ -697,6 +736,97 @@ engine's functions. Tests: `Tests/Statventure.Tests/Packs/`.
   through a downgrade hook as the past versions would have been); `RecordVariants.cs` has deliberately
   broken or varied declarations, which the guard leaves out.
 
+### Records in packs, the packer, `Application.Data` (step 3)
+
+Code in `Engine/Statventure/Packs/` (`PackWriter`, `PackFile`, `VirtualFileSystem`, `LooseRecord`,
+`LooseFolder`, `RecordTypes`, `PackDump`, `Importers`), `Core/Application.cs`, `Tools/Packer/`. Tests in
+`Tests/Statventure.Tests/Packs/` (`PackRecordTests`, `LooseRecordTests`, `PackFolderTests`,
+`PackDumpTests`, `ApplicationDataTests`, `CommittedPackTests`; the test importers in `TestImporters.cs`;
+the records are step 2's test types).
+
+- **Record entries:** bit 1 (value 2) of an index entry's flags; the content is the record's binary
+  form, stored, compressed and hashed as any entry. `PackWriter.AddRecord<T>(path, value)` (or by
+  `Type`) writes the current versions; `PackEntry.IsRecord`. A record `x` and a file `x.json` can't share
+  a pack (the record's loose form is that file): the writer and `PackFile.Open` refuse it; records `x`
+  and `x.json` (loose `x.json.json`), or files `x` and `x.json`, are fine. An entry is never also a
+  folder, records included. Re-packing keeps an unchanged content's stored bytes and compression, but
+  whether the entry is a record is the new entry's.
+- **Loose forms** (S3-1, `LooseRecord`, `LooseFolder`): a loose `.json` file is a record when its
+  top-level object's first key is `"$types"` (after an optional byte order mark and whitespace; an
+  escaped key counts; only as much of the file is read as that takes, so a long whitespace run or first
+  key is read in growing chunks, and a read giving fewer bytes than asked for, as some file systems do,
+  is waited on, a cut byte order mark too); a start that isn't valid JSON (empty, cut off, a comment, single quotes,
+  not UTF-8) is a `DataFileException` naming the file. A record file whose path without `.json` breaks
+  the path rule (`a..json`, `.json`), a record `a` beside a file `a`, or a record `a` beside `a/b` fail the
+  mount naming the record's file. A file entry named `.json` must start as JSON that isn't a record's
+  form (the writer refuses either, with an `ArgumentException`): otherwise its loose form would be a record
+  or wouldn't mount.
+- **Reading** (`VirtualFileSystem`): `Load<T>(path)` and `Load(Type, path)` take the topmost mount's entry:
+  a pack's record (binary form) or a loose folder's `<path>.json` (JSON form), upgraded to the current
+  version, read and parsed afresh each time (outside the lock). `IsRecord(path)`. Errors are
+  `DataFileException`s naming the pack and entry or the loose file, never a fall back to a lower mount
+  (Q6): a file where a record is asked for ("a file, not a record (expected a test.creature)"), a record
+  read as a file by `ReadAllBytes` or `Open` ("a record, not a file (records are read with Load)"), a
+  record of another type ("a record of type test.creature, not test.part"; a record stored as a union's
+  subtype has the subtype as its type), a record that doesn't read ("not a readable test.creature record:
+  …", the `RecordFormatException` inside). A type that isn't a record type is an `InvalidOperationException`.
+  A loose record file's contents are read when asked for (an edit shows at once); whether it is a record
+  is decided at mount and Reload.
+- **Packing a folder** (`PackWriter.AddFolder(folder, types, importers)`, `packer pack`; S3-3): files in
+  ordinal path order; first each file whose name ends in an importer's ending (and is longer than it)
+  goes through that importer, one instance per importer per folder; then every file no importer took or
+  read is an entry: a record's JSON form becomes the record (its type found by the first name of its
+  `"$types"` in `types`, by default `RecordTypes.Engine`, the engine's record types; packed in the current
+  versions), any other file goes in as it is. Each problem is a `DataFileException` naming the file: a
+  type not known, a form that doesn't read, an importer's failure ("the models importer: …", the
+  exception inside), an entry made twice.
+- **Importers** (`Importers.cs`; S3-3): `[Importer(name, endings…)]` on a class implementing
+  `IImporter` with a public parameterless constructor. Endings start with a dot, are names under the path
+  rule and don't end in a dot; `.json` is refused (it would take records' JSON forms); two importers with
+  one ending or one name are an `InvalidOperationException`. `Importers.Engine` (found in the engine's
+  assembly; none yet, steps 5–8 add them), `Importers.Find(assemblies[, include])`, `Importers.Of(types)`,
+  `Importers.None`, `For(path)` (the longest ending). An importer gets an `ImportContext`: `SourcePath`
+  (`models/hero.glb`), `SourceFile` (on disk, for loaders that read by path), `Ending`,
+  `PathWithoutEnding` (`models/hero`), `Sources` (every file of the folder), `Read()`, `ReadSource(path)` and
+  `SourceFileOf(path)` (another file of the folder, which then isn't packed itself; another importer's
+  source can't be used), `Add` and `AddRecord`.
+- **Extracting** (`PackFile.ExtractTo(folder, types)`, `packer extract`): every entry in its loose form,
+  records as their JSON forms at `<path>.json` (`PackFile.RecordJson`), all read and converted before
+  anything is written; a record whose type isn't known stops it with nothing written. Extracting a pack
+  and packing the folder again gives the same bytes when its records are in the current versions.
+- **The dump** (`PackDump.ToText` / `ToUtf8`, `packer dump`; S3-2): indented by two spaces, LF line ends,
+  a final line end, non-ASCII kept (System.Text.Json's relaxed escaping, as the records' JSON form).
+  `{"format": 1, "count": n, "entries": [{"path", "kind", "length", "stored", "storedLength", "sha256",
+  then "record" (the JSON form, its lines indented into the entry), or "text" (the lines, split at LF, a
+  CR kept as `\r`; an empty file is `[""]`), or "problem"}]}`. Text means strict UTF-8 without a
+  `char.IsControl` character other than tab, CR and LF (C0, DEL and C1 controls make a file binary).
+- **Reviewing packs** (Q14): `../.gitattributes` has `*.pak binary diff=pak` (git applies `binary` then
+  `diff=pak`: diff driver `pak`, text and merge unset). Each clone runs once, from the repo's root:
+  `git config diff.pak.textconv engine/Tools/Packer/textconv.sh` (also in `engine/CLAUDE.md` and the
+  `.gitattributes` comment); git runs it from the top of the working tree, also from a subfolder. The
+  script builds the packer (Release; a no-op of about 2 s when it is current) and prints the dump, so
+  `git diff`, `git log -p` and `git show` show packs as their dumps (`--stat` still counts them as binary).
+  Not checked on Windows (git there runs the script with its own bash; the script needs `env.sh` to find
+  dotnet).
+- **`Application.Data`** (Q2, Q3, Q27, S3-4, S3-5): mounted at the start of `Run()`, after the log file
+  opens and before the window, the GPU, the sound and `Load()` (a damaged pack stops the start, logged,
+  before a window opens), each mount logged ("Data" category); disposed last. `Application.DataMounts`
+  (internal, tested without a window): the area packs `Application.AreaPacks` (`models`, `audio`, `ui`,
+  `world`, `data`) from `packs/` in `AppContext.BaseDirectory`, each if it is a file there; `classes/`
+  there at `classes` if it is a folder; then the development folder, `ApplicationOptions.DevelopmentFolder`
+  else `$STATVENTURE_DEV_FOLDER` (`Application.DevelopmentFolderVariable`; empty means none), made a full
+  path from the current folder; missing, the mount fails ("No folder …"). Mods come between the classes
+  and the development folder with step 9.
+- **`TestPaths.Packs`:** the repo's `engine/Assets/Packs/`. `CommittedPackTests` checks every committed
+  pack there: one of the area packs, opens, every entry's hash, every record readable with the engine's
+  record types (none is committed yet: steps 6 and 7 commit the first).
+- **Later needs:** packs are the source of truth and the editor (M11) edits them, so once a pack holds
+  both imported and editor-made entries (`audio.pak` with the port's effect patches), re-importing must
+  keep the other entries: an "update" command (sources added to or replacing entries of an existing pack)
+  is needed then; no step of M9 needs it (steps 6 and 7 build their packs whole). The packer reads only the
+  engine's record types and importers; the port's own record types will need it to load the game's
+  assembly too.
+
 ## Status
 
 - **Nothing implemented yet** (2026-11-02). The decisions and the 27 format details are recorded, the
@@ -727,3 +857,24 @@ engine's functions. Tests: `Tests/Statventure.Tests/Packs/`.
   was closed (a positional parameter without a default that is nullable, as a state's clip, wasn't
   required: no test type had one); one mutation of the list was malformed (it left a dangling `else`)
   and was replaced by two valid ones, both killed.
+- **Step 3, records in packs, the packer's JSON input and dump, `Application.Data`, done (2026-11-03):**
+  ("How it works", step 3); five questions asked on the way (S3-1–S3-5, all as recommended), the
+  importer attribute put in the engine (this doc's step list had it in the packer). 129 new tests in
+  `Tests/Statventure.Tests/Packs/` (267 there in all): record entries pinned byte for byte, `Load` from
+  packs and loose folders with every error, the same entries from a pack and its extraction (every field
+  kind), the loose rule on 16 starts and 11 bad ones (from files, and from a stream giving one byte per
+  read), conflicts in loose folders, the development folder
+  over a pack, packing folders with records' JSON forms (old versions upgraded) and importers (endings,
+  the longest winning, files read by an importer, failures, 15 bad declarations), extract then pack
+  giving the same bytes, the dump's exact text, its problems and its text rule on 14 contents, the
+  mounts of `Application.Data`, and the committed packs' check. Found on the way: re-pack reuse would
+  have copied an old entry's record flag along with its stored bytes (fixed). Checked by hand: the packer's
+  commands and `git diff` through the driver in a scratch repo; the sandbox with a missing development
+  folder stops, logged, before its window opens. The full suite passes on the GPU and on lavapipe (1358
+  tests). Mutations: 101, all fail a test after three gaps were closed: the escaped-key case had lost its
+  escape when the test was written, a folder's files made in reverse path order were listed in path order
+  (tmpfs lists the newest first; now a shuffled order), and waiting on a cut byte order mark could only
+  show with short reads (the classifier now takes a stream, tested one byte at a time). One more was
+  reported as a survivor with no result only because its test output held raw control bytes, which
+  `mutate.py`'s `grep` treats as binary; run by hand it fails 12 tests. Not checked: Windows (the
+  driver's script).

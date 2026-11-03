@@ -5,8 +5,8 @@ namespace Statventure.Packs;
 /// read, or holding a path outside the rule. It names the file and, when it is about one entry, the
 /// entry (Docs/Assets.md, Q6); nothing is read from a lower mount instead, and the game stops with it.
 /// </summary>
-public sealed class DataFileException(string file, string? entry, string problem)
-    : IOException(entry is null ? $"{file}: {problem}" : $"{file}: entry '{entry}': {problem}")
+public sealed class DataFileException(string file, string? entry, string problem, Exception? inner = null)
+    : IOException(entry is null ? $"{file}: {problem}" : $"{file}: entry '{entry}': {problem}", inner)
 {
     /// <summary>The pack, or the loose file, at fault (a full path).</summary>
     public string File { get; } = file;

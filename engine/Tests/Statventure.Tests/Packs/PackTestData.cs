@@ -131,6 +131,9 @@ sealed class TempFolder : IDisposable
 
 static class PackTestData
 {
+    /// <summary>The record types of the engine and the tests (those the record guard covers), by name.</summary>
+    public static RecordTypes TestTypes { get; } = new(Records.RecordFixtures.Types);
+
     /// <summary>Text-like bytes Brotli makes much smaller.</summary>
     public static byte[] Prose(int length, int seed = 0)
     {

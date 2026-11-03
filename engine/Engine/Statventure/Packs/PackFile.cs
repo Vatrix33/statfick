@@ -4,14 +4,16 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
+using Statventure.Records;
 
 namespace Statventure.Packs;
 
 /// <summary>
 /// An open pack (Docs/Assets.md, "Packs"). Opening reads the header and the index and checks them:
 /// the index's hash, and that the index describes a well-formed pack (paths under the rule, unique,
-/// in order, no entry also another's folder; the entries one after another from the header to the
-/// index; lengths that fit their flags). Entries are read on demand by positional reads, safe from
+/// in order, no entry also another's folder, no record beside the file that would be its loose form;
+/// the entries one after another from the header to the index; lengths that fit their flags). An
+/// entry is a file or a record (its content a record's binary form). Entries are read on demand by positional reads, safe from
 /// several threads, and every read checks the content's hash (Q6). The file is opened sharing read,
 /// write and delete, so it can be rebuilt while it is open; the open file keeps what it was until
 /// it is opened again.
@@ -94,18 +96,58 @@ public sealed class PackFile : IDisposable
         return problems;
     }
 
-    /// <summary>Writes every entry as a file under <paramref name="folder"/> (made if missing; it must be empty).</summary>
-    public void ExtractTo(string folder)
+    /// <summary>
+    /// Writes every entry in its loose form under <paramref name="folder"/> (made if missing; it must be
+    /// empty): a file as it is, a record as its JSON form at <c>&lt;path&gt;.json</c> (S3-1; its type found by
+    /// name in <paramref name="types"/>, the engine's by default). So the folder mounts, and packs, as the
+    /// same entries. Every entry is read and converted before anything is written.
+    /// </summary>
+    public void ExtractTo(string folder, RecordTypes? types = null)
     {
+        types ??= RecordTypes.Engine;
         var root = System.IO.Path.GetFullPath(folder);
         if (Directory.Exists(root) && Directory.EnumerateFileSystemEntries(root).Any())
             throw new IOException($"{root} isn't empty");
+        var forms = _entries.Select(entry => entry.IsRecord
+            ? (entry.Path + LooseRecord.Extension, RecordJson(entry, types))
+            : (entry.Path, Read(entry))).ToArray();
         Directory.CreateDirectory(root);
-        foreach (var entry in _entries)
+        foreach (var (path, content) in forms)
         {
-            var target = System.IO.Path.Combine(root, entry.Path);
+            var target = System.IO.Path.Combine(root, path);
             Directory.CreateDirectory(System.IO.Path.GetDirectoryName(target)!);
-            File.WriteAllBytes(target, Read(entry));
+            File.WriteAllBytes(target, content);
+        }
+    }
+
+    /// <summary>
+    /// A record entry's JSON form (UTF-8, as the serializer writes it, in the current versions): its
+    /// type found by name in <paramref name="types"/>. A type not there, or a record that doesn't read,
+    /// throws a <see cref="DataFileException"/> naming the entry.
+    /// </summary>
+    public byte[] RecordJson(PackEntry entry, RecordTypes types)
+    {
+        if (!entry.IsRecord)
+            throw new ArgumentException($"'{entry.Path}' isn't a record", nameof(entry));
+        var binary = Read(entry);
+        string name;
+        try
+        {
+            name = RecordSerializer.RootTypeName(binary);
+        }
+        catch (RecordFormatException problem)
+        {
+            throw new DataFileException(FilePath, entry.Path, $"not a readable record: {problem.Message}", problem);
+        }
+        var type = types.Find(name)
+            ?? throw new DataFileException(FilePath, entry.Path, $"a record of type {name}, which isn't a record type known here");
+        try
+        {
+            return RecordSerializer.ToJsonUtf8(type, RecordSerializer.FromBinary(type, binary));
+        }
+        catch (RecordFormatException problem)
+        {
+            throw new DataFileException(FilePath, entry.Path, $"not a readable {name} record: {problem.Message}", problem);
         }
     }
 
@@ -239,11 +281,15 @@ public sealed class PackFile : IDisposable
             throw new DataFileException(file, null, $"the index goes on after its {count} entries");
         if (position != indexOffset)
             throw new DataFileException(file, null, "the entries don't end where the index starts");
-        var paths = entries.Select(e => e.Path).ToHashSet(StringComparer.Ordinal);
+        var paths = entries.ToDictionary(e => e.Path, StringComparer.Ordinal);
         foreach (var entry in entries)
+        {
             for (var slash = entry.Path.IndexOf('/'); slash >= 0; slash = entry.Path.IndexOf('/', slash + 1))
-                if (paths.Contains(entry.Path[..slash]))
+                if (paths.ContainsKey(entry.Path[..slash]))
                     throw new DataFileException(file, entry.Path[..slash], $"an entry and also the folder of '{entry.Path}'");
+            if (entry.IsRecord && paths.TryGetValue(LooseRecord.Twin(entry.Path, record: true)!, out var twin) && !twin.IsRecord)
+                throw new DataFileException(file, entry.Path, $"a record beside the file '{twin.Path}', which is its loose form");
+        }
         return [.. entries];
     }
 }

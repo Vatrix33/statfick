@@ -2,6 +2,7 @@ using System.Buffers.Binary;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
+using Statventure.Records;
 
 namespace Statventure.Packs;
 
@@ -22,14 +23,41 @@ public sealed record PackWriteResult(int Entries, int Compressed, int Reused, IR
 /// </summary>
 public sealed class PackWriter
 {
-    readonly Dictionary<string, byte[]> _contents = new(StringComparer.Ordinal);
+    readonly Dictionary<string, (byte[] Content, bool Record)> _contents = new(StringComparer.Ordinal);
     readonly HashSet<string> _folders = new(StringComparer.Ordinal);
 
     /// <summary>The entries added so far.</summary>
     public int Count => _contents.Count;
 
-    /// <summary>Adds an entry (a copy of <paramref name="content"/>).</summary>
+    /// <summary>
+    /// Adds a file entry (a copy of <paramref name="content"/>). A file named <c>.json</c> must start as
+    /// JSON that isn't a record's form (S3-1: its loose form would be a record, or can't be told).
+    /// </summary>
     public void Add(string path, ReadOnlySpan<byte> content)
+    {
+        PackPath.Check(path);
+        if (LooseRecord.MayBeRecord(path))
+        {
+            var record = LooseRecord.StartsAsRecord(content, out var problem);
+            if (record is null)
+                throw new ArgumentException($"'{path}' is {problem}", nameof(path));
+            if (record == true)
+                throw new ArgumentException($"'{path}' holds a record's JSON form: add it as the record '{LooseRecord.Twin(path, record: false)}'", nameof(path));
+        }
+        AddEntry(path, content.ToArray(), record: false);
+    }
+
+    /// <summary>Adds a record entry: <paramref name="value"/>'s binary form, in the current versions of its types.</summary>
+    public void AddRecord<T>(string path, T value) where T : notnull => AddRecord(path, typeof(T), value);
+
+    /// <summary>Adds a record entry: the binary form of <paramref name="value"/>, a record of type <paramref name="type"/>.</summary>
+    public void AddRecord(string path, Type type, object value)
+    {
+        PackPath.Check(path);
+        AddEntry(path, RecordSerializer.ToBinary(type, value), record: true);
+    }
+
+    void AddEntry(string path, byte[] content, bool record)
     {
         PackPath.Check(path);
         if (path.Length > ushort.MaxValue)
@@ -41,16 +69,95 @@ public sealed class PackWriter
         for (var slash = path.IndexOf('/'); slash >= 0; slash = path.IndexOf('/', slash + 1))
             if (_contents.ContainsKey(path[..slash]))
                 throw new ArgumentException($"'{path[..slash]}' is an entry, so it can't be a folder of '{path}'", nameof(path));
+        // A record's loose form is the file <path>.json (Q7), so a pack can't hold a record and a file of that name.
+        if (LooseRecord.Twin(path, record) is { } twin && _contents.TryGetValue(twin, out var other) && other.Record != record)
+            throw new ArgumentException(record
+                ? $"'{path}' can't be a record beside the file '{twin}': a loose folder holds the record as that file"
+                : $"'{path}' can't be a file beside the record '{twin}': a loose folder holds the record as this file", nameof(path));
         for (var slash = path.IndexOf('/'); slash >= 0; slash = path.IndexOf('/', slash + 1))
             _folders.Add(path[..slash]);
-        _contents.Add(path, content.ToArray());
+        _contents.Add(path, (content, record));
     }
 
-    /// <summary>Adds every file under <paramref name="folder"/> as an entry at its path below it.</summary>
-    public void AddFolder(string folder)
+    /// <summary>
+    /// Adds a folder in the loose form (Docs/Assets.md, "The packer"; S3-1, S3-3): first each file an
+    /// importer takes (by the ending of its name) goes through it, in path order; then every file no
+    /// importer took or read is an entry at its path below the folder, a <c>&lt;path&gt;.json</c> that starts
+    /// as a record's JSON form being the record <c>&lt;path&gt;</c> in its binary form (in the current
+    /// versions; its type found by name in <paramref name="types"/>, the engine's by default). Importers are
+    /// <paramref name="importers"/>, the engine's by default. A problem with a file throws a
+    /// <see cref="DataFileException"/> naming it.
+    /// </summary>
+    public void AddFolder(string folder, RecordTypes? types = null, Importers? importers = null)
     {
-        foreach (var (path, file) in LooseFolder.Scan(folder))
-            Add(path, File.ReadAllBytes(file));
+        types ??= RecordTypes.Engine;
+        importers ??= Importers.Engine;
+        var files = LooseFolder.Files(folder);
+        var byPath = files.ToDictionary(f => f.Path, f => f.File, StringComparer.Ordinal);
+        var sources = files.Select(f => f.Path).ToArray();
+        var claimed = new Dictionary<string, (ImporterInfo Importer, string Ending)>(StringComparer.Ordinal);
+        foreach (var file in files)
+            if (importers.For(file.Path) is { } match)
+                claimed[file.Path] = match;
+        var used = new HashSet<string>(StringComparer.Ordinal);
+        var made = new Dictionary<ImporterInfo, IImporter>();
+        foreach (var file in files)
+        {
+            if (!claimed.TryGetValue(file.Path, out var match))
+                continue;
+            var context = new ImportContext(this, match.Importer, file.Path, match.Ending, byPath, sources,
+                path => claimed.TryGetValue(path, out var other) ? other.Importer.Name : null, used);
+            try
+            {
+                if (!made.TryGetValue(match.Importer, out var importer))
+                    made[match.Importer] = importer = match.Importer.Create();
+                importer.Import(context);
+            }
+            catch (Exception problem) when (problem is not DataFileException)
+            {
+                throw new DataFileException(file.File, null, $"the {match.Importer.Name} importer: {problem.Message}", problem);
+            }
+        }
+        foreach (var entry in LooseFolder.Entries(files.Where(f => !claimed.ContainsKey(f.Path) && !used.Contains(f.Path))))
+        {
+            try
+            {
+                if (entry.Record)
+                    AddLooseRecord(entry, types);
+                else
+                    Add(entry.Path, File.ReadAllBytes(entry.File));
+            }
+            catch (ArgumentException problem)
+            {
+                throw new DataFileException(entry.File, null, problem.Message, problem);
+            }
+        }
+    }
+
+    void AddLooseRecord(LooseEntry entry, RecordTypes types)
+    {
+        var json = File.ReadAllBytes(entry.File);
+        string name;
+        try
+        {
+            name = LooseRecord.RootTypeName(json);
+        }
+        catch (RecordFormatException problem)
+        {
+            throw new DataFileException(entry.File, null, $"not a readable record: {problem.Message}", problem);
+        }
+        var type = types.Find(name)
+            ?? throw new DataFileException(entry.File, null, $"a record of type {name}, which isn't a record type known here");
+        object value;
+        try
+        {
+            value = RecordSerializer.FromJson(type, json);
+        }
+        catch (RecordFormatException problem)
+        {
+            throw new DataFileException(entry.File, null, $"not a readable {name} record: {problem.Message}", problem);
+        }
+        AddRecord(entry.Path, type, value);
     }
 
     /// <summary>
@@ -104,7 +211,7 @@ public sealed class PackWriter
     {
         var paths = _contents.Keys.Order(StringComparer.Ordinal).ToArray();
         var prepared = new Prepared[paths.Length];
-        Parallel.For(0, paths.Length, i => prepared[i] = Prepare(_contents[paths[i]], reuse));
+        Parallel.For(0, paths.Length, i => prepared[i] = Prepare(_contents[paths[i]].Content, _contents[paths[i]].Record, reuse));
 
         var index = new MemoryStream();
         Span<byte> length = stackalloc byte[2];
@@ -149,16 +256,18 @@ public sealed class PackWriter
 
     sealed record Prepared(byte[] Hash, byte[] Stored, long ContentLength, PackEntryFlags Flags, bool Reused, string? DamagedInOld);
 
-    static Prepared Prepare(byte[] content, PackFile? reuse)
+    static Prepared Prepare(byte[] content, bool record, PackFile? reuse)
     {
         var hash = SHA256.HashData(content);
+        var kind = record ? PackEntryFlags.Record : PackEntryFlags.None;
         string? damaged = null;
+        // Kept bytes come with how they are stored; whether the entry is a record is the new entry's own.
         if (reuse?.FindStored(hash, out damaged) is { } kept)
-            return new Prepared(hash, kept.Stored, content.Length, kept.Entry.Flags, true, null);
+            return new Prepared(hash, kept.Stored, content.Length, kept.Entry.Flags & PackEntryFlags.Compressed | kind, true, null);
         var compressed = new byte[BrotliEncoder.GetMaxCompressedLength(content.Length)];
         if (BrotliEncoder.TryCompress(content, compressed, out var written, PackFormat.BrotliQuality, PackFormat.BrotliWindow)
             && written < content.Length)
-            return new Prepared(hash, compressed[..written], content.Length, PackEntryFlags.Compressed, false, damaged);
-        return new Prepared(hash, content, content.Length, PackEntryFlags.None, false, damaged);
+            return new Prepared(hash, compressed[..written], content.Length, PackEntryFlags.Compressed | kind, false, damaged);
+        return new Prepared(hash, content, content.Length, kind, false, damaged);
     }
 }

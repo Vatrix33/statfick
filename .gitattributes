@@ -15,8 +15,10 @@
 *.spv binary
 *.blend binary
 *.glb binary
-# The engine's data packs (Docs/Assets.md) and the record serializer's binary fixtures.
-*.pak binary
+# The engine's data packs (Docs/Assets.md) and the record serializer's binary fixtures. A pack's diff
+# is its dump once the clone has run, from the repo's root (Docs/Assets.md, "Reviewing packs"):
+#   git config diff.pak.textconv engine/Tools/Packer/textconv.sh
+*.pak binary diff=pak
 *.rec binary
 # Kept exactly as the old game has it (CRLF).
 /old-game/classes/newc/Bruiser.txt -text

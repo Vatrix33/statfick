@@ -1,13 +1,19 @@
-// The packer (Docs/Assets.md, "Packs"): the engine's pack functions from the command line.
+// The packer (Docs/Assets.md, "Packs" and "The packer"): the engine's pack functions from the command
+// line. Record types and importers are the engine's own.
 using Statventure.Packs;
 
 const string Usage = """
     Usage:
-      packer pack <folder> <file.pak>      every file under <folder> into <file.pak>; an existing <file.pak>'s
+      packer pack <folder> <file.pak>      every file under <folder> into <file.pak>: files an importer takes (by the
+                                           ending of their names) through it, <path>.json files holding a record's JSON
+                                           form as the record <path>, the rest as they are; an existing <file.pak>'s
                                            unchanged entries keep their stored bytes
-      packer list <file.pak>               the entries: path, content and stored length, raw or compressed, SHA-256
+      packer list <file.pak>               the entries: path, record or file, content and stored length, raw or
+                                           compressed, SHA-256
       packer verify <file.pak>             reads every entry and checks its hash; exit code 1 when one is damaged
-      packer extract <file.pak> <folder>   every entry as a file under <folder> (made if missing; it must be empty)
+      packer extract <file.pak> <folder>   every entry in its loose form under <folder> (made if missing; it must be
+                                           empty): files as they are, records as <path>.json in their JSON form
+      packer dump <file.pak>               the pack as JSON text for review (what git's diff driver for packs shows)
     """;
 
 try
@@ -30,7 +36,7 @@ try
         {
             using var pack = PackFile.Open(pak);
             foreach (var entry in pack.Entries)
-                Console.WriteLine($"{entry.Path}\t{entry.ContentLength}\t{entry.StoredLength}\t{(entry.Compressed ? "brotli" : "raw")}\t{entry.HashHex}");
+                Console.WriteLine($"{entry.Path}\t{(entry.IsRecord ? "record" : "file")}\t{entry.ContentLength}\t{entry.StoredLength}\t{(entry.Compressed ? "brotli" : "raw")}\t{entry.HashHex}");
             return 0;
         }
         case ["verify", var pak]:
@@ -51,12 +57,19 @@ try
             Console.WriteLine($"{pack.Entries.Count} entries into {Path.GetFullPath(folder)}");
             return 0;
         }
+        case ["dump", var pak]:
+        {
+            using var pack = PackFile.Open(pak);
+            using var output = Console.OpenStandardOutput();
+            output.Write(PackDump.ToUtf8(pack));
+            return 0;
+        }
         default:
             Console.Error.WriteLine(Usage);
             return 2;
     }
 }
-catch (Exception problem) when (problem is IOException or ArgumentException or UnauthorizedAccessException)
+catch (Exception problem) when (problem is IOException or ArgumentException or UnauthorizedAccessException or InvalidOperationException)
 {
     Console.Error.WriteLine(problem.Message);
     return 1;

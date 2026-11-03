@@ -18,6 +18,8 @@ the user and wait for their go-ahead before starting the next one.
 - Build and test: `Tools/Scripts/test.sh` (Windows: `Tools\Scripts\test.ps1`); all tests must pass
   before a step counts as done. They pass the same on the PC's GPU, on a CPU Vulkan (the cloud) and
   on Windows: they act as Chromium on Linux with the reference PC's fonts and font settings.
+- Packs (`.pak`, `Docs/Assets.md`) in `git diff` as their dumps: once per clone, from the repo's root,
+  `git config diff.pak.textconv engine/Tools/Packer/textconv.sh`.
 - Chromium 152 for references: `Tools/Scripts/chromium.sh` (Electron 44.5.0 from npm).
 - A minimized window's document (hidden documents: visibility, unloading, Blink's timer throttling; `Docs/Scripting.md`,
   "Hidden documents"): references from `Tools/Scripts/make-visibility-references.sh` (about six minutes);

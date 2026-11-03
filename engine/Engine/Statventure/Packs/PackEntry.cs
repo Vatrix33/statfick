@@ -30,6 +30,9 @@ public sealed class PackEntry
 
     public bool Compressed => (Flags & PackEntryFlags.Compressed) != 0;
 
+    /// <summary>Whether it is a record (its content a record's binary form) rather than a file.</summary>
+    public bool IsRecord => (Flags & PackEntryFlags.Record) != 0;
+
     /// <summary>The SHA-256 of its content (uncompressed: the same however it is stored; Q5).</summary>
     public ReadOnlySpan<byte> Hash => _hash;
 

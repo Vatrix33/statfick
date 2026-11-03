@@ -1,4 +1,5 @@
 using Statventure.Core;
+using Statventure.Records;
 
 namespace Statventure.Packs;
 
@@ -50,7 +51,10 @@ public sealed class Mount
 /// The game's data as one tree of paths (Docs/Assets.md, "The virtual file system"): packs and loose
 /// folders mounted bottom to top, each path resolving to the topmost mount that has it; listing a
 /// folder gives the union of the mounts' paths. Mods add or replace entries, never delete one.
-/// Paths follow <see cref="PackPath"/>'s rule. Reads are safe from several threads, also while
+/// Paths follow <see cref="PackPath"/>'s rule. An entry is a file or a record: a pack flags its
+/// records (their binary form), a loose folder holds a record <c>p</c> as <c>p.json</c> in its JSON form,
+/// told by content when mounted (Q7, S3-1); records are read with <see cref="Load{T}"/>, files with
+/// <see cref="ReadAllBytes"/> and <see cref="Open"/>. Reads are safe from several threads, also while
 /// <see cref="Reload"/> runs: it mounts everything afresh (packs re-read, folders rescanned, the mods
 /// folder listed again) and only then puts the new mounts in place, so a failing Reload leaves the
 /// old ones.
@@ -64,7 +68,10 @@ public sealed class VirtualFileSystem : IDisposable
     Table _table;
     bool _disposed;
 
-    /// <summary>Mounts <paramref name="mounts"/>, the first at the bottom; a damaged pack or a misnamed loose file throws a <see cref="DataFileException"/>.</summary>
+    /// <summary>
+    /// Mounts <paramref name="mounts"/>, the first at the bottom; a damaged pack, a misnamed loose file
+    /// or a loose <c>.json</c> file whose start isn't valid JSON throws a <see cref="DataFileException"/>.
+    /// </summary>
     public VirtualFileSystem(IEnumerable<Mount> mounts)
     {
         _mounts = [.. mounts];
@@ -84,14 +91,61 @@ public sealed class VirtualFileSystem : IDisposable
         return Use(table => table.Sources.ContainsKey(path));
     }
 
-    /// <summary>The content at <paramref name="path"/> from the topmost mount that has it.</summary>
+    /// <summary>Whether <paramref name="path"/>, which some mount must have, is a record (read with <see cref="Load{T}"/>) rather than a file.</summary>
+    public bool IsRecord(string path)
+    {
+        PackPath.Check(path);
+        return Use(table => Find(table, path).IsRecord(path));
+    }
+
+    /// <summary>The content of the file at <paramref name="path"/> from the topmost mount that has it (a record there is an error).</summary>
     public byte[] ReadAllBytes(string path)
     {
         PackPath.Check(path);
-        return Use(table => table.Sources.TryGetValue(path, out var source)
-            ? source.Read(path)
-            : throw new FileNotFoundException($"No '{path}' in the game's data", path));
+        return Use(table =>
+        {
+            var source = Find(table, path);
+            if (source.IsRecord(path))
+                throw source.Problem(path, "a record, not a file (records are read with Load)");
+            return source.Read(path);
+        });
     }
+
+    /// <summary>
+    /// The record at <paramref name="path"/> from the topmost mount that has it: a pack's record entry
+    /// (its binary form) or a loose folder's <c>&lt;path&gt;.json</c> (its JSON form), upgraded to the
+    /// current version. A file there, a record of another type or one that doesn't read is a
+    /// <see cref="DataFileException"/> naming the pack and entry or the loose file.
+    /// </summary>
+    public T Load<T>(string path) where T : notnull => (T)Load(typeof(T), path);
+
+    /// <summary>The record of type <paramref name="type"/> at <paramref name="path"/> (see <see cref="Load{T}"/>).</summary>
+    public object Load(Type type, string path)
+    {
+        PackPath.Check(path);
+        var name = RecordTypes.NameOf(type);
+        var (source, content) = Use(table =>
+        {
+            var source = Find(table, path);
+            if (!source.IsRecord(path))
+                throw source.Problem(path, $"a file, not a record (expected a {name})");
+            return (source, source.Read(path));
+        });
+        try
+        {
+            var held = source.Json ? LooseRecord.RootTypeName(content) : RecordSerializer.RootTypeName(content);
+            if (held != name)
+                throw source.Problem(path, $"a record of type {held}, not {name}");
+            return source.Json ? RecordSerializer.FromJson(type, content) : RecordSerializer.FromBinary(type, content);
+        }
+        catch (RecordFormatException problem)
+        {
+            throw source.Problem(path, $"not a readable {name} record: {problem.Message}", problem);
+        }
+    }
+
+    static Source Find(Table table, string path) =>
+        table.Sources.TryGetValue(path, out var source) ? source : throw new FileNotFoundException($"No '{path}' in the game's data", path);
 
     /// <summary>The content at <paramref name="path"/> as a read-only stream (read and checked whole first).</summary>
     public Stream Open(string path) => new MemoryStream(ReadAllBytes(path), writable: false);
@@ -182,24 +236,36 @@ public sealed class VirtualFileSystem : IDisposable
     abstract class Source : IDisposable
     {
         public abstract IEnumerable<string> Paths { get; }
+        /// <summary>Whether its records are in the JSON form (a loose folder) rather than the binary form (a pack).</summary>
+        public abstract bool Json { get; }
+        public abstract bool IsRecord(string path);
+        /// <summary>The content as it holds it: a file's bytes, or a record's form.</summary>
         public abstract byte[] Read(string path);
         public abstract string Origin(string path);
+        /// <summary>An error about one of its paths, naming the pack and entry or the loose file.</summary>
+        public abstract DataFileException Problem(string path, string problem, Exception? inner = null);
         public virtual void Dispose() { }
     }
 
     sealed class PackSource(PackFile pack) : Source
     {
         public override IEnumerable<string> Paths => pack.Entries.Select(e => e.Path);
+        public override bool Json => false;
+        public override bool IsRecord(string path) => pack.Find(path)!.IsRecord;
         public override byte[] Read(string path) => pack.Read(pack.Find(path)!);
         public override string Origin(string path) => pack.FilePath;
+        public override DataFileException Problem(string path, string problem, Exception? inner) => new(pack.FilePath, path, problem, inner);
         public override void Dispose() => pack.Dispose();
     }
 
-    sealed class FolderSource(Dictionary<string, string> files) : Source
+    sealed class FolderSource(Dictionary<string, LooseEntry> entries) : Source
     {
-        public override IEnumerable<string> Paths => files.Keys;
-        public override byte[] Read(string path) => File.ReadAllBytes(files[path]);
-        public override string Origin(string path) => files[path];
+        public override IEnumerable<string> Paths => entries.Keys;
+        public override bool Json => true;
+        public override bool IsRecord(string path) => entries[path].Record;
+        public override byte[] Read(string path) => File.ReadAllBytes(entries[path].File);
+        public override string Origin(string path) => entries[path].File;
+        public override DataFileException Problem(string path, string problem, Exception? inner) => new(entries[path].File, null, problem, inner);
     }
 
     /// <summary>The mounts as one lookup: each path's topmost source, and every path in order.</summary>
@@ -237,7 +303,7 @@ public sealed class VirtualFileSystem : IDisposable
                     into.Add(new PackSource(PackFile.Open(mount.Path)));
                     break;
                 case MountKind.Folder:
-                    into.Add(new FolderSource(LooseFolder.Scan(mount.Path, mount.At).ToDictionary(f => f.Path, f => f.File, StringComparer.Ordinal)));
+                    into.Add(new FolderSource(LooseFolder.Scan(mount.Path, mount.At).ToDictionary(e => e.Path, StringComparer.Ordinal)));
                     break;
                 case MountKind.Mods:
                     foreach (var mod in ModFiles(mount.Path))

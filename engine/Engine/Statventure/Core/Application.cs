@@ -3,6 +3,7 @@ using Brutal.VulkanApi;
 using Statventure.Audio;
 using Statventure.Graphics;
 using Statventure.Imaging;
+using Statventure.Packs;
 using Statventure.Platform;
 
 namespace Statventure.Core;
@@ -15,6 +16,13 @@ public sealed record ApplicationOptions
     public string? LogFile { get; init; }
     /// <summary>Whether to open the sound output (<see cref="Application.Audio"/>).</summary>
     public bool Audio { get; init; } = true;
+    /// <summary>
+    /// The development folder (Docs/Assets.md, Q7, S3-5): loose entries in their own forms (a record as
+    /// its JSON form at <c>&lt;path&gt;.json</c>) mounted on top of the game's data and re-read on Reload; the
+    /// game's command line fills it. Null: the folder <c>$STATVENTURE_DEV_FOLDER</c> names, if it is set;
+    /// else none. A folder named that doesn't exist stops the start.
+    /// </summary>
+    public string? DevelopmentFolder { get; init; }
 }
 
 /// <summary>Time for one update.</summary>
@@ -36,7 +44,46 @@ public abstract class Application : IDisposable
     public Input Input => Window.Input;
     /// <summary>The sound: music and effects (null when <see cref="ApplicationOptions.Audio"/> is off). Paused while the window is minimized.</summary>
     public AudioSystem? Audio { get; private set; }
+    /// <summary>
+    /// The game's data (Docs/Assets.md, "The virtual file system"; Q3): one file system for the whole
+    /// application, mounted when <see cref="Run"/> starts, before the window, the sound and
+    /// <see cref="Load"/> (see <see cref="DataMounts"/>). Loaders are given it.
+    /// </summary>
+    public VirtualFileSystem Data { get; private set; } = null!;
     public bool Running { get; private set; }
+
+    /// <summary>The area packs in <c>packs/</c>, in the order they mount (S3-4); each mounts only if it is there.</summary>
+    public static IReadOnlyList<string> AreaPacks { get; } = ["models", "audio", "ui", "world", "data"];
+
+    /// <summary>The environment variable naming the development folder when the options don't (S3-5).</summary>
+    public const string DevelopmentFolderVariable = "STATVENTURE_DEV_FOLDER";
+
+    /// <summary>
+    /// What <see cref="Data"/> mounts, bottom to top (Q2, Q27, S3-4, S3-5): the area packs of
+    /// <c>packs/</c> in <paramref name="gameFolder"/> (beside the executable; each if it is there, other
+    /// files ignored, no folder meaning no packs), then its <c>classes/</c> folder at <c>classes</c> if there is
+    /// one (so a mod or the development folder can override a class), then the development folder
+    /// (<see cref="ApplicationOptions.DevelopmentFolder"/>, else the folder <paramref name="environment"/>
+    /// gives for <see cref="DevelopmentFolderVariable"/>). Mods come in between with step 9.
+    /// </summary>
+    internal static List<Mount> DataMounts(ApplicationOptions options, string gameFolder, Func<string, string?> environment)
+    {
+        var mounts = new List<Mount>();
+        var packs = Path.Combine(gameFolder, "packs");
+        foreach (var area in AreaPacks)
+            if (File.Exists(Path.Combine(packs, area + ".pak")))
+                mounts.Add(Mount.Pack(Path.Combine(packs, area + ".pak")));
+        var classes = Path.Combine(gameFolder, "classes");
+        if (Directory.Exists(classes))
+            mounts.Add(Mount.Folder(classes, "classes"));
+        var development = options.DevelopmentFolder ?? (environment(DevelopmentFolderVariable) is { Length: > 0 } named ? named : null);
+        if (development is not null)
+            mounts.Add(Mount.Folder(Path.GetFullPath(development)));
+        return mounts;
+    }
+
+    static List<Mount> DataMounts(ApplicationOptions options) =>
+        DataMounts(options, AppContext.BaseDirectory, Environment.GetEnvironmentVariable);
 
     protected Application(ApplicationOptions options)
     {
@@ -71,6 +118,11 @@ public abstract class Application : IDisposable
             Log.OpenFile(logFile);
         try
         {
+            // The data first: a damaged pack stops the start before a window opens.
+            var mounts = DataMounts(Options);
+            foreach (var mount in mounts)
+                Log.Info("Data", mount.ToString());
+            Data = new VirtualFileSystem(mounts);
             Window = Window.Create(Options.Window);
             Gpu = GpuDevice.Create(new GpuDeviceOptions { ApplicationName = Options.Window.Title });
             Swapchain = new Swapchain(Gpu, Window, Options.VSync);
@@ -182,9 +234,11 @@ public abstract class Application : IDisposable
         Audio?.Dispose();
         Audio = null;
         Window?.Dispose();
+        Data?.Dispose();
         Log.CloseFile();
         Gpu = null!;
         Window = null!;
+        Data = null!;
         GC.SuppressFinalize(this);
     }
 }

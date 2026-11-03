@@ -7,6 +7,8 @@ public enum PackEntryFlags : uint
     None = 0,
     /// <summary>Stored Brotli-compressed; otherwise stored as it is.</summary>
     Compressed = 1,
+    /// <summary>A record: the content is a record's binary form (Docs/Assets.md, "Records"), read with <see cref="VirtualFileSystem.Load{T}"/>.</summary>
+    Record = 2,
 }
 
 /// <summary>
@@ -14,8 +16,8 @@ public enum PackEntryFlags : uint
 /// The header (64 bytes): "SVPK", the version (u32), flags (u32, none defined), the entry count
 /// (u32), the index's offset and length (u64 each), the index's SHA-256. Then the entries' stored
 /// bytes one after another in path order, then the index: per entry the path's length (u16) and its
-/// ASCII bytes, the offset, stored length and content length (u64 each), the flags (u32) and the
-/// SHA-256 of the content.
+/// ASCII bytes, the offset, stored length and content length (u64 each), the flags (u32: bit 0
+/// compressed, bit 1 a record) and the SHA-256 of the content.
 /// </summary>
 internal static class PackFormat
 {
@@ -31,7 +33,7 @@ internal static class PackFormat
     public const int HashSize = 32;
     /// <summary>An index entry's size without its path's bytes.</summary>
     public const int EntrySize = 2 + 8 + 8 + 8 + 4 + HashSize;
-    public const PackEntryFlags KnownFlags = PackEntryFlags.Compressed;
+    public const PackEntryFlags KnownFlags = PackEntryFlags.Compressed | PackEntryFlags.Record;
     /// <summary>Brotli's settings: the best and slowest quality, a 4 MiB window; the output is the same every time.</summary>
     public const int BrotliQuality = 11;
     public const int BrotliWindow = 22;
