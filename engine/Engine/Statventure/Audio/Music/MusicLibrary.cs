@@ -1,4 +1,5 @@
 using Statventure.Packs;
+using Statventure.Records;
 
 namespace Statventure.Audio;
 
@@ -127,6 +128,22 @@ public sealed class MusicLibrary
 
     /// <summary>The room called <paramref name="name"/>, or the hall, as the composer falls back on it.</summary>
     internal RoomSpec Room(string name) => Rooms.GetValueOrDefault(name) ?? Rooms["hall"];
+
+    /// <summary>
+    /// Whether the theme <paramref name="id"/> sounds the same from <paramref name="other"/> (S9-D): its record,
+    /// and every instrument, percussion voice and room of both libraries, equal by their binary forms. False
+    /// when either hasn't the theme.
+    /// </summary>
+    internal bool SameMusic(MusicLibrary other, string id) =>
+        Theme(id) is { } mine && other.Theme(id) is { } theirs && SameRecord(mine, theirs)
+        && SameRecords(Instruments, other.Instruments) && SameRecords(Percussion, other.Percussion) && SameRecords(Rooms, other.Rooms);
+
+    /// <summary>Whether two records have the same binary form.</summary>
+    internal static bool SameRecord<T>(T a, T b) where T : notnull =>
+        RecordSerializer.ToBinary(a).AsSpan().SequenceEqual(RecordSerializer.ToBinary(b));
+
+    static bool SameRecords<T>(IReadOnlyDictionary<string, T> a, IReadOnlyDictionary<string, T> b) where T : notnull =>
+        a.Count == b.Count && a.All(pair => b.TryGetValue(pair.Key, out var value) && SameRecord(pair.Value, value));
 
     /// <summary>
     /// The library in <paramref name="data"/> (S6-1–S6-4): the records in <c>audio/themes/</c>,

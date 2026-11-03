@@ -16,11 +16,14 @@ public sealed class Soundtrack
 {
     const double MasterLevel = 0.58;
 
-    readonly GraphBuilder _builder;
     readonly GainNode _master;
     readonly List<(double Time, Action Action)> _timers = [];
     readonly Action<Action>? _dispatch;
-    readonly Func<string, PreparedRoom?>? _preparedRooms;
+    /// <summary>The composer's way to the graph for the library the audio thread plays (a new one after <see cref="Use"/>).</summary>
+    GraphBuilder _builder;
+    Func<string, PreparedRoom?>? _preparedRooms;
+    /// <summary>The theme the game's last <see cref="Play(string)"/> asked for (null after <see cref="Stop"/>): what plays once its calls are applied.</summary>
+    string? _requested;
     Performance? _performance;
     GainNode? _bus;
     double _nextNoteTime;
@@ -31,7 +34,7 @@ public sealed class Soundtrack
     public IReadOnlyList<string> Themes => Library.Themes;
 
     /// <summary>The themes, instruments, percussion voices and rooms this plays.</summary>
-    public MusicLibrary Library { get; }
+    public MusicLibrary Library { get; private set; }
 
     /// <summary>
     /// music.js's setupAudio for the composer's themes: master gain → DynamicsCompressor (−18 dB,
@@ -112,7 +115,37 @@ public sealed class Soundtrack
             throw new ArgumentException($"No theme '{themeId}'", nameof(themeId));
         // If the worker is still preparing this room (just after start), the caller waits for it, not the audio thread.
         _preparedRooms?.Invoke(compiled.Room);
+        _requested = themeId;
         Dispatch(() => Play(themeId, compiled));
+    }
+
+    /// <summary>
+    /// Plays <paramref name="library"/> from now on (the data reloaded; Docs/Assets.md, S9-D), on the game's
+    /// thread: later calls use it at once; the theme playing restarts from its start with the new data,
+    /// through the switch <see cref="Play(string)"/> makes, when its music changed (its theme, or any
+    /// instrument, percussion voice or room: <see cref="MusicLibrary.SameMusic"/>); else, or when the new
+    /// library hasn't that theme, it plays on as it was.
+    /// </summary>
+    internal void Use(MusicLibrary library, Func<string, PreparedRoom?>? preparedRooms)
+    {
+        var builder = new GraphBuilder(Graph, library) { PreparedRooms = preparedRooms };
+        // The composer's noise now, not on the audio thread (as for the first library).
+        ComposerKit.For(builder);
+        var themeId = _requested;
+        var restart = themeId is not null && !Library.SameMusic(library, themeId) ? library.Compiled(themeId) : null;
+        if (restart is not null)
+            preparedRooms?.Invoke(restart.Room);
+        Library = library;
+        _preparedRooms = preparedRooms;
+        Dispatch(() =>
+        {
+            _builder = builder;
+            if (restart is null)
+                return;
+            // Played again from its start, as a switch from the theme playing.
+            Theme = null;
+            Play(themeId!, restart);
+        });
     }
 
     /// <summary><see cref="Play(string)"/> of a compiled theme (the tests' small themes).</summary>
@@ -133,7 +166,11 @@ public sealed class Soundtrack
     }
 
     /// <summary>Fades the theme playing out (music.js's stop).</summary>
-    public void Stop() => Dispatch(StopNow);
+    public void Stop()
+    {
+        _requested = null;
+        Dispatch(StopNow);
+    }
 
     void StopNow()
     {

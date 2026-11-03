@@ -5,6 +5,7 @@ using Statventure.Graphics;
 using Statventure.Imaging;
 using Statventure.Packs;
 using Statventure.Platform;
+using Statventure.Storage;
 
 namespace Statventure.Core;
 
@@ -23,6 +24,11 @@ public sealed record ApplicationOptions
     /// else none. A folder named that doesn't exist stops the start.
     /// </summary>
     public string? DevelopmentFolder { get; init; }
+    /// <summary>
+    /// The player's game folder (Docs/Assets.md, "The game folder"; S9-B): settings, save slots and mods,
+    /// <see cref="Application.Storage"/>. Null: this machine's (<see cref="Storage.GameFolder.ForThisMachine"/>).
+    /// </summary>
+    public string? GameFolder { get; init; }
 }
 
 /// <summary>Time for one update.</summary>
@@ -50,7 +56,17 @@ public abstract class Application : IDisposable
     /// <see cref="Load"/> (see <see cref="DataMounts"/>). Loaders are given it.
     /// </summary>
     public VirtualFileSystem Data { get; private set; } = null!;
+    /// <summary>
+    /// The player's game folder (Docs/Assets.md, "The game folder"; S9-B): settings, save slots and mods,
+    /// made when <see cref="Run"/> starts (before <see cref="Data"/>, which mounts its mods) for
+    /// <see cref="ApplicationOptions.GameFolder"/>, else this machine's. When the application ends, after
+    /// <see cref="Unload"/> (where the window's document unloads) or after a failed start or loop, what is
+    /// pending is written (<see cref="GameStorage.Flush"/>) and it takes no more.
+    /// </summary>
+    public GameStorage Storage { get; private set; } = null!;
     public bool Running { get; private set; }
+
+    bool _remounted, _musicFailed;
 
     /// <summary>The area packs in <c>packs/</c>, in the order they mount (S3-4); each mounts only if it is there.</summary>
     public static IReadOnlyList<string> AreaPacks { get; } = ["models", "audio", "ui", "world", "data"];
@@ -59,31 +75,35 @@ public abstract class Application : IDisposable
     public const string DevelopmentFolderVariable = "STATVENTURE_DEV_FOLDER";
 
     /// <summary>
-    /// What <see cref="Data"/> mounts, bottom to top (Q2, Q27, S3-4, S3-5): the area packs of
-    /// <c>packs/</c> in <paramref name="gameFolder"/> (beside the executable; each if it is there, other
-    /// files ignored, no folder meaning no packs), then its <c>classes/</c> folder at <c>classes</c> if there is
-    /// one (so a mod or the development folder can override a class), then the development folder
-    /// (<see cref="ApplicationOptions.DevelopmentFolder"/>, else the folder <paramref name="environment"/>
-    /// gives for <see cref="DevelopmentFolderVariable"/>). Mods come in between with step 9.
+    /// What <see cref="Data"/> mounts, bottom to top (Q2, Q8, Q27, S3-4, S3-5): the area packs of
+    /// <c>packs/</c> in <paramref name="executableFolder"/> (each if it is there, other files ignored, no
+    /// folder meaning no packs), then its <c>classes/</c> folder at <c>classes</c> if there is one (so a mod
+    /// or the development folder can override a class), then the mods in <paramref name="modsFolder"/>
+    /// (the player's game folder's <c>mods/</c>; mounted even when missing, so a mod put there later
+    /// appears on Reload), then the development folder (<see cref="ApplicationOptions.DevelopmentFolder"/>,
+    /// else the folder <paramref name="environment"/> gives for <see cref="DevelopmentFolderVariable"/>).
+    /// Which packs and folders mount is decided here, once: Reload re-reads these.
     /// </summary>
-    internal static List<Mount> DataMounts(ApplicationOptions options, string gameFolder, Func<string, string?> environment)
+    internal static List<Mount> DataMounts(ApplicationOptions options, string executableFolder, Func<string, string?> environment, string? modsFolder = null)
     {
         var mounts = new List<Mount>();
-        var packs = Path.Combine(gameFolder, "packs");
+        var packs = Path.Combine(executableFolder, "packs");
         foreach (var area in AreaPacks)
             if (File.Exists(Path.Combine(packs, area + ".pak")))
                 mounts.Add(Mount.Pack(Path.Combine(packs, area + ".pak")));
-        var classes = Path.Combine(gameFolder, "classes");
+        var classes = Path.Combine(executableFolder, "classes");
         if (Directory.Exists(classes))
             mounts.Add(Mount.Folder(classes, "classes"));
+        if (modsFolder is not null)
+            mounts.Add(Mount.Mods(Path.GetFullPath(modsFolder)));
         var development = options.DevelopmentFolder ?? (environment(DevelopmentFolderVariable) is { Length: > 0 } named ? named : null);
         if (development is not null)
             mounts.Add(Mount.Folder(Path.GetFullPath(development)));
         return mounts;
     }
 
-    static List<Mount> DataMounts(ApplicationOptions options) =>
-        DataMounts(options, AppContext.BaseDirectory, Environment.GetEnvironmentVariable);
+    /// <summary>The player's game folder for <paramref name="options"/> (S9-B): the option's, else this machine's.</summary>
+    internal static string StorageFolder(ApplicationOptions options) => options.GameFolder ?? GameFolder.ForThisMachine();
 
     protected Application(ApplicationOptions options)
     {
@@ -111,6 +131,54 @@ public abstract class Application : IDisposable
     /// <summary>Stops the loop after the current frame.</summary>
     public void Quit() => Running = false;
 
+    /// <summary>
+    /// Reloads the game's data (Docs/Assets.md, step 9; S9-C), on the game's thread: <see cref="Data"/> mounts
+    /// everything afresh (packs reopened and checked, <c>classes/</c> and the development folder rescanned, the
+    /// mods folder listed again), the sound takes the new music (<see cref="AudioSystem"/>: the theme playing
+    /// restarts if its music changed, S9-D), then <see cref="VirtualFileSystem.Reloaded"/>'s other listeners run
+    /// (the game's systems reload what they read). Gives whether it worked. When the data can't be mounted it
+    /// stays as it was; when only the music doesn't load, the data is the new one and the sound keeps the music it
+    /// had; either is logged. The set of packs and folders is the one found at the start (a pack first put in
+    /// <c>packs/</c> later needs a restart). A listener's exception isn't caught.
+    /// </summary>
+    public bool ReloadData()
+    {
+        if (Data is null)
+            throw new InvalidOperationException("The data is reloaded only while the application runs");
+        _remounted = _musicFailed = false;
+        try
+        {
+            Data.Reload();
+        }
+        catch (Exception problem) when (!_remounted)
+        {
+            Log.Error("Data", $"not reloaded, the data stays as it was: {problem.Message}");
+            return false;
+        }
+        Log.Info("Data", _musicFailed ? "reloaded, but not the music" : "reloaded");
+        return !_musicFailed;
+    }
+
+    /// <summary>The first listener of <see cref="VirtualFileSystem.Reloaded"/>: the sound's music from the new data (S9-C, S9-D).</summary>
+    void DataReloaded()
+    {
+        _remounted = true;
+        if (Audio is not { } audio)
+            return;
+        MusicLibrary music;
+        try
+        {
+            music = MusicLibrary.Load(Data);
+        }
+        catch (IOException problem)
+        {
+            Log.Error("Data", $"the music isn't reloaded, the sound keeps what it had: {problem.Message}");
+            _musicFailed = true;
+            return;
+        }
+        audio.Reload(music);
+    }
+
     public void Run()
     {
         NativeLibraries.Install();
@@ -118,11 +186,15 @@ public abstract class Application : IDisposable
             Log.OpenFile(logFile);
         try
         {
+            // The player's game folder, whose mods are part of the data (S9-B).
+            Storage = new GameStorage(StorageFolder(Options));
+            Log.Info("Storage", "game folder " + Storage.Folder);
             // The data first: a damaged pack stops the start before a window opens.
-            var mounts = DataMounts(Options);
+            var mounts = DataMounts(Options, AppContext.BaseDirectory, Environment.GetEnvironmentVariable, Storage.ModsFolder);
             foreach (var mount in mounts)
                 Log.Info("Data", mount.ToString());
             Data = new VirtualFileSystem(mounts);
+            Data.Reloaded += DataReloaded;
             Window = Window.Create(Options.Window);
             Gpu = GpuDevice.Create(new GpuDeviceOptions { ApplicationName = Options.Window.Title });
             Swapchain = new Swapchain(Gpu, Window, Options.VSync);
@@ -234,11 +306,15 @@ public abstract class Application : IDisposable
         Audio?.Dispose();
         Audio = null;
         Window?.Dispose();
+        // The saves and settings the game asked for (in its Unload too, where the document unloads) are
+        // written before the application ends (Q16, S9-B), the window already closed.
+        Storage?.Dispose();
         Data?.Dispose();
         Log.CloseFile();
         Gpu = null!;
         Window = null!;
         Data = null!;
+        Storage = null!;
         GC.SuppressFinalize(this);
     }
 }

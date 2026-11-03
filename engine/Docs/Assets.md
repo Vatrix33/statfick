@@ -72,7 +72,7 @@ Nothing of M9 yet: no pack, virtual file system, serializer, save or settings co
   stylesheet in `old-game/styles.css` (a byte-identical copy in `Tests/Statventure.Tests/Data/Game/`,
   read by `GameLayoutTests`). Nothing writes to `$STATVENTURE_GAME` yet: `build.sh` and `build.ps1`
   build into each project's `bin/`, and there is no game executable before the port (M12 does the
-  shipped layout).
+  shipped layout). (Since step 9 the build publishes the sandbox there with `packs/` beside it: S9-A.)
 - **Models** (`Render3D/GltfImport.cs`, `ModelData.cs`, `Model.cs`): `GltfImport.Load(path)` gives a
   `ModelData`: `ModelNode` records (name, parent, children, matrix and TRS, mesh, skin, `Ink`), meshes
   of `ModelPrimitive`s (a class with init properties: positions, normals, texture coordinates,
@@ -250,12 +250,17 @@ versioned.
 - **Reading:** bytes, a stream, and (step 3) a record of a given type (`Load<T>(path)`), from the
   binary form in a pack or the JSON form in a loose folder.
 - **Reload:** remounts everything (packs re-read their index, folders are rescanned) and tells its
-  listeners; what each system reloads (themes, models, stylesheets) is up to that system.
+  listeners; what each system reloads (themes, models, stylesheets) is up to that system. The game calls
+  `Application.ReloadData()` (step 9, S9-C), which also reloads the music (S9-D). Known limit: the mounts are
+  the ones found at the start (step 3's `DataMounts`), so an area pack first put in `packs/`, or a `classes/`
+  folder made, after the start needs a restart, and a pack taken out of `packs/` makes Reload fail (the data
+  stays as it was); the mods folder and the development folder are rescanned, so mods added or taken away
+  do show.
 - **Who owns it** (Q3): one instance per application (`Application.Data`), passed to what loads (the
   audio system gets its music library from it); tests and tools mount their own.
 - **Where the files are at run time** (Q2): the packs in `packs/` beside the executable
-  (`$STATVENTURE_GAME/packs/` from the build), the classes in `classes/` beside it as in the old game,
-  mods in `mods/` in the per-user game folder.
+  (`$STATVENTURE_GAME/packs/` from the build, beside the sandbox until the port: S9-A), the classes in
+  `classes/` beside it as in the old game, mods in `mods/` in the per-user game folder.
 
 ### The game folder: saves, settings, character files
 
@@ -432,8 +437,8 @@ Order: **1 and 2** side by side; then **3** (after 1 and 2) beside **4** (after 
    - Tests: mount order with mods and a development folder over the game's packs; Reload.
    - Reload of what was read: step 6's `MusicLibrary` is read once, when the audio system starts, so a
      theme changed in the development folder is heard only after a restart; reloading it on
-     `Data.Reloaded` (a new library for the audio system) is this step's to decide.
-   - Format details: Q27.
+     `Data.Reloaded` (a new library for the audio system) is this step's to decide (decided: S9-D).
+   - Format details: Q27; asked during the step: S9-A–S9-D.
    - The shipped `classes/` folder holds the class files under names that follow the path rule
      (Q31: the old game's `Black Knight.json` becomes `black-knight.json`), renamed when the port makes
      it; mounted as the old game names them, they would fail the mount (Q29).
@@ -673,6 +678,34 @@ Asked during step 8 (user, 2026-11-03; both the recommended option; numbered S8-
   (Not `world.terrain`; not names following the description's keys.) Accepted with it: the check at
   load is what the description's loader checks (a sample and a cover for each of the grid's points),
   and a description's unknown keys are ignored as before.
+
+Asked during step 9 (user, 2026-11-03; every answer the recommended option; numbered S9-n as steps 3, 5, 6 and 8
+did):
+
+- **S9-A. The game folder the build makes:** `build.sh` and `build.ps1` also publish the sandbox, the game's
+  stand-in until the port, into `$STATVENTURE_GAME` (framework-dependent, `dotnet publish --no-build` of the
+  build just made), with `packs/` beside it holding exactly the committed packs (a pack no longer in
+  `Assets/Packs/` is removed). The port's game executable takes its place; M12 settles the rest of the shipped
+  layout. (Not `packs/` alone with no executable to read it; not also copying the packs into the sandbox's
+  `bin/`.)
+- **S9-B. How the game reaches its game folder:** `Application.Storage`, a `GameStorage` made at the start of
+  `Run()` for `ApplicationOptions.GameFolder`, else this machine's folder, before `Data` (which mounts its
+  `mods/`); on quit it is flushed and disposed after the game's `Unload()` (where the window's document
+  unloads), the window already closed, and the same after a failed start or loop. (Not without the option; not
+  the game making its own and handing it in.)
+- **S9-C. Reload:** `Application.ReloadData()`, which the game calls (the port binds it); the engine binds no
+  key and watches no file. It remounts everything, reloads the music from `Data`, then runs
+  `Data.Reloaded`'s other listeners. A Reload that fails is logged and gives false: when the data can't be
+  mounted it stays as it was; when only the music doesn't load, the data is the new one and the sound keeps
+  the music it had. (Not stopping the game as a failed start does; not a key of the engine's; not a file
+  watcher.)
+- **S9-D. The music on Reload:** the theme playing restarts from its start with the new data, through the
+  usual switch (0.55 s fade out, 0.8 s fade in), only when its music changed (its theme, or any instrument,
+  percussion voice or room, compared by binary form); otherwise it plays on untouched. Later `Play` calls use
+  the new library. The data's effect patches that are new or changed are registered (added or replaced); one
+  gone from the data stays playable until the game quits, and patches registered in code stay. (Not the new
+  library only from the next `Play` of another theme; not a restart after every Reload; not leaving the sound
+  out of Reload.)
 
 ## How it works
 
@@ -916,7 +949,7 @@ the records are step 2's test types).
   there at `classes` if it is a folder; then the development folder, `ApplicationOptions.DevelopmentFolder`
   else `$STATVENTURE_DEV_FOLDER` (`Application.DevelopmentFolderVariable`; empty means none), made a full
   path from the current folder; missing, the mount fails ("No folder …"). Mods come between the classes
-  and the development folder with step 9.
+  and the development folder since step 9 (below, step 9).
 - **`TestPaths.Packs`:** the repo's `engine/Assets/Packs/`. `CommittedPackTests` checks every committed
   pack there: one of the area packs, opens, every entry's hash, every record readable with the engine's
   record types (none is committed yet: steps 6 and 7 commit the first).
@@ -1157,7 +1190,7 @@ the importer `Tools/Scripts/make-music-data.sh` with `Tools/AudioReference/music
   breaks its path (stops, logged, naming the file); `play-theme.sh` lists the 55 themes;
   `audio-benchmark.sh --start` times a theme start as before.
 - **Later needs:** the library is read once, when the audio system starts; reloading it on
-  `Data.Reloaded` is step 9's (Reload). The packer still rebuilds `audio.pak` whole from the importer's
+  `Data.Reloaded` is step 9's (Reload; done: `AudioSystem.Reload`, S9-D). The packer still rebuilds `audio.pak` whole from the importer's
   folder: once the pack holds the port's effect patches too, the "update" command above is needed.
 
 ### Terrain in packs (step 8)
@@ -1215,6 +1248,89 @@ committed (Q1).
   folder (and by `Terrain.Load` before the GPU); the smallest valid grids; a file or another record type
   where a terrain is asked for; both forms with and without water; the three terrain scenes drawn from the
   pack against their Blender renders and pixel for pixel against the description-loaded terrain's.
+
+### The game's data at run time (step 9)
+
+Code: `Tools/Scripts/build.sh` and `build.ps1`, `Core/Application.cs` (`Storage`, `ReloadData`, the mods in
+`DataMounts`, `ApplicationOptions.GameFolder`), `Audio/AudioSystem.cs` (`Reload`), `Audio/Music/Soundtrack.cs`
+(`Use`), `Audio/Music/MusicLibrary.cs` (`SameMusic`). Tests: `Tests/Statventure.Tests/Packs/ApplicationModsTests.cs`,
+`Core/ApplicationStorageTests.cs`, `Core/ApplicationReloadTests.cs`, `Core/AudioReloadTests.cs` (and the
+helper `Core/TestApplication.cs`: a real application with a small window, as `ApplicationMusicTests`).
+
+- **The game folder the build makes** (S9-A): after the solution, `build.sh` publishes the sandbox from that
+  build into `$STATVENTURE_GAME` (`dotnet publish --no-build`, framework-dependent, so the folder holds the
+  BRUTAL natives of every runtime: 154 MB, copied once, then only what changed), then makes `packs/` hold
+  exactly `Assets/Packs/*.pak`: a `.pak` there that isn't committed is removed (other files are left), an
+  unchanged one is left alone (compared byte for byte), a changed or missing one is copied beside its place
+  (`<name>.pak.<pid>.tmp`) and renamed over it, so a game running from the folder keeps its open pack until it
+  reloads. `test.sh` runs `build.sh`, so every test run does this. `build.ps1` does the same in PowerShell
+  (the extension tested apart from `-Filter *.pak`, which matches longer extensions through 8.3 names; the
+  hash compared; `File.Replace` puts a changed pack in place, as Windows PowerShell's .NET has no overwriting
+  `File.Move`); not run (no PowerShell here, and Windows isn't checked).
+- **The mounts** (Q2, Q8, S3-4): `Application.DataMounts(options, executableFolder, environment, modsFolder)`
+  gives the area packs, `classes/`, then `Mount.Mods` of the player's `mods/` (a full path; mounted even when
+  the folder isn't there, so a mod put there later shows on Reload), then the development folder. `Run()`
+  passes `AppContext.BaseDirectory` and `Storage.ModsFolder`; each mount and each mod is logged ("Data").
+- **`Application.Storage`** (S9-B): made first in `Run()` (`ApplicationOptions.GameFolder`, made a full path,
+  else `GameFolder.ForThisMachine()`; logged, "Storage"); creating it touches nothing on disk. `Dispose()`,
+  which `Run()` ends with whether the start, the loop or the game's `Unload()` failed or not, disposes it
+  after the window and the sound (the window is gone while the last saves are written): pending saves and
+  settings are written, then it refuses more (`ObjectDisposedException`); the property is null afterwards.
+  Saves the game makes in its `Unload()`, where the window's document runs its unload sequence, are written.
+- **`Application.ReloadData()`** (S9-C), on the game's thread while the application runs (else an
+  `InvalidOperationException`): `Data.Reload()`; the application's own listener of `Data.Reloaded`,
+  subscribed before `Load()` so it runs before the game's, notes that the data was remounted and gives the
+  sound `MusicLibrary.Load(Data)`; the game's listeners follow. A mount that fails (any exception before the
+  remount) is logged as an Error ("not reloaded, the data stays as it was: …", the problem naming the file)
+  and gives false, nothing told. Music that doesn't load (an `IOException`: a `DataFileException` naming the
+  entry or file) is logged as an Error ("the music isn't reloaded, the sound keeps what it had: …"), the sound
+  keeps its library, the game's listeners still run, and it gives false. Otherwise "reloaded" is logged
+  ("reloaded, but not the music" in that case). An exception from a game's listener isn't caught (the data is
+  the new one then). Without sound only the data reloads.
+- **The sound** (S9-D): `AudioSystem.Reload(music)` (internal) starts preparing the new library's rooms on a
+  worker (as at the start; `RoomsReady` is then that work), switches the music (`Soundtrack.Use`), and
+  registers each effect patch of the new library that the old one didn't have or had with another binary form;
+  others aren't touched (a patch gone from the data stays, one registered in code under a name whose data
+  patch didn't change stays). `Soundtrack.Use(library, preparedRooms)`, on the game's thread: a new
+  `GraphBuilder` for the library (its composer kit made there, as for the first library: the old kit caches
+  rooms by name), `Library` and the rooms' preparer taken at once (so `Themes` and `Play` use the new
+  library), and, when the theme the game last asked for (`Play`, forgotten on `Stop`: what plays once the
+  queued calls are applied) isn't the same music in the new library (`MusicLibrary.SameMusic`: its theme
+  record, and every instrument, percussion voice and room of both libraries, equal by binary form, a key
+  missing on either side counting), its compiled theme from the new library (every theme is compiled then,
+  on the game's thread) and its room prepared; then queued for the audio thread: the new builder, and the
+  restart as a switch (`Theme` cleared, then `Play`: the old bus fades out over 0.55 s while the new
+  performance fades in over 0.8 s). A theme the new library doesn't have plays on (its compiled theme is
+  null). The performance playing keeps its own builder, so it plays on with the old data until replaced.
+- **Tests:** `ApplicationModsTests` (4): the mount order with packs, classes, mods and the development folder
+  (and without either); mods over packs and classes, two mods in name order, the development folder over a
+  mod, records too; Reload after a pack rebuilt by copying and renaming (the open pack read until then);
+  mods added, a second before and after, and taken away, the folder made and removed after the start.
+  `ApplicationStorageTests` (5): the folder from the option or this machine; a real application's storage at
+  the option's folder (relative), logged, its mods mounted below the development folder, gone afterwards,
+  nothing written; a save made in `Unload()`, in a `Load()` that throws and in an `Update()` that throws,
+  each with the writer taking a second, written when `Run` ends, and the storage refusing more.
+  `ApplicationReloadTests` (6): a Reload with a theme changed in the development folder, a new file and a mod
+  added (the game's listener running once, after the sound has the new music); a mount that fails, then
+  mended, then failing again after one that worked; music that doesn't load, then mended; a game listener's
+  exception; no sound; not running. `AudioReloadTests` (15): the restart equal sample for sample to the game
+  stopping and playing the new theme at once; playing on, equal sample for sample to no Reload, when another
+  theme changed, the same music was read again (equal records, other instances), the order and effects
+  changed, the theme is gone, or it was stopped; a restart for its theme, an instrument it doesn't play, one
+  added or taken away, a percussion voice, a room it isn't in; later plays on the new instruments, as a
+  system started on the new library; the effect patches' rule (rendered against patches registered by hand);
+  `SameMusic`'s rule.
+- **Checked by hand** (2026-11-03): `build.sh` in the worktree laid out `runtime/` (the sandbox, `packs/audio.pak`);
+  a stale `world.pak` there was removed and a `notes.txt` left, an unchanged `audio.pak` kept (same inode and
+  time), a damaged copy replaced by a rename while a reader held it open (the reader still read the old byte),
+  no temporary file left, a missing `packs/` made. The published sandbox run from that folder with a per-user
+  folder of its own (`XDG_DATA_HOME`) holding a mod (`faster-vale.pak`: alder-vale at another tempo and a new
+  theme) and a development folder: it logged the game folder, then `Pack …/runtime/packs/audio.pak`, `Mods
+  …/stat-fick/mods`, `Folder …/dev`, `mod …/faster-vale.pak`, opened its window, started the sound on the
+  music with the mod's themes, captured its frame and quit; the per-user folder held only the mod afterwards.
+  With a byte of the mod's index flipped it stopped before its window, logged: "faster-vale.pak: the index
+  doesn't match its hash (damaged)". With the mod's alder-vale given another id it stopped when the sound
+  started (after the window, as step 6's order has it), naming the mod and entry.
 
 ## Status
 
@@ -1331,3 +1447,23 @@ committed (Q1).
   arithmetic among them; both loaders, the check and its limits, the problem's naming through
   `VirtualFileSystem.Problem`; every key, kind and image check of the parser; the importer's ending,
   name, folder, record path and reading through the context), all fail a test. Not checked: Windows.
+- **Step 9, the game's data at run time, done (2026-11-03):** ("How it works", step 9); four questions asked on
+  the way (S9-A–S9-D, all as recommended). The build lays out `$STATVENTURE_GAME` (the sandbox published
+  beside `packs/`, which holds exactly the committed packs); `Application.Storage` (the player's game folder,
+  `ApplicationOptions.GameFolder`, written out when the application ends, after the game's unload and after a
+  failed start or loop); the mods of its `mods/` mounted between `classes/` and the development folder;
+  `Application.ReloadData()` (the data remounted, the music reloaded, the theme playing restarted when its music
+  changed, the data's new and changed effect patches registered; a failure logged, giving false). 30 new tests
+  (`ApplicationModsTests`, `ApplicationStorageTests`, `ApplicationReloadTests`, `AudioReloadTests`);
+  `ApplicationMusicTests` points its application at a game folder of its own (it would have mounted the real
+  per-user mods). Checked by hand: the build script's copy rules, and the published sandbox in the shipped
+  layout with a mod and a development folder (and a damaged mod, and a mod's theme with a wrong id). Two points
+  of this doc were found open rather than wrong: nothing ran from `$STATVENTURE_GAME`, so packs copied there
+  alone would have been read by nothing (S9-A), and Reload's mounts are the ones found at the start (now noted
+  under "The virtual file system"). The full suite passes on the GPU and on lavapipe (1716 tests). Mutations: 54
+  (`~/.cache/stat-fick-build/claude-work/m9/step9-mutations.json`), 49 fail a test (one malformed mutation, a `foreach` left
+  without its body, was replaced and is killed); the 5 survivors change no sample, only when and on which thread work is done (as step 6's survivor): the restart's room not prepared on the game's thread ahead of it, `Play` preparing rooms through the old library's preparer, the new builder's composer kit made on the audio thread at its first performance (the same fixed-seed noise), the new builder without the prepared rooms (the composer makes the room's response and kernels itself, sample for sample the same, as the exact restart test shows), and the new library's rooms not prepared on a worker (the process-wide cache is filled on demand instead). The build script's
+  rules broken by hand one at a time (7: no publish, no `packs/` made, stale packs kept, every stale file removed, unchanged
+  packs copied again, copied in place, the temporary file left): each fails the check script
+  (`claude-work/m9/step9/build-mutations.py`, `build-rules.sh`). Not checked: Windows (`build.ps1` not run: no PowerShell
+  here).

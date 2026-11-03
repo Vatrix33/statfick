@@ -21,6 +21,7 @@ public class ApplicationMusicTests
     {
         Window = new WindowOptions { Title = "Statventure music test", Width = 160, Height = 100 },
         DevelopmentFolder = development,
+        GameFolder = Path.Combine(Path.GetDirectoryName(development)!, "player"),
     })
     {
         public MusicLibrary? Music;

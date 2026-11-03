@@ -86,22 +86,46 @@ public sealed class AudioSystem : IDisposable
         // worker, the rooms in turn, leaving the other cores to the game and the audio thread; they are
         // kept for the process, per rate, as they never change.
         var rate = _graph.SampleRateF;
-        var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        RoomsReady = ready.Task;
-        new Thread(() =>
-        {
-            foreach (var name in music.Rooms.Keys)
-                PreparedRoom.Get(music, name, rate);
-            ready.SetResult();
-        }) { Name = "Statventure audio rooms", IsBackground = true, Priority = ThreadPriority.BelowNormal }.Start();
+        RoomsReady = PrepareRooms(music, rate);
         Music = new Soundtrack(_graph, _master, music, dispatch: Post, preparedRooms: name => PreparedRoom.Get(music, name, rate));
         Effects = new SoundEffects(_graph, _effects, Music.Noise, Post);
         foreach (var (name, patch) in music.Effects)
             Effects.Register(name, patch);
     }
 
-    /// <summary>Done when every room is prepared.</summary>
-    internal Task RoomsReady { get; }
+    /// <summary>Prepares <paramref name="music"/>'s rooms on a worker of their own; done when every one is.</summary>
+    static Task PrepareRooms(MusicLibrary music, float rate)
+    {
+        var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        new Thread(() =>
+        {
+            foreach (var name in music.Rooms.Keys)
+                PreparedRoom.Get(music, name, rate);
+            ready.SetResult();
+        }) { Name = "Statventure audio rooms", IsBackground = true, Priority = ThreadPriority.BelowNormal }.Start();
+        return ready.Task;
+    }
+
+    /// <summary>
+    /// Plays <paramref name="music"/> from now on (the data reloaded: <c>Application.ReloadData</c>; Docs/Assets.md,
+    /// S9-D): its rooms prepared on a worker as at the start, the music switched to it
+    /// (<see cref="Soundtrack.Use"/>: the theme playing restarts when its music changed), and its effect patches
+    /// that are new or changed registered; a patch gone from the data stays playable, and one registered in code
+    /// stays unless the data's patch of its name is new or changed.
+    /// </summary>
+    internal void Reload(MusicLibrary music)
+    {
+        var old = Music.Library;
+        var rate = _graph.SampleRateF;
+        RoomsReady = PrepareRooms(music, rate);
+        Music.Use(music, name => PreparedRoom.Get(music, name, rate));
+        foreach (var (name, patch) in music.Effects)
+            if (!old.Effects.TryGetValue(name, out var was) || !MusicLibrary.SameRecord(was, patch))
+                Effects.Register(name, patch);
+    }
+
+    /// <summary>Done when every room of the library last given is prepared.</summary>
+    internal Task RoomsReady { get; private set; }
 
     /// <summary>The music: themes, their fades, the music volume.</summary>
     public Soundtrack Music { get; }
