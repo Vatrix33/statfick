@@ -1,0 +1,26 @@
+{
+  "$types": {
+    "test.creature": 2,
+    "test.limb": 2
+  },
+  "name": "Ogre",
+  "limbs": [
+    {
+      "kind": "arm",
+      "length": 0.75
+    },
+    {
+      "kind": "leg",
+      "length": 1.25
+    },
+    {
+      "kind": "leg",
+      "length": 1.25
+    },
+    {
+      "kind": "tail",
+      "length": 2.1
+    }
+  ],
+  "speed": 3
+}

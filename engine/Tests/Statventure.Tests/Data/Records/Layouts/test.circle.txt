@@ -1,0 +1,3 @@
+test.circle 1
+  1 tint: string = "ink"
+  2 radius: float64 (required)

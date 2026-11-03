@@ -1,0 +1,4 @@
+test.square 1
+  1 tint: string = "ink"
+  2 side: float64 = 0
+  3 inner: test.shape? = null

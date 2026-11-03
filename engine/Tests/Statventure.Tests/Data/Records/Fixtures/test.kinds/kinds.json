@@ -1,0 +1,242 @@
+{
+  "$types": {
+    "test.kinds": 1,
+    "test.part": 1,
+    "test.joint": 1,
+    "test.point": 1,
+    "test.shape": 1,
+    "test.square": 1,
+    "test.circle": 1,
+    "test.dot": 1,
+    "test.empty": 1
+  },
+  "flag": true,
+  "int8": -128,
+  "uInt8": 255,
+  "int16": -32768,
+  "uInt16": 65535,
+  "int32": -2147483648,
+  "uInt32": 4294967295,
+  "int64": -9223372036854775808,
+  "uInt64": 18446744073709551615,
+  "float32": -0,
+  "float64": 5E-324,
+  "text": "Ünïcödé ✦ \"quoted\" \\ line\nbreak\ttab \uD83D\uDE00",
+  "note": "",
+  "count": 0,
+  "ratio": null,
+  "shade": "golden",
+  "pace": "slow",
+  "huge": "big",
+  "bytes": "AAEC/v8NCg==",
+  "maybeBytes": "",
+  "ints": [
+    1,
+    -1,
+    2147483647
+  ],
+  "floats": [
+    0.1,
+    "NaN",
+    "Infinity",
+    "-Infinity",
+    1E-45,
+    3.4028235E+38,
+    -0
+  ],
+  "doubles": [
+    0.1,
+    1E+21,
+    1E-07,
+    "NaN",
+    "-Infinity",
+    1.7976931348623157E+308,
+    5E-324,
+    -0
+  ],
+  "bools": [
+    true,
+    false,
+    true
+  ],
+  "shorts": [
+    0,
+    1,
+    65535
+  ],
+  "longs": [
+    9223372036854775807,
+    -2
+  ],
+  "v2": [1, 2],
+  "v3": [0.5, -1.5, 3],
+  "v4": [1, 2, 3, "NaN"],
+  "rotation": [0, 0.70710677, 0, 0.70710677],
+  "matrix": [2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 1, 2, 3, 1],
+  "points": [[1, 2, 3],[-0, 1E-45, 1E-30]
+  ],
+  "matrices": [[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],[1, 0, 0, 0, 0, 0.87758255, 0.47942555, 0, 0, -0.47942555, 0.87758255, 0, 0, 0, 0, 1]
+  ],
+  "words": [
+    "a",
+    "",
+    "β"
+  ],
+  "gaps": [
+    "x",
+    null,
+    ""
+  ],
+  "names": [
+    "first",
+    "second"
+  ],
+  "readOnlyInts": [
+    3,
+    2,
+    1
+  ],
+  "jagged": [
+    [
+      1,
+      2
+    ],
+    [],
+    [
+      "NaN"
+    ]
+  ],
+  "floatList": [
+    1.5,
+    -2.25
+  ],
+  "scores": {
+    "zeta": 1,
+    "alpha": 2,
+    "mid": 3
+  },
+  "parts": {
+    "head": {
+      "name": "helm",
+      "weight": 2.5,
+      "shade": "dark"
+    },
+    "arm": {
+      "name": "glove",
+      "weight": 1,
+      "shade": "pale"
+    }
+  },
+  "pairs": {
+    "kick": "x...x...",
+    "snare": "..x...x.",
+    "hat": "xxxxxxxx"
+  },
+  "byNumber": {
+    "10": "ten",
+    "-3": null,
+    "0": "zero"
+  },
+  "byShade": {
+    "golden": 1,
+    "pale": -1
+  },
+  "ordered": {
+    "b": 2,
+    "a": 1
+  },
+  "sparse": {
+    "18446744073709551615": null,
+    "7": {
+      "name": "seven",
+      "weight": 1,
+      "shade": "pale"
+    }
+  },
+  "part": {
+    "name": "core",
+    "weight": -0,
+    "shade": "pale"
+  },
+  "joint": {
+    "a": 1,
+    "b": 65535
+  },
+  "joints": [
+    {
+      "a": 0,
+      "b": 1
+    },
+    {
+      "a": 2,
+      "b": 3
+    }
+  ],
+  "maybeJoint": {
+    "a": 4,
+    "b": 5
+  },
+  "point": {
+    "x": 1.5,
+    "y": 2,
+    "visible": false,
+    "pace": "fast",
+    "label": "here"
+  },
+  "maybeParts": [
+    null,
+    {
+      "name": "p",
+      "weight": 1,
+      "shade": "pale"
+    }
+  ],
+  "shape": {
+    "$type": "test.square",
+    "tint": "red",
+    "side": 2,
+    "inner": {
+      "$type": "test.circle",
+      "tint": "ink",
+      "radius": 0.5
+    }
+  },
+  "shapes": [
+    {
+      "$type": "test.dot",
+      "tint": "ink"
+    },
+    {
+      "$type": "test.circle",
+      "tint": "",
+      "radius": 3
+    },
+    {
+      "$type": "test.square",
+      "tint": "ink",
+      "side": 1
+    }
+  ],
+  "empties": [
+    {},
+    {},
+    {}
+  ],
+  "shapesByName": {
+    "sun": {
+      "$type": "test.circle",
+      "tint": "gold",
+      "radius": 10
+    }
+  },
+  "paces": [
+    "fast",
+    "slow",
+    "steady"
+  ],
+  "shadePairs": {
+    "dark": 1,
+    "pale": 2
+  },
+  "motto": "none"
+}

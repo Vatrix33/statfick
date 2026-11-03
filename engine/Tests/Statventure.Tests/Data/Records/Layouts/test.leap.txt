@@ -1,0 +1,8 @@
+test.leap 1
+  1 cue: string = ""
+  2 height: float32 (required)
+
+test.leap 2
+  1 cue: string = ""
+  2 height: float64 (required)
+  3 spin: bool = false

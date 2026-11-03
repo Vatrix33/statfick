@@ -1,0 +1,3 @@
+test.fly 1
+  1 cue: string = ""
+  2 altitude: float64 (required)

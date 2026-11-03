@@ -1,0 +1,6 @@
+test.point 1
+  1 x: float32 (required)
+  2 y: float32 = 2
+  3 visible: bool = true
+  4 pace: enum int32 {steady = 0, fast = 1, slow = -1} = "fast"
+  5 label: string? = null

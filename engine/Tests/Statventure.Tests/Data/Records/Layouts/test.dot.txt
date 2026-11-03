@@ -1,0 +1,2 @@
+test.dot 1
+  1 tint: string = "ink"

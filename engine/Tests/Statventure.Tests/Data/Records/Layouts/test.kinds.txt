@@ -1,0 +1,64 @@
+test.kinds 1
+  1 flag: bool = false
+  2 int8: int8 = 0
+  3 uInt8: uint8 = 0
+  4 int16: int16 = 0
+  5 uInt16: uint16 = 0
+  6 int32: int32 = 0
+  7 uInt32: uint32 = 0
+  8 int64: int64 = 0
+  9 uInt64: uint64 = 0
+  10 float32: float32 = 0
+  11 float64: float64 = 0
+  12 text: string (required)
+  13 note: string? = null
+  14 count: int32? = null
+  15 ratio: float64? = 0.5
+  16 shade: enum uint8 {pale = 0, dark = 5, golden = 200} = "pale"
+  17 pace: enum int32 {steady = 0, fast = 1, slow = -1}? = null
+  18 huge: enum uint64 {small = 1, big = 9223372036854775808} = "small"
+  19 bytes: bytes = ""
+  20 maybeBytes: bytes? = null
+  21 ints: list<int32> = []
+  22 floats: list<float32> = []
+  23 doubles: list<float64> = []
+  24 bools: list<bool> = []
+  25 shorts: list<uint16> = []
+  26 longs: list<int64> = []
+  27 v2: vector2 = [0, 0]
+  28 v3: vector3 = [0, 0, 0]
+  29 v4: vector4 = [0, 0, 0, 0]
+  30 rotation: quaternion = [0, 0, 0, 1]
+  31 matrix: matrix4x4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+  32 points: list<vector3> = []
+  33 matrices: list<matrix4x4> = []
+  34 maybeRotation: quaternion? = null
+  35 words: list<string> = []
+  36 gaps: list<string?> = []
+  37 names: list<string> = []
+  38 readOnlyInts: list<int32> = []
+  39 jagged: list<list<float64>> = []
+  40 maybeInts: list<int32>? = null
+  41 floatList: list<float32> = []
+  42 scores: map<string, int32> = {}
+  43 parts: map<string, test.part> = {}
+  44 pairs: map<string, string> = {}
+  45 byNumber: map<int32, string?> = {}
+  46 byShade: map<enum uint8 {pale = 0, dark = 5, golden = 200}, float64> = {}
+  47 ordered: map<string, int32>? = null
+  48 sparse: map<uint64, test.part?> = {}
+  49 part: test.part (required)
+  50 maybePart: test.part? = null
+  51 joint: test.joint = {"a":0,"b":0}
+  52 joints: list<test.joint> = []
+  53 maybeJoint: test.joint? = null
+  54 point: test.point = {"x":0,"y":2,"visible":true,"pace":"fast"}
+  55 maybeParts: list<test.part?> = []
+  56 shape: test.shape = {"$type":"test.dot","tint":"ink"}
+  57 shapes: list<test.shape> = []
+  58 maybeShape: test.shape? = null
+  59 empties: list<test.empty> = []
+  60 shapesByName: map<string, test.shape> = {}
+  61 paces: list<enum int32 {steady = 0, fast = 1, slow = -1}> = []
+  62 shadePairs: map<enum uint8 {pale = 0, dark = 5, golden = 200}, int32> = {}
+  63 motto: string = "none"

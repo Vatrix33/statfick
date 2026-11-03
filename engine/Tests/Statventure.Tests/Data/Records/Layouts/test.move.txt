@@ -1,0 +1,8 @@
+test.move 1 union
+  1 test.walk
+  2 test.leap
+
+test.move 2 union
+  1 test.walk
+  2 test.leap
+  3 test.fly

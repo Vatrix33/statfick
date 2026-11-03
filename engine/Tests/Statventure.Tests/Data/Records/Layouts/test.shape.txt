@@ -1,0 +1,4 @@
+test.shape 1 union
+  1 test.circle
+  2 test.square
+  3 test.dot

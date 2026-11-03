@@ -1,0 +1,7 @@
+test.limb 1
+  1 kind: string (required)
+  2 length: float32 = 1
+
+test.limb 2
+  1 kind: enum int32 {arm = 0, leg = 1, wing = 2, tail = 3} (required)
+  2 length: float64 = 1

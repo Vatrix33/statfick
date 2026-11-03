@@ -349,7 +349,7 @@ Order: **1 and 2** side by side; then **3** (after 1 and 2) beside **4** (after 
    - Tests: every field kind in both forms; floats bit for bit; null and empty; dictionary order;
      unions; damaged and truncated input; a newer version refused; upgrade chains from fixtures of
      test types with several versions; a layout changed without a new version caught.
-   - Format details: Q10–Q13.
+   - Format details: Q10–Q13; asked during the step: Q32–Q37.
 3. **Records in packs, the packer's JSON input and dump, `Application.Data`.** After 1 and 2.
    - Changes `Engine/Statventure/Packs/` (record entries, `Load<T>`), `Tools/Packer/` (JSON-form input,
      `dump`, the importer attribute), `Engine/Statventure/Core/Application.cs` (`Data`: the game's packs,
@@ -515,6 +515,27 @@ Asked during step 1 (2026-11-03), every answer the recommended option:
   folder; the old game's own files stay as they are. One path rule for everything. (Not an exception
   for `classes/`.)
 
+Asked during step 2 (user, 2026-11-03; every answer the recommended option), details of the record
+forms the questions above left open:
+
+- **Q32. Enum values in JSON** are the member's name in camelCase (`"lowpass"`, `"cubicSpline"`); an
+  unknown name is an error, and renaming a member is a layout change. (Not the name as declared, not
+  the number.)
+- **Q33. What the JSON writer leaves out:** only a null field whose default is null; every other
+  value is written, values equal to a non-null default too, and a null whose default isn't null is
+  written as `null`. A field's default is part of its layout signature, so a changed default is a
+  new version (absent keys in older JSON depend on it). (Not every default left out, not every null
+  written.)
+- **Q34. An ordered list of pairs** (`IReadOnlyList<KeyValuePair<K, V>>`, as a drums layer's patterns)
+  has the dictionary form: binary a count then the pairs, JSON an object with its keys in order; a
+  repeated key is an error. (Not an array of `[key, value]` arrays, not of `{"key", "value"}` objects.)
+- **Q35. `$types`** is an object of record type name → version, the root's type first. (Not an array
+  of `{"type", "version"}` objects.)
+- **Q36. Vectors, quaternions and matrices in JSON** are arrays of numbers in System.Numerics' order
+  (`[x, y, z]`, `[x, y, z, w]`, a matrix's M11, M12 … M44). (Not objects with named components.)
+- **Q37. Adding a subtype to a union is a new version of the union:** its tag list is part of its
+  layout signature. (Not tags that may only be added without a new version.)
+
 ## How it works
 
 Filled in as the steps are done.
@@ -603,6 +624,79 @@ engine's functions. Tests: `Tests/Statventure.Tests/Packs/`.
   delete sharing can be renamed over (Assets.md's reason for the sharing) is still to be seen on the
   user's Windows PC.
 
+### Records (step 2: `Engine/Statventure/Records/`)
+
+- **Declaring** (`RecordAttributes.cs`): `[Record("audio.theme", 2)]` on the type (names: lowercase
+  ASCII letters, digits, `.`, `-`, `_`), `[Field(n)]` on each serialized property (numbers from 1,
+  unique; on a positional record `[property: Field(n)]`). A record is a class, record or struct made
+  either through the public constructor whose parameters are all fields (a positional record, matched
+  by name and type) or through the parameterless one, then the other fields' setters (init or set). A
+  past version is a frozen copy nested in the current type with the same name and its own version
+  (`Creature.V1`), with an instance method `Upgrade()` returning the next version's type; every version
+  from 1 must have one. A frozen copy's fields hold current types: each record type versions on its
+  own. A union is an abstract type with `[Subtype(tag, typeof(X))]` (tags from 1); its subtypes are
+  plain records deriving from it, each with its own name and version; a `[Field]` on the union is a
+  field of every subtype. A union's past version is a frozen copy listing the old tags (no upgrade:
+  its values are its subtypes'). A plain record may become a union (its last plain version upgrades
+  into a subtype), not back.
+- **Field kinds** (`RecordCodecs.cs`): bool, the integer types, float, double, string, `byte[]`,
+  enums (not `[Flags]`, no two members with one value), `Vector2/3/4`, `Quaternion`, `Matrix4x4`,
+  nullable value types, nullable references (from C#'s nullable annotations; an unannotated
+  reference is refused), lists (`T[]`, `List<T>`, `IReadOnlyList<T>` and the other list interfaces,
+  read as arrays except `List<T>`), dictionaries (`Dictionary`, `IReadOnlyDictionary`, `IDictionary`,
+  `OrderedDictionary`; keys strings, integers or enums), lists of pairs, records and unions. Anything
+  else is refused when the type is first used, with the field named.
+- **Defaults and required keys:** an absent JSON key keeps what the declaration gives (a parameter's
+  default, a property's initializer); a `required` property, a positional parameter without a default
+  (nullable or not: a state's `string? Clip` must be given, and its null is written), and a
+  non-nullable reference whose default is null must be present.
+- **Compiled once:** `RecordFamily` (one per record name: the current type, the frozen copies, each
+  version's layout built lazily, the upgrades checked when the type is first used) and `RecordLayout`
+  (`PlainLayout<T>`: compiled getters per field and one compiled factory `(values, present) => new T(…)
+  { … }` per type; `UnionLayout`: the tags of its version). Thread-safe; a bad declaration throws an
+  `InvalidOperationException` naming the type and field.
+- **Binary form** (`BinaryRecordIO.cs`): the table (a count, then each type's name and version, the
+  root's type first, then the others in the order the value meets them; only the types it uses), then
+  the root's fields in number order. Counts and lengths are LEB128 (only the shortest form, at most 64
+  bits); numbers are little-endian at their width (enums at their underlying type's); floats bit for
+  bit, NaN payloads included; strings strict UTF-8; a presence byte (0 or 1) before a nullable value;
+  lists a count then the elements (numbers and vectors copied as one block); dictionaries and pair lists
+  a count then key and value; a union its tag, then the subtype's fields (the union's own fields first,
+  by number). Bools and presence bytes must be 0 or 1, enum numbers members, a count no more than the
+  bytes left (records without fields: at most 65 536), nesting at most 256 records deep, and nothing
+  may follow the root.
+- **JSON form**: `{"$types": {name: version, …}, …}` then the fields by camelCase name in number
+  order; a union value's object starts with `"$type"` (its subtype's record name); enum members by
+  camelCase name; doubles and floats in their own shortest round-trip form, NaN and the infinities as
+  strings; `byte[]` base64; vectors and matrices as one-line arrays; dictionaries as objects (keys as
+  text: integers in their one decimal form, enums by name). Written indented by two spaces, LF line
+  ends, a final line end, only JSON's escapes (non-ASCII kept). Read strictly: no comments or trailing
+  commas, a byte order mark allowed, an unknown or repeated key an error, `$type` only in a union,
+  `$types` only at the top.
+- **Versions:** each type's version comes from the table; an older one is read by its frozen copy and
+  upgraded step by step (an exception in an upgrade becomes a format error); a newer one than the
+  engine has, or a type the table doesn't list, is an error naming it; the first table entry must be
+  the type asked for.
+- **API** (`RecordSerializer.cs`): `ToBinary`, `FromBinary`, `ToJson` (string), `ToJsonUtf8`,
+  `FromJson` (string or UTF-8), generic and by `Type`; `RootTypeName` (the record type a binary form
+  holds); `LayoutText` (a type's signatures); `FindTypes` (the current record types of assemblies by
+  name). Errors are `RecordFormatException`s: `Reason` and `Path` (`$.limbs[1].kind`), on reading and
+  on writing (a null in a non-nullable field, a lone surrogate, a repeated key in a pair list, an enum
+  value that isn't a member).
+- **The guard** (`Tests/Statventure.Tests/Records/`, data in `Tests/Statventure.Tests/Data/Records/`):
+  `Layouts/<name>.txt` holds every version's layout signature of each record type of the engine and the
+  tests (field numbers, camelCase names, kinds with enum members and their numbers, nested records by
+  name, `(required)` or the default as JSON; a union's tags); `Fixtures/<root type>/<label>.rec` and
+  `.json` are the fixtures. `RecordLayoutTests` fails when a type's layout isn't its version's recorded
+  one, a recorded type is gone, a version of a type has no fixture holding a value of it in either form,
+  the two forms of a fixture differ, or a fixture of the current versions isn't written back to the same
+  bytes. A new type or version: declare it, add its fixtures with `RecordFixtures.Ensure(label, value)`
+  in a test, and run the tests once with `STATVENTURE_RECORD_FIXTURES=1`, which writes missing layouts
+  and fixtures (never an existing one). The tests' own types are `test.*` (`TestRecords.cs`: every field
+  kind; a family with three versions, a nested type with two, a union that gained a subtype, written
+  through a downgrade hook as the past versions would have been); `RecordVariants.cs` has deliberately
+  broken or varied declarations, which the guard leaves out.
+
 ## Status
 
 - **Nothing implemented yet** (2026-11-02). The decisions and the 27 format details are recorded, the
@@ -620,3 +714,16 @@ engine's functions. Tests: `Tests/Statventure.Tests/Packs/`.
   running during Reloads); the 2 survivors can't differ here: opening with read sharing only (Linux's
   `FileShare` is an advisory lock; it matters on Windows) and writing without the flush to disk (it
   matters only after a crash). Not checked: Windows (see "How it works").
+- **Step 2, the record serializer, done (2026-11-03):** `Engine/Statventure/Records/` ("How it works",
+  "Records"); six format details asked on the way (Q32–Q37, all as recommended). 45 tests in
+  `Tests/Statventure.Tests/Records/`: every field kind in both forms, floats bit for bit (2000 random
+  values each, NaN payloads in binary), null and empty, dictionary and pair order, unions, the exact bytes
+  and text the format gives, defaults and required keys, truncation at every length, 3000 damaged copies
+  (a format error or a value, never another exception), each kind of bad byte, table and JSON, a newer
+  version refused, depth limits, the upgrade chains from fixtures of past versions (test.creature 1–3,
+  test.limb 1–2, test.move 1–2, test.leap 1–2) in both forms, refused declarations, and the layout
+  guard. Binary fixtures are `.rec` (`*.rec binary` in `../.gitattributes`, added by step 1). The full
+  suite passes on the GPU and on lavapipe (1229 tests). Mutations: 103, all fail a test after one gap
+  was closed (a positional parameter without a default that is nullable, as a state's clip, wasn't
+  required: no test type had one); one mutation of the list was malformed (it left a dangling `else`)
+  and was replaced by two valid ones, both killed.

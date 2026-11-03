@@ -1,0 +1,16 @@
+test.creature 1
+  1 name: string (required)
+  2 legs: int32 = 0
+  3 limbs: list<test.limb> = []
+
+test.creature 2
+  1 name: string (required)
+  2 limbs: list<test.limb> = []
+  3 speed: float64 = 1
+
+test.creature 3
+  1 name: string (required)
+  2 limbs: list<test.limb> = []
+  3 speed: float64 = 0.5
+  4 title: string? = null
+  5 moves: list<test.move> = []
