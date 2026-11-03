@@ -1,0 +1,6 @@
+audio.harmony 1
+  1 instrument: string? = null
+  2 steps: float64? = null
+  3 velocity: float64? = null
+  4 octave: float64? = null
+  5 pan: float64? = null

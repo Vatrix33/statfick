@@ -1,0 +1,56 @@
+{
+  "$types": {
+    "audio.effect": 1,
+    "audio.effect-layer": 1,
+    "audio.effect-filter": 1,
+    "audio.effect-range": 1
+  },
+  "layers": [
+    {
+      "source": "harmonics",
+      "frequency": 660,
+      "frequencyTo": 330,
+      "sweepTime": 0.1,
+      "harmonics": [
+        0,
+        1,
+        0.4
+      ],
+      "filter": {
+        "type": "peaking",
+        "frequency": 1200,
+        "frequencyTo": 800,
+        "sweepTime": 0.2,
+        "q": 2,
+        "gain": 6
+      },
+      "delay": 0.01,
+      "attack": 0.004,
+      "level": 0.6,
+      "length": 0.3
+    },
+    {
+      "source": "noise",
+      "frequency": 440,
+      "filter": {
+        "type": "highpass",
+        "frequency": 3000,
+        "q": 1
+      },
+      "delay": 0,
+      "attack": 0.002,
+      "level": 1,
+      "length": 0.05
+    }
+  ],
+  "level": 0.7,
+  "maxVoices": 3,
+  "pitch": {
+    "min": 0.9,
+    "max": 1.1
+  },
+  "volume": {
+    "min": 0.8,
+    "max": 1
+  }
+}

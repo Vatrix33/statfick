@@ -1,0 +1,8 @@
+{
+  "$types": {
+    "audio.room": 1
+  },
+  "seconds": 4.2,
+  "dark": 0.6,
+  "wet": 0.36
+}

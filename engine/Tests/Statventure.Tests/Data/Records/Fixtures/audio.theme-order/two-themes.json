@@ -1,0 +1,9 @@
+{
+  "$types": {
+    "audio.theme-order": 1
+  },
+  "themes": [
+    "alder-vale",
+    "combat@alder-vale"
+  ]
+}

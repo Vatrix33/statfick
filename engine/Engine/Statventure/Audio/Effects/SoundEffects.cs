@@ -46,20 +46,13 @@ public sealed class SoundEffects
     /// <summary>Makes <paramref name="patch"/> playable as <paramref name="id"/> (a patch registered again replaces the old one for later plays).</summary>
     public void Register(string id, EffectPatch patch)
     {
-        if (patch.Layers.Length == 0)
-            throw new ArgumentException($"Effect '{id}' has no layers", nameof(patch));
-        if (patch.MaxVoices < 1)
-            throw new ArgumentException($"Effect '{id}' allows no voices", nameof(patch));
+        if (patch.Problem() is { } problem)
+            throw new ArgumentException($"Effect '{id}' {problem}", nameof(patch));
         var waves = new PeriodicWave?[patch.Layers.Length];
         for (var i = 0; i < waves.Length; i++)
         {
-            var layer = patch.Layers[i];
-            if (!(layer.Length > 0) || !(layer.Attack >= 0) || !(layer.Delay >= 0))
-                throw new ArgumentException($"Effect '{id}': layer {i} needs a length above 0, and no negative attack or delay", nameof(patch));
-            if (layer.Source != EffectSource.Harmonics)
+            if (patch.Layers[i] is not { Source: EffectSource.Harmonics, Harmonics: { } harmonics })
                 continue;
-            if (layer.Harmonics is not { Length: > 0 } harmonics)
-                throw new ArgumentException($"Effect '{id}': layer {i} has no harmonics", nameof(patch));
             // Made here, not on the audio thread: a periodic wave's tables take a while.
             var imag = harmonics.Select(h => (float)h).ToArray();
             waves[i] = _graph.CreatePeriodicWave(new float[imag.Length], imag);

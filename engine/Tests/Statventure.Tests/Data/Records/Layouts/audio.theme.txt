@@ -1,0 +1,15 @@
+audio.theme 1
+  1 id: string (required)
+  2 title: string (required)
+  3 tempo: float64 (required)
+  4 meter: list<int32> (required)
+  5 tonic: float64 (required)
+  6 mode: string (required)
+  7 room: string? = null
+  8 gain: float64? = null
+  9 swing: float64? = null
+  10 eq: audio.eq? = null
+  11 sections: map<string, audio.section> (required)
+  12 form: list<string> (required)
+  13 loop: int32? = null
+  14 motif: string? = null

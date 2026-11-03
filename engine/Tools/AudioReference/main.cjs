@@ -11,7 +11,7 @@
 // (<name>.<k>.f32.gz), to see how Chromium's own renders differ.
 //
 // Usage: electron . --fixtures=/abs/audio-fixtures.json --out=/abs/folder [--only=name,name]
-//        electron . --old-game=/abs/old-game/scripts --music-data=/abs/MusicData.g.cs (music.cjs)
+//        electron . --old-game=/abs/old-game/scripts --music-data=/abs/folder (music.cjs: the records' JSON forms)
 //        electron . --old-game=/abs/old-game/scripts --music-references=/abs/Reference (music.cjs)
 //        electron . --old-game=/abs/old-game/scripts --themes-out=/abs/cache/folder [--runs=4] [--only=id,id] (themes.cjs)
 const { app, BrowserWindow } = require("electron");

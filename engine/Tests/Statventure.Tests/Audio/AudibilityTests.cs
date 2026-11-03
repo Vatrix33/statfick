@@ -117,7 +117,7 @@ public class AudibilityTests
     [Fact]
     public void TheAudioSystemIsAudibleWhilePlayingAndSilentWhenPaused()
     {
-        using var system = new AudioSystem(new Sink());
+        using var system = new AudioSystem(new Sink(), TestMusic.Library);
         static bool Within(Func<bool> condition)
         {
             for (var i = 0; i < 1000 && !condition(); i++)

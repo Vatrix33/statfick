@@ -24,7 +24,7 @@ public class MusicTests
     static readonly Lazy<JsonElement> Scores = new(() => Reference("music-scores.json"));
     static readonly Lazy<JsonElement> Logs = new(() => Reference("music-logs.json"));
 
-    public static TheoryData<string> Themes => new(MusicData.Themes.Select(t => t.Id));
+    public static TheoryData<string> Themes => new(TestMusic.Library.Themes);
     public static TheoryData<string> Performances => new(Reference("music-logs.json").EnumerateObject().Select(p => p.Name));
 
     sealed class Fnv
@@ -89,7 +89,7 @@ public class MusicTests
     public void ThemesCompileAsTheOldComposerDid(string id)
     {
         var expected = Scores.Value.GetProperty(id);
-        var compiled = Score.Compile(MusicData.Themes.Single(t => t.Id == id));
+        var compiled = Score.Compile(TestMusic.Library.Theme(id)!);
         var lines = Digest(compiled);
         Assert.Equal(expected.GetProperty("lines"u8).GetInt32(), lines.Count);
         Assert.Equal(expected.GetProperty("digest"u8).GetString(), new Fnv().Text(string.Join("\n", lines) + "\n").Hex);
@@ -98,7 +98,7 @@ public class MusicTests
 
     [Fact]
     public void EveryThemeIsReferenced() =>
-        Assert.Equal(Scores.Value.EnumerateObject().Select(p => p.Name).Where(n => n != "lintSpecs").Order(), MusicData.Themes.Select(t => t.Id).Order());
+        Assert.Equal(Scores.Value.EnumerateObject().Select(p => p.Name).Where(n => n != "lintSpecs").Order(), TestMusic.Library.Themes.Order());
 
     /// <summary>
     /// Small specs (Reference/lint-specs.json) with clashes for lint and the chord forms no theme uses
@@ -129,9 +129,9 @@ public class MusicTests
     /// <summary>The theme performed as renderOffline does (steps at 0.05 + n · stepSeconds) and 64 steps past its end, logged.</summary>
     internal static (List<List<string>> Segments, GraphBuilder Builder) Perform(string id, int rate)
     {
-        var compiled = Score.Compile(MusicData.Themes.Single(t => t.Id == id));
+        var compiled = Score.Compile(TestMusic.Library.Theme(id)!);
         var log = new List<string>();
-        var builder = new GraphBuilder(new AudioGraph(rate), log);
+        var builder = new GraphBuilder(new AudioGraph(rate), TestMusic.Library, log);
         var segments = new List<List<string>>();
         void Close()
         {

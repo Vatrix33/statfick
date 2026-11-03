@@ -6,6 +6,7 @@ namespace Statventure.Audio;
 /// fades the theme playing out over 0.55 s (and lets its bus go 1.8 s later) while the new one fades
 /// in over 0.8 s, scheduling steps 0.2 s ahead. Themes are named by the old game's ids
 /// ("alder-vale", "combat@alder-vale", a boss's id); which one plays is the game's choice. The
+/// themes and the composer's instruments come from a <see cref="MusicLibrary"/>. The
 /// renderer calls <see cref="Schedule"/> before each render quantum (music.js runs it every 45 ms;
 /// the notes come out the same, all of them being scheduled ahead of their time). Under an
 /// <see cref="AudioSystem"/> the game's calls are queued and applied by the audio thread before its
@@ -14,8 +15,6 @@ namespace Statventure.Audio;
 public sealed class Soundtrack
 {
     const double MasterLevel = 0.58;
-
-    static readonly Lazy<Dictionary<string, CompiledTheme>> Compiled = new(() => MusicData.Themes.ToDictionary(t => t.Id, Score.Compile));
 
     readonly GraphBuilder _builder;
     readonly GainNode _master;
@@ -28,8 +27,11 @@ public sealed class Soundtrack
     double _step;
     double _volume;
 
-    /// <summary>Every theme's id, in the old game's order (regions, the battle theme and its regional arrangements, bosses).</summary>
-    public static IReadOnlyList<string> Themes { get; } = [.. MusicData.Themes.Select(t => t.Id)];
+    /// <summary>Every theme's id, in the library's order (the old game's: regions, the battle theme and its regional arrangements, bosses).</summary>
+    public IReadOnlyList<string> Themes => Library.Themes;
+
+    /// <summary>The themes, instruments, percussion voices and rooms this plays.</summary>
+    public MusicLibrary Library { get; }
 
     /// <summary>
     /// music.js's setupAudio for the composer's themes: master gain → DynamicsCompressor (−18 dB,
@@ -37,10 +39,11 @@ public sealed class Soundtrack
     /// (renderOffline) keep the original loudness whatever the volume. The old score engine's delay and
     /// hall are left out: no theme feeds them, so they only ever add zeros.
     /// </summary>
-    internal Soundtrack(AudioGraph graph, AudioNode destination, double volume = 1, bool export = false, Action<Action>? dispatch = null,
+    internal Soundtrack(AudioGraph graph, AudioNode destination, MusicLibrary library, double volume = 1, bool export = false, Action<Action>? dispatch = null,
         Func<string, PreparedRoom?>? preparedRooms = null)
     {
-        _builder = new GraphBuilder(graph) { PreparedRooms = preparedRooms };
+        Library = library;
+        _builder = new GraphBuilder(graph, library) { PreparedRooms = preparedRooms };
         _preparedRooms = preparedRooms;
         _dispatch = dispatch;
         _volume = Math.Clamp(volume, 0, 1);
@@ -100,11 +103,12 @@ public sealed class Soundtrack
     /// <summary>
     /// Plays <paramref name="themeId"/> from its start (music.js's sync when the desired theme changes):
     /// the old bus fades out, the new performance's bus fades in from 0 over 0.8 s, its first step 60 ms
-    /// from now. Playing the theme that is playing does nothing.
+    /// from now. Playing the theme that is playing does nothing. A theme the library doesn't have is an
+    /// <see cref="ArgumentException"/>.
     /// </summary>
     public void Play(string themeId)
     {
-        if (!Compiled.Value.TryGetValue(themeId, out var compiled))
+        if (Library.Compiled(themeId) is not { } compiled)
             throw new ArgumentException($"No theme '{themeId}'", nameof(themeId));
         // If the worker is still preparing this room (just after start), the caller waits for it, not the audio thread.
         _preparedRooms?.Invoke(compiled.Room);
@@ -180,9 +184,9 @@ public sealed class Soundtrack
     }
 
     /// <summary>The length of music.js's renderOffline of a theme: one pass of the form plus 4.5 s of tail.</summary>
-    internal static int OfflineLength(string themeId, float sampleRate)
+    internal static int OfflineLength(MusicLibrary library, string themeId, float sampleRate)
     {
-        var compiled = Compiled.Value[themeId];
+        var compiled = library.Compiled(themeId) ?? throw new ArgumentException($"No theme '{themeId}'", nameof(themeId));
         return (int)Math.Ceiling((compiled.TotalSteps * compiled.StepSeconds + 4.5) * sampleRate);
     }
 
@@ -191,14 +195,14 @@ public sealed class Soundtrack
     /// chain at export loudness, every step of one pass of the form scheduled at 0.05 + n · stepSeconds
     /// up front, rendered for <see cref="OfflineLength"/> frames.
     /// </summary>
-    internal static float[][] RenderOffline(string themeId, float sampleRate = 44100, Random? summingOrder = null)
+    internal static float[][] RenderOffline(MusicLibrary library, string themeId, float sampleRate = 44100, Random? summingOrder = null)
     {
-        var compiled = Compiled.Value[themeId];
+        var compiled = library.Compiled(themeId) ?? throw new ArgumentException($"No theme '{themeId}'", nameof(themeId));
         var graph = new AudioGraph(sampleRate, 2) { SummingOrder = summingOrder };
-        var soundtrack = new Soundtrack(graph, graph.Destination, export: true);
+        var soundtrack = new Soundtrack(graph, graph.Destination, library, export: true);
         var performance = soundtrack.Perform(compiled);
         for (var index = 0; index < compiled.TotalSteps; index++)
             performance.Step(index, 0.05 + index * compiled.StepSeconds);
-        return graph.RenderOffline(OfflineLength(themeId, sampleRate));
+        return graph.RenderOffline(OfflineLength(library, themeId, sampleRate));
     }
 }

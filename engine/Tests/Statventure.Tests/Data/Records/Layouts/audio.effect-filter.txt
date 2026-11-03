@@ -1,0 +1,7 @@
+audio.effect-filter 1
+  1 type: enum int32 {lowpass = 0, highpass = 1, bandpass = 2, lowshelf = 3, highshelf = 4, peaking = 5, notch = 6, allpass = 7} (required)
+  2 frequency: float64 (required)
+  3 frequencyTo: float64? = null
+  4 sweepTime: float64? = null
+  5 q: float64 = 1
+  6 gain: float64? = null

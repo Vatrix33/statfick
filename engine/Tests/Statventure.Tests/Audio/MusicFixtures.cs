@@ -70,7 +70,7 @@ internal static partial class AudioFixtures
         return F(name, channels, (int)Math.Ceiling(seconds * rate), rate, script, r =>
         {
             var compiled = Score.Compile(theme);
-            var performance = new Performance(new GraphBuilder(r.G), compiled, r.G.Destination);
+            var performance = new Performance(new GraphBuilder(r.G, TestMusic.Library), compiled, r.G.Destination);
             for (var i = 0; i < steps; i++)
                 performance.Step(i, 0.05 + i * compiled.StepSeconds);
         }, tolerance) with { Quanta = true };
@@ -293,7 +293,7 @@ internal static partial class AudioFixtures
             for (let i = 0; i < 24; i++) performance.step(i, 0.05 + i * compiled.stepSeconds);
             """, r =>
         {
-            var soundtrack = new Soundtrack(r.G, r.G.Destination, export: true);
+            var soundtrack = new Soundtrack(r.G, r.G.Destination, TestMusic.Library, export: true);
             var compiled = Score.Compile(ThemeJson.Parse(loud));
             var performance = soundtrack.Perform(compiled);
             for (var i = 0; i < 24; i++)
@@ -311,7 +311,7 @@ internal static partial class AudioFixtures
             at(2.9, () => stop());
             """, r =>
         {
-            var soundtrack = new Soundtrack(r.G, r.G.Destination);
+            var soundtrack = new Soundtrack(r.G, r.G.Destination, TestMusic.Library);
             var a = Score.Compile(ThemeJson.Parse(first));
             var b = Score.Compile(ThemeJson.Parse(second));
             soundtrack.Play("a", a);
@@ -353,7 +353,7 @@ internal static partial class AudioFixtures
             at(0.8, () => ramp(bus.gain, 1));
             """, r =>
         {
-            var system = new AudioSystem(r.G);
+            var system = new AudioSystem(r.G, TestMusic.Library);
             var tone = new OscillatorNode(r.G);
             tone.Frequency.Value = 660;
             var toneLevel = r.Gain(0.2f);

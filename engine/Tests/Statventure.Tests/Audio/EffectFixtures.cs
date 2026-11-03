@@ -1,60 +1,23 @@
 using System.Globalization;
-using System.Text.Json;
 using Statventure.Audio;
+using Statventure.Records;
 
 namespace Statventure.Tests.Audio;
 
-/// <summary>A patch written as JSON, read into the engine's records (the fixtures' JavaScript reads the same text).</summary>
+/// <summary>
+/// A patch written as JSON (the fixtures' JavaScript reads the same text) is the patch's own JSON form
+/// (Docs/Assets.md, step 6) without its type table: read here through the record serializer, so a key
+/// left out keeps the record's default, which the script's own default then checks.
+/// </summary>
 internal static class EffectJson
 {
+    public const string Types = "\"$types\": { \"audio.effect\": 1, \"audio.effect-layer\": 1, \"audio.effect-filter\": 1, \"audio.effect-range\": 1 }, ";
+
     public static EffectPatch Parse(string json)
     {
-        using var document = JsonDocument.Parse(json);
-        var p = document.RootElement;
-        double? Num(JsonElement o, string key) => o.TryGetProperty(key, out var v) ? v.GetDouble() : null;
-        EffectRange? Range(string key) => p.TryGetProperty(key, out var r) ? new EffectRange(r.GetProperty("min"u8).GetDouble(), r.GetProperty("max"u8).GetDouble()) : null;
-        EffectFilter? Filter(JsonElement l)
-        {
-            if (!l.TryGetProperty("filter"u8, out var f))
-                return null;
-            var filter = new EffectFilter
-            {
-                Type = Enum.Parse<EffectFilterType>(f.GetProperty("type"u8).GetString()!, ignoreCase: true),
-                Frequency = f.GetProperty("frequency"u8).GetDouble(),
-                FrequencyTo = Num(f, "frequencyTo"), SweepTime = Num(f, "sweepTime"), Gain = Num(f, "gain"),
-            };
-            return Num(f, "q") is { } q ? filter with { Q = q } : filter;
-        }
-        EffectLayer Layer(JsonElement l)
-        {
-            var layer = new EffectLayer
-            {
-                Source = Enum.Parse<EffectSource>(l.GetProperty("source"u8).GetString()!, ignoreCase: true),
-                FrequencyTo = Num(l, "frequencyTo"), SweepTime = Num(l, "sweepTime"),
-                Harmonics = l.TryGetProperty("harmonics"u8, out var h) ? [.. h.EnumerateArray().Select(x => x.GetDouble())] : null,
-                Filter = Filter(l), Length = l.GetProperty("length"u8).GetDouble(),
-            };
-            // A key left out keeps the record's default, which the script's own default then checks.
-            if (Num(l, "frequency") is { } frequency)
-                layer = layer with { Frequency = frequency };
-            if (Num(l, "delay") is { } delay)
-                layer = layer with { Delay = delay };
-            if (Num(l, "attack") is { } attack)
-                layer = layer with { Attack = attack };
-            if (Num(l, "level") is { } level)
-                layer = layer with { Level = level };
-            return layer;
-        }
-        var patch = new EffectPatch
-        {
-            Layers = [.. p.GetProperty("layers"u8).EnumerateArray().Select(Layer)],
-            Pitch = Range("pitch"), Volume = Range("volume"),
-        };
-        if (Num(p, "level") is { } patchLevel)
-            patch = patch with { Level = patchLevel };
-        if (p.TryGetProperty("maxVoices"u8, out var m))
-            patch = patch with { MaxVoices = m.GetInt32() };
-        return patch;
+        var body = json.TrimStart();
+        Assert.StartsWith("{", body);
+        return RecordSerializer.FromJson<EffectPatch>("{ " + Types + body[1..]);
     }
 }
 
@@ -157,7 +120,7 @@ internal static partial class AudioFixtures
         }));
         return F(name, 2, (int)Math.Ceiling(seconds * 22050), 22050, script, r =>
         {
-            var system = new AudioSystem(r.G);
+            var system = new AudioSystem(r.G, TestMusic.Library);
             foreach (var (id, json) in patches)
                 system.Effects.Register(id, EffectJson.Parse(json));
             foreach (var play in plays)

@@ -1,0 +1,3 @@
+audio.effect-range 1
+  1 min: float64 (required)
+  2 max: float64 (required)

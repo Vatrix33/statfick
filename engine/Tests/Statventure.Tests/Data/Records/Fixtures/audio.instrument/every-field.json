@@ -1,0 +1,58 @@
+{
+  "$types": {
+    "audio.instrument": 1
+  },
+  "kind": "pluck",
+  "voices": [
+    -7,
+    0,
+    6
+  ],
+  "cutoff": 2400,
+  "attack": 0.01,
+  "release": 0.3,
+  "vibrato": [
+    5.5,
+    8,
+    0.25
+  ],
+  "level": 0.12,
+  "pan": -0.3,
+  "send": 0.5,
+  "decay": 1.4,
+  "tremolo": 6,
+  "peak": [
+    2600,
+    5
+  ],
+  "low": 300,
+  "high": 2000,
+  "vowel": [
+    730,
+    1090,
+    2440
+  ],
+  "harmonics": [
+    0,
+    1,
+    0.5
+  ],
+  "breath": 0.1,
+  "bright": 0.6,
+  "damp": 0.4,
+  "length": 1.8,
+  "body": 240,
+  "highpass": 180,
+  "partials": [
+    [
+      1,
+      1,
+      2.2
+    ],
+    [
+      2.76,
+      0.4,
+      0.5
+    ]
+  ]
+}

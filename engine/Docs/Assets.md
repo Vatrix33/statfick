@@ -193,7 +193,8 @@ A pack is a container of entries, each a path and its bytes; it knows nothing of
 - **Index** (after the entries, written last): per entry its path (UTF-8, length-prefixed), offset,
   stored length, content length, flags (compressed; a record entry, step 3) and the SHA-256 of its
   uncompressed content (Q5). Paths are unique, sorted ordinally, each under its area's folder
-  (`audio/themes/alder-vale`, `ui/fonts/lato-regular.ttf`), and use only lowercase ASCII letters,
+  (`audio/themes/alder-vale`, `audio/themes/combat.alder-vale` for the theme `combat@alder-vale` by
+  step 6's name rule (S6-1), `ui/fonts/lato-regular.ttf`), and use only lowercase ASCII letters,
   digits, `-`, `_`, `.` and `/` (Q4).
 - **Writing:** into a temporary file renamed over the old pack. Re-packing keeps an unchanged entry's
   stored bytes (same content hash), so a newer .NET's Brotli can't make every committed pack differ.
@@ -315,10 +316,13 @@ game's five font faces); every importer is tested on the test assets, packed ins
   Pack-loaded models equal `GltfImport`'s bit for bit and render the same.
 - **Music (`audio.pak`):** `make-music-data.sh` runs `music.cjs` in Chromium as now, which writes the
   records' JSON form, with the records' own names (Q22), instead of C# (keeping its key map and its
-  stop on an unknown key); the packer reads them through the serializer's JSON form. One entry per
-  theme, instrument, percussion voice, room and effect patch, plus one listing the themes in the old
-  game's order (Q21). Before `MusicData.g.cs` is deleted, every pack-loaded record is compared with it
-  once. The game's own effect patches come at port time.
+  stop on an unknown key) into a scratch folder in the build cache (S6-5); the packer reads them
+  through the serializer's JSON form. One entry per theme, instrument, percussion voice, room and
+  effect patch (`audio/themes/<name>`, `audio/instruments/…`, `audio/percussion/…`, `audio/rooms/…`,
+  `audio/effects/…`, each name stored by a reversible rule, S6-1), plus one listing the themes in the
+  old game's order, `audio/theme-order` (Q21; not `audio/themes`, which is a folder). Before
+  `MusicData.g.cs` is deleted, every pack-loaded record is compared with it once. The game's own effect
+  patches come at port time.
 - **UI (`ui.pak`):** a compiled stylesheet is the parsed and prepared rules (selectors, media queries,
   keyframes, font faces, and each declaration with shorthands expanded and invalid values dropped, as
   tokens), checked at import (no unknown property, no dropped rule, every `url()` in the packs) and
@@ -424,6 +428,9 @@ Order: **1 and 2** side by side; then **3** (after 1 and 2) beside **4** (after 
      4's game folder; Reload), `Docs/Engine-Plan.md`'s Folders table (`Assets/Packs/`; `packs/`,
      `classes/` and the per-user `mods/` at run time).
    - Tests: mount order with mods and a development folder over the game's packs; Reload.
+   - Reload of what was read: step 6's `MusicLibrary` is read once, when the audio system starts, so a
+     theme changed in the development folder is heard only after a restart; reloading it on
+     `Data.Reloaded` (a new library for the audio system) is this step's to decide.
    - Format details: Q27.
    - The shipped `classes/` folder holds the class files under names that follow the path rule
      (Q31: the old game's `Black Knight.json` becomes `black-knight.json`), renamed when the port makes
@@ -623,6 +630,30 @@ Asked during step 5 (user, 2026-11-03; the recommended option; numbered S5-n as 
   not nothing at load.) Accepted with it, as the step chose them: the record type names `model.*` and
   `animation.*`, field numbers in the declarations' order, and machines anywhere by path, nothing tying
   one to a model.
+Asked during step 6 (user, 2026-11-03; every answer the recommended option):
+
+- **S6-1. Names outside the path rule** (18 theme ids hold `@`, `combat@alder-vale`; two instruments
+  have capitals, `lowSpiccato`, `choirOo`): one fixed, reversible rule makes an entry's name from what
+  the music calls it: a capital letter becomes `_` and the small letter (`audio/instruments/low_spiccato`),
+  `@` becomes `.` (`audio/themes/combat.alder-vale`); letters a–z, digits and `-` stay. The library maps
+  paths back to names; the records stay as they are. A theme whose own `id` isn't the one its path holds
+  is an error naming the entry; `make-music-data.sh` stops on a name the rule can't store. (Not a name
+  field in every record with free paths; not renaming the ids the game plays and the old data's names.)
+- **S6-2. The theme order and the theme entries:** `audio/theme-order` sets the order; theme entries it
+  doesn't name follow it in path order (so a mod can add a theme with its entry alone, and two mods
+  adding themes both work); an id it names without an entry, or names twice, is an error. (Not the
+  order as the exact set of themes, not unlisted themes ignored.)
+- **S6-3. No music in the data** (the sandbox and the engine's tests have no `packs/`): the library is
+  empty, `Play` refuses every id as it refuses an unknown one, the buses and effects work. When some
+  music entries are there, the pieces missing are errors when the library loads (the start stops, as
+  for a damaged pack). (Not music required, the start stopping without it.)
+- **S6-4. Effect patches in the data** (`audio/effects/<name>`): the audio system registers every one
+  under its name when it starts, so the game plays them by name; `Effects.Register` still adds or
+  replaces patches made in code. (Not the game loading and registering each patch itself.)
+- **S6-5. The importer's JSON sources** go to a scratch folder in the build cache
+  (`~/.cache/stat-fick-build/music-data/`), emptied by `make-music-data.sh` and kept for inspection,
+  not into the repo: the pack is the source of truth, and `git diff` shows its dump. (Not
+  `engine/Assets/Sources/audio/`, ignored or committed.)
 
 ## How it works
 
@@ -1036,6 +1067,79 @@ No pack is committed (Q1).
   more compact form for the editor or the dump would be a later choice.
 - **Checked by hand:** `packer pack` of a folder with two `.glb` files and a machine's JSON form, `list`,
   `verify`, `dump` (the records' JSON forms), `extract` and packing the extraction again (the same bytes).
+### Music and effects in `audio.pak` (step 6)
+
+Code in `Engine/Statventure/Audio/Music/` (`ThemeData.cs`, `MusicLibrary.cs`, `Soundtrack.cs`, `Composer.cs`,
+`GraphBuilder.cs`), `Audio/AudioSystem.cs`, `Audio/Effects/EffectPatch.cs`, one line of `Core/Application.cs`;
+the importer `Tools/Scripts/make-music-data.sh` with `Tools/AudioReference/music.cjs`; the pack
+`engine/Assets/Packs/audio.pak`. Tests in `Tests/Statventure.Tests/Audio/` (`MusicLibraryTests`,
+`ApplicationMusicTests`, `TestMusic`: the committed pack's library, which every music test now uses).
+
+- **Records** (Q22): `audio.theme` (`ThemeSpec`), `audio.eq`, `audio.section`, `audio.layer`, `audio.harmony`,
+  `audio.doubling`, `audio.instrument`, `audio.percussion`, `audio.room` (positional), `audio.theme-order`
+  (`ThemeOrder`: the theme ids), and for effects `audio.effect` (`EffectPatch`), `audio.effect-layer`,
+  `audio.effect-filter`, `audio.effect-range`; all version 1, fields numbered in declaration order, the
+  JSON names the properties' own (`timpaniOctave`, `doublings`, a drums layer's `drums` as an object in the
+  spec's order, a layer's `pattern` and `drums`, `degree` and `degrees` apart where the old `p` and `deg`
+  held either). An absent key is null and the composer applies the old defaults; a percussion voice's
+  `log`, `swell`, `thunder` and `timpani` are plain bools (false when absent), written always (Q33). Layouts
+  and fixtures in `Tests/Statventure.Tests/Data/Records/` (`every-field` samples, a room, a theme order, a
+  patch on its defaults).
+- **Where they are** (Q21, S6-1): `audio/themes/<name>`, `audio/instruments/<name>`, `audio/percussion/<name>`,
+  `audio/rooms/<name>`, `audio/effects/<name>`, and `audio/theme-order`. `MusicNames` holds the folders
+  and the rule: `ToPathName` (a–z, 0–9 and `-` as they are, a capital as `_` and the small letter, `@`
+  as `.`, anything else or a result the path rule refuses: null), `FromPathName` (its exact inverse: a
+  `_` must be followed by a small letter, no `/`), `PathOf` (an `ArgumentException` for a name it can't
+  store).
+- **`MusicLibrary`** (public): `Themes` (the ids in order), `Theme(id)`, `Instruments`, `Percussion`,
+  `Rooms`, `Effects` (by name), `Empty`; internal `Compiled(id)` (every theme compiled the first time one
+  is asked for, once per library) and `Room(name)` (the hall for a room it doesn't have, as the old
+  composer). `MusicLibrary.Load(data)` reads each folder in path order (a path the rule doesn't make, a
+  nested one included, is an error), checks each effect patch as `Register` does (`EffectPatch.Problem`,
+  shared with `SoundEffects.Register`), each theme's id against its path, and each theme's room (its own,
+  or the hall when it names none or ""): there, or the hall there to fall back on. No music entries (no
+  theme, instrument, percussion voice or room, no order): a library without music, its effects loaded
+  (S6-3). Otherwise the order must be there; its ids each once, each storable and with an entry; themes
+  it doesn't name follow in path order (S6-2). Every problem is a `DataFileException` named as the file
+  system names its own (`VirtualFileSystem.Problem`, step 5's): the pack and entry, or the loose `.json`
+  file alone; a wrong record type or a file where a record should be is the file system's own error.
+- **Instances, not statics** (Q3): `AudioSystem(MusicLibrary)` (public; the internal constructors take
+  one too) prepares its library's rooms, registers its effect patches under their names (S6-4), and
+  warms up on those of `alder-vale`, `combat` and `great-imp-jiruan` the library has. `Soundtrack` holds
+  the `Library`; `Themes` is the instance's (`Application.Audio.Music.Themes`); `Play` of an id the
+  library lacks is the `ArgumentException` it always was; `OfflineLength` and `RenderOffline` take the
+  library. `GraphBuilder` carries the library for the composer (`Performance` reads instruments,
+  percussion and rooms there). Prepared rooms stay cached for the process, keyed by the room's name, its
+  values and the rate, so libraries with different rooms of one name don't share them.
+  `Application` creates its sound with `new AudioSystem(MusicLibrary.Load(Data))`. `PlayTheme` and
+  `AudioBenchmark` load the repo's `Assets/Packs/audio.pak`, found above their folder.
+- **The importer** (S6-5): `make-music-data.sh` empties `$STATVENTURE_CACHE/music-data/`, runs `music.cjs`
+  (`--music-data=<folder>`), which maps every JavaScript key to its record field (an unknown key stops it,
+  as before) and writes each record's JSON form exactly as `RecordSerializer.ToJson` writes it (`$types`
+  in the order a depth-first walk meets the types, fields in field order, a non-nullable default written,
+  `-0` kept), then packs the folder with the packer into `engine/Assets/Packs/audio.pak` (118 entries, 57
+  KB; unchanged entries keep their stored bytes). Extracting the pack gives the importer's files back byte
+  for byte (checked by hand).
+- **Checks:** before `MusicData.g.cs` was deleted, a one-off test compared every pack-loaded record with it
+  (55 themes in order, 34 instruments, 21 percussion voices, 7 rooms, the theme order): equal field for
+  field and bit for bit, and each entry's content the binary form of the generated record (it failed on
+  one changed drum pattern). Every music test then ran unchanged on the pack (`TestMusic.Library`): the
+  scores and lint, the 61 performances' exact call logs, the synthesizer, output and effect fixtures (the
+  effect fixtures' patches are now read as the records' JSON form with a `$types` table added).
+  `MusicLibraryTests`: the rule both ways (and on every name of the game's music, and 2000 random
+  names), loading from a pack and from a loose folder (one theme replaced by the development folder), the
+  order rules, ids against paths, rooms and the hall, no music, every unplayable patch (through loading
+  and through `Register`), effects registered by name (sample for sample as registered in code, and still
+  replaceable), libraries side by side and their prepared rooms, the committed pack's contents, and the
+  committed pack repacking to the same bytes (reusing its entries) and to the same entries (compressed
+  afresh). `ApplicationMusicTests` runs an application (a real window, the default device) with a
+  development folder and finds its sound playing that folder's music. By hand: the sandbox with no data
+  (starts, no music), with the pack's extraction as its development folder (starts), with a theme whose id
+  breaks its path (stops, logged, naming the file); `play-theme.sh` lists the 55 themes;
+  `audio-benchmark.sh --start` times a theme start as before.
+- **Later needs:** the library is read once, when the audio system starts; reloading it on
+  `Data.Reloaded` is step 9's (Reload). The packer still rebuilds `audio.pak` whole from the importer's
+  folder: once the pack holds the port's effect patches too, the "update" command above is needed.
 
 ## Status
 
@@ -1130,3 +1234,13 @@ No pack is committed (Q1).
   full suite passes on the GPU and on lavapipe (1600 tests). Mutations: 96 (the records' fields, defaults,
   names, numbers and enum orders; the importer; the loads; `Problem`; each check and each limit), all fail a
   test. Nothing in this doc turned out wrong. Not checked: Windows.
+- **Step 6, the music and effects in `audio.pak`, `MusicData.g.cs` removed, done (2026-11-03):** ("How it
+  works", step 6); five questions asked on the way (S6-1–S6-5, all as recommended). The committed
+  `engine/Assets/Packs/audio.pak` holds the old game's 55 themes, 34 instruments, 21 percussion voices and 7
+  rooms and the theme order (118 record entries, 57 KB), made by `make-music-data.sh` through `music.cjs`'s
+  JSON forms and the packer; it passes `CommittedPackTests` and repacks to the same bytes. The one-off
+  comparison before `MusicData.g.cs` went: every record equal, field for field and bit for bit. Every music
+  test passes unchanged on the pack-loaded data; 58 new tests. The full suite passes on the GPU and on
+  lavapipe (1658 tests); `test-themes.sh`: all 55 themes pass on the pack-loaded data (21 minutes). Mutations: 62, 61 fail a test; the one survivor, the rooms not prepared ahead, changes no sample (`Play` prepares a missing room on the caller's thread, so only when the work is done changes: step 7's speed decision, measured by `audio-benchmark.sh --start`). Found on the way: M8's tests
+  never refused a patch with a negative attack or delay or with an empty harmonics list (now tested, through
+  loading and `Register`). Not checked: Windows.

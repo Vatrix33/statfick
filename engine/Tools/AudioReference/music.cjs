@@ -1,8 +1,10 @@
 "use strict";
 // The music side of the audio harness (Docs/Audio.md, step 6). In the harness's Chromium page it loads
 // the old game's music-composer.js and music-themes.js and
-//  - with --music-data=<file.cs>: writes the theme specs (MusicThemes.all()) and the composer's
-//    instrument, percussion and room tables as C# records (Engine/.../Audio/Music/MusicData.g.cs);
+//  - with --music-data=<folder>: writes the theme specs (MusicThemes.all()) and the composer's
+//    instrument, percussion and room tables as their records' JSON forms, one file each, plus the
+//    theme order (audio/themes/<name>.json …, audio/theme-order.json), which make-music-data.sh packs
+//    into engine/Assets/Packs/audio.pak (Docs/Assets.md, step 6);
 //  - with --music-references=<folder>: writes music-scores.json (each theme's compiled score as a
 //    digest of its timeline, sections, chords, notes and layers, and lint's findings) and
 //    music-logs.json (the real composer performing each theme, renderOffline's way plus 64 steps
@@ -170,111 +172,165 @@ function pageMain(options) {
 }
 
 // ---------------- Runs in Node ----------------
-const cs = {
+// The records' JSON forms (Docs/Assets.md, "Records" and step 6): what RecordSerializer.ToJson writes, so
+// `packer extract` of audio.pak gives these files back byte for byte: "$types" first (the root's type,
+// then the others in the order a depth-first walk in field order meets them), the fields in field
+// order under the records' own names (Q22), a null left out, a non-nullable default written, indented
+// by two spaces, a final line end.
+const value = {
   num(n, where) {
     if (typeof n !== "number" || !Number.isFinite(n)) throw new Error(`${where}: not a finite number: ${n}`);
-    return Object.is(n, -0) ? "-0.0" : String(n);
+    return n;
   },
   int(n, where) {
-    if (!Number.isInteger(n)) throw new Error(`${where}: not an integer: ${n}`);
-    return String(n);
+    if (!Number.isInteger(n) || n < -2147483648 || n > 2147483647) throw new Error(`${where}: not a 32-bit integer: ${n}`);
+    return n;
   },
   str(s, where) {
     if (typeof s !== "string") throw new Error(`${where}: not a string: ${s}`);
-    return JSON.stringify(s);
+    return s;
   },
-  nums(a, where) { if (!Array.isArray(a)) throw new Error(`${where}: not an array`); return "[" + a.map((n, i) => cs.num(n, `${where}[${i}]`)).join(", ") + "]"; },
-  ints(a, where) { if (!Array.isArray(a)) throw new Error(`${where}: not an array`); return "[" + a.map((n, i) => cs.int(n, `${where}[${i}]`)).join(", ") + "]"; },
-  strs(a, where) { if (!Array.isArray(a)) throw new Error(`${where}: not an array`); return "[" + a.map((s, i) => cs.str(s, `${where}[${i}]`)).join(", ") + "]"; },
-  bool(b, where) { if (typeof b !== "boolean") throw new Error(`${where}: not a boolean: ${b}`); return String(b); },
+  bool(b, where) { if (typeof b !== "boolean") throw new Error(`${where}: not a boolean: ${b}`); return b; },
+  list(item) {
+    return (a, where, types) => {
+      if (!Array.isArray(a)) throw new Error(`${where}: not an array`);
+      return a.map((x, i) => item(x, `${where}[${i}]`, types));
+    };
+  },
 };
+value.nums = value.list(value.num);
+value.ints = value.list(value.int);
+value.strs = value.list(value.str);
+value.numLists = value.list(value.nums);
 
-// JavaScript key → [C# property, writer]; a key missing here is an error, so nothing is dropped.
-function record(object, fields, where, indent) {
-  const parts = [];
-  for (const [key, value] of Object.entries(object)) {
-    const field = fields[key];
-    if (!field) throw new Error(`${where}: unknown key "${key}"`);
-    const [name, write] = typeof field === "function" ? field(value) : field;
-    parts.push(`${name} = ${write(value, `${where}.${key}`, indent)}`);
-  }
-  return parts;
+// A record type: its name and its fields in field order, each [JavaScript key, JSON name, writer] or
+// [JavaScript key, chooser] (one key, two fields: a layer's p and deg), optionally with the default a
+// non-nullable field has when the key is absent. A key no field takes is an error, so nothing is dropped.
+function recordType(name, fields) {
+  const writer = (object, where, types) => {
+    if (typeof object !== "object" || object === null || Array.isArray(object)) throw new Error(`${where}: not an object`);
+    if (!types.includes(name)) types.push(name);
+    const byKey = new Map(fields.map(f => [f.key, f]));
+    for (const key of Object.keys(object)) if (!byKey.has(key)) throw new Error(`${where}: unknown key "${key}"`);
+    const out = {};
+    for (const field of fields) {
+      const present = Object.prototype.hasOwnProperty.call(object, field.key);
+      if (!present) {
+        if (field.default !== undefined) out[field.name] = field.default;
+        continue;
+      }
+      const raw = object[field.key];
+      const [name2, write] = field.choose ? field.choose(raw) : [field.name, field.write];
+      if (field.choose && name2 !== field.name) continue; // written by its twin field
+      out[name2] = write(raw, `${where}.${field.key}`, types);
+    }
+    return out;
+  };
+  return writer;
 }
+const f = (key, name, write, extra = {}) => ({ key, name, write, ...extra });
+// A key two fields share (p: a pattern or drums; deg: a degree or degrees): each field writes it only when the chooser picks it.
+const either = (key, name, choose) => ({ key, name, choose });
 
-const layerFields = {
-  t: ["Type", cs.str], i: ["Instrument", cs.str], o: ["Octave", cs.num], v: ["Velocity", cs.num],
-  p: value => typeof value === "string" ? ["Pattern", cs.str] : ["Drums", (p, where) => {
-    if (typeof p !== "object" || Array.isArray(p)) throw new Error(`${where}: a drums pattern must be an object`);
-    return "[" + Object.entries(p).map(([k, s]) => `new(${cs.str(k, where)}, ${cs.str(s, `${where}.${k}`)})`).join(", ") + "]";
-  }],
-  deg: value => Array.isArray(value) ? ["Degrees", cs.strs] : ["Degree", cs.str],
-  n: ["Voices", cs.int], every: ["Every", cs.int], bars: ["Bars", cs.ints], cycle: ["Cycle", cs.int], chance: ["Chance", cs.num],
-  len: ["Length", cs.num], at: ["At", cs.int], kind: ["Kind", cs.str], role: ["Role", cs.str], notes: ["Notes", cs.str],
-  pan: ["Pan", cs.num], spread: ["Spread", cs.num], legato: ["Legato", cs.num], timpOct: ["TimpaniOctave", cs.num], logOct: ["LogOctave", cs.num],
-  harm: ["Harmony", (h, where) => `new() { ${record(h, { i: ["Instrument", cs.str], steps: ["Steps", cs.num], v: ["Velocity", cs.num], o: ["Octave", cs.num], pan: ["Pan", cs.num] }, where).join(", ")} }`],
-  dbl: ["Doublings", (list, where) => {
+const drums = (p, where) => {
+  if (typeof p !== "object" || p === null || Array.isArray(p)) throw new Error(`${where}: a drums pattern must be an object`);
+  const out = {};
+  for (const [k, s] of Object.entries(p)) out[value.str(k, where)] = value.str(s, `${where}.${k}`);
+  return out;
+};
+const pOf = v => typeof v === "string" ? ["pattern", value.str] : ["drums", drums];
+const degOf = v => Array.isArray(v) ? ["degrees", value.strs] : ["degree", value.str];
+
+const harmony = recordType("audio.harmony", [f("i", "instrument", value.str), f("steps", "steps", value.num), f("v", "velocity", value.num), f("o", "octave", value.num), f("pan", "pan", value.num)]);
+const doubling = recordType("audio.doubling", [f("i", "instrument", value.str), f("o", "octave", value.num), f("v", "velocity", value.num), f("pan", "pan", value.num), f("shift", "shift", value.num)]);
+const layer = recordType("audio.layer", [
+  f("t", "type", value.str), f("i", "instrument", value.str), f("o", "octave", value.num), f("v", "velocity", value.num),
+  either("p", "pattern", pOf), either("p", "drums", pOf), either("deg", "degree", degOf), either("deg", "degrees", degOf),
+  f("n", "voices", value.int), f("every", "every", value.int), f("bars", "bars", value.ints), f("cycle", "cycle", value.int), f("chance", "chance", value.num),
+  f("len", "length", value.num), f("at", "at", value.int), f("kind", "kind", value.str), f("role", "role", value.str), f("notes", "notes", value.str),
+  f("pan", "pan", value.num), f("spread", "spread", value.num), f("legato", "legato", value.num), f("timpOct", "timpaniOctave", value.num), f("logOct", "logOctave", value.num),
+  f("harm", "harmony", harmony),
+  f("dbl", "doublings", (list, where, types) => {
     if (!Array.isArray(list)) throw new Error(`${where}: dbl must be a list (the composer iterates it)`);
-    return "[" + list.map((d, i) => `new() { ${record(d, { i: ["Instrument", cs.str], o: ["Octave", cs.num], v: ["Velocity", cs.num], pan: ["Pan", cs.num], shift: ["Shift", cs.num] }, `${where}[${i}]`).join(", ")} }`).join(", ") + "]";
-  }],
-};
+    return value.list(doubling)(list, where, types);
+  }),
+]);
+const section = recordType("audio.section", [
+  f("chords", "chords", value.str), f("mel", "melody", value.str), f("dyn", "dynamics", value.num), f("dynTo", "dynamicsTo", value.num), f("like", "like", value.str),
+  f("layers", "layers", value.list(layer)),
+]);
+const eq = recordType("audio.eq", [f("low", "low", value.num), f("presence", "presence", value.num)]);
+const theme = recordType("audio.theme", [
+  f("id", "id", value.str), f("title", "title", value.str), f("tempo", "tempo", value.num), f("meter", "meter", value.ints), f("tonic", "tonic", value.num),
+  f("mode", "mode", value.str), f("room", "room", value.str), f("gain", "gain", value.num), f("swing", "swing", value.num), f("eq", "eq", eq),
+  f("sections", "sections", (sections, where, types) => {
+    if (typeof sections !== "object" || sections === null || Array.isArray(sections)) throw new Error(`${where}: not an object`);
+    const out = {};
+    for (const [name, s] of Object.entries(sections)) out[name] = section(s, `${where}.${name}`, types);
+    return out;
+  }),
+  f("form", "form", value.strs), f("loop", "loop", value.int), f("motif", "motif", value.str),
+]);
+const instrument = recordType("audio.instrument", [
+  f("kind", "kind", value.str), f("voices", "voices", value.nums), f("cutoff", "cutoff", value.num), f("attack", "attack", value.num), f("release", "release", value.num),
+  f("vib", "vibrato", value.nums), f("level", "level", value.num), f("pan", "pan", value.num), f("send", "send", value.num), f("decay", "decay", value.num),
+  f("trem", "tremolo", value.num), f("peak", "peak", value.nums), f("low", "low", value.num), f("high", "high", value.num), f("vowel", "vowel", value.nums),
+  f("harmonics", "harmonics", value.nums), f("breath", "breath", value.num), f("bright", "bright", value.num), f("damp", "damp", value.num),
+  f("length", "length", value.num), f("body", "body", value.num), f("highpass", "highpass", value.num), f("partials", "partials", value.numLists),
+]);
+const percussion = recordType("audio.percussion", [
+  f("body", "body", value.nums), f("noise", "noise", value.nums), f("click", "click", value.num), f("level", "level", value.num), f("send", "send", value.num),
+  f("high", "high", value.nums), f("tone", "tone", value.nums), f("attack", "attack", value.num), f("log", "log", value.bool, { default: false }),
+  f("swell", "swell", value.bool, { default: false }), f("metal", "metal", value.numLists), f("base", "base", value.num),
+  f("thunder", "thunder", value.bool, { default: false }), f("timp", "timpani", value.bool, { default: false }),
+]);
+const room = recordType("audio.room", [f("seconds", "seconds", value.num), f("dark", "dark", value.num), f("wet", "wet", value.num)]);
+const themeOrder = recordType("audio.theme-order", [f("themes", "themes", value.strs)]);
 
-function sectionCs(section, where, indent) {
-  const pad = " ".repeat(indent);
-  const parts = record(section, {
-    chords: ["Chords", cs.str], mel: ["Melody", cs.str], dyn: ["Dynamics", cs.num], dynTo: ["DynamicsTo", cs.num], like: ["Like", cs.str],
-    layers: ["Layers", (layers, w) => "\n" + pad + "    [\n" + layers.map((layer, i) =>
-      `${pad}        new() { ${record(layer, layerFields, `${w}[${i}]`).join(", ")} },\n`).join("") + pad + "    ]"],
-  }, where);
-  return `new() { ${parts.join(", ")} }`;
-}
-
-function themeCs(theme) {
-  const where = theme.id;
-  const parts = record(theme, {
-    id: ["Id", cs.str], title: ["Title", cs.str], tempo: ["Tempo", cs.num], meter: ["Meter", cs.ints], tonic: ["Tonic", cs.num],
-    mode: ["Mode", cs.str], room: ["Room", cs.str], gain: ["Gain", cs.num], swing: ["Swing", cs.num],
-    eq: ["Eq", (eq, w) => `new() { ${record(eq, { low: ["Low", cs.num], presence: ["Presence", cs.num] }, w).join(", ")} }`],
-    sections: ["Sections", (sections, w) => "new Dictionary<string, SectionSpec>\n            {\n" +
-      Object.entries(sections).map(([name, s]) => `                [${cs.str(name, w)}] = ${sectionCs(s, `${w}.${name}`, 16)},\n`).join("") + "            }"],
-    form: ["Form", cs.strs], loop: ["Loop", cs.int], motif: ["Motif", cs.str],
-  }, where);
-  return "        new()\n        {\n" + parts.map(p => `            ${p},\n`).join("") + "        },\n";
-}
-
-function dataCs(data) {
-  const instrumentFields = {
-    kind: ["Kind", cs.str], voices: ["Voices", cs.nums], cutoff: ["Cutoff", cs.num], attack: ["Attack", cs.num], release: ["Release", cs.num],
-    vib: ["Vibrato", cs.nums], level: ["Level", cs.num], pan: ["Pan", cs.num], send: ["Send", cs.num], decay: ["Decay", cs.num],
-    trem: ["Tremolo", cs.num], peak: ["Peak", cs.nums], low: ["Low", cs.num], high: ["High", cs.num], vowel: ["Vowel", cs.nums],
-    harmonics: ["Harmonics", cs.nums], breath: ["Breath", cs.num], bright: ["Bright", cs.num], damp: ["Damp", cs.num],
-    length: ["Length", cs.num], body: ["Body", cs.num], highpass: ["Highpass", cs.num],
-    partials: ["Partials", (list, w) => "[" + list.map((p, i) => cs.nums(p, `${w}[${i}]`)).join(", ") + "]"],
-  };
-  const percussionFields = {
-    body: ["Body", cs.nums], noise: ["Noise", cs.nums], click: ["Click", cs.num], level: ["Level", cs.num], send: ["Send", cs.num],
-    high: ["High", cs.nums], tone: ["Tone", cs.nums], attack: ["Attack", cs.num], log: ["Log", cs.bool], swell: ["Swell", cs.bool],
-    metal: ["Metal", (list, w) => "[" + list.map((p, i) => cs.nums(p, `${w}[${i}]`)).join(", ") + "]"], base: ["Base", cs.num],
-    thunder: ["Thunder", cs.bool], timp: ["Timpani", cs.bool],
-  };
-  let out = "// <auto-generated> by Tools/Scripts/make-music-data.sh from the old game's music-themes.js\n" +
-    "// (MusicThemes.all()) and music-composer.js (MusicComposer.instruments, percussion, rooms). Don't edit.\n" +
-    "// </auto-generated>\n\nnamespace Statventure.Audio;\n\ninternal static class MusicData\n{\n";
-  out += "    public static readonly IReadOnlyDictionary<string, InstrumentSpec> Instruments = new Dictionary<string, InstrumentSpec>\n    {\n";
-  for (const [name, def] of Object.entries(data.instruments))
-    out += `        [${cs.str(name)}] = new() { ${record(def, instrumentFields, `instrument ${name}`).join(", ")} },\n`;
-  out += "    };\n\n    public static readonly IReadOnlyDictionary<string, PercussionSpec> Percussion = new Dictionary<string, PercussionSpec>\n    {\n";
-  for (const [name, def] of Object.entries(data.percussion))
-    out += `        [${cs.str(name)}] = new() { ${record(def, percussionFields, `percussion ${name}`).join(", ")} },\n`;
-  out += "    };\n\n    public static readonly IReadOnlyDictionary<string, RoomSpec> Rooms = new Dictionary<string, RoomSpec>\n    {\n";
-  for (const [name, room] of Object.entries(data.rooms)) {
-    for (const key of Object.keys(room)) if (!["seconds", "dark", "wet"].includes(key)) throw new Error(`room ${name}: unknown key ${key}`);
-    out += `        [${cs.str(name)}] = new(${cs.num(room.seconds, name)}, ${cs.num(room.dark, name)}, ${cs.num(room.wet, name)}),\n`;
+// A name's path name by the music's rule (S6-1; MusicNames in Engine/.../Audio/Music/MusicLibrary.cs): a
+// capital becomes '_' and the small letter, '@' becomes '.'; a name the rule or the path rule can't store stops it.
+function pathName(name, where) {
+  let out = "";
+  for (const c of name) {
+    if (/[a-z0-9-]/.test(c)) out += c;
+    else if (/[A-Z]/.test(c)) out += "_" + c.toLowerCase();
+    else if (c === "@") out += ".";
+    else throw new Error(`${where}: the name "${name}" can't be stored as a data path ('${c}')`);
   }
-  out += "    };\n\n    /// <summary>MusicThemes.all(): the region themes, the battle theme and its regional arrangements, the boss themes.</summary>\n";
-  out += "    public static readonly ThemeSpec[] Themes =\n    [\n";
-  for (const theme of data.themes) out += themeCs(theme);
-  out += "    ];\n}\n";
-  return out.replace(/ = \n/g, " =\n");
+  const stem = out.split(".")[0];
+  if (out.length === 0 || out.length > 255 || out.endsWith(".") || /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/.test(stem))
+    throw new Error(`${where}: the name "${name}" can't be stored as a data path ("${out}" breaks the path rule)`);
+  return out;
+}
+
+// The JSON text of a record: "$types" first, then its fields; -0 kept (JSON.stringify would write 0).
+function recordJson(write, object, where) {
+  const types = [];
+  const fields = write(object, where, types);
+  const document = { $types: Object.fromEntries(types.map(t => [t, 1])), ...fields };
+  const negativeZero = "\u0000-0\u0000";
+  const text = JSON.stringify(document, (key, v) => Object.is(v, -0) ? negativeZero : v, 2);
+  return text.split(JSON.stringify(negativeZero)).join("-0") + "\n";
+}
+
+// Every theme, instrument, percussion voice and room as its record's JSON form in <folder>/audio/…, and
+// the theme order (Q21; Docs/Assets.md, step 6). The packer packs the folder into audio.pak.
+function writeData(data, folder) {
+  const files = new Map();
+  const add = (sub, name, write, object, where) => {
+    const file = path.join(folder, "audio", sub, pathName(name, where) + ".json");
+    if (files.has(file)) throw new Error(`${where}: "${name}" and "${files.get(file)}" have one path`);
+    files.set(file, name);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, recordJson(write, object, where));
+  };
+  for (const [name, def] of Object.entries(data.instruments)) add("instruments", name, instrument, def, `instrument ${name}`);
+  for (const [name, def] of Object.entries(data.percussion)) add("percussion", name, percussion, def, `percussion ${name}`);
+  for (const [name, def] of Object.entries(data.rooms)) add("rooms", name, room, def, `room ${name}`);
+  for (const spec of data.themes) add("themes", spec.id, theme, spec, `theme ${spec.id}`);
+  fs.writeFileSync(path.join(folder, "audio", "theme-order.json"),
+    recordJson(themeOrder, { themes: data.themes.map(t => value.str(t.id, "theme id")) }, "theme order"));
+  return files.size + 1;
 }
 
 async function run(window, argument) {
@@ -287,8 +343,8 @@ async function run(window, argument) {
     fullRateThemes: ["alder-vale", "combat", "great-imp-jiruan", "deep-desert", "verdigris-jungle", "anatemis-white-star"] };
   const result = await window.webContents.executeJavaScript(`(${pageMain.toString()})(${JSON.stringify(options)})`, true);
   if (dataOut) {
-    fs.writeFileSync(dataOut, dataCs(result.data));
-    console.log("wrote", dataOut);
+    const count = writeData(result.data, dataOut);
+    console.log("wrote", count, "records' JSON forms into", dataOut);
   }
   if (referencesOut) {
     fs.writeFileSync(path.join(referencesOut, "music-scores.json"), JSON.stringify(result.scores, null, 1) + "\n");

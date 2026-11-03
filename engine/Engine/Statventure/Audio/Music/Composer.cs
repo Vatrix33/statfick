@@ -73,8 +73,8 @@ internal sealed class Performance
     readonly Dictionary<CompiledLayer, double[]> _voicings = new(ReferenceEqualityComparer.Instance);
     readonly HashSet<string>? _only;
 
-    static IReadOnlyDictionary<string, InstrumentSpec> I => MusicData.Instruments;
-    static IReadOnlyDictionary<string, PercussionSpec> P => MusicData.Percussion;
+    IReadOnlyDictionary<string, InstrumentSpec> I => _g.Library.Instruments;
+    IReadOnlyDictionary<string, PercussionSpec> P => _g.Library.Percussion;
 
     public Performance(GraphBuilder builder, CompiledTheme compiled, AudioNode destination, uint seed = 0, IEnumerable<string>? only = null)
     {
@@ -102,7 +102,7 @@ internal sealed class Performance
         _dry = _g.Gain();
         _g.Value(_dry.Gain, compiled.Gain);
         _g.Connect(_dry, lowCut);
-        var room = MusicData.Rooms.GetValueOrDefault(compiled.Room) ?? MusicData.Rooms["hall"];
+        var room = builder.Library.Room(compiled.Room);
         var reverb = _g.Convolver();
         var response = Impulse(compiled.Room);
         _g.SetBuffer(reverb, response, _kit.PreparedResponses.GetValueOrDefault(response));
@@ -171,21 +171,24 @@ internal sealed class Performance
         }
         else
         {
-            buffer = _g.Buffer(2, ResponseLength(roomName, _g.SampleRate));
-            FillImpulse(roomName, buffer);
+            var room = _g.Library.Room(roomName);
+            buffer = _g.Buffer(2, ResponseLength(room, _g.SampleRate));
+            FillImpulse(roomName, room, buffer);
         }
         _kit.Rooms[roomName] = buffer;
         return buffer;
     }
 
-    static RoomSpec Room(string roomName) => MusicData.Rooms.GetValueOrDefault(roomName) ?? MusicData.Rooms["hall"];
+    /// <summary>The frames of a room's response at <paramref name="rate"/>.</summary>
+    internal static int ResponseLength(RoomSpec room, double rate) => (int)Math.Ceiling(room.Seconds * rate);
 
-    internal static int ResponseLength(string roomName, double rate) => (int)Math.Ceiling(Room(roomName).Seconds * rate);
-
-    /// <summary>impulse()'s samples, into a stereo buffer of <see cref="ResponseLength"/> frames at the buffer's rate.</summary>
-    internal static void FillImpulse(string roomName, AudioBuffer buffer)
+    /// <summary>
+    /// impulse()'s samples for the room called <paramref name="roomName"/> (its noise seeded by the name),
+    /// sounding as <paramref name="room"/> (the hall's values when the library has no such room), into a
+    /// stereo buffer of <see cref="ResponseLength"/> frames at the buffer's rate.
+    /// </summary>
+    internal static void FillImpulse(string roomName, RoomSpec room, AudioBuffer buffer)
     {
-        var room = Room(roomName);
         double rate = buffer.SampleRate;
         var length = buffer.Length;
         for (var channel = 0; channel < 2; channel++)

@@ -1,0 +1,24 @@
+audio.instrument 1
+  1 kind: string (required)
+  2 voices: list<float64>? = null
+  3 cutoff: float64? = null
+  4 attack: float64? = null
+  5 release: float64? = null
+  6 vibrato: list<float64>? = null
+  7 level: float64 (required)
+  8 pan: float64? = null
+  9 send: float64? = null
+  10 decay: float64? = null
+  11 tremolo: float64? = null
+  12 peak: list<float64>? = null
+  13 low: float64? = null
+  14 high: float64? = null
+  15 vowel: list<float64>? = null
+  16 harmonics: list<float64>? = null
+  17 breath: float64? = null
+  18 bright: float64? = null
+  19 damp: float64? = null
+  20 length: float64? = null
+  21 body: float64? = null
+  22 highpass: float64? = null
+  23 partials: list<list<float64>>? = null

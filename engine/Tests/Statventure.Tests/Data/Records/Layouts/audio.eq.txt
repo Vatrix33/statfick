@@ -1,0 +1,3 @@
+audio.eq 1
+  1 low: float64? = null
+  2 presence: float64? = null

@@ -1,0 +1,4 @@
+audio.room 1
+  1 seconds: float64 (required)
+  2 dark: float64 (required)
+  3 wet: float64 (required)

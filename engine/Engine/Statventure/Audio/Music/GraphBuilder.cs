@@ -11,7 +11,8 @@ namespace Statventure.Audio;
 /// IDL turned them into, times as double bits), the same lines the reference harness records from
 /// the real composer on a stand-in context (Tools/AudioReference/music.cjs), so the whole schedule of
 /// a theme is compared exactly (Docs/Audio.md, step 6). One builder per graph: it also holds the
-/// composer's per-context resources (noise, periodic waves, plucked strings, rooms).
+/// composer's per-context resources (noise, periodic waves, plucked strings, rooms) and the music
+/// library whose instruments, percussion and rooms the composer plays.
 /// </summary>
 internal sealed class GraphBuilder
 {
@@ -21,14 +22,18 @@ internal sealed class GraphBuilder
     readonly HashSet<AudioBuffer> _hashedBuffers = new(ReferenceEqualityComparer.Instance);
     int _nextNode = 1, _nextBuffer, _nextWave;
 
-    public GraphBuilder(AudioGraph graph, List<string>? log = null)
+    public GraphBuilder(AudioGraph graph, MusicLibrary library, List<string>? log = null)
     {
         Graph = graph;
+        Library = library;
         _log = log;
         _ids[graph.Destination] = 0;
     }
 
     public AudioGraph Graph { get; }
+
+    /// <summary>The instruments, percussion voices and rooms the composer reads.</summary>
+    public MusicLibrary Library { get; }
 
     /// <summary>ctx.sampleRate: the float rate, as JavaScript reads it.</summary>
     public double SampleRate => Graph.SampleRateF;
@@ -287,20 +292,21 @@ internal sealed class GraphBuilder
 /// <summary>A room made ahead: its impulse response and the convolver kernels for it (normalized, as the composer's convolvers are).</summary>
 internal sealed record PreparedRoom(AudioBuffer Buffer, Reverb.Prepared Response)
 {
-    static readonly ConcurrentDictionary<(string Room, float Rate), Lazy<PreparedRoom>> s_rooms = new();
+    static readonly ConcurrentDictionary<(string Room, RoomSpec Spec, float Rate), Lazy<PreparedRoom>> s_rooms = new();
 
     /// <summary>
-    /// <paramref name="roomName"/>'s response at <paramref name="sampleRate"/> and its kernels, made once
-    /// per process (safe on any thread; another caller waits for the one making it), or null for an unknown room.
+    /// <paramref name="roomName"/>'s response in <paramref name="library"/> at <paramref name="sampleRate"/> and its
+    /// kernels, made once per process for each room's name, values and rate (safe on any thread; another caller
+    /// waits for the one making it), or null for a room the library doesn't have.
     /// </summary>
-    public static PreparedRoom? Get(string roomName, float sampleRate)
+    public static PreparedRoom? Get(MusicLibrary library, string roomName, float sampleRate)
     {
-        if (!MusicData.Rooms.ContainsKey(roomName))
+        if (library.Rooms.GetValueOrDefault(roomName) is not { } spec)
             return null;
-        return s_rooms.GetOrAdd((roomName, sampleRate), key => new Lazy<PreparedRoom>(() =>
+        return s_rooms.GetOrAdd((roomName, spec, sampleRate), key => new Lazy<PreparedRoom>(() =>
         {
-            var buffer = new AudioBuffer(2, Performance.ResponseLength(key.Room, key.Rate), key.Rate);
-            Performance.FillImpulse(key.Room, buffer);
+            var buffer = new AudioBuffer(2, Performance.ResponseLength(key.Spec, key.Rate), key.Rate);
+            Performance.FillImpulse(key.Room, key.Spec, buffer);
             return new PreparedRoom(buffer, Reverb.Prepare(buffer, normalize: true, responseAlignment: 0));
         })).Value;
     }

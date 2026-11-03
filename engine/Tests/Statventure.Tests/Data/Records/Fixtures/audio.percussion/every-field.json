@@ -1,0 +1,44 @@
+{
+  "$types": {
+    "audio.percussion": 1
+  },
+  "body": [
+    95,
+    44,
+    0.55
+  ],
+  "noise": [
+    600,
+    0.12
+  ],
+  "click": 0.25,
+  "level": 0.13,
+  "send": 0.5,
+  "high": [
+    4200,
+    2.2,
+    0.045
+  ],
+  "tone": [
+    620,
+    0.02
+  ],
+  "attack": 0.018,
+  "log": true,
+  "swell": true,
+  "metal": [
+    [
+      1,
+      1,
+      5
+    ],
+    [
+      1.48,
+      0.55,
+      4
+    ]
+  ],
+  "base": 58,
+  "thunder": true,
+  "timpani": true
+}

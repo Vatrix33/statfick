@@ -9,7 +9,9 @@ namespace Statventure.Audio;
 /// by an audio thread about 20 ms ahead in 128-frame quanta through OpenAL Soft; the music
 /// (<see cref="Music"/>, music.js's master chain into the master bus) and the effects bus mixed on
 /// the master bus. The game's calls are queued and applied before the next quantum; nothing locks
-/// while rendering. With no device the graph keeps rendering in real time, silently.
+/// while rendering. With no device the graph keeps rendering in real time, silently. The themes and
+/// effect patches come from a <see cref="MusicLibrary"/> (the game's: <c>MusicLibrary.Load(Data)</c>);
+/// every effect patch in it is registered under its name when the system starts (S6-4).
 /// </summary>
 public sealed class AudioSystem : IDisposable
 {
@@ -26,10 +28,10 @@ public sealed class AudioSystem : IDisposable
     double _masterVolume = 1, _effectsVolume = 1;
     long _quanta;
 
-    /// <summary>Opens the default output device (or runs silently without one) and starts the audio thread.</summary>
-    public AudioSystem() : this(new OpenAlOutput()) { }
+    /// <summary>Opens the default output device (or runs silently without one) and starts the audio thread, playing <paramref name="music"/>.</summary>
+    public AudioSystem(MusicLibrary music) : this(new OpenAlOutput(), music) { }
 
-    internal AudioSystem(IAudioOutput output, bool startThread = true) : this(new AudioGraph(output.SampleRate, 2))
+    internal AudioSystem(IAudioOutput output, MusicLibrary music, bool startThread = true) : this(new AudioGraph(output.SampleRate, 2), music)
     {
         _output = output;
         _audibility = new Audibility(output.SampleRate);
@@ -45,9 +47,10 @@ public sealed class AudioSystem : IDisposable
     }
 
     /// <summary>
-    /// Once the rooms are ready, renders a second of a region, battle and boss theme into a throwaway
-    /// graph, so the JIT has compiled the composer's and the nodes' code before the first theme
-    /// change on the audio thread (a cold first start cost about 60 ms there).
+    /// Once the rooms are ready, renders a second of a region, battle and boss theme (those of the
+    /// library's that it has) into a throwaway graph, so the JIT has compiled the composer's and the
+    /// nodes' code before the first theme change on the audio thread (a cold first start cost about
+    /// 60 ms there).
     /// </summary>
     internal void WarmUp()
     {
@@ -56,9 +59,10 @@ public sealed class AudioSystem : IDisposable
         var master = new GainNode(graph);
         master.Connect(graph.Destination);
         var rate = graph.SampleRateF;
-        var music = new Soundtrack(graph, master, preparedRooms: name => PreparedRoom.Get(name, rate));
+        var library = Music.Library;
+        var music = new Soundtrack(graph, master, library, preparedRooms: name => PreparedRoom.Get(library, name, rate));
         var bus = new AudioBus(2, AudioGraph.RenderQuantumFrames);
-        foreach (var id in new[] { "alder-vale", "combat", "great-imp-jiruan" })
+        foreach (var id in new[] { "alder-vale", "combat", "great-imp-jiruan" }.Where(id => library.Theme(id) is not null))
         {
             music.Play(id);
             for (var q = 0; q < graph.SampleRateF / AudioGraph.RenderQuantumFrames; q++)
@@ -70,7 +74,7 @@ public sealed class AudioSystem : IDisposable
     }
 
     /// <summary>The mixer on a given graph, without output or thread (the fixtures render it and call <see cref="BeforeQuantum"/>).</summary>
-    internal AudioSystem(AudioGraph graph)
+    internal AudioSystem(AudioGraph graph, MusicLibrary music)
     {
         _graph = graph;
         _master = new GainNode(_graph);
@@ -86,12 +90,14 @@ public sealed class AudioSystem : IDisposable
         RoomsReady = ready.Task;
         new Thread(() =>
         {
-            foreach (var name in MusicData.Rooms.Keys)
-                PreparedRoom.Get(name, rate);
+            foreach (var name in music.Rooms.Keys)
+                PreparedRoom.Get(music, name, rate);
             ready.SetResult();
         }) { Name = "Statventure audio rooms", IsBackground = true, Priority = ThreadPriority.BelowNormal }.Start();
-        Music = new Soundtrack(_graph, _master, dispatch: Post, preparedRooms: name => PreparedRoom.Get(name, rate));
+        Music = new Soundtrack(_graph, _master, music, dispatch: Post, preparedRooms: name => PreparedRoom.Get(music, name, rate));
         Effects = new SoundEffects(_graph, _effects, Music.Noise, Post);
+        foreach (var (name, patch) in music.Effects)
+            Effects.Register(name, patch);
     }
 
     /// <summary>Done when every room is prepared.</summary>

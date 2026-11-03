@@ -1,0 +1,11 @@
+audio.effect-layer 1
+  1 source: enum int32 {sine = 0, square = 1, sawtooth = 2, triangle = 3, harmonics = 4, noise = 5} (required)
+  2 frequency: float64 = 440
+  3 frequencyTo: float64? = null
+  4 sweepTime: float64? = null
+  5 harmonics: list<float64>? = null
+  6 filter: audio.effect-filter? = null
+  7 delay: float64 = 0
+  8 attack: float64 = 0.002
+  9 level: float64 = 1
+  10 length: float64 (required)

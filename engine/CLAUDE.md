@@ -33,10 +33,11 @@ the user and wait for their go-ahead before starting the next one.
 - Audio (M8, `Docs/Audio.md`): `Tools/Scripts/play-theme.sh [theme] [--volume 0-100]` plays the music on the real
   device, to listen to it (in a real terminal; testing it from a script, send only volume 0).
   `Tools/Scripts/audio-benchmark.sh [--split | --start [--warm] | --live | --effects] [theme ...]` times it (Release).
-  References: `make-audio-references.sh [names]` (fixtures), `make-music-data.sh` (`MusicData.g.cs` from the old
-  JavaScript), `make-music-references.sh`, `make-native-references.sh`, `make-v8-math-reference.sh`. After changing the
-  synthesizer also run `test-themes.sh` (about 20 minutes; `make-theme-references.sh` once per machine first, 2.6 GB
-  in the build cache, half an hour or more); the normal suite doesn't need those.
+  References: `make-audio-references.sh [names]` (fixtures), `make-music-data.sh` (the music importer: the old
+  JavaScript's themes, instruments, percussion and rooms into `Assets/Packs/audio.pak`), `make-music-references.sh`,
+  `make-native-references.sh`, `make-v8-math-reference.sh`. After changing the synthesizer also run `test-themes.sh`
+  (about 20 minutes; `make-theme-references.sh` once per machine first, 2.6 GB in the build cache, half an hour or
+  more); the normal suite doesn't need those.
 - Tests must be able to fail: `Tools/Scripts/mutate.py <list.json>` breaks one rule at a time and reports what no test
   noticed (`Docs/Engine-Plan.md`, "How each step is finished"). Keep working files in
   `~/.cache/stat-fick-build/claude-work/`: a session's scratch folder is lost when the session restarts.

@@ -98,7 +98,7 @@ public class OutputTests
     [Fact]
     public void BuffersAreLeftThenRight()
     {
-        var system = new AudioSystem(new RecordingOutput(48000, 0), startThread: false);
+        var system = new AudioSystem(new RecordingOutput(48000, 0), TestMusic.Library, startThread: false);
         var tone = new OscillatorNode(system.Graph);
         var panner = new StereoPannerNode(system.Graph);
         panner.Pan.Value = -1;
@@ -167,7 +167,7 @@ public class OutputTests
             Action beforeQuantum;
             if (prepared)
             {
-                var system = new AudioSystem(graph);
+                var system = new AudioSystem(graph, TestMusic.Library);
                 music = system.Music;
                 beforeQuantum = system.BeforeQuantum;
             }
@@ -175,7 +175,7 @@ public class OutputTests
             {
                 var master = new GainNode(graph);
                 master.Connect(graph.Destination);
-                music = new Soundtrack(graph, master);
+                music = new Soundtrack(graph, master, TestMusic.Library);
                 beforeQuantum = music.Schedule;
             }
             var bus = new AudioBus(2, AudioGraph.RenderQuantumFrames);
@@ -206,14 +206,14 @@ public class OutputTests
     {
         const int Buffers = 400;
         var output = new RecordingOutput(48000, Buffers) { Held = true };
-        using (var system = new AudioSystem(output))
+        using (var system = new AudioSystem(output, TestMusic.Library))
         {
             system.Music.Play("alder-vale");
             system.EffectsVolume = 0.5;
             output.Held = false;
             Assert.True(output.Full.Wait(TimeSpan.FromSeconds(30)));
         }
-        var direct = new AudioSystem(new RecordingOutput(48000, 0), startThread: false);
+        var direct = new AudioSystem(new RecordingOutput(48000, 0), TestMusic.Library, startThread: false);
         direct.Music.Play("alder-vale");
         direct.EffectsVolume = 0.5;
         var expected = new float[Buffers * output.BufferFrames * 2];
@@ -230,7 +230,7 @@ public class OutputTests
     [Fact]
     public void CallsLandAtTheNextQuantum()
     {
-        var system = new AudioSystem(new RecordingOutput(48000, 0), startThread: false);
+        var system = new AudioSystem(new RecordingOutput(48000, 0), TestMusic.Library, startThread: false);
         var source = new OscillatorNode(system.Graph);
         source.Connect(system.EffectsBus);
         source.Start(0);
@@ -241,7 +241,7 @@ public class OutputTests
         Assert.Equal(0, system.Graph.CurrentSampleFrame % AudioGraph.RenderQuantumFrames);
         system.RenderBuffer(buffer);
         // The ramp starts at the quantum's first frame (from 1) and is under way by its last.
-        var reference = new AudioSystem(new AudioGraph(48000, 2));
+        var reference = new AudioSystem(new AudioGraph(48000, 2), TestMusic.Library);
         var oscillator = new OscillatorNode(reference.Graph);
         oscillator.Connect(reference.EffectsBus);
         oscillator.Start(0);
@@ -260,7 +260,7 @@ public class OutputTests
     public void PausingFreezesTheGraphAndResumingGoesOn()
     {
         var output = new RecordingOutput(48000, 100000);
-        using var system = new AudioSystem(output);
+        using var system = new AudioSystem(output, TestMusic.Library);
         system.Music.Play("combat");
         SpinWait.SpinUntil(() => output.Count > 20, TimeSpan.FromSeconds(10));
         system.Pause();
@@ -317,7 +317,7 @@ public class OutputTests
     {
         const double Ahead = 0.5;
         var clock = Stopwatch.StartNew();
-        using var system = new AudioSystem();
+        using var system = new AudioSystem(TestMusic.Library);
         Assert.True(SpinWait.SpinUntil(() => system.Graph.CurrentTime > 0.1, TimeSpan.FromSeconds(30)));
         Thread.Sleep(600);
         Assert.InRange(system.Graph.CurrentTime, 0.1, clock.Elapsed.TotalSeconds + Ahead);

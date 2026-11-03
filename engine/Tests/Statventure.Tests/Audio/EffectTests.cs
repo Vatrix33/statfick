@@ -11,7 +11,7 @@ public class EffectTests(GpuFixture gpu)
 {
     static readonly EffectPatch Beep = new() { Layers = [new EffectLayer { Source = EffectSource.Sine, Length = 0.05 }] };
 
-    static AudioSystem System() => new(new AudioGraph(22050, 2));
+    static AudioSystem System() => new(new AudioGraph(22050, 2), MusicLibrary.Empty);
 
     static float[] Render(AudioSystem system, int quanta)
     {

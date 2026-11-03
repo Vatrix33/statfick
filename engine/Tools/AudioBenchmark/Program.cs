@@ -2,10 +2,13 @@
 // AudioSystem's mixer at 48 kHz, its steps scheduled 0.2 s ahead before each quantum, for one pass of
 // its form plus 4.5 s; every quantum's render time against the real-time budget (128 frames:
 // 2.67 ms). Arguments name themes (all by default); see Tools/Scripts/audio-benchmark.sh for the other modes.
+// The music is the repo's audio.pak (engine/Assets/Packs/).
 using System.Diagnostics;
 using Statventure.Audio;
+using Statventure.Packs;
 
 const int Rate = 48000;
+var music = RepoMusic();
 var budget = AudioGraph.RenderQuantumFrames * 1000.0 / Rate;
 if (args.Contains("--effects"))
 {
@@ -13,7 +16,7 @@ if (args.Contains("--effects"))
     var id = args.First(a => a != "--effects");
     foreach (var run in new[] { "warm-up", "theme alone", "with 32 voices" })
     {
-        var system = new AudioSystem(new AudioGraph(Rate, 2));
+        var system = new AudioSystem(new AudioGraph(Rate, 2), music);
         system.RoomsReady.Wait();
         for (var i = 0; i < 40; i++)
             system.Effects.Register($"p{i}", new EffectPatch
@@ -47,7 +50,7 @@ if (args.Contains("--live"))
     // Plays through the real default device, silently (the master bus at 0), and counts underruns.
     var rest = args.Where(a => a != "--live").ToArray();
     var seconds = rest.Length > 1 ? double.Parse(rest[1], System.Globalization.CultureInfo.InvariantCulture) : 20;
-    using var live = new AudioSystem();
+    using var live = new AudioSystem(music);
     live.Post(() => live.MasterGain.SetValueAtTime(0, live.Graph.CurrentTime));
     Thread.Sleep(1500); // the rooms and the warm-up
     live.Music.Play(rest[0]);
@@ -75,7 +78,7 @@ if (args.Contains("--start"))
     args = [.. args.Where(a => a != "--warm")];
     if (warm)
     {
-        var warmer = new AudioSystem(new AudioGraph(Rate, 2));
+        var warmer = new AudioSystem(new AudioGraph(Rate, 2), music);
         warmer.WarmUp();
     }
     // What starting a theme costs: the room's impulse response, its convolver, the first steps.
@@ -83,7 +86,7 @@ if (args.Contains("--start"))
         for (var run = 0; run < 3; run++)
         {
             var graph = new AudioGraph(Rate, 2);
-            var system = new AudioSystem(graph);
+            var system = new AudioSystem(graph, music);
             system.RoomsReady.Wait();
             var t0 = Stopwatch.GetTimestamp();
             system.Music.Play(id);
@@ -101,7 +104,7 @@ if (args.Contains("--start"))
 }
 var split = args.Contains("--split");
 args = [.. args.Where(a => a != "--split")];
-var themes = args.Length > 0 ? args : [.. Soundtrack.Themes];
+var themes = args.Length > 0 ? args : [.. music.Themes];
 // Warm up the JIT on one theme.
 Measure(themes[0], 2);
 Console.WriteLine($"{"theme",-30} {"seconds",8} {"mean ms",8} {"p99 ms",8} {"p99.9",8} {"max ms",8} {"over budget",12} {"GCs 0/1/2",12}  (budget {budget:F2} ms a quantum)");
@@ -125,10 +128,10 @@ void Report(string name, double seconds, List<double> times, string gcs)
 
 (double Seconds, List<double> Times) Measure(string id, double limitSeconds, bool split = false)
 {
-    var system = new AudioSystem(new AudioGraph(Rate, 2));
+    var system = new AudioSystem(new AudioGraph(Rate, 2), music);
     system.RoomsReady.Wait();
     system.Music.Play(id);
-    var seconds = Math.Min(limitSeconds, Soundtrack.OfflineLength(id, Rate) / (double)Rate);
+    var seconds = Math.Min(limitSeconds, Soundtrack.OfflineLength(music, id, Rate) / (double)Rate);
     var quanta = (int)(seconds * Rate / AudioGraph.RenderQuantumFrames);
     var bus = new AudioBus(2, AudioGraph.RenderQuantumFrames);
     var times = new List<double>(quanta);
@@ -151,4 +154,19 @@ void Report(string name, double seconds, List<double> times, string gcs)
     if (split)
         Console.WriteLine($"  {id}: scheduling worst {worstSchedule:F2} ms ({scheduleOver} over half the budget), rendering worst {worstRender:F2} ms ({renderOver} over half)");
     return (seconds, times);
+}
+
+/// <summary>The repo's committed audio.pak (engine/Assets/Packs/), found above the tool's folder, and the music in it.</summary>
+static MusicLibrary RepoMusic()
+{
+    for (var folder = new DirectoryInfo(AppContext.BaseDirectory); folder != null; folder = folder.Parent)
+    {
+        var pack = Path.Combine(folder.FullName, "Assets", "Packs", "audio.pak");
+        if (File.Exists(pack))
+        {
+            using var data = new VirtualFileSystem([Mount.Pack(pack)]);
+            return MusicLibrary.Load(data);
+        }
+    }
+    throw new FileNotFoundException("No Assets/Packs/audio.pak above " + AppContext.BaseDirectory);
 }

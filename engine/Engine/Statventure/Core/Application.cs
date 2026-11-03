@@ -127,7 +127,7 @@ public abstract class Application : IDisposable
             Gpu = GpuDevice.Create(new GpuDeviceOptions { ApplicationName = Options.Window.Title });
             Swapchain = new Swapchain(Gpu, Window, Options.VSync);
             if (Options.Audio)
-                Audio = new AudioSystem();
+                Audio = new AudioSystem(MusicLibrary.Load(Data));
             Load();
             Running = true;
             var clock = Stopwatch.StartNew();

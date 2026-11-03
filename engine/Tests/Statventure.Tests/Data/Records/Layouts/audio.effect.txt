@@ -1,0 +1,6 @@
+audio.effect 1
+  1 layers: list<audio.effect-layer> (required)
+  2 level: float64 = 1
+  3 maxVoices: int32 = 4
+  4 pitch: audio.effect-range? = null
+  5 volume: audio.effect-range? = null

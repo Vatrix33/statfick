@@ -1,0 +1,7 @@
+audio.section 1
+  1 chords: string? = null
+  2 melody: string? = null
+  3 dynamics: float64? = null
+  4 dynamicsTo: float64? = null
+  5 like: string? = null
+  6 layers: list<audio.layer>? = null

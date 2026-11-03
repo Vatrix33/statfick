@@ -3,9 +3,10 @@
 //   play-theme.sh alder-vale          plays one, looping, until Enter
 //   play-theme.sh alder-vale --volume 30
 // While it plays, type another theme's id to change to it (with the game's fades) or a number from 0 to
-// 100 to set the volume. Enter alone quits, fading out.
+// 100 to set the volume. Enter alone quits, fading out. The music is the repo's audio.pak (engine/Assets/Packs/).
 using System.Globalization;
 using Statventure.Audio;
+using Statventure.Packs;
 
 var arguments = args.ToList();
 var volume = 100.0;
@@ -19,20 +20,21 @@ if (volumeAt >= 0)
     }
     arguments.RemoveRange(volumeAt, 2);
 }
+var music = RepoMusic();
 if (arguments.Count == 0)
 {
     Console.WriteLine("Themes (play one with: play-theme.sh <theme> [--volume 0-100]):");
-    foreach (var id in Soundtrack.Themes)
+    foreach (var id in music.Themes)
         Console.WriteLine("  " + id);
     return 0;
 }
-if (!Soundtrack.Themes.Contains(arguments[0]))
+if (!music.Themes.Contains(arguments[0]))
 {
     Console.Error.WriteLine($"No theme '{arguments[0]}' (play-theme.sh without arguments lists them)");
     return 1;
 }
 
-using var audio = new AudioSystem();
+using var audio = new AudioSystem(music);
 if (!audio.HasDevice)
     Console.WriteLine("No output device: nothing will be heard until one appears.");
 audio.Music.Volume = volume / 100;
@@ -46,7 +48,7 @@ while (Console.ReadLine() is { Length: > 0 } line)
         audio.Music.Volume = newVolume / 100;
         Console.WriteLine($"Volume {newVolume.ToString(CultureInfo.InvariantCulture)} %");
     }
-    else if (Soundtrack.Themes.Contains(line))
+    else if (music.Themes.Contains(line))
     {
         audio.Music.Play(line);
         Console.WriteLine("Playing " + line);
@@ -61,3 +63,19 @@ return 0;
 
 static bool TryVolume(string text, out double value) =>
     double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value) && value is >= 0 and <= 100;
+
+/// <summary>The repo's committed audio.pak (engine/Assets/Packs/), found above the tool's folder, and the music in it.</summary>
+static MusicLibrary RepoMusic()
+{
+    for (var folder = new DirectoryInfo(AppContext.BaseDirectory); folder != null; folder = folder.Parent)
+    {
+        var pack = Path.Combine(folder.FullName, "Assets", "Packs", "audio.pak");
+        if (File.Exists(pack))
+        {
+            using var data = new VirtualFileSystem([Mount.Pack(pack)]);
+            return MusicLibrary.Load(data);
+        }
+    }
+    throw new FileNotFoundException("No Assets/Packs/audio.pak above " + AppContext.BaseDirectory);
+}
+

@@ -19,7 +19,7 @@ public class ThemeRenderTests
     static string Folder => Path.Combine(Environment.GetEnvironmentVariable("STATVENTURE_CACHE")
         ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache", "stat-fick-build"), "audio-themes");
 
-    public static TheoryData<string> Themes => new(Soundtrack.Themes);
+    public static TheoryData<string> Themes => new(TestMusic.Library.Themes);
 
     static float[] Load(string path)
     {
@@ -47,8 +47,8 @@ public class ThemeRenderTests
         var spread = Math.Max(entry.GetProperty("spread"u8).GetDouble(), AudioReferenceTests.SmallestNormal);
         var min = Load(Path.Combine(Folder, id + ".min.f32.gz"));
         var max = Load(Path.Combine(Folder, id + ".max.f32.gz"));
-        Assert.Equal(Soundtrack.OfflineLength(id, 44100), frames);
-        var renders = Enumerable.Range(1, 4).AsParallel().AsOrdered().Select(seed => Soundtrack.RenderOffline(id, 44100, new Random(seed))).ToArray();
+        Assert.Equal(Soundtrack.OfflineLength(TestMusic.Library, id, 44100), frames);
+        var renders = Enumerable.Range(1, 4).AsParallel().AsOrdered().Select(seed => Soundtrack.RenderOffline(TestMusic.Library, id, 44100, new Random(seed))).ToArray();
         var engineSpread = 0.0;
         for (var c = 0; c < 2; c++)
             for (var i = 0; i < frames; i++)

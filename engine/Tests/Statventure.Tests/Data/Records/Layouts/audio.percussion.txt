@@ -1,0 +1,15 @@
+audio.percussion 1
+  1 body: list<float64>? = null
+  2 noise: list<float64>? = null
+  3 click: float64? = null
+  4 level: float64 (required)
+  5 send: float64? = null
+  6 high: list<float64>? = null
+  7 tone: list<float64>? = null
+  8 attack: float64? = null
+  9 log: bool = false
+  10 swell: bool = false
+  11 metal: list<list<float64>>? = null
+  12 base: float64? = null
+  13 thunder: bool = false
+  14 timpani: bool = false

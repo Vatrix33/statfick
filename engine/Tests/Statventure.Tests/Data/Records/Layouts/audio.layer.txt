@@ -1,0 +1,26 @@
+audio.layer 1
+  1 type: string (required)
+  2 instrument: string? = null
+  3 octave: float64? = null
+  4 velocity: float64? = null
+  5 pattern: string? = null
+  6 drums: map<string, string>? = null
+  7 degree: string? = null
+  8 degrees: list<string>? = null
+  9 voices: int32? = null
+  10 every: int32? = null
+  11 bars: list<int32>? = null
+  12 cycle: int32? = null
+  13 chance: float64? = null
+  14 length: float64? = null
+  15 at: int32? = null
+  16 kind: string? = null
+  17 role: string? = null
+  18 notes: string? = null
+  19 pan: float64? = null
+  20 spread: float64? = null
+  21 legato: float64? = null
+  22 timpaniOctave: float64? = null
+  23 logOctave: float64? = null
+  24 harmony: audio.harmony? = null
+  25 doublings: list<audio.doubling>? = null
