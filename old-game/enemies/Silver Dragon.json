@@ -51,5 +51,13 @@
     "arcane-barrage-basic-damage",
     "arcane-lance-basic-damage",
     "dragonbreath-aether-storm-basic-damage"
+  ],
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 0.5,
+      "minimum": 1,
+      "maximum": 1
+    }
   ]
 }

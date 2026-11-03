@@ -30,5 +30,13 @@
     "phoenix-renewal-fire-support", "dragonbreath-worldfire-fire-damage",
     "starfire-spear-fire-damage", "ashfall-crown-fire-damage",
     "solar-pike-fire-damage"
+  ],
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 0.5,
+      "minimum": 1,
+      "maximum": 1
+    }
   ]
 }

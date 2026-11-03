@@ -300,7 +300,6 @@ const resetButton = document.querySelector("#reset-button");
 const levelUpButton = document.querySelector("#level-up-button");
 const levelIcon = document.querySelector("#level-icon");
 const editingToggle = document.querySelector("#editing-toggle");
-const editingStatus = document.querySelector("#editing-status");
 const pointsValue = document.querySelector("#points-value");
 const respecButton = document.querySelector("#respec-button");
 const themeToggle = document.querySelector("#theme-toggle");
@@ -408,11 +407,8 @@ function calculateCurrentStats(baseValues, percentageValues) {
   ]));
 }
 
-function combineBonuses(permanentValues, temporaryValues, definitions = bonusDefinitions) {
-  return Object.fromEntries(definitions.map((key) => [
-    key,
-    toNumber(permanentValues[key], 0) + toNumber(temporaryValues[key], 0),
-  ]));
+function bonusValues(values, definitions = bonusDefinitions) {
+  return Object.fromEntries(definitions.map((key) => [key, toNumber(values[key], 0)]));
 }
 
 function emptyArtifactEffects() {
@@ -1131,7 +1127,7 @@ function currentStatsUncached() {
   const classEffects = calculateClassEffects();
   const raceEffects = calculateRaceEffects();
   const baseValues = Object.fromEntries(statDefinitions.map(({ key }) => [key, displayedBaseStat(key) + artifactEffects.statFlat[key]]));
-  const percentageValues = combineBonuses(permanentBonuses, temporaryBonuses);
+  const percentageValues = bonusValues(permanentBonuses);
   statDefinitions.forEach(({ key }) => {
     percentageValues[key] += artifactEffects.statPercent[key] + artifactEffects.statPermanentPercent[key] + classEffects.statPermanentPercent[key] + raceEffects.statPermanentPercent[key] + (window.Combat?.permanentStatPercent?.(key) || 0);
   });
@@ -1284,9 +1280,7 @@ function defaultCharacter() {
     manualAllocations: { ...defaultAllocations },
     currencies: { ...defaultCurrencies },
     permanentBonuses: { ...defaultBonuses },
-    temporaryBonuses: { ...defaultBonuses },
     permanentDefenseBonuses: { ...defaultDefenseBonuses },
-    temporaryDefenseBonuses: { ...defaultDefenseBonuses },
     inventory: [],
     favoriteItems: [],
     equipment: { ...defaultEquipment },
@@ -1346,14 +1340,9 @@ function normalizeCharacter(saved) {
     savedPermanentBonuses[legacyBarbarianChoice.stat] -= legacyBarbarianChoice.amount;
     delete savedStatChoiceBonuses["barbarian:7:0"];
   }
-  const savedTemporaryBonuses = Object.fromEntries(bonusDefinitions.map((key) => [key, toNumber(saved.temporaryBonuses?.[key], 0)]));
   const savedPermanentDefenseBonuses = Object.fromEntries(defenseBonusDefinitions.map((key) => [
     key,
     toNumber(saved.permanentDefenseBonuses?.[key] ?? saved.defenseModifiers?.[key] ?? savedLegacyModifiers[key], 0),
-  ]));
-  const savedTemporaryDefenseBonuses = Object.fromEntries(defenseBonusDefinitions.map((key) => [
-    key,
-    toNumber(saved.temporaryDefenseBonuses?.[key], 0),
   ]));
   const savedInventory = Array.isArray(saved.inventory) ? saved.inventory
     .filter((itemId) => typeof itemId === "string" && !itemId.startsWith("consumable-spell-tome-"))
@@ -1400,7 +1389,7 @@ function normalizeCharacter(saved) {
   };
   const savedCompanions = Array.isArray(saved.companions) ? saved.companions.map(normalizeCompanion).filter(Boolean).slice(0, 3) : [];
   const savedRecruitOffers = Array.isArray(saved.recruitOffers) ? saved.recruitOffers.map(normalizeCompanion).filter(Boolean).slice(0, 3) : [];
-  const savedCurrentStats = calculateCurrentStats(savedStats, combineBonuses(savedPermanentBonuses, savedTemporaryBonuses));
+  const savedCurrentStats = calculateCurrentStats(savedStats, bonusValues(savedPermanentBonuses));
   const savedMaxHp = calculateMaxHp(savedCurrentStats);
   const savedMaxMana = calculateMaxMana(savedCurrentStats);
   return {
@@ -1447,9 +1436,7 @@ function normalizeCharacter(saved) {
     manualAllocations: savedAllocations,
     currencies: savedCurrencies,
     permanentBonuses: savedPermanentBonuses,
-    temporaryBonuses: savedTemporaryBonuses,
     permanentDefenseBonuses: savedPermanentDefenseBonuses,
-    temporaryDefenseBonuses: savedTemporaryDefenseBonuses,
     inventory: savedInventory,
     favoriteItems: savedFavoriteItems,
     equipment: savedEquipment,
@@ -1503,9 +1490,7 @@ let currentMana = character.currentMana;
 let manualAllocations = character.manualAllocations;
 let currencies = character.currencies;
 let permanentBonuses = character.permanentBonuses;
-let temporaryBonuses = character.temporaryBonuses;
 let permanentDefenseBonuses = character.permanentDefenseBonuses;
-let temporaryDefenseBonuses = character.temporaryDefenseBonuses;
 let inventory = character.inventory;
 let favoriteItems = character.favoriteItems;
 let equipment = character.equipment;
@@ -1571,13 +1556,6 @@ function createStatCards() {
             <span>%</span>
           </div>
         </div>
-        <div class="stat-modifier-wrap">
-          <label for="stat-temporary-bonus-${key}">Temporary bonus</label>
-          <div class="stat-modifier-field">
-            <input class="modifier-input stat-modifier-input stat-bonus-input" id="stat-temporary-bonus-${key}" data-bonus="temporary" data-stat="${key}" type="number" inputmode="decimal" step="any" value="${temporaryBonuses[key]}" aria-label="${label} temporary percentage bonus" />
-            <span>%</span>
-          </div>
-        </div>
       </div>
       <div class="stat-bar" aria-hidden="true"><span></span></div>
     </article>
@@ -1594,12 +1572,10 @@ function createStatCards() {
 
   statsGrid.querySelectorAll(".stat-bonus-input").forEach((input) => {
     input.addEventListener("input", () => {
-      const isPermanent = input.dataset.bonus === "permanent";
-      const bonuses = isPermanent ? permanentBonuses : temporaryBonuses;
-      const artifactBonus = isPermanent ? calculateArtifactEffects().statPermanentPercent[input.dataset.stat] : 0;
-      const classBonus = isPermanent ? calculateClassEffects().statPermanentPercent[input.dataset.stat] : 0;
-      bonuses[input.dataset.stat] = toNumber(input.value, 0) - artifactBonus - classBonus;
-      input.value = isPermanent ? effectivePermanentBonus(input.dataset.stat) : bonuses[input.dataset.stat];
+      const artifactBonus = calculateArtifactEffects().statPermanentPercent[input.dataset.stat];
+      const classBonus = calculateClassEffects().statPermanentPercent[input.dataset.stat];
+      permanentBonuses[input.dataset.stat] = toNumber(input.value, 0) - artifactBonus - classBonus;
+      input.value = effectivePermanentBonus(input.dataset.stat);
       updateDerivedValues();
       saveCharacter();
     });
@@ -1632,15 +1608,10 @@ function updateEditingControls() {
   const devModeAction = editingEnabled ? "Disable Dev-mode" : "Enable Dev-mode";
   editingToggle.setAttribute("aria-label", devModeAction);
   editingToggle.title = devModeAction;
-  editingStatus.textContent = editingEnabled ? "Dev-mode · On" : "Dev-mode · Off";
   pointsValue.textContent = String(availablePoints);
   respecButton.disabled = totalManualAllocations() === 0;
   statsGrid.querySelectorAll(".stat-input, .stat-stepper, .stat-bonus-input").forEach((control) => {
-    const isPermanentBonus = control.classList.contains("stat-bonus-input") && control.dataset.bonus === "permanent";
-    const isTemporaryBonus = control.classList.contains("stat-bonus-input") && control.dataset.bonus === "temporary";
-    if (isTemporaryBonus) {
-      control.disabled = false;
-    } else if (control.classList.contains("stat-input") || isPermanentBonus) {
+    if (control.classList.contains("stat-input") || control.classList.contains("stat-bonus-input")) {
       control.disabled = !editingEnabled;
     } else if (control.dataset.action === "decrease") {
       control.disabled = !editingEnabled;
@@ -1649,8 +1620,14 @@ function updateEditingControls() {
     }
   });
   document.querySelectorAll(".defense-bonus-input").forEach((control) => {
-    control.disabled = control.dataset.bonus === "permanent" && !editingEnabled;
+    control.disabled = !editingEnabled;
   });
+  // Money is earned and spent in the world; only Dev Mode edits the purse by hand.
+  document.querySelectorAll(".currency-input").forEach((control) => {
+    control.disabled = !editingEnabled;
+    control.closest(".sidebar-currency").title = editingEnabled ? "" : "Enable Dev Mode to edit money";
+  });
+  document.querySelector(".sidebar-purse").classList.toggle("is-locked", !editingEnabled);
   document.querySelectorAll("[data-dev-only]").forEach((control) => {
     control.hidden = !editingEnabled;
   });
@@ -1662,16 +1639,10 @@ function updateBonusInputs() {
   const classEffects = calculateClassEffects();
   const raceEffects = calculateRaceEffects();
   document.querySelectorAll(".stat-bonus-input").forEach((input) => {
-    const bonuses = input.dataset.bonus === "permanent" ? permanentBonuses : temporaryBonuses;
-    input.value = input.dataset.bonus === "permanent"
-      ? (bonuses[input.dataset.stat] ?? 0) + artifactPermanentBonuses[input.dataset.stat] + classEffects.statPermanentPercent[input.dataset.stat] + raceEffects.statPermanentPercent[input.dataset.stat] + (window.Combat?.permanentStatPercent?.(input.dataset.stat) || 0)
-      : bonuses[input.dataset.stat] ?? 0;
+    input.value = (permanentBonuses[input.dataset.stat] ?? 0) + artifactPermanentBonuses[input.dataset.stat] + classEffects.statPermanentPercent[input.dataset.stat] + raceEffects.statPermanentPercent[input.dataset.stat] + (window.Combat?.permanentStatPercent?.(input.dataset.stat) || 0);
   });
   document.querySelectorAll(".defense-bonus-input").forEach((input) => {
-    const bonuses = input.dataset.bonus === "permanent" ? permanentDefenseBonuses : temporaryDefenseBonuses;
-    input.value = input.dataset.bonus === "permanent"
-      ? (bonuses[input.dataset.defense] ?? 0) + classEffects.defensePermanentPercent[input.dataset.defense] + raceEffects.defensePermanentPercent[input.dataset.defense] + (window.Combat?.permanentDefensePercent?.(input.dataset.defense) || 0)
-      : bonuses[input.dataset.defense] ?? 0;
+    input.value = (permanentDefenseBonuses[input.dataset.defense] ?? 0) + classEffects.defensePermanentPercent[input.dataset.defense] + raceEffects.defensePermanentPercent[input.dataset.defense] + (window.Combat?.permanentDefensePercent?.(input.dataset.defense) || 0);
   });
 }
 
@@ -1689,7 +1660,7 @@ function updateDerivedValues() {
   const modifiedEvasion = Math.max(0, Math.floor((baseEvasion - equipmentDefense.evasionDebuff + equipmentDefense.evasionFlat) * (1 + equipmentDefense.evasionPercent / 100)));
   const classEffects = calculateClassEffects();
   const raceEffects = calculateRaceEffects();
-  const activeDefenseBonuses = combineBonuses(permanentDefenseBonuses, temporaryDefenseBonuses, defenseBonusDefinitions);
+  const activeDefenseBonuses = bonusValues(permanentDefenseBonuses, defenseBonusDefinitions);
   defenseBonusDefinitions.forEach((key) => {
     activeDefenseBonuses[key] += classEffects.defensePermanentPercent[key] + raceEffects.defensePermanentPercent[key] + (window.Combat?.permanentDefensePercent?.(key) || 0);
   });
@@ -1754,7 +1725,7 @@ function saveCharacter() {
   window.Combat?.onSheetChange();
   window.WorldMap?.renderClock();
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ worldState, shopState, combatState: window.Combat?.serialize() || null, raceId: selectedRaceId, appearance, level, exp, availablePoints, perkPoints, startingPerkPointGranted: true, trapsUsed, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount, editingEnabled, darkMode, currentHp, currentMana, manualAllocations, currencies, permanentBonuses, temporaryBonuses, permanentDefenseBonuses, temporaryDefenseBonuses, inventory, favoriteItems, equipment, knownSpells, classLevels, activeSkills, companions, recruitOffers, pendingClassSpellChoice, completedClassChoices, stats }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ worldState, shopState, combatState: window.Combat?.serialize() || null, raceId: selectedRaceId, appearance, level, exp, availablePoints, perkPoints, startingPerkPointGranted: true, trapsUsed, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount, editingEnabled, darkMode, currentHp, currentMana, manualAllocations, currencies, permanentBonuses, permanentDefenseBonuses, inventory, favoriteItems, equipment, knownSpells, classLevels, activeSkills, companions, recruitOffers, pendingClassSpellChoice, completedClassChoices, stats }));
     statusDot.classList.add("is-saving");
     window.clearTimeout(saveCharacter.timer);
     saveCharacter.timer = window.setTimeout(() => statusDot.classList.remove("is-saving"), 350);
@@ -1773,7 +1744,7 @@ function backupPayload() {
     format: "emberfall-stat-block",
     version: 22,
     exportedAt: new Date().toISOString(),
-    character: { worldState, shopState, combatState: window.Combat?.serialize() || null, raceId: selectedRaceId, appearance, level, exp, availablePoints, perkPoints, startingPerkPointGranted: true, trapsUsed, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount, editingEnabled, darkMode, currentHp, currentMana, manualAllocations, currencies, permanentBonuses, temporaryBonuses, permanentDefenseBonuses, temporaryDefenseBonuses, inventory, favoriteItems, equipment, knownSpells, classLevels, activeSkills, companions, recruitOffers, pendingClassSpellChoice, completedClassChoices, stats },
+    character: { worldState, shopState, combatState: window.Combat?.serialize() || null, raceId: selectedRaceId, appearance, level, exp, availablePoints, perkPoints, startingPerkPointGranted: true, trapsUsed, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount, editingEnabled, darkMode, currentHp, currentMana, manualAllocations, currencies, permanentBonuses, permanentDefenseBonuses, inventory, favoriteItems, equipment, knownSpells, classLevels, activeSkills, companions, recruitOffers, pendingClassSpellChoice, completedClassChoices, stats },
   };
 }
 
@@ -1843,9 +1814,7 @@ function applyCharacter(characterData) {
   manualAllocations = characterData.manualAllocations;
   currencies = characterData.currencies;
   permanentBonuses = characterData.permanentBonuses;
-  temporaryBonuses = characterData.temporaryBonuses;
   permanentDefenseBonuses = characterData.permanentDefenseBonuses;
-  temporaryDefenseBonuses = characterData.temporaryDefenseBonuses;
   inventory = characterData.inventory;
   favoriteItems = characterData.favoriteItems || [];
   equipment = characterData.equipment;
@@ -1993,13 +1962,10 @@ document.querySelectorAll(".currency-input").forEach((input) => {
 
 document.querySelectorAll(".defense-bonus-input").forEach((input) => {
   input.addEventListener("input", () => {
-    const bonuses = input.dataset.bonus === "permanent" ? permanentDefenseBonuses : temporaryDefenseBonuses;
-    const classBonus = input.dataset.bonus === "permanent" ? calculateClassEffects().defensePermanentPercent[input.dataset.defense] : 0;
-    const raceBonus = input.dataset.bonus === "permanent" ? calculateRaceEffects().defensePermanentPercent[input.dataset.defense] : 0;
-    bonuses[input.dataset.defense] = toNumber(input.value, 0) - classBonus - raceBonus;
-    input.value = input.dataset.bonus === "permanent"
-      ? bonuses[input.dataset.defense] + classBonus + raceBonus
-      : bonuses[input.dataset.defense];
+    const classBonus = calculateClassEffects().defensePermanentPercent[input.dataset.defense];
+    const raceBonus = calculateRaceEffects().defensePermanentPercent[input.dataset.defense];
+    permanentDefenseBonuses[input.dataset.defense] = toNumber(input.value, 0) - classBonus - raceBonus;
+    input.value = permanentDefenseBonuses[input.dataset.defense] + classBonus + raceBonus;
     updateDerivedValues();
     saveCharacter();
   });
@@ -2084,9 +2050,7 @@ resetButton.addEventListener("click", () => {
   manualAllocations = { ...defaultAllocations };
   currencies = { ...defaultCurrencies };
   permanentBonuses = { ...defaultBonuses };
-  temporaryBonuses = { ...defaultBonuses };
   permanentDefenseBonuses = { ...defaultDefenseBonuses };
-  temporaryDefenseBonuses = { ...defaultDefenseBonuses };
   inventory = [];
   favoriteItems = [];
   equipment = { ...defaultEquipment };
@@ -3491,7 +3455,7 @@ function calculateArmorForWeapon(values) {
   const combatArmor = window.Combat?.armorForEquipment?.();
   if (combatArmor != null) return combatArmor;
   const classes = calculateClassEffects(), race = calculateRaceEffects();
-  const bonus = toNumber(permanentDefenseBonuses.armor, 0) + toNumber(temporaryDefenseBonuses.armor, 0) + classes.defensePermanentPercent.armor + race.defensePermanentPercent.armor;
+  const bonus = toNumber(permanentDefenseBonuses.armor, 0) + classes.defensePermanentPercent.armor + race.defensePermanentPercent.armor;
   const raw = Math.floor((BASE_ARMOR + calculateEquipmentDefense(values).armor) * (1 + bonus / 100)) + classes.defenseFlat.armor + race.defenseFlat.armor;
   return Math.max(0, Math.min(raw, equippedDefenseCap("armor"), classes.defenseCap.armor, race.defenseCap.armor));
 }
@@ -4092,7 +4056,17 @@ function forgedPartsMarkup(item) {
       '<span class="forged-part-text"><span class="forged-part-role">' + escapeHtml(info.shape) + (info.main ? ' · main part' : '') + '</span>' +
       '<strong>' + escapeHtml(info.material) + '</strong><small>' + escapeHtml(info.maker) + '</small>' +
       '<em>' + escapeHtml(info.effects || "No effect") + '</em></span></span>';
-  }).join("") + '</span>';
+  }).join("") + forgedMatchingMarkup(item) + '</span>';
+}
+
+// A Matching (masterwork: Flawless) weapon's own bonus, listed after its parts.
+function forgedMatchingMarkup(item) {
+  const bonus = ForgeRules.matchingBonusText(item.forged);
+  if (!bonus) return "";
+  const maker = ForgeRules.MAKERS[ForgeRules.matchingMaker(item.forged)];
+  return '<span class="forged-part forged-part-matching ' + forgedPartClass(ForgeRules.describePart(item.forged, 0)) + '">' + forgedLogo(item.forged.maker, "forged-part-logo") +
+    '<span class="forged-part-text"><span class="forged-part-role">' + (item.forged.masterwork ? 'Flawless' : 'Matching') + ' bonus</span>' +
+    '<strong>Every part by ' + escapeHtml(maker.name) + '</strong><em>' + escapeHtml(bonus) + '</em></span></span>';
 }
 
 function forgedRunesMarkup(item) {

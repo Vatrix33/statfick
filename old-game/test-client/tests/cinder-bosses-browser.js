@@ -146,11 +146,11 @@ async function runCinderBossChecks() {
   result = attack(state);
   assert(result.actors.find(actor => actor.team === "enemy").character.currentMana === 270 && currentMana === 10 && result.actors.filter(actor => actor.id.startsWith("mana-ally-")).every(actor => actor.character.currentMana === 10) && result.actors.find(actor => actor.id === "mana-summon").character.currentMana === 0, "Sunder divides ten-percent Mana drain across the living party, ignoring summons");
   state = await weaponBattle(hammer, null, plate);
-  temporaryDefenseBonuses.evasion = 500; permanentDefenseBonuses.evasion = 500;
+  permanentDefenseBonuses.evasion = 1000;
   state.actors[0].effects.push({ type: "defense-flat", target: "evasion", amount: 1000, expiresTurn: 100 }); state.actors[0].stance = "evade";
   result = attack(state);
   assert(result.log.some(line => line.includes("Anvil Hammer deals") && line.includes("from Armor")), "Anvil Hammer adds its armor-based damage");
-  assert(Combat.previewValues(normalizeCharacter({ ...defaultCharacter(), equipment: { ...defaultCharacter().equipment, armor: plate }, inventory: [plate], temporaryDefenseBonuses: { evasion: 500, armor: 0 } })).evasion === 0, "Godforged Plate ignores positive evasion bonuses on the character and companion sheet");
+  assert(Combat.previewValues(normalizeCharacter({ ...defaultCharacter(), equipment: { ...defaultCharacter().equipment, armor: plate }, inventory: [plate], permanentDefenseBonuses: { evasion: 500, armor: 0 } })).evasion === 0, "Godforged Plate ignores positive evasion bonuses on the character and companion sheet");
   Combat.restore(null);
 
   fresh();

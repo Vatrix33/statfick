@@ -50,5 +50,13 @@
     "solar-lance-fire-damage",
     "hellfire-wave-fire-damage",
     "dragonbreath-cinderstorm-fire-damage"
+  ],
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 0.5,
+      "minimum": 1,
+      "maximum": 1
+    }
   ]
 }

@@ -129,7 +129,7 @@
   // The player's live state is restored even if a malformed enemy effect throws.
   function withActor(actor, callback, state = battle) {
     const savedTraining = { knownSpells, perkPoints, trapsUsed, pendingClassSpellChoice, completedClassChoices };
-    const saved = { ...savedTraining, selectedRaceId, level, stats, permanentBonuses, temporaryBonuses, permanentDefenseBonuses, temporaryDefenseBonuses, equipment, inventory, currencies, classLevels, activeSkills, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount };
+    const saved = { ...savedTraining, selectedRaceId, level, stats, permanentBonuses, permanentDefenseBonuses, equipment, inventory, currencies, classLevels, activeSkills, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount };
     const previous = evaluating, previousBattle = evaluationBattle, previousPlayerContext = playerContext;
     if (!previous) playerContext = saved;
     try {
@@ -140,13 +140,12 @@
         knownSpells = c.knownSpells || []; perkPoints = c.perkPoints || 0; trapsUsed = c.trapsUsed || 0;
         pendingClassSpellChoice = c.pendingClassSpellChoice || null; completedClassChoices = c.completedClassChoices || [];
         selectedRaceId = c.raceId; level = c.level; stats = c.stats;
-        permanentBonuses = c.permanentBonuses; temporaryBonuses = c.temporaryBonuses;
-        permanentDefenseBonuses = c.permanentDefenseBonuses; temporaryDefenseBonuses = c.temporaryDefenseBonuses;
+        permanentBonuses = c.permanentBonuses; permanentDefenseBonuses = c.permanentDefenseBonuses;
         equipment = c.equipment; inventory = c.inventory; currencies = c.currencies; classLevels = c.classLevels; activeSkills = c.activeSkills; unarmedAttacks = c.unarmedAttacks; summonSpellsUsed = c.summonSpellsUsed; summonSpellsUsedByElement = c.summonSpellsUsedByElement || {}; bloodSupplies = c.bloodSupplies; itemsSold = c.itemsSold; soloSurvivorVictories = c.soloSurvivorVictories; multiKillCombats = c.multiKillCombats; classKills = c.classKills || {}; raceKills = c.raceKills || {}; classProgress = c.classProgress || { oneHandedAttacks: 0, summonCasts: {}, lootEnemiesCollected: 0 }; defensiveActionsUsed = c.defensiveActionsUsed || 0; flawlessVictories = c.flawlessVictories || 0;
       } else {
         if (previous && playerContext) {
           ({ knownSpells, perkPoints, trapsUsed, pendingClassSpellChoice, completedClassChoices } = playerContext);
-          ({ selectedRaceId, level, stats, permanentBonuses, temporaryBonuses, permanentDefenseBonuses, temporaryDefenseBonuses, equipment, inventory, currencies, classLevels, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories } = playerContext);
+          ({ selectedRaceId, level, stats, permanentBonuses, permanentDefenseBonuses, equipment, inventory, currencies, classLevels, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories } = playerContext);
           activeSkills = playerContext.activeSkills;
         }
         if (actor.skillSnapshot) activeSkills = actor.skillSnapshot;
@@ -154,7 +153,7 @@
       return callback();
     } finally {
       ({ knownSpells, perkPoints, trapsUsed, pendingClassSpellChoice, completedClassChoices } = savedTraining);
-      ({ selectedRaceId, level, stats, permanentBonuses, temporaryBonuses, permanentDefenseBonuses, temporaryDefenseBonuses, equipment, inventory, currencies, classLevels, activeSkills, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount } = saved);
+      ({ selectedRaceId, level, stats, permanentBonuses, permanentDefenseBonuses, equipment, inventory, currencies, classLevels, activeSkills, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount } = saved);
       evaluating = previous; evaluationBattle = previousBattle;
       playerContext = previousPlayerContext;
     }
@@ -231,7 +230,7 @@
         ? calculatedMaxHp
         : Math.floor(calculatedMaxHp * (1 + Math.max(0, toNumber(actor.maxHpPercent, 0)) / 100));
       const equipmentStats = calculateEquipmentDefense({ ...attributes, maxHp: enemyMaxHp });
-      const bonuses = combineBonuses(permanentDefenseBonuses, temporaryDefenseBonuses, defenseBonusDefinitions);
+      const bonuses = bonusValues(permanentDefenseBonuses, defenseBonusDefinitions);
       const innateArmor = (Number.isFinite(actor.baseArmor) ? actor.baseArmor : BASE_ARMOR) + naturalArmor(actor);
       const base = { armor: innateArmor + equipmentStats.armor, evasion: Math.max(0, Math.floor((Math.floor(calculateEvasion(attributes)) - equipmentStats.evasionDebuff + equipmentStats.evasionFlat) * (1 + equipmentStats.evasionPercent / 100))) };
       // Pilgrim's Blessing (whole party, after a long walk) and Dispatch Guard (own guild quest).

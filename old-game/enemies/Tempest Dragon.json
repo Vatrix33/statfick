@@ -33,5 +33,13 @@
     "hurricane-choir-wind-damage", "zephyr-execution-wind-damage",
     "aerial-riposte-wind-support", "control-weather-wind-support",
     "skyfall-chorus-wind-damage"
+  ],
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 0.5,
+      "minimum": 1,
+      "maximum": 1
+    }
   ]
 }

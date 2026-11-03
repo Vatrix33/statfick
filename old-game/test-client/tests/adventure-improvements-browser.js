@@ -145,7 +145,7 @@ async function runCompanionImportChecks() {
     const saved = defaultCharacter(); saved.name = "Elara Ashfall"; saved.gender = "female"; saved.raceId = "elf"; saved.level = 18;
     saved.exp = 123; saved.perkPoints = 4; saved.availablePoints = 7;
     saved.stats.strength = 30; saved.stats.vitality = 60; saved.stats.mind = 60; saved.manualAllocations.strength = 3;
-    saved.currentHp = 60; saved.currentMana = 30; saved.permanentBonuses.strength = 12; saved.temporaryBonuses.speed = 5;
+    saved.currentHp = 60; saved.currentMana = 30; saved.permanentBonuses.strength = 12;
     saved.classLevels = { warrior: 5 }; saved.classProgress.fulfilledClassOtherRequirements = ["warrior"];
     saved.activeSkills = { "warrior:battle-cry": { active: true, lastUsedDay: todayKey(), charges: 2, usedThisCombat: true, usesThisCombat: 1, remainingUses: 2 } };
     const sword = getItem("weapon-forged-longsword-30-dwiro-rtoak-dwoak-s0"), dagger = getItem("weapon-forged-dagger-30-hfiro-elque-rtoak-s0"), armor = getItem("armor-forged-leather-armor-30-elraw-bbraw-hfraw-s0");
@@ -177,7 +177,7 @@ async function runCompanionImportChecks() {
     assert(companions.length === 1 && companions[0].name === "Elara" && companions[0].gender === "female", "Confirm adds a renamed companion with its own identity");
     const imported = companions[0], c = imported.character;
     assert(c.level === saved.level && c.exp === saved.exp && c.perkPoints === saved.perkPoints && c.availablePoints === saved.availablePoints && c.raceId === saved.raceId, "Level, ancestry, EXP and unspent points survive import");
-    assert(JSON.stringify(c.stats) === JSON.stringify(saved.stats) && c.manualAllocations.strength === 3 && c.permanentBonuses.strength === 12 && c.temporaryBonuses.speed === 5, "Base stats, allocated points, and bonuses survive import");
+    assert(JSON.stringify(c.stats) === JSON.stringify(saved.stats) && c.manualAllocations.strength === 3 && c.permanentBonuses.strength === 12, "Base stats, allocated points, and bonuses survive import");
     assert(c.currentHp === 60 && c.currentMana === 30 && c.classLevels.warrior === 5 && c.classProgress.fulfilledClassOtherRequirements.includes("warrior"), "Resources, classes, and personal requirement progress survive import");
     assert(JSON.stringify(c.inventory) === JSON.stringify(saved.inventory) && JSON.stringify(c.equipment) === JSON.stringify(saved.equipment) && JSON.stringify(c.knownSpells) === JSON.stringify(saved.knownSpells) && c.favoriteItems.includes(sword.id), "Equipment, quantities, favorite items and known spells survive import");
     assert(!c.companions.length && !c.recruitOffers.length && !c.combatState && !c.worldState.pendingEncounter && c.worldState.guild.reputation === 0 && !c.editingEnabled && !c.activeSkills["warrior:battle-cry"].active, "Imports cannot bring nested parties, map quests, active combat, Dev Mode or active combat buffs");

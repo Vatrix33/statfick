@@ -122,6 +122,7 @@
   },
   "drops": [
     { "itemId": "masterwork-quasar-jet", "chance": 10 },
-    { "itemId": "masterwork-golden-apex", "chance": 8 }
+    { "itemId": "masterwork-golden-apex", "chance": 8 },
+    { "itemId": "key-item-vial-of-dragonblood", "chance": 0.5, "minimum": 1, "maximum": 1 }
   ]
 }

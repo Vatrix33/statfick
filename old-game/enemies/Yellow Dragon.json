@@ -50,5 +50,13 @@
     "static-surge-lightning-support",
     "dragonbreath-thunder-maw-lightning-damage",
     "chain-lightning-lightning-damage"
+  ],
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 0.5,
+      "minimum": 1,
+      "maximum": 1
+    }
   ]
 }

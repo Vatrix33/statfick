@@ -50,5 +50,13 @@
     "crimson-pact-blood-support",
     "dragonbreath-crimson-deluge-blood-damage",
     "summon-hemoghost-blood-summon"
+  ],
+  "drops": [
+    {
+      "itemId": "key-item-vial-of-dragonblood",
+      "chance": 0.5,
+      "minimum": 1,
+      "maximum": 1
+    }
   ]
 }
