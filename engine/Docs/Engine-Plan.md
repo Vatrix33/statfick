@@ -5,7 +5,8 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-11-02):** M9 (assets and data) started on 2026-11-02 with the user's go. Its questions were asked and
+**Current task (2026-11-03):** the small tasks left from earlier milestones were done on 2026-11-03 (below, "Small tasks
+left from earlier milestones"; Progress, "Small tasks"). M9 (assets and data) started on 2026-11-02 with the user's go. Its questions were asked and
 answered the same day ("Decisions for M9" below, every answer the recommended option); the design doc is `Docs/Assets.md`
 (decisions, what exists checked against the code, method, the on-disk design, nine steps with their dependencies, the 27
 format details asked after it, status). The session managing M9 splits the work into steps from that plan; nothing of
@@ -67,16 +68,24 @@ assembly or move into packs? Does `MusicData.g.cs` go once themes are in a pack,
 by round trips and by damaged or old-version files; whatever is read from the old game's files should match what the old
 game itself gets from them in the harness's Chromium, as `make-music-data.sh` does for the music.
 
-**Small tasks left from earlier milestones (recorded 2026-11-02, to do later on the user's go):**
-- Window host: send `visibilitychange` and `pagehide` (the old game's map.js pauses travel on them; M5's Progress, "Left for
-  the port, not M5", says the host doesn't send them yet). A contained change in `UI/UiHost.cs`, plus an input-reference check.
-- Repo housekeeping: add `.claude/` to the root `.gitignore` (worker worktrees live in `.claude/worktrees/` inside the repo and
-  show as untracked).
-- Windows: nothing since the move to GitHub (2026-10-30) has run on Windows; M6, M7 and M8 never did. A `win-x64` build of the
-  engine, tests and tools from Linux would catch compile-time breaks; running needs the user's Windows PC
+**Small tasks left from earlier milestones (recorded 2026-11-02; done 2026-11-03 on the user's go, a cloud session, except
+what needs the user's machines):**
+- Window host: send `visibilitychange` and `pagehide`. **Done (2026-11-03):** it grew past a contained change once
+  Chromium's behaviour was captured: the user decided (see "Decisions for the window's visibility") that a minimized
+  window's document runs as Chromium runs a hidden page, so the engine now has hidden documents (no frames, Blink's timer
+  throttling with its wake-up pools, the intensive throttling, the CPU-time budget and the audible exemption), the unload
+  sequence on close, minimizing through GLFW's iconify and the application loop, and the sound's audibility
+  (Docs/Scripting.md, "Hidden documents"; Docs/Audio.md, "Audibility"). Checked against a new Chromium harness
+  (`Tools/VisibilityReference`) and in a real window under a window manager. Not checked: Wayland (GLFW never reports
+  minimizing there; the user accepted that) and Windows.
+- Repo housekeeping: **done (2026-11-03)**: the root `.gitignore` ignores `/.claude/worktrees/` and
+  `/.claude/settings.local.json` (the user chose these over the whole `.claude/` folder).
+- Windows: nothing since the move to GitHub (2026-10-30) has run on Windows; M6, M7 and M8 never did. **The compile-time
+  part was checked on 2026-11-03** (see Progress, "Small tasks"); running still needs the user's Windows PC
   (`Tools\Scripts\setup.ps1`, `build.ps1`, `test.ps1`).
 - Stale paths: `Docs/Notes.md` said `Stat Fick Source/Docs/Engine-Plan.md` in two places (text copied from the old memory;
-  the folder is `engine/` now); fixed on 2026-11-02.
+  the folder is `engine/` now); fixed on 2026-11-02, and the last two (the "Asking about design choices" section and the
+  2026-10-25 entry's `Compositing-Port.md`) on 2026-11-03.
 - Not checked here, needs hardware or a window manager: audio on a really different device, a device lost or appearing, a
   real window minimize (`Docs/Audio.md`, Status).
 - The "Known differences" lists (`Docs/Compositing-Port.md`, "Known differences left (SVG)"; `Docs/Scripting.md`, "Known
@@ -351,6 +360,13 @@ probing Chromium 152 under Xvfb with and without a window manager; every answer 
     page is hidden, throttled timer tasks spend a budget (1 s at the start, refilling at 1% of the time, at most 3 s)
     and wait while it is below zero, as Blink's background CPU-time budget pool. (Not left out.)
 
+**Decision on the speed tests (2026-11-03):** the tests that measure wall-clock speed against a bound
+(`AnimatedViewTests.Speed.TheCostOfAFigureIsMeasured`, `CanvasScaleTests.Speed.TwentyThousandPrimitivesRecordAndRenderQuickly`)
+run alone, in the "Speed" collection (`Infrastructure/GpuFixture.cs`: never in parallel with other tests, its own GPU
+device); their bounds stay. Asked because both failed now and then in the cloud's full run, also on the commit before that
+day's work (the animation cost 0.89–1.06 ms per figure against 0.5 ms in the parallel run, 0.12–0.26 ms alone): the other
+tests, lavapipe's rendering among them, took the 4 cores. (Not looser bounds on a CPU Vulkan, not leaving them flaky.)
+
 **Decision for the repo housekeeping task (2026-11-03):** the root `.gitignore` ignores `/.claude/worktrees/` (the worker
 worktrees) and `/.claude/settings.local.json` (one machine's settings), not the whole `.claude/` folder, so shared Claude
 Code files (`.claude/settings.json`, hooks, skills) can still be committed. (Not ignoring all of `.claude/`.)
@@ -554,7 +570,31 @@ Code files (`.claude/settings.json`, hooks, skills) can still be committed. (Not
   - **M8 step 7, the output (2026-11-02, 990 tests):** user decisions recorded above ("Step 7's questions"; theme starts asked after measuring). `Audio/AudioSystem.cs` (public, `Application.Audio`: the graph at the device's rate, master and effects buses, the soundtrack, the audio thread, game calls queued and applied before the next quantum, paused while the window is minimized), `Audio/Output/AudioOutput.cs` (OpenAL Soft: 4 queued buffers of about 5 ms, direct channels, HRTF and limiter off; follows the default device, renders silently at the real-time pace without one); rooms' responses and convolver kernels prepared at start by a worker and shared (`Reverb.Prepared`, `PreparedRoom`), a warm-up render for the JIT, the FFT's scratch arrays from a pool. Measured by `Tools/AudioBenchmark` (`audio-benchmark.sh`): 71 minutes of music live at 48 kHz, mean 0.23 ms of the 2.67 ms budget, 99.9th percentile 2.08 ms, worst 12.9 ms; no underruns in repeated runs on this PC's headset with theme switches. Checked: a loopback device gives samples back bit for bit; the buses' fixture matches Chromium; the opt-in themes still pass (55 of 55); 17 of 19 mutations fail a test, the other 2 change no defined behaviour. Not checked automatically: moving to a really different device, a device lost or appearing, a real window minimize.
   - **M8 step 8, sound effects (2026-11-02, 1013 tests):** user decisions recorded above ("Step 8's questions"). `Audio/Effects/`: `EffectPatch` records (layers of tones and noise, filters, envelopes as the composer's percussion, optional ranges, voice limits), `SoundEffects` (`Register`, `Play`, `Seed`; voices dry on the effects bus, the oldest stolen with a 5 ms fade past a patch's limit or 32 overall, cleaned up at the end of their last quantum), `ActorSounds` (`Actor.Sounds`: clip event name → effect). 12 fixtures against Chromium, unit tests, and 32 mutations that all fail a test; 32 voices add 0.13 ms to a quantum's mean. **M8 done (all 8 steps).**
   - **M9 started (2026-11-02):** the user's go; the thirteen questions asked and answered, all with the recommended options ("Decisions for M9"); design doc `Docs/Assets.md`: the present loaders and data checked against the code (three details of the plan's survey corrected), the method, a proposed on-disk design (packs, records in binary and JSON, the virtual file system, the game folder with saves, settings and character files, the importers), nine proposed steps with the files each touches and which can run side by side, and 27 open questions with recommendations. The 27 were asked the same evening and answered, all as recommended except named save slots (Q15) and asking the player about a damaged save (Q17) ("Decisions for M9", "Format details"; `Docs/Assets.md` updated to match). No code yet.
-  - **Left for the port, not M5:** the game listens for `visibilitychange` and `pagehide` (map.js pauses travel); the window host doesn't send them yet.
+  - **Left for the port, not M5:** the game listens for `visibilitychange` and `pagehide` (map.js pauses travel); the window host doesn't send them yet. (Done 2026-11-03, see "Small tasks" below.)
+  - **Small tasks (2026-11-03, 1046 tests, a cloud session):** the user's go on the small tasks left from earlier milestones.
+    *Hidden documents* (Docs/Scripting.md, "Hidden documents"; user decisions "Decisions for the window's visibility"):
+    Chromium 152 probed first (minimize under openbox, hide, close, 7-minute hidden captures), then Blink's scheduler read
+    (fetched from GitHub's Chromium mirror: googlesource isn't allowed in the cloud). `UiDocument.Visibility.cs`
+    (`Hidden`, `VisibilityState`, `SetHidden` with visibilitychange and webkitvisibilitychange, `Audible`, `Unload` with
+    pagehide, visibilitychange and unload, `NextWakeUp`, `FirstContentfulPaint`; no frames while hidden),
+    `UiTimerThrottling.cs` (timer kinds by nesting, the hidden and intensive wake-up pools, the grace period of 60 s after a
+    contentful paint else 5 minutes, the CPU-time budget, 30 s of recent audio), `UiEventLoop` (throttled timers, a late
+    interval skipping missed beats as TimerBase does), `Window` (GLFW's iconify as `Minimized`/`Restored` input,
+    `IsMinimized` from it, `RequestWakeUp`, `WaitEvents(seconds)`, `PostEmptyEvent`), `Application` (keeps updating while
+    minimized, without drawing, sleeping until the next wake-up), `UiHost` (visibility from input at the update's time,
+    `Audio` → `Document.Audible`, wake-up requests, `Unload`, unloading on `Dispose`), the painter reporting contentful
+    paints, `Audio/Output/Audibility.cs` (Chromium's power monitor and audibility polling) with `AudioSystem.Audible`. Found
+    on the way: the window's own focus and blur were FocusEvents; Chromium sends plain Events (fixed). New harness
+    `Tools/VisibilityReference` (`make-visibility-references.sh`, about six minutes): `events`, `timers`, `cpu`, `audible`
+    → `Reference/visibility-results.json`; `VisibilityReferenceTests` (4), `HiddenDocumentTests` (23),
+    `AudibilityTests` (6). Checked in a real window too (Xvfb with openbox, the sandbox's new `--log-visibility`), which
+    found that showing must happen at the window system's moment, not the hidden document's last wake-up (a late interval
+    replayed its missed beats; fixed and tested). Mutations: see Docs/Notes.md, 2026-11-03. Not checked: Wayland (GLFW
+    can't tell), Windows, the GPU (this was a cloud session: lavapipe only).
+    *Housekeeping:* `.gitignore` (worker worktrees, local settings), the last stale `Stat Fick Source` paths in Notes.md.
+    *Windows:* every project of the solution (engine, sandbox, tests, shader compiler, UI and audio benchmarks, PlayTheme)
+    builds for `win-x64` from Linux with 0 errors (per project: a solution can't take a RuntimeIdentifier), the Windows
+    natives copied; running there still needs the user's Windows PC.
 
 ## Milestones
 

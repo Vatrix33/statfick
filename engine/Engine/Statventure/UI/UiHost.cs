@@ -14,7 +14,9 @@ namespace Statventure.UI;
 /// becomes the window's (system shapes, cursor images), the system's clipboard, caret blink time
 /// and reduced-motion setting become the document's, and every frame updates and paints it at the
 /// window's pixel density. Images and text resources (SVG) come from <see cref="LoadImage"/> and
-/// <see cref="LoadText"/>.
+/// <see cref="LoadText"/>. A minimized window's document is hidden (visibilitychange; no frames,
+/// its timers throttled as Chromium's, with the sound's audibility from <see cref="Audio"/>), and
+/// the document unloads when the host goes (pagehide, unload).
 /// </summary>
 public sealed class UiHost : IDisposable
 {
@@ -44,6 +46,12 @@ public sealed class UiHost : IDisposable
 
     /// <summary>Loads a text resource by url (SVG images); null when there is none.</summary>
     public Func<string, string?>? LoadText { get; set; }
+
+    /// <summary>
+    /// The application's sound: whether it is audible becomes the document's
+    /// (<see cref="UiDocument.Audible"/>), as Chromium's audio service tells a page's scheduler.
+    /// </summary>
+    public Audio.AudioSystem? Audio { get; set; }
 
     /// <summary>
     /// The page zoom on top of the window's scale (Electron's zoom factor, 1.2 to the power of the
@@ -82,7 +90,14 @@ public sealed class UiHost : IDisposable
             SurfaceTexture = Views.Texture,
         };
         _canvas = new CanvasRenderer(gpu);
-        _input = new UiHostInput(document.Input, Window.KeyName) { WheelNotch = Platform.PlatformBehaviour.Windows ? 100 : 120 };
+        _input = new UiHostInput(document.Input, Window.KeyName)
+        {
+            WheelNotch = Platform.PlatformBehaviour.Windows ? 100 : 120,
+            // At the update's time: a hidden document's clock waits at its last wake-up.
+            Visibility = hidden => document.SetHidden(hidden, _time),
+        };
+        // A task posted from another thread wakes the loop sleeping while the window is minimized.
+        document.EventLoop.Wake = Window.PostEmptyEvent;
         _reducedMotion = SystemSettings.ReducedMotion;
         ResizeViewport();
     }
@@ -129,13 +144,27 @@ public sealed class UiHost : IDisposable
     /// A frame: the window's input of this frame goes to the document, which then updates at
     /// <paramref name="time"/> (seconds); the window shows the document's cursor.
     /// </summary>
+    double _time;
+
     public void Update(double time)
     {
+        _time = time;
         ResizeViewport();
         _input.Dispatch(_window.Input.Events);
+        Document.Audible = Audio?.Audible ?? false;
         Document.Update(time);
+        if (Document.Hidden)
+        {
+            // No frame: the loop sleeps until the document's next throttled timer or change.
+            if (Document.NextWakeUp is { } next)
+                _window.RequestWakeUp(next - time);
+            return;
+        }
         UpdateCursor();
     }
+
+    /// <summary>The window closes: the document unloads (pagehide, visibilitychange, unload; <see cref="UiDocument.Unload"/>).</summary>
+    public void Unload() => Document.Unload();
 
     /// <summary>
     /// The window shows the document's cursor: a cursor image (scaled to the window's pixel
@@ -210,6 +239,9 @@ public sealed class UiHost : IDisposable
 
     public void Dispose()
     {
+        // The document unloads with its window (its listeners run here if Unload wasn't called).
+        Document.Unload();
+        Document.EventLoop.Wake = null;
         _painter.Dispose();
         _canvas.Dispose();
         foreach (var image in _images.Values)

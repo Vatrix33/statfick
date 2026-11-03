@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Statventure.Core;
 
 namespace Statventure.UI.Dom;
@@ -9,7 +10,8 @@ namespace Statventure.UI.Dom;
 /// running, after the animation timing update), and C# async/await on top: while game code runs
 /// the loop is the thread's SynchronizationContext, so continuations are microtasks, as a
 /// promise's reactions are. The document drives it from its frames: timers due before a frame
-/// run before the frame's steps, each at its own time.
+/// run before the frame's steps, each at its own time. While the document is hidden its timers are
+/// throttled as Blink's scheduler throttles a hidden page's (<see cref="UiTimerThrottling"/>).
 /// </summary>
 public sealed class UiEventLoop : SynchronizationContext
 {
@@ -35,6 +37,7 @@ public sealed class UiEventLoop : SynchronizationContext
         public double? Interval;
         public int Nesting;
         public long Sequence;
+        public TimerKind Kind;
     }
 
     // Blink's DOMTimer: counted from 1, clamped above 6.
@@ -57,6 +60,13 @@ public sealed class UiEventLoop : SynchronizationContext
     public void ClearTimeout(int id) => _timers.Remove(id);
 
     public void ClearInterval(int id) => _timers.Remove(id);
+
+    /// <summary>Stops every timer (DOMTimer::ContextDestroyed: the document unloaded).</summary>
+    internal void ClearTimers()
+    {
+        _timers.Clear();
+        _due.Clear();
+    }
 
     /// <summary>A task that completes after <paramref name="milliseconds"/> (a timer resolving a promise).</summary>
     public Task Delay(double milliseconds)
@@ -83,6 +93,8 @@ public sealed class UiEventLoop : SynchronizationContext
             Interval = repeat ? milliseconds : null,
             Nesting = nesting,
             Sequence = _sequence++,
+            // The scheduler's task type (DOMTimer): deeper than 6 high nesting, else a 0 ms timer immediate.
+            Kind = nesting > MaxNestingLevel ? TimerKind.HighNesting : milliseconds == 0 ? TimerKind.Immediate : TimerKind.LowNesting,
         };
         _timers[id] = timer;
         _due.Enqueue(timer, (timer.Due, timer.Sequence));
@@ -94,9 +106,10 @@ public sealed class UiEventLoop : SynchronizationContext
     {
         get
         {
-            while (_due.TryPeek(out var timer, out _))
+            // Entries of cleared timers, and old entries of intervals that ran while throttled, are stale.
+            while (_due.TryPeek(out var timer, out var priority))
             {
-                if (_timers.TryGetValue(timer.Id, out var live) && live == timer)
+                if (_timers.TryGetValue(timer.Id, out var live) && live == timer && priority == (timer.Due, timer.Sequence))
                     return timer.Due;
                 _due.Dequeue();
             }
@@ -107,35 +120,130 @@ public sealed class UiEventLoop : SynchronizationContext
     /// <summary>
     /// Runs the tasks due by <paramref name="time"/> in order (timers in due order, each at its own
     /// time, then posts from other threads), each followed by a microtask checkpoint, and moves the
-    /// clock to <paramref name="time"/>.
+    /// clock to <paramref name="time"/>. While the document is hidden, timers run when Blink's
+    /// throttling lets them (each at that time), and the throttling's own changes happen at theirs.
     /// </summary>
     public void RunUntil(double time)
     {
-        while (NextTimerDue is { } due && due <= time)
+        if (!Throttling.PageHidden)
         {
-            var timer = _due.Dequeue();
-            Time = Math.Max(Time, timer.Due);
-            RunTimer(timer);
+            while (NextTimerDue is { } due && due <= time)
+            {
+                var timer = _due.Dequeue();
+                Time = Math.Max(Time, timer.Due);
+                RunTimer(timer);
+            }
         }
+        else
+            RunThrottledUntil(time);
         Time = Math.Max(Time, time);
+        Throttling.Update(UiTimerThrottling.Ticks(Time));
         RunPosted();
+    }
+
+    void RunThrottledUntil(double time)
+    {
+        var until = UiTimerThrottling.Ticks(time);
+        while (Throttling.PageHidden)
+        {
+            var now = UiTimerThrottling.Ticks(Time);
+            Throttling.Update(now);
+            var next = NextThrottledTimer(now, out var runAt);
+            // The scheduler's control tasks (CPU throttling, intensive throttling, the end of recent audio) run at their times first.
+            if (Throttling.NextStateChange(now) is { } change && change <= until && (next is null || change <= UiTimerThrottling.Ticks(runAt)))
+            {
+                Time = Math.Max(Time, UiTimerThrottling.Seconds(change));
+                continue;
+            }
+            if (next is null || runAt > time)
+                break;
+            Time = Math.Max(Time, runAt);
+            RunTimer(next);
+        }
+        // Shown again within this call: what's left runs unthrottled.
+        if (!Throttling.PageHidden)
+            while (NextTimerDue is { } due && due <= time)
+            {
+                var timer = _due.Dequeue();
+                Time = Math.Max(Time, timer.Due);
+                RunTimer(timer);
+            }
+    }
+
+    /// <summary>The live timer that may run first from <paramref name="now"/> (by its allowed run time, due time and order), and that time.</summary>
+    Timer? NextThrottledTimer(long now, out double runAt)
+    {
+        Timer? best = null;
+        runAt = double.PositiveInfinity;
+        foreach (var timer in _timers.Values)
+        {
+            var at = Throttling.Throttles(timer.Kind, now)
+                ? UiTimerThrottling.Seconds(Throttling.AllowedRunTime(timer.Kind, UiTimerThrottling.Ticks(timer.Due), now))
+                : timer.Due;
+            if (best is null || at < runAt || (at == runAt && (timer.Due < best.Due || (timer.Due == best.Due && timer.Sequence < best.Sequence))))
+            {
+                best = timer;
+                runAt = at;
+            }
+        }
+        return best;
+    }
+
+    /// <summary>
+    /// When the loop next has work while the document is hidden (seconds): a timer allowed to run,
+    /// or a change of the throttling; null when nothing is pending (a host sleeps until then).
+    /// </summary>
+    public double? NextWakeUp
+    {
+        get
+        {
+            if (!Throttling.PageHidden)
+                return NextTimerDue;
+            var now = UiTimerThrottling.Ticks(Time);
+            Throttling.Update(now);
+            NextThrottledTimer(now, out var runAt);
+            double? next = double.IsPositiveInfinity(runAt) ? null : runAt;
+            if (Throttling.NextStateChange(now) is { } change && (next is null || UiTimerThrottling.Seconds(change) < next))
+                next = UiTimerThrottling.Seconds(change);
+            return next;
+        }
     }
 
     void RunTimer(Timer timer)
     {
+        // (A throttled timer runs without leaving the due queue: its entry there is stale from now on.)
+        var kind = timer.Kind;
         if (timer.Interval is { } interval)
         {
-            // DOMTimer::Fired for an interval: one level deeper each time; at level 7 at least 4 ms.
+            if (Time <= timer.Due)
+                timer.Due += interval / 1000;
+            else
+            {
+                // TimerBase::RunInternal after a late wake-up: the beat after now + interval / 20, no catching up.
+                var period = UiTimerThrottling.Ticks(interval / 1000);
+                timer.Due = period == 0 ? Time : UiTimerThrottling.Seconds(UiTimerThrottling.SnappedToNextTick(
+                    UiTimerThrottling.Ticks(Time) + period / 20, UiTimerThrottling.Ticks(timer.Due), period));
+            }
+            // DOMTimer::Fired for an interval: one level deeper each time; at level 7 at least 4 ms and high nesting.
             timer.Nesting++;
-            if (timer.Nesting == MaxNestingLevel + 1 && interval < MinimumIntervalMs)
-                timer.Interval = interval = MinimumIntervalMs;
-            timer.Due += interval / 1000;
+            if (timer.Nesting == MaxNestingLevel + 1)
+            {
+                if (interval < MinimumIntervalMs)
+                {
+                    timer.Due += (MinimumIntervalMs - interval) / 1000;
+                    timer.Interval = MinimumIntervalMs;
+                }
+                timer.Kind = TimerKind.HighNesting;
+            }
             timer.Sequence = _sequence++;
             _due.Enqueue(timer, (timer.Due, timer.Sequence));
         }
         else
             _timers.Remove(timer.Id);
+        var start = UiTimerThrottling.Ticks(Time);
+        Throttling.OnRun(kind, start);
         _nestingLevel = timer.Nesting;
+        var began = Stopwatch.GetTimestamp();
         try
         {
             RunTask(timer.Callback);
@@ -144,6 +252,32 @@ public sealed class UiEventLoop : SynchronizationContext
         {
             _nestingLevel = 0;
         }
+        var cost = TaskCost?.Invoke() ?? Stopwatch.GetElapsedTime(began).TotalSeconds;
+        Throttling.Ran(kind, start, start + UiTimerThrottling.Ticks(cost));
+    }
+
+    // ---------- Hidden documents ----------
+
+    /// <summary>Blink's throttling of a hidden page's timers (the document sets its state).</summary>
+    internal UiTimerThrottling Throttling { get; } = new();
+
+    /// <summary>
+    /// What a timer task cost (seconds), for the CPU-time budget; by default its measured run time.
+    /// Tests give fixed costs.
+    /// </summary>
+    internal Func<double>? TaskCost { get; set; }
+
+    /// <summary>Called when another thread posts a task (a host sleeping while hidden wakes up for it).</summary>
+    internal Action? Wake { get; set; }
+
+    /// <summary>
+    /// Where throttled wake-ups are aligned, in seconds on the loop's clock (Blink aligns them to the
+    /// system's monotonic clock, so the phase is arbitrary to a page; tests take a reference's).
+    /// </summary>
+    public double WakeUpAlignment
+    {
+        get => UiTimerThrottling.Seconds(Throttling.Origin);
+        set => Throttling.Origin = UiTimerThrottling.Ticks(value);
     }
 
     // ---------- Tasks and microtasks ----------
@@ -179,6 +313,8 @@ public sealed class UiEventLoop : SynchronizationContext
     {
         lock (_posted)
             _posted.Enqueue(task);
+        if (Environment.CurrentManagedThreadId != _thread)
+            Wake?.Invoke();
     }
 
     SynchronizationContext? _outerContext;
@@ -264,8 +400,11 @@ public sealed class UiEventLoop : SynchronizationContext
         if (Environment.CurrentManagedThreadId == _thread)
             QueueMicrotask(() => d(state));
         else
+        {
             lock (_posted)
                 _posted.Enqueue(() => d(state));
+            Wake?.Invoke();
+        }
     }
 
     public override void Send(SendOrPostCallback d, object? state)

@@ -495,7 +495,32 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
 - **Not checked automatically:** moving to a really different device or rate (it would switch this
   PC's default output; OpenAL resamples since buffers keep the graph's rate), a device lost or
   appearing (the code paths exist, no test machine loses one), and `Application` pausing on a real
-  minimize (needs a window manager; the pause itself is tested).
+  minimize (needs a window manager; the pause itself is tested). Since 2026-11-03 a minimized
+  window is also told by GLFW's iconify (X11, Windows; the framebuffer's zero size only told it on
+  Windows); a real minimize under Xvfb with openbox now goes through the loop (Docs/Scripting.md,
+  "Hidden documents"); Wayland never reports one, so there the sound doesn't pause.
+
+### Audibility (2026-11-03)
+
+Whether the sound is audible, as Chromium 152's audio service decides it for a page's output
+stream, so the window's document knows (Blink doesn't throttle a hidden page that is audible or
+was in the last 30 s: Docs/Scripting.md, "Hidden documents"; the user's decision to port it by
+the output's level). `Audio/Output/Audibility.cs`, ported from `media/base/audio_power_monitor.cc`,
+`services/audio/output_stream.cc` (AudibilityHelperImpl) and `output_controller.cc`:
+- The power monitor scans what goes to the device: per channel an exponentially weighted average
+  of the squared samples from the shared average (sample weight 1 − exp(−1 / (rate · 10 ms))), the
+  channels' results averaged and clamped to 0..1; a non-finite channel keeps the old average. The
+  reading in dBFS is 10 · log10 of it, −∞ below 1e-10.
+- Polled 15 times a second on the audio thread's clock: audible at once at −72.24719896 dBFS or
+  more; silent only after 100 ms of polls below (the glitch tolerance). A stream that starts
+  (`Start`) is silent and isn't "recently audible" (the forced silence start); one that pauses
+  (`Stop`) is silent at once and its power monitor starts over.
+- `AudioSystem.Audible` is the last poll's answer; the audio thread scans each buffer it writes,
+  polls between buffers, stops polling when paused and starts again when resumed. `UiHost.Audio`
+  passes it to the document each update.
+- Tests (`Audio/AudibilityTests.cs`): the time constant, the channel average, the threshold on both
+  sides, the glitch tolerance, starting and stopping, and the audio system audible while playing a
+  theme and silent once paused (an output taking buffers at the real-time pace).
 
 ### Sound effects (step 8)
 
@@ -651,5 +676,6 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   legitimately falls behind; the pace tests now assert what always holds (7 suite runs in a row
   pass). Rewinding the source on a reopen only dropped queued audio: the source carries on, so
   that's gone. Fixture parsers must leave a missing key to the record's default, or defaults go untested.
+- **Audibility (2026-11-03):** added for hidden documents (above, "Audibility").
 - **M8 is done.** All 8 steps, and the user has listened and is happy with it (2026-11-02). Next: M9 only on the user's go, asking its open questions first
   (`Docs/Engine-Plan.md`, "Open questions for later milestones").

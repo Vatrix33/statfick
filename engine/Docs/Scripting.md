@@ -25,6 +25,13 @@ JavaScript (user decision 2026-10-25: Chromium's event loop, C# async/await on i
 | `Tests/Statventure.Tests/Ui/AnimationScriptFixtures.cs` | The Web Animations scenarios |
 | `Tests/Statventure.Tests/Ui/ScriptReferenceTests.cs` | Runs the twins on the engine, compares the logs (`SCRIPT_LOG_DIR=/abs/dir` dumps the engine's) |
 | `Tests/Statventure.Tests/Ui/ScriptApiTests.cs` | C#-only behaviour: invalid input, await, other threads, Delay |
+| `Engine/Statventure/UI/Dom/UiDocument.Visibility.cs` | Hidden documents: `Hidden`, `VisibilityState`, `SetHidden`, `Audible`, `Unload`, `NextWakeUp`, the first contentful paint, the update without a frame |
+| `Engine/Statventure/UI/Dom/UiTimerThrottling.cs` | Blink's throttling of a hidden page's timers: the wake-up and CPU-time budget pools, the timer kinds, the scheduler's timed changes |
+| `Engine/Statventure/UI/Dom/UiEventLoop.cs` (`RunThrottledUntil`, `NextWakeUp`, `RunTimer`) | Timers run when the throttling allows; a late interval skips the beats it missed (TimerBase) |
+| `Engine/Statventure/Audio/Output/Audibility.cs` | Whether the sound is audible, as Chromium's audio service decides it (Docs/Audio.md, "Audibility") |
+| `Tools/VisibilityReference/`, `Tools/Scripts/make-visibility-references.sh` | Electron harness: hides, shows and closes pages, and keeps them hidden for minutes; writes `Reference/visibility-results.json` |
+| `Tests/Statventure.Tests/Ui/VisibilityReferenceTests.cs` | The visibility scenarios' C# twins against Chromium's logs |
+| `Tests/Statventure.Tests/Ui/HiddenDocumentTests.cs` | The rules the references don't reach alone (the pools as their sources define them, no frames, unloading, the grace periods, contentful paints) |
 
 ## Rules ported
 
@@ -112,6 +119,105 @@ cancelled task (`await` throws `OperationCanceledException`). `await` of a task 
 completed continues at once (JavaScript's `.then` always waits a microtask); a continuation always
 returns to the loop (on its thread a microtask, from another thread a task before the next frame).
 
+## Hidden documents (2026-11-03)
+
+The window host's side of a page's life in its window, as Chromium 152 (Electron 44.5.0, the old
+game's) runs it; the user's decisions are in Engine-Plan.md, "Decisions for the window's
+visibility". Sources (`~/.cache/stat-fick-build/reference-src/chromium-152-source/scheduler/`):
+`page_scheduler_impl.cc`, `frame_scheduler_impl.cc`, `task_queue_throttler.cc`,
+`wake_up_budget_pool.cc`, `cpu_time_budget_pool.cc`, `dom_timer.cc`, `timer.cc`, `paint_timing.cc`,
+`first_meaningful_paint_detector.cc`, `audio_stream_monitor.cc`, `output_stream.cc`,
+`audio_power_monitor.cc`, `message_pump.cc`.
+
+**Visibility.** A minimized window's document is hidden (GLFW's iconify, X11 and Windows; Wayland
+never reports it, so there it stays visible, the user's decision). The host passes the window
+system's events in order: minimizing gives the window's blur (element blur, focusout, the window's
+blur, a plain Event) and then the visibility change; restoring gives the visibility change and then
+the window's focus (as the window manager sends them; Chromium's log shows the same order). The
+change (`UiDocument.SetHidden`, Blink's Document::DidChangeVisibilityState): `Hidden` and
+`VisibilityState` change first, then `visibilitychange` and `webkitvisibilitychange` at the document,
+bubbling, not cancelable, trusted. The host makes the change at its update's time: a hidden
+document's clock waits at its last wake-up, so it first runs what its throttling allowed until then
+(otherwise a late interval would replay the beats it missed as if it had been visible).
+
+**No frames while hidden.** `Update(time)` on a hidden document runs only its tasks: throttled
+timers, posted tasks, the document's own tasks; no frame steps (no frame callbacks, animation
+events, resize observers, painting). The application loop keeps calling its update while the
+window is minimized, without drawing, and sleeps until the next wake-up the host asks for
+(`UiDocument.NextWakeUp`: the next timer the throttling allows or the throttling's next change;
+`Window.RequestWakeUp`) or an event; a task posted from another thread wakes it
+(`Window.PostEmptyEvent`).
+
+**Timer kinds** (DOMTimer): deeper than nesting level 6, high nesting; else a 0 ms timer is
+immediate (never throttled); else low nesting. An interval becomes high nesting at level 7.
+
+**Throttling** (ComputeThrottlingType): only while the page is hidden and not playing audio. Audio
+playing means audible now or within 30 s (PageSchedulerImpl::kRecentAudioDelay); the host passes
+the sound's audibility (`UiHost.Audio` → `UiDocument.Audible`). Then:
+- Low-nesting timers wake through the hidden pool: at most once a second, on the second.
+- High-nesting timers wake through the intensive pool: once a second until the grace period after
+  hiding is over, then once a minute. The grace period is 60 s once the page had its first
+  contentful paint (and its first meaningful paint, which without network loads is the same), else
+  5 minutes (GetIntensiveWakeUpThrottlingGracePeriod). The intensive pool wakes at least a minute
+  after its last wake-up on the second, or on the minute's tick, whichever comes first
+  (AllowLowerAlignmentIfNoRecentWakeUp): a pool quiet for a minute wakes on the next second.
+- A wake-up (WakeUpBudgetPool): ticks are `interval` apart through the alignment origin
+  (`EventLoop.WakeUpAlignment`; Blink aligns to the monotonic clock's zero, arbitrary to a page);
+  a pool never woken wakes on the next tick; a wake-up lets the tasks due within 3 ms run.
+- The CPU-time budget (CPUTimeBudgetPool with the background settings): enabled 10 s after hiding;
+  throttled timer tasks charge their run time (measured; tests inject it); the budget starts at
+  1 s, refills at 1% of the time while enabled, holds at most 3 s; while it is negative tasks wait
+  until it would have refilled. (Blink's quirk kept: the refill counts from the last checkpoint,
+  which only throttled runs move.)
+- A task runs at the latest of the times its pools allow; the scheduler's own changes (the CPU
+  budget's start, the grace period's end, the end of recent audio) happen at their times first.
+- A late interval (TimerBase::RunInternal) skips the beats it missed: its next beat is the first
+  on its own grid after now + interval / 20.
+
+**Unloading** (`UiDocument.Unload`, Document::DispatchUnloadEvents without `beforeunload`, the user's
+decision): `pagehide` (a `UiPageTransitionEvent`, persisted false, bubbling, cancelable), then if
+the document was visible it turns hidden with `visibilitychange` and `webkitvisibilitychange`, then
+`unload`; then its timers stop and it takes no more updates or tasks. `UiHost.Unload` does it;
+`UiHost.Dispose` does it if it wasn't done (the window closing ends the loop, the application's
+`Unload` disposes the host). The window's and the document's listeners are one in the engine, so
+`pagehide` and `unload` reach the document's listeners (Chromium sends them at the window with the
+document as the target).
+
+**The first contentful paint** (`UiDocument.FirstContentfulPaint`): the time of the first painted
+frame with text, a drawn image, SVG or a surface (the painter reports it).
+
+**References** (`Tools/VisibilityReference`, `make-visibility-references.sh`, about six minutes):
+each scenario a window of its own, shown, background throttling on as in the old game; hiding
+stands in for minimizing (minimizing needs a window manager: with openbox under Xvfb it gave the
+same lines). `events` (hide, show, close: every visibility, page and focus event with its
+properties), `timers` (an interval, 0 ms and 250 ms chains, one-shots made while hidden, a new
+chain after a quiet minute; 260 s hidden), `cpu` (an interval busy for 150 ms, 40 s hidden),
+`audible` (an oscillator stopped when hidden, 50 s hidden). The page logs through console messages,
+so lines written while it unloads arrive. `VisibilityReferenceTests` replays each as the host
+would and compares: the events exactly (window and document targets merged, no beforeunload); the
+timers' firings by kind and count, each no earlier than Chromium's and at most 9 ms before it
+(Chromium's throttled wake-ups are "flexible, no sooner" with base's 8 ms leeway on Linux, plus the
+page's rounding); the CPU budget's wait within the overhead Chromium also charges and the page
+can't see (0.25 ms per charged run allowed, each millisecond of debt waits 100 ms); the audible
+page's 30 s within the 0.6 s Chromium takes to hear the silence.
+
+**Checked in a real window** (2026-11-03, Xvfb with openbox, the sandbox's `--log-visibility`):
+minimizing blurs and hides the document, its 250 ms interval then runs on whole seconds,
+restoring shows it and focuses the window and the late interval runs once, then on its beat;
+closing sends pagehide, visibilitychange and unload.
+
+**Known differences (hidden documents):**
+- Wayland: GLFW doesn't report minimizing there, so a minimized window's document stays visible
+  (the user's decision; check on the PC with the sandbox's `--log-visibility`).
+- Chromium runs a throttled wake-up up to 8 ms late (its leeway); the engine on time.
+- Tasks of one wake-up all start at its time (the engine's clock doesn't move during a task); a
+  task's measured cost still goes to the CPU budget.
+- At a µs tie between the grace period's end and a wake-up the engine changes the throttling first.
+- The sound pauses at once when the window is minimized (M8), so the engine's 30 s of recent audio
+  start at once; Chromium hears an old game's music stop a few hundred ms after it stopped it.
+- No beforeunload, freeze or resume (the user's decision; no back-forward cache or page freezing on
+  desktop Chromium either).
+
 ## Tests
 
 `ScriptReferenceTests` runs each fixture as the harness runs its JavaScript: the page laid out at
@@ -148,4 +254,5 @@ seeking a paused animation. Capture at least twice and compare.
 
 ## Status
 
-#31 done (2026-10-30, 491 tests); M5 finished (2026-10-30, 493 tests).
+#31 done (2026-10-30, 491 tests); M5 finished (2026-10-30, 493 tests). Hidden documents (the small
+task "send `visibilitychange` and `pagehide`") done 2026-11-03 (1046 tests).

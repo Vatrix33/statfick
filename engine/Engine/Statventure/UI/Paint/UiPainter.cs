@@ -85,9 +85,15 @@ public sealed partial class UiPainter : IDisposable
         canvas.FontSettings = Text.FontRenderSettings.System.AtScale(_document.DeviceScale);
         // First the paint chunks and Chromium's layerization of them, which decide where text keeps
         // LCD antialiasing; then the drawing, in the same chunks.
+        _contentful = false;
         Traverse(canvas, analyze: true);
         Traverse(canvas, analyze: false);
+        // PaintTiming's first contentful paint: a frame with text, an image, SVG or a surface.
+        if (_contentful)
+            _document.PaintedContent();
     }
+
+    bool _contentful;
 
     /// <summary>Goes through the paint order without drawing, for the hit regions alone.</summary>
     internal void RecordHitRegions() => Traverse(null, analyze: false);

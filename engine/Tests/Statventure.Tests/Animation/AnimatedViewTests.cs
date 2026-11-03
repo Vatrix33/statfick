@@ -16,7 +16,7 @@ namespace Statventure.Tests.Animation;
 /// placement or gear changed, its picture the figure at its clock's time, and the cost per figure.
 /// </summary>
 [Collection("GPU")]
-public class AnimatedViewTests(GpuFixture gpu, ITestOutputHelper output)
+public class AnimatedViewTests(GpuFixture gpu)
 {
     static string ModelPath(string file) => Path.Combine(Render3DReferenceTests.ModelDirectory, file);
     static readonly Camera3D Camera = new(Projection.Orthographic, new(2.4f, 1.6f, 3.2f), new(0, 1.05f, 0), OrthographicHeight: 2.5f);
@@ -31,7 +31,9 @@ public class AnimatedViewTests(GpuFixture gpu, ITestOutputHelper output)
         return document;
     }
 
-    View3D NewView() => new(gpu.Device) { Camera = Camera.ToCamera(), Sun = Sun, Background = Colors.LinearFromHex("#d8cbb0") };
+    static View3D NewView(Statventure.Graphics.GpuDevice device) => new(device) { Camera = Camera.ToCamera(), Sun = Sun, Background = Colors.LinearFromHex("#d8cbb0") };
+
+    View3D NewView() => NewView(gpu.Device);
 
     bool Render(View3D view)
     {
@@ -137,64 +139,69 @@ public class AnimatedViewTests(GpuFixture gpu, ITestOutputHelper output)
         }
     }
 
-    [Fact]
-    public void TheCostOfAFigureIsMeasured()
+    /// <summary>The cost per figure, measured alone (the "Speed" collection).</summary>
+    [Collection("Speed")]
+    public class Speed(GpuFixture gpu, ITestOutputHelper output)
     {
-        // Two dozen geared figures with state machines (an idle loop and swings), as a battle might
-        // hold: the frame's animation work (advancing, transitions, events, poses, draw items).
-        using var figure = Model.Load(gpu.Device, ModelPath("figure.glb"));
-        using var sword = Model.Load(gpu.Device, ModelPath("sword.glb"));
-        using var tabard = Model.Load(gpu.Device, ModelPath("tabard.glb"));
-        using var view = NewView();
-        view.Camera = new Camera3D(Projection.Orthographic, new(0, 4, 9), new(0, 0.8f, -2.2f), OrthographicHeight: 6).ToCamera();
-        var definition = new StateMachineBuilder("humanoid").Trigger("attack")
-            .Layer("base", BlendMode.Replace, "idle", l => l.State("idle", "idle", loop: true))
-            .Layer("action", BlendMode.Replace, "none", l => l.Empty("none").State("swing", "swing")
-                .Transition("none", "swing", 0.1, ConditionDefinition.Trigger("attack")).TransitionAfter("swing", "none", 1, 0.15))
-            .Build();
-        var clips = AnimationClip.AllOf(figure.Data);
-        var animated = new AnimatedView(view);
-        var machines = new List<StateMachine>();
-        for (var i = 0; i < 24; i++)
+        [Fact]
+        public void TheCostOfAFigureIsMeasured()
         {
-            var skeleton = new Skeleton(figure.Data);
-            var stack = new AnimationStack(skeleton);
-            var machine = new StateMachine(definition, stack, name => new ClipBinding(clips.Single(c => c.Name == name), skeleton));
-            machines.Add(machine);
-            var actor = new Actor(figure, new Animator(stack, machine)) { Transform = Matrix4x4.CreateTranslation(i % 6 - 2.5f, 0, i / 6 * -1.5f) };
-            actor.Items.Add(new ActorItem(sword, new Socket(skeleton, "socket.hand.R")));
-            actor.Garments.Add(new ActorGarment(tabard, new Garment(tabard.Data, skeleton)));
-            animated.Actors.Add(actor);
+            // Two dozen geared figures with state machines (an idle loop and swings), as a battle might
+            // hold: the frame's animation work (advancing, transitions, events, poses, draw items).
+            using var figure = Model.Load(gpu.Device, ModelPath("figure.glb"));
+            using var sword = Model.Load(gpu.Device, ModelPath("sword.glb"));
+            using var tabard = Model.Load(gpu.Device, ModelPath("tabard.glb"));
+            using var view = NewView(gpu.Device);
+            view.Camera = new Camera3D(Projection.Orthographic, new(0, 4, 9), new(0, 0.8f, -2.2f), OrthographicHeight: 6).ToCamera();
+            var definition = new StateMachineBuilder("humanoid").Trigger("attack")
+                .Layer("base", BlendMode.Replace, "idle", l => l.State("idle", "idle", loop: true))
+                .Layer("action", BlendMode.Replace, "none", l => l.Empty("none").State("swing", "swing")
+                    .Transition("none", "swing", 0.1, ConditionDefinition.Trigger("attack")).TransitionAfter("swing", "none", 1, 0.15))
+                .Build();
+            var clips = AnimationClip.AllOf(figure.Data);
+            var animated = new AnimatedView(view);
+            var machines = new List<StateMachine>();
+            for (var i = 0; i < 24; i++)
+            {
+                var skeleton = new Skeleton(figure.Data);
+                var stack = new AnimationStack(skeleton);
+                var machine = new StateMachine(definition, stack, name => new ClipBinding(clips.Single(c => c.Name == name), skeleton));
+                machines.Add(machine);
+                var actor = new Actor(figure, new Animator(stack, machine)) { Transform = Matrix4x4.CreateTranslation(i % 6 - 2.5f, 0, i / 6 * -1.5f) };
+                actor.Items.Add(new ActorItem(sword, new Socket(skeleton, "socket.hand.R")));
+                actor.Garments.Add(new ActorGarment(tabard, new Garment(tabard.Data, skeleton)));
+                animated.Actors.Add(actor);
+            }
+            var watch = new Stopwatch();
+            const int Frames = 240;
+            for (var frame = 0; frame < Frames; frame++)
+            {
+                if (frame % 20 == 0)
+                    machines[frame / 20 % machines.Count].SetTrigger("attack");
+                watch.Start();
+                animated.Advance(1 / 60.0);
+                watch.Stop();
+            }
+            var perFigure = watch.Elapsed.TotalMilliseconds / Frames / animated.Actors.Count;
+            output.WriteLine($"animation work: {perFigure * 1000:F1} µs per figure per frame ({watch.Elapsed.TotalMilliseconds / Frames:F2} ms a frame for 24 geared figures)");
+            // A loose bound (a Debug build on whatever machine runs the tests): a 60 fps frame is 16.7 ms.
+            Assert.True(perFigure < 0.5, $"{perFigure:F3} ms per figure per frame");
+            // The GPU's share, on request (slow on a CPU Vulkan): the 24 figures drawn at 1080p, each
+            // frame a new pose (skinning, shading, ink, hatching), submitted and waited for.
+            if (Environment.GetEnvironmentVariable("STATVENTURE_MEASURE") != "1")
+                return;
+            var gpuWatch = new Stopwatch();
+            for (var frame = 0; frame < 30; frame++)
+            {
+                animated.Advance(1 / 60.0);
+                if (frame == 10)
+                    gpuWatch.Restart();
+                var f = gpu.Device.BeginFrame();
+                view.Update(f, 1920, 1080, 1);
+                gpu.Device.EndFrame(f);
+                gpu.Device.WaitIdle();
+            }
+            output.WriteLine($"1080p frame of 24 geared figures: {gpuWatch.Elapsed.TotalMilliseconds / 20:F2} ms (render, submit and wait)");
         }
-        var watch = new Stopwatch();
-        const int Frames = 240;
-        for (var frame = 0; frame < Frames; frame++)
-        {
-            if (frame % 20 == 0)
-                machines[frame / 20 % machines.Count].SetTrigger("attack");
-            watch.Start();
-            animated.Advance(1 / 60.0);
-            watch.Stop();
-        }
-        var perFigure = watch.Elapsed.TotalMilliseconds / Frames / animated.Actors.Count;
-        output.WriteLine($"animation work: {perFigure * 1000:F1} µs per figure per frame ({watch.Elapsed.TotalMilliseconds / Frames:F2} ms a frame for 24 geared figures)");
-        // A loose bound (a Debug build on whatever machine runs the tests): a 60 fps frame is 16.7 ms.
-        Assert.True(perFigure < 0.5, $"{perFigure:F3} ms per figure per frame");
-        // The GPU's share, on request (slow on a CPU Vulkan): the 24 figures drawn at 1080p, each
-        // frame a new pose (skinning, shading, ink, hatching), submitted and waited for.
-        if (Environment.GetEnvironmentVariable("STATVENTURE_MEASURE") != "1")
-            return;
-        var gpuWatch = new Stopwatch();
-        for (var frame = 0; frame < 30; frame++)
-        {
-            animated.Advance(1 / 60.0);
-            if (frame == 10)
-                gpuWatch.Restart();
-            var f = gpu.Device.BeginFrame();
-            view.Update(f, 1920, 1080, 1);
-            gpu.Device.EndFrame(f);
-            gpu.Device.WaitIdle();
-        }
-        output.WriteLine($"1080p frame of 24 geared figures: {gpuWatch.Elapsed.TotalMilliseconds / 20:F2} ms (render, submit and wait)");
     }
 }

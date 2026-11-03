@@ -19,6 +19,9 @@ the user and wait for their go-ahead before starting the next one.
   before a step counts as done. They pass the same on the PC's GPU, on a CPU Vulkan (the cloud) and
   on Windows: they act as Chromium on Linux with the reference PC's fonts and font settings.
 - Chromium 152 for references: `Tools/Scripts/chromium.sh` (Electron 44.5.0 from npm).
+- A minimized window's document (hidden documents: visibility, unloading, Blink's timer throttling; `Docs/Scripting.md`,
+  "Hidden documents"): references from `Tools/Scripts/make-visibility-references.sh` (about six minutes);
+  `Samples/Statventure.Sandbox` with `--log-visibility` logs what a real minimize, restore and close do.
 - Blender 5.2 for the 3D references (M6 on): `Tools/Scripts/make-blender-references.sh [scene ...]`
   (`Docs/Renderer-3D.md`, "Reference harness"; on the PC the Flatpak, run headless). It also evaluates
   the animation scenes (`Docs/Animation.md`, "Reference harness": poses, NLA stacks, gear). Its renders,

@@ -62,7 +62,8 @@ public sealed partial class UiDocument
             if (FocusedElement == element)
                 element.DispatchEvent(new UiFocusEvent("focusout", bubbles: true) { IsTrusted = true });
         }
-        DispatchEvent(new UiFocusEvent(focused ? "focus" : "blur", bubbles: false) { IsTrusted = true });
+        // The window's own focus and blur are plain Events, not FocusEvents (Reference/visibility-results.json).
+        DispatchEvent(new UiEvent(focused ? "focus" : "blur", bubbles: false, cancelable: false) { IsTrusted = true });
         if (focused && element is not null && FocusedElement == element)
         {
             element.DispatchEvent(new UiFocusEvent("focus", bubbles: false) { IsTrusted = true });
@@ -700,10 +701,18 @@ public sealed partial class UiDocument
     /// scrolling, the animation timing update, resize, scroll, media query and animation events,
     /// frame callbacks), then styles, animations, the box tree and layout, then resize observers
     /// (which may lay out again). Called again during the frame (and by forced layouts) it only
-    /// brings styles and layout up to date.
+    /// brings styles and layout up to date. A hidden document gets no frame: only its tasks and
+    /// throttled timers run; an unloaded one does nothing.
     /// </summary>
     public void Update(double time)
     {
+        if (Unloaded)
+            return;
+        if (Hidden && !_inFrameSteps)
+        {
+            UpdateHidden(time);
+            return;
+        }
         Animations.Advance(time);
         if (_inFrameSteps)
         {

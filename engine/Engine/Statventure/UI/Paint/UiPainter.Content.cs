@@ -97,6 +97,8 @@ public sealed partial class UiPainter
         var baseline = unrounded with { Y = unrounded.Y + MathF.Floor(lineTop + 0.5f) - lineTop };
         // The page's selection over this text, with its highlight (a preserved newline has no glyphs, only that).
         var selection = PageSelectionOf(root, item, line);
+        if (run.Glyphs.Count > 0)
+            _contentful = true;
         if (run.Glyphs.Count == 0)
         {
             if (_canvas.Drawing && selection is { } newline && item.Box?.TextNode?.Parent is { } newlineOwner)
@@ -493,17 +495,22 @@ public sealed partial class UiPainter
                     break;
                 if (SvgImage(src) is { } svgImage)
                 {
+                    _contentful = true;
                     // An SVG image: drawn as vectors in its object-fit box.
                     var natural = svgImage.Size ?? (svgImage.Ratio > 0 ? new Vector2(content.Width, content.Width / svgImage.Ratio) : content.Size);
                     PaintFittedSvg(svgImage.Svg, natural, content, box);
                 }
                 else if (ImageTexture?.Invoke(src) is { } texture && _document.Layout.Context.ImageSize?.Invoke(src) is { } natural)
+                {
+                    _contentful = true;
                     DrawFitted(texture, natural, content, box);
+                }
                 break;
             case "canvas":
             case "surface":
                 if (SurfaceTexture?.Invoke(element) is { } surface)
                 {
+                    _contentful = true;
                     // A drawn canvas is a layer of its own in Chromium (a foreign layer, its compositing reason Canvas).
                     if (PropertiesOf(box) is { } properties)
                         _canvas.RecordForeign(properties.Contents, box, content);
@@ -513,6 +520,7 @@ public sealed partial class UiPainter
                 }
                 break;
             case "svg":
+                _contentful = true;
                 PaintSvg(box, element, content);
                 break;
             default:
