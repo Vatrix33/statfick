@@ -46,9 +46,7 @@ what needs the user's machines):**
   minimizing there; the user accepted that) and Windows.
 - Repo housekeeping: **done (2026-11-03)**: the root `.gitignore` ignores `/.claude/worktrees/` and
   `/.claude/settings.local.json` (the user chose these over the whole `.claude/` folder).
-- Windows: nothing since the move to GitHub (2026-10-30) has run on Windows; M6, M7 and M8 never did. **The compile-time
-  part was checked on 2026-11-03** (see Progress, "Small tasks"); running still needs the user's Windows PC
-  (`Tools\Scripts\setup.ps1`, `build.ps1`, `test.ps1`).
+- Windows: open; it is its own checklist now, "Windows check" below.
 - Stale paths: `Docs/Notes.md` said `Stat Fick Source/Docs/Engine-Plan.md` in two places (text copied from the old memory;
   the folder is `engine/` now); fixed on 2026-11-02, and the last two (the "Asking about design choices" section and the
   2026-10-25 entry's `Compositing-Port.md`) on 2026-11-03.
@@ -57,6 +55,54 @@ what needs the user's machines):**
 - The "Known differences" lists (`Docs/Compositing-Port.md`, "Known differences left (SVG)"; `Docs/Scripting.md`, "Known
   differences left"; `Docs/Animation.md`, "Known differences from Blender's NLA"; M5's Progress, "Known differences left (not
   yet ported)") are accepted differences, not tasks, unless the port finds the game needs one.
+
+**Windows check (open; needs the user's Windows PC; recorded 2026-11-03).** Nothing since the move to GitHub (2026-10-30)
+has run on Windows; M6, M7, M8 and M9 never did. Only the compile-time part is checked: on 2026-11-03 every project of the
+solution built for `win-x64` from Linux with 0 errors and the Windows natives copied (Progress, "Small tasks"). Run from
+`engine\` in PowerShell, in this order; for each item: what to do, what passes, where it came from.
+1. **Set up, build, test.** Do: `Tools\Scripts\setup.ps1` once, then `Tools\Scripts\build.ps1`, then
+   `Tools\Scripts\test.ps1`. Passes: `build.ps1` ends without errors and leaves in `$STATVENTURE_GAME` the published
+   sandbox with `packs\` (`audio.pak`, `ui.pak`) beside it, stale files removed and changed packs put in place with
+   `File.Replace` (run it twice: the second run copies nothing); `test.ps1` gives the same 1907 results as Linux, all
+   passing (the goldens are platform-pinned: the tests act as Chromium on Linux with the reference PC's font settings,
+   `ReferencePlatform.cs`, `SystemFonts.cs`, so Windows must not need its own). From: `build.ps1` never run (M9 step 9,
+   `Docs/Assets.md`, "How it works", step 9, and Status, step 9); the setup scripts from the move to GitHub (Progress,
+   "Moved to one git repo for GitHub").
+2. **M9's per-step items.** (a) *Packs* (step 1): a running game with a pack open; replace the pack (`build.ps1` again
+   with a changed pack, or a rename over it) and Reload. Passes: the rename over the open pack succeeds (the pack is
+   opened with delete sharing for this), and the tests on read sharing pass. From: `Docs/Assets.md`, "How it works",
+   step 1, "Not checked". (b) *Storage* (step 4): save a slot twice, export and import a character, use "Open game
+   folder". Passes: the second save keeps the first as the backup (`File.Replace`, one call on Windows); the game folder
+   is the RoamingAppData known folder's `Stat Fick\`; export and import use the Documents known folder; "Open game
+   folder" opens Explorer there. From: `Docs/Assets.md`, "How it works", step 4, and Status, step 4. (c) *`textconv.sh`*
+   (step 3): `git diff` or `git show` on a commit that changes a pack, in Git for Windows. Passes: the pack shows as its
+   dump (git runs the script with its own bash; the script needs `env.sh` to find dotnet). From: `Docs/Assets.md`,
+   "How it works", step 3. (d) *The build's game folder* (step 9): start the sandbox from `$STATVENTURE_GAME`. Passes:
+   it mounts `packs\` and `classes\` beside the executable and the player's `mods\` from the game folder. From:
+   `Docs/Assets.md`, "How it works", step 9.
+3. **FreeType's Windows DLL.** Do: check whether `FT_Library_SetLcdFilter` works there (whether the DLL the package ships
+   is built with subpixel rendering; the call's error code says it), and run `Text/FreeTypeThreadingTests` and the text
+   goldens (part of item 1). Passes: the tests pass whatever the answer; record the answer. The engine's text doesn't
+   depend on the filter: the FreeType it loads on Linux is built without subpixel rendering, so the call changes nothing
+   there, and the text goldens pass against Chromium's captures without it (the test checks only the filter each
+   library was given). From: Progress, "FreeType thread safety (2026-11-03)"; "What M9 leaves for the port".
+4. **M8 audio on Windows.** Do: listen to themes through OpenAL Soft (the package ships its Windows natives). No
+   PowerShell equivalent of `play-theme.sh` exists yet; by hand it is what the script does: `dotnet build
+   Tools\PlayTheme -c Release`, then `dotnet Tools\PlayTheme\bin\Release\net10.0\PlayTheme.dll <the script's
+   arguments>`. Passes: it sounds as it did on Linux on 2026-11-02 (the math is ported, so results should match) and the
+   audio tests pass in item 1. From: `Docs/Audio.md`, Status, "Heard, but not run on Windows".
+5. **Hidden documents and minimizing.** Do: run the sandbox in a window, minimize it and restore it, with sound playing
+   and with none. Passes: GLFW's iconify reports the minimize; the document goes hidden as under X11 (the window's blur,
+   then the visibility change; on restore the visibility change, then the focus), its timers are throttled, and the sound
+   pauses unless the page is audible. From: Small tasks above, "Window host" ("Not checked: ... Windows");
+   `Docs/Scripting.md`, "Hidden documents"; `Docs/Audio.md`, Status, "Not checked automatically".
+6. **GPU renders on a Windows GPU.** Do: item 1's `test.ps1` on the Windows PC's GPU (the M6 and M7 goldens are in it).
+   Passes: every render golden passes as on this PC's AMD GPU and on lavapipe; a failure is reported as it is, its rule
+   found, not given a wider margin. From: the Small tasks' Windows bullet ("M6, M7 and M8 never did").
+
+When done, record: a Progress entry "Windows check" (date, what ran, results, anything that failed and why), a dated line
+in `Docs/Notes.md`, and the "Not checked: Windows" lines in `Docs/Assets.md`, Status (and its "How it works" notes)
+turned into "checked on Windows <date>"; then this subsection marked done.
 
 **How each step is finished** (the user's standing rules, for every step of every milestone):
 1. Tests: `Tools/Scripts/test.sh` passes in full on the GPU and on lavapipe (the variables are in `CLAUDE.md`). Don't tune
@@ -84,9 +130,8 @@ for `*.pak`). Left to the port: the old game's tables and classes (renamed under
 stylesheet compiled into `ui.pak`, `models.pak` and `world.pak` once there is content to pack (none committed, Q1),
 the packer's "update" command once a pack holds imported and editor-made entries, the save record (what a slot holds),
 the slot screen and the file picker as in-game UI, and the settings list (the volumes, the old game's display
-preferences and zoom). Not checked: Windows (`build.ps1` never run; `File.Replace` for the save backup, the
-RoamingAppData and Documents known folders, "Open game folder" through Explorer, `textconv.sh` under git there,
-FreeType's Windows build); and the compiled stylesheet's load time (95–180 ms from a pack, Debug, on a loaded machine)
+preferences and zoom). Not checked: Windows (the checklist is "Windows check" above, under "How to continue"); and
+the compiled stylesheet's load time (95–180 ms from a pack, Debug, on a loaded machine)
 and its JSON form's size (12.5 MB) are recorded as facts, not judged (`Docs/Assets.md`, step 7, "Sizes and load times").
 
 **What M8 leaves for the port:** `Application.Audio` is the sound (paused while the window is minimized):
