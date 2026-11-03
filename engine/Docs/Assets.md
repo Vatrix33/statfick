@@ -1506,8 +1506,9 @@ parsing leaves out), `UI/Css/FontFaceDescriptors.cs`, `UI/Style/Stylesheet.cs` (
 
 ## Status
 
-- **Nothing implemented yet** (2026-11-02). The decisions and the 27 format details are recorded, the
-  design and the nine steps with their dependencies are settled.
+**M9 done (2026-11-03): all nine steps.** (Before step 1, on 2026-11-02, nothing was implemented; the
+decisions and the 27 format details were recorded, the design and the nine steps with their dependencies settled.)
+
 - **Step 1, pack container and virtual file system: done (2026-11-03).** `Engine/Statventure/Packs/`,
   `Tools/Packer`, 138 tests in `Tests/Statventure.Tests/Packs/` (the path rule; round trips of empty,
   one, many and large packs; ordinal order; the no-shrink boundary, searched rather than fixed so a

@@ -5,83 +5,34 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-11-03):** the small tasks left from earlier milestones were done on 2026-11-03 (below, "Small tasks
-left from earlier milestones"; Progress, "Small tasks"). The same day a cloud session made the user's small changes to
-the old game ("Decisions for the old game's small changes" below; `../old-game/Docs/Notes.md`, "Small changes
+**Current task (2026-11-03):** M9 (assets and data) is done and ticked (2026-11-03). It started on 2026-11-02 with the
+user's go (its questions answered the same day, "Decisions for M9" below, every answer the recommended option; the design
+doc is `Docs/Assets.md`), and all nine steps were done and merged on 2026-11-03 (Progress, "M9 step 1" to "M9 step 9" and
+"M9 done"; `Docs/Assets.md`, Status). On the way the flaky `CompositingReferenceTests(map, 1.65)` was traced to FreeType
+faces used by two threads at once and fixed, with the two library-level gaps the user decided to fix too (Progress,
+"FreeType thread safety (2026-11-03)"). The full suite is 1907 tests and passes on the GPU and on lavapipe. **The next
+milestone is M10 (scene and sequencer); it starts only on the user's go,** and then first with M10's questions under
+"Open questions for later milestones" below. Earlier the same day the small tasks left from earlier milestones were done
+(below, "Small tasks left from earlier milestones"; Progress, "Small tasks"), and a cloud session made the user's small
+changes to the old game ("Decisions for the old game's small changes" below; `../old-game/Docs/Notes.md`, "Small changes
 (2026-11-03)"); the engine's tests don't depend on them (their stylesheet copy and captures are unchanged, so the
-captured screens still show the game before them; `make-game-references.sh` takes both afresh, together). M9 (assets and data) started on 2026-11-02 with the user's go. Its questions were asked and
-answered the same day ("Decisions for M9" below, every answer the recommended option); the design doc is `Docs/Assets.md`
-(decisions, what exists checked against the code, method, the on-disk design, nine steps with their dependencies, the 27
-format details asked after it, status). The session managing M9 splits the work into steps from that plan; step 1 (the pack container and
-the virtual file system) was done on 2026-11-03 (Progress; `Docs/Assets.md`, Status), and step 2
-(the record serializer, `Engine/Statventure/Records/`) the same day (Progress, "M9 step 2"), and step 3 (records in packs,
-the packer's JSON input, importers and dump, `Application.Data`) too (Progress, "M9 step 3"), and step 4 (the game folder, saves,
-settings and character files, `Engine/Statventure/Storage/`) too (Progress, "M9 step 4"), and step 5 (models and state
-machines as records in packs, the models importer, checked at load) too (Progress, "M9 step 5"), and step 6 (the music
-and effects in `audio.pak`, `MusicData.g.cs` removed) as well (Progress, "M9 step 6"), and step 8 (terrain
-into `world.pak`: the `terrain` record and its importer) too (Progress, "M9 step 8"), and step 9 (the game's data at run
-time: the build's game folder, `Application.Storage`, the player's mods, `Application.ReloadData()`) too (Progress, "M9 step 9"), and step 7 (stylesheets
-compiled into records, fonts from @font-face, images from the data, the committed `ui.pak`) too (Progress,
-"M9 step 7"). The flaky
-`CompositingReferenceTests(map, 1.65)` seen in step 3's full run was traced the same day to FreeType faces used by two threads
-at once and fixed, with the two library-level gaps the user decided to fix too (Progress, "FreeType thread safety
-(2026-11-03)"). M8 (audio) is done and ticked; the user has listened with
-`Tools/Scripts/play-theme.sh` and is happy with it (2026-11-02), and it hasn't run on Windows yet. The project is one git repo (`../`, see `../CLAUDE.md`), on
-the private GitHub repo `github.com/Vatrix33/statfick`.
+captured screens still show the game before them; `make-game-references.sh` takes both afresh, together). M8 (audio) is
+done and ticked; the user has listened with `Tools/Scripts/play-theme.sh` and is happy with it (2026-11-02), and it
+hasn't run on Windows yet. The project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo
+`github.com/Vatrix33/statfick`.
 Before each later milestone (M10 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code.
 Merging (user decision 2026-11-02): workers in git worktrees (`.claude/worktrees/`) commit on their own branch, and a
 separate, non-isolated merge worker merges into `main` and pushes, because the harness refuses git commands aimed at the
 main checkout from a worktree.
 
-**Starting M9, in order (done 2026-11-02; kept as the record of how it started):** steps 1–5 were done on 2026-11-02 (the
-answers are "Decisions for M9", the design doc `Docs/Assets.md`); what remains is step 6, from `Docs/Assets.md`, "Steps"
-(its format details were asked the same day).
-1. `git pull`, then read the rest of this section and the last entries of `Docs/Notes.md`.
-2. Check the code and existing packages against the facts below (they were checked on 2026-11-02), and work out what
-   each question really needs deciding.
-3. Ask M9's questions (the list under "Open questions for later milestones", plus what step 2 turns up), all at once:
-   the question tool takes 4 per call, so send several calls in a row, with 2–4 options each, the recommended one
-   first. Don't ask again what "Already decided" below settles.
-4. Record the answers with their date as "Decisions for M9" in this file.
-5. Write the design doc (a new area gets its own, e.g. `Docs/Assets.md`, shaped like `Docs/Audio.md`: decisions, what
-   exists, method, steps, how it works, status), add it to "Design docs by area", and split the milestone into steps.
-6. Do each step as "How each step is finished" says.
-
-*Already decided for M9 (don't ask again):* classes stay `.json`; everything else is binary `.pak` files, created and
-edited with an editor tool (the editor is M11); CSS-like stylesheets are compiled into the packs; saves start fresh (no
-reading of the old game's saves); Linux and Windows only; no OS dialogs, so Save/Load Character and file picking are
-in-game UI (M5's decisions); models come from Blender as `.glb` and M9 converts them into the packs, reusing
-`GltfImport` (M6); music and effects have no audio files (M8).
-
-*What exists (checked 2026-11-02; kept as it was: `Docs/Assets.md`, "What exists", rechecks it against the code and
-corrects three details: `Assets/` doesn't exist rather than being empty, `FontLibrary` already loads faces from memory, and
-the old game's class and enemy sizes below are disk usage, not content):* no pack, virtual file system, serialization or save code yet, and `Assets/` is empty.
-Today's loading: `ModelData.Load(path)` and `Model.Load` read `.glb` paths (`Render3D/GltfImport.cs`); `Terrain.cs`
-reads a JSON description and its height and cover maps by path; `Text/FontLibrary.cs` reads font files by path; shaders
-(`Shaders/Bin/*.spv`) and the UI's PNGs are embedded resources in the assembly; the tests read the old game's stylesheets
-and scripts by path (`TestPaths.OldGame`). Waiting for a pack form: models and their clips (markers included), state machines
-(`StateMachineBuilder`, M7), themes, instruments, percussion and rooms (`Audio/Music/MusicData.g.cs`, generated by
-`make-music-data.sh`; records in `ThemeData.cs`), effect patches (`EffectPatch` records, made in code so far), terrain
-(M6). Waiting to be saved as settings: `MasterVolume`, `EffectsVolume` and `Music.Volume` (M8); the old game also keeps
-display preferences (`scripts/settings.js`) and zoom.
-Packages for compression: .NET 10 has Deflate, GZip, ZLib and Brotli (`System.IO.Compression`); `Ahwoo.BRUTAL.ZLib`
-(in the NuGet cache as a dependency of the FreeType package) only ships native binaries, no C# API; neither has LZ4 or Zstandard,
-so those would need a new package. BRUTAL's Stb, KTX, GLI and Texture packages are in the cache for images.
-The old game's data, to size the packs: `classes/` 150 JSON files (616 KB), `enemies/` 169 (696 KB), `objects/` the JSON
-tables (`spells.json` 276 KB, `artifacts`, `consumables`, `key-items`, `races`), fonts and SVGs (2.9 MB in all). Weapons
-and armour have no table: they're forged by rules in the scripts. `music/` (61 MB of exports) is read by no script and isn't
-game data. Its saves: a character is one JSON text, kept in `localStorage` (`emberfall-character-stats`) and saved or
-loaded as a file through dialogs (`app.js`: saving around line 1788, `importCharacterText` at 1896; `desktop/main.cjs`), which
-is what the open question on JSON import and export of characters is about.
-*Questions this survey added (answered 2026-11-02: "Scope", "Shaders and the UI's PNGs" and "Music data" in "Decisions for
-M9"):* does M9 convert the old game's tables into packs, or
-only build the format and loaders with the port converting them later? Do shaders and the UI's PNGs stay embedded in the
-assembly or move into packs? Does `MusicData.g.cs` go once themes are in a pack, and what then checks them against the old game?
-
-*Its method:* the pack format is the engine's own, with no Chromium or Blender behaviour to match, so its rules are checked
-by round trips and by damaged or old-version files; whatever is read from the old game's files should match what the old
-game itself gets from them in the harness's Chromium, as `make-music-data.sh` does for the music.
+**Starting M9 (done; M9 finished 2026-11-03):** it started on 2026-11-02 with the user's go, in the order M10 will
+follow too: `git pull` and read; check the code against the facts and work out what each question needs deciding; ask
+the questions all at once (the question tool takes 4 per call, 2–4 options each, the recommended one first); record the
+answers ("Decisions for M9"); write the design doc (`Docs/Assets.md`: decisions, what exists checked against the code,
+method, design, steps, how it works, status) and split the milestone into steps; do each step as "How each step is
+finished" says. Its survey of what existed, the questions the survey added and its method are kept in `Docs/Assets.md`
+("Decisions", "What exists", "Method").
 
 **Small tasks left from earlier milestones (recorded 2026-11-02; done 2026-11-03 on the user's go, a cloud session, except
 what needs the user's machines):**
@@ -119,6 +70,24 @@ what needs the user's machines):**
    instead). Everything on GitHub stays private.
 5. At the end of a milestone: tick it under Milestones, update the notes, report what was done and what wasn't checked,
    and stop until the user says to go on.
+
+**What M9 leaves for the port:** `Application.Data` is the game's data: the area packs in `packs/` beside the
+executable (the committed `Assets/Packs/audio.pak` and `ui.pak`, copied there by `build.sh`/`build.ps1`), `classes/`
+beside them, the player's `mods/` in the per-user game folder, and the development folder on top
+(`ApplicationOptions.DevelopmentFolder` or `$STATVENTURE_DEV_FOLDER`); records are read with `Data.Load<T>(path)`.
+`Application.Storage` is the player's game folder: save slots, settings, character files (export and import of the JSON
+form, from and to the Documents folder) and "Open game folder". `Application.ReloadData()` remounts the data and
+reloads the music, then the game's listeners of `Data.Reloaded` run. The importers (models `.glb`, state machines'
+JSON form, terrain `.terrain.json`, stylesheets `.css`; the music through `make-music-data.sh`, the UI pack through
+`make-ui-pack.sh`) and `Tools/Packer` (`pack`, `list`, `verify`, `extract`, `dump`; `textconv.sh`, git's diff driver
+for `*.pak`). Left to the port: the old game's tables and classes (renamed under the path rule, Q31), the port's own
+stylesheet compiled into `ui.pak`, `models.pak` and `world.pak` once there is content to pack (none committed, Q1),
+the packer's "update" command once a pack holds imported and editor-made entries, the save record (what a slot holds),
+the slot screen and the file picker as in-game UI, and the settings list (the volumes, the old game's display
+preferences and zoom). Not checked: Windows (`build.ps1` never run; `File.Replace` for the save backup, the
+RoamingAppData and Documents known folders, "Open game folder" through Explorer, `textconv.sh` under git there,
+FreeType's Windows build); and the compiled stylesheet's load time (95–180 ms from a pack, Debug, on a loaded machine)
+and its JSON form's size (12.5 MB) are recorded as facts, not judged (`Docs/Assets.md`, step 7, "Sizes and load times").
 
 **What M8 leaves for the port:** `Application.Audio` is the sound (paused while the window is minimized):
 `Audio.Music.Play("combat@alder-vale")` with music.js's fades, `Stop`, `Music.Volume` (music.js's, before its
@@ -197,7 +166,8 @@ the design and the tests):
 - **M7 Animation:** answered 2026-10-31 (see "Decisions for M7" below).
 - **M8 Audio:** answered 2026-10-31 (see "Decisions for M8" below).
 - **M9 Assets and data:** answered 2026-11-02 (see "Decisions for M9" below), and its 27 format details
-  the same day (`Docs/Assets.md`, "Format details").
+  the same day (`Docs/Assets.md`, "Format details"); the questions asked during the steps are in "Decisions for M9"
+  and `Docs/Assets.md` (Q28–Q43, S3-1–S3-5, S5-1, S6-1–S6-5, S7-1–S7-6, S8-1, S8-2, S9-A–S9-D). M9 is done.
 - **M10 Scene and sequencer:** how cutscenes are authored (editor timeline, code, Blender export), and
   whether they can be skipped?
 - **M11 Editor:** what it must edit (items, enemies, spells, shops, map…), separate app or in-game dev
@@ -680,6 +650,7 @@ at port time). The rune slotting sound was left out of the old game; the port ad
   - **M9 step 8, terrain into `world.pak` (2026-11-03, 1686 tests):** two questions asked on the way, both as recommended (S8-1, S8-2 in `Docs/Assets.md`; "Decisions for M9"). `Render3D/Terrain.cs`: `TerrainData` is the record `terrain` (width, depth, cell size, the height range, the height image's 16-bit samples, the covers, the slots, the water level), its float heights worked out from the samples when first read by M6's formula, so the test terrain's heights are bit for bit what M6's loader gave (their SHA-256 taken before the change is pinned by a test) and the Blender comparisons hold; one description parser for `TerrainData.Load(path)` and the importer (the images decoded from memory by the same Stb decoder, problems named: a missing or mistyped key, a size that isn't whole, an image of another size or none); `TerrainData.Load(files, path)` and `Validate()` (a sample and a cover for each of the grid's points, as the loader checks its images; a `DataFileException` naming the pack and entry or the loose file), `Terrain.Load(device, files, path)`. `Render3D/TerrainImporter.cs`: `[Importer("world", ".terrain.json")]`, the record at the description's path without the ending, its images taken (not packed). Tests: 18 in `Tests/Statventure.Tests/Render3D/TerrainPackTests.cs` and `TerrainPackRenderTests.cs` (the description-loaded terrain against M6's hashes, the pack-loaded and JSON-form-loaded terrain equal to it, the importer's rules with 23 unusable descriptions, broken records refused at load, the three terrain scenes from the pack against Blender's renders and pixel for pixel against the description-loaded terrain's), the `terrain` layout and fixture. No pack committed (Q1). `Docs/Assets.md`'s "16-bit height PNG" corrected: Stb's `Load16` takes 8-bit (v · 257) and colour PNGs too. The full suite passes on the GPU and on lavapipe (1686 tests); mutations: 52, all fail a test. Not checked: Windows.
   - **M9 step 9, the game's data at run time (2026-11-03, 1716 tests):** four questions asked on the way, all as recommended (S9-A–S9-D in `Docs/Assets.md`; "Decisions for M9"). `Tools/Scripts/build.sh` and `build.ps1`: after the solution, the sandbox (the game's stand-in until the port) published into `$STATVENTURE_GAME` (`dotnet publish --no-build`, framework-dependent) and `packs/` beside it made exactly `Assets/Packs/*.pak` (stale packs removed, unchanged ones left, changed ones copied beside and renamed over, so a running game keeps its open pack). `Core/Application.cs`: `ApplicationOptions.GameFolder`; `Application.Storage` (the player's `GameStorage`, made first in `Run()`, disposed (flushed) in `Dispose()` after the window: after the game's `Unload()` and after a failed start or loop); `DataMounts` with the player's `mods/` between `classes/` and the development folder (mounted even when missing, so Reload sees mods added later); `Application.ReloadData()` (the data remounted, the music reloaded by the application's own first listener of `Data.Reloaded`, then the game's listeners; a failed mount or music logged, giving false). `Audio/AudioSystem.cs` `Reload` (rooms prepared on a worker, the music switched, new and changed effect patches registered), `Audio/Music/Soundtrack.cs` `Use` (a new builder for the library; the theme the game last asked for restarted through the switch when its music changed), `Audio/Music/MusicLibrary.cs` `SameMusic` (binary forms). 30 new tests: `Packs/ApplicationModsTests.cs`, `Core/ApplicationStorageTests.cs`, `Core/ApplicationReloadTests.cs`, `Core/AudioReloadTests.cs` (with `Core/TestApplication.cs`); `Audio/ApplicationMusicTests` points its application at a game folder of its own. Checked by hand: the build script's copy rules; the published sandbox run from the laid-out folder with a mod in a per-user folder of its own and a development folder (mounts in order, the mod's music loaded), with a damaged mod (stops before the window, naming it) and with a mod's theme of the wrong id (stops when the sound starts, naming mod and entry). Known limit (noted in `Docs/Assets.md`): Reload re-reads the mounts found at the start. The full suite passes on the GPU and on lavapipe (1716 tests); mutations: 54, 49 fail a test (one malformed mutation replaced); the 5 survivors change no sample, only when and on which thread work is done (as step 6's survivor): the restart's room not prepared on the game's thread ahead of it, `Play` preparing rooms through the old library's preparer, the new builder's composer kit made on the audio thread at its first performance (the same fixed-seed noise), the new builder without the prepared rooms (the composer makes the room's response and kernels itself, sample for sample the same, as the exact restart test shows), and the new library's rooms not prepared on a worker (the process-wide cache is filled on demand instead); the build script's 7 rules broken by hand each fail its check script. Not checked: Windows (`build.ps1` not run).
   - **M9 step 7, stylesheets, fonts and images into `ui.pak` (2026-11-03, 1907 tests):** six questions asked on the way, all as recommended (S7-1–S7-6 in `Docs/Assets.md`; "Decisions for M9"). `UI/Css/StylesheetRecords.cs`: the compiled stylesheet's records (`ui.stylesheet`, `ui.style-rule`, `ui.declaration`, `ui.keyframes`, `ui.keyframe`, `ui.font-face`, `ui.token`: the rule structure, everything inside as CSS tokens, a token's kind folding in its integer and id flags). `UI/Style/Stylesheet.cs`: `Compile(text, fileExists)` (parsed and prepared as `Parse`, then checked: selectors that don't parse except other browsers', unhandled at-rules, declarations and keyframe selectors that don't parse, unknown properties, bad values, @font-face rules the engine can't honour, urls that aren't `data:` or data paths of files there), `ToRecord`, `FromRecord` and `Load(files, path)` (selectors and media queries parsed from their tokens, everything checked again, problems named through `VirtualFileSystem.Problem`); `UI/Css/CssParser.cs`: `CssParseDiagnostics` (what parsing leaves out), the rules' selector and media tokens kept. `UI/Css/FontFaceDescriptors.cs`: a @font-face as the engine honours it. `UI/StylesheetImporter.cs`: `[Importer("ui", ".css")]`. `Text/FontLibrary.cs`: faces from @font-face rules (`AcquireSheetFace`, `ReleaseSheetFace`, `SheetFaces`: shared by data and descriptors, matched before the library's own faces of the family, the later first). `UI/Dom/UiDocument.cs`: `Files`, the author sheets' @font-face fonts read from it and given back, a font that can't be had an error naming the sheet. `UI/UiHost.cs`: `UiResources` (images and SVG text from the document's data after the callbacks, what can't be shown logged once). `Tools/Scripts/make-ui-pack.sh` and the committed `engine/Assets/Packs/ui.pak` (the five faces and two licence texts, 999 KB). Tests (`Tests/Statventure.Tests/Ui/`): `CompiledGameStylesTests` (the old stylesheet compiled by the importer gives the parsed one's computed styles on the 22 captured screens; the same rules part for part), `StylesheetCompileTests` (every token kind and both record forms, the importer, every refusal of compiling and of loading), `FontFaceRuleTests` (the descriptors, the committed pack's faces equal `TestFonts`' with the same matching and layout, sharing, hiding, errors, `Files`), `UiResourcesTests` and `UiHostResourceTests` (a real window), the committed pack's contents and repacking; layouts and the fixture in `Tests/Statventure.Tests/Data/Records/`. `GameLayoutTests.Build` takes the compiled sheet, so every test of the game's screens runs on it. The full suite passes on the GPU and on lavapipe (1907 tests); mutations: 175 (`~/.cache/stat-fick-build/claude-work/m9/step7-mutations.json`, made by `make-step7-mutations.py` beside it): 162 fail a test; one was malformed (renaming a token kind's member breaks the code naming it; the layout guard is covered by two kinds' numbers swapped); 12 survived, all accounted for. Seven were gaps, closed and then killed (`step7-rerun.json`): keyframes under @media and an !important keyframe declaration were missing from the sample sheet (three mutations; added, its fixture recorded again), a malformed declaration inside an otherwise valid @font-face, family names joined by a comma without a space, a face of another weight with the same range end, and setting `Files` failing at a second sheet after the first's faces were taken. Three were redundant code, removed: the `::` branch of the other-browsers check (the loop meets a pseudo-element's second colon, whose next token is the name), the problems' de-duplication (nothing makes one twice; each is now listed as found) and the `IsShorthand` test of a pending shorthand (a name that isn't one has no longhands). Two can't differ in results, only in work: acquiring a sheet face looks for an existing one before making one (without it the face is made and retired as a duplicate, kept until the library goes: memory and time only), and setting `Files` to the file system it already has returns at once (otherwise its faces are taken again, the old ones given back and the layout redone). Not checked: Windows.
+  - **M9 done (2026-11-03, 1907 tests):** all nine steps merged on `main` (with the FreeType thread-safety fix on the way); the full suite passes on the GPU and on lavapipe. Mutations over the nine steps: 875, 852 fail a test; 22 survivors, all accounted for (gaps closed and killed, redundant code removed, or no difference in results, only in work or on Windows), and 1 malformed (step 7). Ticked under Milestones; M10 waits for the user's go.
 
 ## Milestones
 
@@ -727,7 +698,7 @@ Each milestone is finished only when its tests pass.
   - OpenAL Soft streaming, a mixer with buses and fades.
   - Synthesizer: oscillators, noise, envelopes, biquad filters, convolution reverb, panning, sample-accurate scheduling.
   - Offline rendering for tests.
-- [ ] **M9 Assets and data:**
+- [x] **M9 Assets and data:**
   - The `.pak` format: writer, reader, compression, hashes.
   - A virtual file system (packs plus loose development folders).
   - Asset loaders, binary data serialization with versioning, the JSON class loader.
