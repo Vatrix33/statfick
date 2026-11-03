@@ -340,7 +340,7 @@ Order: **1 and 2** side by side; then **3** (after 1 and 2) beside **4** (after 
    - Tests: round trips (empty, one, many and large entries; raw and compressed), the no-shrink rule,
      determinism, re-pack reuse, each kind of damage (the index at mount, entries on read), mount order
      (later wins, mods in name order, union listing), the path rule, Reload after a pack is rebuilt.
-   - Format details: Q2, Q4–Q9.
+   - Format details: Q2, Q4–Q9; asked during the step: Q28–Q31.
 2. **Record serializer: binary and JSON forms, versions, old-version fixtures.** Independent (of 1
    too).
    - Creates `Engine/Statventure/Records/` (declarations, binary reader and writer, JSON reader and
@@ -413,6 +413,9 @@ Order: **1 and 2** side by side; then **3** (after 1 and 2) beside **4** (after 
      `classes/` and the per-user `mods/` at run time).
    - Tests: mount order with mods and a development folder over the game's packs; Reload.
    - Format details: Q27.
+   - The shipped `classes/` folder holds the class files under names that follow the path rule
+     (Q31: the old game's `Black Knight.json` becomes `black-knight.json`), renamed when the port makes
+     it; mounted as the old game names them, they would fail the mount (Q29).
 
 ## Format details (user, 2026-11-02, asked after the design doc)
 
@@ -491,13 +494,129 @@ Every answer was the recommended option except Q15 and Q17. Also in `Docs/Engine
   as today. (Not float heights.)
 - **Q27. Classes:** the class record and loader come at port time; M9 only mounts the shipped
   `classes/` folder, so a mod or the development folder can override a class. (Not a class record
-  now.)
+  now.) Its files get names under the path rule when the port makes it (Q31).
+
+Asked during step 1 (2026-11-03), every answer the recommended option:
+
+- **Q28. Names Windows can't hold** are refused too, wherever paths are checked (packing, mounting,
+  the file system's calls): a segment ending in a dot, Windows' reserved device names (`con`, `prn`,
+  `aux`, `nul`, `com0`–`com9`, `lpt0`–`lpt9`, alone or before an extension, e.g. `aux.json`) and a
+  segment longer than 255 characters, so every valid path works the same in a pack and in a loose
+  folder on Linux and Windows (Q4's reason). (Not the character set only.)
+- **Q29. A file in a loose folder whose name breaks the path rule** (the development folder, the
+  shipped `classes/` folder) is an error naming the file, and the mount fails, as packing does. The
+  development folder must be kept free of editor backups (`x.json~`) and Windows' `Thumbs.db`. (Not
+  skipped with a log line.)
+- **Q30. Mods** are the files directly in the mods folder whose names end in `.pak` in any case
+  (`MyMod.PAK` too), on both systems, mounted in the ordinal order of their names; a mod's file name
+  isn't under the path rule (it isn't an entry path). (Not a lowercase `.pak` only.)
+- **Q31. The old game's class files** (129, named with capitals and spaces: `Black Knight.json`) are
+  renamed to names under the rule (`black-knight.json`) when the port makes the shipped `classes/`
+  folder; the old game's own files stay as they are. One path rule for everything. (Not an exception
+  for `classes/`.)
 
 ## How it works
 
 Filled in as the steps are done.
 
+### Packs and the virtual file system (step 1)
+
+Code in `Engine/Statventure/Packs/`, namespace `Statventure.Packs`: `PackPath` (the path rule),
+`PackFile` (open and check, read, verify, extract), `PackWriter` (add entries or a folder, write),
+`VirtualFileSystem` with `Mount` (`Pack`, `Folder`, `Mods`), and `DataFileException` (a pack or loose
+file that can't be used: `File`, `Entry`, `Problem`). The tool `Tools/Packer` puts them on the command
+line: `pack <folder> <file.pak>`, `list`, `verify` (exit code 1 when an entry is damaged), `extract
+<file.pak> <folder>` (the folder must be empty or missing); it is a thin shell, the tests cover the
+engine's functions. Tests: `Tests/Statventure.Tests/Packs/`.
+
+- **The path rule** (`PackPath`; Q4, Q28): only `a–z 0–9 - _ . /`; names between `/` not empty (no
+  leading, trailing or doubled `/`), at most 255 characters, not ending in a dot (so no `.` or `..`),
+  not a Windows device name (`con`, `prn`, `aux`, `nul`, `com0`–`com9`, `lpt0`–`lpt9`, alone or before
+  the first dot: `aux.json`, `nul.tar.gz`). Checked when packing, when opening a pack (its index), when
+  mounting a loose folder (each file's path, Q29) and on every call (`ArgumentException`).
+- **Byte layout, format version 1** (little-endian; `PackFormat`):
+
+  | Bytes | Field |
+  | --- | --- |
+  | 0–3 | `SVPK` |
+  | 4–7 | format version (u32), 1 |
+  | 8–11 | flags (u32), none defined: must be 0 |
+  | 12–15 | entry count (u32) |
+  | 16–23 | the index's offset (u64) |
+  | 24–31 | the index's length (u64) |
+  | 32–63 | SHA-256 of the index's bytes |
+
+  Then the entries' stored bytes, one after another from byte 64 in ordinal path order, then the
+  index, which ends the file. An index entry: the path's length (u16) and its ASCII bytes, the offset,
+  stored length and content length (u64 each), the flags (u32: bit 0 compressed; step 3 adds the record
+  bit) and the SHA-256 of the content (62 bytes plus the path). An empty pack is the 64-byte header.
+- **Opening** (`PackFile.Open`) reads the header and the index and refuses, with a
+  `DataFileException` naming the pack (and the entry when one is at fault): a file shorter than the
+  header; another magic; a version other than 1; header flags; an index that doesn't run from inside
+  the file to its end; an index whose hash doesn't match; then, in the index (whose hash matched, so
+  only a badly made pack gets this far): an index ending inside an entry or going on after the
+  counted entries, a path outside the rule, a path not after the one before it (a duplicate, or out of
+  ordinal order), an entry that doesn't start where the one before it ends or runs into the index,
+  unknown entry flags, a content too large for one array, a compressed entry not smaller than its
+  content or a raw one whose lengths differ, entries that don't end where the index starts, and an
+  entry that is also another entry's folder (`a` beside `a/b`: a loose folder can't hold both). The
+  file is opened sharing read, write and delete (`File.OpenHandle`, `FileOptions.RandomAccess`).
+- **Reading** (`PackFile.Read`): the stored bytes by positional reads (`RandomAccess.Read`, safe from
+  several threads; a file shorter than the index says is an error), decompressed with a
+  `BrotliDecoder` into a buffer of the content's length, which must end the stream exactly (status
+  done, every stored byte consumed, the whole buffer written; .NET's static `TryDecompress` would accept
+  bytes after the stream), then the content's SHA-256 compared with the index's, on every read: nothing
+  is cached. A bit flipped in a compressed stream can leave the content as it was (the window size of a
+  short stream, say); the content is then right and is given. `Verify` reads every entry and lists the
+  damaged ones; `ExtractTo` writes every entry as a file.
+- **Writing** (`PackWriter`): entries are added by path (a duplicate, or an entry where another has its
+  folder, is refused) or from a folder (every file at any depth, hidden ones too, each name checked).
+  Each content is hashed and Brotli-compressed at quality 11 with a 22-bit window (entries in parallel;
+  the output is the same every time), stored compressed only when that is strictly shorter. `Write(path)`
+  reuses the pack it replaces: an entry whose content hash it already holds keeps that entry's stored
+  bytes and flags (also under another path), after decoding them and checking the hash; a damaged
+  one is compressed afresh and named in the result (`PackWriteResult.DamagedInOld`), and an unreadable
+  old pack is replaced whole (`OldProblem`). The bytes go into a temporary file beside the pack
+  (`<name>.<random>.tmp`), flushed to disk, then renamed over it, so a pack someone has open keeps its
+  old contents (Linux) until they open it again. `WriteTo(stream, reuse)` writes to a stream.
+- **The virtual file system** (`VirtualFileSystem`): mounts are given bottom to top
+  (`Mount.Pack(file)`, `Mount.Folder(folder, at)` with an optional place below which the files appear,
+  e.g. the shipped classes at `classes`, and `Mount.Mods(folder)`); each path resolves to the topmost
+  mount that has it. `Exists`, `ReadAllBytes`, `Open` (a read-only stream over the checked content),
+  `Origin` (the pack or loose file that gives a path) and `List(folder)` (every path below the folder,
+  at any depth, in ordinal order, each once; `""` lists all). A damaged entry is an error even when a
+  lower mount has the path (Q6). A loose folder's set of files is taken when it is mounted, its
+  contents when they are read (an edit shows at once, a new file after Reload). Mods are the files
+  directly in the folder whose names end in `.pak` in any case, in the ordinal order of their names
+  (`C.PAK` before `a.pak`); a missing mods folder means none, each mod is logged ("Data" category); a
+  missing pack or loose folder is an error.
+- **Reload** mounts everything afresh (packs reopened and checked, folders rescanned, the mods folder
+  listed again) and only then swaps the new mounts in, closes the old packs and raises `Reloaded`; when
+  mounting fails it throws and the old mounts stay (and what it had opened is closed). Reads, Reload and
+  `Dispose` share a reader-writer lock, so reads from several threads go on safely during a Reload.
+- **Decided as internal design (2026-11-03, accepted by the user with the step's questions):** the
+  well-formedness of paths above, the entry-and-folder rule within one pack (across mounts both are
+  allowed), a missing mods folder meaning no mods while a missing pack or development folder is an
+  error, and the atomic Reload.
+- **Not checked:** Windows. There the sharing matters (Linux's `FileShare` is only an advisory lock, so
+  the tests can't tell read sharing from read, write and delete sharing), and whether a pack open with
+  delete sharing can be renamed over (Assets.md's reason for the sharing) is still to be seen on the
+  user's Windows PC.
+
 ## Status
 
 - **Nothing implemented yet** (2026-11-02). The decisions and the 27 format details are recorded, the
   design and the nine steps with their dependencies are settled.
+- **Step 1, pack container and virtual file system: done (2026-11-03).** `Engine/Statventure/Packs/`,
+  `Tools/Packer`, 138 tests in `Tests/Statventure.Tests/Packs/` (the path rule; round trips of empty,
+  one, many and large packs; ordinal order; the no-shrink boundary, searched rather than fixed so a
+  newer Brotli keeps it; the layout against a pack made field by field; determinism; re-pack reuse;
+  folders packed and extracted; every truncation and every flipped bit of the header, the index and
+  the entries; badly formed indexes with valid hashes; an index too large to read, as a sparse file;
+  the hash on every read; mount order, mods, loose folders, listing, Reload, reads during Reloads, open
+  handles). Four questions asked on the way (Q28–Q31). The full suite passes on the GPU and on
+  lavapipe (1184 tests). Mutations: 95, 93 fail a test after four gaps were closed (paths whose culture
+  order differs from ordinal, the duplicate entry's own error, an index over 2 GiB, readers really
+  running during Reloads); the 2 survivors can't differ here: opening with read sharing only (Linux's
+  `FileShare` is an advisory lock; it matters on Windows) and writing without the flush to disk (it
+  matters only after a crash). Not checked: Windows (see "How it works").
