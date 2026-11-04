@@ -1,16 +1,17 @@
 # Scene and sequencer (M10)
 
-The scene is a tree of nodes that places everything a 3D view shows: figures, stage objects, cameras,
-the sun and particle emitters. The sequencer plays cutscenes on it: a sequence is a versioned record
-of tracks (clips made in Blender, curves, cues for figures, cameras, light, particles, sound, music
-and the UI) played on the document's frame clock, skippable to its end state, with a reduced variant
-for reduced motion. M10 builds both and remakes one boss intro, Ji'ruan's, as a proof.
+The scene is a tree of nodes that places everything a 3D view shows: figures, stage objects,
+terrain, cameras, the sun and particle emitters. The sequencer plays cutscenes on it: a sequence is a
+versioned record of tracks (clips made in Blender, curves, cues for figures, cameras, light,
+particles, sound, music and the UI) played on the document's frame clock, skippable to its end state,
+with a reduced variant for reduced motion. M10 builds both and remakes one boss intro, Ji'ruan's, as a
+proof.
 
 ## Decisions (user, 2026-11-04)
 
 Asked before the milestone started; every answer the recommended option except the scope (M10-2). In
-full, with the options not chosen, in `Docs/Engine-Plan.md`, "Decisions for M10". What they leave
-open is under "Open questions" below.
+full, with the options not chosen, in `Docs/Engine-Plan.md`, "Decisions for M10". The 33 details they
+left open were asked after this doc's first draft and are under "Step details" below.
 
 - **Authoring (M10-1):** a cutscene is a sequence record with tracks. The 3D motion (camera moves,
   objects and figures) is made in Blender and exported as glTF clips (an animated camera node too),
@@ -36,8 +37,11 @@ open is under "Open questions" below.
 - **Clock (M10-7):** real time on the frame clock at the sequence's own rate (1 by default),
   independent of the battle pace; paused while the document is hidden; the figures a sequence
   animates follow its rate.
-- **Audio cues (M10-8):** scheduled on the audio clock from the sequence's start, sample-accurate,
-  through M8's scheduling; a skip or a pause cancels pending cues.
+- **Audio cues (M10-8):** scheduled on the audio clock from the sequence's start, sample-accurate; a
+  skip or a pause cancels pending cues. (The decision said "through M8's scheduling", but M8 has no
+  public scheduling: the game's calls start at the audio thread's next quantum and the audio clock is
+  internal. The graph inside is sample-accurate, so step 6 adds a play at a time, a clock the game can
+  read and cancelling on top of it: What exists, "Audio".)
 - **Text and screen tracks (M10-9):** a track names UI elements and sets their text, classes and
   attributes at cue times; the look and motion stay in the game's stylesheet, animated by the UI as
   the old game's CSS keyframes did.
@@ -98,6 +102,9 @@ easing, no audio scheduled at a time.
   seed, start, burst, rate, duration) gives the particles alive at any time from their age
   (`At(time, palette)`: closed form, deterministic, rewindable, as M6 decided); its `Path` is a
   `Func<float, Vector3>` (a fixed point or a moving object), so it isn't data either.
+- **Terrain** (`Render3D/Terrain.cs`): `Terrain.Draw(items, translation, camera, viewportHeight, …)`
+  takes a translation only (and the camera for its level of detail); the map's view is set up by its
+  own code.
 - **Surface elements** (`UI/SurfaceViews.cs`): `Show(element, view)`, `Hide`, `ViewOf`; views of laid
   out elements update before painting at their content box's size and the document's zoom; `Pick`
   maps a viewport point through the element's transforms.
@@ -120,11 +127,13 @@ easing, no audio scheduled at a time.
   document timeline (Blink's AnimationClock). The engine has `animation-play-state` (CSS) and, for
   script animations, `Pause`, `Play`, `CurrentTime` and `StartTime`, but no playback rate (left out
   in M5).
-- **Hidden documents** (`UiDocument.Visibility.cs`): a minimized window's document gets no frames, so
-  frame clients aren't advanced while hidden, and on the first frame after it is shown again they are
-  advanced by the whole hidden time at once: an `AnimatedView`'s figures jump forward, as the CSS and
-  script animations do (their timeline is real time, as Chromium's). M10-7's pause while hidden needs
-  the sequencer to drop that gap. (Not written in `Docs/Animation.md` or `Docs/Scripting.md` so far.)
+- **Hidden documents and the hidden-time jump** (`UiDocument.Visibility.cs`): a minimized window's
+  document gets no frames, so frame clients aren't advanced while hidden, and on the first frame
+  after it is shown again they are advanced by the whole hidden time at once: an `AnimatedView`'s
+  figures (and any `Animator` added as a frame client) jump forward, as the CSS and script
+  animations do (their timeline is real time, as Chromium's). M10-7's pause while hidden needs the
+  sequencer to drop that gap (Design, "The player"). Nothing wrote this down before
+  (`Docs/Animation.md`, `Docs/Scripting.md`); it stays so for the figures no sequence holds.
 - **Audio** (`Audio/AudioSystem.cs`, `Audio/Music/Soundtrack.cs`, `Audio/Effects/SoundEffects.cs`):
   the game's calls are queued and applied by the audio thread before its next quantum, at the graph's
   time then: `Music.Play(id)` (the old bus held and ramped to 0 over 0.55 s, the new one from 0 to 1
@@ -137,11 +146,11 @@ easing, no audio scheduled at a time.
   freezes the graph (the application does it while the window is minimized), so the audio clock
   stops with a hidden document. Ji'ruan's theme `great-imp-jiruan` is in `audio.pak`.
 - **Records and packs** (M9; `Docs/Assets.md`): `[Record(name, version)]`, `[Field(n)]`, unions by
-  `[Subtype(tag, type)]` (Q12; no engine type uses one yet, only the serializer's tests), layout
+  `[Subtype(tag, type)]` (M9 Q12; no engine type uses one yet, only the serializer's tests), layout
   signatures and fixtures per type in `Tests/Statventure.Tests/Data/Records/` (one file or folder per
   type), `VirtualFileSystem.Load<T>(path)`, `Application.Data`; a loose `.json` that starts with
   `"$types"` packs as a record without an importer (S3-1); `world.pak` is mounted when present, and
-  none is committed (Q1: no game content yet). `StateMachineBuilder` (fluent, by name, `Build()`
+  none is committed (M9 Q1: no game content yet). `StateMachineBuilder` (fluent, by name, `Build()`
   validates) is the builder to copy.
 - **The Blender harness** (`Tools/BlenderReference/`, run by `Tools/Scripts/make-blender-references.sh`
   on the PC; its outputs committed): `make_models.py` builds and exports the test models
@@ -261,9 +270,9 @@ Three kinds of rule, three kinds of check:
    its own F-curves) and writes what Blender evaluates (`Golden/*.json`) or renders
    (`Golden/r3d-*.png`, `render_scenes.py`). Both are committed, so the tests run without Blender
    (the cloud). The rule is ported from Blender's source (`fcurve.cc`, `curve.cc`, `easing.cc`; the
-   glTF exporter's camera and light conversion), not fitted. Exact where both sides compute the same
-   values in the same precision; where the engine samples a clip Blender evaluates as curves, within
-   M7's between-frame allowance; renders compared as M6 compares them.
+   glTF exporter's camera and light conversion), not fitted. Curves are evaluated in double precision
+   and checked against Blender within float32 rounding (Q5); where the engine samples a clip Blender
+   evaluates as curves, within M7's between-frame allowance; renders compared as M6 compares them.
 2. **The sequencer's own rules**, which nothing outside defines: tests for each (cue order, the end
    state on a skip, pause by the game and by a hidden document, the rate, seeking, the reduced
    variant's mapping, bindings, unskippable and non-blocking, the end), and the record's round trips
@@ -274,37 +283,39 @@ Three kinds of rule, three kinds of check:
    nothing); text and screen tracks through what the UI already matches with Chromium (M4's CSS
    animation fixtures, M5's Web Animations, the 22 game screens), the sequencer's tests checking
    which attribute, class and text changes land in which frame and what the end state is. The proof's
-   title card can also be compared with the old game's in Chromium (Q32).
+   title card is also compared with the old game's in Chromium (Q32).
 
 Every new test is shown able to fail by breaking each rule it covers (`Tools/Scripts/mutate.py`).
 Steps that make Blender references run on the user's PC (the cloud has no Blender).
 
-## Design (proposed)
+## Design
 
-The design the steps work from; names are working names. "(Qn)" points to the open question that
-settles the point.
+The design the steps work from (the user's step details of 2026-11-04 included); names are working
+names. "(Qn)" points to the step detail that settled the point.
 
 ### The node tree and the scene (step 1)
 
 - **A node** has a name, a parent and children, a local translation, rotation (a unit quaternion)
   and scale (glTF's T·R·S; in System.Numerics' row vectors S·R·T) and a world matrix (local × the
   parent's world), recomputed lazily when a local transform above it changed. Paths name nodes from a
-  given node (`stage/rift`). Optional: a node shown or hidden with its subtree (Q23).
-- **Attachments:** an `Actor` (M7's figure; its model matrix is its node's world matrix, its gear
-  stays on its sockets), a placed model (a `Model` with its palette, scenery flag, optional pose and
-  its ink group), a camera and a sun light (step 3), a particle emitter (step 5) and possibly terrain
-  (Q3). A node can carry several.
-- **The scene** (what `AnimatedView` becomes, Q1): a root node, the `View3D` it fills, and a frame
-  client of the document: each frame it advances the actors no sequence holds by the frame's time
-  times its `Rate` (the battle pace, as now), brings world matrices up to date, and gives the view new
-  draw items only when a pose, a node, an attachment or the list changed (as `AnimatedView` does
-  today), the view's camera and sun from their nodes, and its particles; then it dispatches the
-  animators' events with the frame's animation events.
-- **Models in the scene:** instancing a model under a node makes a scene node for each glTF node
-  (names and hierarchy kept) with the meshes as placed models (Q2); a skinned figure stays one
-  `Actor` (its bones aren't scene nodes). A clip of the model (a Blender object's action, absolute
-  local channels) binds to those scene nodes by name, as `ClipBinding` binds to a model's nodes, and
-  sets their local transforms.
+  given node (`stage/rift`). A node can be hidden, which hides its subtree (Q23).
+- **Attachments:** an `Actor` (M7's figure, placed only by its node: its model matrix is its node's
+  world matrix, `Actor.Transform` goes; its gear stays on its sockets) (Q1), a placed model (a `Model`
+  with its palette, scenery flag and optional pose; each its own model for the ink), terrain (by its
+  node's translation, as `Terrain.Draw` takes it, so the map is a scene too) (Q3), a camera and a sun
+  light (step 3), a particle emitter (step 5). A node can carry several.
+- **The scene** replaces `AnimatedView` (the class goes) (Q1): a root node, the `View3D` it fills, and
+  a frame client of the document: each frame it advances the actors no sequence holds by the frame's
+  time times its `Rate` (the battle pace, as `AnimatedView`'s rate was), brings world matrices up to
+  date, and gives the view new draw items only when a pose, a node, an attachment or the list changed
+  (as `AnimatedView` did), the view's camera and sun from their nodes, and its particles; then it
+  dispatches the animators' events with the frame's animation events.
+- **Models in the scene** (Q2): instancing a model under a node makes a scene node for each glTF node
+  (names and hierarchy kept); each top-level object with its children is a model of its own for the
+  outline, the glow mask and picking (as Blender's own render of the stage draws a Freestyle contour
+  per object); a skinned figure stays one `Actor` (its bones aren't scene nodes). A clip of the model
+  (Blender objects' animation, absolute local channels) binds to those scene nodes by name, as
+  `ClipBinding` binds to a model's nodes, and sets their local transforms.
 - **Blender's rule as glTF gives it back:** glTF's node rule is world = parent's world · T·R·S; what
   Blender adds (an object's parent inverse, a bone parent placing a child at the bone's tail, the
   axis conversion of objects) the exporter bakes into the child's local transform. Step 1 checks the
@@ -313,45 +324,57 @@ settles the point.
 
 ### Curves (step 2)
 
-- **`FCurve`** (Blender's name; `AnimationCurve` is the glTF sampler's): keys in time order, each with
-  a time, a value, the interpolation to the next key (constant, linear, Bezier, or an easing type:
-  sine, quad, cubic, quart, quint, expo, circ, back, bounce, elastic), the easing mode (in, out,
-  in-out; Blender's automatic resolved per type as `fcurve.cc` does), back's overshoot and elastic's
-  amplitude and period, and two handles (time and value) with their types (free, aligned, vector,
-  auto, auto-clamped: Blender's default for new keys; Q6); per curve the extrapolation (constant,
-  linear) and Blender's auto smoothing (none, continuous acceleration). Modifiers (Q7).
-- **Evaluation** as `fcurve_eval_keyframes_interpolate` and `_extrapolate`: the key search with its
-  threshold, a time on a key giving the key's value, Bezier segments corrected
-  (`BKE_fcurve_correct_bezpart`) and solved for the time (`findzero`), easings as `BLI_easing_*` of
-  (time, begin, change, duration). Auto handles as `BKE_fcurve_handles_recalc` computes them.
-  Precision (Q5) and time unit (Q4).
+- **`FCurve`** (Blender's name; `AnimationCurve` is the glTF sampler's): keys in time order, times in
+  seconds (Q4), each with a value, the interpolation to the next key (constant, linear, Bezier, or an
+  easing type: sine, quad, cubic, quart, quint, expo, circ, back, bounce, elastic), the easing mode
+  (in, out, in-out; Blender's automatic resolved per type as `fcurve.cc` does), back's overshoot and
+  elastic's amplitude and period, and two handles with their types (free, aligned, vector, auto,
+  auto-clamped: Blender's default for new keys). A key stores its handle types always and the
+  positions only of free and aligned handles; auto, auto-clamped and vector handles are computed at
+  load by Blender's rule (Q6). Per curve the extrapolation (constant, linear) and Blender's auto
+  smoothing (none, continuous acceleration). No modifiers (Q7): a looping motion is a clip or strip
+  that repeats.
+- **Evaluation** as `fcurve_eval_keyframes_interpolate` and `_extrapolate`, in double precision,
+  checked against Blender within float32 rounding (Q5): the key search with its threshold, a time on a
+  key giving the key's value, Bezier segments corrected (`BKE_fcurve_correct_bezpart`) and solved for
+  the time (`findzero`), easings as `BLI_easing_*` of (time, begin, change, duration); auto handles as
+  `BKE_fcurve_handles_recalc` computes them.
 - **Tracks use one curve per component**, as Blender's F-curves have an array index: location x, y,
-  z; rotation (Q8); scale x, y, z; and single values (a camera's field of view, the sun's strength,
-  an effect's volume).
+  z; rotation as Euler angles in XYZ order, Blender's default mode for objects, turned into a
+  quaternion when the node is set (Q8); scale x, y, z; and single values (a camera's field of view,
+  the sun's strength and angle).
 
-### The sequence record (step 4; layout Q14)
+### The sequence record (step 4; layout as proposed, Q14)
 
-Proposed records, `scene.*` (in `world.pak` at `world/cutscenes/<name>`, M10-10):
+Records `scene.*`, in `world.pak` at `world/cutscenes/<name>` (M10-10); every track kind is declared in
+step 4, so steps 5 and 6 change no layout:
 
 - **`scene.sequence`:** the name; the duration (seconds); `skippable` (true by default) and
-  `blocking` (true by default; a vignette false) (Q20); the roles it needs, each a name and a kind
-  (actor, node, model, element) that the game binds when it plays it (Q15); the stages it brings
-  (model paths, instanced under the scene's root when it plays: Q2, Q14); its markers (name, time;
-  Q22); its tracks, in order (a union of track kinds); its reduced variant (none, or Q19's form).
+  `blocking` (true by default; a vignette false; a flag for the game, Q20); the roles it needs, each a
+  name and a kind (actor, node, model, element), which the game binds when it plays it (Q15); the
+  stages it brings, models by path in `models.pak` (`models/stages/<name>`), instanced under the
+  scene's root when it plays (Q2, Q14); its markers (name, time), from the stage's export (Q22); its
+  tracks, in order (a union of track kinds); its reduced variant (none, or a cut list, Q19).
 - **Track kinds** (tagged subtypes of `scene.track`, M9 Q12):
   - *clip:* a stage's clip on that stage's nodes, with strip settings as `AnimationStrip` has them
     (start, part, scale, repeat or hold);
   - *transform:* a node and curves for its channels;
   - *visibility:* a node and cues (time, shown) (Q23);
-  - *animation:* an actor role, NLA strips on a top layer of its stack (clip, start, part, scale,
-    repeat, blend in and out, Replace or Combine), its mark node, parameter and trigger cues (Q16);
+  - *animation:* an actor role, its mark node, NLA strips on a top layer of its stack (clip, start,
+    part, scale, repeat, blend in and out, Replace or Combine), parameter and trigger cues (Q16);
   - *palette:* a model or actor and cues (time, palette) (Q24);
   - *camera:* cuts (time, camera node) and a field-of-view curve (Q11);
   - *light:* cues (time, light node as the view's sun) and strength and angle curves (Q12);
-  - *particles:* cues (time, effect, node to emit from, seed, burst, rate, duration) (Q25);
+  - *particles:* cues (time, effect by path, `models/effects/<name>` (Q25), node to emit from, seed,
+    burst, rate, duration);
   - *audio:* cues (time; an effect with volume, pan and pitch, a music theme, or the music's stop);
   - *ui:* cues (time, element, action: set text, add or remove a class, set or remove an attribute);
   - *event:* cues (time, name), delivered to game code.
+- **Times:** in seconds on the sequence's timeline; a cue may instead sit at a marker by name and
+  follow it when the stage is retimed and exported again (Q22).
+- **Names** (Q15): roles for what the game provides (actors such as `boss`, `imp.1`; UI hosts such as
+  `card`; nodes); the nodes of its own stages by their Blender names under the stage; UI elements by
+  id within a bound host element.
 - **State and moments:** every track gives a state at any timeline time τ (a curve's value, the last
   cue at or before τ, a clip's or strip's pose at τ), so the end state is the tracks evaluated at the
   duration and seeking is evaluation; cues that are moments (events, sounds, particle starts, clip
@@ -361,7 +384,8 @@ Proposed records, `scene.*` (in `world.pak` at `world/cutscenes/<name>`, M10-10)
 
 A `SequenceBuilder` as `StateMachineBuilder` is: fluent, everything by name, `Build()` validating
 (roles and nodes named exist in the stages or roles, keys in order, cue times within the duration,
-the variant within the timeline). For example (names to be settled in the step):
+markers named exist, the variant within the timeline). For example (names to be settled in the
+step):
 
 ```csharp
 var intro = new SequenceBuilder("jiruan", duration: 7.0)
@@ -377,27 +401,45 @@ var intro = new SequenceBuilder("jiruan", duration: 7.0)
 
 ### The player (steps 4–6)
 
-- **Playing:** the scene plays a sequence with its bindings and gives a player: a frame client of the
-  scene's document. `Rate` (1 by default; independent of the scene's battle pace, M10-7), `Pause()`
-  and `Resume()` (the game's), `Seek(time)` (a jump: no cue fires, as `Animator.Seek`), `Skip()` (to
-  the end state; refused when unskippable, Q20), `Time`, `Duration`, whether it plays the reduced
-  variant, `Finished` (a task completing at the end, saying whether it was skipped), cue events
-  delivered as game code and awaitable as clip events are (`Next(name)`).
+- **Playing:** the scene plays a sequence with its bindings and gives a player, a frame client of the
+  scene's document. Any number play at once, and playing one doesn't stop another (Q20). `Rate` (1
+  by default; independent of the scene's battle pace, M10-7), `Pause()` and `Resume()` (the game's),
+  `Seek(time)` (a jump: no cue fires, as `Animator.Seek`), `Skip()` (to the end state; on an
+  unskippable sequence it does nothing and returns false) and `Finish()` (ends any sequence, an
+  unskippable one too, to its end state, as a skip: for a battle that ends) (Q20); `Time`,
+  `Duration`, whether it plays the reduced variant, `Blocking` (for the game, which holds its AI while
+  a blocking one plays, as the old `bossIntroUntil`), `Finished` (a task completing at the end, saying
+  whether it was skipped), cue events delivered as game code and awaitable as clip events are
+  (`Next(name)`).
 - **Its clock:** advanced by the frame's time times the rate, not while paused, and not while the
-  document is hidden: the gap the first frame after showing would bring is dropped (What exists,
-  "Hidden documents"). The timeline time τ is the clock mapped through the reduced variant's cut list
-  when it plays it (Q19).
-- **The reduced variant** is chosen when it starts, from the document's media environment (what
-  `prefers-reduced-motion` sees, so the 3D and the stylesheet's reduced-motion rules agree).
-- **Each frame**, in the animation timing update: the clock moves; every state track is evaluated at
-  τ into its nodes, actors, camera, sun, palettes and UI elements (Q17 for the order); the actors it
+  document is hidden: the player drops the gap the first frame after showing would bring (the
+  hidden-time jump, What exists). The timeline time τ is the clock mapped through the reduced
+  variant's cut list when it plays it.
+- **The reduced variant** (Q19) is chosen when it starts, from the document's media environment (what
+  `prefers-reduced-motion` sees, so the 3D and the stylesheet's reduced-motion rules agree). It is a
+  cut list: spans of the timeline (from, to), each played at its own length; a span whose ends are
+  equal holds that moment for its length; moments in the parts cut out are treated as at a skip
+  (Q18). The UI follows the stylesheet's reduced-motion rules, as in the old game. Ji'ruan's: one span
+  holding the moment the card stands (about 6.5 s, set in step 7) for 2.4 s.
+- **Each frame** (Q17), in the animation timing update: the clock moves; the state tracks are applied
+  in track order at τ to their nodes, actors, camera, sun, palettes and UI elements; the actors it
   holds are advanced by the change in τ (so their clip events fire; their own clock otherwise waits);
-  the moments passed are queued and dispatched with the frame's animation events (Q17); particles are
-  evaluated at τ; audio cues are kept scheduled ahead on the audio clock (step 6).
-- **The end:** at τ = duration the end state is reached and stays (Q21), `Finished` completes, the
-  actors it held go back to the scene's clock.
-- **A skip:** τ jumps to the duration: state tracks evaluated there; event cues as Q18 says; pending
-  audio cues cancelled, music as Q28 says; particles as Q26 says.
+  the moments passed are queued in time order, those within 10⁻⁶ s of each other
+  (`AnimationStrip.Epsilon`) in record order (track, then cue), and delivered after the figures' clip
+  events, each as game code; particles are evaluated at τ; audio cues are kept scheduled ahead on the
+  audio clock (step 6).
+- **Figures** (Q16): a bound figure stands on its mark node (whole-figure motion comes from the
+  stage's clip: M7's no root motion); its own clips play as NLA strips on a top layer of its stack
+  over its state machine, blending in and out by Blender's rule; parameter and trigger cues hand it
+  back to its machine; while bound, its clock follows the sequence.
+- **The end** (Q21): at τ = duration the end state is reached and stays (camera, nodes, figures on
+  their marks, UI) until the game changes it; `Finished` completes; the figures it held go back to the
+  scene's clock.
+- **A skip:** τ jumps to the duration and the state tracks are evaluated there; event cues not yet
+  delivered are delivered at the skip, in order, each marked as skipped (Q18); pending audio cues are
+  cancelled, and a music cue not yet applied is applied at the skip with music.js's usual fades (Q28);
+  particles are evaluated at the end time like every track, and running emitters play on, on the
+  scene's clock, until their particles die (Q26).
 - **Each track kind's playback** is a class of its own behind one interface, so steps 5 and 6 add
   playback without editing the player.
 
@@ -408,45 +450,63 @@ var intro = new SequenceBuilder("jiruan", duration: 7.0)
   cancels it while it hasn't started (its sources stopped before their start, its timers dropped).
   The audio thread builds the voice as now but starts it at that sample (the graph's `start(when)` and
   automation already are sample-accurate).
-- A cue at timeline time τ_c is due at the anchor (Q27) plus (τ_c − τ at the anchor) / rate; a
-  pause, a seek, a rate change or a skip cancels the pending cues and schedules them again from the
-  new time (a pause on resuming). The sounds themselves aren't stretched or pitched by the rate.
+- The anchor (Q27): the sequence starts on the audio clock at the audio time of the quantum in which
+  its first call is applied (the audio thread's "now" for the frame that started it); every cue is
+  sent ahead with its time from there: due at the anchor plus (τ_c − τ at the anchor) / rate. A pause,
+  a seek, a rate change or a skip cancels the pending cues and sends them again from the new time (a
+  pause on resuming). The sounds themselves aren't stretched or pitched by the rate.
 - A minimized window pauses the audio system (M8) and so its clock, as the sequence pauses (M10-7).
 
 ### UI tracks (step 6)
 
-- Elements are found through the bindings (Q15); cues apply in the frame's animation timing update
-  with the other tracks (Q17), so their style changes show in that frame, and a class added there
-  starts its CSS animations at that frame's time (as the old game's `is-playing` did on the next
-  frame).
+- Elements are found through the bindings, by id within the bound host (Q15); cues apply in the
+  frame's animation timing update with the other state tracks (Q17), so their style changes show in
+  that frame, and a class added there starts its CSS animations at that frame's time (as the old
+  game's `is-playing` did on the next frame).
 - The state of each element is the last cue at or before τ: the end state of Ji'ruan's intro is the
   host hidden.
-- Pausing, a hidden document, a rate other than 1 and seeking reach CSS animations only as Q29 says.
+- CSS motion (Q29): the player pauses and resumes the CSS animations of the elements its UI tracks
+  name with it, also when the document is hidden (the engine applying the pause at that moment, where
+  Blink would at the next frame); a sequence with UI tracks plays at rate 1 only, and seeking doesn't
+  reach CSS animations.
 
 ### The Blender export of a cutscene stage (steps 3, 7)
 
 - **The source** is a Blender script per stage (as `make_models.py` is the test models' source; for
   the game's cutscenes at port time, where the sources live is the port's question): meshes in
   palette-slot materials with the `ink` and `hatch` custom properties (M6); empties as marks where
-  figures stand (`mark.boss`, `mark.imp.1` …), animated for whole-figure motion (M7: no root motion,
-  the game moves whole figures); cameras; a sun; all animated on the scene's timeline at 60 fps;
-  timeline markers naming moments (Q22).
-- **The export:** M7's `ANIMATED` settings plus cameras and lights, the animation mode (Q13), the
-  lighting units (Q12); the script copies the timeline markers into extras as `export_markers` does
-  for pose markers (Q22). Blender's cameras and glTF's both look down their local −Z, but the
+  figures stand (`mark.boss`, `mark.imp.1` …), animated for whole-figure motion; cameras with sensor
+  fit Vertical (Q10); a sun with its angle as a custom property (Q12); all animated on the scene's
+  timeline at 60 fps; timeline markers naming moments (Q22). A camera's motion is keyed in Blender;
+  a change of its field of view is a curve on the sequence's camera track, and cuts are camera-track
+  cues (Q11).
+- **The export:** M7's `ANIMATED` settings plus cameras and lights, in the scene mode: the stage's
+  whole timeline is one clip with every animated object and camera on it (Q13); the lighting units
+  raw, so the sun's strength is Blender's own (`export_import_convert_lighting_mode`, to check in the
+  step) (Q12); the script copies the timeline markers into the stage clip's extras as `export_markers`
+  copies pose markers (Q22). Blender's cameras and glTF's both look down their local −Z, but the
   exporter's axis conversion turns objects' axes, so it corrects cameras and lights (to check in its
   5.2 source, as M7 checked the item axes, C⁻¹).
-- **The import:** the `.glb` into `models.pak` as every model (M9 Q20), with its cameras and lights
-  (Q9). When a sequence plays, its stages are instanced under the scene's root, its clip track plays
-  the stage's clip on them, its camera and light tracks pick their nodes, and the bound actors stand
+- **The import** (Q9): the `.glb` into `models.pak` as every model (M9 Q20), its cameras and lights in
+  the model record: camera and light lists and a camera and a light index on nodes, as version 2 of
+  `model` and `model.node` (frozen version-1 copies, upgrades, fixtures). A camera's field of view is
+  the exporter's vertical one, the engine keeping the vertical extent as now (Q10). One sun per view:
+  its direction from its node, its angle from the extras; other light types are refused at import
+  (Q12). When a sequence plays, its stages are instanced under the scene's root, its clip track plays
+  the stage's clip on them, its camera and light tracks pick their nodes, and the bound figures stand
   on their marks.
 
 ### The proof: Ji'ruan's intro (step 7)
 
-- **3D** (the old SVG scene and sprites): a stage built in Blender (Q31): the trunks, the rift opening
-  and pulsing in its glow, the cracks, the eyes, the mist, the ground and near silhouettes, marks for
-  the boss and four imps (the test figure `figure.glb` on each, in palettes of their own), a camera
-  pushing in over the 7 s; the reveal (Q24) and fades (Q23).
+- **3D** (the old SVG scene and sprites; Q31): every element of the old scene remade simply in the art
+  style: far, mid and near trunks, the rift opening and pulsing with its glow, the cracks, eight eyes
+  blinking, mist as puff particles, the ground, marks for the boss and four imps (the test figure
+  `figure.glb` on each, in palettes of their own), the camera pushing in over the 7 s. Models stay
+  opaque (Q23): things appear by scale, by moving into view, by visibility cues and as particles and
+  glow; the old scene's fades (the halo, the overlay) are UI overlays (the halo a gradient over the
+  surface). The reveal (Q24): a palette cue swaps the boss's palette from an all-ink one to his own at
+  4.48 s, under the UI flash. **The stage is shown to the user as Blender renders for approval before
+  its tests are written** (Q31).
 - **UI** (as the old markup and stylesheet): the overlay with its letterbox, flash, vignette,
   location, skip button, caption and progress bar, from `old-game/index.html` 678–685 and the tests'
   copy of `styles.css` ("Boss intro cutscenes", without the SVG scene's and sprites' rules), with a
@@ -455,8 +515,15 @@ var intro = new SequenceBuilder("jiruan", duration: 7.0)
   UI cues (at 0: the texts, `data-boss`, the host shown and `is-playing`; at 7.0: hidden); the music
   cue (`great-imp-jiruan` at 0, as the old game starts the boss's theme with the battle); an event
   cue at the end for the game (the AI hold's end); the reduced variant (the old game's 2.4 s still
-  card, Q19).
-- Where its files live (Q30), how it's checked (Q32), and watching it (Q33).
+  card).
+- **Files** (Q30): test data only: the stage's Blender script in `Tools/BlenderReference/`, its export
+  in `Tests/Statventure.Tests/Data/Models/`, the sequence built in C# in the test (its JSON form a
+  committed fixture), the markup and stylesheet in the test; nothing in `world.pak` or `models.pak`.
+- **Checks** (Q32): the stage's frames at sampled times against Blender renders of the same moments;
+  the title card's frames against Chromium captures of the old game's intro at the same times (its CSS
+  animations seeked in the harness); skip and reduced motion by the sequencer's tests.
+- **Watching it** (Q33): a sandbox mode plays the proof in a window, with the skip button, Escape and
+  reduced motion.
 
 ## Steps
 
@@ -470,277 +537,243 @@ make Blender references, so they run on the user's PC; 4, 5 and 6 can run anywhe
 Chromium: its references are engine renders of hand-scheduled graphs).
 
 1. **The node tree and the scene.** Independent of every other step.
-   - Creates `Engine/Statventure/Scene/` (nodes with local transforms, world matrices, paths and
-     attachments; the scene: root, instancing a model's hierarchy, the frame client that fills its
-     `View3D`; clips of a model bound to scene nodes), `Tests/Statventure.Tests/Scene/` (world matrices
-     against Blender, lazy updates, instancing, the view redrawn only on change as `AnimatedViewTests`
-     checks today).
-   - Changes `Engine/Statventure/Animation/AnimatedView.cs` (the actors on nodes; Q1),
-     `Tests/Statventure.Tests/Animation/AnimatedViewTests.cs` and `Audio/EffectTests.cs` (they build
-     actors), `Tools/BlenderReference/make_models.py` (a hierarchy test model: parent inverses, a bone
+   - Creates `Engine/Statventure/Scene/` (nodes with local transforms, world matrices, paths, hiding
+     and attachments, terrain among them; the scene: root, instancing a model's hierarchy with each
+     top-level object its own model, the frame client that fills its `View3D`; clips of a model bound
+     to scene nodes), `Tests/Statventure.Tests/Scene/` (world matrices against Blender, lazy updates,
+     instancing, the view redrawn only on change as `AnimatedViewTests` checked).
+   - Removes `Engine/Statventure/Animation/AnimatedView.cs`'s `AnimatedView` and `Actor.Transform`
+     (`Actor` stays, placed by its node; Q1); moves `Tests/Statventure.Tests/Animation/AnimatedViewTests.cs`
+     onto the scene and changes `Audio/EffectTests.cs` (they build actors).
+   - Changes `Tools/BlenderReference/make_models.py` (a hierarchy test model: parent inverses, a bone
      parent, non-uniform scale above a turned child, a mirrored branch, an animated parent),
      `Tools/BlenderReference/evaluate_animations.py` (node scenes: each object's world matrix at the
      times), `Tests/Statventure.Tests/Data/Models/` and `Golden/` (the export and Blender's values),
-     `Docs/Animation.md` ("Animated views").
-   - Questions: Q1–Q3.
+     `Docs/Animation.md` ("Animated views") and `Docs/Engine-Plan.md`'s "What M7 leaves for the port".
+   - Details: Q1–Q3.
 2. **F-curves and easing.** Independent (of 1 too).
    - Creates `Engine/Statventure/Scene/FCurve.cs` (keys, handles and their types, interpolation and
-     easing, extrapolation, auto handles; the curve records `scene.curve`, `scene.key` with their
-     layouts and fixtures in `Tests/Statventure.Tests/Data/Records/`), `Tools/BlenderReference/evaluate_curves.py`
-     (the test's curves made as Blender keyframes, `FCurve.evaluate` at the times, Blender's handle
-     positions after its recalculation), `Tests/Statventure.Tests/Scene/FCurve*Tests.cs`,
-     `Reference/curve-scenes.json`, `Golden/curve-*.json`.
+     easing, extrapolation, auto handles computed at load; the curve records `scene.curve`,
+     `scene.key` with their layouts and fixtures in `Tests/Statventure.Tests/Data/Records/`),
+     `Tools/BlenderReference/evaluate_curves.py` (the test's curves made as Blender keyframes,
+     `FCurve.evaluate` at the times, Blender's handle positions after its recalculation),
+     `Tests/Statventure.Tests/Scene/FCurve*Tests.cs`, `Reference/curve-scenes.json`,
+     `Golden/curve-*.json`.
    - Changes `Tools/Scripts/make-blender-references.sh` (one line).
    - Fetches into `reference-src/blender-anim/`: `blenkernel/intern/curve.cc`, `blenlib/intern/easing.cc`
      and `BLI_easing.h` (5.2.0).
    - Tests: every interpolation and easing mode both ways with their parameters, every handle type
      and smoothing mode, extrapolation both ways, keys at the ends, against Blender at many times
-     (on keys, between, beyond the ends) and Blender's handle positions.
-   - Questions: Q4–Q8.
+     (on keys, between, beyond the ends) within float32 rounding, and Blender's handle positions.
+   - Details: Q4–Q8.
 3. **Cameras and lights from glTF.** After 1; beside 2 and 4.
    - Changes `Engine/Statventure/Render3D/GltfImport.cs` (perspective and orthographic cameras,
-     `KHR_lights_punctual` suns, the nodes that carry them), `Render3D/ModelData.cs` (Q9: new versions
-     of `model` and `model.node` with frozen version-1 copies and upgrades),
-     `Tests/Statventure.Tests/Data/Records/` (their layouts and fixtures), `Engine/Statventure/Scene/`
-     (camera and sun attachments: a camera node's world matrix as the view's position, target and up
-     with its field of view; a light node's −Z as the sun's direction), `make_models.py` (a stage test
-     model: an animated perspective camera, an orthographic one, a sun, exported with cameras and
-     lights in Q13's mode), `evaluate_animations.py` (each camera's world matrix and field of view and
-     the sun's direction at the times), `Tests/Statventure.Tests/Render3D/GltfImportTests.cs`,
+     `KHR_lights_punctual` suns, other light types refused, the nodes that carry them),
+     `Render3D/ModelData.cs` (version 2 of `model` and `model.node` with frozen version-1 copies and
+     upgrades), `Tests/Statventure.Tests/Data/Records/` (their layouts and fixtures),
+     `Engine/Statventure/Scene/` (camera and sun attachments: a camera node's world matrix as the
+     view's position, target and up with its field of view; a light node's −Z as the sun's direction,
+     its angle from the extras), `make_models.py` (a stage test model: an animated perspective camera
+     with sensor fit Vertical, an orthographic one, a sun, exported with cameras and lights in the
+     scene mode, raw lighting units), `evaluate_animations.py` (each camera's world matrix and field of
+     view and the sun's direction at the times), `Tests/Statventure.Tests/Render3D/GltfImportTests.cs`,
      `Tests/Statventure.Tests/Scene/`, `Docs/Renderer-3D.md` and `Docs/Assets.md` (their sections).
    - Checks: the cameras and sun against Blender's (on frames exactly, between frames within M7's
-     allowance); a Blender render through the imported camera against the engine's
-     (`render_scenes.py` takes the camera from the scene file as now).
-   - Questions: Q9–Q13.
+     allowance), at the render's aspect and another; a Blender render through the imported camera
+     against the engine's (`render_scenes.py` takes the camera from the scene file as now).
+   - Details: Q9–Q13.
 4. **The sequence record, builder and player core.** After 1 and 2; beside 3.
-   - Creates `Engine/Statventure/Scene/Sequence.cs` (the records: the sequence, roles, every track
-     kind's record, so steps 5 and 6 change no layout; cues, the reduced variant, the flags;
-     `Load(files, path)` checking it as S5-1 checks models), `SequenceBuilder.cs`, `SequencePlayer.cs`
-     (the clock, rate, pause, the hidden gap, seek, skip, end, the cut list, bindings; playback of
-     the clip, transform, visibility, animation, palette and event tracks), the test sequence's first
-     part (`Tests/Statventure.Tests/Scene/TestSequence.Core.cs`; the test sequence is a partial class,
-     one file per step), `Tests/Statventure.Tests/Scene/Sequence*Tests.cs`, the `scene.*` layouts and
+   - Creates `Engine/Statventure/Scene/Sequence.cs` (the records: the sequence, roles, markers, every
+     track kind's record, cues, the cut list, the flags; `Load(files, path)` checking it as S5-1 checks
+     models), `SequenceBuilder.cs`, `SequencePlayer.cs` (the clock, rate, pause, the hidden gap, seek,
+     skip, finish, end, the cut list, bindings; playback of the clip, transform, visibility,
+     animation, palette and event tracks), the test sequence's first part
+     (`Tests/Statventure.Tests/Scene/TestSequence.Core.cs`; the test sequence is a partial class, one
+     file per step), `Tests/Statventure.Tests/Scene/Sequence*Tests.cs`, the `scene.*` layouts and
      fixtures.
-   - Changes `Docs/Assets.md` (`world/cutscenes/` and the `scene.*` types).
-   - Questions: Q14–Q24, and Q25 and Q28 (their answers are fields of the record).
+   - Changes `Docs/Assets.md` (`world/cutscenes/`, `models/stages/` and the `scene.*` types).
+   - Details: Q14–Q24, and Q25 and Q28 (the particle track names its effect; music cues need no field
+     of their own).
 5. **Camera, light and particle tracks.** After 3 and 4; beside 6.
    - Creates their playback in `Engine/Statventure/Scene/` (cuts and the field of view; the view's sun
      from a light node with its strength and angle; emitters started at cues on nodes, following
-     them) and `TestSequence.Camera.cs`.
+     them; particles at a skip) and `TestSequence.Camera.cs`.
    - Changes `Engine/Statventure/Render3D/Particles.cs` (the effect, its shapes, spawns and ranges as
-     records; an emitter's path from a node), `Tests/Statventure.Tests/Render3D/ParticleTests.cs`,
-     `Tests/Statventure.Tests/Data/Records/` (their layouts and fixtures), `Docs/Renderer-3D.md`
-     ("Particles").
-   - Questions: Q25, Q26.
+     records, loaded from `models/effects/<name>`; an emitter's path from a node),
+     `Tests/Statventure.Tests/Render3D/ParticleTests.cs`, `Tests/Statventure.Tests/Data/Records/`
+     (their layouts and fixtures), `Docs/Renderer-3D.md` ("Particles") and `Docs/Assets.md`
+     (`models/effects/`).
+   - Details: Q25, Q26.
 6. **Audio and UI tracks.** After 4; beside 3 and 5.
    - Changes `Engine/Statventure/Audio/AudioSystem.cs` (the clock, scheduled calls),
      `Audio/Effects/SoundEffects.cs` (a play at a time, cancelling), `Audio/Music/Soundtrack.cs` (a
      switch or stop at a time, cancelling), `Tests/Statventure.Tests/Audio/` (offline renders of
-     scheduled plays against hand-scheduled graphs, cancelling, rates), `Docs/Audio.md`; if Q29 asks
-     for it, `Engine/Statventure/UI/Style/AnimationEngine.cs` and `Docs/Scripting.md`.
-   - Creates their playback in `Engine/Statventure/Scene/`, `TestSequence.Sound.cs`, and UI track
-     tests through a `UiDocument` (the frames cues land on, the end state on a skip, pausing and
-     hiding).
-   - Questions: Q27–Q29.
+     scheduled plays against hand-scheduled graphs, cancelling, rates), `Docs/Audio.md`;
+     `Engine/Statventure/UI/Style/AnimationEngine.cs` and `UI/Dom/UiDocument.Visibility.cs` (the
+     player's pause of CSS animations, applied at the moment the document is hidden) and
+     `Docs/Scripting.md`.
+   - Creates their playback in `Engine/Statventure/Scene/` (rate 1 only for sequences with UI tracks),
+     `TestSequence.Sound.cs`, and UI track tests through a `UiDocument` (the frames cues land on, the
+     end state on a skip, pausing and hiding with the CSS animations held).
+   - Details: Q27–Q29.
 7. **Ji'ruan's intro, the proof.** Last: after 3–6.
-   - Creates the stage's Blender script (in `Tools/BlenderReference/`), its export, the sequence, the
-     title card's markup and stylesheet in a test, the tests that play it (Q32), and, if Q33 says so,
-     a sandbox mode to watch it (`Samples/Statventure.Sandbox`).
-   - Changes `render_scenes.py` (the stage at chosen times) and, for Chromium captures (Q32),
-     `Tools/GameReference` or a harness of its own.
-   - Questions: Q30–Q33.
+   - First the stage: its Blender script (in `Tools/BlenderReference/`) and export, and Blender renders
+     at a few moments **shown to the user for approval; the tests come after the approval** (Q31).
+   - Then the sequence, the title card's markup and stylesheet in a test, the tests that play it
+     (frames at sampled times against Blender renders; the title card against Chromium captures of
+     the old game's intro, its CSS animations seeked; skip and reduced motion), and a sandbox mode
+     that plays it (`Samples/Statventure.Sandbox`).
+   - Changes `render_scenes.py` (the stage at chosen times) and `Tools/GameReference` or a harness
+     of its own (the old intro captured at chosen times).
+   - Details: Q30–Q33.
 
-## Open questions
+## Step details (user, 2026-11-04, asked after the design doc)
 
-Details, layout and scope the decisions leave open, each with options (the recommended one first,
-with its reason). Ask each before the step named (the record's questions before step 4, since the
-record holds every track kind); the answers go into `Docs/Engine-Plan.md` ("Decisions for M10") and
-here.
+Every answer was the recommended option except Q31. Also in `Docs/Engine-Plan.md`, "Decisions for
+M10", "Step details".
 
-**Before step 1:**
-- **Q1. `AnimatedView` and `Actor.Transform`.** M10-5 makes the animated view a scene. (a) The scene
-  replaces `AnimatedView` (the class goes, its rate becomes the scene's for figures no sequence holds)
-  and an actor is placed only by its node (`Actor.Transform` goes). Recommended: one way to place
-  a figure, so a sequence and the battle can't place it two ways. (b) `AnimatedView` stays as a thin
-  wrapper over a scene for the port's battle code (`Actors`, `Rate`), `Actor.Transform` an alias for
-  its node's local matrix. (c) Both kept side by side, the scene for cutscenes only.
-- **Q2. What a model becomes in the scene, and its ink.** (a) Instancing makes a scene node per glTF
-  node; each top-level object (with its children) is a model of its own for the outline, the glow
-  mask and picking, as Blender's own render of the stage draws a Freestyle contour per object.
-  Recommended: the stage then looks as it does in Blender, which is the reference. (b) The whole
-  `.glb` is one model (one outline, as M6's placed test models), its nodes scene nodes only to be
-  moved. (c) A custom property on Blender objects (`group`) says which objects are drawn as one
-  model.
-- **Q3. Terrain in the scene.** (a) Terrain attaches to a node too (by its translation, as
-  `Terrain.Draw` takes it), so the map is a scene like the battle and a cutscene can fly over a
-  region. Recommended: one path for every 3D view (M6's rule for views). (b) Not an attachment: the
-  map keeps its own view code.
+**Step 1 (the node tree and the scene):**
+- **Q1. `AnimatedView` and `Actor.Transform`:** the scene replaces `AnimatedView` (the class goes; its
+  rate becomes the scene's for the figures no sequence holds) and an actor is placed only by its node
+  (`Actor.Transform` goes). Why: one way to place a figure, so a sequence and the battle can't place
+  it two ways. (Not `AnimatedView` kept as a thin wrapper with `Transform` an alias for the node's
+  local matrix; not both kept side by side, the scene for cutscenes only.)
+- **Q2. Models in the scene and their ink:** instancing makes a scene node per glTF node; each
+  top-level object with its children is a model of its own for the outline, the glow mask and
+  picking. Why: Blender's own render of the stage, the reference, draws a Freestyle contour per
+  object. (Not the whole `.glb` as one model; not a `group` custom property choosing.)
+- **Q3. Terrain:** terrain attaches to a node too (by its translation), so the map is a scene like the
+  battle and a cutscene can fly over a region. Why: one path for every 3D view. (Not left out, the map
+  keeping its own view code.)
 
-**Before step 2:**
-- **Q4. The curves' time unit.** (a) Seconds, as clips, animators and the sequence's clock; the
-  harness converts Blender's frames at 60 fps. Recommended: one unit in the engine and the editor.
-  (b) Frames at 60 fps, as Blender keys them.
-- **Q5. Precision.** (a) Double precision, checked against Blender within float32 rounding (Blender
-  evaluates in float), as M7 samples clips in double. Recommended: the values feed transforms, where
-  float rounding isn't visible, and the bound is stated, not fitted. (b) Blender's float32 arithmetic
-  ported operation for operation, equal to the last bit (as M8 matched Chromium's audio).
-- **Q6. What a key stores of its handles.** (a) Their types always, their positions only for free
-  and aligned handles; auto, auto-clamped and vector handles are computed at load by Blender's rule,
-  so a key moved in the editor re-smooths its neighbours as in Blender. Recommended: the curve then
-  can't hold handles that contradict their types. (b) Every handle's position as computed, the
-  engine only evaluating (the editor recomputes them).
-- **Q7. F-curve modifiers.** (a) None: interpolation, easing, handles, extrapolation and auto
-  smoothing only (the decision's set); a looping motion is a clip or strip that repeats.
-  Recommended: the decision's scope, and the old intros' loops (the rift's pulse) are Blender clips.
-  (b) Also Blender's Cycles modifier (curves that repeat, with or without offset). (c) Cycles and
-  Noise.
-- **Q8. Rotations in a sequence's curves.** (a) Euler angles in XYZ order, Blender's default rotation
-  mode for objects, turned into a quaternion when the node is set. Recommended: what an animator keys
-  on an object in Blender. (b) Quaternion components (Blender's quaternion mode), normalised when
-  used. (c) Either, by a mode on the track.
+**Step 2 (F-curves and easing):**
+- **Q4. Time unit:** seconds, as clips, animators and the sequence's clock; the harness converts
+  Blender's frames at 60 fps. Why: one unit in the engine and the editor. (Not frames at 60 fps.)
+- **Q5. Precision:** double precision, checked against Blender within float32 rounding (Blender
+  evaluates in float), as M7 samples clips in double. Why: the values feed transforms, where float
+  rounding isn't visible, and the bound is stated, not fitted. (Not Blender's float32 arithmetic
+  ported to the last bit.)
+- **Q6. Handles:** a key stores its handle types always and the positions only of free and aligned
+  handles; auto, auto-clamped and vector handles are computed at load by Blender's rule, so a key
+  moved in the editor re-smooths its neighbours as in Blender. Why: a curve can't hold handles that
+  contradict their types. (Not every handle's position stored, the engine only evaluating.)
+- **Q7. Modifiers:** none: interpolation, easing, handles, extrapolation and auto smoothing only; a
+  looping motion is a clip or strip that repeats. Why: the decision's set, and the old intros' loops
+  (the rift's pulse) become Blender clips. (Not Blender's Cycles modifier; not Cycles and Noise.)
+- **Q8. Rotations:** Euler angles in XYZ order, Blender's default mode for objects, turned into a
+  quaternion when the node is set. Why: what an animator keys on an object in Blender. (Not
+  quaternion components; not either by a mode on the track.)
 
-**Before step 3:**
-- **Q9. Where cameras and lights go in the data.** (a) In the model record: camera and light lists
-  and a camera and a light index on nodes, so `model` and `model.node` get version 2 (frozen
-  version-1 copies, upgrades, fixtures). Recommended: one `.glb`, one importer, one record (Q20 of M9).
-  (b) A separate stage record for cutscene `.glb`s (nodes, cameras, lights, clips) beside `model`, the
-  model record unchanged.
-- **Q10. The field of view and Blender's sensor fit.** (a) The exporter's `yfov` as it is (Blender
-  computes it from the lens, the sensor and its fit for the render's aspect at export), the engine
-  keeping the vertical extent as now; cutscene cameras use sensor fit vertical; checked at another
-  aspect against Blender. Recommended: the engine's cameras already behave as sensor fit vertical. (b)
-  The lens, sensor and fit exported as extras and the field of view computed per view as Blender's
-  fit "auto" would (a wider window shows more at the sides, a taller one less above and below).
-- **Q11. A changing field of view and camera cuts.** (a) Blender animates the cameras' motion; a
-  change of the field of view is a curve on the sequence's camera track, and cuts are camera-track
-  cues naming camera nodes. Recommended: glTF's core can't animate a camera's field of view. (b) The
-  lens keyed in Blender and exported through the exporter's `KHR_animation_pointer` support (to check
-  in its 5.2 source), read by the importer; cuts by Blender's camera-bound timeline markers exported
-  as extras. (c) One camera per shot with a fixed lens, cuts in the sequence.
-- **Q12. Lights.** (a) One sun per view, as the renderer draws: its direction from its node, its
-  strength Blender's own (the exporter's lighting units set to raw, `export_import_convert_lighting_mode`,
-  to check), its angle a custom property in extras (glTF has no sun size); other light types refused
-  at import. Recommended: no renderer change. (b) Also point and spot lights (a renderer change: how
-  cel shading takes several lights, a new look question). (c) No lights from glTF: the sun stays the
-  scene's setting, changed by sequence curves.
-- **Q13. The stage's animation export mode.** (a) The scene mode: the stage's whole timeline is one
-  clip with every animated object and camera on it, as the artist sees it on Blender's timeline.
-  Recommended: one shot, one clip, no bookkeeping of which action goes where. (b) The actions mode
-  (M7's): one clip per action, each placed by its own clip track. (c) NLA tracks as clips.
+**Step 3 (cameras and lights from glTF):**
+- **Q9. Where cameras and lights go:** in the model record: camera and light lists and a camera and a
+  light index on nodes, as version 2 of `model` and `model.node` (frozen version-1 copies, upgrades,
+  fixtures). Why: one `.glb`, one importer, one record (M9 Q20). (Not a separate stage record beside
+  `model`.)
+- **Q10. Field of view and sensor fit:** the exporter's vertical field of view (`yfov`) as it is, the
+  engine keeping the vertical extent as now; cutscene cameras are made with sensor fit Vertical;
+  checked at another aspect against Blender. Why: the engine's cameras already behave as sensor fit
+  vertical. (Not the lens, sensor and fit exported as extras with the field of view computed per view
+  as Blender's "auto" fit.)
+- **Q11. A changing field of view and cuts:** Blender animates the cameras' motion; a change of the
+  field of view is a curve on the sequence's camera track, and cuts are camera-track cues naming
+  camera nodes. Why: glTF's core can't animate a camera's field of view. (Not the lens exported through
+  `KHR_animation_pointer` with cuts from Blender's camera-bound markers; not one fixed-lens camera per
+  shot.)
+- **Q12. Lights:** one sun per view, as the renderer draws: its direction from its node, its strength
+  Blender's own (the exporter's lighting units raw), its angle a custom property in extras (glTF has
+  no sun size); other light types are refused at import. Why: no renderer change. (Not point and spot
+  lights too; not no lights from glTF.)
+- **Q13. Export mode:** the scene mode: the stage's whole timeline is one clip with every animated
+  object and camera on it. Why: one shot, one clip, no bookkeeping of which action goes where. (Not
+  the actions mode with a clip track per action; not NLA tracks as clips.)
 
-**Before step 4 (the record holds every track kind, so Q25 and Q28, whose answers are fields of it,
-are asked before it too):**
-- **Q14. The record's layout.** (a) As proposed (Design, "The sequence record"): the `scene.*` types,
-  every track kind declared in step 4 (so steps 5 and 6 change no layout), cue times in seconds, stage
-  models referred to by path in `models.pak` (`models/stages/<name>`). Recommended. (b) With the
-  user's changes.
-- **Q15. How a sequence names what it moves.** (a) Roles: the sequence lists the roles it needs
-  (actors such as `boss`, `imp.1`; UI hosts such as `card`; nodes the game provides) and the game
-  binds them when it plays it; nodes of its own stages by their Blender names under the stage; UI
-  elements by id within a bound host element. Recommended: one sequence can serve any boss of a kind,
-  and the old game's intros share one overlay. (b) Global names only: node paths from the scene's
-  root and element ids in the document. (c) Roles for actors only, everything else global.
-- **Q16. How figures take part.** (a) A bound figure stands on a mark node of the stage (whole-figure
-  motion from the stage's clip), its own clips play as NLA strips on a top layer of its stack over its
-  state machine (blending in and out by Blender's rule), parameter and trigger cues hand it back to
-  its machine; its clock follows the sequence while it is bound. Recommended: M7's no-root-motion rule
-  and its machines both keep working. (b) Strips only. (c) Parameter and trigger cues only (the
-  machine picks every clip).
-- **Q17. Cue order and when cues act.** (a) State tracks are applied in the frame's animation timing
-  update, in track order; moments are queued in time order, those within 10⁻⁶ s of each other
-  (`AnimationStrip.Epsilon`) in record order (track, then cue), and delivered after the figures' clip
-  events, each as game code. Recommended: M7's order for events, and a UI change shows in the same
-  frame. (b) Sequence cues before the figures' clip events. (c) UI cues as a task before the frame.
-- **Q18. Event cues at a skip.** (a) Delivered at the skip, in order, each marked as skipped, so state
-  the game sets on cues ends the same whether a cutscene was watched or skipped. Recommended. (b) Not
-  delivered (as seeking fires no clip event, M7). (c) Each cue says whether it fires on a skip.
-- **Q19. The reduced variant's form.** (a) A cut list: spans of the timeline (from, to), each played at
-  its own length, a span whose ends are equal holding that moment for its length; moments in cut
-  parts treated as at a skip (Q18); the UI follows the stylesheet's reduced-motion rules, as in the old
-  game. Ji'ruan's: one span holding the moment the card stands (about 6.5 s) for 2.4 s. Recommended:
-  covers both a shorter and a still variant with one set of tracks. (b) A second set of tracks (a
-  whole other timeline). (c) A duration only, the timeline played faster to fit it.
-- **Q20. Blocking, unskippable, ending.** (a) The engine plays any number of sequences at once and
-  doesn't stop one for another; `blocking` is for the game (it holds its AI while a blocking one plays,
-  as `bossIntroUntil` did); unskippable means `Skip()` does nothing and returns false, while the game
-  can still end it to its end state (`Finish()`, for a battle that ends). Recommended: the old game's
-  rules are the game's (M10-3: the game binds the skip). (b) One blocking sequence at a time: playing
-  one ends the one playing (to its end state, as `stopBossIntro(false)`). (c) As (a), and a blocking
-  sequence also makes the document under it inert.
-- **Q21. After the end.** (a) The end state stays (camera, nodes, figures on their marks, UI) until the
-  game changes it; the figures' clocks go back to the scene's. Recommended: one rule with the skip's
-  end state, and the game decides what comes next (the old game hid its overlay). (b) Everything a
-  sequence moved goes back to how it was before it played.
-- **Q22. Timeline markers from Blender.** (a) The stage's script copies its timeline markers into the
-  stage clip's extras (as `export_markers` copies pose markers), and a cue may sit at a marker by name
-  instead of a time, following it when the stage is retimed and exported again. Recommended: the
-  artist's timing stays the source. (b) Cue times only; markers stay in Blender.
-- **Q23. Fades and visibility of 3D objects** (the old scene fades the rift, halo, eyes and imps). (a)
-  Models stay opaque: things appear by scale, by moving into view, by visibility cues (a node shown or
-  hidden with its subtree) and as particles and glow; fades stay UI overlays (the halo as a gradient
-  over the surface). Recommended: no renderer change, and ink-drawn art cuts rather than fades. (b)
-  Per-model opacity in the renderer (a new look question: how ink, glow and hatching fade).
-- **Q24. Ji'ruan's reveal** (a black silhouette with a violet glow, then lit; also other bosses' at
-  port time). (a) A palette cue: the figure's palette swapped from an all-ink one to its own at 4.48 s,
-  under the UI flash. Recommended: no renderer change. (b) A per-model tint the renderer blends (a new
-  track kind and shader input; a look question). (c) Left out of the proof.
+**Step 4 (the sequence record, builder and player core):**
+- **Q14. The record's layout:** as proposed (Design, "The sequence record"): the `scene.*` types,
+  every track kind declared in step 4, cue times in seconds, stage models by path in `models.pak`
+  (`models/stages/<name>`). (Not changed.)
+- **Q15. Naming:** roles the game binds when it plays a sequence (actors, UI hosts, nodes it
+  provides); the nodes of the sequence's own stages by their Blender names under the stage; UI
+  elements by id within a bound host element. Why: one sequence can serve any boss of a kind, and the
+  old game's intros share one overlay. (Not global names only; not roles for actors only.)
+- **Q16. Figures:** a bound figure stands on a mark node of the stage (whole-figure motion from the
+  stage's clip); its own clips play as NLA strips on a top layer of its stack over its state machine
+  (blending in and out by Blender's rule); parameter and trigger cues hand it back to its machine; its
+  clock follows the sequence while it is bound. Why: M7's no-root-motion rule and its machines both
+  keep working. (Not strips only; not parameter and trigger cues only.)
+- **Q17. Cue order:** state tracks are applied in the frame's animation timing update, in track
+  order; moments are queued in time order, those within 10⁻⁶ s of each other in record order (track,
+  then cue), and delivered after the figures' clip events, each as game code. Why: M7's order for
+  events, and a UI change shows in the same frame. (Not sequence cues before the clip events; not UI
+  cues as a task before the frame.)
+- **Q18. Event cues at a skip:** delivered at the skip, in order, each marked as skipped. Why: state
+  the game sets on cues ends the same whether a cutscene was watched or skipped. (Not left
+  undelivered, as seeking fires no clip event; not a flag per cue.)
+- **Q19. The reduced variant:** a cut list: spans of the timeline (from, to), each played at its own
+  length; a span whose ends are equal holds that moment; moments in cut parts are treated as at a
+  skip; the UI follows the stylesheet's reduced-motion rules. Why: one set of tracks covers both a
+  shorter and a still variant. (Not a second set of tracks; not a duration only, the timeline played
+  faster.)
+- **Q20. Blocking, unskippable, ending:** any number of sequences play at once and none stops
+  another; `blocking` is a flag for the game (which holds its AI while a blocking one plays);
+  unskippable means `Skip()` does nothing and returns false, while `Finish()` still ends it to its end
+  state. Why: the old game's rules are the game's (M10-3). (Not one blocking sequence at a time; not a
+  blocking sequence making the document under it inert.)
+- **Q21. After the end:** the end state stays (camera, nodes, figures on their marks, UI) until the
+  game changes it; the figures' clocks go back to the scene's. Why: one rule with the skip's end state,
+  and the game decides what comes next. (Not everything restored to how it was before.)
+- **Q22. Timeline markers:** the stage's script copies its timeline markers into the stage clip's
+  extras, and a cue may sit at a marker by name, following it when the stage is retimed. Why: the
+  artist's timing stays the source. (Not cue times only.)
+- **Q23. Fades of 3D objects:** models stay opaque; things appear by scale, by moving into view, by
+  visibility cues (a node hidden with its subtree) and as particles and glow; fades are UI overlays.
+  Why: no renderer change, and ink-drawn art cuts rather than fades. (Not per-model opacity in the
+  renderer.)
+- **Q24. Ji'ruan's reveal:** a palette cue swaps the figure's palette from an all-ink one to its own
+  (at 4.48 s, under the UI flash). Why: no renderer change. (Not a per-model tint in the renderer; not
+  left out of the proof.)
 
-**Before step 5 (Q25 before step 4: the track names its effect):**
-- **Q25. Particle effects' data.** (a) Records of their own, named by path from the track, in
-  `models.pak` (`models/effects/<name>`), shared by battles and cutscenes. Recommended: one effect,
-  one place to edit it (M11). (b) The same in `world.pak` (`world/effects/<name>`). (c) Inline in the
-  track.
-- **Q26. Particles at a skip and after the end.** (a) Evaluated at the end time like every track
-  (particles are computed from their age, so those alive then show and a burst that died shows
-  nothing); after the end the sequence's emitters play on, on the scene's clock, until their particles
-  die. Recommended: particles were made rewindable for this. (b) A skip removes all of the sequence's
-  particles. (c) A skip leaves running bursts to play out from where they were.
+**Step 5 (camera, light and particle tracks):**
+- **Q25. Particle effects' data:** records of their own, named by path from the track, in
+  `models.pak` at `models/effects/<name>`, shared by battles and cutscenes. Why: one effect, one place
+  to edit it (M11). (Not in `world.pak`; not inline in the track.)
+- **Q26. Particles at a skip and after the end:** evaluated at the end time like every track (those
+  alive then show, a burst that died shows nothing); after the end the sequence's running emitters
+  play on, on the scene's clock, until their particles die. Why: particles were made rewindable for
+  this. (Not all removed at a skip; not running bursts left to play out from where they were.)
 
-**Before step 6 (Q28 before step 4: its option (c) is a field of the cue):**
-- **Q27. Where the sequence starts on the audio clock.** (a) At the audio time of the quantum in which
-  its first call is applied (the audio thread's "now" for the frame that started it); every cue is
-  sent ahead with its time from there. Recommended: sample-accurate between cues, within a quantum
-  plus the output's ~20 ms of the picture, and cutscenes of seconds need no drift correction. (b) The
-  same, corrected for the output's latency so the sound lines up with the frame on screen. (c)
-  Re-anchored each frame from the frame clock (follows the picture over long sequences, but cues land
-  a quantum early or late as frames jitter).
-- **Q28. A music cue at a skip** (before its time, or cut by the reduced variant). (a) Applied at the
-  skip with music.js's usual fades (the old theme out over 0.55 s, the new in over 0.8 s).
-  Recommended: the game's only way to change themes, and a hard start would click. (b) The new theme
-  at full level at once. (c) Dropped by a skip unless the cue says to keep it.
-- **Q29. The UI's CSS motion when the sequence pauses, is hidden, runs at another rate or seeks.** (a)
-  The player pauses and resumes the CSS animations of the elements its UI tracks name with it, also
-  when the document is hidden (the engine applying the pause at that moment, where Blink would at the
-  next frame); a rate other than 1 and seeking don't reach CSS (a sequence with UI motion plays at rate
-  1). Recommended: M10-9 keeps the motion in CSS and M10-7 pauses while hidden; this keeps the title
-  card with the picture at the least engine change. (b) The engine gives CSS animations a playback
-  rate and seeking (Web Animations' `playbackRate` and `currentTime` on CSS animations, left out in
-  M5), so the UI follows the sequence in everything. (c) The UI runs on the document's clock as in the
-  old game: a paused or hidden sequence's title card runs on (and jumps forward after a minimize).
+**Step 6 (audio and UI tracks):**
+- **Q27. The audio anchor:** the audio time of the quantum in which the sequence's first call is
+  applied; every cue is sent ahead with its time from there. Why: sample-accurate between cues,
+  within a quantum plus the output's ~20 ms of the picture, and cutscenes of seconds need no drift
+  correction. (Not also corrected for the output's latency; not re-anchored each frame.)
+- **Q28. A music cue at a skip:** applied at the skip with music.js's usual fades (the old theme out
+  over 0.55 s, the new in over 0.8 s). Why: the game's only way to change themes, and a hard start
+  would click. (Not the new theme at full level at once; not dropped unless the cue says to keep it.)
+- **Q29. CSS motion:** the player pauses and resumes the CSS animations of the elements its UI tracks
+  name with it, also when the document is hidden (applied at that moment, where Blink would at the
+  next frame); a sequence with UI tracks plays at rate 1 only; seeking doesn't reach CSS. Why: M10-9
+  keeps the motion in CSS and M10-7 pauses while hidden; this keeps the title card with the picture at
+  the least engine change. (Not a playback rate and seeking for CSS animations; not the UI left on the
+  document's clock.)
 
-**Before step 7:**
-- **Q30. Where the proof's files live.** (a) As test data: the stage's Blender script in
-  `Tools/BlenderReference/`, its export in `Tests/Statventure.Tests/Data/Models/`, the sequence built
-  in C# in the test (its JSON form a committed fixture), the markup and stylesheet in the test; nothing
-  in `world.pak` or `models.pak`. Recommended: its figure is a placeholder, and test data never ships
-  (M9 Q1). (b) As the first game content: the sequence in `engine/Assets/Packs/world.pak` as
-  `world/cutscenes/jiruan` and the stage in `models.pak`, replaced when the real models come. (c) As
-  (a), plus the `.blend` file saved under `engine/Assets/`.
-- **Q31. What the stand-in stage holds.** (a) Every element of the old scene remade simply in the art
-  style: far, mid and near trunks, the rift opening and pulsing with its glow, the cracks, eight eyes
-  blinking, mist as puff particles, the ground, marks for the boss and four imps, the camera pushing
-  in; the UI parts as the old markup. Recommended: the proof then shows every track kind on a real
-  scene. (b) A minimal stage (ground, rift, marks, camera), since the real art comes at port time.
-  (c) As (a), shown to the user as renders for approval before its tests are written.
-- **Q32. How the proof is checked.** (a) The stage's frames at chosen times against Blender renders
-  of the same moments; the title card's frames against Chromium captures of the old game's intro at
-  the same times (its CSS animations seeked in the harness); skip and reduced motion by the
-  sequencer's tests. Recommended: both halves against their references, as everything else. (b)
-  Rule tests plus the engine's frames committed as goldens for the user to look at. (c) As (a)
-  without the Chromium part.
-- **Q33. Watching it.** (a) The sandbox gets a mode that plays the proof in a window (with the skip
-  button, Escape and reduced motion), as `play-theme.sh` was added so the user could listen.
-  Recommended: the user sees the result, not only tests. (b) No sandbox mode.
+**Step 7 (the proof):**
+- **Q30. Its files:** test data only: the stage's Blender script in `Tools/BlenderReference/`, its
+  export in `Tests/Statventure.Tests/Data/Models/`, the sequence built in C# in the test (its JSON form
+  a committed fixture), the markup and stylesheet in the test; nothing in `world.pak` or `models.pak`.
+  Why: its figure is a placeholder, and test data never ships (M9 Q1). (Not the first game content in
+  the packs; not the `.blend` file saved too.)
+- **Q31. The stand-in stage, not the recommendation:** every element of the old scene remade simply in
+  the art style (far, mid and near trunks, the rift opening and pulsing with its glow, the cracks,
+  eight eyes blinking, mist as puff particles, the ground, marks for the boss and four imps, the camera
+  pushing in), **shown to the user as Blender renders for approval before its tests are written**.
+  (The recommendation was the same stage without the approval; not a minimal stage.)
+- **Q32. Its checks:** Blender renders at sampled times for the 3D; Chromium captures of the old
+  game's title card at the same times (its CSS animations seeked) for the UI; skip and reduced motion
+  by the sequencer's tests. Why: both halves against their references, as everything else. (Not rule
+  tests plus engine goldens for the user to look at; not without the Chromium part.)
+- **Q33. Watching it:** a sandbox mode plays the proof in a window (with the skip button, Escape and
+  reduced motion). Why: the user sees the result, not only tests, as `play-theme.sh` was added for
+  listening. (Not no sandbox mode.)
 
 ## How it works
 
@@ -748,6 +781,5 @@ Filled in as the steps are done.
 
 ## Status
 
-- **Nothing implemented yet** (2026-11-04). The decisions are recorded, the design is proposed,
-  seven steps are proposed with their dependencies, and the open questions above are to be asked
-  before the steps that need them.
+- **Nothing implemented yet** (2026-11-04). The decisions and the 33 step details are recorded, the
+  design is set, and seven steps are proposed with their dependencies.
