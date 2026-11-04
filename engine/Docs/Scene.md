@@ -508,7 +508,9 @@ var intro = new SequenceBuilder("jiruan", duration: 7.0)
 
 ### The proof: Ji'ruan's intro (step 7)
 
-- **3D** (the old SVG scene and sprites; Q31): every element of the old scene remade simply in the art
+- **3D** (the old SVG scene and sprites; Q31, revised at the approval round by S7-1 and S7-2: real detail
+  while still a proof, and the figures playing cutscene clips authored in Blender on the stand-in rig;
+  the text below is Q31's first form): every element of the old scene remade simply in the art
   style: far, mid and near trunks, the rift opening and pulsing with its glow, the cracks, eight eyes
   blinking, mist as puff particles, the ground, marks for the boss and four imps (the test figure
   `figure.glb` on each, in palettes of their own), the camera pushing in over the 7 s. Models stay
@@ -1001,6 +1003,22 @@ M10", "Step details".
 - **Q33. Watching it:** a sandbox mode plays the proof in a window (with the skip button, Escape and
   reduced motion). Why: the user sees the result, not only tests, as `play-theme.sh` was added for
   listening. (Not no sandbox mode.)
+- **Asked at the approval round (user, 2026-11-04, 22:50), after seeing phase 1's renders** (the stage
+  "too simple", the figures not moving):
+  - **S7-1. The stage's detail (Q31 revised):** the stage gets real detail while staying a proof: trunks
+    with roots, branches and foliage silhouettes; ground relief and undergrowth; the rift as layered shells
+    with its halo as geometry; mist and embers as particles; cracks with their glow; a night sky with
+    depth; all in the game's cel, ink and hatch style and composed like the old SVG; iterated with the
+    user through renders until approved. (Not Q31's "every element remade simply"; not final-quality
+    content either: it stays a proof.)
+  - **S7-2. The figures act:** cutscene clips authored in Blender on the stand-in rig (the test figure's):
+    the king's rise from the light, a spread and a settle into a breathing idle; the imps' flight out of
+    the rift, flapping, hover and landing; breathing idles; played by the sequence as NLA strips (Q16),
+    retargetable to the real rigs by bone names (M7's rig families).
+  - **S7-3. The files:** the stage and the clips stay test data (Q30 unchanged).
+  - **S7-4. One proof:** no phase cutscene now; Ji'ruan's intro is the one proof. The 11 other boss
+    intros and the 7 phase cinematics follow at port time to the same bar ("How it works", step 7,
+    "The bar for the port's cutscenes").
 
 ## How it works
 
@@ -1682,6 +1700,97 @@ recommended, "Step details" above).
   library's when it was made); once applied, a call at a time is what a reload restarts or leaves stopped,
   as the game's own calls are.
 
+### Step 7: Ji'ruan's intro (phase 1: the stage, awaiting the user's approval)
+
+Q30 and Q31 as answered: test data only; every element of the old scene remade simply and shown to
+the user as Blender renders before the sequence and its tests are written (phase 2).
+
+- **The source** (`make_models.py`'s `jiruan`, beside the other test models; `Data/Models/jiruan.glb`,
+  exported by `export_stage` at the render size 1200 × 680, the old viewBox): the old SVG's elements
+  placed by `svg_point`: each at a depth chosen for it, at the point the first frame's camera shows
+  where the SVG had it (the CSS's first frame: the art scaled 1.02 about 50 %, 62 %), so the first frame
+  keeps the old composition. Blender's coordinates: the camera looks along +Y, Z up.
+- **What the stage holds** (node names as the sequence will name them, `jiruan/<name>`): `sky` (three
+  unlit bands, `#22142f`, `#1a0f27`, `#140a20`, 46 m off; the view's background is the old sky's top,
+  `#06030b`), `ground` (`#0a0610`), the far trunks `trunk-far-1`..`6` (30 m off) and mid trunks
+  `trunk-mid-1`..`4` (9 m off) at the SVG's places, widths and leans in its colours (`bark.1`..`5`), the four
+  the SVG rims carrying an unlit strip `…-rim` (`#6a44a0`, the rift's light painted as the SVG's stroke),
+  `trunk-ring-1`..`10` closing the ring out of view; `rift` (an empty at the rift's middle, 14 m off,
+  opening by scale: the rift's place) and, keyed alike about that middle as top-level objects, `rift-bloom`
+  (`#b48cff`, narrowed to 3/4 of the SVG's blurred bloom, its opening times its pulse in size), `rift-tear`
+  (`#7a4cc8`) and `rift-core` (`#fbf6ff`), Emission shaders (flat, glowing by M6's rules); the cracks
+  `crack-1`..`9` (each segment of the SVG's crack path a glowing `#c58cff` strip on the ground from the
+  rift's foot, drawn out by scale); the eyes `eye-1`..`8` (each a mesh of two glowing `#d6b4ff` slits, 15 m
+  off at the SVG's places, at least 0.5 m up). No child hangs under a node scaled to nearly nothing (the
+  first export had the slabs and slits as children: comparing locals then inverts a near-singular parent,
+  which `SceneStageTests` measured at 12 times its allowance between frames), and no key lies past 7 s (a
+  CSS delay pushed some eye and imp keys there: `jr_keys` ends them at 7 s with the value between, as the
+  export bakes the timeline only; the first export was 31 mm off Blender at 7.05 s); the foreground silhouettes
+  `near-1`..`4` (unlit `#040208`, 5 m off); the marks `boss` and `imp-1`..`imp-4` (empties where the
+  figures stand, carrying the stand-ins' sizes: the boss 1.25 of the test figure, the imps 0.4); the
+  emitter marks `mist` (a low wide spawn, scale 7 × 3 × 0.4, drifting 1 m across) and `embers` (at the
+  rift's foot; not in the old scene); the camera `camera` (lens 61 mm on a 24 mm sensor, sensor fit
+  Vertical: yfov 0.3885 rad, near 0.1, far 100) on the empty `dolly`; the sun `sun` (white, strength 3,
+  angle 3°, behind the rift 40° up, shining toward the camera). The glowing and unlit parts carry
+  `ink = 0`.
+- **The camera path:** the dolly from (0, −14, 1.6) to (0, −12.98, 1.47) in Blender's coordinates over the
+  7 s (two keys, Blender's Bezier), the camera level on it: the rift grows by 1.1 / 1.02 and the view sinks
+  as `bi-camera` scales the art 1.02 → 1.1 and lifts it 1.5 %.
+- **The timeline** (frames 1 … 421 at 60 fps, 7 s; keys at the old keyframes' percentages × 7 s on the
+  nearest frame, Blender's default Bezier, the cracks linear): the rift hidden (a near-zero scale) to
+  0.42 s, open at 1.96, widened 1.5 × 1.04 at 3.92, 1.25 × 1 at 7; the bloom 1.12 wide every other
+  1.4 s; the cracks drawn out 1.26–2.94 s as the dash offset reaches each segment; each eye (its CSS delay
+  added) closed to 0.98 s, open at 1.4, blinking to 0.1 tall at 1.68, open 1.89–4.9, narrowed to 0.35 tall
+  by 5.95 (the old dimming); the imps (delays 0, 0.15, 0.35, 0.5) tiny inside the rift to 1.68 s, at their
+  places (hovering, 8.5, 13, 11 and 11 m off; turned 30° outward) by 3.36, bobbing 0.1 m up, back and
+  0.05 m up; the boss under the ground to 2.1 s, rising out of it before the rift to 4 % of his height
+  low at 2.94, in place at 7 (scale 0.9 → 0.96 → 1.03 of his size).
+- **Markers** (S4-2: the scene's timeline markers, copied by `export_scene_markers` into its property
+  `events`, which the clip `Scene` carries as its extras; times from the first frame, on whole frames, so
+  each is the old time to within 1/120 s): `rift-opens` 0.4167 (old 0.42), `eyes-wake` 0.9833 (0.98),
+  `cracks` 1.2667 (1.26), `retinue` 1.6833 (1.68), `king-rises` 2.1, `flash` 3.85, `title-card` 4.0667
+  (4.06), `reveal` 4.4833 (4.48), `fade-out` 6.5167 (6.51), `end` 7.
+- **Blender's evaluation** (`Reference/stage-scenes.json`'s `jiruan`: 95 times, every 0.1 s, mid-frames
+  every half second, the markers' frames, before the start and after the end; render sizes 1200 × 680
+  and 680 × 1200; `Golden/stage-jiruan.json`): as step 3's stage scenes, and `evaluate_stage` also writes
+  the scene's timeline markers (a stage without any writes none: `stage-dolly.json` unchanged).
+- **The approval renders** (not committed): `~/.cache/stat-fick-build/claude-work/m10/step7/approval/`
+  (0, 1.4, 2.5, 3.4, 4.6 and 7 s, and `approval.png`), made by `approval.py` there: the stage built by
+  `make_models.py` at the time, through its camera, lit by its sun with shadows, shaded, hatched and
+  inked with `render_scenes.py`'s own functions, the halo laid as `compose_glow.py` lays it, the test
+  figure on each mark at rest (the idle clip's first frame is the rest pose) in its palette (the boss
+  `#3b2a44`/`#5a3566`, all ink `#130e0b` before the reveal at 4.48 s; the imps `#3a2448`/`#6a3d78`, the
+  old sprites' colours). Not in them: the mist (the sequence's particles) and everything that is UI in
+  phase 2 (the big halo, flash, vignette, letterbox, texts).
+- **Checked** (made mergeable on its own, the M10 manager's request, rebased on step 6): `ModelPackTests`
+  counts 15 test models, and `SceneStageTests.All` has the `jiruan` entry (`JiruanTimes`, the file's
+  times), so `TheStageSceneFileIsUpToDate` leaves `stage-scenes.json` as written and
+  `TheStageIsWhereBlenderPutsIt` checks the stage against `Golden/stage-jiruan.json`: every node within
+  0.00075 mm of Blender on frames, at most 0.71 of M7's allowance between them (eye 7 mid-frame); the
+  camera's and the sun's settings within 1.06·10⁻⁷, the sun's direction within 8.4·10⁻⁸.
+- **The approval round (2026-11-04, 22:50):** the user saw phase 1's renders and asked for more: the
+  stage too simple, the figures not moving (S7-1–S7-4, "Step details"). Phase 1 stays as the stage's
+  layout (its node names, marks, camera path and markers are kept unless phase 1b finds a reason to
+  change them, asked then); **phase 1b** comes next: the detailed stage and the figures' clips, shown
+  again as approval renders at the same sampled times (0, 1.4, 2.5, 3.4, 4.6, 7 s) plus a short turntable
+  or frame strip of each clip, iterated with the user until approved; phase 2 (the sequence, the title
+  card, the tests, the sandbox mode) after that approval and step 6's merge.
+- **The bar for the port's cutscenes** (S7-1, S7-2, S7-4): what Ji'ruan's proof is held to, and what the
+  other 11 boss intros and the 7 phase cinematics are made to at port time:
+  - *The stage:* every element of the old scene remade with real detail in the game's cel, ink and hatch
+    style, composed like the old SVG (scenery with its structure: trunks with roots, branches and
+    foliage silhouettes; ground relief and undergrowth; a sky with depth), light sources as layered
+    glowing shells with their halo as geometry, atmosphere (mist, embers, motes) as particles on the
+    stage's emitter marks, glows on cracks and runes; models opaque (Q23).
+  - *The figures act:* each figure plays cutscene clips authored in Blender on its rig (an entrance, the
+    gesture of the moment, a settle into a breathing idle; a retinue's arrival, movement and landing),
+    played by the sequence as NLA strips over its state machine (Q16), shared by bone names within a rig
+    family (M7), so the stand-in's clips retarget to the real rigs.
+  - *Approval:* the stage and the clips shown to the user as Blender renders at sampled times (and a
+    turntable or frame strip of each clip) and iterated until approved, before the tests are written.
+  - *Files:* test data for the proof (Q30); at port time the game's cutscenes are game content in the
+    packs (M10-10), where their Blender sources live is the port's question.
+
 ## Status
 
 - Steps 4–7: not done yet (2026-11-04). The decisions and the 33 step details are recorded, the
@@ -1766,3 +1875,18 @@ recommended, "Step details" above).
   had `OutputTests.TheDefaultDevicePacesTheGraph`, the real device's pacing test, fail once, passing alone and in the next full run;
   its message wasn't kept). Mutations: 101 (`~/.cache/stat-fick-build/claude-work/m10/step6-mutations.json`, made by `make-step6-mutations.py` beside it): 99 killed, 93 in the run and 6 after closing the gaps they showed (five survivors and one that didn't build: the mutation itself, rewritten): only the last music cue of a cut part (two at one cut only differ when the later names the theme playing; a test added), the hold released at the end at the last frame (a skip from a timer before a frame's steps; the end test skips so now), a play-state pause on a timeline whose time is behind the document's (the test holds and releases first), the last frame's time (a pause from a timer resumed between frames), an animation's pause time moved at a detach (the test detaches one paused by its play-state). Two survive and can't differ: sending at rate 0 (no frame moves the clock then; a forced one would schedule cues at infinite times, cancelled at the next rate change before any could be due) and the end's frame sending in its `Apply` (the guard keeps the audio thread from starting cues a skip cancels right after; offline both calls are taken in the same quantum before any is applied, and the end as played sends the same call in the same frame). Six candidates left out of the list: only work or memory (a held animation counted settled, the detach's move back, the restore's guard for an unchanged text, the rooms prepared on the game's thread) or unreachable (the clock's guards against a repeated pause or visibility change, the nesting check's own-player exception). Found: music.js's switch at a quantum's start during the old theme's fade-in
   cuts the old theme (Blink's `cancelAndHoldAtTime` rule as ported in M8; not checked against Chromium).
+- **Step 7 phase 1: stage built, awaiting the user's approval (2026-11-04, on its worker branch).**
+  `make_models.py`'s `jiruan` and `Data/Models/jiruan.glb` (the old scene's elements, marks, emitter
+  marks, the camera on its dolly, the sun, the old CSS moments as markers), `Reference/stage-scenes.json`'s
+  `jiruan` and `Golden/stage-jiruan.json` (Blender's evaluation, the markers included); the other test
+  models re-export byte for byte the same and `stage-dolly.json` is unchanged. Approval renders at 0,
+  1.4, 2.5, 3.4, 4.6 and 7 s in `~/.cache/stat-fick-build/claude-work/m10/step7/approval/` ("How it
+  works", step 7). Rebased on step 6 and made mergeable on its own: `ModelPackTests`' count 15 and the
+  `jiruan` entry in `SceneStageTests.All` (the stage against Blender: "How it works", step 7, "Checked");
+  the full suite passes on the GPU and on lavapipe (2313: step 6's 2312 and the stage's case). No
+  mutation run (no new rule). Phase 2 (the sequence, the title card, the tests, the sandbox mode) waits
+  for the approval.
+  **Phase 1 renders seen (2026-11-04, 22:50); the user asked for more detail and acting (S7-1–S7-4);
+  phase 1b next:** the detailed stage and the figures' cutscene clips, with new approval renders at the
+  same sampled times plus a turntable or frame strip of each clip ("How it works", step 7, "The approval
+  round").

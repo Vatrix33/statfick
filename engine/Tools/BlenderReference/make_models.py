@@ -62,6 +62,11 @@ def reset():
                        bpy.data.lights):
         for block in list(collection):
             collection.remove(block)
+    # A stage's timeline markers and their copy (jiruan's) don't carry over to the next model.
+    scene = bpy.context.scene
+    scene.timeline_markers.clear()
+    if "events" in scene:
+        del scene["events"]
 
 
 def mesh_object(name, mesh, parent=None, location=(0, 0, 0), rotation=(0, 0, 0), scale=(1, 1, 1)):
@@ -1028,10 +1033,335 @@ def dolly(path):
     export_stage(path)
 
 
+# Ji'ruan's intro stage (Docs/Scene.md, step 7, phase 1; Q30, Q31; M10-11): every element of the old
+# intro's SVG scene (old-game/scripts/boss-intros.js, "jiruan") remade simply, its motion keyed from the
+# old CSS timeline (old-game/styles.css, "Boss intro cutscenes": each keyframe's percentage × 7 s, put
+# on the nearest 60 fps frame), seen through a perspective camera on a dolly that frames the old
+# viewBox (1200 × 680) as the CSS's first frame does (the art scaled 1.02 about 50 %, 62 %) and pushes
+# in as bi-camera does. Placement: each SVG element is put at a chosen depth along the first frame's
+# camera, at the point that camera shows where the SVG had it (svg_point), so the first frame keeps the
+# old composition; the depths are the remake's own (the SVG has none). Blender's coordinates: the
+# camera looks along +Y, Z up, the rift 14 m ahead of the camera's start.
+JR_FPS, JR_SECONDS = 60, 7.0
+JR_CAMERA = (0.0, -14.0, 1.6)        # the dolly's start: 14 m before the rift, eye height 1.6 m
+JR_PITCH = 0.0                       # level: the boss's feet 12 m off fall where the old ground line was (83 %)
+JR_LENS, JR_SENSOR = 61.0, 24.0      # sensor fit Vertical: tan(fov / 2) = 12 / 61
+JR_WIDTH, JR_HEIGHT = 1200, 680      # the old SVG's viewBox
+
+
+def jr_frame(seconds):
+    """A time of the old timeline on the stage's frames (frame 1 is 0 s)."""
+    return 1 + round(seconds * JR_FPS)
+
+
+def jr_camera_matrix():
+    return Matrix.Translation(JR_CAMERA) @ Matrix.Rotation(math.radians(90 + JR_PITCH), 4, "X")
+
+
+def svg_ray(x, y):
+    """The first frame's camera ray (origin, direction; Blender's world) through the SVG point (x, y):
+    the CSS shows the art scaled 1.02 about (600, 421.6), and the camera's vertical extent is the
+    viewBox's height."""
+    sx, sy = 600 + 1.02 * (x - 600), 421.6 + 1.02 * (y - 421.6)
+    t = (JR_SENSOR / 2) / JR_LENS
+    local = Vector(((sx - 600) / 340 * t, (340 - sy) / 340 * t, -1))
+    m = jr_camera_matrix()
+    return m.translation.copy(), (m.to_3x3() @ local)
+
+
+def svg_point(x, y, depth):
+    """The point at this depth (metres along the view) that the first frame shows at SVG (x, y)."""
+    origin, direction = svg_ray(x, y)
+    forward = jr_camera_matrix().to_3x3() @ Vector((0, 0, -1))
+    return origin + direction * (depth / direction.dot(forward))
+
+
+def svg_ground(x, y):
+    """Where the first frame's ray through SVG (x, y) meets the ground (z = 0)."""
+    origin, direction = svg_ray(x, y)
+    return origin + direction * (-origin.z / direction.z)
+
+
+def jr_keys(obj, data_path, keys, interpolation=None):
+    """Keys a channel (every component) at (seconds, value) pairs: Blender's default Bezier unless an
+    interpolation is named. Keys past the timeline's end (a CSS delay pushes some there) become one key at
+    the end with the value between its neighbours: the export bakes the timeline only, so Blender must
+    not move on after it."""
+    if obj.animation_data is None:
+        obj.animation_data_create()
+    if keys[-1][0] > JR_SECONDS:
+        inside = [k for k in keys if k[0] <= JR_SECONDS]
+        (t0, v0), (t1, v1) = inside[-1], next(k for k in keys if k[0] > JR_SECONDS)
+        u = (JR_SECONDS - t0) / (t1 - t0)
+        keys = inside + [(JR_SECONDS, tuple(a + (b - a) * u for a, b in zip(v0, v1)))]
+    for seconds, value in keys:
+        setattr(obj, data_path, value)
+        obj.keyframe_insert(data_path, frame=jr_frame(seconds))
+    if interpolation:
+        action = obj.animation_data.action
+        for curve in action.layers[0].strips[0].channelbag(action.slots[0]).fcurves:
+            if curve.data_path == data_path:
+                for point in curve.keyframe_points:
+                    point.interpolation = interpolation
+
+
+def slab_mesh(name, outline, thickness, m):
+    """A flat slab: the outline (points in Blender's XZ plane) extruded by the thickness along Y."""
+    count = len(outline)
+    front = [(x, -thickness / 2, z) for x, z in outline]
+    back = [(x, thickness / 2, z) for x, z in outline]
+    faces = [tuple(range(count - 1, -1, -1)), tuple(range(count, 2 * count))]
+    faces += [(i, (i + 1) % count, count + (i + 1) % count, count + i) for i in range(count)]
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(front + back, [], faces)
+    mesh.update()
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(mesh)
+    bm.free()
+    mesh.materials.append(m)
+    return mesh
+
+
+def svg_outline(points, depth, centre):
+    """SVG points at a depth as an outline in the XZ plane about a centre (Blender's world)."""
+    return [((p - centre).x, (p - centre).z) for p in (svg_point(x, y, depth) for x, y in points)]
+
+
+def empty(name, location=(0, 0, 0), parent=None, scale=(1, 1, 1), rotation=(0, 0, 0)):
+    obj = bpy.data.objects.new(name, None)
+    bpy.context.scene.collection.objects.link(obj)
+    obj.parent = parent
+    obj.location, obj.scale = location, scale
+    obj.rotation_euler = [math.radians(a) for a in rotation]
+    return obj
+
+
+def jiruan(path):
+    """Ji'ruan's intro stage (see above). Objects: "sky" (three unlit bands), "ground", the far trunks
+    "trunk-far-1".."6" and the mid trunks "trunk-mid-1".."4" at the old SVG's places (the four the rift
+    lights carry an unlit rim strip "…-rim"), "trunk-ring-1".."10" closing the ring of trees out of
+    view, the rift "rift" (an empty at its middle, opening by scale) over "rift-bloom" (pulsing),
+    "rift-tear" and "rift-core" (Emission: they glow), the cracks "crack-1".."9" (glowing strips on the
+    ground drawn out by scale), the eyes "eye-1".."8" (each two glowing slits, opening, blinking and
+    narrowing by scale), the foreground "near-1".."4" (unlit silhouettes), the marks "boss" and
+    "imp-1".."imp-4" where the figures stand (they carry the stand-ins' sizes), the emitter marks "mist"
+    and "embers", the camera "camera" on the empty "dolly", and the sun "sun". The old CSS's moments
+    are the scene's timeline markers. Exported as a stage (export_stage) at the render size 1200 × 680,
+    the scene's custom property "events" holding the markers (Docs/Scene.md, step 4, "Markers")."""
+    scene = bpy.context.scene
+    scene.render.fps, scene.render.fps_base = JR_FPS, 1
+    scene.frame_start, scene.frame_end = 1, jr_frame(JR_SECONDS)
+    scene.render.resolution_x, scene.render.resolution_y = JR_WIDTH, JR_HEIGHT
+    scene.render.pixel_aspect_x = scene.render.pixel_aspect_y = 1
+
+    # The night sky behind the trees: the old gradient's lower stops as flat bands (unlit, no ink).
+    mesh = bpy.data.meshes.new("sky")
+    verts, faces = [], []
+    bands = (("sky.low", "#22142f", -1, 7), ("sky.mid", "#1a0f27", 7, 13), ("sky.high", "#140a20", 13, 30))
+    for name, colour, low, high in bands:
+        base = len(verts)
+        verts += [(-70, 0, low), (70, 0, low), (70, 0, high), (-70, 0, high)]
+        faces.append((base, base + 1, base + 2, base + 3))
+    mesh.from_pydata(verts, [], faces)
+    for name, colour, _, _ in bands:
+        mesh.materials.append(shader_material(name, colour, "background"))
+    for index, polygon in enumerate(mesh.polygons):
+        polygon.material_index = index
+    mesh_object("sky", mesh, location=(0, 32, 0))["ink"] = 0
+
+    ground = material("ground", "#0a0610")
+    mesh_object("ground", box_mesh("ground", (120, 120, 0.2), [ground]), location=(0, 0, -0.1))
+
+    # Trunks: (SVG x, width, lean, colour, rimmed) at a depth, their widths and leans the SVG's there.
+    bark = {c: material("bark." + str(i + 1), c) for i, c in enumerate(("#170e22", "#1a1026", "#1d122b", "#0c0713", "#0d0815"))}
+    rim = shader_material("rim", "#6a44a0", "background")
+
+    def trunk(name, x, w, lean, colour, rimmed, depth):
+        foot = svg_point(x, 680, depth)
+        px = (svg_point(x + 1, 680, depth) - foot).length
+        height = 18.0
+        r1, r2 = w / 2 * px, w * 0.22 * px
+        tilt = math.degrees(math.atan2(lean * px, 700 * px))
+        obj = mesh_object(name, cone_mesh(name, 12, r1, r2, height, True, bark[colour]),
+                          location=(foot.x, foot.y, height / 2 - 1), rotation=(0, tilt, 0))
+        if rimmed:
+            # The rift's light on the side facing it: a thin flat strip (the SVG's rim stroke).
+            side = -1 if x > 600 else 1
+            strip = mesh_object(name + "-rim", box_mesh(name + "-rim", (r1 * 0.08, r1 * 0.2, height), [rim]), obj,
+                                location=(side * r1 * 0.78, -r1 * 0.55, 0))
+            strip["ink"] = 0
+    for i, spec in enumerate(((70, 60, -8, "#170e22", False), (250, 46, 10, "#1a1026", False), (420, 38, -6, "#1d122b", True),
+                              (790, 40, 8, "#1d122b", True), (960, 52, -10, "#1a1026", False), (1130, 64, 6, "#170e22", False))):
+        trunk("trunk-far-%d" % (i + 1), *spec, 30)
+    for i, spec in enumerate(((-10, 110, 14, "#0c0713", False), (160, 74, -12, "#0d0815", True),
+                              (1040, 80, 12, "#0d0815", True), (1215, 120, -14, "#0c0713", False))):
+        trunk("trunk-mid-%d" % (i + 1), *spec, 9)
+    # The rest of the ring of trees about the clearing, behind and beside the camera (out of its view).
+    for i in range(10):
+        a = math.radians(200 + i * 14)
+        mesh_object("trunk-ring-%d" % (i + 1), cone_mesh("ring-%d" % (i + 1), 12, 0.45, 0.2, 18.0, True, bark["#0c0713"]),
+                    location=(17 * math.cos(a), -6 + 17 * math.sin(a), 8))
+
+    # The rift: an empty at its middle (the CSS scales it about its box's centre) over three glowing slabs.
+    centre = svg_point(600, 366, 14)
+    rift = empty("rift", location=centre)
+    bloom_points = [(600, 120), (640, 220), (618, 300), (660, 390), (626, 470), (652, 560), (600, 612), (548, 560), (574, 470), (540, 390), (582, 300), (560, 220)]
+    # Solid where the SVG's bloom was blurred and translucent: narrowed to three quarters of its width.
+    bloom_points = [(600 + 0.75 * (x - 600), y) for x, y in bloom_points]
+    tear_points = [(600, 136), (624, 214), (608, 266), (638, 338), (614, 404), (642, 474), (618, 542), (626, 600), (600, 592), (576, 542), (594, 474), (560, 404), (588, 338), (564, 266), (590, 214)]
+    core_points = [(600, 150), (607, 214), (603, 266), (612, 338), (604, 404), (612, 474), (605, 542), (602, 588), (598, 588), (595, 542), (588, 474), (596, 404), (588, 338), (597, 266), (593, 214)]
+    # bi-rift-open (ease-out): closed (hidden: a point; the CSS 0.4 × 0 at opacity 0) to 0.42 s, open at
+    # 1.96 s, widened at 3.92 s, settled at 7 s. The slabs are top-level objects keyed alike about the
+    # rift's middle (no child under a parent scaled to nearly nothing); the empty "rift" marks the place.
+    opening = [(0, (0.001, 1, 0.001)), (0.42, (0.001, 1, 0.001)), (1.96, (1, 1, 1)), (3.92, (1.5, 1, 1.04)), (7.0, (1.25, 1, 1))]
+    jr_keys(rift, "scale", opening)
+    # bi-rift-pulse: the bloom 1.4 s each way, forever (its opacity, here its size), times the opening.
+    pulse = [(k * 1.4, (1.0, 1, 1.0) if k % 2 == 0 else (1.12, 1, 1.04)) for k in range(6)]
+
+    def between(keys, t):
+        (t0, v0), (t1, v1) = max((k for k in keys if k[0] <= t), key=lambda k: k[0]), min((k for k in keys if k[0] >= t), key=lambda k: k[0])
+        u = 0 if t1 == t0 else (t - t0) / (t1 - t0)
+        return [a + (b - a) * u for a, b in zip(v0, v1)]
+    bloom_keys = [(t, tuple(a * b for a, b in zip(between(opening, t), between(pulse, t)))) for t in sorted({k[0] for k in opening + pulse})]
+    for name, points, colour, ahead, keys in (("rift-bloom", bloom_points, "#b48cff", 0, bloom_keys), ("rift-tear", tear_points, "#7a4cc8", -0.05, opening),
+                                              ("rift-core", core_points, "#fbf6ff", -0.1, opening)):
+        m = shader_material(name.replace("-", "."), colour, "emission")
+        part = mesh_object(name, slab_mesh(name, svg_outline(points, 14, centre), 0.04, m), location=centre + Vector((0, ahead, 0)))
+        part["ink"] = 0
+        jr_keys(part, "scale", keys)
+
+    # The cracks: each segment of the SVG's crack path a glowing strip on the ground from the rift's
+    # foot, its origin at its start, drawn out by its length's scale as the dash offset (260 → 0 over
+    # 1.26–2.94 s) reaches it (linearly).
+    crack = shader_material("crack", "#c58cff", "emission")
+    foot = Vector((centre.x, centre.y, 0))  # the rift's foot: it stands on the ground, its lower tip sunk in it
+    paths = [[(600, 600), (548, 632), (492, 640)], [(600, 600), (656, 634), (722, 646)], [(600, 600), (582, 652), (590, 690)],
+             [(600, 600), (640, 668)], [(548, 632), (520, 676)], [(656, 634), (690, 686)]]
+    starts = {(548, 632): math.hypot(52, 32), (656, 634): math.hypot(56, 34)}
+    number = 0
+    for line in paths:
+        along = starts.get(line[0], 0.0)
+        for a, b in zip(line, line[1:]):
+            # On the ground about the foot: across at 12 mm per SVG pixel, toward the camera at 50 mm.
+            pa = foot + Vector(((a[0] - 600) * 0.012, -(a[1] - 600) * 0.05, 0.012))
+            pb = foot + Vector(((b[0] - 600) * 0.012, -(b[1] - 600) * 0.05, 0.012))
+            length = (pb - pa).length
+            number += 1
+            strip_mesh = box_mesh("crack-%d" % number, (length, 0.07, 0.01), [crack])
+            for v in strip_mesh.vertices:
+                v.co.x += length / 2
+            obj = mesh_object("crack-%d" % number, strip_mesh, location=pa, rotation=(0, 0, math.degrees(math.atan2((pb - pa).y, (pb - pa).x))))
+            obj["ink"] = 0
+            seg = math.hypot(b[0] - a[0], b[1] - a[1])
+            t0, t1 = 1.26 + 1.68 * min(along, 260) / 260, 1.26 + 1.68 * min(along + seg, 260) / 260
+            jr_keys(obj, "scale", [(0, (0.001, 0.001, 1)), (t0, (0.001, 0.001, 1)), (max(t1, t0 + 1 / 60), (1, 1, 1))], interpolation="LINEAR")
+            along += seg
+
+    # The eyes in the dark: each pair of slits on its node 15 m from the camera (1 m behind the rift's
+    # depth) at the SVG's place, at least 0.5 m up; bi-eye (ease-out, each its own delay): closed to
+    # 0.98 s, open at 1.4, blinking at 1.68, open 1.89–4.9, narrowed to 0.35 (the old dimming) by 5.95.
+    eye = shader_material("eye", "#d6b4ff", "emission")
+    for i, (x, y, delay) in enumerate(((188, 402, 0), (298, 470, 0.35), (394, 356, 0.7), (834, 384, 0.2), (948, 452, 0.55), (1052, 362, 0.9), (702, 300, 1.1), (470, 286, 1.3))):
+        place = svg_point(x, y, 15)
+        place.z = max(place.z, 0.5)
+        px = (svg_point(x + 1, y, 15) - svg_point(x, y, 15)).length
+        # Both slits in the node's own mesh (no child under a parent scaled to nearly nothing).
+        bm = bmesh.new()
+        for side in (-1, 1):
+            tri = [(side * 10 * px, 0), (side * 1 * px, -1 * px), (side * 3 * px, 3 * px)]
+            if side > 0:
+                tri.reverse()
+            bm.from_mesh(slab_mesh("eye-%d-%d" % (i + 1, side), tri, 0.02, eye))
+        mesh = bpy.data.meshes.new("eye-%d" % (i + 1))
+        bm.to_mesh(mesh)
+        bm.free()
+        mesh.materials.append(eye)
+        node = mesh_object("eye-%d" % (i + 1), mesh, location=place)
+        node["ink"] = 0
+        d = delay
+        jr_keys(node, "scale", [(0, (0.001, 1, 0.001)), (0.98 + d, (0.001, 1, 0.001)), (1.4 + d, (1, 1, 1)), (1.68 + d, (1, 1, 0.1)),
+                                (1.89 + d, (1, 1, 1)), (4.9 + d, (1, 1, 1)), (5.95 + d, (1, 1, 0.35))])
+
+    # The foreground silhouettes (bi-jr-near), unlit, 5 m from the camera, reaching past the frame.
+    near = shader_material("near", "#040208", "background")
+    for i, points in enumerate(([(0, 680), (0, 520), (60, 560), (90, 610), (130, 590), (170, 640), (210, 680), (210, 760), (-80, 760), (-80, 680)],
+                                [(1200, 680), (1280, 680), (1280, 760), (990, 760), (990, 680), (1030, 636), (1070, 584), (1110, 600), (1140, 548), (1200, 500)],
+                                [(-80, -80), (260, -80), (260, 0), (190, 40), (140, 30), (80, 70), (0, 60), (-80, 60)],
+                                [(1280, -80), (1280, 66), (1200, 66), (1120, 72), (1060, 34), (1000, 46), (930, 0), (930, -80)])):
+        mid = svg_point(sum(p[0] for p in points) / len(points), sum(p[1] for p in points) / len(points), 5)
+        mesh_object("near-%d" % (i + 1), slab_mesh("near-%d" % (i + 1), svg_outline(points, 5, mid), 0.05, near), location=mid)
+
+    # Where the figures stand (the test figure faces −Y, the camera). The boss rises out of the ground
+    # in the rift's light 2 m before it (bi-boss-rise: below the ground to 2.1 s, 4 % of his height low
+    # at 2.94 s, in place at 7 s; scale 0.9 → 0.96 → 1.03 of his size, 1.25 times the test figure's).
+    king = 1.25
+    stand = (foot.x, foot.y - 2.0)
+    boss = empty("boss", location=(*stand, -2.4), scale=(king * 0.9,) * 3)
+    jr_keys(boss, "location", [(0, (*stand, -2.4)), (2.1, (*stand, -2.4)), (2.94, (*stand, -0.04 * 1.84 * king)), (7.0, (*stand, 0))])
+    jr_keys(boss, "scale", [(0, (king * 0.9,) * 3), (2.1, (king * 0.9,) * 3), (2.94, (king * 0.96,) * 3), (7.0, (king * 1.03,) * 3)])
+    # The imps (bi-imp-fly, ease-out, delays 0, 0.15, 0.35, 0.5 s): tiny inside the rift to 1.68 s, out
+    # to their places (the SVG's, hovering 8.5, 13, 11 and 11 m from the camera: imp 1 before the mid trunk it would hide behind) by 3.36 s,
+    # bobbing up 0.1 m, back, up 0.05 m; 0.4 of the test figure; each turned 30° outward (the CSS
+    # mirrored imps 1 and 3).
+    imp = 0.4
+    inside = centre + Vector((0, 0.3, -0.6))
+    for i, (x, y, depth, delay, turn) in enumerate(((168, 293, 8.5, 0, -30), (972, 259, 13, 0.15, 30), (324, 449, 11, 0.35, -30), (900, 463, 11, 0.5, 30))):
+        place = svg_point(x, y, depth)
+        node = empty("imp-%d" % (i + 1), location=inside, scale=(imp * 0.15,) * 3, rotation=(0, 0, turn))
+        d = delay
+        jr_keys(node, "location", [(0, inside), (1.68 + d, inside), (3.36 + d, place), (4.34 + d, place + Vector((0, 0, 0.1))),
+                                   (5.32 + d, place), (7.0 + d, place + Vector((0, 0, 0.05)))])
+        jr_keys(node, "scale", [(0, (imp * 0.15,) * 3), (1.68 + d, (imp * 0.15,) * 3), (3.36 + d, (imp,) * 3)])
+
+    # Emitter marks for the sequence's particles: the mist (a low wide spawn, drifting across as
+    # bi-mist does) and embers at the rift's foot (not in the old scene: for motes, if wanted).
+    mist = empty("mist", location=(-0.5, foot.y - 4.0, 0.3), scale=(7, 3, 0.4))
+    jr_keys(mist, "location", [(0, (-0.5, foot.y - 4.0, 0.3)), (7.0, (0.5, foot.y - 4.0, 0.3))])
+    empty("embers", location=(foot.x, foot.y - 0.2, 0.1), scale=(0.8, 0.3, 0.2))
+
+    # The camera on its dolly: the push-in (bi-camera, ease-in-out: the art 1.02 → 1.1 about 50 %, 62 %
+    # and up 1.5 %) as a move 1.02 m forward (the rift grows 1.1 / 1.02) and 0.13 m down.
+    dolly = empty("dolly", location=JR_CAMERA)
+    jr_keys(dolly, "location", [(0, JR_CAMERA), (7.0, (JR_CAMERA[0], JR_CAMERA[1] + 1.02, JR_CAMERA[2] - 0.13))])
+    lens = bpy.data.cameras.new("Lens")
+    lens.sensor_fit, lens.sensor_height, lens.lens = "VERTICAL", JR_SENSOR, JR_LENS
+    lens.clip_start, lens.clip_end = 0.1, 100
+    camera = bpy.data.objects.new("camera", lens)
+    scene.collection.objects.link(camera)
+    camera.parent = dolly
+    camera.rotation_euler = (math.radians(90 + JR_PITCH), 0, 0)
+    scene.camera = camera
+
+    # One sun (Q12): behind the rift, 40° up, shining toward the camera, so what faces the rift is lit
+    # (the rift's glow itself is emission, not a light).
+    light = bpy.data.lights.new("Riftlight", "SUN")
+    light.energy, light.angle = 3.0, math.radians(3)
+    mesh_object("sun", light, location=(0, 10, 12), rotation=(-50, 0, 15))
+
+    # The old timeline's moments as the scene's timeline markers, copied into its property "events".
+    for name, seconds in (("rift-opens", 0.42), ("eyes-wake", 0.98), ("cracks", 1.26), ("retinue", 1.68), ("king-rises", 2.1),
+                          ("flash", 3.85), ("title-card", 4.06), ("reveal", 4.48), ("fade-out", 6.51), ("end", 7.0)):
+        scene.timeline_markers.new(name, frame=jr_frame(seconds))
+    export_scene_markers(scene)
+    scene.frame_set(1)
+    export_stage(path)
+
+
+def export_scene_markers(scene):
+    """Copies the scene's timeline markers into its custom property "events" (Docs/Scene.md, step 4,
+    "Markers"), which the exporter's scene mode writes as the stage clip's extras: a list of {name,
+    time}, the time in seconds from the scene's first frame, in frame order."""
+    fps = scene.render.fps / scene.render.fps_base
+    markers = sorted(scene.timeline_markers, key=lambda m: (m.frame, m.name))
+    scene["events"] = [{"name": m.name, "time": (m.frame - scene.frame_start) / fps} for m in markers]
+
+
 # Builders by model name (evaluate_animations.py builds the animated ones again).
 BUILDERS = {"blocks": blocks, "rigged": rigged, "shapes": shapes, "stage": stage, "fringe": fringe, "glowing": glowing,
             "figure": figure, "reach": reach, "stocky": stocky, "sword": sword, "tabard": tabard, "pennant": pennant,
-            "hierarchy": hierarchy, "dolly": dolly}
+            "hierarchy": hierarchy, "dolly": dolly, "jiruan": jiruan}
 
 
 def main():

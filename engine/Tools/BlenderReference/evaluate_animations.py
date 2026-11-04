@@ -287,8 +287,8 @@ def evaluate_stage(scene, folder):
     each camera's projection, its vertical field of view (Blender's angle, the vertical one for sensor
     fit Vertical), its orthographic scale, near and far, and the x and y scales of its projection
     matrix at each of the scene's render sizes (calc_matrix_camera: Blender's own view plane); and
-    each sun's direction toward it (its local +Z), strength and angle in degrees. Written as
-    Golden/stage-<scene>.json."""
+    each sun's direction toward it (its local +Z), strength and angle in degrees; and the scene's
+    timeline markers, if it has any (Ji'ruan's stage, step 7). Written as Golden/stage-<scene>.json."""
     make_models.reset()
     make_models.BUILDERS[scene["model"]](None)
     blender_scene = bpy.context.scene
@@ -325,9 +325,15 @@ def evaluate_stage(scene, folder):
                 sun["direction"].append(numbers(toward))
                 sun["strength"].append(float("%.9g" % (obj.data.energy * 2 ** obj.data.exposure)))
                 sun["angle"].append(float("%.9g" % math.degrees(obj.data.angle)))
+    out = {"times": scene["times"], "aspects": scene["aspects"], "nodes": nodes, "cameras": cameras, "suns": suns}
+    # The scene's timeline markers (seconds from its first frame), which the stage clip's events must be
+    # (Docs/Scene.md, step 4, "Markers"; a stage without markers writes none).
+    markers = sorted(blender_scene.timeline_markers, key=lambda m: (m.frame, m.name))
+    if markers:
+        out["markers"] = [{"name": m.name, "time": (m.frame - start) / fps} for m in markers]
     path = os.path.join(folder, "stage-" + scene["name"] + ".json")
     with open(path, "w") as f:
-        json.dump({"times": scene["times"], "aspects": scene["aspects"], "nodes": nodes, "cameras": cameras, "suns": suns}, f, separators=(",", ":"))
+        json.dump(out, f, separators=(",", ":"))
     print("wrote", path)
 
 

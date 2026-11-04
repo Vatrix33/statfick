@@ -95,11 +95,26 @@ public class SceneStageTests(ITestOutputHelper output)
         return [.. times];
     }
 
+    /// <summary>Ji'ruan's stage (Docs/Scene.md, step 7): one before the start, every sixth frame (0.1 s), the middle of every thirtieth, the markers' frames, the end and one after it.</summary>
+    static double[] JiruanTimes()
+    {
+        var times = new SortedSet<double> { -0.05, 423.0 / Fps };
+        for (var k = 0; k <= 420; k += 6)
+            times.Add((double)k / Fps);
+        foreach (var k in new[] { 25, 59, 76, 101, 126, 231, 244, 269, 391, 420 })
+            times.Add((double)k / Fps);
+        for (var k = 0; k < 420; k += 30)
+            times.Add((k + 0.5) / Fps);
+        return [.. times];
+    }
+
     public static readonly StageScene[] All =
     [
         // The dolly moving and turning with the camera tilting and panning on it, the still orthographic
         // camera and the still sun; projections at the render scene's size and a portrait one.
         new("dolly", "dolly", "Scene", TimesFor(60), [[400, 280], [280, 400]]),
+        // Ji'ruan's intro stage (step 7, phase 1): its 7 s timeline, at the old viewBox's size and a portrait one.
+        new("jiruan", "jiruan", "Scene", JiruanTimes(), [[1200, 680], [680, 1200]]),
     ];
 
     public static TheoryData<string> SceneNames => new(All.Select(s => s.Name));
