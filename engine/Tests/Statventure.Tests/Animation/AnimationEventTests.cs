@@ -208,6 +208,34 @@ public class AnimationEventTests
         }
     }
 
+    /// <summary>
+    /// A handler that throws (logged) doesn't keep the event from the other handlers or from the tasks
+    /// waiting for it: clip events (<see cref="Animator.Next"/>) and state notices
+    /// (<see cref="Animator.Entered"/>) alike.
+    /// </summary>
+    [Fact]
+    public async Task AHandlerThatThrowsLeavesTheEventToTheOthersAndTheWaitingTasks()
+    {
+        var stack = new AnimationStack(Skeleton);
+        var machine = new StateMachine(StateMachineTests.Humanoid(), stack, Clip);
+        var animator = new Animator(stack, machine);
+        var log = new List<string>();
+        animator.Event += _ => throw new InvalidOperationException("a clip event handler failing");
+        animator.Event += e => log.Add(e.Name);
+        animator.StateChanged += _ => throw new InvalidOperationException("a state handler failing");
+        animator.StateChanged += n => log.Add($"{(n.Entered ? "entered" : "left")} {n.State}");
+        var hit = animator.Next("hit");
+        var entered = animator.Entered("action", "swing");
+        machine.SetTrigger("attack");
+        animator.Advance(0.01);
+        animator.Advance(0.49);
+        animator.DispatchEvents();
+        Assert.Equal(["entered swing", "left none", "whoosh", "hit"], log);
+        Assert.True(hit.IsCompleted && entered.IsCompleted);
+        Assert.Equal("hit", (await hit).Name);
+        Assert.Equal("swing", (await entered).State);
+    }
+
     static int FinishFrame()
     {
         var document = new UiDocument(TestFonts.Library);

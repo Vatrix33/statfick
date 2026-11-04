@@ -1,4 +1,5 @@
 using System.Numerics;
+using Statventure.Animation;
 using Statventure.Render3D;
 using Statventure.UI.Dom;
 
@@ -18,12 +19,19 @@ namespace Statventure.Scene;
 /// events and state notices with the frame's animation events. The view is shown in a
 /// <c>surface</c> element as any view (<see cref="UI.SurfaceViews"/>). Figures, attachments and
 /// events go in the tree's order (depth first, a node's attachments before its children's).
+/// Sequences play on it (<see cref="Play"/>, Docs/Scene.md, step 4): each frame first the sequences
+/// playing (their state, the figures they hold), then the other figures at the battle pace and the
+/// instanced models it animates (<see cref="Animate"/>), then one refresh; in the events step every
+/// figure's events, then each sequence's event cues.
 /// </summary>
 public sealed class SceneView : IUiFrameClient
 {
     readonly List<SceneAttachment> _attachments = [];
     readonly List<Actor> _actors = [];
     readonly List<DrawItem> _items = [];
+    readonly List<SequencePlayer> _players = [];
+    readonly Dictionary<Actor, SequencePlayer> _holders = [];
+    readonly List<(ModelInstance Instance, AnimationStack Stack, double Time)> _animated = [];
     bool _structureChanged = true, _changed = true;
     (Projection, Vector3, Vector3, Vector3, float, float, float, float, int) _viewDrawn;
     CelStyle? _styleDrawn;
@@ -76,14 +84,71 @@ public sealed class SceneView : IUiFrameClient
             }
     }
 
-    /// <summary>Moves every figure's clock on by <paramref name="seconds"/> (times the rate), then refreshes.</summary>
+    /// <summary>
+    /// Moves the sequences playing on (their own clocks: their state, the figures they hold), then every
+    /// other figure's clock and the clips of the models it animates by <paramref name="seconds"/> times
+    /// the rate (the battle pace), then refreshes.
+    /// </summary>
     public void Advance(double seconds)
     {
         Collect();
+        foreach (var player in _players.ToArray())
+            player.AdvanceFrame(seconds);
         foreach (var actor in _actors)
-            actor.Animator.Advance(seconds * Rate);
+            if (!_holders.ContainsKey(actor))
+                actor.Animator.Advance(seconds * Rate);
+        for (var i = 0; i < _animated.Count; i++)
+        {
+            var (instance, stack, time) = _animated[i];
+            time += seconds * Rate;
+            _animated[i] = (instance, stack, time);
+            instance.Apply(stack, time);
+        }
         Refresh();
     }
+
+    /// <summary>
+    /// Plays <paramref name="sequence"/> on this scene with <paramref name="bindings"/> (Docs/Scene.md,
+    /// step 4): everything is checked first, an <see cref="ArgumentException"/> naming the problem
+    /// changing nothing (S4-6); then its stages are instanced under nodes named after them under the
+    /// root, the figures it binds are held (their clocks follow it) and its tracks begin; its first frame
+    /// is the next. Any number play at once (Q20). <paramref name="document"/> is the document whose
+    /// frames run the scene: its media environment chooses the reduced variant (M10-4) and the time it
+    /// spends hidden is dropped from the sequence's clock (M10-7); without one, the full variant plays.
+    /// </summary>
+    public SequencePlayer Play(Sequence sequence, SequenceBindings bindings, UiDocument? document = null) =>
+        SequencePlayer.Start(this, sequence, bindings, document);
+
+    /// <summary>The sequences playing, in the order they started.</summary>
+    public IReadOnlyList<SequencePlayer> Playing => _players;
+
+    /// <summary>
+    /// Plays <paramref name="stack"/> (on <paramref name="instance"/>'s <see cref="ModelInstance.Skeleton"/>)
+    /// on the instance's nodes from <paramref name="time"/> on, on the scene's clock at its battle pace
+    /// (<see cref="Rate"/>), as the figures no sequence holds (S4-7: a stage's clips outside a sequence);
+    /// null stops it (the nodes keep their pose).
+    /// </summary>
+    public void Animate(ModelInstance instance, AnimationStack? stack, double time = 0)
+    {
+        ArgumentNullException.ThrowIfNull(instance);
+        _animated.RemoveAll(a => a.Instance == instance);
+        if (stack == null)
+            return;
+        if (stack.Skeleton.Model != instance.Data)
+            throw new ArgumentException("the stack is on another model's nodes: make it on the instance's Skeleton");
+        _animated.Add((instance, stack, time));
+    }
+
+    /// <summary>The sequence playing that holds <paramref name="actor"/>, or null.</summary>
+    internal SequencePlayer? HolderOf(Actor actor) => _holders.GetValueOrDefault(actor);
+
+    internal void Hold(Actor actor, SequencePlayer player) => _holders[actor] = player;
+
+    internal void Release(Actor actor) => _holders.Remove(actor);
+
+    internal void AddPlayer(SequencePlayer player) => _players.Add(player);
+
+    internal void RemovePlayer(SequencePlayer player) => _players.Remove(player);
 
     /// <summary>
     /// Brings the view up to date: its camera and sun from their nodes, and new draw items if
@@ -129,5 +194,7 @@ public sealed class SceneView : IUiFrameClient
         Collect();
         foreach (var actor in _actors)
             ((IUiFrameClient)actor.Animator).DispatchFrameEvents(loop);
+        foreach (var player in _players.ToArray())
+            player.DispatchFrame(loop);
     }
 }

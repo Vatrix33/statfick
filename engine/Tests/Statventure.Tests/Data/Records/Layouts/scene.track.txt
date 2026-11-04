@@ -1,0 +1,12 @@
+scene.track 1 union
+  1 scene.clip-track
+  2 scene.transform-track
+  3 scene.visibility-track
+  4 scene.animation-track
+  5 scene.palette-track
+  6 scene.event-track
+  7 scene.camera-track
+  8 scene.light-track
+  9 scene.particle-track
+  10 scene.audio-track
+  11 scene.ui-track

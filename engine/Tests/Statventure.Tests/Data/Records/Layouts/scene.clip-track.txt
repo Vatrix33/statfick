@@ -1,0 +1,3 @@
+scene.clip-track 1
+  1 stage: string (required)
+  2 strip: scene.strip (required)

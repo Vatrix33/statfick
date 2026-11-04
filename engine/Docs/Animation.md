@@ -194,7 +194,10 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   epsilon of a run's first as one moment ordered by layer (bottom first), pass and marker. An
   `Animator` holds a stack and its clock (`Time`, `Rate`): `Advance(seconds)` queues the events
   passed, `Seek` jumps without, `DispatchEvents` delivers them to `Event` and to `Next(name)` tasks
-  (continuations asynchronous: microtasks under a document). A document runs `IUiFrameClient`s
+  (continuations asynchronous: microtasks under a document), each handler called apart: one that
+  throws is logged ("Animation") and the other handlers and the waiting tasks still get the event
+  (fixed 2026-11-04 in M10 step 4: before, a throwing handler stopped the others and left the `Next`,
+  `Entered` and `Left` tasks waiting forever; `AnimationEventTests`). A document runs `IUiFrameClient`s
   (`UiDocument.AddFrameClient`): advanced by the time since their last frame right after the CSS
   animation timing update, their events dispatched right after the frame's CSS animation events
   (before frame callbacks), each delivery as game code (`EnterScript`/`ExitScript`: its microtasks

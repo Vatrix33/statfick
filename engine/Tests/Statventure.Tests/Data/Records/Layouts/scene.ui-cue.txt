@@ -1,0 +1,7 @@
+scene.ui-cue 1
+  1 time: float64 (required)
+  2 action: enum int32 {setText = 0, addClass = 1, removeClass = 2, setAttribute = 3, removeAttribute = 4} (required)
+  3 element: string? = null
+  4 name: string? = null
+  5 value: string? = null
+  6 marker: string? = null

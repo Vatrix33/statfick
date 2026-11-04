@@ -12,7 +12,8 @@ namespace Statventure.Animation;
 /// <see cref="Left"/> and <see cref="Next"/>. Added to a document
 /// (<see cref="UiDocument.AddFrameClient"/>), it's advanced in the frame's animation timing update
 /// and its events are dispatched right after the frame's CSS animation events, each delivery as game
-/// code whose microtasks (awaits) run after it (Docs/Animation.md, "Clip events").
+/// code whose microtasks (awaits) run after it (Docs/Animation.md, "Clip events"); a handler that
+/// throws is logged, and the other handlers and the waiting tasks still get the event.
 /// <see cref="Seek"/> jumps without firing anything.
 /// </summary>
 public sealed class Animator(AnimationStack stack, StateMachine? machine = null) : IUiFrameClient
@@ -124,7 +125,7 @@ public sealed class Animator(AnimationStack stack, StateMachine? machine = null)
             {
                 if (item.Clip is { } e)
                 {
-                    Event?.Invoke(e);
+                    Invoke(Event, e);
                     for (var i = 0; i < _waiting.Count; i++)
                         if (_waiting[i].Name == e.Name)
                         {
@@ -134,7 +135,7 @@ public sealed class Animator(AnimationStack stack, StateMachine? machine = null)
                 }
                 else if (item.Notice is { } n)
                 {
-                    StateChanged?.Invoke(n);
+                    Invoke(StateChanged, n);
                     for (var i = 0; i < _waitingStates.Count; i++)
                         if (_waitingStates[i].Layer == n.Layer && _waitingStates[i].State == n.State && _waitingStates[i].Entered == n.Entered)
                         {
@@ -143,14 +144,24 @@ public sealed class Animator(AnimationStack stack, StateMachine? machine = null)
                         }
                 }
             }
-            catch (Exception exception)
-            {
-                Core.Log.Error("Animation", $"A clip event handler failed: {exception}");
-            }
             finally
             {
                 loop?.ExitScript();
             }
         }
+    }
+
+    /// <summary>Calls each handler apart: one that throws is logged, and the others (and the waiting tasks) still get the event.</summary>
+    static void Invoke<T>(Action<T>? handlers, T value)
+    {
+        foreach (var handler in handlers?.GetInvocationList() ?? [])
+            try
+            {
+                ((Action<T>)handler)(value);
+            }
+            catch (Exception exception)
+            {
+                Core.Log.Error("Animation", $"A clip event handler failed: {exception}");
+            }
     }
 }

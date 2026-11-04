@@ -1,0 +1,4 @@
+scene.camera-cut 1
+  1 time: float64 (required)
+  2 camera: string (required)
+  3 marker: string? = null

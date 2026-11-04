@@ -1,0 +1,2 @@
+scene.particle-track 1
+  1 cues: list<scene.particle-cue> = []

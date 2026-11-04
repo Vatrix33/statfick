@@ -1,0 +1,3 @@
+scene.palette-track 1
+  1 target: string (required)
+  2 cues: list<scene.palette-cue> = []

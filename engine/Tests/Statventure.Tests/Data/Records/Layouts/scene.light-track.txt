@@ -1,0 +1,4 @@
+scene.light-track 1
+  1 cues: list<scene.light-cue> = []
+  2 strength: scene.curve? = null
+  3 angle: scene.curve? = null

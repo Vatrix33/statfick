@@ -1,0 +1,596 @@
+{
+  "$types": {
+    "scene.sequence": 1,
+    "scene.role": 1,
+    "scene.track": 1,
+    "scene.clip-track": 1,
+    "scene.strip": 1,
+    "scene.transform-track": 1,
+    "scene.curve": 1,
+    "scene.key": 1,
+    "scene.visibility-track": 1,
+    "scene.visibility-cue": 1,
+    "scene.animation-track": 1,
+    "scene.parameter-cue": 1,
+    "scene.palette-track": 1,
+    "scene.palette-cue": 1,
+    "scene.event-track": 1,
+    "scene.event-cue": 1,
+    "scene.camera-track": 1,
+    "scene.camera-cut": 1,
+    "scene.light-track": 1,
+    "scene.light-cue": 1,
+    "scene.particle-track": 1,
+    "scene.particle-cue": 1,
+    "scene.audio-track": 1,
+    "scene.audio-cue": 1,
+    "scene.ui-track": 1,
+    "scene.ui-cue": 1,
+    "scene.span": 1
+  },
+  "name": "every-field",
+  "duration": 3.5,
+  "skippable": false,
+  "blocking": false,
+  "roles": [
+    {
+      "name": "hero",
+      "kind": "actor"
+    },
+    {
+      "name": "pivot",
+      "kind": "node"
+    },
+    {
+      "name": "prop",
+      "kind": "model"
+    },
+    {
+      "name": "card",
+      "kind": "element"
+    },
+    {
+      "name": "tint",
+      "kind": "palette"
+    }
+  ],
+  "stages": [
+    "models/stages/arena"
+  ],
+  "tracks": [
+    {
+      "$type": "scene.clip-track",
+      "stage": "arena",
+      "strip": {
+        "clip": "sweep",
+        "start": 0.5,
+        "clipStart": 0.25,
+        "clipEnd": 1.75,
+        "scale": 2,
+        "repeat": "Infinity",
+        "reversed": true,
+        "blendIn": 0.1,
+        "blendOut": 0.2,
+        "influence": 0.75,
+        "mode": "combine",
+        "extrapolation": "hold"
+      }
+    },
+    {
+      "$type": "scene.transform-track",
+      "node": "pivot",
+      "locationX": {
+        "keys": [
+          {
+            "time": 0,
+            "value": 0,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          },
+          {
+            "time": 1,
+            "value": 1,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          }
+        ],
+        "extrapolation": "constant",
+        "smoothing": "continuousAcceleration"
+      },
+      "locationY": {
+        "keys": [
+          {
+            "time": 0,
+            "value": 1,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          },
+          {
+            "time": 1,
+            "value": 2,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          }
+        ],
+        "extrapolation": "constant",
+        "smoothing": "continuousAcceleration"
+      },
+      "locationZ": {
+        "keys": [
+          {
+            "time": 0,
+            "value": 2,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          },
+          {
+            "time": 1,
+            "value": 3,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          }
+        ],
+        "extrapolation": "constant",
+        "smoothing": "continuousAcceleration"
+      },
+      "rotationX": {
+        "keys": [
+          {
+            "time": 0,
+            "value": 0,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          },
+          {
+            "time": 1,
+            "value": 0.5,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          }
+        ],
+        "extrapolation": "constant",
+        "smoothing": "continuousAcceleration"
+      },
+      "rotationY": {
+        "keys": [
+          {
+            "time": 0,
+            "value": 0.5,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          },
+          {
+            "time": 1,
+            "value": 1,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          }
+        ],
+        "extrapolation": "constant",
+        "smoothing": "continuousAcceleration"
+      },
+      "rotationZ": {
+        "keys": [
+          {
+            "time": 0,
+            "value": 1,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          },
+          {
+            "time": 1,
+            "value": 1.5,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          }
+        ],
+        "extrapolation": "constant",
+        "smoothing": "continuousAcceleration"
+      },
+      "scaleX": {
+        "keys": [
+          {
+            "time": 0,
+            "value": 1,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          },
+          {
+            "time": 1,
+            "value": 2,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          }
+        ],
+        "extrapolation": "constant",
+        "smoothing": "continuousAcceleration"
+      },
+      "scaleY": {
+        "keys": [
+          {
+            "time": 0,
+            "value": 2,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          },
+          {
+            "time": 1,
+            "value": 1,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          }
+        ],
+        "extrapolation": "constant",
+        "smoothing": "continuousAcceleration"
+      },
+      "scaleZ": {
+        "keys": [
+          {
+            "time": 0,
+            "value": 1,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          },
+          {
+            "time": 1,
+            "value": 3,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          }
+        ],
+        "extrapolation": "constant",
+        "smoothing": "continuousAcceleration"
+      }
+    },
+    {
+      "$type": "scene.visibility-track",
+      "node": "arena/door",
+      "cues": [
+        {
+          "time": 0.5,
+          "shown": true,
+          "marker": "arena/open"
+        },
+        {
+          "time": 1,
+          "shown": false
+        }
+      ]
+    },
+    {
+      "$type": "scene.animation-track",
+      "actor": "hero",
+      "mark": "arena/mark.hero",
+      "strips": [
+        {
+          "clip": "swing",
+          "start": 0.5,
+          "clipStart": 0.25,
+          "clipEnd": 1.75,
+          "scale": 2,
+          "repeat": "Infinity",
+          "reversed": true,
+          "blendIn": 0.1,
+          "blendOut": 0.2,
+          "influence": 0.75,
+          "mode": "combine",
+          "extrapolation": "hold"
+        }
+      ],
+      "cues": [
+        {
+          "time": 0.25,
+          "parameter": "speed",
+          "kind": "float",
+          "value": 1.5,
+          "marker": "arena/open"
+        },
+        {
+          "time": 1,
+          "parameter": "attack",
+          "kind": "trigger",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "$type": "scene.palette-track",
+      "target": "prop",
+      "cues": [
+        {
+          "time": 0,
+          "palette": "tint",
+          "marker": "arena/open"
+        },
+        {
+          "time": 1,
+          "fill": "#101010"
+        },
+        {
+          "time": 2
+        }
+      ]
+    },
+    {
+      "$type": "scene.event-track",
+      "cues": [
+        {
+          "time": 3.5,
+          "name": "end",
+          "marker": "arena/open"
+        }
+      ]
+    },
+    {
+      "$type": "scene.camera-track",
+      "cuts": [
+        {
+          "time": 0,
+          "camera": "arena/camera.wide",
+          "marker": "arena/open"
+        }
+      ],
+      "fieldOfView": {
+        "keys": [
+          {
+            "time": 0,
+            "value": 0.6,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          },
+          {
+            "time": 1,
+            "value": 0.4,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          }
+        ],
+        "extrapolation": "constant",
+        "smoothing": "continuousAcceleration"
+      }
+    },
+    {
+      "$type": "scene.light-track",
+      "cues": [
+        {
+          "time": 0,
+          "sun": "arena/sun",
+          "marker": "arena/open"
+        }
+      ],
+      "strength": {
+        "keys": [
+          {
+            "time": 0,
+            "value": 3,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          },
+          {
+            "time": 1,
+            "value": 5,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          }
+        ],
+        "extrapolation": "constant",
+        "smoothing": "continuousAcceleration"
+      },
+      "angle": {
+        "keys": [
+          {
+            "time": 0,
+            "value": 3,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          },
+          {
+            "time": 1,
+            "value": 6,
+            "interpolation": "linear",
+            "easing": "auto",
+            "left": "autoClamped",
+            "right": "autoClamped",
+            "back": 1.70158,
+            "amplitude": 0.8,
+            "period": 0.06833333333333333
+          }
+        ],
+        "extrapolation": "constant",
+        "smoothing": "continuousAcceleration"
+      }
+    },
+    {
+      "$type": "scene.particle-track",
+      "cues": [
+        {
+          "time": 1,
+          "effect": "models/effects/mist",
+          "node": "arena/rift",
+          "seed": 7,
+          "burst": 12,
+          "rate": 30,
+          "duration": 2.5,
+          "palette": "tint",
+          "marker": "arena/open"
+        }
+      ]
+    },
+    {
+      "$type": "scene.audio-track",
+      "cues": [
+        {
+          "time": 0,
+          "kind": "music",
+          "name": "great-imp-jiruan",
+          "volume": 0.5,
+          "pan": -0.25,
+          "pitch": 1.5,
+          "marker": "arena/open"
+        },
+        {
+          "time": 2,
+          "kind": "stopMusic",
+          "volume": 1,
+          "pan": 0,
+          "pitch": 1
+        },
+        {
+          "time": 1,
+          "kind": "effect",
+          "name": "whoosh",
+          "volume": 1,
+          "pan": 0,
+          "pitch": 1
+        }
+      ]
+    },
+    {
+      "$type": "scene.ui-track",
+      "host": "card",
+      "cues": [
+        {
+          "time": 0,
+          "action": "setAttribute",
+          "element": "title",
+          "name": "data-boss",
+          "value": "jiruan",
+          "marker": "arena/open"
+        },
+        {
+          "time": 3.5,
+          "action": "setText",
+          "element": "label",
+          "value": "LORD OF THE IMP COURT"
+        }
+      ]
+    }
+  ],
+  "reduced": [
+    {
+      "from": 0,
+      "to": 0.5,
+      "hold": 0
+    },
+    {
+      "from": 1,
+      "to": 1,
+      "hold": 2.4
+    }
+  ]
+}

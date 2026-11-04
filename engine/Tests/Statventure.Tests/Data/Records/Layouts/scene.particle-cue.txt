@@ -1,0 +1,10 @@
+scene.particle-cue 1
+  1 time: float64 (required)
+  2 effect: string (required)
+  3 node: string (required)
+  4 seed: int32 = 0
+  5 burst: int32 = 0
+  6 rate: float64 = 0
+  7 duration: float64 = 0
+  8 palette: string? = null
+  9 marker: string? = null

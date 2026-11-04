@@ -1512,6 +1512,29 @@ parsing leaves out), `UI/Css/FontFaceDescriptors.cs`, `UI/Style/Stylesheet.cs` (
   each tested at their limits; the committed pack's contents (the old game's files byte for byte) and its
   repacking to the same bytes; the fixture of every record type and token kind.
 
+### Sequences and their stages (M10 step 4; `Docs/Scene.md`, "How it works", step 4)
+
+- **Where:** a cutscene is a record entry at `world/cutscenes/<name>` in `world.pak` (M10-10), written in
+  its JSON form and packed by step 3's rule for records' JSON forms; the stages it brings are models at
+  `models/stages/<name>` in `models.pak` (imported from `.glb` as every model, Q14); particle effects
+  will be records at `models/effects/<name>` (M10 step 5, Q25). None is committed (M9 Q1; Ji'ruan's proof
+  is test data, M10 Q30).
+- **The types** (`Engine/Statventure/Scene/Sequence.cs`, all version 1; S4-1): `scene.sequence` (name,
+  duration, skippable, blocking, roles, stages, tracks, reduced), `scene.role`, `scene.span`,
+  `scene.strip`, the union `scene.track` with tags 1–11 (`scene.clip-track`, `scene.transform-track`,
+  `scene.visibility-track`, `scene.animation-track`, `scene.palette-track`, `scene.event-track`,
+  `scene.camera-track`, `scene.light-track`, `scene.particle-track`, `scene.audio-track`,
+  `scene.ui-track`) and their cues (`scene.visibility-cue`, `scene.parameter-cue`, `scene.palette-cue`,
+  `scene.event-cue`, `scene.camera-cut`, `scene.light-cue`, `scene.particle-cue`, `scene.audio-cue`,
+  `scene.ui-cue`); curves are step 2's `scene.curve` and `scene.key`. Every track kind is declared now,
+  so steps 5 and 6 of M10 add playback without a new layout. Layouts in `Data/Records/Layouts/scene.*.txt`,
+  the fixture `Fixtures/scene.sequence/every-field`.
+- **Loading:** `Sequence.Load(files, path)` reads the record and its stages from the same data (each with
+  `ModelData.Load`) and checks it (`Validate(stages)`); a problem is a `DataFileException` naming the
+  sequence's pack and entry or loose file through `VirtualFileSystem.Problem` (a curve that breaks its
+  rules arrives from the serializer as an `ArgumentException` and is named the same way), except a broken
+  stage, whose own error names the stage's entry.
+
 ## Status
 
 **M9 done (2026-11-03): all nine steps.** (Before step 1, on 2026-11-02, nothing was implemented; the

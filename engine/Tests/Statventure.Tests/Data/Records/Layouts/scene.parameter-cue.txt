@@ -1,0 +1,6 @@
+scene.parameter-cue 1
+  1 time: float64 (required)
+  2 parameter: string (required)
+  3 kind: enum int32 {bool = 0, int = 1, float = 2, trigger = 3} (required)
+  4 value: float64 = 1
+  5 marker: string? = null

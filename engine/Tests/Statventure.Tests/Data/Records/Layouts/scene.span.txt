@@ -1,0 +1,4 @@
+scene.span 1
+  1 from: float64 (required)
+  2 to: float64 (required)
+  3 hold: float64 = 0

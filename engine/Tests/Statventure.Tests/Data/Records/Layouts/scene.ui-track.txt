@@ -1,0 +1,3 @@
+scene.ui-track 1
+  1 host: string (required)
+  2 cues: list<scene.ui-cue> = []

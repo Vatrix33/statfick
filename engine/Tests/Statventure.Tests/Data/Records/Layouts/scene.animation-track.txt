@@ -1,0 +1,5 @@
+scene.animation-track 1
+  1 actor: string (required)
+  2 mark: string? = null
+  3 strips: list<scene.strip> = []
+  4 cues: list<scene.parameter-cue> = []

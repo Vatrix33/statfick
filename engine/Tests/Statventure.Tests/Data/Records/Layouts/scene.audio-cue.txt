@@ -1,0 +1,8 @@
+scene.audio-cue 1
+  1 time: float64 (required)
+  2 kind: enum int32 {effect = 0, music = 1, stopMusic = 2} (required)
+  3 name: string? = null
+  4 volume: float64 = 1
+  5 pan: float64 = 0
+  6 pitch: float64 = 1
+  7 marker: string? = null

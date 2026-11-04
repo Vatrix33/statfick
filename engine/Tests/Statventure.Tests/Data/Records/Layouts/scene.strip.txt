@@ -1,0 +1,13 @@
+scene.strip 1
+  1 clip: string (required)
+  2 start: float64 = 0
+  3 clipStart: float64 = 0
+  4 clipEnd: float64? = null
+  5 scale: float64 = 1
+  6 repeat: float64 = 1
+  7 reversed: bool = false
+  8 blendIn: float64 = 0
+  9 blendOut: float64 = 0
+  10 influence: float64? = null
+  11 mode: enum int32 {replace = 0, combine = 1} = "replace"
+  12 extrapolation: enum int32 {nothing = 0, hold = 1, holdForward = 2} = "holdForward"

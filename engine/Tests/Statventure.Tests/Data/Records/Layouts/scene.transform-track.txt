@@ -1,0 +1,11 @@
+scene.transform-track 1
+  1 node: string (required)
+  2 locationX: scene.curve? = null
+  3 locationY: scene.curve? = null
+  4 locationZ: scene.curve? = null
+  5 rotationX: scene.curve? = null
+  6 rotationY: scene.curve? = null
+  7 rotationZ: scene.curve? = null
+  8 scaleX: scene.curve? = null
+  9 scaleY: scene.curve? = null
+  10 scaleZ: scene.curve? = null

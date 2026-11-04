@@ -1,0 +1,4 @@
+scene.visibility-cue 1
+  1 time: float64 (required)
+  2 shown: bool (required)
+  3 marker: string? = null

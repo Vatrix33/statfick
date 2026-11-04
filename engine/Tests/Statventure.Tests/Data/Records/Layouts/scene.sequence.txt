@@ -1,0 +1,9 @@
+scene.sequence 1
+  1 name: string (required)
+  2 duration: float64 (required)
+  3 skippable: bool = true
+  4 blocking: bool = true
+  5 roles: list<scene.role> = []
+  6 stages: list<string> = []
+  7 tracks: list<scene.track> = []
+  8 reduced: list<scene.span>? = null

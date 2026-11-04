@@ -794,7 +794,60 @@ M10", "Step details".
   applied at a time the caller gives (`ModelInstance.Apply`); nothing advances them on its own. The
   sequence's clip track gives that time while it plays; if the game wants a stage moving outside a
   cutscene (a waving banner on the battle stage), which clock and rate drive it (the scene's battle
-  pace, real time) is to be asked with this step.
+  pace, real time) is to be asked with this step. Answered: S4-7 below.
+- Asked during step 4 (2026-11-04), all nine answered with the recommended option:
+- **S4-1. The record's layout:** typed track records in a union (`scene.track`: clip, transform,
+  visibility, animation, palette, event, camera, light, particles, audio, ui, tags 1–11), each kind
+  with its own cue record; `scene.sequence` (name, duration, skippable true, blocking true, roles,
+  stages as paths `models/stages/<name>` whose last name is the stage's name, tracks, reduced: null or
+  a list of spans), `scene.role` (name; kind actor, node, model, element, palette), `scene.span` (from,
+  to, hold 0: played from → to, then `to` held), `scene.strip` (an `AnimationStrip`'s settings, its
+  start on the timeline, `clipEnd` null for the clip's end); node references as a node role's name or
+  `<stage>/<Blender name>`; transform curves as nine named fields (location, rotation as Euler XYZ in
+  radians, scale, each x, y, z); `Validate()` checks the record alone, `Validate(stages)` also the names
+  in its stages (the builder is given them, `Load` reads them from the same data, `Play` has them).
+  Why: each kind's fields are its own and checked by type. (Not one generic cue record with every
+  kind's optional fields and curves as (channel, curve) pairs.)
+- **S4-2. Markers:** they live in the stage: the stage's export script writes the Blender scene's
+  timeline markers into the scene's custom property `events` (a list of `{name, time}`), which the
+  exporter's scene mode writes as the stage clip's extras and `GltfImport` already reads as the clip's
+  events; the sequence keeps no marker times: a cue names `<stage>/<marker>` and its `time` is then an
+  offset from it, resolved whenever the sequence is checked against its stages (build, load, play), so a
+  retimed, re-exported stage moves its cues. Why: the artist's timing stays the source (Q22). (Not the
+  record's own `markers` list copied by the builder; not both.)
+- **S4-3. A palette cue's palette:** a palette role the game binds, or `fill` (one colour on every slot
+  of the target's models: the all-ink silhouette), or neither: the target's own palette as it was when
+  the sequence started. Particle cues name a palette role. Why: the game's palettes come from the game
+  (one sequence for any boss), and the silhouette needs no slot list. (Not palettes written in the
+  record; not both.)
+- **S4-4. A transform track on a node a clip track also moves:** track order decides, channel by
+  channel: the later track sets the channels it animates (location, rotation, scale; a channel with a
+  curve for any component is the track's, its other components the node's values when the sequence
+  started), the channels it doesn't animate keep what the earlier gave. (Not an offset on the clip's
+  pose, NLA's Combine; not refused.)
+- **S4-5. Seek:** a jump: nothing fires (event cues, triggers; the held figures' clips seek too), the
+  state at the new time is applied in the next frame, and seeking back re-arms the cues after it.
+  Why: the design and `Animator.Seek` have it so, and the editor's scrubbing must not fire game events.
+  (Not delivering the cues jumped over marked skipped; not each cue at most once per play.)
+- **S4-6. How bindings fail:** `Play` checks everything first and throws an `ArgumentException` naming
+  the problem, changing nothing (a role unbound, bound twice or to the wrong kind, a binding the
+  sequence has no role or stage for, a stage not given, a stage without a node, clip or marker it names,
+  a figure without a clip or a parameter of the cue's kind, a figure another playing sequence holds).
+  (Not lenient, unbound roles' tracks doing nothing; not roles marked optional in the record.)
+- **S4-7. A stage's clips outside a sequence:** on the scene's battle pace: `SceneView.Animate(instance,
+  stack)` plays an NLA stack on an instanced model at the frame's time × `Rate`, as the figures no
+  sequence holds. (Not real time at rate 1; not left to the game's own `ModelInstance.Apply`.)
+- **S4-8. When state cues apply, and moments at a skip:** tracks of state cues (visibility, palette,
+  parameter values, camera cuts, sun cues, UI) apply when the cue in effect changes (the first frame,
+  the clock passing a cue, a seek, a skip; before a track's first cue its target as it was when the
+  sequence started), so the game's own changes in between stand until the next cue; curves and clips
+  apply every frame; triggers are moments, set when the clock passes them, and those not yet set are
+  set at a skip or a cut; the figures' clip events don't fire across a jump. (Not every state track
+  applied every frame, triggers in a skipped part dropped.)
+- **S4-9. The reduced variant's last stretch:** the literal reading of Q18 and Q19: moments after the
+  last span are cut out too, so they arrive marked skipped although nobody skipped (Ji'ruan's end cue
+  after his hold), while `Finished` says not skipped. (Not delivering the last stretch's moments
+  unmarked.)
 
 **Step 5 (camera, light and particle tracks):**
 - **Q25. Particle effects' data:** records of their own, named by path from the track, in
@@ -1141,6 +1194,178 @@ stage `dolly`), `evaluate_animations.py` (`evaluate_stage`), `render_scenes.py` 
   brings them in, and its sun would light the scene a second time) and top-level objects without a
   mesh (the dolly, its camera gone).
 
+### Step 4: the sequence record, builder and player core (`Engine/Statventure/Scene/Sequence*.cs`)
+
+Q14–Q24 as the user answered them before the milestone, and S4-1–S4-9 asked during the step (all as
+recommended, "Step details" above).
+
+- **The records** (`Sequence.cs`, all version 1, S4-1): `scene.sequence` (`Sequence`: name, duration,
+  skippable, blocking, roles, stages, tracks, reduced), `scene.role` (`SequenceRole`, `RoleKind` actor,
+  node, model, element, palette), `scene.span` (`SequenceSpan`: from, to, hold), `scene.strip`
+  (`SequenceStrip`), the union `scene.track` (`SequenceTrack`) and its eleven kinds with their cues:
+  `scene.clip-track` (stage, strip), `scene.transform-track` (node, nine curves), `scene.visibility-track`
+  (`scene.visibility-cue`: time, shown), `scene.animation-track` (C# `ActorTrack`, as M7's
+  `AnimationTrack` is taken: actor, mark, strips, `scene.parameter-cue`: time, parameter, kind, value),
+  `scene.palette-track` (target; `scene.palette-cue`: time, palette role, fill), `scene.event-track`
+  (`scene.event-cue`: time, name), `scene.camera-track` (`scene.camera-cut`: time, camera; field of
+  view, radians), `scene.light-track` (`scene.light-cue`: time, sun; strength, angle in degrees),
+  `scene.particle-track` (`scene.particle-cue`: time, effect `models/effects/<name>`, node, seed, burst,
+  rate, duration, palette role), `scene.audio-track` (`scene.audio-cue`: time, kind effect, music or
+  stopMusic, name, volume, pan, pitch), `scene.ui-track` (host; `scene.ui-cue`: time, action setText,
+  addClass, removeClass, setAttribute, removeAttribute, element id or null for the host, name, value).
+  Every cue's last field is `marker`. Layouts in `Data/Records/Layouts/scene.*.txt`, the fixture
+  `Fixtures/scene.sequence/every-field` (every field of every type away from its default).
+- **The checks**: `Validate()` checks the record alone, `Validate(stages)` also against the stage
+  models by path; each problem an `ArgumentException` naming the sequence, the track (index and kind)
+  and the cue: a name and a duration above 0; roles named once, without `/`, of a defined kind; stages
+  at `models/stages/<name>`, named once, not like a role; every reference a role of the right kind or
+  `<stage>/<name>` of one of its stages (with the stages: a node the stage's scene reaches, found by name,
+  a joint first, as `Skeleton.Find`); strips' numbers (finite, scale and repeat above 0, the part
+  forward from 0, blends not negative, influence 0–1); cue times within the timeline, or an offset from
+  `<stage>/<marker>` that, with the stages, resolves inside it; each kind's own (a transform track has a
+  curve; parameter values fit their kind; a palette cue names a palette or a fill, not both; audio and
+  UI cues have exactly the names and values their kind takes); at most one mark per figure; the cut
+  list's spans in order inside the timeline, each playing for some time. Cue lists needn't be in order
+  (their times may come from markers): the player sorts them, equal times keeping record order.
+  `Sequence.Load(files, path)` reads the record (an `ArgumentException` from a curve the serializer
+  makes, or from `Validate`, becomes a `DataFileException` through `VirtualFileSystem.Problem`, naming
+  the pack and entry or the loose file), then each stage with `ModelData.Load` from the same data (a
+  missing one is the sequence's problem; a broken one's own error names the stage's entry), then
+  `Validate(stages)`.
+- **Markers** (S4-2): the convention the stage's export (step 7) must follow: the Blender scene's
+  custom property `events` = `[{name, time}, …]`, time in seconds from the scene's first frame (where
+  the exporter's slide to zero puts clip time 0), written as `export_markers` writes an action's pose
+  markers. Blender 5.2's exporter, in the scene mode with `export_anim_scene_split_object=False`, writes
+  the one animation's extras from `bpy.context.scene`'s custom properties
+  (`io_scene_gltf2/blender/exp/animation/scene_animation.py`, `__gather_extras(bpy.context.scene)`), and
+  `GltfImport` reads `events` from an animation's extras into `ModelAnimation.Events`: the importer and
+  the model record need nothing new. A stage's markers are the events of the clip its first clip track
+  plays, placed on the timeline by that track's strip (start + (marker − part start) × scale; reversed,
+  from the part's end); a cue's time at a marker is that plus the cue's offset (`SequenceTimes`).
+- **The builder** (`SequenceBuilder.cs`): `new SequenceBuilder(name, duration)`, `Unskippable()`,
+  `NonBlocking()`, `Role(name, kind)`, `Stage(path, modelData)`, `Clip(stage, clip | strip)`,
+  `Transform(node, t => t.Location(x, y, z).Rotation(…).Scale(…))`, `Visibility(node, v => v.Show(t).Hide(t))`,
+  `Animation(actor, mark, a => a.Strip(…).Bool/Int/Float(t, name, v).Trigger(t, name))`,
+  `Palette(target, p => p.Fill(t, "#rrggbb").Role(t, role).Own(t))`, `Events(e => e.Event(t, name))`,
+  `Camera`, `Light`, `Particles`, `Audio(a => a.Effect/Music/StopMusic)`, `Ui(host, u => u.Text/AddClass/
+  RemoveClass/SetAttribute/RemoveAttribute)`, `Track(record)`, `Reduced(r => r.Span(from, to).Hold(at,
+  length))`; a cue's time is a `CueTime`: seconds, or `CueTime.At("<stage>/<marker>", offset)`.
+  `Build()` runs `Validate(stages)` with the stage models it was given.
+- **Playing** (`SceneView.Play(sequence, bindings, document)`, `SequenceBindings.cs`,
+  `SequencePlayer.cs`): bindings give each role an object of its kind (`Actor`, `Node`, `Model` (a
+  `PlacedModel` or `ModelInstance`), `Element`, `Palette`; a figure's clips by name from a resolver, by
+  default its model's own on its stack's skeleton) and each stage its model (`Model`, drawn as scenery,
+  or `ModelData`, nodes only). `Play` checks everything first (S4-6: the stages given and only those,
+  `Validate(stages)`, every role bound once to its kind and no other binding, a figure in one role only,
+  held by no playing sequence and in the scene unless it gets a mark; then each track's playback is made,
+  resolving its names: a figure's clips (bound to its stack's skeleton), its strips in order without
+  overlapping, its machine's parameters of each cue's kind), each failure an `ArgumentException` that
+  leaves everything as it was. Then the changes: each stage instanced under a node named after it
+  under the scene's root, the bound figures held (their time when it started is their origin), each
+  track's playback begun (figures attached to their marks, their strips as one layer on top of their
+  stacks, the state the tracks start from captured), the moments merged, the visibility listener added.
+- **The scene drives its players** (hooks in `SceneView.cs`): each frame `Advance` moves the players
+  first (in the order they started), then the figures no player holds by the frame's time × `Rate`,
+  then the models it animates (S4-7), then one refresh; the events step dispatches every figure's
+  events, then each player's cues. So a frame's state shows in that frame, and Q17's order doesn't
+  depend on the order frame clients were added. `SceneView.Playing` lists them.
+- **The clock** (M10-7): the first frame after `Play` is at the start (it advances by nothing, as a
+  CSS animation starts on its first frame); then each frame adds the frame's time, less the time the
+  document spent hidden (the player listens for `visibilitychange` and subtracts the time between the
+  document's clock at hiding and at showing), times `Rate` (finite, 0 or more; a sequence with UI tracks
+  only 1, Q29), not while `Paused`. `Time` and `Duration` are the played variant's clock; `TimelineTime`
+  τ maps it through the spans (inside a span its start plus the time into it, held at its end; at a
+  boundary the span it ends; the duration at the end: Q3's end state). The reduced variant plays when the
+  sequence has one and the document's media environment asks for reduced motion (`document.Styles.
+  Environment.ReducedMotion`, what `prefers-reduced-motion` sees; UiHost reads the system's once at
+  start); without a document the full variant plays. The full variant is one span (0, duration).
+- **A frame** (Q17, in the scene's animation timing update): τ moves; each track's playback applies its
+  state at τ in track order (curves and clips every frame, state cues when the cue in effect changes or
+  on the first frame or after a seek or at a skip, S4-8); the moments the clock passed (merged across
+  tracks: in time order, within `AnimationStrip.Epsilon` of a run's first in record order, track then
+  cue) go to their tracks, marked skipped when they lie outside every played span (cut out, S4-9); then
+  the held figures' clocks move along τ: through played time they advance (with their own rate set aside:
+  their time is their origin plus τ), so their clip events fire; across a cut, and to the duration after
+  the last span, they jump (`Animator.Seek`), firing none; in a hold they stand still. Reaching the end
+  marks it: in the events step the cues queued are delivered, then the end. A track's state cues within
+  `AnimationStrip.Epsilon` of each other count as one moment, as the moments do: the later in record order
+  is the one in effect (`CueTimes`).
+- **The end** (Q21): `Ended`; the playbacks are told; the figures are released (back on the scene's
+  clock from the next frame), the player leaves the scene's list, the listener goes, the cues still
+  queued are delivered, then `Finished` completes (false: played). Nothing is restored: the stages stay
+  instanced (`Stages`), the figures on their marks with the sequence's layers on top (`LayersOf(actor)`,
+  for the game to take off), the nodes, palettes and parameters as the end left them.
+- **Skip and finish** (Q3, Q18, Q20): `Skip()` returns false and does nothing when the sequence is
+  unskippable or has ended; otherwise, as `Finish()` (which ends any sequence): τ = the duration, every
+  playback's state applied there, every moment not yet passed passed as skipped (event cues queued
+  marked skipped, triggers set), the figures' clocks at origin + duration, then the end as above,
+  delivering the cues inside the call, each as game code on the document's loop (`EnterScript`,
+  `ExitScript`); a skip from a cue's handler adds to the queue being delivered, so its cues come after
+  the handler. `Finished` says true. Game code that runs in the end's frame between its timing update and
+  its events step (a resize or media query listener) finds the end pending: `Skip()` returns false and
+  `Finish()` does nothing (it ends as played), while a seek back takes it back from the end.
+- **Seek** (S4-5): `Seek(time)` (refused after the end) clamps to the played clock, sets τ, counts every
+  moment at or before it as passed without firing and re-arms those after it, jumps the held figures'
+  clocks, and the next frame applies the state with force; a seek to the end ends it in the next frame,
+  as played.
+- **Delivery**: each cue a `SequenceCue(Name, Time, Skipped)` to the `Cue` event and to the tasks from
+  `Next(name)` (continuations asynchronous), each as game code; a handler that throws is logged
+  ("Sequence") and the others still come.
+- **The tracks' playback** (`SequencePlayback.cs`: the internal `TrackPlayback` (`Begin`, `Apply(τ,
+  force)`, `Moments`, `Pass(cue, skipped)`, `Paused`, `RateChanged`, `Jumped`, `VisibilityChanged`,
+  `Ended`) and `PlaybackContext`, which resolves names; one file per kind, `SequencePlayback.<Kind>.cs`,
+  each a `partial` of its track record making its playback):
+  - *clip*: a stage's clip tracks are one NLA stack on its instance's nodes, a layer each in track
+    order, applied at the place of the stage's first clip track; each node takes the channels a strip
+    sets now (S4-4); a channel set before that no strip sets now goes back to the node's rest (its local
+    when instanced), unless a track before it set that channel in the same frame (the context records
+    each frame's writes); channels no strip set are left alone.
+  - *transform*: a channel with a curve for any component is set whole every frame, its other
+    components the node's when the sequence started (rotation by Blender's `quat_to_eul`); Euler XYZ as
+    Blender's `eul_to_quat` (q = q_z · q_y · q_x), checked against Blender 5.2's mathutils (probed
+    headless, values in the test); channels without curves are left alone.
+  - *visibility*: `Hidden` from the cue in effect (before the first, the node's own).
+  - *animation*: the figure on its mark (attached there), its strips as one layer on top of its stack
+    at origin + start; bool, int and float parameters from the cue in effect (before the first, their
+    values when it started); triggers set when passed (at a skip or a cut too); the machine takes them
+    when the figure next advances.
+  - *palette*: the bound palette role, a fill palette made at the start with every slot of the
+    target's models (a figure's gear included; a stage's or model's materials), or the target's own.
+  - *event*: moments queued as `SequenceCue`s.
+  - *camera, light, particles, audio, ui*: placeholders that play nothing; steps 5 and 6 replace their
+    files (`SequencePlayback.Camera.cs`, `.Light.cs`, `.Particles.cs`, `.Audio.cs`, `.Ui.cs`) without
+    editing the player: the hooks for pausing, rate changes, seeks, visibility and the end are there.
+- **A stage's clips outside a sequence** (S4-7): `SceneView.Animate(instance, stack, time)` plays a
+  stack (on the instance's model's skeleton; another model's is refused) from `time`, advanced by the
+  frame's time × `Rate` with the figures no sequence holds; `Animate(instance, null)` stops it, the nodes
+  keeping their pose.
+- **The test sequence** (`Tests/Statventure.Tests/Scene/TestSequence.Core.cs`, a partial class; steps
+  5 and 6 add `TestSequence.Camera.cs` and `TestSequence.Sound.cs` through partial methods): the
+  hierarchy test model as the stage `models/stages/hierarchy` with markers "open" (0.4 s) and "reveal"
+  (0.75 s) put on its clip "base" as the export puts them; its clips (base from 0, rig from 0.5 s); the
+  node role "pivot" moved and turned; the bone arm raised over the rig clip's rotation; Mirror hidden and
+  shown at "reveal"; the figure "hero" on the stage's Tip with a swing strip and cues for each parameter
+  kind; palette cues (fill, own at "reveal" + 0.1, a role); event cues at 0, at "open", at 1 s and at
+  the end; the reduced variant 0–0.5 s then 1.5 s held for 1 s.
+- **Tests** (`Tests/Statventure.Tests/Scene/`): `SequenceRecordTests` (both forms, the fixture, a
+  sequence written by hand, every rule alone and with the stage, an unreached node, the strip on the
+  clock, markers placed by the clip track, loading from a pack and a loose folder and every refusal),
+  `SequenceBuilderTests` (each method's record, Build's checks), `SequencePlayerTests` (the first
+  frame, rate, pause, the hidden time, seek, the end, skip and finish, a skip from a handler, skipped and
+  watched alike, the reduced variant, the full one, cue order, markers following the stage, several at
+  once, the UI rate rule, every binding failure leaving everything as it was), `SequenceTrackTests`
+  (clips, channels shared with a clip, a clip's channels back to rest, a transform's missing components,
+  Euler against Blender, visibility, the figure, palettes, `Animate`); `SequenceBench.cs` is their scene.
+- **Internal choices** (not asked; reported): the scene drives its players inside its own frame step
+  (accepted with the proposal); a figure's animator rate is set aside while it is held; `Skip()` on an
+  ended sequence returns false; the moments' "played" test is whether a moment lies in a played span
+  (within the epsilon), so a moment at a span's end belongs to it and one at the next span's start too.
+  Three behaviours settled while writing it, accepted by the M10 manager (2026-11-04): a channel a clip
+  stops setting goes back to rest unless a track before it set that channel in the same frame (S4-4's
+  later track winning without a one-frame glitch); a track's state cues within 10⁻⁶ s of each other are
+  one moment, the later in record order in effect; game code in the end's frame before its events step
+  finds the end pending (`Skip()` false, `Finish()` nothing, a seek takes it back).
+
 ## Status
 
 - Steps 4–7: not done yet (2026-11-04). The decisions and the 33 step details are recorded, the
@@ -1177,3 +1402,19 @@ stage `dolly`), `evaluate_animations.py` (`evaluate_stage`), `render_scenes.py` 
   (`~/.cache/stat-fick-build/claude-work/m10/step3-mutations.json`, made by `make-step3-mutations.py`
   beside it), all killed (one gap closed while writing them: the test sun's strength and angle were
   `SceneSun`'s defaults, so instancing's copy of them went untested; they are 2.5 and 4° now).
+- **Step 4, the sequence record, builder and player core (2026-11-04, 2190 tests on the GPU and on
+  lavapipe): done** on its worker branch, rebased on step 3 ("How it works", step 4); nine details asked
+  on the way, all as recommended (S4-1–S4-9); three behaviours settled while writing it, accepted by the
+  M10 manager.
+  `Scene/Sequence.cs` (the `scene.*` records and their checks, `Load`, marker times), `SequenceBuilder.cs`,
+  `SequenceBindings.cs`, `SequencePlayer.cs`, `SequencePlayback.cs` and one `SequencePlayback.<Kind>.cs` per
+  track kind (clip, transform, visibility, animation, palette and event played; camera, light, particles,
+  audio and UI placeholders for steps 5 and 6); `SceneView` plays sequences (`Play`, `Playing`), drives them
+  in its frame step and animates stage models outside them (`Animate`, S4-7). Tests: `SequenceRecordTests`,
+  `SequenceBuilderTests`, `SequencePlayerTests`, `SequenceTrackTests`, `TestSequence.Core.cs`,
+  `SequenceBench.cs`; layouts and the fixture for the 25 new types. Also fixed (the manager's leave):
+  `Animator` calls each event and state handler apart, so one that throws no longer leaves the others and
+  the `Next`, `Entered` and `Left` tasks without the event (`AnimationEventTests`). The full suite passes
+  on the GPU and on lavapipe (2190: step 3's 2027 and 163 new). Mutations: 259 (`~/.cache/stat-fick-build/claude-work/m10/step4-mutations.json`, made by `make-step4-mutations.py` beside it; the four for the `Animator` fix among them), all killed: 257 in the run, two after closing the gaps they showed: a stage path with two slashes outside `models/stages/` (only the depth check had been tried; a case added) and the scene's player step removed, which made the tests' frame loops spin until `mutate.py`'s timeout (read as a survivor; the loops are bounded now, `SequenceBench.FrameUntil`, so a player that stops fails the test). Four candidates were left out of the list: two lines of code removed while writing it (a second check of the stages given, which `Validate(stages)` makes with the same words, and a hidden-at-play branch no frame could reach), and two that can't change a result (a frame's early return when nothing changed, and forcing the first frame, which state cues get anyway as they start with no cue in effect). Not done here, as the steps have it:
+  camera, light and particle playback (step 5), audio and UI playback (step 6), the stage's export script
+  writing the markers (step 7: the convention is in "How it works", step 4).

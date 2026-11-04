@@ -1,0 +1,5 @@
+scene.palette-cue 1
+  1 time: float64 (required)
+  2 palette: string? = null
+  3 fill: string? = null
+  4 marker: string? = null

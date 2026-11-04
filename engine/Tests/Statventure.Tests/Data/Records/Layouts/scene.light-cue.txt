@@ -1,0 +1,4 @@
+scene.light-cue 1
+  1 time: float64 (required)
+  2 sun: string (required)
+  3 marker: string? = null

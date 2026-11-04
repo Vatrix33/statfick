@@ -1,0 +1,2 @@
+scene.event-track 1
+  1 cues: list<scene.event-cue> = []
