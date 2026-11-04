@@ -663,6 +663,33 @@ M10", "Step details".
 - **Q8. Rotations:** Euler angles in XYZ order, Blender's default mode for objects, turned into a
   quaternion when the node is set. Why: what an animator keys on an object in Blender. (Not
   quaternion components; not either by a mode on the track.)
+- Asked during step 2 (2026-11-04), all three answered with the recommended option:
+- **S2-1. The records' layout:** `scene.key` version 1: `time` (seconds, required), `value`
+  (required), `interpolation` (constant, linear, bezier, sine, quad, cubic, quart, quint, expo, circ,
+  back, bounce, elastic; default bezier), `easing` (auto, in, out, inOut; default auto), the `left`
+  and `right` handle types (free, aligned, vector, auto, autoClamped; default autoClamped),
+  `leftTime`, `leftValue`, `rightTime`, `rightValue` (absolute positions, as Blender's BezTriple
+  holds them, present exactly for a free or aligned side), `back` (1.70158), `amplitude` (0.8) and
+  `period` (seconds, Blender's 4.1 frames; 0 means 0.3 of the segment): Blender's defaults for an
+  inserted key. `scene.curve` version 1: `keys` (required), `extrapolation` (constant, linear;
+  default constant), `smoothing` (none, continuousAcceleration; default continuousAcceleration,
+  Blender 5.2's default for new F-curves). The curve names nothing it drives: the track does (step 4).
+  Why: Blender's numbers carry over one to one and its handle rules apply to the same values. (Not
+  handle positions as offsets from their key; not smoothing none by default.)
+- **S2-2. The curve API:** the record is the curve: `FCurve` (`scene.curve`) and `FCurveKey`
+  (`scene.key`), immutable; `Evaluate(seconds)`; the auto, auto-clamped and vector handles are
+  resolved once, on first use, and cached (a copy made with `with` resolves its own); the resolved
+  handles readable for the tests and the editor; helpers to make keys (linear, constant, eased, free,
+  aligned). Why: a track holds its curves and evaluates them, with no build step. (Not data records
+  with a separate evaluator, as `StateMachineDefinition` and `StateMachine`.)
+- **S2-3. Curves Blender's rules don't cover:** refused when made or loaded, naming the problem: no
+  keys; keys not increasing at least 0.01 frame (1/6000 s, Blender's merge threshold) apart; a free
+  or aligned side without its position; an auto or vector side with one. What Blender's update
+  (`fcurve.update()`) fixes in handles is fixed the same way: crossed handles swapped, a handle past
+  its key clamped to it, both sides aligned lined up as for an unselected key (the left turned to the
+  right). Why: Blender never holds such a curve after an edit, so there is nothing to match, and a
+  silent fix would hide a data mistake. (Not Blender's update in full, sorting, merging and an empty
+  curve evaluating to 0; not also refusing the handles Blender fixes.)
 
 **Step 3 (cameras and lights from glTF):**
 - **Q9. Where cameras and lights go:** in the model record: camera and light lists and a camera and a
@@ -893,9 +920,115 @@ of its own (outline, glow mask, picking); terrain attaches to a node too. Code i
   animates at that clip's pose for the scene's frame (1, a frame into a clip it starts at 0): the
   objects mode sets the clips' start frame before clearing the animation data (Base was 2 cm off).
 
+### Step 2: F-curves and easing (`Engine/Statventure/Scene/FCurve*.cs`)
+
+Blender 5.2.0's rules, ported from `blenkernel/intern/fcurve.cc` (evaluation, the handles' update),
+`curve.cc` (`calchandleNurb_intern`, `BKE_nurb_handle_smooth_fcurve`), `blenlib/intern/easing.cc`
+and `math_solvers.cc` (the tridiagonal solver), in double precision (Q5), times in seconds (Q4).
+
+- **The records and the API** (S2-1, S2-2; `FCurve.cs`): `FCurveKey` is `scene.key` version 1 (time,
+  value, `KeyInterpolation` constant to elastic, `KeyEasing` auto, in, out, in-out, the `HandleType`s
+  of both sides (free, aligned, vector, auto, auto-clamped), the positions `leftTime`, `leftValue`,
+  `rightTime`, `rightValue` of free and aligned sides only, `back`, `amplitude`, `period` in seconds;
+  defaults Blender's for an inserted key: Bezier, auto easing, auto-clamped, 1.70158, 0.8, 4.1 frames).
+  `FCurve` is `scene.curve` version 1 (`keys`, `extrapolation` constant or linear, `smoothing` none or
+  continuous acceleration, the default as Blender 5.2's new F-curves). The record is the curve:
+  immutable, `Evaluate(seconds)`, `Handles` (each key's handles as used, seconds), `Start`, `End`,
+  equal by content. Helpers make keys: `FCurveKey.Constant`, `Linear`, `Bezier` (computed handles),
+  `Ease` (an easing type with its parameters), `Free`, `Aligned`. `FCurve.Load(files, path)` reads one
+  from the game's data (a `DataFileException` naming the pack and entry or the file when it breaks
+  the rules). A sequence's track (step 4) holds its curves, one per component.
+- **The rules a curve keeps** (S2-3): its constructor and the `init` of `Keys` (so also a `with` copy
+  and the serializer, which makes it through that constructor) throw an `ArgumentException` naming
+  the key and the problem: no keys; keys not increasing at least 0.01 frame (1/6000 s, Blender's merge
+  on update) apart; a free or aligned side without its position, an auto or vector side with one; and,
+  by S2-3's reason (Blender can't hold them either), numbers that aren't finite, a negative amplitude
+  (Blender's are kept at 0 or more) and enum values that aren't members (internal design, accepted
+  2026-11-04). `Load` turns it into the
+  `DataFileException`; a sequence's loader (step 4) does the same around its own read.
+- **Handles** (`FCurveHandles.cs`), resolved once on first use and cached (a `with` copy drops the
+  cache), as Blender's `fcurve.update()` leaves them, in frames (Blender's thresholds are frames, and
+  aligned handles keep their length in the (frame, value) plane, which isn't free of the time unit):
+  a side whose position isn't stored starts where Blender's insertion puts it (a frame off, at the
+  key's value: what a one-key curve keeps, as Blender recalculates nothing below two keys); crossed
+  handles are swapped, a handle past its key clamped to it (`sort_time_fcurve`); then, with two keys
+  or more, `BKE_fcurve_handles_recalc`: every handle kept 0.001 frame off its key's time; auto sides
+  along the average of the two neighbouring chords' slopes (an end key mirrors its one neighbour),
+  1/2.5614 of the interval long in time with each side at most 5 times the other without smoothing,
+  a third of it with smoothing; auto-clamped sides level at a peak or dip (the key locked), otherwise
+  kept within the neighbour's value with the other side turned to line up; vector sides a third of
+  the way to the neighbour; an aligned side turned to line up with the other keeping its own length
+  (both aligned: the left turns, as for an unselected key); the end keys of a constant-extrapolated
+  curve with both sides auto made level and locked. Continuous acceleration then solves each run of
+  unlocked auto keys between other keys for a continuous second derivative (the right handles'
+  value offsets in a tridiagonal system; auto-clamped keys limited to neither reverse nor overshoot,
+  the limits locked and released as Blender does; a run's end kept, with the correction for a
+  handle other than a third long, or solved for zero acceleration when it is vector or the curve's
+  auto end; results written to auto and vector sides, an aligned other side lined up, a curve's end
+  mirrored).
+- **Evaluation** (`FCurveEvaluation.cs`, `FCurveEasing.cs`), at the frame seconds × 60. At or before
+  the first key and at or after the last: the key's value if it is constant or the curve's
+  extrapolation is; the line to its neighbour if it is linear (one key: its value); otherwise the
+  slope of its outer handle (the first key's left, the last key's right; a one-key curve's free
+  handle on its time: its value). Between: the key search (a key within 0.0001 frame of the frame
+  gives its value; it shows on constant segments), then the earlier key's interpolation: constant;
+  linear; Bezier (all four values within FLT_EPSILON: the first; handles reaching past the segment
+  shortened to it, `BKE_fcurve_correct_bezpart`; the parameter where the segment's time is the frame;
+  the value there); the easings as `BLI_easing_*` (automatic: out for back, bounce and elastic, in for
+  the others; elastic's period 0 is 0.3 of the segment, 0.45 in-out; an amplitude of 0 or below the
+  change takes the change, blended in near the segment's end as `USE_ELASTIC_BLEND`).
+- **Where the port leaves Blender's code** (not its results; internal design, accepted 2026-11-04): the parameter of a Bezier segment is
+  found by Newton's method in a shrinking bracket, not by `solve_cubic`. After the correction the
+  segment's time never decreases, so the root in (0, 1) is the only one and both find it; but the
+  cubic formula from double coefficients can lose it: where the time runs linearly (continuous
+  acceleration's handles at thirds) the coefficients c2 and c3 are rounding residues, and with c3
+  exactly 0 the quadratic branch's cancellation errs by up to half the segment (Blender's float
+  coefficients keep residues about 10⁻⁷ that hide this). Not ported, as nothing can reach them:
+  the branches for a failed search, the second on-key test (within 10⁻⁸ frame of the key after,
+  which the search always compares with its threshold), the search's first comparisons with the end
+  keys (the search compares every key next to the frame), and the guards for zero lengths (keys are
+  0.01 frame apart, handles 0.001 frame off their keys). Left out: the discrete and integer value
+  flags (a curve here is a number) and modifiers (Q7).
+- **Checked against Blender** (`Tools/BlenderReference/evaluate_curves.py`, run by
+  `make-blender-references.sh`; `Tests/Statventure.Tests/Scene/FCurveScenes.cs`, written to
+  `Reference/curve-scenes.json` by `FCurveReferenceTests.TheSceneFileIsUpToDate`): 134 curves in 9
+  scenes (interpolation, easing (every type in every mode), parameters, handles (every type and mix,
+  both smoothing modes), smoothing, extrapolation, spacing, coincident handles, the threshold), 595
+  keys at odd spacing, 21,068 times on keys, between them, near the threshold on both sides and
+  beyond the ends. Four smoothing cases were found among random curves (by comparing the engine's
+  handles with and without a rule of the solver, `claude-work/m10/explore.py`), where no hand-made
+  case reached the rule: "released" (the solver locks an auto-clamped handle at its limit and then
+  releases it; internal design, accepted 2026-11-04) and "mixed-flat", "mixed-rising",
+  "mixed-falling" (auto and auto-clamped keys mixed, so the clamps act on a curve's free end and on
+  a level interval: an auto-clamped key beside an equal value is otherwise always locked). The script builds each curve as Blender keyframes (every field set: the Python
+  API's `keyframe_points.add` leaves back, amplitude and period 0 and the handles selected; no key
+  selected), runs `fcurve.update()`, and writes each key's handles and `fcurve.evaluate` at each time
+  (`Golden/curve-<scene>.json`). Blender holds the numbers as float32, so the test makes the engine's
+  curve from the same float32 numbers and evaluates it at the float32 frame Blender was given; what is
+  left is Blender's float32 arithmetic, bounded by 16 roundings of the sizes involved: the segment's
+  values (keys, handles, result; elastic's amplitude) plus the slope times X + 3L frames (X the
+  largest key frame, L the segment: how far the time's rounding moves the curve); outside the keys
+  the line's slope off by X/h of itself (h its handle's length). Handles within 16 roundings of their
+  coordinates' sizes (times 8 with smoothing, the system's growth of rounding). Measured: values at
+  most 0.66 of the allowance (an extrapolation 5 frames before a key at frame 600), handles at most
+  0.28.
+- **Rules the tests check without Blender** (`FCurveTests`, `FCurveRecordTests`): every refusal with
+  its message, also through `with` and the JSON form; equality by content; a `with` copy's own
+  handles; the helpers; both forms' round trips bit for bit (handles and values too); keys written
+  with only time and value read as Blender's defaults; loading from a pack and a loose folder, and
+  the refusal naming the file. Layouts and the fixture: `Data/Records/Layouts/scene.curve.txt`,
+  `scene.key.txt`, `Fixtures/scene.curve/every-field`.
+- **Corrections to this doc's design text** (found in the source): Blender 5.2's default smoothing
+  for new F-curves is continuous acceleration (the design didn't say); the end keys' interpolation,
+  though nothing follows the last key, decides the extrapolation; Blender's thresholds are in frames
+  (search 0.0001, handle clearance 0.001, merge 0.01) and aligned handles depend on the time unit, so
+  the curve works in frames inside; the elastic period is a time (seconds here; Blender's default 4.1
+  frames); the smoothing needs `math_solvers.cc` besides `fcurve.cc`, `curve.cc` and `easing.cc`;
+  `solve_cubic` can't be ported to double as it is (above).
+
 ## Status
 
-- **Nothing implemented yet** (2026-11-04). The decisions and the 33 step details are recorded, the
+- Steps 3–7: not done yet (2026-11-04). The decisions and the 33 step details are recorded, the
   design is set, and seven steps are proposed with their dependencies.
 - **Step 1, the node tree and the scene (2026-11-04, 1930 tests on the GPU and on lavapipe): done**
   on its worker branch. Q1–Q3 answered as recommended. `Scene/` (`SceneNode`, `SceneAttachment` with
@@ -909,3 +1042,8 @@ of its own (outline, glow mask, picking); terrain attaches to a node too. Code i
   glTF and their check against Blender (step 3; the attachments follow glTF's conventions now),
   particle emitters on nodes and the view's particles (step 5), and a clock for stage clips outside a
   sequence (none: the sequencer gives it, step 4); hiding (Q23) is done here. Mutations: 65 (`~/.cache/stat-fick-build/claude-work/m10/step1-mutations.json`, made by `make-step1-mutations.py` beside it): 62 fail a test (two of them after gaps were closed: a node re-added after its world was read with no parent, and something new attached to a node already shown); one, a node allowed under itself, hangs the test (walking up to the root never ends; `mutate.py` reads the timeout's missing result line as a survivor); two survive and can't differ in results, only in work: marking a subtree stale without stopping at nodes already stale, and marking an already stale node again.
+- **Step 2, F-curves and easing (2026-11-04, 1975 tests on the GPU and on lavapipe): done** on its
+  worker branch ("How it works", step 2); three details asked on the way, all as recommended
+  (S2-1–S2-3). Mutations: 157 (`~/.cache/stat-fick-build/claude-work/m10/step2-mutations.json`, made by
+  `make-step2-mutations.py` beside it), 145 killed; 12 survive, none able to differ beyond float32 rounding: equivalent, the clearance's one-ulp step (one double ulp of a clamped handle's time), the both-free early return (nothing below it changes a free side), the second 5× limit (it can only act when the first didn't), an interior auto-clamped peak's lock and runs ending at locked keys (its clamps hold its offset at 0 either way; only a zero's sign changes), a two-key run's early return (solving gives the chord the handle rule gave), the output's guard for computed sides (without cycles every caller passes one), elastic's amplitude-0 branch (f·0 is 0 either way) and its end test (a segment is never evaluated at its own end: that frame is the next key's); below float32's resolution, the flat-segment shortcut (values within FLT_EPSILON); and two of the solver's heuristics no curve among 40,000 random auto-clamped ones tells apart: locking the overshooting handles that go the right way first (only a zero's sign changes) and releasing a handle at most twice (none is released twice). Not checked: nothing left
+  against Blender; the curve isn't used by anything yet (step 4's tracks).

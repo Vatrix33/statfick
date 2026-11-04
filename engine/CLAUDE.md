@@ -29,7 +29,8 @@ the user and wait for their go-ahead before starting the next one.
   Electron's `app.getPath("documents")` (and .NET's `MyDocuments` beside it) in 46 environments (about a minute).
 - Blender 5.2 for the 3D references (M6 on): `Tools/Scripts/make-blender-references.sh [scene ...]`
   (`Docs/Renderer-3D.md`, "Reference harness"; on the PC the Flatpak, run headless). It also evaluates
-  the animation scenes (`Docs/Animation.md`, "Reference harness": poses, NLA stacks, gear). Its renders,
+  the animation scenes (`Docs/Animation.md`, "Reference harness": poses, NLA stacks, gear) and the F-curve scenes
+  (`Tools/BlenderReference/evaluate_curves.py`, `Docs/Scene.md`, "How it works", step 2). Its renders,
   evaluations and test models are committed, so the tests run where there's no Blender (the cloud).
 - Audio (M8, `Docs/Audio.md`): `Tools/Scripts/play-theme.sh [theme] [--volume 0-100]` plays the music on the real
   device, to listen to it (in a real terminal; testing it from a script, send only volume 0).

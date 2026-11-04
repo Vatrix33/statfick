@@ -1,0 +1,75 @@
+{
+  "$types": {
+    "scene.curve": 1,
+    "scene.key": 1
+  },
+  "keys": [
+    {
+      "time": -0.1,
+      "value": -0.5,
+      "interpolation": "bezier",
+      "easing": "auto",
+      "left": "free",
+      "right": "free",
+      "leftTime": -0.15,
+      "leftValue": -0.25,
+      "rightTime": -0.03333333333333333,
+      "rightValue": 0.75,
+      "back": 1.70158,
+      "amplitude": 0.8,
+      "period": 0.06833333333333333
+    },
+    {
+      "time": 0.075,
+      "value": 1.25,
+      "interpolation": "bezier",
+      "easing": "auto",
+      "left": "aligned",
+      "right": "aligned",
+      "leftTime": 0.03333333333333333,
+      "leftValue": 1.5,
+      "rightTime": 0.13333333333333333,
+      "rightValue": 1,
+      "back": 1.70158,
+      "amplitude": 0.8,
+      "period": 0.06833333333333333
+    },
+    {
+      "time": 0.16666666666666666,
+      "value": 2,
+      "interpolation": "elastic",
+      "easing": "inOut",
+      "left": "vector",
+      "right": "auto",
+      "back": 2.5,
+      "amplitude": 1.75,
+      "period": 0.05
+    },
+    {
+      "time": 0.36666666666666664,
+      "value": 0.5,
+      "interpolation": "back",
+      "easing": "out",
+      "left": "free",
+      "right": "autoClamped",
+      "leftTime": 0.3333333333333333,
+      "leftValue": 0.25,
+      "back": -1,
+      "amplitude": 0.8,
+      "period": 0.06833333333333333
+    },
+    {
+      "time": 0.5,
+      "value": 1,
+      "interpolation": "constant",
+      "easing": "auto",
+      "left": "autoClamped",
+      "right": "autoClamped",
+      "back": 1.70158,
+      "amplitude": 0.8,
+      "period": 0.06833333333333333
+    }
+  ],
+  "extrapolation": "linear",
+  "smoothing": "none"
+}

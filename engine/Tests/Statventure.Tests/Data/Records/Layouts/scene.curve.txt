@@ -1,0 +1,4 @@
+scene.curve 1
+  1 keys: list<scene.key> (required)
+  2 extrapolation: enum int32 {constant = 0, linear = 1} = "constant"
+  3 smoothing: enum int32 {none = 0, continuousAcceleration = 1} = "continuousAcceleration"

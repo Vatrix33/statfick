@@ -38,3 +38,4 @@ run "$STATVENTURE_SOURCE/Tools/BlenderReference/make_models.py" -- "$TESTS/Data/
 run "$STATVENTURE_SOURCE/Tools/BlenderReference/render_scenes.py" -- "$TESTS/Reference/r3d-scenes.json" "$TESTS/Golden" "$TESTS/Actual/blender-glow" "$@"
 python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/compose_glow.py" "$TESTS/Reference/r3d-scenes.json" "$TESTS/Golden" "$TESTS/Actual/blender-glow"
 run "$STATVENTURE_SOURCE/Tools/BlenderReference/evaluate_animations.py" -- "$TESTS/Reference/anim-scenes.json" "$TESTS/Golden" "$@"
+run "$STATVENTURE_SOURCE/Tools/BlenderReference/evaluate_curves.py" -- "$TESTS/Reference/curve-scenes.json" "$TESTS/Golden" "$@"
