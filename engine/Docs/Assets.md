@@ -1134,6 +1134,14 @@ No pack is committed (Q1).
   seconds). Derived values aren't stored: a material's slot and whether it is emission only, a primitive's
   `FlatVertices` (made by `Model`). Floats go bit for bit, so a model from a pack, or from its JSON form (shortest
   round-trip numbers), is `GltfImport`'s bit for bit.
+- **The model record, version 2** (M10 step 3, `Docs/Scene.md`, "How it works", step 3, S3-4): `model` 2 adds
+  `cameras` (`model.camera`: name, projection `orthographic`/`perspective`, verticalFieldOfView in radians (default
+  0), orthographicHeight (default 0), near, far) and `lights` (`model.light`: name, strength in raw units, angle in
+  degrees), both empty by default; `model.node` 2 adds `camera` and `light` (default −1: none). Version 1 of `model`
+  and `model.node` are frozen copies (`ModelData.V1`, `ModelNode.V1`) whose upgrades give no cameras or lights and
+  nodes carrying none; the version-1 fixture `model/model` stays (its upgrade is tested) beside the version-2 fixture
+  `model/stage`. `ModelData.Validate` adds: nodes' cameras and lights that exist, one light at most and on one node
+  at most, and cameras' and suns' values that make a projection and a sun.
 - **The importer** (`ModelImporter`, `[Importer("models", ".glb")]`; S3-3): each `.glb` of a folder being packed
   becomes one record entry at its path without the ending (`models/figure.glb` → `models/figure`) holding
   `GltfImport.Load` of the file, checked as a loaded model is (`ModelData.Validate`, below), so no pack holds a

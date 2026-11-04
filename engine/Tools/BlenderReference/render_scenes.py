@@ -13,7 +13,8 @@
 # and direction goes through GLTF_TO_BLENDER, as Blender's glTF importer converts them. Models are
 # read by Blender's own glTF importer, so the engine's reader is checked against it. A model with
 # "objects" set is a stage as a scene instances it (Docs/Scene.md, step 1): each of its top-level
-# objects a model of its own (add_model_objects, flatten_transforms).
+# objects a model of its own (add_model_objects, flatten_transforms); a stage's own cameras and lights
+# are left out (Docs/Scene.md, step 3), the scene file giving the camera and the sun.
 import json
 import math
 import os
@@ -424,9 +425,16 @@ def add_model_objects(scene, path, spec, palette, shadows, style, unshadowed=Non
     hatching is anchored at that object's origin. Returns one list of objects per top-level object,
     in name order, each one model for the glow's mask and the ink's contour."""
     before = set(bpy.data.objects)
+    camera = scene.camera
     bpy.ops.import_scene.gltf(filepath=path)
     # Only what the scene shows (not the importer's bone shape).
     imported = [o for o in bpy.data.objects if o not in before and o.name in scene.objects]
+    # A stage's own cameras and sun (Docs/Scene.md, step 3) aren't drawn: the scene file gives the
+    # camera and the sun (the engine's, from the same file), and the file's sun would light it again.
+    for obj in [o for o in imported if o.type in ("CAMERA", "LIGHT")]:
+        imported.remove(obj)
+        bpy.data.objects.remove(obj)
+    scene.camera = camera
     # The importer leaves an object a clip animates at that clip's pose for the scene's frame (1, a
     # frame into clips it starts at frame 0): at the clips' start each object has the file's own
     # transform, which it keeps once the animation data is gone.
@@ -449,6 +457,9 @@ def add_model_objects(scene, path, spec, palette, shadows, style, unshadowed=Non
     groups = []
     for top in tops:
         members = [top] + sorted(top.children_recursive, key=lambda o: o.name)
+        # A top-level object showing nothing (a stage's camera dolly, now without its camera) is no model.
+        if not any(o.type == "MESH" for o in members):
+            continue
         seen = world_to_camera_view(scene, scene.camera, top.matrix_world.translation)
         hatch = {
             "size": (width, height), "anchor": (seen.x * width, (1 - seen.y) * height),

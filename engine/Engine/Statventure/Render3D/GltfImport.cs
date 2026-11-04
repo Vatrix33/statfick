@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using System.Globalization;
 using System.Numerics;
 using System.Text.Json;
 using Brutal.GltfApi;
@@ -10,14 +11,19 @@ namespace Statventure.Render3D;
 /// Reads a glTF 2.0 file (.glb or .gltf) into <see cref="ModelData"/>. BRUTAL's glTF package parses
 /// the container and the JSON; this decodes the accessors (component types, normalisation, strides,
 /// matrix column padding, sparse values) as the specification lays them out, and builds the
-/// hierarchy, materials and skins. Points and lines are skipped (the engine draws its own ink lines).
-/// BRUTAL drops extras, so the nodes' <c>ink</c> and the materials' <c>hatch</c> extras are read from
-/// the JSON here.
+/// hierarchy, materials and skins, a stage's cameras and its sun (Docs/Scene.md, step 3: perspective
+/// and orthographic cameras; one KHR_lights_punctual directional light, white, its angle from its
+/// extras; other kinds of light, a coloured sun and an infinite perspective refused). Points and lines
+/// are skipped (the engine draws its own ink lines). BRUTAL drops extras, so the nodes' <c>ink</c>, the
+/// materials' <c>hatch</c> and the lights' <c>angle</c> extras are read from the JSON here.
 /// </summary>
 public static class GltfImport
 {
-    /// <summary>Required extensions this reader handles: quantized attributes decode like any other accessor.</summary>
-    static readonly HashSet<string> SupportedRequired = ["KHR_mesh_quantization"];
+    /// <summary>
+    /// Required extensions this reader handles: quantized attributes decode like any other accessor;
+    /// Blender's exporter lists punctual lights as required whenever it writes one.
+    /// </summary>
+    static readonly HashSet<string> SupportedRequired = ["KHR_mesh_quantization", "KHR_lights_punctual"];
 
     public static ModelData Load(string path)
     {
@@ -27,8 +33,10 @@ public static class GltfImport
             if (!SupportedRequired.Contains(extension))
                 throw new NotSupportedException($"{path} requires the glTF extension {extension}");
         var reader = new AccessorReader(loader, path);
-        var nodes = ReadNodes(gltf, path);
-        var (inkless, unhatched, events) = ExtrasOf(path);
+        var (inkless, unhatched, events, angles) = ExtrasOf(path);
+        var cameras = (gltf.Cameras ?? []).Select((c, i) => ReadCamera(c, i, path)).ToArray();
+        var lights = ReadLights(gltf, angles, path);
+        var nodes = ReadNodes(gltf, path, cameras.Length, lights.Length);
         for (var i = 0; i < nodes.Length; i++)
             if (inkless.Contains(i))
                 nodes[i] = nodes[i] with { Ink = false };
@@ -49,7 +57,72 @@ public static class GltfImport
             Roots = gltf.Scenes is { Length: > 0 } scenes
                 ? scenes[gltf.Scene ?? 0].Nodes ?? []
                 : Enumerable.Range(0, nodes.Length).Where(i => nodes[i].Parent < 0).ToArray(),
+            Cameras = cameras,
+            Lights = lights,
         };
+    }
+
+    /// <summary>
+    /// A camera in the engine's terms (Docs/Scene.md, Q10, S3-1, S3-4): perspective by glTF's yfov,
+    /// orthographic by twice its ymag (the height in view; xmag and the aspect ratio aren't used, as
+    /// the engine keeps the vertical extent), with its near and far planes. A perspective camera
+    /// without zfar (glTF's infinite projection; Blender's exporter always writes one) is refused,
+    /// and so is one whose values make no projection (<see cref="ModelCamera.Problem"/>).
+    /// </summary>
+    static ModelCamera ReadCamera(Brutal.GltfApi.Camera camera, int index, string path)
+    {
+        var name = camera.Name ?? "";
+        var where = $"{path}: camera {index} ({name})";
+        ModelCamera read;
+        if (camera.Type == Brutal.GltfApi.Camera.TypeEnum.Perspective)
+        {
+            var perspective = camera.Perspective ?? throw new InvalidDataException($"{where} is perspective without its perspective values");
+            if (perspective.Zfar is not { } far)
+                throw new NotSupportedException($"{where} has no far plane (an infinite projection), which the engine's cameras don't draw");
+            read = new ModelCamera { Name = name, Projection = Projection.Perspective, VerticalFieldOfView = perspective.Yfov, Near = perspective.Znear, Far = far };
+        }
+        else
+        {
+            var orthographic = camera.Orthographic ?? throw new InvalidDataException($"{where} is orthographic without its orthographic values");
+            read = new ModelCamera
+            {
+                Name = name, Projection = Projection.Orthographic, OrthographicHeight = 2 * orthographic.Ymag, Near = orthographic.Znear, Far = orthographic.Zfar,
+            };
+        }
+        if (read.Problem() is { } problem)
+            throw new InvalidDataException($"{where} has {problem}");
+        return read;
+    }
+
+    /// <summary>
+    /// The file's punctual lights (KHR_lights_punctual) as suns (Docs/Scene.md, Q12, S3-2, S3-3): each a
+    /// directional light (a point or spot light is refused), white (the engine's sun has no colour),
+    /// with its angle in degrees in its extras (the stage export copies Blender's sun angle there; a
+    /// light without it is refused); its strength the file's intensity (raw lighting units: Blender's
+    /// own). More than one light is refused: one sun per view.
+    /// </summary>
+    static ModelLight[] ReadLights(Gltf gltf, Dictionary<int, double> angles, string path)
+    {
+        var source = gltf.LightData?.Lights ?? [];
+        var lights = new ModelLight[source.Length];
+        for (var i = 0; i < source.Length; i++)
+        {
+            var light = source[i];
+            var name = light.Name ?? "";
+            var where = $"{path}: light {i} ({name})";
+            if (light.Type != "directional")
+                throw new NotSupportedException($"{where} is a {light.Type} light: the engine draws one sun, a directional light, and no other kind");
+            if (light.Color is { } color && !color.SequenceEqual([1f, 1f, 1f]))
+                throw new NotSupportedException($"{where} has the colour ({string.Join(", ", color.Select(c => c.ToString(CultureInfo.InvariantCulture)))}): the engine's sun is white");
+            if (!angles.TryGetValue(i, out var angle))
+                throw new InvalidDataException($"{where} has no angle in its extras (the sun's size in degrees, which the stage export copies from Blender's sun)");
+            lights[i] = new ModelLight(name, light.Intensity, (float)angle);
+            if (lights[i].Problem() is { } problem)
+                throw new InvalidDataException($"{where} has {problem}");
+        }
+        if (lights.Length > 1)
+            throw new NotSupportedException($"{path}: {lights.Length} lights: a model has one sun or none");
+        return lights;
     }
 
     /// <summary>
@@ -57,9 +130,11 @@ public static class GltfImport
     /// <c>"ink": 0</c> and materials whose extras say <c>"hatch": 0</c> (or false), Blender's custom
     /// properties on objects and materials; and each animation's <c>"events"</c>, a list of
     /// <c>{name, time}</c> (the action's pose markers copied by the export script), sorted by time
-    /// (stable, so two markers at one frame keep their order).
+    /// (stable, so two markers at one frame keep their order); and each punctual light's <c>"angle"</c>
+    /// (a number: the sun's size in degrees, Blender's sun angle copied by the stage export into the
+    /// light's custom property).
     /// </summary>
-    static (HashSet<int> Inkless, HashSet<int> Unhatched, Dictionary<int, ModelAnimationEvent[]> Events) ExtrasOf(string path)
+    static (HashSet<int> Inkless, HashSet<int> Unhatched, Dictionary<int, ModelAnimationEvent[]> Events, Dictionary<int, double> Angles) ExtrasOf(string path)
     {
         var bytes = File.ReadAllBytes(path);
         ReadOnlySpan<byte> json = bytes;
@@ -84,7 +159,21 @@ public static class GltfImport
                 index++;
             }
         }
-        return (Off(root, "nodes"u8, "ink"u8), Off(root, "materials"u8, "hatch"u8), events);
+        var angles = new Dictionary<int, double>();
+        if (root.TryGetProperty("extensions"u8, out var extensions) && extensions.ValueKind == JsonValueKind.Object
+            && extensions.TryGetProperty("KHR_lights_punctual"u8, out var punctual) && punctual.ValueKind == JsonValueKind.Object
+            && punctual.TryGetProperty("lights"u8, out var lights) && lights.ValueKind == JsonValueKind.Array)
+        {
+            var index = 0;
+            foreach (var light in lights.EnumerateArray())
+            {
+                if (light.ValueKind == JsonValueKind.Object && light.TryGetProperty("extras"u8, out var extras) && extras.ValueKind == JsonValueKind.Object
+                    && extras.TryGetProperty("angle"u8, out var angle) && angle.ValueKind == JsonValueKind.Number)
+                    angles[index] = angle.GetDouble();
+                index++;
+            }
+        }
+        return (Off(root, "nodes"u8, "ink"u8), Off(root, "materials"u8, "hatch"u8), events, angles);
 
         static HashSet<int> Off(JsonElement root, ReadOnlySpan<byte> list, ReadOnlySpan<byte> property)
         {
@@ -103,7 +192,11 @@ public static class GltfImport
         }
     }
 
-    static ModelNode[] ReadNodes(Gltf gltf, string path)
+    /// <summary>
+    /// The hierarchy: each node's parent (one at most, never itself), its local transform, mesh and skin,
+    /// and the camera and light it carries (indices that must exist; one node at most carries the sun).
+    /// </summary>
+    static ModelNode[] ReadNodes(Gltf gltf, string path, int cameras, int lights)
     {
         var source = gltf.Nodes ?? [];
         var parents = new int[source.Length];
@@ -126,8 +219,20 @@ public static class GltfImport
             // identity. T·R·S for column vectors is S·R·T for System.Numerics' row vectors.
             var local = Matrix4x4.CreateScale(scale) * Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(translation)
                 * ToMatrix(n.Matrix);
-            nodes[i] = new ModelNode(n.Name ?? "", parents[i], n.Children ?? [], local, translation, rotation, scale, n.Mesh ?? -1, n.Skin ?? -1);
+            var camera = n.Camera ?? -1;
+            var light = n.LightIndex ?? -1;
+            if (camera < -1 || camera >= cameras)
+                throw new InvalidDataException($"{path}: node {i} ({n.Name}) carries camera {camera}, which doesn't exist");
+            if (light < -1 || light >= lights)
+                throw new InvalidDataException($"{path}: node {i} ({n.Name}) carries light {light}, which doesn't exist");
+            nodes[i] = new ModelNode(n.Name ?? "", parents[i], n.Children ?? [], local, translation, rotation, scale, n.Mesh ?? -1, n.Skin ?? -1)
+            {
+                Camera = camera,
+                Light = light,
+            };
         }
+        if (Enumerable.Range(0, nodes.Length).Where(i => nodes[i].Light >= 0).Take(2).ToArray() is [var first, var second])
+            throw new NotSupportedException($"{path}: nodes {first} ({nodes[first].Name}) and {second} ({nodes[second].Name}) both carry the sun: a model has one sun or none");
         return nodes;
     }
 

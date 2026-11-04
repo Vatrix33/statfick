@@ -1,0 +1,7 @@
+model.camera 1
+  1 name: string (required)
+  2 projection: enum int32 {orthographic = 0, perspective = 1} (required)
+  3 verticalFieldOfView: float32 = 0
+  4 orthographicHeight: float32 = 0
+  5 near: float32 (required)
+  6 far: float32 (required)

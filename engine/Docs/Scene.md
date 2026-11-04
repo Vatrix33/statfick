@@ -713,6 +713,33 @@ M10", "Step details".
 - **Q13. Export mode:** the scene mode: the stage's whole timeline is one clip with every animated
   object and camera on it. Why: one shot, one clip, no bookkeeping of which action goes where. (Not
   the actions mode with a clip track per action; not NLA tracks as clips.)
+- **Asked during step 3 (user, 2026-11-04; all as recommended),** after reading Blender 5.2's exporter
+  and probing an export ("How it works", step 3):
+  - **S3-1. Orthographic cameras:** read as glTF defines them, the height in view twice `ymag` (`xmag`
+    unused: the engine keeps the vertical extent); stage cameras are made with sensor fit Vertical as
+    Q10 says, and the stage export puts the exporter's `xmag` and `ymag` right after export from the
+    camera's scale and the render size's aspect (the exporter computes them as for sensor fit Auto);
+    one in the test model, checked at two aspects. (Not orthographic stage cameras with sensor fit
+    Auto, right only at the export's aspect; not refused at import.)
+  - **S3-2. The sun's angle:** the stage export copies the sun's own Angle (Blender's light property,
+    which its renders use) into the light data's custom property `angle`, in degrees, which the
+    exporter writes as the KHR light's extras; the importer reads it there, and a sun without it is
+    refused at import, naming the file and the light. (Not a default of 3° for a sun without it; not a
+    property the artist sets by hand on the sun object, read from the node's extras.)
+  - **S3-3. The sun's colour:** a sun that isn't white is refused at import (the renderer's sun has
+    none, Q12). (Not ignored; not stored in the record unused.)
+  - **S3-4. The record:** in the engine's terms: `model` 2 (fields 1–6 as version 1, `7 cameras`,
+    `8 lights`, both empty by default), `model.node` 2 (fields 1–10 as version 1, `11 camera`, `12 light`,
+    −1 by default), `model.camera` 1 (name, projection, `verticalFieldOfView` in radians, glTF's yfov;
+    `orthographicHeight`, twice ymag; near; far; glTF's aspect ratio and xmag not kept) and `model.light`
+    1 (name, strength in raw units, angle in degrees; suns only, so no type); a perspective camera
+    without a far plane (glTF's infinite projection) refused. (Not glTF's own fields, turned into the
+    engine's at instancing.)
+  - **S3-5. What steps 4–5 see:** instancing hangs a `SceneCamera` with the model's settings on each
+    node carrying a camera and a `SceneSun` on the node carrying the sun, listed as
+    `ModelInstance.Cameras` (the model's node order) and `ModelInstance.Sun` (or null); nothing makes
+    them the scene's camera or sun by itself. (Not without the lists, found through the nodes'
+    attachments; not made the scene's when it has none.)
 
 **Step 4 (the sequence record, builder and player core):**
 - **Q14. The record's layout:** as proposed (Design, "The sequence record"): the `scene.*` types,
@@ -751,6 +778,11 @@ M10", "Step details".
 - **Q22. Timeline markers:** the stage's script copies its timeline markers into the stage clip's
   extras, and a cue may sit at a marker by name, following it when the stage is retimed. Why: the
   artist's timing stays the source. (Not cue times only.)
+  **Found in step 3 (for this step):** Blender 5.2's glTF exporter has no marker support at all and no
+  setting for it (no "marker" anywhere in `io_scene_gltf2`). In the scene mode with "Split Animation by
+  Object" off (as stages are exported, Q13), the stage's one clip is named after the Blender scene and
+  its extras are the scene's custom properties, so the script copies the timeline markers into a
+  custom property of the scene (as `export_markers` copies an action's pose markers into the action's).
 - **Q23. Fades of 3D objects:** models stay opaque; things appear by scale, by moving into view, by
   visibility cues (a node hidden with its subtree) and as particles and glow; fades are UI overlays.
   Why: no renderer change, and ink-drawn art cuts rather than fades. (Not per-model opacity in the
@@ -1026,9 +1058,92 @@ and `math_solvers.cc` (the tridiagonal solver), in double precision (Q5), times 
   frames); the smoothing needs `math_solvers.cc` besides `fcurve.cc`, `curve.cc` and `easing.cc`;
   `solve_cubic` can't be ported to double as it is (above).
 
+### Step 3: cameras and lights from glTF
+
+Q9–Q13 answered before the milestone's steps; S3-1–S3-5 asked during the step (2026-11-04), all as
+recommended ("Step details"). Code: `Render3D/ModelData.cs`, `Render3D/GltfImport.cs`,
+`Scene/ModelInstance.cs`; Blender: `make_models.py` (`STAGE`, `export_stage`, `fix_orthographic`, the
+stage `dolly`), `evaluate_animations.py` (`evaluate_stage`), `render_scenes.py` (objects mode).
+
+- **The record** (S3-4): `model` 2 adds `cameras` and `lights` (empty by default), `model.node` 2 adds
+  `camera` and `light` (−1: none); `model.camera` 1 (`ModelCamera`: name, projection, vertical field
+  of view in radians, orthographic height, near, far) and `model.light` 1 (`ModelLight`: name, strength
+  in raw units, angle in degrees). Version 1 of `model` and `model.node` are frozen copies
+  (`ModelData.V1`, `ModelNode.V1`) whose upgrades give no cameras or lights and nodes carrying none.
+  M9's fixture `model/model` stays version 1 (the upgrade read from it is tested); `model/stage` holds
+  every new field at version 2.
+- **The import** (`GltfImport`): `KHR_lights_punctual` is a required extension it takes (Blender's
+  exporter lists it as required whenever it writes a light). A perspective camera is its yfov (the
+  exporter's vertical angle for sensor fit Vertical, Q10), znear and zfar; one without zfar (glTF's
+  infinite projection) is refused. An orthographic camera's height is twice its ymag (S3-1); xmag and
+  the aspect ratio aren't kept. A light must be directional (a point or spot light is refused), white
+  (S3-3) and have its angle, a number in degrees, in its extras (S3-2); its strength is the file's
+  intensity; more than one light, or more than one node carrying it, is refused (one sun per view,
+  Q12). Nodes' camera and light indices must exist. Values that make no projection or sun
+  (`ModelCamera.Problem`: a perspective field of view in (0, π) and near plane beyond 0, an orthographic
+  height above 0 and near plane at 0 or beyond, a finite far plane beyond the near one;
+  `ModelLight.Problem`: a finite strength of 0 or more, an angle from 0 to less than 180°) are refused
+  too. Kinds the engine doesn't draw are a `NotSupportedException`, missing or bad values an
+  `InvalidDataException`, each naming the file and the camera or light ("…/stage.glb: light 0
+  (Daylight) is a point light: the engine draws one sun, a directional light, and no other kind"); the
+  models importer makes each a `DataFileException` naming the file ("the models importer: …").
+  BRUTAL's parser refuses a yfov of 0 and a negative intensity itself (an `ArgumentOutOfRangeException`
+  that doesn't name the file).
+- **Checked on load** (`ModelData.Validate`, S5-1's rules): nodes' cameras and lights that exist, one
+  light at most, on one node at most, and the cameras' and the sun's values as above.
+- **Instancing** (S3-5): the scene node made for a node carrying a camera gets a `SceneCamera` with
+  the model's projection, near and far and its field of view (perspective) or height (orthographic),
+  the other value left at the attachment's own; the node carrying the sun gets a `SceneSun` with its
+  strength and angle. `ModelInstance.Cameras` lists the cameras in the model's node order (nodes the
+  model's scene doesn't reach get none), `ModelInstance.Sun` the sun or null. Nothing sets the scene's
+  `Camera` or `Sun`: a camera track (step 5) or the game does.
+- **Blender 5.2's exporter** (read in its source, `io_scene_gltf2/blender/exp/`, and probed): a
+  perspective camera's yfov is Blender's angle when its sensor fit is Vertical, at any render size
+  (`yvof_blender_to_gltf`; Auto and Horizontal convert by the render size's aspect), its aspect ratio
+  the render size's; an orthographic camera's xmag and ymag are its scale across the larger side of
+  the render size, whatever its sensor fit (right for Auto only: at 1920 × 1080 a scale of 5 with
+  sensor fit Vertical came out 2.81 tall). Cameras and lights get a quarter turn about X after the
+  object's world (`tree.py`: Rx(−90°)), so glTF's −Z and +Y are the Blender camera's or light's own.
+  Lights: in the raw lighting mode (labelled "Raw (Deprecated)" in 5.2) the intensity is Blender's
+  strength times 2^exposure; a light's extras are the light data's custom properties (an object's go
+  to its node); hemi and area lights aren't exported at all, point and spot lights are. The scene
+  mode bakes every object over the scene's frame range; "Split Animation by Object"
+  (`export_anim_scene_split_object`) is on by default and must be off for one clip, which is then named
+  after the Blender scene with the scene's custom properties as its extras; with slide to zero its
+  time 0 is the scene's first frame; still objects get no channels. No timeline markers (see Q22).
+- **The stage export** (`make_models.py`): `STAGE` is M7's `ANIMATED` with the scene mode, split by
+  object off, cameras, lights and raw units; `export_stage` copies each sun's angle into its light's
+  custom property `angle` in degrees, exports, then `fix_orthographic` writes each orthographic
+  camera's xmag and ymag again by Blender's rule (`BKE_camera_params_compute_viewplane`: the scale spans
+  the side the sensor fit names, Auto naming the larger) at the render size's aspect and puts the
+  `.glb` together again as the exporter writes it (compact JSON padded with spaces). Re-exporting the
+  other models gives the same bytes.
+- **The reference** (`make_models.py`'s `dolly`, `Data/Models/dolly.glb`): a ground, a rock, a pillar
+  and a crate (still); the empty "Dolly" moving and turning over the scene's 61 frames with the
+  perspective camera "Camera" on it (lens 35 mm on 24 mm, sensor fit Vertical, its own tilt and pan
+  keyed); the still orthographic camera "Plan" (scale 6, sensor fit Vertical) looking down at 45°; the
+  sun "Sun" (strength 2.5, angle 4°: neither `SceneSun`'s default, so instancing's copy is tested).
+  `SceneStageTests` writes `Reference/stage-scenes.json`; `evaluate_animations.py` builds the stage
+  again, plays its timeline as Blender plays it and writes `Golden/stage-dolly.json`: every object's
+  world in glTF's coordinates (a camera's and a light's after the exporter's quarter turn,
+  C · M · R · C⁻¹), each camera's angle, orthographic scale, near and far, the x and y scales of its
+  projection matrix at 400 × 280 and 280 × 400 (`calc_matrix_camera`: Blender's own view plane), and
+  the sun's direction toward it, strength and angle. Measured: every node within 0.00053 mm of Blender
+  on the frames, at most 0.67 of M7's allowance between them (the dolly, mid-frame at the end); the
+  cameras' settings and projections and the sun's strength and angle within 1.2·10⁻⁷ relative (the test
+  allows 2·10⁻⁶, float rounding), the sun's direction within 1.0·10⁻⁷.
+- **Rendered:** the render scene `scene-dolly` (400 × 280) is the stage as scenery seen through its
+  perspective camera 36 frames in and lit by its sun, both as the import gives them (`DollyStage`):
+  `Render3DReferenceTests` draws it from the scene file's camera and sun, `SceneStageRenderTests`
+  through a `SceneView` taking its camera and sun from the attachments instancing hung on their nodes;
+  both match Blender's render (M6's comparisons with shadows, the ink on its own).
+  `render_scenes.py`'s objects mode leaves out the file's own cameras and lights (Blender's importer
+  brings them in, and its sun would light the scene a second time) and top-level objects without a
+  mesh (the dolly, its camera gone).
+
 ## Status
 
-- Steps 3–7: not done yet (2026-11-04). The decisions and the 33 step details are recorded, the
+- Steps 4–7: not done yet (2026-11-04). The decisions and the 33 step details are recorded, the
   design is set, and seven steps are proposed with their dependencies.
 - **Step 1, the node tree and the scene (2026-11-04, 1930 tests on the GPU and on lavapipe): done**
   on its worker branch. Q1–Q3 answered as recommended. `Scene/` (`SceneNode`, `SceneAttachment` with
@@ -1047,3 +1162,18 @@ and `math_solvers.cc` (the tridiagonal solver), in double precision (Q5), times 
   (S2-1–S2-3). Mutations: 157 (`~/.cache/stat-fick-build/claude-work/m10/step2-mutations.json`, made by
   `make-step2-mutations.py` beside it), 145 killed; 12 survive, none able to differ beyond float32 rounding: equivalent, the clearance's one-ulp step (one double ulp of a clamped handle's time), the both-free early return (nothing below it changes a free side), the second 5× limit (it can only act when the first didn't), an interior auto-clamped peak's lock and runs ending at locked keys (its clamps hold its offset at 0 either way; only a zero's sign changes), a two-key run's early return (solving gives the chord the handle rule gave), the output's guard for computed sides (without cycles every caller passes one), elastic's amplitude-0 branch (f·0 is 0 either way) and its end test (a segment is never evaluated at its own end: that frame is the next key's); below float32's resolution, the flat-segment shortcut (values within FLT_EPSILON); and two of the solver's heuristics no curve among 40,000 random auto-clamped ones tells apart: locking the overshooting handles that go the right way first (only a zero's sign changes) and releasing a handle at most twice (none is released twice). Not checked: nothing left
   against Blender; the curve isn't used by anything yet (step 4's tracks).
+- **Step 3, cameras and lights from glTF (2026-11-04, 2027 tests on the GPU and on lavapipe): done**
+  on its worker branch, rebased on step 2. Q9–Q13 as answered; S3-1–S3-5 asked on the way, all as
+  recommended. `model` and `model.node` version 2 with frozen version-1 copies, `model.camera` and
+  `model.light`; `GltfImport` reads perspective and orthographic cameras and one white sun with its
+  angle, refusing other lights, a coloured sun, a sun without its angle, an infinite perspective and
+  values that make no projection; `ModelData.Validate` checks them; instancing hangs `SceneCamera`s and
+  the `SceneSun` on their nodes (`ModelInstance.Cameras`, `.Sun`). The stage test model `dolly`
+  (`make_models.py`'s stage export: scene mode, raw units, the sun's angle copied, orthographic
+  magnifications put right), its Blender evaluation (`Golden/stage-dolly.json`) and render
+  (`scene-dolly`). Tests: `Scene/SceneStageTests.cs`, `Render3D/ModelCameraLightTests.cs`,
+  `GltfImportTests.BlenderStageHasItsCamerasAndSun`. Filtered tests (Gltf, Model, Scene,
+  RecordLayoutTests, Render3DReferenceTests) pass: 267 with step 2's. Mutations: 68
+  (`~/.cache/stat-fick-build/claude-work/m10/step3-mutations.json`, made by `make-step3-mutations.py`
+  beside it), all killed (one gap closed while writing them: the test sun's strength and angle were
+  `SceneSun`'s defaults, so instancing's copy of them went untested; they are 2.5 and 4° now).

@@ -444,6 +444,9 @@ public static class Scenes3D
             Palette = new() { ["stone"] = "#7a6e60", ["cloth"] = "#5d3f6f", ["metal.base"] = "#6f7a88", ["metal.trim"] = "#c09a50", ["skin"] = "#b08a68" },
             Sun = new SunLight(new(-0.9f, 1.2f, 0.6f), 3),
         },
+        // A stage seen through its own camera and lit by its own sun (Docs/Scene.md, step 3), as the import
+        // gives them 36 frames into its clip: the dolly stage's objects as scenery (Scene.SceneStageTests).
+        Statventure.Tests.Scene.DollyStage.Scene,
         // The same shapes in the battle view (orthographic, from the side) under a low sun from the left: other band positions.
         new("cel-side", 420, 200, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.1f, 0.5f, 6), new(0.1f, 0.5f, 0), OrthographicHeight: 1.9f), [])
         {

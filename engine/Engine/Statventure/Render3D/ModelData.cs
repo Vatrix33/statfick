@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using Statventure.Packs;
 using Statventure.Records;
@@ -60,14 +61,92 @@ public sealed record ModelMaterial([property: Field(1)] string Name, [property: 
 /// A node of the hierarchy: its local transform (as the file's matrix, or translation, rotation and
 /// scale, which animations later drive), the mesh it shows and the skin that deforms it (−1: none).
 /// <see cref="Ink"/> is false for parts drawn without ink lines (the Blender object's custom
-/// property <c>ink = 0</c>, exported as node extras).
+/// property <c>ink = 0</c>, exported as node extras). Since version 2 (Docs/Scene.md, step 3, Q9) the
+/// camera it carries and its light, the model's sun (indices into <see cref="ModelData.Cameras"/> and
+/// <see cref="ModelData.Lights"/>; −1: none).
 /// </summary>
-[Record("model.node", 1)]
+[Record("model.node", 2)]
 public sealed record ModelNode([property: Field(1)] string Name, [property: Field(2)] int Parent, [property: Field(3)] IReadOnlyList<int> Children,
     [property: Field(4)] Matrix4x4 Local, [property: Field(5)] Vector3 Translation, [property: Field(6)] Quaternion Rotation, [property: Field(7)] Vector3 Scale,
     [property: Field(8)] int Mesh, [property: Field(9)] int Skin)
 {
     [Field(10)] public bool Ink { get; init; } = true;
+    [Field(11)] public int Camera { get; init; } = -1;
+    [Field(12)] public int Light { get; init; } = -1;
+
+    /// <summary>Version 1 (M9): no camera or light.</summary>
+    [Record("model.node", 1)]
+    public sealed record V1([property: Field(1)] string Name, [property: Field(2)] int Parent, [property: Field(3)] IReadOnlyList<int> Children,
+        [property: Field(4)] Matrix4x4 Local, [property: Field(5)] Vector3 Translation, [property: Field(6)] Quaternion Rotation, [property: Field(7)] Vector3 Scale,
+        [property: Field(8)] int Mesh, [property: Field(9)] int Skin)
+    {
+        [Field(10)] public bool Ink { get; init; } = true;
+
+        public ModelNode Upgrade() => new(Name, Parent, Children, Local, Translation, Rotation, Scale, Mesh, Skin) { Ink = Ink };
+    }
+}
+
+/// <summary>
+/// A camera (glTF's, Docs/Scene.md, step 3, S3-4), in the engine's terms (<see cref="Camera"/>): its
+/// projection, the vertical field of view in radians (perspective: glTF's yfov, the exporter's vertical
+/// angle for a camera with sensor fit Vertical, Q10) or the height of the world in view (orthographic:
+/// twice glTF's ymag, which the stage export writes from the camera's own scale, S3-1), and the near
+/// and far planes. glTF's aspect ratio and xmag aren't kept: the engine keeps the vertical extent and
+/// widens with the view's aspect. A camera hangs on a node, which places it as glTF's cameras are
+/// placed: looking down the node's −Z with +Y up.
+/// </summary>
+[Record("model.camera", 1)]
+public sealed record ModelCamera
+{
+    [Field(1)] public required string Name { get; init; }
+    [Field(2)] public required Projection Projection { get; init; }
+    [Field(3)] public float VerticalFieldOfView { get; init; }
+    [Field(4)] public float OrthographicHeight { get; init; }
+    [Field(5)] public required float Near { get; init; }
+    [Field(6)] public required float Far { get; init; }
+
+    /// <summary>
+    /// What makes no projection, or null: a perspective camera's field of view in (0, π) and its near
+    /// plane beyond 0; an orthographic one's height above 0 and its near plane at 0 or beyond; the far
+    /// plane finite and beyond the near one.
+    /// </summary>
+    public string? Problem()
+    {
+        var at = CultureInfo.InvariantCulture;
+        if (Projection == Projection.Perspective)
+        {
+            if (!(VerticalFieldOfView > 0 && VerticalFieldOfView < MathF.PI))
+                return string.Create(at, $"a vertical field of view of {VerticalFieldOfView} radians (more than 0 and less than π)");
+            if (!(Near > 0))
+                return string.Create(at, $"its near plane at {Near} (a perspective camera's is beyond 0)");
+        }
+        else
+        {
+            if (!(OrthographicHeight > 0))
+                return string.Create(at, $"a height of {OrthographicHeight} in view (more than 0)");
+            if (!(Near >= 0))
+                return string.Create(at, $"its near plane at {Near} (at 0 or beyond)");
+        }
+        if (!(Far > Near) || !float.IsFinite(Far))
+            return string.Create(at, $"its far plane at {Far}, not finite and beyond its near plane at {Near}");
+        return null;
+    }
+}
+
+/// <summary>
+/// The model's sun (glTF's directional light, KHR_lights_punctual; Docs/Scene.md, step 3, Q12, S3-2 to
+/// S3-4): its strength as Blender's own (the exporter's lighting units raw) and its angle across in
+/// degrees (Blender's sun angle, which the stage export copies into the light's extras). It hangs on a
+/// node, which shines it down its −Z. Only suns: other kinds of light are refused at import.
+/// </summary>
+[Record("model.light", 1)]
+public sealed record ModelLight([property: Field(1)] string Name, [property: Field(2)] float Strength, [property: Field(3)] float Angle)
+{
+    /// <summary>What no sun can be, or null: its strength finite and not below 0, its angle from 0 to less than 180°.</summary>
+    public string? Problem() =>
+        !(Strength >= 0) || !float.IsFinite(Strength) ? string.Create(CultureInfo.InvariantCulture, $"a strength of {Strength} (finite, 0 or more)")
+        : !(Angle >= 0 && Angle < 180) ? string.Create(CultureInfo.InvariantCulture, $"an angle of {Angle}° (0 or more, less than 180)")
+        : null;
 }
 
 /// <summary>
@@ -128,9 +207,10 @@ public sealed record ModelAnimation([property: Field(1)] string Name, [property:
 
 /// <summary>
 /// A model as read from a .glb (<see cref="GltfImport"/>): in glTF's coordinates, right-handed, Y up,
-/// metres. Also the record a models.pak entry holds (<c>model</c>; <see cref="ModelImporter"/>).
+/// metres. Also the record a models.pak entry holds (<c>model</c>; <see cref="ModelImporter"/>). Since
+/// version 2 (Docs/Scene.md, step 3, Q9) a stage's cameras and its sun, carried by nodes.
 /// </summary>
-[Record("model", 1)]
+[Record("model", 2)]
 public sealed class ModelData
 {
     [Field(1)] public required IReadOnlyList<ModelNode> Nodes { get; init; }
@@ -141,6 +221,24 @@ public sealed class ModelData
     [Field(5)] public IReadOnlyList<ModelAnimation> Animations { get; init; } = [];
     /// <summary>The scene's root nodes.</summary>
     [Field(6)] public required IReadOnlyList<int> Roots { get; init; }
+    /// <summary>The file's cameras, in file order (<see cref="ModelNode.Camera"/> places them).</summary>
+    [Field(7)] public IReadOnlyList<ModelCamera> Cameras { get; init; } = [];
+    /// <summary>The file's light, the model's sun, or none (<see cref="ModelNode.Light"/> places it).</summary>
+    [Field(8)] public IReadOnlyList<ModelLight> Lights { get; init; } = [];
+
+    /// <summary>Version 1 (M9): no cameras or lights.</summary>
+    [Record("model", 1)]
+    public sealed class V1
+    {
+        [Field(1)] public required IReadOnlyList<ModelNode> Nodes { get; init; }
+        [Field(2)] public required IReadOnlyList<ModelMesh> Meshes { get; init; }
+        [Field(3)] public required IReadOnlyList<ModelMaterial> Materials { get; init; }
+        [Field(4)] public required IReadOnlyList<ModelSkin> Skins { get; init; }
+        [Field(5)] public IReadOnlyList<ModelAnimation> Animations { get; init; } = [];
+        [Field(6)] public required IReadOnlyList<int> Roots { get; init; }
+
+        public ModelData Upgrade() => new() { Nodes = Nodes, Meshes = Meshes, Materials = Materials, Skins = Skins, Animations = Animations, Roots = Roots };
+    }
 
     /// <summary>Reads a .glb (or .gltf) file (<see cref="GltfImport"/>).</summary>
     public static ModelData Load(string path) => GltfImport.Load(path);
@@ -174,7 +272,10 @@ public sealed class ModelData
     /// primitive's attributes one per vertex, whole triangles, indices within its vertices, and joint
     /// indices within the skin of every node that shows it; a skin's inverse bind matrices for all its
     /// joints; a channel's values as many as its keys need, a cubic spline at least two keys, and key
-    /// times that increase. A model from a pack or a loose folder breaks them only if it was edited.
+    /// times that increase; nodes' cameras and lights that exist, one light at most and on one node at
+    /// most (one sun per view), and cameras and lights whose values make a projection and a sun
+    /// (<see cref="ModelCamera.Problem"/>, <see cref="ModelLight.Problem"/>; Docs/Scene.md, step 3). A model
+    /// from a pack or a loose folder breaks them only if it was edited.
     /// </summary>
     public void Validate()
     {
@@ -200,7 +301,22 @@ public sealed class ModelData
                 Fail($"node {i} ({node.Name}) shows mesh {node.Mesh}, which doesn't exist");
             if (node.Skin < -1 || node.Skin >= Skins.Count)
                 Fail($"node {i} ({node.Name}) has skin {node.Skin}, which doesn't exist");
+            if (node.Camera < -1 || node.Camera >= Cameras.Count)
+                Fail($"node {i} ({node.Name}) carries camera {node.Camera}, which doesn't exist");
+            if (node.Light < -1 || node.Light >= Lights.Count)
+                Fail($"node {i} ({node.Name}) carries light {node.Light}, which doesn't exist");
         }
+        // One sun per view (Docs/Scene.md, Q12): a model has one light or none, on one node.
+        if (Lights.Count > 1)
+            Fail($"{Lights.Count} lights: a model has one sun or none");
+        if (Enumerable.Range(0, count).Where(i => Nodes[i].Light >= 0).Take(2).ToArray() is [var first, var second])
+            Fail($"nodes {first} ({Nodes[first].Name}) and {second} ({Nodes[second].Name}) both carry the sun: a model has one sun or none");
+        for (var c = 0; c < Cameras.Count; c++)
+            if (Cameras[c].Problem() is { } problem)
+                Fail($"camera {c} ({Cameras[c].Name}) has {problem}");
+        for (var l = 0; l < Lights.Count; l++)
+            if (Lights[l].Problem() is { } problem)
+                Fail($"light {l} ({Lights[l].Name}) has {problem}");
         foreach (var root in Roots)
             if (root < 0 || root >= count || Nodes[root].Parent >= 0)
                 Fail($"the root {root} isn't a node without a parent");

@@ -4755,6 +4755,107 @@
       "particles": []
     },
     {
+      "name": "scene-dolly",
+      "width": 400,
+      "height": 280,
+      "background": "#cfd3cf",
+      "camera": {
+        "projection": "perspective",
+        "position": [
+          -0.37759995,
+          1.7944,
+          5.4416
+        ],
+        "target": [
+          -0.5003275,
+          1.5373349,
+          4.4830303
+        ],
+        "up": [
+          -0.03264608,
+          0.9663941,
+          -0.25498366
+        ],
+        "fieldOfViewDegrees": 37.849285,
+        "orthographicHeight": 4,
+        "near": 0.1,
+        "far": 40
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "dolly.glb",
+          "matrix": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "scenery": true,
+          "pose": null,
+          "group": null,
+          "anchor": null,
+          "objects": true
+        }
+      ],
+      "palette": {
+        "ground": "#9a8a68",
+        "stone": "#7a6e60",
+        "metal.base": "#6f7a88",
+        "cloth": "#5d3f6f",
+        "metal.trim": "#c09a50"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          0.4703962,
+          0.79124016,
+          0.3907256
+        ],
+        "strength": 2.5,
+        "angle": 4
+      },
+      "style": {
+        "ink": "#130e0b",
+        "shadowMix": 0.42,
+        "bandEdge": 0.3,
+        "outlineWidth": 3.5,
+        "innerWidth": 2,
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1,
+      "terrain": null,
+      "time": 0,
+      "particles": []
+    },
+    {
       "name": "cel-side",
       "width": 420,
       "height": 200,

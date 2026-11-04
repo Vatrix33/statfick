@@ -58,7 +58,8 @@ def shader_material(name, hex_color, kind):
 
 
 def reset():
-    for collection in (bpy.data.objects, bpy.data.meshes, bpy.data.materials, bpy.data.armatures, bpy.data.actions):
+    for collection in (bpy.data.objects, bpy.data.meshes, bpy.data.materials, bpy.data.armatures, bpy.data.actions, bpy.data.cameras,
+                       bpy.data.lights):
         for block in list(collection):
             collection.remove(block)
 
@@ -926,10 +927,111 @@ def hierarchy(path):
     export(path, **ANIMATED)
 
 
+# Stages (Docs/Scene.md, step 3; Q10–Q13, S3-1, S3-2): exported in the scene mode, the whole timeline
+# one clip named after the Blender scene with every animated object on it ("Split Animation by Object"
+# off; it is on by default), with cameras and lights, the lighting units raw (Blender's own strengths).
+STAGE = dict(ANIMATED, export_animation_mode="SCENE", export_anim_scene_split_object=False, export_cameras=True, export_lights=True,
+             export_import_convert_lighting_mode="RAW")
+
+
+def export_stage(path):
+    """Exports the scene as a stage: each sun's angle (Blender's own, which its renders use for soft
+    shadows) copied into the light's custom property "angle" in degrees, which the exporter writes as
+    the light's extras (S3-2); then the orthographic cameras' magnifications put right (S3-1)."""
+    for light in bpy.data.lights:
+        if light.type == "SUN":
+            light["angle"] = math.degrees(light.angle)
+    export(path, **STAGE)
+    if path is not None:
+        fix_orthographic(path)
+
+
+def fix_orthographic(path):
+    """The exporter writes an orthographic camera's xmag and ymag as if its sensor fit were Auto (its
+    scale across the larger side of the render size, cameras.py), but a stage camera's sensor fit is
+    Vertical (Q10): its scale is the height in view whatever the aspect. Each orthographic camera's
+    magnifications are written again by Blender's rule (BKE_camera_params_compute_viewplane: the
+    scale spans the side its sensor fit names, Auto naming the larger) at the render size's aspect,
+    and the .glb put together again as the exporter writes it (compact JSON, padded with spaces)."""
+    render = bpy.context.scene.render
+    width, height = render.resolution_x * render.pixel_aspect_x, render.resolution_y * render.pixel_aspect_y
+    data = open(path, "rb").read()
+    length = struct.unpack_from("<I", data, 12)[0]
+    gltf = json.loads(data[20:20 + length])
+    cameras = [c for c in gltf.get("cameras", []) if c["type"] == "orthographic"]
+    if not cameras:
+        return
+    for camera in cameras:
+        source = bpy.data.cameras[camera["name"]]
+        fit = source.sensor_fit
+        if fit == "AUTO":
+            fit = "HORIZONTAL" if width >= height else "VERTICAL"
+        half = source.ortho_scale / 2
+        xmag, ymag = (half, half * height / width) if fit == "HORIZONTAL" else (half * width / height, half)
+        camera["orthographic"]["xmag"], camera["orthographic"]["ymag"] = xmag, ymag
+    text = json.dumps(gltf, separators=(",", ":"), allow_nan=False).encode()
+    text += b" " * (-len(text) % 4)
+    binary = data[20 + length:]
+    open(path, "wb").write(b"glTF" + struct.pack("<III", 2, 20 + len(text) + len(binary), len(text)) + b"JSON" + text + binary)
+
+
+def dolly(path):
+    """A stage (Docs/Scene.md, step 3): a ground and three still objects (scenery); the empty "Dolly"
+    moving and turning over 61 frames (1 s at 60 fps, the scene's whole timeline) with the perspective
+    camera "Camera" on it (lens 35 mm on a 24 mm sensor, sensor fit Vertical; its own tilt and pan
+    keyed), the still orthographic camera "Plan" looking down at 45° (scale 6, sensor fit Vertical),
+    and the sun "Sun" (strength 2.5, angle 4°: neither the engine's default) shining from the camera's right. Keys in Blender's default
+    Bezier. Exported as a stage (export_stage): one clip, "Scene", at the render size 1920 × 1080."""
+    scene = bpy.context.scene
+    scene.render.fps, scene.render.fps_base = 60, 1
+    scene.frame_start, scene.frame_end = 1, 61
+    scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
+    scene.render.pixel_aspect_x = scene.render.pixel_aspect_y = 1
+    ground, stone = material("ground", "#9a8a68"), material("stone", "#6b6258")
+    metal, cloth, trim = material("metal.base", "#8a8f96"), material("cloth", "#7b5a3a"), material("metal.trim", "#c9a46a")
+    mesh_object("Ground", box_mesh("ground", (6, 4, 0.2), [ground]), location=(0, 0, -0.1))
+    bm = bmesh.new()
+    bm.loops.layers.uv.new("UVMap")
+    bmesh.ops.create_icosphere(bm, subdivisions=2, radius=0.4, calc_uvs=True)
+    rock = bpy.data.meshes.new("rock")
+    bm.to_mesh(rock)
+    bm.free()
+    rock.materials.append(stone)
+    rock.shade_smooth()
+    mesh_object("Rock", rock, location=(-1.3, 0.7, 0.2), scale=(1, 0.8, 0.7))
+    mesh_object("Pillar", cone_mesh("pillar", 12, 0.2, 0.2, 1.4, True, metal), location=(1.0, 1.0, 0.7))
+    mesh_object("Crate", box_mesh("crate", (0.6, 0.6, 0.6), [cloth, trim]), location=(0.1, -0.4, 0.3), rotation=(0, 0, 20))
+
+    rig = bpy.data.objects.new("Dolly", None)
+    scene.collection.objects.link(rig)
+    lens = bpy.data.cameras.new("Lens")
+    lens.sensor_fit, lens.sensor_height, lens.lens = "VERTICAL", 24, 35
+    lens.clip_start, lens.clip_end = 0.1, 40
+    camera = bpy.data.objects.new("Camera", lens)
+    scene.collection.objects.link(camera)
+    camera.parent = rig
+    camera.location = (0, 0, 1.6)
+    move, look = bpy.data.actions.new("move"), bpy.data.actions.new("look")
+    for frame, location, turn in ((1, (0.4, -6.0, 0), 0), (31, (-0.2, -5.6, 0.15), 6), (61, (-0.8, -5.0, 0.3), -10)):
+        object_keys(rig, move, frame, location=location, rotation=(0, 0, turn))
+    for frame, rotation in ((1, (78, 0, 0)), (31, (75, 0, 4)), (61, (76, 0, -6))):
+        object_keys(camera, look, frame, rotation=rotation)
+
+    plan = bpy.data.cameras.new("Plan")
+    plan.type, plan.sensor_fit, plan.ortho_scale = "ORTHO", "VERTICAL", 6
+    plan.clip_start, plan.clip_end = 0.5, 30
+    mesh_object("Plan", plan, location=(0, -5, 6), rotation=(45, 0, 0))
+
+    light = bpy.data.lights.new("Daylight", "SUN")
+    light.energy, light.angle = 2.5, math.radians(4)
+    mesh_object("Sun", light, location=(0, 0, 5), rotation=(35, 15, 30))
+    export_stage(path)
+
+
 # Builders by model name (evaluate_animations.py builds the animated ones again).
 BUILDERS = {"blocks": blocks, "rigged": rigged, "shapes": shapes, "stage": stage, "fringe": fringe, "glowing": glowing,
             "figure": figure, "reach": reach, "stocky": stocky, "sword": sword, "tabard": tabard, "pennant": pennant,
-            "hierarchy": hierarchy}
+            "hierarchy": hierarchy, "dolly": dolly}
 
 
 def main():

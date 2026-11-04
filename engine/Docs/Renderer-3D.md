@@ -306,6 +306,17 @@ come up.
 - Cameras keep the vertical extent fixed and widen with the aspect ratio (a Blender camera with
   sensor fit vertical): perspective by a vertical field of view, orthographic by the height of the
   world in view (Blender's orthographic scale). `Camera.View` is `Matrix4x4.CreateLookAt`.
+- **Cameras and the sun from glTF** (M10 step 3, `Docs/Scene.md`, "How it works", step 3): a model's
+  cameras (`ModelCamera`: perspective by glTF's yfov, which Blender's exporter writes as the vertical
+  angle of a camera with sensor fit Vertical; orthographic by twice its ymag, which the stage export
+  writes from the camera's scale; near and far) and its one sun (`ModelLight`: a white directional
+  `KHR_lights_punctual` light, its strength Blender's in the raw lighting units, its angle in degrees
+  from its extras) hang on nodes. A scene's `SceneCamera` sets the view's camera from its node's world
+  (the origin, one unit down −Z as the target, +Y up), a `SceneSun` the view's sun (toward it: the
+  node's +Z), as glTF places cameras and lights; the exporter turns them Rx(−90°) after the Blender
+  object's world so these are the Blender camera's and light's own axes. Checked against Blender: the
+  camera's place, field of view and projection at two aspects and the sun's direction on a stage's
+  frames (`Golden/stage-dolly.json`), and a render through them (`scene-dolly`).
 
 ## Reference harness
 
@@ -321,6 +332,12 @@ materials of its own hatched from its origin, its own glow mask, one baked objec
 contour after each mesh's world matrix is put into its vertices (a sheared world survives); the
 imported clips are set to their start frame before their animation data is cleared, so objects keep
 the file's own transforms. Scene `scene-objects`.)
+
+(M10 step 3 added a stage seen through its own camera and lit by its own sun, `Docs/Scene.md`, "How it
+works", step 3: the scene `scene-dolly` takes the camera and sun as the engine imports them from the
+stage `dolly.glb` 36 frames into its clip (`DollyStage`), and `render_scenes.py`'s objects mode leaves out
+the file's own cameras and lights, which Blender's importer brings in (its sun would light the scene a
+second time), and top-level objects without a mesh.)
 
 - **Scenes:** `Tests/Statventure.Tests/Render3D/Scenes3D.cs` (shapes as positions and
   counter-clockwise triangles, objects with scale, rotation X then Y then Z, translation and an sRGB

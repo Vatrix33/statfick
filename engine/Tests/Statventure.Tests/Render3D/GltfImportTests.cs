@@ -40,6 +40,51 @@ public class GltfImportTests
         Assert.True(world[Find("Cap")].Translation.Y > world[Find("Pillar")].Translation.Y);
     }
 
+    /// <summary>
+    /// A stage exported as make_models.py's export_stage exports one (Docs/Scene.md, step 3): its
+    /// cameras (the exporter's vertical angle for a perspective camera with sensor fit Vertical; an
+    /// orthographic one's height as its scale, the export having put its magnifications right), its sun
+    /// (Blender's strength, the angle the export copied into the light's extras; the file lists
+    /// KHR_lights_punctual as required), the nodes carrying them, and the timeline as one clip.
+    /// </summary>
+    [Fact]
+    public void BlenderStageHasItsCamerasAndSun()
+    {
+        var path = ModelPath("dolly.glb");
+        using (var document = JsonDocument.Parse(GltfJson(path)))
+            Assert.Contains("KHR_lights_punctual", document.RootElement.GetProperty("extensionsRequired"u8).EnumerateArray().Select(e => e.GetString()));
+        var model = ModelData.Load(path);
+        int Find(string name) => model.Nodes.Select((n, i) => (n, i)).Single(x => x.n.Name == name).i;
+        Assert.Equal(2, model.Cameras.Count);
+        var lens = model.Cameras[model.Nodes[Find("Camera")].Camera];
+        Assert.Equal(("Lens", Projection.Perspective), (lens.Name, lens.Projection));
+        // Lens 35 mm on a 24 mm sensor, fitted vertically: 2·atan(12 / 35).
+        Assert.Equal(2 * Math.Atan(12.0 / 35), lens.VerticalFieldOfView, 1e-6);
+        Assert.Equal((0.1f, 40f), (lens.Near, lens.Far));
+        var plan = model.Cameras[model.Nodes[Find("Plan")].Camera];
+        Assert.Equal(("Plan", Projection.Orthographic, 6f, 0.5f, 30f), (plan.Name, plan.Projection, plan.OrthographicHeight, plan.Near, plan.Far));
+        var sun = Assert.Single(model.Lights);
+        Assert.Equal("Daylight", sun.Name);
+        Assert.Equal(2.5f, sun.Strength);
+        Assert.Equal(4f, sun.Angle, 1e-5f);
+        Assert.Equal(0, model.Nodes[Find("Sun")].Light);
+        // Only those nodes carry a camera or the light.
+        Assert.Equal(["Camera", "Plan", "Sun"], model.Nodes.Where(n => n.Camera >= 0 || n.Light >= 0).Select(n => n.Name).Order());
+        Assert.All(model.Nodes.Where(n => n.Name != "Sun"), n => Assert.Equal(-1, n.Light));
+        // The timeline is one clip, named after Blender's scene, on the dolly and the camera (the rest is still).
+        var clip = Assert.Single(model.Animations);
+        Assert.Equal("Scene", clip.Name);
+        Assert.Equal(["Camera", "Dolly"], clip.Channels.Select(c => model.Nodes[c.Node].Name).Distinct().Order());
+        model.Validate();
+    }
+
+    /// <summary>A .glb's JSON chunk.</summary>
+    internal static byte[] GltfJson(string path)
+    {
+        var bytes = File.ReadAllBytes(path);
+        return bytes[20..(20 + BitConverter.ToInt32(bytes, 12))];
+    }
+
     [Fact]
     public void BlenderModelHasItsMaterials()
     {

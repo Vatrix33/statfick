@@ -15,19 +15,27 @@
 # Node scenes (Docs/Scene.md, step 1: Reference/node-scenes.json beside the animation scenes, written
 # by SceneReferenceTests) play a model's object and armature actions together and write every
 # object's and bone's world matrix at the times: Golden/nodes-<scene>.json (evaluate_nodes).
+#
+# Stage scenes (Docs/Scene.md, step 3: Reference/stage-scenes.json beside them, written by
+# SceneStageTests) play a stage's timeline as Blender plays it and write every object's world matrix,
+# each camera's field of view and projection at the given render sizes, and the sun's direction,
+# strength and angle at the times: Golden/stage-<scene>.json (evaluate_stage).
 import json
 import math
 import os
 import sys
 
 import bpy
-from mathutils import Matrix, Quaternion
+from mathutils import Matrix, Quaternion, Vector
 
 sys.dont_write_bytecode = True  # no __pycache__ in the repo
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import make_models  # noqa: E402
 
 TO_GLTF = Matrix(((1, 0, 0, 0), (0, 0, 1, 0), (0, -1, 0, 0), (0, 0, 0, 1)))
+# The exporter turns a camera's and a light's world by this (tree.py: a quarter turn about X after it)
+# before the axis conversion, so that glTF's -Z and +Y are the Blender camera's (or light's) own.
+CORRECTION = Quaternion((2 ** 0.5 / 2, -(2 ** 0.5) / 2, 0, 0)).to_matrix().to_4x4()
 
 
 def numbers(values):
@@ -271,6 +279,58 @@ def evaluate_nodes(scene, folder):
     print("wrote", path)
 
 
+def evaluate_stage(scene, folder):
+    """A stage scene (Docs/Scene.md, step 3): the stage built again as the exporter saw it (every
+    object's action active, the scene's timeline from its first frame), and at each time (frame = the
+    first frame + time × 60) every object's world matrix in glTF's coordinates as the exporter's nodes
+    have them (C · M · C⁻¹, a camera's and a light's after the exporter's quarter turn: C · M · R · C⁻¹);
+    each camera's projection, its vertical field of view (Blender's angle, the vertical one for sensor
+    fit Vertical), its orthographic scale, near and far, and the x and y scales of its projection
+    matrix at each of the scene's render sizes (calc_matrix_camera: Blender's own view plane); and
+    each sun's direction toward it (its local +Z), strength and angle in degrees. Written as
+    Golden/stage-<scene>.json."""
+    make_models.reset()
+    make_models.BUILDERS[scene["model"]](None)
+    blender_scene = bpy.context.scene
+    fps = blender_scene.render.fps / blender_scene.render.fps_base
+    start = blender_scene.frame_start
+    nodes, cameras, suns = {}, {}, {}
+    for time in scene["times"]:
+        frame = start + time * fps
+        if abs(frame - round(frame)) < 1e-6:
+            frame = round(frame)
+        whole = math.floor(frame)
+        blender_scene.frame_set(whole, subframe=frame - whole)
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        for obj in bpy.data.objects:
+            m = TO_GLTF @ obj.matrix_world @ (CORRECTION if obj.type in ("CAMERA", "LIGHT") else Matrix.Identity(4)) @ TO_GLTF.inverted()
+            nodes.setdefault(obj.name, []).append(numbers([m[r][c] for r in range(3) for c in range(4)]))
+            if obj.type == "CAMERA":
+                data = obj.data
+                camera = cameras.setdefault(obj.name, {
+                    "projection": "orthographic" if data.type == "ORTHO" else "perspective",
+                    "fieldOfView": [], "orthographicScale": [], "near": [], "far": [], "scales": []})
+                camera["fieldOfView"].append(float("%.9g" % data.angle))
+                camera["orthographicScale"].append(float("%.9g" % data.ortho_scale))
+                camera["near"].append(float("%.9g" % data.clip_start))
+                camera["far"].append(float("%.9g" % data.clip_end))
+                scales = []
+                for width, height in scene["aspects"]:
+                    p = obj.calc_matrix_camera(depsgraph, x=width, y=height)
+                    scales.append(numbers([p[0][0], p[1][1]]))
+                camera["scales"].append(scales)
+            if obj.type == "LIGHT":
+                sun = suns.setdefault(obj.name, {"type": obj.data.type, "direction": [], "strength": [], "angle": []})
+                toward = (TO_GLTF.to_3x3() @ obj.matrix_world.to_3x3() @ Vector((0, 0, 1))).normalized()
+                sun["direction"].append(numbers(toward))
+                sun["strength"].append(float("%.9g" % (obj.data.energy * 2 ** obj.data.exposure)))
+                sun["angle"].append(float("%.9g" % math.degrees(obj.data.angle)))
+    path = os.path.join(folder, "stage-" + scene["name"] + ".json")
+    with open(path, "w") as f:
+        json.dump({"times": scene["times"], "aspects": scene["aspects"], "nodes": nodes, "cameras": cameras, "suns": suns}, f, separators=(",", ":"))
+    print("wrote", path)
+
+
 def main():
     args = sys.argv[sys.argv.index("--") + 1:]
     scenes = json.load(open(args[0]))["scenes"]
@@ -284,6 +344,12 @@ def main():
         for scene in json.load(open(node_scenes))["scenes"]:
             if not wanted or scene["name"] in wanted:
                 evaluate_nodes(scene, args[1])
+    # Stage scenes (Docs/Scene.md, step 3) are in stage-scenes.json beside them.
+    stage_scenes = os.path.join(os.path.dirname(args[0]), "stage-scenes.json")
+    if os.path.exists(stage_scenes):
+        for scene in json.load(open(stage_scenes))["scenes"]:
+            if not wanted or scene["name"] in wanted:
+                evaluate_stage(scene, args[1])
 
 
 if __name__ == "__main__":

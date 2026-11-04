@@ -64,7 +64,7 @@ public class ModelPackTests(TestModelPack pack) : IClassFixture<TestModelPack>
         Assert.Equal(TestModelPack.Names.Select(n => "models/" + n), file.Entries.Select(e => e.Path));
         Assert.All(file.Entries, e => Assert.True(e.IsRecord, $"{e.Path} isn't a record"));
         Assert.All(file.Entries, e => Assert.Equal("model", Statventure.Records.RecordSerializer.RootTypeName(file.Read(e))));
-        Assert.Equal(13, TestModelPack.Names.Count);
+        Assert.Equal(14, TestModelPack.Names.Count);
     }
 
     [Fact]

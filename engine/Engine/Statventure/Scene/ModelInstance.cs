@@ -14,6 +14,9 @@ namespace Statventure.Scene;
 /// back its top-level node. Clips of the model (a Blender object's action: absolute local channels;
 /// a bone's: on its rest) play on those nodes through <see cref="Skeleton"/>, the model's nodes by
 /// name, as <see cref="ClipBinding"/> binds a clip to a model (<see cref="Apply(AnimationStack, double)"/>).
+/// A stage's cameras and its sun (Docs/Scene.md, step 3, S3-5) hang on the nodes made for the nodes
+/// that carry them, as a <see cref="SceneCamera"/> and a <see cref="SceneSun"/> with the model's settings
+/// (<see cref="Cameras"/>, <see cref="Sun"/>); nothing makes them the scene's camera or sun by itself.
 /// </summary>
 public sealed class ModelInstance : SceneAttachment
 {
@@ -54,6 +57,28 @@ public sealed class ModelInstance : SceneAttachment
                 stack.Push((source.Children[c], node, top));
         }
         Roots = roots;
+        var cameras = new List<SceneCamera>();
+        for (var i = 0; i < _nodes.Length; i++)
+        {
+            if (_nodes[i] is not { } node)
+                continue;
+            if (data.Nodes[i].Camera >= 0)
+            {
+                var camera = data.Cameras[data.Nodes[i].Camera];
+                var attached = new SceneCamera { Projection = camera.Projection, Near = camera.Near, Far = camera.Far };
+                if (camera.Projection == Projection.Perspective)
+                    attached.VerticalFieldOfView = camera.VerticalFieldOfView;
+                else
+                    attached.OrthographicHeight = camera.OrthographicHeight;
+                cameras.Add(node.Attach(attached));
+            }
+            if (data.Nodes[i].Light >= 0)
+            {
+                var light = data.Lights[data.Nodes[i].Light];
+                Sun = node.Attach(new SceneSun { Strength = light.Strength, Angle = light.Angle });
+            }
+        }
+        Cameras = cameras;
     }
 
     /// <summary>A node's local transform as translation, rotation and scale: the file's, or its matrix decomposed when it gave one.</summary>
@@ -75,6 +100,10 @@ public sealed class ModelInstance : SceneAttachment
     public bool Scenery { get => _scenery; set => Set(ref _scenery, value); }
     /// <summary>The scene nodes made for the model's roots: its top-level objects.</summary>
     public IReadOnlyList<SceneNode> Roots { get; }
+    /// <summary>The cameras on its nodes (the model's nodes in file order; nodes its scene doesn't reach have none).</summary>
+    public IReadOnlyList<SceneCamera> Cameras { get; }
+    /// <summary>The sun on its node, or null (a model has one sun or none).</summary>
+    public SceneSun? Sun { get; }
 
     /// <summary>The scene node made for the model's node <paramref name="index"/> (null for one the model's scene doesn't reach).</summary>
     public SceneNode? NodeOf(int index) => _nodes[index];

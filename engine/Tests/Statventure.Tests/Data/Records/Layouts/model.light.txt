@@ -1,0 +1,4 @@
+model.light 1
+  1 name: string (required)
+  2 strength: float32 (required)
+  3 angle: float32 (required)

@@ -5,3 +5,13 @@ model 1
   4 skins: list<model.skin> (required)
   5 animations: list<model.animation> = []
   6 roots: list<int32> (required)
+
+model 2
+  1 nodes: list<model.node> (required)
+  2 meshes: list<model.mesh> (required)
+  3 materials: list<model.material> (required)
+  4 skins: list<model.skin> (required)
+  5 animations: list<model.animation> = []
+  6 roots: list<int32> (required)
+  7 cameras: list<model.camera> = []
+  8 lights: list<model.light> = []
