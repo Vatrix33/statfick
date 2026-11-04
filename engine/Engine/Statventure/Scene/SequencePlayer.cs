@@ -248,7 +248,7 @@ public sealed class SequencePlayer
 
         var instances = new ModelInstance[sequence.Stages.Count];
         var player = new SequencePlayer(scene, sequence, document, instances);
-        var context = new PlaybackContext(player, sequence, scene, new SequenceTimes(sequence, stageData), roles, stages, clips, effects);
+        var context = new PlaybackContext(player, sequence, scene, new SequenceTimes(sequence, stageData), roles, stages, clips, effects, bindings);
         var playbacks = new TrackPlayback[sequence.Tracks.Count];
         for (var t = 0; t < playbacks.Length; t++)
         {
@@ -379,6 +379,9 @@ public sealed class SequencePlayer
         var tau = TimeAt(to);
         var force = first || _force;
         _force = false;
+        // The frame's clock first, so the playbacks see it (the audio track anchors its cues to it, Q27).
+        Time = to;
+        TimelineTime = tau;
         _context.BeginFrame();
         foreach (var playback in _playbacks)
             playback.Apply(tau, force);
@@ -388,8 +391,6 @@ public sealed class SequencePlayer
             moment.Playback.Pass(moment.Cue, !Played(moment.Time));
         }
         MoveFigures(from, to);
-        Time = to;
-        TimelineTime = tau;
         if (to >= Duration)
             _endPending = true;
     }

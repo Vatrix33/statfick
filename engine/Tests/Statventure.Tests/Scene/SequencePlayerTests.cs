@@ -45,6 +45,7 @@ public class SequencePlayerTests(GpuFixture gpu)
     /// <summary>
     /// Its rate scales its clock and the clocks of the figures it holds (their time is their start's plus
     /// τ, their own rate aside), independent of the scene's battle pace, which the other figures follow.
+    /// (The test sequence without its UI track: a sequence with one plays at rate 1 only, Q29.)
     /// </summary>
     [Fact]
     public void ItsRateIsItsOwnAndTheFiguresItHoldsFollowIt()
@@ -53,7 +54,8 @@ public class SequencePlayerTests(GpuFixture gpu)
         bench.Frame(1);
         var origin = bench.Hero.Animator.Time;
         var bystander = bench.Bystander.Animator.Time;
-        var player = bench.Play();
+        var sequence = TestSequence.Build(bench.StageData);
+        var player = bench.Play(sequence with { Tracks = [.. sequence.Tracks.Where(t => t is not UiTrack)] });
         player.Rate = 2;
         bench.Scene.Rate = 0.25;
         bench.Hero.Animator.Rate = 3;

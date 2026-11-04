@@ -447,11 +447,13 @@ var intro = new SequenceBuilder("jiruan", duration: 7.0)
 
 ### Audio cues (step 6)
 
-- The audio system gets a clock the game can read and calls with a time on it: an effect played at a
-  time, the music switched (with music.js's fades) or stopped at a time, each giving a handle that
-  cancels it while it hasn't started (its sources stopped before their start, its timers dropped).
-  The audio thread builds the voice as now but starts it at that sample (the graph's `start(when)` and
-  automation already are sample-accurate).
+- The audio system gets a clock the game can read and calls with a time on it (S6-B): an effect played
+  at a time, the music switched (with music.js's fades) or stopped at a time, each giving a handle that
+  cancels it while its time hasn't come. The audio thread applies each in the quantum its time falls in,
+  at that sample (the graph's `start(when)` and automation already are sample-accurate); an effect's
+  voice is made then, so the voice limits and the per-play draws are that quantum's, and cancelling
+  just drops the call (S6-C; this replaced the first draft's voice built when the call is applied, its
+  sources stopped on a cancel, which would have counted scheduled voices toward the limits early).
 - The anchor (Q27): the sequence starts on the audio clock at the audio time of the quantum in which
   its first call is applied (the audio thread's "now" for the frame that started it); every cue is
   sent ahead with its time from there: due at the anchor plus (τ_c − τ at the anchor) / rate. A pause,
@@ -467,10 +469,16 @@ var intro = new SequenceBuilder("jiruan", duration: 7.0)
   game's `is-playing` did on the next frame).
 - The state of each element is the last cue at or before τ: the end state of Ji'ruan's intro is the
   host hidden.
-- CSS motion (Q29): the player pauses and resumes the CSS animations of the elements its UI tracks
-  name with it, also when the document is hidden (the engine applying the pause at that moment, where
-  Blink would at the next frame); a sequence with UI tracks plays at rate 1 only, and seeking doesn't
-  reach CSS animations.
+- CSS motion (Q29, S6-D): everything inside the sequence's UI tracks' hosts (the hosts, their
+  descendants and pseudo-elements; the animations running there when it starts and those that start
+  while it plays) runs on a clock of the sequence's, which stands still while the sequence's clock does:
+  paused by the game (from the last frame its clock moved in), and while the document is hidden (from
+  the moment it went hidden to the moment it was shown, where Blink would apply a change at the next
+  frame); transitions stay on the document's clock; a sequence with UI tracks plays at rate 1 only, and
+  seeking doesn't reach CSS animations. A host equal to, inside or around a host of another playing
+  sequence is refused. (The first draft said "the CSS animations of the elements its UI tracks name",
+  Engine-Plan's record of Q29 "the CSS animations it started"; neither fits the old intro, whose
+  animations are the host's descendants', started by the host's class: S6-D settled it.)
 
 ### The Blender export of a cutscene stage (steps 3, 7)
 
@@ -925,7 +933,55 @@ M10", "Step details".
   next frame); a sequence with UI tracks plays at rate 1 only; seeking doesn't reach CSS. Why: M10-9
   keeps the motion in CSS and M10-7 pauses while hidden; this keeps the title card with the picture at
   the least engine change. (Not a playback rate and seeking for CSS animations; not the UI left on the
-  document's clock.)
+  document's clock.) Which animations it pauses: S6-D below.
+- Asked during step 6 (2026-11-04, after reading the code), all six answered with the recommended option:
+- **S6-A. Where the audio track's sound comes from:** `SequenceBindings.Audio(AudioSystem? audio)`: the
+  audio tracks play on it; without one (or with null, `Application.Audio` when the sound is off) they play
+  nothing; with one, `Play` checks that every effect cue names an effect it has registered and every
+  music cue a theme its music has (S4-6). Why: the game passes what it has, as it passes `ActorSounds` its
+  effects. (Not `Play` throwing for a sequence with audio tracks and no audio system; not a
+  `SceneView.Audio` property.)
+- **S6-B. The public calls at a time and the clock:** `AudioSystem.Time`, seconds on the audio clock: the
+  start of the next quantum the audio thread renders (what a call made now takes effect at, as Web Audio's
+  `currentTime`), standing still while the sound is paused; `Effects.PlayAt(time, id, volume, pan,
+  pitch)`, `Music.PlayAt(time, theme)` and `Music.StopAt(time)`, each giving a `ScheduledSound` handle
+  (`Cancel()`, `State`: pending, done or cancelled, `Time`); a time already past when the audio thread
+  takes the call happens at once; Q27's anchoring stays inside the sequence's playback, its calls going to
+  the audio thread as one batch anchored to the quantum it is applied in. Why: `Play(id, time, …)` would
+  be ambiguous with `Play(id, volume, …)`, and the batch keeps pause, seek and resend free of races on
+  the handles. (Not public anchors too; not overloads with an `AudioTime` struct.)
+- **S6-C. When a scheduled effect's voice is made:** in the quantum its time falls in, starting at its
+  sample: the voice limits, stealing and the per-play draws then, in the order the voices start;
+  cancelling drops the call. Why: scheduled voices then neither steal sounding ones early nor count
+  before they sound. (Not when the call is applied, its sources stopped on a cancel.)
+- **S6-D. Which CSS animations a sequence pauses:** everything inside its UI tracks' hosts (hosts,
+  descendants, pseudo-elements; the animations already running and those that start later) on a clock of
+  the sequence's, standing still from the last frame its clock moved in until the last frame it was
+  paused in, and while the document is hidden exactly from the hiding to the showing; at the end or a
+  skip they go on on the document's clock from where they stand; transitions stay on the document's
+  clock; `Play` refuses a host equal to, inside or containing a host of another playing sequence (as a
+  figure another sequence holds, S4-6). Why: the old intro's animations are all inside its overlay,
+  started by the host's class. (Not only the animations that start inside the hosts while it plays; not
+  transitions held too.)
+- **S6-E. The frame's clock for the playbacks:** `SequencePlayer.AdvanceFrame` sets `Time` and
+  `TimelineTime` before the playbacks apply (two lines moved; nothing reads them in between and no game
+  code runs there), so the audio track knows the frame's clock in the reduced variant's holds, where τ
+  doesn't give it. (Not the clock taken from τ, a cue sent again in a hold landing up to a frame late.)
+- **S6-F. The test sequence:** step 4's test files changed twice: `SequenceBench.Bindings()` binds the
+  role "card" to the bench's `#card`, and the rate test plays the test sequence without its UI track
+  (a sequence with one plays at rate 1 only). Why: the test sequence then uses every track kind. (Not the
+  audio track only, the UI track in a sequence of the UI tests' own.)
+- Accepted with them (the reading of this doc): a UI cue's state per element and per thing it sets (the
+  text, each class, each attribute), set when the cue in effect changes (S4-8), before the first as when
+  the sequence started, restored by a seek back; elements found by id among the host's descendants when it
+  plays, a missing one refused (S4-6); audio cues all sent in the first frame, cancelled by a pause, a
+  hidden document, a seek or a rate change and sent again in the next frame the clock moves in, anchored
+  anew (only those that hadn't happened, from the clock's time on; after a seek every one after it); at a
+  skip the pending cues cancelled and the end's music cue applied only if it hadn't happened; a seek
+  firing no audio cue; cues cut out of the reduced variant as at a skip (effects dropped, a cut part's
+  last music cue applied at the cut); a music switch at a time applied in its quantum with music.js's
+  fades from that time, "the theme playing does nothing" judged then; an effect cue's defaults the
+  record's (volume 1, pan 0, pitch 1), as `Effects.Play`'s.
 
 **Step 7 (the proof):**
 - **Q30. Its files:** test data only: the stage's Blender script in `Tools/BlenderReference/`, its
@@ -1534,6 +1590,98 @@ bounded changes the M10 manager approved: `Scene/SceneView.cs` (emitters and the
   double. Also: an emitter's first frame is at its start, and emitters on hidden nodes are still
   recorded.
 
+### Step 6: audio and UI tracks (`Scene/SequencePlayback.Audio.cs`, `.Ui.cs`; `Audio/`; `UI/Style/AnimationEngine.cs`)
+
+Q27–Q29 as the user answered them before the milestone, and S6-A–S6-F asked during the step (all as
+recommended, "Step details" above).
+
+- **The audio clock and calls at a time** (Docs/Audio.md, "The clock and scheduled calls"):
+  `AudioSystem.Time`, `Effects.PlayAt`, `Music.PlayAt`, `Music.StopAt`, `ScheduledSound` (S6-B, S6-C).
+- **Where the sound comes from** (S6-A): `SequenceBindings.Audio(audio)`; the bindings reach the playbacks
+  through `PlaybackContext.Bindings` (one argument more where `SequencePlayer.Start` makes the context).
+  Without an audio system the audio track's playback is `NoPlayback`. With one, `Play` checks that each
+  effect cue names a registered effect and each music cue a theme of the music's library (an
+  `ArgumentException` naming the track and the cue, changing nothing, S4-6), and `Begin` gets the themes'
+  rooms ready on the game's thread.
+- **The audio track's cues** (`AudioPlayback`): the cues in timeline order (equal times in record order),
+  each placed on the played variant's clock: inside a span its start plus the time into it (a held moment
+  at the hold's start); in a part cut out (Q19, as at a skip) an effect is dropped and of a cut part's
+  music cues only the last is kept, at the cut (the start of the span after it; after the last span, the
+  end). The end's music cue is the last music or stop on the timeline.
+- **Sending** (Q27): in the first frame, one call to the audio thread (`AudioSystem.Post`) sends every cue;
+  the audio thread anchors it to the start of the quantum it applies it in and schedules each cue at the
+  anchor plus (its clock time − the frame's clock) / the rate (the frame's clock is `SequencePlayer.Time`,
+  set before the playbacks apply since this step, S6-E). A pause, the document hidden (handled as a pause,
+  so the sounds wait even if the sound isn't paused with it) and a rate change cancel the pending cues
+  and send, in the next frame the clock moves in, those from the clock's time then on that hadn't
+  happened; a seek cancels them and sends every cue after the time sought (it fires nothing; seeking back
+  re-arms what follows); a seek while paused waits for the resume. Which cues happened is known only on
+  the audio thread, so the decisions are made there: the handles live on the audio thread only. A cue the
+  picture had passed but the sound hadn't reached when the pause came is dropped (with the sound behind
+  the picture; it renders ahead, so normally none is). Rate 0 sends nothing until the rate is above 0.
+- **The end** (Q28): a skip (or a finish) cancels the pending cues on the audio thread and applies the
+  end's music cue at once with music.js's usual fades if it hadn't happened (a theme switched to, or the
+  music stopped); one already applied isn't applied again, so the game's change after it stands. The end
+  as played leaves the pending cues to play (they are due within the picture's distance from the sound)
+  and sends what was still to send. The end's frame doesn't send in its `Apply`: sending there and
+  cancelling right after in `Ended`, the audio thread could start the cues between the two (the guard
+  shows only on the audio thread, not in the offline tests).
+- **The UI track** (M10-9, `UiPlayback`): the host and the elements found by id among its descendants
+  when it plays (a missing id refused, S4-6; found once). Each thing a cue sets (an element's text, each of
+  its classes, each attribute) is a setting with its cues' times (`CueTimes`); in each frame's `Apply` a
+  setting whose cue in effect changed (or every one in a forced frame: the first, after a seek, at a skip)
+  takes that cue, or before its first cue what it was when the sequence started; those changing in one
+  frame change in the record order of their cues in effect. The text before its first cue is the element's
+  children as they were, put back with their text (setting a text keeps a lone text node, changing its
+  text), only when the text differs. `SetAttribute("class", …)` and class cues are separate settings, in
+  record order.
+- **The CSS clock** (S6-D, `UiClock` per player, `AnimationTimeline` per document): at `Begin` each UI
+  track's host is attached to the player's timeline (`AnimationEngine.Attach`: the animations running in
+  the host's subtree, pseudo-elements included, move onto it where they stand; those starting there later
+  start on it). The timeline is held while a reason holds it and released when none does: a pause from
+  the document's last frame (`AnimationEngine.LastFrameTime`, the last timing update's time: the last
+  frame the sequence's clock moved in, whether the pause came between frames, from a timer before the
+  frame's steps or after them) to the last frame of the pause (a resume's last frame); the hidden document
+  from its loop's time at the hiding to that at the showing (the times the player drops). Two reasons at
+  once hold through the union of their times (a reason ending before the other began releases and holds
+  again). At the end the reasons end and the timeline is detached (its animations back on the document's
+  clock where they stand). The nesting check asks the engine for an attached timeline whose root is, holds
+  or is inside the host (`TimelineAround`). `UiDocument.Visibility.cs` needed no change: the player's
+  `visibilitychange` listener runs at the moment the document is hidden or shown.
+- **The engine's timelines** (`AnimationEngine.cs`, Docs/Scripting.md, "Sequences' CSS animations"): a CSS
+  animation on a timeline uses the timeline's time wherever it used the document's (its start, a
+  play-state pause and resume, its values, its events, a cancel's elapsed time); a held timeline's
+  animations count as settled (no evaluation while held, their values those of the last frame). A
+  timeline's time is the document's less the time it was held; `Hold(at)` keeps the earlier of two holds
+  (nothing is drawn between: the player's times guarantee it), `Release(at)` never runs it backwards.
+- **Tests:** `Audio/ScheduledSoundTests.cs` (the clock, also standing still while the sound is paused on
+  the audio thread; effects at a time against the voice's graph built by hand at that time, two at one
+  time, at a quantum's start against the play made for it, a past time at once, the voice made in its
+  quantum: limits, stealing, draws; the overall limit; cancelling; the music's switch and stop at times
+  inside quanta against music.js's switch by hand, at a quantum's start against the switch made for it; a
+  reload after calls at a time), `Scene/SequenceAudioTests.cs` (`AudioBench`: a document's frames and an
+  offline audio system rendered ahead of or behind them; each cue against the same call at the anchor plus
+  its time, with the audio already along; pause, a cue in flight played once, one passed by the picture
+  dropped; the hidden document with the sound playing on or paused; seeks, to a cue's time and back while
+  paused; the rate; a skip with a theme or a stop to come and one already applied; the reduced variant's
+  cut parts, only a cut part's last music cue; the end with a send pending; no audio system, unknown names; the whole test sequence),
+  `Scene/SequenceUiTests.cs` (`UiBench`; the frames cues land in, the class a host had, record order in one
+  frame, restores and the game's changes, the end state, ids, nested hosts, the CSS clock through pauses
+  from timers, the hidden document twice around a showing with a pause, a seek, the end after a skip from a timer), and
+  `Ui/AnimationTimelineTests.cs` (holds and releases, attaching and detaching, pseudo-elements, play-state
+  pauses on a timeline behind the document's and at a detach, events). `TestSequence.Sound.cs` adds the music, two effects (one at the marker "open") and the
+  card's UI track (S6-F).
+- **Found:** Blink's `cancelAndHoldAtTime` at the current time during a linear ramp whose first event is
+  already past prunes that event and holds a wrong value (ported line for line in M8): so music.js's switch
+  at a quantum's start while the old theme is still fading in (its 0.8 s) cuts the old theme within a
+  quantum instead of fading it, in the game's own `Music.Play` as in a scheduled switch on a quantum's start
+  (a cue at τ = 0 lands on the anchor, a quantum's start). A switch at a time inside a quantum fades. Not
+  checked against Chromium (the M8 fixtures switch after the fade-in) and not changed: M8's path.
+- **Internal choices** (not asked; reported): the hidden document is a pause for the audio track; the end's
+  frame sends at the end; a reload before a scheduled switch's time keeps the switch's compiled theme (the
+  library's when it was made); once applied, a call at a time is what a reload restarts or leaves stopped,
+  as the game's own calls are.
+
 ## Status
 
 - Steps 4–7: not done yet (2026-11-04). The decisions and the 33 step details are recorded, the
@@ -1606,3 +1754,15 @@ bounded changes the M10 manager approved: `Scene/SceneView.cs` (emitters and the
   world within a float rounding). Not checked against Blender: the particles' motion (M6 decided it; the
   check is the replayed reference scene and its render) and an animated lens (glTF can't carry one, Q11:
   the curve's value is checked by rule, the camera's place and projection against Blender).
+- **Step 6, audio and UI tracks (2026-11-04, 2312 tests on the GPU and on lavapipe): done** on its worker
+  branch, rebased on step 5 ("How it works", step 6); six details asked on the way, all as recommended
+  (S6-A–S6-F). The audio system's clock and calls at a time (`AudioSystem.Time`, `Effects.PlayAt`,
+  `Music.PlayAt`, `Music.StopAt`, `ScheduledSound`), the audio track's playback (cues anchored to the
+  quantum the first call is applied in, cancelled and sent again around pauses, hidden time, seeks and rate
+  changes, the end's music cue at a skip, the reduced variant's cut parts), the UI track's playback (text,
+  classes and attributes, restores), the sequences' CSS timelines (`AnimationEngine`), `SequenceBindings.Audio`,
+  the player's clock set before the playbacks apply (S6-E), the test sequence's audio and UI tracks
+  (S6-F). The full suite passes on the GPU and on lavapipe (2312: step 5's 2267 and 45 new; one GPU run
+  had `OutputTests.TheDefaultDevicePacesTheGraph`, the real device's pacing test, fail once, passing alone and in the next full run;
+  its message wasn't kept). Mutations: 101 (`~/.cache/stat-fick-build/claude-work/m10/step6-mutations.json`, made by `make-step6-mutations.py` beside it): 99 killed, 93 in the run and 6 after closing the gaps they showed (five survivors and one that didn't build: the mutation itself, rewritten): only the last music cue of a cut part (two at one cut only differ when the later names the theme playing; a test added), the hold released at the end at the last frame (a skip from a timer before a frame's steps; the end test skips so now), a play-state pause on a timeline whose time is behind the document's (the test holds and releases first), the last frame's time (a pause from a timer resumed between frames), an animation's pause time moved at a detach (the test detaches one paused by its play-state). Two survive and can't differ: sending at rate 0 (no frame moves the clock then; a forced one would schedule cues at infinite times, cancelled at the next rate change before any could be due) and the end's frame sending in its `Apply` (the guard keeps the audio thread from starting cues a skip cancels right after; offline both calls are taken in the same quantum before any is applied, and the end as played sends the same call in the same frame). Six candidates left out of the list: only work or memory (a held animation counted settled, the detach's move back, the restore's guard for an unchanged text, the rooms prepared on the game's thread) or unreachable (the clock's guards against a repeated pause or visibility change, the nesting check's own-player exception). Found: music.js's switch at a quantum's start during the old theme's fade-in
+  cuts the old theme (Blink's `cancelAndHoldAtTime` rule as ported in M8; not checked against Chromium).

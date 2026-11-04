@@ -1,4 +1,5 @@
 using Statventure.Animation;
+using Statventure.Audio;
 using Statventure.Render3D;
 using Statventure.UI.Dom;
 
@@ -16,6 +17,20 @@ public sealed class SequenceBindings
     internal List<(string Role, object Value, Func<string, ClipBinding?>? Clips)> Roles { get; } = [];
     internal List<(string Path, ModelData Data, Model? Model)> Stages { get; } = [];
     internal List<(string Path, ParticleEffect Effect)> Effects { get; } = [];
+    /// <summary>The audio system the audio tracks play on (null: they play nothing).</summary>
+    internal AudioSystem? AudioSystem { get; private set; }
+
+    /// <summary>
+    /// The audio system the sequence's audio tracks play on (Docs/Scene.md, S6-A): their cues are scheduled
+    /// on its clock, and <see cref="SceneView.Play"/> checks that each names an effect it has registered or a
+    /// theme its music has. Without one (or with null: <c>Application.Audio</c> when the sound is off) the
+    /// audio tracks play nothing.
+    /// </summary>
+    public SequenceBindings Audio(AudioSystem? audio)
+    {
+        AudioSystem = audio;
+        return this;
+    }
 
     /// <summary>
     /// A figure for an actor role: its clock follows the sequence while it plays. Its clips by name come

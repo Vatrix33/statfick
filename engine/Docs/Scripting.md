@@ -32,6 +32,8 @@ JavaScript (user decision 2026-10-25: Chromium's event loop, C# async/await on i
 | `Tools/VisibilityReference/`, `Tools/Scripts/make-visibility-references.sh` | Electron harness: hides, shows and closes pages, and keeps them hidden for minutes; writes `Reference/visibility-results.json` |
 | `Tests/Statventure.Tests/Ui/VisibilityReferenceTests.cs` | The visibility scenarios' C# twins against Chromium's logs |
 | `Tests/Statventure.Tests/Ui/HiddenDocumentTests.cs` | The rules the references don't reach alone (the pools as their sources define them, no frames, unloading, the grace periods, contentful paints) |
+| `Engine/Statventure/UI/Style/AnimationEngine.cs` (sequences' timelines), `Engine/Statventure/Scene/SequencePlayback.Ui.cs` (`UiClock`) | A playing sequence's clock for the CSS animations inside its UI hosts (below, "Sequences' CSS animations") |
+| `Tests/Statventure.Tests/Ui/AnimationTimelineTests.cs`, `Tests/Statventure.Tests/Scene/SequenceUiTests.cs` | The timelines on their own, and through a sequence's pauses, hidden time, seeks and end |
 
 ## Rules ported
 
@@ -217,6 +219,33 @@ closing sends pagehide, visibilitychange and unload.
   start at once; Chromium hears an old game's music stop a few hundred ms after it stopped it.
 - No beforeunload, freeze or resume (the user's decision; no back-forward cache or page freezing on
   desktop Chromium either).
+
+## Sequences' CSS animations (M10 step 6, 2026-11-04)
+
+Not Chromium's: the sequencer's (Docs/Scene.md, Q29, S6-D). A playing sequence's UI motion stays in CSS
+(M10-9) but keeps the sequence's clock, which stops while the game pauses it and while the document is
+hidden (M10-7), where Chromium's CSS animations run on the document's real-time timeline and jump forward
+after a minimize.
+- **What runs on it:** the CSS animations of the sequence's UI hosts, their descendants and their
+  pseudo-elements: those running when it starts (moved onto it where they stand) and those starting
+  there while it plays. Transitions, script animations (`element.Animate`) and everything outside stay on
+  the document's clock. A host equal to, inside or around a host of another playing sequence is refused
+  when it starts.
+- **The clock** (`AnimationTimeline`): the document's time less the time it was held. On it an animation's
+  start, its `animation-play-state` pauses and resumes, its values, its events and a cancel's elapsed time
+  use the timeline's time; while it is held its animations stand at the last frame's values (they count as
+  settled, so a held document draws nothing new for them) and their events wait.
+- **When it is held** (`UiClock`): a game's pause from the document's last frame (the last timing update:
+  the last frame the sequence's clock moved in, whether the pause came between frames, from a timer before
+  a frame's steps or after them) to the last frame of the pause; a hidden document from its loop's time at
+  the `visibilitychange` to hidden to that at the one to visible (the time the sequence drops; Blink would
+  apply a change at the next frame, but a hidden document has none). Both at once hold through the union
+  of their times. `UiDocument.Visibility.cs` needs nothing for it: the sequence's `visibilitychange`
+  listener runs at the moment of the change.
+- **Not reached by seeking** (Q29): a seek moves the sequence's clock but not this one; the animations go on
+  by their own time. A sequence with UI tracks plays at rate 1 only, so there is no rate either.
+- **At the end** (played, skipped or finished) it is released and detached: its animations go on on the
+  document's clock from where they stand.
 
 ## Tests
 

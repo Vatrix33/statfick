@@ -12,7 +12,9 @@ namespace Statventure.UI.Style;
 /// Their DOM events follow Blink: each animation and transition remembers the phase its events last
 /// saw; a frame's timing update (<see cref="UpdateTiming"/>) queues the events its phase changes call
 /// for, cancelling queues its event at once, and the document dispatches the queue after the frame's
-/// scroll events.
+/// scroll events. The CSS animations inside the UI hosts of a playing sequence run on the sequence's own
+/// timeline (<see cref="AnimationTimeline"/>; Docs/Scene.md, S6-D), which its player holds while it is
+/// paused or its document hidden; the rest, transitions included, run on the document's clock.
 /// </summary>
 public sealed class AnimationEngine
 {
@@ -68,6 +70,75 @@ public sealed class AnimationEngine
     /// <summary>Sets the clock (animations and transitions started by the next restyle begin at this time).</summary>
     public void Advance(double time) => Time = time;
 
+    /// <summary>The time of the last frame's timing update (a visible document's last frame; NaN before the first).</summary>
+    internal double LastFrameTime { get; private set; } = double.NaN;
+
+    // ---------- Sequences' timelines (Docs/Scene.md, S6-D) ----------
+
+    readonly List<AnimationTimeline> _timelines = [];
+
+    /// <summary>
+    /// Puts <paramref name="root"/> on <paramref name="timeline"/> (its first root attaches the timeline): the
+    /// CSS animations of the root, its descendants and their pseudo-elements, those running now and those
+    /// that start later, run on the timeline's clock until it is detached.
+    /// </summary>
+    internal void Attach(AnimationTimeline timeline, UiElement root)
+    {
+        if (!_timelines.Contains(timeline))
+            _timelines.Add(timeline);
+        timeline.Roots.Add(root);
+        foreach (var target in _targets.Values)
+            if (Inside(target.Element, root))
+                foreach (var animation in target.Animations)
+                    if (animation.Timeline is null)
+                        Move(animation, timeline);
+    }
+
+    /// <summary>The timeline ends (its sequence ended): its animations go on on the document's clock from where they stand.</summary>
+    internal void Detach(AnimationTimeline timeline)
+    {
+        if (!_timelines.Remove(timeline))
+            return;
+        foreach (var target in _targets.Values)
+            foreach (var animation in target.Animations)
+                if (animation.Timeline == timeline)
+                    Move(animation, null);
+    }
+
+    /// <summary>An attached timeline one of whose roots is <paramref name="element"/>, is inside it or holds it, or null.</summary>
+    internal AnimationTimeline? TimelineAround(UiElement element) =>
+        _timelines.FirstOrDefault(t => t.Roots.Any(root => Inside(element, root) || Inside(root, element)));
+
+    /// <summary>The timeline whose roots hold <paramref name="element"/> (the latest attached), or null for the document's clock.</summary>
+    AnimationTimeline? TimelineOf(UiElement element)
+    {
+        for (var i = _timelines.Count - 1; i >= 0; i--)
+            if (_timelines[i].Roots.Any(root => Inside(element, root)))
+                return _timelines[i];
+        return null;
+    }
+
+    static bool Inside(UiElement element, UiElement root)
+    {
+        for (UiNode? node = element; node is not null; node = node.Parent)
+            if (node == root)
+                return true;
+        return false;
+    }
+
+    /// <summary>An animation onto another clock, keeping where it stands (its start and pause time in the new clock's terms).</summary>
+    void Move(RunningAnimation animation, AnimationTimeline? timeline)
+    {
+        var shift = (timeline?.Now(Time) ?? Time) - NowOf(animation);
+        animation.Start += shift;
+        if (animation.PausedAt is { } paused)
+            animation.PausedAt = paused + shift;
+        animation.Timeline = timeline;
+    }
+
+    /// <summary>An animation's clock now: its sequence's timeline's, or the document's.</summary>
+    double NowOf(RunningAnimation animation) => animation.Timeline?.Now(Time) ?? Time;
+
     /// <summary>An effect's phase (Web Animations): before its delay is over, active, after its end, or none (cancelled).</summary>
     enum Phase { None, Before, Active, After }
 
@@ -98,6 +169,8 @@ public sealed class AnimationEngine
         public required KeyframesDefinition Keyframes;
         public required double Start;
         public double? PausedAt;
+        /// <summary>The sequence timeline it runs on (its start and pause time are that clock's), or null for the document's clock.</summary>
+        public AnimationTimeline? Timeline;
         public Dictionary<string, List<Frame>>? Tracks;
         public bool Finished;
         /// <summary>Its place in animation-name (the composite order among the element's animations).</summary>
@@ -139,7 +212,7 @@ public sealed class AnimationEngine
         public bool Stale;
 
         /// <summary>Nothing here changes with time: only finished or paused animations (their values are in the visible style already).</summary>
-        public bool Settled => !Stale && Transitions.Count == 0 && Animations.TrueForAll(a => a.Finished || a.PausedAt is not null);
+        public bool Settled => !Stale && Transitions.Count == 0 && Animations.TrueForAll(a => a.Finished || a.PausedAt is not null || a.Timeline is { Held: true });
         /// <summary>Script animations' keyframes per property, made from this target's base style.</summary>
         public readonly Dictionary<UiAnimation, Dictionary<string, List<ScriptRecord>>> ScriptTracks = [];
     }
@@ -181,10 +254,10 @@ public sealed class AnimationEngine
             {
                 // Paused/resumed: shift the start so the animation continues from where it stopped.
                 if (spec.Paused && existing.PausedAt is null)
-                    existing.PausedAt = Time;
+                    existing.PausedAt = NowOf(existing);
                 else if (!spec.Paused && existing.PausedAt is { } pausedAt)
                 {
-                    existing.Start += Time - pausedAt;
+                    existing.Start += NowOf(existing) - pausedAt;
                     existing.PausedAt = null;
                 }
                 existing.Spec = spec;
@@ -195,7 +268,9 @@ public sealed class AnimationEngine
             }
             else
             {
-                var created = new RunningAnimation { Target = target, Created = Time, Sequence = _sequence++, Spec = spec, Keyframes = keyframes, Start = Time, PausedAt = spec.Paused ? Time : null, Index = i };
+                var timeline = TimelineOf(element);
+                var now = timeline?.Now(Time) ?? Time;
+                var created = new RunningAnimation { Target = target, Created = Time, Sequence = _sequence++, Spec = spec, Keyframes = keyframes, Start = now, PausedAt = spec.Paused ? now : null, Timeline = timeline, Index = i };
                 kept.Add(created);
                 _effects.Add(created);
                 _pending = true;
@@ -362,7 +437,7 @@ public sealed class AnimationEngine
             Queue(animation.Target, new UiAnimationEvent("animationcancel")
             {
                 AnimationName = animation.Spec.Name,
-                ElapsedTime = (animation.PausedAt ?? Time) - animation.Start,
+                ElapsedTime = (animation.PausedAt ?? NowOf(animation)) - animation.Start,
                 PseudoElement = PseudoName(animation.Target.Pseudo),
             });
         animation.PreviousPhase = Phase.None;
@@ -543,6 +618,7 @@ public sealed class AnimationEngine
     public void UpdateTiming(double time)
     {
         Time = time;
+        LastFrameTime = time;
         _pending = false;
         ServiceScriptAnimations();
         if (_targets.Values.Any(t => !Settled(t)))
@@ -581,7 +657,7 @@ public sealed class AnimationEngine
     void AnimationEvents(RunningAnimation animation, List<(Effect, UiEvent)> produced)
     {
         var timing = TimingOf(animation);
-        var local = (animation.PausedAt ?? Time) - animation.Start;
+        var local = (animation.PausedAt ?? NowOf(animation)) - animation.Start;
         var phase = PhaseAt(timing, ref local);
         var iteration = CurrentIteration(timing, animation.Spec.FillMode, phase, local);
         var previous = animation.PreviousPhase;
@@ -970,7 +1046,7 @@ public sealed class AnimationEngine
     {
         finished = false;
         var spec = animation.Spec;
-        var time = animation.PausedAt ?? Time;
+        var time = animation.PausedAt ?? NowOf(animation);
         var elapsed = time - animation.Start - spec.Delay;
         var duration = Math.Max(0, spec.Duration);
         var iterations = Math.Max(0, spec.IterationCount);
@@ -1042,5 +1118,43 @@ public sealed class AnimationEngine
             tracks[property] = frames;
         }
         return tracks;
+    }
+}
+
+/// <summary>
+/// A playing sequence's clock for the CSS animations inside its UI hosts (Docs/Scene.md, S6-D): the
+/// document's time less the time it was held, held while the sequence's clock stands still (its player
+/// holds and releases it at the document times that keep the two in step). Seeking doesn't reach it (Q29).
+/// </summary>
+internal sealed class AnimationTimeline(object owner)
+{
+    double _offset;
+    double? _heldAt;
+
+    /// <summary>Whose timeline it is (a sequence's player).</summary>
+    public object Owner { get; } = owner;
+
+    /// <summary>The elements whose subtrees run on it.</summary>
+    public List<UiElement> Roots { get; } = [];
+
+    public bool Held => _heldAt is not null;
+
+    /// <summary>Its time at the document's time <paramref name="time"/>.</summary>
+    public double Now(double time) => _heldAt ?? time - _offset;
+
+    /// <summary>Stands still from the document's time <paramref name="at"/> (held already: from the earlier of the two; nothing was drawn in between).</summary>
+    public void Hold(double at)
+    {
+        var value = at - _offset;
+        _heldAt = _heldAt is { } held ? Math.Min(held, value) : value;
+    }
+
+    /// <summary>Goes on from the document's time <paramref name="at"/>, where it stood.</summary>
+    public void Release(double at)
+    {
+        if (_heldAt is not { } held)
+            return;
+        _offset = Math.Max(_offset, at - held);
+        _heldAt = null;
     }
 }

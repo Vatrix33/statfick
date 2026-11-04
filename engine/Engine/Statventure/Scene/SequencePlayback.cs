@@ -92,9 +92,11 @@ internal readonly record struct NodeHandle(SceneNode? Bound, StageBinding? Stage
 /// </summary>
 internal sealed class PlaybackContext(SequencePlayer player, Sequence sequence, SceneView scene, SequenceTimes times,
     IReadOnlyDictionary<string, object> roles, IReadOnlyDictionary<string, StageBinding> stages,
-    IReadOnlyDictionary<Actor, Func<string, ClipBinding?>> clips, IReadOnlyDictionary<string, ParticleEffect> effects)
+    IReadOnlyDictionary<Actor, Func<string, ClipBinding?>> clips, IReadOnlyDictionary<string, ParticleEffect> effects, SequenceBindings bindings)
 {
     public SequencePlayer Player { get; } = player;
+    /// <summary>What the game gave besides the roles and stages (the audio system the audio tracks play on, S6-A).</summary>
+    public SequenceBindings Bindings { get; } = bindings;
     public Sequence Sequence { get; } = sequence;
     public SceneView Scene { get; } = scene;
     public IReadOnlyDictionary<string, StageBinding> Stages { get; } = stages;

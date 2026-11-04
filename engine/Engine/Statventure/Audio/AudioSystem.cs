@@ -27,6 +27,8 @@ public sealed class AudioSystem : IDisposable
     bool _paused, _failed;
     double _masterVolume = 1, _effectsVolume = 1;
     long _quanta;
+    /// <summary>The first frame of the next quantum whose calls aren't taken yet (published for <see cref="Time"/>).</summary>
+    long _nextFrame;
 
     /// <summary>Opens the default output device (or runs silently without one) and starts the audio thread, playing <paramref name="music"/>.</summary>
     public AudioSystem(MusicLibrary music) : this(new OpenAlOutput(), music) { }
@@ -136,6 +138,15 @@ public sealed class AudioSystem : IDisposable
     /// <summary>The rate the graph renders at.</summary>
     public int SampleRate => (int)_graph.SampleRateF;
 
+    /// <summary>
+    /// The audio clock (Docs/Audio.md, "The clock and scheduled calls"; Docs/Scene.md, S6-B): seconds of
+    /// audio from the system's start to the start of the next quantum the audio thread renders, the
+    /// earliest time a call made now takes effect at (as Web Audio's <c>currentTime</c>). It stands still
+    /// while the sound is paused. Calls at a time (<see cref="SoundEffects.PlayAt"/>,
+    /// <see cref="Soundtrack.PlayAt"/>, <see cref="Soundtrack.StopAt"/>) are on this clock.
+    /// </summary>
+    public double Time => Volatile.Read(ref _nextFrame) / _graph.SampleRate;
+
     /// <summary>Whether sound reaches a device now.</summary>
     public bool HasDevice => _output?.HasDevice ?? false;
 
@@ -241,12 +252,17 @@ public sealed class AudioSystem : IDisposable
         }
     }
 
-    /// <summary>Before each quantum: the queued calls in order, then the soundtrack's scheduling.</summary>
+    /// <summary>
+    /// Before each quantum: the queued calls in order, then the calls at a time that fall in this quantum
+    /// (each at its time), then the soundtrack's scheduling; the clock then reads the next quantum's start.
+    /// </summary>
     internal void BeforeQuantum()
     {
         while (_commands.TryDequeue(out var command))
             command();
+        Effects.BeforeQuantum();
         Music.Schedule();
+        Volatile.Write(ref _nextFrame, _graph.CurrentSampleFrame + AudioGraph.RenderQuantumFrames);
     }
 
     /// <summary>The last quanta's render times in milliseconds (up to 4096), for measuring.</summary>
@@ -318,5 +334,94 @@ public sealed class AudioSystem : IDisposable
         _thread?.Join();
         _output?.Dispose();
         _wake.Dispose();
+    }
+}
+
+/// <summary>What a call at a time did, as the audio thread last left it.</summary>
+public enum ScheduledSoundState
+{
+    /// <summary>Waiting for its time.</summary>
+    Pending,
+    /// <summary>Its time came: the effect started, the music switched or stopped.</summary>
+    Done,
+    /// <summary>Cancelled before its time.</summary>
+    Cancelled,
+}
+
+/// <summary>
+/// A call at a time on the audio clock (<see cref="AudioSystem.Time"/>; Docs/Scene.md, S6-B): an effect
+/// played, the music switched or stopped. The audio thread applies it in the quantum its time falls in,
+/// at that sample (a time already past then: at the quantum's start, at once). <see cref="Cancel"/> drops
+/// it if its time hasn't come when the audio thread takes the cancel.
+/// </summary>
+public sealed class ScheduledSound
+{
+    readonly AudioSchedule _schedule;
+    readonly Action<Action> _dispatch;
+    int _state;
+
+    internal ScheduledSound(double time, AudioSchedule schedule, Action<Action> dispatch)
+    {
+        Time = time;
+        _schedule = schedule;
+        _dispatch = dispatch;
+    }
+
+    /// <summary>Its time on the audio clock, in seconds.</summary>
+    public double Time { get; }
+
+    /// <summary>What it did, as the audio thread last left it.</summary>
+    public ScheduledSoundState State => (ScheduledSoundState)Volatile.Read(ref _state);
+
+    /// <summary>Drops the call if its time hasn't come when the audio thread takes this (queued like every call); else nothing.</summary>
+    public void Cancel() => _dispatch(CancelNow);
+
+    /// <summary>On the audio thread: drops it if it is still pending.</summary>
+    internal void CancelNow() => _schedule.Cancel(this);
+
+    internal void SetState(ScheduledSoundState state) => Volatile.Write(ref _state, (int)state);
+}
+
+/// <summary>
+/// The calls at a time of one player (the effects or the music), on the audio thread: kept in time order
+/// (equal times in the order they came) and applied before the quantum their time falls in, each at its
+/// time (Docs/Audio.md, "The clock and scheduled calls").
+/// </summary>
+internal sealed class AudioSchedule(AudioGraph graph)
+{
+    readonly List<(ScheduledSound Sound, Action<double> Apply)> _pending = [];
+
+    /// <summary>The calls waiting for their time.</summary>
+    public int Count => _pending.Count;
+
+    public void Add(ScheduledSound sound, Action<double> apply)
+    {
+        var i = _pending.Count;
+        while (i > 0 && _pending[i - 1].Sound.Time > sound.Time)
+            i--;
+        _pending.Insert(i, (sound, apply));
+    }
+
+    public void Cancel(ScheduledSound sound)
+    {
+        var i = _pending.FindIndex(p => p.Sound == sound);
+        if (i < 0)
+            return;
+        _pending.RemoveAt(i);
+        sound.SetState(ScheduledSoundState.Cancelled);
+    }
+
+    /// <summary>Applies, in time order, every call whose time falls before the end of the quantum about to render, each at its time (a past one at the quantum's start).</summary>
+    public void ApplyDue()
+    {
+        // The next quantum's start as the graph's clock reads it (a time on a quantum's start falls in that quantum).
+        var end = (graph.CurrentSampleFrame + AudioGraph.RenderQuantumFrames) / graph.SampleRate;
+        while (_pending.Count > 0 && _pending[0].Sound.Time < end)
+        {
+            var (sound, apply) = _pending[0];
+            _pending.RemoveAt(0);
+            sound.SetState(ScheduledSoundState.Done);
+            apply(Math.Max(sound.Time, graph.CurrentTime));
+        }
     }
 }

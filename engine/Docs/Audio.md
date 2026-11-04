@@ -570,6 +570,59 @@ the output's level). `Audio/Output/Audibility.cs`, ported from `media/base/audio
   a direct play. Measured (`audio-benchmark.sh --effects`, Release, 48 kHz): 32 two-layer voices with
   a new one every 21 ms add 0.13 ms to a quantum's mean of 0.26 ms, on a battle theme.
 
+### The clock and scheduled calls (M10 step 6, 2026-11-04)
+
+For the sequencer's audio cues (Docs/Scene.md, M10-8, Q27, S6-B, S6-C); the game may use them too.
+`Audio/AudioSystem.cs` (`AudioSystem.Time`, `ScheduledSound`, `AudioSchedule`), `Audio/Effects/SoundEffects.cs`,
+`Audio/Music/Soundtrack.cs`.
+
+- **The clock:** `AudioSystem.Time` is seconds on the audio clock: the start of the next quantum the audio
+  thread renders, the earliest time a call made now takes effect at (as Web Audio's `currentTime`). The
+  audio thread publishes it after taking the calls before each quantum; it stands still while the sound
+  is paused (a minimized window). It is ahead of what is heard by what is queued (about 20 ms) and the
+  device's latency, which nothing corrects (Q27).
+- **Calls at a time:** `Effects.PlayAt(time, id, volume, pan, pitch)`, `Music.PlayAt(time, themeId)`,
+  `Music.StopAt(time)`, each queued like every call and giving a `ScheduledSound` (`Time`, `State`:
+  pending, done or cancelled as the audio thread last left it, `Cancel()`, itself queued: it drops the call
+  if its time hasn't come when the audio thread takes it). The checks are the immediate calls' (an unknown
+  effect or theme, numbers that aren't finite), plus a finite time. Each player (the effects, the music)
+  keeps its calls in time order, equal times in the order they came; before each quantum, after the queued
+  calls, those whose time is before the next quantum's start (as the graph's clock reads it: a time on a
+  quantum's start falls in that quantum) are applied, each at its time, a time already past at the
+  quantum's start.
+- **An effect at a time** is the play `Play` makes, made in the quantum its time falls in and started at
+  its time (S6-C): the limits are counted, the oldest voice stolen (its fade from that time) and the
+  pitch, level and noise offsets drawn then, in the order the voices start; until then it counts toward
+  nothing. `Play` is the same at the quantum's start.
+- **The music at a time** is music.js's switch with "now" its time, in the quantum it falls in: the old bus
+  held at that time and ramped to 0 over 0.55 s and let go at the first quantum 1.8 s after, the new
+  performance's bus from 0 at it to 1 0.8 s later, its first step 60 ms after it, the steps then scheduled
+  0.2 s ahead as always; the theme playing then does nothing; a stop retires the bus at its time. Once
+  applied, a switch or stop at a time is what the game asked for as far as a reload is concerned (S9-D:
+  a theme switched to restarts when its music changed, one stopped stays stopped); a switch keeps the
+  compiled theme of the library it was made with, so a reload before its time doesn't change it.
+- **A sequence's calls** (Q27) don't go through these: its playback posts one call to the audio thread
+  that anchors every cue to that quantum's start and schedules them through the same schedules, and
+  makes its later decisions (which cues happened, which to send again, the end's music cue at a skip) on
+  the audio thread (Docs/Scene.md, "How it works", step 6).
+- **How it is checked** (`Audio/ScheduledSoundTests.cs`, offline on the audio system's mixer): the clock
+  after each quantum and standing still while the audio thread is paused; an effect at times inside quanta
+  and on a quantum's start renders sample for sample as the voice's graph built by hand at that time (the
+  effect fixtures' graph written again in C#), two at one time in the order asked; at a quantum's start as
+  the play made for that quantum; a past time as a play now; the voice made in its quantum (counts before
+  and after, the third of a two-voice patch stealing the first at its time, draws in the order of the
+  starts, the overall limit's stealing); a cancelled play leaving the rest sample for sample (its draws not
+  made) and its states; a switch and a stop inside quanta while a theme fades in, as music.js's switch
+  written out by hand at those times; a switch at a quantum's start as the switch made for it, one to the
+  theme playing doing nothing, one cancelled; a reload after a switch at a time, a switch now (a skip) and
+  a stop at a time; through the audio system with the game's themes.
+- **Found:** Blink's `cancelAndHoldAtTime` at the current time during a linear ramp whose first event is
+  past prunes that event (`InsertEvent`'s removal of old events) and holds a wrong value, so music.js's
+  switch made at a quantum's start while the old theme is still in its 0.8 s fade-in cuts the old theme
+  within a quantum instead of fading it out; a switch at a time inside a quantum fades it. Ported line for
+  line in step 1, the M8 fixtures switch only after a fade-in finished, so this isn't checked against
+  Chromium; the engine's path is unchanged.
+
 ## Status
 
 - **Step 1, harness and render core: done (2026-10-31, 681 tests).** 39 fixtures (buffer sources:
@@ -697,3 +750,12 @@ the output's level). `Audio/Output/Audibility.cs`, ported from `media/base/audio
   (`test-themes.sh`, 55 of 55, 21 minutes); a theme start costs the same as before (`audio-benchmark.sh --start`).
 - **M8 is done.** All 8 steps, and the user has listened and is happy with it (2026-11-02). Next: M9 only on the user's go, asking its open questions first
   (`Docs/Engine-Plan.md`, "Open questions for later milestones").
+- **The clock and scheduled calls (2026-11-04, M10 step 6):** added for the sequencer's audio cues (above,
+  "The clock and scheduled calls"; Docs/Scene.md, S6-B, S6-C). The synthesizer's renders didn't change (the
+  immediate calls are applied as before; only calls at a time are new), so the opt-in theme check wasn't
+  run again.
+- **Open (found 2026-11-04, M10 step 6):** music.js's switch made exactly at a quantum's start while the old theme
+  is still in its 0.8 s fade-in cuts the old theme within a quantum instead of fading it (Blink's
+  `cancelAndHoldAtTime` rule as ported line for line in step 1; "The clock and scheduled calls", "Found"). Not
+  checked against Chromium: to check against a Chromium render whether music.js does the same, and if not, find
+  the rule (Docs/Engine-Plan.md, "Small tasks left from earlier milestones").

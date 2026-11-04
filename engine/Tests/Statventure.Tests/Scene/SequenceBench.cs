@@ -90,8 +90,11 @@ sealed class SequenceBench : IDisposable
 
     /// <summary>The test sequence's roles and stage bound.</summary>
     public SequenceBindings Bindings(ModelData? stage = null) =>
-        new SequenceBindings().Actor("hero", Hero).Node("pivot", Pivot).Model("prop", Prop).Palette("tint", Tint).Stage(TestSequence.StagePath, stage ?? StageData)
-            .Effect(TestSequence.EffectPath, TestSequence.Effect);
+        new SequenceBindings().Actor("hero", Hero).Node("pivot", Pivot).Model("prop", Prop).Palette("tint", Tint).Element(TestSequence.Card, Card)
+            .Stage(TestSequence.StagePath, stage ?? StageData).Effect(TestSequence.EffectPath, TestSequence.Effect);
+
+    /// <summary>The test sequence's UI host.</summary>
+    public UiElement Card => Document.GetElementById("card")!;
 
     public SequencePlayer Play(Sequence? sequence = null) => Scene.Play(sequence ?? TestSequence.Build(StageData), Bindings(), Document);
 
