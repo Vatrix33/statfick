@@ -1,0 +1,4 @@
+particle.spawn 1 union
+  1 particle.point
+  2 particle.sphere
+  3 particle.cone

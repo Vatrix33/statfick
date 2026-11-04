@@ -1,0 +1,2 @@
+particle.puff 1
+  1 softness: float32 (required)

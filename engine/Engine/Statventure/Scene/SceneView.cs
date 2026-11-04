@@ -22,12 +22,17 @@ namespace Statventure.Scene;
 /// Sequences play on it (<see cref="Play"/>, Docs/Scene.md, step 4): each frame first the sequences
 /// playing (their state, the figures they hold), then the other figures at the battle pace and the
 /// instanced models it animates (<see cref="Animate"/>), then one refresh; in the events step every
-/// figure's events, then each sequence's event cues.
+/// figure's events, then each sequence's event cues. Particle emitters on its nodes
+/// (<see cref="SceneEmitter"/>, Docs/Scene.md, step 5) give the view its particles: those no sequence
+/// holds run on its clock at its rate, as the water's waves do while it holds terrain with water
+/// (<see cref="View3D.Time"/>; S5-Q1: one clock for everything it animates), and are taken off their
+/// nodes once their last particle has died.
 /// </summary>
 public sealed class SceneView : IUiFrameClient
 {
     readonly List<SceneAttachment> _attachments = [];
     readonly List<Actor> _actors = [];
+    readonly List<SceneEmitter> _emitters = [];
     readonly List<DrawItem> _items = [];
     readonly List<SequencePlayer> _players = [];
     readonly Dictionary<Actor, SequencePlayer> _holders = [];
@@ -35,6 +40,8 @@ public sealed class SceneView : IUiFrameClient
     bool _structureChanged = true, _changed = true;
     (Projection, Vector3, Vector3, Vector3, float, float, float, float, int) _viewDrawn;
     CelStyle? _styleDrawn;
+    List<Particle>? _particlesShown;
+    double _waterClock = double.NaN;
 
     public SceneView(View3D view)
     {
@@ -44,7 +51,7 @@ public sealed class SceneView : IUiFrameClient
 
     public View3D View { get; }
     public SceneNode Root { get; }
-    /// <summary>How fast the figures' clocks run against the document's (the battle pace); 0 holds them.</summary>
+    /// <summary>How fast the figures' clocks run against the document's (the battle pace), and the free emitters' and the water's (S5-Q1); 0 holds them.</summary>
     public double Rate { get; set; } = 1;
     /// <summary>The camera the view takes (a <see cref="SceneCamera"/> on a node); null leaves the view's own.</summary>
     public SceneCamera? Camera { get; set; }
@@ -75,12 +82,15 @@ public sealed class SceneView : IUiFrameClient
         _structureChanged = false;
         _attachments.Clear();
         _actors.Clear();
+        _emitters.Clear();
         foreach (var node in Root.Descendants().Prepend(Root))
             foreach (var attachment in node.Attachments)
             {
                 _attachments.Add(attachment);
                 if (attachment is Actor actor)
                     _actors.Add(actor);
+                else if (attachment is SceneEmitter emitter)
+                    _emitters.Add(emitter);
             }
     }
 
@@ -103,6 +113,19 @@ public sealed class SceneView : IUiFrameClient
             time += seconds * Rate;
             _animated[i] = (instance, stack, time);
             instance.Apply(stack, time);
+        }
+        // The free emitters and the water on the battle pace too (S5-Q1).
+        var paced = seconds * Rate;
+        foreach (var emitter in _emitters)
+            if (!emitter.Held)
+                emitter.Step(paced);
+        if (paced != 0 && _attachments.Any(a => a is PlacedTerrain { Terrain.Data.WaterLevel: not null }))
+        {
+            // From the view's own time when something else set it.
+            if ((float)_waterClock != View.Time)
+                _waterClock = View.Time;
+            _waterClock += paced;
+            View.Time = (float)_waterClock;
         }
         Refresh();
     }
@@ -160,6 +183,7 @@ public sealed class SceneView : IUiFrameClient
         Camera?.ApplyTo(View.Camera);
         if (Sun is { } sun && sun.Light is var light && light != View.Sun)
             View.Sun = light;
+        ShowParticles();
         var changed = _changed;
         foreach (var actor in _actors)
             changed |= actor.Refresh();
@@ -185,6 +209,34 @@ public sealed class SceneView : IUiFrameClient
                 attachment.Draw(_items, drawing);
         View.Items = [.. _items];
         return true;
+    }
+
+    /// <summary>
+    /// Records each emitter's node where it is now and gives the view the particles of those on shown
+    /// nodes when they differ from the last it was given (a scene that never had an emitter leaves the
+    /// view's particles as they are set); emitters no sequence holds whose last particle has died are
+    /// taken off their nodes.
+    /// </summary>
+    void ShowParticles()
+    {
+        Collect();
+        if (_emitters.Count == 0 && _particlesShown is null or { Count: 0 })
+            return;
+        var particles = new List<Particle>();
+        foreach (var emitter in _emitters)
+        {
+            emitter.Sample();
+            if (emitter.Node!.Shown)
+                particles.AddRange(emitter.Particles());
+        }
+        foreach (var emitter in _emitters.ToArray())
+            if (!emitter.Held && emitter.Done)
+                emitter.Node!.Detach(emitter);
+        Collect();
+        if (_particlesShown != null && SceneEmitter.Same(_particlesShown, particles))
+            return;
+        _particlesShown = particles;
+        View.Particles = particles;
     }
 
     void IUiFrameClient.AdvanceFrame(double seconds) => Advance(seconds);

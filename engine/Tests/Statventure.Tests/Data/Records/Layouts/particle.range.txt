@@ -1,0 +1,3 @@
+particle.range 1
+  1 min: float32 (required)
+  2 max: float32 (required)

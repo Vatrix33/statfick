@@ -92,7 +92,7 @@ internal readonly record struct NodeHandle(SceneNode? Bound, StageBinding? Stage
 /// </summary>
 internal sealed class PlaybackContext(SequencePlayer player, Sequence sequence, SceneView scene, SequenceTimes times,
     IReadOnlyDictionary<string, object> roles, IReadOnlyDictionary<string, StageBinding> stages,
-    IReadOnlyDictionary<Actor, Func<string, ClipBinding?>> clips)
+    IReadOnlyDictionary<Actor, Func<string, ClipBinding?>> clips, IReadOnlyDictionary<string, ParticleEffect> effects)
 {
     public SequencePlayer Player { get; } = player;
     public Sequence Sequence { get; } = sequence;
@@ -103,6 +103,9 @@ internal sealed class PlaybackContext(SequencePlayer player, Sequence sequence, 
 
     public ArgumentException Problem(string message) =>
         new($"the sequence {Sequence.Name}, track {Track} ({Sequence.Tracks[Track].Kind}): {message}");
+
+    /// <summary>The particle effect given for a path (S5-2; <see cref="SceneView.Play"/> checked that every one named is given).</summary>
+    public ParticleEffect Effect(string path) => effects[path];
 
     /// <summary>The object bound to a role.</summary>
     public object Role(string name) => roles[name];

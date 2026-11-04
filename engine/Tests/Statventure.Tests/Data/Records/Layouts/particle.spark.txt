@@ -1,0 +1,3 @@
+particle.spark 1
+  1 width: float32 (required)
+  2 stretch: float32 (required)

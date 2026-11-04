@@ -1,0 +1,50 @@
+{
+  "$types": {
+    "particle.effect": 1,
+    "particle.shape": 1,
+    "particle.spark": 1,
+    "particle.range": 1,
+    "particle.spawn": 1,
+    "particle.cone": 1
+  },
+  "shape": {
+    "$type": "particle.spark",
+    "width": 0.35,
+    "stretch": 0.125
+  },
+  "startColor": "spark",
+  "endColor": "ember",
+  "opacity": 0.75,
+  "outlineWidth": 1.5,
+  "glow": true,
+  "life": {
+    "min": 0.5,
+    "max": 1.25
+  },
+  "size": {
+    "min": 0.0625,
+    "max": 0.125
+  },
+  "speed": {
+    "min": 1.5,
+    "max": 3
+  },
+  "spawn": {
+    "$type": "particle.cone",
+    "axis": [0.25, 1, -0.5],
+    "halfAngle": 35
+  },
+  "growIn": 0.125,
+  "fadeOut": 0.375,
+  "gravity": [0.5, -4, 0.25],
+  "drag": 0.75,
+  "angle": {
+    "min": -30,
+    "max": 45
+  },
+  "spin": {
+    "min": -90,
+    "max": 120
+  },
+  "inherit": 0.5
+}

@@ -1517,7 +1517,7 @@ parsing leaves out), `UI/Css/FontFaceDescriptors.cs`, `UI/Style/Stylesheet.cs` (
 - **Where:** a cutscene is a record entry at `world/cutscenes/<name>` in `world.pak` (M10-10), written in
   its JSON form and packed by step 3's rule for records' JSON forms; the stages it brings are models at
   `models/stages/<name>` in `models.pak` (imported from `.glb` as every model, Q14); particle effects
-  will be records at `models/effects/<name>` (M10 step 5, Q25). None is committed (M9 Q1; Ji'ruan's proof
+  are records at `models/effects/<name>` (M10 step 5, Q25; below). None is committed (M9 Q1; Ji'ruan's proof
   is test data, M10 Q30).
 - **The types** (`Engine/Statventure/Scene/Sequence.cs`, all version 1; S4-1): `scene.sequence` (name,
   duration, skippable, blocking, roles, stages, tracks, reduced), `scene.role`, `scene.span`,
@@ -1534,6 +1534,24 @@ parsing leaves out), `UI/Css/FontFaceDescriptors.cs`, `UI/Style/Stylesheet.cs` (
   sequence's pack and entry or loose file through `VirtualFileSystem.Problem` (a curve that breaks its
   rules arrives from the serializer as an `ArgumentException` and is named the same way), except a broken
   stage, whose own error names the stage's entry.
+
+### Particle effects (M10 step 5; `Docs/Scene.md`, "How it works", step 5)
+
+- **Where:** a record entry at `models/effects/<name>` in `models.pak` (Q25), shared by battles and
+  cutscenes, packed from its JSON form by step 3's rule for records' JSON forms (no importer); none is
+  committed yet (M9 Q1).
+- **The types** (`Engine/Statventure/Render3D/Particles.cs`, all version 1; S5-1): `particle.effect`
+  (`ParticleEffect`: shape, startColor, endColor, opacity = 1, outlineWidth, glow, life, size, speed,
+  spawn, growIn, fadeOut, gravity, drag, angle, spin, inherit; float32), `particle.range` (min, max),
+  the union `particle.shape` (1 `particle.disc`, 2 `particle.ring`, 3 `particle.spark`, 4 `particle.puff`,
+  5 `particle.shard`) and the union `particle.spawn` (1 `particle.point`, 2 `particle.sphere`,
+  3 `particle.cone`). Layouts in `Data/Records/Layouts/particle.*.txt`, fixtures in
+  `Fixtures/particle.effect/` (`every-field`, `defaults`, `ring-sphere`, `puff`, `shard`).
+- **Loading:** `ParticleEffect.Load(files, path)` reads it and checks its rules (`Problem()`); a broken
+  one is a `DataFileException` naming the pack and entry or the loose file. A sequence's particle cues
+  name effects by path; the game loads them and binds them as it binds stages
+  (`SequenceBindings.Effect(path, effect)`, S5-2), and `Play` refuses one missing, unnamed, given twice
+  or broken.
 
 ## Status
 

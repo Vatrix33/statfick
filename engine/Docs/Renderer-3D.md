@@ -283,6 +283,18 @@ come up.
   colour, both times the opacity. Glowing particles join the glow's source (their shape in their
   colour, sRGB-encoded, premultiplied, far to near) and own the halo (model id 1023, their depth)
   where they cover half a pixel; they hold no halo back themselves, as their layer goes on top.
+- **Effects as data and emitters on nodes** (M10 step 5; `Docs/Scene.md`, "How it works", step 5, S5-1,
+  S5-3): an effect and its parts are records (`particle.effect`, `particle.range`, the unions
+  `particle.shape` and `particle.spawn`; float32, the fields and defaults above), in `models.pak` at
+  `models/effects/<name>` (Q25), read with `ParticleEffect.Load(files, path)`, which refuses one that
+  breaks its rules (`ParticleEffect.Problem`: finite numbers, ranges in order, life, size and speed not
+  negative, shares 0–1, proportions in (0, 1], a cone's axis not zero and its half angle 0–180°). An
+  emitter's place is either M6's `Path` (its spawn in world space) or a `Frame`, its world matrix at a
+  time: a particle born then starts at its spawn offset through the matrix and goes along its direction
+  through the matrix's 3×3, normalized, as Blender places a particle from its emitter object
+  (`psys_get_birth_coords`), and moves in world space after. On a scene node (`Scene.SceneEmitter`) the
+  frame is the node's world recorded each frame, interpolated between frames, a stretch jumped over
+  taking the world after the jump; the scene gives the view its emitters' particles.
 - **3D views in the UI, how they're shown** (`View3D`, `UI.SurfaceViews`, `view_picture.frag`): a
   view holds a scene (items, particles, camera, background or none, sun, style, time) and its own
   `RenderTarget3D`; `UiHost.Views` (a `SurfaceViews`) shows views in `surface` elements, the UI's

@@ -377,8 +377,10 @@ step 4, so steps 5 and 6 change no layout:
   id within a bound host element.
 - **State and moments:** every track gives a state at any timeline time τ (a curve's value, the last
   cue at or before τ, a clip's or strip's pose at τ), so the end state is the tracks evaluated at the
-  duration and seeking is evaluation; cues that are moments (events, sounds, particle starts, clip
-  events of the figures) happen when the clock passes them.
+  duration and seeking is evaluation; cues that are moments (events, sounds, clip events of the
+  figures) happen when the clock passes them. A particle track is a state too (corrected in step 5;
+  this list had particle starts among the moments, but Q26 evaluates particles at the end time like
+  every track): at τ each cue's emitter is τ less the cue's time into its effect.
 
 ### The builder (step 4)
 
@@ -861,6 +863,54 @@ M10", "Step details".
   figures by the frame's time times its `Rate` (the battle pace) but leaves the view's particles and
   its clock (`View3D.Time`, the water's waves) as they are set; once emitters hang on nodes, whether
   the pace applies to them and to the water (or only to the figures) is to be asked with this step.
+  Answered: S5-Q1 below.
+- **Asked during step 5 (user, 2026-11-04; S5-Q1 not the recommendation, S5-1–S5-5 as
+  recommended),** after reading the old game's battle effects and Blender 5.2's particle system:
+  - **S5-Q1. The clock of the scene's free particles and the water, not the recommendation:** both at
+    the scene's `Rate` (the battle pace), one clock for everything the scene animates: emitters no
+    sequence holds (the game's, and a sequence's after its end, Q26) and the water's waves
+    (`View3D.Time`, advanced by the scene while it holds terrain with water) run at the frame's time ×
+    `Rate`; the water slows in a slow battle. (The recommendation was the free emitters at `Rate` and
+    the water in real time, as the old game multiplied every battle effect's duration and delay by its
+    pace, `battle-effects.js`, but not its ambient loops' fixed CSS durations; not both in real time.)
+  - **S5-1. The effect records:** M6's types as records, float32 as the renderer takes them, fields in
+    declaration order with M6's defaults: `particle.effect` 1 (shape, startColor, endColor, opacity 1,
+    outlineWidth 0, glow false, life, size, speed, spawn, growIn 0, fadeOut 0, gravity 0, drag 0,
+    angle 0, spin 0, inherit 0; shape, colours, life, size, speed and spawn required), `particle.range`
+    1 (min, max, both required), the unions `particle.shape` (1 `particle.disc`, 2 `particle.ring`
+    thickness, 3 `particle.spark` width and stretch, 4 `particle.puff` softness, 5 `particle.shard`
+    width) and `particle.spawn` (1 `particle.point`, 2 `particle.sphere` radius, 3 `particle.cone` axis
+    and half angle in degrees); refused when loaded (`ParticleEffect.Load`, a `DataFileException` naming
+    the pack and entry or the file) and when an emitter starts, naming the problem: numbers not finite,
+    a range's min above its max, a negative life, size or speed, opacity, grow-in or fade-out outside
+    0–1, a negative ink line or drag, a ring's thickness, spark's width, puff's softness or shard's width
+    outside (0, 1], a negative spark stretch or sphere radius, a zero cone axis, a half angle outside
+    0–180°, an empty colour slot. (Not ranges as a vector2; not double precision.)
+  - **S5-2. A sequence's effects** are bound as its stages are: `SequenceBindings.Effect(path,
+    effect)`, the game loading them with `ParticleEffect.Load`; `Play` refuses (S4-6) an effect a cue
+    names that isn't given, one given that no cue names, one given twice and one breaking its rules.
+    (Not a data source in the bindings, `Play` loading them; not an effect source on the scene.)
+  - **S5-3. Emitters on nodes:** Blender's rule (`particle_system.cc`: `reset_particle` evaluates the
+    emitter's and its parents' animation at each particle's own birth time, `psys_get_birth_coords`
+    places the birth through the emitter's world matrix and turns its directions by the matrix's 3×3,
+    normalized, "particles live in global space"): the spawn in the node's space; as the engine can't
+    evaluate a node's past (game code moves nodes) it records the node's world each frame, births
+    between frames coming from the world interpolated between theirs and births in a stretch jumped
+    over (a seek, a skip, Q26) from the world after the jump; an emitter not on a node keeps M6's
+    world-space spawn; on a hidden node it draws nothing, its particles ageing; the game starts its own
+    with `node.Attach(new SceneEmitter(effect) { … })`, and the scene takes an emitter no sequence holds
+    off its node once its last particle has died (fire and forget). (Not the spawn in world space, the
+    node giving the place only; not births at the world of the frame that first shows them.)
+  - **S5-4. A particle cue (or a game's emitter) without a palette:** the colours of what the emitting
+    node belongs to: the nearest figure, placed model or instanced model on it or above it, its palette,
+    then its materials' own colours, then M6's grey. Why: a stage's own effect takes the stage's
+    colours and a figure's sparks the figure's, a role only for colours from elsewhere (an element's).
+    (Not an empty palette, every slot grey; not refused at play.)
+  - **S5-5. The field-of-view, strength and angle curves:** from the first cut or sun cue on, they set
+    the camera or sun cut to, every frame; one cut away from gets its own value back, as it was when
+    the sequence started; before the first cut nothing (S4-8); an orthographic camera has no field of
+    view for the curve; at the end the last keeps the curves' end values (Q21). (Not keeping the curve's
+    last value after a cut away; not the view's camera or sun whatever it is, before the first cut too.)
 
 **Step 6 (audio and UI tracks):**
 - **Q27. The audio anchor:** the audio time of the quantum in which the sequence's first call is
@@ -956,7 +1006,8 @@ of its own (outline, glow mask, picking); terrain attaches to a node too. Code i
   height of its last picture (the terrain's level of detail; before the first picture the finest).
   Attachments draw, and figures advance and dispatch their events, in the tree's order (depth first, a
   node's attachments before its children's). The view's particles and its clock (`View3D.Time`, the
-  water) are left as they are set: particles on nodes are step 5's.
+  water) are left as they are set: particles on nodes are step 5's (since step 5 the scene gives the
+  view its emitters' particles and runs the water's clock at its rate: "How it works", step 5).
 - **Hiding** (Q23): `SceneNode.Hidden` hides the node and its subtree, `Shown` says whether neither it
   nor a node above it is hidden. What hangs on a hidden node or below it isn't drawn (an instanced
   object's nodes included), so nothing there is picked; figures there go on animating and their events
@@ -1366,6 +1417,123 @@ recommended, "Step details" above).
   one moment, the later in record order in effect; game code in the end's frame before its events step
   finds the end pending (`Skip()` false, `Finish()` nothing, a seek takes it back).
 
+### Step 5: camera, light and particle tracks
+
+Q11, Q12, Q23, Q25 and Q26 as answered before the steps; S5-Q1 (not the recommendation) and S5-1–S5-5
+asked during the step (2026-11-04, "Step details"). Code: `Render3D/Particles.cs`, `Scene/SceneEmitter.cs`,
+`Scene/SequencePlayback.Camera.cs`, `.Light.cs`, `.Particles.cs` (step 4's placeholders replaced), and
+bounded changes the M10 manager approved: `Scene/SceneView.cs` (emitters and the water's clock),
+`SequenceBindings.cs` (`Effect`), `SequencePlayer.cs` (`Start`'s effect checks) and `SequencePlayback.cs`
+(`PlaybackContext.Effect`). No record layout of step 4 changed.
+
+- **Effects as records** (S5-1, Q25): `ParticleEffect` is `particle.effect` 1, `ParticleRange` (a record
+  struct) `particle.range` 1, `ParticleShape` and `ParticleSpawn` the unions `particle.shape` (disc,
+  ring, spark, puff, shard) and `particle.spawn` (point, sphere, cone), each subtype a record of its own;
+  float32, M6's fields and defaults. `ParticleEffect.Problem()` gives the first rule broken (null when
+  none; the messages name the field and its value, numbers in the invariant culture);
+  `ParticleEffect.Load(files, path)` reads `models/effects/<name>` (a pack's record entry or the
+  development folder's JSON form; `Load<ParticleEffect>` reads it too, unchecked) and turns a broken one
+  into a `DataFileException` through `VirtualFileSystem.Problem`. Effects made in C# aren't checked until
+  an emitter of them starts (`SceneEmitter`, `Play`), so M6's code and scenes are unchanged. Layouts in
+  `Data/Records/Layouts/particle.*.txt`; fixtures `Fixtures/particle.effect/` (`every-field`, a spark in a
+  cone; `defaults`, only the required fields; `ring-sphere`, `puff`, `shard`: every subtype in one).
+- **Emitters on a frame** (`ParticleEmitter.Frame`, S5-3): besides M6's `Path` (a place at a time, the
+  spawn in world space; now optional, one of the two is needed), a `Frame` gives the emitter's world
+  matrix at a time: a particle born then starts at its spawn offset through the matrix (turned, scaled,
+  placed) and goes along its spawn direction through the matrix's 3×3, normalized (none when that is
+  zero, Blender's `normalize_v3`), at the effect's speed; a trail's share of the frame's velocity from
+  its translation ±0.5 ms. `Count` and `End` (the time from which none of its particles lives: the last
+  birth plus the longest life) are new. With `Path` the arithmetic is M6's, so the reference scenes'
+  particles are bit for bit as before.
+- **Scene emitters** (`SceneEmitter`, an attachment): an effect (checked when made, an
+  `ArgumentException` naming the rule), `Seed`, `Burst`, `Rate`, `Duration` (refused when negative or not
+  finite), `Palette` (null: S5-4) and `Time` (seconds on its own clock). Each refresh the scene records
+  its node's world at its time (`Sample`); its particles are its `ParticleEmitter` (start 0) with the
+  recorded worlds as its frame (`WorldAt`: a birth between two records interpolated element by element,
+  translation exactly linear; before the first the first, after the last the last). A jump (a seek, a
+  skip, a frame across a cut of the reduced variant, `Time` set) makes the stretch since the last record
+  start from the world after it: two records at the last one's time (a step). Time gone back forgets the
+  records after it: back into a watched stretch the births between the record before and now come
+  between that world and the node's now; back into a stretch that was jumped over its step goes and a
+  new one starts from the world now (the seek back is the jump then). Records stop once a record lies
+  past the last birth (by 1 ms), and before its start only the last is kept. Its first frame is at its
+  start (as a sequence's: the frame it's first seen doesn't advance it); `Time` set starts its clock
+  there. `Done` once its time reaches `End`. Its colours (S5-4): its palette (a slot it lacks M6's grey),
+  else a palette made of the start and end slots of the nearest figure (its palette, then its model's,
+  items' and garments' materials), placed model or instanced model on its node or above it, slots none
+  of those has left to M6's grey.
+- **The scene** (`SceneView`): it lists its emitters with its attachments; each frame, after the
+  sequences, the figures and the animated models, every emitter no sequence holds is advanced by the
+  frame's time × `Rate` (S5-Q1), and while it holds terrain with water (a `PlacedTerrain` whose data
+  has a water level) the view's time is too (kept in double, from the view's own time when the game set
+  it; at rate 0, or without water, the view's time is left alone, so a still scene isn't drawn again).
+  In each refresh it records every emitter's node, gives the view the particles of those on shown nodes
+  when they differ from the last it gave (the effect by reference, every value; a scene that never had
+  an emitter leaves the view's particles as the game sets them, and one whose emitters are gone stops
+  after emptying them once), and takes off their nodes the emitters no sequence holds that are done.
+- **The camera track** (Q11, S5-5): each cut names a node that carries a camera, a bound node's first
+  `SceneCamera` or a stage node the stage model gives a camera (S3-5: instancing hung it there); one
+  without is refused at play ("cut 1's camera dolly/Rock: the stage models/stages/dolly's node Rock
+  carries no camera"). The cut in effect at τ makes its camera the scene's when the cut changes, on the
+  first frame, after a seek and at a skip (S4-8); before the first cut the scene's camera as it was when
+  the sequence started. With a field-of-view curve (radians), the perspective camera cut to takes
+  `Evaluate(τ)` every frame; a camera cut away from gets its own field of view back (as when the
+  sequence started; without a curve nothing is touched, so the game's own change stands). The scene
+  then places the view as `SceneCamera.ApplyTo` does (step 3), so the view follows the node's world.
+- **The light track** (Q12, S5-5): the same for suns: a bound node's `SceneSun` or the stage node with
+  the stage's light; the strength curve (raw units) and the angle curve (degrees) set the sun cued every
+  frame, each given back alone when cued away (a track with one of them leaves the other alone).
+- **The particle track** (Q25, Q26, S5-3): at play each cue's effect is the bound one (S5-2) and a
+  `SceneEmitter` is made for it (a number the emitter can't take, a rate past float's range, is refused
+  naming the track and cue); at its start each hangs on its cue's node (a node role or a stage node),
+  held, its time τ less the cue's time (before its cue it has released nothing; seeking back before it
+  takes its particles away). Each frame it gets the new τ; a frame whose step crosses a stretch the
+  played variant cuts out (between spans, and after the last span to the end) is a jump, as a seek
+  (`Jumped`) and a skip (`Ended(skipped)`) are. At the end the emitters are released: on the scene's
+  clock at its rate from their end times until their last particle has died (the end itself is no
+  jump: births after it come between the end's world and the next frame's). An emitter whose particles
+  died while the sequence plays stays on its node until the end (a seek back shows them again).
+- **Effects at play** (S5-2): `SceneView.Play` checks, after the roles and before the tracks, every
+  effect the cues name is given, none is given twice or unnamed, and each keeps its rules ("its effect
+  models/effects/still isn't valid: its life's min (1) is above its max (0)"), changing nothing.
+- **Blender's rule** (read in Blender 5.2's `blenkernel/intern/particle_system.cc`, now in
+  `reference-src/blender-anim/`): `reset_particle` calls `evaluate_emitter_anim` (the emitter's
+  parents' and its own animation evaluated at `pa->time`, the particle's birth) before
+  `psys_get_birth_coords`, which transforms the birth place by `object_to_world`, the normal, the random
+  velocity and the object axes by its 3×3, normalized, adds the emitter's velocity times `obfac`, and
+  from then on the particle lives in world space. The engine can't evaluate a game node's past, so it
+  interpolates between frames (S5-3).
+- **The test sequence** (`TestSequence.Camera.cs`): a cut to the bound node "pivot" at 0.25 s with a
+  field-of-view curve (0.6 → 0.9 rad), a sun cue to it with strength (2 → 4) and angle (3° → 5°) curves
+  (the bench hangs a `SceneCamera` and a `SceneSun` on the pivot, which the transform track moves and
+  turns), and particle cues of the effect `models/effects/sparks` on the stage's Tip at the marker
+  "open" in the palette role "tint", on the pivot at 1 s (cut out of the reduced variant) and at 1.5 s
+  (the moment it holds).
+- **Tests:** `Render3D/ParticleTests` (the records through both forms, the fixtures, M6's defaults, each
+  rule alone and the rules' edges, loading from a pack and a loose folder and the refusal, `Count` and
+  `End`, emitters on a frame), `Scene/SequenceCameraTests` (cuts on the dolly stage against Blender's
+  evaluation, `Golden/stage-dolly.json`, through the player: on the clip's frames within M7's on-frame
+  tolerance, between them as the stage played apart, settings and projection scales at both aspects
+  within 2·10⁻⁶; the curve, cut-aways, the orthographic camera, a bound camera, seek back, the end;
+  cuts applied on change; skip as watching; refusals), `SequenceLightTests` (the same for the sun: its
+  direction, strength and angle against the golden), `SequenceParticleTests` (`SceneEmitterTests`: the
+  first frame, the rate, births on a moving, turning and scaled node, the trail's velocity, the records'
+  cover of the last birth, jumps by setting the time, going back, a hidden node, done emitters taken
+  off, the view left alone, colours, refusals; `SequenceParticleTests`: the state, seeks, a skip and
+  after it, the end, a cut of the reduced variant, the bound effects' checks; `SceneParticleRenderTests`
+  on the GPU: the test sequence's three tracks and their end state, a figure's colours, the water's
+  clock, and the particle reference scene replayed through particle cues on nodes, the trail's node moved
+  by the game along its path every 1/90 s, its particles the scene's within float rounding and drawn as
+  Blender drew them, `Golden/r3d-particles`, as `Render3DReferenceTests` compares).
+- **Internal choices** (not asked; reported, and accepted by the M10 manager as internal design,
+  2026-11-04): the particle track is a state (above; the design text had particle starts among the
+  moments); a frame across a cut of the reduced variant is one jump as a whole (births in the played part
+  after the cut in that frame too take the world after it); a seek back into a stretch that was jumped
+  over starts it from the node's world after the seek back; setting an emitter's `Time` is a jump and
+  starts its clock; the view gets new particles only when they differ; the water's clock is kept in
+  double. Also: an emitter's first frame is at its start, and emitters on hidden nodes are still
+  recorded.
+
 ## Status
 
 - Steps 4–7: not done yet (2026-11-04). The decisions and the 33 step details are recorded, the
@@ -1418,3 +1586,23 @@ recommended, "Step details" above).
   on the GPU and on lavapipe (2190: step 3's 2027 and 163 new). Mutations: 259 (`~/.cache/stat-fick-build/claude-work/m10/step4-mutations.json`, made by `make-step4-mutations.py` beside it; the four for the `Animator` fix among them), all killed: 257 in the run, two after closing the gaps they showed: a stage path with two slashes outside `models/stages/` (only the depth check had been tried; a case added) and the scene's player step removed, which made the tests' frame loops spin until `mutate.py`'s timeout (read as a survivor; the loops are bounded now, `SequenceBench.FrameUntil`, so a player that stops fails the test). Four candidates were left out of the list: two lines of code removed while writing it (a second check of the stages given, which `Validate(stages)` makes with the same words, and a hidden-at-play branch no frame could reach), and two that can't change a result (a frame's early return when nothing changed, and forcing the first frame, which state cues get anyway as they start with no cue in effect). Not done here, as the steps have it:
   camera, light and particle playback (step 5), audio and UI playback (step 6), the stage's export script
   writing the markers (step 7: the convention is in "How it works", step 4).
+- **Step 5, camera, light and particle tracks (2026-11-04, 2267 tests on the GPU and on lavapipe): done** on its worker branch ("How it
+  works", step 5); six details asked on the way (S5-Q1, not the recommendation: the free emitters and
+  the water both on the scene's rate; S5-1–S5-5 as recommended). `Render3D/Particles.cs` (the effect,
+  its shapes, spawns and ranges as `particle.*` records with their rules and `Load`; emitters on a
+  frame), `Scene/SceneEmitter.cs` (emitters on nodes), the camera, light and particle playback; bounded
+  changes to `SceneView` (emitters and the water's clock), `SequenceBindings.Effect`, `SequencePlayer.Start`
+  (the effects' checks), `PlaybackContext.Effect`; the bench's pivot carries a camera and a sun and its
+  bindings the test effect. Tests: `ParticleTests` (records), `SequenceCameraTests`, `SequenceLightTests`,
+  `SequenceParticleTests` (with `SceneEmitterTests` and the GPU `SceneParticleRenderTests`),
+  `TestSequence.Camera.cs`; 12 layouts and 5 fixtures. Filtered tests (Sequence, Particle, Scene,
+  Render3D, Records) pass: 569; the full suite on the GPU and on lavapipe: 2267 (step 4's 2190 and 77 new).
+  Mutations: 151 (`~/.cache/stat-fick-build/claude-work/m10/step5-mutations.json`, made by `make-step5-mutations.py` beside it), all killed: 149 in the run, two after fixing them: one a gap (a drag of +∞ was never tried: the mutation dropping the drag's finiteness check still refuses NaN, as NaN ≥ 0 is false; a case added) and one malformed (removing a check left a `foreach` with a declaration as its body; rewritten as `if (false && …)`). Seven candidates were left out, as nothing can differ: restoring a camera's field of view or a
+  sun's strength or angle when the cut or cue stays the same (the curve sets it again in the same call); a
+  seek back into a jumped stretch keeping its old step (the search never picks the middle one of three
+  records at one time); recording on past the last birth, or before the start (only memory); the world
+  after the last record (only the newest birth's ±0.5 ms trail velocity reaches there, and the last record
+  is the node's world now); a time exactly on a record found by interpolation (a weight of 1: the same
+  world within a float rounding). Not checked against Blender: the particles' motion (M6 decided it; the
+  check is the replayed reference scene and its render) and an animated lens (glTF can't carry one, Q11:
+  the curve's value is checked by rule, the camera's place and projection against Blender).

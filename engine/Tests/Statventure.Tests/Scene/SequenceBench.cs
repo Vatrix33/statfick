@@ -13,8 +13,9 @@ namespace Statventure.Tests.Scene;
 /// <summary>
 /// A scene to play sequences on, driven by a document's frames: the test figure "hero" (with the
 /// humanoid state machine, Animation/StateMachineTests) on a node of its own, a bystander figure no
-/// sequence binds, the node "pivot", the placed model "prop", the palette "tint", and the test
-/// sequence's stage data (TestSequence.Core.cs). Nothing is rendered: the tests read the scene.
+/// sequence binds, the node "pivot" (carrying a camera and a sun for the test sequence's cuts,
+/// TestSequence.Camera.cs), the placed model "prop", the palette "tint", and the test sequence's stage
+/// data (TestSequence.Core.cs) and effect. Nothing is rendered: the tests read the scene.
 /// </summary>
 sealed class SequenceBench : IDisposable
 {
@@ -34,6 +35,8 @@ sealed class SequenceBench : IDisposable
         Bystander = NewActor(machine);
         Scene.Root.Add("bystander").Attach(Bystander);
         Pivot = Scene.Root.Add("pivot");
+        PivotCamera = Pivot.Attach(new SceneCamera { VerticalFieldOfView = 0.7f });
+        PivotSun = Pivot.Attach(new SceneSun { Strength = 2.5f, Angle = 4 });
         Prop = Scene.Root.Add("prop").Attach(new PlacedModel(Figure));
         Tint = new Palette().Set("cloth", Colors.LinearFromHex("#336699"));
         StageData = TestSequence.Stage();
@@ -47,6 +50,8 @@ sealed class SequenceBench : IDisposable
     public SceneNode HeroNode { get; }
     public Actor Bystander { get; }
     public SceneNode Pivot { get; }
+    public SceneCamera PivotCamera { get; }
+    public SceneSun PivotSun { get; }
     public PlacedModel Prop { get; }
     public Palette Tint { get; }
     public ModelData StageData { get; }
@@ -85,7 +90,8 @@ sealed class SequenceBench : IDisposable
 
     /// <summary>The test sequence's roles and stage bound.</summary>
     public SequenceBindings Bindings(ModelData? stage = null) =>
-        new SequenceBindings().Actor("hero", Hero).Node("pivot", Pivot).Model("prop", Prop).Palette("tint", Tint).Stage(TestSequence.StagePath, stage ?? StageData);
+        new SequenceBindings().Actor("hero", Hero).Node("pivot", Pivot).Model("prop", Prop).Palette("tint", Tint).Stage(TestSequence.StagePath, stage ?? StageData)
+            .Effect(TestSequence.EffectPath, TestSequence.Effect);
 
     public SequencePlayer Play(Sequence? sequence = null) => Scene.Play(sequence ?? TestSequence.Build(StageData), Bindings(), Document);
 

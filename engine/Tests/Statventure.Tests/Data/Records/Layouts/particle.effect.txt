@@ -1,0 +1,18 @@
+particle.effect 1
+  1 shape: particle.shape (required)
+  2 startColor: string (required)
+  3 endColor: string (required)
+  4 opacity: float32 = 1
+  5 outlineWidth: float32 = 0
+  6 glow: bool = false
+  7 life: particle.range (required)
+  8 size: particle.range (required)
+  9 speed: particle.range (required)
+  10 spawn: particle.spawn (required)
+  11 growIn: float32 = 0
+  12 fadeOut: float32 = 0
+  13 gravity: vector3 = [0, 0, 0]
+  14 drag: float32 = 0
+  15 angle: particle.range = {"min":0,"max":0}
+  16 spin: particle.range = {"min":0,"max":0}
+  17 inherit: float32 = 0

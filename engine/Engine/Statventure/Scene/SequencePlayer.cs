@@ -230,10 +230,25 @@ public sealed class SequencePlayer
             if (!marked && actor.Node?.Scene != scene)
                 throw Problem($"the actor bound to {role} isn't in the scene and stands on no mark of the sequence");
         }
+        // The particle effects its cues name (S5-2): each given once and keeping its rules (S5-1), none other.
+        var named = sequence.Tracks.OfType<ParticleTrack>().SelectMany(t => t.Cues).Select(c => c.Effect).Distinct().ToList();
+        var effects = new Dictionary<string, ParticleEffect>();
+        foreach (var (path, effect) in bindings.Effects)
+        {
+            if (!named.Contains(path))
+                throw Problem($"an effect {path} is given, which no particle cue names");
+            if (!effects.TryAdd(path, effect))
+                throw Problem($"its effect {path} is given twice");
+            if (effect.Problem() is { } problem)
+                throw Problem($"its effect {path} isn't valid: {problem}");
+        }
+        foreach (var path in named)
+            if (!effects.ContainsKey(path))
+                throw Problem($"its effect {path} isn't given");
 
         var instances = new ModelInstance[sequence.Stages.Count];
         var player = new SequencePlayer(scene, sequence, document, instances);
-        var context = new PlaybackContext(player, sequence, scene, new SequenceTimes(sequence, stageData), roles, stages, clips);
+        var context = new PlaybackContext(player, sequence, scene, new SequenceTimes(sequence, stageData), roles, stages, clips, effects);
         var playbacks = new TrackPlayback[sequence.Tracks.Count];
         for (var t = 0; t < playbacks.Length; t++)
         {

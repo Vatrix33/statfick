@@ -1,0 +1,6 @@
+particle.shape 1 union
+  1 particle.disc
+  2 particle.ring
+  3 particle.spark
+  4 particle.puff
+  5 particle.shard

@@ -1,0 +1,3 @@
+particle.cone 1
+  1 axis: vector3 (required)
+  2 halfAngle: float32 (required)

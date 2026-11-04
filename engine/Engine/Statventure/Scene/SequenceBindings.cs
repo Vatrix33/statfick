@@ -6,14 +6,16 @@ namespace Statventure.Scene;
 
 /// <summary>
 /// What the game gives a sequence when it plays it (Q15): an object for each role (a figure, a node,
-/// a model, a UI host, a palette) and each stage's model by its path. <see cref="SceneView.Play"/>
-/// checks them all before it changes anything (S4-6): every role bound once, to something of its
-/// kind, no binding the sequence has no role or stage for, every stage given.
+/// a model, a UI host, a palette), each stage's model by its path and each particle effect its
+/// particle cues name by its path (S5-2). <see cref="SceneView.Play"/> checks them all before it
+/// changes anything (S4-6): every role bound once, to something of its kind, no binding the sequence
+/// has no role, stage or effect for, every stage and effect given, every effect keeping its rules.
 /// </summary>
 public sealed class SequenceBindings
 {
     internal List<(string Role, object Value, Func<string, ClipBinding?>? Clips)> Roles { get; } = [];
     internal List<(string Path, ModelData Data, Model? Model)> Stages { get; } = [];
+    internal List<(string Path, ParticleEffect Effect)> Effects { get; } = [];
 
     /// <summary>
     /// A figure for an actor role: its clock follows the sequence while it plays. Its clips by name come
@@ -50,6 +52,17 @@ public sealed class SequenceBindings
     {
         ArgumentNullException.ThrowIfNull(data);
         Stages.Add((path, data, null));
+        return this;
+    }
+
+    /// <summary>
+    /// A particle effect its particle cues name (<c>models/effects/&lt;name&gt;</c>, Q25, S5-2), as the game
+    /// loads it (<see cref="ParticleEffect.Load"/>).
+    /// </summary>
+    public SequenceBindings Effect(string path, ParticleEffect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+        Effects.Add((path, effect));
         return this;
     }
 
