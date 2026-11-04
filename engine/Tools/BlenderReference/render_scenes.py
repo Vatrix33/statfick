@@ -11,7 +11,9 @@
 #
 # The scenes are in glTF's coordinates (right-handed, Y up); Blender's are Z up, so every position
 # and direction goes through GLTF_TO_BLENDER, as Blender's glTF importer converts them. Models are
-# read by Blender's own glTF importer, so the engine's reader is checked against it.
+# read by Blender's own glTF importer, so the engine's reader is checked against it. A model with
+# "objects" set is a stage as a scene instances it (Docs/Scene.md, step 1): each of its top-level
+# objects a model of its own (add_model_objects, flatten_transforms).
 import json
 import math
 import os
@@ -413,6 +415,100 @@ def add_model(scene, path, spec, palette, shadows, style, unshadowed=None, scale
                 replaced[source] = flat
             slot.material = replaced[source]
     return imported
+
+
+def add_model_objects(scene, path, spec, palette, shadows, style, unshadowed=None, scale=1):
+    """A model whose top-level objects are models of their own (Docs/Scene.md, Q2: a scene instances a
+    stage so): imported and placed as add_model places it, then each top-level object (a root of the
+    file with its descendants) cel-shaded as add_model shades a model, in materials of its own whose
+    hatching is anchored at that object's origin. Returns one list of objects per top-level object,
+    in name order, each one model for the glow's mask and the ink's contour."""
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=path)
+    # Only what the scene shows (not the importer's bone shape).
+    imported = [o for o in bpy.data.objects if o not in before and o.name in scene.objects]
+    # The importer leaves an object a clip animates at that clip's pose for the scene's frame (1, a
+    # frame into clips it starts at frame 0): at the clips' start each object has the file's own
+    # transform, which it keeps once the animation data is gone.
+    starts = [o.animation_data.action.frame_range[0] for o in imported if o.animation_data and o.animation_data.action]
+    frame = scene.frame_current
+    if starts:
+        scene.frame_set(int(min(starts)))
+    for obj in imported:
+        obj.animation_data_clear()
+    scene.frame_set(frame)
+    to_blender4 = GLTF_TO_BLENDER.to_4x4()
+    holder = bpy.data.objects.new("placement", None)
+    scene.collection.objects.link(holder)
+    holder.matrix_world = to_blender4 @ column_matrix(spec["matrix"]) @ to_blender4.inverted()
+    tops = sorted((o for o in imported if o.parent is None), key=lambda o: o.name)
+    for obj in tops:
+        obj.parent = holder
+    bpy.context.view_layer.update()
+    width, height = scene.render.resolution_x, scene.render.resolution_y
+    groups = []
+    for top in tops:
+        members = [top] + sorted(top.children_recursive, key=lambda o: o.name)
+        seen = world_to_camera_view(scene, scene.camera, top.matrix_world.translation)
+        hatch = {
+            "size": (width, height), "anchor": (seen.x * width, (1 - seen.y) * height),
+            "spacing": style["hatchSpacing"] * scale, "width": style["hatchWidth"] * scale,
+            "angle": style["hatchAngle"], "ink": style["hatchInk"], "inkColour": hex_to_linear(style["ink"]),
+        }
+        # As add_model replaces a model's materials, once per material within the object.
+        replaced = {}
+        for obj in members:
+            for slot in getattr(obj, "material_slots", []):
+                source = slot.material
+                if source is None or source in replaced.values():
+                    continue
+                if source not in replaced:
+                    slot_name = slot_of(source.name)
+                    colour = palette.get(slot_name)
+                    kind, base, emission = material_kind(source)
+                    name = f"{top.name}-{source.name}"
+                    if kind == "unlit":
+                        flat = flat_material(f"unlit-{name}", hex_to_linear(colour) if colour else base)
+                    elif kind == "emission":
+                        flat = flat_material(f"emission-{name}", emission)
+                        GLOWS[flat] = emission
+                    else:
+                        lit = hex_to_linear(colour) if colour else tuple(base)
+                        shade = hex_to_linear(shadows[slot_name]) if colour and slot_name in shadows else shadow_of(lit, style)
+                        hatched = source.get("hatch", 1) != 0
+                        flat = toon_material(f"toon-{name}", lit, shade, style["bandEdge"], unshadowed, hatch if hatched else None)
+                        if any(emission):
+                            GLOWS[flat] = emission
+                    flat.use_backface_culling = source.use_backface_culling
+                    replaced[source] = flat
+                slot.material = replaced[source]
+        groups.append(members)
+    return groups
+
+
+def flatten_transforms(objects):
+    """Each plain mesh's world matrix baked into its vertices, the object then at the origin without a
+    parent: a world matrix may be sheared (non-uniform scale above a turned child), which an object's
+    own transform can't hold, so bake_model clearing parents and keeping transforms would lose the
+    shear before Freestyle draws the contour. (Done after the shading render: the importer's custom
+    normals aren't carried over, and Freestyle works from face normals.) A mirroring matrix turns
+    the faces inside out, so they're turned back."""
+    bpy.context.view_layer.update()
+    worlds = {o: o.matrix_world.copy() for o in objects}
+    for o in objects:
+        if o.type != "MESH" or o.modifiers:
+            continue
+        o.data = o.data.copy()
+        o.parent = None
+        o.data.transform(worlds[o])
+        if worlds[o].determinant() < 0:
+            bm = bmesh.new()
+            bm.from_mesh(o.data)
+            bmesh.ops.reverse_faces(bm, faces=bm.faces)
+            bm.to_mesh(o.data)
+            bm.free()
+        o.matrix_world = Matrix.Identity(4)
+    bpy.context.view_layer.update()
 
 
 def node_math(nodes, links, operation, a, b=None, c=None):
@@ -908,14 +1004,17 @@ def main():
         for index, obj in enumerate(spec["objects"]):
             add_object(scene, index, data["shapes"][obj["shape"]], obj)
         models = os.path.normpath(os.path.join(os.path.dirname(scenes_path), data["modelFolder"]))
-        placed = [add_model(scene, os.path.join(models, model["file"]), model, spec.get("palette", {}), spec.get("shadows", {}), spec["style"],
-                            None if model.get("scenery") else unshadowed, spec.get("scale", 1))
+        placed = [(add_model_objects if model.get("objects") else add_model)(scene, os.path.join(models, model["file"]), model, spec.get("palette", {}),
+                  spec.get("shadows", {}), spec["style"], None if model.get("scenery") else unshadowed, spec.get("scale", 1))
                   for model in spec.get("models", [])]
         # Models of one group (a character with its gear, Docs/Animation.md) are one model for the
-        # glow's mask and the ink's outline.
-        grouped, groups = [], {}
+        # glow's mask and the ink's outline; a model in objects mode is one per top-level object.
+        grouped, groups, instanced = [], {}, []
         for model, objects in zip(spec.get("models", []), placed):
-            if model.get("group"):
+            if model.get("objects"):
+                grouped.extend(objects)
+                instanced.extend(objects)
+            elif model.get("group"):
                 if model["group"] not in groups:
                     groups[model["group"]] = []
                     grouped.append(groups[model["group"]])
@@ -952,6 +1051,8 @@ def main():
             if noink.name not in scene.collection.children:
                 scene.collection.children.link(noink)
             for objects in placed:
+                if any(objects is group for group in instanced):
+                    flatten_transforms(objects)
                 bake_model(objects, noink)
             setup_ink(scene, spec["style"], noink)
             render_ink(scene, os.path.join(output, f"r3d-{spec['name']}-ink.png"))

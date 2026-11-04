@@ -11,6 +11,10 @@
 # world), in glTF's coordinates ((x, y, z) -> (x, z, -y), as the exporter converts); the 3x4 part, row
 # by row, for column vectors. With it each bone's rest head and tail (glTF coordinates), so the tests
 # can measure how far a bone's ends are off.
+#
+# Node scenes (Docs/Scene.md, step 1: Reference/node-scenes.json beside the animation scenes, written
+# by SceneReferenceTests) play a model's object and armature actions together and write every
+# object's and bone's world matrix at the times: Golden/nodes-<scene>.json (evaluate_nodes).
 import json
 import math
 import os
@@ -214,6 +218,59 @@ def build_layers(rig, layers, fps, transitions=()):
             add_transitions(rig, track)
 
 
+def evaluate_nodes(scene, folder):
+    """A node scene (Docs/Scene.md, step 1): the model built again, the scene's clips (actions by name,
+    on whichever object the builder left them, as NLA tracks named after them) made the active actions
+    of their objects with every other NLA track removed, and at each time (frame = the clips' first
+    frame + time × 60) every object's and every bone's world matrix in glTF's coordinates, as the
+    exporter's nodes have them: an object's C · M · C⁻¹ (its axes converted too), a bone's C · M (a
+    joint node keeps the bone's axes), where M is the armature's world times the pose bone's matrix.
+    Written as Golden/nodes-<scene>.json: per node name, per time, the 3×4 part row by row (column
+    vectors)."""
+    make_models.reset()
+    make_models.BUILDERS[scene["model"]](None)
+    blender_scene = bpy.context.scene
+    fps = blender_scene.render.fps / blender_scene.render.fps_base
+    owners = {}
+    for obj in bpy.data.objects:
+        if obj.animation_data:
+            for track in obj.animation_data.nla_tracks:
+                owners[track.name] = obj
+    for obj in bpy.data.objects:
+        if obj.animation_data:
+            for track in list(obj.animation_data.nla_tracks):
+                obj.animation_data.nla_tracks.remove(track)
+            obj.animation_data.action = None
+    starts = set()
+    for name in scene["clips"]:
+        action = bpy.data.actions[name]
+        owner = owners[name]
+        owner.animation_data.action = action
+        owner.animation_data.action_slot = action.slots[0]
+        starts.add(action.frame_range[0])
+    assert len(starts) <= 1, "the scene's clips start at different frames"
+    start = starts.pop() if starts else 1
+    nodes = {}
+    for time in scene["times"]:
+        frame = start + time * fps
+        if abs(frame - round(frame)) < 1e-6:
+            frame = round(frame)
+        whole = math.floor(frame)
+        blender_scene.frame_set(whole, subframe=frame - whole)
+        for obj in bpy.data.objects:
+            m = TO_GLTF @ obj.matrix_world @ TO_GLTF.inverted()
+            nodes.setdefault(obj.name, []).append(numbers([m[r][c] for r in range(3) for c in range(4)]))
+            if obj.type == "ARMATURE":
+                for bone in obj.pose.bones:
+                    assert bone.name not in bpy.data.objects, "a bone named like an object"
+                    m = TO_GLTF @ obj.matrix_world @ bone.matrix
+                    nodes.setdefault(bone.name, []).append(numbers([m[r][c] for r in range(3) for c in range(4)]))
+    path = os.path.join(folder, "nodes-" + scene["name"] + ".json")
+    with open(path, "w") as f:
+        json.dump({"times": scene["times"], "nodes": nodes}, f, separators=(",", ":"))
+    print("wrote", path)
+
+
 def main():
     args = sys.argv[sys.argv.index("--") + 1:]
     scenes = json.load(open(args[0]))["scenes"]
@@ -221,6 +278,12 @@ def main():
     for scene in scenes:
         if not wanted or scene["name"] in wanted:
             evaluate(scene, args[1])
+    # Node scenes (Docs/Scene.md, step 1) are in node-scenes.json beside the animation scenes.
+    node_scenes = os.path.join(os.path.dirname(args[0]), "node-scenes.json")
+    if os.path.exists(node_scenes):
+        for scene in json.load(open(node_scenes))["scenes"]:
+            if not wanted or scene["name"] in wanted:
+                evaluate_nodes(scene, args[1])
 
 
 if __name__ == "__main__":

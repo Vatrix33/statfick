@@ -104,6 +104,13 @@ public sealed record ModelObject3D(string File, Vector3 Translation, Vector3 Rot
     /// <summary>Models of one group are one model (a character with its gear): one outline, one glow mask, the first one's origin anchoring the hatching.</summary>
     public string? Group { get; init; }
 
+    /// <summary>
+    /// Instanced in a scene (Docs/Scene.md, Q2): each top-level object of the file (a root node with
+    /// its descendants) a model of its own, its outline, glow mask and hatching anchor its own, as a
+    /// scene draws a stage; Blender's render bakes each such object into one for Freestyle's contour.
+    /// </summary>
+    public bool Objects { get; init; }
+
     public Matrix4x4 Model => Placement ?? Matrix4x4.CreateScale(Scale)
         * Matrix4x4.CreateRotationX(RotationDegrees.X * MathF.PI / 180)
         * Matrix4x4.CreateRotationY(RotationDegrees.Y * MathF.PI / 180)
@@ -426,6 +433,16 @@ public static class Scenes3D
                     Seed = 16, Path = t => new(-1.6f + 2.2f * t, 1.0f + 0.25f * MathF.Sin(3 * t), 0.9f), Rate = 9, Duration = 1,
                 },
             ],
+        },
+        // A stage instanced in a scene (Docs/Scene.md, Q2): the hierarchy test model's top-level objects
+        // (the base with its post and tip, the squashed box with its sheared child, the mirrored wing and
+        // feather, the charm on the rig's bone) each a model of its own: outlines where one meets
+        // another, inner lines within one, each hatched from its own origin; placed turned and scaled.
+        new("scene-objects", 400, 280, "#d8cbb0", new Camera3D(Projection.Perspective, new(-1.1f, 1.7f, 3.3f), new(0.05f, 0.5f, -0.2f), FieldOfViewDegrees: 40), [])
+        {
+            Models = [new("hierarchy.glb", new(0.1f, 0, 0.1f), new(0, -12, 0), 1.1f) { Objects = true }],
+            Palette = new() { ["stone"] = "#7a6e60", ["cloth"] = "#5d3f6f", ["metal.base"] = "#6f7a88", ["metal.trim"] = "#c09a50", ["skin"] = "#b08a68" },
+            Sun = new SunLight(new(-0.9f, 1.2f, 0.6f), 3),
         },
         // The same shapes in the battle view (orthographic, from the side) under a low sun from the left: other band positions.
         new("cel-side", 420, 200, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.1f, 0.5f, 6), new(0.1f, 0.5f, 0), OrthographicHeight: 1.9f), [])

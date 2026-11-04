@@ -731,6 +731,11 @@ M10", "Step details".
 - **Q24. Ji'ruan's reveal:** a palette cue swaps the figure's palette from an all-ink one to its own
   (at 4.48 s, under the UI flash). Why: no renderer change. (Not a per-model tint in the renderer; not
   left out of the proof.)
+- **Open (found in step 1): a clock for a stage's clips outside a sequence.** An instance's clips are
+  applied at a time the caller gives (`ModelInstance.Apply`); nothing advances them on its own. The
+  sequence's clip track gives that time while it plays; if the game wants a stage moving outside a
+  cutscene (a waving banner on the battle stage), which clock and rate drive it (the scene's battle
+  pace, real time) is to be asked with this step.
 
 **Step 5 (camera, light and particle tracks):**
 - **Q25. Particle effects' data:** records of their own, named by path from the track, in
@@ -740,6 +745,10 @@ M10", "Step details".
   alive then show, a burst that died shows nothing); after the end the sequence's running emitters
   play on, on the scene's clock, until their particles die. Why: particles were made rewindable for
   this. (Not all removed at a skip; not running bursts left to play out from where they were.)
+- **Open (found in step 1): the battle pace for particles and the water.** The scene advances its
+  figures by the frame's time times its `Rate` (the battle pace) but leaves the view's particles and
+  its clock (`View3D.Time`, the water's waves) as they are set; once emitters hang on nodes, whether
+  the pace applies to them and to the water (or only to the figures) is to be asked with this step.
 
 **Step 6 (audio and UI tracks):**
 - **Q27. The audio anchor:** the audio time of the quantum in which the sequence's first call is
@@ -779,7 +788,124 @@ M10", "Step details".
 
 Filled in as the steps are done.
 
+### Step 1: the node tree and the scene
+
+Q1–Q3 answered by the user on 2026-11-04, each as recommended: the scene replaces `AnimatedView` and
+`Actor.Transform` goes (actors stand on nodes); each top-level object of an instanced model is a model
+of its own (outline, glow mask, picking); terrain attaches to a node too. Code in
+`Engine/Statventure/Scene/` (namespace `Statventure.Scene`; `Animation/AnimatedView.cs` is gone).
+
+- **Nodes** (`SceneNode`): a name, a parent, children in order, a local translation, rotation and
+  scale (`Local` = S·R·T in System.Numerics' row vectors, glTF's T·R·S) and `World` = `Local` × the
+  parent's `World`, so a non-uniform scale above a turned child gives the sheared world glTF's rule
+  gives. A world matrix is worked out when read and again only after a local transform at or above
+  the node changed or the node moved to another parent (a stale flag, set down the subtree and
+  stopping at nodes already stale; setting a value equal to the current one changes nothing).
+  `Add(child)` moves a node with its subtree (keeping its local transform; never under itself or its
+  descendants; a scene's root never under anything), `Remove()` takes it out (its world is then its own
+  tree's). `Path` joins the names from the root with `/` (the root's is empty); `Find(path)` follows
+  first children of each name, `Child(name)`, `Descendant(name)` (depth first) and `Descendants()`
+  (a node before its children, children in order). A Blender name containing `/` can't be found by
+  path (only by `Descendant`).
+- **Attachments** (`SceneAttachment`; `SceneNode.Attach`, `Detach`; a node carries any number, an
+  attachment one node): `Actor` (M7's figure, moved here: its model space is its node's, `Transform`
+  is gone, its gear unchanged; picking gives the actor back), `PlacedModel` (a model as one model:
+  palette, scenery, a `ModelPose`; picking gives it back), `ModelInstance` (below), `PlacedTerrain`
+  (terrain at its node's world translation, Q3; rotation and scale don't turn or size it, as
+  `Terrain.Draw` takes a translation), `SceneCamera` (glTF's camera: the node's world origin is the
+  view's position, one unit along its −Z the target, its +Y the up; projection, field of view,
+  orthographic height, near and far its own) and `SceneSun` (glTF's directional light: toward the
+  sun is the node's +Z; strength and angle its own). A property set to a new value, or
+  `Changed()` after an edit in place (a pose), tells the scene.
+- **Instancing** (`SceneNode.Instance(model, palette, scenery)`, Q2): a scene node per model node the
+  model's scene reaches (names, hierarchy, translation, rotation and scale; a node the file gives as a
+  matrix decomposed), the model's roots under the instancing node; `Roots` are the top-level objects,
+  `NodeOf(index)`, `NodeNamed(name)`. It draws through `Model.Draw` with every node's world matrix
+  from the scene nodes (skinned meshes follow their joints' nodes), then gives each item its
+  top-level object's node as its group (the outline, the glow mask, picking) and that node's origin as
+  its hatching anchor; nodes taken out of the scene aren't drawn. `Instance(ModelData)` makes the
+  nodes without drawing (a stage's marks and joints, the tests).
+- **Clips on scene nodes:** `ModelInstance.Skeleton` is the model's nodes by name, so a clip of the
+  model binds to the instance as `ClipBinding` binds to a model (`Clip(name)`), and an
+  `AnimationStack` on it plays Blender's NLA on the nodes. `Apply(clip, time)` and
+  `Apply(stack, time)` set the nodes a strip sets now from the pose (an object's channels absolute, a
+  bone's on its rest, as M7's poses); a node set by the previous call that no strip sets now goes back
+  to its rest (the model's own transform), as unset channels are rest for a figure. A clip bound to
+  another model's nodes is refused. Nothing advances such a clip on its own: its player gives the time
+  (the sequencer's clip track, step 4).
+- **The scene** (`SceneView`, a frame client, as `AnimatedView` was): `Root`, `View`, `Rate` (the
+  battle pace for the figures), `Camera` and `Sun` (attachments whose nodes the view's camera and sun
+  follow; null leaves the view's own), `Actors` (in the tree's order). `Advance(seconds)` advances every
+  figure's animator by the time times `Rate`, then `Refresh()`: the camera's settings written into the
+  view's camera (the view compares them, so it renders only when they changed) and the sun set when it
+  differs; then new draw items only if a node changed (a local transform, the tree, an attachment
+  added, taken off or changed), a figure's pose or gear changed (`Actor.Refresh`), the view's style
+  changed (it gives the shadow tones the palettes don't), or, with terrain, the view's camera or the
+  height of its last picture (the terrain's level of detail; before the first picture the finest).
+  Attachments draw, and figures advance and dispatch their events, in the tree's order (depth first, a
+  node's attachments before its children's). The view's particles and its clock (`View3D.Time`, the
+  water) are left as they are set: particles on nodes are step 5's.
+- **Hiding** (Q23): `SceneNode.Hidden` hides the node and its subtree, `Shown` says whether neither it
+  nor a node above it is hidden. What hangs on a hidden node or below it isn't drawn (an instanced
+  object's nodes included), so nothing there is picked; figures there go on animating and their events
+  come, and a camera or sun there still places the view.
+- **Internal choices** (the design left them open; accepted by the M10 manager as internal design,
+  2026-11-04): (1) the camera and sun attachments come in step 1, by glTF's conventions only, step 3
+  adding their import and their check against Blender; (2) particle emitters on nodes are step 5's,
+  and the scene leaves the view's particles and clock alone (the battle pace for them is an open item
+  under step 5's details); (3) a stage's clips have no clock of their own, the caller gives the time
+  (an open item under step 4's details); (4) picking gives back the actor itself (M7's actor had a
+  plain object as its owner), a placed model or terrain itself, and an instanced object's top-level
+  node; (5) a node a stack no longer sets goes back to its rest, as a figure's unset channels are rest.
+- **Blender's parenting as the exporter gives it back** (checked, `SceneReferenceTests`): the
+  exporter writes each node's local transform as its parent's world inverted times its own world
+  (`nodes.py`, `__gather_trans_rot_scale`; sampled per frame the same way, `sampling_cache.py`), with a
+  joint's axes kept as the bone's (an object's glTF world is C·M·C⁻¹, a bone's C·M) and an object on a
+  bone placed relative to the bone's head (Blender puts it at the tail: the offset is baked in), so
+  parent inverses, bone parents and mirrored parents come back as plain locals. It writes a skin for
+  an armature even without a skinned mesh. A sheared world composes from unsheared locals; a parent
+  inverse that is itself sheared (a parent scaled unevenly and turned when the child was parented to
+  it) makes a sheared local, which the exporter's decomposition into translation, rotation and scale
+  can't keep (read in its source, not tried), so stages avoid it (the test model's parents are
+  uniformly scaled when parented in place).
+- **The reference** (`make_models.py`'s `hierarchy`, `Data/Models/hierarchy.glb`): "Base" (its action
+  "base" moving, turning and scaling it unevenly) over "Post" (parented in place: a parent inverse)
+  over "Tip"; "Squash" (scaled 1.6 × 0.7 × 1) over the turned "Tilted"; the empty "Mirror" (scale −1 in
+  X) over "Wing" over "Feather" (parented in place, so its parent inverse mirrors too); the armature
+  "Rig" ("arm", "hand"; its action "rig") with "Charm" on the bone "hand" (parented in place, by the
+  tail). `evaluate_animations.py` reads `Reference/node-scenes.json` (written by the tests) beside the
+  animation scenes, builds the model again, makes the scene's actions active on their objects (every
+  NLA track removed) and writes every object's and bone's world matrix in glTF's coordinates at the
+  times (`Golden/nodes-<scene>.json`). The test plays both clips as layers of a stack on the
+  instance. On the clips' frames every node's origin and unit axes within M7's on-frame tolerance
+  (measured 0.0007 mm); between frames each node in its parent's frame within M7's allowance (measured
+  at most 0.68 of it, Base mid-frame).
+- **Rendered** (the scene's draw items against Blender's renders, as M6 compares): `SceneRenderTests`
+  draws `gear-swing` as an `Actor` on a turned node (sword and pennant on sockets, the pennant's clip
+  with the figure's state, the tabard) and `terrain-map` as a `PlacedTerrain` and a `PlacedModel` on
+  nodes with the view's camera and sun from nodes, both against their existing goldens; the new scene
+  `scene-objects` (`Scenes3D`, `ModelObject3D.Objects`) is the hierarchy model instanced through the
+  scene, turned and scaled, each top-level object its own model: `render_scenes.py`'s objects mode
+  (`add_model_objects`) shades each top-level object in materials of its own hatched from its origin and
+  bakes each into one object for Freestyle's contour, after `flatten_transforms` has put each mesh's
+  world matrix into its vertices (clearing parents keeping transforms would lose a sheared world: the
+  first reference drew "Tilted" with the wrong shape). Blender's glTF importer leaves an object a clip
+  animates at that clip's pose for the scene's frame (1, a frame into a clip it starts at 0): the
+  objects mode sets the clips' start frame before clearing the animation data (Base was 2 cm off).
+
 ## Status
 
 - **Nothing implemented yet** (2026-11-04). The decisions and the 33 step details are recorded, the
   design is set, and seven steps are proposed with their dependencies.
+- **Step 1, the node tree and the scene (2026-11-04, 1930 tests on the GPU and on lavapipe): done**
+  on its worker branch. Q1–Q3 answered as recommended. `Scene/` (`SceneNode`, `SceneAttachment` with
+  `PlacedModel`, `PlacedTerrain`, `SceneCamera`, `SceneSun`, `ModelInstance`, `Actor` moved from
+  `Animation/AnimatedView.cs`, `SceneView`); `AnimatedView` and `AnimatedViewTests` gone, the M7 tests
+  moved to `Tests/Scene/SceneViewTests.cs` (with the "Speed" measurement); `SceneNodeTests`,
+  `SceneReferenceTests` (the hierarchy model against Blender), `SceneRenderTests` (two existing
+  goldens through the scene), the render scene `scene-objects`; `make_models.py` (`hierarchy`),
+  `evaluate_animations.py` (node scenes), `render_scenes.py` (objects mode). Filtered tests (Scene,
+  Animation, Render3D) pass: 257. Left to later steps as the design has it: cameras and lights from
+  glTF and their check against Blender (step 3; the attachments follow glTF's conventions now),
+  particle emitters on nodes and the view's particles (step 5), and a clock for stage clips outside a
+  sequence (none: the sequencer gives it, step 4); hiding (Q23) is done here. Mutations: 65 (`~/.cache/stat-fick-build/claude-work/m10/step1-mutations.json`, made by `make-step1-mutations.py` beside it): 62 fail a test (two of them after gaps were closed: a node re-added after its world was read with no parent, and something new attached to a node already shown); one, a node allowed under itself, hangs the test (walking up to the root never ends; `mutate.py` reads the timeout's missing result line as a survivor); two survive and can't differ in results, only in work: marking a subtree stale without stopping at nodes already stale, and marking an already stale node again.

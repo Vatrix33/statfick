@@ -703,7 +703,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {
@@ -801,7 +802,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {
@@ -897,7 +899,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {
@@ -997,7 +1000,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {
@@ -1095,7 +1099,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         },
         {
           "file": "rigged.glb",
@@ -1128,7 +1133,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {
@@ -1227,7 +1233,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {
@@ -1327,7 +1334,8 @@
           "scenery": true,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         },
         {
           "file": "shapes.glb",
@@ -1360,7 +1368,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         },
         {
           "file": "rigged.glb",
@@ -1393,7 +1402,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {
@@ -1492,7 +1502,8 @@
           "scenery": true,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         },
         {
           "file": "shapes.glb",
@@ -1525,7 +1536,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         },
         {
           "file": "rigged.glb",
@@ -1558,7 +1570,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {
@@ -1657,7 +1670,8 @@
           "scenery": true,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         },
         {
           "file": "shapes.glb",
@@ -1690,7 +1704,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         },
         {
           "file": "rigged.glb",
@@ -1723,7 +1738,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {
@@ -1822,7 +1838,8 @@
           "scenery": true,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {},
@@ -1916,7 +1933,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         },
         {
           "file": "glowing.glb",
@@ -1949,7 +1967,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {
@@ -2394,7 +2413,8 @@
             0,
             0,
             0
-          ]
+          ],
+          "objects": null
         },
         {
           "file": "tabard.glb",
@@ -2774,7 +2794,8 @@
             0,
             0,
             0
-          ]
+          ],
+          "objects": null
         },
         {
           "file": "sword.glb",
@@ -2811,7 +2832,8 @@
             0,
             0,
             0
-          ]
+          ],
+          "objects": null
         },
         {
           "file": "pennant.glb",
@@ -2885,7 +2907,8 @@
             0,
             0,
             0
-          ]
+          ],
+          "objects": null
         }
       ],
       "palette": {
@@ -3022,7 +3045,8 @@
             ]
           },
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {
@@ -3155,7 +3179,8 @@
             ]
           },
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {
@@ -3251,7 +3276,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {
@@ -3360,7 +3386,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {
@@ -4627,6 +4654,107 @@
       ]
     },
     {
+      "name": "scene-objects",
+      "width": 400,
+      "height": 280,
+      "background": "#d8cbb0",
+      "camera": {
+        "projection": "perspective",
+        "position": [
+          -1.1,
+          1.7,
+          3.3
+        ],
+        "target": [
+          0.05,
+          0.5,
+          -0.2
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fieldOfViewDegrees": 40,
+        "orthographicHeight": 4,
+        "near": 0.1,
+        "far": 50
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "hierarchy.glb",
+          "matrix": [
+            [
+              1.0759624,
+              0,
+              0.22870287,
+              0
+            ],
+            [
+              0,
+              1.1,
+              0,
+              0
+            ],
+            [
+              -0.22870287,
+              0,
+              1.0759624,
+              0
+            ],
+            [
+              0.1,
+              0,
+              0.1,
+              1
+            ]
+          ],
+          "scenery": false,
+          "pose": null,
+          "group": null,
+          "anchor": null,
+          "objects": true
+        }
+      ],
+      "palette": {
+        "stone": "#7a6e60",
+        "cloth": "#5d3f6f",
+        "metal.base": "#6f7a88",
+        "metal.trim": "#c09a50",
+        "skin": "#b08a68"
+      },
+      "shadows": {},
+      "sun": {
+        "direction": [
+          -0.9,
+          1.2,
+          0.6
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#130e0b",
+        "shadowMix": 0.42,
+        "bandEdge": 0.3,
+        "outlineWidth": 3.5,
+        "innerWidth": 2,
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1,
+      "terrain": null,
+      "time": 0,
+      "particles": []
+    },
+    {
       "name": "cel-side",
       "width": 420,
       "height": 200,
@@ -4686,7 +4814,8 @@
           "scenery": false,
           "pose": null,
           "group": null,
-          "anchor": null
+          "anchor": null,
+          "objects": null
         }
       ],
       "palette": {

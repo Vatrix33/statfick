@@ -1,6 +1,7 @@
 using Statventure.Animation;
 using Statventure.Audio;
 using Statventure.Render3D;
+using Statventure.Scene;
 using Statventure.Tests.Infrastructure;
 
 namespace Statventure.Tests.Audio;

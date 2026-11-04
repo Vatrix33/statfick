@@ -825,9 +825,111 @@ def pennant(path):
     export(path, **ANIMATED)
 
 
+def parent_in_place(child, parent, bone=None):
+    """Parents as Blender's Ctrl+P does: the child stays where it is, its parent inverse undoing the
+    parent's world matrix at that moment; for a bone, the bone's tail at rest (Blender places a bone's
+    children at its tail: the pose matrix moved along its Y by the bone's length)."""
+    bpy.context.view_layer.update()
+    if bone is None:
+        inverse = parent.matrix_world.inverted()
+    else:
+        b = parent.data.bones[bone]
+        inverse = (parent.matrix_world @ b.matrix_local @ Matrix.Translation((0, b.length, 0))).inverted()
+    child.parent = parent
+    if bone is not None:
+        child.parent_type = "BONE"
+        child.parent_bone = bone
+    child.matrix_parent_inverse = inverse
+
+
+def object_keys(obj, action, frame, location=None, rotation=None, scale=None):
+    """Keys an object's own channels in this action: location, rotation (Euler XYZ degrees, Blender's
+    default rotation mode for objects) and scale."""
+    if obj.animation_data is None:
+        obj.animation_data_create()
+    obj.animation_data.action = action
+    if location is not None:
+        obj.location = location
+        obj.keyframe_insert("location", frame=frame)
+    if rotation is not None:
+        obj.rotation_euler = [math.radians(a) for a in rotation]
+        obj.keyframe_insert("rotation_euler", frame=frame)
+    if scale is not None:
+        obj.scale = scale
+        obj.keyframe_insert("scale", frame=frame)
+
+
+def stack_object_actions(obj, actions, location, rotation, scale):
+    """An object's actions on NLA tracks of their own (as stack_actions does for an armature), no
+    action active, the object back at its rest transform (the exporter writes the node's own
+    transform as the object has it then)."""
+    for action in actions:
+        export_markers(action)
+    obj.animation_data.action = None
+    for action in actions:
+        track = obj.animation_data.nla_tracks.new()
+        track.name = action.name
+        track.strips.new(action.name, int(action.frame_range[0]), action)
+    obj.location, obj.rotation_euler, obj.scale = location, [math.radians(a) for a in rotation], scale
+
+
+# The hierarchy test model's still transforms (Blender's coordinates), and the animated parent's rest.
+BASE_REST = ((0, 0, 0.1), (0, 0, 25), (1.5, 1.5, 1.5))
+
+
+def hierarchy(path):
+    """Object parenting as the exporter gives it back (Docs/Scene.md, step 1), each top-level object a
+    model of its own in the scene: an animated parent ("Base", the action "base" moving, turning and
+    scaling it unevenly) above a child parented in place ("Post", a parent inverse) and a plain
+    grandchild ("Tip"), both still; non-uniform scale above a turned child ("Squash" and "Tilted": a
+    sheared world, which no translation, rotation and scale holds, though each local does); a mirrored
+    branch ("Mirror", an empty scaled −1 along X, over "Wing" and "Feather", the feather parented in
+    place, so its parent inverse is mirrored too); and a bone parent ("Charm" on the bone "hand" of
+    the armature "Rig", parented in place: Blender places it by the bone's tail), the action "rig"
+    turning both bones. 60 fps, keys from frame 1 (Blender's default Bezier interpolation)."""
+    bpy.context.scene.render.fps, bpy.context.scene.render.fps_base = 60, 1
+    stone, metal, trim = material("stone", "#6b6258"), material("metal.base", "#8a8f96"), material("metal.trim", "#c9a46a")
+    cloth, skin = material("cloth", "#7b5a3a"), material("skin", "#a9805e")
+
+    location, rotation, scale = BASE_REST
+    base = mesh_object("Base", box_mesh("base", (0.7, 0.5, 0.2), [stone, cloth]), location=location, rotation=rotation, scale=scale)
+    post = mesh_object("Post", cone_mesh("post", 10, 0.06, 0.05, 0.7, True, metal), location=(0.25, 0.12, 0.6), rotation=(12, 0, 0))
+    parent_in_place(post, base)
+    mesh_object("Tip", cone_mesh("tip", 8, 0.13, 0.0, 0.22, False, trim), post, location=(0, 0, 0.45), rotation=(0, 0, 20))
+
+    squash = mesh_object("Squash", box_mesh("squash", (0.3, 0.3, 0.3), [stone]), location=(0.6, -0.8, 0.35), rotation=(0, 0, -15), scale=(1.6, 0.7, 1.0))
+    mesh_object("Tilted", box_mesh("tilted", (0.3, 0.3, 0.3), [cloth]), squash, location=(0, 0, 0.5), rotation=(35, 0, 40))
+
+    mirror = bpy.data.objects.new("Mirror", None)
+    bpy.context.scene.collection.objects.link(mirror)
+    mirror.location, mirror.scale = (-0.8, 0.2, 0), (-1, 1, 1)
+    wing = mesh_object("Wing", box_mesh("wing", (0.5, 0.2, 0.15), [metal, trim]), mirror, location=(0.3, 0, 0.45), rotation=(0, 25, 35))
+    feather = mesh_object("Feather", cone_mesh("feather", 12, 0.09, 0.02, 0.4, True, skin), location=(-1.05, 0.1, 0.85), rotation=(0, -30, 10))
+    parent_in_place(feather, wing)
+
+    rig = armature("Rig", [("arm", (0, 0, 0), (0, 0, 0.6), None, False), ("hand", (0, 0, 0.6), (0.25, 0, 0.85), "arm", True)], location=(0.1, 0.9, 0))
+    charm = mesh_object("Charm", box_mesh("charm", (0.16, 0.16, 0.24), [trim]), location=(0.35, 0.9, 0.95), rotation=(0, 15, 0))
+    parent_in_place(charm, rig, bone="hand")
+
+    turn = bpy.data.actions.new("base")
+    for frame, k in ((1, 0), (31, 1), (61, 0)):
+        object_keys(base, turn, frame, location=(0.3 * k, -0.2 * k, 0.1 + 0.15 * k), rotation=(10 * k, 0, 25 + 45 * k),
+                    scale=(1.5, 1.5 - 0.3 * k, 1.5 + 0.4 * k))
+    stack_object_actions(base, (turn,), *BASE_REST)
+
+    rig.animation_data_create()
+    bend = bpy.data.actions.new("rig")
+    for frame, k in ((1, 0), (31, 1), (61, 0)):
+        keys(rig, bend, frame, "arm", rotation=((1, 0, 0), 35 * k))
+        keys(rig, bend, frame, "hand", rotation=((0, 0, 1), -50 * k))
+    stack_actions(rig, (bend,))
+    export(path, **ANIMATED)
+
+
 # Builders by model name (evaluate_animations.py builds the animated ones again).
 BUILDERS = {"blocks": blocks, "rigged": rigged, "shapes": shapes, "stage": stage, "fringe": fringe, "glowing": glowing,
-            "figure": figure, "reach": reach, "stocky": stocky, "sword": sword, "tabard": tabard, "pennant": pennant}
+            "figure": figure, "reach": reach, "stocky": stocky, "sword": sword, "tabard": tabard, "pennant": pennant,
+            "hierarchy": hierarchy}
 
 
 def main():

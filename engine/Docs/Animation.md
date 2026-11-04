@@ -238,18 +238,21 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   the same fade, playing the item's clip named like the state (start, scale and repeat copied from
   the wearer's strip each time, so speed changes follow) or nothing. Gear is drawn with the wearer's
   owner (one model: one outline, one glow mask) and its hatch anchor (`Model.Draw(..., anchor: ...)`).
-- **Animated views** (`Animation/AnimatedView.cs`): an `Actor` is a model with its animator,
-  transform, palette, items (`ActorItem`: a model on a socket, optionally an `ItemAnimation`) and
-  garments (`ActorGarment`); `Refresh` evaluates its pose (and its items') at the animator's time
-  and says whether any channel value, its transform or its gear changed; `Draw` adds its draw items
-  (the figure, items at their sockets, garments from their world matrices, all with the actor's
-  owner and hatch anchor). An `AnimatedView` (an `IUiFrameClient` holding a `View3D`) advances its
-  actors' animators each frame by the time since its last frame times its `Rate` (the battle pace;
-  the old game's "slow" stretches durations by 1.5, a rate of 1 / 1.5) in the frame's animation
-  timing update, so clips run on the clock CSS and Web Animations run on; it sets the view's items
-  only when something changed (a held clip or a rate of 0 draws nothing new), and dispatches the
-  animators' events and notices with the frame's animation events. The host shows the view in a
-  `surface` element as any view (`SurfaceViews`).
+- **Animated views** (M7 step 7: `Animation/AnimatedView.cs`; since M10 step 1 a scene, `Docs/Scene.md`,
+  Q1: `Scene/Actor.cs`, `Scene/SceneView.cs`): an `Actor` is a model with its animator, palette,
+  items (`ActorItem`: a model on a socket, optionally an `ItemAnimation`) and garments
+  (`ActorGarment`), hanging on a scene node, whose world matrix places it (M7's `Actor.Transform` is
+  gone); `Refresh` evaluates its pose (and its items') at the animator's time and says whether any
+  channel value or its gear changed; drawn, it adds its draw items (the figure, items at their
+  sockets, garments from their world matrices, all with the actor as their owner and the node's
+  origin as their hatch anchor). A `SceneView` (an `IUiFrameClient` holding a `View3D`, what M7's
+  `AnimatedView` was) advances its figures' animators each frame by the time since its last frame
+  times its `Rate` (the battle pace; the old game's "slow" stretches durations by 1.5, a rate of
+  1 / 1.5) in the frame's animation timing update, so clips run on the clock CSS and Web Animations
+  run on; it gives the view new items only when something changed (a held clip or a rate of 0 draws
+  nothing new; a node moved, above the figure too, draws again), and dispatches the animators' events
+  and notices with the frame's animation events, figures in the tree's order. The host shows the
+  view in a `surface` element as any view (`SurfaceViews`).
 - **Known differences from Blender's NLA:** fades of hand-keyed rotations (the user's decision
   above: Blender mixes raw, non-unit curve values between keys); rotations more than a half turn
   from rest (Blender blends the stored sign, the engine w ≥ 0; a Combine power of such a quaternion
@@ -463,5 +466,6 @@ Started 2026-10-31 (decisions asked and recorded); done 2026-10-31.
   two machine layers), 1.1-1.8 ms a frame for 24; a 1080p frame of the 24 figures 1.5 ms on the GPU
   (`STATVENTURE_MEASURE=1` runs that measurement). A 2016-class GPU is untested (as in M6). Checked
   by breaking: items set every frame, a moved figure not seen, the view's rate ignored and the pose
-  a frame late each fail a test.
+  a frame late each fail a test. (M10 step 1 replaced `AnimatedView` with the scene, `SceneView`, and
+  moved these tests to `Tests/Scene/SceneViewTests.cs`: `Docs/Scene.md`, "How it works", step 1.)
 - **M7 done (2026-10-31, 635 tests).**

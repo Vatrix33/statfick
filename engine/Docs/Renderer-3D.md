@@ -314,6 +314,14 @@ character with its gear being one model for the glow mask, the ink and the hatch
 imported animation data cleared, so an animated model keeps the scene's pose. See
 `Docs/Animation.md`, "Rendered gear".)
 
+(M10 step 1 added a model drawn through a scene, `Docs/Scene.md`, "How it works", step 1: a test
+model with `Objects` set is instanced under a scene node, each top-level object a model of its own,
+and `render_scenes.py`'s objects mode makes each top-level object of the imported file its own model:
+materials of its own hatched from its origin, its own glow mask, one baked object for Freestyle's
+contour after each mesh's world matrix is put into its vertices (a sheared world survives); the
+imported clips are set to their start frame before their animation data is cleared, so objects keep
+the file's own transforms. Scene `scene-objects`.)
+
 - **Scenes:** `Tests/Statventure.Tests/Render3D/Scenes3D.cs` (shapes as positions and
   counter-clockwise triangles, objects with scale, rotation X then Y then Z, translation and an sRGB
   colour, a camera, size, background; and as the steps came: placed models with poses, a palette and

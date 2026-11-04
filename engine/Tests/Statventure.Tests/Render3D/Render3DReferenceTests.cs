@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Statventure.Imaging;
 using Statventure.Render3D;
+using Statventure.Scene;
 using Statventure.Tests.Infrastructure;
 
 namespace Statventure.Tests.Render3D;
@@ -355,6 +356,16 @@ public class Render3DReferenceTests(GpuFixture gpu)
             {
                 var model = Model.Load(device, Path.Combine(ModelDirectory, placed.File));
                 models.Add(model);
+                if (placed.Objects)
+                {
+                    // Through a scene: the model instanced under a node placed as the scene places it, each
+                    // top-level object its own model (Docs/Scene.md, Q2).
+                    Assert.True(Matrix4x4.Decompose(placed.Model, out var scale, out var rotation, out var translation));
+                    var holder = new SceneNode().Add("placement");
+                    holder.SetLocal(translation, rotation, scale);
+                    holder.Instance(model, palette, placed.Scenery).Draw(items, new SceneDrawing(scene.Style, scene.Camera.ToCamera(), scene.Height));
+                    continue;
+                }
                 // A group (a character with its gear) is one model: one owner, the first one's origin anchoring the hatching.
                 (object Owner, Vector3 Anchor)? group = placed.Group == null ? null
                     : groups.TryGetValue(placed.Group, out var known) ? known : groups[placed.Group] = (new object(), placed.Model.Translation);
@@ -528,6 +539,7 @@ public class Render3DReferenceTests(GpuFixture gpu)
             {
                 file = m.File, matrix = Columns(m.Model), scenery = m.Scenery, pose = Deformations(m), group = m.Group,
                 anchor = m.Group == null ? null : V(s.Models.First(o => o.Group == m.Group).Model.Translation),
+                objects = m.Objects ? true : (bool?)null,
             }).ToArray(),
             palette = s.Palette,
             shadows = s.Shadows,

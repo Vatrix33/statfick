@@ -12,7 +12,8 @@ M10-2: besides the engine, Ji'ruan's boss intro is remade now as a proof, M10-11
 files each touches and which can run side by side, the step details, status). The 33 step details were asked and
 answered the same day ("Decisions for M10", "Step details"; every answer the recommended option except Q31: the proof's
 stage goes to the user as Blender renders for approval before its tests are written). The session managing M10 runs the
-steps from that list; nothing of M10's code exists yet. M9 (assets and
+steps from that list. Step 1 (the node tree and the scene, `Scene/`) is done on its worker branch, to be merged
+(Progress, "M10 step 1"). M9 (assets and
 data) is done and ticked (2026-11-03: nine steps and the FreeType thread-safety fix, 1907 tests passing on the GPU and on
 lavapipe; Progress, "M9 done"). The small tasks left from earlier milestones and the user's small changes to the old game
 were done on 2026-11-03 (below; Progress, "Small tasks"; the engine's tests don't depend on the old game's changes: their
@@ -144,11 +145,12 @@ M9 step 6 every patch in the data, `audio/effects/<name>`, is registered under i
 slider is the music volume. `test-themes.sh` (with `make-theme-references.sh` once on a machine, 2.6 GB) whenever
 the synthesizer changes; `play-theme.sh <theme>` plays a theme to listen to it.
 
-**What M7 leaves for the port:** figures are `Actor`s in an `AnimatedView` (added to the document as a
-frame client, shown in a `surface` element); their clips come from the .glb files (exported with
+**What M7 leaves for the port:** figures are `Actor`s on the nodes of a scene (since M10 step 1 the scene,
+`SceneView`, replaces M7's `AnimatedView`: added to the document as a frame client, its `View3D` shown in a
+`surface` element; `Docs/Scene.md`); their clips come from the .glb files (exported with
 `make_models.py`'s `ANIMATED` settings, markers by `export_markers`), shared by bone names within a rig
 family; a rig's state machine is built with `StateMachineBuilder` (pack form in M9, editor in M11); gear
-is `ActorItem`s on `socket.<slot>` bones and `ActorGarment`s; the battle pace is the view's `Rate`.
+is `ActorItem`s on `socket.<slot>` bones and `ActorGarment`s; the battle pace is the scene's `Rate`.
 
 **Design docs by area** (read the one for the area you work on): `Docs/Compositing-Port.md` (Blink
 compositing, LCD vs grayscale text, inline SVG transforms), `Docs/Scripting.md` (event loop, frame
@@ -431,7 +433,7 @@ probing Chromium 152 under Xvfb with and without a window manager; every answer 
     and wait while it is below zero, as Blink's background CPU-time budget pool. (Not left out.)
 
 **Decision on the speed tests (2026-11-03):** the tests that measure wall-clock speed against a bound
-(`AnimatedViewTests.Speed.TheCostOfAFigureIsMeasured`, `CanvasScaleTests.Speed.TwentyThousandPrimitivesRecordAndRenderQuickly`)
+(`AnimatedViewTests.Speed.TheCostOfAFigureIsMeasured`, since M10 step 1 `SceneViewTests.Speed.TheCostOfAFigureIsMeasured`; `CanvasScaleTests.Speed.TwentyThousandPrimitivesRecordAndRenderQuickly`)
 run alone, in the "Speed" collection (`Infrastructure/GpuFixture.cs`: never in parallel with other tests, its own GPU
 device); their bounds stay. Asked because both failed now and then in the cloud's full run, also on the commit before that
 day's work (the animation cost 0.89–1.06 ms per figure against 0.5 ms in the parallel run, 0.12–0.26 ms alone): the other
@@ -720,6 +722,7 @@ at port time). The rune slotting sound was left out of the old game; the port ad
   - **M9 done (2026-11-03, 1907 tests):** all nine steps merged on `main` (with the FreeType thread-safety fix on the way); the full suite passes on the GPU and on lavapipe. Mutations over the nine steps: 875, 852 fail a test; 22 survivors, all accounted for (gaps closed and killed, redundant code removed, or no difference in results, only in work or on Windows), and 1 malformed (step 7). Ticked under Milestones; M10 waits for the user's go.
   - **M10 started (2026-11-04):** the user's go; the eleven questions asked and answered, all with the recommended options except the scope (M10-2: Ji'ruan's boss intro remade now as a proof, M10-11) ("Decisions for M10"); design doc `Docs/Scene.md`: what exists checked against the code (the flat `AnimatedView` with one matrix per actor; glTF cameras and lights not read, though BRUTAL's schema has them; one sun and no model opacity in the renderer; particle effects not records; frame clients advanced by the whole hidden time after a minimize; the audio API playing only "now", with no readable clock), the old game's four kinds of cutscene and Ji'ruan's CSS timeline element by element, the method, a proposed design (the node tree and scene, F-curves, the sequence record with its track kinds, the builder, the player, audio and UI cues, the Blender export of a cutscene stage, the proof), seven proposed steps with the files each touches and which can run side by side, and 33 open questions with recommendations. Blender 5.2's `fcurve.cc` is in `reference-src/blender-anim/`; `curve.cc` (auto handles) and `easing.cc` are still to fetch. No code yet.
   - **M10 step details (2026-11-04):** the 33 questions asked and answered the same day, all as recommended except Q31 (the proof's stage shown to the user as Blender renders for approval before its tests) ("Decisions for M10", "Step details"; `Docs/Scene.md` updated: "Open questions" became "Step details", the design states the answers, the step list follows them). M10-8's wording corrected: M8 has no public scheduling, step 6 adds it. No code yet.
+  - **M10 step 1, the node tree and the scene (2026-11-04, 1930 tests, on its worker branch):** Q1–Q3 answered as recommended (the scene replaces `AnimatedView`, `Actor.Transform` goes; each top-level object of an instanced model is its own model; terrain on a node). `Engine/Statventure/Scene/`: `SceneNode` (local translation, rotation and scale; world = local × parent's world, worked out again only after a change above; paths), attachments `Actor` (moved from `Animation/AnimatedView.cs`, which is gone), `PlacedModel`, `ModelInstance` (a model's hierarchy as scene nodes, per-object outline, glow mask, hatch anchor and picking; its clips and NLA stacks applied to its nodes by name), `PlacedTerrain`, `SceneCamera`, `SceneSun` (glTF's conventions); `SceneView` (the frame client: figures at the scene's rate, new draw items only on change, the view's camera and sun from nodes). Tests: `Tests/Scene/` (`SceneNodeTests`, `SceneReferenceTests`, `SceneViewTests` with M7's view tests moved in, `SceneRenderTests`); Blender: the hierarchy test model (`make_models.py`: parent inverses, a bone parent, non-uniform scale above a turned child, a mirrored branch, an animated parent) evaluated by `evaluate_animations.py` (node scenes, `Reference/node-scenes.json`, `Golden/nodes-hierarchy.json`): within 0.0007 mm on frames, at most 0.68 of M7's allowance between; the render scene `scene-objects` (instanced, per-object ink; `render_scenes.py`'s objects mode) and `gear-swing` and `terrain-map` drawn through the scene match their goldens. Also hiding (Q23: a hidden node hides its subtree). The full suite passes on the GPU and on lavapipe (1930). Mutations: 65 (`~/.cache/stat-fick-build/claude-work/m10/step1-mutations.json`, made by `make-step1-mutations.py` beside it): 62 fail a test (two of them after gaps were closed: a node re-added after its world was read with no parent, and something new attached to a node already shown); one, a node allowed under itself, hangs the test (walking up to the root never ends; `mutate.py` reads the timeout's missing result line as a survivor); two survive and can't differ in results, only in work: marking a subtree stale without stopping at nodes already stale, and marking an already stale node again. Details in `Docs/Scene.md`, "How it works", step 1.
 
 ## Milestones
 
