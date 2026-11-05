@@ -99,10 +99,18 @@
     if (!state?.active) return [];
     return (evaluating || actorById("player", state))?.effects || [];
   };
+  // Peace and Balance: an effect lowering its wielder's Speed doesn't count (the current actor's gear),
+  // and nothing pushes its wielder's turn meter back.
+  const lowersLockedSpeed = (key, amount) => key === "speed" && amount < 0 && wieldsTurnAndSpeedLock();
+  function shiftTurnMeter(actor, amount) {
+    if (amount < 0 && withActor(actor, wieldsTurnAndSpeedLock)) return;
+    actor.counter = Math.min(999, Math.max(0, actor.counter + amount));
+  }
   function statPercent(key) {
-    return currentEffects().filter(effect => (effect.type === "stat-percent" && effect.target === key) || effect.type === "all-stats-percent").reduce((sum, effect) => sum + effect.amount, 0);
+    return currentEffects().filter(effect => ((effect.type === "stat-percent" && effect.target === key) || effect.type === "all-stats-percent") && !lowersLockedSpeed(key, effect.amount)).reduce((sum, effect) => sum + effect.amount, 0);
   }
   function permanentStatPercent(key) {
+    // (Peace and Balance's lock for these is applied where the sheet adds them up, in currentStatsUncached.)
     return currentEffects().filter(effect => effect.type === "stat-permanent-percent" && effect.target === key).reduce((sum, effect) => sum + effect.amount, 0);
   }
   function permanentDefensePercent(key) {
@@ -180,7 +188,7 @@
         return sourceLevel > targetLevel ? passive.targetEffects || [] : [];
       }));
       for (const effect of hostileEffects) {
-        if (effect.type === "stat-percent" && effect.target in attributes) {
+        if (effect.type === "stat-percent" && effect.target in attributes && !lowersLockedSpeed(effect.target, toNumber(effect.amount, 0))) {
           attributes[effect.target] = Math.max(0, Math.floor(attributes[effect.target] * (1 + toNumber(effect.amount, 0) / 100)));
         }
       }
@@ -189,7 +197,7 @@
         .flatMap(ally => [...passiveEffectsOf(ally, state), ...withActor(ally, () => calculateClassEffects().partyStatPercentModifiers, state)])
         .filter(effect => effect.type === "party-stat-percent");
       for (const effect of partyStatEffects) for (const target of effect.targets || [effect.target]) {
-        if (!(target in attributes)) continue;
+        if (!(target in attributes) || lowersLockedSpeed(target, toNumber(effect.amount, 0))) continue;
         const adjusted = attributes[target] * (1 + toNumber(effect.amount, 0) / 100);
         attributes[target] = Math.max(0, effect.amount > 0 ? Math.ceil(adjusted) : Math.floor(adjusted));
       }
@@ -522,6 +530,7 @@
       stageEquipment(target, item);
     }
     for (const item of withActor(target, equippedDefenseItems)) for (const effect of item.effects || []) {
+      if (effect.kind === "avalanche-counters") { addAvalancheCounter(target, item, effect); continue; }
       if (effect.kind !== "damage-charge") continue;
       const charges = target.equipmentCharges ||= {};
       charges[item.id] = Math.min(effect.maximum, Math.max(0, toInteger(charges[item.id], 0)) + 1);
@@ -534,6 +543,19 @@
     if (effect && mana(target) >= effect.manaCost && (battle.reactions ||= []).length < 32) {
       battle.reactions.push({ actorId: target.id, attackerId: attacker.id, itemId: item.id, damage: dealt });
     }
+  }
+  // Avalanche (a Masterwork Elemental): each damage taken adds a counter; at the maximum every enemy loses
+  // Speed for a while (a new trigger refreshes it) and the counters reset. They start at 0 each battle.
+  function addAvalancheCounter(target, item, effect) {
+    const counters = target.avalancheCounters ||= {};
+    const next = Math.max(0, toInteger(counters[item.id], 0)) + 1;
+    counters[item.id] = next >= effect.maximum ? 0 : next;
+    stageEquipment(target, item, { charges: counters[item.id], maximum: effect.maximum });
+    if (next < effect.maximum) return;
+    for (const foe of opponents(target).filter(foe => hp(foe) > 0)) {
+      applyTimedEffects(foe, `equipment:${item.id}:avalanche`, item.name, [{ type: "stat-percent", target: "speed", amount: -effect.amount, durationTurns: effect.durationTurns }]);
+    }
+    log(`${item.name} comes down: every enemy loses ${effect.amount}% Speed for ${effect.durationTurns} turns.`);
   }
   function equipmentChargeBonuses(actor) {
     if (!actor?.equipmentCharges || !Object.values(actor.equipmentCharges).some(amount => amount > 0)) return [];
@@ -1939,6 +1961,8 @@
         if (echoed) log(`Arrowtip Rain deals ${echoed} damage to ${actorLabel(other)}.`);
       }
     }
+    // Every enemy this attack damaged, the splash included (Kugelblitz marks them all).
+    const struck = new Set(dealt > 0 ? [target.id] : []);
     for (const effect of weapon.effects || []) {
       if (effect.kind === "mark-on-hit" && hp(target) > 0 && rules.roll(effect.chance)) {
         stageEquipment(actor, weapon, { targetId: target.id });
@@ -1958,8 +1982,20 @@
         stageEquipment(actor, weapon, { targetId: target.id, cleave: true });
         for (const other of [...hostiles(actor)].filter(other => other.id !== target.id)) {
           const echoed = hurt(other, dealt * effect.amount / 100, weapon.element || "physical", false, false, actor, "bonus");
-          if (echoed) log(`${weapon.name} splashes ${echoed} damage to ${actorLabel(other)}.`);
+          if (echoed) { struck.add(other.id); log(`${weapon.name} splashes ${echoed} damage to ${actorLabel(other)}.`); }
         }
+      } else if (effect.kind === "stun-on-hit-chance" && dealt > 0 && hp(target) > 0 && rules.roll(effect.chance)) {
+        // First Comet: the game's stun rules (stun immunity holds), 1 turn.
+        if (debuffImmune(target) || withActor(target, () => calculateClassEffects().stunImmune)) { log(`${actorLabel(target)} resists the stun from ${weapon.name}.`); continue; }
+        stageEquipment(actor, weapon, { targetId: target.id });
+        target.effects = target.effects.filter(existing => existing.type !== "stun");
+        target.effects.push({ key: `equipment:${weapon.id}:stun`, name: "Stunned", type: "stun", amount: 1, expiresTurn: target.turns + 1 });
+        log(`${weapon.name} stuns ${actorLabel(target)}.`);
+      } else if (effect.kind === "spell-cost-mark-on-damage" && struck.size) {
+        // Kugelblitz: every enemy it damaged pays more Mana for spells until the end of its next turn (refreshed, not stacked).
+        const marked = [...struck].map(id => actorById(id)).filter(enemy => enemy && hp(enemy) > 0);
+        for (const enemy of marked) applyTimedEffects(enemy, `equipment:${weapon.id}:spell-cost-mark`, `${weapon.name}'s Mark`, [{ type: "spell-cost-percent", amount: -effect.amount, durationTurns: effect.durationTurns }]);
+        if (marked.length) log(`${weapon.name} marks ${marked.map(actorLabel).join(", ")}: spells cost ${effect.amount}% more Mana.`);
       } else if (effect.kind === "party-mana-drain-on-hit-percent") {
         const drained = Math.min(mana(target), Math.floor(mana(target) * effect.amount / 100));
         if (!drained) continue;
@@ -3949,8 +3985,8 @@
         applyEffects(actor, recipient, copiedEffects, power, spell.element, `${skill.name}: ${spell.name}`, true);
         log(`${actorLabel(actor)} copies ${spell.name} at ${effect.powerPercent}% power.`);
       } else if (effect.type === "shift-turn-meters" && target) {
-        actor.counter = Math.min(999, Math.max(0, actor.counter + toNumber(effect.allyAmount, 0)));
-        target.counter = Math.min(999, Math.max(0, target.counter + toNumber(effect.enemyAmount, 0)));
+        shiftTurnMeter(actor, toNumber(effect.allyAmount, 0));
+        shiftTurnMeter(target, toNumber(effect.enemyAmount, 0));
       } else if (effect.type === "attune-last-hit-element") {
         actor.nextSpellElement = actor.lastDamageElement;
         log(`${actorLabel(actor)} attunes their next spell to ${actor.nextSpellElement}.`);

@@ -36,5 +36,8 @@
     "rock-body-earth-support",
     "dragonbreath-erode-earth-damage",
     "quick-drill-earth-damage"
+  ],
+  "drops": [
+    { "itemId": "masterwork-first-comet", "chance": 5 }
   ]
 }

@@ -2,7 +2,8 @@ async function runMasterworkRarityChecks() {
   const assert = (condition, message) => { if (!condition) throw Error(message); };
   await waitForSourceFiles();
   const special = items.filter(item => isMasterworkEquipment(item) || item.category === "key-item");
-  assert(special.length === 30 && special.every(item => item.rarity === "masterwork"), "All 25 unique items and five key items load as Masterwork");
+  // 31 masterworks since the Masterwork Elementals (2026-11-05), and five key items.
+  assert(special.length === 36 && special.every(item => item.rarity === "masterwork"), "All 31 masterwork items and five key items load as Masterwork");
   assert(normalizeRarity("Masterwork") === "masterwork" && itemRarityLabel("masterwork") === "Masterwork", "Masterwork parses and displays correctly");
   const original = normalizeCharacter(defaultCharacter());
   const main = defaultCharacter(); main.raceId = "human";

@@ -41,5 +41,8 @@
     "backwind-wind-support",
     "deflect-missiles-wind-support",
     "razor-squall-wind-damage"
+  ],
+  "drops": [
+    { "itemId": "masterwork-peace-and-balance", "chance": 5 }
   ]
 }

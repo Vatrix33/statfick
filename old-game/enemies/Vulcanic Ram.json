@@ -8,5 +8,7 @@
   "naturalWeapon": "vulcanic-ram-horns",
   "inventory": [],
   "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
-  "knownSpells": ["vulcanic-charge-fire-unique"], "drops": []
+  "knownSpells": ["vulcanic-charge-fire-unique"], "drops": [
+    { "itemId": "masterwork-plasma-blade", "chance": 5 }
+  ]
 }

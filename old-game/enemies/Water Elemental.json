@@ -41,5 +41,8 @@
     "seablade-water-damage",
     "soothing-rain-water-support",
     "tidal-spear-water-damage"
+  ],
+  "drops": [
+    { "itemId": "masterwork-tidepiercer", "chance": 5 }
   ]
 }

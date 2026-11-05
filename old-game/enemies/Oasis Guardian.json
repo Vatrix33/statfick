@@ -5,5 +5,8 @@
   "stats": { "strength": 68, "vitality": 92, "mind": 110, "dexterity": 74, "intelligence": 111, "wisdom": 107, "speed": 81, "luck": 67 },
   "inventory": [],
   "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
-  "knownSpells": ["tidal-spear-water-damage", "mending-current-water-support", "rainveil-water-support", "briar-volley-nature-damage", "regrowth-nature-support", "rooting-lance-nature-damage"]
+  "knownSpells": ["tidal-spear-water-damage", "mending-current-water-support", "rainveil-water-support", "briar-volley-nature-damage", "regrowth-nature-support", "rooting-lance-nature-damage"],
+  "drops": [
+    { "itemId": "masterwork-tidepiercer", "chance": 5 }
+  ]
 }

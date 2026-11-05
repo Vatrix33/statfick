@@ -385,14 +385,16 @@
     else for (let y = bottom - 1, i = 0; y > top; y -= 1.6, i++) d += `M${n(x - 0.9)} ${n(y)} h${n(i % 3 === 2 ? 1 : 1.8)} `;
     return `<g class="sp-glow" style="color:${ink}">${line(d, "!" + ink, 0.55)}</g>`;
   }
-  function caster(forged, rnd, wand) {
+  function caster(forged, rnd, wand, beam = false) {
     const [main, handle, inscriptionPart] = forged.parts;
     const hp = pal(handle.material), metal = K.material(["hellmade", "vampiric"].includes(main.maker) ? "gold" : main.maker === "abyss" ? "blacksteel" : main.maker === "elven" ? "elvenwood" : "silver");
     const top = wand ? -15 : -44, bottom = wand ? 5 : 14, scale = wand ? 0.72 : 1;
     const r = [0, 2.6, 3.4, 4.4][main.tier] * scale, cy = top - r - (wand ? 1 : 2);
     const set = setting(main.maker, 0, cy, r, metal);
+    // A placeholder beam (the Plasma Blade): a short red line from the gem.
+    const ray = beam ? `<g class="sp-glow" style="color:#ff5a4a">${line(`M0 ${n(cy - r)} L0 ${n(cy - r - 16)}`, "!#ff3b30", 1.4)}</g>` : "";
     return haft(handle.maker, hp, top + 1, bottom, rnd, wand ? 2.4 : 3) + inscription(inscriptionPart.maker, inscriptionPart.material, 0, wand ? -1 : -6, top + (wand ? 3 : 8))
-      + set.back + stone(main.material, main.tier, 0, cy, scale) + set.front;
+      + set.back + stone(main.material, main.tier, 0, cy, scale) + set.front + ray;
   }
 
   /* ---------- Assembly ---------- */
@@ -430,6 +432,12 @@
     "anvil-hammer": { family: "blunt", style: "anvil", shaft: 16, butt: 5 },
     // Anatemis's Quasar Jet: a longsword with no crossguard, a heavy pommel at the end of its grip.
     "quasar-jet": { family: "blade", blade: 28, width: 4.2, guard: 11, grip: 6, pommel: true },
+    // PLACEHOLDER ART (the Masterwork Elementals, 2026-11-05): simple hints only; the user wants these
+    // fully remade in the port (engine/Docs/Port-Tasks/README.md). Plasma Blade's design: a red laser
+    // beam from its gem, like a laser sword (here a short red line). Tidepiercer's: a lance shaped like a
+    // trident with a crossguard instead of a pommel (here two side prongs and Bloody Mary's crossguard).
+    "plasma-blade": { family: "caster", wand: true, beam: true },
+    tidepiercer: { family: "spear", shaft: 50, butt: 10, lance: true, guardUnderHead: 13, prongs: true },
   };
   const layoutOf = forged => (forged.masterwork && MASTERWORK_LAYOUT[forged.masterwork]) || LAYOUT[forged.type] || LAYOUT.longsword;
   // The sprite kind each weapon type is held like.
@@ -465,7 +473,9 @@
       }
       case "spear": {
         const top = -layout.shaft;
-        if (layout.guardUnderHead) return haft(third.maker, tp, top, layout.butt, rnd, 2.8) + pommelCap(third.maker, tp, layout.butt + 1.2, rnd, true) + spearhead(main.maker, mp, top, false) + `<g transform="translate(0 ${n(top + 4)})">${crossguard(guard.maker, gp, layout.guardUnderHead, rnd)}</g>` + runeMarks;
+        // Placeholder prongs (Tidepiercer): two side tines beside the head, a trident's hint.
+        const prongs = layout.prongs ? [-1, 1].map(side => line(`M${n(side * 2.4)} ${n(top - 1)} Q${n(side * 6.2)} ${n(top - 3)} ${n(side * 6)} ${n(top - 13)}`, mp.base, 1.7)).join("") : "";
+        if (layout.guardUnderHead) return haft(third.maker, tp, top, layout.butt, rnd, 2.8) + pommelCap(third.maker, tp, layout.butt + 1.2, rnd, true) + prongs + spearhead(main.maker, mp, top, Boolean(layout.lance)) + `<g transform="translate(0 ${n(top + 4)})">${crossguard(guard.maker, gp, layout.guardUnderHead, rnd)}</g>` + runeMarks;
         return haft(third.maker, tp, top, layout.butt, rnd, 2.6) + pommelCap(guard.maker, gp, layout.butt + 1.2, rnd, true) + spearhead(main.maker, mp, top, layout.lance) + runeMarks;
       }
       case "staff": {
@@ -483,7 +493,7 @@
       }
       case "bow": return bowLimbs(main.maker, mp, layout.half, layout.belly, layout.heavy, layout.compound) + bowString(tp, layout.half, ["warbow", "ballistabow", "crossbow", "compoundbow"].includes(forged.type)) + bowGrip(guard.maker, gp, layout.belly) + runeMarks;
       case "crossbow": return crossbowParts(parts, palettes, rnd) + runeMarks;
-      case "caster": return caster(forged, rnd, layout.wand);
+      case "caster": return caster(forged, rnd, layout.wand, layout.beam);
       default: return "";
     }
   }

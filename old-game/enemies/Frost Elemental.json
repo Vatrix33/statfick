@@ -39,5 +39,8 @@
     "absolute-spear-ice-damage",
     "seismic-crown-earth-damage",
     "ice-bolt-ice-damage"
+  ],
+  "drops": [
+    { "itemId": "masterwork-avalanche", "chance": 5 }
   ]
 }

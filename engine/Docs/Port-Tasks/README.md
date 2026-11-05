@@ -56,17 +56,21 @@ remember (the user's answers, 2026-11-05):
   Limitless scaling.
 - Task 13 adds classes until there are 250; task 14's two classes come on top (252 in the end), as intended.
 
-**Still open:** whether the tasks come after the game is ported faithfully and checked against the old game, or while
-porting, each system they change ported straight into its new form (asked 2026-11-05; the user will answer later).
+**When:** task 1 is done in the old game before the port (user decision 2026-11-05), its new art as placeholders; the
+other tasks are decided one at a time (still open for them: before the port, after the faithful port, or while
+porting).
 
-**Found so far:**
+**Done in the old game so far:**
+- Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects. The design answers are in
+  `../../../old-game/Docs/Notes.md`, "Masterwork Elementals".
+
+**Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
+code each such definition carries `placeholderArt: true`):
+- Task 1: the looks of Plasma Blade, Tidepiercer, First Comet, Peace and Balance, Kugelblitz and Avalanche, in their
+  item art and battle sprites. Today each is its type's normal forged masterwork look with simple hints: a short red
+  line from the Plasma Blade's gem (the design: a red laser beam from the gem, like a laser sword) and three prongs on
+  Tidepiercer's head (the design: a lance shaped like a trident, with a crossguard instead of a pommel).
+
+**Found before the work:**
 - Tasks 1 and 2 were checked against the engine work on 2026-11-03: neither touches it (the engine's tests use their
   own copy of the stylesheet and saved captures; the game's code and tables come over at port time).
-- Task 1 (looked into 2026-11-03, then set aside):
-  - Elementals are race `elemental`, but most have no `element` in their files; their element shows only in their
-    names and spells. Which enemies count as "fire-based" and so on needs asking.
-  - The Plasma Blade has to combine a wand's spells with a longsword's attacks.
-  - Avalanche's light armor type needs choosing: scale armor, brigandine or leather.
-  - Masterworks have no pre-set runes yet; whether those runes can be removed needs asking.
-  - Related mechanics exist: `cleave-percent`, `mark-on-hit`, `damage-charge`, `stun-chance`, `shift-turn-meters`,
-    and masterwork part lists that swap a pommel or crossguard (Quasar Jet).

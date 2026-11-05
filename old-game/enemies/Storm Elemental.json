@@ -38,5 +38,8 @@
     "thunderbrand-lightning-damage",
     "hurricane-choir-wind-damage",
     "lightning-bolt-lightning-damage"
+  ],
+  "drops": [
+    { "itemId": "masterwork-kugelblitz", "chance": 5 }
   ]
 }

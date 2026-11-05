@@ -1122,14 +1122,24 @@ function currentStats() {
   return { ...(window.Combat?.cacheCalculation?.("current-stats", currentStatsUncached) ?? currentStatsUncached()) };
 }
 
+// Peace and Balance (a Masterwork Elemental): nothing pushes its wielder's turn meter back or lowers their
+// Speed, whether from enemies or their own skills and gear; increases still count. (Race stat modifiers
+// are the base, not a reduction.)
+function wieldsTurnAndSpeedLock() {
+  return equippedWeaponItems().some(item => (item.effects || []).some(effect => effect.kind === "turn-and-speed-lock"));
+}
+
 function currentStatsUncached() {
   const artifactEffects = calculateArtifactEffects();
   const classEffects = calculateClassEffects();
   const raceEffects = calculateRaceEffects();
-  const baseValues = Object.fromEntries(statDefinitions.map(({ key }) => [key, displayedBaseStat(key) + artifactEffects.statFlat[key]]));
+  const speedLock = wieldsTurnAndSpeedLock();
+  const counted = (key, amount) => speedLock && key === "speed" ? Math.max(0, amount) : amount;
+  const baseValues = Object.fromEntries(statDefinitions.map(({ key }) => [key, displayedBaseStat(key) + counted(key, artifactEffects.statFlat[key])]));
   const percentageValues = bonusValues(permanentBonuses);
   statDefinitions.forEach(({ key }) => {
-    percentageValues[key] += artifactEffects.statPercent[key] + artifactEffects.statPermanentPercent[key] + classEffects.statPermanentPercent[key] + raceEffects.statPermanentPercent[key] + (window.Combat?.permanentStatPercent?.(key) || 0);
+    percentageValues[key] = [percentageValues[key], artifactEffects.statPercent[key], artifactEffects.statPermanentPercent[key], classEffects.statPermanentPercent[key], raceEffects.statPermanentPercent[key], (window.Combat?.permanentStatPercent?.(key) || 0)]
+      .reduce((sum, amount) => sum + counted(key, amount), 0);
   });
   const values = calculateCurrentStats(baseValues, percentageValues);
   if (window.Combat) statDefinitions.forEach(({ key }) => { values[key] = window.Combat.statValue(key, values[key]); });
@@ -3632,6 +3642,11 @@ function artifactEffectLabel(effect) {
     "prism-basic-damage": "Your Basic damage splits into four quarters: one stays Basic, the other three become random other elements",
     "unreducible-cleave-percent": "Other enemies take " + absoluteAmount + "% of attack damage, unreducible",
     "cleave-percent": "Other enemies take " + absoluteAmount + "% of attack damage; their defenses apply",
+    "armor-pierce-bonus": "Attacks ignore " + absoluteAmount + "% more of the target's Armor (added to its Armor Pierce, up to 100%)",
+    "stun-on-hit-chance": absoluteAmount + "% on hit: stun the target for 1 turn",
+    "turn-and-speed-lock": "Its wielder's turn meter can't be pushed back and their Speed can't be lowered",
+    "spell-cost-mark-on-damage": "Enemies it damages are marked until the end of their next turn: their spells cost " + absoluteAmount + "% more Mana",
+    "avalanche-counters": "Each damage taken adds a counter; at " + effect.maximum + " every enemy loses " + absoluteAmount + "% Speed for " + effect.durationTurns + " turns and the counters reset",
     "weapon-power-from-armor-percent": "Gain weapon power equal to " + absoluteAmount + "% of current Armor (Armor is retained)",
     "armor-from-max-hp-percent": "Gain Armor equal to " + absoluteAmount + "% of maximum HP",
     "missing-hp-spell-ward": "Spell damage reduced by " + absoluteAmount + "% at full HP, decreasing by 1 point per " + effect.missingHpPercentPerPoint + "% HP missing",
@@ -3724,7 +3739,9 @@ function forgedItemStats(item) {
     { label: "Melee power", value: String(Math.floor(calculateItemPower(item))), title: "Power of a melee attack with this weapon, with your current stats and bonuses" },
     { label: "Base power", value: formatValue(item.basePower) },
     { label: "Primary scaling", value: forgedScalingLabel(item, item.primary) },
-    { label: "Secondary scaling", value: "None" },
+    { label: "Secondary scaling", value: item.secondary?.none ? "None" : forgedScalingLabel(item, item.secondary) },
+    // A wand that attacks as another weapon (the Plasma Blade as a longsword).
+    ...(item.attacksAs ? [{ label: "Attacks as", value: ForgeRules.WEAPONS[item.attacksAs].name }, { label: "Damage", value: forgedDamageLabel(item) }] : []),
     { label: "Accuracy", value: String(calculateWeaponHitChance(item)), title: "Accuracy meets the target's Evasion: hit chance = Accuracy ÷ (Accuracy + Evasion). Ranged attacks face half the target's Evasion." },
     { label: "Crit chance", value: calculateWeaponCritChance(item) + "%", title: critChanceTitle(item) },
     { label: "Hand", value: item.handed === 2 ? "Two-handed" : "One-handed" },
@@ -4072,8 +4089,10 @@ function forgedMatchingMarkup(item) {
 function forgedRunesMarkup(item) {
   const { slots, runes } = item.forged;
   if (item.forged.caster) return '<span class="forged-runes-none">Staffs and wands cannot hold runes</span>';
-  if (!slots) return '<span class="forged-runes-none">No rune slots</span>';
-  return '<span class="forged-runes">' + Array.from({ length: slots }, (_, index) => {
+  // A masterwork's fixed runes (the Masterwork Elementals) come first: part of it, on top of its slots.
+  const fixed = ForgeRules.fixedRunes(item.forged).map(rune => '<span class="forged-rune is-fixed rarity-' + ForgeRules.RUNES[rune].rarity + '"><span class="forged-rune-glyph" aria-hidden="true">' + runeIcon() + '</span><span class="forged-part-text"><strong>' + escapeHtml(ForgeRules.RUNES[rune].name) + ' · fixed</strong><em>' + escapeHtml(item.forged.armor ? ForgeRules.armorRuneText(rune) : ForgeRules.runeText(rune)) + ' · part of the masterwork, cannot be removed</em></span></span>').join("");
+  if (!slots) return fixed ? '<span class="forged-runes">' + fixed + '</span>' : '<span class="forged-runes-none">No rune slots</span>';
+  return '<span class="forged-runes">' + fixed + Array.from({ length: slots }, (_, index) => {
     const rune = runes[index];
     return rune
       ? '<span class="forged-rune rarity-' + ForgeRules.RUNES[rune].rarity + '"><span class="forged-rune-glyph" aria-hidden="true">' + runeIcon() + '</span><span class="forged-part-text"><strong>' + escapeHtml(ForgeRules.RUNES[rune].name) + '</strong><em>' + escapeHtml(item.forged.armor ? ForgeRules.armorRuneText(rune) : ForgeRules.runeText(rune)) + '</em></span></span>'
