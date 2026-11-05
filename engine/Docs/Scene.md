@@ -2119,8 +2119,9 @@ compared with Blender (S7-8, S7-12).
 
 ## Status
 
-- Steps 4–7: not done yet (2026-11-04). The decisions and the 33 step details are recorded, the
-  design is set, and seven steps are proposed with their dependencies.
+**M10 done (2026-11-05): all seven steps; the proof cutscene approved by the user.** (Before the steps, on 2026-11-04,
+the decisions and the 33 step details were recorded, the design set, and seven steps proposed with their dependencies.)
+
 - **Step 1, the node tree and the scene (2026-11-04, 1930 tests on the GPU and on lavapipe): done**
   on its worker branch. Q1–Q3 answered as recommended. `Scene/` (`SceneNode`, `SceneAttachment` with
   `PlacedModel`, `PlacedTerrain`, `SceneCamera`, `SceneSun`, `ModelInstance`, `Actor` moved from

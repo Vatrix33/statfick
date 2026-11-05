@@ -5,52 +5,37 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-11-04):** M10 (scene and sequencer) started on 2026-11-04 with the user's go. Its eleven questions
-were asked and answered the same day ("Decisions for M10" below; every answer the recommended option except the scope,
-M10-2: besides the engine, Ji'ruan's boss intro is remade now as a proof, M10-11). The design doc is `Docs/Scene.md`
-(decisions, what exists checked against the code, the old game's cutscenes, method, the design, seven steps with the
-files each touches and which can run side by side, the step details, status). The 33 step details were asked and
-answered the same day ("Decisions for M10", "Step details"; every answer the recommended option except Q31: the proof's
-stage goes to the user as Blender renders for approval before its tests are written). The session managing M10 runs the
-steps from that list. Step 1 (the node tree and the scene, `Scene/`) is done on its worker branch, to be merged
-(Progress, "M10 step 1"). Step 2 (F-curves and easing, `Engine/Statventure/Scene/FCurve*.cs`) is done on its worker
-branch, to be merged (Progress, "M10 step 2"). Step 3 (cameras and lights from glTF) is done on its worker branch, rebased on step 2, to be merged
-(Progress, "M10 step 3"). Step 4 (the sequence record, builder and player core, `Engine/Statventure/Scene/Sequence*.cs`) is done on its worker branch, rebased on step 3, to be merged
-(Progress, "M10 step 4"). Step 5 (camera, light and particle tracks; effects as records, emitters on nodes) is done on its worker branch, to be merged
-(Progress, "M10 step 5"). Step 6 (audio and UI tracks: the audio clock and calls at a time, `Scene/SequencePlayback.Audio.cs`
-and `.Ui.cs`, the sequences' CSS timelines) is done on its worker branch, rebased on step 5, to be merged (Progress, "M10 step 6"). Step 7's
-phase 1 (Ji'ruan's stage built in Blender, `jiruan.glb`, its evaluation, approval renders) is done on its worker branch, rebased on step 6;
-the user saw its renders on 2026-11-04 (22:50) and asked for more detail and acting (S7-1–S7-4, "Decisions for M10", "Step details"), so
-phase 1b followed (2026-11-05, on its worker branch: the detailed stage, the acting clips in `jiruan-acting.glb`, new approval renders, clip
-strips and a moving preview), which **the user approved on 2026-11-05** (S7-5: a clip library per cutscene; the port-time rule that the boss
-and enemy models match the scenes' quality, "At port time" below; `Docs/Scene.md`, "Step details"); **phase 2 is built** (the
-sequence, the title card, the checks against Blender and Chromium, the sandbox mode; Progress, "M10 step 7"; `Docs/Scene.md`, step 7,
-"Phase 2") with the user's answers S7-6–S7-13 (the proof's sound and its three sounds, the harness following the engine's halo rule, the
-detailed stages' limits), rebased on the canvas fix (S7-7: the card's 2.5 and 3.4 s now match Chromium), and merges with the card at
-1.4 s held (S7-14): the progress bar's glow under `scaleX(0.2)` is blurred unlike Chromium's (`Docs/Scene.md`, step 7, "The card at 1.4 s");
-the canvas's shadow blur under a non-uniform scale is ported on its worker branch, to be merged, and 1.4 s un-held there (60 pixels
-beyond 12 levels, 0.007 %; the full suite 2516 and 6 held on the GPU and on lavapipe, 15 of 15 mutations killed; Progress,
-"Canvas: blurred shadows under non-uniform transforms"); three more of Chromium's shadow rules
-found with it were answered the same day ("Decision on blurred shadows under non-uniform transforms": the inset shadow's caster
-ported as a step of its own after this one is merged, the other two known differences); M10 is ticked once it is merged.
-The flaky `OutputTests.TheDefaultDevicePacesTheGraph` (seen once in step 6's full run) is found and fixed on its worker branch, to be
-merged: OpenAL's process-wide current context, with the two output follow-ups the user decided on 2026-11-05 (Progress, "OpenAL
-outputs in one process"; "Decision on the audio output's follow-ups"). The canvas's box antialiasing under transforms that
-scale one axis more than the other (found 2026-11-05 by the cutscene proof's title card; the user decided to fix it at once,
-"Decision on box antialiasing under non-uniform transforms") is fixed and merged (Progress, "Canvas: box antialiasing under
-non-uniform transforms"). Of the two painter rules the user chose to port after it, each its own small step: the first, a
-transformed box's paint offset rounded with its fraction kept only along the axes it can propagate along (Blink's
-`CanPropagateSubpixelAccumulation`; its scope the user's option (a), "Decision on the paint offset of transformed boxes"), is
-ported on its worker branch, rebased on `23d9459`, to be merged: the full suite (2435, 1 held) passes on the GPU and on
-lavapipe, 29 of 29 mutations killed (Progress, "Paint offset of transformed boxes"). The second, background-image layers antialiased
-once at a fractional edge, comes after it is merged. M9 (assets and
-data) is done and ticked (2026-11-03: nine steps and the FreeType thread-safety fix, 1907 tests passing on the GPU and on
-lavapipe; Progress, "M9 done"). The small tasks left from earlier milestones and the user's small changes to the old game
-were done on 2026-11-03 (below; Progress, "Small tasks"; the engine's tests don't depend on the old game's changes: their
-stylesheet copy and captures are unchanged). Nothing since 2026-10-30 has run on Windows ("Windows check" below). The
-project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo `github.com/Vatrix33/statfick`.
+**Current task (2026-11-05):** M10 (scene and sequencer) is done and ticked (2026-11-05). It started on 2026-11-04 with
+the user's go (its eleven questions and 33 step details answered that day, the steps' own questions on the way; "Decisions
+for M10" below; the design doc is `Docs/Scene.md`), and all seven steps are merged on `main` (Progress, "M10 step 1" to
+"M10 step 7" and "M10 done"; `Docs/Scene.md`, Status): the node tree and the scene, F-curves and easing, cameras and a sun
+from glTF, the sequence record, builder and player, camera, light and particle tracks, audio and UI tracks, and the proof
+cutscene, Ji'ruan's intro. **The user approved the proof on 2026-11-05** ("The scene is perfect. I can't fully judge it
+because of the placeholder model, but it's very good."; S7-5), and since the shadow blur port (`515c128`) its title card
+matches Chromium at all six sampled moments, so nothing of M10 is held. The full suite on `main` is 2516 tests, passing on
+the GPU and on lavapipe, and 6 held that are not M10's: the paint fixtures `shadow-scale-x`, `shadow-scale-y` and
+`shadow-rotate` at both scales, which wait for the inset shadow's port and their limits ("Decision on blurred shadows
+under non-uniform transforms"). Done on the way, each by a worker of its own (Progress, by name): the flaky
+`OutputTests.TheDefaultDevicePacesTheGraph` traced to OpenAL's process-wide current context and fixed, with the user's
+two output follow-ups ("OpenAL outputs in one process"); test runs kept out of the player's real folders ("Test runs kept
+out of the player's folders"); and three rules the proof's title card found, each against Chromium: the canvas's box
+antialiasing under non-uniform transforms ("Canvas: box antialiasing under non-uniform transforms"), Blink's paint offset
+of transformed boxes ("Paint offset of transformed boxes") and blurred shadows with Skia's one device sigma ("Canvas:
+blurred shadows under non-uniform transforms"). In progress on other branches, not part of M10: the inset shadow's caster
+(the canvas; Blink's `AreaCastingShadowInHole`; it un-holds `shadow-rotate` and reports the other two fixtures) and
+background-image layers painted as Blink paints them, antialiased once at a fractional edge and tiled seamlessly (the
+painter, with a small addition to the canvas's API; "Decision on box antialiasing under non-uniform transforms"). Still
+open from M10 step 6: the music switch exactly on a quantum's start during the old theme's fade-in, to check against
+Chromium (below, "Small tasks left from earlier milestones"). **The next milestone is M11 (editor foundation); it starts
+only on the user's go,** and then first with M11's questions under "Open questions for later milestones" below. M9
+(assets and data) is done and ticked (2026-11-03; Progress, "M9 done"); M8's music the user has listened to with
+`play-theme.sh` and is happy with (2026-11-02). Nothing since 2026-10-30 has run on Windows ("Windows check" below). The
+project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo `github.com/Vatrix33/statfick`; the
+user's tasks for the port are in `Docs/Port-Tasks/`, read when the port starts ("Decision on the user's tasks for the
+port"; "Open questions for later milestones", "At port time").
 Before each later milestone (M11 on) starts, first ask its questions under "Open questions for later milestones"
-below (all at once, with the question tool), record the answers, and only then plan and write code.
+below (all at once, with the question tool), record the answers, and only then plan and write code, in the order
+"Starting M9" below gives (M10 followed it too).
 Merging (user decision 2026-11-02): workers in git worktrees (`.claude/worktrees/`) commit on their own branch, and a
 separate, non-isolated merge worker merges into `main` and pushes, because the harness refuses git commands aimed at the
 main checkout from a worktree.
@@ -166,14 +151,49 @@ turned into "checked on Windows <date>"; then this subsection marked done.
 5. At the end of a milestone: tick it under Milestones, update the notes, report what was done and what wasn't checked,
    and stop until the user says to go on.
 
-**What M10 leaves for the port (draft, 2026-11-04; finished when M10 is):** the game's cutscenes are made to the bar Ji'ruan's proof
-is held to (S7-1, S7-2, S7-4; `Docs/Scene.md`, "How it works", step 7, "The bar for the port's cutscenes"): the 11 other boss intros and
-the 7 phase cinematics (Ji'ruan's intro is the one proof; no phase cinematic in M10), each stage remade with real detail in the cel, ink
-and hatch style and composed like its old SVG, light sources as layered glowing shells with their halo as geometry, atmosphere as
-particles, the figures acting through cutscene clips authored in Blender on their rigs and played as NLA strips (shared by bone names,
-M7; each cutscene's clips a clip library of their own, S7-5), stage and clips approved by the user through Blender renders before their
-tests; and the figures themselves: the boss and enemy models as detailed and high-quality as the cutscene scenes, the stand-in test
-figure not the bar (the user, 2026-11-05).
+**What M10 leaves for the port:** the scene: a tree of `SceneNode`s (local translation, rotation and scale; the world by
+Blender's parenting rule as glTF carries it) shown by a `SceneView` (a frame client, its `View3D` in a `surface` element;
+it replaced M7's `AnimatedView`), with attachments on the nodes: `Actor`s (figures, placed only by their node), models
+(`PlacedModel`), terrain (`PlacedTerrain`: the map is a scene), cameras (`SceneCamera`), a sun (`SceneSun`) and particle
+emitters (`SceneEmitter`); instancing a model (`ModelInstance`) makes a scene node per glTF node, each top-level object a
+model of its own (outline, glow mask, picking), and hangs its cameras and sun on their nodes (`Cameras`, `Sun`); a hidden
+node hides its subtree, and models stay opaque (things appear by visibility, scale, particles and glow; fades are UI
+overlays; Q23). F-curves (`FCurve`: Blender's keys, handles, interpolations and easing, in seconds; checked against
+Blender 5.2). Cameras and a sun come from glTF stages exported by `make_models.py`'s `export_stage`: the exporter's SCENE
+animation mode with "Split Animation by Object" off (a stage's whole timeline one clip), cutscene cameras with sensor fit
+Vertical, one white sun with its angle copied into its custom property `angle` (other lights refused), raw lighting units,
+and the timeline markers as the scene's custom property `events` (`scene["events"]`, written by `export_scene_markers`);
+a stage lives at `models/stages/<name>`. Sequences: the record (`Sequence`, the `scene.*` records, at
+`world/cutscenes/<name>` in `world.pak`, `Sequence.Load`) or the C# `SequenceBuilder`, with every track kind (clip,
+transform, visibility, animation, palette, event, camera, light, particles, audio, UI); roles bound at play time by
+`SequenceBindings` (actors, each with the cutscene's own clip library resolved by name and played by bone names, S7-5;
+nodes, models, UI hosts, palettes; stages and effects by path; the audio system); `SceneView.Play` gives a
+`SequencePlayer`: `Skip()` to the end state (false when unskippable), `Finish()`, `Seek`, `Rate`, `Pause`/`Resume`, the
+reduced variant under the system's reduced motion, cues as events (`Cue`, `Next(name)`; those a skip passes marked
+skipped) and `Finished`; a stage's clips outside a sequence through `SceneView.Animate`, on the battle pace. Particle
+effects are records (`ParticleEffect`, `models/effects/<name>`), their emitters on nodes by Blender's birth rule. The
+audio clock and calls at a time: `AudioSystem.Time`, `Effects.PlayAt`, `Music.PlayAt`, `Music.StopAt` (each a
+`ScheduledSound` with `Cancel()`). A sequence's UI tracks set text, classes and attributes in its hosts, whose CSS
+animations run on the sequence's clock (`AnimationTimeline`; `Docs/Scripting.md`, "Sequences' CSS animations"). The
+sandbox's cutscene mode: `Tools/Scripts/play-cutscene.sh jiruan` (`--volume`, `--dump`). The proof, Ji'ruan's intro, is
+test data only (`Tests/.../Scene/JiruanIntro.cs`, `Data/Models/jiruan.glb` and `jiruan-acting.glb`, `Data/Cutscenes/`;
+nothing in the packs, Q30), its figures the engine's stand-in test figure. The bar for the port's cutscenes
+(`Docs/Scene.md`, "How it works", step 7, "The bar for the port's cutscenes"; S7-1, S7-2, S7-4, S7-5): the 11 other boss
+intros, the 7 phase cinematics, the 12 spell vignettes and the banners are made at port time to Ji'ruan's bar: a detailed
+Blender stage in the cel, ink and hatch style composed like its old SVG (light sources as layered glowing shells with
+their halo as geometry, atmosphere as particles), acting clips authored in Blender on the figures' rigs (a clip library per
+cutscene, shared by bone names), particles, the card, sound; the stage and the clips approved by the user through Blender
+renders first, before their tests; and the user's requirement (2026-11-05): **the boss and enemy models are as detailed
+and high-quality as the cutscene scenes** (the stand-in figure is not the bar; "Open questions for later milestones", "At
+port time"). The checks and their limits: a stage's nodes, cameras and sun against Blender's evaluation; its renders
+against Blender's, a detailed stage's under `ReferenceLimits.DetailedStage` (S7-12, approved as set on 2026-11-05, S7-13;
+M6's limits for every other scene); the acting clips against Blender as M7's clips are; the card against Chromium
+captures of the old game (`make-cutscene-references.sh`; the paint fixtures' 12 levels / 0.2 %). Not checked: Windows
+("Windows check" above); cc's raster of composited layers (the card's animated bar's two ends, 4 pixels at 1.4 s; a
+known difference); the known differences recorded on 2026-11-05 (M5's "Known differences left": slanted box edges, the
+shadow's clip inset, bleed avoidance under opaque rounded borders, the square corner's coverage, Blink's effect node for a
+2D-scaled box, Skia's rectangle blur on whole pixels); the particles' motion and an animated lens against Blender
+(`Docs/Scene.md`, Status, step 5); the proof's sound by ear (its levels and lengths are first guesses).
 
 **What M9 leaves for the port:** `Application.Data` is the game's data: the area packs in `packs/` beside the
 executable (the committed `Assets/Packs/audio.pak` and `ui.pak`, copied there by `build.sh`/`build.ps1`), `classes/`
@@ -276,7 +296,9 @@ the design and the tests):
   the same day (`Docs/Assets.md`, "Format details"); the questions asked during the steps are in "Decisions for M9"
   and `Docs/Assets.md` (Q28–Q43, S3-1–S3-5, S5-1, S6-1–S6-5, S7-1–S7-6, S8-1, S8-2, S9-A–S9-D). M9 is done.
 - **M10 Scene and sequencer:** answered 2026-11-04 (see "Decisions for M10" below), and its 33 step details the
-  same day (`Docs/Scene.md`, "Step details").
+  same day (`Docs/Scene.md`, "Step details"); the questions asked during the steps are in "Decisions for M10" and
+  `Docs/Scene.md` (S2-1–S2-3, S3-1–S3-5, S4-1–S4-9, S5-Q1, S5-1–S5-5, S6-A–S6-F, S7-1–S7-14), those of the work beside
+  it in the "Decision on …" entries below. M10 is done (2026-11-05).
 - **M11 Editor:** what it must edit (items, enemies, spells, shops, map…), separate app or in-game dev
   mode (the old game has one)?
 - **M12 Packaging:** shipped folder layout and executable name, self-contained .NET, installer or
@@ -1129,6 +1151,7 @@ while porting (the user will answer later).
     folder was left in `/tmp`. Not checked: Windows ("Windows check", item 7).
     Details: Docs/Notes.md, 2026-11-05.
   - **M10 step 7, Ji'ruan's intro (2026-11-05, on its worker branch):** phase 1 (the stage, approval renders) and phase 1b (the detailed stage and the acting clips in `jiruan-acting.glb`) approved by the user on 2026-11-05 (S7-1–S7-5, "Decisions for M10"); phase 2 built: `Tests/Statventure.Tests/Scene/JiruanIntro.cs` (the sequence over the stage: its clip, camera and sun, the five stand-ins on their marks playing the clip library on the approved schedule, the reveal as a palette cue at the stage's marker, mist and ember particle cues, event cues, the old card's UI track, the still card as the reduced variant; its JSON fixture and effects under `Data/Cutscenes`), `JiruanIntroTests`, `JiruanCardTests` (the card against the live old game in Chromium, `Tools/GameReference/cutscene-card.js`, `make-cutscene-references.sh`), `JiruanStage` and `JiruanRenderTests` (render scenes and Blender's renders; `Scenes3D` gains a clip time and per-model palettes, `render_scenes.py` both), the sandbox's `--cutscene jiruan` (`play-cutscene.sh`; `--dump`), engine approval media. Found and reported, not changed: the canvas's isotropic box antialiasing spreads a `scaleX`-ed bar (three card times held; S7-7, fixed by its own worker); the engine's glow and the Blender harness part ways on overlapping glowing models, and Freestyle on fine scenery. Then, with the user's answers: the harness follows the engine's halo rule (S7-8; `render_scenes.py`, `hold_by_owner`; M6's goldens unchanged), the ink study, the audio track with the user's three sounds (S7-6, S7-9–S7-11; `Data/Cutscenes/audio/effects`, played by the sandbox from `audio.pak`, Release, `--volume`), and the detailed stages' limits (S7-12; `ReferenceLimits.DetailedStage`), under which the six Blender comparisons run and pass. The limits approved as set (S7-13). Rebased on main (aac5523, the audio output fixes and the test-folder redirect): the full suite passes, 2360 tests and the card's three times held, on the GPU (1 min 32 s) and on lavapipe (1 min 30 s); mutations: 53 (`~/.cache/stat-fick-build/claude-work/m10/step7-mutations.json`, made by `make-step7-mutations.py` beside it), 52 killed; the survivor, the reference scenes' hold after a one-shot strip taken out, can't differ at the six sampled times (none falls after a one-shot clip's end before the next strip: the king's gaps are 3.5–3.6 s and 4.8–5.0 s, an imp's fly-out ends as its hover starts); nothing written to the player's real folders. Rebased on main again (e9568b8, the canvas fix, S7-7): the card matches Chromium at 0, 2.5 (1,226 pixels off, 0.15 %), 3.4 (6), 4.6 (25) and 7 s; at 1.4 s 2,133 pixels (0.26 %, over the 0.2 %) differ, nearly all the progress bar's glow under `scaleX(0.2)` (Chromium's blur across the bar about σ 2.7 px, 6 × √0.2, the engine's σ 6) and its two ends (Chromium's spread over two pixels): reported, nothing adjusted, 1.4 s held (S7-14: until the canvas blurs a shadow as Chromium does under a non-uniform scale, ported by its own worker, who un-holds it; M10 ticked once it matches). The full suite passes, 2423 tests and 1 held, on the GPU (1 min 13 s) and on lavapipe (1 min 30 s); the card's mutations re-run, 7 of 7 killed (two new), so 55 mutations, 54 killed (`Docs/Scene.md`, step 7, "Phase 2", "The card at 1.4 s", and Status).
+  - **M10 done (2026-11-05, 2516 tests):** all seven steps merged on `main`; since the shadow blur port (`515c128`) the proof's title card matches Chromium at all six moments, so nothing of M10 is held; the proof (Ji'ruan's intro) approved by the user on 2026-11-05. The full suite passes on the GPU and on lavapipe: 2516 tests and 6 held, none of them M10's (the paint fixtures `shadow-scale-x`, `shadow-scale-y` and `shadow-rotate` at both scales, waiting for the inset shadow's port). Mutations over the seven steps: 856, 838 killed (10 of them after closing the gaps their first runs showed, 2 after rewriting a malformed mutation: one in step 5, one in step 6); 1 hangs its test (step 1: a node allowed under itself; `mutate.py` reads the timeout as a survivor); 17 survivors, all accounted for, none able to change a result the checks see (step 1 2 and step 6 2: only work or calls nothing can tell apart; step 2 12: within float32 rounding; step 7 1: at no sampled time). The work beside it has its own entries above: "OpenAL outputs in one process", "Test runs kept out of the player's folders", "Canvas: box antialiasing under non-uniform transforms", "Paint offset of transformed boxes", "Canvas: blurred shadows under non-uniform transforms". Ticked under Milestones; M11 waits for the user's go.
 
 ## Milestones
 
@@ -1181,7 +1204,7 @@ Each milestone is finished only when its tests pass.
   - A virtual file system (packs plus loose development folders).
   - Asset loaders, binary data serialization with versioning, the JSON class loader.
   - Saves and settings.
-- [ ] **M10 Scene and sequencer:**
+- [x] **M10 Scene and sequencer:**
   - Nodes and transforms.
   - A timeline sequencer for cutscenes: tracks for transforms, animations, camera, text, audio and effects. Tweening.
 - [ ] **M11 Editor foundation:**

@@ -22,7 +22,7 @@ The user's main project is **Stat Fick**, a vanilla-JS fantasy RPG (character sh
   - `index.html` lost the weapons file button and input.
   - `desktop/main.cjs` `requiredGameFiles` now lists `objects/artifacts.json` instead of `objects/weapons.json`. The executables refuse to start if a listed file is missing, so both were rebuilt (`npm run build:linux` / `build:windows` in `desktop/`, offline from the cached Electron) and copied into the game folder.
   - The test-client chain patches `headless-main.cjs` the same way (`weapons_file` in `patch_an.py`). The smoke check was relaxed to `weapons >= 0`.
-  - Backups, including the old executables, are in `claude-work/weaponsjson-backup/`. The regression afterwards stayed at the 28/38 baseline.
+  - Backups, including the old executables, are in `claude-work/weaponsjson-backup/` (deleted 2026-11-05 in the user's cleanup). The regression afterwards stayed at the 28/38 baseline.
 
 **Shortcuts and icons:**
 - `Stat Fick.desktop` lives in `objects/` at the user's request. Its paths are absolute.
@@ -132,7 +132,7 @@ The user's main project is **Stat Fick**, a vanilla-JS fantasy RPG (character sh
 - Enemy files reference placeholders such as `forge-weapon-<1|2>-<type>+<type>` and `forge-armor-<type>`. `ForgeRules.item` resolves them, and `armCharacter` forges real pieces at spawn.
 - `ForgeRules.LEGACY_ITEMS` maps every deleted id to its placeholder. `migrateLegacyItems` (called in `normalizeCharacter`) converts old saves deterministically to forged pieces at the character's level.
 - `Masterwork Items.txt` in the game folder lists every masterwork plus the 8 retired named pieces. The user wants those recorded for later use.
-- Backups of the old data, the enemy files and the original test client are in `claude-work/cleanup-backup/`.
+- Backups of the old data, the enemy files and the original test client are in `claude-work/cleanup-backup/` (deleted 2026-11-05 in the user's cleanup).
 - The test client was patched with `claude-work/patch-testclient.py` and repacked with the original runtime (first 188392 bytes) plus `mksquashfs -comp gzip -b 131072 -no-fragments -no-xattrs -root-owned`.
 
 **Item rework, phase 5: masterworks and natural weapons (2026-10-09).**
