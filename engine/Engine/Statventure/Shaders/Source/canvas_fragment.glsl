@@ -120,7 +120,11 @@ vec4 applyMatrix(uint index, vec4 premultiplied)
     return vec4(result.rgb * result.a, result.a);
 }
 
-// Gaussian-blurred rounded rectangle (Evan Wallace's closed form, one radius).
+// Gaussian-blurred rounded rectangle (Evan Wallace's closed form, one radius) under a Gaussian
+// with its own sigma along x and along y and a correlation between them (blur: sigma x, sigma y,
+// correlation; shadowBlur): the rows are sampled across y with the y blur's weights, and each row is
+// integrated in closed form across x with the x blur as it is given that row (its mean moved by
+// correlation × sigma x / sigma y × the row's offset, its sigma narrowed by √(1 − correlation²)).
 float gaussian(float x, float sigma) { return exp(-(x * x) / (2.0 * sigma * sigma)) / (2.5066282746 * sigma); }
 vec2 erf2(vec2 x) { vec2 s = sign(x), a = abs(x); x = 1.0 + (0.278393 + (0.230389 + 0.078108 * (a * a)) * a) * a; x *= x; return s - s / (x * x); }
 float shadowX(float x, float y, float sigma, float corner, vec2 halfSize)
@@ -130,9 +134,10 @@ float shadowX(float x, float y, float sigma, float corner, vec2 halfSize)
     vec2 integral = 0.5 + 0.5 * erf2((x + vec2(-curved, curved)) * (0.70710678 / sigma));
     return integral.y - integral.x;
 }
-float blurredBox(vec2 lower, vec2 upper, vec2 point, float sigma, float corner)
+float blurredBox(vec2 lower, vec2 upper, vec2 point, vec3 blur, float corner)
 {
-    if (sigma < 0.05)
+    vec2 sigma = blur.xy;
+    if (max(sigma.x, sigma.y) < 0.05)
     {
         // No blur: a crisp rounded box.
         vec2 size = upper - lower;
@@ -144,14 +149,17 @@ float blurredBox(vec2 lower, vec2 upper, vec2 point, float sigma, float corner)
     point -= center;
     float low = point.y - halfSize.y;
     float high = point.y + halfSize.y;
-    float start = clamp(-3.0 * sigma, low, high);
-    float end = clamp(3.0 * sigma, low, high);
+    float start = clamp(-3.0 * sigma.y, low, high);
+    float end = clamp(3.0 * sigma.y, low, high);
     float step = (end - start) / 4.0;
     float y = start + step * 0.5;
+    // The x blur given the row: the row at point.y - y is reached by a y offset of -y.
+    float shift = blur.z * sigma.x / max(sigma.y, 1e-6);
+    float sigmaX = max(sigma.x * sqrt(max(1.0 - blur.z * blur.z, 0.0)), 1e-4);
     float value = 0.0;
     for (int i = 0; i < 4; i++)
     {
-        value += shadowX(point.x, point.y - y, sigma, corner, halfSize) * gaussian(y, sigma) * step;
+        value += shadowX(point.x - shift * y, point.y - y, sigmaX, corner, halfSize) * gaussian(y, sigma.y) * step;
         y += step;
     }
     return value;

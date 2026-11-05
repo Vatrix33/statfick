@@ -55,7 +55,7 @@ void main()
         vec2 upper = p.params.xy + p.size + p.params.z;
         float corner = max(max(p.radiiX.x, p.radiiX.y), max(p.radiiX.z, p.radiiX.w));
         corner = corner > 0.0 ? max(corner + p.params.z, 0.0) : 0.0;
-        float shadow = blurredBox(lower, upper, local, p.params.w, corner);
+        float shadow = blurredBox(lower, upper, local, shadowBlur(p), corner);
         float box = boxCoverage(local, p.size, p.radiiX, p.radiiY);
         color = p.color * shadow * (1.0 - box);
     }
@@ -66,7 +66,7 @@ void main()
         vec2 upper = p.params.xy + p.size - p.params.z;
         float corner = max(max(p.radiiX.x, p.radiiX.y), max(p.radiiX.z, p.radiiX.w));
         corner = max(corner - p.params.z, 0.0);
-        float hole = (upper.x > lower.x && upper.y > lower.y) ? blurredBox(lower, upper, local, p.params.w, corner) : 0.0;
+        float hole = (upper.x > lower.x && upper.y > lower.y) ? blurredBox(lower, upper, local, shadowBlur(p), corner) : 0.0;
         color = p.color * box * (1.0 - hole);
     }
     else

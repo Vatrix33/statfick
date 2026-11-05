@@ -1080,7 +1080,10 @@ M10", "Step details".
     bar's `box-shadow: 0 0 12px` under `scaleX(0.2)`, blurred across the bar with σ ≈ 2.7 px = 6 × √0.2 in Chromium
     and σ 6 in the engine). That rule is ported now by a worker of its own in the canvas code, which un-holds the
     case on main (`JiruanCardTests.TheCardPaintsAsTheOldGameDrewItAtTheTime`, time 1.4, `Skip = ShadowBlurUnderScale`);
-    step 7 merges with it held, and M10 is ticked once it matches.
+    step 7 merges with it held, and M10 is ticked once it matches. **Un-held (2026-11-05):** the canvas now blurs a
+    shadow with Skia's one device sigma, `SkMatrix::mapRadius` through the transform (Engine-Plan.md Progress, "Canvas:
+    blurred shadows under non-uniform transforms"); the card at 1.4 s passes within its 12 levels / 0.2 % (2,133 → 60
+    pixels beyond 12), so all six moments match Chromium.
 
 ## How it works
 
@@ -1975,8 +1978,8 @@ compared with Blender (S7-8, S7-12).
   pauses every animation in the overlay and seeks it to each time (`Tools/Scripts/make-cutscene-references.sh`,
   `Golden/cutscene-card-<time>.png`); the engine plays the UI track in its document over the same backdrop and
   matches within the paint fixtures' tolerances (12 levels, 0.2 %) at 0, 2.5, 3.4, 4.6 and 7 s, the last three
-  of the bar's times since the canvas fix (S7-7, main e9568b8). Held: 1.4 s, for the bar's glow under `scaleX(0.2)`
-  ("The card at 1.4 s", below).
+  of the bar's times since the canvas fix (S7-7, main e9568b8), and at 1.4 s since the canvas blurs a shadow with
+  Skia's one device sigma (S7-14, 2026-11-05; "The card at 1.4 s", below): all six times match.
 - **The 3D against Blender** (Q32; `JiruanStage`, `JiruanRenderTests`): render scenes at the sampled times made
   from the model data (the stage at its clip's moment, `Scenes3D`'s new `ClipTime`; its camera and sun; each
   stand-in on its mark in its scheduled clip's pose in its own palette, `Scenes3D`'s new per-model `Palette`;
@@ -2072,6 +2075,18 @@ compared with Blender (S7-8, S7-12).
     about half a pixel apart, at 1.4 and 2.5 s alike.
   Nothing adjusted; 1.4 s held (`JiruanCardTests`, `ShadowBlurUnderScale`). Decided (S7-14): held until the canvas
   blurs a shadow as Chromium does under a non-uniform scale, which a worker of its own ports now and un-holds.
+- **The card at 1.4 s, after the shadow blur port (2026-11-05, un-held):** the lead was right: Blink's shadow draw
+  looper respects the transform, and Skia's blur mask filter takes the sigma to the device with one factor,
+  `SkMatrix::mapRadius` (here √0.2 × 6 = 2.68 px), the same in every direction (Engine-Plan.md Progress, "Canvas:
+  blurred shadows under non-uniform transforms"). The six times against Chromium, pixels off by more than 12 (GPU
+  and lavapipe alike): 0 s 0, 1.4 s 2,133 → 60 (0.007 %, worst 62), 2.5 s 1,226 → 61, 3.4 s 6 → 4, 4.6 s 25 → 25,
+  7 s 0. What 1.4 s keeps: the overture's italic glyph (56 pixels, worst 62, at 2.5 s alike) and the bar's left end
+  (4 pixels, worst 46): Chromium draws the animated bar as a composited layer and resamples its two ends (x = 83, 84:
+  65, 161 where a static bar gives 29, 197; a paint fixture of the same bar static and under its paused animation
+  shows it, `shadow-card` and `shadow-card-animated`), not ported (cc's layer raster, the paint-offset decision's
+  known difference); its glow is the same in both. The glow beyond the bar's ends is cut 3.6 px out in Chromium (the
+  composited layer's bounds, or for a static bar Blink's effect node for a 2D-scaled box), by 1–3 levels: a known
+  difference (Engine-Plan.md, "Decision on blurred shadows under non-uniform transforms").
 - **The sound (S7-6, S7-9–S7-11):** the audio track cues the theme `great-imp-jiruan` at 0 and the sounds
   `jiruan-rift-opens`, `jiruan-flash` and `jiruan-title-card` at the stage's markers (0.417, 3.85 and 4.067 s). Their
   patches are records in the proof's data, `Data/Cutscenes/audio/effects/<name>.json` (`audio.effect`, as
@@ -2225,4 +2240,7 @@ compared with Blender (S7-8, S7-12).
   Nothing was written to the player's real folders. Rebased on main again (e9568b8, the canvas fix), the card's
   2.5 and 3.4 s un-held: the full suite passes, 2423 tests and 1 held (the card at 1.4 s), on the GPU (1 min 13 s)
   and on lavapipe (1 min 30 s); the card's mutations re-run, 7 of 7 killed (two new: the bar ending short and the
-  bar without its glow), so 55 in all, 54 killed.
+  bar without its glow), so 55 in all, 54 killed. The canvas's shadow blur ported on its own worker branch (2026-11-05,
+  rebased on `0731233`; Engine-Plan.md Progress, "Canvas: blurred shadows under non-uniform transforms"): 1.4 s un-held
+  (2,133 → 60 pixels beyond 12), all six moments match; the full suite passes, 2516 tests and 6 held (three shadow fixtures
+  awaiting the inset caster's port), on the GPU (1 min 13 s) and on lavapipe (1 min 32 s); 15 of 15 mutations killed.

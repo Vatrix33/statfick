@@ -21,22 +21,17 @@ public class JiruanCardTests(GpuFixture gpu)
     const string BackdropHtml = "<div id=\"cutscene-backdrop\"></div>";
 
     /// <summary>
-    /// Held until the canvas blurs a shadow as Chromium does under a non-uniform scale (S7-14; Docs/Scene.md, step
-    /// 7, "The card at 1.4 s"): at 1.4 s the progress bar's <c>box-shadow: 0 0 12px</c> under <c>scaleX(0.2)</c> is
-    /// blurred across the bar with σ ≈ 2.7 px (6 × √0.2) in Chromium and σ 6 in the engine, 2,133 pixels (0.26 %)
-    /// off; the worker porting that rule un-holds this case.
-    /// </summary>
-    const string ShadowBlurUnderScale = "S7-14: the progress bar's box-shadow under scaleX(0.2) is blurred across the bar with sigma 6 where Chromium's is about 2.7 (6 x sqrt 0.2): held until the canvas blurs a shadow as Chromium does under a non-uniform scale (Docs/Scene.md, step 7, \"The card at 1.4 s\")";
-
-    /// <summary>
     /// The card at each sampled time as Chromium painted the old game's (its CSS animations seeked), within the
     /// paint fixtures' tolerances. At 1.4, 2.5 and 3.4 s the progress bar runs under scaleX(t / 7): its 2 px bar
     /// stays two crisp rows as the canvas turns a box's distance into pixels by its edge normal's own
-    /// derivative (S7-7; before, one isotropic scale spread it over about four rows).
+    /// derivative (S7-7; before, one isotropic scale spread it over about four rows), and its glow
+    /// (<c>box-shadow: 0 0 12px</c>) is blurred with Skia's one device sigma through the transform, 6 × √(t / 7)
+    /// px across the bar as along it (S7-14: until 2026-11-05 the canvas blurred in the box's units, σ 6 across the
+    /// bar, and 1.4 s was held; ShadowTransformPaintReferenceTests).
     /// </summary>
     [Theory]
     [InlineData(0.0)]
-    [InlineData(1.4, Skip = ShadowBlurUnderScale)]
+    [InlineData(1.4)]
     [InlineData(2.5)]
     [InlineData(3.4)]
     [InlineData(4.6)]

@@ -372,7 +372,11 @@ public sealed partial class Canvas : IDisposable
 
     /// <summary>
     /// A CSS box-shadow for the border box <paramref name="rect"/>. Outer shadows are cut out where the
-    /// box is; for inset shadows pass the padding box (inside the border) and its radii.
+    /// box is; for inset shadows pass the padding box (inside the border) and its radii. Offset and
+    /// spread are in the box's units; the blur goes to the target as Skia's blur mask filter takes it
+    /// (Blink's shadows respect the transform): one sigma on the target for the whole transform, the
+    /// sigma times SkMatrix::mapRadius's factor (at most 128 px), the same in every direction there
+    /// (canvas_common.glsl, shadowBlur).
     /// </summary>
     public void DrawBoxShadow(RectF rect, CornerRadii radii, BoxShadow shadow)
     {

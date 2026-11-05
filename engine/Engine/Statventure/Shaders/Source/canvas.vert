@@ -17,7 +17,7 @@ void main()
     vec2 hi = p.size + margin;
     if (p.kind == KIND_SHADOW)
     {
-        float reach = abs(p.params.z) + 3.0 * p.params.w + margin;
+        vec2 reach = abs(p.params.z) + 3.0 * shadowBlur(p).xy + margin;
         lo = min(lo, p.params.xy - reach);
         hi = max(hi, p.size + p.params.xy + reach);
     }

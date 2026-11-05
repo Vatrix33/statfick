@@ -68,3 +68,25 @@ layout(push_constant, scalar) uniform Push
     vec2 targetSize;    // pixels
     vec2 targetOrigin;  // canvas pixel at the target's top left (layers)
 } pc;
+
+// A box shadow's blur (params.w, its sigma in the box's units) in the box's units: the sigma along x,
+// along y, and their correlation. Blink draws a shadow with a draw looper whose blur respects the
+// transform (kShadowRespectsTransforms), and Skia's blur mask filter takes its sigma to the device
+// with one factor for the whole matrix (SkBlurMaskFilterImpl::computeXformedSigma: SkMatrix::mapRadius,
+// the geometric mean of the lengths the matrix gives a step along x and along y, at most 128) and blurs
+// the shape as the transform places it on the device, the same in every direction. Here the shape
+// stays in the box's units, where that blur is a Gaussian of covariance device² (M⁻¹)(M⁻¹)ᵀ, M the
+// matrix's columns x0 and x1: local x changes |x1| / |det| a pixel (the gradient of x is the inverse's
+// first row), local y |x0| / |det|, and the two are correlated by -(x0 · x1) / (|x0| |x1|), which is
+// zero unless the transform shears the box's axes (a scale after a rotation, a skew).
+vec3 shadowBlur(Primitive p)
+{
+    float sigma = p.params.w;
+    float alongX = length(p.x0);
+    float alongY = length(p.x1);
+    float device = min(sigma * sqrt(alongX * alongY), 128.0);
+    float det = abs(p.x0.x * p.x1.y - p.x0.y * p.x1.x);
+    if (det <= 0.0)
+        return vec3(0.0);
+    return vec3(device * vec2(alongY, alongX) / det, -dot(p.x0, p.x1) / (alongX * alongY));
+}
