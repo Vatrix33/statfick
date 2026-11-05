@@ -38,8 +38,10 @@ to put to the user before it merges: Blink's clip-layer bleed avoidance clips th
 the canvas cannot clip only a layer's composite. Still open from M10 step 6: the music switch exactly on a quantum's start
 during the old theme's fade-in, to check against Chromium (below, "Small tasks left from earlier milestones"). **The next milestone is M11 (editor foundation); it starts
 only on the user's go.** Its four main questions are answered (2026-11-05, "Decisions for M11" below: a separate editor
-app, a generic form for every record kind, a live preview, shipped with the game for modding); the detail round
-("Decisions for M11", "Still to ask") and the user's go are still to come. M9
+app, a generic form for every record kind, a live preview, shipped with the game for modding), and four of the
+detail questions the same day (mods for players, the game's packs only from the repo; a plain dark tool look; undo per
+entry; import in the editor); the rest of the detail round ("Decisions for M11", "Still to ask") and the user's go are
+still to come. M9
 (assets and data) is done and ticked (2026-11-03; Progress, "M9 done"); M8's music the user has listened to with
 `play-theme.sh` and is happy with (2026-11-02). Nothing since 2026-10-30 has run on Windows ("Windows check" below). The
 project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo `github.com/Vatrix33/statfick`; the
@@ -328,8 +330,8 @@ the design and the tests):
   same day (`Docs/Scene.md`, "Step details"); the questions asked during the steps are in "Decisions for M10" and
   `Docs/Scene.md` (S2-1–S2-3, S3-1–S3-5, S4-1–S4-9, S5-Q1, S5-1–S5-5, S6-A–S6-F, S7-1–S7-14), those of the work beside
   it in the "Decision on …" entries below. M10 is done (2026-11-05).
-- **M11 Editor:** main questions answered 2026-11-05 (see "Decisions for M11" below); the detail round is still to
-  ask; M11 starts only on the user's go.
+- **M11 Editor:** the four main questions and four of the detail questions answered 2026-11-05 (see "Decisions for
+  M11" below); the rest of the detail round is still to ask; M11 starts only on the user's go.
 - **M12 Packaging:** shipped folder layout and executable name, self-contained .NET, installer or
   archive per platform, icon, versioning, updates, crash log location? The editor is shipped with the game (M11's
   answer 4, "Decisions for M11"), so M12's questions include where it sits in the shipped folder.
@@ -535,18 +537,23 @@ the scope (M10-2). The design doc is `Docs/Scene.md`.
   - Asked with the limits set (2026-11-05; `Docs/Scene.md`, "Step details", S7-13): the detailed stages' limits (`ReferenceLimits.DetailedStage`) approved exactly as set from the measurement, each the worst measured plus about a twentieth: extra lines 12.5 %, unlike ink 8.5 %, total ink 10.5 %, the mean coverage difference 0.175, stray edge pixels one in 800; M6's for the rest (`Docs/Renderer-3D.md`, "Detailed stages").
   - Decided after the canvas fix (2026-11-05; `Docs/Scene.md`, "Step details", S7-14): the card at 1.4 s is held until the canvas blurs a shadow as Chromium does under a non-uniform scale (found 2026-11-05: the progress bar's `box-shadow` under `scaleX(0.2)`, blurred across the bar with σ ≈ 2.7 px = 6 × √0.2 in Chromium and σ 6 in the engine; numbers in `Docs/Scene.md`, step 7, "The card at 1.4 s"); the rule is ported now by a worker of its own in the canvas code, which un-holds `JiruanCardTests.TheCardPaintsAsTheOldGameDrewItAtTheTime` at 1.4 s on main; step 7 merges with it held, and M10 is ticked once it matches.
 
-**Decisions for M11 (answered 2026-11-05, the main questions; M11 has not started):** asked late in the evening with
-the question tool, ahead of time: only the four main questions are answered, M11 has no go yet. Every answer was the
-recommended option except the audience (M11-4).
+**Decisions for M11 (answered 2026-11-05, the main questions and four of the detail questions; M11 has not started):**
+asked late in the evening with the question tool, ahead of time: the four main questions (M11-1–M11-4) and four of the
+detail questions (M11-5–M11-8) are answered; the rest of the detail round is still to ask and M11 has no go yet. Every
+answer was the recommended option except the audience (M11-4) and undo and redo (M11-7).
 - Form (M11-1): a separate editor app: its own program in `Tools/`, built on the engine's UI, opening the pack files directly; the game stays free of editor code. (Not an in-game dev mode; not a separate app that the game can also open with a dev key. The old game's Dev Mode is a switch inside the game that unlocks things like editing the purse, not a data editor.)
 - What it edits at the end of M11 (M11-2): every record kind through one generic form: a list of a pack's entries plus a property grid generated from the record definitions, with undo and redo. Every record kind that exists is editable (today: music and sound effects, particle effects, cutscene sequences, animation state machines, models, UI files), and the port's items, enemies, spells and shops become editable when the port adds their records, with no new editor code. Special views (a cutscene timeline, a map view, hand-built sound or particle editors) come later, when wanted. (Not the generic form plus a cutscene timeline in M11; not the generic form plus sound and particle editors in M11.)
 - Preview (M11-3): a live preview pane: select an entry and see or hear it (a sound effect or a theme, a particle effect, a model, a cutscene), updating as a value changes; it reuses the engine's scene view, sound system and sequence player. Its tests play sound only at volume 0, as everything that plays sound from a script or a session does. (Not play/show on a button only; not no preview in M11.)
 - **Audience (M11-4), not the recommendation:** the editor is shipped with the game for modding: part of the shipped folder (M12 packages it), able to create a mod instead of changing the game's packs, and with player-ready looks and error handling. This adds work to M11 (mods, the looks, the error handling) and to M12 (the editor in the shipped folder). (The recommendation was a dev tool that isn't shipped; not a dev tool that can save as a mod.)
-- Still to ask before M11's steps are planned (questions, not answers; they go into the detail round, as M9's 27 format details and M10's 33 step details did, after the reading "Starting M9" asks for):
-  - How the editor looks: the game's style or its own plain one.
-  - How the user chooses between saving into the game's packs and saving into a mod, and what a mod made by the editor holds.
+- Where the editor saves (M11-5): mods for players, the game's packs only from the repo. The shipped editor shows the game's data read-only and saves every change into a mod pack the player names (a mod is a `.pak` in the player's mods folder that adds or replaces entries and can't delete one, M9's Q8/Q30). Only when the editor is started from the repo (the dev setup) can it also save into the game's own packs in `engine/Assets/Packs`. A player can't break the installed game. (Not always asking "game packs or a mod"; not mods only for the user too, with a build step folding a work pack into the game's packs.)
+- The look (M11-6): its own plain tool style: a compact dark tool layout (lists left, the form in the middle, the preview right) in the game's font, with its own small stylesheet; it doesn't depend on the game's screens. (Not the game's style; not the plain style with a light and a dark theme.)
+- **Undo and redo (M11-7), not the recommendation:** per entry: each entry keeps its own history, so undo only touches the entry being looked at; adding or removing entries is not undoable, the editor asks first instead. (The recommendation was one history per open pack for the whole session, across saves; not a history kept across restarts.)
+- Importing (M11-8): in the editor: an Import button and drag-and-drop that run the same importers the packer has, so a modder can add a model or a UI file without a command line; the packer stays for builds and scripts. (Not the packer only in M11; not import with re-import when the source file changes.)
+- Still to ask before M11's steps are planned (questions, not answers; they go into the rest of the detail round, as M9's 27 format details and M10's 33 step details did, after the reading "Starting M9" asks for):
+  - What a mod made by the editor holds, and how it is named, opened again and listed.
   - What the preview shows per record kind, and what stays without one.
-  - The scope of undo and redo: per entry, per pack, across saves.
+  - Whether undoing reaches a rename of an entry, and what happens to references to a renamed or removed entry.
+  - Which file kinds the editor's import takes in M11.
   - What player-ready error handling means for damaged or foreign packs.
   - The language of the editor's texts.
   - The M12 side: where the editor sits in the shipped folder, its executable name.
