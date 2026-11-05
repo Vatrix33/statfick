@@ -66,8 +66,28 @@ void main()
         vec2 upper = p.params.xy + p.size - p.params.z;
         float corner = max(max(p.radiiX.x, p.radiiX.y), max(p.radiiX.z, p.radiiX.w));
         corner = max(corner - p.params.z, 0.0);
-        float hole = (upper.x > lower.x && upper.y > lower.y) ? blurredBox(lower, upper, local, shadowBlur(p), corner) : 0.0;
-        color = p.color * box * (1.0 - hole);
+        if (upper.x > lower.x && upper.y > lower.y)
+        {
+            vec3 blur = shadowBlur(p);
+            float hole = blurredBox(lower, upper, local, blur, corner);
+            // Blink casts an inset shadow from a frame, not from everything outside the hole: the padding
+            // box outset by the blur radius (and by the spread's size when it is negative), joined with
+            // that moved back by the offset, minus the hole, all moved by the offset
+            // (BoxPainterBase::PaintInsetBoxShadow, AreaCastingShadowInHole). The frame is blurred whole,
+            // so the shadow is the frame's blur less the hole's. Where a transform shrinks an axis the
+            // frame is thinner than the blur on the device, and the shadow along those edges lighter.
+            // Without a blur the frame's outer edge is the box's own and changes nothing. The frame is
+            // sampled in eight rows, not four: it spans the whole blur, and the shadow is a difference of
+            // two blurs, whose errors add.
+            float reach = 2.0 * p.params.w + max(-p.params.z, 0.0);
+            vec2 casterLower = min(p.params.xy, 0.0) - reach;
+            vec2 casterUpper = p.size + max(p.params.xy, 0.0) + reach;
+            float caster = p.params.w > 0.0 ? blurredBoxRows(casterLower, casterUpper, local, blur, 0.0, 8) : 1.0;
+            color = p.color * box * clamp(caster - hole, 0.0, 1.0);
+        }
+        else
+            // No hole left: Blink fills the padding box with the shadow's colour.
+            color = p.color * box;
     }
     else
     {

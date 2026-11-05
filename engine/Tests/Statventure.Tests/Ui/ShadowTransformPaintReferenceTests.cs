@@ -20,7 +20,9 @@ namespace Statventure.Tests.Ui;
 /// and under its paused CSS animation (a composited layer in Chromium): the glow is the same in both,
 /// only the bar's two ends differ at 1× (the layer's ends resampled, 2 pixels a row, up to 46 levels),
 /// none at 1.65. Before the rule, shadow-blurs had 4.5 % of its pixels beyond 12 levels, the card 0.86 %
-/// (1×) and 0.83 % (1.65); after, 0.09 % / 0.15 % and none.
+/// (1×) and 0.83 % (1.65); after, 0.09 % / 0.15 % and none; with the inset shadow cast from Blink's frame
+/// too, shadow-blurs 0.02 % / 0.05 %, shadow-scale-x 0.17 % / 0.16 % (0.33 % / 0.26 % without it),
+/// shadow-scale-y 0.21 % / 0.17 % and shadow-rotate 0.35 % / 0.21 % (0.59 % / 0.47 %).
 /// </summary>
 [Collection("GPU")]
 public class ShadowTransformPaintReferenceTests(GpuFixture gpu)
@@ -151,21 +153,27 @@ public class ShadowTransformPaintReferenceTests(GpuFixture gpu)
     public static readonly PaintFixture[] All = [ScaleX(), ScaleY(), Blurs(), Rotate(), Card(), CardAnimated()];
 
     /// <summary>
-    /// Held (2026-11-05) for the user's answer on three more of Chromium's rules these fixtures show beside
-    /// the sigma (Engine-Plan.md, "Decision on blurred shadows under non-uniform transforms"): Blink gives
-    /// a box whose transform is a 2D scale an effect node of its own (NeedsEffectFor2DScaleTransform),
-    /// drawn as a layer bounded by what the box paints in its own units, which cuts a shadow blurred
-    /// wider than that on the device (the painter's part); Blink casts an inset shadow from a frame only
-    /// the blur radius wide around the padding box (AreaCastingShadowInHole), thinner than the device blur
-    /// along an axis the transform shrinks, where the canvas casts it from everything outside the hole;
-    /// and Skia blurs a rectangle with its edges rounded to whole pixels (SkBlurMask::BlurRect). With the
-    /// sigma rule ported: shadow-scale-x 0.33 % / 0.26 % (1× / 1.65) and shadow-scale-y 0.33 % / 0.26 % of
-    /// the pixels beyond 12 levels, shadow-rotate 0.59 % / 0.47 % (slanted box edges, a known difference,
-    /// and the inset frame).
+    /// Two of Chromium's rules these fixtures show beside the sigma are known differences (the user's decision
+    /// of 2026-11-05, Engine-Plan.md, "Decision on blurred shadows under non-uniform transforms"): Blink gives
+    /// a box whose transform is a 2D scale an effect node of its own (NeedsEffectFor2DScaleTransform), drawn
+    /// as a layer bounded by what the box paints in its own units, which cuts a shadow blurred wider than that
+    /// on the device; and Skia blurs a rectangle with its edges rounded to whole pixels (SkBlurMask::BlurRect),
+    /// so a glow around a fractional edge sits up to half a pixel off. The third, Blink's inset shadow cast
+    /// from a frame the blur radius wide (AreaCastingShadowInHole), is ported. shadow-scale-y at 1× keeps
+    /// 0.214 % of its pixels beyond 12 levels, past the paint fixtures' 0.2 % (1,059 against 992): the two
+    /// scaleY(0.2) boxes with a spread (598 pixels: the 2D-scale effect cut and Skia's rect-blur rounding),
+    /// the offset and spread under scale(0.6) (276: the rounding) and the rounded box's corners (178,
+    /// untransformed alike: Skia blurs a round rect's mask, the canvas Wallace's closed form). The user
+    /// approved 0.25 % for it at 1× only (2026-11-05); at 1.65 it keeps 0.2 %.
     /// </summary>
-    const string HeldForTheOtherRules = "held (2026-11-05) for the user's answer on Blink's 2D-scale effect bounds, the inset shadow's frame and Skia's rect blur (Engine-Plan.md, \"Decision on blurred shadows under non-uniform transforms\")";
-
-    static readonly string[] Held = ["shadow-scale-x", "shadow-scale-y", "shadow-rotate"];
+    static double MaxDifferentRatio(string name, float scale) => name switch
+    {
+        // box-slant's 1 %: its slanted box edges, a known difference (the user's decision of 2026-11-05).
+        "shadow-rotate" => 0.01,
+        // The 2D-scale effect cut, the rect-blur rounding and the rounded-corner blur (above; the user's decision of 2026-11-05).
+        "shadow-scale-y" when scale == 1 => 0.0025,
+        _ => 0.002,
+    };
 
     static readonly float[] Scales = [1, 1.65f];
 
@@ -174,7 +182,7 @@ public class ShadowTransformPaintReferenceTests(GpuFixture gpu)
         get
         {
             var data = new TheoryData<string, float>();
-            foreach (var fixture in All.Where(f => !Held.Contains(f.Name)))
+            foreach (var fixture in All)
                 foreach (var scale in Scales)
                     data.Add(fixture.Name, scale);
             return data;
@@ -199,17 +207,11 @@ public class ShadowTransformPaintReferenceTests(GpuFixture gpu)
 
     [Theory]
     [MemberData(nameof(Fixtures))]
-    [InlineData("shadow-scale-x", 1, Skip = HeldForTheOtherRules)]
-    [InlineData("shadow-scale-x", 1.65f, Skip = HeldForTheOtherRules)]
-    [InlineData("shadow-scale-y", 1, Skip = HeldForTheOtherRules)]
-    [InlineData("shadow-scale-y", 1.65f, Skip = HeldForTheOtherRules)]
-    [InlineData("shadow-rotate", 1, Skip = HeldForTheOtherRules)]
-    [InlineData("shadow-rotate", 1.65f, Skip = HeldForTheOtherRules)]
     public void TheShadowsLookAsInChromium(string name, float scale)
     {
         var fixture = All.Single(f => f.Name == name);
         var document = PaintReferenceTests.Build(fixture, scale);
         var image = PaintReferenceTests.Render(gpu.Device, document, (int)MathF.Round(fixture.Width * scale), (int)MathF.Round(fixture.Height * scale));
-        Golden.Match($"ui-{name}@{Number(scale)}", image, tolerance: fixture.Tolerance);
+        Golden.Match($"ui-{name}@{Number(scale)}", image, tolerance: fixture.Tolerance, maxDifferentRatio: MaxDifferentRatio(name, scale));
     }
 }

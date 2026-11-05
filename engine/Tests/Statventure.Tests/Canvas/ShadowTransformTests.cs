@@ -20,7 +20,9 @@ namespace Statventure.Tests.Canvas;
 /// own axes: the shape (the box with its spread and offset, as the transform places it) is cut into
 /// rows, each row's extent integrated across x in closed form and the rows weighted by the Gaussian
 /// down y, finely enough to be exact here; the canvas works in the box's units instead, so this checks
-/// its covariance, the correlation a shear brings included. Chromium's references are
+/// its covariance, the correlation a shear brings included. An inset shadow is cast from Blink's frame,
+/// only the blur radius wide around the padding box (<see cref="InsetCaster"/>), which a transform that
+/// shrinks an axis makes thinner than the device blur. Chromium's references are
 /// ShadowTransformPaintReferenceTests.
 /// </summary>
 [Collection("GPU")]
@@ -60,6 +62,8 @@ public class ShadowTransformTests(GpuFixture gpu)
         ["outer"] = new BoxShadow(Vector2.Zero, 12, 0, Color.FromBytes(0, 0, 0)),
         ["outer spread offset"] = new BoxShadow(new Vector2(4, -3), 12, 3, Color.FromBytes(0, 0, 0)),
         ["inset spread offset"] = new BoxShadow(new Vector2(3, 2), 12, 2, Color.FromBytes(0, 0, 0), Inset: true),
+        // A negative spread widens the hole and the frame around it.
+        ["inset negative spread"] = new BoxShadow(new Vector2(-4, 3), 12, -3, Color.FromBytes(0, 0, 0), Inset: true),
     };
 
     public static TheoryData<string, string, float> Cases
@@ -188,15 +192,30 @@ public class ShadowTransformTests(GpuFixture gpu)
     }
 
     /// <summary>
+    /// The frame Blink casts an inset shadow from, before the hole is taken out
+    /// (BoxPainterBase::PaintInsetBoxShadow, AreaCastingShadowInHole): the padding box outset by the blur
+    /// radius, and by the spread's size when it is negative, joined with that moved back by the offset,
+    /// all drawn moved by the offset.
+    /// </summary>
+    static RectF InsetCaster(BoxShadow shadow)
+    {
+        var reach = shadow.Blur + MathF.Max(-shadow.Spread, 0);
+        var low = Vector2.Min(shadow.Offset, Vector2.Zero) - new Vector2(reach);
+        var high = Box + Vector2.Max(shadow.Offset, Vector2.Zero) + new Vector2(reach);
+        return RectF.FromEdges(low.X, low.Y, high.X, high.Y);
+    }
+
+    /// <summary>
     /// Checks every other pixel (in each direction) within the shadow's reach (3σ of the shape, Skia's
     /// margin) where the box doesn't decide alone: an outer shadow a pixel or more outside the box (the box
-    /// cuts it out), an inset one a pixel or more inside. Returns how many were checked, the worst
-    /// difference and the first few beyond the tolerance.
+    /// cuts it out), an inset one a pixel or more inside (the frame blurred less the hole blurred).
+    /// Returns how many were checked, the worst difference and the first few beyond the tolerance.
     /// </summary>
     static (int Checked, double Worst, List<string> Problems) Check(RgbaImage image, int size, Matrix3x2 toDevice, BoxShadow shadow, float sigma)
     {
         var spread = shadow.Inset ? -shadow.Spread : shadow.Spread;
         var shape = new Shape(new RectF(shadow.Offset.X - spread, shadow.Offset.Y - spread, Box.X + 2 * spread, Box.Y + 2 * spread), toDevice);
+        var caster = shadow.Inset ? new Shape(InsetCaster(shadow), toDevice) : null;
         var box = new Shape(new RectF(0, 0, Box.X, Box.Y), toDevice);
         var checkedPixels = 0;
         var worst = 0.0;
@@ -211,7 +230,7 @@ public class ShadowTransformTests(GpuFixture gpu)
                 if (shape.Outside(centre) > 3 * sigma - 0.5f)
                     continue;
                 var value = Blurred(shape, centre, sigma);
-                var expected = 255 * (shadow.Inset ? 1 - value : value);
+                var expected = 255 * (caster is not null ? Math.Clamp(Blurred(caster, centre, sigma) - value, 0, 1) : value);
                 var alpha = image.Pixels[(y * size + x) * 4 + 3];
                 checkedPixels++;
                 var difference = Math.Abs(alpha - expected);
@@ -235,6 +254,35 @@ public class ShadowTransformTests(GpuFixture gpu)
         var (checkedPixels, worst, problems) = Check(image, Size, toDevice, shadow, sigma);
         Assert.True(checkedPixels >= 100, $"only {checkedPixels} pixels checked");
         Assert.True(problems.Count == 0, $"{shadowName} under {transformName} at {scale} (device sigma {sigma:F2}, worst {worst:F1}):\n" + string.Join("\n", problems));
+    }
+
+    /// <summary>
+    /// An inset shadow whose spread leaves no hole fills the padding box with its colour, unblurred
+    /// (BoxPainterBase::PaintInsetBoxShadow: an empty inner rect is filled with FillContouredRect, no frame and
+    /// no looper): a 100 × 40 box with a 25 px spread, a 12 px blur and an offset, under scaleX(0.5).
+    /// </summary>
+    [Fact]
+    public void AnInsetShadowWithNoHoleLeftFillsTheBox()
+    {
+        const float scale = 1;
+        var shadow = new BoxShadow(new Vector2(3, 2), 12, 25, Color.FromBytes(0, 0, 0), Inset: true);
+        var placement = Placement(Matrix3x2.CreateScale(0.5f, 1), new Vector2(Size / 2f), scale);
+        var image = Render(Size, placement, scale, shadow);
+        var box = new Shape(new RectF(0, 0, Box.X, Box.Y), placement * Matrix3x2.CreateScale(scale));
+        var checkedPixels = 0;
+        var problems = new List<string>();
+        for (var y = 0; y < Size; y++)
+            for (var x = 0; x < Size; x++)
+            {
+                if (box.Outside(new Vector2(x + 0.5f, y + 0.5f)) > -1)
+                    continue;
+                checkedPixels++;
+                var alpha = image.Pixels[(y * Size + x) * 4 + 3];
+                if (alpha < 254 && problems.Count < 12)
+                    problems.Add($"({x},{y}): alpha {alpha}");
+            }
+        Assert.True(checkedPixels >= 1000, $"only {checkedPixels} pixels checked");
+        Assert.True(problems.Count == 0, "the box isn't filled:\n" + string.Join("\n", problems));
     }
 
     /// <summary>
