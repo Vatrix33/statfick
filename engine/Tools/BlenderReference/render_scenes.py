@@ -441,7 +441,10 @@ def add_model_objects(scene, path, spec, palette, shadows, style, unshadowed=Non
     starts = [o.animation_data.action.frame_range[0] for o in imported if o.animation_data and o.animation_data.action]
     frame = scene.frame_current
     if starts:
-        scene.frame_set(int(min(starts)))
+        # A stage at a moment of its clip ("clipTime", seconds: Docs/Scene.md, step 7): the imported clip
+        # evaluated there (the importer keys it at the scene's frame rate).
+        at = min(starts) + (spec.get("clipTime") or 0) * scene.render.fps / scene.render.fps_base
+        scene.frame_set(int(math.floor(at)), subframe=at - math.floor(at))
     for obj in imported:
         obj.animation_data_clear()
     scene.frame_set(frame)
@@ -818,6 +821,7 @@ def render_glow(scene, placed, folder, name, particles=()):
     scene.render.filepath = os.path.join(folder, f"{name}-mask.png")
     bpy.ops.render.render(write_still=True)
     print("wrote", scene.render.filepath)
+    hold_by_owner(scene, placed, glowing, saved, folder, name)
     for o, materials in saved.items():
         o.hide_render = False
         for slot, m in zip(o.material_slots, materials):
@@ -827,6 +831,157 @@ def render_glow(scene, placed, folder, name, particles=()):
         o.material_slots[0].material = bpy.data.materials[o.name]
     scene.render.film_transparent = False
     scene.render.image_settings.color_mode = "RGB"
+
+
+def id_depth_material(index):
+    """Flat: the model's index in red and the view depth (along the camera's axis, as the engine's glow
+    owner records -view.z) in green, for float renders."""
+    material = bpy.data.materials.new(f"id-depth-{index}")
+    nodes = material.node_tree.nodes
+    nodes.clear()
+    links = material.node_tree.links
+    camera = nodes.new("ShaderNodeCameraData")
+    combine = nodes.new("ShaderNodeCombineColor")
+    combine.inputs[0].default_value = index
+    combine.inputs[2].default_value = 0
+    links.new(camera.outputs["View Z Depth"], combine.inputs[1])
+    emission = nodes.new("ShaderNodeEmission")
+    emission.inputs["Strength"].default_value = 1
+    links.new(combine.outputs[0], emission.inputs["Color"])
+    output = nodes.new("ShaderNodeOutputMaterial")
+    links.new(emission.outputs[0], output.inputs["Surface"])
+    return material
+
+
+def render_float(scene, path):
+    """One sample, no filter, a float file: each pixel one surface's values exactly (as the engine's
+    per-pixel records), read back as an array (rows top down)."""
+    import numpy
+    settings = (scene.eevee.taa_render_samples, scene.render.filter_size, scene.render.image_settings.file_format,
+                scene.render.image_settings.color_depth, scene.view_settings.view_transform)
+    scene.eevee.taa_render_samples = 1
+    scene.render.filter_size = 0
+    scene.render.image_settings.file_format = "OPEN_EXR"
+    scene.render.image_settings.color_depth = "32"
+    scene.view_settings.view_transform = "Raw"
+    scene.render.filepath = path
+    bpy.ops.render.render(write_still=True)
+    (scene.eevee.taa_render_samples, scene.render.filter_size, scene.render.image_settings.file_format,
+     scene.render.image_settings.color_depth, scene.view_settings.view_transform) = settings
+    image = bpy.data.images.load(path, check_existing=False)
+    w, h = image.size
+    pixels = numpy.array(image.pixels[:], dtype=numpy.float64).reshape(h, w, 4)[::-1]
+    bpy.data.images.remove(image)
+    os.remove(path)
+    return pixels
+
+
+def box_whole(sigma):
+    """The engine's box for a Gaussian of this radius (Renderer3D.BoxOf): its whole half width."""
+    variance = sigma * sigma / 3
+    return int(math.floor((math.sqrt(12 * variance + 1) - 1) / 2))
+
+
+def hold_by_owner(scene, placed, glowing, saved, folder, name):
+    """The engine's rule for which halo reaches a pixel and what hides it (Docs/Renderer-3D.md, "Glow";
+    glow_owner.frag, glow_composite.frag; Docs/Scene.md, S7-8): the owner is the nearest glowing pixel's
+    model within the halo's reach (one axis, then the other), and the halo is held back behind that model
+    (its own coverage) and behind any other model nearer than its glowing part. The mask written before
+    (every glowing model's coverage) is that rule when one model glows and nothing is nearer: then it stays
+    as it is; otherwise it is written again by the rule."""
+    import numpy
+    groups = [objects for objects in placed]
+    index = {o: k + 1 for k, objects in enumerate(groups) for o in objects}
+    glowing_ids = sorted({index[o] for objects in glowing for o in objects if o in index})
+    style = SCENE_STYLE[0]
+    reach = 3 * (box_whole(style["glowWide"] * style["scale"]) + 1) + 1
+    # The glowing parts alone (the glow's source): each pixel's nearest glowing model and its depth.
+    for o in saved:
+        lights = [GLOWS.get(m) for m in saved[o]]
+        o.hide_render = not any(lights) or o not in index
+        for slot, light in zip(o.material_slots, lights):
+            slot.material = id_depth_material(index.get(o, 0)) if light else holdout_material()
+    source = render_float(scene, os.path.join(folder, f"{name}-owner.exr"))
+    # Every model's surface: each pixel's model and depth.
+    for o in saved:
+        o.hide_render = o not in index
+        for slot in o.material_slots:
+            slot.material = id_depth_material(index.get(o, 0))
+    surface = render_float(scene, os.path.join(folder, f"{name}-surface.exr"))
+    owner = numpy.where(source[..., 3] > 0.5, numpy.rint(source[..., 0]), 0).astype(int)
+    depth = numpy.where(owner > 0, source[..., 1], numpy.inf)
+    for axis in (1, 0):
+        best_owner, best_depth = owner.copy(), depth.copy()
+        for k in range(-reach, reach + 1):
+            if k == 0:
+                continue
+            shifted_owner = numpy.zeros_like(owner)
+            shifted_depth = numpy.full_like(depth, numpy.inf)
+            if axis == 1:
+                if k > 0:
+                    shifted_owner[:, :-k], shifted_depth[:, :-k] = owner[:, k:], depth[:, k:]
+                else:
+                    shifted_owner[:, -k:], shifted_depth[:, -k:] = owner[:, :k], depth[:, :k]
+            else:
+                if k > 0:
+                    shifted_owner[:-k], shifted_depth[:-k] = owner[k:], depth[k:]
+                else:
+                    shifted_owner[-k:], shifted_depth[-k:] = owner[:k], depth[:k]
+            better = shifted_depth < best_depth
+            best_owner = numpy.where(better, shifted_owner, best_owner)
+            best_depth = numpy.where(better, shifted_depth, best_depth)
+        owner, depth = best_owner, best_depth
+    seen = numpy.where(surface[..., 3] > 0.5, numpy.rint(surface[..., 0]), 0).astype(int)
+    nearer = (owner > 0) & (seen > 0) & (seen != owner) & (surface[..., 1] < depth)
+    if len(glowing_ids) <= 1 and not nearer.any():
+        return
+    union = read_alpha(os.path.join(folder, f"{name}-mask.png"))
+    mask = union.copy()
+    if len(glowing_ids) > 1:
+        # Each glowing model's own coverage (as the union was rendered: white, every part, antialiased).
+        white = flat_material("mask", (1, 1, 1))
+        for gid in glowing_ids:
+            for o in saved:
+                o.hide_render = index.get(o) != gid
+                for slot in o.material_slots:
+                    slot.material = white
+            path = os.path.join(folder, f"{name}-mask-{gid}.png")
+            scene.render.filepath = path
+            bpy.ops.render.render(write_still=True)
+            coverage = read_alpha(path)
+            os.remove(path)
+            mask = numpy.where(owner == gid, coverage, mask)
+    mask = numpy.where(nearer, 255, mask)
+    write_alpha(os.path.join(folder, f"{name}-mask.png"), mask)
+    print("wrote", os.path.join(folder, f"{name}-mask.png"), "(each halo behind its own model and what is nearer)")
+
+
+def read_alpha(path):
+    """A PNG's alpha as 0–255 values (rows top down), read by Blender (its Python has no Pillow)."""
+    import numpy
+    image = bpy.data.images.load(path, check_existing=False)
+    w, h = image.size
+    alpha = numpy.rint(numpy.array(image.pixels[:], dtype=numpy.float64).reshape(h, w, 4)[::-1, :, 3] * 255)
+    bpy.data.images.remove(image)
+    return alpha
+
+
+def write_alpha(path, alpha):
+    """White with this alpha (0–255, rows top down) as an 8-bit RGBA PNG."""
+    import numpy
+    h, w = alpha.shape
+    pixels = numpy.ones((h, w, 4), dtype=numpy.float32)
+    pixels[..., 3] = numpy.clip(numpy.rint(alpha), 0, 255) / 255
+    image = bpy.data.images.new("mask-out", w, h, alpha=True)
+    image.pixels.foreach_set(pixels[::-1].ravel())
+    image.filepath_raw = path
+    image.file_format = "PNG"
+    image.save()
+    bpy.data.images.remove(image)
+
+
+# The scene's style and scale, for the glow's reach (set per scene).
+SCENE_STYLE = [None]
 
 
 def holdout_material():
@@ -1015,7 +1170,8 @@ def main():
         for index, obj in enumerate(spec["objects"]):
             add_object(scene, index, data["shapes"][obj["shape"]], obj)
         models = os.path.normpath(os.path.join(os.path.dirname(scenes_path), data["modelFolder"]))
-        placed = [(add_model_objects if model.get("objects") else add_model)(scene, os.path.join(models, model["file"]), model, spec.get("palette", {}),
+        # A model's own palette ("palette") instead of the scene's: figures of one rig in different colours.
+        placed = [(add_model_objects if model.get("objects") else add_model)(scene, os.path.join(models, model["file"]), model, model.get("palette") or spec.get("palette", {}),
                   spec.get("shadows", {}), spec["style"], None if model.get("scenery") else unshadowed, spec.get("scale", 1))
                   for model in spec.get("models", [])]
         # Models of one group (a character with its gear, Docs/Animation.md) are one model for the
@@ -1034,6 +1190,7 @@ def main():
                 grouped.append(objects)
         placed = grouped
         spec_time[0] = spec.get("time", 0)
+        SCENE_STYLE[0] = dict(spec["style"], scale=spec.get("scale", 1))
         if spec.get("terrain"):
             seen = world_to_camera_view(scene, scene.camera, to_blender(spec["terrain"]["translation"]))
             width, height = scene.render.resolution_x, scene.render.resolution_y

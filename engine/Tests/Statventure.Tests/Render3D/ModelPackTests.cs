@@ -64,7 +64,7 @@ public class ModelPackTests(TestModelPack pack) : IClassFixture<TestModelPack>
         Assert.Equal(TestModelPack.Names.Select(n => "models/" + n), file.Entries.Select(e => e.Path));
         Assert.All(file.Entries, e => Assert.True(e.IsRecord, $"{e.Path} isn't a record"));
         Assert.All(file.Entries, e => Assert.Equal("model", Statventure.Records.RecordSerializer.RootTypeName(file.Read(e))));
-        Assert.Equal(15, TestModelPack.Names.Count);
+        Assert.Equal(16, TestModelPack.Names.Count);
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class ModelPackTests(TestModelPack pack) : IClassFixture<TestModelPack>
         var loose = pack.Scratch("loose");
         using (var file = PackFile.Open(pack.PackFile))
             file.ExtractTo(loose);
-        Assert.Equal(TestModelPack.Names.Select(n => n + ".json"), Directory.GetFiles(Path.Combine(loose, "models")).Select(Path.GetFileName).Order(StringComparer.Ordinal));
+        Assert.Equal(TestModelPack.Names.Select(n => n + ".json").Order(StringComparer.Ordinal), Directory.GetFiles(Path.Combine(loose, "models")).Select(Path.GetFileName).Order(StringComparer.Ordinal));
         using var files = new VirtualFileSystem([Mount.Folder(loose)]);
         foreach (var name in TestModelPack.Names)
         {

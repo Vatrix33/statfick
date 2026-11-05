@@ -32,6 +32,9 @@ the user and wait for their go-ahead before starting the next one.
   the animation scenes (`Docs/Animation.md`, "Reference harness": poses, NLA stacks, gear) and the F-curve scenes
   (`Tools/BlenderReference/evaluate_curves.py`, `Docs/Scene.md`, "How it works", step 2). Its renders,
   evaluations and test models are committed, so the tests run where there's no Blender (the cloud).
+- Cutscenes (M10, `Docs/Scene.md`, step 7): `Tools/Scripts/play-cutscene.sh jiruan [--volume 0-100]` plays Ji'ruan's intro, the proof, with its sound in
+  the sandbox's window (Escape or its Skip button skips, R replays; `--dump <folder>` writes its frames instead);
+  `Tools/Scripts/make-cutscene-references.sh` captures the old game's card in Chromium at the sampled times.
 - Audio (M8, `Docs/Audio.md`): `Tools/Scripts/play-theme.sh [theme] [--volume 0-100]` plays the music on the real
   device, to listen to it (in a real terminal; testing it from a script, send only volume 0).
   `Tools/Scripts/audio-benchmark.sh [--split | --start [--warm] | --live | --effects] [theme ...]` times it (Release).

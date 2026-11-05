@@ -1019,6 +1019,68 @@ M10", "Step details".
   - **S7-4. One proof:** no phase cutscene now; Ji'ruan's intro is the one proof. The 11 other boss
     intros and the 7 phase cinematics follow at port time to the same bar ("How it works", step 7,
     "The bar for the port's cutscenes").
+- **Asked at the second approval round (user, 2026-11-05), after seeing phase 1b's renders:** the stage
+  and the acting **approved** ("The scene is perfect. I can't fully judge it because of the placeholder
+  model, but it's very good. Note down somewhere that I want the boss model to be as detailed and
+  high-quality as the scene."), and:
+  - **S7-5. Where cutscene clips live:** a separate clip library per cutscene (Ji'ruan's
+    `jiruan-acting.glb`: the rig's armature alone with the cutscene's clips), bound to the figures by
+    bone names through the bindings' clip source, as M7's rig families share clips. Why: the figures'
+    own models and their clip sets stay as they are. (Not the clips added to the figure's model.)
+  - Accepted with it: the stage's object names beyond the kept layout are its own (phase 2 names only
+    the kept marks); the halo is geometry, and the UI gets no halo layer.
+  - The user's requirement for the port: the boss and enemy models are to be as detailed and
+    high-quality as the cutscene scenes; the stand-in test figure is not the bar ("The bar for the
+    port's cutscenes"; `Docs/Engine-Plan.md`, "At port time").
+- **Asked after phase 2 was built (user, 2026-11-05), all three answered with the recommended option:**
+  - **S7-6. The proof's sound:** Ji'ruan's theme `great-imp-jiruan` as a music cue at 0, and effect cues at the
+    stage's markers `rift-opens`, `flash` and `title-card`. The three effect patches are new: their sound is
+    asked of the user one by one before they are made (the old intro has no sound of its own; the user's
+    2026-11-03 rule that the port adds proper sound effects). (Not the music cue alone; not no sound.)
+  - **S7-7. The canvas's box antialiasing:** fixed (by a worker of its own, in `canvas_fragment.glsl` and the
+    canvas tests): a box's distance turned into pixels by its edge normal's own derivative, so a box under a
+    non-uniform scale keeps a one-pixel ramp across each axis; the card's three held times are then compared
+    again. (Not left as a held difference.)
+  - **S7-8. The Blender harness follows the engine's halo rule:** M6's decision, a halo held back only behind its
+    own model and anything nearer than its glowing part, made per glowing model in `render_scenes.py` and
+    `compose_glow.py` (the M6 glow scenes, without overlapping glows, unchanged); then the ink lines on this
+    stage measured by object and kind of line and brought to the user as a question; the six Blender
+    comparisons held until it is answered. (Not the engine changed to hold halos behind every glowing model;
+    not the comparisons left held with the engine-equality check alone.)
+  - Accepted with them (the M10 manager, 2026-11-05): phase 2's two stage changes (the rift's shells under the
+    still `rift-glow`, one glowing model; the imps hidden by a near-zero scale until their flights) and its small
+    additions outside its list (`canonical_triangles` skipping a meshless file, `ModelPackTests` sorting both
+    sides, `Render3DReferenceTests` leaving the `jiruan-` scenes to `JiruanRenderTests`, `clipTime` and `palette`
+    on every model of `r3d-scenes.json`).
+- **Asked with the sound's options and the ink study (user, 2026-11-05):**
+  - **S7-9. The rift's sound, `jiruan-rift-opens` (not the recommendation):** "glassy crack and sub drop": a
+    high-passed noise burst (2,500 Hz, a quarter second), a sine falling from B♭2 to B♭1 (116 → 58 Hz), and a
+    quiet triangle at F5 (698 Hz): ice cracking, then a deep thud falling away. (The recommendation was the
+    "void tear", a band-passed noise sweep with a sawtooth glide and a shimmer; not the "pressure hum".)
+  - **S7-10. The flash's sound, `jiruan-flash` (not the recommendation):** "thunderclap": noise low-passed from
+    1,200 down to 200 Hz, a sine at B♭1 (58 Hz) and a short square at A3 (220 Hz, the leading tone): a heavy
+    boom and rumble. (The recommendation was the air rush into a ringing chord and a bell; not the reversed
+    swell.)
+  - **S7-11. The title card's sound, `jiruan-title-card`:** "deep toll", the theme's bell in small: a triangle
+    at B♭2 (116 Hz), a sine at 233 Hz, an inharmonic sine at 291 Hz and a 50 ms high-passed noise strike: a low
+    cathedral bell struck once as his name appears. (Not the brass stab; not the soft shimmer.) Levels and
+    lengths of all three are tuned by ear in the sandbox.
+  - **S7-12. How the stage is compared with Blender:** a separate, documented limit for detailed-stage
+    scenes, set from the ink study's measurement and naming its two causes (Freestyle drops the far
+    scenery's sub-pixel detail; it draws no line where separate objects meet, where M6's rule outlines every
+    model against anything else); M6's 2 % limit on missed lines stays, and M6's own numbers are unchanged.
+    The user approved about 12 % for extra lines. (Not the far trees without ink, which needs the limit
+    anyway; not the far geometry simplified.)
+  - **S7-13. The detailed stages' limits (user, 2026-11-05):** approved exactly as set from the measurement
+    (`ReferenceLimits.DetailedStage`; "How it works", step 7, "The detailed stages' limits"): extra lines 12.5 %,
+    unlike ink 8.5 %, total ink 10.5 %, the mean coverage difference 0.175, stray edge pixels one in 800; M6's
+    limits kept for the rest.
+  - **S7-14. The card at 1.4 s (user, 2026-11-05):** held until the canvas blurs a shadow as Chromium does under a
+    non-uniform scale (found 2026-11-05; the numbers in "How it works", step 7, "The card at 1.4 s": the progress
+    bar's `box-shadow: 0 0 12px` under `scaleX(0.2)`, blurred across the bar with σ ≈ 2.7 px = 6 × √0.2 in Chromium
+    and σ 6 in the engine). That rule is ported now by a worker of its own in the canvas code, which un-holds the
+    case on main (`JiruanCardTests.TheCardPaintsAsTheOldGameDrewItAtTheTime`, time 1.4, `Skip = ShadowBlurUnderScale`);
+    step 7 merges with it held, and M10 is ticked once it matches.
 
 ## How it works
 
@@ -1775,8 +1837,11 @@ the user as Blender renders before the sequence and its tests are written (phase
   again as approval renders at the same sampled times (0, 1.4, 2.5, 3.4, 4.6, 7 s) plus a short turntable
   or frame strip of each clip, iterated with the user until approved; phase 2 (the sequence, the title
   card, the tests, the sandbox mode) after that approval and step 6's merge.
-- **The bar for the port's cutscenes** (S7-1, S7-2, S7-4): what Ji'ruan's proof is held to, and what the
-  other 11 boss intros and the 7 phase cinematics are made to at port time:
+- **The bar for the port's cutscenes** (S7-1, S7-2, S7-4, S7-5; the user's requirement of 2026-11-05): what
+  Ji'ruan's proof is held to, and what the other 11 boss intros and the 7 phase cinematics are made to at
+  port time:
+  - *The figures:* the boss and enemy models as detailed and high-quality as the cutscene scenes; the
+    stand-in test figure is not the bar (the user, 2026-11-05).
   - *The stage:* every element of the old scene remade with real detail in the game's cel, ink and hatch
     style, composed like the old SVG (scenery with its structure: trunks with roots, branches and
     foliage silhouettes; ground relief and undergrowth; a sky with depth), light sources as layered
@@ -1785,11 +1850,257 @@ the user as Blender renders before the sequence and its tests are written (phase
   - *The figures act:* each figure plays cutscene clips authored in Blender on its rig (an entrance, the
     gesture of the moment, a settle into a breathing idle; a retinue's arrival, movement and landing),
     played by the sequence as NLA strips over its state machine (Q16), shared by bone names within a rig
-    family (M7), so the stand-in's clips retarget to the real rigs.
+    family (M7), so the stand-in's clips retarget to the real rigs; each cutscene's clips in a clip
+    library of their own (S7-5).
   - *Approval:* the stage and the clips shown to the user as Blender renders at sampled times (and a
     turntable or frame strip of each clip) and iterated until approved, before the tests are written.
   - *Files:* test data for the proof (Q30); at port time the game's cutscenes are game content in the
     packs (M10-10), where their Blender sources live is the port's question.
+
+#### Phase 1b: the detailed stage and the acting clips (2026-11-05, approved by the user the same day)
+
+S7-1–S7-3 as decided at the approval round. Phase 1's layout is kept: the marks `boss`, `imp-1`..`imp-4`,
+`mist`, `embers`, `rift`, `eye-1`..`8`, `dolly`, `camera` and `sun` with their keys, the ten markers and
+their times, the camera path, 7 s at 60 fps, and its two Blender rules (no key past 7 s; nothing under
+a node scaled to nearly nothing). Phase 1's other object names changed with the content (trunks became
+trees, the rift's three slabs four shells); phase 2 names only the kept ones.
+
+- **The stage** (`make_models.py`'s `jiruan`; 56,444 triangles, 97 top-level objects,
+  2.9 MB; the ground grid is 24,200 of the triangles):
+  - *Sky with depth* (unlit, no ink): `sky`, the old gradient (`#06030b`, `#140a20` at 55 %, `#22142f`) in
+    15 bands by the first frame's screen height, 64 m off; `stars` (48, `#6a44a0` and a few `#d6b4ff`:
+    the old palette's, the old scene has none); three tree lines `treeline-1`..`3` (41, 47, 54 m; the
+    farthest palest).
+  - *The halo as geometry* (`halo`, unlit, no ink): the old radial glow (rx 460, ry 340 about (600, 390),
+    its four stops composited over the sky) as 8 stepped discs, 35 m off: behind the far trees, which
+    stand against it as the old far trunks did, before the tree lines. Keyed by scale as `bi-halo`:
+    nothing to 0.56 s, 0.92 at 2.24, full at 4.06, 0.88 at 7 (its fade to 0.6).
+  - *Trees* (`jr_tree`): tapered, bent trunks of bark planes (8–20 flat sides, each ring jittered and
+    turned), root flares running into the floor, branches with faceted foliage masses, dead crooked
+    branches toward the rift: `tree-far-1`..`6` (30 m, the old far trunks' places, widths and leans),
+    `tree-back-1`..`6` (33 m, between them), `tree-mid-1`..`4` (9 m, the old mid trunks; branches low
+    enough to show at the frame's top), `tree-ring-1`..`10` (out of view), a dead `snag` by the rift.
+    The four trunks the SVG rims, and the snag, take an unlit `#6a44a0` rim on the faces turned toward
+    the rift's side at the silhouette (a material on those faces: no ink line at a colour boundary).
+  - *The floor* (`ground`, smooth): level in a disc about the clearing before the rift (the cracks, the
+    boss, the rift's foot at 0), falling away 0.35 m by 16 m off (the ground rises toward the rift), a
+    mound behind the rift, gentle unevenness (`jr_ground`; trees, rocks and clutter stand on it); `rocks`
+    (18 faceted), `roots` (surface roots), `undergrowth-1`..`3` (46 clumps of fern blades and grass,
+    double-sided), `litter` (260 fallen leaves and 40 twigs, no ink).
+  - *The rift* (Emission: flat and glowing by M6's rules, no ink): `rift-bloom` (`#8e5ad6`, the old blurred
+    bloom, its pulse times the opening), `rift-outer` (`#7a4cc8`), `rift-inner` (`#d9c2ff`) and `rift-core`
+    (`#fbf6ff`, white-hot), each a jagged lens bulging toward the camera, each nearer than the last, keyed
+    alike about the rift's middle; `shard-1`..`12` breaking off its edges once it is open (from 1.96 s, one
+    every 0.17 s), drifting out and turning to 7 s.
+  - *The cracks:* `crack-1`..`9`, glowing `#c58cff` fissures with ragged edges, drawn out as before;
+    `plate-1`..`10`, broken ground plates beside them, hinged at their outer edge, lifting
+    12–30° as the crack reaches them (none by the boss's feet).
+  - *The eyes* as in phase 1; *the foreground* `near-1`..`4` (unlit `#040208`, no ink now: the old near
+    shapes had no stroke): a root arch with ferns (bottom left), a bush of leaf cards (bottom right),
+    overhanging branches with leaves (top corners). At eye height the frame's bottom meets the floor only
+    8 m off, so the lower ones stand to about 1 m.
+  - *Colours:* a stage is instanced without a palette (`SequencePlayer`), so its shadow tones are the
+    engine's (42 % toward the ink): each lit tone is chosen so that its shadow tone is the old fill
+    (`jr_lit`), since with the sun behind the rift the camera sees mostly the shadow sides.
+- **The acting clips** (S7-2; `make_models.py`'s `jiruan_acting`, `Data/Models/jiruan-acting.glb`: the test
+  figure's armature alone with the clips, M7's `ANIMATED` export; poses keyed as turns about the
+  armature's axes made relative to each bone's rest, `jr_body`, `JrClip`): the king's `rise` (1.4 s, marker
+  `risen` at 1.05 s), `spread` (1.2 s, `crown` at 0.48 s), `settle` (1.2 s, `stance` at 0.68 s), `idle-king`
+  (2.4 s, loops); the imps' `fly-out` (1.7 s, `burst` at 0.42 s), `hover` (0.8 s, loops), `idle-imp` (1.6 s,
+  loops). No `land`: the old imps hover to the end (`bi-imp-fly` bobs them until 7 s). Each has
+  anticipation, an overshoot and a settle; the head and hands lag the body. Stored apart from
+  `figure.glb` so its bytes and M7's goldens stay; the sequence gets them by name from a clip resolver
+  (`SequenceBindings`: a figure's clips by name from a resolver), as M7's rig family shares clips.
+  Checked against Blender as M7's clips are (`AnimationScenes`: `acting-<clip>`, each played on the
+  figure, `Golden/anim-acting-*.json`): every bone within 0.0015 mm on frames, at most 0.22–0.88 of
+  the allowance between them. Found on the way: the imp's three-frame twitches bent more between frames
+  than the 60 fps samples follow (1.14 of the allowance); they are five-frame snaps now.
+- **The acting's schedule** (what phase 2's animation tracks are to place, as the approval renders play
+  it as NLA strips, each held until the next and blending in over 0.15 s): the king `rise` at 2.1 s
+  (`king-rises`; held crouched before), `spread` at 3.6 s (its `crown` at 4.08 s, on the old flash's peak at
+  4.13), `settle` at 5.0 s, `idle-king` from 6.2 s; each imp `fly-out` at 1.68 s plus its delay (with its
+  mark leaving the rift), `hover` from 3.38 s plus its delay, looping.
+- **Checked:** `TheStageIsWhereBlenderPutsIt` on the new stage: every node within 0.00075 mm of Blender
+  on frames, at most 0.71 of the allowance between them. `ModelPackTests` counts 16 test models, and its
+  check of the loose folder now sorts both sides (it sorted the names, then added ".json", and
+  `jiruan-acting.json` sorts before `jiruan.json`). Filtered tests (Stage, ModelPack, Gltf, Animation): 164
+  pass; the full suite not run (another worker held its slot).
+- **The approval renders** (not committed; `~/.cache/stat-fick-build/claude-work/m10/step7/approval2/`,
+  made by `approval2.sh` there): the six times (0, 1.4, 2.5, 3.4, 4.6, 7 s) at 1200 × 680 with the figures
+  playing the schedule, `approval2.png`; `clip-<name>.png` (ten frames of each clip, the figure alone, a
+  3/4 view, lit from the front left); `preview.mp4` and `preview.gif` (the 7 s at 12 fps, 600 × 340).
+  Not in them: the mist and embers (the sequence's particle effects, phase 2) and the UI layers.
+
+#### Phase 2: the sequence, the card, the checks, the sandbox (2026-11-05)
+
+Q30–Q33, S7-1–S7-5 as decided; the stage approved on 2026-11-05. The old intro has no sound of its own: the
+proof's sound was asked after phase 2 was built (S7-6, its three sounds S7-9–S7-11), as was how its stage is
+compared with Blender (S7-8, S7-12).
+
+- **The sequence** (`Tests/.../Scene/JiruanIntro.cs`, `JiruanIntro.Build`; its JSON form the committed fixture
+  `Data/Cutscenes/world/cutscenes/jiruan.json`, which `Sequence.Load` reads with the stage from the game's
+  data): `jiruan`, 7 s, skippable, blocking; roles `king`, `imp-1`..`imp-4` (actors), `card` (element), `glow`
+  (palette); the stage `models/stages/jiruan` and its clip `Scene` from 0; the camera cut to `jiruan/camera` and
+  the sun to `jiruan/sun` at 0; the figures on their marks (`jiruan/boss`, `jiruan/imp-N`) playing the clip
+  library's strips on the approved schedule (the king `rise` 2.1 s, held back before it, `spread` 3.6 s,
+  `settle` 5.0 s, `idle-king` from 6.2 s looping; each imp `fly-out` at 1.68 s plus its delay, `hover` from 3.38 s
+  plus its delay, looping; each clip starts in the pose the last ends in, so no blending); the reveal (Q24) a
+  palette cue: the ink fill `#130e0b` at 0, the king's own at the marker `jiruan/reveal`; particle cues: the
+  mist on `jiruan/mist` from 0 (seed 7, a burst of 28, then 10 a second for 7 s), the embers on `jiruan/embers`
+  from the marker `jiruan/rift-opens` (seed 11, 16 a second for 6.58 s), both in the palette role `glow`; event
+  cues `intro-started` (0), `title-card` (the marker `jiruan/title-card`), `intro-ended` (7 s); the UI track on
+  the card's host: at 0 the old INTROS table's texts (location, overture, label, the title in two parts,
+  description), `data-boss="jiruan"`, `hidden` removed and `is-playing` added; at 7 s `hidden` set and
+  `is-playing` removed; the reduced variant the old still card (Q19): the timeline held at 6.5 s for 2.4 s.
+- **The effects** (`Data/Cutscenes/models/effects/`, loaded with `ParticleEffect.Load`): `jiruan-mist`, violet
+  puffs low over the floor (puff, softness 0.9; `mist` `#8a64c2` to `mist.deep` `#2a1a3c`; opacity 0.32; life
+  3.5–5.5 s; size 1.1–2.2 m; slow, rising 0.03 m/s², drag 0.3; a sphere spawn the mark flattens to 7 × 3 × 0.4 m);
+  `jiruan-embers`, rising sparks (spark; `ember` `#f1e6ff` to `ember.dim` `#c58cff`; glowing; life 1.2–2.6 s; size
+  2.5–5.5 cm; buoyant 0.55 m/s², drag 0.7; spawned over the rift's foot). The colours are the palette role
+  `glow`'s (the old mist gradient's violets and the rift's light).
+- **The card** (`Data/Cutscenes/ui/`): `jiruan-card.html`, the old `#boss-intro-cinematic` markup with the title's
+  two parts as an empty span and `em` (the old script made them); `jiruan-card.css`, the old "Boss intro
+  cutscenes" rules for the overlay and its card copied line for line (`JiruanCardTests` checks each is a line
+  of the tests' copy of styles.css), without the SVG scene's and sprites' rules, with the two font variables.
+  In the sandbox a `surface` element in `.boss-intro-scene` shows the 3D view.
+- **Rule tests** (`JiruanIntroTests`): the fixture is the builder's record and loads with its stage; the
+  effects load and keep their rules; played, the figures stand on their marks, the stage's camera and sun are
+  the scene's, the card is shown with its texts on the first frame, the king is ink until `reveal` and his own
+  after it, the emitters hang on their marks with their clocks from their cues; the figures play the clip
+  library on the schedule (a pose checked against the clip); watched and skipped it ends the same, its events in
+  order (skipped ones marked); reduced motion plays the still card (its moments marked skipped, S4-9); a pause and
+  a hidden document hold it; bindings missing the card, the palette or a clip are refused, nothing changed.
+- **The card against Chromium** (Q32; `JiruanCardTests`): `Tools/GameReference/cutscene-card.js` renders the intro
+  in the live old game with `BossIntros.render` (no sprites, the SVG scene emptied) over a flat backdrop, then
+  pauses every animation in the overlay and seeks it to each time (`Tools/Scripts/make-cutscene-references.sh`,
+  `Golden/cutscene-card-<time>.png`); the engine plays the UI track in its document over the same backdrop and
+  matches within the paint fixtures' tolerances (12 levels, 0.2 %) at 0, 2.5, 3.4, 4.6 and 7 s, the last three
+  of the bar's times since the canvas fix (S7-7, main e9568b8). Held: 1.4 s, for the bar's glow under `scaleX(0.2)`
+  ("The card at 1.4 s", below).
+- **The 3D against Blender** (Q32; `JiruanStage`, `JiruanRenderTests`): render scenes at the sampled times made
+  from the model data (the stage at its clip's moment, `Scenes3D`'s new `ClipTime`; its camera and sun; each
+  stand-in on its mark in its scheduled clip's pose in its own palette, `Scenes3D`'s new per-model `Palette`;
+  figures wholly hidden left out, as Freestyle inks them through what hides them), written to `r3d-scenes.json`
+  and rendered by Blender (`render_scenes.py` evaluates an imported stage at `clipTime` and draws a model in its
+  own palette): `Golden/r3d-jiruan-<time>.png` and `-ink.png`, 600 × 340, particles off. The sequence draws what
+  these scenes describe (M6's comparisons between the two engine renders; checked with the stage's evaluation
+  and the clips' scenes against Blender), and matches Blender's renders under the detailed stages' limits
+  (S7-12, below).
+  `Render3DReferenceTests` leaves the `jiruan-` scenes to `JiruanRenderTests`.
+- **The stage, changed for phase 2** (make_models.py): the rift's four shells hang under one still empty,
+  `rift-glow`, so the rift is one glowing model (its halo behind all of it, as Blender's harness draws it); the
+  imps are hidden by a near-zero scale until their flights start (the old opacity 0), growing as they fly out.
+  Both accepted by the M10 manager (2026-11-05), as were phase 2's small additions outside its list:
+  `canonical_triangles` skips a meshless file (a clip library), `ModelPackTests` sorts both sides of its folder
+  check, `Render3DReferenceTests` leaves the `jiruan-` scenes to `JiruanRenderTests`, and every model in
+  `r3d-scenes.json` carries `clipTime` and `palette` (null when unused).
+- **The sandbox** (Q33; `Samples/Statventure.Sandbox/Cutscene.cs`, `Tools/Scripts/play-cutscene.sh jiruan`):
+  plays the proof in a 1200 × 680 window as the game would (the record and effects loaded from the proof's data,
+  the stage's record in a pack made at start); Escape or the card's Skip button skips, R plays it again (the
+  last finished, its stage taken off, the next a frame later so the card's animations start again), reduced
+  motion as the system sets it; `--capture <png> --frames N` writes one frame, `--dump <folder>` draws the 7 s
+  frame by frame on a clock of its own (12 fps, and the sampled times) and writes them, `--volume 0-100` sets the
+  master volume (the sound: below). Run once on the PC: the events came at 0, 4.067 and 7 s; frame 300 captured.
+- **Engine approval media** (not committed; `~/.cache/stat-fick-build/claude-work/m10/step7/approval3/`):
+  `engine-<time>s.png` (the sandbox's `--dump` at 1980 × 1122, the window at device scale 1.65, particles and
+  the card in them), `approval3.png`, `engine-preview.mp4` (12 fps), `sandbox-frame300.png`. At 0 s the card's
+  curtain is still transparent and at 7 s it is hidden, as in the old game: those frames are the empty overlay.
+- **Found (reported, not changed: code from before M10):** (1) the canvas's box antialiasing is isotropic
+  (`canvas_fragment.glsl`, `boxCoverage`: `unitsPerPixel = sqrt(|det|)` of the local coordinates' derivatives), so
+  under a non-uniform scale the ramp is `1/sqrt(scale)` px wide across the unscaled axis: the progress bar under
+  `scaleX(0.2)` spreads over about four rows (its core 156 where Chromium's is 197). The fix: turn the distance into
+  pixels by the edge normal's own derivative, `distance / length(vec2(dot(normal, dFdx(p)), dot(normal,
+  dFdy(p))))` with the box's local edge normal from `boxDistance`, as Skia's analytic rect AA does per axis. (2)
+  The engine's glow and Blender's harness part ways when glowing models overlap at different depths: the engine
+  holds a halo back only behind its own model and what is nearer than its glowing part (`glow_composite.frag`),
+  `compose_glow.py` behind every glowing model, so the cracks' halos fall over the boss's legs in one and not the
+  other; and the rift's shadow and Freestyle on fine scenery differ (8–10 % of the line pixels unlike, M6 allows
+  2–3 %). Which way each goes is the user's question (reported with options). Answered (S7-7, S7-8): the canvas
+  fixed by its own worker; the harness made to follow the engine's halo rule, then the ink measured.
+- **The Blender harness's halo, as the engine's (S7-8; `render_scenes.py`, `hold_by_owner`):** after the glow and
+  mask renders, a one-sample float render of the glowing parts alone gives each pixel's nearest glowing model and
+  its view depth, and one of every model's surface the model and depth seen there; the owner of each pixel's halo
+  is found as `glow_owner.frag` finds it (the nearest glowing pixel within the halo's reach, 3 · (box + 1) + 1
+  pixels from `Renderer3D.BoxOf`, one axis then the other); the mask becomes the owner model's own coverage
+  (antialiased, rendered per glowing model), raised to full where another model is nearer than the owner's
+  glowing part. With one glowing model and nothing nearer the mask is left as rendered, so every M6 golden came
+  out byte for byte the same (a full `make-blender-references.sh` run); the six Ji'ruan goldens changed. Against
+  them the sequence now agrees inside surfaces (at most 9 pixels differ, by at most 6 levels, from up to 2,574 by
+  243), and the shadows' measure passes.
+- **The ink study** (S7-8; a diagnostic run, not kept: each line pixel attributed to the object picked there,
+  outlines told from inner lines by the objects about it): the engine draws every Freestyle line (Freestyle line
+  pixels with no engine line within a pixel: 229–333 of 32,149–37,717, 0.6–1.04 %, M6's limit 2 %), and more:
+  3,447–4,422 engine line pixels where Freestyle has none (9.5–11.9 % of the engine's, M6's limit 3 %), at 4.6 s 3,075 of them
+  outlines and 1,264 inner lines. By object at 4.6 s (the other times alike): far trees (30 m) 1,545, back trees
+  (33 m) 905, the ground 1,019 (983 outlines: where trunks, roots, rocks and plates stand in it), next to glowing
+  objects 299, litter (no ink) 143 (the ground's outline where leaves lie on it), mid trees 135, rocks 114,
+  plates 81, snag 50, the figures 0–15. Two causes: Freestyle drops much of the far trees' sub-pixel bark, branch
+  and foliage detail (56 %), and draws no line where separate objects meet or rest in each other, where M6's rule
+  outlines every model against anything else (about 31 %). The shading's edge pixels beyond M6's limit (61–236 a
+  time) lie on the ground at trunk bases (42–109), the plates (47–58 from 2.5 s), mid trees (up to 70 at 7 s) and
+  the king (13–18). Brought to the user as a question with options; answered S7-12 (below).
+- **The detailed stages' limits (S7-12; `Tests/.../Render3D/ReferenceLimits.cs`, `ReferenceLimits.DetailedStage`;
+  `Docs/Renderer-3D.md`, "Reference harness", "Detailed stages"):** M6's limits are `ReferenceLimits.M6`, unchanged;
+  `CompareShadowed` and `CompareInk` take a profile (M6's by default). Every measure of both comparisons was
+  measured at the six times on the PC's GPU and on lavapipe (a diagnostic run with every limit at zero, not kept),
+  and each one past M6's widened to the worst measured plus about a twentieth: engine line pixels where Freestyle
+  has none 8.98–11.91 %, limit 12.5 % (M6 3 %; the user approved about 12 %); Freestyle line pixels with unlike ink
+  about them 5.94–7.97 %, 8.5 % (3 %); total ink 7.23–10.08 % off Freestyle's, 10.5 % (10 %); the mean coverage
+  difference 0.152–0.167, 0.175 (0.12); stray pixels on the geometry's edges 63–246 of 204,000, one in 800, 255
+  (one in 10,000). M6's stay: missed lines (0.63–1.21 %, 2 %), the edges' mean (0.8–1.5 levels, 4), pixels inside
+  surfaces off by more than 16 (at most 7, 0.2 %), the shadows' difference left over (3.5–6.8 %, 10 %). The six
+  comparisons (`JiruanRenderTests.TheSequenceDrawsTheStageAsBlenderDrewIt`) run under it and pass on both; each
+  widened limit put back to M6's fails them. Approved by the user exactly as set (2026-11-05, S7-13).
+- **The card at 1.4 s, after the canvas fix (reported, not changed; 2026-11-05):** the six times measured against
+  Chromium (pixels off by more than 12 of 816,000; GPU and lavapipe alike): 0 s 0, 1.4 s 2,133 (0.26 %, worst 65),
+  2.5 s 1,226 (0.15 %), 3.4 s 6, 4.6 s 25, 7 s 0. The bar's two rows now match (197, Chromium's colour, where the
+  old shader gave 156). What still differs at 1.4 s, the bar at `scaleX(0.2)` from x = 84 to 290.4, its rows 627–628:
+  - Its glow (`box-shadow: 0 0 12px`), 2,077 of the pixels: rows 619–622 and 633–635 (5–8 px from the bar) the
+    engine's brighter by up to 18, rows 625–626 and 629–630 (1–2 px) darker by up to 25, columns 82–291. Down a
+    column near the bar's start (x = 90; red, the background 5 taken off) Chromium's falls from the bar 49, 39, 25,
+    13, 4, 1 over rows 626 to 621, the engine's 24, 23, 21, 19, 17, 15 and on past row 618: Chromium's is a Gaussian
+    of σ ≈ 2.7 px across the bar (its ratios 1, 0.80, 0.51, 0.27 against 1, 0.77, 0.51, 0.30 for σ = 2.68), the
+    engine's of σ = 6 (1, 0.96, 0.88, 0.79 against 1, 0.94, 0.87, 0.78). 2.68 is the blur's σ, 6 for 12 px, times
+    √0.2, the square root of the transform's determinant: Chromium seems to scale the shadow's blur by one
+    isotropic factor (as Skia maps a blur radius through a matrix) where the engine blurs across the bar unscaled.
+    At 2.5 s (√(2.5/7) = 0.6) it is smaller, within the tolerance; at 3.4 s gone.
+  - Its ends: Chromium's left end spreads over two pixels (x = 83: 65, x = 84: 161, full from 85), the engine's is
+    crisp at 84 (14, then 197); the right end alike (x = 290: 121 against 108, 291: 57 against 47). The same left-end
+    pixels differ at 3.4 and 4.6 s (worst 45 and 34) within the tolerance. Chromium draws the animated bar as a
+    composited layer (the canvas worker's note), which may resample its ends.
+  - Apart from the bar: one italic glyph of the overture (rows 295–306, columns 220–230, 56 pixels, worst 62) sits
+    about half a pixel apart, at 1.4 and 2.5 s alike.
+  Nothing adjusted; 1.4 s held (`JiruanCardTests`, `ShadowBlurUnderScale`). Decided (S7-14): held until the canvas
+  blurs a shadow as Chromium does under a non-uniform scale, which a worker of its own ports now and un-holds.
+- **The sound (S7-6, S7-9–S7-11):** the audio track cues the theme `great-imp-jiruan` at 0 and the sounds
+  `jiruan-rift-opens`, `jiruan-flash` and `jiruan-title-card` at the stage's markers (0.417, 3.85 and 4.067 s). Their
+  patches are records in the proof's data, `Data/Cutscenes/audio/effects/<name>.json` (`audio.effect`, as
+  `audio.pak`'s would be), one voice each, nothing drawn per play:
+  - `jiruan-rift-opens`, the "glassy crack and sub drop" (S7-9): noise high-passed at 2,500 Hz (Q 0.7), 0.25 s,
+    level 0.5; a sine falling from B♭2 to B♭1 (116.54 → 58.27 Hz over 0.6 s), 1.4 s, level 0.9; a triangle at F5
+    (698.46 Hz), 0.9 s, level 0.15; the patch at 0.7.
+  - `jiruan-flash`, the "thunderclap" (S7-10): noise low-passed from 1,200 down to 200 Hz over 0.8 s (Q 0.7),
+    1.4 s, level 0.9; a sine at B♭1 (58.27 Hz), 1.2 s, level 0.8; a square at A3 (220 Hz), 0.15 s, level 0.15; the
+    patch at 0.7.
+  - `jiruan-title-card`, the "deep toll" (S7-11): a triangle at B♭2 (116.54 Hz), 3 s, level 0.7; a sine at B♭3
+    (233.08 Hz), 2 s, level 0.4; a sine at 291 Hz (2.5 times the hum, out of its series), 1.2 s, level 0.25; noise
+    high-passed at 3,000 Hz, 50 ms, level 0.3; the patch at 0.6.
+  - Attacks are 1–10 ms. The levels and lengths are first guesses, to be tuned by ear in the sandbox. Measured
+    offline (the theme and the sounds at their times, 22,050 Hz): the theme alone is −24 to −21 dB RMS through
+    the intro (peaks 0.1–0.29); with the sounds −17.7 dB over the rift's (peak 0.68), −11.6 dB over the flash
+    (peak 0.72), −17 dB over the toll (peak 0.81): the sounds stand 5–10 dB over the theme, and nothing reaches
+    full scale (there's no limiter on the master bus).
+  - `JiruanIntroTests`: the cues; the refusal naming a missing patch with an audio system bound; the proof
+    played with its own patches (loaded from its data as the game loads them), each sound starting a voice as
+    the timeline reaches its marker (the audio rendered with the frames, within three frames); and the patches
+    are the user's choices (each layer's source, pitches and filter, not what is tuned by ear: levels, lengths,
+    attacks, delays, sweep times, Q).
+  - The sandbox registers them from the data and plays the theme from `audio.pak`, copied into its `packs/` as
+    the game mounts its packs. `play-cutscene.sh jiruan` builds it in Release (in Debug the audio thread didn't
+    keep up with the theme: about 60 underruns in 5 s, heard as crackles; none in Release), with
+    `--volume 0-100` for the master volume. Run at volume 0 on the PC: the sound bound ("sound:
+    great-imp-jiruan and jiruan-rift-opens, jiruan-flash, jiruan-title-card at volume 0"), no underruns, the
+    events at 0 and 4.067 s.
 
 ## Status
 
@@ -1890,3 +2201,28 @@ the user as Blender renders before the sequence and its tests are written (phase
   phase 1b next:** the detailed stage and the figures' cutscene clips, with new approval renders at the
   same sampled times plus a turntable or frame strip of each clip ("How it works", step 7, "The approval
   round").
+- **Step 7 phase 1b: awaiting the user's approval (2026-11-05, on its worker branch).** The detailed
+  stage (56,444 triangles) and the acting clips (`jiruan-acting.glb`: rise, spread, settle, idle-king,
+  fly-out, hover, idle-imp), their Blender evaluations, the approval renders, clip strips and a moving
+  preview ("How it works", step 7, "Phase 1b"). Filtered tests pass (164); the full suite waits for its
+  slot. **Approved by the user on 2026-11-05** (S7-5 and the port-time rule on the figures with it, "Step
+  details"); phase 2 (the sequence, the title card, the checks, the sandbox mode) next.
+- **Step 7 phase 2: built, the full suite passes on the GPU and on lavapipe with the card at 1.4 s held for the
+  bar's glow under `scaleX(0.2)` (S7-14: until the canvas blurs a shadow as Chromium does under a non-uniform
+  scale, ported by its own worker; 2026-11-05, on its worker branch, to be merged).** The sequence
+  (`JiruanIntro`, its JSON fixture), the two effects, the three sounds as the user chose them (S7-9–S7-11) and the
+  theme, the old card's markup and rules, the rule tests, the card against Chromium (0, 2.5, 3.4, 4.6 and 7 s;
+  1.4 s held: "The card at 1.4 s"), the stage's render scenes and Blender's renders (the harness
+  following the engine's halo rule, S7-8; the sequence draws what they describe, and matches Blender's under the
+  detailed stages' limits, S7-12, approved as set, S7-13), the sandbox mode with sound and its dump, the engine's
+  approval media ("How it works", step 7, "Phase 2"). Rebased on main (aac5523): the full suite passes, 2360 tests
+  and the card's three times held, on the GPU (1 min 32 s) and on lavapipe (1 min 30 s). Mutations: 53
+  (`~/.cache/stat-fick-build/claude-work/m10/step7-mutations.json`, made by `make-step7-mutations.py` beside it),
+  52 killed (the 15 for the sounds and the limits before the rebase, the other 38 after it); the survivor, the
+  reference scenes' hold after a one-shot strip taken out (`JiruanStage.PoseAt`), can't differ at the six sampled
+  times: none falls after a one-shot clip's end before the next strip starts (the king's rise ends at 3.5 s and his
+  spread at 4.8 s, his next strips start at 3.6 and 5.0 s; an imp's fly-out, 1.7 s, ends as its hover starts).
+  Nothing was written to the player's real folders. Rebased on main again (e9568b8, the canvas fix), the card's
+  2.5 and 3.4 s un-held: the full suite passes, 2423 tests and 1 held (the card at 1.4 s), on the GPU (1 min 13 s)
+  and on lavapipe (1 min 30 s); the card's mutations re-run, 7 of 7 killed (two new: the bar ending short and the
+  bar without its glow), so 55 in all, 54 killed.

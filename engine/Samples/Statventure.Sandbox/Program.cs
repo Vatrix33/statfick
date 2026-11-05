@@ -1,5 +1,9 @@
 // The Statventure sandbox: a window showing engine features as they are built.
-//   dotnet run -- [--capture file.png] [--frames N] [--log-visibility]
+//   dotnet run -- [--capture file.png] [--frames N] [--log-visibility] [--cutscene jiruan]
+// --cutscene plays Ji'ruan's intro, M10's proof (Cutscene.cs; Tools/Scripts/play-cutscene.sh); with --dump <folder>
+// it draws the 7 s frame by frame on a clock of its own and writes each frame there (frame-NNN.png at 12 fps and
+// still-<time>.png at the proof's sampled times); --volume 0-100 sets its master volume (100 by default; 0 to check
+// it from a script without sound).
 // --log-visibility logs the document's visibility, page and focus events and a 250 ms timer's
 // firings (to see minimizing, restoring and closing the window: Docs/Scripting.md, "Hidden documents").
 using Statventure.Core;
@@ -13,11 +17,22 @@ using Statventure.UI.Dom;
 string? capture = null;
 var captureFrame = 30;
 var logVisibility = false;
+string? cutscene = null, dump = null;
+var volume = 100.0;
 for (var i = 0; i < args.Length; i++)
 {
     if (args[i] == "--capture") capture = args[++i];
     else if (args[i] == "--frames") captureFrame = int.Parse(args[++i]);
     else if (args[i] == "--log-visibility") logVisibility = true;
+    else if (args[i] == "--cutscene") cutscene = args[++i];
+    else if (args[i] == "--dump") dump = args[++i];
+    else if (args[i] == "--volume") volume = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture);
+}
+if (cutscene is not null)
+{
+    using var player = new CutsceneSandbox(cutscene, capture, captureFrame) { DumpFolder = dump, Volume = volume / 100 };
+    player.Run();
+    return;
 }
 using var sandbox = new Sandbox(capture, captureFrame, logVisibility);
 sandbox.Run();

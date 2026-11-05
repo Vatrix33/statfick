@@ -152,7 +152,7 @@ def canonical_triangles(path):
     gltf = json.loads(data[20:20 + length])
     binary = 20 + length + 8
     formats = {5121: "B", 5123: "H", 5125: "I"}
-    for mesh in gltf["meshes"]:
+    for mesh in gltf.get("meshes", []):  # a clip library (jiruan-acting) has none
         for primitive in mesh["primitives"]:
             if primitive.get("mode", 4) != 4 or "indices" not in primitive:
                 continue
@@ -1033,8 +1033,9 @@ def dolly(path):
     export_stage(path)
 
 
-# Ji'ruan's intro stage (Docs/Scene.md, step 7, phase 1; Q30, Q31; M10-11): every element of the old
-# intro's SVG scene (old-game/scripts/boss-intros.js, "jiruan") remade simply, its motion keyed from the
+# Ji'ruan's intro stage (Docs/Scene.md, step 7, phases 1 and 1b; Q30, Q31 as S7-1 revised it; M10-11):
+# every element of the old intro's SVG scene (old-game/scripts/boss-intros.js, "jiruan") remade with real
+# detail in the cel, ink and hatch style while still a proof (phase 1's layout kept), its motion keyed from the
 # old CSS timeline (old-game/styles.css, "Boss intro cutscenes": each keyframe's percentage × 7 s, put
 # on the nearest 60 fps frame), seen through a perspective camera on a dolly that frames the old
 # viewBox (1200 × 680) as the CSS's first frame does (the art scaled 1.02 about 50 %, 62 %) and pushes
@@ -1138,86 +1139,491 @@ def empty(name, location=(0, 0, 0), parent=None, scale=(1, 1, 1), rotation=(0, 0
     return obj
 
 
+def jr_lit(shadow_hex):
+    """The lit tone whose shadow tone, as the engine makes it (42 % toward the ink #130e0b, in sRGB:
+    a stage is instanced without a palette), is the given colour: the old SVG's fills are what the
+    camera sees, and with the sun behind the rift what it sees is mostly in shadow."""
+    value = int(shadow_hex.lstrip("#"), 16)
+    shadow = [(value >> s) & 255 for s in (16, 8, 0)]
+    lit = [max(0, min(255, round((c - 0.42 * i) / 0.58))) for c, i in zip(shadow, (0x13, 0x0E, 0x0B))]
+    return "#%02x%02x%02x" % tuple(lit)
+
+
+def jr_smooth(e0, e1, x):
+    t = max(0.0, min(1.0, (x - e0) / (e1 - e0)))
+    return t * t * (3 - 2 * t)
+
+
+JR_FOOT = None  # the rift's foot (Blender's world), set by jiruan before anything stands on the ground
+
+
+def jr_ground(x, y):
+    """The forest floor's height: level (0) in a disc about the clearing before the rift, where the
+    cracks, the boss and the rift's foot are; outside it the floor falls away (−0.35 m by 14 m off: the
+    ground rises toward the rift), with a mound behind the rift and a gentle unevenness."""
+    fx, fy = JR_FOOT.x, JR_FOOT.y
+    d = math.hypot(x - fx, (y - (fy - 1.5)) * 0.85)
+    level = jr_smooth(4.8, 7.5, d)
+    fall = -0.35 * jr_smooth(6.0, 16.0, d)
+    mound = 0.5 * math.exp(-(((x - fx) / 3.2) ** 2 + ((y - fy - 4.0) / 2.2) ** 2))
+    bumps = 0.08 * math.sin(1.31 * x + 0.4) * math.sin(1.07 * y + 1.1) + 0.05 * math.sin(2.7 * x + 1.9 * y) + 0.03 * math.sin(4.3 * x - 3.1 * y + 0.7)
+    return level * (fall + bumps) + mound * jr_smooth(4.0, 6.0, d)
+
+
+class JrMesh:
+    """Geometry gathered for one object, in its own space: vertices, faces and each face's slot."""
+
+    def __init__(self):
+        self.verts, self.faces, self.slots = [], [], []
+
+    def add(self, verts, faces, slot):
+        base = len(self.verts)
+        self.verts += [tuple(v) for v in verts]
+        self.faces += [tuple(base + i for i in f) for f in faces]
+        self.slots += [slot] * len(faces)
+
+    def tube(self, points, radii, segments, slot, rng=None, jitter=0.0, rim=None):
+        """A tube along the points (radius per point; a last radius of 0 closes it at a tip), faces
+        wound outward. Bark planes: few flat sides, each ring jittered and turned a little. rim =
+        (direction, slot, cosine): faces whose outward side points along the direction take that slot."""
+        points = [Vector(p) for p in points]
+        n = len(points)
+        tangents = [((points[min(i + 1, n - 1)] - points[max(i - 1, 0)])).normalized() for i in range(n)]
+        normal = tangents[0].orthogonal().normalized()
+        rings, base = [], len(self.verts)
+        tip = radii[-1] <= 1e-6
+        for i in range(n - 1 if tip else n):
+            if i > 0:
+                normal = (tangents[i - 1].rotation_difference(tangents[i]) @ normal).normalized()
+            binormal = tangents[i].cross(normal)
+            turn = rng.uniform(-0.25, 0.25) if rng else 0.0
+            ring = []
+            for k in range(segments):
+                a = 2 * math.pi * k / segments + turn
+                r = radii[i] * (1 + (rng.uniform(-jitter, jitter) if rng else 0.0))
+                ring.append(len(self.verts))
+                self.verts.append(tuple(points[i] + r * (math.cos(a) * normal + math.sin(a) * binormal)))
+            rings.append(ring)
+        for i in range(len(rings) - 1):
+            for k in range(segments):
+                q = (rings[i][k], rings[i][(k + 1) % segments], rings[i + 1][(k + 1) % segments], rings[i + 1][k])
+                self.faces.append(q)
+                self.slots.append(self._rim(q, slot, rim))
+        if tip:
+            end = len(self.verts)
+            self.verts.append(tuple(points[-1]))
+            for k in range(segments):
+                f = (rings[-1][k], rings[-1][(k + 1) % segments], end)
+                self.faces.append(f)
+                self.slots.append(self._rim(f, slot, rim))
+
+    def _rim(self, face, slot, rim):
+        if rim is None:
+            return slot
+        direction, rim_slot, cosine = rim
+        corners = [Vector(self.verts[i]) for i in face]
+        normal = (corners[1] - corners[0]).cross(corners[2] - corners[0])
+        flat = Vector((normal.x, normal.y, 0))
+        if flat.length < 1e-9:
+            return slot
+        return rim_slot if flat.normalized().dot(direction) > cosine else slot
+
+    def blob(self, centre, size, slot, rng, subdivisions=1, jitter=0.18):
+        """A faceted lump (an icosphere jittered and scaled): foliage masses, rocks."""
+        bm = bmesh.new()
+        bmesh.ops.create_icosphere(bm, subdivisions=subdivisions, radius=1.0)
+        verts = [Vector((v.co.x * size[0], v.co.y * size[1], v.co.z * size[2])) * (1 + rng.uniform(-jitter, jitter)) + Vector(centre) for v in bm.verts]
+        faces = [[v.index for v in f.verts] for f in bm.faces]
+        bm.free()
+        self.add(verts, faces, slot)
+
+    def leaf(self, base, direction, side, length, width, slot):
+        """A leaf card: a diamond from its base along the direction, folded along its middle."""
+        d, s = Vector(direction).normalized() * length, Vector(side).normalized() * width / 2
+        up = d.cross(s).normalized() * width * 0.12
+        b = Vector(base)
+        self.add([b, b + d * 0.45 + s, b + d, b + d * 0.45 - s, b + d * 0.5 + up], [(0, 1, 4), (1, 2, 4), (2, 3, 4), (3, 0, 4)], slot)
+
+    def blade(self, base, direction, length, width, droop, slot, steps=6):
+        """A fern blade or grass leaf: a strip arching out from its base and drooping, narrowing to a tip."""
+        d = Vector((direction[0], direction[1], 0)).normalized()
+        side = Vector((-d.y, d.x, 0))
+        verts, faces = [], []
+        for i in range(steps + 1):
+            s = i / steps
+            p = Vector(base) + d * length * s + Vector((0, 0, length * (0.9 * s - droop * s * s)))
+            w = width * math.sin(math.pi * min(0.999, 0.15 + 0.85 * s)) * (1 - s * 0.6)
+            verts += [p + side * w / 2, p - side * w / 2]
+            if i:
+                faces.append((2 * i - 2, 2 * i - 1, 2 * i + 1, 2 * i))
+        self.add(verts, faces, slot)
+
+    def object(self, name, materials, origin=(0, 0, 0), smooth=False, ink=True, closed=False):
+        """The object, its origin at the given point; closed meshes get their normals made outward."""
+        o = Vector(origin)
+        mesh = bpy.data.meshes.new(name)
+        mesh.from_pydata([tuple(Vector(v) - o) for v in self.verts], [], self.faces)
+        for m in materials:
+            mesh.materials.append(m)
+        for polygon, slot in zip(mesh.polygons, self.slots):
+            polygon.material_index = slot
+        mesh.update()
+        if closed:
+            bm = bmesh.new()
+            bm.from_mesh(mesh)
+            bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+            bm.to_mesh(mesh)
+            bm.free()
+        if smooth:
+            mesh.shade_smooth()
+        else:
+            mesh.shade_flat()
+        obj = mesh_object(name, mesh, location=tuple(o))
+        if not ink:
+            obj["ink"] = 0
+        return obj
+
+
+def jr_tree(mesh, rng, base, height, radius, lean, bend, slot, foliage_slot=None, rim=None, roots=5, branches=3, crown=None,
+            dead=0, segments=8, rim_slot=None, branch_range=(0.45, 0.8)):
+    """A tree into the mesh: a tapered, bent trunk of bark planes from below the ground, root flares
+    spreading into the floor, a few branches, and foliage masses (crown: the height they start at; none
+    for a bare tree) or dead, crooked branches."""
+    base = Vector(base)
+    lean_v = Vector((lean[0], lean[1], 0))
+    bend_v = Vector((bend[0], bend[1], 0))
+
+    def centre(t):
+        return base + Vector((0, 0, -0.4 + (height + 0.4) * t)) + lean_v * t ** 1.4 + bend_v * math.sin(math.pi * t)
+
+    rings = 16
+    points = [centre(i / rings) for i in range(rings + 1)]
+    radii = [radius * (1.0 - 0.6 * (i / rings)) * (1 + 0.35 * max(0, 0.12 - i / rings) / 0.12) for i in range(rings + 1)]
+    rim_spec = (rim, rim_slot, 0.95) if rim is not None else None
+    mesh.tube(points, radii, segments, slot, rng, jitter=0.07, rim=rim_spec)
+    # Root flares: tapering into the floor, spread about the trunk.
+    for r in range(roots):
+        a = 2 * math.pi * (r + rng.uniform(-0.3, 0.3)) / roots
+        out = Vector((math.cos(a), math.sin(a), 0))
+        length = radius * rng.uniform(3.0, 4.6)
+        start = base + Vector((0, 0, radius * rng.uniform(0.6, 1.1)))
+        path = []
+        for i in range(6):
+            s = i / 5
+            p = start + out * (radius * 0.6 + length * s)
+            ground = jr_ground(p.x, p.y)
+            p.z = ground + (start.z - base.z) * (1 - s) ** 1.6 - 0.12 * s
+            path.append(p)
+        mesh.tube(path, [radius * 0.42 * (1 - 0.85 * i / 5) + 0.01 for i in range(6)], 6, slot, rng, jitter=0.1)
+    # Branches from the upper trunk, upward and outward; dead ones crooked and bare.
+    for b in range(branches + dead):
+        is_dead = b >= branches
+        t = rng.uniform(*branch_range) if not is_dead else rng.uniform(0.18, 0.4)
+        a = rng.uniform(0, 2 * math.pi) if not is_dead or rim is None else math.atan2(rim.y, rim.x) + rng.uniform(-0.6, 0.6)
+        out = Vector((math.cos(a), math.sin(a), 0))
+        start = centre(t)
+        length = height * rng.uniform(0.18, 0.3) if not is_dead else rng.uniform(1.2, 2.2)
+        rise = rng.uniform(0.35, 0.8) if not is_dead else rng.uniform(-0.1, 0.35)
+        path, p, step = [start], start.copy(), length / 5
+        direction = (out + Vector((0, 0, rise))).normalized()
+        for i in range(5):
+            if is_dead:
+                direction = (direction + Vector((rng.uniform(-0.5, 0.5), rng.uniform(-0.5, 0.5), rng.uniform(-0.4, 0.3)))).normalized()
+            else:
+                direction = (direction + Vector((0, 0, 0.12))).normalized()
+            p = p + direction * step
+            path.append(p.copy())
+        r0 = radius * (1.0 - 0.6 * t) * (0.45 if not is_dead else 0.3)
+        mesh.tube(path, [r0 * (1 - i / 5) for i in range(6)], 5, slot, rng, jitter=0.12)
+        if foliage_slot is not None and not is_dead:
+            for k in range(rng.randint(2, 3)):
+                c = path[-1] + Vector((rng.uniform(-0.6, 0.6), rng.uniform(-0.6, 0.6), rng.uniform(-0.2, 0.5)))
+                s = rng.uniform(0.9, 1.6) * height / 14
+                mesh.blob(c, (s * 1.4, s * 1.4, s * 0.8), foliage_slot, rng)
+    if crown is not None and foliage_slot is not None:
+        for k in range(6):
+            t = crown + (1 - crown) * k / 6
+            c = centre(t) + Vector((rng.uniform(-1.6, 1.6), rng.uniform(-1.6, 1.6), 0)) * height / 14
+            s = rng.uniform(1.2, 2.2) * height / 14
+            mesh.blob(c, (s * 1.5, s * 1.5, s * 0.9), foliage_slot, rng)
+
+
+def jr_gradient(stops, t):
+    """An SVG gradient's colour (sRGB 0–255) and opacity at t, from (offset, hex, opacity) stops."""
+    for (t0, c0, a0), (t1, c1, a1) in zip(stops, stops[1:]):
+        if t <= t1:
+            u = 0 if t1 == t0 else (t - t0) / (t1 - t0)
+            v0, v1 = int(c0.lstrip("#"), 16), int(c1.lstrip("#"), 16)
+            return [((v0 >> s) & 255) * (1 - u) + ((v1 >> s) & 255) * u for s in (16, 8, 0)], a0 + (a1 - a0) * u
+    v = int(stops[-1][1].lstrip("#"), 16)
+    return [(v >> s) & 255 for s in (16, 8, 0)], stops[-1][2]
+
+
+def jr_hex(rgb):
+    return "#%02x%02x%02x" % tuple(max(0, min(255, round(c))) for c in rgb)
+
+
 def jiruan(path):
-    """Ji'ruan's intro stage (see above). Objects: "sky" (three unlit bands), "ground", the far trunks
-    "trunk-far-1".."6" and the mid trunks "trunk-mid-1".."4" at the old SVG's places (the four the rift
-    lights carry an unlit rim strip "…-rim"), "trunk-ring-1".."10" closing the ring of trees out of
-    view, the rift "rift" (an empty at its middle, opening by scale) over "rift-bloom" (pulsing),
-    "rift-tear" and "rift-core" (Emission: they glow), the cracks "crack-1".."9" (glowing strips on the
-    ground drawn out by scale), the eyes "eye-1".."8" (each two glowing slits, opening, blinking and
-    narrowing by scale), the foreground "near-1".."4" (unlit silhouettes), the marks "boss" and
-    "imp-1".."imp-4" where the figures stand (they carry the stand-ins' sizes), the emitter marks "mist"
-    and "embers", the camera "camera" on the empty "dolly", and the sun "sun". The old CSS's moments
-    are the scene's timeline markers. Exported as a stage (export_stage) at the render size 1200 × 680,
-    the scene's custom property "events" holding the markers (Docs/Scene.md, step 4, "Markers")."""
+    """Ji'ruan's intro stage (Docs/Scene.md, step 7: phase 1's layout, phase 1b's detail, S7-1). What it
+    holds (each top-level object one model for the ink, Q2):
+    - the night sky: "sky" (the old gradient in bands, unlit), "stars" (unlit), the halo "halo" (the
+      old radial glow as stepped discs, unlit, behind the far trees: it grows and fades by scale), and
+      three layered tree lines "treeline-1".."3" (unlit silhouettes);
+    - the forest: "ground" (the floor's relief: level about the clearing, rising toward the rift, a
+      mound behind it), trees "tree-far-1".."6" at the old far trunks' places, "tree-back-1".."6"
+      between them, "tree-mid-1".."4" at the old mid trunks' places (the four the rift lights with an
+      unlit violet rim on their rift side, as the SVG's stroke), "tree-ring-1".."10" closing the ring
+      out of view, a dead "snag" by the rift; "rocks", "roots", "undergrowth-1".."3" (ferns and grass),
+      "litter" (fallen leaves and twigs, no ink);
+    - the rift: "rift" (an empty at its middle, opening by scale) and, keyed alike about that middle,
+      under the still empty "rift-glow" (one glowing model) the shells "rift-bloom", "rift-outer",
+      "rift-inner", "rift-core" (Emission: they glow), and
+      "shard-1".."12" breaking off its edges and drifting out;
+    - the cracks: "crack-1".."9" (glowing fissures drawn out by scale) and "plate-1".."N" (broken
+      ground plates lifting along them as the cracks reach them);
+    - the eyes "eye-1".."8", the foreground "near-1".."4" (unlit silhouettes: a root arch, a bush,
+      overhanging branches with leaves), the marks "boss", "imp-1".."imp-4", the emitter marks "mist"
+      and "embers", the camera "camera" on the empty "dolly", and the sun "sun".
+    Phase 1's two rules hold: no key past 7 s, and nothing hangs under a node scaled to nearly nothing.
+    The old CSS's moments are the scene's timeline markers. Exported as a stage (export_stage) at the
+    render size 1200 × 680, the scene's custom property "events" holding the markers."""
+    global JR_FOOT
     scene = bpy.context.scene
     scene.render.fps, scene.render.fps_base = JR_FPS, 1
     scene.frame_start, scene.frame_end = 1, jr_frame(JR_SECONDS)
     scene.render.resolution_x, scene.render.resolution_y = JR_WIDTH, JR_HEIGHT
     scene.render.pixel_aspect_x = scene.render.pixel_aspect_y = 1
+    rng = __import__("random").Random(20261105)
 
-    # The night sky behind the trees: the old gradient's lower stops as flat bands (unlit, no ink).
-    mesh = bpy.data.meshes.new("sky")
-    verts, faces = [], []
-    bands = (("sky.low", "#22142f", -1, 7), ("sky.mid", "#1a0f27", 7, 13), ("sky.high", "#140a20", 13, 30))
-    for name, colour, low, high in bands:
-        base = len(verts)
-        verts += [(-70, 0, low), (70, 0, low), (70, 0, high), (-70, 0, high)]
-        faces.append((base, base + 1, base + 2, base + 3))
-    mesh.from_pydata(verts, [], faces)
-    for name, colour, _, _ in bands:
-        mesh.materials.append(shader_material(name, colour, "background"))
-    for index, polygon in enumerate(mesh.polygons):
-        polygon.material_index = index
-    mesh_object("sky", mesh, location=(0, 32, 0))["ink"] = 0
+    centre = svg_point(600, 366, 14)
+    JR_FOOT = foot = Vector((centre.x, centre.y, 0))
+    toward_rift = lambda p: Vector((foot.x - p.x, foot.y - p.y, 0)).normalized()  # noqa: E731
 
-    ground = material("ground", "#0a0610")
-    mesh_object("ground", box_mesh("ground", (120, 120, 0.2), [ground]), location=(0, 0, -0.1))
+    # ---- The night sky (unlit, no ink): the old gradient (#06030b, #140a20 at 55 %, #22142f) in bands
+    # by the first frame's screen height on a plane 64 m off; the view's background is its top.
+    sky_stops = [(0.0, "#06030b", 1), (0.55, "#140a20", 1), (1.0, "#22142f", 1)]
+    sky = JrMesh()
+    sky_materials, depth = [], 64.0
+    edges = [-14.0] + [z / 10 for z in range(-10, 151, 12)] + [40.0]
+    for i, (z0, z1) in enumerate(zip(edges, edges[1:])):
+        zm = max(-1.0, min(14.0, (z0 + z1) / 2))
+        screen = 340 - (zm - 1.6) / (depth * JR_SENSOR / 2 / JR_LENS) * 340
+        colour, _ = jr_gradient(sky_stops, max(0.0, min(1.0, screen / 680)))
+        sky_materials.append(shader_material("sky.%d" % (i + 1), jr_hex(colour), "background"))
+        sky.add([(-90, 0, z0), (90, 0, z0), (90, 0, z1), (-90, 0, z1)], [(0, 1, 2, 3)], i)
+    sky.object("sky", sky_materials, origin=(0, 0, 0), ink=False).location = (0, depth - 14, 0)
+    stars = JrMesh()
+    star_dim, star_bright = shader_material("star.dim", "#6a44a0", "background"), shader_material("star.bright", "#d6b4ff", "background")
+    for k in range(48):
+        x, z = rng.uniform(-24, 24), rng.uniform(6.5, 15.5)
+        s = rng.uniform(0.05, 0.12) if k % 6 else rng.uniform(0.12, 0.18)
+        stars.add([(x - s, 0, z), (x, 0, z - s), (x + s, 0, z), (x, 0, z + s)], [(0, 1, 2, 3)], 1 if k % 6 == 0 else 0)
+    stars.object("stars", [star_dim, star_bright], ink=False).location = (0, 49, 0)
 
-    # Trunks: (SVG x, width, lean, colour, rimmed) at a depth, their widths and leans the SVG's there.
-    bark = {c: material("bark." + str(i + 1), c) for i, c in enumerate(("#170e22", "#1a1026", "#1d122b", "#0c0713", "#0d0815"))}
+    # The halo (bi-jr-halo: the old radial glow behind the rift, rx 460, ry 340 about (600, 390)):
+    # stepped discs in the gradient's colours over the sky, 35 m off: behind the far trees (which stand
+    # against it, as the SVG's far trunks did) and the trees between them (33 m), before the tree lines.
+    # It grows from nothing (0.56 s) to full (4.06 s) and eases back (0.6 opacity by 7 s: here 0.88 of
+    # its size).
+    halo_stops = [(0.0, "#f1e6ff", 0.9), (0.22, "#b48cff", 0.62), (0.6, "#5a2a9c", 0.22), (1.0, "#1a0d2b", 0.0)]
+    halo_depth = 35.0
+    hc = svg_point(600, 390, halo_depth)
+    rx = (svg_point(1060, 390, halo_depth) - hc).length
+    ry = (svg_point(600, 50, halo_depth) - hc).length
+    halo, halo_materials = JrMesh(), []
+    rings = [1.0, 0.82, 0.66, 0.52, 0.4, 0.29, 0.2, 0.12]
+    for i, r in enumerate(rings):
+        colour, alpha = jr_gradient(halo_stops, r - 0.07)
+        under, _ = jr_gradient(sky_stops, 0.62)
+        mixed = [c * alpha + u * (1 - alpha) for c, u in zip(colour, under)]
+        halo_materials.append(shader_material("halo.%d" % (i + 1), jr_hex(mixed), "background"))
+        verts = [(0, -0.05 * i, 0)] + [(rx * r * math.cos(2 * math.pi * k / 48), -0.05 * i, ry * r * math.sin(2 * math.pi * k / 48)) for k in range(48)]
+        halo.add(verts, [(0, k + 1, (k + 1) % 48 + 1) for k in range(48)], i)
+    halo_obj = halo.object("halo", halo_materials, origin=(0, 0, 0), ink=False)
+    halo_obj.location = hc
+    jr_keys(halo_obj, "scale", [(0, (0.001, 1, 0.001)), (0.56, (0.001, 1, 0.001)), (2.24, (0.92, 1, 0.92)), (4.06, (1, 1, 1)), (7.0, (0.88, 1, 0.88))])
+
+    # Three tree lines between the halo and the far trees: unlit silhouettes, the farthest palest.
+    for i, (dist, colour, top, rough) in enumerate(((54.0, "#1b0f28", 6.5, 2.2), (47.0, "#140b1f", 5.0, 2.6), (41.0, "#0e0717", 3.6, 2.8))):
+        line = JrMesh()
+        xs = [-80 + 0.9 * k for k in range(179)]
+        heights = []
+        for x in xs:
+            h = top + rough * (0.45 * math.sin(0.21 * x + i) + 0.3 * math.sin(0.57 * x + 2 * i) + 0.25 * math.sin(1.31 * x + 0.5 * i))
+            if rng.random() < 0.18:
+                h += rng.uniform(0.8, 2.2)  # a crown standing above the line
+            heights.append(h)
+        for k in range(len(xs) - 1):
+            line.add([(xs[k], 0, -3), (xs[k + 1], 0, -3), (xs[k + 1], 0, heights[k + 1]), (xs[k], 0, heights[k])], [(0, 1, 2, 3)], 0)
+        line.object("treeline-%d" % (i + 1), [shader_material("treeline.%d" % (i + 1), colour, "background")], ink=False).location = (0, dist - 14, 0)
+
+    # ---- The ground: the floor's relief, smooth.
+    ground_m = material("ground", jr_lit("#140c1e"))
+    floor = JrMesh()
+    step, x0, x1, y0, y1 = 0.6, -33.0, 33.0, -21.0, 45.0
+    nx, ny = int(round((x1 - x0) / step)), int(round((y1 - y0) / step))
+    verts = [(x0 + i * step, y0 + j * step, jr_ground(x0 + i * step, y0 + j * step)) for j in range(ny + 1) for i in range(nx + 1)]
+    faces = [(j * (nx + 1) + i, j * (nx + 1) + i + 1, (j + 1) * (nx + 1) + i + 1, (j + 1) * (nx + 1) + i) for j in range(ny) for i in range(nx)]
+    floor.add(verts, faces, 0)
+    floor.object("ground", [ground_m], origin=(0, 0, 0), smooth=True)
+
+    # ---- Trees. Materials: the old fills as the shadow side the camera sees (jr_lit), foliage darker.
+    bark_fills = ("#170e22", "#1a1026", "#1d122b", "#0c0713", "#0d0815")
+    bark = {c: material("bark." + str(i + 1), jr_lit(c)) for i, c in enumerate(bark_fills)}
+    foliage_far = material("foliage.far", jr_lit("#120a1c"))
+    foliage_near = material("foliage.near", jr_lit("#0a0612"))
     rim = shader_material("rim", "#6a44a0", "background")
 
-    def trunk(name, x, w, lean, colour, rimmed, depth):
-        foot = svg_point(x, 680, depth)
-        px = (svg_point(x + 1, 680, depth) - foot).length
-        height = 18.0
-        r1, r2 = w / 2 * px, w * 0.22 * px
-        tilt = math.degrees(math.atan2(lean * px, 700 * px))
-        obj = mesh_object(name, cone_mesh(name, 12, r1, r2, height, True, bark[colour]),
-                          location=(foot.x, foot.y, height / 2 - 1), rotation=(0, tilt, 0))
-        if rimmed:
-            # The rift's light on the side facing it: a thin flat strip (the SVG's rim stroke).
-            side = -1 if x > 600 else 1
-            strip = mesh_object(name + "-rim", box_mesh(name + "-rim", (r1 * 0.08, r1 * 0.2, height), [rim]), obj,
-                                location=(side * r1 * 0.78, -r1 * 0.55, 0))
-            strip["ink"] = 0
-    for i, spec in enumerate(((70, 60, -8, "#170e22", False), (250, 46, 10, "#1a1026", False), (420, 38, -6, "#1d122b", True),
-                              (790, 40, 8, "#1d122b", True), (960, 52, -10, "#1a1026", False), (1130, 64, 6, "#170e22", False))):
-        trunk("trunk-far-%d" % (i + 1), *spec, 30)
-    for i, spec in enumerate(((-10, 110, 14, "#0c0713", False), (160, 74, -12, "#0d0815", True),
-                              (1040, 80, 12, "#0d0815", True), (1215, 120, -14, "#0c0713", False))):
-        trunk("trunk-mid-%d" % (i + 1), *spec, 9)
-    # The rest of the ring of trees about the clearing, behind and beside the camera (out of its view).
+    def tree(name, x, w, lean_px, colour, rimmed, depth, height, crown, branches=3, dead=0, roots=5, segments=8, foliage=None, branch_range=(0.45, 0.8)):
+        at = svg_point(x, 680, depth)
+        px = (svg_point(x + 1, 680, depth) - at).length
+        base = Vector((at.x, at.y, jr_ground(at.x, at.y)))
+        mesh = JrMesh()
+        side = Vector((1 if x < 600 else -1, 0.12, 0)).normalized() if rimmed else None
+        # The SVG's lean (its top's shift over the frame's 700 px), carried to the tree's height.
+        lean = (1.5 * lean_px * height / 700, rng.uniform(-0.3, 0.3))
+        bend = (rng.uniform(-0.25, 0.25) * w * px, rng.uniform(-0.2, 0.2))
+        jr_tree(mesh, rng, base, height, w / 2 * px, lean, bend, 0, 1 if foliage is not None else None, rim=side, roots=roots,
+                branches=branches, crown=crown, dead=dead, segments=segments, rim_slot=2 if rimmed else None, branch_range=branch_range)
+        materials = [bark[colour], foliage if foliage is not None else bark[colour]] + ([rim] if rimmed else [])
+        return mesh.object(name, materials, origin=base)
+
+    for i, (x, w, lean, colour, rimmed) in enumerate(((70, 60, -8, "#170e22", False), (250, 46, 10, "#1a1026", False), (420, 38, -6, "#1d122b", True),
+                                                      (790, 40, 8, "#1d122b", True), (960, 52, -10, "#1a1026", False), (1130, 64, 6, "#170e22", False))):
+        tree("tree-far-%d" % (i + 1), x, w, lean, colour, rimmed, 30, 17.0, 0.42, branches=3, roots=3, segments=18 if rimmed else 8, foliage=foliage_far)
+    for i, x in enumerate((160, 335, 505, 700, 875, 1045)):
+        tree("tree-back-%d" % (i + 1), x, rng.uniform(26, 36), rng.uniform(-8, 8), "#170e22", False, 33, 15.0, 0.4, branches=2, roots=2, segments=7,
+             foliage=foliage_far)
+    for i, (x, w, lean, colour, rimmed) in enumerate(((-10, 110, 14, "#0c0713", False), (160, 74, -12, "#0d0815", True),
+                                                      (1040, 80, 12, "#0d0815", True), (1215, 120, -14, "#0c0713", False))):
+        tree("tree-mid-%d" % (i + 1), x, w, lean, colour, rimmed, 9, 13.0, 0.55, branches=3, dead=3 if rimmed else 1, roots=6, segments=20 if rimmed else 9,
+             foliage=foliage_near, branch_range=(0.2, 0.42))
     for i in range(10):
         a = math.radians(200 + i * 14)
-        mesh_object("trunk-ring-%d" % (i + 1), cone_mesh("ring-%d" % (i + 1), 12, 0.45, 0.2, 18.0, True, bark["#0c0713"]),
-                    location=(17 * math.cos(a), -6 + 17 * math.sin(a), 8))
+        p = Vector((17 * math.cos(a), -6 + 17 * math.sin(a), 0))
+        p.z = jr_ground(p.x, p.y)
+        mesh = JrMesh()
+        jr_tree(mesh, rng, p, 16.0, 0.45, (0, 0), (0, 0), 0, None, roots=4, branches=0)
+        mesh.object("tree-ring-%d" % (i + 1), [bark["#0c0713"]], origin=p)
+    # A dead snag by the rift: a broken trunk, crooked bare branches toward the rift, its rim lit.
+    snag_at = Vector((foot.x - 3.4, foot.y - 1.2, 0))
+    snag_at.z = jr_ground(snag_at.x, snag_at.y)
+    mesh = JrMesh()
+    jr_tree(mesh, rng, snag_at, 3.2, 0.24, (0.25, 0.1), (0.1, 0), 0, None, rim=toward_rift(snag_at), roots=4, branches=0, dead=4, segments=10, rim_slot=1)
+    mesh.object("snag", [bark["#1d122b"], rim], origin=snag_at)
 
-    # The rift: an empty at its middle (the CSS scales it about its box's centre) over three glowing slabs.
-    centre = svg_point(600, 366, 14)
+    # ---- The floor's clutter.
+    def clear(x, y):
+        """Away from the clearing's middle, where the cracks run and the figures stand."""
+        return math.hypot(x - foot.x, (y - foot.y + 1.6) * 0.9) > 4.0
+
+    stone = material("stone", jr_lit("#1a1226"))
+    rocks = JrMesh()
+    placed = 0
+    while placed < 18:
+        a, r = rng.uniform(0, 2 * math.pi), rng.uniform(4.2, 11.0)
+        x, y = foot.x + r * math.cos(a), foot.y - 1.5 + r * math.sin(a) * 0.9
+        if not clear(x, y) or y < -11.5:
+            continue
+        s = rng.uniform(0.18, 0.6)
+        rocks.blob((x, y, jr_ground(x, y) + s * 0.25), (s * rng.uniform(1.0, 1.6), s * rng.uniform(0.8, 1.3), s * rng.uniform(0.55, 0.85)), 0, rng, subdivisions=2, jitter=0.14)
+        placed += 1
+    rocks.object("rocks", [stone], origin=(foot.x, foot.y, 0))
+
+    # Surface roots snaking over the floor from the trees' side of the clearing.
+    roots = JrMesh()
+    for k in range(5):
+        a = rng.uniform(0, 2 * math.pi)
+        start = Vector((foot.x + 9 * math.cos(a), foot.y - 1.5 + 8 * math.sin(a), 0))
+        if start.y < -12:
+            continue
+        heading = (Vector((foot.x, foot.y, 0)) - start).normalized()
+        trail, p = [], start.copy()
+        for i in range(8):
+            heading = (heading + Vector((rng.uniform(-0.35, 0.35), rng.uniform(-0.35, 0.35), 0))).normalized()
+            p = p + heading * 0.45
+            if not clear(p.x, p.y):
+                break
+            trail.append(Vector((p.x, p.y, jr_ground(p.x, p.y) + 0.02)))
+        if len(trail) > 2:
+            roots.tube(trail, [0.07 * (1 - i / len(trail)) + 0.012 for i in range(len(trail))], 5, 0, rng, jitter=0.15)
+    roots.object("roots", [bark["#1a1026"]], origin=(foot.x, foot.y, 0))
+
+    # Undergrowth: fern clumps and grass tufts about the clearing's edge and at the trees' feet.
+    fern = material("fern", jr_lit("#120c1c"), culled=False)
+    grass = material("grass", jr_lit("#160f22"), culled=False)
+    regions = (("undergrowth-1", lambda x: x < foot.x - 1.5), ("undergrowth-2", lambda x: x > foot.x + 1.5), ("undergrowth-3", lambda x: True))
+    clumps = {name: JrMesh() for name, _ in regions}
+    count = 0
+    while count < 46:
+        a, r = rng.uniform(0, 2 * math.pi), rng.uniform(4.5, 13.0)
+        x, y = foot.x + r * math.cos(a), foot.y - 1.5 + r * math.sin(a)
+        if not clear(x, y) or y < -11.0:
+            continue
+        name = next(n for n, test in regions if test(x)) if y < foot.y + 1 else "undergrowth-3"
+        base = Vector((x, y, jr_ground(x, y) - 0.02))
+        if count % 3:
+            for b in range(rng.randint(6, 9)):
+                h = rng.uniform(0, 2 * math.pi)
+                clumps[name].blade(base, (math.cos(h), math.sin(h)), rng.uniform(0.45, 0.85), rng.uniform(0.09, 0.15), rng.uniform(0.7, 1.1), 0)
+        else:
+            for b in range(rng.randint(8, 12)):
+                h = rng.uniform(0, 2 * math.pi)
+                clumps[name].blade(base + Vector((rng.uniform(-0.1, 0.1), rng.uniform(-0.1, 0.1), 0)), (math.cos(h), math.sin(h)),
+                                   rng.uniform(0.25, 0.45), 0.035, rng.uniform(0.2, 0.5), 1, steps=3)
+        count += 1
+    for name, _ in regions:
+        clumps[name].object(name, [fern, grass], origin=(foot.x, foot.y, 0))
+
+    # Fallen leaves and twigs on the floor (no ink: too small to outline).
+    leaf_dark, leaf_light = material("leaf.dark", jr_lit("#150d20"), culled=False), material("leaf.light", jr_lit("#22163a"), culled=False)
+    litter = JrMesh()
+    for k in range(260):
+        x, y = foot.x + rng.uniform(-9, 9), foot.y + rng.uniform(-10.5, 3)
+        if math.hypot(x - foot.x, y - foot.y + 2.0) < 0.9:
+            continue
+        h = rng.uniform(0, 2 * math.pi)
+        d, s = Vector((math.cos(h), math.sin(h), 0.04)), Vector((-math.sin(h), math.cos(h), 0))
+        litter.leaf((x, y, jr_ground(x, y) + 0.012), d, s, rng.uniform(0.08, 0.16), rng.uniform(0.04, 0.08), k % 3 == 0)
+    twig_mesh = JrMesh()
+    for k in range(40):
+        x, y = foot.x + rng.uniform(-8, 8), foot.y + rng.uniform(-9.5, 2.5)
+        if math.hypot(x - foot.x, y - foot.y + 2.0) < 1.0:
+            continue
+        h = rng.uniform(0, 2 * math.pi)
+        a = Vector((x, y, jr_ground(x, y) + 0.015))
+        b = a + Vector((math.cos(h), math.sin(h), 0)) * rng.uniform(0.25, 0.6)
+        b.z = jr_ground(b.x, b.y) + 0.015
+        litter.tube([a, (a + b) / 2 + Vector((0, 0, 0.02)), b], [0.012, 0.01, 0.006], 4, 2)
+    litter.object("litter", [leaf_dark, leaf_light, bark["#1a1026"]], origin=(foot.x, foot.y, 0), ink=False)
+
+    # ---- The rift: an empty at its middle (the CSS scales it about its box's centre, bi-rift-open) and
+    # four layered shells, each a jagged lens bulging toward the camera, keyed alike about that middle:
+    # the bloom (#8e5ad6, the old blurred bloom, pulsing), the outer shell (#7a4cc8, the tear's violet
+    # edge), the inner shell (#d9c2ff) and the white-hot core (#fbf6ff), each nearer than the last.
     rift = empty("rift", location=centre)
-    bloom_points = [(600, 120), (640, 220), (618, 300), (660, 390), (626, 470), (652, 560), (600, 612), (548, 560), (574, 470), (540, 390), (582, 300), (560, 220)]
-    # Solid where the SVG's bloom was blurred and translucent: narrowed to three quarters of its width.
-    bloom_points = [(600 + 0.75 * (x - 600), y) for x, y in bloom_points]
-    tear_points = [(600, 136), (624, 214), (608, 266), (638, 338), (614, 404), (642, 474), (618, 542), (626, 600), (600, 592), (576, 542), (594, 474), (560, 404), (588, 338), (564, 266), (590, 214)]
-    core_points = [(600, 150), (607, 214), (603, 266), (612, 338), (604, 404), (612, 474), (605, 542), (602, 588), (598, 588), (595, 542), (588, 474), (596, 404), (588, 338), (597, 266), (593, 214)]
-    # bi-rift-open (ease-out): closed (hidden: a point; the CSS 0.4 × 0 at opacity 0) to 0.42 s, open at
-    # 1.96 s, widened at 3.92 s, settled at 7 s. The slabs are top-level objects keyed alike about the
-    # rift's middle (no child under a parent scaled to nearly nothing); the empty "rift" marks the place.
+    # The shells hang under one still parent: the rift is one glowing model (one halo behind all of it).
+    glow = empty("rift-glow", location=centre)
+    bloom_points = [(600, 112), (646, 218), (622, 300), (668, 392), (630, 470), (658, 562), (600, 618), (542, 562), (570, 470), (532, 392), (578, 300), (554, 218)]
+    outer_points = [(600, 128), (628, 212), (612, 268), (644, 340), (618, 404), (648, 476), (622, 544), (632, 602), (600, 596), (572, 544), (590, 476), (554, 404),
+                    (584, 340), (560, 268), (586, 212)]
+    inner_points = [(600, 140), (618, 214), (607, 268), (630, 338), (610, 404), (632, 474), (612, 542), (614, 590), (586, 590), (588, 542), (580, 474), (566, 404),
+                    (590, 338), (578, 268), (591, 214)]
+    core_points = [(600, 152), (606, 214), (603, 266), (612, 338), (604, 404), (612, 474), (605, 542), (602, 584), (598, 584), (595, 542), (588, 474), (596, 404),
+                   (588, 338), (597, 266), (594, 214)]
+
+    def lens(points, bulge, ahead, scale_x=1.0):
+        outline = [(x * scale_x, z) for x, z in svg_outline([(600 + (x - 600), y) for x, y in points], 14, centre)]
+        count = len(outline)
+        cx = sum(p[0] for p in outline) / count
+        cz = sum(p[1] for p in outline) / count
+        verts = [(x, ahead, z) for x, z in outline] + [(cx, ahead - bulge, cz), (cx, ahead + 0.02, cz)]
+        front, back = count, count + 1
+        faces = [(k, (k + 1) % count, front) for k in range(count)] + [((k + 1) % count, k, back) for k in range(count)]
+        return verts, faces
+
     opening = [(0, (0.001, 1, 0.001)), (0.42, (0.001, 1, 0.001)), (1.96, (1, 1, 1)), (3.92, (1.5, 1, 1.04)), (7.0, (1.25, 1, 1))]
     jr_keys(rift, "scale", opening)
-    # bi-rift-pulse: the bloom 1.4 s each way, forever (its opacity, here its size), times the opening.
     pulse = [(k * 1.4, (1.0, 1, 1.0) if k % 2 == 0 else (1.12, 1, 1.04)) for k in range(6)]
 
     def between(keys, t):
@@ -1225,49 +1631,101 @@ def jiruan(path):
         u = 0 if t1 == t0 else (t - t0) / (t1 - t0)
         return [a + (b - a) * u for a, b in zip(v0, v1)]
     bloom_keys = [(t, tuple(a * b for a, b in zip(between(opening, t), between(pulse, t)))) for t in sorted({k[0] for k in opening + pulse})]
-    for name, points, colour, ahead, keys in (("rift-bloom", bloom_points, "#b48cff", 0, bloom_keys), ("rift-tear", tear_points, "#7a4cc8", -0.05, opening),
-                                              ("rift-core", core_points, "#fbf6ff", -0.1, opening)):
-        m = shader_material(name.replace("-", "."), colour, "emission")
-        part = mesh_object(name, slab_mesh(name, svg_outline(points, 14, centre), 0.04, m), location=centre + Vector((0, ahead, 0)))
-        part["ink"] = 0
-        jr_keys(part, "scale", keys)
+    for name, points, colour, bulge, ahead, keys, scale_x in (("rift-bloom", bloom_points, "#8e5ad6", 0.12, 0.12, bloom_keys, 0.85),
+                                                             ("rift-outer", outer_points, "#7a4cc8", 0.18, 0.0, opening, 1.0),
+                                                             ("rift-inner", inner_points, "#d9c2ff", 0.14, -0.08, opening, 1.0),
+                                                             ("rift-core", core_points, "#fbf6ff", 0.1, -0.16, opening, 1.0)):
+        shell = JrMesh()
+        verts, faces = lens(points, bulge, ahead, scale_x)
+        shell.add(verts, faces, 0)
+        obj = shell.object(name, [shader_material(name.replace("-", "."), colour, "emission")], origin=(0, 0, 0), ink=False, closed=True)
+        obj.parent, obj.location = glow, (0, 0, 0)
+        jr_keys(obj, "scale", keys)
+    # Shards breaking off the rift's edges once it is open, drifting out and turning.
+    shard_a, shard_b = shader_material("shard", "#d9c2ff", "emission"), shader_material("shard.dark", "#b48cff", "emission")
+    for k in range(12):
+        side = -1 if k % 2 else 1
+        y_svg = 170 + k * 36
+        start = svg_point(600 + side * rng.uniform(38, 58), y_svg, 14)
+        drift = Vector((side * rng.uniform(0.6, 1.4), rng.uniform(-0.6, -0.1), rng.uniform(0.1, 0.7)))
+        s = rng.uniform(0.07, 0.16)
+        shard = JrMesh()
+        shard.add([(0, 0, s), (s * 0.7, 0.02, -s * 0.4), (-s * 0.5, -0.02, -s * 0.6), (0, -s * 0.3, 0)], [(0, 1, 3), (1, 2, 3), (2, 0, 3), (0, 2, 1)], 0)
+        obj = shard.object("shard-%d" % (k + 1), [shard_a if k % 3 else shard_b], origin=(0, 0, 0), ink=False, closed=True)
+        obj.location = start
+        t0 = 1.96 + 0.17 * k
+        jr_keys(obj, "scale", [(0, (0.001,) * 3), (t0, (0.001,) * 3), (t0 + 0.25, (1, 1, 1))])
+        jr_keys(obj, "location", [(0, start), (t0, start), (7.0, start + drift)])
+        jr_keys(obj, "rotation_euler", [(0, (0, 0, 0)), (t0, (0, 0, 0)), (7.0, (rng.uniform(-3, 3), rng.uniform(-3, 3), rng.uniform(-3, 3)))])
 
-    # The cracks: each segment of the SVG's crack path a glowing strip on the ground from the rift's
-    # foot, its origin at its start, drawn out by its length's scale as the dash offset (260 → 0 over
-    # 1.26–2.94 s) reaches it (linearly).
-    crack = shader_material("crack", "#c58cff", "emission")
-    foot = Vector((centre.x, centre.y, 0))  # the rift's foot: it stands on the ground, its lower tip sunk in it
+    # ---- The cracks: each segment of the SVG's crack path a glowing fissure on the floor from the
+    # rift's foot (its origin at its start, drawn out by its length's scale as the dash offset, 260 → 0
+    # over 1.26–2.94 s, reaches it), with broken ground plates beside it lifting as it passes them.
+    crack_m = shader_material("crack", "#c58cff", "emission")
+    plate_m = material("plate", jr_lit("#160e20"))
     paths = [[(600, 600), (548, 632), (492, 640)], [(600, 600), (656, 634), (722, 646)], [(600, 600), (582, 652), (590, 690)],
              [(600, 600), (640, 668)], [(548, 632), (520, 676)], [(656, 634), (690, 686)]]
     starts = {(548, 632): math.hypot(52, 32), (656, 634): math.hypot(56, 34)}
-    number = 0
+    boss_spot = Vector((foot.x, foot.y - 2.0, 0))
+    number = plates = 0
     for line in paths:
         along = starts.get(line[0], 0.0)
         for a, b in zip(line, line[1:]):
-            # On the ground about the foot: across at 12 mm per SVG pixel, toward the camera at 50 mm.
             pa = foot + Vector(((a[0] - 600) * 0.012, -(a[1] - 600) * 0.05, 0.012))
             pb = foot + Vector(((b[0] - 600) * 0.012, -(b[1] - 600) * 0.05, 0.012))
             length = (pb - pa).length
+            heading = math.atan2((pb - pa).y, (pb - pa).x)
             number += 1
-            strip_mesh = box_mesh("crack-%d" % number, (length, 0.07, 0.01), [crack])
-            for v in strip_mesh.vertices:
-                v.co.x += length / 2
-            obj = mesh_object("crack-%d" % number, strip_mesh, location=pa, rotation=(0, 0, math.degrees(math.atan2((pb - pa).y, (pb - pa).x))))
-            obj["ink"] = 0
+            fissure = JrMesh()
+            # A glowing seam with ragged edges along local X, from its start.
+            pts = 7
+            top, bottom = [], []
+            for i in range(pts + 1):
+                s = i / pts
+                w = 0.05 * (1 - 0.6 * s) + rng.uniform(-0.012, 0.012)
+                top.append((length * s, w, 0))
+                bottom.append((length * s, -w, 0))
+            verts = top + bottom
+            faces = [(i, i + 1, pts + 2 + i, pts + 1 + i) for i in range(pts)]
+            fissure.add(verts, [tuple(reversed(f)) for f in faces], 0)
+            obj = fissure.object("crack-%d" % number, [crack_m], origin=(0, 0, 0), ink=False)
+            obj.location, obj.rotation_euler = pa, (0, 0, heading)
             seg = math.hypot(b[0] - a[0], b[1] - a[1])
             t0, t1 = 1.26 + 1.68 * min(along, 260) / 260, 1.26 + 1.68 * min(along + seg, 260) / 260
             jr_keys(obj, "scale", [(0, (0.001, 0.001, 1)), (t0, (0.001, 0.001, 1)), (max(t1, t0 + 1 / 60), (1, 1, 1))], interpolation="LINEAR")
+            # A plate either side of the segment's outer part, hinged at its outer edge, lifting 12–30°
+            # as the crack reaches it (none by the boss's feet).
+            for side in (-1, 1):
+                for s in (rng.uniform(0.45, 0.75),):
+                    hinge = pa + (pb - pa) * s + Vector((-math.sin(heading), math.cos(heading), 0)) * side * rng.uniform(0.36, 0.48)
+                    if (hinge - boss_spot).length < 1.1:
+                        continue
+                    w, d = rng.uniform(0.34, 0.5), rng.uniform(0.28, 0.4)
+                    outline = [(-w / 2, 0), (w / 2, 0), (w / 2 + rng.uniform(-0.06, 0.06), d * rng.uniform(0.7, 1.0)), (rng.uniform(-0.06, 0.06), d),
+                               (-w / 2 + rng.uniform(-0.06, 0.06), d * rng.uniform(0.6, 0.9))]
+                    plate = JrMesh()
+                    top_v = [(x, y, 0.012) for x, y in outline]
+                    low_v = [(x, y, -0.012) for x, y in outline]
+                    n5 = len(outline)
+                    faces = [tuple(range(n5)), tuple(range(2 * n5 - 1, n5 - 1, -1))] + [(k, n5 + k, n5 + (k + 1) % n5, (k + 1) % n5) for k in range(n5)]
+                    plate.add(top_v + low_v, faces, 0)
+                    plates += 1
+                    pobj = plate.object("plate-%d" % plates, [plate_m], origin=(0, 0, 0), closed=True)
+                    pobj.location = (hinge.x, hinge.y, jr_ground(hinge.x, hinge.y) + 0.005)
+                    # Its local +Y (from the hinge across the plate) toward the fissure.
+                    yaw = heading + (math.pi if side > 0 else 0.0)
+                    tilt = math.radians(rng.uniform(12, 30))
+                    when = t0 + (t1 - t0) * s
+                    jr_keys(pobj, "rotation_euler", [(0, (0, 0, yaw)), (when, (0, 0, yaw)), (min(7.0, when + 0.35), (tilt, 0, yaw))])
             along += seg
 
-    # The eyes in the dark: each pair of slits on its node 15 m from the camera (1 m behind the rift's
-    # depth) at the SVG's place, at least 0.5 m up; bi-eye (ease-out, each its own delay): closed to
-    # 0.98 s, open at 1.4, blinking at 1.68, open 1.89–4.9, narrowed to 0.35 (the old dimming) by 5.95.
+    # ---- The eyes in the dark (bi-eye): each a mesh of two glowing slits, 15 m off at the SVG's place,
+    # at least 0.5 m up; opening, blinking, open, narrowed (the old dimming) by its own delay.
     eye = shader_material("eye", "#d6b4ff", "emission")
     for i, (x, y, delay) in enumerate(((188, 402, 0), (298, 470, 0.35), (394, 356, 0.7), (834, 384, 0.2), (948, 452, 0.55), (1052, 362, 0.9), (702, 300, 1.1), (470, 286, 1.3))):
         place = svg_point(x, y, 15)
         place.z = max(place.z, 0.5)
         px = (svg_point(x + 1, y, 15) - svg_point(x, y, 15)).length
-        # Both slits in the node's own mesh (no child under a parent scaled to nearly nothing).
         bm = bmesh.new()
         for side in (-1, 1):
             tri = [(side * 10 * px, 0), (side * 1 * px, -1 * px), (side * 3 * px, 3 * px)]
@@ -1284,58 +1742,101 @@ def jiruan(path):
         jr_keys(node, "scale", [(0, (0.001, 1, 0.001)), (0.98 + d, (0.001, 1, 0.001)), (1.4 + d, (1, 1, 1)), (1.68 + d, (1, 1, 0.1)),
                                 (1.89 + d, (1, 1, 1)), (4.9 + d, (1, 1, 1)), (5.95 + d, (1, 1, 0.35))])
 
-    # The foreground silhouettes (bi-jr-near), unlit, 5 m from the camera, reaching past the frame.
+    # ---- The foreground (bi-jr-near), unlit #040208 silhouettes 4.5–6 m from the camera, each in the
+    # SVG's corner: a root arch with ferns (bottom left), a bush of leaves (bottom right), overhanging
+    # branches with leaves (top left and right). At eye height the frame's bottom meets the floor only
+    # 8 m off, so the lower ones stand up to about 1.2 m to show.
     near = shader_material("near", "#040208", "background")
-    for i, points in enumerate(([(0, 680), (0, 520), (60, 560), (90, 610), (130, 590), (170, 640), (210, 680), (210, 760), (-80, 760), (-80, 680)],
-                                [(1200, 680), (1280, 680), (1280, 760), (990, 760), (990, 680), (1030, 636), (1070, 584), (1110, 600), (1140, 548), (1200, 500)],
-                                [(-80, -80), (260, -80), (260, 0), (190, 40), (140, 30), (80, 70), (0, 60), (-80, 60)],
-                                [(1280, -80), (1280, 66), (1200, 66), (1120, 72), (1060, 34), (1000, 46), (930, 0), (930, -80)])):
-        mid = svg_point(sum(p[0] for p in points) / len(points), sum(p[1] for p in points) / len(points), 5)
-        mesh_object("near-%d" % (i + 1), slab_mesh("near-%d" % (i + 1), svg_outline(points, 5, mid), 0.05, near), location=mid)
+    near.use_backface_culling = False
 
-    # Where the figures stand (the test figure faces −Y, the camera). The boss rises out of the ground
-    # in the rift's light 2 m before it (bi-boss-rise: below the ground to 2.1 s, 4 % of his height low
-    # at 2.94 s, in place at 7 s; scale 0.9 → 0.96 → 1.03 of his size, 1.25 times the test figure's).
+    def near_object(name, build, anchor):
+        mesh = JrMesh()
+        build(mesh)
+        return mesh.object(name, [near], origin=anchor, ink=False)
+
+    def root_arch(mesh):
+        a, b = svg_point(-60, 640, 5.0), svg_point(230, 660, 5.4)
+        a.z, b.z = -0.2, -0.2
+        top = (a + b) / 2 + Vector((0, 0.2, 0))
+        top.z = 0.92
+        path = [a.lerp(top, s) for s in (0, 0.3, 0.6, 0.85)] + [top] + [top.lerp(b, s) for s in (0.2, 0.5, 0.8, 1.0)]
+        path = [p + Vector((0, 0, 0.1 * math.sin(math.pi * k / 8))) for k, p in enumerate(path)]
+        mesh.tube(path, [0.15, 0.14, 0.12, 0.11, 0.1, 0.095, 0.09, 0.085, 0.08], 8, 0, rng, jitter=0.1)
+        for k in range(10):
+            h = rng.uniform(0.4, 2.7)
+            base = top.lerp(a, rng.uniform(0, 0.5)) + Vector((0, 0, 0.05))
+            mesh.blade(base, (math.cos(h), -0.3 + math.sin(h) * 0.3), rng.uniform(0.5, 0.9), 0.15, 0.8, 0)
+        stub = svg_point(30, 540, 5.0)
+        mesh.tube([Vector((stub.x - 0.2, stub.y, 0.3)), stub, stub + Vector((0.3, 0.05, 0.3))], [0.11, 0.07, 0.0], 6, 0, rng)
+
+    def bush(mesh):
+        c = svg_point(1110, 590, 5.4)
+        for k in range(150):
+            base = c + Vector((rng.uniform(-0.6, 0.6), rng.uniform(-0.2, 0.2), rng.uniform(-0.5, 0.35)))
+            h = rng.uniform(0, 2 * math.pi)
+            d = Vector((math.cos(h) * 0.7, rng.uniform(-0.3, 0.3), math.sin(h) * 0.6 + 0.3))
+            mesh.leaf(base, d, Vector((0, 1, 0)).cross(d), rng.uniform(0.12, 0.22), rng.uniform(0.05, 0.09), 0)
+        for k in range(4):
+            s = c + Vector((rng.uniform(-0.3, 0.3), 0, -1.0))
+            mesh.tube([s, s + Vector((rng.uniform(-0.3, 0.3), 0, 0.7)), s + Vector((rng.uniform(-0.5, 0.5), 0.1, 1.3))], [0.03, 0.02, 0.0], 5, 0)
+
+    def branch(mesh, start_svg, end_svg, droop):
+        a, b = svg_point(*start_svg, 4.6), svg_point(*end_svg, 4.6)
+        path = [a.lerp(b, s) + Vector((0, 0, -droop * math.sin(math.pi * s))) for s in (0, 0.25, 0.5, 0.75, 1.0)]
+        mesh.tube(path, [0.11, 0.08, 0.06, 0.04, 0.0], 6, 0, rng, jitter=0.12)
+        for k in range(26):
+            s = rng.uniform(0.25, 1.0)
+            p = a.lerp(b, s) + Vector((0, 0, -droop * math.sin(math.pi * s)))
+            for j in range(3):
+                h = rng.uniform(0, 2 * math.pi)
+                d = Vector((math.cos(h) * 0.5, rng.uniform(-0.3, 0.3), -0.8 + 0.4 * math.sin(h)))
+                mesh.leaf(p, d, Vector((0, 1, 0)).cross(d), rng.uniform(0.16, 0.3), rng.uniform(0.07, 0.12), 0)
+
+    near_object("near-1", root_arch, svg_point(100, 640, 5.0))
+    near_object("near-2", bush, svg_point(1100, 600, 5.4))
+    near_object("near-3", lambda m: (branch(m, (-60, -20), (260, 40), 0.15), branch(m, (-40, 40), (150, 85), 0.1)), svg_point(100, 20, 4.6))
+    near_object("near-4", lambda m: (branch(m, (1260, -20), (930, 30), 0.15), branch(m, (1240, 50), (1060, 80), 0.1)), svg_point(1100, 20, 4.6))
+
+    # ---- Where the figures stand (the test figure faces −Y, the camera). The boss rises out of the
+    # ground in the rift's light 2 m before it (bi-boss-rise; scale 0.9 → 0.96 → 1.03 of his size,
+    # 1.25 times the test figure's).
     king = 1.25
     stand = (foot.x, foot.y - 2.0)
     boss = empty("boss", location=(*stand, -2.4), scale=(king * 0.9,) * 3)
     jr_keys(boss, "location", [(0, (*stand, -2.4)), (2.1, (*stand, -2.4)), (2.94, (*stand, -0.04 * 1.84 * king)), (7.0, (*stand, 0))])
     jr_keys(boss, "scale", [(0, (king * 0.9,) * 3), (2.1, (king * 0.9,) * 3), (2.94, (king * 0.96,) * 3), (7.0, (king * 1.03,) * 3)])
-    # The imps (bi-imp-fly, ease-out, delays 0, 0.15, 0.35, 0.5 s): tiny inside the rift to 1.68 s, out
-    # to their places (the SVG's, hovering 8.5, 13, 11 and 11 m from the camera: imp 1 before the mid trunk it would hide behind) by 3.36 s,
-    # bobbing up 0.1 m, back, up 0.05 m; 0.4 of the test figure; each turned 30° outward (the CSS
-    # mirrored imps 1 and 3).
+    # The imps (bi-imp-fly, ease-out, delays 0, 0.15, 0.35, 0.5 s): hidden (a near-zero scale: the old opacity 0) inside the rift to 1.68 s, growing as they fly out to
+    # their places (the SVG's, hovering 8.5, 13, 11 and 11 m from the camera) by 3.36 s, bobbing up
+    # 0.1 m, back, up 0.05 m; 0.4 of the test figure; each turned 30° outward.
     imp = 0.4
     inside = centre + Vector((0, 0.3, -0.6))
     for i, (x, y, depth, delay, turn) in enumerate(((168, 293, 8.5, 0, -30), (972, 259, 13, 0.15, 30), (324, 449, 11, 0.35, -30), (900, 463, 11, 0.5, 30))):
         place = svg_point(x, y, depth)
-        node = empty("imp-%d" % (i + 1), location=inside, scale=(imp * 0.15,) * 3, rotation=(0, 0, turn))
+        node = empty("imp-%d" % (i + 1), location=inside, scale=(0.001,) * 3, rotation=(0, 0, turn))
         d = delay
         jr_keys(node, "location", [(0, inside), (1.68 + d, inside), (3.36 + d, place), (4.34 + d, place + Vector((0, 0, 0.1))),
                                    (5.32 + d, place), (7.0 + d, place + Vector((0, 0, 0.05)))])
-        jr_keys(node, "scale", [(0, (imp * 0.15,) * 3), (1.68 + d, (imp * 0.15,) * 3), (3.36 + d, (imp,) * 3)])
+        jr_keys(node, "scale", [(0, (0.001,) * 3), (1.68 + d, (0.001,) * 3), (3.36 + d, (imp,) * 3)])
 
     # Emitter marks for the sequence's particles: the mist (a low wide spawn, drifting across as
-    # bi-mist does) and embers at the rift's foot (not in the old scene: for motes, if wanted).
+    # bi-mist does) and embers at the rift's foot.
     mist = empty("mist", location=(-0.5, foot.y - 4.0, 0.3), scale=(7, 3, 0.4))
     jr_keys(mist, "location", [(0, (-0.5, foot.y - 4.0, 0.3)), (7.0, (0.5, foot.y - 4.0, 0.3))])
     empty("embers", location=(foot.x, foot.y - 0.2, 0.1), scale=(0.8, 0.3, 0.2))
 
-    # The camera on its dolly: the push-in (bi-camera, ease-in-out: the art 1.02 → 1.1 about 50 %, 62 %
-    # and up 1.5 %) as a move 1.02 m forward (the rift grows 1.1 / 1.02) and 0.13 m down.
+    # The camera on its dolly (bi-camera's push-in: 1.02 m forward, 0.13 m down over the 7 s).
     dolly = empty("dolly", location=JR_CAMERA)
     jr_keys(dolly, "location", [(0, JR_CAMERA), (7.0, (JR_CAMERA[0], JR_CAMERA[1] + 1.02, JR_CAMERA[2] - 0.13))])
-    lens = bpy.data.cameras.new("Lens")
-    lens.sensor_fit, lens.sensor_height, lens.lens = "VERTICAL", JR_SENSOR, JR_LENS
-    lens.clip_start, lens.clip_end = 0.1, 100
-    camera = bpy.data.objects.new("camera", lens)
+    lens_data = bpy.data.cameras.new("Lens")
+    lens_data.sensor_fit, lens_data.sensor_height, lens_data.lens = "VERTICAL", JR_SENSOR, JR_LENS
+    lens_data.clip_start, lens_data.clip_end = 0.1, 100
+    camera = bpy.data.objects.new("camera", lens_data)
     scene.collection.objects.link(camera)
     camera.parent = dolly
     camera.rotation_euler = (math.radians(90 + JR_PITCH), 0, 0)
     scene.camera = camera
 
-    # One sun (Q12): behind the rift, 40° up, shining toward the camera, so what faces the rift is lit
-    # (the rift's glow itself is emission, not a light).
+    # One sun (Q12): behind the rift, 40° up, shining toward the camera: what faces the rift is lit.
     light = bpy.data.lights.new("Riftlight", "SUN")
     light.energy, light.angle = 3.0, math.radians(3)
     mesh_object("sun", light, location=(0, 10, 12), rotation=(-50, 0, 15))
@@ -1358,10 +1859,237 @@ def export_scene_markers(scene):
     scene["events"] = [{"name": m.name, "time": (m.frame - scene.frame_start) / fps} for m in markers]
 
 
+# Ji'ruan's acting clips (Docs/Scene.md, step 7, phase 1b; S7-2): cutscene clips authored on the stand-in
+# rig (the test figure's bones, FIGURE_BONES), keyed as poses with anticipation, overshoot and settle,
+# the head and hands following the body a few frames late; bone clips relative to rest, so any rig of
+# the family plays them by bone names (M7). jiruan-acting.glb holds the armature alone with these clips;
+# the sequence plays them on the bound figures as NLA strips (Q16).
+JR_AXES = {"X": Vector((1, 0, 0)), "Y": Vector((0, 1, 0)), "Z": Vector((0, 0, 1))}
+JR_BONES = DEFORMING(FIGURE_BONES)
+
+
+def jr_mirror(turns):
+    """A left limb's turns for the right one: about X the same, about Y and Z the other way."""
+    return [(a, d if a == "X" else -d) for a, d in turns]
+
+
+def jr_body(hips=(0, 0, 0), hips_x=0, sway=0, twist=0, spine=0, chest=0, chest_z=0, neck=0, head=0, head_z=0, head_y=0,
+            arm=(), arm_r=None, fore=0, fore_r=None, hand=0, hand_r=None, thigh=(), thigh_r=None, shin=0, shin_r=None, foot=0, foot_r=None):
+    """A whole-body pose: turns about the armature's axes (X the figure's left: + bends a spine bone
+    forward, lifts a hanging limb backward; Y its back: − swings the left arm or leg out; Z up: + turns
+    toward its left), each bone's turns applied in its parent's frame; the right side mirrors the left
+    unless given; the hips' offset in metres (the armature's axes)."""
+    return {
+        "_hips": hips,
+        "hips": [("X", hips_x), ("Y", sway), ("Z", twist)],
+        "spine": [("X", spine)], "chest": [("X", chest), ("Z", chest_z)], "neck": [("X", neck)],
+        "head": [("X", head), ("Z", head_z), ("Y", head_y)],
+        "upper_arm.L": list(arm), "upper_arm.R": list(arm_r) if arm_r is not None else jr_mirror(arm),
+        "forearm.L": [("X", fore)], "forearm.R": [("X", fore if fore_r is None else fore_r)],
+        "hand.L": [("X", hand)], "hand.R": [("X", hand if hand_r is None else hand_r)],
+        "thigh.L": list(thigh), "thigh.R": list(thigh_r) if thigh_r is not None else jr_mirror(thigh),
+        "shin.L": [("X", shin)], "shin.R": [("X", shin if shin_r is None else shin_r)],
+        "foot.L": [("X", foot)], "foot.R": [("X", foot if foot_r is None else foot_r)],
+    }
+
+
+def jr_with(pose, **changes):
+    """A pose with some bones' turns replaced (bone names with "_" for "." : upper_arm_R)."""
+    out = dict(pose)
+    for name, value in changes.items():
+        out[name.replace("_L", ".L").replace("_R", ".R")] = value
+    return out
+
+
+class JrClip:
+    """An action keyed pose by pose on the rig (frames from 1, 60 fps)."""
+
+    def __init__(self, rig, name):
+        self.rig, self.action, self.last = rig, bpy.data.actions.new(name), {}
+
+    def key(self, frame, pose, bones=None, chest_scale=None):
+        rig = self.rig
+        rig.animation_data.action = self.action
+        for name in bones or JR_BONES:
+            q = Quaternion()
+            for axis, degrees in pose.get(name, []):
+                q = Quaternion(JR_AXES[axis], math.radians(degrees)) @ q
+            rest = rig.data.bones[name].matrix_local.to_quaternion()
+            local = rest.inverted() @ q @ rest
+            previous = self.last.get(name)
+            if previous is not None and previous.dot(local) < 0:
+                local.negate()  # the short way from the last key: Blender interpolates the components
+            self.last[name] = local.copy()
+            pose_bone = rig.pose.bones[name]
+            pose_bone.rotation_mode = "QUATERNION"
+            pose_bone.rotation_quaternion = local
+            pose_bone.keyframe_insert("rotation_quaternion", frame=frame)
+        if bones is None or "hips" in bones:
+            pose_bone = rig.pose.bones["hips"]
+            pose_bone.location = rig.data.bones["hips"].matrix_local.to_3x3().inverted() @ Vector(pose["_hips"])
+            pose_bone.keyframe_insert("location", frame=frame)
+        if chest_scale is not None:
+            pose_bone = rig.pose.bones["chest"]
+            pose_bone.scale = (chest_scale[0], 1, chest_scale[1])
+            pose_bone.keyframe_insert("scale", frame=frame)
+
+    def marker(self, name, frame):
+        self.action.pose_markers.new(name).frame = frame
+
+
+# The king's poses.
+JR_STAND = jr_body(spine=-2, chest=-5, head=4, arm=[("Y", -10), ("X", 4)], fore=-20, hand=-10, thigh=[("X", -3), ("Y", -3)], shin=6, foot=-3)
+JR_STANCE = jr_body(spine=-2, chest=-6, neck=-2, head=-5, arm=[("Y", -40), ("X", 16)], fore=-90, hand=-15, thigh=[("X", -2), ("Y", -7)], shin=4, foot=-2)
+JR_OPEN = jr_body(hips=(0, 0, 0.005), hips_x=-3, spine=-6, chest=-14, neck=-8, head=-17, arm=[("Y", -100), ("X", 9)], fore=-16, hand=12,
+                  thigh=[("X", 0), ("Y", -8)], shin=2)
+# The imps' poses.
+JR_TUCK = jr_body(hips=(0, 0, -0.22), hips_x=20, spine=22, chest=32, neck=16, head=36, arm=[("X", -55), ("Y", 22)], fore=-105, hand=-25,
+                  thigh=[("X", -125)], shin=145, foot=30)
+JR_HOVER = jr_body(hips_x=6, spine=4, chest=6, head=-6, arm=[("Y", -52), ("X", 14)], fore=-40, hand=10,
+                   thigh=[("X", -36), ("Y", -6)], thigh_r=[("X", -6), ("Y", 6)], shin=58, shin_r=34, foot=30)
+JR_HUNCH = jr_body(hips=(0, 0, -0.12), hips_x=10, spine=12, chest=24, neck=-8, head=-16, arm=[("X", -32), ("Y", -8)], fore=-52, hand=-32,
+                   thigh=[("X", -42), ("Y", -8)], shin=74, foot=-30)
+
+
+def jr_rise(rig):
+    """rise (1.4 s): crouched low, head down, arms hugged in; sinking a little deeper (anticipation),
+    then unfolding upward, the chest and head lifting last and past upright (overshoot, marker
+    "risen"), settling into a proud stand with the head slightly bowed. Played as the mark lifts him
+    out of the light."""
+    clip = JrClip(rig, "rise")
+    crouch = jr_body(hips=(0, 0.08, -0.45), hips_x=30, spine=18, chest=25, neck=15, head=30, arm=[("X", -35), ("Y", 18)], fore=-80, hand=-30,
+                     thigh=[("X", -115)], shin=135, foot=-40)
+    clip.key(1, crouch)
+    clip.key(16, jr_body(hips=(0, 0.09, -0.5), hips_x=34, spine=20, chest=28, neck=17, head=36, arm=[("X", -40), ("Y", 20)], fore=-84, hand=-32,
+                         thigh=[("X", -122)], shin=142, foot=-44))
+    clip.key(44, jr_body(hips=(0, 0.03, -0.18), hips_x=12, spine=8, chest=9, neck=6, head=20, arm=[("Y", -14), ("X", -8)], fore=-35, hand=-15,
+                         thigh=[("X", -48), ("Y", -2)], shin=74, foot=-22))
+    clip.key(64, jr_body(hips=(0, 0, 0.02), hips_x=-4, spine=-4, chest=-12, neck=-5, head=-8, arm=[("Y", -16), ("X", 8)], fore=-14, hand=-5,
+                         thigh=[("X", -2), ("Y", -3)], shin=3, foot=1))
+    clip.key(85, JR_STAND)
+    clip.marker("risen", 64)
+    return clip.action
+
+
+def jr_spread(rig):
+    """spread (1.2 s): from the stand the arms pull in across the chest and the knees give
+    (anticipation), then fling wide and up, chest out, head back (marker "crown", 0.48 s in: played
+    from 3.6 s it lands on the old flash's peak), overshooting and easing back into the held, open pose."""
+    clip = JrClip(rig, "spread")
+    clip.key(1, JR_STAND)
+    clip.key(14, jr_body(hips=(0, 0, -0.07), hips_x=4, spine=6, chest=15, neck=6, head=20, arm=[("X", -38), ("Y", 30)], fore=-112, hand=-35,
+                         thigh=[("X", -14)], shin=24, foot=-10))
+    clip.key(26, jr_body(hips=(0, -0.01, 0.03), hips_x=-3, spine=-6, chest=-17, neck=-8, head=-22, arm=[("Y", -104), ("X", 12)], fore=-14, hand=18,
+                         thigh=[("X", 0), ("Y", -8)], shin=2))
+    clip.key(33, jr_with(jr_body(hips=(0, -0.01, 0.035), hips_x=-3, spine=-7, chest=-20, neck=-10, head=-27, arm=[("Y", -118), ("X", 18)], fore=-8,
+                                 hand=24, thigh=[("X", 0), ("Y", -8)], shin=2)))
+    clip.key(50, jr_body(hips=(0, 0, 0.01), hips_x=-3, spine=-6, chest=-15, neck=-8, head=-18, arm=[("Y", -102), ("X", 10)], fore=-16, hand=12,
+                         thigh=[("X", 0), ("Y", -8)], shin=2))
+    clip.key(73, JR_OPEN)
+    clip.marker("crown", 30)
+    return clip.action
+
+
+def jr_settle(rig):
+    """settle (1.2 s): from the open pose the arms lift a touch (anticipation), drop, come in to the
+    hips (marker "stance"), the weight sinking and bouncing back into a wide, commanding stance."""
+    clip = JrClip(rig, "settle")
+    clip.key(1, JR_OPEN)
+    clip.key(12, jr_with(JR_OPEN, upper_arm_L=[("Y", -108), ("X", 12)], upper_arm_R=jr_mirror([("Y", -108), ("X", 12)]),
+                         chest=[("X", -15), ("Z", 0)]))
+    clip.key(26, jr_body(hips=(0, 0, -0.02), spine=-3, chest=-8, neck=-4, head=-8, arm=[("Y", -28), ("X", -6)], fore=-30, hand=-5,
+                         thigh=[("X", -4), ("Y", -8)], shin=7, foot=-3))
+    clip.key(42, jr_body(hips=(0, 0, -0.03), spine=-2, chest=-6, neck=-2, head=-2, arm=[("Y", -44), ("X", 20)], fore=-96, hand=-22,
+                         thigh=[("X", -6), ("Y", -7)], shin=11, foot=-5))
+    clip.key(54, jr_body(hips=(0, 0, -0.012), spine=-2, chest=-6, neck=-2, head=-4, arm=[("Y", -41), ("X", 17)], fore=-90, hand=-17,
+                         thigh=[("X", -3), ("Y", -7)], shin=6, foot=-3))
+    clip.key(73, JR_STANCE)
+    clip.marker("stance", 42)
+    return clip.action
+
+
+def jr_idle_king(rig):
+    """idle-king (2.4 s, loops): breathing in the stance, the chest rising and swelling, the weight
+    swaying side to side, the head surveying left, then right."""
+    clip = JrClip(rig, "idle-king")
+    inhale = dict(hips=(0, 0, 0.008), spine=-3, chest=-8, neck=-2, arm=[("Y", -42), ("X", 17)], fore=-88, hand=-14,
+                  thigh=[("X", -2), ("Y", -7)], shin=4, foot=-2)
+    clip.key(1, JR_STANCE, chest_scale=(1, 1))
+    clip.key(37, jr_body(sway=1.2, head=-7, head_z=5, **inhale), chest_scale=(1.022, 1.03))
+    clip.key(73, JR_STANCE, chest_scale=(1, 1))
+    clip.key(109, jr_body(sway=-1.2, head=-7, head_z=-5, **inhale), chest_scale=(1.022, 1.03))
+    clip.key(145, JR_STANCE, chest_scale=(1, 1))
+    return clip.action
+
+
+def jr_fly_out(rig):
+    """fly-out (1.7 s): tucked in a ball, curling tighter (anticipation), then flung open, arms and legs
+    wide, head thrown back as it shoots out of the rift (marker "burst"), the limbs trailing behind,
+    gathering into the hover."""
+    clip = JrClip(rig, "fly-out")
+    clip.key(1, JR_TUCK)
+    clip.key(14, jr_body(hips=(0, 0, -0.25), hips_x=22, spine=24, chest=38, neck=18, head=44, arm=[("X", -62), ("Y", 24)], fore=-110, hand=-28,
+                         thigh=[("X", -132)], shin=150, foot=32))
+    clip.key(26, jr_body(hips_x=-10, spine=-12, chest=-24, neck=-10, head=-28, arm=[("Y", -112), ("X", -22)], fore=-8, hand=12,
+                         thigh=[("X", 22), ("Y", -35)], shin=32, foot=40))
+    clip.key(40, jr_body(hips_x=-4, spine=-6, chest=-12, neck=-6, head=-14, arm=[("Y", -92), ("X", 38)], fore=-20, hand=16,
+                         thigh=[("X", 38), ("Y", -24)], shin=55, foot=45))
+    clip.key(64, jr_body(hips_x=6, spine=3, chest=4, head=-2, arm=[("Y", -70), ("X", 10)], fore=-45, hand=6,
+                         thigh=[("X", -22), ("Y", -10)], shin=52, foot=28))
+    clip.key(103, JR_HOVER)
+    clip.marker("burst", 26)
+    return clip.action
+
+
+def jr_hover(rig):
+    """hover (0.8 s, loops): treading air: the legs kicking in turn, the arms beating down and up like
+    wings (the stand-in has none), the body lifting on each down-beat."""
+    clip = JrClip(rig, "hover")
+    up = dict(arm=[("Y", -88), ("X", -6)], fore=-30, hand=14)
+    clip.key(1, JR_HOVER)
+    clip.key(13, jr_body(hips=(0, 0, 0.035), hips_x=6, spine=3, chest=3, head=-8, thigh=[("X", -22), ("Y", -6)], thigh_r=[("X", -20), ("Y", 6)],
+                         shin=46, foot=30, **up))
+    clip.key(25, jr_body(hips_x=6, spine=4, chest=6, head=-6, arm=[("Y", -52), ("X", 14)], fore=-40, hand=10,
+                         thigh=[("X", -6), ("Y", -6)], thigh_r=[("X", -36), ("Y", 6)], shin=34, shin_r=58, foot=30))
+    clip.key(37, jr_body(hips=(0, 0, 0.035), hips_x=6, spine=3, chest=3, head=-8, thigh=[("X", -20), ("Y", -6)], thigh_r=[("X", -22), ("Y", 6)],
+                         shin=46, foot=30, **up))
+    clip.key(49, JR_HOVER)
+    return clip.action
+
+
+def jr_idle_imp(rig):
+    """idle-imp (1.6 s, loops): hunched on bent knees, claws out, twitchy: the head snaps to one side
+    and the other (five-frame snaps, held: faster ones bend more between frames than the 60 fps samples
+    follow), a claw jerks up, the head cocks."""
+    clip = JrClip(rig, "idle-imp")
+    clip.key(1, JR_HUNCH, chest_scale=(1, 1))
+    clip.key(48, jr_with(JR_HUNCH, hips=[("X", 12), ("Y", 0), ("Z", 0)], chest=[("X", 27), ("Z", 0)]), chest_scale=(1.03, 1.03))
+    clip.key(97, JR_HUNCH, chest_scale=(1, 1))
+    head = lambda z, y=0: {"head": [("X", -16), ("Z", z), ("Y", y)]}  # noqa: E731
+    for frame, z, y in ((16, 0, 0), (21, 30, 0), (38, 26, 0), (43, -12, 0), (58, -10, 0), (71, -4, 0), (76, -4, 14), (86, -2, 12)):
+        clip.key(frame, head(z, y), bones=["head"])
+    for frame, lift in ((52, 0), (57, -15), (62, -14), (68, 0)):
+        clip.key(frame, {"upper_arm.R": [("X", -32 + lift), ("Y", 8)], "forearm.R": [("X", -52 + lift)]}, bones=["upper_arm.R", "forearm.R"])
+    return clip.action
+
+
+def jiruan_acting(path):
+    """Ji'ruan's acting clips (see above) on the test figure's armature alone, at 60 fps, exported as M7's
+    animated models are (ANIMATED: each action its own glTF animation from 0 s, its pose markers as the
+    animation's events): the king's rise, spread, settle and idle-king, the imps' fly-out, hover and
+    idle-imp."""
+    bpy.context.scene.render.fps, bpy.context.scene.render.fps_base = 60, 1
+    rig = armature("Figure", FIGURE_BONES)
+    rig.animation_data_create()
+    actions = [jr_rise(rig), jr_spread(rig), jr_settle(rig), jr_idle_king(rig), jr_fly_out(rig), jr_hover(rig), jr_idle_imp(rig)]
+    stack_actions(rig, actions)
+    export(path, **ANIMATED)
+
 # Builders by model name (evaluate_animations.py builds the animated ones again).
 BUILDERS = {"blocks": blocks, "rigged": rigged, "shapes": shapes, "stage": stage, "fringe": fringe, "glowing": glowing,
             "figure": figure, "reach": reach, "stocky": stocky, "sword": sword, "tabard": tabard, "pennant": pennant,
-            "hierarchy": hierarchy, "dolly": dolly, "jiruan": jiruan}
+            "hierarchy": hierarchy, "dolly": dolly, "jiruan": jiruan,
+            "jiruan-acting": jiruan_acting}
 
 
 def main():

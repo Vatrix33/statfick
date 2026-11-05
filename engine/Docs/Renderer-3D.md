@@ -398,9 +398,16 @@ second time), and top-level objects without a mesh.)
   and emission-only parts become flat emission. After the shading render, two more: the glowing
   parts alone in their glow colours (everything else hidden, film transparent) and the coverage of
   the models they belong to, into `Actual/blender-glow/`. `compose_glow.py` (Pillow) then lays the
-  halo into `Golden/r3d-<scene>.png` as `compose.py` did, held back where those models cover. The
-  engine also holds a halo back where anything is nearer than its glowing part, which this doesn't
-  model: test scenes keep glowing parts in view.
+  halo into `Golden/r3d-<scene>.png` as `compose.py` did, held back where those models cover. Where
+  glowing models overlap or something stands nearer than a glowing part (M10 step 7, S7-8;
+  `hold_by_owner`), the mask follows the engine's rule (`glow_owner.frag`, `glow_composite.frag`): one-sample
+  float renders (filter 0, Raw, OpenEXR, read back through `bpy.data.images`) give each pixel's nearest
+  glowing model and its view depth (the Camera Data node's View Z Depth, the engine's `-view.z`) and the
+  model and depth of every surface seen; each pixel's halo owner is the nearest glowing pixel within the
+  halo's reach, 3 · (box + 1) + 1 pixels from `Renderer3D.BoxOf` (one axis, then the other); the mask is
+  the owner model's own coverage, raised to full where another model is nearer than the owner's glowing
+  part. With one glowing model and nothing nearer the mask is left as rendered, so M6's goldens are
+  unchanged byte for byte.
 - **Shadows in Blender**: in scenes with scenery, the sun casts shadows with its angle and
   `use_shadow_jitter` (no overblur): the exact disc light, 64 shadow origins over the samples.
   Scenery's materials keep the toon chain (Shader to RGB takes the shadow); other models' light is
@@ -481,6 +488,31 @@ second time), and top-level objects without a mesh.)
   (a pole and a floating bar seen from above at about 200 px/m, fringes ~15 px wide) is the one
   that tells the sun's size: hard shadows, a sun 30% too small or too large, shadows on characters
   and no shadows each fail.
+- **Detailed stages** (M10 step 7, S7-12; `Tests/.../Render3D/ReferenceLimits.cs`): the limits above are
+  `ReferenceLimits.M6`; a detailed stage (Ji'ruan's, `JiruanRenderTests`) is held to
+  `ReferenceLimits.DetailedStage`, set from its measurement (`Docs/Scene.md`, step 7, the ink study). Two things
+  part the engine from Freestyle there that M6's scenes don't have: Freestyle drops the far scenery's
+  sub-pixel detail (bark, branches and foliage 30 m away: about 56 % of the extra lines), and it draws no line
+  where separate objects meet or rest in each other, where the engine's rule outlines every model against
+  anything else (trunks, roots, rocks and plates standing in the ground, leaves on it: about 31 %). Measured
+  at the six sampled times on the GPU and on lavapipe (600 × 340), each widened limit the worst plus about a
+  twentieth:
+
+  | Measure | M6 | Measured | Detailed stage |
+  | --- | --- | --- | --- |
+  | Engine line pixels where Freestyle has none | 3 % | 8.98–11.91 % | 12.5 % |
+  | Freestyle line pixels with unlike ink about them | 3 % | 5.94–7.97 % | 8.5 % |
+  | Total ink off Freestyle's | 10 % | 7.23–10.08 % | 10.5 % |
+  | Mean coverage difference | 0.12 | 0.152–0.167 | 0.175 |
+  | Stray pixels on the geometry's edges | 1 in 10,000 | 63–246 of 204,000 | 1 in 800 (255) |
+  | Freestyle line pixels missed | 2 % | 0.63–1.21 % | 2 % (M6's) |
+  | Edges' mean difference | 4 | 0.8–1.5 | 4 (M6's) |
+  | Inside surfaces off by more than 16 | 0.2 % | at most 7 pixels | 0.2 % (M6's) |
+  | Shadows' difference left over | 0.1 | 0.035–0.068 | 0.1 (M6's) |
+
+  The stray pixels lie on the ground at trunk bases, on the plates, the mid trees and the king. Each widened
+  limit put back to M6's fails the comparison. The user approved these limits exactly as set (2026-11-05;
+  `Docs/Scene.md`, "Step details", S7-13).
 - **Terrain chunks** (`TheTerrainsLevelsMeetWithoutCracks`): the reference scenes draw every chunk
   at stride 1 (cells 4-6 pixels on screen), so the levels are checked on their own: both terrain
   views drawn with the four chunks at strides 1, 2, 4 and 8 over a magenta background and without

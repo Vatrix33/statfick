@@ -1,0 +1,48 @@
+{
+  "$types": {
+    "particle.effect": 1,
+    "particle.shape": 1,
+    "particle.puff": 1,
+    "particle.range": 1,
+    "particle.spawn": 1,
+    "particle.sphere": 1
+  },
+  "shape": {
+    "$type": "particle.puff",
+    "softness": 0.9
+  },
+  "startColor": "mist",
+  "endColor": "mist.deep",
+  "opacity": 0.32,
+  "outlineWidth": 0,
+  "glow": false,
+  "life": {
+    "min": 3.5,
+    "max": 5.5
+  },
+  "size": {
+    "min": 1.1,
+    "max": 2.2
+  },
+  "speed": {
+    "min": 0.05,
+    "max": 0.25
+  },
+  "spawn": {
+    "$type": "particle.sphere",
+    "radius": 1
+  },
+  "growIn": 0.35,
+  "fadeOut": 0.45,
+  "gravity": [0, 0.03, 0],
+  "drag": 0.3,
+  "angle": {
+    "min": 0,
+    "max": 360
+  },
+  "spin": {
+    "min": -8,
+    "max": 8
+  },
+  "inherit": 0
+}

@@ -1,0 +1,47 @@
+/* The boss intro card (Docs/Scene.md, step 7, phase 2): the old game's "Boss intro cutscenes" rules for
+   the overlay and its card, copied line for line from the tests' copy of styles.css (Data/Game/styles.css;
+   JiruanCardTests checks each line is there), without the SVG scene's and the sprites' rules
+   (.bi-art, .bi-boss, .bi-imp, .bi-jr-*: the 3D view replaces
+   them, and the halo is the stage's geometry, S7-5); the old stylesheet's two font variables. */
+:root {
+  --font-ui: Lato, "Segoe UI", Arial, sans-serif;
+  --font-title: "STIX Two Text", Georgia, serif;
+}
+/* Boss intro cutscenes (scripts/boss-intros.js): a letterboxed scene around the boss's own
+   battle sprite, then a title card. --bi-duration matches the intro's length in JS. */
+.boss-intro-cinematic { --bi-color: #c58cff; --bi-ink: #f3eaff; --bi-duration: 7000ms; position: fixed; inset: 0; z-index: 1400; overflow: hidden; color: var(--bi-ink); background: #05030a; isolation: isolate; }
+.boss-intro-cinematic[hidden] { display: none; }
+.boss-intro-cinematic::before, .boss-intro-cinematic::after { content: ""; position: absolute; z-index: 4; right: 0; left: 0; height: clamp(26px, 7vh, 74px); background: #030206; pointer-events: none; }
+.boss-intro-cinematic::before { top: 0; } .boss-intro-cinematic::after { bottom: 0; }
+.boss-intro-scene, .boss-intro-flash, .boss-intro-vignette { position: absolute; inset: 0; }
+.boss-intro-scene { overflow: hidden; }
+.boss-intro-flash { z-index: 2; opacity: 0; background: radial-gradient(circle at 50% 56%, #fbf6ff 0%, #d9c2ff 16%, #8e5ad655 38%, transparent 70%); mix-blend-mode: screen; pointer-events: none; }
+.boss-intro-vignette { z-index: 2; background: linear-gradient(180deg, #05030ae6 0%, transparent 28%, transparent 52%, #05030af0 90%), radial-gradient(ellipse at 50% 50%, transparent 38%, #05030acc 100%); pointer-events: none; }
+.boss-intro-top { position: absolute; z-index: 5; top: clamp(44px, 9vh, 98px); right: clamp(20px, 5vw, 85px); left: clamp(20px, 5vw, 85px); display: flex; align-items: center; justify-content: space-between; gap: 20px; font: .8125rem var(--font-ui); letter-spacing: .24em; }
+.boss-intro-top > span { opacity: .78; }
+#boss-intro-skip { padding: 10px 14px; border: 1px solid #c58cff77; border-radius: 2px; color: var(--bi-ink); background: #0a0612b8; font: .75rem var(--font-ui); letter-spacing: .16em; text-transform: uppercase; cursor: pointer; }
+#boss-intro-skip:hover, #boss-intro-skip:focus-visible { border-color: var(--bi-color); background: #3a2056; outline: 2px solid var(--bi-color); outline-offset: 3px; }
+.boss-intro-caption { position: absolute; z-index: 3; right: clamp(20px, 7vw, 110px); bottom: clamp(70px, 12vh, 140px); left: clamp(20px, 7vw, 110px); text-align: center; text-shadow: 0 3px 22px #000, 0 0 2px #000; }
+#boss-intro-overture { position: absolute; right: 0; bottom: calc(100% + 18vh); left: 0; margin: 0; color: #e4d6f2; font: italic clamp(1rem, 2.6vw, 1.625rem) var(--font-title); }
+#boss-intro-label { margin: 0 0 12px; color: var(--bi-color); font: 700 clamp(.75rem, 1.3vw, .9375rem) var(--font-ui); letter-spacing: .34em; text-transform: uppercase; }
+#boss-intro-title { margin: 0; color: var(--bi-ink); font: 400 clamp(2.375rem, 7.5vw, 6.25rem)/1.05 var(--font-title); letter-spacing: -.04em; }
+#boss-intro-title em { color: var(--bi-color); font-style: italic; }
+#boss-intro-description { margin: 16px 0 0; color: #d6c6e8; font: clamp(.8125rem, 1.35vw, 1.0625rem) var(--font-ui); letter-spacing: .1em; }
+.boss-intro-progress { position: absolute; z-index: 5; right: clamp(20px, 7vw, 110px); bottom: clamp(44px, 7.5vh, 80px); left: clamp(20px, 7vw, 110px); height: 2px; background: #c58cff33; }
+.boss-intro-progress span { display: block; height: 100%; background: var(--bi-color); box-shadow: 0 0 12px var(--bi-color); transform-origin: left; transform: scaleX(0); }
+.boss-intro-cinematic.is-playing { animation: bi-curtain var(--bi-duration) ease-in-out both; }
+.boss-intro-cinematic.is-playing .boss-intro-flash { animation: bi-flash var(--bi-duration) ease-out both; }
+.boss-intro-cinematic.is-playing #boss-intro-overture { animation: bi-overture var(--bi-duration) ease-in-out both; }
+.boss-intro-cinematic.is-playing #boss-intro-label, .boss-intro-cinematic.is-playing #boss-intro-title, .boss-intro-cinematic.is-playing #boss-intro-description { animation: bi-card var(--bi-duration) ease-out both; }
+.boss-intro-cinematic.is-playing #boss-intro-title { animation-delay: .12s; } .boss-intro-cinematic.is-playing #boss-intro-description { animation-delay: .3s; }
+.boss-intro-cinematic.is-playing .boss-intro-progress span { animation: bi-progress var(--bi-duration) linear both; }
+@keyframes bi-curtain { 0% { opacity: 0; } 5%, 93% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes bi-flash { 0%, 55% { opacity: 0; } 59% { opacity: .95; } 70%, 100% { opacity: 0; } }
+@keyframes bi-overture { 0%, 7% { opacity: 0; transform: translateY(10px); } 13%, 38% { opacity: 1; transform: translateY(0); } 46%, 100% { opacity: 0; } }
+@keyframes bi-card { 0%, 58% { opacity: 0; transform: translateY(18px); letter-spacing: .02em; } 68%, 100% { opacity: 1; transform: translateY(0); } }
+@keyframes bi-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (max-width: 650px) { .boss-intro-top { letter-spacing: .1em; font-size: .6875rem; } .boss-intro-caption { bottom: 16vh; } #boss-intro-overture { bottom: calc(100% + 10vh); } }
+@media (prefers-reduced-motion: reduce) {
+  .boss-intro-cinematic.is-playing, .boss-intro-cinematic.is-playing * { animation: none !important; }
+  #boss-intro-overture, .bi-imp { display: none; }
+}

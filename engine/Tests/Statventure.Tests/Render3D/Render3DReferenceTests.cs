@@ -21,8 +21,10 @@ public class Render3DReferenceTests(GpuFixture gpu)
     internal static string ModelDirectory => Path.Combine(Path.GetDirectoryName(Golden.GoldenPath("x"))!, "..", "Data", "Models");
     internal static string TerrainDirectory => Path.Combine(Path.GetDirectoryName(Golden.GoldenPath("x"))!, "..", "Data", "Terrain");
 
-    public static TheoryData<string> SceneNames => new(Scenes3D.All.Select(s => s.Name));
-    public static TheoryData<string> InkedSceneNames => new(Scenes3D.All.Where(s => s.Models.Length > 0 || s.Terrain != null).Select(s => s.Name));
+    // Ji'ruan's scenes (Docs/Scene.md, step 7) are compared through the sequence that plays them (Scene/JiruanRenderTests).
+    static IEnumerable<Scene3D> Compared => Scenes3D.All.Where(s => !s.Name.StartsWith("jiruan-"));
+    public static TheoryData<string> SceneNames => new(Compared.Select(s => s.Name));
+    public static TheoryData<string> InkedSceneNames => new(Compared.Where(s => s.Models.Length > 0 || s.Terrain != null).Select(s => s.Name));
 
     [Fact]
     public void TheSceneFileIsUpToDate()
@@ -198,9 +200,11 @@ public class Render3DReferenceTests(GpuFixture gpu)
     /// 10,000 may stray (measured: up to 7, on the terrain): scenery shades a sub-pixel sliver of a
     /// band edge or a contact shadow once per pixel where Blender shades each sample. Checked: hard
     /// shadows, a sun 30% too small or too large, shadows on characters and no shadows each fail.
+    /// Those are M6's limits (<see cref="ReferenceLimits.M6"/>); a detailed stage's are its own.
     /// </summary>
-    internal static string CompareShadowed(RgbaImage expected, RgbaImage actual, RgbaImage unshadowed)
+    internal static string CompareShadowed(RgbaImage expected, RgbaImage actual, RgbaImage unshadowed, ReferenceLimits? limits = null)
     {
+        limits ??= ReferenceLimits.M6;
         int w = expected.Width, h = expected.Height;
         byte[] e = expected.Pixels, a = actual.Pixels, u = unshadowed.Pixels;
         var onGeometry = new bool[w * h];
@@ -234,10 +238,10 @@ public class Render3DReferenceTests(GpuFixture gpu)
                 left += difference;
                 signal += shadow;
             }
-        var text = new StringBuilder(Compare(expected, actual, only: (x, y) => onGeometry[y * w + x], strays: w * h / 10000));
-        if (far > 0.002 * inside)
+        var text = new StringBuilder(Compare(expected, actual, edgeMean: limits.EdgeMean, only: (x, y) => onGeometry[y * w + x], strays: w * h / limits.StrayEvery));
+        if (far > limits.FarInside * inside)
             text.Append($" {far} of {inside} pixels inside surfaces differ by more than 16");
-        if (signal > 0 && left / signal > 0.1)
+        if (signal > 0 && left / signal > limits.LeftOver)
             text.Append($" {left / signal:P1} of the shadows' difference left over");
         return text.ToString().Trim();
     }
@@ -257,9 +261,11 @@ public class Render3DReferenceTests(GpuFixture gpu)
     /// misses ≤ 2%, extras ≤ 3%, total ink within 10%, mean coverage difference ≤ 0.12, local ink
     /// out of range ≤ 3%; and a crest before the slope behind it (a fold within a part seen almost
     /// edge-on) taken for a surface running on fails terrain-oblique (3.5% of its line pixels missed).
+    /// Those are M6's limits (<see cref="ReferenceLimits.M6"/>); a detailed stage's are its own.
     /// </summary>
-    internal static string CompareInk(float[] expected, float[] actual, int width)
+    internal static string CompareInk(float[] expected, float[] actual, int width, ReferenceLimits? limits = null)
     {
+        limits ??= ReferenceLimits.M6;
         var height = expected.Length / width;
         float Near(float[] map, int x, int y)
         {
@@ -323,15 +329,15 @@ public class Render3DReferenceTests(GpuFixture gpu)
                 if (expected[y * width + x] >= 0.5f && Box(actualSums, x, y) / Box(expectedSums, x, y) is < 0.75 or > 1.33)
                     unlike++;
         var text = new StringBuilder();
-        if (unlike > 0.03 * lines)
+        if (unlike > limits.Unlike * lines)
             text.Append($"{unlike} of {lines} line pixels with unlike ink about them ");
-        if (missed > 0.02 * lines)
+        if (missed > limits.Missed * lines)
             text.Append($"{missed} of {lines} line pixels missed ");
-        if (extra > 0.03 * engineLines)
+        if (extra > limits.Extra * engineLines)
             text.Append($"{extra} of {engineLines} line pixels where Freestyle has none ");
-        if (ink == 0 ? engineInk > 0 : Math.Abs(engineInk / ink - 1) > 0.1)
+        if (ink == 0 ? engineInk > 0 : Math.Abs(engineInk / ink - 1) > limits.TotalInk)
             text.Append($"ink {engineInk:F0} against {ink:F0} ");
-        if (covered > 0 && difference / covered > 0.12)
+        if (covered > 0 && difference / covered > limits.Coverage)
             text.Append($"coverage differs by {difference / covered:F3} on average ");
         return text.ToString().Trim();
     }
@@ -363,13 +369,16 @@ public class Render3DReferenceTests(GpuFixture gpu)
                     Assert.True(Matrix4x4.Decompose(placed.Model, out var scale, out var rotation, out var translation));
                     var holder = new SceneNode().Add("placement");
                     holder.SetLocal(translation, rotation, scale);
-                    holder.Instance(model, palette, placed.Scenery).Draw(items, new SceneDrawing(scene.Style, scene.Camera.ToCamera(), scene.Height));
+                    var instance = holder.Instance(model, placed.Palette is { } own ? new Palette(own) : palette, placed.Scenery);
+                    if (placed.ClipTime is { } clipTime)
+                        instance.Apply(instance.Clip(model.Data.Animations[0].Name), clipTime);
+                    instance.Draw(items, new SceneDrawing(scene.Style, scene.Camera.ToCamera(), scene.Height));
                     continue;
                 }
                 // A group (a character with its gear) is one model: one owner, the first one's origin anchoring the hatching.
                 (object Owner, Vector3 Anchor)? group = placed.Group == null ? null
                     : groups.TryGetValue(placed.Group, out var known) ? known : groups[placed.Group] = (new object(), placed.Model.Translation);
-                model.Draw(items, placed.Model, palette, scene.Style, placed.Scenery, placed.PoseOf(model.Data), group?.Owner, placed.World?.Invoke(model.Data), group?.Anchor);
+                model.Draw(items, placed.Model, placed.Palette is { } ownPalette ? new Palette(ownPalette, scene.Shadows) : palette, scene.Style, placed.Scenery, placed.PoseOf(model.Data), group?.Owner, placed.World?.Invoke(model.Data), group?.Anchor);
             }
             if (scene.Terrain is { } placedTerrain)
             {
@@ -540,6 +549,8 @@ public class Render3DReferenceTests(GpuFixture gpu)
                 file = m.File, matrix = Columns(m.Model), scenery = m.Scenery, pose = Deformations(m), group = m.Group,
                 anchor = m.Group == null ? null : V(s.Models.First(o => o.Group == m.Group).Model.Translation),
                 objects = m.Objects ? true : (bool?)null,
+                clipTime = m.ClipTime,
+                palette = m.Palette,
             }).ToArray(),
             palette = s.Palette,
             shadows = s.Shadows,

@@ -1,0 +1,11 @@
+<!-- The boss intro overlay (Docs/Scene.md, step 7, phase 2): old-game/index.html's #boss-intro-cinematic as it is,
+     except the title's two parts, which the old game's script makes (its text, then an em) and the sequence's UI
+     track fills: the empty span and em inside #boss-intro-title. -->
+<div id="boss-intro-cinematic" class="boss-intro-cinematic" role="dialog" aria-modal="true" aria-labelledby="boss-intro-title" aria-describedby="boss-intro-description" hidden>
+  <div class="boss-intro-scene" aria-hidden="true"></div>
+  <div class="boss-intro-flash" aria-hidden="true"></div>
+  <div class="boss-intro-vignette" aria-hidden="true"></div>
+  <div class="boss-intro-top"><span id="boss-intro-location"></span><button id="boss-intro-skip" type="button">Skip <span aria-hidden="true">↗</span></button></div>
+  <div class="boss-intro-caption"><p id="boss-intro-overture"></p><p id="boss-intro-label"></p><h2 id="boss-intro-title"><span id="boss-intro-title-name"></span><em id="boss-intro-title-em"></em></h2><p id="boss-intro-description"></p></div>
+  <div class="boss-intro-progress" aria-hidden="true"><span></span></div>
+</div>

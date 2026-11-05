@@ -10,5 +10,10 @@
   <ItemGroup>
     <!-- The game's fonts (as the tests use them). -->
     <None Include="../../Tests/Statventure.Tests/Data/Fonts/**" LinkBase="Data/Fonts" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Ji'ruan's intro, the M10 proof (Cutscene.cs): test data, as the tests use it (Docs/Scene.md, Q30). -->
+    <None Include="../../Tests/Statventure.Tests/Data/Cutscenes/**" LinkBase="Data/Cutscenes" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The game's music in packs/ beside it, where the game mounts its packs: the proof's theme (S7-6). -->
+    <None Include="../../Assets/Packs/audio.pak" Link="packs/audio.pak" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../Tests/Statventure.Tests/Data/Models/jiruan.glb;../../Tests/Statventure.Tests/Data/Models/jiruan-acting.glb;../../Tests/Statventure.Tests/Data/Models/figure.glb" LinkBase="Data/Models" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

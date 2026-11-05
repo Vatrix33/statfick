@@ -111,6 +111,15 @@ public sealed record ModelObject3D(string File, Vector3 Translation, Vector3 Rot
     /// </summary>
     public bool Objects { get; init; }
 
+    /// <summary>
+    /// With <see cref="Objects"/>, the model's first clip applied at this time (seconds): a stage at a moment
+    /// of its timeline (Docs/Scene.md, step 7); Blender evaluates the imported clip there.
+    /// </summary>
+    public double? ClipTime { get; init; }
+
+    /// <summary>The model's own palette instead of the scene's (figures of one rig in different colours: Ji'ruan and his imps).</summary>
+    public Dictionary<string, string>? Palette { get; init; }
+
     public Matrix4x4 Model => Placement ?? Matrix4x4.CreateScale(Scale)
         * Matrix4x4.CreateRotationX(RotationDegrees.X * MathF.PI / 180)
         * Matrix4x4.CreateRotationY(RotationDegrees.Y * MathF.PI / 180)
@@ -447,6 +456,9 @@ public static class Scenes3D
         // A stage seen through its own camera and lit by its own sun (Docs/Scene.md, step 3), as the import
         // gives them 36 frames into its clip: the dolly stage's objects as scenery (Scene.SceneStageTests).
         Statventure.Tests.Scene.DollyStage.Scene,
+        // Ji'ruan's intro at the proof's sampled times (Docs/Scene.md, step 7, phase 2): the stage at its
+        // clip's moment, its camera and sun, the stand-ins on their marks in their clips' poses.
+        .. Statventure.Tests.Scene.JiruanStage.Scenes,
         // The same shapes in the battle view (orthographic, from the side) under a low sun from the left: other band positions.
         new("cel-side", 420, 200, "#b8b0a0", new Camera3D(Projection.Orthographic, new(0.1f, 0.5f, 6), new(0.1f, 0.5f, 0), OrthographicHeight: 1.9f), [])
         {

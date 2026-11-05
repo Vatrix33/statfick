@@ -1,0 +1,456 @@
+{
+  "$types": {
+    "scene.sequence": 1,
+    "scene.role": 1,
+    "scene.track": 1,
+    "scene.clip-track": 1,
+    "scene.strip": 1,
+    "scene.camera-track": 1,
+    "scene.camera-cut": 1,
+    "scene.light-track": 1,
+    "scene.light-cue": 1,
+    "scene.animation-track": 1,
+    "scene.palette-track": 1,
+    "scene.palette-cue": 1,
+    "scene.particle-track": 1,
+    "scene.particle-cue": 1,
+    "scene.audio-track": 1,
+    "scene.audio-cue": 1,
+    "scene.event-track": 1,
+    "scene.event-cue": 1,
+    "scene.ui-track": 1,
+    "scene.ui-cue": 1,
+    "scene.span": 1
+  },
+  "name": "jiruan",
+  "duration": 7,
+  "skippable": true,
+  "blocking": true,
+  "roles": [
+    {
+      "name": "king",
+      "kind": "actor"
+    },
+    {
+      "name": "imp-1",
+      "kind": "actor"
+    },
+    {
+      "name": "imp-2",
+      "kind": "actor"
+    },
+    {
+      "name": "imp-3",
+      "kind": "actor"
+    },
+    {
+      "name": "imp-4",
+      "kind": "actor"
+    },
+    {
+      "name": "card",
+      "kind": "element"
+    },
+    {
+      "name": "glow",
+      "kind": "palette"
+    }
+  ],
+  "stages": [
+    "models/stages/jiruan"
+  ],
+  "tracks": [
+    {
+      "$type": "scene.clip-track",
+      "stage": "jiruan",
+      "strip": {
+        "clip": "Scene",
+        "start": 0,
+        "clipStart": 0,
+        "scale": 1,
+        "repeat": 1,
+        "reversed": false,
+        "blendIn": 0,
+        "blendOut": 0,
+        "mode": "replace",
+        "extrapolation": "holdForward"
+      }
+    },
+    {
+      "$type": "scene.camera-track",
+      "cuts": [
+        {
+          "time": 0,
+          "camera": "jiruan/camera"
+        }
+      ]
+    },
+    {
+      "$type": "scene.light-track",
+      "cues": [
+        {
+          "time": 0,
+          "sun": "jiruan/sun"
+        }
+      ]
+    },
+    {
+      "$type": "scene.animation-track",
+      "actor": "king",
+      "mark": "jiruan/boss",
+      "strips": [
+        {
+          "clip": "rise",
+          "start": 2.1,
+          "clipStart": 0,
+          "scale": 1,
+          "repeat": 1,
+          "reversed": false,
+          "blendIn": 0,
+          "blendOut": 0,
+          "mode": "replace",
+          "extrapolation": "hold"
+        },
+        {
+          "clip": "spread",
+          "start": 3.6,
+          "clipStart": 0,
+          "scale": 1,
+          "repeat": 1,
+          "reversed": false,
+          "blendIn": 0,
+          "blendOut": 0,
+          "mode": "replace",
+          "extrapolation": "holdForward"
+        },
+        {
+          "clip": "settle",
+          "start": 5,
+          "clipStart": 0,
+          "scale": 1,
+          "repeat": 1,
+          "reversed": false,
+          "blendIn": 0,
+          "blendOut": 0,
+          "mode": "replace",
+          "extrapolation": "holdForward"
+        },
+        {
+          "clip": "idle-king",
+          "start": 6.2,
+          "clipStart": 0,
+          "scale": 1,
+          "repeat": "Infinity",
+          "reversed": false,
+          "blendIn": 0,
+          "blendOut": 0,
+          "mode": "replace",
+          "extrapolation": "holdForward"
+        }
+      ],
+      "cues": []
+    },
+    {
+      "$type": "scene.animation-track",
+      "actor": "imp-1",
+      "mark": "jiruan/imp-1",
+      "strips": [
+        {
+          "clip": "fly-out",
+          "start": 1.68,
+          "clipStart": 0,
+          "scale": 1,
+          "repeat": 1,
+          "reversed": false,
+          "blendIn": 0,
+          "blendOut": 0,
+          "mode": "replace",
+          "extrapolation": "hold"
+        },
+        {
+          "clip": "hover",
+          "start": 3.38,
+          "clipStart": 0,
+          "scale": 1,
+          "repeat": "Infinity",
+          "reversed": false,
+          "blendIn": 0,
+          "blendOut": 0,
+          "mode": "replace",
+          "extrapolation": "holdForward"
+        }
+      ],
+      "cues": []
+    },
+    {
+      "$type": "scene.animation-track",
+      "actor": "imp-2",
+      "mark": "jiruan/imp-2",
+      "strips": [
+        {
+          "clip": "fly-out",
+          "start": 1.8299999999999998,
+          "clipStart": 0,
+          "scale": 1,
+          "repeat": 1,
+          "reversed": false,
+          "blendIn": 0,
+          "blendOut": 0,
+          "mode": "replace",
+          "extrapolation": "hold"
+        },
+        {
+          "clip": "hover",
+          "start": 3.53,
+          "clipStart": 0,
+          "scale": 1,
+          "repeat": "Infinity",
+          "reversed": false,
+          "blendIn": 0,
+          "blendOut": 0,
+          "mode": "replace",
+          "extrapolation": "holdForward"
+        }
+      ],
+      "cues": []
+    },
+    {
+      "$type": "scene.animation-track",
+      "actor": "imp-3",
+      "mark": "jiruan/imp-3",
+      "strips": [
+        {
+          "clip": "fly-out",
+          "start": 2.03,
+          "clipStart": 0,
+          "scale": 1,
+          "repeat": 1,
+          "reversed": false,
+          "blendIn": 0,
+          "blendOut": 0,
+          "mode": "replace",
+          "extrapolation": "hold"
+        },
+        {
+          "clip": "hover",
+          "start": 3.73,
+          "clipStart": 0,
+          "scale": 1,
+          "repeat": "Infinity",
+          "reversed": false,
+          "blendIn": 0,
+          "blendOut": 0,
+          "mode": "replace",
+          "extrapolation": "holdForward"
+        }
+      ],
+      "cues": []
+    },
+    {
+      "$type": "scene.animation-track",
+      "actor": "imp-4",
+      "mark": "jiruan/imp-4",
+      "strips": [
+        {
+          "clip": "fly-out",
+          "start": 2.1799999999999997,
+          "clipStart": 0,
+          "scale": 1,
+          "repeat": 1,
+          "reversed": false,
+          "blendIn": 0,
+          "blendOut": 0,
+          "mode": "replace",
+          "extrapolation": "hold"
+        },
+        {
+          "clip": "hover",
+          "start": 3.88,
+          "clipStart": 0,
+          "scale": 1,
+          "repeat": "Infinity",
+          "reversed": false,
+          "blendIn": 0,
+          "blendOut": 0,
+          "mode": "replace",
+          "extrapolation": "holdForward"
+        }
+      ],
+      "cues": []
+    },
+    {
+      "$type": "scene.palette-track",
+      "target": "king",
+      "cues": [
+        {
+          "time": 0,
+          "fill": "#130e0b"
+        },
+        {
+          "time": 0,
+          "marker": "jiruan/reveal"
+        }
+      ]
+    },
+    {
+      "$type": "scene.particle-track",
+      "cues": [
+        {
+          "time": 0,
+          "effect": "models/effects/jiruan-mist",
+          "node": "jiruan/mist",
+          "seed": 7,
+          "burst": 28,
+          "rate": 10,
+          "duration": 7,
+          "palette": "glow"
+        },
+        {
+          "time": 0,
+          "effect": "models/effects/jiruan-embers",
+          "node": "jiruan/embers",
+          "seed": 11,
+          "burst": 0,
+          "rate": 16,
+          "duration": 6.58,
+          "palette": "glow",
+          "marker": "jiruan/rift-opens"
+        }
+      ]
+    },
+    {
+      "$type": "scene.audio-track",
+      "cues": [
+        {
+          "time": 0,
+          "kind": "music",
+          "name": "great-imp-jiruan",
+          "volume": 1,
+          "pan": 0,
+          "pitch": 1
+        },
+        {
+          "time": 0,
+          "kind": "effect",
+          "name": "jiruan-rift-opens",
+          "volume": 1,
+          "pan": 0,
+          "pitch": 1,
+          "marker": "jiruan/rift-opens"
+        },
+        {
+          "time": 0,
+          "kind": "effect",
+          "name": "jiruan-flash",
+          "volume": 1,
+          "pan": 0,
+          "pitch": 1,
+          "marker": "jiruan/flash"
+        },
+        {
+          "time": 0,
+          "kind": "effect",
+          "name": "jiruan-title-card",
+          "volume": 1,
+          "pan": 0,
+          "pitch": 1,
+          "marker": "jiruan/title-card"
+        }
+      ]
+    },
+    {
+      "$type": "scene.event-track",
+      "cues": [
+        {
+          "time": 0,
+          "name": "intro-started"
+        },
+        {
+          "time": 0,
+          "name": "title-card",
+          "marker": "jiruan/title-card"
+        },
+        {
+          "time": 7,
+          "name": "intro-ended"
+        }
+      ]
+    },
+    {
+      "$type": "scene.ui-track",
+      "host": "card",
+      "cues": [
+        {
+          "time": 0,
+          "action": "setText",
+          "element": "boss-intro-location",
+          "value": "THE GREAT ALDERWOOD · GREAT HUNT"
+        },
+        {
+          "time": 0,
+          "action": "setText",
+          "element": "boss-intro-overture",
+          "value": "The void opened beneath the Alderwood, and the imps came crawling after it."
+        },
+        {
+          "time": 0,
+          "action": "setText",
+          "element": "boss-intro-label",
+          "value": "LORD OF THE IMP COURT"
+        },
+        {
+          "time": 0,
+          "action": "setText",
+          "element": "boss-intro-title-name",
+          "value": "Great Imp "
+        },
+        {
+          "time": 0,
+          "action": "setText",
+          "element": "boss-intro-title-em",
+          "value": "Ji'ruan"
+        },
+        {
+          "time": 0,
+          "action": "setText",
+          "element": "boss-intro-description",
+          "value": "Crown of the Void — while his court stands, no blade can reach him."
+        },
+        {
+          "time": 0,
+          "action": "setAttribute",
+          "name": "data-boss",
+          "value": "jiruan"
+        },
+        {
+          "time": 0,
+          "action": "removeAttribute",
+          "name": "hidden"
+        },
+        {
+          "time": 0,
+          "action": "addClass",
+          "name": "is-playing"
+        },
+        {
+          "time": 7,
+          "action": "setAttribute",
+          "name": "hidden",
+          "value": ""
+        },
+        {
+          "time": 7,
+          "action": "removeClass",
+          "name": "is-playing"
+        }
+      ]
+    }
+  ],
+  "reduced": [
+    {
+      "from": 6.5,
+      "to": 6.5,
+      "hold": 2.4
+    }
+  ]
+}

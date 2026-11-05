@@ -1,0 +1,49 @@
+{
+  "$types": {
+    "particle.effect": 1,
+    "particle.shape": 1,
+    "particle.spark": 1,
+    "particle.range": 1,
+    "particle.spawn": 1,
+    "particle.sphere": 1
+  },
+  "shape": {
+    "$type": "particle.spark",
+    "width": 0.4,
+    "stretch": 0.08
+  },
+  "startColor": "ember",
+  "endColor": "ember.dim",
+  "opacity": 1,
+  "outlineWidth": 0,
+  "glow": true,
+  "life": {
+    "min": 1.2,
+    "max": 2.6
+  },
+  "size": {
+    "min": 0.025,
+    "max": 0.055
+  },
+  "speed": {
+    "min": 0.15,
+    "max": 0.5
+  },
+  "spawn": {
+    "$type": "particle.sphere",
+    "radius": 1
+  },
+  "growIn": 0.1,
+  "fadeOut": 0.5,
+  "gravity": [0, 0.55, 0],
+  "drag": 0.7,
+  "angle": {
+    "min": 0,
+    "max": 0
+  },
+  "spin": {
+    "min": 0,
+    "max": 0
+  },
+  "inherit": 0
+}

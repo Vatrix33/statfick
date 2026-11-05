@@ -1,0 +1,43 @@
+{
+  "$types": {
+    "audio.effect": 1,
+    "audio.effect-layer": 1,
+    "audio.effect-filter": 1
+  },
+  "layers": [
+    {
+      "source": "triangle",
+      "frequency": 116.54,
+      "attack": 0.004,
+      "level": 0.7,
+      "length": 3
+    },
+    {
+      "source": "sine",
+      "frequency": 233.08,
+      "attack": 0.004,
+      "level": 0.4,
+      "length": 2
+    },
+    {
+      "source": "sine",
+      "frequency": 291,
+      "attack": 0.004,
+      "level": 0.25,
+      "length": 1.2
+    },
+    {
+      "source": "noise",
+      "filter": {
+        "type": "highpass",
+        "frequency": 3000,
+        "q": 0.7
+      },
+      "attack": 0.001,
+      "level": 0.3,
+      "length": 0.05
+    }
+  ],
+  "level": 0.6,
+  "maxVoices": 1
+}

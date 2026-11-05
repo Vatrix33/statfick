@@ -134,5 +134,14 @@ public static class AnimationScenes
         new("gear-stocky", "figure", "idle", EveryOtherFrame(120), Target: "stocky", Items: [("sword", "socket.hand.R")], Clothing: ["tabard"]),
         // The Replace stack on the stocky figure: clips found by bone names, then layered.
         new("stocky-nla", "figure", "", Frames(2), Target: "stocky", Layers: ReplaceLayers),
+        // Ji'ruan's acting clips (Docs/Scene.md, step 7, phase 1b): a clip library (jiruan-acting.glb, the
+        // armature alone) played on the test figure by bone names, as the sequence plays them.
+        new("acting-rise", "jiruan-acting", "rise", TimesFor(84), Target: "figure"),
+        new("acting-spread", "jiruan-acting", "spread", TimesFor(72), Target: "figure"),
+        new("acting-settle", "jiruan-acting", "settle", TimesFor(72), Target: "figure"),
+        new("acting-idle-king", "jiruan-acting", "idle-king", TimesFor(144), Target: "figure"),
+        new("acting-fly-out", "jiruan-acting", "fly-out", TimesFor(102), Target: "figure"),
+        new("acting-hover", "jiruan-acting", "hover", TimesFor(48), Target: "figure"),
+        new("acting-idle-imp", "jiruan-acting", "idle-imp", TimesFor(96), Target: "figure"),
     ];
 }
