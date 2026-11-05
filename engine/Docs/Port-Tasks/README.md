@@ -7,6 +7,8 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 
 1. `1_Masterwork_Elementals.txt`: six masterworks remade from the elementals' former unique items (Plasma Blade,
    Tidepiercer, First Comet, Peace and Balance, Kugelblitz, Avalanche); the elementals' placeholder weapons stay.
+   **Already done in the old game (2026-11-05): don't build it again.** The port carries it over with the rest of the
+   game; only its placeholder art is left to remake (below).
 2. `2_Guild.txt`: the Adventurers Guild's quest system rework (Hunt, Cull, Deliver, Search, Escort, Travel; Great Hunts
    kept) and its illustrated, clickable interior (castle town and smaller guilds), tavern recruitment, the hooded man,
    and a class information button.
@@ -44,7 +46,9 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 
 **How to use them:** read them when the port starts (`Engine-Plan.md`, "Open questions for later milestones", "At port
 time" points here). Before each task's code, ask its design questions with the question tool and record the answers
-in `Engine-Plan.md`, as for every step.
+in `Engine-Plan.md`, as for every step. Skip the tasks under "Done in the old game so far": they are part of the game the
+port starts from, so their design questions are answered and their rules are already in its code and data. For those,
+only the art under "Placeholder art the port remakes fully" is left.
 
 **The order (checked 2026-11-05):** each task builds only on earlier ones (the Cull quest of task 2 before task 5, the
 reforging of task 3 before task 9, Sparkling enemies of task 5 before task 7, the new locations of tasks 3
@@ -61,8 +65,12 @@ other tasks are decided one at a time (still open for them: before the port, aft
 porting).
 
 **Done in the old game so far:**
-- Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects. The design answers are in
-  `../../../old-game/Docs/Notes.md`, "Masterwork Elementals".
+- Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
+  and data, so the faithful port brings them over like any other masterwork. The design answers and where each rule
+  lives are in `../../../old-game/Docs/Notes.md`, "Masterwork Elementals"; the old game's checks for it,
+  `old-game/test-client/tests/masterwork-elementals-browser.js` (one entry per rule), are the reference the ported
+  rules are tested against. Still to do in the port: only the art (below). The task's `.txt` stays as the user wrote it
+  (no "done" mark in it); this README and `Engine-Plan.md` record that it's done.
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code each such definition carries `placeholderArt: true`):
