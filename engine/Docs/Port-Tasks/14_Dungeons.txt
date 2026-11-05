@@ -1,0 +1,967 @@
+# Major Update: Dungeon System, Dungeon Bosses, New Classes, and Consumable Items
+
+I want you to implement a substantial new gameplay feature called **Dungeons**. This update should introduce a completely new form of challenging, multi-stage PvE content, with dedicated dungeon locations, randomized guild quests, powerful bosses, specialized equipment, new character classes, and additional consumable items.
+
+The objective is to create a challenging and rewarding gameplay system that encourages preparation, strategic party composition, resource management, and risk-versus-reward decision-making.
+
+**Important:** Before implementing anything, thoroughly inspect the existing game architecture. Examine the current guild quest system, Great Hunts, combat mechanics, party management, inventory, consumables, class progression, enemy database, boss mechanics, map system, economy, and save functionality.
+
+Reuse existing mechanics wherever appropriate. The new systems should integrate naturally into the existing game and must not break or unnecessarily replace existing functionality.
+
+---
+
+## 1. New Gameplay Feature: Dungeons
+
+Introduce Dungeons as a completely new category of PvE content.
+
+Unlike normal areas, dungeons are designated locations on the world map that contain multiple consecutive stages, each with its own battle and increasing challenges.
+
+Dungeons should feel like dangerous expeditions in which the player must carefully manage their party's health, mana, consumables, and available resources.
+
+### Dungeon Locations
+- Every dungeon must have a fixed geographical location on the overworld.
+- Place each dungeon in an environment that makes sense for its theme and intended level range.
+- Dungeon entrances should be identifiable on the map.
+- Interacting with a dungeon entrance should allow the player to enter.
+- Players must be able to enter a dungeon even if they do not have an active guild quest associated with it.
+- Dungeons must remain accessible independently of the guild quest system, provided the player meets any existing entry requirements you establish.
+
+### Dungeon Interface
+When the player enters a dungeon, replace the normal overworld map view with a dedicated dungeon overview.
+
+The dungeon overview should clearly communicate:
+- The name of the dungeon.
+- The current stage.
+- The total number of stages.
+- The recommended level range.
+- The player's current party.
+- The current party's HP and Mana.
+- Available Camping Supplies and other relevant consumables.
+- Dungeon progression and remaining stages.
+- The final boss, where appropriate, without necessarily revealing its identity before it is encountered.
+
+The interface should be easy to understand and visually distinguishable from the normal overworld map.
+
+### Dungeon Stage Structure
+Each dungeon consists of a predefined number of stages.
+
+Every stage must contain a battle that the party must complete before progressing.
+
+The progression should work as follows:
+
+1. The party enters the dungeon.
+2. The first stage begins.
+3. The party encounters the stage's enemies.
+4. The player completes the battle.
+5. After victory, the party receives its appropriate rewards.
+6. The player can choose to use Camping Supplies to restore resources.
+7. The player can proceed to the next stage.
+8. This continues until the final stage.
+9. The final stage contains the dungeon boss.
+10. Defeating the boss completes the dungeon.
+
+### Stage Difficulty
+- Regular encounters should be balanced around the dungeon's intended level range.
+- Enemy compositions should vary between stages to avoid repetitive battles.
+- Later stages should generally become more challenging.
+- Introduce stronger enemies, more dangerous combinations, and potentially elite encounters in later stages.
+- Enemy combinations should require the player to make meaningful combat decisions.
+- Avoid making every stage simply a larger version of the previous battle.
+
+The final stage should be a meaningful challenge, with the dungeon boss acting as the ultimate test of the party.
+
+### Dungeon Rewards
+Dungeon stages should provide appropriate rewards.
+
+Consider:
+- Gold.
+- Experience.
+- Standard enemy drops.
+- Dungeon-specific materials.
+- Rare consumables or equipment.
+- Boss-specific rewards.
+
+Rewards should be balanced according to dungeon difficulty and progression.
+
+Do not make regular stages excessively rewarding compared to their difficulty. The most valuable rewards should generally come from defeating the final boss.
+
+---
+
+## 2. Camping Supplies and Resource Management
+
+After successfully completing a stage, the party should be given the opportunity to use Camping Supplies.
+
+### Effects
+Using Camping Supplies restores:
+- 20% of maximum HP.
+- 20% of maximum Mana.
+
+The restoration should apply to the party according to the existing party-resource mechanics.
+
+### Requirements
+- The player should be able to choose whether to use them after completing a stage.
+
+The purpose is to introduce meaningful resource management.
+
+Players should have to decide whether to conserve their supplies for later stages or use them to maintain their party's survival.
+
+---
+
+## 3. Dungeon Entry Restrictions and Defeat Consequences
+
+Dungeons are intended to be dangerous expeditions.
+
+Once a party enters a dungeon, it cannot simply leave through the normal map interface.
+
+The player must commit to the expedition and manage the consequences of defeat.
+
+### Standard Dungeon Entry
+When entering a dungeon without an active guild quest:
+
+- The party becomes locked into the dungeon.
+- Normal map access is disabled.
+- The player cannot simply teleport out or return to town.
+- Normal dungeon progression rules apply.
+- Special escape items, such as the Emergency Rope, remain valid exceptions.
+
+### Defeat Without an Active Guild Quest
+
+If the entire party is defeated inside a dungeon without an active associated guild quest:
+
+- The player loses 75% of their current money.
+- The player loses 50% of their eligible inventory items.
+- The player is transported back to the overworld.
+- The player reappears at the geographical location of the dungeon.
+- The party is restored to 1% HP.
+- The party has 0% Mana.
+
+### Defeat With an Active Guild Quest
+
+If the party entered the dungeon while having an active associated Delve guild quest, the consequences are reduced:
+
+- The player loses 35% of their current money.
+- The player loses 10% of their eligible inventory items.
+- The player is transported back to the nearest appropriate town.
+- The party is restored to 1% HP.
+- The party has 0% Mana.
+
+The active Delve quest should be marked as failed or otherwise resolved according to the existing guild quest system. It must not remain incorrectly active or reward the player for an unsuccessful expedition.
+
+### Loss Calculation
+Implement the penalties consistently:
+- Calculate money losses based on the player's current money at the time of defeat.
+- Calculate item losses based on eligible inventory items.
+- Handle rounding consistently.
+- Clearly communicate exactly what was lost.
+
+Do not accidentally delete equipped gear, quest-critical objects, or permanent progression items if the existing inventory system distinguishes these from ordinary inventory.
+
+### Mandatory Warning Before Entry
+
+Before entering any dungeon, display a clear warning explaining the potential consequences of defeat.
+
+The warning must distinguish between the two scenarios:
+
+**Without an active Delve quest:**
+- 75% money loss.
+- 50% eligible item loss.
+- Respawn at the dungeon entrance with 1% HP and 0% Mana.
+
+**With an active Delve quest:**
+- 35% money loss.
+- 10% eligible item loss.
+- Respawn in town with 1% HP and 0% Mana.
+
+The player must explicitly confirm entry after seeing this information.
+
+This warning should appear every time the player enters a dungeon, not just the first time.
+
+Make sure the player understands the risks before committing to an expedition.
+
+---
+
+## 4. New Guild Quest Type: Delve
+
+Introduce a new guild quest category called **Delve**.
+
+Delve quests are specifically associated with dungeons and require the player to enter a designated dungeon and defeat its final boss.
+
+### Quest Availability
+Unlike Great Hunts, Delve quests should not always be available once the player reaches the required level.
+
+Instead:
+- Each dungeon has a corresponding Delve quest.
+- The quest can begin appearing once the player reaches the dungeon's required level.
+- Once the required level is reached, the quest should have a random chance of appearing in the guild quest selection.
+- The quest should not be guaranteed to appear immediately.
+- If it does not appear, it may become available during subsequent guild quest refreshes.
+- Its availability should be determined by the existing guild quest generation system where possible.
+
+### Quest Requirements
+A Delve quest should clearly display:
+- The dungeon's name.
+- The recommended level range.
+- The dungeon's location.
+- The objective.
+- The associated rewards.
+
+The primary objective should be to enter the designated dungeon and defeat its final boss.
+
+### Quest Completion
+- Defeating the dungeon boss completes the associated Delve quest.
+- Completing the quest should award its appropriate guild rewards.
+- The player should receive the normal dungeon rewards as well, unless doing so would create unintended reward duplication.
+- Completing a Delve quest should not permanently prevent the player from entering or replaying the dungeon.
+
+### Important Distinction
+A player must be able to enter a dungeon without accepting its Delve quest.
+
+However, entering without the associated quest means the player receives the harsher defeat penalties.
+
+The reduced penalties are therefore an additional benefit of undertaking the official guild expedition.
+
+---
+
+## 5. New Dungeons and Bosses
+
+Implement the following nine specified dungeons.
+
+Each dungeon must have its own geographical location, environmental identity, enemy encounters, stage progression, and unique final boss.
+
+Do not simply reuse the same encounters across every dungeon. Each one should have its own identity and combat challenges.
+
+### Dungeon 1: Goblin Cave
+
+- **Level range:** 4–8
+- **Stages:** 4
+- **Main enemies:** Goblins
+- **Final boss:** Hobgoblin Leader
+
+Design:
+- An early-game dungeon that introduces players to multi-stage dungeon expeditions.
+- Use relatively straightforward enemy encounters.
+- Introduce different Goblin variants and group compositions where appropriate.
+- The final boss should be noticeably stronger than ordinary Goblins but remain appropriate for early-game players.
+
+### Dungeon 2: River Portal
+
+- **Level range:** 10–14
+- **Stages:** 5
+- **Main enemies:** Water Elementals
+- **Final boss:** Deep Sea Apparition
+
+Design:
+- Build the dungeon around a mysterious portal associated with water.
+- Use water-themed environmental elements.
+- Encounters should feature Water Elementals with different abilities and combat roles.
+- The final boss should feel like a powerful entity originating from the depths.
+
+### Dungeon 3: Abandoned City
+
+- **Level range:** 20–24
+- **Stages:** 6
+- **Main enemies:** Demons and Impids
+- **Final boss:** Imp Lord Ru'manon
+
+Design:
+- Create an abandoned city overrun by demonic creatures.
+- Make the environment feel corrupted, dangerous, and abandoned.
+- Use different combinations of demons and Impids throughout the stages.
+- The boss should be a powerful demonic leader with mechanics appropriate to its status.
+
+### Dungeon 4: Ruined Castle
+
+- **Level range:** 25–30
+- **Stages:** 8
+- **Main enemies:** Goblins
+- **Final boss:** Goblin Paladin
+
+Design:
+- A ruined castle occupied by a more organized and dangerous Goblin force.
+- Differentiate its enemies from the Goblins found in the early-game Goblin Cave.
+- Introduce stronger variants, defensive enemies, and more tactical encounters.
+- The Goblin Paladin should feel like a powerful elite warrior capable of challenging an appropriately prepared party.
+
+### Dungeon 5: Mountain Portal
+
+- **Level range:** 38–40
+- **Stages:** 5
+- **Main enemies:** Earth Elementals
+- **Final boss:** Great Mountain Mole
+
+Design:
+- An underground or mountain-based dungeon connected to powerful earth magic.
+- Use rocky environments, underground formations, and appropriate atmospheric effects.
+- Earth Elementals should have abilities that reflect their nature.
+- The Great Mountain Mole should be a powerful boss with a distinctive combat identity.
+
+### Dungeon 6: Ancient Prison Ruin
+
+- **Level range:** 42–46
+- **Stages:** 9
+- **Main enemies:** Goblins
+- **Final boss:** Goblin King, accompanied by 2 Goblin Champions
+
+Design:
+- An ancient prison complex that has been occupied by Goblin forces.
+- Make the dungeon feel larger and more dangerous than the Goblin Cave and Ruined Castle.
+- Introduce stronger Goblin variants and increasingly challenging encounters.
+- The final encounter must feature the Goblin King and two Goblin Champions simultaneously.
+- The three enemies should work together as a coordinated boss encounter.
+- The Goblin King should remain the central threat.
+
+### Dungeon 7: Great Void Rift
+
+- **Level range:** 62–68
+- **Stages:** 6
+- **Main enemies:** Demons
+- **Final boss:** Void Lord Firadialin
+
+Design:
+- A dangerous rift connected to the Void.
+- Use an appropriately otherworldly visual identity.
+- Encounters should feature powerful demonic enemies.
+- Introduce mechanics that reflect the instability and destructive nature of the Void.
+- Firadialin should be an exceptionally powerful boss with distinctive abilities and a challenging encounter.
+
+### Dungeon 8: Ancient Pyramid
+
+- **Level range:** 65–70
+- **Stages:** 10
+- **Main enemies:** Devils
+- **Final boss:** Saffron
+
+Design:
+- An ancient pyramid containing dangerous and powerful Devil enemies.
+- Use an ancient, mysterious, and hostile atmosphere.
+- Make the dungeon feel like a major late-game expedition.
+- Introduce increasingly dangerous encounters as the party progresses.
+- Saffron should be the final and most significant challenge.
+
+**Important:** Remove Saffron from the Great Hunt system. Saffron must now exclusively function as the boss of the Ancient Pyramid dungeon.
+
+Remove the corresponding Great Hunt entry and ensure there are no duplicate or conflicting boss assignments.
+
+### Dungeon 9: Shattered Castle
+
+- **Level range:** 74–78
+- **Stages:** 8
+- **Main enemies:** Undead
+- **Final boss:** Ool
+
+Design:
+- A shattered and corrupted castle inhabited by powerful undead.
+- The environment should communicate the history and destruction of the castle.
+- Use different undead enemy types and increasingly challenging combinations.
+- The final boss should be an appropriately powerful undead entity.
+
+**Important:** Remove Ool from the Great Hunt system. Ool must now exclusively function as the boss of the Shattered Castle dungeon.
+
+Remove the corresponding Great Hunt entry and ensure there are no duplicate or conflicting boss assignments.
+
+---
+
+## 6. Three Additional Dungeons
+
+In addition to the nine specified dungeons, create three completely new dungeons at your discretion.
+
+These should expand the variety of dungeon environments, enemy types, and gameplay challenges.
+
+### Requirements
+Each additional dungeon must have:
+- A unique name.
+- A fixed geographical location.
+- A distinct environmental identity.
+- A suitable recommended level range.
+- A predefined number of stages.
+- A unique enemy theme.
+- Appropriate enemy encounters.
+- A unique final boss.
+- A corresponding Delve guild quest.
+- Appropriate rewards.
+- A place within the overall level progression.
+
+### Design Guidelines
+Try to avoid simply repeating the existing dungeon themes.
+
+Consider introducing environments and enemy types that are currently underrepresented in the game.
+
+The three additional dungeons should ideally cover different stages of progression, rather than all being concentrated at the same level range.
+
+Make sure they fit naturally into the world and do not disrupt the existing level curve.
+
+All three must be fully implemented and playable.
+
+---
+
+## 7. Dungeon Bosses and Great Hunt Difficulty
+
+Dungeon bosses should be treated as equivalent to Great Hunt bosses.
+
+This is an important balancing requirement.
+
+They are not ordinary enemies with increased HP. They should be major encounters that require preparation, tactical decisions, and an appropriately developed party.
+
+### Boss Design Requirements
+- Give each boss its own identity.
+- Use the existing boss mechanics and combat systems.
+- Introduce distinctive abilities where appropriate.
+- Make boss encounters challenging without relying exclusively on inflated HP and damage.
+- Consider multiple enemy phases, special attacks, status effects, defensive mechanics, and other existing combat features.
+- Ensure that the party must use its available abilities intelligently.
+- Balance the encounter around the dungeon's recommended level range.
+- Make boss encounters more challenging than ordinary dungeon stages.
+
+For multi-enemy boss encounters, ensure that the enemies have complementary abilities and that the encounter remains balanced.
+
+### Boss Rewards
+Bosses should provide meaningful rewards appropriate to their difficulty.
+
+In particular, implement the specified Masterwork and Exotic equipment described below.
+
+---
+
+## 8. New Masterwork and Exotic Equipment
+
+Introduce three new Masterwork items and one new Exotic item.
+
+### Masterwork Items
+
+Create one unique Masterwork item for each of the following bosses:
+
+1. Great Mountain Mole.
+2. Void Lord Firadialin.
+3. Goblin King.
+
+Each Masterwork item should:
+- Have a distinctive name.
+- Have appropriate artwork or an existing visual asset where possible.
+- Provide meaningful and unique gameplay benefits.
+- Be balanced according to the game's existing Masterwork equipment.
+- Have a suitable drop chance.
+- Fit naturally into the existing equipment and item progression.
+
+Avoid creating three items that are functionally identical with different names.
+
+Each should have a distinctive purpose and potentially encourage different builds or party strategies.
+
+### New Exotic Item
+
+Create one additional Exotic item.
+
+Requirements:
+- It can drop from Great Mountain Mole, Void Lord Firadialin, or the Goblin King.
+- Each of these three bosses should have an appropriate chance of dropping it.
+- It should be exceptionally rare.
+- It should have a unique and powerful effect.
+- Its power should reflect its Exotic rarity without making the game fundamentally unbalanced.
+
+The Exotic item should provide a meaningful incentive to replay these three dungeons.
+
+Ensure that all drop chances are implemented consistently with the existing loot system.
+
+---
+
+## 9. New Class: Dungeon Delver
+
+Introduce a new playable class called **Dungeon Delver**.
+
+This class specializes in surviving and fighting inside dungeons.
+
+It should be designed around endurance, resource management, and the ability to handle prolonged dungeon expeditions.
+
+### Class Progression
+The Dungeon Delver class must have exactly five progression levels.
+
+### Class Identity
+The class should focus on:
+- Improved survivability during extended expeditions.
+- Better management of HP and Mana.
+- Dungeon-specific advantages.
+- Improved effectiveness against dungeon enemies.
+- Better utilization of Camping Supplies and dungeon consumables.
+- Increased effectiveness in multi-stage encounters.
+
+### Ability Design
+Create a coherent progression across all five levels.
+
+Possible mechanics include:
+- Improved healing or recovery when using Camping Supplies.
+- Reduced damage from certain dungeon enemies.
+- Improved effectiveness against bosses.
+- Additional defensive options.
+- Better resource efficiency.
+- Passive bonuses that become more valuable during longer expeditions.
+
+These are design suggestions rather than mandatory individual abilities. Design the class around the existing game's class mechanics and balance.
+
+### Balance Requirements
+- The Dungeon Delver should be particularly useful in dungeons.
+- It should not make ordinary exploration or other classes obsolete.
+- Its advantages should be meaningful without making dungeon content trivial.
+- Its abilities must work with the existing combat, party, and class progression systems.
+
+The five levels should provide a satisfying sense of progression, with the final level representing a fully developed dungeon specialist.
+
+---
+
+## 10. Seven New General Store Consumables
+
+Add the following seven consumable items to the General Store.
+
+These items should introduce additional tactical options during dungeon expeditions.
+
+All items must be properly integrated into the existing inventory, combat, item-use, and shop systems.
+
+### 1. Emergency Rope
+
+
+- **Rarity:** Common
+- **Effect:** Allows the player to escape from a dungeon once.
+
+Requirements:
+- Can be activated while inside a dungeon.
+- Immediately ends the dungeon expedition and returns the party to the overworld.
+- Should bypass the normal dungeon lock-in restriction.
+- Does not trigger the normal defeat penalties.
+- Consumes the item upon successful use.
+
+This item provides a safety option for players who realize that continuing the expedition would be too dangerous.
+
+### 2. Waylight
+
+- **Rarity:** Epic
+- **Effect:** Skips the first stage of the next dungeon the player enters.
+
+Requirements:
+- Must be activated before entering a dungeon.
+- The effect should apply to the next dungeon entered.
+- The first stage should be skipped automatically.
+- The item should only be consumed when its effect is successfully applied.
+- The player should receive clear confirmation that the effect is active.
+
+The Waylight should allow players to bypass an initial encounter and preserve resources for the later stages.
+
+It must not skip the dungeon boss or accidentally complete a dungeon.
+
+### 3. Sparkle Bombs
+
+- **Rarity:** Uncommon
+- **Effect:** Thrown at a single enemy to stun it.
+
+Requirements:
+- The player selects one enemy as the target.
+- The targeted enemy is stunned.
+- Each individual enemy can only be stunned once through Sparkle Bombs during a given battle.
+- The item must be consumed when successfully used.
+- Stun duration and resistance should follow the existing combat status-effect mechanics where possible.
+
+The purpose is to provide a reliable single-target disruption tool.
+
+### 4. Flash Bomb
+
+- **Rarity:** Rare
+- **Effect:** Thrown at all enemies.
+
+Effects:
+- Increases the party's chance to escape by 50% for one turn.
+- Has a 40% chance to stun each enemy.
+
+Requirements:
+- The effect should apply to all enemies simultaneously.
+- Each individual enemy can only be stunned once through Flash Bombs during a given battle.
+- The escape bonus must last for exactly one turn.
+- The stun chance must be calculated individually for each enemy.
+- Existing boss stun resistance or immunity should be respected where applicable.
+
+The item should be particularly useful when the party is in a dangerous situation and needs an opportunity to escape.
+
+### 5. Marked Throwing Knife
+
+- **Rarity:** Uncommon
+- **Effect:** Deals minor damage to one enemy and increases hit chance against that enemy by 20% for one turn.
+
+Requirements:
+- The player selects one enemy.
+- The knife deals a small amount of damage.
+- The targeted enemy receives a temporary marking effect.
+- The party gains a 20% increased chance to hit that target for one turn.
+- The effect should be clearly communicated through the combat interface.
+- The item is consumed upon successful use.
+
+The purpose is to make a specific enemy easier to hit, particularly when dealing with enemies that have high evasion.
+
+### 6. Throwing Knife
+
+- **Rarity:** Common
+- **Effect:** Deals minor damage to one enemy.
+
+Requirements:
+- The player selects one enemy.
+- The knife deals a small amount of damage.
+- Damage should be balanced against other common consumables.
+- The item is consumed upon successful use.
+
+This should be a straightforward offensive consumable.
+
+### 7. Dust Bomb
+
+- **Rarity:** Rare
+- **Effect:** Thrown at all enemies.
+
+Effects:
+- Reduces enemy hit chance by 40%.
+- Gives enemy single-target spells a 20% chance to miss.
+- Effects last for one turn.
+
+Requirements:
+- Apply the effects to all enemies.
+- The 40% hit-chance reduction should affect their applicable attacks.
+- The 20% additional miss chance should specifically affect single-target spells.
+- Do not accidentally apply the additional spell miss chance to unrelated abilities.
+- The effects should last for exactly one turn.
+- The item is consumed upon successful use.
+
+The purpose is to provide a defensive tool that can help the party survive dangerous enemy turns.
+
+---
+
+## 11. Four Additional Throwing Consumables
+
+In addition to the seven specified items, create four new throwing-based consumables.
+
+These should expand the tactical possibilities of the throwing-item system.
+
+### Requirements
+Each additional item must have:
+- A unique name.
+- A clearly defined effect.
+- An appropriate rarity.
+- A suitable purchase price.
+- A balanced combat effect.
+- A distinctive tactical purpose.
+
+### Design Guidelines
+Try to cover different tactical situations rather than introducing four variations of direct damage.
+
+Consider effects such as:
+- Damage over time.
+- Temporary enemy debuffs.
+- Elemental damage.
+- Disruption of enemy abilities.
+- Reduced enemy defenses.
+- Temporary party buffs.
+- Other creative throwing-item mechanics.
+
+These are suggestions. You may design the four items freely, provided they fit the game's existing combat system.
+
+### Important
+All throwing items should be fully functional combat consumables, not merely inventory items with descriptions.
+
+They must have:
+- Correct targeting.
+- Correct damage or status-effect calculations.
+- Proper turn duration.
+- Appropriate visual and combat feedback.
+- Correct inventory consumption.
+- Compatibility with enemy immunities and boss mechanics.
+
+---
+
+## 12. New Class: Throwing Specialist
+
+Introduce another new class that focuses on the use of throwing consumables.
+
+### Class Identity
+The class should focus on:
+- Increased effectiveness of throwing items.
+- Improved damage from throwing weapons.
+- Better application of throwing-item status effects.
+- Improved tactical control over enemies.
+- Greater efficiency when using throwing consumables.
+- Specialized bonuses for different throwing-item types.
+
+### Ability Progression
+Create a meaningful class progression using the existing class-level structure.
+
+The class should have distinct abilities that improve its effectiveness over time.
+
+Potential mechanics include:
+- Increased throwing-item damage.
+- Improved accuracy.
+- Increased effectiveness of certain status effects.
+- Additional chances to apply secondary effects.
+- Improved efficiency when consuming throwing items.
+- Specialized bonuses against bosses or certain enemy types.
+
+These are suggestions, not mandatory abilities.
+
+### Balance Requirements
+- The class should make throwing consumables significantly more attractive.
+- It should not make conventional combat classes obsolete.
+- Its bonuses must work with all relevant throwing items.
+- It should encourage tactical use of consumables rather than simply increasing every effect indiscriminately.
+- Its progression must remain balanced against existing classes.
+
+Ensure that this class interacts correctly with all eleven throwing consumables.
+
+---
+
+## 13. Combat Integration and Item Interaction
+
+All new consumables and classes must integrate correctly with the existing combat system.
+
+Before implementing them, examine how the game currently handles:
+- Item targeting.
+- Enemy selection.
+- Status effects.
+- Stun mechanics.
+- Hit chance and evasion.
+- Escape chance.
+- Turn duration.
+- Consumable usage.
+- Boss resistances.
+- Enemy immunities.
+- Combat logs and animations.
+
+### General Requirements
+- Throwing items should use an appropriate combat action.
+- The player should select a valid target when required.
+- Area-of-effect items should affect all applicable enemies.
+- Item effects must be applied at the correct time in the combat turn.
+- Temporary effects must expire correctly.
+- Items must not be consumed if an action cannot be completed.
+- Enemies should correctly respond to status effects.
+- Bosses should respect existing resistance and immunity mechanics.
+
+### Effect Stacking
+Pay particular attention to how temporary effects interact.
+
+For example:
+- Reapplying the same debuff should not create unintended permanent effects.
+- Multiple identical accuracy bonuses should not stack uncontrollably.
+- Stun restrictions should remain consistent across different throwing items.
+- Different effects should coexist when appropriate.
+
+Use the existing status-effect framework whenever possible.
+
+If additional effect types are required, implement them in a reusable manner.
+
+---
+
+## 14. General Store and Economy Integration
+
+All new consumables must be available through the General Store.
+
+### Requirements
+- Add all seven specified consumables.
+- Add all four additional throwing consumables.
+- Assign appropriate prices.
+- Assign the specified rarities.
+- Ensure that the store displays their names, descriptions, effects, and prices.
+- Ensure that purchasing items correctly updates the player's inventory and money.
+- Prevent purchases when the player lacks sufficient money.
+- Ensure that item quantities are displayed correctly.
+
+### Economic Balance
+Prices should reflect:
+- Item rarity.
+- Tactical usefulness.
+- Strength of the effect.
+- Existing consumable prices.
+- Expected player progression.
+
+Common items should be affordable and relatively accessible.
+
+Rare and Epic items should be more expensive, but should remain obtainable.
+
+Do not make particularly powerful consumables so cheap that players can use them without considering their resources.
+
+---
+
+## 15. User Interface and Feedback
+
+The new systems should be integrated cleanly into the existing UI.
+
+### Dungeon Interface
+Make dungeon progression immediately understandable.
+
+The player should always be able to determine:
+- Which dungeon they are in.
+- Which stage they are currently completing.
+- How many stages remain.
+- Whether the current stage has been cleared.
+- Whether they can use Camping Supplies.
+- Whether the next stage contains the boss.
+
+### Combat Interface
+Ensure that new consumables have clear descriptions and that their effects are visible.
+
+For example:
+- Stunned enemies should have an identifiable visual indicator.
+- Marked enemies should be distinguishable.
+- Debuffed enemies should display appropriate status icons.
+- Temporary effects should indicate their remaining duration where practical.
+- The combat log should communicate when throwing items successfully apply their effects.
+
+### Dungeon Entry Warnings
+Make the defeat penalties particularly clear.
+
+Do not hide important information in small text or secondary menus.
+
+The player must understand the risks before confirming entry.
+
+---
+
+## 16. Technical Implementation and Save Compatibility
+
+Before implementing the update, identify the systems that need modification.
+
+Pay particular attention to:
+
+- Dungeon location registration.
+- Dungeon entry and exit logic.
+- Dungeon stage progression.
+- Encounter generation.
+- Enemy and boss registration.
+- Dungeon reward distribution.
+- Camping Supplies.
+- Guild quest generation.
+- Delve quest completion.
+- Defeat and penalty calculations.
+- Emergency Rope functionality.
+- Waylight activation and consumption.
+- Combat consumables.
+- Status effects.
+- Class progression.
+- Equipment drops.
+- General Store inventory.
+- Save and load functionality.
+
+### Technical Requirements
+- All dungeon progress must be handled consistently.
+- The game must correctly track the current dungeon and stage.
+- Defeat must correctly trigger the appropriate penalties.
+- Consumables must not be duplicated or consumed incorrectly.
+- Quest states must remain consistent.
+- Boss rewards must be awarded only when appropriate.
+- New classes must integrate with the existing progression system.
+- New equipment must work with the existing equipment and stat systems.
+- New items and unlocks must save correctly.
+- Existing save files must remain compatible wherever possible.
+
+If a migration is necessary, implement it safely.
+
+Avoid introducing duplicate systems when existing systems can be extended.
+
+---
+
+## 17. Testing and Quality Assurance
+
+Once implementation is complete, thoroughly test the new content.
+
+Do not assume that a dungeon works simply because its entrance and stages appear on the map.
+
+Test the complete gameplay loop.
+
+### Dungeon Testing
+- Enter every dungeon.
+- Complete every stage.
+- Verify that the correct enemies spawn.
+- Verify that the final boss appears in the final stage.
+- Confirm that the boss can be defeated.
+- Confirm that dungeon completion is registered correctly.
+- Confirm that dungeons can be replayed.
+- Verify that the Waylight skips exactly one stage.
+
+### Defeat Testing
+Test both defeat scenarios:
+- Entering without a Delve quest.
+- Entering with an active Delve quest.
+
+Verify all money losses, inventory losses, transportation destinations, and HP/Mana penalties.
+
+### Consumable Testing
+Test every new consumable individually.
+
+Verify:
+- Target selection.
+- Damage.
+- Status effects.
+- Accuracy changes.
+- Escape bonuses.
+- Effect durations.
+- Stun restrictions.
+- Inventory consumption.
+- Boss interactions.
+
+### Class Testing
+Test Dungeon Delver at all five progression levels.
+
+Test the Throwing Specialist across its complete progression.
+
+Ensure that class bonuses function correctly and do not unintentionally stack or break existing combat calculations.
+
+### Guild Quest Testing
+- Verify that Delve quests become eligible at the correct level.
+- Verify that their appearance is randomized.
+- Verify that they are not permanently available immediately upon reaching the level requirement.
+- Verify that accepting a quest correctly identifies the associated dungeon.
+- Verify that defeating the boss completes the quest.
+- Verify that Saffron and Ool no longer appear as Great Hunt targets.
+
+### Economy and Save Testing
+- Verify that all new items appear in the General Store.
+- Verify that purchases and item usage work.
+- Verify that Masterwork and Exotic drops are registered correctly.
+- Save and reload during relevant stages of dungeon progression.
+- Ensure that the game does not duplicate rewards or consume items incorrectly.
+
+---
+
+## 18. Final Implementation Priorities
+
+Follow this general implementation order:
+
+1. Analyze the existing game architecture and relevant systems.
+2. Design the dungeon framework and stage progression.
+3. Implement dungeon locations and map integration.
+4. Implement the nine specified dungeons.
+5. Create and implement the three additional dungeons.
+6. Implement enemy encounters and all twelve dungeon bosses.
+7. Integrate dungeon bosses with the existing Great Hunt difficulty and reward standards.
+8. Implement the Delve guild quest category.
+9. Implement Camping Supplies and dungeon defeat penalties.
+10. Implement the new Masterwork and Exotic items.
+11. Implement the seven specified consumables.
+12. Create the four additional throwing consumables.
+13. Implement the Dungeon Delver class with five levels.
+14. Implement the Throwing Specialist class.
+15. Integrate everything with the General Store, inventory, combat, UI, and save systems.
+16. Perform comprehensive testing and balancing.
+
+---
+
+## Final Instructions
+
+This update should introduce a complete and replayable dungeon gameplay system.
+
+Do not treat the requested features as isolated additions. The dungeon mechanics, classes, consumables, equipment, guild quests, and combat systems should all complement each other.
+
+The final result should encourage players to:
+- Prepare before entering dangerous dungeons.
+- Build parties suited to prolonged expeditions.
+- Manage HP, Mana, and Camping Supplies carefully.
+- Make tactical decisions during combat.
+- Use throwing consumables strategically.
+- Experiment with the Dungeon Delver and Throwing Specialist classes.
+- Pursue powerful dungeon-exclusive equipment.
+- Replay challenging dungeons for valuable rewards.
+
+**Do not leave placeholder mechanics, incomplete encounters, nonfunctional items, or unfinished class abilities.**
+
+Every dungeon must be fully playable, every boss must have a properly implemented encounter, every consumable must have its specified effect, and both new classes must be fully integrated into the existing game.
+
+Above all, prioritize gameplay quality, meaningful difficulty, strategic depth, and consistency with the existing game.
+
+The finished update should make Dungeons feel like a major, permanent addition to the game's overall progression and endgame content.

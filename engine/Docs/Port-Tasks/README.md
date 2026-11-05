@@ -2,7 +2,7 @@
 
 The user's tasks to add to the game during the port (user decision 2026-11-05), done in their number order (a plain
 file listing puts `10_` before `1_`; the list below is the order). The `.txt` files are the user's own text, unchanged
-(only their line endings were made LF, as the repo stores text). Ten so far; four more are to come.
+(only their line endings were made LF, as the repo stores text). Fourteen tasks.
 
 1. `1_Masterwork_Elementals.txt`: six masterworks remade from the elementals' former unique items (Plasma Blade,
    Tidepiercer, First Comet, Peace and Balance, Kugelblitz, Avalanche); the elementals' placeholder weapons stay.
@@ -28,10 +28,34 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 10. `10_Class_Rework.txt`: every class reviewed and reworked where needed (identity, requirements, passive and skill, a
     capstone, its colour rarity), then 26 named new classes and 15 more; for the new classes the user is asked about
     each one's identity, levels, requirements and rarity, in that order.
+11. `11_New_races.txt`: three new playable races with icons (Half-Beast, Merfolk made playable, Goliath), each with a
+    racial class.
+12. `12_Spell_Rework.txt`: every spell brought up to date (power, scaling, effects, mana cost; tiers kept), two new
+    spells per element in tiers 1–5 and one in tiers 6–9 (at least four new summons), and the Spellweaver and Ritual
+    Caster classes.
+13. `13_New_classes.txt`: new classes by focus (four each for melee, ranged, spells and the rogue path, two for each of
+    six combinations, nine without a focus), then more until players can acquire 250 classes; the user is asked about
+    each one's identity, levels, requirements and rarity, in that order.
+14. `14_Dungeons.txt`: dungeons (nine named, three more), each with stages and a boss; Camping Supplies between
+    stages; defeat penalties and a warning before entry; the Delve guild quest; Saffron and Ool move from Great Hunts
+    to dungeon bosses; three masterworks and an Exotic; the Dungeon Delver and Throwing Specialist classes; eleven
+    throwing consumables for the General Store.
 
 **How to use them:** read them when the port starts (`Engine-Plan.md`, "Open questions for later milestones", "At port
 time" points here). Before each task's code, ask its design questions with the question tool and record the answers
 in `Engine-Plan.md`, as for every step.
+
+**The order (checked 2026-11-05):** each task builds only on earlier ones (the Cull quest of task 2 before task 5, the
+reforging of task 3 before task 9, Sparkling enemies of task 5 before task 7, the new locations of tasks 3
+and 6 before the map rework of task 8, the guild quests of task 2 before Collect and Delve, caravans and poisons
+before the Caravanist and Poisoner of task 10, the Exotic rarity of task 7 before task 14), with these points to
+remember:
+- Task 7 asks Limitless to scale "dungeon enemies", but dungeons only come with task 14, which itself needs task 7's
+  Exotic rarity; so task 14 gives its dungeon enemies the Limitless scaling.
+- Task 13 adds classes until there are 250; task 14 then adds two more (252). Ask at task 13 whether the 250 should
+  leave room for them.
+- Names to confirm at task 7: "Laila" (no enemy of that name; Juila the Grand Forest Matriarch?), "Zik" (Zik Lun),
+  "Mythium" (the game's Mythilium).
 
 **Still open:** whether the tasks come after the game is ported faithfully and checked against the old game, or while
 porting, each system they change ported straight into its new form (asked 2026-11-05; the user will answer later).
