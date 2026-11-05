@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Reflection;
 using Brutal.OpenAlApi;
 using Statventure.Audio;
 
@@ -143,6 +144,235 @@ public class OutputTests
                 Assert.Equal(f < Fade ? due * (Fade - f) / Fade : 0, paused[2 * f + c], 1e-6);
                 Assert.Equal(f < Fade ? due * f / Fade : due, second[2 * f + c], f < Fade ? 1e-6 : 0);
             }
+    }
+
+    /// <summary>
+    /// Each output plays its own stream, whatever other outputs the process has (2026-11-05): OpenAL's
+    /// source and buffer names are numbers within a context, the first ones the same in every context, so
+    /// an output makes its calls in its own context, never in the process-wide current one (the last one
+    /// made current, and none once that one closed). Two loopback outputs, made one after the other and
+    /// filled from other threads (as the audio thread fills them), each give back what was written to
+    /// them, and the first goes on after the second is gone; no call leaves a context set on the thread
+    /// that made it. Before, an audio system on the default device stopped for good when a parallel
+    /// test's application opened and closed its own (the flaky <see cref="TheDefaultDevicePacesTheGraph"/>).
+    /// </summary>
+    [Fact]
+    public void EachOutputPlaysItsOwnStream()
+    {
+        var frames = OpenAlOutput.FramesPerBuffer(48000);
+        var queued = frames * OpenAlOutput.BufferCount;
+        float[] Samples(uint seed)
+        {
+            var random = AudioFixtureRun.Mulberry32(seed);
+            var samples = new float[queued * 2];
+            for (var i = 0; i < samples.Length; i++)
+                samples[i] = (float)(random() * 2 - 1);
+            return samples;
+        }
+        // The audio thread's turn (Writable, Write, Maintain), on a thread of its own, which must end with no context set.
+        void Fill(OpenAlOutput output, float[] samples)
+        {
+            Exception? failure = null;
+            var left = false;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    Assert.Equal(OpenAlOutput.BufferCount, output.Writable);
+                    for (var b = 0; b < OpenAlOutput.BufferCount; b++)
+                        output.Write(samples.AsSpan(b * frames * 2, frames * 2));
+                    output.Maintain();
+                    left = !Alc.PInvoke.GetThreadContext().IsNull();
+                }
+                catch (Exception exception)
+                {
+                    failure = exception;
+                }
+            });
+            thread.Start();
+            thread.Join();
+            Assert.Null(failure);
+            Assert.False(left, "a context was left set on the filling thread");
+        }
+        // What the device mixes: the queued buffers, then a buffer's time more, so the source has run dry and stopped.
+        void AssertMixes(LoopbackDevice device, float[] expected, string what)
+        {
+            var mixed = new float[(queued + frames) * 2];
+            device.Render(mixed, queued + frames);
+            var differing = Enumerable.Range(0, expected.Length).Count(i => BitConverter.SingleToUInt32Bits(expected[i]) != BitConverter.SingleToUInt32Bits(mixed[i]));
+            Assert.True(differing == 0, $"{what}: {differing} of {expected.Length} samples differ; first: written {expected[0]:G9}, mixed {mixed[0]:G9}");
+        }
+        using var first = LoopbackDevice.Open(null!);
+        using var one = new OpenAlOutput(first, 48000);
+        using (var second = LoopbackDevice.Open(null!))
+        using (var two = new OpenAlOutput(second, 48000))
+        {
+            var (a, b) = (Samples(1), Samples(2));
+            Fill(one, a);
+            Fill(two, b);
+            AssertMixes(first, a, "the first output, beside the second");
+            AssertMixes(second, b, "the second output");
+        }
+        var c = Samples(3);
+        Fill(one, c);
+        AssertMixes(first, c, "the first output, after the second closed");
+        Assert.True(Alc.PInvoke.GetThreadContext().IsNull(), "a context was left set on the test's thread");
+    }
+
+    /// <summary>
+    /// After an underrun the output goes on with new audio (the user's decision, 2026-11-05), not the last 20 ms
+    /// again: OpenAL Soft restarts a stopped source from its queue's head, so what it played is taken back when it
+    /// is first seen stopped, before anything new is written. A loopback device mixing past the queue is the audio
+    /// thread starved; then the thread's turn (Maintain, Writable, the writes, Maintain). Also when the source runs
+    /// dry while the thread renders (between Writable and the writes) and while the sound is paused; and what is
+    /// written after an underrun isn't taken back before it plays (a stopped source reports every queued buffer
+    /// as processed).
+    /// </summary>
+    [Fact]
+    public void AfterAnUnderrunTheOutputGoesOnWithNewAudio()
+    {
+        using var loopback = LoopbackDevice.Open(null!);
+        using var output = new OpenAlOutput(loopback, 48000);
+        var frames = output.BufferFrames;
+        var written = new List<float[]>();
+        // Buffer n holds n + 1 plus a small ramp, so each tells which it is.
+        void Write(int count)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                var n = written.Count;
+                written.Add([.. Enumerable.Range(0, frames * 2).Select(s => n + 1 + s % 100 / 1000f)]);
+                output.Write(written[^1]);
+            }
+        }
+        // The audio thread's turn, writing as many buffers as the output takes.
+        int Turn()
+        {
+            output.Maintain();
+            var writable = output.Writable;
+            Write(writable);
+            output.Maintain();
+            return writable;
+        }
+        float[] Mix(int buffers)
+        {
+            var mixed = new float[buffers * frames * 2];
+            loopback.Render(mixed, buffers * frames);
+            return mixed;
+        }
+        void AssertPlays(float[] mixed, int from, int count, string what)
+        {
+            var expected = written.Skip(from).Take(count).SelectMany(b => b).ToArray();
+            var heard = mixed.AsSpan(0, expected.Length);
+            Assert.True(heard.SequenceEqual(expected), $"{what}: expected buffers {from}–{from + count - 1}, heard {heard[0]:G6} … (buffer n holds about n + 1)");
+        }
+
+        // A dry stretch is mixed on its own: a voice that runs out holds its last sample to the end of that mix and
+        // fades it out over 64 frames in the next (OpenAL Soft's declick), which would add to new audio mixed with it.
+        void RunDry() => Mix(1);
+
+        Assert.Equal(4, Turn());
+        AssertPlays(Mix(4), 0, 4, "the first buffers");
+        RunDry();
+        // Ran dry: the next turn writes 4 new buffers and they are what plays next.
+        Assert.Equal(4, Turn());
+        Assert.Equal(1, output.Underruns);
+        AssertPlays(Mix(3), 4, 3, "after an underrun");
+
+        // One buffer left queued; the turn takes back the 3 played, then the source runs dry while the thread renders.
+        output.Maintain();
+        Assert.Equal(3, output.Writable);
+        AssertPlays(Mix(1), 7, 1, "the last buffer before running dry");
+        RunDry();
+        Write(3);
+        // Written after the underrun: not free until played, though the stopped source reports them processed.
+        Assert.Equal(1, output.Writable);
+        output.Maintain();
+        Assert.Equal(2, output.Underruns);
+        AssertPlays(Mix(3), 8, 3, "after running dry between Writable and the writes");
+
+        // Ran dry, then paused: resuming plays nothing old, and the next turn goes on with new audio.
+        RunDry();
+        output.Pause();
+        output.Resume();
+        Assert.Equal(3, output.Underruns);
+        Assert.All(Mix(1), v => Assert.Equal(0, v));
+        Assert.Equal(4, Turn());
+        AssertPlays(Mix(4), 11, 4, "after running dry and resuming");
+    }
+
+    /// <summary>
+    /// Every output that follows the default device hears that it changed (the user's decision, 2026-11-05).
+    /// OpenAL Soft has one event callback and one set of enabled events for the process, so the outputs share
+    /// one registration: its callback tells every listener, and it and the events stay until the last listener
+    /// goes. Before, each output registered its own callback (only the last one made heard a change) and turned
+    /// the events off when it was disposed. Hooks stand for OpenAL's two calls here; the default device's own
+    /// registration is used in <see cref="TheDefaultDevicePacesTheGraph"/>.
+    /// </summary>
+    [Fact]
+    public void EveryOutputHearsTheDefaultDeviceChange()
+    {
+        AlcEventCallback? registered = null;
+        var enabled = false;
+        var calls = new List<string>();
+        var events = new DefaultDeviceEvents(callback =>
+        {
+            registered = callback;
+            calls.Add(callback is null ? "unregister" : "register");
+        }, on =>
+        {
+            enabled = on;
+            calls.Add(on ? "on" : "off");
+        });
+        var heard = new int[3];
+        void Send(AlcEventType type) => registered!(type, AlcDeviceType.Playback, default, default);
+
+        var first = events.Listen(() => heard[0]++);
+        var second = events.Listen(() => heard[1]++);
+        Send(AlcEventType.DefaultDeviceChanged);
+        Send(AlcEventType.DeviceAdded);
+        Assert.Equal([1, 1, 0], heard);
+        // The first one goes: the other still hears.
+        first.Dispose();
+        Assert.False(events.Has(first));
+        Assert.True(events.Has(second));
+        Send(AlcEventType.DefaultDeviceChanged);
+        Assert.Equal([1, 2, 0], heard);
+        var third = events.Listen(() => heard[2]++);
+        Send(AlcEventType.DefaultDeviceChanged);
+        Assert.Equal([1, 3, 1], heard);
+        Assert.Equal(["register", "on"], calls);
+        Assert.True(enabled);
+        // The last one goes: the events go with it, once.
+        second.Dispose();
+        third.Dispose();
+        third.Dispose();
+        first.Dispose();
+        Assert.Equal(["register", "on", "off", "unregister"], calls);
+        Assert.Null(registered);
+        Assert.False(enabled);
+        // A new listener brings them back.
+        using var fourth = events.Listen(() => { });
+        Assert.Equal(["register", "on", "off", "unregister", "register", "on"], calls);
+    }
+
+    /// <summary>
+    /// An output that looks for a device listens to OpenAL's one registration (<see cref="DefaultDeviceEvents.OpenAl"/>)
+    /// from when it is made until it is disposed; a silent one and a loopback one don't. The default device is opened
+    /// if there is one (nothing is played).
+    /// </summary>
+    [Fact]
+    public void AnOutputFollowsTheDefaultDeviceUntilItIsDisposed()
+    {
+        var output = new OpenAlOutput();
+        Assert.True(output.FollowsDefaultDevice);
+        output.Dispose();
+        Assert.False(output.FollowsDefaultDevice);
+        using var silent = new OpenAlOutput(silent: true);
+        Assert.False(silent.FollowsDefaultDevice);
+        using var loopback = LoopbackDevice.Open(null!);
+        using var test = new OpenAlOutput(loopback, 48000);
+        Assert.False(test.FollowsDefaultDevice);
     }
 
     [Theory]
@@ -323,9 +553,15 @@ public class OutputTests
         Assert.InRange(system.Graph.CurrentTime, 0.1, clock.Elapsed.TotalSeconds + Ahead);
         if (!system.HasDevice)
             return;
-        // The reopening path, on the same device (nothing plays): streaming goes on from the same graph.
-        system.OpenAl!.SimulateDefaultDeviceChange();
-        Assert.True(SpinWait.SpinUntil(() => system.OpenAl.Reopens == 1, TimeSpan.FromSeconds(30)));
+        // The reopening path, on the same device (nothing plays): the default device changing as OpenAL's event
+        // thread tells it, through the one callback OpenAL holds (DefaultDeviceEvents; BRUTAL keeps it in
+        // Alc.SystemEventCallback, which its native trampoline calls); streaming goes on from the same graph.
+        var held = typeof(Alc).GetProperty("SystemEventCallback", BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.True(held != null, "BRUTAL no longer keeps the ALC event callback in Alc.SystemEventCallback: find where it does");
+        var callback = (AlcEventCallback?)held.GetValue(null);
+        Assert.True(callback != null, "no ALC event callback registered while an output follows the default device");
+        callback(AlcEventType.DefaultDeviceChanged, AlcDeviceType.Playback, default, default);
+        Assert.True(SpinWait.SpinUntil(() => system.OpenAl!.Reopens == 1, TimeSpan.FromSeconds(30)));
         var reopened = system.Graph.CurrentTime;
         Assert.True(SpinWait.SpinUntil(() => system.Graph.CurrentTime > reopened + 0.1, TimeSpan.FromSeconds(30)));
         Assert.True(system.HasDevice);

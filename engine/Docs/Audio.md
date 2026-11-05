@@ -455,10 +455,25 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   quanta of about 5 ms (256 frames at 44.1 and 48 kHz, 512 at 96 kHz), stereo float32 at the graph's
   rate. OpenAL's buffer-completed event wakes the thread. Its default-device event, or a lost
   connection, reopens the device on the new default, the source carrying on with its queue; the
-  graph keeps its rate and OpenAL resamples if the new device's differs. Without a device the buffers are taken at the real-time pace (20 ms
+  graph keeps its rate and OpenAL resamples if the new device's differs. OpenAL has one device-event
+  callback for the process, so every live output that looks for a device listens through one shared
+  registration (`DefaultDeviceEvents`: its callback tells them all; registered, with the events on,
+  while any listens). After an underrun (the source ran dry: the audio thread wasn't in time) it goes
+  on with new audio: when the source is first seen stopped, before anything new is written (before each
+  write, the restart and resuming), the buffers it played are taken back, as restarted with them
+  queued it would play them again from its queue's head; a stopped source reports every queued buffer
+  as processed, so it counts as not running, and gives back nothing, until it is started again
+  (2026-11-05, the user's decisions). OpenAL Soft's own declick stays: a voice that runs out holds its
+  last sample to the end of that mix and fades it out over 64 frames in the next (seen on a loopback
+  device). Without a device the buffers are taken at the real-time pace (20 ms
   ahead of a clock) and dropped, and a device is looked for every second. Pausing pauses the
   source: OpenAL Soft declicks, fading the next 64 frames out, and on resuming plays again from the
-  paused place with a 64-frame fade-in.
+  paused place with a 64-frame fade-in. Its AL calls are made in its own context, set on the calling
+  thread only while it makes them (OpenAL Soft's thread-local contexts), never the process-wide
+  current one: a source is a name within its context and a buffer within its device, the first
+  ones the same numbers everywhere, so with the process-wide one a second output (another audio
+  system, a loopback device) took over the first one's calls, and once it closed the first one's
+  graph stopped for good (2026-11-05, Status).
 - **Rooms prepared ahead (step 7's decision):** a theme start built its room on the audio thread
   (12–23 ms in one quantum, about the whole buffer). Now a worker thread makes the 7 rooms'
   responses and convolver kernels when the system starts (`PreparedRoom`, `Reverb.Prepared`: each
@@ -480,7 +495,16 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   logged, in an earlier run before the rooms' worker became a single low-priority thread).
 - **How it is checked:** a loopback device (OpenAL mixing into memory, no hardware) gets random
   samples peaking past ±1 and gives them back bit for bit at 48 and 44.1 kHz (so no panning, HRTF,
-  limiter or resampling), and pauses and resumes as described; the audio thread's buffers equal the
+  limiter or resampling), and pauses and resumes as described; two loopback outputs made one after
+  the other and filled from other threads each give back their own samples, also after the other
+  is gone, leaving no context set on any thread; after the source runs dry (a loopback device mixed
+  past the queue: the audio thread starved), the thread's turn plays new buffers, not the played
+  ones, also when it runs dry between `Writable` and the writes or while paused, and what is written
+  after an underrun isn't taken back before it plays; the shared device-event registration tells
+  every listener, stays while any listens and goes with the last (hooks for OpenAL's two calls), an
+  output listens from when it is made until it is disposed (not a silent or loopback one), and the
+  pacing test's reopening comes through the callback OpenAL holds (BRUTAL's
+  `Alc.SystemEventCallback`, read by reflection); the audio thread's buffers equal the
   same calls rendered directly; a call lands at the next quantum; pausing freezes the graph; without
   a device the frames taken stay a fixed amount ahead of a clock; the default device moves the graph
   and paces it (never far ahead of the clock; under load it may fall behind, so how close it stays
@@ -759,3 +783,22 @@ For the sequencer's audio cues (Docs/Scene.md, M10-8, Q27, S6-B, S6-C); the game
   `cancelAndHoldAtTime` rule as ported line for line in step 1; "The clock and scheduled calls", "Found"). Not
   checked against Chromium: to check against a Chromium render whether music.js does the same, and if not, find
   the rule (Docs/Engine-Plan.md, "Small tasks left from earlier milestones").
+- **Two outputs in one process (2026-11-05, the flaky `TheDefaultDevicePacesTheGraph`):** the output made its
+  OpenAL context the process-wide current one, so a second output (in the full suite's parallel phase only
+  `ApplicationMusicTests`' application) took over the first's AL calls and, once closed, left it none: the first
+  graph stopped for good, without an underrun or an error, and the pacing test failed at its 30 s wait. Load
+  wasn't the cause (a device-paced graph only falls behind; 100 of 100 runs pass under 16 busy loops on 8 cores);
+  it only made the two tests' overlap likelier. Fixed with thread-local contexts ("The output", `OpenAlOutput`);
+  `OutputTests.EachOutputPlaysItsOwnStream` fails without it (Docs/Notes.md, 2026-11-05).
+- **Underruns and device events (2026-11-05, the user's decisions; found with the above):** after an underrun
+  the source replayed what it had already played: `Maintain` runs first in the audio thread's turn and restarted
+  a stopped source from the head of its queue, the 4 played buffers (20 ms) still in it, before `Writable` took
+  them back (OpenAL Soft's `StartSources`; shown on a loopback device: after running dry the turn found nothing
+  writable and the same 4 buffers played again). Now the played buffers are taken back when the source is first
+  seen stopped ("The output"). And each output registered its own OpenAL device-event callback, though OpenAL has
+  one for the process: with two outputs on devices only the last made followed the default device, and the first
+  disposed turned the events off for the other (the game has one). Now one shared registration
+  (`DefaultDeviceEvents`). Tests `OutputTests.AfterAnUnderrunTheOutputGoesOnWithNewAudio`,
+  `EveryOutputHearsTheDefaultDeviceChange`, `AnOutputFollowsTheDefaultDeviceUntilItIsDisposed`; the first two fail
+  with the old behaviour put back. The synthesizer's samples don't change (only which buffers reach OpenAL after
+  an underrun), so the opt-in theme check wasn't run again.

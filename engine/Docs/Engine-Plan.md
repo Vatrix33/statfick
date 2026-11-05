@@ -22,7 +22,10 @@ and `.Ui.cs`, the sequences' CSS timelines) is done on its worker branch, rebase
 phase 1 (Ji'ruan's stage built in Blender, `jiruan.glb`, its evaluation, approval renders) is done on its worker branch, rebased on step 6;
 the user saw its renders on 2026-11-04 (22:50) and asked for more detail and acting (S7-1–S7-4, "Decisions for M10", "Step details"), so
 **phase 1b is next** (the detailed stage and the figures' cutscene clips, new approval renders at the same sampled times plus a turntable or
-frame strip of each clip, iterated until approved; `Docs/Scene.md`, "How it works", step 7, and Status); phase 2 comes after that approval. M9 (assets and
+frame strip of each clip, iterated until approved; `Docs/Scene.md`, "How it works", step 7, and Status); phase 2 comes after that approval.
+The flaky `OutputTests.TheDefaultDevicePacesTheGraph` (seen once in step 6's full run) is found and fixed on its worker branch, to be
+merged: OpenAL's process-wide current context, with the two output follow-ups the user decided on 2026-11-05 (Progress, "OpenAL
+outputs in one process"; "Decision on the audio output's follow-ups"). M9 (assets and
 data) is done and ticked (2026-11-03: nine steps and the FreeType thread-safety fix, 1907 tests passing on the GPU and on
 lavapipe; Progress, "M9 done"). The small tasks left from earlier milestones and the user's small changes to the old game
 were done on 2026-11-03 (below; Progress, "Small tasks"; the engine's tests don't depend on the old game's changes: their
@@ -476,6 +479,15 @@ to fix them too, each with a test that fails without the fix: `FontLibrary.Add` 
 (FreeType wants a library's faces made and destroyed one at a time), and the LCD filter was kept in a process-wide static
 though FreeType keeps one per library. (Not leaving them as noted gaps.)
 
+**Decision on the audio output's follow-ups (2026-11-05):** while finding the flaky `OutputTests.TheDefaultDevicePacesTheGraph`
+(OpenAL's process-wide current context; Progress, "OpenAL outputs in one process"), two more faults of the output were found,
+and the user decided both as recommended, each fixed with a test that fails without the fix: (1) after an underrun the output
+goes on with new audio: when the source is first seen stopped, before anything new is written, the buffers it already played
+are taken back (they were played again from its queue's head, the last 20 ms over; not left as it was); (2) OpenAL's
+default-device events get one registration shared by every live output, turned off when the last one goes (each output had
+registered its own callback, so only the last one made followed the default device and the first disposed turned the events
+off for all; not left as a noted gap).
+
 **Decision for the repo housekeeping task (2026-11-03):** the root `.gitignore` ignores `/.claude/worktrees/` (the worker
 worktrees) and `/.claude/settings.local.json` (one machine's settings), not the whole `.claude/` folder, so shared Claude
 Code files (`.claude/settings.json`, hooks, skills) can still be committed. (Not ignoring all of `.claude/`.)
@@ -756,6 +768,31 @@ while porting (the user will answer later).
     Mutations: 10 (`mutate.py`, `~/.cache/stat-fick-build/claude-work/flaky-compositing/mutations.json`: each of the nine
     locks removed, and the filter made process-wide again), 10 killed.
     Details: Docs/Notes.md, 2026-11-03; Docs/Compositing-Port.md, "Threads".
+  - **OpenAL outputs in one process (2026-11-05, 2317 tests, +4, a worker worktree):** the cause of the flaky
+    `OutputTests.TheDefaultDevicePacesTheGraph` (seen once in M10 step 6's full GPU run, a Blender render beside it).
+    `OpenAlOutput` made its context OpenAL's process-wide current one, and its AL calls went to whichever context was
+    current (a source is a name within its context, a buffer within its device, the first ones the same numbers in
+    each): a second output in the process took over the first's calls, and once closed left it none, so the first
+    graph stopped for good with no underrun or error logged. In the full suite's parallel phase the only other output
+    is `ApplicationMusicTests`' application, so the pacing test failed only when the two overlapped, at its 30 s wait
+    (`OutputTests.cs:321`). Reproduced with the unchanged tests started together: 10 of 10 failed there; load alone
+    didn't (100 of 100 probe runs under 16 busy loops on the 8 cores: a device-paced graph only falls behind; load only
+    made the overlap likelier). Fix: `OpenAlOutput.Use()`, the output's context set on the calling thread for each
+    method's AL calls and the thread's own put back (`ALC_EXT_thread_local_context`); test
+    `EachOutputPlaysItsOwnStream` (two loopback outputs; fails on the old code). The user's two follow-ups, the same day
+    ("Decision on the audio output's follow-ups"): after an underrun the output goes on with new audio
+    (`TakeBackAfterUnderrun`: the played buffers taken back when the source is first seen stopped, before each write,
+    the restart and resuming; they were played again from the queue's head; test `AfterAnUnderrunTheOutputGoesOnWithNewAudio`),
+    and the default-device events shared (`DefaultDeviceEvents`: one registration for every live output, off with the
+    last; each output had registered its own, so only the last made heard a change and the first disposed turned them
+    off; tests `EveryOutputHearsTheDefaultDeviceChange`, `AnOutputFollowsTheDefaultDeviceUntilItIsDisposed`; the pacing
+    test reopens through the callback OpenAL holds). Each new test fails with the old behaviour put back. After the fix:
+    the two tests started together 20 of 20 unloaded and 30 of 30 under 16 busy loops; the full suite (2317) passes on
+    the GPU and on lavapipe. Mutations: 30 (`mutate.py`, `~/.cache/stat-fick-build/claude-work/flaky-pacing/mutations.json`),
+    28 killed; the 2 survivors can't differ (the context scope in `Dispose`, whose calls the device's closing right
+    after makes moot; the guard on a refused thread context, unreachable). The opt-in theme check wasn't run: it renders
+    offline through the synthesizer, and only the output changed. Details: Docs/Notes.md, 2026-11-05; Docs/Audio.md,
+    "The output" and Status.
   - **M9 step 1, pack container and virtual file system (2026-11-03, 1184 tests):** four questions asked on the way, all answered as recommended (Q28–Q31 in `Docs/Assets.md`: names Windows can't hold refused too; a misnamed loose file stops the mount; mods are `.pak` in any case in ordinal name order; the old game's class files renamed at port time). `Engine/Statventure/Packs/`: `PackPath` (the rule), `PackFile` (the 64-byte `SVPK` header and the index checked at open, every entry's SHA-256 on every read, positional reads from several threads, `Verify`, `ExtractTo`), `PackWriter` (Brotli quality 11, window 22, entries in parallel, raw unless strictly shorter, re-pack reuse of unchanged entries by content hash after checking them, written to a temporary file then renamed), `VirtualFileSystem` with `Mount.Pack`, `Mount.Folder` (optionally below a place, e.g. `classes`) and `Mount.Mods` (topmost wins, union listing, `Origin`, an atomic `Reload` with `Reloaded`), `DataFileException` naming the file and entry. `Tools/Packer` (`pack`, `list`, `verify`, `extract`), in the solution. `../.gitattributes`: `*.pak` and step 2's `*.rec` binary. 138 tests in `Tests/Statventure.Tests/Packs/`; the full suite passes on the GPU and on lavapipe. 95 mutations, 93 fail a test after four gaps were closed; the 2 survivors can't differ here (read sharing only: Linux's `FileShare` is advisory; no flush to disk: a crash only). Not checked: Windows (sharing, renaming over an open pack).
   - **M9 step 2, the record serializer (2026-11-03, 1229 tests):** six format details asked on the way, all as recommended (Q32–Q37 in `Docs/Assets.md`; "Decisions for M9"). `Engine/Statventure/Records/`: `[Record(name, version)]`, `[Field(n)]`, `[Subtype(tag, type)]`; `RecordFamily` (a type's versions, frozen copies nested in it, upgrades), `RecordLayout` (compiled getters and factories, unions), the codecs of every field kind the later steps' records use (numbers, strings, bytes, enums, vectors and matrices, nullables, lists, dictionaries, ordered pair lists, records, unions), the binary form (type table, LEB128 counts, little-endian numbers, floats bit for bit, presence bytes, blocks) and the JSON form (`$types`, camelCase, shortest numbers, NaN as strings, base64, `$type`), `RecordSerializer` (the API), `RecordFormatException` (reason and path). Tests `Tests/Statventure.Tests/Records/` (45): both forms of every kind, exact bytes and text, damage of every kind, versions and upgrades from committed fixtures of past versions (`Tests/Statventure.Tests/Data/Records/Fixtures`, binary ones `.rec`), and the layout guard (`Data/Records/Layouts/<type>.txt`, recorded with `STATVENTURE_RECORD_FIXTURES=1`). The full suite passes on the GPU and on lavapipe; mutations: 103, all fail a test after one gap was closed (a nullable positional parameter without a default must be given, as a state's clip). The engine's own records come with steps 5–8.
   - **M9 step 3, records in packs, the packer's JSON input and dump, `Application.Data` (2026-11-03, 1358 tests):** five questions asked on the way, all as recommended (S3-1–S3-5 in `Docs/Assets.md`; "Decisions for M9"). `Engine/Statventure/Packs/`: record entries (flag bit 1; `PackWriter.AddRecord`, `PackEntry.IsRecord`; a record beside its loose file refused), `VirtualFileSystem.Load<T>` and `IsRecord` (a pack's binary form or a loose folder's `<path>.json`, every misuse and damage a `DataFileException` naming the pack and entry or the file), the loose rule (`LooseRecord`, `LooseFolder`: a `.json` starting with `"$types"` is a record, a start that isn't JSON fails the mount), `PackWriter.AddFolder` with records' JSON forms and importers (`Importers.cs`: `[Importer(name, endings)]`, `IImporter`, `ImportContext`), `PackFile.ExtractTo` in the loose form and `RecordJson`, `PackDump`, `RecordTypes`. `Core/Application.cs`: `Data` (the area packs by name, `classes/`, the development folder from `ApplicationOptions.DevelopmentFolder` or `$STATVENTURE_DEV_FOLDER`), mounted before the window. `Tools/Packer`: `dump`, records in `pack`, `list` and `extract`; `textconv.sh`, git's driver (`../.gitattributes` `*.pak binary diff=pak`; one `git config` line per clone, in `engine/CLAUDE.md`). `TestPaths.Packs`. 129 new tests in `Tests/Statventure.Tests/Packs/` (267 there). The full suite passes on the GPU and on lavapipe; mutations: 101, all fail a test after three gaps were closed (an escape lost from a test case, a folder listing that happened to be sorted on tmpfs, a cut byte order mark only short reads show); one failed its tests only as seen by hand (`mutate.py`'s `grep` took its output for binary). Later need noted in `Docs/Assets.md`: an "update" command once a pack holds imported and editor-made entries.
