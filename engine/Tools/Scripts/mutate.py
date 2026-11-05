@@ -6,6 +6,10 @@
 mutations.json is a list of {"label", "file", "old", "new", "filter"}: `file` relative to engine/, `old`
 the exact text (it must occur once), `new` what replaces it, `filter` a `dotnet test --filter` for the tests
 that cover the rule. Each mutation is applied, the tests are built and run, and the file is put back.
+A mutation of a shader source (a file under Engine/Statventure/Shaders/Source) compiles the shaders first,
+as build.sh does (forced, so file times don't matter), and again once the file is put back: the engine embeds
+Shaders/Bin/*.spv, which building the test project alone leaves as they were, so the tests would run the
+unmutated shader. A shader that doesn't compile is "BUILD FAILED".
 
 Prints one line each: "killed" (the tests failed, as they should), "SURVIVED" (no test noticed: either
 explain why nothing can differ or close the gap), "BUILD FAILED" or "SKIP" (the mutation itself was
@@ -27,10 +31,24 @@ import sys
 ENGINE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 ENV = "source Tools/Scripts/env.sh && "
 LOUD = "!!! WROTE TO THE PLAYER'S REAL FOLDERS"
+SHADER_SOURCES = os.path.join("Engine", "Statventure", "Shaders", "Source")
 
 
 def shell(command):
     return subprocess.run(["bash", "-c", ENV + command], cwd=ENGINE, capture_output=True, text=True).stdout
+
+
+def is_shader(file):
+    """Whether a mutation's file is a shader source (compiled to SPIR-V by build.sh, not by dotnet build)."""
+    return os.path.normpath(file).startswith(SHADER_SOURCES + os.sep)
+
+
+def compile_shaders():
+    """build.sh's shader step, every stage rebuilt: True when all compiled."""
+    compiled = shell("dotnet build Tools/ShaderCompiler -c Release -v quiet -nologo >/dev/null 2>&1; "
+                     f"dotnet Tools/ShaderCompiler/bin/Release/net10.0/ShaderCompiler.dll '{SHADER_SOURCES}' "
+                     "Engine/Statventure/Shaders/Bin --force 2>&1")
+    return " 0 failed" in compiled
 
 
 def game_folder():
@@ -126,9 +144,11 @@ def main(list_path):
             outcome = f"SKIP: the text occurs {count} times"
         else:
             open(path, "w").write(original.replace(mutation["old"], mutation["new"]))
+            shader = is_shader(mutation["file"])
             try:
-                built = shell("dotnet build Tests/Statventure.Tests -v q -nologo 2>&1 | grep -E 'rror\\(s\\)'")
-                if " 0 Error(s)" not in built:
+                if shader and not compile_shaders():
+                    outcome = "BUILD FAILED (shaders)"
+                elif " 0 Error(s)" not in shell("dotnet build Tests/Statventure.Tests -v q -nologo 2>&1 | grep -E 'rror\\(s\\)'"):
                     outcome = "BUILD FAILED"
                 else:
                     # grep -a: a test's output can hold raw control bytes, and plain grep then calls it binary
@@ -137,6 +157,8 @@ def main(list_path):
                     outcome = ("killed: " if "Failed!" in tested else "SURVIVED: ") + tested
             finally:
                 open(path, "w").write(original)
+                if shader:
+                    compile_shaders()
         result = {"label": mutation["label"], "outcome": outcome}
         print(mutation["label"], "->", outcome, flush=True)
         wrote = changes(before, [snapshot(folder, whole) for folder, whole in watched()])

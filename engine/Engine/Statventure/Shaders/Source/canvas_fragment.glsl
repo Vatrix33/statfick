@@ -1,19 +1,22 @@
 // Fragment helpers shared by the canvas fragment shaders.
 #include "canvas_common.glsl"
 
-// Signed distance to a box (0,0)-(size) with elliptical corners: negative inside. `gradient` is
-// the length of the distance's gradient (1 except in elliptical corners).
-float boxDistance(vec2 p, vec2 size, vec4 rx, vec4 ry, out float gradient)
+// The radii of the corner in q's quadrant (q from the box's centre; tl, tr, br, bl). A corner with
+// no radius on either axis is square (0, 0).
+vec2 cornerRadii(vec2 q, vec4 rx, vec4 ry)
+{
+    vec2 r = q.x < 0.0 ? (q.y < 0.0 ? vec2(rx.x, ry.x) : vec2(rx.w, ry.w))
+                       : (q.y < 0.0 ? vec2(rx.y, ry.y) : vec2(rx.z, ry.z));
+    return r.x <= 0.0 || r.y <= 0.0 ? vec2(0.0) : r;
+}
+
+// Signed distance to a box (0,0)-(size) with elliptical corners: negative inside (in the units of
+// p; the clips use it in pixels).
+float boxDistance(vec2 p, vec2 size, vec4 rx, vec4 ry)
 {
     vec2 center = size * 0.5;
     vec2 q = p - center;
-    gradient = 1.0;
-    // Pick the corner of the quadrant: tl, tr, br, bl.
-    vec2 r = q.x < 0.0 ? (q.y < 0.0 ? vec2(rx.x, ry.x) : vec2(rx.w, ry.w))
-                       : (q.y < 0.0 ? vec2(rx.y, ry.y) : vec2(rx.z, ry.z));
-    // A corner with no radius on either axis is square.
-    if (r.x <= 0.0 || r.y <= 0.0)
-        r = vec2(0.0);
+    vec2 r = cornerRadii(q, rx, ry);
     vec2 d = abs(q) - center + r;
     if (r.x <= 0.0)
         return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
@@ -23,14 +26,7 @@ float boxDistance(vec2 p, vec2 size, vec4 rx, vec4 ry, out float gradient)
     vec2 e = d / r;
     float k = length(e);
     float m = min(r.x, r.y);
-    gradient = k > 1e-6 ? m * length(e / r) / k : 1.0;
     return (k - 1.0) * m;
-}
-
-float boxDistance(vec2 p, vec2 size, vec4 rx, vec4 ry)
-{
-    float gradient;
-    return boxDistance(p, size, rx, ry, gradient);
 }
 
 // Pixel coverage from a signed distance: the distance in pixels is distance / |gradient|.
@@ -40,18 +36,48 @@ float coverage(float distance)
     return clamp(0.5 - distance / w, 0.0, 1.0);
 }
 
-// Pixel coverage of a box (0,0)-(size) with elliptical corners at the local point p. The distance
-// becomes pixels through the local coordinates' derivatives, which are exact (they map to pixels
-// affinely); the distance's own derivatives go wrong in 2x2 pixel quads that straddle two edges,
-// as at the ends of a 1 px box.
+// Pixel coverage of a box (0,0)-(size) with elliptical corners at the local point p: a ramp one
+// pixel wide across the nearest edge, the distance measured in pixels. The local coordinates'
+// derivatives carry local units to pixels exactly (they map to pixels affinely; the distance's own
+// derivatives go wrong in 2x2 pixel quads that straddle two edges, as at the ends of a 1 px box).
+// Each edge has its own scale under a transform that scales one axis more than the other (scaleX,
+// a rotation scaled afterwards, a skew), so every distance is taken to pixels before distances are
+// compared: across an edge x = c local x changes by the length of its gradient in pixels, so the
+// edge is (x - c) / |grad x| pixels away, and likewise for y; beyond a square corner the way to the
+// corner point is carried to pixels whole (through the derivatives' inverse); in an elliptical
+// corner the distance is divided by its gradient's length in pixels. (One scale for the whole box,
+// sqrt(|det|) of the derivatives, spread a scaleX(0.2) bar 2 px tall over four rows.)
 float boxCoverage(vec2 p, vec2 size, vec4 rx, vec4 ry)
 {
-    float gradient;
-    float distance = boxDistance(p, size, rx, ry, gradient);
-    vec2 dx = dFdx(p);
-    vec2 dy = dFdy(p);
-    float unitsPerPixel = sqrt(max(abs(dx.x * dy.y - dx.y * dy.x), 1e-12));
-    return clamp(0.5 - distance / max(gradient * unitsPerPixel, 1e-6), 0.0, 1.0);
+    // Local units a pixel along x (column 0) and along y (column 1).
+    mat2 toLocal = mat2(dFdx(p), dFdy(p));
+    // How much local x and local y change a pixel across their edges: their gradients' lengths in pixels.
+    vec2 across = vec2(length(vec2(toLocal[0].x, toLocal[1].x)), length(vec2(toLocal[0].y, toLocal[1].y)));
+    across = max(across, vec2(1e-6));
+    vec2 center = size * 0.5;
+    vec2 q = p - center;
+    // The quadrant's signs (never 0: a point on the centre line still belongs to one side).
+    vec2 side = vec2(q.x < 0.0 ? -1.0 : 1.0, q.y < 0.0 ? -1.0 : 1.0);
+    vec2 r = cornerRadii(q, rx, ry);
+    vec2 d = abs(q) - center + r;
+    float pixels;
+    if (r.x <= 0.0 && d.x > 0.0 && d.y > 0.0)
+        // Beyond a square corner: the way from the corner point, in pixels.
+        pixels = length(inverse(toLocal) * (side * d));
+    else if (r.x <= 0.0 || d.x <= 0.0 || d.y <= 0.0)
+        // Across the nearer edge, in pixels.
+        pixels = max((d.x - r.x) / across.x, (d.y - r.y) / across.y);
+    else
+    {
+        // Inside the corner square: distance to the ellipse, scaled back to units; its gradient is
+        // m (e / r) / k, along the ellipse's normal (the radius on a circle).
+        vec2 e = d / r;
+        float k = length(e);
+        float m = min(r.x, r.y);
+        vec2 gradient = side * (k > 1e-6 ? m * (e / r) / k : vec2(0.0, 1.0));
+        pixels = (k - 1.0) * m / max(length(gradient * toLocal), 1e-6);
+    }
+    return clamp(0.5 - pixels, 0.0, 1.0);
 }
 
 vec4 gradientColor(uint index, vec2 p)
