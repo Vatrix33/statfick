@@ -2225,7 +2225,7 @@ the decisions and the 33 step details were recorded, the design set, and seven s
   details"); phase 2 (the sequence, the title card, the checks, the sandbox mode) next.
 - **Step 7 phase 2: built, the full suite passes on the GPU and on lavapipe with the card at 1.4 s held for the
   bar's glow under `scaleX(0.2)` (S7-14: until the canvas blurs a shadow as Chromium does under a non-uniform
-  scale, ported by its own worker; 2026-11-05, on its worker branch, to be merged).** The sequence
+  scale, ported by its own worker; 2026-11-05, merged as `515c128`, 1.4 s un-held).** The sequence
   (`JiruanIntro`, its JSON fixture), the two effects, the three sounds as the user chose them (S7-9–S7-11) and the
   theme, the old card's markup and rules, the rule tests, the card against Chromium (0, 2.5, 3.4, 4.6 and 7 s;
   1.4 s held: "The card at 1.4 s"), the stage's render scenes and Blender's renders (the harness
@@ -2245,3 +2245,6 @@ the decisions and the 33 step details were recorded, the design set, and seven s
   rebased on `0731233`; Engine-Plan.md Progress, "Canvas: blurred shadows under non-uniform transforms"): 1.4 s un-held
   (2,133 → 60 pixels beyond 12), all six moments match; the full suite passes, 2516 tests and 6 held (three shadow fixtures
   awaiting the inset caster's port), on the GPU (1 min 13 s) and on lavapipe (1 min 32 s); 15 of 15 mutations killed.
+  The inset shadow's caster merged on `main` as `7fd3aac` (2026-11-05; Engine-Plan.md Progress, "Canvas: inset shadows
+  cast from Blink's frame"): the three shadow fixtures un-held, so the full suite on `main` is 2547 tests, none held,
+  on the GPU and on lavapipe.

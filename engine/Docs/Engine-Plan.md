@@ -12,32 +12,43 @@ for M10" below; the design doc is `Docs/Scene.md`), and all seven steps are merg
 from glTF, the sequence record, builder and player, camera, light and particle tracks, audio and UI tracks, and the proof
 cutscene, Ji'ruan's intro. **The user approved the proof on 2026-11-05** ("The scene is perfect. I can't fully judge it
 because of the placeholder model, but it's very good."; S7-5), and since the shadow blur port (`515c128`) its title card
-matches Chromium at all six sampled moments, so nothing of M10 is held. The full suite on `main` is 2516 tests, passing on
-the GPU and on lavapipe, and 6 held that are not M10's: the paint fixtures `shadow-scale-x`, `shadow-scale-y` and
-`shadow-rotate` at both scales, which wait for the inset shadow's port and their limits ("Decision on blurred shadows
-under non-uniform transforms"). Done on the way, each by a worker of its own (Progress, by name): the flaky
+matches Chromium at all six sampled moments, so nothing of M10 is held. The full suite on `main` (`7fd3aac`) is 2547
+tests, passing on the GPU and on lavapipe, with nothing held (Progress, "Canvas: inset shadows cast from Blink's frame").
+Done on the way, each by a worker of its own (Progress, by name): the flaky
 `OutputTests.TheDefaultDevicePacesTheGraph` traced to OpenAL's process-wide current context and fixed, with the user's
 two output follow-ups ("OpenAL outputs in one process"); test runs kept out of the player's real folders ("Test runs kept
 out of the player's folders"); and three rules the proof's title card found, each against Chromium: the canvas's box
 antialiasing under non-uniform transforms ("Canvas: box antialiasing under non-uniform transforms"), Blink's paint offset
 of transformed boxes ("Paint offset of transformed boxes") and blurred shadows with Skia's one device sigma ("Canvas:
-blurred shadows under non-uniform transforms"). In progress on other branches, not part of M10: the inset shadow's caster
-(the canvas; Blink's `AreaCastingShadowInHole`; it un-holds `shadow-rotate` and reports the other two fixtures) and
-background-image layers painted as Blink paints them, antialiased once at a fractional edge and tiled seamlessly (the
-painter, with a small addition to the canvas's API; "Decision on box antialiasing under non-uniform transforms"). Still
-open from M10 step 6: the music switch exactly on a quantum's start during the old theme's fade-in, to check against
-Chromium (below, "Small tasks left from earlier milestones"). **The next milestone is M11 (editor foundation); it starts
+blurred shadows under non-uniform transforms"); after M10, the inset shadow's caster (merged on `main` as `7fd3aac`,
+2026-11-05; Progress, "Canvas: inset shadows cast from Blink's frame"). **Work in progress, not on `main`:**
+background-image layers painted as Blink paints them, the whole layer rule with seamless tiling ("Decision on background
+layers"), on the branch `background-layers-aa` (head `6731f1e`, based on `5c11c06`, so it needs a rebase on `7fd3aac`
+before it merges; worktree `.claude/worktrees/agent-a55b0fabf44a865d5`; working notes in
+`claude-work/canvas-aa/bg-NOTES.md`, `claude-work/` being `~/.cache/stat-fick-build/claude-work/`, on the user's PC only).
+Done on the branch: the canvas's tile API (`Canvas.PushTile`/`PopTile`, a `premultiplied` flag on `DrawImage`,
+`CanvasRender.AcquireExactTarget`, `CanvasTileTests` 7 of 7), `PaintTarget.PushTile`/`PopTile`/`DrawTile`, the whole Blink
+background-layer rule in a new `Engine/Statventure/UI/Paint/UiPainter.Backgrounds.cs`, the fixture
+`BackgroundLayerReferenceTests` with `Reference/background-fixtures.json` and goldens `ui-bg-layers@{1,1.65}.png`. State:
+the fixture passes at 1× (0.106 % differing, rounded corners only) and **fails at 1.65** (0.38 % against the 0.2 % limit):
+the fixed-attachment checker (about 650 px), the radial pattern under `scaleX(0.6)` (about 304 px) and a dashed border
+(about 85 px; to check whether that is the border's drawing and not the background). Left to do: those three; then all UI
+references on the GPU and on lavapipe; the mutation list; the docs; the full run; the merge. One known difference still
+to put to the user before it merges: Blink's clip-layer bleed avoidance clips the whole background once as a layer, and
+the canvas cannot clip only a layer's composite. Still open from M10 step 6: the music switch exactly on a quantum's start
+during the old theme's fade-in, to check against Chromium (below, "Small tasks left from earlier milestones"). **The next milestone is M11 (editor foundation); it starts
 only on the user's go,** and then first with M11's questions under "Open questions for later milestones" below. M9
 (assets and data) is done and ticked (2026-11-03; Progress, "M9 done"); M8's music the user has listened to with
 `play-theme.sh` and is happy with (2026-11-02). Nothing since 2026-10-30 has run on Windows ("Windows check" below). The
 project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo `github.com/Vatrix33/statfick`; the
 user's tasks for the port are in `Docs/Port-Tasks/`, read when the port starts ("Decision on the user's tasks for the
 port"; "Open questions for later milestones", "At port time").
-The inset shadow's caster is ported on its worker branch (`shadow-inset-caster`, rebased on `5c11c06`), to be merged:
-`shadow-rotate` un-held at 12 levels / 1 %, `shadow-scale-x` and `shadow-scale-y` at 1.65 at the paint fixtures' 12 / 0.2 %,
-`shadow-scale-y` at 1× at 12 / 0.25 % (the user's limit, 2026-11-05), so nothing is held; the game screens' slight move
-away from Chromium (the blur kernel's shape) is a known difference the user accepted the same day (Progress, "Canvas: inset
-shadows cast from Blink's frame"; "Decision on blurred shadows under non-uniform transforms").
+The inset shadow's caster is merged on `main` (`7fd3aac`, 2026-11-05; worker branch `shadow-inset-caster`, rebased on
+`5c11c06`): `shadow-rotate` un-held at 12 levels / 1 %, `shadow-scale-x` and `shadow-scale-y` at 1.65 at the paint
+fixtures' 12 / 0.2 %, `shadow-scale-y` at 1× at 12 / 0.25 % (the user's limit, 2026-11-05), so nothing is held; the
+game screens' slight move away from Chromium (the blur kernel's shape) is a known difference the user accepted the same
+day (Progress, "Canvas: inset shadows cast from Blink's frame"; "Decision on blurred shadows under non-uniform
+transforms").
 Before each later milestone (M11 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code, in the order
 "Starting M9" below gives (M10 followed it too).
@@ -76,7 +87,18 @@ what needs the user's machines):**
   (`cancelAndHoldAtTime` at the current time prunes the ramp's first event, Blink's rule ported line for line in M8;
   the game's own `Music.Play` and a scheduled switch on a quantum's start both do it, one inside a quantum fades). Not
   checked against Chromium (the M8 fixtures switch only after a fade-in): check against a Chromium render whether
-  music.js does the same; if not, find the rule (`Docs/Audio.md`, "The clock and scheduled calls", "Found").
+  music.js does the same; if not, find the rule (`Docs/Audio.md`, "The clock and scheduled calls", "Found"). No go yet.
+- The proof cutscene's three sounds by ear (open, recorded 2026-11-05): the rift (glassy crack and sub drop), the flash
+  (thunderclap) and the title (deep toll), the kinds the user chose on 2026-11-05 (S7-9–S7-11), have not been judged by
+  the user's ear for level, length and the thunder's delay to the flash's peak (their levels and lengths are first
+  guesses). `Tools/Scripts/play-cutscene.sh jiruan [--volume 0-100]` plays it. Standing rule: when a script or a session
+  plays audio, it sends only volume 0 (it is audible on the user's headset); listening is the user's, in a real terminal.
+- Housekeeping (open, needs the user's go; recorded 2026-11-05): finished workers' worktrees and merged local branches
+  are still there and can go (after `git worktree unlock` for the locked ones): the worktrees
+  `.claude/worktrees/agent-a100365f9dd9f6455`, `agent-a854dc507294edc31` (`shadow-inset-caster`),
+  `agent-a90b2ab8c1e10ed5b` (locked), `agent-ab2955e985eacee1d` and `stray-saves` (locked); the local branches
+  `step7-unsquashed-backup`, `paint-offset-rounding`, `worktree-agent-a854dc507294edc31` and the worktrees' own branches.
+  **Keep** `agent-a55b0fabf44a865d5` and its branch `background-layers-aa` (unfinished work, "Current task" above).
 - The "Known differences" lists (`Docs/Compositing-Port.md`, "Known differences left (SVG)"; `Docs/Scripting.md`, "Known
   differences left"; `Docs/Animation.md`, "Known differences from Blender's NLA"; M5's Progress, "Known differences left (not
   yet ported)") are accepted differences, not tasks, unless the port finds the game needs one.
@@ -586,6 +608,12 @@ its fraction kept only along the axes the transform doesn't scale (Blink's `CanP
 background-image layers antialiased once at a fractional edge (the layer clip and each tile antialias it now); the shadow's
 clip-out inset, the bleed avoidance under opaque rounded borders and the square corner's product coverage are recorded as known
 differences, with the unchecked blurred shadow under a non-uniform scale (not porting all five; not recording all five).
+
+**Decision on background layers (2026-11-05; decided; the port is in progress on `background-layers-aa`, not on `main`):**
+for the background-image layers' double edge above, the user chose to port **the whole Blink background-layer rule,
+seamless tiling included** (not only the single fractional edge), approved the small addition to the canvas's API for
+tiles, and decided that `background-clip` and `background-origin` **stay unsupported** for now. State of the port: "How to
+continue", "Current task".
 
 **Decision on the paint offset of transformed boxes (2026-11-05):** porting the first of those two rules showed it wider than the
 box: Blink rounds a transformed box's paint offset (its paint offset translation), keeps the fraction only along the axes it
