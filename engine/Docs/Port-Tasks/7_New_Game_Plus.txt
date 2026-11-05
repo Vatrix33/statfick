@@ -189,10 +189,10 @@ Do not delete, unequip, or permanently modify Exotic equipment when Limitless is
 
 Introduce a new material called **Exium**, used for Exotic weapons.
 
-- Exium uses the same material visual effect as Mythium.
-- Its material effect is increased by **3% compared to Mythium**.
+- Exium uses the same material visual effect as Mythilium.
+- Its material effect is increased by **3% compared to Mythilium**.
 - Apply the increased material effect consistently to Exotic weapons that use Exium.
-- Exium should be identifiable as a distinct material without losing the visual identity of the Mythium material effect.
+- Exium should be identifiable as a distinct material without losing the visual identity of the Mythilium material effect.
 
 Do not confuse the 3% increase with the Exotic item's unique special effect. These are separate properties.
 
@@ -264,9 +264,9 @@ Implementation details:
 - **Manufacturer:** Roundtable
 - **Drop chance:** 4%
 - **Drop sources:**
-  - Laila
+  - Juila
   - Nygheir
-  - Zik
+  - Zik Lun
 - **Material:** Exium
 
 **Unique effect:**

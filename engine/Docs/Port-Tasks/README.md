@@ -2,7 +2,8 @@
 
 The user's tasks to add to the game during the port (user decision 2026-11-05), done in their number order (a plain
 file listing puts `10_` before `1_`; the list below is the order). The `.txt` files are the user's own text, unchanged
-(only their line endings were made LF, as the repo stores text). Fourteen tasks.
+(only their line endings were made LF, as the repo stores text), except three names in task 7 the user confirmed on
+2026-11-05: "Laila" is Juila, "Zik" is Zik Lun, "Mythium" is Mythilium. Fourteen tasks.
 
 1. `1_Masterwork_Elementals.txt`: six masterworks remade from the elementals' former unique items (Plasma Blade,
    Tidepiercer, First Comet, Peace and Balance, Kugelblitz, Avalanche); the elementals' placeholder weapons stay.
@@ -49,13 +50,11 @@ in `Engine-Plan.md`, as for every step.
 reforging of task 3 before task 9, Sparkling enemies of task 5 before task 7, the new locations of tasks 3
 and 6 before the map rework of task 8, the guild quests of task 2 before Collect and Delve, caravans and poisons
 before the Caravanist and Poisoner of task 10, the Exotic rarity of task 7 before task 14), with these points to
-remember:
-- Task 7 asks Limitless to scale "dungeon enemies", but dungeons only come with task 14, which itself needs task 7's
-  Exotic rarity; so task 14 gives its dungeon enemies the Limitless scaling.
-- Task 13 adds classes until there are 250; task 14 then adds two more (252). Ask at task 13 whether the 250 should
-  leave room for them.
-- Names to confirm at task 7: "Laila" (no enemy of that name; Juila the Grand Forest Matriarch?), "Zik" (Zik Lun),
-  "Mythium" (the game's Mythilium).
+remember (the user's answers, 2026-11-05):
+- Task 7's "dungeon enemies" is meant to be future-proof: Limitless scales every kind of enemy, also those added later.
+  Dungeons only come with task 14 (which needs task 7's Exotic rarity), so task 14 gives its dungeon enemies the
+  Limitless scaling.
+- Task 13 adds classes until there are 250; task 14's two classes come on top (252 in the end), as intended.
 
 **Still open:** whether the tasks come after the game is ported faithfully and checked against the old game, or while
 porting, each system they change ported straight into its new form (asked 2026-11-05; the user will answer later).

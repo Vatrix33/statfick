@@ -502,7 +502,10 @@ at port time). The rune slotting sound was left out of the old game; the port ad
 **Decision on the user's tasks for the port (2026-11-05):** the task files the user wrote are kept unchanged in
 `Docs/Port-Tasks/` (named by their order: 1 Masterwork Elementals, 2 Guild, 3 Shop Rework, 4 Artifact Rework, 5 New
 Masterworks, 6 New Areas, 7 New Game Plus, 8 Map Rework, 9 Potion Rework, 10 Class Rework, 11 New Races, 12 Spell
-Rework, 13 New Classes, 14 Dungeons; its README sums them up and notes what the order means for them). They are added to the game during the port, in that order, and read when the port
+Rework, 13 New Classes, 14 Dungeons; its README sums them up and notes what the order means for them). The text is
+kept as written except three names in task 7 the user confirmed the same day (Laila → Juila, Zik → Zik Lun, Mythium →
+Mythilium); task 7's Limitless scaling is meant to cover every later kind of enemy too (task 14's dungeon enemies), and
+the class count going past 250 with task 14's two classes is intended. They are added to the game during the port, in that order, and read when the port
 starts. (Not a top-level folder, not in `../old-game/Docs/`.) Still open: whether they come after the faithful port or
 while porting (the user will answer later).
 
