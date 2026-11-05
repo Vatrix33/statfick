@@ -248,7 +248,9 @@ the design and the tests):
   decision 2026-11-03 in "Decisions for M8", the rune slotting sound among them); UI symbols outside Lato and STIX (⚙ ✦ ☾ ↓ ＋ ⚔ ♟ …); how the inline SVG art and its
   transforms map to the Blender remakes; the grabbing cursor's design; the level of detail of the item
   models. **First read `Docs/Port-Tasks/`:** the user's tasks to add during the port, in their number order
-  (decided 2026-11-05); ask whether they come after the faithful port or while porting (left open by the user).
+  (decided 2026-11-05); ask whether they come after the faithful port or while porting (left open by the user). Task 1
+  (Masterwork Elementals) is already done in the old game, so the faithful port brings it over: don't build it again,
+  only remake its placeholder art (the README's list).
 
 ## Folders
 
@@ -511,7 +513,8 @@ while porting (the user will answer later).
 - **Task 1 is done in the old game now (user decision 2026-11-05):** before the port, with placeholder looks for the six
   masterworks (each type's normal forged look plus simple hints); the user wants them fully remade visually in the port.
   The other tasks are decided one at a time (not yet the same approach for all 14). Its design answers are in
-  `../old-game/Docs/Notes.md`, "Masterwork Elementals"; `Docs/Port-Tasks/README.md` lists the placeholder art.
+  `../old-game/Docs/Notes.md`, "Masterwork Elementals"; `Docs/Port-Tasks/README.md` lists the placeholder art. The port
+  brings task 1 over with the rest of the game and doesn't redo it from the task file; its only port work is that art.
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
