@@ -247,7 +247,7 @@ the design and the tests):
 - **At port time:** which sounds the game gets (sound effect patches; the port must add proper sound effects, user
   decision 2026-11-03 in "Decisions for M8", the rune slotting sound among them); UI symbols outside Lato and STIX (⚙ ✦ ☾ ↓ ＋ ⚔ ♟ …); how the inline SVG art and its
   transforms map to the Blender remakes; the grabbing cursor's design; the level of detail of the item
-  models. **First read `Docs/Port-Tasks/`:** the user's five tasks to add during the port, in their number order
+  models. **First read `Docs/Port-Tasks/`:** the user's tasks to add during the port, in their number order
   (decided 2026-11-05); ask whether they come after the faithful port or while porting (left open by the user).
 
 ## Folders
@@ -499,9 +499,10 @@ at port time). The rune slotting sound was left out of the old game; the port ad
 - Equipment slots: the item or empty-slot button fills its whole field in every slot. (Not the off-hand only.)
 - Money (the purse) can be edited only in Dev Mode.
 
-**Decision on the user's tasks for the port (2026-11-05):** five task files the user wrote are kept unchanged in
+**Decision on the user's tasks for the port (2026-11-05):** the task files the user wrote are kept unchanged in
 `Docs/Port-Tasks/` (named by their order: 1 Masterwork Elementals, 2 Guild, 3 Shop Rework, 4 Artifact Rework, 5 New
-Masterworks; its README sums them up). They are added to the game during the port, in that order, and read when the port
+Masterworks, 6 New Areas, 7 New Game Plus, 8 Map Rework, 9 Potion Rework, 10 Class Rework; four more are to come; its
+README sums them up). They are added to the game during the port, in that order, and read when the port
 starts. (Not a top-level folder, not in `../old-game/Docs/`.) Still open: whether they come after the faithful port or
 while porting (the user will answer later).
 

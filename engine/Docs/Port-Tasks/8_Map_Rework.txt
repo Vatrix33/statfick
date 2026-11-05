@@ -1,0 +1,394 @@
+# Major Update: Complete World Map Rework, Expanded World, and New Traversal Systems
+
+I want you to undertake a major overhaul of the game's world map and traversal systems. This is intended to be a substantial world-design update, not simply a visual adjustment. The goal is to create a much larger, more immersive, geographically coherent, and interconnected world while preserving the existing gameplay structure, progression, encounter balance, and overall identity of the game.
+
+**Important:** Before making any changes, examine the existing map, world structure, region layouts, level progression, enemy distribution, roads, towns, castles, traversal mechanics, and relevant game systems. Understand how these systems currently work and how they depend on one another. Build the update around the existing game rather than replacing functional systems unnecessarily.
+
+---
+
+## 1. Complete World Map Redesign
+
+Completely redesign the world map by replacing the current collection of separate regional maps with one large, continuous, interconnected overworld.
+
+### World Structure
+- The entire playable overworld should become one large continent surrounded by ocean.
+- All existing regions must remain in the game.
+- Instead of physically separate maps, all regions should now exist within the same continuous world.
+- Remove the requirement to walk to the edge of one map to transition into another.
+- Players should be able to travel seamlessly between regions by following the actual geography of the world.
+- Region boundaries should remain logically defined but become invisible to the player. There should be no visible walls, borders, loading barriers, or artificial transitions between regions.
+- When the player crosses into another region, the background music should smoothly transition to the appropriate regional soundtrack.
+- Regional identity must remain intact through environmental design, architecture, vegetation, terrain, atmosphere, enemies, and music.
+
+### Geographical Redesign
+Reposition and reorganize existing regions wherever necessary to create a geographically believable continent.
+
+Consider the following when designing the new layout:
+- Mountain ranges should form natural geographical barriers.
+- Forests, plains, deserts, swamps, coastlines, and other environments should be positioned logically.
+- Rivers, lakes, valleys, and other geographical features should connect naturally.
+- Regions with similar climates should generally have sensible geographical relationships.
+- Transitions between different environments should feel natural rather than abrupt.
+- Existing encounter zones and general environmental areas should remain recognizable and retain their original purpose wherever possible.
+
+You may relocate entire regions if doing so would result in a significantly better geographical layout.
+
+**However, geographical improvements must never come at the expense of the game's progression and level curve.** Ensure that the player cannot accidentally access areas intended for significantly higher levels without appropriate difficulty, geographical restrictions, or other progression safeguards.
+
+### Roads and Connections
+- Do not arbitrarily create new roads.
+- Existing towns that are connected by roads must remain connected as they currently are.
+- Preserve the existing road network and its logical connections.
+- Roads may be adjusted geographically to accommodate the new world layout, but their original connections and destinations must remain intact.
+- Additional roads may only be introduced if genuinely necessary to connect newly implemented towns or castle towns.
+- Roads should follow the terrain naturally, avoiding unrealistic paths through mountains, cliffs, deep water, or otherwise impassable terrain.
+
+---
+
+## 2. Increase the Overall World Size
+
+The new overworld should be approximately **40% larger** than the existing world.
+
+This increase should affect the actual playable world and not merely its visual representation.
+
+Specifically:
+- Increase the distances between towns, cities, castles, and other important locations.
+- Make existing regions physically larger.
+- Expand forests, mountain ranges, plains, deserts, and other environmental areas.
+- Increase the amount of traversable space between important locations.
+- Ensure that the world feels significantly more expansive and that travelling between destinations takes longer.
+
+**Do not increase the player's normal movement speed to compensate for the larger map.**
+
+The player should retain the existing movement speed. The increased travel time is intentional and should give the world a greater sense of scale.
+
+When expanding the world, make sure that:
+- Existing locations remain accessible.
+- Important landmarks remain easy to recognize.
+- Travel routes remain logical.
+- Encounter density remains appropriate.
+- The world does not become excessively empty or repetitive.
+- Towns and important destinations do not feel unnecessarily far apart.
+
+The 40% increase should be used as a general world-scale target. Prioritize a coherent and enjoyable world over blindly scaling every coordinate by exactly the same amount.
+
+---
+
+## 3. Additional Geographical Areas
+
+If the expanded continent requires additional geographical areas to make the world feel complete and believable, you may create new areas.
+
+However, new areas must be fully implemented rather than serving as empty filler space.
+
+Every new area must have:
+- A clearly defined geographical and environmental identity.
+- Appropriate terrain, vegetation, and environmental details.
+- A logical position within the continent.
+- Appropriate enemy encounters.
+- Enemies that fit the area's environment and intended difficulty.
+- A suitable position within the overall level progression.
+- Appropriate encounter density and difficulty scaling.
+- Logical connections to surrounding areas.
+
+If necessary, introduce new enemy types to populate these areas.
+
+New enemies should be properly balanced, visually and thematically appropriate, and consistent with the game's existing combat mechanics.
+
+Do not introduce new areas simply to increase the map size. Every additional area should have a meaningful reason to exist.
+
+---
+
+## 4. Island Travel and Boat Animation
+
+Improve the existing boat-travel system used to reach the island.
+
+Instead of an immediate transition or loading screen, introduce a small boat-travel animation.
+
+### Required Behaviour
+1. The player approaches and interacts with the existing boat.
+2. The character boards the boat.
+3. A short animation shows the boat moving across the water towards the island.
+4. The surrounding water should visually move to communicate that the boat is travelling.
+5. The boat should visibly approach the island.
+6. Once the boat reaches its destination, transition into the island's playable area.
+
+The animation should be short enough that it does not become tedious after repeated use.
+
+The purpose is to make travelling to the island feel like an actual journey rather than an instantaneous teleportation.
+
+Preserve the existing boat functionality and island access conditions.
+
+---
+
+## 5. Improved Mountain Traversal and Environmental Atmosphere
+
+Make travelling up the mountain significantly more immersive.
+
+The mountain should visually communicate the player's increasing altitude through changes in atmospheric conditions and visibility.
+
+### Altitude-Based Environmental Effects
+
+As the player climbs higher, progressively introduce the following effects:
+
+**Lower Mountain:**
+- Normal visibility.
+- The surrounding lower landscape remains clearly visible.
+- Standard environmental atmosphere.
+
+**Middle Mountain:**
+- Areas below the player's current altitude gradually become covered in fog.
+- Visibility of the lower landscape should decrease.
+- Fog should create a sense of elevation and distance.
+- The mountain should begin to feel colder and more isolated.
+
+**Upper Mountain:**
+- Clouds should become visible around and below the player.
+- Lower mountain areas should become increasingly obscured.
+- The player should feel as though they are climbing above the clouds.
+- Atmospheric effects should become more pronounced.
+
+### Implementation Requirements
+- Environmental effects should change gradually based on the player's altitude.
+- Avoid abrupt visual changes when crossing altitude thresholds.
+- Fog and clouds should be layered naturally into the environment.
+- Maintain sufficient visibility around the player so navigation and gameplay remain comfortable.
+- Ensure that atmospheric effects do not interfere with important interactable objects.
+
+The overall objective is to make the mountain feel physically tall and to give the player a genuine sense of climbing to a higher elevation.
+
+---
+
+## 6. New System: Caravan Fast Travel
+
+Introduce a new fast-travel system based on caravan services located in castle towns.
+
+The system should provide a convenient way to travel across the expanded world without removing the importance of exploration.
+
+### Unlocking Caravan Services
+- Every existing castle town should have a caravan service.
+- The caravan service becomes available only after the player has visited that particular castle town for the first time.
+- Visiting a castle town permanently unlocks its caravan service.
+- Unvisited castle towns must remain unavailable as fast-travel destinations.
+- The player should not be able to discover and travel to distant castle towns through the fast-travel menu without physically visiting them first.
+
+### Fast-Travel Functionality
+Once the player has unlocked at least two caravan services:
+- Allow the player to interact with a caravan service in a castle town.
+- Display a list or map of all previously visited castle towns with unlocked caravan services.
+- Allow the player to select a destination.
+- Display the travel cost before confirming the journey.
+- Display the expected travel time, if appropriate.
+- Allow the player to confirm or cancel the journey.
+
+### Travel Costs
+Fast travel should have a medium monetary cost.
+
+The cost should be calculated based on the distance between the departure and destination towns.
+
+Requirements:
+- Nearby destinations should cost relatively little.
+- Distant destinations should cost noticeably more.
+- Costs should remain reasonable relative to the player's expected wealth and progression.
+- Avoid making fast travel so expensive that players never want to use it.
+- Avoid making it so cheap that travelling normally becomes pointless.
+
+The player must have sufficient money before the journey can begin.
+
+### Time Progression
+Using fast travel must advance the in-game time according to the distance travelled.
+
+- Short journeys should advance time by a relatively small amount.
+- Longer journeys should advance time proportionally more.
+- Use a consistent calculation based on the distance between the two castle towns.
+- Ensure that time-dependent game mechanics continue functioning correctly during fast travel.
+
+### Fast-Travel Animation
+Do not make fast travel an instantaneous teleportation.
+
+Introduce a short travel animation:
+1. The player confirms the destination.
+2. A small animation shows a character or caravan moving along a simplified route.
+3. The animation communicates that the player is travelling from one location to another.
+4. Once the animation finishes, load the destination castle town.
+5. Update the player's position and in-game time accordingly.
+
+The animation should be relatively brief and should not become frustrating when used repeatedly.
+
+---
+
+## 7. New System: Horse-Drawn Carriage
+
+Introduce a new purchasable transportation system called the **Horse Carriage**.
+
+This should function as an additional movement option that makes travelling across the expanded world more convenient.
+
+### Purchasing the Carriage
+- The player should be able to purchase a horse-drawn carriage at the General Store.
+- The carriage should have a very high purchase price.
+- Its price should reflect that it is a significant long-term investment.
+- The price should be appropriate for the game's economy and progression.
+- The player should only need to purchase the carriage once.
+- Once purchased, the carriage should remain permanently unlocked.
+
+Do not give the player access to the carriage before purchasing it.
+
+### Carriage Activation Button
+After purchasing the carriage:
+- Add a new button to the top-right corner of the world map interface.
+- The button should display a recognizable carriage icon.
+- The button should only become available after the carriage has been purchased.
+- Allow the player to toggle the carriage on and off.
+- Clearly communicate whether the carriage is currently active.
+- The button should visually indicate when carriage travel is unavailable.
+
+The button must integrate cleanly into the existing map interface without obstructing other buttons or important information.
+
+### Movement Speed Bonuses
+
+When the carriage is active, movement speed should increase depending on the terrain.
+
+**On existing roads:**
+- Increase the player's movement speed by 100%.
+- This means movement speed should be doubled compared to normal movement.
+
+**Off-road:**
+- Increase the player's movement speed by 50% compared to normal movement.
+
+The carriage should therefore be significantly more effective when following established roads.
+
+Do not modify the player's normal movement speed when the carriage is inactive.
+
+### Terrain Restrictions
+
+A horse-drawn carriage cannot reasonably travel through every environment.
+
+Automatically prevent carriage activation in areas where the terrain is unsuitable.
+
+Examples include:
+- Steep mountain paths.
+- Extremely narrow trails.
+- Dense forests without suitable paths.
+- Deep swamps.
+- Rocky or uneven terrain that cannot accommodate a carriage.
+- Other areas where carriage traversal would be physically implausible.
+
+When the player enters an area where the carriage cannot be used:
+- Automatically disable the carriage if necessary.
+- Return movement speed to normal.
+- Clearly communicate why the carriage is unavailable.
+- Allow the player to reactivate it once they return to suitable terrain.
+
+Avoid allowing the player to use the carriage in locations where it would clip through terrain, bypass obstacles, or break intended progression.
+
+### Carriage and Road Integration
+- Use the existing road network to determine where the carriage receives its full speed bonus.
+- Roads should be recognized consistently, including road connections between towns.
+- Off-road movement should receive the smaller speed bonus.
+- The carriage should not create new roads or bypass geographical restrictions.
+
+---
+
+## 8. Gameplay Balance and Progression
+
+Throughout the entire update, preserve the existing game's progression structure.
+
+This is especially important because the new map will be significantly larger and may contain relocated or newly created areas.
+
+Review the existing level curve before implementing geographical changes.
+
+Ensure that:
+- Low-level regions remain appropriate for early-game players.
+- Higher-level regions remain appropriately challenging.
+- New areas fit naturally into the level progression.
+- Enemy encounters remain balanced.
+- Existing quest locations and objectives remain accessible.
+- Geographical barriers continue serving their intended gameplay purposes.
+- Players cannot use fast travel or the carriage to bypass intended progression.
+- New traversal options improve convenience without undermining exploration.
+
+The increased map size should create a greater sense of adventure, not unnecessary frustration.
+
+---
+
+## 9. Technical Implementation and Compatibility
+
+Before implementing the update, examine the existing codebase and identify all systems affected by these changes.
+
+Pay particular attention to:
+- World map generation and loading.
+- Region identification and transitions.
+- Player movement and collision.
+- Road detection.
+- Terrain classification.
+- Enemy spawn locations.
+- Encounter zones.
+- Level progression.
+- Town and castle access.
+- Boat interactions.
+- Mountain altitude and environmental effects.
+- In-game time progression.
+- Currency and shop purchases.
+- Map interface and buttons.
+- Music and regional audio transitions.
+
+### Important Technical Requirements
+- Reuse existing systems and assets wherever possible.
+- Avoid unnecessarily rewriting unrelated game mechanics.
+- Preserve existing save compatibility.
+- Ensure that newly unlocked systems save their progression correctly.
+- Prevent duplicate purchases or duplicate unlocks.
+- Ensure that fast-travel costs and time progression are calculated consistently.
+- Avoid movement-speed conflicts between normal movement, the carriage, and other possible movement modifiers.
+- Ensure that all new animations work correctly with existing loading and transition systems.
+- Make sure that the larger world does not cause performance issues.
+
+If the existing architecture requires additional systems or modifications to support the update properly, implement them in a clean and maintainable manner.
+
+---
+
+## 10. Final Quality Requirements
+
+The final result should feel like a natural evolution of the existing game.
+
+The world should feel:
+- Significantly larger.
+- More geographically believable.
+- More interconnected.
+- More immersive.
+- More rewarding to explore.
+- More convenient to navigate once transportation systems are unlocked.
+
+The new traversal systems should complement each other:
+- **Walking:** The standard method of exploration, with the original movement speed.
+- **Boat:** Used to reach the island, with a dedicated travel animation.
+- **Caravan:** Used for paid fast travel between previously visited castle towns.
+- **Horse Carriage:** Used to travel faster through the overworld, with terrain-dependent speed bonuses.
+
+### Implementation Priorities
+
+Follow this order when implementing the update:
+
+1. Analyze the existing world and its progression systems.
+2. Plan the new geographical layout of the continent.
+3. Rebuild the world as one interconnected map.
+4. Expand the overall map size by approximately 40%.
+5. Relocate existing regions and locations where necessary.
+6. Implement any genuinely necessary new geographical areas and encounters.
+7. Implement the invisible regional boundaries and regional music transitions.
+8. Improve boat and mountain traversal.
+9. Implement the caravan fast-travel system.
+10. Implement the horse carriage and its movement modifiers.
+11. Integrate all changes with the existing UI, economy, and save systems.
+12. Test the complete world and all traversal systems.
+
+### Final Instruction
+
+Do not treat this as a collection of isolated features. All systems must work together as part of one coherent world.
+
+Prioritize functionality, geographical consistency, progression balance, and immersion over shortcuts.
+
+**Do not leave placeholder functionality, incomplete mechanics, disconnected locations, or decorative features that do not actually work.** If a feature is implemented, it should be fully functional and properly integrated into the existing game.
+
+After implementation, test the complete update, including movement between every region, road connectivity, encounter placement, boat travel, mountain traversal, caravan unlocking, fast-travel costs, time progression, carriage purchasing, terrain restrictions, and movement-speed changes.
+
+The finished result should be a fully interconnected, expanded overworld with all requested systems working together.

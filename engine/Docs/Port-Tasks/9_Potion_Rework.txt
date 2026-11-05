@@ -1,0 +1,754 @@
+# Potion Overhaul, Apothecary Stores, Alchemy, Ingredient Gathering & New Classes
+
+Implement a complete overhaul of the existing potion system. The current system only contains Health Potions and Mana Potions. Expand it into a comprehensive alchemy system featuring multiple potion rarities, throwable poisons, ingredient gathering, potion brewing, recipe discovery, two new character classes, and a new Adventurers Guild quest type.
+
+The goal is to make potions an important part of character progression and preparation. Players should be able to purchase finished potions, discover ingredients throughout the world, learn recipes, brew their own consumables, and specialize in alchemy through dedicated classes.
+
+All new systems must integrate with the existing inventory, combat, map, store, class, quest, and save systems.
+
+Preserve existing game mechanics wherever possible. Reuse existing systems and UI components rather than creating duplicate implementations.
+
+---
+
+# 1. New Store – Apothecary
+
+Introduce a new store called **Apothecary** in every town.
+
+The Apothecary becomes the exclusive place to purchase potions.
+
+## 1.1 Existing potion availability
+
+- Remove Health Potions and Mana Potions from all other stores where they are currently sold.
+- Health Potions and Mana Potions must always be available for purchase at every Apothecary.
+- Their availability must be independent of the Apothecary's randomized stock.
+- They must never disappear because of stock rotation, random inventory generation, or other store mechanics.
+- Preserve their existing effects and properties unless adjustments are necessary for compatibility with the expanded potion system.
+
+## 1.2 Apothecary inventory
+
+The Apothecary should have several distinct store menus:
+
+1. **Potions:** Purchase finished potions and poisons.
+2. **Ingredients:** Purchase potion-brewing ingredients.
+3. **Brewing:** Brew potions using discovered recipes.
+4. **Recipes:** Purchase randomly selected potion recipes.
+
+The menus should be visually consistent with the existing store interfaces.
+
+The player should be able to switch between these menus without leaving the Apothecary.
+
+## 1.3 Apothecary banners
+
+Create two distinct Apothecary banners:
+
+- **Castle Town Apothecary Banner:** A more elaborate and prestigious design, fitting the architecture and atmosphere of a castle town.
+- **Minor Town Apothecary Banner:** A simpler design appropriate for smaller settlements.
+
+Both banners should clearly communicate that the building is an Apothecary. They should share a recognizable visual identity while reflecting the differences between major and minor towns.
+
+Use the existing town-specific store banner system if one exists.
+
+---
+
+# 2. New Potion System
+
+Introduce a much larger variety of usable potions.
+
+Potion effects should be distributed across five rarities, with their strength and purchase cost scaling according to rarity.
+
+Create the following exact number of new unique potions:
+
+| Rarity | Number of new potions |
+|---|---:|
+| Common | 8 |
+| Uncommon | 12 |
+| Rare | 10 |
+| Epic | 6 |
+| Legendary | 4 |
+| **Total** | **40** |
+
+These are 40 new potion types in addition to the existing Health and Mana Potions.
+
+## 2.1 Potion design requirements
+
+Create all 40 potions with distinct names, effects, descriptions, and appropriate prices.
+
+Distribute their effects across different gameplay purposes, including:
+
+- Restoring HP.
+- Restoring Mana.
+- Increasing offensive stats.
+- Increasing defensive stats.
+- Increasing critical chance or critical damage.
+- Increasing accuracy or evasion.
+- Increasing movement or other relevant combat attributes, if supported by the existing game.
+- Applying temporary resistance to specific damage types.
+- Removing negative status effects.
+- Granting temporary immunity to selected status effects.
+- Improving healing received.
+- Improving damage dealt.
+- Other useful effects that fit the existing combat system.
+
+Do not make all potions simple variations of stat-increasing consumables. Each rarity should introduce meaningful choices and different tactical uses.
+
+### Common
+- Basic effects with modest strength.
+- Relatively inexpensive.
+- Useful during ordinary exploration and early encounters.
+- Effects should be straightforward and easy to understand.
+
+### Uncommon
+- More specialized effects or stronger versions of common effects.
+- Moderate purchase cost.
+- Useful for preparing for specific encounters.
+
+### Rare
+- Noticeably stronger or more specialized effects.
+- Higher cost.
+- Should provide meaningful advantages in difficult battles.
+
+### Epic
+- Powerful effects that can substantially influence combat.
+- Expensive.
+- Should be particularly useful against bosses, empowered enemies, and other difficult encounters.
+
+### Legendary
+- Extremely powerful and distinctive effects.
+- Very expensive.
+- Should feel like exceptional consumables worth saving for important encounters.
+- Avoid effects that completely invalidate existing combat mechanics.
+
+## 2.2 Potion balance and duration
+
+For every potion, define:
+
+- Name.
+- Rarity.
+- Effect.
+- Effect strength.
+- Duration, if applicable.
+- Purchase price.
+- Stack limit, if applicable.
+- Any restrictions or special activation conditions.
+
+Use the existing game's combat calculations and stat systems.
+
+All temporary effects must have clear durations and expiration behavior. They should not accidentally stack indefinitely or persist after their intended duration.
+
+For effects that increase stats, specify whether the bonus is additive or multiplicative and ensure that it is applied consistently.
+
+Potion power and price should scale with rarity. However, rarity alone should not determine every value: a specialized potion may be situationally stronger than a general-purpose potion of the same rarity.
+
+## 2.3 Potion inventory
+
+- Potions must be usable through the existing inventory system.
+- Display their rarity, effect, duration, and other relevant information in the item description.
+- Ensure that potion effects are applied correctly when used during combat and outside combat, depending on the potion's intended functionality.
+- Prevent the player from consuming a potion when its effect cannot apply, unless the item explicitly allows it.
+- Follow existing item stacking and inventory rules wherever possible.
+
+---
+
+# 3. New Consumable Category – Poisons
+
+In addition to ordinary potions, introduce a second consumable category called **Poisons**.
+
+Poisons are throwable consumables used directly against enemies.
+
+Create exactly 12 unique poisons:
+
+| Rarity | Number of poisons |
+|---|---:|
+| Common | 2 |
+| Uncommon | 4 |
+| Rare | 4 |
+| Epic | 2 |
+| **Total** | **12** |
+
+## 3.1 Poison behavior
+
+- Poisons are thrown at an enemy rather than consumed by the player.
+- They must be usable through the existing combat interface.
+- Each poison should have its own distinct effect.
+- Poisons should use the same rarity-based strength and pricing principles as ordinary potions.
+- Their effects should be appropriate for offensive consumables.
+
+Possible effect categories include:
+
+- Damage over time.
+- Armor reduction.
+- Reduced attack damage.
+- Reduced accuracy.
+- Reduced evasion.
+- Reduced movement or initiative, if supported.
+- Application of existing negative status effects.
+- Temporary resistance reduction.
+- Other effects that fit the existing combat system.
+
+Create a balanced progression from basic poisons to powerful Epic poisons.
+
+## 3.2 Poison implementation rules
+
+For each poison, define:
+
+- Name.
+- Rarity.
+- Direct damage, if applicable.
+- Status effect.
+- Effect strength.
+- Duration.
+- Purchase price.
+- Any special restrictions.
+
+Poison effects must interact correctly with enemy resistances, immunities, and existing status effects.
+
+Bosses should be affected according to the existing rules for status effects. Do not automatically make every poison fully effective against every boss.
+
+Ensure that repeated applications behave consistently with the existing status-effect stacking rules.
+
+---
+
+# 4. Potion Ingredients – World Gathering
+
+Introduce a new ingredient system containing at least **50 different unique potion ingredients**.
+
+These ingredients are the foundation of the brewing system.
+
+## 4.1 Ingredient design
+
+Create at least 50 unique ingredients with distinct names, descriptions, and world locations or acquisition methods.
+
+Ingredients should be distributed throughout the world and should fit their surroundings.
+
+Possible acquisition sources include:
+
+- Monster drops.
+- Empowered enemy drops.
+- Boss drops, where appropriate.
+- Forests.
+- Rivers.
+- Lakes.
+- Mountains.
+- Caves.
+- Deserts.
+- Swamps.
+- Other existing geographical areas.
+- Other suitable world locations.
+
+Ingredients should feel like natural discoveries rather than arbitrary items placed randomly throughout the game.
+
+For example:
+- Aquatic ingredients should primarily be found near water or obtained from aquatic enemies.
+- Fungi and medicinal plants should be found in suitable forests, caves, or damp environments.
+- Mineral-based ingredients should be found in appropriate rocky or mountainous areas.
+- Rare and powerful ingredients should be associated with more dangerous or remote locations.
+
+## 4.2 Ingredient rarity and distribution
+
+Ingredients should have their own rarity or availability classification.
+
+Use this to determine:
+- How frequently they are found.
+- Which areas they appear in.
+- Which enemies can drop them.
+- Their Apothecary purchase price.
+- Which potion recipes use them.
+
+Common ingredients should be relatively easy to obtain.
+
+Rare ingredients should require exploration, stronger enemies, or access to more dangerous areas.
+
+Do not make Legendary potions dependent on ingredients that can only be obtained through an unreasonable amount of repetitive grinding.
+
+## 4.3 Ingredient gathering from enemies
+
+- Assign appropriate ingredients to existing enemy types.
+- Different enemies should have different ingredient drop tables.
+- Some ingredients can be shared between multiple enemies where thematically appropriate.
+- Stronger enemies and bosses may drop rarer ingredients.
+- Ensure that ingredient drops do not excessively inflate the existing loot economy.
+
+Use existing enemy drop systems wherever possible.
+
+---
+
+# 5. Map Feature – Forage
+
+Introduce a new **Forage** button in the map view.
+
+The button allows the player to search the current area for potion ingredients.
+
+## 5.1 Foraging behavior
+
+- The player can press Forage while viewing the map.
+- Foraging searches for ingredients available in the player's current area.
+- Each area should have its own ingredient discovery table.
+- The player should only be able to find ingredients that are logically available in that area.
+- Ingredient rarity and discovery chance should depend on the area's characteristics and the ingredient's availability.
+
+Foraging should feel like an exploration activity rather than a guaranteed source of ingredients.
+
+## 5.2 Foraging results
+
+When the player presses Forage:
+
+1. Determine which ingredients can be found in the current area.
+2. Calculate the discovery chance for the available ingredients.
+3. Apply any relevant character bonuses.
+4. Determine the result.
+5. Display the discovered ingredient and quantity, or inform the player that nothing was found.
+
+The interface should clearly communicate the result.
+
+If the player discovers an ingredient, it should be added directly to the inventory.
+
+## 5.3 Foraging restrictions
+
+- Prevent the player from repeatedly activating Forage without consequence if the existing game has a time, action, or exploration-cost system.
+- Use existing systems for encounter chances, time progression, or other relevant exploration mechanics where appropriate.
+- Do not invent an unnecessarily complicated separate stamina or energy system solely for foraging.
+- Ensure that the Forage button correctly reflects whether the current area supports ingredient gathering.
+
+---
+
+# 6. Apothecary – Ingredient Store
+
+Add a separate ingredient store menu to every Apothecary.
+
+This menu allows players to purchase ingredients instead of relying entirely on gathering.
+
+## 6.1 Ingredient availability
+
+- Ingredients should have prices based on their rarity and acquisition difficulty.
+- Common ingredients should be inexpensive.
+- Rare ingredients should be considerably more expensive.
+- Extremely rare ingredients should command high prices.
+- The player should be able to purchase multiple units where inventory and stock rules allow it.
+
+## 6.2 Ingredient stock
+
+- The Apothecary should offer a selection of ingredients.
+- Use a suitable stock system that provides variety without making important ingredients impossible to obtain.
+- Ingredients should not necessarily all be available at every Apothecary.
+- Ensure that players have reasonable access to ingredients needed for recipes they have learned.
+
+The Apothecary's ingredient stock should be separate from its finished potion stock.
+
+---
+
+# 7. Potion Brewing System
+
+Introduce a complete potion brewing interface inside every Apothecary.
+
+The brewing interface should be visually similar in quality and functionality to the existing Reforge and Rune interfaces.
+
+## 7.1 Brewing interface layout
+
+The interface should consist of:
+
+- A large cauldron displayed in the center.
+- Three ingredient input boxes positioned above the cauldron.
+- A Brew button.
+- A result field displayed on the cauldron.
+- A list of all known potion recipes positioned to the right of the cauldron.
+
+The interface should fit naturally into the existing Apothecary menu.
+
+<escape> </escape>
+
+## 7.2 Ingredient input
+
+- Every potion recipe requires exactly **3 ingredients**.
+- The player places the required ingredients into the three input boxes.
+- Each input box represents one ingredient slot.
+- The player must possess the required quantities in their inventory.
+- Ingredients are consumed when a successful brew is completed.
+- The player must be able to remove or replace ingredients before brewing.
+
+Similar potions may share similar ingredients, with only slight variations in their recipes.
+
+This is intentional: the ingredient system should be learnable and internally consistent rather than requiring completely unrelated ingredients for every potion.
+
+## 7.3 Brewing process
+
+When the player presses Brew:
+
+1. Check whether all three ingredient slots are filled.
+2. Check whether the player possesses the required ingredients.
+3. Check whether the combination matches a known recipe.
+4. If the combination is valid, consume the three ingredients.
+5. Create the corresponding potion.
+6. Display the resulting potion in the field on the cauldron.
+7. Allow the player to collect the finished potion.
+
+**Brewing itself costs nothing.**
+
+There must be no additional gold fee, crafting fee, or hidden currency requirement for brewing.
+
+Only the three required ingredients are consumed.
+
+## 7.4 Recipe validation
+
+- A valid combination must produce the correct potion.
+- An invalid combination must not consume ingredients.
+- The interface should clearly communicate when a combination is invalid.
+- The player should not be able to accidentally consume ingredients by pressing Brew with an incomplete or incorrect combination.
+- Ensure that ingredient order does not matter unless a specific recipe explicitly requires a particular order.
+- Prevent duplicated ingredient slots from consuming more ingredients than the player actually owns.
+
+## 7.5 Recipe list
+
+Display all known potion recipes in a list to the right of the cauldron.
+
+Each recipe entry should show:
+- Potion name.
+- Potion rarity.
+- Potion icon.
+- Required ingredients.
+- Any additional useful recipe information.
+
+The player should be able to select a recipe from the list to view its details.
+
+Where appropriate, selecting a recipe should automatically populate the three ingredient input boxes if the player has the necessary ingredients.
+
+Recipes the player does not know must not appear as fully revealed entries in the known recipe list.
+
+## 7.6 Brewing feedback
+
+Provide clear visual feedback when:
+- Ingredients are placed into input slots.
+- A valid recipe is recognized.
+- Brewing begins.
+- Brewing succeeds.
+- Ingredients do not match a known recipe.
+- The player lacks the required ingredients.
+- The finished potion is ready to collect.
+
+Use an appropriate cauldron animation and visual effect when brewing succeeds.
+
+---
+
+# 8. Recipe Discovery and Purchase
+
+Introduce a recipe collection system.
+
+## 8.1 Starting recipes
+
+- The player should begin with access to the existing Health Potion and Mana Potion recipes, if those potions are craftable through the new system.
+- If the existing potions do not currently have crafting recipes, create suitable recipes for them.
+- Their recipes should use relatively accessible ingredients.
+
+## 8.2 Recipe acquisition
+
+Recipes can be obtained through:
+- Purchasing them from Apothecaries.
+- Any existing or future discovery systems that are appropriate for recipes.
+
+## 8.3 Random Apothecary recipes
+
+Each Apothecary should offer a randomized selection of exactly **3 potion recipes** for purchase.
+
+- The three recipes should be selected from the pool of recipes the player has not yet learned.
+- The recipes should be randomly selected according to suitable rarity and availability rules.
+- Recipes should be very expensive.
+- Their price should reflect the rarity and usefulness of the potion they unlock.
+- The player should be able to purchase a recipe and immediately add it to their known recipe list.
+- Once purchased, a recipe must not be offered again to that player.
+- If fewer than three undiscovered recipes remain, display only the remaining available recipes rather than duplicating known recipes.
+
+The selection should refresh according to an appropriate existing store-restock or world-time system.
+
+Do not reroll the three recipes every time the player opens and closes the menu. Their selection should remain stable until the intended restock event occurs.
+
+---
+
+# 9. New Class – Alchemist
+
+Introduce a new playable class called **Alchemist**.
+
+The Alchemist specializes in discovering potion ingredients and understanding their applications.
+
+## 9.1 Class identity
+
+The Alchemist should be focused on:
+- Ingredient discovery.
+- Foraging efficiency.
+- Ingredient acquisition.
+- Potion knowledge.
+- Identifying possible uses for ingredients.
+
+## 9.2 Ingredient discovery bonus
+
+- Alchemist class progression increases the chance of finding ingredients through Forage.
+- The bonus should scale with the Alchemist's class level or relevant class progression.
+- Higher levels should make foraging more reliable and improve the player's ability to obtain useful ingredients.
+- The bonus must not guarantee rare ingredients or trivialize ingredient acquisition.
+
+## 9.3 Ingredient information
+
+The Alchemist gains the ability to view which potions an ingredient can be used to brew.
+
+When inspecting an ingredient:
+- Display all potions that use that ingredient in their recipes.
+- Display the ingredient's other relevant information.
+- Make the information easy to access through the inventory or ingredient inspection menu.
+
+This information should be available even if the player has not learned every corresponding recipe, but it must not reveal the complete recipe or the other required ingredients unless the player has discovered that recipe.
+
+This distinction is important: the Alchemist understands the possible applications of ingredients without automatically knowing every potion recipe.
+
+---
+
+# 10. New Class – Assimilator
+
+Introduce a second new playable class called **Assimilator**.
+
+The Assimilator specializes in consuming raw potion ingredients to gain temporary combat buffs.
+
+Unlike the Alchemist, who focuses on gathering and understanding ingredients, the Assimilator focuses on extracting their properties directly.
+
+## 10.1 Core mechanic
+
+The Assimilator can consume potion ingredients directly from the inventory.
+
+- Consuming an ingredient grants a temporary combat buff.
+- The buff is determined by the potion effects associated with that ingredient.
+- If an ingredient is used in multiple potion recipes, its buff should encompass the relevant effects of those potions.
+- The resulting buff should represent the ingredient's alchemical properties rather than simply reproducing one arbitrarily selected potion.
+
+## 10.2 Ingredient buff calculation
+
+For each ingredient, determine which potion recipes use it.
+
+Then:
+1. Identify the effects of those potions.
+2. Determine which effects are thematically and mechanically appropriate for the ingredient.
+3. Combine compatible effects into one temporary buff.
+4. Balance the strength so that consuming one raw ingredient does not provide an excessively powerful combination of multiple potion effects.
+
+For example, if an ingredient is used in:
+- A potion that increases physical damage.
+- A potion that increases critical chance.
+
+Its Assimilator effect could combine a smaller physical damage bonus and a smaller critical chance bonus.
+
+If an ingredient is used in several potions with similar effects, do not simply add every bonus together. Combine them into one appropriately balanced effect.
+
+## 10.3 Duration and stacking
+
+- Ingredient buffs must have clearly defined durations.
+- Their durations and strength should be appropriate for the ingredient's rarity and the Assimilator's progression.
+- Repeatedly consuming the same ingredient must not create unlimited stacking.
+- Define how different ingredient buffs interact with each other.
+- Use the existing buff and status-effect systems wherever possible.
+- Ingredients consumed for Assimilator buffs must be removed from the inventory.
+
+The Assimilator should provide an alternative use for ingredients, creating an interesting choice between brewing potions and consuming ingredients directly.
+
+## 10.4 Class progression
+
+Assimilator class progression should improve the effectiveness of ingredient consumption.
+
+Possible progression improvements include:
+- Increased buff strength.
+- Increased buff duration.
+- Improved efficiency when consuming ingredients.
+- Access to more advanced ingredient effects.
+
+Ensure that progression is balanced and does not make crafted potions obsolete.
+
+---
+
+# 11. New Adventurers Guild Quest – Collect
+
+Introduce a new quest type called **Collect** to the Adventurers Guild quest system.
+
+In a Collect quest, the player must gather a specified quantity of a specific potion ingredient and deliver it to the Adventurers Guild.
+
+## 11.1 Quest generation
+
+Each Collect quest should specify:
+- The required ingredient.
+- The required quantity.
+- The Adventurers Guild where the ingredient must be delivered.
+- The gold reward.
+- The reputation reward.
+
+Ingredient selection should take the following into account:
+- The player's level.
+- The region's level.
+- The ingredient's rarity.
+- How difficult the ingredient is to obtain.
+- Whether the ingredient can reasonably be found in the player's accessible world areas.
+
+Avoid generating quests that require ingredients the player cannot reasonably obtain at their current progression level.
+
+## 11.2 Quest completion
+
+- The player must collect the required quantity of the specified ingredient.
+- The quest should track progress automatically.
+- Display the current quantity collected and the required quantity in the quest interface.
+- When the player has enough ingredients, they must return to the designated Adventurers Guild.
+- Interacting with the Guild counter should allow the player to turn in the required ingredients.
+- The required ingredients are removed from the inventory when the quest is completed.
+- Grant the gold and reputation rewards immediately upon successful delivery.
+
+Do not automatically complete the quest just because the player obtains the required ingredients. Returning to the Guild and handing them in is part of the quest.
+
+## 11.3 Quest rewards
+
+- Collect quests should provide appropriate gold and reputation rewards.
+- Rewards should reflect the rarity and quantity of the requested ingredient.
+- More difficult ingredients and larger quantities should provide greater rewards.
+- Rewards should be balanced against the existing Adventurers Guild quest types.
+- Collect quests should be worthwhile without becoming a better gold or reputation farming method than the higher-tier quest types.
+
+Use the existing Guild quest reward hierarchy and scaling rules as the reference.
+
+## 11.4 Quest availability
+
+- Integrate Collect into the existing quest generation and refresh system.
+- Follow the existing rules for daily quest refreshes.
+- Ensure that Collect quests can coexist with all existing quest types.
+- Prevent the same ingredient delivery from counting toward multiple quests unless the existing quest system explicitly supports shared objectives.
+
+---
+
+# 12. Balance and Economy
+
+The expanded potion system must be balanced around the existing game economy.
+
+### Potion prices
+- Potion prices increase with rarity and effect strength.
+- Legendary potions should be expensive enough to feel valuable.
+- Do not make common potions so cheap that they completely replace existing healing and resource-management systems.
+- Keep prices consistent with the value of other consumables in the same progression range.
+
+### Ingredient prices
+- Ingredient prices should reflect rarity, availability, and usefulness.
+- Ingredients used in multiple powerful recipes may be more valuable.
+- Ingredients required for Collect quests should not become excessively expensive solely because they are currently requested.
+
+### Brewing economy
+- Brewing must remain free.
+- The cost of brewing is represented entirely by the ingredients consumed.
+- The ability to brew should be a meaningful alternative to purchasing finished potions.
+- Recipe prices should be high enough to make recipe discovery a meaningful investment.
+
+### Class balance
+- Alchemist should improve access to ingredients without making the Apothecary ingredient store irrelevant.
+- Assimilator should provide useful combat flexibility without making ordinary potions obsolete.
+- Both classes should have meaningful progression and should remain useful beyond the early game.
+
+---
+
+# 13. Save Compatibility and Technical Integration
+
+Ensure that the new systems integrate with the existing save architecture.
+
+Save and restore:
+- Known potion recipes.
+- Known poison types, if discovery is used.
+- Ingredient inventory and quantities.
+- Ingredient discovery data, if applicable.
+- Apothecary recipe selections and restock state.
+- Potion and poison inventory.
+- Active potion buffs.
+- Active Assimilator ingredient buffs.
+- Alchemist and Assimilator class progression.
+- Collect quest requirements and progress.
+
+Older saves must remain compatible.
+
+When loading older saves:
+- Initialize the new potion system safely.
+- Preserve existing Health and Mana Potions.
+- Initialize the new recipe collection system without granting every recipe automatically.
+- Initialize ingredient and Apothecary data correctly.
+- Avoid resetting existing character progression or inventory.
+
+Use existing inventory, store, quest, buff, and save systems wherever possible.
+
+---
+
+# 14. Testing and Verification
+
+Test the complete system, including the following scenarios.
+
+### Apothecary
+- Every town has an Apothecary.
+- Castle Town and Minor Town Apothecaries use the correct banners.
+- Health and Mana Potions are always available.
+- Potions can no longer be purchased from other stores.
+- All Apothecary menus work correctly.
+
+### Potions and poisons
+- Exactly 40 new potions exist, distributed according to the requested rarity counts.
+- Exactly 12 new poisons exist, distributed according to the requested rarity counts.
+- All effects work correctly.
+- Potion durations and stacking rules work as intended.
+- Poisons are throwable and interact correctly with enemy resistances and immunities.
+- Prices and effect strengths scale appropriately with rarity.
+
+### Ingredients and foraging
+- At least 50 unique ingredients exist.
+- All ingredients have appropriate acquisition sources.
+- Ingredients can be obtained from enemies and world locations.
+- Forage correctly identifies ingredients available in the current area.
+- Alchemist bonuses are applied correctly.
+- Foraging results are correctly added to the inventory.
+
+### Brewing
+- Every recipe requires exactly three ingredients.
+- Valid recipes produce the correct potion.
+- Invalid combinations consume nothing.
+- Brewing never costs gold.
+- Ingredients are consumed correctly.
+- Known recipes appear in the correct list.
+- Selecting a recipe displays the correct information.
+- Successful brewing produces the correct potion in the cauldron result field.
+
+### Recipe purchasing
+- Each Apothecary offers three random undiscovered recipes.
+- Recipe selections remain stable until restocking.
+- Purchased recipes are permanently added to the known recipe list.
+- Known recipes are not offered again.
+- Recipes cannot be purchased twice.
+
+### Classes
+- Alchemist increases ingredient discovery chances.
+- Alchemist ingredient inspection reveals the correct possible potion uses without revealing unknown full recipes.
+- Assimilator can consume ingredients for buffs.
+- Ingredient buffs correctly reflect the effects associated with the ingredient.
+- Ingredient buffs have appropriate durations and stacking rules.
+- Both classes progress correctly.
+
+### Collect quests
+- Collect quests generate appropriate ingredient requirements.
+- Quest progress updates when ingredients are acquired.
+- Quest requirements are achievable at the player's current progression.
+- The player must return to the Guild to complete the quest.
+- Ingredients are removed on delivery.
+- Gold and reputation rewards are granted correctly.
+- Collect quests follow the existing daily refresh system.
+
+### Save compatibility
+- All new data persists after saving and loading.
+- Older saves load without errors.
+- Existing potions and inventory contents are preserved.
+
+---
+
+# Final Implementation Requirements
+
+- Preserve all existing content and systems unless explicitly changed in this prompt.
+- Create all 40 potions and 12 poisons; do not leave placeholder items.
+- Create at least 50 genuinely distinct ingredients, each with a defined acquisition source and recipe usage.
+- Ensure every potion has a valid three-ingredient recipe.
+- Ensure the Apothecary, brewing system, classes, and Collect quests are fully functional rather than merely visual additions.
+- Reuse existing systems wherever possible.
+- Avoid duplicating inventory, crafting, store, combat, or quest logic.
+- Keep potion effects, ingredient effects, and prices configurable for future balance adjustments.
+- After implementation, provide a summary of all new items, ingredients, recipes, systems, and files modified.
+- Report the number of potions, poisons, ingredients, and recipes actually implemented.
+- Identify any implementation limitations or assumptions explicitly.
