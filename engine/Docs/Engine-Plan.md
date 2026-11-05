@@ -247,7 +247,8 @@ the design and the tests):
 - **At port time:** which sounds the game gets (sound effect patches; the port must add proper sound effects, user
   decision 2026-11-03 in "Decisions for M8", the rune slotting sound among them); UI symbols outside Lato and STIX (⚙ ✦ ☾ ↓ ＋ ⚔ ♟ …); how the inline SVG art and its
   transforms map to the Blender remakes; the grabbing cursor's design; the level of detail of the item
-  models.
+  models. **First read `Docs/Port-Tasks/`:** the user's five tasks to add during the port, in their number order
+  (decided 2026-11-05); ask whether they come after the faithful port or while porting (left open by the user).
 
 ## Folders
 
@@ -268,7 +269,7 @@ Source tree:
 | `Samples/Statventure.Sandbox/` | A visual test bed. |
 | `Tools/` | Build scripts, the shader compiler, the packer and later the data editor. |
 | `Assets/` | Asset sources: Blender files, fonts, shaders, stylesheets. `Assets/Packs/`: the committed packs, the game's data's source of truth (M9; `audio.pak` since step 6), copied into `$STATVENTURE_GAME/packs/` by the build. |
-| `Docs/` | Plans and notes. |
+| `Docs/` | Plans and notes. `Docs/Port-Tasks/`: the user's tasks to add during the port, in number order (README inside). |
 
 ## User decisions (2026-10-16)
 
@@ -497,6 +498,12 @@ at port time). The rune slotting sound was left out of the old game; the port ad
 - Dev Mode: the "Dev-mode · On/Off" text is hidden; "Stat Fick" and the ✦ button stay. (Not hiding the name too.)
 - Equipment slots: the item or empty-slot button fills its whole field in every slot. (Not the off-hand only.)
 - Money (the purse) can be edited only in Dev Mode.
+
+**Decision on the user's tasks for the port (2026-11-05):** five task files the user wrote are kept unchanged in
+`Docs/Port-Tasks/` (named by their order: 1 Masterwork Elementals, 2 Guild, 3 Shop Rework, 4 Artifact Rework, 5 New
+Masterworks; its README sums them up). They are added to the game during the port, in that order, and read when the port
+starts. (Not a top-level folder, not in `../old-game/Docs/`.) Still open: whether they come after the faithful port or
+while porting (the user will answer later).
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
