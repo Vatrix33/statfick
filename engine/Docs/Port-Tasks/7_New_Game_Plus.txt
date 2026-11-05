@@ -1,0 +1,480 @@
+# Limitless System, Exotic Item Rarity & Post-Anatemis Progression
+
+Implement a new endgame progression system called **Limitless**, unlocked after the player's first defeat of Anatemis. This system should introduce a new layer of difficulty and progression beyond the existing level cap, alongside a new equipment rarity called **Exotic**.
+
+The implementation must integrate with the existing combat, character progression, enemy scaling, equipment, item generation, boss rewards, and UI systems. Preserve all existing mechanics unless explicitly changed below. Do not create parallel systems when the existing ones can be extended.
+
+---
+
+# 1. Limitless – Unlocking and Activation
+
+## 1.1 Unlock condition
+
+- Limitless becomes available after the player defeats Anatemis for the first time.
+- Immediately after the first victory, display a pop-up window informing the player that a new system has been unlocked.
+- The pop-up should introduce Limitless without explaining all of its mechanics in detail.
+- Use concise descriptions that summarize the effects rather than listing every individual change.
+
+Suggested pop-up:
+
+**Limitless Unlocked**
+
+"You have surpassed the limits of ordinary progression. A new challenge awaits those who wish to go further. Activate Limitless to continue growing stronger, face increasingly powerful enemies, and discover equipment beyond the known boundaries of rarity."
+
+The wording can be adjusted to fit the game's existing writing style.
+
+## 1.2 Character Sheet button
+
+- Add a new button at the top of the character sheet called **Limitless**.
+- The button only becomes available after the player has defeated Anatemis for the first time.
+- Pressing the button toggles Limitless between active and inactive states.
+- Clearly communicate the current activation state through the button's appearance.
+- The button must remain accessible regardless of the player's current level.
+
+The activation state should be saved and restored correctly when loading a save.
+
+---
+
+# 2. Limitless – Gameplay Changes
+
+When Limitless is activated, apply the following changes:
+
+### 2.1 Level cap
+
+- Increase the player's level cap from 100 to **200**.
+- The player can continue gaining experience and leveling beyond Level 100.
+- New levels beyond Level 100 continue to provide the normal level-based stat progression, but **do not grant additional Class Perks**.
+- Existing Class Perks remain unchanged.
+- Do not grant replacement perks, bonus perk points, or automatically distribute additional perk points for levels above 100.
+
+### 2.2 Enemy level scaling
+
+- All enemies scale to the player's current level while Limitless is active.
+- Enemy scaling must apply consistently across the world, including regular encounters, empowered enemies, dungeon enemies, Great Hunt enemies, and other existing encounter types.
+- Enemy levels should dynamically reflect the player's current level.
+- Enemy scaling grants enemies additional stats only. It must never grant them player Class Perks or player-specific class progression mechanics.
+
+### 2.3 Boss Class Perks
+
+- All bosses gain Class Perks equivalent to those available to a **Level 100 character**.
+- This applies to bosses throughout the game, not just Anatemis.
+- Bosses should receive the appropriate perks for their existing combat role and mechanics.
+- Do not give bosses additional Class Perks based on the player's level.
+- Bosses should retain their existing unique abilities and mechanics. Class Perks must complement these rather than overwrite them.
+
+### 2.4 Global enemy stat increase
+
+- All enemies receive an additional **25% increase to their stats** while Limitless is active.
+- Apply this multiplier consistently to the relevant enemy combat stats, including offensive and defensive stats.
+- This increase is applied in addition to the stats gained through enemy level scaling.
+- Avoid applying the multiplier more than once when an enemy is initialized, refreshed, or recalculated.
+- The 25% increase must not accidentally multiply existing stats repeatedly.
+
+### 2.5 Masterwork drop rates
+
+- Double the base drop chances of all Masterwork items while Limitless is active.
+- This applies to all existing Masterwork items, including those added by future content.
+- The multiplier must apply to the item's base drop chance, not to unrelated loot chances.
+- Ensure the bonus is applied exactly once and is correctly removed when Limitless is deactivated.
+
+---
+
+# 3. Activating and Deactivating Limitless
+
+Limitless must be fully reversible without permanently removing progression.
+
+## 3.1 Deactivation
+
+When the player deactivates Limitless:
+
+- The level is set back to 100, with the Limitless level value being saved.
+- Stats are set back to their Level 100 values with the Limitless values being saved.
+- Do not reset the player to Level 100.
+- Do not remove levels already gained beyond Level 100.
+- Do not remove stats already earned through leveling.
+- Stop granting additional experience-based levels and stat increases until Limitless is reactivated.
+- Remove the enemy level scaling and the additional 25% enemy stat increase.
+- Remove the boss Class Perk bonuses introduced by Limitless.
+- Restore Masterwork drop chances to their normal values.
+- Disable access to Exotic equipment effects and Exotic item acquisition.
+
+**Important:** Deactivating Limitless must not undo the player's progression. For example, if the player reaches Level 135 and then deactivates Limitless, their level and stats are set back to the Level 100 value, but reactivation Limitless sets the player back to Level 135 with all chosen stat increases regained.
+
+## 3.2 Reactivation
+
+When Limitless is reactivated:
+
+- Restore the Level 200 cap.
+- Resume experience and stat progression from the player's saved level.
+- Restore enemy level scaling.
+- Restore the additional 25% enemy stat increase.
+- Restore boss Class Perks equivalent to a Level 100 character.
+- Restore doubled Masterwork base drop chances.
+- Reactivate Exotic equipment effects and Exotic item acquisition.
+
+Do not recalculate or reset the player's existing level or earned stats when toggling the system.
+
+## 3.3 Preventing progression exploits
+
+- The player must not be able to gain experience or stat increases while Limitless is inactive.
+- Experience earned while Limitless is inactive should not secretly accumulate toward future levels unless the existing progression system explicitly requires stored experience.
+- Toggling Limitless must never duplicate stat gains, level rewards, or other progression bonuses.
+- Repeatedly activating and deactivating Limitless must not create unintended advantages.
+
+---
+
+# 4. Limitless UI and Visual Effects
+
+While Limitless is active, visually distinguish the player's enhanced progression state.
+
+### 4.1 Level and stat appearance
+
+- The player's displayed Level number changes to the same color scheme used for the new Exotic rarity.
+- All displayed character stat numbers also use this color scheme.
+- The borders surrounding the Level and stat displays use the same effect.
+- The visual effect must be consistent throughout the character sheet.
+
+### 4.2 Exotic color effect
+
+The Exotic rarity uses a combination of:
+
+- Dark neon green.
+- Purple.
+
+These two colors should continuously transition between each other using a smooth wave-like animation.
+
+The effect should:
+- Be visually noticeable without making text difficult to read.
+- Apply consistently to Exotic item borders, rarity indicators, and other relevant UI elements.
+- Be reused for the active Limitless character sheet appearance.
+- Fit the visual quality and animation style of the existing rarity system.
+
+When Limitless is inactive, the character sheet returns to its normal appearance.
+
+---
+
+# 5. New Item Rarity – Exotic
+
+Introduce a new item rarity called **Exotic**.
+
+## 5.1 Rarity rules
+
+Exotic is a new rarity above the existing Masterwork rarity in terms of uniqueness and endgame significance.
+
+Apply the following rules:
+
+- Exotic items never spawn as generic randomly generated equipment.
+- Every Exotic item is a specifically designed, unique item.
+- Exotic items have fixed names, manufacturers, effects, and other defining properties.
+- Exotic items can only be obtained while Limitless is active.
+- Existing Masterwork item rules should apply to Exotic items wherever no separate Exotic rule is specified.
+- Do not change existing Masterwork item behavior as a side effect of introducing Exotic.
+
+Exotic items should be treated as unique equipment rather than ordinary randomized loot with a different color.
+
+## 5.2 Exotic equipment while Limitless is inactive
+
+- Exotic items already owned by the player remain in their inventory and equipment slots.
+- However, Exotic equipment is deactivated while Limitless is inactive.
+- Deactivated Exotic equipment appears greyed out in the inventory and equipment interface.
+- Its special effects and stat bonuses must not function while Limitless is inactive.
+- The item should clearly communicate that Limitless must be active for it to function.
+- Reactivating Limitless restores the item's effects automatically, provided the item is still equipped or otherwise eligible to provide its effect.
+
+Do not delete, unequip, or permanently modify Exotic equipment when Limitless is deactivated.
+
+---
+
+# 6. Exotic Material – Exium
+
+Introduce a new material called **Exium**, used for Exotic weapons.
+
+- Exium uses the same material visual effect as Mythilium.
+- Its material effect is increased by **3% compared to Mythilium**.
+- Apply the increased material effect consistently to Exotic weapons that use Exium.
+- Exium should be identifiable as a distinct material without losing the visual identity of the Mythilium material effect.
+
+Do not confuse the 3% increase with the Exotic item's unique special effect. These are separate properties.
+
+---
+
+# 7. New Exotic Items
+
+Add the following five Exotic items. Each must be implemented as a unique item with its specified weapon or armor type, manufacturer, drop sources, drop chance, and special effect.
+
+All five items can only drop while Limitless is active.
+
+## 7.1 Fletcher
+
+<item name="Fletcher" />
+
+- **Rarity:** Exotic
+- **Type:** Dagger
+- **Manufacturer:** Abyss
+- **Drop chance:** 4%
+- **Drop sources:**
+  - Ji'ruan
+  - Deep Sea King
+  - Saffron
+- **Material:** Exium
+
+**Unique effect:**
+
+"Attacks with this item remove 20% of the target's armor for 1 turn. Critical hits remove 40% instead."
+
+Implementation details:
+- The armor reduction is applied when an attack with Fletcher successfully hits.
+- A normal hit removes 20% of the target's current applicable armor.
+- A critical hit removes 40% instead of 20%; the two values must not stack.
+- The reduction lasts for one turn according to the game's existing turn-duration rules.
+- Ensure the effect interacts correctly with other armor-reduction effects and cannot accidentally remove more armor than intended through repeated calculations.
+
+## 7.2 Tough-Out
+
+<item name="Tough-Out" />
+
+- **Rarity:** Exotic
+- **Type:** Shield
+- **Manufacturer:** Hearthforge
+- **Drop chance:** 5%
+- **Drop sources:**
+  - Ornn
+  - Gaian
+  - Ool
+
+**Unique effect:**
+
+"When you take damage that would reduce your HP to 0, you always have a 25% chance to survive at 1 HP instead."
+
+Implementation details:
+- Whenever the equipped shield's owner would be reduced to 0 HP or less by incoming damage, trigger a 25% survival chance.
+- On success, the player remains at exactly 1 HP.
+- On failure, damage resolves normally.
+- The effect must not activate when the player is already at 0 HP.
+- Clearly define the trigger so that it cannot activate multiple times from the same damage event.
+- Use the existing death-prevention and damage-resolution systems wherever possible.
+- If multiple lethal damage instances occur in the same turn, each should be evaluated according to the game's normal damage-event rules.
+
+## 7.3 Winged Hussar
+
+<item name="Winged Hussar" />
+
+- **Rarity:** Exotic
+- **Type:** Longsword
+- **Manufacturer:** Roundtable
+- **Drop chance:** 4%
+- **Drop sources:**
+  - Juila
+  - Nygheir
+  - Zik Lun
+- **Material:** Exium
+
+**Unique effect:**
+
+"Increase the damage this weapon deals scaling with Evasion. Gain 15% more Evasion."
+
+Implementation details:
+- The weapon's damage bonus scales with the wielder's Evasion.
+- The wielder also receives a 15% Evasion bonus while the weapon is equipped and active.
+- The Evasion bonus must not recursively increase the weapon's damage calculation in a way that creates an unintended feedback loop.
+- Ensure the weapon's damage calculation updates correctly when the wielder's Evasion changes.
+- Use the existing stat calculation framework for the bonus.
+
+The exact damage-scaling formula should be implemented in a way that fits the existing combat balance. Keep it configurable so it can be adjusted during balancing without redesigning the item.
+
+**Visual design:**
+- The crossguard of Winged Hussar must resemble a pair of wings.
+- The wing-shaped crossguard should be a defining visual feature of the weapon.
+- Preserve the visual identity of a longsword while incorporating the wing motif.
+
+## 7.4 Cherubim
+
+<item name="Cherubim" />
+
+- **Rarity:** Exotic
+- **Type:** Lance
+- **Manufacturer:** Church of Talos
+- **Drop chance:** 5%
+- **Drop sources:**
+  - Tankina
+  - Ur-Mat
+- **Material:** Exium
+
+**Unique effect:**
+
+"Attacks with this weapon deal holy damage. Increase the damage this weapon deals and its armor pierce by 12% for each rune attached to it."
+
+Implementation details:
+- All attacks made with Cherubim deal holy damage.
+- Cherubim always has exactly **4 rune slots**.
+- Each attached rune increases both weapon damage and armor pierce by 12%.
+- The bonuses stack additively per attached rune.
+- With all four slots filled, the weapon receives a total 48% increase to damage and a total 48% increase to armor pierce from this effect.
+- Empty rune slots provide no bonus.
+- Removing a rune immediately removes the corresponding bonus.
+- Ensure the effect works with the existing rune attachment and weapon damage systems.
+
+**Important:** The four rune slots are a fixed property of Cherubim and must not be randomized.
+
+## 7.5 Connected Balancer
+
+<item name="Connected Balancer" />
+
+- **Rarity:** Exotic
+- **Type:** Light Armor
+- **Manufacturer:** Boreal Bolt
+- **Drop chance:** 4%
+- **Drop sources:**
+  - Any Sparkling enemy.
+  - Any empowered enemy.
+
+**Unique effect:**
+
+"Damage and Healing you receive is reduced by 50%. The reduced damage or healing is then shared equally by your other allies."
+
+Implementation details:
+- When the wearer receives damage, reduce the incoming amount by 50%.
+- When the wearer receives healing, reduce the healing amount by 50%.
+- The amount prevented or removed through this reduction is distributed equally among the wearer's other allies.
+- Only valid living allies should receive the redistributed amount.
+- The wearer must not be included among the allies receiving the redistributed amount.
+- Handle damage and healing separately:
+  - For damage, redistribute the prevented damage to allies.
+  - For healing, redistribute the reduced healing to allies.
+- The redistributed damage or healing must not recursively trigger Connected Balancer again.
+- Ensure that the redistribution cannot create an infinite loop or duplicate damage/healing.
+- Apply the effect consistently to both direct and indirect damage/healing unless an existing damage or healing category explicitly cannot be redistributed.
+
+If there are no other valid allies, the reduced portion is simply discarded.
+
+---
+
+# 8. Anatemis – Level 200 Reward
+
+Introduce a special reward condition for defeating Anatemis at the new maximum level.
+
+**Condition:** The player must defeat Anatemis while the player's character is Level 200.
+
+When this condition is met:
+
+- Always drop one random Exotic item.
+- Additionally, there is a 1% chance to drop a second random Exotic item.
+
+Implementation details:
+- The guaranteed drop must be selected from the existing Exotic item pool.
+- The additional 1% roll is independent of the guaranteed drop.
+- The second drop must be a random Exotic item and can be the same item as the guaranteed drop unless the existing unique-item rules prohibit duplicates.
+- This reward condition must be evaluated based on the player's level at the time Anatemis is defeated.
+- The reward must not trigger if Anatemis is defeated below Level 200.
+- The reward must not trigger when Limitless is inactive, since the player cannot progress to Level 200 while it is inactive.
+
+If the player is Level 200 but Limitless has been deactivated, do not allow the special reward condition to trigger.
+
+---
+
+# 9. Integration and Consistency Requirements
+
+This system must be integrated with the existing game rather than implemented as a collection of isolated exceptions.
+
+### 9.1 Existing content compatibility
+
+- All existing enemies, bosses, equipment, materials, and item-generation systems must continue functioning.
+- Existing Masterwork items must retain their original properties.
+- Existing equipment must not be unintentionally modified by Limitless.
+- All existing enemy types must correctly receive Limitless scaling where applicable.
+- All boss types must correctly receive their Level 100-equivalent Class Perks.
+
+### 9.2 Save compatibility
+
+- Save whether Limitless has been unlocked.
+- Save whether Limitless is currently active.
+- Save the player's current level and all earned stats.
+- Save owned Exotic items, equipped Exotic items, and their existing properties.
+- Save Exotic item rune configurations.
+- Loading an existing save created before this update must not cause errors.
+- Older saves should initialize the new system as locked and inactive until the player defeats Anatemis for the first time.
+- Never reset a player's existing progression when updating or loading a save.
+
+### 9.3 UI consistency
+
+- Exotic items must be identifiable in inventories, equipment menus, loot screens, and item information panels.
+- The dark neon green and purple wave effect must be consistent across all relevant Exotic UI elements.
+- Greyed-out Exotic equipment must clearly communicate that its effects are inactive.
+- Limitless activation status should be visible without requiring the player to open multiple menus.
+
+### 9.4 Performance and reliability
+
+- Avoid unnecessary recalculation of enemy stats and player stats.
+- Ensure that enemy scaling and stat multipliers are applied exactly once.
+- Avoid conflicts between Limitless toggling and ongoing combat encounters.
+- If the player changes Limitless state during an encounter, apply the transition consistently at a safe point in the combat system. Do not allow an enemy or player to retain a mixture of active and inactive Limitless effects.
+- Ensure that all item effects work correctly with existing combat events, status effects, and turn calculations.
+
+---
+
+# 10. Testing and Verification
+
+Test the complete system, including the following scenarios:
+
+### Limitless unlocking and progression
+- Defeat Anatemis for the first time and verify that the unlock pop-up appears.
+- Verify that the Limitless button appears on the character sheet.
+- Activate Limitless and confirm the level cap becomes 200.
+- Level beyond 100 and verify that no additional Class Perks are granted.
+- Deactivate Limitless above Level 100 and verify that the player's level and stats remain unchanged.
+- Verify that experience-based progression is frozen while inactive.
+- Reactivate Limitless and verify that progression resumes correctly.
+
+### Enemy and boss scaling
+- Verify that regular enemies scale to the player's level.
+- Verify that empowered enemies and dungeon enemies scale correctly.
+- Verify that enemies receive the additional 25% stat increase exactly once.
+- Verify that enemies never receive player Class Perks.
+- Verify that bosses receive the intended Level 100-equivalent Class Perks.
+- Deactivate Limitless and confirm that all relevant enemy and boss changes are removed.
+
+### Drop chances
+- Verify that Masterwork base drop chances are doubled while Limitless is active.
+- Verify that normal Masterwork drop chances return when Limitless is inactive.
+- Verify that Exotic items cannot drop while Limitless is inactive.
+- Verify that every Exotic item has the correct drop sources and probability.
+
+### Exotic equipment
+- Verify that all five Exotic items have their correct rarity, type, manufacturer, and effects.
+- Verify that Exotic items are greyed out and inactive when Limitless is disabled.
+- Verify that they function again when Limitless is reactivated.
+- Test Fletcher's armor reduction on normal and critical hits.
+- Test Tough-Out's 25% death-prevention chance.
+- Test Winged Hussar's Evasion scaling and 15% Evasion bonus.
+- Test Cherubim with zero, one, two, three, and four runes attached.
+- Test Connected Balancer with multiple allies, a single ally, and no valid allies.
+- Verify that damage and healing redistribution cannot recursively trigger the effect.
+
+### Anatemis rewards
+- Defeat Anatemis below Level 200 and verify that the special Exotic reward does not trigger.
+- Defeat Anatemis at Level 200 with Limitless active and verify that one random Exotic weapon always drops.
+- Verify the independent 1% chance for a second Exotic weapon.
+- Verify that Exotic armor is never included in this reward pool.
+
+### Save and load
+- Save with Limitless active and verify that the state persists after loading.
+- Save with Limitless inactive and verify that the state persists after loading.
+- Verify that levels and stats above 100 are preserved.
+- Verify that Exotic items, equipped states, and rune configurations persist.
+- Load an older save and verify that the new system initializes safely.
+
+---
+
+# Final Implementation Requirements
+
+- Preserve all existing game systems and content unless explicitly changed in this prompt.
+- Reuse existing systems for level progression, enemy scaling, equipment, materials, rarity presentation, loot generation, combat effects, and saving wherever possible.
+- Do not introduce duplicate or conflicting implementations.
+- Keep item effects modular and configurable so their numerical values can be balanced later.
+- Ensure that Limitless can be toggled repeatedly without resetting progression or creating exploits.
+- Prioritize correctness, consistency, and compatibility over shortcuts.
+- After implementation, provide a summary of the systems changed, the files or components modified, and the tests performed.
+- Clearly identify any parts that could not be implemented or any design decisions that required assumptions.
+
+
+One final thing of note: Since regular weapons dropped during Limitless will scale to a level above 100, makes them unusable when Limitless is inactive

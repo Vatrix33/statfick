@@ -1,0 +1,909 @@
+# Major Update: Adventurers Guild Quest System Rework and Complete Guild Interface Redesign
+
+I want to rework the existing Adventurers Guild quest system and redesign the guild interface to make it more immersive, interactive, and visually integrated into the game.
+
+This update consists of two major parts:
+
+1. A rework of the existing Adventurers Guild quest types, including their objectives, mechanics, rewards, and availability.
+2. A complete visual and functional redesign of the Adventurers Guild interface, turning it into an interactive representation of the actual guild interior.
+
+The goal is to make the guild feel like a physical place where adventurers gather, quests are posted, companions are recruited, and information can be obtained.
+
+**Important:** Before implementing anything, examine the existing Adventurers Guild systems, quest generation, reputation mechanics, quest rewards, companion recruitment, artifact selection, class information system, regional progression, and existing UI architecture.
+
+Preserve existing functionality wherever it is not explicitly being changed. Integrate the new mechanics into the existing systems rather than creating unnecessary parallel systems.
+
+---
+
+# PART 1: ADVENTURERS GUILD QUEST SYSTEM REWORK
+
+## 1. General Quest System
+
+Rework the existing Adventurers Guild quest categories according to the specifications below.
+
+The guild should offer six standard quest types:
+
+1. Hunt
+2. Cull
+3. Deliver
+4. Search
+5. Escort
+6. Travel
+
+Great Hunt quests should remain a separate, special category and retain their existing mechanics.
+
+Each standard quest type should have a clearly distinguishable objective, gameplay mechanic, difficulty, and reward structure.
+
+### Quest Availability and Refreshing
+
+- Guild quests should refresh once per in-game day.
+- The daily refresh should generate a new selection of available quests.
+- The player should be able to accept quests from the available selection.
+- Once accepted, a quest should remain active until completed, failed, or otherwise resolved according to its mechanics.
+- Refreshing the available quests must not automatically remove or reset an already accepted quest.
+- Quest progress must be saved correctly.
+- The player should not be able to accept duplicate instances of the same quest if this conflicts with the existing quest system.
+- Quest generation should take the player's progression and the region's level range into account.
+
+Quests should primarily relate to regions and locations the player can reasonably access.
+
+Avoid generating quests that require travelling to inaccessible areas or regions significantly above the player's intended progression.
+
+---
+
+## 2. Hunt
+
+<escape> </escape>
+<badge color="success">Highest standard quest rewards</badge>
+
+The Hunt quest should remain fundamentally unchanged.
+
+### Objective
+The player must hunt and defeat a specific empowered version of an enemy normally found in a region.
+
+### Mechanics
+- Select an existing enemy that naturally belongs to the relevant region.
+- Spawn an empowered version of that enemy in its appropriate encounter zone.
+- The empowered enemy should be stronger than its normal counterpart.
+- The enemy should be identifiable as the designated Hunt target.
+- Defeating the target completes the quest.
+
+The empowered enemy should use the existing combat system and enemy mechanics.
+
+Do not unnecessarily redesign this quest type.
+
+### Rewards
+Hunt quests should provide the highest gold and reputation rewards among the six standard quest types.
+
+Their rewards should reflect the difficulty of fighting an empowered enemy rather than simply completing a normal encounter.
+
+---
+
+## 3. Cull
+
+<badge color="success">Second-highest standard quest rewards</badge>
+
+Rework Cull quests into dedicated enemy-elimination quests.
+
+### Objective
+The player must defeat a specified number of a particular enemy type within a particular region.
+
+### Quest Generation
+When generating a Cull quest:
+- Select an enemy that naturally spawns in the target region.
+- Define a required number of enemies that must be defeated.
+- Assign a specific area or encounter zone within that region.
+- Display the target enemy, required kill count, and designated area in the quest description.
+
+### Spawn Rate Modification
+Once the quest has been accepted:
+- Highlight the designated area on the world map.
+- Increase the spawn rate of the specified enemy within that area.
+- Keep the increased spawn rate active while the quest is active.
+- Do not unnecessarily increase the spawn rate of unrelated enemies.
+- Ensure that the increased spawn rate does not result in excessive enemy density or performance problems.
+
+### Progress Tracking
+Display the player's progress in the quest interface.
+
+For example:
+
+`Defeat Goblins: 7 / 15`
+
+Requirements:
+- Only kills of the designated enemy type count.
+- Enemies killed outside the designated region or area should not count unless explicitly intended by the quest.
+- Kills should be registered immediately.
+- Progress must persist when leaving and re-entering the region.
+- The increased spawn rate should end when the quest is completed or abandoned.
+
+### Rewards
+Cull quests should provide the second-highest gold and reputation rewards among standard quests.
+
+They should be more rewarding than delivery and exploration-oriented quests because they require multiple combat encounters.
+
+---
+
+## 4. Deliver
+
+<badge color="success">Third-highest standard quest rewards</badge>
+
+Rework Deliver quests into inter-regional delivery missions.
+
+### Objective
+The player must travel to an Adventurers Guild located in an adjacent region and return to the original guild.
+
+### Quest Generation
+- Select an adjacent region that the player can access.
+- Mark its Adventurers Guild on the world map.
+- Clearly display the destination and return requirement.
+- Generate the quest only when an appropriate adjacent region exists.
+
+### Quest Progression
+The quest should follow this sequence:
+
+1. The player accepts the Deliver quest.
+2. The destination Adventurers Guild is highlighted.
+3. The player travels to the designated guild.
+4. The player interacts with the destination guild counter.
+5. The delivery is registered.
+6. The player must return to the original guild.
+7. Interacting with the original guild counter completes the quest.
+
+Reaching the destination alone should not complete the entire quest.
+
+The player must physically return to the originating guild.
+
+### Rewards
+Deliver quests should provide the third-highest gold and reputation rewards among standard quests.
+
+The reward should reflect the additional travel distance and the requirement to visit two separate guild locations.
+
+---
+
+## 5. Search
+
+<badge color="success">Fourth-highest standard quest rewards</badge>
+
+Rework Search quests into exploration and discovery missions.
+
+### Objective
+The player must travel to a randomly selected location on the overworld and investigate it.
+
+### Quest Generation
+- Select a random valid location on the map.
+- The location must be accessible to the player.
+- Highlight the target location on the world map.
+- Ensure that the location is not inside an inaccessible or inappropriate area.
+- Avoid selecting locations that overlap important quest interactions or locations where searching would break other mechanics.
+
+### Search Interaction
+When the player reaches the highlighted location:
+- A Search button should become available.
+- The player must actively use the button to investigate the location.
+- Simply entering the area should not complete the quest.
+
+### Encounter Mechanic
+Using the Search button should trigger an encounter.
+
+This encounter must have a **50% reduction to the player's normal escape chance**.
+
+For example, if the normal escape chance is 60%, the modified escape chance becomes 30%.
+
+Requirements:
+- The encounter should be generated using enemies appropriate to the location and its level range.
+- The encounter should trigger specifically when using the Search interaction.
+- The player must deal with the encounter before the quest can be completed.
+- The quest should correctly register the successful investigation once the encounter has been resolved.
+
+If the player is defeated, the existing defeat mechanics should apply.
+
+### Rewards
+Search quests should provide the fourth-highest gold and reputation rewards among standard quests.
+
+The rewards should reflect the exploration requirement and the additional risk of the encounter.
+
+---
+
+## 6. Escort
+
+<badge color="success">Fifth-highest standard quest rewards</badge>
+
+Rework Escort quests into dangerous travel missions involving a bandit ambush.
+
+### Objective
+The player must travel to another town and return to the originating Adventurers Guild.
+
+### Quest Generation
+- Select an accessible town in another region or an appropriate nearby location.
+- Highlight the destination on the map.
+- Clearly display the destination and the required return journey.
+
+### Travel Progression
+The quest should work as follows:
+
+1. The player accepts the Escort quest.
+2. The destination town is highlighted.
+3. The player travels towards the destination.
+4. A potential bandit encounter is triggered during travel.
+5. The player reaches the destination.
+6. The player must return to the original guild.
+7. Interacting with the original guild counter completes the quest.
+
+### Bandit Encounter Mechanics
+
+During the journey, the player should have a chance to encounter a group of bandits.
+
+The encounter must follow these rules:
+
+- There is an 80% chance that a bandit encounter occurs during the journey.
+- There is a 10% chance that no bandit encounter occurs.
+- There is a separate 10% chance that a second bandit encounter occurs during the journey.
+- The bandit encounter has a 70% reduction to the normal escape chance.
+- Bandit encounters must trigger even when the player is travelling on an existing road.
+
+The probability distribution should be implemented as three mutually exclusive outcomes:
+
+| Outcome | Probability |
+|---|---:|
+| One bandit encounter | 80% |
+| No bandit encounter | 10% |
+| Two bandit encounters | 10% |
+
+Do not independently roll the chances in a way that creates unintended probabilities.
+
+### Encounter Timing
+The bandit encounter should occur naturally during the journey rather than immediately upon accepting the quest.
+
+The player should have to deal with the encounter before completing the expedition.
+
+For the two-encounter outcome, trigger the second encounter at a separate point during the journey.
+
+### Escape Chance
+The bandit encounter must have a 70% reduction to the normal escape chance.
+
+For example, if the normal escape chance is 60%, the modified chance becomes 18%.
+
+The bandits should be appropriate to the player's level and the region in which the encounter occurs.
+
+### Rewards
+Escort quests should provide the fifth-highest gold and reputation rewards among standard quests.
+
+Their rewards should be lower than Search quests but higher than Travel quests.
+
+---
+
+## 7. Travel
+
+<badge color="success">Lowest standard quest rewards</badge>
+
+Rework Travel quests into straightforward inter-city travel assignments.
+
+### Objective
+The player must travel to another city and return to the originating Adventurers Guild.
+
+### Quest Generation
+- Select another accessible city.
+- Prefer cities in other regions.
+- Highlight the destination on the map.
+- Clearly display the destination and return requirement.
+
+### Quest Progression
+1. The player accepts the Travel quest.
+2. The destination city is highlighted.
+3. The player travels to the designated city.
+4. The player reaches the destination.
+5. The player returns to the originating Adventurers Guild.
+6. Interacting with the original guild counter completes the quest.
+
+No additional combat encounter should be forced by this quest type.
+
+The objective is simply to encourage exploration and travel between cities.
+
+### Rewards
+Travel quests should have the lowest gold and reputation rewards among the six standard quest types.
+
+They should still provide a worthwhile reward relative to their travel distance.
+
+---
+
+## 8. Great Hunt Quests
+
+Great Hunt quests are special quests and should remain fundamentally unchanged.
+
+They are exceptions to the standard quest reward hierarchy.
+
+### Requirements
+- Preserve their existing mechanics.
+- Preserve their existing availability conditions.
+- Preserve their existing enemy and boss encounters.
+- Preserve their existing completion conditions.
+- Preserve their existing progression requirements.
+
+You may slightly adjust their rewards if necessary.
+
+However, Great Hunt quests must continue to offer the highest gold and reputation rewards of all guild quest categories, including the newly reworked standard quests.
+
+Do not allow any standard quest to surpass Great Hunts in total gold or reputation rewards.
+
+---
+
+## 9. Quest Reward Hierarchy
+
+Establish a consistent reward structure across the quest system.
+
+The intended reward hierarchy is:
+
+| Quest type | Gold and reputation ranking |
+|---|---:|
+| Great Hunt | Special category – highest |
+| Hunt | 1st |
+| Cull | 2nd |
+| Deliver | 3rd |
+| Search | 4th |
+| Escort | 5th |
+| Travel | 6th |
+
+### Reward Balancing
+Rewards should take the following factors into account:
+- Quest difficulty.
+- Expected completion time.
+- Travel distance.
+- Enemy level.
+- Combat risk.
+- Number of required encounters.
+- Player progression.
+- Region level.
+
+Gold and reputation should scale appropriately with the level of the region.
+
+Avoid using the same fixed reward amounts for every region.
+
+However, preserve the intended ranking regardless of region level.
+
+For example, a high-level Travel quest should not become more rewarding than a lower-level Hunt quest simply because its destination is in a higher-level region.
+
+The hierarchy refers to equivalent progression and difficulty conditions.
+
+---
+
+# PART 2: COMPLETE ADVENTURERS GUILD INTERFACE REDESIGN
+
+## 10. Replace the Traditional Guild Menu with an Interactive Guild Interior
+
+I want to completely redesign the visual presentation of the Adventurers Guild.
+
+Instead of opening a conventional menu containing buttons and text options, the player should see an illustrated representation of the interior of the Adventurers Guild.
+
+The illustration itself should serve as the main navigation interface.
+
+Different objects, people, and areas within the picture should be clickable and open their corresponding menus.
+
+### General Requirements
+- Use a detailed illustration of the Adventurers Guild interior.
+- The illustration should be the main focus of the interface.
+- Interactive areas should be positioned logically within the image.
+- The player should interact with actual objects and people in the scene.
+- Existing guild functionality should be retained, but accessed through the new interface.
+- Menus should appear as small pop-up windows or overlays without completely replacing the guild illustration.
+
+The result should feel like interacting with a physical guild building.
+
+### Important Visual Requirement
+The guild illustration should differ depending on the type of settlement.
+
+There must be two distinct guild interior variations:
+
+**Castle Town Adventurers Guild:**
+- A larger, more established guild.
+- More spacious interior.
+- More elaborate furniture and decorations.
+- A larger bulletin board and counter.
+- A more established tavern area.
+
+**Smaller Regional Adventurers Guild:**
+- A smaller and more modest interior.
+- Simpler furniture and decorations.
+- A more limited but functional layout.
+- A more compact atmosphere.
+
+Both versions must contain the same essential interactive functionality.
+
+Do not simply use the same image with a different label. The illustrations should visibly reflect the difference between a major castle town guild and a smaller regional guild.
+
+---
+
+## 11. Interactive Bulletin Board – Quest Selection
+
+The bulletin board should be the main interaction point for accepting guild quests.
+
+### Interaction
+When the player clicks on the bulletin board:
+- Open a small pop-up menu.
+- Display the currently available guild quests.
+- Allow the player to inspect each quest.
+- Display its objective, region, difficulty, and rewards.
+- Allow the player to accept an available quest.
+
+### Quest Information
+Each quest entry should clearly communicate:
+- Quest type.
+- Quest name.
+- Objective.
+- Target location.
+- Required enemy or kill count, where applicable.
+- Gold reward.
+- Reputation reward.
+- Relevant special mechanics.
+
+For example:
+- Hunt: Target enemy and spawn zone.
+- Cull: Enemy type, required kills, and highlighted area.
+- Deliver: Destination guild and return requirement.
+- Search: Search location.
+- Escort: Destination town and possible bandit encounters.
+- Travel: Destination city and return requirement.
+- Great Hunt: Existing boss target and associated information.
+
+### Active Quest Handling
+- Clearly distinguish available quests from accepted quests.
+- Prevent the player from accidentally accepting quests that conflict with existing active-quest limitations.
+- Display active quest progress.
+- Ensure that accepting a quest correctly activates its associated mechanics.
+
+The bulletin board should feel like a physical quest board rather than a generic list.
+
+---
+
+## 12. Guild Counter – Quest Completion
+
+The guild counter should become the primary interaction point for completing guild quests.
+
+### Interaction
+When the player clicks on the guild counter:
+- Check whether the player has an active quest.
+- Determine whether its completion requirements have been fulfilled.
+- If the requirements are met, instantly complete the quest.
+- Award the appropriate gold and reputation.
+- Update the player's quest state.
+- Display a reward notification.
+
+### Important
+Quest completion should happen through the guild counter rather than automatically when the player reaches the final destination.
+
+This applies to quests that require returning to the original guild.
+
+Examples:
+- Deliver: Complete after returning from the destination guild.
+- Escort: Complete after returning from the destination town.
+- Travel: Complete after returning from the destination city.
+
+For Hunt and Cull quests, the counter should recognize when the combat objective has been fulfilled.
+
+For Search quests, it should recognize when the investigation has been successfully completed.
+
+For Great Hunt quests, preserve the existing boss-defeat and completion requirements while integrating the counter as the appropriate guild interaction where applicable.
+
+### Completion Feedback
+When a quest is completed:
+- Display a small reward notification or icon.
+- Show the gold obtained.
+- Show the reputation gained.
+- Optionally show additional rewards.
+- Use a short, polished animation.
+
+The notification should be noticeable but should not obstruct the guild interface.
+
+Prevent duplicate rewards if the player clicks the counter multiple times.
+
+---
+
+## 13. Guild Counter – Artifact Selection
+
+The guild counter should also serve as the interaction point for obtaining artifacts.
+
+When the player uses the counter to access the artifact system:
+- Open a dedicated artifact-selection menu.
+- Display three available artifacts.
+- Allow the player to inspect their descriptions and effects.
+- Allow the player to choose one artifact.
+- Preserve the existing artifact acquisition rules, costs, and restrictions.
+
+### Requirements
+- Display exactly three artifact choices, following the existing artifact system.
+- Ensure that the three choices are valid and eligible for the player.
+- Prevent duplicate selection if existing artifact rules prohibit it.
+- Update the player's inventory or artifact collection correctly.
+- Preserve all existing artifact functionality.
+
+The artifact menu should visually fit the new guild interface.
+
+Do not replace or unnecessarily alter the underlying artifact system.
+
+---
+
+## 14. Tavern – Companion Recruitment
+
+The tavern should occupy the opposite side of the guild illustration from the main guild counter and bulletin board.
+
+Clicking on a group of adventurers sitting or standing in the tavern should open the companion recruitment window.
+
+### Interaction
+- The player clicks on the adventurers.
+- A recruitment menu appears.
+- Available companions are displayed.
+- The player can inspect their stats, class, equipment, level, and recruitment cost.
+- The player can recruit eligible companions by spending reputation.
+
+### Recruitment Level
+The level of available recruits must depend on the level of the region in which the Adventurers Guild is located.
+
+Requirements:
+- Higher-level regions should offer higher-level recruits.
+- Lower-level regions should offer appropriately lower-level recruits.
+- Recruit levels should remain within sensible progression boundaries.
+- Avoid generating companions that are dramatically overpowered or underpowered for the player's progression.
+
+### Recruitment Cost
+The reputation cost must also scale with the region's level.
+
+- Higher-level recruits should cost more reputation.
+- Lower-level recruits should be cheaper.
+- Costs should reflect the strength and usefulness of the recruit.
+- Ensure that recruitment remains a meaningful investment.
+
+### Starting Equipment
+Every recruited companion should spawn with:
+
+- Exactly one melee weapon.
+- Exactly one random armor item.
+
+The weapon should be appropriate for the companion's class where applicable.
+
+The armor rarity should be determined by the level of the region.
+
+Higher-level regions should have a greater chance of producing recruits with higher-rarity armor.
+
+Avoid giving every companion identical equipment.
+
+### Starting Stat and Class Points
+
+This is an important requirement:
+
+**Newly recruited companions should spawn with all their stat points and class points available to spend.**
+
+This means:
+- Do not automatically distribute their available stat points.
+- Do not automatically spend their available class points.
+- The player should be able to allocate these points manually.
+- The points should be visible in the character management interface.
+- The companion should retain all available points until the player spends them.
+
+This allows players to customize newly recruited companions according to their preferred builds.
+
+### Recruitment Limits and Compatibility
+- Respect the existing party and companion recruitment limits.
+- Prevent recruitment when the player does not have sufficient reputation.
+- Prevent recruitment if the party is already full.
+- Ensure that recruited companions are correctly registered in the party and save system.
+- Prevent duplicate or broken companion entries.
+
+---
+
+## 15. Hooded Man – Information Menu
+
+The tavern should also contain a table with a hooded man sitting at it.
+
+Clicking on the hooded man should open the existing information menu.
+
+This menu should work exactly as it currently does.
+
+Preserve:
+- Existing information purchasing mechanics.
+- Existing costs.
+- Existing information categories.
+- Existing unlock conditions.
+- Existing information display functionality.
+
+Do not redesign the underlying information system unnecessarily.
+
+The only intended change is that the player accesses it by clicking on the hooded man within the guild illustration.
+
+---
+
+## 16. New Class Information Button
+
+Add a new button to the class selection menu.
+
+This button should allow the player to access information about classes they have previously purchased information for.
+
+### Functionality
+When clicked:
+- Open a dedicated class information tab.
+- Display all classes for which the player has purchased information.
+- Allow the player to select a class.
+- Display the corresponding class information.
+
+### Unlock Restrictions
+- Only classes for which the player has purchased information should be displayed.
+- Do not reveal information about classes that have not been unlocked through the information system.
+- The menu should update automatically when new class information is purchased.
+
+### Integration
+- The new button should be clearly visible in the class selection menu.
+- It should not obstruct existing class selection controls.
+- Preserve all existing class selection and progression mechanics.
+- Ensure that the new information tab works correctly with all existing and newly introduced classes.
+
+---
+
+## 17. Interactive Hover Effects
+
+Make the interactive guild illustration feel responsive.
+
+When the player hovers the mouse over an interactive object or character:
+
+- Slightly illuminate the border or outline of the corresponding selection.
+- Use a subtle glow effect.
+- The effect should clearly indicate that the object is interactive.
+- The effect should disappear when the mouse leaves the interactive area.
+- Avoid excessive brightness or distracting animations.
+
+### Interaction Targets
+The hover effect should work for:
+- Bulletin board.
+- Guild counter.
+- Tavern adventurer group.
+- Hooded man.
+- Any other interactive object added to the guild scene.
+
+### Visual Consistency
+Use the same general hover-effect style throughout the interface.
+
+Differentiate interactive objects from decorative objects without making the scene visually cluttered.
+
+The player should be able to understand which parts of the illustration can be interacted with.
+
+---
+
+## 18. Guild Variations and Regional Identity
+
+The guild illustration should reflect the settlement in which it is located.
+
+### Castle Town Guilds
+These should feel like established and important institutions.
+
+Visual elements may include:
+- Larger halls.
+- Better furniture.
+- More elaborate decorations.
+- More adventurers.
+- More extensive bulletin boards.
+- More impressive architecture.
+
+### Smaller Regional Guilds
+These should feel more modest and practical.
+
+Visual elements may include:
+- Smaller interiors.
+- Simpler wooden furniture.
+- Less elaborate decorations.
+- Fewer adventurers.
+- Smaller bulletin boards.
+- More compact layouts.
+
+### Functional Consistency
+Despite their visual differences:
+- Both versions must contain all required interactive elements.
+- The same functionality must be accessible in both.
+- Interactive hitboxes must be positioned correctly for each image.
+- The UI must adapt to the appropriate illustration.
+- Switching between guild locations should load the correct variation.
+
+Do not allow the different illustrations to cause inconsistencies in functionality.
+
+---
+
+# PART 3: TECHNICAL INTEGRATION AND QUALITY REQUIREMENTS
+
+## 19. Quest System Integration
+
+Ensure that all new quest mechanics integrate properly with the existing quest framework.
+
+Pay particular attention to:
+- Quest generation.
+- Quest availability.
+- Daily refreshes.
+- Quest acceptance.
+- Quest progress tracking.
+- Quest completion.
+- Quest abandonment.
+- Quest failure.
+- Region and location validation.
+- Enemy spawn modification.
+- Special encounter triggers.
+- Reward distribution.
+- Reputation calculations.
+
+Quest objectives must remain correctly tracked even when the player:
+- Leaves the region.
+- Enters another region.
+- Saves and reloads the game.
+- Completes other activities.
+- Uses existing transportation or fast-travel systems.
+
+Do not allow the daily refresh to reset an active quest.
+
+## 20. Encounter and Spawn Management
+
+The Cull, Search, and Escort mechanics introduce special encounter behaviour.
+
+Implement these in a way that does not interfere with normal encounters.
+
+- Cull should only increase the spawn rate of its designated enemy in its designated area.
+- Search should trigger its special encounter when the Search button is used.
+- Escort should trigger its bandit encounters according to its predefined probability distribution.
+- Escort encounters must be possible even on roads.
+- Quest-specific encounters must not accidentally trigger multiple times.
+- Special encounters must be correctly registered as quest-related.
+- Completing or abandoning the quest should remove its temporary encounter modifications.
+
+Ensure that all encounter probabilities are calculated correctly and that no unintended duplicate encounters occur.
+
+## 21. UI and Performance
+
+The new illustrated guild interface should be optimized for the existing game resolution and UI architecture.
+
+Requirements:
+- Interactive regions must align with the corresponding objects in the illustration.
+- Pop-up menus should be appropriately sized.
+- Text must remain readable.
+- Hover effects must work consistently.
+- The interface should not create unnecessary performance overhead.
+- The guild should remain usable at different supported screen resolutions.
+- All existing menus and functionality should remain accessible.
+
+## 22. Save Compatibility
+
+Ensure that the new quest and guild systems are compatible with the existing save system.
+
+Save and restore:
+- Active quest type.
+- Quest objectives.
+- Quest progress.
+- Quest destination.
+- Quest-specific encounter state.
+- Daily refresh state.
+- Purchased class information.
+- Recruited companions.
+- Companion equipment.
+- Unspent stat points.
+- Unspent class points.
+- Artifact selections.
+- Any other newly introduced progression data.
+
+Existing saves should remain usable wherever possible.
+
+If a save migration is required, implement it safely.
+
+---
+
+# PART 4: IMPLEMENTATION ORDER AND TESTING
+
+## 23. Recommended Implementation Order
+
+Implement the update in the following order:
+
+1. Analyze the existing Adventurers Guild and quest architecture.
+2. Rework the six standard quest types.
+3. Preserve and balance Great Hunt rewards.
+4. Implement quest-specific encounter and spawn mechanics.
+5. Implement the reward hierarchy.
+6. Implement daily quest refresh and active quest persistence.
+7. Design the two guild interior illustrations.
+8. Implement the interactive guild scene and clickable areas.
+9. Implement the bulletin board quest menu.
+10. Implement the guild counter and quest completion feedback.
+11. Integrate artifact selection into the guild counter.
+12. Implement tavern-based companion recruitment.
+13. Integrate the hooded man's existing information menu.
+14. Add the class information button to class selection.
+15. Implement hover effects and responsive interaction.
+16. Integrate all changes with the save system.
+17. Perform comprehensive testing and balancing.
+
+## 24. Required Testing
+
+Test every quest type individually.
+
+**Hunt:**
+- Correct empowered enemy selection.
+- Correct spawn location.
+- Correct quest completion.
+- Highest standard quest rewards.
+
+**Cull:**
+- Correct enemy selection.
+- Correct kill requirement.
+- Correct highlighted area.
+- Increased spawn rate only in the designated area.
+- Correct kill tracking and quest completion.
+
+**Deliver:**
+- Correct adjacent region selection.
+- Correct destination guild.
+- Correct delivery interaction.
+- Correct return requirement.
+
+**Search:**
+- Correct random location selection.
+- Correct map highlighting.
+- Search button only available at the appropriate location.
+- Correct encounter triggering.
+- Correct 50% reduction to escape chance.
+- Correct quest completion.
+
+**Escort:**
+- Correct destination selection.
+- Correct return requirement.
+- Correct 80/10/10 encounter distribution.
+- Correct 70% reduction to escape chance.
+- Bandit encounters possible on roads.
+- Correct handling of one, zero, or two encounters.
+
+**Travel:**
+- Correct destination selection.
+- Correct return requirement.
+- No forced combat encounter.
+- Correct completion and rewards.
+
+**Guild Interface:**
+- Correct Castle Town illustration.
+- Correct smaller guild illustration.
+- All interactive areas aligned.
+- Bulletin board opens quest selection.
+- Counter completes eligible quests.
+- Artifact menu displays three choices.
+- Tavern opens companion recruitment.
+- Hooded man opens the existing information menu.
+- Hover illumination works correctly.
+
+**Companion Recruitment:**
+- Recruit levels scale with regional level.
+- Reputation costs scale appropriately.
+- Equipment generation works correctly.
+- Every companion receives one melee weapon and one armor item.
+- Armor rarity follows regional level.
+- All stat and class points remain unspent.
+
+**Class Information:**
+- New button appears in class selection.
+- Only purchased class information is displayed.
+- Newly purchased information becomes available automatically.
+
+---
+
+# FINAL INSTRUCTIONS
+
+This should feel like a complete improvement to the Adventurers Guild, both mechanically and visually.
+
+The quest system should offer a broader variety of activities, with clearly differentiated objectives and a consistent reward hierarchy.
+
+The guild interface should feel like an actual location that the player visits, rather than an ordinary menu.
+
+The bulletin board, counter, tavern, adventurers, and hooded man should all serve distinct gameplay purposes and be directly interactive.
+
+**Do not implement these features as superficial visual additions. Every interaction must be fully functional and connected to the underlying gameplay systems.**
+
+Preserve existing mechanics that are not explicitly being changed, especially Great Hunt functionality, companion progression, artifact acquisition, and the existing information system.
+
+Prioritize:
+- Functional correctness.
+- Immersion.
+- Clear quest progression.
+- Balanced rewards.
+- Meaningful exploration.
+- Consistent regional scaling.
+- A polished and intuitive user interface.
+
+The finished result should make the Adventurers Guild feel like a central hub for exploration, recruitment, information, and adventuring throughout the game.

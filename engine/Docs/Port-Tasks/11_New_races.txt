@@ -1,0 +1,1 @@
+I want to add a few new playable races and their respective icons. The first one if Half-Beast (half human, half beast). The second one is Merfolk (it already exists, just give it an icon and make them playable). The third one is Goliath (half-giants). Also create a racial class for each of them similar to the already existing racial classes.
