@@ -464,6 +464,9 @@
   const isForgedId = id => typeof id === "string" && (id.startsWith(ID_PREFIX) || id.startsWith("armor-forged-") || id.startsWith(MASTERWORK_PREFIX) || id.startsWith("armor-masterwork-"));
 
   /* ---------- Derived stats ---------- */
+  // A masterwork's fixed runes (the Masterwork Elementals): part of the masterwork, never in its id or slots.
+  const fixedRunes = spec => (spec?.masterwork && MASTERWORKS[spec.masterwork]?.fixedRunes) || [];
+  const allRunes = spec => [...fixedRunes(spec), ...(spec?.runes || [])];
   const EFFECT_KEYS = ["finalPct", "basePowerPct", "primaryPct", "secondaryPct", "hit", "crit", "pierce", "spellCost", "pricePct"];
   // The maker of a weapon whose parts all come from one maker (its name says Matching, or Flawless), else null.
   function matchingMaker(spec) {
@@ -486,7 +489,10 @@
     });
     const matching = matchingBonus(spec);
     if (matching) for (const key of EFFECT_KEYS) sum[key] += matching[key] || 0;
-    for (const runeId of spec.runes) {
+    // A masterwork's own fixed additions (Tidepiercer's armor pierce).
+    const bonus = spec.masterwork && MASTERWORKS[spec.masterwork]?.totalsBonus;
+    if (bonus) for (const key of EFFECT_KEYS) sum[key] += bonus[key] || 0;
+    for (const runeId of allRunes(spec)) {
       const effect = RUNES[runeId].effect;
       for (const key of EFFECT_KEYS) sum[key] += effect[key] || 0;
       if (effect.secondaryStat) secondaryStat = effect.secondaryStat;
@@ -609,8 +615,13 @@
     if (WEAPONS[spec.type].caster) {
       const item = buildCasterItem(spec, id), def = spec.masterwork ? MASTERWORKS[spec.masterwork] : null;
       if (!def) return item;
-      // A caster masterwork keeps its forged gem, handle and inscription, under its own name.
-      return { ...item, name: `${TIERS[spec.parts[0].tier].name} ${def.name}`, rarity: "masterwork", masterwork: spec.masterwork,
+      // A caster masterwork keeps its forged gem, handle and inscription, under its own name; one that attacks
+      // as another weapon (the Plasma Blade as a longsword) takes that weapon's power, crit and scaling ratios.
+      const melee = def.attacksAs && WEAPONS[def.attacksAs.type], t = levelCurve(spec.level);
+      const attacks = melee ? { basePower: Math.max(1, Math.round(lerp(melee.power[0], melee.power[1], t))), handed: melee.handed,
+        primary: component(def.attacksAs.scaling[0], lerp(melee.primary[1], melee.primary[2], t)), secondary: component(def.attacksAs.scaling[1], lerp(melee.secondary[1], melee.secondary[2], t)),
+        critBase: CRIT[def.attacksAs.type][0], critDamage: CRIT[def.attacksAs.type][1], ...(def.attacksAs.element ? { element: def.attacksAs.element } : {}), attacksAs: def.attacksAs.type } : {};
+      return { ...item, ...attacks, name: `${TIERS[spec.parts[0].tier].name} ${def.name}`, rarity: "masterwork", masterwork: spec.masterwork,
         description: `A masterwork ${WEAPONS[spec.type].name.toLowerCase()} with a ${TIERS[spec.parts[0].tier].name} ${STONES[spec.parts[0].material].name} ${WEAPONS[spec.type].caster} by ${byName(spec.parts[0].maker)}. ${def.story}`,
         effects: [...def.effects.map(effect => ({ ...effect })), ...item.effects], priceSilver: Math.max(item.priceSilver, Math.round(RARITY_PRICE.masterwork * (1 + (clampLevel(spec.level) - 1) * 0.01) / 10) * 10),
         shopAvailable: false, forged: { ...item.forged, masterwork: spec.masterwork, masterworkName: def.name } };
@@ -729,7 +740,7 @@
     const rune = RUNES[runeId];
     if (!rune) return "Unknown rune";
     if (spec.runes.length >= spec.slots) return "No empty rune slot";
-    if (spec.runes.some(owned => RUNES[owned].group === rune.group)) return "A rune of this kind is already slotted";
+    if (allRunes(spec).some(owned => RUNES[owned].group === rune.group)) return "A rune of this kind is already slotted";
     return "";
   }
   function withRune(id, runeId) {
@@ -908,8 +919,8 @@
     const rune = RUNES[runeId];
     if (!rune) return "Unknown rune";
     if (spec.runes.length >= spec.slots) return "No empty rune slot";
-    if (spec.runes.includes(runeId)) return "This rune is already slotted";
-    if (rune.group !== "element" && spec.runes.some(owned => RUNES[owned].group === rune.group)) return "A rune of this kind is already slotted";
+    if (allRunes(spec).includes(runeId)) return "This rune is already slotted";
+    if (rune.group !== "element" && allRunes(spec).some(owned => RUNES[owned].group === rune.group)) return "A rune of this kind is already slotted";
     return "";
   }
   // Generates an armor spec. source "shop" never makes Outlaw armor or fills rune slots.
@@ -969,7 +980,7 @@
       add(ARMOR_MATERIALS[part.material].effect, index === 0 ? 2 : 1);
       if (index > 0) add(ARMOR_MAKERS[part.maker].effect, 1);
     });
-    for (const runeId of spec.runes) {
+    for (const runeId of allRunes(spec)) {
       const rune = RUNES[runeId];
       if (rune.group === "element") resist[rune.effect.element] = (resist[rune.effect.element] || 0) + ARMOR_RUNE_RESIST;
       else if (rune.group === "scaling") scalingStat = rune.effect.secondaryStat;
@@ -1228,6 +1239,60 @@
       effects: [{ kind: "all-stats-on-nonbasic-spell-damage-per-tier", amount: 10, durationTurns: 3 }],
       story: "Tankina's copper-bound shield converts sorcery into strength: every spell beyond the Basic that strikes it hardens its bearer.",
     },
+    /* The Masterwork Elementals (port task 1, user design, 2026-11-05): the elementals' former unique
+       items remade, each dropped at 5% by the elementals of its element. placeholderArt: their looks are
+       placeholders (their type's normal look with simple hints) that the user wants fully remade in the
+       port. fixedRunes are part of the masterwork: not removable, on top of the rune slots it rolls. The
+       stories are drafts the user may change. */
+    // Plasma Blade: a Hellmade fire wand (always a Greater Ruby) that attacks as a longsword: power and
+    // crit by level, Intelligence then Dexterity at a longsword's ratios, all its attack damage Fire. Its
+    // design: a red laser beam from the gem, like a laser sword.
+    "plasma-blade": {
+      name: "Plasma Blade", type: "wand", mainMaker: "hellmade", element: "fire", placeholderArt: true,
+      attacksAs: { type: "longsword", scaling: ["intelligence", "dexterity"], element: "fire" },
+      effects: [],
+      story: "The Fire Elementals' ruby burns so hot that a blade of red light leaps from it: it casts like a wand and cuts like a sword.",
+    },
+    // Tidepiercer: a Dwarven lance shaped like a trident, a crossguard instead of a pommel. Its attacks
+    // ignore 50% more of the target's armor (added to its parts' pierce, up to 100%). Water rune.
+    tidepiercer: {
+      name: "Tidepiercer", type: "lance", parts: ["spearhead", "crossguard", "long-handle"], mainMaker: "dwarven", placeholderArt: true,
+      fixedRunes: ["humidity"], totalsBonus: { pierce: 50 },
+      effects: [{ kind: "armor-pierce-bonus", amount: 50 }],
+      story: "Dwarven smiths forged it for the Water Elementals' champion, three-pronged like the tide's own spear; it slips through armor as water through sand.",
+    },
+    // First Comet: a Hearthforge mace; every hit has a 25% chance to stun for 1 turn. Earth rune.
+    "first-comet": {
+      name: "First Comet", type: "mace", parts: ["blunt-head", "pommel", "medium-handle"], mainMaker: "hearthforge", placeholderArt: true,
+      fixedRunes: ["basalt"],
+      effects: [{ kind: "stun-on-hit-chance", amount: 25, chance: 25 }],
+      story: "Hammered from the fallen star the Earth Elementals guarded for an age; its blows land like the comet that made it and leave the struck reeling.",
+    },
+    // Peace and Balance: an Elven quarterstaff (two parts, as every quarterstaff). Nothing pushes its
+    // wielder's turn meter back or lowers their Speed, from enemies or their own skills and gear. Wind rune.
+    "peace-and-balance": {
+      name: "Peace and Balance", type: "quarterstaff", parts: ["staff-shaft", "reinforcement", null], mainMaker: "elven", placeholderArt: true,
+      fixedRunes: ["breeze"],
+      effects: [{ kind: "turn-and-speed-lock", amount: 0 }],
+      story: "The Wind Elementals carried it in the still eye of every storm; no gust can push its bearer from their course.",
+    },
+    // Kugelblitz: a shortbow whose main part is always the Church of Talos's. 15% of each hit splashes onto
+    // every other enemy (reduced by their defenses, like Jackhammer's); every enemy it damaged is marked
+    // until the end of its next turn (refreshed, never stacked): its spells cost 50% more Mana. Lightning rune.
+    kugelblitz: {
+      name: "Kugelblitz", type: "shortbow", parts: ["small-limb", "reinforcement", "light-string"], mainMaker: "church-of-talos", placeholderArt: true,
+      fixedRunes: ["charge"],
+      effects: [{ kind: "cleave-percent", amount: 15 }, { kind: "spell-cost-mark-on-damage", amount: 50, durationTurns: 1 }],
+      story: "The Church of Talos strung it with the Lightning Elementals' ball lightning; every arrow bursts across the enemy line and leaves their magic sputtering.",
+    },
+    // Avalanche: a brigandine whose main part is always Roundtable's. Each damage taken adds a counter; at
+    // 7 every enemy loses 30% Speed for 3 turns and the counters reset. Ice resistance rune.
+    avalanche: {
+      name: "Avalanche", type: "brigandine", parts: ["shell", "lining", "fittings"], mainMaker: "roundtable", placeholderArt: true,
+      fixedRunes: ["still"],
+      effects: [{ kind: "avalanche-counters", amount: 30, maximum: 7, durationTurns: 3 }],
+      story: "Roundtable plates the Ice Elementals buried beneath the glacier; every blow its wearer takes gathers snow, until the whole slope comes down on the enemy.",
+    },
   };
   const MASTERWORK_IDS = Object.keys(MASTERWORKS);
   const isArmorMasterwork = def => Boolean(def && ARMORS[def.type]);
@@ -1273,7 +1338,7 @@
       }
       return pickPart(shapeId, value, 4, { allowOutlaw: false, preferMaker: mainMaker }, random);
     };
-    return normalizeSpec({ type: def.type, masterwork: key, level: value, parts: [{ shape: def.parts[0], maker: mainMaker, material: "mythilium" }, secondary(def.parts[1]), secondary(def.parts[2])], slots: rollSlots(value, random), runes: [] });
+    return normalizeSpec({ type: def.type, masterwork: key, level: value, parts: [{ shape: def.parts[0], maker: mainMaker, material: "mythilium" }, secondary(def.parts[1]), def.parts[2] ? secondary(def.parts[2]) : null], slots: rollSlots(value, random), runes: [] });
   }
   function encodeMasterwork(spec) {
     if (isCasterMasterwork(MASTERWORKS[spec.masterwork])) {
@@ -1281,7 +1346,7 @@
       return `${MASTERWORK_PREFIX}${spec.masterwork}-${clampLevel(spec.level)}-${MAKERS[main.maker].code}${STONES[main.material].code}${main.tier}-${MAKERS[handle.maker].code}${CASTER_HANDLES[handle.material].code}-${MAKERS[inscription.maker].code}${INKS[inscription.material].code}`;
     }
     const normal = normalizeSpec(spec), armor = isArmorMasterwork(MASTERWORKS[normal.masterwork]);
-    const token = part => MAKERS[part.maker].code + (armor ? ARMOR_MATERIALS[part.material].code : MATERIALS[part.material].code);
+    const token = part => !part ? "x" : MAKERS[part.maker].code + (armor ? ARMOR_MATERIALS[part.material].code : MATERIALS[part.material].code);
     return `${armor ? MASTERWORK_ARMOR_PREFIX : MASTERWORK_PREFIX}${normal.masterwork}-${clampLevel(normal.level)}-${normal.parts.map(token).join("-")}-s${normal.slots}${normal.runes.map(id => RUNES[id].code).join("")}`;
   }
   function decodeArmorMasterwork(rest) {
@@ -1312,12 +1377,18 @@
       if (level < 1 || level > 100 || MAKER_BY_CODE[mainCode] !== def.mainMaker || !stone || def.element && STONES[stone].element !== def.element || !handle || !ink || !makes(handleMaker, "handle") || !makes(inkMaker, "inscription")) return null;
       return { type: def.type, masterwork: key, level, parts: [{ shape: weapon.caster, maker: def.mainMaker, material: stone, tier: Number(tierText) }, { shape: weapon.parts[1], maker: handleMaker, material: handle }, { shape: "inscription", maker: inkMaker, material: ink }], slots: 0, runes: [] };
     }
-    const match = /^([a-z]+(?:-[a-z]+)*)-(\d{1,3})-([a-z]{5})-([a-z]{5})-([a-z]{5})-s([0-3])((?:[a-z]{3})*)$/.exec(rest);
+    const match = /^([a-z]+(?:-[a-z]+)*)-(\d{1,3})-([a-z]{5})-([a-z]{5})-([a-z]{5}|x)-s([0-3])((?:[a-z]{3})*)$/.exec(rest);
     if (!match) return null;
     const [, key, levelText, ...tokens] = match, def = MASTERWORKS[key], level = Number(levelText);
     if (!def || isArmorMasterwork(def) || level < 1 || level > 100) return null;
     const parts = [];
     for (let index = 0; index < 3; index++) {
+      // A masterwork without a third part (a quarterstaff) has "x" in its place.
+      if (!def.parts[index] || tokens[index] === "x") {
+        if (def.parts[index] || tokens[index] !== "x") return null;
+        parts.push(null);
+        continue;
+      }
       const shape = def.parts[index], maker = MAKER_BY_CODE[tokens[index].slice(0, 2)], material = MATERIAL_BY_CODE[tokens[index].slice(2)];
       const makerOk = index === 0 ? masterworkMainMakerOk(def, maker) : maker !== "outlaw" && makerFits(maker, shape);
       if (!maker || !material || !makerOk || material !== "mythilium" && (index === 0 || !materialFits(MATERIALS[material], shape))) return null;
@@ -1331,7 +1402,8 @@
     const def = MASTERWORKS[spec.masterwork], weapon = WEAPONS[spec.type];
     const piece = part => { const shape = SHAPES[part.shape].name.toLowerCase(); return `${article(shape)} ${shape} of ${MATERIALS[part.material].name} by ${byName(part.maker)}`; };
     const [main, ...rest] = spec.parts;
-    return `A masterwork ${weapon.name.toLowerCase()} with ${piece(main)}, ${rest.map(piece).join(" and ")}. ${def.story}`;
+    const others = rest.filter(Boolean).map(piece);
+    return `A masterwork ${weapon.name.toLowerCase()} with ${piece(main)}${others.length > 1 ? ", " : others.length ? " and " : ""}${others.join(" and ")}. ${def.story}`;
   }
   // Drop tables and shop offers name a masterwork by its template; the real piece is forged when it is found.
   const masterworkTemplateKey = id => typeof id === "string" && id.startsWith(MASTERWORK_TEMPLATE_PREFIX) && MASTERWORKS[id.slice(MASTERWORK_TEMPLATE_PREFIX.length)] ? id.slice(MASTERWORK_TEMPLATE_PREFIX.length) : null;
@@ -1607,7 +1679,7 @@
   const api = {
     RARITIES, CRIT, MAKERS, MAKER_IDS, CASTER_MAKERS, CASTER_HANDLES, STONES, INKS, TIERS, CASTER_IDS, REGULAR_IDS, tierOdds, casterEffects, spellEffectText, describePart, MATERIALS, SHAPES, WEAPONS, WEAPON_IDS, RUNES, RUNE_IDS, ELEMENT_PREFIX, ELEMENT_NAMES, STAT_SHORT, STAT_NAMES, ELEMENT_SHARE,
     levelCurve, rarityOdds, rollSlots, partOptions, generate, encode, decode, isForgedId, totals, stats, price, name, statPrefix, description, effectText, runeText,
-    MATCHING_BONUS, matchingMaker, matchingBonusText,
+    MATCHING_BONUS, matchingMaker, matchingBonusText, fixedRunes, allRunes,
     item, buildItem, MASTERWORKS, MASTERWORK_IDS, MASTERWORK_PREFIXES, MASTERWORK_MYTHILIUM_CHANCE, generateMasterwork, fixedMasterworkId, masterworkTemplateKey, masterworkTemplateId, NATURAL_WEAPONS, naturalWeapon, isTemplateId, templateSpec, LEGACY_ITEMS, migrateLegacyItems, runeConflict, withRune, withoutRune, runePrice, runeRemovalPrice, runeFitPrice, runeItemId, runeOfItem, RUNE_FIT_SHARE, RUNE_REMOVAL_MULTIPLIER, armCharacter,
     ARMORS, ARMOR_IDS, ARMOR_PARTS, ARMOR_MAKERS, ARMOR_MATERIALS, ARMOR_RUNE_RESIST, ARMOR_ELEMENT_PREFIX, ALL_ELEMENTS, generateArmor, armorTotals, armorEffectText, armorRuneText, isArmorSpec,
   };

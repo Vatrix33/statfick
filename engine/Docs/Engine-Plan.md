@@ -508,6 +508,10 @@ Mythilium); task 7's Limitless scaling is meant to cover every later kind of ene
 the class count going past 250 with task 14's two classes is intended. They are added to the game during the port, in that order, and read when the port
 starts. (Not a top-level folder, not in `../old-game/Docs/`.) Still open: whether they come after the faithful port or
 while porting (the user will answer later).
+- **Task 1 is done in the old game now (user decision 2026-11-05):** before the port, with placeholder looks for the six
+  masterworks (each type's normal forged look plus simple hints); the user wants them fully remade visually in the port.
+  The other tasks are decided one at a time (not yet the same approach for all 14). Its design answers are in
+  `../old-game/Docs/Notes.md`, "Masterwork Elementals"; `Docs/Port-Tasks/README.md` lists the placeholder art.
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).

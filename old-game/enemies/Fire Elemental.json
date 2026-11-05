@@ -41,5 +41,8 @@
     "fire-whip-fire-damage",
     "summon-fire-spirit-fire-summon",
     "dragonbreath-cinderstorm-fire-damage"
+  ],
+  "drops": [
+    { "itemId": "masterwork-plasma-blade", "chance": 5 }
   ]
 }

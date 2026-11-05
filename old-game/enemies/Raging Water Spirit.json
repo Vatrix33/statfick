@@ -36,5 +36,8 @@
     "soothing-rain-water-support",
     "lesser-cascade-water-damage",
     "summon-water-spirit-water-summon"
+  ],
+  "drops": [
+    { "itemId": "masterwork-tidepiercer", "chance": 5 }
   ]
 }

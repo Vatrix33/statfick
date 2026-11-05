@@ -42,5 +42,8 @@
     "quick-drill-earth-damage",
     "rock-body-earth-support",
     "petrifying-grasp-earth-damage"
+  ],
+  "drops": [
+    { "itemId": "masterwork-first-comet", "chance": 5 }
   ]
 }

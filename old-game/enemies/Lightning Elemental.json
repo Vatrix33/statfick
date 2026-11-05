@@ -42,5 +42,8 @@
     "forecast-lightning-support",
     "lightning-spear-lightning-damage",
     "chain-lightning-lightning-damage"
+  ],
+  "drops": [
+    { "itemId": "masterwork-kugelblitz", "chance": 5 }
   ]
 }

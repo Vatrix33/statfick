@@ -9,5 +9,7 @@
   "inventory": ["forge-weapon-1-mace+flail", "forge-armor-kite-shield+tower-shield"],
   "equipment": { "primaryHand": "forge-weapon-1-mace+flail", "offHand": "forge-armor-kite-shield+tower-shield", "armor": null, "artifact1": null, "artifact2": null },
   "noDropItems": ["forge-weapon-1-mace+flail", "forge-armor-kite-shield+tower-shield"],
-  "knownSpells": [], "drops": []
+  "knownSpells": [], "drops": [
+    { "itemId": "masterwork-first-comet", "chance": 5 }
+  ]
 }

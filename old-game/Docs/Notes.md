@@ -274,6 +274,64 @@ The user's main project is **Stat Fick**, a vanilla-JS fantasy RPG (character sh
 - Look: dragon rig `constellations`, `aurora` (wing bands), `lightCrown`, `mirror` (gleams), `corona` (Golden), `heartStar` (+`nova`); catalog `phases` 1 gold / 2 white-gold. Intro `anatemis` (a star falls onto the Frozen Crown), `anatemis-golden` (sun rises), `anatemis-zenith` (bloom of rings) via `starScene`. The old `#anatemis-cinematic` markup and `playPhaseCinematic` are now unused (left in place). Music `anatemis-white-star` (D dorian hymn, replaces the old score, trim 3.45), `anatemis-golden-star` (march, 2.18), `anatemis-zenith` (choral finale, 1.33), switched on `phaseIndex`.
 - Tests: `claude-work/an-rework-checks.js` appended to `anatemis-browser.js` and `an-drops-checks.js` replacing `anatemis-drops-browser.js`, via `patch_an.py` (also party-loot and guild-information fixtures, the lifecycle catalogue fixture and smoke `weapons >= 0`). `rt-launch.sh` key `an`, `an-stats.sh`. Regression after the rework: unchanged 28/38.
 
+**Masterwork Elementals (port task 1, 2026-11-05, a cloud session; the task is
+`engine/Docs/Port-Tasks/1_Masterwork_Elementals.txt`).** Done in the old game before the port (user decision); the six
+masterworks' looks are placeholders the user wants fully remade in the port. The user's answers, asked before the code:
+- **Drops:** each at 5% from every elemental-race enemy of its element (its file's `element`, else its spells'), bosses
+  excluded: Plasma Blade from Fire Elemental, Fire Spirit, Magma Elemental, Vulcanic Ram; Tidepiercer from Water
+  Elemental, Water Spirit, Greater and Raging Water Spirit, Oasis Guardian; First Comet from Earth Elemental, Earth
+  Spirit, Greater Earth Spirit, Steelguard Golem, Pyramid Sentinel (not Gaian); Peace and Balance from Wind Elemental;
+  Kugelblitz from Lightning and Storm Elemental; Avalanche from Ice and Frost Elemental. The elementals keep their
+  placeholder weapons for good; old saves' retired uniques convert as before.
+- **Plasma Blade:** a wand for spells (always a Greater Ruby by Hellmade, like Hellish Rebuke, with its handle and
+  inscription) whose attacks use a longsword's numbers (power and crit by level, one-handed), scaling Intelligence then
+  Dexterity at a longsword's ratios, all attack damage Fire; no rune slots. (Not a wand's weak attacks.)
+- **Fixed runes:** Tidepiercer (Water), First Comet (Earth), Peace and Balance (Wind) and Kugelblitz (Lightning) always
+  have their element's damage rune, Avalanche the Ice resistance rune: part of the masterwork, not removable, on top of
+  the rune slots it rolls (a weapon still can't take a second damage-element rune). (Not in one of its slots, not
+  removable runes.)
+- **Tidepiercer:** +50 armor pierce on top of its parts' (capped at 100% as all pierce). Its lance has a crossguard
+  instead of a pommel.
+- **First Comet:** a 25% chance per hit to stun for 1 turn, by the game's stun rules (stun immunity holds).
+- **Peace and Balance:** a two-part quarterstaff; no effect pushes its wielder's turn meter back or lowers their Speed,
+  whether from enemies or their own skills and gear; increases still work.
+- **Kugelblitz:** a 15% splash to every other enemy, reduced like Jackhammer's; every enemy it damaged is marked until
+  the end of its next turn (refreshed, never stacked): its spells cost 50% more Mana.
+- **Avalanche:** a brigandine. Each damage taken adds a counter; at 7 every enemy loses 30% Speed for 3 turns, the
+  counters reset and can build again; a new trigger refreshes the slow. Counters start at 0 each battle.
+- **Looks (placeholder):** each type's normal forged masterwork look with simple hints: a short red line from the Plasma
+  Blade's gem, three prongs on Tidepiercer's head. To be fully remade in the port.
+- **Stories:** drafted, one line each in the style of the other masterworks; the user can change them any time.
+- **How it's built:**
+  - `ForgeRules.MASTERWORKS` has `plasma-blade`, `tidepiercer`, `first-comet`, `peace-and-balance`, `kugelblitz` and
+    `avalanche`, each with `placeholderArt: true`.
+  - New definition fields:
+    - `fixedRunes`, read by `fixedRunes(spec)` and `allRunes(spec)`. They count in `totals`, `armorTotals` and rune
+      conflicts; they're never in the id or the slots, and the parts list shows them as "fixed".
+    - `totalsBonus` (Tidepiercer's +50 pierce).
+    - `attacksAs` (the Plasma Blade's longsword numbers, Intelligence then Dexterity, `element: "fire"`, in
+      `buildItem`'s caster branch).
+  - Two-part masterworks (`null` third part, "x" in the id) for the quarterstaff.
+  - New effect kinds:
+    - `stun-on-hit-chance` and `spell-cost-mark-on-damage`, in `strike`'s on-hit loop.
+    - `turn-and-speed-lock`: `wieldsTurnAndSpeedLock()` in `app.js`, read by `currentStatsUncached` (which also covers
+      `permanentStatPercent`), `statPercent`, hostile and party stat effects, and `shiftTurnMeter` for `shift-turn-meters`.
+    - `avalanche-counters`: `addAvalancheCounter`, from `triggerDamageTakenEquipment`, with counters in
+      `actor.avalancheCounters`.
+    - `armor-pierce-bonus`, which only labels Tidepiercer's pierce.
+  - Placeholder hints in `forge-art.js`'s `MASTERWORK_LAYOUT` (`beam`, `prongs`; marked PLACEHOLDER ART). Battle
+    sprites of forged items are drawn there too.
+  - Tidepiercer's +50 pierce usually makes it "Rending" (the pierce prefix) unless it is Flawless.
+- **Tests:** `test-client/tests/masterwork-elementals-browser.js`, one entry per rule (`runMasterworkElementalItemChecks`,
+  `…RuneChecks`, `runTidepiercerChecks`, `runFirstCometChecks`, `runPeaceAndBalanceChecks`, `runKugelblitzChecks`,
+  `runAvalancheChecks`, `runMasterworkElementalDropChecks`; `runMasterworkElementalChecks` runs all). The combat checks
+  load `combat.js` again with its internals exposed, as `anatemis-drops-browser.js` does. Each rule was broken once in a
+  copy of the game (22 mutations, all caught; one found `permanentStatPercent`'s own Speed filter redundant, so it was
+  removed). Not covered by a check: the lock on stat effects from higher-level enemies' passives and from party-wide
+  effects (the same one-line rule as the checked paths). `masterwork-rarity-browser.js` now counts 31 masterworks (was
+  25). The other browser checks and suites gave the same results as before (54 of 66 runs passing; the 12 failures are
+  the known ones; `map-speed` failed once and passed twice on rerun).
+
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in
 the engine's way. The list's rune slotting sound was left out: the port adds proper sound effects instead.

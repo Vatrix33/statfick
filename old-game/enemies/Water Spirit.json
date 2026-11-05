@@ -55,5 +55,8 @@
     "spell-bolt-basic-damage",
     "water-bolt-water-damage"
   ],
-  "activeSkills": {}
+  "activeSkills": {},
+  "drops": [
+    { "itemId": "masterwork-tidepiercer", "chance": 5 }
+  ]
 }

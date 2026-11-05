@@ -5,5 +5,8 @@
   "stats": { "strength": 124, "vitality": 140, "mind": 135, "dexterity": 78, "intelligence": 122, "wisdom": 105, "speed": 72, "luck": 60 },
   "inventory": ["forge-weapon-1-mace+flail", "forge-armor-full-plate+splint-mail", "forge-armor-kite-shield+tower-shield"],
   "equipment": { "primaryHand": "forge-weapon-1-mace+flail", "offHand": "forge-armor-kite-shield+tower-shield", "armor": "forge-armor-full-plate+splint-mail", "artifact1": null, "artifact2": null },
-  "knownSpells": ["stone-bastion-earth-support", "obsidian-spire-earth-damage", "sundering-rift-earth-damage", "summon-greater-earth-spirit-earth-summon"]
+  "knownSpells": ["stone-bastion-earth-support", "obsidian-spire-earth-damage", "sundering-rift-earth-damage", "summon-greater-earth-spirit-earth-summon"],
+  "drops": [
+    { "itemId": "masterwork-first-comet", "chance": 5 }
+  ]
 }

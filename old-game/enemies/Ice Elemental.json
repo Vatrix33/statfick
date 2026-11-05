@@ -41,5 +41,8 @@
     "icy-burst-ice-damage",
     "sudden-spike-ice-damage",
     "glacial-prison-ice-damage"
+  ],
+  "drops": [
+    { "itemId": "masterwork-avalanche", "chance": 5 }
   ]
 }

@@ -57,5 +57,8 @@
     "spell-bolt-basic-damage",
     "fire-whip-fire-damage"
   ],
-  "activeSkills": {}
+  "activeSkills": {},
+  "drops": [
+    { "itemId": "masterwork-plasma-blade", "chance": 5 }
+  ]
 }

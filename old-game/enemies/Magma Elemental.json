@@ -5,5 +5,8 @@
   "stats": { "strength": 74, "vitality": 88, "mind": 110, "dexterity": 50, "intelligence": 117, "wisdom": 92, "speed": 49, "luck": 46 },
   "inventory": [],
   "equipment": { "primaryHand": null, "offHand": null, "armor": null, "artifact1": null, "artifact2": null },
-  "knownSpells": ["fire-bolt-fire-damage", "flame-spiral-fire-damage", "dragonbreath-cinderstorm-fire-damage", "summon-greater-fire-spirit-fire-summon", "inferno-orb-fire-damage", "hellfire-wave-fire-damage", "burning-horizon-fire-damage", "faultline-earth-damage", "stone-bastion-earth-support", "petrifying-grasp-earth-damage", "mountain-crusher-earth-damage", "fortress-of-stone-earth-support", "obsidian-spire-earth-damage", "sundering-rift-earth-damage"]
+  "knownSpells": ["fire-bolt-fire-damage", "flame-spiral-fire-damage", "dragonbreath-cinderstorm-fire-damage", "summon-greater-fire-spirit-fire-summon", "inferno-orb-fire-damage", "hellfire-wave-fire-damage", "burning-horizon-fire-damage", "faultline-earth-damage", "stone-bastion-earth-support", "petrifying-grasp-earth-damage", "mountain-crusher-earth-damage", "fortress-of-stone-earth-support", "obsidian-spire-earth-damage", "sundering-rift-earth-damage"],
+  "drops": [
+    { "itemId": "masterwork-plasma-blade", "chance": 5 }
+  ]
 }
