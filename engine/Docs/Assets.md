@@ -1111,6 +1111,13 @@ Namespace `Statventure.Storage`. Tests: `Tests/Statventure.Tests/Storage/`, data
   be a whole-number version from 1, enums by camelCase name, written only on change, an older
   `settings.broken.json` replaced; the old game's 10 MiB limit; folders 0700 and files 0600 on Linux;
   `mods/` not made here.
+- **Tests never reach this machine's folders** (user decision 2026-11-05; Engine-Plan.md "Decision on test runs and the
+  player's folders"): the test assembly's module initializer (`Tests/Statventure.Tests/Infrastructure/PerUserFolders.cs`)
+  points .NET's `XDG_DATA_HOME`, `XDG_CONFIG_HOME` and `HOME` (Windows: also `APPDATA`, `LOCALAPPDATA`, `USERPROFILE`) into a
+  per-run scratch folder, so `GameFolder.ForThisMachine()`, an `Application` without `GameFolder` and
+  `DocumentsFolder.ForThisMachine()` land there (`PerUserFoldersTests`), and `mutate.py` flags any change to the real game
+  folder or the Documents folder's top level. Found after M9 step 9's mutation dropping `GameFolder` wrote a test save into
+  the PC's real folder. Not checked on Windows, whose known-folder lookup may ignore the variables.
 
 ### Models and state machines in packs (step 5)
 

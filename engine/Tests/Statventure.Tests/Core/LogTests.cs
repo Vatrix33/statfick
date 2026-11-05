@@ -2,6 +2,11 @@ using Statventure.Core;
 
 namespace Statventure.Tests.Core;
 
+/// <summary>
+/// In the non-parallel "Storage log" collection, as it reads the log: run beside the parallel tests, its sink
+/// caught a settings test's Warning ("Storage: settings …") and failed (found 2026-11-05, 2 of 5 filtered runs on lavapipe).
+/// </summary>
+[Collection("Storage log")]
 public class LogTests
 {
     [Fact]

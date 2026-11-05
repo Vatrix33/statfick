@@ -60,11 +60,13 @@ public static class SystemFonts
         }
     }
 
-    static string Run(string program, params string[] arguments)
+    /// <summary>Runs a program and gives its output; it sees the real per-user folders (fontconfig reads the user's configuration, fonts and cache there), not the tests' scratch ones.</summary>
+    internal static string Run(string program, params string[] arguments)
     {
         var start = new System.Diagnostics.ProcessStartInfo(program) { RedirectStandardOutput = true };
         foreach (var argument in arguments)
             start.ArgumentList.Add(argument);
+        PerUserFolders.GiveOriginals(start);
         using var process = System.Diagnostics.Process.Start(start)!;
         var output = process.StandardOutput.ReadToEnd();
         process.WaitForExit();
