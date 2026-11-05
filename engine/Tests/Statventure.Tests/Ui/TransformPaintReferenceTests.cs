@@ -12,9 +12,8 @@ namespace Statventure.Tests.Ui;
 /// whatever the other axis does (Golden/ui-box-*@1.png and @1.65.png, made by
 /// Tools/Scripts/make-scaled-paint-references.sh 1 1 transform-fixtures.json and 1.65 1
 /// transform-fixtures.json: Chromium 152 under X11, CPU raster). Every transformed box sits at a
-/// multiple of 20 CSS px, a whole device pixel at 1.65 too: Blink rounds a transformed box's paint
-/// offset and drops its fraction along the axes the transform scales, which the engine doesn't
-/// yet (Engine-Plan.md, Progress, "Canvas: box antialiasing under non-uniform transforms").
+/// multiple of 20 CSS px, a whole device pixel at 1.65 too, so that Blink's rounding of a
+/// transformed box's paint offset (TransformOffsetReferenceTests) stays out of these.
 /// </summary>
 [Collection("GPU")]
 public class TransformPaintReferenceTests(GpuFixture gpu)

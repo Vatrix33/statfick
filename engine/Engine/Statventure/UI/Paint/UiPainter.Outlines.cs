@@ -31,7 +31,7 @@ public sealed partial class UiPainter
         var s = box.Style;
         if (box.Type is BoxType.Text or BoxType.LineBreak or BoxType.Inline || !HasPaintedOutline(box, s))
             return;
-        var rect = box.ViewportRect;
+        var rect = Placed(box);
         if (s.OutlineStyle == BorderLineStyle.Auto)
         {
             var rects = new List<RectF>();
@@ -55,7 +55,7 @@ public sealed partial class UiPainter
                 PaintFocusRing(inlineBox, rects, rects[0]);
             return;
         }
-        var origin = root.ViewportPosition + InlineOffset(inlineBox, root);
+        var origin = PlacedAt(root) + InlineOffset(inlineBox, root);
         foreach (var fragment in fragments)
             DrawOutline(s, fragment.Rect.Offset(origin), CornerRadii.Zero);
     }
@@ -140,7 +140,7 @@ public sealed partial class UiPainter
     void AddBoxOutlineRects(LayoutBox box, List<RectF> rects, bool anchor)
     {
         if (!box.IsAnonymous)
-            rects.Add(box.ViewportRect);
+            rects.Add(Placed(box));
         var s = box.Style;
         if (box.Type == BoxType.Replaced || s.OverflowX != Overflow.Visible || s.OverflowY != Overflow.Visible)
             return;
@@ -164,10 +164,19 @@ public sealed partial class UiPainter
     {
         var start = rects.Count;
         var layer = HasLayer(box);
+        // A transformed layer's rects are taken where it paints them (its rounded paint offset).
+        var shift = _shift;
+        var transform = Matrix3x2.Identity;
+        var transformed = layer && box.Style.HasTransform;
+        if (transformed)
+        {
+            (transform, var move) = RoundedTransform(box);
+            _shift += move;
+        }
         AddBoxOutlineRects(box, rects, anchor || (upgradeAnchor && !layer && IsAnchor(box)));
-        if (!layer || !box.Style.HasTransform)
+        _shift = shift;
+        if (!transformed)
             return;
-        var transform = TransformFor(box, box.ViewportRect);
         for (var i = start; i < rects.Count; i++)
             rects[i] = rects[i].Transform(transform);
     }
@@ -180,7 +189,7 @@ public sealed partial class UiPainter
     {
         if (inlineBox.Fragments is not { } fragments || root.Inline is not { } inline)
             return;
-        var origin = root.ViewportPosition + InlineOffset(inlineBox, root);
+        var origin = PlacedAt(root) + InlineOffset(inlineBox, root);
         foreach (var fragment in fragments)
             if (fragment.Rect.Width != 0 || fragment.Rect.Height != 0)
                 rects.Add(fragment.Rect.Offset(origin));
@@ -197,7 +206,7 @@ public sealed partial class UiPainter
     /// </summary>
     void AddLineOutlineRects(LayoutBox root, InlineContent inline, LayoutBox? within, List<RectF> rects, bool anchor)
     {
-        var origin = root.ViewportPosition;
+        var origin = PlacedAt(root);
         HashSet<LayoutBox>? done = null;
         foreach (var line in inline.Lines)
             foreach (var item in line.Items)
@@ -268,7 +277,7 @@ public sealed partial class UiPainter
             if (HasLayer(child) && child.Fragments is { } fragments)
             {
                 // LayoutInline::AddOutlineRects: its line box rects, then its children's boxes.
-                var origin = root.ViewportPosition + InlineOffset(child, root);
+                var origin = PlacedAt(root) + InlineOffset(child, root);
                 foreach (var fragment in fragments)
                     rects.Add(fragment.Rect.Offset(origin));
             }

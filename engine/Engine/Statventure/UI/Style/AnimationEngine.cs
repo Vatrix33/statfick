@@ -60,6 +60,45 @@ public sealed class AnimationEngine
         return false;
     }
 
+    static readonly string[] TransformProperties = ["transform", "translate", "rotate", "scale"];
+
+    /// <summary>
+    /// Whether every animation of an element's transform properties (transform, translate, rotate,
+    /// scale: CSS animations, transitions and script animations) has only keyframes the test passes
+    /// (Blink's ElementAnimations::IsIdentityOrTranslation, with the test saying whether a style's
+    /// transform is an identity or a translation): the painter asks it for a box with a transform
+    /// animation, which keeps the fraction of its paint offset only then.
+    /// </summary>
+    internal bool TransformAnimationsAre(UiElement element, string pseudo, Func<ComputedStyle, bool> test)
+    {
+        if (!_targets.TryGetValue((element, pseudo), out var target))
+            return true;
+        foreach (var (property, transition) in target.Transitions)
+            if (TransformProperties.Contains(property) && !(test(transition.From) && test(transition.To)))
+                return false;
+        foreach (var animation in target.Animations)
+        {
+            if (!TransformProperties.Any(animation.Keyframes.Properties.Contains))
+                continue;
+            animation.Tracks ??= BuildTracks(animation, target);
+            foreach (var property in TransformProperties)
+                if (animation.Tracks.TryGetValue(property, out var frames) && !frames.TrueForAll(f => test(f.Style)))
+                    return false;
+        }
+        if (pseudo.Length == 0 && _scripted.TryGetValue(element, out var scripted))
+            foreach (var animation in scripted)
+            {
+                if (animation.PlayState == UiAnimationPlayState.Idle || !TransformProperties.Any(animation.Effect.Properties.Contains))
+                    continue;
+                if (!target.ScriptTracks.TryGetValue(animation, out var tracks))
+                    target.ScriptTracks[animation] = tracks = BuildScriptTracks(animation.Effect, target);
+                foreach (var property in TransformProperties)
+                    if (tracks.TryGetValue(property, out var records) && !records.TrueForAll(r => test(r.From ?? target.Base) && test(r.To ?? target.Base)))
+                        return false;
+            }
+        return true;
+    }
+
     /// <summary>
     /// Animated values are out of date: the frame's timing update or a script animation's change
     /// asks for a style update (Blink's SetNeedsAnimationStyleRecalc), so a forced style update

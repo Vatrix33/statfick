@@ -81,7 +81,7 @@ public sealed partial class UiPainter
             }
             case ControlLook.SliderHorizontal:
             {
-                var thumb = RangeThumb(box, element);
+                var thumb = RangeThumb(box, element, _shift);
                 ControlTheme.PaintSliderTrack(_canvas, rect, state, MathF.Round(thumb.X - rect.X, MidpointRounding.AwayFromZero), AccentOf(s), s.Zoom);
                 break;
             }
@@ -117,9 +117,9 @@ public sealed partial class UiPainter
     /// A range input's thumb (Blink's LayoutSliderTrack): 16×16 in the track, which fills the
     /// content box's width and sits in its middle; at the value's share of the track less the thumb.
     /// </summary>
-    internal static RectF RangeThumb(LayoutBox box, UiElement element)
+    internal static RectF RangeThumb(LayoutBox box, UiElement element, Vector2 shift = default)
     {
-        var rect = box.ViewportRect;
+        var rect = box.ViewportRect.Offset(shift);
         var content = new RectF(rect.X + box.ContentLeft, rect.Y + box.ContentTop, box.ContentWidth, box.ContentHeight);
         var thumbStyle = element.Styles?.Part(PseudoElement.SliderThumb);
         // LayoutTheme::AdjustSliderThumbSize: the theme's 16 px, zoomed.
@@ -188,7 +188,7 @@ public sealed partial class UiPainter
     {
         if (!_canvas.Drawing || ControlAppearance.Effective(element, box.Style) == ControlLook.None)
             return;
-        var thumb = Snap(RangeThumb(box, element));
+        var thumb = Snap(RangeThumb(box, element, _shift));
         var state = element.IsDisabled ? ThemeState.Disabled
             : _document.RangeThumbActive == element ? ThemeState.Pressed
             : _document.RangeThumbHovered == element ? ThemeState.Hovered
@@ -197,9 +197,9 @@ public sealed partial class UiPainter
     }
 
     /// <summary>A box's content box where layout put it (not snapped to pixels): text inside controls is painted from there.</summary>
-    static RectF ExactContent(LayoutBox box)
+    static RectF ExactContent(LayoutBox box, Vector2 shift)
     {
-        var rect = box.ViewportRect;
+        var rect = box.ViewportRect.Offset(shift);
         return new RectF(rect.X + box.ContentLeft, rect.Y + box.ContentTop, box.ContentWidth, box.ContentHeight);
     }
 
@@ -217,7 +217,7 @@ public sealed partial class UiPainter
             return;
         var style = box.Style;
         var layout = TextLayout.Create(_document.Fonts, label, InlineLayout.TextStyleFor(style), new ParagraphStyle { WhiteSpace = Text.WhiteSpace.Pre });
-        var exact = ExactContent(box);
+        var exact = ExactContent(box, _shift);
         var x = exact.X + (exact.Width - layout.Width) / 2;
         var y = SnapBaseline(exact.Y + (exact.Height - layout.Height) / 2, layout);
         _canvas.PushClip(content);
@@ -234,12 +234,12 @@ public sealed partial class UiPainter
     {
         var editor = content;
         var type = element.InputType;
-        if (type == "number" && SpinButtonOf(box, element) is { } spin)
+        if (type == "number" && SpinButtonOf(box, element, _shift) is { } spin)
         {
             editor = editor with { Width = MathF.Max(0, editor.Width - spin.Width) };
             PaintSpinButton(element, spin);
         }
-        else if (type == "search" && CancelButtonOf(box, element) is { } cancel)
+        else if (type == "search" && CancelButtonOf(box, element, _shift) is { } cancel)
         {
             editor = editor with { Width = MathF.Max(0, cancel.Button.X - cancel.MarginLeft - editor.X) };
             PaintCancelButton(element, cancel.Button);
@@ -249,7 +249,7 @@ public sealed partial class UiPainter
     }
 
     /// <summary>The number field's spin button (null when its part has appearance or display none, or the field's look is textfield).</summary>
-    internal static RectF? SpinButtonOf(LayoutBox box, UiElement element)
+    internal static RectF? SpinButtonOf(LayoutBox box, UiElement element, Vector2 shift = default)
     {
         var s = box.Style;
         if (element.InputType != "number" || s.Appearance is "none" or "textfield")
@@ -257,7 +257,7 @@ public sealed partial class UiPainter
         var part = element.Styles?.Part(PseudoElement.InnerSpinButton);
         if (part is not null && (part.Display == Display.None || part.Appearance == "none"))
             return null;
-        var rect = box.ViewportRect;
+        var rect = box.ViewportRect.Offset(shift);
         var content = new RectF(rect.X + box.ContentLeft, rect.Y + box.ContentTop, box.ContentWidth, box.ContentHeight);
         // The button stretches over the field's line (the decoration container), which is centred
         // in the content box (-internal-align-content-block: center), in layout units.
@@ -289,7 +289,7 @@ public sealed partial class UiPainter
     /// The search field's cancel button (LayoutThemeDefault): 9 px at 13 px text, scaled with the
     /// font (5 to 21 px), centred vertically after the editor, with 1 px and 3 px margins.
     /// </summary>
-    internal static (RectF Button, float MarginLeft)? CancelButtonOf(LayoutBox box, UiElement element)
+    internal static (RectF Button, float MarginLeft)? CancelButtonOf(LayoutBox box, UiElement element, Vector2 shift = default)
     {
         var part = element.Styles?.Part(PseudoElement.SearchCancelButton);
         if (part is null || part.Display == Display.None)
@@ -298,7 +298,7 @@ public sealed partial class UiPainter
         var size = (float)Math.Round(Math.Min(Math.Max(5, 9 * part.FontSize / 13f), 21), MidpointRounding.AwayFromZero);
         if (part.Appearance == "none")
             size = 0;
-        var rect = box.ViewportRect;
+        var rect = box.ViewportRect.Offset(shift);
         var content = new RectF(rect.X + box.ContentLeft, rect.Y + box.ContentTop, box.ContentWidth, box.ContentHeight);
         float marginLeft = 1, marginRight = 3;
         var x = content.Right - marginRight - size;
@@ -352,11 +352,11 @@ public sealed partial class UiPainter
         };
         var color = textStyle.Color;
         // A textarea's text scrolls inside its padding box; a one-line field's inside its editor.
-        var rect = box.ViewportRect;
+        var rect = Placed(box);
         var clip = multiline ? new RectF(rect.X + box.Border.Left, rect.Y + box.Border.Top, box.PaddingBoxWidth, box.PaddingBoxHeight) : editor;
         // The focused field holds the page's selection: its selected range paints as Blink paints selected text.
         var (start, end, _) = element.EditorSelection;
-        if (text == value && start != end && _document.FocusedElement == element && FieldGeometry.Of(_document, box, element) is { } geometry)
+        if (text == value && start != end && _document.FocusedElement == element && FieldGeometry.Of(_document, box, element, _shift) is { } geometry)
         {
             _canvas.PushClip(clip);
             PaintFieldTextSelected(geometry, style, color, start, end);
@@ -366,7 +366,7 @@ public sealed partial class UiPainter
         var layout = TextLayout.Create(_document.Fonts, text, InlineLayout.TextStyleFor(textStyle) with { Color = color, Underline = false }, paragraph);
         var lineHeight = layout.Height;
         // The text sits where layout put the editor, not on the snapped content box.
-        var (exactContent, exactEditor) = FieldGeometry.EditorRects(box, element);
+        var (exactContent, exactEditor) = FieldGeometry.EditorRects(box, element, _shift);
         if (multiline)
             exactEditor = exactContent;
         var y = SnapBaseline(multiline ? exactContent.Y - element.LayoutScroll.Y : exactContent.Y + (exactContent.Height - lineHeight) / 2, layout);
@@ -485,7 +485,7 @@ public sealed partial class UiPainter
     /// <summary>A focused field's caret: 1 px wide and as tall as its font, in caret-color, while its blink is on.</summary>
     void PaintFieldSelection(LayoutBox box, UiElement element)
     {
-        if (_document.FocusedElement != element || !_canvas.Drawing || FieldGeometry.Of(_document, box, element) is not { } geometry)
+        if (_document.FocusedElement != element || !_canvas.Drawing || FieldGeometry.Of(_document, box, element, _shift) is not { } geometry)
             return;
         var shown = _document.CaretShown(element);
         _document.CaretPainted(shown);
@@ -516,7 +516,7 @@ public sealed partial class UiPainter
         var layout = TextLayout.Create(_document.Fonts, text, InlineLayout.TextStyleFor(style), new ParagraphStyle { WhiteSpace = Text.WhiteSpace.Pre });
         var textArea = new RectF(content.X + start, content.Y, MathF.Max(0, content.Width - arrow - start), content.Height);
         // The text sits where layout put the inner block; the clip is on whole pixels.
-        var exact = ExactContent(box);
+        var exact = ExactContent(box, _shift);
         _canvas.PushClip(textArea);
         _canvas.DrawText(layout, new Vector2(exact.X + start, SnapBaseline(exact.Y + (exact.Height - layout.Height) / 2, layout)), style.Color);
         _canvas.PopClip();

@@ -27,7 +27,7 @@ public sealed partial class UiPainter
 
     void PaintLines(LayoutBox root, InlineContent inline)
     {
-        var origin = root.ViewportPosition;
+        var origin = PlacedAt(root);
         var breaks = _document.PageSelectionRange is not null ? LineBreaksOf(root) : null;
         for (var lineIndex = 0; lineIndex < inline.Lines.Count; lineIndex++)
         {
@@ -172,7 +172,7 @@ public sealed partial class UiPainter
         var right = baseline.X + ItemX(item, to) - item.X;
         if (lineBreak)
             right += SpaceWidth(style);
-        var lineTop = root.ViewportPosition.Y + offset.Y + line.Top;
+        var lineTop = PlacedAt(root).Y + offset.Y + line.Top;
         var top = MathF.Min(lineTop, baseline.Y - item.Ascent);
         var bottom = MathF.Max(lineTop + line.Height, baseline.Y + item.Descent);
         return Snap(RectF.FromEdges(left, top, right, bottom));
@@ -440,7 +440,7 @@ public sealed partial class UiPainter
     /// </summary>
     void PaintDisclosure(LayoutBox marker, bool open)
     {
-        var rect = marker.ViewportRect;
+        var rect = Placed(marker);
         var s = marker.Style;
         var size = MathF.Floor(s.FontSize * 0.66f * 64) / 64;
         // The marker box has no content, so the line's baseline is its bottom edge. Blink paints a
@@ -450,7 +450,7 @@ public sealed partial class UiPainter
             foreach (var line in inline.Lines)
                 if (line.Items.Any(i => i.Box == marker))
                 {
-                    var lineTop = root.ViewportPosition.Y + line.Top;
+                    var lineTop = PlacedAt(root).Y + line.Top;
                     shift = MathF.Floor(lineTop + 0.5f) - lineTop;
                     break;
                 }
@@ -486,8 +486,9 @@ public sealed partial class UiPainter
     {
         if (box.Element is not { } element)
             return;
-        var rect = Snap(box.ViewportRect);
-        var content = Snap(new RectF(box.ViewportRect.X + box.ContentLeft, box.ViewportRect.Y + box.ContentTop, box.ContentWidth, box.ContentHeight));
+        var placed = Placed(box);
+        var rect = Snap(placed);
+        var content = Snap(new RectF(placed.X + box.ContentLeft, placed.Y + box.ContentTop, box.ContentWidth, box.ContentHeight));
         switch (element.Tag)
         {
             case "img":

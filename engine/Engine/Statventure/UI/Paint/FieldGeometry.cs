@@ -102,26 +102,26 @@ internal sealed class FieldGeometry
     /// the search field's cancel button), where layout put them: Blink paints the inner editor's
     /// text at its fractional position (glyphs land on quarter pixels).
     /// </summary>
-    public static (RectF Content, RectF Editor) EditorRects(LayoutBox box, UiElement element)
+    public static (RectF Content, RectF Editor) EditorRects(LayoutBox box, UiElement element, Vector2 shift = default)
     {
-        var rect = box.ViewportRect;
+        var rect = box.ViewportRect.Offset(shift);
         var content = new RectF(rect.X + box.ContentLeft, rect.Y + box.ContentTop, box.ContentWidth, box.ContentHeight);
         var editor = content;
-        if (element.InputType == "number" && UiPainter.SpinButtonOf(box, element) is { } spin)
+        if (element.InputType == "number" && UiPainter.SpinButtonOf(box, element, shift) is { } spin)
             editor = editor with { Width = MathF.Max(0, editor.Width - spin.Width) };
-        else if (element.InputType == "search" && UiPainter.CancelButtonOf(box, element) is { } cancel)
+        else if (element.InputType == "search" && UiPainter.CancelButtonOf(box, element, shift) is { } cancel)
             editor = editor with { Width = MathF.Max(0, cancel.Button.X - cancel.MarginLeft - editor.X) };
         return (content, editor);
     }
 
     /// <summary>The geometry of a field's editor text (null for elements that aren't text fields).</summary>
-    public static FieldGeometry? Of(UiDocument document, LayoutBox box, UiElement element)
+    public static FieldGeometry? Of(UiDocument document, LayoutBox box, UiElement element, Vector2 shift = default)
     {
         if (!element.IsTextField)
             return null;
         var style = box.Style;
-        var rect = box.ViewportRect;
-        var (content, editor) = EditorRects(box, element);
+        var rect = box.ViewportRect.Offset(shift);
+        var (content, editor) = EditorRects(box, element, shift);
         var multiline = element.Tag == "textarea";
         var text = element.EditorText;
         if (element.InputType == "password")

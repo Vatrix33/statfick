@@ -22,7 +22,7 @@ public sealed partial class UiPainter
         if (!box.IsScrollContainer || box.Style.Visibility != Visibility.Visible || (box.VerticalScrollbar <= 0 && box.HorizontalScrollbar <= 0 && !resizes)
             || box.Element is not { } element)
             return;
-        var border = Snap(box.ViewportRect);
+        var border = Snap(Placed(box));
         var (vertical, horizontal) = ScrollbarGeometry.For(box, border, element.LayoutScroll.X, element.LayoutScroll.Y, _document.DeviceScale);
         // (Their chunks were recorded with the box's background, where Blink paints them.)
         _canvas.SuppressChunks();

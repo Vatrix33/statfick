@@ -307,7 +307,7 @@ public sealed partial class UiPainter
         return InheritKept(paint, svg, ids);
     }
 
-    /// <summary>An inline SVG's content box, in the space it is painted in.</summary>
+    /// <summary>An inline SVG's content box at layout's place (for DOM geometry and hit testing; painting takes it where the box is painted).</summary>
     static RectF SvgContent(LayoutBox box)
     {
         var rect = box.ViewportRect;
@@ -479,6 +479,7 @@ public sealed partial class UiPainter
                 return null;
             chain.Add(e);
         }
+        // DOM geometry (getBoundingClientRect, getBBox) is layout's: Blink maps it without the paint offsets' rounding.
         var content = SvgContent(svgBox);
         if (content.Width <= 0 || content.Height <= 0)
             return null;
@@ -508,6 +509,7 @@ public sealed partial class UiPainter
     {
         if (box.Element is not { } svg)
             return null;
+        // In layout's place, where its hit region is recorded (the paint's shift is in the region's transform).
         var content = SvgContent(box);
         if (content.Width > 0 && content.Height > 0)
         {
@@ -610,8 +612,8 @@ public sealed partial class UiPainter
     }
 
     /// <summary>
-    /// The area an SVG's shapes cover (in the space the box is painted in), for an svg whose overflow
-    /// is visible: its border box and its children's visual rects.
+    /// The area an SVG's shapes cover (at layout's place, where its hit region is recorded), for an
+    /// svg whose overflow is visible: its border box and its children's visual rects.
     /// </summary>
     internal RectF SvgOverflow(LayoutBox box)
     {

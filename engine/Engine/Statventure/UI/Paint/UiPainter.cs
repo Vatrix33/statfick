@@ -30,6 +30,19 @@ public sealed partial class UiPainter : IDisposable
     internal List<PendingLayer>? Layers { get; private set; }
     /// <summary>Effects with LCD text in them (their canvas layers start from the backdrop).</summary>
     readonly HashSet<EffectNode> _lcdEffects = [];
+    /// <summary>
+    /// How far Blink's rounded paint offsets move what is painted now from where layout put it (in
+    /// the space the canvas transforms; zero outside transformed boxes): see <see cref="PushTransformOf"/>.
+    /// Every position read from layout goes through <see cref="Placed"/> or <see cref="PlacedAt"/>, so
+    /// the snapping that follows is measured from the rounded origin.
+    /// </summary>
+    Vector2 _shift;
+
+    /// <summary>A box's border box where it is painted (layout's place, moved by the rounded paint offsets around it).</summary>
+    RectF Placed(LayoutBox box) => box.ViewportRect.Offset(_shift);
+
+    /// <summary>A box's position where it is painted (see <see cref="Placed"/>).</summary>
+    Vector2 PlacedAt(LayoutBox box) => box.ViewportPosition + _shift;
 
     /// <summary>The bindless texture of an image by url (null while it isn't loaded).</summary>
     public Func<string, int?>? ImageTexture { get; set; }
@@ -234,7 +247,7 @@ public sealed partial class UiPainter : IDisposable
     {
         var clips = PushClipChain(box, contextRoot);
         // Blink paints a stacked layer as a subsequence, which may start and end its own chunks.
-        var subsequence = _canvas.BeginLayer(PropertiesOf(box)?.BorderBox, InkOverflowRect(box.Style, box.ViewportRect),
+        var subsequence = _canvas.BeginLayer(PropertiesOf(box)?.BorderBox, InkOverflowRect(box.Style, Placed(box)),
             box.Style.UsedPointerEvents == PointerEvents.None || box.Style.Visibility != Visibility.Visible, HasTwoDescendantLayers(box));
         if (CreatesStackingContext(box))
             PaintStackingContext(box);
@@ -279,13 +292,9 @@ public sealed partial class UiPainter : IDisposable
         var muted = s.Opacity <= 0;
         if (muted)
             _canvas.Mute();
-        var rect = box.ViewportRect;
-        var transformed = false;
-        if (s.HasTransform)
-        {
-            _canvas.PushTransform(TransformFor(box, rect));
-            transformed = true;
-        }
+        var shift = _shift;
+        var transformed = s.HasTransform && PushTransformOf(box);
+        var rect = Placed(box);
         var clipped = 0;
         if (s.ClipPath is { } clipPath)
         {
@@ -332,9 +341,82 @@ public sealed partial class UiPainter : IDisposable
             _canvas.PopClip();
         if (transformed)
             _canvas.PopTransform();
+        _shift = shift;
         if (muted)
             _canvas.Unmute();
     }
+
+    /// <summary>
+    /// A transformed box's paint offset as Blink makes it (PaintPropertyTreeBuilder::
+    /// UpdateForPaintOffsetTranslation): its offset in the space around it is rounded to a whole
+    /// device pixel (LayoutUnit::Round, half up) for the paint offset translation, and the fraction
+    /// left over (the subpixel accumulation) is kept only along the axes it can propagate along
+    /// (<see cref="SubpixelAxes"/>); along the others the box and everything in it move to the rounded
+    /// place, and are snapped from there. The transform's origin is measured from that place. Pushes
+    /// the box's transform and moves <see cref="_shift"/>; returns true (the caller pops it).
+    /// </summary>
+    bool PushTransformOf(LayoutBox box)
+    {
+        var (transform, move) = RoundedTransform(box);
+        _shift += move;
+        _canvas.PushTransform(transform);
+        return true;
+    }
+
+    /// <summary>
+    /// A transformed box's transform about its origin measured from its rounded paint offset, and
+    /// how far that offset moves the box and its contents (see <see cref="PushTransformOf"/>).
+    /// </summary>
+    (Matrix3x2 Transform, Vector2 Move) RoundedTransform(LayoutBox box)
+    {
+        var rect = Placed(box);
+        var scale = _canvas.Scale;
+        var (keepX, keepY) = SubpixelAxes(box, rect);
+        static float Round(float v, float scale) => MathF.Floor(v * scale + 0.5f) / scale;
+        var move = new Vector2(keepX ? 0 : Round(rect.X, scale) - rect.X, keepY ? 0 : Round(rect.Y, scale) - rect.Y);
+        return (TransformFor(box, rect.Offset(move)), move);
+    }
+
+    /// <summary>
+    /// Along which axes a transformed box keeps the fraction of its paint offset (Blink's
+    /// CanPropagateSubpixelAccumulation): none under will-change of transform, scale or rotate; under
+    /// a current animation of transform, rotate or scale all of it if every keyframe is an identity or
+    /// a translation, else none; otherwise all of it for no transform or a translation, the axes the
+    /// transform doesn't scale for a scale and translation, and none for anything else (rotations,
+    /// skews).
+    /// </summary>
+    (bool X, bool Y) SubpixelAxes(LayoutBox box, RectF rect)
+    {
+        var s = box.Style;
+        if (s.WillChangeProperty("transform") || s.WillChangeProperty("scale") || s.WillChangeProperty("rotate"))
+            return (false, false);
+        if (box.Element is { } element)
+        {
+            var pseudo = PseudoName(box);
+            if (_document.Animations.HasCurrentAnimation(element, pseudo, "transform") || _document.Animations.HasCurrentAnimation(element, pseudo, "rotate")
+                || _document.Animations.HasCurrentAnimation(element, pseudo, "scale"))
+            {
+                var translations = _document.Animations.TransformAnimationsAre(element, pseudo, style => IsTranslation(CssTransform(style, rect)));
+                return (translations, translations);
+            }
+        }
+        var m = TransformFor(box, rect);
+        if (IsTranslation(m))
+            return (true, true);
+        if (m.M12 == 0 && m.M21 == 0)
+            return (m.M11 == 1, m.M22 == 1);
+        return (false, false);
+    }
+
+    static bool IsTranslation(Matrix3x2 m) => m.M11 == 1 && m.M22 == 1 && m.M12 == 0 && m.M21 == 0;
+
+    static string PseudoName(LayoutBox box) => box.Pseudo switch
+    {
+        PseudoKind.Before => "before",
+        PseudoKind.After => "after",
+        PseudoKind.Marker => "marker",
+        _ => "",
+    };
 
     /// <summary>Whether a box's own effects (filter, then opacity) have LCD text in them.</summary>
     bool OwnEffectHasLcdText(EffectNode effect, LayoutBox box)
@@ -349,7 +431,7 @@ public sealed partial class UiPainter : IDisposable
     void PaintPseudoContext(LayoutBox box)
     {
         if (box.Style.ClipRect is { } clipRect && box.IsOutOfFlow)
-            _canvas.PushClip(ClipRectOf(clipRect, box.ViewportRect));
+            _canvas.PushClip(ClipRectOf(clipRect, Placed(box)));
         PaintDecorations(box);
         PaintScrollbars(box);
         var clips = PushOwnClip(box);
@@ -387,7 +469,7 @@ public sealed partial class UiPainter : IDisposable
     {
         if (!box.IsScrollContainer || box.Style.OverflowX == Overflow.Visible && box.Style.OverflowY == Overflow.Visible)
             return 0;
-        var exact = box.ViewportRect;
+        var exact = Placed(box);
         var rect = Snap(exact);
         var exactPadding = new RectF(exact.X + box.Border.Left, exact.Y + box.Border.Top, box.PaddingBoxWidth, box.PaddingBoxHeight);
         // Blink clips to the overflow clip rect pixel-snapped (its edges rounded).
@@ -552,7 +634,7 @@ public sealed partial class UiPainter : IDisposable
         var s = box.Style;
         if (s.Visibility != Visibility.Visible)
             return;
-        var rect = box.ViewportRect;
+        var rect = Placed(box);
         if (rect.Width <= 0 && rect.Height <= 0)
             return;
         var properties = PropertiesOf(box);
@@ -567,9 +649,20 @@ public sealed partial class UiPainter : IDisposable
         PaintBoxDecorations(box, s, rect, radii, SidesOf(s), box == _backgroundSource || isRoot);
         _canvas.EndItem();
         _canvas.NotOpaque = false;
-        // An inline SVG whose shapes overflow takes input where they are (its shapes decide, see HitSvg).
-        if (box.Type == BoxType.Replaced && box.Element?.Tag == "svg" && s.OverflowX == Overflow.Visible)
-            Hit(box, SvgOverflow(box), CornerRadii.Zero, borderBox: rect);
+        // An inline SVG's shapes decide where it takes input (HitSvg), which measures from layout's
+        // place: its region is recorded there, the shift in its transform (Blink hit tests through the
+        // paint property trees, rounded paint offsets and all). One whose shapes overflow takes input
+        // where they are.
+        if (box.Type == BoxType.Replaced && box.Element?.Tag == "svg")
+        {
+            _canvas.PushTransform(Matrix3x2.CreateTranslation(_shift));
+            var layoutRect = rect.Offset(-_shift);
+            if (s.OverflowX == Overflow.Visible)
+                Hit(box, SvgOverflow(box), CornerRadii.Zero, borderBox: layoutRect);
+            else
+                Hit(box, layoutRect, radii);
+            _canvas.PopTransform();
+        }
         else
             Hit(box, rect, radii);
         if (properties is not null && box.IsScrollContainer)
@@ -618,7 +711,7 @@ public sealed partial class UiPainter : IDisposable
         // Classic (non-overlay) scrollbars paint in the background phase, before the scrolling background.
         if (box.Element is { } element && (box.VerticalScrollbar > 0 || box.HorizontalScrollbar > 0))
         {
-            var (vertical, horizontal) = ScrollbarGeometry.For(box, Snap(box.ViewportRect), element.LayoutScroll.X, element.LayoutScroll.Y, _document.DeviceScale);
+            var (vertical, horizontal) = ScrollbarGeometry.For(box, Snap(Placed(box)), element.LayoutScroll.X, element.LayoutScroll.Y, _document.DeviceScale);
             if (vertical is { } v)
                 _canvas.RecordScrollbar(properties.BorderBox, scrollTranslation, box, v.Bar, false);
             if (horizontal is { } h)
@@ -629,8 +722,8 @@ public sealed partial class UiPainter : IDisposable
         if (s.OverflowX is Overflow.Auto or Overflow.Scroll || s.OverflowY is Overflow.Auto or Overflow.Scroll || inContents)
         {
             var border = box.Border;
-            var rect = box.ViewportRect;
-            var contents = scrollTranslation?.Scroll!.ContentsRect ?? new RectF(rect.X + border.Left, rect.Y + border.Top, box.PaddingBoxWidth, box.PaddingBoxHeight);
+            var rect = Placed(box);
+            var contents = scrollTranslation?.Scroll!.ContentsRect.Offset(_shift) ?? new RectF(rect.X + border.Left, rect.Y + border.Top, box.PaddingBoxWidth, box.PaddingBoxHeight);
             var fill = inContents && s.BackgroundColor.A > 0 ? new Brush { Color = s.BackgroundColor } : null;
             _canvas.RecordScrollingBackground(properties.Contents, box, Snap(contents.Inflate(border.Left, border.Top, border.Right, border.Bottom)), fill);
         }
@@ -965,7 +1058,7 @@ public sealed partial class UiPainter : IDisposable
         if (s.Backgrounds.Length > 0)
         {
             // Positioned against the root element's box.
-            var rootRect = root.ViewportRect;
+            var rootRect = Placed(root);
             PaintBackgroundLayers(s.Backgrounds, canvasRect, new RectF(rootRect.X, rootRect.Y, rootRect.Width, MathF.Max(rootRect.Height, viewport.Height)), CornerRadii.Zero);
         }
     }
