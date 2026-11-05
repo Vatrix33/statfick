@@ -37,7 +37,9 @@ references on the GPU and on lavapipe; the mutation list; the docs; the full run
 to put to the user before it merges: Blink's clip-layer bleed avoidance clips the whole background once as a layer, and
 the canvas cannot clip only a layer's composite. Still open from M10 step 6: the music switch exactly on a quantum's start
 during the old theme's fade-in, to check against Chromium (below, "Small tasks left from earlier milestones"). **The next milestone is M11 (editor foundation); it starts
-only on the user's go,** and then first with M11's questions under "Open questions for later milestones" below. M9
+only on the user's go.** Its four main questions are answered (2026-11-05, "Decisions for M11" below: a separate editor
+app, a generic form for every record kind, a live preview, shipped with the game for modding); the detail round
+("Decisions for M11", "Still to ask") and the user's go are still to come. M9
 (assets and data) is done and ticked (2026-11-03; Progress, "M9 done"); M8's music the user has listened to with
 `play-theme.sh` and is happy with (2026-11-02). Nothing since 2026-10-30 has run on Windows ("Windows check" below). The
 project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo `github.com/Vatrix33/statfick`; the
@@ -326,10 +328,11 @@ the design and the tests):
   same day (`Docs/Scene.md`, "Step details"); the questions asked during the steps are in "Decisions for M10" and
   `Docs/Scene.md` (S2-1–S2-3, S3-1–S3-5, S4-1–S4-9, S5-Q1, S5-1–S5-5, S6-A–S6-F, S7-1–S7-14), those of the work beside
   it in the "Decision on …" entries below. M10 is done (2026-11-05).
-- **M11 Editor:** what it must edit (items, enemies, spells, shops, map…), separate app or in-game dev
-  mode (the old game has one)?
+- **M11 Editor:** main questions answered 2026-11-05 (see "Decisions for M11" below); the detail round is still to
+  ask; M11 starts only on the user's go.
 - **M12 Packaging:** shipped folder layout and executable name, self-contained .NET, installer or
-  archive per platform, icon, versioning, updates, crash log location?
+  archive per platform, icon, versioning, updates, crash log location? The editor is shipped with the game (M11's
+  answer 4, "Decisions for M11"), so M12's questions include where it sits in the shipped folder.
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -531,6 +534,22 @@ the scope (M10-2). The design doc is `Docs/Scene.md`.
   - Asked with the sound's options and the ink study (2026-11-05; `Docs/Scene.md`, "Step details", S7-9–S7-12): **not the recommendation (S7-9):** the rift's sound the "glassy crack and sub drop" (a high-passed noise burst, a sine falling 116 → 58 Hz, a quiet triangle at F5; the recommendation was the "void tear"; not the "pressure hum"); **not the recommendation (S7-10):** the flash's sound the "thunderclap" (noise low-passed 1,200 → 200 Hz, a 58 Hz sine, a short square at A3; the recommendation was the air rush into a chord and a bell; not the reversed swell); as recommended: the title card's sound the "deep toll" (S7-11; a triangle at B♭2, sines at 233 and 291 Hz, a short noise strike; not the brass stab, not the soft shimmer), levels and lengths tuned by ear in the sandbox; the stage compared with Blender under a separate, documented limit for detailed-stage scenes set from the ink study's measurement and naming its two causes, M6's 2 % limit on missed lines kept and M6's own numbers unchanged, about 12 % for extra lines (S7-12; not the far trees without ink, not the far geometry simplified).
   - Asked with the limits set (2026-11-05; `Docs/Scene.md`, "Step details", S7-13): the detailed stages' limits (`ReferenceLimits.DetailedStage`) approved exactly as set from the measurement, each the worst measured plus about a twentieth: extra lines 12.5 %, unlike ink 8.5 %, total ink 10.5 %, the mean coverage difference 0.175, stray edge pixels one in 800; M6's for the rest (`Docs/Renderer-3D.md`, "Detailed stages").
   - Decided after the canvas fix (2026-11-05; `Docs/Scene.md`, "Step details", S7-14): the card at 1.4 s is held until the canvas blurs a shadow as Chromium does under a non-uniform scale (found 2026-11-05: the progress bar's `box-shadow` under `scaleX(0.2)`, blurred across the bar with σ ≈ 2.7 px = 6 × √0.2 in Chromium and σ 6 in the engine; numbers in `Docs/Scene.md`, step 7, "The card at 1.4 s"); the rule is ported now by a worker of its own in the canvas code, which un-holds `JiruanCardTests.TheCardPaintsAsTheOldGameDrewItAtTheTime` at 1.4 s on main; step 7 merges with it held, and M10 is ticked once it matches.
+
+**Decisions for M11 (answered 2026-11-05, the main questions; M11 has not started):** asked late in the evening with
+the question tool, ahead of time: only the four main questions are answered, M11 has no go yet. Every answer was the
+recommended option except the audience (M11-4).
+- Form (M11-1): a separate editor app: its own program in `Tools/`, built on the engine's UI, opening the pack files directly; the game stays free of editor code. (Not an in-game dev mode; not a separate app that the game can also open with a dev key. The old game's Dev Mode is a switch inside the game that unlocks things like editing the purse, not a data editor.)
+- What it edits at the end of M11 (M11-2): every record kind through one generic form: a list of a pack's entries plus a property grid generated from the record definitions, with undo and redo. Every record kind that exists is editable (today: music and sound effects, particle effects, cutscene sequences, animation state machines, models, UI files), and the port's items, enemies, spells and shops become editable when the port adds their records, with no new editor code. Special views (a cutscene timeline, a map view, hand-built sound or particle editors) come later, when wanted. (Not the generic form plus a cutscene timeline in M11; not the generic form plus sound and particle editors in M11.)
+- Preview (M11-3): a live preview pane: select an entry and see or hear it (a sound effect or a theme, a particle effect, a model, a cutscene), updating as a value changes; it reuses the engine's scene view, sound system and sequence player. Its tests play sound only at volume 0, as everything that plays sound from a script or a session does. (Not play/show on a button only; not no preview in M11.)
+- **Audience (M11-4), not the recommendation:** the editor is shipped with the game for modding: part of the shipped folder (M12 packages it), able to create a mod instead of changing the game's packs, and with player-ready looks and error handling. This adds work to M11 (mods, the looks, the error handling) and to M12 (the editor in the shipped folder). (The recommendation was a dev tool that isn't shipped; not a dev tool that can save as a mod.)
+- Still to ask before M11's steps are planned (questions, not answers; they go into the detail round, as M9's 27 format details and M10's 33 step details did, after the reading "Starting M9" asks for):
+  - How the editor looks: the game's style or its own plain one.
+  - How the user chooses between saving into the game's packs and saving into a mod, and what a mod made by the editor holds.
+  - What the preview shows per record kind, and what stays without one.
+  - The scope of undo and redo: per entry, per pack, across saves.
+  - What player-ready error handling means for damaged or foreign packs.
+  - The language of the editor's texts.
+  - The M12 side: where the editor sits in the shipped folder, its executable name.
 
 **Decisions for the window's visibility (2026-11-03, the small task "send `visibilitychange` and `pagehide`"; asked after
 probing Chromium 152 under Xvfb with and without a window manager; every answer the recommended option):**
