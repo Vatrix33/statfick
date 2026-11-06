@@ -1150,6 +1150,136 @@ and below it, by paths below the source path's folder; no data path exists) and 
 path); `update`'s refusals (a missing pack isn't made, a damaged kept entry and a clash stop it, nothing written)
 and its url check against the folder and the pack, following P28's rule ("the data the mod sees").
 
+### Step 3: the window, the sound and the file browser's model (engine)
+
+Code in `Engine/Statventure/Platform/Window.cs`, `Core/Application.cs`, `Audio/AudioSystem.cs` and two new files,
+`Storage/FileBrowser.cs` and `Storage/RecentPlaces.cs`; tests in `Tests/Statventure.Tests/Platform/WindowDropTests.cs`,
+`Core/ApplicationCloseTests.cs`, `Core/ApplicationGamePacksTests.cs`, `Core/AudioReloadTests.cs` (`TheSwapIsPublic`)
+and `Storage/FileBrowserTests.cs` (with `FileBrowserDocumentsTests`). What the editor's steps use:
+- **Drops (steps 8 and 12; M11-9, P27):** `Window.PathsDropped` (`event Action<IReadOnlyList<string>>`), raised
+  from `Window.PollEvents` inside GLFW's drop callback (BRUTAL's `OnDrop`), so on the loop's thread before the
+  frame's input and `Update`: the paths in GLFW's order, as GLFW gives them (it reads the drag's `text/uri-list`,
+  turns `file://` URIs into paths and passes any other URI on as it is, both percent-decoded, in `src/init.c`'s
+  `_glfwParseUriList`; so a listener checks what each is). No position and nothing while dragging (GLFW has
+  neither). A drop isn't an input event: `Input` and the UI never see it, and nothing listens in the game or the
+  sandbox, where a drop does nothing as before.
+  GLFW 3.4 (the system library the engine loads on Linux; BRUTAL's own `glfw3.dll` on Windows) implements drops on
+  X11 (XDND) and on Wayland (the data device; BRUTAL's comment "unimplemented on Wayland" is GLFW 3.3's). An
+  exception from a listener is held by BRUTAL and comes out of the next `PollEvents`.
+- **A close the application can refuse (step 11; M11-17):** `protected virtual bool Application.ConfirmClose()`,
+  asked when the window's close flag (`Window.CloseRequested`, which GLFW sets when the player closes the window)
+  is found set: before the next frame, and while the window is minimized after the update, the two places the loop
+  always ended. True (the default) ends the loop exactly there, as before; false clears the flag and goes on (while
+  minimized, back to sleep until the next wake-up or event), so each request is asked once and the next close asks
+  again. `Quit()` doesn't ask (`Running` is checked first). The editor answers false while it shows its "unsaved
+  changes" dialog; when the player then chooses to close, it calls `Quit()` (or sets `Window.CloseRequested` and
+  answers true).
+- **The editor's own data (P6; added on the manager's word, 2026-11-06):** `ApplicationOptions.GamePacksOnly =
+  true` starts the application with `Application.Data` holding the game's area packs only: no `classes/`, no mods
+  folder, no development folder (neither `DevelopmentFolder` nor `$STATVENTURE_DEV_FOLDER`), so a damaged mod in
+  the player's mods folder (or a missing development folder) can't stop the editor's start; `ReloadData` re-reads
+  the same mounts. The default (false) is the game's data as before; the game and the sandbox don't set it.
+  `classes/` is left out too, as P6 says (confirmed by the manager, 2026-11-06).
+- **For the step that wires `EditorApplication`** (step 4 left both to a later step, "How it works", step 4):
+  its options set `GamePacksOnly = true` (the no-mods start step 4 found it needed), and it overrides
+  `ConfirmClose` (closing with unsaved work asks: step 11).
+- **The music swap (step 13; P31, P35):** `AudioSystem.Reload(MusicLibrary)`, S9-D's swap, is public as it was:
+  the new library's rooms prepared on a worker, the theme playing restarted through music.js's switch when its
+  music changed (its theme, or any instrument, percussion voice or room, by binary form) and playing on otherwise,
+  the library's new or changed effect patches registered. The preview gives it `MusicLibrary.Load` of the data as
+  edited (the custom mount, step 2); on the game's thread, as every call.
+- **The file browser's model (step 8; M11-9, P26)** (`Statventure.Storage`; the game's Load Character can use it
+  later with its own screen):
+  - `FileBrowser.Places(modsFolder, recent?)`: the mods folder given (the editor's `Application.Storage.ModsFolder`,
+    so a game folder of the options' own is followed; listed before it exists), Documents
+    (`DocumentsFolder.ForThisMachine()`: Electron's rule, which makes it when it is missing; left out when it can't
+    be made), home (left out when not known), the roots (`FolderListing.Roots()`), then the recent places that are
+    folders now; each a `BrowserPlace(Kind, Folder)` (`BrowserPlaceKind`: `Mods`, `Documents`, `Home`, `Root`,
+    `Recent`), the screen naming them. The editor adds the game's packs folder itself (P5). A pure overload takes
+    the folders.
+  - `FileBrowser.List(folder, endings?, showHidden)`: `FolderListing.List`'s entries, folders first, then files,
+    each by `NameOrder`; files only those whose names end in one of the endings in any case (`Shows`: as the mods
+    folder's `.pak` and the importers' endings are read; none given: every file), every folder (to go into); hidden
+    ones only when asked. `NameOrder` is the same on every system: ignoring case (ordinal on the upper-case forms),
+    names equal so by their ordinal order ("Readme" before "readme"). A folder that can't be read lists as empty.
+  - `FileBrowser.ReadPath(folder, typed)`: a `TypedPath(FullPath, Kind)`: the text relative to the folder shown
+    (".." and "." resolved) or a full path, `~` and `~/…` (Windows also `~\…`) in the home folder, no separator at
+    the end; `TypedPathKind`: `Folder` (go there), `File` (pick it), `New` (nothing there but its folder is: a new
+    file's name, for an export), `Missing` (nor its folder; or a separator at the end naming no folder), `Invalid`
+    (not a path here; `FullPath` is the text). Nothing typed reads as the folder shown.
+  - `FileBrowser.Complete(folder, typed, endings?, showHidden)`: a `PathCompletion(Text, Matches)`: the last name
+    typed (after the last separator) completed among what `List` shows in the folder the text before it reads as,
+    the names starting with it as the system compares names (`NameComparison`: case matters on Linux, not on
+    Windows), hidden ones too when it starts with a dot; the text is the typed folder part as typed and the longest
+    start the matches share, a separator after a single folder; no match (or a folder part that isn't a folder):
+    the text unchanged, no matches.
+  - `RecentPlaces`: the folders used lately, most recent first, at most `Limit` (10), each once (as the system
+    compares names), as a full path without a separator at its end; `Add(folder)`; `Folders` is what the caller
+    stores (the editor in its `editor/` folder, G6) and gives back to the constructor next time (entries that
+    aren't paths here are dropped there). Folders that are gone stay listed (a drive may come back); `Places`
+    leaves them out.
+
+How it is checked: the drop callback the window registered with GLFW, taken from GLFW and called by the test as
+GLFW calls it on a drop (the window and the paths as UTF-8 strings, one with a space and one not ASCII), on a
+hidden window: the paths in order, every listener, one removed, none (then nothing, no exception at the next poll,
+no input event). The close on a real application in a hidden window (nothing shown), made to count as minimized
+(`Window.MinimizedForTests`, internal) so the loop presents nothing and runs its minimized branch; a close is
+requested as the player's is, by GLFW's flag, in an update (the check after it) or in `Load` (the check before the
+next frame, which also follows every frame): the default ends where it always did (no update after a request in
+`Load`; none after the update that brought it, and without sleeping first: a minute's wake-up asked, a watchdog
+that would wake it after 20 s); refusals at both places keep the loop running with the flag cleared, the next
+accepted one ends it; each request asked once; `Quit` ends without asking, also with a request pending, at the
+check after an update and at the check before the next frame (the request and the `Quit` made by another thread
+while the loop sleeps between minimized updates). `GamePacksOnly`: the mounts it leaves (the area packs, with
+`classes/`, a mods folder, the development folder by option and by variable all there), and a real start with a
+damaged mod and a development folder (the data without either, before and after `ReloadData`; without the option
+the damaged mod stops the start as always, and once it is gone the data has the mod and the development folder).
+The swap: the reload tests' renders (S9-D's) are its tests, and `TheSwapIsPublic` keeps it public. The browser on scratch
+folders, its places for this machine through the run's redirected folders, and Documents that can't be made (the
+run's config folder pointed for a moment at a `user-dirs.dirs` naming a folder under `/proc`) left out.
+
+Not checked here (by hand): a real drop from a file manager onto a window under X11 and under Wayland, and on
+Windows; closing a real window by its title bar and from the taskbar while minimized (the tests set GLFW's flag
+as the close callback does). The rendering branch's own frames with a refused close aren't run (no window is shown
+in tests): it has no check of its own, the check before the next frame being the one `Load`'s request goes
+through.
+
+Found, and handled in this step on the manager's word (2026-11-06): the tests that made windows before it opened
+visible ones (`WindowOptions.Visible` is true by default, the game's window), so every full run on the desktop
+showed small windows for a moment: `TestApplication` (`ApplicationReloadTests`, `ApplicationStorageTests`),
+`ApplicationMusicTests`' own application, the swapchain test in `GpuDeviceTests` and `UiResourcesTests`. **Tests make
+their windows hidden now** (`Visible = false`; `engine/CLAUDE.md`), but for one; the default is unchanged. Neither X11
+nor Wayland shows a hidden GLFW window (GLFW 3.4 doesn't map it on X11 and gives it no shell surface on Wayland), and
+it still gives what these tests need: a surface and a swapchain that acquires and presents a frame
+(`TestApplication`'s and `ApplicationMusicTests`' one frame each), a host for `UiResources`. Checked with those tests
+and this step's on the GPU and on lavapipe, under Wayland and under X11 (Xwayland: `WAYLAND_DISPLAY` unset, which
+GLFW's libdecor messages confirm), all passing, with a read-only KWin script watching the real desktop's compositor:
+it listed the windows open when loaded and logged none added during any of the four runs
+(`claude-work/m11/step3/hidden-windows.sh`, `window-watch/`); and inside a headless wlroots compositor (`cage`,
+`hidden-windows-cage.sh`). **The swapchain test stays visible:** it presents five frames with vsync (FIFO), and a
+hidden window's surface, which no compositor shows, isn't paced the same everywhere: KWin lets the frames through,
+wlroots (cage) never lets the second one through, so the test hangs there; hiding it would make it check a
+compositor's leniency rather than the swapchain, and presenting without vsync would check less. Its window is the
+one a run on the desktop still shows (320×200, five frames). And a hidden window presenting *beside* it stalled it
+too: under wlroots, with `ApplicationMusicTests`' window hidden and the two run in parallel, the swapchain test hung
+in 5 of 10 runs (GPU and lavapipe), 0 of 10 with that window visible (GLFW is one for the process and not
+thread-safe); so `SwapchainTests` and `ApplicationMusicTests` joined the non-parallel "Window" collection (no test
+changed otherwise), and every test that presents to a window now runs alone: 10 of 10 runs of all the window tests
+passed in cage. And `FolderListing`'s comment
+said a folder that can't be listed throws `UnauthorizedAccessException`; with its `IgnoreInaccessible` an unreadable
+folder lists as empty: the comment is corrected (no behaviour change).
+
+Choices the design left to the step, all confirmed by the manager (2026-11-06): the names above; the drop as an
+event of the window, not an input event (`Input.cs` unchanged), its paths passed on as GLFW gives them; the close
+asked through a protected method on `Application` (`ConfirmClose`), once per request, the flag cleared on a refusal,
+`Quit` not asking; the option's name `GamePacksOnly`, `classes/` left out with the mods and the development folder
+(P6); the swap made public under its name `Reload`; the test hook `MinimizedForTests`; the places' order (mods,
+Documents, home, roots, recent) and what each does when it isn't there; names ordered ignoring case with an ordinal
+tie-break, the same on every system (not by the culture, not "natural" with numbers by value); endings in any case
+and folders never filtered; `~` for the home folder; a separator at the end naming a folder; `New` for a name in an
+existing folder; completion's shared start, the separator after a single folder, hidden names on a leading dot, case
+as the system; ten recent places, kept even when gone, left out of the places.
+
 ### Step 4: the shell (2026-11-06)
 
 **Files.** `Tools/Editor/` (`Editor.csproj`: an `Exe`, assembly `Statventure.Editor`, namespace `Statventure.Editor`,
@@ -1431,6 +1561,25 @@ all killed; nothing written to the player's real folders.
 Nothing of P1–P38 or G1–G6 changed; no question came up that the design doesn't answer (the step's own choices
 are listed at the end of "How it works", step 2). Not checked: Windows
 (writing over a pack held open, a case-insensitive file system under `ImportSources`' default lookup).
+
+**Step 3, the window, the sound and the file browser's model (engine): done (2026-11-06, on the worker branch
+`m11-step3`).** ("How it works", step 3; `Docs/Assets.md`, "The file browser's model" and "The mounts"; `Docs/Audio.md`,
+"The output".) Files dropped on the window are an event of the window with their paths (`Window.PathsDropped`), which
+the game doesn't listen to; a close the application can refuse (`Application.ConfirmClose`, true by default: the loop
+ends where it always did), asked once per request before the next frame and, while minimized, after the update, a
+refusal keeping the loop running until the next close or `Quit`; S9-D's music swap public (`AudioSystem.Reload`); the
+file browser's model (`FileBrowser`: places, listing, path reading, completion; `RecentPlaces`); and, added on the
+manager's word, `ApplicationOptions.GamePacksOnly` (the editor's data: the area packs only, so a damaged mod can't stop
+its start). 22 new tests (`WindowDropTests` 3, `ApplicationCloseTests` 6, `ApplicationGamePacksTests` 2,
+`AudioReloadTests.TheSwapIsPublic`, `FileBrowserTests` 9, `FileBrowserDocumentsTests` 1). The full suite passes on the
+GPU and on lavapipe (inside a headless compositor): 2825 tests (`main`'s 2803 at `d5b8b39` and 22 new), none skipped. On the manager's word the older tests' windows are hidden too (`TestApplication`, `ApplicationMusicTests`, `UiResourcesTests`), all but the swapchain test's ("How it works", step 3, "Found"), and `FolderListing`'s comment is corrected; the step's choices are confirmed by the manager (2026-11-06). Mutations: 84
+(`~/.cache/stat-fick-build/claude-work/m11/step3-mutations.json` and `-2.json`, made by `make-step3-mutations.py`
+and `-2.py` beside them), 83 killed; one accounted for (a folder removed between the path's reading and its listing
+during a completion: only a race can reach that catch, as a folder that can't be read lists as empty); nothing
+written to the player's real folders. The game and the sandbox behave as before: neither listens for drops, refuses a
+close or sets the option. Not checked: a real drop from a file manager (X11, Wayland, Windows) and a real close by the
+title bar and from the taskbar while minimized, by hand (`claude-work/m11/drop-check.sh` runs a window that logs
+both, once this is on `main`); Windows.
 
 **Step 4, the shell: done (2026-11-06, branch `m11-step4`).** The program, the session's skeleton, the view (top
 bar, panes, splitters, status line), parts found without a list, commands and keys, dialogs, the title and the zoom;

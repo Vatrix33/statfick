@@ -1109,7 +1109,16 @@ Namespace `Statventure.Storage`. Tests: `Tests/Statventure.Tests/Storage/`, data
   `MyDocuments` beside it for the comparison.
 - **The picker's listings** (`FolderListing`): `List(folder)` gives every entry directly in it (name,
   full path, folder or file, size, last write time, hidden: a dot-file on Linux, the attribute on
-  Windows) in ordinal order; `Roots()` is `/` on Linux, the ready drives on Windows.
+  Windows) in ordinal order; `Roots()` is `/` on Linux, the ready drives on Windows. A folder that can't be
+  read lists as empty (its `IgnoreInaccessible`), without an exception (found in M11 step 3: its comment named
+  an `UnauthorizedAccessException`; corrected).
+- **The file browser's model** (M11 step 3, beside the listings; `Docs/Editor.md`, "How it works", step 3):
+  `FileBrowser.Places` (the mods folder, Documents, home, the roots, the recent places that are there),
+  `FileBrowser.List` (folders first, then the files whose names end in the endings asked for, in any case, each
+  by name ignoring case; hidden ones when asked), `ReadPath` (the path field's text read against the folder
+  shown: a folder, a file, a new file's name, nothing, not a path) and `Complete` (its last name completed), and
+  `RecentPlaces` (ten, most recent first, kept by the caller): the editor's browser screen, and later the
+  game's Load Character, are built on it.
 - **Open game folder** (`GameStorage.OpenInFileManager()`): makes the folder, then as Electron's
   `shell.openPath` (the old game's menu item): Linux `xdg-open <folder>` from its parent folder with
   `MM_NOTTTY=1`, not waited for (Electron's Wayland activation token isn't ported); Windows the shell's
@@ -1358,6 +1367,10 @@ helper `Core/TestApplication.cs`: a real application with a small window, as `Ap
   gives the area packs, `classes/`, then `Mount.Mods` of the player's `mods/` (a full path; mounted even when
   the folder isn't there, so a mod put there later shows on Reload), then the development folder. `Run()`
   passes `AppContext.BaseDirectory` and `Storage.ModsFolder`; each mount and each mod is logged ("Data").
+  `ApplicationOptions.GamePacksOnly` (M11 step 3, for the editor, which shows one pack over the game's packs: P6;
+  `Docs/Editor.md`, "How it works", step 3) leaves the area packs only: no `classes/`, no mods folder, no
+  development folder (the option's nor `$STATVENTURE_DEV_FOLDER`), so a damaged mod can't stop its start; Reload
+  re-reads the same. Off by default; the game and the sandbox don't set it.
 - **`Application.Storage`** (S9-B): made first in `Run()` (`ApplicationOptions.GameFolder`, made a full path,
   else `GameFolder.ForThisMachine()`; logged, "Storage"); creating it touches nothing on disk. `Dispose()`,
   which `Run()` ends with whether the start, the loop or the game's `Unload()` failed or not, disposes it
@@ -1374,7 +1387,8 @@ helper `Core/TestApplication.cs`: a real application with a small window, as `Ap
   keeps its library, the game's listeners still run, and it gives false. Otherwise "reloaded" is logged
   ("reloaded, but not the music" in that case). An exception from a game's listener isn't caught (the data is
   the new one then). Without sound only the data reloads.
-- **The sound** (S9-D): `AudioSystem.Reload(music)` (internal) starts preparing the new library's rooms on a
+- **The sound** (S9-D): `AudioSystem.Reload(music)` (public since M11 step 3, for the editor's preview of an
+  edited theme; internal before) starts preparing the new library's rooms on a
   worker (as at the start; `RoomsReady` is then that work), switches the music (`Soundtrack.Use`), and
   registers each effect patch of the new library that the old one didn't have or had with another binary form;
   others aren't touched (a patch gone from the data stays, one registered in code under a name whose data

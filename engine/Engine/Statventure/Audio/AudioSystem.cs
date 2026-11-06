@@ -11,7 +11,8 @@ namespace Statventure.Audio;
 /// the master bus. The game's calls are queued and applied before the next quantum; nothing locks
 /// while rendering. With no device the graph keeps rendering in real time, silently. The themes and
 /// effect patches come from a <see cref="MusicLibrary"/> (the game's: <c>MusicLibrary.Load(Data)</c>);
-/// every effect patch in it is registered under its name when the system starts (S6-4).
+/// every effect patch in it is registered under its name when the system starts (S6-4); <see cref="Reload"/>
+/// swaps in another.
 /// </summary>
 public sealed class AudioSystem : IDisposable
 {
@@ -110,12 +111,14 @@ public sealed class AudioSystem : IDisposable
 
     /// <summary>
     /// Plays <paramref name="music"/> from now on (the data reloaded: <c>Application.ReloadData</c>; Docs/Assets.md,
-    /// S9-D): its rooms prepared on a worker as at the start, the music switched to it
-    /// (<see cref="Soundtrack.Use"/>: the theme playing restarts when its music changed), and its effect patches
-    /// that are new or changed registered; a patch gone from the data stays playable, and one registered in code
-    /// stays unless the data's patch of its name is new or changed.
+    /// S9-D; the editor's preview of an edited theme, Docs/Editor.md, step 3): its rooms prepared on a worker as at
+    /// the start, the music switched to it (<see cref="Soundtrack.Use"/>: the theme playing restarts through
+    /// music.js's switch when its music changed, its theme or any instrument, percussion voice or room, and plays
+    /// on otherwise), and its effect patches that are new or changed registered; a patch gone from the library
+    /// stays playable, and one registered in code stays unless the library's patch of its name is new or changed.
+    /// Called on the game's thread, as the other calls.
     /// </summary>
-    internal void Reload(MusicLibrary music)
+    public void Reload(MusicLibrary music)
     {
         var old = Music.Library;
         var rate = _graph.SampleRateF;
