@@ -1249,7 +1249,8 @@
     reactionModal.hidden = true;
     equipmentActionDamage.clear();
     updateModalState();
-    if (result.startsWith("Victory")) { window.ChurchOfTalos?.onVictory(battle); window.HearthHome?.onVictory(battle); }
+    if (result.startsWith("Victory")) { window.ChurchOfTalos?.onVictory(battle); window.HearthHome?.onVictory(battle); window.Limitless?.onVictory(battle); }
+    window.Limitless?.render();
     if (result.startsWith("Escaped")) {
       const actor = battle.actors.find(actor => actor.guildObjective);
       if (actor) window.Guild?.avoidObjective(actor.guildObjective, actor.guildRematchId);
@@ -1340,6 +1341,7 @@
     battle.lootResolved = true;
     lootModal.hidden = true;
     offerArchivedSpell();
+    window.Limitless?.showPendingNotice();
     renderOwnedItems(); renderAvailableItems(); updateDerivedValues();
     updateModalState(); switchView(false); saveCharacter();
   }
@@ -1395,10 +1397,12 @@
       }
       addEnemyLoot(rollSparklingMasterworks(actor), true);
       // Studious Quill raises only its wearer's EXP (A25).
-      exp += Math.floor(reward * (1 + artifactAmount(player(), "exp-percent") / 100));
+      // No EXP at the cap: Level 100 without Limitless on, Level 200 with it (port task 7, L18).
+      const levelCap = LimitlessRules.cap(limitless.active);
+      if (level < levelCap) exp += Math.floor(reward * (1 + artifactAmount(player(), "exp-percent") / 100));
       currencies = ShopRules.walletFromValue(ShopRules.walletValue(currencies) + money);
       document.querySelectorAll(".currency-input").forEach(input => { input.value = currencies[input.dataset.currency]; });
-      for (const companion of companions) if (companion.character.currentHp > 0) companion.character.exp += Math.floor(reward * (1 + artifactAmount(actorById(companion.id), "exp-percent") / 100));
+      for (const companion of companions) if (companion.character.currentHp > 0 && companion.character.level < levelCap) companion.character.exp += Math.floor(reward * (1 + artifactAmount(actorById(companion.id), "exp-percent") / 100));
       awarded += reward;
       log(`${actor.name} grants ${reward} EXP and ${ShopRules.formatPrice(money)}.`);
       addEnemyLoot((window.Guild?.onEnemyDefeated(actor) || []).filter(itemCanDrop));
@@ -6391,6 +6395,7 @@
     // refresh() renders the fully initialized battle. Avoid building the
     // roster and ten-turn forecast a second time in switchView().
     setup.hidden = true; updateModalState(); switchView(true, false); playBossIntro(); refresh();
+    window.Limitless?.render();
     window.Music?.sync();
     return true;
   }
@@ -6452,7 +6457,8 @@
           if (!actor.equipmentCharges || typeof actor.equipmentCharges !== "object" || Array.isArray(actor.equipmentCharges)) actor.equipmentCharges = {};
           if (!actor.equipmentSummons || typeof actor.equipmentSummons !== "object" || Array.isArray(actor.equipmentSummons)) actor.equipmentSummons = {};
           if (actor.id !== "player") {
-            actor.character = normalizeCharacter(actor.character);
+            // A Limitless battle's enemies may be scaled above Level 100 (port task 7).
+            actor.character = normalizeCharacter(actor.character, { levelCap: LimitlessRules.LIMITLESS_CAP });
             if (actor.companion) {
               const member = companions.find(entry => entry.id === actor.id);
               if (!member) throw new Error("Missing companion");
