@@ -102,6 +102,12 @@ scripts, markup, stylesheet, eleven boss files and test client) and these docs, 
 read none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't
 count task 7 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`,
 "New Game Plus: Limitless and the Exotics".
+**Beside the engine, old game only (2026-11-06): port task 8, Map Rework, has started in the old game** (W1; decisions in
+"Decisions for task 8, Map Rework" below; the cloud branch `claude/fervent-carson-f5ol9s`). **Waiting for the user:** their
+review of the continent's layout draft (W2): each region placed whole, 1.4× larger, on the compass its roads already
+follow, joined by border strips, sealed by ridges or sea where no road joins; a schematic picture and its table, made by
+`claude-work/continent/draft.py` in the cloud session (not kept in the repo). Nothing is built yet. **Engine work goes on
+uninterrupted.**
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
@@ -1243,6 +1249,18 @@ and 6 were merged; the task is `Docs/Port-Tasks/5_New_Masterworks.txt`).** Asked
   forged at your level, and is in the Sparkling pool; placeholder look: the normal forged coat in silver-grey. (Not 5%
   from the Abyss Witch only, as drafted; not 3% from undead and demon casters of Level 45 and up, not 2% from every
   caster from Level 40, not sold in Ravenwatch.)
+
+**Decisions for task 8, Map Rework (2026-11-06, a cloud session; the user asked for task 8 after task 7 was merged, while
+M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.txt`).** Asked before any code:
+- W1 **Where:** in the old game, like tasks 1–7: the continent, its rules and every system built and playable there; its
+  2D looks (terrain, fog, clouds, the boat and caravan animations) are placeholder art the port remakes in its 3D map.
+  (Not in the port only, not split between the two.)
+- W2 **The layout:** drafted first (a layout map and a table: regions, levels, roads, barriers, proposed new areas) and
+  shown for review before it is built. (Not built directly.)
+- W3 **"About 40% larger":** distances: travel between places takes about 40% longer; the land area roughly doubles.
+  (Not the area +40%.)
+- W4 **Encounters on the longer roads:** the same number per trip as today: their spacing stretches with the world.
+  (Not the same per distance.)
 
 **Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
 after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**
