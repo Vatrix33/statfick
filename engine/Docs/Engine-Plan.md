@@ -53,13 +53,15 @@ fixtures' 12 / 0.2 %, `shadow-scale-y` at 1× at 12 / 0.25 % (the user's limit, 
 game screens' slight move away from Chromium (the blur kernel's shape) is a known difference the user accepted the same
 day (Progress, "Canvas: inset shadows cast from Blink's frame"; "Decision on blurred shadows under non-uniform
 transforms").
-**Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is being built in the old game**, as task 1
-was (the user's answer G1, "Decisions for task 2, Guild Rework" below; cloud branch `claude/fervent-carson-f5ol9s`). It
-touches only `../old-game/` (its scripts, markup, stylesheet and test client) and these docs, never the engine: the
-engine's tests read only the old game's images, fonts, class files and the boss-intro texts, which it doesn't change,
-and use their own copy of the stylesheet. **Engine work goes on uninterrupted** (M11 on the user's go, the
-background-layer branch); don't wait for task 2, and don't count it as the engine's current task. Its state and design
-notes are in `../old-game/Docs/Notes.md`, "Guild Rework", and `Docs/Port-Tasks/README.md`.
+**Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is built in the old game**, as task 1 was
+(the user's answer G1, "Decisions for task 2, Guild Rework" below; cloud branch `claude/fervent-carson-f5ol9s`, for the
+user to review and merge). It touches only `../old-game/` (its scripts, markup, stylesheet, Courier's class file and
+test client) and these docs, never the engine: the engine's tests read from the old game only its fonts,
+`classes/Black Knight.json` and the image and SVG files their saved captures name, none of which changed, and use their
+own copy of the stylesheet, so `Tools/Scripts/test.sh` was not run for it (the cloud session had no .NET). **Engine work
+goes on uninterrupted** (M11 on the user's go, the background-layer branch); don't wait for task 2, and don't count it
+as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Guild
+Rework"; `Docs/Port-Tasks/README.md` lists its placeholder art.
 Before each later milestone (M11 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code, in the order
 "Starting M9" below gives (M10 followed it too).

@@ -53,17 +53,16 @@ async function runZikLunChecks() {
   const originalRandom = Math.random, seenZones = new Set();
   try {
     for (const value of [0.05, 0.4, 0.8]) {
-      worldState.guild.offers = [];
+      worldState.guild.boards = {};
       Math.random = () => value;
-      document.getElementById("guild-quest").click();
-      const candidate = worldState.guild.offers.find(entry => entry.uniqueId === "zik-lun-armored-hulk");
+      const candidate = Guild.boardFor().offers.find(entry => entry.uniqueId === "zik-lun-armored-hulk");
       assert(candidate && WorldRules.zoneAt(candidate.point, candidate.regionId) === candidate.zone, "Each Great Hunt marker lands in its stated zone");
       seenZones.add(candidate.zone);
     }
   } finally { Math.random = originalRandom; }
   assert(seenZones.size === 3, "Zik Lun can appear in all three zones");
-  const offer = worldState.guild.offers.find(entry => entry.uniqueId === "zik-lun-armored-hulk");
-  document.querySelector(`[data-guild-quest="${worldState.guild.offers.indexOf(offer)}"]`).click();
+  const offer = Guild.boardFor().offers.find(entry => entry.uniqueId === "zik-lun-armored-hulk");
+  Guild.accept(Guild.boardFor().offers.indexOf(offer));
   worldState.position = { ...offer.point };
   const objective = Guild.objectiveAt(worldState.position);
   assert(objective?.enemies.join() === [bossName, "Troll Shieldbearer", "Troll War-drummer"].join(), "His roster is his warband: a Shieldbearer and a War-drummer");

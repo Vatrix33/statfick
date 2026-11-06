@@ -20,9 +20,9 @@ async function runCoastLichBossChecks() {
   const questAt = (regionId, huntId) => {
     worldState.regionId = regionId; WorldRules.setActiveRegion(regionId);
     const city = WorldRules.settlementsForRegion(regionId).find(place => place.kind === "Castle city");
-    worldState.position = { x: city.x, y: city.y }; worldState.guild.quest = null; worldState.guild.offers = [];
-    Guild.render(); $("guild-quest").click();
-    const hunt = worldState.guild.offers.find(offer => offer.uniqueId === huntId);
+    worldState.position = { x: city.x, y: city.y }; worldState.guild.quest = null; worldState.guild.greatHunt = null; worldState.guild.boards = {};
+    Guild.render();
+    const hunt = Guild.boardFor().offers.find(offer => offer.uniqueId === huntId);
     assert(hunt, huntId + " is offered by its local guild");
     assert(WorldRules.zoneAt(hunt.point, hunt.regionId) === hunt.zone, huntId + " has a valid battle marker in the correct zone");
     return hunt;
@@ -32,8 +32,8 @@ async function runCoastLichBossChecks() {
   const oolQuest = questAt("duskpine-forest", "ancient-lich-ool");
   assert(oolQuest.offeredAtLevel === 78 && oolQuest.originRegionId === "duskpine-forest" && oolQuest.regionId === "ancient-battlefield" && oolQuest.zone === "Mass Graves", "Ool is hunted in the Battlefield and accepted/completed at Ravenwatch");
   worldState.regionId = "sunward-coast"; WorldRules.setActiveRegion(worldState.regionId); worldState.position = { x: 560, y: 500 };
-  worldState.guild.offers = []; Guild.render(); $("guild-quest").click();
-  assert(!worldState.guild.offers.some(offer => offer.uniqueId === "ancient-lich-ool"), "Ool's hunt does not leak into other regions");
+  worldState.guild.boards = {}; Guild.render();
+  assert(!Guild.boardFor().offers.some(offer => offer.uniqueId === "ancient-lich-ool"), "Ool's hunt does not leak into other regions");
 
   assert(await Combat.startEncounter(["Deep Sea King"]), "Deep Sea King fight starts");
   $("combat-sheet-button").click();

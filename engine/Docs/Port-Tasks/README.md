@@ -71,12 +71,12 @@ at a time (still open for them: before the port, after the faithful port, or whi
   `old-game/test-client/tests/masterwork-elementals-browser.js` (one entry per rule), are the reference the ported
   rules are tested against. Still to do in the port: only the art (below). The task's `.txt` stays as the user wrote it
   (no "done" mark in it); this README and `Engine-Plan.md` record that it's done.
-
-**In progress in the old game:**
-- Task 2, Guild Rework (started 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`): built in the old game
-  like task 1 (user decision G1). Its 34 design answers are in `Engine-Plan.md`, "Decisions for task 2, Guild Rework";
-  how it's built and its state are in `../../../old-game/Docs/Notes.md`, "Guild Rework". It touches only `old-game/` and
-  the docs, never the engine, so engine work continues beside it (the user, 2026-11-06).
+- Task 2, Guild Rework (2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`, awaiting the user's review
+  and merge): built in the old game like task 1 (user decision G1). Its 34 design answers are in `Engine-Plan.md`,
+  "Decisions for task 2, Guild Rework"; how it's built, its checks (`old-game/test-client/tests/guild-rework-browser.js`)
+  and their results are in `../../../old-game/Docs/Notes.md`, "Guild Rework". It touches only `old-game/` and the docs,
+  never the engine, so engine work continues beside it (the user, 2026-11-06). Still to do in the port: only its art
+  (below). The task's `.txt` stays as the user wrote it.
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code each such definition carries `placeholderArt: true`):
@@ -85,8 +85,9 @@ code each such definition carries `placeholderArt: true`):
   line from the Plasma Blade's gem (the design: a red laser beam from the gem, like a laser sword) and three prongs on
   Tidepiercer's head (the design: a lance shaped like a trident, with a crossguard instead of a pommel).
 - Task 2: the two guild interiors (the castle-city guild hall and the town guild), simple ink scenes on purpose (user
-  decision G2, "Placeholder, so don't put much effort into it"); `placeholderArt: true` on their scene definitions in
-  `scene-banners.js`. The port remakes them fully, keeping the layout (G21) and the clickable objects.
+  decision G2, "Placeholder, so don't put much effort into it"); marked in `scene-banners.js`'s `PLACEHOLDER_ART`
+  (`SceneBanners.placeholderArt("guild-hall")`, `"guild-town"`). The port remakes them fully, keeping the layout (G21:
+  the guild left, the tavern right, trophies on the back wall) and the clickable objects with their hover glow.
 
 **Found before the work:**
 - Tasks 1 and 2 were checked against the engine work on 2026-11-03: neither touches it (the engine's tests use their

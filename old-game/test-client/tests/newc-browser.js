@@ -31,8 +31,8 @@ async function runNewClassChecks() {
   worldState.position = { x: 420, y: 490 };
   WorldMap.render();
   document.getElementById("map-guild").click();
-  document.getElementById("guild-quest").click();
-  assert(worldState.guild.offers.filter(offer => offer.type !== "great-hunt").length === 3, "Bounty Broker adds a third regular quest choice");
+  worldState.guild.boards = {};
+  assert(Guild.boardFor().offers.filter(offer => offer.type !== "great-hunt").length === 5, "Bounty Broker adds a fifth quest to a castle guild's board");
   document.querySelector("[data-guild-close]").click();
   classLevels = { scavenger: 7 };
   activeSkills = {};

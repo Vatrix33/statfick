@@ -34,7 +34,9 @@ async function runCoastIslandChecks() {
   assert(worldState.regionId === isle.id && worldState.minutes === departureTime + 540 && WorldRules.settlementAt(worldState.position, isle.id)?.id === "emberhaven", "Boat travel reaches Emberhaven after nine hours");
   assert(!boat.hidden && Music.state().theme === isle.id, "Emberhaven offers the return boat and island music");
   document.getElementById("map-guild").click();
-  assert(document.getElementById("guild-recruit").hidden && document.getElementById("guild-information").hidden && !document.getElementById("guild-quest").hidden && !document.getElementById("guild-artifacts").hidden, "Emberhaven has reduced guild services");
+  // The Guild Rework (port task 2, G3): a town guild has the board, counter and a smaller tavern, but no hooded man.
+  const spots = [...document.querySelectorAll("#guild-banner [data-guild-spot]")].map(spot => spot.dataset.guildSpot).sort();
+  assert(JSON.stringify(spots) === JSON.stringify(["board", "counter", "tavern", "trophies"]) && document.getElementById("guild-banner").dataset.variant === "guild-town", "Emberhaven has a town guild without information");
   document.querySelector("[data-guild-close]").click();
   boat.click();
   assert(worldState.regionId === coast.id && worldState.minutes === departureTime + 1080 && WorldRules.settlementAt(worldState.position, coast.id)?.id === "seabridge", "Return boat reaches Seabridge after nine more hours");

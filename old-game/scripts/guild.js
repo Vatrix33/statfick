@@ -656,6 +656,7 @@
     $("guild-dock").hidden = !dock;
     $("guild-modal").querySelector(".guild-hall").dataset.dock = dock || "";
     if (dock) { $("guild-dock-title").textContent = DOCK_TITLES[dock] || ""; renderDock(host); }
+    else $("guild-panel").innerHTML = "";
     if (!modal.hidden) updateModalState();
   }
   function renderDock(host) {
@@ -805,9 +806,11 @@
     const cost = recruitCost(offer);
     const member = structuredClone(offer); delete member.guildId;
     if (!window.Companions.add(member)) return;
-    guild().reputation -= cost; recruitOffers = recruitOffers.filter(entry => entry.id !== id);
+    // As before the rework, the other offers go once someone is hired; the next visit draws new faces.
+    guild().reputation -= cost; recruitOffers = [];
+    closeDock();
     setStatus(`${offer.name} joined your party for ${cost} Reputation. Spend their points on their companion sheet.`);
-    render(); saveCharacter();
+    saveCharacter();
   }
   function renderTrophies() {
     const entries = completedGreatHuntsHere();
@@ -1023,6 +1026,8 @@
   $("map-quests")?.addEventListener("click", openQuests);
   window.Guild = {
     render, open, close, activate, openDock, closeDock, boardFor: () => castle() ? boardFor(castle()) : null, accept, useCounter, giveUp, handInReady,
+    // A fresh offer of one type at this guild (the browser checks pin it on today's board).
+    makeOffer: type => castle() ? type === "great-hunt" ? null : questOffer(type, castle()) : null,
     onCharacterApplied() { resetInformationView(); dock = null; modal.hidden = true; if (questsModal) questsModal.hidden = true; onPositionChange(); render(); },
     onPositionChange, onRegionChange, onEnemyDefeated, onBattleFinished, onTravel, objectiveAt, rematchAt, markers, areas, canSearch, search, adjustEncounter, escapeChance, avoidObjective,
     openQuests, closeQuests, classInformation: id => renderClassInformation(id), recruitsFor: () => castle() ? recruitsFor(castle()) : [],

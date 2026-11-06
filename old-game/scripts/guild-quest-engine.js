@@ -69,12 +69,12 @@
   }
   const reward = (type, level, bonuses) => ({ ...rewardTable(level, bonuses)[type] });
   // Great Hunts: x2.4 money and three times x2.4 Reputation, at the boss's level or the quest level,
-  // whichever is higher, and never below a standard Hunt at the same guild.
+  // whichever is higher, so they always pay more than a Hunt at the same guild (x1.8 at the quest level).
   function greatHuntReward(bossLevel, level, bonuses = {}) {
     const money = 1 + (Number(bonuses.questMoneyPercent) || 0) / 100, fame = 1 + (Number(bonuses.questReputationPercent) || 0) / 100;
-    const at = Math.max(bossLevel, level), hunt = rewardTable(level, bonuses).hunt;
-    const silver = Math.max(hunt.silver + 1, Math.round((100 + at * 35) * GREAT_HUNT_FACTOR * money));
-    const reputation = Math.max(hunt.reputation + 1, GREAT_HUNT_REPUTATION_TIMES * Math.max(0, Math.round(((8 + at * 1.5) * GREAT_HUNT_FACTOR / 2) * fame)));
+    const at = Math.max(bossLevel, level);
+    const silver = Math.round((100 + at * 35) * GREAT_HUNT_FACTOR * money);
+    const reputation = GREAT_HUNT_REPUTATION_TIMES * Math.max(0, Math.round(((8 + at * 1.5) * GREAT_HUNT_FACTOR / 2) * fame));
     return { silver, reputation, rateVersion: 3 };
   }
 

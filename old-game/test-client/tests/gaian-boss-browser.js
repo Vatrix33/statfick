@@ -19,10 +19,10 @@ async function runGaianBossChecks() {
   worldState.regionId = "verdigris-jungle"; WorldRules.setActiveRegion(worldState.regionId);
   const town = WorldRules.settlementsForRegion(worldState.regionId).find(city => city.guildServices?.includes("quest") || city.kind === "Castle city");
   assert(town, "The Jungle has an Adventurers Guild");
-  worldState.position = { x: town.x, y: town.y }; Guild.render(); $("guild-quest").click();
-  const questIndex = worldState.guild.offers.findIndex(offer => offer.uniqueId === "gaian-avatar-of-the-land"), quest = worldState.guild.offers[questIndex];
+  worldState.position = { x: town.x, y: town.y }; worldState.guild.boards = {}; Guild.render();
+  const questIndex = Guild.boardFor().offers.findIndex(offer => offer.uniqueId === "gaian-avatar-of-the-land"), quest = Guild.boardFor().offers[questIndex];
   assert(quest?.offeredAtLevel === 53 && quest.regionId === "verdigris-jungle" && quest.zone === "Old Growth" && WorldRules.zoneAt(quest.point, quest.regionId) === "Old Growth", "Gaian's level-53 Great Hunt appears at a valid Old Growth marker");
-  document.querySelector(`[data-guild-quest="${questIndex}"]`).click(); worldState.position = clone(quest.point);
+  Guild.accept(questIndex); worldState.position = clone(quest.point);
   const objective = Guild.objectiveAt(worldState.position);
   assert(objective?.enemies.length === 3, "The map encounter preview lists Gaian and both Cores");
   assert(await Combat.startEncounter(objective.enemies, "Gaian test", objective.kind), "The Jungle encounter starts"); $("combat-sheet-button").click();

@@ -35,8 +35,8 @@ async function runCinderBossChecks() {
   worldState.position = { x: town.x, y: town.y };
   const available = new Set();
   for (let i = 0; i < 30; i++) {
-    worldState.guild.offers = []; Guild.render(); document.getElementById("guild-quest").click();
-    const hunts = worldState.guild.offers.filter(offer => offer.type === "great-hunt");
+    worldState.guild.boards = {}; Guild.render();
+    const hunts = Guild.boardFor().offers.filter(offer => offer.type === "great-hunt");
     assert(hunts.length === 1 && ["ur-mat-false-dreamer", "ornn-god-of-the-forge"].includes(hunts[0].uniqueId), "Cinder Isle offers one local Great Hunt");
     assert(hunts[0].regionId === "cinder-isle" && WorldRules.zoneAt(hunts[0].point, hunts[0].regionId) === hunts[0].zone, "Hunt marker lies inside its intended volcanic zone");
     available.add(hunts[0].uniqueId);

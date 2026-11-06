@@ -28,10 +28,10 @@ async function runSaffronBossChecks() {
   worldState.regionId = "deep-desert"; WorldRules.setActiveRegion(worldState.regionId);
   const town = WorldRules.settlementsForRegion(worldState.regionId).find(city => city.guildServices?.includes("quest"));
   assert(town, "The Deep Desert has a guild for the new hunt");
-  worldState.position = { x: town.x, y: town.y }; Guild.render(); $("guild-quest").click();
-  const questIndex = worldState.guild.offers.findIndex(offer => offer.uniqueId === "archdevil-saffron"), quest = worldState.guild.offers[questIndex];
+  worldState.position = { x: town.x, y: town.y }; worldState.guild.boards = {}; Guild.render();
+  const questIndex = Guild.boardFor().offers.findIndex(offer => offer.uniqueId === "archdevil-saffron"), quest = Guild.boardFor().offers[questIndex];
   assert(quest && quest.offeredAtLevel === 66 && quest.regionId === "deep-desert" && quest.zone === "Pyramid Sanctum" && WorldRules.zoneAt(quest.point, quest.regionId) === "Pyramid Sanctum", "The local guild offers a level-66 Great Hunt at a valid pyramid marker");
-  document.querySelector(`[data-guild-quest="${questIndex}"]`).click(); worldState.position = clone(quest.point);
+  Guild.accept(questIndex); worldState.position = clone(quest.point);
   const objective = Guild.objectiveAt(worldState.position);
   assert(objective?.enemies.length === 4, "The map encounter preview includes Saffron and all three servants");
   assert(await Combat.startEncounter(objective.enemies, "Pyramid test", objective.kind), "The pyramid encounter starts");

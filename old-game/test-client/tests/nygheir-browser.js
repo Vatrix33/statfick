@@ -28,9 +28,8 @@ async function runNygheirChecks() {
     const offered = [];
     for (const value of [0, 0.999]) {
       Math.random = () => value;
-      worldState.guild.offers = [];
-      document.getElementById("guild-quest").click();
-      const hunts = worldState.guild.offers.filter(offer => offer.type === "great-hunt");
+      worldState.guild.boards = {};
+      const hunts = Guild.boardFor().offers.filter(offer => offer.type === "great-hunt");
       assert(hunts.length === 1, "Only one Stoneveil Great Hunt appears at a time");
       offered.push(hunts[0].uniqueId);
       if (hunts[0].uniqueId === "nygheir-the-wounded") assert(hunts[0].zone === "Mountainfoot" && WorldRules.zoneAt(hunts[0].point, hunts[0].regionId) === "Mountainfoot", "Nygheir's marker is at the Foot of the Mountain");

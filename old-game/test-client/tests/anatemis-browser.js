@@ -11,12 +11,12 @@ async function runAnatemisChecks() {
   WorldRules.setActiveRegion(worldState.regionId);
   worldState.position = { x: 740, y: 510 };
   Guild.render();
-  document.getElementById("guild-quest").click();
-  const offer = worldState.guild.offers.find(entry => entry.uniqueId === "anatemis-white-star");
+  worldState.guild.boards = {};
+  const offer = Guild.boardFor().offers.find(entry => entry.uniqueId === "anatemis-white-star");
   assert(offer?.regionId === "stoneveil-summit" && offer.originRegionId === "high-stoneveil" && offer.originCastleId === "cairnrest", "Anatemis is offered at Cairnrest for the Summit");
   assert(offer.zone === "Frozen Crown" && WorldRules.zoneAt(offer.point, offer.regionId) === "Frozen Crown", "the Hunt marker is inside the Frozen Crown");
-  document.querySelector(`[data-guild-quest="${worldState.guild.offers.indexOf(offer)}"]`).click();
-  assert(worldState.guild.quest?.uniqueId === "anatemis-white-star", "the Great Hunt can be accepted in High Stoneveil");
+  Guild.accept(Guild.boardFor().offers.indexOf(offer));
+  assert(worldState.guild.greatHunt?.uniqueId === "anatemis-white-star", "the Great Hunt can be accepted in High Stoneveil");
   worldState.regionId = "stoneveil-summit";
   WorldRules.setActiveRegion(worldState.regionId);
   worldState.position = { ...offer.point };
@@ -99,14 +99,14 @@ async function runAnatemisChecks() {
   Combat.restore(null);
 
   Guild.onEnemyDefeated({ guildObjective: "great-hunt", name: "Anatemis, the White Star" });
-  assert(worldState.guild.quest.complete, "defeating the boss completes the Hunt objective");
+  assert(worldState.guild.greatHunt.complete, "defeating the boss completes the Hunt objective");
   worldState.regionId = "high-stoneveil";
   WorldRules.setActiveRegion(worldState.regionId);
   worldState.position = { x: 740, y: 510 };
   Guild.render();
-  document.getElementById("guild-complete").click();
-  assert(worldState.guild.greatHuntsCompleted.includes("anatemis-white-star") && !worldState.guild.quest, "Cairnrest turns in the completed Hunt");
-  document.getElementById("guild-great-hunts").click();
+  Guild.useCounter();
+  assert(worldState.guild.greatHuntsCompleted.includes("anatemis-white-star") && !worldState.guild.greatHunt, "Cairnrest's counter turns in the completed Hunt");
+  Guild.activate("trophies");
   document.querySelector('[data-guild-rematch="anatemis-white-star"]').click();
   assert(worldState.guild.greatHuntRematch?.regionId === "stoneveil-summit", "Cairnrest can place a Summit rematch marker");
   await runAnatemisReworkChecks();
