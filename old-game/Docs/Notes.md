@@ -736,9 +736,9 @@ placeholder art (M1; `engine/Docs/Port-Tasks/README.md`). The user's answers are
   The baseline's 11 known failures are unchanged. Smoke, enemies (530 cases) and lifecycle pass; the combat suite stops
   at the known Barbarian failure, as before.
 
-**New Game Plus: Limitless and the Exotics (port task 7, 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`;
-the task is `engine/Docs/Port-Tasks/7_New_Game_Plus.txt`).** Built in the old game, as tasks 1–6 were; old game only, the
-engine is untouched. Done: the port brings it over and doesn't build it again; its only port work is remaking the
+**New Game Plus: Limitless and the Exotics (port task 7, 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`,
+merged as pull request #12; the task is `engine/Docs/Port-Tasks/7_New_Game_Plus.txt`).** Built in the old game, as
+tasks 1–6 were; old game only, the engine is untouched. Done: the port brings it over and doesn't build it again; its only port work is remaking the
 placeholder art (L1; `engine/Docs/Port-Tasks/README.md`). The user's answers are in `engine/Docs/Engine-Plan.md`,
 "Decisions for task 7, New Game Plus" (L1–L33).
 - **The rules** (`scripts/limitless-engine.js`, `LimitlessRules`, loaded before `app.js`; no page code). A character's

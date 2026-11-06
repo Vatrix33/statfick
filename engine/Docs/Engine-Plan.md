@@ -95,7 +95,8 @@ Masterworks". It also makes Doctor's Orders (task 3) the white robe R11 asked fo
 recorded colour.
 **Beside the engine, old game only (2026-11-06): port task 7, New Game Plus, is done in the old game**, as tasks 1–6
 were (decisions L1–L33 in "Decisions for task 7, New Game Plus" below: Limitless, the Exotic rarity, Exium and the five
-Exotics; built on the cloud branch `claude/fervent-carson-f5ol9s` and offered as one pull request, L22). The port doesn't
+Exotics; built on the cloud branch `claude/fervent-carson-f5ol9s`, one pull request, L22, merged as #12 on 2026-11-06,
+`0d8e175`). The port doesn't
 build it again; only its placeholder art is remade (`Docs/Port-Tasks/README.md`). It touches only `../old-game/` (its
 scripts, markup, stylesheet, eleven boss files and test client) and these docs, never the engine (the engine's tests
 read none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't
