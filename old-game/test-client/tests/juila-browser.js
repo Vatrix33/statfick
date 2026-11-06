@@ -22,10 +22,9 @@ async function runJuilaChecks() {
   WorldRules.setActiveRegion(worldState.regionId);
   const castle = WorldRules.settlementsForRegion("verdant-reach").find(place => place.id === "greenwatch");
   worldState.position = { x: castle.x, y: castle.y };
-  worldState.guild.offers = [];
+  worldState.guild.boards = {};
   Guild.render();
-  document.getElementById("guild-quest").click();
-  const hunts = worldState.guild.offers.filter(offer => offer.type === "great-hunt");
+  const hunts = Guild.boardFor().offers.filter(offer => offer.type === "great-hunt");
   assert(hunts.length === 1 && hunts[0].uniqueId === "juila-grand-forest-matriach", "Verdant Reach offers Juila's Great Hunt");
   assert(hunts[0].zone === "Deep Forest" && WorldRules.zoneAt(hunts[0].point, "verdant-reach") === "Deep Forest", "Juila's marker is in the Deep Forest");
 

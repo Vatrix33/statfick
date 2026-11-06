@@ -15,7 +15,9 @@ async function runGuildRematchChecks() {
   main.worldState.guild.greatHuntsCompleted = ["zik-lun-armored-hulk", "nygheir-the-wounded", "anatemis-white-star"];
   applyCharacter(normalizeCharacter(main));
   const town = WorldRules.settlementsForRegion("stoneveil-foothills").find(city => city.kind === "Castle city");
-  const atTown = () => { worldState.regionId = "stoneveil-foothills"; WorldRules.setActiveRegion(worldState.regionId); worldState.position = { x: town.x, y: town.y }; Guild.onPositionChange(); Guild.render(); $("guild-great-hunts").click(); };
+  // The Guild Rework (port task 2): the trophy wall opens the Great Hunts completed.
+  const trophies = () => document.querySelector('#guild-banner [data-guild-spot="trophies"]').dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  const atTown = () => { worldState.regionId = "stoneveil-foothills"; WorldRules.setActiveRegion(worldState.regionId); worldState.position = { x: town.x, y: town.y }; Guild.onPositionChange(); Guild.render(); trophies(); };
   const button = id => document.querySelector(`[data-guild-rematch="${id}"]`);
   const road = exitId => {
     WorldMap.pause(false);
@@ -75,7 +77,7 @@ async function runGuildRematchChecks() {
   assert(!worldState.guild.greatHuntRematches.length && worldState.guild.greatHuntRematch === null && !worldState.guild.avoidedGreatHunts.length, "Removing the last marker clears compatibility and retry state");
 
   const cairnrest = WorldRules.settlementsForRegion("high-stoneveil").find(city => city.guildServices?.includes("great-hunts"));
-  worldState.regionId = "high-stoneveil"; WorldRules.setActiveRegion(worldState.regionId); worldState.position = { x: cairnrest.x, y: cairnrest.y }; Guild.render(); $("guild-great-hunts").click();
+  worldState.regionId = "high-stoneveil"; WorldRules.setActiveRegion(worldState.regionId); worldState.position = { x: cairnrest.x, y: cairnrest.y }; Guild.render(); trophies();
   button("anatemis-white-star").click();
   const anatemis = clone(worldState.guild.greatHuntRematch);
   assert(anatemis?.regionId === "stoneveil-summit" && !Guild.markers().some(marker => marker.label.includes(anatemis.enemy)), "A cross-region rematch still spawns only in its boss's region");
@@ -86,7 +88,7 @@ async function runGuildRematchChecks() {
   assert(worldState.guild.greatHuntRematches.some(marker => marker.uniqueId === anatemis.uniqueId) && worldState.guild.avoidedGreatHunts.includes(anatemis.uniqueId), "A phase-transformed boss preserves the correct cross-region rematch marker");
   road("south-road");
   assert(!worldState.guild.greatHuntRematches.length && !worldState.guild.avoidedGreatHunts.length && worldState.guild.greatHuntRematch === null, "Leaving the boss region deactivates its marker and clears retry state");
-  worldState.position = { x: cairnrest.x, y: cairnrest.y }; Guild.render(); $("guild-great-hunts").click();
+  worldState.position = { x: cairnrest.x, y: cairnrest.y }; Guild.render(); trophies();
   assert(button(anatemis.uniqueId).textContent === "Place rematch marker", "The Guild shows the cross-region rematch as inactive after returning");
   button(anatemis.uniqueId).click(); road("north-road");
   const repeat = worldState.guild.greatHuntRematch; worldState.position = clone(repeat.point);

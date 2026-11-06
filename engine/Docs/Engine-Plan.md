@@ -53,6 +53,16 @@ fixtures' 12 / 0.2 %, `shadow-scale-y` at 1× at 12 / 0.25 % (the user's limit, 
 game screens' slight move away from Chromium (the blur kernel's shape) is a known difference the user accepted the same
 day (Progress, "Canvas: inset shadows cast from Blink's frame"; "Decision on blurred shadows under non-uniform
 transforms").
+**Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is done in the old game**, as task 1 was
+(the user's answer G1, "Decisions for task 2, Guild Rework" below; built on the cloud branch `claude/fervent-carson-f5ol9s`
+and merged through a pull request). The port doesn't build it again; only its two guild interiors, placeholder art, are
+remade (`Docs/Port-Tasks/README.md`). It touches only `../old-game/` (its scripts, markup, stylesheet, Courier's class file and
+test client) and these docs, never the engine: the engine's tests read from the old game only its fonts,
+`classes/Black Knight.json` and the image and SVG files their saved captures name, none of which changed, and use their
+own copy of the stylesheet, so `Tools/Scripts/test.sh` was not run for it (the cloud session had no .NET). **Engine work
+goes on uninterrupted** (M11 on the user's go, the background-layer branch); don't wait for task 2, and don't count it
+as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Guild
+Rework"; `Docs/Port-Tasks/README.md` lists its placeholder art.
 Before each later milestone (M11 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code, in the order
 "Starting M9" below gives (M10 followed it too).
@@ -341,9 +351,10 @@ the design and the tests):
   decision 2026-11-03 in "Decisions for M8", the rune slotting sound among them); UI symbols outside Lato and STIX (⚙ ✦ ☾ ↓ ＋ ⚔ ♟ …); how the inline SVG art and its
   transforms map to the Blender remakes; the grabbing cursor's design; the level of detail of the item
   models. **First read `Docs/Port-Tasks/`:** the user's tasks to add during the port, in their number order
-  (decided 2026-11-05); ask whether they come after the faithful port or while porting (left open by the user). Task 1
-  (Masterwork Elementals) is already done in the old game, so the faithful port brings it over: don't build it again,
-  only remake its placeholder art (the README's list).
+  (decided 2026-11-05); ask whether they come after the faithful port or while porting (left open by the user). Tasks 1
+  (Masterwork Elementals) and 2 (Guild Rework) are already done in the old game, so the faithful port brings them over:
+  don't build them again, only remake their placeholder art (the README's list: task 1's six masterwork looks, task 2's
+  two guild interiors).
 
 ## Folders
 
@@ -727,6 +738,84 @@ while porting (the user will answer later).
   The other tasks are decided one at a time (not yet the same approach for all 14). Its design answers are in
   `../old-game/Docs/Notes.md`, "Masterwork Elementals"; `Docs/Port-Tasks/README.md` lists the placeholder art. The port
   brings task 1 over with the rest of the game and doesn't redo it from the task file; its only port work is that art.
+- **Task 2 is done in the old game too (user decision 2026-11-06, G1):** before the port, old game only (the engine
+  untouched), with placeholder art for the two guild interiors (G2) that the user wants fully remade in the port. Its
+  design answers are G1–G34 just below; where each rule lives is in `../old-game/Docs/Notes.md`, "Guild Rework";
+  `Docs/Port-Tasks/README.md` lists the placeholder art and what the remake keeps. The port brings task 2 over with the
+  rest of the game and doesn't redo it from the task file; its only port work is that art.
+
+**Decisions for task 2, Guild Rework (2026-11-06, a cloud session; the user asked for task 2 that day; the task is
+`Docs/Port-Tasks/2_Guild.txt`).** Old game only: it doesn't touch the engine, and engine work continues beside it (the
+user, 2026-11-06; "How to continue"). Asked before any code, four at a time, after reading the old game's guild, quests,
+recruiting, information, encounters and class menu:
+- G1 **Where:** in the old game now, as task 1 was (checked with its test client, one check per rule); the faithful port
+  brings it over. (Not only recorded for the port.)
+- G2 **Art:** the two interiors (castle-city guild, town guild) are placeholder art for the port's full remake
+  ("Placeholder, so don't put much effort into it"): simple ink scenes in the game's style, marked PLACEHOLDER ART in
+  `scene-banners.js` and listed in its `PLACEHOLDER_ART`, and in `Docs/Port-Tasks/README.md` with what the remake keeps.
+- G3 **Town guilds** (Cairnrest, Emberhaven, Lastlight, Amberpost): no hooded man (no information there); only a few
+  adventurers, so their recruit selection is much smaller than a castle city's (G5). They keep quests, artifacts and
+  Great Hunts.
+- G4 **Active quests:** one standard quest at a time, as today; Great Hunts are the exception and can always be accepted
+  next to it, but only one Great Hunt at a time (G6). The artifact challenge stays separate.
+- G5 **Recruits offered:** castle-city guild 5, town guild 2 (today 3 everywhere).
+- G6 **Great Hunts:** one active Great Hunt at a time (not any number).
+- G7 **Daily board:** per guild, per in-game day: drawn on the first visit of each day (the day turns at midnight) and kept
+  all day, also when the player's level changes; accepted quests are never touched by it.
+- G8 **Offers per day:** castle-city guild 4 standard quests, town guild 3, each a different type; Bounty Broker adds one in
+  both; a Great Hunt is added when eligible, as today.
+- G9 **Reach** (Deliver, Escort, Travel): any adjacent region (one road or boat away), whatever its level; the quest's
+  description names the destination region's recommended level. Settlements the player can't enter are skipped.
+- G10 **Destinations:** Escort and Travel both pick any settlement other than the guild's own, preferring other regions
+  (no town/castle-city split). Deliver goes to an adjacent region's guild.
+- G11 **Cull count:** 5, plus 1 per 20 levels of the quest, at most 10.
+- G12 **Cull area:** a marked circle about 6 km across inside a zone where the target lives; only kills inside it count.
+- G13 **Cull spawns:** inside the circle half of all encounters (travel and Force encounter) are the target in one of its
+  usual groups; the encounter chance itself is unchanged.
+- G14 **Escape reductions** (Search −50%, Escort bandits −70%): only the pre-fight escape (its final chance, after the
+  +25 bonus); Run in battle stays normal.
+- G15 **Dealt with:** winning or fleeing counts for both Search and Escort encounters; a defeat leaves it open (search
+  again; the bandits strike again later on the way) and applies the usual defeat rules.
+- G16 **Ambush timing:** the 80/10/10 outcome is rolled once on accepting; each ambush gets a random point between 25% and
+  75% of the outbound trip's travel time (a second at least 20% later) and strikes there, on roads too; arriving first
+  makes it strike on arrival.
+- G17 **Bandits:** the nearest existing bandit group, unchanged (bandits exist at levels 4, 10, 15, 36, 44). (Not raised
+  to the level, not new bandit enemies.)
+- G18 **Rewards:** quest level = the player's level clamped to the guild region's level range (the destination doesn't
+  count); today's formulas (silver 100 + 35 × level, Reputation (8 + 1.5 × level) / 2) times Hunt 1.8, Cull 1.55,
+  Deliver 1.35, Search 1.2, Escort 1.1, Travel 1.0; Great Hunts keep ×2.4 (Reputation ×3 on top) at the boss's level or
+  the quest level, whichever is higher.
+- G19 **Map marker in another region:** until the player is in the destination's region, the road exit (or harbour)
+  leading there carries the quest marker; in its region the settlement itself is marked.
+- G20 **Search spot:** in the guild's region, in a zone suited to the player's level (as today), away from settlements,
+  sites, region exits and other markers.
+- G21 **Layout:** the guild on the left (the bulletin board on the wall beside the counter and its clerk), the tavern on the
+  right (a hearth, a table of adventurers, and in castle cities the hooded man alone at a corner table), hunting trophies
+  on the back wall. (Not mirrored.)
+- G22 **Menus:** a panel docked along the bottom of the window, the scene above it. (Not a card beside the object, not a
+  centered card.)
+- G23 **Hover:** the object's outline lights up in a soft candle-gold glow with a small name label (Bulletin board,
+  Counter, Adventurers, Hooded man, Trophies), fading in and out quickly.
+- G24 **Completion feedback:** a small parchment note rises from the counter with a coin and the gold, a seal and the
+  Reputation (and any items), stays about 3 seconds and fades; clicks pass through it.
+- G25 **Great Hunts completed** (rematch markers): the trophy wall opens it, clickable once a Great Hunt of that guild is
+  done.
+- G26 **Viewing and giving up quests:** the active quests are viewable and can be given up at all times, not only in
+  the guild (the user's answer to "on the board or at the counter?"); G29 says where.
+- G27 **Board look:** the day's quests as pinned parchment notices with short generated titles; clicking one shows its
+  type, objective, place, enemy or kill count, gold, Reputation and special rules beside it, with Accept.
+- G28 **Recruit level:** the middle of the guild region's level range, never above the player's level.
+- G29 **Quest view:** a Quests button among the map's buttons (with a key) opens a small card with the standard quest and
+  the Great Hunt: objective, place, progress, reward and Give up (with a confirmation). (Not in the sidebar.)
+- G30 **Recruit cost:** 30 + 2 × the recruit's level, plus 25 per companion already in the party (level 10: 50, level 50:
+  130, level 90: 210 with an empty party).
+- G31 **Recruit gear:** one melee weapon and one body armor their race can wear, both rolling rarity like the
+  Blacksmith's stock at the region's level (not common-only, not shields).
+- G32 **Class information button:** shows what was bought at the guild, the revealed requirements page, nothing more.
+- G33 **Old saves:** an active quest of an old kind (Clear, Escort to a map point, Travel within the region) is dropped
+  with a note in the guild. (Not kept.)
+- G34 **Courier:** Deliver counts as a travel quest for Courier's requirement and its Dispatch Guard, like Travel and
+  Escort.
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).

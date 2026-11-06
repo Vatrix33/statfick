@@ -3930,3 +3930,99 @@ html.dark-mode { --ri-common: #c4c7c0; --ri-uncommon: #7fcf90; --ri-rare: #74b4f
   .rune-circle { width: min(90vw, 360px); height: auto; }
 }
 :root .shop-hall > .tower-popup { position: absolute; z-index: 5; }
+
+/* Adventurers Guild interior (port task 2, the Guild Rework, 2026-11-06): the room is the menu. The
+   board, counter, adventurers, hooded man and trophies are clickable; hovering lights their outline in
+   a candle-gold glow with their name (G23); menus open in a panel docked along the bottom (G22); a
+   note rises from the counter with the reward (G24). The scene art itself is placeholder (G2). */
+:root .guild-hall > .dialog-header { align-items: center; gap: 16px; }
+:root .guild-hall .guild-reputation { display: flex; align-items: baseline; gap: 10px; margin-left: auto; padding: 6px 12px; border: 1px solid var(--leather-line); border-radius: 3px; color: var(--leather-text); background: #0d0907c8; box-shadow: none; }
+:root .guild-hall .guild-reputation span { font: 700 .6875rem var(--font-ui); letter-spacing: .12em; }
+:root .guild-hall .guild-reputation strong { color: var(--leather-accent); font: 700 1.25rem var(--font-ui); }
+.guild-hint { flex-shrink: 0; margin: 0; padding: 0 24px; color: #e8dcc0; font-size: .8125rem; text-shadow: 0 1px 2px #000, 0 0 8px #000; }
+.scene-spot { cursor: pointer; outline: none; }
+.scene-spot :is(.scene-spot-glow, .scene-spot-label) { opacity: 0; transition: opacity .15s ease; }
+.scene-spot:is(:hover, :focus-visible):not(.is-disabled) :is(.scene-spot-glow, .scene-spot-label) { opacity: 1; }
+.scene-spot.is-disabled { cursor: default; }
+.scene-spot-label rect { fill: #0d0907e0; stroke: #c59b3c; stroke-width: 1; }
+.scene-spot-label text { fill: #f3d79a; font: 700 14px var(--font-ui); letter-spacing: .04em; }
+@media (prefers-reduced-motion: reduce) { .scene-spot :is(.scene-spot-glow, .scene-spot-label) { transition: none; } }
+:root .guild-hall > .guild-dock { display: flex; flex-direction: column; flex: 0 1 auto; height: 47%; min-height: 0; margin: auto 24px 0; border: 1px solid var(--line-strong); border-radius: 3px; background: color-mix(in srgb, var(--surface) 92%, transparent); box-shadow: 0 0 0 1px #000, 0 18px 40px #000000b0; backdrop-filter: blur(3px); }
+:root .guild-hall > .guild-dock[hidden] { display: none; }
+:root .guild-hall > .guild-dock[hidden] + .guild-status { margin-top: auto; }
+.guild-dock-header { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 14px; border-bottom: 1px solid var(--line); }
+.guild-dock-header h3 { margin: 0; color: var(--muted); font: 700 .75rem/1.2 var(--font-ui); letter-spacing: .14em; text-transform: uppercase; }
+:root .guild-dock-close { min-width: 28px; min-height: 28px; padding: 0; border: 1px solid var(--line); border-radius: 3px; color: var(--ink); background: var(--paper); font: 1.125rem/1 var(--font-ui); cursor: pointer; }
+:root .guild-hall .guild-panel { flex: 1 1 auto; min-height: 0; margin: 0; padding: 12px 16px; overflow-y: auto; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+:root .guild-hall .guild-panel > p { margin: 0 0 10px; }
+:root .guild-hall > .guild-status { flex-shrink: 0; min-height: 26px; margin: 0; padding: 6px 24px 12px; color: #e8dcc0; text-shadow: 0 1px 2px #000; }
+:root .guild-hall > .guild-reward-note { position: absolute; z-index: 6; }
+/* The bulletin board: the accepted quests, then today's notices pinned like paper. */
+.guild-board-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 14px; }
+.guild-notices { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); align-content: start; gap: 12px; }
+.guild-notices > .eyebrow, .guild-board-active > .eyebrow { grid-column: 1 / -1; margin: 0; }
+:root .guild-panel .guild-notice { position: relative; display: flex; flex-direction: column; gap: 4px; min-height: 96px; padding: 16px 12px 10px; border: 1px solid #b8a27a; border-radius: 2px; color: #2b2116; background: #e9dcbf; box-shadow: 1px 2px 0 #0003, 0 4px 10px #0005; text-align: left; transform: rotate(var(--tilt, -1deg)); transition: transform .12s ease; }
+.guild-notice:nth-of-type(3n + 2) { --tilt: 1.2deg; }
+.guild-notice:nth-of-type(3n) { --tilt: -0.4deg; }
+.guild-notice::before { position: absolute; top: 5px; left: 50%; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; background: #a83a2a; box-shadow: 0 1px 1px #0008; content: ""; }
+:root .guild-panel .guild-notice:is(:hover, :focus-visible) { color: #2b2116; transform: rotate(0deg) translateY(-2px); }
+.guild-notice small { color: #7a5a32; font: 700 .6875rem/1.2 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; }
+.guild-notice strong { color: #2b2116; font: 1rem/1.25 var(--font-title); }
+.guild-notice span { color: #5a4a32; font: .75rem/1.4 var(--font-ui); }
+:root .guild-panel .guild-notice.is-selected { outline: 2px solid #c59b3c; outline-offset: 2px; }
+:root .guild-panel .guild-notice.is-type-great-hunt { border-color: #9a6e28; background: #ead1a6; }
+.guild-notice-detail h4 { margin: 4px 0 0; color: var(--ink); font: 1.25rem/1.25 var(--font-title); }
+.guild-notice-detail .guild-intel-details { margin: 10px 0; font-size: .875rem; }
+.guild-accept-reason { display: block; margin: 6px 0 0; color: var(--muted); font: .75rem/1.4 var(--font-ui); }
+.guild-board-empty { color: var(--muted); }
+.guild-board-active, .guild-quests-list { display: grid; gap: 8px; }
+.guild-board-active { margin-bottom: 14px; }
+:root .guild-active-quest { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-left: 4px solid var(--ember); border-radius: 3px; background: var(--paper); }
+:root .guild-active-quest.is-type-great-hunt { border-left-color: #9a6e28; }
+.guild-active-quest > div { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.guild-active-quest small { color: var(--muted); font: 700 .6875rem/1.2 var(--font-ui); letter-spacing: .1em; text-transform: uppercase; }
+.guild-active-quest strong { color: var(--ink); font: 700 .9375rem/1.3 var(--font-ui); }
+.guild-active-quest span { color: var(--muted); font-size: .8125rem; line-height: 1.4; }
+.guild-active-quest .guild-active-reward { color: var(--sage); }
+:root .guild-active-quest button { flex-shrink: 0; min-height: 32px; padding: 6px 12px; border: 1px solid var(--line-strong); border-radius: 3px; color: var(--ember-dark); background: var(--surface); font: 700 .75rem var(--font-ui); cursor: pointer; }
+/* The counter, the artifacts, the tavern's recruits. */
+.guild-counter-quests { display: grid; gap: 6px; margin: 0 0 12px; padding: 0; list-style: none; }
+.guild-counter-quests li { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 3px; background: var(--paper); }
+.guild-counter-quests li span { color: var(--muted); font-size: .8125rem; }
+.guild-counter-quests li.is-ready { border-color: var(--sage); }
+.guild-counter-quests li.is-ready span { color: var(--sage); }
+.guild-artifact-choices { display: grid; gap: 8px; margin-bottom: 12px; }
+.guild-recruits { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+:root .guild-recruit-card { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 3px; background: var(--paper); }
+.guild-recruit-card header { display: flex; flex-direction: column; gap: 2px; }
+.guild-recruit-card header strong { color: var(--ink); font: 700 .9375rem var(--font-ui); }
+.guild-recruit-card header small, .guild-recruit-points { margin: 0; color: var(--muted); font: .75rem/1.4 var(--font-ui); }
+.guild-recruit-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.guild-recruit-stats span { display: flex; flex-direction: column; align-items: center; padding: 3px 0; border: 1px solid var(--line); border-radius: 2px; color: var(--ink); font: 700 .8125rem var(--font-ui); }
+.guild-recruit-stats small { color: var(--muted); font: 700 .625rem var(--font-ui); letter-spacing: .08em; }
+.guild-recruit-gear { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.guild-recruit-gear li { display: flex; flex-direction: column; padding: 3px 8px; border-left: 3px solid var(--rarity, var(--line-strong)); font-size: .8125rem; }
+.guild-recruit-gear li span { color: var(--rarity-ink, var(--ink)); font-weight: 700; }
+.guild-recruit-gear li small { color: var(--muted); font-size: .6875rem; }
+/* The reward note rising from the counter. */
+.guild-reward-note { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid #9a7a3a; border-radius: 3px; color: #2b2116; background: #efe2c4; box-shadow: 0 6px 18px #000a; font: 700 .875rem var(--font-ui); white-space: nowrap; transform: translate(-50%, 0); pointer-events: none; }
+.guild-reward-note[hidden] { display: none; }
+.guild-reward-note.is-shown { animation: guild-reward-rise 3s ease forwards; }
+.guild-reward-coin, .guild-reward-seal { display: inline-block; width: 14px; height: 14px; border-radius: 50%; }
+.guild-reward-coin { border: 1px solid #7a5a1a; background: radial-gradient(circle at 35% 35%, #fff1b8, #c59b3c 70%); }
+.guild-reward-seal { border: 1px solid #5a1a10; background: radial-gradient(circle at 35% 35%, #d8584a, #8a2418 70%); }
+@keyframes guild-reward-rise { 0% { opacity: 0; transform: translate(-50%, 12px); } 12% { opacity: 1; transform: translate(-50%, 0); } 75% { opacity: 1; transform: translate(-50%, -16px); } 100% { opacity: 0; transform: translate(-50%, -28px); } }
+@media (prefers-reduced-motion: reduce) { .guild-reward-note.is-shown { animation: none; } }
+/* The map's quest card. */
+.spellbook-dialog.guild-quests-dialog { width: min(640px, 100%); max-height: calc(100dvh - 48px); overflow-y: auto; }
+.guild-quests-list { padding: 18px 24px 6px; }
+.guild-quests-dialog > .guild-status { margin: 0; padding: 6px 24px 16px; }
+@media (max-width: 820px) {
+  :root .guild-hall > .guild-dock { height: auto; margin: 90px 12px 0; }
+  .guild-board-layout { grid-template-columns: 1fr; }
+  :root .guild-active-quest { flex-direction: column; align-items: stretch; }
+}
+/* The class menu's class information tab (port task 2, G32): it takes the two list columns' place. */
+.classes-dialog .class-content > section[hidden] { display: none; }
+.classes-dialog .class-content > .class-info-panel { grid-column: span 2; }
+.class-source-controls .class-info-button[aria-pressed="true"] { color: var(--ember-dark); }

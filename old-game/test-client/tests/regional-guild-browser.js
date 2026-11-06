@@ -29,26 +29,26 @@ async function runRegionalGuildChecks() {
     $("map-guild").click();
     assert(!$("guild-modal").hidden && Number($( "guild-reputation").textContent) === worldState.guild.reputation, `${castle.name} uses the shared Guild balance`);
     assert($("guild-eyebrow").textContent.startsWith(castle.name.toUpperCase()), `${castle.name} appears in the Guild heading`);
-    $("guild-quest").click();
-    const regular = worldState.guild.offers.filter(offer => offer.type !== "great-hunt");
-    const localGreatHunts = worldState.guild.offers.filter(offer => offer.type === "great-hunt");
+    // The Guild Rework (port task 2): the day's board, accepted from its notice, paid at the counter.
+    worldState.guild.boards = {}; worldState.guild.greatHunt = null;
+    const board = Guild.boardFor();
+    const regular = board.offers.filter(offer => offer.type !== "great-hunt");
+    const localGreatHunts = board.offers.filter(offer => offer.type === "great-hunt");
     const expectedGreatHunts = regionId === "alder-vale" ? ["great-imp-jiruan"] : regionId === "stoneveil-foothills" ? ["zik-lun-armored-hulk", "nygheir-the-wounded"] : regionId === "verdant-reach" ? ["juila-grand-forest-matriach"] : [];
     assert(localGreatHunts.length === Math.min(1, expectedGreatHunts.length) && localGreatHunts.every(offer => expectedGreatHunts.includes(offer.uniqueId)), `${castle.name} offers one local Great Hunt`);
-    assert(regular.length === 2 && new Set(regular.map(offer => offer.type)).size === 2, `${castle.name} offers two different contracts`);
+    assert(regular.length === 4 && new Set(regular.map(offer => offer.type)).size === 4, `${castle.name} offers four different contracts`);
     for (const offer of regular) {
-      assert(offer.regionId === regionId && offer.originCastleId === castleId, `${offer.type} is issued by ${castle.name}`);
-      if (offer.zone && offer.point) assert(WorldRules.zoneAt(offer.point, regionId) === offer.zone, `${offer.type} marker lies in the specified ${regionId} zone`);
-      if (offer.type === "clear") assert(["Plains", "Hill-Plains", "Mountainfoot", "Forest", "Deep Forest", "Outer Forest", "River", "Plains - near Town", "Coastal Plains", "Windswept Plains", "Salt Marsh", "Dunes", "Beach"].some(zone => EncounterRules.enemiesForZone(zone, regionId).includes(offer.enemy)), "Clear chooses a local enemy");
-      if (offer.type === "travel") assert(WorldRules.settlementsForRegion(regionId).some(place => place.id === offer.townId && place.id !== castleId), "Travel targets a different settlement in the same region");
+      assert(offer.originRegionId === regionId && offer.originCastleId === castleId, `${offer.type} is issued by ${castle.name}`);
+      if (["hunt", "cull", "search"].includes(offer.type)) assert(offer.regionId === regionId && WorldRules.zoneAt(offer.point, regionId) === offer.zone, `${offer.type} marker lies in the specified ${regionId} zone`);
+      if (["hunt", "cull"].includes(offer.type)) assert(EncounterRules.enemiesForZone(offer.zone, regionId).includes(offer.enemy), `${offer.type} chooses a local enemy`);
+      if (["deliver", "escort", "travel"].includes(offer.type)) assert(GuildQuestRules.adjacentRegions(regionId).includes(offer.destination.regionId) && offer.destination.settlementId !== castleId, `${offer.type} goes to an adjacent region`);
     }
-    const index = worldState.guild.offers.indexOf(regular[0]);
-    document.querySelector(`[data-guild-quest="${index}"]`).click();
-    assert(worldState.guild.quest?.regionId === regionId && WorldRules.normalize(worldState).guild.quest.regionId === regionId, `${castle.name} contract survives save normalization`);
-    worldState.guild.quest.complete = true;
-    Guild.render();
+    Guild.accept(board.offers.indexOf(regular[0]));
+    assert(worldState.guild.quest?.originRegionId === regionId && WorldRules.normalize(worldState).guild.quest.originRegionId === regionId, `${castle.name} contract survives save normalization`);
+    worldState.guild.quest.complete = true; worldState.guild.quest.progress = 1;
     const before = worldState.guild.reputation;
-    $("guild-complete").click();
-    assert(!worldState.guild.quest && worldState.guild.reputation > before, `${castle.name} pays completed contracts`);
+    document.querySelector('#guild-banner [data-guild-spot="counter"]').dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    assert(!worldState.guild.quest && worldState.guild.reputation > before, `${castle.name} pays completed contracts at its counter`);
 
     $("guild-artifacts").click();
     assert(worldState.guild.artifactOffers.length === 3, `${castle.name} offers three artifacts`);
@@ -60,15 +60,6 @@ async function runRegionalGuildChecks() {
     worldState.position = { ...challenge.point };
     assert(Guild.objectiveAt(worldState.position)?.kind === "artifact", `${castle.name} artifact guardian is reachable`);
     worldState.position = { x: castle.x, y: castle.y };
-
-    const town = WorldRules.settlementsForRegion(regionId).find(place => place.id !== castleId);
-    worldState.guild.quest = { type: "travel", regionId, originCastleId: castleId, townId: town.id, point: { x: town.x, y: town.y }, progress: 0, complete: false, reward: { silver: 0, reputation: 0, rateVersion: 2 } };
-    worldState.position = { x: town.x, y: town.y };
-    Guild.onPositionChange();
-    assert(worldState.guild.quest.progress === 1 && !worldState.guild.quest.complete, `${castle.name} Travel records the outbound visit`);
-    worldState.position = { x: castle.x, y: castle.y };
-    Guild.onPositionChange();
-    assert(worldState.guild.quest.complete, `${castle.name} Travel completes on return to its issuing Guild`);
     worldState.guild.quest = null;
     worldState.guild.artifactChallenge = null;
   }

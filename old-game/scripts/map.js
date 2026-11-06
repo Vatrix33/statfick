@@ -17,7 +17,7 @@
     ["map-blacksmith", "B", ["b"]], ["map-item-shop", "G", ["g"]],
     ["map-guild", "A", ["a"]], ["map-church", "T", ["t"]], ["map-magic-tower", "W", ["w"]],
     ["map-class-respec", "L", ["l"]], ["map-stat-respec", "P", ["p"]],
-    ["map-boat", "V", ["v"]], ["map-search", "F", ["f"]], ["map-track-quarry", "Q", ["q"]],
+    ["map-boat", "V", ["v"]], ["map-search", "F", ["f"]], ["map-track-quarry", "Q", ["q"]], ["map-quests", "J", ["j"]],
     ["map-zoom-in", "+", ["+", "="]], ["map-zoom-out", "−", ["-"]], ["map-fit", "0", ["0"]], ["map-follow", "Y", ["y"]],
   ];
   function labelShortcut(button, hint, ariaKey = hint) {
@@ -275,6 +275,7 @@
     <g id="map-landscape"></g>
     <path id="map-route" fill="none" stroke="#f0dfb4" stroke-width="3.5" stroke-dasharray="10 8" stroke-linecap="round" vector-effect="non-scaling-stroke" pointer-events="none"/>
     <g id="map-survey-bounds" fill="none" stroke="#f3df92" stroke-width="2.5" stroke-dasharray="12 9" opacity=".8" vector-effect="non-scaling-stroke" pointer-events="none"></g>
+    <g id="map-guild-areas" pointer-events="none"></g>
     <g id="map-guild-markers"></g>
     <g id="map-marker" hidden pointer-events="none"><ellipse rx="13" ry="5" fill="${MapInk.INK}" opacity=".45"/><circle r="11" fill="none" stroke="#f0dfb4" stroke-width="3"/><path d="M0 0v-42" stroke="${MapInk.INK}" stroke-width="3"/><path d="M0 -42l26 8-26 12Z" fill="#8a2c22" stroke="${MapInk.INK}" stroke-width="2.4" stroke-linejoin="round"/></g>
     <g id="map-character" role="button" tabindex="0" aria-label="Current position. Click to pause or resume travel" aria-pressed="false">
@@ -357,6 +358,14 @@
     const encounters = EncounterRules.regionRules(regionId);
     return Boolean(encounters.profiles[zone] && !encounters.profiles[zone].safe && encounters.tables[zone]?.length);
   }
+  // A Cull quest's circle (port task 2, G12): a tinted, dashed ring the size of the counting area.
+  function renderGuildAreas(areas) {
+    const layer = $("map-guild-areas");
+    const signature = JSON.stringify(areas);
+    if (layer.dataset.areas === signature) return;
+    layer.dataset.areas = signature;
+    layer.innerHTML = areas.map(area => `<circle class="map-guild-area" cx="${area.point.x}" cy="${area.point.y}" r="${area.radius}" fill="#c7683f" fill-opacity=".16" stroke="#f3c48a" stroke-width="3" stroke-dasharray="10 7" vector-effect="non-scaling-stroke"><title>${escapeHtml(area.label)}</title></circle>`).join("");
+  }
   function renderGuildMarkers(markers, locked) {
     const layer = $("map-guild-markers");
     const signature = JSON.stringify([markers, locked]);
@@ -381,6 +390,7 @@
       $("map-survey-bounds").innerHTML = ellipses.map(area => `<ellipse cx="${area.x}" cy="${area.y}" rx="${area.rx}" ry="${area.ry}"/>`).join("") + towns.map(place => `<circle cx="${place.x}" cy="${place.y}" r="${region.id === "stoneveil-foothills" ? 120 : 110}"/>`).join("") + (region.id === "stoneveil-foothills" ? `<path d="M20 ${region.mountainfoot.y}H1580"/>` : region.id === "high-stoneveil" ? '<path d="M20 745H1580M430 20V745M1190 20V745M430 295H1190M1190 335H1580"/>' : region.id === "stoneveil-summit" ? '<path d="M20 735H1580M440 20V735M1160 20V735M440 330H1160"/>' : "");
     } else $("map-survey-bounds").innerHTML = "";
     renderGuildMarkers(guildMarkers, destinationsLocked);
+    renderGuildAreas(window.Guild?.areas() || []);
     const route = renderTravelPath(p, destination);
     $("map-character").setAttribute("aria-pressed", String(travelling));
     $("map-character").setAttribute("aria-disabled", String(destinationsLocked));
@@ -567,7 +577,8 @@
     worldState.pendingEncounter = { zone, enemies: [...enemyNames], objective };
     const summary = (["hunt", "artifact"].includes(objective) ? "Empowered " : "") + encounterSummary(enemyNames);
     $("map-status").textContent = "Encounter in " + zone + ": " + summary + ".";
-    $("map-encounter-status").textContent = "Fight, or attempt to escape with a +25 point Run bonus.";
+    const escapeNote = objective === "search" ? " Escaping this search is half as likely." : objective === "escort-ambush" ? " Bandits on an escort: escaping is 70% less likely." : "";
+    $("map-encounter-status").textContent = "Fight, or attempt to escape with a +25 point Run bonus." + escapeNote;
     saveCharacter(); render();
     updateModalState();
     $("map-encounter-fight").focus();
@@ -581,7 +592,8 @@
     }
     const zone = rules.zoneAt(worldState.position, worldState.regionId);
     if (!isEncounterArea(zone, worldState.regionId)) return;
-    const enemies = EncounterRules.generate(zone, { level, regionId: worldState.regionId });
+    const rolled = EncounterRules.generate(zone, { level, regionId: worldState.regionId });
+    const enemies = window.Guild?.adjustEncounter(rolled, zone) || rolled;
     if (!enemies.length) {
       $("map-status").textContent = "No encounter is available in this area.";
       return;
@@ -639,7 +651,8 @@
     while (worldState.encounterTravelMinutes >= rules.ENCOUNTER_MINUTES) {
       worldState.encounterTravelMinutes -= rules.ENCOUNTER_MINUTES;
       const zone = rules.zoneAt(worldState.position, worldState.regionId);
-      const encounter = EncounterRules.roll(zone, { level, regionId: worldState.regionId, encounterChanceMultiplier: Math.max(0, 1 + calculateClassEffects().encounterChancePercent / 100) });
+      const rolled = EncounterRules.roll(zone, { level, regionId: worldState.regionId, encounterChanceMultiplier: Math.max(0, 1 + calculateClassEffects().encounterChancePercent / 100) });
+      const encounter = rolled?.length ? window.Guild?.adjustEncounter(rolled, zone) || rolled : rolled;
       if (encounter?.length) {
         presentTravelEncounter(encounter, zone);
         return true;
@@ -662,6 +675,7 @@
     const previousZone = rules.zoneAt(worldState.position, worldState.regionId);
     const result = rules.step(worldState, rules.realTimeMinutes(elapsed, worldState.timeSpeed, true), travelBonuses());
     advanceWorldTime(result.elapsed);
+    window.Guild?.onTravel(result.elapsed);
     window.Guild?.onPositionChange();
     if (result.arrived) {
       const exit = rules.exitAt(worldState.position, worldState.regionId);
@@ -808,7 +822,10 @@
   $("map-force-encounter").addEventListener("click", forceEncounter);
   $("map-camp").addEventListener("click", camp);
   $("map-boat").addEventListener("click", travelByBoat);
-  $("map-search").addEventListener("click", () => { if (window.Guild?.search()) { $("map-status").textContent = "Search complete. Return to the Adventurers Guild for your reward."; render(); } });
+  $("map-search").addEventListener("click", () => {
+    const encounter = window.Guild?.search();
+    if (encounter) presentTravelEncounter(encounter.enemies, encounter.zone, encounter.objective);
+  });
   $("map-track-quarry").addEventListener("click", () => {
     const zone = rules.zoneAt(worldState.position, worldState.regionId);
     const name = $("map-track-enemy").value;

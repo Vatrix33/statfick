@@ -246,7 +246,7 @@
       for (const ally of living(state).filter(ally => ally.team === actor.team)) for (const effect of passiveEffectsOf(ally, state)) {
         const journey = /^journey-party-defense-(flat|percent)$/.exec(effect.type), quest = /^quest-defense-(flat|percent)$/.exec(effect.type);
         if (journey && worldState.distanceTraveledKm - worldState.lastRestKm >= toNumber(effect.kilometers, 60)) partyDefense[journey[1]] += toNumber(effect.amount, 0);
-        if (quest && ally.id === actor.id && ["travel", "escort"].includes(worldState.guild.quest?.type) && !worldState.guild.quest.complete) partyDefense[quest[1]] += toNumber(effect.amount, 0);
+        if (quest && ally.id === actor.id && ["travel", "escort", "deliver"].includes(worldState.guild.quest?.type) && !worldState.guild.quest.complete) partyDefense[quest[1]] += toNumber(effect.amount, 0);
       }
       const defenses = Object.fromEntries(defenseBonusDefinitions.map(key => {
         const hostile = type => hostileEffects.filter(effect => effect.type === type && effect.target === key).reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0);
@@ -1064,6 +1064,9 @@
         log(`The party is carried back to ${town.name}.`);
       }
     }
+    // Search and Escort fights are settled by winning or fleeing; a defeat leaves them open (task 2, G15).
+    const objectiveActor = battle.actors.find(actor => actor.guildObjective);
+    if (objectiveActor) window.Guild?.onBattleFinished?.(result, objectiveActor.guildObjective);
     window.Music?.sync();
   }
   // Standard catalogue weapons become forged weapons from one level below the enemy to
@@ -1660,7 +1663,7 @@
     const worldEnder = canCharge ? chargedSkillEffect(attacker, "next-damage-overload") : null;
     const terrorBonus = attacker && hp(target) < values(target).maxHp / 2 ? passiveEffectsOf(attacker).filter(effect => effect.type === "damage-percent-vs-low-hp" && hp(target) < values(target).maxHp * toNumber(effect.threshold, 50) / 100).reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) : 0;
     const reaverBonus = attacker && hp(target) < values(target).maxHp * .35 ? withActor(attacker, () => classCatalog.find(entry => entry.id === "reaver")?.levels.filter(rank => rank.level <= toInteger(classLevels.reaver, 0)).flatMap(rank => rank.effects).filter(effect => effect.type === "damage-percent-vs-low-hp").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) || 0) : 0;
-    const situationalBonus = attacker ? passiveEffectsOf(attacker).reduce((sum, effect) => sum + (effect.type === "damage-percent-vs-stunned" && (target.effects.some(active => active.type === "stun") || target.lastStunnedTurn === target.turns) ? toNumber(effect.amount, 0) : 0) + (effect.type === "damage-percent-vs-quest-target" && worldState.guild.quest?.enemy === target.name.replace(/^Empowered /, "").replace(/ \d+$/, "") ? toNumber(effect.amount, 0) : 0), 0) : 0;
+    const situationalBonus = attacker ? passiveEffectsOf(attacker).reduce((sum, effect) => sum + (effect.type === "damage-percent-vs-stunned" && (target.effects.some(active => active.type === "stun") || target.lastStunnedTurn === target.turns) ? toNumber(effect.amount, 0) : 0) + (effect.type === "damage-percent-vs-quest-target" && [worldState.guild.quest?.enemy, worldState.guild.greatHunt?.enemy].includes(target.name.replace(/^Empowered /, "").replace(/ \d+$/, "")) ? toNumber(effect.amount, 0) : 0), 0) : 0;
     const standardBonus = attacker ? living().filter(ally => ally.team === attacker.team && ally.standardAura).reduce((sum, ally) => sum + toNumber(ally.standardAura, 0), 0) : 0;
     const actionChargeMultiplier = attackKind === "reaction" ? 1 : equipmentActionDamage.get(attacker?.id) || 1;
     const markedPower = power * actionChargeMultiplier * (1 + (spell ? toNumber(attacker?.phaseSpellDamagePercent, 0) : 0) / 100) * (1 + toNumber(mark?.damagePercent, 0) / 100) * (1 + toNumber(tacticalMark?.damagePercent, 0) / 100) * (1 + damagePercentAgainstTarget(attacker, target) / 100) * (1 + (toNumber(attackerEffects?.outgoingDamagePercent, 0) + spellDamagePercent + randomDamagePercent + eminenceBonus + terrorBonus + reaverBonus + situationalBonus + standardBonus) / 100) * (1 + toNumber(worldEnder?.effect?.damagePercent, 0) / 100);
@@ -5888,7 +5891,9 @@
       return withActor(actor, () => currentStats().speed, { active: false, actors: [actor] });
     }));
     const playerValues = currentStats();
-    const chance = rules.chance(rules.escape(playerValues.speed, playerValues.luck, fastestEnemySpeed) + toNumber(bonus, 0));
+    const normal = rules.chance(rules.escape(playerValues.speed, playerValues.luck, fastestEnemySpeed) + toNumber(bonus, 0));
+    // Quest fights are harder to escape before they start: Search 50% less, Escort bandits 70% less (task 2, G14).
+    const chance = window.Guild?.escapeChance ? window.Guild.escapeChance(normal, guildObjective) : normal;
     return { success: rules.roll(chance), chance, fastestEnemySpeed };
   }
   function restore(saved) {

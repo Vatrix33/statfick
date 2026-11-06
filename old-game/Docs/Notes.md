@@ -332,6 +332,83 @@ masterworks' looks are placeholders the user wants fully remade in the port. The
   25). The other browser checks and suites gave the same results as before (54 of 66 runs passing; the 12 failures are
   the known ones; `map-speed` failed once and passed twice on rerun).
 
+**Guild Rework (port task 2, 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`; the task is
+`engine/Docs/Port-Tasks/2_Guild.txt`).** Built in the old game, as task 1 was (user decision G1); old game only, the engine
+is untouched and its work goes on beside it. Done: the faithful port brings it over and doesn't build it again; its only
+port work is remaking the two guild interiors, which are placeholder art (G2; `engine/Docs/Port-Tasks/README.md` says
+what the remake keeps). The user's 34 answers, asked before the code, are in
+`engine/Docs/Engine-Plan.md`, "Decisions for task 2, Guild Rework" (G1–G34). How it's built:
+- **Rules:** `scripts/guild-quest-engine.js` (`GuildQuestRules`, loaded after `encounter-engine.js`; pure, runs in Node):
+  the six types and their reward factors (Hunt 1.8, Cull 1.55, Deliver 1.35, Search 1.2, Escort 1.1, Travel 1.0 on
+  today's silver and Reputation formulas), `rewardTable` (every type at least 1 silver and 1 Reputation above the one
+  below it, so rounding never ties two ranks), the quest level (`questLevel`: the player's level held to the guild
+  region's range; the Alder Vale, which has no `levelRange`, spans its zones' 1–15), `greatHuntReward` (×2.4, Reputation
+  ×3 on top, at the boss's level or the quest level, whichever is higher), board and recruit counts, `cullRequired`,
+  the Cull circle (radius 40 units = 3 km) and its 50% target share, Search clearances, the pre-fight escape factors
+  (Search 0.5, Escort bandits 0.3), the Escort ambush roll (`ambushCount`: one roll, 80/10/10) and plan (25–75% of the
+  outbound trip, a second at least 20% later; `ambushRetry` after a defeat), `AMBUSH_GROUPS` (the encounter tables'
+  bandit-only groups by their enemies' level: 4, 10, 15, 36, 44), adjacency over roads and boats (`links`,
+  `adjacentRegions`, `firstStep` for markers), `tripMinutes` (land travel along the fastest routes), notice titles,
+  recruit level, cost and gear rarity (`gearRarity`: `ForgeRules.rarityOdds` at the region's midpoint, like the
+  Blacksmith's stock).
+- **State** (`world-engine.js` `normalize`): `guild.quest` (the one standard quest, `version: 2`), `guild.greatHunt` (the
+  one Great Hunt; older saves kept it in `quest` and are moved), `guild.boards` (`{ guildId: { day, offers } }`, only
+  today's survive), `guild.notice` (the note shown once when an old quest was dropped). New quest fields: `title`,
+  `level`, `destination` (`regionId`, `settlementId`, `name`, `point`), `recommended`, `radius`, `ambushes`
+  (`[{ at, done }]`), `travelled`, `tripMinutes`, `taken` (on board offers). Old Clear, Escort and Travel quests are
+  dropped with the note (G33); old Hunt and Search quests are kept. `recruitOffers` keep a `guildId` (app.js) and hold
+  up to 5.
+- **Guild** (`scripts/guild.js`): `boardFor` draws a guild's board on the first visit of a day (castle 4, town 3,
+  Bounty Broker +1, each a different type, plus a Great Hunt when eligible); `accept` (one standard quest, one Great
+  Hunt; an Escort's trip and ambushes are rolled here); `useCounter` (hands a Deliver's letters over at the destination
+  guild, then pays every finished quest at once with the rising note; journeys only at the guild that issued them,
+  Hunt, Cull and Search at any guild as before, Great Hunts in their offering region); `giveUp` (anywhere, with a
+  confirmation); `onTravel` (an Escort's outbound minutes, from `map.js`'s tick); `objectiveAt` (also the due Escort
+  ambush, wherever the trip is, roads included); `onBattleFinished` (from `combat.js`'s `finish`: Search and Escort
+  fights are settled by a win, and by fleeing through `avoidObjective`; a defeat leaves Search open and reschedules the
+  ambush); `adjustEncounter` (the Cull share, for travel and Force encounters in `map.js`); `markers` (a journey's
+  destination or the way back, on the road or harbour toward another region) and `areas` (the Cull circle, drawn by
+  `map.js` in `#map-guild-areas`). `Guild.makeOffer(type)` is for the browser checks.
+- **Interior:** the guild window is a full-window scene like the shops (`.shop-hall.guild-hall`): `scene-banners.js`
+  `guildHall` (castle cities) and `guildTown` (the four town guilds), PLACEHOLDER ART (`PLACEHOLDER_ART`, G2). Clickable
+  objects are recorded with `spot()` and drawn again in a third SVG layer (`.sb-spots`): a hit box, a copy of the object
+  whose SVG filter leaves only a gold outline glow, and a name label, shown on hover or keyboard focus. The board,
+  counter, tavern, hooded man (castle only) and trophies (once a Great Hunt of that guild is done) open the docked
+  panel (`#guild-dock`, `#guild-panel`). Town guilds gained `recruit` in `guildServices` (two recruits) and keep no
+  `information`. Flames draw over everything, so the hearths stand clear of the people.
+- **Recruits** (`companions.js` `makeOffers({ count, level, regionId })`): +1 to every attribute per level, 5 stat
+  points per level and 1 class point per level left unspent, one melee forged weapon (not ranged, not a staff or wand)
+  and one body armor the race can wear, each rolling its rarity at the region's level. As before, the other offers go
+  once someone is hired; the next visit draws new faces.
+- **Map and class menu:** `#map-quests` (key J) opens `#guild-quests-modal` with both quests and Give up; Search starts a
+  fight (`presentTravelEncounter(…, "search")`); the encounter prompt says when escaping is harder. The class menu's
+  `#class-info-button` swaps the two class lists for `#class-info-panel`, the classes whose requirements were bought,
+  each showing `Guild.classInformation(id)` (the bought page). Courier's texts and requirement label now name Deliver.
+- **Tests:** `test-client/tests/guild-rework-browser.js`, one entry per rule (`runGuildBoardChecks`, `…QuestLimit…`,
+  `…Reward…`, `…Hunt…`, `…Cull…`, `…Deliver…`, `…Search…`, `…Escort…`, `…Travel…`, `…Marker…`, `…Counter…`,
+  `…Interior…`, `…Recruit…`, `…QuestCard…`, `…ClassInformation…`, `…Save…`; `runGuildReworkChecks` runs all). The checks
+  that drove the old buttons now use the room: `guild-browser.js` (its Clear, Travel and Escort parts are in the new
+  file), `regional-guild-browser.js`, `guild-information-browser.js` (the hooded man), `guild-rematches-browser.js` (the
+  trophies), `companions-browser.js` (the tavern), `coast-island-browser.js`, `newc-browser.js`, and the boss checks
+  that accept Great Hunts (`Guild.boardFor`, `Guild.accept`, `Guild.useCounter`, `worldState.guild.greatHunt`).
+- **Not covered by a check:** that Run in battle keeps its normal chance in a Search or Escort fight (G14; nothing in the
+  battle reads the objective's factor); the reward note's fade after three seconds.
+- **The checks can fail:** each rule was broken once in a copy of the game (94 mutations, one per rule, by a small runner
+  in the cloud session's `claude-work/guild/`, not kept: a copy of `old-game/` per worker, the covering entry run with
+  `--game-folder` pointing at it). 93 were caught; the first pass let five through, and four of those were gaps the checks then closed
+  (two Great Hunts with the same id, an encounter roll that already held the Cull target, a Search spot never near an
+  exit in today's zones, a Search button checked only from another zone). The fifth, dropping the shield filter from a
+  recruit's armor, cannot differ: `allowedSlots` puts a shield in the off-hand only, never in the armor slot.
+- **Regression** (2026-11-06, the cloud, Xvfb): every zero-argument entry of the 42 check files (88 entries: the 71 before
+  plus 17 new) and the smoke, enemies, lifecycle and combat suites, against a baseline run of the game as it was before
+  the rework (61 of 71 passing). After: 77 of 88 pass; the 11 failures are the baseline's 10, unchanged
+  (`adventure-improvements` ×2, `bloody-mary`, `combat-lifecycle` outside its suite, `music`, `newc`,
+  `settings-companions`, `shop`, `talos-edge`, `trap`), plus `map-speed`, the known flaky travel-timing check, which
+  passed twice when rerun alone. Smoke, enemies (511 cases) and lifecycle pass; the combat suite stops at the known
+  Barbarian failure, as before. `cinder-bosses`' `runCinderBossChecks` failed once during the work (Ur-Mat's Slowed
+  Time, a random battle case) and passed four times since, also on the old game. The failing `adventure-improvements`
+  and `newc` entries stop before their guild parts, which were moved to the room all the same.
+
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in
 the engine's way. The list's rune slotting sound was left out: the port adds proper sound effects instead.

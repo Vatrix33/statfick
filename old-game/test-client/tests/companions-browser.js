@@ -6,12 +6,13 @@ async function runCompanionChecks() {
   assert(companions.length === 0 && $("companion-count").textContent === "0 / 3", "A new character has no companions");
   $("map-open-button").click(); $("map-guild").click();
   worldState.guild.reputation = 150; Guild.render();
-  $("guild-recruit").click();
-  assert(recruitOffers.length === 3 && new Set(recruitOffers.map(offer => offer.name)).size === 3, "Guild offers three different recruits");
-  assert(recruitOffers.every(offer => offer.character.level === 5 && raceCatalog.find(race => race.id === offer.character.raceId)?.playable && getItem(offer.character.equipment.primaryHand)?.rarity === "common" && getItem(offer.character.equipment.armor)?.rarity === "common"), "Offers have correct levels, playable races, and common gear");
+  // The Guild Rework (port task 2): recruits sit in the tavern, at the region's level (Alder Vale 8), five in a castle city.
+  document.querySelector('#guild-banner [data-guild-spot="tavern"]').dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  assert(recruitOffers.length === 5 && new Set(recruitOffers.map(offer => offer.name)).size === 5, "The castle guild's tavern offers five different recruits");
+  assert(recruitOffers.every(offer => offer.character.level === 8 && raceCatalog.find(race => race.id === offer.character.raceId)?.playable && getItem(offer.character.equipment.primaryHand)?.type === "meele" && getItem(offer.character.equipment.armor)?.category === "armor"), "Offers have the region's level, playable races, a melee weapon and armor");
   const chosen = recruitOffers[0];
   $("guild-panel").querySelector("[data-guild-recruit]").click();
-  assert(companions.length === 1 && companions[0].id === chosen.id && worldState.guild.reputation === 100 && recruitOffers.length === 0, "Recruitment costs 50 Reputation and adds one companion");
+  assert(companions.length === 1 && companions[0].id === chosen.id && worldState.guild.reputation === 104 && recruitOffers.length === 0, "Recruitment costs 30 + 2 × level Reputation and adds one companion");
   assert($("companion-sidebar-list").textContent.includes(chosen.name) && $("companion-sidebar-list").textContent.includes("HP") && $("companion-sidebar-list").textContent.includes("Mana"), "The field-tools roster shows name, level, HP and Mana");
   $("guild-modal").querySelector("[data-guild-close]").click();
   $("map-close-button")?.click();
@@ -81,7 +82,7 @@ async function runCompanionChecks() {
   const originalConfirm = window.confirm; window.confirm = () => true;
   $("companion-dismiss").click(); window.confirm = originalConfirm;
   assert(companions.length === 0 && oldEquipment.every(id => inventory.includes(id)), "Dismissal returns the companion's inventory to the player");
-  assert(worldState.guild.reputation === 100, "Dismissal does not refund recruitment Reputation");
+  assert(worldState.guild.reputation === 104, "Dismissal does not refund recruitment Reputation");
   const extraOffers = [...Companions.makeOffers(), ...Companions.makeOffers()];
   assert(Companions.add(extraOffers[0]) && Companions.add(extraOffers[1]) && Companions.add(extraOffers[2]) && !Companions.add(extraOffers[3]) && companions.length === 3, "The companion roster has a hard limit of three");
   assert(spells.length > 0 && knownSpells.length === 0, "Imported spells remain available without becoming automatically learned");

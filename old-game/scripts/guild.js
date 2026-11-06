@@ -15,7 +15,6 @@
   const INFORMATION_REPUTATION_COST = GuildInformationRules.cost;
   let informationView = null, informationLoading = false, informationRequest = 0, informationEnemies = [];
   let informationEnemyLocations = new Map();
-  const recruitCost = () => 50 + companions.length * 25;
   const castle = () => {
     const place = WorldRules.settlementAt(worldState.position, worldState.regionId);
     return place?.kind === "Castle city" || place?.guildServices?.includes("quest") ? place : null;
@@ -230,7 +229,6 @@
   const greatHuntById = id => greatHunts.find(entry => entry.id === id);
   const completedGreatHuntsHere = () => guild().greatHuntsCompleted
     .map(greatHuntById).filter(entry => (entry?.offerRegionId || entry?.regionId) === worldState.regionId);
-  const pluralEnemy = (name, count) => count === 1 ? name : name.endsWith("Wolf") ? name.replace("Wolf", "Wolves") : name.endsWith("s") ? name : name + "s";
   function zonePoint(zone, regionId = "alder-vale") {
     const anchors = zone.points.filter(point => WorldRules.zoneAt(point, regionId) === zone.name);
     const anchor = pick(anchors.length ? anchors : zone.points) || WorldRules.point();
@@ -245,70 +243,31 @@
     const zone = pick(definition.zones || zones.filter(entry => entry.name === definition.zone));
     return { regionId, zone: zone.name, point: zonePoint(zone, regionId) };
   }
+  /* ---------- Port task 2, the Guild Rework (2026-11-06) ----------
+     Six standard quest types on a daily bulletin board per guild, one standard quest and one Great Hunt
+     at a time, hand-in at the counter, recruits at the tavern, the hooded man's information and the
+     trophy wall, all reached by clicking the guild's interior. Rules: guild-quest-engine.js; design
+     answers G1–G34: engine/Docs/Engine-Plan.md, "Decisions for task 2, Guild Rework". */
+  const Q = () => window.GuildQuestRules;
+  const bonuses = () => calculateClassEffects();
+  const today = () => WorldRules.day(worldState.minutes);
+  const hasService = (host, name) => Boolean(host) && (!host.guildServices || host.guildServices.includes(name));
+  const regionName = regionId => WorldRules.getRegion(regionId)?.name || "another region";
+  const placeOf = (regionId, settlementId) => WorldRules.settlementsForRegion(regionId).find(place => place.id === settlementId) || null;
+  const originOf = quest => placeOf(quest.originRegionId || quest.regionId || "alder-vale", quest.originCastleId || "alderkeep");
+  const titleOf = quest => quest.title || Q().title(quest);
+  const isJourney = quest => Q().JOURNEYS.includes(quest?.type);
+  const rewardText = reward => `${ShopRules.formatPrice(reward.silver)} · ${reward.reputation} Reputation`;
+  let dock = null, selectedNotice = null, noteTimer = null;
+  const setStatus = message => { $("guild-status").textContent = message; };
+
   function enemyFor(zone) {
     const candidates = zone.enemies.filter(name => (enemyLevels[name] || 1) <= Math.max(2, level + 1));
-    const available = candidates.length ? candidates : zone.enemies;
-    const distance = Math.min(...available.map(name => Math.abs((enemyLevels[name] || 1) - level)));
-    return pick(available.filter(name => Math.abs((enemyLevels[name] || 1) - level) <= distance + 1));
+    const choices = candidates.length ? candidates : zone.enemies;
+    if (!choices.length) return null;
+    const distance = Math.min(...choices.map(name => Math.abs((enemyLevels[name] || 1) - level)));
+    return pick(choices.filter(name => Math.abs((enemyLevels[name] || 1) - level) <= distance + 1));
   }
-  function rewards(type) {
-    const factor = type === "hunt" ? 1.8 : type === "escort" ? 1.4 : 1;
-    const previousReputation = Math.max(5, Math.round((8 + level * 1.5) * factor));
-    const bonuses = calculateClassEffects();
-    return {
-      silver: Math.max(0, Math.round((100 + level * 35) * factor * (1 + bonuses.questMoneyPercent / 100))),
-      reputation: Math.max(0, Math.round((previousReputation / 2) * (1 + bonuses.questReputationPercent / 100))),
-      rateVersion: 2
-    };
-  }
-  function greatHuntOffer(definition) {
-    const bonuses = calculateClassEffects(), factor = 2.4;
-    const reward = {
-      silver: Math.max(0, Math.round((100 + definition.level * 35) * factor * (1 + bonuses.questMoneyPercent / 100))),
-      reputation: 3 * Math.max(0, Math.round(((8 + definition.level * 1.5) * factor / 2) * (1 + bonuses.questReputationPercent / 100))),
-      rateVersion: 3
-    };
-    const location = greatHuntLocation(definition);
-    return {
-      type: "great-hunt",
-      uniqueId: definition.id,
-      offeredAtLevel: definition.level,
-      progress: 0,
-      complete: false,
-      reward,
-      regionId: location.regionId,
-      originRegionId: definition.offerRegionId || location.regionId,
-      originCastleId: castle()?.id,
-      zone: location.zone,
-      enemy: definition.enemy,
-      point: location.point,
-      description: definition.description
-    };
-  }
-  function questOffer(type) {
-    const regionId = worldState.regionId, home = castle(), localZones = questZones();
-    const reward = rewards(type), base = { type, offeredAtLevel: level, progress: 0, complete: false, reward, regionId, originCastleId: home.id };
-    if (type === "clear") {
-      const zone = pick(localZones.slice(0, 4));
-      const enemy = enemyFor(zone), required = Math.min(6, 2 + Math.floor(level / 5));
-      return { ...base, enemy, required, description: `Clear ${required} ${pluralEnemy(enemy, required)} from ${WorldRules.getRegion(regionId).name}.` };
-    }
-    if (type === "hunt") {
-      const zone = pick(localZones), enemy = enemyFor(zone), point = zonePoint(zone, regionId);
-      return { ...base, zone: zone.name, enemy, point, description: `Hunt an empowered ${enemy} in ${zone.name}.` };
-    }
-    if (type === "search") {
-      const zone = pick(localZones), point = zonePoint(zone, regionId);
-      return { ...base, zone: zone.name, point, description: `Search the marked ${zone.name} zone.` };
-    }
-    if (type === "travel") {
-      const town = pick(WorldRules.settlementsForRegion(regionId).filter(place => place.id !== home.id));
-      return { ...base, townId: town.id, point: { x: town.x, y: town.y }, description: `Travel to ${town.name}, then return to the Guild in ${home.name}.` };
-    }
-    const zone = pick(localZones.slice(1).length ? localZones.slice(1) : localZones), point = zonePoint(zone, regionId);
-    return { ...base, zone: zone.name, point, description: `Escort a caravan to the marked point in ${zone.name}, then return to ${home.name}.` };
-  }
-  const rewardText = reward => `${ShopRules.formatPrice(reward.silver)} · ${reward.reputation} Reputation`;
   const questZones = () => {
     const local = zonesForRegion();
     if (["sunward-coast", "cinder-isle", "stormwake-hills", "gloamfen-marsh", "verdigris-jungle", "mirrormere-basin", "saffron-expanse", "deep-desert", "crimson-divide", "bloodstone-coast", "ancient-battlefield", "duskpine-forest"].includes(worldState.regionId)) {
@@ -328,6 +287,7 @@
     const rarity = eligibleRarities[0] || targetRarity;
     return { rarity, artifacts: artifacts.filter(item => String(item.rarity).toLowerCase() === rarity) };
   }
+
   const informationState = () => guild().information ||= GuildInformationRules.normalize();
   function informationAvailable() {
     const services = castle()?.guildServices;
@@ -406,9 +366,9 @@
     }
   }
   async function openInformation() {
-    if (!informationAvailable() || $("guild-information").disabled) return;
+    if (!informationAvailable()) return;
     const owner = guild(), request = ++informationRequest;
-    informationView = { page: "menu" }; informationLoading = true; render();
+    dock = "hooded"; informationView = { page: "menu" }; informationLoading = true; render();
     let enemies = [], failed = false;
     try { enemies = await window.Combat.enemyDropSources(); }
     catch { failed = true; }
@@ -439,200 +399,6 @@
     $("guild-status").textContent = `Information revealed for ${INFORMATION_REPUTATION_COST} Reputation. Saved in Known information.`;
     render(); saveCharacter();
   }
-  function render() {
-    const state = guild(), quest = state.quest, day = WorldRules.day(worldState.minutes);
-    const host = castle();
-    const services = host?.guildServices;
-    if (host) {
-      $("guild-eyebrow").textContent = `${host.name.toUpperCase()} · ADVENTURERS GUILD`;
-      window.SceneBanners?.show($("guild-banner"), "guild", host, worldState.regionId);
-    }
-    const currentRecruitCost = recruitCost();
-    $("guild-reputation").textContent = state.reputation;
-    $("guild-recruit").disabled = state.reputation < currentRecruitCost || companions.length >= 3 || !window.Companions || !raceCatalog.some(race => race.playable) || !window.ForgeRules;
-    $("guild-recruit").title = companions.length >= 3 ? "Your party already has three companions." : state.reputation < currentRecruitCost ? `Requires ${currentRecruitCost} Reputation.` : `Choose one of three recruits for ${currentRecruitCost} Reputation.`;
-    $("guild-recruit").querySelector("small").textContent = companions.length >= 3 ? "Party full · 3 / 3" : `${currentRecruitCost} Reputation · Choose one of three`;
-    const knownInformation = informationState().revealed;
-    $("guild-information").disabled = informationLoading || state.reputation < INFORMATION_REPUTATION_COST && !knownInformation.class.length && !knownInformation.item.length;
-    $("guild-information").title = state.reputation < INFORMATION_REPUTATION_COST ? "Requires 65 Reputation for new intel; known information is free to review." : "Choose class requirements or item drop sources.";
-    $("guild-artifacts").disabled = state.reputation < ARTIFACT_REPUTATION_COST || day < state.artifactNextDay || Boolean(state.artifactChallenge);
-    $("guild-artifacts").querySelector("small").textContent = state.artifactChallenge ? "Challenge active" : day < state.artifactNextDay ? `Available on Day ${state.artifactNextDay}` : `${ARTIFACT_REPUTATION_COST} Reputation · Level-matched rarity · 7-day cooldown`;
-    $("guild-recruit").hidden = Boolean(services) && !services.includes("recruit");
-    $("guild-information").hidden = Boolean(services) && !services.includes("information");
-    $("guild-artifacts").hidden = Boolean(services) && !services.includes("artifacts");
-    $("guild-quest").hidden = Boolean(services) && !services.includes("quest");
-    $("guild-great-hunts").hidden = !completedGreatHuntsHere().length || Boolean(services) && !services.includes("great-hunts");
-    $("guild-quest").disabled = Boolean(quest);
-    if (quest) {
-      const home = WorldRules.settlementsForRegion(quest.originRegionId || quest.regionId || "alder-vale").find(place => place.id === (quest.originCastleId || "alderkeep"));
-      const progress = quest.type === "clear" ? ` · ${quest.progress}/${quest.required}` : quest.progress ? ` · Outbound objective reached; return to ${home?.name || "the issuing Guild"}` : "";
-      const challenge = state.artifactChallenge ? `<p class="guild-challenge-note">Artifact challenge: empowered ${escapeHtml(state.artifactChallenge.enemy)} in ${escapeHtml(state.artifactChallenge.zone)}.</p>` : "";
-      const questName = quest.type === "great-hunt" ? `Great Hunt · Level ${quest.offeredAtLevel}` : quest.type;
-      const wrongGreatHuntRegion = quest.type === "great-hunt" && (quest.originRegionId || quest.regionId) !== worldState.regionId;
-      const completeLabel = quest.complete ? wrongGreatHuntRegion ? `Return to ${WorldRules.getRegion(quest.originRegionId || quest.regionId).name} to complete` : "Complete quest" : "Return after completing the objective";
-      $("guild-panel").innerHTML = `<p class="eyebrow">ACTIVE QUEST</p><h3>${escapeHtml(questName)}</h3><p>${escapeHtml(quest.description)}${escapeHtml(progress)}</p><p>Reward: ${escapeHtml(rewardText(quest.reward))}</p><div class="guild-quest-actions"><button type="button" id="guild-complete" ${quest.complete && !wrongGreatHuntRegion ? "" : "disabled"}>${escapeHtml(completeLabel)}</button><button type="button" id="guild-give-up">Give up quest</button></div>${challenge}`;
-    } else if (state.artifactChallenge) {
-      const challenge = state.artifactChallenge;
-      $("guild-panel").innerHTML = `<p class="eyebrow">ARTIFACT CHALLENGE ACTIVE</p><h3>${escapeHtml(getItem(challenge.artifactId)?.name || "Artifact")}</h3><p>Defeat the empowered ${escapeHtml(challenge.enemy)} at the marked point in ${escapeHtml(challenge.zone)} to claim it.</p>`;
-    } else $("guild-panel").innerHTML = `<p>Choose Quest to see ${2 + Math.max(0, Math.floor(calculateClassEffects().guildQuestChoiceFlat))} available contracts. Only one contract can be active at a time.</p>`;
-    if (informationView) renderInformationView();
-    if (!modal.hidden) updateModalState();
-  }
-  function open() {
-    if (!available()) return;
-    resetInformationView();
-    modal.hidden = false; $("guild-status").textContent = ""; render(); updateModalState(); $("guild-quest").focus();
-  }
-  function close() { resetInformationView(); modal.hidden = true; updateModalState(); $("map-guild").focus(); }
-  function offerQuests() {
-    if (!available() || guild().quest) return;
-    resetInformationView();
-    const types = WorldRules.settlementsForRegion(worldState.regionId).length < 2
-      ? ["clear", "hunt", "search", "escort"] : ["clear", "hunt", "search", "travel", "escort"];
-    const offerCount = Math.min(types.length, 2 + Math.max(0, Math.floor(calculateClassEffects().guildQuestChoiceFlat)));
-    let regularOffers = guild().offers.filter(offer => offer.type !== "great-hunt");
-    if (regularOffers.length !== offerCount || new Set(regularOffers.map(offer => offer.type)).size !== offerCount || regularOffers.some(offer => offer.offeredAtLevel !== level || (offer.regionId || "alder-vale") !== worldState.regionId || !types.includes(offer.type))) {
-      regularOffers = shuffle(types).slice(0, offerCount).map(questOffer);
-    }
-    const completed = new Set(guild().greatHuntsCompleted);
-    const eligibleGreatHunts = greatHunts.filter(entry => (entry.offerRegionId || entry.regionId) === worldState.regionId && level >= entry.level && !completed.has(entry.id));
-    const chosenGreatHunt = eligibleGreatHunts.length ? pick(eligibleGreatHunts) : null;
-    const uniqueOffers = chosenGreatHunt ? [greatHuntOffer(chosenGreatHunt)] : [];
-    guild().offers = [...regularOffers, ...uniqueOffers];
-    $("guild-panel").innerHTML = `<p class="eyebrow">CHOOSE ONE QUEST</p>${guild().offers.map((offer, index) => `<button class="guild-choice${offer.type === "great-hunt" ? " is-great-hunt" : ""}" data-guild-quest="${index}" type="button"><strong>${escapeHtml(offer.type === "great-hunt" ? `Great Hunt · Level ${offer.offeredAtLevel}` : offer.type)}</strong><span>${escapeHtml(offer.description)}</span><small>${escapeHtml(rewardText(offer.reward))}</small></button>`).join("")}`;
-    saveCharacter();
-  }
-  function takeQuest(index) {
-    if (!available() || guild().quest || !guild().offers[index]) return;
-    const offer = guild().offers[index];
-    if (offer.type === "great-hunt") {
-      const definition = greatHuntById(offer.uniqueId);
-      if (!definition || (definition.offerRegionId || definition.regionId) !== worldState.regionId || offer.regionId !== definition.regionId || (offer.originRegionId || offer.regionId) !== worldState.regionId || level < definition.level) return;
-    }
-    if (["hunt", "great-hunt"].includes(guild().avoidObjective)) guild().avoidObjective = null;
-    guild().quest = structuredClone(guild().offers[index]); guild().offers = [];
-    $("guild-status").textContent = "Quest accepted. Follow its marker on the regional map.";
-    render(); window.WorldMap?.render(); saveCharacter();
-  }
-  function completeQuest() {
-    if (!available() || !guild().quest?.complete) return;
-    if (guild().quest.type === "great-hunt" && (guild().quest.originRegionId || guild().quest.regionId) !== worldState.regionId) return;
-    const reward = guild().quest.reward;
-    guild().completedQuests = Math.max(0, Number(guild().completedQuests) || 0) + 1;
-    if (["travel", "escort"].includes(guild().quest.type)) guild().completedTravelQuests = Math.max(0, Number(guild().completedTravelQuests) || 0) + 1;
-    guild().reputation += reward.reputation;
-    currencies = ShopRules.walletFromValue(ShopRules.walletValue(currencies) + reward.silver);
-    document.querySelectorAll(".currency-input").forEach(input => { input.value = currencies[input.dataset.currency]; });
-    if (guild().quest.type === "hunt" && guild().avoidObjective === "hunt") guild().avoidObjective = null;
-    if (guild().quest.type === "great-hunt") {
-      if (guild().avoidObjective === "great-hunt") guild().avoidObjective = null;
-      if (guild().quest.uniqueId && !guild().greatHuntsCompleted.includes(guild().quest.uniqueId)) guild().greatHuntsCompleted.push(guild().quest.uniqueId);
-    }
-    guild().quest = null; guild().offers = [];
-    $("guild-status").textContent = `Quest completed. Earned ${rewardText(reward)}.`;
-    render(); window.WorldMap?.render(); saveCharacter();
-  }
-  function giveUpQuest() {
-    if (!available() || !guild().quest || !window.confirm("Give up this quest? Its progress and reward will be lost.")) return;
-    if (guild().quest.type === "hunt" && guild().avoidObjective === "hunt") guild().avoidObjective = null;
-    if (guild().quest.type === "great-hunt" && guild().avoidObjective === "great-hunt") guild().avoidObjective = null;
-    guild().quest = null; guild().offers = [];
-    $("guild-status").textContent = "Quest given up. You can choose another contract.";
-    render(); window.WorldMap?.render(); saveCharacter();
-  }
-  function offerArtifacts() {
-    if (!available() || $("guild-artifacts").disabled) return;
-    resetInformationView();
-    const pool = artifactPoolForLevel();
-    if (guild().artifactOffers.length !== 3 || guild().artifactOffers.some(id => !pool.artifacts.some(item => item.id === id))) guild().artifactOffers = shuffle(pool.artifacts).slice(0, 3).map(item => item.id);
-    $("guild-panel").innerHTML = `<p class="eyebrow">CHOOSE A ${escapeHtml(pool.rarity.toUpperCase())} ARTIFACT · ${ARTIFACT_REPUTATION_COST} REPUTATION</p>${guild().artifactOffers.map(id => { const item = getItem(id); return `<button class="guild-choice" data-guild-artifact="${escapeHtml(id)}" type="button"><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.description)}</span><small>${escapeHtml(item.rarity)}</small></button>`; }).join("")}`;
-    saveCharacter();
-  }
-  function offerRecruits() {
-    if (!available() || $("guild-recruit").hidden || $("guild-recruit").disabled) return;
-    resetInformationView();
-    const cost = recruitCost();
-    if (recruitOffers.length !== 3 || recruitOffers.some(offer => offer.character.level !== Math.max(1, level - 10))) recruitOffers = window.Companions.makeOffers();
-    $("guild-panel").innerHTML = `<p class="eyebrow">CHOOSE A COMPANION · ${cost} REPUTATION</p>${recruitOffers.map(offer => `<button class="guild-choice" data-guild-recruit="${escapeHtml(offer.id)}" type="button"><strong>${escapeHtml(offer.name)}</strong><span>${escapeHtml(raceCatalog.find(race => race.id === offer.character.raceId)?.name || "Adventurer")} · Level ${offer.character.level} · ${escapeHtml(getItem(offer.character.equipment.primaryHand)?.name || "Unarmed")} · ${escapeHtml(getItem(offer.character.equipment.armor)?.name || "No armor")}</span></button>`).join("")}`;
-    saveCharacter();
-  }
-  function takeRecruit(id) {
-    const cost = recruitCost();
-    if (!available() || $("guild-recruit").hidden || guild().reputation < cost || companions.length >= 3) return;
-    const offer = recruitOffers.find(entry => entry.id === id);
-    if (!offer || !window.Companions.add(offer)) return;
-    guild().reputation -= cost; recruitOffers = [];
-    $("guild-status").textContent = `${offer.name} joined your party for ${cost} Reputation.`;
-    render(); saveCharacter();
-  }
-  function takeArtifact(id) {
-    const artifact = getItem(id);
-    const pool = artifactPoolForLevel();
-    if (!available() || guild().reputation < ARTIFACT_REPUTATION_COST || guild().artifactNextDay > WorldRules.day(worldState.minutes) || guild().artifactChallenge || !guild().artifactOffers.includes(id) || artifact?.category !== "artifact" || !pool.artifacts.some(item => item.id === id)) return;
-    const regionId = worldState.regionId, zone = pick(questZones()), enemy = enemyFor(zone);
-    guild().reputation -= ARTIFACT_REPUTATION_COST;
-    guild().artifactNextDay = WorldRules.day(worldState.minutes) + 7;
-    guild().artifactChallenge = { regionId, zone: zone.name, point: zonePoint(zone, regionId), enemy, artifactId: id };
-    guild().artifactOffers = [];
-    $("guild-status").textContent = `An empowered ${enemy} now guards ${artifact.name} in ${zone.name}.`;
-    render(); window.WorldMap?.render(); saveCharacter();
-  }
-  function showCompletedGreatHunts() {
-    resetInformationView();
-    if (!available()) return;
-    const entries = completedGreatHuntsHere();
-    if (!entries.length) return;
-    $("guild-panel").innerHTML = `<p class="eyebrow">GREAT HUNTS COMPLETED</p><p>Rematch markers stay active until you deactivate them or leave the boss's region. After a fight, leave the marker area and return to fight again.</p>${entries.map(entry => {
-      const active = rematches().some(rematch => rematch.uniqueId === entry.id);
-      return `<article class="guild-great-hunt-record"><div><strong>${escapeHtml(entry.enemy)}</strong><span>Level ${entry.level} · ${escapeHtml(WorldRules.getRegion(entry.regionId).name)}</span></div><button type="button" data-guild-rematch="${escapeHtml(entry.id)}" aria-pressed="${active}">${active ? "Deactivate marker" : "Place rematch marker"}</button></article>`;
-    }).join("") || "<p>No completed Great Hunts were found.</p>"}`;
-  }
-  function toggleGreatHuntRematch(id) {
-    const definition = greatHuntById(id);
-    if (!available() || !definition || (definition.offerRegionId || definition.regionId) !== worldState.regionId || !guild().greatHuntsCompleted.includes(id)) return;
-    if (rematches().some(rematch => rematch.uniqueId === id)) {
-      guild().greatHuntRematches = rematches().filter(rematch => rematch.uniqueId !== id);
-      guild().avoidedGreatHunts = guild().avoidedGreatHunts.filter(avoided => avoided !== id);
-      $("guild-status").textContent = `The rematch marker for ${definition.enemy} has been deactivated.`;
-    } else {
-      const location = greatHuntLocation(definition);
-      rematches().push({ uniqueId: id, enemy: definition.enemy, ...location });
-      $("guild-status").textContent = `A rematch marker for ${definition.enemy} has been placed in ${location.zone} of ${WorldRules.getRegion(location.regionId).name}. It stays active until you deactivate it or leave that region.`;
-    }
-    syncRematchCompatibility();
-    showCompletedGreatHunts(); window.WorldMap?.render(); saveCharacter();
-  }
-  function canSearch() {
-    const quest = guild().quest;
-    return Boolean(quest && quest.type === "search" && worldState.regionId === (quest.regionId || "alder-vale") && !quest.complete && quest.point && WorldRules.zoneAt(worldState.position, worldState.regionId) === quest.zone && WorldRules.distance(worldState.position, quest.point) <= 60 && !worldState.pendingEncounter && !window.Combat?.active() && !window.WorldMap?.isTravelling());
-  }
-  function search() {
-    if (!canSearch()) return false;
-    const quest = guild().quest;
-    quest.complete = true; saveCharacter(); window.WorldMap?.render(); return true;
-  }
-  function onPositionChange() {
-    guild().avoidedGreatHunts = guild().avoidedGreatHunts.filter(id => rematches().some(rematch => rematch.uniqueId === id && rematch.regionId === worldState.regionId && WorldRules.distance(worldState.position, rematch.point) <= 45));
-    if (guild().avoidObjective) {
-      const objective = guild().avoidObjective;
-      const point = objective === "hunt" || objective === "great-hunt"
-        ? guild().quest?.point
-        : guild().avoidObjective === "artifact"
-          ? guild().artifactChallenge?.point
-          : guild().greatHuntRematch?.point;
-      const regionId = objective === "hunt" || objective === "great-hunt"
-        ? guild().quest?.regionId || "alder-vale"
-        : objective === "artifact"
-          ? guild().artifactChallenge?.regionId || "alder-vale"
-          : guild().greatHuntRematch?.regionId || "alder-vale";
-      if (!point || worldState.regionId !== regionId || WorldRules.distance(worldState.position, point) > 45) guild().avoidObjective = null;
-    }
-    const quest = guild().quest;
-    if (!quest || quest.complete || worldState.regionId !== (quest.regionId || "alder-vale")) return;
-    if (quest.type === "travel" && WorldRules.settlementAt(worldState.position, worldState.regionId)?.id === quest.townId) quest.progress = 1;
-    if (quest.type === "escort" && quest.point && WorldRules.distance(worldState.position, quest.point) <= 25) quest.progress = 1;
-    if ((quest.type === "travel" || quest.type === "escort") && quest.progress && castle()?.id === (quest.originCastleId || "alderkeep")) quest.complete = true;
-  }
   function onRegionChange(previousRegionId) {
     if (previousRegionId !== worldState.regionId) {
       // Clear only the departed region: some bosses (Anatemis) have their
@@ -644,16 +410,494 @@
     }
     onPositionChange();
   }
+  function rematchAt(position, includeAvoided = false) {
+    const nearby = rematches().filter(rematch => rematch.regionId === worldState.regionId && WorldRules.distance(position, rematch.point) <= 25);
+    // Manual retries may reuse an avoided marker. Prefer an available marker
+    // first so automatic entry and an explicit retry select the same boss.
+    const rematch = nearby.find(entry => !guild().avoidedGreatHunts.includes(entry.uniqueId)) || (includeAvoided ? nearby[0] : null);
+    if (!rematch) return null;
+    const definition = greatHuntById(rematch.uniqueId);
+    return { kind: "great-hunt-rematch", uniqueId: rematch.uniqueId, enemy: rematch.enemy, enemies: definition?.roster || [rematch.enemy], zone: rematch.zone };
+  }
+  /* ---------- Generating quests ---------- */
+  // Points that a Search spot keeps clear of: settlements, sites, region exits and other markers (G20).
+  function searchPoint(zone, regionId) {
+    const region = WorldRules.getRegion(regionId), clearance = Q().SEARCH.clearance;
+    const blockers = [
+      ...WorldRules.settlementsForRegion(regionId).map(place => [place, clearance.settlement]),
+      ...(region.sites || []).map(site => [site, clearance.site]),
+      ...(region.exits || []).map(exit => [exit.point, clearance.exit]),
+      ...markers().map(marker => [marker.point, clearance.marker]),
+    ];
+    for (let attempt = 0; attempt < 40; attempt++) {
+      const candidate = zonePoint(zone, regionId);
+      if (WorldRules.zoneAt(candidate, regionId) === zone.name && blockers.every(([place, radius]) => WorldRules.distance(candidate, place) > radius)) return candidate;
+    }
+    return null;
+  }
+  const destinationOf = (place, regionId) => ({ regionId, settlementId: place.id, name: place.name, point: { x: place.x, y: place.y } });
+  // Deliver: a guild one region away. Escort and Travel: any settlement other than this guild's,
+  // in an adjacent region when there is one (G9, G10).
+  function journeyTargets(host, guildsOnly) {
+    const here = worldState.regionId;
+    const away = Q().adjacentRegions(here).flatMap(regionId => (guildsOnly ? Q().guildsIn(regionId) : Q().settlementsIn(regionId)).map(place => destinationOf(place, regionId)));
+    if (guildsOnly || away.length) return away;
+    return Q().settlementsIn(here).filter(place => place.id !== host.id).map(place => destinationOf(place, here));
+  }
+  function questOffer(type, host) {
+    const regionId = worldState.regionId, questLevel = Q().questLevel(level, regionId);
+    const base = { version: 2, type, level: questLevel, offeredAtLevel: level, offeredDay: today(), progress: 0, complete: false, reward: Q().reward(type, questLevel, bonuses()), regionId, originRegionId: regionId, originCastleId: host.id };
+    const zones = questZones().filter(zone => zone.enemies.length);
+    let quest = null;
+    if (type === "hunt" || type === "cull") {
+      const zone = pick(zones), enemy = zone && enemyFor(zone);
+      if (!enemy) return null;
+      if (type === "hunt") quest = { ...base, zone: zone.name, enemy, point: zonePoint(zone, regionId), description: `Hunt down an empowered ${enemy} in the ${zone.name}. It is stronger than others of its kind and waits at the marked spot.` };
+      else {
+        const required = Q().cullRequired(questLevel);
+        quest = { ...base, zone: zone.name, enemy, required, radius: Q().CULL.radius, point: zonePoint(zone, regionId), description: `Defeat ${required} ${Q().pluralFor(enemy, required)} inside the marked circle in the ${zone.name}, about 6 km across. While this quest is active, half of all encounters there are ${Q().plural(enemy)}. Only kills inside the circle count.` };
+      }
+    } else if (type === "search") {
+      for (const zone of shuffle(zones)) {
+        const point = searchPoint(zone, regionId);
+        if (point) { quest = { ...base, zone: zone.name, point, description: `Investigate the marked spot in the ${zone.name}. Use Search there: whatever lurks will attack you, and escaping it is half as likely.` }; break; }
+      }
+      if (!quest) return null;
+    } else {
+      const targets = journeyTargets(host, type === "deliver");
+      if (!targets.length) return null;
+      const destination = pick(targets), recommended = Q().rangeText(Q().regionLevelRange(destination.regionId));
+      const where = `${destination.name} (${regionName(destination.regionId)}, recommended ${recommended})`;
+      const description = type === "deliver" ? `Carry sealed letters to the Adventurers Guild in ${where}. Hand them over at its counter, then return to the guild counter in ${host.name}.`
+        : type === "escort" ? `Escort a caravan to ${where}, then return to the guild counter in ${host.name}. Bandits will likely ambush you on the way out, even on the roads, and escaping them is 70% less likely.`
+          : `Travel to ${where}, then return to the guild counter in ${host.name}. No fight is forced on you.`;
+      quest = { ...base, regionId: destination.regionId, destination, recommended, description };
+    }
+    return { ...quest, title: Q().title(quest) };
+  }
+  function greatHuntOffer(definition, host) {
+    const location = greatHuntLocation(definition);
+    const offer = {
+      version: 2, type: "great-hunt", uniqueId: definition.id, offeredAtLevel: definition.level, level: definition.level, offeredDay: today(), progress: 0, complete: false,
+      reward: Q().greatHuntReward(definition.level, Q().questLevel(level, worldState.regionId), bonuses()),
+      regionId: location.regionId, originRegionId: definition.offerRegionId || location.regionId, originCastleId: host?.id,
+      zone: location.zone, enemy: definition.enemy, point: location.point, description: definition.description,
+    };
+    return { ...offer, title: Q().title(offer) };
+  }
+  // Each guild draws its board on the first visit of an in-game day and keeps it all day (G7, G8).
+  function drawBoard(host) {
+    const count = Q().OFFERS[Q().isCastleGuild(host) ? "castle" : "town"] + Math.max(0, Math.floor(bonuses().guildQuestChoiceFlat));
+    const offers = [];
+    for (const type of shuffle(Q().TYPES)) {
+      if (offers.length >= count) break;
+      const offer = questOffer(type, host);
+      if (offer) offers.push(offer);
+    }
+    const completed = new Set(guild().greatHuntsCompleted), active = guild().greatHunt?.uniqueId;
+    const eligible = greatHunts.filter(entry => (entry.offerRegionId || entry.regionId) === worldState.regionId && level >= entry.level && !completed.has(entry.id) && entry.id !== active);
+    if (eligible.length) offers.push(greatHuntOffer(pick(eligible), host));
+    return offers;
+  }
+  function boardFor(host) {
+    const boards = guild().boards ||= {}, day = today();
+    for (const [id, board] of Object.entries(boards)) if (board.day !== day) delete boards[id];
+    if (!boards[host.id]) { boards[host.id] = { day, offers: drawBoard(host) }; saveCharacter(); }
+    return boards[host.id];
+  }
+
+  /* ---------- Accepting, handing in, giving up ---------- */
+  function acceptReason(offer) {
+    if (!offer || offer.taken) return "This notice has already been taken.";
+    if (offer.type === "great-hunt") return guild().greatHunt ? "You already carry a Great Hunt. Finish it or give it up first." : "";
+    return guild().quest ? "You already carry a quest. Finish it or give it up first; Great Hunts can be taken beside it." : "";
+  }
+  function accept(index) {
+    const host = castle();
+    if (!available() || !host || !hasService(host, "quest")) return;
+    const offer = boardFor(host).offers[index];
+    if (acceptReason(offer)) return;
+    if (offer.type === "great-hunt") {
+      const definition = greatHuntById(offer.uniqueId);
+      if (!definition || (definition.offerRegionId || definition.regionId) !== worldState.regionId || offer.regionId !== definition.regionId || (offer.originRegionId || offer.regionId) !== worldState.regionId || level < definition.level) return;
+      if (guild().avoidObjective === "great-hunt") guild().avoidObjective = null;
+      guild().greatHunt = { ...structuredClone(offer), taken: false };
+    } else {
+      const quest = { ...structuredClone(offer), taken: false };
+      if (quest.type === "escort") {
+        // The ambushes are rolled once, on accepting (G16).
+        quest.tripMinutes = Math.max(1, Q().tripMinutes(worldState.regionId, { x: host.x, y: host.y }, quest.destination.regionId, quest.destination.point));
+        quest.ambushes = Q().ambushPlan(quest.tripMinutes);
+        quest.travelled = 0;
+      }
+      if (guild().avoidObjective === "hunt") guild().avoidObjective = null;
+      guild().quest = quest;
+    }
+    offer.taken = true; selectedNotice = null;
+    setStatus(`Quest accepted: ${titleOf(offer)}. Follow its marker on the map; the Quests button there shows it at any time.`);
+    render(); window.WorldMap?.render(); saveCharacter();
+  }
+  // Ready to hand in at this counter? Journeys only at the guild that issued them, after the outbound
+  // visit; Great Hunts in the region that offered them; Hunt, Cull and Search at any guild, as before.
+  function handInReady(quest, host) {
+    if (!quest || !host) return false;
+    if (quest.type === "great-hunt") return quest.complete && (quest.originRegionId || quest.regionId) === worldState.regionId;
+    if (isJourney(quest)) return quest.progress >= 1 && quest.originCastleId === host.id && (quest.originRegionId || quest.regionId) === worldState.regionId;
+    return quest.complete;
+  }
+  function pay(quest) {
+    const reward = quest.reward;
+    guild().completedQuests = Math.max(0, Number(guild().completedQuests) || 0) + 1;
+    if (isJourney(quest)) guild().completedTravelQuests = Math.max(0, Number(guild().completedTravelQuests) || 0) + 1;
+    guild().reputation += reward.reputation;
+    currencies = ShopRules.walletFromValue(ShopRules.walletValue(currencies) + reward.silver);
+    document.querySelectorAll(".currency-input").forEach(input => { input.value = currencies[input.dataset.currency]; });
+    if (quest.type === "hunt" && guild().avoidObjective === "hunt") guild().avoidObjective = null;
+    if (quest.type === "great-hunt") {
+      if (guild().avoidObjective === "great-hunt") guild().avoidObjective = null;
+      if (quest.uniqueId && !guild().greatHuntsCompleted.includes(quest.uniqueId)) guild().greatHuntsCompleted.push(quest.uniqueId);
+    }
+  }
+  // The counter: hands letters over for a Deliver quest and pays every finished quest at once (G24).
+  function useCounter() {
+    const host = castle();
+    if (!available() || !host) return;
+    const quest = guild().quest, paid = [];
+    if (quest?.type === "deliver" && !quest.progress && quest.destination?.settlementId === host.id && quest.destination.regionId === worldState.regionId) {
+      quest.progress = 1;
+      setStatus(`The letters are handed over in ${host.name}. Return to the guild counter in ${originOf(quest)?.name || "the issuing guild"} for your reward.`);
+    }
+    for (const slot of ["quest", "greatHunt"]) {
+      const entry = guild()[slot];
+      if (!handInReady(entry, host)) continue;
+      pay(entry); paid.push(entry); guild()[slot] = null;
+    }
+    if (paid.length) {
+      const total = paid.reduce((sum, entry) => ({ silver: sum.silver + entry.reward.silver, reputation: sum.reputation + entry.reward.reputation }), { silver: 0, reputation: 0 });
+      setStatus(`${paid.map(titleOf).join(" and ")} completed. Earned ${rewardText(total)}.`);
+      showRewardNote(total);
+    }
+    openDock("counter");
+    window.WorldMap?.render(); saveCharacter();
+  }
+  // Quests can be looked at and given up anywhere (G26, G29).
+  function giveUp(slot) {
+    const quest = guild()[slot];
+    if (!quest || window.Combat?.active() || !window.confirm(`Give up "${titleOf(quest)}"? Its progress and reward will be lost.`)) return false;
+    if (quest.type === "hunt" && guild().avoidObjective === "hunt") guild().avoidObjective = null;
+    if (quest.type === "great-hunt" && guild().avoidObjective === "great-hunt") guild().avoidObjective = null;
+    guild()[slot] = null;
+    const message = `Quest given up: ${titleOf(quest)}.`;
+    setStatus(message); if ($("guild-quests-status")) $("guild-quests-status").textContent = message;
+    render(); renderQuestCard(); window.WorldMap?.render(); saveCharacter();
+    return true;
+  }
+
+  /* ---------- Quest state on the road ---------- */
+  const pendingAmbush = quest => quest?.type === "escort" && !quest.progress ? (quest.ambushes || []).find(ambush => !ambush.done) || null : null;
+  const atDestination = quest => Boolean(quest?.destination) && worldState.regionId === quest.destination.regionId && WorldRules.settlementAt(worldState.position, worldState.regionId)?.id === quest.destination.settlementId;
+  const ambushDue = quest => { const ambush = pendingAmbush(quest); return Boolean(ambush) && (quest.travelled >= ambush.at || atDestination(quest)); };
+  // Escort counts the outbound trip's travel minutes for its ambushes (G16).
+  function onTravel(minutes) {
+    const quest = guild().quest;
+    if (quest?.type === "escort" && !quest.progress && Number.isFinite(minutes) && minutes > 0) quest.travelled = Math.max(0, Number(quest.travelled) || 0) + minutes;
+  }
+  function settleSearch() { const quest = guild().quest; if (quest?.type === "search" && !quest.complete) quest.complete = true; }
+  function settleAmbush() { const ambush = pendingAmbush(guild().quest); if (ambush) ambush.done = true; }
+  // Winning or fleeing settles a Search or Escort fight; a defeat leaves it open (G15).
+  function onBattleFinished(result, objective) {
+    const text = String(result || "");
+    if (objective === "search" && /^(Victory|Escaped)/.test(text)) settleSearch();
+    if (objective === "escort-ambush") {
+      if (/^(Victory|Escaped)/.test(text)) settleAmbush();
+      else if (/^Defeat/.test(text)) {
+        const quest = guild().quest, ambush = pendingAmbush(quest);
+        if (ambush) ambush.at = Q().ambushRetry(quest.travelled, quest.tripMinutes);
+      }
+    }
+    if (["search", "escort-ambush"].includes(objective)) { onPositionChange(); window.WorldMap?.render(); }
+  }
+  // Inside a Cull circle, half of all encounters are the target in one of its usual groups (G13).
+  function adjustEncounter(enemies, zone, random = Math.random) {
+    const quest = guild().quest;
+    if (!Array.isArray(enemies) || !enemies.length || quest?.type !== "cull" || quest.complete || worldState.regionId !== quest.regionId || !quest.point) return enemies;
+    if (WorldRules.distance(worldState.position, quest.point) > quest.radius || random() >= Q().CULL.targetShare) return enemies;
+    return EncounterRules.generateIncluding(quest.zone || zone, quest.enemy, { level, regionId: worldState.regionId });
+  }
+  const escapeChance = (chance, objective) => Q().escapeChance(chance, objective);
+
+  /* ---------- The guild window ---------- */
+  const DOCK_TITLES = { board: "Bulletin board", counter: "Guild counter", artifacts: "Artifacts", tavern: "Tavern · Recruits", hooded: "The hooded man", trophies: "Great Hunts completed" };
+  function spotReason(kind, host) {
+    if (kind === "tavern" && !hasService(host, "recruit")) return "No recruits here.";
+    if (kind === "hooded" && !hasService(host, "information")) return "No one here sells information.";
+    if (kind === "trophies" && !completedGreatHuntsHere().length) return "Complete a Great Hunt offered here to see its trophies.";
+    return "";
+  }
+  function syncSpots(host) {
+    $("guild-banner").querySelectorAll("[data-guild-spot]").forEach(spot => {
+      const reason = spotReason(spot.dataset.guildSpot, host);
+      spot.setAttribute("aria-disabled", String(Boolean(reason)));
+      spot.setAttribute("tabindex", reason ? "-1" : "0");
+      spot.classList.toggle("is-disabled", Boolean(reason));
+      let title = spot.querySelector("title");
+      if (!title) { title = document.createElementNS("http://www.w3.org/2000/svg", "title"); spot.prepend(title); }
+      title.textContent = reason || spot.getAttribute("aria-label");
+    });
+  }
+  function render() {
+    const host = castle();
+    if (host) {
+      $("guild-eyebrow").textContent = `${host.name.toUpperCase()} · ADVENTURERS GUILD`;
+      window.SceneBanners?.show($("guild-banner"), "guild", host, worldState.regionId);
+      syncSpots(host);
+    }
+    $("guild-reputation").textContent = guild().reputation;
+    $("guild-dock").hidden = !dock;
+    $("guild-modal").querySelector(".guild-hall").dataset.dock = dock || "";
+    if (dock) { $("guild-dock-title").textContent = DOCK_TITLES[dock] || ""; renderDock(host); }
+    else $("guild-panel").innerHTML = "";
+    if (!modal.hidden) updateModalState();
+  }
+  function renderDock(host) {
+    if (dock === "board") renderBoard(host);
+    else if (dock === "counter") renderCounter(host);
+    else if (dock === "artifacts") renderArtifacts();
+    else if (dock === "tavern") renderRecruits(host);
+    else if (dock === "hooded") renderInformationView();
+    else if (dock === "trophies") renderTrophies();
+  }
+  function openDock(kind) {
+    if (kind !== "hooded") resetInformationView();
+    dock = kind; render();
+    $("guild-dock").scrollTop = 0;
+  }
+  function closeDock() { resetInformationView(); dock = null; selectedNotice = null; render(); }
+  function activate(kind) {
+    const host = castle();
+    if (!available() || !host || spotReason(kind, host)) return;
+    if (kind === "counter") useCounter();
+    else if (kind === "hooded") openInformation();
+    else openDock(kind);
+  }
+  function open() {
+    if (!available()) return;
+    resetInformationView(); dock = null; selectedNotice = null;
+    modal.hidden = false;
+    setStatus(guild().notice || "");
+    guild().notice = null;
+    render(); updateModalState();
+    ($("guild-banner").querySelector('[data-guild-spot="board"]') || modal.querySelector(".modal-close"))?.focus();
+  }
+  function close() { resetInformationView(); dock = null; selectedNotice = null; modal.hidden = true; updateModalState(); $("map-guild").focus(); }
+
+  /* Quest texts shared by the board, the counter and the map's quest card. */
+  function placeText(quest) {
+    if (isJourney(quest)) return `${quest.destination?.name || "Unknown"} · ${regionName(quest.destination?.regionId)} · recommended ${quest.recommended || Q().rangeText(Q().regionLevelRange(quest.destination?.regionId))}`;
+    return `${quest.zone || "Unknown"} · ${regionName(quest.regionId)}`;
+  }
+  function progressText(quest) {
+    const origin = originOf(quest)?.name || "the issuing guild";
+    if (quest.type === "hunt") return quest.complete ? "Target defeated · hand it in at any guild counter" : `Defeat the empowered ${quest.enemy} at the marked spot in the ${quest.zone}.`;
+    if (quest.type === "cull") return `Defeat ${Q().plural(quest.enemy)}: ${Math.min(quest.progress, quest.required)} / ${quest.required}${quest.complete ? " · hand it in at any guild counter" : " · inside the marked circle"}`;
+    if (quest.type === "search") return quest.complete ? "Investigated · hand it in at any guild counter" : `Use Search at the marked spot in the ${quest.zone}.`;
+    if (quest.type === "deliver") return quest.progress ? `Letters delivered · return to the guild counter in ${origin}` : `Hand the letters over at the guild counter in ${quest.destination.name}.`;
+    if (quest.type === "escort") return quest.progress ? `Caravan delivered · return to the guild counter in ${origin}` : `Bring the caravan to ${quest.destination.name}.`;
+    if (quest.type === "travel") return quest.progress ? `Destination reached · return to the guild counter in ${origin}` : `Reach ${quest.destination.name}.`;
+    if (quest.type === "great-hunt") return quest.complete ? `Defeated · hand it in at a guild counter in ${regionName(quest.originRegionId || quest.regionId)}` : `Defeat ${quest.enemy} in the ${quest.zone} of ${regionName(quest.regionId)}.`;
+    return "";
+  }
+  function specialText(quest) {
+    if (quest.type === "hunt") return "The target is empowered: 30% stronger than others of its kind.";
+    if (quest.type === "cull") return "Half of all encounters inside the circle are the target. Only kills inside the circle count.";
+    if (quest.type === "deliver") return "Hand the letters over at the destination guild's counter, then come back here.";
+    if (quest.type === "search") return "Searching starts a fight; escaping it is half as likely. Winning or escaping completes the search.";
+    if (quest.type === "escort") return "Bandits are likely to ambush you on the way out, even on roads: most often once, sometimes not at all, sometimes twice. Escaping them is 70% less likely.";
+    if (quest.type === "travel") return "No fight is forced: just get there and back.";
+    if (quest.type === "great-hunt") return "A Great Hunt can be carried beside a standard quest, one at a time.";
+    return "";
+  }
+  function targetText(quest) {
+    if (quest.type === "cull") return `${quest.required} ${Q().pluralFor(quest.enemy, quest.required)}`;
+    if (["hunt", "great-hunt"].includes(quest.type)) return quest.type === "hunt" ? `Empowered ${quest.enemy}` : quest.enemy;
+    return "";
+  }
+  function activeQuestMarkup(slot, quest, withGiveUp = true) {
+    return `<article class="guild-active-quest is-type-${quest.type}"><div><small>${escapeHtml(Q().NAMES[quest.type])} · ${slot === "greatHunt" ? "Great Hunt" : "Active quest"}</small><strong>${escapeHtml(titleOf(quest))}</strong><span>${escapeHtml(progressText(quest))}</span><span class="guild-active-place">${escapeHtml(placeText(quest))}</span><span class="guild-active-reward">${escapeHtml(rewardText(quest.reward))}</span></div>${withGiveUp ? `<button type="button" data-guild-give-up="${slot}">Give up</button>` : ""}</article>`;
+  }
+  function renderBoard(host) {
+    const board = boardFor(host), offers = board.offers;
+    if (selectedNotice == null || !offers[selectedNotice] || offers[selectedNotice].taken) selectedNotice = offers.findIndex(offer => !offer.taken);
+    const active = [["quest", guild().quest], ["greatHunt", guild().greatHunt]].filter(([, quest]) => quest);
+    const notices = offers.map((offer, index) => offer.taken ? "" : `<button type="button" class="guild-notice is-type-${offer.type}${index === selectedNotice ? " is-selected" : ""}" data-guild-notice="${index}" aria-pressed="${index === selectedNotice}"><small>${escapeHtml(Q().NAMES[offer.type])}</small><strong>${escapeHtml(titleOf(offer))}</strong><span>${escapeHtml(rewardText(offer.reward))}</span></button>`).join("");
+    const offer = offers[selectedNotice], reason = acceptReason(offer);
+    const rows = offer ? [["Type", Q().NAMES[offer.type]], ["Objective", offer.description], ["Place", placeText(offer)], ...(targetText(offer) ? [[offer.type === "cull" ? "Kills" : "Target", targetText(offer)]] : []), ["Gold", ShopRules.formatPrice(offer.reward.silver)], ["Reputation", String(offer.reward.reputation)], ["Rules", specialText(offer)]] : [];
+    const detail = offer ? `<article class="guild-notice-detail is-type-${offer.type}"><p class="eyebrow">${escapeHtml(Q().NAMES[offer.type].toUpperCase())} · QUEST LEVEL ${offer.level || offer.offeredAtLevel}</p><h4>${escapeHtml(titleOf(offer))}</h4><button type="button" id="guild-accept" data-guild-accept="${selectedNotice}" ${reason ? `disabled title="${escapeHtml(reason)}"` : ""}>Accept quest</button>${reason ? `<p class="guild-accept-reason">${escapeHtml(reason)}</p>` : ""}<dl class="guild-intel-details">${rows.map(([label, value]) => `<dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd>`).join("")}</dl></article>` : "";
+    $("guild-panel").innerHTML = `<div class="guild-board">${active.length ? `<div class="guild-board-active"><p class="eyebrow">ACCEPTED</p>${active.map(([slot, quest]) => activeQuestMarkup(slot, quest)).join("")}</div>` : ""}<div class="guild-board-layout"><div class="guild-notices" aria-label="Today's notices"><p class="eyebrow">TODAY'S NOTICES · DAY ${board.day}</p>${notices || '<p class="guild-board-empty">No more notices today. New ones go up tomorrow.</p>'}</div>${detail}</div></div>`;
+  }
+  function renderCounter(host) {
+    const lines = [["quest", guild().quest], ["greatHunt", guild().greatHunt]].filter(([, quest]) => quest).map(([slot, quest]) => {
+      const ready = handInReady(quest, host);
+      return `<li class="${ready ? "is-ready" : ""}"><strong>${escapeHtml(titleOf(quest))}</strong><span>${escapeHtml(ready ? "Ready to hand in" : progressText(quest))}</span></li>`;
+    }).join("");
+    const challenge = guild().artifactChallenge, day = today();
+    const reason = guild().reputation < ARTIFACT_REPUTATION_COST ? `Requires ${ARTIFACT_REPUTATION_COST} Reputation.` : day < guild().artifactNextDay ? `Available again on Day ${guild().artifactNextDay}.` : "";
+    const artifacts = !hasService(host, "artifacts") ? "" : challenge
+      ? `<p class="guild-challenge-note">Artifact challenge: defeat the empowered ${escapeHtml(challenge.enemy)} at the marked point in ${escapeHtml(challenge.zone)} to claim ${escapeHtml(getItem(challenge.artifactId)?.name || "the artifact")}.</p>`
+      : `<button type="button" class="guild-choice" id="guild-artifacts" ${reason ? `disabled title="${escapeHtml(reason)}"` : ""}><strong>Artifacts</strong><span>Choose one of three artifacts of your level's rarity; an empowered guardian then holds it until you defeat it.</span><small>${escapeHtml(reason || `${ARTIFACT_REPUTATION_COST} Reputation · Level-matched rarity · 7-day cooldown`)}</small></button>`;
+    $("guild-panel").innerHTML = `<div class="guild-counter-panel"><p>The clerk checks your contracts. Finished quests are paid the moment you step up to the counter.</p>${lines ? `<ul class="guild-counter-quests">${lines}</ul>` : "<p>You carry no quest. Take one from the bulletin board.</p>"}${artifacts}</div>`;
+  }
+  function offerArtifacts() {
+    const host = castle();
+    if (!available() || !hasService(host, "artifacts") || guild().reputation < ARTIFACT_REPUTATION_COST || today() < guild().artifactNextDay || guild().artifactChallenge) return;
+    const pool = artifactPoolForLevel();
+    if (guild().artifactOffers.length !== 3 || guild().artifactOffers.some(id => !pool.artifacts.some(item => item.id === id))) guild().artifactOffers = shuffle(pool.artifacts).slice(0, 3).map(item => item.id);
+    openDock("artifacts"); saveCharacter();
+  }
+  function renderArtifacts() {
+    const pool = artifactPoolForLevel();
+    $("guild-panel").innerHTML = `<p class="eyebrow">CHOOSE A ${escapeHtml(pool.rarity.toUpperCase())} ARTIFACT · ${ARTIFACT_REPUTATION_COST} REPUTATION</p><div class="guild-artifact-choices">${guild().artifactOffers.map(id => { const item = getItem(id); return item ? `<button class="guild-choice ${itemRarityClass(item)}" data-guild-artifact="${escapeHtml(id)}" type="button"><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.description)}</span><small>${escapeHtml(itemRarityLabel(item.rarity))}${(item.effects || []).length ? " · " + escapeHtml(item.effects.map(artifactEffectLabel).join(" · ")) : ""}</small></button>` : ""; }).join("")}</div><button type="button" data-guild-dock="counter">Back to the counter</button>`;
+  }
+  function takeArtifact(id) {
+    const artifact = getItem(id);
+    const pool = artifactPoolForLevel();
+    if (!available() || !hasService(castle(), "artifacts") || guild().reputation < ARTIFACT_REPUTATION_COST || guild().artifactNextDay > today() || guild().artifactChallenge || !guild().artifactOffers.includes(id) || artifact?.category !== "artifact" || !pool.artifacts.some(item => item.id === id)) return;
+    const regionId = worldState.regionId, zone = pick(questZones()), enemy = enemyFor(zone);
+    guild().reputation -= ARTIFACT_REPUTATION_COST;
+    guild().artifactNextDay = today() + 7;
+    guild().artifactChallenge = { regionId, zone: zone.name, point: zonePoint(zone, regionId), enemy, artifactId: id };
+    guild().artifactOffers = [];
+    setStatus(`An empowered ${enemy} now guards ${artifact.name} in ${zone.name}.`);
+    openDock("counter"); window.WorldMap?.render(); saveCharacter();
+  }
+
+  /* Recruits at the tavern (G5, G28, G30, G31): their number by guild, their level by region. */
+  const recruitCount = host => Q().RECRUITS[Q().isCastleGuild(host) ? "castle" : "town"];
+  const recruitCost = offer => Q().recruitCost(offer?.character?.level || 1, companions.length);
+  function recruitsFor(host) {
+    const count = recruitCount(host), recruitLevel = Q().recruitLevel(level, worldState.regionId);
+    if (!window.Companions || !window.ForgeRules || !raceCatalog.some(race => race.playable)) return [];
+    if (recruitOffers.length !== count || recruitOffers.some(offer => offer.guildId !== host.id || offer.character.level !== recruitLevel)) {
+      recruitOffers = window.Companions.makeOffers({ count, level: recruitLevel, regionId: worldState.regionId }).map(offer => ({ ...offer, guildId: host.id }));
+      saveCharacter();
+    }
+    return recruitOffers;
+  }
+  function recruitReason(offer) {
+    if (companions.length >= 3) return "Your party already has three companions.";
+    if (guild().reputation < recruitCost(offer)) return `Requires ${recruitCost(offer)} Reputation.`;
+    return "";
+  }
+  function renderRecruits(host) {
+    const offers = recruitsFor(host);
+    const card = offer => {
+      const c = offer.character, race = raceCatalog.find(entry => entry.id === c.raceId), reason = recruitReason(offer);
+      const gear = ["primaryHand", "armor"].map(slot => getItem(c.equipment[slot])).filter(Boolean).map(item => `<li class="${itemRarityClass(item)}"><span>${escapeHtml(item.name)}</span><small>${escapeHtml(itemRarityLabel(item.rarity))} · ${escapeHtml(itemTypeLabel(item.type))}</small></li>`).join("");
+      const stats = statDefinitions.map(stat => `<span><small>${escapeHtml(stat.short)}</small>${c.stats[stat.key]}</span>`).join("");
+      return `<article class="guild-recruit-card"><header><strong>${escapeHtml(offer.name)}</strong><small>${escapeHtml(race?.name || "Adventurer")} · Level ${c.level} · No class yet</small></header><div class="guild-recruit-stats">${stats}</div><p class="guild-recruit-points">${c.availablePoints} stat points and ${c.perkPoints} class points to spend</p><ul class="guild-recruit-gear">${gear}</ul><button type="button" data-guild-recruit="${escapeHtml(offer.id)}" ${reason ? `disabled title="${escapeHtml(reason)}"` : ""}>Recruit · ${recruitCost(offer)} Reputation</button>${reason ? `<small class="guild-accept-reason">${escapeHtml(reason)}</small>` : ""}</article>`;
+    };
+    $("guild-panel").innerHTML = `<p class="eyebrow">${offers.length} ADVENTURER${offers.length === 1 ? "" : "S"} LOOKING FOR WORK · PARTY ${companions.length} / 3</p><p>Recruits arrive with one melee weapon and one armor piece, and with every stat and class point still to spend on their sheet.</p><div class="guild-recruits">${offers.map(card).join("") || "<p>No one is looking for work here.</p>"}</div>`;
+  }
+  function takeRecruit(id) {
+    const host = castle();
+    if (!available() || !hasService(host, "recruit")) return;
+    const offer = recruitOffers.find(entry => entry.id === id && entry.guildId === host.id);
+    if (!offer || recruitReason(offer)) return;
+    const cost = recruitCost(offer);
+    const member = structuredClone(offer); delete member.guildId;
+    if (!window.Companions.add(member)) return;
+    // As before the rework, the other offers go once someone is hired; the next visit draws new faces.
+    guild().reputation -= cost; recruitOffers = [];
+    closeDock();
+    setStatus(`${offer.name} joined your party for ${cost} Reputation. Spend their points on their companion sheet.`);
+    saveCharacter();
+  }
+  function renderTrophies() {
+    const entries = completedGreatHuntsHere();
+    $("guild-panel").innerHTML = `<p class="eyebrow">GREAT HUNTS COMPLETED</p><p>Rematch markers stay active until you deactivate them or leave the boss's region. After a fight, leave the marker area and return to fight again.</p>${entries.map(entry => {
+      const active = rematches().some(rematch => rematch.uniqueId === entry.id);
+      return `<article class="guild-great-hunt-record"><div><strong>${escapeHtml(entry.enemy)}</strong><span>Level ${entry.level} · ${escapeHtml(WorldRules.getRegion(entry.regionId).name)}</span></div><button type="button" data-guild-rematch="${escapeHtml(entry.id)}" aria-pressed="${active}">${active ? "Deactivate marker" : "Place rematch marker"}</button></article>`;
+    }).join("") || "<p>No completed Great Hunts were found.</p>"}`;
+  }
+  function toggleGreatHuntRematch(id) {
+    const definition = greatHuntById(id);
+    if (!available() || !definition || (definition.offerRegionId || definition.regionId) !== worldState.regionId || !guild().greatHuntsCompleted.includes(id)) return;
+    if (rematches().some(rematch => rematch.uniqueId === id)) {
+      guild().greatHuntRematches = rematches().filter(rematch => rematch.uniqueId !== id);
+      guild().avoidedGreatHunts = guild().avoidedGreatHunts.filter(avoided => avoided !== id);
+      setStatus(`The rematch marker for ${definition.enemy} has been deactivated.`);
+    } else {
+      const location = greatHuntLocation(definition);
+      rematches().push({ uniqueId: id, enemy: definition.enemy, ...location });
+      setStatus(`A rematch marker for ${definition.enemy} has been placed in ${location.zone} of ${WorldRules.getRegion(location.regionId).name}. It stays active until you deactivate it or leave that region.`);
+    }
+    syncRematchCompatibility();
+    openDock("trophies"); window.WorldMap?.render(); saveCharacter();
+  }
+  // A parchment note rises from the counter with the reward, then fades (G24).
+  function showRewardNote(total) {
+    const note = $("guild-reward-note"), counterSpot = $("guild-banner").querySelector('[data-guild-spot="counter"] .scene-spot-hit'), hall = modal.querySelector(".guild-hall");
+    note.innerHTML = `<span class="guild-reward-coin" aria-hidden="true"></span><strong>${escapeHtml(ShopRules.formatPrice(total.silver))}</strong><span class="guild-reward-seal" aria-hidden="true"></span><strong>${total.reputation} Reputation</strong>`;
+    if (counterSpot && hall) {
+      const box = counterSpot.getBoundingClientRect(), frame = hall.getBoundingClientRect();
+      note.style.left = `${Math.round(box.left - frame.left + box.width / 2)}px`;
+      note.style.top = `${Math.round(Math.max(96, box.top - frame.top - 24))}px`;
+    }
+    note.hidden = false; note.classList.remove("is-shown"); void note.offsetWidth; note.classList.add("is-shown");
+    clearTimeout(noteTimer); noteTimer = setTimeout(() => { note.hidden = true; note.classList.remove("is-shown"); }, 3000);
+  }
+
+  /* ---------- The map's quest card (G29) ---------- */
+  const questsModal = $("guild-quests-modal");
+  function renderQuestCard() {
+    if (!questsModal || questsModal.hidden) return;
+    const active = [["quest", guild().quest], ["greatHunt", guild().greatHunt]].filter(([, quest]) => quest);
+    const challenge = guild().artifactChallenge;
+    $("guild-quests-list").innerHTML = (active.map(([slot, quest]) => activeQuestMarkup(slot, quest, !window.Combat?.active())).join("") || '<p class="guild-board-empty">You carry no quest. Visit an Adventurers Guild and its bulletin board.</p>')
+      + (challenge ? `<p class="guild-challenge-note">Artifact challenge: defeat the empowered ${escapeHtml(challenge.enemy)} in ${escapeHtml(challenge.zone)} (${escapeHtml(regionName(challenge.regionId))}).</p>` : "");
+  }
+  function openQuests() {
+    if (!questsModal) return;
+    questsModal.hidden = false; $("guild-quests-status").textContent = "";
+    renderQuestCard(); updateModalState(); questsModal.querySelector(".modal-close").focus();
+  }
+  function closeQuests() { if (!questsModal) return; questsModal.hidden = true; updateModalState(); $("map-quests")?.focus(); }
+
+  /* ---------- Map hooks ---------- */
+  function canSearch() {
+    const quest = guild().quest;
+    return Boolean(quest && quest.type === "search" && worldState.regionId === (quest.regionId || "alder-vale") && !quest.complete && quest.point && WorldRules.zoneAt(worldState.position, worldState.regionId) === quest.zone && WorldRules.distance(worldState.position, quest.point) <= Q().SEARCH.reach && !worldState.pendingEncounter && !window.Combat?.active() && !window.WorldMap?.isTravelling());
+  }
+  // Searching starts a fight with the spot's usual enemies (task 2, section 5).
+  function search() {
+    if (!canSearch()) return null;
+    const quest = guild().quest, zone = zonesForRegion().find(entry => entry.name === quest.zone);
+    const enemies = EncounterRules.generate(quest.zone, { level, regionId: worldState.regionId });
+    const roster = enemies.length ? enemies : [zone && enemyFor(zone)].filter(Boolean);
+    return roster.length ? { enemies: roster, zone: quest.zone, objective: "search" } : null;
+  }
+  function onPositionChange() {
+    guild().avoidedGreatHunts = guild().avoidedGreatHunts.filter(id => rematches().some(rematch => rematch.uniqueId === id && rematch.regionId === worldState.regionId && WorldRules.distance(worldState.position, rematch.point) <= 45));
+    if (guild().avoidObjective) {
+      const objective = guild().avoidObjective;
+      const source = objective === "hunt" ? guild().quest : objective === "great-hunt" ? guild().greatHunt : objective === "artifact" ? guild().artifactChallenge : guild().greatHuntRematch;
+      if (!source?.point || worldState.regionId !== (source.regionId || "alder-vale") || WorldRules.distance(worldState.position, source.point) > 45) guild().avoidObjective = null;
+    }
+    const quest = guild().quest;
+    // Escort and Travel register the outbound visit on arrival; an Escort's ambush strikes first.
+    if ((quest?.type === "travel" || quest?.type === "escort") && !quest.progress && atDestination(quest) && !pendingAmbush(quest)) quest.progress = 1;
+  }
   function onEnemyDefeated(actor) {
     const loot = [];
-    const quest = guild().quest;
-    if (quest?.type === "clear" && worldState.regionId === (quest.regionId || "alder-vale") && actor.character && actor.name.replace(/^Empowered /, "").replace(/ \d+$/, "") === quest.enemy && !actor.summoned) {
+    const quest = guild().quest, name = String(actor.name || "").replace(/^Empowered /, "").replace(/ \d+$/, "");
+    // Cull: only the target, only inside its circle (G12).
+    if (quest?.type === "cull" && !quest.complete && worldState.regionId === quest.regionId && quest.point && WorldRules.distance(worldState.position, quest.point) <= quest.radius && actor.character && name === quest.enemy && !actor.summoned) {
       quest.progress += 1;
       if (quest.progress >= quest.required) quest.complete = true;
     }
     const objective = actor.guildObjective;
     if (objective === "hunt" && quest?.type === "hunt") quest.complete = true;
-    if (objective === "great-hunt" && quest?.type === "great-hunt") quest.complete = true;
+    if (objective === "great-hunt" && guild().greatHunt) guild().greatHunt.complete = true;
     if (objective === "great-hunt-rematch" && rematches().length) {
       // Keep the marker fixed, but do not immediately restart the encounter
       // while the party is still standing at its location after the battle.
@@ -668,49 +912,98 @@
     if (objective) window.WorldMap?.render();
     return loot;
   }
-  function rematchAt(position, includeAvoided = false) {
-    const nearby = rematches().filter(rematch => rematch.regionId === worldState.regionId && WorldRules.distance(position, rematch.point) <= 25);
-    // Manual retries may reuse an avoided marker. Prefer an available marker
-    // first so automatic entry and an explicit retry select the same boss.
-    const rematch = nearby.find(entry => !guild().avoidedGreatHunts.includes(entry.uniqueId)) || (includeAvoided ? nearby[0] : null);
-    if (!rematch) return null;
-    const definition = greatHuntById(rematch.uniqueId);
-    return { kind: "great-hunt-rematch", uniqueId: rematch.uniqueId, enemy: rematch.enemy, enemies: definition?.roster || [rematch.enemy], zone: rematch.zone };
-  }
   function objectiveAt(position) {
-    const quest = guild().quest;
+    const quest = guild().quest, hunt = guild().greatHunt;
     if (quest?.type === "hunt" && worldState.regionId === (quest.regionId || "alder-vale") && !quest.complete && guild().avoidObjective !== "hunt" && quest.point && quest.enemy && quest.zone && WorldRules.distance(position, quest.point) <= 25) return { kind: "hunt", enemy: quest.enemy, zone: quest.zone };
-    if (quest?.type === "great-hunt" && !quest.complete && worldState.regionId === (quest.regionId || "alder-vale") && guild().avoidObjective !== "great-hunt" && quest.point && quest.enemy && quest.zone && WorldRules.distance(position, quest.point) <= 25) {
-      const definition = greatHuntById(quest.uniqueId);
-      return { kind: "great-hunt", enemy: quest.enemy, enemies: definition?.roster || [quest.enemy], zone: quest.zone };
+    if (hunt && !hunt.complete && worldState.regionId === (hunt.regionId || "alder-vale") && guild().avoidObjective !== "great-hunt" && hunt.point && hunt.enemy && hunt.zone && WorldRules.distance(position, hunt.point) <= 25) {
+      const definition = greatHuntById(hunt.uniqueId);
+      return { kind: "great-hunt", enemy: hunt.enemy, enemies: definition?.roster || [hunt.enemy], zone: hunt.zone };
+    }
+    // Escort bandits strike wherever the trip has reached, roads included (G16, G17).
+    if (ambushDue(quest)) {
+      const enemies = Q().ambushGroup(Q().ambushLevel(level, worldState.regionId));
+      return { kind: "escort-ambush", enemy: enemies[0], enemies, zone: WorldRules.zoneAt(position, worldState.regionId) };
     }
     const challenge = guild().artifactChallenge;
     if (challenge?.point && worldState.regionId === (challenge.regionId || "alder-vale") && guild().avoidObjective !== "artifact" && WorldRules.distance(position, challenge.point) <= 25) return { kind: "artifact", enemy: challenge.enemy, zone: challenge.zone };
     return rematchAt(position);
   }
+  // A destination in another region is marked on the road (or harbour) leading there (G19).
+  function towardMarker(regionId, label) {
+    const step = Q().firstStep(worldState.regionId, regionId);
+    if (!step) return null;
+    return step.kind === "exit"
+      ? { point: { ...step.exit.point }, label: `Toward ${regionName(regionId)} · ${label}`, kind: "quest" }
+      : { point: { x: step.settlement.x, y: step.settlement.y }, label: `Boat toward ${regionName(regionId)} · ${label}`, kind: "quest" };
+  }
   function markers() {
-    const result = [], quest = guild().quest;
-    if (quest && !quest.complete && quest.point && worldState.regionId === (quest.regionId || "alder-vale") && (!quest.progress || quest.type === "hunt" || quest.type === "great-hunt" || quest.type === "search")) result.push({ point: quest.point, label: quest.type === "hunt" ? `Empowered ${quest.enemy}` : quest.type === "great-hunt" ? `Great Hunt · ${quest.enemy}` : quest.type === "search" ? `Search · ${quest.zone}` : quest.type === "travel" ? "Travel destination" : "Escort destination", kind: quest.type === "great-hunt" ? "great-hunt" : "quest" });
-    if (guild().artifactChallenge && worldState.regionId === (guild().artifactChallenge.regionId || "alder-vale")) result.push({ point: guild().artifactChallenge.point, label: `Artifact guardian · ${guild().artifactChallenge.enemy}`, kind: "artifact" });
-    for (const rematch of rematches()) if (worldState.regionId === rematch.regionId) result.push({ point: rematch.point, label: `Great Hunt rematch · ${rematch.enemy}`, kind: "great-hunt" });
+    const result = [], quest = guild().quest, hunt = guild().greatHunt, here = worldState.regionId;
+    if (quest && !quest.complete) {
+      if (["hunt", "cull", "search"].includes(quest.type) && quest.point && here === (quest.regionId || "alder-vale")) {
+        result.push({ point: quest.point, label: quest.type === "hunt" ? `Empowered ${quest.enemy}` : quest.type === "cull" ? `Cull · ${Q().plural(quest.enemy)} ${Math.min(quest.progress, quest.required)}/${quest.required}` : `Search · ${quest.zone}`, kind: "quest" });
+      }
+      if (isJourney(quest)) {
+        const origin = originOf(quest);
+        const target = quest.progress
+          ? origin && { regionId: quest.originRegionId || quest.regionId, point: { x: origin.x, y: origin.y }, label: `Return to ${origin.name}` }
+          : { regionId: quest.destination.regionId, point: quest.destination.point, label: `${Q().NAMES[quest.type]} · ${quest.destination.name}` };
+        if (target) {
+          const marker = here === target.regionId ? { point: target.point, label: target.label, kind: "quest" } : towardMarker(target.regionId, target.label);
+          if (marker) result.push(marker);
+        }
+      }
+    }
+    if (hunt && !hunt.complete && hunt.point && here === (hunt.regionId || "alder-vale")) result.push({ point: hunt.point, label: `Great Hunt · ${hunt.enemy}`, kind: "great-hunt" });
+    if (guild().artifactChallenge && here === (guild().artifactChallenge.regionId || "alder-vale")) result.push({ point: guild().artifactChallenge.point, label: `Artifact guardian · ${guild().artifactChallenge.enemy}`, kind: "artifact" });
+    for (const rematch of rematches()) if (here === rematch.regionId) result.push({ point: rematch.point, label: `Great Hunt rematch · ${rematch.enemy}`, kind: "great-hunt" });
     return result;
   }
+  // The Cull circle, shown on the map while the quest is active (G12).
+  function areas() {
+    const quest = guild().quest;
+    return quest?.type === "cull" && !quest.complete && quest.point && worldState.regionId === quest.regionId ? [{ point: quest.point, radius: quest.radius, label: `Cull area · ${Q().plural(quest.enemy)}` }] : [];
+  }
+  function avoidObjective(kind, rematchId = null) {
+    if (kind === "great-hunt-rematch") avoidRematch(rematchId);
+    else if (["hunt", "artifact", "great-hunt"].includes(kind)) guild().avoidObjective = kind;
+    // Fleeing settles a Search or Escort fight (G15).
+    else if (kind === "search") settleSearch();
+    else if (kind === "escort-ambush") settleAmbush();
+    if (["search", "escort-ambush"].includes(kind)) onPositionChange();
+    saveCharacter();
+  }
+
+  /* ---------- Events ---------- */
   $("map-guild").addEventListener("click", open);
   modal.querySelectorAll("[data-guild-close]").forEach(button => button.addEventListener("click", close));
-  modal.addEventListener("keydown", event => { if (event.key === "Escape") { event.preventDefault(); close(); } });
-  $("guild-quest").addEventListener("click", offerQuests);
-  $("guild-artifacts").addEventListener("click", offerArtifacts);
-  $("guild-recruit").addEventListener("click", offerRecruits);
-  $("guild-great-hunts").addEventListener("click", showCompletedGreatHunts);
-  $("guild-information").addEventListener("click", openInformation);
+  modal.addEventListener("keydown", event => {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    if (dock) closeDock(); else close();
+  });
+  $("guild-dock-close").addEventListener("click", closeDock);
+  $("guild-banner").addEventListener("click", event => {
+    const spot = event.target.closest("[data-guild-spot]");
+    if (spot && spot.getAttribute("aria-disabled") !== "true") activate(spot.dataset.guildSpot);
+    else if (!spot && dock) closeDock();
+  });
+  $("guild-banner").addEventListener("keydown", event => {
+    const spot = event.target.closest("[data-guild-spot]");
+    if (!spot || !["Enter", " "].includes(event.key)) return;
+    event.preventDefault();
+    if (spot.getAttribute("aria-disabled") !== "true") activate(spot.dataset.guildSpot);
+  });
   $("guild-panel").addEventListener("click", event => {
-    const questButton = event.target.closest("[data-guild-quest]"), artifactButton = event.target.closest("[data-guild-artifact]"), recruitButton = event.target.closest("[data-guild-recruit]"), rematchButton = event.target.closest("[data-guild-rematch]");
-    if (questButton) takeQuest(Number(questButton.dataset.guildQuest));
+    const notice = event.target.closest("[data-guild-notice]"), acceptButton = event.target.closest("[data-guild-accept]"), giveUpButton = event.target.closest("[data-guild-give-up]");
+    const artifactButton = event.target.closest("[data-guild-artifact]"), recruitButton = event.target.closest("[data-guild-recruit]"), rematchButton = event.target.closest("[data-guild-rematch]"), dockButton = event.target.closest("[data-guild-dock]");
+    if (notice) { selectedNotice = Number(notice.dataset.guildNotice); render(); }
+    if (acceptButton) accept(Number(acceptButton.dataset.guildAccept));
+    if (giveUpButton) giveUp(giveUpButton.dataset.guildGiveUp);
+    if (event.target.closest("#guild-artifacts")) offerArtifacts();
     if (artifactButton) takeArtifact(artifactButton.dataset.guildArtifact);
     if (recruitButton) takeRecruit(recruitButton.dataset.guildRecruit);
     if (rematchButton) toggleGreatHuntRematch(rematchButton.dataset.guildRematch);
-    if (event.target.closest("#guild-complete")) completeQuest();
-    if (event.target.closest("#guild-give-up")) giveUpQuest();
+    if (dockButton) openDock(dockButton.dataset.guildDock);
     const informationKind = event.target.closest("[data-guild-information-kind]"), informationChoice = event.target.closest("[data-guild-information-select]"), knownInformation = event.target.closest("[data-guild-information-known]"), informationPage = event.target.closest("[data-guild-information-page]");
     if (informationKind) offerInformation(informationKind.dataset.guildInformationKind);
     if (informationChoice) revealInformation(informationChoice.dataset.informationKind, informationChoice.dataset.guildInformationSelect);
@@ -720,11 +1013,23 @@
       }
       if (informationPage) {
         const page = informationPage.dataset.guildInformationPage;
-        if (page === "guild") resetInformationView();
-        else if (["menu", "archive"].includes(page)) informationView = { page };
-        render();
+        if (page === "guild") closeDock();
+        else if (["menu", "archive"].includes(page)) { informationView = { page }; render(); }
       }
     }
   });
-  window.Guild = { render, onCharacterApplied() { resetInformationView(); modal.hidden = true; onPositionChange(); render(); }, onPositionChange, onRegionChange, onEnemyDefeated, objectiveAt, rematchAt, markers, canSearch, search, avoidObjective(kind, rematchId = null) { if (kind === "great-hunt-rematch") avoidRematch(rematchId); else if (["hunt", "artifact", "great-hunt"].includes(kind)) guild().avoidObjective = kind; saveCharacter(); } };
+  if (questsModal) {
+    questsModal.querySelectorAll("[data-guild-quests-close]").forEach(button => button.addEventListener("click", closeQuests));
+    questsModal.addEventListener("keydown", event => { if (event.key === "Escape") { event.preventDefault(); closeQuests(); } });
+    $("guild-quests-list").addEventListener("click", event => { const button = event.target.closest("[data-guild-give-up]"); if (button) giveUp(button.dataset.guildGiveUp); });
+  }
+  $("map-quests")?.addEventListener("click", openQuests);
+  window.Guild = {
+    render, open, close, activate, openDock, closeDock, boardFor: () => castle() ? boardFor(castle()) : null, accept, useCounter, giveUp, handInReady,
+    // A fresh offer of one type at this guild (the browser checks pin it on today's board).
+    makeOffer: type => castle() ? type === "great-hunt" ? null : questOffer(type, castle()) : null,
+    onCharacterApplied() { resetInformationView(); dock = null; modal.hidden = true; if (questsModal) questsModal.hidden = true; onPositionChange(); render(); },
+    onPositionChange, onRegionChange, onEnemyDefeated, onBattleFinished, onTravel, objectiveAt, rematchAt, markers, areas, canSearch, search, adjustEncounter, escapeChance, avoidObjective,
+    openQuests, closeQuests, classInformation: id => renderClassInformation(id), recruitsFor: () => castle() ? recruitsFor(castle()) : [],
+  };
 })();

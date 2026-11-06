@@ -131,44 +131,49 @@
     ...companion.character.stats,
     maxHp: calculateMaxHp(companion.character.stats), maxMana: calculateMaxMana(companion.character.stats), armor: BASE_ARMOR, evasion: BASE_EVASION,
   };
-  function makeOffer() {
+  // Recruits (port task 2, G28–G31): the guild region's level (its midpoint, never above yours), one
+  // melee weapon and one body armor their race can wear, both rolling rarity like the Blacksmith's stock
+  // at the region's level; every stat and class point is left for the player to spend.
+  function makeOffer(targetLevel = Math.max(1, level - 10), regionId = worldState.regionId) {
     const race = choose(raceCatalog.filter(entry => entry.playable && names[entry.id]));
     const gender = Math.random() < .5 ? "male" : "female";
     const culture = names[race.id];
     const name = choose(words(culture[gender])) + " " + choose(words(culture.family));
-    const targetLevel = Math.max(1, level - 10);
     const character = defaultCharacter();
     // Recruits get one of the four looks for the gender of their name.
     character.appearance = { gender, variant: Math.floor(Math.random() * 4) };
     character.raceId = race.id; character.level = targetLevel; character.editingEnabled = false;
+    // As a hero's level-ups would leave them: +1 to every attribute per level, the 5 points per level and
+    // one class point per level still unspent.
+    for (const stat of statDefinitions) character.stats[stat.key] += targetLevel - 1;
+    character.availablePoints = 5 * (targetLevel - 1);
     character.perkPoints = targetLevel;
-    // Recruits carry a common forged weapon of their own level (about a quarter are staffs or wands)
-    // and forged body armor of a kind their race can wear.
-    const forge = window.ForgeRules;
-    const weapon = forge ? getItem(forge.encode(forge.generate({ level: targetLevel, source: "shop", maxRarity: "common" }))) : null;
-    const bodyTypes = forge ? forge.ARMOR_IDS.filter(id => forge.ARMORS[id].category !== "shield").sort(() => Math.random() - 0.5) : [];
+    const forge = window.ForgeRules, rules = window.GuildQuestRules;
+    const rarity = () => rules ? rules.gearRarity(regionId) : "common";
+    const shuffled = list => list.map(value => [Math.random(), value]).sort((a, b) => a[0] - b[0]).map(([, value]) => value);
+    let weapon = null;
+    if (forge) for (const type of shuffled(forge.REGULAR_IDS.filter(id => !forge.WEAPONS[id].ranged && !forge.WEAPONS[id].onlyMaker))) {
+      const candidate = getItem(forge.encode(forge.generate({ type, level: targetLevel, source: "shop", rarity: rarity() })));
+      if (candidate && allowedSlots(candidate, character).includes("primaryHand")) { weapon = candidate; break; }
+    }
     let coat = null;
-    for (const type of bodyTypes) {
-      const candidate = getItem(forge.encode(forge.generateArmor({ type, level: targetLevel, source: "shop", maxRarity: "common" })));
+    if (forge) for (const type of shuffled(forge.ARMOR_IDS.filter(id => forge.ARMORS[id].category !== "shield"))) {
+      const candidate = getItem(forge.encode(forge.generateArmor({ type, level: targetLevel, source: "shop", rarity: rarity() })));
       if (candidate && allowedSlots(candidate, character).includes("armor")) { coat = candidate; break; }
     }
     if (weapon) { character.inventory.push(weapon.id); character.equipment.primaryHand = weapon.id; if (weapon.handed === 2) character.equipment.offHand = weapon.id; }
     if (coat) { character.inventory.push(coat.id); character.equipment.armor = coat.id; }
-    for (let index = 1; index < targetLevel; index++) {
-      for (const stat of statDefinitions) character.stats[stat.key]++;
-      for (let point = 0; point < 5; point++) character.stats[choose(statDefinitions).key]++;
-    }
     const id = companionId();
     const offer = { id, name, gender, character };
     const values = preview(offer);
     character.currentHp = values.maxHp; character.currentMana = values.maxMana;
     return offer;
   }
-  function makeOffers() {
+  function makeOffers({ count = 3, level: targetLevel = Math.max(1, level - 10), regionId = worldState.regionId } = {}) {
     if (!raceCatalog.some(race => race.playable && names[race.id])) return [];
     const result = [];
-    for (let attempt = 0; result.length < 3 && attempt < 30; attempt++) {
-      const offer = makeOffer();
+    for (let attempt = 0; result.length < count && attempt < count * 10; attempt++) {
+      const offer = makeOffer(targetLevel, regionId);
       if (!result.some(existing => existing.name === offer.name) && !companions.some(existing => existing.name === offer.name)) result.push(offer);
     }
     return result;

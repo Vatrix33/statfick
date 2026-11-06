@@ -228,29 +228,30 @@ async function runGreatHuntRewardChecks() {
   main.worldState.regionId = "stoneveil-foothills"; main.worldState.position = { x: town.x, y: town.y };
   applyCharacter(normalizeCharacter(main)); Combat.restore(null); WorldMap.setAmbientEnabled(false); WorldMap.open();
   try {
-    $("map-guild").click(); $("guild-quest").click();
-    const index = worldState.guild.offers.findIndex(offer => offer.type === "great-hunt"), offer = worldState.guild.offers[index];
+    $("map-guild").click(); worldState.guild.boards = {};
+    const index = Guild.boardFor().offers.findIndex(offer => offer.type === "great-hunt"), offer = Guild.boardFor().offers[index];
     assert(offer && offer.offeredAtLevel === 23, "The local Guild offers the level-23 Great Hunt");
     const oldReputation = Math.round((8 + 23 * 1.5) * 2.4 / 2);
     assert(offer.reward.reputation === oldReputation * 3 && offer.reward.rateVersion === 3, "New Great Hunt Reputation is exactly 200 percent higher");
     assert(offer.reward.silver === Math.round((100 + 23 * 35) * 2.4), "Great Hunt money rewards are unchanged");
-    for (const regular of worldState.guild.offers.filter(entry => entry.type !== "great-hunt")) {
-      const factor = regular.type === "hunt" ? 1.8 : regular.type === "escort" ? 1.4 : 1;
-      assert(regular.reward.reputation === Math.round(Math.max(5, Math.round((8 + level * 1.5) * factor)) / 2), "Regular quest Reputation is unchanged");
+    // The Guild Rework (port task 2, G18): regular quests pay their type's place in the reward ranking.
+    const table = GuildQuestRules.rewardTable(GuildQuestRules.questLevel(level, worldState.regionId), calculateClassEffects());
+    for (const regular of Guild.boardFor().offers.filter(entry => entry.type !== "great-hunt")) {
+      assert(regular.reward.reputation === table[regular.type].reputation, "Regular quests pay their type's Reputation");
     }
-    document.querySelector(`[data-guild-quest="${index}"]`).click();
-    assert(worldState.guild.quest.reward.reputation === offer.reward.reputation && document.querySelector(".map-guild-marker"), "Accepting the enhanced Great Hunt retains its reward and map marker");
-    worldState.guild.quest.complete = true; Guild.render();
+    Guild.accept(index);
+    assert(worldState.guild.greatHunt.reward.reputation === offer.reward.reputation && document.querySelector(".map-guild-marker"), "Accepting the enhanced Great Hunt retains its reward and map marker");
+    worldState.guild.greatHunt.complete = true; Guild.render();
     const beforeMoney = ShopRules.walletValue(currencies), beforeReputation = worldState.guild.reputation;
-    $("guild-complete").click();
-    assert(!worldState.guild.quest && worldState.guild.reputation === beforeReputation + oldReputation * 3 && ShopRules.walletValue(currencies) === beforeMoney + offer.reward.silver, "Completing the quest pays the displayed triple Reputation and original money exactly once");
+    Guild.useCounter();
+    assert(!worldState.guild.greatHunt && worldState.guild.reputation === beforeReputation + oldReputation * 3 && ShopRules.walletValue(currencies) === beforeMoney + offer.reward.silver, "Completing the quest pays the displayed triple Reputation and original money exactly once");
 
     const legacy = backupPayload().character;
     legacy.worldState.guild.quest = { ...structuredClone(offer), complete: true, reward: { silver: offer.reward.silver, reputation: oldReputation, rateVersion: 2 } };
     applyCharacter(normalizeCharacter(legacy));
-    assert(worldState.guild.quest.reward.reputation === oldReputation * 3 && worldState.guild.quest.complete, "Already accepted or completed-but-unclaimed Great Hunts receive the new reward on load");
+    assert(worldState.guild.greatHunt.reward.reputation === oldReputation * 3 && worldState.guild.greatHunt.complete, "Already accepted or completed-but-unclaimed Great Hunts receive the new reward on load");
     const roundTrip = normalizeCharacter(backupPayload().character);
-    assert(roundTrip.worldState.guild.quest.reward.reputation === oldReputation * 3, "Repeated character normalization never triples the reward again");
+    assert(roundTrip.worldState.guild.greatHunt.reward.reputation === oldReputation * 3, "Repeated character normalization never triples the reward again");
   } finally { applyCharacter(normalizeCharacter(defaultCharacter())); WorldMap.setAmbientEnabled(false); }
   return { passed: true, checks };
 }

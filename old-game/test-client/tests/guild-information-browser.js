@@ -6,13 +6,16 @@ async function runGuildInformationChecks() {
   const waitFor = async condition => { for (let attempt = 0; attempt < 200 && !condition(); attempt++) await tick(); assert(condition(), "Information view finished loading"); };
   const click = selector => { const button = panel().querySelector(selector); assert(button && !button.disabled, "Available information control: " + selector); button.click(); };
   const menu = () => click('[data-guild-information-page="menu"]');
-  const openInfo = async () => { $("guild-information").click(); await waitFor(() => panel().querySelector('[data-guild-information-kind="class"]')); };
+  // The Guild Rework (port task 2): the hooded man in the guild hall opens the information menu.
+  const hooded = () => document.querySelector('#guild-banner [data-guild-spot="hooded"]');
+  const askHoodedMan = () => hooded()?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  const openInfo = async () => { askHoodedMan(); await waitFor(() => panel().querySelector('[data-guild-information-kind="class"]')); };
   const openGuild = () => { WorldMap.render(); $("map-guild").click(); };
   Combat.restore(null); WorldMap.setAmbientEnabled(false);
   const main = defaultCharacter(); main.raceId = "human"; main.stats.luck = 100; main.perkPoints = 0; main.worldState.guild.reputation = 500;
   applyCharacter(normalizeCharacter(main));
   $("map-open-button").click(); openGuild();
-  assert(!$("guild-information").hidden && !$("guild-information").disabled, "Information is available at a full Guild with sufficient Reputation");
+  assert(hooded() && hooded().getAttribute("aria-disabled") === "false", "Information is available from the hooded man at a full Guild");
   await openInfo();
   assert(worldState.guild.reputation === 500, "Opening the service does not spend Reputation");
   worldState.guild.information.offers.class = ["warrior", "mage", "bard"];
@@ -31,7 +34,7 @@ async function runGuildInformationChecks() {
   menu(); worldState.guild.information.offers.class = ["champion", "oathsworn", "scholar"];
   click('[data-guild-information-kind="class"]');
   const before = { inventory: [...inventory], classes: { ...classLevels }, points: perkPoints };
-  worldState.guild.quest = { type: "clear", enemy: "Goblin", required: 5, progress: 0, complete: false, reward: { silver: 20, reputation: 5, rateVersion: 2 } };
+  worldState.guild.quest = { version: 2, type: "cull", enemy: "Goblin", zone: "Plains", required: 5, radius: 40, point: { x: 1000, y: 500 }, regionId: "alder-vale", originRegionId: "alder-vale", originCastleId: "alderkeep", progress: 0, complete: false, reward: { silver: 20, reputation: 5, rateVersion: 3 } };
   click('[data-guild-information-select="champion"]');
   assert(worldState.guild.reputation === 435 && worldState.guild.information.revealed.class.includes("champion") && !worldState.guild.information.offers.class.length, "Selecting one class charges exactly 65 Reputation and records only that class");
   assert(panel().textContent.includes("40") && panel().textContent.includes("Slayer Level 5") && panel().textContent.includes("Gladiator Level 5"), "A future class reveals its level and alternative prerequisite requirements");
@@ -67,7 +70,7 @@ async function runGuildInformationChecks() {
   const saved = normalizeCharacter(backupPayload().character);
   assert(JSON.stringify(saved.worldState.guild.information.revealed) === JSON.stringify(records), "All purchased intel survives character export normalization");
   applyCharacter(saved); worldState.guild.reputation = 0; openGuild();
-  assert(!$("guild-information").disabled, "Known intel remains accessible with zero Reputation");
+  assert(hooded().getAttribute("aria-disabled") === "false", "Known intel remains accessible with zero Reputation");
   await openInfo();
   assert(panel().querySelector('[data-guild-information-kind="class"]').disabled && panel().querySelector('[data-guild-information-kind="item"]').disabled, "Insufficient Reputation blocks new purchases without blocking free reviews");
   click('[data-guild-information-page="archive"]');
@@ -75,12 +78,12 @@ async function runGuildInformationChecks() {
   click('[data-guild-information-known="masterwork-royal-trident"]');
   assert(worldState.guild.reputation === 0 && panel().textContent.includes("Deep Sea King") && panel().textContent.includes(artifactEffectLabel(trident.effects[0])) && panel().textContent.includes("Beach"), "Reviewing purchased intel costs nothing and also shows the new effects and locations");
   menu(); click('[data-guild-information-page="guild"]');
-  assert(panel().querySelector("#guild-give-up") && worldState.guild.quest?.enemy === "Goblin", "Returning to the Guild restores the active quest view");
+  assert($("guild-dock").hidden && !$("guild-modal").hidden && worldState.guild.quest?.enemy === "Goblin", "Returning to the Guild closes the hooded man's panel and keeps the active quest");
   $("guild-modal").querySelector("[data-guild-close]").click();
   worldState.regionId = "cinder-isle"; WorldRules.setActiveRegion(worldState.regionId);
   const town = WorldRules.settlementsForRegion(worldState.regionId)[0]; worldState.position = { x: town.x, y: town.y }; worldState.guild.reputation = 500;
-  openGuild(); assert($("guild-information").hidden, "Reduced Guilds do not gain the Information service");
-  $("guild-information").click(); assert(!panel().querySelector('[data-guild-information-kind="class"]') && worldState.guild.reputation === 500, "A hidden service cannot be invoked programmatically to spend Reputation");
+  openGuild(); assert(!hooded(), "Town guilds have no hooded man and no Information service");
+  Guild.activate("hooded"); assert(!panel().querySelector('[data-guild-information-kind="class"]') && worldState.guild.reputation === 500, "A missing service cannot be invoked programmatically to spend Reputation");
   $("guild-modal").querySelector("[data-guild-close]").click();
   worldState.regionId = "alder-vale"; WorldRules.setActiveRegion(worldState.regionId); worldState.position = { x: 420, y: 490 }; openGuild();
   const original = Combat.enemyDropSources;
@@ -90,7 +93,7 @@ async function runGuildInformationChecks() {
     assert(panel().querySelector('[data-guild-information-kind="item"]').disabled && !panel().querySelector('[data-guild-information-kind="class"]').disabled, "Source-load failures leave class intel usable without charging for unavailable item intel");
     click('[data-guild-information-page="guild"]');
     let finish; Combat.enemyDropSources = () => new Promise(resolve => { finish = resolve; });
-    $("guild-information").click();
+    askHoodedMan();
     $("guild-modal").querySelector("[data-guild-close]").click();
     applyCharacter(normalizeCharacter(defaultCharacter())); finish(sources); await tick();
     assert($("guild-modal").hidden && worldState.guild.reputation === 0 && !worldState.guild.information.revealed.item.length, "An old asynchronous request cannot affect a newly loaded character");
@@ -110,7 +113,7 @@ async function runGuildInformationDetailChecks() {
   applyCharacter(normalizeCharacter(c)); $("map-open-button").click(); WorldMap.render(); $("map-guild").click();
   const originalSources = Combat.enemyDropSources;
   async function archive() {
-    $("guild-information").click();
+    document.querySelector('#guild-banner [data-guild-spot="hooded"]').dispatchEvent(new MouseEvent("click", { bubbles: true }));
     for (let i = 0; i < 200 && !panel().querySelector('[data-guild-information-page="archive"]'); i++) await tick();
     const button = panel().querySelector('[data-guild-information-page="archive"]'); assert(button, "Archive loads"); button.click();
   }

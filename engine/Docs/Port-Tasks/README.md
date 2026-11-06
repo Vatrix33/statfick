@@ -12,6 +12,8 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 2. `2_Guild.txt`: the Adventurers Guild's quest system rework (Hunt, Cull, Deliver, Search, Escort, Travel; Great Hunts
    kept) and its illustrated, clickable interior (castle town and smaller guilds), tavern recruitment, the hooded man,
    and a class information button.
+   **Already done in the old game (2026-11-06): don't build it again.** The port carries it over with the rest of the
+   game; only its placeholder art, the two guild interiors, is left to remake (below).
 3. `3_Shop_Rework.txt`: reforging at the Blacksmith, a Tailor in every town, the Institute of Magic on the lake, Hearth
    Home at the volcano (Ornn as its boss instead of a Great Hunt), the Doctor's Orders masterwork, five new traps.
 4. `4_Artifact_Rework.txt`: a look for every artifact, new effects for the non-masterwork ones (at least 32 uncommon,
@@ -60,9 +62,9 @@ remember (the user's answers, 2026-11-05):
   Limitless scaling.
 - Task 13 adds classes until there are 250; task 14's two classes come on top (252 in the end), as intended.
 
-**When:** task 1 is done in the old game before the port (user decision 2026-11-05), its new art as placeholders; the
-other tasks are decided one at a time (still open for them: before the port, after the faithful port, or while
-porting).
+**When:** task 1 is done in the old game before the port (user decision 2026-11-05), its new art as placeholders; task 2
+is built in the old game too (user decision 2026-11-06, G1), also with placeholder art; the other tasks are decided one
+at a time (still open for them: before the port, after the faithful port, or while porting).
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
@@ -71,13 +73,33 @@ porting).
   `old-game/test-client/tests/masterwork-elementals-browser.js` (one entry per rule), are the reference the ported
   rules are tested against. Still to do in the port: only the art (below). The task's `.txt` stays as the user wrote it
   (no "done" mark in it); this README and `Engine-Plan.md` record that it's done.
+- Task 2, Guild Rework (2026-11-06, a cloud session, merged through a pull request): the six quest types, the daily
+  boards, the rewards, the clickable guild interior, the recruits, the map's Quests card and the class information
+  button, all in the old game's code and data, so the faithful port brings them over like the rest of the guild. The
+  user's 34 design answers are in `Engine-Plan.md`, "Decisions for task 2, Guild Rework" (G1–G34); where each rule lives
+  is in `../../../old-game/Docs/Notes.md`, "Guild Rework"; the old game's checks for it,
+  `old-game/test-client/tests/guild-rework-browser.js` (one entry per rule), are the reference the ported rules are
+  tested against. Still to do in the port: only the art (below). The task's `.txt` stays as the user wrote it (no "done"
+  mark in it); this README and `Engine-Plan.md` record that it's done. It touched only `old-game/` and the docs, never
+  the engine (the user, 2026-11-06).
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
-code each such definition carries `placeholderArt: true`):
+code task 1's definitions carry `placeholderArt: true` and task 2's scenes are listed in `PLACEHOLDER_ART`):
 - Task 1: the looks of Plasma Blade, Tidepiercer, First Comet, Peace and Balance, Kugelblitz and Avalanche, in their
   item art and battle sprites. Today each is its type's normal forged masterwork look with simple hints: a short red
   line from the Plasma Blade's gem (the design: a red laser beam from the gem, like a laser sword) and three prongs on
   Tidepiercer's head (the design: a lance shaped like a trident, with a crossguard instead of a pommel).
+- Task 2: the two guild interiors (the castle-city guild hall, `guildHall`, and the town guild, `guildTown`, in
+  `old-game/scripts/scene-banners.js`). Today they are simple ink rooms made with little effort on purpose (user decision
+  G2, "Placeholder, so don't put much effort into it"), marked PLACEHOLDER ART in the code and listed in its
+  `PLACEHOLDER_ART` (`SceneBanners.placeholderArt("guild-hall")` and `("guild-town")` return true). The port remakes them
+  fully as the detailed illustrations the task asks for (`2_Guild.txt`, sections 10, 17 and 18: a large, elaborate
+  castle-town hall and a modest, compact town guild that visibly differ), keeping what the user decided: the guild on
+  the left (bulletin board beside the counter and its clerk), the tavern on the right (a hearth, a table of
+  adventurers and, in castle cities only, the hooded man alone at a corner table), hunting trophies on the back wall
+  (G21); every one of those objects clickable, with a candle-gold outline glow and its name on hover or keyboard focus
+  (G23); the room in the upper part, above the panel docked along the bottom (G22). The rules behind the objects are not
+  placeholder and stay as they are.
 
 **Found before the work:**
 - Tasks 1 and 2 were checked against the engine work on 2026-11-03: neither touches it (the engine's tests use their
