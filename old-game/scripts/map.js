@@ -80,21 +80,34 @@
      viewBox is the camera, so clicks map to the land at any zoom. Markers and lettering keep
      a steady size on screen while the land grows and shrinks beneath them. */
   const terrainCanvas = $("map-terrain"), terrainContext = terrainCanvas.getContext("2d");
+  /* Port task 8: one map over the whole continent, in continent units (ContinentRules). The camera's scale is screen
+     pixels per continent unit; a region's own markup sits in a group placed and enlarged by its transform. Zoom runs
+     from the whole continent to the old regional map's closest view. */
+  const continentRules = window.ContinentRules, SCALE = continentRules.SCALE, WORLD = continentRules.bounds(), WORLD_MARGIN = 900;
+  const world = { x0: WORLD.x0 - WORLD_MARGIN, y0: WORLD.y0 - WORLD_MARGIN, x1: WORLD.x1 + WORLD_MARGIN, y1: WORLD.y1 + WORLD_MARGIN };
   const camera = { x: 800, y: 500, scale: 1, follow: true };
-  const MAX_ZOOM = 10, DEFAULT_ZOOM = 3;
-  let viewSize = { width: 1, height: 1, dpr: 1 }, terrainWorld = null, paintQueued = false, drawQueued = false;
-  const fitScale = () => Math.min(viewSize.width / MapTerrain.W, viewSize.height / MapTerrain.H);
+  let viewSize = { width: 1, height: 1, dpr: 1 }, paintQueued = false, drawQueued = false;
+  const regionFit = () => Math.min(viewSize.width / MapTerrain.W, viewSize.height / MapTerrain.H) / SCALE;
+  const fitScale = () => Math.min(viewSize.width / (world.x1 - world.x0), viewSize.height / (world.y1 - world.y0));
+  const MAX_ZOOM_SCALE = () => regionFit() * 10, DEFAULT_SCALE = () => regionFit() * 3;
   const currentZoom = () => camera.scale / fitScale();
+  const maxZoom = () => MAX_ZOOM_SCALE() / fitScale();
+  // Where you stand, in continent units.
+  const here = () => rules.standing(worldState);
   function clampCamera() {
     const fit = fitScale();
-    camera.scale = Math.max(fit, Math.min(fit * MAX_ZOOM, camera.scale));
+    camera.scale = Math.max(fit, Math.min(MAX_ZOOM_SCALE(), camera.scale));
     const halfW = viewSize.width / 2 / camera.scale, halfH = viewSize.height / 2 / camera.scale;
-    camera.x = halfW * 2 >= MapTerrain.W ? MapTerrain.W / 2 : Math.max(halfW, Math.min(MapTerrain.W - halfW, camera.x));
-    camera.y = halfH * 2 >= MapTerrain.H ? MapTerrain.H / 2 : Math.max(halfH, Math.min(MapTerrain.H - halfH, camera.y));
+    const spanX = world.x1 - world.x0, spanY = world.y1 - world.y0;
+    camera.x = halfW * 2 >= spanX ? (world.x0 + world.x1) / 2 : Math.max(world.x0 + halfW, Math.min(world.x1 - halfW, camera.x));
+    camera.y = halfH * 2 >= spanY ? (world.y0 + world.y1) / 2 : Math.max(world.y0 + halfH, Math.min(world.y1 - halfH, camera.y));
   }
-  // Sizes for things that should look the same at every zoom.
-  const pinScale = (size = 0.8) => size / camera.scale;
-  const pin = (x, y, size) => `translate(${x} ${y}) scale(${pinScale(size).toFixed(4)})`;
+  // Sizes for things that should look the same at every zoom (a region's own markers are inside its enlarged group).
+  // Zoomed out past the regional map, markers shrink with the land (to 30% over the whole continent).
+  const pinShrink = () => Math.max(0.3, Math.min(1, camera.scale / regionFit()));
+  const pinScale = (size = 0.8, local = false) => size * pinShrink() / camera.scale / (local ? SCALE : 1);
+  const pin = (x, y, size, local = false) => `translate(${x} ${y}) scale(${pinScale(size, local).toFixed(5)})`;
+  const regionTransform = id => { const o = continentRules.ORIGINS[id]; return `translate(${o.x} ${o.y}) scale(${SCALE})`; };
   function applyCamera() {
     clampCamera();
     const w = viewSize.width / camera.scale, h = viewSize.height / camera.scale;
@@ -102,11 +115,12 @@
     const zoom = currentZoom();
     svg.classList.toggle("is-close", camera.scale >= 2.1);
     svg.classList.toggle("is-overview", zoom <= 1.35);
-    for (const node of svg.querySelectorAll("[data-pin]")) node.setAttribute("transform", pin(Number(node.dataset.x), Number(node.dataset.y), Number(node.dataset.pin)));
-    const character = $("map-character");
-    if (character) character.setAttribute("transform", pin(worldState.position.x, worldState.position.y, 0.8));
+    svg.classList.toggle("is-continent", camera.scale < regionFit() * 0.9);
+    for (const node of svg.querySelectorAll("[data-pin]")) node.setAttribute("transform", pin(Number(node.dataset.x), Number(node.dataset.y), Number(node.dataset.pin), node.dataset.local === "1"));
+    const character = $("map-character"), standingAt = here();
+    if (character) character.setAttribute("transform", pin(standingAt.x, standingAt.y, 0.8));
     if (worldState.destination) $("map-marker").setAttribute("transform", pin(worldState.destination.x, worldState.destination.y, 0.8));
-    $("map-zoom-out").disabled = zoom <= 1.001; $("map-zoom-in").disabled = zoom >= MAX_ZOOM - 0.001;
+    $("map-zoom-out").disabled = zoom <= 1.001; $("map-zoom-in").disabled = zoom >= maxZoom() - 0.001;
     $("map-follow")?.setAttribute("aria-pressed", String(camera.follow));
     renderScaleBar();
     requestDraw();
@@ -123,10 +137,10 @@
     const viewport = $("map-viewport"), dpr = Math.min(2, window.devicePixelRatio || 1);
     const width = Math.max(1, viewport.clientWidth), height = Math.max(1, viewport.clientHeight);
     if (width === viewSize.width && height === viewSize.height && dpr === viewSize.dpr) return;
-    const zoom = viewSize.width > 1 ? currentZoom() : DEFAULT_ZOOM;
+    const scaleBefore = viewSize.width > 1 ? camera.scale / regionFit() : 3;
     viewSize = { width, height, dpr };
     terrainCanvas.width = Math.round(width * dpr); terrainCanvas.height = Math.round(height * dpr);
-    camera.scale = fitScale() * zoom;
+    camera.scale = regionFit() * scaleBefore;
     applyCamera();
   }
   function requestDraw() {
@@ -134,32 +148,93 @@
     drawQueued = true;
     requestAnimationFrame(() => { drawQueued = false; drawTerrain(); });
   }
-  // The tile level whose resolution best matches the screen; finer levels are used when ready.
-  const levelFor = scale => MapTerrain.LEVELS.find(level => level >= scale * viewSize.dpr * 0.9) || MapTerrain.LEVELS.at(-1);
+  /* The terrain (port task 8): the sea, the ground between regions (MapContinent's backdrop), each entered region as
+     its overview picture when far out or its painted tiles when close, the roads across the border strips, the
+     coastline, and the fog over regions never entered (W12). */
+  const SEA = "#3f5b60", OVERVIEW_BELOW = 0.55, KEEP_WORLDS = 3;
+  const visited = id => (worldState.visitedRegions || []).includes(id);
+  const levelFor = scale => MapTerrain.LEVELS.find(level => level >= scale * SCALE * viewSize.dpr * 0.9) || MapTerrain.LEVELS.at(-1);
+  function viewRect() {
+    const w = viewSize.width / camera.scale, h = viewSize.height / camera.scale;
+    return { x0: camera.x - w / 2, y0: camera.y - h / 2, x1: camera.x + w / 2, y1: camera.y + h / 2 };
+  }
+  function regionsInView(pad = continentRules.STRIP) {
+    const v = viewRect();
+    return continentRules.IDS.filter(id => { const r = continentRules.RECTS[id]; return r.x1 + pad > v.x0 && r.x0 - pad < v.x1 && r.y1 + pad > v.y0 && r.y0 - pad < v.y1; })
+      .sort((a, b) => (a === worldState.regionId ? -1 : b === worldState.regionId ? 1 : 0));
+  }
+  const worldOf = id => MapTerrain.world(rules.getRegion(id));
+  let keptWorlds = [];
   function drawTerrain() {
     const ctx = terrainContext, dpr = viewSize.dpr;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = "#120c08"; ctx.fillRect(0, 0, terrainCanvas.width, terrainCanvas.height);
-    if (!terrainWorld?.ready) return;
-    const s = camera.scale * dpr, left = camera.x - viewSize.width / 2 / camera.scale, top = camera.y - viewSize.height / 2 / camera.scale;
+    ctx.fillStyle = SEA; ctx.fillRect(0, 0, terrainCanvas.width, terrainCanvas.height);
+    const s = camera.scale * dpr, v = viewRect(), left = v.x0, top = v.y0;
+    const toScreen = (x, y) => ({ x: (x - left) * s, y: (y - top) * s });
     ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-    const wanted = levelFor(camera.scale), missing = [];
-    const drawLevel = (level, onlyMissing = null) => {
-      const units = MapTerrain.TILE / level;
-      const x0 = Math.max(0, Math.floor(left / units)), y0 = Math.max(0, Math.floor(top / units));
-      const x1 = Math.min(Math.ceil(MapTerrain.W / units) - 1, Math.floor((left + viewSize.width / camera.scale) / units));
-      const y1 = Math.min(Math.ceil(MapTerrain.H / units) - 1, Math.floor((top + viewSize.height / camera.scale) / units));
-      for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
-        const tile = MapTerrain.tile(terrainWorld, level, tx, ty);
-        const dx = (tx * units - left) * s, dy = (ty * units - top) * s, size = units * s;
-        if (tile) ctx.drawImage(tile, Math.floor(dx), Math.floor(dy), Math.ceil(size + 1), Math.ceil(size + 1));
-        else if (onlyMissing) onlyMissing.push({ level, tx, ty, distance: Math.hypot(tx * units + units / 2 - camera.x, ty * units + units / 2 - camera.y) });
+    const back = MapContinent.backdrop(), cell = MapContinent.CELL;
+    const b0 = toScreen(back.x0 - cell / 2, back.y0 - cell / 2);
+    ctx.drawImage(back.canvas, b0.x, b0.y, back.cols * cell * s, back.rows * cell * s);
+    const pxPerLocal = camera.scale * SCALE * dpr, close = pxPerLocal >= OVERVIEW_BELOW;
+    const wanted = levelFor(camera.scale), missing = [], needOverview = [], needWorld = [];
+    for (const id of regionsInView()) {
+      if (!visited(id)) continue;
+      const origin = continentRules.ORIGINS[id];
+      const drawOverview = () => {
+        const picture = MapContinent.overview(id);
+        if (!picture) { needOverview.push(id); return; }
+        const half = MapContinent.STRIDE / 2, a = toScreen(origin.x - half * SCALE, origin.y - half * SCALE);
+        ctx.drawImage(picture, a.x, a.y, picture.width * MapContinent.STRIDE * SCALE * s, picture.height * MapContinent.STRIDE * SCALE * s);
+      };
+      if (!close) { drawOverview(); continue; }
+      const terrain = worldOf(id);
+      if (!terrain?.ready) { drawOverview(); needWorld.push(id); continue; }
+      const drawLevel = (level, onlyMissing = null) => {
+        const units = MapTerrain.TILE / level, l0 = continentRules.toLocal(id, { x: v.x0, y: v.y0 }), l1 = continentRules.toLocal(id, { x: v.x1, y: v.y1 });
+        const x0 = Math.max(0, Math.floor(l0.x / units)), y0 = Math.max(0, Math.floor(l0.y / units));
+        const x1 = Math.min(Math.ceil(MapTerrain.W / units) - 1, Math.floor(l1.x / units)), y1 = Math.min(Math.ceil(MapTerrain.H / units) - 1, Math.floor(l1.y / units));
+        for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
+          const tile = MapTerrain.tile(terrain, level, tx, ty), a = toScreen(origin.x + tx * units * SCALE, origin.y + ty * units * SCALE), size = units * SCALE * s;
+          if (tile) ctx.drawImage(tile, Math.floor(a.x), Math.floor(a.y), Math.ceil(size + 1), Math.ceil(size + 1));
+          else if (onlyMissing) onlyMissing.push({ world: terrain, level, tx, ty, distance: Math.hypot(origin.x + (tx + 0.5) * units * SCALE - camera.x, origin.y + (ty + 0.5) * units * SCALE - camera.y) });
+        }
+      };
+      drawLevel(1, missing);
+      if (wanted > 1) { if (wanted > 2) drawLevel(2); drawLevel(wanted, missing); }
+    }
+    // Roads across the border strips, where both sides have been entered.
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    for (const link of continentRules.built?.links || []) {
+      if (!link.regions.every(visited)) continue;
+      const [a, z] = link.path.map(p => toScreen(p.x, p.y));
+      ctx.strokeStyle = "#2c2118"; ctx.lineWidth = Math.max(1, 5.2 * s); ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(z.x, z.y); ctx.stroke();
+      ctx.strokeStyle = "#a08a64"; ctx.lineWidth = Math.max(0.6, 3.4 * s); ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(z.x, z.y); ctx.stroke();
+    }
+    // Ridges: hatched peaks once they are big enough to read.
+    if (s > 0.04) {
+      ctx.strokeStyle = "rgba(42,32,24,.75)"; ctx.lineWidth = Math.max(0.8, 5 * s);
+      ctx.beginPath();
+      for (const mark of back.ridges) {
+        if (mark.x < v.x0 - 200 || mark.x > v.x1 + 200 || mark.y < v.y0 - 200 || mark.y > v.y1 + 200) continue;
+        const p = toScreen(mark.x, mark.y), r = Math.min(26 * dpr, 30 * mark.s * s);
+        ctx.moveTo(p.x - r, p.y + r * 0.6); ctx.lineTo(p.x, p.y - r * 0.7); ctx.lineTo(p.x + r, p.y + r * 0.6);
       }
-    };
-    // Coarse level first (always complete), then the sharp one over it.
-    drawLevel(1);
-    if (wanted > 1) { if (wanted > 2) drawLevel(2); drawLevel(wanted, missing); }
+      ctx.stroke();
+    }
+    // The coastline in ink.
+    ctx.save(); ctx.setTransform(s, 0, 0, s, -left * s, -top * s);
+    ctx.strokeStyle = "rgba(26,18,12,.85)"; ctx.lineWidth = Math.max(1.4, 2.2 * dpr) / s; ctx.stroke(back.coast);
+    ctx.restore();
+    if (continentRules.IDS.some(id => !visited(id))) {
+      const fog = MapContinent.fogImage(worldState.visitedRegions || []);
+      ctx.drawImage(fog.canvas, b0.x, b0.y, back.cols * cell * s, back.rows * cell * s);
+      // The coastline shows through the fog (W12).
+      ctx.save(); ctx.setTransform(s, 0, 0, s, -left * s, -top * s);
+      ctx.strokeStyle = "rgba(26,18,12,.6)"; ctx.lineWidth = Math.max(1.2, 1.8 * dpr) / s; ctx.stroke(back.coast);
+      ctx.restore();
+    }
     if (missing.length) queuePaint(missing.sort((a, b) => a.distance - b.distance));
+    if (needOverview.length || needWorld.length) queueCharting(needOverview, needWorld);
   }
   let paintJobs = [];
   function queuePaint(jobs) {
@@ -170,47 +245,45 @@
   }
   function paintStep() {
     paintQueued = false;
-    if (!terrainWorld || modal.hidden) return;
+    if (modal.hidden) return;
     const end = performance.now() + 14;
     let painted = false;
     while (paintJobs.length && performance.now() < end) {
       const job = paintJobs.shift();
-      if (!MapTerrain.tile(terrainWorld, job.level, job.tx, job.ty)) { MapTerrain.render(terrainWorld, job.level, job.tx, job.ty); painted = true; }
+      if (!MapTerrain.tile(job.world, job.level, job.tx, job.ty)) { MapTerrain.render(job.world, job.level, job.tx, job.ty); painted = true; }
     }
     if (painted) requestDraw();
     if (paintJobs.length) { paintQueued = true; requestAnimationFrame(paintStep); }
   }
-  // Builds the region's terrain in slices (with a progress note), then its overview tiles.
-  function chartRegion(region) {
-    MapTerrain.keepOnly(region.id);
-    terrainWorld = MapTerrain.world(region);
+  // Charting: overview pictures and, close up, the regions' painted worlds, a slice per frame (the one you're in first).
+  let chartingQueued = false, chartOverviews = [], chartWorlds = [];
+  function queueCharting(overviews, worlds) {
+    chartOverviews = overviews; chartWorlds = worlds;
+    if (chartingQueued) return;
+    chartingQueued = true;
+    requestAnimationFrame(chartStep);
+  }
+  function chartStep() {
+    chartingQueued = false;
+    if (modal.hidden) return;
     const note = $("map-charting");
-    if (!terrainWorld) { note.hidden = true; return; }
-    const worldObject = terrainWorld;
-    const step = () => {
-      if (terrainWorld !== worldObject) return;
-      if (!worldObject.ready) {
-        worldObject.build(14);
-        note.hidden = false;
-        note.textContent = `Charting ${region.name}… ${Math.round(worldObject.progress() * 100)}%`;
-        requestAnimationFrame(step);
-        return;
-      }
-      // The overview level, a tile at a time.
-      const units = MapTerrain.TILE;
-      for (let ty = 0; ty < Math.ceil(MapTerrain.H / units); ty++) for (let tx = 0; tx < Math.ceil(MapTerrain.W / units); tx++) {
-        if (!MapTerrain.tile(worldObject, 1, tx, ty)) {
-          MapTerrain.render(worldObject, 1, tx, ty);
-          note.textContent = `Charting ${region.name}… inking`;
-          requestAnimationFrame(step);
-          return;
-        }
-      }
-      note.hidden = true;
-      renderLanterns(region);
-      requestDraw();
-    };
-    if (worldObject.ready) { note.hidden = true; renderLanterns(region); requestDraw(); } else requestAnimationFrame(step);
+    let more = false;
+    if (chartOverviews.length) more = MapContinent.buildOverviews(chartOverviews, 12) || more;
+    else if (chartWorlds.length) {
+      const id = chartWorlds[0];
+      keptWorlds = [id, ...keptWorlds.filter(other => other !== id)].slice(0, KEEP_WORLDS);
+      MapTerrain.keep(keptWorlds);
+      const terrain = worldOf(id);
+      if (terrain && !terrain.ready) { terrain.build(14); more = true; note.hidden = false; note.textContent = `Charting ${rules.getRegion(id).name}… ${Math.round(terrain.progress() * 100)}%`; }
+    }
+    if (!more) note.hidden = true;
+    requestDraw();
+    if (more) { chartingQueued = true; requestAnimationFrame(chartStep); }
+  }
+  // Starts charting the region you're in (opening the map, arriving by boat or caravan).
+  function chartRegion() {
+    renderLanterns();
+    requestDraw();
   }
   function zoomAt(factor, screenX = viewSize.width / 2, screenY = viewSize.height / 2) {
     const before = { x: camera.x + (screenX - viewSize.width / 2) / camera.scale, y: camera.y + (screenY - viewSize.height / 2) / camera.scale };
@@ -219,18 +292,19 @@
     camera.x = before.x - (screenX - viewSize.width / 2) / camera.scale;
     camera.y = before.y - (screenY - viewSize.height / 2) / camera.scale;
     // While following, zoom keeps the traveller in the middle.
-    if (camera.follow) { camera.x = worldState.position.x; camera.y = worldState.position.y; }
+    if (camera.follow) { const p = here(); camera.x = p.x; camera.y = p.y; }
     applyCamera();
   }
-  function setZoom(value) {
-    camera.scale = fitScale() * Math.max(1, Math.min(MAX_ZOOM, value));
-    if (camera.follow) { camera.x = worldState.position.x; camera.y = worldState.position.y; }
+  // A camera scale: "fit" shows the whole continent; otherwise pixels per continent unit.
+  function setScale(scale) {
+    camera.scale = scale === "fit" ? fitScale() : scale;
+    if (camera.follow) { const p = here(); camera.x = p.x; camera.y = p.y; }
     applyCamera();
   }
-  function centerOnPlayer() { camera.x = worldState.position.x; camera.y = worldState.position.y; applyCamera(); }
+  function centerOnPlayer() { const p = here(); camera.x = p.x; camera.y = p.y; applyCamera(); }
   function followPlayer() {
     if (!camera.follow) return;
-    const dx = worldState.position.x - camera.x, dy = worldState.position.y - camera.y;
+    const p = here(), dx = p.x - camera.x, dy = p.y - camera.y;
     if (Math.abs(dx) < 0.05 && Math.abs(dy) < 0.05) return;
     camera.x += dx * 0.18; camera.y += dy * 0.18;
     applyCamera();
@@ -240,7 +314,7 @@
   /* ---------------- Overlay: settlements, lettering and lights ---------------- */
   const townArtFor = settlements => settlements.map(place => {
     const castle = place.kind === "Castle city";
-    return `<g class="map-settlement" data-map-town="${place.id}" data-pin="0.62" data-x="${place.x}" data-y="${place.y}" transform="translate(${place.x} ${place.y})" role="button" tabindex="0" aria-label="Travel to ${place.name}"><title>${place.name} · ${place.kind}</title><circle r="72" fill="transparent"/><g class="map-settlement-icon">${castle ? castleArt() : villageArt()}</g><text class="map-town-name" y="${castle ? 48 : 42}">${place.name}</text><text class="map-town-kind" y="${castle ? 68 : 61}">${place.kind}</text></g>`;
+    return `<g class="map-settlement${castle ? " is-castle" : ""}" data-map-town="${place.id}" data-pin="0.62" data-local="1" data-x="${place.x}" data-y="${place.y}" transform="translate(${place.x} ${place.y})" role="button" tabindex="0" aria-label="Travel to ${place.name}"><title>${place.name} · ${place.kind}</title><circle r="72" fill="transparent"/><g class="map-settlement-icon">${castle ? castleArt() : villageArt()}</g><text class="map-town-name" y="${castle ? 48 : 42}">${place.name}</text><text class="map-town-kind" y="${castle ? 68 : 61}">${place.kind}</text></g>`;
   }).join("");
   // Site icons by kind. The Institute's domed tower and Hearth Home's forge (port task 3) are placeholders (R1).
   const SITE_ICONS = {
@@ -248,7 +322,7 @@
     Institute: () => `<path d="M-30 12V-8H-14V-30H14V-8H30V12Z" fill="#8a8578" stroke="${ink}" stroke-width="2.6"/><path d="M-14 -30Q0 -56 14 -30Z" fill="#6f7f8e" stroke="${ink}" stroke-width="2.6"/><path d="M0 -50V-64" stroke="${ink}" stroke-width="2.6"/><path d="M-4 12V-2H4V12" fill="none" stroke="${ink}" stroke-width="2"/>`,
     Forge: () => `<path d="M-26 12V-12H8V12Z" fill="#6e6458" stroke="${ink}" stroke-width="2.6"/><path d="M8 12V-40H20V12" fill="#5c544a" stroke="${ink}" stroke-width="2.6"/><path d="M14 -42Q6 -52 14 -60Q22 -52 14 -42Z" fill="#c8642a" stroke="${ink}" stroke-width="1.8"/><path d="M-20 -12V-22H0V-12" fill="none" stroke="${ink}" stroke-width="2.2"/><path d="M-16 4H-4" stroke="#c8642a" stroke-width="3"/>`,
   };
-  const siteArtFor = sites => (sites || []).map(site => `<g class="map-settlement map-site" data-map-site="${site.id}" data-pin="0.62" data-x="${site.x}" data-y="${site.y}" transform="translate(${site.x} ${site.y})" role="button" tabindex="0" aria-label="Travel to ${site.name}"><title>${site.name}</title><circle r="52" fill="transparent"/><g class="map-settlement-icon">${(SITE_ICONS[site.kind] || SITE_ICONS.Church)()}</g><text class="map-town-name" y="44">${site.name}</text></g>`).join("");
+  const siteArtFor = sites => (sites || []).map(site => `<g class="map-settlement map-site" data-map-site="${site.id}" data-pin="0.62" data-local="1" data-x="${site.x}" data-y="${site.y}" transform="translate(${site.x} ${site.y})" role="button" tabindex="0" aria-label="Travel to ${site.name}"><title>${site.name}</title><circle r="52" fill="transparent"/><g class="map-settlement-icon">${(SITE_ICONS[site.kind] || SITE_ICONS.Church)()}</g><text class="map-town-name" y="44">${site.name}</text></g>`).join("");
   // Region roads: a waymarker at each border crossing, pointing out of the map, lettered with
   // the region it leads to. The lettering sits on the inland side so it never leaves the map.
   const exitSide = exit => {
@@ -264,20 +338,22 @@
   }).join("");
   const labelsFor = region => (MapRegions.spec(region.id)?.labels || []).map(label => {
     const river = label.kind === "river";
-    return `<g data-pin="0.75" data-x="${label.x}" data-y="${label.y}" transform="translate(${label.x} ${label.y})"><text class="${river ? "map-river-label" : "map-terrain-label"}"${label.angle ? ` transform="rotate(${label.angle})"` : ""}>${label.text}</text></g>`;
+    return `<g data-pin="0.75" data-local="1" data-x="${label.x}" data-y="${label.y}" transform="translate(${label.x} ${label.y})"><text class="${river ? "map-river-label" : "map-terrain-label"}"${label.angle ? ` transform="rotate(${label.angle})"` : ""}>${label.text}</text></g>`;
   }).join("");
-  // Lit windows of the painted houses, and a soft glow over each place, for the night.
-  function renderLanterns(region) {
-    const plans = terrainWorld?.settlements || [];
+  // Lit windows of the painted houses, and a soft glow over each place, for the night (the region you're in).
+  function renderLanterns() {
+    const terrain = MapTerrain.world(rules.getRegion(worldState.regionId)), plans = terrain?.ready ? terrain.settlements : [];
+    $("map-lanterns").setAttribute("transform", regionTransform(worldState.regionId));
     $("map-lanterns").innerHTML = plans.map(plan => `<g><ellipse cx="${plan.place.x}" cy="${plan.place.y}" rx="${plan.radius * 2.6}" ry="${plan.radius * 2.1}" fill="url(#map-lantern-halo)"/>${plan.houses.filter(house => house.lit).map(house => `<circle cx="${house.x.toFixed(1)}" cy="${(house.y - 0.2).toFixed(1)}" r=".45"/>`).join("")}</g>`).join("");
   }
   svg.insertAdjacentHTML("beforeend", `
     <defs>
       <radialGradient id="map-lantern-halo"><stop offset="0" stop-color="#ffcf75" stop-opacity=".38"/><stop offset=".6" stop-color="#ffcf75" stop-opacity=".14"/><stop offset="1" stop-color="#ffcf75" stop-opacity="0"/></radialGradient>
     </defs>
-    <rect id="map-sunset" width="1600" height="1000" fill="#da7839" opacity="0" pointer-events="none"/>
-    <rect id="map-night" width="1600" height="1000" fill="#08152f" opacity="0" pointer-events="none"/>
+    <rect id="map-sunset" x="${world.x0 - 60000}" y="${world.y0 - 60000}" width="${world.x1 - world.x0 + 120000}" height="${world.y1 - world.y0 + 120000}" fill="#da7839" opacity="0" pointer-events="none"/>
+    <rect id="map-night" x="${world.x0 - 60000}" y="${world.y0 - 60000}" width="${world.x1 - world.x0 + 120000}" height="${world.y1 - world.y0 + 120000}" fill="#08152f" opacity="0" pointer-events="none"/>
     <g id="map-lanterns" fill="#ffcf75" pointer-events="none"></g>
+    <g id="map-region-names" pointer-events="none"></g>
     <g id="map-landscape"></g>
     <path id="map-route" fill="none" stroke="#f0dfb4" stroke-width="3.5" stroke-dasharray="10 8" stroke-linecap="round" vector-effect="non-scaling-stroke" pointer-events="none"/>
     <g id="map-survey-bounds" fill="none" stroke="#f3df92" stroke-width="2.5" stroke-dasharray="12 9" opacity=".8" vector-effect="non-scaling-stroke" pointer-events="none"></g>
@@ -296,15 +372,40 @@
     <g id="map-weather-rain-far" fill="none" stroke="#e5f4f5" stroke-width="2" opacity=".47">${rainStreaks(130, 0)}</g>
     <g id="map-weather-rain-near" fill="none" stroke="#e1eef5" stroke-width="3" opacity=".61">${rainStreaks(100, 1)}</g>
     <rect id="map-weather-flash" width="1600" height="1000" fill="#dceaff" opacity="0"/>`);
+  /* Every entered region's lettering, towns and sites, each in its region's group (W12: none for regions never
+     entered); region names for the zoomed-out continent; the header and destinations of the region you're in (W13:
+     its places and, for each road out, the first town beyond it). */
+  let renderedArt = "";
+  const roadsOut = region => (region.exits || []).filter(exit => exit.targetRegionId && rules.regions[exit.targetRegionId]).map(exit => {
+    const target = rules.getRegion(exit.targetRegionId), back = (target.exits || []).find(other => other.targetRegionId === region.id);
+    const town = (target.settlements || []).filter(place => rules.canAccessSettlement(place)).reduce((best, place) => !best || rules.distance(place, back?.point || target.start) < rules.distance(best, back?.point || target.start) ? place : best, null);
+    return { exit, target, town };
+  }).filter(road => road.town);
   function renderRegionArt() {
     const region = rules.setActiveRegion(worldState.regionId);
     worldState.regionId = region.id;
+    const signature = (worldState.visitedRegions || []).join(",");
+    if (renderedArt !== signature) {
+      renderedArt = signature;
+      const entered = continentRules.IDS.filter(visited);
+      $("map-landscape").innerHTML = entered.map(id => {
+        const place = rules.getRegion(id);
+        return `<g class="map-region-art" data-region="${id}" transform="${regionTransform(id)}">${labelsFor(place)}${townArtFor(place.settlements || [])}${siteArtFor(place.sites)}</g>`;
+      }).join("");
+      const nameOf = id => rules.getRegion(id).name.replace(/^The /, "");
+      $("map-region-names").innerHTML = entered.map(id => {
+        const r = continentRules.RECTS[id];
+        const words = nameOf(id).split(" "), lines = words.length > 1 ? [words.slice(0, Math.ceil(words.length / 2)).join(" "), words.slice(Math.ceil(words.length / 2)).join(" ")] : words;
+        return `<g data-pin="1" data-x="${(r.x0 + r.x1) / 2}" data-y="${(r.y0 + r.y1) / 2}"><text class="map-region-name">${lines.map((line, index) => `<tspan x="0" dy="${index ? "1.05em" : lines.length > 1 ? "-0.2em" : "0.35em"}">${escapeHtml(line)}</tspan>`).join("")}</text></g>`;
+      }).join("") + continentRules.BARRIER_NAMES.map(barrier => `<g data-pin="0.8" data-x="${barrier.x}" data-y="${barrier.y}"><text class="map-barrier-name">${escapeHtml(barrier.name)}</text></g>`).join("");
+      if (!modal.hidden) applyCamera();
+    }
     if (renderedRegionId === region.id) return region;
-    $("map-landscape").innerHTML = labelsFor(region) + townArtFor(region.settlements || []) + siteArtFor(region.sites) + exitArtFor(region.exits);
-    $("map-lanterns").innerHTML = "";
+    for (const id of ["map-survey-bounds", "map-guild-areas", "map-guild-markers"]) $(id).setAttribute("transform", regionTransform(region.id));
+    $("map-guild-markers").dataset.markers = "";
     $("map-weather").setAttribute("display", region.weather === "rainstorm" ? "inline" : "none");
     $("map-destinations").innerHTML = region.settlements.map(p => '<button type="button" data-map-town="' + p.id + '">' + p.name + '</button>').join("") + (region.sites || []).map(site => '<button type="button" data-map-site="' + site.id + '">' + site.name + '</button>').join("")
-      + (region.exits || []).filter(exit => exit.targetRegionId).map(exit => '<button type="button" class="map-exit-button" data-map-exit="' + exit.id + '"><span class="map-exit-arrow" aria-hidden="true">' + EXIT_ARROWS[exitSide(exit)] + '</span> ' + escapeHtml(exit.destinationName) + '</button>').join("");
+      + roadsOut(region).map(road => '<button type="button" class="map-exit-button" data-map-road="' + road.target.id + ':' + road.town.id + '" title="Along the road into ' + escapeHtml(road.target.name) + ' to ' + escapeHtml(road.town.name) + '"><span class="map-exit-arrow" aria-hidden="true">' + EXIT_ARROWS[exitSide(road.exit)] + '</span> ' + escapeHtml(road.exit.destinationName) + '</button>').join("");
     $("map-destinations").querySelectorAll("button").forEach((button, index) => labelShortcut(button, String(index + 1)));
     $("map-region-eyebrow").textContent = region.eyebrow;
     $("map-title").innerHTML = region.title;
@@ -313,8 +414,7 @@
       ? "Grassy plains, two forests, the River Aster, and four settlements."
       : "Hill-ridden plains at the foot of the Stoneveil Range, crossed by the River Aster and three roads linking three settlements.");
     renderedRegionId = region.id;
-    camera.x = worldState.position.x; camera.y = worldState.position.y; camera.follow = true;
-    if (!modal.hidden) { chartRegion(region); applyCamera(); }
+    if (!modal.hidden) { chartRegion(); applyCamera(); }
     return region;
   }
 
@@ -354,7 +454,7 @@
     // Faded per element: a translucent group over the terrain canvas composites as a dark box.
     $("map-lanterns").style.setProperty("--lantern", Math.min(1, light.darkness / .66).toFixed(3));
   }
-  function renderTravelPath(position = worldState.position, destination = worldState.destination) {
+  function renderTravelPath(position = here(), destination = worldState.destination) {
     $("map-character").setAttribute("transform", pin(position.x, position.y, 0.8));
     const route = destination && Array.isArray(worldState.route) && worldState.route.length ? worldState.route : destination ? [destination] : [];
     $("map-route").setAttribute("d", route.length ? [{ ...position }, ...route].map((routePoint, index) => (index ? "L" : "M") + routePoint.x + " " + routePoint.y).join("") : "");
@@ -379,7 +479,7 @@
     // marker removed between pointerdown and pointerup cannot receive a click.
     if (layer.dataset.markers === signature) return;
     layer.dataset.markers = signature;
-    layer.innerHTML = markers.map(marker => `<g class="map-guild-marker" role="button" tabindex="${locked ? -1 : 0}" aria-disabled="${locked}" aria-label="Travel to ${escapeHtml(marker.label)}" data-map-x="${marker.point.x}" data-map-y="${marker.point.y}" data-pin="0.8" data-x="${marker.point.x}" data-y="${marker.point.y}" transform="${pin(marker.point.x, marker.point.y, 0.8)}"><circle r="31" fill="transparent"/><circle r="19" fill="${marker.kind === "artifact" ? "#c59b3c" : marker.kind === "great-hunt" ? "#7d2135" : "#c7683f"}" stroke="#fff4d0" stroke-width="4"/><text y="6" text-anchor="middle" fill="#fffaf5" font-size="1.25rem">${marker.kind === "artifact" ? "◆" : marker.kind === "great-hunt" ? "★" : "!"}</text><title>${escapeHtml(marker.label)}</title></g>`).join("");
+    layer.innerHTML = markers.map(marker => `<g class="map-guild-marker" role="button" tabindex="${locked ? -1 : 0}" aria-disabled="${locked}" aria-label="Travel to ${escapeHtml(marker.label)}" data-map-x="${marker.point.x}" data-map-y="${marker.point.y}" data-pin="0.8" data-local="1" data-x="${marker.point.x}" data-y="${marker.point.y}" transform="${pin(marker.point.x, marker.point.y, 0.8, true)}"><circle r="31" fill="transparent"/><circle r="19" fill="${marker.kind === "artifact" ? "#c59b3c" : marker.kind === "great-hunt" ? "#7d2135" : "#c7683f"}" stroke="#fff4d0" stroke-width="4"/><text y="6" text-anchor="middle" fill="#fffaf5" font-size="1.25rem">${marker.kind === "artifact" ? "◆" : marker.kind === "great-hunt" ? "★" : "!"}</text><title>${escapeHtml(marker.label)}</title></g>`).join("");
   }
   function render() {
     lastFullRender = performance.now();
@@ -397,7 +497,7 @@
     } else $("map-survey-bounds").innerHTML = "";
     renderGuildMarkers(guildMarkers, destinationsLocked);
     renderGuildAreas(window.Guild?.areas() || []);
-    const route = renderTravelPath(p, destination);
+    const route = renderTravelPath(here(), destination);
     $("map-character").setAttribute("aria-pressed", String(travelling));
     $("map-character").setAttribute("aria-disabled", String(destinationsLocked));
     $("map-character").setAttribute("tabindex", destinationsLocked ? "-1" : "0");
@@ -482,15 +582,15 @@
     else if (pendingEncounter) $("map-instructions").textContent = 'Your journey is paused until the encounter is resolved.';
     else if (currentHp <= 0) $("map-instructions").textContent = 'You cannot travel at 0 HP. Rest here if you are in a settlement.';
     else if (destination) {
-      const minutes = Math.ceil(rules.routeTravelMinutes(p, route, travelBonus, region.id));
-      $("map-instructions").textContent = (travelling ? 'Travelling' : 'Travel paused') + ' · Fastest route · ' + (rules.routeDistance(p, route) / rules.UNITS_PER_KM).toFixed(1) + ' km remaining · ' + Math.floor(minutes / 60) + 'h ' + (minutes % 60) + 'm · Arrive ' + rules.time(worldState.minutes + minutes) + '. Click to reroute, or hold the left mouse button to steer.';
+      const minutes = Math.ceil(rules.continentRouteMinutes(here(), route, travelBonus));
+      $("map-instructions").textContent = (travelling ? 'Travelling' : 'Travel paused') + ' · Fastest route · ' + (rules.continentRouteDistance(here(), route) / rules.UNITS_PER_KM).toFixed(1) + ' km remaining · ' + Math.floor(minutes / 60) + 'h ' + (minutes % 60) + 'm · Arrive ' + rules.time(worldState.minutes + minutes) + '. Click to reroute, or hold the left mouse button to steer.';
     } else $("map-instructions").textContent = 'Click the map, a settlement, or a quest marker to travel. Hold the left mouse button and move the cursor to steer.';
     if (classEffects.surveyorsEye) {
       const nearest = rules.nearestSettlement(p, region.id);
       const nearestMarker = guildMarkers.reduce((best, marker) => Math.min(best, rules.distance(p, marker.point)), Infinity);
-      $("map-instructions").textContent += ` Surveyor's Eye: ${nearest?.name || "Unknown settlement"} ${nearest ? (rules.distance(p, nearest) / rules.UNITS_PER_KM).toFixed(1) : "?"} km away${Number.isFinite(nearestMarker) ? ` · Quest marker ${(nearestMarker / rules.UNITS_PER_KM).toFixed(1)} km away` : ""}.`;
+      $("map-instructions").textContent += ` Surveyor's Eye: ${nearest?.name || "Unknown settlement"} ${nearest ? (rules.distance(p, nearest) / rules.LOCAL_UNITS_PER_KM).toFixed(1) : "?"} km away${Number.isFinite(nearestMarker) ? ` · Quest marker ${(nearestMarker / rules.LOCAL_UNITS_PER_KM).toFixed(1)} km away` : ""}.`;
     }
-    document.querySelectorAll("[data-map-town], [data-map-site], [data-map-exit]").forEach(button => {
+    document.querySelectorAll("[data-map-town], [data-map-site], [data-map-exit], [data-map-road]").forEach(button => {
       button.setAttribute("aria-disabled", String(destinationsLocked));
       if (button instanceof HTMLButtonElement) button.disabled = destinationsLocked;
       else button.setAttribute("tabindex", destinationsLocked ? "-1" : "0");
@@ -692,15 +792,13 @@
     if (modal.hidden || document.hidden || window.Combat?.active() || currentHp <= 0) { pause(); return; }
     const elapsed = lastFrame ? Math.min((now - lastFrame) / 1000, 0.2) : 0;
     lastFrame = now;
-    const previousZone = rules.zoneAt(worldState.position, worldState.regionId);
+    const previousZone = rules.zoneAt(worldState.position, worldState.regionId), previousRegionId = worldState.regionId;
     const result = rules.step(worldState, rules.realTimeMinutes(elapsed, worldState.timeSpeed, true), travelBonuses());
     advanceWorldTime(result.elapsed);
+    if (worldState.regionId !== previousRegionId) enteredRegion(previousRegionId);
     window.Guild?.onTravel(result.elapsed);
     window.Guild?.onPositionChange();
-    if (result.arrived) {
-      const exit = rules.exitAt(worldState.position, worldState.regionId);
-      if (exit) { presentRegionTransition(exit); return; }
-    }
+    if (result.blocked) { travelling = false; $("map-status").textContent = "The way is blocked."; saveCharacter(); render(); return; }
     const currentZone = rules.zoneAt(worldState.position, worldState.regionId);
     if (currentZone === "Vampire Citadel" && previousZone !== currentZone) {
       presentTravelEncounter(EncounterRules.generate(currentZone, { level, regionId: worldState.regionId }), currentZone);
@@ -719,22 +817,39 @@
     followPlayer();
     if (travelling) frame = requestAnimationFrame(tick);
   }
+  // Walking over a region's invisible border (port task 8): its music, header and guild markers follow, no prompt.
+  function enteredRegion(previousRegionId) {
+    rules.setActiveRegion(worldState.regionId);
+    window.Guild?.onRegionChange(previousRegionId);
+    window.Music?.sync();
+    $("map-status").textContent = 'Entered ' + rules.getRegion(worldState.regionId).name + '.';
+    render();
+  }
   function resume() {
     if (!worldState.destination || modal.hidden || encounterResolving || worldState.pendingEncounter || worldState.pendingRegionTransition || window.Combat?.active() || currentHp <= 0) return;
     travelling = true; lastFrame = 0;
     cancelAnimationFrame(frame); frame = requestAnimationFrame(tick); render();
   }
+  // A destination anywhere on the continent (a continent point), reached along the roads (W13).
   function destinationAt(point, { save = true, snapToSettlement = true } = {}) {
     if (encounterResolving || worldState.pendingEncounter || worldState.pendingRegionTransition || window.Combat?.active() || currentHp <= 0) return false;
-    if (!point || !rules.isLand(point, worldState.regionId)) { $("map-status").textContent = worldState.regionId === "mirrormere-basin" ? "The lake is impassable on foot. Follow the shore road." : "The open sea is impassable on foot. Use a port to sail."; return false; }
-    const nearby = snapToSettlement ? rules.settlementAt(point, worldState.regionId) : null;
-    const destination = rules.point(nearby || point);
+    if (!point || !rules.passableAt(point)) {
+      const target = point && rules.fromContinent(point);
+      $("map-status").textContent = target?.regionId === "mirrormere-basin" && continentRules.inRect(continentRules.RECTS["mirrormere-basin"], point) ? "The lake is impassable on foot. Follow the shore road."
+        : point && continentRules.inRect(continentRules.RECTS[target.regionId], point) ? "The open sea is impassable on foot. Use a port to sail." : "No way leads there: mountains or the sea.";
+      return false;
+    }
+    const target = rules.fromContinent(point);
+    const nearby = snapToSettlement && visited(target.regionId) ? rules.settlementAt(target.position, target.regionId) : null;
+    const destination = nearby ? rules.toContinent(target.regionId, nearby) : { x: point.x, y: point.y };
     if (worldState.destination && rules.distance(worldState.destination, destination) < .5) {
       if (!travelling) resume();
       return true;
     }
+    const route = rules.continentRoute(here(), destination, travelBonuses());
+    if (!route.length) { $("map-status").textContent = "No road or path leads there from here. Use a port to sail."; return false; }
     worldState.destination = destination;
-    worldState.route = rules.routeBetween(worldState.position, worldState.destination, travelBonuses(), worldState.regionId);
+    worldState.route = route;
     $("map-status").textContent = 'Fastest route set. Click another point, or hold the left mouse button to steer.';
     if (save) saveCharacter();
     if (travelling) render();
@@ -745,7 +860,7 @@
     const matrix = svg.getScreenCTM(), bounds = $("map-viewport").getBoundingClientRect();
     if (!matrix || event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) return null;
     const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
-    return point.x >= 0 && point.x <= 1600 && point.y >= 0 && point.y <= 1000 ? point : null;
+    return point.x >= world.x0 && point.x <= world.x1 && point.y >= world.y0 && point.y <= world.y1 ? point : null;
   }
   function cancelMapHold() {
     const held = mapHold;
@@ -770,8 +885,8 @@
     resizeView();
     // First opening: zoomed in on you. Later openings keep your zoom and follow you again.
     camera.follow = true;
-    if (!openedBefore) { openedBefore = true; setZoom(DEFAULT_ZOOM); } else centerOnPlayer();
-    chartRegion(rules.getRegion(worldState.regionId));
+    if (!openedBefore) { openedBefore = true; setScale(DEFAULT_SCALE()); } else centerOnPlayer();
+    chartRegion();
     const pendingExit = worldState.pendingRegionTransition && rules.exitById(worldState.pendingRegionTransition.exitId, worldState.pendingRegionTransition.regionId);
     (worldState.pendingEncounter ? $("map-encounter-fight") : pendingExit?.targetRegionId ? $("map-transition-travel") : worldState.pendingRegionTransition ? $("map-transition-stay") : modal.querySelector(".modal-close")).focus();
   }
@@ -820,9 +935,8 @@
     pause(false);
     worldState.destination = null; worldState.route = [];
     advanceWorldTime(boat.minutes);
-    worldState.regionId = boat.regionId;
+    rules.placeAt(worldState, rules.toContinent(boat.regionId, destination));
     rules.setActiveRegion(boat.regionId);
-    worldState.position = { x: destination.x, y: destination.y };
     worldState.encounterTravelMinutes = 0;
     renderedRegionId = null;
     window.Music?.sync();
@@ -860,7 +974,7 @@
   $("map-transition-travel").addEventListener("click", acceptRegionTransition);
   $("map-zoom-in").addEventListener("click", () => zoomAt(1.5));
   $("map-zoom-out").addEventListener("click", () => zoomAt(1 / 1.5));
-  $("map-fit").addEventListener("click", () => { camera.follow = false; setZoom(1); });
+  $("map-fit").addEventListener("click", () => { camera.follow = false; setScale("fit"); });
   $("map-follow").addEventListener("click", () => { camera.follow = true; centerOnPlayer(); });
   // Wheel zooms around the cursor; right or middle drag pans; panning stops following you.
   const viewport = $("map-viewport");
@@ -935,16 +1049,19 @@
     }
     const guildMarker = event.target.closest(".map-guild-marker");
     if (guildMarker) {
-      destinationAt({ x: Number(guildMarker.dataset.mapX), y: Number(guildMarker.dataset.mapY) }, { snapToSettlement: false }); return;
+      destinationAt(rules.toContinent(worldState.regionId, { x: Number(guildMarker.dataset.mapX), y: Number(guildMarker.dataset.mapY) }), { snapToSettlement: false }); return;
     }
+    const regionOf = target => target.closest("[data-region]")?.dataset.region || worldState.regionId;
+    const inContinent = (regionId, place) => place && rules.toContinent(regionId, place);
     const town = event.target.closest("[data-map-town]");
     if (town) {
-      destinationAt(rules.settlementsForRegion(worldState.regionId).find(p => p.id === town.dataset.mapTown)); return;
+      const regionId = regionOf(town);
+      destinationAt(inContinent(regionId, rules.settlementsForRegion(regionId).find(p => p.id === town.dataset.mapTown))); return;
     }
     const site = event.target.closest("[data-map-site]");
-    if (site) { destinationAt((rules.getRegion(worldState.regionId).sites || []).find(p => p.id === site.dataset.mapSite)); return; }
-    const exitTarget = event.target.closest("[data-map-exit]");
-    if (exitTarget) { const exit = rules.exitById(exitTarget.dataset.mapExit, worldState.regionId); if (exit) destinationAt(exit.point, { snapToSettlement: false }); return; }
+    if (site) { const regionId = regionOf(site); destinationAt(inContinent(regionId, (rules.getRegion(regionId).sites || []).find(p => p.id === site.dataset.mapSite))); return; }
+    const road = event.target.closest("[data-map-road]");
+    if (road) { const [regionId, townId] = road.dataset.mapRoad.split(":"); destinationAt(inContinent(regionId, rules.settlementsForRegion(regionId).find(p => p.id === townId))); return; }
     if (!event.target.closest("#regional-map")) return;
     const matrix = svg.getScreenCTM();
     if (matrix) destinationAt(new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse()));
@@ -1035,13 +1152,13 @@
       pause(false); encounterResolving = false;
       ambientLast = performance.now(); ambientCarry = 0;
       if (window.Combat?.active()) worldState.pendingEncounter = null;
-      if (worldState.destination) worldState.route = rules.routeBetween(worldState.position, worldState.destination, travelBonuses(), worldState.regionId);
+      if (worldState.destination) worldState.route = rules.continentRoute(here(), worldState.destination, travelBonuses());
       encounterModal.hidden = true;
       transitionModal.hidden = true;
       $("map-status").textContent = 'Roads are fastest; rivers, marsh, sand and volcanic slopes slow travel.';
       render();
     },
   };
-  if (worldState.destination) worldState.route = rules.routeBetween(worldState.position, worldState.destination, travelBonuses(), worldState.regionId);
+  if (worldState.destination) worldState.route = rules.continentRoute(here(), worldState.destination, travelBonuses());
   render();
 })();

@@ -102,12 +102,11 @@ scripts, markup, stylesheet, eleven boss files and test client) and these docs, 
 read none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't
 count task 7 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`,
 "New Game Plus: Limitless and the Exotics".
-**Beside the engine, old game only (2026-11-06): port task 8, Map Rework, has started in the old game** (W1; decisions in
-"Decisions for task 8, Map Rework" below; the cloud branch `claude/fervent-carson-f5ol9s`). **Waiting for the user:** their
-review of the continent's layout draft (W2): each region placed whole, 1.4× larger, on the compass its roads already
-follow, joined by border strips, sealed by ridges or sea where no road joins; a schematic picture and its table, made by
-`claude-work/continent/draft.py` in the cloud session (not kept in the repo). Nothing is built yet. **Engine work goes on
-uninterrupted.**
+**Beside the engine, old game only (2026-11-06): port task 8, Map Rework, is being built in the old game** (W1; decisions
+in "Decisions for task 8, Map Rework" below; the cloud branch `claude/fervent-carson-f5ol9s`). The layout is approved (W6);
+built so far: the continent's geometry and travel rules (`../old-game/scripts/continent-engine.js`, `world-engine.js`),
+the continent map view (in progress), now reshaped to a natural outline (W17, W18). Still to come: the music crossfade,
+the boat, the mountain fog, the caravan, the carriage, the checks and the docs. **Engine work goes on uninterrupted.**
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
@@ -1295,6 +1294,14 @@ M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.t
 - W16 **Where the caravan is offered:** a Caravan button among a castle city's service buttons under the map (beside the
   General Store and Travel by boat); it opens the list of the player's other unlocked castle cities with each fare and
   time, and a preview of the route on the map. (Not a tab of the General Store.)
+- W17 **A natural continent** (asked after the user saw the first renders, 2026-11-06: "the continent seems very blocky
+  … i want a natural looking continent"): one irregular, noise-shaped coastline (capes, bays) and irregular mountain
+  ranges between the neighbours no road joins, in place of the regions' rectangles; the walkable land follows that
+  outline both ways: in places it reaches past a region's old edge (wild ground with that edge's terrain, danger and
+  encounters), elsewhere the sea or the mountains bite in. Roads, settlements, sites and the ground near them are never
+  cut. (Not "bite in only", the recommendation; not the looks only with the old rectangles walkable.)
+- W18 **How far the natural edge moves:** up to about 30 km (400 continent units) from a region's old straight edge, in
+  or out. (Not about 15 km, the recommendation, nor about 7 km.)
 
 **Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
 after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**

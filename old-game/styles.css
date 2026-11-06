@@ -670,6 +670,13 @@ body.modal-open { overflow: hidden; }
 .map-exit:hover .map-exit-icon, .map-exit:focus-visible .map-exit-icon { transform: scale(1.12); }
 .map-exit-name { font-size: 1.45rem; }
 #regional-map.is-overview .map-exit text { display: none; }
+/* The continent (port task 8): region names and the ridges' names only when zoomed out to the continent; there, towns
+   shrink to their castle cities and lose their kind, and the land's own lettering hides. */
+#map-region-names { display: none; }
+#regional-map.is-continent #map-region-names { display: inline; }
+.map-region-name { fill: #f4e6c4; stroke: #140d08; stroke-width: 9px; paint-order: stroke; stroke-linejoin: round; text-anchor: middle; font: italic 2.6rem "STIX Two Text", Georgia, serif; letter-spacing: .03em; }
+.map-barrier-name { fill: #d8c6a0; stroke: #140d08; stroke-width: 7px; paint-order: stroke; stroke-linejoin: round; text-anchor: middle; font: italic 2.2rem "STIX Two Text", Georgia, serif; }
+#regional-map.is-continent .map-settlement:not(.is-castle), #regional-map.is-continent .map-town-kind, #regional-map.is-continent .map-terrain-label, #regional-map.is-continent .map-river-label { display: none; }
 .map-exit-button .map-exit-arrow { color: var(--accent, #c9a96a); font-weight: 600; }
 #regional-map.is-mouse-steering { cursor: grabbing; }
 #map-weather-rain-far { animation: map-rain-fall 1.4s linear infinite; }

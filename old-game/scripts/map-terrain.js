@@ -11,6 +11,8 @@
   const W = 1600, H = 1000, CELL = 2, GW = W / CELL + 1, GH = H / CELL + 1;
   const INK = "#1a120c";
   const TILE = 256, LEVELS = [1, 2, 4, 8];
+  // Port task 8: regions are drawn on one continent; their edges fade over FEATHER units into the ground between them.
+  const CONTINENT = Boolean(window.ContinentRules), FEATHER = 40;
 
   /* ---------------- Noise ---------------- */
   function rng(seed) {
@@ -330,7 +332,8 @@
       for (let px = 0; px < TILE; px++) {
         const x = x0 + (px + 0.5) / level;
         const o = (py * TILE + px) * 4;
-        if (x < 0 || y < 0 || x > W || y > H) { data[o] = 20; data[o + 1] = 14; data[o + 2] = 10; data[o + 3] = 255; continue; }
+        // On the continent (port task 8) the ground past a region's edge is the neighbours' and the strips': see-through.
+        if (x < 0 || y < 0 || x > W || y > H) { data[o] = 20; data[o + 1] = 14; data[o + 2] = 10; data[o + 3] = CONTINENT ? 0 : 255; continue; }
         const gx = Math.min(GW - 1.001, x / CELL), gy = Math.min(GH - 1.001, y / CELL);
         const ix = gx | 0, iy = gy | 0, fx = gx - ix, fy = gy - iy, i = iy * GW + ix;
         const w00 = (1 - fx) * (1 - fy), w10 = fx * (1 - fy), w01 = (1 - fx) * fy, w11 = fx * fy;
@@ -393,8 +396,11 @@
         const grainK = 1 + tex * 0.07 + fine * 0.035;
         r *= grainK; gg *= grainK; b *= grainK;
         const border = Math.min(x, y, W - x, H - y);
-        if (border < edge) { const t = 1 - border / edge, d = 1 - t * t * 0.55; r = r * d + 34 * (1 - d) * 0.4; gg = gg * d + 24 * (1 - d) * 0.4; b = b * d + 14 * (1 - d) * 0.4; }
-        data[o] = r < 0 ? 0 : r > 255 ? 255 : r; data[o + 1] = gg < 0 ? 0 : gg > 255 ? 255 : gg; data[o + 2] = b < 0 ? 0 : b > 255 ? 255 : b; data[o + 3] = 255;
+        // A single region's sheet burns at its edge; on the continent the edge fades into the ground beyond instead.
+        let alpha = 255;
+        if (CONTINENT) { if (border < FEATHER) alpha = 255 * (border / FEATHER) * (border / FEATHER) * (3 - 2 * border / FEATHER); }
+        else if (border < edge) { const t = 1 - border / edge, d = 1 - t * t * 0.55; r = r * d + 34 * (1 - d) * 0.4; gg = gg * d + 24 * (1 - d) * 0.4; b = b * d + 14 * (1 - d) * 0.4; }
+        data[o] = r < 0 ? 0 : r > 255 ? 255 : r; data[o + 1] = gg < 0 ? 0 : gg > 255 ? 255 : gg; data[o + 2] = b < 0 ? 0 : b > 255 ? 255 : b; data[o + 3] = alpha;
       }
       previousRow = currentRow;
     }
@@ -803,6 +809,22 @@
     },
   };
 
+  // The field function of a region on its own, for coarse pictures (the continent's overview, port task 8).
+  function sampler(region) {
+    const spec = window.MapRegions?.spec(region.id);
+    if (!spec) return null;
+    const T = makeToolkit(hashString(region.id) % 100000), context = spec.prepare ? spec.prepare(region, T) : {};
+    const out = { color: [0, 0, 0] };
+    return {
+      spec, T,
+      fieldAt(x, y) {
+        out.color = [200, 190, 150]; out.h = 0; out.water = 0; out.forest = 0; out.pine = 0; out.rock = 0; out.wet = 0; out.sand = 0; out.snow = 0; out.farm = 0; out.glow = 0;
+        spec.field(x, y, out, T, context, region);
+        return out;
+      },
+    };
+  }
+
   /* ---------------- Tile cache ---------------- */
   const worlds = new Map();
   function world(region) {
@@ -829,6 +851,8 @@
   }
   // Releases other regions' memory.
   function keepOnly(regionId) { for (const id of [...worlds.keys()]) if (id !== regionId) worlds.delete(id); }
+  // Keeps these regions' worlds (the continent keeps the few near the view), oldest others released.
+  function keep(regionIds) { for (const id of [...worlds.keys()]) if (!regionIds.includes(id)) worlds.delete(id); }
 
-  window.MapTerrain = { W, H, TILE, LEVELS, CELL, world, tile, render, keepOnly, tone, makeToolkit, hash2, rng, DRAW, cells, canopy, rgbOf };
+  window.MapTerrain = { W, H, TILE, LEVELS, CELL, FEATHER, world, tile, render, keepOnly, keep, sampler, tone, makeToolkit, hash2, rng, DRAW, cells, canopy, rgbOf };
 })();
