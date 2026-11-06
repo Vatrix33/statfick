@@ -479,6 +479,23 @@ How it's built:
   `masterwork-rarity-browser.js` counts 32 masterworks now.
 - **Not covered by a check:** the anvil's hover cards and list layout; the scenes, island painting and site icons
   (placeholders); companions choosing to place the new traps (the old formula).
+- **The checks can fail:** each rule was broken once in a copy of the game (121 mutations, one per rule, by the same
+  kind of runner as task 2's, in the cloud session's `claude-work/shop/`, not kept). All 121 were caught after a second
+  pass; the first let nine through, each a gap the checks then closed: the armor-part check used full plate, which
+  Outlaw and Vampiric never make (now light armor, a shield and a robe too); the fixed-maker forging was only seen
+  through stock that filters by maker anyway (now checked on `generate` and `generateArmor` directly); the
+  heal-over-time check's numbers vanished in an enemy's −80% (now on the wearer); Gravity Well was set off only by
+  melee (now a spell too); a clothing-free Blacksmith shelf was drawn once (now six draws); the Tailor's sell check used
+  an equipped sword, never sellable (now a spare mace); and the Ornn board check ran with Ornn's hunt marked completed.
+- **Regression** (2026-11-06, the cloud, Xvfb): every zero-argument entry of the 42 check files (97 entries: the 88 of
+  merged `main` plus 9 new) and the smoke, enemies, lifecycle and combat suites, against a baseline run of merged
+  `main` (07857b1) with its own checks. Every entry gives the baseline's result except `cinder-bosses`'
+  `runCinderBossChecks`, which expected Ornn among Cinder Isle's Great Hunts and was updated (it passes); the nine new
+  entries pass. The baseline's 11 failures are unchanged (`adventure-improvements` ×3, `bloody-mary`,
+  `combat-lifecycle` outside its suite, `music`, `newc`, `settings-companions`, `shop`, `talos-edge`, `trap`);
+  `shop-browser.js` is stale since before task 2 (8-piece castle smiths, a `map-spell-shop` button, 219
+  catalogue items) and stops at its first assertion as before. Smoke, enemies (511 cases) and lifecycle pass; the
+  combat suite stops at the known Barbarian failure, as before.
 
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in

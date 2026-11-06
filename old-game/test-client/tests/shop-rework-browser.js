@@ -62,13 +62,18 @@ async function checkDoctorsOrdersHealing() {
   assert(h.values(player).maxHp > 40 && h.healHp(player, 20, battle, player) === 30, "The wearer's own lifesteal or regeneration heals ×1.5");
   h.setHp(player, 1);
   assert(h.healHp(player, 20, battle, goblins[0]) === 25, "A heal from someone else heals the wearer ×1.25");
-  // A heal-over-time remembers its caster: the wearer's ticks on an enemy-side target are ×1.5 (then the enemy's −80%).
-  const target = goblins[0];
-  h.applyTimedEffects(target, "test-hot", "Test Bloom", [{ type: "turn-start-restore-percent", hp: 10, durationTurns: 3 }], player);
-  assert(target.effects.find(effect => effect.name === "Test Bloom")?.healerId === "player", "A heal-over-time records who cast it");
-  const maximum = h.values(target).maxHp;
-  h.setHp(target, 1); h.expire(target);
-  assert(h.hp(target) - 1 === Math.floor(Math.floor(Math.max(1, Math.floor(maximum * 10 / 100)) * 1.5) / 5), "Its ticks carry the caster's +50%");
+  // A heal-over-time remembers its caster: on the wearer, their own ticks heal ×1.5, someone else's ×1.25.
+  const tick = caster => {
+    player.effects = player.effects.filter(effect => effect.name !== "Test Bloom");
+    h.applyTimedEffects(player, "test-hot", "Test Bloom", [{ type: "turn-start-restore-percent", hp: 40, durationTurns: 3 }], caster);
+    const base = Math.max(1, Math.floor(h.values(player).maxHp * 40 / 100));
+    h.setHp(player, 1); h.expire(player);
+    return { base, gain: h.hp(player) - 1 };
+  };
+  const own = tick(player);
+  assert(player.effects.find(effect => effect.name === "Test Bloom")?.healerId === "player" && own.gain === Math.floor(own.base * 1.5) && own.gain !== Math.floor(own.base * 1.25), "The wearer's own heal-over-time ticks heal ×1.5");
+  const theirs = tick(goblins[0]);
+  assert(theirs.gain === Math.floor(theirs.base * 1.25), "Someone else's heal-over-time ticks heal the wearer ×1.25");
   // The healing-given and healing-received effects read on the item card.
   const text = item.effects.map(artifactEffectLabel).join(" | ");
   assert(/heal you cause in battle/.test(text) && /\+50%/.test(text) && /Healing you receive in battle \+25%/.test(text), "The item card names both effects: " + text);
@@ -219,6 +224,9 @@ async function checkNewTraps() {
   strike(battle, goblin, player);
   assert(!armed(player, "trap-gravity-well") && goblin.trapApLoss === 2 && other.trapApLoss === 2, "Gravity Well costs every enemy 2 AP");
   assert(turnOf(battle, other) === h.actionPointMaximum(other) - 2, "The AP is lost on that enemy's next turn");
+  ({ battle, player, goblins } = await start(["consumable-gravity-well"]));
+  h.hurt(player, 5, "fire", false, true, goblins[0], "spell");
+  assert(!armed(player, "trap-gravity-well") && goblins.every(foe => foe.trapApLoss === 2), "A spell hit sets it off too");
   // Tripwire and Gravity Well together add up (R26).
   ({ battle, player, goblins } = await start(["consumable-tripwire"]));
   player.effects.push({ key: "trap:test-well", name: "Gravity Well", type: "trap-gravity-well", amount: 2, cap: 0, remainingTriggers: 1, expiresTurn: Number.MAX_SAFE_INTEGER });
@@ -284,9 +292,18 @@ async function checkReforgeRules() {
   assert(!reason(staff, "institute") && reason(sword, "institute") && reason(clothing, "institute"), "The Institute reforges staffs and wands only");
   assert(!reason(sword, "hearth") && !reason(armor, "hearth") && !reason(hammer, "hearth") && reason(hammer, "smith") && reason(hammer, "tailor"), "Only Hearth Home reforges masterworks");
   assert(club.type === "club" && reason(club, "smith") && reason(club, "hearth"), "A weapon no smith makes parts for (the club) can't be reforged");
-  // Armor: no Vampiric or Outlaw parts, up to the main part's rarity.
-  const armorMain = index(rarityOf(armor, armor.parts[0]));
-  assert([1, 2].every(at => F.reforgeOptions(armor, at).every(option => !["outlaw", "vampiric"].includes(option.maker) && index(rarityOf(armor, option)) <= armorMain)), "Armor parts follow the same pool");
+  // Armor: no Vampiric or Outlaw parts (they make light armor, clothing and shields), up to the main part's rarity.
+  for (const type of ["full-plate", "leather-armor", "kite-shield", "robe"]) {
+    const piece = F.generateArmor({ level: 60, source: "shop", types: [type], rarity: "legendary" }), main = index(rarityOf(piece, piece.parts[0]));
+    assert([1, 2].every(at => { const options = F.reforgeOptions(piece, at); return options.length > 2 && options.every(option => !["outlaw", "vampiric"].includes(option.maker) && index(rarityOf(piece, option)) <= main); }), `A ${type}'s parts follow the same pool`);
+  }
+  // A fixed maker forges only its own pieces (Hearth Home's and the Institute's stock).
+  for (let roll = 0; roll < 20; roll++) {
+    assert(F.generate({ level: 40, source: "shop", casterShare: 0, maker: "hearthforge" }).parts[0].maker === "hearthforge", "Hearthforge weapons have a Hearthforge main part");
+    assert(F.generateArmor({ level: 40, source: "shop", maker: "hearthforge", types: F.ARMOR_IDS.filter(type => F.ARMORS[type].category !== "clothing") }).parts[0].maker === "hearthforge", "Hearthforge armor has a Hearthforge main part");
+    assert(F.generateArmor({ level: 40, source: "shop", maker: "institute-of-magic", types: F.ARMOR_IDS.filter(type => F.ARMORS[type].category === "clothing") }).parts[0].maker === "institute-of-magic", "Institute clothing has an Institute main part");
+    assert(F.generate({ level: 40, source: "shop", casterShare: 1, maker: "institute-of-magic" }).parts[0].maker === "institute-of-magic", "Institute staffs and wands have an Institute main part");
+  }
   // Masterworks (R5): Mythilium parts by the masterwork makers, up to masterwork rarity; main part and fixed maker stay.
   const masterOptions = F.reforgeOptions(hammer, 1);
   assert(masterOptions.some(option => option.material === "mythilium") && masterOptions.every(option => option.maker !== "outlaw"), "A masterwork's other parts can be Mythilium, never Outlaw");
@@ -323,6 +340,10 @@ async function checkShopsAndTailor() {
   const at = settlement => { worldState.regionId = region.id; worldState.position = { x: settlement.x, y: settlement.y }; WorldMap.render(); return WorldRules.settlementAt(worldState.position); };
   for (const [name, total, weapons, tailor] of [["Crownspire", 9, 5, 6], ["Stonefoot", 6, 3, 4]]) {
     const place = at(region.settlements.find(settlement => settlement.name === name));
+    for (let draw = 0; draw < 6; draw++) {
+      delete shopState.locations[place.id];
+      assert(!Shop.stockFor(place).blacksmith.some(entry => Shop.isClothing(getItem(entry.id))), `${name}'s Blacksmith never stocks clothing`);
+    }
     const stock = Shop.stockFor(place);
     const smithItems = stock.blacksmith.map(entry => getItem(entry.id));
     const offers = smithItems.filter(item => item.shopOffer || item.forged?.masterwork).length;
@@ -334,15 +355,16 @@ async function checkShopsAndTailor() {
   // Clothing is sold only to the Tailor; the Blacksmith buys the rest.
   const robe = ForgeRules.encode(ForgeRules.generateArmor({ level: 40, source: "shop", types: ["robe"] }));
   const sword = ForgeRules.encode(ForgeRules.generate({ type: "longsword", level: 40, rarity: "rare", source: "shop" }));
-  inventory.push(robe, sword); equipment.primaryHand = sword;
+  const spare = ForgeRules.encode(ForgeRules.generate({ type: "mace", level: 40, rarity: "rare", source: "shop" }));
+  inventory.push(robe, sword, spare); equipment.primaryHand = sword;
   $("map-blacksmith").click(); await shopReworkWait(50);
   $("shop-sell-mode").click(); await shopReworkWait(50);
-  assert(!document.querySelector(`[data-sell-item="${robe}"]`), "The Blacksmith doesn't buy clothing");
+  assert(!document.querySelector(`[data-sell-item="${robe}"]`) && document.querySelector(`[data-sell-item="${spare}"]`), "The Blacksmith doesn't buy clothing");
   Shop.close();
   $("map-tailor").click(); await shopReworkWait(50);
   assert($("shop-title").textContent.includes("thread") && !$("shop-reforge-mode").hidden, "The Tailor's shop opens with a reforge anvil");
   $("shop-sell-mode").click(); await shopReworkWait(50);
-  assert(document.querySelector(`[data-sell-item="${robe}"]`) && !document.querySelector(`[data-sell-item="${sword}"]`), "The Tailor buys clothing only");
+  assert(document.querySelector(`[data-sell-item="${robe}"]`) && !document.querySelector(`[data-sell-item="${spare}"]`), "The Tailor buys clothing only");
   Shop.close();
   assert(["tailor", "institute", "hearth"].every(scene => SceneBanners.placeholderArt(scene)), "The Tailor's, Institute's and Hearth Home's scenes are marked placeholder art (R1)");
   $("map-item-shop").click(); await shopReworkWait(50);
@@ -467,7 +489,7 @@ async function checkHearthHome() {
   Shop.close();
   // Ornn left the Great Hunts: Emberhaven's board offers only Ur-Mat now.
   const town = region.settlements[0];
-  worldState.position = { x: town.x, y: town.y }; level = 95;
+  worldState.position = { x: town.x, y: town.y }; level = 95; worldState.guild.greatHuntsCompleted = [];
   for (let index = 0; index < 20; index++) {
     worldState.guild.boards = {}; Guild.render();
     assert(!Guild.boardFor().offers.some(offer => offer.uniqueId === "ornn-god-of-the-forge"), "No board offers Ornn as a Great Hunt");
