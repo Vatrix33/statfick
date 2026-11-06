@@ -1002,6 +1002,68 @@ checks ran, "That task is very small"; built in the old game like tasks 1–4, o
 - N10 **The marsh's level range** (2026-11-06, asked while writing the checks): raised from 35–50 to 35–55 to take in
   the Rift: the map header reads "LEVEL 35–55" and guild quests in the marsh go up to Level 55. (Not kept at 35–50.)
 
+**Decisions for task 5, New Masterworks (2026-11-06, a cloud session; the user asked for task 5 that day after tasks 4
+and 6 were merged; the task is `Docs/Port-Tasks/5_New_Masterworks.txt`).** Asked before any code, four at a time:
+- M1 **Where and art:** in the old game like tasks 1–4 and 6, with placeholder art listed for the port's full remake.
+  (Not finished art now, not only noted for the port.)
+- M2 **Who can be Sparkling:** any regular enemy at the start of any battle (travel, forced, guild Hunt, Cull, Search and
+  Escort fights); never a summon, and nobody in a battle that has a boss (a boss's aids: Saffron's Servants, Zik Lun's
+  warband, Tankina's Apostles and the like). (Not travel and forced only; the Empowered Hunt target can be Sparkling.)
+- M3 **Luck:** the 0.1% chance is multiplied by (1 + the player's Luck / 500), at most 0.2% (Luck 50: 0.11%, 100: 0.12%,
+  300: 0.16%, 500 or more: 0.2%). (Not ×(1 + Luck/1000) uncapped, not ×(1 + Luck/200) up to 0.3%.)
+- M4 **The Cull's hidden 2%:** only for the Cull's target enemy met inside the Cull circle, where its kills count. (Not
+  anywhere while the Cull is active.)
+- M5 **Highlight:** on the encounter screen "Sparkling" before its name in gold with a shimmer; in battle it is named
+  "Sparkling X", with a placeholder sparkle around its sprite and on its card. (Not the encounter screen only, no map
+  status line.)
+- M6 **Strength:** all eight attributes ×1.4 (HP already rises with Vitality), then its maximum HP doubled on top. (Not
+  HP exactly twice a normal one's, not Vitality left out.)
+- M7 **Rewards:** "1000% more EXP" is 11 times the EXP, on top of Empowered and other bonuses; silver as a normal enemy.
+  (Not ×10, not ×11 silver.)
+- M8 **Drop rolls:** two separate rolls, 70% and 5%; each that hits drops one masterwork (one 68%, two 3.5%, none
+  28.5%). (Not the 5% only after the 70%, not exactly 5% for two.)
+- M9 **The Cull's 2% and Luck:** Luck raises it like the 0.1%: 2% × (1 + Luck/500), at most 4% (Luck 100: 2.4%). (Not
+  a flat 2%.)
+- M10 **The drop pool:** every masterwork weapon, armor and artifact (35, counting Lament, Noble Hero and the new armor),
+  boss-only and bought ones included; not the masterwork-rarity key items. (Not leaving out the boss-only ones, not
+  adding the key items.)
+- M11 **Treasure Seeker and Moneyshot's share:** each 5 times as likely as any other masterwork in the pool (about 11%
+  of Sparkling masterwork drops each). (Not 3×, not 10×.)
+- M12 **Luck on the drop rolls:** the game's masterwork Luck bonus (+0.05 × Luck percentage points) applies to both
+  rolls (Luck 100: 75% and 10%). (Not fixed 70% and 5%.)
+- M13 **Treasure Seeker's money:** battle silver, guild quest rewards and sales all doubled, but a sale never pays more
+  than the item's shop price (buying and reselling can't make money); two worn in the party still double once. (Not
+  battles and quests only, not uncapped sales.)
+- M14 **Treasure Seeker's Luck:** +1 Luck per Platinum (10,000 silver) held, no cap. (Not at most +100, not +5 per
+  Platinum up to +200.)
+- M15 **Treasure Seeker on the level ramp:** like task 4's masterwork artifacts, the user's numbers at Level 80, weaker
+  when it drops lower and stronger above. (Not fixed at every level.)
+- M16 **Moneyshot's count:** every attack with it counts, hits and misses; the 5th, 10th, 15th… of each battle are
+  boosted, and the count starts over each battle. (Not hits only, not kept between battles.)
+- M17 **Treasure Seeker at Level 1:** uncommon strength: +15% money and +0.15 Luck per Platinum, rising on task 4's
+  straight line to +100% and +1 at Level 80 (about +122% and +1.2 at Level 100). (Not half at Level 1, not the money
+  alone on the ramp.)
+- M18 **Moneyshot's boosted attack:** a boosted critical deals +200% instead of +50% (on top of the normal critical
+  damage); the echo is 5% of what the hit dealt, and each other enemy's defenses reduce it (like Kugelblitz's cleave).
+  (Not an echo that ignores defenses.)
+- M19 **Lament's choice:** in the spell list each single-target spell gets a "Lament: +1 target (+50% Mana)" choice;
+  then you click the second target. (Not picked automatically, not always on.)
+- M20 **Lament's spells:** any spell aimed at one combatant: damage and curses on enemies, heals and buffs on allies.
+  (Not damage spells only.)
+- M21 **Noble Hero's effect (reworded at the user's request):** "Deals 25% less damage, but each hit strikes the target
+  again for the same amount. The second strike counts as a weapon attack." The second strike makes no new hit or
+  critical roll and triggers what a weapon hit triggers (on-hit effects, lifesteal, burns, the target's thorns). (Not
+  two attacks at 75% with their own rolls.)
+- M22 **Noble Hero's drop:** 1% from every demon and devil enemy except the two bosses (Great Imp Ji'ruan, Archdevil
+  Saffron); Saffron's Great Devil Servants can drop it. (Not the bosses too.)
+- M23 **The new masterwork armor:** I draft it (type, maker, effect, story, source) in the chat for the user's review and
+  build it after approval. (Not built at my discretion unseen.)
+- M24 **The Shadow Crystal:** 0.05% from every enemy that gives loot, bosses included; not summons or objects. (Not
+  regular enemies only.)
+- M25 **Delivery:** all three parts (Sparkling with Treasure Seeker and Moneyshot; Lament and Noble Hero; the new armor
+  and the Shadow Crystal) in one pull request at the end; the only stop on the way is the new armor's draft (M23).
+  (Not a stop after each part, not a pull request per part.)
+
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
 - On this PC both move into one repo folder, `/run/media/system/M.2_2TB/Stat Fick Repo/`, which becomes the only working copy (scripts, docs and notes follow the new paths).
