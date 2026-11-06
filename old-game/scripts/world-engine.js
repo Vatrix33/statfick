@@ -12,7 +12,11 @@
   // Regions were tripled in size (40 × 25 km became 120 × 75 km) without moving anything:
   // each map unit now covers three times the ground. Travel time, encounter spacing and
   // saved distances scale with it.
-  const UNITS_PER_KM = 40 / 3, MAP_SCALE = 3, ENCOUNTER_MINUTES = 90;
+  // Port task 8 (W3, W4): the regions sit on one continent, each 1.4× larger (CONTINENT.SCALE). UNITS_PER_KM counts
+  // continent units; a region's own (local) units cover 1.4 times the ground. Encounters keep their number per trip,
+  // so their spacing grew by the same 1.4 (90 → 126 travel minutes).
+  const CONTINENT = root.ContinentRules || null, SCALE = CONTINENT?.SCALE || 1;
+  const UNITS_PER_KM = 40 / 3, LOCAL_UNITS_PER_KM = UNITS_PER_KM / SCALE, MAP_SCALE = 3, ENCOUNTER_MINUTES = 90 * SCALE;
   const normalizeTimeSpeed = value => timeSpeeds.includes(value) ? value : 1;
   // Regular speed: thirty-six minutes per second when travelling (the regions grew threefold,
   // so the clock runs three times faster and a crossing takes as long as before), one minute
@@ -21,10 +25,12 @@
   const validPoint = value => value && typeof value === "object" && Number.isFinite(value.x) && Number.isFinite(value.y);
   // Older saves can have the retired generic dragon in an encounter or quest.
   const currentEnemyName = name => name === "Lesser Dragon" ? "Red Dragon" : name;
-  const point = p => ({ x: clamp(number(p?.x, 420), 20, 1580), y: clamp(number(p?.y, 490), 20, 980) });
+  // A region's points reach a little past its edges: half a border strip (port task 8).
+  const REACH = Math.ceil((CONTINENT?.STRIP || 0) / 2 / SCALE) + 10;
+  const point = p => ({ x: clamp(number(p?.x, 420), -REACH, 1600 + REACH), y: clamp(number(p?.y, 490), -REACH, 1000 + REACH) });
   const regionalPoint = (value, fallback) => ({
-    x: clamp(number(value?.x, fallback.x), 20, 1580),
-    y: clamp(number(value?.y, fallback.y), 20, 980),
+    x: clamp(number(value?.x, fallback.x), -REACH, 1600 + REACH),
+    y: clamp(number(value?.y, fallback.y), -REACH, 1000 + REACH),
   });
   function pendingEncounter(value) {
     if (!value || typeof value !== "object" || !Array.isArray(value.enemies)) return null;
@@ -171,20 +177,24 @@
       ...(Array.isArray(rawGuild.avoidedGreatHunts) ? rawGuild.avoidedGreatHunts : []),
       ...(requestedAvoidance === "great-hunt-rematch" && greatHuntRematch ? [greatHuntRematch.uniqueId] : [])
     ])].filter(id => greatHuntRematches.some(rematch => rematch.uniqueId === id));
-    const destination = validPoint(saved?.destination) ? point(saved.destination) : null;
+    const regionId = normalizeRegionId(saved?.regionId);
+    /* Port task 8: a destination and its route are continent points; saves from before kept them in their region's
+       units. Those saves see the whole continent and have every caravan (W15). A crossing prompt no longer exists. */
+    const legacy = Boolean(saved && typeof saved === "object" && saved.continentVersion !== CONTINENT_VERSION && (saved.position || saved.regionId || saved.minutes != null));
+    const stored = value => legacy ? toContinent(regionId, point(value)) : continentPoint(value);
+    const destination = validPoint(saved?.destination) ? stored(saved.destination) : null;
     const route = destination && Array.isArray(saved?.route)
-      ? saved.route.filter(validPoint).slice(0, 512).map(point)
+      ? saved.route.filter(validPoint).slice(0, 2048).map(stored)
       : [];
     if (destination && (!route.length || Math.hypot(route.at(-1).x - destination.x, route.at(-1).y - destination.y) > 1e-7)) route.push({ ...destination });
-    const regionId = normalizeRegionId(saved?.regionId);
-    const pendingRegionTransition = saved?.pendingRegionTransition && typeof saved.pendingRegionTransition === "object"
-      && typeof saved.pendingRegionTransition.exitId === "string"
-      && exitById(saved.pendingRegionTransition.exitId, regionId)
-      ? { regionId, exitId: saved.pendingRegionTransition.exitId }
-      : null;
+    const pendingRegionTransition = null;
+    const castleIds = castleCityIds();
+    const visitedRegions = legacy ? Object.keys(regions) : [...new Set((Array.isArray(saved?.visitedRegions) ? saved.visitedRegions : []).filter(id => typeof id === "string" && regions[id]))];
+    const caravans = legacy ? [...castleIds] : [...new Set((Array.isArray(saved?.caravans) ? saved.caravans : []).filter(id => castleIds.includes(id)))];
     // Saves from before the regions grew counted kilometres on the smaller maps.
     const kmFactor = number(saved?.mapScale, 1) >= MAP_SCALE ? 1 : MAP_SCALE;
-    return {
+    const state = {
+      continentVersion: CONTINENT_VERSION,
       mapScale: MAP_SCALE,
       minutes: clamp(number(saved?.minutes, 480), 0, 1000000000),
       timeSpeed: normalizeTimeSpeed(saved?.timeSpeed),
@@ -216,7 +226,11 @@
       position: regionalPoint(saved?.position, getRegion(regionId).start),
       destination,
       route,
+      visitedRegions,
+      caravans,
     };
+    noteVisit(state);
+    return state;
   }
   const day = minutes => Math.floor(Math.max(0, number(minutes, 0)) / 1440) + 1;
   const time = minutes => {
@@ -312,7 +326,14 @@
     ...(ancientBattlefield ? { [ancientBattlefield.id]: ancientBattlefield } : {}),
     ...(duskpineForest ? { [duskpineForest.id]: duskpineForest } : {}),
   });
+  // The continent built from the regions' exits (port task 8): road links across the border strips.
+  const continent = CONTINENT ? CONTINENT.build(regions) : null;
+  // A region's roads with its halves of the border crossings (in its own coordinates, past its edge).
+  const roadsWithCrossings = region => [...(region.roads || []), ...(continent ? CONTINENT.linksOf(region.id).map(link => link.halves[region.id]) : [])];
   let activeRegionId = alder.id;
+  // Saves of the continent (port task 8) carry this version.
+  const CONTINENT_VERSION = 1;
+  const castleCityIds = () => Object.values(regions).flatMap(region => (region.settlements || []).filter(place => place.kind === "Castle city").map(place => place.id));
   function normalizeRegionId(regionId) { return typeof regionId === "string" && regions[regionId] ? regionId : alder.id; }
   function getRegion(regionId = activeRegionId) { return regions[normalizeRegionId(regionId)]; }
   function setActiveRegion(regionId) { activeRegionId = normalizeRegionId(regionId); return getRegion(); }
@@ -333,7 +354,7 @@
         minX: Math.min(start.x, end.x), maxX: Math.max(start.x, end.x),
         minY: Math.min(start.y, end.y), maxY: Math.max(start.y, end.y) };
     }));
-    const result = { roads: segments(region.roads || []), river: segments(region.river ? [region.river] : []) };
+    const result = { roads: segments(roadsWithCrossings(region)), river: segments(region.river ? [region.river] : []) };
     cachedTerrainSegments.set(id, result);
     return result;
   }
@@ -364,8 +385,11 @@
     }
     return false;
   }
+  const outsideBox = position => position.x < 0 || position.x > 1600 || position.y < 0 || position.y > 1000;
   function isLand(position, regionId = activeRegionId) {
     const region = getRegion(regionId);
+    // Past a region's edge only a border strip is land (port task 8): elsewhere a ridge or the sea.
+    if (continent && outsideBox(position)) return CONTINENT.inStrip(CONTINENT.toC(region.id, position));
     if (region.lake && insideEllipse(position, region.lake)) return Boolean(region.island && insideEllipse(position, region.island) || onBridge(position, region));
     const shape = region.landShape;
     if (!shape) return true;
@@ -527,7 +551,7 @@
       const segment = Math.min(5, totalDistance - travelled);
       const midpoint = { x: a.x + dx * (travelled + segment / 2), y: a.y + dy * (travelled + segment / 2) };
       if (getRegion(regionId).lake && !isLand(midpoint, regionId)) return Infinity;
-      minutes += segment / UNITS_PER_KM / speedAt(midpoint, speedBonus, regionId) * 60;
+      minutes += segment / LOCAL_UNITS_PER_KM / speedAt(midpoint, speedBonus, regionId) * 60;
       travelled += segment;
     }
     return minutes;
@@ -550,7 +574,7 @@
       if (!edges[first].some(edge => edge.to === second)) edges[first].push({ to: second, length });
       if (!edges[second].some(edge => edge.to === first)) edges[second].push({ to: first, length });
     };
-    getRegion(normalizedRegionId).roads.forEach(path => {
+    roadsWithCrossings(getRegion(normalizedRegionId)).forEach(path => {
       let previous = null;
       path.forEach(rawPoint => {
         const current = nodeId(rawPoint);
@@ -575,7 +599,7 @@
     if (!count) return directRoute;
     const flatSpeedBonus = typeof speedBonus === "object" ? number(speedBonus?.all, 0) : number(speedBonus, 0);
     const riverSpeedBonus = typeof speedBonus === "object" ? number(speedBonus?.river, 0) : 0;
-    const fastestMinutesPerUnit = 1.5 / Math.max(0.1, Math.max(7 + Math.max(0, flatSpeedBonus), 2 + Math.max(0, flatSpeedBonus) + Math.max(0, riverSpeedBonus)));
+    const fastestMinutesPerUnit = 60 / LOCAL_UNITS_PER_KM / Math.max(0.1, Math.max(7 + Math.max(0, flatSpeedBonus), 2 + Math.max(0, flatSpeedBonus) + Math.max(0, riverSpeedBonus)));
     const lowerBound = (first, second) => distance(first, second) * fastestMinutesPerUnit;
     const useful = graph.nodes.map(node => lowerBound(start, node) + lowerBound(node, end) < directMinutes - 1e-7);
     const costs = Array(count).fill(Infinity), previous = Array(count).fill(-1), visited = new Set();
@@ -634,46 +658,220 @@
     }
     return total;
   }
+  /* ---------- The continent (port task 8) ----------
+     Travel runs in continent units: a destination and its route are continent points, and the traveller's region and
+     local position follow from where they stand (the nearest region's territory). Region rules (terrain, zones, speed)
+     still answer in each region's own coordinates. */
+  const toContinent = (regionId, position) => continent ? CONTINENT.toC(normalizeRegionId(regionId), position) : { x: position.x, y: position.y };
+  function fromContinent(c) {
+    if (!continent) return { regionId: activeRegionId, position: point(c) };
+    const regionId = CONTINENT.regionAt(c);
+    return { regionId, position: CONTINENT.toLocal(regionId, c) };
+  }
+  const continentPoint = c => ({ x: number(c?.x, 0), y: number(c?.y, 0) });
+  function passableAt(c) {
+    if (!continent) return isLand(c);
+    const { regionId, position } = fromContinent(c);
+    return CONTINENT.inRect(CONTINENT.RECTS[regionId], c) ? isLand(position, regionId) : CONTINENT.inStrip(c);
+  }
+  function continentSpeedAt(c, bonus = 0) {
+    const { regionId, position } = fromContinent(c);
+    return speedAt(position, bonus, regionId);
+  }
+  // Minutes along a straight line, sampled every 5 units; Infinity if it crosses ground no one can stand on.
+  function continentTravelMinutes(a, b, bonus = 0) {
+    const totalDistance = distance(a, b);
+    if (!totalDistance) return 0;
+    const dx = (b.x - a.x) / totalDistance, dy = (b.y - a.y) / totalDistance;
+    let travelled = 0, minutes = 0;
+    while (travelled < totalDistance - 1e-8) {
+      const segment = Math.min(5, totalDistance - travelled);
+      const midpoint = { x: a.x + dx * (travelled + segment / 2), y: a.y + dy * (travelled + segment / 2) };
+      if (!passableAt(midpoint)) return Infinity;
+      minutes += segment / UNITS_PER_KM / continentSpeedAt(midpoint, bonus) * 60;
+      travelled += segment;
+    }
+    return minutes;
+  }
+  // Every region's roads and border crossings in continent units, one graph.
+  let continentGraph = null;
+  const ROAD_GAP = 200 * SCALE;
+  function continentRoadGraph() {
+    if (continentGraph) return continentGraph;
+    const nodes = [], regionOf = [], edges = [], ids = new Map();
+    const nodeId = (c, regionId) => {
+      const key = c.x.toFixed(3) + ":" + c.y.toFixed(3);
+      if (ids.has(key)) return ids.get(key);
+      ids.set(key, nodes.length); nodes.push(c); regionOf.push(regionId); edges.push([]);
+      return nodes.length - 1;
+    };
+    const connect = (first, second) => {
+      if (first === second || edges[first].some(edge => edge.to === second)) return;
+      const length = distance(nodes[first], nodes[second]);
+      edges[first].push({ to: second, length }); edges[second].push({ to: first, length });
+    };
+    for (const region of Object.values(regions)) {
+      const paths = roadsWithCrossings(region).map(path => {
+        const indexes = [];
+        for (const raw of path) {
+          const current = nodeId(toContinent(region.id, point(raw)), region.id);
+          if (indexes.length) connect(indexes.at(-1), current);
+          indexes.push(current);
+        }
+        return indexes;
+      });
+      // A road's end joins the nearest point of another road of its region close by: a crossing's half meets the
+      // road it continues, and broken roads (the Ancient Battlefield's) are walked across their gaps.
+      paths.forEach((indexes, pathIndex) => {
+        for (const end of [indexes[0], indexes.at(-1)]) {
+          let best = -1, bestDistance = ROAD_GAP;
+          paths.forEach((other, otherIndex) => {
+            if (otherIndex === pathIndex) return;
+            for (const candidate of other) {
+              const d = distance(nodes[end], nodes[candidate]);
+              if (d < bestDistance && d > 1e-7) { best = candidate; bestDistance = d; }
+            }
+          });
+          if (best >= 0) connect(end, best);
+        }
+      });
+    }
+    continentGraph = { nodes, regionOf, edges };
+    return continentGraph;
+  }
+  const bonusKey = bonus => typeof bonus === "object" ? `${number(bonus?.all, 0)}|${number(bonus?.river, 0)}|${number(bonus?.carriage, 0)}|${number(bonus?.carriageRoad, 0)}` : String(number(bonus, 0));
+  const edgeMinutes = new Map();
+  function graphEdgeMinutes(graph, from, edge, bonus) {
+    const key = bonusKey(bonus);
+    let table = edgeMinutes.get(key);
+    if (!table) { table = new Map(); edgeMinutes.set(key, table); if (edgeMinutes.size > 12) edgeMinutes.delete(edgeMinutes.keys().next().value); }
+    const id = from < edge.to ? from * 100000 + edge.to : edge.to * 100000 + from;
+    if (!table.has(id)) table.set(id, continentTravelMinutes(graph.nodes[from], graph.nodes[edge.to], bonus));
+    return table.get(id);
+  }
+  // The fastest way between two continent points: straight, or onto the roads near the start, along any roads and
+  // border crossings, and off them near the end (Dijkstra on travel minutes, port task 8, W13).
+  function continentRoute(startValue, endValue, bonus = 0, { maxSpeed = 7 } = {}) {
+    const start = continentPoint(startValue), end = continentPoint(endValue);
+    if (distance(start, end) < 1e-7) return [{ ...end }];
+    const direct = continentTravelMinutes(start, end, bonus);
+    const graph = continentRoadGraph(), count = graph.nodes.length;
+    const flat = typeof bonus === "object" ? number(bonus?.all, 0) : number(bonus, 0);
+    const fastest = Math.max(maxSpeed, 7) + Math.max(0, flat) + (typeof bonus === "object" ? Math.max(0, number(bonus?.river, 0)) : 0);
+    const minutesPerUnit = 60 / UNITS_PER_KM / Math.max(0.1, fastest * Math.max(1, typeof bonus === "object" ? 1 + Math.max(0, number(bonus?.carriageRoad, 0)) / 100 : 1));
+    const bound = (a, b) => distance(a, b) * minutesPerUnit;
+    const startRegion = fromContinent(start).regionId, endRegion = fromContinent(end).regionId;
+    // On and off the roads only in the region where the trip starts or ends, and not farther than a region's width.
+    const reach = Math.max(CONTINENT?.CW || 1600, CONTINENT?.CH || 1000);
+    const costs = new Float64Array(count).fill(Infinity), previous = new Int32Array(count).fill(-1), done = new Uint8Array(count);
+    const heap = [];
+    const push = (cost, index) => { heap.push([cost, index]); let i = heap.length - 1; while (i > 0) { const parent = (i - 1) >> 1; if (heap[parent][0] <= heap[i][0]) break; [heap[parent], heap[i]] = [heap[i], heap[parent]]; i = parent; } };
+    const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = i * 2 + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
+    for (let index = 0; index < count; index++) {
+      if (graph.regionOf[index] !== startRegion || distance(start, graph.nodes[index]) > reach) continue;
+      if (bound(start, graph.nodes[index]) + bound(graph.nodes[index], end) >= direct) continue;
+      const entrance = continentTravelMinutes(start, graph.nodes[index], bonus);
+      if (Number.isFinite(entrance) && entrance < costs[index]) { costs[index] = entrance; push(entrance, index); }
+    }
+    let best = direct, exit = -1;
+    const finishes = new Map();
+    while (heap.length) {
+      const [cost, current] = pop();
+      if (done[current] || cost > costs[current]) continue;
+      done[current] = 1;
+      if (cost + bound(graph.nodes[current], end) >= best - 1e-7) continue;
+      if (graph.regionOf[current] === endRegion && distance(graph.nodes[current], end) <= reach) {
+        if (!finishes.has(current)) finishes.set(current, continentTravelMinutes(graph.nodes[current], end, bonus));
+        const finish = cost + finishes.get(current);
+        if (finish < best - 1e-7) { best = finish; exit = current; }
+      }
+      for (const edge of graph.edges[current]) {
+        if (done[edge.to]) continue;
+        const next = cost + graphEdgeMinutes(graph, current, edge, bonus);
+        if (next < costs[edge.to] && next + bound(graph.nodes[edge.to], end) < best - 1e-7) { costs[edge.to] = next; previous[edge.to] = current; push(next, edge.to); }
+      }
+    }
+    if (exit < 0) return Number.isFinite(direct) ? [{ ...end }] : [];
+    const path = [];
+    for (let current = exit; current >= 0; current = previous[current]) path.push(graph.nodes[current]);
+    path.reverse();
+    const route = [...path, end].reduce((result, routePoint) => {
+      if (!result.length || distance(result.at(-1), routePoint) > 1e-7) result.push({ ...routePoint });
+      return result;
+    }, []);
+    while (route.length > 1 && distance(start, route[0]) < 1e-7) route.shift();
+    return route;
+  }
+  function continentRouteDistance(startValue, routeValue) {
+    let cursor = continentPoint(startValue), total = 0;
+    for (const raw of Array.isArray(routeValue) ? routeValue : []) { if (!validPoint(raw)) continue; total += distance(cursor, raw); cursor = continentPoint(raw); }
+    return total;
+  }
+  function continentRouteMinutes(startValue, routeValue, bonus = 0) {
+    let cursor = continentPoint(startValue), total = 0;
+    for (const raw of Array.isArray(routeValue) ? routeValue : []) { if (!validPoint(raw)) continue; total += continentTravelMinutes(cursor, raw, bonus); cursor = continentPoint(raw); }
+    return total;
+  }
+  // Where a traveller stands on the continent.
+  const standing = state => toContinent(state.regionId, state.position);
+  // The region they stand in counts as entered (W12), the castle city they stand in as visited (caravans, W16).
+  function noteVisit(state) {
+    if (!Array.isArray(state.visitedRegions)) state.visitedRegions = [];
+    if (!state.visitedRegions.includes(state.regionId)) state.visitedRegions.push(state.regionId);
+    const place = settlementAt(state.position, state.regionId);
+    if (place?.kind === "Castle city") {
+      if (!Array.isArray(state.caravans)) state.caravans = [];
+      if (!state.caravans.includes(place.id)) state.caravans.push(place.id);
+    }
+  }
+  // Puts a traveller at a continent point: their region follows from it.
+  function placeAt(state, c) {
+    const { regionId, position } = fromContinent(c);
+    state.regionId = regionId; state.position = position;
+    noteVisit(state);
+  }
   function prepareRoute(state) {
     if (!validPoint(state.destination)) { state.destination = null; state.route = []; return []; }
-    state.destination = point(state.destination);
-    let route = Array.isArray(state.route) ? state.route.filter(validPoint).slice(0, 512).map(point) : [];
+    state.destination = continentPoint(state.destination);
+    const here = standing(state);
+    let route = Array.isArray(state.route) ? state.route.filter(validPoint).slice(0, 2048).map(continentPoint) : [];
     if (!route.length || distance(route.at(-1), state.destination) > 1e-7) route = [{ ...state.destination }];
-    while (route.length && distance(state.position, route[0]) < 1e-7) route.shift();
+    while (route.length && distance(here, route[0]) < 1e-7) route.shift();
     state.route = route;
     return route;
   }
   function stepToward(state, target, available, speedBonus) {
-    const origin = { ...state.position }, totalDistance = distance(origin, target);
-    if (!totalDistance) return { elapsed: 0, travelled: 0, reached: true };
+    const origin = standing(state), totalDistance = distance(origin, target);
+    if (!totalDistance) return { elapsed: 0, travelled: 0, reached: true, blocked: false };
     const dx = (target.x - origin.x) / totalDistance, dy = (target.y - origin.y) / totalDistance;
-    let travelled = 0, elapsed = 0;
+    let travelled = 0, elapsed = 0, blocked = false;
     while (available > 1e-8 && travelled < totalDistance - 1e-8) {
       const segment = Math.min(5, totalDistance - travelled);
       const midpoint = { x: origin.x + dx * (travelled + segment / 2), y: origin.y + dy * (travelled + segment / 2) };
-      const speed = speedAt(midpoint, speedBonus, state.regionId), segmentMinutes = segment / UNITS_PER_KM / speed * 60;
+      if (!passableAt(midpoint)) { blocked = true; break; }
+      const speed = continentSpeedAt(midpoint, speedBonus), segmentMinutes = segment / UNITS_PER_KM / speed * 60;
       const used = Math.min(available, segmentMinutes);
       travelled += segment * used / segmentMinutes;
       elapsed += used; available -= used;
       if (used < segmentMinutes) break;
     }
-    state.position.x = origin.x + dx * travelled;
-    state.position.y = origin.y + dy * travelled;
-    return { elapsed, travelled, reached: totalDistance - travelled < 1e-7 };
+    placeAt(state, { x: origin.x + dx * travelled, y: origin.y + dy * travelled });
+    return { elapsed, travelled, reached: !blocked && totalDistance - travelled < 1e-7, blocked };
   }
   function step(state, minutes, speedBonus = 0) {
     if (!state.destination) { state.route = []; return { elapsed: 0, arrived: false }; }
-    let route = prepareRoute(state), available = Math.max(0, number(minutes, 0)), elapsed = 0, travelled = 0;
+    let route = prepareRoute(state), available = Math.max(0, number(minutes, 0)), elapsed = 0, travelled = 0, blocked = false;
     while (route.length && available > 1e-8) {
       const leg = stepToward(state, route[0], available, speedBonus);
       elapsed += leg.elapsed; travelled += leg.travelled; available -= leg.elapsed;
+      if (leg.blocked) { blocked = true; break; }
       if (!leg.reached) break;
-      state.position = { ...route[0] }; route.shift();
+      placeAt(state, route[0]); route.shift();
     }
     state.distanceTraveledKm = Math.max(0, number(state.distanceTraveledKm, 0)) + travelled / UNITS_PER_KM;
-    const arrived = route.length === 0 && distance(state.position, state.destination) < 1e-7;
-    if (arrived) { state.position = { ...state.destination }; state.destination = null; state.route = []; }
-    return { elapsed, arrived };
+    const arrived = !blocked && route.length === 0 && distance(standing(state), state.destination) < 1e-7;
+    if (arrived || blocked) { if (arrived) placeAt(state, state.destination); state.destination = null; state.route = []; }
+    return { elapsed, arrived, blocked };
   }
   function lighting(minutes) {
     const hour = (((number(minutes, 0) % 1440) + 1440) % 1440) / 60;
@@ -728,7 +926,8 @@
     const keep = list => (Array.isArray(list) ? list : []).filter(id => !RETIRED_ARTIFACT_IDS.has(id));
     return { ...information, offers: { ...information.offers, item: keep(information.offers?.item) }, revealed: { ...information.revealed, item: keep(information.revealed?.item) } };
   }
-  const api = { RETIRED_ARTIFACT_IDS, UNITS_PER_KM, MAP_SCALE, ENCOUNTER_MINUTES, RENAMED_ENEMIES, settlements, forests, regions, normalizeRegionId, getRegion, setActiveRegion, activeRegion, settlementsForRegion, nearestSettlement, setSettlementAccessResolver, canAccessSettlement, landmarkAt, siteAt, normalize, timeSpeeds, normalizeTimeSpeed, realTimeMinutes, day, time, point, distance, settlementAt, isLand, terrainAt, zoneAt, speedAt, travelMinutes, routeBetween, routeDistance, routeTravelMinutes, exitAt, exitById, step, lighting };
+  const api = { CONTINENT_VERSION, SCALE, LOCAL_UNITS_PER_KM, REACH, castleCityIds, toContinent, fromContinent, passableAt, continentSpeedAt, continentTravelMinutes, continentRoadGraph, continentRoute, continentRouteDistance, continentRouteMinutes, placeAt, noteVisit, standing, get continent() { return continent; },
+    RETIRED_ARTIFACT_IDS, UNITS_PER_KM, MAP_SCALE, ENCOUNTER_MINUTES, RENAMED_ENEMIES, settlements, forests, regions, normalizeRegionId, getRegion, setActiveRegion, activeRegion, settlementsForRegion, nearestSettlement, setSettlementAccessResolver, canAccessSettlement, landmarkAt, siteAt, normalize, timeSpeeds, normalizeTimeSpeed, realTimeMinutes, day, time, point, distance, settlementAt, isLand, terrainAt, zoneAt, speedAt, travelMinutes, routeBetween, routeDistance, routeTravelMinutes, exitAt, exitById, step, lighting };
   root.WorldRules = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(globalThis);

@@ -1290,6 +1290,11 @@ M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.t
   out. (Not the current region only.)
 - W14 **Lengths:** the boat animation about 5 seconds; a caravan trip's 4 seconds for neighbours up to 8 for the longest;
   the music crossfades over 4 seconds at a region border. (Not all about 3 seconds, not all about 10.)
+- W15 **Saves from before task 8:** everything open: the whole continent counts as entered (no fog) and every castle
+  city's caravan as unlocked. (Not only where the player stands, the recommendation; not guessed from their level.)
+- W16 **Where the caravan is offered:** a Caravan button among a castle city's service buttons under the map (beside the
+  General Store and Travel by boat); it opens the list of the player's other unlocked castle cities with each fare and
+  time, and a preview of the route on the map. (Not a tab of the General Store.)
 
 **Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
 after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**

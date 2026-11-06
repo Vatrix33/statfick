@@ -161,16 +161,17 @@
     })(),
     gloamfenMarsh: (() => {
       const mirewatch = { x: 670, y: 355 }, reedcross = { x: 765, y: 770 }, fork = { x: 1100, y: 570 };
+      // Port task 8 (W5, W6): the Jungle lies south of the marsh now, so its road leaves Reedcross southward; the causeway
+      // ends at Mirewatch, which no longer has a road north.
       const northRoad = join(
         cubic({ x: 1620, y: 600 }, { x: 1450, y: 625 }, { x: 1250, y: 565 }, fork),
-        cubic(fork, { x: 920, y: 495 }, { x: 820, y: 385 }, mirewatch),
-        cubic(mirewatch, { x: 580, y: 270 }, { x: 705, y: 135 }, { x: 640, y: -20 })
+        cubic(fork, { x: 920, y: 495 }, { x: 820, y: 385 }, mirewatch)
       );
-      const southRoad = cubic(fork, { x: 965, y: 640 }, { x: 865, y: 740 }, reedcross);
+      const southRoad = join(cubic(fork, { x: 965, y: 640 }, { x: 865, y: 740 }, reedcross), quadratic(reedcross, { x: 735, y: 880 }, { x: 760, y: 1020 }));
       return {
         id: "gloamfen-marsh", name: "Gloamfen Marsh",
         eyebrow: "GLOAMFEN MARSH · LEVEL 35–55", title: "Across the <em>drowned earth</em>",
-        description: "A vast peat swamp threaded by two raised roads. Mirewatch guards the northern causeway, Reedcross survives on southern hummocks, and a small rocky rise breaks the wetlands to the west.",
+        description: "A vast peat swamp threaded by two raised roads. Mirewatch guards the northern causeway; the southern one runs past Reedcross's hummocks on to the jungle, and a small rocky rise breaks the wetlands to the west.",
         levelRange: { minimum: 35, maximum: 55 }, start: { x: 1532, y: 600 }, // 55 since port task 6 (N10), the Abyssal Rift.
         settlements: [
           { id: "mirewatch", name: "Mirewatch", kind: "Castle city", ...mirewatch },
@@ -184,7 +185,7 @@
         abyssalRift: { x: 380, y: 885, rx: 215, ry: 88 },
         exits: [
           { id: "east-road", name: "Road to Stormwake Hills", point: { x: 1580, y: 600 }, retreat: { x: 1532, y: 600 }, targetRegionId: "stormwake-hills", targetPoint: { x: 68, y: 630 }, prompt: "Return east to Stormwake Hills?", destinationName: "Stormwake Hills" },
-          { id: "north-road", name: "Road to Verdigris Jungle", point: { x: 640, y: 20 }, retreat: { x: 650, y: 68 }, targetRegionId: "verdigris-jungle", targetPoint: { x: 840, y: 932 }, prompt: "Travel north into Verdigris Jungle?", destinationName: "Verdigris Jungle" },
+          { id: "south-road", name: "Road to Verdigris Jungle", point: { x: 760, y: 980 }, retreat: { x: 760, y: 932 }, targetRegionId: "verdigris-jungle", targetPoint: { x: 790, y: 68 }, prompt: "Travel south into Verdigris Jungle?", destinationName: "Verdigris Jungle" },
         ],
       };
     })(),
@@ -194,18 +195,19 @@
         id: "verdigris-jungle", name: "Verdigris Jungle",
         eyebrow: "VERDIGRIS JUNGLE · LEVEL 45–65", title: "Beneath an <em>endless canopy</em>",
         description: "An unbroken jungle of tangled roots, flooded shadows and ancient trees. One hard-won road reaches Canopyhold, the sole castle city beneath its leaves.",
-        levelRange: { minimum: 45, maximum: 65 }, start: { x: 840, y: 932 },
+        levelRange: { minimum: 45, maximum: 65 }, start: { x: 790, y: 68 },
         settlements: [{ id: "canopyhold", name: "Canopyhold", kind: "Castle city", ...canopyhold }],
+        // Port task 8 (W5, W6): its one road leaves Canopyhold northward, toward Gloamfen above it.
         roads: [join(
-          cubic({ x: 840, y: 1020 }, { x: 900, y: 830 }, { x: 680, y: 690 }, { x: 805, y: 560 }),
-          quadratic({ x: 805, y: 560 }, { x: 880, y: 475 }, canopyhold)
+          cubic({ x: 790, y: -20 }, { x: 820, y: 120 }, { x: 735, y: 240 }, { x: 770, y: 320 }),
+          quadratic({ x: 770, y: 320 }, { x: 760, y: 375 }, canopyhold)
         )], river: null,
         outerCanopy: { x: 795, y: 495, rx: 780, ry: 490 },
         denseCanopy: { x: 660, y: 380, rx: 565, ry: 365 },
         oldGrowth: { x: 475, y: 290, rx: 300, ry: 220 },
         highCanopy: { x: 1300, y: 300, rx: 245, ry: 195 },
         exits: [
-          { id: "south-road", name: "Road to Gloamfen Marsh", point: { x: 840, y: 980 }, retreat: { x: 840, y: 932 }, targetRegionId: "gloamfen-marsh", targetPoint: { x: 650, y: 68 }, prompt: "Return south to Gloamfen Marsh?", destinationName: "Gloamfen Marsh" },
+          { id: "north-road", name: "Road to Gloamfen Marsh", point: { x: 790, y: 20 }, retreat: { x: 790, y: 68 }, targetRegionId: "gloamfen-marsh", targetPoint: { x: 760, y: 932 }, prompt: "Return north to Gloamfen Marsh?", destinationName: "Gloamfen Marsh" },
         ],
       };
     })(),
