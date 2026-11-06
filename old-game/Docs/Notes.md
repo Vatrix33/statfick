@@ -608,8 +608,8 @@ task 6, New Areas" (N1–N10); N9 approved the drafted zone, enemies and groups 
   charcoal horned devil-kit demon with red eyes; the Abyss Witch a violet-robed devil-kit demon with a violet glow.
   The map (`map-regions.js`, Gloamfen's spec): a dark violet scar with a red-glowing heart painted over the mire (no
   pools, scrub or wet ground in it) and the label "ABYSSAL RIFT".
-- **Guild:** `guild.js`'s `regionalZones["gloamfen-marsh"]` has the Rift (anchor point 380, 885), so Mirewatch's and
-  Reedcross's Hunts and Culls go there once the hunter is Level 42 or more (a zone's minimum ≤ level + 3), naming a
+- **Guild:** `guild.js`'s `regionalZones["gloamfen-marsh"]` has the Rift (anchor point 380, 885), so Mirewatch's Hunts and
+  Culls (the marsh's only guild) go there once the hunter is Level 42 or more (a zone's minimum ≤ level + 3), naming a
   Rift enemy near the hunter's level, as for every zone.
 - **Tests:** `test-client/tests/new-areas-browser.js`, 7 entries: `checkRiftZone` (place, shape, what it took, chance,
   levels, travel, the marsh's range), `checkRiftEncounters` (the nine groups, levels, a travel encounter),
