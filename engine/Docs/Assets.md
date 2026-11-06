@@ -69,8 +69,9 @@ Nothing of M9 yet: no pack, virtual file system, serializer, save or settings co
   `Engine/Statventure/Shaders/Source/`, the test models' Blender scripts in `Tools/BlenderReference/`
   (their `.glb` exports in `Tests/Statventure.Tests/Data/Models/`), the fonts in
   `old-game/objects/fonts/` (byte-identical copies in `Tests/Statventure.Tests/Data/Fonts/`), the
-  stylesheet in `old-game/styles.css` (a byte-identical copy in `Tests/Statventure.Tests/Data/Game/`,
-  read by `GameLayoutTests`). Nothing writes to `$STATVENTURE_GAME` yet: `build.sh` and `build.ps1`
+  stylesheet in `old-game/styles.css` (a copy in `Tests/Statventure.Tests/Data/Game/`, read by
+  `GameLayoutTests`: the old game's stylesheet as it was when the game screens were captured, `f45ca7a`,
+  2026-10-30; the old game's own has differed since `7cdd47e`, 2026-11-03). Nothing writes to `$STATVENTURE_GAME` yet: `build.sh` and `build.ps1`
   build into each project's `bin/`, and there is no game executable before the port (M12 does the
   shipped layout). (Since step 9 the build publishes the sandbox there with `packs/` beside it: S9-A.)
   (Corrected 2026-11-03, step 7: the fonts' names there have capitals, `Lato-Regular.ttf`, which the path

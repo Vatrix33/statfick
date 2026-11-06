@@ -8,7 +8,8 @@ docs and notes current, and the open design questions.
 with 2–4 concrete options (recommended first, with the reason), then record the answer with its date in
 `Docs/Engine-Plan.md`. This covers anything the player would see, hear or do differently, looks,
 behaviour the old game doesn't define, data formats, folder layout and scope. Don't ask what the code,
-Chromium or the docs already answer.
+Chromium or the docs already answer. The one exception, M11's editor (the user, 2026-11-06): its own design is
+the manager's, only choices that change the game go to the user (Engine-Plan.md, "Decisions for M11"; `Docs/Editor.md`).
 
 **Stop when a milestone is finished** (tests pass, ticked in Engine-Plan.md, notes updated): report to
 the user and wait for their go-ahead before starting the next one.

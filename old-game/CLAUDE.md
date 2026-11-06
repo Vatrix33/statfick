@@ -2,7 +2,8 @@
 
 The JavaScript RPG (character sheet, regional map, turn-based combat, guild, companions) in an
 Electron shell. The port in `../engine/` is the active work; this game is its reference: the engine's
-tests read its stylesheets, scripts and images, and the reference harnesses drive it in Chromium 152.
+tests read its fonts, one class file and the images their saved captures name, and keep their own copy of its
+stylesheet; the reference harnesses drive it in Chromium 152.
 Change it only when the user asks. Design history, systems and gotchas: `Docs/Notes.md`.
 
 - **Run the headless tests** (the test client, `test-client/`):

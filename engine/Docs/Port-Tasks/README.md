@@ -101,7 +101,7 @@ task 5 (asked for after tasks 4 and 6 were merged; M1 kept its art placeholder).
   game's checks for it, `old-game/test-client/tests/shop-rework-browser.js`, are the reference the ported rules are
   tested against. Still to do in the port: only the art (below). The task's `.txt` stays as the user wrote it. It
   touched only `old-game/` and the docs, never the engine (the user, "same rules apply" as task 2).
-- Task 4, Artifact Rework (2026-11-06, a cloud session, offered as pull request #10 with task 6): the old artifact set replaced by 80
+- Task 4, Artifact Rework (2026-11-06, a cloud session, merged through pull request #10 with task 6 on 2026-11-06): the old artifact set replaced by 80
   new ones (32 uncommon, 24 rare, 16 epic, 8 legendary, each with its own effect), the four masterwork artifacts on a
   level ramp (fixed at the level obtained; about uncommon strength at Level 1, legendary at 80, rising beyond), rare
   enemy drops, old saves cleaned, and placeholder looks for every artifact. The user's 32 design answers are in
@@ -109,7 +109,7 @@ task 5 (asked for after tasks 4 and 6 were merged; M1 kept its art placeholder).
   `../../../old-game/Docs/Notes.md`, "Artifact Rework"; the old game's checks,
   `old-game/test-client/tests/artifact-rework-browser.js`, are the reference the ported rules are tested against. Still
   to do in the port: only the looks (below). Old game only, as tasks 2 and 3.
-- Task 6, New Areas (2026-11-06, a cloud session, offered in the same pull request as task 4, #10): the Abyssal Rift, a new
+- Task 6, New Areas (2026-11-06, a cloud session, merged in the same pull request as task 4, #10, on 2026-11-06): the Abyssal Rift, a new
   Level 45–55 zone in Gloamfen Marsh's south-west, with three corrupted marsh creatures (Corrupted Bog Troll, Mire
   Stalker with Dark strikes, Mossback Lamia with Dark spells; all demon race) and three demons (Abyssal Imp, Rift
   Fiend, Abyss Witch), nine encounter groups, guild Hunts there, and the marsh's range raised to 35–55. The user's
@@ -117,7 +117,7 @@ task 5 (asked for after tasks 4 and 6 were merged; M1 kept its art placeholder).
   `../../../old-game/Docs/Notes.md`, "New Areas"; the old game's checks,
   `old-game/test-client/tests/new-areas-browser.js`, are the reference the ported rules are tested against. Still to do
   in the port: only the looks (below). Old game only. Task 8 (the map rework) places the Rift on the continent.
-- Task 5, New Masterworks (2026-11-06, a cloud session, offered as pull request #11): Sparkling enemies (a rare, stronger,
+- Task 5, New Masterworks (2026-11-06, a cloud session, merged through pull request #11 on 2026-11-06): Sparkling enemies (a rare, stronger,
   richer version of any regular enemy, highlighted on the encounter screen, dropping masterworks), Treasure Seeker and
   Moneyshot (Sparkling only), Lament (2% from the Tide Siren), Noble Hero (1% from non-boss demons and devils), the
   Hexbane Coat (the new masterwork armor, drafted and reviewed; 1% from non-boss undead, demons and devils) and the

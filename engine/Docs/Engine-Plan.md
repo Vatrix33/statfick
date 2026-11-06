@@ -5,7 +5,17 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-11-06):** M10 (scene and sequencer) is done and ticked (2026-11-05). It started on 2026-11-04 with
+**Current task (2026-11-06): M11 (editor foundation) started on 2026-11-06** with the user's go ("Once that worker
+finishes you can start with M11", given after the full run on `a32c5cb`, below). Its detail round is answered: M11-1 to
+M11-8 on 2026-11-05, M11-9 to M11-21 on 2026-11-06 ("Decisions for M11" below), with **the user's rule for M11**: only
+questions meant for the game go to the user, the editor itself is the manager's to decide (big decisions told to the
+user; the manager's reading of it is in "Decisions for M11" and under "Ask the user about design choices" below). The
+design doc is `Docs/Editor.md`: what exists checked against the code, the method, a proposed design with 38 editor
+choices for the manager to confirm (P1–P38) and six questions for the user about the game (G1–G6), and fourteen proposed
+steps with their dependencies and which can run side by side. **No step has started.** Next: the manager confirms (or
+changes) P1–P38, asks the user G1–G6, records both, then starts wave 1 (steps 1–4 side by side; `Docs/Editor.md`,
+"Steps").
+M10 (scene and sequencer) is done and ticked (2026-11-05). It started on 2026-11-04 with
 the user's go (its eleven questions and 33 step details answered that day, the steps' own questions on the way; "Decisions
 for M10" below; the design doc is `Docs/Scene.md`), and all seven steps are merged on `main` (Progress, "M10 step 1" to
 "M10 step 7" and "M10 done"; `Docs/Scene.md`, Status): the node tree and the scene, F-curves and easing, cameras and a sun
@@ -38,12 +48,7 @@ the fixed-attachment checker (about 650 px), the radial pattern under `scaleX(0.
 references on the GPU and on lavapipe; the mutation list; the docs; the full run; the merge. One known difference still
 to put to the user before it merges: Blink's clip-layer bleed avoidance clips the whole background once as a layer, and
 the canvas cannot clip only a layer's composite. Still open from M10 step 6: the music switch exactly on a quantum's start
-during the old theme's fade-in, to check against Chromium (below, "Small tasks left from earlier milestones"). **The next milestone is M11 (editor foundation); it starts
-only on the user's go.** Its four main questions are answered (2026-11-05, "Decisions for M11" below: a separate editor
-app, a generic form for every record kind, a live preview, shipped with the game for modding), and four of the
-detail questions the same day (mods for players, the game's packs only from the repo; a plain dark tool look; undo per
-entry; import in the editor); the rest of the detail round ("Decisions for M11", "Still to ask") and the user's go are
-still to come. M9
+during the old theme's fade-in, to check against Chromium (below, "Small tasks left from earlier milestones"). M9
 (assets and data) is done and ticked (2026-11-03; Progress, "M9 done"); M8's music the user has listened to with
 `play-theme.sh` and is happy with (2026-11-02). Nothing since 2026-10-30 has run on Windows ("Windows check" below). The
 project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo `github.com/Vatrix33/statfick`; the
@@ -74,7 +79,7 @@ none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine w
 task 3 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Shop Rework".
 **Beside the engine, old game only (2026-11-06): port task 4, Artifact Rework, is done in the old game**, as tasks 1–3
 were (decisions A1–A32 in "Decisions for task 4, Artifact Rework" below; built on the cloud branch
-`claude/fervent-carson-f5ol9s` and offered as pull request #10, with task 6, for the user to merge). The port doesn't build it again; only
+`claude/fervent-carson-f5ol9s` and merged through pull request #10, with task 6, on 2026-11-06). The port doesn't build it again; only
 its placeholder looks are remade (`Docs/Port-Tasks/README.md`). It touches only `../old-game/` (its scripts, artifact
 data and test client) and these docs, never the engine (the engine's tests read none of what changed), so
 `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count task 4 as the engine's
@@ -82,7 +87,7 @@ current task. How it's built, the approved list, its checks and their results: `
 Rework".
 **Beside the engine, old game only (2026-11-06): port task 6, New Areas, is done in the old game**, as tasks 1–4 were
 (decisions N1–N10 in "Decisions for task 6, New Areas" below; the Abyssal Rift in Gloamfen Marsh and its six enemies;
-built on the cloud branch `claude/fervent-carson-f5ol9s` and offered in the same pull request as task 4, #10, N8). The port
+built on the cloud branch `claude/fervent-carson-f5ol9s` and merged in the same pull request as task 4, #10, on 2026-11-06, N8). The port
 doesn't build it again; only its placeholder looks are remade (`Docs/Port-Tasks/README.md`). It touches only
 `../old-game/` (its scripts, enemy files and test client) and these docs, never the engine (the engine's tests read
 none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count
@@ -91,7 +96,7 @@ Areas".
 **Beside the engine, old game only (2026-11-06): port task 5, New Masterworks, is done in the old game**, as tasks 1–4
 and 6 were (decisions M1–M26 in "Decisions for task 5, New Masterworks" below: Sparkling enemies, Treasure Seeker,
 Moneyshot, Lament, Noble Hero, the Hexbane Coat and the Shadow Crystal drop; built on the cloud branch
-`claude/fervent-carson-f5ol9s` and offered as pull request #11, one for the whole task, M25). The port doesn't build it
+`claude/fervent-carson-f5ol9s` and merged through pull request #11, one for the whole task, on 2026-11-06, M25). The port doesn't build it
 again; only its placeholder art is remade (`Docs/Port-Tasks/README.md`). It touches only `../old-game/` (its scripts,
 stylesheet, artifact data, one enemy file and test client) and these docs, never the engine (the engine's tests read
 none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count
@@ -115,7 +120,7 @@ separate, non-isolated merge worker merges into `main` and pushes, because the h
 main checkout from a worktree.
 
 **Starting M9 (done; M9 finished 2026-11-03):** it started on 2026-11-02 with the user's go, in the order M10 followed
-too (2026-11-04): `git pull` and read; check the code against the facts and work out what each question needs deciding; ask
+too (2026-11-04), and M11 (2026-11-06; its design doc `Docs/Editor.md`, under the user's rule for M11): `git pull` and read; check the code against the facts and work out what each question needs deciding; ask
 the questions all at once (the question tool takes 4 per call, 2–4 options each, the recommended one first); record the
 answers ("Decisions for M9"); write the design doc (`Docs/Assets.md`: decisions, what exists checked against the code,
 method, design, steps, how it works, status) and split the milestone into steps; do each step as "How each step is
@@ -327,7 +332,9 @@ its decisions, how each part works, the Blender reference harness and comparison
 `Docs/Audio.md` (audio, M8: decisions, the old game's audio, method, steps, status), `Docs/Assets.md` (assets and data,
 M9: decisions, what exists, method, the on-disk design, steps with their dependencies, format details, status),
 `Docs/Scene.md` (scene and sequencer, M10: decisions, what exists, the old game's cutscenes, method, the design, steps
-with their dependencies, step details, status). The rest of M0–M5 is described in Progress below.
+with their dependencies, step details, status), `Docs/Editor.md` (the editor, M11: decisions and the user's rule for
+M11, what exists, method, the design with the editor choices proposed for the manager and the questions for the user
+about the game, steps with their dependencies, status). The rest of M0–M5 is described in Progress below.
 A new area (M6 on) gets its own design doc in `Docs/`.
 
 **Method.** For the 3D areas (M6 on) the reference is Blender instead: the same scenes rendered by
@@ -373,6 +380,14 @@ questions arise, ask them instantly and do not improvise anything."
   Record each answer with its date under "User decisions" (or the milestone's decisions).
 - Examples of questions asked so far: LCD vs grayscale text, how tooltips, select lists and validation
   bubbles look, spellchecking, the grabbing cursor, menu bar and OS dialogs, 3D models vs sprites.
+- **The exception for M11, the editor only (the user, 2026-11-06):** "For M11, only concern me with questions that
+  are meant for the game itself. The editor is at your full disgression, but do inform me of big decisions". The
+  manager's reading of it (the M11 manager, 2026-11-06): design choices about the editor itself (its looks, layout,
+  behaviour, its own file formats, its tests) are decided by the manager of the session and recorded with their
+  reason (`Docs/Editor.md`); workers still stop and report such a choice to the manager instead of assuming; choices
+  that change the game (what the game shows, does or loads, data formats the game reads, the shipped game folder,
+  anything a player meets outside the editor) still go to the user with the question tool; big editor decisions are
+  told to the user. Everywhere else this rule stands as written above.
 
 **Open questions for later milestones** (ask each before starting that milestone; the answers decide
 the design and the tests):
@@ -386,11 +401,14 @@ the design and the tests):
   same day (`Docs/Scene.md`, "Step details"); the questions asked during the steps are in "Decisions for M10" and
   `Docs/Scene.md` (S2-1–S2-3, S3-1–S3-5, S4-1–S4-9, S5-Q1, S5-1–S5-5, S6-A–S6-F, S7-1–S7-14), those of the work beside
   it in the "Decision on …" entries below. M10 is done (2026-11-05).
-- **M11 Editor:** the four main questions and four of the detail questions answered 2026-11-05 (see "Decisions for
-  M11" below); the rest of the detail round is still to ask; M11 starts only on the user's go.
+- **M11 Editor:** answered: the four main questions and four of the detail questions on 2026-11-05, the rest of the
+  detail round (M11-9–M11-21) on 2026-11-06 (see "Decisions for M11" below); M11 started on 2026-11-06. Under the
+  user's rule for M11 the editor's own design is the manager's; the questions about the game it raises are in
+  `Docs/Editor.md`, "Questions for the user (the game)" (G1–G6), still to ask.
 - **M12 Packaging:** shipped folder layout and executable name, self-contained .NET, installer or
   archive per platform, icon, versioning, updates, crash log location? The editor is shipped with the game (M11's
-  answer 4, "Decisions for M11"), so M12's questions include where it sits in the shipped folder.
+  answer 4, "Decisions for M11"), so M12's questions include where it sits in the shipped folder and its executable's
+  file name (M11-19: it is called "Statventure Editor", `Tools/Editor` in the repo; both left to M12).
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -609,10 +627,23 @@ the scope (M10-2). The design doc is `Docs/Scene.md`.
   - Asked with the limits set (2026-11-05; `Docs/Scene.md`, "Step details", S7-13): the detailed stages' limits (`ReferenceLimits.DetailedStage`) approved exactly as set from the measurement, each the worst measured plus about a twentieth: extra lines 12.5 %, unlike ink 8.5 %, total ink 10.5 %, the mean coverage difference 0.175, stray edge pixels one in 800; M6's for the rest (`Docs/Renderer-3D.md`, "Detailed stages").
   - Decided after the canvas fix (2026-11-05; `Docs/Scene.md`, "Step details", S7-14): the card at 1.4 s is held until the canvas blurs a shadow as Chromium does under a non-uniform scale (found 2026-11-05: the progress bar's `box-shadow` under `scaleX(0.2)`, blurred across the bar with σ ≈ 2.7 px = 6 × √0.2 in Chromium and σ 6 in the engine; numbers in `Docs/Scene.md`, step 7, "The card at 1.4 s"); the rule is ported now by a worker of its own in the canvas code, which un-holds `JiruanCardTests.TheCardPaintsAsTheOldGameDrewItAtTheTime` at 1.4 s on main; step 7 merges with it held, and M10 is ticked once it matches.
 
-**Decisions for M11 (answered 2026-11-05, the main questions and four of the detail questions; M11 has not started):**
-asked late in the evening with the question tool, ahead of time: the four main questions (M11-1–M11-4) and four of the
-detail questions (M11-5–M11-8) are answered; the rest of the detail round is still to ask and M11 has no go yet. Every
-answer was the recommended option except the audience (M11-4) and undo and redo (M11-7).
+**Decisions for M11 (the main questions and four of the detail questions answered 2026-11-05, the rest of the detail
+round on 2026-11-06; M11 started on 2026-11-06):** the four main questions (M11-1–M11-4) and four of the detail
+questions (M11-5–M11-8) were asked late in the evening of 2026-11-05 with the question tool, ahead of time; the rest of
+the detail round (M11-9–M11-21) on 2026-11-06 with the question tool, after the manager's reading of the code. Every
+answer was the recommended option except the audience (M11-4), undo and redo (M11-7) and the name (M11-19); M11-21 is
+in the user's words. The design doc is `Docs/Editor.md`.
+- **The user's go (2026-11-06):** "Once that worker finishes you can start with M11", given after the full run on
+  `a32c5cb` ("Current task", "The full run after the merges"); M11 started on 2026-11-06.
+- **The user's rule for M11 (2026-11-06, verbatim):** "For M11, only concern me with questions that are meant for the
+  game itself. The editor is at your full disgression, but do inform me of big decisions". The manager's reading of it
+  (the M11 manager, 2026-11-06): design choices about the editor itself (its looks, layout, behaviour, its own file
+  formats, its tests) are decided by the manager of the session and recorded with their reason; workers still stop and
+  report such a choice to the manager instead of assuming; choices that change the game (what the game shows, does or
+  loads, data formats the game reads, the shipped game folder, anything a player meets outside the editor) still go to
+  the user with the question tool; big editor decisions are told to the user. Everywhere else the rule to ask about
+  every design choice stands ("Ask the user about design choices" above). `Docs/Editor.md` keeps the editor choices
+  proposed for the manager (P1–P38) apart from the questions for the user about the game (G1–G6).
 - Form (M11-1): a separate editor app: its own program in `Tools/`, built on the engine's UI, opening the pack files directly; the game stays free of editor code. (Not an in-game dev mode; not a separate app that the game can also open with a dev key. The old game's Dev Mode is a switch inside the game that unlocks things like editing the purse, not a data editor.)
 - What it edits at the end of M11 (M11-2): every record kind through one generic form: a list of a pack's entries plus a property grid generated from the record definitions, with undo and redo. Every record kind that exists is editable (today: music and sound effects, particle effects, cutscene sequences, animation state machines, models, UI files), and the port's items, enemies, spells and shops become editable when the port adds their records, with no new editor code. Special views (a cutscene timeline, a map view, hand-built sound or particle editors) come later, when wanted. (Not the generic form plus a cutscene timeline in M11; not the generic form plus sound and particle editors in M11.)
 - Preview (M11-3): a live preview pane: select an entry and see or hear it (a sound effect or a theme, a particle effect, a model, a cutscene), updating as a value changes; it reuses the engine's scene view, sound system and sequence player. Its tests play sound only at volume 0, as everything that plays sound from a script or a session does. (Not play/show on a button only; not no preview in M11.)
@@ -621,14 +652,20 @@ answer was the recommended option except the audience (M11-4) and undo and redo 
 - The look (M11-6): its own plain tool style: a compact dark tool layout (lists left, the form in the middle, the preview right) in the game's font, with its own small stylesheet; it doesn't depend on the game's screens. (Not the game's style; not the plain style with a light and a dark theme.)
 - **Undo and redo (M11-7), not the recommendation:** per entry: each entry keeps its own history, so undo only touches the entry being looked at; adding or removing entries is not undoable, the editor asks first instead. (The recommendation was one history per open pack for the whole session, across saves; not a history kept across restarts.)
 - Importing (M11-8): in the editor: an Import button and drag-and-drop that run the same importers the packer has, so a modder can add a model or a UI file without a command line; the packer stays for builds and scripts. (Not the packer only in M11; not import with re-import when the source file changes.)
-- Still to ask before M11's steps are planned (questions, not answers; they go into the rest of the detail round, as M9's 27 format details and M10's 33 step details did, after the reading "Starting M9" asks for):
-  - What a mod made by the editor holds, and how it is named, opened again and listed.
-  - What the preview shows per record kind, and what stays without one.
-  - Whether undoing reaches a rename of an entry, and what happens to references to a renamed or removed entry.
-  - Which file kinds the editor's import takes in M11.
-  - What player-ready error handling means for damaged or foreign packs.
-  - The language of the editor's texts.
-  - The M12 side: where the editor sits in the shipped folder, its executable name.
+- Picking files (M11-9): the editor's own file browser, built with the engine's UI (folders, files, a path field, recent places), plus files dropped from the desktop onto the window, which the window learns (the engine has no OS file drop yet). The same rule as the game's "no OS dialogs"; the game can reuse the browser later for Load Character. (Not the system's file dialog; not a path field and drop only.)
+- The form's rows (M11-10): a row's name is made from the field's code name ("Max voices" from `MaxVoices`); fields can also declare a short help text, a unit and allowed limits in the record's definition, shown as a tooltip, a suffix and slider ends; added to the existing kinds bit by bit, where players need them. (Not names only; not a separate description file per kind.)
+- References (M11-11): fields that name another entry by its path are marked in the record's definition with the kind they point at; the form offers a list of matching entries instead of free text and flags a path that doesn't exist; renaming or removing an entry lists who refers to it and offers to update them. (Not a picker and a warning only; not plain text.)
+- Invalid values (M11-12): the engine's own check runs as you edit; the problem is shown at the field and in the entry list, the preview keeps the last valid state, and saving refuses and names the invalid entries, so a mod made by the editor always loads in the game. (Not saving allowed with a warning; not refusing the edit at once.)
+- What gets a live preview in M11 (M11-13): sound effects and music themes (play, stop, volume), particle effects (looping), models (their clips, a camera you can turn), cutscenes (play, pause, a time slider). State machines, UI files and terrain show their form without a preview until later. (Not also UI files and state machines; not every kind.)
+- Imported entries (M11-14; models, terrain, stylesheets): the form shows them; single values (names, colours) are editable, bulk data shows as a one-line summary ("2,431 vertices") and changes only by importing the file again; import replaces the bulk data and asks before overwriting edits made in the form. (Not view only; not everything editable.)
+- Mod info (M11-15): a mod made by the editor carries an info entry inside its pack: name, author, version, description, edited in the editor; the game ignores it for now (a mod list in the game can use it later); mods without it still load. (Not "the file name is the mod"; not also a mod list in the game now.)
+- A pack it can't fully read (M11-16; damaged, made for a newer version, unknown kinds): open what is readable, read-only, with each unreadable entry listed with its reason; the pack can't be saved over; Save As to a new file keeps only what the user chooses. (Not refusing the whole pack; not opening for editing and dropping unreadable entries on save.)
+- Saving (M11-17): on command (Ctrl+S or a button); changed entries are marked in the list, the title shows unsaved work, closing asks first; a save writes the whole pack safely (a new file swapped in), as the packer does. (Not saving on every change; not also a recovery copy.)
+- JSON (M11-18): a read-only JSON view of the entry beside the form, with copy and export to a file; a JSON file comes back in through Import. (Not no JSON; not an editable JSON view.)
+- **The name (M11-19), not the recommendation:** "Statventure Editor", named after the engine; in the repo `Tools/Editor`. Where it sits in the shipped folder and its executable's file name are asked with M12's packaging questions ("Open questions for later milestones"). (The recommendation was "Stat Fick Editor"; not a working name until M12.)
+- How the editor's screens are tested (M11-20): a few editor screens (list, form, file browser, dialogs) are rendered in Chromium from the same markup and compared, at both scales; everything the editor does (editing, undo, saving, import, references) is tested through its data and UI events; the preview pane's content is left out of the picture comparison. (Not behaviour tests only; not every screen against Chromium.)
+- Language (M11-21): the editor's texts are English, like the game (the user: "English is fine").
+- The "still to ask" list of 2026-11-05 is answered by these: what a mod holds and how it is named, opened and listed (M11-15, M11-9, M11-5), what the preview shows (M11-13), references to a renamed or removed entry (M11-11), what import takes (M11-14, M11-18), damaged or foreign packs (M11-16, M11-12), the language (M11-21); whether undo reaches a rename is now an editor choice under the user's rule (`Docs/Editor.md`, P14), and the M12 side (the editor's place in the shipped folder and its executable's name, M11-19) moved to M12's open questions.
 
 **Decisions for the window's visibility (2026-11-03, the small task "send `visibilitychange` and `pagehide`"; asked after
 probing Chromium 152 under Xvfb with and without a window manager; every answer the recommended option):**
@@ -808,14 +845,14 @@ while porting (the user will answer later).
   (the Tailor's, Institute's and Hearth Home's scenes, their map icons, Doctor's Orders' look, the reforge anvil, the
   traps). Decisions R1–R29 below; `../old-game/Docs/Notes.md`, "Shop Rework". Merged through a pull request.
 - **Task 4 is done in the old game too (2026-11-06; A1):** old game only, placeholder looks for every artifact and the
-  four masterwork artifacts. Decisions A1–A32 below; `../old-game/Docs/Notes.md`, "Artifact Rework". In pull request
-  #10 with task 6.
+  four masterwork artifacts. Decisions A1–A32 below; `../old-game/Docs/Notes.md`, "Artifact Rework". Merged through pull
+  request #10 with task 6 on 2026-11-06.
 - **Task 6 is done in the old game too (2026-11-06; N4):** old game only, placeholder looks for the six Abyssal Rift
-  enemies and the Rift on Gloamfen's map. Decisions N1–N10 below; `../old-game/Docs/Notes.md`, "New Areas". In pull
-  request #10 with task 4.
+  enemies and the Rift on Gloamfen's map. Decisions N1–N10 below; `../old-game/Docs/Notes.md`, "New Areas". Merged through pull
+  request #10 with task 4 on 2026-11-06.
 - **Task 5 is done in the old game too (2026-11-06; M1):** old game only, placeholder art (the Sparkling look,
   Treasure Seeker's drawing, the new weapons' and the Hexbane Coat's forged looks). Decisions M1–M26 below;
-  `../old-game/Docs/Notes.md`, "New Masterworks". Offered as pull request #11.
+  `../old-game/Docs/Notes.md`, "New Masterworks". Merged through pull request #11 on 2026-11-06.
   For all six done tasks the port brings them over with the rest of the game, doesn't redo them from the task files,
   and only remakes the art `Docs/Port-Tasks/README.md` lists.
 
@@ -1641,6 +1678,7 @@ and 6 were merged; the task is `Docs/Port-Tasks/5_New_Masterworks.txt`).** Asked
     Details: Docs/Notes.md, 2026-11-05.
   - **M10 step 7, Ji'ruan's intro (2026-11-05, on its worker branch):** phase 1 (the stage, approval renders) and phase 1b (the detailed stage and the acting clips in `jiruan-acting.glb`) approved by the user on 2026-11-05 (S7-1–S7-5, "Decisions for M10"); phase 2 built: `Tests/Statventure.Tests/Scene/JiruanIntro.cs` (the sequence over the stage: its clip, camera and sun, the five stand-ins on their marks playing the clip library on the approved schedule, the reveal as a palette cue at the stage's marker, mist and ember particle cues, event cues, the old card's UI track, the still card as the reduced variant; its JSON fixture and effects under `Data/Cutscenes`), `JiruanIntroTests`, `JiruanCardTests` (the card against the live old game in Chromium, `Tools/GameReference/cutscene-card.js`, `make-cutscene-references.sh`), `JiruanStage` and `JiruanRenderTests` (render scenes and Blender's renders; `Scenes3D` gains a clip time and per-model palettes, `render_scenes.py` both), the sandbox's `--cutscene jiruan` (`play-cutscene.sh`; `--dump`), engine approval media. Found and reported, not changed: the canvas's isotropic box antialiasing spreads a `scaleX`-ed bar (three card times held; S7-7, fixed by its own worker); the engine's glow and the Blender harness part ways on overlapping glowing models, and Freestyle on fine scenery. Then, with the user's answers: the harness follows the engine's halo rule (S7-8; `render_scenes.py`, `hold_by_owner`; M6's goldens unchanged), the ink study, the audio track with the user's three sounds (S7-6, S7-9–S7-11; `Data/Cutscenes/audio/effects`, played by the sandbox from `audio.pak`, Release, `--volume`), and the detailed stages' limits (S7-12; `ReferenceLimits.DetailedStage`), under which the six Blender comparisons run and pass. The limits approved as set (S7-13). Rebased on main (aac5523, the audio output fixes and the test-folder redirect): the full suite passes, 2360 tests and the card's three times held, on the GPU (1 min 32 s) and on lavapipe (1 min 30 s); mutations: 53 (`~/.cache/stat-fick-build/claude-work/m10/step7-mutations.json`, made by `make-step7-mutations.py` beside it), 52 killed; the survivor, the reference scenes' hold after a one-shot strip taken out, can't differ at the six sampled times (none falls after a one-shot clip's end before the next strip: the king's gaps are 3.5–3.6 s and 4.8–5.0 s, an imp's fly-out ends as its hover starts); nothing written to the player's real folders. Rebased on main again (e9568b8, the canvas fix, S7-7): the card matches Chromium at 0, 2.5 (1,226 pixels off, 0.15 %), 3.4 (6), 4.6 (25) and 7 s; at 1.4 s 2,133 pixels (0.26 %, over the 0.2 %) differ, nearly all the progress bar's glow under `scaleX(0.2)` (Chromium's blur across the bar about σ 2.7 px, 6 × √0.2, the engine's σ 6) and its two ends (Chromium's spread over two pixels): reported, nothing adjusted, 1.4 s held (S7-14: until the canvas blurs a shadow as Chromium does under a non-uniform scale, ported by its own worker, who un-holds it; M10 ticked once it matches). The full suite passes, 2423 tests and 1 held, on the GPU (1 min 13 s) and on lavapipe (1 min 30 s); the card's mutations re-run, 7 of 7 killed (two new), so 55 mutations, 54 killed (`Docs/Scene.md`, step 7, "Phase 2", "The card at 1.4 s", and Status).
   - **M10 done (2026-11-05, 2516 tests):** all seven steps merged on `main`; since the shadow blur port (`515c128`) the proof's title card matches Chromium at all six moments, so nothing of M10 is held; the proof (Ji'ruan's intro) approved by the user on 2026-11-05. The full suite passes on the GPU and on lavapipe: 2516 tests and 6 held, none of them M10's (the paint fixtures `shadow-scale-x`, `shadow-scale-y` and `shadow-rotate` at both scales, waiting for the inset shadow's port). Mutations over the seven steps: 856, 838 killed (10 of them after closing the gaps their first runs showed, 2 after rewriting a malformed mutation: one in step 5, one in step 6); 1 hangs its test (step 1: a node allowed under itself; `mutate.py` reads the timeout as a survivor); 17 survivors, all accounted for, none able to change a result the checks see (step 1 2 and step 6 2: only work or calls nothing can tell apart; step 2 12: within float32 rounding; step 7 1: at no sampled time). The work beside it has its own entries above: "OpenAL outputs in one process", "Test runs kept out of the player's folders", "Canvas: box antialiasing under non-uniform transforms", "Paint offset of transformed boxes", "Canvas: blurred shadows under non-uniform transforms". Ticked under Milestones; M11 waits for the user's go.
+  - **M11 started (2026-11-06):** the user's go ("Once that worker finishes you can start with M11", after the full run on `a32c5cb`); the rest of the detail round asked and answered the same day, M11-9–M11-21, all with the recommended options except the name (M11-19: "Statventure Editor", not "Stat Fick Editor"; its place in the shipped folder and its executable's name left to M12), and the user's rule for M11 (questions about the game to the user, the editor the manager's, big decisions told) ("Decisions for M11"); design doc `Docs/Editor.md`: what exists checked against the code (a record's fields, getters and factories exist but are internal, and `FCurve` can't hold a broken value, so the form edits drafts; the checks are four styles of message without field paths, and a theme's score and the instruments it names are checked only when it plays; references are plain strings; `PackWriter` can't add a record from its binary form, so no pack can yet be rewritten keeping its other entries byte for byte, and no mount holds unsaved data; `ImportContext` works only inside `AddFolder`; no file drop (BRUTAL's `OnDrop` unused) and no close the application can refuse; the audio system's library swap is internal; the listbox and colour input don't work, there is no dialog element or HTML drag and drop), the method, a proposed design with 38 editor choices for the manager (P1–P38) and six questions for the user about the game (G1–G6: the mod info entry's place and kind, mods the game can't fully read, how the port's kinds reach the editor, whether declared limits and the checks run today only at play bind the game, where the editor keeps its settings), and fourteen proposed steps (engine: record shapes, drafts and marks; packs for the editor; window and sound hooks; audio kinds' checks and marks; the other kinds' checks and marks; the mod info entry; editor: the shell; opening packs; the form; checks and references; saving and mods; import; the preview; end to end) with the files each touches and which can run side by side (four waves). Also corrected the same day: `Docs/Assets.md`'s "byte-identical copy" of the old stylesheet (the tests' copy is the stylesheet as captured, `f45ca7a`) and `../old-game/CLAUDE.md`'s list of what the engine's tests read; port tasks 4–6's pull requests (#10, #11) worded as merged here and in `Docs/Port-Tasks/README.md`. No code yet.
 
 ## Milestones
 
