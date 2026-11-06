@@ -49,7 +49,7 @@ async function runSettingsCompanionChecks() {
   Combat.restore(null);
   const sword = getItem("weapon-forged-longsword-30-dwiro-rtoak-dwoak-s0");
   const armor = getItem("armor-forged-leather-armor-30-elraw-bbraw-hfraw-s0");
-  const ring = items.find(item => item.id === "artifact-power-ring-artifact");
+  const ring = items.find(item => item.id === "artifact-brawlers-knuckle-ring-artifact");
   assert(sword && armor && ring, "Equipment fixtures are loaded");
   showItemDetails(sword);
   assert(parseFloat(getComputedStyle($("inventory-modal").querySelector(".spell-detail-cost strong")).fontSize) <= parseFloat(getComputedStyle(document.documentElement).fontSize), "Inventory money prices have a compact font");

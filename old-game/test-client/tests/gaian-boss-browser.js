@@ -54,8 +54,9 @@ async function runGaianBossChecks() {
     assert(decision && performance.now() - start < 1000, `${actor.name} chooses an AI action without stalling`);
   }
   state.actors.filter(actor => actor.team === "enemy").forEach(actor => { actor.character.currentHp = 0; }); Combat.restore(state);
+  // (Titanfall drops as a copy fixed at your level since the Artifact Rework, port task 4, A5.)
   try { Math.random = () => 0; h.awardDefeatedEnemyExperience(); } finally { Math.random = random; }
-  assert(forgedLoot(Combat.serialize().lootItems, "jackhammer") === 1 && forgedLoot(Combat.serialize().lootItems, "soulbound-barrier") === 1 && Combat.serialize().lootItems.filter(id => id === titan.id).length === 1, "Successful drop rolls award each unique item once");
+  assert(forgedLoot(Combat.serialize().lootItems, "jackhammer") === 1 && forgedLoot(Combat.serialize().lootItems, "soulbound-barrier") === 1 && Combat.serialize().lootItems.filter(id => getItem(id)?.masterworkArtifactBaseId === titan.id).length === 1, "Successful drop rolls award each unique item once");
   h.refresh(); assert(!$("combat-loot-modal").hidden && ["Jackhammer", "Soulbound Barrier", "Titanfall"].every(name => $("combat-loot-modal").textContent.includes(name)), "All three rewards appear in the normal keep-or-discard loot window");
   Combat.restore(null);
 

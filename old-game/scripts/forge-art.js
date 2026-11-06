@@ -870,18 +870,19 @@
     const rays = Array.from({ length: count }, (_, i) => { const a = (turn + i * 360 / count) * Math.PI / 180; return `M${n(x)} ${n(y)}L${n(x + Math.cos(a) * r)} ${n(y + Math.sin(a) * r)}`; }).join("");
     if (kind === 0) return path(star(x, y, r, r * 0.45, count), color, 'stroke-width=".5"');
     if (kind === 1) return line(rays, color, 0.9);
-    if (kind === 2) return line(Array.from({ length: Math.min(3, count - 1) }, (_, i) => `M${n(x - r)} ${n(y - r * 0.5 + i * r * 0.55)}L${n(x)} ${n(y - r * 0.05 + i * r * 0.55)}L${n(x + r)} ${n(y - r * 0.5 + i * r * 0.55)}`).join(""), color, 0.8);
+    const turned = markup => `<g transform="rotate(${turn} ${n(x)} ${n(y)})">${markup}</g>`;
+    if (kind === 2) return turned(line(Array.from({ length: Math.min(3, count - 1) }, (_, i) => `M${n(x - r)} ${n(y - r * 0.5 + i * r * 0.55)}L${n(x)} ${n(y - r * 0.05 + i * r * 0.55)}L${n(x + r)} ${n(y - r * 0.5 + i * r * 0.55)}`).join(""), color, 0.8));
     if (kind === 3) return Array.from({ length: count }, (_, i) => { const a = (turn + i * 360 / count) * Math.PI / 180; return dot(x + Math.cos(a) * r * 0.65, y + Math.sin(a) * r * 0.65, r * 0.22, color); }).join("");
-    return circle(x, y, r * 0.7, "none", `stroke="${K.paint(color)}" stroke-width=".8"`) + line(`M${n(x - r * 0.7)} ${n(y)}L${n(x + r * 0.7)} ${n(y)}`, color, 0.8) + (count % 2 ? line(`M${n(x)} ${n(y - r * 0.7)}L${n(x)} ${n(y + r * 0.7)}`, color, 0.8) : "");
+    return turned(circle(x, y, r * 0.7, "none", `stroke="${K.paint(color)}" stroke-width=".8"`) + line(`M${n(x - r * 0.7)} ${n(y)}L${n(x + r * 0.7)} ${n(y)}`, color, 0.8) + (count % 2 ? line(`M${n(x)} ${n(y - r * 0.7)}L${n(x)} ${n(y + r * 0.7)}`, color, 0.8) : ""));
   }
   // Each object as a simple outline in the rarity's metal, with the stone and the mark where they sit.
   const ARTIFACT_SHAPES = {
     ring: s => ellipse(0, 4, 11, 11, "none", `stroke="${K.paint(s.metal)}" stroke-width="3.4"`) + artifactGem(s, 0, -8, 3.4),
     signet: s => ellipse(0, 6, 10, 10, "none", `stroke="${K.paint(s.metal)}" stroke-width="3.6"`) + path("M-6 -10H6V-2H-6Z", s.metal, `stroke="${K.paint(s.edge)}"`),
     band: s => ellipse(0, 2, 15, 8, "none", `stroke="${K.paint(s.metal)}" stroke-width="5"`) + artifactGem(s, 0, 10, 2.6),
-    bracelet: s => ellipse(0, 2, 14, 9, "none", `stroke="${K.paint(s.metal)}" stroke-width="2.4"`) + [-12, -6, 0, 6, 12].map(x => circle(x, 2 + Math.abs(x) * -0.2 + 8, 1.8, s.metal)).join(""),
+    bracelet: s => ellipse(0, 2, 14, 9, "none", `stroke="${K.paint(s.metal)}" stroke-width="2.4"`) + [-12, -6, 0, 6, 12].map(x => circle(x, 2 + Math.abs(x) * -0.2 + 8, 1.8, s.metal, `stroke="${K.paint(s.edge)}" stroke-width=".6"`)).join(""),
     anklet: s => ellipse(0, 0, 15, 7, "none", `stroke="${K.paint(s.metal)}" stroke-width="2.2"`) + line("M0 7V12", s.metal, 1) + artifactGem(s, 0, 14, 3),
-    torc: s => path("M-13 6C-16 -10 16 -10 13 6", "none", `stroke="${K.paint(s.metal)}" stroke-width="4"`) + circle(-13, 7, 2.4, s.metal) + circle(13, 7, 2.4, s.metal),
+    torc: s => path("M-13 6C-16 -10 16 -10 13 6", "none", `stroke="${K.paint(s.metal)}" stroke-width="4"`) + circle(-13, 7, 2.4, s.metal, `stroke="${K.paint(s.edge)}"`) + circle(13, 7, 2.4, s.metal, `stroke="${K.paint(s.edge)}"`),
     locket: s => line("M-10 -18Q0 -8 10 -18", s.edge, 1.1) + ellipse(0, 2, 9, 11, s.metal, `stroke="${K.paint(s.edge)}"`),
     amulet: s => line("M-11 -19Q0 -6 11 -19", s.edge, 1.1) + path("M0 -10L9 1L0 14L-9 1Z", s.metal, `stroke="${K.paint(s.edge)}"`) + artifactGem(s, 0, 2, 3.4),
     medallion: s => line("M-11 -19Q0 -9 11 -19", s.edge, 1.1) + circle(0, 2, 11, s.metal, `stroke="${K.paint(s.edge)}"`) + circle(0, 2, 8, "none", `stroke="${K.paint(s.edge)}" stroke-width=".7"`),
@@ -912,7 +913,7 @@
     chalice: s => path("M-11 -12H11C11 -2 6 4 2 5V10H7V13H-7V10H-2V5C-6 4 -11 -2 -11 -12Z", s.metal, `stroke="${K.paint(s.edge)}"`),
     thimble: s => path("M-8 12V-2C-8 -12 8 -12 8 -2V12Z", s.metal, `stroke="${K.paint(s.edge)}"`),
     pouch: s => path("M-10 -4C-12 8 -8 14 0 14C8 14 12 8 10 -4L6 -10H-6Z", "#8a6a44", `stroke="${K.paint(s.edge)}"`) + line("M-6 -9H6", s.metal, 1.6),
-    lantern: s => path("M-7 -8H7V10H-7Z", s.gem, `stroke="${K.paint(s.metal)}" stroke-width="2"`) + path("M-9 -12H9V-8H-9ZM-9 10H9V13H-9Z", s.metal),
+    lantern: s => path("M-7 -8H7V10H-7Z", s.gem, `stroke="${K.paint(s.metal)}" stroke-width="2"`) + path("M-9 -12H9V-8H-9ZM-9 10H9V13H-9Z", s.metal, `stroke="${K.paint(s.edge)}"`),
     bell: s => path("M0 -14C8 -14 9 -4 10 8H-10C-9 -4 -8 -14 0 -14Z", s.metal, `stroke="${K.paint(s.edge)}"`) + circle(0, 10, 2.4, s.edge),
     hourglass: s => path("M-9 -14H9L1 0L9 14H-9L-1 0Z", "!#d8e4ea", `stroke="${K.paint(s.metal)}" stroke-width="1.6"`) + path("M-5 9H5L0 3Z", "#d8b870"),
     horn: s => path("M-14 6C-6 6 6 0 12 -12L14 -6C8 4 -4 12 -14 10Z", "#e8dcc0", `stroke="${K.paint(s.edge)}"`) + path("M-14 5H-11V11H-14Z", s.metal),

@@ -494,3 +494,53 @@ async function checkArtifactsInOldSaves() {
   assert(kept.guild.artifactChallenge?.artifactId === keep && kept.guild.reputation === 100 && !kept.guild.notice, "A challenge for a new artifact stays");
   return { passed: true, checks: count() };
 }
+
+// The catalogue (A3, A16): the approved set, its prices by rarity, one effect of its own each, labels, no makers, parts
+// or prefixes; the Guild's challenge pool draws from it.
+async function checkArtifactCatalogue() {
+  const { assert, count } = artifactAssert();
+  await waitForSourceFiles();
+  const artifacts = items.filter(item => item.category === "artifact");
+  const by = rarity => artifacts.filter(item => item.rarity === rarity);
+  assert(by("uncommon").length === 32 && by("rare").length === 24 && by("epic").length === 16 && by("legendary").length === 8 && by("masterwork").length === 4 && !by("common").length, "32 uncommon, 24 rare, 16 epic, 8 legendary, 4 masterwork, no common");
+  const range = rarity => [Math.min(...by(rarity).map(item => item.priceSilver)), Math.max(...by(rarity).map(item => item.priceSilver))];
+  assert(range("uncommon")[1] < range("rare")[0] && range("rare")[1] < range("epic")[0] && range("epic")[1] < range("legendary")[0], "Prices rise with rarity: " + ["uncommon", "rare", "epic", "legendary"].map(range).map(pair => pair.join("–")).join(", "));
+  const signature = item => JSON.stringify(item.effects.map(({ itemName, ...effect }) => effect));
+  const regular = artifacts.filter(item => item.rarity !== "masterwork");
+  assert(new Set(regular.map(signature)).size === regular.length, "Every artifact has an effect of its own");
+  assert(regular.every(item => item.effects.length && item.effects.every(effect => artifactEffectLabel(effect) !== effect.kind)), "Every effect has a readable label");
+  assert(artifacts.every(item => !item.forged && !item.maker && !item.parts && !/^(Empowered|Fortified|Nimble|Critical|Unyielding|Swift|Lucky|Mighty) /.test(item.name)), "No maker, parts or prefixes");
+  assert(regular.every(item => item.description && item.look?.shape && item.look?.glyph && item.placeholderArt), "Each has a description and a placeholder look");
+  assert(!WorldRules.RETIRED_ARTIFACT_IDS.has(regular[0].id) && regular.every(item => !WorldRules.RETIRED_ARTIFACT_IDS.has(item.id)) && WorldRules.RETIRED_ARTIFACT_IDS.size === 32, "None of the 32 retired ids comes back");
+  // A few of the approved numbers, read from the data.
+  const effect = (name, kind) => getItem(artifactId(name)).effects.find(entry => entry.kind === kind);
+  assert(effect("Hare's Anklet", "stat-permanent-percent").amount === 6 && effect("Heart of the Mountain", "max-hp-percent").amount === 25 && effect("Phoenix Plume", "party-revive").amount === 30 && effect("Starfall Orb", "turn-start-star").amount === 15 && effect("Venomglass Vial", "on-hit-poison").durationTurns === 3, "The approved numbers are in the data");
+  // The Guild's challenge offers draw from this set by level (checked through the counter in guild-browser.js).
+  return { passed: true, checks: count() };
+}
+
+// Placeholder looks (A1, A2): every artifact its own drawing; a rarity shares its material; masterworks their own.
+async function checkArtifactLooks() {
+  const { assert, count } = artifactAssert();
+  await waitForSourceFiles();
+  const artifacts = items.filter(item => item.category === "artifact");
+  const art = artifacts.map(item => ForgeArt.goods(item));
+  assert(art.every(markup => markup.includes("<svg") && markup.length > 200), "Every artifact is drawn");
+  const seen = new Map(), twins = [];
+  artifacts.forEach((item, index) => { if (seen.has(art[index])) twins.push(seen.get(art[index]) + " = " + item.name); else seen.set(art[index], item.name); });
+  assert(!twins.length, "and no two look the same: " + twins.join(", "));
+  // A rarity's setting color outlines and marks every one of its artifacts; epic adds side stones, legendary a halo.
+  const setting = { uncommon: "#6e4a2a", rare: "#6d7480", epic: "#7a5a1c", legendary: "#a8894a" };
+  for (const [rarity, raw] of Object.entries(setting)) {
+    const color = SpriteKit.paint(raw).toLowerCase();
+    const own = artifacts.filter(item => item.rarity === rarity).map(item => ForgeArt.goods(item).toLowerCase());
+    const others = artifacts.filter(item => item.rarity !== rarity).map(item => ForgeArt.goods(item).toLowerCase());
+    assert(own.every(markup => markup.includes(color)) && !others.some(markup => markup.includes(color)), `Every ${rarity} artifact, and only those, share its setting (${color})`);
+  }
+  const legendary = artifacts.filter(item => item.rarity === "legendary").map(item => ForgeArt.goods(item));
+  assert(legendary.every(markup => markup.includes("sp-glow")), "Legendary artifacts glow");
+  const card = itemDetailMarkup(getItem(artifactId("Starfall Orb")));
+  assert(card.includes("artifact-art") && card.includes("<svg"), "An artifact's card shows its look");
+  assert(ForgeArt.placeholderArtifacts === true && artifacts.every(item => item.placeholderArt), "The looks are marked placeholder (A1)");
+  return { passed: true, checks: count() };
+}
