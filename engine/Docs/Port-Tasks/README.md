@@ -33,6 +33,8 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 7. `7_New_Game_Plus.txt`: Limitless, unlocked by the first defeat of Anatemis and switchable on and off (level cap 200,
    enemies scaled to the player and 25% stronger, bosses with level-100 class perks, doubled masterwork drops), the
    Exotic rarity and its material Exium, five Exotic items, and an Exotic reward for beating Anatemis at level 200.
+   **Already done in the old game (2026-11-06): don't build it again.** The port carries it over with the rest of the
+   game; only its placeholder art is left to remake (below).
 8. `8_Map_Rework.txt`: one continuous continent about 40% larger instead of separate regional maps, music that crosses
    over between regions, a boat-travel animation, fog and clouds as the mountain rises, caravan fast travel between
    visited castle towns, and a horse carriage to buy.
@@ -126,7 +128,7 @@ was merged, while M11's engine work went on; L1 kept its art placeholder).
   Masterworks" (M1–M26); where each rule lives is in `../../../old-game/Docs/Notes.md`, "New Masterworks"; the old game's
   checks, `old-game/test-client/tests/new-masterworks-browser.js`, are the reference the ported rules are tested against.
   Still to do in the port: only the art (below). Old game only.
-- Task 7, New Game Plus (2026-11-06, a cloud session, one pull request, L22): Limitless (unlocked by Anatemis's first
+- Task 7, New Game Plus (2026-11-06, a cloud session, merged as pull request #12, L22): Limitless (unlocked by Anatemis's first
   defeat with a pop-up; the sheet's Limitless button; Levels up to 200 without new perk points; off, you and your
   companions are your Level-100 selves and everything above is kept for when it's on again; enemies rise to your level
   with +25% attributes; bosses gain the class levels of a Level-100 character, reviewed by the user; masterwork drops
@@ -194,7 +196,8 @@ task 3's scenes are listed in `PLACEHOLDER_ART`):
 - Tasks 1 and 2 were checked against the engine work on 2026-11-03 (tasks 3 and 4 on 2026-11-06): none touches it (the
   engine's tests use their own copy of the stylesheet and saved captures; the game's code and tables come over at port
   time). After tasks 2–6 were merged (pull requests #8–#11), the full suite ran on the PC on `a32c5cb` (2026-11-06):
-  2547 tests passing on the GPU and on lavapipe, the same as before the merges.
+  2547 tests passing on the GPU and on lavapipe, the same as before the merges. Task 7 (pull request #12) changed no
+  file the engine's tests read either.
 - The game-screen references predate the tasks (checked 2026-11-06): the 22 captured screens and the tests' copy of the
   stylesheet (`engine/Tests/Statventure.Tests/Data/Game/styles.css`) came in with the repo's first commit (`f45ca7a`,
   2026-10-30), the copy being that commit's `old-game/styles.css`. The old game's stylesheet differs from it since the
