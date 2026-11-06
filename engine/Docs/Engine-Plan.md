@@ -914,6 +914,33 @@ Asked before any code, four at a time:
 - A14 **Drop rarity:** any rarity from uncommon up, weighted by the enemy's level the way shop stock is
   (`ShopRules.rarityWeight`). (Not strictly the enemy's or the player's level band.)
 - A15 **Reviewing the draft:** in the chat, rarity by rarity. (Not a page, not a repo file.)
+- A16 **The draft, approved as drafted** (2026-11-06, "no changes needed"): 32 uncommon, 24 rare, 16 epic and 8 legendary
+  artifacts with their effects, prices and looks, and the four masterwork artifacts' numbers at Levels 1, 40, 80 and 100
+  (Second Wind 3/6/9/10.5% heal; Wraithguard hit +10/30/50/60 and guard 2/6/10/12%; Arrowtip Rain 6/15/25/30% splash;
+  Titanfall's golem at 40/84/130/153% strength; prices 2,000/18,800/36,000/44,600 silver). The list itself lives in
+  `../old-game/objects/artifacts.json` and `../old-game/Docs/Notes.md`, "Artifact Rework".
+- A17 **Triage Pouch and Mender's Thimble with Doctor's Orders:** each item's bonus multiplies separately (received
+  ×1.25 × 1.10, given ×1.5 × 1.08). (Not added into one bonus.)
+- A18 **Phoenix Plume and Warden's Bell:** heroes only (you and your companions), not summoned creatures.
+- A19 **Starfall Orb's star:** like a Holy spell hit: the target's Holy resistance applies and it counts as spell damage
+  (spell traps and wards react), but spell power doesn't raise it. (Not fixed true damage, not a full spell.)
+- A20 **The "+X% damage" artifacts** (Greenskin Tooth, Silver Nail, Dragonbane Scale, Spirit Lantern, Executioner's Mark,
+  Giantslayer Torc, First Light Pin, Tide-turner Compass, Banner of Kings): everything the wearer deals: weapons, spells,
+  traps, thorns and item damage. (Not weapons and spells only, not weapons only.)
+- A21 **Self-heals with several healing items:** every bonus multiplies (all given × all received); only Doctor's Orders
+  with itself keeps R25 (its larger bonus on a self-heal), times the other items' bonuses. (Not the larger total only.)
+- A22 **Battle Hymn Chime and Soulharvest Sickle:** they trigger whenever an enemy falls to your side, whoever defeated
+  it. (Not only the wearer's killing blow.)
+- A23 **Rallying Banner Pin and Banner of Kings:** summoned creatures count as allies too. (Not heroes only; Phoenix
+  Plume and Warden's Bell stay heroes only, A18.)
+- A24 **Forked Lightning Rod:** the strike is 25% of the damage the first target took, dealt as the same element to the
+  second enemy as a spell hit; its resistance and wards apply. (Not an exact 25%.)
+- A25 **Bandit's Coin and Studious Quill on a companion:** the Coin raises the party's silver whoever wears it (two add
+  up); the Quill raises only its wearer's EXP. (Not both party-wide, not only on you.)
+- A26 **First Light Pin:** the bonus waits for your first attack or spell that deals damage. (Not spent on a miss.)
+- A27 **What counts as a hit** (Warding Cord, Second Chance Locket): any damage an enemy causes: attacks, spells, traps,
+  thorns and damage over time. (Not attacks and spells only.)
+- A28 **Phantom Step Pin:** the +25% goes to your next melee or ranged weapon attack. (Not a spell.)
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
