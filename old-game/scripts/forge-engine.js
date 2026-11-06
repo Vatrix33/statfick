@@ -264,9 +264,17 @@
   /* ---------- Numbers ---------- */
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const round2 = value => Math.round(value * 100) / 100;
-  const clampLevel = level => clamp(Math.floor(Number(level) || 1), 1, 100);
-  // Power and scaling rise quickly early and ease into their maximum at level 100.
-  const levelCurve = level => 1 - Math.pow(1 - (clampLevel(level) - 1) / 99, 1.4);
+  // Gear goes up to Level 200 with Limitless (port task 7, L9).
+  const MAX_LEVEL = 200;
+  const clampLevel = level => clamp(Math.floor(Number(level) || 1), 1, MAX_LEVEL);
+  // Power and scaling rise quickly early and ease into their Level-100 values; past 100 they keep rising at the average
+  // pace of Levels 1–100 (L9: a lance, 12 power at Level 1 and 140 at 100, has 204 at 150 and 268 at 200).
+  const levelCurve = level => {
+    const value = clampLevel(level);
+    return value <= 100 ? 1 - Math.pow(1 - (value - 1) / 99, 1.4) : 1 + (value - 100) / 99;
+  };
+  // Rarity and gem-tier odds stop changing at Level 100.
+  const oddsLevel = level => Math.min(100, clampLevel(level));
   const lerp = (from, to, t) => from + (to - from) * t;
 
   // Rarity odds at levels 1, 50 and 100, joined by one smooth curve per rarity.
@@ -277,7 +285,7 @@
   const TIER_ANCHORS = [[1, [85, 13, 2]], [35, [47, 45, 8]], [50, [15, 75, 10]], [70, [8, 47, 45]], [100, [3, 17, 80]]];
   const rarityOdds = level => curveOdds(ODDS_POINTS, level);
   function tierOdds(level) {
-    const x = clampLevel(level);
+    const x = oddsLevel(level);
     const upper = TIER_ANCHORS.findIndex(([anchor]) => anchor >= x);
     if (upper <= 0) return [...TIER_ANCHORS[0][1]];
     const [fromLevel, from] = TIER_ANCHORS[upper - 1], [toLevel, to] = TIER_ANCHORS[upper];
@@ -285,7 +293,7 @@
     return from.map((value, index) => value + (to[index] - value) * t);
   }
   function curveOdds(points, level) {
-    const x = clampLevel(level);
+    const x = oddsLevel(level);
     const a = points[1], b = points[50], c = points[100];
     const la = (x - 50) * (x - 100) / ((1 - 50) * (1 - 100)), lb = (x - 1) * (x - 100) / ((50 - 1) * (50 - 100)), lc = (x - 1) * (x - 50) / ((100 - 1) * (100 - 50));
     const raw = a.map((_, index) => Math.max(0, a[index] * la + b[index] * lb + c[index] * lc));
@@ -434,7 +442,7 @@
     const handleMaker = MAKER_BY_CODE[handleMakerCode], handle = CASTER_HANDLE_BY_CODE[handleCode];
     const inkMaker = MAKER_BY_CODE[inkMakerCode], ink = INK_BY_CODE[inkCode];
     const makes = (maker, role) => Boolean(CASTER_MAKERS[maker]?.parts.includes(role));
-    if (level < 1 || level > 100 || !stone || !handle || !ink || !makes(mainMaker, weapon.caster) || !makes(handleMaker, "handle") || !makes(inkMaker, "inscription")) return null;
+    if (level < 1 || level > MAX_LEVEL || !stone || !handle || !ink || !makes(mainMaker, weapon.caster) || !makes(handleMaker, "handle") || !makes(inkMaker, "inscription")) return null;
     return { type: typeId, level, parts: [{ shape: weapon.caster, maker: mainMaker, material: stone, tier: Number(tierText) }, { shape: weapon.parts[1], maker: handleMaker, material: handle }, { shape: "inscription", maker: inkMaker, material: ink }], slots: 0, runes: [] };
   }
   function decode(id) {
@@ -448,7 +456,7 @@
     const [, typeId, levelText, ...rest] = match;
     const weapon = WEAPONS[typeId];
     const level = Number(levelText);
-    if (!weapon || level < 1 || level > 100) return null;
+    if (!weapon || level < 1 || level > MAX_LEVEL) return null;
     const parts = [];
     for (let index = 0; index < 3; index++) {
       const token = rest[index], shape = weapon.parts[index];
@@ -958,7 +966,7 @@
     if (!match) return null;
     const [, typeId, levelText, ...tokens] = match;
     const armor = ARMORS[typeId], level = Number(levelText);
-    if (level < 1 || level > 100) return null;
+    if (level < 1 || level > MAX_LEVEL) return null;
     const parts = [];
     for (let index = 0; index < 3; index++) {
       const token = tokens[index], role = armor.parts[index];
@@ -1391,7 +1399,7 @@
     const match = /^([a-z]+(?:-[a-z]+)*)-(\d{1,3})-([a-z]{5})-([a-z]{5})-([a-z]{5})-s([0-2])((?:[a-z]{3})*)$/.exec(rest);
     if (!match) return null;
     const [, key, levelText, ...tokens] = match, def = MASTERWORKS[key], level = Number(levelText);
-    if (!isArmorMasterwork(def) || level < 1 || level > 100) return null;
+    if (!isArmorMasterwork(def) || level < 1 || level > MAX_LEVEL) return null;
     const category = ARMORS[def.type].category, parts = [];
     for (let index = 0; index < 3; index++) {
       const role = def.parts[index], maker = MAKER_BY_CODE[tokens[index].slice(0, 2)], material = ARMOR_MATERIAL_BY_CODE[tokens[index].slice(2)];
@@ -1412,13 +1420,13 @@
       const stone = STONE_BY_CODE[stoneCode], handle = CASTER_HANDLE_BY_CODE[handleCode], ink = INK_BY_CODE[inkCode];
       const handleMaker = MAKER_BY_CODE[handleMakerCode], inkMaker = MAKER_BY_CODE[inkMakerCode];
       const makes = (maker, role) => Boolean(CASTER_MAKERS[maker]?.parts.includes(role));
-      if (level < 1 || level > 100 || MAKER_BY_CODE[mainCode] !== def.mainMaker || !stone || def.element && STONES[stone].element !== def.element || !handle || !ink || !makes(handleMaker, "handle") || !makes(inkMaker, "inscription")) return null;
+      if (level < 1 || level > MAX_LEVEL || MAKER_BY_CODE[mainCode] !== def.mainMaker || !stone || def.element && STONES[stone].element !== def.element || !handle || !ink || !makes(handleMaker, "handle") || !makes(inkMaker, "inscription")) return null;
       return { type: def.type, masterwork: key, level, parts: [{ shape: weapon.caster, maker: def.mainMaker, material: stone, tier: Number(tierText) }, { shape: weapon.parts[1], maker: handleMaker, material: handle }, { shape: "inscription", maker: inkMaker, material: ink }], slots: 0, runes: [] };
     }
     const match = /^([a-z]+(?:-[a-z]+)*)-(\d{1,3})-([a-z]{5})-([a-z]{5})-([a-z]{5}|x)-s([0-3])((?:[a-z]{3})*)$/.exec(rest);
     if (!match) return null;
     const [, key, levelText, ...tokens] = match, def = MASTERWORKS[key], level = Number(levelText);
-    if (!def || isArmorMasterwork(def) || level < 1 || level > 100) return null;
+    if (!def || isArmorMasterwork(def) || level < 1 || level > MAX_LEVEL) return null;
     const parts = [];
     for (let index = 0; index < 3; index++) {
       // A masterwork without a third part (a quarterstaff) has "x" in its place.

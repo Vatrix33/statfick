@@ -1389,7 +1389,9 @@
           classProgress.firstKillDrops ||= [];
           if (!classProgress.firstKillDrops.includes(drop.itemId)) classProgress.firstKillDrops.push(drop.itemId);
         }
-        if ((actor.noDropItems || []).includes(drop.itemId) || !itemCanDrop(drop.itemId) || !guaranteed && !rules.roll(drop.chance + luckBonus)) continue;
+        // Limitless doubles every masterwork's base chance, before the Luck bonus (port task 7, L8).
+        const baseChance = drop.chance * (limitless.active && isMasterworkEquipment(droppedItem) ? 2 : 1);
+        if ((actor.noDropItems || []).includes(drop.itemId) || !itemCanDrop(drop.itemId) || !guaranteed && !rules.roll(baseChance + luckBonus)) continue;
         const minimum = Math.max(1, toInteger(drop.minimum, 1));
         const maximum = Math.max(minimum, toInteger(drop.maximum, minimum));
         const quantity = minimum + Math.floor(Math.random() * (maximum - minimum + 1));
@@ -1467,7 +1469,8 @@
   function rollSparklingMasterworks(actor) {
     if (!actor?.sparkling) return [];
     const bonus = masterworkLuckBonus();
-    return SPARKLING.masterworkChances.filter(chance => rules.roll(chance + bonus)).map(() => sparklingMasterwork()).filter(Boolean);
+    // Limitless doubles both rolls too (port task 7, L8: 70% → 100%, 5% → 10%).
+    return SPARKLING.masterworkChances.filter(chance => rules.roll(chance * (limitless.active ? 2 : 1) + bonus)).map(() => sparklingMasterwork()).filter(Boolean);
   }
   function recordSoloSurvivorVictory() {
     if (!battle || battle.soloVictoryRecorded) return false;
@@ -2766,7 +2769,7 @@
       maxManaPercent: definition.maxManaPercent,
       turnStartManaPercent: definition.turnStartManaPercent,
       element: definition.element,
-      character: armEnemy(copy(definition.character)).character,
+      character: armEnemy(limitless.active && actor.team === "enemy" ? LimitlessRules.scaleEnemy(copy(definition.character), level, definition) : copy(definition.character)).character,
       resistances: copy(definition.resistances),
     };
     if (summoned.team === "enemy") summoned.naturalArmor = spawnNaturalArmor(summoned.character);
@@ -6344,7 +6347,9 @@
       const enemy = enemyRoster[i];
       occurrences[enemy.name] = (occurrences[enemy.name] || 0) + 1;
       const actorName = totals[enemy.name] > 1 ? `${enemy.name} ${occurrences[enemy.name]}` : enemy.name;
-      const armed = armEnemy(copy(enemy.character), enemy.noDropItems);
+      // Limitless (port task 7, L3, L5–L7): below your level the enemy rises to it, then ×1.25; bosses get their classes.
+      const spawn = limitless.active ? LimitlessRules.scaleEnemy(copy(enemy.character), level, enemy) : copy(enemy.character);
+      const armed = armEnemy(spawn, enemy.noDropItems);
       const actor = {
         ...makeActor(`enemy-${i + 1}`, `${empoweredObjective && i === 0 ? "Empowered " : ""}${sparklingIndexes.has(i) ? "Sparkling " : ""}${actorName}`, "enemy"),
         experienceAwarded: false, character: armed.character, resistances: copy(enemy.resistances), dropTable: copy(enemy.drops || []), noDropItems: armed.noDropItems,
@@ -6421,7 +6426,7 @@
     const roster = await resolveEncounterRoster(enemyNames);
     if (!roster) return { success: false, chance: 0, fastestEnemySpeed: 0 };
     const fastestEnemySpeed = Math.max(0, ...roster.map((enemy, index) => {
-      const actor = { id: `encounter-preview-${index}`, name: enemy.name, team: "enemy", effects: [], skillExpiry: {}, character: copy(enemy.character) };
+      const actor = { id: `encounter-preview-${index}`, name: enemy.name, team: "enemy", effects: [], skillExpiry: {}, character: limitless.active ? LimitlessRules.scaleEnemy(copy(enemy.character), level, enemy) : copy(enemy.character) };
       if (["hunt", "artifact"].includes(guildObjective) && index === 0) for (const key of Object.keys(actor.character.stats)) actor.character.stats[key] = Math.max(0, Math.floor(actor.character.stats[key] * 1.3));
       if (Array.isArray(sparkling) && sparkling.includes(index)) for (const key of Object.keys(actor.character.stats)) actor.character.stats[key] = Math.max(0, Math.floor(actor.character.stats[key] * SPARKLING.statMultiplier));
       return withActor(actor, () => currentStats().speed, { active: false, actors: [actor] });
