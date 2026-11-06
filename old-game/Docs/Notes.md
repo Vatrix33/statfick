@@ -7,7 +7,10 @@ JavaScript game in this folder: design decisions, systems, tests and gotchas. Pa
 "no git" decision below is from 2026-10-06), and the headless test client's source is in
 `test-client/` (run it with `engine/Tools/Scripts/chromium.sh old-game/test-client --suite=smoke`;
 no need to unpack `app.asar` any more). `claude-work/` means `~/.cache/stat-fick-build/claude-work/`
-on the original PC (backups and helper scripts, not in the repo).
+on the original PC (backups and helper scripts, not in the repo). The user's cleanup of 2026-11-05 deleted part of it
+(`testclient`, `client`, every old-game `*-backup` folder and more; `engine/Docs/Notes.md`, 2026-11-05): the paths
+below that went are marked. The `claude-work/` folders the 2026-11-06 entries name were a cloud session's own, never on
+the user's PC.
 
 The user's main project is **Stat Fick**, a vanilla-JS fantasy RPG (character sheet, 18-region map, turn-based combat, guild, companions) with an Electron desktop shell. It lives at `old-game`.
 
@@ -49,7 +52,7 @@ The user's main project is **Stat Fick**, a vanilla-JS fantasy RPG (character sh
 - Name plates sit above every figure: actors set `--depth`, not a z-index.
 - The battlefield backgrounds are still the bright original scenery. Restyling them was offered, not requested.
 
-**Map rework (2026-10-10, user request "rework all maps, each region way bigger, same layout, more detailed and seamless; the Stoneveils are one massive mountain"):** supersedes the SVG landscapes below (old `map.js` backed up in `claude-work/maps-backup/`).
+**Map rework (2026-10-10, user request "rework all maps, each region way bigger, same layout, more detailed and seamless; the Stoneveils are one massive mountain"):** supersedes the SVG landscapes below (old `map.js` backed up in `claude-work/maps-backup/` (deleted 2026-11-05 in the user's cleanup)).
 - Scale: regions are 3× larger (`UNITS_PER_KM` 40/3, `MAP_SCALE` 3 in `world-engine.js`; map stays 1600×1000 units). The travel clock runs 3× faster (36 game min per real second), encounters every `ENCOUNTER_MINUTES` 90 travel minutes. Save migration `mapScale` triples saved km. Boats 540 min; Traveler 600 km, Cartographer 1500 km, Pilgrim 60 km thresholds. User chose all four options (3×, faster clock, same encounters per crossing, all three Stoneveils as one mountain).
 - `scripts/map-terrain.js` (`MapTerrain`): field grid (2-unit cells) built in slices, canvas tiles at 1/2/4/8 px per unit (LRU), per-pixel hillshade, hatching, contours, water, micro relief, field patchwork (`spec.fields`), canopy (`MapTerrain.canopy`, `spec.canopyFrom` hides glyph trees), `spec.paint(px)` hook, Worley `cells`, features with LOD (`KEEP`) and `REACH` for big ones.
 - `scripts/map-regions.js` (`MapRegions.spec(id)`): one spec per region (17). Shared `mountain()` height in a `FRAME` so Foothills/High/Summit join seamlessly; `mountainRelief` shared hillshade.
@@ -155,7 +158,7 @@ The user's main project is **Stat Fick**, a vanilla-JS fantasy RPG (character sh
 - Warrior's dead heavy-armor evasion debuff became `heavy-armor-evasion-penalty-reduction` 20: heavy armor's Evasion penalty is 20% smaller, for both forged `evasionPercent` and old flat `evasionDebuff`.
 - New effect types in `app.js`/`combat.js`: `conditional-defense-percent`, `fencer-weapon-hit-percent`, `fencer-evasion-percent`, `unarmed-hit-percent`, `quest-`/`journey-party-`/`artifact-count-defense-percent`. Marks use `hitPercent`, with skill-upgrade `markHitPercent`. Double Down uses `hitPercent`, Noxious Coating `hitPercentPenalty`, Cursed Edge `armorPercent`. Hostile auras accept `defense-percent`. Old flat types still work, because spells (23 `defense-flat`) and artifacts (5 `weapon-hit-flat`) were left unchanged.
 - Accuracy percentages now apply after the 70 floor, in `calculateWeaponHitChance` and for unarmed attacks.
-- The class files are hand-formatted in several styles. Edit them with the span-preserving `claude-work/class-rework.py` approach, never `json.dump`. Backup: `claude-work/classrework-backup/`. Check script: `claude-work/class-check.js`.
+- The class files are hand-formatted in several styles. Edit them with the span-preserving `claude-work/class-rework.py` approach, never `json.dump`. Backup: `claude-work/classrework-backup/` (deleted 2026-11-05 in the user's cleanup). Check script: `claude-work/class-check.js`.
 
 **Boss rework 1: Great Imp Ji'ruan (2026-10-10).** The user is reworking the bosses one at a time, each together with its masterwork drop.
 - **Ji'ruan's file:** Level 18, `maxHpPercent` 30 and `maxManaPercent` 50, with no Raid Boss class (user decision).
@@ -226,7 +229,7 @@ The user's main project is **Stat Fick**, a vanilla-JS fantasy RPG (character sh
 - Look: humanoid outfit `storm-plate`, headwear `storm-crown`, `lightningScars`, `staticSparks`. Intro `tankina` and phase cutscene `tankina-phase` (phase `cinematic`, through `playPhaseIntro`; `introRetinue(key)` shared helper). Music: composer themes `tankina-disciple-of-talos` (D phrygian war-chant, trim 1.75, −17.3 LUFS) and `tankina-chosen-of-talos` (D hijaz, 138 bpm, trim 1.22, −16.7 LUFS); `musicTheme` switches on her `phaseIndex`.
 - **Storm Reliquary** (`church-of-talos.js`, modal `#church-store-modal`, map button `#map-church-store`, scene `church` = `stormChapel` in `scene-banners.js`): 6 Church of Talos lightning staffs/wands (`ForgeRules.generate({ maker, element })` — new `maker` option for casters), 8 lightning spells (10% chance of one over-tier), and the Stormhide Cuirass for 20 Platinum, always on offer. Stock lives in `shopState.locations["church-of-talos"]` {relics, tower, spells}, turns over with the shops' 6-hour window; the save loader now keeps `tower` and `relics` lists (it used to drop the Magic Tower's casters).
 - Items (user designs): `masterwork-claw-of-beowulf` (Zweihander, Boreal Bolt main, mark-on-hit 35%/+20%/2 turns, wolves 2%); `masterwork-stormhide-cuirass` (Leather Armor, Church of Talos main, +10 Evasion, −50% Lightning spell damage, `soldAt` "Storm Reliquary · Church of Talos", forged at the buyer's level); `masterwork-transformer` (Kite Shield, Church of Talos main, unchanged effect, Tankina 8%). Old ids migrate via `LEGACY_ITEMS`; catalogue entries removed. `ForgeArt` maps masterwork keys to the old hand-made battle designs through `SPRITE_UNIQUE` (`claw-of-beowulf` → `beowulf`, `stormhide-cuirass` → `stormhide`).
-- Tests: `claude-work/tk-rework-checks.js` appended to `talos-boss-browser.js` by `patch_tk.py` (also the talos cinematic, edge and guild-information checks). `claude-work/rebuild-testclient.sh` rebuilds the patched test client from the pristine image and refreshes `client/tests`.
+- Tests: `claude-work/tk-rework-checks.js` appended to `talos-boss-browser.js` by `patch_tk.py` (also the talos cinematic, edge and guild-information checks). `claude-work/rebuild-testclient.sh` rebuilds the patched test client from the pristine image and refreshes `client/tests` (deleted 2026-11-05 in the user's cleanup, as were `testclient/` and the pristine image in `cleanup-backup/` the script works from).
 
 **Boss rework 7: Ornn, God of the Forge (2026-10-11).** (Since the Shop Rework, 2026-11-06, he is no longer a Great Hunt:
 he is fought at Hearth Home, his mechanics and drops unchanged; see "Shop Rework".) User decisions: Reforging; difficulty like Tankina (prepared Level 51 ~25%); Ram at half HP, guarding the anvil; tempers Molten Edge, Hardened Plate, Spiked Plate (not Quenched Swing); spoiled by damage; a temper lasts until the next reforge; keep 50% with a new cutscene; full redesign; smith's work-song; intro; Anvil Hammer and Godforged Plate reworked last.
@@ -247,7 +250,7 @@ he is fought at Hearth Home, his mechanics and drops unchanged; see "Shop Rework
 - Enemy-file `infernalSacrifice` {servants [ids], belowPercent 35, healPercent 10, powerPercent 15, returnTurns 3}. Engine `sacrificeTurn` (his turn start: rift returns first, then he drains the weakest Servant below the threshold, one a turn) in `combat.js`; a drained Servant is set to 0 HP with `sacrificed` and `experienceAwarded` true (no EXP or loot), reset when it returns. Badge "Infernal Power n · Rift returns X · n turns"; `stageLook.infernal` (1–3). AI `saffron` (one damaging spell a turn; skips mana-overload, quickened-spell, magnum-opus, wild-thesis) and `devil-servant` (one strike a turn; skips execute, all-or-nothing, perfect-form) — without them the court one-shot L69 heroes.
 - Balance: Saffron `maxHpPercent` 590, Servants `maxHpPercent` 300, wears Level 40 forged copies (`noDropItems`) → prepared L69 22.4% (43/192), ~3.6 rounds, ~0.65 sacrifices a fight. Hellish Rebuke's retaliation and his self-heals/shields make long, high-HP fights lethal; the sim's per-actor damage split credits DoT ticks during his turn to him.
 - Look: humanoid outfit `infernal-robe` {color, color2, trim, sigils} (+`sigilLevel`), headwear `hellfire-crown` {color, gem, flame, blaze 1–3}, bat wings `veins`, servant `brand` on the brow; catalog `infernal` variants. Intro `saffron` (Pyramid Sanctum, four braziers, three-Servant retinue list). Music `archdevil-saffron` (D hijaz royal processional, trim 2.03, −17.1 LUFS).
-- Items: caster masterworks are new (`isCasterMasterwork`: def with a staff/wand type, no parts, `mainMaker` + `element`; Greater gem, legendary handle roll; own id format `weapon-masterwork-<key>-<lvl>-<gem>-<handle>-<ink>`; built from `buildCasterItem` with masterwork name/rarity/effects). `masterwork-hellish-rebuke` (Spell Wand, Hellmade Ruby, unchanged effects, 12%), `masterwork-seventh-cycle` (Chainmail, Hellmade main, unchanged effect, 6%). `objects/armor.json` was then deleted at the user's request (2026-10-12): every armor piece is forged (masterworks included). `app.js` no longer loads, caches or offers a file chooser for armor (`ITEM_FILES`/`ITEM_CACHE_KEYS`/`itemSourceStates` have no armor; the old `emberfall-armor-cache` localStorage entry is removed at startup); `itemCatalog.armor` stays an empty array and the armor record parser is left in place unused. The smoke check was relaxed to `armor >= 0` in `patch_sf.py`; backup in `claude-work/armorjson-backup/`.
+- Items: caster masterworks are new (`isCasterMasterwork`: def with a staff/wand type, no parts, `mainMaker` + `element`; Greater gem, legendary handle roll; own id format `weapon-masterwork-<key>-<lvl>-<gem>-<handle>-<ink>`; built from `buildCasterItem` with masterwork name/rarity/effects). `masterwork-hellish-rebuke` (Spell Wand, Hellmade Ruby, unchanged effects, 12%), `masterwork-seventh-cycle` (Chainmail, Hellmade main, unchanged effect, 6%). `objects/armor.json` was then deleted at the user's request (2026-10-12): every armor piece is forged (masterworks included). `app.js` no longer loads, caches or offers a file chooser for armor (`ITEM_FILES`/`ITEM_CACHE_KEYS`/`itemSourceStates` have no armor; the old `emberfall-armor-cache` localStorage entry is removed at startup); `itemCatalog.armor` stays an empty array and the armor record parser is left in place unused. The smoke check was relaxed to `armor >= 0` in `patch_sf.py`; backup in `claude-work/armorjson-backup/` (deleted 2026-11-05 in the user's cleanup).
 - Tests: `claude-work/sf-rework-checks.js` appended to `saffron-boss-browser.js` by `patch_sf.py`; `rt-launch.sh` key `sf`, `sf-stats.sh`. Fixed a flaky Tankina store check (the random stock could offer a spell the test hero already knew).
 
 **Boss rework 10: Ancient Lich Ool (2026-10-12).** User decisions: the phylactery; difficulty like Saffron (prepared Level 81 about 20%); keep the three Legionnaires, tied in (they guard it); re-form after 2 rounds at 50% HP; the Legionnaires guard it (single-target attacks redirected, area attacks reach it); broken = mortal and −20% spell power, and if he is dust at that moment he stays dust; a cutscene when it shatters; full redesign; requiem music with a frantic dirge once mortal; intro; items last, per item.
@@ -395,8 +398,8 @@ what the remake keeps). The user's 34 answers, asked before the code, are in
 - **Not covered by a check:** that Run in battle keeps its normal chance in a Search or Escort fight (G14; nothing in the
   battle reads the objective's factor); the reward note's fade after three seconds.
 - **The checks can fail:** each rule was broken once in a copy of the game (94 mutations, one per rule, by a small runner
-  in the cloud session's `claude-work/guild/`, not kept: a copy of `old-game/` per worker, the covering entry run with
-  `--game-folder` pointing at it). 93 were caught; the first pass let five through, and four of those were gaps the checks then closed
+  in the cloud session's `claude-work/guild/` (never on the user's PC), not kept: a copy of `old-game/` per worker, the
+  covering entry run with `--game-folder` pointing at it). 93 were caught; the first pass let five through, and four of those were gaps the checks then closed
   (two Great Hunts with the same id, an encounter roll that already held the Cull target, a Search spot never near an
   exit in today's zones, a Search button checked only from another zone). The fifth, dropping the shield filter from a
   recruit's armor, cannot differ: `allowedSlots` puts a shield in the off-hand only, never in the armor slot.
@@ -481,12 +484,12 @@ How it's built:
 - **Not covered by a check:** the anvil's hover cards and list layout; the scenes, island painting and site icons
   (placeholders); companions choosing to place the new traps (the old formula).
 - **The checks can fail:** each rule was broken once in a copy of the game (121 mutations, one per rule, by the same
-  kind of runner as task 2's, in the cloud session's `claude-work/shop/`, not kept). All 121 were caught after a second
-  pass; the first let nine through, each a gap the checks then closed: the armor-part check used full plate, which
-  Outlaw and Vampiric never make (now light armor, a shield and a robe too); the fixed-maker forging was only seen
-  through stock that filters by maker anyway (now checked on `generate` and `generateArmor` directly); the
-  heal-over-time check's numbers vanished in an enemy's −80% (now on the wearer); Gravity Well was set off only by
-  melee (now a spell too); a clothing-free Blacksmith shelf was drawn once (now six draws); the Tailor's sell check used
+  kind of runner as task 2's, in the cloud session's `claude-work/shop/` (never on the user's PC), not kept). All 121
+  were caught after a second pass; the first let nine through, each a gap the checks then closed: the armor-part check
+  used full plate, which Outlaw and Vampiric never make (now light armor, a shield and a robe too); the fixed-maker
+  forging was only seen through stock that filters by maker anyway (now checked on `generate` and `generateArmor`
+  directly); the heal-over-time check's numbers vanished in an enemy's −80% (now on the wearer); Gravity Well was set off
+  only by melee (now a spell too); a clothing-free Blacksmith shelf was drawn once (now six draws); the Tailor's sell check used
   an equipped sword, never sellable (now a spare mace); and the Ornn board check ran with Ornn's hunt marked completed.
 - **Regression** (2026-11-06, the cloud, Xvfb): every zero-argument entry of the 42 check files (97 entries: the 88 of
   merged `main` plus 9 new) and the smoke, enemies, lifecycle and combat suites, against a baseline run of merged
@@ -504,9 +507,9 @@ How it's built:
 untouched. Done: the faithful port brings it over and doesn't build it again; its only port work is remaking the
 placeholder looks (A1; `engine/Docs/Port-Tasks/README.md`). The user's 32 answers are in `engine/Docs/Engine-Plan.md`,
 "Decisions for task 4, Artifact Rework" (A1–A32); A16 approved the drafted list below as it stands.
-- **The set** (`objects/artifacts.json`, written by a generator kept in the cloud session's `claude-work/artifacts/`, not
-  in git): the 32 old non-masterwork artifacts were replaced (A3) by 80 new ones; each record has `look` (`shape`,
-  `glyph`) and `placeholderArt`. Prices in silver:
+- **The set** (`objects/artifacts.json`, written by a generator kept in the cloud session's `claude-work/artifacts/`
+  (only there, never on the user's PC), not in git): the 32 old non-masterwork artifacts were replaced (A3) by 80 new
+  ones; each record has `look` (`shape`, `glyph`) and `placeholderArt`. Prices in silver:
   - **Uncommon** (32): Brawler's Knuckle Ring (2,000): Strength +8%; Oakheart Locket (2,000): Vitality +8%; Thinker's Pin (2,000): Mind +8%; Quickhand Bracelet (2,000): Dexterity +8%; Scholar's Signet (2,000): Intelligence +8%; Hermit's Bead (2,000): Wisdom +8%; Hare's Anklet (2,200): Speed +6%; Copper Clover (1,800): Luck +10%; Hearthstone Charm (2,200): Maximum HP +10%; Wellspring Drop (2,200): Maximum Mana +12%; Riveted Buckle (2,000): Armor +10%; Feather Token (2,000): Evasion +6; Whetstone Ring (2,400): Weapon power +6%; Steady Eye Lens (2,000): Weapon hit chance +10; Glint Shard (2,400): Critical chance +4; Inkwell Charm (2,200): Spells cost 6% less Mana; Spark Coil (2,400): Spell power +6%; Bandit's Coin (1,600): +15% silver from battles; Studious Quill (2,000): +10% EXP from battles; Leech Hook (2,400): Weapon hits heal you for 3% of the damage dealt; Thornknot Brooch (2,200): Melee attackers take 8% of the damage they deal you; Morning Dew Vial (2,600): Restore 2% of your maximum HP at the start of your turn; Mana Drip Stone (2,400): Restore 2% of your maximum Mana at the start of your turn; Warding Cord (1,800): The first hit you take each battle deals 25% less damage; First Light Pin (1,800): Your first attack or spell each battle deals +20% damage; Greenskin Tooth (1,600): +12% damage against goblins and orcs; Silver Nail (1,800): +12% damage against undead; Ashen Ward (2,000): Fire damage you take −12%; Thunderstone Earring (2,000): Lightning damage you take −12%; Triage Pouch (2,200): Healing you receive in battle +10%; Mender's Thimble (2,200): Heals you give +8%; Snare Twine (2,400): Trap limit +1.
   - **Rare** (24): Ironbound Signet (6,000): Strength and Vitality +8%; Sage's Loop (6,000): Intelligence and Wisdom +8%; Duelist's Signet (6,500): Dexterity +10% and critical chance +4; Heartwood Amulet (6,000): Maximum HP +18%; Moonwell Pendant (6,500): Maximum Mana +20% and spells cost 4% less Mana; Bulwark Brooch (6,000): Armor +16%; Windrunner Anklet (6,800): Speed +10%; Gambler's Die (5,500): Luck +16%; Vampire's Fang (7,000): Weapon hits heal you for 6% of the damage dealt; Spellward Mirror (6,500): Spell damage you take −10%; Stormcatcher Coil (5,500): When an enemy's spell damages you, restore 4% of your maximum Mana; Executioner's Mark (6,500): +20% damage against enemies below 30% HP; Giantslayer Torc (6,500): +15% damage against enemies with more maximum HP than you; Warcry Horn (6,000): At the start of each battle: weapon power +15% for 2 turns; Echo Bell (6,500): Each spell has a 10% chance to cost no Mana; Ironskin Phial (6,000): At the start of each battle: a barrier of 8% of your maximum HP; Rallying Banner Pin (7,000): At the start of each battle: you and your allies get all attributes +6% for 2 turns; Burning Brand (6,500): Weapon hits have a 20% chance to burn the target for 3% of its maximum HP per turn for 2 turns; Frostbite Charm (6,000): Weapon hits have a 15% chance to slow the target: Speed −15% for 2 turns; Shatter Stone (6,500): Weapon hits lower the target's Armor by 5% for 2 turns, stacking up to 3 times; Cleansing Bead (5,500): At the start of your turn, a 20% chance to remove one debuff from you; Dragonbane Scale (6,000): +15% damage against dragons; Spirit Lantern (6,000): +15% damage against elementals; Battle Hymn Chime (6,500): Defeating an enemy restores 5% of your maximum HP and 5% of your maximum Mana.
   - **Epic** (16): Titan's Band (16,000): Strength +18% and maximum HP +10%; Archmage's Lodestone (17,000): Spell power +16% and Intelligence +10%; Hawkwind Fletch (16,000): Ranged weapon power +18% and ranged hit chance +10; Bladesinger's Ring (16,500): Melee weapon power +16% and critical chance +6; Aegis Medallion (16,500): Armor +20% and spell damage you take −10%; Phantom Step Pin (15,500): Evasion +12; after you evade an attack, your next attack deals +25% damage; Second Chance Locket (18,000): Once per battle, a hit that would defeat you leaves you at 1 HP; Soulharvest Sickle (15,000): Defeating an enemy restores 15% of your maximum HP; Forked Lightning Rod (18,000): Your damaging spells also strike one other random enemy for 25% of the damage; Bloodmoon Chalice (18,500): All damage you deal with weapons and spells heals you for 10% of it; Hourglass of Haste (15,000): +1 AP on your first turn of each battle; Warden's Bell (15,500): The first time each of your allies (not you) drops below 30% HP in a battle, they get a barrier of 15% of their maximum HP; Arcane Engine (17,000): Spells cost 10% less Mana and deal +8% damage; Thunderhead Crown (18,000): Weapon hits have a 15% chance to stun the target for 1 turn; Venomglass Vial (16,000): Weapon hits poison the target for 4% of its maximum HP per turn for 3 turns (refreshed, not stacked); Tide-turner Compass (15,500): While you are below 50% HP: +20% damage and Evasion +10.
@@ -554,9 +557,9 @@ placeholder looks (A1; `engine/Docs/Port-Tasks/README.md`). The user's 32 answer
   damage with no source counting as an enemy's for Warding Cord and Second Chance Locket (A27) also when a hero's own
   skill causes it.
 - **The checks can fail:** each rule was broken once in a copy of the game (85 mutations, by the same kind of runner as
-  tasks 2 and 3, in the cloud session's `claude-work/artifacts/`, not kept). All 85 were caught after a second pass; the
-  first let nine through, eight of them gaps the checks then closed (masterwork drops at your level only tested on the
-  helper, not through a real merfolk drop; the 1% chance only probed at 0.5% and 2%; the enemy's level never fed to the
+  tasks 2 and 3, in the cloud session's `claude-work/artifacts/` (never on the user's PC), not kept). All 85 were caught
+  after a second pass; the first let nine through, eight of them gaps the checks then closed (masterwork drops at your
+  level only tested on the helper, not through a real merfolk drop; the 1% chance only probed at 0.5% and 2%; the enemy's level never fed to the
   real drop roll; Leech Hook's and Stormcatcher's shares rounding to 0 on small numbers; the chance check missing its
   attack; Studious Quill only worn by the companion) and one a mutation that broke nothing (First Light's "spent on a
   miss", replaced by one that spends it on any attack, which the checks catch).
@@ -585,7 +588,8 @@ task 6, New Areas" (N1–N10); N9 approved the drafted zone, enemies and groups 
   them). **The marsh's range** became 35–55 (N10): `levelRange` and the map header ("GLOAMFEN MARSH · LEVEL 35–55"), so
   its guild quests go up to Level 55.
 - **The enemies** (`enemies/*.json`, listed in `enemies/index.json`, written by a generator kept in the cloud session's
-  `claude-work/areas/`, not in git; stats are their bases' scaled to the new level, every class within its cap):
+  `claude-work/areas/` (only there, never on the user's PC), not in git; stats are their bases' scaled to the new level,
+  every class within its cap):
   - Corrupted ones (N6): the marsh creature turned `demon` race (Voidborne: Holy spells +80%, Dark spells nothing), its
     classes and gear kept and grown: **Corrupted Bog Troll** (47; the Bog Troll's greataxe, its brawler and guardian
     classes, with knight and slayer added), **Corrupted Mire Stalker** (50; two daggers, ambusher and hunter, with
@@ -619,9 +623,9 @@ task 6, New Areas" (N1–N10); N9 approved the drafted zone, enemies and groups 
   map panel), `checkRiftGuild` (Hunts by level). The battle entries use a second copy of `combat.js` with a hook
   (`window.__riftChecks`). No old check needed changing.
 - **The checks can fail:** each rule was broken once in a copy of the game (64 mutations, by the same runner as task 4,
-  in the cloud session's `claude-work/areas/`, not kept): the zone's place, size and order, the marsh's range and
-  header, the chance and levels, every group's level, weight and make-up, each enemy's level, race, classes (over a
-  cap, over the level, a style class lost, a nature class kept), spells, weapons, loot, index entry and Dark strikes
+  in the cloud session's `claude-work/areas/` (never on the user's PC), not kept): the zone's place, size and order, the
+  marsh's range and header, the chance and levels, every group's level, weight and make-up, each enemy's level, race,
+  classes (over a cap, over the level, a style class lost, a nature class kept), spells, weapons, loot, index entry and Dark strikes
   (dropped at each step, in the AI's forecast, given to everyone, an unknown element let through), the looks, the
   painting and label, and the guild zone. All 64 were caught after a second pass; the first let two through, both gaps the checks then
   closed (an extra item in the Corrupted Bog Troll's pack, as only its equipped gear was compared; the Rift's pools
@@ -712,9 +716,9 @@ placeholder art (M1; `engine/Docs/Port-Tasks/README.md`). The user's answers are
   or Lament (only heroes wield them); the Guild's item information lists drop tables, so it names no source for
   Treasure Seeker and Moneyshot (Sparkling enemies only); the Heavy Knight and Jester double-drop on Sparkling drops.
 - **The checks can fail:** each rule was broken once in a copy of the game (103 mutations, by task 4's and task 6's runner,
-  in the cloud session's `claude-work/masterworks/`, not kept): every Sparkling number and rule (chances, Luck, the
-  Cull circle, bosses and objects, the roll per enemy, the save, the stats, HP, name, card, stage flag, escape, Cull
-  kills, the encounter screen and its Fight button, EXP, both drop rolls, their Luck, the pool and its weights, the
+  in the cloud session's `claude-work/masterworks/` (never on the user's PC), not kept): every Sparkling number and rule
+  (chances, Luck, the Cull circle, bosses and objects, the roll per enemy, the save, the stats, HP, name, card, stage
+  flag, escape, Cull kills, the encounter screen and its Fight button, EXP, both drop rolls, their Luck, the pool and its weights, the
   loot), Treasure Seeker's ramp, rounding, Luck, party rule, and its battle, quest and sale money, and every rule of
   Moneyshot, Lament, Noble Hero, the Hexbane Coat, the colours and the Shadow Crystal. All 103 were caught after a second
   pass; the first let five through, all gaps the checks then closed (the drop rolls only tried just under their chances,
@@ -769,7 +773,7 @@ the engine's way. The list's rune slotting sound was left out: the port adds pro
 
 **Simulator fix and re-tune (2026-10-11):** `claude-work/ny-sim.js` used to pile every level above 20 into one class past its cap, so parties above Level 20 were badly under-built (6 wasted levels at 26, 15 at 35, 27 at 47). Archetypes now have a `growth` list of fitting classes filled up to each class's cap and level requirement (`ju-sim.js` got the same fix). With fair parties the four earlier bosses won 90–100%, so the user had all four re-tuned (96-fight batches): Juila `maxHpPercent` 210 → 335 (prepared L25 43%); Nygheir 75 → 136 (prepared L26 45%; his check asserts 136); Zik Lun 240 → 455 (standard L26 90%); Deep Sea King 260 → 740 and Dex 58 → 70 (prepared L35 33%; Dex 72–80 drops him to ~17–21%, a cliff). Older balance lines above give pre-fix numbers. `ny-sim.js` takes `OVR='{"<enemy name>":{"maxHpPercent":…,"stats":{…}}}'` for trial numbers without editing enemy files; `claude-work/rt-launch.sh <tag> <ju|ny|zl|dk> <runs> '<override>'` runs one boss with its agreed party.
 
-**Work files:** the session scratchpad was removed mid-session. Use `~/.cache/stat-fick-build/claude-work` for test scripts and the extracted test client (`client/regress.sh` runs the full regression).
+**Work files:** the session scratchpad was removed mid-session. Use `~/.cache/stat-fick-build/claude-work` for test scripts. The extracted test client it held (`client/`, whose `client/regress.sh` ran the full regression) was deleted 2026-11-05 in the user's cleanup. Today the test client is in the repo, `test-client/`: from `old-game/`, `../engine/Tools/Scripts/chromium.sh test-client --suite=smoke|combat|enemies|lifecycle|all` (`old-game/CLAUDE.md`), and one entry of a check file with `--script=<the file's absolute path> --call=<function>`. No full-regression script is in the repo: the 2026-11-06 cloud session ran every zero-argument entry of the files in `test-client/tests/` as its own run (`--script` and `--call`) plus the smoke, enemies, lifecycle and combat suites, under Xvfb, and compared each result with a baseline run of the game from before the change (its runner, in that session's `claude-work/`, was not kept; the results are in each task's "Regression" entry above and under "Regression baseline" below).
 
 **Crit system (2026-10-08, user request):** the 40% cap is gone.
 - All crit sources add Crit Rating: the weapon type's base (`ForgeRules.CRIT`; non-forged weapons use 5), 0.15 × Luck, another 0.1 × Luck for weapons that scale with Luck, and class, artifact, part and rune bonuses.

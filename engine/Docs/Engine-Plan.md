@@ -5,15 +5,17 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-11-05):** M10 (scene and sequencer) is done and ticked (2026-11-05). It started on 2026-11-04 with
+**Current task (2026-11-06):** M10 (scene and sequencer) is done and ticked (2026-11-05). It started on 2026-11-04 with
 the user's go (its eleven questions and 33 step details answered that day, the steps' own questions on the way; "Decisions
 for M10" below; the design doc is `Docs/Scene.md`), and all seven steps are merged on `main` (Progress, "M10 step 1" to
 "M10 step 7" and "M10 done"; `Docs/Scene.md`, Status): the node tree and the scene, F-curves and easing, cameras and a sun
 from glTF, the sequence record, builder and player, camera, light and particle tracks, audio and UI tracks, and the proof
 cutscene, Ji'ruan's intro. **The user approved the proof on 2026-11-05** ("The scene is perfect. I can't fully judge it
 because of the placeholder model, but it's very good."; S7-5), and since the shadow blur port (`515c128`) its title card
-matches Chromium at all six sampled moments, so nothing of M10 is held. The full suite on `main` (`7fd3aac`) is 2547
-tests, passing on the GPU and on lavapipe, with nothing held (Progress, "Canvas: inset shadows cast from Blink's frame").
+matches Chromium at all six sampled moments, so nothing of M10 is held. `main` is `a32c5cb` (2026-11-06): pull requests
+#8–#11 brought port tasks 2–6 into the old game ("Beside the engine" below), the engine's code untouched. The full suite on
+it is 2547 tests, passing on the GPU and on lavapipe, with nothing held (run on the PC on 2026-11-06, below; the same 2547
+as on `7fd3aac`, Progress, "Canvas: inset shadows cast from Blink's frame").
 Done on the way, each by a worker of its own (Progress, by name): the flaky
 `OutputTests.TheDefaultDevicePacesTheGraph` traced to OpenAL's process-wide current context and fixed, with the user's
 two output follow-ups ("OpenAL outputs in one process"); test runs kept out of the player's real folders ("Test runs kept
@@ -23,8 +25,8 @@ of transformed boxes ("Paint offset of transformed boxes") and blurred shadows w
 blurred shadows under non-uniform transforms"); after M10, the inset shadow's caster (merged on `main` as `7fd3aac`,
 2026-11-05; Progress, "Canvas: inset shadows cast from Blink's frame"). **Work in progress, not on `main`:**
 background-image layers painted as Blink paints them, the whole layer rule with seamless tiling ("Decision on background
-layers"), on the branch `background-layers-aa` (head `6731f1e`, based on `5c11c06`, so it needs a rebase on `7fd3aac`
-before it merges; worktree `.claude/worktrees/agent-a55b0fabf44a865d5`; working notes in
+layers"), on the branch `background-layers-aa` (head `6731f1e`, based on `5c11c06`, so it needs a rebase on the current
+`main`, `a32c5cb`, before it merges; worktree `.claude/worktrees/agent-a55b0fabf44a865d5`; working notes in
 `claude-work/canvas-aa/bg-NOTES.md`, `claude-work/` being `~/.cache/stat-fick-build/claude-work/`, on the user's PC only).
 Done on the branch: the canvas's tile API (`Canvas.PushTile`/`PopTile`, a `premultiplied` flag on `DrawImage`,
 `CanvasRender.AcquireExactTarget`, `CanvasTileTests` 7 of 7), `PaintTarget.PushTile`/`PopTile`/`DrawTile`, the whole Blink
@@ -96,6 +98,15 @@ none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine w
 task 5 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "New
 Masterworks". It also makes Doctor's Orders (task 3) the white robe R11 asked for: masterwork armor now wears its
 recorded colour.
+**The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
+engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
+passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
+folder stayed missing and the Documents folder's top level unchanged. Checked in the code first: the tests read from
+`../old-game/` only the five fonts in `objects/fonts/` (`UiResourcesTests`), `classes/Black Knight.json`
+(`LooseRecordTests`) and the six race SVGs in `objects/` that the game-screen captures name (`GamePaintTests`,
+`CompositingReferenceTests`), none of which changed in `1c71213..a32c5cb`; `test.sh` and `build.sh` read nothing there.
+The game screens are tested against the old game's looks as captured (the old game has changed since; "At port time"
+below).
 Before each later milestone (M11 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code, in the order
 "Starting M9" below gives (M10 followed it too).
@@ -143,7 +154,9 @@ what needs the user's machines):**
 - Housekeeping (open, needs the user's go; recorded 2026-11-05): finished workers' worktrees and merged local branches
   are still there and can go (after `git worktree unlock` for the locked ones): the worktrees
   `.claude/worktrees/agent-a100365f9dd9f6455`, `agent-a854dc507294edc31` (`shadow-inset-caster`),
-  `agent-a90b2ab8c1e10ed5b` (locked), `agent-ab2955e985eacee1d` and `stray-saves` (locked); the local branches
+  `agent-a90b2ab8c1e10ed5b` (locked), `agent-ab2955e985eacee1d` and `stray-saves` (locked), and from the evening's docs
+  commits (still there on 2026-11-06, both merged) `agent-a2e8de9d65afa90cf` (branch `docs-2026-11-05-evening`) and
+  `agent-a93b8e77b1ce8d3b9` (branch `docs-m11-answers`); the local branches
   `step7-unsquashed-backup`, `paint-offset-rounding`, `worktree-agent-a854dc507294edc31` and the worktrees' own branches.
   **Keep** `agent-a55b0fabf44a865d5` and its branch `background-layers-aa` (unfinished work, "Current task" above).
 - The "Known differences" lists (`Docs/Compositing-Port.md`, "Known differences left (SVG)"; `Docs/Scripting.md`, "Known
@@ -389,7 +402,20 @@ the design and the tests):
   are already done in the old game, so the faithful port brings them over: don't build them again, only remake their
   placeholder art (the README's list: task 1's six masterwork looks, task 2's two guild interiors, task 3's scenes, icons
   and looks, task 4's artifact looks, task 5's Sparkling look and new masterwork looks, task 6's Rift enemies and map
-  painting).
+  painting). Also to ask (recorded 2026-11-06, not decided): when to capture the game screens again and bring the tests'
+  copy of the stylesheet up to the old game's: before the port starts, or screen by screen as the port reaches each. The
+  facts (checked 2026-11-06): the game-screen references (the 22 captured screens, 11 states at 1× and at 1.65:
+  `Golden/game-ui.json.gz`, `game-ui@1.65.json.gz`, the `game-*.png` screenshots, `Reference/scaled/game-layers@1.json`
+  and `@1.65.json`) and the tests' copy of the stylesheet (`Tests/Statventure.Tests/Data/Game/styles.css`, 3915 lines)
+  were made from the old game as it was when they were captured: all came in with the repo's first commit (`f45ca7a`,
+  2026-10-30), and the copy is that commit's `old-game/styles.css` byte for byte. The old game's `styles.css` differs from
+  it since the user's small changes (`7cdd47e`, 2026-11-03) and grew with port tasks 2, 3 and 5 (4080 lines on
+  `a32c5cb`; `diff` against the copy: 3 lines removed, 168 added); its `index.html` and scripts changed too (the class
+  information button, the guild room, the shop's reforging, the new map sites). So the engine's game-screen tests check
+  the old looks, which is intended for now; the references are to be captured again from the current old game at port
+  time, when being the question above (`Tools/Scripts/make-game-references.sh`, which also copies the stylesheet,
+  `make-scaled-game-references.sh` and `make-layer-references.sh`; on the user's PC or under Xvfb in the cloud,
+  `../CLAUDE.md`).
 
 ## Folders
 

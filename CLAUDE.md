@@ -4,8 +4,9 @@ Two projects:
 - `engine/`: Statventure (C#, Vulkan, on BRUTAL) and the port of the game onto it. This is the active
   work. Read `engine/CLAUDE.md`, then `engine/Docs/Engine-Plan.md` ("How to continue").
 - `old-game/`: the original JavaScript game in its Electron shell. It's the reference the port is
-  checked against (the engine's tests read its stylesheets and scripts; the reference harnesses drive
-  it). Read `old-game/CLAUDE.md` before changing it.
+  checked against (the engine's tests read its fonts, one class file and the images its saved captures
+  name, and keep their own copy of its stylesheet; the reference harnesses drive it). Read
+  `old-game/CLAUDE.md` before changing it.
 
 The user's standing rules:
 - Ask about every design choice as soon as it comes up (the question tool, 2–4 options, the
