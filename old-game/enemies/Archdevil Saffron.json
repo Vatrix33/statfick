@@ -51,6 +51,7 @@
   ],
   "drops": [
     { "itemId": "masterwork-hellish-rebuke", "chance": 12 },
-    { "itemId": "masterwork-seventh-cycle", "chance": 6 }
+    { "itemId": "masterwork-seventh-cycle", "chance": 6 },
+    { "itemId": "masterwork-fletcher", "chance": 4 }
   ]
 }

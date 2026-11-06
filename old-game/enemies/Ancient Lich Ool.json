@@ -56,6 +56,7 @@
   "drops": [
     { "itemId": "key-item-phylactery-core", "chance": 20 },
     { "itemId": "masterwork-staff-of-the-guild", "chance": 8 },
-    { "itemId": "masterwork-heartless-enricher", "chance": 5 }
+    { "itemId": "masterwork-heartless-enricher", "chance": 5 },
+    { "itemId": "masterwork-tough-out", "chance": 5 }
   ]
 }

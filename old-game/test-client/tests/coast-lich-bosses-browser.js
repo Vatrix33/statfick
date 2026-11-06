@@ -171,7 +171,8 @@ async function runDeepSeaKingChecks() {
   assert(template?.rarity === "masterwork" && tridentEffect?.amount === 5 && tridentEffect.maxStacks === 3 && tridentEffect.durationTurns === 2, "Royal Trident: every hit taken adds +5% to all basic stats, up to +15%, for 2 turns");
   const wielded = getItem(raw.equipment.primaryHand);
   assert(wielded?.forged?.type === "spear" && wielded.forged.parts[0].maker === "hellmade" && wielded.name.endsWith("Royal Trident") && raw.noDropItems.includes(raw.equipment.primaryHand), "He wields a forged Royal Trident, Hellmade at its heart, which never drops as ordinary gear");
-  assert(raw.drops.length === 1 && raw.drops[0].itemId === "masterwork-royal-trident" && raw.drops[0].chance === 12, "He drops the Royal Trident at 12%");
+  // Port task 7 adds one Exotic to each of these bosses' tables (it rolls only while Limitless is on).
+  assert(raw.drops.length === 2 && raw.drops[0].itemId === "masterwork-royal-trident" && raw.drops[0].chance === 12 && raw.drops[1].itemId === "masterwork-fletcher" && raw.drops[1].chance === 4, "He drops the Royal Trident at 12%, and Fletcher (4%)");
   assert(ForgeRules.LEGACY_ITEMS["weapon-royal-trident-meele"] === "masterwork-royal-trident" && getItem(normalizeCharacter({ ...defaultCharacter(), raceId: "human", level: 35, inventory: ["weapon-royal-trident-meele"] }).inventory[0])?.name?.endsWith("Royal Trident"), "An old Royal Trident becomes the forged masterwork");
   for (const name of ["Merfolk Spearfisher", "Reed Merfolk", "Merfolk Reef Guard", "Merfolk Steamcaller", "Merfolk Tidecaller"]) {
     const merfolk = await (await fetch("enemies/" + encodeURIComponent(name) + ".json")).json();

@@ -152,7 +152,7 @@ async function runGaianReworkChecks() {
   const raw = await (await fetch("enemies/" + encodeURIComponent("Gaian, Avatar of the Land") + ".json")).json();
   assert(raw.aiProfile === "gaian" && raw.introCinematic === "gaian" && !raw.phaseTransitions, "Gaian has his own AI and intro, and no phase");
   assert(raw.heartCores.enemyId === "jungle-core-level-50" && raw.heartCores.regrowTurns === 3 && raw.heartCores.severed.turns === 2 && raw.heartCores.severed.damageTakenPercent === 30 && raw.heartCores.severed.apLoss === 2 && raw.livingAllyProtection.amount === 25, "A fallen Core regrows after 3 of his turns; both down sever him for 2 turns (+30% damage taken, 2 fewer AP); each living Core shields 25%");
-  assert(raw.drops.map(drop => drop.itemId + ":" + drop.chance).sort().join() === "artifact-titanfall-artifact:5,masterwork-jackhammer:12,masterwork-soulbound-barrier:8", "He drops the Jackhammer (12%), the Soulbound Barrier (8%) and Titanfall (5%)");
+  assert(raw.drops.map(drop => drop.itemId + ":" + drop.chance).sort().join() === "artifact-titanfall-artifact:5,masterwork-jackhammer:12,masterwork-soulbound-barrier:8,masterwork-tough-out:5", "He drops the Jackhammer (12%), the Soulbound Barrier (8%) and Titanfall (5%), and Tough-Out (5%, task 7)");
   const hammer = getItem(raw.equipment.primaryHand);
   assert(hammer?.forged?.masterwork === "jackhammer" && hammer.forged.type === "greathammer" && hammer.forged.parts[0].maker === "elven" && raw.noDropItems.includes(hammer.id), "He wields a forged Jackhammer, Elven at its heart, which never drops as ordinary gear");
   const barrier = getItem(F.encode(F.generateMasterwork({ key: "soulbound-barrier", level: 53, random: () => 0.5 })));

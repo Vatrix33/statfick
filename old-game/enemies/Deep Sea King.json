@@ -89,6 +89,10 @@
     {
       "itemId": "masterwork-royal-trident",
       "chance": 12
+    },
+    {
+      "itemId": "masterwork-fletcher",
+      "chance": 4
     }
   ]
 }

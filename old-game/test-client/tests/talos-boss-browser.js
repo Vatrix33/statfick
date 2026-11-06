@@ -174,7 +174,7 @@ async function runTankinaChecks() {
   assert(raw.aiProfile === "tankina" && raw.introCinematic === "tankina", "Tankina has her own AI and intro");
   assert(raw.storm.stages.map(stage => stage.id + "@" + stage.at).join() === "drizzle@0,rain@2,storm@4,thunderstorm@7,tempest@10", "The storm grows from a light drizzle to an extreme thunderstorm");
   assert(raw.phaseTransitions[0].thresholdHpPercent === 50 && raw.phaseTransitions[0].cinematic === "tankina-phase" && !raw.phaseTransitions[0].animation, "Her phase stays at 50% HP with its own cutscene");
-  assert(raw.drops.map(drop => drop.itemId + ":" + drop.chance).sort().join() === "key-item-blood-crystal:3,masterwork-transformer:8", "She drops the Transformer (8%) and the Blood Crystal; the Claw and the Cuirass are gone from her drops");
+  assert(raw.drops.map(drop => drop.itemId + ":" + drop.chance).sort().join() === "key-item-blood-crystal:3,masterwork-cherubim:5,masterwork-transformer:8", "She drops the Transformer (8%) and the Blood Crystal, and Cherubim (5%, task 7); the Claw and the Cuirass are gone from her drops");
   const apostle = await (await fetch("enemies/" + encodeURIComponent("Apostle of Talos") + ".json")).json();
   assert(apostle.aiProfile === "talos-apostle" && apostle.knownSpells.includes("call-the-storm-lightning-unique") && getSpell("call-the-storm-lightning-unique")?.element === "lightning", "Her Apostles can Call the Storm");
   for (const name of ["Juvenile Wolf", "Adult Wolf", "Highland Wolf", "Dire Wolf", "Duskpine Wolf", "Boreal Direwolf"]) {

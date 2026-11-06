@@ -211,6 +211,10 @@
       "chance": 3,
       "minimum": 1,
       "maximum": 1
+    },
+    {
+      "itemId": "masterwork-cherubim",
+      "chance": 5
     }
   ]
 }

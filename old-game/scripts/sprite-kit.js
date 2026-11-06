@@ -278,7 +278,7 @@
     if (!item || !item.id) return null;
     if (visualCache.has(item.id)) return visualCache.get(item.id);
     const unique = item.rarity === "masterwork" ? MASTERWORK_KEYS[item.name] || null : null;
-    const ornate = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, masterwork: 5 }[item.rarity] ?? 0;
+    const ornate = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, masterwork: 5, exotic: 5 }[item.rarity] ?? 0;
     let visual;
     if (item.forged && window.ForgeArt) visual = window.ForgeArt.visualFor(item);
     else if (item.category === "weapon" || item.id.startsWith("weapon-")) {

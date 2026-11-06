@@ -93,6 +93,14 @@ none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine w
 task 5 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "New
 Masterworks". It also makes Doctor's Orders (task 3) the white robe R11 asked for: masterwork armor now wears its
 recorded colour.
+**Beside the engine, old game only (2026-11-06): port task 7, New Game Plus, is done in the old game**, as tasks 1–6
+were (decisions L1–L33 in "Decisions for task 7, New Game Plus" below: Limitless, the Exotic rarity, Exium and the five
+Exotics; built on the cloud branch `claude/fervent-carson-f5ol9s` and offered as one pull request, L22). The port doesn't
+build it again; only its placeholder art is remade (`Docs/Port-Tasks/README.md`). It touches only `../old-game/` (its
+scripts, markup, stylesheet, eleven boss files and test client) and these docs, never the engine (the engine's tests
+read none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't
+count task 7 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`,
+"New Game Plus: Limitless and the Exotics".
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
@@ -1189,6 +1197,82 @@ and 6 were merged; the task is `Docs/Port-Tasks/5_New_Masterworks.txt`).** Asked
   forged at your level, and is in the Sparkling pool; placeholder look: the normal forged coat in silver-grey. (Not 5%
   from the Abyss Witch only, as drafted; not 3% from undead and demon casters of Level 45 and up, not 2% from every
   caster from Level 40, not sold in Ravenwatch.)
+
+**Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
+after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**
+Asked before any code, four at a time:
+- L1 **Where and art:** in the old game like tasks 1–6, with placeholder looks from the existing kits (Winged Hussar with a
+  simple winged crossguard, as the task asks); the green and purple wave is real CSS; all listed for the port's remake.
+  (Not finished art, not only noted for the port.)
+- L2 **Turning Limitless off** (section 3.1 says both "set back to 100" and "do not reset to 100"): while it's off you are
+  Level 100 with your Level-100 stats; your Limitless level, the stat points gained above 100 and your EXP toward the
+  next level are kept aside and all come back when it's turned on again. (Not keeping the level and stats, frozen.)
+- L3 **Enemy scaling:** per level of difference from yours, +1 to each of the enemy's attributes; the 5 free points a
+  hero gets per level are not applied. (The user's own answer; not hero-like growth with the points, not proportional,
+  not only upward.)
+- L4 **Companions:** like you: up to Level 200 while Limitless is on, back to their Level-100 values while it's off.
+- L5 **Scaling direction:** only up: enemies below your level rise to it (+1 per attribute per level); enemies above it
+  keep their own level and stats. (Not both ways.)
+- L6 **Bosses' Level-100 classes:** I draft, for each boss whose class levels add up to less than 100, the classes that
+  fit its role and mechanics up to 100 levels, show the list, and build after the user's approval. (Not an automatic
+  rule.)
+- L7 **The +25%:** the eight attributes ×1.25, once at battle start like Empowered and Sparkling; HP, Armor, Evasion and
+  damage follow from them. (Not Armor and Evasion ×1.25 on top.)
+- L8 **Masterwork drops ×2:** every masterwork in an enemy's drop table ×2 before the Luck bonus, and Sparkling's two rolls
+  too (70% → 100%, 5% → 10%). (Not drop tables only; not the Luck bonus too.)
+- L9 **Gear above Level 100:** past Level 100 forged weapons and armor keep rising at the average pace of Levels 1–100
+  (a lance, 12 power at Level 1 and 140 at 100, reaches 204 at 150 and 268 at 200; their scaling ratios likewise). (Not
+  half or a quarter of that pace.)
+- L10 **That gear while Limitless is off:** turning Limitless off takes anything above Level 100 off (into the pack), and
+  it can't be worn until Limitless is on again. (Not left on, greyed and inactive.)
+- L11 **Exium:** Mythilium's material values +3 each: +8% final power, +8 Accuracy, +8 Crit Rating and +8% armor pierce
+  per part (16 on the main part). (Not ×1.03.)
+- L12 **Exotic level:** forged at your level when they drop (up to 200), like masterwork drops. (Not always Level 200.)
+- L13 **Exotics while Limitless is off:** taken off like other gear above Level 100 (L10); one at Level 100 or below stays
+  on (L25: active, not greyed). (Not every Exotic kept on and greyed.)
+- L14 **Winged Hussar's damage:** +1% damage per 4 Evasion (with its own +15% Evasion counted), a configurable number.
+  (Not 25% or 40% of Evasion added to base power.)
+- L15 **Anatemis's Level-200 reward:** from all five Exotics (section 8), armor and shield included. (Not weapons only,
+  as section 10 says.)
+- L16 **Item types:** Tough-Out is a Hearthforge tower shield, Connected Balancer a Boreal Bolt brigandine. (Not a kite
+  shield and scale armor, not a buckler and leather armor.)
+- L17 **Old saves:** every old save starts locked, also one that beat Anatemis before; beating her again (a rematch)
+  unlocks it. (Not unlocked on load.)
+- L18 **EXP at Level 100:** none is gained at Level 100 without Limitless on (also while it's still locked); EXP an old
+  save banked at Level 100 is cleared when it loads. (Not keeping the old pile.)
+- L19 **Connected Balancer's allies:** every living ally on the wearer's side, summons included. (Not heroes only.)
+- L20 **In battle:** Limitless cannot be turned off during a battle (the user's own answer), nor on (L21): the button is
+  disabled in battle, so every battle runs with one Limitless state throughout.
+- L21 **Turning it on in battle:** no, only between battles. (Not from the next battle, not at once.)
+- L22 **Delivery:** one pull request at the end; the only stop on the way is the bosses' class draft (L6). (Not two pull
+  requests.)
+Asked while building the Exotics (2026-11-06):
+- L23 **Cherubim's +12% per rune:** +12% final power and +12 points of armor pierce per attached rune (four runes: +48
+  and +48), part of the weapon's own totals like any rune's. (Not ×1.12 of the current values.)
+- L24 **Elemental runes on Cherubim:** Holy is its base element; an elemental rune mixes in its own element at 50%, as on
+  every other weapon. (Not Holy only.)
+- L25 **Exotics at Level 100 or below while Limitless is off** (the user's own answer; replaces L13's "greyed and
+  inactive"): they stay active, worn or put on, like any other gear; the rule that a piece can't be worn while Limitless
+  is off applies only to pieces of Level 101 and above.
+- L26 **Fletcher's armor break** (the user's own answer): it stacks: every hit adds its own −20% Armor (−40% on a
+  critical hit) for 1 turn. (Not one renewed effect per wielder, not the latest replacing it.)
+- L27 **Gear above Level 100 while Limitless is off** (the user's own answer): any such piece, Exotic or not, has a red
+  border and the note "Level N required" (N its level) in the pack and item panels. (Not greyed.)
+- L28 **Exotic weapons' other parts:** Exium a quarter of the time, otherwise any fitting material; the main part is
+  always Exium. (Not Mythilium as on masterworks, not all Exium.)
+The bosses' class draft (L6), reviewed 2026-11-06:
+- L29 **The draft:** approved as drafted: the eleven bosses' `BOSS_CLASSES` in `../old-game/scripts/limitless-engine.js`,
+  each at exactly 100 class levels, none over its class's maximum, no hero, raid-boss or item-locked class.
+- L30 **One strike a turn:** a boss's damaging skill (Final Blow, Worldshaker, Chain Overload, Pestilent Cloud, Psychic
+  Lance, Rampage and any other) uses up its one strike that turn, like an attack or a spell. (Not on top of it.)
+- L31 **Burst and gamble skills** (Arcane Chorus, Arcane Echo, Doubled Spell, Wild Thesis, Magnum Opus, All or Nothing,
+  Champion's Challenge): bosses may use them; they are not added to the bosses' don't-use lists. (Not kept from them.)
+- L32 **Guard-only levels** (Bulwark 2/4/6, General 2, Strategist 4) on bosses that never Guard: kept; they count toward
+  the 100. (Not swapped for other classes.)
+Asked after the regression run (2026-11-06):
+- L33 **The victory screen's EXP at your level cap** (Level 100 without Limitless, 200 with it), where you gain none
+  (L18): it reads 0 EXP; companions below their cap still gain the battle's EXP. (Not the number with a note, not left
+  showing the battle's EXP.)
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).

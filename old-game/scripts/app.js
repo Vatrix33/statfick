@@ -1300,12 +1300,15 @@ function calculateEquipmentDefense(values) {
     const percent = toNumber(item.evasionPercent, 0);
     return sum + (item.type === "heavy" && percent < 0 ? percent * heavyPenaltyShare : percent);
   }, 0);
-  return { armor: equipmentArmor, evasionDebuff, evasionFlat: artifactEffects.evasionFlat + equipmentEvasion, evasionPercent: artifactEffects.evasionPercent + armorEvasionPercent };
+  // Winged Hussar's +15% Evasion (task 7): a held weapon's own Evasion percentage.
+  const weaponEvasionPercent = equippedWeaponItems().flatMap(item => item.effects || []).filter(effect => effect.kind === "evasion-percent").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0);
+  return { armor: equipmentArmor, evasionDebuff, evasionFlat: artifactEffects.evasionFlat + equipmentEvasion, evasionPercent: artifactEffects.evasionPercent + armorEvasionPercent + weaponEvasionPercent };
 }
 
 function defaultCharacter() {
   return {
     worldState: WorldRules.normalize(),
+    limitless: LimitlessRules.normalize(null),
     shopState: { version: 4, refreshWindow: -1, locations: {} },
     raceId: null,
     appearance: null,
@@ -1361,7 +1364,9 @@ function stableLookVariant(text) {
   return value % 4;
 }
 
-function normalizeCharacter(saved) {
+// context: { companion, limitlessActive } for a companion (it follows the player's Limitless, L4); { levelCap } for a
+// saved battle's actors (enemies scaled by Limitless may be above Level 100).
+function normalizeCharacter(saved, context = {}) {
   if (!saved || typeof saved !== "object") return defaultCharacter();
   const savedPerkPoints = Math.max(0, toInteger(saved.perkPoints, 0));
   const perkPointsWithStartingPoint = savedPerkPoints + (saved.startingPerkPointGranted === true ? 0 : 1);
@@ -1438,10 +1443,15 @@ function normalizeCharacter(saved) {
       }
     : null;
   const savedCompletedClassChoices = Array.isArray(saved.completedClassChoices) ? [...new Set(saved.completedClassChoices.filter(key => typeof key === "string"))] : [];
+  // Limitless (port task 7): its record; the level cap and EXP follow whether it is on (L2, L4, L18).
+  const savedLimitless = LimitlessRules.normalize(saved?.limitless, context.companion === true);
+  const limitlessOn = context.companion ? context.limitlessActive === true : savedLimitless.active === true;
+  const levelCap = Math.max(LimitlessRules.cap(limitlessOn), Math.min(LimitlessRules.LIMITLESS_CAP, toInteger(context.levelCap, 0)));
+  const normalizedLevel = Math.min(levelCap, Math.max(1, toInteger(saved?.level, 1)));
   const normalizeCompanion = entry => {
     if (!entry || typeof entry.id !== "string" || typeof entry.name !== "string" || !entry.character || typeof entry.character !== "object") return null;
     const gender = entry.gender === "female" ? "female" : "male";
-    const companionCharacter = normalizeCharacter({ ...entry.character, companions: [], recruitOffers: [], combatState: null });
+    const companionCharacter = normalizeCharacter({ ...entry.character, companions: [], recruitOffers: [], combatState: null }, { companion: true, limitlessActive: limitlessOn });
     // A companion's look always matches the gender of their name.
     const savedLook = normalizeAppearanceRecord(entry.character.appearance);
     companionCharacter.appearance = { gender, variant: savedLook?.gender === gender ? savedLook.variant : stableLookVariant(entry.id) };
@@ -1459,8 +1469,10 @@ function normalizeCharacter(saved) {
   const savedMaxMana = calculateMaxMana(savedCurrentStats);
   return {
     raceId: typeof saved.raceId === "string" ? slugify(saved.raceId) : null,
-    level: Math.min(LEVEL_CAP, Math.max(1, toInteger(saved.level, 1))),
-    exp: Math.max(0, toNumber(saved.exp, 0)),
+    level: normalizedLevel,
+    // At the cap (Level 100 without Limitless on) no EXP is gained, and none an old save banked there is kept (L18).
+    exp: normalizedLevel >= LimitlessRules.cap(limitlessOn) && !context.levelCap ? 0 : Math.max(0, toNumber(saved.exp, 0)),
+    limitless: savedLimitless,
     availablePoints: Math.max(0, toInteger(saved.availablePoints, 0)),
     perkPoints: perkPointsWithStartingPoint,
     startingPerkPointGranted: true,
@@ -1553,6 +1565,7 @@ let darkMode = character.darkMode;
 let currentHp = character.currentHp;
 let currentMana = character.currentMana;
 let manualAllocations = character.manualAllocations;
+let limitless = character.limitless;
 let currencies = character.currencies;
 let permanentBonuses = character.permanentBonuses;
 let permanentDefenseBonuses = character.permanentDefenseBonuses;
@@ -1656,6 +1669,7 @@ function createStatCards() {
       if (spendsPoint) {
         availablePoints -= 1;
         manualAllocations[key] += 1;
+        LimitlessRules.noteSpent(limitless, key, 1, level);
       }
       document.querySelector(`#stat-${key}`).value = displayedBaseStat(key);
       updateEditingControls();
@@ -1738,13 +1752,15 @@ function updateDerivedValues() {
     currentHp = Math.min(maxHp, Math.max(0, currentHp));
     currentMana = Math.min(maxMana, Math.max(0, currentMana));
   }
-  const atLevelCap = level >= LEVEL_CAP;
+  const levelCap = LimitlessRules.cap(limitless.active), atLevelCap = level >= levelCap;
   const nextLevel = level + 1;
   const expRequired = CombatRules.experienceRequired(level);
   const expRemaining = Math.max(0, expRequired - exp);
   const expPercent = Math.min(100, Math.max(0, (exp / expRequired) * 100));
 
   levelValue.textContent = formatValue(level);
+  const capLabel = document.querySelector(".level-card .level-cap");
+  if (capLabel) capLabel.textContent = `CAP ${levelCap}`;
   hpCurrent.textContent = formatValue(currentHp);
   hpMax.textContent = formatValue(maxHp);
   manaCurrent.textContent = formatValue(currentMana);
@@ -1763,7 +1779,7 @@ function updateDerivedValues() {
   expCurrent.textContent = formatValue(exp);
   expThreshold.textContent = atLevelCap ? "MAX LEVEL" : `/ ${formatValue(expRequired)} EXP`;
   expHelper.textContent = atLevelCap
-    ? "Level cap reached · 100"
+    ? `Level cap reached · ${levelCap}`
     : editingEnabled
     ? `Dev-mode level up enabled · ${formatValue(expRequired)} EXP target`
     : `${formatValue(expRemaining)} EXP to reach Level ${formatValue(nextLevel)}`;
@@ -1790,7 +1806,7 @@ function saveCharacter() {
   window.Combat?.onSheetChange();
   window.WorldMap?.renderClock();
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ worldState, shopState, combatState: window.Combat?.serialize() || null, raceId: selectedRaceId, appearance, level, exp, availablePoints, perkPoints, startingPerkPointGranted: true, trapsUsed, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount, editingEnabled, darkMode, currentHp, currentMana, manualAllocations, currencies, permanentBonuses, permanentDefenseBonuses, inventory, favoriteItems, equipment, knownSpells, classLevels, activeSkills, companions, recruitOffers, pendingClassSpellChoice, completedClassChoices, stats }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ worldState, shopState, combatState: window.Combat?.serialize() || null, raceId: selectedRaceId, appearance, level, exp, availablePoints, perkPoints, startingPerkPointGranted: true, limitless, trapsUsed, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount, editingEnabled, darkMode, currentHp, currentMana, manualAllocations, currencies, permanentBonuses, permanentDefenseBonuses, inventory, favoriteItems, equipment, knownSpells, classLevels, activeSkills, companions, recruitOffers, pendingClassSpellChoice, completedClassChoices, stats }));
     statusDot.classList.add("is-saving");
     window.clearTimeout(saveCharacter.timer);
     saveCharacter.timer = window.setTimeout(() => statusDot.classList.remove("is-saving"), 350);
@@ -1809,7 +1825,7 @@ function backupPayload() {
     format: "emberfall-stat-block",
     version: 22,
     exportedAt: new Date().toISOString(),
-    character: { worldState, shopState, combatState: window.Combat?.serialize() || null, raceId: selectedRaceId, appearance, level, exp, availablePoints, perkPoints, startingPerkPointGranted: true, trapsUsed, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount, editingEnabled, darkMode, currentHp, currentMana, manualAllocations, currencies, permanentBonuses, permanentDefenseBonuses, inventory, favoriteItems, equipment, knownSpells, classLevels, activeSkills, companions, recruitOffers, pendingClassSpellChoice, completedClassChoices, stats },
+    character: { worldState, shopState, combatState: window.Combat?.serialize() || null, raceId: selectedRaceId, appearance, level, exp, availablePoints, perkPoints, startingPerkPointGranted: true, limitless, trapsUsed, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount, editingEnabled, darkMode, currentHp, currentMana, manualAllocations, currencies, permanentBonuses, permanentDefenseBonuses, inventory, favoriteItems, equipment, knownSpells, classLevels, activeSkills, companions, recruitOffers, pendingClassSpellChoice, completedClassChoices, stats },
   };
 }
 
@@ -1858,6 +1874,7 @@ function applyCharacter(characterData) {
   exp = characterData.exp;
   availablePoints = characterData.availablePoints;
   perkPoints = characterData.perkPoints;
+  limitless = characterData.limitless || LimitlessRules.normalize(null);
   trapsUsed = characterData.trapsUsed;
   unarmedAttacks = characterData.unarmedAttacks;
   summonSpellsUsed = characterData.summonSpellsUsed;
@@ -1914,6 +1931,7 @@ function applyCharacter(characterData) {
   window.Shop?.onCharacterApplied();
   window.Guild?.onCharacterApplied();
   window.Companions?.onCharacterApplied();
+  window.Limitless?.render();
   saveCharacter();
 }
 
@@ -2053,6 +2071,7 @@ respecButton.addEventListener("click", () => {
     stats[key] = toInteger(stats[key], 0) - manualAllocations[key];
     manualAllocations[key] = 0;
   });
+  limitless.spent = LimitlessRules.normalize(null).spent;
   availablePoints += refund;
   createStatCards();
   updateDerivedValues();
@@ -2066,13 +2085,14 @@ themeToggle.addEventListener("click", () => {
 });
 
 levelUpButton.addEventListener("click", () => {
-  if (level >= LEVEL_CAP) return;
+  if (level >= LimitlessRules.cap(limitless.active)) return;
   const expRequired = CombatRules.experienceRequired(level);
   if (!editingEnabled && exp < expRequired) return;
   level += 1;
   exp = Math.max(0, exp - expRequired);
   availablePoints += 5;
-  perkPoints += 1;
+  // Levels past 100 (Limitless) give no perk point: no new class levels (task 7, 2.1).
+  if (level <= LimitlessRules.BASE_CAP) perkPoints += 1;
   statDefinitions.forEach(({ key }) => {
     stats[key] = toInteger(stats[key], 0) + 1;
   });
@@ -2113,6 +2133,7 @@ resetButton.addEventListener("click", () => {
   flawlessVictories = 0;
   enemyCount = 0;
   manualAllocations = { ...defaultAllocations };
+  limitless = LimitlessRules.normalize(null);
   currencies = { ...defaultCurrencies };
   permanentBonuses = { ...defaultBonuses };
   permanentDefenseBonuses = { ...defaultDefenseBonuses };
@@ -3192,7 +3213,7 @@ function splitDelimitedRecord(record) {
 
 function normalizeRarity(value) {
   const rarity = slugify(value);
-  return ["common", "uncommon", "rare", "epic", "legendary", "masterwork"].includes(rarity) ? rarity : "common";
+  return ["common", "uncommon", "rare", "epic", "legendary", "masterwork", "exotic"].includes(rarity) ? rarity : "common";
 }
 
 function parseWeaponRecord(record) {
@@ -3310,7 +3331,7 @@ function parseItemFile(kind, text, allowLegacy = false) {
     seen.add(id);
     const name = stringField("name");
     const rarity = stringField("rarity").toLowerCase();
-    if (!["common", "uncommon", "rare", "epic", "legendary", "masterwork"].includes(rarity)) invalid("unknown rarity");
+    if (!["common", "uncommon", "rare", "epic", "legendary", "masterwork", "exotic"].includes(rarity)) invalid("unknown rarity");
     if (typeof record.description !== "string") invalid("description must be a string");
     const priceSilver = numberField("priceSilver");
     if (!Number.isInteger(priceSilver) || priceSilver < 0) invalid("priceSilver must be a nonnegative integer");
@@ -3525,7 +3546,8 @@ function rebuildItems() {
     effects: [{ type: "cast-archived-spell", amount: 0 }],
   }));
   // Forged masterworks join the catalogue as templates, so drop tables and guild information can name them.
-  const masterworkTemplates = window.ForgeRules ? ForgeRules.MASTERWORK_IDS.map(key => ForgeRules.item(ForgeRules.masterworkTemplateId(key))).filter(Boolean) : [];
+  // The Exotics' templates too (task 7): drop tables name them like masterworks.
+  const masterworkTemplates = window.ForgeRules ? [...ForgeRules.MASTERWORK_IDS, ...ForgeRules.EXOTIC_IDS].map(key => ForgeRules.item(ForgeRules.masterworkTemplateId(key))).filter(Boolean) : [];
   items = [...itemCatalog.weapons, ...itemCatalog.armor, ...itemCatalog.artifacts, ...(itemCatalog.consumables || []), ...(itemCatalog.keyItems || []), ...archivedItems, ...masterworkTemplates].filter((item) => {
     if (catalogueById.has(item.id)) return false;
     catalogueById.set(item.id, item);
@@ -3695,6 +3717,16 @@ function itemCategoryLabel(category) {
 function isMasterworkEquipment(item) {
   return item?.rarity === "masterwork" && ["weapon", "armor", "artifact"].includes(item.category);
 }
+// The Exotics (port task 7): unique weapons and armor above masterwork. Masterwork rules apply to them wherever no Exotic
+// rule is given (they always drop when rolled, Luck raises their chance, their effects show in battle), but Limitless's
+// ×2 is for masterworks only, and they drop only while Limitless is on.
+function isExoticEquipment(item) {
+  return item?.rarity === "exotic" && ["weapon", "armor"].includes(item.category);
+}
+const isUniqueRarity = rarity => rarity === "masterwork" || rarity === "exotic";
+// Gear above Level 100 while Limitless is off (L10, L27): a red border and "Level N required".
+const needsLimitless = item => Boolean(item) && !LimitlessRules.wearable(item, limitless.active);
+const limitlessNote = item => needsLimitless(item) ? '<span class="needs-limitless-note">Level ' + LimitlessRules.itemLevel(item) + ' required</span>' : "";
 
 function itemRarityLabel(rarity) {
   return rarity.charAt(0).toUpperCase() + rarity.slice(1);
@@ -3711,7 +3743,7 @@ function itemPurchasePriceLabel(item) {
 }
 
 function itemRarityClass(item) {
-  return `item-rarity-${item.rarity || "common"}`;
+  return `item-rarity-${item.rarity || "common"}${needsLimitless(item) ? " needs-limitless" : ""}`;
 }
 
 function artifactEffectLabel(effect) {
@@ -3773,6 +3805,12 @@ function artifactEffectLabel(effect) {
     "stun-on-hit-chance": absoluteAmount + "% on hit: stun the target for 1 turn",
     "turn-and-speed-lock": "Its wielder's turn meter can't be pushed back and their Speed can't be lowered",
     "spell-cost-mark-on-damage": "Enemies it damages are marked until the end of their next turn: their spells cost " + absoluteAmount + "% more Mana",
+    // The Exotics (port task 7).
+    "armor-break-on-hit": "Every hit removes " + absoluteAmount + "% of the target's Armor for " + effect.durationTurns + " turn" + (effect.durationTurns === 1 ? "" : "s") + " (" + formatValue(effect.critAmount) + "% on a critical hit); each hit stacks",
+    "lethal-survive-chance": "When damage would bring you to 0 HP: " + absoluteAmount + "% chance to survive at 1 HP instead",
+    "damage-per-evasion": "Damage +" + absoluteAmount + "% for every " + formatValue(effect.evasion) + " Evasion",
+    "per-rune-damage-pierce": "Every rune attached: +" + absoluteAmount + "% damage and +" + absoluteAmount + " Armor Pierce (counted in its stats)",
+    "shared-burden": "Damage and healing you receive in battle −" + absoluteAmount + "%; the part taken off is shared equally by your living allies, summons included",
     "avalanche-counters": "Each damage taken adds a counter; at " + effect.maximum + " every enemy loses " + absoluteAmount + "% Speed for " + effect.durationTurns + " turns and the counters reset",
     "weapon-power-from-armor-percent": "Gain weapon power equal to " + absoluteAmount + "% of current Armor (Armor is retained)",
     "armor-from-max-hp-percent": "Gain Armor equal to " + absoluteAmount + "% of maximum HP",
@@ -4006,6 +4044,8 @@ function requiredEquipmentCounts(equipmentState) {
 
 function canEquipItem(item, slotKey) {
   if (item?.category === "weapon" && currentStats().strength < (item.minimumStrength || 0)) return false;
+  // Above Level 100 only with Limitless on (task 7, L10, L25).
+  if (!LimitlessRules.wearable(item, limitless.active)) return false;
   const candidate = candidateEquipment(item, slotKey);
   if (!candidate) return false;
   const required = requiredEquipmentCounts(candidate);
@@ -4016,6 +4056,8 @@ function equipItem(item, slotKey) {
   if (!canEquipItem(item, slotKey)) {
     const message = item?.category === "weapon" && currentStats().strength < (item.minimumStrength || 0)
       ? `Requires ${item.minimumStrength} Strength to equip ${item.name}`
+      : !LimitlessRules.wearable(item, limitless.active)
+      ? `${item.name} is Level ${LimitlessRules.itemLevel(item)}: it can only be worn while Limitless is on`
       : raceDisallowsItem(item)
       ? `${getSelectedRace()?.name || "This race"} cannot equip ${item.name}`
       : slotKey === "offHand" && isTwoHandedEquipped()
@@ -4138,7 +4180,7 @@ function renderOwnedItems() {
     '<article class="spell-entry inventory-entry ' + itemRarityClass(item) + '" data-item-id="' + escapeHtml(item.id) + '">' +
       '<button class="spell-select-button item-select-button" type="button">' +
         '<span class="spell-entry-name"><span>' + escapeHtml(item.name) + '</span><span class="item-quantity" aria-label="Quantity ' + quantity + '">×' + quantity + '</span></span>' +
-        '<span class="spell-entry-meta item-entry-meta">' + itemRarityTag(item.rarity) + '<span>' + escapeHtml(itemCategoryLabel(item.category)) + '</span><span>· ' + escapeHtml(itemKindLabel(item)) + '</span>' + (item.forged ? '<span>· Lv ' + item.forged.level + '</span>' : '') + '</span>' +
+        '<span class="spell-entry-meta item-entry-meta">' + itemRarityTag(item.rarity) + '<span>' + escapeHtml(itemCategoryLabel(item.category)) + '</span><span>· ' + escapeHtml(itemKindLabel(item)) + '</span>' + (item.forged ? '<span>· Lv ' + item.forged.level + '</span>' : '') + limitlessNote(item) + '</span>' +
       '</button>' +
       '<div class="item-equip-actions"><button class="item-favorite-button' + (isItemFavorite(item.id) ? ' is-favorite' : '') + '" type="button" data-favorite-item="' + escapeHtml(item.id) + '" aria-pressed="' + isItemFavorite(item.id) + '" aria-label="' + escapeHtml((isItemFavorite(item.id) ? 'Remove from favorites: ' : 'Favorite: ') + item.name) + '" title="' + escapeHtml((isItemFavorite(item.id) ? 'Unfavorite all copies of ' : 'Favorite all copies of ') + item.name) + '"><span aria-hidden="true">' + (isItemFavorite(item.id) ? '★' : '☆') + '</span></button>' + (item.unavailable ? "" : ownedItemActions(item, inventoryEquipSlot)) + '</div>' +
     '</article>'
@@ -4299,17 +4341,17 @@ function forgedAvailability(item) {
     const place = WorldRules.settlementsForRegion?.(item.shopOffer.regionId)?.find(settlement => settlement.id === item.shopOffer.settlementId);
     return itemPurchasePriceLabel(item) + (place ? " · " + place.name + " blacksmith" : "");
   }
-  if (item.forged.masterwork) return item.soldAt || "Found only (Masterwork)";
+  if (item.forged.masterwork) return item.soldAt || (item.rarity === "exotic" ? "Found only (Exotic, with Limitless on)" : "Found only (Masterwork)");
   return item.shopAvailable ? ShopRules.formatPrice(item.priceSilver) + (item.forged.vampiric ? " · Nocturne Keep only" : "") : "Looted only (Outlaw)";
 }
 
 function forgedDetailMarkup(item) {
   const stats = forgedItemStats(item);
   return '<div class="spell-detail item-detail forged-detail ' + itemRarityClass(item) + '">' +
-    '<div class="spell-detail-heading"><div><p class="eyebrow">' + (item.forged.masterwork ? 'MASTERWORK ' + escapeHtml(item.forged.typeName.toUpperCase()) : item.forged.caster ? 'FORGED ' + escapeHtml(item.forged.typeName.toUpperCase()) : item.forged.armor ? 'FORGED ARMOR' : 'FORGED WEAPON') + ' · LEVEL ' + item.forged.level + '</p><h3>' + escapeHtml(item.name) + '</h3></div></div>' +
+    '<div class="spell-detail-heading"><div><p class="eyebrow">' + (item.forged.masterwork ? (item.rarity === 'exotic' ? 'EXOTIC ' : 'MASTERWORK ') + escapeHtml(item.forged.typeName.toUpperCase()) : item.forged.caster ? 'FORGED ' + escapeHtml(item.forged.typeName.toUpperCase()) : item.forged.armor ? 'FORGED ARMOR' : 'FORGED WEAPON') + ' · LEVEL ' + item.forged.level + '</p><h3>' + escapeHtml(item.name) + '</h3></div></div>' +
     forgedMakerMarkup(item) +
     (window.ForgeArt ? '<div class="forged-art" aria-hidden="true">' + ForgeArt.weapon(item) + '</div>' : '') +
-    '<div class="spell-badges">' + itemRarityTag(item.rarity) + '<span>' + (item.forged.armor ? 'Armor' : 'Weapon') + '</span><span>' + escapeHtml(item.forged.typeName) + '</span>' + (item.forged.caster ? '' : '<span>' + escapeHtml(itemTypeLabel(item.type)) + '</span>') + '</div>' +
+    '<div class="spell-badges">' + itemRarityTag(item.rarity) + '<span>' + (item.forged.armor ? 'Armor' : 'Weapon') + '</span><span>' + escapeHtml(item.forged.typeName) + '</span>' + (item.forged.caster ? '' : '<span>' + escapeHtml(itemTypeLabel(item.type)) + '</span>') + '</div>' + limitlessNote(item) +
     '<div class="spell-detail-cost"><span>' + (item.shopAvailable ? 'Shop price' : 'Shop availability') + '</span><strong>' + escapeHtml(forgedAvailability(item)) + '</strong></div>' +
     '<div class="spell-detail-cost"><span>Sell price</span><strong>' + escapeHtml(ShopRules.formatPrice(ShopRules.salePrice(item.priceSilver))) + '</strong></div>' +
     '<dl class="spell-stat-details item-stat-details">' + stats.map(stat => '<div><dt' + (stat.title ? ' title="' + escapeHtml(stat.title) + '"' : '') + '>' + escapeHtml(stat.label) + '</dt><dd>' + escapeHtml(stat.value) + '</dd></div>').join("") + '</dl>' +
@@ -4359,7 +4401,7 @@ function itemDetailMarkup(item) {
     : '<div><dt>Armor value</dt><dd>+' + formatValue(item.armorValue) + '</dd></div><div><dt>Evasion debuff</dt><dd>-' + formatValue(item.evasionDebuff) + '</dd></div><div><dt>Scaling stat</dt><dd>' + escapeHtml(itemStatLabel(item.scaling)) + '</dd></div><div><dt>Power</dt><dd>+' + power + '</dd></div>' + (item.effects || []).map((effect) => '<div><dt>Effect</dt><dd>' + escapeHtml(artifactEffectLabel(effect)) + '</dd></div>').join('');
   return '<div class="spell-detail item-detail ' + itemRarityClass(item) + '">' +
     '<div class="spell-detail-heading"><div><p class="eyebrow">ITEM DETAIL</p><h3>' + escapeHtml(item.name) + '</h3></div><span class="spell-detail-symbol" aria-hidden="true">◫</span></div>' +
-    '<div class="spell-badges">' + itemRarityTag(item.rarity) + '<span>' + escapeHtml(itemCategoryLabel(item.category)) + '</span><span>' + escapeHtml(itemTypeLabel(item.type)) + '</span>' + (isArtifact && item.masterworkArtifactBaseId ? '<span>Level ' + escapeHtml(String(item.level)) + '</span>' : '') + '</div>' +
+    '<div class="spell-badges">' + itemRarityTag(item.rarity) + '<span>' + escapeHtml(itemCategoryLabel(item.category)) + '</span><span>' + escapeHtml(itemTypeLabel(item.type)) + '</span>' + (isArtifact && item.masterworkArtifactBaseId ? '<span>Level ' + escapeHtml(String(item.level)) + '</span>' : '') + '</div>' + limitlessNote(item) +
     (isArtifact && window.ForgeArt?.goods ? '<div class="forged-art artifact-art" aria-hidden="true">' + ForgeArt.goods(item) + '</div>' : '') +
     '<div class="spell-detail-cost"><span>' + (item.shopAvailable === false ? 'Shop availability' : 'Shop price') + '</span><strong>' + escapeHtml(item.shopAvailable === false ? 'Not sold by shops' : itemPurchasePriceLabel(item)) + '</strong></div>' +
     (isArtifact || item.shopAvailable === false || item.shopOffer ? '<div class="spell-detail-cost"><span>Sell price</span><strong>' + escapeHtml(ShopRules.formatPrice(ShopRules.salePrice(item.priceSilver))) + '</strong></div>' : '') +

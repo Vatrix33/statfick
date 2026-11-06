@@ -2,7 +2,7 @@
 (function (root) {
   const SILVER_PER_GOLD = 100;
   const SILVER_PER_PLATINUM = 10000;
-  const rarities = ["common", "uncommon", "rare", "epic", "legendary", "masterwork"];
+  const rarities = ["common", "uncommon", "rare", "epic", "legendary", "masterwork", "exotic"];
 
   function walletValue(wallet) {
     return Math.max(0, Math.floor(Number(wallet?.silver) || 0)) +

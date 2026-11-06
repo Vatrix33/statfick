@@ -37,7 +37,8 @@ async function runJuilaChecks() {
   const wheel = getSpell("wheel-of-the-year-nature-unique");
   assert(raw.knownSpells.includes(wheel?.id) && !wheel.catalogueAvailable && !wheel.shopAvailable && wheel.requiredCasterEnemyId === raw.id && ["spring", "summer", "autumn", "winter"].every(id => wheel.seasonVariants?.[id]?.effects?.length), "She knows Wheel of the Year, her own spell with a gift for each season");
   assert(raw.equipment.primaryHand === "forge-weapon-2-staff~rare@nature", "She carries a generic forged Nature staff");
-  assert(JSON.stringify(raw.drops) === JSON.stringify([{ itemId: "masterwork-rootbark", chance: 8 }]) && !raw.equipment.armor, "She drops the Rootbark masterwork 8% of the time");
+  // Port task 7 adds one Exotic to each of these bosses' tables (it rolls only while Limitless is on).
+  assert(JSON.stringify(raw.drops) === JSON.stringify([{ itemId: "masterwork-rootbark", chance: 8 }, { itemId: "masterwork-winged-hussar", chance: 4 }]) && !raw.equipment.armor, "She drops the Rootbark masterwork 8% of the time, and Winged Hussar 4%");
   const cycle = raw.seasonCycle;
   assert(cycle?.turns === 2 && cycle.seasons.map(season => season.id).join() === "spring,summer,autumn,winter", "Four seasons turn every two of her turns");
   assert(cycle.seasons.map(season => season.spirit).join() === "blossom-sprite-level-20,sunhorn-stag-level-20,harvest-wisp-level-20,rime-wolf-level-20", "Each season calls its own spirit");

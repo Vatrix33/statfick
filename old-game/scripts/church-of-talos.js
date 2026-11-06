@@ -85,6 +85,7 @@
       pendingClassSpellChoice = null;
     } else {
       for (const { key } of statDefinitions) { stats[key] -= manualAllocations[key]; manualAllocations[key] = 0; }
+      limitless.spent = LimitlessRules.normalize(null).spent;
       availablePoints += points;
     }
     $("church-status").textContent = `Offering accepted. ${points} ${kind === "classes" ? "perk" : "stat"} points are available to reallocate.`;

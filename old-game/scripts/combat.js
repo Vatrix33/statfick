@@ -27,7 +27,7 @@
   let stageHit = null, stageQuiet = false;
   const onStage = actor => Boolean(battle && actor && !evaluating && battle.actors.includes(actor));
   function stage(type, detail = {}) { if (battle && !evaluating) window.BattleStage?.event(type, detail); }
-  function stageEquipment(actor, item, extra = {}) { if (item?.rarity === "masterwork" && onStage(actor)) stage("equipment", { actorId: actor.id, itemId: item.id, ...extra }); }
+  function stageEquipment(actor, item, extra = {}) { if (isUniqueRarity(item?.rarity) && onStage(actor)) stage("equipment", { actorId: actor.id, itemId: item.id, ...extra }); }
   const actorLabel = actor => actor?.team === "enemy" ? "Enemy " + actor.id.replace(/^enemy-/, "") : actor?.name || "Participant";
   const actorById = (id, state = battle) => state?.actors.find(actor => actor.id === id);
   const player = () => actorById("player");
@@ -501,10 +501,42 @@
     return actor.team === "enemy" && phaseHealingDepth === 0 ? Math.floor(wholeAmount / 5) : wholeAmount;
   }
   function healHp(actor, amount, state = battle, healer = null) {
+    // Connected Balancer (task 7): half of the heal is taken off and shared by the wearer's allies.
+    const burden = state === battle ? takeBurden(actor, amount) : null;
     const current = hp(actor);
-    const gain = Math.max(0, Math.min(values(actor, state).maxHp - current, healingAmount(actor, amount, healer)));
+    const gain = Math.max(0, Math.min(values(actor, state).maxHp - current, healingAmount(actor, burden ? burden.kept : amount, healer)));
     setHp(actor, current + gain);
+    if (burden) shareBurden(burden, ally => healingDisabled(ally) ? 0 : healHp(ally, burden.each, state, healer), "healing");
     return gain;
+  }
+  /* Connected Balancer (port task 7, the user's design; L19): damage and healing its wearer receives in battle is cut by
+     its amount (50%); the part taken off is shared equally by every other living ally on the wearer's side, summons
+     included, and simply lost when there is none. A shared part never passes through a Connected Balancer again (one
+     an ally wears included), so it can't loop or grow. Damage that bypasses barriers (and so every damage rule) is not
+     shared. Only in the real battle, never in the turn-order forecast's copy. */
+  let sharingBurden = false;
+  function burdenPercent(actor) {
+    if (!actor || actor.inert || actor.id !== "player" && !actor.character) return { percent: 0, item: null };
+    const item = withActor(actor, equippedDefenseItems).find(entry => (entry.effects || []).some(effect => effect.kind === "shared-burden"));
+    return { percent: item ? Math.min(100, Math.max(0, toNumber(item.effects.find(effect => effect.kind === "shared-burden").amount, 0))) : 0, item };
+  }
+  function takeBurden(actor, amount) {
+    if (sharingBurden || !battle?.active || !battle.actors.includes(actor) || hp(actor) <= 0) return null;
+    const { percent, item } = burdenPercent(actor);
+    const removed = Math.floor(Math.max(0, amount) * percent / 100);
+    if (!removed) return null;
+    const allies = living().filter(ally => ally.team === actor.team && ally.id !== actor.id && !ally.inert);
+    return { actor, item, removed, kept: Math.max(0, Math.floor(amount) - removed), allies, each: allies.length ? Math.floor(removed / allies.length) : 0 };
+  }
+  function shareBurden(burden, give, kind) {
+    const total = [];
+    sharingBurden = true;
+    try { if (burden.each > 0) for (const ally of burden.allies) if (hp(ally) > 0) total.push(give(ally)); } finally { sharingBurden = false; }
+    stageEquipment(burden.actor, burden.item);
+    log(burden.allies.length
+      ? `${burden.item.name} spreads ${burden.removed} ${kind} from ${actorLabel(burden.actor)} over ${burden.allies.length} ${burden.allies.length === 1 ? "ally" : "allies"}.`
+      : `${burden.item.name} takes ${burden.removed} ${kind} off ${actorLabel(burden.actor)}; no ally shares it.`);
+    return total;
   }
   /* The Artifact Rework (port task 4, 2026-11-06; decisions A16–A32 in engine/Docs/Engine-Plan.md): the artifacts'
      battle rules. An actor's artifact effects come from the two artifact slots of whoever wears them (you or a
@@ -643,6 +675,15 @@
     let amount = Math.max(0, Math.floor(rawAmount));
     const currentHealth = hp(target);
     if (!amount || currentHealth <= 0) return 0;
+    // Connected Balancer (task 7): the wearer takes the rest; each ally's share is damage of its own, every damage rule
+    // applying (barriers, death saves, Tough-Out), and can bring them down.
+    const burden = takeBurden(target, amount);
+    if (burden) {
+      amount = burden.kept;
+      const element = stageHit?.element || "physical";
+      shareBurden(burden, ally => directDamage(ally, burden.each, false, element, attacker, false, true), "damage");
+      if (!amount) return 0;
+    }
     // Any damage an enemy causes counts as a hit (A27); damage with no source (damage over time) too.
     const hostile = !attacker || attacker.team !== target.team;
     if (hostile && !target.firstHitGuarded && battle?.actors.includes(target)) {
@@ -666,6 +707,17 @@
         target.deathSaveUsed = true;
         amount = Math.max(0, currentHealth - Math.max(1, toInteger(save.amount, 1)));
         log(`${save.itemName}: ${actorLabel(target)} clings on at ${currentHealth - amount} HP.`);
+      }
+    }
+    /* Tough-Out (port task 7): damage that would bring its bearer to 0 HP has a 25% chance to leave them at 1 HP, every
+       time, after the death saves above (one that saved them means it is no longer lethal: one roll per damage event). */
+    if (hostile && amount >= currentHealth && !phaseDamageFloor(target) && battle?.actors.includes(target)) {
+      const shield = withActor(target, equippedDefenseItems).find(item => (item.effects || []).some(effect => effect.kind === "lethal-survive-chance"));
+      const chance = shield ? toNumber(shield.effects.find(effect => effect.kind === "lethal-survive-chance").amount, 0) : 0;
+      if (chance > 0 && rules.roll(chance)) {
+        amount = currentHealth - 1;
+        stageEquipment(target, shield);
+        log(`${shield.name}: ${actorLabel(target)} holds on at 1 HP.`);
       }
     }
     if (!lichManaBarrier(target) || mana(target) <= 0) {
@@ -1249,7 +1301,8 @@
     reactionModal.hidden = true;
     equipmentActionDamage.clear();
     updateModalState();
-    if (result.startsWith("Victory")) { window.ChurchOfTalos?.onVictory(battle); window.HearthHome?.onVictory(battle); }
+    if (result.startsWith("Victory")) { window.ChurchOfTalos?.onVictory(battle); window.HearthHome?.onVictory(battle); window.Limitless?.onVictory(battle); }
+    window.Limitless?.render();
     if (result.startsWith("Escaped")) {
       const actor = battle.actors.find(actor => actor.guildObjective);
       if (actor) window.Guild?.avoidObjective(actor.guildObjective, actor.guildRematchId);
@@ -1291,7 +1344,7 @@
   const EQUIPMENT_DROP_CHANCE = 40;
   function rollEquipmentDrop(id) {
     const item = getItem(id);
-    return !item || !["weapon", "armor", "artifact"].includes(item.category) || isMasterworkEquipment(item) || rules.roll(EQUIPMENT_DROP_CHANCE);
+    return !item || !["weapon", "armor", "artifact"].includes(item.category) || isMasterworkEquipment(item) || isExoticEquipment(item) || rules.roll(EQUIPMENT_DROP_CHANCE);
   }
   function itemCanDrop(id) {
     const item = getItem(id);
@@ -1316,7 +1369,9 @@
     const loot = Array.isArray(battle.lootItems) ? battle.lootItems.filter(itemCanDrop) : [];
     const quantities = loot.reduce((counts, id) => ({ ...counts, [id]: (counts[id] || 0) + 1 }), {});
     $("combat-loot-money").textContent = ShopRules.formatPrice(Math.max(0, toInteger(battle.moneyEarned, 0)));
-    $("combat-loot-exp").textContent = `${formatValue(Math.max(0, toInteger(battle.experienceEarned, 0)))} EXP`;
+    // At your level cap no EXP is gained (task 7, L18), and the screen says 0 (L33); companions below theirs still gain it.
+    const atCap = level >= LimitlessRules.cap(limitless.active);
+    $("combat-loot-exp").textContent = `${formatValue(atCap ? 0 : Math.max(0, toInteger(battle.experienceEarned, 0)))} EXP`;
     $("combat-loot-list").innerHTML = Object.entries(quantities).map(([id, quantity]) => {
       const item = getItem(id);
       return `<article class="combat-loot-item ${itemRarityClass(item)}"><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.rarity)} · ${escapeHtml(item.category)}</span></div><b>×${quantity}</b></article>`;
@@ -1340,6 +1395,7 @@
     battle.lootResolved = true;
     lootModal.hidden = true;
     offerArchivedSpell();
+    window.Limitless?.showPendingNotice();
     renderOwnedItems(); renderAvailableItems(); updateDerivedValues();
     updateModalState(); switchView(false); saveCharacter();
   }
@@ -1381,24 +1437,31 @@
       if (salvageChance && rules.roll(salvageChance)) addEnemyLoot(["consumable-camping-supplies"], salvageChance < 100);
       for (const drop of actor.dropTable || []) {
         const droppedItem = getItem(drop.itemId);
-        const luckBonus = isMasterworkEquipment(droppedItem) ? masterworkLuckBonus() : 0;
+        // An Exotic drops only while Limitless is on (task 7, 5.1); Luck raises its chance like a masterwork's.
+        if (isExoticEquipment(droppedItem) && !limitless.active) continue;
+        const luckBonus = isMasterworkEquipment(droppedItem) || isExoticEquipment(droppedItem) ? masterworkLuckBonus() : 0;
         const guaranteed = drop.guaranteedOnFirstKill && !classProgress.firstKillDrops?.includes(drop.itemId) || drop.guaranteedUntilClaimed && !classProgress.claimedGuaranteedDrops?.includes(drop.itemId) && !battle.lootItems.some(id => lootMatchesDrop(id, drop.itemId));
         if (drop.guaranteedOnFirstKill) {
           classProgress.firstKillDrops ||= [];
           if (!classProgress.firstKillDrops.includes(drop.itemId)) classProgress.firstKillDrops.push(drop.itemId);
         }
-        if ((actor.noDropItems || []).includes(drop.itemId) || !itemCanDrop(drop.itemId) || !guaranteed && !rules.roll(drop.chance + luckBonus)) continue;
+        // Limitless doubles every masterwork's base chance, before the Luck bonus (port task 7, L8).
+        const baseChance = drop.chance * (limitless.active && isMasterworkEquipment(droppedItem) ? 2 : 1);
+        if ((actor.noDropItems || []).includes(drop.itemId) || !itemCanDrop(drop.itemId) || !guaranteed && !rules.roll(baseChance + luckBonus)) continue;
         const minimum = Math.max(1, toInteger(drop.minimum, 1));
         const maximum = Math.max(minimum, toInteger(drop.maximum, minimum));
         const quantity = minimum + Math.floor(Math.random() * (maximum - minimum + 1));
         addEnemyLoot(Array(quantity).fill(drop.itemId), !guaranteed && drop.chance < 100);
       }
       addEnemyLoot(rollSparklingMasterworks(actor), true);
+      addEnemyLoot(rollExoticExtras(actor), true);
       // Studious Quill raises only its wearer's EXP (A25).
-      exp += Math.floor(reward * (1 + artifactAmount(player(), "exp-percent") / 100));
+      // No EXP at the cap: Level 100 without Limitless on, Level 200 with it (port task 7, L18).
+      const levelCap = LimitlessRules.cap(limitless.active);
+      if (level < levelCap) exp += Math.floor(reward * (1 + artifactAmount(player(), "exp-percent") / 100));
       currencies = ShopRules.walletFromValue(ShopRules.walletValue(currencies) + money);
       document.querySelectorAll(".currency-input").forEach(input => { input.value = currencies[input.dataset.currency]; });
-      for (const companion of companions) if (companion.character.currentHp > 0) companion.character.exp += Math.floor(reward * (1 + artifactAmount(actorById(companion.id), "exp-percent") / 100));
+      for (const companion of companions) if (companion.character.currentHp > 0 && companion.character.level < levelCap) companion.character.exp += Math.floor(reward * (1 + artifactAmount(actorById(companion.id), "exp-percent") / 100));
       awarded += reward;
       log(`${actor.name} grants ${reward} EXP and ${ShopRules.formatPrice(money)}.`);
       addEnemyLoot((window.Guild?.onEnemyDefeated(actor) || []).filter(itemCanDrop));
@@ -1463,7 +1526,23 @@
   function rollSparklingMasterworks(actor) {
     if (!actor?.sparkling) return [];
     const bonus = masterworkLuckBonus();
-    return SPARKLING.masterworkChances.filter(chance => rules.roll(chance + bonus)).map(() => sparklingMasterwork()).filter(Boolean);
+    // Limitless doubles both rolls too (port task 7, L8: 70% → 100%, 5% → 10%).
+    return SPARKLING.masterworkChances.filter(chance => rules.roll(chance * (limitless.active ? 2 : 1) + bonus)).map(() => sparklingMasterwork()).filter(Boolean);
+  }
+  /* The Exotics no drop table names (port task 7), only while Limitless is on: Connected Balancer at 4% from any Sparkling
+     or Empowered enemy (Luck raising it like a masterwork's), and Anatemis's reward for beating her at Level 200 (your
+     level when she falls): one Exotic of all five (L15) always, and a second, which may be the same, at 1% on its own. */
+  const EXOTIC_DROPS = { balancer: { key: "connected-balancer", chance: 4 }, anatemisSecondChance: 1 };
+  function rollExoticExtras(actor) {
+    if (!limitless.active || !window.ForgeRules || !actor) return [];
+    const loot = [];
+    if ((actor.sparkling || actor.empowered) && !actor.summoned && rules.roll(EXOTIC_DROPS.balancer.chance + masterworkLuckBonus())) loot.push(ForgeRules.masterworkTemplateId(EXOTIC_DROPS.balancer.key));
+    if (actor.enemyDefinitionId === LimitlessRules.ANATEMIS_ID && !actor.summoned && level >= LimitlessRules.LIMITLESS_CAP) {
+      const pick = () => ForgeRules.masterworkTemplateId(ForgeRules.EXOTIC_IDS[Math.floor(Math.random() * ForgeRules.EXOTIC_IDS.length)]);
+      loot.push(pick());
+      if (rules.roll(EXOTIC_DROPS.anatemisSecondChance)) loot.push(pick());
+    }
+    return loot;
   }
   function recordSoloSurvivorVictory() {
     if (!battle || battle.soloVictoryRecorded) return false;
@@ -1716,6 +1795,9 @@
   // Bloody Mary: extra crit chance (in points) and crit damage against chosen classes or races.
   const critTargetEffects = (weapon, target) => target ? (weapon?.effects || []).filter(effect => effect.kind === "crit-vs-targets"
     && ((effect.classIds || []).some(id => hasClass(target, id)) || (effect.raceIds || []).includes(actorRace(target)))) : [];
+  // Winged Hussar (port task 7, L14): +1% damage for every 4 of its wielder's Evasion, its own +15% counted.
+  const evasionDamagePercent = (actor, weapon) => (weapon?.effects || []).filter(effect => effect.kind === "damage-per-evasion")
+    .reduce((sum, effect) => sum + Math.floor(Math.max(0, toNumber(values(actor).evasion, 0)) / Math.max(1, toNumber(effect.evasion, 4))) * toNumber(effect.amount, 0), 0);
   const weaponRaceDamagePercent = (weapon, target) => (weapon.effects || [])
     .filter(effect => effect.kind === "damage-percent-vs-race" && (effect.raceIds || []).includes(actorRace(target)))
     .reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0);
@@ -1863,7 +1945,7 @@
     if (!onStage(target) || dealt < 0) return;
     const elements = elementList(element);
     for (const item of withActor(target, equippedDefenseItems)) {
-      if (item.rarity !== "masterwork") continue;
+      if (!isUniqueRarity(item.rarity)) continue;
       const kinds = (item.effects || []).map(effect => effect.kind);
       const raceEffect = (item.effects || []).find(effect => effect.kind === "incoming-race-damage-percent");
       const spellEffects = (item.effects || []).filter(effect => effect.kind === "incoming-spell-damage-percent");
@@ -2307,11 +2389,22 @@
       return { damagePercent: bonus.damagePercent + damage, armorPiercePercent: bonus.armorPiercePercent + effect.armorPiercePercent };
     }, { damagePercent: 0, armorPiercePercent: 0 });
   }
-  function applyUniqueWeaponHitEffects(actor, target, weapon, dealt, damageMultiplier) {
+  function applyUniqueWeaponHitEffects(actor, target, weapon, dealt, damageMultiplier, critical = false) {
     const melee = normalizeWeaponType(weapon.type) === "melee";
+    /* Fletcher (port task 7): every hit takes 20% of the target's Armor away for 1 turn, 40% on a critical hit (not both),
+       and each hit adds its own (L26). Armor never goes below 0 (values()). Debuff-immune targets resist it. */
+    for (const effect of (weapon.effects || []).filter(entry => entry.kind === "armor-break-on-hit")) {
+      if (hp(target) <= 0 || debuffImmune(target)) continue;
+      const amount = Math.abs(toNumber(critical ? effect.critAmount : effect.amount, 0));
+      if (!amount) continue;
+      battle.armorBreaks = Math.max(0, toInteger(battle.armorBreaks, 0)) + 1;
+      target.effects.push({ key: `exotic-armor-break:${actor.id}:${battle.armorBreaks}`, name: weapon.name, type: "defense-percent", target: "armor", amount: -amount, expiresTurn: target.turns + Math.max(1, toInteger(effect.durationTurns, 1)) });
+      stageEquipment(actor, weapon, { targetId: target.id });
+      log(`${weapon.name} breaks ${amount}% of ${actorLabel(target)}'s Armor${critical ? " (critical)" : ""}.`);
+    }
     if (melee) {
       const protection = withActor(actor, () => equippedArtifactItems().flatMap(item => item.effects || []).filter(effect => effect.kind === "melee-hit-guard-per-rarity"));
-      const rank = Math.max(0, ["common", "uncommon", "rare", "epic", "legendary", "masterwork"].indexOf(weapon.rarity));
+      const rank = Math.max(0, ["common", "uncommon", "rare", "epic", "legendary", "masterwork", "exotic"].indexOf(weapon.rarity));
       const amount = protection.reduce((best, effect) => Math.max(best, Math.min(100, effect.amount * (rank + 1))), 0);
       if (amount) {
         actor.effects = actor.effects.filter(effect => effect.key !== "wraithguard:protection");
@@ -2507,7 +2600,7 @@
         const maximum = Math.max(minimum, toInteger(effect.maximum, minimum));
         brawlerBonus += minimum + Math.floor(Math.random() * (maximum - minimum + 1));
       }
-      const strikePower = (attackValues.power + brawlerBonus) * damageMultiplier * (1 + (incomingDamagePercent + firstTurnDamagePercent + conditionalPower + passivePower + slowerTargetPower + weaponRaceDamagePercent(weapon, target) + woundedTargetPercent(weapon, target) + largerHpBonus.damagePercent + chainBonus) / 100);
+      const strikePower = (attackValues.power + brawlerBonus) * damageMultiplier * (1 + (incomingDamagePercent + firstTurnDamagePercent + conditionalPower + passivePower + slowerTargetPower + weaponRaceDamagePercent(weapon, target) + woundedTargetPercent(weapon, target) + largerHpBonus.damagePercent + chainBonus + evasionDamagePercent(actor, weapon)) / 100);
       const armorPierce = largerHpBonus.armorPiercePercent + toNumber(starscale?.armorPiercePercent, 0) + offHandArmorPierce(weapon, offHand) + toNumber(weapon.armorPierce, 0);
       // A boosted Moneyshot attack: +50% damage, +200% instead if it is a critical hit.
       const boost = (boosted ? 1 + toNumber(critical ? fifth.criticalAmount : fifth.amount, 0) / 100 : 1) * (secondStrike ? 1 - toNumber(secondStrike.amount, 0) / 100 : 1);
@@ -2523,11 +2616,11 @@
       }
       applyArmorHitEffects(actor, target, weaponType, amount);
       if (critical && amount > 0 && hp(target) > 0) tearOldWound(target);
-      if (weapon.rarity === "masterwork" && amount > 0) {
+      if (isUniqueRarity(weapon.rarity) && amount > 0) {
         const bonuses = (weapon.effects || []).map(effect => effect.kind);
-        if (largerHpBonus.damagePercent > 0 || weaponRaceDamagePercent(weapon, target) > 0 || woundedTargetPercent(weapon, target) > 0 || offHand && offHandArmorPierce(weapon, offHand) > 0 || critical && bonuses.includes("weapon-crit-percent-vs-class") && weaponCritChanceAgainst(target, weapon, 10) > 10 || critical && critTargetEffects(weapon, target).length) stageEquipment(actor, weapon, { targetId: target.id });
+        if (evasionDamagePercent(actor, weapon) > 0 || largerHpBonus.damagePercent > 0 || weaponRaceDamagePercent(weapon, target) > 0 || woundedTargetPercent(weapon, target) > 0 || offHand && offHandArmorPierce(weapon, offHand) > 0 || critical && bonuses.includes("weapon-crit-percent-vs-class") && weaponCritChanceAgainst(target, weapon, 10) > 10 || critical && critTargetEffects(weapon, target).length) stageEquipment(actor, weapon, { targetId: target.id });
       }
-      applyUniqueWeaponHitEffects(actor, target, weapon, amount, damageMultiplier);
+      applyUniqueWeaponHitEffects(actor, target, weapon, amount, damageMultiplier, critical);
       if (starscale && hp(target) > 0) {
         stageEquipment(actor, weapon, { targetId: target.id });
         const bonus = hurt(target, strikePower * starscale.amount / 100, "basic", false, false, actor, "bonus", armorPierce);
@@ -2762,7 +2855,7 @@
       maxManaPercent: definition.maxManaPercent,
       turnStartManaPercent: definition.turnStartManaPercent,
       element: definition.element,
-      character: armEnemy(copy(definition.character)).character,
+      character: armEnemy(limitless.active && actor.team === "enemy" ? LimitlessRules.scaleEnemy(copy(definition.character), level, definition) : copy(definition.character)).character,
       resistances: copy(definition.resistances),
     };
     if (summoned.team === "enemy") summoned.naturalArmor = spawnNaturalArmor(summoned.character);
@@ -4104,7 +4197,7 @@
         const stageElements = spellElementOverride ? [spellElementOverride] : withActor(actor, () => effectiveSpellElements(spell));
         const recipients = new Set(targetEffects.map(effect => effect.recipient || (effect.type === "damage" ? "target" : "self")));
         stage("spell", { actorId: actor.id, targetId: target?.id || null, spellId: spell.id, name: spell.name, element: stageElements[0] || spell.element, elements: stageElements, tier: spell.tier, category: isSummonSpell(spell) ? "summon" : needsEnemy || String(spell.type).toLowerCase() === "damage" || recipients.has("all-enemies") || recipients.has("target") ? "offensive" : "support", area: apexChoice === "sweep" || recipients.has("all-enemies") ? "enemies" : recipients.has("all-allies") ? "allies" : recipients.has("all-combatants") ? "all" : null, selfOnly: recipients.size === 1 && recipients.has("self"), apex: apexChoice || null });
-        for (const item of withActor(actor, equippedWeaponItems)) if (item.rarity === "masterwork" && (apexChoice && (item.effects || []).some(effect => effect.kind === "golden-apex-choice") || (item.effects || []).some(effect => effect.kind === "spell-add-element") || isSummonSpell(spell) && (item.effects || []).some(effect => effect.kind === "summon-empowerment"))) stageEquipment(actor, item);
+        for (const item of withActor(actor, equippedWeaponItems)) if (isUniqueRarity(item.rarity) && (apexChoice && (item.effects || []).some(effect => effect.kind === "golden-apex-choice") || (item.effects || []).some(effect => effect.kind === "spell-add-element") || isSummonSpell(spell) && (item.effects || []).some(effect => effect.kind === "summon-empowerment"))) stageEquipment(actor, item);
       }
       log(actor.team === "player" ? `${actorLabel(actor)} ${archivedItem ? `uses ${archivedItem.name} to cast` : "casts"} ${spell.name} (${cost} Mana, ${actionPoints} AP).` : `${actorLabel(actor)} casts a spell.`);
       if (spell.seasonVariant) {
@@ -4684,7 +4777,7 @@
     const slowerTargetPower = values(actor).speed > targetValues.speed ? (weapon.effects || []).filter(effect => effect.kind === "damage-percent-vs-slower").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) : 0;
     const largerHpBonus = largerHpWeaponBonus(actor, target, weapon);
     const starscale = (weapon.effects || []).find(effect => effect.kind === "bonus-basic-attack-percent");
-    const power = attackValues.power * damageMultiplier * (1 + (incomingDamagePercent + firstTurnDamagePercent + conditionalPower + passivePower + slowerTargetPower + weaponRaceDamagePercent(weapon, target) + woundedTargetPercent(weapon, target) + largerHpBonus.damagePercent) / 100);
+    const power = attackValues.power * damageMultiplier * (1 + (incomingDamagePercent + firstTurnDamagePercent + conditionalPower + passivePower + slowerTargetPower + weaponRaceDamagePercent(weapon, target) + woundedTargetPercent(weapon, target) + largerHpBonus.damagePercent + evasionDamagePercent(actor, weapon)) / 100);
     const armorPierce = largerHpBonus.armorPiercePercent + toNumber(starscale?.armorPiercePercent, 0) + offHandArmorPierce(weapon, offHand) + toNumber(weapon.armorPierce, 0);
     const basicBonus = starscale ? estimatedDamage(target, power * starscale.amount / 100, "basic", false, false, actor, "bonus", defenseOverride, armorPierce) : 0;
     const armorBonusPercent = (weapon.effects || []).filter(effect => effect.kind === "bonus-damage-from-armor-percent").reduce((sum, effect) => sum + effect.amount, 0);
@@ -5584,11 +5677,22 @@
   const isSummonSpell2 = spell => spellEffects(spell).some(effect => effect.type === "summon-friendly");
   const summonCountOf = spell => spellEffects(spell).filter(effect => effect.type === "summon-friendly").reduce((sum, effect) => sum + Math.max(1, toInteger(effect.count, 1)), 0);
   // `areaWeight` lets a damaging spell that hits the whole party count as several strikes.
+  // A skill that deals damage itself (port task 7, L30: the bosses' Limitless classes bring some) is a strike too; one that
+  // hits every enemy weighs like an area spell.
+  const AREA_SKILL_EFFECTS = ["weapon-attack-all-enemies", "poison-all-enemies", "sunflare", "stormburst"];
+  const DAMAGING_SKILL_EFFECTS = [...AREA_SKILL_EFFECTS, "execute-strike", "gambit-strike"];
+  function skillStrikes(skill, areaWeight) {
+    const effects = [...(skill?.onActivateEffects || []), ...(skill?.effects || [])];
+    const damage = effects.filter(effect => effect.type === "apply-skill-effects").flatMap(effect => effect.effects || []).filter(effect => effect.type === "damage");
+    if (!damage.length && !effects.some(effect => DAMAGING_SKILL_EFFECTS.includes(effect.type))) return 0;
+    return damage.some(effect => effect.recipient === "all-enemies") || effects.some(effect => AREA_SKILL_EFFECTS.includes(effect.type)) ? areaWeight : 1;
+  }
   function oneStrikeATurn(actor, candidates, skipSkillIds, limit = 1, areaWeight = 1) {
     const skip = new Set(skillsOf(actor).filter(skill => skipSkillIds.includes(skill.id)).map(classSkillKey));
-    const strikes = (kind, spell) => kind === "attack" ? 1 : kind !== "spell" || !spell ? 0 : !spellEffects(spell).some(effect => effect.type === "damage") ? 0 : spellEffects(spell).some(effect => effect.type === "damage" && effect.recipient === "all-enemies") ? areaWeight : 1;
-    const struck = (actor.ai?.history || []).filter(entry => entry.turn === actor.turns).reduce((sum, entry) => sum + strikes(entry.kind, entry.kind === "spell" ? getSpell(entry.key) : null), 0);
-    return { candidates: candidates.filter(candidate => candidate.kind !== "stance" && !skip.has(candidate.key) && !(strikes(candidate.kind, candidate.spell) && struck + strikes(candidate.kind, candidate.spell) > limit)) };
+    const skillByKey = key => skillsOf(actor).find(skill => classSkillKey(skill) === key);
+    const strikes = (kind, spell, skill) => kind === "attack" ? 1 : kind === "skill" ? skillStrikes(skill, areaWeight) : kind !== "spell" || !spell ? 0 : !spellEffects(spell).some(effect => effect.type === "damage") ? 0 : spellEffects(spell).some(effect => effect.type === "damage" && effect.recipient === "all-enemies") ? areaWeight : 1;
+    const struck = (actor.ai?.history || []).filter(entry => entry.turn === actor.turns).reduce((sum, entry) => sum + strikes(entry.kind, entry.kind === "spell" ? getSpell(entry.key) : null, entry.kind === "skill" ? skillByKey(entry.key) : null), 0);
+    return { candidates: candidates.filter(candidate => candidate.kind !== "stance" && !skip.has(candidate.key) && !(strikes(candidate.kind, candidate.spell, candidate.skill || skillByKey(candidate.key)) && struck + strikes(candidate.kind, candidate.spell, candidate.skill || skillByKey(candidate.key)) > limit)) };
   }
   const AI_PROFILES = {
     // Great Imp Ji'ruan hides behind his Imps (Summoner's Overprotective) and fights with dark magic.
@@ -6097,7 +6201,7 @@
         return { ...item, category: "consumable", type: "consumable", rarity: item.rarity || "common", description: item.description || "" };
       });
       if (!Array.isArray(keyItemRecords)) throw new Error("Key items must be an array");
-      const rarities = ["common", "uncommon", "rare", "epic", "legendary", "masterwork"];
+      const rarities = ["common", "uncommon", "rare", "epic", "legendary", "masterwork", "exotic"];
       const keyItems = keyItemRecords.map(item => {
         const rarity = typeof item?.rarity === "string" ? item.rarity.toLowerCase() : "";
         if (!item || typeof item.id !== "string" || !item.id.startsWith("key-item-") || seen.has(item.id) || typeof item.name !== "string" || !item.name.trim() || typeof item.description !== "string" || !rarities.includes(rarity) || !Number.isInteger(item.priceSilver) || item.priceSilver < 0 || item.shopAvailable !== false) throw new Error("Invalid key item definition");
@@ -6340,7 +6444,9 @@
       const enemy = enemyRoster[i];
       occurrences[enemy.name] = (occurrences[enemy.name] || 0) + 1;
       const actorName = totals[enemy.name] > 1 ? `${enemy.name} ${occurrences[enemy.name]}` : enemy.name;
-      const armed = armEnemy(copy(enemy.character), enemy.noDropItems);
+      // Limitless (port task 7, L3, L5–L7): below your level the enemy rises to it, then ×1.25; bosses get their classes.
+      const spawn = limitless.active ? LimitlessRules.scaleEnemy(copy(enemy.character), level, enemy) : copy(enemy.character);
+      const armed = armEnemy(spawn, enemy.noDropItems);
       const actor = {
         ...makeActor(`enemy-${i + 1}`, `${empoweredObjective && i === 0 ? "Empowered " : ""}${sparklingIndexes.has(i) ? "Sparkling " : ""}${actorName}`, "enemy"),
         experienceAwarded: false, character: armed.character, resistances: copy(enemy.resistances), dropTable: copy(enemy.drops || []), noDropItems: armed.noDropItems,
@@ -6391,6 +6497,7 @@
     // refresh() renders the fully initialized battle. Avoid building the
     // roster and ten-turn forecast a second time in switchView().
     setup.hidden = true; updateModalState(); switchView(true, false); playBossIntro(); refresh();
+    window.Limitless?.render();
     window.Music?.sync();
     return true;
   }
@@ -6416,7 +6523,7 @@
     const roster = await resolveEncounterRoster(enemyNames);
     if (!roster) return { success: false, chance: 0, fastestEnemySpeed: 0 };
     const fastestEnemySpeed = Math.max(0, ...roster.map((enemy, index) => {
-      const actor = { id: `encounter-preview-${index}`, name: enemy.name, team: "enemy", effects: [], skillExpiry: {}, character: copy(enemy.character) };
+      const actor = { id: `encounter-preview-${index}`, name: enemy.name, team: "enemy", effects: [], skillExpiry: {}, character: limitless.active ? LimitlessRules.scaleEnemy(copy(enemy.character), level, enemy) : copy(enemy.character) };
       if (["hunt", "artifact"].includes(guildObjective) && index === 0) for (const key of Object.keys(actor.character.stats)) actor.character.stats[key] = Math.max(0, Math.floor(actor.character.stats[key] * 1.3));
       if (Array.isArray(sparkling) && sparkling.includes(index)) for (const key of Object.keys(actor.character.stats)) actor.character.stats[key] = Math.max(0, Math.floor(actor.character.stats[key] * SPARKLING.statMultiplier));
       return withActor(actor, () => currentStats().speed, { active: false, actors: [actor] });
@@ -6452,7 +6559,8 @@
           if (!actor.equipmentCharges || typeof actor.equipmentCharges !== "object" || Array.isArray(actor.equipmentCharges)) actor.equipmentCharges = {};
           if (!actor.equipmentSummons || typeof actor.equipmentSummons !== "object" || Array.isArray(actor.equipmentSummons)) actor.equipmentSummons = {};
           if (actor.id !== "player") {
-            actor.character = normalizeCharacter(actor.character);
+            // A Limitless battle's enemies may be scaled above Level 100 (port task 7).
+            actor.character = normalizeCharacter(actor.character, { levelCap: LimitlessRules.LIMITLESS_CAP });
             if (actor.companion) {
               const member = companions.find(entry => entry.id === actor.id);
               if (!member) throw new Error("Missing companion");

@@ -75,7 +75,8 @@ is built in the old game too (user decision 2026-11-06, G1), also with placehold
 2026-11-06, "same rules apply"; R1); the other tasks are decided one at a time (still open for them: before the port,
 after the faithful port, or while porting). Task 4 too was built in the old game (the user asked for it on 2026-11-06;
 A1 kept its art placeholder), and so were task 6 (the user asked for it the same day; N4 kept its art placeholder) and
-task 5 (asked for after tasks 4 and 6 were merged; M1 kept its art placeholder).
+task 5 (asked for after tasks 4 and 6 were merged; M1 kept its art placeholder), and task 7 (asked for after task 5
+was merged, while M11's engine work went on; L1 kept its art placeholder).
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
@@ -125,6 +126,17 @@ task 5 (asked for after tasks 4 and 6 were merged; M1 kept its art placeholder).
   Masterworks" (M1–M26); where each rule lives is in `../../../old-game/Docs/Notes.md`, "New Masterworks"; the old game's
   checks, `old-game/test-client/tests/new-masterworks-browser.js`, are the reference the ported rules are tested against.
   Still to do in the port: only the art (below). Old game only.
+- Task 7, New Game Plus (2026-11-06, a cloud session, one pull request, L22): Limitless (unlocked by Anatemis's first
+  defeat with a pop-up; the sheet's Limitless button; Levels up to 200 without new perk points; off, you and your
+  companions are your Level-100 selves and everything above is kept for when it's on again; enemies rise to your level
+  with +25% attributes; bosses gain the class levels of a Level-100 character, reviewed by the user; masterwork drops
+  doubled; gear past Level 100, which can't be worn while it's off), the Exotic rarity (a green and purple wave), Exium,
+  and five Exotics: Fletcher, Tough-Out, Winged Hussar, Cherubim and Connected Balancer, with Anatemis's Level-200
+  reward. The user's design answers are in `Engine-Plan.md`, "Decisions for task 7, New Game Plus" (L1–L33); where each
+  rule lives is in `../../../old-game/Docs/Notes.md`, "New Game Plus: Limitless and the Exotics"; the old game's checks,
+  `old-game/test-client/tests/limitless-browser.js`, are the reference the ported rules are tested against. Still to do
+  in the port: only the art (below). Old game only. Later enemies (task 14's dungeons and the like) scale through the
+  same `scaleEnemy` when they spawn.
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and
@@ -171,6 +183,12 @@ task 3's scenes are listed in `PLACEHOLDER_ART`):
   over coins); and the looks of Moneyshot, Lament, Noble Hero and the Hexbane Coat, which are their types' normal forged
   looks (the coat in silver-grey through its `color`). The port remakes them as proper art: Sparkling enemies that
   visibly shine, and each masterwork its own. The rules behind them are not placeholder.
+- Task 7 (user decision L1): the five Exotics' looks are their types' normal forged looks (Exium drawn as Mythilium),
+  but for Winged Hussar's crossguard, a simple pair of wings (`wingedGuard` in `old-game/scripts/forge-art.js`); the
+  Limitless button and pop-up are the sheet's plain styles. The port remakes them as proper art: each Exotic its own,
+  Winged Hussar's wings its defining feature. The Exotic colour itself (dark neon green and purple in a moving wave,
+  `old-game/styles.css`, the task 7 block) and the sheet's look while Limitless is on are real, not placeholder; nor
+  are the rules behind them.
 
 **Found before the work:**
 - Tasks 1 and 2 were checked against the engine work on 2026-11-03 (tasks 3 and 4 on 2026-11-06): none touches it (the

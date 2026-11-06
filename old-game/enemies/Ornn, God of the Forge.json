@@ -32,6 +32,7 @@
   }],
   "drops": [
     { "itemId": "masterwork-anvil-hammer", "chance": 12, "guaranteedOnFirstKill": true },
-    { "itemId": "masterwork-godforged-plate", "chance": 8 }
+    { "itemId": "masterwork-godforged-plate", "chance": 8 },
+    { "itemId": "masterwork-tough-out", "chance": 5 }
   ]
 }

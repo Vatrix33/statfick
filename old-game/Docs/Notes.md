@@ -736,6 +736,109 @@ placeholder art (M1; `engine/Docs/Port-Tasks/README.md`). The user's answers are
   The baseline's 11 known failures are unchanged. Smoke, enemies (530 cases) and lifecycle pass; the combat suite stops
   at the known Barbarian failure, as before.
 
+**New Game Plus: Limitless and the Exotics (port task 7, 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`;
+the task is `engine/Docs/Port-Tasks/7_New_Game_Plus.txt`).** Built in the old game, as tasks 1–6 were; old game only, the
+engine is untouched. Done: the port brings it over and doesn't build it again; its only port work is remaking the
+placeholder art (L1; `engine/Docs/Port-Tasks/README.md`). The user's answers are in `engine/Docs/Engine-Plan.md`,
+"Decisions for task 7, New Game Plus" (L1–L33).
+- **The rules** (`scripts/limitless-engine.js`, `LimitlessRules`, loaded before `app.js`; no page code). A character's
+  `limitless` record: the player's `{ unlocked, active, kept, spent }`, a companion's `{ kept, spent }` (companions follow
+  the player's switch, L4). `normalize` makes any saved record safe; an old save starts locked and off, even one that beat
+  Anatemis before (L17). `cap(active)`: 100, or 200 with Limitless on. `keepAside(sheet)` turns a sheet above Level 100
+  back into its Level-100 self (L2): 5 free points per level above 100 come first from the unspent ones, then from those
+  `spent` above 100 (`noteSpent` counts a point spent while above 100, and takes it back when a companion's is
+  returned); the levels, those points, +1 per level to each attribute and the EXP toward the next level go into `kept`.
+  `restore` gives all of it back (and `spent` again). `scaleEnemy` (L3, L5, L7, L6): an enemy below your level rises to
+  it, +1 to each attribute per level, no free points; then every attribute ×1.25 (`ENEMY_STAT_MULTIPLIER`), once, on the
+  copy it spawns from; a boss (`unique`) merges `BOSS_CLASSES[its id]`, the class levels that bring it to 100 (the user
+  approved the draft, L29). `itemLevel` / `wearable(item, active)`: a forged piece's level, or a leveled masterwork
+  artifact's; above 100 only with Limitless on (L10).
+- **The page** (`scripts/limitless.js`, after `companions.js`): the `#limitless-toggle` button under the hero's name
+  (`index.html`), hidden until unlocked, "Limitless · On/Off", disabled in battle (L20, L21); `setActive` turns the
+  player and every companion on or off (`keepAside`/`restore`), takes gear above 100 off into the pack when off (player
+  and companions, `removeUnwearable`), re-renders and saves. `onVictory(battle)` (from `combat.js` `finish`) unlocks it
+  when Anatemis is among the fallen (`ANATEMIS_ID`), and `showPendingNotice` (from `resolveLoot`, after the loot) shows the
+  "Limitless unlocked" pop-up (`#limitless-notice`, the task's own text). `body.is-limitless` puts the level number, the
+  stat numbers and their cards' borders in the Exotic wave (`styles.css`, the task 7 block).
+- **Levels and EXP** (`app.js`): `normalizeCharacter` caps the level by the switch (`context.levelCap` lets a battle's
+  stored actors keep theirs) and clears EXP banked at the cap (L18); the level-up button stops at `cap()`, and levels
+  past 100 give the 5 points and +1s but no perk point (2.1); the stat stepper calls `noteSpent`; Respec (sheet and Church
+  of Talos) clears `spent`. `combat.js` gives EXP only below the cap (player and companions). `companions.js` likewise.
+- **Enemies** (`combat.js`): with Limitless on, `startRoster`'s spawn, an enemy summon (`summonFriendly`) and the escape
+  preview go through `scaleEnemy(copy, level, definition)` before `armEnemy` forges their gear (at their new level).
+  Empowered and Sparkling multiply after it, as before. A loaded battle never scales again (actors are stored scaled).
+  A boss's damaging skills (Final Blow, Worldshaker, Chain Overload, Pestilent Cloud, Psychic Lance, Rampage, any
+  `apply-skill-effects` damage, `execute-strike`, `gambit-strike`) use up its one strike a turn (`oneStrikeATurn`,
+  `skillStrikes`; one hitting every enemy weighs like an area spell; L30); burst skills stay usable (L31).
+- **Drops** (`awardDefeatedEnemyExperience`): with Limitless on a masterwork's base chance ×2 before the Luck bonus, and
+  Sparkling's two rolls ×2 (L8); an Exotic in a drop table rolls only while on, with the Luck bonus, never ×2.
+  `rollExoticExtras`: Connected Balancer at 4% (+Luck) from any Sparkling or Empowered enemy, and Anatemis at Level 200
+  (your level when she falls) with Limitless on: one of the five Exotics (`EXOTIC_IDS`, L15) and a second, possibly the
+  same, at 1% on its own. The Guild's revealed odds (`GuildInformationRules.dropChance`) follow the same rules.
+- **Gear past Level 100** (`forge-engine.js`): `MAX_LEVEL` 200; `levelCurve` keeps the Level 1–100 pace past 100 (L9: a
+  lance's 140 power at 100 is 204 at 150, 268 at 200); tier odds stop at Level 100's. Off: anything above 100 can't be put
+  on (`canEquipItem`, the companion sheet's slot list, picker and choice) and shows a red border and "Level N required"
+  (`itemRarityClass` adds `needs-limitless`, `limitlessNote`; L27). Exotics at 100 or below keep working (L25).
+- **The Exotic rarity and Exium** (`forge-engine.js`): `RARITIES` ends with "exotic", priced like a masterwork; the
+  rarity's CSS (`.item-rarity-exotic`, `.rarity-exotic`) animates `--exotic-tone` between dark neon green and purple
+  (`@property`); the sheet's numbers use a moving gradient (`exotic-wave`). Exium (`exi`): Mythilium's values +3 (L11),
+  never on generated, ordinary or masterwork pieces (the decoders refuse it), drawn like Mythilium (`forge-art.js`).
+- **The five Exotics** (`MASTERWORKS` entries with `exotic: true`; `EXOTIC_IDS`, kept out of `MASTERWORK_IDS`, so out of
+  Sparkling's pool, the shops and the Guild's masterwork lists; masterwork rules otherwise: ids, levels, prefixes,
+  reforging at Hearth Home, Luck): weapons' main part Exium, other parts Exium a quarter of the time (`uniqueMaterial`,
+  L28); the shield and brigandine are masterwork armor (Mythilium) with the Exotic rarity. Templates (`masterwork-<key>`)
+  are in the catalogue for drop tables. `isExoticEquipment`, `isUniqueRarity` (`app.js`) are used where masterwork-only
+  checks were (battle staging, drop rules).
+  - **Fletcher** (Abyss dagger; 4% from Ji'ruan, the Deep Sea King, Saffron): `armor-break-on-hit` in
+    `applyUniqueWeaponHitEffects` (now told whether the hit was critical): each hit adds its own −20% Armor (−40% on a
+    critical hit) for 1 turn (L26); Armor stops at 0; debuff-immune targets resist.
+  - **Tough-Out** (Hearthforge tower shield; 5% from Ornn, Gaian, Ool): `lethal-survive-chance` 25 in
+    `applyCombatDamage`, after the death saves: hostile or sourceless lethal damage leaves its bearer at 1 HP on the roll.
+  - **Winged Hussar** (Roundtable longsword; 4% from Juila, Nygheir, Zik Lun): `evasion-percent` 15 (a held weapon's,
+    `calculateEquipmentDefense`) and `damage-per-evasion` (+1% per 4 Evasion, `evasionDamagePercent`, in `strike` and its
+    estimate; L14). Its crossguard is a pair of wings (`forge-art.js` `wingedGuard`, PLACEHOLDER ART).
+  - **Cherubim** (Church of Talos lance; 5% from Tankina and Ur-Mat): Holy as its own element (`def.element` in `totals`;
+    an elemental rune mixes in its element at 50%, L24), always four rune slots (`fixedSlots`; its id must say `s4`), and
+    `perRuneBonus` +12% final power and +12 Armor Pierce per rune, in its totals (L23).
+  - **Connected Balancer** (Boreal Bolt brigandine; 4% from Sparkling and Empowered enemies): `shared-burden` 50:
+    `takeBurden`/`shareBurden` in `applyCombatDamage` (each ally's share goes through `directDamage`, every rule applying)
+    and `healHp` (each ally's share healed by their own rules); every other living ally, summons included (L19); the
+    share never passes through a Connected Balancer again (`sharingBurden`); lost when nobody is left. Damage that
+    bypasses barriers isn't shared; neither is the turn-order forecast's copy.
+- **The victory screen at your level cap** (`combat.js`, where the rewards screen fills in): it reads 0 EXP, since you
+  gain none there (L18, L33); companions below their own cap still gain the battle's EXP.
+- **Tests:** `test-client/tests/limitless-browser.js`, 14 entries: `checkExoticForging`, `checkFletcher`,
+  `checkToughOut`, `checkWingedHussar`, `checkConnectedBalancer`, `checkExoticDrops`, `checkLimitlessLooks`,
+  `checkLimitlessUnlock`, `checkLimitlessLevels`, `checkEnemyScaling`, `checkMasterworkDropsDoubled`,
+  `checkBossStrikeLimit`, `checkCompanionGear`, `checkVictoryScreenAtCap`. The battle entries use a second copy of
+  `combat.js` with a hook (`window.__limitlessChecks`). Old checks updated for task 7: the bosses' exact drop tables, each
+  with its Exotic now (`cinder-bosses`, `coast-lich-bosses`, `gaian-boss`, `jiruan-rework`, `juila`, `nygheir`,
+  `saffron-boss`, `talos-boss`, `zik-lun`), and `adventure-improvements`' `runCombatRewardChecks`, whose hero is Level 99
+  now (at 100 without Limitless no EXP is paid any more).
+- **Not covered by a check:** the escape preview's scaling; the battle stage's look of the Exotics (the checks run with the
+  stage off); the bosses' new classes in real fights (their totals, limits and the AI's strike rule are checked).
+- **The checks can fail:** each rule was broken once in a copy of the game (100 mutations, by the earlier tasks' runner,
+  in the cloud session's `claude-work/limitless/` (never on the user's PC), not kept): Limitless's record and old saves,
+  the cap, turning it off and on (EXP, free points, spent points, companions, gear), the unlock, its pop-up, the button
+  and its battle lock, the sheet's look, level-ups and perk points, EXP at the cap, enemy scaling (direction, the +1s,
+  ×1.25, once, off), the bosses' classes, both ×2s, the Luck bonus, the wear rule and its mark (player, companions, the
+  Guild's odds), the Exotic wave, Winged Hussar's wings, the Exotics' forging rules (the lists, Exium, the other parts,
+  the rarity and how a piece names it, the decoders, reforging, Cherubim's slots, runes and element), every rule of the five Exotics, their drops,
+  Anatemis's reward, the bosses' strike rule and the victory screen at the cap. All 100 were caught after a second pass; the first let four through: a
+  masterwork-decoder clause no table could reach (removed: Exium fits only head and body shapes, which are only ever
+  main parts) and three checks that didn't look closely enough (turning it off a second time, the level-up handler
+  behind its disabled button, the companion picker's reason behind the note), which they now do.
+- **Regression** (2026-11-06, the cloud, Xvfb, on a frozen copy of the game): all 139 entries of the 46 check files and
+  the four suites, against task 5's run (`claude-work/masterworks/final-results.txt` in the cloud session, taken before
+  task 5 updated six old checks). Every entry gives that run's result except: the 13 task 7 entries of the time pass;
+  task 5's six updated checks and its `checkNobleHero` pass, as in task 5's final pass; 15 entries of nine old check
+  files failed on the bosses' drop tables, which now hold their Exotics, and pass updated (above); `runCombatRewardChecks`
+  failed because a Level-100 hero without Limitless is no longer paid EXP (L18), and passes with its hero at Level 99
+  (the victory screen's 0 EXP at the cap, L33, came from this and has its own entry, run with the other 13 on the final
+  code: all pass). The 11 known failures are unchanged (`runCompanionImportChecks`, the flaky one, with another
+  message). Smoke, enemies (530 cases) and lifecycle pass; the combat suite gives no result, as in task 5's run (it stops
+  at the known Barbarian failure).
+
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in
 the engine's way. The list's rune slotting sound was left out: the port adds proper sound effects instead.

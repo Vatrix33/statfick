@@ -54,6 +54,10 @@
     {
       "itemId": "masterwork-rootbark",
       "chance": 8
+    },
+    {
+      "itemId": "masterwork-winged-hussar",
+      "chance": 4
     }
   ],
   "aiProfile": "juila",
