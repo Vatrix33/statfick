@@ -430,14 +430,17 @@ async function checkLimitlessLevels() {
   limitlessChecks.hero({ on: true, inventory: [high, lowExotic], equipment: { primaryHand: high, offHand: lowExotic }, companions: [{ level: 100 }] });
   const button = document.getElementById("level-up-button");
   const snapshot = () => JSON.stringify({ level, stats: { ...stats }, manualAllocations: { ...manualAllocations }, availablePoints });
+  const step = (key, times) => { for (let index = 0; index < times; index++) document.querySelector(`.stat-stepper[data-stat="${key}"][data-action="increase"]`).click(); };
+  // Two points spent at Level 100 (Strength) stay when it's turned off; only those spent above 100 are taken back.
+  availablePoints += 2; createStatCards(); step("strength", 2);
   const level100 = snapshot(), perks = perkPoints;
   // 35 levels: +1 to every attribute and 5 free points each, no perk points.
   for (let index = 0; index < 35; index++) { exp = CombatRules.experienceRequired(level); button.click(); }
   assert(level === 135 && perkPoints === perks && availablePoints === JSON.parse(level100).availablePoints + 175, `Level 135, 175 more free points, no perk point (${level}, ${perkPoints})`);
-  // Spend ten of them.
-  for (let index = 0; index < 10; index++) document.querySelector('.stat-stepper[data-stat="strength"][data-action="increase"]').click();
+  // Spend ten of them, in Vitality.
+  step("vitality", 10);
   const level135 = snapshot();
-  assert(stats.strength === JSON.parse(level100).stats.strength + 45, "35 levels and ten points in Strength");
+  assert(stats.vitality === JSON.parse(level100).stats.vitality + 45 && JSON.parse(level100).manualAllocations.strength >= 2, "35 levels and ten points in Vitality; two in Strength from Level 100");
   // A companion past 100 too.
   const companion = companions[0].character;
   companion.level = 120; for (const key of LimitlessRules.STAT_KEYS) companion.stats[key] += 20; companion.availablePoints += 100;
@@ -448,8 +451,10 @@ async function checkLimitlessLevels() {
   assert(snapshot() === level100 && exp === 0, "Off: Level 100 with exactly the Level-100 values");
   assert(companion.level === 100 && JSON.parse(JSON.stringify(companion.stats)).strength === JSON.parse(companion120).strength - 20, "The companion too");
   assert(equipment.primaryHand === null && inventory.includes(high) && equipment.offHand === lowExotic, "The Level-140 sword goes to the pack, the Level-100 Exotic stays on");
-  // Nothing is gained at the cap while off (L18).
-  exp = CombatRules.experienceRequired(level); button.click();
+  // Nothing is gained at the cap while off (L18): the button is disabled, and refuses even if pressed.
+  exp = CombatRules.experienceRequired(level); updateDerivedValues();
+  assert(button.disabled, "At Level 100 while off the level-up button is disabled");
+  button.disabled = false; button.click();
   assert(level === 100, "No level-up while off");
   const fight = await limitlessChecks.withRandom(() => 0.5, () => Combat.startEncounter(["Goblin"], "Task 7 test"));
   const battle = h.getBattle(); exp = 0;
@@ -460,8 +465,12 @@ async function checkLimitlessLevels() {
   // On again: everything back, any number of times.
   assert(Limitless.setActive(true) && snapshot() === level135 && exp === 77, "On: Level 135, its points and its EXP back");
   assert(JSON.stringify(companion.stats) === companion120 && companion.level === 120, "The companion's too");
-  for (let round = 0; round < 3; round++) { Limitless.setActive(false); Limitless.setActive(true); }
-  assert(snapshot() === level135, "Turning it off and on gains nothing");
+  for (let round = 0; round < 3; round++) {
+    Limitless.setActive(false);
+    assert(snapshot() === level100, `Off again (round ${round + 1}): the same Level-100 values`);
+    Limitless.setActive(true);
+    assert(snapshot() === level135, `On again (round ${round + 1}): the same Level-135 values`);
+  }
   // EXP while on below 200.
   await limitlessChecks.withRandom(() => 0.5, () => Combat.startEncounter(["Goblin"], "Task 7 test"));
   for (const foe of h.getBattle().actors.filter(actor => actor.team === "enemy")) h.setHp(foe, 0);
@@ -613,9 +622,9 @@ async function checkCompanionGear() {
   assert(member.character.equipment.primaryHand !== high, "Choosing it anyway does nothing");
   $("companion-sheet").querySelector('[data-comp-browse-slot="primaryHand"]').click();
   $("companion-picker-list").querySelector(`[data-comp-picker-select="${high}"]`)?.click();
-  const detail = $("companion-picker-detail");
-  assert(detail.textContent.includes("Level 150 required"), "The picker says why");
-  detail.querySelector('[data-comp-picker-action="equip"]')?.click();
+  const detail = $("companion-picker-detail"), equip = detail.querySelector('[data-comp-picker-action="equip"]');
+  assert(equip?.disabled && detail.querySelector(".companion-picker-actions p")?.textContent.includes("Level 150 required: it can only be worn while Limitless is on"), "The picker's equip button is disabled and says why");
+  equip.disabled = false; equip.click();
   assert(member.character.equipment.primaryHand !== high, "Its equip button does nothing");
   CompanionSheetDetails.close();
   assert(Limitless.setActive(true), "Limitless on");

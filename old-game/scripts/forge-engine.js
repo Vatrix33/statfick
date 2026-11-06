@@ -1489,7 +1489,8 @@
       }
       const shape = def.parts[index], maker = MAKER_BY_CODE[tokens[index].slice(0, 2)], material = MATERIAL_BY_CODE[tokens[index].slice(2)];
       const makerOk = index === 0 ? masterworkMainMakerOk(def, maker) : maker !== "outlaw" && makerFits(maker, shape);
-      if (!maker || !material || !makerOk || material !== metal && (index === 0 || !MATERIALS[material].natural && material !== "mythilium" || !materialFits(MATERIALS[material], shape))) return null;
+      // Exium fits only head and body shapes, which are no masterwork's other parts: only an Exotic carries it.
+      if (!maker || !material || !makerOk || material !== metal && (index === 0 || !materialFits(MATERIALS[material], shape))) return null;
       parts.push({ shape, maker, material });
     }
     const slots = Number(tokens[3]), runes = (tokens[4].match(/.{3}/g) || []).map(code => RUNE_BY_CODE[code]);

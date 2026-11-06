@@ -98,17 +98,14 @@ none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine w
 task 5 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "New
 Masterworks". It also makes Doctor's Orders (task 3) the white robe R11 asked for: masterwork armor now wears its
 recorded colour.
-**Beside the engine, old game only (2026-11-06): port task 7, New Game Plus, is in progress in the old game**, as tasks
-1–6 were (decisions L1–L28 in "Decisions for task 7" below; on the cloud branch `claude/fervent-carson-f5ol9s`, one pull
-request at the end, L22). Built and committed: Limitless (unlock, the sheet's button, Levels 100–200, turning it off and
-on, EXP, saves, companions), enemy scaling with the +25%, masterwork drops ×2, gear past Level 100, the Exotic rarity,
-Exium, the five Exotics with their drops and Anatemis's Level-200 reward, the red "Level N required" mark; their checks
-so far are `../old-game/test-client/tests/limitless-browser.js` (7 entries, passing). **Waiting for the user** (the one
-stop, L6): their review of the bosses' Level-100 classes (the draft is `BOSS_CLASSES` in
-`../old-game/scripts/limitless-engine.js`, with its reasons in the chat). Then: checks for the Limitless core, enemy
-scaling and the ×2, the mutation proof, the regression run against task 5's, the docs (`../old-game/Docs/Notes.md`,
-`Docs/Port-Tasks/README.md`), and the pull request. **Engine work goes on uninterrupted**; don't count task 7 as the
-engine's current task.
+**Beside the engine, old game only (2026-11-06): port task 7, New Game Plus, is done in the old game**, as tasks 1–6
+were (decisions L1–L32 in "Decisions for task 7, New Game Plus" below: Limitless, the Exotic rarity, Exium and the five
+Exotics; built on the cloud branch `claude/fervent-carson-f5ol9s` and offered as one pull request, L22). The port doesn't
+build it again; only its placeholder art is remade (`Docs/Port-Tasks/README.md`). It touches only `../old-game/` (its
+scripts, markup, stylesheet, eleven boss files and test client) and these docs, never the engine (the engine's tests
+read none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't
+count task 7 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`,
+"New Game Plus: Limitless and the Exotics".
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
