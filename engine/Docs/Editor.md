@@ -6,7 +6,7 @@ entry, the engine's checks as you edit, references between entries, import, a li
 saving: mods for players, the game's own packs only from the repo. It ships with the game for modding
 (M12 packages it). M11 builds the editor and what the engine needs for it.
 
-## Decisions (user, 2026-11-05 and 2026-11-06)
+## Decisions (user, 2026-11-05 and 2026-11-06; the manager's for the editor, 2026-11-06)
 
 In full, with the options not chosen, in `Docs/Engine-Plan.md`, "Decisions for M11". Every answer was the
 recommended option except the audience (M11-4), undo and redo (M11-7) and the name (M11-19).
@@ -18,9 +18,33 @@ tests) are decided by the manager of the session and recorded with their reason;
 report such a choice to the manager instead of assuming; choices that change the game (what the game
 shows, does or loads, data formats the game reads, the shipped game folder, anything a player meets
 outside the editor) still go to the user with the question tool; big editor decisions are told to the
-user. Everywhere else the rule to ask about every design choice stands. So this doc keeps two lists:
-the editor choices proposed for the manager ("Proposed (the manager confirms)", P1–P38) and the
-questions for the user about the game ("Questions for the user (the game)", G1–G6).
+user. Everywhere else the rule to ask about every design choice stands. So this doc keeps the editor's
+own choices, decided by the manager ("Decided by the manager (P1–P38)"), apart from the questions that
+touch the game ("The game's questions (G1–G6)": two answered by the user, two decided by the manager as
+editor matters or as following from the user's answers, two kept for the port).
+
+**The design decided (2026-11-06):**
+- **P1–P38, decided by the manager** under the user's rule for M11, every one as recommended (option (a));
+  each with its options and reason under "Decided by the manager (P1–P38)".
+- **G1, decided by the manager as following from M11-15** (the user chose an info entry inside the mod's
+  pack that a mod list in the game can use later): a `mod/info` entry of a record kind the engine knows;
+  the game never reads it for now.
+- **G4, the user's answer (2026-11-06, the question tool): the game enforces declared limits too.** One
+  truth for the editor and the game: a mod made by hand with a value outside a limit is refused by the game
+  with a message naming the entry, as the editor refuses it; in M11 only limits the game's checks already
+  enforce today are declared, so nothing that loads today stops loading. (Not the editor only; not slider
+  ends only.) The recommended option.
+- **G5, the user's answer (2026-11-06): the checks that today run only when something plays also run when
+  the data loads, with the cost measured first.** A broken theme or cutscene is reported when the game starts
+  or reloads its data, naming the entry; the step measures the added loading time first, and if it is
+  noticeable the manager goes back to the user before it goes in. (Not the editor only with the game as
+  today.) The recommended option.
+- **G6, decided by the manager** (the editor's own settings): an `editor/` folder in the player's per-user
+  game folder, beside `settings.json`, `saves/` and `mods/`; the game ignores it.
+- **G2 and G3, not asked now** (no M11 step waits for them), kept for the port in `Docs/Engine-Plan.md`,
+  "Open questions for later milestones", "At port time": the game treats a mod with parts it can't read as
+  today (G2), and the editor and the packer take record kinds from any assembly they are given, so every
+  option of G3 stays open.
 
 - **Form (M11-1):** a separate editor app in `Tools/`, on the engine's UI, opening the pack files directly;
   the game stays free of editor code.
@@ -244,7 +268,7 @@ the names inside it.
 `RecordSerializer.FindTypes`, `RecordTypes.Of` and `Importers.Find` take any assemblies; the packer, the dump
 and `AddFolder` default to the engine's. No game assembly exists yet (the sandbox is the game's stand-in);
 the port's kinds (items, enemies, spells, shops) will be in the game's code. How they reach the editor is
-G3.
+G3, kept for the port.
 
 ### The UI for a tool (`Engine/Statventure/UI/`)
 
@@ -345,13 +369,25 @@ M9 left for the port's file picker (Q19).
   mount against packs and folders, imports of one file against `AddFolder`.
 - **Sound at volume 0** only; the preview's 3D is checked for what it shows (the right entries, cameras and
   times), not against Blender: it reuses the scene view M10 checked.
+- **The player's real folders are never written.** The editor's settings folder (`editor/` in the per-user
+  game folder, G6), the mods folder it saves into and the Documents folder it exports to are found through
+  the same per-user folders the game uses, which the test run points at a scratch folder of its own
+  (`Tests/Statventure.Tests/Infrastructure/PerUserFolders.cs`, "Decision on test runs and the player's
+  folders"); tools and scripts that run the editor in a check pass a game folder of their own
+  (`ApplicationOptions.GameFolder`). `mutate.py` flags any write to the real game folder or the Documents
+  folder's top level.
 - Every step ends as `Docs/Engine-Plan.md`, "How each step is finished", says: the full suite on the GPU and
   on lavapipe, each new test shown able to fail (`mutate.py`), nothing written to the player's real folders.
+- **Full runs are serialized across workers with a lock**, not by waiting for the manager: the full suite runs
+  as `flock ~/.cache/stat-fick-build/claude-work/full-run.lock engine/Tools/Scripts/test.sh` (from the repo's
+  root; the same lock for the lavapipe run, with its variables before `flock`'s command, and for
+  `Tools/Scripts/mutate.py`), which waits its turn and frees the lock when the run ends. Filtered test runs in a
+  worker's own worktree need no lock.
 
 ## Design
 
-The design the steps work from. Everything marked **(P…)** is proposed and waits for the manager; **(G…)**
-waits for the user.
+The design the steps work from, decided: **(P…)** points to the manager's decisions, **(G…)** to the game's
+questions and their outcomes, both below.
 
 ### The program
 
@@ -370,8 +406,8 @@ waits for the user.
   problems; entries added, removed and renamed. **The data as the game would see it after saving** is the
   base with a custom mount on top (step 2, P38) giving the open pack's entries as edited: the engine's own
   loaders and cross-entry checks run on it unchanged (M11-12).
-- **Kinds:** record kinds from the engine's assembly and any assemblies the editor is given (G3 decides how
-  the game's are); each kind's rows, check, references, bulk fields, help, units and limits come from its
+- **Kinds:** record kinds from the engine's assembly and any assemblies the editor is given (the packer
+  likewise), so every option of G3 stays open for the port; each kind's rows, check, references, bulk fields, help, units and limits come from its
   definition (step 1's marks; M11-2: no editor code per kind). Files (fonts, images, texts) are entries of
   their own kind by their ending.
 
@@ -390,7 +426,8 @@ waits for the user.
   2 MB model isn't copied on every edit. A blank draft of a kind holds its defaults, required fields empty.
 - **Marks** (attributes in the record's definition, M11-10, M11-11; none changes the data or the layout
   signatures): `Help` (a short text, the row's tooltip), `Unit` (a suffix: "Hz", "s", "m", "°"), `Limits(min,
-  max)` (slider ends; whether the game also enforces them is G4), `Choices` (allowed strings, a select),
+  max)` (slider ends, and part of the engine's own check: the game refuses data outside them too, G4),
+  `Choices` (allowed strings, a select; only what the engine already accepts),
   `Colour` (a vector or string shown as a colour), `Bulk(summary)` ("{0} vertices", P21), `References`
   (the kind and folder it points at, the name rule, and a condition on another field: `AudioCue.Name` is an
   effect's name when its kind is `effect`, a theme's id when `music`), and on the kind `Kind(display name,
@@ -409,13 +446,15 @@ waits for the user.
   compiled: chords, melody, notes, bar lengths, mode, sections; each instrument and percussion voice its
   layers name, by the composer's rules for each layer type; its room), an instrument that makes no sound,
   the theme order; (step 6) a sequence's effects and sounds against the data, as `Play` checks them.
-  Whether the game's loaders also run these is G5; until answered they are the editor's.
+  The game's loaders run them too (G5), once the step has measured the added loading time (the
+  condition is in steps 5 and 6).
 - Marks on the engine's kinds: every reference of the table above; the bulk fields of models (meshes,
   skins, channels, the hierarchy's indices and transforms), terrain (samples, covers) and stylesheets (the
   rules); the strings with choices (layer types, instrument kinds, modes); colours (`BaseColor`, `Emission`,
   `PaletteCue.Fill`); help texts, units and limits first for the kinds with a preview (effects, particle
-  effects, cutscene cues), the rest bit by bit (M11-10). Limits declared only where today's checks already
-  hold them, unless the user decides otherwise (G4).
+  effects, cutscene cues), the rest bit by bit (M11-10). In M11 a limit is declared only where the game's
+  checks already enforce it today (G4), so nothing that loads today stops loading; a new limit is a question
+  for the user.
 
 ### Packs for the editor (step 2)
 
@@ -445,7 +484,7 @@ waits for the user.
 - **A new music library:** the swap S9-D made for Reload (the theme playing restarts through the usual fades
   when its music changed) public, so the preview plays an edited theme.
 - **The file browser's model (P26):** places (the mods folder, Documents, home, the roots), recent places kept
-  in a list the caller stores (G6 decides where the editor stores it), a folder's entries sorted and filtered by
+  in a list the caller stores (the editor keeps it in its `editor/` folder, G6), a folder's entries sorted and filtered by
   endings, and the path field's reading (a typed path made full, a folder or a file, completion of its last
   name), beside `Storage/FolderListing`, so the game's Load Character can reuse it with its own screen.
 
@@ -502,8 +541,9 @@ waits for the user.
   if another program changed it, the editor asks (P23). Saved entries lose their marks; the title loses "•".
   Closing with unsaved work asks: save, discard, cancel.
 - **Mods (M11-5, M11-15):** New mod asks the mod's name and file name (P25) and writes into the player's mods
-  folder; the info entry (name, author, version, description) is edited in a form of its own; where it lives
-  and what kind it is waits for G1. In the dev setup the game's packs save in place.
+  folder; the info entry (name, author, version, description) is edited in a form of its own and saved as
+  `mod/info`, a record of the engine's kind `mod.info` (G1; step 7). In the dev setup the game's packs save in
+  place.
 - **Save As (M11-16):** a new file with the entries the user ticks; for a pack that can't be fully read, the
   readable entries (unknown kinds kept byte for byte, P24).
 
@@ -511,7 +551,7 @@ waits for the user.
 
 - **Import (M11-8, M11-14, P28):** the button and drops; `.glb` models, `.terrain.json` terrain (its images
   beside it), `.css` stylesheets, record `.json` files (their kind from `$types`; M11-18's way back in) and
-  loose files (`.ttf`, `.otf`, `.png`, `.svg`, `.txt`) as file entries. The entry's path is proposed from the
+  loose files (`.ttf`, `.otf`, `.png`, `.svg`, `.txt`) as file entries. The entry's path is suggested from the
   kind's folder and the file's name made to fit the path rule, and can be changed; an entry already there is
   replaced after asking.
 - **Importing again (M11-14, P29):** the bulk data comes from the file; the single values that differ
@@ -535,167 +575,183 @@ waits for the user.
 - **Last valid state (M11-12, P35):** the preview takes an entry only when it builds and its check passes;
   otherwise it keeps the last valid one, saying so; a cutscene goes on from the same time.
 
-### Proposed (the manager confirms)
+### Decided by the manager (P1–P38)
 
-Each with its options, the recommended one first and why. The design above follows the recommendations.
+The editor's own choices, decided by the manager on 2026-11-06 under the user's rule for M11 (editor choices
+at the manager's discretion), every one as recommended: the option marked "(a, decided by the manager,
+2026-11-06)", with its reason, then the options not chosen. The design above rests on them.
 
 **The program**
-- **P1. Project, tests and scripts.** (a) One program project `Tools/Editor/Editor.csproj` (namespace
-  `Statventure.Editor`, window title "Statventure Editor"), its tests in the existing test project
-  (`Tests/Statventure.Tests/Editor/`, a project reference), a run script `Tools/Scripts/editor.sh` (Release,
-  like `play-cutscene.sh`); not published into `$STATVENTURE_GAME` until M12 decides its place. Why: `test.sh`,
-  `mutate.py` and the full run stay as they are. (b) An editor library plus a thin program. (c) A test project
-  of its own (`test.sh` grows a second run).
-- **P2. Code structure.** (a) A session (the data, no window, no DOM) and a view (the document) apart; the
-  shell finds its parts (browser, list, form, checks, saving, import, preview) as classes of the editor's
-  assembly, so each step adds its own folder and files without editing shared ones. Why: the tests drive the
-  session and the document without a window, and workers can run side by side. (b) One application class
-  with partial files. (c) A part list in the shell each step edits.
-- **P3. Widgets.** (a) The editor's own list, tree, tabs, splitters, menus, dialogs, colour field and
-  suggestion field on plain elements (roles, `tabindex`, its own key handling), using the engine's real
-  controls where HTML has them (text and number fields, checkbox, select menu, range). Why: the listbox and
-  the colour input don't work yet, and plain elements compare with Chromium as they are. (b) Only HTML's own
-  controls (a `select size` list, `details` trees), which first needs the listbox's interaction ported. (c) A
-  widget library in the engine for the game too.
-- **P4. The look.** (a) The old game's own dark-mode colours (`styles.css`: `--paper` `#1a1c1a` for the
-  background, `--paper-deep` `#292c28` for panes, `--line` `#3a3d38`, `--ink` `#eeeae1` for text, `--muted`
-  `#aaa9a1`, `--ember` `#d77a50` as the one accent), Lato 13 px from the game's `ui.pak` (`@font-face` through
-  `UiDocument.Files`), rows 24 px; Ctrl+= and Ctrl+- zoom the page (remembered, G6). Why: a plain dark look
-  the game already has, tied to it by its font and colours. (b) Neutral greys with a blue accent, as common
-  tools. (c) Neutral greys with the game's ember accent only.
-- **P5. Where the game's data is, and the dev setup.** (a) `--repo <engine folder>` (what `editor.sh` passes)
-  means the dev setup: the game's packs are `engine/Assets/Packs/` and can be opened and saved in place;
-  without it the editor reads `packs/` beside itself (where M12 puts it, or `--game <folder>`) read-only. Why:
-  explicit, and a player's editor can't write the game's packs by accident. (b) The dev setup detected when
-  `engine/Assets/Packs` is found above the program. (c) A setting.
-- **P6. What it has open.** (a) One pack at a time, over the game's packs only (not the player's other mods,
-  not `classes/`, which aren't records until the port). Why: the checks then match a game with just this
-  mod, and mods can't depend on each other (M9). (b) Several packs at once. (c) Over the installed mods too.
-- **P7. A game entry inside a mod.** (a) Editing it makes the mod's own copy on the first change ("Revert to
-  the game's" removes the copy); game entries can't be renamed or removed in a mod (mods can't delete, Q8).
-  Why: overriding is what a mod does, without a step in between. (b) An explicit "Override in this mod"
-  first. (c) Only the mod's own entries editable.
-- **P8. The entry list.** (a) A tree by path with the kind's name beside each entry, a filter, and marks for
-  changed, added, overriding, problems and unreadable. Why: paths are the data's own order (folders by area
-  and kind). (b) Grouped by kind, flat. (c) One flat sorted list.
-- **P9. Kinds' names and folders.** (a) Marked on the kind in its definition (`Kind("Sound effect", folder
-  "audio/effects", name rule)`), else made from the code name. Why: the port's kinds bring theirs, no editor
-  table. (b) Code names only, and folders asked every time. (c) A table in the editor.
+- **P1. Project, tests and scripts.** (a, decided by the manager, 2026-11-06) One program project
+  `Tools/Editor/Editor.csproj` (namespace `Statventure.Editor`, window title "Statventure Editor"), its tests in
+  the existing test project (`Tests/Statventure.Tests/Editor/`, a project reference), a run script
+  `Tools/Scripts/editor.sh` (Release, like `play-cutscene.sh`); not published into `$STATVENTURE_GAME` until M12
+  decides its place. Why: `test.sh`, `mutate.py` and the full run stay as they are. (b) An editor library plus a
+  thin program. (c) A test project of its own (`test.sh` grows a second run).
+- **P2. Code structure.** (a, decided by the manager, 2026-11-06) A session (the data, no window, no DOM) and a
+  view (the document) apart; the shell finds its parts (browser, list, form, checks, saving, import, preview) as
+  classes of the editor's assembly, so each step adds its own folder and files without editing shared ones. Why:
+  the tests drive the session and the document without a window, and workers can run side by side. (b) One
+  application class with partial files. (c) A part list in the shell each step edits.
+- **P3. Widgets.** (a, decided by the manager, 2026-11-06) The editor's own list, tree, tabs, splitters, menus,
+  dialogs, colour field and suggestion field on plain elements (roles, `tabindex`, its own key handling), using
+  the engine's real controls where HTML has them (text and number fields, checkbox, select menu, range). Why:
+  the listbox and the colour input don't work yet, and plain elements compare with Chromium as they are. (b)
+  Only HTML's own controls (a `select size` list, `details` trees), which first needs the listbox's interaction
+  ported. (c) A widget library in the engine for the game too.
+- **P4. The look.** (a, decided by the manager, 2026-11-06) The old game's own dark-mode colours (`styles.css`:
+  `--paper` `#1a1c1a` for the background, `--paper-deep` `#292c28` for panes, `--line` `#3a3d38`, `--ink`
+  `#eeeae1` for text, `--muted` `#aaa9a1`, `--ember` `#d77a50` as the one accent), Lato 13 px from the game's
+  `ui.pak` (`@font-face` through `UiDocument.Files`), rows 24 px; Ctrl+= and Ctrl+- zoom the page (remembered,
+  G6). Why: a plain dark look the game already has, tied to it by its font and colours. (b) Neutral greys with a
+  blue accent, as common tools. (c) Neutral greys with the game's ember accent only.
+- **P5. Where the game's data is, and the dev setup.** (a, decided by the manager, 2026-11-06) `--repo <engine
+  folder>` (what `editor.sh` passes) means the dev setup: the game's packs are `engine/Assets/Packs/` and can be
+  opened and saved in place; without it the editor reads `packs/` beside itself (where M12 puts it, or `--game
+  <folder>`) read-only. Why: explicit, and a player's editor can't write the game's packs by accident. (b) The
+  dev setup detected when `engine/Assets/Packs` is found above the program. (c) A setting.
+- **P6. What it has open.** (a, decided by the manager, 2026-11-06) One pack at a time, over the game's packs
+  only (not the player's other mods, not `classes/`, which aren't records until the port). Why: the checks then
+  match a game with just this mod, and mods can't depend on each other (M9). (b) Several packs at once. (c) Over
+  the installed mods too.
+- **P7. A game entry inside a mod.** (a, decided by the manager, 2026-11-06) Editing it makes the mod's own copy
+  on the first change ("Revert to the game's" removes the copy); game entries can't be renamed or removed in a
+  mod (mods can't delete, Q8). Why: overriding is what a mod does, without a step in between. (b) An explicit
+  "Override in this mod" first. (c) Only the mod's own entries editable.
+- **P8. The entry list.** (a, decided by the manager, 2026-11-06) A tree by path with the kind's name beside
+  each entry, a filter, and marks for changed, added, overriding, problems and unreadable. Why: paths are the
+  data's own order (folders by area and kind). (b) Grouped by kind, flat. (c) One flat sorted list.
+- **P9. Kinds' names and folders.** (a, decided by the manager, 2026-11-06) Marked on the kind in its definition
+  (`Kind("Sound effect", folder "audio/effects", name rule)`), else made from the code name. Why: the port's
+  kinds bring theirs, no editor table. (b) Code names only, and folders asked every time. (c) A table in the
+  editor.
 
 **Editing**
-- **P10. Drafts.** (a) A typed tree of field values built from and into records through the layouts' getters
-  and factories, large values kept as the original objects. Why: holds what a record can't be (an empty
-  required field, a curve breaking its rules) with its path, and is fast on large imported entries. (b) The
-  JSON form as the draft: simple, but a compiled stylesheet's JSON is 12.5 MB, rewritten on each edit. (c)
-  Record objects: can't hold an invalid state.
-- **P11. Controls per field** (the table in "What exists"). (a) As that table: number fields, checkboxes,
-  selects, rows for lists and maps, collapsible groups, a subtype select for unions (switching keeps the
-  values of fields with the same name), 2–4 number fields for vectors, a colour field (swatch and `#rrggbb`)
-  for colour marks, matrices and quaternions read-only (only imported models have them). Why: every kind
-  edited the same way, no per-kind code. (b) A JSON text box for anything nested. (c) Text fields everywhere.
-- **P12. Typing numbers.** (a) The invariant form (a point, shortest round-trip text: `0.1` for a float 0.1),
-  committed on Enter, leaving the field, a spin or slider step; text that doesn't parse stays, marked, not
-  committed. Why: one step per change, no half-typed values in the history. (b) Committed on every
-  keystroke. (c) A separate OK per field.
-- **P13. Undo steps.** (a) One step per commit (a slider drag is one step); while a text field has typing to
-  undo, Ctrl+Z undoes that first (the field's own editing undo), then the entry's history. Why: as text
-  editors do. (b) Every keystroke a step. (c) The entry's history only.
-- **P14. Rename.** (a) Like adding and removing (M11-7): not undoable, asks first, updates the referrers the
-  user agrees to in the same step. Why: one rule for what changes the pack's set of entries. (b) A step in the
-  entry's history. (c) A history of renames for the pack.
-- **P15. New entries.** (a) New (pick a kind and a name in its folder; the blank draft, its empty required
-  fields shown as problems) and Duplicate. Why: both are needed, templates are a later convenience. (b)
-  Templates per kind. (c) Duplicate only.
-- **P16. Where problems show.** (a) Under the field's row (red line and text), problems without a field at the
-  form's top, the list's mark, and the save refusal naming the entries. Why: M11-12 asks for the field and
-  the list. (b) A problems panel only. (c) Tooltips only.
-- **P17. When checks run.** (a) An entry's own check after each commit; cross-entry checks (stages, the
-  music library) 200 ms after the last change. Why: loading stages and compiling themes on every key would
-  lag. (b) Everything on every keystroke. (c) A Check button.
-- **P18. A reference that doesn't resolve.** (a) A problem: refuses saving, as everything the engine follows
-  must exist at load or at play. Why: M11-12's "always loads" includes playing. (b) A warning only.
-- **P19. Referrers on rename or remove.** (a) The list of entries in the pack referring to it, with "update
-  all" (or leave them, which then shows their problems). Why: a mod's references can only be in its own
-  entries and copies. (b) Always update. (c) Never update, only list.
-- **P20. Checks with field paths.** (a) Every existing check reports the path of what it names (the
-  messages unchanged), found through a static method marked on its kind. Why: M11-12 shows problems at the
-  field, and the port's kinds work the same way. (b) Paths only for the kinds with a preview, the rest at
-  the entry. (c) A table of checks in the editor.
-- **P21. Bulk fields.** (a) Marked in the definitions with their summary ("{0} vertices"): models' meshes,
-  skins, channels and the hierarchy's indices and transforms; terrain's samples and covers; stylesheets'
-  rules. Why: the same place as M11-10's marks; the hierarchy and transforms stay as imported so a model
-  can't break. (b) A rule in the editor (lists of numbers or vectors, byte arrays). (c) Per-kind lists.
-- **P22. The JSON view.** (a) A tab beside the form (Form | JSON), showing the last valid version when the
-  entry doesn't build. Why: the form keeps its width. (b) Below the form. (c) A window of its own.
+- **P10. Drafts.** (a, decided by the manager, 2026-11-06) A typed tree of field values built from and into
+  records through the layouts' getters and factories, large values kept as the original objects. Why: holds what
+  a record can't be (an empty required field, a curve breaking its rules) with its path, and is fast on large
+  imported entries. (b) The JSON form as the draft: simple, but a compiled stylesheet's JSON is 12.5 MB,
+  rewritten on each edit. (c) Record objects: can't hold an invalid state.
+- **P11. Controls per field** (the table in "What exists"). (a, decided by the manager, 2026-11-06) As that
+  table: number fields, checkboxes, selects, rows for lists and maps, collapsible groups, a subtype select for
+  unions (switching keeps the values of fields with the same name), 2–4 number fields for vectors, a colour
+  field (swatch and `#rrggbb`) for colour marks, matrices and quaternions read-only (only imported models have
+  them). Why: every kind edited the same way, no per-kind code. (b) A JSON text box for anything nested. (c)
+  Text fields everywhere.
+- **P12. Typing numbers.** (a, decided by the manager, 2026-11-06) The invariant form (a point, shortest
+  round-trip text: `0.1` for a float 0.1), committed on Enter, leaving the field, a spin or slider step; text
+  that doesn't parse stays, marked, not committed. Why: one step per change, no half-typed values in the
+  history. (b) Committed on every keystroke. (c) A separate OK per field.
+- **P13. Undo steps.** (a, decided by the manager, 2026-11-06) One step per commit (a slider drag is one step);
+  while a text field has typing to undo, Ctrl+Z undoes that first (the field's own editing undo), then the
+  entry's history. Why: as text editors do. (b) Every keystroke a step. (c) The entry's history only.
+- **P14. Rename.** (a, decided by the manager, 2026-11-06) Like adding and removing (M11-7): not undoable, asks
+  first, updates the referrers the user agrees to in the same step. Why: one rule for what changes the pack's
+  set of entries. (b) A step in the entry's history. (c) A history of renames for the pack.
+- **P15. New entries.** (a, decided by the manager, 2026-11-06) New (pick a kind and a name in its folder; the
+  blank draft, its empty required fields shown as problems) and Duplicate. Why: both are needed, templates are a
+  later convenience. (b) Templates per kind. (c) Duplicate only.
+- **P16. Where problems show.** (a, decided by the manager, 2026-11-06) Under the field's row (red line and
+  text), problems without a field at the form's top, the list's mark, and the save refusal naming the entries.
+  Why: M11-12 asks for the field and the list. (b) A problems panel only. (c) Tooltips only.
+- **P17. When checks run.** (a, decided by the manager, 2026-11-06) An entry's own check after each commit;
+  cross-entry checks (stages, the music library) 200 ms after the last change. Why: loading stages and compiling
+  themes on every key would lag. (b) Everything on every keystroke. (c) A Check button.
+- **P18. A reference that doesn't resolve.** (a, decided by the manager, 2026-11-06) A problem: refuses saving,
+  as everything the engine follows must exist at load or at play. Why: M11-12's "always loads" includes playing.
+  (b) A warning only. *Known limit:* since one pack is open over the game's packs only (P6) and a reference that
+  doesn't resolve refuses saving, a mod that refers to another mod's entries can't be saved by the editor in
+  M11; opening over the installed mods (P6's option (c)) would lift it later.
+- **P19. Referrers on rename or remove.** (a, decided by the manager, 2026-11-06) The list of entries in the
+  pack referring to it, with "update all" (or leave them, which then shows their problems). Why: a mod's
+  references can only be in its own entries and copies. (b) Always update. (c) Never update, only list.
+- **P20. Checks with field paths.** (a, decided by the manager, 2026-11-06) Every existing check reports the
+  path of what it names (the messages unchanged), found through a static method marked on its kind. Why: M11-12
+  shows problems at the field, and the port's kinds work the same way. (b) Paths only for the kinds with a
+  preview, the rest at the entry. (c) A table of checks in the editor.
+- **P21. Bulk fields.** (a, decided by the manager, 2026-11-06) Marked in the definitions with their summary
+  ("{0} vertices"): models' meshes, skins, channels and the hierarchy's indices and transforms; terrain's
+  samples and covers; stylesheets' rules. Why: the same place as M11-10's marks; the hierarchy and transforms
+  stay as imported so a model can't break. (b) A rule in the editor (lists of numbers or vectors, byte arrays).
+  (c) Per-kind lists.
+- **P22. The JSON view.** (a, decided by the manager, 2026-11-06) A tab beside the form (Form | JSON), showing
+  the last valid version when the entry doesn't build. Why: the form keeps its width. (b) Below the form. (c) A
+  window of its own.
 
 **Saving, opening, importing**
-- **P23. Saving's rules.** (a) Unchanged entries kept byte for byte (an older version stays in it), edited
-  ones written in the current versions; a file changed on disk since it was opened asks: overwrite, Save
-  As, cancel. Why: a save changes only what was edited, and nothing is lost silently. (b) Everything
-  rewritten in the current versions. (c) Overwrite without asking.
-- **P24. Save As from a pack it can't fully read.** (a) Readable entries offered (ticked), unknown kinds kept
-  byte for byte, damaged ones not offered. Why: M11-16 keeps what the user chooses, and an unknown kind is
-  still intact data. (b) Only entries the editor can read as records or files.
-- **P25. A mod's file name.** (a) Proposed from the mod's name under the path rule (`my-mod.pak`), editable;
-  the dialog says mods load in file-name order. Why: the name the player sees and the file match. (b) The
-  name itself, fixed. (c) Any folder and name.
-- **P26. The file browser's place.** (a) Its model (listing, places, recent places, the path field's
-  reading and completion) in the engine beside `FolderListing`, its screen and look in the editor. Why:
-  M11-9 says the game reuses it for Load Character with its own look. (b) All in the editor. (c) All in the
-  engine, looks included.
-- **P27. Drops.** (a) A dropped `.pak` opens (asking to save first); importable files import into the open
-  pack, in the order dropped; no highlight while dragging (GLFW reports only the drop). Why: what each file
-  is for. (b) Drops only import. (c) Drops only open.
-- **P28. Import's paths and urls.** (a) The entry's path proposed from the kind's folder and the file name,
-  editable; a stylesheet's urls checked against the data the mod sees (base and pack). Why: a mod's
-  stylesheet points at the game's images too. (b) Paths typed each time. (c) Urls only within the files
-  imported together.
-- **P29. Importing again over form edits.** (a) The differing single values listed, keep or take each
-  (default keep). Why: M11-14 asks before overwriting, value by value is clearest. (b) One question for all.
-  (c) Always take the file's, after one warning.
-- **P30. The repo's script-made packs.** (a) `make-music-data.sh` and `make-ui-pack.sh` keep packing whole
-  until the first editor-made entry is committed into their pack, then switch to `packer update` (which
-  replaces only what they make). Why: no change before it's needed. (b) Switch now. (c) Never.
+- **P23. Saving's rules.** (a, decided by the manager, 2026-11-06) Unchanged entries kept byte for byte (an
+  older version stays in it), edited ones written in the current versions; a file changed on disk since it was
+  opened asks: overwrite, Save As, cancel. Why: a save changes only what was edited, and nothing is lost
+  silently. (b) Everything rewritten in the current versions. (c) Overwrite without asking.
+- **P24. Save As from a pack it can't fully read.** (a, decided by the manager, 2026-11-06) Readable entries
+  offered (ticked), unknown kinds kept byte for byte, damaged ones not offered. Why: M11-16 keeps what the user
+  chooses, and an unknown kind is still intact data. (b) Only entries the editor can read as records or files.
+- **P25. A mod's file name.** (a, decided by the manager, 2026-11-06) Suggested from the mod's name under the
+  path rule (`my-mod.pak`), editable; the dialog says mods load in file-name order. Why: the name the player
+  sees and the file match. (b) The name itself, fixed. (c) Any folder and name.
+- **P26. The file browser's place.** (a, decided by the manager, 2026-11-06) Its model (listing, places, recent
+  places, the path field's reading and completion) in the engine beside `FolderListing`, its screen and look in
+  the editor. Why: M11-9 says the game reuses it for Load Character with its own look. (b) All in the editor.
+  (c) All in the engine, looks included.
+- **P27. Drops.** (a, decided by the manager, 2026-11-06) A dropped `.pak` opens (asking to save first);
+  importable files import into the open pack, in the order dropped; no highlight while dragging (GLFW reports
+  only the drop). Why: what each file is for. (b) Drops only import. (c) Drops only open.
+- **P28. Import's paths and urls.** (a, decided by the manager, 2026-11-06) The entry's path suggested from the
+  kind's folder and the file name, editable; a stylesheet's urls checked against the data the mod sees (base and
+  pack). Why: a mod's stylesheet points at the game's images too. (b) Paths typed each time. (c) Urls only
+  within the files imported together.
+- **P29. Importing again over form edits.** (a, decided by the manager, 2026-11-06) The differing single values
+  listed, keep or take each (default keep). Why: M11-14 asks before overwriting, value by value is clearest. (b)
+  One question for all. (c) Always take the file's, after one warning.
+- **P30. The repo's script-made packs.** (a, decided by the manager, 2026-11-06) `make-music-data.sh` and
+  `make-ui-pack.sh` keep packing whole until the first editor-made entry is committed into their pack, then
+  switch to `packer update` (which replaces only what they make). Why: no change before it's needed. (b) Switch
+  now. (c) Never.
 
 **Preview and tests**
-- **P31. Sound.** (a) Play and Stop (Space), the editor's master volume (remembered, G6), the play's volume,
-  pan and pitch for effects; a theme restarts with its fades after a change; no preview for instruments,
-  percussion voices and rooms (a playing theme takes their edits). Why: M11-13's list, nothing more. (b)
-  Also a note keyboard for instruments. (c) Effects only.
-- **P32. Particles.** (a) A looping emitter at the origin (a burst of 20 and 20 a second for two lives,
-  started again when the last has died), a seed and restart, a preview palette with a distinct colour per
-  slot named (editable, not saved in the pack). Why: an effect's own record holds no emitter or palette. (b)
-  A single burst on a button. (c) M6's grey only.
-- **P33. Models.** (a) Clips listed (play, pause, loop, time slider), a turnable camera (drag, wheel, reset),
-  a stage's cameras to look through, the model's materials in their own colours. Why: M11-13. (b) No stage
-  cameras. (c) A still model only.
-- **P34. Cutscene stand-ins.** (a) Per cutscene, kept by the editor (G6), not in the mod: each actor role a
-  model and clip library chosen from the data, each palette role a palette, element roles an empty host
-  holding the ids the UI cues name (styled by a stylesheet from the data if chosen), node roles empty nodes;
-  tracks of roles left unbound are left out of a preview copy of the sequence. Why: the record names roles,
-  not what plays them, and `Play` refuses what isn't bound (S4-6). (b) Only stages, cameras, light,
-  particles and sound previewed. (c) Default stand-ins named in the sequence record (a change to the game's
-  format: would be a question for the user).
-- **P35. Updating.** (a) A valid change replaces the preview's entry at once (a cutscene from the same time,
-  a theme through its fades); an invalid one keeps the last valid state, saying so. Why: M11-12. (b) From the
-  start on every change. (c) A Refresh button.
-- **P36. The Chromium screens.** (a) Six fixtures, each at 1 and 1.65: the empty shell, the list with every
-  mark, the form with every control kind and a problem, the file browser, the unsaved-changes dialog, the
-  JSON tab; written by a test from the live document (properties such as a field's value written as their
-  attributes, the preview's `surface` replaced by an empty box of its size, `@font-face` left to the harness's
-  fonts), captured by `make-editor-references.sh` (PaintReference with an `editor-fixtures.json`). Why: M11-20's
-  "a few screens", the same tool as the paint fixtures. (b) Fewer: the list and the form. (c) Every dialog too.
-- **P37. Long lists.** (a) Measure a pack of 2,000 entries with `UiBenchmark` first; rows only where seen if
-  it's slow. Why: build what's needed. (b) A virtual list from the start. (c) Never.
-- **P38. The custom mount.** (a) A public interface for a mount's entries (paths, record or file, bytes,
-  origin) the editor implements over its session. Why: the engine's loaders read unsaved work unchanged.
-  (b) A memory mount filled with every entry's bytes on each change. (c) Writing a scratch folder and
-  remounting it.
+- **P31. Sound.** (a, decided by the manager, 2026-11-06) Play and Stop (Space), the editor's master volume
+  (remembered, G6), the play's volume, pan and pitch for effects; a theme restarts with its fades after a
+  change; no preview for instruments, percussion voices and rooms (a playing theme takes their edits). Why:
+  M11-13's list, nothing more. (b) Also a note keyboard for instruments. (c) Effects only.
+- **P32. Particles.** (a, decided by the manager, 2026-11-06) A looping emitter at the origin (a burst of 20 and
+  20 a second for two lives, started again when the last has died), a seed and restart, a preview palette with a
+  distinct colour per slot named (editable, not saved in the pack). Why: an effect's own record holds no emitter
+  or palette. (b) A single burst on a button. (c) M6's grey only.
+- **P33. Models.** (a, decided by the manager, 2026-11-06) Clips listed (play, pause, loop, time slider), a
+  turnable camera (drag, wheel, reset), a stage's cameras to look through, the model's materials in their own
+  colours. Why: M11-13. (b) No stage cameras. (c) A still model only.
+- **P34. Cutscene stand-ins.** (a, decided by the manager, 2026-11-06) Per cutscene, kept by the editor (G6),
+  not in the mod: each actor role a model and clip library chosen from the data, each palette role a palette,
+  element roles an empty host holding the ids the UI cues name (styled by a stylesheet from the data if chosen),
+  node roles empty nodes; tracks of roles left unbound are left out of a preview copy of the sequence. Why: the
+  record names roles, not what plays them, and `Play` refuses what isn't bound (S4-6). (b) Only stages, cameras,
+  light, particles and sound previewed. (c) Default stand-ins named in the sequence record (a change to the
+  game's format: would be a question for the user).
+- **P35. Updating.** (a, decided by the manager, 2026-11-06) A valid change replaces the preview's entry at once
+  (a cutscene from the same time, a theme through its fades); an invalid one keeps the last valid state, saying
+  so. Why: M11-12. (b) From the start on every change. (c) A Refresh button.
+- **P36. The Chromium screens.** (a, decided by the manager, 2026-11-06) Six fixtures, each at 1 and 1.65: the
+  empty shell, the list with every mark, the form with every control kind and a problem, the file browser, the
+  unsaved-changes dialog, the JSON tab; written by a test from the live document (properties such as a field's
+  value written as their attributes, the preview's `surface` replaced by an empty box of its size, `@font-face`
+  left to the harness's fonts), captured by `make-editor-references.sh` (PaintReference with an
+  `editor-fixtures.json`). Why: M11-20's "a few screens", the same tool as the paint fixtures. (b) Fewer: the
+  list and the form. (c) Every dialog too.
+- **P37. Long lists.** (a, decided by the manager, 2026-11-06) Measure a pack of 2,000 entries with
+  `UiBenchmark` first; rows only where seen if it's slow. Why: build what's needed. (b) A virtual list from the
+  start. (c) Never.
+- **P38. The custom mount.** (a, decided by the manager, 2026-11-06) A public interface for a mount's entries
+  (paths, record or file, bytes, origin) the editor implements over its session. Why: the engine's loaders read
+  unsaved work unchanged. (b) A memory mount filled with every entry's bytes on each change. (c) Writing a
+  scratch folder and remounting it.
 
-### Questions for the user (the game)
+### The game's questions (G1–G6)
 
-These change what the game does, reads or ships, so they go to the user with the question tool. In plain
-words, the recommended option first.
+These touch what the game does, reads or ships. Each with its options in plain words (the recommended one
+first) and its outcome (2026-11-06): G4 and G5 answered by the user with the question tool; G1 and G6
+decided by the manager (G1 follows from the user's M11-15, G6 is the editor's own settings); G2 and G3 not
+asked now, since no M11 step waits for them, kept for the port (`Docs/Engine-Plan.md`, "Open questions for
+later milestones", "At port time").
 
 - **G1. A mod's name, author, version and description (M11-15): where the editor keeps them in the mod file.**
   The game doesn't show them yet.
@@ -705,7 +761,9 @@ words, the recommended option first.
   the packer) can show it. (b) The same entry, its kind known only to the editor: the game never reads it, but
   a later mod list needs the kind moved into the engine first. (c) In the mod file's header instead of an
   entry: a change to the pack format (version 2) every reader of packs must then know.
-  *Waits:* step 7; step 11 (saving a mod).
+  **Outcome: (a), decided by the manager as following from M11-15** (the user chose an info entry inside the
+  mod's pack that a mod list in the game can use later): `mod/info`, a record kind the engine knows; the game
+  never reads it for now. Built by step 7, used by step 11.
 - **G2. A mod with parts the game can't read** (made by a newer editor or by hand: a kind the game doesn't
   know, or a newer version of one; the editor itself never saves one, M11-12, M11-16).
   (a) As today: the game loads the mod, and only when it uses such a part does it stop with an error naming
@@ -713,7 +771,8 @@ words, the recommended option first.
   names the mod at fault. (b) When it starts, the game checks every part of every mod and stops at once,
   naming the mod and the part. (c) When it starts, it writes a warning naming such parts in its log and goes
   on as today.
-  *Waits:* nothing (step 7 adds (b) or (c) if chosen).
+  **Outcome: not asked now, kept for the port** (where mods and the game's mod list are asked); the game stays
+  as today (a), and no M11 step changes it.
 - **G3. How the game's own kinds of data (items, enemies, spells, shops, once the port makes them) reach the
   editor** (M11-2: editable with no new editor code).
   (a) The port keeps them, with their rules, in a data library of their own (one file shipped beside the
@@ -721,8 +780,9 @@ words, the recommended option first.
   the rules are written once, the editor never runs the game's own code, and modders get the game's own
   checks. (b) The editor loads the game's program file itself to find them. (c) They go into the engine
   with its own kinds.
-  *Waits:* no M11 step (no game kinds exist yet; the editor takes kinds from the assemblies it's given); it
-  decides how the port lays out its code and adds a file to the shipped folder (M12).
+  **Outcome: not asked now, kept for the port** (it decides how the port lays out its code and adds a file to
+  the shipped folder, M12). No M11 step waits: the editor and the packer take record kinds from any assembly
+  they are given, so every option stays open.
 - **G4. Limits on values** (M11-10's "allowed limits", e.g. a sound's level from 0 to 1): **does the game
   also refuse data outside them?**
   (a) Yes: a declared limit is part of the engine's own check, so the game refuses data outside it when it
@@ -730,7 +790,10 @@ words, the recommended option first.
   limits today's checks already hold, and any new limit is asked first. *Recommended:* one rule for the
   editor and the game. (b) The editor only: the game loads values outside them as today. (c) Slider ends
   only: the editor's slider stops there, but any value can be typed.
-  *Waits:* steps 5 and 6 (whether the game's loading uses declared limits).
+  **Outcome: (a), the user's answer (2026-11-06, the question tool):** the game enforces declared limits too;
+  one truth for the editor and the game: a mod made by hand with a value outside a limit is refused by the game
+  with a message naming the entry, as the editor refuses it; in M11 only limits the game's checks already
+  enforce today are declared, so nothing that loads today stops loading. Steps 1, 5 and 6.
 - **G5. Checks that today happen only when something plays** (a music theme's notes and chords, the
   instruments and drums it names, a cutscene's sounds and particle effects by name; a broken theme fails
   when music first plays, an unknown instrument fails on the sound thread mid-game). The editor will check
@@ -739,7 +802,10 @@ words, the recommended option first.
   does for broken models (M9, S5-1); the start takes longer by compiling every theme (measured before it's
   switched on). *Recommended:* a mod's fault shows at once with its name, not as the music failing mid-game.
   (b) No: the game stays as it is; only the editor checks them.
-  *Waits:* steps 5 and 6 (wiring the checks into loading).
+  **Outcome: (a), the user's answer (2026-11-06):** these checks also run when the data loads, with the cost
+  measured first: a broken theme or cutscene is reported when the game starts or reloads its data, naming the
+  entry; the step measures the added loading time first, and if it is noticeable the manager goes back to the
+  user before it goes in (steps 5 and 6).
 - **G6. Where the editor keeps its own settings** (recent places, M11-9; its window size and volume; the
   cutscene preview's stand-ins).
   (a) In an `editor/` folder inside the player's game folder, beside `settings.json`, `saves/` and `mods/`
@@ -747,19 +813,25 @@ words, the recommended option first.
   (b) In a folder of its own beside it (Linux `~/.local/share/statventure-editor/`, Windows
   `%APPDATA%\Statventure Editor\`), the game's folder untouched. (c) Nowhere: nothing remembered between
   runs (recent places only while it runs).
-  *Waits:* step 8 (recent places), step 13 (the preview's choices).
+  **Outcome: (a), decided by the manager** (the editor's own settings): an `editor/` folder in the player's
+  per-user game folder, beside `settings.json`, `saves/` and `mods/`; the game ignores it. Tests and tools
+  redirect it like the other per-user folders and never write the player's real one (Method). Steps 8 and 13.
 
 Not questions, stated: the engine's window learns file drops and a refusable close (step 3), but the game
 doesn't listen, so it closes and ignores drops as now; the marks (step 1) change no data, no layout
-signature and nothing the game loads (limits only as G4 says); the custom mount, the pack update and
-single-file import are only used by the editor and the packer.
+signature and nothing the game loads, except that the declared limits are enforced by the game too (G4); the
+custom mount, the pack update and single-file import are only used by the editor and the packer.
 
 ## Steps
 
 Each step ends as every step does (`Docs/Engine-Plan.md`, "How each step is finished"): its tests, the full
 suite on the GPU and on lavapipe, a mutation list covering every rule it adds (each killed or accounted
 for), its Progress line, its "How it works" and Status entry here, `Docs/Notes.md`. At most four workers at
-once, each in its own worktree; **only one at a time runs the full `Tools/Scripts/test.sh` or `mutate.py`**.
+once, each in its own worktree; **only one at a time runs the full `Tools/Scripts/test.sh` or `mutate.py`**,
+serialized by a lock, not by waiting for the manager: from the repo's root, `flock
+~/.cache/stat-fick-build/claude-work/full-run.lock engine/Tools/Scripts/test.sh` (the same lock for the
+lavapipe run, its two variables set before `flock`, and for `engine/Tools/Scripts/mutate.py`), which waits its
+turn and frees the lock when the run ends; filtered test runs in a worker's own worktree need no lock.
 Workers don't touch Engine-Plan's "Current task" (the merge worker does), so their docs commits don't
 conflict. Steps marked side by side touch no file in common besides those docs (each its own entry). For
 the editor's steps that holds only with step 4's conventions (P2): each part in its own folder with its own
@@ -768,7 +840,7 @@ fixture list `Reference/editor-fixtures.json` is written by the test run from al
 steps merge, one test run writes it again (its goldens are a file per fixture).
 
 Order: **wave 1:** 1, 2, 3 and 4 side by side; **wave 2:** 5 and 6 (after 1), 8 (after 2, 3, 4), 9 (after 1,
-4), side by side; **wave 3:** 7 (after 2, and G1), 10 (after 5, 6, 8, 9), 12 (after 2, 8, 9), 13 (after 3, 5,
+4), side by side; **wave 3:** 7 (after 2; it may start any time after 2 when a worker is free), 10 (after 5, 6, 8, 9), 12 (after 2, 8, 9), 13 (after 3, 5,
 6, 9), side by side; **wave 4:** 11 (after 2, 3, 7, 8, 9, 10), then 14 last. Steps 1–3 and 5–7 are engine
 steps (none needs Chromium or Blender); 4 and 8–14 are the editor's (their screens need Chromium: the PC,
 or the cloud under Xvfb).
@@ -801,7 +873,7 @@ or the cloud under Xvfb).
 3. **Window, sound and file-browser hooks (engine).** Independent.
    - Owns: `Engine/Statventure/Platform/Window.cs`, `Platform/Input.cs`, `Core/Application.cs` (the close
      request), `Audio/AudioSystem.cs` (the library swap made public), new files in `Engine/Statventure/Storage/`
-     (the file browser's model beside `FolderListing`, if P26 (a) is confirmed), tests in
+     (the file browser's model beside `FolderListing`, P26), tests in
      `Tests/Statventure.Tests/Platform/`, `Core/`, `Audio/`, `Storage/`, `Docs/Audio.md` (a line on the swap),
      `Docs/Assets.md` (a line on the browser's model beside the picker's functions).
    - Must not touch: `UI/` (no HTML drag and drop), the sandbox's behaviour (it closes and ignores drops).
@@ -824,30 +896,45 @@ or the cloud under Xvfb).
      `Audio/Music/MusicLibrary.cs`, new check files in `Audio/Music/` (a theme against the data),
      `Score.cs` and `Composer.cs` only to expose the names a layer needs without playing; tests in
      `Tests/Statventure.Tests/Audio/`; `Docs/Audio.md`'s section.
-   - Must not touch: the music's sound (every music test unchanged), the layouts; the game's loading until G4
-     and G5 are answered (then as answered).
+   - Must not touch: the music's sound (every music test unchanged), the layouts.
+   - The game's loading (G4, G5): the loaders of the audio kinds (`MusicLibrary.Load`, which also loads the
+     effect patches) also run the declared limits (only limits today's checks already enforce, so everything
+     that loads today still does: shown on every committed pack and the tests' data) and the new checks.
+     **Before the new checks go into loading, measure the added loading time** (the game's data as the
+     committed packs hold it, all 55 themes compiled, Release, a cold and a warm start, and a Reload), **report the numbers to the manager and stop for the manager's word**: the manager judges whether
+     the time is noticeable and, if so, goes back to the user first. Don't judge it yourself beyond reporting.
    - Finished: each audio kind's check with paths; every rule of the theme check broken once (unknown
      instrument, percussion voice, room, layer type, texture; a bad chord, note, bar, mode, section; an
      instrument that makes no sound); all 55 themes and the committed pack pass; references, choices and
-     units marked. Mutations: each rule and mark.
+     units marked; the loading as above, each new check and limit at load naming the entry. Mutations: each
+     rule and mark, and their wiring into loading.
 6. **Scene, model, particle, terrain, state machine and stylesheet kinds: checks and marks (engine).** After
    1; beside 5.
    - Owns: `Engine/Statventure/Scene/Sequence.cs`, `Scene/FCurve.cs`, `Render3D/Particles.cs`,
      `Render3D/ModelData.cs`, `Render3D/Terrain.cs`, `Animation/StateMachineDefinition.cs`,
      `UI/Css/StylesheetRecords.cs` (and `UI/Style/Stylesheet.cs` for paths), tests in their folders,
      `Docs/Scene.md`'s and `Docs/Assets.md`'s sections.
-   - Must not touch: the messages the game logs, the layouts; the game's loading until G4 and G5 are
-     answered.
+   - Must not touch: the messages the game logs, the layouts.
+   - The game's loading (G4, G5): the loaders of these kinds (`Sequence.Load` with its effects and sounds
+     against the data, the others' `Load`) also run the declared limits (only limits today's checks already
+     enforce, so everything that loads today still does: shown on every committed pack and the tests' data)
+     and the new checks. **Before the new checks go into loading, measure the added loading time** (no
+     cutscene is committed, so on the proof's sequence from the tests' data with `audio.pak`, Release, cold and
+     warm), **report the numbers to the manager and stop for the manager's word**: the manager judges whether
+     the time is noticeable and, if so, goes back to the user first. Don't judge it yourself beyond reporting.
    - Finished: each check with the path of what it names (every existing rule's test gains its path); the
      sequence's effects and sounds against the data; bulk, references and colours marked; the proof's
-     sequence and every test model pass. Mutations: each path and mark.
-7. **The mod's info entry (engine).** After 2; **waits for G1** (and G2 if (b) or (c)).
-   - Owns: a new file in `Engine/Statventure/Packs/` (the record and its path), its layout and fixtures in
-     `Tests/.../Data/Records/`, tests in `Tests/.../Packs/`; for G2 (b) or (c) `Packs/VirtualFileSystem.cs`
-     or `Core/Application.cs`.
-   - Finished: the record's round trips and guard; a mod with and without it mounting as before.
-8. **Opening packs: the browser, drops and the entry list (editor).** After 2, 3, 4; beside 9; **recent places
-   wait for G6**.
+     sequence and every test model pass; the loading as above. Mutations: each path and mark, and their wiring
+     into loading.
+7. **The mod's info entry (engine).** After 2 (G1 decided: `mod/info`, the engine's kind `mod.info`).
+   - Owns: a new file in `Engine/Statventure/Packs/` (the record `mod.info`: name, author, version and
+     description as text, and its path `mod/info`), its layout and fixtures in `Tests/.../Data/Records/`, tests
+     in `Tests/.../Packs/`.
+   - Must not touch: what the game mounts or reads (it never reads the entry; G2 stays as today).
+   - Finished: the record's round trips and guard; a mod with and without it mounting and loading as before.
+     Mutations: each field, the path.
+8. **Opening packs: the browser, drops and the entry list (editor).** After 2, 3, 4; beside 9. Recent places
+   kept in the editor's `editor/` folder in the per-user game folder (G6; the run's scratch folder in tests).
    - Owns: `Tools/Editor/Browser/` (the browser's screen on step 3's model), `Tools/Editor/Entries/`, the
      session's opening (its own file), tests in `Tests/.../Editor/`, fixtures (list, browser).
    - Finished: the browser's places, listing, path field and filters; drops; packs opened with each kind of
@@ -873,10 +960,11 @@ or the cloud under Xvfb).
       save in place (a scratch copy of the repo's packs); the title's mark; closing asks. Mutations: each.
 12. **Import (editor).** After 2, 8, 9; beside 10, 13.
     - Owns: `Tools/Editor/Import/`, tests.
-    - Finished: each kind imported by button and by drop equal to the packer's entry, the proposed path, the
+    - Finished: each kind imported by button and by drop equal to the packer's entry, the suggested path, the
       replace question, importing again with form edits kept or taken per value, a JSON file back in.
       Mutations: each.
-13. **The preview (editor).** After 3, 5, 6, 9; beside 10, 12; **the stand-ins' memory waits for G6**.
+13. **The preview (editor).** After 3, 5, 6, 9; beside 10, 12. The stand-ins and the volume kept in the
+    editor's `editor/` folder (G6).
     - Owns: `Tools/Editor/Preview/`, tests (sound at volume 0, rendered offline where the sound is checked;
       3D through the headless GPU fixture).
     - Finished: effects and themes play, stop and follow edits (renders equal to registering and playing by
@@ -901,3 +989,8 @@ Filled in as the steps are done.
 M11); what exists checked against the code; the method; the design proposed, with 38 editor choices for the
 manager (P1–P38) and six questions for the user about the game (G1–G6); fourteen steps proposed with their
 dependencies. No step started; nothing implemented.
+
+**The design decided (2026-11-06):** P1–P38 by the manager, all as recommended (P18 with its known limit:
+a mod referring to another mod's entries can't be saved in M11); G1 and G6 by the manager; G4 and G5 by the
+user (the game enforces declared limits; the play-time checks also run at load, the cost measured first);
+G2 and G3 kept for the port. The fourteen steps under "Steps" are the plan; none has started.
