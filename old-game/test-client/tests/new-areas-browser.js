@@ -48,7 +48,7 @@ const riftRules = {
     const source = await (await fetch("scripts/combat.js")).text();
     const marker = "  window.Combat = {";
     const script = document.createElement("script");
-    script.textContent = source.replace(marker, "  window.__riftChecks = { actorById, hp, setHp, getBattle: () => battle, attack, resistance, validateEnemy, rollEnemyArtifact };\n" + marker);
+    script.textContent = source.replace(marker, "  window.__riftChecks = { actorById, hp, setHp, getBattle: () => battle, attack, resistance, validateEnemy, rollEnemyArtifact, estimatedWeaponStrike, attackLoadout };\n" + marker);
     document.head.append(script);
     await waitForSourceFiles();
     if (window.BattleStage) window.BattleStage.enabled = () => false;
@@ -182,17 +182,19 @@ async function checkRiftEnemies() {
         assert(base.raceId !== "demon" && base.level < expected.level, `${name} is a stronger ${expected.base}`);
         const natureClasses = ["druid", "botanomancer"];
         for (const id of Object.keys(base.classLevels).filter(id => !natureClasses.includes(id))) assert(raw.classLevels[id] >= base.classLevels[id], `${name} keeps the ${expected.base}'s ${id}`);
-        assert(JSON.stringify(raw.equipment) === JSON.stringify(base.equipment), `${name} carries the ${expected.base}'s gear`);
+        assert(JSON.stringify(raw.equipment) === JSON.stringify(base.equipment) && JSON.stringify(raw.inventory) === JSON.stringify(base.inventory), `${name} carries the ${expected.base}'s gear and nothing more`);
         assert(!Object.keys(raw.classLevels).some(id => natureClasses.includes(id)) && !spells.some(id => getSpell(id)?.element === "nature"), `${name} has no nature classes or spells left`);
       }
       // (Their classes add a little on top: the Monk's 5% off every spell, a warlock's Dark ward.)
+      else assert(!raw.inventory.length && Object.values(raw.equipment).every(slot => slot === null), `${name} carries no items (its claws or spells are its weapons)`);
       if (expected.raceId === "demon") assert(h.resistance(foe, "dark", true) >= 100 && h.resistance(foe, "holy", true) <= -70, `${name} takes no Dark spell damage and more from Holy (${h.resistance(foe, "dark", true)}, ${h.resistance(foe, "holy", true)})`);
     }
   } finally { Math.random = random; Combat.restore(null); }
   return count();
 }
 
-// N9: the Corrupted Mire Stalker's strikes are Dark; an unknown element is refused; a saved battle keeps it.
+// N9: the Corrupted Mire Stalker's strikes are Dark, and its AI foresees them so; an unknown element is refused; a saved
+// battle keeps it.
 async function checkRiftDarkStrikes() {
   const { assert, count } = riftRules.counter();
   const h = await riftRules.hooks();
@@ -213,6 +215,19 @@ async function checkRiftDarkStrikes() {
     const halved = await firstStrike("Corrupted Mire Stalker", { dark: 50 });
     assert(plain > 0 && resisted === 0, `Dark resistance stops the Stalker's strike (${plain} → ${resisted})`);
     assert(Math.abs(halved - plain / 2) <= 1, `Half Dark resistance halves it (${plain} → ${halved})`);
+    // The enemy AI's forecast of the strike knows it is Dark, as it does each strike's own element.
+    const forecast = async (name, resistances, critical = false) => {
+      const { player, foes } = await riftRules.battle(h, [name]);
+      player.resistances = resistances;
+      const result = h.estimatedWeaponStrike(foes[0], player, h.attackLoadout(foes[0]).primary);
+      return critical ? result.criticalDamage : result.normalDamage;
+    };
+    for (const critical of [false, true]) {
+      const open = await forecast("Corrupted Mire Stalker", {}, critical), guarded = await forecast("Corrupted Mire Stalker", { dark: 100 }, critical);
+      assert(open > 0 && guarded === 0, `The AI foresees Dark resistance stopping the Stalker's ${critical ? "critical" : "normal"} strike (${open} → ${guarded})`);
+      const kin = await forecast("Mire Stalker", {}, critical), kinGuarded = await forecast("Mire Stalker", { dark: 100 }, critical);
+      assert(kin > 0 && kinGuarded === kin, `The AI foresees the Mire Stalker's ${critical ? "critical" : "normal"} strike untouched by Dark resistance (${kin} → ${kinGuarded})`);
+    }
     // A battle saved and restored keeps the Dark strikes.
     let { battle, player, foes } = await riftRules.battle(h, ["Corrupted Mire Stalker"]);
     Combat.restore(Combat.serialize());
@@ -275,6 +290,17 @@ async function checkRiftMap() {
     assert(brightness(rift.color) < brightness(mire.color) * 0.75 && rift.color[0] > rift.color[1] && rift.color[2] > rift.color[1], `The Rift is painted dark red-violet at (${point.x}, ${point.y}) (${rift.color.map(Math.round)} over ${mire.color.map(Math.round)})`);
     assert(rift.forest <= mire.forest * 0.2 + 1e-9 && rift.water <= Math.max(0.1, mire.water * 0.3) && rift.wet <= mire.wet * 0.2 + 1e-9, `No scrub, pools or wet ground in the Rift at (${point.x}, ${point.y})`);
   }
+  // The mire's pools inside the Rift dry up: every spot of its inner part where the open mire had a pool has none.
+  let pools = 0;
+  for (let y = AREA.y - AREA.ry * 0.6; y <= AREA.y + AREA.ry * 0.6; y += 3) for (let x = AREA.x - AREA.rx * 0.6; x <= AREA.x + AREA.rx * 0.6; x += 3) {
+    if (!riftRules.inside({ x, y }, { ...AREA, rx: AREA.rx * 0.6, ry: AREA.ry * 0.6 })) continue;
+    const mire = field(x, y, without);
+    if (mire.water < 0.5) continue;
+    pools++;
+    const rift = field(x, y, withRift);
+    assert(rift.water < 0.5 && rift.water <= mire.water * 0.3, `The pool at (${x}, ${y}) is gone in the Rift (${rift.water.toFixed(2)} over ${mire.water.toFixed(2)})`);
+  }
+  assert(pools >= 20, `The open mire had pools there to dry up (${pools} spots)`);
   for (const point of [{ x: 790, y: 580 }, { x: 310, y: 555 }, { x: 1310, y: 245 }, { x: 765, y: 770 }]) {
     assert(JSON.stringify(field(point.x, point.y, withRift)) === JSON.stringify(field(point.x, point.y, without)), `The map is unchanged away from the Rift (${point.x}, ${point.y})`);
   }

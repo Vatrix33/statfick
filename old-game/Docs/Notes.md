@@ -568,6 +568,79 @@ placeholder looks (A1; `engine/Docs/Port-Tasks/README.md`). The user's 32 answer
   baseline's random stun) passed. The baseline's 11 known failures are unchanged. Smoke, enemies (511 cases) and
   lifecycle pass; the combat suite stops at the known Barbarian failure, as before.
 
+**New Areas (port task 6, 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`; the task is
+`engine/Docs/Port-Tasks/6_New_Areas.txt`).** Built in the old game, as tasks 1–4 were; old game only, the engine is
+untouched. Done: the port brings it over and doesn't build it again; its only port work is remaking the placeholder
+looks (N4; `engine/Docs/Port-Tasks/README.md`). The user's answers are in `engine/Docs/Engine-Plan.md`, "Decisions for
+task 6, New Areas" (N1–N10); N9 approved the drafted zone, enemies and groups below.
+- **The Abyssal Rift**, a new zone of Gloamfen Marsh (N1, N2): `abyssalRift: { x: 380, y: 885, rx: 215, ry: 88 }` in
+  `world-region-data.js`, in the empty south-west between the Rocky Rise and Reedcross; it took only Open Mire ground
+  (no town, road or other zone moved). `WorldRules.zoneAt` returns "Abyssal Rift" before the marsh's other zones (towns
+  and roads still come first, as everywhere). Travel there is the open mire's 3 km/h (`speedAt`'s marsh default).
+- **Levels and encounters** (`encounter-engine.js`, N3, N9): Levels 45–55 (`gloamfenProfiles`), a 50% encounter chance
+  (`gloamfenChances`; the Deep Mire's is 45%), and nine fixed groups in `gloamfenTables["Abyssal Rift"]` (level,
+  weight): 45·9 Abyssal Imp ×2; 47·9 Corrupted Bog Troll; 48·7 Corrupted Bog Troll + Abyssal Imp; 50·8 Corrupted Mire
+  Stalker; 50·8 Rift Fiend; 52·7 Rift Fiend + Abyssal Imp ×2; 53·8 Corrupted Mossback Lamia; 54·7 Abyss Witch; 55·6
+  Corrupted Mossback Lamia + Rift Fiend. The six enemies' levels are in `enemyLevels` (the guild picks Hunt targets by
+  them). **The marsh's range** became 35–55 (N10): `levelRange` and the map header ("GLOAMFEN MARSH · LEVEL 35–55"), so
+  its guild quests go up to Level 55.
+- **The enemies** (`enemies/*.json`, listed in `enemies/index.json`, written by a generator kept in the cloud session's
+  `claude-work/areas/`, not in git; stats are their bases' scaled to the new level, every class within its cap):
+  - Corrupted ones (N6): the marsh creature turned `demon` race (Voidborne: Holy spells +80%, Dark spells nothing), its
+    classes and gear kept and grown: **Corrupted Bog Troll** (47; the Bog Troll's greataxe, its brawler and guardian
+    classes, with knight and slayer added), **Corrupted Mire Stalker** (50; two daggers, ambusher and hunter, with
+    archer and shadow; `"attackElement": "dark"`: its weapon strikes are Dark), **Corrupted Mossback Lamia** (53; the
+    spear, her druid and botanomancer turned warlock and umbramancer; Dark Bolt, Dark Siphon, Abyssal Bolt and Night
+    Mantle instead of her nature spells).
+  - Demons: **Abyssal Imp** (impid, 46; claws, a quick rogue-warlock: ambusher, shadow, eminence; Dark Bolt and
+    Hellstride), **Rift Fiend** (demon, 50; claws, warrior, barbarian, berserker, reaver, brawler, great beast, slayer),
+    **Abyss Witch** (demon, 54; warlock, umbramancer, spellcaster, wizard, great mage, sage, sorcerer; Abyssal Bolt,
+    Dark Siphon, Spellstop and Night Mantle).
+  - Loot (N7): their gear and the usual chances, task 4's 1% artifact roll; no `drops` of their own, none `unique`.
+- **Dark strikes** (`combat.js`): an enemy definition may name `attackElement` (one of `SPELL_ELEMENTS`, checked in
+  `validateEnemy`); the actor keeps it (`attackElement` beside `naturalWeapon`, saved with the battle), and
+  `strikeElement(actor, weapon)` gives it before the weapon's element to a weapon strike's `hurt` and to the AI's
+  forecast of the strike (`estimatedWeaponStrike`). Only the Corrupted Mire Stalker has one. Not changed: a Fencer's
+  riposte still uses its weapon's element (a riposte needs a one-handed sword or rapier; no Rift enemy can make one).
+- **Looks** (PLACEHOLDER ART, N4): `sprite-catalog.js` after the Void Stalker, from the existing kits: the corrupted
+  three are their bases darkened with glowing red eyes (the troll ash-grey with violet veins, `voidVeins`; the stalker
+  black-scaled; the lamia's moss withered black); the Abyssal Imp an ember-red winged imp; the Rift Fiend a large
+  charcoal horned devil-kit demon with red eyes; the Abyss Witch a violet-robed devil-kit demon with a violet glow.
+  The map (`map-regions.js`, Gloamfen's spec): a dark violet scar with a red-glowing heart painted over the mire (no
+  pools, scrub or wet ground in it) and the label "ABYSSAL RIFT".
+- **Guild:** `guild.js`'s `regionalZones["gloamfen-marsh"]` has the Rift (anchor point 380, 885), so Mirewatch's and
+  Reedcross's Hunts and Culls go there once the hunter is Level 42 or more (a zone's minimum ≤ level + 3), naming a
+  Rift enemy near the hunter's level, as for every zone.
+- **Tests:** `test-client/tests/new-areas-browser.js`, 7 entries: `checkRiftZone` (place, shape, what it took, chance,
+  levels, travel, the marsh's range), `checkRiftEncounters` (the nine groups, levels, a travel encounter),
+  `checkRiftEnemies` (each enemy against the draft and its base, in battle too), `checkRiftDarkStrikes` (Dark
+  resistance stops the Stalker's strikes but no one else's, and the AI foresees it; a restored battle keeps them;
+  unknown elements are refused), `checkRiftLooks`, `checkRiftMap` (the painting sampled through the region's field function, the label, the
+  map panel), `checkRiftGuild` (Hunts by level). The battle entries use a second copy of `combat.js` with a hook
+  (`window.__riftChecks`). No old check needed changing.
+- **The checks can fail:** each rule was broken once in a copy of the game (64 mutations, by the same runner as task 4,
+  in the cloud session's `claude-work/areas/`, not kept): the zone's place, size and order, the marsh's range and
+  header, the chance and levels, every group's level, weight and make-up, each enemy's level, race, classes (over a
+  cap, over the level, a style class lost, a nature class kept), spells, weapons, loot, index entry and Dark strikes
+  (dropped at each step, in the AI's forecast, given to everyone, an unknown element let through), the looks, the
+  painting and label, and the guild zone. All 64 were caught after a second pass; the first let two through, both gaps the checks then
+  closed (an extra item in the Corrupted Bog Troll's pack, as only its equipped gear was compared; the Rift's pools
+  left in, as the sampled spots had no pools in the open mire to begin with: the check now scans the Rift's inner part
+  for the mire's pools).
+- **Regression** (2026-11-06, the cloud, Xvfb, on a frozen copy of the game with tasks 4 and 6): all 116 entries of the
+  44 check files and the four suites, against task 4's final run. Every entry gives the baseline's result (with task
+  4's two updated checks passing) except: the 7 new entries pass; `map-speed`, the known flaky travel-timing check,
+  failed once and passed rerun alone; `coast-lich-bosses`' `runCoastLichBossChecks` failed at "The phylactery never
+  takes a turn of its own". That check is flaky on merged `main` too (before tasks 4 and 6): it plays 30 steps of Ool's
+  battle with real dice and heals the hero only on the hero's turns, and five of Ool's spells (Last Requiem 3%,
+  Sepulcher Verdict 2.5%, Grave Sentence and Pallbearer's Touch 2%, Soul Extinction 1%) can defeat the hero outright
+  first, ending the battle before the phylactery's turn. Twelve runs each: 1 failure on `main` (1d79173, Last Requiem's
+  instant defeat), 1 on the current code; so do `runOolChecks` and the aggregate entry, whichever draws it. Left as it
+  is (an old check). The forecast fix (`strikeElement`) came after the full run: the
+  new checks, `artifact-rework`, `enemy-healing`, `coast-lich-bosses` and the smoke, enemies and lifecycle suites were
+  run again on the final code and give the same results. The baseline's 11 known failures are unchanged. Smoke, enemies (530 cases: the six new enemies' 19 AI cases added) and lifecycle pass; the combat suite
+  stops at the known Barbarian failure, as before.
+
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in
 the engine's way. The list's rune slotting sound was left out: the port adds proper sound effects instead.
@@ -636,6 +709,9 @@ A change is safe when these results stay identical.
   Barbarian failure), `trap`, and two flaky ones that passed on reruns: `map-speed` (travel timing) and
   `runCompanionImportChecks`. The small changes of that day left these results the same (the flaky two passed), and
   added `small-changes-browser.js` (9 entries, all passing).
+- 2026-11-06 (task 6's regression): `coast-lich-bosses`' Ool checks (`runOolChecks`, and `runCoastLichBossChecks`, which
+  runs it) are flaky too, about 1 run in 12, also on `main` before tasks 4 and 6: Ool's instant-defeat spells can end
+  the battle before "The phylactery never takes a turn of its own" is reached. Rerun before suspecting a change.
 
 **Known failure:** The combat suite fails "Legacy bonus-choice cancellation makes no changes and does not spend money". The cause is the 2026-10-06 edit that made Barbarian level 7 grant both STR and VIT +5% instead of a choice. The Church of Talos prompt for older saves that never recorded the choice became unreachable. The failure stops the combat suite early, so run `enemies` and `lifecycle` separately.
 

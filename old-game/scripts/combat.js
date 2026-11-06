@@ -1600,6 +1600,8 @@
   // The striking weapon's own critical damage bonus rides along the same way.
   let elementShareContext = null, activeWeaponCritDamage = 0;
   const weaponElement = weapon => weapon.elementShare ? [weapon.element || "physical", weapon.elementShare.element] : weapon.element || "physical";
+  // A weapon strike's element: the striker's own (port task 6: the Corrupted Mire Stalker's Dark), else its weapon's.
+  const strikeElement = (actor, weapon) => actor?.attackElement || weaponElement(weapon);
   function withWeaponElement(weapon, run, target = null) {
     const previous = elementShareContext, previousCrit = activeWeaponCritDamage;
     elementShareContext = weapon?.elementShare ? { base: weapon.element || "physical", element: weapon.elementShare.element, percent: weapon.elementShare.percent } : null;
@@ -2442,7 +2444,7 @@
       }
       const strikePower = (attackValues.power + brawlerBonus) * damageMultiplier * (1 + (incomingDamagePercent + firstTurnDamagePercent + conditionalPower + passivePower + slowerTargetPower + weaponRaceDamagePercent(weapon, target) + woundedTargetPercent(weapon, target) + largerHpBonus.damagePercent + chainBonus) / 100);
       const armorPierce = largerHpBonus.armorPiercePercent + toNumber(starscale?.armorPiercePercent, 0) + offHandArmorPierce(weapon, offHand) + toNumber(weapon.armorPierce, 0);
-      const amount = withWeaponElement(weapon, () => hurt(target, strikePower, actor.attackElement || weaponElement(weapon), critical, false, actor, weaponType, armorPierce), target);
+      const amount = withWeaponElement(weapon, () => hurt(target, strikePower, strikeElement(actor, weapon), critical, false, actor, weaponType, armorPierce), target);
       log(`${actorLabel(actor)} attacks ${actorLabel(target)}${actor.team === "player" ? " with " + weaponLabel : ""}: ${amount} damage${critical ? " (critical)" : ""}.`);
       applyArmorHitEffects(actor, target, weaponType, amount);
       if (critical && amount > 0 && hp(target) > 0) tearOldWound(target);
@@ -4571,8 +4573,8 @@
     const basicBonus = starscale ? estimatedDamage(target, power * starscale.amount / 100, "basic", false, false, actor, "bonus", defenseOverride, armorPierce) : 0;
     const armorBonusPercent = (weapon.effects || []).filter(effect => effect.kind === "bonus-damage-from-armor-percent").reduce((sum, effect) => sum + effect.amount, 0);
     const armorBonus = armorBonusPercent ? estimatedDamage(target, values(actor).armor * armorBonusPercent / 100 * damageMultiplier, "physical", false, false, actor, "bonus", defenseOverride) : 0;
-    const normalDamage = withWeaponElement(weapon, () => estimatedDamage(target, power, weaponElement(weapon), false, false, actor, weaponType, defenseOverride, armorPierce), target) + basicBonus + armorBonus;
-    const criticalDamage = withWeaponElement(weapon, () => estimatedDamage(target, power, weaponElement(weapon), true, false, actor, weaponType, defenseOverride, armorPierce), target) + basicBonus + armorBonus;
+    const normalDamage = withWeaponElement(weapon, () => estimatedDamage(target, power, strikeElement(actor, weapon), false, false, actor, weaponType, defenseOverride, armorPierce), target) + basicBonus + armorBonus;
+    const criticalDamage = withWeaponElement(weapon, () => estimatedDamage(target, power, strikeElement(actor, weapon), true, false, actor, weaponType, defenseOverride, armorPierce), target) + basicBonus + armorBonus;
     const resources = forecastResources(target);
     const normal = forecastDamageResources(target, normalDamage, resources);
     const critical = forecastDamageResources(target, criticalDamage, resources);

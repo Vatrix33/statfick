@@ -26,6 +26,8 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
    masterworks, a new masterwork armor, the Shadow Crystal as a rare drop from every enemy.
 6. `6_New_Areas.txt`: a demon/abyss area in the marsh with corrupted enemies (at least three demon/impid and three
    corrupted enemy types).
+   **Already done in the old game (2026-11-06): don't build it again.** The port carries it over with the rest of the
+   game; only its placeholder looks are left to remake (below).
 7. `7_New_Game_Plus.txt`: Limitless, unlocked by the first defeat of Anatemis and switchable on and off (level cap 200,
    enemies scaled to the player and 25% stronger, bosses with level-100 class perks, doubled masterwork drops), the
    Exotic rarity and its material Exium, five Exotic items, and an Exotic reward for beating Anatemis at level 200.
@@ -70,7 +72,7 @@ remember (the user's answers, 2026-11-05):
 is built in the old game too (user decision 2026-11-06, G1), also with placeholder art, and so is task 3 (the user,
 2026-11-06, "same rules apply"; R1); the other tasks are decided one at a time (still open for them: before the port,
 after the faithful port, or while porting). Task 4 too was built in the old game (the user asked for it on 2026-11-06;
-A1 kept its art placeholder).
+A1 kept its art placeholder), and so was task 6 (the user asked for it the same day; N4 kept its art placeholder).
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
@@ -104,6 +106,14 @@ A1 kept its art placeholder).
   `../../../old-game/Docs/Notes.md`, "Artifact Rework"; the old game's checks,
   `old-game/test-client/tests/artifact-rework-browser.js`, are the reference the ported rules are tested against. Still
   to do in the port: only the looks (below). Old game only, as tasks 2 and 3.
+- Task 6, New Areas (2026-11-06, a cloud session, offered in the same pull request as task 4): the Abyssal Rift, a new
+  Level 45–55 zone in Gloamfen Marsh's south-west, with three corrupted marsh creatures (Corrupted Bog Troll, Mire
+  Stalker with Dark strikes, Mossback Lamia with Dark spells; all demon race) and three demons (Abyssal Imp, Rift
+  Fiend, Abyss Witch), nine encounter groups, guild Hunts there, and the marsh's range raised to 35–55. The user's
+  design answers are in `Engine-Plan.md`, "Decisions for task 6, New Areas" (N1–N10); where each rule lives is in
+  `../../../old-game/Docs/Notes.md`, "New Areas"; the old game's checks,
+  `old-game/test-client/tests/new-areas-browser.js`, are the reference the ported rules are tested against. Still to do
+  in the port: only the looks (below). Old game only. Task 8 (the map rework) places the Rift on the continent.
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and
@@ -137,6 +147,13 @@ task 3's scenes are listed in `PLACEHOLDER_ART`):
   glass lung with wind; Wraithguard, a pale gauntlet trailing mist; Arrowtip Rain, a quiver with falling arrowheads;
   Titanfall, a cracked stone fist). The port remakes them as proper item art: artifacts of a rarity similar with a few
   details off, masterworks each completely their own (the task's own words). The rules behind them are not placeholder.
+- Task 6 (user decision N4): the six Abyssal Rift enemies' battle sprites (`old-game/scripts/sprite-catalog.js`, after
+  the Void Stalker: the Corrupted Bog Troll, Mire Stalker and Mossback Lamia are their marsh bases darkened with
+  glowing red eyes, the troll with violet veins; the Abyssal Imp an ember-red imp; the Rift Fiend and Abyss Witch are
+  the devil kit in charcoal and in a violet robe) and the Rift on Gloamfen's map (`map-regions.js`: a dark violet scar
+  with a red-glowing heart, painted over the mire, and its label). The port remakes them as proper art: the corrupted
+  creatures recognisably their marsh kin, corrupted as Alder Vale's are, and the demons and the rift their own. The
+  rules behind them are not placeholder.
 
 **Found before the work:**
 - Tasks 1 and 2 were checked against the engine work on 2026-11-03 (tasks 3 and 4 on 2026-11-06): none touches it (the
