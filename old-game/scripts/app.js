@@ -4334,6 +4334,7 @@ function itemDetailMarkup(item) {
   return '<div class="spell-detail item-detail ' + itemRarityClass(item) + '">' +
     '<div class="spell-detail-heading"><div><p class="eyebrow">ITEM DETAIL</p><h3>' + escapeHtml(item.name) + '</h3></div><span class="spell-detail-symbol" aria-hidden="true">◫</span></div>' +
     '<div class="spell-badges">' + itemRarityTag(item.rarity) + '<span>' + escapeHtml(itemCategoryLabel(item.category)) + '</span><span>' + escapeHtml(itemTypeLabel(item.type)) + '</span>' + (isArtifact && item.masterworkArtifactBaseId ? '<span>Level ' + escapeHtml(String(item.level)) + '</span>' : '') + '</div>' +
+    (isArtifact && window.ForgeArt?.goods ? '<div class="forged-art artifact-art" aria-hidden="true">' + ForgeArt.goods(item) + '</div>' : '') +
     '<div class="spell-detail-cost"><span>' + (item.shopAvailable === false ? 'Shop availability' : 'Shop price') + '</span><strong>' + escapeHtml(item.shopAvailable === false ? 'Not sold by shops' : itemPurchasePriceLabel(item)) + '</strong></div>' +
     (isArtifact || item.shopAvailable === false || item.shopOffer ? '<div class="spell-detail-cost"><span>Sell price</span><strong>' + escapeHtml(ShopRules.formatPrice(ShopRules.salePrice(item.priceSilver))) + '</strong></div>' : '') +
     '<dl class="spell-stat-details item-stat-details">' + detailStats + '</dl>' +
