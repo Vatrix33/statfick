@@ -489,9 +489,10 @@ How it's built:
   an equipped sword, never sellable (now a spare mace); and the Ornn board check ran with Ornn's hunt marked completed.
 - **Regression** (2026-11-06, the cloud, Xvfb): every zero-argument entry of the 42 check files (97 entries: the 88 of
   merged `main` plus 9 new) and the smoke, enemies, lifecycle and combat suites, against a baseline run of merged
-  `main` (07857b1) with its own checks. Every entry gives the baseline's result except `cinder-bosses`'
-  `runCinderBossChecks`, which expected Ornn among Cinder Isle's Great Hunts and was updated (it passes); the nine new
-  entries pass. The baseline's 11 failures are unchanged (`adventure-improvements` ×3, `bloody-mary`,
+  `main` (07857b1) with its own checks. Every entry gives the baseline's result; the nine new entries pass.
+  `cinder-bosses`' `runCinderBossChecks` expected Ornn among Cinder Isle's Great Hunts and was updated (it passes). In
+  the final run `runUrMatChecks` failed once because Ur-Mat's Axiom Lance stunned the hero before the Slowed Time turn
+  it waits for (a random battle case, unrelated); it passed three times rerun alone. The baseline's 11 failures are unchanged (`adventure-improvements` ×3, `bloody-mary`,
   `combat-lifecycle` outside its suite, `music`, `newc`, `settings-companions`, `shop`, `talos-edge`, `trap`);
   `shop-browser.js` is stale since before task 2 (8-piece castle smiths, a `map-spell-shop` button, 219
   catalogue items) and stops at its first assertion as before. Smoke, enemies (511 cases) and lifecycle pass; the
