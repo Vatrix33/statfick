@@ -14,5 +14,6 @@
     <Project Path="Tools/AudioBenchmark/AudioBenchmark.csproj" />
     <Project Path="Tools/PlayTheme/PlayTheme.csproj" />
     <Project Path="Tools/Packer/Packer.csproj" />
+    <Project Path="Tools/Editor/Editor.csproj" />
   </Folder>
 </Solution>

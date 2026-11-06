@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The Statventure Editor (M11, Docs/Editor.md): a separate program on the engine's UI. Its tests are in
+       Tests/Statventure.Tests/Editor (P1); Tools/Scripts/editor.sh runs it from the repo (the dev setup, P5). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Statventure.Editor</RootNamespace>
+    <AssemblyName>Statventure.Editor</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Engine/Statventure/Statventure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Every stylesheet in the editor's folders: the shell adds them all to its document (Docs/Editor.md,
+         "How it works", step 4: a part's stylesheet is found without a list). -->
+    <EmbeddedResource Include="**/*.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Statventure.Tests" />
+  </ItemGroup>
+</Project>

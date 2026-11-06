@@ -1,0 +1,62 @@
+/* The Statventure Editor's shell (Docs/Editor.md, P4): the old game's dark-mode colours with the ember accent,
+   Lato 13 px, rows 24 px. The parts' own sheets come after this one and keep to their own classes. */
+:root {
+  --paper: #1a1c1a;
+  --paper-deep: #292c28;
+  --line: #3a3d38;
+  --ink: #eeeae1;
+  --muted: #aaa9a1;
+  --soft: #7d817b;
+  --ember: #d77a50;
+  --ember-pale: #402a23;
+  --row: 24px;
+}
+
+* { box-sizing: border-box; scrollbar-color: var(--soft) var(--paper-deep); }
+
+/* Nothing is fixed or otherwise in a layer of its own: in the window the page is the main frame, whose root
+   scroller is composited, while Chromium's references are captured in an iframe, whose root isn't; a fixed box
+   over the root is a layer of its own (grayscale text) in the first and not in the second. */
+html, body { height: 100%; }
+html { background: var(--paper); }
+
+body { margin: 0; overflow: hidden; color: var(--ink); background: var(--paper); font: 13px/24px Lato; }
+
+button {
+  height: var(--row);
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--ink);
+  background: var(--paper-deep);
+  font: inherit;
+  line-height: 22px;
+  white-space: nowrap;
+}
+button:hover:not(:disabled) { border-color: var(--ember); }
+button:active:not(:disabled) { background: var(--ember-pale); }
+button:disabled { color: var(--soft); }
+button.primary { border-color: var(--ember); color: var(--paper); background: var(--ember); }
+button.primary:active:not(:disabled) { background: var(--ember); }
+
+:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
+
+/* The shell: the top bar, the panes with their splitters, the status line. */
+.shell { display: flex; flex-direction: column; height: 100%; }
+.topbar { display: flex; flex: none; align-items: center; gap: 4px; height: 33px; padding: 0 8px; border-bottom: 1px solid var(--line); }
+.topbar-gap { width: 8px; }
+.panes { display: flex; flex: 1; min-height: 0; }
+.pane { flex: 0 1 auto; min-width: 120px; overflow: auto; background: var(--paper-deep); }
+.pane[data-pane=form] { flex: 1 1 0; min-width: 200px; }
+.splitter { flex: none; width: 4px; cursor: col-resize; user-select: none; }
+.splitter:hover, .splitter.dragging { background: var(--ember); }
+.shell.resizing, .shell.resizing * { cursor: col-resize; }
+.status { flex: none; height: 25px; padding: 0 8px; overflow: hidden; border-top: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+
+/* Dialogs: a layer over the shell, the box in its middle. */
+.dialog-layer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5); }
+.dialog { width: 420px; max-width: calc(100% - 48px); padding: 12px 16px 16px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper-deep); }
+.dialog:focus { outline: none; }
+.dialog h2 { margin: 0 0 8px; font-size: 15px; font-weight: 700; }
+.dialog-content p { margin: 0 0 8px; }
+.dialog-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }

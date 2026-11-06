@@ -1,0 +1,5 @@
+/* The editor's fonts: the game's Lato from ui.pak (P4), as the game's stylesheet declares it. The only sheet with
+   @font-face rules; the Chromium fixtures leave it out and take the harness's Lato (Tools/PaintReference: the
+   regular and bold faces), so the editor uses the weights 400 and 700 only. */
+@font-face { font-family: Lato; src: url("ui/fonts/lato-regular.ttf") format("truetype"); font-style: normal; font-weight: 400; }
+@font-face { font-family: Lato; src: url("ui/fonts/lato-bold.ttf") format("truetype"); font-style: normal; font-weight: 700; }

@@ -36,6 +36,10 @@ the user and wait for their go-ahead before starting the next one.
 - Cutscenes (M10, `Docs/Scene.md`, step 7): `Tools/Scripts/play-cutscene.sh jiruan [--volume 0-100]` plays Ji'ruan's intro, the proof, with its sound in
   the sandbox's window (Escape or its Skip button skips, R replays; `--dump <folder>` writes its frames instead);
   `Tools/Scripts/make-cutscene-references.sh` captures the old game's card in Chromium at the sampled times.
+- The editor (M11, `Docs/Editor.md`): `Tools/Scripts/editor.sh [--player-folder <folder>]` runs the Statventure Editor
+  from the repo (the dev setup, Release; from a script, pass a scratch player folder); its screens against Chromium:
+  run the tests once (they write `Reference/editor-fixtures.json`), then `Tools/Scripts/make-editor-references.sh
+  [fixture ...]` (PaintReference at 1 and 1.65, an invisible window; only the named fixtures when given).
 - Audio (M8, `Docs/Audio.md`): `Tools/Scripts/play-theme.sh [theme] [--volume 0-100]` plays the music on the real
   device, to listen to it (in a real terminal; testing it from a script, send only volume 0).
   `Tools/Scripts/audio-benchmark.sh [--split | --start [--warm] | --live | --effects] [theme ...]` times it (Release).

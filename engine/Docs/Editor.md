@@ -935,6 +935,12 @@ or the cloud under Xvfb).
      Mutations: each field, the path.
 8. **Opening packs: the browser, drops and the entry list (editor).** After 2, 3, 4; beside 9. Recent places
    kept in the editor's `editor/` folder in the per-user game folder (G6; the run's scratch folder in tests).
+   **Also the shell's remembered page zoom and window size** (P4, G6; the manager's decision (a), 2026-11-06, at
+   step 4's report: step 8 adds them along with the other `editor/` settings, one owner for the settings files,
+   step 4 staying without a file format): the zoom level the shell's Ctrl+= and Ctrl+- set
+   (`Shell/EditorView.Keys.cs`: `Zoom` from a private level; a way to set the level at start is needed there) and
+   the window's size (`EditorApplication`'s `WindowOptions`, read before `Run`), kept in a file of their own in
+   `editor/`.
    - Owns: `Tools/Editor/Browser/` (the browser's screen on step 3's model), `Tools/Editor/Entries/`, the
      session's opening (its own file), tests in `Tests/.../Editor/`, fixtures (list, browser).
    - Finished: the browser's places, listing, path field and filters; drops; packs opened with each kind of
@@ -1029,6 +1035,176 @@ and below it, by paths below the source path's folder; no data path exists) and 
 path); `update`'s refusals (a missing pack isn't made, a damaged kept entry and a clash stop it, nothing written)
 and its url check against the folder and the pack, following P28's rule ("the data the mod sees").
 
+### Step 4: the shell (2026-11-06)
+
+**Files.** `Tools/Editor/` (`Editor.csproj`: an `Exe`, assembly `Statventure.Editor`, namespace `Statventure.Editor`,
+every `**/*.css` an embedded resource, internals visible to `Statventure.Tests`; in `Statventure.slnx` under
+`/Tools/`, referenced by the test project): `Program.cs` and `EditorArguments.cs` (the command line),
+`EditorApplication.cs` (the window), `Session/` (`EditorSession.cs`, the session's skeleton; `GameData.cs`, where
+the game's packs are), `Shell/` (`EditorView.cs` and `EditorView.Keys.cs`, the document; `EditorPart.cs`;
+`EditorCommands.cs`; `Dialogs.cs`; `Splitter.cs`; `Shell.css`; `Fonts.css`). Tests in
+`Tests/Statventure.Tests/Editor/`: `EditorHarness.cs`, `EditorFixtures.cs` (the fixture record, the interface, the
+writer), `EditorScreenTests.cs` (the list and the Chromium comparisons), `EditorFixtureWriterTests.cs`,
+`TestParts.cs`, and the shell's own in `Editor/Shell/` (`ShellScreens.cs`, `ShellTests.cs`, `CommandTests.cs`,
+`DialogTests.cs`, `SplitterTests.cs`, `EditorArgumentsTests.cs`). Scripts: `Tools/Scripts/editor.sh`,
+`Tools/Scripts/make-editor-references.sh`. References: `Reference/editor-fixtures.json` (written by the test run),
+`Golden/editor-shell@1.png`, `@1.65.png`, `Golden/editor-dialog@1.png`, `@1.65.png`.
+
+**Running it.** `Tools/Scripts/editor.sh [--player-folder <folder>]` builds Release and starts the editor in the dev
+setup. The program's command line (`EditorArguments`): `--repo <engine folder>` is the dev setup (the game's packs
+are `<engine>/Assets/Packs`, `GameData.DevSetup` true; P5); `--game <game folder>` an installed game's
+`<folder>/packs`, read-only; neither: `packs/` beside the program, read-only; `--player-folder <folder>` the player's
+game folder (`ApplicationOptions.GameFolder`; default this machine's), so a check runs it on a scratch folder. A
+wrong command line or a packs folder without `ui.pak` (no fonts) stops it before a window opens, with the usage
+(exit code 2). The window: "Statventure Editor", 1280 × 800, at least 800 × 500, no sound (step 13 turns
+`ApplicationOptions.Audio` on in `EditorApplication`, the one line of this step's files it changes); its title and
+page zoom follow the view's (`View.TitleChanged`, `View.ApplyZoom` → `UiHost.PageZoom`).
+
+**The shell's layout** (`Shell.css`, P4): the old game's dark-mode colours as variables (`--paper`, `--paper-deep`,
+`--line`, `--ink`, `--muted`, `--soft`, `--ember`, `--ember-pale`; `--row` 24 px), Lato 13 px with 24 px lines.
+Top to bottom in normal flow (`html`, `body` and `.shell` 100 % high, the body `overflow: hidden`): the top bar
+(`header.topbar`, 33 px with its border: New mod, Open | Save, Save As | Import | Undo, Redo, buttons 24 px high), the
+panes (`main.panes`: `section.pane[data-pane=entries]` 280 px, a 4 px splitter, `[data-pane=form]` the rest, a
+splitter, `[data-pane=preview]` 360 px; each pane scrolls on its own), the status line (`footer.status`, 25 px).
+A narrower window takes the width from the middle pane first. Focus shows as a 2 px ember outline.
+
+**The conventions the editor's later steps follow (P2).** Each step works in its own folder and files; nothing
+below needs a shared file edited.
+1. **A part** is a non-abstract subclass of `Statventure.Editor.Shell.EditorPart` in the editor's assembly, in a
+   folder of its own (`Tools/Editor/<Part>/`, namespace `Statventure.Editor.<Part>`), with a parameterless
+   constructor. The shell finds and makes one of each; nothing is registered. It says where it shows
+   (`Pane`: `EditorPane.Entries`, `.Form`, `.Preview`, or null for none, e.g. a part that only opens dialogs or
+   adds to other parts) and its `Order` (default 0), and builds itself in `Attach(UiElement? element)`. Parts are
+   attached in this order: those without a pane, then the entry pane's, the form pane's, the preview pane's; within
+   that by `Order`, then by the class's full name. A part with a pane gets its own `<div class="part">` in that pane
+   (the pane's children in that same order) as `element`; one without gets null. `Session` and `View` are set
+   before `Attach`. Parts reach each other with `View.Part<T>()`; in `Attach` the later parts exist but aren't
+   attached yet, so use them from event handlers.
+2. **A part's stylesheet** is any `.css` file in its folder: the project embeds every `.css` file and the shell adds
+   them all to the document, `Shell/Fonts.css` first, `Shell/Shell.css` second, then the rest ordered by resource
+   name (`Statventure.Editor.<Folder>.<File>.css`, ordinal). Scope every selector under the part's own classes;
+   use the shell's variables for colours. Rules the Chromium comparison needs: no `@font-face` (only `Fonts.css`
+   has them: Lato 400 and 700 from `ui.pak`, the faces the capture harness also has, so use the weights 400 and
+   700 only); nothing in a compositing layer of its own over the root: no `position: fixed` (use `absolute`
+   inside the root), no `will-change`, no transform or opacity animations (the editor runs as a main frame, whose
+   root scroller is composited, while Chromium's captures are made in an iframe, whose root isn't, so such a box
+   is a layer of its own, with grayscale text, only in the editor; see "Found" below); no `color-scheme` (the
+   engine ignores it, Chromium would draw its native controls dark): give controls their own colours, and
+   `font: inherit` (the shell does it for buttons).
+3. **Commands** (`View.Commands`, `EditorCommand`): `Handle(command, request => acted, () => canRun)`. A command runs
+   its handlers that can run in the order they were registered until one returns true. The top bar's button of a
+   command (New mod, Open, Save, Save As, Import, Undo, Redo) is enabled while one of its handlers can run; call
+   `View.Refresh()` (or `Session.NotifyChanged()`) when that may have changed. The keys (at the document, after
+   the focused element's own listeners): Ctrl+S Save, Ctrl+Shift+S SaveAs, Ctrl+O Open, Ctrl+Z Undo, Ctrl+Y and
+   Ctrl+Shift+Z Redo, Ctrl+F Filter, F2 Rename, Delete Remove, Ctrl+= and Ctrl++ (also the keypad's) ZoomIn,
+   Ctrl+- ZoomOut; Alt or the Super key with any of them is no command. A request carries the key event
+   (`Key`) and the element it went to (`Target`; for a click, the button) and `FromTextField` (a text field,
+   a textarea or contenteditable). A key an element's listener cancelled is no command; a command that acted
+   cancels the key's default action; one that didn't leaves it (return false from Undo while a text field has
+   typing to undo, P13, and the field undoes it). Delete in a text field never reaches Remove. While a dialog is
+   open only the zoom keys are commands, and Escape cancels the topmost dialog. The zoom is the shell's own
+   handler: half a zoom level a step, the page zoom 1.2 to the power of the level (the old game's View menu,
+   Electron's zoomIn and zoomOut roles), from 53 % (level −3.5) to 299 % (level 6), Electron's default limits
+   of 50 % and 300 %; not remembered yet: step 8 adds that, with the window's size, to the `editor/` settings
+   (the manager's decision (a), 2026-11-06; "Steps", step 8).
+4. **Dialogs** (`View.Dialogs`): `Ask(title, message, (text, value) ...)` gives a `Task<string?>`: the value of the
+   button clicked, null for a button with a null value or Escape; the first button with a value is the primary
+   one (ember). Your own: `var d = View.Dialogs.Create(title)`, fill `d.Content` (and `d.Buttons`, or
+   `d.AddButton(text, value, primary)`), `d.Show()`, await `d.Closed`; `d.Close(value)` from code. Markup:
+   `div.dialog-layer` (the last child of the body, over the window, translucent) holding `div.dialog` (role
+   dialog, `aria-modal`, `aria-labelledby` its `h2`) with `div.dialog-content` and `div.dialog-buttons`. While one
+   is open the shell and every lower dialog are `inert` (neither the pointer nor Tab reaches them: Tab and
+   Shift+Tab go round the top dialog's controls). Shown, it takes the focus as Chromium's modal dialog does
+   (`Element::GetFocusDelegate`): its first `autofocus` element, else its first keyboard-focusable element, else
+   the box; a press on the layer outside the box leaves the focus where it is, one on the box's text focuses the
+   box. Closed, the focus goes back to where it was before it opened if it was in the dialog (HTML's rule).
+5. **The session** (`Statventure.Editor.Session.EditorSession`, no DOM) is a partial class: a step adds its own file
+   to `Tools/Editor/Session/` (`EditorSession.Opening.cs` for step 8, `EditorSession.Drafts.cs` for step 9, …) with
+   its own fields and methods. The skeleton gives: `Game` (`GameData`: `PacksFolder`, `DevSetup`, `UiPack`);
+   `PackName` (the open pack as the title names it, its file name; null when none, setting it notifies);
+   `AddUnsavedWork(Func<bool>)` (a source the title's "•" and closing ask; register it once where your state is
+   made, e.g. when a pack opens, or in your part's `Attach`); `NotifyChanged()` and `Changed` (the view refreshes
+   its title, status and buttons); `Own(disposable)` (disposed with the session, last first).
+6. **The view's other parts:** `View.Status` (the status line's text, "No pack open" at the start),
+   `View.Title` ("Statventure Editor — <pack>", with "• " first while there is unsaved work; M11-17),
+   `View.Pane(pane)`, `View.Button(command)`, `View.Shell` (the shell's root), `View.Document`.
+7. **Screens against Chromium** (M11-20, P36): a step's fixtures are a class implementing `IEditorFixtures` in a
+   file of its own beside its tests (`Tests/Statventure.Tests/Editor/<Part>/<Part>Screens.cs`), giving
+   `EditorFixture(name, width, height, setup, windowFocused = true)`: the live editor (`EditorHarness` on the repo's
+   packs with the editor's parts) at that size in CSS px, put into its state by `setup`. Names are unique across
+   all steps and name the goldens (`Golden/editor-<name>@1.png`, `@1.65.png`), so start them with the part's name
+   (`list-marks`, `form-controls`, …). Every class implementing the interface is found in the test assembly; the
+   test run writes the list of all of them, by name, into `Reference/editor-fixtures.json` (after two steps
+   merge, one run writes it again); `Tools/Scripts/make-editor-references.sh <name> ...` captures only the named
+   ones in Chromium 152 (PaintReference, X11, an invisible window) at 1 and 1.65, leaving the other goldens;
+   `EditorScreenTests` compares each at both scales at the paint fixtures' limits (12 levels, 0.2 % of the pixels).
+   The writer (`EditorFixtures.Html`, `EditorFixtures.Css`): the editor's stylesheets without `Fonts.css` (the
+   harness gives Lato), and the body's children (keep attributes off `html` and `body`) with the state that isn't
+   in attributes written as attributes: an input's value as `value`, checked boxes `checked`, selected options
+   `selected`, a textarea's value as its text, `data-indeterminate`, `data-focus` on the focused element,
+   `data-scroll-top` and `data-scroll-left` on scrolled elements, and a `surface` (the preview's 3D) as an empty
+   `div` of its border-box size (P36). What doesn't carry over and so stays out of fixtures: hover and pressed
+   states, the caret and selections, the engine's top layer (tooltips, a select's popup, validation bubbles).
+8. **Tests** drive the editor without a window: `new EditorHarness(width, height, scale, parts)` (test parts, from the
+   test assembly, besides the editor's; `RecordingPart` handles every command and records the requests), then
+   `Click`, `Key`, `Drag`, `Frame` and `Q`, `Rect`, `Middle` (an element's middle in window units).
+9. **The player's folders:** step 4 writes nothing; the editor's own settings go into `<player folder>/editor/` (G6),
+   a file per step that keeps any, through `Application.Storage.Folder` (tests: the run's redirected folder).
+
+**Splitters** (`Splitter.cs`): a press of the main button on a splitter takes the pointer's capture and is cancelled
+(no focus change, no selection, no compatibility mouse events); moves set the side pane's inline `width` in whole
+CSS px (the left splitter the entry list, the right one the preview, mirrored), the side pane at least 120 px and
+the middle one at least 200 px; the release or a lost capture (the window losing the focus) ends the drag. While
+dragging the splitter has `.dragging` (ember) and the shell `.resizing` (the column-resize cursor everywhere).
+
+**Choices the design left to the step** (made here): the window's size (1280 × 800, at least 800 × 500); the panes'
+widths (280 and 360 px) and narrowest widths by a splitter (120, the middle 200); the title's mark first ("• " at the
+start, so a shortened title keeps it); the zoom's steps and limits (the old game's View menu as above; no reset key,
+Ctrl+0 not being in the design); the dialog's look (a box 420 px wide on a half-dark layer, the primary button
+ember, buttons right-aligned in the order given); the empty status line's "No pack open"; the dialog fixture's
+sample text; the `--player-folder` option and the assembly's name `Statventure.Editor`.
+
+**Found** (reported to the manager, the engine not changed):
+- *Text that is the first thing drawn in a paint chunk is drawn with the previous chunk's LCD verdict.*
+  `PaintTarget.DrawText` and `DrawGlyphs` draw at once, but the chunk (and with it `Canvas.TextLcd`) is made in
+  `AddItem` when the item ends; so text first in a new property state (in a box with `overflow: hidden` or `clip`
+  with nothing drawn before it inside the clip) takes the verdict of the chunk before, often one without text,
+  grayscale. Chromium draws it LCD. In the shell: the status line's text, 435 pixels at 1× and 843 at 1.65, within
+  the limits (with the status line's `overflow: hidden` taken out the shell matches at 0 and 28 pixels). Later
+  steps' scrolling panes meet it where a pane's first drawing is text. A minimal repro (a test file, not
+  committed): `~/.cache/stat-fick-build/claude-work/m11/step4/ScratchLcdRepro.cs.txt` on the user's PC (on
+  `html { background: #1a1c1a }`, `<div style="overflow: hidden">No pack open</div>`: the chunk's verdict LCD, the
+  text drawn grayscale, colour spread 9; without `overflow: hidden` LCD, spread 88). **Handled outside this step
+  (the manager, 2026-11-06):** a worker of its own on the painter fixes it.
+- *The editor can't start without the player's mods.* `Application.Run` mounts the player's `mods/` (and
+  `$STATVENTURE_DEV_FOLDER`) into `Application.Data` for every application, so a damaged mod in the player's mods
+  folder stops the editor's start, though the editor doesn't read `Application.Data`. **Handled outside this step
+  (the manager, 2026-11-06):** an option to start without mounting the player's mods goes to step 3
+  (`Core/Application.cs`); `EditorApplication` uses it in a later step, not in step 4.
+- *Chromium's reference pages are iframes.* `Tools/PaintReference` lays each fixture out in a srcdoc iframe, whose
+  root isn't the global root scroller (`CompositingReasonFinder::RequiresCompositingForRootScroller`) and, with the
+  body's `overflow: hidden`, not user scrollable, so its root isn't composited; the engine's documents are main
+  frames (the root scroller always composited). A fixed box over the root is a layer of its own in the editor (by
+  overlap; its text grayscale where no opaque background is known under it) and part of the root in the
+  capture: the shell's first version (a fixed `.shell`) failed at 1× (0.26 %) on its top bar's text for this.
+  Hence the rule in convention 2.
+
+**Results.** The screens against Chromium (differing pixels past 12 levels; the limit 0.2 %): `shell` 435 of
+640,000 at 1× (0.068 %, worst 60), 843 of 1,742,400 at 1.65 (0.048 %, worst 58); `dialog` 389 at 1× (0.061 %,
+worst 62), 598 at 1.65 (0.034 %, worst 99), all the status line's text above and glyph antialiasing.
+Mutations (`claude-work/m11/step4-mutations.json`, made by `step4/make-mutations.py`): 189, every behaviour of the
+shell, the stylesheet's look and the fixture writer broken once; 183 killed (three after closing the gaps the first
+run showed); the 6 survivors can't change what the checks see: the other stylesheets' order and the parts of the
+editor's own assembly (none before step 8), and four looks under the screens' limits (the focus ring 1 px narrower,
+about 0.02 % of the pixels; the dialog layer 10 % lighter, 3–4 levels; the dialog title 2 px smaller on its fixed
+24 px line; the dialog layer fixed: its text lies on the box's own opaque background and keeps LCD text).
+Lesson for later steps' tests: never read `Task.Result` of a dialog a broken rule may leave open (assert
+`IsCompleted` first): `mutate.py` waits 10 minutes on the hung test and reads it as a survivor.
+
+**Not checked:** the program in a real window (none may be shown on the PC; to check by hand: `editor.sh` opens the
+shell, the window's title, the zoom keys through `UiHost.PageZoom`, a splitter dragged with the mouse and its
+cursor); Windows.
+
 ## Status
 
 **M11 started (2026-11-06):** the user's go; the decisions recorded (M11-1–M11-21 and the user's rule for
@@ -1058,3 +1234,15 @@ all killed; nothing written to the player's real folders.
 Nothing of P1–P38 or G1–G6 changed; no question came up that the design doesn't answer (the step's own choices
 are listed at the end of "How it works", step 2). Not checked: Windows
 (writing over a pack held open, a case-insensitive file system under `ImportSources`' default lookup).
+
+**Step 4, the shell: done (2026-11-06, branch `m11-step4`).** The program, the session's skeleton, the view (top
+bar, panes, splitters, status line), parts found without a list, commands and keys, dialogs, the title and the zoom;
+the empty shell and a dialog match Chromium at 1 and 1.65; the conventions for steps 8–13 ("How it works", step 4).
+79 new tests (`Tests/Statventure.Tests/Editor/`); the full suite passes on the GPU and on lavapipe: 2676 tests
+(`main`'s 2597 at `2323779` and 79 new). Mutations: 189 (`~/.cache/stat-fick-build/claude-work/m11/step4-mutations.json`),
+183 killed, 6 accounted for ("How it works", step 4, "Results"), nothing written to the player's real folders.
+Found and reported (the engine not changed): text first in a paint chunk is drawn with the previous chunk's LCD
+verdict (a worker of its own on the painter); the editor can't start without mounting the player's mods (step 3);
+the capture harness's iframe root isn't composited as a main frame's is (the stylesheet rule, convention 2). Not
+checked: the program in a real window (to check by hand), Windows. Remembering the zoom and the window's size (P4,
+G6): step 8, the manager's decision (a) of 2026-11-06 ("Steps", step 8).

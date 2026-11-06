@@ -13,6 +13,8 @@
 
   <ItemGroup>
     <ProjectReference Include="../../Engine/Statventure/Statventure.csproj" />
+    <!-- The editor (M11, P1): its tests are in Editor/. -->
+    <ProjectReference Include="../../Tools/Editor/Editor.csproj" />
   </ItemGroup>
 
   <ItemGroup>
