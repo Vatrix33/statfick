@@ -3765,6 +3765,7 @@ function artifactEffectLabel(effect) {
     "prism-basic-damage": "Your Basic damage splits into four quarters: one stays Basic, the other three become random other elements",
     "unreducible-cleave-percent": "Other enemies take " + absoluteAmount + "% of attack damage, unreducible",
     "cleave-percent": "Other enemies take " + absoluteAmount + "% of attack damage; their defenses apply",
+    "spell-reflect-percent": "When an enemy's spell damages you, " + absoluteAmount + "% of the damage strikes its caster back in the spell's element; their defenses apply",
     "extra-target-spell": "A single-target spell can take a second target for " + absoluteAmount + "% more Mana",
     "second-strike": "Deals " + absoluteAmount + "% less damage, but each hit strikes the target again for the same amount. The second strike counts as a weapon attack",
     "fifth-attack-boost": "Every " + formatValue(effect.every) + "th attack with it in a battle deals " + absoluteAmount + "% more damage (" + formatValue(effect.criticalAmount) + "% more if it is a critical hit) and echoes " + formatValue(effect.echoPercent) + "% of the damage dealt to every other enemy; their defenses apply",

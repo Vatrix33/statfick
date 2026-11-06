@@ -20,6 +20,8 @@
   let pickerKind = null, weatherSpellId = null, pendingApex = null;
   // Lament's spell waiting for its second target (port task 5, M19).
   let pendingLament = null;
+  // A reflected spell (the Hexbane Coat) can't be reflected again.
+  let reflectingSpell = false;
   // The animated battlefield replays what happened; it never changes the rules.
   // Forecasts run on copies or while evaluating and are never reported.
   let stageHit = null, stageQuiet = false;
@@ -2030,6 +2032,17 @@
       if (stormcatcher && hp(target) > 0) {
         const maximum = values(target).maxMana, restored = Math.min(maximum - mana(target), Math.floor(maximum * stormcatcher / 100));
         if (restored > 0) { setMana(target, mana(target) + restored); log(`${actorLabel(target)} catches ${restored} Mana from the spell.`); }
+      }
+      // The Hexbane Coat (port task 5, M26): 25% of an enemy spell's damage strikes its caster back in the spell's element,
+      // its defenses applying; a reflection is never reflected again.
+      const hexbane = spell && !reflectingSpell && hp(attacker) > 0 ? withActor(target, () => equippedDefenseItems().flatMap(item => item.effects || [])
+        .filter(effect => effect.kind === "spell-reflect-percent").reduce((best, effect) => Math.max(best, toNumber(effect.amount, 0)), 0), battle) : 0;
+      if (hexbane > 0) {
+        reflectingSpell = true;
+        try {
+          const back = hurt(attacker, amount * hexbane / 100, element, false, true, target, "spell");
+          if (back) log(`${actorLabel(target)}'s Hexbane Coat turns ${back} damage back on ${actorLabel(attacker)}.`);
+        } finally { reflectingSpell = false; }
       }
       // Bloodmoon Chalice: weapons and spells heal their wearer for a share.
       const chalice = ["melee", "ranged", "spell"].includes(attackKind) ? artifactAmount(attacker, "damage-lifesteal-percent") : 0;
@@ -6130,7 +6143,8 @@
     }
     // Port task 5: Noble Hero at 1% from every demon and devil but the bosses (M22), and the Shadow Crystal at 0.05% from
     // every enemy that gives loot, bosses too, not objects (M24).
-    for (const [itemId, chance, applies] of [["masterwork-noble-hero", 1, ["demon", "devil"].includes(character.raceId) && raw.unique !== true], ["key-item-shadow-crystal", 0.05, raw.inert !== true]]) {
+    // The Hexbane Coat at 1% from every non-boss undead, demon and devil, not objects (M26).
+    for (const [itemId, chance, applies] of [["masterwork-noble-hero", 1, ["demon", "devil"].includes(character.raceId) && raw.unique !== true], ["masterwork-hexbane-coat", 1, ["undead", "demon", "devil"].includes(character.raceId) && raw.unique !== true && raw.inert !== true], ["key-item-shadow-crystal", 0.05, raw.inert !== true]]) {
       if (!applies) continue;
       if (!itemCanDrop(itemId)) throw new Error(`${raw.name}: ${itemId} must be loaded for its drops`);
       if (!drops.some(drop => drop.itemId === itemId)) drops.push({ itemId, chance, minimum: 1, maximum: 1 });

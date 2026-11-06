@@ -1063,6 +1063,14 @@ and 6 were merged; the task is `Docs/Port-Tasks/5_New_Masterworks.txt`).** Asked
 - M25 **Delivery:** all three parts (Sparkling with Treasure Seeker and Moneyshot; Lament and Noble Hero; the new armor
   and the Shadow Crystal) in one pull request at the end; the only stop on the way is the new armor's draft (M23).
   (Not a stop after each part, not a pull request per part.)
+- M26 **The new armor, the Hexbane Coat** (the draft reviewed 2026-11-06; the user changed only its source, "It only
+  drops from one enemy? That seems a bit too rare"): a masterwork coat (clothing), Boreal Bolt its main maker; spell damage
+  you take −10%, and when an enemy's spell damages you, 25% of that damage strikes the caster back in the spell's element,
+  its defenses applying. Story: "A Boreal Bolt hunter's long coat, lined with silvered thread. Witches who curse its
+  wearer feel their own spells come home." It drops at 1% from every non-boss undead, demon and devil (not objects),
+  forged at your level, and is in the Sparkling pool; placeholder look: the normal forged coat in silver-grey. (Not 5%
+  from the Abyss Witch only, as drafted; not 3% from undead and demon casters of Level 45 and up, not 2% from every
+  caster from Level 40, not sold in Ravenwatch.)
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).

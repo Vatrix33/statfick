@@ -1292,6 +1292,13 @@
     // Kugelblitz: a shortbow whose main part is always the Church of Talos's. 15% of each hit splashes onto
     // every other enemy (reduced by their defenses, like Jackhammer's); every enemy it damaged is marked
     // until the end of its next turn (refreshed, never stacked): its spells cost 50% more Mana. Lightning rune.
+    // The Hexbane Coat (port task 5, M23, M26): 1% from every non-boss undead, demon and devil. PLACEHOLDER ART: the normal
+    // forged coat; its colour is recorded for the port's remake.
+    "hexbane-coat": {
+      name: "Hexbane Coat", type: "coat", parts: ["weave", "lining", "trim"], mainMaker: "boreal-bolt", placeholderArt: true, color: "#9aa3ad",
+      effects: [{ kind: "incoming-spell-damage-percent", amount: -10 }, { kind: "spell-reflect-percent", amount: 25 }],
+      story: "A Boreal Bolt hunter's long coat, lined with silvered thread. Witches who curse its wearer feel their own spells come home.",
+    },
     // Lament (port task 5, M19, M20): 2% from the Tide Siren. PLACEHOLDER ART: the normal forged wand, its Greater water gem.
     lament: {
       name: "Lament", type: "wand", mainMaker: "elven", element: "water", placeholderArt: true,

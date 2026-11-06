@@ -612,8 +612,15 @@
   }
   // Rootbark is living bark whatever its parts are made of.
   const ROOTBARK = { base: "#6b4527", light: "#9a6b42", dark: "#3e2615", kind: "leather" };
+  // A masterwork armor with a colour of its own (Doctor's Orders' white, task 3, R11; the Hexbane Coat's silver-grey,
+  // task 5, M26) wears it on its main part instead of the material's: PLACEHOLDER ART for the port's remake.
+  const shadeHex = (hex, amount) => "#" + [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).map(v => Math.round(amount < 0 ? v * (1 + amount) : v + (255 - v) * amount)).map(v => v.toString(16).padStart(2, "0")).join("");
+  function masterworkColor(forged) {
+    const color = forged?.masterwork && window.ForgeRules?.MASTERWORKS?.[forged.masterwork]?.color;
+    return /^#[0-9a-f]{6}$/i.test(color || "") ? { base: color, light: shadeHex(color, 0.45), dark: shadeHex(color, -0.45), kind: "cloth" } : null;
+  }
   function bodyArmor(forged, shape) {
-    const [main, lining, third] = forged.parts, mp = forged.masterwork === "rootbark" ? ROOTBARK : pal(main.material), lp = pal(lining.material), tp = pal(third.material), s = STYLE[main.maker] || STYLE.outlaw;
+    const [main, lining, third] = forged.parts, mp = forged.masterwork === "rootbark" ? ROOTBARK : masterworkColor(forged) || pal(main.material), lp = pal(lining.material), tp = pal(third.material), s = STYLE[main.maker] || STYLE.outlaw;
     const buckle = tp.kind === "metal" ? tp.light : "#c9a24a";
     const runes = runeDots(forged.runes?.length || 0, -8, -9);
     const neck = "M-13 -17 Q-8 -20.5 -5 -18.5 Q0 -15 5 -18.5 Q8 -20.5 13 -17";
@@ -742,11 +749,16 @@
     return key;
   }
   function armorVisual(item, ornate) {
-    const forged = item.forged, [main, , third] = forged.parts, material = spriteMaterial(main.material, main.maker);
+    const forged = item.forged, [main, , third] = forged.parts, colored = masterworkColor(forged);
+    let material = spriteMaterial(main.material, main.maker);
+    if (colored) {
+      material = "forged-masterwork-" + forged.masterwork;
+      K.MATERIALS[material] ||= { ...K.MATERIALS[spriteMaterial(main.material, main.maker)], base: colored.base, light: colored.light, dark: colored.dark, pattern: undefined };
+    }
     // Masterwork armor with a hand-made battle design is drawn by its key.
     const base = { id: item.id, name: item.name, kind: ARMOR_SPRITE_KIND[forged.type], material, ornate, unique: spriteUnique(forged.masterwork), rarity: item.rarity, forged };
     if (forged.category === "shield") return { ...base, slot: "shield" };
-    return { ...base, slot: "armor", type: forged.category, helmet: HELMETS[main.maker] || null, cloth: pal(main.material).base, trimColor: forged.category === "clothing" ? pal(third.material).base : null };
+    return { ...base, slot: "armor", type: forged.category, helmet: HELMETS[main.maker] || null, cloth: colored ? colored.base : pal(main.material).base, trimColor: forged.category === "clothing" ? pal(third.material).base : null };
   }
   // An upright portrait of the piece for the detail panel, shop cards and the Magic Tower.
   function armorPortrait(item, size) {
