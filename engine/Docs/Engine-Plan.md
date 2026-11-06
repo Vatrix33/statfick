@@ -1267,6 +1267,29 @@ M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.t
   its one road still only to Gloamfen (leaving it southward now); Duskpine becomes a cold highland plateau that the
   Ancient Battlefield climbs to from the Bloodstone coast. The road network and level order are unchanged. (Not the
   first draft kept as it was.)
+- W6 **The layout:** draft 2 approved as drawn (2026-11-06): the regions whole at 1.4× on their roads' compass (the
+  Verdigris Jungle turned round and placed south of Gloamfen, whose road to it now leaves southward from Reedcross),
+  joined by border strips about 22 km wide; the Western Stoneveil spurs, the Rainwall, the Verdigris Range, the Glass
+  Escarpment and the Stoneveil's cliffs seal the neighbours no road joins; the Western and Eastern Gulfs; no new areas.
+  The picture and table are made by `claude-work/continent/draft.py` in the cloud session.
+- W7 **The caravan's fare:** 2 silver per km of road between the two castle cities (neighbours, 120–230 km apart, cost
+  240–460 silver; Alderkeep–Lakespire 870; Alderkeep–Ravenwatch about 2,450; the longest, Westport–Ravenwatch, about
+  3,070). (Not 1 or 3 silver per km.)
+- W8 **The caravan's time:** three times walking pace on roads, 21 km/h of road (neighbours 6–11 hours,
+  Alderkeep–Ravenwatch about 2.4 days). (Not twice walking pace, the recommendation, nor walking pace.)
+- W9 **The horse carriage's price:** 50,000 silver (5 platinum) at the General Store, bought once. (Not 25,000 or
+  100,000.)
+- W10 **Where the carriage can't go:** every road but the steep mountain roads of High Stoneveil and the Summit; off-road
+  only open land (plains, hills, downs, steppe, flats, beaches, fields), never forest, jungle, marsh or bog, dunes, rock or
+  cliffs, lava or rivers; it stays on the mainland when you sail to Cinder Isle. (Not roads only, not nearly anywhere.)
+- W11 **The boat's time:** 12.6 hours (today's 9 ×1.4, like every trip, W3). (Not today's 9 hours.)
+- W12 **Regions never entered:** under fog until first entered: the coastline and the regions you have entered show; an
+  unentered region shows no towns, roads or names. (Not the whole continent visible from the start.)
+- W13 **How far a click takes you:** to any town or site you know, walking along the roads across regions without
+  stopping (encounters on the way as usual); the numbered destinations list the current region's places and its roads
+  out. (Not the current region only.)
+- W14 **Lengths:** the boat animation about 5 seconds; a caravan trip's 4 seconds for neighbours up to 8 for the longest;
+  the music crossfades over 4 seconds at a region border. (Not all about 3 seconds, not all about 10.)
 
 **Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
 after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**
