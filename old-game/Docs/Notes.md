@@ -334,7 +334,9 @@ masterworks' looks are placeholders the user wants fully remade in the port. The
 
 **Guild Rework (port task 2, 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`; the task is
 `engine/Docs/Port-Tasks/2_Guild.txt`).** Built in the old game, as task 1 was (user decision G1); old game only, the engine
-is untouched and its work goes on beside it. The user's 34 answers, asked before the code, are in
+is untouched and its work goes on beside it. Done: the faithful port brings it over and doesn't build it again; its only
+port work is remaking the two guild interiors, which are placeholder art (G2; `engine/Docs/Port-Tasks/README.md` says
+what the remake keeps). The user's 34 answers, asked before the code, are in
 `engine/Docs/Engine-Plan.md`, "Decisions for task 2, Guild Rework" (G1–G34). How it's built:
 - **Rules:** `scripts/guild-quest-engine.js` (`GuildQuestRules`, loaded after `encounter-engine.js`; pure, runs in Node):
   the six types and their reward factors (Hunt 1.8, Cull 1.55, Deliver 1.35, Search 1.2, Escort 1.1, Travel 1.0 on

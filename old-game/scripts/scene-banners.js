@@ -1,11 +1,14 @@
 /* Interior scenes for the shops, the Magic Tower and the Adventurers Guild: ink-drawn
    rooms in the style of the battle sprites, lit only by their own fires, lamps and
-   windows. Shops and the tower fill their whole window (1280 × 900); the guild keeps a
-   banner strip. Castle cities get large, crowded halls; towns get small country rooms,
-   and a town's reduced guild meets in a tavern. Every scene is seeded by its
-   settlement, so a town always shows the same room.
+   windows. Shops, the tower and the guild fill their whole window (1280 × 900). Castle
+   cities get large, crowded halls; towns get small country rooms. Every scene is seeded
+   by its settlement, so a town always shows the same room.
+   The two guild interiors are PLACEHOLDER ART (port task 2, user decision G2): kept simple
+   on purpose and listed in PLACEHOLDER_ART; the port remakes them fully as detailed
+   illustrations (engine/Docs/Port-Tasks/README.md says what the remake keeps).
    A banner is two stacked SVGs: the static art (scene, darkness, hatching and
-   lit glass) and a light layer of flames and glows that animates on its own. */
+   lit glass) and a light layer of flames and glows that animates on its own; a scene
+   with clickable objects (the guild) adds a third for their hover glow and labels. */
 (() => {
   "use strict";
   const K = window.SpriteKit;

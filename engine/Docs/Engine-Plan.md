@@ -53,9 +53,10 @@ fixtures' 12 / 0.2 %, `shadow-scale-y` at 1× at 12 / 0.25 % (the user's limit, 
 game screens' slight move away from Chromium (the blur kernel's shape) is a known difference the user accepted the same
 day (Progress, "Canvas: inset shadows cast from Blink's frame"; "Decision on blurred shadows under non-uniform
 transforms").
-**Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is built in the old game**, as task 1 was
-(the user's answer G1, "Decisions for task 2, Guild Rework" below; cloud branch `claude/fervent-carson-f5ol9s`, for the
-user to review and merge). It touches only `../old-game/` (its scripts, markup, stylesheet, Courier's class file and
+**Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is done in the old game**, as task 1 was
+(the user's answer G1, "Decisions for task 2, Guild Rework" below; built on the cloud branch `claude/fervent-carson-f5ol9s`
+and merged through a pull request). The port doesn't build it again; only its two guild interiors, placeholder art, are
+remade (`Docs/Port-Tasks/README.md`). It touches only `../old-game/` (its scripts, markup, stylesheet, Courier's class file and
 test client) and these docs, never the engine: the engine's tests read from the old game only its fonts,
 `classes/Black Knight.json` and the image and SVG files their saved captures name, none of which changed, and use their
 own copy of the stylesheet, so `Tools/Scripts/test.sh` was not run for it (the cloud session had no .NET). **Engine work
@@ -350,9 +351,10 @@ the design and the tests):
   decision 2026-11-03 in "Decisions for M8", the rune slotting sound among them); UI symbols outside Lato and STIX (⚙ ✦ ☾ ↓ ＋ ⚔ ♟ …); how the inline SVG art and its
   transforms map to the Blender remakes; the grabbing cursor's design; the level of detail of the item
   models. **First read `Docs/Port-Tasks/`:** the user's tasks to add during the port, in their number order
-  (decided 2026-11-05); ask whether they come after the faithful port or while porting (left open by the user). Task 1
-  (Masterwork Elementals) is already done in the old game, so the faithful port brings it over: don't build it again,
-  only remake its placeholder art (the README's list).
+  (decided 2026-11-05); ask whether they come after the faithful port or while porting (left open by the user). Tasks 1
+  (Masterwork Elementals) and 2 (Guild Rework) are already done in the old game, so the faithful port brings them over:
+  don't build them again, only remake their placeholder art (the README's list: task 1's six masterwork looks, task 2's
+  two guild interiors).
 
 ## Folders
 
@@ -736,6 +738,11 @@ while porting (the user will answer later).
   The other tasks are decided one at a time (not yet the same approach for all 14). Its design answers are in
   `../old-game/Docs/Notes.md`, "Masterwork Elementals"; `Docs/Port-Tasks/README.md` lists the placeholder art. The port
   brings task 1 over with the rest of the game and doesn't redo it from the task file; its only port work is that art.
+- **Task 2 is done in the old game too (user decision 2026-11-06, G1):** before the port, old game only (the engine
+  untouched), with placeholder art for the two guild interiors (G2) that the user wants fully remade in the port. Its
+  design answers are G1–G34 just below; where each rule lives is in `../old-game/Docs/Notes.md`, "Guild Rework";
+  `Docs/Port-Tasks/README.md` lists the placeholder art and what the remake keeps. The port brings task 2 over with the
+  rest of the game and doesn't redo it from the task file; its only port work is that art.
 
 **Decisions for task 2, Guild Rework (2026-11-06, a cloud session; the user asked for task 2 that day; the task is
 `Docs/Port-Tasks/2_Guild.txt`).** Old game only: it doesn't touch the engine, and engine work continues beside it (the
@@ -744,8 +751,8 @@ recruiting, information, encounters and class menu:
 - G1 **Where:** in the old game now, as task 1 was (checked with its test client, one check per rule); the faithful port
   brings it over. (Not only recorded for the port.)
 - G2 **Art:** the two interiors (castle-city guild, town guild) are placeholder art for the port's full remake
-  ("Placeholder, so don't put much effort into it"): ink scenes in the game's style, marked `placeholderArt`, listed in
-  `Docs/Port-Tasks/README.md`.
+  ("Placeholder, so don't put much effort into it"): simple ink scenes in the game's style, marked PLACEHOLDER ART in
+  `scene-banners.js` and listed in its `PLACEHOLDER_ART`, and in `Docs/Port-Tasks/README.md` with what the remake keeps.
 - G3 **Town guilds** (Cairnrest, Emberhaven, Lastlight, Amberpost): no hooded man (no information there); only a few
   adventurers, so their recruit selection is much smaller than a castle city's (G5). They keep quests, artifacts and
   Great Hunts.
