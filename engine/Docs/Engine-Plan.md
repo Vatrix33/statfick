@@ -1261,6 +1261,12 @@ M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.t
   (Not the area +40%.)
 - W4 **Encounters on the longer roads:** the same number per trip as today: their spacing stretches with the world.
   (Not the same per distance.)
+- W5 **The continent's climate** (asked after the first layout draft, whose "southern-hemisphere" reading didn't hold: a
+  tropical Jungle in the temperate north and a cold fog forest at the hot southern tip): a cold north and a hot south.
+  The Verdigris Jungle moves south of Gloamfen, onto the wet west coast beside the deserts behind a rain-shadow ridge,
+  its one road still only to Gloamfen (leaving it southward now); Duskpine becomes a cold highland plateau that the
+  Ancient Battlefield climbs to from the Bloodstone coast. The road network and level order are unchanged. (Not the
+  first draft kept as it was.)
 
 **Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
 after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**
