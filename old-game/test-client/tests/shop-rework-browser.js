@@ -231,6 +231,7 @@ async function checkNewTraps() {
   inventory.push("consumable-smoke-trap");
   assert(!h.useItem(player, player, getItem("consumable-smoke-trap")) && !armed(player, "trap-smoke"), "A second trap is blocked at the base trap limit");
   // The General Store stocks them, rarer ones more often at higher levels (R22).
+  assert(Object.keys(traps).every(id => Shop.purchasableItem(getItem(id), WorldRules.getRegion("stoneveil-foothills").settlements[0])), "The General Store can stock all five");
   assert(ShopRules.rarityWeight("legendary", 95) > ShopRules.rarityWeight("legendary", 20) && ShopRules.rarityWeight("common", 10) > ShopRules.rarityWeight("common", 95), "Rarer traps weigh more at higher levels");
   Combat.restore(null);
   return { passed: true, checks: count() };
