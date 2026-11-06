@@ -724,7 +724,9 @@ placeholder art (M1; `engine/Docs/Port-Tasks/README.md`). The user's answers are
 - **Regression** (2026-11-06, the cloud, Xvfb, on a frozen copy of the game): all 126 entries of the 45 check files and
   the four suites, against task 6's final run (the same old-game code as merged `main`, 8b61723, but for task 5). Every
   entry gives the baseline's result except: the 10 new entries pass (`checkNobleHero` failed once there, comparing two
-  battles whose Orcs were forged with different dice; it now fixes the dice and passes); the six old checks above failed
+  battles whose Orcs were forged with different dice; it now fixes the dice and passes; in a last pass `checkMoneyshot`
+  failed once when crit momentum, with the dice held at 0.5, turned a sixth shot critical: it now resets the momentum
+  before each shot, and its 10 mutations are still caught); the six old checks above failed
   on task 5's additions and pass updated; `adventure-improvements`' `runCompanionImportChecks`, the known flaky one,
   failed with another message and passed rerun alone; `map-speed` and `coast-lich-bosses`' Ool check (both flaky) passed.
   The baseline's 11 known failures are unchanged. Smoke, enemies (530 cases) and lifecycle pass; the combat suite stops

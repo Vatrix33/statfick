@@ -329,6 +329,8 @@ async function checkMoneyshot() {
     for (let i = 0; i < attacks; i++) {
       battle.current = "player"; battle.ap = 9;
       const before = foes.map(foe => h.hp(foe));
+      // No crit momentum: each shot's critical roll stands alone (the dice decide it).
+      player.critMisses = 0;
       Math.random = dice(i);
       try { h.attack(player, foes[0]); } finally { Math.random = random; }
       dealt.push(before[0] - h.hp(foes[0])); others.push(foes.slice(1).map((foe, index) => before[index + 1] - h.hp(foe)));
@@ -361,7 +363,7 @@ async function checkMoneyshot() {
   const { battle, player, foes } = await masterworkChecks.battle(h, ["Orc", "Orc"], { inventory: [other], equipment: { primaryHand: other } });
   foes.forEach(foe => h.setHp(foe, 1e7));
   const shots = [];
-  for (let i = 0; i < 5; i++) { battle.current = "player"; battle.ap = 9; const before = h.hp(foes[0]); Math.random = () => 0.5; try { h.attack(player, foes[0]); } finally { Math.random = random; } shots.push(before - h.hp(foes[0])); }
+  for (let i = 0; i < 5; i++) { battle.current = "player"; battle.ap = 9; player.critMisses = 0; const before = h.hp(foes[0]); Math.random = () => 0.5; try { h.attack(player, foes[0]); } finally { Math.random = random; } shots.push(before - h.hp(foes[0])); }
   assert(new Set(shots).size === 1 && h.hp(foes[1]) === 1e7, "Another longbow's fifth attack is like the rest");
   Combat.restore(null);
   return count();
