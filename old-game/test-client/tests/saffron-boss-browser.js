@@ -177,7 +177,7 @@ async function runSaffronReworkChecks() {
     const servant = await (await fetch("enemies/" + encodeURIComponent("Great Devil Servant - " + name) + ".json")).json();
     assert(servant.aiProfile === "devil-servant" && servant.maxHpPercent === 300, name + " fights as a sturdy court Servant");
   }
-  assert(raw.drops.map(drop => drop.itemId + ":" + drop.chance).sort().join() === "masterwork-hellish-rebuke:12,masterwork-seventh-cycle:6", "He drops Hellish Rebuke (12%) and Seventh Cycle (6%)");
+  assert(raw.drops.map(drop => drop.itemId + ":" + drop.chance).sort().join() === "masterwork-fletcher:4,masterwork-hellish-rebuke:12,masterwork-seventh-cycle:6", "He drops Hellish Rebuke (12%) and Seventh Cycle (6%), and Fletcher (4%, task 7)");
   const wand = getItem(raw.equipment.primaryHand), mail = getItem(raw.equipment.armor);
   assert(wand?.forged?.masterwork === "hellish-rebuke" && wand.forged.type === "wand" && wand.forged.parts[0].maker === "hellmade" && wand.forged.parts[0].material === "ruby" && wand.forged.parts[0].tier === 3 && wand.rarity === "masterwork", "He wields a forged Hellish Rebuke: a spell wand with a Greater Hellmade Ruby");
   assert(mail?.forged?.masterwork === "seventh-cycle" && mail.forged.type === "chainmail" && mail.forged.parts[0].maker === "hellmade" && raw.noDropItems.includes(wand.id) && raw.noDropItems.includes(mail.id), "He wears a forged Seventh Cycle chainmail; neither copy drops as ordinary gear");

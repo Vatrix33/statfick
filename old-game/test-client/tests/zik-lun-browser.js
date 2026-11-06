@@ -35,7 +35,7 @@ async function runZikLunChecks() {
   // His sheet: a regular Great Hunt boss leading a warband.
   const raw = await (await fetch("enemies/" + encodeURIComponent(bossName) + ".json")).json();
   assert(!raw.classLevels["raid-boss"] && raw.aiProfile === "zik-lun" && raw.introCinematic === "zik-lun" && raw.knownSpells.join() === "war-horn-basic-unique", "No Raid Boss class; his own AI, intro and War Horn");
-  assert(raw.equipment.primaryHand === "forge-weapon-2-greathammer" && raw.equipment.armor === "forge-armor-full-plate~rare" && raw.drops.length === 1 && raw.drops[0].itemId === "masterwork-giantslayer" && raw.drops[0].chance === 8, "Generic forged gear; only Giantslayer is in his drop table, at 8%");
+  assert(raw.equipment.primaryHand === "forge-weapon-2-greathammer" && raw.equipment.armor === "forge-armor-full-plate~rare" && raw.drops.length === 2 && raw.drops[0].itemId === "masterwork-giantslayer" && raw.drops[0].chance === 8 && raw.drops[1].itemId === "masterwork-winged-hussar" && raw.drops[1].chance === 4, "Generic forged gear; Giantslayer is in his drop table at 8%, and Winged Hussar at 4% (task 7)");
   const band = raw.warband;
   assert(band.guard === "troll-shieldbearer-level-20" && band.drummer === "troll-war-drummer-level-20" && ["charge", "hold", "regroup"].every(id => band.orders[id]) && band.vengeance.maxStacks === 5 && band.hornEveryTurns === 3 && band.loseHeart.length === 2, "His warband has three orders, vengeance, a horn and loses heart");
   const horn = getSpell("war-horn-basic-unique");
@@ -85,9 +85,9 @@ async function runZikLunChecks() {
   const battle = hooks.getBattle(), byName = name => battle.actors.find(actor => actor.name === name);
   const zik = byName(bossName), guard = byName("Troll Shieldbearer"), drummer = byName("Troll War-drummer"), player = () => hooks.actorById("player");
   assert(zik.unique && zik.character.raceId === "troll" && zik.character.level === 24 && getItem(zik.character.equipment.primaryHand)?.forged?.type === "greathammer" && getItem(zik.character.equipment.armor)?.forged?.type === "full-plate", "Zik Lun carries a forged Greathammer and Full Plate");
-  // Port task 5 adds the Shadow Crystal (0.05%) to every enemy.
-  const ownDrops = zik.dropTable.filter(drop => drop.itemId !== "key-item-shadow-crystal");
-  assert(ownDrops.length === 1 && ownDrops[0].itemId === "masterwork-giantslayer" && ownDrops[0].chance === 8 && zik.dropTable.length === 2, "He only rolls Giantslayer, at 8%");
+  // Port task 5 adds the Shadow Crystal (0.05%) to every enemy; task 7 Winged Hussar (4%, only while Limitless is on).
+  const ownDrops = zik.dropTable.filter(drop => !["key-item-shadow-crystal", "masterwork-winged-hussar"].includes(drop.itemId));
+  assert(ownDrops.length === 1 && ownDrops[0].itemId === "masterwork-giantslayer" && ownDrops[0].chance === 8 && zik.dropTable.some(drop => drop.itemId === "masterwork-winged-hussar" && drop.chance === 4) && zik.dropTable.length === 3, "He only rolls Giantslayer, at 8%, and Winged Hussar at 4%");
   assert(Combat.musicTheme() === "zik-lun-armored-hulk" && Music.state().theme === "zik-lun-armored-hulk" && MusicThemes.all().some(theme => theme.id === "zik-lun-armored-hulk"), "His remastered siege-march plays");
   const art = Sprites.forActor(hooks.stageLook(zik)).svg;
   assert(art.includes(SpriteKit.tone("#7a2416")) && art.includes('class="sp-cape"') && Sprites.forActor(hooks.stageLook(drummer)).svg.includes(SpriteKit.tone("#6b3a22")), "The warlord carries his warband's standard and colours; the drummer his drum");

@@ -1,4 +1,4 @@
-/* Limitless (port task 7, decisions L1–L28 in engine/Docs/Engine-Plan.md): the rules, without the page. Loaded before
+/* Limitless (port task 7, decisions L1–L33 in engine/Docs/Engine-Plan.md): the rules, without the page. Loaded before
    app.js, which reads saves with them. A character's record: { unlocked, active, kept, spent } for the player (only the
    player's unlocked and active count; companions follow them), { kept, spent } for a companion.
    - kept: what turning Limitless off set aside (L2): the Limitless level, the EXP toward its next level, the attribute

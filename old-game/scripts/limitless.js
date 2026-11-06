@@ -1,4 +1,4 @@
-/* Limitless (port task 7, decisions L1–L28): the character sheet's Limitless button, turning it on and off for you and
+/* Limitless (port task 7, decisions L1–L33): the character sheet's Limitless button, turning it on and off for you and
    your companions, its unlock on Anatemis's first defeat and the pop-up that announces it. The rules are in
    limitless-engine.js; enemies, drops and Exotic items read `limitless.active` where they act. */
 (() => {

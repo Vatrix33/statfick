@@ -260,7 +260,8 @@ async function runCombatRewardChecks() {
   let checks = 0;
   const assert = (ok, message) => { if (!ok) throw Error(message); checks++; }, $ = id => document.getElementById(id);
   const until = async (predicate, message) => { for (let attempt = 0; attempt < 200 && !predicate(); attempt++) await new Promise(resolve => setTimeout(resolve, 20)); assert(predicate(), message); };
-  const main = defaultCharacter(); main.raceId = "human"; main.level = 100; main.editingEnabled = false;
+  // Level 99: below the level cap, where EXP is still paid (port task 7, L18, L33).
+  const main = defaultCharacter(); main.raceId = "human"; main.level = 99; main.editingEnabled = false;
   main.stats.vitality = 1000; main.stats.mind = 1000; main.stats.speed = 2000; main.stats.luck = 0;
   applyCharacter(normalizeCharacter(main)); Combat.restore(null); WorldMap.setAmbientEnabled(false);
   const startingExp = exp, startingMoney = ShopRules.walletValue(currencies), originalRoll = CombatRules.roll;

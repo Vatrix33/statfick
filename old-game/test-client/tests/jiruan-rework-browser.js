@@ -20,7 +20,8 @@ async function runJiruanReworkChecks() {
   assert(!rawBoss.classLevels["raid-boss"] && rawBoss.classLevels.summoner >= 3, "No Raid Boss class; Summoner grants Overprotective");
   assert(rawBoss.aiProfile === "jiruan", "Ji'ruan has his own battle AI");
   assert(rawBoss.knownSpells.every(id => getSpell(id)?.element === "dark"), "His spell book holds only dark spells");
-  assert(JSON.stringify(rawBoss.drops) === JSON.stringify([{ itemId: "masterwork-impshield", chance: 10 }]), "He drops the Impshield masterwork 10% of the time");
+  // Port task 7 adds one Exotic to each of these bosses' tables (it rolls only while Limitless is on).
+  assert(JSON.stringify(rawBoss.drops) === JSON.stringify([{ itemId: "masterwork-impshield", chance: 10 }, { itemId: "masterwork-fletcher", chance: 4 }]), "He drops the Impshield masterwork 10% of the time, and Fletcher 4%");
   let rejected = false;
   try { hooks.validateEnemy({ ...rawBoss, aiProfile: "not-a-profile" }); } catch (error) { rejected = error.message.includes("AI profile"); }
   assert(rejected, "Unknown AI profiles are rejected");

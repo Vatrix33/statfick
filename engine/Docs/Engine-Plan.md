@@ -99,7 +99,7 @@ task 5 as the engine's current task. How it's built, its checks and their result
 Masterworks". It also makes Doctor's Orders (task 3) the white robe R11 asked for: masterwork armor now wears its
 recorded colour.
 **Beside the engine, old game only (2026-11-06): port task 7, New Game Plus, is done in the old game**, as tasks 1–6
-were (decisions L1–L32 in "Decisions for task 7, New Game Plus" below: Limitless, the Exotic rarity, Exium and the five
+were (decisions L1–L33 in "Decisions for task 7, New Game Plus" below: Limitless, the Exotic rarity, Exium and the five
 Exotics; built on the cloud branch `claude/fervent-carson-f5ol9s` and offered as one pull request, L22). The port doesn't
 build it again; only its placeholder art is remade (`Docs/Port-Tasks/README.md`). It touches only `../old-game/` (its
 scripts, markup, stylesheet, eleven boss files and test client) and these docs, never the engine (the engine's tests
@@ -1191,6 +1191,10 @@ The bosses' class draft (L6), reviewed 2026-11-06:
   Champion's Challenge): bosses may use them; they are not added to the bosses' don't-use lists. (Not kept from them.)
 - L32 **Guard-only levels** (Bulwark 2/4/6, General 2, Strategist 4) on bosses that never Guard: kept; they count toward
   the 100. (Not swapped for other classes.)
+Asked after the regression run (2026-11-06):
+- L33 **The victory screen's EXP at your level cap** (Level 100 without Limitless, 200 with it), where you gain none
+  (L18): it reads 0 EXP; companions below their cap still gain the battle's EXP. (Not the number with a note, not left
+  showing the battle's EXP.)
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).

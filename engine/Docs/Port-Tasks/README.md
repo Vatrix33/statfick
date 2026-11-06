@@ -132,7 +132,7 @@ was merged, while M11's engine work went on; L1 kept its art placeholder).
   with +25% attributes; bosses gain the class levels of a Level-100 character, reviewed by the user; masterwork drops
   doubled; gear past Level 100, which can't be worn while it's off), the Exotic rarity (a green and purple wave), Exium,
   and five Exotics: Fletcher, Tough-Out, Winged Hussar, Cherubim and Connected Balancer, with Anatemis's Level-200
-  reward. The user's design answers are in `Engine-Plan.md`, "Decisions for task 7, New Game Plus" (L1–L32); where each
+  reward. The user's design answers are in `Engine-Plan.md`, "Decisions for task 7, New Game Plus" (L1–L33); where each
   rule lives is in `../../../old-game/Docs/Notes.md`, "New Game Plus: Limitless and the Exotics"; the old game's checks,
   `old-game/test-client/tests/limitless-browser.js`, are the reference the ported rules are tested against. Still to do
   in the port: only the art (below). Old game only. Later enemies (task 14's dungeons and the like) scale through the

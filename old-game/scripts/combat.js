@@ -1369,7 +1369,9 @@
     const loot = Array.isArray(battle.lootItems) ? battle.lootItems.filter(itemCanDrop) : [];
     const quantities = loot.reduce((counts, id) => ({ ...counts, [id]: (counts[id] || 0) + 1 }), {});
     $("combat-loot-money").textContent = ShopRules.formatPrice(Math.max(0, toInteger(battle.moneyEarned, 0)));
-    $("combat-loot-exp").textContent = `${formatValue(Math.max(0, toInteger(battle.experienceEarned, 0)))} EXP`;
+    // At your level cap no EXP is gained (task 7, L18), and the screen says 0 (L33); companions below theirs still gain it.
+    const atCap = level >= LimitlessRules.cap(limitless.active);
+    $("combat-loot-exp").textContent = `${formatValue(atCap ? 0 : Math.max(0, toInteger(battle.experienceEarned, 0)))} EXP`;
     $("combat-loot-list").innerHTML = Object.entries(quantities).map(([id, quantity]) => {
       const item = getItem(id);
       return `<article class="combat-loot-item ${itemRarityClass(item)}"><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.rarity)} · ${escapeHtml(item.category)}</span></div><b>×${quantity}</b></article>`;

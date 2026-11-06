@@ -740,7 +740,7 @@ placeholder art (M1; `engine/Docs/Port-Tasks/README.md`). The user's answers are
 the task is `engine/Docs/Port-Tasks/7_New_Game_Plus.txt`).** Built in the old game, as tasks 1–6 were; old game only, the
 engine is untouched. Done: the port brings it over and doesn't build it again; its only port work is remaking the
 placeholder art (L1; `engine/Docs/Port-Tasks/README.md`). The user's answers are in `engine/Docs/Engine-Plan.md`,
-"Decisions for task 7, New Game Plus" (L1–L32).
+"Decisions for task 7, New Game Plus" (L1–L33).
 - **The rules** (`scripts/limitless-engine.js`, `LimitlessRules`, loaded before `app.js`; no page code). A character's
   `limitless` record: the player's `{ unlocked, active, kept, spent }`, a companion's `{ kept, spent }` (companions follow
   the player's switch, L4). `normalize` makes any saved record safe; an old save starts locked and off, even one that beat
@@ -805,25 +805,39 @@ placeholder art (L1; `engine/Docs/Port-Tasks/README.md`). The user's answers are
     and `healHp` (each ally's share healed by their own rules); every other living ally, summons included (L19); the
     share never passes through a Connected Balancer again (`sharingBurden`); lost when nobody is left. Damage that
     bypasses barriers isn't shared; neither is the turn-order forecast's copy.
-- **Tests:** `test-client/tests/limitless-browser.js`, 13 entries: `checkExoticForging`, `checkFletcher`,
+- **The victory screen at your level cap** (`combat.js`, where the rewards screen fills in): it reads 0 EXP, since you
+  gain none there (L18, L33); companions below their own cap still gain the battle's EXP.
+- **Tests:** `test-client/tests/limitless-browser.js`, 14 entries: `checkExoticForging`, `checkFletcher`,
   `checkToughOut`, `checkWingedHussar`, `checkConnectedBalancer`, `checkExoticDrops`, `checkLimitlessLooks`,
   `checkLimitlessUnlock`, `checkLimitlessLevels`, `checkEnemyScaling`, `checkMasterworkDropsDoubled`,
-  `checkBossStrikeLimit`, `checkCompanionGear`. The battle entries use a second copy of `combat.js` with a hook
-  (`window.__limitlessChecks`).
+  `checkBossStrikeLimit`, `checkCompanionGear`, `checkVictoryScreenAtCap`. The battle entries use a second copy of
+  `combat.js` with a hook (`window.__limitlessChecks`). Old checks updated for task 7: the bosses' exact drop tables, each
+  with its Exotic now (`cinder-bosses`, `coast-lich-bosses`, `gaian-boss`, `jiruan-rework`, `juila`, `nygheir`,
+  `saffron-boss`, `talos-boss`, `zik-lun`), and `adventure-improvements`' `runCombatRewardChecks`, whose hero is Level 99
+  now (at 100 without Limitless no EXP is paid any more).
 - **Not covered by a check:** the escape preview's scaling; the battle stage's look of the Exotics (the checks run with the
   stage off); the bosses' new classes in real fights (their totals, limits and the AI's strike rule are checked).
-- **The checks can fail:** each rule was broken once in a copy of the game (97 mutations, by the earlier tasks' runner,
+- **The checks can fail:** each rule was broken once in a copy of the game (100 mutations, by the earlier tasks' runner,
   in the cloud session's `claude-work/limitless/` (never on the user's PC), not kept): Limitless's record and old saves,
   the cap, turning it off and on (EXP, free points, spent points, companions, gear), the unlock, its pop-up, the button
   and its battle lock, the sheet's look, level-ups and perk points, EXP at the cap, enemy scaling (direction, the +1s,
   ×1.25, once, off), the bosses' classes, both ×2s, the Luck bonus, the wear rule and its mark (player, companions, the
   Guild's odds), the Exotic wave, Winged Hussar's wings, the Exotics' forging rules (the lists, Exium, the other parts,
   the rarity and how a piece names it, the decoders, reforging, Cherubim's slots, runes and element), every rule of the five Exotics, their drops,
-  Anatemis's reward and the bosses' strike rule. All 97 were caught after a second pass; the first let four through: a
+  Anatemis's reward, the bosses' strike rule and the victory screen at the cap. All 100 were caught after a second pass; the first let four through: a
   masterwork-decoder clause no table could reach (removed: Exium fits only head and body shapes, which are only ever
   main parts) and three checks that didn't look closely enough (turning it off a second time, the level-up handler
   behind its disabled button, the companion picker's reason behind the note), which they now do.
-- REGRESSION_RESULTS
+- **Regression** (2026-11-06, the cloud, Xvfb, on a frozen copy of the game): all 139 entries of the 46 check files and
+  the four suites, against task 5's run (`claude-work/masterworks/final-results.txt` in the cloud session, taken before
+  task 5 updated six old checks). Every entry gives that run's result except: the 13 task 7 entries of the time pass;
+  task 5's six updated checks and its `checkNobleHero` pass, as in task 5's final pass; 15 entries of nine old check
+  files failed on the bosses' drop tables, which now hold their Exotics, and pass updated (above); `runCombatRewardChecks`
+  failed because a Level-100 hero without Limitless is no longer paid EXP (L18), and passes with its hero at Level 99
+  (the victory screen's 0 EXP at the cap, L33, came from this and has its own entry, run with the other 13 on the final
+  code: all pass). The 11 known failures are unchanged (`runCompanionImportChecks`, the flaky one, with another
+  message). Smoke, enemies (530 cases) and lifecycle pass; the combat suite gives no result, as in task 5's run (it stops
+  at the known Barbarian failure).
 
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in

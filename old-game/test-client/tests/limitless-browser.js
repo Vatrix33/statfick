@@ -1,5 +1,5 @@
 /* Port task 7, New Game Plus (2026-11-06): Limitless, the Exotic rarity, Exium and the five Exotics. The design answers
-   L1–L28 are in engine/Docs/Engine-Plan.md, "Decisions for task 7, New Game Plus"; old-game/Docs/Notes.md,
+   L1–L33 are in engine/Docs/Engine-Plan.md, "Decisions for task 7, New Game Plus"; old-game/Docs/Notes.md,
    "Limitless and the Exotics", says where each rule lives. One entry per part. */
 const limitlessChecks = {
   counter() {
@@ -633,5 +633,34 @@ async function checkCompanionGear() {
   assert([...select.options].some(option => option.value === high), "On: the list offers it");
   select.value = high; select.dispatchEvent(new Event("change", { bubbles: true }));
   assert(member.character.equipment.primaryHand === high, "And the companion wears it");
+  return count();
+}
+
+// L18, L33: at your level cap the victory screen reads 0 EXP and you gain none; a companion below its cap still gains it.
+async function checkVictoryScreenAtCap() {
+  const { assert, count } = limitlessChecks.counter();
+  await waitForSourceFiles();
+  const $ = id => document.getElementById(id);
+  const until = async (predicate, message) => { for (let attempt = 0; attempt < 200 && !predicate(); attempt++) await new Promise(resolve => setTimeout(resolve, 20)); assert(predicate(), message); };
+  const win = async (heroLevel, on) => {
+    limitlessChecks.hero({ level: heroLevel, on, companions: [{ level: 50 }] });
+    WorldMap.setAmbientEnabled(false);
+    const before = { exp, companion: companions[0].character.exp };
+    assert(await Combat.startEncounter(["Goblin", "Goblin"]), "A battle starts"); $("combat-sheet-button").click();
+    const battle = Combat.serialize();
+    battle.actors.filter(actor => actor.team === "enemy").forEach(actor => { actor.character.currentHp = 0; });
+    Combat.restore(battle); Combat.onSheetChange();
+    await until(() => !$("combat-loot-modal").hidden, "Victory opens the rewards screen");
+    const earned = Combat.serialize().experienceEarned, shown = $("combat-loot-exp").textContent;
+    $("combat-loot-discard").click(); Combat.restore(null);
+    return { earned, shown, gained: exp - before.exp, companion: companions[0].character.exp - before.companion };
+  };
+  const capped = await win(100, false);
+  assert(capped.earned > 0 && capped.shown === "0 EXP" && capped.gained === 0, `Level 100, Limitless off: the screen says 0 EXP and none is gained (${capped.shown})`);
+  assert(capped.companion > 0, "A companion below its cap still gains the battle's EXP");
+  const below = await win(99, false);
+  assert(below.shown === `${formatValue(below.earned)} EXP` && below.gained === below.earned, `Level 99: the battle's EXP, shown and gained (${below.shown})`);
+  const on = await win(100, true);
+  assert(on.shown === `${formatValue(on.earned)} EXP` && on.gained === on.earned, "Level 100 with Limitless on: shown and gained");
   return count();
 }
