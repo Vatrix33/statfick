@@ -86,24 +86,16 @@ doesn't build it again; only its placeholder looks are remade (`Docs/Port-Tasks/
 none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count
 task 6 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "New
 Areas".
-**Beside the engine, old game only (2026-11-06): port task 5, New Masterworks, is IN PROGRESS** (paused at the user's
-request at 15:00 their time; decisions M1–M26 in "Decisions for task 5, New Masterworks" below; cloud branch
-`claude/fervent-carson-f5ol9s`, no pull request yet; one PR at the end, M25). **Built and committed:** Sparkling enemies
-(`combat.js` "Sparkling enemies" block, `rollSparkling` from `map.js`'s `presentTravelEncounter`, `startRoster`'s
-`sparkling` indexes, the encounter screen and battle look in `styles.css`, `Guild.cullTargetHere`), Treasure Seeker
-(`objects/artifacts.json`, `treasureMoneyPercent` and the Luck in `app.js`, battle silver, `guild.js` `pay`, `shop.js`
-`salePrice`), Moneyshot, Lament, Noble Hero and the Hexbane Coat (`forge-engine.js` MASTERWORKS; `strike`, `cast` with
-`extraTargetId` and the spell list's Lament button, `hurt`'s reflection), their drops (Tide Siren JSON; the Noble Hero,
-Hexbane Coat and Shadow Crystal drops added in `validateEnemy`) and masterwork armor colours in `forge-art.js` (also
-fixes Doctor's Orders' white, R11). **Next:** make `old-game/test-client/tests/new-masterworks-browser.js` pass (first
-runs: Sparkling chance, encounter screen, Noble Hero, Hexbane Coat, Moneyshot and Shadow Crystal pass; three still fail
-on the checks' own mistakes: `checkSparklingRewards` assumes the wrong dice order for the 70%/5% rolls;
-`checkSparklingEnemies`' Cull count sets the quest after the battle starts — check `onEnemyDefeated`'s region and name
-test; `checkLament` calls combat.js's internal `spellEffects` — export it in the hook or read `spell.effects`;
-`checkTreasureSeeker` was given a real sellable item but not rerun), then the mutation proof (runner in `~/.cache/stat-fick-build/claude-work/areas/mutate-old.py`), the full
-regression (`claude-work/shop/regress.sh`; baseline: task 6's final run), the docs (`../old-game/Docs/Notes.md` "New
-Masterworks", `Docs/Port-Tasks/README.md` task 5 done and its placeholder art: the Sparkling look, Treasure Seeker's
-drawing, the four weapons' and the coat's normal forged looks), the PR, and the report to the user.
+**Beside the engine, old game only (2026-11-06): port task 5, New Masterworks, is done in the old game**, as tasks 1–4
+and 6 were (decisions M1–M26 in "Decisions for task 5, New Masterworks" below: Sparkling enemies, Treasure Seeker,
+Moneyshot, Lament, Noble Hero, the Hexbane Coat and the Shadow Crystal drop; built on the cloud branch
+`claude/fervent-carson-f5ol9s` and offered as a pull request, one for the whole task, M25). The port doesn't build it
+again; only its placeholder art is remade (`Docs/Port-Tasks/README.md`). It touches only `../old-game/` (its scripts,
+stylesheet, artifact data, one enemy file and test client) and these docs, never the engine (the engine's tests read
+none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count
+task 5 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "New
+Masterworks". It also makes Doctor's Orders (task 3) the white robe R11 asked for: masterwork armor now wears its
+recorded colour.
 Before each later milestone (M11 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code, in the order
 "Starting M9" below gives (M10 followed it too).
@@ -393,10 +385,11 @@ the design and the tests):
   transforms map to the Blender remakes; the grabbing cursor's design; the level of detail of the item
   models. **First read `Docs/Port-Tasks/`:** the user's tasks to add during the port, in their number order
   (decided 2026-11-05); ask whether they come after the faithful port or while porting (left open by the user). Tasks 1
-  (Masterwork Elementals), 2 (Guild Rework), 3 (Shop Rework), 4 (Artifact Rework) and 6 (New Areas) are already done in
-  the old game, so the faithful port brings them over: don't build them again, only remake their placeholder art (the
-  README's list: task 1's six masterwork looks, task 2's two guild interiors, task 3's scenes, icons and looks, task 4's
-  artifact looks, task 6's Rift enemies and map painting). Task 5 is not built yet.
+  (Masterwork Elementals), 2 (Guild Rework), 3 (Shop Rework), 4 (Artifact Rework), 5 (New Masterworks) and 6 (New Areas)
+  are already done in the old game, so the faithful port brings them over: don't build them again, only remake their
+  placeholder art (the README's list: task 1's six masterwork looks, task 2's two guild interiors, task 3's scenes, icons
+  and looks, task 4's artifact looks, task 5's Sparkling look and new masterwork looks, task 6's Rift enemies and map
+  painting).
 
 ## Folders
 
@@ -793,8 +786,11 @@ while porting (the user will answer later).
   #10 with task 6.
 - **Task 6 is done in the old game too (2026-11-06; N4):** old game only, placeholder looks for the six Abyssal Rift
   enemies and the Rift on Gloamfen's map. Decisions N1–N10 below; `../old-game/Docs/Notes.md`, "New Areas". In pull
-  request #10 with task 4. **Task 5 is not built** (it comes before task 6 in the order, but nothing in task 6 needs it).
-  For all five done tasks the port brings them over with the rest of the game, doesn't redo them from the task files,
+  request #10 with task 4.
+- **Task 5 is done in the old game too (2026-11-06; M1):** old game only, placeholder art (the Sparkling look,
+  Treasure Seeker's drawing, the new weapons' and the Hexbane Coat's forged looks). Decisions M1–M26 below;
+  `../old-game/Docs/Notes.md`, "New Masterworks". Offered as one pull request.
+  For all six done tasks the port brings them over with the rest of the game, doesn't redo them from the task files,
   and only remakes the art `Docs/Port-Tasks/README.md` lists.
 
 **Decisions for task 2, Guild Rework (2026-11-06, a cloud session; the user asked for task 2 that day; the task is

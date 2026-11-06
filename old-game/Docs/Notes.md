@@ -641,6 +641,75 @@ task 6, New Areas" (N1–N10); N9 approved the drafted zone, enemies and groups 
   run again on the final code and give the same results. The baseline's 11 known failures are unchanged. Smoke, enemies (530 cases: the six new enemies' 19 AI cases added) and lifecycle pass; the combat suite
   stops at the known Barbarian failure, as before.
 
+**New Masterworks (port task 5, 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`; the task is
+`engine/Docs/Port-Tasks/5_New_Masterworks.txt`).** Built in the old game, as tasks 1–4 and 6 were; old game only, the
+engine is untouched. Done: the port brings it over and doesn't build it again; its only port work is remaking the
+placeholder art (M1; `engine/Docs/Port-Tasks/README.md`). The user's answers are in `engine/Docs/Engine-Plan.md`,
+"Decisions for task 5, New Masterworks" (M1–M26).
+- **Sparkling enemies** (`combat.js`, the "Sparkling enemies" block after the task 4 artifact drop; `SPARKLING` holds the
+  numbers). `rollSparkling(names)` gives the indexes of an encounter's Sparkling enemies: none when a boss (a `unique`
+  enemy) is in it or a name is unknown, never an `inert` object; each enemy rolls `sparklingChance` = 0.1% (2% for the
+  Cull's target inside its circle, `Guild.cullTargetHere()`) × (1 + the player's Luck / 500), at most double (M2–M4,
+  M9). The map rolls them in `presentTravelEncounter` (every non-boss battle starts there: travel, forced, guild
+  objectives, search, escort), keeps them in `worldState.pendingEncounter.sparkling` (saved; `world-engine.js`
+  `pendingEncounter` keeps only valid indexes) and passes them to `Combat.startEncounter(names, note, objective,
+  sparkling)` and `attemptTravelEscape`. `startRoster` marks them (`actor.sparkling`, saved with the battle), names them
+  "Sparkling X" ("Empowered Sparkling X" for a guild Hunt target), multiplies their eight attributes by 1.4 (on the
+  stored stats, before race modifiers, as Empowered's ×1.3 is: weak races gain more than 1.4×), and `values()` doubles
+  their maximum HP before the caps lock (M6). Name checks strip "Sparkling" as they strip "Empowered" (Cull kills,
+  Zik Lun's music, the class passive with more damage against your quest's target). Rewards (`awardDefeatedEnemyExperience`): 11 times the EXP, the same
+  silver (M7); `rollSparklingMasterworks` rolls 70% and 5% separately, each raised by `masterworkLuckBonus()` (0.05 ×
+  Luck, as other masterwork drops; M8, M12), and picks from `sparklingMasterworkPool()`: every `ForgeRules.MASTERWORK_IDS`
+  template and every masterwork artifact (37 today), Moneyshot and Treasure Seeker weighing 5 (about 11% each; M10,
+  M11); they are forged (artifacts fixed) at your level like other drops, and count as chanced drops (the Heavy Knight
+  and Jester double-drop chance applies). The look (M5, PLACEHOLDER ART): the encounter screen lists a Sparkling enemy on
+  its own line led by a shimmering gold "Sparkling" (`map.js` `renderEncounterPrompt`, `.sparkling-tag`); in battle a
+  gold glow and twinkling motes on its sprite (`battle-stage.js` toggles `.is-sparkling` from the stage snapshot's
+  `sparkling`), a gold name, and a gold-edged card with ✦ in the classic view (`styles.css`).
+- **Treasure Seeker** (`objects/artifacts.json`, a masterwork artifact on task 4's level ramp, M13–M17): two effects,
+  `all-money-percent` (+15% at Level 1, +100% at 80) and `luck-per-platinum` (+0.15 to +1 Luck per whole Platinum held;
+  `rampDecimals: 2`, which `rampedValue` and the description honour). `treasureMoneyPercent()` (`app.js`) is the best copy
+  worn in the party (player and companions; copies don't add up); it raises battle silver (`combat.js`, after the other
+  bonuses), guild quest pay (`guild.js` `pay`, which returns what it paid) and sales (`shop.js` `salePrice`, never above
+  the shop price). The Luck goes into `calculateArtifactEffects().statFlat.luck` from the shared wallet. Not sold, not in
+  the 1% enemy artifact roll; only Sparkling enemies drop it. Look: a gilded compass over coins (`forge-art.js`,
+  `MASTERWORK_ARTIFACTS["treasure-seeker"]`, PLACEHOLDER ART).
+- **Moneyshot** (`forge-engine.js` MASTERWORKS, an Outlaw longbow, `fifth-attack-boost`; M16, M18): `strike` counts every
+  attack with it in `actor.fifthAttackCount` (a battle's actors are new each battle, so the count starts over); every
+  fifth deals +50%, or +200% if it is a critical hit, and `hurt`s every other enemy for 5% of what it dealt (their
+  defenses apply, like Kugelblitz's cleave). Only Sparkling enemies drop it.
+- **Lament** (an Elven wand with a Greater aquamarine, `extra-target-spell`; M19, M20): `cast(…, { extraTargetId })`
+  takes a second living target on the first one's side for a spell whose effects aim at one combatant (`lamentEligible`:
+  no area or random effects), for 50% more Mana; the second target gets only the targeted effects (`lamentTargeted`),
+  its own absorption and miss rolls, and a "(Lament)" log line. The spell list shows "Lament: +1 target (+50% Mana)"
+  beside Cast (`renderPicker`, `.combat-lament-button`); clicking it closes the list and waits (`pendingLament`) for the
+  second target's click (`chooseTarget`, `Combat.chooseTargetId`); Escape or any action cancels. 2% from the Tide Siren
+  (its JSON).
+- **Noble Hero** (a Roundtable crossbow, `second-strike`; M21, M22): `strike` deals 25% less, and after the hit's own
+  effects `directDamage(…, exact)` repeats exactly what it dealt (`exact` skips the artifact damage bonus already in it),
+  then runs what a weapon hit runs (armor and artifact on-hit effects, the weapon's own, skills', class poisons). 1% from
+  every non-boss demon and devil (added in `validateEnemy`).
+- **The Hexbane Coat** (a Boreal Bolt coat; M23, M26): `incoming-spell-damage-percent` −10 (the equipment spell ward in
+  `incomingDamageFactor`) and `spell-reflect-percent` 25: in `hurt`, after an enemy's spell damages the wearer, the
+  caster takes 25% of it back in the spell's element through `hurt` (its defenses apply); `reflectingSpell` keeps a
+  reflection from being reflected. 1% from every non-boss undead, demon and devil, not objects (29 enemies; added in
+  `validateEnemy`).
+- **Masterwork armor colours** (`forge-art.js` `masterworkColor`): a masterwork armor's `color` now paints its main part
+  (item art and battle sprite), so Doctor's Orders is the white robe task 3's R11 asked for (it was drawn in Mythilium
+  green; found while doing the coat) and the Hexbane Coat silver-grey. PLACEHOLDER ART.
+- **The Shadow Crystal** (M24): 0.05% from every enemy that gives loot, bosses included, not objects (added in
+  `validateEnemy`; summons never drop anything). It is still consumed by the Madman class's requirement.
+- **Tests:** `test-client/tests/new-masterworks-browser.js`, 10 entries: `checkSparklingChance`, `…Enemies`,
+  `…EncounterScreen`, `…Rewards`, `checkTreasureSeeker`, `checkMoneyshot`, `checkLament`, `checkNobleHero`,
+  `checkHexbaneCoat`, `checkShadowCrystal`. The battle entries use a second copy of `combat.js` with a hook
+  (`window.__masterworkChecks`). No old check needed changing.
+- **Not covered by a check:** the battle stage's sparkle itself (the checks run with the stage off; they check the
+  snapshot's flag and the card); the enemy AI's forecasts don't know Moneyshot's fifth attack, Noble Hero's second strike
+  or Lament (only heroes wield them); the Guild's item information lists drop tables, so it names no source for
+  Treasure Seeker and Moneyshot (Sparkling enemies only); the Heavy Knight and Jester double-drop on Sparkling drops.
+- **The checks can fail:** RESULTS-PENDING
+- **Regression:** RESULTS-PENDING
+
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in
 the engine's way. The list's rune slotting sound was left out: the port adds proper sound effects instead.

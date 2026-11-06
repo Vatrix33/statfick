@@ -219,10 +219,12 @@ async function checkSparklingRewards() {
     assert(roll([(70 + luckBonus) / 100 - 0.001, 0.999, 0]).length === 1, "Under 70% (plus Luck): one masterwork");
     assert(roll([(70 + luckBonus) / 100 + 0.001, 0.999]).length === 0, "Over it: none");
     assert(roll([0.999, (5 + luckBonus) / 100 - 0.001, 0]).length === 1, "The 5% roll alone gives one");
+    assert(roll([0.999, (5 + luckBonus) / 100 + 0.001]).length === 0, "Over 5% (plus Luck): none");
     assert(roll([0, 0, (5 + luckBonus) / 100 - 0.001, 0.999]).length === 2, "Both rolls: two");
     stats.luck = 200;
     const raised = Math.max(0, currentStats().luck) * 0.05;
     assert(raised > 5 && roll([(70 + raised) / 100 - 0.001, 0.999, 0]).length === 1 && roll([0.999, (5 + raised) / 100 - 0.001, 0]).length === 1, `Luck raises both rolls by ${raised} points`);
+    assert(roll([(70 + raised) / 100 + 0.001, 0.999]).length === 0 && roll([0.999, (5 + raised) / 100 + 0.001]).length === 0, "…and by no more");
     stats.luck = 0;
     assert(!h.rollSparklingMasterworks(foes.map(foe => ({ ...foe, sparkling: false }))[0]).length, "A plain enemy rolls none");
     // The pick: weighted by the pool, the first entry at 0 and the last at the end.

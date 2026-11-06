@@ -520,7 +520,7 @@ async function checkArtifactCatalogue() {
   await waitForSourceFiles();
   const artifacts = items.filter(item => item.category === "artifact");
   const by = rarity => artifacts.filter(item => item.rarity === rarity);
-  assert(by("uncommon").length === 32 && by("rare").length === 24 && by("epic").length === 16 && by("legendary").length === 8 && by("masterwork").length === 4 && !by("common").length, "32 uncommon, 24 rare, 16 epic, 8 legendary, 4 masterwork, no common");
+  assert(by("uncommon").length === 32 && by("rare").length === 24 && by("epic").length === 16 && by("legendary").length === 8 && by("masterwork").length === 5 && by("masterwork").some(item => item.name === "Treasure Seeker") && !by("common").length, "32 uncommon, 24 rare, 16 epic, 8 legendary, 5 masterwork (port task 5 added Treasure Seeker), no common");
   const range = rarity => [Math.min(...by(rarity).map(item => item.priceSilver)), Math.max(...by(rarity).map(item => item.priceSilver))];
   assert(range("uncommon")[1] < range("rare")[0] && range("rare")[1] < range("epic")[0] && range("epic")[1] < range("legendary")[0], "Prices rise with rarity: " + ["uncommon", "rare", "epic", "legendary"].map(range).map(pair => pair.join("–")).join(", "));
   const signature = item => JSON.stringify(item.effects.map(({ itemName, ...effect }) => effect));
