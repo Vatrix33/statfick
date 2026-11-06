@@ -85,7 +85,26 @@ doesn't build it again; only its placeholder looks are remade (`Docs/Port-Tasks/
 `../old-game/` (its scripts, enemy files and test client) and these docs, never the engine (the engine's tests read
 none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count
 task 6 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "New
-Areas". Task 5 is not built yet.
+Areas".
+**Beside the engine, old game only (2026-11-06): port task 5, New Masterworks, is IN PROGRESS** (paused at the user's
+request at 15:00 their time; decisions M1–M26 in "Decisions for task 5, New Masterworks" below; cloud branch
+`claude/fervent-carson-f5ol9s`, no pull request yet; one PR at the end, M25). **Built and committed:** Sparkling enemies
+(`combat.js` "Sparkling enemies" block, `rollSparkling` from `map.js`'s `presentTravelEncounter`, `startRoster`'s
+`sparkling` indexes, the encounter screen and battle look in `styles.css`, `Guild.cullTargetHere`), Treasure Seeker
+(`objects/artifacts.json`, `treasureMoneyPercent` and the Luck in `app.js`, battle silver, `guild.js` `pay`, `shop.js`
+`salePrice`), Moneyshot, Lament, Noble Hero and the Hexbane Coat (`forge-engine.js` MASTERWORKS; `strike`, `cast` with
+`extraTargetId` and the spell list's Lament button, `hurt`'s reflection), their drops (Tide Siren JSON; the Noble Hero,
+Hexbane Coat and Shadow Crystal drops added in `validateEnemy`) and masterwork armor colours in `forge-art.js` (also
+fixes Doctor's Orders' white, R11). **Next:** make `old-game/test-client/tests/new-masterworks-browser.js` pass (first
+run: Sparkling chance, encounter screen, Noble Hero and Hexbane Coat pass; five fail on the checks' own mistakes:
+`checkSparklingRewards` assumes the wrong dice order for the 70%/5% rolls; `checkSparklingEnemies`' Cull count sets the
+quest after the battle starts — check `onEnemyDefeated`'s region and name test; `checkTreasureSeeker` finds no sellable
+shop weapon in `items` — pick a real one; `checkMoneyshot` compares the tenth shot with another battle's base — use its
+own first shot; `checkLament` and `checkShadowCrystal` read the hook copy's enemy definitions before they load — start a
+battle first), then the mutation proof (runner in `~/.cache/stat-fick-build/claude-work/areas/mutate-old.py`), the full
+regression (`claude-work/shop/regress.sh`; baseline: task 6's final run), the docs (`../old-game/Docs/Notes.md` "New
+Masterworks", `Docs/Port-Tasks/README.md` task 5 done and its placeholder art: the Sparkling look, Treasure Seeker's
+drawing, the four weapons' and the coat's normal forged looks), the PR, and the report to the user.
 Before each later milestone (M11 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code, in the order
 "Starting M9" below gives (M10 followed it too).
