@@ -553,6 +553,13 @@ placeholder looks (A1; `engine/Docs/Port-Tasks/README.md`). The user's 32 answer
 - **Not covered by a check:** the AI choosing actions with the new effects in mind (it sees the damage bonuses only);
   damage with no source counting as an enemy's for Warding Cord and Second Chance Locket (A27) also when a hero's own
   skill causes it.
+- **The checks can fail:** each rule was broken once in a copy of the game (85 mutations, by the same kind of runner as
+  tasks 2 and 3, in the cloud session's `claude-work/artifacts/`, not kept). All 85 were caught after a second pass; the
+  first let nine through, eight of them gaps the checks then closed (masterwork drops at your level only tested on the
+  helper, not through a real merfolk drop; the 1% chance only probed at 0.5% and 2%; the enemy's level never fed to the
+  real drop roll; Leech Hook's and Stormcatcher's shares rounding to 0 on small numbers; the chance check missing its
+  attack; Studious Quill only worn by the companion) and one a mutation that broke nothing (First Light's "spent on a
+  miss", replaced by one that spends it on any attack, which the checks catch).
 - **Regression** (2026-11-06, the cloud, Xvfb): all 109 entries of the 43 check files and the four suites, against task 3's
   final run (the same old-game code as merged `main`, 1d79173). Every entry gives the baseline's result except: the 12
   new entries pass; `coast-lich-bosses`' `runCoastLichBossChecks` and `enemy-healing` read a plain Arrowtip Rain and

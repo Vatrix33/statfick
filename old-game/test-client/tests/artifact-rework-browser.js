@@ -14,7 +14,7 @@ const artifactHooks = async () => {
   const source = await (await fetch("scripts/combat.js")).text();
   const marker = "  window.Combat = {";
   const script = document.createElement("script");
-  script.textContent = source.replace(marker, "  window.__artifactChecks = { actorById, hp, mana, values, setHp, setMana, getBattle: () => battle, healingFactor, healHp, hurt, directDamage, applyCombatDamage, attack, cast, useItem, advance, expire, applyTimedEffects, actionPointMaximum, artifactDamagePercent, artifactEffectsOf, noteFall, summonFriendly, resistance, incomingDamageFactor, endTurn, awardDefeatedEnemyExperience, artifactForEnemyLevel };\n" + marker);
+  script.textContent = source.replace(marker, "  window.__artifactChecks = { actorById, hp, mana, values, setHp, setMana, getBattle: () => battle, healingFactor, healHp, hurt, directDamage, applyCombatDamage, attack, cast, useItem, advance, expire, applyTimedEffects, actionPointMaximum, artifactDamagePercent, artifactEffectsOf, noteFall, summonFriendly, resistance, incomingDamageFactor, endTurn, awardDefeatedEnemyExperience, artifactForEnemyLevel, rollEnemyArtifact };\n" + marker);
   document.head.append(script);
   await waitForSourceFiles();
   if (window.BattleStage) window.BattleStage.enabled = () => false;
@@ -43,11 +43,12 @@ async function checkArtifactWeaponHits() {
     // Leech Hook: weapon hits heal 3% of the damage dealt.
     let { battle, player, foes } = await artifactBattle(h, [artifactId("Leech Hook")]);
     Math.random = () => 0;
+    stats.strength = 3000; h.setHp(foes[0], 1e7);
     battle.current = "player"; battle.ap = 9; h.setHp(player, 1);
     const before = foes[0].character.currentHp;
     h.attack(player, foes[0]);
     const dealt = before - foes[0].character.currentHp;
-    assert(dealt > 0 && h.hp(player) - 1 === Math.floor(dealt * 3 / 100), `Leech Hook heals 3% of the damage (${dealt} → ${h.hp(player) - 1})`);
+    assert(dealt >= 100 && h.hp(player) - 1 === Math.floor(dealt * 3 / 100), `Leech Hook heals 3% of the damage (${dealt} → ${h.hp(player) - 1})`);
     // Thornknot Brooch: melee attackers take 8% of the damage back.
     ({ battle, player, foes } = await artifactBattle(h, [artifactId("Thornknot Brooch")]));
     foes[0].character.stats.strength = 400; h.setHp(player, 100000);
@@ -63,11 +64,13 @@ async function checkArtifactWeaponHits() {
     const burn = foes[0].effects.find(effect => effect.type === "turn-start-max-hp-loss-percent");
     const slow = foes[0].effects.find(effect => effect.type === "stat-percent" && effect.target === "speed");
     assert(burn?.amount === 3 && burn.expiresTurn === foes[0].turns + 2 && slow?.amount === -15 && slow.expiresTurn === foes[0].turns + 2, "Burning Brand burns for 3% for 2 turns; Frostbite Charm slows by 15% for 2 turns");
-    Math.random = () => 0.99;
+    Math.random = () => 0.5;
     ({ battle, player, foes } = await artifactBattle(h, [artifactId("Burning Brand"), artifactId("Frostbite Charm")]));
+    h.setHp(foes[0], 1e7);
     battle.current = "player"; battle.ap = 9;
+    const unburnt = h.hp(foes[0]);
     h.attack(player, foes[0]);
-    assert(!foes[0].effects.some(effect => effect.type === "turn-start-max-hp-loss-percent" || effect.type === "stat-percent"), "They only trigger on their chance");
+    assert(h.hp(foes[0]) < unburnt && !foes[0].effects.some(effect => effect.type === "turn-start-max-hp-loss-percent" || effect.type === "stat-percent"), "A hit only burns or slows on their chance");
     // Shatter Stone: −5% Armor per hit, up to 3 stacks.
     Math.random = () => 0;
     ({ battle, player, foes } = await artifactBattle(h, [artifactId("Shatter Stone")]));
@@ -248,8 +251,9 @@ async function checkArtifactSpellsAndHealing() {
     ({ battle, player, foes } = await artifactBattle(h, [artifactId("Echo Bell")], { changes: caster }));
     assert(castAt(battle, player, foes[0], "fire-bolt-fire-damage") && currentMana === 999 && battle.log.some(entry => entry.includes("costs no Mana")), "and makes the spell free when it lands");
     // Stormcatcher Coil: an enemy spell that damages you restores 4% Mana.
-    ({ battle, player, foes } = await artifactBattle(h, [artifactId("Stormcatcher Coil")]));
+    ({ battle, player, foes } = await artifactBattle(h, [artifactId("Stormcatcher Coil")], { changes: { stats: { ...defaultCharacter().stats, intelligence: 400, wisdom: 400, mind: 400 } } }));
     h.setMana(player, 0); h.setHp(player, 1000);
+    assert(Math.floor(h.values(player).maxMana * 4 / 100) > 0, "The test character has Mana for 4% to show");
     h.hurt(player, 30, "fire", false, true, foes[0], "spell");
     assert(h.mana(player) === Math.floor(h.values(player).maxMana * 4 / 100), "Stormcatcher Coil restores 4% Mana from a hostile spell");
     h.setMana(player, 0); h.hurt(player, 30, "physical", false, false, foes[0], "melee");
@@ -329,9 +333,10 @@ async function checkArtifactFallsAndRewards() {
     companions = [];
     return { silver: ShopRules.walletValue(currencies) - silver, playerExp: exp - playerExp, allyExp: ally.character.exp - allyExp };
   };
-  const plain = await reward([], []), coin = await reward([], [artifactId("Bandit's Coin")]), quill = await reward([], [artifactId("Studious Quill")]);
+  const plain = await reward([], []), coin = await reward([], [artifactId("Bandit's Coin")]), quill = await reward([], [artifactId("Studious Quill")]), ownQuill = await reward([artifactId("Studious Quill")], []);
   assert(plain.silver === 35 * 3 && coin.silver === Math.ceil(35 * 3 * 1.15), `Bandit's Coin on a companion raises the party's silver by 15% (${plain.silver} → ${coin.silver})`);
   assert(quill.allyExp === Math.floor(plain.allyExp * 1.1) && quill.playerExp === plain.playerExp && plain.playerExp > 0, `Studious Quill raises only its wearer's EXP (${plain.allyExp} → ${quill.allyExp})`);
+  assert(ownQuill.playerExp === Math.floor(plain.playerExp * 1.1) && ownQuill.allyExp === plain.allyExp, "Worn by you, it raises your EXP and not your companion's");
   Combat.restore(null);
   return { passed: true, checks: count() };
 }
@@ -429,6 +434,16 @@ async function checkMasterworkArtifacts() {
   Combat.restore(null);
   applyCharacter(normalizeCharacter({ ...defaultCharacter(), raceId: "human", level: 37 }));
   assert(masterworkArtifactIdAt(artifactId("Arrowtip Rain"), level) === artifactId("Arrowtip Rain") + "-lv37" && masterworkArtifactIdAt(artifactId("Hare's Anklet"), level) === artifactId("Hare's Anklet"), "Drops are fixed at your level; other artifacts keep their id");
+  // A real drop: a merfolk's Arrowtip Rain comes fixed at your level.
+  {
+    const random = Math.random;
+    const drop = await artifactBattle(h, [], { level: 37, enemies: ["Merfolk Reef Guard"] }).catch(() => null);
+    if (drop) {
+      Math.random = () => 0;
+      try { drop.foes.forEach(foe => h.directDamage(foe, 1e9, false, "physical", drop.player)); h.awardDefeatedEnemyExperience(); } finally { Math.random = random; }
+      assert(drop.battle.lootItems.includes(artifactId("Arrowtip Rain") + "-lv37") && !drop.battle.lootItems.includes(artifactId("Arrowtip Rain")), "A masterwork artifact drops fixed at your level");
+    } else assert(false, "A merfolk that drops Arrowtip Rain starts a battle");
+  }
   // Titanfall's golem at its strength (HP and damage).
   const { battle, player, foes } = await artifactBattle(h, [], { level: 37 });
   h.summonFriendly(player, { type: "summon-friendly", enemyId: "steelguard-golem-level-35", summonStrengthPercent: 40 }, "Titanfall");
@@ -455,7 +470,7 @@ async function checkArtifactDrops() {
     h.directDamage(foes[0], 1e7, false, "physical", player); h.awardDefeatedEnemyExperience();
     const dropped = battle.lootItems.map(getItem).filter(item => item?.category === "artifact");
     assert(dropped.length === 1 && dropped[0].rarity !== "masterwork", "A 1% roll drops an artifact");
-    Math.random = () => 0.02;
+    Math.random = () => 0.015;
     ({ battle, player, foes } = await artifactBattle(h, [], { enemies: ["Goblin"] }));
     h.directDamage(foes[0], 1e7, false, "physical", player); h.awardDefeatedEnemyExperience();
     assert(!battle.lootItems.some(id => getItem(id)?.category === "artifact"), "but only on that 1%");
@@ -463,6 +478,9 @@ async function checkArtifactDrops() {
     ({ battle, player, foes } = await artifactBattle(h, [], { enemies: ["Great Imp Ji'ruan"] }));
     foes.forEach(foe => h.directDamage(foe, 1e9, false, "physical", player)); h.awardDefeatedEnemyExperience();
     assert(!battle.lootItems.some(id => getItem(id)?.category === "artifact" && getItem(id).rarity !== "masterwork"), "Bosses drop none");
+    // The defeated enemy's own level picks the rarity: with the same rolls, Level 95 gives legendary, Level 1 uncommon.
+    const rolls = enemyLevel => { let call = 0; Math.random = () => call++ === 0 ? 0.005 : 0.5; try { return getItem(h.rollEnemyArtifact({ character: { level: enemyLevel } }))?.rarity; } finally { Math.random = random; } };
+    assert(rolls(95) === "legendary" && rolls(1) === "uncommon", "The enemy's level sets the rarity weights");
     // The rarity weighting: a low-level enemy's pick leans uncommon, a Level 95 enemy's legendary; never common.
     Math.random = random;
     const tally = enemyLevel => { const counts = {}; for (let index = 0; index < 3000; index++) { const rarity = getItem(h.artifactForEnemyLevel(enemyLevel)).rarity; counts[rarity] = (counts[rarity] || 0) + 1; } return counts; };

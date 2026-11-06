@@ -973,6 +973,12 @@ checks ran, "That task is very small"; built in the old game like tasks 1–4, o
   Lamia). (Not Alder Vale's at a higher level, not a mix.)
 - N7 **Loot:** like other enemies: their gear, the usual chances and task 4's 1% artifact drop; no special item.
 - N8 **Delivery:** one pull request for tasks 4 and 6, each described separately. (Not task 4 first.)
+- N9 **The draft, approved as drafted** (2026-11-06, "Enemies look good"): the zone is the Abyssal Rift in the marsh's
+  south-west (Levels 45–55, a 50% encounter chance, a dark violet-black scar with a red-glowing heart on the map); the
+  corrupted creatures are Corrupted Bog Troll (47), Corrupted Mire Stalker (50, its strikes Dark) and Corrupted Mossback
+  Lamia (53, Dark spells instead of her nature ones), all `demon` race (Holy hurts more, Dark not at all) with darkened
+  looks and red eyes; the demons are Abyssal Imp (impid, 46, a rogue-warlock in pairs), Rift Fiend (demon, 50, a clawed
+  brute) and Abyss Witch (demon, 54, a caster); nine encounter groups from Level 45 to 55.
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
