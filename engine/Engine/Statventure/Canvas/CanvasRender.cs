@@ -64,6 +64,24 @@ public sealed partial class Canvas
         return image;
     }
 
+    /// <summary>
+    /// Gets a pooled image of exactly this size (a tile: a repeat sampler wraps the whole image, so
+    /// it can't be a region of a bigger one); pooled and released as the others.
+    /// </summary>
+    GpuImage AcquireExactTarget(int width, int height)
+    {
+        width = Math.Max(1, width);
+        height = Math.Max(1, height);
+        GpuImage? image = null;
+        lock (_pool)
+            if (_pool.TryGetValue((width, height), out var stack) && stack.Count > 0)
+                image = stack.Pop();
+        image ??= GpuImage.CreateRenderTarget(_device, width, height, LayerFormat);
+        _inUse.Add(image);
+        _regions[image] = (width, height);
+        return image;
+    }
+
     /// <summary>Layer images of a recording that was never rendered go straight back to the pool (no GPU work used them).</summary>
     void ReturnUnrendered()
     {

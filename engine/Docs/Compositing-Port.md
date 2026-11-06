@@ -51,6 +51,15 @@ become Overlap layers; scrollbars are their own layers (RasterInducingScroll is 
   shader and no colour-changing flags; MaximumCoveredRect). Chunk: rect_known_to_be_opaque =
   MaximumCoveredRect over items; text_known_to_be_on_opaque_background = each text item's visual rect
   inside the chunk's opaque rect so far.
+- Background layers in the opaque analysis (2026-11-06, with the background-layer port; Engine-Plan.md Progress,
+  "Background layers as Blink paints them"): a layer one tile covers is drawn as that tile (`PaintFastBottomLayer` for the
+  bottom layer, square boxes too since `ContouredRect::HasRoundCurvature` holds without radii, else
+  `OptimizeToSingleTileDraw`): a DrawRect/DrawRRect with the gradient's shader, opaque when every stop is; a repeated tile
+  is a DrawRect with a picture shader (`GeneratedImage::DrawPattern`), never opaque (`PaintShader::IsOpaque`,
+  `kPaintRecord`). The game's dialog headers depend on it: `settings` and `companions` at 1× composite as Chromium only
+  with the header's gradient one tile (101.296875 px tall with a 1 px border, one tile only by the snapped size the fast
+  path tests). Checked in Chromium with layer traces and `LayerTree.snapshotCommandLog` (a single tile is a dithered
+  gradient `drawRect`, a pattern a picture shader).
 - cc layer: contents_opaque = background colour not transparent && rect_known_to_be_opaque contains the
   layer rect; else contents_opaque_for_text = has text && text known on opaque background. cc
   LCD disallowed: will-change transform (node or ancestors), transform animation, filter/backdrop

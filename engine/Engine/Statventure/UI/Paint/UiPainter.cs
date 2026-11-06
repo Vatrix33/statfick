@@ -127,6 +127,7 @@ public sealed partial class UiPainter : IDisposable
         var viewport = _document.Layout.Viewport;
         _canvas.Begin(canvas, new Vector2(viewport.Width, viewport.Height), recordOnly: analyze);
         _canvas.DevicePixelRatio = _document.Zoom;
+        _fixedBackgroundObjects = -1;
         if (analyze)
         {
             _properties.Build(viewport);
@@ -144,8 +145,7 @@ public sealed partial class UiPainter : IDisposable
         if (analyze)
         {
             _analysis = _canvas.Chunks!;
-            var preference = Text.FontRenderSettings.System.IsSubpixel && _document.DeviceScale < 1.5f ? LcdTextPreference.StronglyPreferred : LcdTextPreference.Ignored;
-            Layers = new Layerizer(_analysis, preference, _document.Zoom, _properties.RootEffect).Layerize();
+            Layers = new Layerizer(_analysis, LcdPreference, _document.Zoom, _properties.RootEffect).Layerize();
             _lcdEffects.Clear();
             foreach (var chunk in _analysis)
                 if (chunk.LcdText)
@@ -157,6 +157,9 @@ public sealed partial class UiPainter : IDisposable
     }
 
     BoxProperties? PropertiesOf(LayoutBox box) => _properties.For(box);
+
+    /// <summary>WidgetBase::ComputeLCDTextPreference: LCD text is strongly preferred below a device scale of 1.5 when the system draws it.</summary>
+    LcdTextPreference LcdPreference => Text.FontRenderSettings.System.IsSubpixel && _document.DeviceScale < 1.5f ? LcdTextPreference.StronglyPreferred : LcdTextPreference.Ignored;
 
     /// <summary>The box takes pointer input where it is painted (pointer-events: none boxes don't, though Blink still records their hit test data).</summary>
     void Hit(LayoutBox box, RectF rect, CornerRadii radii, bool text = false, LineItem? item = null, RectF? borderBox = null) =>
@@ -744,6 +747,7 @@ public sealed partial class UiPainter : IDisposable
 
     void PaintBoxDecorations(LayoutBox box, ComputedStyle s, RectF rect, CornerRadii radii, BorderSides sides, bool skipBackground)
     {
+        var unsnapped = rect;
         rect = Snap(rect);
         // Outer shadows: the first one listed is on top.
         for (var i = s.BoxShadows.Length - 1; i >= 0; i--)
@@ -760,7 +764,7 @@ public sealed partial class UiPainter : IDisposable
             PaintInsetShadows(s, rect, radii);
             return;
         }
-        PaintStyledFill(s, rect, radii, sides, skipBackground);
+        PaintStyledFill(s, unsnapped, rect, radii, sides, skipBackground, box, appearance: look != ControlLook.None);
         // A styled select keeps the theme's arrow.
         if (look == ControlLook.MenulistButton)
             PaintMenuListArrow(box, s, rect);
@@ -769,6 +773,7 @@ public sealed partial class UiPainter : IDisposable
     /// <summary>A box with a style that belongs to no layout box (a control's part): shadows, background and border.</summary>
     void PaintStyledBox(ComputedStyle s, RectF rect, CornerRadii radii, BorderSides sides)
     {
+        var unsnapped = rect;
         rect = Snap(rect);
         for (var i = s.BoxShadows.Length - 1; i >= 0; i--)
         {
@@ -776,11 +781,13 @@ public sealed partial class UiPainter : IDisposable
             if (!shadow.Inset)
                 _canvas.DrawBoxShadow(rect, radii, new BoxShadow(new Vector2(shadow.OffsetX, shadow.OffsetY), shadow.Blur, shadow.Spread, shadow.Color));
         }
-        PaintStyledFill(s, rect, radii, sides, false);
+        PaintStyledFill(s, unsnapped, rect, radii, sides, false);
     }
 
-    /// <summary>The background (colour and layers), inset shadows and border.</summary>
-    void PaintStyledFill(ComputedStyle s, RectF rect, CornerRadii radii, BorderSides sides, bool skipBackground)
+    /// <summary>The background (colour and layers), inset shadows and border, for a border box at <paramref name="unsnapped"/> snapped to <paramref name="rect"/>.</summary>
+    /// <param name="box">The layout box it is (none for a control's part).</param>
+    /// <param name="appearance">It has an effective appearance (a theme look kept with its CSS background).</param>
+    void PaintStyledFill(ComputedStyle s, RectF unsnapped, RectF rect, CornerRadii radii, BorderSides sides, bool skipBackground, LayoutBox? box = null, bool appearance = false)
     {
         var hasInset = s.BoxShadows.Any(sh => sh.Inset);
         var background = skipBackground ? Color.Transparent : s.BackgroundColor;
@@ -792,13 +799,10 @@ public sealed partial class UiPainter : IDisposable
                 _canvas.DrawBox(rect, background.A > 0 ? Brush.Solid(background) : null, radii, sides);
             return;
         }
-        if (background.A > 0)
-            _canvas.DrawBox(rect, Brush.Solid(background), radii, Border.None);
         if (layers.Length > 0)
-        {
-            var padding = new RectF(rect.X + s.BorderLeft, rect.Y + s.BorderTop, rect.Width - s.BorderLeft - s.BorderRight, rect.Height - s.BorderTop - s.BorderBottom);
-            PaintBackgroundLayers(layers, rect, padding, radii);
-        }
+            PaintBoxBackground(s, unsnapped, rect, radii, sides, background, layers, box, appearance);
+        else if (background.A > 0)
+            _canvas.DrawBox(rect, Brush.Solid(background), radii, Border.None);
         if (hasInset)
             PaintInsetShadows(s, rect, radii);
         if (sides.IsVisible)
@@ -817,93 +821,6 @@ public sealed partial class UiPainter : IDisposable
             if (shadow.Inset)
                 _canvas.DrawBoxShadow(padding, innerRadii, new BoxShadow(new Vector2(shadow.OffsetX, shadow.OffsetY), shadow.Blur, shadow.Spread, shadow.Color, Inset: true));
         }
-    }
-
-    /// <summary>Background images, bottom layer first, positioned in the padding box and painted within the border box.</summary>
-    void PaintBackgroundLayers(BackgroundLayer[] layers, RectF borderBox, RectF positioning, CornerRadii radii)
-    {
-        if (!_canvas.Drawing)
-            return;
-        _canvas.PushClip(borderBox, radii);
-        var viewportArea = new RectF(0, 0, _document.Layout.Viewport.PaddingBoxWidth, _document.Layout.Viewport.PaddingBoxHeight);
-        for (var i = layers.Length - 1; i >= 0; i--)
-        {
-            var layer = layers[i];
-            // background-attachment: fixed positions the layer against the viewport.
-            var area = layer.Fixed ? viewportArea : positioning;
-            var svgImage = layer.Image.Kind == ImageKind.Url ? SvgImage(layer.Image.Url) : null;
-            var natural = svgImage is { } svgSource ? svgSource.Size : layer.Image.Kind == ImageKind.Url ? _document.Layout.Context.ImageSize?.Invoke(layer.Image.Url) : null;
-            var ratio = svgImage is { } withRatio ? withRatio.Ratio : natural is { X: > 0, Y: > 0 } n ? n.X / n.Y : 0;
-            if (layer.Image.Kind == ImageKind.Url && svgImage is null && (natural is null || ImageTexture?.Invoke(layer.Image.Url) is null))
-                continue;
-            var tile = TileSize(layer, area.Size, natural, ratio);
-            if (tile.X <= 0 || tile.Y <= 0)
-                continue;
-            var position = new Vector2(
-                area.X + layer.PositionX.ResolveOr(area.Width - tile.X, 0),
-                area.Y + layer.PositionY.ResolveOr(area.Height - tile.Y, 0));
-            // Tiles cover the painting area (the border box) when they repeat.
-            float startX = position.X, endX = position.X + tile.X, startY = position.Y, endY = position.Y + tile.Y;
-            if (layer.RepeatX != BackgroundRepeat.NoRepeat)
-            {
-                startX = position.X - MathF.Ceiling((position.X - borderBox.X) / tile.X) * tile.X;
-                endX = borderBox.Right;
-            }
-            if (layer.RepeatY != BackgroundRepeat.NoRepeat)
-            {
-                startY = position.Y - MathF.Ceiling((position.Y - borderBox.Y) / tile.Y) * tile.Y;
-                endY = borderBox.Bottom;
-            }
-            var count = 0;
-            for (var y = startY; y < endY - 0.001f && count < 4096; y += tile.Y)
-                for (var x = startX; x < endX - 0.001f && count < 4096; x += tile.X, count++)
-                {
-                    var tileRect = new RectF(x, y, tile.X, tile.Y);
-                    if (svgImage is { } svg)
-                    {
-                        if (FilterImage(layer.Image.Url, svg.Svg, tileRect) is { } filtered)
-                            _canvas.DrawImage(filtered, tileRect);
-                        else
-                            PaintSvgTree(svg.Svg, tileRect, Color.Black, clip: true);
-                    }
-                    else if (layer.Image.Kind == ImageKind.Url)
-                        _canvas.DrawImage(ImageTexture!(layer.Image.Url)!.Value, tileRect);
-                    else if (GradientBrush(layer.Image, tile) is { } brush)
-                        _canvas.DrawBox(tileRect, brush, CornerRadii.Zero, Border.None);
-                }
-        }
-        _canvas.PopClip();
-    }
-
-    /// <summary>A background image's tile size (CSS Backgrounds 3 §3.9), from its natural size and/or ratio.</summary>
-    static Vector2 TileSize(BackgroundLayer layer, Vector2 area, Vector2? natural, float ratio)
-    {
-        Vector2 Contain(bool cover)
-        {
-            var areaRatio = area.Y > 0 ? area.X / area.Y : 1;
-            var widthLimited = cover ? ratio < areaRatio : ratio > areaRatio;
-            return widthLimited ? new Vector2(area.X, area.X / ratio) : new Vector2(area.Y * ratio, area.Y);
-        }
-        switch (layer.SizeKeyword)
-        {
-            case "cover" when ratio > 0:
-                return Contain(cover: true);
-            case "contain" when ratio > 0:
-                return Contain(cover: false);
-            case "cover":
-            case "contain":
-                return area;
-        }
-        var width = layer.SizeX.IsAuto ? float.NaN : layer.SizeX.ResolveOr(area.X, float.NaN);
-        var height = layer.SizeY.IsAuto ? float.NaN : layer.SizeY.ResolveOr(area.Y, float.NaN);
-        // No natural size but a ratio: sized as for contain.
-        if (float.IsNaN(width) && float.IsNaN(height))
-            return natural ?? (ratio > 0 ? Contain(cover: false) : area);
-        if (float.IsNaN(width))
-            width = ratio > 0 ? height * ratio : natural?.X ?? area.X;
-        if (float.IsNaN(height))
-            height = ratio > 0 ? width / ratio : natural?.Y ?? area.Y;
-        return new Vector2(width, height);
     }
 
     /// <summary>A CSS gradient for a tile of this size, as a canvas brush (geometry in the tile's own box).</summary>
@@ -1059,7 +976,7 @@ public sealed partial class UiPainter : IDisposable
         {
             // Positioned against the root element's box.
             var rootRect = Placed(root);
-            PaintBackgroundLayers(s.Backgrounds, canvasRect, new RectF(rootRect.X, rootRect.Y, rootRect.Width, MathF.Max(rootRect.Height, viewport.Height)), CornerRadii.Zero);
+            PaintCanvasBackgroundLayers(s, canvasRect, new RectF(rootRect.X, rootRect.Y, rootRect.Width, MathF.Max(rootRect.Height, viewport.Height)));
         }
     }
 

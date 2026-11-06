@@ -225,6 +225,49 @@ public sealed partial class Canvas : IDisposable
         _clips.Push((_clip, _clipRadii));
     }
 
+    readonly Stack<(ColorMatrix? Filter, BlendMode Blend)> _tileStates = new();
+
+    /// <summary>
+    /// Starts drawing a tile into a texture of its own, exactly <paramref name="pixelWidth"/> by
+    /// <paramref name="pixelHeight"/> pixels, so a repeat sampler wraps it (a background layer's
+    /// pattern): the draws until <see cref="PopTile"/> land in it, in its pixels (0,0 at its
+    /// corner), with no colour filter or blend mode, grayscale text, nothing drawn on the target.
+    /// </summary>
+    public void PushTile(int pixelWidth, int pixelHeight)
+    {
+        var layer = new Layer { PixelBounds = new RectF(0, 0, Math.Max(1, pixelWidth), Math.Max(1, pixelHeight)) };
+        _lcdTextStates.Push(_lcdText);
+        _lcdText = false;
+        _tileStates.Push((ColorFilter, Blend));
+        ColorFilter = null;
+        Blend = BlendMode.Premultiplied;
+        _layers.Push(_current);
+        _current = layer;
+        _allLayers.Add(layer);
+        _transforms.Push(_transform);
+        _clips.Push((_clip, _clipRadii));
+        _transform = Matrix3x2.CreateScale(1f / Scale);
+        _clip = new Vector4(0, 0, layer.PixelBounds.Width, layer.PixelBounds.Height);
+        _clipRadii = Vector4.Zero;
+    }
+
+    /// <summary>
+    /// Ends a tile: its texture (premultiplied; draw it with <c>premultiplied: true</c>), drawn before
+    /// whatever samples it later in this recording, and back to its pool once the frame is done.
+    /// </summary>
+    public GpuImage PopTile()
+    {
+        var layer = _current;
+        _current = _layers.Pop();
+        _lcdText = _lcdTextStates.Pop();
+        _transform = _transforms.Pop();
+        (_clip, _clipRadii) = _clips.Pop();
+        (ColorFilter, Blend) = _tileStates.Pop();
+        layer.Content = layer.Output = AcquireExactTarget((int)layer.PixelBounds.Width, (int)layer.PixelBounds.Height);
+        _current.Commands.Add(new Command { Type = CommandType.Child, Child = layer });
+        return layer.Content;
+    }
+
     public void PopLayer()
     {
         var layer = _current;
@@ -389,23 +432,27 @@ public sealed partial class Canvas : IDisposable
         Add(primitive);
     }
 
-    /// <summary>Draws (part of) a texture with straight alpha into a rectangle, optionally rounded and tinted.</summary>
-    public void DrawImage(int textureIndex, RectF rect, RectF? uv = null, CornerRadii radii = default, Color? tint = null, SamplerKind sampler = SamplerKind.LinearClamp)
+    /// <summary>
+    /// Draws (part of) a texture into a rectangle, optionally rounded and tinted: with straight alpha,
+    /// or <paramref name="premultiplied"/> (a tile from <see cref="PopTile"/>; the tint's alpha alone
+    /// applies). A uv range beyond 0..1 with a repeat sampler repeats it.
+    /// </summary>
+    public void DrawImage(int textureIndex, RectF rect, RectF? uv = null, CornerRadii radii = default, Color? tint = null, SamplerKind sampler = SamplerKind.LinearClamp, bool premultiplied = false)
     {
         if (rect.IsEmpty)
             return;
-        var primitive = LocalPrimitive(rect, KindImage);
+        var primitive = LocalPrimitive(rect, premultiplied ? KindComposite : KindImage);
         SetRadii(ref primitive, radii.Fit(rect.Size));
         primitive.Texture = (uint)textureIndex;
         primitive.Sampler = (uint)sampler;
         var u = uv ?? new RectF(0, 0, 1, 1);
         primitive.Uv = new Vector4(u.Left, u.Top, u.Right, u.Bottom);
-        primitive.Color = (tint ?? Color.White).Premultiplied;
+        primitive.Color = premultiplied ? new Vector4(1, 1, 1, (tint ?? Color.White).A) : (tint ?? Color.White).Premultiplied;
         Add(primitive);
     }
 
-    public void DrawImage(GpuImage image, RectF rect, RectF? uv = null, CornerRadii radii = default, Color? tint = null, SamplerKind sampler = SamplerKind.LinearClamp) =>
-        DrawImage(image.BindlessIndex, rect, uv, radii, tint, sampler);
+    public void DrawImage(GpuImage image, RectF rect, RectF? uv = null, CornerRadii radii = default, Color? tint = null, SamplerKind sampler = SamplerKind.LinearClamp, bool premultiplied = false) =>
+        DrawImage(image.BindlessIndex, rect, uv, radii, tint, sampler, premultiplied);
 
     /// <summary>Paints a coverage mask (the red channel of a texture: glyphs, paths) with a brush.</summary>
     public void DrawCoverage(int textureIndex, RectF rect, RectF uv, Brush brush, SamplerKind sampler = SamplerKind.LinearClamp)

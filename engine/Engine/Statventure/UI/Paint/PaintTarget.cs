@@ -544,6 +544,45 @@ internal sealed class PaintTarget
             _canvas!.PopLayer();
     }
 
+    readonly Stack<(Matrix3x2 Transform, RectF Clip, CornerRadii ClipRadii, Item? Item, bool Drawn)> _tiles = new();
+
+    /// <summary>
+    /// Draws until <see cref="PopTile"/> go into a tile texture (<see cref="CanvasRenderer.PushTile"/>,
+    /// a background layer's pattern), in its pixels: they aren't display items or hit regions here,
+    /// only the tile's one draw is (<see cref="DrawTile"/>). Without a canvas nothing is drawn.
+    /// </summary>
+    public void PushTile(int pixelWidth, int pixelHeight)
+    {
+        var drawn = Draws;
+        _tiles.Push((_transform, _clip, _clipRadii, _item, drawn));
+        _item = null;
+        _suppressed++;
+        _noHits++;
+        _transform = Matrix3x2.CreateScale(1 / Scale);
+        _clip = new RectF(0, 0, pixelWidth, pixelHeight);
+        _clipRadii = CornerRadii.Zero;
+        if (drawn)
+            _canvas!.PushTile(pixelWidth, pixelHeight);
+    }
+
+    /// <summary>The tile's texture (null without a canvas): see <see cref="CanvasRenderer.PopTile"/>.</summary>
+    public GpuImage? PopTile()
+    {
+        var (transform, clip, clipRadii, item, drawn) = _tiles.Pop();
+        (_transform, _clip, _clipRadii, _item) = (transform, clip, clipRadii, item);
+        _suppressed--;
+        _noHits--;
+        return drawn ? _canvas!.PopTile() : null;
+    }
+
+    /// <summary>A tile's texture repeated over a rect (premultiplied, with the repeat sampler): one drawing of the rect.</summary>
+    public void DrawTile(GpuImage? tile, RectF rect, RectF uv)
+    {
+        Record(rect);
+        if (Draws && tile is not null)
+            _canvas!.DrawImage(tile, rect, uv, sampler: SamplerKind.LinearRepeat, premultiplied: true);
+    }
+
     // ---------- Drawing (only with a canvas) ----------
 
     public void DrawBox(RectF rect, Brush? background, CornerRadii radii, Border border)
