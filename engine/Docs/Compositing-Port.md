@@ -68,6 +68,19 @@ become Overlap layers; scrollbars are their own layers (RasterInducingScroll is 
 - Save layers in a layer's display list: SaveLayerAlpha keeps LCD (kInitWithPrevious) unless the
   list has a SaveLayerOp (filter, blend mode); isolation groups (opacity 1) around blending
   descendants.
+- Which verdict a drawing gets (2026-11-06, Engine-Plan.md Progress, "Text first in a paint chunk"): cc rasters a
+  layer's tiles with or without LCD text as a whole (`TileManager`: `playback_settings.use_lcd_text =
+  tile->can_use_lcd_text()`; `RasterBufferProvider`: an unknown pixel geometry turns LCD off), so every display item
+  takes the verdict of the layer its chunk went to. A display item joins its chunk when it ends, after its drawings
+  were recorded (`DrawingRecorder`'s destructor → `PaintController::CreateAndAppend` → `PaintChunker::
+  IncrementDisplayItemIndex` → `EnsureCurrentChunk`): the current chunk, or a new one when one will start
+  (`WillCreateNewChunk`: a forced new chunk, or other properties). The engine draws while it records, so text in an
+  item takes the verdict of the chunk that will be current when the item ends, which may not exist yet:
+  `PaintTarget.UseChunkTextVerdict` before each text drawing (glyph runs and a control's laid-out label). Before
+  that fix the verdict was set only when a chunk was made (at an item's end, or at a hit test rect or a drawing
+  outside an item), so text first in a chunk (in an `overflow: hidden` or `clip` box, after a stacked layer's
+  subsequence) took the previous chunk's: grayscale where Chromium has LCD after a chunk without text, LCD where it
+  has grayscale after an LCD layer.
 
 ## Status (2026-10-25)
 
@@ -79,8 +92,10 @@ pass (493 at the end of M5, 2026-10-30).
 The painter runs two passes per frame (`UiPainter.Paint`): an analysis pass (`Traverse(canvas,
 analyze: true)`: `PaintTarget` in record-only mode — everything is "drawn", nothing reaches the
 canvas) that builds the property trees, records paint chunks and runs the layerizer; then the draw
-pass, which walks the same chunk sequence and sets `Canvas.TextLcd` from each chunk's verdict
-(`PaintChunk.LcdText`). Opacity layers start from the backdrop only when their effect has LCD text.
+pass, which walks the same chunk sequence and, before each text drawing, sets `Canvas.TextLcd` from the
+verdict (`PaintChunk.LcdText`) of the chunk the drawing belongs to (since 2026-11-06 the chunk its display
+item will join, which may not be made yet; "Which verdict a drawing gets" above). Opacity layers start from
+the backdrop only when their effect has LCD text.
 The old heuristics (ScanLayerEffects, grayscale scopes) and the `SV_OLD_HINT` switch are gone.
 
 ### Files
@@ -100,6 +115,9 @@ The old heuristics (ScanLayerEffects, grayscale scopes) and the `SV_OLD_HINT` sw
   attribute (parser and CSS mapping).
 - Test: `Tests/Statventure.Tests/Ui/CompositingReferenceTests.cs`; references
   `Reference/scaled/game-layers@1.json` / `@1.65.json` (`Tools/Scripts/make-layer-references.sh <scale>`).
+  Text's verdict per chunk: `Tests/Statventure.Tests/Ui/ChunkTextLcdReferenceTests.cs` (the `chunk-text-lcd`
+  fixture, its own list `Reference/chunk-text-fixtures.json`, Chromium 152 at 1 and 1.65 in
+  `Golden/ui-chunk-text-lcd@*.png`: `Tools/Scripts/make-scaled-paint-references.sh <scale> 1 chunk-text-fixtures.json`).
 - **Debugging:** `COMPOSITING_CHUNKS=1 dotnet test … --filter "FullyQualifiedName~CompositingReference&DisplayName~shop"`
   lists each engine layer's first 40 chunks (owner, bounds, drawable, opaque rect, background colour,
   text flags, clip, effect). Blink sources for Chromium 152 are cached in

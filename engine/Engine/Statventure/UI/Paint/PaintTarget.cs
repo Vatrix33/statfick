@@ -285,14 +285,33 @@ internal sealed class PaintTarget
             return null;
         if (!create)
             return _chunks.Count > 0 && _chunks[^1].State == state && !_forceNewChunk ? _chunks[^1] : null;
-        if (_chunks.Count == 0 || _forceNewChunk || _chunks[^1].State != state || _chunks[^1].Kind != ChunkKind.Normal)
+        if (WillCreateNewChunk(state))
         {
             _chunks.Add(new PaintChunk { State = state, Owner = _stateOwner });
             _forceNewChunk = false;
-            if (_verdicts is not null && _canvas is not null)
-                _canvas.TextLcd = _chunks.Count <= _verdicts.Count && _verdicts[_chunks.Count - 1].LcdText;
         }
         return _chunks[^1];
+    }
+
+    /// <summary>PaintChunker::WillCreateNewChunk: what is recorded next in this state starts a chunk (forced, other properties, or after a chunk of another kind).</summary>
+    bool WillCreateNewChunk(PropertyState state) =>
+        _chunks!.Count == 0 || _forceNewChunk || _chunks[^1].State != state || _chunks[^1].Kind != ChunkKind.Normal;
+
+    /// <summary>
+    /// The draw pass, before text is drawn: the canvas takes the LCD verdict of the chunk the drawing
+    /// belongs to. Chromium rasters a display item in the cc layer its chunk went to (a layer's tiles are
+    /// rastered with or without LCD text, cc's PictureLayerImpl verdict), and an item joins its chunk when
+    /// it ends (DrawingRecorder's destructor, PaintChunker::IncrementDisplayItemIndex), after its drawings:
+    /// text in an item belongs to the chunk current then, the last one or, when one will start, the next
+    /// one, which doesn't exist yet while the text is drawn (text first in an overflow clip, or after a
+    /// stacked layer's subsequence). A drawing outside an item made its chunk when it was recorded.
+    /// </summary>
+    void UseChunkTextVerdict()
+    {
+        if (_verdicts is null || _chunks is null || _canvas is null || _state is not { } state || _suppressed > 0)
+            return;
+        var index = WillCreateNewChunk(state) ? _chunks.Count : _chunks.Count - 1;
+        _canvas.TextLcd = index < _verdicts.Count && _verdicts[index].LcdText;
     }
 
     RectF ToScreen(RectF rect) => _transform.IsIdentity ? rect : rect.Transform(_transform);
@@ -656,8 +675,10 @@ internal sealed class PaintTarget
     public void DrawGlyphs(GlyphRun run, Vector2 origin, Color color)
     {
         Record(GlyphBounds(run, origin), text: true);
-        if (Draws)
-            _canvas!.DrawGlyphs(run, origin, color);
+        if (!Draws)
+            return;
+        UseChunkTextVerdict();
+        _canvas!.DrawGlyphs(run, origin, color);
     }
 
     public void DrawText(TextLayout layout, Vector2 position, Color? color = null)
@@ -665,8 +686,10 @@ internal sealed class PaintTarget
         foreach (var line in layout.Lines)
             foreach (var run in line.Runs)
                 Record(GlyphBounds(run, position + new Vector2(0, line.Baseline)), text: true);
-        if (Draws)
-            _canvas!.DrawText(layout, position, color);
+        if (!Draws)
+            return;
+        UseChunkTextVerdict();
+        _canvas!.DrawText(layout, position, color);
     }
 
     /// <summary>A text run's box: its advance from the font's ascent to its descent (a text fragment's ink rect, roughly).</summary>

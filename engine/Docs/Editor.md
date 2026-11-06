@@ -1290,7 +1290,13 @@ sample text; the `--player-folder` option and the assembly's name `Statventure.E
   committed): `~/.cache/stat-fick-build/claude-work/m11/step4/ScratchLcdRepro.cs.txt` on the user's PC (on
   `html { background: #1a1c1a }`, `<div style="overflow: hidden">No pack open</div>`: the chunk's verdict LCD, the
   text drawn grayscale, colour spread 9; without `overflow: hidden` LCD, spread 88). **Handled outside this step
-  (the manager, 2026-11-06):** a worker of its own on the painter fixes it.
+  (the manager, 2026-11-06):** a worker of its own on the painter fixes it. **Fixed (2026-11-06, branch
+  `lcd-first-text`; Engine-Plan.md Progress, "Text first in a paint chunk"):** each text drawing takes the
+  verdict of the chunk its display item joins, as Chromium rasters it; the status line is LCD as in Chromium. Against
+  Chromium (pixels past 12 levels, the GPU; lavapipe within a pixel or two of it): `shell` 435 → 0 at 1×, 843 → 28 at
+  1.65; `dialog` 389 → 57 at 1×, 598 → 110 at 1.65. What is left is rounded corners' antialiasing (the top bar's
+  buttons at 1.65, the dialog's box and its focused OK button; M5's known differences), no text. The goldens are
+  Chromium's captures and stay as they are.
 - *The editor can't start without the player's mods.* `Application.Run` mounts the player's `mods/` (and
   `$STATVENTURE_DEV_FOLDER`) into `Application.Data` for every application, so a damaged mod in the player's mods
   folder stops the editor's start, though the editor doesn't read `Application.Data`. **Handled outside this step
@@ -1433,7 +1439,8 @@ the empty shell and a dialog match Chromium at 1 and 1.65; the conventions for s
 (`main`'s 2597 at `2323779` and 79 new). Mutations: 189 (`~/.cache/stat-fick-build/claude-work/m11/step4-mutations.json`),
 183 killed, 6 accounted for ("How it works", step 4, "Results"), nothing written to the player's real folders.
 Found and reported (the engine not changed): text first in a paint chunk is drawn with the previous chunk's LCD
-verdict (a worker of its own on the painter); the editor can't start without mounting the player's mods (step 3);
+verdict (a worker of its own on the painter; fixed on 2026-11-06, branch `lcd-first-text`: "How it works", step 4,
+"Found"); the editor can't start without mounting the player's mods (step 3);
 the capture harness's iframe root isn't composited as a main frame's is (the stylesheet rule, convention 2). Not
 checked: the program in a real window (to check by hand), Windows. Remembering the zoom and the window's size (P4,
 G6): step 8, the manager's decision (a) of 2026-11-06 ("Steps", step 8).
