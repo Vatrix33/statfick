@@ -882,6 +882,39 @@ up):
 - R29 **Frost Glyph, an absorbed spell:** any spell hit triggers it, even one a barrier soaks entirely (0 damage). (Not
   only spells that take HP.)
 
+**Decisions for task 4, Artifact Rework (2026-11-06, a cloud session; the user asked for task 4 that day after task 3
+was merged; built in the old game like tasks 1–3, old game only; the task is `Docs/Port-Tasks/4_Artifact_Rework.txt`).**
+Asked before any code, four at a time:
+- A1 **Art:** placeholder, like tasks 2 and 3: simple distinct looks, marked placeholder in the code and listed in
+  `Docs/Port-Tasks/README.md` for the port's full remake. (Not proper art.)
+- A2 **A rarity's shared look:** each rarity has its own metal, gem cut and setting style; each artifact keeps its own
+  object (ring, amulet, charm…) with a few details of its own. Masterwork artifacts each look completely their own.
+  (Not one object per rarity.)
+- A3 **The old artifacts:** the whole non-masterwork set is replaced by new artifacts with new names (at least 32
+  uncommon, 24 rare, 16 epic, 8 legendary). (Not keeping the old ones with new effects.)
+- A4 **Designing the effects:** I draft the full list (names, effects, numbers, prices, the masterworks' numbers along
+  the ramp) for the user to review; nothing is built before they approve or adjust it.
+- A5 **A masterwork artifact's level:** fixed when obtained, like masterwork weapons and armor (it drops at your level and
+  keeps it, shown on its card). (Not following the wearer.)
+- A6 **The ramp:** a steady line from Level 1 (about uncommon strength) to Level 80 (about legendary), rising at the same
+  rate after, through 100 and on into task 7's Limitless levels. (Not slow-then-fast, not flattening past 80.)
+- A7 **The masterwork artifacts' effects:** Second Wind, Wraithguard, Arrowtip Rain and Titanfall keep their mechanics;
+  their numbers follow the ramp (the draft lists them at Levels 1, 40, 80 and 100). (Not redesigned.)
+- A8 **Old artifacts in saves:** removed from the inventory (the user's own answer), everywhere they are (pack, worn
+  slots, companions' gear). (Not converted to new ones.)
+- A9 **Telling the player:** silently, no note. (Not a note on load.)
+- A10 **An active Guild artifact challenge whose prize was removed:** withdrawn with a note, its 70 Reputation refunded.
+  (Not a new prize, not withdrawn without a refund.)
+- A11 **Old saves' masterwork artifacts** (no level yet): Level 80. (Not the owner's level, not Level 1.)
+- A12 **Sources:** the Guild's artifact challenges as today, and also rare enemy drops (A13, A14). Masterwork artifacts
+  keep dropping where they do. (Not shops.)
+- A13 **Drop chance:** 1% for every defeated enemy; bosses drop none (the user's own answer). In the code: every enemy
+  the battle's loot roll covers (not summons), except the 12 `unique` enemies. (Not 1% with bosses at 10%, not 0.5% or
+  2%.)
+- A14 **Drop rarity:** any rarity from uncommon up, weighted by the enemy's level the way shop stock is
+  (`ShopRules.rarityWeight`). (Not strictly the enemy's or the player's level band.)
+- A15 **Reviewing the draft:** in the chat, rarity by rarity. (Not a page, not a repo file.)
+
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
 - On this PC both move into one repo folder, `/run/media/system/M.2_2TB/Stat Fick Repo/`, which becomes the only working copy (scripts, docs and notes follow the new paths).
