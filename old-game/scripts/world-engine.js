@@ -417,6 +417,7 @@
       return "Rainwashed Downs";
     }
     if (region.id === "gloamfen-marsh") {
+      if (region.abyssalRift && insideEllipse(position, region.abyssalRift)) return "Abyssal Rift";
       if (insideEllipse(position, region.rockyRise)) return "Rocky Rise";
       if (insideEllipse(position, region.deepMire)) return "Deep Mire";
       if (insideEllipse(position, region.reedwater)) return "Reedwater";

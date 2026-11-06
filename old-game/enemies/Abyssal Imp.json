@@ -1,0 +1,59 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "abyssal-imp-impid-level-46",
+  "name": "Abyssal Imp",
+  "level": 46,
+  "raceId": "impid",
+  "classLevels": {
+    "monster": 3,
+    "rogue": 5,
+    "thief": 5,
+    "ambusher": 7,
+    "stalker": 4,
+    "shadow": 6,
+    "eminence": 4,
+    "mage": 5,
+    "warlock": 7
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 68,
+    "vitality": 78,
+    "mind": 93,
+    "dexterity": 118,
+    "intelligence": 108,
+    "wisdom": 83,
+    "speed": 140,
+    "luck": 61
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": {
+    "armor": 0,
+    "evasion": 0
+  },
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "dark-bolt-dark-damage",
+    "hellstride-dark-support"
+  ],
+  "activeSkills": {},
+  "naturalWeapon": "beast-claws"
+}

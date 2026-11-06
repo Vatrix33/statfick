@@ -71,6 +71,8 @@
     "Orc Chieftain": 19, "Elder Treant": 20, "Greater Nature Spirit": 20,
     "Crag Troll": 45, "Harpy Sentinel": 46, "Stone Giant": 48,
     "Bog Troll": 36, "Mire Stalker": 39, "Fen Spirit": 43,
+    // The Abyssal Rift (port task 6, N9).
+    "Abyssal Imp": 46, "Corrupted Bog Troll": 47, "Corrupted Mire Stalker": 50, "Rift Fiend": 50, "Corrupted Mossback Lamia": 53, "Abyss Witch": 54,
     "Canopy Stalker": 45, "Mossback Lamia": 48, "Jungle Treant": 56, "Canopy Wyrm": 65,
     "Storm Elemental": 50, "High Griffon": 52, "Mountain Lamia": 54,
     "Frost Elemental": 55, "Peak Giant": 56, "Cliff Wyrm": 57,
@@ -564,11 +566,12 @@
       entry(35, 8, () => ["Thunder Troll"]),
     ],
   };
-  const gloamfenChances = { "Town": 0, "Road": 0, "Open Mire": 29, "Reedwater": 35, "Deep Mire": 45, "Rocky Rise": 38 };
+  const gloamfenChances = { "Town": 0, "Road": 0, "Open Mire": 29, "Reedwater": 35, "Deep Mire": 45, "Rocky Rise": 38, "Abyssal Rift": 50 };
   const gloamfenProfiles = {
     "Town": { minimum: 35, maximum: 35, safe: true }, "Road": { minimum: 35, maximum: 35, safe: true },
     "Open Mire": { minimum: 35, maximum: 39 }, "Reedwater": { minimum: 38, maximum: 43 },
     "Deep Mire": { minimum: 42, maximum: 48 }, "Rocky Rise": { minimum: 45, maximum: 50 },
+    "Abyssal Rift": { minimum: 45, maximum: 55 },
   };
   const gloamfenTables = {
     "Open Mire": [
@@ -586,6 +589,14 @@
     "Rocky Rise": [
       entry(45, 9, () => ["Crag Troll"]), entry(48, 8, () => ["Stone Giant"]),
       entry(50, 7, () => ["Mossback Lamia", "Crag Troll"]),
+    ],
+    // Port task 6 (New Areas, N1–N9): the demon/abyss zone in the marsh's south-west, corrupted marsh creatures and demons.
+    "Abyssal Rift": [
+      entry(45, 9, () => ["Abyssal Imp", "Abyssal Imp"]), entry(47, 9, () => ["Corrupted Bog Troll"]),
+      entry(48, 7, () => ["Corrupted Bog Troll", "Abyssal Imp"]), entry(50, 8, () => ["Corrupted Mire Stalker"]),
+      entry(50, 8, () => ["Rift Fiend"]), entry(52, 7, () => ["Rift Fiend", "Abyssal Imp", "Abyssal Imp"]),
+      entry(53, 8, () => ["Corrupted Mossback Lamia"]), entry(54, 7, () => ["Abyss Witch"]),
+      entry(55, 6, () => ["Corrupted Mossback Lamia", "Rift Fiend"]),
     ],
   };
   const verdigrisChances = { "Town": 0, "Road": 0, "Jungle Verge": 30, "Outer Jungle": 36, "Dense Jungle": 45, "High Canopy": 49, "Old Growth": 55 };

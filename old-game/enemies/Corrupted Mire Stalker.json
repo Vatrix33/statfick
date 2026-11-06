@@ -1,0 +1,59 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "corrupted-mire-stalker-level-50",
+  "name": "Corrupted Mire Stalker",
+  "level": 50,
+  "raceId": "demon",
+  "classLevels": {
+    "monster": 3,
+    "rogue": 5,
+    "archer": 5,
+    "hunter": 7,
+    "thief": 5,
+    "ambusher": 7,
+    "stalker": 4,
+    "shadow": 6,
+    "monk": 8
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 99,
+    "vitality": 106,
+    "mind": 74,
+    "dexterity": 112,
+    "intelligence": 87,
+    "wisdom": 83,
+    "speed": 131,
+    "luck": 97
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": {
+    "armor": 0,
+    "evasion": 0
+  },
+  "inventory": [
+    "forge-weapon-1-dagger",
+    "forge-weapon-1-dagger"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-1-dagger",
+    "offHand": "forge-weapon-1-dagger",
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [],
+  "activeSkills": {},
+  "attackElement": "dark"
+}

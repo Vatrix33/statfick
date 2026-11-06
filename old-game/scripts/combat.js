@@ -2442,7 +2442,7 @@
       }
       const strikePower = (attackValues.power + brawlerBonus) * damageMultiplier * (1 + (incomingDamagePercent + firstTurnDamagePercent + conditionalPower + passivePower + slowerTargetPower + weaponRaceDamagePercent(weapon, target) + woundedTargetPercent(weapon, target) + largerHpBonus.damagePercent + chainBonus) / 100);
       const armorPierce = largerHpBonus.armorPiercePercent + toNumber(starscale?.armorPiercePercent, 0) + offHandArmorPierce(weapon, offHand) + toNumber(weapon.armorPierce, 0);
-      const amount = withWeaponElement(weapon, () => hurt(target, strikePower, weaponElement(weapon), critical, false, actor, weaponType, armorPierce), target);
+      const amount = withWeaponElement(weapon, () => hurt(target, strikePower, actor.attackElement || weaponElement(weapon), critical, false, actor, weaponType, armorPierce), target);
       log(`${actorLabel(actor)} attacks ${actorLabel(target)}${actor.team === "player" ? " with " + weaponLabel : ""}: ${amount} damage${critical ? " (critical)" : ""}.`);
       applyArmorHitEffects(actor, target, weaponType, amount);
       if (critical && amount > 0 && hp(target) > 0) tearOldWound(target);
@@ -6090,8 +6090,11 @@
     if (naturalWeapon != null && !window.ForgeRules?.NATURAL_WEAPONS[naturalWeapon]) throw new Error(`${raw.name}: unknown natural weapon ${naturalWeapon}`);
     const experienceRewardMultiplier = Math.max(0, toNumber(raw.experienceRewardMultiplier, 1));
     const moneyRewardMultiplier = Math.max(0, toNumber(raw.moneyRewardMultiplier, 1));
+    // A corrupted creature may strike with another element than its weapon's (port task 6: the Corrupted Mire Stalker's Dark).
+    const attackElement = raw.attackElement ?? null;
+    if (attackElement != null && !SPELL_ELEMENTS.includes(attackElement)) throw new Error(`${raw.name}: unknown attack element ${attackElement}`);
     return {
-      id: raw.id || slugify(raw.name), name: raw.name, character, element: raw.element || null, resistances: raw.resistances || {}, drops, naturalWeapon,
+      id: raw.id || slugify(raw.name), name: raw.name, character, element: raw.element || null, attackElement, resistances: raw.resistances || {}, drops, naturalWeapon,
       oldWounds: oldWounds ? copy(oldWounds) : null, warband: warband ? copy(warband) : null, royalDuel: royalDuel ? copy(royalDuel) : null, storm: stormConfig ? copy(stormConfig) : null, reforge: reforge ? copy(reforge) : null, heartCores: heartCores ? copy(heartCores) : null, infernalSacrifice: infernalSacrifice ? copy(infernalSacrifice) : null, phylactery: phylactery ? copy(phylactery) : null, dreamLaws: dreamLaws ? copy(dreamLaws) : null, starTrials: starTrials ? copy(starTrials) : null, inert: raw.inert === true, unlivingCaster: raw.unlivingCaster === true,
       formerNames: Array.isArray(raw.formerNames) ? raw.formerNames.filter(name => typeof name === "string" && name.trim()) : [],
       baseArmor, maxHpPercent, maxManaPercent, turnStartManaPercent, aiProfile, introCinematic, seasonCycle: seasonCycle ? copy(seasonCycle) : null, aiSummonCondition: aiSummonCondition ? copy(aiSummonCondition) : null, noDropItems: [...new Set(noDropItems)], startingSummons: copy(startingSummons), startingAllies: copy(startingAllies), initialSkillCharges, phaseTransition: raw.phaseTransition || null, phaseTransitions: raw.phaseTransitions || null, spellPowerAura: spellPowerAura || null, livingAllyProtection: livingAllyProtection ? copy(livingAllyProtection) : null, unique: raw.unique === true, experienceRewardMultiplier, moneyRewardMultiplier
@@ -6206,7 +6209,7 @@
       const actor = {
         ...makeActor(`enemy-${i + 1}`, empoweredObjective && i === 0 ? `Empowered ${actorName}` : actorName, "enemy"),
         experienceAwarded: false, character: armed.character, resistances: copy(enemy.resistances), dropTable: copy(enemy.drops || []), noDropItems: armed.noDropItems,
-        baseArmor: enemy.baseArmor, naturalArmor: spawnNaturalArmor(armed.character), naturalWeapon: enemy.naturalWeapon || null, maxHpPercent: enemy.maxHpPercent, maxManaPercent: enemy.maxManaPercent, turnStartManaPercent: enemy.turnStartManaPercent, element: enemy.element, unique: enemy.unique, experienceRewardMultiplier: enemy.experienceRewardMultiplier, moneyRewardMultiplier: enemy.moneyRewardMultiplier,
+        baseArmor: enemy.baseArmor, naturalArmor: spawnNaturalArmor(armed.character), naturalWeapon: enemy.naturalWeapon || null, attackElement: enemy.attackElement || null, maxHpPercent: enemy.maxHpPercent, maxManaPercent: enemy.maxManaPercent, turnStartManaPercent: enemy.turnStartManaPercent, element: enemy.element, unique: enemy.unique, experienceRewardMultiplier: enemy.experienceRewardMultiplier, moneyRewardMultiplier: enemy.moneyRewardMultiplier,
         enemyDefinitionId: enemy.id, phaseTransition: copy(enemy.phaseTransition), phaseTransitions: copy(enemy.phaseTransitions), phaseIndex: 0, spellPowerAura: copy(enemy.spellPowerAura), livingAllyProtection: copy(enemy.livingAllyProtection)
       };
       if (guildObjective && i === 0) {

@@ -979,6 +979,8 @@ checks ran, "That task is very small"; built in the old game like tasks 1–4, o
   Lamia (53, Dark spells instead of her nature ones), all `demon` race (Holy hurts more, Dark not at all) with darkened
   looks and red eyes; the demons are Abyssal Imp (impid, 46, a rogue-warlock in pairs), Rift Fiend (demon, 50, a clawed
   brute) and Abyss Witch (demon, 54, a caster); nine encounter groups from Level 45 to 55.
+- N10 **The marsh's level range** (2026-11-06, asked while writing the checks): raised from 35–50 to 35–55 to take in
+  the Rift: the map header reads "LEVEL 35–55" and guild quests in the marsh go up to Level 55. (Not kept at 35–50.)
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).

@@ -82,6 +82,7 @@
       { name: "Reedwater", points: [{ x: 1310, y: 245 }] },
       { name: "Deep Mire", points: [{ x: 790, y: 580 }] },
       { name: "Rocky Rise", points: [{ x: 310, y: 555 }] },
+      { name: "Abyssal Rift", points: [{ x: 380, y: 885 }] },
     ].map(zone => ({ ...zone, enemies: regionalEnemies(zone.name, "gloamfen-marsh") })),
     "verdigris-jungle": [
       { name: "Jungle Verge", points: [{ x: 1550, y: 920 }] },
