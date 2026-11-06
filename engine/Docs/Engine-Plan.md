@@ -941,6 +941,13 @@ Asked before any code, four at a time:
 - A27 **What counts as a hit** (Warding Cord, Second Chance Locket): any damage an enemy causes: attacks, spells, traps,
   thorns and damage over time. (Not attacks and spells only.)
 - A28 **Phantom Step Pin:** the +25% goes to your next melee or ranged weapon attack. (Not a spell.)
+- A29 **Phoenix Plume, the wearer falling first:** they rise at 30% HP when their next turn would have started in the
+  turn order, and take that turn. (Not others only.)
+- A30 **Phantom Step Pin on a miss:** the bonus is spent on the next weapon attack, hit or miss. (Not kept until it
+  lands.)
+- A31 **Forked Lightning Rod and spells that hit several enemies:** one extra strike per cast, on a random enemy the
+  spell didn't hit, for 25% of the largest damage it dealt; none if it hit every enemy. (Not one per enemy hit.)
+- A32 **Banner of Kings while its wearer is down:** the bonus lasts the whole battle once it starts. (Not paused.)
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
