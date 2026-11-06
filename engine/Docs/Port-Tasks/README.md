@@ -16,6 +16,8 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
    game; only its placeholder art, the two guild interiors, is left to remake (below).
 3. `3_Shop_Rework.txt`: reforging at the Blacksmith, a Tailor in every town, the Institute of Magic on the lake, Hearth
    Home at the volcano (Ornn as its boss instead of a Great Hunt), the Doctor's Orders masterwork, five new traps.
+   **Already done in the old game (2026-11-06): don't build it again.** The port carries it over with the rest of the
+   game; only its placeholder art is left to remake (below).
 4. `4_Artifact_Rework.txt`: a look for every artifact, new effects for the non-masterwork ones (at least 32 uncommon,
    24 rare, 16 epic, 8 legendary), level scaling for masterwork artifacts.
 5. `5_New_Masterworks.txt`: Sparkling enemies with Treasure Seeker and Moneyshot, the Lament and Noble Hero
@@ -63,8 +65,9 @@ remember (the user's answers, 2026-11-05):
 - Task 13 adds classes until there are 250; task 14's two classes come on top (252 in the end), as intended.
 
 **When:** task 1 is done in the old game before the port (user decision 2026-11-05), its new art as placeholders; task 2
-is built in the old game too (user decision 2026-11-06, G1), also with placeholder art; the other tasks are decided one
-at a time (still open for them: before the port, after the faithful port, or while porting).
+is built in the old game too (user decision 2026-11-06, G1), also with placeholder art, and so is task 3 (the user,
+2026-11-06, "same rules apply"; R1); the other tasks are decided one at a time (still open for them: before the port,
+after the faithful port, or while porting).
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
@@ -82,9 +85,18 @@ at a time (still open for them: before the port, after the faithful port, or whi
   tested against. Still to do in the port: only the art (below). The task's `.txt` stays as the user wrote it (no "done"
   mark in it); this README and `Engine-Plan.md` record that it's done. It touched only `old-game/` and the docs, never
   the engine (the user, 2026-11-06).
+- Task 3, Shop Rework (2026-11-06, a cloud session, offered as a pull request): reforging at four anvils (Blacksmith,
+  Tailor, Institute of Magic, Hearth Home), the Tailor in every settlement with a Blacksmith, the Institute of Magic on
+  its island in Mirrormere's lake, Hearth Home with Ornn as its site boss (no longer a Great Hunt), Doctor's Orders and
+  the five traps, all in the old game's code and data. The user's 29 design answers are in `Engine-Plan.md`, "Decisions
+  for task 3, Shop Rework" (R1–R29); where each rule lives is in `../../../old-game/Docs/Notes.md`, "Shop Rework"; the old
+  game's checks for it, `old-game/test-client/tests/shop-rework-browser.js`, are the reference the ported rules are
+  tested against. Still to do in the port: only the art (below). The task's `.txt` stays as the user wrote it. It
+  touched only `old-game/` and the docs, never the engine (the user, "same rules apply" as task 2).
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
-code task 1's definitions carry `placeholderArt: true` and task 2's scenes are listed in `PLACEHOLDER_ART`):
+code task 1's and task 3's masterwork definitions carry `placeholderArt: true` and task 2's and task 3's scenes are listed
+in `PLACEHOLDER_ART`):
 - Task 1: the looks of Plasma Blade, Tidepiercer, First Comet, Peace and Balance, Kugelblitz and Avalanche, in their
   item art and battle sprites. Today each is its type's normal forged masterwork look with simple hints: a short red
   line from the Plasma Blade's gem (the design: a red laser beam from the gem, like a laser sword) and three prongs on
@@ -100,7 +112,15 @@ code task 1's definitions carry `placeholderArt: true` and task 2's scenes are l
   (G21); every one of those objects clickable, with a candle-gold outline glow and its name on hover or keyboard focus
   (G23); the room in the upper part, above the panel docked along the bottom (G22). The rules behind the objects are not
   placeholder and stay as they are.
+- Task 3 (user decision R1, placeholder like task 2): the Tailor's shop scene (`tailorShop` in `scene-banners.js`:
+  bolts of cloth and a dress form in the shop frame), the Institute of Magic's inside (today the Magic Tower's sanctum,
+  `institute`) and Hearth Home's (today the Blacksmith's arms hall, `hearth`), all three in `PLACEHOLDER_ART`; their map
+  icons (`SITE_ICONS` in `map.js`: a domed tower, a forge with a flame) and Hearth Home's window (a plain panel like the
+  Church's); the island and its bridge as painted on Mirrormere's map (`map-regions.js`); Doctor's Orders' look (the
+  normal forged robe in white, `placeholderArt: true`); the reforge anvil drawing (`reforge.js`); and the five traps'
+  looks (the General Store's generic goods art). The rules behind them are not placeholder.
 
 **Found before the work:**
-- Tasks 1 and 2 were checked against the engine work on 2026-11-03: neither touches it (the engine's tests use their
-  own copy of the stylesheet and saved captures; the game's code and tables come over at port time).
+- Tasks 1 and 2 were checked against the engine work on 2026-11-03 (task 3 on 2026-11-06): none touches it (the
+  engine's tests use their own copy of the stylesheet and saved captures; the game's code and tables come over at port
+  time).

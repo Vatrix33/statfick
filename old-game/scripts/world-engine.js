@@ -97,14 +97,23 @@
     let notice = text(rawGuild.notice, 400);
     let greatHunt = normalizeQuest(rawGuild.greatHunt);
     if (greatHunt?.type !== "great-hunt") greatHunt = null;
+    // Ornn left the Great Hunts for Hearth Home (port task 3, R15): an active hunt for him is withdrawn with a note.
+    const RETIRED_HUNTS = ["ornn-god-of-the-forge"];
+    const retiredHunt = hunt => hunt?.type === "great-hunt" && RETIRED_HUNTS.includes(hunt.uniqueId);
     let quest = normalizeQuest(rawGuild.quest);
     if (quest?.type === "great-hunt") { greatHunt ||= quest; quest = null; }
-    else if (quest && quest.version !== 2) {
+    const notes = [];
+    if (retiredHunt(greatHunt)) {
+      notes.push("Ornn, God of the Forge, is no longer a Great Hunt: your hunt for him was withdrawn (no reward, no cost). He now waits at Hearth Home, on Cinder Isle's volcano.");
+      greatHunt = null;
+    }
+    if (quest && quest.version !== 2) {
       if (RETIRED[quest.type]) {
-        notice = `Your ${RETIRED[quest.type]} contract from before the Guild changed its contracts was withdrawn. It paid nothing and cost nothing; the bulletin board has new quests.`;
+        notes.push(`Your ${RETIRED[quest.type]} contract from before the Guild changed its contracts was withdrawn. It paid nothing and cost nothing; the bulletin board has new quests.`);
         quest = null;
       } else quest = { ...quest, version: 2 };
     }
+    if (notes.length) notice = notes.join(" ");
     if (quest?.type === "clear") quest = null;
     if (quest) quest.taken = false;
     if (greatHunt) greatHunt.taken = false;
@@ -115,7 +124,7 @@
         if (!text(guildId) || !board || Math.floor(number(board.day, 0)) !== currentDay || !Array.isArray(board.offers)) continue;
         const offers = [];
         for (const offer of board.offers.map(normalizeQuest).filter(Boolean)) {
-          if (offer.version !== 2 && offer.type !== "great-hunt" || offer.type === "clear") continue;
+          if (offer.version !== 2 && offer.type !== "great-hunt" || offer.type === "clear" || retiredHunt(offer)) continue;
           if (!offers.some(candidate => candidate.type === offer.type && (offer.type !== "great-hunt" || candidate.uniqueId === offer.uniqueId))) offers.push(offer);
           if (offers.length === 12) break;
         }
@@ -136,7 +145,7 @@
     // list means deactivated; the compatibility field must not resurrect it.
     const rawRematches = Array.isArray(rawGuild.greatHuntRematches) ? rawGuild.greatHuntRematches : [rawGuild.greatHuntRematch];
     const greatHuntRematches = [];
-    for (const rematch of rawRematches.map(normalizeRematch).filter(Boolean)) {
+    for (const rematch of rawRematches.map(normalizeRematch).filter(Boolean).filter(entry => !RETIRED_HUNTS.includes(entry.uniqueId))) {
       if (!greatHuntRematches.some(entry => entry.uniqueId === rematch.uniqueId)) greatHuntRematches.push(rematch);
       if (greatHuntRematches.length >= 100) break;
     }
@@ -175,7 +184,7 @@
       encounterTravelMinutes: clamp(number(saved?.encounterTravelMinutes, 0), 0, ENCOUNTER_MINUTES - 0.000001),
       pendingEncounter: pendingEncounter(saved?.pendingEncounter),
       pendingRegionTransition,
-      defeatedSiteBosses: [...new Set((Array.isArray(saved?.defeatedSiteBosses) ? saved.defeatedSiteBosses : []).filter(id => id === "tankina-disciple-of-talos-level-44"))],
+      defeatedSiteBosses: [...new Set((Array.isArray(saved?.defeatedSiteBosses) ? saved.defeatedSiteBosses : []).filter(id => ["tankina-disciple-of-talos-level-44", "ornn-god-of-the-forge-unique-level-48"].includes(id)))],
       guild: {
         reputation: Math.max(0, Math.floor(number(rawGuild.reputation, 0))),
         completedQuests: Math.max(0, Math.floor(number(rawGuild.completedQuests, 0))),
@@ -337,9 +346,18 @@
     return "land";
   }
   const insideEllipse = (position, area, rx = area.rx, ry = area.ry) => ((position.x - area.x) / rx) ** 2 + ((position.y - area.y) / ry) ** 2 <= 1;
+  // A bridge over a lake (port task 3: the Institute of Magic's) is land as wide as its road.
+  function onBridge(position, region) {
+    for (const path of region.bridges || []) for (let index = 1; index < path.length; index++) {
+      const a = path[index - 1], b = path[index], dx = b.x - a.x, dy = b.y - a.y, length = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((position.x - a.x) * dx + (position.y - a.y) * dy) / length));
+      if (Math.hypot(position.x - (a.x + dx * t), position.y - (a.y + dy * t)) <= 12) return true;
+    }
+    return false;
+  }
   function isLand(position, regionId = activeRegionId) {
     const region = getRegion(regionId);
-    if (region.lake && insideEllipse(position, region.lake)) return false;
+    if (region.lake && insideEllipse(position, region.lake)) return Boolean(region.island && insideEllipse(position, region.island) || onBridge(position, region));
     const shape = region.landShape;
     if (!shape) return true;
     if (shape.type === "coast") return position.x <= shape.shoreX;

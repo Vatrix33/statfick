@@ -3654,6 +3654,9 @@ function artifactEffectLabel(effect) {
     "avalanche-counters": "Each damage taken adds a counter; at " + effect.maximum + " every enemy loses " + absoluteAmount + "% Speed for " + effect.durationTurns + " turns and the counters reset",
     "weapon-power-from-armor-percent": "Gain weapon power equal to " + absoluteAmount + "% of current Armor (Armor is retained)",
     "armor-from-max-hp-percent": "Gain Armor equal to " + absoluteAmount + "% of maximum HP",
+    // Doctor's Orders (port task 3, R12, R13, R24, R25).
+    "healing-given-percent": "Every heal you cause in battle (spells, skills, items, heals over time, lifesteal, regeneration) " + change("%") + "; a heal you give yourself takes only this bonus",
+    "healing-received-percent": "Healing you receive in battle " + change("%") + " (resting and camping are not raised)",
     "missing-hp-spell-ward": "Spell damage reduced by " + absoluteAmount + "% at full HP, decreasing by 1 point per " + effect.missingHpPercentPerPoint + "% HP missing",
     "party-mana-drain-on-hit-percent": "On hit: drain " + absoluteAmount + "% current Mana and share it with your party",
     "bonus-damage-from-armor-percent": "On damaging hit: deal " + absoluteAmount + "% of your Armor as bonus damage",

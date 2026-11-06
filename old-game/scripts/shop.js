@@ -1,22 +1,50 @@
-/* Settlement shops: the blacksmith and the general store. An interior scene fills each
+/* Settlement shops: the blacksmith, the tailor and the general store (the Tailor and the reforge menus came with
+   port task 3, the Shop Rework, 2026-11-06: clothing moved from the Blacksmith to the Tailor, and both reforge). An interior scene fills each
    shop window. Buying lists the stock on the right and shows the hovered entry in full on
    the left; selling mirrors that, with your pack on the left. Castle cities' Magic Towers
    keep their staffs, wands and spells in the same refreshing stock (see magic-tower.js). */
 (() => {
   const $ = id => document.getElementById(id);
   const modal = $("shop-modal"), stockList = $("shop-stock-list"), detail = $("shop-detail"), status = $("shop-status");
-  const STOCK_VERSION = 24;
+  const STOCK_VERSION = 25;
   const OVERTIER_SPELL_CHANCE = 0.1;
-  // Blacksmith shelves: forged melee and ranged weapons, then forged armor. Regional offers take armor places.
-  const SMITH = { castle: { total: 10, weapons: 5 }, town: { total: 7, weapons: 3 } };
+  // Blacksmith shelves: forged melee and ranged weapons, then forged armor without clothing (castle 4, town 3:
+  // user decision R8). Regional offers take armor places. The Tailor's shelves hold clothing only (R7).
+  const SMITH = { castle: { total: 9, weapons: 5 }, town: { total: 6, weapons: 3 } };
+  const TAILOR = { castle: 6, town: 4 };
   const GENERAL = { castle: 8, town: 5 };
   // A Magic Tower sells forged staffs and wands and teaches spells; it stands only in castle cities.
   const TOWER = { casters: 6, spells: 12 };
   const SHOPS = {
     blacksmith: { name: "BLACKSMITH", label: "Blacksmith", title: "Arms and <em>armor</em>" },
     general: { name: "GENERAL STORE", label: "General Store", title: "Goods for the <em>road</em>" },
+    tailor: { name: "TAILOR", label: "Tailor", title: "Cloth and <em>thread</em>" },
+    hearth: { name: "HEARTH HOME", label: "Hearth Home", title: "The forge of <em>Hearthforge</em>" },
   };
-  let kind = "general", mode = "buy", place = null, previewId = null;
+  /* Hearth Home (port task 3, R14): on Cinder Isle's volcano, open once Ornn has fallen there. Hearthforge
+     weapons and armor (a castle city's Blacksmith's count) at 10% off, and the only anvil for masterworks,
+     reforging at 15% off. It buys nothing. */
+  const HEARTH = { id: "hearth-home", bossId: "ornn-god-of-the-forge-unique-level-48", weapons: 5, armor: 4, buyFactor: 0.9, reforgeDiscount: 15 };
+  const hearthOpen = () => Boolean(worldState.defeatedSiteBosses?.includes(HEARTH.bossId));
+  const hearthHere = () => { const site = WorldRules.siteAt(worldState.position, worldState.regionId); return site?.id === HEARTH.id && hearthOpen() ? site : null; };
+  const priceFor = item => kind === "hearth" ? Math.round(item.priceSilver * HEARTH.buyFactor) : item.priceSilver;
+  function hearthStock() {
+    normalizeState();
+    const saved = shopState.locations[HEARTH.id];
+    const hearthMade = item => item?.forged && !item.forged.masterwork && item.forged.parts?.[0]?.maker === "hearthforge";
+    if (saved && Array.isArray(saved.hearth) && saved.hearth.length === HEARTH.weapons + HEARTH.armor && saved.hearth.every(entry => hearthMade(getItem(entry.id)) && Number.isInteger(entry.quantity) && entry.quantity >= 0 && entry.quantity <= 1)) return saved;
+    const distinct = (count, make) => { const made = []; for (let attempt = 0; made.length < count && attempt < count * 10 + 10; attempt++) { const item = getItem(ForgeRules.encode(make())); if (hearthMade(item) && !made.some(entry => entry.id === item.id || entry.name === item.name)) made.push(item); } return made; };
+    const weapons = distinct(HEARTH.weapons, () => ForgeRules.generate({ level, source: "shop", random: unitRandom, casterShare: 0, maker: "hearthforge" }));
+    const armor = distinct(HEARTH.armor, () => ForgeRules.generateArmor({ level, source: "shop", random: unitRandom, maker: "hearthforge", types: smithArmorTypes() }));
+    shopState.locations[HEARTH.id] = { hearth: [...weapons, ...armor].map(item => ({ id: item.id, quantity: 1 })) };
+    saveCharacter();
+    return shopState.locations[HEARTH.id];
+  }
+  const isClothing = item => item?.category === "armor" && item.type === "clothing";
+  const smithArmorTypes = () => ForgeRules.ARMOR_IDS.filter(id => ForgeRules.ARMORS[id].category !== "clothing");
+  const clothingTypes = () => ForgeRules.ARMOR_IDS.filter(id => ForgeRules.ARMORS[id].category === "clothing");
+  const tailorCount = settlement => window.ForgeRules ? TAILOR[isCastle(settlement) ? "castle" : "town"] : 0;
+  let kind = "general", mode = "buy", place = null, previewId = null, anvil = null;
   const unitRandom = () => {
     const value = Number(Math.random());
     return Number.isFinite(value) ? Math.min(1 - Number.EPSILON, Math.max(0, value)) : 0;
@@ -24,7 +52,7 @@
   const isCastle = settlement => settlement?.kind === "Castle city";
 
   function currentPlace() {
-    return WorldRules.settlementAt(worldState.position);
+    return kind === "hearth" ? hearthHere() : WorldRules.settlementAt(worldState.position);
   }
 
   function setStatus(message, state = "") {
@@ -75,7 +103,7 @@
     const castle = isCastle(settlement);
     const availableItems = items.filter(item => purchasableItem(item, settlement));
     const desiredRarity = ShopRules.levelBand(level).rarity;
-    const blacksmithPool = availableItems.filter(item => item.category === "weapon" || item.category === "armor");
+    const blacksmithPool = availableItems.filter(item => (item.category === "weapon" || item.category === "armor") && !isClothing(item));
     const generalPool = availableItems.filter(item => item.category !== "weapon" && item.category !== "armor");
     const regionalOffers = [...blacksmithPool.filter(item => item.shopOffer), ...masterworkOffers(settlement).map(key => getItem(ForgeRules.encode(ForgeRules.generateMasterwork({ key, level, random: unitRandom }))))];
     // Weapons, armor, staffs and wands are forged fresh at the character's level; their rune
@@ -91,7 +119,8 @@
       return made;
     };
     const forgedWeapons = forgeDistinct(forgedWeaponCount(settlement), () => ForgeRules.generate({ level, source: "shop", random: unitRandom, allowVampiric, casterShare: 0 }));
-    const forgedArmor = forgeDistinct(forgedArmorCount(settlement, regionalOffers.length), () => ForgeRules.generateArmor({ level, source: "shop", random: unitRandom, allowVampiric }));
+    const forgedArmor = forgeDistinct(forgedArmorCount(settlement, regionalOffers.length), () => ForgeRules.generateArmor({ level, source: "shop", random: unitRandom, allowVampiric, types: smithArmorTypes() }));
+    const forgedClothing = forgeDistinct(tailorCount(settlement), () => ForgeRules.generateArmor({ level, source: "shop", random: unitRandom, allowVampiric, types: clothingTypes() }));
     const smithReserved = [...regionalOffers, ...forgedWeapons, ...forgedArmor];
     const smithIds = new Set(smithReserved.map(item => item.id));
     const selectedBlacksmith = [...smithReserved, ...ShopRules.itemStock(blacksmithPool.filter(item => !smithIds.has(item.id) && !item.shopOffer), smithPlan(settlement).total - smithReserved.length, level)];
@@ -110,6 +139,7 @@
     const casters = towerCasterCount(settlement) ? forgeDistinct(towerCasterCount(settlement), () => ForgeRules.generate({ level, source: "shop", random: unitRandom, allowVampiric, casterShare: 1 })) : [];
     shopState.locations[settlement.id] = {
       blacksmith: stockEntries(selectedBlacksmith),
+      tailor: stockEntries(forgedClothing),
       general: stockEntries(selectedGeneral),
       tower: stockEntries(casters),
       spells: selectedSpells.map(spell => spell.id),
@@ -164,7 +194,7 @@
     if (!savedStock || typeof savedStock !== "object") return false;
     const castle = isCastle(settlement);
     const availableItems = items.filter(item => purchasableItem(item, settlement));
-    const blacksmithPool = availableItems.filter(item => item.category === "weapon" || item.category === "armor");
+    const blacksmithPool = availableItems.filter(item => (item.category === "weapon" || item.category === "armor") && !isClothing(item));
     const generalPool = availableItems.filter(item => item.category !== "weapon" && item.category !== "armor");
     const offeredMasterworks = masterworkOffers(settlement);
     const regionalOfferCount = blacksmithPool.filter(item => item.shopOffer).length + offeredMasterworks.length;
@@ -172,7 +202,8 @@
     const expectedGeneral = Math.min(generalCount(settlement), new Set(generalPool.map(item => item.id)).size);
 
     const maximumConsumables = castle ? 6 : 4;
-    if (!validItemEntries(savedStock.blacksmith, expectedBlacksmith, item => (item.category === "weapon" || item.category === "armor") && !item.forged?.caster, maximumConsumables, settlement)) return false;
+    if (!validItemEntries(savedStock.blacksmith, expectedBlacksmith, item => (item.category === "weapon" || item.category === "armor") && !item.forged?.caster && !isClothing(item), maximumConsumables, settlement)) return false;
+    if (!validItemEntries(savedStock.tailor, tailorCount(settlement), item => isClothing(item) && Boolean(item.forged) && !item.forged.masterwork, maximumConsumables, settlement)) return false;
     if (blacksmithPool.some(item => item.shopOffer && !savedStock.blacksmith.some(entry => entry.id === item.id))) return false;
     if (offeredMasterworks.some(key => !savedStock.blacksmith.some(entry => getItem(entry.id)?.forged?.masterwork === key))) return false;
     const forgedStock = savedStock.blacksmith.map(entry => getItem(entry.id)).filter(item => item?.forged && !item.forged.masterwork);
@@ -190,7 +221,8 @@
   }
 
   function stockFor(settlement) {
-    if (!settlement?.id) return { blacksmith: [], general: [], tower: [], spells: [] };
+    if (!settlement?.id) return { blacksmith: [], tailor: [], general: [], tower: [], spells: [] };
+    if (settlement.id === HEARTH.id) return hearthStock();
     normalizeState();
     const savedStock = shopState.locations[settlement.id];
     if (!validStock(savedStock, settlement)) generateStock(settlement);
@@ -287,8 +319,8 @@
   function itemBelongsHere(item, transaction) {
     if (!item || item.category === "rune") return false;
     const equipmentItem = item.category === "weapon" || item.category === "armor";
-    // Staffs and wands are bought at the Magic Tower, but any smith buys them back.
-    return kind === "blacksmith" ? equipmentItem : kind === "general" ? !equipmentItem && (transaction === "sell" || item.category !== "artifact") : false;
+    // Staffs and wands are bought at the Magic Tower, but any smith buys them back; clothing is the Tailor's.
+    return kind === "blacksmith" ? equipmentItem && !isClothing(item) : kind === "tailor" ? isClothing(item) : kind === "hearth" ? transaction === "buy" && equipmentItem && !isClothing(item) : kind === "general" ? !equipmentItem && (transaction === "sell" || item.category !== "artifact") : false;
   }
 
   function sellableInventory() {
@@ -296,7 +328,9 @@
   }
 
   function stockDescription() {
-    if (kind === "blacksmith") return `${smithPlan(place).total} weapons and armor pieces are on the racks.` + (isCastle(place) ? " Staffs and wands are sold at the Magic Tower." : "");
+    if (kind === "blacksmith") return `${smithPlan(place).total} weapons and armor pieces are on the racks.` + (isCastle(place) ? " Staffs and wands are sold at the Magic Tower." : "") + " Clothing is the Tailor's.";
+    if (kind === "tailor") return `${tailorCount(place)} pieces of clothing hang on the rails.`;
+    if (kind === "hearth") return `${HEARTH.weapons + HEARTH.armor} Hearthforge weapons and armor pieces at 10% off. Its anvil reforges at 15% off and is the only one that takes masterworks.`;
     return `${generalCount(place)} wares for the road are on the shelves.`;
   }
 
@@ -305,7 +339,7 @@
     const current = currentPlace();
     if (!current || current.id !== place.id) { close(); return; }
     const stock = stockFor(place), shop = SHOPS[kind];
-    $("shop-eyebrow").textContent = place.name.toUpperCase() + " · " + shop.name;
+    $("shop-eyebrow").textContent = (kind === "hearth" ? "CINDER ISLE" : place.name.toUpperCase()) + " · " + shop.name;
     $("shop-title").innerHTML = shop.title;
     modal.querySelector(".shop-dialog").dataset.shop = kind;
     window.SceneBanners?.show($("shop-banner"), kind, place, worldState.regionId);
@@ -313,11 +347,22 @@
     const nextRefresh = (shopState.refreshWindow + 1) * 360;
     $("shop-refresh").textContent = "Stock refreshes at Day " + WorldRules.day(nextRefresh) + " · " + WorldRules.time(nextRefresh);
     syncPurse();
-    $("shop-buy-mode").classList.toggle("is-active", mode === "buy");
-    $("shop-sell-mode").classList.toggle("is-active", mode === "sell");
-    $("shop-buy-mode").setAttribute("aria-pressed", String(mode === "buy"));
-    $("shop-sell-mode").setAttribute("aria-pressed", String(mode === "sell"));
+    const reforging = kind !== "general";
+    if (kind === "hearth" && mode === "sell") mode = "buy";
+    $("shop-sell-mode").hidden = kind === "hearth";
+    if (!reforging && mode === "reforge") mode = "buy";
+    for (const [id, which] of [["shop-buy-mode", "buy"], ["shop-sell-mode", "sell"], ["shop-reforge-mode", "reforge"]]) {
+      $(id).classList.toggle("is-active", mode === which);
+      $(id).setAttribute("aria-pressed", String(mode === which));
+    }
+    $("shop-reforge-mode").hidden = !reforging;
     $("shop-workspace").dataset.mode = mode;
+    if (mode === "reforge") {
+      $("shop-sell-unfavorited").hidden = true;
+      $("shop-list-title").textContent = "On the anvil";
+      anvilFor(kind).render();
+      return;
+    }
     const entries = mode === "sell" ? sellableInventory() : stock[kind];
     const bulkEntries = mode === "sell" ? entries.filter(entry => !isItemFavorite(entry.id)) : [];
     const bulkTotals = saleTotals(bulkEntries);
@@ -327,7 +372,7 @@
     bulkButton.textContent = bulkEntries.length ? "Sell all non-favorites · " + ShopRules.formatPrice(bulkTotals.price) : "Sell all non-favorites";
     bulkButton.title = bulkEntries.length ? "Sell " + bulkTotals.quantity + " non-favorited items for " + ShopRules.formatPrice(bulkTotals.price) + ". Equipped copies and items this shop cannot buy are kept." : "No eligible non-favorited items to sell here.";
     if (!entries.some(entry => entry.id === previewId)) previewId = entries[0]?.id || null;
-    $("shop-list-title").textContent = mode === "sell" ? "Your pack" : kind === "blacksmith" ? "On the racks" : "On the shelves";
+    $("shop-list-title").textContent = mode === "sell" ? "Your pack" : kind === "blacksmith" ? "On the racks" : kind === "tailor" ? "On the rails" : "On the shelves";
     stockList.innerHTML = entries.length ? entries.map(entry => mode === "sell" ? sellRowFor(entry, entry.id === previewId) : buyRow(entry)).join("") : '<div class="shop-empty">' + (mode === "sell" ? "You have nothing this shop will buy." : "No stock is available.") + '</div>';
     renderDetail(entries);
   }
@@ -356,7 +401,7 @@
   }
 
   function preview(id) {
-    if (id === previewId) return;
+    if (mode === "reforge" || id === previewId) return;
     previewId = id;
     markPreview(stockList, id);
     renderDetail();
@@ -374,13 +419,13 @@
     return id ? inventory.filter(owned => owned === id).length - (requiredEquipmentCounts(equipment)[id] || 0) : 0;
   }
   function canAffordItem(item) {
-    return item.shopOffer ? tradeItemCount(item) >= item.shopOffer.costQuantity : ShopRules.walletValue(currencies) >= item.priceSilver;
+    return item.shopOffer ? tradeItemCount(item) >= item.shopOffer.costQuantity : ShopRules.walletValue(currencies) >= priceFor(item);
   }
   function purchasePriceText(item) {
-    return itemPurchasePriceLabel(item);
+    return kind === "hearth" && !item.shopOffer ? ShopRules.formatPrice(priceFor(item)) : itemPurchasePriceLabel(item);
   }
   function payForItem(item) {
-    if (!item.shopOffer) return pay(item.priceSilver);
+    if (!item.shopOffer) return pay(priceFor(item));
     if (!canAffordItem(item)) return false;
     let remaining = item.shopOffer.costQuantity;
     inventory = inventory.filter(id => {
@@ -436,10 +481,11 @@
 
   function open(shopKind) {
     if (busy()) return;
+    kind = SHOPS[shopKind] ? shopKind : "general";
     place = currentPlace();
     if (!place) return;
-    kind = SHOPS[shopKind] ? shopKind : "general";
     mode = "buy"; previewId = null;
+    Object.values(anvils).forEach(entry => entry.reset());
     modal.hidden = false;
     setStatus(""); render(); updateModalState();
     modal.querySelector(".modal-close").focus();
@@ -447,7 +493,18 @@
 
   function close() {
     modal.hidden = true; updateModalState();
-    (kind === "blacksmith" ? $("map-blacksmith") : $("map-item-shop"))?.focus();
+    (kind === "blacksmith" ? $("map-blacksmith") : kind === "tailor" ? $("map-tailor") : kind === "hearth" ? $("map-hearth-home") : $("map-item-shop"))?.focus();
+  }
+  // The Blacksmith's and the Tailor's reforge menus (port task 3): the anvil on the right, the list on the left.
+  const anvils = {};
+  function anvilFor(shopKind) {
+    const key = shopKind === "tailor" ? "tailor" : shopKind === "hearth" ? "hearth" : "smith";
+    if (!anvils[key]) anvils[key] = window.Reforge.create({
+      anvil: key, discount: key === "hearth" ? HEARTH.reforgeDiscount : 0, list: stockList, stage: detail, setStatus,
+      available: () => !modal.hidden && mode === "reforge" && !busy() && currentPlace()?.id === place?.id,
+      onChange: () => { renderOwnedItems(); renderAvailableItems(); updateDerivedValues(); window.Companions?.render(true); syncPurse(); saveCharacter(); window.WorldMap?.render(); },
+    });
+    return anvils[key];
   }
 
   bindPreview(stockList, preview);
@@ -461,6 +518,8 @@
   });
   $("map-blacksmith").addEventListener("click", () => open("blacksmith"));
   $("map-item-shop").addEventListener("click", () => open("general"));
+  $("map-tailor").addEventListener("click", () => open("tailor"));
+  $("shop-reforge-mode").addEventListener("click", () => { mode = "reforge"; previewId = null; setStatus(""); anvilFor(kind).reset(); render(); });
   $("shop-buy-mode").addEventListener("click", () => { mode = "buy"; previewId = null; setStatus(""); render(); });
   $("shop-sell-mode").addEventListener("click", () => { mode = "sell"; previewId = null; setStatus(""); render(); });
   $("shop-sell-unfavorited").addEventListener("click", sellAllNonFavorites);
@@ -469,7 +528,7 @@
 
   window.ShopLayout = { row, bindPreview, markPreview, itemArt, itemDetail, itemTypeMetadata, salePrice, saleTotals, sellableEntries, sellFromPack, sellRowFor };
   window.Shop = {
-    open, close, render,
+    open, close, render, anvil: () => mode === "reforge" ? anvilFor(kind) : null, isClothing, hearth: { open: hearthOpen, stock: hearthStock, price: item => Math.round(item.priceSilver * HEARTH.buyFactor), bossId: HEARTH.bossId },
     onTimeChange() { const previous = shopState.refreshWindow; normalizeState(); if (previous !== shopState.refreshWindow) { if (!modal.hidden) render(); window.MagicTower?.render(); saveCharacter(); } },
     onCatalogChange() {
       if (!spells.length) Object.values(shopState.locations || {}).forEach(stock => { stock.spells = []; });
@@ -477,6 +536,6 @@
       window.MagicTower?.render();
     },
     onCharacterApplied() { normalizeState(); if (!modal.hidden) close(); },
-    stockFor, purchasableItem, purchasableSpell, spellPrice,
+    stockFor, purchasableItem, purchasableSpell, spellPrice, normalize: normalizeState,
   };
 })();

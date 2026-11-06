@@ -37,11 +37,12 @@ async function runCinderBossChecks() {
   for (let i = 0; i < 30; i++) {
     worldState.guild.boards = {}; Guild.render();
     const hunts = Guild.boardFor().offers.filter(offer => offer.type === "great-hunt");
-    assert(hunts.length === 1 && ["ur-mat-false-dreamer", "ornn-god-of-the-forge"].includes(hunts[0].uniqueId), "Cinder Isle offers one local Great Hunt");
+    // Ornn is Hearth Home's boss since the Shop Rework (port task 3, R14), so Ur-Mat is Cinder Isle's only Great Hunt.
+    assert(hunts.length === 1 && hunts[0].uniqueId === "ur-mat-false-dreamer", "Cinder Isle offers its one Great Hunt, Ur-Mat");
     assert(hunts[0].regionId === "cinder-isle" && WorldRules.zoneAt(hunts[0].point, hunts[0].regionId) === hunts[0].zone, "Hunt marker lies inside its intended volcanic zone");
     available.add(hunts[0].uniqueId);
   }
-  assert(available.size === 2, "Both Cinder Isle Great Hunts can be offered");
+  assert(available.size === 1, "Only Ur-Mat is offered");
 
   async function start(name) {
     assert(await Combat.startEncounter([name], "Cinder boss test", "great-hunt"), "Encounter starts: " + name);

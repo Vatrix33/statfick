@@ -485,12 +485,12 @@
     ],
   };
   const cinderChances = {
-    "Town": 0, "Road": 0, "Open Sea": 0,
+    "Town": 0, "Road": 0, "Open Sea": 0, "Hearth Home": 0,
     "Black Sand Shore": 27, "Ember Scrub": 33, "Ashen Slope": 40, "Lava Fields": 46, "Caldera": 54,
   };
   const cinderProfiles = {
     "Town": { minimum: 25, maximum: 25, safe: true }, "Road": { minimum: 25, maximum: 25, safe: true },
-    "Open Sea": { minimum: 25, maximum: 25, safe: true },
+    "Open Sea": { minimum: 25, maximum: 25, safe: true }, "Hearth Home": { minimum: 48, maximum: 48, safe: true },
     "Black Sand Shore": { minimum: 25, maximum: 29 }, "Ember Scrub": { minimum: 28, maximum: 33 },
     "Ashen Slope": { minimum: 32, maximum: 36 }, "Lava Fields": { minimum: 36, maximum: 39 },
     "Caldera": { minimum: 39, maximum: 40 },
@@ -621,9 +621,10 @@
       entry(64, 7, () => ["Canopy Wyrm"]), entry(65, 8, () => ["Canopy Wyrm"]),
     ],
   };
-  const mirrormereChances = { "Town": 0, "Road": 0, "Open Water": 0, "Lake Shore": 25, "Reed Marsh": 33, "Windcut Bluffs": 36, "Dry Steppe": 39, "Desert Fringe": 45 };
+  const mirrormereChances = { "Town": 0, "Road": 0, "Open Water": 0, "Institute of Magic": 0, "Lake Shore": 25, "Reed Marsh": 33, "Windcut Bluffs": 36, "Dry Steppe": 39, "Desert Fringe": 45 };
   const mirrormereProfiles = {
     "Town": { minimum: 20, maximum: 20, safe: true }, "Road": { minimum: 20, maximum: 20, safe: true }, "Open Water": { minimum: 20, maximum: 20, safe: true },
+    "Institute of Magic": { minimum: 20, maximum: 20, safe: true },
     "Lake Shore": { minimum: 20, maximum: 26 }, "Reed Marsh": { minimum: 23, maximum: 29 },
     "Windcut Bluffs": { minimum: 27, maximum: 33 }, "Dry Steppe": { minimum: 31, maximum: 37 },
     "Desert Fringe": { minimum: 35, maximum: 40 },

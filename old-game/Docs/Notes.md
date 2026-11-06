@@ -121,7 +121,7 @@ The user's main project is **Stat Fick**, a vanilla-JS fantasy RPG (character sh
 
 **Item rework, phase 4: shops (2026-10-08).**
 - The Spell Shop is gone. Spells are sold only by the Magic Tower in castle cities. `stockFor(settlement).spells` is that list, and companions learn from it.
-- Blacksmith stock: castle 5 forged weapons + 5 armor, town 3 + 4. Staffs and wands are sold only at the tower (6 per castle), though the smith still buys them back.
+- Blacksmith stock: castle 5 forged weapons + 5 armor, town 3 + 4. Staffs and wands are sold only at the tower (6 per castle), though the smith still buys them back. (Since the Shop Rework, 2026-11-06: castle 5 + 4, town 3 + 3, no clothing; clothing is the Tailor's. See "Shop Rework".)
 - Runes are inventory items `rune-<id>` (category "rune", own inventory tab). The tower always stocks every rune. Fitting costs 25% of the rune's price. "Remove all runes" costs 3× each rune's price and returns the runes to the pack.
 - Layout: `shop.js` exposes `ShopLayout`. Buying shows the list on the right and the hovered entry's details on the left; selling mirrors that. The tower reuses it for its five menus, and its fitting menu is a magic circle.
 - `scene-banners.js` draws full-window interiors (1280×900, `xMidYMin slice`). Keep faces and counters in y≈130–360, above the panels. Emitted fire and light draw over everything, so keep people clear of them.
@@ -228,7 +228,8 @@ The user's main project is **Stat Fick**, a vanilla-JS fantasy RPG (character sh
 - Items (user designs): `masterwork-claw-of-beowulf` (Zweihander, Boreal Bolt main, mark-on-hit 35%/+20%/2 turns, wolves 2%); `masterwork-stormhide-cuirass` (Leather Armor, Church of Talos main, +10 Evasion, −50% Lightning spell damage, `soldAt` "Storm Reliquary · Church of Talos", forged at the buyer's level); `masterwork-transformer` (Kite Shield, Church of Talos main, unchanged effect, Tankina 8%). Old ids migrate via `LEGACY_ITEMS`; catalogue entries removed. `ForgeArt` maps masterwork keys to the old hand-made battle designs through `SPRITE_UNIQUE` (`claw-of-beowulf` → `beowulf`, `stormhide-cuirass` → `stormhide`).
 - Tests: `claude-work/tk-rework-checks.js` appended to `talos-boss-browser.js` by `patch_tk.py` (also the talos cinematic, edge and guild-information checks). `claude-work/rebuild-testclient.sh` rebuilds the patched test client from the pristine image and refreshes `client/tests`.
 
-**Boss rework 7: Ornn, God of the Forge (2026-10-11).** User decisions: Reforging; difficulty like Tankina (prepared Level 51 ~25%); Ram at half HP, guarding the anvil; tempers Molten Edge, Hardened Plate, Spiked Plate (not Quenched Swing); spoiled by damage; a temper lasts until the next reforge; keep 50% with a new cutscene; full redesign; smith's work-song; intro; Anvil Hammer and Godforged Plate reworked last.
+**Boss rework 7: Ornn, God of the Forge (2026-10-11).** (Since the Shop Rework, 2026-11-06, he is no longer a Great Hunt:
+he is fought at Hearth Home, his mechanics and drops unchanged; see "Shop Rework".) User decisions: Reforging; difficulty like Tankina (prepared Level 51 ~25%); Ram at half HP, guarding the anvil; tempers Molten Edge, Hardened Plate, Spiked Plate (not Quenched Swing); spoiled by damage; a temper lasts until the next reforge; keep 50% with a new cutscene; full redesign; smith's work-song; intro; Anvil Hammer and Godforged Plate reworked last.
 - Enemy-file `reforge` {firstTurn, everyTurns 3, spoilPercent 15, spoilApLoss 2, guard "vulcanic-ram-level-50", tempers [{id, name, favor wounded|melee|always, description, effects}]}. Engine in `combat.js` (`reforgeState`, `reforgeTurnEnd` from `endTurn`, `reforgeTurn` at turn start, `creditReforgeDamage` in both damage paths, `setTemper`, `chooseTemper`): he heats the metal at the end of his turn; at his next turn start the temper sets unless the heroes dealt `spoilPercent` of his max HP, then `staggerAp` costs him AP. While he works the guard gets a `guardian-ward` on him (`reforgeWard`). New timed effect `molten-strike` (extra Fire % of the hit + "Molten Burn" turn-start loss; `applyTimedEffects` keeps `burnPercent`/`burnTurns`). Snapshot `order` shows "Reforging · X" with "Cracked n%", or the held temper; `stageLook` sets `temper`/`reforging`. The "turn — N AP" log now shows the real AP (after roots or a stagger).
 - AI `ornn`: two strikes a turn, skips all-or-nothing, perfect-form, duel, mana-overload. His old numbers made him unwinnable (1,461 armor, speed 213, one-shots). Final: Str 20, Vit 40, Speed 30 with `permanentBonuses.speed` −53, Luck 20, no shield, `permanentDefenseBonuses.armor` 0, `maxHpPercent` 95, wears Level 30 forged copies of his Hammer and Plate (`noDropItems`; Level 48 copies made him unbeatable) → prepared L51 25.5% (49/192; 90%: 29%, 100%: 18%), about 6 rounds, metal cracked ~40% of the time.
 - Look: humanoid outfit `smith-apron`, `pauldrons` {color, trim, sheen, spikes}, `forgeCracks`, `embers`/`emberLevel`, `moltenWeapon`; catalog `tempers` and `reforging` variants (merged in `specFor`). Quadruped `molten` (magma cracks, flame fleece) for the Vulcanic Ram. Intro `ornn` and phase `ornn-phase` (`forgeScene`). Music: `ornn-god-of-the-forge` (C aeolian work-song, anvil, trim 2.06, −17.3 LUFS) and `ornn-forge-erupts` (C harmonic, 132 bpm, trim 1.08, −17.0 LUFS), switched on `phaseIndex`.
@@ -329,7 +330,7 @@ masterworks' looks are placeholders the user wants fully remade in the port. The
   copy of the game (22 mutations, all caught; one found `permanentStatPercent`'s own Speed filter redundant, so it was
   removed). Not covered by a check: the lock on stat effects from higher-level enemies' passives and from party-wide
   effects (the same one-line rule as the checked paths). `masterwork-rarity-browser.js` now counts 31 masterworks (was
-  25). The other browser checks and suites gave the same results as before (54 of 66 runs passing; the 12 failures are
+  25; 32 since the Shop Rework's Doctor's Orders). The other browser checks and suites gave the same results as before (54 of 66 runs passing; the 12 failures are
   the known ones; `map-speed` failed once and passed twice on rerun).
 
 **Guild Rework (port task 2, 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`; the task is
@@ -408,6 +409,95 @@ what the remake keeps). The user's 34 answers, asked before the code, are in
   Barbarian failure, as before. `cinder-bosses`' `runCinderBossChecks` failed once during the work (Ur-Mat's Slowed
   Time, a random battle case) and passed four times since, also on the old game. The failing `adventure-improvements`
   and `newc` entries stop before their guild parts, which were moved to the room all the same.
+
+**Shop Rework (port task 3, 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`; the task is
+`engine/Docs/Port-Tasks/3_Shop_Rework.txt`).** Built in the old game, as tasks 1 and 2 were (the user: "same rules
+apply"); old game only, the engine is untouched and its work goes on beside it. Done: the faithful port brings it over
+and doesn't build it again; its only port work is remaking its placeholder art (R1; `engine/Docs/Port-Tasks/README.md`
+lists it). The user's 29 answers are in `engine/Docs/Engine-Plan.md`, "Decisions for task 3, Shop Rework" (R1–R29).
+How it's built:
+- **Reforge rules** (`scripts/forge-engine.js`, the section before `const api`; pure, runs in Node): `reforgeKind`
+  (weapon, armor, clothing, caster), `reforgeReason(spec, anvil)` (anvils `smith`, `tailor`, `institute`, `hearth`:
+  weapons and heavy/light armor and shields at the Blacksmith and Hearth Home, clothing at the Tailor, staffs and wands
+  at the Institute, masterworks only at Hearth Home; the Outlaw-only club nowhere), `reforgeOptions(spec, index)` (parts
+  2 and 3 only; every shop-made part, `partOptions`/`armorPartOptions` with Outlaw and Vampiric off, up to the main
+  part's rarity; masterworks add Mythilium by the masterwork makers; a staff's or wand's handle up to `TIER_HANDLE_CAP`
+  by its stone's tier, the inscription any ink), `reforgeCost` (`REFORGE_COST_TIMES` 3 × `RARITY_PRICE` of each
+  changed part's rarity; an inscription by the handle's rarity; unchanged parts free), `reforgedSpec`/`reforge` (main
+  part, level, slots and runes kept; a part outside the options is refused). `generate({ maker })` and
+  `generateArmor({ maker, types })` forge a fixed maker's pieces (the Institute's and Hearth Home's stock).
+  `MASTERWORKS["doctors-orders"]`: a white Robe, Institute of Magic main part, `placeholderArt: true`.
+- **The anvil** (`scripts/reforge.js`, `window.Reforge`): `create({ anvil, discount, list, stage, … })` draws the anvil
+  in a shop's detail pane and its lists on the left: `pieces(anvil)` (the pack, equipped pieces marked, and each
+  companion's worn gear: R4), the two changeable parts with hover cards, every allowed replacement with its price,
+  `commit()` (pays, then `replacePiece` swaps the piece in the pack, its equipped slots following, or on the companion).
+  Used by `shop.js` (`anvilFor(kind)`: Blacksmith, Tailor, Hearth Home with 15% off) and `magic-tower.js` (the
+  Institute). CSS: `.reforge-*` at the end of `styles.css`.
+- **Shops** (`scripts/shop.js`, `STOCK_VERSION` 25): the Blacksmith keeps castle 9 pieces (5 weapons), town 6 (3), no
+  clothing (`smithArmorTypes`), and doesn't buy clothing; the Tailor (`#map-tailor`, key U; `SHOPS.tailor`) stands in
+  every settlement with a Blacksmith, castle 6 clothing pieces, town 4, buys clothing only; both have a Reforge tab
+  (`#shop-reforge-mode`, not in the General Store). Hearth Home's store is the shop window's `hearth` kind: `HEARTH`
+  (5 Hearthforge weapons and 4 armor pieces in `shopState.locations["hearth-home"]`, 10% off, buys nothing),
+  `hearthOpen()` only after Ornn's defeat there.
+- **Institute of Magic** (`scripts/magic-tower.js`): the Tower window has two venues, `tower` (castle cities, as
+  before) and `institute` (`VENUES`, `INSTITUTE`): 6 Institute-made staffs and wands and 6 clothing pieces at 15% off,
+  Doctor's Orders always on its rail (forged at the buyer's level, 30 Platinum), 12 spells at 20% off, rune fitting and
+  removal 20% off, no runes for sale, a Reforge tab for casters; its stock lives in
+  `shopState.locations["institute-of-magic"]` and turns over with the shops. `#map-institute`, key I.
+- **The map:** Mirrormere's lake has an island (`island`) and a bridge (`bridges`, a road over the water, about 37 km
+  west to the ring road on Lakespire's side); `WorldRules.isLand` counts both as land (`onBridge`), and
+  `map-regions.js` paints the island. Cinder Isle's road runs on to Hearth Home (`sites`, x 858, y 596) on the volcano's
+  south-west edge. Both are safe zones in `encounter-engine.js`. `map.js` draws sites by kind (`SITE_ICONS`: the
+  Church's, a domed tower, a forge; the last two placeholders).
+- **Hearth Home and Ornn** (`scripts/hearth-home.js`, `window.HearthHome`, loaded after `church-of-talos.js`):
+  `#map-hearth-home` (key H) opens its window; Challenge Ornn starts `Combat.startEncounter(["Ornn, God of the
+  Forge"])` (his Ram, mechanics and drops unchanged); `onVictory` (from `combat.js`'s `finish`, beside the Church's)
+  adds `ornn-god-of-the-forge-unique-level-48` to `worldState.defeatedSiteBosses`, which opens Enter the forge
+  (`Shop.open("hearth")`); he can be fought again. Ornn left `guild.js`'s Great Hunts; the guild's information lists
+  him as Hearth Home's site challenge (`siteRosters`). Saves (`world-engine.js` `normalize`, R15): an active Ornn Great
+  Hunt is withdrawn with a note (beside an old contract's note when both apply), his rematch markers and today's board
+  offers of him are dropped, a completed Ornn Hunt doesn't open the forge.
+- **Doctor's Orders in battle** (`combat.js`): `healingFactor(recipient, healer)` inside `healingAmount`, which every
+  battle heal passes through: +50% when the healer wears it, +25% when the recipient does; a self-heal takes the larger
+  (×1.5), one wearer healing another both (×1.875). Each heal site names its healer: spells, skills and items (the
+  user), heal-over-time ticks (`healerId`, kept by `applyTimedEffects`), team passives (each owner's share weighted, then
+  `HEAL_SETTLED`), lifesteal and regeneration (the actor itself). The AI's heal estimates pass the healer too. Labels:
+  `app.js` `artifactEffectLabel`.
+- **Traps** (`combat.js` `controlTrapEffects`, `triggerControlTraps`; items in `objects/consumables.json`, General Store
+  stock like the old traps): Tripwire (melee: 1 AP lost next turn), Smoke Trap (any attack: the owner's side +20%
+  Evasion, `smokeOwnerId`, lifted in `expire` at the owner's next turn, or at each ally's own next turn if the owner
+  fell), Frost Glyph (a spell hit, even absorbed: −25% Speed for 2 turns), Weighted Net (melee: stunned for 1 turn,
+  stun immunity holds), Gravity Well (any attack: every enemy loses 2 AP next turn). Weapon attacks trigger them hit or
+  miss (`triggerWeaponTraps`), spells on a hit (`hurt`). Trap AP losses go into `trapApLoss`, applied at turn start after
+  roots and staggers, so they add up (R26). They count against the trap limit; the AI values them by the old traps'
+  formula.
+- **Scenes** (`scene-banners.js`): `tailorShop` (bolts of cloth, a dress form), the Institute reuses the Tower sanctum
+  and Hearth Home the arms hall; `PLACEHOLDER_ART` lists `tailor`, `institute` and `hearth`.
+- **Tests:** `test-client/tests/shop-rework-browser.js`, one entry per group of rules: `checkReforgeRules`,
+  `checkShopsAndTailor`, `checkInstituteOfMagic`, `checkHearthHome`, `checkOrnnInOldSaves`,
+  `checkOrnnInGuildInformation`, `checkDoctorsOrdersHealing`, `checkDoctorsOrdersSources`, `checkNewTraps`. The battle
+  entries load a second copy of `combat.js` with a hook (`window.__shopReworkChecks`), as the Ornn checks do.
+  `masterwork-rarity-browser.js` counts 32 masterworks now.
+- **Not covered by a check:** the anvil's hover cards and list layout; the scenes, island painting and site icons
+  (placeholders); companions choosing to place the new traps (the old formula).
+- **The checks can fail:** each rule was broken once in a copy of the game (121 mutations, one per rule, by the same
+  kind of runner as task 2's, in the cloud session's `claude-work/shop/`, not kept). All 121 were caught after a second
+  pass; the first let nine through, each a gap the checks then closed: the armor-part check used full plate, which
+  Outlaw and Vampiric never make (now light armor, a shield and a robe too); the fixed-maker forging was only seen
+  through stock that filters by maker anyway (now checked on `generate` and `generateArmor` directly); the
+  heal-over-time check's numbers vanished in an enemy's −80% (now on the wearer); Gravity Well was set off only by
+  melee (now a spell too); a clothing-free Blacksmith shelf was drawn once (now six draws); the Tailor's sell check used
+  an equipped sword, never sellable (now a spare mace); and the Ornn board check ran with Ornn's hunt marked completed.
+- **Regression** (2026-11-06, the cloud, Xvfb): every zero-argument entry of the 42 check files (97 entries: the 88 of
+  merged `main` plus 9 new) and the smoke, enemies, lifecycle and combat suites, against a baseline run of merged
+  `main` (07857b1) with its own checks. Every entry gives the baseline's result; the nine new entries pass.
+  `cinder-bosses`' `runCinderBossChecks` expected Ornn among Cinder Isle's Great Hunts and was updated (it passes). In
+  the final run `runUrMatChecks` failed once because Ur-Mat's Axiom Lance stunned the hero before the Slowed Time turn
+  it waits for (a random battle case, unrelated); it passed three times rerun alone. The baseline's 11 failures are unchanged (`adventure-improvements` ×3, `bloody-mary`,
+  `combat-lifecycle` outside its suite, `music`, `newc`, `settings-companions`, `shop`, `talos-edge`, `trap`);
+  `shop-browser.js` is stale since before task 2 (8-piece castle smiths, a `map-spell-shop` button, 219
+  catalogue items) and stops at its first assertion as before. Smoke, enemies (511 cases) and lifecycle pass; the
+  combat suite stops at the known Barbarian failure, as before.
 
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in

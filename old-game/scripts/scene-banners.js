@@ -1211,6 +1211,43 @@
     return out;
   }
 
+  /* ---------- The Tailor (port task 3) ----------
+     PLACEHOLDER ART (user decision R1): a plain room of cloth bolts, a rail of garments and two dress forms;
+     the port remakes it fully. The Institute of Magic and Hearth Home borrow the Magic Tower's sanctum and the
+     castle smithy for now (also placeholders). */
+  function clothBolts(ctx, x, base, w, h) {
+    let out = "", at = x;
+    while (at < x + w - 14) {
+      const width = ctx.r(14, 22), height = Math.min(h, ctx.r(h * 0.6, h * 0.95));
+      out += block(at, base - height, width, height, ctx.pick(["#7b2b25", "#2e4a6e", "#3c5b3a", "#b6a586", "#5a4a6a", "#d8ccb0", "#8a6a3a"]), 'stroke-width="1"')
+        + K.line(`M${n(at + 3)} ${n(base - height + 4)}V${n(base - 4)}`, "!" + INK, 0.7, 'opacity=".35"');
+      at += width + 2;
+    }
+    return out;
+  }
+  function dressForm(ctx, x, base, h, color) {
+    const s = h / 100;
+    return K.line(`M${n(x)} ${n(base)}V${n(base - 40 * s)}M${n(x - 12 * s)} ${n(base)}h${n(24 * s)}`, "#3a2e24", 2.4)
+      + K.path(`M${n(x - 16 * s)} ${n(base - 40 * s)}Q${n(x - 22 * s)} ${n(base - 80 * s)} ${n(x - 12 * s)} ${n(base - 96 * s)}H${n(x + 12 * s)}Q${n(x + 22 * s)} ${n(base - 80 * s)} ${n(x + 16 * s)} ${n(base - 40 * s)}Z`, color)
+      + K.circle(x, base - 100 * s, 4 * s, "#3a2e24", thin);
+  }
+  function tailorShop(ctx) {
+    const m = ctx.mat, F = 440, beam = 70;
+    ctx.keyX = 760; ctx.ambient = 0.58;
+    let out = plaster(ctx, 0, beam, W, F - beam, m.plaster) + ceiling(ctx, beam, 640);
+    out += windowPane(ctx, 1020, 150, 170, 160, { frame: m.beam, bars: 1 });
+    out += shelving(ctx, 60, 120, 380, F - 120, 4, clothBolts);
+    // A rail of hanging garments.
+    out += K.line(`M480 ${beam + 40}H900`, "#3a2e24", 4);
+    for (let x = 500; x < 890; x += 46) out += K.line(`M${x} ${beam + 40}v10`, "#3a2e24", 1.4) + K.path(`M${x - 18} ${beam + 52}L${x + 18} ${beam + 52}L${x + 22} ${beam + 160}L${x - 22} ${beam + 160}Z`, ctx.pick(["#7b2b25", "#2e4a6e", "#3c5b3a", "#5a4a6a", "#b6a586"]), thin);
+    out += lantern(ctx, 300, beam + 20, beam + 84, 1.2) + lantern(ctx, 950, beam + 20, beam + 90, 1.3);
+    out += floor(ctx, F, m.floor, "plank", 640);
+    out += dressForm(ctx, 540, 470, 210, "#ece8de") + dressForm(ctx, 1150, 480, 200, "#7b2b25");
+    out += person(ctx, 800, 456, 206, { face: -1, pose: "counter", apron: true, head: "short", color: "#5a4a6a" });
+    out += counter(ctx, 620, 350, 380, 104) + block(700, 340, 60, 10, "#d8ccb0", thin) + candle(ctx, 960, 350, 18, 6, 0.4);
+    return out;
+  }
+
   /* ---------- Guilds ---------- */
   /* The Adventurers Guild fills its window, and its objects are the menu (port task 2, the Guild
      Rework, 2026-11-06). PLACEHOLDER ART (user decision G2): simple ink rooms the port remakes fully,
@@ -1286,15 +1323,16 @@
     "blacksmith-castle": armsHall, "blacksmith-town": countrySmithy,
     "general-castle": grandEmporium, "general-town": countryStore,
     tower: towerSanctum, church: stormChapel, "guild-hall": guildHall, "guild-town": guildTown,
+    tailor: tailorShop, institute: towerSanctum, hearth: armsHall,
   };
   const FULL = [1280, 900];
-  const SIZES = { "blacksmith-castle": FULL, "blacksmith-town": FULL, "general-castle": FULL, "general-town": FULL, tower: FULL, church: FULL, "guild-hall": FULL, "guild-town": FULL };
+  const SIZES = { "blacksmith-castle": FULL, "blacksmith-town": FULL, "general-castle": FULL, "general-town": FULL, tower: FULL, church: FULL, "guild-hall": FULL, "guild-town": FULL, tailor: FULL, institute: FULL, hearth: FULL };
   // Placeholder scenes the port remakes fully (port task 2, user decision G2).
-  const PLACEHOLDER_ART = { "guild-hall": true, "guild-town": true };
+  const PLACEHOLDER_ART = { "guild-hall": true, "guild-town": true, tailor: true, institute: true, hearth: true };
   function variantFor(kind, place) {
     const castle = place?.kind === "Castle city";
     if (kind === "guild") return castle ? "guild-hall" : "guild-town";
-    if (kind === "tower" || kind === "church") return kind;
+    if (["tower", "church", "tailor", "institute", "hearth"].includes(kind)) return kind;
     return (kind === "blacksmith" ? "blacksmith" : "general") + (castle ? "-castle" : "-town");
   }
   function build(variant, key, regionId, label) {

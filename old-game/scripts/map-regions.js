@@ -641,11 +641,13 @@
       relief: 9, micro: 0.45,
       water: { shallow: "#86a8aa", deep: "#2c5868", foam: "#e2e2cc" },
       fields: { block: 90, size: [11, 7] },
-      prepare: (region, T) => ({ roads: roadSegments(region, T), L: region.lake, M: region.marsh }),
+      prepare: (region, T) => ({ roads: roadSegments(region, T), L: region.lake, M: region.marsh, I: region.island }),
       field(x, y, o, T, c, region) {
         const L = c.L, n = T.fbm(x, y, 4, 0.006, 0);
         const e = Math.hypot((x - L.x) / L.rx, (y - L.y) / L.ry) - T.fbm(x, y, 3, 0.008, 3) * 0.02;
-        const into = (1 - e) * Math.min(L.rx, L.ry);
+        // The Institute of Magic's island (port task 3, placeholder art) stands dry in the lake's middle.
+        const isle = c.I ? 1 - T.smooth(0.82, 1.05, Math.hypot((x - c.I.x) / c.I.rx, (y - c.I.y) / c.I.ry)) : 0;
+        const into = (1 - e) * Math.min(L.rx, L.ry) * (1 - isle) - isle * 40;
         const marsh = area(T, x, y, c.M, 40, 40);
         const bluff = T.smooth(470, 380, x + T.fbm(x, y, 3, 0.008, 4) * 50) * (1 - T.smooth(640, 760, y));
         const steppe = T.smooth(640, 720, y + n * 40), fringe = T.smooth(790, 850, y + n * 30);
@@ -690,7 +692,7 @@
         add({ type: "stones", x: 210, y: 300, always: true }); add({ type: "tower", x: 160, y: 520, always: true }); add({ type: "camp", x: 620, y: 860, always: true });
       },
       labels: [
-        { text: "Mirrormere Lake", x: 760, y: 420, kind: "river" }, { text: "WINDCUT BLUFFS", x: 205, y: 235 }, { text: "REED MARSH", x: 1320, y: 680 }, { text: "DRY STEPPE", x: 370, y: 760 }, { text: "DESERT FRINGE", x: 1160, y: 900 },
+        { text: "Mirrormere Lake", x: 760, y: 560, kind: "river" }, { text: "WINDCUT BLUFFS", x: 205, y: 235 }, { text: "REED MARSH", x: 1320, y: 680 }, { text: "DRY STEPPE", x: 370, y: 760 }, { text: "DESERT FRINGE", x: 1160, y: 900 },
       ],
     };
   }

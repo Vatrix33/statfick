@@ -173,11 +173,7 @@
       zone: "Caldera", zones: [regionalZones["cinder-isle"][4]],
       description: "Face Ur-Mat, the False Dreamer, in the volcanic Caldera: the most powerful mortal sorcerer, who dreams the battle itself. Every third turn he rewrites its law, in a fixed cycle of seven: blades of glass, rebounding words, inverted mercy, slowed time, echoing spells, sealed names and the dreamer's ward. At the brink of death Lucid Change wakes him at full strength, holding two laws at once."
     },
-    {
-      id: "ornn-god-of-the-forge", enemy: "Ornn, God of the Forge", level: 48, regionId: "cinder-isle",
-      zone: "Lava Fields", zones: [regionalZones["cinder-isle"][3]],
-      description: "Challenge Ornn, God of the Forge, in the Lava Fields. Every few turns he reforges his gear at the anvil: a molten edge, hardened plate or a spiked shell. Deal him 15% of his health before his next turn and the metal cracks. At half health the Vulcanic Ram erupts from his forge and guards the anvil while he works."
-    },
+    // Ornn, God of the Forge, left the Great Hunts for Hearth Home (port task 3, R14, R15; hearth-home.js).
     {
       id: "great-imp-jiruan",
       enemy: "Great Imp Ji'ruan",
@@ -374,9 +370,10 @@
     catch { failed = true; }
     if (request !== informationRequest || owner !== guild() || modal.hidden) return;
     informationEnemies = enemies;
+    const siteRosters = { "church-of-talos": () => window.ChurchOfTalos?.enemyRoster?.() || [], "hearth-home": () => window.HearthHome?.enemyRoster?.() || [] };
     const siteEncounters = Object.values(WorldRules.regions).flatMap(region => (region.sites || [])
-      .filter(site => site.id === "church-of-talos")
-      .map(site => ({ kind: "site", regionId: region.id, zone: site.name, roster: window.ChurchOfTalos?.enemyRoster?.() || [] })));
+      .filter(site => siteRosters[site.id])
+      .map(site => ({ kind: "site", regionId: region.id, zone: site.name, roster: siteRosters[site.id]() })));
     informationEnemyLocations = GuildInformationRules.enemyLocations(WorldRules.regions, EncounterRules, [...greatHunts, ...siteEncounters]);
     if (failed) $("guild-status").textContent = "Enemy drop sources could not be loaded. Class information is still available.";
     informationLoading = false; render();
