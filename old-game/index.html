@@ -472,6 +472,7 @@
           </header>
           <div class="spellbook-source-line class-source-controls">
             <button class="text-button" id="class-refresh-button" type="button">↻ Refresh files</button>
+            <button class="text-button class-info-button" id="class-info-button" type="button" aria-pressed="false" title="Classes whose requirements you bought from the Adventurers Guild">Class information</button>
           </div>
           <div class="spellbook-content class-content">
             <section class="known-spells-panel" aria-labelledby="available-class-list-title">
@@ -486,6 +487,12 @@
               </div>
               <div class="known-spells-list" id="class-list"></div>
               <p class="spellbook-status" id="classes-status" aria-live="polite"></p>
+            </section>
+            <section class="known-spells-panel class-info-panel" id="class-info-panel" aria-labelledby="class-info-title" hidden>
+              <div class="spell-list-heading">
+                <div><p class="eyebrow">BOUGHT FROM THE GUILD</p><h3 id="class-info-title">Class <em>information</em></h3></div>
+              </div>
+              <div class="known-spells-list" id="class-info-list"></div>
             </section>
             <aside class="spell-detail-panel" id="class-detail-panel" aria-live="polite">
               <div class="spell-detail-empty"><span aria-hidden="true">♜</span><p>Select a class to reveal its requirements and level effects.</p></div>
@@ -764,6 +771,7 @@
             <button class="backup-button" id="map-church-store" type="button" hidden>Storm Reliquary</button>
             <button class="backup-button" id="map-boat" type="button" hidden>Travel by boat</button>
             <button class="backup-button" id="map-search" type="button" hidden>Search</button>
+            <button class="backup-button" id="map-quests" type="button" title="Your active quests: progress, rewards and giving up">Quests</button>
             <label class="map-track-control" id="map-track-control" hidden>Track enemy <select id="map-track-enemy" aria-label="Enemy to track"></select></label>
             <button class="backup-button" id="map-track-quarry" type="button" hidden>Track Quarry</button>
           </div>
@@ -878,21 +886,28 @@
     </div>
     <div class="modal-layer" id="guild-modal" hidden>
       <button class="modal-backdrop" type="button" data-guild-close aria-label="Close Adventurers Guild"></button>
-      <section class="spellbook-dialog guild-dialog" role="dialog" aria-modal="true" aria-labelledby="guild-title">
-        <header class="dialog-header"><div><p class="eyebrow" id="guild-eyebrow">ALDERKEEP · ADVENTURERS GUILD</p><h2 id="guild-title">Adventurers <em>Guild</em></h2></div><button class="modal-close" type="button" data-guild-close aria-label="Close Adventurers Guild">×</button></header>
-        <div class="scene-banner" id="guild-banner" aria-hidden="true" hidden></div>
-        <div class="guild-content">
+      <section class="spellbook-dialog shop-dialog shop-hall guild-hall" role="dialog" aria-modal="true" aria-labelledby="guild-title">
+        <div class="shop-scene guild-scene" id="guild-banner" hidden></div>
+        <header class="dialog-header shop-header guild-header">
+          <div><p class="eyebrow" id="guild-eyebrow">ALDERKEEP · ADVENTURERS GUILD</p><h2 id="guild-title">Adventurers <em>Guild</em></h2></div>
           <div class="guild-reputation"><span>REPUTATION</span><strong id="guild-reputation">0</strong></div>
-          <div class="guild-actions">
-            <button type="button" id="guild-quest">Quest</button>
-            <button type="button" id="guild-recruit">Recruit <small>50 Reputation · Choose one of three</small></button>
-            <button type="button" id="guild-artifacts">Artifacts <small>70 Reputation · Level-matched rarity · 7-day cooldown</small></button>
-            <button type="button" id="guild-great-hunts" hidden>Great Hunts completed <small>Review defeated unique enemies</small></button>
-            <button type="button" id="guild-information">Information <small>65 Reputation · Class or item intel</small></button>
-          </div>
+          <button class="modal-close" type="button" data-guild-close aria-label="Close Adventurers Guild">×</button>
+        </header>
+        <p class="guild-hint">The bulletin board holds the quests, the counter pays for finished ones, and the tavern has adventurers looking for work.</p>
+        <div class="guild-reward-note" id="guild-reward-note" aria-hidden="true" hidden></div>
+        <section class="guild-dock" id="guild-dock" aria-labelledby="guild-dock-title" hidden>
+          <header class="guild-dock-header"><h3 id="guild-dock-title">Bulletin board</h3><button class="guild-dock-close" id="guild-dock-close" type="button" aria-label="Close this panel">×</button></header>
           <div class="guild-panel" id="guild-panel"></div>
-          <p class="guild-status" id="guild-status" role="status" aria-live="polite"></p>
-        </div>
+        </section>
+        <p class="guild-status" id="guild-status" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+    <div class="modal-layer" id="guild-quests-modal" hidden>
+      <button class="modal-backdrop" type="button" data-guild-quests-close aria-label="Close your quests"></button>
+      <section class="spellbook-dialog guild-quests-dialog" role="dialog" aria-modal="true" aria-labelledby="guild-quests-title">
+        <header class="dialog-header"><div><p class="eyebrow">ADVENTURERS GUILD</p><h2 id="guild-quests-title">Your <em>quests</em></h2></div><button class="modal-close" type="button" data-guild-quests-close aria-label="Close your quests">×</button></header>
+        <div class="guild-quests-list" id="guild-quests-list"></div>
+        <p class="guild-status" id="guild-quests-status" role="status" aria-live="polite"></p>
       </section>
     </div>
     <div class="modal-layer" id="companions-modal" hidden>
@@ -929,7 +944,7 @@
     </div>
     <script>
       (async () => {
-        const files = ["settings.js", "world-region-data.js", "guild-information-engine.js", "world-engine.js", "encounter-engine.js", "shop-engine.js", "forge-engine.js", "combat-engine.js", "combat-ai.js", "app.js", "tier10-cinematics.js", "sprite-kit.js", "sprite-equipment.js", "sprite-humanoid.js", "sprite-creatures.js", "sprite-catalog.js", "forge-art.js", "boss-intros.js", "battle-scenery.js", "battle-effects.js", "battle-stage.js", "combat.js", "map-ink.js", "map-terrain.js", "map-regions.js", "map.js", "church-of-talos.js", "scene-banners.js", "shop.js", "magic-tower.js", "guild.js", "companion-sheet-details.js", "companions.js", "interface.js", "music-composer.js", "music-themes.js", "music.js"].map(name => "scripts/" + name);
+        const files = ["settings.js", "world-region-data.js", "guild-information-engine.js", "world-engine.js", "encounter-engine.js", "guild-quest-engine.js", "shop-engine.js", "forge-engine.js", "combat-engine.js", "combat-ai.js", "app.js", "tier10-cinematics.js", "sprite-kit.js", "sprite-equipment.js", "sprite-humanoid.js", "sprite-creatures.js", "sprite-catalog.js", "forge-art.js", "boss-intros.js", "battle-scenery.js", "battle-effects.js", "battle-stage.js", "combat.js", "map-ink.js", "map-terrain.js", "map-regions.js", "map.js", "church-of-talos.js", "scene-banners.js", "shop.js", "magic-tower.js", "guild.js", "companion-sheet-details.js", "companions.js", "interface.js", "music-composer.js", "music-themes.js", "music.js"].map(name => "scripts/" + name);
         for (const file of files) {
           await new Promise((resolve, reject) => {
             const script = document.createElement("script");

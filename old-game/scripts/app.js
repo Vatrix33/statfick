@@ -883,7 +883,7 @@ function addClassEffect(effect, totals) {
 function classEffectConditionMet(effect) {
   if (effect.condition === "river-zone") return WorldRules.zoneAt(worldState.position, worldState.regionId).startsWith("River");
   if (effect.condition === "forest-zone") return WorldRules.zoneAt(worldState.position, worldState.regionId).includes("Forest");
-  if (effect.condition === "guild-travel-quest") return ["travel", "escort"].includes(worldState.guild.quest?.type) && !worldState.guild.quest.complete;
+  if (effect.condition === "guild-travel-quest") return ["travel", "escort", "deliver"].includes(worldState.guild.quest?.type) && !worldState.guild.quest.complete;
   if (effect.condition === "heavy-armor") return equippedDefenseItems().some((item) => item.type === "heavy");
   if (effect.condition === "no-heavy-armor") return !equippedDefenseItems().some((item) => item.type === "heavy");
   if (effect.condition === "light-or-clothing") return equippedDefenseItems().some((item) => item.type === "light" || item.type === "clothing");
@@ -1398,7 +1398,12 @@ function normalizeCharacter(saved) {
     return { id: entry.id, name: entry.name.slice(0, 80), gender, character: companionCharacter };
   };
   const savedCompanions = Array.isArray(saved.companions) ? saved.companions.map(normalizeCompanion).filter(Boolean).slice(0, 3) : [];
-  const savedRecruitOffers = Array.isArray(saved.recruitOffers) ? saved.recruitOffers.map(normalizeCompanion).filter(Boolean).slice(0, 3) : [];
+  // Recruit offers remember the guild that made them (port task 2: five at a castle city, two at a town guild).
+  const savedRecruitOffers = Array.isArray(saved.recruitOffers) ? saved.recruitOffers.map(entry => {
+    const offer = normalizeCompanion(entry);
+    if (offer && typeof entry.guildId === "string" && entry.guildId.trim()) offer.guildId = entry.guildId.trim();
+    return offer;
+  }).filter(Boolean).slice(0, 5) : [];
   const savedCurrentStats = calculateCurrentStats(savedStats, bonusValues(savedPermanentBonuses));
   const savedMaxHp = calculateMaxHp(savedCurrentStats);
   const savedMaxMana = calculateMaxMana(savedCurrentStats);
@@ -4540,7 +4545,7 @@ function otherClassRequirementLabel(classDefinition) {
   if (type === "known-spell-count") return Math.max(1, toInteger(requirement.count, 1)) + " different spells known";
   if (type === "known-element-count") return "Spells from " + requirement.count + " different elements known";
   if (type === "guild-quests-completed") return requirement.count + " Guild quests completed";
-  if (type === "guild-travel-quests-completed") return requirement.count + " Travel or Escort Guild quests completed";
+  if (type === "guild-travel-quests-completed") return requirement.count + " Travel, Escort or Deliver Guild quests completed";
   if (type === "one-handed-attacks") return requirement.count + " one-handed weapon attacks used";
   if (type === "same-summon-casts") return "The same summon spell cast " + requirement.count + " times";
   if (type === "loot-enemies-collected") return "Loot collected from " + requirement.count + " defeated enemies";
@@ -4902,9 +4907,33 @@ function chooseBoundFamiliar() {
   setClassesStatus(`${selected.name} is now your bound familiar.`);
 }
 
+// The class information tab (port task 2, G32): the classes whose information was bought from the
+// guild's hooded man, each showing exactly the page that was bought, nothing more.
+let classInfoMode = false, classInfoSelectedId = null;
+function renderClassInformationTab() {
+  const byName = (first, second) => first.name.localeCompare(second.name);
+  const known = (worldState.guild.information?.revealed?.class || []).map(getClass).filter(Boolean).sort(byName);
+  const list = document.querySelector("#class-info-list");
+  if (!known.some(definition => definition.id === classInfoSelectedId)) classInfoSelectedId = known[0]?.id || null;
+  list.innerHTML = known.length ? known.map(definition => '<article class="spell-entry class-entry class-info-entry' + (definition.id === classInfoSelectedId ? " is-selected" : "") + '" data-class-info-id="' + escapeHtml(definition.id) + '" data-class-color="' + escapeHtml(definition.color || "") + '"><button class="spell-select-button class-select-button" type="button"><span class="spell-entry-name">' + escapeHtml(definition.name) + '</span><span class="spell-entry-meta">Requirements revealed</span></button></article>').join("")
+    : '<div class="spell-list-empty"><span aria-hidden="true">♜</span><p>No class information bought yet. The hooded man in a castle city\'s Adventurers Guild sells it.</p></div>';
+  list.querySelectorAll("[data-class-info-id]").forEach(entry => entry.querySelector("button").addEventListener("click", () => { classInfoSelectedId = entry.dataset.classInfoId; renderClassInformationTab(); }));
+  classDetailPanel.innerHTML = classInfoSelectedId && window.Guild?.classInformation ? window.Guild.classInformation(classInfoSelectedId)
+    : '<div class="spell-detail-empty"><span aria-hidden="true">♜</span><p>Select a class to see the information you bought.</p></div>';
+}
+function syncClassInformationMode() {
+  const button = document.querySelector("#class-info-button");
+  button.setAttribute("aria-pressed", String(classInfoMode));
+  button.textContent = classInfoMode ? "Back to classes" : "Class information";
+  availableClassList.closest("section").hidden = classInfoMode;
+  classList.closest("section").hidden = classInfoMode;
+  document.querySelector("#class-info-panel").hidden = !classInfoMode;
+}
 function renderClasses() {
   updateClassPointDisplay();
   if (classesModal.hidden) return;
+  syncClassInformationMode();
+  if (classInfoMode) { renderClassInformationTab(); return; }
   const byName = (first, second) => first.name.localeCompare(second.name);
   const learnedClasses = classCatalog.filter(definition => currentClassLevel(definition) > 0).sort(byName);
   const availableClasses = classCatalog.filter(definition => currentClassLevel(definition) === 0 && classRequirementsMet(definition)).sort(byName);
@@ -5415,8 +5444,14 @@ spellAddButton.addEventListener("click", () => {
 
 inventoryOpenButton.addEventListener("click", () => openInventory());
 
+document.querySelector("#class-info-button").addEventListener("click", () => {
+  classInfoMode = !classInfoMode;
+  renderClasses();
+});
+
 classesOpenButton.addEventListener("click", () => {
   classesModal.hidden = false;
+  classInfoMode = false;
   renderClasses();
   renderSkills();
   renderPassives();

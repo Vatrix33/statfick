@@ -30,7 +30,7 @@
     if (!value || typeof value !== "object" || !Array.isArray(value.enemies)) return null;
     const enemies = value.enemies.filter(name => typeof name === "string" && name.trim()).map(name => currentEnemyName(name.trim())).slice(0, 50);
     const zone = typeof value.zone === "string" && value.zone.trim() ? value.zone.trim() : "Wilderness";
-    const objectiveKinds = ["hunt", "artifact", "great-hunt", "great-hunt-rematch"];
+    const objectiveKinds = ["hunt", "artifact", "great-hunt", "great-hunt-rematch", "search", "escort-ambush"];
     return enemies.length ? { zone, enemies, objective: objectiveKinds.includes(value.objective) ? value.objective : null } : null;
   }
   function questReward(quest) {
@@ -41,7 +41,7 @@
     return {
       silver: Math.max(0, Math.floor(number(quest.reward?.silver, 0))),
       reputation: previousReputation * (greatHunt && version < 3 ? 3 : 1),
-      rateVersion: greatHunt ? 3 : 2,
+      rateVersion: greatHunt || version >= 3 ? 3 : 2,
     };
   }
   // Enemies whose names were corrected; saved quests, rematches and encounters follow.
@@ -56,8 +56,17 @@
   function normalize(saved) {
     saved = renameEnemies(saved);
     const rawGuild = saved?.guild && typeof saved.guild === "object" ? saved.guild : {};
-    const normalizeQuest = quest => quest && typeof quest === "object" && ["clear", "hunt", "search", "travel", "escort", "great-hunt"].includes(quest.type) ? {
+    const currentDay = day(saved?.minutes ?? 480);
+    const text = (value, limit = 200) => typeof value === "string" && value.trim() ? value.trim().slice(0, limit) : null;
+    const questDestination = value => value && typeof value === "object" && text(value.settlementId) && validPoint(value.point) ? {
+      regionId: normalizeRegionId(value.regionId), settlementId: text(value.settlementId), name: text(value.name) || text(value.settlementId), point: point(value.point),
+    } : null;
+    // Quests of the Guild Rework (port task 2) carry version 2; Hunt and Search kept their kind.
+    const QUEST_TYPES = ["hunt", "cull", "deliver", "search", "escort", "travel", "great-hunt", "clear"];
+    const normalizeQuest = quest => quest && typeof quest === "object" && QUEST_TYPES.includes(quest.type) ? {
       ...quest,
+      version: quest.version === 2 ? 2 : 1,
+      title: text(quest.title),
       description: typeof quest.description === "string" ? quest.description.replaceAll("Lesser Dragon", "Red Dragon") : "",
       enemy: typeof quest.enemy === "string" && quest.enemy.trim() ? currentEnemyName(quest.enemy.trim()) : null,
       zone: typeof quest.zone === "string" && quest.zone.trim() ? quest.zone.trim() : null,
@@ -67,17 +76,50 @@
       townId: typeof quest.townId === "string" && quest.townId.trim() ? quest.townId.trim() : null,
       uniqueId: typeof quest.uniqueId === "string" && quest.uniqueId.trim() ? quest.uniqueId.trim() : null,
       offeredAtLevel: Math.max(1, Math.floor(number(quest.offeredAtLevel, 1))),
+      level: Math.max(1, Math.floor(number(quest.level, number(quest.offeredAtLevel, 1)))),
+      offeredDay: Math.max(0, Math.floor(number(quest.offeredDay, 0))),
       progress: Math.max(0, Math.floor(number(quest.progress, 0))), complete: quest.complete === true,
       required: Math.max(1, Math.floor(number(quest.required, 1))),
+      radius: Math.max(1, number(quest.radius, 40)),
       reward: questReward(quest),
       point: validPoint(quest.point) ? point(quest.point) : null,
+      destination: questDestination(quest.destination),
+      recommended: text(quest.recommended, 40),
+      ambushes: Array.isArray(quest.ambushes) ? quest.ambushes.filter(entry => entry && Number.isFinite(entry.at)).slice(0, 2).map(entry => ({ at: Math.max(0, entry.at), done: entry.done === true })) : [],
+      travelled: Math.max(0, number(quest.travelled, 0)),
+      tripMinutes: Math.max(1, number(quest.tripMinutes, 1)),
+      taken: quest.taken === true,
     } : null;
-    const quest = normalizeQuest(rawGuild.quest);
-    const offers = [];
-    if (Array.isArray(rawGuild.offers)) {
-      for (const offer of rawGuild.offers.map(normalizeQuest).filter(Boolean)) {
-        if (!offers.some(candidate => candidate.type === offer.type && (offer.type !== "great-hunt" || candidate.uniqueId === offer.uniqueId))) offers.push(offer);
-        if (offers.length === 20) break;
+    // The standard quest and the Great Hunt are held apart (one of each at a time). Older saves kept a
+    // Great Hunt in the quest slot; an active quest of a retired kind (Clear, the old Escort to a map
+    // point, the old Travel within the region) is dropped with a note (G33).
+    const RETIRED = { clear: "Clear", escort: "Escort", travel: "Travel" };
+    let notice = text(rawGuild.notice, 400);
+    let greatHunt = normalizeQuest(rawGuild.greatHunt);
+    if (greatHunt?.type !== "great-hunt") greatHunt = null;
+    let quest = normalizeQuest(rawGuild.quest);
+    if (quest?.type === "great-hunt") { greatHunt ||= quest; quest = null; }
+    else if (quest && quest.version !== 2) {
+      if (RETIRED[quest.type]) {
+        notice = `Your ${RETIRED[quest.type]} contract from before the Guild changed its contracts was withdrawn. It paid nothing and cost nothing; the bulletin board has new quests.`;
+        quest = null;
+      } else quest = { ...quest, version: 2 };
+    }
+    if (quest?.type === "clear") quest = null;
+    if (quest) quest.taken = false;
+    if (greatHunt) greatHunt.taken = false;
+    // Each guild's board lasts for the in-game day it was drawn on (G7).
+    const boards = {};
+    if (rawGuild.boards && typeof rawGuild.boards === "object" && !Array.isArray(rawGuild.boards)) {
+      for (const [guildId, board] of Object.entries(rawGuild.boards).slice(0, 40)) {
+        if (!text(guildId) || !board || Math.floor(number(board.day, 0)) !== currentDay || !Array.isArray(board.offers)) continue;
+        const offers = [];
+        for (const offer of board.offers.map(normalizeQuest).filter(Boolean)) {
+          if (offer.version !== 2 && offer.type !== "great-hunt" || offer.type === "clear") continue;
+          if (!offers.some(candidate => candidate.type === offer.type && (offer.type !== "great-hunt" || candidate.uniqueId === offer.uniqueId))) offers.push(offer);
+          if (offers.length === 12) break;
+        }
+        boards[guildId] = { day: currentDay, offers };
       }
     }
     const rawChallenge = rawGuild.artifactChallenge;
@@ -104,7 +146,7 @@
       ? "hunt"
       : requestedAvoidance === "artifact" && artifactChallenge
         ? "artifact"
-        : requestedAvoidance === "great-hunt" && quest?.type === "great-hunt" && !quest.complete
+        : requestedAvoidance === "great-hunt" && greatHunt && !greatHunt.complete
           ? "great-hunt"
         : null;
     const avoidedGreatHunts = [...new Set([
@@ -139,7 +181,9 @@
         completedQuests: Math.max(0, Math.floor(number(rawGuild.completedQuests, 0))),
         completedTravelQuests: Math.max(0, Math.floor(number(rawGuild.completedTravelQuests, 0))),
         quest,
-        offers,
+        greatHunt,
+        boards,
+        notice,
         artifactOffers: Array.isArray(rawGuild.artifactOffers) ? [...new Set(rawGuild.artifactOffers.filter(id => typeof id === "string" && id.trim()).map(id => id.trim()))].slice(0, 3) : [],
         artifactChallenge,
         artifactNextDay: Math.max(0, Math.floor(number(rawGuild.artifactNextDay, 0))),

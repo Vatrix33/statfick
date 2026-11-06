@@ -940,6 +940,29 @@
     return select(zone, context, random)?.enemies || [];
   }
 
+  // An encounter of this zone that includes the named enemy, in one of its usual groups: the groups
+  // nearest the target level are weighted as select() weights them (a Cull quest's target, task 2).
+  function generateIncluding(zone, name, context = {}, random = Math.random) {
+    const resolved = contextAndRandom(zone, context, random);
+    const samples = [0, 0.2, 0.4, 0.6, 0.8, 0.999];
+    const entries = (regionRules(resolved.regionId).tables[zone] || []).filter(candidate => samples.some(value => candidate.create(() => value).includes(name)));
+    if (!entries.length) return [name];
+    const target = targetLevel(zone, resolved.level, resolved.regionId);
+    const levels = [...new Set(entries.map(candidate => candidate.level))];
+    const nearest = Math.min(...levels.map(candidateLevel => Math.abs(candidateLevel - target)));
+    const selectedLevel = weightedPick(levels, candidateLevel => {
+      const distance = Math.abs(candidateLevel - target) - nearest;
+      return distance === 0 ? 72 : distance === 1 ? 14 : distance === 2 ? 2 : 0;
+    }, resolved.random);
+    const selected = weightedPick(entries.filter(candidate => candidate.level === selectedLevel), candidate => candidate.weight, resolved.random);
+    // A group whose make-up is rolled may come out without the target; roll it again a few times.
+    for (let attempt = 0; selected && attempt < 12; attempt++) {
+      const enemies = selected.create(resolved.random);
+      if (enemies.includes(name)) return enemies;
+    }
+    return [name];
+  }
+
   function encounterChance(zone, context = {}) {
     const resolved = contextAndRandom(zone, context, Math.random);
     const profile = profileFor(zone, resolved.regionId);
@@ -978,7 +1001,7 @@
     bloodstoneChances, bloodstoneProfiles, bloodstoneTables,
     battlefieldChances, battlefieldProfiles, battlefieldTables,
     duskpineChances, duskpineProfiles, duskpineTables,
-    regionRules, profileFor, targetLevel, select, generate, roll, encounterChance, enemiesForZone,
+    regionRules, profileFor, targetLevel, select, generate, generateIncluding, roll, encounterChance, enemiesForZone,
   };
   if (typeof module !== "undefined") module.exports = root.EncounterRules;
 })(globalThis);

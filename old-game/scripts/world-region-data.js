@@ -66,7 +66,7 @@
         description: "A snow-crowned wilderness of scree slopes, sheer cliffs and dragon-haunted summits. One narrow road climbs past the isolated town of Cairnrest.",
         levelRange: { minimum: 45, maximum: 60 },
         start: { x: 790, y: 948 },
-        settlements: [{ id: "cairnrest", name: "Cairnrest", kind: "Town", guildServices: ["quest", "artifacts", "great-hunts"], x: 740, y: 510 }],
+        settlements: [{ id: "cairnrest", name: "Cairnrest", kind: "Town", guildServices: ["quest", "artifacts", "great-hunts", "recruit"], x: 740, y: 510 }],
         roads: [road], river: null,
         exits: [
           { id: "south-road", name: "Road to Stoneveil Foothills", point: { x: 790, y: 980 }, retreat: { x: 790, y: 932 }, targetRegionId: "stoneveil-foothills", targetPoint: { x: 510, y: 68 }, prompt: "Descend south to the Stoneveil Foothills?", destinationName: "Stoneveil Foothills" },
@@ -262,7 +262,7 @@
         levelRange: { minimum: 45, maximum: 55 }, start: { x: 68, y: 210 },
         pyramid: { x: 820, y: 500, rx: 175, ry: 145 }, necropolis: { x: 820, y: 500, rx: 315, ry: 250 },
         obsidianFlats: { x: 1320, y: 685, rx: 265, ry: 240 },
-        settlements: [{ id: "lastlight", name: "Lastlight", kind: "Town", guildServices: ["quest", "artifacts", "great-hunts"], ...lastlight }],
+        settlements: [{ id: "lastlight", name: "Lastlight", kind: "Town", guildServices: ["quest", "artifacts", "great-hunts", "recruit"], ...lastlight }],
         roads: [quadratic({ x: -20, y: 210 }, { x: 135, y: 230 }, lastlight)], river: null,
         exits: [
           { id: "northwest-road", name: "Road to the Saffron Expanse", point: { x: 20, y: 210 }, retreat: { x: 68, y: 210 }, targetRegionId: "saffron-expanse", targetPoint: { x: 1532, y: 800 }, prompt: "Return northwest to the Saffron Expanse?", destinationName: "Saffron Expanse" },
@@ -279,7 +279,7 @@
         crimsonBoundary: 500,
         escarpment: { x: 1270, y: 345, rx: 250, ry: 150 },
         bloodglass: { x: 350, y: 745, rx: 260, ry: 185 },
-        settlements: [{ id: "amberpost", name: "Amberpost", kind: "Town", guildServices: ["quest", "artifacts", "great-hunts"], ...amberpost }],
+        settlements: [{ id: "amberpost", name: "Amberpost", kind: "Town", guildServices: ["quest", "artifacts", "great-hunts", "recruit"], ...amberpost }],
         roads: [join(quadratic({ x: 850, y: -20 }, { x: 880, y: 130 }, amberpost), quadratic(amberpost, { x: 840, y: 650 }, { x: 820, y: 1020 }))],
         river: null,
         exits: [
@@ -376,7 +376,7 @@
         levelRange: { minimum: 25, maximum: 40 }, start: { ...emberhaven },
         landShape: { type: "ellipse", x: 800, y: 500, rx: 700, ry: 445 },
         volcano: { x: 1030, y: 455, rx: 325, ry: 285 },
-        settlements: [{ id: "emberhaven", name: "Emberhaven", kind: "Town", guildServices: ["quest", "artifacts", "great-hunts"], ...emberhaven, boat: { regionId: "sunward-coast", settlementId: "seabridge", minutes: 540 } }],
+        settlements: [{ id: "emberhaven", name: "Emberhaven", kind: "Town", guildServices: ["quest", "artifacts", "great-hunts", "recruit"], ...emberhaven, boat: { regionId: "sunward-coast", settlementId: "seabridge", minutes: 540 } }],
         roads: [join(quadratic(emberhaven, { x: 450, y: 640 }, { x: 630, y: 650 }), quadratic({ x: 630, y: 650 }, { x: 740, y: 670 }, { x: 825, y: 630 }))],
         river: null, exits: [],
       };

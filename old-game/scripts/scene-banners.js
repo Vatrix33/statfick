@@ -134,8 +134,19 @@
       + `<g style="mix-blend-mode:overlay">${warmth}</g>${ctx.fx.join("")}`
       + `<rect width="${W}" height="${H}" fill="url(#${id}v)"/></svg>`;
     const live = `<svg class="sb-live" ${frame}>${ctx.glows.join("")}${ctx.liveFx.join("")}</svg>`;
+    // Clickable objects (the guild's): a hit box, a copy of the object that shows only its glowing
+    // outline on hover or focus, and its name. Above the darkness, so the glow is never dimmed.
+    const spots = ctx.spots?.length ? `<svg class="sb-spots" viewBox="0 0 ${W} ${H}" preserveAspectRatio="${H > 400 ? "xMidYMin" : "xMidYMid"} slice">`
+      + `<defs><filter id="${id}glow" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB"><feMorphology in="SourceAlpha" operator="dilate" radius="2.5" result="grown"/><feComposite in="grown" in2="SourceAlpha" operator="out" result="ring"/><feGaussianBlur in="ring" stdDeviation="2.2" result="soft"/><feFlood flood-color="#ffd27a"/><feComposite in2="soft" operator="in" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/></feMerge></filter></defs>`
+      + ctx.spots.map(({ id: spotId, label, box: [x, y, w, h], markup }) => {
+        const labelWidth = label.length * 8.4 + 22, lx = x + w / 2, ly = Math.max(20, y - 8);
+        return `<g class="scene-spot" data-guild-spot="${spotId}" role="button" tabindex="0" aria-label="${label}">`
+          + `<rect class="scene-spot-hit" x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}" fill="transparent"/>`
+          + `<g class="scene-spot-glow" filter="url(#${id}glow)" pointer-events="none">${markup}</g>`
+          + `<g class="scene-spot-label" pointer-events="none" transform="translate(${n(lx)} ${n(ly)})"><rect x="${n(-labelWidth / 2)}" y="-17" width="${n(labelWidth)}" height="24" rx="4"/><text y="0" text-anchor="middle">${label}</text></g></g>`;
+      }).join("") + "</svg>" : "";
     // Clip paths are named by geometry; a banner-specific prefix keeps them apart from the sprites'.
-    return (art + live).replaceAll('id="ink', `id="${id}ink`).replaceAll("url(#ink", `url(#${id}ink`);
+    return (art + live + spots).replaceAll('id="ink', `id="${id}ink`).replaceAll("url(#ink", `url(#${id}ink`);
   }
 
   /* ---------- Walls, floors and ceilings ---------- */
@@ -1198,147 +1209,72 @@
   }
 
   /* ---------- Guilds ---------- */
-  // A castle guild's great hall, in one-point perspective down the nave.
-  function greatHall(ctx) {
-    const m = ctx.mat, VX = 600, VY = 112;
-    ctx.keyX = 600;
-    ctx.ambient = 0.62;
-    const P = (X, Y, s) => [VX + X * s, VY + Y * s];
-    const FLOOR = 150, CAP = -120, CROWN = -300, HALF = 430, OUTER = 600, BACK = 0.21;
-    const depths = [1.18, 0.78, 0.58, 0.46, 0.38, 0.32, 0.275, 0.24];
-    const vault = K.darken(m.stone, 0.55), stone = m.stone;
-    let out = solid(0, 0, W, H, vault) + K.hatch(0, 0, W, 90, 30, 4, 0.7, 0.5);
-    // Floor.
-    const [bl, bf] = P(-OUTER, FLOOR, BACK), [br] = P(OUTER, FLOOR, BACK);
-    const floorD = poly([[bl, bf], [br, bf], [VX + OUTER * 2, VY + FLOOR * 2], [VX - OUTER * 2, VY + FLOOR * 2]]);
-    let joints = "";
-    for (let X = -OUTER; X <= OUTER; X += 75) { const [x1, y1] = P(X, FLOOR, BACK), [x2, y2] = P(X, FLOOR, 2); joints += `M${n(x1)} ${n(y1)}L${n(x2)} ${n(y2)}`; }
-    for (let s = BACK; s < 2; s *= 1.22) { const [x1, y1] = P(-OUTER, FLOOR, s), [x2] = P(OUTER, FLOOR, s); joints += `M${n(x1)} ${n(y1)}L${n(x2)} ${n(y1)}`; }
-    out += K.path(floorD, m.floor, 'stroke="none"') + K.clipped(floorD, `<path d="${joints}" stroke="${INK}" stroke-width="1.2" opacity=".6" fill="none"/>`);
-    // A runner carpet down the nave.
-    const carpet = poly([P(-70, FLOOR, BACK), P(70, FLOOR, BACK), P(70, FLOOR, 2), P(-70, FLOOR, 2)]);
-    out += K.path(carpet, K.darken(m.cloth, 0.1), 'stroke="none"') + K.path(poly([P(-58, FLOOR, BACK), P(58, FLOOR, BACK), P(58, FLOOR, 2), P(-58, FLOOR, 2)]), "none", `stroke="${K.paint(m.trim)}" stroke-width="1.4" fill="none" opacity=".7"`);
-    // Clerestory walls above the arcades, with their high windows.
-    for (const side of [-1, 1]) {
-      const wall = poly([P(side * HALF, CAP, BACK), P(side * HALF, CROWN * 0.92, BACK), P(side * HALF, CROWN * 0.92, 1.6), P(side * HALF, CAP, 1.6)]);
-      let courses = "";
-      for (let Y = CAP; Y > CROWN * 0.92; Y -= 26) { const [x1, y1] = P(side * HALF, Y, BACK), [x2, y2] = P(side * HALF, Y, 1.6); courses += `M${n(x1)} ${n(y1)}L${n(x2)} ${n(y2)}`; }
-      out += K.path(wall, K.darken(stone, 0.2), 'stroke="none"') + K.clipped(wall, `<path d="${courses}" stroke="${K.paint(m.mortar)}" stroke-width="1.3" fill="none"/>`);
-      for (let index = depths.length - 1; index > 0; index--) {
-        const far = depths[index], near = depths[index - 1], mid = (far + near) / 2, inset = (near - far) * 0.34;
-        const pane = poly([P(side * HALF, CAP - 50, far + inset), P(side * HALF, CAP - 140, far + inset), P(side * HALF, CAP - 168, mid), P(side * HALF, CAP - 140, near - inset), P(side * HALF, CAP - 50, near - inset)]);
-        const [m1x, m1y] = P(side * HALF, CAP - 50, mid), [m2x, m2y] = P(side * HALF, CAP - 158, mid);
-        const glazing = K.path(pane, "!" + K.mix(ctx.sky.glass, ctx.sky.deep, 0.35), 'stroke="none"') + K.clipped(pane, K.hatch(0, 0, W, VY + 40, 60, 5, 0.8, 0.55, "#2a2018") + K.line(`M${n(m1x)} ${n(m1y)}L${n(m2x)} ${n(m2y)}`, "!#2a2018", 2.4))
-          + K.path(pane, "none", `stroke="${K.paint(K.darken(stone, 0.1))}" stroke-width="${n(9 * mid)}" fill="none"`) + K.path(pane, "none", `stroke="${K.OUTLINE}" stroke-width="1.4" fill="none"`);
-        if (ctx.sky.lit) {
-          ctx.emit(glazing);
-          const [lx, ly] = P(side * HALF, CAP - 100, mid);
-          ctx.light(lx, ly, 120 * mid + 30, 0.6, ctx.sky.light);
-          if (index % 2 === 0) shaft(ctx, [P(side * HALF, CAP - 140, far + inset), P(side * HALF, CAP - 50, near - inset), P(side * (HALF - 260), FLOOR, near), P(side * (HALF - 260), FLOOR, far)], 0.16);
-        } else out += glazing;
-      }
-    }
-    // The back wall: a great hearth under the guild banner and a hunting trophy.
-    const [wl, wt] = P(-HALF, CROWN, BACK), [wr, wb] = P(HALF, FLOOR, BACK);
-    out += masonry(ctx, wl, wt, wr - wl, wb - wt, stone, { row: 7 });
-    for (const X of [-260, 260]) {
-      const [x, y] = P(X, -40, BACK), w = 46 * BACK * 2.2, h = 180 * BACK * 1.2;
-      out += windowPane(ctx, x - w / 2, y - h, w, h, { arch: "point", frame: stone, bars: 1 });
-    }
-    const [hx, hy] = P(0, FLOOR, BACK);
-    out += block(hx - 34, hy - 30, 68, 30, K.lighten(stone, 0.06)) + block(hx - 38, hy - 33, 76, 5, m.beam, thin) + K.path(`M${hx - 22} ${hy}V${hy - 16}Q${hx} ${hy - 28} ${hx + 22} ${hy - 16}V${hy}Z`, "!#120b08");
-    fire(ctx, hx, hy - 1, 30, 16, { radius: 150 });
-    out += hangingBanner(ctx, hx, hy - 92, 40, 54, m.cloth, "swords") + trophy(ctx, hx, hy - 104, 0.42);
-    // Bays from the far end toward the viewer.
-    const items = [];
-    for (const s of depths) items.push({ s, draw: () => bay(s) });
-    function bay(s) {
-      let part = "";
-      // Arcade openings into the side aisles, then the columns and the rib across the nave.
-      for (const side of [-1, 1]) {
-        const [cx, cy] = P(side * HALF, CAP, s), [, fy] = P(side * HALF, FLOOR, s), cw = 48 * s;
-        const colD = rectD(cx - cw / 2, cy, cw, fy - cy);
-        part += K.path(colD, stone) + sideShade(ctx, colD, cx - cw / 2, cy, cw, fy - cy, 0.55)
-          + K.clipped(colD, K.line(`M${n(cx - cw * 0.2)} ${n(cy)}V${n(fy)}M${n(cx + cw * 0.2)} ${n(cy)}V${n(fy)}`, "!" + INK, 1, 'opacity=".35"'))
-          + block(cx - cw * 0.75, cy - 9 * s, cw * 1.5, 12 * s, K.lighten(stone, 0.05)) + block(cx - cw * 0.7, fy - 14 * s, cw * 1.4, 14 * s, stone);
-        if (s > 0.3 && s < 0.9 && Math.round(s * 100) % 2 === 0) part += hangingBanner(ctx, cx - side * cw * 0.2, cy + 18 * s, 40 * s, 110 * s, ctx.pick([m.cloth, "#2e4a6e", "#3c5b3a"]), "swords");
-        if (s === 0.78 || s === 0.46) { const [tx, ty] = P(side * (HALF - 30), -40, s); part += block(tx - 3 * s, ty, 6 * s, 16 * s, "#3a3632", thin); fire(ctx, tx, ty, 14 * s, 22 * s, { radius: 200 * s, strength: 0.8 }); }
-      }
-      const [lx, ly] = P(-HALF, CAP, s), [rx] = P(HALF, CAP, s), [, ay] = P(0, CROWN, s);
-      const span = rx - lx, rib = archPath(VX, ly, span, ly - ay, 0.75);
-      part += K.path(rib, "none", `stroke="${K.paint(K.darken(stone, 0.05))}" stroke-width="${n(30 * s)}" fill="none"`) + K.path(rib, "none", `stroke="${K.OUTLINE}" stroke-width="${n(1.6 + s)}" fill="none"`) + K.path(archPath(VX, ly + 1, span + 30 * s, ly - ay + 15 * s, 0.75), "none", `stroke="${K.OUTLINE}" stroke-width="${n(1.4 + s)}" fill="none"`);
-      return part;
-    }
-    // Long tables down each side of the nave, with their diners.
-    for (const side of [-1, 1]) {
-      const TX = side * 190, near = 0.86, far = 0.36, top = FLOOR - 52;
-      const outerSeats = [], innerSeats = [];
-      for (const s of [0.4, 0.48, 0.57, 0.67, 0.78]) {
-        if (ctx.chance(0.8)) outerSeats.push(s);
-        if (ctx.chance(0.7)) innerSeats.push(s);
-      }
-      const diner = (s, X, face) => {
-        const [x, y] = P(X, FLOOR, s);
-        return person(ctx, x, y, 108 * s, { face, seated: true, pose: ctx.pick(["drink", "toast", "stand", "point", "counter"]), hold: ctx.chance(0.5) ? "tankard" : "", head: ctx.pick(["short", "short", "hood", "helm", "long", "bald"]), armor: ctx.chance(0.25), cloak: ctx.chance(0.3) ? ctx.pick(CLOTHES) : "", beard: ctx.chance(0.4) });
-      };
-      items.push({ s: far, order: 1, draw: () => outerSeats.map(s => diner(s, TX + side * 60, -side)).join("") });
-      items.push({ s: far, order: 2, draw: () => {
-        const topD = poly([P(TX - 38, top, far), P(TX + 38, top, far), P(TX + 38, top, near), P(TX - 38, top, near)]);
-        const [ex1, ey1] = P(TX - 38, top, near), [ex2] = P(TX + 38, top, near), [, ey2] = P(TX, top + 8, near);
-        let cups = "";
-        for (let s = 0.4; s < 0.84; s += 0.07) { const [cx, cy] = P(TX + ctx.r(-24, 24), top, s); cups += block(cx - 2.6 * s * 2, cy - 7 * s * 2, 5 * s * 2, 7 * s * 2, ctx.pick(["#7a5a3a", "#8a8e94", "#d8ccb0"]), 'stroke-width=".8"'); }
-        const [la, lb] = P(TX - 32, FLOOR, near), [lc] = P(TX + 32, FLOOR, near);
-        return K.path(topD, K.lighten(m.wood, 0.05)) + cups + block(ex1, ey1, ex2 - ex1, ey2 - ey1, K.darken(m.wood, 0.1)) + block(la - 3, ey2, 7, lb - ey2, K.darken(m.wood, 0.3)) + block(lc - 4, ey2, 7, lb - ey2, K.darken(m.wood, 0.3));
-      } });
-      items.push({ s: far, order: 3, draw: () => innerSeats.map(s => diner(s, TX - side * 60, side)).join("") });
-    }
-    // Adventurers standing in the nave and around the quest board.
-    const standing = [
-      [0.5, -40, 1, { pose: "point", head: "hood", cloak: "#3c5b3a" }], [0.5, 30, -1, { pose: "fold", armor: true, head: "helm", hold: "spear" }], [0.52, 74, -1, { pose: "drink", hold: "tankard", head: "long" }],
-      [0.68, -86, 1, { pose: "carry", hold: "box", walk: true, head: "cap" }], [0.95, 88, -1, { back: true, cloak: "#3d4a5c", head: "long", hold: "spear", walk: true }],
-      [0.32, 10, 1, { pose: "stand", robe: m.cloth, head: "bald", beard: "long" }], [1.02, -262, -1, { pose: "point", head: "short", pack: true, sword: true }], [1.0, 300, -1, { pose: "hold", hold: "spear", armor: true, tabard: m.cloth, head: "helm" }],
-    ];
-    for (const [s, X, face, options] of standing) items.push({ s, order: 4, draw: () => { const [x, y] = P(X, FLOOR, s); return person(ctx, x, y, 112 * s, { face, ...options }); } });
-    items.push({ s: 0.95, order: 3, draw: () => {
-      const [bx, by] = P(-336, 60, 0.95), w = 120 * 0.95, h = 78 * 0.95, [, fy] = P(-336, FLOOR, 0.95);
-      return block(bx - w / 2 + 8, by + h - 4, 7, fy - by - h + 4, m.beam) + block(bx + w / 2 - 15, by + h - 4, 7, fy - by - h + 4, m.beam) + noticeBoard(ctx, bx - w / 2, by, w, h, 9);
-    } });
-    for (const s of [0.42, 0.62, 0.9]) items.push({ s, order: 5, draw: () => { const [x, y] = P(0, -40, s); return chandelier(ctx, x, -2, y, 120 * s, 7); } });
-    items.sort((a, b) => a.s - b.s || (a.order || 0) - (b.order || 0));
-    out += items.map(item => item.draw()).join("");
+  /* The Adventurers Guild fills its window, and its objects are the menu (port task 2, the Guild
+     Rework, 2026-11-06). PLACEHOLDER ART (user decision G2): simple ink rooms the port remakes fully,
+     keeping the layout (G21): the guild on the left (bulletin board beside the counter and its clerk),
+     the tavern on the right (a hearth, a table of adventurers and, in castle cities, the hooded man
+     alone at a corner table), hunting trophies on the back wall. Each clickable object is recorded with
+     spot(), which draws it and keeps a copy for the hover glow (G23). The room stands in the upper
+     part of the window, above the docked panel (G22). */
+  function spot(ctx, id, label, box, markup) {
+    (ctx.spots ||= []).push({ id, label, box, markup });
+    return markup;
+  }
+  function hearth(ctx, x, floorY, w, h, stone) {
+    const mouth = `M${n(x - w * 0.32)} ${n(floorY)}V${n(floorY - h * 0.45)}Q${n(x)} ${n(floorY - h * 0.72)} ${n(x + w * 0.32)} ${n(floorY - h * 0.45)}V${n(floorY)}Z`;
+    let out = masonry(ctx, x - w / 2, floorY - h, w, h, stone, { row: 16 }) + block(x - w / 2 - 10, floorY - h * 0.62, w + 20, 12, ctx.mat.beam);
+    out += K.path(mouth, "!#120b08") + K.clipped(mouth, K.hatch(x - w * 0.32, floorY - h * 0.72, w * 0.64, h * 0.72, 60, 3, 0.6, 0.6, "#3a1a0e"));
+    fire(ctx, x, floorY - 4, w * 0.42, h * 0.3, { radius: 320 });
     return out;
   }
-
-  function tavern(ctx) {
-    const m = ctx.mat, F = 200, beam = 30;
-    ctx.keyX = 420;
-    let out = timberWall(ctx, 0, beam, W, F - beam, 230);
-    out += ceiling(ctx, beam, 560);
-    out += masonry(ctx, 60, beam + 16, 180, 34, m.stone, { row: 17 }) + masonry(ctx, 50, F - 146, 200, 146, m.stone, { row: 16 }) + block(38, F - 156, 224, 11, m.beam);
-    out += jar(80, F - 156, 16, 20, "#7a4a32") + candle(ctx, 120, F - 156, 12, 4, 0.3) + jar(220, F - 156, 14, 18, "#6a6a5a");
-    const mouth = `M84 ${F}V${F - 82}Q150 ${F - 122} 216 ${F - 82}V${F}Z`;
-    out += K.path(mouth, "!#120b08") + K.clipped(mouth, K.hatch(84, F - 120, 132, 120, 60, 3, 0.6, 0.6, "#3a1a0e")) + K.path(`M108 ${F - 4}L192 ${F - 12}L194 ${F - 4}L110 ${F + 2}Z`, "#4a3020", thin);
-    fire(ctx, 150, F - 6, 82, 44, { radius: 300 });
-    out += noticeBoard(ctx, 300, 82, 140, 74, 5) + K.at(370, 64, block(-16, -10, 32, 20, m.beam) + emblem("swords", 0, 0, 8, m.trim));
-    // The bar: shelves of bottles, a rack of kegs and the counter.
-    for (const y of [70, 106]) out += block(944, y, 240, 5, m.wood) + Array.from({ length: 11 }, (_, index) => bottle(956 + index * 21 + ctx.r(-3, 3), y, ctx.r(16, 24), ctx.pick(["#4a6a4a", "#6a4a3a", "#3a4a5a", "#7a6a3a", "#5a3a4a"]))).join("");
-    for (let index = 0; index < 3; index++) { const kx = 1000 + index * 52; out += K.circle(kx, 140, 22, m.wood) + K.circle(kx, 140, 16, K.darken(m.wood, 0.15), thin) + block(kx - 2, 154, 4, 8, "#8a8e94", 'stroke-width=".8"'); }
-    out += post(ctx, 500, beam + 16, F) + post(ctx, 880, beam + 16, F);
-    for (const x of [960, 990, 1020, 1100, 1130, 1160]) out += K.line(`M${x} ${beam + 16}V${beam + 24}`, "#3a2e24", 1) + block(x - 6, beam + 24, 12, 14, ctx.pick(["#7a5a3a", "#8a8e94"]), thin);
-    out += lantern(ctx, 690, beam + 16, beam + 56) + lantern(ctx, 1060, beam + 16, beam + 44, 0.8);
-    out += floor(ctx, F, m.floor, "plank");
-    out += dog(ctx, 150, 230, 1.1, 1);
-    out += person(ctx, 464, 240, 116, { face: -1, pose: "point", head: "hood", cloak: "#3d4a5c", sword: true });
-    // Two tables of patrons.
-    out += person(ctx, 556, 226, 106, { face: 1, seated: true, pose: "toast", hold: "tankard", head: "short", beard: true });
-    out += person(ctx, 676, 226, 104, { face: -1, seated: true, pose: "drink", hold: "tankard", head: "long", color: "#5a4a6a" });
-    out += table(ctx, 616, 186, 150, m.wood, 40) + block(588, 176, 8, 10, "#7a5a3a", thin) + block(640, 178, 8, 9, "#8a8e94", thin) + K.ellipse(615, 186, 12, 2.6, "#d8ccb0", thin);
-    out += person(ctx, 820, 230, 108, { face: -1, seated: true, pose: "counter", head: "hood", hoodColor: "#2e2a26", color: "#2e2a26", sword: true });
-    out += table(ctx, 780, 190, 110, m.wood, 40) + candle(ctx, 766, 190, 10, 4, 0.45) + block(790, 181, 7, 9, "#7a5a3a", thin);
-    out += person(ctx, 1066, 206, 108, { face: -1, pose: "wipe", hold: "tankard", apron: true, head: "bald", beard: "long", color: "#6a5440" });
-    out += counter(ctx, 930, 156, 280, 70);
-    out += block(966, 147, 8, 9, "#7a5a3a", thin) + block(1150, 146, 9, 10, "#8a8e94", thin) + candle(ctx, 1120, 156, 10, 4, 0.4);
-    out += block(904, 214, 26, 6, m.wood) + block(908, 220, 4, 22, m.wood) + block(922, 220, 4, 22, m.wood);
+  function guildHall(ctx) {
+    const m = ctx.mat, F = 440;
+    ctx.keyX = 1100; ctx.ambient = 0.6;
+    let out = solid(0, 0, W, F, K.darken(m.stone, 0.35)) + masonry(ctx, 0, 70, W, F - 70, m.stone, { row: 26 });
+    out += ceiling(ctx, 54) + floor(ctx, F, m.floor, "flag");
+    for (const x of [60, 1220]) out += pillar(ctx, x, 70, F, 44);
+    for (const x of [380, 900]) out += windowPane(ctx, x - 34, 100, 68, 120, { arch: "point", frame: m.stone, bars: 1 });
+    for (const [x, color] of [[250, m.cloth], [1030, "#2e4a6e"]]) out += hangingBanner(ctx, x, 74, 54, 120, color, "swords");
+    out += chandelier(ctx, 470, 54, 132, 150, 6) + chandelier(ctx, 930, 54, 118, 130, 5);
+    // Hunting trophies on the back wall.
+    out += spot(ctx, "trophies", "Trophies", [560, 96, 170, 150],
+      trophyArms(ctx, 645, 190, 26, m.cloth, "heater", "sword") + trophy(ctx, 645, 132, 0.9) + trophy(ctx, 588, 176, 0.55) + trophy(ctx, 702, 176, 0.55));
+    // The bulletin board, wide and crowded.
+    out += spot(ctx, "board", "Bulletin board", [92, 150, 250, 200],
+      block(100, 150, 236, 18, m.beam) + block(110, 336, 12, 76, m.beam) + block(314, 336, 12, 76, m.beam) + noticeBoard(ctx, 106, 166, 224, 172, 14) + block(150, 150, 136, 14, m.trim, thin));
+    // The counter, its clerk and a ledger.
+    const clerk = person(ctx, 486, 362, 112, { face: 1, pose: "counter", head: "short", beard: true, color: "#4a5a3a", apron: false });
+    out += spot(ctx, "counter", "Counter", [352, 248, 290, 200],
+      clerk + counter(ctx, 364, 352, 266, 92) + ledger(430, 352, 30) + coins(560, 352, 5) + candle(ctx, 600, 352, 12, 4, 0.4) + scales(ctx, 520, 352, 0.8));
+    // The tavern: a hearth, a long table of adventurers, the hooded man in his corner.
+    // Flames draw over everything, so the hearth stands clear of the people (scene-banners' rule).
+    out += hearth(ctx, 1046, F, 120, 180, m.stone);
+    let party = "";
+    const seats = [[740, 1, { pose: "toast", hold: "tankard", head: "helm", armor: true }], [800, 1, { pose: "drink", hold: "tankard", head: "long", cloak: "#3d4a5c" }], [968, -1, { pose: "point", head: "hood", hoodColor: "#3c5b3a", color: "#3c5b3a" }], [1030, -1, { pose: "drink", hold: "tankard", head: "bald", beard: "long" }]];
+    for (const [x, face, options] of seats) party += person(ctx, x - 70, 476, 104, { face, seated: true, ...options });
+    party += table(ctx, 814, 436, 240, m.wood, 40) + block(754, 426, 8, 10, "#7a5a3a", thin) + block(830, 427, 8, 9, "#8a8e94", thin) + K.ellipse(880, 436, 12, 2.6, "#d8ccb0", thin);
+    party += person(ctx, 814, 478, 116, { face: 1, pose: "stand", head: "short", sword: true, pack: true });
+    out += spot(ctx, "tavern", "Adventurers", [640, 336, 360, 150], party);
+    const hooded = person(ctx, 1218, 476, 104, { face: -1, seated: true, pose: "counter", head: "hood", hoodColor: "#1e1b18", color: "#1e1b18", sword: true })
+      + table(ctx, 1170, 436, 72, m.wood, 40) + candle(ctx, 1160, 436, 10, 4, 0.5);
+    out += spot(ctx, "hooded", "Hooded man", [1126, 356, 140, 128], hooded);
+    return out;
+  }
+  function guildTown(ctx) {
+    const m = ctx.mat, F = 430, beam = 40;
+    ctx.keyX = 1080; ctx.ambient = 0.62;
+    let out = timberWall(ctx, 0, beam, W, F - beam, 260) + ceiling(ctx, beam, 640) + floor(ctx, F, m.floor, "plank");
+    out += windowPane(ctx, 420, 150, 80, 70, { frame: m.beam, bars: 1 }) + lantern(ctx, 600, beam + 16, beam + 66) + lantern(ctx, 900, beam + 16, beam + 58, 0.8);
+    out += spot(ctx, "trophies", "Trophies", [600, 120, 110, 90], trophy(ctx, 655, 166, 0.75));
+    out += spot(ctx, "board", "Bulletin board", [100, 170, 170, 150],
+      block(106, 170, 158, 14, m.beam) + noticeBoard(ctx, 112, 184, 146, 118, 7) + block(118, 300, 10, 120, m.beam) + block(242, 300, 10, 120, m.beam));
+    const clerk = person(ctx, 400, 366, 106, { face: 1, pose: "counter", head: "bald", beard: true, apron: true, color: "#6a5440" });
+    out += spot(ctx, "counter", "Counter", [292, 258, 230, 180], clerk + counter(ctx, 302, 360, 210, 78) + ledger(360, 360, 26) + candle(ctx, 470, 360, 11, 4, 0.4));
+    out += hearth(ctx, 1110, F, 150, 160, m.stone) + barrel(ctx, 1000, F, 36, 48, m.wood);
+    let party = person(ctx, 820, 462, 102, { face: 1, seated: true, pose: "drink", hold: "tankard", head: "hood", cloak: "#3d4a5c" })
+      + person(ctx, 940, 462, 100, { face: -1, seated: true, pose: "toast", hold: "tankard", head: "short", armor: true });
+    party += table(ctx, 880, 424, 130, m.wood, 38) + candle(ctx, 880, 424, 10, 4, 0.45);
+    out += spot(ctx, "tavern", "Adventurers", [776, 340, 210, 130], party);
     return out;
   }
 
@@ -1346,13 +1282,15 @@
   const SCENES = {
     "blacksmith-castle": armsHall, "blacksmith-town": countrySmithy,
     "general-castle": grandEmporium, "general-town": countryStore,
-    tower: towerSanctum, church: stormChapel, hall: greatHall, tavern,
+    tower: towerSanctum, church: stormChapel, "guild-hall": guildHall, "guild-town": guildTown,
   };
   const FULL = [1280, 900];
-  const SIZES = { "blacksmith-castle": FULL, "blacksmith-town": FULL, "general-castle": FULL, "general-town": FULL, tower: FULL, church: FULL };
+  const SIZES = { "blacksmith-castle": FULL, "blacksmith-town": FULL, "general-castle": FULL, "general-town": FULL, tower: FULL, church: FULL, "guild-hall": FULL, "guild-town": FULL };
+  // Placeholder scenes the port remakes fully (port task 2, user decision G2).
+  const PLACEHOLDER_ART = { "guild-hall": true, "guild-town": true };
   function variantFor(kind, place) {
     const castle = place?.kind === "Castle city";
-    if (kind === "guild") return castle ? "hall" : "tavern";
+    if (kind === "guild") return castle ? "guild-hall" : "guild-town";
     if (kind === "tower" || kind === "church") return kind;
     return (kind === "blacksmith" ? "blacksmith" : "general") + (castle ? "-castle" : "-town");
   }
@@ -1395,5 +1333,5 @@
       host.hidden = true;
     }
   }
-  window.SceneBanners = { show, markup: (kind, place, regionId, label) => scene(kind, place, regionId, label).markup, variants: Object.keys(SCENES) };
+  window.SceneBanners = { show, markup: (kind, place, regionId, label) => scene(kind, place, regionId, label).markup, variants: Object.keys(SCENES), variantFor, placeholderArt: variant => Boolean(PLACEHOLDER_ART[variant]) };
 })();

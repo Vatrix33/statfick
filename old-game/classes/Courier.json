@@ -25,13 +25,13 @@
     },
     {
       "level": 2,
-      "description": "Gain Dispatch Guard: Armor and Evasion +10% while carrying a Travel or Escort Guild quest.",
+      "description": "Gain Dispatch Guard: Armor and Evasion +10% while carrying a Travel, Escort or Deliver Guild quest.",
       "effects": [
         {
           "type": "passive",
           "id": "dispatch-guard",
           "name": "Dispatch Guard",
-          "description": "Armor and Evasion +10% while carrying an active Travel or Escort Guild quest.",
+          "description": "Armor and Evasion +10% while carrying an active Travel, Escort or Deliver Guild quest.",
           "effect": {
             "type": "quest-defense-percent",
             "amount": 10
