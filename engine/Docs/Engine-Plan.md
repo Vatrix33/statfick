@@ -96,12 +96,11 @@ request at 15:00 their time; decisions M1–M26 in "Decisions for task 5, New Ma
 `extraTargetId` and the spell list's Lament button, `hurt`'s reflection), their drops (Tide Siren JSON; the Noble Hero,
 Hexbane Coat and Shadow Crystal drops added in `validateEnemy`) and masterwork armor colours in `forge-art.js` (also
 fixes Doctor's Orders' white, R11). **Next:** make `old-game/test-client/tests/new-masterworks-browser.js` pass (first
-run: Sparkling chance, encounter screen, Noble Hero and Hexbane Coat pass; five fail on the checks' own mistakes:
-`checkSparklingRewards` assumes the wrong dice order for the 70%/5% rolls; `checkSparklingEnemies`' Cull count sets the
-quest after the battle starts — check `onEnemyDefeated`'s region and name test; `checkTreasureSeeker` finds no sellable
-shop weapon in `items` — pick a real one; `checkMoneyshot` compares the tenth shot with another battle's base — use its
-own first shot; `checkLament` and `checkShadowCrystal` read the hook copy's enemy definitions before they load — start a
-battle first), then the mutation proof (runner in `~/.cache/stat-fick-build/claude-work/areas/mutate-old.py`), the full
+runs: Sparkling chance, encounter screen, Noble Hero, Hexbane Coat, Moneyshot and Shadow Crystal pass; three still fail
+on the checks' own mistakes: `checkSparklingRewards` assumes the wrong dice order for the 70%/5% rolls;
+`checkSparklingEnemies`' Cull count sets the quest after the battle starts — check `onEnemyDefeated`'s region and name
+test; `checkLament` calls combat.js's internal `spellEffects` — export it in the hook or read `spell.effects`;
+`checkTreasureSeeker` was given a real sellable item but not rerun), then the mutation proof (runner in `~/.cache/stat-fick-build/claude-work/areas/mutate-old.py`), the full
 regression (`claude-work/shop/regress.sh`; baseline: task 6's final run), the docs (`../old-game/Docs/Notes.md` "New
 Masterworks", `Docs/Port-Tasks/README.md` task 5 done and its placeholder art: the Sparkling look, Treasure Seeker's
 drawing, the four weapons' and the coat's normal forged looks), the PR, and the report to the user.

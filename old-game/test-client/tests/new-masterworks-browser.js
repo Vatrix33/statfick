@@ -23,6 +23,8 @@ const masterworkChecks = {
     await waitForSourceFiles();
     if (window.BattleStage) window.BattleStage.enabled = () => false;
     if (window.GameSettings) window.GameSettings.enemyDelay = () => 1e9;
+    // The hook copy loads its enemy definitions on its first battle.
+    await Combat.startEncounter(["Goblin"], "Task 5 checks"); Combat.restore(null);
     return window.__masterworkChecks;
   },
   hero({ level: heroLevel = 40, inventory: pack = [], equipment: slots = {}, spells = [], companion = null } = {}) {
@@ -269,7 +271,7 @@ async function checkTreasureSeeker() {
   assert(richSilver === plainSilver * 2 || richSilver === plainSilver * 2 - 1, `Battle silver doubles (${plainSilver} → ${richSilver})`);
   Combat.restore(null);
   // Sales: doubled, never above the shop price.
-  const sword = items.find(item => item.category === "weapon" && item.shopAvailable !== false && Number.isFinite(item.priceSilver) && item.priceSilver >= 100 && item.playerSellable !== false);
+  const sword = items.find(item => item.shopAvailable !== false && item.category !== "artifact" && Number.isFinite(item.priceSilver) && item.priceSilver >= 100 && item.playerSellable !== false);
   masterworkChecks.hero();
   const plainSale = ShopLayout.salePrice(sword);
   masterworkChecks.hero({ inventory: [id], equipment: { artifact1: id } });
@@ -341,7 +343,7 @@ async function checkMoneyshot() {
   assert(Math.abs(critical.dealt[4] - critical.dealt[0] * 3) <= 2, `A critical fifth attack deals 200% more instead (${critical.dealt})`);
   // The count starts over each battle and goes on past five.
   const ten = await volley(() => () => 0.5, 10);
-  assert(Math.abs(ten.dealt[9] - base * 1.5) <= 1 && ten.dealt[5] === base, `The tenth is boosted too, the sixth isn't (${ten.dealt})`);
+  assert(Math.abs(ten.dealt[9] - ten.dealt[0] * 1.5) <= 1 && ten.dealt[5] === ten.dealt[0], `The tenth is boosted too, the sixth isn't (${ten.dealt})`);
   const fresh = await volley(() => () => 0.5, 1);
   assert(fresh.player.fifthAttackCount === 1, "A new battle starts the count over");
   // Another longbow has none of it.
