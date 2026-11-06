@@ -515,13 +515,20 @@
       encounterModal.hidden = true;
       return;
     }
-    const counts = encounter.enemies.reduce((result, name) => ({ ...result, [name]: (result[name] || 0) + 1 }), {});
+    // A Sparkling enemy is listed on its own line, its name led by a shimmering gold "Sparkling" (task 5, M5).
+    const sparkling = new Set(encounter.sparkling || []);
+    const counts = encounter.enemies.reduce((result, name, index) => {
+      const key = (sparkling.has(index) ? "1" : "0") + name;
+      return { ...result, [key]: (result[key] || 0) + 1 };
+    }, {});
     $("map-encounter-zone").textContent = encounter.zone;
     const empowered = ["hunt", "artifact"].includes(encounter.objective);
-    $("map-encounter-enemies").innerHTML = Object.entries(counts).map(([name, count]) => {
+    $("map-encounter-enemies").innerHTML = Object.entries(counts).map(([key, count]) => {
+      const name = key.slice(1), shines = key[0] === "1";
       const element = Object.prototype.hasOwnProperty.call(EncounterRules.dragonElements, name) ? EncounterRules.dragonElements[name] : null;
-      const accentClass = SPELL_ELEMENTS.includes(element) ? ` class="has-elemental-accent spell-element-${element}"` : "";
-      return `<li${accentClass}>${escapeHtml(empowered ? "Empowered " + name : name)}<span>×${count}</span></li>`;
+      const classes = [SPELL_ELEMENTS.includes(element) ? `has-elemental-accent spell-element-${element}` : "", shines ? "is-sparkling" : ""].filter(Boolean).join(" ");
+      const label = escapeHtml(empowered ? "Empowered " + name : name);
+      return `<li${classes ? ` class="${classes}"` : ""}>${shines ? `<div><b class="sparkling-tag">Sparkling</b> ${label}</div>` : label}<span>×${count}</span></li>`;
     }).join("");
     $("map-encounter-fight").disabled = encounterResolving;
     $("map-encounter-run").disabled = encounterResolving;
@@ -586,7 +593,8 @@
   function presentTravelEncounter(enemyNames, zone, objective = null) {
     cancelMapHold();
     travelling = false; cancelAnimationFrame(frame); frame = null; lastFrame = 0;
-    worldState.pendingEncounter = { zone, enemies: [...enemyNames], objective };
+    // Whether any of them is Sparkling is rolled now, so the encounter screen can show it (task 5, M2, M5).
+    worldState.pendingEncounter = { zone, enemies: [...enemyNames], objective, sparkling: window.Combat?.rollSparkling?.(enemyNames) || [] };
     const summary = (["hunt", "artifact"].includes(objective) ? "Empowered " : "") + encounterSummary(enemyNames);
     $("map-status").textContent = "Encounter in " + zone + ": " + summary + ".";
     const escapeNote = objective === "search" ? " Escaping this search is half as likely." : objective === "escort-ambush" ? " Bandits on an escort: escaping is 70% less likely." : "";
@@ -616,9 +624,9 @@
     if (encounterResolving || !worldState.pendingEncounter) return;
     encounterResolving = true; renderEncounterPrompt();
     $("map-encounter-status").textContent = openingNote || "Preparing combat…";
-    const pending = { zone: worldState.pendingEncounter.zone, enemies: [...worldState.pendingEncounter.enemies], objective: worldState.pendingEncounter.objective };
+    const pending = { zone: worldState.pendingEncounter.zone, enemies: [...worldState.pendingEncounter.enemies], objective: worldState.pendingEncounter.objective, sparkling: [...(worldState.pendingEncounter.sparkling || [])] };
     try {
-      if (!await window.Combat.startEncounter(pending.enemies, openingNote, pending.objective)) throw new Error("Combat could not start.");
+      if (!await window.Combat.startEncounter(pending.enemies, openingNote, pending.objective, pending.sparkling)) throw new Error("Combat could not start.");
       worldState.pendingEncounter = null;
       saveCharacter();
     } catch (error) {
@@ -634,9 +642,9 @@
     if (encounterResolving || !worldState.pendingEncounter) return;
     encounterResolving = true; renderEncounterPrompt();
     $("map-encounter-status").textContent = "Looking for an escape route…";
-    const pending = { zone: worldState.pendingEncounter.zone, enemies: [...worldState.pendingEncounter.enemies], objective: worldState.pendingEncounter.objective };
+    const pending = { zone: worldState.pendingEncounter.zone, enemies: [...worldState.pendingEncounter.enemies], objective: worldState.pendingEncounter.objective, sparkling: [...(worldState.pendingEncounter.sparkling || [])] };
     try {
-      const result = await window.Combat.attemptTravelEscape(pending.enemies, 25, pending.objective);
+      const result = await window.Combat.attemptTravelEscape(pending.enemies, 25, pending.objective, pending.sparkling);
       if (result.success) {
         if (pending.objective) window.Guild?.avoidObjective(pending.objective);
         worldState.pendingEncounter = null;

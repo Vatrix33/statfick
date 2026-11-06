@@ -81,6 +81,7 @@
     el.classList.toggle("is-targeted", info.targeted);
     el.classList.toggle("is-summoned", Boolean(info.summoned));
     el.classList.toggle("is-unique", Boolean(info.unique));
+    el.classList.toggle("is-sparkling", Boolean(info.sparkling));
     el.classList.toggle("is-transforming", Boolean(info.transforming));
     el.classList.toggle("pose-guard", info.stance === "Guard");
     el.classList.toggle("pose-evade", info.stance === "Evade");

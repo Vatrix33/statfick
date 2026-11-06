@@ -612,8 +612,15 @@
   }
   // Rootbark is living bark whatever its parts are made of.
   const ROOTBARK = { base: "#6b4527", light: "#9a6b42", dark: "#3e2615", kind: "leather" };
+  // A masterwork armor with a colour of its own (Doctor's Orders' white, task 3, R11; the Hexbane Coat's silver-grey,
+  // task 5, M26) wears it on its main part instead of the material's: PLACEHOLDER ART for the port's remake.
+  const shadeHex = (hex, amount) => "#" + [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).map(v => Math.round(amount < 0 ? v * (1 + amount) : v + (255 - v) * amount)).map(v => v.toString(16).padStart(2, "0")).join("");
+  function masterworkColor(forged) {
+    const color = forged?.masterwork && window.ForgeRules?.MASTERWORKS?.[forged.masterwork]?.color;
+    return /^#[0-9a-f]{6}$/i.test(color || "") ? { base: color, light: shadeHex(color, 0.45), dark: shadeHex(color, -0.45), kind: "cloth" } : null;
+  }
   function bodyArmor(forged, shape) {
-    const [main, lining, third] = forged.parts, mp = forged.masterwork === "rootbark" ? ROOTBARK : pal(main.material), lp = pal(lining.material), tp = pal(third.material), s = STYLE[main.maker] || STYLE.outlaw;
+    const [main, lining, third] = forged.parts, mp = forged.masterwork === "rootbark" ? ROOTBARK : masterworkColor(forged) || pal(main.material), lp = pal(lining.material), tp = pal(third.material), s = STYLE[main.maker] || STYLE.outlaw;
     const buckle = tp.kind === "metal" ? tp.light : "#c9a24a";
     const runes = runeDots(forged.runes?.length || 0, -8, -9);
     const neck = "M-13 -17 Q-8 -20.5 -5 -18.5 Q0 -15 5 -18.5 Q8 -20.5 13 -17";
@@ -742,11 +749,16 @@
     return key;
   }
   function armorVisual(item, ornate) {
-    const forged = item.forged, [main, , third] = forged.parts, material = spriteMaterial(main.material, main.maker);
+    const forged = item.forged, [main, , third] = forged.parts, colored = masterworkColor(forged);
+    let material = spriteMaterial(main.material, main.maker);
+    if (colored) {
+      material = "forged-masterwork-" + forged.masterwork;
+      K.MATERIALS[material] ||= { ...K.MATERIALS[spriteMaterial(main.material, main.maker)], base: colored.base, light: colored.light, dark: colored.dark, pattern: undefined };
+    }
     // Masterwork armor with a hand-made battle design is drawn by its key.
     const base = { id: item.id, name: item.name, kind: ARMOR_SPRITE_KIND[forged.type], material, ornate, unique: spriteUnique(forged.masterwork), rarity: item.rarity, forged };
     if (forged.category === "shield") return { ...base, slot: "shield" };
-    return { ...base, slot: "armor", type: forged.category, helmet: HELMETS[main.maker] || null, cloth: pal(main.material).base, trimColor: forged.category === "clothing" ? pal(third.material).base : null };
+    return { ...base, slot: "armor", type: forged.category, helmet: HELMETS[main.maker] || null, cloth: colored ? colored.base : pal(main.material).base, trimColor: forged.category === "clothing" ? pal(third.material).base : null };
   }
   // An upright portrait of the piece for the detail panel, shop cards and the Magic Tower.
   function armorPortrait(item, size) {
@@ -940,6 +952,10 @@
     wraithguard: () => `<g opacity=".85">${path("M-9 14V-2L-11 -10C-11 -14 -7 -14 -6 -10L-5 -4V-14C-5 -17 -1 -17 -1 -14V-4V-16C-1 -19 3 -19 3 -16V-4V-14C3 -17 7 -17 7 -14V-2L11 -8C13 -10 16 -8 14 -5L8 6V14Z", "#c8d4dc", 'stroke-width="1"')}</g>` + line("M-12 16C-6 12 6 20 12 14", "#b0c8d8", 1.2) + line("M-14 10C-8 6 -2 12 2 8", "#b0c8d8", 0.8),
     "arrowtip-rain": () => path("M-6 -14H6L8 14H-8Z", "#8a6a44", 'stroke-width="1"') + [[-10, -16], [0, -18], [10, -16]].map(([x, y]) => path(`M${x} ${y}L${x - 3} ${y - 6}H${x + 3}Z`, "#c9ced6", 'stroke-width=".6"')).join("") + line("M-14 -6L-10 0M14 -6L10 0M-12 6L-9 11M12 6L9 11", "#c9ced6", 1),
     titanfall: () => path("M-12 14V-2C-12 -8 -8 -10 -6 -6V-12C-6 -16 -1 -16 -1 -12V-14C-1 -18 4 -18 4 -14V-11C4 -15 9 -15 9 -11V-4C11 -6 14 -4 13 0L10 14Z", "#8a8478", 'stroke-width="1.1"') + line("M-6 2L-1 6L2 0L7 4M-3 10L1 8", "#3a3632", 0.9),
+    // Treasure Seeker (port task 5, PLACEHOLDER ART): a gilded compass, its needle pointing at a heap of coins.
+    "treasure-seeker": () => [[-10, 13], [-4, 15], [3, 14], [9, 15], [-7, 9], [6, 10]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="4.2" ry="1.9" fill="#e0b84a" stroke="#6a4a12" stroke-width=".6"/>`).join("")
+      + circle(0, -6, 11, "#d8b44a", 'stroke-width="1.1"') + circle(0, -6, 8, "#f6e6b0", 'stroke-width=".6"')
+      + path("M0 -13L2.2 -6L0 1L-2.2 -6Z", "#b03a22", 'stroke-width=".5"') + circle(0, -6, 1.2, "#6a4a12", 'stroke="none"') + circle(0, -18, 2, "#d8b44a", 'stroke-width=".8"'),
   };
   function artifactArt(item) {
     const look = item.look || {}, glyph = String(look.glyph || item.id);

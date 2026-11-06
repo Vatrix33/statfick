@@ -1738,5 +1738,46 @@
       36000
     ],
     "placeholderArt": true
+  },
+  {
+    "id": "artifact-treasure-seeker-artifact",
+    "name": "Treasure Seeker",
+    "rarity": "masterwork",
+    "shopAvailable": false,
+    "automaticDrop": false,
+    "priceSilver": 25000,
+    "description": "You gain {amount}% more money from all sources (battles, quest rewards and sales, which never pay more than the shop price). Your Luck rises by {amount2} for every Platinum you hold. Only Sparkling enemies drop it.",
+    "effects": [
+      {
+        "kind": "all-money-percent",
+        "amount": 100,
+        "ramp": {
+          "amount": [
+            15,
+            100
+          ]
+        }
+      },
+      {
+        "kind": "luck-per-platinum",
+        "amount": 1,
+        "ramp": {
+          "amount": [
+            0.15,
+            1
+          ]
+        },
+        "rampDecimals": 2
+      }
+    ],
+    "look": {
+      "shape": "masterwork",
+      "glyph": "treasure-seeker"
+    },
+    "priceRamp": [
+      2000,
+      36000
+    ],
+    "placeholderArt": true
   }
 ]

@@ -31,7 +31,9 @@
     const enemies = value.enemies.filter(name => typeof name === "string" && name.trim()).map(name => currentEnemyName(name.trim())).slice(0, 50);
     const zone = typeof value.zone === "string" && value.zone.trim() ? value.zone.trim() : "Wilderness";
     const objectiveKinds = ["hunt", "artifact", "great-hunt", "great-hunt-rematch", "search", "escort-ambush"];
-    return enemies.length ? { zone, enemies, objective: objectiveKinds.includes(value.objective) ? value.objective : null } : null;
+    // Its Sparkling enemies (port task 5), as indexes into its names.
+    const sparkling = [...new Set(Array.isArray(value.sparkling) ? value.sparkling.filter(index => Number.isInteger(index) && index >= 0 && index < enemies.length) : [])];
+    return enemies.length ? { zone, enemies, objective: objectiveKinds.includes(value.objective) ? value.objective : null, sparkling } : null;
   }
   function questReward(quest) {
     const version = number(quest.reward?.rateVersion, 0);

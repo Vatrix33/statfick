@@ -266,13 +266,16 @@
     const art = !item.forged && item.category !== "rune" ? itemArt(item, "large") : "";
     return (note ? '<p class="shop-detail-note">' + note + '</p>' : '') + (art ? '<div class="forged-art goods-art" aria-hidden="true">' + art + '</div>' : '') + itemDetailMarkup(item);
   }
-  function salePrice(item, bonus = Math.max(0, toNumber(calculateClassEffects().salePricePercent, 0))) {
+  function salePrice(item, bonus = Math.max(0, toNumber(calculateClassEffects().salePricePercent, 0)), treasure = treasureMoneyPercent()) {
     const base = ShopRules.salePrice(item?.priceSilver);
-    return Math.max(0, Math.floor(base * (1 + bonus / 100)));
+    const price = Math.max(0, Math.floor(base * (1 + bonus / 100)));
+    // Treasure Seeker raises sales too, but never above the shop's own price for the item (task 5, M13).
+    return treasure > 0 ? Math.min(Math.max(0, Math.floor(toNumber(item?.priceSilver, 0))), Math.floor(price * (1 + treasure / 100))) : price;
   }
   function saleTotals(entries) {
     const bonus = entries.length ? Math.max(0, toNumber(calculateClassEffects().salePricePercent, 0)) : 0;
-    return entries.reduce((total, entry) => ({ quantity: total.quantity + entry.quantity, price: total.price + entry.quantity * salePrice(getItem(entry.id), bonus) }), { quantity: 0, price: 0 });
+    const treasure = entries.length ? treasureMoneyPercent() : 0;
+    return entries.reduce((total, entry) => ({ quantity: total.quantity + entry.quantity, price: total.price + entry.quantity * salePrice(getItem(entry.id), bonus, treasure) }), { quantity: 0, price: 0 });
   }
   // Unequipped copies in the pack that a shop accepts, one entry per item.
   function sellableEntries(accepts) {

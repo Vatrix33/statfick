@@ -1080,6 +1080,10 @@ body.modal-open { overflow: hidden; }
 #map-encounter-enemies li { display: flex; justify-content: space-between; color: var(--ink); font-family: var(--font-title); font-size: 1rem; }
 #map-encounter-enemies li.has-elemental-accent { padding-left: 9px; border-left: 3px solid color-mix(in srgb, var(--spell-accent) 78%, var(--ink)); color: color-mix(in srgb, var(--spell-accent) 30%, var(--ink)); }
 #map-encounter-enemies span { color: var(--ember-dark); font: .8125rem var(--font-ui); }
+#map-encounter-enemies li.is-sparkling { padding-left: 9px; border-left: 3px solid #d9a92e; }
+#map-encounter-enemies .sparkling-tag { color: #b47c10; font-weight: 700; background: linear-gradient(100deg, #9a6a08 20%, #ffe9a0 45%, #c8901c 60%, #9a6a08 80%) 0 0 / 250% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: sparkling-shimmer 2.4s linear infinite; }
+@keyframes sparkling-shimmer { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+@media (prefers-reduced-motion: reduce) { .battle-actor.is-sparkling .battle-actor-body::after, #map-encounter-enemies .sparkling-tag { animation: none; } }
 .map-encounter-status { min-height: 17px; margin: 12px 0 0; color: var(--muted); font: .75rem/1.5 var(--font-ui); }
 .map-encounter-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
 .map-encounter-actions .backup-button { justify-content: center; margin: 0; padding: 12px; }
@@ -2274,6 +2278,8 @@ body.modal-open { overflow: hidden; }
 .combat-ability-entry small { display: block; margin-top: 7px; color: var(--ember-dark); font-family: var(--font-ui); font-size: .75rem; }
 .combat-ability-entry p, .combat-picker-empty { color: var(--muted); font-size: .875rem; line-height: 1.6; }
 .combat-ability-entry button { flex: 0 0 auto; max-width: 120px; padding: 10px 14px; border: 1px solid var(--ember); border-radius: 3px; color: var(--ember-dark); background: var(--ember-pale); font-size: .875rem; }
+/* Lament's second-target choice (port task 5, M19). */
+.combat-ability-entry .combat-lament-button { max-width: 150px; border-color: #3f7f9a; color: #24546a; background: #e3f0f4; }
 .combat-ability-entry button:disabled { opacity: 0.45; cursor: not-allowed; }
 .combat-ability-entry button:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
 .combat-selection select:focus-visible, .combat-actions button:focus-visible, .combat-skills button:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
@@ -3041,6 +3047,14 @@ small { font-size: .75rem; }
 .battle-actor-plate { position: absolute; left: var(--feet-x); top: calc(var(--feet-y) + 6px); display: grid; gap: 2px; width: max-content; min-width: 74px; max-width: 160px; padding: 3px 6px 4px; border-radius: 5px; background: rgba(24, 20, 16, 0.62); color: #f6efe2; font: 600 .6875rem/1.15 var(--font-ui); letter-spacing: 0.01em; text-align: center; transform: translateX(-50%); pointer-events: none; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
 .battle-actor-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .battle-actor.is-unique .battle-actor-name { color: #ffd98a; }
+/* Sparkling enemies (port task 5, M5), PLACEHOLDER ART: a gold glow and twinkling motes over the sprite, a gold name. */
+.battle-actor.is-sparkling .battle-actor-sprite { filter: drop-shadow(0 0 5px rgba(255, 226, 140, 0.9)) drop-shadow(0 0 14px rgba(255, 200, 80, 0.55)); }
+.battle-actor.is-sparkling .battle-actor-body::after { content: ""; position: absolute; inset: 4% 8% 10%; pointer-events: none; background:
+  radial-gradient(circle at 18% 30%, #fff6c8 0 1.6px, transparent 2.4px), radial-gradient(circle at 72% 18%, #ffe48a 0 2px, transparent 3px),
+  radial-gradient(circle at 84% 58%, #fff6c8 0 1.4px, transparent 2.2px), radial-gradient(circle at 34% 72%, #ffe48a 0 1.8px, transparent 2.8px),
+  radial-gradient(circle at 56% 44%, #ffffff 0 1.2px, transparent 2px); animation: sparkling-twinkle 1.6s ease-in-out infinite alternate; }
+.battle-actor.is-sparkling .battle-actor-name { color: #fff1b8; text-shadow: 0 0 6px rgba(255, 214, 102, 0.85); }
+@keyframes sparkling-twinkle { from { opacity: 0.35; transform: translateY(2px) scale(0.97); } to { opacity: 1; transform: translateY(-2px) scale(1.03); } }
 .battle-bar { position: relative; display: block; height: 5px; overflow: hidden; border-radius: 3px; background: rgba(0, 0, 0, 0.45); }
 .battle-bar > span { position: absolute; inset: 0; transform-origin: left; background: linear-gradient(#ff8a6a, #d2452f); transition: transform 380ms ease; }
 .battle-actor.team-ally .battle-bar.hp > span { background: linear-gradient(#8fe08a, #3fa04a); }
@@ -3415,6 +3429,8 @@ small { font-size: .75rem; }
 .combat-enemy.is-unique { border-color: #c9a24a; box-shadow: inset 0 0 0 1px #ecd796; }
 .combat-enemy.is-unique .combatant-portrait { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px #c9a24a, 0 0 10px rgba(224, 181, 74, 0.6); }
 .combat-enemy.is-unique .enemy-name::after { content: " ♛"; color: #b8902f; }
+.combat-enemy.is-sparkling { border-color: #e2b84a; box-shadow: inset 0 0 0 1px #ffe6a0, 0 0 10px rgba(255, 205, 90, 0.55); }
+.combat-enemy.is-sparkling .enemy-name::before { content: "✦ "; color: #d4a12a; }
 /* The selected target in the classic view (user request 2026-11-03): a thicker border and a soft glow, also on a boss
    (after the boss rule above, which used to win over the target's look). */
 .combat-enemy.is-targeted { border: 3px solid var(--ember); padding: 5px 7px; background: var(--ember-pale); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ember) 30%, transparent), inset 0 0 12px color-mix(in srgb, var(--ember) 30%, transparent); }

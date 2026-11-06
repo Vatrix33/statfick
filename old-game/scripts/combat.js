@@ -18,6 +18,10 @@
   let phaseCinematicTimer = null, phaseCinematicActorId = null;
   let bossIntroTimer = null, bossIntroUntil = 0;
   let pickerKind = null, weatherSpellId = null, pendingApex = null;
+  // Lament's spell waiting for its second target (port task 5, M19).
+  let pendingLament = null;
+  // A reflected spell (the Hexbane Coat) can't be reflected again.
+  let reflectingSpell = false;
   // The animated battlefield replays what happened; it never changes the rules.
   // Forecasts run on copies or while evaluating and are never reported.
   let stageHit = null, stageQuiet = false;
@@ -237,7 +241,7 @@
       const calculatedMaxHp = calculateMaxHpWithArtifacts(attributes);
       const enemyMaxHp = Number.isFinite(actor.resourceMax?.hp)
         ? calculatedMaxHp
-        : Math.floor(calculatedMaxHp * (1 + Math.max(0, toNumber(actor.maxHpPercent, 0)) / 100));
+        : Math.floor(calculatedMaxHp * (1 + Math.max(0, toNumber(actor.maxHpPercent, 0)) / 100) * (actor.sparkling ? SPARKLING.maxHpMultiplier : 1));
       const equipmentStats = calculateEquipmentDefense({ ...attributes, maxHp: enemyMaxHp });
       const bonuses = bonusValues(permanentDefenseBonuses, defenseBonusDefinitions);
       const innateArmor = (Number.isFinite(actor.baseArmor) ? actor.baseArmor : BASE_ARMOR) + naturalArmor(actor);
@@ -1364,10 +1368,11 @@
       if (actor.team !== "enemy" || actor.summoned || actor.experienceAwarded || hp(actor) > 0 || phylacteryHolds(actor)) continue;
       actor.experienceAwarded = true;
       const rewardMultiplier = withActor(actor, () => calculateClassEffects().experienceRewardMultiplier);
-      const reward = Math.max(0, Math.floor(rules.enemyExperience(actor.character?.level) * rewardMultiplier * (actor.empowered ? 1.2 : 1) * Math.max(0, toNumber(actor.experienceRewardMultiplier, 1))));
+      const reward = Math.max(0, Math.floor(rules.enemyExperience(actor.character?.level) * rewardMultiplier * (actor.empowered ? 1.2 : 1) * (actor.sparkling ? SPARKLING.experienceMultiplier : 1) * Math.max(0, toNumber(actor.experienceRewardMultiplier, 1))));
       // Bandit's Coin raises the party's silver, whoever wears it (A25).
       const moneyBonus = calculateClassEffects().enemyMoneyPercent + battle.actors.filter(isHero).reduce((sum, hero) => sum + artifactAmount(hero, "money-percent"), 0);
-      const money = Math.max(1, Math.ceil(Math.max(1, toInteger(actor.character?.level, 1)) * 3 * (1 + moneyBonus / 100) * Math.max(0, toNumber(actor.moneyRewardMultiplier, 1))));
+      // Treasure Seeker raises it once more, for the party's best copy (task 5, M13).
+      const money = Math.max(1, Math.ceil(Math.max(1, toInteger(actor.character?.level, 1)) * 3 * (1 + moneyBonus / 100) * (1 + treasureMoneyPercent() / 100) * Math.max(0, toNumber(actor.moneyRewardMultiplier, 1))));
       battle.experienceEarned = Math.max(0, toInteger(battle.experienceEarned, 0)) + reward;
       battle.moneyEarned = Math.max(0, toInteger(battle.moneyEarned, 0)) + money;
       const lootStart = battle.lootItems.length;
@@ -1376,18 +1381,19 @@
       if (salvageChance && rules.roll(salvageChance)) addEnemyLoot(["consumable-camping-supplies"], salvageChance < 100);
       for (const drop of actor.dropTable || []) {
         const droppedItem = getItem(drop.itemId);
-        const masterworkLuckBonus = isMasterworkEquipment(droppedItem) ? Math.max(0, toNumber(currentStats().luck, 0)) * 0.05 + Math.max(0, toNumber(calculateClassEffects().masterworkDropChanceFlat, 0)) : 0;
+        const luckBonus = isMasterworkEquipment(droppedItem) ? masterworkLuckBonus() : 0;
         const guaranteed = drop.guaranteedOnFirstKill && !classProgress.firstKillDrops?.includes(drop.itemId) || drop.guaranteedUntilClaimed && !classProgress.claimedGuaranteedDrops?.includes(drop.itemId) && !battle.lootItems.some(id => lootMatchesDrop(id, drop.itemId));
         if (drop.guaranteedOnFirstKill) {
           classProgress.firstKillDrops ||= [];
           if (!classProgress.firstKillDrops.includes(drop.itemId)) classProgress.firstKillDrops.push(drop.itemId);
         }
-        if ((actor.noDropItems || []).includes(drop.itemId) || !itemCanDrop(drop.itemId) || !guaranteed && !rules.roll(drop.chance + masterworkLuckBonus)) continue;
+        if ((actor.noDropItems || []).includes(drop.itemId) || !itemCanDrop(drop.itemId) || !guaranteed && !rules.roll(drop.chance + luckBonus)) continue;
         const minimum = Math.max(1, toInteger(drop.minimum, 1));
         const maximum = Math.max(minimum, toInteger(drop.maximum, minimum));
         const quantity = minimum + Math.floor(Math.random() * (maximum - minimum + 1));
         addEnemyLoot(Array(quantity).fill(drop.itemId), !guaranteed && drop.chance < 100);
       }
+      addEnemyLoot(rollSparklingMasterworks(actor), true);
       // Studious Quill raises only its wearer's EXP (A25).
       exp += Math.floor(reward * (1 + artifactAmount(player(), "exp-percent") / 100));
       currencies = ShopRules.walletFromValue(ShopRules.walletValue(currencies) + money);
@@ -1416,6 +1422,48 @@
     let roll = Math.random() * total;
     const chosen = weighted.find(entry => (roll -= entry.weight) < 0) || weighted.at(-1);
     return chosen ? chosen.choices[Math.floor(Math.random() * chosen.choices.length)].id : null;
+  }
+  /* Sparkling enemies (port task 5, M2–M12): any regular enemy can turn up Sparkling, never in a battle with a boss. The
+     map rolls it when an encounter appears (rollSparkling, so the encounter screen shows it); startRoster makes it
+     stronger (all eight attributes ×1.4, then its maximum HP doubled); it gives 11 times the EXP and rolls 70% and 5%
+     for a masterwork from all of them, Moneyshot and Treasure Seeker five times as likely as any other. */
+  const SPARKLING = { chance: 0.1, cullChance: 2, luckDivisor: 500, maxLuckFactor: 2, statMultiplier: 1.4, maxHpMultiplier: 2, experienceMultiplier: 11, masterworkChances: [70, 5], favoredWeight: 5 };
+  const SPARKLING_FAVORED = ["masterwork-moneyshot", "artifact-treasure-seeker-artifact"];
+  function enemyDefinitionNamed(name) {
+    return enemyDefinitions.find(enemy => enemy.name === name) || enemyDefinitions.find(enemy => (enemy.formerNames || []).includes(name)) || null;
+  }
+  // One enemy's chance: 0.1%, or 2% for the Cull's target inside its circle (M4), times (1 + Luck / 500) up to double (M3, M9).
+  function sparklingChance(name, cullTarget = null) {
+    const factor = Math.min(SPARKLING.maxLuckFactor, 1 + Math.max(0, toNumber(currentStats().luck, 0)) / SPARKLING.luckDivisor);
+    return (cullTarget && name === cullTarget ? SPARKLING.cullChance : SPARKLING.chance) * factor;
+  }
+  // The encounter's Sparkling enemies, as indexes into its names: none where a boss fights, never an object (M2).
+  function rollSparkling(enemyNames) {
+    if (!Array.isArray(enemyNames) || !enemyNames.length) return [];
+    const definitions = enemyNames.map(enemyDefinitionNamed);
+    if (definitions.some(definition => !definition || definition.unique)) return [];
+    const cullTarget = window.Guild?.cullTargetHere?.() || null;
+    return enemyNames.flatMap((name, index) => !definitions[index].inert && rules.roll(sparklingChance(name, cullTarget)) ? [index] : []);
+  }
+  function masterworkLuckBonus() {
+    return Math.max(0, toNumber(currentStats().luck, 0)) * 0.05 + Math.max(0, toNumber(calculateClassEffects().masterworkDropChanceFlat, 0));
+  }
+  // Every masterwork weapon, armor and artifact in the game (M10), Moneyshot and Treasure Seeker weighted ×5 (M11).
+  function sparklingMasterworkPool() {
+    const forged = (window.ForgeRules?.MASTERWORK_IDS || []).map(key => window.ForgeRules.masterworkTemplateId(key));
+    const artifacts = items.filter(item => item.category === "artifact" && item.rarity === "masterwork" && !/-lv\d+$/.test(item.id)).map(item => item.id);
+    return [...forged, ...artifacts].map(id => ({ id, weight: SPARKLING_FAVORED.includes(id) ? SPARKLING.favoredWeight : 1 }));
+  }
+  function sparklingMasterwork(random = Math.random) {
+    const pool = sparklingMasterworkPool(), total = pool.reduce((sum, entry) => sum + entry.weight, 0);
+    let roll = random() * total;
+    return (pool.find(entry => (roll -= entry.weight) < 0) || pool.at(-1))?.id || null;
+  }
+  // Two separate rolls, 70% and 5%, each raised by the masterwork Luck bonus (M8, M12).
+  function rollSparklingMasterworks(actor) {
+    if (!actor?.sparkling) return [];
+    const bonus = masterworkLuckBonus();
+    return SPARKLING.masterworkChances.filter(chance => rules.roll(chance + bonus)).map(() => sparklingMasterwork()).filter(Boolean);
   }
   function recordSoloSurvivorVictory() {
     if (!battle || battle.soloVictoryRecorded) return false;
@@ -1789,8 +1837,8 @@
       log(`${actorLabel(owner)} falls; their Battle Standard collapses.`);
     }
   }
-  function directDamage(target, amount, reducible = true, element = "physical", attacker = null, bypassBarriers = false) {
-    const adjusted = Math.floor(Math.max(0, amount) * (reducible ? incomingDamageFactor(target) : 1) * (1 + artifactDamagePercent(attacker, target) / 100));
+  function directDamage(target, amount, reducible = true, element = "physical", attacker = null, bypassBarriers = false, exact = false) {
+    const adjusted = Math.floor(Math.max(0, amount) * (reducible ? incomingDamageFactor(target) : 1) * (exact ? 1 : 1 + artifactDamagePercent(attacker, target) / 100));
     const dealt = bypassBarriers ? Math.min(adjusted, Math.max(0, hp(target) - phaseDamageFloor(target))) : applyCombatDamage(target, adjusted, attacker);
     if (bypassBarriers && dealt) { setHp(target, hp(target) - dealt); triggerDamageTakenEquipment(target, dealt, attacker); creditRoyalDuelDamage(target, attacker, dealt); creditReforgeDamage(target, attacker, dealt); creditStarDamage(target, attacker, dealt); }
     restoreManaFromElementalArmor(target, element, dealt);
@@ -1942,7 +1990,7 @@
     const worldEnder = canCharge ? chargedSkillEffect(attacker, "next-damage-overload") : null;
     const terrorBonus = attacker && hp(target) < values(target).maxHp / 2 ? passiveEffectsOf(attacker).filter(effect => effect.type === "damage-percent-vs-low-hp" && hp(target) < values(target).maxHp * toNumber(effect.threshold, 50) / 100).reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) : 0;
     const reaverBonus = attacker && hp(target) < values(target).maxHp * .35 ? withActor(attacker, () => classCatalog.find(entry => entry.id === "reaver")?.levels.filter(rank => rank.level <= toInteger(classLevels.reaver, 0)).flatMap(rank => rank.effects).filter(effect => effect.type === "damage-percent-vs-low-hp").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) || 0) : 0;
-    const situationalBonus = attacker ? passiveEffectsOf(attacker).reduce((sum, effect) => sum + (effect.type === "damage-percent-vs-stunned" && (target.effects.some(active => active.type === "stun") || target.lastStunnedTurn === target.turns) ? toNumber(effect.amount, 0) : 0) + (effect.type === "damage-percent-vs-quest-target" && [worldState.guild.quest?.enemy, worldState.guild.greatHunt?.enemy].includes(target.name.replace(/^Empowered /, "").replace(/ \d+$/, "")) ? toNumber(effect.amount, 0) : 0), 0) : 0;
+    const situationalBonus = attacker ? passiveEffectsOf(attacker).reduce((sum, effect) => sum + (effect.type === "damage-percent-vs-stunned" && (target.effects.some(active => active.type === "stun") || target.lastStunnedTurn === target.turns) ? toNumber(effect.amount, 0) : 0) + (effect.type === "damage-percent-vs-quest-target" && [worldState.guild.quest?.enemy, worldState.guild.greatHunt?.enemy].includes(target.name.replace(/^(?:(?:Empowered|Sparkling) )+/, "").replace(/ \d+$/, "")) ? toNumber(effect.amount, 0) : 0), 0) : 0;
     const standardBonus = attacker ? living().filter(ally => ally.team === attacker.team && ally.standardAura).reduce((sum, ally) => sum + toNumber(ally.standardAura, 0), 0) : 0;
     const actionChargeMultiplier = attackKind === "reaction" ? 1 : equipmentActionDamage.get(attacker?.id) || 1;
     // Artifacts (port task 4): the "+X% damage" ones (A20) and First Light Pin (A26). A Forked Lightning strike is plain:
@@ -1984,6 +2032,17 @@
       if (stormcatcher && hp(target) > 0) {
         const maximum = values(target).maxMana, restored = Math.min(maximum - mana(target), Math.floor(maximum * stormcatcher / 100));
         if (restored > 0) { setMana(target, mana(target) + restored); log(`${actorLabel(target)} catches ${restored} Mana from the spell.`); }
+      }
+      // The Hexbane Coat (port task 5, M26): 25% of an enemy spell's damage strikes its caster back in the spell's element,
+      // its defenses applying; a reflection is never reflected again.
+      const hexbane = spell && !reflectingSpell && hp(attacker) > 0 ? withActor(target, () => equippedDefenseItems().flatMap(item => item.effects || [])
+        .filter(effect => effect.kind === "spell-reflect-percent").reduce((best, effect) => Math.max(best, toNumber(effect.amount, 0)), 0), battle) : 0;
+      if (hexbane > 0) {
+        reflectingSpell = true;
+        try {
+          const back = hurt(attacker, amount * hexbane / 100, element, false, true, target, "spell");
+          if (back) log(`${actorLabel(target)}'s Hexbane Coat turns ${back} damage back on ${actorLabel(attacker)}.`);
+        } finally { reflectingSpell = false; }
       }
       // Bloodmoon Chalice: weapons and spells heal their wearer for a share.
       const chalice = ["melee", "ranged", "spell"].includes(attackKind) ? artifactAmount(attacker, "damage-lifesteal-percent") : 0;
@@ -2401,6 +2460,12 @@
     const targetEvasion = values(target).evasion;
     const attackValues = weaponAttackValues(actor, weapon);
     const weaponType = normalizeWeaponType(weapon.type);
+    // Moneyshot (port task 5, M16, M18): every attack with it counts, hits and misses; each fifth of a battle is boosted.
+    const fifth = offHand ? null : (weapon.effects || []).find(effect => effect.kind === "fifth-attack-boost");
+    if (fifth) actor.fifthAttackCount = Math.max(0, toInteger(actor.fifthAttackCount, 0)) + 1;
+    const boosted = Boolean(fifth) && actor.fifthAttackCount % Math.max(1, toInteger(fifth.every, 5)) === 0;
+    // Noble Hero (port task 5, M21): 25% less damage, and each hit strikes again for the same amount.
+    const secondStrike = offHand ? null : (weapon.effects || []).find(effect => effect.kind === "second-strike");
     const mark = target.effects.find(effect => effect.type === "hunter-mark" && effect.ownerId === actor.id && skillStates(actor)[effect.skillKey]?.active);
     const targetHitEffects = withActor(target, () => calculateClassEffects().incomingWeaponHitPercentByType);
     const weatherHitPercent = actor.effects.filter(effect => effect.type === "weapon-hit-percent" && (!effect.weaponType || normalizeWeaponType(effect.weaponType) === weaponType)).reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0);
@@ -2444,8 +2509,18 @@
       }
       const strikePower = (attackValues.power + brawlerBonus) * damageMultiplier * (1 + (incomingDamagePercent + firstTurnDamagePercent + conditionalPower + passivePower + slowerTargetPower + weaponRaceDamagePercent(weapon, target) + woundedTargetPercent(weapon, target) + largerHpBonus.damagePercent + chainBonus) / 100);
       const armorPierce = largerHpBonus.armorPiercePercent + toNumber(starscale?.armorPiercePercent, 0) + offHandArmorPierce(weapon, offHand) + toNumber(weapon.armorPierce, 0);
-      const amount = withWeaponElement(weapon, () => hurt(target, strikePower, strikeElement(actor, weapon), critical, false, actor, weaponType, armorPierce), target);
+      // A boosted Moneyshot attack: +50% damage, +200% instead if it is a critical hit.
+      const boost = (boosted ? 1 + toNumber(critical ? fifth.criticalAmount : fifth.amount, 0) / 100 : 1) * (secondStrike ? 1 - toNumber(secondStrike.amount, 0) / 100 : 1);
+      const amount = withWeaponElement(weapon, () => hurt(target, strikePower * boost, strikeElement(actor, weapon), critical, false, actor, weaponType, armorPierce), target);
       log(`${actorLabel(actor)} attacks ${actorLabel(target)}${actor.team === "player" ? " with " + weaponLabel : ""}: ${amount} damage${critical ? " (critical)" : ""}.`);
+      if (boosted) {
+        log(`${weapon.name}'s fifth attack pays out: +${formatValue(toNumber(critical ? fifth.criticalAmount : fifth.amount, 0))}% damage.`);
+        // …and echoes 5% of what it dealt to every other enemy, their defenses applying (like Kugelblitz's cleave).
+        if (amount > 0) for (const other of [...hostiles(actor)].filter(other => other.id !== target.id && hp(other) > 0)) {
+          const echoed = hurt(other, amount * toNumber(fifth.echoPercent, 0) / 100, weapon.element || "physical", false, false, actor, "bonus");
+          if (echoed) log(`${weapon.name} echoes ${echoed} damage to ${actorLabel(other)}.`);
+        }
+      }
       applyArmorHitEffects(actor, target, weaponType, amount);
       if (critical && amount > 0 && hp(target) > 0) tearOldWound(target);
       if (weapon.rarity === "masterwork" && amount > 0) {
@@ -2460,6 +2535,18 @@
       }
       applyAttackHitEffects(actor, target, weapon, amount, critical, activeAttackSkills);
       applyNewClassWeaponEffects(actor, target, weapon, amount, activeAttackSkills);
+      // Noble Hero's second strike: the same amount again, no new hit or critical roll, and it counts as a weapon attack:
+      // what a weapon hit triggers, it triggers too (M21).
+      if (secondStrike && amount > 0 && hp(target) > 0 && isActive()) {
+        const again = directDamage(target, amount, false, strikeElement(actor, weapon), actor, false, true);
+        log(`${weapon.name} strikes ${actorLabel(target)} again: ${again} damage.`);
+        if (again > 0) {
+          applyArmorHitEffects(actor, target, weaponType, again);
+          applyUniqueWeaponHitEffects(actor, target, weapon, again, damageMultiplier);
+          applyAttackHitEffects(actor, target, weapon, again, false, activeAttackSkills);
+          applyNewClassWeaponEffects(actor, target, weapon, again, activeAttackSkills);
+        }
+      }
       applyMeleeSpellEffects(actor, target, meleeSpellEffects);
       applyMeleeSpellEffects(actor, target, unarmedBonusEffects);
       if (weaponType === "melee" && hp(actor) > 0) for (const effect of target.effects.filter(entry => entry.type === "melee-retaliation")) {
@@ -3781,6 +3868,13 @@
       effect.type === "damage" && effect.recipient !== "all-enemies" && effect.recipient !== "self" ||
       ["stun", "stun-chance", "instant-death-per-thousand"].includes(effect.type) && !["self", "all-enemies", "all-allies", "all-combatants"].includes(effect.recipient));
   }
+  /* Lament (port task 5, M19, M20): a single-target spell, at an enemy or an ally, can take a second target for 50% more
+     Mana. The second target gets the spell's targeted effects only, with its own miss roll. */
+  const lamentTargeted = effect => ["target", "friendly-target"].includes(effect.recipient) || !effect.recipient && effect.type === "damage";
+  const lamentEligible = effects => effects.some(lamentTargeted) && !effects.some(effect => ["all-enemies", "all-allies", "all-combatants", "random-ally"].includes(effect.recipient));
+  function lamentEffect(actor) {
+    return withActor(actor, equippedWeaponItems).flatMap(item => item.effects || []).find(effect => effect.kind === "extra-target-spell") || null;
+  }
   function apexSpellEffects(effects, choice) {
     if (choice !== "sweep") return effects;
     return effects.map(effect => effect.recipient === "target" || !effect.recipient && ["damage", "stun", "stun-chance", "instant-death-per-thousand"].includes(effect.type)
@@ -3975,13 +4069,21 @@
     const targetEffects = apexSpellEffects(effects, apexChoice);
     const needsEnemy = requiresEnemyTarget(targetEffects);
     const needsFriendly = effects.some(effect => effect.recipient === "friendly-target");
+    // Lament's second target: another living combatant on the first one's side (M19, M20).
+    const lament = options.extraTargetId != null && !archivedItem ? lamentEffect(actor) : null;
+    let extra = null;
+    if (options.extraTargetId != null) {
+      extra = lament && lamentEligible(targetEffects) ? actorById(options.extraTargetId) : null;
+      if (!extra || extra.id === target?.id || hp(extra) <= 0 || (needsEnemy ? !opponents(actor).includes(extra) : extra.team !== actor.team)) return false;
+    }
     if (needsEnemy) target = redirectedGuardTarget(actor, target, "spell");
+    if (extra && needsEnemy) extra = redirectedGuardTarget(actor, extra, "spell");
     if (!effectsUsable(effects) || needsEnemy && !opponents(actor).includes(target) || needsFriendly && (!target || target.team !== actor.team || hp(target) <= 0) || effects.some(effect => effect.type === "summon-friendly" && (!enemyDefinitions.some(enemy => enemy.id === effect.enemyId) || summonLimitReached(actor, effect) || effect.requiresDefeatedEnemy && !defeatedEnemyFor(actor)))) return false;
     const successive = actor.lastSpellId === spell.id ? Math.max(0, toInteger(actor.spellCastStreak, 0)) : 0;
     const successiveMana = Math.max(0, ...effects.map(effect => toNumber(effect.successiveCastManaPercent, 0)));
     const successiveDamage = Math.max(0, ...effects.map(effect => toNumber(effect.successiveCastDamagePercent, 0)));
     const baseCost = withActor(actor, () => calculateSpellManaCost(spell));
-    const cost = archivedItem ? 0 : Math.max(0, Math.floor(baseCost * (1 - timedSpellPercent(actor, "spell-cost-percent", spell) / 100) * (1 + successive * successiveMana / 100)));
+    const cost = archivedItem ? 0 : Math.max(0, Math.floor(baseCost * (1 - timedSpellPercent(actor, "spell-cost-percent", spell) / 100) * (1 + successive * successiveMana / 100) * (extra ? 1 + toNumber(lament.amount, 0) / 100 : 1)));
     const actionPoints = archivedItem ? 1 : withActor(actor, () => calculateSpellActionPoints(spell));
     const basePower = withActor(actor, () => calculateSpellValue(spell));
     const stormPower = Math.max(0, toInteger(actor.stormCharges, 0)) * passiveEffectsOf(actor).filter(effect => effect.type === "storm-alternation-charge").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0);
@@ -4047,6 +4149,19 @@
           if (missed && onStage(target)) stage("miss", { actorId: target.id, attackerId: actor.id });
           if (missed) log(`${spell.name}${repetition ? " (repeat)" : ""} misses ${actorLabel(target)}.`);
           else applyEffects(actor, target, appliedEffects, power, spellElement, repetition ? `${spell.name} (repeat)` : spell.name, true, weatherChoiceId, apexChoice, spell);
+        }
+        // Lament: the spell's targeted effects again, on the second target.
+        if (extra && isActive() && hp(extra) > 0) {
+          const extraEffects = appliedEffects.filter(lamentTargeted);
+          const absorbedExtra = rollSpellAbsorption(actor, extra, extraEffects, spellElement, cost, spell);
+          absorbedSpellRecipients = absorbedExtra.size ? absorbedExtra : null;
+          log(`Lament carries ${spell.name} to ${actorLabel(extra)}.`);
+          for (let repetition = 0; repetition < repeatCount; repetition += 1) {
+            const missed = needsEnemy && !absorbedExtra.has(extra.id) && rules.roll(spellMissChanceAgainst(actor, extra, spell));
+            if (missed && onStage(extra)) stage("miss", { actorId: extra.id, attackerId: actor.id });
+            if (missed) log(`${spell.name} (Lament) misses ${actorLabel(extra)}.`);
+            else applyEffects(actor, extra, extraEffects, power, spellElement, `${spell.name} (Lament)`, true, weatherChoiceId, apexChoice, spell);
+          }
         }
       } finally {
         absorbedSpellRecipients = null;
@@ -4474,6 +4589,7 @@
   }
   function selectedTarget() { return actorById(battle?.targetId); }
   function action(name, key, option = null) {
+    pendingLament = null;
     if (!isControlledTurn() || hasPlayerEquipmentReaction()) return false;
     const actor = currentActor(), target = selectedTarget();
     let done = false;
@@ -5731,7 +5847,7 @@
       const health = Math.max(0, Math.min(1, hp(actor) / Math.max(1, v.maxHp)));
       const protectedBySummon = protectedByOwnedSummon(actor);
       const elementalClass = SPELL_ELEMENTS.includes(actor.element) ? ` has-elemental-accent spell-element-${actor.element}` : "";
-      return `<button type="button" class="combatant combat-enemy${elementalClass}${actor.unique ? " is-unique" : ""} ${active ? "is-current" : ""} ${battle.targetId === actor.id ? "is-targeted" : ""} ${hp(actor) <= 0 ? "is-defeated" : ""} ${actor.phaseFlashUntil > Date.now() ? "is-transforming" : ""}" data-combat-target="${escapeHtml(actor.id)}" title="${escapeHtml(actor.name)}" aria-label="${protectedBySummon ? "Protected by summon: " : "Target "}${escapeHtml(actor.name)}" aria-pressed="${battle.targetId === actor.id}" ${!isActive() || hp(actor) <= 0 || protectedBySummon ? "disabled" : ""}><span class="combatant-portrait" aria-hidden="true">${portraitOf(actor)}</span><span class="combat-enemy-body"><span class="enemy-name">${escapeHtml(actor.name)}</span><span class="enemy-health-bar" role="img" aria-label="Health bar"><span style="transform:scaleX(${health})"></span></span></span></button>`;
+      return `<button type="button" class="combatant combat-enemy${elementalClass}${actor.unique ? " is-unique" : ""}${actor.sparkling ? " is-sparkling" : ""} ${active ? "is-current" : ""} ${battle.targetId === actor.id ? "is-targeted" : ""} ${hp(actor) <= 0 ? "is-defeated" : ""} ${actor.phaseFlashUntil > Date.now() ? "is-transforming" : ""}" data-combat-target="${escapeHtml(actor.id)}" title="${escapeHtml(actor.name)}" aria-label="${protectedBySummon ? "Protected by summon: " : "Target "}${escapeHtml(actor.name)}" aria-pressed="${battle.targetId === actor.id}" ${!isActive() || hp(actor) <= 0 || protectedBySummon ? "disabled" : ""}><span class="combatant-portrait" aria-hidden="true">${portraitOf(actor)}</span><span class="combat-enemy-body"><span class="enemy-name">${escapeHtml(actor.name)}</span><span class="enemy-health-bar" role="img" aria-label="Health bar"><span style="transform:scaleX(${health})"></span></span></span></button>`;
     }
     const badges = [...new Set([...equipmentChargeBonuses(actor).map(charge => `${charge.item.name} · ${charge.stacks}/${charge.maximum} charges · +${charge.percent}% next damage`), ...actor.effects.map(effect => trapEffects.has(effect.type)
       ? `${effect.name} · Armed`
@@ -5834,7 +5950,7 @@
         const v = values(actor), alive = hp(actor) > 0, ally = actor.team === allyTeam;
         const guarded = !ally && protectedByOwnedSummon(actor);
         return {
-          id: actor.id, name: actor.name, label: actor.name, team: actor.team, ally, alive, summoned: Boolean(actor.summoned), companion: Boolean(actor.companion), unique: Boolean(actor.unique),
+          id: actor.id, name: actor.name, label: actor.name, team: actor.team, ally, alive, summoned: Boolean(actor.summoned), companion: Boolean(actor.companion), unique: Boolean(actor.unique), sparkling: Boolean(actor.sparkling),
           hp: hp(actor), maxHp: v.maxHp, mana: mana(actor), maxMana: v.maxMana,
           current: battle.current === actor.id && isActive(), targeted: battle.targetId === actor.id, targetable: isActive() && alive && !guarded, protected: guarded,
           stance: actor.effects.find(effect => effect.type === "stance")?.name || null, statuses: stageStatuses(actor), transforming: actor.phaseFlashUntil > Date.now(),
@@ -5906,6 +6022,7 @@
   }
   function openPicker(kind) {
     if (!isControlledTurn() || hasPlayerEquipmentReaction()) return;
+    pendingLament = null;
     pickerKind = kind;
     pendingApex = null;
     abilityPicker.hidden = false;
@@ -5954,7 +6071,12 @@
       const description = isSpell ? withActor(actor, () => spellDescription(entry)) : entry.description;
       const owned = actor.id === "player" ? inventory : actor.character.inventory;
       const meta = isSpell ? `${cost} Mana · ${ap} AP` : `×${owned.filter(id => id === entry.id).length} owned · 1 AP`;
-      return `<article class="combat-ability-entry"><div><strong>${escapeHtml(entry.name)}</strong><small>${meta}</small><p>${escapeHtml(description || "")}</p></div><button type="button" data-combat-ability="${escapeHtml(entry.id)}" ${reason ? "disabled" : ""}>${escapeHtml(reason || (isSpell ? "Cast" : "Use"))}</button></article>`;
+      // Lament: cast it on a second target too, for 50% more Mana (M19).
+      const lament = isSpell && pickerKind === "spell" && lamentEligible(effects) ? lamentEffect(actor) : null;
+      const sideCount = lament ? (needsEnemy ? opponents(actor).length : living().filter(ally => ally.team === actor.team).length) : 0;
+      const lamentReason = !lament ? "" : reason || (sideCount < 2 ? "No second target" : mana(actor) < Math.floor(cost * (1 + toNumber(lament.amount, 0) / 100)) ? "Not enough Mana" : "");
+      const lamentButton = lament ? `<button type="button" class="combat-lament-button" data-combat-lament="${escapeHtml(entry.id)}" ${lamentReason ? "disabled" : ""}>${escapeHtml(lamentReason || `Lament: +1 target (+${formatValue(lament.amount)}% Mana)`)}</button>` : "";
+      return `<article class="combat-ability-entry"><div><strong>${escapeHtml(entry.name)}</strong><small>${meta}</small><p>${escapeHtml(description || "")}</p></div><button type="button" data-combat-ability="${escapeHtml(entry.id)}" ${reason ? "disabled" : ""}>${escapeHtml(reason || (isSpell ? "Cast" : "Use"))}</button>${lamentButton}</article>`;
     }).join("") : `<p class="combat-picker-empty">${isSpell ? "No spells learned yet." : "No usable items in your inventory."}</p>`;
   }
 
@@ -6018,6 +6140,14 @@
       const crystalDrop = { itemId: crystalId, chance: 1, minimum: 1, maximum: 1 };
       const existing = drops.findIndex(drop => drop.itemId === crystalId);
       if (existing < 0) drops.push(crystalDrop);
+    }
+    // Port task 5: Noble Hero at 1% from every demon and devil but the bosses (M22), and the Shadow Crystal at 0.05% from
+    // every enemy that gives loot, bosses too, not objects (M24).
+    // The Hexbane Coat at 1% from every non-boss undead, demon and devil, not objects (M26).
+    for (const [itemId, chance, applies] of [["masterwork-noble-hero", 1, ["demon", "devil"].includes(character.raceId) && raw.unique !== true], ["masterwork-hexbane-coat", 1, ["undead", "demon", "devil"].includes(character.raceId) && raw.unique !== true && raw.inert !== true], ["key-item-shadow-crystal", 0.05, raw.inert !== true]]) {
+      if (!applies) continue;
+      if (!itemCanDrop(itemId)) throw new Error(`${raw.name}: ${itemId} must be loaded for its drops`);
+      if (!drops.some(drop => drop.itemId === itemId)) drops.push({ itemId, chance, minimum: 1, maximum: 1 });
     }
     const baseArmor = raw.baseArmor == null ? null : Math.max(0, toNumber(raw.baseArmor, NaN));
     if (raw.baseArmor != null && !Number.isFinite(baseArmor)) throw new Error(`${raw.name}: baseArmor must be a nonnegative number`);
@@ -6174,7 +6304,7 @@
       log(`${actorLabel(actor)} automatically casts ${spell.name} through ${effect.name || "Void Tear"}.`);
     }
   }
-  function startRoster(enemyRoster, openingNote = "", guildObjective = null) {
+  function startRoster(enemyRoster, openingNote = "", guildObjective = null, sparkling = []) {
     if (isActive() || currentHp <= 0 || !Array.isArray(enemyRoster) || !enemyRoster.length || enemyRoster.length > 50 || enemyRoster.some(enemy => !enemy)) return false;
     const originalRoster = [...enemyRoster], requiredAllies = new Map();
     for (const enemy of originalRoster) for (const ally of enemy.startingAllies || []) requiredAllies.set(ally.enemyId, (requiredAllies.get(ally.enemyId) || 0) + ally.count);
@@ -6188,6 +6318,7 @@
     stopPhaseCinematic(false);
     window.TierTenCinematics?.stop();
     window.BattleStage?.reset();
+    pendingLament = null;
     const makeActor = (id, name, team) => ({ id, name, team, counter: 0, turns: 0, effects: [], skillExpiry: {}, alive: true, combatKills: 0, multiKillCombatRecorded: false });
     equipmentActionDamage.clear();
     reactionModal.hidden = true;
@@ -6203,13 +6334,15 @@
     const totals = enemyRoster.reduce((counts, enemy) => ({ ...counts, [enemy.name]: (counts[enemy.name] || 0) + 1 }), {});
     const occurrences = {};
     const empoweredObjective = ["hunt", "artifact"].includes(guildObjective);
+    // The encounter's Sparkling enemies (M2): none in a battle with a boss, never an object, never an added ally.
+    const sparklingIndexes = new Set(enemyRoster.some(enemy => enemy.unique) || !Array.isArray(sparkling) ? [] : sparkling.filter(index => Number.isInteger(index) && index >= 0 && index < originalRoster.length && !originalRoster[index].inert));
     for (let i = 0; i < enemyRoster.length; i++) {
       const enemy = enemyRoster[i];
       occurrences[enemy.name] = (occurrences[enemy.name] || 0) + 1;
       const actorName = totals[enemy.name] > 1 ? `${enemy.name} ${occurrences[enemy.name]}` : enemy.name;
       const armed = armEnemy(copy(enemy.character), enemy.noDropItems);
       const actor = {
-        ...makeActor(`enemy-${i + 1}`, empoweredObjective && i === 0 ? `Empowered ${actorName}` : actorName, "enemy"),
+        ...makeActor(`enemy-${i + 1}`, `${empoweredObjective && i === 0 ? "Empowered " : ""}${sparklingIndexes.has(i) ? "Sparkling " : ""}${actorName}`, "enemy"),
         experienceAwarded: false, character: armed.character, resistances: copy(enemy.resistances), dropTable: copy(enemy.drops || []), noDropItems: armed.noDropItems,
         baseArmor: enemy.baseArmor, naturalArmor: spawnNaturalArmor(armed.character), naturalWeapon: enemy.naturalWeapon || null, attackElement: enemy.attackElement || null, maxHpPercent: enemy.maxHpPercent, maxManaPercent: enemy.maxManaPercent, turnStartManaPercent: enemy.turnStartManaPercent, element: enemy.element, unique: enemy.unique, experienceRewardMultiplier: enemy.experienceRewardMultiplier, moneyRewardMultiplier: enemy.moneyRewardMultiplier,
         enemyDefinitionId: enemy.id, phaseTransition: copy(enemy.phaseTransition), phaseTransitions: copy(enemy.phaseTransitions), phaseIndex: 0, spellPowerAura: copy(enemy.spellPowerAura), livingAllyProtection: copy(enemy.livingAllyProtection)
@@ -6221,6 +6354,11 @@
           actor.empowered = true;
           for (const key of Object.keys(actor.character.stats)) actor.character.stats[key] = Math.max(0, Math.floor(actor.character.stats[key] * 1.3));
         }
+      }
+      // A Sparkling enemy (M6): all eight attributes ×1.4; values() then doubles its maximum HP.
+      if (sparklingIndexes.has(i)) {
+        actor.sparkling = true;
+        for (const key of Object.keys(actor.character.stats)) actor.character.stats[key] = Math.max(0, Math.floor(actor.character.stats[key] * SPARKLING.statMultiplier));
       }
       if (enemy.inert) actor.inert = true;
       if (enemy.unlivingCaster) actor.unlivingCaster = true;
@@ -6270,16 +6408,17 @@
     if (roster.some(enemy => !enemy)) throw new Error("An encounter references an unavailable enemy.");
     return roster;
   }
-  async function startEncounter(enemyNames, openingNote = "", guildObjective = null) {
+  async function startEncounter(enemyNames, openingNote = "", guildObjective = null, sparkling = []) {
     const roster = await resolveEncounterRoster(enemyNames);
-    return roster ? startRoster(roster, openingNote, guildObjective) : false;
+    return roster ? startRoster(roster, openingNote, guildObjective, sparkling) : false;
   }
-  async function attemptTravelEscape(enemyNames, bonus = 25, guildObjective = null) {
+  async function attemptTravelEscape(enemyNames, bonus = 25, guildObjective = null, sparkling = []) {
     const roster = await resolveEncounterRoster(enemyNames);
     if (!roster) return { success: false, chance: 0, fastestEnemySpeed: 0 };
     const fastestEnemySpeed = Math.max(0, ...roster.map((enemy, index) => {
       const actor = { id: `encounter-preview-${index}`, name: enemy.name, team: "enemy", effects: [], skillExpiry: {}, character: copy(enemy.character) };
       if (["hunt", "artifact"].includes(guildObjective) && index === 0) for (const key of Object.keys(actor.character.stats)) actor.character.stats[key] = Math.max(0, Math.floor(actor.character.stats[key] * 1.3));
+      if (Array.isArray(sparkling) && sparkling.includes(index)) for (const key of Object.keys(actor.character.stats)) actor.character.stats[key] = Math.max(0, Math.floor(actor.character.stats[key] * SPARKLING.statMultiplier));
       return withActor(actor, () => currentStats().speed, { active: false, actors: [actor] });
     }));
     const playerValues = currentStats();
@@ -6362,10 +6501,11 @@
     chooseTargetId(id) {
       const actor = actorById(id);
       if (!isActive() || !actor || hp(actor) <= 0 || actor.team !== player().team && protectedByOwnedSummon(actor)) return false;
+      if (pendingLament) return castLamentOn(id);
       battle.targetId = id; render(); saveCharacter();
       return true;
     },
-    active: isActive, statPercent, permanentStatPercent, permanentDefensePercent, statValue, defense, resourceMaximum, cacheCalculation, serialize: () => battle ? copy(battle) : null, restore, onSheetChange, loadConsumables, startEncounter, attemptTravelEscape,
+    active: isActive, statPercent, permanentStatPercent, permanentDefensePercent, statValue, defense, resourceMaximum, cacheCalculation, serialize: () => battle ? copy(battle) : null, restore, onSheetChange, loadConsumables, startEncounter, attemptTravelEscape, rollSparkling, sparklingChance, SPARKLING: () => copy(SPARKLING),
     async enemyDropSources() {
       await ensureEnemiesLoaded();
       return enemyDefinitions.map(enemy => ({ id: enemy.id, name: enemy.name, level: enemy.character.level,
@@ -6395,7 +6535,7 @@
       // Nygheir's lament turns to fury once his scars burst.
       const nygheir = battle.actors.find(actor => actor.team === "enemy" && actor.enemyDefinitionId === "nygheir-the-wounded-unique-level-23" && hp(actor) > 0);
       if (nygheir) return toInteger(nygheir.phaseIndex, 0) >= 1 ? "nygheir-the-scarred" : "nygheir-the-wounded";
-      if (battle.actors.some(actor => actor.team === "enemy" && actor.unique && actor.name.replace(/ \d+$/, "") === "Zik Lun, the armored Hulk")) return "zik-lun-armored-hulk";
+      if (battle.actors.some(actor => actor.team === "enemy" && actor.unique && actor.name.replace(/^(?:(?:Empowered|Sparkling) )+/, "").replace(/ \d+$/, "") === "Zik Lun, the armored Hulk")) return "zik-lun-armored-hulk";
       return battle.actors.some(actor => actor.team === "enemy" && actor.unique && /^Great Imp Ji'ruan(?: \d+)?$/.test(actor.name))
         ? "great-imp-jiruan" : "combat";
     },
@@ -6539,9 +6679,16 @@
   $("combat-setup-form").addEventListener("submit", event => { event.preventDefault(); if ($( "combat-start").disabled) return; start(enemyDefinitions[Number($("combat-enemy-select").value)], Number($("combat-enemy-quantity").value)); });
   $("combat-actions").addEventListener("click", event => { const button = event.target.closest("[data-action]"); if (button && !button.disabled) action(button.dataset.action); });
   $("combat-skills").addEventListener("click", event => { const button = event.target.closest("[data-skill]"); if (button && !button.disabled) action("skill", button.dataset.skill, $("combat-guess")?.value || null); });
+  // Lament's second target: the spell is cast on the chosen target and this one.
+  function castLamentOn(id) {
+    const waiting = pendingLament;
+    pendingLament = null;
+    return action("spell", waiting.spellId, { extraTargetId: id });
+  }
   function chooseTarget(event) {
     const button = event.target.closest("[data-combat-target]");
     if (!button || button.disabled || !isActive()) return;
+    if (pendingLament) { castLamentOn(button.dataset.combatTarget); return; }
     battle.targetId = button.dataset.combatTarget;
     render(); saveCharacter();
     document.querySelector('[data-combat-target="' + battle.targetId + '"]')?.focus();
@@ -6578,6 +6725,15 @@
       if (!beginApexChoice("spell", weatherSpellId, weatherButton.dataset.combatWeather) && action("spell", weatherSpellId, weatherButton.dataset.combatWeather)) closePicker();
       return;
     }
+    // Lament: close the list and wait for the second target's click.
+    const lamentButton = event.target.closest("[data-combat-lament]");
+    if (lamentButton && !lamentButton.disabled && pickerKind === "spell") {
+      const spellId = lamentButton.dataset.combatLament;
+      closePicker();
+      pendingLament = { spellId };
+      $("combat-action-status").textContent = `Lament: choose a second target for ${getSpell(spellId)?.name || "the spell"} (Escape cancels).`;
+      return;
+    }
     const button = event.target.closest("[data-combat-ability]");
     if (!button || button.disabled) return;
     if (pickerKind === "spell" && spellEffects(getSpell(button.dataset.combatAbility)).some(effect => effect.type === "weather-control")) {
@@ -6594,6 +6750,11 @@
     if (action(pickerKind, selectedId)) closePicker();
   });
   document.addEventListener("keydown", event => {
+    if (pendingLament && abilityPicker.hidden && event.key === "Escape") {
+      pendingLament = null;
+      $("combat-action-status").textContent = "Lament cancelled.";
+      return;
+    }
     if (abilityPicker.hidden) return;
     if (event.key === "Escape") { event.preventDefault(); closePicker(); }
     if (event.key === "Tab") {

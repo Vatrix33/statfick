@@ -85,7 +85,17 @@ doesn't build it again; only its placeholder looks are remade (`Docs/Port-Tasks/
 `../old-game/` (its scripts, enemy files and test client) and these docs, never the engine (the engine's tests read
 none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count
 task 6 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "New
-Areas". Task 5 is not built yet.
+Areas".
+**Beside the engine, old game only (2026-11-06): port task 5, New Masterworks, is done in the old game**, as tasks 1–4
+and 6 were (decisions M1–M26 in "Decisions for task 5, New Masterworks" below: Sparkling enemies, Treasure Seeker,
+Moneyshot, Lament, Noble Hero, the Hexbane Coat and the Shadow Crystal drop; built on the cloud branch
+`claude/fervent-carson-f5ol9s` and offered as pull request #11, one for the whole task, M25). The port doesn't build it
+again; only its placeholder art is remade (`Docs/Port-Tasks/README.md`). It touches only `../old-game/` (its scripts,
+stylesheet, artifact data, one enemy file and test client) and these docs, never the engine (the engine's tests read
+none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count
+task 5 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "New
+Masterworks". It also makes Doctor's Orders (task 3) the white robe R11 asked for: masterwork armor now wears its
+recorded colour.
 Before each later milestone (M11 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code, in the order
 "Starting M9" below gives (M10 followed it too).
@@ -375,10 +385,11 @@ the design and the tests):
   transforms map to the Blender remakes; the grabbing cursor's design; the level of detail of the item
   models. **First read `Docs/Port-Tasks/`:** the user's tasks to add during the port, in their number order
   (decided 2026-11-05); ask whether they come after the faithful port or while porting (left open by the user). Tasks 1
-  (Masterwork Elementals), 2 (Guild Rework), 3 (Shop Rework), 4 (Artifact Rework) and 6 (New Areas) are already done in
-  the old game, so the faithful port brings them over: don't build them again, only remake their placeholder art (the
-  README's list: task 1's six masterwork looks, task 2's two guild interiors, task 3's scenes, icons and looks, task 4's
-  artifact looks, task 6's Rift enemies and map painting). Task 5 is not built yet.
+  (Masterwork Elementals), 2 (Guild Rework), 3 (Shop Rework), 4 (Artifact Rework), 5 (New Masterworks) and 6 (New Areas)
+  are already done in the old game, so the faithful port brings them over: don't build them again, only remake their
+  placeholder art (the README's list: task 1's six masterwork looks, task 2's two guild interiors, task 3's scenes, icons
+  and looks, task 4's artifact looks, task 5's Sparkling look and new masterwork looks, task 6's Rift enemies and map
+  painting).
 
 ## Folders
 
@@ -775,8 +786,11 @@ while porting (the user will answer later).
   #10 with task 6.
 - **Task 6 is done in the old game too (2026-11-06; N4):** old game only, placeholder looks for the six Abyssal Rift
   enemies and the Rift on Gloamfen's map. Decisions N1–N10 below; `../old-game/Docs/Notes.md`, "New Areas". In pull
-  request #10 with task 4. **Task 5 is not built** (it comes before task 6 in the order, but nothing in task 6 needs it).
-  For all five done tasks the port brings them over with the rest of the game, doesn't redo them from the task files,
+  request #10 with task 4.
+- **Task 5 is done in the old game too (2026-11-06; M1):** old game only, placeholder art (the Sparkling look,
+  Treasure Seeker's drawing, the new weapons' and the Hexbane Coat's forged looks). Decisions M1–M26 below;
+  `../old-game/Docs/Notes.md`, "New Masterworks". Offered as pull request #11.
+  For all six done tasks the port brings them over with the rest of the game, doesn't redo them from the task files,
   and only remakes the art `Docs/Port-Tasks/README.md` lists.
 
 **Decisions for task 2, Guild Rework (2026-11-06, a cloud session; the user asked for task 2 that day; the task is
@@ -1001,6 +1015,76 @@ checks ran, "That task is very small"; built in the old game like tasks 1–4, o
   brute) and Abyss Witch (demon, 54, a caster); nine encounter groups from Level 45 to 55.
 - N10 **The marsh's level range** (2026-11-06, asked while writing the checks): raised from 35–50 to 35–55 to take in
   the Rift: the map header reads "LEVEL 35–55" and guild quests in the marsh go up to Level 55. (Not kept at 35–50.)
+
+**Decisions for task 5, New Masterworks (2026-11-06, a cloud session; the user asked for task 5 that day after tasks 4
+and 6 were merged; the task is `Docs/Port-Tasks/5_New_Masterworks.txt`).** Asked before any code, four at a time:
+- M1 **Where and art:** in the old game like tasks 1–4 and 6, with placeholder art listed for the port's full remake.
+  (Not finished art now, not only noted for the port.)
+- M2 **Who can be Sparkling:** any regular enemy at the start of any battle (travel, forced, guild Hunt, Cull, Search and
+  Escort fights); never a summon, and nobody in a battle that has a boss (a boss's aids: Saffron's Servants, Zik Lun's
+  warband, Tankina's Apostles and the like). (Not travel and forced only; the Empowered Hunt target can be Sparkling.)
+- M3 **Luck:** the 0.1% chance is multiplied by (1 + the player's Luck / 500), at most 0.2% (Luck 50: 0.11%, 100: 0.12%,
+  300: 0.16%, 500 or more: 0.2%). (Not ×(1 + Luck/1000) uncapped, not ×(1 + Luck/200) up to 0.3%.)
+- M4 **The Cull's hidden 2%:** only for the Cull's target enemy met inside the Cull circle, where its kills count. (Not
+  anywhere while the Cull is active.)
+- M5 **Highlight:** on the encounter screen "Sparkling" before its name in gold with a shimmer; in battle it is named
+  "Sparkling X", with a placeholder sparkle around its sprite and on its card. (Not the encounter screen only, no map
+  status line.)
+- M6 **Strength:** all eight attributes ×1.4 (HP already rises with Vitality), then its maximum HP doubled on top. (Not
+  HP exactly twice a normal one's, not Vitality left out.)
+- M7 **Rewards:** "1000% more EXP" is 11 times the EXP, on top of Empowered and other bonuses; silver as a normal enemy.
+  (Not ×10, not ×11 silver.)
+- M8 **Drop rolls:** two separate rolls, 70% and 5%; each that hits drops one masterwork (one 68%, two 3.5%, none
+  28.5%). (Not the 5% only after the 70%, not exactly 5% for two.)
+- M9 **The Cull's 2% and Luck:** Luck raises it like the 0.1%: 2% × (1 + Luck/500), at most 4% (Luck 100: 2.4%). (Not
+  a flat 2%.)
+- M10 **The drop pool:** every masterwork weapon, armor and artifact (35, counting Lament, Noble Hero and the new armor),
+  boss-only and bought ones included; not the masterwork-rarity key items. (Not leaving out the boss-only ones, not
+  adding the key items.)
+- M11 **Treasure Seeker and Moneyshot's share:** each 5 times as likely as any other masterwork in the pool (about 11%
+  of Sparkling masterwork drops each). (Not 3×, not 10×.)
+- M12 **Luck on the drop rolls:** the game's masterwork Luck bonus (+0.05 × Luck percentage points) applies to both
+  rolls (Luck 100: 75% and 10%). (Not fixed 70% and 5%.)
+- M13 **Treasure Seeker's money:** battle silver, guild quest rewards and sales all doubled, but a sale never pays more
+  than the item's shop price (buying and reselling can't make money); two worn in the party still double once. (Not
+  battles and quests only, not uncapped sales.)
+- M14 **Treasure Seeker's Luck:** +1 Luck per Platinum (10,000 silver) held, no cap. (Not at most +100, not +5 per
+  Platinum up to +200.)
+- M15 **Treasure Seeker on the level ramp:** like task 4's masterwork artifacts, the user's numbers at Level 80, weaker
+  when it drops lower and stronger above. (Not fixed at every level.)
+- M16 **Moneyshot's count:** every attack with it counts, hits and misses; the 5th, 10th, 15th… of each battle are
+  boosted, and the count starts over each battle. (Not hits only, not kept between battles.)
+- M17 **Treasure Seeker at Level 1:** uncommon strength: +15% money and +0.15 Luck per Platinum, rising on task 4's
+  straight line to +100% and +1 at Level 80 (about +122% and +1.2 at Level 100). (Not half at Level 1, not the money
+  alone on the ramp.)
+- M18 **Moneyshot's boosted attack:** a boosted critical deals +200% instead of +50% (on top of the normal critical
+  damage); the echo is 5% of what the hit dealt, and each other enemy's defenses reduce it (like Kugelblitz's cleave).
+  (Not an echo that ignores defenses.)
+- M19 **Lament's choice:** in the spell list each single-target spell gets a "Lament: +1 target (+50% Mana)" choice;
+  then you click the second target. (Not picked automatically, not always on.)
+- M20 **Lament's spells:** any spell aimed at one combatant: damage and curses on enemies, heals and buffs on allies.
+  (Not damage spells only.)
+- M21 **Noble Hero's effect (reworded at the user's request):** "Deals 25% less damage, but each hit strikes the target
+  again for the same amount. The second strike counts as a weapon attack." The second strike makes no new hit or
+  critical roll and triggers what a weapon hit triggers (on-hit effects, lifesteal, burns, the target's thorns). (Not
+  two attacks at 75% with their own rolls.)
+- M22 **Noble Hero's drop:** 1% from every demon and devil enemy except the two bosses (Great Imp Ji'ruan, Archdevil
+  Saffron); Saffron's Great Devil Servants can drop it. (Not the bosses too.)
+- M23 **The new masterwork armor:** I draft it (type, maker, effect, story, source) in the chat for the user's review and
+  build it after approval. (Not built at my discretion unseen.)
+- M24 **The Shadow Crystal:** 0.05% from every enemy that gives loot, bosses included; not summons or objects. (Not
+  regular enemies only.)
+- M25 **Delivery:** all three parts (Sparkling with Treasure Seeker and Moneyshot; Lament and Noble Hero; the new armor
+  and the Shadow Crystal) in one pull request at the end; the only stop on the way is the new armor's draft (M23).
+  (Not a stop after each part, not a pull request per part.)
+- M26 **The new armor, the Hexbane Coat** (the draft reviewed 2026-11-06; the user changed only its source, "It only
+  drops from one enemy? That seems a bit too rare"): a masterwork coat (clothing), Boreal Bolt its main maker; spell damage
+  you take −10%, and when an enemy's spell damages you, 25% of that damage strikes the caster back in the spell's element,
+  its defenses applying. Story: "A Boreal Bolt hunter's long coat, lined with silvered thread. Witches who curse its
+  wearer feel their own spells come home." It drops at 1% from every non-boss undead, demon and devil (not objects),
+  forged at your level, and is in the Sparkling pool; placeholder look: the normal forged coat in silver-grey. (Not 5%
+  from the Abyss Witch only, as drafted; not 3% from undead and demon casters of Level 45 and up, not 2% from every
+  caster from Level 40, not sold in Ravenwatch.)
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).

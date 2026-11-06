@@ -2,8 +2,8 @@ async function runMasterworkRarityChecks() {
   const assert = (condition, message) => { if (!condition) throw Error(message); };
   await waitForSourceFiles();
   const special = items.filter(item => isMasterworkEquipment(item) || item.category === "key-item");
-  // 32 masterworks since the Shop Rework's Doctor's Orders (2026-11-06), and five key items.
-  assert(special.length === 37 && special.every(item => item.rarity === "masterwork"), "All 32 masterwork items and five key items load as Masterwork");
+  // 37 masterworks since port task 5 (Moneyshot, Lament, Noble Hero, the Hexbane Coat, Treasure Seeker), and five key items.
+  assert(special.length === 42 && special.every(item => item.rarity === "masterwork"), "All 37 masterwork items and five key items load as Masterwork");
   assert(normalizeRarity("Masterwork") === "masterwork" && itemRarityLabel("masterwork") === "Masterwork", "Masterwork parses and displays correctly");
   const original = normalizeCharacter(defaultCharacter());
   const main = defaultCharacter(); main.raceId = "human";
