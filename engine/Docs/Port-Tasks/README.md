@@ -60,9 +60,9 @@ remember (the user's answers, 2026-11-05):
   Limitless scaling.
 - Task 13 adds classes until there are 250; task 14's two classes come on top (252 in the end), as intended.
 
-**When:** task 1 is done in the old game before the port (user decision 2026-11-05), its new art as placeholders; the
-other tasks are decided one at a time (still open for them: before the port, after the faithful port, or while
-porting).
+**When:** task 1 is done in the old game before the port (user decision 2026-11-05), its new art as placeholders; task 2
+is built in the old game too (user decision 2026-11-06, G1), also with placeholder art; the other tasks are decided one
+at a time (still open for them: before the port, after the faithful port, or while porting).
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
@@ -72,12 +72,21 @@ porting).
   rules are tested against. Still to do in the port: only the art (below). The task's `.txt` stays as the user wrote it
   (no "done" mark in it); this README and `Engine-Plan.md` record that it's done.
 
+**In progress in the old game:**
+- Task 2, Guild Rework (started 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`): built in the old game
+  like task 1 (user decision G1). Its 34 design answers are in `Engine-Plan.md`, "Decisions for task 2, Guild Rework";
+  how it's built and its state are in `../../../old-game/Docs/Notes.md`, "Guild Rework". It touches only `old-game/` and
+  the docs, never the engine, so engine work continues beside it (the user, 2026-11-06).
+
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code each such definition carries `placeholderArt: true`):
 - Task 1: the looks of Plasma Blade, Tidepiercer, First Comet, Peace and Balance, Kugelblitz and Avalanche, in their
   item art and battle sprites. Today each is its type's normal forged masterwork look with simple hints: a short red
   line from the Plasma Blade's gem (the design: a red laser beam from the gem, like a laser sword) and three prongs on
   Tidepiercer's head (the design: a lance shaped like a trident, with a crossguard instead of a pommel).
+- Task 2: the two guild interiors (the castle-city guild hall and the town guild), simple ink scenes on purpose (user
+  decision G2, "Placeholder, so don't put much effort into it"); `placeholderArt: true` on their scene definitions in
+  `scene-banners.js`. The port remakes them fully, keeping the layout (G21) and the clickable objects.
 
 **Found before the work:**
 - Tasks 1 and 2 were checked against the engine work on 2026-11-03: neither touches it (the engine's tests use their
