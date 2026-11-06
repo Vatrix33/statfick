@@ -433,6 +433,14 @@ sealed class EnumCodec<TEnum, TNumber> : Codec<TEnum>, IKeyCodec<TEnum> where TE
 
     public override string Signature { get; }
 
+    // What the codec holds, for the record shapes (Records/ValueShape.cs): its members and their JSON names.
+
+    /// <summary>Whether <paramref name="value"/> (a <typeparamref name="TEnum"/>) is a member.</summary>
+    public bool IsMember(object value) => _names.ContainsKey((TEnum)value);
+
+    /// <summary>A member's JSON name (its camelCase name).</summary>
+    public string JsonNameOf(object value) => NameOf((TEnum)value);
+
     protected override void WriteValue(BinaryRecordWriter writer, TEnum value)
     {
         NameOf(value);
@@ -469,6 +477,8 @@ sealed class EnumCodec<TEnum, TNumber> : Codec<TEnum>, IKeyCodec<TEnum> where TE
 /// <summary>A value type that may be null: a presence byte, then the value; null or absent in JSON.</summary>
 sealed class NullableValueCodec<T>(Codec<T> inner) : Codec<T?> where T : struct
 {
+    /// <summary>The codec of the value when it isn't null (for the record shapes).</summary>
+    public Codec Inner => inner;
     public override string Signature => inner.Signature + "?";
     public override bool AcceptsNull => true;
     public override bool HoldsRecords => inner.HoldsRecords;
@@ -504,6 +514,8 @@ sealed class NullableValueCodec<T>(Codec<T> inner) : Codec<T?> where T : struct
 /// <summary>A reference that may be null (a nullable annotation): a presence byte, then the value; null or absent in JSON.</summary>
 sealed class NullableReferenceCodec<T>(Codec<T> inner) : Codec<T> where T : class
 {
+    /// <summary>The codec of the value when it isn't null (for the record shapes).</summary>
+    public Codec Inner => inner;
     public override string Signature => inner.Signature + "?";
     public override bool AcceptsNull => true;
     public override bool HoldsRecords => inner.HoldsRecords;
@@ -557,6 +569,8 @@ static class ListShape<TList, TElement>
 /// <summary>A list of numbers or vectors: its count, then the elements as one block.</summary>
 sealed class BlockListCodec<TList, TElement>(Codec<TElement> element) : Codec<TList> where TElement : unmanaged
 {
+    /// <summary>The elements' codec (for the record shapes).</summary>
+    public Codec Element => element;
     public override string Signature => $"list<{element.Signature}>";
 
     protected override void WriteValue(BinaryRecordWriter writer, TList value) => writer.WriteBlock(ListShape<TList, TElement>.Items(value));
@@ -580,6 +594,8 @@ sealed class ListCodec<TList, TElement>(Codec<TElement> element) : Codec<TList>
     /// <summary>The most elements a list of values that may take no bytes can claim.</summary>
     const int MaxEmptyElements = 1 << 16;
 
+    /// <summary>The elements' codec (for the record shapes).</summary>
+    public Codec Element => element;
     public override string Signature => $"list<{element.Signature}>";
     public override bool HoldsRecords => element.HoldsRecords;
     public override IEnumerable<RecordFamily> Families => element.Families;
@@ -695,6 +711,12 @@ sealed class MapCodec<TMap, TKey, TValue>(Codec<TKey> key, Codec<TValue> value, 
 {
     readonly IKeyCodec<TKey> _keys = (IKeyCodec<TKey>)key;
 
+    // What the codec holds, for the record shapes (Records/ValueShape.cs).
+    public Codec KeyCodec => key;
+    public Codec ValueCodec => value;
+    /// <summary>An ordered list of pairs rather than a dictionary.</summary>
+    public bool IsPairs => pairs;
+
     public override string Signature => $"map<{key.Signature}, {value.Signature}>";
     public override bool HoldsRecords => value.HoldsRecords;
     public override IEnumerable<RecordFamily> Families => value.Families;
@@ -710,7 +732,8 @@ sealed class MapCodec<TMap, TKey, TValue>(Codec<TKey> key, Codec<TValue> value, 
         }
     }
 
-    TMap Make(List<KeyValuePair<TKey, TValue>> items)
+    /// <summary>The field's value from its pairs in order (no key twice); also for the record drafts.</summary>
+    public TMap Make(List<KeyValuePair<TKey, TValue>> items)
     {
         if (pairs)
             return ListShape<TMap, KeyValuePair<TKey, TValue>>.FromArray([.. items]);
@@ -836,6 +859,8 @@ sealed class MapCodec<TMap, TKey, TValue>(Codec<TKey> key, Codec<TValue> value, 
 /// <summary>A record (or union) of a type, read in the version the data's table gives and upgraded to the current one.</summary>
 sealed class RecordCodec<T>(RecordFamily family) : Codec<T> where T : notnull
 {
+    /// <summary>The record type (for the record shapes).</summary>
+    public RecordFamily Family => family;
     public override string Signature => family.Name;
     public override bool HoldsRecords => true;
     public override IEnumerable<RecordFamily> Families => [family];

@@ -989,6 +989,121 @@ or the cloud under Xvfb).
 
 Filled in as the steps are done.
 
+### Step 1: record shapes, drafts and marks (`Engine/Statventure/Records/`)
+
+All public, in `Statventure.Records`; nothing about the binary or JSON forms or the layout signatures
+changed (the layout guard passes with marks on the `test.*` kinds). The serializer's internals are reached
+through exposures only: `RecordLayout.Fields`, `Subtypes` and `Make` (the compiled factory), `FieldLayout.Get`
+(the compiled getter), and on the codecs what they hold (`Inner`, `Element`, `KeyCodec`, `ValueCodec`,
+`IsPairs`, `Family`, the enum codec's `IsMember` and `JsonNameOf`; `MapCodec.Make` made public).
+
+- **Shapes** (`RecordShape.cs`, `ValueShape.cs`): `RecordShape.Of(type)` (once per current record type; a
+  past version or a type without `[Record]` throws): `Name`, `Version`, `DisplayName`, `Help`, `Folder`,
+  `Rule`, `IsUnion`, `Subtypes` (in tag order), `Fields` (number order), `Field(name)` (JSON or code name),
+  `PathOf(name)` and `NameOf(path)` (null without a folder). `FieldShape`: `Number`, `Index`, `Name` (code),
+  `JsonName`, `DisplayName`, `Value`, `Required`, `Default` (the serializer's shared instance: not to be
+  changed), `Get(record)`, and the marks: `Help`, `Unit`, `Limits` (`FieldLimits`: `Min`, `Max`,
+  `MinExclusive`, `MaxExclusive`, `Contains`, `Describe`), `Choices`, `IsColour`, `IsBulk`, `BulkSummary`,
+  `Summarize(value)`, `References` (`ReferenceShape`: `Kind` as a `RecordShape`, `Folder`, `Rule`, `Keys`,
+  `When`, `Is`, `PathOf`, `NameOf`), `ReferenceCondition`, `ReferenceFor(conditionValue)`,
+  `ReferenceIn(record)`. `ValueShape`: `Kind` (`ValueKind`: `Bool`, the eight integer kinds, `Float32`,
+  `Float64`, `String`, `Enum`, `Bytes`, `Vector2`–`Vector4`, `Quaternion`, `Matrix4x4`, `Nullable`, `List`,
+  `Map`, `Pairs`, `Record`, `Union`), `Type` (as declared: `List<string>`, `int?`), `Element` (a nullable's
+  value, a list's elements, a map's values), `Key`, `Record` (for a union the union's shape), `Members`
+  (`EnumMember`: code name, JSON name, display name, value; in declaration order, not by number),
+  `Signature`, `HoldsRecords`, `IsInteger`, `IsFloat`, `IsNumber`.
+- **Display names** (M11-10): words split where a capital starts one (after a small letter or a digit, or the
+  last capital of a run followed by a small letter) and at `_`; the first word capitalized, the others in
+  small letters unless they have none: `MaxVoices` "Max voices", `HDRFactor` "HDR factor", `ScaleX`
+  "Scale X", `UInt8` "U int8", `FCurve` "F curve" (until step 6 marks it). A type's display name is its
+  `Kind` mark's, else made from its code name the same way; an enum member's from its code name.
+- **Marks** (`RecordMarks.cs`): `[Kind(displayName, folder) { Rule = typeof(…) }]`, `[Help(text)]` (fields and
+  types), `[Unit(text)]`, `[Limits(min, max) { MinExclusive, MaxExclusive }]`, `[Choices(…)]`, `[Colour]`,
+  `[Bulk(summary)]`, `[References(typeof(Kind)) { Folder, Rule, Keys, When, Is }]` (several per field),
+  `[Check]` (on methods). A mark that doesn't fit its field throws an `InvalidOperationException` naming the
+  type and field when the shape's fields are first asked for: limits on what holds no numbers, a min above
+  the max or NaN; choices or references on what holds no strings; a colour that isn't a `Vector3`,
+  `Vector4` or string (or a list of them; maps refused); `Keys` on what isn't a map with string keys; a
+  reference without a folder (neither its own nor its kind's) or with one the path rule refuses; a rule that
+  isn't a `NameRule` type with a public parameterless constructor; `When` without `Is` or the reverse, an
+  empty `Is`; two marks without a condition; conditions on two fields, on a field that isn't one, on one
+  that isn't a string or an enum (nullable or not), on an enum value that isn't a member's code name, or
+  two marks holding for one value. A `Kind` folder the path rule refuses throws when the shape is made.
+  What "holds" means: the field itself, through a nullable, each of a list's elements (nested lists too) and
+  each of a map's values; `Keys` the map's keys.
+- **Name rules** (`NameRule.cs`, P9): a rule is a `NameRule` type (`PathOf(folder, name)`,
+  `NameOf(folder, path)`, null when it can't), named by the marks and made once. `PlainNames` (the default):
+  a name is one segment directly in the folder, under the path rule (`models/effects/sparks` is "sparks").
+  `PathNames` (`NameRule.FullPath`): a name is the whole entry path at any depth below the folder (a
+  sequence's stages, a particle cue's effect). The music's rule (S6-1) is step 5's to add as a `NameRule`
+  over `MusicNames`.
+- **Drafts** (`RecordDraft.cs`, P10): immutable; every change makes a new draft sharing the rest.
+  `DraftValue.Missing` (not given: a required field is a problem when built, any other means its default,
+  as an absent JSON key; a list's element or a map's value not given is a problem), `DraftValue.Null`,
+  `DraftLeaf` (numbers, bools, strings, enum members, vectors, matrices, byte arrays, and a bulk field's
+  original object, kept by reference into the record built), `DraftList` (`With`, `Insert`, `RemoveAt`,
+  `Move`), `DraftMap` of `DraftEntry` (key and value, in order; the same operations), `RecordDraft` (`Shape`,
+  `Fields`, `this[name or field]`, `With(name or field, value)`, `At(path)`, `With(path, value)`;
+  `From(record)`, `Blank(shape or type)`: the defaults, required fields `Missing`; a union has no blank and
+  no draft of its own, only its subtypes). A nullable's value is the inner node itself; a union's is the
+  record draft of its subtype. Paths through maps find the first entry whose key's text matches.
+- **Building** (`RecordDraft.Build()` → `DraftBuild`: `Value`, `Problems`, `Built`): bottom up through the
+  compiled factories, every problem collected at its path: "needs a value" (a required field not given, a
+  list's element or a map's value not given), "null in a field that can't be null" (the serializer's words;
+  a field, an element, a value), "3 isn't a member of Shade" (a value or a key), "the key a is there twice"
+  (at the map), the serializer's "the string isn't valid UTF-16 (a lone surrogate)" (a value or a key), and
+  a record whose type refuses its values: an `ArgumentException` from its constructor or setters, with its
+  message, at the record's path (so an `FCurve` refusing its keys is reported at the curve,
+  `$.tracks[0].locationX`, its message naming the key). Other exceptions from a record's construction
+  propagate. A node of the wrong kind or CLR type for its place (a `DraftList` where a string goes, a
+  `float` where a `double` goes, a record draft of another type or a type the union doesn't list) is the
+  caller's mistake: an `InvalidOperationException` naming the path.
+- **Problems and paths** (`RecordPath.cs`): `RecordProblem(Path, Message)`, its text as
+  `RecordFormatException.Message` writes it ("message (at $.layers[0].length)", the message alone at the
+  root). `RecordPath`: `Root` (the whole entry: "$", no segments), `Field(name)` (a code name made camelCase,
+  so `Field(nameof(Layers))` works), `Index(i)`, `Key(text)` (a key's text: a string as it is, an integer in
+  decimal, an enum member by its JSON name, written JSON-quoted as the serializer writes it), `Append`,
+  `Segments`, `Depth`, `IsRoot`; equal when their text is. A union's value and a nullable add no segment.
+- **Checks** (`RecordChecks.cs`, P20): `RecordChecks.Check(record, data?, references?)` walks a built value
+  through the getters: each record, wherever it is held, gets its type's own checks (the unions it is a
+  subtype of first, then its own; one type's in the order of their method names), then field by field the
+  marks' checks and the nested records'. A type's own check is `[Check] static void Name(T value,
+  CheckContext check)` (on any record type, nested ones too; the first parameter's type may be a base the
+  record derives from); anything else marked `[Check]` throws when the type's checks are first found.
+  `CheckContext`: `Data` (the `VirtualFileSystem` to check against, null when checked alone: checks across
+  entries run only with it), `References`, `Report(message)` and `Report(path, message)`, paths relative to
+  the value checked. The generic checks: a number outside its limits ("must be above 0 and at most 1 (it is
+  2)"), a string not among its choices ("\"x\" isn't one of the choices: a, b"), and, only when an
+  `IReferenceLookup` is given (`KindAt(path)`: the record name of the record entry there, or null), a name
+  its rule can't store ("\"an imp\" can't name a creature in creatures"), one with no entry ("no sound
+  effect \"boom\" (audio/effects/boom)") and one whose entry is another kind ("… isn't a creature: it holds a
+  test.part record"). A display name inside a sentence has its first letter made small unless the second is a
+  capital (an acronym). A draft is checked once it builds; while it doesn't, only its build problems exist.
+
+Choices the doc left to the step (recorded here; none changes the game): the type and member names above;
+drafts immutable (P13's history is a list of drafts); `Missing` in a field that isn't required means its
+default, as an absent JSON key does; limits with exclusive ends (today's checks need them: "above 0 and at
+most 1"), NaN never inside, integers compared as doubles, on numbers and lists and maps of them but not on
+vectors' components; a colour also on lists of them; `Bulk` on any field (a single value too, for step 6's
+node transforms), its summary formatted with the count of a list, map or byte array, else with the value;
+a reference names its kind by type (`typeof(EffectPatch)`), its folder and rule defaulting to the kind's
+`Kind` mark; conditions only on one string or enum field, with disjoint values and at most one mark without
+a condition, which holds when none of the others does (when none holds, the strings name nothing); name
+rules as types; a type's own checks found on any record type and run wherever its values are held; the
+generic checks on built values only.
+
+For later steps: step 5 adds the music's rule (a `NameRule` over `MusicNames.ToPathName` and
+`FromPathName`) and marks `LayerSpec.Instrument` as `[References(typeof(PercussionSpec), When =
+nameof(Type), Is = ["hit"])]` with an unconditional `[References(typeof(InstrumentSpec))]`, and the drums'
+keys with `Keys = true`. Step 6: a sequence's `Stages` are whole paths exactly one level below
+`models/stages` (`PathNames` accepts deeper ones; the sequence's own check refuses them), a particle cue's
+effect any depth below `models/effects` (`PathNames`); an `FCurve` that refuses its keys is reported at the
+curve's path, so a finer path (the key) needs the curve's rules as a check the form runs on its keys. Step 10:
+the `VirtualFileSystem` has no public way to tell a record entry's kind without loading it as a type (step 2
+added none), so the lookup comes from what the session knows: its entries as classified when opened (step 8;
+a record's kind is `RecordSerializer.RootTypeName` of its binary form, as its `IMountEntries` gives it) and
+the base's.
+
 ### Step 2: packs for the editor (engine)
 
 The engine's side in full: `Docs/Assets.md`, "How it works", "Packs for the editor" (code in
@@ -1216,6 +1331,33 @@ dependencies. No step started; nothing implemented.
 a mod referring to another mod's entries can't be saved in M11); G1 and G6 by the manager; G4 and G5 by the
 user (the game enforces declared limits; the play-time checks also run at load, the cost measured first);
 G2 and G3 kept for the port. The fourteen steps under "Steps" are the plan; none has started.
+
+**Step 1, record shapes, drafts and marks (2026-11-06, on its worker branch `m11-step1`):** done as "How it
+works", step 1, says. Tests in `Tests/Statventure.Tests/Records/`: `RecordShapeTests` (every field kind's
+value shape on `test.kinds`, fields in number order with names, defaults and required ones, display names,
+kinds' names, folders and rules, every mark read, conditions, bulk summaries, the name rules, 26 marks that
+don't fit refused), `RecordDraftTests` (all 50 fixtures and audio.pak's 118 records read into drafts and built
+back to the same binary form, a blank draft of each of the 78 engine record types a draft can be of, every
+build failure at its path, an `FCurve` refusing its keys at the curve, wrong nodes refused, reading through
+the shapes with bulk values kept by reference, changes by field and by path, through lists and maps of maps,
+list and map operations),
+`RecordCheckTests` (limits, choices and references with their paths and conditions, each type's own checks
+nested and in unions, checks across entries given the data, misdeclared checks refused, paths as the
+serializer writes them); marks and checks on the `test.*` kinds in `TestRecords.cs` (no signature changed),
+misdeclared ones and shapes the guarded kinds lack (lists and maps of maps, an enum declared out of order, a
+kind without a folder) in `MarkVariants.cs`. 106 new tests; the full suite passes on the GPU and on lavapipe
+(2782 on `0d8e175`: main's 2676 and 106 new), run inside a headless Wayland compositor so no test window showed on the user's screen
+(`Docs/Notes.md`, 2026-11-06). Mutations: 277 in the first run (`~/.cache/stat-fick-build/claude-work/m11/`
+`step1-mutations.json`, made by `make-step1-mutations.py` beside it, run in four chunks), 266 killed; the 11
+survivors: 7 gaps, closed by new tests (an enum declared out of numeric order, a kind without a folder whose rule
+ignores folders, an abstract rule with a public constructor, a record not made when a field it can't do without
+failed, paths through a list of maps and a map of maps, limits on a nullable list), 3 redundant code, removed (a
+blank's own union check, which the draft's constructor makes in the same words; the "folder itself" length test,
+which the path rule covers; a non-member enum key's text, which its `ToString` already gives), and 1 gap in code then
+rewritten (the folder test of the name rules, a path of the folder's length differing in its letters); the rerun
+(`step1-rerun.json`, 16: the 7 survivors and 9 mutations of the code changed) killed all 16, so the list as it stands
+(276) is all killed. Nothing written to the player's real folders. No question came up that the design doesn't
+answer; nothing of P1–P38 or G1–G6 changed. Not checked: Windows.
 
 **Step 2, packs for the editor (engine): done (2026-11-06, on the worker branch `m11-step2`).** ("How it
 works", step 2; `Docs/Assets.md`, "Packs for the editor".) A pack rewritten from an open pack with entries

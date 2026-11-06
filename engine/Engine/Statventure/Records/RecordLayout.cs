@@ -27,6 +27,18 @@ abstract class RecordLayout(RecordFamily family, int version, Type type)
     public abstract void WriteJsonMembers(JsonRecordWriter writer, object value);
     public abstract void VisitObject(WriteSession session, object value);
 
+    // What a layout holds, for the record shapes and drafts (Records/RecordShape.cs, RecordDraft.cs).
+
+    /// <summary>A plain record's fields in number order; none for a union.</summary>
+    public virtual IReadOnlyList<FieldLayout> Fields => [];
+
+    /// <summary>A union's subtypes by tag; none for a plain record.</summary>
+    public virtual IReadOnlyDictionary<int, RecordFamily> Subtypes => new Dictionary<int, RecordFamily>();
+
+    /// <summary>A plain record made by the compiled factory: an absent field keeps its declaration's default.</summary>
+    public virtual object Make(object?[] values, bool[] present) =>
+        throw new InvalidOperationException($"{Family.Name} is a union: its values are its subtypes'");
+
     public static RecordLayout Build(RecordFamily family, int version, Type type)
     {
         var subtypes = type.GetCustomAttributes<SubtypeAttribute>(false).ToArray();
@@ -49,6 +61,9 @@ abstract class FieldLayout(PropertyInfo property, int number, string jsonName, C
     public bool Required { get; set; }
     /// <summary>The value an absent JSON key means (when not <see cref="Required"/>).</summary>
     public object? Default { get; set; }
+
+    /// <summary>The field's value in <paramref name="record"/>, through the compiled getter.</summary>
+    public abstract object? Get(object record);
 }
 
 /// <summary>A field of a record of type <typeparamref name="TRecord"/>, read through a compiled getter.</summary>
@@ -74,6 +89,8 @@ sealed class TypedField<TRecord, TValue>(PropertyInfo property, int number, stri
         var record = Expression.Parameter(typeof(TRecord), "record");
         return Expression.Lambda<Func<TRecord, TValue>>(Expression.Property(record, property), record).Compile();
     }
+
+    public override object? Get(object record) => _get((TRecord)record);
 
     public override void Write(BinaryRecordWriter writer, TRecord record) => _codec.Write(writer, _get(record));
 
@@ -137,6 +154,8 @@ sealed class PlainLayout<T> : RecordLayout
     public override bool IsUnion => false;
     public override bool IsEmpty => _fields.Length == 0;
     public override IEnumerable<RecordFamily> Families => _fields.SelectMany(f => f.Codec.Families);
+    public override IReadOnlyList<FieldLayout> Fields => _fields;
+    public override object Make(object?[] values, bool[] present) => _make(values, present)!;
 
     /// <summary>
     /// The factory: <c>(values, present) => { var r = new T(…); r.F = …; return r; }</c>, where an
@@ -394,6 +413,7 @@ sealed class UnionLayout : RecordLayout
     public override bool IsUnion => true;
     public override bool IsEmpty => false;
     public override IEnumerable<RecordFamily> Families => _byTag.Values;
+    public override IReadOnlyDictionary<int, RecordFamily> Subtypes => _byTag;
 
     public override string Signature =>
         $"{Family.Name} {Version} union\n" + string.Concat(_byTag.Select(t => $"  {t.Key} {t.Value.Name}\n"));
