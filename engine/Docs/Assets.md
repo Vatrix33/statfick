@@ -248,6 +248,12 @@ versioned.
   order (ordinal), then the development folder if one is given. A path resolves to the topmost mount
   that has it; listing a folder gives the union of the mounts' paths, each from its topmost mount. A
   mod adds or replaces entries, it can't delete one; there is no in-game mod list in M9 (Q8).
+- **A mod's info** (M11 step 7; `Docs/Editor.md`, G1, M11-15): a mod may carry its name, author, version and
+  description as the record entry `mod/info`, of the engine's kind `mod.info` (`Packs/ModInfo.cs`; the editor
+  writes it into every mod it makes). The game never reads it: a mod mounts and loads the same with it or
+  without it, and an entry there that can't be read is an error only when something reads it, naming the mod
+  (G2 as today). The game's own packs leave `mod/` to mods; the pack's dump and `extract` show the entry as any
+  record. A mod list in the game can read each mod file's own entry later.
 - **The development folder** (Q7): loose files in the entries' own forms (a file as it is, a record as
   its JSON form at `<path>.json`), mounted only when the game is started with a development-folder
   option (command line or environment variable), re-read on Reload; no importer runs at run time.

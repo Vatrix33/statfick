@@ -1320,6 +1320,55 @@ Lesson for later steps' tests: never read `Task.Result` of a dialog a broken rul
 shell, the window's title, the zoom keys through `UiHost.PageZoom`, a splitter dragged with the mouse and its
 cursor); Windows.
 
+### Step 7: the mod's info entry (engine)
+
+Code: `Engine/Statventure/Packs/ModInfo.cs`. Its layout `Tests/Statventure.Tests/Data/Records/Layouts/mod.info.txt`
+and fixtures `Data/Records/Fixtures/mod.info/` (`every-field`, `empty`), guarded as every kind's are
+(`RecordLayoutTests`); tests `Tests/Statventure.Tests/Packs/ModInfoTests.cs` (`ModInfoTests`, and
+`ModInfoModsTests`, which reads the log and so runs alone, collection "Mod info log").
+- **The record (G1, M11-15):** `ModInfo`, the engine's kind `mod.info`, version 1: `Name`, `Author`, `Version`,
+  `Description` (fields 1–4; JSON `name`, `author`, `version`, `description`), each a `string` whose default is
+  empty text. Any of them may be empty; a key left out of a JSON form written by hand reads as empty text; the
+  writer writes all four (Q33). No check of its own and no loader: the game never reads it, and G4 declares no
+  limit for it. It is found with the engine's other kinds by its `[Record]` attribute (`RecordTypes.Engine`,
+  which the dump, `extract`, `AddFolder` and the packer use): that attribute is the registration, there is no
+  list of kinds to add it to. Public, for the editor and a later mod list.
+- **Its path:** `ModInfo.Path`, `mod/info`. The committed packs hold nothing there or in `mod/` (a test), and
+  no folder the game lists (only the music's, under `audio/`) holds it, so the entry never stands in for any of
+  the game's data.
+- **What the game does with it: nothing.** Mounting reads a pack's index, not its records, so a mod with the
+  entry mounts as without it; the game reads its data by its own paths and lists only the music's folders; the
+  log names each mod by its file. `ModInfoModsTests` shows it on the game's mounts (`Application.DataMounts`)
+  over copies of the committed `audio.pak` and `ui.pak`, a `classes/` folder and two mods (a theme at another
+  tempo and a class; an effect patch): the "Data" lines logged while mounting, loading the music and reloading
+  (as `Run` and `ReloadData` log them), every other path with its kind, origin and content, and the music
+  library are the same with the entry in both mods, in one and in neither. An entry there that the engine can't
+  read as a mod's info (a newer version, damaged bytes, a file, a record of another kind, bytes that aren't a
+  record) changes nothing either, and reading it (`Load<ModInfo>`) is an error naming the mod and the entry, as
+  for any part of a mod (G2 as today). In the file system the entry is there as any mod entry: the topmost
+  mod's at `mod/info`; each mod file holds its own, which is what a mod list reads later.
+- **What step 11 uses:** `writer.AddRecord(ModInfo.Path, info)` when it writes a mod; a mod's own info read
+  from its pack: `RecordSerializer.FromBinary<ModInfo>(pack.Read(ModInfo.Path))`, after `pack.Find(ModInfo.Path)`
+  (null for a mod without one, which still loads, M11-15). The pack's dump and `extract` (`mod/info.json`) show
+  it as any record, and packing that folder again gives the same pack.
+
+Choices the design left to the step (named here, decided by the step): the type's name `ModInfo` and the
+constant `ModInfo.Path`; the fields' numbers in the design's order (name 1, author 2, version 3, description 4)
+and their names; each field a non-null `string` defaulting to empty text, rather than `required` (a hand-written
+info would have to give all four keys, and a blank draft would show all four as empty required fields, P15) or
+nullable (`string?`, "not given" apart from empty, a "set" checkbox per row in the form); no check and no loader;
+no helper to read a pack's info (the two calls above). **Confirmed by the manager (2026-11-06):** each of the four
+fields a plain `string` defaulting to empty text (not `required`, not `string?`), for the reasons above; the game
+never reads the kind, so it is an editor choice; the names and "no helper" confirmed too. A later change to the
+defaults is a version 2.
+
+With step 1's shapes and drafts (rebased on it): `mod.info` passes the tests that go over every engine kind and
+fixture (`RecordDraftTests`: its blank draft, with no required field, builds to the same binary form as the JSON
+form without keys, four empty strings; its two fixtures read into drafts build back to the same binary form). It
+has no marks, and no `[Kind]`: without it the kind's display name is made from the code name, "Mod info", and it
+has no folder, which is right, as a mod has one info at the fixed path `mod/info` rather than entries named in a
+folder (a folder `mod` would let P15's New make `mod/<name>` entries); step 11 edits it in a form of its own.
+
 ## Status
 
 **M11 started (2026-11-06):** the user's go; the decisions recorded (M11-1–M11-21 and the user's rule for
@@ -1388,3 +1437,27 @@ verdict (a worker of its own on the painter); the editor can't start without mou
 the capture harness's iframe root isn't composited as a main frame's is (the stylesheet rule, convention 2). Not
 checked: the program in a real window (to check by hand), Windows. Remembering the zoom and the window's size (P4,
 G6): step 8, the manager's decision (a) of 2026-11-06 ("Steps", step 8).
+
+**Step 7, the mod's info entry (engine): done (2026-11-06, on the worker branch `m11-step7`).** ("How it
+works", step 7; `Docs/Assets.md`, "The virtual file system", "A mod's info".) The record `mod.info` (`ModInfo`:
+name, author, version, description, as text, each empty by default) at `mod/info`, with its layout and two
+fixtures (`every-field`, `empty`) under the layout guard; both forms' round trips, its JSON form exactly, keys left
+out of a hand-written form, a pack's info in the dump, extracted and packed again to the same bytes, loaded from a
+pack and a loose folder; a mod with the entry (in both of two mods, in one, in neither) giving the game the same
+mounts, logged lines, paths, contents and music as without it; an entry the engine can't read (five kinds)
+changing nothing until it is read, then an error naming the mod; the committed packs holding nothing in `mod/`.
+13 new tests (`ModInfoTests` 6, `ModInfoModsTests` 7). The full suite passes on the GPU and on lavapipe, inside a
+headless Wayland compositor (`cage`), rebased on step 1 (`65ee082`): 2796 tests (`main`'s 2782, 13 new, and one
+more case of step 1's blank-draft test over every engine kind, `mod.info`'s). Mutations: 54 run (`~/.cache/stat-fick-build/claude-work/m11/step7-mutations.json` and
+`step7-mutations-2.json`, made by `make-step7-mutations.py` and `make-step7-mutations-2.py` beside them): 43
+killed (the kind's name, version, attribute and visibility; five paths; each field's number, attribute, name,
+nullability, required flag and default, two fields swapped, two on one number, a fifth field; and four ways of
+the game reading or checking a mod's info: mounting that logs its name, reads it, verifies every entry, or a file
+system hiding it), none survived; 11 of the first list didn't build (renames, `required` and three type changes
+break the tests' own code), and the 8 renames and `required` were rewritten to build (a renamed field with the C#
+name kept as a plain property; `required` with a `[SetsRequiredMembers]` constructor), all killed; the three type
+changes (`string[]`, `int`) have no form every user of the record still compiles against (the nullable ones are
+the type changes that build, killed). Nothing written to the player's real folders. A mod carrying the entry changes nothing the game
+does (no listing, check or log line of the game's); nothing of P1–P38 or G1–G6 changed; the step's own choices are
+at the end of "How it works", step 7 (among them each field defaulting to empty text, not required). Not checked:
+Windows (nothing of the step depends on the system).
