@@ -65,11 +65,19 @@ as the engine's current task. How it's built, its checks and their results: `../
 Rework"; `Docs/Port-Tasks/README.md` lists its placeholder art.
 **Beside the engine, old game only (2026-11-06): port task 3, Shop Rework, is done in the old game**, as tasks 1 and 2
 were (the user: "same rules apply"; decisions R1–R29 in "Decisions for task 3, Shop Rework" below; built on the cloud
-branch `claude/fervent-carson-f5ol9s` and offered as a pull request for the user to merge). The port doesn't build it
-again; only its placeholder art is remade (`Docs/Port-Tasks/README.md` lists it). It touches only `../old-game/` (its
+branch `claude/fervent-carson-f5ol9s`, merged through a pull request). The port doesn't build it again; only its
+placeholder art is remade (`Docs/Port-Tasks/README.md` lists it). It touches only `../old-game/` (its
 scripts, markup, stylesheet, consumables and test client) and these docs, never the engine (the engine's tests read
 none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count
 task 3 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Shop Rework".
+**Beside the engine, old game only (2026-11-06): port task 4, Artifact Rework, is done in the old game**, as tasks 1–3
+were (decisions A1–A32 in "Decisions for task 4, Artifact Rework" below; built on the cloud branch
+`claude/fervent-carson-f5ol9s` and offered as a pull request for the user to merge). The port doesn't build it again; only
+its placeholder looks are remade (`Docs/Port-Tasks/README.md`). It touches only `../old-game/` (its scripts, artifact
+data and test client) and these docs, never the engine (the engine's tests read none of what changed), so
+`Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count task 4 as the engine's
+current task. How it's built, the approved list, its checks and their results: `../old-game/Docs/Notes.md`, "Artifact
+Rework".
 Before each later milestone (M11 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code, in the order
 "Starting M9" below gives (M10 followed it too).
@@ -884,7 +892,7 @@ up):
 
 **Decisions for task 4, Artifact Rework (2026-11-06, a cloud session; the user asked for task 4 that day after task 3
 was merged; built in the old game like tasks 1–3, old game only; the task is `Docs/Port-Tasks/4_Artifact_Rework.txt`).**
-Asked before any code, four at a time:
+Asked before any code, four at a time (A16 is the user's approval of the drafted list; A17–A32 came up while building):
 - A1 **Art:** placeholder, like tasks 2 and 3: simple distinct looks, marked placeholder in the code and listed in
   `Docs/Port-Tasks/README.md` for the port's full remake. (Not proper art.)
 - A2 **A rarity's shared look:** each rarity has its own metal, gem cut and setting style; each artifact keeps its own

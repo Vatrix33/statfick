@@ -20,6 +20,8 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
    game; only its placeholder art is left to remake (below).
 4. `4_Artifact_Rework.txt`: a look for every artifact, new effects for the non-masterwork ones (at least 32 uncommon,
    24 rare, 16 epic, 8 legendary), level scaling for masterwork artifacts.
+   **Already done in the old game (2026-11-06): don't build it again.** The port carries it over with the rest of the
+   game; only its placeholder looks are left to remake (below).
 5. `5_New_Masterworks.txt`: Sparkling enemies with Treasure Seeker and Moneyshot, the Lament and Noble Hero
    masterworks, a new masterwork armor, the Shadow Crystal as a rare drop from every enemy.
 6. `6_New_Areas.txt`: a demon/abyss area in the marsh with corrupted enemies (at least three demon/impid and three
@@ -67,7 +69,8 @@ remember (the user's answers, 2026-11-05):
 **When:** task 1 is done in the old game before the port (user decision 2026-11-05), its new art as placeholders; task 2
 is built in the old game too (user decision 2026-11-06, G1), also with placeholder art, and so is task 3 (the user,
 2026-11-06, "same rules apply"; R1); the other tasks are decided one at a time (still open for them: before the port,
-after the faithful port, or while porting).
+after the faithful port, or while porting). Task 4 too was built in the old game (the user asked for it on 2026-11-06;
+A1 kept its art placeholder).
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
@@ -85,7 +88,7 @@ after the faithful port, or while porting).
   tested against. Still to do in the port: only the art (below). The task's `.txt` stays as the user wrote it (no "done"
   mark in it); this README and `Engine-Plan.md` record that it's done. It touched only `old-game/` and the docs, never
   the engine (the user, 2026-11-06).
-- Task 3, Shop Rework (2026-11-06, a cloud session, offered as a pull request): reforging at four anvils (Blacksmith,
+- Task 3, Shop Rework (2026-11-06, a cloud session, merged through a pull request): reforging at four anvils (Blacksmith,
   Tailor, Institute of Magic, Hearth Home), the Tailor in every settlement with a Blacksmith, the Institute of Magic on
   its island in Mirrormere's lake, Hearth Home with Ornn as its site boss (no longer a Great Hunt), Doctor's Orders and
   the five traps, all in the old game's code and data. The user's 29 design answers are in `Engine-Plan.md`, "Decisions
@@ -93,10 +96,18 @@ after the faithful port, or while porting).
   game's checks for it, `old-game/test-client/tests/shop-rework-browser.js`, are the reference the ported rules are
   tested against. Still to do in the port: only the art (below). The task's `.txt` stays as the user wrote it. It
   touched only `old-game/` and the docs, never the engine (the user, "same rules apply" as task 2).
+- Task 4, Artifact Rework (2026-11-06, a cloud session, offered as a pull request): the old artifact set replaced by 80
+  new ones (32 uncommon, 24 rare, 16 epic, 8 legendary, each with its own effect), the four masterwork artifacts on a
+  level ramp (fixed at the level obtained; about uncommon strength at Level 1, legendary at 80, rising beyond), rare
+  enemy drops, old saves cleaned, and placeholder looks for every artifact. The user's 32 design answers are in
+  `Engine-Plan.md`, "Decisions for task 4, Artifact Rework" (A1–A32); the approved list and where each rule lives are in
+  `../../../old-game/Docs/Notes.md`, "Artifact Rework"; the old game's checks,
+  `old-game/test-client/tests/artifact-rework-browser.js`, are the reference the ported rules are tested against. Still
+  to do in the port: only the looks (below). Old game only, as tasks 2 and 3.
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
-code task 1's and task 3's masterwork definitions carry `placeholderArt: true` and task 2's and task 3's scenes are listed
-in `PLACEHOLDER_ART`):
+code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and
+task 3's scenes are listed in `PLACEHOLDER_ART`):
 - Task 1: the looks of Plasma Blade, Tidepiercer, First Comet, Peace and Balance, Kugelblitz and Avalanche, in their
   item art and battle sprites. Today each is its type's normal forged masterwork look with simple hints: a short red
   line from the Plasma Blade's gem (the design: a red laser beam from the gem, like a laser sword) and three prongs on
@@ -119,8 +130,15 @@ in `PLACEHOLDER_ART`):
   Church's); the island and its bridge as painted on Mirrormere's map (`map-regions.js`); Doctor's Orders' look (the
   normal forged robe in white, `placeholderArt: true`); the reforge anvil drawing (`reforge.js`); and the five traps'
   looks (the General Store's generic goods art). The rules behind them are not placeholder.
+- Task 4 (user decisions A1, A2): every artifact's look (`artifactArt` in `old-game/scripts/forge-art.js`: an object per
+  artifact with a small mark, in its rarity's shared material: worn bronze with plain glass for uncommon, polished
+  silver with a cut blue-white gem for rare, gold filigree with a faceted violet gem and two side stones for epic, white
+  gold with a glowing core and a halo for legendary) and the four masterwork artifacts' own drawings (Second Wind, a
+  glass lung with wind; Wraithguard, a pale gauntlet trailing mist; Arrowtip Rain, a quiver with falling arrowheads;
+  Titanfall, a cracked stone fist). The port remakes them as proper item art: artifacts of a rarity similar with a few
+  details off, masterworks each completely their own (the task's own words). The rules behind them are not placeholder.
 
 **Found before the work:**
-- Tasks 1 and 2 were checked against the engine work on 2026-11-03 (task 3 on 2026-11-06): none touches it (the
+- Tasks 1 and 2 were checked against the engine work on 2026-11-03 (tasks 3 and 4 on 2026-11-06): none touches it (the
   engine's tests use their own copy of the stylesheet and saved captures; the game's code and tables come over at port
   time).

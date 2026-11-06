@@ -90,7 +90,8 @@ async function runEnemyHealingChecks() {
   assert(secondWind, "A low-HP healing artifact is loaded");
   enemy.character.inventory.push(secondWind.id); enemy.character.equipment.artifact1 = secondWind.id;
   hooks.expire(enemy);
-  assert(hooks.hp(enemy) === 110, "Artifact regeneration is reduced");
+  // A plain Second Wind is a Level 80 copy since the Artifact Rework (port task 4, A11): 9%, then the enemy's −80%.
+  assert(hooks.hp(enemy) === 118, "Artifact regeneration is reduced");
   ({ enemy, player } = reset());
   const weapon = getItem("weapon-forged-longsword-30-dwiro-rtoak-dwoak-s0");
   hooks.applyAttackHitEffects(enemy, player, weapon, 100, false, [{ onHitEffects: [{ type: "lifesteal-percent", amount: 50 }] }]);

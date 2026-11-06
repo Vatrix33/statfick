@@ -499,6 +499,61 @@ How it's built:
   catalogue items) and stops at its first assertion as before. Smoke, enemies (511 cases) and lifecycle pass; the
   combat suite stops at the known Barbarian failure, as before.
 
+**Artifact Rework (port task 4, 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`; the task is
+`engine/Docs/Port-Tasks/4_Artifact_Rework.txt`).** Built in the old game, as tasks 1–3 were; old game only, the engine is
+untouched. Done: the faithful port brings it over and doesn't build it again; its only port work is remaking the
+placeholder looks (A1; `engine/Docs/Port-Tasks/README.md`). The user's 32 answers are in `engine/Docs/Engine-Plan.md`,
+"Decisions for task 4, Artifact Rework" (A1–A32); A16 approved the drafted list below as it stands.
+- **The set** (`objects/artifacts.json`, written by a generator kept in the cloud session's `claude-work/artifacts/`, not
+  in git): the 32 old non-masterwork artifacts were replaced (A3) by 80 new ones; each record has `look` (`shape`,
+  `glyph`) and `placeholderArt`. Prices in silver:
+  - **Uncommon** (32): Brawler's Knuckle Ring (2,000): Strength +8%; Oakheart Locket (2,000): Vitality +8%; Thinker's Pin (2,000): Mind +8%; Quickhand Bracelet (2,000): Dexterity +8%; Scholar's Signet (2,000): Intelligence +8%; Hermit's Bead (2,000): Wisdom +8%; Hare's Anklet (2,200): Speed +6%; Copper Clover (1,800): Luck +10%; Hearthstone Charm (2,200): Maximum HP +10%; Wellspring Drop (2,200): Maximum Mana +12%; Riveted Buckle (2,000): Armor +10%; Feather Token (2,000): Evasion +6; Whetstone Ring (2,400): Weapon power +6%; Steady Eye Lens (2,000): Weapon hit chance +10; Glint Shard (2,400): Critical chance +4; Inkwell Charm (2,200): Spells cost 6% less Mana; Spark Coil (2,400): Spell power +6%; Bandit's Coin (1,600): +15% silver from battles; Studious Quill (2,000): +10% EXP from battles; Leech Hook (2,400): Weapon hits heal you for 3% of the damage dealt; Thornknot Brooch (2,200): Melee attackers take 8% of the damage they deal you; Morning Dew Vial (2,600): Restore 2% of your maximum HP at the start of your turn; Mana Drip Stone (2,400): Restore 2% of your maximum Mana at the start of your turn; Warding Cord (1,800): The first hit you take each battle deals 25% less damage; First Light Pin (1,800): Your first attack or spell each battle deals +20% damage; Greenskin Tooth (1,600): +12% damage against goblins and orcs; Silver Nail (1,800): +12% damage against undead; Ashen Ward (2,000): Fire damage you take −12%; Thunderstone Earring (2,000): Lightning damage you take −12%; Triage Pouch (2,200): Healing you receive in battle +10%; Mender's Thimble (2,200): Heals you give +8%; Snare Twine (2,400): Trap limit +1.
+  - **Rare** (24): Ironbound Signet (6,000): Strength and Vitality +8%; Sage's Loop (6,000): Intelligence and Wisdom +8%; Duelist's Signet (6,500): Dexterity +10% and critical chance +4; Heartwood Amulet (6,000): Maximum HP +18%; Moonwell Pendant (6,500): Maximum Mana +20% and spells cost 4% less Mana; Bulwark Brooch (6,000): Armor +16%; Windrunner Anklet (6,800): Speed +10%; Gambler's Die (5,500): Luck +16%; Vampire's Fang (7,000): Weapon hits heal you for 6% of the damage dealt; Spellward Mirror (6,500): Spell damage you take −10%; Stormcatcher Coil (5,500): When an enemy's spell damages you, restore 4% of your maximum Mana; Executioner's Mark (6,500): +20% damage against enemies below 30% HP; Giantslayer Torc (6,500): +15% damage against enemies with more maximum HP than you; Warcry Horn (6,000): At the start of each battle: weapon power +15% for 2 turns; Echo Bell (6,500): Each spell has a 10% chance to cost no Mana; Ironskin Phial (6,000): At the start of each battle: a barrier of 8% of your maximum HP; Rallying Banner Pin (7,000): At the start of each battle: you and your allies get all attributes +6% for 2 turns; Burning Brand (6,500): Weapon hits have a 20% chance to burn the target for 3% of its maximum HP per turn for 2 turns; Frostbite Charm (6,000): Weapon hits have a 15% chance to slow the target: Speed −15% for 2 turns; Shatter Stone (6,500): Weapon hits lower the target's Armor by 5% for 2 turns, stacking up to 3 times; Cleansing Bead (5,500): At the start of your turn, a 20% chance to remove one debuff from you; Dragonbane Scale (6,000): +15% damage against dragons; Spirit Lantern (6,000): +15% damage against elementals; Battle Hymn Chime (6,500): Defeating an enemy restores 5% of your maximum HP and 5% of your maximum Mana.
+  - **Epic** (16): Titan's Band (16,000): Strength +18% and maximum HP +10%; Archmage's Lodestone (17,000): Spell power +16% and Intelligence +10%; Hawkwind Fletch (16,000): Ranged weapon power +18% and ranged hit chance +10; Bladesinger's Ring (16,500): Melee weapon power +16% and critical chance +6; Aegis Medallion (16,500): Armor +20% and spell damage you take −10%; Phantom Step Pin (15,500): Evasion +12; after you evade an attack, your next attack deals +25% damage; Second Chance Locket (18,000): Once per battle, a hit that would defeat you leaves you at 1 HP; Soulharvest Sickle (15,000): Defeating an enemy restores 15% of your maximum HP; Forked Lightning Rod (18,000): Your damaging spells also strike one other random enemy for 25% of the damage; Bloodmoon Chalice (18,500): All damage you deal with weapons and spells heals you for 10% of it; Hourglass of Haste (15,000): +1 AP on your first turn of each battle; Warden's Bell (15,500): The first time each of your allies (not you) drops below 30% HP in a battle, they get a barrier of 15% of their maximum HP; Arcane Engine (17,000): Spells cost 10% less Mana and deal +8% damage; Thunderhead Crown (18,000): Weapon hits have a 15% chance to stun the target for 1 turn; Venomglass Vial (16,000): Weapon hits poison the target for 4% of its maximum HP per turn for 3 turns (refreshed, not stacked); Tide-turner Compass (15,500): While you are below 50% HP: +20% damage and Evasion +10.
+  - **Legendary** (8): Heart of the Mountain (36,000): Vitality +20%, maximum HP +25% and Armor +15%; Crown of the Archmagus (38,000): Spell power +25%, spells cost 15% less Mana and maximum Mana +20%; Sunforged Sigil (38,000): Weapon power +22%, weapon hit chance +15 and critical chance +8; Phoenix Plume (40,000): Once per battle, the first of your heroes to fall rises again at 30% HP at the start of your next turn; Worldtree Acorn (36,000): All eight attributes +10%; restore 3% of your maximum HP at the start of your turn; Starfall Orb (35,000): At the start of your turn, a falling star deals Holy damage equal to 15% of your maximum Mana to a random enemy; Banner of Kings (40,000): You and every ally deal +12% damage and have Armor +12%; Dragonheart Ember (37,000): Critical chance +6; critical hits deal +40% damage.
+  - **Masterwork** (4, mechanics kept, numbers on the ramp, A7, A16): Second Wind (heal below 25% HP: 3/6/9/10.5% at
+    Levels 1/40/80/100), Wraithguard (melee hit +10/30/50/60, guard 2/6/10/12%), Arrowtip Rain (splash 6/15/25/30%),
+    Titanfall (the golem at 40/84/130/153% strength); prices 2,000/18,800/36,000/44,600.
+- **Loading** (`app.js`): `ARTIFACT_EFFECT_KINDS` and `ARTIFACT_EFFECT_FIELDS` (the new kinds' extra fields: `raceIds`,
+  `element`, `thresholdPercent`, `durationTurns`, `chance`, `maxStacks`, `mana`, `evasion`, `armor`, `strengthPercent`),
+  validated in the catalogue parser; labels in `artifactEffectLabel`. **Masterwork levels:** an effect's `ramp`
+  (`{ field: [Level 1 value, Level 80 value] }`) and the item's `priceRamp`; `masterworkArtifactAt(base, level)` makes
+  the copy (`<id>-lv<level>`, Levels 1–200, a straight line through 1 and 80 continuing past it, rounded to one decimal;
+  prices to 100 silver), `leveledMasterworkArtifact` resolves such ids in `getItem`, and a plain id is a Level 80 copy
+  (A11). Descriptions fill `{amount}`, `{amount2}`, `{strength}`. The card shows "Level N" and the look.
+- **Battle** (`combat.js`, "The Artifact Rework" block after the healing code): `artifactEffectsOf(actor, kind)` (the
+  worn effects, cached by the two slots' ids), `artifactDamagePercent` (race, low HP, bigger foes, Tide-turner, Banner of
+  Kings: added to `hurt`'s damage, to the AI's forecast and to `directDamage`, so traps, thorns, poison and item damage
+  get them too, A20), `firstLightPercent` (counted per action with `battle.actionSerial`), `artifactDefenseBonus` (read
+  by `defense()`), `noteFall` (from `logFall` and damage-over-time deaths: Battle Hymn, Soulharvest, Phoenix Plume),
+  `risePhoenix` (at the wearer's turn start, or, for a fallen wearer, when `advance` reaches them: they stay in the turn
+  order), `artifactTurnStart` (heal, Mana, cleanse, Starfall), `triggerArtifactBattleStart` (Warcry, Ironskin, Rally,
+  `battle.kingsBanner`), `applyArtifactWeaponHit` (from `applyArmorHitEffects`), `ringWardensBell` and the Warding Cord
+  and Second Chance Locket in `applyCombatDamage`, Hourglass in `advance`, Echo Bell and Forked Lightning in `cast`
+  (`chainStrikeDepth` keeps the fork strike plain), Stormcatcher and Bloodmoon after `hurt`'s damage, the healing items
+  in `healingFactor`, silver and EXP in `awardDefeatedEnemyExperience`, Titanfall's `summonStrengthPercent` in
+  `summonFriendly`.
+- **Drops** (`combat.js`): masterwork artifacts drop fixed at your level (`forgeDrop` → `masterworkArtifactIdAt`;
+  guaranteed drops still match by base id); `rollEnemyArtifact` (1%, not `unique` enemies, summons or objects) and
+  `artifactForEnemyLevel` (`ShopRules.rarityWeight` by the enemy's level, uncommon to legendary).
+- **Old saves:** `WorldRules.RETIRED_ARTIFACT_IDS` (the 32 old ids); `normalizeCharacter` drops them from packs, slots and
+  favorites (companions too) silently; `world-engine.js` drops them from the hooded man's lists and withdraws an artifact
+  challenge for one with a note and its 70 Reputation back.
+- **Looks** (`forge-art.js`, `artifactArt`, PLACEHOLDER ART): `ARTIFACT_STYLE` per rarity (metal, setting color, gem
+  facets; epic side stones and filigree, legendary halo), `ARTIFACT_SHAPES` (49 objects), `artifactMark` (a mark drawn
+  and turned by the look's glyph name), `MASTERWORK_ARTIFACTS` (four drawings). `ForgeArt.goods` uses it for artifacts
+  (shop lists) and the card shows it.
+- **Tests:** `test-client/tests/artifact-rework-browser.js`, 12 entries: `checkArtifactCatalogue`, `…SheetEffects`,
+  `…WeaponHits`, `…DamageAndDefense`, `…TurnsAndBattleStart`, `…SpellsAndHealing`, `…FallsAndRewards`, `…Strikes`,
+  `checkMasterworkArtifacts`, `checkArtifactDrops`, `checkArtifactsInOldSaves`, `checkArtifactLooks`. The battle entries
+  use a second copy of `combat.js` with a hook (`window.__artifactChecks`). Old checks updated: `nygheir` (a plain Second
+  Wind is Level 80: 9%), `gaian-boss` (Titanfall drops at your level), and three fixtures that named a removed artifact
+  (`settings-companions`, `guild-rematches`, `map`). The Guild's challenge offers by level are checked through the
+  counter in `guild-browser.js`.
+- **Not covered by a check:** the AI choosing actions with the new effects in mind (it sees the damage bonuses only);
+  damage with no source counting as an enemy's for Warding Cord and Second Chance Locket (A27) also when a hero's own
+  skill causes it.
+
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in
 the engine's way. The list's rune slotting sound was left out: the port adds proper sound effects instead.
