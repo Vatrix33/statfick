@@ -25,8 +25,8 @@
   const validPoint = value => value && typeof value === "object" && Number.isFinite(value.x) && Number.isFinite(value.y);
   // Older saves can have the retired generic dragon in an encounter or quest.
   const currentEnemyName = name => name === "Lesser Dragon" ? "Red Dragon" : name;
-  // A region's points reach a little past its edges: half a border strip (port task 8).
-  const REACH = Math.ceil((CONTINENT?.STRIP || 0) / 2 / SCALE) + 10;
+  // A region's points reach past its edges as far as its land can (port task 8, W18: the natural edge, its fine wiggle).
+  const REACH = CONTINENT ? Math.ceil((CONTINENT.EDGE + 40) / SCALE) + 10 : 0;
   const point = p => ({ x: clamp(number(p?.x, 420), -REACH, 1600 + REACH), y: clamp(number(p?.y, 490), -REACH, 1000 + REACH) });
   const regionalPoint = (value, fallback) => ({
     x: clamp(number(value?.x, fallback.x), -REACH, 1600 + REACH),
@@ -229,6 +229,11 @@
       visitedRegions,
       caravans,
     };
+    if (continent && !passableAt(standing(state))) {
+      const safe = nearestPassable(standing(state));
+      if (safe) { const at = fromContinent(safe); state.regionId = at.regionId; state.position = at.position; }
+      else state.position = { ...getRegion(regionId).start };
+    }
     noteVisit(state);
     return state;
   }
@@ -327,7 +332,7 @@
     ...(duskpineForest ? { [duskpineForest.id]: duskpineForest } : {}),
   });
   // The continent built from the regions' exits (port task 8): road links across the border strips.
-  const continent = CONTINENT ? CONTINENT.build(regions) : null;
+  const continent = CONTINENT ? CONTINENT.build(regions, { ownLand: (position, regionId) => ownLand(position, getRegion(regionId)) }) : null;
   // A region's roads with its halves of the border crossings (in its own coordinates, past its edge).
   const roadsWithCrossings = region => [...(region.roads || []), ...(continent ? CONTINENT.linksOf(region.id).map(link => link.halves[region.id]) : [])];
   let activeRegionId = alder.id;
@@ -386,16 +391,27 @@
     return false;
   }
   const outsideBox = position => position.x < 0 || position.x > 1600 || position.y < 0 || position.y > 1000;
+  // On the continent (port task 8, W17) the land is natural: past a region's edge its wild ground reaches out where the
+  // continent's land does, and inside it the sea or the mountains may bite in; then its own lakes and seas.
+  const clampBox = position => ({ x: clamp(position.x, 0, 1600), y: clamp(position.y, 0, 1000) });
   function isLand(position, regionId = activeRegionId) {
     const region = getRegion(regionId);
-    // Past a region's edge only a border strip is land (port task 8): elsewhere a ridge or the sea.
-    if (continent && outsideBox(position)) return CONTINENT.inStrip(CONTINENT.toC(region.id, position));
+    if (continent) {
+      if (CONTINENT.landAt(CONTINENT.toC(region.id, position)) <= 0) return false;
+      if (outsideBox(position)) return true;
+    }
+    return ownLand(position, region);
+  }
+  // A region's own land, in its box: not its lake (but its island and bridges) nor its sea.
+  function ownLand(position, region) {
     if (region.lake && insideEllipse(position, region.lake)) return Boolean(region.island && insideEllipse(position, region.island) || onBridge(position, region));
     const shape = region.landShape;
     if (!shape) return true;
-    if (shape.type === "coast") return position.x <= shape.shoreX;
-    if (shape.type === "south-coast") return position.y <= shape.shoreY;
-    if (shape.type === "ellipse") return insideEllipse(position, shape);
+    // On the continent a coast region's shore is natural too (W17).
+    const shift = continent ? CONTINENT.shoreShift(region.id, position) : 0;
+    if (shape.type === "coast") return position.x <= shape.shoreX + shift;
+    if (shape.type === "south-coast") return position.y <= shape.shoreY + shift;
+    if (shape.type === "ellipse") return Math.hypot((position.x - shape.x) / shape.rx, (position.y - shape.y) / shape.ry) <= 1 + shift;
     return true;
   }
   function zoneAt(position, regionId = activeRegionId) {
@@ -408,6 +424,8 @@
     if (site) return site.name;
     const terrain = terrainAt(position, region.id);
     if (terrain === "road") return "Road";
+    // Wild ground past a region's old edge has the edge's zone (W17).
+    if (outsideBox(position)) position = clampBox(position);
     if (region.id === "stoneveil-foothills") {
       let zone = terrain === "river"
         ? "River"
@@ -672,7 +690,20 @@
   function passableAt(c) {
     if (!continent) return isLand(c);
     const { regionId, position } = fromContinent(c);
-    return CONTINENT.inRect(CONTINENT.RECTS[regionId], c) ? isLand(position, regionId) : CONTINENT.inStrip(c);
+    return isLand(position, regionId);
+  }
+  // The nearest point that can be stood on (a save from before the land took its natural shape can stand where the sea
+  // or the mountains bit in, W17): rings every 10 units out to 1,200.
+  function nearestPassable(c) {
+    if (passableAt(c)) return c;
+    for (let r = 10; r <= 1200; r += 10) {
+      const steps = Math.ceil(2 * Math.PI * r / 10);
+      for (let k = 0; k < steps; k++) {
+        const p = { x: c.x + Math.cos(k / steps * 2 * Math.PI) * r, y: c.y + Math.sin(k / steps * 2 * Math.PI) * r };
+        if (passableAt(p)) return p;
+      }
+    }
+    return null;
   }
   function continentSpeedAt(c, bonus = 0) {
     const { regionId, position } = fromContinent(c);

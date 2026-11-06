@@ -105,8 +105,13 @@ count task 7 as the engine's current task. How it's built, its checks and their 
 **Beside the engine, old game only (2026-11-06): port task 8, Map Rework, is being built in the old game** (W1; decisions
 in "Decisions for task 8, Map Rework" below; the cloud branch `claude/fervent-carson-f5ol9s`). The layout is approved (W6);
 built so far: the continent's geometry and travel rules (`../old-game/scripts/continent-engine.js`, `world-engine.js`),
-the continent map view (in progress), now reshaped to a natural outline (W17, W18). Still to come: the music crossfade,
-the boat, the mountain fog, the caravan, the carriage, the checks and the docs. **Engine work goes on uninterrupted.**
+a first continent map view, and the natural land (W17, W18) in the rules: one noise-shaped land field moves the coast
+and the mountains' feet up to 400 units from the old straight edges (the coast regions' own shores and Cinder Isle's
+oval too), keeps a mountain core between neighbours no road joins and a pass where one does, and never cuts a road,
+place, site or exit. **Waiting for the user:** their review of the continent's natural shape (the user asked to see it
+before it is painted: a picture made by `claude-work/continent/review-data.cjs` and `review.py` in the cloud session,
+not kept in the repo). Still to come: painting the map to that shape, the music crossfade, the boat, the mountain fog,
+the caravan, the carriage, the checks and the docs. **Engine work goes on uninterrupted.**
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
