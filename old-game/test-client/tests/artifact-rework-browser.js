@@ -14,7 +14,7 @@ const artifactHooks = async () => {
   const source = await (await fetch("scripts/combat.js")).text();
   const marker = "  window.Combat = {";
   const script = document.createElement("script");
-  script.textContent = source.replace(marker, "  window.__artifactChecks = { actorById, hp, mana, values, setHp, setMana, getBattle: () => battle, healingFactor, healHp, hurt, directDamage, applyCombatDamage, attack, cast, useItem, advance, expire, applyTimedEffects, actionPointMaximum, artifactDamagePercent, artifactEffectsOf, noteFall, summonFriendly, resistance, incomingDamageFactor, endTurn, awardDefeatedEnemyExperience };\n" + marker);
+  script.textContent = source.replace(marker, "  window.__artifactChecks = { actorById, hp, mana, values, setHp, setMana, getBattle: () => battle, healingFactor, healHp, hurt, directDamage, applyCombatDamage, attack, cast, useItem, advance, expire, applyTimedEffects, actionPointMaximum, artifactDamagePercent, artifactEffectsOf, noteFall, summonFriendly, resistance, incomingDamageFactor, endTurn, awardDefeatedEnemyExperience, artifactForEnemyLevel };\n" + marker);
   document.head.append(script);
   await waitForSourceFiles();
   if (window.BattleStage) window.BattleStage.enabled = () => false;
@@ -333,5 +333,164 @@ async function checkArtifactFallsAndRewards() {
   assert(plain.silver === 35 * 3 && coin.silver === Math.ceil(35 * 3 * 1.15), `Bandit's Coin on a companion raises the party's silver by 15% (${plain.silver} → ${coin.silver})`);
   assert(quill.allyExp === Math.floor(plain.allyExp * 1.1) && quill.playerExp === plain.playerExp && plain.playerExp > 0, `Studious Quill raises only its wearer's EXP (${plain.allyExp} → ${quill.allyExp})`);
   Combat.restore(null);
+  return { passed: true, checks: count() };
+}
+
+// First Light Pin (A26: waits for the first attack or spell that deals damage; the whole action shares it) and
+// Dragonheart Ember's critical damage.
+async function checkArtifactStrikes() {
+  const { assert, count } = artifactAssert();
+  const h = await artifactHooks();
+  const random = Math.random;
+  try {
+    let { battle, player, foes } = await artifactBattle(h, [artifactId("First Light Pin")], { enemies: ["Goblin"] });
+    const ready = () => { battle.current = "player"; battle.actionSerial = (battle.actionSerial || 0) + 1; };
+    ready();
+    assert(h.artifactDamagePercent(player, foes[0]) === 0, "First Light is not a standing bonus");
+    h.setHp(foes[0], 100000);
+    // A miss doesn't spend it (A26).
+    Math.random = () => 0.9999;
+    battle.ap = 9; h.attack(player, foes[0]);
+    assert(!player.firstLightSpent, "A missed first attack keeps the bonus");
+    Math.random = () => 0.5;
+    const hit = () => { const before = h.hp(foes[0]); ready(); h.hurt(foes[0], 100, "physical", false, false, player, "melee"); return before - h.hp(foes[0]); };
+    const lit = hit(), plain = hit();
+    assert(lit > plain && Math.abs(lit / plain - 1.2) < 0.05 && player.firstLightSpent, `The first hit that deals damage gets +20% (${plain} → ${lit}); later ones don't`);
+    // Dragonheart Ember: critical hits deal +40% more.
+    ({ battle, player, foes } = await artifactBattle(h, [], { enemies: ["Goblin"] }));
+    h.setHp(foes[0], 100000);
+    const crit = () => { const before = h.hp(foes[0]); h.hurt(foes[0], 100, "physical", true, false, player, "melee"); return before - h.hp(foes[0]); };
+    const normalCrit = crit();
+    ({ battle, player, foes } = await artifactBattle(h, [artifactId("Dragonheart Ember")], { enemies: ["Goblin"] }));
+    h.setHp(foes[0], 100000);
+    const emberCrit = crit();
+    assert(emberCrit > normalCrit, `Dragonheart Ember's critical hits deal more (${normalCrit} → ${emberCrit})`);
+    return { passed: true, checks: count() };
+  } finally { Math.random = random; Combat.restore(null); }
+}
+
+// The plain stat artifacts on the sheet: attributes, HP, Mana, Armor, Evasion, weapons, spells, traps.
+async function checkArtifactSheetEffects() {
+  const { assert, count } = artifactAssert();
+  await waitForSourceFiles();
+  const wear = (...names) => {
+    Combat.restore(null);
+    const ids = names.map(artifactId);
+    applyCharacter(normalizeCharacter({ ...defaultCharacter(), raceId: "human", level: 30, inventory: ids }));
+    equipment.artifact1 = ids[0] || null; equipment.artifact2 = ids[1] || null;
+    return calculateArtifactEffects();
+  };
+  let effects = wear("Brawler's Knuckle Ring", "Hare's Anklet");
+  assert(effects.statPermanentPercent.strength === 8 && effects.statPermanentPercent.speed === 6, "Brawler's Knuckle Ring: Strength +8%; Hare's Anklet: Speed +6%");
+  effects = wear("Worldtree Acorn");
+  assert(bonusDefinitions.every(key => effects.statPermanentPercent[key] === 10), "Worldtree Acorn: all eight attributes +10%");
+  effects = wear("Heart of the Mountain", "Wellspring Drop");
+  assert(effects.statPermanentPercent.vitality === 20 && effects.maxHpPercent === 25 && effects.armorPercent === 15 && effects.maxManaPercent === 12, "Heart of the Mountain and Wellspring Drop add up");
+  effects = wear("Feather Token", "Riveted Buckle");
+  assert(effects.evasionFlat === 6 && effects.armorPercent === 10, "Feather Token: Evasion +6; Riveted Buckle: Armor +10%");
+  effects = wear("Sunforged Sigil", "Steady Eye Lens");
+  assert(effects.weaponPowerPercent === 22 && effects.weaponHitFlat === 25 && effects.weaponCritFlat === 8, "Sunforged Sigil and Steady Eye Lens: weapon power, hit and crit");
+  effects = wear("Hawkwind Fletch");
+  assert(effects.weaponModifiers.some(effect => effect.kind === "weapon-power-percent" && effect.weaponType === "ranged" && effect.amount === 18), "Hawkwind Fletch is for ranged weapons only");
+  effects = wear("Crown of the Archmagus", "Inkwell Charm");
+  assert(effects.spellPowerPercent === 25 && effects.spellCostPercent === 21 && effects.maxManaPercent === 20, "Crown of the Archmagus and Inkwell Charm: spell power and cost");
+  effects = wear("Snare Twine");
+  assert(effects.trapLimitFlat === 1 && calculateTrapLimit() === 2, "Snare Twine: trap limit +1");
+  const before = calculateArtifactEffects();
+  effects = wear("Brawler's Knuckle Ring");
+  classLevels["relic-warden"] = 4;
+  assert(Math.abs(calculateArtifactEffectsUncached().statPermanentPercent.strength - 8.8) < 1e-9, "Relic Warden still raises artifact attributes by 10%");
+  return { passed: true, checks: count(), before: Boolean(before) };
+}
+
+// Masterwork artifacts (A5–A7, A11, A16): fixed at the level obtained, a straight ramp from Level 1 to 80 that keeps rising.
+async function checkMasterworkArtifacts() {
+  const { assert, count } = artifactAssert();
+  const h = await artifactHooks();
+  const at = (name, level) => getItem(level == null ? artifactId(name) : `${artifactId(name)}-lv${level}`);
+  const table = [
+    ["Second Wind", [3, 5.96, 9, 10.52], effect => effect.amount],
+    ["Arrowtip Rain", [6, 15.38, 25, 29.81], effect => effect.amount],
+    ["Titanfall", [40, 84.43, 130, 152.78], effect => effect.strengthPercent],
+  ];
+  for (const [name, values, read] of table) {
+    const got = [1, 40, 80, 100].map(level => read(at(name, level).effects[0]));
+    assert(got.every((value, index) => Math.abs(value - values[index]) <= 0.05), `${name} at Levels 1, 40, 80, 100: ${got.join(", ")}`);
+  }
+  const wraith = [1, 40, 80, 100].map(level => at("Wraithguard", level).effects.map(effect => effect.amount));
+  assert(JSON.stringify(wraith) === JSON.stringify([[10, 2], [29.7, 5.9], [50, 10], [60.1, 12]]), "Wraithguard's hit chance and guard follow the ramp: " + JSON.stringify(wraith));
+  assert([1, 40, 80, 100].map(level => at("Second Wind", level).priceSilver).join() === "2000,18800,36000,44600", "Their price follows the ramp too");
+  assert(at("Second Wind").level === 80 && at("Second Wind").effects[0].amount === 9, "An old save's plain masterwork artifact is a Level 80 copy (A11)");
+  assert(at("Second Wind", 40).description.includes("6%") || at("Second Wind", 40).description.includes("6 %") || /restore 6(\.0)?%/.test(at("Second Wind", 40).description) || at("Second Wind", 40).description.includes("restore 6"), "Its description shows its own numbers");
+  assert(at("Second Wind", 150).effects[0].amount > at("Second Wind", 100).effects[0].amount && !getItem(artifactId("Second Wind") + "-lv0")?.masterworkArtifactBaseId, "It keeps rising past 100 (Limitless); Level 0 isn't a copy");
+  const card = itemDetailMarkup(at("Titanfall", 40));
+  assert(card.includes("Level 40") && card.includes("84.4"), "The card shows its level and numbers");
+  // A masterwork artifact drops at your level (A5).
+  Combat.restore(null);
+  applyCharacter(normalizeCharacter({ ...defaultCharacter(), raceId: "human", level: 37 }));
+  assert(masterworkArtifactIdAt(artifactId("Arrowtip Rain"), level) === artifactId("Arrowtip Rain") + "-lv37" && masterworkArtifactIdAt(artifactId("Hare's Anklet"), level) === artifactId("Hare's Anklet"), "Drops are fixed at your level; other artifacts keep their id");
+  // Titanfall's golem at its strength (HP and damage).
+  const { battle, player, foes } = await artifactBattle(h, [], { level: 37 });
+  h.summonFriendly(player, { type: "summon-friendly", enemyId: "steelguard-golem-level-35", summonStrengthPercent: 40 }, "Titanfall");
+  h.summonFriendly(player, { type: "summon-friendly", enemyId: "steelguard-golem-level-35" }, "Plain");
+  const [weak, full] = battle.actors.filter(actor => actor.summoned && actor.team === "player");
+  assert(weak && full && Math.abs(weak.resourceMax.hp / full.resourceMax.hp - 0.4) < 0.05 && weak.effects.some(effect => effect.type === "outgoing-attack-damage-percent" && effect.amount === -60), "At 40% strength the golem has 40% of its HP and deals 60% less damage: " + JSON.stringify([weak?.resourceMax, full?.resourceMax, weak?.effects?.map(effect => effect.type + ":" + effect.amount)]));
+  // The worn Titanfall summons its golem at its level's strength when you drop below half HP.
+  const fight = await artifactBattle(h, [artifactId("Titanfall") + "-lv1"], { level: 37 });
+  h.hurt(fight.player, h.hp(fight.player) - Math.floor(fight.player.resourceMax.hp * 0.3), "physical", false, false, fight.foes[0], "reaction", 0, true);
+  const golem = fight.battle.actors.find(actor => actor.summoned && actor.team === "player");
+  assert(golem && golem.effects.some(effect => effect.type === "outgoing-attack-damage-percent" && effect.amount === -60), "A Level 1 Titanfall's golem comes at 40% strength");
+  Combat.restore(null);
+  return { passed: true, checks: count() };
+}
+
+// Enemy drops (A12–A14): 1% from every defeated enemy but bosses, any rarity from uncommon, weighted by the enemy's level.
+async function checkArtifactDrops() {
+  const { assert, count } = artifactAssert();
+  const h = await artifactHooks();
+  const random = Math.random;
+  try {
+    let { battle, player, foes } = await artifactBattle(h, [], { enemies: ["Goblin"] });
+    Math.random = () => 0.005;
+    h.directDamage(foes[0], 1e7, false, "physical", player); h.awardDefeatedEnemyExperience();
+    const dropped = battle.lootItems.map(getItem).filter(item => item?.category === "artifact");
+    assert(dropped.length === 1 && dropped[0].rarity !== "masterwork", "A 1% roll drops an artifact");
+    Math.random = () => 0.02;
+    ({ battle, player, foes } = await artifactBattle(h, [], { enemies: ["Goblin"] }));
+    h.directDamage(foes[0], 1e7, false, "physical", player); h.awardDefeatedEnemyExperience();
+    assert(!battle.lootItems.some(id => getItem(id)?.category === "artifact"), "but only on that 1%");
+    Math.random = () => 0.005;
+    ({ battle, player, foes } = await artifactBattle(h, [], { enemies: ["Great Imp Ji'ruan"] }));
+    foes.forEach(foe => h.directDamage(foe, 1e9, false, "physical", player)); h.awardDefeatedEnemyExperience();
+    assert(!battle.lootItems.some(id => getItem(id)?.category === "artifact" && getItem(id).rarity !== "masterwork"), "Bosses drop none");
+    // The rarity weighting: a low-level enemy's pick leans uncommon, a Level 95 enemy's legendary; never common.
+    Math.random = random;
+    const tally = enemyLevel => { const counts = {}; for (let index = 0; index < 3000; index++) { const rarity = getItem(h.artifactForEnemyLevel(enemyLevel)).rarity; counts[rarity] = (counts[rarity] || 0) + 1; } return counts; };
+    const low = tally(5), high = tally(95);
+    assert(low.uncommon > low.rare && high.legendary > high.uncommon && !("common" in low), "Low-level enemies drop mostly uncommon, high-level mostly legendary, never common");
+    return { passed: true, checks: count() };
+  } finally { Math.random = random; Combat.restore(null); }
+}
+
+// Old saves (A8–A11): the replaced artifacts disappear silently; an artifact challenge for one is withdrawn with a note and
+// its 70 Reputation back; the hooded man forgets them; masterwork artifacts stay (as Level 80 copies).
+async function checkArtifactsInOldSaves() {
+  const { assert, count } = artifactAssert();
+  await waitForSourceFiles();
+  const old = "artifact-power-ring-artifact", oldRare = "artifact-ring-of-the-mind-artifact", keep = artifactId("Hare's Anklet"), mw = "artifact-second-wind-artifact";
+  const saved = { ...defaultCharacter(), raceId: "human", level: 20, inventory: [old, oldRare, keep, mw, "consumable-spring-trap"], favoriteItems: [old, keep], equipment: { ...defaultCharacter().equipment, artifact1: old, artifact2: mw } };
+  const character = normalizeCharacter(saved);
+  assert(!character.inventory.includes(old) && !character.inventory.includes(oldRare) && character.inventory.includes(keep) && character.inventory.includes(mw), "Old artifacts leave the pack; new ones and masterworks stay");
+  assert(character.equipment.artifact1 === null && character.equipment.artifact2 === mw && !character.favoriteItems.includes(old), "and their slots and favorites");
+  const companion = normalizeCharacter({ ...defaultCharacter(), raceId: "human", inventory: [oldRare], equipment: { ...defaultCharacter().equipment, artifact1: oldRare } });
+  assert(!companion.inventory.length && !companion.equipment.artifact1, "A companion's too");
+  assert(getItem(mw).level === 80, "An old masterwork artifact is a Level 80 copy");
+  const world = WorldRules.normalize({ regionId: "alder-vale", position: { x: 500, y: 500 }, minutes: 0,
+    guild: { reputation: 100, artifactChallenge: { enemy: "Goblin", artifactId: old, regionId: "alder-vale", zone: "Meadows", point: { x: 500, y: 500 } },
+      information: { offers: { class: [], item: [old, keep] }, revealed: { class: [], item: [oldRare, mw] } } } });
+  assert(!world.guild.artifactChallenge && world.guild.reputation === 170 && /artifact challenge was withdrawn/.test(world.guild.notice), "A challenge for a removed artifact is withdrawn with a note and 70 Reputation back");
+  assert(world.guild.information.offers.item.join() === keep && world.guild.information.revealed.item.join() === mw, "The hooded man forgets them");
+  const kept = WorldRules.normalize({ regionId: "alder-vale", position: { x: 500, y: 500 }, minutes: 0, guild: { reputation: 100, artifactChallenge: { enemy: "Goblin", artifactId: keep, regionId: "alder-vale", zone: "Meadows", point: { x: 500, y: 500 } } } });
+  assert(kept.guild.artifactChallenge?.artifactId === keep && kept.guild.reputation === 100 && !kept.guild.notice, "A challenge for a new artifact stays");
   return { passed: true, checks: count() };
 }

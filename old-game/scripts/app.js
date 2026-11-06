@@ -1395,6 +1395,11 @@ function normalizeCharacter(saved) {
     key,
     typeof saved.equipment?.[key] === "string" ? saved.equipment[key] : null,
   ]));
+  // The Artifact Rework (port task 4, A8, A9): the replaced artifacts leave packs, slots and favorites, silently.
+  const retiredArtifact = itemId => Boolean(window.WorldRules?.RETIRED_ARTIFACT_IDS?.has(itemId));
+  for (let index = savedInventory.length - 1; index >= 0; index--) if (retiredArtifact(savedInventory[index])) savedInventory.splice(index, 1);
+  for (let index = savedFavoriteItems.length - 1; index >= 0; index--) if (retiredArtifact(savedFavoriteItems[index])) savedFavoriteItems.splice(index, 1);
+  for (const key of Object.keys(savedEquipment)) if (retiredArtifact(savedEquipment[key])) savedEquipment[key] = null;
   // The old catalogue weapons and armor were retired; old saves get forged pieces of the same kind.
   window.ForgeRules?.migrateLegacyItems({ inventory: savedInventory, equipment: savedEquipment, favorites: savedFavoriteItems }, Math.max(1, toInteger(saved.level, 1)), [saved.raceId, saved.name, saved.exp, saved.level].join("|"));
   const savedKnownSpells = Array.isArray(saved.knownSpells) ? saved.knownSpells.filter((spellId) => typeof spellId === "string") : [];

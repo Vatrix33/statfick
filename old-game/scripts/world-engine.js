@@ -132,9 +132,16 @@
       }
     }
     const rawChallenge = rawGuild.artifactChallenge;
-    const artifactChallenge = rawChallenge && typeof rawChallenge.enemy === "string" && rawChallenge.enemy.trim() && typeof rawChallenge.artifactId === "string" && rawChallenge.artifactId.trim() && typeof rawChallenge.zone === "string" && rawChallenge.zone.trim() && validPoint(rawChallenge.point) ? {
+    let artifactChallenge = rawChallenge && typeof rawChallenge.enemy === "string" && rawChallenge.enemy.trim() && typeof rawChallenge.artifactId === "string" && rawChallenge.artifactId.trim() && typeof rawChallenge.zone === "string" && rawChallenge.zone.trim() && validPoint(rawChallenge.point) ? {
       enemy: currentEnemyName(rawChallenge.enemy.trim()), artifactId: rawChallenge.artifactId.trim(), regionId: normalizeRegionId(rawChallenge.regionId), zone: rawChallenge.zone.trim(), point: point(rawChallenge.point)
     } : null;
+    // The Artifact Rework (port task 4, A10): a challenge for a retired artifact is withdrawn, its Reputation returned.
+    let reputationRefund = 0;
+    if (artifactChallenge && RETIRED_ARTIFACT_IDS.has(artifactChallenge.artifactId)) {
+      artifactChallenge = null;
+      reputationRefund = ARTIFACT_CHALLENGE_REPUTATION;
+      notice = [notice, `Your artifact challenge was withdrawn: its prize is no longer made. Its ${ARTIFACT_CHALLENGE_REPUTATION} Reputation was returned.`].filter(Boolean).join(" ");
+    }
     const completedGreatHunts = Array.isArray(rawGuild.greatHuntsCompleted)
       ? [...new Set(rawGuild.greatHuntsCompleted.filter(id => typeof id === "string" && id.trim()).map(id => id.trim()))]
       : [];
@@ -186,7 +193,7 @@
       pendingRegionTransition,
       defeatedSiteBosses: [...new Set((Array.isArray(saved?.defeatedSiteBosses) ? saved.defeatedSiteBosses : []).filter(id => ["tankina-disciple-of-talos-level-44", "ornn-god-of-the-forge-unique-level-48"].includes(id)))],
       guild: {
-        reputation: Math.max(0, Math.floor(number(rawGuild.reputation, 0))),
+        reputation: Math.max(0, Math.floor(number(rawGuild.reputation, 0))) + reputationRefund,
         completedQuests: Math.max(0, Math.floor(number(rawGuild.completedQuests, 0))),
         completedTravelQuests: Math.max(0, Math.floor(number(rawGuild.completedTravelQuests, 0))),
         quest,
@@ -201,7 +208,7 @@
         greatHuntRematches,
         avoidedGreatHunts,
         avoidObjective,
-        information: root.GuildInformationRules?.normalize(rawGuild.information) || { offers: { class: [], item: [] }, revealed: { class: [], item: [] } },
+        information: withoutRetiredArtifacts(root.GuildInformationRules?.normalize(rawGuild.information) || { offers: { class: [], item: [] }, revealed: { class: [], item: [] } }),
       },
       regionId,
       position: regionalPoint(saved?.position, getRegion(regionId).start),
@@ -677,7 +684,48 @@
   }
   function exitById(exitId, regionId = activeRegionId) { return (getRegion(regionId).exits || []).find(exit => exit.id === exitId) || null; }
   function exitAt(position, regionId = activeRegionId) { return (getRegion(regionId).exits || []).find(exit => distance(exit.point, position) <= 34) || null; }
-  const api = { UNITS_PER_KM, MAP_SCALE, ENCOUNTER_MINUTES, RENAMED_ENEMIES, settlements, forests, regions, normalizeRegionId, getRegion, setActiveRegion, activeRegion, settlementsForRegion, nearestSettlement, setSettlementAccessResolver, canAccessSettlement, landmarkAt, siteAt, normalize, timeSpeeds, normalizeTimeSpeed, realTimeMinutes, day, time, point, distance, settlementAt, isLand, terrainAt, zoneAt, speedAt, travelMinutes, routeBetween, routeDistance, routeTravelMinutes, exitAt, exitById, step, lighting };
+  /* The Artifact Rework (port task 4, 2026-11-06; A3, A8, A9): the old artifacts the new set replaced. Saves lose them
+     silently (app.js normalizeCharacter for packs, slots and companions; here for the hooded man's known items). */
+  const RETIRED_ARTIFACT_IDS = new Set([
+    "artifact-power-ring-artifact",
+    "artifact-amulet-of-health-artifact",
+    "artifact-sure-hit-armband-artifact",
+    "artifact-manaflow-band-artifact",
+    "artifact-ring-of-the-mind-artifact",
+    "artifact-ironheart-brooch-artifact",
+    "artifact-fleetfoot-anklet-artifact",
+    "artifact-duelists-coin-artifact",
+    "artifact-hawkeye-lens-artifact",
+    "artifact-emberglass-charm-artifact",
+    "artifact-tidal-pearl-artifact",
+    "artifact-wardstone-artifact",
+    "artifact-lucky-rabbit-foot-artifact",
+    "artifact-channelers-bead-artifact",
+    "artifact-trappers-token-artifact",
+    "artifact-giantblood-torque-artifact",
+    "artifact-mirrorleaf-pendant-artifact",
+    "artifact-battlemage-signet-artifact",
+    "artifact-arcane-reservoir-artifact",
+    "artifact-deadeye-prism-artifact",
+    "artifact-runebreaker-seal-artifact",
+    "artifact-bastion-core-artifact",
+    "artifact-stormcaller-shard-artifact",
+    "artifact-dragonheart-relic-artifact",
+    "artifact-chronoglass-gear-artifact",
+    "artifact-crown-of-seven-sparks-artifact",
+    "artifact-voidbound-eye-artifact",
+    "artifact-warlords-brand-artifact",
+    "artifact-grand-trap-matrix-artifact",
+    "artifact-worldroot-seed-artifact",
+    "artifact-star-eater-orb-artifact",
+    "artifact-perfect-war-sigil-artifact",
+  ]);
+  const ARTIFACT_CHALLENGE_REPUTATION = 70;
+  function withoutRetiredArtifacts(information) {
+    const keep = list => (Array.isArray(list) ? list : []).filter(id => !RETIRED_ARTIFACT_IDS.has(id));
+    return { ...information, offers: { ...information.offers, item: keep(information.offers?.item) }, revealed: { ...information.revealed, item: keep(information.revealed?.item) } };
+  }
+  const api = { RETIRED_ARTIFACT_IDS, UNITS_PER_KM, MAP_SCALE, ENCOUNTER_MINUTES, RENAMED_ENEMIES, settlements, forests, regions, normalizeRegionId, getRegion, setActiveRegion, activeRegion, settlementsForRegion, nearestSettlement, setSettlementAccessResolver, canAccessSettlement, landmarkAt, siteAt, normalize, timeSpeeds, normalizeTimeSpeed, realTimeMinutes, day, time, point, distance, settlementAt, isLand, terrainAt, zoneAt, speedAt, travelMinutes, routeBetween, routeDistance, routeTravelMinutes, exitAt, exitById, step, lighting };
   root.WorldRules = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(globalThis);

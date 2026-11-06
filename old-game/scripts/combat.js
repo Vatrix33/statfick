@@ -1300,7 +1300,8 @@
   function addEnemyLoot(itemIds, chancedDrop = false) {
     const partyClasses = [classLevels, ...companions.map(companion => companion.character.classLevels)];
     const doubleDrops = chancedDrop && ["heavy-knight", "jester"].every(id => partyClasses.some(levels => toInteger(levels?.[id], 0) > 0));
-    const forgeDrop = id => window.ForgeRules?.masterworkTemplateKey(id) ? window.ForgeRules.encode(window.ForgeRules.generateMasterwork({ key: window.ForgeRules.masterworkTemplateKey(id), level })) : id;
+    // Masterwork weapons and armor are forged, and masterwork artifacts fixed (A5), at your level when they drop.
+    const forgeDrop = id => window.ForgeRules?.masterworkTemplateKey(id) ? window.ForgeRules.encode(window.ForgeRules.generateMasterwork({ key: window.ForgeRules.masterworkTemplateKey(id), level })) : masterworkArtifactIdAt(id, level);
     for (const id of itemIds) {
       battle.lootItems.push(forgeDrop(id));
       if (doubleDrops && rules.roll(20)) battle.lootItems.push(forgeDrop(id));
@@ -1354,7 +1355,8 @@
     log(`Field Notes creates ${item.name}.`);
   }
   // A looted piece answers a drop entry: the same item, or a piece forged from that masterwork template.
-  const lootMatchesDrop = (id, itemId) => id === itemId || Boolean(ForgeRules.masterworkTemplateKey(itemId)) && getItem(id)?.forged?.masterwork === ForgeRules.masterworkTemplateKey(itemId);
+  const lootMatchesDrop = (id, itemId) => id === itemId || Boolean(ForgeRules.masterworkTemplateKey(itemId)) && getItem(id)?.forged?.masterwork === ForgeRules.masterworkTemplateKey(itemId)
+    || Boolean(getItem(itemId)?.masterworkArtifactBaseId) && getItem(id)?.masterworkArtifactBaseId === getItem(itemId).masterworkArtifactBaseId;
   function awardDefeatedEnemyExperience() {
     if (!battle) return 0;
     let awarded = 0;
@@ -1394,9 +1396,26 @@
       awarded += reward;
       log(`${actor.name} grants ${reward} EXP and ${ShopRules.formatPrice(money)}.`);
       addEnemyLoot((window.Guild?.onEnemyDefeated(actor) || []).filter(itemCanDrop));
+      const artifact = rollEnemyArtifact(actor);
+      if (artifact) addEnemyLoot([artifact]);
       actor.lootAvailable = battle.lootItems.length > lootStart;
     }
     return awarded;
+  }
+  /* The Artifact Rework (port task 4, A12–A14): every defeated enemy but a boss (the unique ones) has a 1% chance to
+     drop an artifact of any rarity from uncommon up, weighted by its level the way shop stock is. */
+  const ENEMY_ARTIFACT_DROP_CHANCE = 1;
+  function rollEnemyArtifact(actor) {
+    if (!actor || actor.unique || actor.inert || actor.summoned || !rules.roll(ENEMY_ARTIFACT_DROP_CHANCE)) return null;
+    return artifactForEnemyLevel(Math.max(1, toInteger(actor.character?.level, 1)));
+  }
+  function artifactForEnemyLevel(enemyLevel) {
+    const pool = items.filter(item => item.category === "artifact" && item.rarity !== "masterwork" && item.droppable !== false);
+    const weighted = ["uncommon", "rare", "epic", "legendary"].map(rarity => ({ rarity, weight: ShopRules.rarityWeight(rarity, enemyLevel), choices: pool.filter(item => item.rarity === rarity) })).filter(entry => entry.choices.length);
+    const total = weighted.reduce((sum, entry) => sum + entry.weight, 0);
+    let roll = Math.random() * total;
+    const chosen = weighted.find(entry => (roll -= entry.weight) < 0) || weighted.at(-1);
+    return chosen ? chosen.choices[Math.floor(Math.random() * chosen.choices.length)].id : null;
   }
   function recordSoloSurvivorVictory() {
     if (!battle || battle.soloVictoryRecorded) return false;
