@@ -1,4 +1,4 @@
-/* Limitless (port task 7, decisions L1–L22): the character sheet's Limitless button, turning it on and off for you and
+/* Limitless (port task 7, decisions L1–L28): the character sheet's Limitless button, turning it on and off for you and
    your companions, its unlock on Anatemis's first defeat and the pop-up that announces it. The rules are in
    limitless-engine.js; enemies, drops and Exotic items read `limitless.active` where they act. */
 (() => {
@@ -16,7 +16,7 @@
   document.body.appendChild(notice);
   const playerSheet = () => ({ level, exp, stats, manualAllocations, availablePoints, limitless });
   const writePlayer = sheet => { level = sheet.level; exp = sheet.exp; availablePoints = sheet.availablePoints; };
-  // Gear above Level 100 comes off while Limitless is off (L10, L13); it stays in the pack.
+  // Gear above Level 100 comes off while Limitless is off (L10, L25); it stays in the pack.
   function removeUnwearable(slots) {
     const removed = [];
     for (const [slot, id] of Object.entries(slots || {})) {

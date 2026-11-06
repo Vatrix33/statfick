@@ -27,6 +27,8 @@
     if (locked()) return "Equipment is read-only during combat";
     if (slot === "offHand" && getItem(c.equipment.primaryHand)?.handed === 2) return "Both hands are occupied by your two-handed weapon";
     if (item && !window.Companions.allowedSlots(item, c).includes(slot)) return "This item cannot be equipped in this slot";
+    // Above Level 100 only with Limitless on (task 7, L10).
+    if (item && !LimitlessRules.wearable(item, limitless.active)) return "Level " + LimitlessRules.itemLevel(item) + " required: it can only be worn while Limitless is on";
     const owned = counts(c.inventory);
     if (Object.entries(requiredEquipmentCounts(candidateEquipment(c, slot, item))).some(([id, quantity]) => (owned[id] || 0) < quantity)) return "All owned copies are already equipped in other slots";
     return "";
@@ -44,7 +46,7 @@
   const statRows = rows => `<dl class="spell-stat-details item-stat-details">${rows.map(row => `<div><dt title="${esc(row.title || row.label)}">${esc(row.label)}</dt><dd>${esc(row.value)}</dd></div>`).join("")}</dl>`;
   function itemDetail(c, item, quantity = 1) {
     return `<div class="spell-detail item-detail ${itemRarityClass(item)}"><div class="spell-detail-heading"><div><p class="eyebrow">ITEM DETAIL · ${quantity} OWNED</p><h3>${esc(item.name)}</h3></div><span class="spell-detail-symbol" aria-hidden="true">◫</span></div>
-      <div class="spell-badges"><span>${esc(itemCategoryLabel(item.category))}</span><span>${esc(itemTypeLabel(item.type))}</span><span>${esc(itemRarityLabel(item.rarity))}</span></div>
+      <div class="spell-badges"><span>${esc(itemCategoryLabel(item.category))}</span><span>${esc(itemTypeLabel(item.type))}</span><span>${esc(itemRarityLabel(item.rarity))}</span></div>${limitlessNote(item)}
       <div class="spell-detail-cost"><span>Value</span><strong>${esc(ShopRules.formatPrice(item.priceSilver || 0))}</strong></div>
       ${item.shopAvailable === false ? '<p class="companion-detail-note">' + escapeHtml(item.soldAt ? "Sold at " + item.soldAt : "Not sold by shops") + '</p>' : ""}
       ${statRows(itemStats(c, item))}<div class="spell-description"><p>${esc(item.description || "No description provided.")}</p></div></div>`;

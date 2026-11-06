@@ -45,6 +45,7 @@
     { "itemId": "masterwork-keening", "chance": 10 },
     { "itemId": "artifact-wraithguard-artifact", "chance": 10 },
     { "itemId": "masterwork-sunder", "chance": 10 },
-    { "itemId": "key-item-gem-of-false-dreams", "chance": 5 }
+    { "itemId": "key-item-gem-of-false-dreams", "chance": 5 },
+    { "itemId": "masterwork-cherubim", "chance": 5 }
   ]
 }

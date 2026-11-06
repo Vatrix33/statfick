@@ -82,6 +82,10 @@
     {
       "itemId": "masterwork-impshield",
       "chance": 10
+    },
+    {
+      "itemId": "masterwork-fletcher",
+      "chance": 4
     }
   ]
 }

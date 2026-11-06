@@ -324,7 +324,7 @@
     const details = stats.length ? `<dl class="guild-intel-details" aria-label="Item stats and effects">${stats.map(stat => `<dt${stat.title ? ` title="${escapeHtml(stat.title)}"` : ""}>${escapeHtml(stat.label)}</dt><dd>${escapeHtml(stat.value)}</dd>`).join("")}</dl>` : "";
     const luck = currentStats().luck, bonus = calculateClassEffects().masterworkDropChanceFlat;
     const records = sources.map(source => {
-      const adjusted = GuildInformationRules.dropChance(item, source, luck, bonus);
+      const adjusted = GuildInformationRules.dropChance(item, source, luck, bonus, limitless.active);
       const guarantee = source.guaranteedUntilClaimed ? "Guaranteed until first collected; afterwards, the chance below applies."
         : source.guaranteedOnFirstKill ? "Guaranteed on the first kill; afterwards, the chance below applies." : "";
       const locations = informationEnemyLocations.get(source.enemyName) || [];

@@ -36,8 +36,8 @@
       pool = next;
     }
   }
-  // Masterwork weapons, armor and artifacts carry the drop rules unique items once had.
-  const masterworkEquipment = item => item?.rarity === "masterwork" && ["weapon", "armor", "artifact"].includes(item.category);
+  // Masterwork weapons, armor and artifacts carry the drop rules unique items once had; so do the Exotics (task 7).
+  const masterworkEquipment = item => ["masterwork", "exotic"].includes(item?.rarity) && ["weapon", "armor", "artifact"].includes(item.category);
   function itemPool(items, enemies, classes) {
     const classItems = new Set(classes.map(definition => definition.requirements?.other).filter(other => other?.type === "inventory-item").map(other => other.itemId));
     const candidates = items.filter(item => item.droppable !== false && (masterworkEquipment(item) || classItems.has(item.id)));
@@ -83,9 +83,12 @@
     }
     return locations;
   }
-  function dropChance(item, source, luck, classBonus = 0) {
+  // With Limitless on, a masterwork's base chance doubles; an Exotic drops only while it is on (task 7, L8, 5.1).
+  function dropChance(item, source, luck, classBonus = 0, limitlessActive = false) {
+    if (item?.rarity === "exotic" && !limitlessActive) return 0;
     const bonus = masterworkEquipment(item) ? Math.max(0, Number(luck) || 0) * 0.05 + Math.max(0, Number(classBonus) || 0) : 0;
-    return Math.min(100, Math.max(0, source.chance + bonus));
+    const base = source.chance * (limitlessActive && item?.rarity === "masterwork" ? 2 : 1);
+    return Math.min(100, Math.max(0, base + bonus));
   }
   const api = { cost, normalize, playerClasses, itemPool, enemyLocations, dropChance };
   root.GuildInformationRules = api;

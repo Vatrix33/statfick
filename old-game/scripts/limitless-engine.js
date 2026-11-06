@@ -1,4 +1,4 @@
-/* Limitless (port task 7, decisions L1–L22 in engine/Docs/Engine-Plan.md): the rules, without the page. Loaded before
+/* Limitless (port task 7, decisions L1–L28 in engine/Docs/Engine-Plan.md): the rules, without the page. Loaded before
    app.js, which reads saves with them. A character's record: { unlocked, active, kept, spent } for the player (only the
    player's unlocked and active count; companions follow them), { kept, spent } for a companion.
    - kept: what turning Limitless off set aside (L2): the Limitless level, the EXP toward its next level, the attribute
@@ -101,7 +101,7 @@
   }
   // An item's level: a forged piece's, a masterwork artifact copy's; 0 when it has none.
   const itemLevel = item => whole(item?.forged?.level ?? (item?.masterworkArtifactBaseId ? item.level : 0));
-  // While Limitless is off, nothing above Level 100 can be worn (L10, L13).
+  // While Limitless is off, nothing above Level 100 can be worn (L10); Exotics at 100 or below keep working (L25).
   const wearable = (item, active) => active || itemLevel(item) <= BASE_CAP;
   root.LimitlessRules = { BASE_CAP, LIMITLESS_CAP, POINTS_PER_LEVEL, STAT_KEYS, ANATEMIS_ID, ENEMY_STAT_MULTIPLIER, BOSS_CLASSES, normalize, cap, keepAside, restore, noteSpent, scaleEnemy, itemLevel, wearable };
   if (typeof module !== "undefined") module.exports = root.LimitlessRules;

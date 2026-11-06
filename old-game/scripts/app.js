@@ -1300,7 +1300,9 @@ function calculateEquipmentDefense(values) {
     const percent = toNumber(item.evasionPercent, 0);
     return sum + (item.type === "heavy" && percent < 0 ? percent * heavyPenaltyShare : percent);
   }, 0);
-  return { armor: equipmentArmor, evasionDebuff, evasionFlat: artifactEffects.evasionFlat + equipmentEvasion, evasionPercent: artifactEffects.evasionPercent + armorEvasionPercent };
+  // Winged Hussar's +15% Evasion (task 7): a held weapon's own Evasion percentage.
+  const weaponEvasionPercent = equippedWeaponItems().flatMap(item => item.effects || []).filter(effect => effect.kind === "evasion-percent").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0);
+  return { armor: equipmentArmor, evasionDebuff, evasionFlat: artifactEffects.evasionFlat + equipmentEvasion, evasionPercent: artifactEffects.evasionPercent + armorEvasionPercent + weaponEvasionPercent };
 }
 
 function defaultCharacter() {
@@ -3211,7 +3213,7 @@ function splitDelimitedRecord(record) {
 
 function normalizeRarity(value) {
   const rarity = slugify(value);
-  return ["common", "uncommon", "rare", "epic", "legendary", "masterwork"].includes(rarity) ? rarity : "common";
+  return ["common", "uncommon", "rare", "epic", "legendary", "masterwork", "exotic"].includes(rarity) ? rarity : "common";
 }
 
 function parseWeaponRecord(record) {
@@ -3329,7 +3331,7 @@ function parseItemFile(kind, text, allowLegacy = false) {
     seen.add(id);
     const name = stringField("name");
     const rarity = stringField("rarity").toLowerCase();
-    if (!["common", "uncommon", "rare", "epic", "legendary", "masterwork"].includes(rarity)) invalid("unknown rarity");
+    if (!["common", "uncommon", "rare", "epic", "legendary", "masterwork", "exotic"].includes(rarity)) invalid("unknown rarity");
     if (typeof record.description !== "string") invalid("description must be a string");
     const priceSilver = numberField("priceSilver");
     if (!Number.isInteger(priceSilver) || priceSilver < 0) invalid("priceSilver must be a nonnegative integer");
@@ -3544,7 +3546,8 @@ function rebuildItems() {
     effects: [{ type: "cast-archived-spell", amount: 0 }],
   }));
   // Forged masterworks join the catalogue as templates, so drop tables and guild information can name them.
-  const masterworkTemplates = window.ForgeRules ? ForgeRules.MASTERWORK_IDS.map(key => ForgeRules.item(ForgeRules.masterworkTemplateId(key))).filter(Boolean) : [];
+  // The Exotics' templates too (task 7): drop tables name them like masterworks.
+  const masterworkTemplates = window.ForgeRules ? [...ForgeRules.MASTERWORK_IDS, ...ForgeRules.EXOTIC_IDS].map(key => ForgeRules.item(ForgeRules.masterworkTemplateId(key))).filter(Boolean) : [];
   items = [...itemCatalog.weapons, ...itemCatalog.armor, ...itemCatalog.artifacts, ...(itemCatalog.consumables || []), ...(itemCatalog.keyItems || []), ...archivedItems, ...masterworkTemplates].filter((item) => {
     if (catalogueById.has(item.id)) return false;
     catalogueById.set(item.id, item);
@@ -3714,6 +3717,16 @@ function itemCategoryLabel(category) {
 function isMasterworkEquipment(item) {
   return item?.rarity === "masterwork" && ["weapon", "armor", "artifact"].includes(item.category);
 }
+// The Exotics (port task 7): unique weapons and armor above masterwork. Masterwork rules apply to them wherever no Exotic
+// rule is given (they always drop when rolled, Luck raises their chance, their effects show in battle), but Limitless's
+// ×2 is for masterworks only, and they drop only while Limitless is on.
+function isExoticEquipment(item) {
+  return item?.rarity === "exotic" && ["weapon", "armor"].includes(item.category);
+}
+const isUniqueRarity = rarity => rarity === "masterwork" || rarity === "exotic";
+// Gear above Level 100 while Limitless is off (L10, L27): a red border and "Level N required".
+const needsLimitless = item => Boolean(item) && !LimitlessRules.wearable(item, limitless.active);
+const limitlessNote = item => needsLimitless(item) ? '<span class="needs-limitless-note">Level ' + LimitlessRules.itemLevel(item) + ' required</span>' : "";
 
 function itemRarityLabel(rarity) {
   return rarity.charAt(0).toUpperCase() + rarity.slice(1);
@@ -3730,7 +3743,7 @@ function itemPurchasePriceLabel(item) {
 }
 
 function itemRarityClass(item) {
-  return `item-rarity-${item.rarity || "common"}`;
+  return `item-rarity-${item.rarity || "common"}${needsLimitless(item) ? " needs-limitless" : ""}`;
 }
 
 function artifactEffectLabel(effect) {
@@ -3792,6 +3805,12 @@ function artifactEffectLabel(effect) {
     "stun-on-hit-chance": absoluteAmount + "% on hit: stun the target for 1 turn",
     "turn-and-speed-lock": "Its wielder's turn meter can't be pushed back and their Speed can't be lowered",
     "spell-cost-mark-on-damage": "Enemies it damages are marked until the end of their next turn: their spells cost " + absoluteAmount + "% more Mana",
+    // The Exotics (port task 7).
+    "armor-break-on-hit": "Every hit removes " + absoluteAmount + "% of the target's Armor for " + effect.durationTurns + " turn" + (effect.durationTurns === 1 ? "" : "s") + " (" + formatValue(effect.critAmount) + "% on a critical hit); each hit stacks",
+    "lethal-survive-chance": "When damage would bring you to 0 HP: " + absoluteAmount + "% chance to survive at 1 HP instead",
+    "damage-per-evasion": "Damage +" + absoluteAmount + "% for every " + formatValue(effect.evasion) + " Evasion",
+    "per-rune-damage-pierce": "Every rune attached: +" + absoluteAmount + "% damage and +" + absoluteAmount + " Armor Pierce (counted in its stats)",
+    "shared-burden": "Damage and healing you receive in battle −" + absoluteAmount + "%; the part taken off is shared equally by your living allies, summons included",
     "avalanche-counters": "Each damage taken adds a counter; at " + effect.maximum + " every enemy loses " + absoluteAmount + "% Speed for " + effect.durationTurns + " turns and the counters reset",
     "weapon-power-from-armor-percent": "Gain weapon power equal to " + absoluteAmount + "% of current Armor (Armor is retained)",
     "armor-from-max-hp-percent": "Gain Armor equal to " + absoluteAmount + "% of maximum HP",
@@ -4025,7 +4044,7 @@ function requiredEquipmentCounts(equipmentState) {
 
 function canEquipItem(item, slotKey) {
   if (item?.category === "weapon" && currentStats().strength < (item.minimumStrength || 0)) return false;
-  // Above Level 100 only with Limitless on (task 7, L10, L13).
+  // Above Level 100 only with Limitless on (task 7, L10, L25).
   if (!LimitlessRules.wearable(item, limitless.active)) return false;
   const candidate = candidateEquipment(item, slotKey);
   if (!candidate) return false;
@@ -4161,7 +4180,7 @@ function renderOwnedItems() {
     '<article class="spell-entry inventory-entry ' + itemRarityClass(item) + '" data-item-id="' + escapeHtml(item.id) + '">' +
       '<button class="spell-select-button item-select-button" type="button">' +
         '<span class="spell-entry-name"><span>' + escapeHtml(item.name) + '</span><span class="item-quantity" aria-label="Quantity ' + quantity + '">×' + quantity + '</span></span>' +
-        '<span class="spell-entry-meta item-entry-meta">' + itemRarityTag(item.rarity) + '<span>' + escapeHtml(itemCategoryLabel(item.category)) + '</span><span>· ' + escapeHtml(itemKindLabel(item)) + '</span>' + (item.forged ? '<span>· Lv ' + item.forged.level + '</span>' : '') + '</span>' +
+        '<span class="spell-entry-meta item-entry-meta">' + itemRarityTag(item.rarity) + '<span>' + escapeHtml(itemCategoryLabel(item.category)) + '</span><span>· ' + escapeHtml(itemKindLabel(item)) + '</span>' + (item.forged ? '<span>· Lv ' + item.forged.level + '</span>' : '') + limitlessNote(item) + '</span>' +
       '</button>' +
       '<div class="item-equip-actions"><button class="item-favorite-button' + (isItemFavorite(item.id) ? ' is-favorite' : '') + '" type="button" data-favorite-item="' + escapeHtml(item.id) + '" aria-pressed="' + isItemFavorite(item.id) + '" aria-label="' + escapeHtml((isItemFavorite(item.id) ? 'Remove from favorites: ' : 'Favorite: ') + item.name) + '" title="' + escapeHtml((isItemFavorite(item.id) ? 'Unfavorite all copies of ' : 'Favorite all copies of ') + item.name) + '"><span aria-hidden="true">' + (isItemFavorite(item.id) ? '★' : '☆') + '</span></button>' + (item.unavailable ? "" : ownedItemActions(item, inventoryEquipSlot)) + '</div>' +
     '</article>'
@@ -4329,10 +4348,10 @@ function forgedAvailability(item) {
 function forgedDetailMarkup(item) {
   const stats = forgedItemStats(item);
   return '<div class="spell-detail item-detail forged-detail ' + itemRarityClass(item) + '">' +
-    '<div class="spell-detail-heading"><div><p class="eyebrow">' + (item.forged.masterwork ? 'MASTERWORK ' + escapeHtml(item.forged.typeName.toUpperCase()) : item.forged.caster ? 'FORGED ' + escapeHtml(item.forged.typeName.toUpperCase()) : item.forged.armor ? 'FORGED ARMOR' : 'FORGED WEAPON') + ' · LEVEL ' + item.forged.level + '</p><h3>' + escapeHtml(item.name) + '</h3></div></div>' +
+    '<div class="spell-detail-heading"><div><p class="eyebrow">' + (item.forged.masterwork ? (item.rarity === 'exotic' ? 'EXOTIC ' : 'MASTERWORK ') + escapeHtml(item.forged.typeName.toUpperCase()) : item.forged.caster ? 'FORGED ' + escapeHtml(item.forged.typeName.toUpperCase()) : item.forged.armor ? 'FORGED ARMOR' : 'FORGED WEAPON') + ' · LEVEL ' + item.forged.level + '</p><h3>' + escapeHtml(item.name) + '</h3></div></div>' +
     forgedMakerMarkup(item) +
     (window.ForgeArt ? '<div class="forged-art" aria-hidden="true">' + ForgeArt.weapon(item) + '</div>' : '') +
-    '<div class="spell-badges">' + itemRarityTag(item.rarity) + '<span>' + (item.forged.armor ? 'Armor' : 'Weapon') + '</span><span>' + escapeHtml(item.forged.typeName) + '</span>' + (item.forged.caster ? '' : '<span>' + escapeHtml(itemTypeLabel(item.type)) + '</span>') + '</div>' +
+    '<div class="spell-badges">' + itemRarityTag(item.rarity) + '<span>' + (item.forged.armor ? 'Armor' : 'Weapon') + '</span><span>' + escapeHtml(item.forged.typeName) + '</span>' + (item.forged.caster ? '' : '<span>' + escapeHtml(itemTypeLabel(item.type)) + '</span>') + '</div>' + limitlessNote(item) +
     '<div class="spell-detail-cost"><span>' + (item.shopAvailable ? 'Shop price' : 'Shop availability') + '</span><strong>' + escapeHtml(forgedAvailability(item)) + '</strong></div>' +
     '<div class="spell-detail-cost"><span>Sell price</span><strong>' + escapeHtml(ShopRules.formatPrice(ShopRules.salePrice(item.priceSilver))) + '</strong></div>' +
     '<dl class="spell-stat-details item-stat-details">' + stats.map(stat => '<div><dt' + (stat.title ? ' title="' + escapeHtml(stat.title) + '"' : '') + '>' + escapeHtml(stat.label) + '</dt><dd>' + escapeHtml(stat.value) + '</dd></div>').join("") + '</dl>' +
@@ -4382,7 +4401,7 @@ function itemDetailMarkup(item) {
     : '<div><dt>Armor value</dt><dd>+' + formatValue(item.armorValue) + '</dd></div><div><dt>Evasion debuff</dt><dd>-' + formatValue(item.evasionDebuff) + '</dd></div><div><dt>Scaling stat</dt><dd>' + escapeHtml(itemStatLabel(item.scaling)) + '</dd></div><div><dt>Power</dt><dd>+' + power + '</dd></div>' + (item.effects || []).map((effect) => '<div><dt>Effect</dt><dd>' + escapeHtml(artifactEffectLabel(effect)) + '</dd></div>').join('');
   return '<div class="spell-detail item-detail ' + itemRarityClass(item) + '">' +
     '<div class="spell-detail-heading"><div><p class="eyebrow">ITEM DETAIL</p><h3>' + escapeHtml(item.name) + '</h3></div><span class="spell-detail-symbol" aria-hidden="true">◫</span></div>' +
-    '<div class="spell-badges">' + itemRarityTag(item.rarity) + '<span>' + escapeHtml(itemCategoryLabel(item.category)) + '</span><span>' + escapeHtml(itemTypeLabel(item.type)) + '</span>' + (isArtifact && item.masterworkArtifactBaseId ? '<span>Level ' + escapeHtml(String(item.level)) + '</span>' : '') + '</div>' +
+    '<div class="spell-badges">' + itemRarityTag(item.rarity) + '<span>' + escapeHtml(itemCategoryLabel(item.category)) + '</span><span>' + escapeHtml(itemTypeLabel(item.type)) + '</span>' + (isArtifact && item.masterworkArtifactBaseId ? '<span>Level ' + escapeHtml(String(item.level)) + '</span>' : '') + '</div>' + limitlessNote(item) +
     (isArtifact && window.ForgeArt?.goods ? '<div class="forged-art artifact-art" aria-hidden="true">' + ForgeArt.goods(item) + '</div>' : '') +
     '<div class="spell-detail-cost"><span>' + (item.shopAvailable === false ? 'Shop availability' : 'Shop price') + '</span><strong>' + escapeHtml(item.shopAvailable === false ? 'Not sold by shops' : itemPurchasePriceLabel(item)) + '</strong></div>' +
     (isArtifact || item.shopAvailable === false || item.shopOffer ? '<div class="spell-detail-cost"><span>Sell price</span><strong>' + escapeHtml(ShopRules.formatPrice(ShopRules.salePrice(item.priceSilver))) + '</strong></div>' : '') +

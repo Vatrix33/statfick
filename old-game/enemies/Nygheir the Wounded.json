@@ -81,6 +81,10 @@
     {
       "itemId": "artifact-second-wind-artifact",
       "chance": 12
+    },
+    {
+      "itemId": "masterwork-winged-hussar",
+      "chance": 4
     }
   ],
   "aiProfile": "nygheir",

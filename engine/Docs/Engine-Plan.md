@@ -98,6 +98,17 @@ none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine w
 task 5 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "New
 Masterworks". It also makes Doctor's Orders (task 3) the white robe R11 asked for: masterwork armor now wears its
 recorded colour.
+**Beside the engine, old game only (2026-11-06): port task 7, New Game Plus, is in progress in the old game**, as tasks
+1–6 were (decisions L1–L28 in "Decisions for task 7" below; on the cloud branch `claude/fervent-carson-f5ol9s`, one pull
+request at the end, L22). Built and committed: Limitless (unlock, the sheet's button, Levels 100–200, turning it off and
+on, EXP, saves, companions), enemy scaling with the +25%, masterwork drops ×2, gear past Level 100, the Exotic rarity,
+Exium, the five Exotics with their drops and Anatemis's Level-200 reward, the red "Level N required" mark; their checks
+so far are `../old-game/test-client/tests/limitless-browser.js` (7 entries, passing). **Waiting for the user** (the one
+stop, L6): their review of the bosses' Level-100 classes (the draft is `BOSS_CLASSES` in
+`../old-game/scripts/limitless-engine.js`, with its reasons in the chat). Then: checks for the Limitless core, enemy
+scaling and the ×2, the mutation proof, the regression run against task 5's, the docs (`../old-game/Docs/Notes.md`,
+`Docs/Port-Tasks/README.md`), and the pull request. **Engine work goes on uninterrupted**; don't count task 7 as the
+engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
@@ -1143,7 +1154,7 @@ Asked before any code, four at a time:
   per part (16 on the main part). (Not ×1.03.)
 - L12 **Exotic level:** forged at your level when they drop (up to 200), like masterwork drops. (Not always Level 200.)
 - L13 **Exotics while Limitless is off:** taken off like other gear above Level 100 (L10); one at Level 100 or below stays
-  on, greyed and inactive (section 5.2). (Not every Exotic kept on and greyed.)
+  on (L25: active, not greyed). (Not every Exotic kept on and greyed.)
 - L14 **Winged Hussar's damage:** +1% damage per 4 Evasion (with its own +15% Evasion counted), a configurable number.
   (Not 25% or 40% of Evasion added to base power.)
 - L15 **Anatemis's Level-200 reward:** from all five Exotics (section 8), armor and shield included. (Not weapons only,
@@ -1160,6 +1171,20 @@ Asked before any code, four at a time:
 - L21 **Turning it on in battle:** no, only between battles. (Not from the next battle, not at once.)
 - L22 **Delivery:** one pull request at the end; the only stop on the way is the bosses' class draft (L6). (Not two pull
   requests.)
+Asked while building the Exotics (2026-11-06):
+- L23 **Cherubim's +12% per rune:** +12% final power and +12 points of armor pierce per attached rune (four runes: +48
+  and +48), part of the weapon's own totals like any rune's. (Not ×1.12 of the current values.)
+- L24 **Elemental runes on Cherubim:** Holy is its base element; an elemental rune mixes in its own element at 50%, as on
+  every other weapon. (Not Holy only.)
+- L25 **Exotics at Level 100 or below while Limitless is off** (the user's own answer; replaces L13's "greyed and
+  inactive"): they stay active, worn or put on, like any other gear; the rule that a piece can't be worn while Limitless
+  is off applies only to pieces of Level 101 and above.
+- L26 **Fletcher's armor break** (the user's own answer): it stacks: every hit adds its own −20% Armor (−40% on a
+  critical hit) for 1 turn. (Not one renewed effect per wielder, not the latest replacing it.)
+- L27 **Gear above Level 100 while Limitless is off** (the user's own answer): any such piece, Exotic or not, has a red
+  border and the note "Level N required" (N its level) in the pack and item panels. (Not greyed.)
+- L28 **Exotic weapons' other parts:** Exium a quarter of the time, otherwise any fitting material; the main part is
+  always Exium. (Not Mythilium as on masterworks, not all Exium.)
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).

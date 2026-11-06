@@ -8,7 +8,7 @@
    Pure rules, shared by the game and its regression tests. */
 (function (root) {
   "use strict";
-  const RARITIES = ["common", "uncommon", "rare", "epic", "legendary", "masterwork"];
+  const RARITIES = ["common", "uncommon", "rare", "epic", "legendary", "masterwork", "exotic"];
   const ID_PREFIX = "weapon-forged-";
   const STAT_CODES = { strength: "S", vitality: "V", mind: "M", dexterity: "D", intelligence: "I", wisdom: "W", speed: "P", luck: "L" };
   const STAT_SHORT = { strength: "STR", vitality: "VIT", mind: "MND", dexterity: "DEX", intelligence: "INT", wisdom: "WIS", speed: "SPD", luck: "LCK" };
@@ -113,6 +113,8 @@
     ["gold-vulcan-thread", "gvt", "Gold-Vulcan Thread", "legendary", ["string"], ["roundtable", "boreal-bolt"], { finalPct: 4, hit: 4, crit: 4, pierce: 4 }],
     // Mythilium never appears on a generated weapon; it is reserved for a later phase.
     ["mythilium", "myt", "Mythilium", "masterwork", ["head", "body"], MAKER_IDS, { finalPct: 5, hit: 5, crit: 5, pierce: 5 }, false],
+    // Exium (task 7, L11): the Exotic weapons' metal, Mythilium's values +3 each; it looks like Mythilium.
+    ["exium", "exi", "Exium", "exotic", ["head", "body"], MAKER_IDS, { finalPct: 8, hit: 8, crit: 8, pierce: 8 }, false],
   ];
   const MATERIALS = Object.fromEntries(MATERIAL_ROWS.map(([id, code, name, rarity, parts, makers, effect, natural = true]) =>
     [id, { id, code, name, rarity, parts, makers, effect, natural }]));
@@ -463,7 +465,7 @@
       if (!shape) { if (token !== "x") return null; parts.push(null); continue; }
       if (token === "x") return null;
       const maker = MAKER_BY_CODE[token.slice(0, 2)], material = MATERIAL_BY_CODE[token.slice(2)];
-      if (!maker || !material || !materialFits(MATERIALS[material], shape)) return null;
+      if (!maker || !material || material === "exium" || !materialFits(MATERIALS[material], shape)) return null;
       parts.push({ shape, maker, material });
     }
     const slots = Number(rest[3]);
@@ -500,11 +502,13 @@
     const matching = matchingBonus(spec);
     if (matching) for (const key of EFFECT_KEYS) sum[key] += matching[key] || 0;
     // A masterwork's own fixed additions (Tidepiercer's armor pierce).
-    const bonus = spec.masterwork && MASTERWORKS[spec.masterwork]?.totalsBonus;
+    const def = spec.masterwork ? MASTERWORKS[spec.masterwork] : null, bonus = def?.totalsBonus;
     if (bonus) for (const key of EFFECT_KEYS) sum[key] += bonus[key] || 0;
+    // An element of its own (Cherubim's Holy, task 7) whatever its parts are; elemental runes still mix in theirs (L24).
+    if (def?.element) element = def.element;
     for (const runeId of allRunes(spec)) {
       const effect = RUNES[runeId].effect;
-      for (const key of EFFECT_KEYS) sum[key] += effect[key] || 0;
+      for (const key of EFFECT_KEYS) sum[key] += (effect[key] || 0) + (def?.perRuneBonus?.[key] || 0);
       if (effect.secondaryStat) secondaryStat = effect.secondaryStat;
       if (effect.element) runeElement = effect.element;
     }
@@ -525,7 +529,8 @@
     };
   }
 
-  const RARITY_PRICE = { common: 120, uncommon: 600, rare: 2400, epic: 6000, legendary: 12000, masterwork: 24000 };
+  // An Exotic is priced like a masterwork (task 7: masterwork rules apply where no Exotic rule is given).
+  const RARITY_PRICE = { common: 120, uncommon: 600, rare: 2400, epic: 6000, legendary: 12000, masterwork: 24000, exotic: 24000 };
   function price(spec, sum) {
     if (isArmorSpec(spec)) return armorPrice(spec);
     sum = sum || totals(spec);
@@ -639,7 +644,7 @@
     const weapon = WEAPONS[spec.type], derived = stats(spec), mainMaterial = MATERIALS[spec.parts[0].material];
     const outlaw = spec.parts[0].maker === "outlaw", masterwork = spec.masterwork ? MASTERWORKS[spec.masterwork] : null;
     return {
-      id, category: "weapon", name: name(spec, derived.totals), rarity: mainMaterial.rarity, description: description(spec),
+      id, category: "weapon", name: name(spec, derived.totals), rarity: masterwork?.exotic ? "exotic" : mainMaterial.rarity, description: description(spec),
       type: weapon.ranged ? "ranged" : "meele", handed: weapon.handed, basePower: derived.basePower,
       primary: derived.primary, secondary: derived.secondary, minimumStrength: 0,
       effects: [...(masterwork ? masterwork.effects.map(effect => ({ ...effect })) : []), ...(derived.spellCost > 0 ? [{ kind: "spell-cost-percent", amount: derived.spellCost, maxTier: null }] : [])],
@@ -1042,7 +1047,7 @@
     if (spec.masterwork) {
       const piece = part => { const shape = ARMOR_PARTS[part.shape].name.toLowerCase(); return `${article(shape)} ${shape} of ${ARMOR_MATERIALS[part.material].name} by ${byName(part.maker)}`; };
       const [main, ...rest] = spec.parts;
-      return `A masterwork ${armor.name.toLowerCase()} with ${piece(main)}, ${rest.map(piece).join(" and ")}. ${MASTERWORKS[spec.masterwork].story}`;
+      return `${uniqueNoun(MASTERWORKS[spec.masterwork])} ${armor.name.toLowerCase()} with ${piece(main)}, ${rest.map(piece).join(" and ")}. ${MASTERWORKS[spec.masterwork].story}`;
     }
     const piece = part => { const shape = ARMOR_PARTS[part.shape].name.toLowerCase(); return `${["plates", "fittings"].includes(part.shape) ? "" : "a "}${shape} of ${ARMOR_MATERIALS[part.material].name} by ${MAKERS[part.maker].byName || MAKERS[part.maker].name}`; };
     const [main, ...rest] = spec.parts;
@@ -1061,7 +1066,7 @@
     const armor = ARMORS[spec.type], sum = armorTotals(spec), t = levelCurve(spec.level), main = spec.parts[0];
     const masterwork = spec.masterwork ? MASTERWORKS[spec.masterwork] : null;
     return {
-      id, category: "armor", name: armorName(spec, sum), rarity: ARMOR_MATERIALS[main.material].rarity, description: armorDescription(spec),
+      id, category: "armor", name: armorName(spec, sum), rarity: masterwork?.exotic ? "exotic" : ARMOR_MATERIALS[main.material].rarity, description: armorDescription(spec),
       type: armor.category, armorValue: Math.max(1, Math.round(lerp(armor.armor[0], armor.armor[1], t) * (1 + (Number(masterwork?.armorBonusPercent) || 0) / 100))), evasionDebuff: 0,
       scaling: component(sum.scalingStat || armor.scaling[0], lerp(armor.scaling[1], armor.scaling[2], t)),
       effects: [...(masterwork ? masterwork.effects.map(effect => ({ ...effect })) : []), ...(sum.spellCost > 0 ? [{ kind: "spell-cost-percent", amount: sum.spellCost, maxTier: null }] : [])],
@@ -1339,8 +1344,49 @@
       effects: [{ kind: "avalanche-counters", amount: 30, maximum: 7, durationTurns: 3 }],
       story: "Roundtable plates the Ice Elementals buried beneath the glacier; every blow its wearer takes gathers snow, until the whole slope comes down on the enemy.",
     },
+    /* The Exotics (port task 7, the user's designs, 2026-11-06; decisions L1–L28 in engine/Docs/Engine-Plan.md): a rarity
+       above masterwork, each piece unique. They drop only while Limitless is on (never from Sparkling's masterwork rolls,
+       shops or rewards), forged at the finder's level up to 200 (L12). A weapon's main part is always Exium and each
+       other part Exium a quarter of the time (L28); the shield and the brigandine are made like masterwork armor
+       (Mythilium). Masterwork rules apply wherever no Exotic rule is given. Their looks are placeholders from the
+       forge's kits; Winged Hussar's crossguard is a pair of wings (L1). The numbers are the effects' own, to balance. */
+    fletcher: {
+      name: "Fletcher", type: "dagger", parts: ["short-blade", "crossguard", "short-handle"], mainMaker: "abyss", exotic: true, placeholderArt: true,
+      // Every hit adds its own break (L26).
+      effects: [{ kind: "armor-break-on-hit", amount: 20, critAmount: 40, durationTurns: 1 }],
+      story: "An Abyss dagger fletched like an arrow; wherever it bites, the armor around the wound comes apart.",
+    },
+    "tough-out": {
+      name: "Tough-Out", type: "tower-shield", parts: ["face", "rim", "grip"], mainMaker: "hearthforge", exotic: true, placeholderArt: true,
+      effects: [{ kind: "lethal-survive-chance", amount: 25 }],
+      story: "A Hearthforge tower shield that refuses to let its bearer fall; even a killing blow sometimes leaves them standing.",
+    },
+    "winged-hussar": {
+      name: "Winged Hussar", type: "longsword", parts: ["long-blade", "crossguard", "short-handle"], mainMaker: "roundtable", exotic: true, placeholderArt: true,
+      // +1% damage per 4 Evasion, its own +15% Evasion counted (L14).
+      effects: [{ kind: "evasion-percent", amount: 15 }, { kind: "damage-per-evasion", amount: 1, evasion: 4 }],
+      story: "A Roundtable longsword with a crossguard of spread wings; the lighter its wielder's step, the harder it strikes.",
+    },
+    cherubim: {
+      name: "Cherubim", type: "lance", parts: ["spearhead", "pommel", "long-handle"], mainMaker: "church-of-talos", exotic: true, placeholderArt: true,
+      // Always four rune slots; each rune attached adds +12% final power and +12 armor pierce (L23).
+      element: "holy", fixedSlots: 4, perRuneBonus: { finalPct: 12, pierce: 12 },
+      effects: [{ kind: "per-rune-damage-pierce", amount: 12 }],
+      story: "The Church of Talos's holy lance, with four sockets for the runes of its order; every rune set in it burns brighter.",
+    },
+    "connected-balancer": {
+      name: "Connected Balancer", type: "brigandine", parts: ["shell", "lining", "fittings"], mainMaker: "boreal-bolt", exotic: true, placeholderArt: true,
+      // Every living ally on the wearer's side shares it, summons included (L19).
+      effects: [{ kind: "shared-burden", amount: 50 }],
+      story: "Boreal Bolt plates linked by a thread no one can see: every wound and every blessing its wearer receives is spread among their friends.",
+    },
   };
-  const MASTERWORK_IDS = Object.keys(MASTERWORKS);
+  // Masterworks proper; the Exotics are kept apart (task 7): never in Sparkling's rolls, the Guild's or the shops' lists.
+  const MASTERWORK_IDS = Object.keys(MASTERWORKS).filter(key => !MASTERWORKS[key].exotic);
+  const EXOTIC_IDS = Object.keys(MASTERWORKS).filter(key => MASTERWORKS[key].exotic);
+  // The metal of a masterwork's main part (and of the others a quarter of the time): Exium for an Exotic weapon (L28).
+  const uniqueMaterial = def => def?.exotic && !ARMORS[def.type] ? "exium" : "mythilium";
+  const uniqueNoun = def => def?.exotic ? "An exotic" : "A masterwork";
   const isArmorMasterwork = def => Boolean(def && ARMORS[def.type]);
   const isCasterMasterwork = def => Boolean(def && WEAPONS[def.type]?.caster);
   const masterworkMakers = shapeId => MAKER_IDS.filter(id => id !== "outlaw" && makerFits(id, shapeId));
@@ -1377,14 +1423,17 @@
       };
       return normalizeSpec({ type: def.type, masterwork: key, level: value, parts: [{ shape: def.parts[0], maker: mainMaker, material: "mythilium" }, secondary(def.parts[1]), secondary(def.parts[2])], slots: rollArmorSlots(value, random), runes: [] });
     }
+    const metal = uniqueMaterial(def);
     const secondary = shapeId => {
       if (random() < MASTERWORK_MYTHILIUM_CHANCE) {
         const makers = masterworkMakers(shapeId);
-        return { shape: shapeId, maker: makers[weightedIndex(makers.map(id => id === mainMaker ? 1.5 : 1), random)], material: "mythilium" };
+        return { shape: shapeId, maker: makers[weightedIndex(makers.map(id => id === mainMaker ? 1.5 : 1), random)], material: metal };
       }
       return pickPart(shapeId, value, 4, { allowOutlaw: false, preferMaker: mainMaker }, random);
     };
-    return normalizeSpec({ type: def.type, masterwork: key, level: value, parts: [{ shape: def.parts[0], maker: mainMaker, material: "mythilium" }, secondary(def.parts[1]), def.parts[2] ? secondary(def.parts[2]) : null], slots: rollSlots(value, random), runes: [] });
+    // Cherubim's four slots are fixed (task 7), not rolled.
+    const slots = def.fixedSlots ?? rollSlots(value, random);
+    return normalizeSpec({ type: def.type, masterwork: key, level: value, parts: [{ shape: def.parts[0], maker: mainMaker, material: metal }, secondary(def.parts[1]), def.parts[2] ? secondary(def.parts[2]) : null], slots, runes: [] });
   }
   function encodeMasterwork(spec) {
     if (isCasterMasterwork(MASTERWORKS[spec.masterwork])) {
@@ -1423,10 +1472,13 @@
       if (level < 1 || level > MAX_LEVEL || MAKER_BY_CODE[mainCode] !== def.mainMaker || !stone || def.element && STONES[stone].element !== def.element || !handle || !ink || !makes(handleMaker, "handle") || !makes(inkMaker, "inscription")) return null;
       return { type: def.type, masterwork: key, level, parts: [{ shape: weapon.caster, maker: def.mainMaker, material: stone, tier: Number(tierText) }, { shape: weapon.parts[1], maker: handleMaker, material: handle }, { shape: "inscription", maker: inkMaker, material: ink }], slots: 0, runes: [] };
     }
-    const match = /^([a-z]+(?:-[a-z]+)*)-(\d{1,3})-([a-z]{5})-([a-z]{5})-([a-z]{5}|x)-s([0-3])((?:[a-z]{3})*)$/.exec(rest);
+    const match = /^([a-z]+(?:-[a-z]+)*)-(\d{1,3})-([a-z]{5})-([a-z]{5})-([a-z]{5}|x)-s([0-4])((?:[a-z]{3})*)$/.exec(rest);
     if (!match) return null;
     const [, key, levelText, ...tokens] = match, def = MASTERWORKS[key], level = Number(levelText);
     if (!def || isArmorMasterwork(def) || level < 1 || level > MAX_LEVEL) return null;
+    // Three slots at most, or exactly a fixed number (Cherubim's four).
+    if (def.fixedSlots != null ? Number(tokens[3]) !== def.fixedSlots : Number(tokens[3]) > 3) return null;
+    const metal = uniqueMaterial(def);
     const parts = [];
     for (let index = 0; index < 3; index++) {
       // A masterwork without a third part (a quarterstaff) has "x" in its place.
@@ -1437,7 +1489,7 @@
       }
       const shape = def.parts[index], maker = MAKER_BY_CODE[tokens[index].slice(0, 2)], material = MATERIAL_BY_CODE[tokens[index].slice(2)];
       const makerOk = index === 0 ? masterworkMainMakerOk(def, maker) : maker !== "outlaw" && makerFits(maker, shape);
-      if (!maker || !material || !makerOk || material !== "mythilium" && (index === 0 || !materialFits(MATERIALS[material], shape))) return null;
+      if (!maker || !material || !makerOk || material !== metal && (index === 0 || !MATERIALS[material].natural && material !== "mythilium" || !materialFits(MATERIALS[material], shape))) return null;
       parts.push({ shape, maker, material });
     }
     const slots = Number(tokens[3]), runes = (tokens[4].match(/.{3}/g) || []).map(code => RUNE_BY_CODE[code]);
@@ -1449,7 +1501,7 @@
     const piece = part => { const shape = SHAPES[part.shape].name.toLowerCase(); return `${article(shape)} ${shape} of ${MATERIALS[part.material].name} by ${byName(part.maker)}`; };
     const [main, ...rest] = spec.parts;
     const others = rest.filter(Boolean).map(piece);
-    return `A masterwork ${weapon.name.toLowerCase()} with ${piece(main)}${others.length > 1 ? ", " : others.length ? " and " : ""}${others.join(" and ")}. ${def.story}`;
+    return `${uniqueNoun(def)} ${weapon.name.toLowerCase()} with ${piece(main)}${others.length > 1 ? ", " : others.length ? " and " : ""}${others.join(" and ")}. ${def.story}`;
   }
   // Drop tables and shop offers name a masterwork by its template; the real piece is forged when it is found.
   const masterworkTemplateKey = id => typeof id === "string" && id.startsWith(MASTERWORK_TEMPLATE_PREFIX) && MASTERWORKS[id.slice(MASTERWORK_TEMPLATE_PREFIX.length)] ? id.slice(MASTERWORK_TEMPLATE_PREFIX.length) : null;
@@ -1457,7 +1509,7 @@
   function buildMasterworkTemplate(key) {
     const def = MASTERWORKS[key], kind = WEAPONS[def.type] || ARMORS[def.type], sample = buildItem(generateMasterwork({ key, level: 50, random: () => 0.5 }));
     return { ...sample, id: masterworkTemplateId(key), name: def.name, masterworkTemplate: key, forged: undefined, catalogueAvailable: false, shopAvailable: false, effects: def.effects.map(effect => ({ ...effect })),
-      description: `A masterwork ${kind.name.toLowerCase()} whose Mythilium is forged to the level of whoever ${def.soldAt ? "buys" : "finds"} it. ${def.story}` };
+      description: `${uniqueNoun(def)} ${kind.name.toLowerCase()} whose ${MATERIALS[uniqueMaterial(def)].name} is forged to the level of whoever ${def.soldAt ? "buys" : "finds"} it. ${def.story}` };
   }
 
   /* ---------- Natural weapons (item rework phase 5) ----------
@@ -1773,7 +1825,7 @@
     if (kind === "weapon") {
       const options = [];
       for (let rarity = 0; rarity <= Math.min(4, mainIndex); rarity++) options.push(...partOptions(current.shape, rarity, { allowOutlaw: false }));
-      if (masterwork) options.push(...masterworkMakers(current.shape).map(maker => ({ maker, material: "mythilium" })));
+      if (masterwork) options.push(...masterworkMakers(current.shape).map(maker => ({ maker, material: uniqueMaterial(MASTERWORKS[spec.masterwork]) })));
       return unique(options).map(option => ({ shape: current.shape, ...option }));
     }
     const category = ARMORS[spec.type].category, options = [];
@@ -1822,7 +1874,7 @@
     RARITIES, CRIT, MAKERS, MAKER_IDS, CASTER_MAKERS, CASTER_HANDLES, STONES, INKS, TIERS, CASTER_IDS, REGULAR_IDS, tierOdds, casterEffects, spellEffectText, describePart, MATERIALS, SHAPES, WEAPONS, WEAPON_IDS, RUNES, RUNE_IDS, ELEMENT_PREFIX, ELEMENT_NAMES, STAT_SHORT, STAT_NAMES, ELEMENT_SHARE,
     levelCurve, rarityOdds, rollSlots, partOptions, generate, encode, decode, isForgedId, totals, stats, price, name, statPrefix, description, effectText, runeText,
     MATCHING_BONUS, matchingMaker, matchingBonusText, fixedRunes, allRunes,
-    item, buildItem, MASTERWORKS, MASTERWORK_IDS, MASTERWORK_PREFIXES, MASTERWORK_MYTHILIUM_CHANCE, generateMasterwork, fixedMasterworkId, masterworkTemplateKey, masterworkTemplateId, NATURAL_WEAPONS, naturalWeapon, isTemplateId, templateSpec, LEGACY_ITEMS, migrateLegacyItems, runeConflict, withRune, withoutRune, runePrice, runeRemovalPrice, runeFitPrice, runeItemId, runeOfItem, RUNE_FIT_SHARE, RUNE_REMOVAL_MULTIPLIER, armCharacter,
+    item, buildItem, MASTERWORKS, MASTERWORK_IDS, EXOTIC_IDS, uniqueMaterial, MASTERWORK_PREFIXES, MASTERWORK_MYTHILIUM_CHANCE, generateMasterwork, fixedMasterworkId, masterworkTemplateKey, masterworkTemplateId, NATURAL_WEAPONS, naturalWeapon, isTemplateId, templateSpec, LEGACY_ITEMS, migrateLegacyItems, runeConflict, withRune, withoutRune, runePrice, runeRemovalPrice, runeFitPrice, runeItemId, runeOfItem, RUNE_FIT_SHARE, RUNE_REMOVAL_MULTIPLIER, armCharacter,
     ARMORS, ARMOR_IDS, ARMOR_PARTS, ARMOR_MAKERS, ARMOR_MATERIALS, ARMOR_RUNE_RESIST, ARMOR_ELEMENT_PREFIX, ALL_ELEMENTS, generateArmor, armorTotals, armorEffectText, armorRuneText, isArmorSpec,
     RARITY_PRICE, REFORGE_COST_TIMES, TIER_HANDLE_CAP, REFORGE_ANVILS, reforgeKind, reforgeReason, reforgeOptions, reforgeCost, reforgedSpec, reforge,
   };

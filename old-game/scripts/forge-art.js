@@ -53,6 +53,8 @@
     "woven-starlight": M("thread", "#fff2b8", "#ffffff", "#c8b46a", { glow: "#fff4c8" }),
     "gold-vulcan-thread": M("thread", "#f0a040", "#ffd890", "#a0581a", { glow: "#ffb050" }),
     mythilium: M("metal", "#9ad8d0", "#effffb", "#4a8a84", { glow: "#bffff0" }),
+    // Exium looks like Mythilium (task 7).
+    exium: M("metal", "#9ad8d0", "#effffb", "#4a8a84", { glow: "#bffff0" }),
   };
   const STYLE = {
     roundtable: { trim: "#c9a24a", gem: "#3f6fbf", wrap: "#5a3a26" },
@@ -162,6 +164,16 @@
       case "outlaw": { const tilt = (rnd() - 0.5) * 1.6; return path(`M${n(-g)} ${n(-1.2 + tilt)} L${n(g)} ${n(-1.6 - tilt)} L${n(g)} ${n(-4 - tilt)} L${n(-g)} ${n(-3.6 + tilt)}Z`, p.base) + line(`M-1.6 -0.6 l3.2 -3.8 M1.6 -0.6 l-3.2 -3.8`, s.wrap, 0.9); }
       default: return path(`M${n(-g)} -1.2 h${n(G)} v-3.2 h${n(-G)}Z`, p.base) + path(`M${n(-g - 1)} -0.6 h2 v-4.4 h-2Z M${n(g - 1)} -0.6 h2 v-4.4 h-2Z`, p.base, thin);
     }
+  }
+  // Winged Hussar's crossguard (task 7): two wings swept up beside the blade, feathers on their lower edge.
+  function wingedGuard(p, G) {
+    const g = G / 2;
+    const wing = side => {
+      const x = value => n(value * side);
+      return path(`M${x(0.6)} -1.2 Q${x(g * 0.7)} -0.4 ${x(g + 2.6)} -6.4 Q${x(g + 3.8)} -9.6 ${x(g + 2.2)} -12.4 L${x(g + 1)} -9.8 L${x(g - 0.2)} -10.8 L${x(g - 0.4)} -8.2 L${x(g * 0.6)} -8.6 L${x(g * 0.5)} -6 L${x(1.6)} -5.6 L${x(0.6)} -4.6Z`, p.base)
+        + line(`M${x(1.4)} -3 Q${x(g * 0.8)} -3.2 ${x(g + 1.8)} -9.6`, p.light, 0.6);
+    };
+    return wing(-1) + wing(1) + path("M-1.6 -0.8 h3.2 v-4.4 h-3.2Z", p.base);
   }
   function grip(maker, p, length, rnd, withPommel = true) {
     const s = STYLE[maker];
@@ -438,6 +450,8 @@
     // trident with a crossguard instead of a pommel (here two side prongs and Bloody Mary's crossguard).
     "plasma-blade": { family: "caster", wand: true, beam: true },
     tidepiercer: { family: "spear", shaft: 50, butt: 10, lance: true, guardUnderHead: 13, prongs: true },
+    // PLACEHOLDER ART (task 7, L1): Winged Hussar, a longsword whose crossguard is a pair of spread wings.
+    "winged-hussar": { family: "blade", blade: 28, width: 4.2, guard: 11, grip: 6, wings: true },
   };
   const layoutOf = forged => (forged.masterwork && MASTERWORK_LAYOUT[forged.masterwork]) || LAYOUT[forged.type] || LAYOUT.longsword;
   // The sprite kind each weapon type is held like.
@@ -457,7 +471,7 @@
         const cup = forged.type === "rapier" ? path("M-1 -2 Q-8 -1 -6 5 Q-4 0 0 0Z M1 -2 Q9 -6 7 -12 Q4 -4 0 -3Z", gp.base, thin) : "";
         // A pommel-hilted blade (Quasar Jet) has no crossguard: its second part caps the grip instead.
         if (layout.pommel) return grip(third.maker, tp, layout.grip, rnd, false) + blade + pommelCap(guard.maker, gp, layout.grip + 1.8, rnd) + runeMarks;
-        return grip(third.maker, tp, layout.grip, rnd) + blade + crossguard(guard.maker, gp, layout.guard, rnd) + cup + runeMarks;
+        return grip(third.maker, tp, layout.grip, rnd) + blade + (layout.wings ? wingedGuard(gp, layout.guard) : crossguard(guard.maker, gp, layout.guard, rnd)) + cup + runeMarks;
       }
       case "axe": {
         const top = -layout.shaft;
@@ -504,7 +518,7 @@
   const spriteUnique = key => key ? SPRITE_UNIQUE[key] || key : null;
   function visualFor(item) {
     if (!item?.forged) return null;
-    const ornate = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, masterwork: 5 }[item.rarity] ?? 0;
+    const ornate = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, masterwork: 5, exotic: 5 }[item.rarity] ?? 0;
     if (item.forged.armor) return armorVisual(item, ornate);
     // A masterwork's key lets the battle play its signature hit effect.
     return { slot: "weapon", id: item.id, name: item.name, kind: SPRITE_KIND[item.forged.type] || "sword", handed: Number(item.handed) === 2 ? 2 : 1, material: "iron", ornate, unique: spriteUnique(item.forged.masterwork), rarity: item.rarity, forged: item.forged };

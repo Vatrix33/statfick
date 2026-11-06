@@ -50,6 +50,10 @@
     {
       "itemId": "masterwork-giantslayer",
       "chance": 8
+    },
+    {
+      "itemId": "masterwork-winged-hussar",
+      "chance": 4
     }
   ],
   "aiProfile": "zik-lun",
