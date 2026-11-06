@@ -553,6 +553,13 @@ placeholder looks (A1; `engine/Docs/Port-Tasks/README.md`). The user's 32 answer
 - **Not covered by a check:** the AI choosing actions with the new effects in mind (it sees the damage bonuses only);
   damage with no source counting as an enemy's for Warding Cord and Second Chance Locket (A27) also when a hero's own
   skill causes it.
+- **Regression** (2026-11-06, the cloud, Xvfb): all 109 entries of the 43 check files and the four suites, against task 3's
+  final run (the same old-game code as merged `main`, 1d79173). Every entry gives the baseline's result except: the 12
+  new entries pass; `coast-lich-bosses`' `runCoastLichBossChecks` and `enemy-healing` read a plain Arrowtip Rain and
+  Second Wind as their old numbers and were updated for Level 80 copies (25%, 9%; both pass); `map-speed`, the known
+  flaky travel-timing check, failed once and passed twice rerun alone; `cinder-bosses`' `runUrMatChecks` (the
+  baseline's random stun) passed. The baseline's 11 known failures are unchanged. Smoke, enemies (511 cases) and
+  lifecycle pass; the combat suite stops at the known Barbarian failure, as before.
 
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in
