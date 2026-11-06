@@ -409,6 +409,77 @@ what the remake keeps). The user's 34 answers, asked before the code, are in
   Time, a random battle case) and passed four times since, also on the old game. The failing `adventure-improvements`
   and `newc` entries stop before their guild parts, which were moved to the room all the same.
 
+**Shop Rework (port task 3, 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`; the task is
+`engine/Docs/Port-Tasks/3_Shop_Rework.txt`).** Built in the old game, as tasks 1 and 2 were (the user: "same rules
+apply"); old game only, the engine is untouched and its work goes on beside it. Done: the faithful port brings it over
+and doesn't build it again; its only port work is remaking its placeholder art (R1; `engine/Docs/Port-Tasks/README.md`
+lists it). The user's 29 answers are in `engine/Docs/Engine-Plan.md`, "Decisions for task 3, Shop Rework" (R1–R29).
+How it's built:
+- **Reforge rules** (`scripts/forge-engine.js`, the section before `const api`; pure, runs in Node): `reforgeKind`
+  (weapon, armor, clothing, caster), `reforgeReason(spec, anvil)` (anvils `smith`, `tailor`, `institute`, `hearth`:
+  weapons and heavy/light armor and shields at the Blacksmith and Hearth Home, clothing at the Tailor, staffs and wands
+  at the Institute, masterworks only at Hearth Home; the Outlaw-only club nowhere), `reforgeOptions(spec, index)` (parts
+  2 and 3 only; every shop-made part, `partOptions`/`armorPartOptions` with Outlaw and Vampiric off, up to the main
+  part's rarity; masterworks add Mythilium by the masterwork makers; a staff's or wand's handle up to `TIER_HANDLE_CAP`
+  by its stone's tier, the inscription any ink), `reforgeCost` (`REFORGE_COST_TIMES` 3 × `RARITY_PRICE` of each
+  changed part's rarity; an inscription by the handle's rarity; unchanged parts free), `reforgedSpec`/`reforge` (main
+  part, level, slots and runes kept; a part outside the options is refused). `generate({ maker })` and
+  `generateArmor({ maker, types })` forge a fixed maker's pieces (the Institute's and Hearth Home's stock).
+  `MASTERWORKS["doctors-orders"]`: a white Robe, Institute of Magic main part, `placeholderArt: true`.
+- **The anvil** (`scripts/reforge.js`, `window.Reforge`): `create({ anvil, discount, list, stage, … })` draws the anvil
+  in a shop's detail pane and its lists on the left: `pieces(anvil)` (the pack, equipped pieces marked, and each
+  companion's worn gear: R4), the two changeable parts with hover cards, every allowed replacement with its price,
+  `commit()` (pays, then `replacePiece` swaps the piece in the pack, its equipped slots following, or on the companion).
+  Used by `shop.js` (`anvilFor(kind)`: Blacksmith, Tailor, Hearth Home with 15% off) and `magic-tower.js` (the
+  Institute). CSS: `.reforge-*` at the end of `styles.css`.
+- **Shops** (`scripts/shop.js`, `STOCK_VERSION` 25): the Blacksmith keeps castle 9 pieces (5 weapons), town 6 (3), no
+  clothing (`smithArmorTypes`), and doesn't buy clothing; the Tailor (`#map-tailor`, key U; `SHOPS.tailor`) stands in
+  every settlement with a Blacksmith, castle 6 clothing pieces, town 4, buys clothing only; both have a Reforge tab
+  (`#shop-reforge-mode`, not in the General Store). Hearth Home's store is the shop window's `hearth` kind: `HEARTH`
+  (5 Hearthforge weapons and 4 armor pieces in `shopState.locations["hearth-home"]`, 10% off, buys nothing),
+  `hearthOpen()` only after Ornn's defeat there.
+- **Institute of Magic** (`scripts/magic-tower.js`): the Tower window has two venues, `tower` (castle cities, as
+  before) and `institute` (`VENUES`, `INSTITUTE`): 6 Institute-made staffs and wands and 6 clothing pieces at 15% off,
+  Doctor's Orders always on its rail (forged at the buyer's level, 30 Platinum), 12 spells at 20% off, rune fitting and
+  removal 20% off, no runes for sale, a Reforge tab for casters; its stock lives in
+  `shopState.locations["institute-of-magic"]` and turns over with the shops. `#map-institute`, key I.
+- **The map:** Mirrormere's lake has an island (`island`) and a bridge (`bridges`, a road over the water, about 37 km
+  west to the ring road on Lakespire's side); `WorldRules.isLand` counts both as land (`onBridge`), and
+  `map-regions.js` paints the island. Cinder Isle's road runs on to Hearth Home (`sites`, x 858, y 596) on the volcano's
+  south-west edge. Both are safe zones in `encounter-engine.js`. `map.js` draws sites by kind (`SITE_ICONS`: the
+  Church's, a domed tower, a forge; the last two placeholders).
+- **Hearth Home and Ornn** (`scripts/hearth-home.js`, `window.HearthHome`, loaded after `church-of-talos.js`):
+  `#map-hearth-home` (key H) opens its window; Challenge Ornn starts `Combat.startEncounter(["Ornn, God of the
+  Forge"])` (his Ram, mechanics and drops unchanged); `onVictory` (from `combat.js`'s `finish`, beside the Church's)
+  adds `ornn-god-of-the-forge-unique-level-48` to `worldState.defeatedSiteBosses`, which opens Enter the forge
+  (`Shop.open("hearth")`); he can be fought again. Ornn left `guild.js`'s Great Hunts; the guild's information lists
+  him as Hearth Home's site challenge (`siteRosters`). Saves (`world-engine.js` `normalize`, R15): an active Ornn Great
+  Hunt is withdrawn with a note (beside an old contract's note when both apply), his rematch markers and today's board
+  offers of him are dropped, a completed Ornn Hunt doesn't open the forge.
+- **Doctor's Orders in battle** (`combat.js`): `healingFactor(recipient, healer)` inside `healingAmount`, which every
+  battle heal passes through: +50% when the healer wears it, +25% when the recipient does; a self-heal takes the larger
+  (×1.5), one wearer healing another both (×1.875). Each heal site names its healer: spells, skills and items (the
+  user), heal-over-time ticks (`healerId`, kept by `applyTimedEffects`), team passives (each owner's share weighted, then
+  `HEAL_SETTLED`), lifesteal and regeneration (the actor itself). The AI's heal estimates pass the healer too. Labels:
+  `app.js` `artifactEffectLabel`.
+- **Traps** (`combat.js` `controlTrapEffects`, `triggerControlTraps`; items in `objects/consumables.json`, General Store
+  stock like the old traps): Tripwire (melee: 1 AP lost next turn), Smoke Trap (any attack: the owner's side +20%
+  Evasion, `smokeOwnerId`, lifted in `expire` at the owner's next turn, or at each ally's own next turn if the owner
+  fell), Frost Glyph (a spell hit, even absorbed: −25% Speed for 2 turns), Weighted Net (melee: stunned for 1 turn,
+  stun immunity holds), Gravity Well (any attack: every enemy loses 2 AP next turn). Weapon attacks trigger them hit or
+  miss (`triggerWeaponTraps`), spells on a hit (`hurt`). Trap AP losses go into `trapApLoss`, applied at turn start after
+  roots and staggers, so they add up (R26). They count against the trap limit; the AI values them by the old traps'
+  formula.
+- **Scenes** (`scene-banners.js`): `tailorShop` (bolts of cloth, a dress form), the Institute reuses the Tower sanctum
+  and Hearth Home the arms hall; `PLACEHOLDER_ART` lists `tailor`, `institute` and `hearth`.
+- **Tests:** `test-client/tests/shop-rework-browser.js`, one entry per group of rules: `checkReforgeRules`,
+  `checkShopsAndTailor`, `checkInstituteOfMagic`, `checkHearthHome`, `checkOrnnInOldSaves`,
+  `checkOrnnInGuildInformation`, `checkDoctorsOrdersHealing`, `checkDoctorsOrdersSources`, `checkNewTraps`. The battle
+  entries load a second copy of `combat.js` with a hook (`window.__shopReworkChecks`), as the Ornn checks do.
+  `masterwork-rarity-browser.js` counts 32 masterworks now.
+- **Not covered by a check:** the anvil's hover cards and list layout; the scenes, island painting and site icons
+  (placeholders); companions choosing to place the new traps (the old formula).
+
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in
 the engine's way. The list's rune slotting sound was left out: the port adds proper sound effects instead.

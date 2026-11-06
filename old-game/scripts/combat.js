@@ -662,9 +662,11 @@
     if (battle.log.length > 200) battle.log.shift();
   }
   function expire(actor, state = battle) {
-    // A Smoke Trap's cover lifts when its owner's next turn begins (or once its owner has fallen).
-    const smokeLifts = ownerId => { const owner = ownerId === actor.id ? null : actorById(ownerId, state); return !owner || hp(owner) <= 0; };
-    for (const other of state?.actors || []) if (other.effects.some(effect => effect.smokeOwnerId)) other.effects = other.effects.filter(effect => !effect.smokeOwnerId || !smokeLifts(effect.smokeOwnerId));
+    // A Smoke Trap's cover lifts when its owner's next turn begins; if the owner has fallen, at each ally's own next
+    // turn (R28).
+    const ownerGone = ownerId => { const owner = actorById(ownerId, state); return !owner || hp(owner) <= 0; };
+    const smokeLifts = (holder, ownerId) => ownerId === actor.id || holder === actor && ownerGone(ownerId);
+    for (const other of state?.actors || []) if (other.effects.some(effect => effect.smokeOwnerId)) other.effects = other.effects.filter(effect => !effect.smokeOwnerId || !smokeLifts(other, effect.smokeOwnerId));
     actor.previousTurnAttackTargetIds = [...new Set(actor.currentTurnAttackTargetIds || [])];
     actor.currentTurnAttackTargetIds = [];
     actor.turns += 1;
@@ -1671,8 +1673,8 @@
   /* The Shop Rework's traps (port task 3; user decisions R17–R21, R26), armed on their owner like the Spring Trap
      and spent when they trigger. "attackKind" is "melee", "ranged" or "spell" (a spell that damages the owner).
      Tripwire: a melee attack costs the attacker 1 AP on its next turn. Smoke Trap: any attack gives the owner's
-     side +20% Evasion until the owner's next turn. Frost Glyph: a damaging spell costs the caster 25% Speed for 2
-     turns. Weighted Net: a melee attack stuns the attacker for 1 turn (stun immunity holds). Gravity Well: any
+     side +20% Evasion until the owner's next turn (R28: a fallen owner's smoke lifts at each ally's next turn).
+     Frost Glyph: a spell hit, even one a barrier soaks (R29), costs the caster 25% Speed for 2 turns. Weighted Net: a melee attack stuns the attacker for 1 turn (stun immunity holds). Gravity Well: any
      attack costs every enemy 2 AP on its next turn. AP losses from traps add to each other and to staggers and
      roots (R26). */
   function triggerControlTraps(owner, attacker, attackKind) {
@@ -1831,7 +1833,8 @@
       recordCombatKill(attacker, target);
     } else triggerLowHealthPassives(target);
     if (attacker && attacker.team !== target.team && attackKind === "spell") triggerRetaliationTrap(target, attacker, "trap-sentry");
-    if (attacker && attacker.team !== target.team && attackKind === "spell" && amount > 0) triggerControlTraps(target, attacker, "spell");
+    // Any spell hit counts, even one a barrier soaks entirely (R29).
+    if (attacker && attacker.team !== target.team && attackKind === "spell") triggerControlTraps(target, attacker, "spell");
     mirrorScales(target, attacker, amount, spell, attackKind);
     // A dream law may turn part of a spell's damage back on its caster.
     const rebound = spell && attacker && attacker.team !== target.team && amount > 0 && !reboundDepth && hp(attacker) > 0 ? lawAmount(attacker, "spell-rebound-percent") : 0;

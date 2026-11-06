@@ -102,16 +102,18 @@
     const retiredHunt = hunt => hunt?.type === "great-hunt" && RETIRED_HUNTS.includes(hunt.uniqueId);
     let quest = normalizeQuest(rawGuild.quest);
     if (quest?.type === "great-hunt") { greatHunt ||= quest; quest = null; }
+    const notes = [];
     if (retiredHunt(greatHunt)) {
-      notice = "Ornn, God of the Forge, is no longer a Great Hunt: your hunt for him was withdrawn (no reward, no cost). He now waits at Hearth Home, on Cinder Isle's volcano.";
+      notes.push("Ornn, God of the Forge, is no longer a Great Hunt: your hunt for him was withdrawn (no reward, no cost). He now waits at Hearth Home, on Cinder Isle's volcano.");
       greatHunt = null;
     }
-    else if (quest && quest.version !== 2) {
+    if (quest && quest.version !== 2) {
       if (RETIRED[quest.type]) {
-        notice = `Your ${RETIRED[quest.type]} contract from before the Guild changed its contracts was withdrawn. It paid nothing and cost nothing; the bulletin board has new quests.`;
+        notes.push(`Your ${RETIRED[quest.type]} contract from before the Guild changed its contracts was withdrawn. It paid nothing and cost nothing; the bulletin board has new quests.`);
         quest = null;
       } else quest = { ...quest, version: 2 };
     }
+    if (notes.length) notice = notes.join(" ");
     if (quest?.type === "clear") quest = null;
     if (quest) quest.taken = false;
     if (greatHunt) greatHunt.taken = false;
@@ -122,7 +124,7 @@
         if (!text(guildId) || !board || Math.floor(number(board.day, 0)) !== currentDay || !Array.isArray(board.offers)) continue;
         const offers = [];
         for (const offer of board.offers.map(normalizeQuest).filter(Boolean)) {
-          if (offer.version !== 2 && offer.type !== "great-hunt" || offer.type === "clear") continue;
+          if (offer.version !== 2 && offer.type !== "great-hunt" || offer.type === "clear" || retiredHunt(offer)) continue;
           if (!offers.some(candidate => candidate.type === offer.type && (offer.type !== "great-hunt" || candidate.uniqueId === offer.uniqueId))) offers.push(offer);
           if (offers.length === 12) break;
         }

@@ -63,10 +63,13 @@ own copy of the stylesheet, so `Tools/Scripts/test.sh` was not run for it (the c
 goes on uninterrupted** (M11 on the user's go, the background-layer branch); don't wait for task 2, and don't count it
 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Guild
 Rework"; `Docs/Port-Tasks/README.md` lists its placeholder art.
-**Beside the engine, old game only (2026-11-06): port task 3, Shop Rework, is being built in the old game** like task 2
-(the user: "same rules apply"; decisions R1–R23 in "Decisions for task 3, Shop Rework" below). It touches only
-`../old-game/` and these docs, never the engine, so engine work goes on uninterrupted; don't wait for it. Its state and
-notes: `../old-game/Docs/Notes.md`, "Shop Rework", and `Docs/Port-Tasks/README.md`.
+**Beside the engine, old game only (2026-11-06): port task 3, Shop Rework, is done in the old game**, as tasks 1 and 2
+were (the user: "same rules apply"; decisions R1–R29 in "Decisions for task 3, Shop Rework" below; built on the cloud
+branch `claude/fervent-carson-f5ol9s` and offered as a pull request for the user to merge). The port doesn't build it
+again; only its placeholder art is remade (`Docs/Port-Tasks/README.md` lists it). It touches only `../old-game/` (its
+scripts, markup, stylesheet, consumables and test client) and these docs, never the engine (the engine's tests read
+none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count
+task 3 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Shop Rework".
 Before each later milestone (M11 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code, in the order
 "Starting M9" below gives (M10 followed it too).
@@ -823,7 +826,8 @@ recruiting, information, encounters and class menu:
 
 **Decisions for task 3, Shop Rework (2026-11-06, a cloud session; the user asked for task 3 that day, "same rules
 apply" as task 2: built in the old game, old game only, engine work continues beside it; the task is
-`Docs/Port-Tasks/3_Shop_Rework.txt`).** Asked before any code, four at a time:
+`Docs/Port-Tasks/3_Shop_Rework.txt`).** Asked before any code, four at a time (R24–R29 while building, as they came
+up):
 - R1 **Art:** placeholder, as task 2 (the Tailor's shop, the Institute of Magic and Hearth Home on the map and inside, the
   Doctor's Orders look, the reforge anvil, the five traps): simple ink art marked placeholder in the code and listed in
   `Docs/Port-Tasks/README.md` for the port's full remake.
@@ -873,6 +877,10 @@ apply" as task 2: built in the old game, old game only, engine work continues be
   carries into its next turn (a boss stagger, roots). (Not the largest only.)
 - R27 **Doctor's Orders, one wearer healing another:** both bonuses apply, multiplied: ×1.5 × 1.25 = ×1.875. (Not the
   larger only, not added.)
+- R28 **Smoke Trap, a fallen owner:** if the trap's owner falls before their next turn, each ally keeps the smoke until
+  that ally's own next turn begins. (Not lifted at once, not kept for the battle.)
+- R29 **Frost Glyph, an absorbed spell:** any spell hit triggers it, even one a barrier soaks entirely (0 damage). (Not
+  only spells that take HP.)
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).

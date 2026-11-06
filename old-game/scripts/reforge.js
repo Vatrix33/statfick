@@ -1,5 +1,5 @@
-/* The reforge anvil (port task 3, the Shop Rework, 2026-11-06), shared by the Blacksmith and the Tailor
-   (shop.js), the Institute of Magic and Hearth Home (sites.js). Like the Magic Tower's rune circle: an anvil
+/* The reforge anvil (port task 3, the Shop Rework, 2026-11-06), shared by the Blacksmith, the Tailor and
+   Hearth Home (shop.js) and the Institute of Magic (magic-tower.js). Like the Magic Tower's rune circle: an anvil
    with a free slot; clicking it lists the pieces this anvil can take on the left (your pack, equipped
    pieces included, and the gear your companions wear: R4). A piece on the anvil shows its main part at the
    top and its two other parts below; hovering a part shows everything about it. Click one of the two to list
