@@ -117,7 +117,7 @@ task 5 (asked for after tasks 4 and 6 were merged; M1 kept its art placeholder).
   `../../../old-game/Docs/Notes.md`, "New Areas"; the old game's checks,
   `old-game/test-client/tests/new-areas-browser.js`, are the reference the ported rules are tested against. Still to do
   in the port: only the looks (below). Old game only. Task 8 (the map rework) places the Rift on the continent.
-- Task 5, New Masterworks (2026-11-06, a cloud session, offered as a pull request): Sparkling enemies (a rare, stronger,
+- Task 5, New Masterworks (2026-11-06, a cloud session, offered as pull request #11): Sparkling enemies (a rare, stronger,
   richer version of any regular enemy, highlighted on the encounter screen, dropping masterworks), Treasure Seeker and
   Moneyshot (Sparkling only), Lament (2% from the Tide Siren), Noble Hero (1% from non-boss demons and devils), the
   Hexbane Coat (the new masterwork armor, drafted and reviewed; 1% from non-boss undead, demons and devils) and the

@@ -89,7 +89,7 @@ Areas".
 **Beside the engine, old game only (2026-11-06): port task 5, New Masterworks, is done in the old game**, as tasks 1–4
 and 6 were (decisions M1–M26 in "Decisions for task 5, New Masterworks" below: Sparkling enemies, Treasure Seeker,
 Moneyshot, Lament, Noble Hero, the Hexbane Coat and the Shadow Crystal drop; built on the cloud branch
-`claude/fervent-carson-f5ol9s` and offered as a pull request, one for the whole task, M25). The port doesn't build it
+`claude/fervent-carson-f5ol9s` and offered as pull request #11, one for the whole task, M25). The port doesn't build it
 again; only its placeholder art is remade (`Docs/Port-Tasks/README.md`). It touches only `../old-game/` (its scripts,
 stylesheet, artifact data, one enemy file and test client) and these docs, never the engine (the engine's tests read
 none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count
@@ -789,7 +789,7 @@ while porting (the user will answer later).
   request #10 with task 4.
 - **Task 5 is done in the old game too (2026-11-06; M1):** old game only, placeholder art (the Sparkling look,
   Treasure Seeker's drawing, the new weapons' and the Hexbane Coat's forged looks). Decisions M1–M26 below;
-  `../old-game/Docs/Notes.md`, "New Masterworks". Offered as one pull request.
+  `../old-game/Docs/Notes.md`, "New Masterworks". Offered as pull request #11.
   For all six done tasks the port brings them over with the rest of the game, doesn't redo them from the task files,
   and only remakes the art `Docs/Port-Tasks/README.md` lists.
 
