@@ -76,7 +76,9 @@ async function runNygheirChecks() {
   assert(boss?.unique && boss.character.raceId === "dragon" && boss.character.level === 23 && boss.element === "earth", "Nygheir is a unique level 23 Earth Dragon");
   assert(boss.maxHpPercent === 136 && boss.character.permanentDefenseBonuses.evasion === -80 && boss.character.knownSpells.join() === "stonecrust-earth-unique", "His wounded phase has his HP bonus, evasion penalty and only Stonecrust");
   assert(hooks.values(boss).speed < hooks.values(player()).speed, "Old and heavy, he is slower than a quick hero");
-  assert(boss.dropTable.length === 2 && boss.dropTable[0].itemId === "key-item-vial-of-dragonblood" && boss.dropTable[0].chance === 1 && boss.dropTable[1].itemId === artifact.id && boss.dropTable[1].chance === 12, "His drops are unchanged");
+  // Port task 5 adds the Shadow Crystal (0.05%) to every enemy; his own drops are unchanged.
+  const ownDrops = boss.dropTable.filter(drop => drop.itemId !== "key-item-shadow-crystal");
+  assert(ownDrops.length === 2 && ownDrops[0].itemId === "key-item-vial-of-dragonblood" && ownDrops[0].chance === 1 && ownDrops[1].itemId === artifact.id && ownDrops[1].chance === 12 && boss.dropTable.length === 3, "His drops are unchanged");
   assert(boss.experienceRewardMultiplier === 1.4 && Combat.musicTheme() === "nygheir-the-wounded" && Music.state().theme === "nygheir-the-wounded" && MusicThemes.all().some(theme => theme.id === "nygheir-the-wounded"), "He grants extra EXP and his composed lament plays");
 
   // His look: stone slabs, lodged weapons, and three scars that show what the fight does to them.

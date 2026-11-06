@@ -702,13 +702,33 @@ placeholder art (M1; `engine/Docs/Port-Tasks/README.md`). The user's answers are
 - **Tests:** `test-client/tests/new-masterworks-browser.js`, 10 entries: `checkSparklingChance`, `…Enemies`,
   `…EncounterScreen`, `…Rewards`, `checkTreasureSeeker`, `checkMoneyshot`, `checkLament`, `checkNobleHero`,
   `checkHexbaneCoat`, `checkShadowCrystal`. The battle entries use a second copy of `combat.js` with a hook
-  (`window.__masterworkChecks`). No old check needed changing.
+  (`window.__masterworkChecks`). Old checks updated for task 5's additions: `artifact-rework`'s catalogue (5 masterwork
+  artifacts with Treasure Seeker), `masterwork-rarity` (37 masterworks and five key items), `nygheir` and `zik-lun` (their
+  own drops beside the Shadow Crystal every enemy now has), `new-areas`' Rift enemies (the Shadow Crystal, and Noble Hero
+  and the Hexbane Coat for the demons), and `map-browser`'s Fight roster (its dice at 0 make the prompted enemies
+  Sparkling, so their names carry it).
 - **Not covered by a check:** the battle stage's sparkle itself (the checks run with the stage off; they check the
   snapshot's flag and the card); the enemy AI's forecasts don't know Moneyshot's fifth attack, Noble Hero's second strike
   or Lament (only heroes wield them); the Guild's item information lists drop tables, so it names no source for
   Treasure Seeker and Moneyshot (Sparkling enemies only); the Heavy Knight and Jester double-drop on Sparkling drops.
-- **The checks can fail:** RESULTS-PENDING
-- **Regression:** RESULTS-PENDING
+- **The checks can fail:** each rule was broken once in a copy of the game (103 mutations, by task 4's and task 6's runner,
+  in the cloud session's `claude-work/masterworks/`, not kept): every Sparkling number and rule (chances, Luck, the
+  Cull circle, bosses and objects, the roll per enemy, the save, the stats, HP, name, card, stage flag, escape, Cull
+  kills, the encounter screen and its Fight button, EXP, both drop rolls, their Luck, the pool and its weights, the
+  loot), Treasure Seeker's ramp, rounding, Luck, party rule, and its battle, quest and sale money, and every rule of
+  Moneyshot, Lament, Noble Hero, the Hexbane Coat, the colours and the Shadow Crystal. All 103 were caught after a second
+  pass; the first let five through, all gaps the checks then closed (the drop rolls only tried just under their chances,
+  so a 10% second roll and a doubled Luck bonus passed; Lament's area-spell and fallen-target refusals were really made by
+  its side rule; a repeated self effect replaces itself, so counting effects couldn't see Lament give it twice: the check
+  now reads the "(Lament)" log lines).
+- **Regression** (2026-11-06, the cloud, Xvfb, on a frozen copy of the game): all 126 entries of the 45 check files and
+  the four suites, against task 6's final run (the same old-game code as merged `main`, 8b61723, but for task 5). Every
+  entry gives the baseline's result except: the 10 new entries pass (`checkNobleHero` failed once there, comparing two
+  battles whose Orcs were forged with different dice; it now fixes the dice and passes); the six old checks above failed
+  on task 5's additions and pass updated; `adventure-improvements`' `runCompanionImportChecks`, the known flaky one,
+  failed with another message and passed rerun alone; `map-speed` and `coast-lich-bosses`' Ool check (both flaky) passed.
+  The baseline's 11 known failures are unchanged. Smoke, enemies (530 cases) and lifecycle pass; the combat suite stops
+  at the known Barbarian failure, as before.
 
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in

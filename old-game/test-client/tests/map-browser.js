@@ -174,7 +174,7 @@ async function runMapChecks() {
   click("map-encounter-fight");
   for (let index = 0; index < 150 && !Combat.active(); index += 1) await wait(20);
   Math.random = originalRandom;
-  assert(Combat.active() && Combat.serialize().actors.slice(1).map(actor => actor.name.replace(/ \d+$/, "")).join(",") === rolledEnemies.join(","), "Fight starts with the prompted enemy roster");
+  assert(Combat.active() && Combat.serialize().actors.slice(1).map(actor => actor.name.replace(/^Sparkling /, "").replace(/ \d+$/, "")).join(",") === rolledEnemies.join(","), "Fight starts with the prompted enemy roster");
   assert(!worldState.pendingEncounter, "Starting combat clears the saved pending encounter");
   assert(worldState.encounterTravelMinutes === 0, "Completed encounter intervals reset and persist independently of travel pauses");
   Combat.restore(null);

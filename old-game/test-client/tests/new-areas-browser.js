@@ -172,7 +172,9 @@ async function checkRiftEnemies() {
       const { primaryHand, offHand } = foe.character.equipment;
       assert(riftRules.forgedFrom(expected.primaryHand, primaryHand) && riftRules.forgedFrom(expected.offHand, offHand) && (foe.naturalWeapon || null) === expected.natural, `${name} fights with its drafted weapons (${primaryHand}, ${offHand}, ${foe.naturalWeapon})`);
       assert((foe.attackElement || null) === expected.attackElement, `${name}'s strikes are ${expected.attackElement || "its weapon's"}`);
-      assert(!foe.dropTable.length && !foe.unique, `${name} has only the usual loot`);
+      // Port task 5 adds in code the Shadow Crystal to every enemy, and Noble Hero and the Hexbane Coat to demons.
+      const added = ["key-item-shadow-crystal", ...(expected.raceId === "demon" ? ["masterwork-noble-hero", "masterwork-hexbane-coat"] : [])];
+      assert(foe.dropTable.map(drop => drop.itemId).sort().join() === added.sort().join() && !foe.unique, `${name} has only the usual loot (${foe.dropTable.map(drop => drop.itemId)})`);
       Math.random = () => 0;
       assert(String(h.rollEnemyArtifact(foe) || "").startsWith("artifact-"), `${name} can drop an artifact like any enemy (task 4's 1%)`);
       Math.random = random;

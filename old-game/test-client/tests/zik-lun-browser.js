@@ -85,7 +85,9 @@ async function runZikLunChecks() {
   const battle = hooks.getBattle(), byName = name => battle.actors.find(actor => actor.name === name);
   const zik = byName(bossName), guard = byName("Troll Shieldbearer"), drummer = byName("Troll War-drummer"), player = () => hooks.actorById("player");
   assert(zik.unique && zik.character.raceId === "troll" && zik.character.level === 24 && getItem(zik.character.equipment.primaryHand)?.forged?.type === "greathammer" && getItem(zik.character.equipment.armor)?.forged?.type === "full-plate", "Zik Lun carries a forged Greathammer and Full Plate");
-  assert(zik.dropTable.length === 1 && zik.dropTable[0].itemId === "masterwork-giantslayer" && zik.dropTable[0].chance === 8, "He only rolls Giantslayer, at 8%");
+  // Port task 5 adds the Shadow Crystal (0.05%) to every enemy.
+  const ownDrops = zik.dropTable.filter(drop => drop.itemId !== "key-item-shadow-crystal");
+  assert(ownDrops.length === 1 && ownDrops[0].itemId === "masterwork-giantslayer" && ownDrops[0].chance === 8 && zik.dropTable.length === 2, "He only rolls Giantslayer, at 8%");
   assert(Combat.musicTheme() === "zik-lun-armored-hulk" && Music.state().theme === "zik-lun-armored-hulk" && MusicThemes.all().some(theme => theme.id === "zik-lun-armored-hulk"), "His remastered siege-march plays");
   const art = Sprites.forActor(hooks.stageLook(zik)).svg;
   assert(art.includes(SpriteKit.tone("#7a2416")) && art.includes('class="sp-cape"') && Sprites.forActor(hooks.stageLook(drummer)).svg.includes(SpriteKit.tone("#6b3a22")), "The warlord carries his warband's standard and colours; the drummer his drum");

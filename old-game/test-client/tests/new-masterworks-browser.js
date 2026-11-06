@@ -416,8 +416,13 @@ async function checkLament() {
     h.setHp(foes[2], 0);
     assert(!h.cast(player, foes[0], bolt, null, { extraTargetId: foes[2].id }), "Not a fallen enemy");
     const wave = spells.find(spell => h.spellEffects(spell).every(effect => !effect.recipient || effect.recipient === "all-enemies") && h.spellEffects(spell).some(effect => effect.recipient === "all-enemies" && effect.type === "damage"));
-    ({ player, foes } = await setup(true, ["Orc", "Orc"], [wave.id]));
-    assert(!h.cast(player, foes[0], wave, null, { extraTargetId: foes[1].id }), `Not an area spell (${wave.name})`);
+    masterworkChecks.hero({ inventory: [wand], equipment: { primaryHand: wand }, spells: [wave.id], companion: {} });
+    await Combat.startEncounter(["Orc", "Orc"], "Lament area");
+    companions = [];
+    let area = h.getBattle(), caster = h.actorById("player"), friend = area.actors.find(actor => actor.companion);
+    h.setMana(caster, 5000); area.current = "player"; area.ap = 9;
+    assert(!h.cast(caster, area.actors.find(actor => actor.team === "enemy"), wave, null, { extraTargetId: friend.id }), `Not an area spell (${wave.name}), whoever the second target`);
+    assert(h.cast(caster, area.actors.find(actor => actor.team === "enemy"), wave), "The same spell without a second target casts");
     ({ player, foes } = await setup(false));
     assert(!h.cast(player, foes[0], bolt, null, { extraTargetId: foes[1].id }), "Not without Lament");
     // A heal at an ally: a second ally.
@@ -426,7 +431,10 @@ async function checkLament() {
     await Combat.startEncounter(["Orc"], "Lament heal");
     companions = [];
     const battle = h.getBattle(), you = h.actorById("player"), ally = battle.actors.find(actor => actor.companion);
-    h.setMana(you, 5000); h.setHp(you, 5); h.setHp(ally, 5); battle.current = "player"; battle.ap = 9;
+    h.setMana(you, 5000); h.setHp(you, 5); battle.current = "player"; battle.ap = 9;
+    h.setHp(ally, 0);
+    assert(!h.cast(you, you, heal, null, { extraTargetId: ally.id }), "Not a fallen ally");
+    h.setHp(ally, 5);
     assert(h.cast(you, you, heal, null, { extraTargetId: ally.id }) && h.hp(you) > 5 && h.hp(ally) > 5, `${heal.name} heals two allies`);
     // The second target gets only the targeted effects: a spell with a self effect doesn't give it twice.
     const mixed = spells.find(spell => { const effects = h.spellEffects(spell); return effects.some(effect => effect.recipient === "self") && effects.some(effect => effect.type === "damage" && (!effect.recipient || effect.recipient === "target")) && !effects.some(effect => /all-|random/.test(effect.recipient || "")); });
@@ -434,7 +442,10 @@ async function checkLament() {
     if (mixed) {
       ({ player, foes } = await setup(true, ["Orc", "Orc"], [mixed.id]));
       const selfBefore = JSON.stringify(player.effects.map(effect => effect.type));
+      const linesBefore = h.getBattle().log.length;
       h.cast(player, foes[0], mixed, null, { extraTargetId: foes[1].id });
+      const lamentLines = h.getBattle().log.slice(linesBefore).filter(entry => /\(Lament\)/.test(entry));
+      assert(lamentLines.length && lamentLines.every(entry => entry.includes("Enemy 2")), `Lament's lines are all about the second target (${lamentLines})`);
       const selfEffects = player.effects.length;
       ({ player, foes } = await setup(true, ["Orc", "Orc"], [mixed.id]));
       h.cast(player, foes[0], mixed);
@@ -471,7 +482,11 @@ async function checkNobleHero() {
   assert(item.forged.type === "crossbow" && item.forged.parts[0].maker === "roundtable" && item.effects.some(effect => effect.kind === "second-strike" && effect.amount === 25), "A Roundtable crossbow with its second strike");
   const random = Math.random;
   const shoot = async (worn = [], strip = false) => {
-    const { battle, player, foes } = await masterworkChecks.battle(h, ["Orc"], { inventory: [bow, ...worn], equipment: { primaryHand: bow, artifact1: worn[0] || null } });
+    // The Orc's gear is forged with the dice when it spawns: the same dice each time.
+    Math.random = () => 0.5;
+    let fight;
+    try { fight = await masterworkChecks.battle(h, ["Orc"], { inventory: [bow, ...worn], equipment: { primaryHand: bow, artifact1: worn[0] || null } }); } finally { Math.random = random; }
+    const { battle, player, foes } = fight;
     h.setHp(foes[0], 1e7); h.setHp(player, 10); battle.current = "player"; battle.ap = 9;
     Math.random = () => 0.5;
     try { strip ? masterworkChecks.withoutEffect(bow, "second-strike", () => h.attack(player, foes[0])) : h.attack(player, foes[0]); } finally { Math.random = random; }
