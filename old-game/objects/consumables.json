@@ -39,6 +39,56 @@
     ]
   },
   {
+    "id": "consumable-tripwire",
+    "name": "Tripwire",
+    "description": "Triggers when an enemy uses a melee attack on you: it loses 1 AP on its next turn.",
+    "rarity": "common",
+    "priceSilver": 250,
+    "effects": [
+      { "type": "trap-tripwire", "amount": 1, "recipient": "self" }
+    ]
+  },
+  {
+    "id": "consumable-smoke-trap",
+    "name": "Smoke Trap",
+    "description": "Triggers when an enemy attacks you: you and your allies gain +20% Evasion until your next turn.",
+    "rarity": "uncommon",
+    "priceSilver": 900,
+    "effects": [
+      { "type": "trap-smoke", "amount": 20, "recipient": "self" }
+    ]
+  },
+  {
+    "id": "consumable-frost-glyph",
+    "name": "Frost Glyph",
+    "description": "Triggers when an enemy damages you with a spell: its Speed drops by 25% for 2 turns.",
+    "rarity": "rare",
+    "priceSilver": 2800,
+    "effects": [
+      { "type": "trap-frost-glyph", "amount": 25, "durationTurns": 2, "recipient": "self" }
+    ]
+  },
+  {
+    "id": "consumable-weighted-net",
+    "name": "Weighted Net",
+    "description": "Triggers when an enemy uses a melee attack on you: it is stunned for 1 turn.",
+    "rarity": "epic",
+    "priceSilver": 6500,
+    "effects": [
+      { "type": "trap-weighted-net", "amount": 1, "recipient": "self" }
+    ]
+  },
+  {
+    "id": "consumable-gravity-well",
+    "name": "Gravity Well",
+    "description": "Triggers when an enemy attacks you: every enemy loses 2 AP on its next turn.",
+    "rarity": "legendary",
+    "priceSilver": 16000,
+    "effects": [
+      { "type": "trap-gravity-well", "amount": 2, "recipient": "self" }
+    ]
+  },
+  {
     "id": "consumable-potion-of-lesser-health",
     "name": "Potion of Lesser Health",
     "description": "Heals 25 HP plus 10% of the target's maximum HP.",

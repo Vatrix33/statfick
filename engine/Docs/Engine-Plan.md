@@ -864,6 +864,15 @@ apply" as task 2: built in the old game, old game only, engine work continues be
   turn), Gravity Well (legendary, about 16,000: when an enemy attacks you, every enemy loses 2 AP on its next turn).
 - R22 **Trap sales:** in the General Store's stock like the existing traps, rarer ones more often at higher levels.
 - R23 **Map keys:** Tailor U, Institute of Magic I, Hearth Home H.
+- R24 **Doctor's Orders, which heals are given (2026-11-06):** everything the wearer causes: their spells, skills and
+  items (potions too), each tick of a heal-over-time they cast, team-healing passives they own, and their own lifesteal
+  and regeneration. (Not actions only, not spells and skills only.)
+- R25 **Doctor's Orders, self-heals:** a heal the wearer gives themselves gets only the larger bonus, ×1.5 (given), not
+  given and received together. (Not ×1.875, not ×1.75.)
+- R26 **AP losses add up:** Tripwire's and Gravity Well's AP losses add to each other and to any other AP loss the enemy
+  carries into its next turn (a boss stagger, roots). (Not the largest only.)
+- R27 **Doctor's Orders, one wearer healing another:** both bonuses apply, multiplied: ×1.5 × 1.25 = ×1.875. (Not the
+  larger only, not added.)
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).

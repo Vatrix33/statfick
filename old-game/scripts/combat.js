@@ -470,15 +470,31 @@
     }
     if (!stageQuiet && hp(actor) !== before && onStage(actor)) stage("hp", { actorId: actor.id, before, after: hp(actor), max: actor.resourceMax?.hp, critical: Boolean(stageHit?.critical), element: stageHit?.element || null });
   }
+  /* Doctor's Orders (port task 3, the Shop Rework; user decisions R12, R13, R24, R25, R27): every heal its wearer
+     causes (spells, skills, items, heal-over-time ticks they cast, team passives they own, their own lifesteal and
+     regeneration) is 50% stronger, and every heal the wearer receives in battle 25% stronger. A heal the wearer gives
+     themselves takes only the larger bonus (×1.5); one wearer healing another takes both (×1.875). "healer" is the
+     actor who causes the heal, null when no one does, or HEAL_SETTLED when the caller already applied the bonuses. */
+  const HEAL_SETTLED = Symbol("healing bonuses applied");
+  function equippedHealingPercent(actor, kind) {
+    if (!actor || actor.inert) return 0;
+    return withActor(actor, () => equippedDefenseItems().flatMap(item => item.effects || []).filter(effect => effect.kind === kind).reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0));
+  }
+  function healingFactor(recipient, healer = null) {
+    if (healer === HEAL_SETTLED || !recipient) return 1;
+    const received = 1 + equippedHealingPercent(recipient, "healing-received-percent") / 100;
+    const given = healer ? 1 + equippedHealingPercent(healer, "healing-given-percent") / 100 : 1;
+    return healer && healer.id === recipient.id ? Math.max(given, received) : given * received;
+  }
   // Enemy HP restoration is reduced by 80%, except during a boss phase transition.
-  function healingAmount(actor, amount) {
+  function healingAmount(actor, amount, healer = null) {
     const mercy = (actor?.effects || []).find(effect => effect.type === "inverted-mercy" && effect.expiresTurn > actor.turns);
-    const wholeAmount = Math.max(0, Math.floor(amount * (mercy ? Math.max(0, 1 + toNumber(mercy.amount, 0) / 100) : 1)));
+    const wholeAmount = Math.max(0, Math.floor(amount * healingFactor(actor, healer) * (mercy ? Math.max(0, 1 + toNumber(mercy.amount, 0) / 100) : 1)));
     return actor.team === "enemy" && phaseHealingDepth === 0 ? Math.floor(wholeAmount / 5) : wholeAmount;
   }
-  function healHp(actor, amount, state = battle) {
+  function healHp(actor, amount, state = battle, healer = null) {
     const current = hp(actor);
-    const gain = Math.max(0, Math.min(values(actor, state).maxHp - current, healingAmount(actor, amount)));
+    const gain = Math.max(0, Math.min(values(actor, state).maxHp - current, healingAmount(actor, amount, healer)));
     setHp(actor, current + gain);
     return gain;
   }
@@ -646,6 +662,9 @@
     if (battle.log.length > 200) battle.log.shift();
   }
   function expire(actor, state = battle) {
+    // A Smoke Trap's cover lifts when its owner's next turn begins (or once its owner has fallen).
+    const smokeLifts = ownerId => { const owner = ownerId === actor.id ? null : actorById(ownerId, state); return !owner || hp(owner) <= 0; };
+    for (const other of state?.actors || []) if (other.effects.some(effect => effect.smokeOwnerId)) other.effects = other.effects.filter(effect => !effect.smokeOwnerId || !smokeLifts(effect.smokeOwnerId));
     actor.previousTurnAttackTargetIds = [...new Set(actor.currentTurnAttackTargetIds || [])];
     actor.currentTurnAttackTargetIds = [];
     actor.turns += 1;
@@ -657,7 +676,7 @@
         const maximum = values(actor, state).maxHp;
         for (const effect of lowHpHealing) {
           if (hp(actor) >= maximum * effect.thresholdPercent / 100) continue;
-          const restored = healHp(actor, Math.max(1, Math.floor(maximum * effect.amount / 100)), state);
+          const restored = healHp(actor, Math.max(1, Math.floor(maximum * effect.amount / 100)), state, actor);
           if (restored <= 0) continue;
           if (state === battle) log(`${actorLabel(actor)} recovers ${restored} HP with ${effect.itemName}.`);
         }
@@ -677,13 +696,14 @@
       }
       if (hp(actor) > 0) {
         const teamRestore = living(state).filter(owner => owner.team === actor.team)
-          .flatMap(owner => passiveEffectsOf(owner, state))
-          .filter(effect => effect.type === "team-turn-start-restore-percent");
+          .flatMap(owner => passiveEffectsOf(owner, state).map(effect => ({ owner, effect })))
+          .filter(({ effect }) => effect.type === "team-turn-start-restore-percent");
         if (teamRestore.length) {
           const maximum = values(actor, state);
-          const hpPercent = teamRestore.reduce((sum, effect) => sum + toNumber(effect.hp, 0), 0);
-          const manaPercent = teamRestore.reduce((sum, effect) => sum + toNumber(effect.mana, 0), 0);
-          if (hpPercent && !healingDisabled(actor, state)) healHp(actor, Math.max(1, Math.floor(maximum.maxHp * hpPercent / 100)), state);
+          // Each owner's share carries that owner's healing bonuses (Doctor's Orders, R24).
+          const hpPercent = teamRestore.reduce((sum, { owner, effect }) => sum + toNumber(effect.hp, 0) * healingFactor(actor, owner), 0);
+          const manaPercent = teamRestore.reduce((sum, { effect }) => sum + toNumber(effect.mana, 0), 0);
+          if (hpPercent && !healingDisabled(actor, state)) healHp(actor, Math.max(1, Math.floor(maximum.maxHp * hpPercent / 100)), state, HEAL_SETTLED);
           if (manaPercent) setMana(actor, Math.min(maximum.maxMana, mana(actor) + Math.max(1, Math.floor(maximum.maxMana * manaPercent / 100))));
         }
       }
@@ -693,7 +713,7 @@
         const recentlyDamaged = blockedElement && (actor.damageHistory || []).some(entry => entry.element === blockedElement && actor.turns - entry.turn <= lookback);
         if (!recentlyDamaged && !healingDisabled(actor, state) && hp(actor) > 0 && effect.hp) {
           const maximum = values(actor, state).maxHp;
-          const gain = healHp(actor, Math.max(1, Math.floor(maximum * toNumber(effect.hp, 0) / 100)), state);
+          const gain = healHp(actor, Math.max(1, Math.floor(maximum * toNumber(effect.hp, 0) / 100)), state, actor);
           const passiveName = withActor(actor, () => getSelectedRace()?.passive?.name, state) || "a racial passive";
           log(`${actorLabel(actor)} restores ${actor.team === "player" ? gain + " " : ""}HP with ${passiveName}.`);
         }
@@ -706,7 +726,7 @@
         for (const effect of effects) {
           if (effect.type === "turn-start-restore-percent" && hp(actor) > 0) {
             const maximum = values(actor);
-            if (effect.hp && !healingDisabled(actor, state)) healHp(actor, Math.max(1, Math.floor(maximum.maxHp * toNumber(effect.hp, 0) / 100)), state);
+            if (effect.hp && !healingDisabled(actor, state)) healHp(actor, Math.max(1, Math.floor(maximum.maxHp * toNumber(effect.hp, 0) / 100)), state, actor);
             if (effect.mana) setMana(actor, Math.min(maximum.maxMana, mana(actor) + Math.max(1, Math.floor(maximum.maxMana * toNumber(effect.mana, 0) / 100))));
           }
           if (effect.type === "blood-supply-turn-restore" && actorBloodSupplies(actor) > 0 && hp(actor) > 0) {
@@ -714,7 +734,7 @@
             const hpPercent = toNumber(effect.hp, 0) + upgrades.reduce((sum, upgrade) => sum + toNumber(upgrade.hp, 0), 0);
             const manaPercent = toNumber(effect.mana, 0) + upgrades.reduce((sum, upgrade) => sum + toNumber(upgrade.mana, 0), 0);
             setActorBloodSupplies(actor, actorBloodSupplies(actor) - 1);
-            if (hpPercent && !healingDisabled(actor, state)) healHp(actor, Math.max(1, Math.floor(maximum.maxHp * hpPercent / 100)), state);
+            if (hpPercent && !healingDisabled(actor, state)) healHp(actor, Math.max(1, Math.floor(maximum.maxHp * hpPercent / 100)), state, actor);
             if (manaPercent) setMana(actor, Math.min(maximum.maxMana, mana(actor) + Math.max(1, Math.floor(maximum.maxMana * manaPercent / 100))));
           }
         }
@@ -724,7 +744,7 @@
         for (const effect of rank.effects || []) {
           if (effect.type !== "turn-start-restore-percent" || hp(actor) <= 0) continue;
           const maximum = values(actor, state);
-          if (effect.hp && !healingDisabled(actor, state)) healHp(actor, Math.max(1, Math.floor(maximum.maxHp * toNumber(effect.hp, 0) / 100)), state);
+          if (effect.hp && !healingDisabled(actor, state)) healHp(actor, Math.max(1, Math.floor(maximum.maxHp * toNumber(effect.hp, 0) / 100)), state, actor);
           if (effect.mana) setMana(actor, Math.min(maximum.maxMana, mana(actor) + Math.max(1, Math.floor(maximum.maxMana * toNumber(effect.mana, 0) / 100))));
         }
       }
@@ -741,7 +761,8 @@
       }
       for (const effect of actor.effects.filter(effect => effect.type === "turn-start-restore-percent")) {
         const maximum = values(actor);
-        if (effect.hp && !healingDisabled(actor, state)) healHp(actor, Math.max(1, Math.floor(maximum.maxHp * toNumber(effect.hp, 0) / 100)), state);
+        // A heal-over-time remembers who cast it (Doctor's Orders, R24).
+        if (effect.hp && !healingDisabled(actor, state)) healHp(actor, Math.max(1, Math.floor(maximum.maxHp * toNumber(effect.hp, 0) / 100)), state, effect.healerId ? actorById(effect.healerId, state) : null);
         if (effect.mana) setMana(actor, Math.min(maximum.maxMana, mana(actor) + Math.max(1, Math.floor(maximum.maxMana * toNumber(effect.mana, 0) / 100))));
       }
       for (const effect of actor.effects.filter(effect => effect.expiresTurn <= actor.turns && effect.type === "delayed-hp-loss-percent")) {
@@ -760,7 +781,7 @@
             if (effect.hp != null) {
               const nextHp = Math.max(0, toInteger(effect.hp, 0));
               if (nextHp > hp(actor)) {
-                if (!healingDisabled(actor, state)) healHp(actor, nextHp - hp(actor), state);
+                if (!healingDisabled(actor, state)) healHp(actor, nextHp - hp(actor), state, actor);
               } else setHp(actor, nextHp);
             }
             if (effect.mana != null) setMana(actor, Math.max(0, toInteger(effect.mana, 0)));
@@ -981,6 +1002,11 @@
         state.ap = Math.max(0, state.ap - next.staggerAp);
         log(`${actorLabel(next)} ${next.staggerReason || "reels"} and loses ${next.staggerAp} AP.`);
         next.staggerAp = 0; next.staggerReason = null;
+      }
+      if (state === battle && next.trapApLoss) {
+        state.ap = Math.max(0, state.ap - next.trapApLoss);
+        log(`${actorLabel(next)} is caught in the traps and loses ${next.trapApLoss} AP.`);
+        next.trapApLoss = 0;
       }
       if (state === battle) stage("turn", { actorId: next.id, controlled: next.team === "player" && !next.summoned });
       return next;
@@ -1550,7 +1576,7 @@
     if (!owner || hp(owner) <= 0) return;
     for (const effect of passiveEffectsOf(owner).filter(effect => effect.type === "summon-death-resource-percent")) {
       const maximum = values(owner);
-      if (!healingDisabled(owner)) healHp(owner, Math.floor(maximum.maxHp * toNumber(effect.hp, 0) / 100));
+      if (!healingDisabled(owner)) healHp(owner, Math.floor(maximum.maxHp * toNumber(effect.hp, 0) / 100), battle, owner);
       setMana(owner, Math.min(maximum.maxMana, mana(owner) + Math.floor(maximum.maxMana * toNumber(effect.mana, 0) / 100)));
     }
   }
@@ -1640,6 +1666,57 @@
       if (springOwner) triggerRetaliationTrap(springOwner, attacker, "trap-spring");
     }
     triggerRetaliationTrap(target, attacker, "trap-sentry");
+    triggerControlTraps(target, attacker, weaponType === "melee" ? "melee" : "ranged");
+  }
+  /* The Shop Rework's traps (port task 3; user decisions R17–R21, R26), armed on their owner like the Spring Trap
+     and spent when they trigger. "attackKind" is "melee", "ranged" or "spell" (a spell that damages the owner).
+     Tripwire: a melee attack costs the attacker 1 AP on its next turn. Smoke Trap: any attack gives the owner's
+     side +20% Evasion until the owner's next turn. Frost Glyph: a damaging spell costs the caster 25% Speed for 2
+     turns. Weighted Net: a melee attack stuns the attacker for 1 turn (stun immunity holds). Gravity Well: any
+     attack costs every enemy 2 AP on its next turn. AP losses from traps add to each other and to staggers and
+     roots (R26). */
+  function triggerControlTraps(owner, attacker, attackKind) {
+    if (!owner || !attacker || owner.team === attacker.team || hp(owner) <= 0) return;
+    const loseAp = (foe, amount) => { foe.trapApLoss = Math.max(0, toInteger(foe.trapApLoss, 0)) + Math.max(0, toInteger(amount, 0)); };
+    if (attackKind === "melee") {
+      const tripwire = consumeTrap(owner, "trap-tripwire");
+      if (tripwire && hp(attacker) > 0) { loseAp(attacker, tripwire.amount); log(`${tripwire.name} trips ${actorLabel(attacker)}: ${tripwire.amount} AP lost on its next turn.`); }
+      const net = consumeTrap(owner, "trap-weighted-net");
+      if (net && hp(attacker) > 0) {
+        if (debuffImmune(attacker) || withActor(attacker, () => calculateClassEffects().stunImmune)) log(`${actorLabel(attacker)} tears free of ${net.name}.`);
+        else {
+          attacker.effects = attacker.effects.filter(existing => existing.type !== "stun");
+          attacker.effects.push({ key: `trap:${owner.id}:net-stun`, name: "Stunned", type: "stun", amount: 1, expiresTurn: attacker.turns + 1 });
+          log(`${net.name} entangles ${actorLabel(attacker)}: stunned for 1 turn.`);
+        }
+      }
+    }
+    if (attackKind === "spell") {
+      const glyph = consumeTrap(owner, "trap-frost-glyph");
+      if (glyph && hp(attacker) > 0) {
+        const duration = Math.max(1, toInteger(glyph.durationTurns, 2));
+        if (debuffImmune(attacker)) log(`${actorLabel(attacker)} shrugs off ${glyph.name}.`);
+        else {
+          applyTimedEffects(attacker, `trap:${owner.id}:frost-glyph`, glyph.name, [{ type: "stat-percent", target: "speed", amount: -Math.abs(toNumber(glyph.amount, 25)), durationTurns: duration }]);
+          log(`${glyph.name} freezes ${actorLabel(attacker)}: Speed −${Math.abs(toNumber(glyph.amount, 25))}% for ${duration} turns.`);
+        }
+      }
+    }
+    const smoke = consumeTrap(owner, "trap-smoke");
+    if (smoke) {
+      const allies = living().filter(ally => ally.team === owner.team);
+      for (const ally of allies) {
+        ally.effects = ally.effects.filter(existing => existing.smokeOwnerId !== owner.id);
+        ally.effects.push({ key: `trap:${owner.id}:smoke`, name: smoke.name, type: "defense-percent", target: "evasion", amount: Math.abs(toNumber(smoke.amount, 20)), smokeOwnerId: owner.id, expiresTurn: Number.MAX_SAFE_INTEGER });
+      }
+      log(`${smoke.name} bursts around ${actorLabel(owner)}: ${allies.map(actorLabel).join(", ")} gain +${Math.abs(toNumber(smoke.amount, 20))}% Evasion until ${actorLabel(owner)}'s next turn.`);
+    }
+    const well = consumeTrap(owner, "trap-gravity-well");
+    if (well) {
+      const foes = living().filter(foe => foe.team !== owner.team && !foe.inert);
+      for (const foe of foes) loseAp(foe, well.amount);
+      log(`${well.name} collapses: every enemy loses ${well.amount} AP on its next turn.`);
+    }
   }
   function hurt(target, power, element, critical = false, spell = false, attacker = null, attackKind = "", armorPierceOverride = 0, unreducible = false, spellTier = 0) {
     const mark = attacker && target.effects.find(effect => effect.type === "hunter-mark" && effect.ownerId === attacker.id && skillStates(attacker)[effect.skillKey]?.active);
@@ -1754,6 +1831,7 @@
       recordCombatKill(attacker, target);
     } else triggerLowHealthPassives(target);
     if (attacker && attacker.team !== target.team && attackKind === "spell") triggerRetaliationTrap(target, attacker, "trap-sentry");
+    if (attacker && attacker.team !== target.team && attackKind === "spell" && amount > 0) triggerControlTraps(target, attacker, "spell");
     mirrorScales(target, attacker, amount, spell, attackKind);
     // A dream law may turn part of a spell's damage back on its caster.
     const rebound = spell && attacker && attacker.team !== target.team && amount > 0 && !reboundDepth && hp(attacker) > 0 ? lawAmount(attacker, "spell-rebound-percent") : 0;
@@ -1823,7 +1901,7 @@
       if (effect.type === "lifesteal-percent") {
         if (healingDisabled(actor)) continue;
         const gain = Math.floor(amount * Math.max(0, toNumber(effect.amount, 0)) / 100);
-        healHp(actor, gain);
+        healHp(actor, gain, battle, actor);
       } else if (effect.type === "target-all-stats-percent") {
         applyTimedEffects(target, classSkillKey(skill) + ":target", skill.name, [{ type: "all-stats-percent", amount: effect.amount, durationTurns: effect.durationTurns }]);
       } else if (effect.type === "blood-supplies-flat") {
@@ -1886,7 +1964,7 @@
       const damage = hurt(target, effect.amount, effect.element || "basic", false, true, actor, "melee", effect.armorPiercePercent);
       log(`${effect.name} deals ${damage} additional ${effect.element || "basic"} damage to ${actorLabel(target)}.`);
       if (effect.lifeSteal && !healingDisabled(actor)) {
-        const healing = healHp(actor, Math.max(0, Math.floor(damage * effect.lifeSteal)));
+        const healing = healHp(actor, Math.max(0, Math.floor(damage * effect.lifeSteal)), battle, actor);
         log(`${actorLabel(actor)} drains ${actor.team === "player" ? healing + " " : ""}HP.`);
       }
       if (effect.statDebuff && hp(target) > 0) {
@@ -2022,7 +2100,7 @@
     }
     const lifesteal = equippedArmorTotal(actor, "lifesteal");
     if (lifesteal > 0 && hp(actor) > 0) {
-      const healed = healHp(actor, amount * lifesteal / 100);
+      const healed = healHp(actor, amount * lifesteal / 100, battle, actor);
       if (healed) log(`${actorLabel(actor)} drinks ${healed} HP through Vampiric armor.`);
     }
   }
@@ -2183,7 +2261,9 @@
       return true;
     });
   }
-  const trapEffects = new Set(["trap-spring", "trap-spell-rune", "trap-sentry"]);
+  // Port task 3 (the Shop Rework, R17–R21): Tripwire, Smoke Trap, Frost Glyph, Weighted Net and Gravity Well.
+  const controlTrapEffects = ["trap-tripwire", "trap-smoke", "trap-frost-glyph", "trap-weighted-net", "trap-gravity-well"];
+  const trapEffects = new Set(["trap-spring", "trap-spell-rune", "trap-sentry", ...controlTrapEffects]);
   const supportedEffects = new Set([
     "damage", "weapon-charge-all-enemies", "heal", "restore-mana", "stat-percent", "all-stats-percent", "defense-flat", "defense-percent",
     "stat-permanent-percent", "defense-permanent-percent", "delayed-hp-loss-percent", "stun", "stun-chance",
@@ -3262,7 +3342,7 @@
       log(`${actorLabel(next)}'s ${item.name} turns to ${season.name}.`);
     }
     if (season.regenHpPercent && hp(next) > 0 && !healingDisabled(next)) {
-      const restored = healHp(next, Math.max(1, Math.floor(values(next).maxHp * season.regenHpPercent / 100)));
+      const restored = healHp(next, Math.max(1, Math.floor(values(next).maxHp * season.regenHpPercent / 100)), battle, next);
       if (restored > 0) log(`${actorLabel(next)} regains ${restored} HP with ${item.name}.`);
     }
   }
@@ -3449,7 +3529,7 @@
         const wounds = oldWoundsOf(actor);
         if (wounds && !actor.woundsBurst && actor.openWounds > 0) {
           setOpenWounds(actor, actor.openWounds - 1);
-          const healed = healingDisabled(actor) ? 0 : healHp(actor, Math.max(1, Math.floor(values(actor).maxHp * Math.max(0, toNumber(amount, 0)) / 100)));
+          const healed = healingDisabled(actor) ? 0 : healHp(actor, Math.max(1, Math.floor(values(actor).maxHp * Math.max(0, toNumber(amount, 0)) / 100)), battle, actor);
           log(`${source}: stone crusts over one of ${actor.name}'s wounds${healed ? ` and ${actor.name} recovers ${healed} HP` : ""}.`);
           if (onStage(actor)) stage("status", { actorId: actor.id, label: "Wound sealed", debuff: false });
         }
@@ -3489,7 +3569,7 @@
           const damage = hurt(recipient, amount * apexDamageMultiplier * (1 + raceBonus / 100), element, false, spell, actor, spell ? "spell" : "item", effect.armorPiercePercent, spell && apexChoice === "focus", sourceSpell?.tier || 0);
           log(`${source} deals ${damage} ${elementLabel(element)} damage to ${actorLabel(recipient)}.`);
           if (effect.lifeSteal && !healingDisabled(actor)) {
-            const healing = healHp(actor, Math.max(0, Math.floor(damage * effect.lifeSteal)));
+            const healing = healHp(actor, Math.max(0, Math.floor(damage * effect.lifeSteal)), battle, actor);
             log(`${actorLabel(actor)} drains ${actor.team === "player" ? healing + " " : ""}HP.`);
           }
           if (effect.manaSiphonPercent) {
@@ -3515,6 +3595,7 @@
           damagePercent: trapBonuses.trapDamagePercent,
           armorPiercePercent: trapBonuses.trapArmorPiercePercent,
           remainingTriggers: 1 + Math.max(0, Math.floor(trapBonuses.trapAdditionalTriggers)),
+          ...(effect.durationTurns != null ? { durationTurns: Math.max(1, toInteger(effect.durationTurns, 1)) } : {}),
           expiresTurn: Number.MAX_SAFE_INTEGER
         });
         log(`${actorLabel(actor)} places ${source}${recipient === actor ? "" : " around " + actorLabel(recipient)}.`);
@@ -3526,7 +3607,7 @@
           const triageBonus = restoreHp && recipient.id !== actor.id && hp(actor) < values(actor).maxHp * .5 ? passiveEffectsOf(actor).filter(active => active.type === "low-hp-healing-percent").reduce((sum, active) => sum + toNumber(active.amount, 0), 0) : 0;
           const healingPercent = restoreHp ? recipient.effects.filter(active => active.type === "healing-received-percent").reduce((sum, active) => sum + toNumber(active.amount, 0), 0) - recipient.effects.filter(active => active.type === "class-poison").reduce((maximum, active) => Math.max(maximum, toNumber(active.healingPenalty, 0)), 0) + triageBonus : 0;
           const restoration = Math.max(0, Math.floor(restoredAmount * (1 + healingPercent / 100)));
-          const effectiveRestoration = restoreHp ? healingAmount(recipient, restoration) : restoration;
+          const effectiveRestoration = restoreHp ? healingAmount(recipient, restoration, actor) : restoration;
           const gain = restoreHp && healingDisabled(recipient) ? 0 : Math.max(0, Math.min(max - current, effectiveRestoration));
           if (restoreHp && !healingDisabled(recipient)) for (const ward of passiveEffectsOf(actor).filter(active => active.type === "overheal-barrier-percent")) recipient.barrierHp = Math.min(Math.floor(max * toNumber(ward.amount, 0) / 100), Math.max(0, toNumber(recipient.barrierHp, 0)) + Math.max(0, effectiveRestoration - gain));
           if (restoreHp) setHp(recipient, current + gain); else setMana(recipient, current + gain);
@@ -3585,7 +3666,7 @@
       } else {
         for (const recipient of recipientsFor(actor, target, effect).filter(Boolean)) {
           const timed = { ...effect, amount, sourceActorId: effect.type === "incoming-spell-damage-from-target-percent" ? target?.id : effect.sourceActorId };
-          applyTimedEffects(recipient, source, source, [timed]);
+          applyTimedEffects(recipient, source, source, [timed], actor);
           if (recipient.effects.some(active => active.name === source && active.type === effect.type)) log(`${actorLabel(recipient)} gains ${source} for ${effect.durationTurns || 1} turns.`);
         }
       }
@@ -3745,7 +3826,7 @@
     if (["incoming-weapon-damage-percent", "incoming-spell-damage-percent", "incoming-attack-damage-percent", "incoming-race-damage-percent", "healing-received-percent"].includes(effect.type)) return toNumber(effect.amount, 0) > 0 || effect.type === "healing-received-percent" && toNumber(effect.amount, 0) < 0;
     return false;
   }
-  function applyTimedEffects(actor, key, name, effects) {
+  function applyTimedEffects(actor, key, name, effects, healer = null) {
     for (const effect of effects || []) {
       if (!Number.isFinite(effect.durationTurns) && !Number.isFinite(effect.durationHits) || !Number.isFinite(effect.amount) && !Number.isFinite(effect.hp) && !Number.isFinite(effect.mana)) continue;
       if (!effect.unpreventable && debuffImmune(actor) && isDebuffDefinition(effect)) continue;
@@ -3767,6 +3848,7 @@
         raceIds: Array.isArray(effect.raceIds) ? [...effect.raceIds] : [],
         weaponType: effect.weaponType,
         sourceActorId: effect.sourceActorId,
+        ...(healer && effect.type === "turn-start-restore-percent" ? { healerId: healer.id } : {}),
         ...(effect.burnPercent != null ? { burnPercent: toNumber(effect.burnPercent, 0), burnTurns: Math.max(1, toInteger(effect.burnTurns, 2)) } : {}),
         unpreventable: effect.unpreventable === true,
         unremovable: effect.unremovable === true,
@@ -3898,7 +3980,7 @@
     }
     for (const effect of skill.onActivateEffects || []) {
       if (effect.type === "restore-full-resources") {
-        const maximum = values(actor); if (!healingDisabled(actor)) healHp(actor, maximum.maxHp - hp(actor)); setMana(actor, maximum.maxMana);
+        const maximum = values(actor); if (!healingDisabled(actor)) healHp(actor, maximum.maxHp - hp(actor), battle, actor); setMana(actor, maximum.maxMana);
       } else if (effect.type === "refresh-other-skills") {
         for (const [otherKey, otherState] of Object.entries(states)) {
           if (otherKey === key) continue;
@@ -3920,7 +4002,7 @@
         for (const recipient of recipients) {
           const maximum = values(recipient);
           if (effect.hp && !healingDisabled(recipient)) {
-            const healing = healingAmount(recipient, Math.max(1, Math.floor(maximum.maxHp * Math.max(0, toNumber(effect.hp, 0)) / 100)));
+            const healing = healingAmount(recipient, Math.max(1, Math.floor(maximum.maxHp * Math.max(0, toNumber(effect.hp, 0)) / 100)), actor);
             const overflow = Math.max(0, hp(recipient) + healing - maximum.maxHp);
             setHp(recipient, Math.min(maximum.maxHp, hp(recipient) + healing));
             for (const ward of passiveEffectsOf(actor).filter(passive => passive.type === "overheal-barrier-percent")) recipient.barrierHp = Math.min(Math.floor(maximum.maxHp * toNumber(ward.amount, 0) / 100), Math.max(0, toNumber(recipient.barrierHp, 0)) + overflow);
@@ -4018,13 +4100,13 @@
         const cost = Math.min(hp(actor) - 1, Math.floor(values(actor).maxHp * Math.max(0, toNumber(effect.hpCostPercent, 0)) / 100));
         if (cost) { setHp(actor, hp(actor) - cost); actor.damageTaken = Math.max(0, toNumber(actor.damageTaken, 0)) + cost; }
         const triage = hp(actor) < values(actor).maxHp / 2 ? passiveEffectsOf(actor).filter(passive => passive.type === "low-hp-healing-percent").reduce((sum, passive) => sum + toNumber(passive.amount, 0), 0) : 0;
-        const heal = healingAmount(target, Math.floor(values(target).maxHp * Math.max(0, toNumber(effect.healPercent, 0)) / 100 * (1 + triage / 100)));
+        const heal = healingAmount(target, Math.floor(values(target).maxHp * Math.max(0, toNumber(effect.healPercent, 0)) / 100 * (1 + triage / 100)), actor);
         if (!healingDisabled(target)) setHp(target, Math.min(values(target).maxHp, hp(target) + heal));
         log(`${actorLabel(actor)} gives ${cost} HP to heal ${actorLabel(target)} by ${heal}.`);
       } else if (effect.type === "restore-summons-percent") {
         for (const summoned of living().filter(candidate => candidate.team === actor.team && candidate.summoned)) {
           const maximum = values(summoned);
-          if (!healingDisabled(summoned)) healHp(summoned, Math.floor(maximum.maxHp * toNumber(effect.amount, 0) / 100));
+          if (!healingDisabled(summoned)) healHp(summoned, Math.floor(maximum.maxHp * toNumber(effect.amount, 0) / 100), battle, actor);
           setMana(summoned, Math.min(maximum.maxMana, mana(summoned) + Math.floor(maximum.maxMana * toNumber(effect.amount, 0) / 100)));
         }
       } else if (["buff-summons-defense-flat", "buff-summons-defense-percent"].includes(effect.type)) {
@@ -4050,7 +4132,7 @@
     }
     const timedEffects = (skill.onActivateEffects || []).filter(effect => !["restore-full-resources", "refresh-other-skills", "turn-start-max-hp-loss-percent", "consume-all-blood-supplies-stat-percent", "restore-resource-percent", "ki-restore-mana", "random-animal-summon", "cast-random-spell", "weapon-attack-all-enemies", "apply-skill-effects", "resource-exchange", "start-duel", "guard-ally", "copy-enemy-spell", "shift-turn-meters", "attune-last-hit-element", "raise-standard", "gambit-strike", "execute-strike", "mute-next-spell-percent", "blood-transfusion", "restore-summons-percent", "buff-summons-defense-flat", "buff-summons-defense-percent", "poison-all-enemies", "sunflare", "stormburst"].includes(effect.type));
     const recipients = skill.target === "all-allies" ? living().filter(candidate => candidate.team === actor.team) : [actor];
-    recipients.forEach(recipient => applyTimedEffects(recipient, key, skill.name, timedEffects));
+    recipients.forEach(recipient => applyTimedEffects(recipient, key, skill.name, timedEffects, actor));
     log(`${actorLabel(actor)} activates ${skill.name} (${actionPoints} AP).`);
     return true;
   }
@@ -4512,7 +4594,7 @@
           tactics.damage += effective; tactics.killChance = Math.max(tactics.killChance, outcome.killProbability);
           if (effect.lifeSteal) {
             const missing = Math.max(0, values(actor).maxHp - hp(actor));
-            const gain = healingDisabled(actor) ? 0 : Math.min(missing, healingAmount(actor, outcome.dealtDamage * Math.max(0, toNumber(effect.lifeSteal, 0))));
+            const gain = healingDisabled(actor) ? 0 : Math.min(missing, healingAmount(actor, outcome.dealtDamage * Math.max(0, toNumber(effect.lifeSteal, 0)), actor));
             utility += gain * 2;
             recordHealing(actor, gain);
           }
@@ -4524,7 +4606,7 @@
           const restoreHp = effect.type === "heal", maximum = values(recipient)[restoreHp ? "maxHp" : "maxMana"];
           const current = restoreHp ? hp(recipient) : mana(recipient);
           const restoration = rules.resourceRestore(amount, maximum, effect.maxPercent);
-          const gain = (restoreHp && healingDisabled(recipient) ? 0 : Math.max(0, Math.min(maximum - current, restoreHp ? healingAmount(recipient, restoration) : restoration))) / (effect.recipient === "random-ally" ? Math.max(1, recipients.length) : 1);
+          const gain = (restoreHp && healingDisabled(recipient) ? 0 : Math.max(0, Math.min(maximum - current, restoreHp ? healingAmount(recipient, restoration, actor) : restoration))) / (effect.recipient === "random-ally" ? Math.max(1, recipients.length) : 1);
           const ratio = aiRatio(current, maximum);
           if (restoreHp) {
             utility += gain * (1.6 + (1 - ratio) * 2.6) + Number(gain > 0 && ratio < 0.3) * 18;
@@ -4562,7 +4644,7 @@
         const loadout = attackLoadout(actor);
         if (normalizeWeaponType(loadout.primary.type) !== "melee" || actor.effects.some(active => active.key === `${spell.name}:next-melee-attack`)) continue;
         const averageBonus = estimatedDamage(opponents(actor)[0] || actor, amount, effect.element || spell.element, false, true, actor, "melee");
-        utility += averageBonus * 3 + toNumber(effect.stunChance, 0) * 0.25 + Math.abs(toNumber(effect.statDebuff?.amount, 0)) * 0.6 + healingAmount(actor, averageBonus * toNumber(effect.lifeSteal, 0));
+        utility += averageBonus * 3 + toNumber(effect.stunChance, 0) * 0.25 + Math.abs(toNumber(effect.statDebuff?.amount, 0)) * 0.6 + healingAmount(actor, averageBonus * toNumber(effect.lifeSteal, 0), actor);
         didSomething = true;
       } else if (effect.type === "remove-random-debuff") {
         const recipients = forecastRecipients(actor, target, effect);
@@ -4718,7 +4800,7 @@
       score += Math.max(0, after.outcome.killProbability - toNumber(beforeAttack?.outcome?.killProbability, 0)) * 36;
       for (const effect of skill.onHitEffects || []) {
         if (effect.type === "lifesteal-percent") {
-          const gain = healingDisabled(actor) ? 0 : Math.min(values(actor).maxHp - hp(actor), healingAmount(actor, after.outcome.onHitDamage * Math.max(0, toNumber(effect.amount, 0)) / 100));
+          const gain = healingDisabled(actor) ? 0 : Math.min(values(actor).maxHp - hp(actor), healingAmount(actor, after.outcome.onHitDamage * Math.max(0, toNumber(effect.amount, 0)) / 100, actor));
           score += gain * 2; recordHealing(actor, gain);
         }
         if (effect.type === "stun" || effect.type === "stun-chance") score += combatantThreat(target, actor) * (effect.type === "stun" ? 1 : rules.chance(effect.amount) / 100);
@@ -4789,7 +4871,7 @@
 
     for (const effect of skill.onActivateEffects || []) {
       if (effect.type === "restore-full-resources") {
-        const gain = healingDisabled(actor) ? 0 : healingAmount(actor, values(actor).maxHp - hp(actor));
+        const gain = healingDisabled(actor) ? 0 : healingAmount(actor, values(actor).maxHp - hp(actor), actor);
         score += gain * 2.4 + (values(actor).maxMana - mana(actor)) * 0.8;
         recordHealing(actor, gain); manaRecovery ||= mana(actor) < values(actor).maxMana;
       } else if (effect.type === "refresh-other-skills") {
@@ -4798,7 +4880,7 @@
         score += actorBloodSupplies(actor) * Math.max(0, toNumber(effect.amountPerStack, 0)) * 0.9;
       } else if (effect.type === "turn-start-restore-percent") {
         const missingHp = values(actor).maxHp - hp(actor), missingMana = values(actor).maxMana - mana(actor);
-        score += Math.min(missingHp, healingAmount(actor, values(actor).maxHp * Math.max(0, toNumber(effect.hp, 0)) / 100)) * 2;
+        score += Math.min(missingHp, healingAmount(actor, values(actor).maxHp * Math.max(0, toNumber(effect.hp, 0)) / 100, actor)) * 2;
         score += Math.min(missingMana, values(actor).maxMana * Math.max(0, toNumber(effect.mana, 0)) / 100) * 0.7;
       } else if (effect.type === "turn-start-max-hp-loss-percent") {
         score -= values(actor).maxHp * Math.max(0, toNumber(effect.amount, 0)) / 100 * 3;
@@ -4810,7 +4892,7 @@
       } else if (effect.type === "restore-resource-percent") {
         const recipients = effect.recipient === "all-allies" || skill.target === "all-allies" ? aiAllies(actor) : [actor];
         for (const recipient of recipients) {
-          const gain = healingDisabled(recipient) ? 0 : Math.min(values(recipient).maxHp - hp(recipient), healingAmount(recipient, values(recipient).maxHp * Math.max(0, toNumber(effect.hp, 0)) / 100));
+          const gain = healingDisabled(recipient) ? 0 : Math.min(values(recipient).maxHp - hp(recipient), healingAmount(recipient, values(recipient).maxHp * Math.max(0, toNumber(effect.hp, 0)) / 100, actor));
           score += gain * 2; healing += gain;
           if (gain) recipientHealth = Math.min(recipientHealth, aiRatio(hp(recipient), values(recipient).maxHp));
           score += Math.min(values(recipient).maxMana - mana(recipient), values(recipient).maxMana * Math.max(0, toNumber(effect.mana, 0)) / 100) * 0.8;
@@ -4844,7 +4926,7 @@
             } else if (nested.type === "heal" || nested.type === "restore-mana") {
               const restoreHp = nested.type === "heal", maximum = values(recipient)[restoreHp ? "maxHp" : "maxMana"];
               const restoration = rules.resourceRestore(amount, maximum, nested.maxPercent);
-              const gain = Math.max(0, Math.min(maximum - (restoreHp ? hp(recipient) : mana(recipient)), restoreHp ? healingDisabled(recipient) ? 0 : healingAmount(recipient, restoration) : restoration)) * weight;
+              const gain = Math.max(0, Math.min(maximum - (restoreHp ? hp(recipient) : mana(recipient)), restoreHp ? healingDisabled(recipient) ? 0 : healingAmount(recipient, restoration, actor) : restoration)) * weight;
               score += gain * (restoreHp ? 2.4 : 0.8) * (recipient.team === actor.team ? 1 : -1);
               if (recipient.team === actor.team) { if (restoreHp) recordHealing(recipient, gain); else manaRecovery ||= gain > 0; }
             } else if (["stun", "stun-chance"].includes(nested.type)) {
@@ -4911,7 +4993,7 @@
       } else if (["buff-summons-defense-flat", "buff-summons-defense-percent"].includes(effect.type)) {
         for (const ally of aiAllies(actor).filter(ally => ally.summoned && (!effect.animalOnly || ["wolf", "bear", "griffon"].includes(actorRace(ally))))) score += timedEffectUtility(actor, ally, { ...effect, type: effect.type.endsWith("percent") ? "defense-percent" : "defense-flat", recipient: "target", target: effect.target || "armor" }, effect.amount, skill.name);
       } else if (effect.type === "blood-transfusion") {
-        const gain = target && !healingDisabled(target) ? Math.min(values(target).maxHp - hp(target), healingAmount(target, values(target).maxHp * toNumber(effect.healPercent, 0) / 100)) : 0;
+        const gain = target && !healingDisabled(target) ? Math.min(values(target).maxHp - hp(target), healingAmount(target, values(target).maxHp * toNumber(effect.healPercent, 0) / 100, actor)) : 0;
         const paid = Math.min(hp(actor) - 1, values(actor).maxHp * toNumber(effect.hpCostPercent, 0) / 100);
         score += gain * 2.5 - paid * (hp(actor) < values(actor).maxHp * 0.4 ? 3 : 1);
         healing += gain; if (gain) recipientHealth = aiRatio(hp(target), values(target).maxHp);
