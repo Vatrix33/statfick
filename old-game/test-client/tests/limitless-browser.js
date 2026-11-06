@@ -18,7 +18,7 @@ const limitlessChecks = {
     const source = await (await fetch("scripts/combat.js")).text();
     const marker = "  window.Combat = {";
     const script = document.createElement("script");
-    script.textContent = source.replace(marker, "  window.__limitlessChecks = { actorById, hp, setHp, values, getBattle: () => battle, attack, strike, hurt, healHp, applyCombatDamage, applyUniqueWeaponHitEffects, awardDefeatedEnemyExperience, rollExoticExtras, rollSparklingMasterworks, sparklingMasterworkPool, refresh, definitions: () => enemyDefinitions, EXOTIC_DROPS };\n" + marker);
+    script.textContent = source.replace(marker, "  window.__limitlessChecks = { actorById, hp, setHp, values, getBattle: () => battle, attack, strike, hurt, healHp, applyCombatDamage, applyUniqueWeaponHitEffects, awardDefeatedEnemyExperience, rollExoticExtras, rollSparklingMasterworks, sparklingMasterworkPool, refresh, definitions: () => enemyDefinitions, EXOTIC_DROPS, skillsOf, classSkillKey, skillStrikes, oneStrikeATurn };\n" + marker);
     document.head.append(script);
     await waitForSourceFiles();
     if (window.BattleStage) window.BattleStage.enabled = () => false;
@@ -333,6 +333,10 @@ async function checkExoticDrops() {
   assert((await reward(true, 200, [0.01, 0.0101])).length === 1, "Not above 1%");
   assert(!(await reward(true, 199, [0, 0])).length, "Not below Level 200");
   assert(!(await reward(false, 200, [0, 0])).length, "Not while Limitless is off");
+  // The Guild's revealed odds follow the same rules (an Exotic's are 0% while off; a masterwork's double while on).
+  const odds = GuildInformationRules.dropChance, exotic = getItem("masterwork-fletcher"), masterwork = getItem("masterwork-impshield");
+  assert(odds(exotic, { chance: 4 }, 0, 0, false) === 0 && odds(exotic, { chance: 4 }, 0, 0, true) === 4 && odds(exotic, { chance: 4 }, 100, 0, true) === 9, "The Guild shows an Exotic's odds only while on, Luck added");
+  assert(odds(masterwork, { chance: 10 }, 0, 0, true) === 20 && odds(masterwork, { chance: 10 }, 0, 0, false) === 10, "And a masterwork's doubled while on");
   Combat.restore(null);
   return count();
 }
@@ -373,5 +377,252 @@ async function checkLimitlessLooks() {
   const hussar = getItem(exotic), plainLook = ForgeArt.weapon({ ...hussar, id: hussar.id + "-plain", forged: { ...hussar.forged, masterwork: "keening" } });
   assert(ForgeArt.weapon(hussar) !== plainLook, "Winged Hussar has its winged crossguard");
   Combat.restore(null);
+  return count();
+}
+
+// 1, L17, L20, L21, 9.2: unlocked by Anatemis's first defeat (old saves start locked), the pop-up, the button, never
+// switched in battle, saved with the character.
+async function checkLimitlessUnlock() {
+  const { assert, count } = limitlessChecks.counter();
+  const h = await limitlessChecks.hooks();
+  const old = normalizeCharacter({ ...defaultCharacter(), level: 100, exp: 0 });
+  delete old.limitless;
+  const loaded = normalizeCharacter(old);
+  assert(loaded.limitless.unlocked === false && loaded.limitless.active === false, "An old save starts locked and off");
+  assert(normalizeCharacter({ ...defaultCharacter(), limitless: { unlocked: false, active: true } }).limitless.active === false, "Locked means off");
+  limitlessChecks.hero({ unlocked: false });
+  const button = document.getElementById("limitless-toggle");
+  Limitless.render();
+  assert(button.hidden && !Limitless.setActive(true) && !limitless.active, "Locked: no button, and it can't be turned on");
+  const fallen = { actors: [{ enemyDefinitionId: LimitlessRules.ANATEMIS_ID, summoned: false, character: { currentHp: 0 } }] };
+  assert(!Limitless.onVictory({ actors: [{ enemyDefinitionId: "goblin", character: { currentHp: 0 } }] }) && !Limitless.onVictory({ actors: [{ ...fallen.actors[0], character: { currentHp: 5 } }] }), "Another victory, or Anatemis standing, unlocks nothing");
+  assert(Limitless.onVictory(fallen) && limitless.unlocked && !limitless.active, "Anatemis's defeat unlocks it, still off");
+  assert(!button.hidden && button.textContent.includes("Off") && button.getAttribute("aria-pressed") === "false", "The button appears, showing Off");
+  const notice = document.getElementById("limitless-notice");
+  assert(notice.hidden && Limitless.showPendingNotice() && !notice.hidden && /Limitless\s*unlocked/.test(notice.textContent), "The pop-up waits for the loot, then announces it");
+  document.getElementById("limitless-notice-ok").click();
+  assert(notice.hidden && !Limitless.showPendingNotice(), "Once");
+  assert(!Limitless.onVictory(fallen), "A later defeat doesn't announce it again");
+  button.click();
+  assert(limitless.active && button.textContent.includes("On") && button.classList.contains("is-active") && document.body.classList.contains("is-limitless"), "The button turns it on and shows it");
+  // Saved and loaded with the character.
+  saveCharacter();
+  const saved = normalizeCharacter(JSON.parse(localStorage.getItem(STORAGE_KEY)));
+  assert(saved.limitless.unlocked && saved.limitless.active, "Saved on");
+  // Never in battle, either way (L20, L21).
+  await limitlessChecks.withRandom(() => 0.5, () => Combat.startEncounter(["Goblin"], "Task 7 test"));
+  Limitless.render();
+  assert(button.disabled && !Limitless.setActive(false) && limitless.active, "In battle the button is disabled and it stays on");
+  Combat.restore(null); Limitless.render();
+  assert(!button.disabled && Limitless.setActive(false) && !limitless.active, "After the battle it can be turned off");
+  saveCharacter();
+  assert(normalizeCharacter(JSON.parse(localStorage.getItem(STORAGE_KEY))).limitless.active === false, "Saved off");
+  return count();
+}
+
+// 2.1, 3, L2, L4, L10, L18, L25: levels past 100 (no perk points), turning it off and on (back to the Level-100 values
+// and forward again, any number of times, companions too), gear above 100 taken off, EXP only below the cap.
+async function checkLimitlessLevels() {
+  const { assert, count } = limitlessChecks.counter();
+  const h = await limitlessChecks.hooks();
+  const high = ForgeRules.encode(ForgeRules.generate({ type: "longsword", level: 140, source: "shop", random: () => 0.5 }));
+  const lowExotic = limitlessChecks.forged("fletcher", 100);
+  limitlessChecks.hero({ on: true, inventory: [high, lowExotic], equipment: { primaryHand: high, offHand: lowExotic }, companions: [{ level: 100 }] });
+  const button = document.getElementById("level-up-button");
+  const snapshot = () => JSON.stringify({ level, stats: { ...stats }, manualAllocations: { ...manualAllocations }, availablePoints });
+  const level100 = snapshot(), perks = perkPoints;
+  // 35 levels: +1 to every attribute and 5 free points each, no perk points.
+  for (let index = 0; index < 35; index++) { exp = CombatRules.experienceRequired(level); button.click(); }
+  assert(level === 135 && perkPoints === perks && availablePoints === JSON.parse(level100).availablePoints + 175, `Level 135, 175 more free points, no perk point (${level}, ${perkPoints})`);
+  // Spend ten of them.
+  for (let index = 0; index < 10; index++) document.querySelector('.stat-stepper[data-stat="strength"][data-action="increase"]').click();
+  const level135 = snapshot();
+  assert(stats.strength === JSON.parse(level100).stats.strength + 45, "35 levels and ten points in Strength");
+  // A companion past 100 too.
+  const companion = companions[0].character;
+  companion.level = 120; for (const key of LimitlessRules.STAT_KEYS) companion.stats[key] += 20; companion.availablePoints += 100;
+  const companion120 = JSON.stringify(companion.stats);
+  exp = 77;
+  // Off: back to the Level-100 values; gear above 100 to the pack; an Exotic at 100 stays (L25).
+  assert(Limitless.setActive(false), "It turns off");
+  assert(snapshot() === level100 && exp === 0, "Off: Level 100 with exactly the Level-100 values");
+  assert(companion.level === 100 && JSON.parse(JSON.stringify(companion.stats)).strength === JSON.parse(companion120).strength - 20, "The companion too");
+  assert(equipment.primaryHand === null && inventory.includes(high) && equipment.offHand === lowExotic, "The Level-140 sword goes to the pack, the Level-100 Exotic stays on");
+  // Nothing is gained at the cap while off (L18).
+  exp = CombatRules.experienceRequired(level); button.click();
+  assert(level === 100, "No level-up while off");
+  const fight = await limitlessChecks.withRandom(() => 0.5, () => Combat.startEncounter(["Goblin"], "Task 7 test"));
+  const battle = h.getBattle(); exp = 0;
+  for (const foe of battle.actors.filter(actor => actor.team === "enemy")) h.setHp(foe, 0);
+  h.awardDefeatedEnemyExperience();
+  assert(fight && exp === 0, "No EXP at Level 100 while off");
+  Combat.restore(null);
+  // On again: everything back, any number of times.
+  assert(Limitless.setActive(true) && snapshot() === level135 && exp === 77, "On: Level 135, its points and its EXP back");
+  assert(JSON.stringify(companion.stats) === companion120 && companion.level === 120, "The companion's too");
+  for (let round = 0; round < 3; round++) { Limitless.setActive(false); Limitless.setActive(true); }
+  assert(snapshot() === level135, "Turning it off and on gains nothing");
+  // EXP while on below 200.
+  await limitlessChecks.withRandom(() => 0.5, () => Combat.startEncounter(["Goblin"], "Task 7 test"));
+  for (const foe of h.getBattle().actors.filter(actor => actor.team === "enemy")) h.setHp(foe, 0);
+  const before = exp; h.awardDefeatedEnemyExperience();
+  assert(exp > before, "On: EXP again");
+  Combat.restore(null);
+  // Loading: Level 100 without Limitless keeps no banked EXP (L18); the cap follows the switch.
+  assert(normalizeCharacter({ ...defaultCharacter(), level: 100, exp: 5000 }).exp === 0, "An old save's EXP banked at 100 is cleared");
+  assert(normalizeCharacter({ ...defaultCharacter(), level: 150, limitless: { unlocked: true, active: true } }).level === 150 && normalizeCharacter({ ...defaultCharacter(), level: 150 }).level === 100, "Above 100 only with Limitless on");
+  assert(normalizeCharacter({ ...defaultCharacter(), level: 260, limitless: { unlocked: true, active: true } }).level === 200, "Never above 200");
+  // Level 200: the cap.
+  level = 199; exp = CombatRules.experienceRequired(level); button.click();
+  exp = CombatRules.experienceRequired(level); button.click();
+  assert(level === 200, "Level 200 is the cap");
+  return count();
+}
+
+// 2.2–2.4, L3, L5, L6, L7, L29: enemies rise to your level (+1 per attribute per level, no free points), never down;
+// every attribute ×1.25 once; bosses get the classes that bring them to 100; nothing while Limitless is off.
+async function checkEnemyScaling() {
+  const { assert, count } = limitlessChecks.counter();
+  const h = await limitlessChecks.hooks();
+  const definition = name => h.definitions().find(enemy => enemy.name === name);
+  const fight = async (names, on, heroLevel) => {
+    const result = await limitlessChecks.withRandom(() => 0.5, () => limitlessChecks.battle(h, names, { on, level: heroLevel }));
+    return result.foes;
+  };
+  const goblin = definition("Goblin");
+  const [plain] = await fight(["Goblin"], false, 100);
+  assert(plain.character.level === goblin.character.level && plain.character.stats.strength === goblin.character.stats.strength, "Off: the Goblin as it is");
+  const [risen] = await fight(["Goblin"], true, 150);
+  const lift = 150 - goblin.character.level;
+  assert(risen.character.level === 150, "On: it rises to your level");
+  assert(LimitlessRules.STAT_KEYS.every(key => risen.character.stats[key] === Math.floor((goblin.character.stats[key] + lift) * 1.25)), "+1 to each attribute per level, then ×1.25 (no free points)");
+  // Once: a saved battle loads without scaling again.
+  const serialized = Combat.serialize();
+  Combat.restore(serialized);
+  const again = h.getBattle().actors.find(actor => actor.team === "enemy");
+  assert(JSON.stringify(again.character.stats) === JSON.stringify(risen.character.stats) && again.character.level === 150, "Applied once: a loaded battle keeps the same values");
+  // Above you: its own level, ×1.25 only (L5).
+  const dragon = definition("Ancient Frost Dragon");
+  const [above] = await fight(["Ancient Frost Dragon"], true, Math.max(1, dragon.character.level - 30));
+  assert(above.character.level === dragon.character.level && above.character.stats.strength === Math.floor(dragon.character.stats.strength * 1.25), "An enemy above you keeps its level, ×1.25");
+  // Bosses: the classes that bring them to 100 (L6, L29), only while on; never a hero class.
+  const sum = levels => Object.values(levels || {}).reduce((total, value) => total + value, 0);
+  for (const [id, classes] of Object.entries(LimitlessRules.BOSS_CLASSES)) {
+    const boss = h.definitions().find(enemy => enemy.id === id);
+    assert(boss?.unique, `${id} is a boss`);
+    const merged = { ...boss.character.classLevels, ...classes };
+    assert(sum(merged) === 100, `${boss.name}: 100 class levels with Limitless (${sum(merged)})`);
+    for (const [classId, value] of Object.entries(classes)) {
+      const cls = classCatalog.find(entry => entry.id === classId);
+      assert(cls && value <= cls.maxLevel && value >= (boss.character.classLevels?.[classId] || 0), `${boss.name}: ${classId} ${value} is a real class within its maximum, never lowered`);
+      assert(!["hero", "demon-lord", "raid-boss"].includes(classId), `${boss.name}: no hero or raid-boss class`);
+    }
+  }
+  const saffron = definition("Archdevil Saffron");
+  const [boss] = (await fight(["Archdevil Saffron"], true, 150)).filter(actor => actor.enemyDefinitionId === saffron.id);
+  assert(sum(boss.character.classLevels) === 100 && boss.character.classLevels.warlock === 7, "On: Saffron fights with her 100 class levels");
+  const [bossOff] = (await fight(["Archdevil Saffron"], false, 100)).filter(actor => actor.enemyDefinitionId === saffron.id);
+  assert(sum(bossOff.character.classLevels) === sum(saffron.character.classLevels) && !bossOff.character.classLevels.warlock, "Off: her own classes only");
+  const [goblinOn] = await fight(["Goblin"], true, 150);
+  assert(JSON.stringify(goblinOn.character.classLevels || {}) === JSON.stringify(goblin.character.classLevels || {}), "A regular enemy gets no classes");
+  // Her court rises too.
+  const court = await fight(["Archdevil Saffron"], true, 150);
+  assert(court.every(actor => actor.character.level >= 150), "Every enemy in the battle rises, her servants too");
+  Combat.restore(null);
+  return count();
+}
+
+// 2.5, L8: with Limitless on a masterwork's base chance doubles before the Luck bonus, and Sparkling's two rolls double.
+async function checkMasterworkDropsDoubled() {
+  const { assert, count } = limitlessChecks.counter();
+  const h = await limitlessChecks.hooks();
+  const drop = async (on, roll) => {
+    const fight = await limitlessChecks.withRandom(() => 0.5, () => limitlessChecks.battle(h, ["Great Imp Ji'ruan"], { on, level: 100 }));
+    const boss = fight.foes.find(foe => foe.enemyDefinitionId === "great-imp-jiruan-unique-level-18");
+    h.setHp(boss, 0); fight.battle.lootItems = [];
+    const bonus = Math.max(0, currentStats().luck) * 0.05 + Math.max(0, calculateClassEffects().masterworkDropChanceFlat || 0);
+    await limitlessChecks.withRandom(limitlessChecks.dice([], roll(bonus) / 100), () => h.awardDefeatedEnemyExperience());
+    return fight.battle.lootItems.some(id => getItem(id)?.forged?.masterwork === "impshield");
+  };
+  assert(await drop(true, bonus => 20 + bonus - 0.01) && !await drop(true, bonus => 20 + bonus + 0.01), "On: Impshield's 10% is 20%, then the Luck bonus");
+  assert(await drop(false, bonus => 10 + bonus - 0.01) && !await drop(false, bonus => 10 + bonus + 0.01), "Off: 10% again");
+  // Sparkling's rolls: 70% → 100%, 5% → 10%.
+  limitlessChecks.hero({ on: true });
+  const sparkle = async (on, rolls) => {
+    limitless.active = on;
+    const bonus = Math.max(0, currentStats().luck) * 0.05 + Math.max(0, calculateClassEffects().masterworkDropChanceFlat || 0);
+    return (await limitlessChecks.withRandom(limitlessChecks.dice(rolls(bonus), 0.5), () => h.rollSparklingMasterworks({ sparkling: true }))).length;
+  };
+  assert(await sparkle(true, bonus => [0.9999, (10 + bonus - 0.01) / 100]) === 2, "On: the 70% roll always lands, the 5% is 10%");
+  assert(await sparkle(true, bonus => [0.9999, (10 + bonus + 0.01) / 100]) === 1, "Not above 10%");
+  assert(await sparkle(false, bonus => [(70 + bonus + 0.01) / 100, (5 + bonus - 0.01) / 100]) === 1, "Off: 70% and 5% again");
+  Combat.restore(null);
+  return count();
+}
+
+// L30, L31: a boss's damaging skill uses up its one strike a turn like an attack or a spell (one that hits every enemy
+// weighs like an area spell); the burst and gamble skills stay usable.
+async function checkBossStrikeLimit() {
+  const { assert, count } = limitlessChecks.counter();
+  const h = await limitlessChecks.hooks();
+  const find = id => {
+    for (const cls of classCatalog) for (const found of JSON.stringify(cls).includes(`"id":"${id}"`) ? [cls] : []) {
+      const walk = node => node && typeof node === "object" ? (node.type === "skill" && node.id === id ? node : Object.values(node).map(walk).find(Boolean)) : null;
+      const skill = walk(found);
+      if (skill) return skill;
+    }
+    return null;
+  };
+  const expected = { "final-blow": 1, worldshaker: 1, "psychic-lance": 1, "chain-overload": 3, "pestilent-cloud": 3, rampage: 3, "double-down": 1, rage: 0, execute: 0, "magnum-opus": 0 };
+  for (const [id, strikes] of Object.entries(expected)) {
+    const skill = find(id);
+    assert(skill, `${id} exists`);
+    assert(h.skillStrikes(skill, 3) === strikes, `${id} counts as ${strikes} strike(s) (${h.skillStrikes(skill, 3)})`);
+  }
+  // Gaian with Limitless: Worldshaker (Geomancer) is held back once his two strikes are spent.
+  const fight = await limitlessChecks.withRandom(() => 0.5, () => limitlessChecks.battle(h, ["Gaian, Avatar of the Land"], { on: true, level: 120 }));
+  const gaian = fight.foes.find(foe => foe.enemyDefinitionId === "gaian-avatar-of-the-land-unique-level-53");
+  const skills = h.skillsOf(gaian), shaker = skills.find(skill => skill.id === "worldshaker"), calm = skills.find(skill => !h.skillStrikes(skill, 1) && skill.id !== "mana-overload");
+  assert(shaker && calm, "Gaian has Worldshaker with Limitless on");
+  const candidates = [{ kind: "skill", key: h.classSkillKey(shaker), skill: shaker }, { kind: "skill", key: h.classSkillKey(calm), skill: calm }];
+  const allowed = history => { gaian.ai = { ...(gaian.ai || {}), history: history.map(kind => ({ kind, key: kind === "skill" ? h.classSkillKey(shaker) : "attack", turn: gaian.turns })) }; return h.oneStrikeATurn(gaian, candidates, [], 2).candidates.map(candidate => candidate.skill.id); };
+  assert(allowed(["attack"]).includes("worldshaker"), "One strike spent: Worldshaker can still come");
+  assert(JSON.stringify(allowed(["attack", "attack"])) === JSON.stringify([calm.id]), "Two spent: Worldshaker is held back, other skills aren't");
+  assert(!allowed(["skill", "skill"]).includes("worldshaker"), "A damaging skill used counts toward the limit");
+  // L31: the burst and gamble skills are not on the bosses' don't-use lists.
+  const source = await (await fetch("scripts/combat.js")).text();
+  const profiles = source.slice(source.indexOf("const AI_PROFILES = {"), source.indexOf("const AI_PROFILES = {") + 20000);
+  assert(!/oneStrikeATurn\(actor, candidates, \["mana-overload", "duel", "all-or-nothing", "perfect-form"\], 2\)[^\n]*arcane-chorus/.test(profiles), "Nothing new on the don't-use lists");
+  Combat.restore(null);
+  return count();
+}
+
+// L10 for companions: while Limitless is off they can't put on gear above Level 100 either (the sheet's slot list, its
+// picker, a forced choice); with it on they can.
+async function checkCompanionGear() {
+  const { assert, count } = limitlessChecks.counter();
+  await waitForSourceFiles();
+  const $ = id => document.getElementById(id);
+  const high = ForgeRules.encode(ForgeRules.generate({ type: "longsword", level: 150, source: "shop", random: () => 0.5 }));
+  limitlessChecks.hero({ on: false, companions: [{ level: 100, inventory: [high] }] });
+  const member = companions[0];
+  Companions.open(member.id);
+  let select = $("companion-sheet").querySelector('[data-comp-gear="primaryHand"]');
+  assert(select && ![...select.options].some(option => option.value === high), "Off: the slot's list leaves the Level-150 sword out");
+  select.add(new Option("forced", high)); select.value = high; select.dispatchEvent(new Event("change", { bubbles: true }));
+  assert(member.character.equipment.primaryHand !== high, "Choosing it anyway does nothing");
+  $("companion-sheet").querySelector('[data-comp-browse-slot="primaryHand"]').click();
+  $("companion-picker-list").querySelector(`[data-comp-picker-select="${high}"]`)?.click();
+  const detail = $("companion-picker-detail");
+  assert(detail.textContent.includes("Level 150 required"), "The picker says why");
+  detail.querySelector('[data-comp-picker-action="equip"]')?.click();
+  assert(member.character.equipment.primaryHand !== high, "Its equip button does nothing");
+  CompanionSheetDetails.close();
+  assert(Limitless.setActive(true), "Limitless on");
+  Companions.open(member.id);
+  select = $("companion-sheet").querySelector('[data-comp-gear="primaryHand"]');
+  assert([...select.options].some(option => option.value === high), "On: the list offers it");
+  select.value = high; select.dispatchEvent(new Event("change", { bubbles: true }));
+  assert(member.character.equipment.primaryHand === high, "And the companion wears it");
   return count();
 }

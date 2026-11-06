@@ -1185,6 +1185,15 @@ Asked while building the Exotics (2026-11-06):
   border and the note "Level N required" (N its level) in the pack and item panels. (Not greyed.)
 - L28 **Exotic weapons' other parts:** Exium a quarter of the time, otherwise any fitting material; the main part is
   always Exium. (Not Mythilium as on masterworks, not all Exium.)
+The bosses' class draft (L6), reviewed 2026-11-06:
+- L29 **The draft:** approved as drafted: the eleven bosses' `BOSS_CLASSES` in `../old-game/scripts/limitless-engine.js`,
+  each at exactly 100 class levels, none over its class's maximum, no hero, raid-boss or item-locked class.
+- L30 **One strike a turn:** a boss's damaging skill (Final Blow, Worldshaker, Chain Overload, Pestilent Cloud, Psychic
+  Lance, Rampage and any other) uses up its one strike that turn, like an attack or a spell. (Not on top of it.)
+- L31 **Burst and gamble skills** (Arcane Chorus, Arcane Echo, Doubled Spell, Wild Thesis, Magnum Opus, All or Nothing,
+  Champion's Challenge): bosses may use them; they are not added to the bosses' don't-use lists. (Not kept from them.)
+- L32 **Guard-only levels** (Bulwark 2/4/6, General 2, Strategist 4) on bosses that never Guard: kept; they count toward
+  the 100. (Not swapped for other classes.)
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).

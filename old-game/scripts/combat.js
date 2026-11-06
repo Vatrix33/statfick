@@ -5675,11 +5675,22 @@
   const isSummonSpell2 = spell => spellEffects(spell).some(effect => effect.type === "summon-friendly");
   const summonCountOf = spell => spellEffects(spell).filter(effect => effect.type === "summon-friendly").reduce((sum, effect) => sum + Math.max(1, toInteger(effect.count, 1)), 0);
   // `areaWeight` lets a damaging spell that hits the whole party count as several strikes.
+  // A skill that deals damage itself (port task 7, L30: the bosses' Limitless classes bring some) is a strike too; one that
+  // hits every enemy weighs like an area spell.
+  const AREA_SKILL_EFFECTS = ["weapon-attack-all-enemies", "poison-all-enemies", "sunflare", "stormburst"];
+  const DAMAGING_SKILL_EFFECTS = [...AREA_SKILL_EFFECTS, "execute-strike", "gambit-strike"];
+  function skillStrikes(skill, areaWeight) {
+    const effects = [...(skill?.onActivateEffects || []), ...(skill?.effects || [])];
+    const damage = effects.filter(effect => effect.type === "apply-skill-effects").flatMap(effect => effect.effects || []).filter(effect => effect.type === "damage");
+    if (!damage.length && !effects.some(effect => DAMAGING_SKILL_EFFECTS.includes(effect.type))) return 0;
+    return damage.some(effect => effect.recipient === "all-enemies") || effects.some(effect => AREA_SKILL_EFFECTS.includes(effect.type)) ? areaWeight : 1;
+  }
   function oneStrikeATurn(actor, candidates, skipSkillIds, limit = 1, areaWeight = 1) {
     const skip = new Set(skillsOf(actor).filter(skill => skipSkillIds.includes(skill.id)).map(classSkillKey));
-    const strikes = (kind, spell) => kind === "attack" ? 1 : kind !== "spell" || !spell ? 0 : !spellEffects(spell).some(effect => effect.type === "damage") ? 0 : spellEffects(spell).some(effect => effect.type === "damage" && effect.recipient === "all-enemies") ? areaWeight : 1;
-    const struck = (actor.ai?.history || []).filter(entry => entry.turn === actor.turns).reduce((sum, entry) => sum + strikes(entry.kind, entry.kind === "spell" ? getSpell(entry.key) : null), 0);
-    return { candidates: candidates.filter(candidate => candidate.kind !== "stance" && !skip.has(candidate.key) && !(strikes(candidate.kind, candidate.spell) && struck + strikes(candidate.kind, candidate.spell) > limit)) };
+    const skillByKey = key => skillsOf(actor).find(skill => classSkillKey(skill) === key);
+    const strikes = (kind, spell, skill) => kind === "attack" ? 1 : kind === "skill" ? skillStrikes(skill, areaWeight) : kind !== "spell" || !spell ? 0 : !spellEffects(spell).some(effect => effect.type === "damage") ? 0 : spellEffects(spell).some(effect => effect.type === "damage" && effect.recipient === "all-enemies") ? areaWeight : 1;
+    const struck = (actor.ai?.history || []).filter(entry => entry.turn === actor.turns).reduce((sum, entry) => sum + strikes(entry.kind, entry.kind === "spell" ? getSpell(entry.key) : null, entry.kind === "skill" ? skillByKey(entry.key) : null), 0);
+    return { candidates: candidates.filter(candidate => candidate.kind !== "stance" && !skip.has(candidate.key) && !(strikes(candidate.kind, candidate.spell, candidate.skill || skillByKey(candidate.key)) && struck + strikes(candidate.kind, candidate.spell, candidate.skill || skillByKey(candidate.key)) > limit)) };
   }
   const AI_PROFILES = {
     // Great Imp Ji'ruan hides behind his Imps (Summoner's Overprotective) and fights with dark magic.
