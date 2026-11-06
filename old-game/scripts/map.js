@@ -15,7 +15,7 @@
     ["map-pause", "Space", [" "]], ["map-cancel", "X", ["x"]],
     ["map-force-encounter", "E", ["e"]], ["map-camp", "C", ["c"]], ["map-rest", "R", ["r"]],
     ["map-blacksmith", "B", ["b"]], ["map-item-shop", "G", ["g"]], ["map-tailor", "U", ["u"]],
-    ["map-guild", "A", ["a"]], ["map-church", "T", ["t"]], ["map-magic-tower", "W", ["w"]],
+    ["map-guild", "A", ["a"]], ["map-church", "T", ["t"]], ["map-magic-tower", "W", ["w"]], ["map-institute", "I", ["i"]], ["map-hearth-home", "H", ["h"]],
     ["map-class-respec", "L", ["l"]], ["map-stat-respec", "P", ["p"]],
     ["map-boat", "V", ["v"]], ["map-search", "F", ["f"]], ["map-track-quarry", "Q", ["q"]], ["map-quests", "J", ["j"]],
     ["map-zoom-in", "+", ["+", "="]], ["map-zoom-out", "−", ["-"]], ["map-fit", "0", ["0"]], ["map-follow", "Y", ["y"]],
@@ -242,7 +242,13 @@
     const castle = place.kind === "Castle city";
     return `<g class="map-settlement" data-map-town="${place.id}" data-pin="0.62" data-x="${place.x}" data-y="${place.y}" transform="translate(${place.x} ${place.y})" role="button" tabindex="0" aria-label="Travel to ${place.name}"><title>${place.name} · ${place.kind}</title><circle r="72" fill="transparent"/><g class="map-settlement-icon">${castle ? castleArt() : villageArt()}</g><text class="map-town-name" y="${castle ? 48 : 42}">${place.name}</text><text class="map-town-kind" y="${castle ? 68 : 61}">${place.kind}</text></g>`;
   }).join("");
-  const siteArtFor = sites => (sites || []).map(site => `<g class="map-settlement map-site" data-map-site="${site.id}" data-pin="0.62" data-x="${site.x}" data-y="${site.y}" transform="translate(${site.x} ${site.y})" role="button" tabindex="0" aria-label="Travel to ${site.name}"><title>${site.name}</title><circle r="52" fill="transparent"/><g class="map-settlement-icon"><path d="M-22 12V-14L0 -40L22 -14V12Z" fill="#7d7363" stroke="${ink}" stroke-width="2.6"/><path d="M0 -40V-62M-8 -54H8" stroke="${ink}" stroke-width="3"/></g><text class="map-town-name" y="44">${site.name}</text></g>`).join("");
+  // Site icons by kind. The Institute's domed tower and Hearth Home's forge (port task 3) are placeholders (R1).
+  const SITE_ICONS = {
+    Church: () => `<path d="M-22 12V-14L0 -40L22 -14V12Z" fill="#7d7363" stroke="${ink}" stroke-width="2.6"/><path d="M0 -40V-62M-8 -54H8" stroke="${ink}" stroke-width="3"/>`,
+    Institute: () => `<path d="M-30 12V-8H-14V-30H14V-8H30V12Z" fill="#8a8578" stroke="${ink}" stroke-width="2.6"/><path d="M-14 -30Q0 -56 14 -30Z" fill="#6f7f8e" stroke="${ink}" stroke-width="2.6"/><path d="M0 -50V-64" stroke="${ink}" stroke-width="2.6"/><path d="M-4 12V-2H4V12" fill="none" stroke="${ink}" stroke-width="2"/>`,
+    Forge: () => `<path d="M-26 12V-12H8V12Z" fill="#6e6458" stroke="${ink}" stroke-width="2.6"/><path d="M8 12V-40H20V12" fill="#5c544a" stroke="${ink}" stroke-width="2.6"/><path d="M14 -42Q6 -52 14 -60Q22 -52 14 -42Z" fill="#c8642a" stroke="${ink}" stroke-width="1.8"/><path d="M-20 -12V-22H0V-12" fill="none" stroke="${ink}" stroke-width="2.2"/><path d="M-16 4H-4" stroke="#c8642a" stroke-width="3"/>`,
+  };
+  const siteArtFor = sites => (sites || []).map(site => `<g class="map-settlement map-site" data-map-site="${site.id}" data-pin="0.62" data-x="${site.x}" data-y="${site.y}" transform="translate(${site.x} ${site.y})" role="button" tabindex="0" aria-label="Travel to ${site.name}"><title>${site.name}</title><circle r="52" fill="transparent"/><g class="map-settlement-icon">${(SITE_ICONS[site.kind] || SITE_ICONS.Church)()}</g><text class="map-town-name" y="44">${site.name}</text></g>`).join("");
   // Region roads: a waymarker at each border crossing, pointing out of the map, lettered with
   // the region it leads to. The lettering sits on the inland side so it never leaves the map.
   const exitSide = exit => {
@@ -434,6 +440,11 @@
     $("map-magic-tower").hidden = !canTower; $("map-magic-tower").disabled = !canTower;
     $("map-magic-tower").title = canTower ? "Buy staffs, wands, spells and runes, and fit runes in " + place.name : "Magic Towers stand in castle cities";
     const church = rules.siteAt(p, region.id);
+    // Port task 3: the Institute of Magic on Mirrormere's lake and Hearth Home on Cinder Isle's volcano.
+    const atInstitute = church?.id === "institute-of-magic" && !mapLocked && !travelling && currentHp > 0 && Boolean(window.MagicTower);
+    $("map-institute").hidden = !atInstitute; $("map-institute").disabled = !atInstitute;
+    const atHearth = church?.id === "hearth-home" && !mapLocked && !travelling && currentHp > 0;
+    $("map-hearth-home").hidden = !atHearth; $("map-hearth-home").disabled = !atHearth;
     const atChurch = church?.id === "church-of-talos" && !mapLocked && !travelling && currentHp > 0;
     $("map-church").hidden = !atChurch; $("map-church").disabled = !atChurch;
     const churchUnlocked = atChurch && worldState.defeatedSiteBosses?.includes("tankina-disciple-of-talos-level-44");

@@ -1042,7 +1042,7 @@
     reactionModal.hidden = true;
     equipmentActionDamage.clear();
     updateModalState();
-    if (result.startsWith("Victory")) window.ChurchOfTalos?.onVictory(battle);
+    if (result.startsWith("Victory")) { window.ChurchOfTalos?.onVictory(battle); window.HearthHome?.onVictory(battle); }
     if (result.startsWith("Escaped")) {
       const actor = battle.actors.find(actor => actor.guildObjective);
       if (actor) window.Guild?.avoidObjective(actor.guildObjective, actor.guildRematchId);

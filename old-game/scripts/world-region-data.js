@@ -211,13 +211,18 @@
       const lake = { x: 740, y: 420, rx: 480, ry: 310 };
       const ring = Array.from({ length: 49 }, (_, index) => ({ x: lake.x + 510 * Math.cos(index * Math.PI / 24), y: lake.y + 360 * Math.sin(index * Math.PI / 24) }));
       const lakespire = { x: 1285, y: 470 };
+      // Port task 3 (the Shop Rework): the Institute of Magic on an island in the lake's middle, its bridge running
+      // west from the ring road on Lakespire's side (user decision R10). The bridge is a road over the water.
+      const island = { x: 740, y: 420, rx: 70, ry: 52 };
+      const bridge = quadratic({ x: 1250, y: 420 }, { x: 1030, y: 426 }, { x: island.x + island.rx - 6, y: 420 }, 20);
       return {
         id: "mirrormere-basin", name: "Mirrormere Basin",
         eyebrow: "MIRRORMERE BASIN · LEVEL 20–40", title: "Between <em>water and sand</em>",
         description: "A vast freshwater lake fills the basin. Reedbeds and stony bluffs give way to dry steppe and the first dunes of the southern desert.",
-        levelRange: { minimum: 20, maximum: 40 }, start: { x: 820, y: 68 }, lake,
+        levelRange: { minimum: 20, maximum: 40 }, start: { x: 820, y: 68 }, lake, island, bridges: [bridge],
         settlements: [{ id: "lakespire", name: "Lakespire", kind: "Castle city", ...lakespire }],
-        roads: [ring,
+        sites: [{ id: "institute-of-magic", name: "Institute of Magic", kind: "Institute", x: island.x, y: island.y, radius: 46 }],
+        roads: [ring, bridge,
           quadratic({ x: 820, y: -20 }, { x: 800, y: 20 }, { x: 740, y: 60 }),
           quadratic({ x: 1250, y: 420 }, { x: 1300, y: 415 }, lakespire),
           quadratic({ x: 740, y: 780 }, { x: 870, y: 900 }, { x: 850, y: 1020 })],
@@ -376,8 +381,10 @@
         levelRange: { minimum: 25, maximum: 40 }, start: { ...emberhaven },
         landShape: { type: "ellipse", x: 800, y: 500, rx: 700, ry: 445 },
         volcano: { x: 1030, y: 455, rx: 325, ry: 285 },
+        // Port task 3: Hearth Home on the volcano's south-west edge where the road ends, Ornn its boss (R14).
+        sites: [{ id: "hearth-home", name: "Hearth Home", kind: "Forge", x: 858, y: 596, radius: 38 }],
         settlements: [{ id: "emberhaven", name: "Emberhaven", kind: "Town", guildServices: ["quest", "artifacts", "great-hunts", "recruit"], ...emberhaven, boat: { regionId: "sunward-coast", settlementId: "seabridge", minutes: 540 } }],
-        roads: [join(quadratic(emberhaven, { x: 450, y: 640 }, { x: 630, y: 650 }), quadratic({ x: 630, y: 650 }, { x: 740, y: 670 }, { x: 825, y: 630 }))],
+        roads: [join(quadratic(emberhaven, { x: 450, y: 640 }, { x: 630, y: 650 }), quadratic({ x: 630, y: 650 }, { x: 740, y: 670 }, { x: 825, y: 630 }), quadratic({ x: 825, y: 630 }, { x: 845, y: 612 }, { x: 858, y: 596 }, 6))],
         river: null, exits: [],
       };
     })(),

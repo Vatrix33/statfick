@@ -767,6 +767,8 @@
             <button class="backup-button" id="map-magic-tower" type="button" hidden>Magic Tower</button>
             <button class="backup-button" id="map-guild" type="button" hidden>Adventurers Guild</button>
             <button class="backup-button" id="map-church" type="button" hidden>Church of Talos</button>
+            <button class="backup-button" id="map-institute" type="button" hidden>Institute of Magic</button>
+            <button class="backup-button" id="map-hearth-home" type="button" hidden>Hearth Home</button>
             <button class="backup-button" id="map-class-respec" type="button" hidden>Respec Classes</button>
             <button class="backup-button" id="map-stat-respec" type="button" hidden>Respec Stats</button>
             <button class="backup-button" id="map-church-store" type="button" hidden>Storm Reliquary</button>
@@ -850,6 +852,8 @@
             <button type="button" data-tower-menu="runes" aria-pressed="false">Runes</button>
             <button type="button" data-tower-menu="fitting" aria-pressed="false">Rune Fitting</button>
             <button type="button" data-tower-menu="sell" aria-pressed="false">Sell Runes</button>
+            <button type="button" data-tower-menu="clothing" aria-pressed="false" hidden>Robes &amp; Clothing</button>
+            <button type="button" data-tower-menu="reforge" aria-pressed="false" hidden>Reforge</button>
           </div>
           <div class="shop-meta"><p id="magic-tower-description"></p><p id="magic-tower-refresh"></p></div>
           <button class="shop-bulk-sell" id="magic-tower-sell-unfavorited" type="button" hidden>Sell all non-favorites</button>
@@ -946,7 +950,7 @@
     </div>
     <script>
       (async () => {
-        const files = ["settings.js", "world-region-data.js", "guild-information-engine.js", "world-engine.js", "encounter-engine.js", "guild-quest-engine.js", "shop-engine.js", "forge-engine.js", "combat-engine.js", "combat-ai.js", "app.js", "tier10-cinematics.js", "sprite-kit.js", "sprite-equipment.js", "sprite-humanoid.js", "sprite-creatures.js", "sprite-catalog.js", "forge-art.js", "boss-intros.js", "battle-scenery.js", "battle-effects.js", "battle-stage.js", "combat.js", "map-ink.js", "map-terrain.js", "map-regions.js", "map.js", "church-of-talos.js", "scene-banners.js", "shop.js", "reforge.js", "magic-tower.js", "guild.js", "companion-sheet-details.js", "companions.js", "interface.js", "music-composer.js", "music-themes.js", "music.js"].map(name => "scripts/" + name);
+        const files = ["settings.js", "world-region-data.js", "guild-information-engine.js", "world-engine.js", "encounter-engine.js", "guild-quest-engine.js", "shop-engine.js", "forge-engine.js", "combat-engine.js", "combat-ai.js", "app.js", "tier10-cinematics.js", "sprite-kit.js", "sprite-equipment.js", "sprite-humanoid.js", "sprite-creatures.js", "sprite-catalog.js", "forge-art.js", "boss-intros.js", "battle-scenery.js", "battle-effects.js", "battle-stage.js", "combat.js", "map-ink.js", "map-terrain.js", "map-regions.js", "map.js", "church-of-talos.js", "hearth-home.js", "scene-banners.js", "shop.js", "reforge.js", "magic-tower.js", "guild.js", "companion-sheet-details.js", "companions.js", "interface.js", "music-composer.js", "music-themes.js", "music.js"].map(name => "scripts/" + name);
         for (const file of files) {
           await new Promise((resolve, reject) => {
             const script = document.createElement("script");

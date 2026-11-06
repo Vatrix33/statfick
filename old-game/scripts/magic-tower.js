@@ -16,13 +16,28 @@
     runes: { title: "Runes", description: "Every rune, carved to order. Runes go to your pack until they are fitted." },
     fitting: { title: "Rune fitting", description: "Fitting costs a quarter of each rune's price. Removing a piece's runes costs three times their prices and returns them to your pack." },
     sell: { title: "Your runes", description: "The runecarvers buy runes back at half price." },
+    clothing: { title: "Robes and clothing", description: "The Institute's tailored robes, coats and garbs at 15% off, and Doctor's Orders, its healers' masterwork robe." },
+    reforge: { title: "On the anvil", description: "The Institute reforges staffs and wands: a new handle (as fine as the jewel's or gem's cut allows) or a new inscription." },
   };
+  /* Port task 3 (the Shop Rework, 2026-11-06): the same window serves the Institute of Magic on Mirrormere's
+     lake (user decisions R9–R11): its own staffs, wands and clothing at 15% off, spells at 20% off, rune fitting
+     and removal at 20% off, a staff and wand anvil, and Doctor's Orders for 30 Platinum. No runes are sold there. */
+  const VENUES = {
+    tower: { name: "MAGIC TOWER", title: "The Magic <em>Tower</em>", scene: "tower", menus: ["casters", "spells", "runes", "fitting", "sell"], factors: {} },
+    institute: { name: "INSTITUTE OF MAGIC", title: "The Institute of <em>Magic</em>", scene: "institute", menus: ["casters", "clothing", "spells", "fitting", "reforge"],
+      factors: { casters: 0.85, clothing: 0.85, spells: 0.8, fitting: 0.8, removal: 0.8 } },
+  };
+  const INSTITUTE = { id: "institute-of-magic", casters: 6, clothing: 6, spells: 12, doctorKey: "doctors-orders", doctorPrice: 30 * ShopRules.SILVER_PER_PLATINUM };
+  let venue = "tower", anvil = null;
+  const factor = key => VENUES[venue].factors[key] ?? 1;
+  const priced = (silver, key) => Math.round(silver * factor(key));
   let place = null, menu = "casters", previewId = null;
   // The rune circle: the piece in the middle, runes placed but not yet fitted, and what the left list shows.
   let centerId = null, pending = [], choosing = null;
 
   const currentPlace = () => WorldRules.settlementAt(worldState.position);
-  const towerHere = () => { const found = currentPlace(); return found?.kind === "Castle city" ? found : null; };
+  const instituteHere = () => { const site = WorldRules.siteAt(worldState.position, worldState.regionId); return site?.id === INSTITUTE.id ? site : null; };
+  const towerHere = () => { if (venue === "institute") return instituteHere(); const found = currentPlace(); return found?.kind === "Castle city" ? found : null; };
   const blocked = () => worldState.pendingEncounter || window.Combat?.active() || window.WorldMap?.isTravelling();
   const layout = () => window.ShopLayout;
 
@@ -52,19 +67,40 @@
   const ownedCount = id => inventory.filter(owned => owned === id).length;
 
   /* ---------- Buying: staffs and wands, spells, runes ---------- */
-  function stock() { return Shop.stockFor(place); }
+  function stock() { return venue === "institute" ? instituteStock() : Shop.stockFor(place); }
+  // The Institute's stock turns over with the settlements' shops (their refresh clears every location).
+  function instituteStock() {
+    Shop.normalize();
+    const locations = shopState.locations ||= {}, saved = locations[INSTITUTE.id];
+    const valid = saved && Array.isArray(saved.tower) && saved.tower.length === INSTITUTE.casters && Array.isArray(saved.clothing) && saved.clothing.length === INSTITUTE.clothing + 1 && Array.isArray(saved.spells)
+      && [...saved.tower, ...saved.clothing].every(entry => getItem(entry.id) && Number.isInteger(entry.quantity) && entry.quantity >= 0 && entry.quantity <= 1);
+    if (valid) return saved;
+    const random = () => Math.min(1 - Number.EPSILON, Math.max(0, Number(Math.random()) || 0));
+    const distinct = (count, make) => { const made = []; for (let attempt = 0; made.length < count && attempt < count * 10; attempt++) { const item = getItem(F.encode(make())); if (item && !made.some(entry => entry.id === item.id || entry.name === item.name)) made.push(item); } return made; };
+    const casters = distinct(INSTITUTE.casters, () => F.generate({ level, source: "shop", random, casterShare: 1, maker: "institute-of-magic" }));
+    const clothes = distinct(INSTITUTE.clothing, () => F.generateArmor({ level, source: "shop", random, maker: "institute-of-magic", types: F.ARMOR_IDS.filter(id => F.ARMORS[id].category === "clothing") }));
+    const doctor = getItem(F.encode(F.generateMasterwork({ key: INSTITUTE.doctorKey, level, random })));
+    const tierLevel = spell => Math.max(1, (Math.max(1, Math.trunc(Number(spell?.tier) || 1)) - 1) * 10);
+    const chosen = ShopRules.spellStock(spells.filter(spell => Shop.purchasableSpell(spell) && level >= tierLevel(spell)), INSTITUTE.spells, level, random);
+    locations[INSTITUTE.id] = { tower: casters.map(item => ({ id: item.id, quantity: 1 })), clothing: [...clothes, doctor].filter(Boolean).map(item => ({ id: item.id, quantity: 1 })), spells: chosen.filter(Boolean).map(spell => spell.id) };
+    saveCharacter();
+    return locations[INSTITUTE.id];
+  }
+  const isDoctorsOrders = item => item?.forged?.masterwork === INSTITUTE.doctorKey;
+  const itemPrice = (item, key) => isDoctorsOrders(item) ? INSTITUTE.doctorPrice : priced(item.priceSilver, key);
   function casterRow(entry) {
     const item = getItem(entry.id);
     if (!item) return "";
-    const soldOut = entry.quantity <= 0, disabled = soldOut || wallet() < item.priceSilver;
-    return layout().row({ id: item.id, art: layout().itemArt(item), name: item.name, price: ShopRules.formatPrice(item.priceSilver), className: itemRarityClass(item) + (soldOut ? " is-sold-out" : ""), previewed: item.id === previewId,
-      meta: itemRarityTag(item.rarity) + " Weapon · " + escapeHtml(item.forged.typeName) + " · Lv " + item.forged.level + (soldOut ? "" : " · One available"),
+    const key = item.category === "armor" ? "clothing" : "casters", price = itemPrice(item, key);
+    const soldOut = entry.quantity <= 0, disabled = soldOut || wallet() < price;
+    return layout().row({ id: item.id, art: layout().itemArt(item), name: item.name, price: ShopRules.formatPrice(price), className: itemRarityClass(item) + (soldOut ? " is-sold-out" : ""), previewed: item.id === previewId,
+      meta: itemRarityTag(item.rarity) + (item.category === "armor" ? " Clothing · " : " Weapon · ") + escapeHtml(item.forged.typeName || item.type) + " · Lv " + item.forged.level + (soldOut ? "" : " · One available"),
       actions: '<button type="button" data-tower-buy-caster="' + escapeHtml(item.id) + '"' + (disabled ? " disabled" : "") + ">" + (soldOut ? "Sold out" : disabled ? "Cannot afford" : "Buy") + "</button>" });
   }
   function spellRow(id) {
     const spell = getSpell(id);
     if (!spell) return "";
-    const known = knownSpells.includes(spell.id), price = Shop.spellPrice(spell), disabled = known || wallet() < price;
+    const known = knownSpells.includes(spell.id), price = priced(Shop.spellPrice(spell), "spells"), disabled = known || wallet() < price;
     return layout().row({ id: spell.id, name: spell.name, price: ShopRules.formatPrice(price), className: "spell-element-" + escapeHtml(spell.element) + (known ? " is-sold-out" : ""), previewed: spell.id === previewId,
       art: '<span class="tower-spell-glyph" aria-hidden="true">✧</span>',
       meta: escapeHtml(spellElementLabel(spell.element)) + " · " + escapeHtml(spellTierLabel(spell.tier)) + " · " + escapeHtml(spell.type),
@@ -79,19 +115,21 @@
   }
   function buyCaster(id) {
     if (blocked() || !towerHere()) return;
-    const entry = stock().tower.find(candidate => candidate.id === id), item = getItem(id);
-    if (!entry || entry.quantity <= 0 || !item || !Shop.purchasableItem(item, place)) return;
-    if (!pay(item.priceSilver)) { setStatus("You do not have enough coin for that purchase.", "error"); return; }
+    const list = menu === "clothing" ? stock().clothing : stock().tower, key = menu === "clothing" ? "clothing" : "casters";
+    const entry = list?.find(candidate => candidate.id === id), item = getItem(id);
+    if (!entry || entry.quantity <= 0 || !item || !(venue === "institute" || Shop.purchasableItem(item, place))) return;
+    const price = itemPrice(item, key);
+    if (!pay(price)) { setStatus("You do not have enough coin for that purchase.", "error"); return; }
     entry.quantity -= 1;
     inventory.push(item.id);
-    setStatus(item.name + " purchased for " + ShopRules.formatPrice(item.priceSilver) + ".", "success");
+    setStatus(item.name + " purchased for " + ShopRules.formatPrice(price) + ".", "success");
     afterChange();
   }
   function learnSpell(id) {
     if (blocked() || !towerHere()) return;
     const spell = getSpell(id);
     if (!spell || !stock().spells.includes(id) || !Shop.purchasableSpell(spell) || knownSpells.includes(id)) return;
-    const price = Shop.spellPrice(spell);
+    const price = priced(Shop.spellPrice(spell), "spells");
     if (!pay(price)) { setStatus("You do not have enough coin to learn that spell.", "error"); return; }
     knownSpells.push(spell.id);
     renderKnownSpells(); renderAvailableSpells(); renderClasses();
@@ -99,7 +137,7 @@
     afterChange();
   }
   function buyRune(runeId) {
-    if (blocked() || !towerHere() || !F.RUNES[runeId]) return;
+    if (blocked() || !towerHere() || venue !== "tower" || !F.RUNES[runeId]) return;
     const price = F.runePrice(runeId);
     if (!pay(price)) { setStatus(`${F.RUNES[runeId].name} costs ${ShopRules.formatPrice(price)}.`, "error"); return; }
     inventory.push(F.runeItemId(runeId));
@@ -110,7 +148,7 @@
   /* ---------- Selling runes ---------- */
   const isRune = item => item?.category === "rune";
   function sellRunes(entries) {
-    if (blocked() || !towerHere()) return;
+    if (blocked() || !towerHere() || venue !== "tower") return;
     const totals = layout().sellFromPack(entries, isRune);
     if (!totals.quantity) { setStatus("Those runes cannot be sold.", "error"); return; }
     setStatus("Sold " + totals.quantity + (totals.quantity === 1 ? " rune" : " runes") + " for " + ShopRules.formatPrice(totals.price) + ".", "success");
@@ -162,8 +200,8 @@
       return owned > 0 && !F.runeConflict(spec, runeId);
     });
   }
-  function fitPrice() { return placedRunes().reduce((sum, runeId) => sum + F.runeFitPrice(runeId), 0); }
-  function removalPrice(item) { return item.forged.runes.reduce((sum, runeId) => sum + F.runeRemovalPrice(runeId), 0); }
+  function fitPrice() { return priced(placedRunes().reduce((sum, runeId) => sum + F.runeFitPrice(runeId), 0), "fitting"); }
+  function removalPrice(item) { return priced(item.forged.runes.reduce((sum, runeId) => sum + F.runeRemovalPrice(runeId), 0), "removal"); }
 
   function chooseCenter(id) {
     const item = getItem(id);
@@ -301,12 +339,12 @@
 
   /* ---------- Rendering ---------- */
   function detailFor(id) {
-    if (menu === "spells") { const spell = getSpell(id); return spell ? '<p class="shop-detail-note">' + (knownSpells.includes(id) ? "Already known" : "Price " + escapeHtml(ShopRules.formatPrice(Shop.spellPrice(spell)))) + "</p>" + spellDetailMarkup(spell) : ""; }
+    if (menu === "spells") { const spell = getSpell(id); return spell ? '<p class="shop-detail-note">' + (knownSpells.includes(id) ? "Already known" : "Price " + escapeHtml(ShopRules.formatPrice(priced(Shop.spellPrice(spell), "spells")))) + "</p>" + spellDetailMarkup(spell) : ""; }
     const item = getItem(id);
     if (!item) return "";
     if (menu === "sell") { const entry = layout().sellableEntries(isRune).find(candidate => candidate.id === id); return layout().itemDetail(item, "Sells for " + escapeHtml(ShopRules.formatPrice(layout().salePrice(item))) + " each · ×" + (entry?.quantity || 0) + " in your pack"); }
     if (menu === "runes") return layout().itemDetail(item, "Price " + escapeHtml(ShopRules.formatPrice(item.priceSilver)) + (ownedCount(item.id) ? " · ×" + ownedCount(item.id) + " in your pack" : ""));
-    return layout().itemDetail(item, "Price " + escapeHtml(ShopRules.formatPrice(item.priceSilver)));
+    return layout().itemDetail(item, "Price " + escapeHtml(ShopRules.formatPrice(itemPrice(item, menu === "clothing" ? "clothing" : "casters"))));
   }
   function renderDetail() {
     detail.innerHTML = previewId ? detailFor(previewId) || '<div class="shop-empty">Hover over an entry to see it in full.</div>' : '<div class="shop-empty">Nothing here yet.</div>';
@@ -314,6 +352,7 @@
   }
   function entriesFor() {
     if (menu === "casters") return stock().tower.map(entry => ({ id: entry.id, markup: casterRow(entry) }));
+    if (menu === "clothing") return (stock().clothing || []).map(entry => ({ id: entry.id, markup: casterRow(entry) }));
     if (menu === "spells") return stock().spells.map(id => ({ id, markup: spellRow(id) }));
     if (menu === "runes") return F.RUNE_IDS.map(runeId => ({ id: F.runeItemId(runeId), markup: runeRow(runeId) }));
     return layout().sellableEntries(isRune).map(entry => ({ id: entry.id, markup: layout().sellRowFor(entry, entry.id === previewId) }));
@@ -323,19 +362,27 @@
     if (modal.hidden) return;
     const here = towerHere();
     if (!here || here.id !== place?.id) { close(); return; }
-    $("magic-tower-eyebrow").textContent = place.name.toUpperCase() + " · MAGIC TOWER";
-    window.SceneBanners?.show($("magic-tower-scene"), "tower", place, worldState.regionId);
+    const here_ = VENUES[venue];
+    $("magic-tower-eyebrow").textContent = venue === "institute" ? "MIRRORMERE LAKE · INSTITUTE OF MAGIC" : place.name.toUpperCase() + " · MAGIC TOWER";
+    $("magic-tower-title").innerHTML = here_.title;
+    window.SceneBanners?.show($("magic-tower-scene"), here_.scene, place, worldState.regionId);
     syncPurse();
-    modal.querySelectorAll("[data-tower-menu]").forEach(button => { const active = button.dataset.towerMenu === menu; button.classList.toggle("is-active", active); button.setAttribute("aria-pressed", String(active)); });
+    modal.querySelectorAll("[data-tower-menu]").forEach(button => { const active = button.dataset.towerMenu === menu; button.hidden = !here_.menus.includes(button.dataset.towerMenu); button.classList.toggle("is-active", active); button.setAttribute("aria-pressed", String(active)); });
     $("magic-tower-description").textContent = MENUS[menu].description;
     const nextRefresh = (shopState.refreshWindow + 1) * 360;
     $("magic-tower-refresh").textContent = ["casters", "spells"].includes(menu) ? "Stock refreshes at Day " + WorldRules.day(nextRefresh) + " · " + WorldRules.time(nextRefresh) : "";
     const workspace = $("magic-tower-workspace"), fitting = menu === "fitting";
-    workspace.dataset.mode = fitting ? "fitting" : menu === "sell" ? "sell" : "buy";
+    workspace.dataset.mode = fitting ? "fitting" : menu === "sell" ? "sell" : menu === "reforge" ? "reforge" : "buy";
     $("magic-tower-detail-panel").hidden = fitting;
     circle.hidden = !fitting;
     const bulk = $("magic-tower-sell-unfavorited");
     bulk.hidden = menu !== "sell";
+    if (menu === "reforge") {
+      hidePopup();
+      $("magic-tower-list-title").textContent = MENUS.reforge.title;
+      anvilHere().render();
+      return;
+    }
     if (fitting) {
       if (centerId && !inventory.includes(centerId)) { centerId = null; pending = []; choosing = null; }
       list.innerHTML = fittingList();
@@ -356,6 +403,7 @@
   }
 
   function preview(id) {
+    if (menu === "reforge") return;
     if (menu === "fitting") {
       if (choosing === "items") showPopup(id, [...list.querySelectorAll("[data-shop-entry]")].find(entry => entry.dataset.shopEntry === id));
       return;
@@ -366,17 +414,25 @@
     renderDetail();
   }
 
-  function open() {
+  // The Institute's staff and wand anvil (no discount on reforging there).
+  function anvilHere() {
+    anvil ||= window.Reforge.create({ anvil: "institute", list, stage: detail, setStatus, available: () => !modal.hidden && venue === "institute" && menu === "reforge" && !blocked() && Boolean(instituteHere()),
+      onChange: () => { window.Companions?.render(true); afterChange(); } });
+    return anvil;
+  }
+  function open(venueName = "tower") {
     if (blocked()) return;
+    venue = VENUES[venueName] ? venueName : "tower";
     place = towerHere();
     if (!place) return;
+    anvil?.reset();
     modal.hidden = false; menu = "casters"; previewId = null; centerId = null; pending = []; choosing = null;
     setStatus(""); render(); updateModalState();
     modal.querySelector(".modal-close").focus();
   }
   function close() {
     modal.hidden = true; hidePopup(); updateModalState();
-    $("map-magic-tower")?.focus();
+    (venue === "institute" ? $("map-institute") : $("map-magic-tower"))?.focus();
   }
 
   if (window.ShopLayout) ShopLayout.bindPreview(list, preview);
@@ -384,7 +440,8 @@
   modal.addEventListener("click", event => {
     const target = event.target;
     const menuButton = target.closest("[data-tower-menu]");
-    if (menuButton) { menu = menuButton.dataset.towerMenu; previewId = null; choosing = null; hidePopup(); setStatus(""); render(); return; }
+    if (menuButton) { if (!VENUES[venue].menus.includes(menuButton.dataset.towerMenu)) return; menu = menuButton.dataset.towerMenu; previewId = null; choosing = null; anvil?.reset(); hidePopup(); setStatus(""); render(); return; }
+    if (menu === "reforge") return;
     const caster = target.closest("[data-tower-buy-caster]");
     if (caster) { buyCaster(caster.dataset.towerBuyCaster); return; }
     const learn = target.closest("[data-tower-learn]");
@@ -408,7 +465,9 @@
   $("magic-tower-sell-unfavorited").addEventListener("click", sellAllNonFavorites);
   modal.querySelectorAll("[data-tower-close]").forEach(button => button.addEventListener("click", close));
   modal.addEventListener("keydown", event => { if (event.key === "Escape") { event.preventDefault(); close(); } });
-  $("map-magic-tower")?.addEventListener("click", open);
+  $("map-magic-tower")?.addEventListener("click", () => open("tower"));
+  $("map-institute")?.addEventListener("click", () => open("institute"));
 
-  window.MagicTower = { open, close, render, available: () => Boolean(towerHere()), menu: name => { if (MENUS[name]) { menu = name; previewId = null; choosing = null; render(); } } };
+  window.MagicTower = { open, close, render, available: () => Boolean(towerHere()), menu: name => { if (MENUS[name] && VENUES[venue].menus.includes(name)) { menu = name; previewId = null; choosing = null; anvil?.reset(); render(); } },
+    venue: () => venue, instituteStock, anvil: () => venue === "institute" && menu === "reforge" ? anvilHere() : null, prices: { item: itemPrice, factor } };
 })();
