@@ -122,26 +122,44 @@ public sealed class Importers
 }
 
 /// <summary>
-/// What an importer gets for one source file of a folder being packed: the file, the folder's other
-/// files (one it reads isn't packed itself, so a terrain's description can take its maps), and the
-/// pack to add entries to.
+/// What an importer gets for one source file: the file, the other files it may read (one it reads isn't
+/// packed itself, so a terrain's description can take its maps), whether the data the entries go into
+/// has a path, and the pack to add entries to. Packing a folder (<see cref="PackWriter.AddFolder(string, RecordTypes?, Importers?)"/>)
+/// the other files are the folder's, and so is the data; importing one file on its own
+/// (<see cref="PackWriter.ImportFile"/>; Docs/Editor.md, P28) they are what its <see cref="ImportSources"/> give.
 /// </summary>
 public sealed class ImportContext
 {
+    /// <summary>Where a file the importer asks for wasn't found, when packing a folder.</summary>
+    internal const string InTheFolder = "in the folder being packed";
+
+    /// <summary>Where a file the importer asks for wasn't found, when importing one file.</summary>
+    internal const string ForTheImport = "among the files the import can read";
+
     readonly PackWriter _writer;
-    readonly IReadOnlyDictionary<string, string> _files;
+    readonly Func<string, string?> _fileOf;
+    readonly string _missingWhere;
     readonly Func<string, string?> _sourceOf;
+    readonly Func<string, bool> _exists;
     readonly HashSet<string> _used;
 
-    internal ImportContext(PackWriter writer, ImporterInfo importer, string sourcePath, string ending,
-        IReadOnlyDictionary<string, string> files, IReadOnlyList<string> sources, Func<string, string?> sourceOf, HashSet<string> used)
+    /// <param name="fileOf">The file on disk for a data path, or null.</param>
+    /// <param name="missingWhere">Where a file not found was looked for, in the error.</param>
+    /// <param name="sourceOf">The name of another importer that takes a data path as its source, or null.</param>
+    /// <param name="exists">Whether the data the entries go into has a path.</param>
+    /// <param name="used">Collects the paths read besides the source (not packed themselves).</param>
+    internal ImportContext(PackWriter writer, ImporterInfo importer, string sourcePath, string sourceFile, string ending, IReadOnlyList<string> sources,
+        Func<string, string?> fileOf, string missingWhere, Func<string, string?> sourceOf, Func<string, bool> exists, HashSet<string> used)
     {
         _writer = writer;
-        _files = files;
+        _fileOf = fileOf;
+        _missingWhere = missingWhere;
         _sourceOf = sourceOf;
+        _exists = exists;
         _used = used;
         Importer = importer;
         SourcePath = sourcePath;
+        SourceFile = sourceFile;
         Ending = ending;
         Sources = sources;
     }
@@ -149,11 +167,11 @@ public sealed class ImportContext
     /// <summary>The importer this is for.</summary>
     public ImporterInfo Importer { get; }
 
-    /// <summary>The source file's path in the folder ("models/hero.glb").</summary>
+    /// <summary>The source file's data path ("models/hero.glb"): its path in the folder, or the path one file is imported as.</summary>
     public string SourcePath { get; }
 
     /// <summary>The source file on disk (a full path; for loaders that read by path).</summary>
-    public string SourceFile => _files[SourcePath];
+    public string SourceFile { get; }
 
     /// <summary>The ending that chose the importer (".glb").</summary>
     public string Ending { get; }
@@ -161,24 +179,36 @@ public sealed class ImportContext
     /// <summary>The source path without its ending ("models/hero"): the usual path of what it makes.</summary>
     public string PathWithoutEnding => SourcePath[..^Ending.Length];
 
-    /// <summary>Every file's path in the folder being packed, in ordinal order.</summary>
+    /// <summary>Every file's path in the folder being packed, in ordinal order; importing one file, only its own.</summary>
     public IReadOnlyList<string> Sources { get; }
 
     /// <summary>The source file's bytes.</summary>
     public byte[] Read() => File.ReadAllBytes(SourceFile);
 
-    /// <summary>Another file of the folder, by its path there; it isn't packed itself then.</summary>
+    /// <summary>
+    /// Whether the data the entries go into has <paramref name="path"/> (what a stylesheet's urls are checked
+    /// against): a file of the folder being packed (and, updating a pack, an entry of the pack); importing one
+    /// file, what its <see cref="ImportSources.Exists"/> says.
+    /// </summary>
+    public bool Exists(string path)
+    {
+        PackPath.Check(path);
+        return _exists(path);
+    }
+
+    /// <summary>Another file of the folder, by its data path; it isn't packed itself then.</summary>
     public byte[] ReadSource(string path) => File.ReadAllBytes(SourceFileOf(path));
 
     /// <summary>
-    /// Another file of the folder on disk (for loaders that read by path); it isn't packed itself then.
-    /// A file another importer takes as its source can't be used.
+    /// Another file of the folder on disk, by its data path (for loaders that read by path); it isn't
+    /// packed itself then. A file another importer takes as its source can't be used. Importing one file,
+    /// the files its <see cref="ImportSources.FileOf"/> gives.
     /// </summary>
     public string SourceFileOf(string path)
     {
         PackPath.Check(path);
-        if (!_files.TryGetValue(path, out var file))
-            throw new FileNotFoundException($"No '{path}' in the folder being packed", path);
+        var file = path == SourcePath ? SourceFile : _fileOf(path)
+            ?? throw new FileNotFoundException($"No '{path}' {_missingWhere}", path);
         if (path != SourcePath && _sourceOf(path) is { } other)
             throw new InvalidOperationException($"'{path}' is a source of the {other} importer, so the {Importer.Name} importer can't use it too");
         _used.Add(path);

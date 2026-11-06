@@ -24,12 +24,14 @@ public sealed class PackFile : IDisposable
     readonly PackEntry[] _entries;
     readonly Dictionary<string, PackEntry> _byPath;
     readonly Dictionary<string, PackEntry> _byHash;
+    readonly byte[] _indexHash;
 
-    PackFile(string file, SafeFileHandle handle, PackEntry[] entries)
+    PackFile(string file, SafeFileHandle handle, PackEntry[] entries, byte[] indexHash)
     {
         FilePath = file;
         _handle = handle;
         _entries = entries;
+        _indexHash = indexHash;
         _byPath = entries.ToDictionary(e => e.Path, StringComparer.Ordinal);
         _byHash = entries.DistinctBy(e => e.HashHex).ToDictionary(e => e.HashHex);
     }
@@ -40,6 +42,16 @@ public sealed class PackFile : IDisposable
     /// <summary>Its entries in path order (ordinal).</summary>
     public IReadOnlyList<PackEntry> Entries => _entries;
 
+    /// <summary>
+    /// The SHA-256 of the index's bytes, as the header gives it and <see cref="Open"/> checked it (Q9): it
+    /// changes whenever an entry is added, removed, renamed or changed, so an editor can tell whether
+    /// another program rewrote the file since it was opened (Docs/Editor.md, P23).
+    /// </summary>
+    public ReadOnlySpan<byte> IndexHash => _indexHash;
+
+    /// <summary><see cref="IndexHash"/> as lowercase hexadecimal.</summary>
+    public string IndexHashHex => Convert.ToHexStringLower(_indexHash);
+
     /// <summary>Opens and checks a pack; a damaged one or one of another format version throws a <see cref="DataFileException"/>.</summary>
     public static PackFile Open(string file)
     {
@@ -47,7 +59,8 @@ public sealed class PackFile : IDisposable
         var handle = File.OpenHandle(full, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, FileOptions.RandomAccess);
         try
         {
-            return new PackFile(full, handle, ReadIndex(full, handle));
+            var entries = ReadIndex(full, handle, out var indexHash);
+            return new PackFile(full, handle, entries, indexHash);
         }
         catch
         {
@@ -68,14 +81,18 @@ public sealed class PackFile : IDisposable
         Read(Find(path) ?? throw new FileNotFoundException($"{FilePath}: no entry '{path}'", path));
 
     /// <summary>The content of <paramref name="entry"/>, checked against its hash.</summary>
-    public byte[] Read(PackEntry entry)
+    public byte[] Read(PackEntry entry) => ReadWithStored(entry).Content;
+
+    /// <summary>The content of <paramref name="entry"/>, checked against its hash, and the stored bytes it came from.</summary>
+    internal (byte[] Content, byte[] Stored) ReadWithStored(PackEntry entry)
     {
         if (!_byPath.TryGetValue(entry.Path, out var own) || !ReferenceEquals(own, entry))
             throw new ArgumentException($"'{entry.Path}' isn't an entry of {FilePath}", nameof(entry));
-        var content = Decode(entry, ReadStored(entry));
+        var stored = ReadStored(entry);
+        var content = Decode(entry, stored);
         if (!SHA256.HashData(content).AsSpan().SequenceEqual(entry.Hash))
             throw new DataFileException(FilePath, entry.Path, "the content doesn't match its hash (damaged)");
-        return content;
+        return (content, stored);
     }
 
     /// <summary>Reads every entry; gives what is wrong with each damaged one (nothing for a sound pack).</summary>
@@ -206,7 +223,7 @@ public sealed class PackFile : IDisposable
         }
     }
 
-    static PackEntry[] ReadIndex(string file, SafeFileHandle handle)
+    static PackEntry[] ReadIndex(string file, SafeFileHandle handle, out byte[] indexHash)
     {
         var length = RandomAccess.GetLength(handle);
         if (length < PackFormat.HeaderSize)
@@ -232,7 +249,9 @@ public sealed class PackFile : IDisposable
         ReadExactly(file, null, handle, index, (long)indexOffset);
         if (!SHA256.HashData(index).AsSpan().SequenceEqual(header.Slice(PackFormat.IndexHashAt, PackFormat.HashSize)))
             throw new DataFileException(file, null, "the index doesn't match its hash (damaged)");
-        return ParseIndex(file, index, count, (long)indexOffset);
+        var entries = ParseIndex(file, index, count, (long)indexOffset);
+        indexHash = header.Slice(PackFormat.IndexHashAt, PackFormat.HashSize).ToArray();
+        return entries;
     }
 
     static PackEntry[] ParseIndex(string file, byte[] index, uint count, long indexOffset)

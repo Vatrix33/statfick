@@ -1019,9 +1019,12 @@ the records are step 2's test types).
 - **Later needs:** packs are the source of truth and the editor (M11) edits them, so once a pack holds
   both imported and editor-made entries (`audio.pak` with the port's effect patches), re-importing must
   keep the other entries: an "update" command (sources added to or replacing entries of an existing pack)
-  is needed then; no step of M9 needs it (steps 6 and 7 build their packs whole). The packer reads only the
+  is needed then; no step of M9 needs it (steps 6 and 7 build their packs whole). **Done in M11 step 2
+  (2026-11-06):** `packer update <folder> <file.pak>` (`PackWriter.Update`; "Packs for the editor" below);
+  `make-music-data.sh` and `make-ui-pack.sh` still pack whole, switching to it once an editor-made entry is
+  committed into their pack (Docs/Editor.md, P30). The packer reads only the
   engine's record types and importers; the port's own record types will need it to load the game's
-  assembly too.
+  assembly too (Docs/Editor.md, G3, kept for the port).
 
 ### The game folder, saves, settings and character files (step 4: `Engine/Statventure/Storage/`)
 
@@ -1560,6 +1563,73 @@ parsing leaves out), `UI/Css/FontFaceDescriptors.cs`, `UI/Style/Stylesheet.cs` (
   name effects by path; the game loads them and binds them as it binds stages
   (`SequenceBindings.Effect(path, effect)`, S5-2), and `Play` refuses one missing, unnamed, given twice
   or broken.
+
+### Packs for the editor (M11 step 2; `Docs/Editor.md`, "Packs for the editor")
+
+What the editor (M11) needs of packs, beside step 1 and step 3's functions; nothing of the format (version 1),
+of `PackFile.Open`'s checks, of `Application.Data`'s mounts or of the packer's other commands changed. Code in
+`Engine/Statventure/Packs/` (`PackWriter.cs`, `PackFile.cs`, `VirtualFileSystem.cs`, `Importers.cs`),
+`UI/StylesheetImporter.cs` (its urls' lookup), `Tools/Packer/Program.cs`. Tests in `Tests/Statventure.Tests/Packs/`:
+`PackRewriteTests`, `CustomMountTests`, `ImportFileTests`, `PackUpdateTests`.
+
+- **Rewriting a pack** (M11-17, P23): `PackWriter.AddFrom(pack, entry, path?)` adds an open pack's entry as it
+  is, at its own path or another (a rename): it stays a record or a file, its content is the pack's (a record's
+  binary form as stored, so an older version stays in it and a kind not known here is kept, P24), and its
+  stored bytes and whether they are compressed go with it into whatever pack the writer writes, so a pack
+  written elsewhere (Save As) keeps them too, not only the pack being replaced (whose reuse by content hash
+  still applies to every other entry; a kept entry's bytes win over it). The entry is read and checked when
+  added: a damaged one is a `DataFileException` naming the pack and entry and isn't added; the writer's rules
+  hold as for any entry, a file named `.json` included. `AddFrom(pack, include?)` adds every entry the
+  filter accepts, in path order (the ones before a failing one stay added). `Remove(path)` takes an entry out
+  (its folders are counted, so a path is free again once nothing is below it), `Contains(path)` asks, and
+  `AddRecordBinary(path, binary)` adds a record from its binary form as it is, not read. So a save is: the
+  unchanged entries added from the open pack, the edited ones added as records (the current versions), the
+  removed ones left out, then `Write` over the file. `PackWriteResult.Reused` counts the kept entries with the
+  reused ones.
+- **The index's hash** (P23): `PackFile.IndexHash` and `IndexHashHex`, the SHA-256 of the index as the header
+  gives it and `Open` checked it. It changes whenever an entry is added, removed, renamed or changed (or its
+  stored bytes move), so a save can tell whether another program rewrote the file since it was opened.
+- **A custom mount** (P38): `Mount.Custom(name, entries)` mounts what an `IMountEntries` gives (`Paths`,
+  `IsRecord(path)`, `Read(path)`: a file's bytes or a record's binary form), read as a pack's entries are, at
+  any place among the mounts (`MountKind.Custom`, `Mount.Entries`). Which paths there are and whether each is a
+  record are taken when it is mounted and on every `Reload`; the bytes when a path is read, so an edit shows at
+  once and a new, removed or renamed entry after a Reload. Mounting checks the entries with the words a pack's
+  index gets (a path outside the rule, a second entry with a path, an entry that is also another's folder, a
+  record beside the file `<path>.json`), the first in path order named. `name` stands where a pack's file
+  would: `Origin` gives it, and every error about its entries, the file system's and the loaders' through
+  `Problem`, is a `DataFileException` naming it and the entry. The engine's loaders and cross-entry checks run
+  on it unchanged (a terrain's check, `MusicLibrary.Load` over `audio.pak` with a theme edited above it).
+- **One file imported** (M11-8, P28): `PackWriter.ImportFile(file, sourcePath, sources?, types?, importers?)`
+  imports a file on disk as packing it at `sourcePath` in a folder would (the same importer, chosen by the source
+  path's ending, the same records' JSON forms and plain files, the same errors naming the file) and gives the
+  entries it made (`ImportedEntry`: path, record or file, content; a record in its binary form, which
+  `AddRecordBinary` adds). The file's own name doesn't matter. `ImportSources` stands for the folder: `FileOf` gives
+  the file on disk for a data path the importer reads besides (by default the files beside the source on disk
+  and below it, by their paths relative to the source path's folder: a terrain's images), `Exists` says which
+  data paths the entries go among (a stylesheet's urls; by default none). The importers see this through
+  `ImportContext`: `Exists(path)` is new (packing a folder, its files; updating a pack, also its entries;
+  importing one file, `ImportSources.Exists`), `Sources` is the file's own path only when importing one file,
+  and a file not found is "No '…' among the files the import can read" there. `StylesheetImporter` checks its
+  urls through `Exists` (before, the folder's files directly), with the same words ("names no file in the data
+  being packed", `Stylesheet.Compile`'s); `TerrainImporter` needed no change.
+- **Updating a pack** (`packer update <folder> <file.pak>`, `PackWriter.Update`; P30): the folder is packed as
+  `pack` packs it (importers, records' JSON forms, files), its entries added to the pack or replacing its entries
+  at their paths (a record may replace a file and back), every other entry kept with `AddFrom`, and the pack
+  written over itself. The data a stylesheet's urls are checked against is the folder's files and the pack's
+  entries, so a sheet may name an image or font the pack already has (following P28's rule; `pack` alone
+  checks against the folder). Refused, the pack left as it was: a pack that isn't there (it isn't made: `pack`
+  makes one), one `Open` refuses, a kept entry that is damaged (the folder replacing it, it isn't read), a kept
+  entry the folder's entries leave no room for (a folder of one of them, a record beside its loose file:
+  "can't be kept beside the folder's entries: …", naming the pack and entry), and any problem of the folder's.
+  Output: `<file.pak>: n entries, a added, r replaced, c compressed, k kept from the old pack`
+  (`PackUpdateResult`: `Written`, `Added`, `Replaced`).
+- **Checked by hand** (2026-11-06): the packer's `pack`, `update` (a new file, a replaced one, a stylesheet
+  naming the pack's image, again with nothing new: all five kept), `list`, a missing pack and a stylesheet naming
+  a url neither has (exit 1, the pack unchanged), and the usage text, in a scratch folder
+  (`claude-work/m11/step2-packer-smoke.sh`).
+- **Not checked:** Windows: writing over a pack the editor holds open (sharing read, write and delete; M9's
+  "Windows check", item 2a), and `ImportSources`' default lookup on a file system that ignores case (a
+  description naming `vale-height.png` would find `Vale-Height.png` there; packing the folder refuses that name).
 
 ## Status
 

@@ -983,6 +983,52 @@ or the cloud under Xvfb).
 
 Filled in as the steps are done.
 
+### Step 2: packs for the editor (engine)
+
+The engine's side in full: `Docs/Assets.md`, "How it works", "Packs for the editor" (code in
+`Engine/Statventure/Packs/`, `UI/StylesheetImporter.cs`, `Tools/Packer/Program.cs`; tests in
+`Tests/Statventure.Tests/Packs/`: `PackRewriteTests`, `CustomMountTests`, `ImportFileTests`, `PackUpdateTests`).
+What the editor's steps use:
+- **Saving (steps 11 and 7; M11-16, M11-17, P23, P24):** `new PackWriter()`, then `AddFrom(openPack, entry =>
+  unchanged)` (each unchanged entry kept as it is: stored bytes, compression, record flag, a record's binary form
+  in its own version, an unknown kind byte for byte), `AddFrom(openPack, entry, newPath)` for an unchanged entry
+  renamed, `AddRecord(path, type, value)` for an edited one (the current versions), `AddRecordBinary` or `Add`
+  for an imported one, removed ones left out; then `Write(file)` (a temporary file, flushed, renamed over it).
+  Save As is the same with the entries the user ticks, written to the new file: the kept entries keep their
+  stored bytes there too. A damaged entry can't be added (`AddFrom` reads and checks it first: a
+  `DataFileException` naming the pack and entry), so P24's "damaged ones not offered" is also what the writer
+  enforces. Before writing, open the file again and compare its `PackFile.IndexHashHex` with the one read when it
+  was opened (P23: changed by another program); after writing, open it again (the editor's open `PackFile` keeps
+  reading the replaced file on Linux).
+- **The data as the game would see it after saving (P38; steps 10, 13):** an `IMountEntries` over the session
+  (`Paths`, `IsRecord`, `Read`: a file's bytes or a record's binary form; give a fresh array each read), mounted
+  with `Mount.Custom(<the pack's file>, entries)` on top of the base's mounts; `Reload()` after an entry is added,
+  removed or renamed or turns from record to file (the paths and kinds are taken at mount and Reload; the bytes
+  at each read). Its entries are checked at mount as a pack's index is, and errors name the given name and the
+  entry, so a loader's message reads as the saved mod's would.
+- **Import (step 12; M11-8, P28):** `PackWriter.ImportFile(file, sourcePath, new ImportSources { Exists = path
+  => the data the mod sees has it }, types, importers)`, `sourcePath` being the chosen entry path with the
+  importer's ending (`models/stages/arena` + `.glb`): the importer is chosen by that ending, ordinal and in lower
+  case, so the editor picks it for a file named `Arena.GLB` itself. The entries come back with their binary forms
+  (`ImportedEntry`); the files an importer reads besides are found beside the file on disk by default
+  (`ImportSources.FileOf` to say otherwise). A record's `.json` form and loose files (`.ttf`, `.png`, …) import
+  the same way, with no importer.
+- **The packer's `update`** (P30): see `Docs/Assets.md`; the scripts that make whole packs don't use it yet.
+
+Found against this doc's design: "`Write` then keeps every unchanged entry's stored bytes (its existing reuse)"
+covers only the file being replaced (the reuse matches contents in the destination), not Save As to a new
+file; so an entry added from a pack carries its own stored bytes into whatever pack is written. The stylesheet
+importer's url check names a missing url with `Stylesheet.Compile`'s words, "names no file in the data being
+packed", also when one file is imported (`UI/Style/` isn't step 2's).
+
+Choices the design left to the step (named here, decided by the step): the names above; a kept entry read and
+checked when added, not when written; `AddRecordBinary` reads nothing of the form; the custom mount's name given
+to `Mount.Custom` and standing for every entry's origin (P38's "origin"), its paths and kinds taken at mount and
+Reload, its entries checked with a pack index's words; `ImportFile`'s defaults (files beside the source on disk
+and below it, by paths below the source path's folder; no data path exists) and its `Sources` (the file's own
+path); `update`'s refusals (a missing pack isn't made, a damaged kept entry and a clash stop it, nothing written)
+and its url check against the folder and the pack, following P28's rule ("the data the mod sees").
+
 ## Status
 
 **M11 started (2026-11-06):** the user's go; the decisions recorded (M11-1–M11-21 and the user's rule for
@@ -994,3 +1040,21 @@ dependencies. No step started; nothing implemented.
 a mod referring to another mod's entries can't be saved in M11); G1 and G6 by the manager; G4 and G5 by the
 user (the game enforces declared limits; the play-time checks also run at load, the cost measured first);
 G2 and G3 kept for the port. The fourteen steps under "Steps" are the plan; none has started.
+
+**Step 2, packs for the editor (engine): done (2026-11-06, on the worker branch `m11-step2`).** ("How it
+works", step 2; `Docs/Assets.md`, "Packs for the editor".) A pack rewritten from an open pack with entries
+changed, added, renamed and removed keeps every other entry's stored bytes, compression and record flag (an
+older record version, an unknown kind, entries stored as the writer wouldn't store them now); a subset written
+to another file (Save As) keeps them too; the index's hash exposed; the custom mount read as a pack is, below
+and above packs and folders, named by its name and the entry in every error, checked as a pack's index is,
+under the engine's loaders and the music library's cross-entry checks; one file imported equals the same file
+packed by `AddFolder` (models, terrain with its images beside it or where the caller says, a stylesheet's
+urls against the caller's paths, records' JSON forms, plain files, the errors); `packer update` adds and
+replaces, keeps the rest, checks urls against the folder and the pack, and refuses what it can't keep. 33 new
+tests (`PackRewriteTests` 9, `CustomMountTests` 13, `ImportFileTests` 7, `PackUpdateTests` 4). The full suite
+passes on the GPU and on lavapipe: 2580 tests (`main`'s 2547 and 33 new). Mutations: 68
+(`~/.cache/stat-fick-build/claude-work/m11/step2-mutations.json`, made by `make-step2-mutations.py` beside it),
+all killed; nothing written to the player's real folders.
+Nothing of P1–P38 or G1–G6 changed; no question came up that the design doesn't answer (the step's own choices
+are listed at the end of "How it works", step 2). Not checked: Windows
+(writing over a pack held open, a case-insensitive file system under `ImportSources`' default lookup).

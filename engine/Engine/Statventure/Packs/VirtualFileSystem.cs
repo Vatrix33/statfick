@@ -12,25 +12,54 @@ public enum MountKind
     Folder,
     /// <summary>A mods folder: every file directly in it whose name ends in ".pak" in any case, in the ordinal order of the names (Q8, Q30); none when the folder is missing.</summary>
     Mods,
+    /// <summary>Entries an object gives (<see cref="IMountEntries"/>), read as a pack's are: an editor's unsaved work (Docs/Editor.md, P38).</summary>
+    Custom,
+}
+
+/// <summary>
+/// The entries of a custom mount (<see cref="Mount.Custom"/>; Docs/Editor.md, "Packs for the editor", P38):
+/// paths, each a record or a file, and their bytes, given by an object (the editor's unsaved entries over
+/// the game's data), so the engine's loaders read them as they read a pack's. Which paths there are and
+/// whether each is a record is taken when the file system mounts it and on every
+/// <see cref="VirtualFileSystem.Reload"/> (Reload after adding, removing or renaming one); the bytes are
+/// read whenever a path is read, from any thread the data is read on.
+/// </summary>
+public interface IMountEntries
+{
+    /// <summary>Every path it gives, each once, under the path rule (<see cref="PackPath"/>).</summary>
+    IEnumerable<string> Paths { get; }
+
+    /// <summary>Whether the entry at <paramref name="path"/> is a record (its bytes a record's binary form, as in a pack) rather than a file.</summary>
+    bool IsRecord(string path);
+
+    /// <summary>
+    /// The entry's content: a file's bytes, or a record's binary form (any version the engine reads). The
+    /// file system gives the array to whoever reads it, so give one nothing else changes.
+    /// </summary>
+    byte[] Read(string path);
 }
 
 /// <summary>Something for a <see cref="VirtualFileSystem"/> to mount; looked at again on every Reload.</summary>
 public sealed class Mount
 {
-    Mount(MountKind kind, string path, string at)
+    Mount(MountKind kind, string path, string at, IMountEntries? entries = null)
     {
         Kind = kind;
         Path = path;
         At = at;
+        Entries = entries;
     }
 
     public MountKind Kind { get; }
 
-    /// <summary>The pack file or the folder.</summary>
+    /// <summary>The pack file or the folder; for a custom mount its name.</summary>
     public string Path { get; }
 
     /// <summary>For a folder: the path its files appear below ("" for the top).</summary>
     public string At { get; }
+
+    /// <summary>For a custom mount: what gives its entries.</summary>
+    public IMountEntries? Entries { get; }
 
     public static Mount Pack(string file) => new(MountKind.Pack, file, "");
 
@@ -44,6 +73,20 @@ public sealed class Mount
 
     public static Mount Mods(string folder) => new(MountKind.Mods, folder, "");
 
+    /// <summary>
+    /// Entries <paramref name="entries"/> gives, read as a pack's are (P38). <paramref name="name"/> stands where a
+    /// pack's file would: <see cref="VirtualFileSystem.Origin"/> gives it, and errors about its entries name it
+    /// with the entry (for an editor's unsaved work, the pack it will be saved into). Mounting checks the
+    /// entries as opening a pack checks its index: paths under the rule, each once, none also a folder of
+    /// another, no record beside the file <c>&lt;path&gt;.json</c>.
+    /// </summary>
+    public static Mount Custom(string name, IMountEntries entries)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+        ArgumentNullException.ThrowIfNull(entries);
+        return new Mount(MountKind.Custom, name, "", entries);
+    }
+
     public override string ToString() => At.Length > 0 ? $"{Kind} {Path} at {At}" : $"{Kind} {Path}";
 }
 
@@ -53,7 +96,8 @@ public sealed class Mount
 /// folder gives the union of the mounts' paths. Mods add or replace entries, never delete one.
 /// Paths follow <see cref="PackPath"/>'s rule. An entry is a file or a record: a pack flags its
 /// records (their binary form), a loose folder holds a record <c>p</c> as <c>p.json</c> in its JSON form,
-/// told by content when mounted (Q7, S3-1); records are read with <see cref="Load{T}"/>, files with
+/// told by content when mounted (Q7, S3-1), and a custom mount (<see cref="Mount.Custom"/>) gives its entries
+/// as a pack does; records are read with <see cref="Load{T}"/>, files with
 /// <see cref="ReadAllBytes"/> and <see cref="Open"/>. Reads are safe from several threads, also while
 /// <see cref="Reload"/> runs: it mounts everything afresh (packs re-read, folders rescanned, the mods
 /// folder listed again) and only then puts the new mounts in place, so a failing Reload leaves the
@@ -150,7 +194,7 @@ public sealed class VirtualFileSystem : IDisposable
     /// <summary>The content at <paramref name="path"/> as a read-only stream (read and checked whole first).</summary>
     public Stream Open(string path) => new MemoryStream(ReadAllBytes(path), writable: false);
 
-    /// <summary>The file that gives <paramref name="path"/> (a pack, or a loose file), or null when no mount has it.</summary>
+    /// <summary>The file that gives <paramref name="path"/> (a pack, or a loose file; a custom mount's name), or null when no mount has it.</summary>
     public string? Origin(string path)
     {
         PackPath.Check(path);
@@ -279,6 +323,43 @@ public sealed class VirtualFileSystem : IDisposable
         public override DataFileException Problem(string path, string problem, Exception? inner) => new(entries[path].File, null, problem, inner);
     }
 
+    /// <summary>A custom mount (P38): its paths and kinds taken now, read as a pack's entries are, named by the mount's name and the entry.</summary>
+    sealed class CustomSource : Source
+    {
+        readonly string _name;
+        readonly IMountEntries _entries;
+        readonly Dictionary<string, bool> _records = new(StringComparer.Ordinal);
+
+        public CustomSource(string name, IMountEntries entries)
+        {
+            _name = name;
+            _entries = entries;
+            // As opening a pack checks its index (PackFile.ParseIndex).
+            foreach (var path in entries.Paths)
+            {
+                if (PackPath.Problem(path) is { } problem)
+                    throw new DataFileException(name, path, $"a path outside the rule: {problem}");
+                if (!_records.TryAdd(path, entries.IsRecord(path)))
+                    throw new DataFileException(name, path, "a second entry with this path");
+            }
+            foreach (var (path, record) in _records.OrderBy(e => e.Key, StringComparer.Ordinal))
+            {
+                for (var slash = path.IndexOf('/'); slash >= 0; slash = path.IndexOf('/', slash + 1))
+                    if (_records.ContainsKey(path[..slash]))
+                        throw new DataFileException(name, path[..slash], $"an entry and also the folder of '{path}'");
+                if (record && _records.TryGetValue(LooseRecord.Twin(path, record: true)!, out var twin) && !twin)
+                    throw new DataFileException(name, path, $"a record beside the file '{LooseRecord.Twin(path, record: true)}', which is its loose form");
+            }
+        }
+
+        public override IEnumerable<string> Paths => _records.Keys;
+        public override bool Json => false;
+        public override bool IsRecord(string path) => _records[path];
+        public override byte[] Read(string path) => _entries.Read(path);
+        public override string Origin(string path) => _name;
+        public override DataFileException Problem(string path, string problem, Exception? inner) => new(_name, path, problem, inner);
+    }
+
     /// <summary>The mounts as one lookup: each path's topmost source, and every path in order.</summary>
     sealed class Table(List<Source> sources, Dictionary<string, Source> byPath) : IDisposable
     {
@@ -322,6 +403,9 @@ public sealed class VirtualFileSystem : IDisposable
                         Log.Info(LogCategory, $"mod {mod}");
                         into.Add(new PackSource(PackFile.Open(mod)));
                     }
+                    break;
+                case MountKind.Custom:
+                    into.Add(new CustomSource(mount.Path, mount.Entries!));
                     break;
             }
         }

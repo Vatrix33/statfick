@@ -12,7 +12,9 @@ namespace Statventure.UI;
 /// (<c>ui/styles/game.css</c> → <c>ui/styles/game</c>) holding its compiled form
 /// (<see cref="Stylesheet.Compile"/>), checked: a rule the engine can't parse, an at-rule it doesn't
 /// handle, an unknown property, a value it can't parse, a @font-face it can't honour, or a url() that
-/// isn't a data: url or a file of the folder by its data path stops the packing, every problem named.
+/// isn't a data: url or a path the data has (<see cref="ImportContext.Exists"/>: a file of the folder; updating
+/// a pack, also its entries; importing one file, what the caller says, Docs/Editor.md P28) stops the packing,
+/// every problem named.
 /// Rules Chromium drops too (other browsers' selectors) are dropped and logged. Fonts and images are files
 /// the packer packs as they are (<c>ui/fonts/…</c>, <c>ui/images/…</c>): this importer takes only
 /// <c>.css</c> (step 8's terrain importer reads its PNG maps as its own sources).
@@ -37,8 +39,7 @@ public sealed class StylesheetImporter : IImporter
         {
             throw new InvalidDataException("the stylesheet isn't UTF-8 text");
         }
-        var sources = context.Sources.ToHashSet(StringComparer.Ordinal);
-        var compiled = Stylesheet.Compile(text, sources.Contains);
+        var compiled = Stylesheet.Compile(text, context.Exists);
         if (compiled.Problems.Count > 0)
         {
             var shown = compiled.Problems.Take(ProblemsShown).ToList();

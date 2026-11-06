@@ -1,5 +1,5 @@
-// The packer (Docs/Assets.md, "Packs" and "The packer"): the engine's pack functions from the command
-// line. Record types and importers are the engine's own.
+// The packer (Docs/Assets.md, "Packs" and "The packer"; update: "Packs for the editor"): the engine's pack
+// functions from the command line. Record types and importers are the engine's own.
 using Statventure.Packs;
 
 const string Usage = """
@@ -8,6 +8,9 @@ const string Usage = """
                                            ending of their names) through it, <path>.json files holding a record's JSON
                                            form as the record <path>, the rest as they are; an existing <file.pak>'s
                                            unchanged entries keep their stored bytes
+      packer update <folder> <file.pak>    the existing <file.pak> with <folder>'s entries (packed as pack packs them)
+                                           added or replacing its entries at their paths; its other entries kept as
+                                           they are, stored bytes and all; a stylesheet's urls may name its entries
       packer list <file.pak>               the entries: path, record or file, content and stored length, raw or
                                            compressed, SHA-256
       packer verify <file.pak>             reads every entry and checks its hash; exit code 1 when one is damaged
@@ -30,6 +33,16 @@ try
             foreach (var damaged in result.DamagedInOld)
                 Console.Error.WriteLine($"Not reusing the old pack's damaged entry '{damaged}'");
             Console.WriteLine($"{Path.GetFullPath(pak)}: {result.Entries} entries, {result.Compressed} compressed, {result.Reused} kept from the old pack");
+            return 0;
+        }
+        case ["update", var folder, var pak]:
+        {
+            var update = PackWriter.Update(pak, folder);
+            var result = update.Written;
+            foreach (var damaged in result.DamagedInOld)
+                Console.Error.WriteLine($"Not reusing the old pack's damaged entry '{damaged}'");
+            Console.WriteLine($"{Path.GetFullPath(pak)}: {result.Entries} entries, {update.Added.Count} added, {update.Replaced.Count} replaced, " +
+                $"{result.Compressed} compressed, {result.Reused} kept from the old pack");
             return 0;
         }
         case ["list", var pak]:
