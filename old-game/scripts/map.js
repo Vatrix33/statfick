@@ -14,7 +14,7 @@
     ["map-speed-fast", "⇧3", ["shift+3"]], ["map-speed-double", "⇧4", ["shift+4"]],
     ["map-pause", "Space", [" "]], ["map-cancel", "X", ["x"]],
     ["map-force-encounter", "E", ["e"]], ["map-camp", "C", ["c"]], ["map-rest", "R", ["r"]],
-    ["map-blacksmith", "B", ["b"]], ["map-item-shop", "G", ["g"]],
+    ["map-blacksmith", "B", ["b"]], ["map-item-shop", "G", ["g"]], ["map-tailor", "U", ["u"]],
     ["map-guild", "A", ["a"]], ["map-church", "T", ["t"]], ["map-magic-tower", "W", ["w"]],
     ["map-class-respec", "L", ["l"]], ["map-stat-respec", "P", ["p"]],
     ["map-boat", "V", ["v"]], ["map-search", "F", ["f"]], ["map-track-quarry", "Q", ["q"]], ["map-quests", "J", ["j"]],
@@ -419,7 +419,8 @@
     $("map-rest").disabled = !canRest;
     $("map-rest").textContent = 'Rest · 10 hours · ' + ShopRules.formatPrice(restPrice);
     $("map-rest").title = place ? 'Rest in ' + place.name + ' and fully restore HP and Mana' : 'Reach a settlement to rest';
-    [$("map-blacksmith"), $("map-item-shop")].forEach(button => { button.hidden = !place || mapLocked || travelling; button.disabled = !place || mapLocked || travelling; });
+    [$("map-blacksmith"), $("map-item-shop"), $("map-tailor")].forEach(button => { button.hidden = !place || mapLocked || travelling; button.disabled = !place || mapLocked || travelling; });
+    $("map-tailor").title = place ? 'Buy, sell and reforge clothing at the tailor in ' + place.name : 'Reach a settlement to shop';
     $("map-blacksmith").title = place ? 'Browse weapons and armor at the blacksmith in ' + place.name : 'Reach a settlement to shop';
     $("map-item-shop").title = place ? 'Browse the general store in ' + place.name : 'Reach a settlement to shop';
     const supplies = inventory.filter(id => id === "consumable-camping-supplies").length;

@@ -356,15 +356,17 @@
   const rarityCap = maxRarity => maxRarity && RARITIES.includes(maxRarity) ? Math.min(4, RARITIES.indexOf(maxRarity)) : 4;
   function generate({ type = null, level = 1, source = "shop", random = Math.random, runeFillChance = 0, casterShare = 0.25, allowVampiric = false, maxRarity = null, rarity = null, element = null, maker = null } = {}) {
     const shop = source === "shop", fixed = RARITIES.indexOf(rarity), cap = fixed >= 0 ? fixed : rarityCap(maxRarity);
-    const candidates = REGULAR_IDS.filter(id => !shop || !WEAPONS[id].onlyMaker);
-    const typeId = WEAPONS[type] && (!shop || !WEAPONS[type].onlyMaker) ? type : random() < casterShare ? pick(CASTER_IDS, random) : pick(candidates, random);
+    // A maker that forges no staff or wand jewel or gem (Hearthforge) gets a regular weapon whose main part it makes.
+    const regularMaker = maker && MAKERS[maker] && !casterMakers("jewel", true).includes(maker) && !casterMakers("gem", true).includes(maker) ? maker : null;
+    const candidates = REGULAR_IDS.filter(id => (!shop || !WEAPONS[id].onlyMaker) && (!regularMaker || makerFits(regularMaker, WEAPONS[id].parts[0])));
+    const typeId = WEAPONS[type] && (!shop || !WEAPONS[type].onlyMaker) ? type : !regularMaker && random() < casterShare ? pick(CASTER_IDS, random) : pick(candidates, random);
     if (WEAPONS[typeId].caster) return generateCaster(typeId, level, random, allowVampiric, cap, { element, rarityIndex: fixed >= 0 ? fixed : null, maker });
     const weapon = WEAPONS[typeId], value = clampLevel(level);
-    const onlyMaker = weapon.onlyMaker || null;
+    const onlyMaker = weapon.onlyMaker || regularMaker;
     const main = pickPart(weapon.parts[0], value, cap, { allowOutlaw: !shop, onlyMaker, rarityIndex: fixed >= 0 ? fixed : null }, random);
     const mainIndex = RARITIES.indexOf(MATERIALS[main.material].rarity);
     const outlawMain = main.maker === "outlaw";
-    const secondary = shape => shape ? pickPart(shape, value, mainIndex, { allowOutlaw: outlawMain, onlyMaker, preferMaker: main.maker }, random) : null;
+    const secondary = shape => shape ? pickPart(shape, value, mainIndex, { allowOutlaw: outlawMain, onlyMaker: weapon.onlyMaker || null, preferMaker: main.maker }, random) : null;
     const parts = [main, secondary(weapon.parts[1]), secondary(weapon.parts[2])];
     const slots = rollSlots(value, random);
     const runes = [];
@@ -925,11 +927,14 @@
   }
   // Generates an armor spec. source "shop" never makes Outlaw armor or fills rune slots.
   // A fixed "rarity" (from a "~rare" placeholder) sets the main part's rarity, as for weapons.
-  function generateArmor({ type = null, level = 1, source = "shop", random = Math.random, runeFillChance = 0, allowVampiric = false, maxRarity = null, rarity = null } = {}) {
+  function generateArmor({ type = null, level = 1, source = "shop", random = Math.random, runeFillChance = 0, allowVampiric = false, maxRarity = null, rarity = null, maker = null, types = null } = {}) {
     const shop = source === "shop", fixed = RARITIES.indexOf(rarity);
-    const typeId = ARMORS[type] ? type : pick(ARMOR_IDS, random);
+    // A fixed main maker (port task 3: Hearth Home's Hearthforge armor, the Institute's clothing) picks among the types it makes.
+    const mainMaker = maker && ARMOR_MAKERS[maker] ? maker : null;
+    const pool = (Array.isArray(types) && types.length ? types.filter(id => ARMORS[id]) : ARMOR_IDS).filter(id => !mainMaker || ARMOR_MAKERS[mainMaker].categories.includes(ARMORS[id].category));
+    const typeId = ARMORS[type] ? type : pick(pool.length ? pool : ARMOR_IDS, random);
     const armor = ARMORS[typeId], value = clampLevel(level);
-    const main = pickArmorPart(armor.parts[0], armor.category, value, fixed >= 0 ? fixed : rarityCap(maxRarity), { allowOutlaw: !shop, allowVampiric, rarityIndex: fixed >= 0 ? fixed : null }, random);
+    const main = pickArmorPart(armor.parts[0], armor.category, value, fixed >= 0 ? fixed : rarityCap(maxRarity), { allowOutlaw: !shop, allowVampiric: allowVampiric || mainMaker === "vampiric", onlyMaker: mainMaker, rarityIndex: fixed >= 0 ? fixed : null }, random);
     const mainIndex = RARITIES.indexOf(ARMOR_MATERIALS[main.material].rarity);
     const secondary = role => pickArmorPart(role, armor.category, value, mainIndex, { allowOutlaw: main.maker === "outlaw", allowVampiric: main.maker === "vampiric", preferMaker: main.maker }, random);
     const spec = { type: typeId, level: value, parts: [main, secondary(armor.parts[1]), secondary(armor.parts[2])], slots: rollArmorSlots(value, random), runes: [] };
@@ -1204,6 +1209,14 @@
     },
     // The Stormhide Cuirass (user design, 2026-10-11): leather armor, its main part always the
     // Church of Talos's, sold only in the Church's Storm Reliquary.
+    // Doctor's Orders (port task 3, the user's design, 2026-11-06): a white Institute robe sold only at the
+    // Institute of Magic, forged at the buyer's level. Every heal the wearer gives (themselves included) is half
+    // again as strong; every heal they receive in battle a quarter stronger. Its white look is placeholder art.
+    "doctors-orders": {
+      name: "Doctor's Orders", type: "robe", parts: ["weave", "lining", "trim"], mainMaker: "institute-of-magic", soldAt: "Institute of Magic", placeholderArt: true, color: "#ece8de",
+      effects: [{ kind: "healing-given-percent", amount: 50 }, { kind: "healing-received-percent", amount: 25 }],
+      story: "The Institute's healers wear it white so that every stain shows. Its wards were stitched by physicians who refused to lose a patient.",
+    },
     "stormhide-cuirass": {
       name: "Stormhide Cuirass", type: "leather-armor", parts: ["shell", "lining", "fittings"], mainMaker: "church-of-talos", soldAt: "Storm Reliquary · Church of Talos",
       effects: [{ kind: "evasion-flat", amount: 10 }, { kind: "incoming-spell-damage-percent", element: "lightning", amount: -50 }],
@@ -1676,12 +1689,109 @@
     return character;
   }
 
+  /* ---------- Reforging (port task 3, the Shop Rework, 2026-11-06) ----------
+     A reforge keeps a piece's type, level, main part, rune slots, runes and masterwork, and swaps its two
+     other parts for any shop-made part of that shape (R2: never Outlaw, never Vampiric), never above the
+     main part's rarity. Masterworks (Hearth Home only) may take Mythilium (R5); a staff's or wand's handle
+     is capped by its jewel's or gem's tier, its inscription takes any ink (R6). Each changed part costs
+     three times its rarity's part price; an inscription is priced at the handle's rarity (R3, R16).
+     The anvils: "smith" (weapons, heavy and light armor, shields), "tailor" (clothing), "institute"
+     (staffs and wands) and "hearth" (the smith's pieces plus masterworks of every kind). The user's
+     answers: engine/Docs/Engine-Plan.md, "Decisions for task 3, Shop Rework". */
+  const REFORGE_COST_TIMES = 3;
+  const TIER_HANDLE_CAP = [null, 1, 3, 4]; // Lesser: uncommon, Regular: epic, Greater: legendary
+  const REFORGE_ANVILS = ["smith", "tailor", "institute", "hearth"];
+  const specRarityIndex = (spec, part) => {
+    if (!part) return -1;
+    if (WEAPONS[spec.type]?.caster) return part.shape === "inscription" ? -1 : RARITIES.indexOf(CASTER_HANDLES[part.material]?.rarity);
+    return RARITIES.indexOf(isArmorSpec(spec) ? ARMOR_MATERIALS[part.material]?.rarity : MATERIALS[part.material]?.rarity);
+  };
+  // What a piece is for reforging: "weapon", "armor" (heavy, light, shield), "clothing", "caster", or null.
+  function reforgeKind(spec) {
+    if (!spec?.parts) return null;
+    if (isArmorSpec(spec)) return ARMORS[spec.type].category === "clothing" ? "clothing" : "armor";
+    if (!WEAPONS[spec.type]) return null;
+    return WEAPONS[spec.type].caster ? "caster" : "weapon";
+  }
+  // Why this anvil can't take the piece ("" when it can).
+  function reforgeReason(spec, anvil) {
+    const kind = reforgeKind(spec);
+    if (!kind) return "This piece can't be reforged.";
+    if (!REFORGE_ANVILS.includes(anvil)) return "No anvil here.";
+    if (spec.masterwork) return anvil === "hearth" ? "" : "Only Hearth Home reforges masterworks.";
+    if (kind === "weapon" && WEAPONS[spec.type].onlyMaker) return "No smith makes parts for this weapon.";
+    if (anvil === "tailor") return kind === "clothing" ? "" : "The Tailor reforges clothing only.";
+    if (anvil === "institute") return kind === "caster" ? "" : "The Institute reforges staffs and wands only.";
+    return ["weapon", "armor"].includes(kind) ? "" : kind === "clothing" ? "Clothing is reforged at a Tailor." : "Staffs and wands are reforged at the Institute of Magic.";
+  }
+  // The parts that may take the place of part 1 or 2 (the current part among them).
+  function reforgeOptions(spec, index) {
+    const kind = reforgeKind(spec), current = spec?.parts?.[index];
+    if (!kind || index < 1 || index > 2 || !current) return [];
+    const masterwork = Boolean(spec.masterwork);
+    const unique = list => list.filter((option, at) => list.findIndex(other => other.maker === option.maker && other.material === option.material) === at);
+    if (kind === "caster") {
+      if (index === 2) return Object.keys(INKS).flatMap(ink => casterMakers("inscription", false).map(maker => ({ shape: "inscription", maker, material: ink })));
+      const cap = TIER_HANDLE_CAP[spec.parts[0].tier] ?? 1;
+      const handles = Object.values(CASTER_HANDLES).filter(handle => handle.natural ? RARITIES.indexOf(handle.rarity) <= cap : masterwork);
+      return unique(handles.flatMap(handle => handle.makers.filter(maker => CASTER_MAKERS[maker]?.parts.includes("handle") && !CASTER_MAKERS[maker].restricted).map(maker => ({ shape: current.shape, maker, material: handle.id }))));
+    }
+    const mainIndex = specRarityIndex(spec, spec.parts[0]);
+    if (kind === "weapon") {
+      const options = [];
+      for (let rarity = 0; rarity <= Math.min(4, mainIndex); rarity++) options.push(...partOptions(current.shape, rarity, { allowOutlaw: false }));
+      if (masterwork) options.push(...masterworkMakers(current.shape).map(maker => ({ maker, material: "mythilium" })));
+      return unique(options).map(option => ({ shape: current.shape, ...option }));
+    }
+    const category = ARMORS[spec.type].category, options = [];
+    for (let rarity = 0; rarity <= Math.min(4, mainIndex); rarity++) options.push(...armorPartOptions(current.shape, category, rarity, { allowOutlaw: false, allowVampiric: false }));
+    if (masterwork) options.push(...armorMasterworkMakers(category).map(maker => ({ maker, material: "mythilium" })));
+    return unique(options).map(option => ({ shape: current.shape, ...option }));
+  }
+  const samePart = (a, b) => Boolean(a && b) && a.maker === b.maker && a.material === b.material;
+  // Silver for changing the parts to these (unchanged parts are free).
+  function reforgeCost(spec, parts) {
+    let total = 0;
+    const caster = WEAPONS[spec.type]?.caster;
+    for (const index of [1, 2]) {
+      const part = parts[index];
+      if (!part || samePart(part, spec.parts[index])) continue;
+      const rarity = caster && index === 2 ? specRarityIndex(spec, parts[1] || spec.parts[1]) : specRarityIndex(spec, part);
+      total += REFORGE_COST_TIMES * RARITY_PRICE[RARITIES[Math.max(0, rarity)]];
+    }
+    return total;
+  }
+  // The reforged spec, or null when a part isn't allowed.
+  function reforgedSpec(spec, parts) {
+    if (!reforgeKind(spec) || !Array.isArray(parts)) return null;
+    const next = spec.parts.map((part, index) => index === 0 || !part ? part : parts[index] || part);
+    for (const index of [1, 2]) {
+      if (!next[index] || samePart(next[index], spec.parts[index])) continue;
+      if (!reforgeOptions(spec, index).some(option => samePart(option, next[index]))) return null;
+      next[index] = { ...next[index], shape: spec.parts[index].shape };
+    }
+    return normalizeSpec({ ...spec, parts: next });
+  }
+  // Reforges the piece with this id at this anvil: { id, cost } or { reason }.
+  function reforge(id, parts, anvil) {
+    const spec = decode(id);
+    if (!spec) return { reason: "This piece can't be reforged." };
+    const reason = reforgeReason(spec, anvil);
+    if (reason) return { reason };
+    const next = reforgedSpec(spec, parts);
+    if (!next) return { reason: "That part can't go on this piece." };
+    const newId = encode(next);
+    if (!decode(newId)) return { reason: "That part can't go on this piece." };
+    return { id: newId, cost: reforgeCost(spec, next.parts), changed: newId !== encode(spec) };
+  }
+
   const api = {
     RARITIES, CRIT, MAKERS, MAKER_IDS, CASTER_MAKERS, CASTER_HANDLES, STONES, INKS, TIERS, CASTER_IDS, REGULAR_IDS, tierOdds, casterEffects, spellEffectText, describePart, MATERIALS, SHAPES, WEAPONS, WEAPON_IDS, RUNES, RUNE_IDS, ELEMENT_PREFIX, ELEMENT_NAMES, STAT_SHORT, STAT_NAMES, ELEMENT_SHARE,
     levelCurve, rarityOdds, rollSlots, partOptions, generate, encode, decode, isForgedId, totals, stats, price, name, statPrefix, description, effectText, runeText,
     MATCHING_BONUS, matchingMaker, matchingBonusText, fixedRunes, allRunes,
     item, buildItem, MASTERWORKS, MASTERWORK_IDS, MASTERWORK_PREFIXES, MASTERWORK_MYTHILIUM_CHANCE, generateMasterwork, fixedMasterworkId, masterworkTemplateKey, masterworkTemplateId, NATURAL_WEAPONS, naturalWeapon, isTemplateId, templateSpec, LEGACY_ITEMS, migrateLegacyItems, runeConflict, withRune, withoutRune, runePrice, runeRemovalPrice, runeFitPrice, runeItemId, runeOfItem, RUNE_FIT_SHARE, RUNE_REMOVAL_MULTIPLIER, armCharacter,
     ARMORS, ARMOR_IDS, ARMOR_PARTS, ARMOR_MAKERS, ARMOR_MATERIALS, ARMOR_RUNE_RESIST, ARMOR_ELEMENT_PREFIX, ALL_ELEMENTS, generateArmor, armorTotals, armorEffectText, armorRuneText, isArmorSpec,
+    RARITY_PRICE, REFORGE_COST_TIMES, TIER_HANDLE_CAP, REFORGE_ANVILS, reforgeKind, reforgeReason, reforgeOptions, reforgeCost, reforgedSpec, reforge,
   };
   root.ForgeRules = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
