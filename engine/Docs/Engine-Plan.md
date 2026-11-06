@@ -72,7 +72,7 @@ none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine w
 task 3 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Shop Rework".
 **Beside the engine, old game only (2026-11-06): port task 4, Artifact Rework, is done in the old game**, as tasks 1–3
 were (decisions A1–A32 in "Decisions for task 4, Artifact Rework" below; built on the cloud branch
-`claude/fervent-carson-f5ol9s` and offered as a pull request for the user to merge). The port doesn't build it again; only
+`claude/fervent-carson-f5ol9s` and offered as pull request #10, with task 6, for the user to merge). The port doesn't build it again; only
 its placeholder looks are remade (`Docs/Port-Tasks/README.md`). It touches only `../old-game/` (its scripts, artifact
 data and test client) and these docs, never the engine (the engine's tests read none of what changed), so
 `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count task 4 as the engine's
@@ -80,7 +80,7 @@ current task. How it's built, the approved list, its checks and their results: `
 Rework".
 **Beside the engine, old game only (2026-11-06): port task 6, New Areas, is done in the old game**, as tasks 1–4 were
 (decisions N1–N10 in "Decisions for task 6, New Areas" below; the Abyssal Rift in Gloamfen Marsh and its six enemies;
-built on the cloud branch `claude/fervent-carson-f5ol9s` and offered in the same pull request as task 4, N8). The port
+built on the cloud branch `claude/fervent-carson-f5ol9s` and offered in the same pull request as task 4, #10, N8). The port
 doesn't build it again; only its placeholder looks are remade (`Docs/Port-Tasks/README.md`). It touches only
 `../old-game/` (its scripts, enemy files and test client) and these docs, never the engine (the engine's tests read
 none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count
@@ -375,9 +375,10 @@ the design and the tests):
   transforms map to the Blender remakes; the grabbing cursor's design; the level of detail of the item
   models. **First read `Docs/Port-Tasks/`:** the user's tasks to add during the port, in their number order
   (decided 2026-11-05); ask whether they come after the faithful port or while porting (left open by the user). Tasks 1
-  (Masterwork Elementals) and 2 (Guild Rework) are already done in the old game, so the faithful port brings them over:
-  don't build them again, only remake their placeholder art (the README's list: task 1's six masterwork looks, task 2's
-  two guild interiors).
+  (Masterwork Elementals), 2 (Guild Rework), 3 (Shop Rework), 4 (Artifact Rework) and 6 (New Areas) are already done in
+  the old game, so the faithful port brings them over: don't build them again, only remake their placeholder art (the
+  README's list: task 1's six masterwork looks, task 2's two guild interiors, task 3's scenes, icons and looks, task 4's
+  artifact looks, task 6's Rift enemies and map painting). Task 5 is not built yet.
 
 ## Folders
 
@@ -766,6 +767,17 @@ while porting (the user will answer later).
   design answers are G1–G34 just below; where each rule lives is in `../old-game/Docs/Notes.md`, "Guild Rework";
   `Docs/Port-Tasks/README.md` lists the placeholder art and what the remake keeps. The port brings task 2 over with the
   rest of the game and doesn't redo it from the task file; its only port work is that art.
+- **Task 3 is done in the old game too (2026-11-06, the user: "same rules apply"; R1):** old game only, placeholder art
+  (the Tailor's, Institute's and Hearth Home's scenes, their map icons, Doctor's Orders' look, the reforge anvil, the
+  traps). Decisions R1–R29 below; `../old-game/Docs/Notes.md`, "Shop Rework". Merged through a pull request.
+- **Task 4 is done in the old game too (2026-11-06; A1):** old game only, placeholder looks for every artifact and the
+  four masterwork artifacts. Decisions A1–A32 below; `../old-game/Docs/Notes.md`, "Artifact Rework". In pull request
+  #10 with task 6.
+- **Task 6 is done in the old game too (2026-11-06; N4):** old game only, placeholder looks for the six Abyssal Rift
+  enemies and the Rift on Gloamfen's map. Decisions N1–N10 below; `../old-game/Docs/Notes.md`, "New Areas". In pull
+  request #10 with task 4. **Task 5 is not built** (it comes before task 6 in the order, but nothing in task 6 needs it).
+  For all five done tasks the port brings them over with the rest of the game, doesn't redo them from the task files,
+  and only remakes the art `Docs/Port-Tasks/README.md` lists.
 
 **Decisions for task 2, Guild Rework (2026-11-06, a cloud session; the user asked for task 2 that day; the task is
 `Docs/Port-Tasks/2_Guild.txt`).** Old game only: it doesn't touch the engine, and engine work continues beside it (the

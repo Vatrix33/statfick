@@ -98,7 +98,7 @@ A1 kept its art placeholder), and so was task 6 (the user asked for it the same 
   game's checks for it, `old-game/test-client/tests/shop-rework-browser.js`, are the reference the ported rules are
   tested against. Still to do in the port: only the art (below). The task's `.txt` stays as the user wrote it. It
   touched only `old-game/` and the docs, never the engine (the user, "same rules apply" as task 2).
-- Task 4, Artifact Rework (2026-11-06, a cloud session, offered as a pull request): the old artifact set replaced by 80
+- Task 4, Artifact Rework (2026-11-06, a cloud session, offered as pull request #10 with task 6): the old artifact set replaced by 80
   new ones (32 uncommon, 24 rare, 16 epic, 8 legendary, each with its own effect), the four masterwork artifacts on a
   level ramp (fixed at the level obtained; about uncommon strength at Level 1, legendary at 80, rising beyond), rare
   enemy drops, old saves cleaned, and placeholder looks for every artifact. The user's 32 design answers are in
@@ -106,7 +106,7 @@ A1 kept its art placeholder), and so was task 6 (the user asked for it the same 
   `../../../old-game/Docs/Notes.md`, "Artifact Rework"; the old game's checks,
   `old-game/test-client/tests/artifact-rework-browser.js`, are the reference the ported rules are tested against. Still
   to do in the port: only the looks (below). Old game only, as tasks 2 and 3.
-- Task 6, New Areas (2026-11-06, a cloud session, offered in the same pull request as task 4): the Abyssal Rift, a new
+- Task 6, New Areas (2026-11-06, a cloud session, offered in the same pull request as task 4, #10): the Abyssal Rift, a new
   Level 45–55 zone in Gloamfen Marsh's south-west, with three corrupted marsh creatures (Corrupted Bog Troll, Mire
   Stalker with Dark strikes, Mossback Lamia with Dark spells; all demon race) and three demons (Abyssal Imp, Rift
   Fiend, Abyss Witch), nine encounter groups, guild Hunts there, and the marsh's range raised to 35–55. The user's
