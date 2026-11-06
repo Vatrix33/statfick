@@ -161,7 +161,8 @@ async function runNygheirChecks() {
   Combat.restore(state);
   Combat.onSheetChange();
   await wait(60);
-  assert(currentHp === Math.min(wearerMaximum, wearerLow + Math.max(1, Math.floor(wearerMaximum * .05))), `Second Wind heals at the start of a low-HP turn (actual ${currentHp}, start ${wearerLow}, max ${wearerMaximum})`);
+  // A plain Second Wind is a Level 80 copy since the Artifact Rework (port task 4, A11): 9%.
+  assert(currentHp === Math.min(wearerMaximum, wearerLow + Math.max(1, Math.floor(wearerMaximum * .09))), `Second Wind heals at the start of a low-HP turn (actual ${currentHp}, start ${wearerLow}, max ${wearerMaximum})`);
   Combat.restore(null);
   return checks;
 }

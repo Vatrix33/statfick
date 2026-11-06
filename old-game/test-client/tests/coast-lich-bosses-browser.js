@@ -124,10 +124,11 @@ async function runCoastLichBossChecks() {
   actors = reset(); inventory = [rain.id]; equipment = { ...defaultEquipment, artifact1: rain.id };
   const otherBefore = actors.other.character.currentHp, primaryBefore = actors.target.character.currentHp;
   h.applyUniqueWeaponHitEffects(actors.player, actors.target, bow, 100, 1);
-  assert(actors.other.character.currentHp === otherBefore - 20 && h.actorById("enemy-3").character.currentHp === 9980, "Ranged damage splashes exactly 20% onto each other enemy");
+  // A plain Arrowtip Rain is a Level 80 copy since the Artifact Rework (port task 4, A11, A16): 25%.
+  assert(actors.other.character.currentHp === otherBefore - 25 && h.actorById("enemy-3").character.currentHp === 9975, "Ranged damage splashes exactly 25% onto each other enemy");
   assert(actors.target.character.currentHp === primaryBefore, "Arrowtip Rain does not damage the main target twice");
   h.applyUniqueWeaponHitEffects(actors.player, actors.target, trident, 100, 1); h.applyUniqueWeaponHitEffects(actors.player, actors.target, bow, 0, 1);
-  assert(actors.other.character.currentHp === otherBefore - 20, "Melee and zero-damage attacks do not trigger Arrowtip Rain");
+  assert(actors.other.character.currentHp === otherBefore - 25, "Melee and zero-damage attacks do not trigger Arrowtip Rain");
 
   actors = reset(); actors.target.baseArmor = 10000;
   const pierce = h.estimatedWeaponStrike(actors.player, actors.target, dagger, .25, true);

@@ -257,6 +257,15 @@
     // Ji'ruan's retinue, touched by the same void: violet skin, glowing cracks, ragged wings.
     "Void Imp": imp({ size: 0.7, skin: "#6a3d78", wings: { style: "bat", color: "#3a2448", span: 0.8 }, horns: { style: "small", color: "#141018" }, eyes: { style: "glow", color: "#c58cff" }, tail: { style: "imp", color: "#3a2442" }, voidVeins: "#c58cff" }),
     "Void Stalker": imp({ size: 0.82, material: "shadow", wings: { style: "bat", color: "#2a1f3a", span: 0.9 }, eyes: { style: "glow", color: "#b08cff" } }),
+    // The Abyssal Rift (port task 6, N4, N9): PLACEHOLDER ART from the existing builders, the corrupted marsh creatures
+    // darkened with red glowing eyes as in the Alder Vale (the troll with violet veins), the demons in ember, charcoal and a
+    // violet-robed witch.
+    "Corrupted Bog Troll": troll({ skin: "#6a6a72", hair: { style: "shaggy", color: "#2a2230" }, material: null, eyes: { style: "glow", color: "#ff4a4a" }, voidVeins: "#9a5cc8" }),
+    "Corrupted Mire Stalker": lizard(0, "male", { skin: "#2c2a32", tail: { style: "lizard", color: "#2c2a32" }, crest: { style: "frill", color: "#4a1f3a" }, eyes: { style: "glow", color: "#ff4a4a" } }),
+    "Corrupted Mossback Lamia": lamia({ skin: "#7a7a82", tailColor: "#2a2230", bellyColor: "#4a4a54", hair: { style: "leaves", color: "#1f1a24" }, outfit: { top: "scales", color: "#2a2230", color2: "#1a141e" }, eyes: { style: "glow", color: "#ff4a4a" } }),
+    "Abyssal Imp": imp({ size: 0.72, skin: "#a8302a", wings: { style: "bat", color: "#4a1a18", span: 0.85 }, horns: { style: "small", color: "#141018" }, eyes: { style: "glow", color: "#ffb347" }, tail: { style: "imp", color: "#5a1a18" } }),
+    "Rift Fiend": devil({ size: 1.36, skin: "#3a3236", horns: { style: "long", color: "#141018" }, tail: { style: "devil", color: "#2a2428" }, sash: "#4a1a28", brand: "#ff4a4a", eyes: { style: "glow", color: "#ff4a4a" } }),
+    "Abyss Witch": devil({ size: 1.06, skin: "#5a3a6a", horns: { style: "small", color: "#141018" }, tail: { style: "devil", color: "#3a2448" }, outfit: { top: "robe", color: "#2a1a3a", trim: "#7a4aa8" }, brand: "#c58cff", aura: "#b08cff", eyes: { style: "glow", color: "#ff4a4a" } }),
     "Corrupted Wolf": wolf({ size: 1.0, fur: "#3f3046", belly: "#5a4a63", corruption: true, eyeGlow: true, eyes: "#ff4a4a" }),
     "Corrupted Bear": bear({ size: 1.15, fur: "#3a2d40", belly: "#56465e", corruption: true, eyeGlow: true, eyes: "#ff4a4a" }),
     "Corrupted Griffon": griffon({ size: 1.15, fur: "#3f3046", feather: "#5a4a63", wing: "#2a1f33", beak: "#8a7a8f", corruption: true, eyeGlow: true, eyes: "#ff4a4a" }),

@@ -1,0 +1,63 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "corrupted-mossback-lamia-level-53",
+  "name": "Corrupted Mossback Lamia",
+  "level": 53,
+  "raceId": "demon",
+  "classLevels": {
+    "monster": 3,
+    "rogue": 5,
+    "mage": 5,
+    "spellblade": 5,
+    "hexblade": 2,
+    "spellcaster": 7,
+    "warlock": 7,
+    "umbramancer": 9,
+    "thief": 5,
+    "warrior": 5
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 99,
+    "vitality": 109,
+    "mind": 121,
+    "dexterity": 120,
+    "intelligence": 127,
+    "wisdom": 114,
+    "speed": 109,
+    "luck": 94
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": {
+    "armor": 0,
+    "evasion": 0
+  },
+  "inventory": [
+    "forge-weapon-2-spear+lance"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-spear+lance",
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "dark-bolt-dark-damage",
+    "dark-siphon-dark-damage",
+    "abyssal-bolt-dark-damage",
+    "night-mantle-dark-support"
+  ],
+  "activeSkills": {}
+}

@@ -124,8 +124,9 @@
   }
   function defense(key, base) {
     const effects = currentEffects();
-    const percent = effects.filter(effect => effect.type === "defense-percent" && effect.target === key).reduce((sum, effect) => sum + effect.amount, 0);
-    const flat = effects.filter(effect => effect.type === "defense-flat" && effect.target === key).reduce((sum, effect) => sum + effect.amount, 0);
+    const artifactBonus = artifactDefenseBonus(evaluating, key);
+    const percent = effects.filter(effect => effect.type === "defense-percent" && effect.target === key).reduce((sum, effect) => sum + effect.amount, 0) + artifactBonus.percent;
+    const flat = effects.filter(effect => effect.type === "defense-flat" && effect.target === key).reduce((sum, effect) => sum + effect.amount, 0) + artifactBonus.flat;
     const stance = effects.find(effect => effect.type === "stance");
     const stanceBonus = evaluating && battle?.active ? passiveEffectsOf(evaluating).filter(effect => effect.type === "stance-bonus-percent").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) + withActor(evaluating, () => calculateClassEffects().stanceBonusPercent) + living().filter(ally => ally.team === evaluating.team).flatMap(passiveEffectsOf).filter(effect => effect.type === "party-stance-bonus-percent").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) : 0;
     const stanceFactor = !stance ? 1 : (stance.name === "Guard" ? key === "armor" : key === "evasion") ? 1.5 + stanceBonus / 100 : 0.5;
@@ -476,6 +477,7 @@
      themselves takes only the larger bonus (×1.5); one wearer healing another takes both (×1.875). "healer" is the
      actor who causes the heal, null when no one does, or HEAL_SETTLED when the caller already applied the bonuses. */
   const HEAL_SETTLED = Symbol("healing bonuses applied");
+  let chainStrikeDepth = 0;
   function equippedHealingPercent(actor, kind) {
     if (!actor || actor.inert) return 0;
     return withActor(actor, () => equippedDefenseItems().flatMap(item => item.effects || []).filter(effect => effect.kind === kind).reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0));
@@ -484,7 +486,9 @@
     if (healer === HEAL_SETTLED || !recipient) return 1;
     const received = 1 + equippedHealingPercent(recipient, "healing-received-percent") / 100;
     const given = healer ? 1 + equippedHealingPercent(healer, "healing-given-percent") / 100 : 1;
-    return healer && healer.id === recipient.id ? Math.max(given, received) : given * received;
+    const robe = healer && healer.id === recipient.id ? Math.max(given, received) : given * received;
+    // Triage Pouch and Mender's Thimble (port task 4, A17, A21): each artifact's bonus multiplies on top, self-heals too.
+    return robe * artifactProduct(recipient, "healing-received-percent") * (healer ? artifactProduct(healer, "healing-given-percent") : 1);
   }
   // Enemy HP restoration is reduced by 80%, except during a boss phase transition.
   function healingAmount(actor, amount, healer = null) {
@@ -498,6 +502,133 @@
     setHp(actor, current + gain);
     return gain;
   }
+  /* The Artifact Rework (port task 4, 2026-11-06; decisions A16–A32 in engine/Docs/Engine-Plan.md): the artifacts'
+     battle rules. An actor's artifact effects come from the two artifact slots of whoever wears them (you or a
+     companion); they are cached by the worn ids. */
+  const artifactEffectCache = new Map();
+  function artifactEffectsOf(actor, kind) {
+    if (!actor || actor.inert || actor.id !== "player" && !actor.character) return [];
+    const ids = withActor(actor, () => [equipment?.artifact1, equipment?.artifact2]).filter(Boolean);
+    if (!ids.length) return [];
+    const key = ids.join("|");
+    if (!artifactEffectCache.has(key)) artifactEffectCache.set(key, ids.map(id => getItem(id)).filter(item => item?.category === "artifact")
+      .flatMap(item => (item.effects || []).map(effect => ({ ...effect, itemName: item.name }))));
+    return artifactEffectCache.get(key).filter(effect => effect.kind === kind);
+  }
+  const artifactAmount = (actor, kind) => artifactEffectsOf(actor, kind).reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0);
+  const artifactProduct = (actor, kind) => artifactEffectsOf(actor, kind).reduce((product, effect) => product * (1 + toNumber(effect.amount, 0) / 100), 1);
+  const isHero = actor => Boolean(actor) && !actor.summoned && (actor.id === "player" || Boolean(actor.companion));
+  // The "+X% damage" artifacts (A20): everything the wearer deals. Banner of Kings lasts the whole battle (A32).
+  function artifactDamagePercent(attacker, target) {
+    if (!attacker || !target || attacker.team === target.team) return 0;
+    let percent = toNumber(battle?.kingsBanner?.[attacker.team]?.damage, 0);
+    for (const effect of artifactEffectsOf(attacker, "damage-percent-vs-race")) if ((effect.raceIds || []).includes(actorRace(target))) percent += toNumber(effect.amount, 0);
+    for (const effect of artifactEffectsOf(attacker, "damage-percent-vs-low-hp")) if (hp(target) < values(target).maxHp * effect.thresholdPercent / 100) percent += toNumber(effect.amount, 0);
+    const larger = artifactAmount(attacker, "damage-percent-vs-larger-max-hp");
+    if (larger && values(target).maxHp > values(attacker).maxHp) percent += larger;
+    for (const effect of artifactEffectsOf(attacker, "low-hp-fury")) if (hp(attacker) < values(attacker).maxHp * effect.thresholdPercent / 100) percent += toNumber(effect.amount, 0);
+    return percent;
+  }
+  // First Light Pin (A26): the wearer's first attack or spell that deals damage; every hit of that action shares it.
+  function firstLightPercent(attacker, attackKind) {
+    if (!attacker || !battle || battle.current !== attacker.id || !["melee", "ranged", "spell"].includes(attackKind)) return 0;
+    if (attacker.firstLightSpent && attacker.firstLightAction !== battle.actionSerial) return 0;
+    return artifactAmount(attacker, "first-strike-damage-percent");
+  }
+  // Tide-turner Compass's Evasion (A20) and Banner of Kings' Armor, read where defense is added up (no values() here).
+  function artifactDefenseBonus(actor, key) {
+    if (!actor || !battle?.active || !battle.actors.includes(actor)) return { flat: 0, percent: 0 };
+    let flat = 0, percent = 0;
+    if (key === "armor") percent += toNumber(battle.kingsBanner?.[actor.team]?.armor, 0);
+    if (key === "evasion") for (const effect of artifactEffectsOf(actor, "low-hp-fury")) {
+      const maximum = toNumber(actor.resourceMax?.hp, 0);
+      if (maximum > 0 && hp(actor) > 0 && hp(actor) < maximum * effect.thresholdPercent / 100) flat += toNumber(effect.evasion, 0);
+    }
+    return { flat, percent };
+  }
+  // A fall: Battle Hymn Chime and Soulharvest Sickle restore their wearers (A22); Phoenix Plume claims the first hero (A18, A29).
+  function noteFall(target) {
+    if (!battle?.actors.includes(target) || hp(target) > 0 || target.fallNoted) return;
+    target.fallNoted = true;
+    for (const wearer of living().filter(actor => actor.team !== target.team)) for (const effect of artifactEffectsOf(wearer, "kill-restore-percent")) {
+      const maximum = values(wearer);
+      const healed = healingDisabled(wearer) ? 0 : healHp(wearer, Math.max(1, Math.floor(maximum.maxHp * effect.amount / 100)), battle, wearer);
+      const restored = Math.min(maximum.maxMana - mana(wearer), Math.floor(maximum.maxMana * toNumber(effect.mana, 0) / 100));
+      if (restored > 0) setMana(wearer, mana(wearer) + restored);
+      if (healed || restored > 0) log(`${effect.itemName}: ${actorLabel(wearer)} restores ${[healed ? healed + " HP" : "", restored > 0 ? restored + " Mana" : ""].filter(Boolean).join(" and ")}.`);
+    }
+    if (!isHero(target)) return;
+    battle.phoenix ||= {};
+    if (Object.values(battle.phoenix).some(entry => entry.fallenId === target.id && entry.pending)) return;
+    for (const wearer of battle.actors.filter(actor => actor.team === target.team && isHero(actor))) {
+      const plume = artifactEffectsOf(wearer, "party-revive")[0];
+      if (!plume || battle.phoenix[wearer.id]) continue;
+      battle.phoenix[wearer.id] = { fallenId: target.id, percent: toNumber(plume.amount, 30), pending: true, itemName: plume.itemName };
+      log(`${plume.itemName} smoulders for ${actorLabel(target)}.`);
+      break;
+    }
+  }
+  const phoenixWaitsFor = (actor, state = battle) => state === battle && Boolean(battle?.phoenix?.[actor.id]?.pending) && battle.phoenix[actor.id].fallenId === actor.id && hp(actor) <= 0;
+  function risePhoenix(wearerId) {
+    const entry = battle?.phoenix?.[wearerId], fallen = entry?.pending ? actorById(entry.fallenId) : null;
+    if (!entry?.pending) return;
+    entry.pending = false;
+    if (!fallen || hp(fallen) > 0) return;
+    setHp(fallen, Math.max(1, Math.floor(values(fallen).maxHp * entry.percent / 100)));
+    fallen.alive = true; fallen.fallNoted = false;
+    log(`${entry.itemName}: ${actorLabel(fallen)} rises again at ${hp(fallen)} HP.`);
+  }
+  function artifactTurnStart(actor) {
+    if (hp(actor) <= 0) return;
+    const maximum = values(actor);
+    const heal = artifactAmount(actor, "turn-start-heal-percent");
+    if (heal && !healingDisabled(actor)) {
+      const gain = healHp(actor, Math.max(1, Math.floor(maximum.maxHp * heal / 100)), battle, actor);
+      if (gain) log(`${actorLabel(actor)} restores ${actor.team === "player" ? gain + " " : ""}HP with ${artifactEffectsOf(actor, "turn-start-heal-percent")[0].itemName}.`);
+    }
+    const manaPercent = artifactAmount(actor, "turn-start-mana-percent");
+    const restored = manaPercent ? Math.min(maximum.maxMana - mana(actor), Math.max(1, Math.floor(maximum.maxMana * manaPercent / 100))) : 0;
+    if (restored > 0) { setMana(actor, mana(actor) + restored); log(`${actorLabel(actor)} restores ${restored} Mana with ${artifactEffectsOf(actor, "turn-start-mana-percent")[0].itemName}.`); }
+    for (const effect of artifactEffectsOf(actor, "turn-start-cleanse-chance")) {
+      const debuffs = actor.effects.filter(isRemovableDebuff);
+      if (!debuffs.length || !rules.roll(effect.amount)) continue;
+      const removed = debuffs[Math.floor(Math.random() * debuffs.length)];
+      actor.effects = actor.effects.filter(existing => existing !== removed);
+      log(`${effect.itemName} washes ${removed.name || "a debuff"} from ${actorLabel(actor)}.`);
+      break;
+    }
+    // Starfall Orb (A19): a Holy spell hit sized by maximum Mana, not by spell power.
+    for (const effect of artifactEffectsOf(actor, "turn-start-star")) {
+      const foes = living().filter(foe => foe.team !== actor.team && !foe.inert);
+      if (!foes.length) break;
+      const struck = foes[Math.floor(Math.random() * foes.length)];
+      const damage = hurt(struck, Math.max(1, Math.floor(maximum.maxMana * effect.amount / 100)), effect.element || "holy", false, true, actor, "spell");
+      log(`${effect.itemName}: a falling star deals ${damage} Holy damage to ${actorLabel(struck)}.`);
+    }
+  }
+  function triggerArtifactBattleStart(actor) {
+    if (hp(actor) <= 0) return;
+    for (const effect of artifactEffectsOf(actor, "battle-start-weapon-power-percent")) {
+      // Before anyone's first turn, so +1 makes it last the wearer's first N turns.
+      applyTimedEffects(actor, `artifact:${actor.id}:warcry`, effect.itemName, [{ type: "outgoing-attack-damage-percent", amount: effect.amount, attackKinds: ["melee", "ranged"], durationTurns: effect.durationTurns + 1 }]);
+      log(`${effect.itemName}: ${actorLabel(actor)}'s weapon power +${formatValue(effect.amount)}% for ${effect.durationTurns} turns.`);
+    }
+    const barrier = artifactAmount(actor, "battle-start-barrier-percent");
+    if (barrier) {
+      actor.barrierHp = Math.max(toNumber(actor.barrierHp, 0), Math.floor(values(actor).maxHp * barrier / 100));
+      log(`${artifactEffectsOf(actor, "battle-start-barrier-percent")[0].itemName} wraps ${actorLabel(actor)} in a ${actor.barrierHp} HP barrier.`);
+    }
+    for (const effect of artifactEffectsOf(actor, "battle-start-party-stats-percent")) {
+      for (const ally of living().filter(entry => entry.team === actor.team)) applyTimedEffects(ally, `artifact:${actor.id}:rally`, effect.itemName, [{ type: "all-stats-percent", amount: effect.amount, durationTurns: effect.durationTurns + 1 }]);
+      log(`${effect.itemName}: ${actorLabel(actor)} and every ally gain +${formatValue(effect.amount)}% to all attributes for ${effect.durationTurns} turns.`);
+    }
+    for (const effect of artifactEffectsOf(actor, "party-damage-armor-percent")) {
+      battle.kingsBanner ||= {};
+      const banner = battle.kingsBanner[actor.team] ||= { damage: 0, armor: 0 };
+      banner.damage += toNumber(effect.amount, 0); banner.armor += toNumber(effect.armor, 0);
+      log(`${effect.itemName} rises over ${actorLabel(actor)}'s side: +${formatValue(effect.amount)}% damage and +${formatValue(effect.armor)}% Armor for the battle.`);
+    }
+  }
   function setMana(actor, value) {
     const before = onStage(actor) ? mana(actor) : null;
     if (actor.id === "player") { if (actor.predictedMana != null) actor.predictedMana = value; else currentMana = value; } else actor.character.currentMana = value;
@@ -508,15 +639,35 @@
     let amount = Math.max(0, Math.floor(rawAmount));
     const currentHealth = hp(target);
     if (!amount || currentHealth <= 0) return 0;
+    // Any damage an enemy causes counts as a hit (A27); damage with no source (damage over time) too.
+    const hostile = !attacker || attacker.team !== target.team;
+    if (hostile && !target.firstHitGuarded && battle?.actors.includes(target)) {
+      const guard = artifactEffectsOf(target, "first-hit-guard-percent")[0];
+      if (guard) {
+        target.firstHitGuarded = true;
+        amount = Math.max(0, Math.floor(amount * (1 - Math.min(100, guard.amount) / 100)));
+        log(`${guard.itemName} softens the first blow against ${actorLabel(target)}.`);
+        if (!amount) return 0;
+      }
+    }
     if (target.barrierHp > 0) {
       const absorbed = Math.min(amount, target.barrierHp);
       target.barrierHp -= absorbed;
       amount -= absorbed;
       if (!amount) return 0;
     }
+    if (hostile && amount >= currentHealth && !target.deathSaveUsed && !phaseDamageFloor(target) && battle?.actors.includes(target)) {
+      const save = artifactEffectsOf(target, "death-save")[0];
+      if (save) {
+        target.deathSaveUsed = true;
+        amount = Math.max(0, currentHealth - Math.max(1, toInteger(save.amount, 1)));
+        log(`${save.itemName}: ${actorLabel(target)} clings on at ${currentHealth - amount} HP.`);
+      }
+    }
     if (!lichManaBarrier(target) || mana(target) <= 0) {
       const dealt = Math.min(Math.max(0, currentHealth - phaseDamageFloor(target)), amount);
       setHp(target, currentHealth - dealt);
+      ringWardensBell(target);
       triggerDamageTakenEquipment(target, dealt, attacker);
       creditRoyalDuelDamage(target, attacker, dealt);
       creditReforgeDamage(target, attacker, dealt);
@@ -527,11 +678,25 @@
     const diverted = Math.min(mana(target), amount - beforeBarrier);
     const remaining = Math.min(phaseDamageFloor(target) ? 0 : 1, amount - beforeBarrier - diverted);
     setHp(target, currentHealth - beforeBarrier - remaining);
+    ringWardensBell(target);
     setMana(target, mana(target) - diverted);
     if (diverted) log(`${actorLabel(target)}'s Immortal Body absorbs ${diverted} damage with Mana.`);
     creditStarDamage(target, attacker, beforeBarrier + remaining);
     triggerDamageTakenEquipment(target, beforeBarrier + diverted + remaining, attacker);
     return beforeBarrier + diverted + remaining;
+  }
+  // Warden's Bell (A18): the first time each hero other than the wearer drops below the threshold, a barrier.
+  function ringWardensBell(target) {
+    if (!isHero(target) || target.wardensBellRung || hp(target) <= 0 || !battle?.actors.includes(target)) return;
+    const maximum = toNumber(target.resourceMax?.hp, 0) || values(target).maxHp;
+    for (const wearer of living().filter(actor => actor.team === target.team && actor.id !== target.id && isHero(actor))) {
+      const bell = artifactEffectsOf(wearer, "ally-low-hp-barrier").find(effect => hp(target) < maximum * effect.thresholdPercent / 100);
+      if (!bell) continue;
+      target.wardensBellRung = true;
+      target.barrierHp = Math.max(toNumber(target.barrierHp, 0), Math.floor(maximum * bell.amount / 100));
+      log(`${wearer === target ? "" : actorLabel(wearer) + "'s "}${bell.itemName} rings: ${actorLabel(target)} gains a ${target.barrierHp} HP barrier.`);
+      return;
+    }
   }
   function triggerDamageTakenEquipment(target, dealt, attacker = null) {
     if (dealt <= 0 || hp(target) <= 0) return;
@@ -754,6 +919,7 @@
         const loss = hp(actor) > 0 ? Math.max(1, Math.floor(values(actor).maxHp * effect.amount / 100)) : 0;
         applyCombatDamage(actor, loss);
         log(`${actorLabel(actor)} loses ${actor.team === "player" ? loss + " " : ""}HP to ${effect.name}.`);
+        if (hp(actor) <= 0) noteFall(actor);
       }
       for (const effect of actor.effects.filter(effect => state === battle && effect.type === "class-poison" && effect.expiresTurn >= actor.turns && hp(actor) > 0)) {
         const source = actorById(effect.ownerId);
@@ -771,7 +937,11 @@
         const loss = hp(actor) > 0 ? Math.max(1, Math.floor(hp(actor) * effect.amount / 100)) : 0;
         applyCombatDamage(actor, loss);
         log(`${actorLabel(actor)} loses ${actor.team === "player" ? loss + " " : ""}HP as ${effect.name} ends.`);
+        if (hp(actor) <= 0) noteFall(actor);
       }
+      // Artifacts at the start of the wearer's turn (port task 4); Phoenix Plume raises another fallen hero now (A29).
+      if (battle?.phoenix?.[actor.id]?.pending && battle.phoenix[actor.id].fallenId !== actor.id && hp(actor) > 0) risePhoenix(actor.id);
+      artifactTurnStart(actor);
     }
     actor.effects = actor.effects.filter(effect => effect.expiresTurn > actor.turns);
     const states = skillStates(actor);
@@ -955,12 +1125,14 @@
     $("boss-special-cinematic-skip").focus({ preventScroll: true });
   }
   function advance(state = battle) {
-    state.actors.forEach(actor => { actor.alive = hp(actor) > 0; });
+    // A fallen Phoenix Plume wearer keeps their place in the turn order, to rise when their turn comes (A29).
+    state.actors.forEach(actor => { actor.alive = hp(actor) > 0 || phoenixWaitsFor(actor, state); });
     for (let skipped = 0; skipped <= state.actors.length; skipped += 1) {
       // Reuse one snapshot while comparing speeds. End the frame before a
       // phase change or turn-start effects mutate this battle (or forecast).
       const next = withCalculationFrame(() => rules.nextTurn(state.actors, actor => values(actor, state).speed * (1 + passiveEffectsOf(actor, state).filter(effect => effect.type === "turn-meter-gain-percent").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) / 100)));
       if (!next) { state.current = null; state.ap = 0; return null; }
+      if (phoenixWaitsFor(next, state)) risePhoenix(next.id);
       startNextPhase(next, state);
       const stunnedBeforeExpiry = next.effects.some(effect => effect.type === "stun" && effect.expiresTurn > next.turns);
       expire(next, state);
@@ -1010,6 +1182,9 @@
         log(`${actorLabel(next)} is caught in the traps and loses ${next.trapApLoss} AP.`);
         next.trapApLoss = 0;
       }
+      // Hourglass of Haste: extra AP on the wearer's first turn of the battle.
+      const haste = state === battle && next.turns === 1 ? artifactAmount(next, "first-turn-ap") : 0;
+      if (haste) { state.ap += haste; log(`${actorLabel(next)} gains ${haste} AP from the Hourglass of Haste.`); }
       if (state === battle) stage("turn", { actorId: next.id, controlled: next.team === "player" && !next.summoned });
       return next;
     }
@@ -1125,7 +1300,8 @@
   function addEnemyLoot(itemIds, chancedDrop = false) {
     const partyClasses = [classLevels, ...companions.map(companion => companion.character.classLevels)];
     const doubleDrops = chancedDrop && ["heavy-knight", "jester"].every(id => partyClasses.some(levels => toInteger(levels?.[id], 0) > 0));
-    const forgeDrop = id => window.ForgeRules?.masterworkTemplateKey(id) ? window.ForgeRules.encode(window.ForgeRules.generateMasterwork({ key: window.ForgeRules.masterworkTemplateKey(id), level })) : id;
+    // Masterwork weapons and armor are forged, and masterwork artifacts fixed (A5), at your level when they drop.
+    const forgeDrop = id => window.ForgeRules?.masterworkTemplateKey(id) ? window.ForgeRules.encode(window.ForgeRules.generateMasterwork({ key: window.ForgeRules.masterworkTemplateKey(id), level })) : masterworkArtifactIdAt(id, level);
     for (const id of itemIds) {
       battle.lootItems.push(forgeDrop(id));
       if (doubleDrops && rules.roll(20)) battle.lootItems.push(forgeDrop(id));
@@ -1179,7 +1355,8 @@
     log(`Field Notes creates ${item.name}.`);
   }
   // A looted piece answers a drop entry: the same item, or a piece forged from that masterwork template.
-  const lootMatchesDrop = (id, itemId) => id === itemId || Boolean(ForgeRules.masterworkTemplateKey(itemId)) && getItem(id)?.forged?.masterwork === ForgeRules.masterworkTemplateKey(itemId);
+  const lootMatchesDrop = (id, itemId) => id === itemId || Boolean(ForgeRules.masterworkTemplateKey(itemId)) && getItem(id)?.forged?.masterwork === ForgeRules.masterworkTemplateKey(itemId)
+    || Boolean(getItem(itemId)?.masterworkArtifactBaseId) && getItem(id)?.masterworkArtifactBaseId === getItem(itemId).masterworkArtifactBaseId;
   function awardDefeatedEnemyExperience() {
     if (!battle) return 0;
     let awarded = 0;
@@ -1188,7 +1365,8 @@
       actor.experienceAwarded = true;
       const rewardMultiplier = withActor(actor, () => calculateClassEffects().experienceRewardMultiplier);
       const reward = Math.max(0, Math.floor(rules.enemyExperience(actor.character?.level) * rewardMultiplier * (actor.empowered ? 1.2 : 1) * Math.max(0, toNumber(actor.experienceRewardMultiplier, 1))));
-      const moneyBonus = calculateClassEffects().enemyMoneyPercent;
+      // Bandit's Coin raises the party's silver, whoever wears it (A25).
+      const moneyBonus = calculateClassEffects().enemyMoneyPercent + battle.actors.filter(isHero).reduce((sum, hero) => sum + artifactAmount(hero, "money-percent"), 0);
       const money = Math.max(1, Math.ceil(Math.max(1, toInteger(actor.character?.level, 1)) * 3 * (1 + moneyBonus / 100) * Math.max(0, toNumber(actor.moneyRewardMultiplier, 1))));
       battle.experienceEarned = Math.max(0, toInteger(battle.experienceEarned, 0)) + reward;
       battle.moneyEarned = Math.max(0, toInteger(battle.moneyEarned, 0)) + money;
@@ -1210,16 +1388,34 @@
         const quantity = minimum + Math.floor(Math.random() * (maximum - minimum + 1));
         addEnemyLoot(Array(quantity).fill(drop.itemId), !guaranteed && drop.chance < 100);
       }
-      exp += reward;
+      // Studious Quill raises only its wearer's EXP (A25).
+      exp += Math.floor(reward * (1 + artifactAmount(player(), "exp-percent") / 100));
       currencies = ShopRules.walletFromValue(ShopRules.walletValue(currencies) + money);
       document.querySelectorAll(".currency-input").forEach(input => { input.value = currencies[input.dataset.currency]; });
-      for (const companion of companions) if (companion.character.currentHp > 0) companion.character.exp += reward;
+      for (const companion of companions) if (companion.character.currentHp > 0) companion.character.exp += Math.floor(reward * (1 + artifactAmount(actorById(companion.id), "exp-percent") / 100));
       awarded += reward;
       log(`${actor.name} grants ${reward} EXP and ${ShopRules.formatPrice(money)}.`);
       addEnemyLoot((window.Guild?.onEnemyDefeated(actor) || []).filter(itemCanDrop));
+      const artifact = rollEnemyArtifact(actor);
+      if (artifact) addEnemyLoot([artifact]);
       actor.lootAvailable = battle.lootItems.length > lootStart;
     }
     return awarded;
+  }
+  /* The Artifact Rework (port task 4, A12–A14): every defeated enemy but a boss (the unique ones) has a 1% chance to
+     drop an artifact of any rarity from uncommon up, weighted by its level the way shop stock is. */
+  const ENEMY_ARTIFACT_DROP_CHANCE = 1;
+  function rollEnemyArtifact(actor) {
+    if (!actor || actor.unique || actor.inert || actor.summoned || !rules.roll(ENEMY_ARTIFACT_DROP_CHANCE)) return null;
+    return artifactForEnemyLevel(Math.max(1, toInteger(actor.character?.level, 1)));
+  }
+  function artifactForEnemyLevel(enemyLevel) {
+    const pool = items.filter(item => item.category === "artifact" && item.rarity !== "masterwork" && item.droppable !== false);
+    const weighted = ["uncommon", "rare", "epic", "legendary"].map(rarity => ({ rarity, weight: ShopRules.rarityWeight(rarity, enemyLevel), choices: pool.filter(item => item.rarity === rarity) })).filter(entry => entry.choices.length);
+    const total = weighted.reduce((sum, entry) => sum + entry.weight, 0);
+    let roll = Math.random() * total;
+    const chosen = weighted.find(entry => (roll -= entry.weight) < 0) || weighted.at(-1);
+    return chosen ? chosen.choices[Math.floor(Math.random() * chosen.choices.length)].id : null;
   }
   function recordSoloSurvivorVictory() {
     if (!battle || battle.soloVictoryRecorded) return false;
@@ -1404,6 +1600,8 @@
   // The striking weapon's own critical damage bonus rides along the same way.
   let elementShareContext = null, activeWeaponCritDamage = 0;
   const weaponElement = weapon => weapon.elementShare ? [weapon.element || "physical", weapon.elementShare.element] : weapon.element || "physical";
+  // A weapon strike's element: the striker's own (port task 6: the Corrupted Mire Stalker's Dark), else its weapon's.
+  const strikeElement = (actor, weapon) => actor?.attackElement || weaponElement(weapon);
   function withWeaponElement(weapon, run, target = null) {
     const previous = elementShareContext, previousCrit = activeWeaponCritDamage;
     elementShareContext = weapon?.elementShare ? { base: weapon.element || "physical", element: weapon.elementShare.element, percent: weapon.elementShare.percent } : null;
@@ -1428,7 +1626,8 @@
   }
   function resistance(target, element, spell = false) {
     const resistances = elementList(element).map(singleElement => {
-      let amount = toNumber(target.resistances?.[singleElement], 0) + armorResistance(target, singleElement) + weaponResistance(target, singleElement);
+      let amount = toNumber(target.resistances?.[singleElement], 0) + armorResistance(target, singleElement) + weaponResistance(target, singleElement)
+        + artifactEffectsOf(target, "element-resistance-percent").filter(effect => effect.element === singleElement).reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0);
       if (spell) withActor(target, () => {
         for (const effect of getSelectedRace()?.passive.effects || []) {
           const protectedElement = String(effect.element || "").toLowerCase();
@@ -1492,6 +1691,7 @@
       const wards = withActor(target, () => equippedDefenseItems().flatMap(item => item.effects || [])
         .filter(effect => effect.kind === "incoming-spell-damage-percent" && (!effect.element || elementList(element).includes(effect.element))), battle);
       if (wards.length) percent += Math.min(...wards.map(effect => toNumber(effect.amount, 0)));
+      percent += artifactAmount(target, "incoming-spell-damage-percent");
       percent += withActor(target, () => equippedWeaponItems().flatMap(item => item.effects || [])
         .filter(effect => effect.kind === "incoming-spell-damage-percent" && (!effect.element || elementList(element).includes(effect.element)))
         .reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0));
@@ -1590,7 +1790,7 @@
     }
   }
   function directDamage(target, amount, reducible = true, element = "physical", attacker = null, bypassBarriers = false) {
-    const adjusted = Math.floor(Math.max(0, amount) * (reducible ? incomingDamageFactor(target) : 1));
+    const adjusted = Math.floor(Math.max(0, amount) * (reducible ? incomingDamageFactor(target) : 1) * (1 + artifactDamagePercent(attacker, target) / 100));
     const dealt = bypassBarriers ? Math.min(adjusted, Math.max(0, hp(target) - phaseDamageFloor(target))) : applyCombatDamage(target, adjusted, attacker);
     if (bypassBarriers && dealt) { setHp(target, hp(target) - dealt); triggerDamageTakenEquipment(target, dealt, attacker); creditRoyalDuelDamage(target, attacker, dealt); creditReforgeDamage(target, attacker, dealt); creditStarDamage(target, attacker, dealt); }
     restoreManaFromElementalArmor(target, element, dealt);
@@ -1745,11 +1945,15 @@
     const situationalBonus = attacker ? passiveEffectsOf(attacker).reduce((sum, effect) => sum + (effect.type === "damage-percent-vs-stunned" && (target.effects.some(active => active.type === "stun") || target.lastStunnedTurn === target.turns) ? toNumber(effect.amount, 0) : 0) + (effect.type === "damage-percent-vs-quest-target" && [worldState.guild.quest?.enemy, worldState.guild.greatHunt?.enemy].includes(target.name.replace(/^Empowered /, "").replace(/ \d+$/, "")) ? toNumber(effect.amount, 0) : 0), 0) : 0;
     const standardBonus = attacker ? living().filter(ally => ally.team === attacker.team && ally.standardAura).reduce((sum, ally) => sum + toNumber(ally.standardAura, 0), 0) : 0;
     const actionChargeMultiplier = attackKind === "reaction" ? 1 : equipmentActionDamage.get(attacker?.id) || 1;
-    const markedPower = power * actionChargeMultiplier * (1 + (spell ? toNumber(attacker?.phaseSpellDamagePercent, 0) : 0) / 100) * (1 + toNumber(mark?.damagePercent, 0) / 100) * (1 + toNumber(tacticalMark?.damagePercent, 0) / 100) * (1 + damagePercentAgainstTarget(attacker, target) / 100) * (1 + (toNumber(attackerEffects?.outgoingDamagePercent, 0) + spellDamagePercent + randomDamagePercent + eminenceBonus + terrorBonus + reaverBonus + situationalBonus + standardBonus) / 100) * (1 + toNumber(worldEnder?.effect?.damagePercent, 0) / 100);
+    // Artifacts (port task 4): the "+X% damage" ones (A20) and First Light Pin (A26). A Forked Lightning strike is plain:
+    // its size is already a share of a finished hit (A24).
+    const firstLight = chainStrikeDepth ? 0 : firstLightPercent(attacker, attackKind);
+    const artifactPercent = chainStrikeDepth ? 0 : artifactDamagePercent(attacker, target) + firstLight;
+    const markedPower = chainStrikeDepth ? power : power * actionChargeMultiplier * (1 + (spell ? toNumber(attacker?.phaseSpellDamagePercent, 0) : 0) / 100) * (1 + toNumber(mark?.damagePercent, 0) / 100) * (1 + toNumber(tacticalMark?.damagePercent, 0) / 100) * (1 + damagePercentAgainstTarget(attacker, target) / 100) * (1 + (toNumber(attackerEffects?.outgoingDamagePercent, 0) + spellDamagePercent + randomDamagePercent + eminenceBonus + terrorBonus + reaverBonus + situationalBonus + standardBonus + artifactPercent) / 100) * (1 + toNumber(worldEnder?.effect?.damagePercent, 0) / 100);
     const armorPierce = Math.max(0, Math.min(100, toNumber(armorPierceOverride, 0) + toNumber(worldEnder?.effect?.armorPiercePercent, 0) + (["melee", "ranged"].includes(attackKind) ? toNumber(attackerEffects?.weaponArmorPiercePercent, 0) + toNumber(attackerEffects?.weaponArmorPiercePercentByType?.[attackKind], 0) : 0)));
     const rangedArmorPercent = attackKind === "ranged" ? target.effects.filter(effect => effect.type === "incoming-ranged-armor-percent").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) : 0;
     const effectiveArmor = values(target).armor * (1 + rangedArmorPercent / 100);
-    const criticalBonusPercent = toNumber(attackerEffects?.criticalDamagePercent, 0) + (["melee", "ranged"].includes(attackKind) ? activeWeaponCritDamage : 0);
+    const criticalBonusPercent = toNumber(attackerEffects?.criticalDamagePercent, 0) + (["melee", "ranged"].includes(attackKind) ? activeWeaponCritDamage : 0) + artifactAmount(attacker, "crit-damage-percent");
     // Spells ignore armor; only elemental resistance protects against them.
     // The Golden Apex's prism: Basic damage splits into four quarters, three of them random other elements.
     const prism = !worldSaver && !unreducible && elementList(element).length === 1 && elementList(element)[0] === "basic" && attacker && withActor(attacker, equippedWeaponItems).some(item => (item.effects || []).some(effect => effect.kind === "prism-basic-damage"));
@@ -1773,6 +1977,23 @@
     }
     stageHit = { critical, element };
     try { amount = applyCombatDamage(target, amount, attacker); } finally { stageHit = null; }
+    if (firstLight && amount > 0) { attacker.firstLightSpent = true; attacker.firstLightAction = battle.actionSerial; }
+    if (amount > 0 && attacker && attacker.team !== target.team) {
+      // Stormcatcher Coil: an enemy's spell that damages the wearer restores Mana.
+      const stormcatcher = spell ? artifactAmount(target, "spell-hit-mana-percent") : 0;
+      if (stormcatcher && hp(target) > 0) {
+        const maximum = values(target).maxMana, restored = Math.min(maximum - mana(target), Math.floor(maximum * stormcatcher / 100));
+        if (restored > 0) { setMana(target, mana(target) + restored); log(`${actorLabel(target)} catches ${restored} Mana from the spell.`); }
+      }
+      // Bloodmoon Chalice: weapons and spells heal their wearer for a share.
+      const chalice = ["melee", "ranged", "spell"].includes(attackKind) ? artifactAmount(attacker, "damage-lifesteal-percent") : 0;
+      if (chalice && hp(attacker) > 0 && !healingDisabled(attacker)) {
+        const healed = healHp(attacker, Math.floor(amount * chalice / 100), battle, attacker);
+        if (healed) log(`${actorLabel(attacker)} drinks ${attacker.team === "player" ? healed + " " : ""}HP through the Bloodmoon Chalice.`);
+      }
+      // Forked Lightning Rod: remember each spell target's damage for the strike after the cast (A31).
+      if (attackKind === "spell" && attacker.forkHits && !chainStrikeDepth) attacker.forkHits.set(target.id, Math.max(attacker.forkHits.get(target.id) || 0, amount));
+    }
     stageDefenseItems(target, attacker, element, spell, amount);
     restoreManaFromElementalArmor(target, element, amount);
     if (amount > 0 && hp(target) > 0 && spell && spellTier > 0 && elementList(element).some(candidate => SPELL_ELEMENTS.includes(candidate) && candidate !== "basic")) {
@@ -2106,6 +2327,57 @@
       const healed = healHp(actor, amount * lifesteal / 100, battle, actor);
       if (healed) log(`${actorLabel(actor)} drinks ${healed} HP through Vampiric armor.`);
     }
+    applyArtifactWeaponHit(actor, target, weaponType, amount);
+  }
+  // The artifacts that act on a weapon hit (port task 4): Thornknot Brooch on the defender; Leech Hook, Vampire's
+  // Fang and the on-hit effects on the attacker. Debuff and stun immunity hold.
+  function applyArtifactWeaponHit(actor, target, weaponType, amount) {
+    const thorns = weaponType === "melee" ? artifactEffectsOf(target, "melee-thorns-percent") : [];
+    for (const effect of thorns) {
+      if (hp(actor) <= 0) break;
+      const returned = directDamage(actor, amount * effect.amount / 100, true, "physical", target);
+      if (returned) log(`${actorLabel(actor)} takes ${returned} damage from ${actorLabel(target)}'s ${effect.itemName}.`);
+    }
+    const leech = artifactAmount(actor, "weapon-lifesteal-percent");
+    if (leech && hp(actor) > 0 && !healingDisabled(actor)) {
+      const healed = healHp(actor, Math.floor(amount * leech / 100), battle, actor);
+      if (healed) log(`${actorLabel(actor)} drains ${actor.team === "player" ? healed + " " : ""}HP through ${artifactEffectsOf(actor, "weapon-lifesteal-percent")[0].itemName}.`);
+    }
+    if (hp(target) <= 0) return;
+    const immune = debuffImmune(target);
+    for (const effect of artifactEffectsOf(actor, "on-hit-burn")) {
+      if (immune || !rules.roll(effect.chance)) continue;
+      target.effects = target.effects.filter(entry => entry.key !== `artifact-burn:${actor.id}`);
+      target.effects.push({ key: `artifact-burn:${actor.id}`, name: effect.itemName, type: "turn-start-max-hp-loss-percent", amount: effect.amount, expiresTurn: target.turns + effect.durationTurns });
+      log(`${effect.itemName} sets ${actorLabel(target)} burning.`);
+    }
+    for (const effect of artifactEffectsOf(actor, "on-hit-slow")) {
+      if (immune || !rules.roll(effect.chance)) continue;
+      applyTimedEffects(target, `artifact-slow:${actor.id}`, effect.itemName, [{ type: "stat-percent", target: "speed", amount: -Math.abs(effect.amount), durationTurns: effect.durationTurns }]);
+      log(`${effect.itemName} slows ${actorLabel(target)}.`);
+    }
+    for (const effect of artifactEffectsOf(actor, "on-hit-armor-shred")) {
+      if (immune) continue;
+      const key = `artifact-shred:${actor.id}`, previous = target.effects.find(entry => entry.key === key);
+      const stacks = Math.min(Math.max(1, toInteger(effect.maxStacks, 3)), toInteger(previous?.stacks, 0) + 1);
+      target.effects = target.effects.filter(entry => entry !== previous);
+      target.effects.push({ key, name: effect.itemName, type: "defense-percent", target: "armor", amount: -Math.abs(effect.amount) * stacks, stacks, expiresTurn: target.turns + effect.durationTurns });
+      log(`${effect.itemName} cracks ${actorLabel(target)}'s Armor (${stacks}×).`);
+    }
+    for (const effect of artifactEffectsOf(actor, "on-hit-stun-chance")) {
+      if (!rules.roll(effect.amount)) continue;
+      if (immune || withActor(target, () => calculateClassEffects().stunImmune)) { log(`${actorLabel(target)} resists the stun from ${effect.itemName}.`); continue; }
+      target.effects = target.effects.filter(existing => existing.type !== "stun");
+      target.effects.push({ key: `artifact-stun:${actor.id}`, name: "Stunned", type: "stun", amount: 1, expiresTurn: target.turns + 1 });
+      log(`${effect.itemName} stuns ${actorLabel(target)}.`);
+    }
+    for (const effect of artifactEffectsOf(actor, "on-hit-poison")) {
+      if (immune) continue;
+      // Refreshed, not stacked: one poison per wearer.
+      target.effects = target.effects.filter(entry => entry.key !== `artifact-poison:${actor.id}`);
+      target.effects.push({ key: `artifact-poison:${actor.id}`, name: effect.itemName, type: "class-poison", ownerId: actor.id, amount: 0, percentMaxHp: effect.amount, healingPenalty: 0, expiresTurn: target.turns + effect.durationTurns });
+      log(`${effect.itemName} poisons ${actorLabel(target)}.`);
+    }
   }
   function rangedSplashPercent(actor) {
     return cacheCalculation("ranged-splash-percent", () => withActor(actor, () => equippedArtifactItems().flatMap(item => item.effects || []).filter(effect => effect.kind === "ranged-splash-percent").reduce((total, effect) => total + effect.amount, 0)), actor);
@@ -2172,7 +2444,7 @@
       }
       const strikePower = (attackValues.power + brawlerBonus) * damageMultiplier * (1 + (incomingDamagePercent + firstTurnDamagePercent + conditionalPower + passivePower + slowerTargetPower + weaponRaceDamagePercent(weapon, target) + woundedTargetPercent(weapon, target) + largerHpBonus.damagePercent + chainBonus) / 100);
       const armorPierce = largerHpBonus.armorPiercePercent + toNumber(starscale?.armorPiercePercent, 0) + offHandArmorPierce(weapon, offHand) + toNumber(weapon.armorPierce, 0);
-      const amount = withWeaponElement(weapon, () => hurt(target, strikePower, weaponElement(weapon), critical, false, actor, weaponType, armorPierce), target);
+      const amount = withWeaponElement(weapon, () => hurt(target, strikePower, strikeElement(actor, weapon), critical, false, actor, weaponType, armorPierce), target);
       log(`${actorLabel(actor)} attacks ${actorLabel(target)}${actor.team === "player" ? " with " + weaponLabel : ""}: ${amount} damage${critical ? " (critical)" : ""}.`);
       applyArmorHitEffects(actor, target, weaponType, amount);
       if (critical && amount > 0 && hp(target) > 0) tearOldWound(target);
@@ -2211,6 +2483,8 @@
     } else {
       if (onStage(target)) stage("miss", { actorId: target.id, attackerId: actor.id });
       log(`${actorLabel(actor)} misses ${actorLabel(target)}${actor.team === "player" ? " with " + weaponLabel : ""}.`);
+      const phantom = actor.team !== target.team && hp(target) > 0 ? artifactEffectsOf(target, "evade-next-attack-percent")[0] : null;
+      if (phantom) { target.phantomStepBonus = Math.max(toNumber(target.phantomStepBonus, 0), phantom.amount); log(`${phantom.itemName}: ${actorLabel(target)}'s next weapon attack deals +${formatValue(phantom.amount)}% damage.`); }
       const riposte = passiveEffectsOf(target).find(effect => effect.type === "fencer-riposte");
       if (riposte && fencerReady(target) && target.riposteTurn !== target.turns && hp(target) > 0) {
         target.riposteTurn = target.turns;
@@ -2234,6 +2508,7 @@
     target = redirectedGuardTarget(actor, target, normalizeWeaponType(loadout.primary.type));
     if (!actionAllowed(actor, "attack") || !target || !opponents(actor).includes(target)) return false;
     if (!spend(actor, loadout.cost)) return false;
+    battle.actionSerial = toInteger(battle.actionSerial, 0) + 1;
     return withEquipmentCharge(actor, () => {
       recordTurnAction(actor, "attack");
       if (loadout.primary.handed === 1 && !loadout.primary.unarmed) {
@@ -2245,7 +2520,10 @@
         if (actor.id === "player") unarmedAttacks += 1;
         else actor.character.unarmedAttacks = Math.max(0, toInteger(actor.character.unarmedAttacks, 0)) + 1;
       }
-      const focusMultiplier = focusedPowerMultiplier(actor);
+      // Phantom Step Pin's bonus is spent on this attack, hit or miss (A30).
+      const phantom = toNumber(actor.phantomStepBonus, 0);
+      actor.phantomStepBonus = 0;
+      const focusMultiplier = focusedPowerMultiplier(actor) * (1 + phantom / 100);
       const landed = strike(actor, target, loadout.primary, focusMultiplier);
       actor.firstStrikeUsed = true;
       consumeSkill(actor, "durationAttacks", loadout.primary);
@@ -2412,12 +2690,15 @@
     stage("summon", { actorId: summoned.id, ownerId: actor.id });
     const summonedValues = values(summoned);
     const equipmentBonus = summonEquipmentBonuses(actor);
-    const maximumHp = Math.max(1, Math.floor(summonedValues.maxHp * (1 + Math.max(0, toNumber(effect.summonMaxHpPercent, 0)) / 100) * (1 + equipmentBonus.hp / 100)));
+    // Titanfall's golem at its level's share of its strength (port task 4, A16): HP and damage.
+    const strength = effect.summonStrengthPercent != null ? Math.max(1, toNumber(effect.summonStrengthPercent, 100)) / 100 : 1;
+    const maximumHp = Math.max(1, Math.floor(summonedValues.maxHp * (1 + Math.max(0, toNumber(effect.summonMaxHpPercent, 0)) / 100) * (1 + equipmentBonus.hp / 100) * strength));
     const maximumMana = Math.max(0, Math.floor(summonedValues.maxMana * (1 + equipmentBonus.mana / 100)));
     summoned.resourceMax = { hp: maximumHp, mana: maximumMana };
     summoned.character.currentHp = maximumHp;
     summoned.character.currentMana = maximumMana;
     if (equipmentBonus.damage) summoned.effects.push({ key: `${source}:equipment-summon-damage`, name: "Staff of the Guild", type: "outgoing-attack-damage-percent", amount: equipmentBonus.damage, expiresTurn: Number.MAX_SAFE_INTEGER });
+    if (strength !== 1) summoned.effects.push({ key: `${source}:summon-strength`, name: source, type: "outgoing-attack-damage-percent", amount: Math.round((strength - 1) * 1000) / 10, expiresTurn: Number.MAX_SAFE_INTEGER });
     if (effect.summonAttackDamagePercent) summoned.effects.push({
       key: `${source}:summon-attack-damage`, name: source, type: "outgoing-attack-damage-percent",
       attackKinds: ["melee", "ranged"], amount: toNumber(effect.summonAttackDamagePercent, 0), expiresTurn: Number.MAX_SAFE_INTEGER
@@ -2944,6 +3225,7 @@
     // Made mortal, he simply dies.
     if (current && target.id === current.lich.id && current.state.broken) current.state.ended = true;
     log(`${actorLabel(target)} falls.`);
+    noteFall(target);
   }
   // Runs at the start of every turn: notes a fall or a break by any other path, ends with the
   // lich, and on each of the vessel's turns (one round) brings dust nearer to re-forming.
@@ -3440,7 +3722,7 @@
         // Mark before summoning so allied-stat and damage hooks cannot recurse.
         (actor.equipmentSummons ||= {})[item.id] = true;
         let count = 0;
-        for (let index = 0; index < effect.amount; index++) if (summonFriendly(actor, { type: "summon-friendly", enemyId: effect.enemyId }, item.name)) count++;
+        for (let index = 0; index < effect.amount; index++) if (summonFriendly(actor, { type: "summon-friendly", enemyId: effect.enemyId, summonStrengthPercent: effect.strengthPercent }, item.name)) count++;
         if (!count) delete actor.equipmentSummons[item.id];
         break;
       }
@@ -3706,8 +3988,12 @@
     const spellPenalty = actor.effects.find(effect => effect.type === "next-spell-penalty");
     const power = Math.max(0, Math.floor(basePower * (1 + (timedSpellPercent(actor, "spell-power-percent", spell) + stormPower) / 100) * (1 + successive * successiveDamage / 100) * focusedPowerMultiplier(actor) * (1 - Math.min(100, Math.max(0, toNumber(spellPenalty?.amount, 0))) / 100)));
     if (mana(actor) < cost || !spend(actor, actionPoints)) return false;
+    battle.actionSerial = toInteger(battle.actionSerial, 0) + 1;
     return withEquipmentCharge(actor, () => {
-      setMana(actor, mana(actor) - cost);
+      // Echo Bell: a chance the spell costs no Mana.
+      const echoBell = cost > 0 && !archivedItem ? artifactEffectsOf(actor, "free-spell-chance").find(effect => rules.roll(effect.amount)) : null;
+      if (echoBell) log(`${echoBell.itemName} rings: ${spell.name} costs no Mana.`);
+      else setMana(actor, mana(actor) - cost);
       const spellElementOverride = actor.nextSpellElement;
       actor.nextSpellElement = null;
       if (spellPenalty) actor.effects = actor.effects.filter(effect => effect !== spellPenalty);
@@ -3753,6 +4039,8 @@
       playTierTenCinematic(actor, spell);
       const absorbed = rollSpellAbsorption(actor, target, appliedEffects, spellElement, cost, spell);
       absorbedSpellRecipients = absorbed.size ? absorbed : null;
+      const fork = appliedEffects.some(effect => effect.type === "damage") ? artifactEffectsOf(actor, "spell-chain-percent")[0] : null;
+      if (fork) actor.forkHits = new Map();
       try {
         for (let repetition = 0; repetition < repeatCount; repetition += 1) {
           const missed = needsEnemy && target && !absorbed.has(target.id) && apexChoice !== "sweep" && rules.roll(spellMissChanceAgainst(actor, target, spell));
@@ -3762,6 +4050,20 @@
         }
       } finally {
         absorbedSpellRecipients = null;
+      }
+      // Forked Lightning Rod (A24, A31): one strike per cast, on an enemy the spell didn't hit, as a spell hit.
+      if (fork) {
+        const hits = actor.forkHits;
+        actor.forkHits = null;
+        const others = living().filter(foe => foe.team !== actor.team && !foe.inert && !hits.has(foe.id));
+        const largest = Math.max(0, ...hits.values());
+        if (hits.size && largest > 0 && others.length && isActive()) {
+          const struck = others[Math.floor(Math.random() * others.length)];
+          chainStrikeDepth += 1;
+          let damage = 0;
+          try { damage = hurt(struck, Math.floor(largest * fork.amount / 100), spellElement, false, true, actor, "spell"); } finally { chainStrikeDepth -= 1; }
+          log(`${fork.itemName}: the spell forks to ${actorLabel(struck)} for ${damage} damage.`);
+        }
       }
       // A dream law may echo a damaging spell at part of its power.
       const echo = lawAmount(actor, "spell-echo-percent"), echoed = appliedEffects.filter(effect => effect.type === "damage");
@@ -3805,6 +4107,7 @@
     if (item.effects.some(effect => effect.recipient === "friendly-target") && (!target || target.team !== actor.team || hp(target) <= 0)) return false;
     if (trapCapacityReason(actor, item.effects)) return false;
     if (!spend(actor, 1)) return false;
+    battle.actionSerial = toInteger(battle.actionSerial, 0) + 1;
     recordTurnAction(actor, "item");
     if (onStage(actor)) stage("item", { actorId: actor.id, targetId: target?.id || null, itemId: item.id, name: item.name, potion: Boolean(item.potionResource), resource: item.potionResource || null, trap: trapPlacementCount(item.effects || []) > 0 });
     const owned = actor.id === "player" ? inventory : actor.character.inventory;
@@ -4206,10 +4509,10 @@
     const worldEnder = canCharge ? chargedSkillEffect(attacker, "next-damage-overload") : null;
     const terrorBonus = attacker ? passiveEffectsOf(attacker).filter(effect => effect.type === "damage-percent-vs-low-hp" && hp(target) < values(target).maxHp * toNumber(effect.threshold, 50) / 100).reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) : 0;
     const chargeMultiplier = attacker && ["melee", "ranged", "spell", "bonus"].includes(attackKind) ? equipmentActionDamage.get(attacker.id) || equipmentChargeMultiplier(attacker) : 1;
-    const markedPower = power * chargeMultiplier * (1 + (spell ? toNumber(attacker?.phaseSpellDamagePercent, 0) : 0) / 100) * (1 + toNumber(mark?.damagePercent, 0) / 100) * (1 + toNumber(tacticalMark?.damagePercent, 0) / 100) * (1 + damagePercentAgainstTarget(attacker, target) / 100) * (1 + (toNumber(attackerEffects?.outgoingDamagePercent, 0) + spellDamagePercent + eminenceBonus + terrorBonus) / 100) * (1 + toNumber(worldEnder?.effect?.damagePercent, 0) / 100);
+    const markedPower = power * chargeMultiplier * (1 + (spell ? toNumber(attacker?.phaseSpellDamagePercent, 0) : 0) / 100) * (1 + toNumber(mark?.damagePercent, 0) / 100) * (1 + toNumber(tacticalMark?.damagePercent, 0) / 100) * (1 + damagePercentAgainstTarget(attacker, target) / 100) * (1 + (toNumber(attackerEffects?.outgoingDamagePercent, 0) + spellDamagePercent + eminenceBonus + terrorBonus + artifactDamagePercent(attacker, target)) / 100) * (1 + toNumber(worldEnder?.effect?.damagePercent, 0) / 100);
     const armorPierce = Math.max(0, Math.min(100, toNumber(armorPierceOverride, 0) + toNumber(worldEnder?.effect?.armorPiercePercent, 0) + (["melee", "ranged"].includes(attackKind) ? toNumber(attackerEffects?.weaponArmorPiercePercent, 0) + toNumber(attackerEffects?.weaponArmorPiercePercentByType?.[attackKind], 0) : 0)));
     const armor = Number.isFinite(defenseOverride?.armor) ? defenseOverride.armor : values(target).armor;
-    const criticalBonusPercent = toNumber(attackerEffects?.criticalDamagePercent, 0) + (["melee", "ranged"].includes(attackKind) ? activeWeaponCritDamage : 0);
+    const criticalBonusPercent = toNumber(attackerEffects?.criticalDamagePercent, 0) + (["melee", "ranged"].includes(attackKind) ? activeWeaponCritDamage : 0) + artifactAmount(attacker, "crit-damage-percent");
     const rangedArmorPercent = attackKind === "ranged" ? target.effects.filter(effect => effect.type === "incoming-ranged-armor-percent").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) : 0;
     let amount = worldSaver || unreducible ? Math.floor(markedPower * rules.criticalMultiplier(critical, criticalBonusPercent)) : rules.damage(markedPower, spell ? 0 : armor * (1 + rangedArmorPercent / 100) * (1 - armorPierce / 100), resistance(target, element, spell), critical, criticalBonusPercent) * incomingDamageFactor(target, attacker, attackKind, element);
     if (spell && !worldSaver && !unreducible) {
@@ -4270,8 +4573,8 @@
     const basicBonus = starscale ? estimatedDamage(target, power * starscale.amount / 100, "basic", false, false, actor, "bonus", defenseOverride, armorPierce) : 0;
     const armorBonusPercent = (weapon.effects || []).filter(effect => effect.kind === "bonus-damage-from-armor-percent").reduce((sum, effect) => sum + effect.amount, 0);
     const armorBonus = armorBonusPercent ? estimatedDamage(target, values(actor).armor * armorBonusPercent / 100 * damageMultiplier, "physical", false, false, actor, "bonus", defenseOverride) : 0;
-    const normalDamage = withWeaponElement(weapon, () => estimatedDamage(target, power, weaponElement(weapon), false, false, actor, weaponType, defenseOverride, armorPierce), target) + basicBonus + armorBonus;
-    const criticalDamage = withWeaponElement(weapon, () => estimatedDamage(target, power, weaponElement(weapon), true, false, actor, weaponType, defenseOverride, armorPierce), target) + basicBonus + armorBonus;
+    const normalDamage = withWeaponElement(weapon, () => estimatedDamage(target, power, strikeElement(actor, weapon), false, false, actor, weaponType, defenseOverride, armorPierce), target) + basicBonus + armorBonus;
+    const criticalDamage = withWeaponElement(weapon, () => estimatedDamage(target, power, strikeElement(actor, weapon), true, false, actor, weaponType, defenseOverride, armorPierce), target) + basicBonus + armorBonus;
     const resources = forecastResources(target);
     const normal = forecastDamageResources(target, normalDamage, resources);
     const critical = forecastDamageResources(target, criticalDamage, resources);
@@ -5789,8 +6092,11 @@
     if (naturalWeapon != null && !window.ForgeRules?.NATURAL_WEAPONS[naturalWeapon]) throw new Error(`${raw.name}: unknown natural weapon ${naturalWeapon}`);
     const experienceRewardMultiplier = Math.max(0, toNumber(raw.experienceRewardMultiplier, 1));
     const moneyRewardMultiplier = Math.max(0, toNumber(raw.moneyRewardMultiplier, 1));
+    // A corrupted creature may strike with another element than its weapon's (port task 6: the Corrupted Mire Stalker's Dark).
+    const attackElement = raw.attackElement ?? null;
+    if (attackElement != null && !SPELL_ELEMENTS.includes(attackElement)) throw new Error(`${raw.name}: unknown attack element ${attackElement}`);
     return {
-      id: raw.id || slugify(raw.name), name: raw.name, character, element: raw.element || null, resistances: raw.resistances || {}, drops, naturalWeapon,
+      id: raw.id || slugify(raw.name), name: raw.name, character, element: raw.element || null, attackElement, resistances: raw.resistances || {}, drops, naturalWeapon,
       oldWounds: oldWounds ? copy(oldWounds) : null, warband: warband ? copy(warband) : null, royalDuel: royalDuel ? copy(royalDuel) : null, storm: stormConfig ? copy(stormConfig) : null, reforge: reforge ? copy(reforge) : null, heartCores: heartCores ? copy(heartCores) : null, infernalSacrifice: infernalSacrifice ? copy(infernalSacrifice) : null, phylactery: phylactery ? copy(phylactery) : null, dreamLaws: dreamLaws ? copy(dreamLaws) : null, starTrials: starTrials ? copy(starTrials) : null, inert: raw.inert === true, unlivingCaster: raw.unlivingCaster === true,
       formerNames: Array.isArray(raw.formerNames) ? raw.formerNames.filter(name => typeof name === "string" && name.trim()) : [],
       baseArmor, maxHpPercent, maxManaPercent, turnStartManaPercent, aiProfile, introCinematic, seasonCycle: seasonCycle ? copy(seasonCycle) : null, aiSummonCondition: aiSummonCondition ? copy(aiSummonCondition) : null, noDropItems: [...new Set(noDropItems)], startingSummons: copy(startingSummons), startingAllies: copy(startingAllies), initialSkillCharges, phaseTransition: raw.phaseTransition || null, phaseTransitions: raw.phaseTransitions || null, spellPowerAura: spellPowerAura || null, livingAllyProtection: livingAllyProtection ? copy(livingAllyProtection) : null, unique: raw.unique === true, experienceRewardMultiplier, moneyRewardMultiplier
@@ -5905,7 +6211,7 @@
       const actor = {
         ...makeActor(`enemy-${i + 1}`, empoweredObjective && i === 0 ? `Empowered ${actorName}` : actorName, "enemy"),
         experienceAwarded: false, character: armed.character, resistances: copy(enemy.resistances), dropTable: copy(enemy.drops || []), noDropItems: armed.noDropItems,
-        baseArmor: enemy.baseArmor, naturalArmor: spawnNaturalArmor(armed.character), naturalWeapon: enemy.naturalWeapon || null, maxHpPercent: enemy.maxHpPercent, maxManaPercent: enemy.maxManaPercent, turnStartManaPercent: enemy.turnStartManaPercent, element: enemy.element, unique: enemy.unique, experienceRewardMultiplier: enemy.experienceRewardMultiplier, moneyRewardMultiplier: enemy.moneyRewardMultiplier,
+        baseArmor: enemy.baseArmor, naturalArmor: spawnNaturalArmor(armed.character), naturalWeapon: enemy.naturalWeapon || null, attackElement: enemy.attackElement || null, maxHpPercent: enemy.maxHpPercent, maxManaPercent: enemy.maxManaPercent, turnStartManaPercent: enemy.turnStartManaPercent, element: enemy.element, unique: enemy.unique, experienceRewardMultiplier: enemy.experienceRewardMultiplier, moneyRewardMultiplier: enemy.moneyRewardMultiplier,
         enemyDefinitionId: enemy.id, phaseTransition: copy(enemy.phaseTransition), phaseTransitions: copy(enemy.phaseTransitions), phaseIndex: 0, spellPowerAura: copy(enemy.spellPowerAura), livingAllyProtection: copy(enemy.livingAllyProtection)
       };
       if (guildObjective && i === 0) {
@@ -5937,6 +6243,7 @@
       for (const summon of definition?.startingSummons || []) for (let count = 0; count < summon.count; count++) summonFriendly(actor, { type: "summon-friendly", enemyId: summon.enemyId }, actor.name);
     }
     for (const actor of [...battle.actors]) { triggerCombatStartPassives(actor); triggerLowHealthEquipment(actor); }
+    for (const actor of [...battle.actors]) triggerArtifactBattleStart(actor);
     for (const skill of skillsOf(player())) if (activeSkills[classSkillKey(skill)]?.active && skill.durationTurns) player().skillExpiry[classSkillKey(skill)] = skill.durationTurns + 1;
     const summary = Object.entries(totals).map(([name, count]) => count > 1 ? `${name} ×${count}` : name).join(", ");
     syncEnemyCount();

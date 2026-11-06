@@ -386,7 +386,7 @@ async function runForcedRematchChecks() {
     // Overlapping ordinary objectives must neither replace nor receive credit
     // for an explicitly requested rematch, even after a previous victory.
     worldState.guild.quest = { type: "hunt", enemy: "Goblin", regionId: zik.regionId, zone: zik.zone, point: clone(zik.point), complete: false, progress: 0, reward: { silver: 0, reputation: 0, rateVersion: 2 } };
-    worldState.guild.artifactChallenge = { enemy: "Goblin", regionId: zik.regionId, zone: zik.zone, point: clone(zik.point), artifactId: "artifact-power-ring-artifact" };
+    worldState.guild.artifactChallenge = { enemy: "Goblin", regionId: zik.regionId, zone: zik.zone, point: clone(zik.point), artifactId: "artifact-hares-anklet-artifact" };
     assert(Guild.objectiveAt(zik.point)?.kind === "hunt", "Automatic objectives retain their existing priority");
     force(zik); await fight(zik); await win();
     assert(!worldState.guild.quest.complete && worldState.guild.artifactChallenge, "Rematch victory does not complete an overlapping hunt or award its artifact");

@@ -1,0 +1,60 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "abyss-witch-demon-level-54",
+  "name": "Abyss Witch",
+  "level": 54,
+  "raceId": "demon",
+  "classLevels": {
+    "monster": 3,
+    "mage": 5,
+    "spellcaster": 7,
+    "wizard": 7,
+    "warlock": 7,
+    "umbramancer": 9,
+    "great-mage": 7,
+    "sage": 5,
+    "sorcerer": 4
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 61,
+    "vitality": 111,
+    "mind": 142,
+    "dexterity": 123,
+    "intelligence": 155,
+    "wisdom": 127,
+    "speed": 111,
+    "luck": 96
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": {
+    "armor": 0,
+    "evasion": 0
+  },
+  "inventory": [],
+  "equipment": {
+    "primaryHand": null,
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [
+    "abyssal-bolt-dark-damage",
+    "dark-siphon-dark-damage",
+    "spellstop-dark-support",
+    "night-mantle-dark-support"
+  ],
+  "activeSkills": {}
+}

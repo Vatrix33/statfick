@@ -499,6 +499,148 @@ How it's built:
   catalogue items) and stops at its first assertion as before. Smoke, enemies (511 cases) and lifecycle pass; the
   combat suite stops at the known Barbarian failure, as before.
 
+**Artifact Rework (port task 4, 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`; the task is
+`engine/Docs/Port-Tasks/4_Artifact_Rework.txt`).** Built in the old game, as tasks 1–3 were; old game only, the engine is
+untouched. Done: the faithful port brings it over and doesn't build it again; its only port work is remaking the
+placeholder looks (A1; `engine/Docs/Port-Tasks/README.md`). The user's 32 answers are in `engine/Docs/Engine-Plan.md`,
+"Decisions for task 4, Artifact Rework" (A1–A32); A16 approved the drafted list below as it stands.
+- **The set** (`objects/artifacts.json`, written by a generator kept in the cloud session's `claude-work/artifacts/`, not
+  in git): the 32 old non-masterwork artifacts were replaced (A3) by 80 new ones; each record has `look` (`shape`,
+  `glyph`) and `placeholderArt`. Prices in silver:
+  - **Uncommon** (32): Brawler's Knuckle Ring (2,000): Strength +8%; Oakheart Locket (2,000): Vitality +8%; Thinker's Pin (2,000): Mind +8%; Quickhand Bracelet (2,000): Dexterity +8%; Scholar's Signet (2,000): Intelligence +8%; Hermit's Bead (2,000): Wisdom +8%; Hare's Anklet (2,200): Speed +6%; Copper Clover (1,800): Luck +10%; Hearthstone Charm (2,200): Maximum HP +10%; Wellspring Drop (2,200): Maximum Mana +12%; Riveted Buckle (2,000): Armor +10%; Feather Token (2,000): Evasion +6; Whetstone Ring (2,400): Weapon power +6%; Steady Eye Lens (2,000): Weapon hit chance +10; Glint Shard (2,400): Critical chance +4; Inkwell Charm (2,200): Spells cost 6% less Mana; Spark Coil (2,400): Spell power +6%; Bandit's Coin (1,600): +15% silver from battles; Studious Quill (2,000): +10% EXP from battles; Leech Hook (2,400): Weapon hits heal you for 3% of the damage dealt; Thornknot Brooch (2,200): Melee attackers take 8% of the damage they deal you; Morning Dew Vial (2,600): Restore 2% of your maximum HP at the start of your turn; Mana Drip Stone (2,400): Restore 2% of your maximum Mana at the start of your turn; Warding Cord (1,800): The first hit you take each battle deals 25% less damage; First Light Pin (1,800): Your first attack or spell each battle deals +20% damage; Greenskin Tooth (1,600): +12% damage against goblins and orcs; Silver Nail (1,800): +12% damage against undead; Ashen Ward (2,000): Fire damage you take −12%; Thunderstone Earring (2,000): Lightning damage you take −12%; Triage Pouch (2,200): Healing you receive in battle +10%; Mender's Thimble (2,200): Heals you give +8%; Snare Twine (2,400): Trap limit +1.
+  - **Rare** (24): Ironbound Signet (6,000): Strength and Vitality +8%; Sage's Loop (6,000): Intelligence and Wisdom +8%; Duelist's Signet (6,500): Dexterity +10% and critical chance +4; Heartwood Amulet (6,000): Maximum HP +18%; Moonwell Pendant (6,500): Maximum Mana +20% and spells cost 4% less Mana; Bulwark Brooch (6,000): Armor +16%; Windrunner Anklet (6,800): Speed +10%; Gambler's Die (5,500): Luck +16%; Vampire's Fang (7,000): Weapon hits heal you for 6% of the damage dealt; Spellward Mirror (6,500): Spell damage you take −10%; Stormcatcher Coil (5,500): When an enemy's spell damages you, restore 4% of your maximum Mana; Executioner's Mark (6,500): +20% damage against enemies below 30% HP; Giantslayer Torc (6,500): +15% damage against enemies with more maximum HP than you; Warcry Horn (6,000): At the start of each battle: weapon power +15% for 2 turns; Echo Bell (6,500): Each spell has a 10% chance to cost no Mana; Ironskin Phial (6,000): At the start of each battle: a barrier of 8% of your maximum HP; Rallying Banner Pin (7,000): At the start of each battle: you and your allies get all attributes +6% for 2 turns; Burning Brand (6,500): Weapon hits have a 20% chance to burn the target for 3% of its maximum HP per turn for 2 turns; Frostbite Charm (6,000): Weapon hits have a 15% chance to slow the target: Speed −15% for 2 turns; Shatter Stone (6,500): Weapon hits lower the target's Armor by 5% for 2 turns, stacking up to 3 times; Cleansing Bead (5,500): At the start of your turn, a 20% chance to remove one debuff from you; Dragonbane Scale (6,000): +15% damage against dragons; Spirit Lantern (6,000): +15% damage against elementals; Battle Hymn Chime (6,500): Defeating an enemy restores 5% of your maximum HP and 5% of your maximum Mana.
+  - **Epic** (16): Titan's Band (16,000): Strength +18% and maximum HP +10%; Archmage's Lodestone (17,000): Spell power +16% and Intelligence +10%; Hawkwind Fletch (16,000): Ranged weapon power +18% and ranged hit chance +10; Bladesinger's Ring (16,500): Melee weapon power +16% and critical chance +6; Aegis Medallion (16,500): Armor +20% and spell damage you take −10%; Phantom Step Pin (15,500): Evasion +12; after you evade an attack, your next attack deals +25% damage; Second Chance Locket (18,000): Once per battle, a hit that would defeat you leaves you at 1 HP; Soulharvest Sickle (15,000): Defeating an enemy restores 15% of your maximum HP; Forked Lightning Rod (18,000): Your damaging spells also strike one other random enemy for 25% of the damage; Bloodmoon Chalice (18,500): All damage you deal with weapons and spells heals you for 10% of it; Hourglass of Haste (15,000): +1 AP on your first turn of each battle; Warden's Bell (15,500): The first time each of your allies (not you) drops below 30% HP in a battle, they get a barrier of 15% of their maximum HP; Arcane Engine (17,000): Spells cost 10% less Mana and deal +8% damage; Thunderhead Crown (18,000): Weapon hits have a 15% chance to stun the target for 1 turn; Venomglass Vial (16,000): Weapon hits poison the target for 4% of its maximum HP per turn for 3 turns (refreshed, not stacked); Tide-turner Compass (15,500): While you are below 50% HP: +20% damage and Evasion +10.
+  - **Legendary** (8): Heart of the Mountain (36,000): Vitality +20%, maximum HP +25% and Armor +15%; Crown of the Archmagus (38,000): Spell power +25%, spells cost 15% less Mana and maximum Mana +20%; Sunforged Sigil (38,000): Weapon power +22%, weapon hit chance +15 and critical chance +8; Phoenix Plume (40,000): Once per battle, the first of your heroes to fall rises again at 30% HP at the start of your next turn; Worldtree Acorn (36,000): All eight attributes +10%; restore 3% of your maximum HP at the start of your turn; Starfall Orb (35,000): At the start of your turn, a falling star deals Holy damage equal to 15% of your maximum Mana to a random enemy; Banner of Kings (40,000): You and every ally deal +12% damage and have Armor +12%; Dragonheart Ember (37,000): Critical chance +6; critical hits deal +40% damage.
+  - **Masterwork** (4, mechanics kept, numbers on the ramp, A7, A16): Second Wind (heal below 25% HP: 3/6/9/10.5% at
+    Levels 1/40/80/100), Wraithguard (melee hit +10/30/50/60, guard 2/6/10/12%), Arrowtip Rain (splash 6/15/25/30%),
+    Titanfall (the golem at 40/84/130/153% strength); prices 2,000/18,800/36,000/44,600.
+- **Loading** (`app.js`): `ARTIFACT_EFFECT_KINDS` and `ARTIFACT_EFFECT_FIELDS` (the new kinds' extra fields: `raceIds`,
+  `element`, `thresholdPercent`, `durationTurns`, `chance`, `maxStacks`, `mana`, `evasion`, `armor`, `strengthPercent`),
+  validated in the catalogue parser; labels in `artifactEffectLabel`. **Masterwork levels:** an effect's `ramp`
+  (`{ field: [Level 1 value, Level 80 value] }`) and the item's `priceRamp`; `masterworkArtifactAt(base, level)` makes
+  the copy (`<id>-lv<level>`, Levels 1–200, a straight line through 1 and 80 continuing past it, rounded to one decimal;
+  prices to 100 silver), `leveledMasterworkArtifact` resolves such ids in `getItem`, and a plain id is a Level 80 copy
+  (A11). Descriptions fill `{amount}`, `{amount2}`, `{strength}`. The card shows "Level N" and the look.
+- **Battle** (`combat.js`, "The Artifact Rework" block after the healing code): `artifactEffectsOf(actor, kind)` (the
+  worn effects, cached by the two slots' ids), `artifactDamagePercent` (race, low HP, bigger foes, Tide-turner, Banner of
+  Kings: added to `hurt`'s damage, to the AI's forecast and to `directDamage`, so traps, thorns, poison and item damage
+  get them too, A20), `firstLightPercent` (counted per action with `battle.actionSerial`), `artifactDefenseBonus` (read
+  by `defense()`), `noteFall` (from `logFall` and damage-over-time deaths: Battle Hymn, Soulharvest, Phoenix Plume),
+  `risePhoenix` (at the wearer's turn start, or, for a fallen wearer, when `advance` reaches them: they stay in the turn
+  order), `artifactTurnStart` (heal, Mana, cleanse, Starfall), `triggerArtifactBattleStart` (Warcry, Ironskin, Rally,
+  `battle.kingsBanner`), `applyArtifactWeaponHit` (from `applyArmorHitEffects`), `ringWardensBell` and the Warding Cord
+  and Second Chance Locket in `applyCombatDamage`, Hourglass in `advance`, Echo Bell and Forked Lightning in `cast`
+  (`chainStrikeDepth` keeps the fork strike plain), Stormcatcher and Bloodmoon after `hurt`'s damage, the healing items
+  in `healingFactor`, silver and EXP in `awardDefeatedEnemyExperience`, Titanfall's `summonStrengthPercent` in
+  `summonFriendly`.
+- **Drops** (`combat.js`): masterwork artifacts drop fixed at your level (`forgeDrop` → `masterworkArtifactIdAt`;
+  guaranteed drops still match by base id); `rollEnemyArtifact` (1%, not `unique` enemies, summons or objects) and
+  `artifactForEnemyLevel` (`ShopRules.rarityWeight` by the enemy's level, uncommon to legendary).
+- **Old saves:** `WorldRules.RETIRED_ARTIFACT_IDS` (the 32 old ids); `normalizeCharacter` drops them from packs, slots and
+  favorites (companions too) silently; `world-engine.js` drops them from the hooded man's lists and withdraws an artifact
+  challenge for one with a note and its 70 Reputation back.
+- **Looks** (`forge-art.js`, `artifactArt`, PLACEHOLDER ART): `ARTIFACT_STYLE` per rarity (metal, setting color, gem
+  facets; epic side stones and filigree, legendary halo), `ARTIFACT_SHAPES` (49 objects), `artifactMark` (a mark drawn
+  and turned by the look's glyph name), `MASTERWORK_ARTIFACTS` (four drawings). `ForgeArt.goods` uses it for artifacts
+  (shop lists) and the card shows it.
+- **Tests:** `test-client/tests/artifact-rework-browser.js`, 12 entries: `checkArtifactCatalogue`, `…SheetEffects`,
+  `…WeaponHits`, `…DamageAndDefense`, `…TurnsAndBattleStart`, `…SpellsAndHealing`, `…FallsAndRewards`, `…Strikes`,
+  `checkMasterworkArtifacts`, `checkArtifactDrops`, `checkArtifactsInOldSaves`, `checkArtifactLooks`. The battle entries
+  use a second copy of `combat.js` with a hook (`window.__artifactChecks`). Old checks updated: `nygheir` (a plain Second
+  Wind is Level 80: 9%), `gaian-boss` (Titanfall drops at your level), and three fixtures that named a removed artifact
+  (`settings-companions`, `guild-rematches`, `map`). The Guild's challenge offers by level are checked through the
+  counter in `guild-browser.js`.
+- **Not covered by a check:** the AI choosing actions with the new effects in mind (it sees the damage bonuses only);
+  damage with no source counting as an enemy's for Warding Cord and Second Chance Locket (A27) also when a hero's own
+  skill causes it.
+- **The checks can fail:** each rule was broken once in a copy of the game (85 mutations, by the same kind of runner as
+  tasks 2 and 3, in the cloud session's `claude-work/artifacts/`, not kept). All 85 were caught after a second pass; the
+  first let nine through, eight of them gaps the checks then closed (masterwork drops at your level only tested on the
+  helper, not through a real merfolk drop; the 1% chance only probed at 0.5% and 2%; the enemy's level never fed to the
+  real drop roll; Leech Hook's and Stormcatcher's shares rounding to 0 on small numbers; the chance check missing its
+  attack; Studious Quill only worn by the companion) and one a mutation that broke nothing (First Light's "spent on a
+  miss", replaced by one that spends it on any attack, which the checks catch).
+- **Regression** (2026-11-06, the cloud, Xvfb): all 109 entries of the 43 check files and the four suites, against task 3's
+  final run (the same old-game code as merged `main`, 1d79173). Every entry gives the baseline's result except: the 12
+  new entries pass; `coast-lich-bosses`' `runCoastLichBossChecks` and `enemy-healing` read a plain Arrowtip Rain and
+  Second Wind as their old numbers and were updated for Level 80 copies (25%, 9%; both pass); `map-speed`, the known
+  flaky travel-timing check, failed once and passed twice rerun alone; `cinder-bosses`' `runUrMatChecks` (the
+  baseline's random stun) passed. The baseline's 11 known failures are unchanged. Smoke, enemies (511 cases) and
+  lifecycle pass; the combat suite stops at the known Barbarian failure, as before.
+
+**New Areas (port task 6, 2026-11-06, a cloud session, branch `claude/fervent-carson-f5ol9s`; the task is
+`engine/Docs/Port-Tasks/6_New_Areas.txt`).** Built in the old game, as tasks 1–4 were; old game only, the engine is
+untouched. Done: the port brings it over and doesn't build it again; its only port work is remaking the placeholder
+looks (N4; `engine/Docs/Port-Tasks/README.md`). The user's answers are in `engine/Docs/Engine-Plan.md`, "Decisions for
+task 6, New Areas" (N1–N10); N9 approved the drafted zone, enemies and groups below.
+- **The Abyssal Rift**, a new zone of Gloamfen Marsh (N1, N2): `abyssalRift: { x: 380, y: 885, rx: 215, ry: 88 }` in
+  `world-region-data.js`, in the empty south-west between the Rocky Rise and Reedcross; it took only Open Mire ground
+  (no town, road or other zone moved). `WorldRules.zoneAt` returns "Abyssal Rift" before the marsh's other zones (towns
+  and roads still come first, as everywhere). Travel there is the open mire's 3 km/h (`speedAt`'s marsh default).
+- **Levels and encounters** (`encounter-engine.js`, N3, N9): Levels 45–55 (`gloamfenProfiles`), a 50% encounter chance
+  (`gloamfenChances`; the Deep Mire's is 45%), and nine fixed groups in `gloamfenTables["Abyssal Rift"]` (level,
+  weight): 45·9 Abyssal Imp ×2; 47·9 Corrupted Bog Troll; 48·7 Corrupted Bog Troll + Abyssal Imp; 50·8 Corrupted Mire
+  Stalker; 50·8 Rift Fiend; 52·7 Rift Fiend + Abyssal Imp ×2; 53·8 Corrupted Mossback Lamia; 54·7 Abyss Witch; 55·6
+  Corrupted Mossback Lamia + Rift Fiend. The six enemies' levels are in `enemyLevels` (the guild picks Hunt targets by
+  them). **The marsh's range** became 35–55 (N10): `levelRange` and the map header ("GLOAMFEN MARSH · LEVEL 35–55"), so
+  its guild quests go up to Level 55.
+- **The enemies** (`enemies/*.json`, listed in `enemies/index.json`, written by a generator kept in the cloud session's
+  `claude-work/areas/`, not in git; stats are their bases' scaled to the new level, every class within its cap):
+  - Corrupted ones (N6): the marsh creature turned `demon` race (Voidborne: Holy spells +80%, Dark spells nothing), its
+    classes and gear kept and grown: **Corrupted Bog Troll** (47; the Bog Troll's greataxe, its brawler and guardian
+    classes, with knight and slayer added), **Corrupted Mire Stalker** (50; two daggers, ambusher and hunter, with
+    archer and shadow; `"attackElement": "dark"`: its weapon strikes are Dark), **Corrupted Mossback Lamia** (53; the
+    spear, her druid and botanomancer turned warlock and umbramancer; Dark Bolt, Dark Siphon, Abyssal Bolt and Night
+    Mantle instead of her nature spells).
+  - Demons: **Abyssal Imp** (impid, 46; claws, a quick rogue-warlock: ambusher, shadow, eminence; Dark Bolt and
+    Hellstride), **Rift Fiend** (demon, 50; claws, warrior, barbarian, berserker, reaver, brawler, great beast, slayer),
+    **Abyss Witch** (demon, 54; warlock, umbramancer, spellcaster, wizard, great mage, sage, sorcerer; Abyssal Bolt,
+    Dark Siphon, Spellstop and Night Mantle).
+  - Loot (N7): their gear and the usual chances, task 4's 1% artifact roll; no `drops` of their own, none `unique`.
+- **Dark strikes** (`combat.js`): an enemy definition may name `attackElement` (one of `SPELL_ELEMENTS`, checked in
+  `validateEnemy`); the actor keeps it (`attackElement` beside `naturalWeapon`, saved with the battle), and
+  `strikeElement(actor, weapon)` gives it before the weapon's element to a weapon strike's `hurt` and to the AI's
+  forecast of the strike (`estimatedWeaponStrike`). Only the Corrupted Mire Stalker has one. Not changed: a Fencer's
+  riposte still uses its weapon's element (a riposte needs a one-handed sword or rapier; no Rift enemy can make one).
+- **Looks** (PLACEHOLDER ART, N4): `sprite-catalog.js` after the Void Stalker, from the existing kits: the corrupted
+  three are their bases darkened with glowing red eyes (the troll ash-grey with violet veins, `voidVeins`; the stalker
+  black-scaled; the lamia's moss withered black); the Abyssal Imp an ember-red winged imp; the Rift Fiend a large
+  charcoal horned devil-kit demon with red eyes; the Abyss Witch a violet-robed devil-kit demon with a violet glow.
+  The map (`map-regions.js`, Gloamfen's spec): a dark violet scar with a red-glowing heart painted over the mire (no
+  pools, scrub or wet ground in it) and the label "ABYSSAL RIFT".
+- **Guild:** `guild.js`'s `regionalZones["gloamfen-marsh"]` has the Rift (anchor point 380, 885), so Mirewatch's Hunts and
+  Culls (the marsh's only guild) go there once the hunter is Level 42 or more (a zone's minimum ≤ level + 3), naming a
+  Rift enemy near the hunter's level, as for every zone.
+- **Tests:** `test-client/tests/new-areas-browser.js`, 7 entries: `checkRiftZone` (place, shape, what it took, chance,
+  levels, travel, the marsh's range), `checkRiftEncounters` (the nine groups, levels, a travel encounter),
+  `checkRiftEnemies` (each enemy against the draft and its base, in battle too), `checkRiftDarkStrikes` (Dark
+  resistance stops the Stalker's strikes but no one else's, and the AI foresees it; a restored battle keeps them;
+  unknown elements are refused), `checkRiftLooks`, `checkRiftMap` (the painting sampled through the region's field function, the label, the
+  map panel), `checkRiftGuild` (Hunts by level). The battle entries use a second copy of `combat.js` with a hook
+  (`window.__riftChecks`). No old check needed changing.
+- **The checks can fail:** each rule was broken once in a copy of the game (64 mutations, by the same runner as task 4,
+  in the cloud session's `claude-work/areas/`, not kept): the zone's place, size and order, the marsh's range and
+  header, the chance and levels, every group's level, weight and make-up, each enemy's level, race, classes (over a
+  cap, over the level, a style class lost, a nature class kept), spells, weapons, loot, index entry and Dark strikes
+  (dropped at each step, in the AI's forecast, given to everyone, an unknown element let through), the looks, the
+  painting and label, and the guild zone. All 64 were caught after a second pass; the first let two through, both gaps the checks then
+  closed (an extra item in the Corrupted Bog Troll's pack, as only its equipped gear was compared; the Rift's pools
+  left in, as the sampled spots had no pools in the open mire to begin with: the check now scans the Rift's inner part
+  for the mire's pools).
+- **Regression** (2026-11-06, the cloud, Xvfb, on a frozen copy of the game with tasks 4 and 6): all 116 entries of the
+  44 check files and the four suites, against task 4's final run. Every entry gives the baseline's result (with task
+  4's two updated checks passing) except: the 7 new entries pass; `map-speed`, the known flaky travel-timing check,
+  failed once and passed rerun alone; `coast-lich-bosses`' `runCoastLichBossChecks` failed at "The phylactery never
+  takes a turn of its own". That check is flaky on merged `main` too (before tasks 4 and 6): it plays 30 steps of Ool's
+  battle with real dice and heals the hero only on the hero's turns, and five of Ool's spells (Last Requiem 3%,
+  Sepulcher Verdict 2.5%, Grave Sentence and Pallbearer's Touch 2%, Soul Extinction 1%) can defeat the hero outright
+  first, ending the battle before the phylactery's turn. Twelve runs each: 1 failure on `main` (1d79173, Last Requiem's
+  instant defeat), 1 on the current code; so do `runOolChecks` and the aggregate entry, whichever draws it. Left as it
+  is (an old check). The forecast fix (`strikeElement`) came after the full run: the
+  new checks, `artifact-rework`, `enemy-healing`, `coast-lich-bosses` and the smoke, enemies and lifecycle suites were
+  run again on the final code and give the same results. The baseline's 11 known failures are unchanged. Smoke, enemies (530 cases: the six new enemies' 19 AI cases added) and lifecycle pass; the combat suite
+  stops at the known Barbarian failure, as before.
+
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in
 the engine's way. The list's rune slotting sound was left out: the port adds proper sound effects instead.
@@ -567,6 +709,9 @@ A change is safe when these results stay identical.
   Barbarian failure), `trap`, and two flaky ones that passed on reruns: `map-speed` (travel timing) and
   `runCompanionImportChecks`. The small changes of that day left these results the same (the flaky two passed), and
   added `small-changes-browser.js` (9 entries, all passing).
+- 2026-11-06 (task 6's regression): `coast-lich-bosses`' Ool checks (`runOolChecks`, and `runCoastLichBossChecks`, which
+  runs it) are flaky too, about 1 run in 12, also on `main` before tasks 4 and 6: Ool's instant-defeat spells can end
+  the battle before "The phylactery never takes a turn of its own" is reached. Rerun before suspecting a change.
 
 **Known failure:** The combat suite fails "Legacy bonus-choice cancellation makes no changes and does not spend money". The cause is the 2026-10-06 edit that made Barbarian level 7 grant both STR and VIT +5% instead of a choice. The Church of Talos prompt for older saves that never recorded the choice became unreachable. The failure stops the combat suite early, so run `enemies` and `lifecycle` separately.
 

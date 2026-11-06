@@ -1,546 +1,603 @@
 [
   {
-    "id": "artifact-power-ring-artifact",
-    "name": "Power ring",
+    "id": "artifact-brawlers-knuckle-ring-artifact",
+    "name": "Brawler's Knuckle Ring",
     "rarity": "uncommon",
-    "priceSilver": 1800,
-    "description": "Increase Strength and Vitality by 5%",
+    "priceSilver": 2000,
+    "description": "Strength +8%.",
     "effects": [
       {
         "kind": "stat-permanent-percent",
         "target": "strength",
-        "amount": 5
-      },
+        "amount": 8
+      }
+    ],
+    "look": {
+      "shape": "ring",
+      "glyph": "fist"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-oakheart-locket-artifact",
+    "name": "Oakheart Locket",
+    "rarity": "uncommon",
+    "priceSilver": 2000,
+    "description": "Vitality +8%.",
+    "effects": [
       {
         "kind": "stat-permanent-percent",
         "target": "vitality",
-        "amount": 5
+        "amount": 8
       }
-    ]
+    ],
+    "look": {
+      "shape": "locket",
+      "glyph": "leaf"
+    },
+    "placeholderArt": true
   },
   {
-    "id": "artifact-amulet-of-health-artifact",
-    "name": "Amulet of health",
+    "id": "artifact-thinkers-pin-artifact",
+    "name": "Thinker's Pin",
     "rarity": "uncommon",
     "priceSilver": 2000,
-    "description": "Increases your max HP by 10%",
-    "effects": [
-      {
-        "kind": "max-hp-percent",
-        "amount": 10
-      }
-    ]
-  },
-  {
-    "id": "artifact-sure-hit-armband-artifact",
-    "name": "Sure-hit armband",
-    "rarity": "uncommon",
-    "priceSilver": 1600,
-    "description": "Increases your hit chance by 15%",
-    "effects": [
-      {
-        "kind": "weapon-hit-percent",
-        "amount": 15
-      }
-    ]
-  },
-  {
-    "id": "artifact-manaflow-band-artifact",
-    "name": "Manaflow band",
-    "rarity": "uncommon",
-    "priceSilver": 1400,
-    "description": "Your spells cost 5% less Mana",
-    "effects": [
-      {
-        "kind": "spell-cost-percent",
-        "amount": 5
-      }
-    ]
-  },
-  {
-    "id": "artifact-ring-of-the-mind-artifact",
-    "name": "Ring of the mind",
-    "rarity": "rare",
-    "priceSilver": 5000,
-    "description": "Increase Mind by 10%",
+    "description": "Mind +8%.",
     "effects": [
       {
         "kind": "stat-permanent-percent",
         "target": "mind",
-        "amount": 10
+        "amount": 8
       }
-    ]
+    ],
+    "look": {
+      "shape": "pin",
+      "glyph": "spiral"
+    },
+    "placeholderArt": true
   },
   {
-    "id": "artifact-ironheart-brooch-artifact",
-    "name": "Ironheart Brooch",
+    "id": "artifact-quickhand-bracelet-artifact",
+    "name": "Quickhand Bracelet",
     "rarity": "uncommon",
-    "priceSilver": 2200,
-    "description": "Increases the permanent Vitality bonus by 4% and grants 2 Armor.",
+    "priceSilver": 2000,
+    "description": "Dexterity +8%.",
     "effects": [
       {
         "kind": "stat-permanent-percent",
-        "target": "vitality",
-        "amount": 4
-      },
-      {
-        "kind": "armor-flat",
-        "amount": 2
+        "target": "dexterity",
+        "amount": 8
       }
-    ]
+    ],
+    "look": {
+      "shape": "bracelet",
+      "glyph": "hand"
+    },
+    "placeholderArt": true
   },
   {
-    "id": "artifact-fleetfoot-anklet-artifact",
-    "name": "Fleetfoot Anklet",
+    "id": "artifact-scholars-signet-artifact",
+    "name": "Scholar's Signet",
     "rarity": "uncommon",
-    "priceSilver": 2100,
-    "description": "Increases the permanent Speed bonus by 6% and grants 4 Evasion.",
+    "priceSilver": 2000,
+    "description": "Intelligence +8%.",
+    "effects": [
+      {
+        "kind": "stat-permanent-percent",
+        "target": "intelligence",
+        "amount": 8
+      }
+    ],
+    "look": {
+      "shape": "signet",
+      "glyph": "book"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-hermits-bead-artifact",
+    "name": "Hermit's Bead",
+    "rarity": "uncommon",
+    "priceSilver": 2000,
+    "description": "Wisdom +8%.",
+    "effects": [
+      {
+        "kind": "stat-permanent-percent",
+        "target": "wisdom",
+        "amount": 8
+      }
+    ],
+    "look": {
+      "shape": "bead",
+      "glyph": "eye"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-hares-anklet-artifact",
+    "name": "Hare's Anklet",
+    "rarity": "uncommon",
+    "priceSilver": 2200,
+    "description": "Speed +6%.",
     "effects": [
       {
         "kind": "stat-permanent-percent",
         "target": "speed",
         "amount": 6
-      },
-      {
-        "kind": "evasion-flat",
-        "amount": 4
       }
-    ]
+    ],
+    "look": {
+      "shape": "anklet",
+      "glyph": "hare"
+    },
+    "placeholderArt": true
   },
   {
-    "id": "artifact-duelists-coin-artifact",
-    "name": "Duelist's Coin",
+    "id": "artifact-copper-clover-artifact",
+    "name": "Copper Clover",
     "rarity": "uncommon",
-    "priceSilver": 2400,
-    "description": "Increases melee weapon hit chance by 8 and melee weapon power by 5%.",
-    "effects": [
-      {
-        "kind": "weapon-hit-flat",
-        "weaponType": "melee",
-        "amount": 8
-      },
-      {
-        "kind": "weapon-power-percent",
-        "weaponType": "melee",
-        "amount": 5
-      }
-    ]
-  },
-  {
-    "id": "artifact-hawkeye-lens-artifact",
-    "name": "Hawkeye Lens",
-    "rarity": "uncommon",
-    "priceSilver": 2300,
-    "description": "Increases ranged weapon hit chance by 10 and the permanent Dexterity bonus by 3%.",
-    "effects": [
-      {
-        "kind": "weapon-hit-flat",
-        "weaponType": "ranged",
-        "amount": 10
-      },
-      {
-        "kind": "stat-permanent-percent",
-        "target": "dexterity",
-        "amount": 3
-      }
-    ]
-  },
-  {
-    "id": "artifact-emberglass-charm-artifact",
-    "name": "Emberglass Charm",
-    "rarity": "uncommon",
-    "priceSilver": 2500,
-    "description": "Increases Fire spell power by 10%, but increases the Mana cost of Fire spells by 5%.",
-    "effects": [
-      {
-        "kind": "spell-power-percent",
-        "element": "fire",
-        "amount": 10
-      },
-      {
-        "kind": "spell-cost-percent",
-        "element": "fire",
-        "amount": -5
-      }
-    ]
-  },
-  {
-    "id": "artifact-tidal-pearl-artifact",
-    "name": "Tidal Pearl",
-    "rarity": "uncommon",
-    "priceSilver": 2600,
-    "description": "Reduces the Mana cost of Water spells by 8% and increases their power by 5%.",
-    "effects": [
-      {
-        "kind": "spell-cost-percent",
-        "element": "water",
-        "amount": 8
-      },
-      {
-        "kind": "spell-power-percent",
-        "element": "water",
-        "amount": 5
-      }
-    ]
-  },
-  {
-    "id": "artifact-wardstone-artifact",
-    "name": "Wardstone",
-    "rarity": "uncommon",
-    "priceSilver": 2000,
-    "description": "Increases Armor by 10%, but decreases Evasion by 3.",
-    "effects": [
-      {
-        "kind": "armor-percent",
-        "amount": 10
-      },
-      {
-        "kind": "evasion-flat",
-        "amount": -3
-      }
-    ]
-  },
-  {
-    "id": "artifact-lucky-rabbit-foot-artifact",
-    "name": "Lucky Rabbit Foot",
-    "rarity": "uncommon",
-    "priceSilver": 1900,
-    "description": "Increases the permanent Luck bonus by 8%.",
+    "priceSilver": 1800,
+    "description": "Luck +10%.",
     "effects": [
       {
         "kind": "stat-permanent-percent",
         "target": "luck",
-        "amount": 8
+        "amount": 10
       }
-    ]
+    ],
+    "look": {
+      "shape": "charm",
+      "glyph": "clover"
+    },
+    "placeholderArt": true
   },
   {
-    "id": "artifact-channelers-bead-artifact",
-    "name": "Channeler's Bead",
+    "id": "artifact-hearthstone-charm-artifact",
+    "name": "Hearthstone Charm",
+    "rarity": "uncommon",
+    "priceSilver": 2200,
+    "description": "Maximum HP +10%.",
+    "effects": [
+      {
+        "kind": "max-hp-percent",
+        "amount": 10
+      }
+    ],
+    "look": {
+      "shape": "stone",
+      "glyph": "flame"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-wellspring-drop-artifact",
+    "name": "Wellspring Drop",
+    "rarity": "uncommon",
+    "priceSilver": 2200,
+    "description": "Maximum Mana +12%.",
+    "effects": [
+      {
+        "kind": "max-mana-percent",
+        "amount": 12
+      }
+    ],
+    "look": {
+      "shape": "drop",
+      "glyph": "wave"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-riveted-buckle-artifact",
+    "name": "Riveted Buckle",
+    "rarity": "uncommon",
+    "priceSilver": 2000,
+    "description": "Armor +10%.",
+    "effects": [
+      {
+        "kind": "armor-percent",
+        "amount": 10
+      }
+    ],
+    "look": {
+      "shape": "buckle",
+      "glyph": "rivets"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-feather-token-artifact",
+    "name": "Feather Token",
+    "rarity": "uncommon",
+    "priceSilver": 2000,
+    "description": "Evasion +6.",
+    "effects": [
+      {
+        "kind": "evasion-flat",
+        "amount": 6
+      }
+    ],
+    "look": {
+      "shape": "coin",
+      "glyph": "feather"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-whetstone-ring-artifact",
+    "name": "Whetstone Ring",
     "rarity": "uncommon",
     "priceSilver": 2400,
-    "description": "Increases all spell power by 7%, but increases all spell Mana costs by 4%.",
+    "description": "Weapon power +6%.",
+    "effects": [
+      {
+        "kind": "weapon-power-percent",
+        "amount": 6
+      }
+    ],
+    "look": {
+      "shape": "ring",
+      "glyph": "blade"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-steady-eye-lens-artifact",
+    "name": "Steady Eye Lens",
+    "rarity": "uncommon",
+    "priceSilver": 2000,
+    "description": "Weapon hit chance +10.",
+    "effects": [
+      {
+        "kind": "weapon-hit-flat",
+        "amount": 10
+      }
+    ],
+    "look": {
+      "shape": "lens",
+      "glyph": "crosshair"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-glint-shard-artifact",
+    "name": "Glint Shard",
+    "rarity": "uncommon",
+    "priceSilver": 2400,
+    "description": "Critical chance +4.",
+    "effects": [
+      {
+        "kind": "weapon-crit-flat",
+        "amount": 4
+      }
+    ],
+    "look": {
+      "shape": "shard",
+      "glyph": "glint"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-inkwell-charm-artifact",
+    "name": "Inkwell Charm",
+    "rarity": "uncommon",
+    "priceSilver": 2200,
+    "description": "Spells cost 6% less Mana.",
+    "effects": [
+      {
+        "kind": "spell-cost-percent",
+        "amount": 6
+      }
+    ],
+    "look": {
+      "shape": "charm",
+      "glyph": "ink"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-spark-coil-artifact",
+    "name": "Spark Coil",
+    "rarity": "uncommon",
+    "priceSilver": 2400,
+    "description": "Spell power +6%.",
     "effects": [
       {
         "kind": "spell-power-percent",
-        "amount": 7
-      },
-      {
-        "kind": "spell-cost-percent",
-        "amount": -4
+        "amount": 6
       }
-    ]
+    ],
+    "look": {
+      "shape": "coil",
+      "glyph": "spark"
+    },
+    "placeholderArt": true
   },
   {
-    "id": "artifact-trappers-token-artifact",
-    "name": "Trapper's Token",
+    "id": "artifact-bandits-coin-artifact",
+    "name": "Bandit's Coin",
     "rarity": "uncommon",
-    "priceSilver": 2800,
-    "description": "Raises the active trap limit by 1 and directly grants 2 Dexterity.",
+    "priceSilver": 1600,
+    "description": "+15% silver from battles.",
+    "effects": [
+      {
+        "kind": "money-percent",
+        "amount": 15
+      }
+    ],
+    "look": {
+      "shape": "coin",
+      "glyph": "mask"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-studious-quill-artifact",
+    "name": "Studious Quill",
+    "rarity": "uncommon",
+    "priceSilver": 2000,
+    "description": "+10% EXP from battles.",
+    "effects": [
+      {
+        "kind": "exp-percent",
+        "amount": 10
+      }
+    ],
+    "look": {
+      "shape": "quill",
+      "glyph": "book"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-leech-hook-artifact",
+    "name": "Leech Hook",
+    "rarity": "uncommon",
+    "priceSilver": 2400,
+    "description": "Weapon hits heal you for 3% of the damage dealt.",
+    "effects": [
+      {
+        "kind": "weapon-lifesteal-percent",
+        "amount": 3
+      }
+    ],
+    "look": {
+      "shape": "hook",
+      "glyph": "drop"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-thornknot-brooch-artifact",
+    "name": "Thornknot Brooch",
+    "rarity": "uncommon",
+    "priceSilver": 2200,
+    "description": "Melee attackers take 8% of the damage they deal you.",
+    "effects": [
+      {
+        "kind": "melee-thorns-percent",
+        "amount": 8
+      }
+    ],
+    "look": {
+      "shape": "brooch",
+      "glyph": "thorns"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-morning-dew-vial-artifact",
+    "name": "Morning Dew Vial",
+    "rarity": "uncommon",
+    "priceSilver": 2600,
+    "description": "Restore 2% of your maximum HP at the start of your turn.",
+    "effects": [
+      {
+        "kind": "turn-start-heal-percent",
+        "amount": 2
+      }
+    ],
+    "look": {
+      "shape": "vial",
+      "glyph": "dew"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-mana-drip-stone-artifact",
+    "name": "Mana Drip Stone",
+    "rarity": "uncommon",
+    "priceSilver": 2400,
+    "description": "Restore 2% of your maximum Mana at the start of your turn.",
+    "effects": [
+      {
+        "kind": "turn-start-mana-percent",
+        "amount": 2
+      }
+    ],
+    "look": {
+      "shape": "stone",
+      "glyph": "drop"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-warding-cord-artifact",
+    "name": "Warding Cord",
+    "rarity": "uncommon",
+    "priceSilver": 1800,
+    "description": "The first hit you take each battle deals 25% less damage.",
+    "effects": [
+      {
+        "kind": "first-hit-guard-percent",
+        "amount": 25
+      }
+    ],
+    "look": {
+      "shape": "cord",
+      "glyph": "knot"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-first-light-pin-artifact",
+    "name": "First Light Pin",
+    "rarity": "uncommon",
+    "priceSilver": 1800,
+    "description": "Your first attack or spell each battle deals +20% damage.",
+    "effects": [
+      {
+        "kind": "first-strike-damage-percent",
+        "amount": 20
+      }
+    ],
+    "look": {
+      "shape": "pin",
+      "glyph": "sunrise"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-greenskin-tooth-artifact",
+    "name": "Greenskin Tooth",
+    "rarity": "uncommon",
+    "priceSilver": 1600,
+    "description": "+12% damage against goblins and orcs.",
+    "effects": [
+      {
+        "kind": "damage-percent-vs-race",
+        "amount": 12,
+        "raceIds": [
+          "goblin",
+          "orc"
+        ]
+      }
+    ],
+    "look": {
+      "shape": "tooth",
+      "glyph": "tusk"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-silver-nail-artifact",
+    "name": "Silver Nail",
+    "rarity": "uncommon",
+    "priceSilver": 1800,
+    "description": "+12% damage against undead.",
+    "effects": [
+      {
+        "kind": "damage-percent-vs-race",
+        "amount": 12,
+        "raceIds": [
+          "undead"
+        ]
+      }
+    ],
+    "look": {
+      "shape": "nail",
+      "glyph": "skull"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-ashen-ward-artifact",
+    "name": "Ashen Ward",
+    "rarity": "uncommon",
+    "priceSilver": 2000,
+    "description": "Fire damage you take −12%.",
+    "effects": [
+      {
+        "kind": "element-resistance-percent",
+        "amount": 12,
+        "element": "fire"
+      }
+    ],
+    "look": {
+      "shape": "disc",
+      "glyph": "flame"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-thunderstone-earring-artifact",
+    "name": "Thunderstone Earring",
+    "rarity": "uncommon",
+    "priceSilver": 2000,
+    "description": "Lightning damage you take −12%.",
+    "effects": [
+      {
+        "kind": "element-resistance-percent",
+        "amount": 12,
+        "element": "lightning"
+      }
+    ],
+    "look": {
+      "shape": "earring",
+      "glyph": "zigzag"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-triage-pouch-artifact",
+    "name": "Triage Pouch",
+    "rarity": "uncommon",
+    "priceSilver": 2200,
+    "description": "Healing you receive in battle +10%.",
+    "effects": [
+      {
+        "kind": "healing-received-percent",
+        "amount": 10
+      }
+    ],
+    "look": {
+      "shape": "pouch",
+      "glyph": "cross"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-menders-thimble-artifact",
+    "name": "Mender's Thimble",
+    "rarity": "uncommon",
+    "priceSilver": 2200,
+    "description": "Heals you give +8%.",
+    "effects": [
+      {
+        "kind": "healing-given-percent",
+        "amount": 8
+      }
+    ],
+    "look": {
+      "shape": "thimble",
+      "glyph": "stitch"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-snare-twine-artifact",
+    "name": "Snare Twine",
+    "rarity": "uncommon",
+    "priceSilver": 2400,
+    "description": "Trap limit +1.",
     "effects": [
       {
         "kind": "trap-limit-flat",
         "amount": 1
-      },
-      {
-        "kind": "stat-flat",
-        "target": "dexterity",
-        "amount": 2
       }
-    ]
+    ],
+    "look": {
+      "shape": "coil",
+      "glyph": "snare"
+    },
+    "placeholderArt": true
   },
   {
-    "id": "artifact-giantblood-torque-artifact",
-    "name": "Giantblood Torque",
-    "rarity": "rare",
-    "priceSilver": 6200,
-    "description": "Increases Strength and maximum HP by 10%, but decreases the permanent Speed bonus by 5%.",
-    "effects": [
-      {
-        "kind": "stat-permanent-percent",
-        "target": "strength",
-        "amount": 10
-      },
-      {
-        "kind": "max-hp-percent",
-        "amount": 10
-      },
-      {
-        "kind": "stat-permanent-percent",
-        "target": "speed",
-        "amount": -5
-      }
-    ]
-  },
-  {
-    "id": "artifact-mirrorleaf-pendant-artifact",
-    "name": "Mirrorleaf Pendant",
-    "rarity": "rare",
-    "priceSilver": 5800,
-    "description": "Increases Evasion by 18%, but decreases Armor by 8%.",
-    "effects": [
-      {
-        "kind": "evasion-percent",
-        "amount": 18
-      },
-      {
-        "kind": "armor-percent",
-        "amount": -8
-      }
-    ]
-  },
-  {
-    "id": "artifact-battlemage-signet-artifact",
-    "name": "Battlemage Signet",
-    "rarity": "rare",
-    "priceSilver": 7000,
-    "description": "Increases melee weapon power by 12% and spell power by 10%, but increases spell Mana costs by 8%.",
-    "effects": [
-      {
-        "kind": "weapon-power-percent",
-        "weaponType": "melee",
-        "amount": 12
-      },
-      {
-        "kind": "spell-power-percent",
-        "amount": 10
-      },
-      {
-        "kind": "spell-cost-percent",
-        "amount": -8
-      }
-    ]
-  },
-  {
-    "id": "artifact-arcane-reservoir-artifact",
-    "name": "Arcane Reservoir",
-    "rarity": "rare",
-    "priceSilver": 6500,
-    "description": "Increases maximum Mana by 18% and reduces all spell Mana costs by 6%.",
-    "effects": [
-      {
-        "kind": "max-mana-percent",
-        "amount": 18
-      },
-      {
-        "kind": "spell-cost-percent",
-        "amount": 6
-      }
-    ]
-  },
-  {
-    "id": "artifact-deadeye-prism-artifact",
-    "name": "Deadeye Prism",
-    "rarity": "rare",
-    "priceSilver": 6800,
-    "description": "Increases ranged weapon hit chance by 15 and ranged weapon critical chance by 5.",
-    "effects": [
-      {
-        "kind": "weapon-hit-flat",
-        "weaponType": "ranged",
-        "amount": 15
-      },
-      {
-        "kind": "weapon-crit-flat",
-        "weaponType": "ranged",
-        "amount": 5
-      }
-    ]
-  },
-  {
-    "id": "artifact-runebreaker-seal-artifact",
-    "name": "Runebreaker Seal",
+    "id": "artifact-ironbound-signet-artifact",
+    "name": "Ironbound Signet",
     "rarity": "rare",
     "priceSilver": 6000,
-    "description": "Adds 6 power to Tier 3 or lower spells.",
-    "effects": [
-      {
-        "kind": "spell-power-flat",
-        "maxTier": 3,
-        "amount": 6
-      }
-    ]
-  },
-  {
-    "id": "artifact-bastion-core-artifact",
-    "name": "Bastion Core",
-    "rarity": "rare",
-    "priceSilver": 6500,
-    "description": "Increases Armor by 18%, but decreases the permanent Speed bonus by 8%.",
-    "effects": [
-      {
-        "kind": "armor-percent",
-        "amount": 18
-      },
-      {
-        "kind": "stat-permanent-percent",
-        "target": "speed",
-        "amount": -8
-      }
-    ]
-  },
-  {
-    "id": "artifact-stormcaller-shard-artifact",
-    "name": "Stormcaller Shard",
-    "rarity": "rare",
-    "priceSilver": 7200,
-    "description": "Increases Lightning spell power by 22%, but increases the Mana cost of Lightning spells by 10%.",
-    "effects": [
-      {
-        "kind": "spell-power-percent",
-        "element": "lightning",
-        "amount": 22
-      },
-      {
-        "kind": "spell-cost-percent",
-        "element": "lightning",
-        "amount": -10
-      }
-    ]
-  },
-  {
-    "id": "artifact-dragonheart-relic-artifact",
-    "name": "Dragonheart Relic",
-    "rarity": "epic",
-    "priceSilver": 15500,
-    "description": "Increases the permanent Strength and Vitality bonuses by 15% and maximum HP by 15%.",
-    "effects": [
-      {
-        "kind": "stat-permanent-percent",
-        "target": "strength",
-        "amount": 15
-      },
-      {
-        "kind": "stat-permanent-percent",
-        "target": "vitality",
-        "amount": 15
-      },
-      {
-        "kind": "max-hp-percent",
-        "amount": 15
-      }
-    ]
-  },
-  {
-    "id": "artifact-chronoglass-gear-artifact",
-    "name": "Chronoglass Gear",
-    "rarity": "epic",
-    "priceSilver": 14500,
-    "description": "Increases the permanent Speed bonus by 20% and Evasion by 25%, but decreases Armor by 12%.",
-    "effects": [
-      {
-        "kind": "stat-permanent-percent",
-        "target": "speed",
-        "amount": 20
-      },
-      {
-        "kind": "evasion-percent",
-        "amount": 25
-      },
-      {
-        "kind": "armor-percent",
-        "amount": -12
-      }
-    ]
-  },
-  {
-    "id": "artifact-crown-of-seven-sparks-artifact",
-    "name": "Crown of Seven Sparks",
-    "rarity": "epic",
-    "priceSilver": 16500,
-    "description": "Increases Fire spell power by 15% and Lightning spell power by 20%, but increases all spell Mana costs by 10%.",
-    "effects": [
-      {
-        "kind": "spell-power-percent",
-        "element": "fire",
-        "amount": 15
-      },
-      {
-        "kind": "spell-power-percent",
-        "element": "lightning",
-        "amount": 20
-      },
-      {
-        "kind": "spell-cost-percent",
-        "amount": -10
-      }
-    ]
-  },
-  {
-    "id": "artifact-voidbound-eye-artifact",
-    "name": "Voidbound Eye",
-    "rarity": "epic",
-    "priceSilver": 17000,
-    "description": "Increases Dark spell power by 30% and reduces Dark spell Mana costs by 10%, but decreases maximum HP by 10%.",
-    "effects": [
-      {
-        "kind": "spell-power-percent",
-        "element": "dark",
-        "amount": 30
-      },
-      {
-        "kind": "spell-cost-percent",
-        "element": "dark",
-        "amount": 10
-      },
-      {
-        "kind": "max-hp-percent",
-        "amount": -10
-      }
-    ]
-  },
-  {
-    "id": "artifact-warlords-brand-artifact",
-    "name": "Warlord's Brand",
-    "rarity": "epic",
-    "priceSilver": 18000,
-    "description": "Increases melee weapon power by 22%, hit chance by 15 and critical chance by 8.",
-    "effects": [
-      {
-        "kind": "weapon-power-percent",
-        "weaponType": "melee",
-        "amount": 22
-      },
-      {
-        "kind": "weapon-hit-flat",
-        "weaponType": "melee",
-        "amount": 15
-      },
-      {
-        "kind": "weapon-crit-flat",
-        "weaponType": "melee",
-        "amount": 8
-      }
-    ]
-  },
-  {
-    "id": "artifact-grand-trap-matrix-artifact",
-    "name": "Grand Trap Matrix",
-    "rarity": "epic",
-    "priceSilver": 15000,
-    "description": "Raises the active trap limit by 2 and increases the permanent Dexterity bonus and Armor by 10%.",
-    "effects": [
-      {
-        "kind": "trap-limit-flat",
-        "amount": 2
-      },
-      {
-        "kind": "stat-permanent-percent",
-        "target": "dexterity",
-        "amount": 10
-      },
-      {
-        "kind": "armor-percent",
-        "amount": 10
-      }
-    ]
-  },
-  {
-    "id": "artifact-worldroot-seed-artifact",
-    "name": "Worldroot Seed",
-    "rarity": "legendary",
-    "priceSilver": 32000,
-    "description": "Increases every permanent basic-stat bonus by 8% and maximum HP by 15%.",
+    "description": "Strength and Vitality +8%.",
     "effects": [
       {
         "kind": "stat-permanent-percent",
@@ -551,17 +608,21 @@
         "kind": "stat-permanent-percent",
         "target": "vitality",
         "amount": 8
-      },
-      {
-        "kind": "stat-permanent-percent",
-        "target": "mind",
-        "amount": 8
-      },
-      {
-        "kind": "stat-permanent-percent",
-        "target": "dexterity",
-        "amount": 8
-      },
+      }
+    ],
+    "look": {
+      "shape": "signet",
+      "glyph": "bars"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-sages-loop-artifact",
+    "name": "Sage's Loop",
+    "rarity": "rare",
+    "priceSilver": 6000,
+    "description": "Intelligence and Wisdom +8%.",
+    "effects": [
       {
         "kind": "stat-permanent-percent",
         "target": "intelligence",
@@ -571,29 +632,796 @@
         "kind": "stat-permanent-percent",
         "target": "wisdom",
         "amount": 8
+      }
+    ],
+    "look": {
+      "shape": "ring",
+      "glyph": "twin"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-duelists-signet-artifact",
+    "name": "Duelist's Signet",
+    "rarity": "rare",
+    "priceSilver": 6500,
+    "description": "Dexterity +10% and critical chance +4.",
+    "effects": [
+      {
+        "kind": "stat-permanent-percent",
+        "target": "dexterity",
+        "amount": 10
       },
+      {
+        "kind": "weapon-crit-flat",
+        "amount": 4
+      }
+    ],
+    "look": {
+      "shape": "signet",
+      "glyph": "rapiers"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-heartwood-amulet-artifact",
+    "name": "Heartwood Amulet",
+    "rarity": "rare",
+    "priceSilver": 6000,
+    "description": "Maximum HP +18%.",
+    "effects": [
+      {
+        "kind": "max-hp-percent",
+        "amount": 18
+      }
+    ],
+    "look": {
+      "shape": "amulet",
+      "glyph": "heart"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-moonwell-pendant-artifact",
+    "name": "Moonwell Pendant",
+    "rarity": "rare",
+    "priceSilver": 6500,
+    "description": "Maximum Mana +20% and spells cost 4% less Mana.",
+    "effects": [
+      {
+        "kind": "max-mana-percent",
+        "amount": 20
+      },
+      {
+        "kind": "spell-cost-percent",
+        "amount": 4
+      }
+    ],
+    "look": {
+      "shape": "amulet",
+      "glyph": "crescent"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-bulwark-brooch-artifact",
+    "name": "Bulwark Brooch",
+    "rarity": "rare",
+    "priceSilver": 6000,
+    "description": "Armor +16%.",
+    "effects": [
+      {
+        "kind": "armor-percent",
+        "amount": 16
+      }
+    ],
+    "look": {
+      "shape": "brooch",
+      "glyph": "tower"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-windrunner-anklet-artifact",
+    "name": "Windrunner Anklet",
+    "rarity": "rare",
+    "priceSilver": 6800,
+    "description": "Speed +10%.",
+    "effects": [
       {
         "kind": "stat-permanent-percent",
         "target": "speed",
-        "amount": 8
-      },
+        "amount": 10
+      }
+    ],
+    "look": {
+      "shape": "anklet",
+      "glyph": "wings"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-gamblers-die-artifact",
+    "name": "Gambler's Die",
+    "rarity": "rare",
+    "priceSilver": 5500,
+    "description": "Luck +16%.",
+    "effects": [
       {
         "kind": "stat-permanent-percent",
         "target": "luck",
+        "amount": 16
+      }
+    ],
+    "look": {
+      "shape": "die",
+      "glyph": "pips"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-vampires-fang-artifact",
+    "name": "Vampire's Fang",
+    "rarity": "rare",
+    "priceSilver": 7000,
+    "description": "Weapon hits heal you for 6% of the damage dealt.",
+    "effects": [
+      {
+        "kind": "weapon-lifesteal-percent",
+        "amount": 6
+      }
+    ],
+    "look": {
+      "shape": "tooth",
+      "glyph": "fang"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-spellward-mirror-artifact",
+    "name": "Spellward Mirror",
+    "rarity": "rare",
+    "priceSilver": 6500,
+    "description": "Spell damage you take −10%.",
+    "effects": [
+      {
+        "kind": "incoming-spell-damage-percent",
+        "amount": -10
+      }
+    ],
+    "look": {
+      "shape": "mirror",
+      "glyph": "ward"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-stormcatcher-coil-artifact",
+    "name": "Stormcatcher Coil",
+    "rarity": "rare",
+    "priceSilver": 5500,
+    "description": "When an enemy's spell damages you, restore 4% of your maximum Mana.",
+    "effects": [
+      {
+        "kind": "spell-hit-mana-percent",
+        "amount": 4
+      }
+    ],
+    "look": {
+      "shape": "coil",
+      "glyph": "cloud"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-executioners-mark-artifact",
+    "name": "Executioner's Mark",
+    "rarity": "rare",
+    "priceSilver": 6500,
+    "description": "+20% damage against enemies below 30% HP.",
+    "effects": [
+      {
+        "kind": "damage-percent-vs-low-hp",
+        "amount": 20,
+        "thresholdPercent": 30
+      }
+    ],
+    "look": {
+      "shape": "amulet",
+      "glyph": "axe"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-giantslayer-torc-artifact",
+    "name": "Giantslayer Torc",
+    "rarity": "rare",
+    "priceSilver": 6500,
+    "description": "+15% damage against enemies with more maximum HP than you.",
+    "effects": [
+      {
+        "kind": "damage-percent-vs-larger-max-hp",
+        "amount": 15
+      }
+    ],
+    "look": {
+      "shape": "torc",
+      "glyph": "giant"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-warcry-horn-artifact",
+    "name": "Warcry Horn",
+    "rarity": "rare",
+    "priceSilver": 6000,
+    "description": "At the start of each battle: weapon power +15% for 2 turns.",
+    "effects": [
+      {
+        "kind": "battle-start-weapon-power-percent",
+        "amount": 15,
+        "durationTurns": 2
+      }
+    ],
+    "look": {
+      "shape": "horn",
+      "glyph": "shout"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-echo-bell-artifact",
+    "name": "Echo Bell",
+    "rarity": "rare",
+    "priceSilver": 6500,
+    "description": "Each spell has a 10% chance to cost no Mana.",
+    "effects": [
+      {
+        "kind": "free-spell-chance",
+        "amount": 10
+      }
+    ],
+    "look": {
+      "shape": "bell",
+      "glyph": "echo"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-ironskin-phial-artifact",
+    "name": "Ironskin Phial",
+    "rarity": "rare",
+    "priceSilver": 6000,
+    "description": "At the start of each battle: a barrier of 8% of your maximum HP.",
+    "effects": [
+      {
+        "kind": "battle-start-barrier-percent",
         "amount": 8
+      }
+    ],
+    "look": {
+      "shape": "vial",
+      "glyph": "shield"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-rallying-banner-pin-artifact",
+    "name": "Rallying Banner Pin",
+    "rarity": "rare",
+    "priceSilver": 7000,
+    "description": "At the start of each battle: you and your allies get all attributes +6% for 2 turns.",
+    "effects": [
+      {
+        "kind": "battle-start-party-stats-percent",
+        "amount": 6,
+        "durationTurns": 2
+      }
+    ],
+    "look": {
+      "shape": "pin",
+      "glyph": "banner"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-burning-brand-artifact",
+    "name": "Burning Brand",
+    "rarity": "rare",
+    "priceSilver": 6500,
+    "description": "Weapon hits have a 20% chance to burn the target for 3% of its maximum HP per turn for 2 turns.",
+    "effects": [
+      {
+        "kind": "on-hit-burn",
+        "amount": 3,
+        "chance": 20,
+        "durationTurns": 2
+      }
+    ],
+    "look": {
+      "shape": "brand",
+      "glyph": "flame"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-frostbite-charm-artifact",
+    "name": "Frostbite Charm",
+    "rarity": "rare",
+    "priceSilver": 6000,
+    "description": "Weapon hits have a 15% chance to slow the target: Speed −15% for 2 turns.",
+    "effects": [
+      {
+        "kind": "on-hit-slow",
+        "amount": 15,
+        "chance": 15,
+        "durationTurns": 2
+      }
+    ],
+    "look": {
+      "shape": "charm",
+      "glyph": "snowflake"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-shatter-stone-artifact",
+    "name": "Shatter Stone",
+    "rarity": "rare",
+    "priceSilver": 6500,
+    "description": "Weapon hits lower the target's Armor by 5% for 2 turns, stacking up to 3 times.",
+    "effects": [
+      {
+        "kind": "on-hit-armor-shred",
+        "amount": 5,
+        "durationTurns": 2,
+        "maxStacks": 3
+      }
+    ],
+    "look": {
+      "shape": "stone",
+      "glyph": "crack"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-cleansing-bead-artifact",
+    "name": "Cleansing Bead",
+    "rarity": "rare",
+    "priceSilver": 5500,
+    "description": "At the start of your turn, a 20% chance to remove one debuff from you.",
+    "effects": [
+      {
+        "kind": "turn-start-cleanse-chance",
+        "amount": 20
+      }
+    ],
+    "look": {
+      "shape": "bead",
+      "glyph": "ripple"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-dragonbane-scale-artifact",
+    "name": "Dragonbane Scale",
+    "rarity": "rare",
+    "priceSilver": 6000,
+    "description": "+15% damage against dragons.",
+    "effects": [
+      {
+        "kind": "damage-percent-vs-race",
+        "amount": 15,
+        "raceIds": [
+          "dragon"
+        ]
+      }
+    ],
+    "look": {
+      "shape": "scale",
+      "glyph": "claw"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-spirit-lantern-artifact",
+    "name": "Spirit Lantern",
+    "rarity": "rare",
+    "priceSilver": 6000,
+    "description": "+15% damage against elementals.",
+    "effects": [
+      {
+        "kind": "damage-percent-vs-race",
+        "amount": 15,
+        "raceIds": [
+          "elemental"
+        ]
+      }
+    ],
+    "look": {
+      "shape": "lantern",
+      "glyph": "wisp"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-battle-hymn-chime-artifact",
+    "name": "Battle Hymn Chime",
+    "rarity": "rare",
+    "priceSilver": 6500,
+    "description": "Defeating an enemy restores 5% of your maximum HP and 5% of your maximum Mana.",
+    "effects": [
+      {
+        "kind": "kill-restore-percent",
+        "amount": 5,
+        "mana": 5
+      }
+    ],
+    "look": {
+      "shape": "bell",
+      "glyph": "note"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-titans-band-artifact",
+    "name": "Titan's Band",
+    "rarity": "epic",
+    "priceSilver": 16000,
+    "description": "Strength +18% and maximum HP +10%.",
+    "effects": [
+      {
+        "kind": "stat-permanent-percent",
+        "target": "strength",
+        "amount": 18
       },
       {
         "kind": "max-hp-percent",
-        "amount": 15
+        "amount": 10
       }
-    ]
+    ],
+    "look": {
+      "shape": "band",
+      "glyph": "fist"
+    },
+    "placeholderArt": true
   },
   {
-    "id": "artifact-star-eater-orb-artifact",
-    "name": "Star-Eater Orb",
+    "id": "artifact-archmages-lodestone-artifact",
+    "name": "Archmage's Lodestone",
+    "rarity": "epic",
+    "priceSilver": 17000,
+    "description": "Spell power +16% and Intelligence +10%.",
+    "effects": [
+      {
+        "kind": "spell-power-percent",
+        "amount": 16
+      },
+      {
+        "kind": "stat-permanent-percent",
+        "target": "intelligence",
+        "amount": 10
+      }
+    ],
+    "look": {
+      "shape": "stone",
+      "glyph": "rune"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-hawkwind-fletch-artifact",
+    "name": "Hawkwind Fletch",
+    "rarity": "epic",
+    "priceSilver": 16000,
+    "description": "Ranged weapon power +18% and ranged hit chance +10.",
+    "effects": [
+      {
+        "kind": "weapon-power-percent",
+        "amount": 18,
+        "weaponType": "ranged"
+      },
+      {
+        "kind": "weapon-hit-flat",
+        "amount": 10,
+        "weaponType": "ranged"
+      }
+    ],
+    "look": {
+      "shape": "feather",
+      "glyph": "arrow"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-bladesingers-ring-artifact",
+    "name": "Bladesinger's Ring",
+    "rarity": "epic",
+    "priceSilver": 16500,
+    "description": "Melee weapon power +16% and critical chance +6.",
+    "effects": [
+      {
+        "kind": "weapon-power-percent",
+        "amount": 16,
+        "weaponType": "melee"
+      },
+      {
+        "kind": "weapon-crit-flat",
+        "amount": 6
+      }
+    ],
+    "look": {
+      "shape": "ring",
+      "glyph": "blade"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-aegis-medallion-artifact",
+    "name": "Aegis Medallion",
+    "rarity": "epic",
+    "priceSilver": 16500,
+    "description": "Armor +20% and spell damage you take −10%.",
+    "effects": [
+      {
+        "kind": "armor-percent",
+        "amount": 20
+      },
+      {
+        "kind": "incoming-spell-damage-percent",
+        "amount": -10
+      }
+    ],
+    "look": {
+      "shape": "medallion",
+      "glyph": "shield"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-phantom-step-pin-artifact",
+    "name": "Phantom Step Pin",
+    "rarity": "epic",
+    "priceSilver": 15500,
+    "description": "Evasion +12; after you evade an attack, your next attack deals +25% damage.",
+    "effects": [
+      {
+        "kind": "evasion-flat",
+        "amount": 12
+      },
+      {
+        "kind": "evade-next-attack-percent",
+        "amount": 25
+      }
+    ],
+    "look": {
+      "shape": "pin",
+      "glyph": "footprint"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-second-chance-locket-artifact",
+    "name": "Second Chance Locket",
+    "rarity": "epic",
+    "priceSilver": 18000,
+    "description": "Once per battle, a hit that would defeat you leaves you at 1 HP.",
+    "effects": [
+      {
+        "kind": "death-save",
+        "amount": 1
+      }
+    ],
+    "look": {
+      "shape": "locket",
+      "glyph": "chain"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-soulharvest-sickle-artifact",
+    "name": "Soulharvest Sickle",
+    "rarity": "epic",
+    "priceSilver": 15000,
+    "description": "Defeating an enemy restores 15% of your maximum HP.",
+    "effects": [
+      {
+        "kind": "kill-restore-percent",
+        "amount": 15,
+        "mana": 0
+      }
+    ],
+    "look": {
+      "shape": "sickle",
+      "glyph": "soul"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-forked-lightning-rod-artifact",
+    "name": "Forked Lightning Rod",
+    "rarity": "epic",
+    "priceSilver": 18000,
+    "description": "Your damaging spells also strike one other random enemy for 25% of the damage.",
+    "effects": [
+      {
+        "kind": "spell-chain-percent",
+        "amount": 25
+      }
+    ],
+    "look": {
+      "shape": "rod",
+      "glyph": "fork"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-bloodmoon-chalice-artifact",
+    "name": "Bloodmoon Chalice",
+    "rarity": "epic",
+    "priceSilver": 18500,
+    "description": "All damage you deal with weapons and spells heals you for 10% of it.",
+    "effects": [
+      {
+        "kind": "damage-lifesteal-percent",
+        "amount": 10
+      }
+    ],
+    "look": {
+      "shape": "chalice",
+      "glyph": "moon"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-hourglass-of-haste-artifact",
+    "name": "Hourglass of Haste",
+    "rarity": "epic",
+    "priceSilver": 15000,
+    "description": "+1 AP on your first turn of each battle.",
+    "effects": [
+      {
+        "kind": "first-turn-ap",
+        "amount": 1
+      }
+    ],
+    "look": {
+      "shape": "hourglass",
+      "glyph": "sand"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-wardens-bell-artifact",
+    "name": "Warden's Bell",
+    "rarity": "epic",
+    "priceSilver": 15500,
+    "description": "The first time each of your allies (not you) drops below 30% HP in a battle, they get a barrier of 15% of their maximum HP.",
+    "effects": [
+      {
+        "kind": "ally-low-hp-barrier",
+        "amount": 15,
+        "thresholdPercent": 30
+      }
+    ],
+    "look": {
+      "shape": "bell",
+      "glyph": "ward"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-arcane-engine-artifact",
+    "name": "Arcane Engine",
+    "rarity": "epic",
+    "priceSilver": 17000,
+    "description": "Spells cost 10% less Mana and deal +8% damage.",
+    "effects": [
+      {
+        "kind": "spell-cost-percent",
+        "amount": 10
+      },
+      {
+        "kind": "spell-power-percent",
+        "amount": 8
+      }
+    ],
+    "look": {
+      "shape": "gear",
+      "glyph": "crystal"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-thunderhead-crown-artifact",
+    "name": "Thunderhead Crown",
+    "rarity": "epic",
+    "priceSilver": 18000,
+    "description": "Weapon hits have a 15% chance to stun the target for 1 turn.",
+    "effects": [
+      {
+        "kind": "on-hit-stun-chance",
+        "amount": 15
+      }
+    ],
+    "look": {
+      "shape": "crown",
+      "glyph": "bolt"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-venomglass-vial-artifact",
+    "name": "Venomglass Vial",
+    "rarity": "epic",
+    "priceSilver": 16000,
+    "description": "Weapon hits poison the target for 4% of its maximum HP per turn for 3 turns (refreshed, not stacked).",
+    "effects": [
+      {
+        "kind": "on-hit-poison",
+        "amount": 4,
+        "durationTurns": 3
+      }
+    ],
+    "look": {
+      "shape": "vial",
+      "glyph": "skull"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-tide-turner-compass-artifact",
+    "name": "Tide-turner Compass",
+    "rarity": "epic",
+    "priceSilver": 15500,
+    "description": "While you are below 50% HP: +20% damage and Evasion +10.",
+    "effects": [
+      {
+        "kind": "low-hp-fury",
+        "amount": 20,
+        "evasion": 10,
+        "thresholdPercent": 50
+      }
+    ],
+    "look": {
+      "shape": "compass",
+      "glyph": "needle"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-heart-of-the-mountain-artifact",
+    "name": "Heart of the Mountain",
     "rarity": "legendary",
-    "priceSilver": 35000,
-    "description": "Increases all spell power by 25%, reduces all spell Mana costs by 15% and increases maximum Mana by 25%.",
+    "priceSilver": 36000,
+    "description": "Vitality +20%, maximum HP +25% and Armor +15%.",
+    "effects": [
+      {
+        "kind": "stat-permanent-percent",
+        "target": "vitality",
+        "amount": 20
+      },
+      {
+        "kind": "max-hp-percent",
+        "amount": 25
+      },
+      {
+        "kind": "armor-percent",
+        "amount": 15
+      }
+    ],
+    "look": {
+      "shape": "stone",
+      "glyph": "mountain"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-crown-of-the-archmagus-artifact",
+    "name": "Crown of the Archmagus",
+    "rarity": "legendary",
+    "priceSilver": 38000,
+    "description": "Spell power +25%, spells cost 15% less Mana and maximum Mana +20%.",
     "effects": [
       {
         "kind": "spell-power-percent",
@@ -605,38 +1433,176 @@
       },
       {
         "kind": "max-mana-percent",
-        "amount": 25
+        "amount": 20
       }
-    ]
+    ],
+    "look": {
+      "shape": "crown",
+      "glyph": "star"
+    },
+    "placeholderArt": true
   },
   {
-    "id": "artifact-perfect-war-sigil-artifact",
-    "name": "Perfect War Sigil",
+    "id": "artifact-sunforged-sigil-artifact",
+    "name": "Sunforged Sigil",
     "rarity": "legendary",
     "priceSilver": 38000,
-    "description": "Increases all weapon power by 25%, hit chance by 20, critical chance by 10, Armor by 20% and Evasion by 10%.",
+    "description": "Weapon power +22%, weapon hit chance +15 and critical chance +8.",
     "effects": [
       {
         "kind": "weapon-power-percent",
-        "amount": 25
+        "amount": 22
       },
       {
         "kind": "weapon-hit-flat",
-        "amount": 20
+        "amount": 15
       },
       {
         "kind": "weapon-crit-flat",
-        "amount": 10
-      },
-      {
-        "kind": "armor-percent",
-        "amount": 20
-      },
-      {
-        "kind": "evasion-percent",
-        "amount": 10
+        "amount": 8
       }
-    ]
+    ],
+    "look": {
+      "shape": "coin",
+      "glyph": "sun"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-phoenix-plume-artifact",
+    "name": "Phoenix Plume",
+    "rarity": "legendary",
+    "priceSilver": 40000,
+    "description": "Once per battle, the first of your heroes to fall rises again at 30% HP at the start of your next turn.",
+    "effects": [
+      {
+        "kind": "party-revive",
+        "amount": 30
+      }
+    ],
+    "look": {
+      "shape": "feather",
+      "glyph": "phoenix"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-worldtree-acorn-artifact",
+    "name": "Worldtree Acorn",
+    "rarity": "legendary",
+    "priceSilver": 36000,
+    "description": "All eight attributes +10%; restore 3% of your maximum HP at the start of your turn.",
+    "effects": [
+      {
+        "kind": "stat-permanent-percent",
+        "target": "strength",
+        "amount": 10
+      },
+      {
+        "kind": "stat-permanent-percent",
+        "target": "vitality",
+        "amount": 10
+      },
+      {
+        "kind": "stat-permanent-percent",
+        "target": "mind",
+        "amount": 10
+      },
+      {
+        "kind": "stat-permanent-percent",
+        "target": "dexterity",
+        "amount": 10
+      },
+      {
+        "kind": "stat-permanent-percent",
+        "target": "intelligence",
+        "amount": 10
+      },
+      {
+        "kind": "stat-permanent-percent",
+        "target": "wisdom",
+        "amount": 10
+      },
+      {
+        "kind": "stat-permanent-percent",
+        "target": "speed",
+        "amount": 10
+      },
+      {
+        "kind": "stat-permanent-percent",
+        "target": "luck",
+        "amount": 10
+      },
+      {
+        "kind": "turn-start-heal-percent",
+        "amount": 3
+      }
+    ],
+    "look": {
+      "shape": "acorn",
+      "glyph": "tree"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-starfall-orb-artifact",
+    "name": "Starfall Orb",
+    "rarity": "legendary",
+    "priceSilver": 35000,
+    "description": "At the start of your turn, a falling star deals Holy damage equal to 15% of your maximum Mana to a random enemy.",
+    "effects": [
+      {
+        "kind": "turn-start-star",
+        "amount": 15,
+        "element": "holy"
+      }
+    ],
+    "look": {
+      "shape": "orb",
+      "glyph": "stars"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-banner-of-kings-artifact",
+    "name": "Banner of Kings",
+    "rarity": "legendary",
+    "priceSilver": 40000,
+    "description": "You and every ally deal +12% damage and have Armor +12%.",
+    "effects": [
+      {
+        "kind": "party-damage-armor-percent",
+        "amount": 12,
+        "armor": 12
+      }
+    ],
+    "look": {
+      "shape": "banner",
+      "glyph": "crown"
+    },
+    "placeholderArt": true
+  },
+  {
+    "id": "artifact-dragonheart-ember-artifact",
+    "name": "Dragonheart Ember",
+    "rarity": "legendary",
+    "priceSilver": 37000,
+    "description": "Critical chance +6; critical hits deal +40% damage.",
+    "effects": [
+      {
+        "kind": "weapon-crit-flat",
+        "amount": 6
+      },
+      {
+        "kind": "crit-damage-percent",
+        "amount": 40
+      }
+    ],
+    "look": {
+      "shape": "ember",
+      "glyph": "dragon"
+    },
+    "placeholderArt": true
   },
   {
     "id": "artifact-second-wind-artifact",
@@ -645,14 +1611,29 @@
     "shopAvailable": false,
     "automaticDrop": false,
     "priceSilver": 7000,
-    "description": "At the start of your turn, if you have less than 25% HP, restore 5% of your maximum HP.",
+    "description": "At the start of your turn, if you have less than 25% HP, restore {amount}% of your maximum HP.",
     "effects": [
       {
         "kind": "low-hp-turn-start-heal-percent",
-        "amount": 5,
-        "thresholdPercent": 25
+        "amount": 9,
+        "thresholdPercent": 25,
+        "ramp": {
+          "amount": [
+            3,
+            9
+          ]
+        }
       }
-    ]
+    ],
+    "look": {
+      "shape": "masterwork",
+      "glyph": "second-wind"
+    },
+    "priceRamp": [
+      2000,
+      36000
+    ],
+    "placeholderArt": true
   },
   {
     "id": "artifact-wraithguard-artifact",
@@ -661,18 +1642,39 @@
     "shopAvailable": false,
     "automaticDrop": false,
     "priceSilver": 35000,
-    "description": "Melee weapons gain 50% hit chance. After a melee hit, take 10% less damage until your next turn, plus 10% per rarity above Common (50% for Legendary). Repeated hits refresh, rather than stack, the protection.",
+    "description": "Melee weapons gain {amount}% hit chance. After a melee hit, take {amount2}% less damage until your next turn, plus {amount2}% per rarity of the weapon above Common. Repeated hits refresh, rather than stack, the protection.",
     "effects": [
       {
         "kind": "weapon-hit-percent",
         "weaponType": "melee",
-        "amount": 50
+        "amount": 50,
+        "ramp": {
+          "amount": [
+            10,
+            50
+          ]
+        }
       },
       {
         "kind": "melee-hit-guard-per-rarity",
-        "amount": 10
+        "amount": 10,
+        "ramp": {
+          "amount": [
+            2,
+            10
+          ]
+        }
       }
-    ]
+    ],
+    "look": {
+      "shape": "masterwork",
+      "glyph": "wraithguard"
+    },
+    "priceRamp": [
+      2000,
+      36000
+    ],
+    "placeholderArt": true
   },
   {
     "id": "artifact-arrowtip-rain-artifact",
@@ -681,13 +1683,28 @@
     "shopAvailable": false,
     "automaticDrop": false,
     "priceSilver": 24000,
-    "description": "Each time a ranged attack deals damage, deal 20% of that damage to all other enemies. Misses and melee attacks do not trigger it.",
+    "description": "Each time a ranged attack deals damage, deal {amount}% of that damage to all other enemies. Misses and melee attacks do not trigger it.",
     "effects": [
       {
         "kind": "ranged-splash-percent",
-        "amount": 20
+        "amount": 25,
+        "ramp": {
+          "amount": [
+            6,
+            25
+          ]
+        }
       }
-    ]
+    ],
+    "look": {
+      "shape": "masterwork",
+      "glyph": "arrowtip-rain"
+    },
+    "priceRamp": [
+      2000,
+      36000
+    ],
+    "placeholderArt": true
   },
   {
     "id": "artifact-titanfall-artifact",
@@ -696,14 +1713,30 @@
     "shopAvailable": false,
     "automaticDrop": false,
     "priceSilver": 25000,
-    "description": "When you fall below 50% maximum HP, summon a Level 35 Steelguard Golem to aid you for the rest of the battle. The armored Elemental protects allies. Triggers once per combat; re-equipping does not reset it.",
+    "description": "When you fall below 50% maximum HP, a Steelguard Golem at {strength}% of its strength (HP and damage) aids you for the rest of the battle. The armored Elemental protects allies. Triggers once per combat; re-equipping does not reset it.",
     "effects": [
       {
         "kind": "low-hp-summon",
         "amount": 1,
         "thresholdPercent": 50,
-        "enemyId": "steelguard-golem-level-35"
+        "enemyId": "steelguard-golem-level-35",
+        "strengthPercent": 130,
+        "ramp": {
+          "strengthPercent": [
+            40,
+            130
+          ]
+        }
       }
-    ]
+    ],
+    "look": {
+      "shape": "masterwork",
+      "glyph": "titanfall"
+    },
+    "priceRamp": [
+      2000,
+      36000
+    ],
+    "placeholderArt": true
   }
 ]

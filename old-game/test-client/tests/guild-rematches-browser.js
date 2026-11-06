@@ -108,7 +108,7 @@ async function runGuildRematchChecks() {
   WorldMap.open(); $("map-transition-stay").click();
   assert(worldState.regionId === "stoneveil-foothills" && activePoints.every(marker => worldState.guild.greatHuntRematches.some(active => sameMarker(active, marker))), "Declining a region transition keeps all active markers");
   worldState.guild.quest = { type: "search", regionId: "stoneveil-foothills", zone: zik.zone, point: clone(zik.point), complete: false, progress: 0, reward: { silver: 0, reputation: 0, rateVersion: 2 } };
-  worldState.guild.artifactChallenge = { regionId: "stoneveil-foothills", zone: zik.zone, point: clone(zik.point), enemy: "Goblin", artifactId: "artifact-power-ring-artifact" };
+  worldState.guild.artifactChallenge = { regionId: "stoneveil-foothills", zone: zik.zone, point: clone(zik.point), enemy: "Goblin", artifactId: "artifact-hares-anklet-artifact" };
   const questBefore = clone(worldState.guild.quest), artifactBefore = clone(worldState.guild.artifactChallenge);
   road("east-road");
   assert(!worldState.guild.greatHuntRematches.length && worldState.guild.greatHuntRematch === null && !worldState.guild.avoidedGreatHunts.length, "Road travel clears every active rematch in the departed region");

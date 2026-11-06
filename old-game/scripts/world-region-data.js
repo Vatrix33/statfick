@@ -169,9 +169,9 @@
       const southRoad = cubic(fork, { x: 965, y: 640 }, { x: 865, y: 740 }, reedcross);
       return {
         id: "gloamfen-marsh", name: "Gloamfen Marsh",
-        eyebrow: "GLOAMFEN MARSH · LEVEL 35–50", title: "Across the <em>drowned earth</em>",
+        eyebrow: "GLOAMFEN MARSH · LEVEL 35–55", title: "Across the <em>drowned earth</em>",
         description: "A vast peat swamp threaded by two raised roads. Mirewatch guards the northern causeway, Reedcross survives on southern hummocks, and a small rocky rise breaks the wetlands to the west.",
-        levelRange: { minimum: 35, maximum: 50 }, start: { x: 1532, y: 600 },
+        levelRange: { minimum: 35, maximum: 55 }, start: { x: 1532, y: 600 }, // 55 since port task 6 (N10), the Abyssal Rift.
         settlements: [
           { id: "mirewatch", name: "Mirewatch", kind: "Castle city", ...mirewatch },
           { id: "reedcross", name: "Reedcross", kind: "Town", ...reedcross },
@@ -180,6 +180,8 @@
         rockyRise: { x: 310, y: 555, rx: 245, ry: 215 },
         deepMire: { x: 790, y: 580, rx: 315, ry: 270 },
         reedwater: { x: 1310, y: 245, rx: 250, ry: 175 },
+        // Port task 6 (N1, N2): the Abyssal Rift in the empty south-west, between the Rocky Rise and Reedcross.
+        abyssalRift: { x: 380, y: 885, rx: 215, ry: 88 },
         exits: [
           { id: "east-road", name: "Road to Stormwake Hills", point: { x: 1580, y: 600 }, retreat: { x: 1532, y: 600 }, targetRegionId: "stormwake-hills", targetPoint: { x: 68, y: 630 }, prompt: "Return east to Stormwake Hills?", destinationName: "Stormwake Hills" },
           { id: "north-road", name: "Road to Verdigris Jungle", point: { x: 640, y: 20 }, retreat: { x: 650, y: 68 }, targetRegionId: "verdigris-jungle", targetPoint: { x: 840, y: 932 }, prompt: "Travel north into Verdigris Jungle?", destinationName: "Verdigris Jungle" },

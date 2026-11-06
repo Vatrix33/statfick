@@ -65,11 +65,27 @@ as the engine's current task. How it's built, its checks and their results: `../
 Rework"; `Docs/Port-Tasks/README.md` lists its placeholder art.
 **Beside the engine, old game only (2026-11-06): port task 3, Shop Rework, is done in the old game**, as tasks 1 and 2
 were (the user: "same rules apply"; decisions R1–R29 in "Decisions for task 3, Shop Rework" below; built on the cloud
-branch `claude/fervent-carson-f5ol9s` and offered as a pull request for the user to merge). The port doesn't build it
-again; only its placeholder art is remade (`Docs/Port-Tasks/README.md` lists it). It touches only `../old-game/` (its
+branch `claude/fervent-carson-f5ol9s`, merged through a pull request). The port doesn't build it again; only its
+placeholder art is remade (`Docs/Port-Tasks/README.md` lists it). It touches only `../old-game/` (its
 scripts, markup, stylesheet, consumables and test client) and these docs, never the engine (the engine's tests read
 none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count
 task 3 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Shop Rework".
+**Beside the engine, old game only (2026-11-06): port task 4, Artifact Rework, is done in the old game**, as tasks 1–3
+were (decisions A1–A32 in "Decisions for task 4, Artifact Rework" below; built on the cloud branch
+`claude/fervent-carson-f5ol9s` and offered as pull request #10, with task 6, for the user to merge). The port doesn't build it again; only
+its placeholder looks are remade (`Docs/Port-Tasks/README.md`). It touches only `../old-game/` (its scripts, artifact
+data and test client) and these docs, never the engine (the engine's tests read none of what changed), so
+`Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count task 4 as the engine's
+current task. How it's built, the approved list, its checks and their results: `../old-game/Docs/Notes.md`, "Artifact
+Rework".
+**Beside the engine, old game only (2026-11-06): port task 6, New Areas, is done in the old game**, as tasks 1–4 were
+(decisions N1–N10 in "Decisions for task 6, New Areas" below; the Abyssal Rift in Gloamfen Marsh and its six enemies;
+built on the cloud branch `claude/fervent-carson-f5ol9s` and offered in the same pull request as task 4, #10, N8). The port
+doesn't build it again; only its placeholder looks are remade (`Docs/Port-Tasks/README.md`). It touches only
+`../old-game/` (its scripts, enemy files and test client) and these docs, never the engine (the engine's tests read
+none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count
+task 6 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "New
+Areas". Task 5 is not built yet.
 Before each later milestone (M11 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code, in the order
 "Starting M9" below gives (M10 followed it too).
@@ -359,9 +375,10 @@ the design and the tests):
   transforms map to the Blender remakes; the grabbing cursor's design; the level of detail of the item
   models. **First read `Docs/Port-Tasks/`:** the user's tasks to add during the port, in their number order
   (decided 2026-11-05); ask whether they come after the faithful port or while porting (left open by the user). Tasks 1
-  (Masterwork Elementals) and 2 (Guild Rework) are already done in the old game, so the faithful port brings them over:
-  don't build them again, only remake their placeholder art (the README's list: task 1's six masterwork looks, task 2's
-  two guild interiors).
+  (Masterwork Elementals), 2 (Guild Rework), 3 (Shop Rework), 4 (Artifact Rework) and 6 (New Areas) are already done in
+  the old game, so the faithful port brings them over: don't build them again, only remake their placeholder art (the
+  README's list: task 1's six masterwork looks, task 2's two guild interiors, task 3's scenes, icons and looks, task 4's
+  artifact looks, task 6's Rift enemies and map painting). Task 5 is not built yet.
 
 ## Folders
 
@@ -750,6 +767,17 @@ while porting (the user will answer later).
   design answers are G1–G34 just below; where each rule lives is in `../old-game/Docs/Notes.md`, "Guild Rework";
   `Docs/Port-Tasks/README.md` lists the placeholder art and what the remake keeps. The port brings task 2 over with the
   rest of the game and doesn't redo it from the task file; its only port work is that art.
+- **Task 3 is done in the old game too (2026-11-06, the user: "same rules apply"; R1):** old game only, placeholder art
+  (the Tailor's, Institute's and Hearth Home's scenes, their map icons, Doctor's Orders' look, the reforge anvil, the
+  traps). Decisions R1–R29 below; `../old-game/Docs/Notes.md`, "Shop Rework". Merged through a pull request.
+- **Task 4 is done in the old game too (2026-11-06; A1):** old game only, placeholder looks for every artifact and the
+  four masterwork artifacts. Decisions A1–A32 below; `../old-game/Docs/Notes.md`, "Artifact Rework". In pull request
+  #10 with task 6.
+- **Task 6 is done in the old game too (2026-11-06; N4):** old game only, placeholder looks for the six Abyssal Rift
+  enemies and the Rift on Gloamfen's map. Decisions N1–N10 below; `../old-game/Docs/Notes.md`, "New Areas". In pull
+  request #10 with task 4. **Task 5 is not built** (it comes before task 6 in the order, but nothing in task 6 needs it).
+  For all five done tasks the port brings them over with the rest of the game, doesn't redo them from the task files,
+  and only remakes the art `Docs/Port-Tasks/README.md` lists.
 
 **Decisions for task 2, Guild Rework (2026-11-06, a cloud session; the user asked for task 2 that day; the task is
 `Docs/Port-Tasks/2_Guild.txt`).** Old game only: it doesn't touch the engine, and engine work continues beside it (the
@@ -881,6 +909,98 @@ up):
   that ally's own next turn begins. (Not lifted at once, not kept for the battle.)
 - R29 **Frost Glyph, an absorbed spell:** any spell hit triggers it, even one a barrier soaks entirely (0 damage). (Not
   only spells that take HP.)
+
+**Decisions for task 4, Artifact Rework (2026-11-06, a cloud session; the user asked for task 4 that day after task 3
+was merged; built in the old game like tasks 1–3, old game only; the task is `Docs/Port-Tasks/4_Artifact_Rework.txt`).**
+Asked before any code, four at a time (A16 is the user's approval of the drafted list; A17–A32 came up while building):
+- A1 **Art:** placeholder, like tasks 2 and 3: simple distinct looks, marked placeholder in the code and listed in
+  `Docs/Port-Tasks/README.md` for the port's full remake. (Not proper art.)
+- A2 **A rarity's shared look:** each rarity has its own metal, gem cut and setting style; each artifact keeps its own
+  object (ring, amulet, charm…) with a few details of its own. Masterwork artifacts each look completely their own.
+  (Not one object per rarity.)
+- A3 **The old artifacts:** the whole non-masterwork set is replaced by new artifacts with new names (at least 32
+  uncommon, 24 rare, 16 epic, 8 legendary). (Not keeping the old ones with new effects.)
+- A4 **Designing the effects:** I draft the full list (names, effects, numbers, prices, the masterworks' numbers along
+  the ramp) for the user to review; nothing is built before they approve or adjust it.
+- A5 **A masterwork artifact's level:** fixed when obtained, like masterwork weapons and armor (it drops at your level and
+  keeps it, shown on its card). (Not following the wearer.)
+- A6 **The ramp:** a steady line from Level 1 (about uncommon strength) to Level 80 (about legendary), rising at the same
+  rate after, through 100 and on into task 7's Limitless levels. (Not slow-then-fast, not flattening past 80.)
+- A7 **The masterwork artifacts' effects:** Second Wind, Wraithguard, Arrowtip Rain and Titanfall keep their mechanics;
+  their numbers follow the ramp (the draft lists them at Levels 1, 40, 80 and 100). (Not redesigned.)
+- A8 **Old artifacts in saves:** removed from the inventory (the user's own answer), everywhere they are (pack, worn
+  slots, companions' gear). (Not converted to new ones.)
+- A9 **Telling the player:** silently, no note. (Not a note on load.)
+- A10 **An active Guild artifact challenge whose prize was removed:** withdrawn with a note, its 70 Reputation refunded.
+  (Not a new prize, not withdrawn without a refund.)
+- A11 **Old saves' masterwork artifacts** (no level yet): Level 80. (Not the owner's level, not Level 1.)
+- A12 **Sources:** the Guild's artifact challenges as today, and also rare enemy drops (A13, A14). Masterwork artifacts
+  keep dropping where they do. (Not shops.)
+- A13 **Drop chance:** 1% for every defeated enemy; bosses drop none (the user's own answer). In the code: every enemy
+  the battle's loot roll covers (not summons), except the 12 `unique` enemies. (Not 1% with bosses at 10%, not 0.5% or
+  2%.)
+- A14 **Drop rarity:** any rarity from uncommon up, weighted by the enemy's level the way shop stock is
+  (`ShopRules.rarityWeight`). (Not strictly the enemy's or the player's level band.)
+- A15 **Reviewing the draft:** in the chat, rarity by rarity. (Not a page, not a repo file.)
+- A16 **The draft, approved as drafted** (2026-11-06, "no changes needed"): 32 uncommon, 24 rare, 16 epic and 8 legendary
+  artifacts with their effects, prices and looks, and the four masterwork artifacts' numbers at Levels 1, 40, 80 and 100
+  (Second Wind 3/6/9/10.5% heal; Wraithguard hit +10/30/50/60 and guard 2/6/10/12%; Arrowtip Rain 6/15/25/30% splash;
+  Titanfall's golem at 40/84/130/153% strength; prices 2,000/18,800/36,000/44,600 silver). The list itself lives in
+  `../old-game/objects/artifacts.json` and `../old-game/Docs/Notes.md`, "Artifact Rework".
+- A17 **Triage Pouch and Mender's Thimble with Doctor's Orders:** each item's bonus multiplies separately (received
+  ×1.25 × 1.10, given ×1.5 × 1.08). (Not added into one bonus.)
+- A18 **Phoenix Plume and Warden's Bell:** heroes only (you and your companions), not summoned creatures.
+- A19 **Starfall Orb's star:** like a Holy spell hit: the target's Holy resistance applies and it counts as spell damage
+  (spell traps and wards react), but spell power doesn't raise it. (Not fixed true damage, not a full spell.)
+- A20 **The "+X% damage" artifacts** (Greenskin Tooth, Silver Nail, Dragonbane Scale, Spirit Lantern, Executioner's Mark,
+  Giantslayer Torc, First Light Pin, Tide-turner Compass, Banner of Kings): everything the wearer deals: weapons, spells,
+  traps, thorns and item damage. (Not weapons and spells only, not weapons only.)
+- A21 **Self-heals with several healing items:** every bonus multiplies (all given × all received); only Doctor's Orders
+  with itself keeps R25 (its larger bonus on a self-heal), times the other items' bonuses. (Not the larger total only.)
+- A22 **Battle Hymn Chime and Soulharvest Sickle:** they trigger whenever an enemy falls to your side, whoever defeated
+  it. (Not only the wearer's killing blow.)
+- A23 **Rallying Banner Pin and Banner of Kings:** summoned creatures count as allies too. (Not heroes only; Phoenix
+  Plume and Warden's Bell stay heroes only, A18.)
+- A24 **Forked Lightning Rod:** the strike is 25% of the damage the first target took, dealt as the same element to the
+  second enemy as a spell hit; its resistance and wards apply. (Not an exact 25%.)
+- A25 **Bandit's Coin and Studious Quill on a companion:** the Coin raises the party's silver whoever wears it (two add
+  up); the Quill raises only its wearer's EXP. (Not both party-wide, not only on you.)
+- A26 **First Light Pin:** the bonus waits for your first attack or spell that deals damage. (Not spent on a miss.)
+- A27 **What counts as a hit** (Warding Cord, Second Chance Locket): any damage an enemy causes: attacks, spells, traps,
+  thorns and damage over time. (Not attacks and spells only.)
+- A28 **Phantom Step Pin:** the +25% goes to your next melee or ranged weapon attack. (Not a spell.)
+- A29 **Phoenix Plume, the wearer falling first:** they rise at 30% HP when their next turn would have started in the
+  turn order, and take that turn. (Not others only.)
+- A30 **Phantom Step Pin on a miss:** the bonus is spent on the next weapon attack, hit or miss. (Not kept until it
+  lands.)
+- A31 **Forked Lightning Rod and spells that hit several enemies:** one extra strike per cast, on a random enemy the
+  spell didn't hit, for 25% of the largest damage it dealt; none if it hit every enemy. (Not one per enemy hit.)
+- A32 **Banner of Kings while its wearer is down:** the bonus lasts the whole battle once it starts. (Not paused.)
+
+**Decisions for task 6, New Areas (2026-11-06, a cloud session; the user asked for task 6 that day while task 4's last
+checks ran, "That task is very small"; built in the old game like tasks 1–4, old game only; the task is
+`Docs/Port-Tasks/6_New_Areas.txt`).** Asked before any code, four at a time:
+- N1 **Kind of area:** a new zone on Gloamfen Marsh's own map, with its own encounter table and level range. (Not a new
+  region.)
+- N2 **Place:** the marsh's empty south-west, between the Rocky Rise and Reedcross; nothing existing moves. (Not inside
+  the Deep Mire, not the north-east.)
+- N3 **Levels:** 45–55, a little above the marsh's hardest zone. (Not 40–50, not 50–60.)
+- N4 **Art:** placeholder, like tasks 2–4: the enemies' looks from the existing sprite kits (darkened, corrupted,
+  glowing eyes) and a simple abyss painting on the map, marked placeholder for the port's full remake.
+- N5 **Designing the enemies:** I draft each enemy (name, race, level, classes and stats in short, spells or trait,
+  look), the zone's name and its encounter groups in the chat for the user's review; nothing is built before approval.
+- N6 **The corrupted ones:** corrupted versions of Gloamfen's own creatures (e.g. Bog Troll, Mire Stalker, Mossback
+  Lamia). (Not Alder Vale's at a higher level, not a mix.)
+- N7 **Loot:** like other enemies: their gear, the usual chances and task 4's 1% artifact drop; no special item.
+- N8 **Delivery:** one pull request for tasks 4 and 6, each described separately. (Not task 4 first.)
+- N9 **The draft, approved as drafted** (2026-11-06, "Enemies look good"): the zone is the Abyssal Rift in the marsh's
+  south-west (Levels 45–55, a 50% encounter chance, a dark violet-black scar with a red-glowing heart on the map); the
+  corrupted creatures are Corrupted Bog Troll (47), Corrupted Mire Stalker (50, its strikes Dark) and Corrupted Mossback
+  Lamia (53, Dark spells instead of her nature ones), all `demon` race (Holy hurts more, Dark not at all) with darkened
+  looks and red eyes; the demons are Abyssal Imp (impid, 46, a rogue-warlock in pairs), Rift Fiend (demon, 50, a clawed
+  brute) and Abyss Witch (demon, 54, a caster); nine encounter groups from Level 45 to 55.
+- N10 **The marsh's level range** (2026-11-06, asked while writing the checks): raised from 35–50 to 35–55 to take in
+  the Rift: the map header reads "LEVEL 35–55" and guild quests in the marsh go up to Level 55. (Not kept at 35–50.)
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).

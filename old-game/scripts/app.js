@@ -244,6 +244,37 @@ const CLASS_CACHE_KEYS = {
 };
 const STAT_CODES = { S: "strength", V: "vitality", M: "mind", D: "dexterity", I: "intelligence", W: "wisdom", P: "speed", L: "luck" };
 const SPELL_ELEMENTS = ["basic", "fire", "water", "holy", "lightning", "blood", "dark", "ice", "earth", "wind", "nature", "death"];
+/* Port task 4 (the Artifact Rework, 2026-11-06; decisions A1–A28 in engine/Docs/Engine-Plan.md): the effect kinds the
+   new artifacts bring, and the extra fields each takes. Their rules live in calculateArtifactEffects and combat.js. */
+const ARTIFACT_EFFECT_KINDS = [
+  "money-percent", "exp-percent", "weapon-lifesteal-percent", "damage-lifesteal-percent", "melee-thorns-percent",
+  "turn-start-heal-percent", "turn-start-mana-percent", "first-hit-guard-percent", "first-strike-damage-percent",
+  "damage-percent-vs-race", "element-resistance-percent", "healing-received-percent", "healing-given-percent",
+  "incoming-spell-damage-percent", "spell-hit-mana-percent", "damage-percent-vs-low-hp", "damage-percent-vs-larger-max-hp",
+  "battle-start-weapon-power-percent", "free-spell-chance", "battle-start-barrier-percent", "battle-start-party-stats-percent",
+  "on-hit-burn", "on-hit-slow", "on-hit-armor-shred", "turn-start-cleanse-chance", "kill-restore-percent",
+  "evade-next-attack-percent", "death-save", "spell-chain-percent", "first-turn-ap", "ally-low-hp-barrier",
+  "on-hit-stun-chance", "on-hit-poison", "low-hp-fury", "party-revive", "turn-start-star", "party-damage-armor-percent",
+  "crit-damage-percent",
+];
+const ARTIFACT_EFFECT_FIELDS = {
+  "damage-percent-vs-race": { raceIds: "races" }, "element-resistance-percent": { element: "element" },
+  "turn-start-star": { element: "element" }, "damage-percent-vs-low-hp": { thresholdPercent: "percent" },
+  "ally-low-hp-barrier": { thresholdPercent: "percent" }, "low-hp-fury": { thresholdPercent: "percent", evasion: "number" },
+  "battle-start-weapon-power-percent": { durationTurns: "turns" }, "battle-start-party-stats-percent": { durationTurns: "turns" },
+  "on-hit-burn": { chance: "percent", durationTurns: "turns" }, "on-hit-slow": { chance: "percent", durationTurns: "turns" },
+  "on-hit-armor-shred": { durationTurns: "turns", maxStacks: "count" }, "on-hit-poison": { durationTurns: "turns" },
+  "kill-restore-percent": { mana: "number" }, "party-damage-armor-percent": { armor: "number" },
+  "low-hp-summon": { strengthPercent: "number" },
+};
+/* Masterwork artifacts are fixed at the level they were obtained (A5): "<base id>-lv<level>". Their numbers rise on a
+   straight line from their Level 1 value to their Level 80 value and keep rising at that rate (A6), rounded to one
+   decimal; the price likewise, to the nearest 100 silver. */
+const MASTERWORK_ARTIFACT_BASE_LEVEL = 80;
+const MASTERWORK_ARTIFACT_MAX_LEVEL = 200;
+const masterworkArtifactLevelPattern = /^(artifact-.+)-lv(\d{1,3})$/;
+const rampedValue = (pair, level) => Math.round((pair[0] + (pair[1] - pair[0]) * (level - 1) / 79) * 10) / 10;
+const leveledArtifactCache = new Map();
 
 const statDefinitions = [
   { key: "strength", label: "Strength", short: "STR", color: "#c7683f" },
@@ -1364,6 +1395,11 @@ function normalizeCharacter(saved) {
     key,
     typeof saved.equipment?.[key] === "string" ? saved.equipment[key] : null,
   ]));
+  // The Artifact Rework (port task 4, A8, A9): the replaced artifacts leave packs, slots and favorites, silently.
+  const retiredArtifact = itemId => Boolean(window.WorldRules?.RETIRED_ARTIFACT_IDS?.has(itemId));
+  for (let index = savedInventory.length - 1; index >= 0; index--) if (retiredArtifact(savedInventory[index])) savedInventory.splice(index, 1);
+  for (let index = savedFavoriteItems.length - 1; index >= 0; index--) if (retiredArtifact(savedFavoriteItems[index])) savedFavoriteItems.splice(index, 1);
+  for (const key of Object.keys(savedEquipment)) if (retiredArtifact(savedEquipment[key])) savedEquipment[key] = null;
   // The old catalogue weapons and armor were retired; old saves get forged pieces of the same kind.
   window.ForgeRules?.migrateLegacyItems({ inventory: savedInventory, equipment: savedEquipment, favorites: savedFavoriteItems }, Math.max(1, toInteger(saved.level, 1)), [saved.raceId, saved.name, saved.exp, saved.level].join("|"));
   const savedKnownSpells = Array.isArray(saved.knownSpells) ? saved.knownSpells.filter((spellId) => typeof spellId === "string") : [];
@@ -3194,6 +3230,7 @@ function parseArtifactEffects(specification) {
     "evasion-flat", "evasion-percent", "weapon-hit-flat", "weapon-hit-percent", "weapon-crit-flat", "spell-cost-flat", "spell-cost-percent",
     "spell-power-flat", "spell-power-percent",
     "trap-limit-flat", "low-hp-turn-start-heal-percent", "low-hp-summon", "melee-hit-guard-per-rarity", "ranged-splash-percent",
+    ...ARTIFACT_EFFECT_KINDS,
   ]);
   return specification.split("|").map((entry) => {
     const parts = entry.trim().split(":");
@@ -3378,10 +3415,32 @@ function parseItemFile(kind, text, allowLegacy = false) {
         if (!weaponEffect || !["melee", "meele", "ranged", "bow", "magic-wand", "spell-staff"].includes(weaponType)) invalid("weaponType is only valid on weapon effects and must name a supported weapon type");
         normalized.weaponType = weaponType === "meele" ? "melee" : weaponType;
       }
+      const extraFields = ARTIFACT_EFFECT_FIELDS[effect.kind] || {};
       if (effect.element != null) {
         const element = typeof effect.element === "string" ? effect.element.trim().toLowerCase() : "";
-        if (!spellEffect || !SPELL_ELEMENTS.includes(element)) invalid("element is only valid on spell effects and must name a supported spell element");
+        if (!spellEffect && !extraFields.element || !SPELL_ELEMENTS.includes(element)) invalid("element is only valid on spell effects and must name a supported spell element");
         normalized.element = element;
+      }
+      for (const [field, type] of Object.entries(extraFields)) {
+        if (field === "element") { if (effect.element == null) invalid(`${effect.kind} needs an element`); continue; }
+        const value = effect[field];
+        if (type === "races") {
+          if (!Array.isArray(value) || !value.length || value.some(race => typeof race !== "string" || !race.trim())) invalid(`${effect.kind} needs raceIds`);
+          normalized.raceIds = [...new Set(value.map(race => slugify(race)))];
+        } else if (value != null || type !== "number") {
+          const valid = Number.isFinite(value) && (type === "percent" ? value > 0 && value <= 100 : type === "turns" || type === "count" ? Number.isInteger(value) && value >= 1 && value <= 20 : true);
+          if (!valid) invalid(`${effect.kind} needs a valid ${field}`);
+          normalized[field] = value;
+        }
+      }
+      // A masterwork artifact's numbers along the level ramp: { field: [value at Level 1, value at Level 80] } (A5–A7).
+      if (effect.ramp != null) {
+        if (rarity !== "masterwork" || typeof effect.ramp !== "object" || Array.isArray(effect.ramp)) invalid("only masterwork artifacts have level ramps");
+        normalized.ramp = {};
+        for (const [field, pair] of Object.entries(effect.ramp)) {
+          if (!["amount", "strengthPercent"].includes(field) || !Array.isArray(pair) || pair.length !== 2 || !pair.every(Number.isFinite)) invalid("a ramp gives a field's values at Levels 1 and 80");
+          normalized.ramp[field] = [...pair];
+        }
       }
       if (effect.maxTier != null) {
         if (!spellEffect || !Number.isInteger(effect.maxTier) || effect.maxTier < 1 || effect.maxTier > 10) invalid("maxTier is only valid on spell effects and must be an integer from 1 to 10");
@@ -3391,8 +3450,47 @@ function parseItemFile(kind, text, allowLegacy = false) {
       if (effect.kind === "low-hp-summon") { normalized.thresholdPercent = effect.thresholdPercent; normalized.enemyId = effect.enemyId; }
       return normalized;
     });
-    return { ...item, type: "artifact", effects };
+    // Placeholder looks (A1, A2): an object and its detail, drawn in the rarity's material (forge-art.js).
+    const look = record.look == null ? null : record.look;
+    if (look && (typeof look.shape !== "string" || !look.shape.trim() || typeof look.glyph !== "string" || !look.glyph.trim())) invalid("look needs a shape and a glyph");
+    if (record.priceRamp != null && (rarity !== "masterwork" || !Array.isArray(record.priceRamp) || record.priceRamp.length !== 2 || !record.priceRamp.every(value => Number.isInteger(value) && value >= 0))) invalid("priceRamp gives a masterwork artifact's price at Levels 1 and 80");
+    const artifact = { ...item, type: "artifact", effects, look: look ? { shape: look.shape.trim(), glyph: look.glyph.trim() } : null, placeholderArt: record.placeholderArt === true };
+    if (record.priceRamp != null) artifact.priceRamp = [...record.priceRamp];
+    // A masterwork artifact without a level suffix is a Level 80 copy (old saves, A11; catalogue entries).
+    return artifact.priceRamp || effects.some(effect => effect.ramp) ? masterworkArtifactAt(artifact, MASTERWORK_ARTIFACT_BASE_LEVEL) : artifact;
   });
+}
+
+function masterworkArtifactAt(base, level) {
+  const effects = base.effects.map(effect => {
+    if (!effect.ramp) return effect;
+    const ramped = { ...effect };
+    for (const [field, pair] of Object.entries(effect.ramp)) ramped[field] = rampedValue(pair, level);
+    return ramped;
+  });
+  const fill = text => String(text || "").replace(/\{amount\}/g, formatValue(effects[0]?.amount)).replace(/\{amount2\}/g, formatValue(effects[1]?.amount))
+    .replace(/\{strength\}/g, formatValue(effects[0]?.strengthPercent));
+  const template = base.descriptionTemplate || base.description;
+  return {
+    ...base, id: level === MASTERWORK_ARTIFACT_BASE_LEVEL && !base.masterworkArtifactBaseId ? base.id : `${base.masterworkArtifactBaseId || base.id}-lv${level}`,
+    masterworkArtifactBaseId: base.masterworkArtifactBaseId || base.id, level, effects, descriptionTemplate: template, description: fill(template),
+    priceSilver: base.priceRamp ? Math.max(0, Math.round(rampedValue(base.priceRamp, level) / 100) * 100) : base.priceSilver,
+  };
+}
+function leveledMasterworkArtifact(itemIdValue) {
+  const match = masterworkArtifactLevelPattern.exec(String(itemIdValue || ""));
+  if (!match) return null;
+  const base = itemsById.get(match[1]), level = Number(match[2]);
+  if (!base || base.category !== "artifact" || !base.masterworkArtifactBaseId || level < 1 || level > MASTERWORK_ARTIFACT_MAX_LEVEL) return null;
+  const key = itemIdValue + "|" + base.description;
+  if (!leveledArtifactCache.has(key)) leveledArtifactCache.set(key, masterworkArtifactAt(base, level));
+  return leveledArtifactCache.get(key);
+}
+// The masterwork artifact a drop or a reward gives at this level.
+function masterworkArtifactIdAt(itemIdValue, atLevel) {
+  const base = itemsById.get(itemIdValue);
+  if (!base?.masterworkArtifactBaseId) return itemIdValue;
+  return `${base.masterworkArtifactBaseId}-lv${Math.max(1, Math.min(MASTERWORK_ARTIFACT_MAX_LEVEL, toInteger(atLevel, 1)))}`;
 }
 
 function rebuildItems() {
@@ -3535,7 +3633,7 @@ function itemDescription(item, values = currentStats()) {
 
 function getItem(itemIdValue) {
   const forge = window.ForgeRules;
-  return itemsById.get(itemIdValue) || (forge && (forge.isForgedId(itemIdValue) || forge.runeOfItem(itemIdValue) || forge.isTemplateId(itemIdValue) || forge.masterworkTemplateKey(itemIdValue)) ? forge.item(itemIdValue) || undefined : undefined);
+  return itemsById.get(itemIdValue) || leveledMasterworkArtifact(itemIdValue) || (forge && (forge.isForgedId(itemIdValue) || forge.runeOfItem(itemIdValue) || forge.isTemplateId(itemIdValue) || forge.masterworkTemplateKey(itemIdValue)) ? forge.item(itemIdValue) || undefined : undefined);
 }
 
 function unavailableItem(itemIdValue) {
@@ -3631,7 +3729,7 @@ function artifactEffectLabel(effect) {
     "spell-power-percent": spellLabel + " power " + change("%"),
     "trap-limit-flat": "Active trap limit " + change(),
     "low-hp-turn-start-heal-percent": "At turn start below " + effect.thresholdPercent + "% HP, restore " + absoluteAmount + "% maximum HP",
-    "low-hp-summon": "Once per combat below " + effect.thresholdPercent + "% HP: summon " + absoluteAmount + " Steelguard Golem to protect allies",
+    "low-hp-summon": "Once per combat below " + effect.thresholdPercent + "% HP: summon " + absoluteAmount + " Steelguard Golem to protect allies" + (effect.strengthPercent != null ? " (" + formatValue(effect.strengthPercent) + "% of its strength)" : ""),
     "damage-percent-vs-slower": "Damage against slower targets " + change("%"),
     "damage-percent-vs-wounded": "Damage against targets at or below " + toNumber(effect.hpPercent, 30) + "% HP " + change("%") + Object.entries(effect.raceBonus || {}).map(([raceId, amount]) => ", +" + amount + "% against " + (raceCatalog.find(race => race.id === raceId)?.name || raceId) + (/s$/.test(raceCatalog.find(race => race.id === raceId)?.name || raceId) ? "" : "s")).join(""),
     "element-resistance": (effect.elements || []).map(element => element.charAt(0).toUpperCase() + element.slice(1)).join(", ").replace(/, ([^,]*)$/, " and $1") + " damage taken −" + effect.amount + "%",
@@ -3684,6 +3782,42 @@ function artifactEffectLabel(effect) {
     "spell-add-element": "Non-" + (effect.element ? spellElementLabel(effect.element) : "") + " spells also gain the " + (effect.element ? spellElementLabel(effect.element) : "") + " element",
     "incoming-spell-damage-percent": "Incoming " + (effect.element ? spellElementLabel(effect.element) : "all") + " spell damage " + change("%"),
     "restore-mana-on-elemental-hit-percent": "After taking " + (effect.element ? spellElementLabel(effect.element) : "elemental") + " damage, restore " + absoluteAmount + "% maximum Mana",
+    // The Artifact Rework's effects (port task 4).
+    "money-percent": "Silver from battles " + change("%"),
+    "exp-percent": "EXP from battles " + change("%"),
+    "weapon-lifesteal-percent": "Weapon hits heal you for " + absoluteAmount + "% of the damage dealt",
+    "damage-lifesteal-percent": "Damage you deal with weapons and spells heals you for " + absoluteAmount + "% of it",
+    "melee-thorns-percent": "Melee attackers take " + absoluteAmount + "% of the damage they deal you",
+    "turn-start-heal-percent": "Restore " + absoluteAmount + "% maximum HP at the start of your turn",
+    "turn-start-mana-percent": "Restore " + absoluteAmount + "% maximum Mana at the start of your turn",
+    "first-hit-guard-percent": "The first hit you take each battle deals " + absoluteAmount + "% less damage",
+    "first-strike-damage-percent": "Your first attack or spell that deals damage each battle deals +" + absoluteAmount + "% damage",
+    "damage-percent-vs-race": "Damage against " + (effect.raceIds || []).map(id => raceCatalog.find(race => race.id === id)?.name || id).join(" and ") + " " + change("%"),
+    "element-resistance-percent": spellElementLabel(effect.element || "fire") + " damage you take −" + absoluteAmount + "%",
+    "spell-hit-mana-percent": "When an enemy's spell damages you, restore " + absoluteAmount + "% maximum Mana",
+    "damage-percent-vs-low-hp": "Damage against enemies below " + effect.thresholdPercent + "% HP " + change("%"),
+    "damage-percent-vs-larger-max-hp": "Damage against enemies with more maximum HP than you " + change("%"),
+    "battle-start-weapon-power-percent": "At battle start: weapon power " + change("%") + " for " + effect.durationTurns + " turns",
+    "free-spell-chance": absoluteAmount + "% chance a spell costs no Mana",
+    "battle-start-barrier-percent": "At battle start: a barrier of " + absoluteAmount + "% maximum HP",
+    "battle-start-party-stats-percent": "At battle start: you and your allies get all attributes " + change("%") + " for " + effect.durationTurns + " turns",
+    "on-hit-burn": effect.chance + "% on weapon hit: burn for " + absoluteAmount + "% of the target's maximum HP per turn for " + effect.durationTurns + " turns",
+    "on-hit-slow": effect.chance + "% on weapon hit: the target's Speed −" + absoluteAmount + "% for " + effect.durationTurns + " turns",
+    "on-hit-armor-shred": "Weapon hits: the target's Armor −" + absoluteAmount + "% for " + effect.durationTurns + " turns, stacking up to " + effect.maxStacks + " times",
+    "turn-start-cleanse-chance": absoluteAmount + "% at the start of your turn: remove one debuff from you",
+    "kill-restore-percent": "When an enemy falls: restore " + absoluteAmount + "% maximum HP" + (effect.mana ? " and " + formatValue(effect.mana) + "% maximum Mana" : ""),
+    "evade-next-attack-percent": "After you evade an attack, your next weapon attack deals +" + absoluteAmount + "% damage",
+    "death-save": "Once per battle, damage that would defeat you leaves you at " + absoluteAmount + " HP",
+    "spell-chain-percent": "Damaging spells also strike one other random enemy for " + absoluteAmount + "% of the damage",
+    "first-turn-ap": "+" + absoluteAmount + " AP on your first turn of each battle",
+    "ally-low-hp-barrier": "The first time each ally drops below " + effect.thresholdPercent + "% HP: a barrier of " + absoluteAmount + "% of their maximum HP",
+    "on-hit-stun-chance": absoluteAmount + "% on weapon hit: stun the target for 1 turn",
+    "on-hit-poison": "Weapon hits poison the target for " + absoluteAmount + "% of its maximum HP per turn for " + effect.durationTurns + " turns",
+    "low-hp-fury": "Below " + effect.thresholdPercent + "% HP: damage " + change("%") + ", Evasion +" + formatValue(effect.evasion || 0),
+    "party-revive": "Once per battle, the first of your heroes to fall rises at " + absoluteAmount + "% HP at the start of your next turn",
+    "turn-start-star": "At the start of your turn: " + spellElementLabel(effect.element || "holy") + " damage equal to " + absoluteAmount + "% of your maximum Mana to a random enemy",
+    "party-damage-armor-percent": "You and every ally: damage " + change("%") + ", Armor +" + formatValue(effect.armor || 0) + "%",
+    "crit-damage-percent": "Critical hits deal " + change("%") + " damage",
   };
   const label = labels[effect.kind] || effect.kind;
   return label + (effect.minTier != null ? ` · Tier ${effect.minTier} or higher` : "") + (effect.maxTier != null ? ` · Tier ${effect.maxTier} or lower` : "") + (effect.summonOnly ? " · Summon spells only" : "");
@@ -4199,7 +4333,8 @@ function itemDetailMarkup(item) {
     : '<div><dt>Armor value</dt><dd>+' + formatValue(item.armorValue) + '</dd></div><div><dt>Evasion debuff</dt><dd>-' + formatValue(item.evasionDebuff) + '</dd></div><div><dt>Scaling stat</dt><dd>' + escapeHtml(itemStatLabel(item.scaling)) + '</dd></div><div><dt>Power</dt><dd>+' + power + '</dd></div>' + (item.effects || []).map((effect) => '<div><dt>Effect</dt><dd>' + escapeHtml(artifactEffectLabel(effect)) + '</dd></div>').join('');
   return '<div class="spell-detail item-detail ' + itemRarityClass(item) + '">' +
     '<div class="spell-detail-heading"><div><p class="eyebrow">ITEM DETAIL</p><h3>' + escapeHtml(item.name) + '</h3></div><span class="spell-detail-symbol" aria-hidden="true">◫</span></div>' +
-    '<div class="spell-badges">' + itemRarityTag(item.rarity) + '<span>' + escapeHtml(itemCategoryLabel(item.category)) + '</span><span>' + escapeHtml(itemTypeLabel(item.type)) + '</span>' + '</div>' +
+    '<div class="spell-badges">' + itemRarityTag(item.rarity) + '<span>' + escapeHtml(itemCategoryLabel(item.category)) + '</span><span>' + escapeHtml(itemTypeLabel(item.type)) + '</span>' + (isArtifact && item.masterworkArtifactBaseId ? '<span>Level ' + escapeHtml(String(item.level)) + '</span>' : '') + '</div>' +
+    (isArtifact && window.ForgeArt?.goods ? '<div class="forged-art artifact-art" aria-hidden="true">' + ForgeArt.goods(item) + '</div>' : '') +
     '<div class="spell-detail-cost"><span>' + (item.shopAvailable === false ? 'Shop availability' : 'Shop price') + '</span><strong>' + escapeHtml(item.shopAvailable === false ? 'Not sold by shops' : itemPurchasePriceLabel(item)) + '</strong></div>' +
     (isArtifact || item.shopAvailable === false || item.shopOffer ? '<div class="spell-detail-cost"><span>Sell price</span><strong>' + escapeHtml(ShopRules.formatPrice(ShopRules.salePrice(item.priceSilver))) + '</strong></div>' : '') +
     '<dl class="spell-stat-details item-stat-details">' + detailStats + '</dl>' +

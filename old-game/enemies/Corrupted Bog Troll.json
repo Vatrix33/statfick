@@ -1,0 +1,58 @@
+{
+  "format": "stat-fick-enemy",
+  "version": 1,
+  "id": "corrupted-bog-troll-level-47",
+  "name": "Corrupted Bog Troll",
+  "level": 47,
+  "raceId": "demon",
+  "classLevels": {
+    "monster": 3,
+    "warrior": 5,
+    "barbarian": 7,
+    "brawler": 6,
+    "stonebreaker": 3,
+    "soldier": 6,
+    "knight": 5,
+    "guardian": 7,
+    "slayer": 5
+  },
+  "perkPoints": 0,
+  "availablePoints": 0,
+  "stats": {
+    "strength": 141,
+    "vitality": 158,
+    "mind": 63,
+    "dexterity": 70,
+    "intelligence": 56,
+    "wisdom": 64,
+    "speed": 57,
+    "luck": 50
+  },
+  "permanentBonuses": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+  },
+  "permanentDefenseBonuses": {
+    "armor": 0,
+    "evasion": 0
+  },
+  "inventory": [
+    "forge-weapon-2-greataxe+axe"
+  ],
+  "equipment": {
+    "primaryHand": "forge-weapon-2-greataxe+axe",
+    "offHand": null,
+    "armor": null,
+    "artifact1": null,
+    "artifact2": null
+  },
+  "knownSpells": [],
+  "activeSkills": {},
+  "baseArmor": 14
+}

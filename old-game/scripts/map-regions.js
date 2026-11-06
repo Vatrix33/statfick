@@ -537,12 +537,13 @@
      Peat and sedge riddled with black pools, the Deep Mire where the water wins, reed-choked
      Reedwater, the heath-and-stone Stoneback Rise, and two plank causeways above it all. */
   {
-    const pal = P({ peat: "#5e6444", moss: "#6b7148", sedge: "#7c7c50", mire: "#47483a", rise: "#7a7a62", heath: "#6e5c52", reed: "#8c8858" });
+    // The Abyssal Rift (port task 6, N4): PLACEHOLDER ART, a dark violet scar with a red-glowing heart.
+    const pal = P({ peat: "#5e6444", moss: "#6b7148", sedge: "#7c7c50", mire: "#47483a", rise: "#7a7a62", heath: "#6e5c52", reed: "#8c8858", rift: "#2c1f33", riftCore: "#7a1f24" });
     SPECS["gloamfen-marsh"] = {
       relief: 5, micro: 0.45,
       water: { shallow: "#55624f", deep: "#262e28", foam: "#9c9c80" },
       road: { fill: "#8c7656", casing: "#3a2c1e", width: 2.4 },
-      prepare: (region, T) => ({ roads: roadSegments(region, T), rise: region.rockyRise, mire: region.deepMire, reeds: region.reedwater }),
+      prepare: (region, T) => ({ roads: roadSegments(region, T), rise: region.rockyRise, mire: region.deepMire, reeds: region.reedwater, rift: region.abyssalRift }),
       field(x, y, o, T, c, region) {
         const n = T.fbm(x, y, 4, 0.008, 0);
         const rise = area(T, x, y, c.rise, 60, 40), mire = area(T, x, y, c.mire, 70, 60), reeds = area(T, x, y, c.reeds, 60, 50);
@@ -554,9 +555,15 @@
         col = mix(col, pal.sedge, T.smooth(0.1, 0.4, T.fbm(x, y, 3, 0.03, 2)) * 0.5);
         col = mix(col, pal.mire, mire * 0.7); col = mix(col, pal.reed, reeds * 0.5);
         col = mix(col, mix(pal.heath, pal.rise, T.smooth(0.3, 0.6, ridges)), rise);
-        o.color = col; o.wet = (1 - rise) * Math.max(reeds, 0.3); o.rock = rise * T.smooth(0.5, 0.8, ridges);
+        const rift = c.rift ? area(T, x, y, c.rift, 40, 30) : 0;
+        if (rift) {
+          const heart = c.rift ? Math.max(0, 1 - Math.hypot((x - c.rift.x) / (c.rift.rx * 0.45), (y - c.rift.y) / (c.rift.ry * 0.45))) : 0;
+          col = mix(col, mix(pal.rift, pal.riftCore, T.smooth(0.2, 0.9, heart) * (0.6 + 0.4 * T.fbm(x, y, 3, 0.05, 6))), rift * 0.9);
+        }
+        o.color = col; o.wet = (1 - rise) * Math.max(reeds, 0.3) * (1 - rift); o.rock = Math.max(rise * T.smooth(0.5, 0.8, ridges), rift * T.smooth(0.3, 0.7, ridges) * 0.6);
         o.water = pools > 0 ? 0.5 + Math.min(0.4, pools * 1.6) : 0.5 * (1 - T.smooth(0, 0.025, -pools));
-        o.forest = T.smooth(0.25, 0.42, T.fbm(x, y, 3, 0.014, 4)) * 0.38 * (1 - reeds);
+        if (rift) o.water *= 1 - rift * 0.85;
+        o.forest = T.smooth(0.25, 0.42, T.fbm(x, y, 3, 0.014, 4)) * 0.38 * (1 - reeds) * (1 - rift);
         o.pine = mire;
       },
       treeKind: (grid, i, roll) => grid.pine[i] > 0.4 || roll < 0.15 ? "dead" : "scrub",
@@ -578,6 +585,7 @@
       over: clouds([{ x: 820, y: 600, r: 160 }, { x: 1250, y: 820, r: 140 }, { x: 420, y: 880, r: 120 }, { x: 1360, y: 300, r: 110 }], "176,184,160", 0.2),
       labels: [
         { text: "STONEBACK RISE", x: 300, y: 530 }, { text: "THE DEEP MIRE", x: 820, y: 680 }, { text: "REEDWATER", x: 1300, y: 235 }, { text: "EASTERN FEN", x: 1315, y: 840 },
+        { text: "ABYSSAL RIFT", x: 380, y: 880 },
       ],
     };
   }
