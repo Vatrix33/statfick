@@ -957,6 +957,23 @@ Asked before any code, four at a time (A16 is the user's approval of the drafted
   spell didn't hit, for 25% of the largest damage it dealt; none if it hit every enemy. (Not one per enemy hit.)
 - A32 **Banner of Kings while its wearer is down:** the bonus lasts the whole battle once it starts. (Not paused.)
 
+**Decisions for task 6, New Areas (2026-11-06, a cloud session; the user asked for task 6 that day while task 4's last
+checks ran, "That task is very small"; built in the old game like tasks 1–4, old game only; the task is
+`Docs/Port-Tasks/6_New_Areas.txt`).** Asked before any code, four at a time:
+- N1 **Kind of area:** a new zone on Gloamfen Marsh's own map, with its own encounter table and level range. (Not a new
+  region.)
+- N2 **Place:** the marsh's empty south-west, between the Rocky Rise and Reedcross; nothing existing moves. (Not inside
+  the Deep Mire, not the north-east.)
+- N3 **Levels:** 45–55, a little above the marsh's hardest zone. (Not 40–50, not 50–60.)
+- N4 **Art:** placeholder, like tasks 2–4: the enemies' looks from the existing sprite kits (darkened, corrupted,
+  glowing eyes) and a simple abyss painting on the map, marked placeholder for the port's full remake.
+- N5 **Designing the enemies:** I draft each enemy (name, race, level, classes and stats in short, spells or trait,
+  look), the zone's name and its encounter groups in the chat for the user's review; nothing is built before approval.
+- N6 **The corrupted ones:** corrupted versions of Gloamfen's own creatures (e.g. Bog Troll, Mire Stalker, Mossback
+  Lamia). (Not Alder Vale's at a higher level, not a mix.)
+- N7 **Loot:** like other enemies: their gear, the usual chances and task 4's 1% artifact drop; no special item.
+- N8 **Delivery:** one pull request for tasks 4 and 6, each described separately. (Not task 4 first.)
+
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
 - On this PC both move into one repo folder, `/run/media/system/M.2_2TB/Stat Fick Repo/`, which becomes the only working copy (scripts, docs and notes follow the new paths).
