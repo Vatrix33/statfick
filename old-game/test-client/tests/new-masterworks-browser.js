@@ -18,7 +18,7 @@ const masterworkChecks = {
     const source = await (await fetch("scripts/combat.js")).text();
     const marker = "  window.Combat = {";
     const script = document.createElement("script");
-    script.textContent = source.replace(marker, "  window.__masterworkChecks = { actorById, hp, setHp, mana, setMana, values, getBattle: () => battle, attack, strike, cast, hurt, awardDefeatedEnemyExperience, sparklingMasterworkPool, rollSparklingMasterworks, incomingDamageFactor, attackLoadout, definitions: () => enemyDefinitions };\n" + marker);
+    script.textContent = source.replace(marker, "  window.__masterworkChecks = { actorById, hp, setHp, mana, setMana, values, getBattle: () => battle, attack, strike, cast, hurt, awardDefeatedEnemyExperience, sparklingMasterworkPool, rollSparklingMasterworks, incomingDamageFactor, attackLoadout, spellEffects, refresh, stageSnapshot, definitions: () => enemyDefinitions };\n" + marker);
     document.head.append(script);
     await waitForSourceFiles();
     if (window.BattleStage) window.BattleStage.enabled = () => false;
@@ -121,9 +121,8 @@ async function checkSparklingEnemies() {
   assert(Math.abs(shining.resourceMax.hp - undoubled * 2) <= 1 && h.hp(shining) === shining.resourceMax.hp, `Its maximum HP is doubled on top (${undoubled} → ${shining.resourceMax.hp})`);
   assert(shining.resourceMax.hp > plain.resourceMax.hp * 2.5, "So it has far more HP than a plain one");
   // How it shows: stage snapshot, classic card, encounter screen.
-  Combat.switchView?.(true);
-  const snapshot = Combat.stageSnapshot ? Combat.stageSnapshot() : null;
-  if (snapshot) assert(snapshot.actors.find(actor => actor.id === shining.id)?.sparkling === true && !snapshot.actors.find(actor => actor.id === plain.id)?.sparkling, "The battle stage marks it");
+  const snapshot = h.stageSnapshot([]);
+  assert(snapshot.actors.find(actor => actor.id === shining.id)?.sparkling === true && !snapshot.actors.find(actor => actor.id === plain.id)?.sparkling, "The battle stage marks it");
   const card = [...document.querySelectorAll(".combat-enemy")].find(button => button.dataset.combatTarget === shining.id);
   assert(card?.classList.contains("is-sparkling") && ![...document.querySelectorAll(".combat-enemy.is-sparkling")].some(button => button.dataset.combatTarget === plain.id), "Its card is marked Sparkling");
   // A saved battle keeps it.
@@ -139,10 +138,8 @@ async function checkSparklingEnemies() {
   ({ foes } = await masterworkChecks.battle(h, ["Orc"], { objective: "hunt" }, [0]));
   assert(foes[0].name === "Empowered Sparkling Orc" && foes[0].character.stats.strength === Math.floor(Math.floor(definition.character.stats.strength * 1.3) * 1.4), `An Empowered target can sparkle too (${foes[0].name})`);
   // A Cull counts a Sparkling target as its target.
-  const point = { ...worldState.position };
-  worldState.guild.quest = { version: 2, type: "cull", enemy: "Orc", zone: "Plains", point, radius: 40, required: 5, progress: 0, complete: false, regionId: worldState.regionId, originRegionId: worldState.regionId, originCastleId: "alderkeep", reward: { silver: 100, reputation: 10 } };
   ({ foes } = await masterworkChecks.battle(h, ["Orc"], {}, [0]));
-  worldState.guild.quest = { ...worldState.guild.quest, point: { ...worldState.position } };
+  worldState.guild.quest = { version: 2, type: "cull", enemy: "Orc", zone: "Plains", point: { ...worldState.position }, radius: 40, required: 5, progress: 0, complete: false, regionId: worldState.regionId, originRegionId: worldState.regionId, originCastleId: "alderkeep", reward: { silver: 100, reputation: 10 } };
   Guild.onEnemyDefeated(foes[0]);
   assert(worldState.guild.quest.progress === 1, "A Sparkling target counts for its Cull");
   worldState.guild.quest = null;
@@ -172,6 +169,14 @@ async function checkSparklingEncounterScreen() {
     worldState.pendingEncounter = { zone: "Plains", enemies: ["Goblin"], objective: null, sparkling: [] };
     WorldMap.render();
     assert(!document.querySelector("#map-encounter-enemies .is-sparkling, #map-encounter-enemies .sparkling-tag"), "Without one, nothing sparkles");
+    // Fight: the battle has the Sparkling enemies the screen showed.
+    worldState.pendingEncounter = { zone: "Plains", enemies: ["Goblin", "Goblin"], objective: null, sparkling: [1] };
+    WorldMap.render();
+    document.getElementById("map-encounter-fight").click();
+    for (let i = 0; i < 50 && !Combat.active(); i++) await new Promise(resolve => setTimeout(resolve, 50));
+    const fought = Combat.serialize()?.actors.filter(actor => actor.team === "enemy") || [];
+    assert(fought.length === 2 && !fought[0].sparkling && fought[1].sparkling && fought[1].name === "Sparkling Goblin 2", `Fight starts the battle with them (${fought.map(actor => actor.name)})`);
+    Combat.restore(null);
   } finally { worldState.pendingEncounter = null; document.querySelector("#map-modal [data-map-close]")?.click(); }
   return count();
 }
@@ -210,27 +215,29 @@ async function checkSparklingRewards() {
     stats.luck = 0;
     const luckBonus = Math.max(0, currentStats().luck) * 0.05;
     const roll = values => { Math.random = masterworkChecks.dice(values); try { return h.rollSparklingMasterworks(foes[0]); } finally { Math.random = random; } };
-    assert(roll([(70 + luckBonus) / 100 - 0.001, 0, 0.999]).length === 1, "Under 70% (plus Luck): one masterwork");
+    // The game rolls both chances first, then picks a masterwork for each that hit.
+    assert(roll([(70 + luckBonus) / 100 - 0.001, 0.999, 0]).length === 1, "Under 70% (plus Luck): one masterwork");
     assert(roll([(70 + luckBonus) / 100 + 0.001, 0.999]).length === 0, "Over it: none");
     assert(roll([0.999, (5 + luckBonus) / 100 - 0.001, 0]).length === 1, "The 5% roll alone gives one");
     assert(roll([0, 0, (5 + luckBonus) / 100 - 0.001, 0.999]).length === 2, "Both rolls: two");
     stats.luck = 200;
     const raised = Math.max(0, currentStats().luck) * 0.05;
-    assert(raised > 5 && roll([(70 + raised) / 100 - 0.001, 0, 0.999]).length === 1 && roll([0.999, (5 + raised) / 100 - 0.001, 0]).length === 1, `Luck raises both rolls by ${raised} points`);
+    assert(raised > 5 && roll([(70 + raised) / 100 - 0.001, 0.999, 0]).length === 1 && roll([0.999, (5 + raised) / 100 - 0.001, 0]).length === 1, `Luck raises both rolls by ${raised} points`);
     stats.luck = 0;
     assert(!h.rollSparklingMasterworks(foes.map(foe => ({ ...foe, sparkling: false }))[0]).length, "A plain enemy rolls none");
     // The pick: weighted by the pool, the first entry at 0 and the last at the end.
-    assert(JSON.stringify(roll([0, 0, 0.999])) === JSON.stringify([pool[0].id]), "The pick walks the weighted pool");
-    // Into the loot, forged at your level (Level 30), not the enemy's.
-    Math.random = masterworkChecks.dice([0.999, 0.999, 0.999, 0, (pool.findIndex(entry => entry.id === "masterwork-moneyshot") + 0.5) / pool.length * 0, 0.999], 0.999);
-    const forcedPick = () => { const at = pool.findIndex(entry => entry.id === "masterwork-moneyshot"); let before = 0; for (let i = 0; i < at; i++) before += pool[i].weight; return (before + 2.5) / total; };
-    h.setHp(foes[0], 0);
-    Math.random = masterworkChecks.dice([0.999, 0.999, 0, forcedPick(), 0.999], 0.999);
-    const start = battle.lootItems.length;
-    h.awardDefeatedEnemyExperience();
-    Math.random = random;
-    const loot = battle.lootItems.slice(start);
-    assert(loot.some(id => /^weapon-masterwork-moneyshot-30-/.test(id)), `A Sparkling drop is forged at your level (${loot})`);
+    assert(JSON.stringify(roll([0, 0.999, 0])) === JSON.stringify([pool[0].id]) && JSON.stringify(roll([0, 0.999, 0.9999])) === JSON.stringify([pool.at(-1).id]), "The pick walks the weighted pool");
+    // Into the loot, forged at your level (Level 30), not the enemy's: every roll hits, both picks take the first entry.
+    const firstKey = ForgeRules.masterworkTemplateKey(pool[0].id), forgedFirst = new RegExp(`^weapon-masterwork-${firstKey}-30-`);
+    const lootOf = async sparkling => {
+      const fight = await masterworkChecks.battle(h, ["Orc"], { level: 30 }, sparkling);
+      h.setHp(fight.foes[0], 0);
+      Math.random = () => 0;
+      try { h.awardDefeatedEnemyExperience(); } finally { Math.random = random; }
+      return fight.battle.lootItems;
+    };
+    const shiningLoot = await lootOf([0]), plainLoot = await lootOf([]);
+    assert(shiningLoot.filter(id => forgedFirst.test(id)).length === 2 && !plainLoot.some(id => forgedFirst.test(id)), `A Sparkling enemy's masterworks go into the loot, forged at your level (${shiningLoot.filter(id => /masterwork/.test(id))})`);
   } finally { Math.random = random; Combat.restore(null); }
   return count();
 }
@@ -333,6 +340,7 @@ async function checkMoneyshot() {
   assert(plain.others.slice(0, 4).every(list => list.every(amount => amount === 0)), "The others take nothing from the first four");
   const echoes = plain.others[4];
   assert(echoes.every(amount => amount > 0 && amount <= Math.ceil(plain.dealt[4] * 0.05)), `The fifth echoes up to 5% of its damage to each other enemy (${echoes} of ${plain.dealt[4]})`);
+  assert(echoes.every(amount => amount < Math.floor(plain.dealt[4] * 0.05)), `Their defenses reduce the echo (${echoes} under ${Math.floor(plain.dealt[4] * 0.05)})`);
   assert(plain.player.fifthAttackCount === 5, "Five attacks counted");
   // Their defenses apply: an enemy with more Armor takes less of the echo.
   // Misses count: two misses, then three hits, the fifth attack is boosted.
@@ -393,6 +401,11 @@ async function checkLament() {
     h.cast(player, foes[0], bolt, null, { extraTargetId: foes[1].id });
     Math.random = random;
     assert(calls >= 2, "The second target rolls on its own");
+    // The second target's own miss roll: one that spells always miss is missed, while the first is struck.
+    ({ player, foes } = await setup());
+    foes[1].effects.push({ key: "test-blur", name: "Blur", type: "incoming-spell-miss-chance", amount: 100, expiresTurn: 99 });
+    h.cast(player, foes[0], bolt, null, { extraTargetId: foes[1].id });
+    assert(h.hp(foes[0]) < 1e6 && h.hp(foes[1]) === 1e6 && h.getBattle().log.some(entry => /\(Lament\) misses/.test(entry)), "The second target can be missed on its own roll");
     // Refused: the same target, the wrong side, a fallen one, an area spell, without Lament.
     ({ player, foes } = await setup());
     Math.random = () => 0.5;
@@ -400,13 +413,13 @@ async function checkLament() {
     assert(!h.cast(player, foes[0], bolt, null, { extraTargetId: "player" }), "Not an ally for a spell at an enemy");
     h.setHp(foes[2], 0);
     assert(!h.cast(player, foes[0], bolt, null, { extraTargetId: foes[2].id }), "Not a fallen enemy");
-    const wave = spells.find(spell => spellEffects(spell).every(effect => !effect.recipient || effect.recipient === "all-enemies") && spellEffects(spell).some(effect => effect.recipient === "all-enemies" && effect.type === "damage"));
+    const wave = spells.find(spell => h.spellEffects(spell).every(effect => !effect.recipient || effect.recipient === "all-enemies") && h.spellEffects(spell).some(effect => effect.recipient === "all-enemies" && effect.type === "damage"));
     ({ player, foes } = await setup(true, ["Orc", "Orc"], [wave.id]));
     assert(!h.cast(player, foes[0], wave, null, { extraTargetId: foes[1].id }), `Not an area spell (${wave.name})`);
     ({ player, foes } = await setup(false));
     assert(!h.cast(player, foes[0], bolt, null, { extraTargetId: foes[1].id }), "Not without Lament");
     // A heal at an ally: a second ally.
-    const heal = spells.find(spell => spellEffects(spell).length === 1 && spellEffects(spell)[0].recipient === "friendly-target" && /heal/.test(spellEffects(spell)[0].type));
+    const heal = spells.find(spell => h.spellEffects(spell).length === 1 && h.spellEffects(spell)[0].recipient === "friendly-target" && /heal/.test(h.spellEffects(spell)[0].type));
     masterworkChecks.hero({ inventory: [wand], equipment: { primaryHand: wand }, spells: [heal.id], companion: {} });
     await Combat.startEncounter(["Orc"], "Lament heal");
     companions = [];
@@ -414,7 +427,8 @@ async function checkLament() {
     h.setMana(you, 5000); h.setHp(you, 5); h.setHp(ally, 5); battle.current = "player"; battle.ap = 9;
     assert(h.cast(you, you, heal, null, { extraTargetId: ally.id }) && h.hp(you) > 5 && h.hp(ally) > 5, `${heal.name} heals two allies`);
     // The second target gets only the targeted effects: a spell with a self effect doesn't give it twice.
-    const mixed = spells.find(spell => { const effects = spellEffects(spell); return effects.some(effect => effect.recipient === "self") && effects.some(effect => effect.type === "damage" && (!effect.recipient || effect.recipient === "target")) && !effects.some(effect => /all-|random/.test(effect.recipient || "")); });
+    const mixed = spells.find(spell => { const effects = h.spellEffects(spell); return effects.some(effect => effect.recipient === "self") && effects.some(effect => effect.type === "damage" && (!effect.recipient || effect.recipient === "target")) && !effects.some(effect => /all-|random/.test(effect.recipient || "")); });
+    assert(mixed, "A spell with a self effect is there to try");
     if (mixed) {
       ({ player, foes } = await setup(true, ["Orc", "Orc"], [mixed.id]));
       const selfBefore = JSON.stringify(player.effects.map(effect => effect.type));
@@ -426,7 +440,7 @@ async function checkLament() {
     }
     // The picker: a Lament button; then the second target's click casts on both.
     ({ player, foes } = await setup());
-    Combat.switchView?.(true);
+    h.refresh();
     document.getElementById("combat-spell-button").click();
     const lamentButton = document.querySelector(`[data-combat-lament="${bolt.id}"]`);
     assert(lamentButton && !lamentButton.disabled && /Lament: \+1 target \(\+50% Mana\)/.test(lamentButton.textContent), "The spell list offers Lament's second target");
@@ -437,6 +451,7 @@ async function checkLament() {
     assert(h.getBattle().targetId === foes[0].id, "The chosen target stays the first one");
     // Without Lament, no such button.
     ({ player, foes } = await setup(false));
+    h.refresh();
     document.getElementById("combat-spell-button").click();
     assert(!document.querySelector("[data-combat-lament]"), "Without Lament the spell list has no such choice");
     document.querySelector("#combat-ability-picker .modal-close")?.click();
@@ -464,6 +479,10 @@ async function checkNobleHero() {
   const first = Math.floor(without.total * 0.75);
   assert(Math.abs(noble.total - first * 2) <= 2, `25% less, then the same again: ${without.total} → ${noble.total}`);
   assert(noble.log.some(entry => /strikes Enemy 1 again/.test(entry)), "The log shows the second strike");
+  // Exactly the same amount, also when a damage bonus counted in the first (Greenskin Tooth against an Orc).
+  const tooth = await shoot(["artifact-greenskin-tooth-artifact"]);
+  const amounts = tooth.log.map(entry => (/: (\d+) damage/.exec(entry) || [])[1]).filter(Boolean).map(Number);
+  assert(amounts.length === 2 && amounts[0] === amounts[1] && amounts[0] > 0, `The second strike repeats the first exactly (${amounts})`);
   // The second strike counts as a weapon attack: Leech Hook heals for it too.
   const leech = "artifact-leech-hook-artifact";
   const leeched = await shoot([leech]), leechedPlain = await shoot([leech], true);
@@ -507,6 +526,10 @@ async function checkHexbaneCoat() {
     const [taken, back, bystander] = spellHit();
     assert(taken > 0 && back > 0 && back <= Math.ceil(taken * 0.25) && bystander === 0, `25% of the spell's damage strikes its caster back, defenses applying (${taken} taken, ${back} back)`);
     assert(battle.log.some(entry => /Hexbane Coat turns \d+ damage back/.test(entry)), "The log says so");
+    foes[0].resistances = { ...(foes[0].resistances || {}), fire: 50 };
+    const [resistedTaken, resistedBack] = spellHit();
+    assert(resistedBack > 0 && resistedBack <= Math.ceil(resistedTaken * 0.125) + 1, `The caster's Fire resistance halves what comes back (${resistedTaken} taken, ${resistedBack} back)`);
+    foes[0].resistances.fire = 0;
     const [, noBack] = masterworkChecks.withoutEffect(coat, "spell-reflect-percent", spellHit);
     assert(noBack === 0, "Without its effect, nothing comes back");
     const weaponBefore = h.hp(foes[0]);
