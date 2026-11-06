@@ -63,6 +63,10 @@ own copy of the stylesheet, so `Tools/Scripts/test.sh` was not run for it (the c
 goes on uninterrupted** (M11 on the user's go, the background-layer branch); don't wait for task 2, and don't count it
 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Guild
 Rework"; `Docs/Port-Tasks/README.md` lists its placeholder art.
+**Beside the engine, old game only (2026-11-06): port task 3, Shop Rework, is being built in the old game** like task 2
+(the user: "same rules apply"; decisions R1–R23 in "Decisions for task 3, Shop Rework" below). It touches only
+`../old-game/` and these docs, never the engine, so engine work goes on uninterrupted; don't wait for it. Its state and
+notes: `../old-game/Docs/Notes.md`, "Shop Rework", and `Docs/Port-Tasks/README.md`.
 Before each later milestone (M11 on) starts, first ask its questions under "Open questions for later milestones"
 below (all at once, with the question tool), record the answers, and only then plan and write code, in the order
 "Starting M9" below gives (M10 followed it too).
@@ -816,6 +820,50 @@ recruiting, information, encounters and class menu:
   with a note in the guild. (Not kept.)
 - G34 **Courier:** Deliver counts as a travel quest for Courier's requirement and its Dispatch Guard, like Travel and
   Escort.
+
+**Decisions for task 3, Shop Rework (2026-11-06, a cloud session; the user asked for task 3 that day, "same rules
+apply" as task 2: built in the old game, old game only, engine work continues beside it; the task is
+`Docs/Port-Tasks/3_Shop_Rework.txt`).** Asked before any code, four at a time:
+- R1 **Art:** placeholder, as task 2 (the Tailor's shop, the Institute of Magic and Hearth Home on the map and inside, the
+  Doctor's Orders look, the reforge anvil, the five traps): simple ink art marked placeholder in the code and listed in
+  `Docs/Port-Tasks/README.md` for the port's full remake.
+- R2 **Reforge part pool:** every shop-made part (every maker and material that can make that part, as the shops forge
+  them), never above the main part's rarity; not Outlaw parts (loot only) and not Vampiric parts.
+- R3 **Reforge cost:** 3× the base part price per changed part, by the new part's rarity (common 360, uncommon 1,800, rare
+  7,200, epic 18,000, legendary 36,000, masterwork 72,000 silver); unchanged parts cost nothing.
+- R4 **Items on the anvil:** forged items in the player's pack, equipped ones included, and the gear the companions wear.
+- R5 **Masterworks** (Hearth Home only): the main part and a fixed main maker never change; the two other parts can be any
+  shop-made part up to masterwork rarity, Mythilium included; fixed runes stay; never Outlaw.
+- R6 **Staffs and wands:** the handle's rarity is capped by the jewel's or gem's tier: Lesser up to uncommon, Regular up
+  to epic, Greater up to legendary; the inscription can be any ink. (Not "handle up to its current rarity", not no limit.)
+- R7 **Tailor:** beside every Blacksmith (castle cities and towns), castle cities stocking 6 clothing pieces, towns 4,
+  turning over with the other shops.
+- R8 **Blacksmith after the move:** no clothing bought or sold there; its armor shelves shrink to castle 4, town 3 (heavy,
+  light armor and shields), so the offer across both shops stays similar. (Not the same count.)
+- R9 **Institute of Magic, runes:** fitting and removing runes both 20% off; runes themselves are still bought at a Magic
+  Tower. (Not fitting only, not selling runes.)
+- R10 **Institute of Magic, place:** an island in the middle of Mirrormere's lake, a bridge of about 37 km running west
+  from the ring road on Lakespire's side. (Not nearer the east shore.)
+- R11 **Doctor's Orders:** a white Robe with an Institute of Magic main part, forged at the buyer's level when bought (like
+  the Stormhide Cuirass), always on offer at the Institute, 30 Platinum.
+- R12 **Doctor's Orders, healing given:** every heal the wearer gives to anyone on their side, themselves included, is
+  50% stronger. (Not others only.)
+- R13 **Doctor's Orders, healing received:** +25% on every HP restored to the wearer in battle (spells, skills, potions,
+  regeneration, lifesteal, item effects), whoever gives it; resting and camping are not raised.
+- R14 **Hearth Home:** on the volcano's south-west edge where Cinder Isle's road ends (the road extended a little). Ornn
+  (Level 48, his Vulcanic Ram, mechanics and drops unchanged) is fought there; his defeat opens Hearth Home, and he can be
+  challenged again, like Tankina.
+- R15 **Ornn in old saves:** Hearth Home opens only by beating Ornn there (a completed Ornn Great Hunt does not count); an
+  active Ornn Great Hunt is withdrawn with a note (no reward, no cost); his rematch markers are removed.
+- R16 **Staff and wand reforge cost:** a changed handle costs 3× its rarity's part price; a changed inscription 3× the
+  part price of the handle's rarity.
+- R17–R21 **Five new traps,** one per rarity: Tripwire (common, about 250 silver: when an enemy uses a melee attack on you,
+  it loses 1 AP on its next turn), Smoke Trap (uncommon, about 900: when an enemy attacks you, you and your allies gain
+  +20% Evasion until your next turn), Frost Glyph (rare, about 2,800: when an enemy damages you with a spell, its Speed
+  drops 25% for 2 turns), Weighted Net (epic, about 6,500: when an enemy uses a melee attack on you, it is stunned for 1
+  turn), Gravity Well (legendary, about 16,000: when an enemy attacks you, every enemy loses 2 AP on its next turn).
+- R22 **Trap sales:** in the General Store's stock like the existing traps, rarer ones more often at higher levels.
+- R23 **Map keys:** Tailor U, Institute of Magic I, Hearth Home H.
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
