@@ -548,13 +548,16 @@
     guild().completedQuests = Math.max(0, Number(guild().completedQuests) || 0) + 1;
     if (isJourney(quest)) guild().completedTravelQuests = Math.max(0, Number(guild().completedTravelQuests) || 0) + 1;
     guild().reputation += reward.reputation;
-    currencies = ShopRules.walletFromValue(ShopRules.walletValue(currencies) + reward.silver);
+    // Treasure Seeker raises the silver paid (task 5, M13); the offer shows the guild's own reward.
+    const silver = Math.floor(reward.silver * (1 + treasureMoneyPercent() / 100));
+    currencies = ShopRules.walletFromValue(ShopRules.walletValue(currencies) + silver);
     document.querySelectorAll(".currency-input").forEach(input => { input.value = currencies[input.dataset.currency]; });
     if (quest.type === "hunt" && guild().avoidObjective === "hunt") guild().avoidObjective = null;
     if (quest.type === "great-hunt") {
       if (guild().avoidObjective === "great-hunt") guild().avoidObjective = null;
       if (quest.uniqueId && !guild().greatHuntsCompleted.includes(quest.uniqueId)) guild().greatHuntsCompleted.push(quest.uniqueId);
     }
+    return silver;
   }
   // The counter: hands letters over for a Deliver quest and pays every finished quest at once (G24).
   function useCounter() {
@@ -568,11 +571,11 @@
     for (const slot of ["quest", "greatHunt"]) {
       const entry = guild()[slot];
       if (!handInReady(entry, host)) continue;
-      pay(entry); paid.push(entry); guild()[slot] = null;
+      paid.push({ quest: entry, silver: pay(entry) }); guild()[slot] = null;
     }
     if (paid.length) {
-      const total = paid.reduce((sum, entry) => ({ silver: sum.silver + entry.reward.silver, reputation: sum.reputation + entry.reward.reputation }), { silver: 0, reputation: 0 });
-      setStatus(`${paid.map(titleOf).join(" and ")} completed. Earned ${rewardText(total)}.`);
+      const total = paid.reduce((sum, entry) => ({ silver: sum.silver + entry.silver, reputation: sum.reputation + entry.quest.reward.reputation }), { silver: 0, reputation: 0 });
+      setStatus(`${paid.map(entry => titleOf(entry.quest)).join(" and ")} completed. Earned ${rewardText(total)}.`);
       showRewardNote(total);
     }
     openDock("counter");
@@ -623,6 +626,12 @@
     return EncounterRules.generateIncluding(quest.zone || zone, quest.enemy, { level, regionId: worldState.regionId });
   }
   const escapeChance = (chance, objective) => Q().escapeChance(chance, objective);
+  // The Cull's target, when you stand inside its circle: its Sparkling chance there is 2% (task 5, M4).
+  function cullTargetHere() {
+    const quest = guild().quest;
+    if (quest?.type !== "cull" || quest.complete || worldState.regionId !== quest.regionId || !quest.point) return null;
+    return WorldRules.distance(worldState.position, quest.point) <= quest.radius ? quest.enemy : null;
+  }
 
   /* ---------- The guild window ---------- */
   const DOCK_TITLES = { board: "Bulletin board", counter: "Guild counter", artifacts: "Artifacts", tavern: "Tavern · Recruits", hooded: "The hooded man", trophies: "Great Hunts completed" };
@@ -887,7 +896,7 @@
   }
   function onEnemyDefeated(actor) {
     const loot = [];
-    const quest = guild().quest, name = String(actor.name || "").replace(/^Empowered /, "").replace(/ \d+$/, "");
+    const quest = guild().quest, name = String(actor.name || "").replace(/^(?:(?:Empowered|Sparkling) )+/, "").replace(/ \d+$/, "");
     // Cull: only the target, only inside its circle (G12).
     if (quest?.type === "cull" && !quest.complete && worldState.regionId === quest.regionId && quest.point && WorldRules.distance(worldState.position, quest.point) <= quest.radius && actor.character && name === quest.enemy && !actor.summoned) {
       quest.progress += 1;
@@ -1027,7 +1036,7 @@
     // A fresh offer of one type at this guild (the browser checks pin it on today's board).
     makeOffer: type => castle() ? type === "great-hunt" ? null : questOffer(type, castle()) : null,
     onCharacterApplied() { resetInformationView(); dock = null; modal.hidden = true; if (questsModal) questsModal.hidden = true; onPositionChange(); render(); },
-    onPositionChange, onRegionChange, onEnemyDefeated, onBattleFinished, onTravel, objectiveAt, rematchAt, markers, areas, canSearch, search, adjustEncounter, escapeChance, avoidObjective,
+    onPositionChange, onRegionChange, onEnemyDefeated, onBattleFinished, onTravel, objectiveAt, rematchAt, markers, areas, canSearch, search, adjustEncounter, escapeChance, avoidObjective, cullTargetHere,
     openQuests, closeQuests, classInformation: id => renderClassInformation(id), recruitsFor: () => castle() ? recruitsFor(castle()) : [],
   };
 })();

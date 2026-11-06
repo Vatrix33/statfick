@@ -1292,6 +1292,24 @@
     // Kugelblitz: a shortbow whose main part is always the Church of Talos's. 15% of each hit splashes onto
     // every other enemy (reduced by their defenses, like Jackhammer's); every enemy it damaged is marked
     // until the end of its next turn (refreshed, never stacked): its spells cost 50% more Mana. Lightning rune.
+    // Lament (port task 5, M19, M20): 2% from the Tide Siren. PLACEHOLDER ART: the normal forged wand, its Greater water gem.
+    lament: {
+      name: "Lament", type: "wand", mainMaker: "elven", element: "water", placeholderArt: true,
+      effects: [{ kind: "extra-target-spell", amount: 50 }],
+      story: "A siren's wand of pale driftwood around a drowned aquamarine. Its song reaches one more listener than the caster meant.",
+    },
+    // Noble Hero (port task 5, M21, M22): 1% from every demon and devil but the bosses. PLACEHOLDER ART: the normal crossbow.
+    "noble-hero": {
+      name: "Noble Hero", type: "crossbow", parts: ["heft", "mechanism", "strong-string"], mainMaker: "roundtable", placeholderArt: true,
+      effects: [{ kind: "second-strike", amount: 25 }],
+      story: "A Roundtable crossbow that never strikes a fiend only once: each bolt is answered by a second.",
+    },
+    // Moneyshot (port task 5, M16, M18): only Sparkling enemies drop it. PLACEHOLDER ART: the normal forged longbow.
+    moneyshot: {
+      name: "Moneyshot", type: "longbow", parts: ["long-limb", "reinforcement", "light-string"], mainMaker: "outlaw", placeholderArt: true,
+      effects: [{ kind: "fifth-attack-boost", amount: 50, every: 5, criticalAmount: 200, echoPercent: 5 }],
+      story: "An outlaw's longbow strung with gilded gut. Only Sparkling enemies carry it, and every fifth shot it pays out.",
+    },
     kugelblitz: {
       name: "Kugelblitz", type: "shortbow", parts: ["small-limb", "reinforcement", "light-string"], mainMaker: "church-of-talos", placeholderArt: true,
       fixedRunes: ["charge"],

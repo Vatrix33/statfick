@@ -256,6 +256,8 @@ const ARTIFACT_EFFECT_KINDS = [
   "evade-next-attack-percent", "death-save", "spell-chain-percent", "first-turn-ap", "ally-low-hp-barrier",
   "on-hit-stun-chance", "on-hit-poison", "low-hp-fury", "party-revive", "turn-start-star", "party-damage-armor-percent",
   "crit-damage-percent",
+  // Treasure Seeker (port task 5, M13–M17).
+  "all-money-percent", "luck-per-platinum",
 ];
 const ARTIFACT_EFFECT_FIELDS = {
   "damage-percent-vs-race": { raceIds: "races" }, "element-resistance-percent": { element: "element" },
@@ -273,7 +275,8 @@ const ARTIFACT_EFFECT_FIELDS = {
 const MASTERWORK_ARTIFACT_BASE_LEVEL = 80;
 const MASTERWORK_ARTIFACT_MAX_LEVEL = 200;
 const masterworkArtifactLevelPattern = /^(artifact-.+)-lv(\d{1,3})$/;
-const rampedValue = (pair, level) => Math.round((pair[0] + (pair[1] - pair[0]) * (level - 1) / 79) * 10) / 10;
+// Rounded to one decimal, or two where an effect asks for it (Treasure Seeker's +0.15 Luck per Platinum at Level 1, M17).
+const rampedValue = (pair, level, decimals = 1) => Math.round((pair[0] + (pair[1] - pair[0]) * (level - 1) / 79) * 10 ** decimals) / 10 ** decimals;
 const leveledArtifactCache = new Map();
 
 const statDefinitions = [
@@ -476,6 +479,15 @@ function equippedArtifactItems() {
     .filter((item) => item && item.category === "artifact");
 }
 
+// Treasure Seeker (port task 5, M13): battle silver, quest rewards and sales rise by the best copy worn in the party;
+// two copies don't add up.
+function treasureMoneyPercent() {
+  const worn = [equipment, ...companions.map(companion => companion.character?.equipment || {})];
+  const amounts = worn.flatMap(slots => [slots?.artifact1, slots?.artifact2]).filter(Boolean).map(getItem)
+    .filter(item => item?.category === "artifact").flatMap(item => item.effects.filter(effect => effect.kind === "all-money-percent").map(effect => toNumber(effect.amount, 0)));
+  return Math.max(0, ...amounts);
+}
+
 function calculateArtifactEffects() {
   return window.Combat?.cacheCalculation?.("artifact-effects", calculateArtifactEffectsUncached) ?? calculateArtifactEffectsUncached();
 }
@@ -488,6 +500,8 @@ function calculateArtifactEffectsUncached() {
       if (effect.kind === "stat-flat" && effect.target in effects.statFlat) effects.statFlat[effect.target] += amount;
       if (effect.kind === "stat-percent" && effect.target in effects.statPercent) effects.statPercent[effect.target] += amount;
       if (effect.kind === "stat-permanent-percent" && effect.target in effects.statPermanentPercent) effects.statPermanentPercent[effect.target] += amount;
+      // Treasure Seeker: Luck in proportion to the money you hold, per whole Platinum's worth (M14).
+      if (effect.kind === "luck-per-platinum") effects.statFlat.luck += Math.floor(ShopRules.walletValue(currencies) / ShopRules.SILVER_PER_PLATINUM * amount);
       if (effect.kind === "max-hp-flat") effects.maxHpFlat += amount;
       if (effect.kind === "max-hp-percent") effects.maxHpPercent += amount;
       if (effect.kind === "max-mana-flat") effects.maxManaFlat += amount;
@@ -3442,6 +3456,10 @@ function parseItemFile(kind, text, allowLegacy = false) {
           normalized.ramp[field] = [...pair];
         }
       }
+      if (effect.rampDecimals != null) {
+        if (!normalized.ramp || ![1, 2].includes(effect.rampDecimals)) invalid("rampDecimals (1 or 2) goes with a level ramp");
+        normalized.rampDecimals = effect.rampDecimals;
+      }
       if (effect.maxTier != null) {
         if (!spellEffect || !Number.isInteger(effect.maxTier) || effect.maxTier < 1 || effect.maxTier > 10) invalid("maxTier is only valid on spell effects and must be an integer from 1 to 10");
         normalized.maxTier = effect.maxTier;
@@ -3465,10 +3483,12 @@ function masterworkArtifactAt(base, level) {
   const effects = base.effects.map(effect => {
     if (!effect.ramp) return effect;
     const ramped = { ...effect };
-    for (const [field, pair] of Object.entries(effect.ramp)) ramped[field] = rampedValue(pair, level);
+    for (const [field, pair] of Object.entries(effect.ramp)) ramped[field] = rampedValue(pair, level, effect.rampDecimals || 1);
     return ramped;
   });
-  const fill = text => String(text || "").replace(/\{amount\}/g, formatValue(effects[0]?.amount)).replace(/\{amount2\}/g, formatValue(effects[1]?.amount))
+  // A two-decimal ramp shows both decimals (Treasure Seeker's 0.15 Luck per Platinum).
+  const shown = effect => effect?.rampDecimals === 2 ? String(Math.round(toNumber(effect.amount, 0) * 100) / 100) : formatValue(effect?.amount);
+  const fill = text => String(text || "").replace(/\{amount\}/g, shown(effects[0])).replace(/\{amount2\}/g, shown(effects[1]))
     .replace(/\{strength\}/g, formatValue(effects[0]?.strengthPercent));
   const template = base.descriptionTemplate || base.description;
   return {
@@ -3745,6 +3765,9 @@ function artifactEffectLabel(effect) {
     "prism-basic-damage": "Your Basic damage splits into four quarters: one stays Basic, the other three become random other elements",
     "unreducible-cleave-percent": "Other enemies take " + absoluteAmount + "% of attack damage, unreducible",
     "cleave-percent": "Other enemies take " + absoluteAmount + "% of attack damage; their defenses apply",
+    "extra-target-spell": "A single-target spell can take a second target for " + absoluteAmount + "% more Mana",
+    "second-strike": "Deals " + absoluteAmount + "% less damage, but each hit strikes the target again for the same amount. The second strike counts as a weapon attack",
+    "fifth-attack-boost": "Every " + formatValue(effect.every) + "th attack with it in a battle deals " + absoluteAmount + "% more damage (" + formatValue(effect.criticalAmount) + "% more if it is a critical hit) and echoes " + formatValue(effect.echoPercent) + "% of the damage dealt to every other enemy; their defenses apply",
     "armor-pierce-bonus": "Attacks ignore " + absoluteAmount + "% more of the target's Armor (added to its Armor Pierce, up to 100%)",
     "stun-on-hit-chance": absoluteAmount + "% on hit: stun the target for 1 turn",
     "turn-and-speed-lock": "Its wielder's turn meter can't be pushed back and their Speed can't be lowered",
@@ -3784,6 +3807,8 @@ function artifactEffectLabel(effect) {
     "restore-mana-on-elemental-hit-percent": "After taking " + (effect.element ? spellElementLabel(effect.element) : "elemental") + " damage, restore " + absoluteAmount + "% maximum Mana",
     // The Artifact Rework's effects (port task 4).
     "money-percent": "Silver from battles " + change("%"),
+    "all-money-percent": "Money from all sources " + change("%"),
+    "luck-per-platinum": "Luck +" + String(Math.round(toNumber(effect.amount, 0) * 100) / 100) + " for every Platinum you hold",
     "exp-percent": "EXP from battles " + change("%"),
     "weapon-lifesteal-percent": "Weapon hits heal you for " + absoluteAmount + "% of the damage dealt",
     "damage-lifesteal-percent": "Damage you deal with weapons and spells heals you for " + absoluteAmount + "% of it",
