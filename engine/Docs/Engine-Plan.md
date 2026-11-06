@@ -108,9 +108,9 @@ built so far: the continent's geometry and travel rules (`../old-game/scripts/co
 a first continent map view, and the natural land (W17, W18) in the rules: one noise-shaped land field moves the coast
 and the mountains' feet up to 400 units from the old straight edges (the coast regions' own shores and Cinder Isle's
 oval too), keeps a mountain core between neighbours no road joins and a pass where one does, and never cuts a road,
-place, site or exit. **Waiting for the user:** their review of the continent's natural shape (the user asked to see it
-before it is painted: a picture made by `claude-work/continent/review-data.cjs` and `review.py` in the cloud session,
-not kept in the repo). Still to come: painting the map to that shape, the music crossfade, the boat, the mountain fog,
+place, site or exit. The user reviewed that shape (too much impassable rock; the Deep Desert, Duskpine and the
+Battlefield stick out; Cinder Isle too close) and answered W19–W21: a restructured layout with new regions where gaps
+remain is being drafted for review. Still to come: painting the map to that shape, the music crossfade, the boat, the mountain fog,
 the caravan, the carriage, the checks and the docs. **Engine work goes on uninterrupted.**
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
@@ -1307,6 +1307,18 @@ M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.t
   cut. (Not "bite in only", the recommendation; not the looks only with the old rectangles walkable.)
 - W18 **How far the natural edge moves:** up to about 30 km (400 continent units) from a region's old straight edge, in
   or out. (Not about 15 km, the recommendation, nor about 7 km.)
+- W19 **The arms and bays** (asked after the user reviewed the natural shape, 2026-11-06: "the deep desert and the
+  Duskpine Forest with the Ancient Battlefield stick out way too much … you can fill out some ocean area with land to
+  connect the old areas better … Or you could restructure the continent better"): restructure first (Duskpine and the
+  Battlefield fold up into the bay below the Jungle, the Deep Desert tucks in; roads re-routed, every connection kept),
+  and a new, fully built region (its own terrain, enemies, level band, connections) wherever a big gap still remains;
+  drawn as a layout draft for review before it is built. (Not new regions with today's layout, not restructuring only.)
+- W20 **Impassable rock** (the user's own answer): "Dont force-seperate regions. Just place one rocky terrain as a new
+  passable region and thats it": no impassable rock parts any two regions any more (this replaces W17's mountain core
+  between neighbours no road joins); the continent's only rocky terrain is one new region, which can be walked. (Not
+  thin ranges only where needed, the recommendation; not water between them; not today's ranges without their bites.)
+- W21 **Cinder Isle:** about 250 km offshore; the boat keeps its 12.6 hours (W11). (Not about 150 km, the
+  recommendation, nor about 100 km.)
 
 **Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
 after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**
