@@ -4341,7 +4341,7 @@ function forgedAvailability(item) {
     const place = WorldRules.settlementsForRegion?.(item.shopOffer.regionId)?.find(settlement => settlement.id === item.shopOffer.settlementId);
     return itemPurchasePriceLabel(item) + (place ? " · " + place.name + " blacksmith" : "");
   }
-  if (item.forged.masterwork) return item.soldAt || "Found only (Masterwork)";
+  if (item.forged.masterwork) return item.soldAt || (item.rarity === "exotic" ? "Found only (Exotic, with Limitless on)" : "Found only (Masterwork)");
   return item.shopAvailable ? ShopRules.formatPrice(item.priceSilver) + (item.forged.vampiric ? " · Nocturne Keep only" : "") : "Looted only (Outlaw)";
 }
 

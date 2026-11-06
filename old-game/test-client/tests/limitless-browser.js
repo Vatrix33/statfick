@@ -76,7 +76,7 @@ async function checkExoticForging() {
     assert(item.forged.level === 150 && F.encode(F.decode(id)) === id, `${key}: forged at the finder's level and saved by its id`);
     assert(item.forged.parts[0].material === (category === "weapon" ? "exium" : "mythilium"), `${key}: its main part is ${category === "weapon" ? "Exium" : "Mythilium"}`);
     assert(/^An exotic /.test(item.description) && getItem("masterwork-" + key)?.rarity === "exotic", `${key}: described as Exotic, with a template for drop tables`);
-    assert(itemRarityTag(item.rarity).includes("Exotic"), `${key}: tagged Exotic`);
+    assert(itemRarityTag(item.rarity).includes("Exotic") && forgedAvailability(item).includes("Exotic") && itemDetailMarkup(item).includes("EXOTIC "), `${key}: tagged and described as Exotic`);
   }
   // The weapons' other parts: Exium a quarter of the time (L28), otherwise any fitting material.
   let exiumParts = 0, others = 0;

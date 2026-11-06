@@ -812,7 +812,17 @@ placeholder art (L1; `engine/Docs/Port-Tasks/README.md`). The user's answers are
   (`window.__limitlessChecks`).
 - **Not covered by a check:** the escape preview's scaling; the battle stage's look of the Exotics (the checks run with the
   stage off); the bosses' new classes in real fights (their totals, limits and the AI's strike rule are checked).
-- MUTATION_RESULTS
+- **The checks can fail:** each rule was broken once in a copy of the game (97 mutations, by the earlier tasks' runner,
+  in the cloud session's `claude-work/limitless/` (never on the user's PC), not kept): Limitless's record and old saves,
+  the cap, turning it off and on (EXP, free points, spent points, companions, gear), the unlock, its pop-up, the button
+  and its battle lock, the sheet's look, level-ups and perk points, EXP at the cap, enemy scaling (direction, the +1s,
+  ×1.25, once, off), the bosses' classes, both ×2s, the Luck bonus, the wear rule and its mark (player, companions, the
+  Guild's odds), the Exotic wave, Winged Hussar's wings, the Exotics' forging rules (the lists, Exium, the other parts,
+  the rarity and how a piece names it, the decoders, reforging, Cherubim's slots, runes and element), every rule of the five Exotics, their drops,
+  Anatemis's reward and the bosses' strike rule. All 97 were caught after a second pass; the first let four through: a
+  masterwork-decoder clause no table could reach (removed: Exium fits only head and body shapes, which are only ever
+  main parts) and three checks that didn't look closely enough (turning it off a second time, the level-up handler
+  behind its disabled button, the companion picker's reason behind the note), which they now do.
 - REGRESSION_RESULTS
 
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
