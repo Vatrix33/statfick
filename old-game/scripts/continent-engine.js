@@ -98,6 +98,8 @@
      settlement, site, exit and starting point stamped onto it so it always stands on land. Read with bilinear
      interpolation: positive on land, about the distance to the shore in continent units. */
   const KEEP = { road: 55, castle: 150, town: 110, site: 60, exit: 80, start: 80 };
+  // How far apart two roads' ends can be and still be walked across as one road (world-engine.js's ROAD_GAP).
+  const ROAD_GAP = 200 * SCALE;
   function decode(source) {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", text = source.DATA.replace(/=+$/, "");
     const bytes = new Uint8Array(Math.floor(text.length * 3 / 4));
@@ -145,8 +147,17 @@
       for (const path of [...(region.roads || []), ...(region.river ? [region.river] : [])])
         for (let k = 1; k < path.length; k++) mark(C(path[k - 1]), C(path[k]), CORRIDOR, owner);
       for (const place of [...(region.settlements || []), ...(region.sites || [])]) mark(C(place), C(place), CORRIDOR + 60, owner);
-      for (const path of [...(region.roads || []), ...linksOf(region.id).map(link => link.halves[region.id])])
-        for (let k = 1; k < path.length; k++) stamp(C(path[k - 1]), C(path[k]), KEEP.road);
+      const paths = [...(region.roads || []), ...linksOf(region.id).map(link => link.halves[region.id])];
+      for (const path of paths) for (let k = 1; k < path.length; k++) stamp(C(path[k - 1]), C(path[k]), KEEP.road);
+      // The ground across a gap between two roads (where world-engine.js's road graph walks across, the broken
+      // roads of the Ancient Battlefield) is kept too.
+      paths.forEach((path, index) => {
+        for (const end of [path[0], path.at(-1)]) {
+          let best = null, bestDistance = ROAD_GAP;
+          paths.forEach((other, otherIndex) => { if (otherIndex !== index) for (const p of other) { const d = Math.hypot(C(p).x - C(end).x, C(p).y - C(end).y); if (d < bestDistance && d > 1e-7) { best = p; bestDistance = d; } } });
+          if (best) stamp(C(end), C(best), KEEP.road);
+        }
+      });
       for (const place of region.settlements || []) stamp(C(place), C(place), place.kind === "Castle city" ? KEEP.castle : KEEP.town);
       for (const site of region.sites || []) stamp(C(site), C(site), (site.radius || 40) * SCALE + KEEP.site);
       for (const exit of region.exits || []) stamp(C(exit.point), C(exit.point), KEEP.exit);
@@ -238,6 +249,6 @@
     const xs = IDS.flatMap(id => [RECTS[id].x0, RECTS[id].x1]), ys = IDS.flatMap(id => [RECTS[id].y0, RECTS[id].y1]);
     return { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
   };
-  root.ContinentRules = { SCALE, LW, LH, CW, CH, REACH, STRIP, STRIP_MARGIN, KEEP, ORIGINS, RECTS, IDS, toC, toLocal, inRect, rectDistance, regionAt, stripBetween, build, linksOf, linkBetween, inStrip, passable, bounds, landAt, field, BLEND, BEND, bent, paintedAt, cover, extentOf, get built() { return built; } };
+  root.ContinentRules = { SCALE, LW, LH, CW, CH, REACH, STRIP, STRIP_MARGIN, KEEP, ORIGINS, RECTS, IDS, toC, toLocal, inRect, rectDistance, regionAt, stripBetween, build, linksOf, linkBetween, inStrip, passable, bounds, landAt, field, ROAD_GAP, BLEND, BEND, bent, paintedAt, cover, extentOf, get built() { return built; } };
   if (typeof module !== "undefined" && module.exports) module.exports = root.ContinentRules;
 })(globalThis);

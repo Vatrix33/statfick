@@ -113,7 +113,9 @@ regions (`uncharted` in `world-region-data.js`: walkable, no encounters, the las
 only through entered regions (W30); and the map painted to it (`map-terrain.js`, `map-continent.js`, `map.js`): each
 region's terrain over its whole territory to the natural coast, the coast and inland waters from the baked land,
 regions' pictures meeting along wandering lines, the empty regions as parchment marked "Uncharted" (W29), fog along the
-same lines. **Next:** the music crossfade, the boat, the mountain fog, the caravan, the carriage, then the checks (the
+same lines; the music crossfade (W14), the boat trip on the map (W31), the mountain's fog and clouds (W32), the caravan
+(W7, W8, W14, W16: a Caravan button in castle cities, a list docked over the map previewing each road, the wagon's
+trip), and off-road paths round water where a straight line is blocked. **Next:** the carriage, then the checks (the
 older checks that expect the old map, e.g. the boat's nine hours, to be brought up to date), the mutation proof and the
 docs. **Engine work goes on uninterrupted.**
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no

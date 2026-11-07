@@ -734,7 +734,7 @@
   }
   // Every region's roads and border crossings in continent units, one graph.
   let continentGraph = null;
-  const ROAD_GAP = 200 * SCALE;
+  const ROAD_GAP = CONTINENT ? CONTINENT.ROAD_GAP : 200 * SCALE;
   function continentRoadGraph() {
     if (continentGraph) return continentGraph;
     const nodes = [], regionOf = [], edges = [], ids = new Map();
@@ -793,29 +793,96 @@
   /* The fastest way from one continent point to another: straight, or onto the roads and along them. Given `entered`
      (the regions the traveller has entered), off the roads it crosses only those and the regions where the trip starts
      and ends; anywhere else it keeps to the roads (W30). */
-  function continentRoute(startValue, endValue, bonus = 0, { maxSpeed = 7, entered = null } = {}) {
+  /* A way across country where a straight line is blocked (the natural coast's bays and inland waters, W17-W26): A* on
+     a grid of LAND_CELL units over the ground that can be stood on (and the regions `allowed` lets it cross), within
+     LAND_SEARCH units round the two points, then pulled straight wherever a straight line is clear. The waypoints after
+     `a`, ending at `b`; null when no way is found. */
+  const LAND_CELL = 32, LAND_SEARCH = 2400;
+  function landPath(a, b, allowed = null) {
+    const x0 = Math.min(a.x, b.x) - LAND_SEARCH, y0 = Math.min(a.y, b.y) - LAND_SEARCH;
+    const cols = Math.ceil((Math.max(a.x, b.x) + LAND_SEARCH - x0) / LAND_CELL) + 1, rows = Math.ceil((Math.max(a.y, b.y) + LAND_SEARCH - y0) / LAND_CELL) + 1;
+    const cell = c => [Math.round((c.x - x0) / LAND_CELL), Math.round((c.y - y0) / LAND_CELL)];
+    const centre = (col, row) => ({ x: x0 + col * LAND_CELL, y: y0 + row * LAND_CELL });
+    const known = new Int8Array(cols * rows);
+    const open = (col, row) => {
+      if (col < 0 || row < 0 || col >= cols || row >= rows) return false;
+      const i = row * cols + col;
+      if (!known[i]) { const c = centre(col, row); known[i] = passableAt(c) && (!allowed || allowed(CONTINENT.regionAt(c))) ? 1 : 2; }
+      return known[i] === 1;
+    };
+    const [sc, sr] = cell(a), [gc, gr] = cell(b);
+    const goal = gr * cols + gc, startIndex = sr * cols + sc;
+    const g = new Float64Array(cols * rows).fill(Infinity), from = new Int32Array(cols * rows).fill(-1), closed = new Uint8Array(cols * rows);
+    const heap = [];
+    const push = (f, index) => { heap.push([f, index]); let i = heap.length - 1; while (i > 0) { const parent = (i - 1) >> 1; if (heap[parent][0] <= heap[i][0]) break; [heap[parent], heap[i]] = [heap[i], heap[parent]]; i = parent; } };
+    const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = i * 2 + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
+    const h = index => Math.hypot(index % cols - gc, Math.floor(index / cols) - gr);
+    g[startIndex] = 0; push(h(startIndex), startIndex);
+    while (heap.length) {
+      const [, current] = pop();
+      if (closed[current]) continue;
+      closed[current] = 1;
+      if (current === goal) break;
+      const col = current % cols, row = Math.floor(current / cols);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        const nc = col + dx, nr = row + dy, next = nr * cols + nc;
+        if (!(next === goal && nc >= 0 && nr >= 0 && nc < cols && nr < rows) && !open(nc, nr)) continue;
+        if (dx && dy && !(open(col + dx, row) && open(col, row + dy))) continue;
+        const cost = g[current] + (dx && dy ? Math.SQRT2 : 1);
+        if (cost < g[next]) { g[next] = cost; from[next] = current; push(cost + h(next), next); }
+      }
+    }
+    if (!Number.isFinite(g[goal])) return null;
+    const cells = [];
+    for (let i = from[goal]; i >= 0 && i !== startIndex; i = from[i]) cells.push(centre(i % cols, Math.floor(i / cols)));
+    cells.reverse();
+    const points = [...cells, { ...b }], route = [];
+    let cursor = a;
+    for (let i = 0; i < points.length;) {
+      let far = i;
+      for (let j = points.length - 1; j > i; j--) if (Number.isFinite(continentTravelMinutes(cursor, points[j], 0, allowed))) { far = j; break; }
+      route.push(points[far]); cursor = points[far]; i = far + 1;
+    }
+    return route;
+  }
+  const routeMinutes = (a, points, bonus, allowed) => { let total = 0, cursor = a; for (const p of points) { total += continentTravelMinutes(cursor, p, bonus, allowed); cursor = p; } return total; };
+  function continentRoute(startValue, endValue, bonus = 0, { maxSpeed = 7, entered = null, roadsOnly = false } = {}) {
     const start = continentPoint(startValue), end = continentPoint(endValue);
     if (distance(start, end) < 1e-7) return [{ ...end }];
     const startRegion = fromContinent(start).regionId, endRegion = fromContinent(end).regionId;
     const known = entered ? new Set(entered) : null;
-    const allowed = known ? id => known.has(id) || id === startRegion || id === endRegion : null;
-    const direct = continentTravelMinutes(start, end, bonus, allowed);
+    // `roadsOnly`: along the roads all the way, but for the steps onto them and off at the ends (the caravan, W8).
+    const allowed = roadsOnly ? () => true : known ? id => known.has(id) || id === startRegion || id === endRegion : null;
+    let direct = roadsOnly ? Infinity : continentTravelMinutes(start, end, bonus, allowed), directVia = null;
+    // Blocked straight: round the water across country, if near enough to search.
+    if (!roadsOnly && !Number.isFinite(direct) && distance(start, end) <= LAND_SEARCH * 2) {
+      directVia = landPath(start, end, allowed);
+      if (directVia) direct = routeMinutes(start, directVia, bonus, allowed);
+    }
     const graph = continentRoadGraph(), count = graph.nodes.length;
     const flat = typeof bonus === "object" ? number(bonus?.all, 0) : number(bonus, 0);
     const fastest = Math.max(maxSpeed, 7) + Math.max(0, flat) + (typeof bonus === "object" ? Math.max(0, number(bonus?.river, 0)) : 0);
     const minutesPerUnit = 60 / UNITS_PER_KM / Math.max(0.1, fastest * Math.max(1, typeof bonus === "object" ? 1 + Math.max(0, number(bonus?.carriageRoad, 0)) / 100 : 1));
     const bound = (a, b) => distance(a, b) * minutesPerUnit;
     // On and off the roads only in the region where the trip starts or ends, and not farther than a region's width.
-    const reach = Math.max(CONTINENT?.CW || 1600, CONTINENT?.CH || 1000);
+    const reach = roadsOnly ? (CONTINENT?.CW || 1600) : Math.max(CONTINENT?.CW || 1600, CONTINENT?.CH || 1000);
     const costs = new Float64Array(count).fill(Infinity), previous = new Int32Array(count).fill(-1), done = new Uint8Array(count);
     const heap = [];
     const push = (cost, index) => { heap.push([cost, index]); let i = heap.length - 1; while (i > 0) { const parent = (i - 1) >> 1; if (heap[parent][0] <= heap[i][0]) break; [heap[parent], heap[i]] = [heap[i], heap[parent]]; i = parent; } };
     const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = i * 2 + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
+    const entranceVia = new Map();
     for (let index = 0; index < count; index++) {
       if (graph.regionOf[index] !== startRegion || distance(start, graph.nodes[index]) > reach) continue;
       if (bound(start, graph.nodes[index]) + bound(graph.nodes[index], end) >= direct) continue;
       const entrance = continentTravelMinutes(start, graph.nodes[index], bonus, allowed);
       if (Number.isFinite(entrance) && entrance < costs[index]) { costs[index] = entrance; push(entrance, index); }
+    }
+    // No straight way onto a road: across country to the nearest road of the start's region.
+    if (!heap.length) {
+      const nearest = graph.nodes.map((node, index) => index).filter(index => graph.regionOf[index] === startRegion).sort((p, q) => distance(start, graph.nodes[p]) - distance(start, graph.nodes[q]))[0];
+      const via = nearest != null && landPath(start, graph.nodes[nearest], allowed);
+      if (via) { costs[nearest] = routeMinutes(start, via, bonus, allowed); entranceVia.set(nearest, via.slice(0, -1)); push(costs[nearest], nearest); }
     }
     let best = direct, exit = -1;
     const finishes = new Map();
@@ -835,11 +902,19 @@
         if (next < costs[edge.to] && next + bound(graph.nodes[edge.to], end) < best - 1e-7) { costs[edge.to] = next; previous[edge.to] = current; push(next, edge.to); }
       }
     }
-    if (exit < 0) return Number.isFinite(direct) ? [{ ...end }] : [];
+    // No straight way off the roads to the end: across country from the nearest road reached in the end's region.
+    let finishVia = null;
+    if (exit < 0 && !Number.isFinite(direct)) {
+      const nearest = graph.nodes.map((node, index) => index).filter(index => done[index] && graph.regionOf[index] === endRegion).sort((p, q) => distance(end, graph.nodes[p]) - distance(end, graph.nodes[q]))[0];
+      const via = nearest != null && landPath(graph.nodes[nearest], end, allowed);
+      if (via) { exit = nearest; finishVia = via.slice(0, -1); }
+    }
+    if (exit < 0) return Number.isFinite(direct) ? [...(directVia || [{ ...end }])].map(p => ({ ...p })) : [];
+    if (roadsOnly && !Number.isFinite(best) && !finishVia) return [];
     const path = [];
     for (let current = exit; current >= 0; current = previous[current]) path.push(graph.nodes[current]);
     path.reverse();
-    const route = [...path, end].reduce((result, routePoint) => {
+    const route = [...(entranceVia.get(path.length ? graph.nodes.indexOf(path[0]) : -1) || []), ...path, ...(finishVia || []), end].reduce((result, routePoint) => {
       if (!result.length || distance(result.at(-1), routePoint) > 1e-7) result.push({ ...routePoint });
       return result;
     }, []);
@@ -855,6 +930,35 @@
     let cursor = continentPoint(startValue), total = 0;
     for (const raw of Array.isArray(routeValue) ? routeValue : []) { if (!validPoint(raw)) continue; total += continentTravelMinutes(cursor, raw, bonus); cursor = continentPoint(raw); }
     return total;
+  }
+  /* ---------- The caravan (port task 8: W7, W8, W16) ----------
+     Paid travel between castle cities whose caravan the traveller has unlocked (by visiting them), along the roads:
+     21 km of road an hour (three times walking pace on a road) and 2 silver a km of road. */
+  const CARAVAN = Object.freeze({ KM_PER_HOUR: 21, SILVER_PER_KM: 2 });
+  const castleCity = id => { for (const region of Object.values(regions)) { const place = (region.settlements || []).find(candidate => candidate.id === id && candidate.kind === "Castle city"); if (place) return { regionId: region.id, place }; } return null; };
+  const caravanTrips = new Map();
+  function caravanTrip(fromId, toId) {
+    const key = fromId + ">" + toId;
+    if (caravanTrips.has(key)) return caravanTrips.get(key);
+    const from = castleCity(fromId), to = castleCity(toId);
+    let trip = null;
+    if (from && to && fromId !== toId) {
+      const start = toContinent(from.regionId, from.place), end = toContinent(to.regionId, to.place);
+      const route = continentRoute(start, end, 0, { roadsOnly: true });
+      if (route.length) {
+        const km = continentRouteDistance(start, route) / UNITS_PER_KM;
+        trip = { from: fromId, to: toId, toRegionId: to.regionId, name: to.place.name, start, route, km, minutes: Math.round(km / CARAVAN.KM_PER_HOUR * 60), fare: Math.round(km * CARAVAN.SILVER_PER_KM) };
+      }
+    }
+    caravanTrips.set(key, trip);
+    return trip;
+  }
+  // The trips the caravan offers from a castle city: to every other castle city with an unlocked caravan the traveller
+  // may enter, nearest first.
+  function caravanTrips_(state, fromId) {
+    const unlocked = Array.isArray(state?.caravans) ? state.caravans : [];
+    if (!unlocked.includes(fromId)) return [];
+    return unlocked.filter(id => id !== fromId && castleCity(id) && canAccessSettlement(castleCity(id).place)).map(id => caravanTrip(fromId, id)).filter(Boolean).sort((a, b) => a.km - b.km);
   }
   // Where a traveller stands on the continent.
   const standing = state => toContinent(state.regionId, state.position);
@@ -971,7 +1075,7 @@
     const keep = list => (Array.isArray(list) ? list : []).filter(id => !RETIRED_ARTIFACT_IDS.has(id));
     return { ...information, offers: { ...information.offers, item: keep(information.offers?.item) }, revealed: { ...information.revealed, item: keep(information.revealed?.item) } };
   }
-  const api = { CONTINENT_VERSION, SCALE, LOCAL_UNITS_PER_KM, REACH, castleCityIds, toContinent, fromContinent, passableAt, continentSpeedAt, continentTravelMinutes, continentRoadGraph, continentRoute, continentRouteDistance, continentRouteMinutes, placeAt, noteVisit, standing, get continent() { return continent; },
+  const api = { CARAVAN, castleCity, caravanTrip, caravanTrips: caravanTrips_, CONTINENT_VERSION, SCALE, LOCAL_UNITS_PER_KM, REACH, castleCityIds, toContinent, fromContinent, passableAt, continentSpeedAt, continentTravelMinutes, continentRoadGraph, continentRoute, continentRouteDistance, continentRouteMinutes, placeAt, noteVisit, standing, get continent() { return continent; },
     RETIRED_ARTIFACT_IDS, UNITS_PER_KM, MAP_SCALE, ENCOUNTER_MINUTES, RENAMED_ENEMIES, settlements, forests, regions, normalizeRegionId, getRegion, setActiveRegion, activeRegion, settlementsForRegion, nearestSettlement, setSettlementAccessResolver, canAccessSettlement, landmarkAt, siteAt, normalize, timeSpeeds, normalizeTimeSpeed, realTimeMinutes, day, time, point, distance, settlementAt, isLand, terrainAt, zoneAt, speedAt, travelMinutes, routeBetween, routeDistance, routeTravelMinutes, exitAt, exitById, step, lighting };
   root.WorldRules = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;

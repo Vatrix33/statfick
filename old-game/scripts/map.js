@@ -17,7 +17,7 @@
     ["map-blacksmith", "B", ["b"]], ["map-item-shop", "G", ["g"]], ["map-tailor", "U", ["u"]],
     ["map-guild", "A", ["a"]], ["map-church", "T", ["t"]], ["map-magic-tower", "W", ["w"]], ["map-institute", "I", ["i"]], ["map-hearth-home", "H", ["h"]],
     ["map-class-respec", "L", ["l"]], ["map-stat-respec", "P", ["p"]],
-    ["map-boat", "V", ["v"]], ["map-search", "F", ["f"]], ["map-track-quarry", "Q", ["q"]], ["map-quests", "J", ["j"]],
+    ["map-caravan", "K", ["k"]], ["map-boat", "V", ["v"]], ["map-search", "F", ["f"]], ["map-track-quarry", "Q", ["q"]], ["map-quests", "J", ["j"]],
     ["map-zoom-in", "+", ["+", "="]], ["map-zoom-out", "−", ["-"]], ["map-fit", "0", ["0"]], ["map-follow", "Y", ["y"]],
   ];
   function labelShortcut(button, hint, ariaKey = hint) {
@@ -219,7 +219,7 @@
     ctx.strokeStyle = "rgba(26,18,12,.85)"; ctx.lineWidth = Math.max(1.4, 2.2 * dpr) / s; ctx.stroke(back.coast);
     ctx.restore();
     // On the boat trip (W31) the waves drift: short strokes over the open sea, moving with time.
-    if (voyage) {
+    if (voyage?.waves) {
       const t = (performance.now() - voyage.start) / 1000, step = 46 * dpr;
       ctx.strokeStyle = "rgba(226,236,232,.35)"; ctx.lineWidth = Math.max(1, 1.4 * dpr); ctx.beginPath();
       for (let sy = (t * 9 * dpr) % step - step; sy < terrainCanvas.height + step; sy += step)
@@ -417,6 +417,8 @@
     <g id="map-guild-markers"></g>
     <g id="map-marker" hidden pointer-events="none"><ellipse rx="13" ry="5" fill="${MapInk.INK}" opacity=".45"/><circle r="11" fill="none" stroke="#f0dfb4" stroke-width="3"/><path d="M0 0v-42" stroke="${MapInk.INK}" stroke-width="3"/><path d="M0 -42l26 8-26 12Z" fill="#8a2c22" stroke="${MapInk.INK}" stroke-width="2.4" stroke-linejoin="round"/></g>
     <g id="map-voyage" hidden pointer-events="none"><path d="M-30 4H30L22 16H-22Z" fill="#5a3a24" stroke="${MapInk.INK}" stroke-width="2.4" stroke-linejoin="round"/><path d="M-2 4V-34" stroke="${MapInk.INK}" stroke-width="2.6"/><path d="M0 -32Q20 -16 2 0Z" fill="#f0dfb4" stroke="${MapInk.INK}" stroke-width="2" stroke-linejoin="round"/><path d="M-4 -30Q-22 -14 -4 -2Z" fill="#e6d2a4" stroke="${MapInk.INK}" stroke-width="2" stroke-linejoin="round"/><path d="M-38 20Q-30 15 -22 20T-6 20M6 20Q14 15 22 20T38 20" fill="none" stroke="#f0dfb4" stroke-width="2" opacity=".8"/></g>
+    <path id="map-caravan-route" fill="none" stroke-width="4" stroke-dasharray="12 8" stroke-linecap="round" vector-effect="non-scaling-stroke" pointer-events="none"/>
+    <g id="map-caravan-wagon" hidden pointer-events="none"><path d="M-26 -18H18V4H-26Z" fill="#e8d6aa" stroke="${MapInk.INK}" stroke-width="2.2" stroke-linejoin="round"/><path d="M-26 -18Q-4 -34 18 -18" fill="#f3e6c2" stroke="${MapInk.INK}" stroke-width="2.2"/><path d="M18 -6H30L36 4H18Z" fill="#6b4a2c" stroke="${MapInk.INK}" stroke-width="2"/><circle cx="-16" cy="8" r="7" fill="#5a3a24" stroke="${MapInk.INK}" stroke-width="2"/><circle cx="10" cy="8" r="7" fill="#5a3a24" stroke="${MapInk.INK}" stroke-width="2"/><path d="M36 0Q44 -10 50 -2L46 8H38Z" fill="#7a5a3c" stroke="${MapInk.INK}" stroke-width="2" stroke-linejoin="round"/></g>
     <g id="map-character" role="button" tabindex="0" aria-label="Current position. Click to pause or resume travel" aria-pressed="false">
       <circle r="32" fill="transparent"/><circle class="map-character-ring" r="22" fill="#fff0c6" fill-opacity=".18" stroke="#fff2c6" stroke-width="3"/>
       <circle r="17" fill="#2a1d14" stroke="${MapInk.INK}" stroke-width="2"/><circle r="14" fill="#5e2620" stroke="#e8cf92" stroke-width="2"/><circle cy="-4.5" r="4.6" fill="#f0dfb4"/><path d="M-7.6 9Q-7.6 -.5 0 -.5T7.6 9Z" fill="#f0dfb4"/>
@@ -620,6 +622,9 @@
     const canBoat = Boolean(boatDestination) && !mapLocked && !travelling && currentHp > 0;
     $("map-boat").hidden = !canBoat; $("map-boat").disabled = !canBoat;
     $("map-boat").title = boatDestination ? `Sail to ${boatDestination.name} · ${place.boat.minutes / 60} hours` : "Reach a port to travel by boat";
+    const atCastle = Boolean(caravanHere()) && !mapLocked && currentHp > 0, caravanWhy = caravanReason();
+    $("map-caravan").hidden = !atCastle; $("map-caravan").disabled = !atCastle || travelling || Boolean(caravanWhy) || Boolean(voyage);
+    $("map-caravan").title = caravanWhy || "Travel by caravan to another castle city you have visited";
     const canSearch = window.Guild?.canSearch() || false;
     $("map-search").hidden = !canSearch; $("map-search").disabled = !canSearch;
     const trailSense = toInteger(classLevels.stalker, 0) >= 1;
@@ -951,7 +956,7 @@
     (worldState.pendingEncounter ? $("map-encounter-fight") : pendingExit?.targetRegionId ? $("map-transition-travel") : worldState.pendingRegionTransition ? $("map-transition-stay") : modal.querySelector(".modal-close")).focus();
   }
   function close() {
-    finishVoyage();
+    finishVoyage(); closeCaravan(false);
     pause(); modal.hidden = true; renderEncounterPrompt(); renderTransitionPrompt(); updateModalState(); $("map-open-button").focus();
   }
   function rest() {
@@ -987,11 +992,9 @@
     updateDerivedValues(); renderOwnedItems(); renderKnownSpells(); renderSkills(); saveCharacter(); render();
     $("map-status").textContent = 'Camped for 8 hours. ' + (retained ? 'Camping Supplies recovered' : 'One set of Camping Supplies consumed') + '; HP and Mana fully restored.';
   }
-  /* The boat trip (port task 8, W11, W14, W31): about five seconds on the map itself. The camera pulls out to show both
-     ports, a small boat sails across the real sea from one to the other while the waves drift and the clock runs on
-     the trip's hours, then the camera settles on the arrival. A click or Esc skips to the end; the trip itself (time,
-     place) is applied once, at the end. */
-  const VOYAGE_MS = 5000;
+  /* Journeys on the map (port task 8): the boat trip (W11, W14, W31) and the caravan (W8, W14, W16). The camera frames
+     the way, a boat or a wagon goes along it while the clock runs on, then the camera settles on the arrival. A click
+     or Esc skips to the end; the trip itself (time, place, money) is applied once, at the end. */
   let voyage = null;
   // A way across the sea from one port to the other: the straight line, or the first gentle curve off it that stays on
   // water (but for the ports' own shores).
@@ -1006,35 +1009,46 @@
     }
     return curve(0);
   }
-  function travelByBoat() {
-    const place = rules.settlementAt(worldState.position, worldState.regionId);
-    const boat = place?.boat;
-    const destination = boat && rules.settlementsForRegion(boat.regionId).find(candidate => candidate.id === boat.settlementId);
-    if (voyage || !destination || travelling || encounterResolving || worldState.pendingEncounter || worldState.pendingRegionTransition || window.Combat?.active() || currentHp <= 0) return;
+  // A polyline walked at an even pace.
+  function along(points) {
+    const lengths = [0];
+    for (let i = 1; i < points.length; i++) lengths.push(lengths[i - 1] + Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y));
+    const total = lengths.at(-1) || 1;
+    return t => {
+      const goal = Math.max(0, Math.min(1, t)) * total;
+      let i = 1;
+      while (i < points.length - 1 && lengths[i] < goal) i++;
+      const span = lengths[i] - lengths[i - 1] || 1, k = (goal - lengths[i - 1]) / span;
+      return { x: points[i - 1].x + (points[i].x - points[i - 1].x) * k, y: points[i - 1].y + (points[i].y - points[i - 1].y) * k };
+    };
+  }
+  function frameOn(points, margin = 700) {
+    const xs = points.map(p => p.x), ys = points.map(p => p.y);
+    camera.follow = false;
+    camera.x = (Math.min(...xs) + Math.max(...xs)) / 2; camera.y = (Math.min(...ys) + Math.max(...ys)) / 2;
+    camera.scale = Math.min(viewSize.width / (Math.max(...xs) - Math.min(...xs) + margin * 2), viewSize.height / (Math.max(...ys) - Math.min(...ys) + margin * 2));
+    applyCamera();
+  }
+  function startJourney({ path, duration, element, minutes, status, finish, waves = false, points }) {
     pause(false);
     worldState.destination = null; worldState.route = [];
-    const from = here(), to = rules.toContinent(boat.regionId, destination);
-    voyage = { start: performance.now(), path: seaPath(from, to), place, destination, boat, previousRegionId: worldState.regionId, minutes: worldState.minutes, follow: camera.follow };
-    // Both ports in view.
-    const margin = 900;
-    camera.follow = false;
-    camera.x = (from.x + to.x) / 2; camera.y = (from.y + to.y) / 2;
-    camera.scale = Math.min(viewSize.width / (Math.abs(to.x - from.x) + margin * 2), viewSize.height / (Math.abs(to.y - from.y) + margin * 2));
-    $("map-voyage").removeAttribute("hidden");
+    voyage = { start: performance.now(), path, duration, element, minutes, worldMinutes: worldState.minutes, finish, waves };
+    frameOn(points);
+    $(element).removeAttribute("hidden");
     $("map-character").setAttribute("visibility", "hidden");
-    $("map-status").textContent = `Sailing from ${place.name} to ${destination.name}… (click or Esc to skip)`;
-    applyCamera(); render();
+    $("map-status").textContent = status + " (click or Esc to skip)";
+    render();
     requestAnimationFrame(voyageStep);
   }
   function voyageStep(now) {
     if (!voyage) return;
-    const t = Math.min(1, (now - voyage.start) / VOYAGE_MS), eased = t * t * (3 - 2 * t);
+    const t = Math.min(1, (now - voyage.start) / voyage.duration), eased = t * t * (3 - 2 * t);
     const p = voyage.path(eased), ahead = voyage.path(Math.min(1, eased + 0.01)), behind = voyage.path(Math.max(0, eased - 0.01));
-    // The boat faces the way it sails (drawn facing east).
-    $("map-voyage").setAttribute("transform", pin(p.x, p.y, 1.4) + (ahead.x < behind.x ? " scale(-1 1)" : ""));
-    $("map-voyage").dataset.progress = t.toFixed(3);
+    // The boat or wagon faces the way it goes (drawn facing east).
+    $(voyage.element).setAttribute("transform", pin(p.x, p.y, 1.4) + (ahead.x < behind.x ? " scale(-1 1)" : ""));
+    $(voyage.element).dataset.progress = t.toFixed(3);
     // The clock runs on with the trip (shown only; the hours are added once at the end).
-    const minutes = voyage.minutes + voyage.boat.minutes * t;
+    const minutes = voyage.worldMinutes + voyage.minutes * t;
     $("map-day").textContent = "Day " + rules.day(minutes); $("map-clock").textContent = rules.time(minutes);
     requestDraw();
     if (t >= 1) finishVoyage(); else requestAnimationFrame(voyageStep);
@@ -1043,19 +1057,88 @@
     const trip = voyage;
     if (!trip) return;
     voyage = null;
-    $("map-voyage").setAttribute("hidden", "");
+    $(trip.element).setAttribute("hidden", "");
     $("map-character").removeAttribute("visibility");
-    advanceWorldTime(trip.boat.minutes);
-    rules.placeAt(worldState, rules.toContinent(trip.boat.regionId, trip.destination));
-    rules.setActiveRegion(trip.boat.regionId);
+    const previousRegionId = worldState.regionId;
+    advanceWorldTime(trip.minutes);
+    trip.finish();
+    rules.setActiveRegion(worldState.regionId);
     worldState.encounterTravelMinutes = 0;
     renderedRegionId = null;
     window.Music?.sync();
-    window.Guild?.onRegionChange(trip.previousRegionId);
-    $("map-status").textContent = `Sailed from ${trip.place.name} to ${trip.destination.name} in ${trip.boat.minutes / 60} hours.`;
+    window.Guild?.onRegionChange(previousRegionId);
     // The camera settles on the arrival.
     camera.follow = true;
     saveCharacter(); render(); setScale(DEFAULT_SCALE());
+  }
+  function travelByBoat() {
+    const place = rules.settlementAt(worldState.position, worldState.regionId);
+    const boat = place?.boat;
+    const destination = boat && rules.settlementsForRegion(boat.regionId).find(candidate => candidate.id === boat.settlementId);
+    if (voyage || !destination || travelling || encounterResolving || worldState.pendingEncounter || worldState.pendingRegionTransition || window.Combat?.active() || currentHp <= 0) return;
+    const from = here(), to = rules.toContinent(boat.regionId, destination);
+    startJourney({ path: seaPath(from, to), duration: VOYAGE_MS, element: "map-voyage", minutes: boat.minutes, waves: true, points: [from, to],
+      status: `Sailing from ${place.name} to ${destination.name}…`,
+      finish: () => { rules.placeAt(worldState, to); $("map-status").textContent = `Sailed from ${place.name} to ${destination.name} in ${boat.minutes / 60} hours.`; } });
+  }
+  const VOYAGE_MS = 5000;
+  /* The caravan (W7, W8, W14, W16): offered in a castle city whose caravan you have unlocked, once you have unlocked a
+     second; its list of the other unlocked castle cities, each with its road distance, time and fare, shows the way
+     on the map as you point at it. The trip runs 4 seconds for the nearest up to 8 for the farthest (W14). */
+  const CARAVAN_SHORT_KM = 110, CARAVAN_LONG_KM = 1550;
+  const caravanHere = () => {
+    const place = rules.settlementAt(worldState.position, worldState.regionId);
+    return place?.kind === "Castle city" && rules.canAccessSettlement(place) ? place : null;
+  };
+  const caravanReason = () => {
+    const place = caravanHere();
+    if (!place) return "Caravans leave from castle cities";
+    if ((worldState.caravans || []).filter(id => id !== place.id).length < 1) return "Visit another castle city to open a caravan route";
+    return "";
+  };
+  function previewCaravan(trip) {
+    for (const row of $("map-caravan-list").children) row.classList.toggle("is-previewed", row.dataset.to === trip?.to);
+    $("map-caravan-route").setAttribute("d", trip ? [trip.start, ...trip.route].map((p, i) => (i ? "L" : "M") + p.x + " " + p.y).join("") : "");
+    if (trip) frameOn([trip.start, ...trip.route], 500);
+  }
+  function openCaravan() {
+    const place = caravanHere();
+    if (voyage || !place || caravanReason() || travelling || encounterResolving || worldState.pendingEncounter || window.Combat?.active() || currentHp <= 0) return;
+    const trips = rules.caravanTrips(worldState, place.id), wallet = ShopRules.walletValue(currencies);
+    $("map-caravan-from").textContent = place.name;
+    $("map-caravan-list").innerHTML = trips.map(trip => {
+      const region = rules.getRegion(trip.toRegionId).name.replace(/^The /, ""), hours = trip.minutes / 60;
+      const poor = wallet < trip.fare;
+      return `<li data-to="${trip.to}" tabindex="-1"><span class="caravan-name">${escapeHtml(trip.name)}</span><span class="caravan-facts">${escapeHtml(region)} · ${Math.round(trip.km)} km of road · ${hours >= 24 ? (hours / 24).toFixed(1) + " days" : hours.toFixed(1) + " hours"} · ${ShopRules.formatPrice(trip.fare)}</span><button class="backup-button caravan-go" type="button" data-caravan-go="${trip.to}" ${poor ? 'disabled title="Not enough money for the fare"' : ""}>Travel</button></li>`;
+    }).join("") || '<li>No other caravan route is open yet.</li>';
+    $("map-caravan-status").textContent = "Point at a destination to see its road. The fare is paid when you set out.";
+    $("map-caravan-panel").hidden = false;
+    $("map-caravan-panel").dataset.from = place.id;
+    $("map-caravan-close").focus();
+  }
+  function closeCaravan(refocus = true) {
+    if ($("map-caravan-panel").hidden) return;
+    $("map-caravan-panel").hidden = true;
+    $("map-caravan-route").setAttribute("d", "");
+    camera.follow = true; setScale(camera.scale);
+    if (refocus) $("map-caravan").focus();
+  }
+  function travelByCaravan(toId) {
+    const place = caravanHere(), trip = place && rules.caravanTrips(worldState, place.id).find(candidate => candidate.to === toId);
+    if (!trip || voyage) return;
+    const remaining = ShopRules.spend(currencies, trip.fare);
+    if (!remaining) { $("map-caravan-status").textContent = "You cannot pay the fare."; return; }
+    currencies = remaining;
+    document.querySelectorAll(".currency-input").forEach(input => { input.value = currencies[input.dataset.currency]; });
+    closeCaravan(false);
+    const points = [trip.start, ...trip.route], share = Math.max(0, Math.min(1, (trip.km - CARAVAN_SHORT_KM) / (CARAVAN_LONG_KM - CARAVAN_SHORT_KM)));
+    const destination = rules.castleCity(toId);
+    startJourney({ path: along(points), duration: 4000 + 4000 * share, element: "map-caravan-wagon", minutes: trip.minutes, points,
+      status: `By caravan from ${place.name} to ${trip.name}…`,
+      finish: () => {
+        rules.placeAt(worldState, rules.toContinent(destination.regionId, destination.place));
+        $("map-status").textContent = `Travelled by caravan from ${place.name} to ${trip.name}: ${Math.round(trip.km)} km in ${(trip.minutes / 60).toFixed(1)} hours for ${ShopRules.formatPrice(trip.fare)}.`;
+      } });
   }
   $("map-open-button").addEventListener("click", open);
   modal.querySelectorAll("[data-map-close]").forEach(button => button.addEventListener("click", close));
@@ -1069,6 +1152,12 @@
   $("map-force-encounter").addEventListener("click", forceEncounter);
   $("map-camp").addEventListener("click", camp);
   $("map-boat").addEventListener("click", travelByBoat);
+  $("map-caravan").addEventListener("click", openCaravan);
+  $("map-caravan-close").addEventListener("click", () => closeCaravan());
+  $("map-caravan-list").addEventListener("click", event => { const go = event.target.closest("[data-caravan-go]"); if (go) travelByCaravan(go.dataset.caravanGo); });
+  const caravanRowTrip = row => row && rules.caravanTrips(worldState, $("map-caravan-panel").dataset.from).find(trip => trip.to === row.dataset.to);
+  $("map-caravan-list").addEventListener("pointerover", event => { const row = event.target.closest("li[data-to]"); if (row && !row.classList.contains("is-previewed")) previewCaravan(caravanRowTrip(row)); });
+  $("map-caravan-list").addEventListener("focusin", event => { const row = event.target.closest("li[data-to]"); if (row && !row.classList.contains("is-previewed")) previewCaravan(caravanRowTrip(row)); });
   $("map-search").addEventListener("click", () => {
     const encounter = window.Guild?.search();
     if (encounter) presentTravelEncounter(encounter.enemies, encounter.zone, encounter.objective);
@@ -1156,6 +1245,8 @@
   modal.addEventListener("click", event => {
     // A click during the boat trip skips to its end (not the click that started it, still bubbling).
     if (voyage) { if (performance.now() - voyage.start > 120 && !event.target.closest("[data-map-close]")) finishVoyage(); return; }
+    // A click on the map closes the caravan's list.
+    if (!$("map-caravan-panel").hidden && event.target.closest("#regional-map")) { closeCaravan(false); return; }
     if (event.detail > 0 && event.target.closest("#regional-map") && performance.now() < suppressMapClickUntil) return;
     if (event.target.closest("#map-character")) {
       if (worldState.destination) travelling ? pause() : resume();
@@ -1184,7 +1275,7 @@
   modal.addEventListener("keydown", event => {
     const target = event.target.closest("#map-character, g[data-map-town], g[data-map-site], g[data-map-exit], .map-guild-marker");
     if (target && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); target.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
-    if (event.key === "Escape") { event.preventDefault(); if (voyage) finishVoyage(); else close(); }
+    if (event.key === "Escape") { event.preventDefault(); if (voyage) finishVoyage(); else if (!$("map-caravan-panel").hidden) closeCaravan(); else close(); }
     if (event.key === "Tab") {
       const focusable = [...modal.querySelectorAll('button:not(:disabled), [tabindex="0"]')].filter(el => !el.classList.contains("modal-backdrop"));
       const first = focusable[0], last = focusable.at(-1);

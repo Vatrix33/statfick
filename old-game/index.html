@@ -753,6 +753,12 @@
           <div class="map-compass" aria-hidden="true"><svg viewBox="-60 -80 120 140"><circle r="38" fill="none" stroke="#e6d5ae" stroke-width="2"/><path d="M0 -57L12 0 0 57-12 0ZM-57 0L0 -12 57 0 0 12Z" fill="none" stroke="#e6d5ae" stroke-width="2"/><path d="M0 -57L12 0H0Z" fill="#e6d5ae"/><text y="-64" text-anchor="middle">N</text></svg></div>
           <div class="map-scale-bar" id="map-scale-bar" aria-hidden="true"><i></i><span>10 km</span></div>
           <p class="map-charting" id="map-charting" role="status" hidden>Charting the region…</p>
+          <!-- Port task 8: the caravan's destinations (W16), docked over the map so each route shows on it. -->
+          <section class="map-caravan-panel" id="map-caravan-panel" role="dialog" aria-labelledby="map-caravan-title" hidden>
+            <header class="map-caravan-header"><div><p class="eyebrow">CARAVAN</p><h3 id="map-caravan-title">From <em id="map-caravan-from"></em></h3></div><button class="modal-close" type="button" id="map-caravan-close" aria-label="Close the caravan">×</button></header>
+            <ul class="map-caravan-list" id="map-caravan-list"></ul>
+            <p class="map-caravan-status" id="map-caravan-status" role="status" aria-live="polite"></p>
+          </section>
         </div>
         <footer class="map-footer">
           <p id="map-instructions">Click the map, a settlement, or a quest marker to travel. Hold the left mouse button and move the cursor to steer.</p>
@@ -773,6 +779,7 @@
             <button class="backup-button" id="map-class-respec" type="button" hidden>Respec Classes</button>
             <button class="backup-button" id="map-stat-respec" type="button" hidden>Respec Stats</button>
             <button class="backup-button" id="map-church-store" type="button" hidden>Storm Reliquary</button>
+            <button class="backup-button" id="map-caravan" type="button" hidden>Caravan</button>
             <button class="backup-button" id="map-boat" type="button" hidden>Travel by boat</button>
             <button class="backup-button" id="map-search" type="button" hidden>Search</button>
             <button class="backup-button" id="map-quests" type="button" title="Your active quests: progress, rewards and giving up">Quests</button>
