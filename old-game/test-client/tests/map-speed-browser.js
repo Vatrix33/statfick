@@ -42,9 +42,13 @@ async function runMapSpeedChecks() {
       key('!', { code: 'Digit1', shiftKey: true }, $('map-track-enemy'));
       assert(worldState.timeSpeed === before, 'Modified hotkeys and typing in fields do not change speed');
     }
-    key('1'); assert(WorldMap.isTravelling() && worldState.destination.x === 420, 'Unmodified settlement shortcuts still travel instead of changing time speed');
+    key('1'); assert(WorldMap.isTravelling() && worldState.destination.x === WorldRules.toContinent('alder-vale', { x: 420, y: 490 }).x, 'Unmodified settlement shortcuts still travel instead of changing time speed');
     $('map-cancel').click();
 
+    // Port task 8: the continent's map is drawn and its regions charted in the background after the map opens; measure
+    // the clock once that work is done (it slows the first frames).
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); await wait(300);
+    for (let i = 0; i < 200 && !$('map-charting').hidden; i++) await wait(100);
     for (let index = 0; index < speeds.length; index++) {
       move({ x: 1110, y: 225 }); worldState.minutes = 480;
       $(ids[index]).click();
@@ -56,7 +60,7 @@ async function runMapSpeedChecks() {
       await wait(500); WorldMap.pause(false);
       const realSeconds = (performance.now() - started) / 1000, gameMinutes = worldState.minutes - 480;
       const expected = 36 * speeds[index] * realSeconds;
-      assert(Math.abs(gameMinutes / expected - 1) < 0.25, 'Travel time runs at the selected ' + speeds[index] + '× rate');
+      assert(Math.abs(gameMinutes / expected - 1) < 0.25, 'Travel time runs at the selected ' + speeds[index] + '× rate (' + gameMinutes.toFixed(1) + ' of ' + expected.toFixed(1) + ' minutes; ' + $('map-status').textContent + ')');
       assert(worldState.distanceTraveledKm > 0, 'The character moves with the clock at ' + speeds[index] + '×');
       measurements.push({ speed: speeds[index], travelling: true, realSeconds, gameMinutes });
     }
@@ -96,7 +100,8 @@ async function runMapSpeedChecks() {
     const beforeCamp = worldState.minutes; $('map-camp').click();
     assert(worldState.minutes === beforeCamp + 480, 'Camp still advances exactly eight in-game hours at double speed');
     const port = WorldRules.getRegion('sunward-coast').settlements.find(place => place.boat);
-    move(port, 'sunward-coast'); const beforeBoat = worldState.minutes; $('map-boat').click();
+    // Port task 8: the boat sails across the map (W31); Esc skips to the end of the trip.
+    move(port, 'sunward-coast'); const beforeBoat = worldState.minutes; $('map-boat').click(); $('map-modal').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     assert(worldState.minutes === beforeBoat + port.boat.minutes && worldState.timeSpeed === 2, 'Boat duration stays fixed and region travel retains the selected speed');
 
     // Pending choices and combat keep the clock paused, including at 2×.

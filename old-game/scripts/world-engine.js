@@ -831,7 +831,7 @@
      a grid of LAND_CELL units over the ground that can be stood on (and the regions `allowed` lets it cross), within
      LAND_SEARCH units round the two points, then pulled straight wherever a straight line is clear. The waypoints after
      `a`, ending at `b`; null when no way is found. */
-  const LAND_CELL = 32, LAND_SEARCH = 2400;
+  const LAND_CELL = 32, LAND_SEARCH = 2400, NEAREST_NODES = 24;
   function landPath(a, b, allowed = null, bonus = 0) {
     const carriage = typeof bonus === "object" && bonus?.carriage;
     const x0 = Math.min(a.x, b.x) - LAND_SEARCH, y0 = Math.min(a.y, b.y) - LAND_SEARCH;
@@ -907,8 +907,11 @@
     const push = (cost, index) => { heap.push([cost, index]); let i = heap.length - 1; while (i > 0) { const parent = (i - 1) >> 1; if (heap[parent][0] <= heap[i][0]) break; [heap[parent], heap[i]] = [heap[i], heap[parent]]; i = parent; } };
     const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = i * 2 + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
     const entranceVia = new Map();
-    for (let index = 0; index < count; index++) {
-      if (graph.regionOf[index] !== startRegion || distance(start, graph.nodes[index]) > reach) continue;
+    // Onto the roads and off them at the NEAREST_NODES nearest road points of the start's and the end's regions.
+    const nearestOf = (point, regionId) => graph.nodes.map((node, index) => index).filter(index => graph.regionOf[index] === regionId && distance(point, graph.nodes[index]) <= reach)
+      .sort((p, q) => distance(point, graph.nodes[p]) - distance(point, graph.nodes[q])).slice(0, NEAREST_NODES);
+    const finishNodes = new Set(nearestOf(end, endRegion));
+    for (const index of nearestOf(start, startRegion)) {
       if (bound(start, graph.nodes[index]) + bound(graph.nodes[index], end) >= direct) continue;
       const entrance = continentTravelMinutes(start, graph.nodes[index], bonus, allowed);
       if (Number.isFinite(entrance) && entrance < costs[index]) { costs[index] = entrance; push(entrance, index); }
@@ -926,7 +929,7 @@
       if (done[current] || cost > costs[current]) continue;
       done[current] = 1;
       if (cost + bound(graph.nodes[current], end) >= best - 1e-7) continue;
-      if (graph.regionOf[current] === endRegion && distance(graph.nodes[current], end) <= reach) {
+      if (finishNodes.has(current)) {
         if (!finishes.has(current)) finishes.set(current, continentTravelMinutes(graph.nodes[current], end, bonus, allowed));
         const finish = cost + finishes.get(current);
         if (finish < best - 1e-7) { best = finish; exit = current; }

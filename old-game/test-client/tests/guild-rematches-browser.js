@@ -127,9 +127,9 @@ async function runGuildRematchChecks() {
   boatCharacter.worldState.guild.greatHuntRematches = [coastalMarker, islandMarker];
   boatCharacter.worldState.guild.greatHuntsCompleted.push(coastalMarker.uniqueId, islandMarker.uniqueId);
   applyCharacter(normalizeCharacter(boatCharacter)); WorldMap.open();
-  $("map-boat").click();
+  $("map-boat").click(); $("map-modal").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
   assert(worldState.regionId === isle.id && worldState.guild.greatHuntRematches.length === 1 && sameMarker(worldState.guild.greatHuntRematches[0], islandMarker) && sameMarker(worldState.guild.greatHuntRematch, islandMarker), "Boat travel deactivates coastal rematches but retains a not-yet-visited destination marker");
-  $("map-boat").click();
+  $("map-boat").click(); $("map-modal").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
   assert(worldState.regionId === coast.id && !worldState.guild.greatHuntRematches.length && worldState.guild.greatHuntRematch === null, "The return boat deactivates island rematches without restoring coastal markers");
   assert(!normalizeCharacter(backupPayload().character).worldState.guild.greatHuntRematches.length, "Boat-triggered deactivation persists in character saves");
   Combat.restore(null);

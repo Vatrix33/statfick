@@ -203,6 +203,29 @@
     for (const id of IDS) { const d = rectDistance(RECTS[id], b); if (d < bestDistance) { best = id; bestDistance = d; } }
     return best;
   }
+  // paintedAt on a grid twice as coarse as the land's, computed once (the fog and the backdrop read it for every cell).
+  let painted = null;
+  function paintedGrid() {
+    if (painted) return painted;
+    const s = field(), step = s.step * 2, cols = Math.ceil(s.cols / 2), rows = Math.ceil(s.rows / 2), owner = new Uint8Array(cols * rows);
+    // (paintedAt inlined: squared distances to the rectangles, no square roots, for the 300,000 cells.)
+    const boxes = IDS.map(id => RECTS[id]);
+    for (let row = 0; row < rows; row++) for (let col = 0; col < cols; col++) {
+      const x = s.x0 + col * step, y = s.y0 + row * step, bx = x + wander(x, y, 71) * 2 * BEND, by = y + wander(x, y, 73) * 2 * BEND;
+      let best = 0, bestDistance = Infinity;
+      for (let k = 0; k < boxes.length; k++) {
+        const r = boxes[k], dx = bx < r.x0 ? r.x0 - bx : bx > r.x1 ? bx - r.x1 : 0, dy = by < r.y0 ? r.y0 - by : by > r.y1 ? by - r.y1 : 0, d = dx * dx + dy * dy;
+        if (d < bestDistance) { bestDistance = d; best = k; }
+      }
+      owner[row * cols + col] = best;
+    }
+    painted = { x0: s.x0, y0: s.y0, step, cols, rows, owner };
+    return painted;
+  }
+  const paintedIdAt = c => {
+    const g = paintedGrid(), col = Math.max(0, Math.min(g.cols - 1, Math.round((c.x - g.x0) / g.step))), row = Math.max(0, Math.min(g.rows - 1, Math.round((c.y - g.y0) / g.step)));
+    return IDS[g.owner[row * g.cols + col]];
+  };
   function cover(c, regionId, drawnAfter = id => !root.WorldRules?.getRegion(id)?.uncharted) {
     const b = bent(c), own = rectDistance(RECTS[regionId], b);
     let other = Infinity, neighbour = null;
@@ -249,6 +272,6 @@
     const xs = IDS.flatMap(id => [RECTS[id].x0, RECTS[id].x1]), ys = IDS.flatMap(id => [RECTS[id].y0, RECTS[id].y1]);
     return { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
   };
-  root.ContinentRules = { SCALE, LW, LH, CW, CH, REACH, STRIP, STRIP_MARGIN, KEEP, ORIGINS, RECTS, IDS, toC, toLocal, inRect, rectDistance, regionAt, stripBetween, build, linksOf, linkBetween, inStrip, passable, bounds, landAt, field, ROAD_GAP, BLEND, BEND, bent, paintedAt, cover, extentOf, get built() { return built; } };
+  root.ContinentRules = { SCALE, LW, LH, CW, CH, REACH, STRIP, STRIP_MARGIN, KEEP, ORIGINS, RECTS, IDS, toC, toLocal, inRect, rectDistance, regionAt, stripBetween, build, linksOf, linkBetween, inStrip, passable, bounds, landAt, field, ROAD_GAP, BLEND, BEND, bent, paintedAt, paintedGrid, paintedIdAt, cover, extentOf, get built() { return built; } };
   if (typeof module !== "undefined" && module.exports) module.exports = root.ContinentRules;
 })(globalThis);

@@ -868,6 +868,8 @@
     }
     return worlds.get(region.id);
   }
+  // A region's world if it has been made (drawing never makes one: charting does, a slice at a time).
+  const peek = region => worlds.get(region.id) || null;
   function tile(worldObject, level, tx, ty) {
     const key = level + ":" + tx + ":" + ty;
     const cache = worldObject.tiles;
@@ -887,5 +889,5 @@
   // Keeps these regions' worlds (the continent keeps the few near the view), oldest others released.
   function keep(regionIds) { for (const id of [...worlds.keys()]) if (!regionIds.includes(id)) worlds.delete(id); }
 
-  window.MapTerrain = { W, H, TILE, LEVELS, CELL, SEA_FADE, world, tile, render, keepOnly, keep, sampler, tone, makeToolkit, hash2, rng, DRAW, cells, canopy, rgbOf };
+  window.MapTerrain = { W, H, TILE, LEVELS, CELL, SEA_FADE, world, peek, tile, render, keepOnly, keep, sampler, tone, makeToolkit, hash2, rng, DRAW, cells, canopy, rgbOf };
 })();

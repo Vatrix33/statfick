@@ -191,7 +191,7 @@
         ctx.drawImage(picture.canvas, a.x, a.y, picture.canvas.width * MapContinent.STRIDE * SCALE * s, picture.canvas.height * MapContinent.STRIDE * SCALE * s);
       };
       if (!close) { drawOverview(); continue; }
-      const terrain = worldOf(id);
+      const terrain = MapTerrain.peek(rules.getRegion(id));
       if (!terrain?.ready) { drawOverview(); needWorld.push(id); continue; }
       const drawLevel = (level, onlyMissing = null) => {
         const units = MapTerrain.TILE / level, l0 = continentRules.toLocal(id, { x: v.x0, y: v.y0 }), l1 = continentRules.toLocal(id, { x: v.x1, y: v.y1 }), e = terrain.extent;
@@ -1399,8 +1399,20 @@
     }
   }
   window.setInterval(advanceAmbientTime, 250);
+  /* A loaded journey keeps the route it was saved with while every leg of it can still be walked (the planner, asked
+     again from part-way along, can pick a slightly different way: W30's planner joins the roads at the nearest nodes);
+     a route that can't be walked any more (land or the carriage's ground changed) is planned again. */
+  function restoreRoute() {
+    if (!worldState.destination) return;
+    const saved = Array.isArray(worldState.route) ? worldState.route : [];
+    if (saved.length && Number.isFinite(rules.continentRouteMinutes(here(), saved, travelBonuses()))) return;
+    worldState.route = rules.continentRoute(here(), worldState.destination, travelBonuses(), { entered: worldState.visitedRegions });
+  }
   window.WorldMap = {
     pause, render, renderClock, open,
+    // Port task 8, for the checks: the climb's fog and clouds where you stand, and the journey under way.
+    altitude: () => { const effects = altitudeEffects(); return { height: effects.height, fog: effects.fog, clouds: effects.clouds }; },
+    journey: () => voyage ? { element: voyage.element, duration: voyage.duration, minutes: voyage.minutes } : null,
     isTravelling: () => travelling,
     checkTravelEncounter, checkGuildObjective,
     setAmbientEnabled(value) {
@@ -1410,13 +1422,13 @@
       pause(false); encounterResolving = false;
       ambientLast = performance.now(); ambientCarry = 0;
       if (window.Combat?.active()) worldState.pendingEncounter = null;
-      if (worldState.destination) worldState.route = rules.continentRoute(here(), worldState.destination, travelBonuses(), { entered: worldState.visitedRegions });
+      restoreRoute();
       encounterModal.hidden = true;
       transitionModal.hidden = true;
       $("map-status").textContent = 'Roads are fastest; rivers, marsh, sand and volcanic slopes slow travel.';
       render();
     },
   };
-  if (worldState.destination) worldState.route = rules.continentRoute(here(), worldState.destination, travelBonuses(), { entered: worldState.visitedRegions });
+  restoreRoute();
   render();
 })();

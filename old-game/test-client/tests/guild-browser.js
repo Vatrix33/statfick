@@ -52,7 +52,8 @@ async function runGuildChecks() {
   $("guild-modal").querySelector("[data-guild-close]").click();
   WorldMap.render();
   document.querySelector(".map-guild-marker").dispatchEvent(new MouseEvent("click", { bubbles: true }));
-  assert(WorldRules.distance(worldState.destination, worldState.guild.quest.point) < 1, "Clicking a Guild marker sets a travel destination");
+  // Port task 8: destinations are continent points.
+  assert(WorldRules.distance(worldState.destination, WorldRules.toContinent("alder-vale", worldState.guild.quest.point)) < 1, "Clicking a Guild marker sets a travel destination");
   WorldMap.pause(); worldState.destination = null;
   worldState.position = { x: 1500, y: 800 }; WorldMap.render();
   assert($("map-search").hidden, "Search stays hidden elsewhere in the same broad zone");

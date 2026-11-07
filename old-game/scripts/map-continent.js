@@ -41,21 +41,21 @@
   /* ---------- The backdrop ---------- */
   let backdrop = null;
   function buildBackdrop() {
-    const s = C.field(), cols = s.cols, rows = s.rows, CELL = s.step;
+    // On the painted regions' grid (ContinentRules.paintedGrid: twice as coarse as the land's): the regions' own pictures
+    // and the vector coastline carry the detail; this only fills land until they are ready, and the parchment.
+    const s = C.field(), g = C.paintedGrid(), cols = g.cols, rows = g.rows, CELL = g.step;
     const canvas = document.createElement("canvas");
     canvas.width = cols; canvas.height = rows;
     const ctx = canvas.getContext("2d"), image = ctx.createImageData(cols, rows), data = image.data;
     for (let row = 0; row < rows; row++) for (let col = 0; col < cols; col++) {
-      const i = row * cols + col, value = s.land[i];
-      if (value <= -2) continue;
-      const c = { x: s.x0 + col * CELL, y: s.y0 + row * CELL }, id = C.paintedAt(c);
-      let color;
-      if (uncharted(id)) { const v = 0.95 + fbm(c.x / 400, c.y / 400, 31) * 0.08 + hash(col, row, 5) * 0.03; color = PARCHMENT.map(k => k * v); }
-      else { const v = 0.9 + fbm(c.x / 300, c.y / 300, 11) * 0.12 + hash(col, row, 5) * 0.04; color = averageColor(id).map(k => k * v); }
-      data[i * 4] = color[0]; data[i * 4 + 1] = color[1]; data[i * 4 + 2] = color[2]; data[i * 4 + 3] = 255 * smooth(-2, 6, value);
+      const i = row * cols + col, value = s.land[Math.min(s.rows - 1, row * 2) * s.cols + Math.min(s.cols - 1, col * 2)];
+      if (value <= -4) continue;
+      const id = C.IDS[g.owner[i]], v = 0.92 + noise(col / 14, row / 14, 31) * 0.1 + hash(col, row, 5) * 0.03;
+      const color = (uncharted(id) ? PARCHMENT : averageColor(id)).map(k => k * v);
+      data[i * 4] = color[0]; data[i * 4 + 1] = color[1]; data[i * 4 + 2] = color[2]; data[i * 4 + 3] = 255 * smooth(-4, 10, value);
     }
     ctx.putImageData(image, 0, 0);
-    backdrop = { canvas, x0: s.x0, y0: s.y0, cols, rows, CELL, coast: coastPath(s.land, cols, rows, s.x0, s.y0, CELL) };
+    backdrop = { canvas, x0: g.x0, y0: g.y0, cols, rows, CELL, coast: coastPath(s.land, s.cols, s.rows, s.x0, s.y0, s.step) };
     return backdrop;
   }
   // The 0 contour of the land grid (marching squares), as one path in continent units.
@@ -144,22 +144,21 @@
     if (fog?.key === key) return fog;
     const b = backdrop || buildBackdrop(), cols = b.cols, rows = b.rows, CELL = b.CELL;
     let mask = new Float32Array(cols * rows);
-    for (let row = 0; row < rows; row++) for (let col = 0; col < cols; col++) {
-      mask[row * cols + col] = visited.includes(C.paintedAt({ x: b.x0 + col * CELL, y: b.y0 + row * CELL })) ? 0 : 1;
-    }
+    const owner = C.paintedGrid().owner, seen = C.IDS.map(id => visited.includes(id));
+    for (let i = 0; i < mask.length; i++) mask[i] = seen[owner[i]] ? 0 : 1;
     const blur = (source, radius) => {
       const out = new Float32Array(source.length), tmp = new Float32Array(source.length);
       for (let row = 0; row < rows; row++) { let sum = 0; for (let col = -radius; col <= radius; col++) sum += source[row * cols + Math.max(0, Math.min(cols - 1, col))]; for (let col = 0; col < cols; col++) { tmp[row * cols + col] = sum / (2 * radius + 1); sum += source[row * cols + Math.min(cols - 1, col + radius + 1)] - source[row * cols + Math.max(0, col - radius)]; } }
       for (let col = 0; col < cols; col++) { let sum = 0; for (let row = -radius; row <= radius; row++) sum += tmp[Math.max(0, Math.min(rows - 1, row)) * cols + col]; for (let row = 0; row < rows; row++) { out[row * cols + col] = sum / (2 * radius + 1); sum += tmp[Math.min(rows - 1, row + radius + 1) * cols + col] - tmp[Math.max(0, row - radius) * cols + col]; } }
       return out;
     };
-    mask = blur(blur(mask, 6), 6);
+    mask = blur(blur(mask, 3), 3);
     const canvas = document.createElement("canvas");
     canvas.width = cols; canvas.height = rows;
     const ctx = canvas.getContext("2d"), image = ctx.createImageData(cols, rows);
     for (let i = 0; i < mask.length; i++) {
       if (mask[i] <= 0.001) continue;
-      const col = i % cols, row = (i / cols) | 0, v = 0.86 + noise(col / 12, row / 12, 21) * 0.12 + hash(col, row, 22) * 0.03;
+      const col = i % cols, row = (i / cols) | 0, v = 0.86 + noise(col / 6, row / 6, 21) * 0.12 + hash(col, row, 22) * 0.03;
       image.data[i * 4] = 214 * v; image.data[i * 4 + 1] = 202 * v; image.data[i * 4 + 2] = 176 * v; image.data[i * 4 + 3] = 255 * Math.min(1, mask[i] * 1.15);
     }
     ctx.putImageData(image, 0, 0);
