@@ -660,8 +660,30 @@ body.modal-open { overflow: hidden; }
 .map-compass text { fill: #e6d5ae; font: 1.4rem "STIX Two Text", Georgia, serif; }
 .map-scale-bar { --bar: 100px; position: absolute; left: 16px; bottom: 14px; display: grid; gap: 3px; justify-items: center; pointer-events: none; color: #e6d5ae; font: italic .875rem "STIX Two Text", Georgia, serif; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
 .map-scale-bar i { display: block; width: var(--bar); height: 7px; border: 2px solid #e6d5ae; border-top: 0; box-shadow: 0 1px 2px #000; }
+/* Port task 8: the caravan's destinations, docked at the map's left (W16). */
+.map-caravan-panel { position: absolute; left: 12px; top: 12px; bottom: 12px; width: min(360px, calc(100% - 24px)); display: flex; flex-direction: column; border: 1px solid #e6d5ae55; border-radius: 4px; color: #f0e3c2; background: #120c08e6; box-shadow: 0 8px 28px #0008; z-index: 4; }
+.map-caravan-panel[hidden] { display: none; }
+.map-caravan-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 12px 14px 8px; border-bottom: 1px solid #e6d5ae33; }
+.map-caravan-header .eyebrow { margin: 0; color: #c9a96a; }
+.map-caravan-header h3 { margin: 2px 0 0; color: #f0e3c2; font: 1.3rem "STIX Two Text", Georgia, serif; }
+.map-caravan-header h3 em { color: #e3b860; }
+.map-caravan-list { list-style: none; margin: 0; padding: 6px; overflow-y: auto; flex: 1 1 auto; }
+.map-caravan-list li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; padding: 8px 10px; border-radius: 3px; }
+.map-caravan-list li.is-previewed, .map-caravan-list li:hover { background: #e6d5ae1a; }
+.map-caravan-list .caravan-name { font: 1.05rem "STIX Two Text", Georgia, serif; }
+.map-caravan-list .caravan-facts { grid-column: 1; color: #d6c39a; font-size: .82rem; }
+.map-caravan-list .caravan-go { grid-row: 1 / span 2; grid-column: 2; }
+.map-caravan-status { margin: 0; padding: 8px 14px 12px; color: #d6c39a; font-size: .85rem; min-height: 1.2em; }
+#map-caravan-route { stroke: #ffd98a; }
 .map-charting { position: absolute; left: 50%; top: 50%; margin: 0; padding: 10px 16px; border: 1px solid #e6d5ae55; border-radius: 3px; color: #e6d5ae; background: #120c08d9; font: italic 1rem "STIX Two Text", Georgia, serif; transform: translate(-50%, -50%); pointer-events: none; }
 .map-zoom #map-follow[aria-pressed="true"] { border-color: var(--ember); color: var(--ember-dark); }
+/* Port task 8: the horse carriage's switch (W9, W10). */
+.map-zoom .map-carriage-toggle { display: inline-flex; align-items: center; gap: 6px; }
+.map-zoom .map-carriage-toggle[hidden] { display: none; }
+.map-carriage-toggle svg { width: 30px; height: 19px; }
+.map-zoom .map-carriage-toggle[aria-pressed="true"] { border-color: var(--ember); color: var(--ember-dark); background: #e6b86a33; }
+.map-zoom .map-carriage-toggle:disabled { opacity: .45; cursor: not-allowed; }
+.shop-carriage-row .shop-row-art svg { width: 100%; height: 100%; }
 /* Settlement icons give way to the painted towns when you are close. */
 #regional-map .map-settlement-icon { transition: opacity .25s; }
 #regional-map.is-close .map-settlement-icon { opacity: 0; }
@@ -670,6 +692,14 @@ body.modal-open { overflow: hidden; }
 .map-exit:hover .map-exit-icon, .map-exit:focus-visible .map-exit-icon { transform: scale(1.12); }
 .map-exit-name { font-size: 1.45rem; }
 #regional-map.is-overview .map-exit text { display: none; }
+/* The continent (port task 8): region names and the ridges' names only when zoomed out to the continent; there, towns
+   shrink to their castle cities and lose their kind, and the land's own lettering hides. */
+#map-region-names { display: none; }
+#regional-map.is-continent #map-region-names { display: inline; }
+.map-region-name { fill: #f4e6c4; stroke: #140d08; stroke-width: 9px; paint-order: stroke; stroke-linejoin: round; text-anchor: middle; font: italic 2.6rem "STIX Two Text", Georgia, serif; letter-spacing: .03em; }
+/* Port task 8: a region empty until the port, on blank parchment (W29). */
+.map-uncharted-name { fill: #6b5a44; text-anchor: middle; font: italic 2.6rem "STIX Two Text", Georgia, serif; letter-spacing: .12em; opacity: .75; }
+#regional-map.is-continent .map-settlement:not(.is-castle), #regional-map.is-continent .map-town-kind, #regional-map.is-continent .map-terrain-label, #regional-map.is-continent .map-river-label { display: none; }
 .map-exit-button .map-exit-arrow { color: var(--accent, #c9a96a); font-weight: 600; }
 #regional-map.is-mouse-steering { cursor: grabbing; }
 #map-weather-rain-far { animation: map-rain-fall 1.4s linear infinite; }
@@ -4116,3 +4146,39 @@ html.dark-mode { --needs-limitless: #ec5f5f; }
 :root .needs-limitless-note { color: var(--needs-limitless); font: 700 .6875rem/1.4 var(--font-ui); letter-spacing: .06em; text-transform: uppercase; }
 :root .item-entry-meta .needs-limitless-note::before { content: "· "; color: var(--muted); }
 :root .item-detail > .needs-limitless-note { display: block; margin: 8px 0 2px; }
+
+/* ---------- Port task 9: the Potion Rework (the Apothecary's cauldron, ingredients, potion use outside battle) ----------
+   PLACEHOLDER ART (user decision P2): the cauldron is a plain drawing; the port remakes it. */
+:root .apothecary-workspace[data-mode="brewing"] { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+:root .cauldron-panel { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; justify-items: center; gap: 8px; min-height: 0; padding: 10px 12px; overflow: auto; border: 1px solid #3a6a4a; border-radius: 3px; background: radial-gradient(ellipse at 50% 55%, #2a6a3a55, transparent 65%), color-mix(in srgb, #0b120d 86%, transparent); box-shadow: 0 0 0 1px #000, 0 18px 40px #000000b0; backdrop-filter: blur(3px); }
+.cauldron-panel[hidden] { display: none; }
+.cauldron-boxes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: min(100%, 420px); }
+.cauldron-slot { display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 76px; padding: 6px; border: 1px dashed #6a9a7a; border-radius: 4px; background: #0e1a12cc; color: #b8d8c0; font: .75rem/1.3 var(--font-ui); cursor: pointer; }
+.cauldron-slot.is-filled { border-style: solid; border-color: var(--rarity, #8ac89a); box-shadow: 0 0 10px color-mix(in srgb, var(--rarity, #8ac89a) 40%, transparent); }
+.cauldron-slot-art svg, .cauldron-result-art svg, .cauldron-chip svg { width: 34px; height: 34px; }
+.cauldron-body { position: relative; display: grid; place-items: center; width: min(100%, 360px); }
+.cauldron-pot { width: 100%; max-height: 210px; }
+.cauldron-brew { fill: #4a8a4a; transition: fill .4s; }
+.cauldron-panel.is-brewing .cauldron-brew { fill: #8af06a; animation: cauldron-bubble .4s ease-in-out infinite alternate; }
+@keyframes cauldron-bubble { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+.cauldron-result { position: absolute; top: 46%; display: grid; justify-items: center; gap: 1px; padding: 4px 10px; border-radius: 4px; background: #000000a0; color: #d8e8d8; font: .8125rem/1.3 var(--font-ui); text-align: center; }
+.cauldron-result strong { color: var(--rarity-ink, #f0f0e0); font-weight: 700; }
+.cauldron-result.is-ready { box-shadow: 0 0 14px #8af06a; }
+.cauldron-result.is-unknown strong { color: #e0907a; }
+.cauldron-actions { display: flex; gap: 8px; }
+.cauldron-actions button { padding: 6px 16px; }
+.cauldron-pack { width: 100%; }
+.cauldron-pack h4 { margin: 0 0 4px; color: #b8d8c0; font: 700 .75rem/1.4 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; }
+.cauldron-pack { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
+.cauldron-pack h4, .cauldron-pack .shop-empty { flex-basis: 100%; }
+.cauldron-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 2px; border: 1px solid var(--rarity, #6a9a7a); border-radius: 999px; background: #0e1a12; color: #d8e8d8; font: .75rem/1.3 var(--font-ui); cursor: pointer; }
+.cauldron-chip:disabled { opacity: .45; cursor: default; }
+.cauldron-chip svg { width: 24px; height: 24px; }
+.recipe-have { color: #8ad89a; font-weight: 700; }
+.recipe-missing { color: #e0907a; font-weight: 700; }
+.ingredient-lore { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line, #4a4a4a); }
+.ingredient-lore h4 { margin: 0 0 6px; font: 700 .75rem/1.4 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; }
+.ingredient-lore ul { margin: 0; padding-left: 18px; }
+.ingredient-lore li { margin: 2px 0; }
+.item-use-target { max-width: 120px; font: .75rem/1.3 var(--font-ui); }
+@media (max-width: 720px) { :root .apothecary-workspace[data-mode="brewing"] { grid-template-columns: 1fr; } }

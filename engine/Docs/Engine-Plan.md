@@ -102,6 +102,31 @@ scripts, markup, stylesheet, eleven boss files and test client) and these docs, 
 read none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't
 count task 7 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`,
 "New Game Plus: Limitless and the Exotics".
+**Beside the engine, old game only (2026-11-07): port task 8, Map Rework, is done in the old game**, as tasks 1–7 were
+(W1; decisions W1–W35 in "Decisions for task 8, Map Rework" below; built on the cloud branch
+`claude/fervent-carson-f5ol9s`, one pull request). One continent laid out as the user's approved draft 6 (W26, kept with
+its scripts and every region's place in `Docs/Port-Tasks/8_Map_Rework/`), every region whole and 1.4 times larger, a
+natural coast with two inland waters and no barriers between neighbours, Cinder Isle 250 km out with the 12.6-hour boat,
+fog over regions not yet entered, walks across regions (off the roads only through entered ones, W30), the music's
+crossfade, the boat trip on the map, the mountain's fog and clouds, the caravan and the horse carriage. Its three new
+regions are empty in the old game (walkable, no encounters, parchment marked "Uncharted") and are made in the port
+(W27–W29). The port doesn't build it again; left for it: the map's placeholder looks, remade in its 3D map, and the three
+new regions (`Docs/Port-Tasks/README.md`), and the region crossfade for the engine's soundtrack, which switches themes
+as music.js did before task 8 (`Docs/Audio.md`, "Theme API"). It touches only `../old-game/` (its scripts, markup, stylesheet and test
+client) and these docs, never the engine (the engine's tests read none of what changed: the fonts, `classes/` and the
+images their captures name are untouched), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on
+uninterrupted**; don't count task 8 as the engine's current task. How it's built, its checks and their results:
+`../old-game/Docs/Notes.md`, "Map Rework: one continent".
+**Beside the engine, old game only (2026-11-07): port task 9, Potion Rework, is done in the old game**, as tasks 1–8
+were (decisions P1–P31 in "Decisions for task 9, Potion Rework" below; on the cloud branch `claude/fervent-carson-f5ol9s`,
+in the same pull request as task 8, P1). The Apothecary in every settlement (potions, ingredients, brewing, recipes,
+selling), 40 new potions and 12 poisons, 56 ingredients (foraged and dropped), 62 recipes, the Alchemist and the
+Assimilator, and the guild's Collect quest; the approved content is `Docs/Port-Tasks/9_Potion_Rework/draft.md` (P31).
+The port doesn't build it again; only its placeholder art is remade (`Docs/Port-Tasks/README.md`). It touches only
+`../old-game/` (its scripts, data, two new class files, markup, stylesheet and test client) and these docs, never the
+engine (the engine's tests read none of what changed: the one class file they read is untouched), so
+`Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count task 9 as the engine's
+current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Potion Rework".
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
@@ -1243,6 +1268,204 @@ and 6 were merged; the task is `Docs/Port-Tasks/5_New_Masterworks.txt`).** Asked
   forged at your level, and is in the Sparkling pool; placeholder look: the normal forged coat in silver-grey. (Not 5%
   from the Abyss Witch only, as drafted; not 3% from undead and demon casters of Level 45 and up, not 2% from every
   caster from Level 40, not sold in Ravenwatch.)
+
+**Decisions for task 9, Potion Rework (2026-11-07, a cloud session; the user asked for task 9 while task 8's pull request,
+#14, waited to be merged; the task is `Docs/Port-Tasks/9_Potion_Rework.txt`).**
+- P1 **Where:** "Since i cant merge right now, you can start the next task and put it in the same push request": built
+  in the old game like tasks 1–8, on the same branch, in the same pull request as task 8 (#14).
+- P2 **Art:** placeholder like tasks 1–8: the two Apothecary banners, the cauldron and its brewing animation, and the
+  potions', poisons' and ingredients' icons are simple versions from the existing drawing kits, marked PLACEHOLDER ART
+  and listed for the port's remake. Every potion, poison and ingredient is real and complete. (Not finished art now.)
+- P3 **The ten Health and Mana Potions at the Apothecary** (Lesser, plain, Greater, Superior, Ultimate of each): always on
+  sale in unlimited quantity, outside the random stock: the pair of your level band and every weaker pair (the General
+  Store's bands today: up to Level 15 common, 30 uncommon, 60 rare, 90 epic, then legendary). (Not all ten always, the
+  recommendation; not your band's pair only.)
+- P4 **Recipes known from the start:** the Potion of Lesser Health's and Lesser Mana's, from easy-to-find ingredients; the
+  other eight Health and Mana recipes are bought like the new potions'. (Not the four common and uncommon ones, not all ten.)
+- P5 **The content** (40 potions, 12 poisons, 50+ ingredients with their sources and drop tables, every recipe): drafted
+  as a full list and shown for review before anything is built. (Not built directly.)
+- P6 **Potions outside battle:** Health, Mana and cure potions can be used anytime from the inventory, on yourself or a
+  companion (a cure only when there is something to cure); buff potions only in battle, where their durations count the
+  drinker's turns. (Not buffs drunk on the map carried into the next battle; not battle only, as today.)
+- P7 **Stacking:** each potion's buff is held once; the same potion again only refreshes its duration; different potions
+  add up, even on the same stat (the game's timed effects today). (Not "the strongest wins", not one potion buff at a time.)
+- P8 **Poisons and bosses:** every poison works on the 12 bosses, at half strength: its damage, reductions and durations
+  halved. (Not "no stuns or AP loss on bosses", the recommendation; not a 50% resist chance; not fully.)
+- P9 **Who a buff potion reaches:** any ally, like Health and Mana Potions today: the user drinks it or hands it to a
+  companion or summon, 1 AP. (Not the drinker only.)
+- P10 **What a forage costs:** one hour of game time, with the zone's encounter chance rolled as for an hour of travel
+  there. (Not 30 minutes without encounters, not 2 hours with a full roll.)
+- P11 **Where Forage works:** every wild zone of every region, rivers and lake shores included; not in towns, on roads, at
+  sites, or in the three uncharted regions (empty until the port, W27). (Not also on roads and near towns.)
+- P12 **Ingredient drops:** each enemy has its own fitting ingredients, about a 25% chance a kill drops one (common ones
+  more often, rare ones less); bosses and Empowered enemies drop more and rarer ones. (Not 1 in 2, not 1 in 10.)
+- P13 **The Apothecary's ingredient menu:** every common ingredient always, plus a random selection of the region's own
+  uncommon and rarer ingredients, a few of each, re-rolled with the other shops' stock every 6 game hours. (Not a random
+  selection from all, not every ingredient everywhere.)
+- P14 **A recipe's price:** ten times its potion's (Lesser Health's 4,500 silver). (Not 5×, not 20×.)
+- P15 **When an Apothecary's three recipes change:** every 6 game hours, with the rest of the shops' stock; each
+  Apothecary has its own three, the same however often the menu is opened. (Not once a game day, the recommendation; not
+  every 3 game days.)
+- P16 **Which recipes are offered:** any recipe not yet known, weighted toward your level band's rarity as the General
+  Store weights its goods. (Not only up to your band's rarity, not evenly.)
+- P17 **Poisons are brewed too:** each has a three-ingredient recipe bought like the potions' (62 recipes: the ten Health
+  and Mana, the 40 new potions, the 12 poisons); poisons are also sold ready-made. (Not bought only.)
+- P18 **The Alchemist's way in:** character Level 20 and 10 potions brewed. (Not Level 10 and 25 ingredients foraged, the
+  recommendation; not open from Level 1.)
+- P19 **The Assimilator's way in:** character Level 10 and 25 ingredients found by foraging. (Not Level 15 and 20 potions
+  drunk, the recommendation; not Level 15 and three Alchemist levels.)
+- P20 **A raw ingredient's strength:** at the first Assimilator level its combined buff is about a third of its potions'
+  effects, rising to about two-thirds at the last; rarer ingredients last longer; potions stay the stronger choice. (Not
+  half rising to full, not a quarter rising to half.)
+- P21 **Ingredient buffs stack like potions:** the same ingredient refreshes its buff, different ingredients add up.
+  (Not one at a time, the recommendation; not more slots as the class levels.)
+- P22 **What a Collect quest pays:** by its ingredient's rarity: common like Travel (×1.0), uncommon like Escort (×1.1), rare
+  like Search (×1.2), epic or legendary like Deliver (×1.35); the quantity asked is set so each rarity takes similar effort;
+  never as much as Cull or Hunt. (Not one rate of ×1.15, not always like Deliver.)
+- P23 **Where a Collect quest is handed in:** the guild that offered it. (Not any guild.)
+- P24 **Which copies count:** any copies in the pack when handed in at the counter: foraged, dropped or bought. (Not only
+  those found after taking the quest.)
+- P25 **Which ingredient a Collect quest asks for:** one found in the guild's own region or a neighbouring one, of a
+  rarity fitting your level band. (Not any from a region already entered.)
+- P26 **Keys:** the Apothecary button O (among every settlement's services, beside the General Store), Forage D (with
+  Camp and Rest). (Not M and S, not O and S.)
+- P27 **Ingredients in the inventory:** their own Ingredients tab; potions and poisons stay in Consumables. (Not with the
+  consumables.)
+- P28 **Selling back:** the Apothecary buys potions, poisons and ingredients at half price; the General Store keeps buying
+  its other goods but no longer potions. (Not both, not nobody.)
+- P29 **When an Assimilator eats:** in battle, 1 AP, from the battle's item menu like a potion. (Not also on the map.)
+- P30 **The two classes in the usual shape** (the user's review of the content draft: "My only complaint are the classes.
+  Compared to other classes, they seem very different. Bring them more in line"): one gain per level, small fixed
+  bonuses on most levels, a skill as the capstone. The Assimilator (the user's own answer): "Give the Assimilator 7
+  levels. Its captstone will be a skill, since at Level 1 it should gain the Passive that allows ingrediant-eating":
+  Raw Assimilation at Level 1 (a third of its potions' strength), half at Level 4, two-thirds at Level 6 (P20's
+  "two-thirds at the last level" now at Level 6, before the capstone), the skill Devour at Level 7. The Alchemist likewise
+  gains its identity, Ingredient Lore, at Level 1, in 5 levels with the skill Keen Harvest as its capstone.
+  (Not a skill at Level 5 with eating capped at half; not two-thirds for all eating at Level 5 without a skill.)
+- P31 **The content approved** (2026-11-07, "Now i am satisfied"): `Docs/Port-Tasks/9_Potion_Rework/draft.md` as it
+  stands after P30 (made by `draft.py` there): the 40 potions, 12 poisons, 56 ingredients, 62 recipes, forage and drop
+  rules, the Apothecary, the two classes and Collect quests.
+
+**Decisions for task 8, Map Rework (2026-11-06, a cloud session; the user asked for task 8 after task 7 was merged, while
+M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.txt`).** Asked before any code:
+- W1 **Where:** in the old game, like tasks 1–7: the continent, its rules and every system built and playable there; its
+  2D looks (terrain, fog, clouds, the boat and caravan animations) are placeholder art the port remakes in its 3D map.
+  (Not in the port only, not split between the two.)
+- W2 **The layout:** drafted first (a layout map and a table: regions, levels, roads, barriers, proposed new areas) and
+  shown for review before it is built. (Not built directly.)
+- W3 **"About 40% larger":** distances: travel between places takes about 40% longer; the land area roughly doubles.
+  (Not the area +40%.)
+- W4 **Encounters on the longer roads:** the same number per trip as today: their spacing stretches with the world.
+  (Not the same per distance.)
+- W5 **The continent's climate** (asked after the first layout draft, whose "southern-hemisphere" reading didn't hold: a
+  tropical Jungle in the temperate north and a cold fog forest at the hot southern tip): a cold north and a hot south.
+  The Verdigris Jungle moves south of Gloamfen, onto the wet west coast beside the deserts behind a rain-shadow ridge,
+  its one road still only to Gloamfen (leaving it southward now); Duskpine becomes a cold highland plateau that the
+  Ancient Battlefield climbs to from the Bloodstone coast. The road network and level order are unchanged. (Not the
+  first draft kept as it was.)
+- W6 **The layout:** draft 2 approved as drawn (2026-11-06): the regions whole at 1.4× on their roads' compass (the
+  Verdigris Jungle turned round and placed south of Gloamfen, whose road to it now leaves southward from Reedcross),
+  joined by border strips about 22 km wide; the Western Stoneveil spurs, the Rainwall, the Verdigris Range, the Glass
+  Escarpment and the Stoneveil's cliffs seal the neighbours no road joins; the Western and Eastern Gulfs; no new areas.
+  The picture and table are made by `claude-work/continent/draft.py` in the cloud session.
+- W7 **The caravan's fare:** 2 silver per km of road between the two castle cities (neighbours, 120–230 km apart, cost
+  240–460 silver; Alderkeep–Lakespire 870; Alderkeep–Ravenwatch about 2,450; the longest, Westport–Ravenwatch, about
+  3,070). (Not 1 or 3 silver per km.)
+- W8 **The caravan's time:** three times walking pace on roads, 21 km/h of road (neighbours 6–11 hours,
+  Alderkeep–Ravenwatch about 2.4 days). (Not twice walking pace, the recommendation, nor walking pace.)
+- W9 **The horse carriage's price:** 50,000 silver (5 platinum) at the General Store, bought once. (Not 25,000 or
+  100,000.)
+- W10 **Where the carriage can't go:** every road but the steep mountain roads of High Stoneveil and the Summit; off-road
+  only open land (plains, hills, downs, steppe, flats, beaches, fields), never forest, jungle, marsh or bog, dunes, rock or
+  cliffs, lava or rivers; it stays on the mainland when you sail to Cinder Isle. (Not roads only, not nearly anywhere.)
+- W11 **The boat's time:** 12.6 hours (today's 9 ×1.4, like every trip, W3). (Not today's 9 hours.)
+- W12 **Regions never entered:** under fog until first entered: the coastline and the regions you have entered show; an
+  unentered region shows no towns, roads or names. (Not the whole continent visible from the start.)
+- W13 **How far a click takes you:** to any town or site you know, walking along the roads across regions without
+  stopping (encounters on the way as usual); the numbered destinations list the current region's places and its roads
+  out. (Not the current region only.)
+- W14 **Lengths:** the boat animation about 5 seconds; a caravan trip's 4 seconds for neighbours up to 8 for the longest;
+  the music crossfades over 4 seconds at a region border. (Not all about 3 seconds, not all about 10.)
+- W15 **Saves from before task 8:** everything open: the whole continent counts as entered (no fog) and every castle
+  city's caravan as unlocked. (Not only where the player stands, the recommendation; not guessed from their level.)
+- W16 **Where the caravan is offered:** a Caravan button among a castle city's service buttons under the map (beside the
+  General Store and Travel by boat); it opens the list of the player's other unlocked castle cities with each fare and
+  time, and a preview of the route on the map. (Not a tab of the General Store.)
+- W17 **A natural continent** (asked after the user saw the first renders, 2026-11-06: "the continent seems very blocky
+  … i want a natural looking continent"): one irregular, noise-shaped coastline (capes, bays) and irregular mountain
+  ranges between the neighbours no road joins, in place of the regions' rectangles; the walkable land follows that
+  outline both ways: in places it reaches past a region's old edge (wild ground with that edge's terrain, danger and
+  encounters), elsewhere the sea or the mountains bite in. Roads, settlements, sites and the ground near them are never
+  cut. (Not "bite in only", the recommendation; not the looks only with the old rectangles walkable.)
+- W18 **How far the natural edge moves:** up to about 30 km (400 continent units) from a region's old straight edge, in
+  or out. (Not about 15 km, the recommendation, nor about 7 km.)
+- W19 **The arms and bays** (asked after the user reviewed the natural shape, 2026-11-06: "the deep desert and the
+  Duskpine Forest with the Ancient Battlefield stick out way too much … you can fill out some ocean area with land to
+  connect the old areas better … Or you could restructure the continent better"): restructure first (Duskpine and the
+  Battlefield fold up into the bay below the Jungle, the Deep Desert tucks in; roads re-routed, every connection kept),
+  and a new, fully built region (its own terrain, enemies, level band, connections) wherever a big gap still remains;
+  drawn as a layout draft for review before it is built. (Not new regions with today's layout, not restructuring only.)
+- W20 **Impassable rock** (the user's own answer): "Dont force-seperate regions. Just place one rocky terrain as a new
+  passable region and thats it": no impassable rock parts any two regions any more (this replaces W17's mountain core
+  between neighbours no road joins); the continent's only rocky terrain is one new region, which can be walked. (Not
+  thin ranges only where needed, the recommendation; not water between them; not today's ranges without their bites.)
+- W21 **Cinder Isle:** about 250 km offshore; the boat keeps its 12.6 hours (W11). (Not about 150 km, the
+  recommendation, nor about 100 km.)
+- W22 **Draft 3's review** (2026-11-07; draft 3 placed Duskpine north of the Battlefield, the Deep Desert up beside
+  Saffron, three new regions: rocky highlands south of the Alder Vale, an east-coast steppe, a west-coast delta): not
+  approved as drawn. The user's changes: the Stoneveil Summit must not look cut off from the High Stoneveil (one
+  mountain); Cinder Isle further south, about level with the Verdant Reach; the Sunward Coast joined to the mainland; the
+  water north-west of Mirrormere (it read as a second, bigger lake beside the basin's own) filled with land to the Marsh
+  by enlarging Gloamfen, the Jungle and Stormwake; the Crimson Divide joined to the Saffron Expanse by land by enlarging
+  the Expanse. So: regions grow into the ground between them (no sea or rock between neighbours; capes and bays only on
+  the outer coast). Drawn as draft 4.
+- W23 **Keeping low levels out where regions touch:** no barrier and no prompt; "the current recommended level should be
+  displayed in the map view, that is warning enough": the map's header names the region you stand in and its levels
+  ("STORMWAKE HILLS · LEVEL 15–35") and changes as you cross. (Not a warning the first time you step into a region 10+
+  levels above you, the recommendation; not a warning every time.)
+- W24 **Draft 4's review** (2026-11-07; draft 4: draft 3 with W22's changes, the rocky highlands moved east of the Alder
+  Vale to join the Sunward Coast to the mainland, the steppe south of the Alder Vale, the Deep Desert a little further
+  up, Cinder Isle level with the Verdant Reach): too smooth; the coasts of draft 3 were better. Kept from draft 3: an
+  inland water between the Alder Vale and the highlands, one between Duskpine and the Crimson Divide, and the Deep
+  Desert's little island. Drawn as draft 5.
+- W25 **Draft 5's review** (2026-11-07): the Deep Desert's island must look as it did in draft 3, and the water between
+  Duskpine and the Crimson Divide be as large as it was there. Drawn as draft 6 (draft 3's coast taken over at both
+  places).
+- W26 **The layout:** draft 6 approved (2026-11-07, after its legend was made smaller and moved to the bottom right):
+  `Docs/Port-Tasks/8_Map_Rework/` (the picture, the scripts that make it, every region's place in continent units).
+- W27 **The three new regions** (the rocky highlands, the steppe, the west-coast delta): "they will be empty for now,
+  because everything for these regions will be done during the port": in the old game they are only ground on the
+  continent; their names, identity, terrain, enemies, level bands, towns and connections are made in the port. The user
+  asked to document this and to keep draft 6 as the reference for the port's visual redesign of the map (kept in
+  `Docs/Port-Tasks/8_Map_Rework/`, pointed to from `Docs/Port-Tasks/README.md`).
+- W28 **Walking the empty regions in the old game:** their ground can be walked like any other, with no encounters,
+  towns or quests; the map's header reads "Uncharted land" with no level range; the music of the region you came from
+  keeps playing; they are fogged until first entered like every region (W12). (Not closed until the port; not the
+  nearest old region's wild ground with its enemies.)
+- W29 **How the empty regions look on the old game's map:** blank parchment marked "Uncharted", so they read as
+  unfinished. (Not plain placeholder ground in fitting colours, the recommendation.)
+- W30 **Long walks across open land** (asked when W20 let the planner cut across country between regions: Alderkeep to
+  Lakespire became a straight 284 km through the empty steppe instead of 432 km of road): the fastest way, but off the
+  roads only through regions already entered; through any other region a click follows the roads (leaving them only in
+  the regions where the trip starts and ends). Refines W13. (Not always along the roads, the recommendation; not the
+  fastest way across any land.)
+- W31 **The boat trip** (about 5 seconds, W14): on the map itself: the camera pulls out to show both coasts, a small boat
+  leaves Seabridge and sails across the real sea to Emberhaven while the waves drift and the clock runs on 12.6 hours,
+  then the camera settles on the island; Esc or a click skips to the end. (Not a separate scene card.)
+- W32 **The mountain's height on the map:** the height rises smoothly as you go north through the Foothills, the High
+  Stoneveil and the Summit; from the High Stoneveil on, everything lower than you (the Foothills, the Alder Vale and
+  beyond) fades under a soft fog that thickens as you climb; on the Summit slow-drifting cloud banks lie below and around
+  you; a wide clear circle round you, and markers and towns always stay readable. (Not a ring of fog only near you; not
+  just dimming the lowlands.)
+- W33 **The carriage's ground where W10 left it open:** open sand that is not dunes (the Deep Desert's Outer Wastes, the
+  Crimson Divide's Open Desert, the Bloodstone Coast's Sanguine Wastes and Blood Coast) and the uncharted land may be
+  crossed; the Mountainfoot, Stormcrest, Floodplain and Desert Fringe, and all of the Ancient Battlefield off its roads,
+  may not. (Not hills and edges, the recommendation; not the Battlefield's open ground.)
+- W34 **Planning with the carriage on:** a click plans a way the carriage can drive (roads and its open land) and says
+  so if there is none; the carriage switches itself off only when you steer it into rough ground yourself. (Not
+  planning as on foot and switching off on the way.)
+- W35 **Where the carriage is after a journey:** it comes along with the caravan; by boat it stays at Seabridge (W10)
+  and is there again when you sail back. (Not left where you boarded the caravan.)
 
 **Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
 after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**

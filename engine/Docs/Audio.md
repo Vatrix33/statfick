@@ -60,6 +60,10 @@ Asked before the milestone started; also in `Docs/Engine-Plan.md`, "Decisions fo
     runs it. Both checked against V8's results.
   - *Theme API:* string ids (`"alder-vale"`, `"combat@alder-vale"`, boss ids), `Play(id)` with
     music.js's fades, `Stop()`; choosing the theme (`desiredTheme`) comes with the game port.
+    Since port task 8 (2026-11-07, old game only) music.js crossfades between two region themes: the old one plays on
+    while it fades out over 4 seconds and the new one fades in over the same time (`fadeOut`, `scheduleFading`; W14),
+    and in the empty regions the last charted region's theme plays on (W28). `Play` here switches as music.js did
+    before task 8; the game port adds the crossfade.
   - *Voice cleanup:* at the end of the render quantum in which a voice's first source ended; the
     fixtures make Chromium do the same by suspending its render every quantum.
   - *Fixture sums (asked during step 6):* fixtures whose notes sum three or more inputs at a node

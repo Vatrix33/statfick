@@ -28,7 +28,8 @@ async function runMapImprovementChecks() {
     assert(marker, "A quest supplies an interactive map marker");
     for (let frame = 0; frame < 10; frame++) WorldMap.render();
     assert(marker === $("map-guild-markers").querySelector(".map-guild-marker"), "Clock and travel rendering preserve marker hit targets");
-    const centre = new DOMPoint(point.x, point.y).matrixTransform($("regional-map").getScreenCTM()), hitRadius = marker.querySelector("circle").getBoundingClientRect().width / 2, screen = { x: centre.x + hitRadius * 0.9, y: centre.y };
+    // Port task 8: the markers sit in their region's group on the continent map.
+    const centre = new DOMPoint(point.x, point.y).matrixTransform($("map-guild-markers").getScreenCTM()), hitRadius = marker.querySelector("circle").getBoundingClientRect().width / 2, screen = { x: centre.x + hitRadius * 0.9, y: centre.y };
     const hit = document.elementFromPoint(screen.x, screen.y);
     assert(hit?.closest(".map-guild-marker") === marker, "The full transparent marker hitbox receives actual pointer hits");
     hit.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, pointerType: "mouse", pointerId: 41, button: 0, buttons: 1, clientX: screen.x, clientY: screen.y }));
@@ -36,7 +37,7 @@ async function runMapImprovementChecks() {
     assert(!$("regional-map").classList.contains("is-mouse-steering"), "A held marker press remains a marker click, not terrain steering");
     hit.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerType: "mouse", pointerId: 41, button: 0, clientX: screen.x, clientY: screen.y }));
     hit.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1, clientX: screen.x, clientY: screen.y }));
-    assert(WorldMap.isTravelling() && worldState.destination.x === point.x && worldState.destination.y === point.y, "Clicking a quest marker travels to its exact coordinates instead of a nearby town or terrain point");
+    assert(WorldMap.isTravelling() && worldState.destination.x === WorldRules.toContinent("alder-vale", point).x && worldState.destination.y === WorldRules.toContinent("alder-vale", point).y, "Clicking a quest marker travels to its exact coordinates instead of a nearby town or terrain point");
     await wait(130); WorldMap.pause(false);
     assert(marker.isConnected, "Travel frames do not destroy the clicked marker");
     marker.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
@@ -63,7 +64,7 @@ async function runMapImprovementChecks() {
     }
     WorldMap.render();
     assert([...$("map-modal").querySelectorAll("section button")].every(button => button.getAttribute("aria-keyshortcuts")), "Every map-mode button, including settlement links and close, has a shortcut");
-    key("1"); assert(WorldMap.isTravelling() && worldState.destination.x === 420, "Number keys route to their matching settlement");
+    key("1"); assert(WorldMap.isTravelling() && worldState.destination.x === WorldRules.toContinent("alder-vale", { x: 420, y: 490 }).x, "Number keys route to their matching settlement");
     key(" "); assert(!WorldMap.isTravelling(), "Space pauses travel");
     key(" "); assert(WorldMap.isTravelling(), "Space resumes travel");
     key("x"); assert(!WorldMap.isTravelling() && !worldState.destination, "X clears the route");
@@ -293,7 +294,10 @@ async function runCombatRewardChecks() {
     assert(chances.at(-1) === 5 && Combat.serialize().ap === 4 && Combat.serialize().log.some(line => line.includes("fails to escape (5% chance)")), "Run in combat spends its AP and rolls at least five percent against an overwhelmingly fast enemy");
     $("combat-sheet-button").click(); battle = Combat.serialize();
     battle.actors.filter(actor => actor.team === "enemy").forEach(actor => { actor.character.currentHp = 0; actor.character.inventory = []; actor.dropTable = []; });
-    Combat.restore(battle); Combat.onSheetChange(); await until(() => !$("combat-loot-modal").hidden, "A fight with no item drops still shows its rewards");
+    // Port task 9: enemies also drop their own ingredients (a quarter of kills); high dice keep this fight empty-handed.
+    const dice = Math.random; Math.random = () => 0.99;
+    try { Combat.restore(battle); Combat.onSheetChange(); } finally { Math.random = dice; }
+    await until(() => !$("combat-loot-modal").hidden, "A fight with no item drops still shows its rewards");
     assert(!Combat.serialize().lootItems.length && $("combat-loot-list").textContent.includes("no usable items") && $("combat-loot-exp").textContent.includes("EXP"), "EXP and money remain visible even without item drops");
   } finally { CombatRules.roll = originalRoll; Combat.restore(null); applyCharacter(normalizeCharacter(defaultCharacter())); WorldMap.setAmbientEnabled(false); }
   return { passed: true, checks };

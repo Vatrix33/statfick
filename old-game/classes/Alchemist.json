@@ -1,0 +1,21 @@
+{
+  "id": "alchemist",
+  "name": "Alchemist",
+  "maxLevel": 5,
+  "requirements": {
+    "level": 20,
+    "classes": {},
+    "other": { "type": "potions-brewed", "count": 10, "description": "10 potions brewed" }
+  },
+  "levels": [
+    { "level": 1, "description": "Gain Ingredient Lore: an ingredient's details list every potion and poison it goes into.", "effects": [
+      { "type": "passive", "id": "ingredient-lore", "name": "Ingredient Lore", "description": "An ingredient's details list every potion and poison it goes into, by name and rarity. A recipe you don't know shows only that it exists, not its other ingredients.", "effect": { "type": "ingredient-lore", "amount": 1 } }
+    ] },
+    { "level": 2, "description": "Forage finds something 10% more often.", "effects": [{ "type": "forage-find-percent", "amount": 10 }] },
+    { "level": 3, "description": "Wisdom permanent bonus +5%.", "effects": [{ "type": "stat-permanent-percent", "target": "wisdom", "amount": 5 }] },
+    { "level": 4, "description": "Forage finds something 10% more often, and a find of a common or uncommon ingredient brings one more.", "effects": [{ "type": "forage-find-percent", "amount": 10 }, { "type": "forage-extra-one", "amount": 1 }] },
+    { "level": 5, "description": "Unlock Keen Harvest: your next forage is sure to find something, and rare and rarer ingredients weigh double in it. Outside battle, once per day.", "effects": [
+      { "type": "skill", "id": "keen-harvest", "name": "Keen Harvest", "description": "Your next forage is sure to find something, and rare and rarer ingredients weigh double in it. Outside battle, once per day.", "combatOnly": false, "cooldown": "daily", "instant": true, "onActivateEffects": [{ "type": "keen-harvest" }] }
+    ] }
+  ]
+}

@@ -143,6 +143,9 @@ const CLASS_FILES = [
   { id: "stormcaller", path: "classes/Stormcaller.json", label: "Stormcaller.json" },
   { id: "sunstrider", path: "classes/Sunstrider.json", label: "Sunstrider.json" },
   { id: "wildwarden", path: "classes/Wildwarden.json", label: "Wildwarden.json" },
+  // Port task 9 (the Potion Rework): the two alchemy classes (P18, P19, P30).
+  { id: "alchemist", path: "classes/Alchemist.json", label: "Alchemist.json" },
+  { id: "assimilator", path: "classes/Assimilator.json", label: "Assimilator.json" },
 ];
 const CLASS_CACHE_KEYS = {
   warrior: "emberfall-warrior-cache",
@@ -406,7 +409,7 @@ const raceStatus = document.querySelector("#race-status");
 
 let spells = [];
 let spellTypeFilter = "all";
-let itemCatalog = { weapons: [], armor: [], artifacts: [], consumables: [], keyItems: [] };
+let itemCatalog = { weapons: [], armor: [], artifacts: [], consumables: [], keyItems: [], ingredients: [] };
 let items = [];
 let itemsById = new Map();
 let itemFilter = "all";
@@ -558,6 +561,8 @@ function artifactSpellModifier(effects, kind, spell) {
 
 function emptyClassEffects() {
   return {
+    // Port task 9: the Alchemist's foraging and the Assimilator's resistance and thrift.
+    forageFindPercent: 0, forageExtraOne: false, ingredientRetentionChance: 0, elementResistancePercent: {},
     statPermanentPercent: { ...defaultBonuses },
     defensePermanentPercent: { ...defaultDefenseBonuses },
     maxHpPercent: 0,
@@ -681,6 +686,10 @@ function classWeaponBonus(item, totals, field) {
 function addClassEffect(effect, totals) {
   const type = effect?.type || effect?.kind;
   const amount = toNumber(effect?.amount, 0);
+  if (type === "forage-find-percent") totals.forageFindPercent += amount;
+  if (type === "forage-extra-one") totals.forageExtraOne = true;
+  if (type === "ingredient-retention-chance") totals.ingredientRetentionChance += amount;
+  if (type === "element-resistance-percent" && effect.element) totals.elementResistancePercent[String(effect.element).toLowerCase()] = toNumber(totals.elementResistancePercent[String(effect.element).toLowerCase()], 0) + amount;
   if (type === "all-stats-permanent-percent") {
     bonusDefinitions.forEach((key) => { totals.statPermanentPercent[key] += amount; });
   }
@@ -1309,6 +1318,7 @@ function defaultCharacter() {
   return {
     worldState: WorldRules.normalize(),
     limitless: LimitlessRules.normalize(null),
+    alchemy: normalizeAlchemy(null),
     shopState: { version: 4, refreshWindow: -1, locations: {} },
     raceId: null,
     appearance: null,
@@ -1364,6 +1374,16 @@ function stableLookVariant(text) {
   return value % 4;
 }
 
+/* Port task 9 (the Potion Rework): the character's alchemy. Known recipes (the two Lesser ones from the start, P4; old saves
+   too, without the rest: section 13), and the counts behind the Alchemist's and the Assimilator's requirements (P18, P19). */
+function normalizeAlchemy(saved) {
+  return {
+    known: window.AlchemyRules ? AlchemyRules.normalizeKnown(saved?.known) : Array.isArray(saved?.known) ? saved.known.filter(id => typeof id === "string") : [],
+    brewed: Math.max(0, toInteger(saved?.brewed, 0)),
+    foraged: Math.max(0, toInteger(saved?.foraged, 0)),
+    keenHarvestReady: saved?.keenHarvestReady === true,
+  };
+}
 // context: { companion, limitlessActive } for a companion (it follows the player's Limitless, L4); { levelCap } for a
 // saved battle's actors (enemies scaled by Limitless may be above Level 100).
 function normalizeCharacter(saved, context = {}) {
@@ -1385,6 +1405,8 @@ function normalizeCharacter(saved, context = {}) {
       tower: normalizeStockItems(stock?.tower),
       relics: normalizeStockItems(stock?.relics),
       spells: Array.isArray(stock?.spells) ? stock.spells.filter(id => typeof id === "string") : [],
+      // Port task 9: the Apothecary's potions, ingredients and three recipes (P13, P15).
+      ...(stock?.apothecary ? { apothecary: { potions: normalizeStockItems(stock.apothecary.potions), ingredients: normalizeStockItems(stock.apothecary.ingredients), recipes: Array.isArray(stock.apothecary.recipes) ? stock.apothecary.recipes.filter(id => typeof id === "string") : [] } } : {}),
     }])),
   };
   const savedLegacyModifiers = saved.modifiers && typeof saved.modifiers === "object" ? saved.modifiers : {};
@@ -1473,6 +1495,7 @@ function normalizeCharacter(saved, context = {}) {
     // At the cap (Level 100 without Limitless on) no EXP is gained, and none an old save banked there is kept (L18).
     exp: normalizedLevel >= LimitlessRules.cap(limitlessOn) && !context.levelCap ? 0 : Math.max(0, toNumber(saved.exp, 0)),
     limitless: savedLimitless,
+    alchemy: normalizeAlchemy(saved?.alchemy),
     availablePoints: Math.max(0, toInteger(saved.availablePoints, 0)),
     perkPoints: perkPointsWithStartingPoint,
     startingPerkPointGranted: true,
@@ -1566,6 +1589,7 @@ let currentHp = character.currentHp;
 let currentMana = character.currentMana;
 let manualAllocations = character.manualAllocations;
 let limitless = character.limitless;
+let alchemy = character.alchemy;
 let currencies = character.currencies;
 let permanentBonuses = character.permanentBonuses;
 let permanentDefenseBonuses = character.permanentDefenseBonuses;
@@ -1806,7 +1830,7 @@ function saveCharacter() {
   window.Combat?.onSheetChange();
   window.WorldMap?.renderClock();
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ worldState, shopState, combatState: window.Combat?.serialize() || null, raceId: selectedRaceId, appearance, level, exp, availablePoints, perkPoints, startingPerkPointGranted: true, limitless, trapsUsed, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount, editingEnabled, darkMode, currentHp, currentMana, manualAllocations, currencies, permanentBonuses, permanentDefenseBonuses, inventory, favoriteItems, equipment, knownSpells, classLevels, activeSkills, companions, recruitOffers, pendingClassSpellChoice, completedClassChoices, stats }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ worldState, shopState, combatState: window.Combat?.serialize() || null, raceId: selectedRaceId, appearance, level, exp, availablePoints, perkPoints, startingPerkPointGranted: true, limitless, alchemy, trapsUsed, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount, editingEnabled, darkMode, currentHp, currentMana, manualAllocations, currencies, permanentBonuses, permanentDefenseBonuses, inventory, favoriteItems, equipment, knownSpells, classLevels, activeSkills, companions, recruitOffers, pendingClassSpellChoice, completedClassChoices, stats }));
     statusDot.classList.add("is-saving");
     window.clearTimeout(saveCharacter.timer);
     saveCharacter.timer = window.setTimeout(() => statusDot.classList.remove("is-saving"), 350);
@@ -1825,7 +1849,7 @@ function backupPayload() {
     format: "emberfall-stat-block",
     version: 22,
     exportedAt: new Date().toISOString(),
-    character: { worldState, shopState, combatState: window.Combat?.serialize() || null, raceId: selectedRaceId, appearance, level, exp, availablePoints, perkPoints, startingPerkPointGranted: true, limitless, trapsUsed, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount, editingEnabled, darkMode, currentHp, currentMana, manualAllocations, currencies, permanentBonuses, permanentDefenseBonuses, inventory, favoriteItems, equipment, knownSpells, classLevels, activeSkills, companions, recruitOffers, pendingClassSpellChoice, completedClassChoices, stats },
+    character: { worldState, shopState, combatState: window.Combat?.serialize() || null, raceId: selectedRaceId, appearance, level, exp, availablePoints, perkPoints, startingPerkPointGranted: true, limitless, alchemy, trapsUsed, unarmedAttacks, summonSpellsUsed, summonSpellsUsedByElement, bloodSupplies, itemsSold, soloSurvivorVictories, multiKillCombats, classKills, raceKills, classProgress, defensiveActionsUsed, flawlessVictories, enemyCount, editingEnabled, darkMode, currentHp, currentMana, manualAllocations, currencies, permanentBonuses, permanentDefenseBonuses, inventory, favoriteItems, equipment, knownSpells, classLevels, activeSkills, companions, recruitOffers, pendingClassSpellChoice, completedClassChoices, stats },
   };
 }
 
@@ -1875,6 +1899,7 @@ function applyCharacter(characterData) {
   availablePoints = characterData.availablePoints;
   perkPoints = characterData.perkPoints;
   limitless = characterData.limitless || LimitlessRules.normalize(null);
+  alchemy = characterData.alchemy || normalizeAlchemy(null);
   trapsUsed = characterData.trapsUsed;
   unarmedAttacks = characterData.unarmedAttacks;
   summonSpellsUsed = characterData.summonSpellsUsed;
@@ -2134,6 +2159,7 @@ resetButton.addEventListener("click", () => {
   enemyCount = 0;
   manualAllocations = { ...defaultAllocations };
   limitless = LimitlessRules.normalize(null);
+  alchemy = normalizeAlchemy(null);
   currencies = { ...defaultCurrencies };
   permanentBonuses = { ...defaultBonuses };
   permanentDefenseBonuses = { ...defaultDefenseBonuses };
@@ -3548,7 +3574,7 @@ function rebuildItems() {
   // Forged masterworks join the catalogue as templates, so drop tables and guild information can name them.
   // The Exotics' templates too (task 7): drop tables name them like masterworks.
   const masterworkTemplates = window.ForgeRules ? [...ForgeRules.MASTERWORK_IDS, ...ForgeRules.EXOTIC_IDS].map(key => ForgeRules.item(ForgeRules.masterworkTemplateId(key))).filter(Boolean) : [];
-  items = [...itemCatalog.weapons, ...itemCatalog.armor, ...itemCatalog.artifacts, ...(itemCatalog.consumables || []), ...(itemCatalog.keyItems || []), ...archivedItems, ...masterworkTemplates].filter((item) => {
+  items = [...itemCatalog.weapons, ...itemCatalog.armor, ...itemCatalog.artifacts, ...(itemCatalog.consumables || []), ...(itemCatalog.keyItems || []), ...(itemCatalog.ingredients || []), ...archivedItems, ...masterworkTemplates].filter((item) => {
     if (catalogueById.has(item.id)) return false;
     catalogueById.set(item.id, item);
     return true;
@@ -3679,9 +3705,9 @@ function getItem(itemIdValue) {
 }
 
 function unavailableItem(itemIdValue) {
-  const category = itemIdValue.startsWith("weapon-") ? "weapon" : itemIdValue.startsWith("artifact-") ? "artifact" : itemIdValue.startsWith("consumable-") ? "consumable" : "armor";
+  const category = itemIdValue.startsWith("weapon-") ? "weapon" : itemIdValue.startsWith("artifact-") ? "artifact" : itemIdValue.startsWith("consumable-") ? "consumable" : itemIdValue.startsWith("ingredient-") ? "ingredient" : "armor";
   const name = itemIdValue
-    .replace(/^(weapon|armor|artifact|consumable)-/, "")
+    .replace(/^(weapon|armor|artifact|consumable|ingredient)-/, "")
     .replace(/-[^-]+$/, "")
     .replace(/-/g, " ")
     .replace(/^./, (letter) => letter.toUpperCase());
@@ -3708,6 +3734,7 @@ function itemKindLabel(item) {
 
 function itemCategoryLabel(category) {
   if (category === "consumable") return "Consumable";
+  if (category === "ingredient") return "Ingredient";
   if (category === "key-item") return "Key Item";
   if (category === "rune") return "Rune";
   return category === "weapon" ? "Weapon" : category === "artifact" ? "Artifact" : "Armor";
@@ -4134,7 +4161,59 @@ function setInventoryStatus(message, state = "") {
   inventoryStatus.className = `spellbook-status${state ? ` is-${state}` : ""}`;
 }
 
+/* Port task 9 (the Potion Rework, P6): Health, Mana and cure potions can be used outside battle too, on yourself or a
+   companion, when they can do something there (negative effects only exist in battle, so a cure alone has nothing to do). */
+function potionTargets() {
+  return [{ id: "player", name: "You" }, ...(Array.isArray(companions) ? companions : []).map(companion => ({ id: companion.id, name: companion.name }))];
+}
+function potionTargetResources(targetId) {
+  if (targetId === "player") {
+    const stats = currentStats();
+    return { hp: currentHp, mana: currentMana, maxHp: calculateMaxHpWithArtifacts(stats), maxMana: calculateMaxManaWithEffects(stats), healingDisabled: Boolean(calculateRaceEffects().healingDisabled) };
+  }
+  const companion = (companions || []).find(entry => entry.id === targetId);
+  if (!companion) return null;
+  const values = window.Companions?.preview(companion) || {};
+  return { hp: toNumber(companion.character.currentHp, 0), mana: toNumber(companion.character.currentMana, 0), maxHp: toNumber(values.maxHp, 0), maxMana: toNumber(values.maxMana, 0), healingDisabled: false, companion };
+}
+function potionOutsideReason(item, targetId = "player") {
+  if (!item?.outsideBattle || item.category !== "consumable") return "Only in battle";
+  if (window.Combat?.active()) return "In battle, use it from the battle's item menu";
+  if (!inventory.includes(item.id)) return "Not in your pack";
+  const target = potionTargetResources(targetId);
+  if (!target) return "No such companion";
+  const heals = (item.effects || []).some(effect => effect.type === "heal") && !target.healingDisabled && target.hp < target.maxHp;
+  const restores = (item.effects || []).some(effect => effect.type === "restore-mana") && target.mana < target.maxMana;
+  if (heals || restores) return "";
+  if ((item.effects || []).every(effect => effect.type === "cure")) return "Nothing to cure outside battle";
+  return "Already at full strength";
+}
+function usePotionOutsideBattle(itemId, targetId = "player") {
+  const item = getItem(itemId), reason = potionOutsideReason(item, targetId);
+  if (reason) { setInventoryStatus(reason + ".", "error"); return false; }
+  const target = potionTargetResources(targetId);
+  let hpGain = 0, manaGain = 0;
+  for (const effect of item.effects || []) {
+    if (effect.type === "heal" && !target.healingDisabled) hpGain += CombatRules.resourceRestore(toNumber(effect.amount, 0), target.maxHp, effect.maxPercent);
+    if (effect.type === "restore-mana") manaGain += CombatRules.resourceRestore(toNumber(effect.amount, 0), target.maxMana, effect.maxPercent);
+  }
+  const hp = Math.min(target.maxHp, target.hp + Math.max(0, Math.floor(hpGain))), mana = Math.min(target.maxMana, target.mana + Math.max(0, Math.floor(manaGain)));
+  if (target.companion) { target.companion.character.currentHp = hp; target.companion.character.currentMana = mana; window.Companions?.render(true); }
+  else { currentHp = hp; currentMana = mana; }
+  inventory.splice(inventory.indexOf(item.id), 1);
+  if (!inventory.includes(item.id)) favoriteItems = favoriteItems.filter(id => id !== item.id);
+  updateDerivedValues(); renderOwnedItems(); saveCharacter();
+  const who = target.companion ? target.companion.name : "You";
+  setInventoryStatus(`${who} ${target.companion ? "drinks" : "drink"} ${item.name}: ${[hp > target.hp ? "+" + (hp - target.hp) + " HP" : "", mana > target.mana ? "+" + (mana - target.mana) + " Mana" : ""].filter(Boolean).join(", ") || "no change"}.`, "success");
+  return true;
+}
 function ownedItemActions(item, slotFilter = null) {
+  if (item?.category === "consumable" && item.outsideBattle && !slotFilter) {
+    const targets = potionTargets();
+    const select = targets.length > 1 ? '<select class="item-use-target" data-use-target-for="' + escapeHtml(item.id) + '" aria-label="Who drinks ' + escapeHtml(item.name) + '">' + targets.map(target => '<option value="' + escapeHtml(target.id) + '">' + escapeHtml(target.name) + '</option>').join("") + '</select>' : "";
+    const reason = potionOutsideReason(item, "player");
+    return select + '<button class="spell-use-button item-use-button" type="button" data-use-item="' + escapeHtml(item.id) + '" title="' + escapeHtml(reason || "Use it now, outside battle") + '"' + (reason && targets.length < 2 ? " disabled" : "") + '>Use</button>';
+  }
   const slots = slotFilter ? itemEquipSlots(item).filter((slotKey) => slotKey === slotFilter) : itemEquipSlots(item);
   return slots.map((slotKey) =>
     '<button class="spell-use-button item-equip-button" type="button" data-item-id="' + escapeHtml(item.id) + '" data-equip-slot="' + slotKey + '"' + (canEquipItem(item, slotKey) ? "" : " disabled") + '>' + escapeHtml(slotKey === "armor" ? "Armor" : equipmentSlotLabel(slotKey).replace(" hand", "").replace("-", " ")) + '</button>'
@@ -4193,6 +4272,9 @@ function renderOwnedItems() {
     entry.querySelector(".item-favorite-button").addEventListener("click", () => {
       toggleItemFavorite(item.id);
       [...ownedItemsList.querySelectorAll("[data-favorite-item]")].find(button => button.dataset.favoriteItem === item.id)?.focus({ preventScroll: true });
+    });
+    entry.querySelectorAll("[data-use-item]").forEach((button) => {
+      button.addEventListener("click", () => usePotionOutsideBattle(item.id, entry.querySelector("[data-use-target-for]")?.value || "player"));
     });
     entry.querySelectorAll(".item-equip-button").forEach((button) => {
       button.addEventListener("click", () => equipItem(item, button.dataset.equipSlot));
@@ -4366,15 +4448,49 @@ function showItemDetails(item) {
   itemDetailPanel.innerHTML = itemDetailMarkup(item);
 }
 
+/* Port task 9: an ingredient's details: what it is, where it is found, and for an Alchemist (Ingredient Lore) every potion
+   and poison it goes into, the other ingredients only of recipes already known (section 9.3); for an Assimilator what
+   eating it gives now. */
+function ingredientDetailMarkup(item) {
+  const helpers = window.Alchemy;
+  const sources = helpers ? helpers.ingredientSources(item.id) : [];
+  const drops = window.AlchemyData ? Object.entries(window.AlchemyData.DROPS).filter(([, entries]) => entries.some(entry => entry.id === item.id)).length : 0;
+  const bossDrops = window.AlchemyData ? Object.values(window.AlchemyData.BOSS_DROPS).filter(entries => entries.includes(item.id)).length : 0;
+  const found = (sources.length ? "Foraged in " + escapeHtml(sources.join("; ")) + "." : "Not foraged anywhere.") + (drops ? " Dropped by " + drops + " kind" + (drops === 1 ? "" : "s") + " of enemy." : "") + (bossDrops ? " Bosses drop it too." : "");
+  let lore = "";
+  if (helpers?.hasLore()) {
+    const uses = helpers.ingredientUses(item.id);
+    lore = '<div class="ingredient-lore"><h4>Ingredient Lore</h4><ul>' + uses.map(use => '<li>' + itemRarityTag(use.rarity) + ' <strong>' + escapeHtml(use.name) + '</strong>' + (use.known ? ' · with ' + escapeHtml(use.others.join(" and ")) : ' · <em>recipe unknown</em>') + '</li>').join("") + '</ul></div>';
+  }
+  let eaten = "";
+  const assimilator = toInteger(classLevels.assimilator, 0);
+  if (assimilator > 0 && window.AlchemyRules) {
+    const result = AlchemyRules.assimilation(item.id, assimilator, getItem);
+    if (result?.effects.length) eaten = '<div class="spell-detail-cost"><span>Eaten (Assimilator ' + assimilator + ')</span><strong>' + escapeHtml(helpers?.describeEffects(result.effects) || "") + ' · ' + result.durationTurns + ' turns</strong></div>';
+  }
+  return '<div class="spell-detail item-detail ' + itemRarityClass(item) + '">' +
+    '<div class="spell-detail-heading"><div><p class="eyebrow">INGREDIENT</p><h3>' + escapeHtml(item.name) + '</h3></div></div>' +
+    '<div class="spell-badges">' + itemRarityTag(item.rarity) + '<span>Ingredient</span></div>' +
+    '<div class="spell-detail-cost"><span>Apothecary price</span><strong>' + escapeHtml(ShopRules.formatPrice(item.priceSilver)) + '</strong></div>' +
+    '<div class="spell-detail-cost"><span>Sell price</span><strong>' + escapeHtml(ShopRules.formatPrice(ShopRules.salePrice(item.priceSilver))) + '</strong></div>' + eaten +
+    '<div class="spell-description"><p>' + escapeHtml(item.description || "") + '</p><p>' + found + '</p></div>' + lore + '</div>';
+}
+
 // The full description of an item, shared by the inventory and the shops.
 function itemDetailMarkup(item) {
   if (item.forged) return forgedDetailMarkup(item);
   if (item.category === "rune") return runeDetailMarkup(item);
+  if (item.category === "ingredient") return ingredientDetailMarkup(item);
   if (item.category === "consumable") {
-    const usage = item.mapAction === "camp" ? "Travel consumable · Used from the regional map" : "Consumable · 1 AP in combat";
+    // Port task 9: potions (drunk or handed to an ally) and poisons (thrown at an enemy).
+    const usage = item.mapAction === "camp" ? "Travel consumable · Used from the regional map"
+      : item.poison ? "Poison · thrown at " + ((item.effects || []).some(effect => effect.recipient === "all-enemies") ? "every enemy" : "an enemy") + " · 1 AP in battle · half strength on bosses"
+      : item.potion ? "Potion · drink it or hand it to an ally · 1 AP in battle" + (item.outsideBattle ? " · also outside battle, from your pack" : "")
+      : "Consumable · 1 AP in combat";
+    const kind = item.poison ? "Poison" : item.potion ? "Potion" : "Consumable";
     return '<div class="spell-detail item-detail ' + itemRarityClass(item) + '">' +
-      '<div class="spell-detail-heading"><div><p class="eyebrow">CONSUMABLE</p><h3>' + escapeHtml(item.name) + '</h3></div></div>' +
-      '<div class="spell-badges">' + itemRarityTag(item.rarity) + '<span>Consumable</span></div>' +
+      '<div class="spell-detail-heading"><div><p class="eyebrow">' + kind.toUpperCase() + '</p><h3>' + escapeHtml(item.name) + '</h3></div></div>' +
+      '<div class="spell-badges">' + itemRarityTag(item.rarity) + '<span>' + kind + '</span></div>' +
       '<p>' + usage + '</p>' +
       '<div class="spell-detail-cost"><span>' + (item.shopAvailable === false ? "Value" : "Shop price") + '</span><strong>' + escapeHtml(ShopRules.formatPrice(item.priceSilver)) + '</strong></div>' +
       '<div class="spell-detail-cost"><span>Sell price</span><strong>' + escapeHtml(ShopRules.formatPrice(ShopRules.salePrice(item.priceSilver))) + '</strong></div>' +
@@ -4705,6 +4821,8 @@ function otherClassRequirementMet(classDefinition) {
     return used >= Math.max(1, toInteger(requirement.count, 1));
   }
   if (type === "items-sold") return itemsSold >= Math.max(1, toInteger(requirement.count, 1));
+  if (type === "potions-brewed") return alchemy.brewed >= Math.max(1, toInteger(requirement.count, 1));
+  if (type === "ingredients-foraged") return alchemy.foraged >= Math.max(1, toInteger(requirement.count, 1));
   if (type === "solo-survivor-victories") return soloSurvivorVictories >= Math.max(1, toInteger(requirement.count, 1));
   if (type === "multi-kill-combats") return multiKillCombats >= Math.max(1, toInteger(requirement.count, 1));
   if (type === "class-kills") return Math.max(0, toInteger(classKills[slugify(requirement.classId || "")], 0)) >= Math.max(1, toInteger(requirement.count, 1));
@@ -4821,6 +4939,8 @@ function otherClassRequirementReason(classDefinition) {
     return "Requires " + Math.max(1, toInteger(requirement.count, 1)) + (element ? " " + spellElementLabel(element) : "") + " summon spells used (" + used + " used)";
   }
   if (type === "items-sold") return "Requires selling " + Math.max(1, toInteger(requirement.count, 1)) + " items (" + itemsSold + " sold)";
+  if (type === "potions-brewed") return "Requires brewing " + Math.max(1, toInteger(requirement.count, 1)) + " potions (" + alchemy.brewed + " brewed)";
+  if (type === "ingredients-foraged") return "Requires foraging " + Math.max(1, toInteger(requirement.count, 1)) + " ingredients (" + alchemy.foraged + " foraged)";
   if (type === "solo-survivor-victories") return "Requires " + Math.max(1, toInteger(requirement.count, 1)) + " victories with no living ally remaining (" + soloSurvivorVictories + " won)";
   if (type === "multi-kill-combats") return "Requires killing at least " + Math.max(1, toInteger(requirement.kills, 3)) + " enemies in one combat " + Math.max(1, toInteger(requirement.count, 1)) + " times (" + multiKillCombats + " completed)";
   if (type === "class-kills") {
@@ -5531,6 +5651,8 @@ function activateSkill(skill) {
   }
   activeSkills[classSkillKey(skill)] = { active: !skill.instant, lastUsedDay: todayKey() };
   for (const effect of skill.onActivateEffects || []) {
+    // Keen Harvest (port task 9): the next forage finds something, rare ones weighing double.
+    if (effect.type === "keen-harvest") alchemy.keenHarvestReady = true;
     if (effect.type === "grant-camping-supplies") {
       inventory.push(...Array(Math.max(1, toInteger(effect.amount, 1))).fill("consumable-camping-supplies"));
       renderOwnedItems();

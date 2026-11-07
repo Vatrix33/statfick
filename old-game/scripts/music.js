@@ -331,7 +331,9 @@
 
   // Ordinary battles play the region's own arrangement of the battle theme.
   function desiredTheme() {
-    const region = typeof worldState !== "undefined" ? worldState?.regionId : null;
+    // Port task 8: in a region empty until the port, the last region's music plays on (W28).
+    const standing = typeof worldState !== "undefined" ? worldState?.regionId : null;
+    const region = standing && window.WorldRules?.getRegion(standing)?.uncharted ? worldState.lastChartedRegionId : standing;
     if (window.Combat?.active()) {
       const theme = window.Combat.musicTheme?.() || "combat";
       if (theme === "combat" && scores["combat@" + region]) return "combat@" + region;
@@ -982,8 +984,39 @@
     }
   }
 
+  /* Port task 8: at a region border the old region's theme plays on while it fades out over CROSSFADE seconds and the
+     new one fades in over the same time (W14). Fading themes keep their own place in their score. */
+  const CROSSFADE = 4;
+  let fading = [];
+  const isRegionTheme = theme => Boolean(theme && window.WorldRules?.regions?.[theme]);
+  function scheduleFading() {
+    const now = context.currentTime;
+    for (const f of fading) {
+      while (f.next < Math.min(now + 0.2, f.until)) {
+        if (f.performance) { f.performance.step(f.step, f.next); f.next += f.performance.stepSeconds; }
+        else {
+          const saved = [activeTheme, activeBus, step];
+          activeTheme = f.theme; activeBus = f.bus; step = f.step;
+          try { playStep(f.next); } finally { [activeTheme, activeBus, step] = saved; }
+          f.next += 30 / scores[f.theme].tempo;
+        }
+        f.step++;
+      }
+    }
+    fading = fading.filter(f => f.until > now);
+  }
+  function fadeOut(seconds) {
+    if (!activeBus || !context) return;
+    const now = context.currentTime, bus = activeBus;
+    if (typeof bus.gain.cancelAndHoldAtTime === "function") bus.gain.cancelAndHoldAtTime(now);
+    else { const currentGain = bus.gain.value; bus.gain.cancelScheduledValues(now); bus.gain.setValueAtTime(currentGain, now); }
+    bus.gain.linearRampToValueAtTime(0, now + seconds);
+    fading.push({ theme: activeTheme, bus, performance: activePerformance, step, next: nextNoteTime, until: now + seconds });
+    setTimeout(() => bus.disconnect(), (seconds + 1.8) * 1000);
+  }
   function schedule() {
     if (!context || !activeBus || context.state !== "running") return;
+    if (fading.length) scheduleFading();
     if (nextNoteTime < context.currentTime - 0.5) nextNoteTime = context.currentTime + 0.04;
     while (nextNoteTime < context.currentTime + 0.2) {
       if (activePerformance) {
@@ -1060,6 +1093,8 @@
   function stop() {
     clearInterval(clock);
     clock = null;
+    for (const f of fading) retire(f.bus);
+    fading = [];
     retire(activeBus);
     activeBus = null;
     activeTheme = null;
@@ -1075,18 +1110,21 @@
     }
     const desired = desiredTheme();
     if (desired === activeTheme) return;
-    retire(activeBus);
+    // Crossing from one region into another crossfades (W14); battles and everything else switch as before.
+    const crossfade = isRegionTheme(activeTheme) && isRegionTheme(desired) ? CROSSFADE : 0;
+    if (crossfade) fadeOut(crossfade);
+    else retire(activeBus);
     if (scores[desired].variant) {
       // Remastered themes bring their own instruments and room.
       activePerformance = window.MusicComposer.perform(context, scores[desired], master);
       activeBus = activePerformance.bus;
       activeBus.gain.setValueAtTime(0, context.currentTime);
-      activeBus.gain.linearRampToValueAtTime(1, context.currentTime + 0.8);
+      activeBus.gain.linearRampToValueAtTime(1, context.currentTime + (crossfade || 0.8));
     } else {
       activePerformance = null;
       activeBus = context.createGain();
       activeBus.gain.setValueAtTime(0, context.currentTime);
-      activeBus.gain.linearRampToValueAtTime(1, context.currentTime + 0.55);
+      activeBus.gain.linearRampToValueAtTime(1, context.currentTime + (crossfade || 0.55));
       activeBus.connect(master);
       activeBus.connect(delay);
       activeBus.connect(hall);
@@ -1173,7 +1211,7 @@
     // "theme" names the music family (a region, "combat" or a boss); "variation" is the region arrangement of a battle.
     state: () => {
       const [theme, variation = null] = desiredTheme().split("@");
-      return { enabled, volume, theme, variation, track: desiredTheme(), playing: Boolean(activeTheme), audioReady };
+      return { enabled, volume, theme, variation, track: desiredTheme(), playing: Boolean(activeTheme), audioReady, crossfading: fading.map(f => f.theme), crossfadeSeconds: CROSSFADE };
     },
     scoreInfo: () => Object.fromEntries(Object.entries(scores).map(([id, entry]) => [id, entry.variant ? {
       title: entry.title, kind: "remaster", tempo: entry.spec.tempo, meter: entry.spec.meter.join("x"),

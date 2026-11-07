@@ -49,7 +49,7 @@ async function runGuildBoardChecks() {
   open();
   const board = Guild.boardFor(), standard = board.offers.filter(offer => offer.type !== "great-hunt");
   assert(standard.length === 4 && new Set(standard.map(offer => offer.type)).size === 4, "A castle guild's board offers four quests of different types");
-  assert(standard.every(offer => GuildQuestRules.TYPES.includes(offer.type) && offer.version === 2 && offer.title), "Every offer is one of the six standard types, with a title");
+  assert(standard.every(offer => GuildQuestRules.TYPES.includes(offer.type) && offer.version === 2 && offer.title), "Every offer is one of the standard types (six, and Collect since port task 9), with a title");
   const ids = JSON.stringify(board.offers.map(offer => [offer.type, offer.title]));
   close(); level = 14; open();
   assert(JSON.stringify(Guild.boardFor().offers.map(offer => [offer.type, offer.title])) === ids, "The board stays the same all day, also after a level change");
@@ -121,7 +121,9 @@ async function runGuildRewardChecks() {
   open();
   const offers = Guild.boardFor().offers.filter(offer => offer.type !== "great-hunt");
   const table = GuildQuestRules.rewardTable(15, calculateClassEffects());
-  assert(offers.every(offer => offer.level === 15 && offer.reward.silver === table[offer.type].silver && offer.reward.reputation === table[offer.type].reputation), "Offers pay their type's reward at the region-held quest level");
+  // Port task 9: a Collect quest pays as the type its ingredient's rarity stands beside (P22).
+  const expected = offer => offer.type === "collect" ? GuildQuestRules.collectReward(AlchemyRules.ingredient(offer.ingredientId).rarity, 15, calculateClassEffects()) : table[offer.type];
+  assert(offers.every(offer => offer.level === 15 && offer.reward.silver === expected(offer).silver && offer.reward.reputation === expected(offer).reputation), "Offers pay their type's reward at the region-held quest level");
   const travel = Guild.makeOffer("travel");
   assert(travel.reward.silver === table.travel.silver, "A Travel quest's destination does not change its reward");
   close();

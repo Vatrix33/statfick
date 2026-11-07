@@ -8,9 +8,17 @@
    relief comes from the height field as hillshade, engraved hatching and contours. */
 (() => {
   "use strict";
-  const W = 1600, H = 1000, CELL = 2, GW = W / CELL + 1, GH = H / CELL + 1;
+  const W = 1600, H = 1000, CELL = 2;
   const INK = "#1a120c";
   const TILE = 256, LEVELS = [1, 2, 4, 8];
+  /* Port task 8: regions are drawn on one continent (ContinentRules). A region's world covers its whole territory, past
+     its own map up to the continent's coast (its extent), not only 0-1600 × 0-1000; the continent's land decides land and
+     sea there (its coast, the inland waters, and a coast region's own shore), the region's field the look of its land.
+     Each cell keeps how much of it the region's picture covers (`mask`: its territory, the blend with a neighbour, the
+     sea fading out offshore); tiles apply it after their vectors. */
+  const CONTINENT = window.ContinentRules || null;
+  // The sea a region's picture paints: opaque near its coast, gone SEA_FADE continent units out.
+  const SEA_FADE = 200;
 
   /* ---------------- Noise ---------------- */
   function rng(seed) {
@@ -93,9 +101,13 @@
   }
 
   /* ---------------- Region world ---------------- */
-  const CHANNELS = ["r", "g", "b", "h", "water", "forest", "pine", "rock", "wet", "sand", "snow", "farm", "glow"];
+  const CHANNELS = ["r", "g", "b", "h", "water", "forest", "pine", "rock", "wet", "sand", "snow", "farm", "glow", "mask"];
+  const smoothStep = (a, b, v) => { const t = Math.max(0, Math.min(1, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
   function createWorld(region, spec) {
     const seed = hashString(region.id), T = makeToolkit(seed % 100000);
+    // The part of the region's own map this world covers, and its grid (CELL units a cell from OX, OY).
+    const extent = CONTINENT ? CONTINENT.extentOf(region.id, SEA_FADE) : { x0: 0, y0: 0, x1: W, y1: H };
+    const OX = extent.x0, OY = extent.y0, GW = Math.round((extent.x1 - extent.x0) / CELL) + 1, GH = Math.round((extent.y1 - extent.y0) / CELL) + 1;
     const grid = Object.fromEntries(CHANNELS.map(key => [key, new Float32Array(GW * GH)]));
     const shade = new Float32Array(GW * GH);
     const context = spec.prepare ? spec.prepare(region, T) : {};
@@ -106,16 +118,31 @@
       spec.field(x, y, out, T, context, region);
       return out;
     };
+    // On the continent: whether a point of the region's own map is its lake (the lake keeps its own water).
+    const inLake = (x, y) => region.lake && ((x - region.lake.x) / region.lake.rx) ** 2 + ((y - region.lake.y) / region.lake.ry) ** 2 <= 1;
     // Computes a slice of grid rows; returns true when the grid is complete.
     function build(budgetMs = 12) {
       const end = performance.now() + budgetMs;
       while (row < GH && performance.now() < end) {
-        const y = row * CELL;
+        const y = OY + row * CELL;
         for (let column = 0; column < GW; column++) {
-          const x = column * CELL, f = fieldAt(x, y), i = row * GW + column;
+          const x = OX + column * CELL, i = row * GW + column;
+          let mask = 1, land = Infinity;
+          if (CONTINENT) {
+            const c = CONTINENT.toC(region.id, { x, y });
+            mask = CONTINENT.cover(c, region.id); land = CONTINENT.landAt(c);
+            if (mask <= 0 || land <= -SEA_FADE) { grid.water[i] = 1; grid.mask[i] = 0; continue; }
+          }
+          const f = fieldAt(x, y);
           grid.r[i] = f.color[0]; grid.g[i] = f.color[1]; grid.b[i] = f.color[2];
-          grid.h[i] = f.h; grid.water[i] = f.water; grid.forest[i] = f.forest; grid.pine[i] = f.pine; grid.rock[i] = f.rock;
+          // On the continent the shore is the continent's: a coast region's own sea gives way to land, its lake stays;
+          // the continent's sea deepens offshore while the picture fades out over SEA_FADE.
+          let water = f.water;
+          if (CONTINENT && land <= 0) { water = 0.5 + Math.min(0.5, -land / 240); mask *= 1 - smoothStep(-SEA_FADE * 0.45, -SEA_FADE, land); }
+          else if (CONTINENT) water = Math.max(inLake(x, y) || !region.landShape ? water : 0, 0.5 - land / 48);
+          grid.h[i] = f.h; grid.water[i] = water; grid.forest[i] = f.forest; grid.pine[i] = f.pine; grid.rock[i] = f.rock;
           grid.wet[i] = f.wet; grid.sand[i] = f.sand; grid.snow[i] = f.snow; grid.farm[i] = f.farm; grid.glow[i] = f.glow;
+          grid.mask[i] = mask;
         }
         row++;
       }
@@ -131,7 +158,7 @@
         const dx = (grid.h[y * GW + Math.min(GW - 1, x + 1)] - grid.h[y * GW + Math.max(0, x - 1)]) / (CELL * 2);
         const dy = (grid.h[Math.min(GH - 1, y + 1) * GW + x] - grid.h[Math.max(0, y - 1) * GW + x]) / (CELL * 2);
         const cell = { color: [grid.r[i], grid.g[i], grid.b[i]], h: grid.h[i], water: grid.water[i], forest: grid.forest[i], pine: grid.pine[i], rock: grid.rock[i], wet: grid.wet[i], sand: grid.sand[i], snow: grid.snow[i], farm: grid.farm[i], glow: grid.glow[i] };
-        spec.colorize(cell, Math.hypot(dx, dy) / 75, x * CELL, y * CELL, T, context, region);
+        spec.colorize(cell, Math.hypot(dx, dy) / 75, OX + x * CELL, OY + y * CELL, T, context, region);
         grid.r[i] = cell.color[0]; grid.g[i] = cell.color[1]; grid.b[i] = cell.color[2];
         grid.forest[i] = cell.forest; grid.pine[i] = cell.pine; grid.rock[i] = cell.rock; grid.snow[i] = cell.snow; grid.wet[i] = cell.wet; grid.sand[i] = cell.sand;
       }
@@ -149,11 +176,11 @@
     }
     // Bilinear sample of a channel at a map point.
     function sample(channel, x, y) {
-      const gx = Math.max(0, Math.min(GW - 1.001, x / CELL)), gy = Math.max(0, Math.min(GH - 1.001, y / CELL));
+      const gx = Math.max(0, Math.min(GW - 1.001, (x - OX) / CELL)), gy = Math.max(0, Math.min(GH - 1.001, (y - OY) / CELL));
       const x0 = gx | 0, y0 = gy | 0, fx = gx - x0, fy = gy - y0, i = y0 * GW + x0, data = channel === "shade" ? shade : grid[channel];
       return (data[i] * (1 - fx) + data[i + 1] * fx) * (1 - fy) + (data[i + GW] * (1 - fx) + data[i + GW + 1] * fx) * fy;
     }
-    const world = { region, spec, T, grid, shade, context, build, sample, fieldAt, features: null, get ready() { return ready; }, progress: () => row / GH, tiles: new Map() };
+    const world = { region, spec, T, grid, shade, context, build, sample, fieldAt, extent, OX, OY, GW, GH, features: null, get ready() { return ready; }, progress: () => row / GH, tiles: new Map() };
     world.roads = (region.roads || []).map(path => ({ path, segments: T.segmentsOf(path) }));
     world.river = region.river ? { path: region.river, segments: T.segmentsOf(region.river) } : null;
     world.settlements = (region.settlements || []).map(place => settlementPlan(place, world));
@@ -185,14 +212,14 @@
   /* ---------------- Features ---------------- */
   const KEEP = { 1: 0.16, 2: 0.38, 4: 0.75, 8: 1 };
   function buildFeatures(world) {
-    const { grid, spec, T, region } = world, list = [], seed = hashString(region.id + "features");
+    const { grid, spec, T, region, GW, GH, OX, OY } = world, list = [], seed = hashString(region.id + "features");
     const add = feature => { feature.rank = hash2(Math.round(feature.x * 13), Math.round(feature.y * 17), seed); feature.reach = feature.reach || REACH[feature.type]?.(feature.s || 1) || 14; list.push(feature); };
     const near = (x, y, limit) => world.roads.some(road => T.pathDistance(x, y, road.segments, limit) < limit) || (world.river && T.pathDistance(x, y, world.river.segments, limit + 4) < limit + 4);
     const nearTown = (x, y, pad = 6) => world.settlements.some(plan => Math.hypot(x - plan.place.x, y - plan.place.y) < plan.radius + pad);
     // Trees and cover, from the grid: one candidate per cell, jittered, thinned by density.
     for (let gy = 0; gy < GH - 1; gy++) for (let gx = 0; gx < GW - 1; gx++) {
-      const i = gy * GW + gx, x0 = gx * CELL, y0 = gy * CELL;
-      if (grid.water[i] > 0.42) continue;
+      const i = gy * GW + gx, x0 = OX + gx * CELL, y0 = OY + gy * CELL;
+      if (grid.water[i] > 0.42 || grid.mask[i] < 0.5) continue;
       const jitter = hash2(gx, gy, seed), jitter2 = hash2(gx, gy, seed + 1), roll = hash2(gx, gy, seed + 2);
       const x = x0 + jitter * CELL, y = y0 + jitter2 * CELL;
       const forest = grid.forest[i];
@@ -246,8 +273,8 @@
   /* ---------------- Painting ---------------- */
   const microNoise = makeNoise(5531);
   // The pixel a spec's paint(px, world) hook may recolour; get(channel) samples the field grid.
-  const PX = { x: 0, y: 0, r: 0, g: 0, b: 0, i: 0, w00: 0, w10: 0, w01: 0, w11: 0, level: 1, light: 0, glowK: 1, grid: null,
-    get(channel) { const a = this.grid[channel], i = this.i; return a[i] * this.w00 + a[i + 1] * this.w10 + a[i + GW] * this.w01 + a[i + GW + 1] * this.w11; },
+  const PX = { x: 0, y: 0, r: 0, g: 0, b: 0, i: 0, w00: 0, w10: 0, w01: 0, w11: 0, level: 1, light: 0, glowK: 1, grid: null, GW: 0,
+    get(channel) { const a = this.grid[channel], i = this.i, GW = this.GW; return a[i] * this.w00 + a[i + 1] * this.w10 + a[i + GW] * this.w01 + a[i + GW + 1] * this.w11; },
     tint(color, amount) { if (amount <= 0) return; const t = amount > 1 ? 1 : amount; this.r += (color[0] - this.r) * t; this.g += (color[1] - this.g) * t; this.b += (color[2] - this.b) * t; },
     scale(k) { this.r *= k; this.g *= k; this.b *= k; } };
   // Worley cells: distance to the nearest and second-nearest jittered point (shared result).
@@ -316,7 +343,10 @@
     canvas.width = TILE; canvas.height = TILE;
     const ctx = canvas.getContext("2d");
     const image = ctx.createImageData(TILE, TILE), data = image.data, g = grain(), spec = world.spec;
-    PX.grid = world.grid;
+    const { GW, GH, OX, OY } = world;
+    PX.grid = world.grid; PX.GW = GW;
+    // On the continent: the picture's coverage per pixel (port task 8), applied after the vectors.
+    const cover = CONTINENT ? new ImageData(TILE, TILE) : null;
     const water = spec.water || { shallow: "#7f9c98", deep: "#3d5a60", foam: "#d9d4b8" };
     const shallow = tone(water.shallow), deep = tone(water.deep), foam = tone(water.foam);
     const contour = spec.contours || null;
@@ -330,8 +360,9 @@
       for (let px = 0; px < TILE; px++) {
         const x = x0 + (px + 0.5) / level;
         const o = (py * TILE + px) * 4;
-        if (x < 0 || y < 0 || x > W || y > H) { data[o] = 20; data[o + 1] = 14; data[o + 2] = 10; data[o + 3] = 255; continue; }
-        const gx = Math.min(GW - 1.001, x / CELL), gy = Math.min(GH - 1.001, y / CELL);
+        // Past the world's grid nothing is painted (on the continent, port task 8, a neighbour's or the sea).
+        if (x < OX || y < OY || x > OX + (GW - 1) * CELL || y > OY + (GH - 1) * CELL) { data[o] = 20; data[o + 1] = 14; data[o + 2] = 10; data[o + 3] = CONTINENT ? 0 : 255; continue; }
+        const gx = Math.min(GW - 1.001, (x - OX) / CELL), gy = Math.min(GH - 1.001, (y - OY) / CELL);
         const ix = gx | 0, iy = gy | 0, fx = gx - ix, fy = gy - iy, i = iy * GW + ix;
         const w00 = (1 - fx) * (1 - fy), w10 = fx * (1 - fy), w01 = (1 - fx) * fy, w11 = fx * fy;
         const S = arr => arr[i] * w00 + arr[i + 1] * w10 + arr[i + GW] * w01 + arr[i + GW + 1] * w11;
@@ -393,15 +424,18 @@
         const grainK = 1 + tex * 0.07 + fine * 0.035;
         r *= grainK; gg *= grainK; b *= grainK;
         const border = Math.min(x, y, W - x, H - y);
-        if (border < edge) { const t = 1 - border / edge, d = 1 - t * t * 0.55; r = r * d + 34 * (1 - d) * 0.4; gg = gg * d + 24 * (1 - d) * 0.4; b = b * d + 14 * (1 - d) * 0.4; }
-        data[o] = r < 0 ? 0 : r > 255 ? 255 : r; data[o + 1] = gg < 0 ? 0 : gg > 255 ? 255 : gg; data[o + 2] = b < 0 ? 0 : b > 255 ? 255 : b; data[o + 3] = 255;
+        // A single region's sheet burns at its edge; on the continent the picture's coverage cuts it instead.
+        const alpha = 255;
+        if (CONTINENT) cover.data[o + 3] = 255 * Math.min(1, S(world.grid.mask));
+        else if (border < edge) { const t = 1 - border / edge, d = 1 - t * t * 0.55; r = r * d + 34 * (1 - d) * 0.4; gg = gg * d + 24 * (1 - d) * 0.4; b = b * d + 14 * (1 - d) * 0.4; }
+        data[o] = r < 0 ? 0 : r > 255 ? 255 : r; data[o + 1] = gg < 0 ? 0 : gg > 255 ? 255 : gg; data[o + 2] = b < 0 ? 0 : b > 255 ? 255 : b; data[o + 3] = alpha;
       }
       previousRow = currentRow;
     }
     ctx.putImageData(image, 0, 0);
     // Vectors in map units.
     ctx.setTransform(level, 0, 0, level, -x0 * level, -y0 * level);
-    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
+    ctx.save(); ctx.beginPath(); ctx.rect(OX, OY, (GW - 1) * CELL, (GH - 1) * CELL); ctx.clip();
     const px1 = 1 / level;
     const view = { x0, y0, x1: x0 + units, y1: y0 + units, level, px: px1 };
     if (spec.under) spec.under(ctx, world, view);
@@ -416,6 +450,11 @@
     }
     if (spec.over) spec.over(ctx, world, view);
     ctx.restore();
+    if (cover) {
+      const mask = document.createElement("canvas");
+      mask.width = TILE; mask.height = TILE; mask.getContext("2d").putImageData(cover, 0, 0);
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = "destination-in"; ctx.drawImage(mask, 0, 0); ctx.globalCompositeOperation = "source-over";
+    }
     return canvas;
   }
 
@@ -803,6 +842,22 @@
     },
   };
 
+  // The field function of a region on its own, for coarse pictures (the continent's overview, port task 8).
+  function sampler(region) {
+    const spec = window.MapRegions?.spec(region.id);
+    if (!spec) return null;
+    const T = makeToolkit(hashString(region.id) % 100000), context = spec.prepare ? spec.prepare(region, T) : {};
+    const out = { color: [0, 0, 0] };
+    return {
+      spec, T,
+      fieldAt(x, y) {
+        out.color = [200, 190, 150]; out.h = 0; out.water = 0; out.forest = 0; out.pine = 0; out.rock = 0; out.wet = 0; out.sand = 0; out.snow = 0; out.farm = 0; out.glow = 0;
+        spec.field(x, y, out, T, context, region);
+        return out;
+      },
+    };
+  }
+
   /* ---------------- Tile cache ---------------- */
   const worlds = new Map();
   function world(region) {
@@ -813,6 +868,8 @@
     }
     return worlds.get(region.id);
   }
+  // A region's world if it has been made (drawing never makes one: charting does, a slice at a time).
+  const peek = region => worlds.get(region.id) || null;
   function tile(worldObject, level, tx, ty) {
     const key = level + ":" + tx + ":" + ty;
     const cache = worldObject.tiles;
@@ -829,6 +886,8 @@
   }
   // Releases other regions' memory.
   function keepOnly(regionId) { for (const id of [...worlds.keys()]) if (id !== regionId) worlds.delete(id); }
+  // Keeps these regions' worlds (the continent keeps the few near the view), oldest others released.
+  function keep(regionIds) { for (const id of [...worlds.keys()]) if (!regionIds.includes(id)) worlds.delete(id); }
 
-  window.MapTerrain = { W, H, TILE, LEVELS, CELL, world, tile, render, keepOnly, tone, makeToolkit, hash2, rng, DRAW, cells, canopy, rgbOf };
+  window.MapTerrain = { W, H, TILE, LEVELS, CELL, SEA_FADE, world, peek, tile, render, keepOnly, keep, sampler, tone, makeToolkit, hash2, rng, DRAW, cells, canopy, rgbOf };
 })();

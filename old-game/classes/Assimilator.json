@@ -1,0 +1,23 @@
+{
+  "id": "assimilator",
+  "name": "Assimilator",
+  "maxLevel": 7,
+  "requirements": {
+    "level": 10,
+    "classes": {},
+    "other": { "type": "ingredients-foraged", "count": 25, "description": "25 ingredients foraged" }
+  },
+  "levels": [
+    { "level": 1, "description": "Gain Raw Assimilation: in battle, eat an ingredient (1 AP) for a buff a third as strong as the potions it goes into.", "effects": [
+      { "type": "passive", "id": "raw-assimilation", "name": "Raw Assimilation", "description": "In battle, eat an ingredient from the item menu for 1 AP: a buff made from the potions it goes into (the two strongest kinds of effect), a third as strong as they are, lasting 2 turns (common), 3 (uncommon, rare) or 4 (epic, legendary). An ingredient only in poisons puts the poison on your weapon hits instead. The same ingredient again refreshes its buff; different ingredients add up.", "effect": { "type": "raw-assimilation", "amount": 1 } }
+    ] },
+    { "level": 2, "description": "Vitality permanent bonus +5%.", "effects": [{ "type": "stat-permanent-percent", "target": "vitality", "amount": 5 }] },
+    { "level": 3, "description": "Nature resistance +10%.", "effects": [{ "type": "element-resistance-percent", "element": "nature", "amount": 10 }] },
+    { "level": 4, "description": "Raw Assimilation buffs are half as strong as their potions and last 1 turn longer.", "effects": [{ "type": "passive-upgrade", "passiveId": "assimilator:raw-assimilation", "description": "Half as strong as the potions, 1 turn longer." }] },
+    { "level": 5, "description": "Eating an ingredient has a 25% chance not to use it up.", "effects": [{ "type": "ingredient-retention-chance", "amount": 25 }] },
+    { "level": 6, "description": "Raw Assimilation buffs are two-thirds as strong as their potions and carry their special effects too (AP, rising again, immunities, cures).", "effects": [{ "type": "passive-upgrade", "passiveId": "assimilator:raw-assimilation", "description": "Two-thirds as strong as the potions, special effects included." }] },
+    { "level": 7, "description": "Unlock Devour: your next ingredient this turn costs no AP and its buff lasts twice as long. Once per battle.", "effects": [
+      { "type": "skill", "id": "devour", "name": "Devour", "description": "Your next ingredient this turn costs no AP and its buff lasts twice as long. Once per battle.", "combatOnly": true, "cooldown": "combat", "instant": true, "onActivateEffects": [{ "type": "devour-ready", "amount": 1, "durationTurns": 1 }] }
+    ] }
+  ]
+}

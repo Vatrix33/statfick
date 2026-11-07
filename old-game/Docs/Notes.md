@@ -52,7 +52,7 @@ The user's main project is **Stat Fick**, a vanilla-JS fantasy RPG (character sh
 - Name plates sit above every figure: actors set `--depth`, not a z-index.
 - The battlefield backgrounds are still the bright original scenery. Restyling them was offered, not requested.
 
-**Map rework (2026-10-10, user request "rework all maps, each region way bigger, same layout, more detailed and seamless; the Stoneveils are one massive mountain"):** supersedes the SVG landscapes below (old `map.js` backed up in `claude-work/maps-backup/` (deleted 2026-11-05 in the user's cleanup)).
+**Map rework (2026-10-10, user request "rework all maps, each region way bigger, same layout, more detailed and seamless; the Stoneveils are one massive mountain"):** supersedes the SVG landscapes below (old `map.js` backed up in `claude-work/maps-backup/` (deleted 2026-11-05 in the user's cleanup)). Since port task 8 (2026-11-07) the regions sit side by side on one continent ("Map Rework: one continent" below).
 - Scale: regions are 3× larger (`UNITS_PER_KM` 40/3, `MAP_SCALE` 3 in `world-engine.js`; map stays 1600×1000 units). The travel clock runs 3× faster (36 game min per real second), encounters every `ENCOUNTER_MINUTES` 90 travel minutes. Save migration `mapScale` triples saved km. Boats 540 min; Traveler 600 km, Cartographer 1500 km, Pilgrim 60 km thresholds. User chose all four options (3×, faster clock, same encounters per crossing, all three Stoneveils as one mountain).
 - `scripts/map-terrain.js` (`MapTerrain`): field grid (2-unit cells) built in slices, canvas tiles at 1/2/4/8 px per unit (LRU), per-pixel hillshade, hatching, contours, water, micro relief, field patchwork (`spec.fields`), canopy (`MapTerrain.canopy`, `spec.canopyFrom` hides glyph trees), `spec.paint(px)` hook, Worley `cells`, features with LOD (`KEEP`) and `REACH` for big ones.
 - `scripts/map-regions.js` (`MapRegions.spec(id)`): one spec per region (17). Shared `mountain()` height in a `FRAME` so Foothills/High/Summit join seamlessly; `mountainRelief` shared hillshade.
@@ -84,7 +84,7 @@ The user's main project is **Stat Fick**, a vanilla-JS fantasy RPG (character sh
 
 **Shop and guild banners (2026-10-08):** `scripts/scene-banners.js` (loaded before `shop.js`) draws ink interiors with SpriteKit.
 - `SceneBanners.show(host, kind, place, regionId)` fills `#shop-banner` and `#guild-banner`.
-- Castle cities get a big variant: great forge, emporium, arcane athenaeum, and a perspective great hall for the guild. Towns get small rooms; a town's reduced guild is a tavern.
+- Castle cities get a big variant: great forge, emporium, arcane athenaeum, and a perspective great hall for the guild. Towns get small rooms; a town's reduced guild is a tavern. Since port task 9 the Apothecary has both too (`apothecary-castle`, `apothecary-town`, placeholder art; "Potion Rework" below).
 - Scenes are seeded by settlement. Region picks the materials; game time picks day/dusk/night windows.
 - Each banner is a static SVG (scene, masked darkness with light holes, hatching) plus an `.sb-live` screen-blended SVG of animated flames and glows. Emitted things always draw above the scene, so keep fires clear of anything that should stand in front of them.
 
@@ -838,6 +838,209 @@ placeholder art (L1; `engine/Docs/Port-Tasks/README.md`). The user's answers are
   code: all pass). The 11 known failures are unchanged (`runCompanionImportChecks`, the flaky one, with another
   message). Smoke, enemies (530 cases) and lifecycle pass; the combat suite gives no result, as in task 5's run (it stops
   at the known Barbarian failure).
+
+**Map Rework: one continent (port task 8, 2026-11-06 to 2026-11-07, a cloud session, branch `claude/fervent-carson-f5ol9s`;
+the task is `engine/Docs/Port-Tasks/8_Map_Rework.txt`).** Built in the old game, as tasks 1–7 were; old game only, the
+engine is untouched. Done: the port brings it over and doesn't build it again; its port work is remaking the map's
+placeholder looks in its 3D map (W1) and making the three empty regions (W27; `engine/Docs/Port-Tasks/README.md`). The
+user's answers are in `engine/Docs/Engine-Plan.md`, "Decisions for task 8, Map Rework" (W1–W35). The approved layout,
+draft 6, with the scripts that make it and every region's place, is `engine/Docs/Port-Tasks/8_Map_Rework/` (W26).
+Supersedes the separate regional maps of "Map rework (2026-10-10)" above: the region pictures are still drawn by
+`map-terrain.js` and `map-regions.js`, but side by side on one continent.
+- **Units.** A region keeps its own coordinates ("local", 1600 × 1000); on the continent it is enlarged 1.4× (W3):
+  continent units (C) = origin + local × 1.4 (`ContinentRules.toC` / `toLocal`; the origins are draft 6's,
+  `ORIGINS`). `UNITS_PER_KM` is 40/3 C; a region's own units are 1.4 times fewer to the km, so every distance and
+  trip is 1.4 times longer and encounters come 1.4 times further apart (`ENCOUNTER_MINUTES` 90 × 1.4, W4). A
+  region's ground reaches up to `REACH` (600 local units) past its own map; every point of the continent belongs to
+  the nearest region's rectangle (`regionAt`).
+- **The land** (`scripts/continent-shape.js`, generated by `engine/Docs/Port-Tasks/8_Map_Rework/bake.py`; don't edit
+  it by hand): draft 6's land field on a 16 C grid, quantized and run-length coded. `continent-engine.js` decodes it
+  and stamps every road, road gap, settlement, site, exit and starting point onto it so they always keep their ground
+  (`build`); `landAt` reads it bilinearly (above 0 is land). In `world-engine.js` `isLand` asks it first, then the
+  region's own lake, island and sea inside its own map (`ownLand`). A save standing in water is moved to land nearby
+  (`nearestPassable` in `normalize`).
+- **The empty regions** (W27–W29): `uncharted-highlands`, `uncharted-steppe`, `uncharted-delta` in
+  `world-region-data.js` (`uncharted: true`, no settlements, roads, exits or sites; empty rule sets in
+  `encounter-engine.js`). Their zone is "Uncharted land" (no encounters); the map's header reads "Uncharted land" with
+  no levels; the music stays the last charted region's (`lastChartedRegionId`, kept in the world state); the map paints
+  them as parchment marked "Uncharted". The port makes everything else about them.
+- **Walking and routes** (`world-engine.js`): travel runs in continent points (the destination and its route are saved
+  as such; `CONTINENT_VERSION` 1); the traveller's region is wherever they stand, and crossing a border needs no prompt
+  any more (`pendingRegionTransition` is always null). `continentRoute(start, end, bonus, { entered, roadsOnly })`:
+  Dijkstra over every region's roads as one graph (`continentRoadGraph`, road gaps up to `ROAD_GAP` joined), onto and
+  off the roads at the 24 nearest road points of the start's and the end's regions (`NEAREST_NODES`), off-road legs
+  only through entered regions plus the start's and end's (W30); where a straight leg would cross water, `landPath`
+  (A* on a 32 C grid within 2400 C) finds a way round. A loaded journey keeps its saved route while every leg can still
+  be walked, and is planned again otherwise (`restoreRoute` in `map.js`): the planner, asked again part-way along, can
+  pick a slightly different way.
+- **Fog of the unentered** (W12, W15): `visitedRegions` in the world state; a new game has entered the Alder Vale, a
+  save from before task 8 (no `continentVersion`) the whole continent and every caravan. The fog (`MapContinent.fogImage`)
+  follows the painted regions' lines; unentered regions show no towns, roads or names.
+- **The map** (`map.js`, `map-terrain.js`, `map-continent.js`): each region's own picture (`MapTerrain`) covers its
+  whole territory to the natural coast (`ContinentRules.extentOf`; tiles masked by the land), the land's coast from
+  the baked field, neighbours' pictures meeting along wandering lines (`ContinentRules.cover`: a bent territory weight,
+  each region's own roads, river and places kept as its own; `paintedGrid` caches the result at 32 C). Far out the
+  continent shows region overviews over a backdrop (`MapContinent.overview`, `backdrop`); `MapTerrain.peek` reads a
+  region's world without building it. The numbered destinations list the current region's places and its roads out
+  (W13).
+- **Music** (`music.js`): at a border the old region's theme fades out over `CROSSFADE` (4 s) while the new one fades in
+  (W14); battles and other themes still switch at once. `Music.state()` reports `crossfading` and `crossfadeSeconds`.
+- **The boat** (W11, W14, W21, W31): Seabridge to Emberhaven, 756 minutes (12.6 h) both ways; `travelByBoat` plays the
+  trip on the map: the view pulls out, a boat sails the sea path for 5 seconds while the waves drift, the clock runs on,
+  then the view settles; Esc or a click skips to the end (after 120 ms, so the starting click doesn't). The caravan
+  uses the same journey (`startJourney`, `voyageStep`, `finishVoyage`).
+- **The mountain** (W32): `drawAltitude`/`altitudeEffects` in `map.js`: the height rises north through the Foothills,
+  the High Stoneveil and the Summit (sea counts as low); from the High Stoneveil on, lower ground fades under fog that
+  thickens as you climb, and on the Summit cloud banks drift below; a clear circle round you; markers stay readable.
+- **The caravan** (W7, W8, W14, W16): a Caravan button (`#map-caravan`, key K) among a castle city's services opens a
+  list docked over the map (`#map-caravan-panel`) of the player's other unlocked castle cities, each with its fare and
+  time, previewing its road; `caravanTrip(from, to)` measures the roads-only route: 2 silver a km, 21 km/h of road. A
+  castle city's caravan opens when you first stand in it (`caravans` in the world state). The wagon's trip runs 4
+  seconds for neighbours up to 8 for the longest (110 to 1550 km).
+- **The horse carriage** (W9, W10, W33–W35): sold once by every General Store for 50,000 silver (`carriageRow`,
+  `buyCarriage` in `shop.js`); its switch (`#map-carriage`, key N) at the map's top right. On, it is twice as fast on
+  roads and half again as fast on open land (`CARRIAGE`, `carriageGround`: never the High Stoneveil's and the Summit's
+  roads, Cinder Isle, rivers or rough zones; open zones are `CARRIAGE.OPEN_ZONES`); a click plans a way it can drive,
+  or says there is none; steered into rough ground it switches itself off, saying why. It comes along with the
+  caravan; by boat it waits at Seabridge (`worldState.carriage.parkedAt`).
+- **PLACEHOLDER ART** (W1; the port remakes all of it in its 3D map): the continent's 2D painting (regions' pictures
+  side by side, the overviews and backdrop, the coast line), the fog of the unentered, the parchment of the empty
+  regions, the boat and its waves, the caravan's wagon and its route line, the carriage's drawing in the shop and its
+  switch, and the mountain's fog and clouds. The rules behind them are not placeholder.
+- **Tests:** `test-client/tests/map-rework-browser.js`, 9 entries: `checkContinentLayout`, `checkContinentRoutes`,
+  `checkContinentSaves`, `checkRegionCrossfade`, `checkBoatTrip`, `checkMountainAtmosphere`, `checkCaravan`,
+  `checkCarriage`, `checkContinentPainting`. `WorldMap.altitude()` and `WorldMap.journey()` are hooks for them. Old
+  checks brought up to date for the continent: `coast-island` (the boat's 12.6 hours and its trip skipped with Esc),
+  `guild` and `guild-rematches` (continent points, the boat trip skipped), `map-speed` (continent points; it times the
+  map once its first frames are drawn), `adventure-improvements` (the markers' positions in continent points) and
+  `map-browser` (clicks and route minutes in continent points, the overshoot's 1.4 times longer step).
+- **Not covered by a check:** how the painting, fog, clouds, waves, boat and wagon look (their rules and amounts are
+  checked, not their drawing); the new regions' look beyond the parchment colour.
+- **The checks can fail:** each rule was broken once in a copy of the game (44 mutations, by the earlier tasks' runner,
+  in the cloud session's `claude-work/continent/`, not kept): draft 6's places, Cinder Isle's distance, the 1.4×
+  enlargement, roads, road gaps and places kept on land, the reach, the paths round water, encounters' spacing, W30's
+  off-road rule, old saves (whole continent, every caravan), a save in water, the empty regions (their zone, encounters,
+  music, the Guild's enemy lists, the parchment), a loaded route kept or planned again, the painting (wandering lines,
+  each region's own roads kept, worlds reaching to their coast), the crossfade (on, its 4 seconds), the boat (12.6 hours,
+  5 seconds, Esc skipping without closing the map, the carriage waiting), the fog and clouds, the caravan (fare, time,
+  the button's second city, the trip's seconds, paying), and the carriage (price, bought once, both speeds, its ground,
+  mountain roads, planning, switching off). All 44 were caught on the final code after a second pass; the first let one
+  through: the carriage check bought it with too little coin left for a second, so its button was disabled for that
+  reason too, and now leaves enough.
+- **Regression** (2026-11-07, the cloud, Xvfb, on a frozen copy of the game): all 149 entries of the 47 check files and
+  the four suites, against task 7's run (`claude-work/limitless/final-results.txt` in the cloud session, taken before
+  task 7 updated its old checks). Every entry gives that run's result except: the 9 task 8 entries and task 7's
+  `checkVictoryScreenAtCap` pass (new since that run); the 15 entries task 7 updated (the bosses' drop tables,
+  `runCombatRewardChecks`) pass, as in task 7's final pass, but for `runCoastLichBossChecks`, which got past the drop
+  table and failed once on Ool's phylactery taking no turn in a random 30-step fight, and passed three runs out of three
+  alone (chance, not task 8). Before the older checks were brought up to date (above), `coast-island`, `guild`,
+  `guild-rematches`, `map-speed` and `map-browser`'s `runMapChecks` failed on the old map's units and times; they pass.
+  The 11 known failures are unchanged. Smoke, enemies (530 cases) and lifecycle pass; the combat suite gives no result,
+  as in task 7's run (it stops at the known Barbarian failure).
+
+**Potion Rework (port task 9, 2026-11-07, a cloud session, branch `claude/fervent-carson-f5ol9s`, in the same pull request
+as task 8, #14 (P1); the task is `engine/Docs/Port-Tasks/9_Potion_Rework.txt`).** Built in the old game, as tasks 1–8
+were; old game only, the engine is untouched. Done: the port brings it over and doesn't build it again; its port work is
+remaking the placeholder art (P2; `engine/Docs/Port-Tasks/README.md`). The user's answers are in
+`engine/Docs/Engine-Plan.md`, "Decisions for task 9, Potion Rework" (P1–P31); the approved content is
+`engine/Docs/Port-Tasks/9_Potion_Rework/draft.md` (made by `draft.py` there; P31).
+- **The data.** The 40 potions and 12 poisons are consumables in `objects/consumables.json` (`potion: true` or
+  `poison: true`, `alchemy: true` for the new ones, `outsideBattle` for the Health, Mana and cure potions; effects in the
+  battle's own format). The ten Health and Mana Potions keep their effects and prices (now `potion` and `outsideBattle`).
+  `scripts/alchemy-data.js` (`AlchemyData`): the 56 ingredients (rarity, price, description), the 62 recipes (product id
+  and three ingredient ids), the two starting recipes, every region's forage tables by zone (`zoneAt`'s names), the
+  rivers' two, each enemy's ingredients (by enemy id) and the bosses' pairs. Edit there to rebalance. It was generated
+  once from the approved draft by a script in the cloud session's `claude-work/potions/` (not kept); since then the game
+  files are the source.
+- **The rules** (`scripts/alchemy-engine.js`, `AlchemyRules`, pure): `matchRecipe` (any order), `recipesUsing`,
+  `normalizeKnown` (valid ids, the starting two always), `forageTable`/`canForage`/`forage` (P10, P11: 45% to find, weights
+  common 10, uncommon 5, rare 2, epic 1, legendary 0.5, "seldom" halved; a common find 1–2), `enemyDrops` (P12: 25%,
+  Empowered and Sparkling 50% twice, bosses one of two and 35% both), `regionIngredients` (foraged there or dropped by its
+  enemies), `ingredientStock`, `recipeOffers` (`ShopRules.itemStock` by the product's rarity, P16), `recipePrice` (×10,
+  P14), `collectPick` and `COLLECT` (P22, P25), `halved` (bosses: P8, rounded up), `assimilation` (P20, P21, P30) and
+  `scaledPoison`.
+- **The Apothecary** (`scripts/apothecary.js`, `#apothecary-modal`, the map button O beside the General Store, P26): five
+  menus like the Magic Tower's: Potions (the Health and Mana pairs of your level band and every weaker one, always and
+  unlimited, P3; then castle 8, town 5 random new potions and poisons), Ingredients (every common ×10 and the region's
+  rarer ones, castle 5, town 3, P13), Brewing (the cauldron, below), Recipes (three unknown, P14–P16) and Sell (potions,
+  poisons, ingredients at half price, P28). Its stock is `shopState.locations["apothecary:<settlement id>"]` and turns
+  over with the shops every 6 hours (P15); `normalizeCharacter` keeps it. The General Store no longer sells or buys
+  potions (`alchemyGoods` in `shop.js`, `STOCK_VERSION` 26). `window.Alchemy` holds the shared helpers (effects in
+  words, Ingredient Lore, ingredient sources, a region's ingredients).
+- **Brewing** (P31): three boxes above the cauldron, your ingredients as chips below (a click fills the next box, a click
+  on a box empties it), known recipes on the right (picking one fills the boxes when you have the ingredients). Brew
+  checks the three are filled, that you have them (duplicates counted), and that they make a known recipe; only then are
+  they used up; nothing else is paid. The result waits on the cauldron for Collect (closing the window collects it);
+  `alchemy.brewed` counts it.
+- **In battle** (`combat.js`; P6–P9): a potion is used on yourself or any ally for 1 AP (Kinship reaches every ally);
+  its effects are timed effects keyed by the potion's name, so the same potion refreshes and different ones add up. New
+  timed effects: `crit-chance-percent` (both the strike and its forecast), `crit-damage-percent`, `armor-pierce-percent`,
+  `elite-damage-percent` (bosses, Empowered, Sparkling), `element-resistance-percent` (in `resistance()`; also the
+  Hexing Vial's minus), `control-immune` (stuns and AP loss), `debuff-immune` (in `debuffImmune`), `turn-start-ap` (in
+  `actionPointMaximum`), `barrier-percent` (a `potion-barrier` whose remainder fades), `rise-again-percent` and `undying`
+  (in `applyCombatDamage`), `cure` (`cureEffects`, a poison first for Antidote), the Ascendance toll (`aftermath`, applied
+  by `expirePotionEffects`). A poison is thrown (`throwPoison`) at one enemy or all (Plague Bomb); `poison-dot` is a
+  `class-poison` marked `itemPoison`, whose ticks Nature resistance lowers; bosses (`unique`) take `AlchemyRules.halved`
+  effects, named "(half strength)" (P8). Outside battle (`app.js`, P6): a Use button on Health, Mana and cure potions,
+  for you or a companion, only when it would do something (`potionOutsideReason`, `usePotionOutsideBattle`).
+- **Ingredients** (category `ingredient`, ids `ingredient-…`, their own inventory tab, P27): their details show where
+  they are found, the Alchemist's Ingredient Lore (every potion and poison they go into; the other ingredients only of
+  known recipes) and an Assimilator's eaten buff. Enemies drop them through `awardDefeatedEnemyExperience`.
+- **Forage** (`map.js` `forage`, the button D, P10, P11, P26): one hour, a find at 45% plus the Alchemist's bonus, then
+  `EncounterRules.roll` with the encounter multiplier scaled to an hour of travel (60/126); `WorldRules.nearRiver` (60
+  units) adds the river's two; `alchemy.foraged` counts finds. Keen Harvest (`alchemy.keenHarvestReady`) makes the next
+  forage sure, rarer finds weighing double.
+- **The classes** (`classes/Alchemist.json`, `classes/Assimilator.json`; P18, P19, P30; requirement types
+  `potions-brewed`, `ingredients-foraged`). Alchemist, 5 levels: Ingredient Lore, forage +10%, Wisdom +5%, forage +10% and
+  one more common or uncommon, Keen Harvest (daily skill). Assimilator, 7 levels: Raw Assimilation (eat in battle from the
+  item menu, 1 AP: `eatIngredient`; a third, half from Level 4 with a turn more, two-thirds and special effects from 6),
+  Vitality +5%, Nature resistance +10% (class `element-resistance-percent`), 25% kept, Devour (once per battle: the next
+  ingredient free and twice as long, `devour-ready`). An ingredient only in poisons gives a `weapon-poison` effect that
+  poisons each weapon hit (`applyNewClassWeaponEffects`).
+- **Collect quests** (`guild-quest-engine.js` `collectReward`, `COLLECT_PAYS_AS`; `guild.js`; P22–P25): an ingredient of
+  the guild's region or a neighbour's at or below your band's rarity, 6/4/3/2/1 by rarity, paying like Travel, Escort,
+  Search or Deliver; progress counts the pack; handed in only at the issuing guild, where the copies are taken; a map
+  marker points back once you hold enough. Saved with `ingredientId` (`WorldRules.normalize`).
+- **Saves**: the character's `alchemy` record `{ known, brewed, foraged, keenHarvestReady }` (`normalizeAlchemy`); old saves
+  get the two starting recipes and keep their potions.
+- **PLACEHOLDER ART** (P2): the two Apothecary banners (`apothecaryHall`, `apothecaryShop` in `scene-banners.js`, in
+  `PLACEHOLDER_ART`), the cauldron and its brewing animation, the new potions', poisons' and ingredients' icons
+  (`potionArt` by effect colour, a skull on poisons, `ingredientArt` in `forge-art.js`).
+- **Tests:** `test-client/tests/potion-rework-browser.js`, 12 entries: `checkAlchemyContent`, `checkApothecaryShop`,
+  `checkRecipeOffers`, `checkBrewing`, `checkPotionsInBattle`, `checkPoisons`, `checkAssimilator`, `checkForaging`,
+  `checkIngredientDrops`, `checkAlchemyClasses`, `checkCollectQuests`, `checkAlchemySaves`. They use a second copy of
+  `combat.js` with a hook (`window.__potionChecks`). Old checks updated for task 9: `guild-rework`'s reward check (Collect
+  pays by rarity) and wording, `regional-guild` (a Collect contract is paid only with its ingredients in the pack), and
+  `adventure-improvements`' `runCombatRewardChecks` (its no-drops fight holds the dice high, since enemies drop
+  ingredients now).
+- **Not covered by a check:** how the banners, cauldron and icons look; the brewing animation; the AI (enemies carry no
+  new potions; companions are yours to command).
+- **The checks can fail:** each rule was broken once in a copy of the game (97 mutations, by the earlier tasks' runner, in
+  the cloud session's `claude-work/potions/`, not kept): the content (rarities, recipes, starting recipes), the
+  Apothecary (a button in every settlement, the two banners, the standing Health and Mana Potions and their band, the
+  random stock, the ingredient stock, stock kept until the restock), the General Store's potions gone both ways, selling,
+  the recipe offers (unknown only, the price, never twice, leaning to the band), brewing (nothing used on a failed brew,
+  free, any order, known recipes only, duplicates, collecting, the count), every potion effect (stacking, durations,
+  Haste, both immunities, the barrier, Undying, Phoenix, the toll, wards, crit chance in the strike and the forecast, crit
+  damage, pierce, Giantsbane, the cures, Kinship, Mending, outside battle), poisons (not at yourself, Nature resistance,
+  half on bosses and its rounding, refreshing, Plague Bomb, immunity, the stun chance), the Assimilator (class only,
+  strength, durations, two kinds, Level 4 and 6, refreshing, weapon poison, keeping, Devour, AP), foraging (the hour, the
+  encounter roll, the find chance, the Alchemist, Keen Harvest, towns, rivers, weights, the count), drops (chance,
+  Empowered, bosses, none at all), the classes (both requirements, Lore and its secrecy, Nature resistance), Collect (the
+  band, quantities, pay, the guild, the ingredients taken, nearby only, saving) and saves. All 97 were caught after a
+  second pass; the first let six through, all weak checks: a recipe with a doubled ingredient (now three different, as
+  approved), a recipe bought twice (the purse was measured after the second try), rare ingredients' duration (Glass Sand
+  is uncommon; Stormfeather added), foraging in a town by a river, Collect's rarity cap (now also around Lakespire, where
+  rarer ingredients are in reach) and its quantities (checked against the constant itself; now the approved numbers).
+- **Regression** (2026-11-07, the cloud, Xvfb, on a frozen copy of the game): all 161 entries of the 48 check files and
+  the four suites, against task 8's run (`claude-work/continent/final-results.txt` in the cloud session). Every entry
+  gives that run's result except: the 12 task 9 entries pass (new); `guild-rework`'s `runGuildRewardChecks` and
+  `runGuildReworkChecks` failed on the Collect offer's reward (they looked it up by type) and `regional-guild` when its
+  board's first contract was a Collect (paid only with the ingredients), `adventure-improvements`' `runCombatRewardChecks`
+  on an ingredient dropping in its no-drops fight: all four pass updated (above); `map-speed` failed once on its timing
+  under the run's parallel load and passes alone (as in task 8's run); `coast-lich-bosses`' Ool check, which failed by
+  chance in task 8's run, passes. The 11 known failures are unchanged. Smoke, enemies (530 cases) and lifecycle pass; the
+  combat suite gives no result, as before (it stops at the known Barbarian failure).
 
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in

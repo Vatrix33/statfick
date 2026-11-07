@@ -1248,6 +1248,44 @@
     return out;
   }
 
+  /* ---------- Apothecaries (port task 9, the Potion Rework) ----------
+     PLACEHOLDER ART (user decision P2): simple rooms from the shop kit the port remakes fully. A castle city's is a
+     grand stone hall walled with potion shelves around a great bubbling cauldron; a town's a small plastered shop with one
+     shelf of bottles and a little cauldron. Both share the hanging herbs, the green brew and the apothecary at the counter. */
+  function herbRow(ctx, x0, x1, top) {
+    let out = block(x0 - 4, top, x1 - x0 + 8, 10, ctx.mat.beam);
+    for (let x = x0 + 20; x < x1 - 10; x += 46) out += zoom(x, top + 10, 1.4, herbs(ctx, x - 6, top + 10, top + 20) + herbs(ctx, x + 6, top + 10, top + 24, "#6a5a3a"));
+    return out;
+  }
+  function apothecaryHall(ctx) {
+    const m = ctx.mat, F = 440;
+    ctx.keyX = 640; ctx.ambient = 0.56;
+    let out = solid(0, 0, W, F, K.darken(m.stone, 0.35)) + masonry(ctx, 0, 60, W, F - 60, m.stone, { row: 26 }) + ceiling(ctx, 50, 640);
+    out += windowPane(ctx, 560, 70, 160, 130, { arch: "round", frame: m.beam, bars: 2 });
+    out += shelving(ctx, 20, 70, 300, 330, 5, potions) + shelving(ctx, 960, 70, 300, 330, 5, potions);
+    out += shelving(ctx, 340, 200, 180, 190, 3, potions) + shelving(ctx, 760, 200, 180, 190, 3, potions);
+    out += herbRow(ctx, 330, 950, 120);
+    out += floor(ctx, F, m.floor, "flag", 640);
+    out += cauldron(ctx, 640, 410, 70);
+    out += person(ctx, 900, 450, 206, { face: -1, pose: "counter", apron: true, head: "short", color: "#3a5a4a" });
+    out += counter(ctx, 780, 356, 300, 100) + candle(ctx, 1060, 356, 18, 6, 0.4) + candle(ctx, 800, 356, 14, 5, 0.35);
+    return out;
+  }
+  function apothecaryShop(ctx) {
+    const m = ctx.mat, F = 440, beam = 70;
+    ctx.keyX = 700; ctx.ambient = 0.6;
+    let out = plaster(ctx, 0, beam, W, F - beam, m.plaster) + ceiling(ctx, beam, 640);
+    out += windowPane(ctx, 1030, 150, 160, 150, { frame: m.beam, bars: 1 });
+    out += shelving(ctx, 60, 120, 360, F - 120, 4, potions);
+    out += herbRow(ctx, 460, 960, beam + 10);
+    out += lantern(ctx, 980, beam + 20, beam + 90, 1.2);
+    out += floor(ctx, F, m.floor, "plank", 640);
+    out += cauldron(ctx, 560, 420, 44);
+    out += person(ctx, 820, 456, 206, { face: -1, pose: "counter", apron: true, head: "short", color: "#4a6a4a" });
+    out += counter(ctx, 680, 356, 320, 100) + candle(ctx, 980, 356, 16, 6, 0.4);
+    return out;
+  }
+
   /* ---------- Guilds ---------- */
   /* The Adventurers Guild fills its window, and its objects are the menu (port task 2, the Guild
      Rework, 2026-11-06). PLACEHOLDER ART (user decision G2): simple ink rooms the port remakes fully,
@@ -1324,15 +1362,17 @@
     "general-castle": grandEmporium, "general-town": countryStore,
     tower: towerSanctum, church: stormChapel, "guild-hall": guildHall, "guild-town": guildTown,
     tailor: tailorShop, institute: towerSanctum, hearth: armsHall,
+    "apothecary-castle": apothecaryHall, "apothecary-town": apothecaryShop,
   };
   const FULL = [1280, 900];
-  const SIZES = { "blacksmith-castle": FULL, "blacksmith-town": FULL, "general-castle": FULL, "general-town": FULL, tower: FULL, church: FULL, "guild-hall": FULL, "guild-town": FULL, tailor: FULL, institute: FULL, hearth: FULL };
+  const SIZES = { "blacksmith-castle": FULL, "blacksmith-town": FULL, "general-castle": FULL, "general-town": FULL, tower: FULL, church: FULL, "guild-hall": FULL, "guild-town": FULL, tailor: FULL, institute: FULL, hearth: FULL, "apothecary-castle": FULL, "apothecary-town": FULL };
   // Placeholder scenes the port remakes fully (port task 2, user decision G2).
-  const PLACEHOLDER_ART = { "guild-hall": true, "guild-town": true, tailor: true, institute: true, hearth: true };
+  const PLACEHOLDER_ART = { "guild-hall": true, "guild-town": true, tailor: true, institute: true, hearth: true, "apothecary-castle": true, "apothecary-town": true };
   function variantFor(kind, place) {
     const castle = place?.kind === "Castle city";
     if (kind === "guild") return castle ? "guild-hall" : "guild-town";
     if (["tower", "church", "tailor", "institute", "hearth"].includes(kind)) return kind;
+    if (kind === "apothecary") return castle ? "apothecary-castle" : "apothecary-town";
     return (kind === "blacksmith" ? "blacksmith" : "general") + (castle ? "-castle" : "-town");
   }
   function build(variant, key, regionId, label) {

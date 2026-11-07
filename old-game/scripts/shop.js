@@ -6,7 +6,8 @@
 (() => {
   const $ = id => document.getElementById(id);
   const modal = $("shop-modal"), stockList = $("shop-stock-list"), detail = $("shop-detail"), status = $("shop-status");
-  const STOCK_VERSION = 25;
+  // 26: port task 9 moved every potion to the Apothecary (P3, P28).
+  const STOCK_VERSION = 26;
   const OVERTIER_SPELL_CHANCE = 0.1;
   // Blacksmith shelves: forged melee and ranged weapons, then forged armor without clothing (castle 4, town 3:
   // user decision R8). Regional offers take armor places. The Tailor's shelves hold clothing only (R7).
@@ -102,7 +103,6 @@
     normalizeState();
     const castle = isCastle(settlement);
     const availableItems = items.filter(item => purchasableItem(item, settlement));
-    const desiredRarity = ShopRules.levelBand(level).rarity;
     const blacksmithPool = availableItems.filter(item => (item.category === "weapon" || item.category === "armor") && !isClothing(item));
     const generalPool = availableItems.filter(item => item.category !== "weapon" && item.category !== "armor");
     const regionalOffers = [...blacksmithPool.filter(item => item.shopOffer), ...masterworkOffers(settlement).map(key => getItem(ForgeRules.encode(ForgeRules.generateMasterwork({ key, level, random: unitRandom }))))];
@@ -124,9 +124,7 @@
     const smithReserved = [...regionalOffers, ...forgedWeapons, ...forgedArmor];
     const smithIds = new Set(smithReserved.map(item => item.id));
     const selectedBlacksmith = [...smithReserved, ...ShopRules.itemStock(blacksmithPool.filter(item => !smithIds.has(item.id) && !item.shopOffer), smithPlan(settlement).total - smithReserved.length, level)];
-    const guaranteedPotions = ["hp", "mana"].map(resource => generalPool.find(item => item.potionResource === resource && item.rarity === desiredRarity)).filter(Boolean);
-    const generalIds = new Set(guaranteedPotions.map(item => item.id));
-    const selectedGeneral = [...guaranteedPotions, ...ShopRules.itemStock(generalPool.filter(item => !generalIds.has(item.id)), generalCount(settlement) - guaranteedPotions.length, level)];
+    const selectedGeneral = ShopRules.itemStock(generalPool, generalCount(settlement), level);
     const selectedSpells = towerSpellCount(settlement) ? ShopRules.spellStock(spells.filter(normallyPurchasableSpell), towerSpellCount(settlement), level) : [];
     const overtierSpells = spells.filter(overtierPurchasableSpell);
     if (selectedSpells.length && overtierSpells.length && unitRandom() < OVERTIER_SPELL_CHANCE) {
@@ -151,8 +149,10 @@
     return minimum + Math.floor(unitRandom() * (maximum - minimum + 1));
   }
 
+  // Potions, poisons and ingredients are the Apothecary's alone (port task 9, P3, P28).
+  const alchemyGoods = item => Boolean(item && (item.potion || item.poison || item.category === "ingredient"));
   function purchasableItem(item, settlement = place) {
-    return Boolean(item && item.category !== "artifact" && item.category !== "rune" && (item.catalogueAvailable !== false || item.forged) && item.shopAvailable !== false && Number.isFinite(item.priceSilver)
+    return Boolean(item && item.category !== "artifact" && item.category !== "rune" && !alchemyGoods(item) && (item.catalogueAvailable !== false || item.forged) && item.shopAvailable !== false && Number.isFinite(item.priceSilver)
       && (!item.shopOffer || item.shopOffer.regionId === worldState.regionId && item.shopOffer.settlementId === settlement?.id));
   }
 
@@ -238,7 +238,7 @@
   function itemArt(item, size = "small") {
     if (!item || !window.ForgeArt) return "";
     if (item.forged) return ForgeArt.weapon(item, size);
-    if (["rune", "consumable", "artifact"].includes(item.category)) return ForgeArt.goods(item, size);
+    if (["rune", "consumable", "artifact", "ingredient"].includes(item.category)) return ForgeArt.goods(item, size);
     return "";
   }
   // One line of a shop list. Hovering or focusing it shows the entry in the detail panel.
@@ -323,7 +323,7 @@
     if (!item || item.category === "rune") return false;
     const equipmentItem = item.category === "weapon" || item.category === "armor";
     // Staffs and wands are bought at the Magic Tower, but any smith buys them back; clothing is the Tailor's.
-    return kind === "blacksmith" ? equipmentItem && !isClothing(item) : kind === "tailor" ? isClothing(item) : kind === "hearth" ? transaction === "buy" && equipmentItem && !isClothing(item) : kind === "general" ? !equipmentItem && (transaction === "sell" || item.category !== "artifact") : false;
+    return kind === "blacksmith" ? equipmentItem && !isClothing(item) : kind === "tailor" ? isClothing(item) : kind === "hearth" ? transaction === "buy" && equipmentItem && !isClothing(item) : kind === "general" ? !equipmentItem && !alchemyGoods(item) && (transaction === "sell" || item.category !== "artifact") : false;
   }
 
   function sellableInventory() {
@@ -376,10 +376,27 @@
     bulkButton.title = bulkEntries.length ? "Sell " + bulkTotals.quantity + " non-favorited items for " + ShopRules.formatPrice(bulkTotals.price) + ". Equipped copies and items this shop cannot buy are kept." : "No eligible non-favorited items to sell here.";
     if (!entries.some(entry => entry.id === previewId)) previewId = entries[0]?.id || null;
     $("shop-list-title").textContent = mode === "sell" ? "Your pack" : kind === "blacksmith" ? "On the racks" : kind === "tailor" ? "On the rails" : "On the shelves";
-    stockList.innerHTML = entries.length ? entries.map(entry => mode === "sell" ? sellRowFor(entry, entry.id === previewId) : buyRow(entry)).join("") : '<div class="shop-empty">' + (mode === "sell" ? "You have nothing this shop will buy." : "No stock is available.") + '</div>';
+    stockList.innerHTML = (kind === "general" && mode === "buy" ? carriageRow() : "") + (entries.length ? entries.map(entry => mode === "sell" ? sellRowFor(entry, entry.id === previewId) : buyRow(entry)).join("") : '<div class="shop-empty">' + (mode === "sell" ? "You have nothing this shop will buy." : "No stock is available.") + '</div>');
     renderDetail(entries);
   }
 
+  /* Port task 8: the horse carriage (W9), sold by every General Store for 50,000 silver and bought once; afterwards its
+     switch sits at the map's top right. PLACEHOLDER ART: its drawing. */
+  const CARRIAGE_ART = '<svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 7H25V19H5Z" fill="#c9a96a" stroke="#2a1d14" stroke-width="2" stroke-linejoin="round"/><path d="M5 7Q15 0 25 7" fill="#e6d2a4" stroke="#2a1d14" stroke-width="2"/><path d="M25 13H33" stroke="#2a1d14" stroke-width="2"/><circle cx="10" cy="24" r="5" fill="#6b4a2c" stroke="#2a1d14" stroke-width="2"/><circle cx="21" cy="24" r="5" fill="#6b4a2c" stroke="#2a1d14" stroke-width="2"/><path d="M33 24V14Q37 7 43 10L45 15H40V24" fill="#8a6a4a" stroke="#2a1d14" stroke-width="2" stroke-linejoin="round"/></svg>';
+  function carriageRow() {
+    const owned = Boolean(worldState.carriage?.owned), price = WorldRules.CARRIAGE.PRICE_SILVER, poor = ShopRules.walletValue(currencies) < price;
+    return '<article class="shop-row shop-carriage-row' + (owned ? ' is-sold-out' : '') + '" tabindex="0"><span class="shop-row-art" aria-hidden="true">' + CARRIAGE_ART + '</span>' +
+      '<span class="shop-row-main"><strong>Horse Carriage</strong><small>Transport · bought once · twice as fast on roads, half again as fast on open land</small></span>' +
+      '<b class="shop-row-price">' + escapeHtml(ShopRules.formatPrice(price)) + '</b><span class="shop-row-actions"><button type="button" data-buy-carriage' + (owned || poor ? " disabled" : "") + '>' + (owned ? "Owned" : poor ? "Cannot afford" : "Buy") + '</button></span></article>';
+  }
+  function buyCarriage() {
+    const current = currentPlace();
+    if (modal.hidden || kind !== "general" || mode !== "buy" || !current || current.id !== place?.id || busy() || worldState.carriage?.owned) return;
+    if (!pay(WorldRules.CARRIAGE.PRICE_SILVER)) { setStatus("You do not have enough coin for the carriage.", "error"); return; }
+    worldState.carriage = { owned: true, active: false, parkedAt: null };
+    setStatus("Horse Carriage purchased for " + ShopRules.formatPrice(WorldRules.CARRIAGE.PRICE_SILVER) + ". Its switch is at the top right of the map.", "success");
+    saveCharacter(); render(); window.WorldMap?.render();
+  }
   function buyRow(entry) {
     const item = getItem(entry.id);
     if (!item) return "";
@@ -514,6 +531,7 @@
   stockList.addEventListener("click", event => {
     const buy = event.target.closest("[data-buy-item]");
     if (buy) { buyItem(buy.dataset.buyItem); return; }
+    if (event.target.closest("[data-buy-carriage]")) { buyCarriage(); return; }
     const one = event.target.closest("[data-sell-item]");
     if (one) { sellItem(one.dataset.sellItem); return; }
     const all = event.target.closest("[data-sell-all-item]");

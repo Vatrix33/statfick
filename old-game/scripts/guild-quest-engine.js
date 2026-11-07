@@ -5,10 +5,13 @@
 (function (root) {
   "use strict";
   // Ranked from the lowest reward to the highest (G18); Great Hunts sit above all of them.
-  const TYPES = ["hunt", "cull", "deliver", "search", "escort", "travel"];
+  // Port task 9 (the Potion Rework) added Collect: an ingredient brought to the issuing guild (P22–P25).
+  const TYPES = ["hunt", "cull", "deliver", "search", "escort", "travel", "collect"];
   const RANKED = ["travel", "escort", "search", "deliver", "cull", "hunt"];
   const FACTORS = { hunt: 1.8, cull: 1.55, deliver: 1.35, search: 1.2, escort: 1.1, travel: 1 };
-  const NAMES = { hunt: "Hunt", cull: "Cull", deliver: "Deliver", search: "Search", escort: "Escort", travel: "Travel", "great-hunt": "Great Hunt" };
+  const NAMES = { hunt: "Hunt", cull: "Cull", deliver: "Deliver", search: "Search", escort: "Escort", travel: "Travel", collect: "Collect", "great-hunt": "Great Hunt" };
+  // A Collect quest pays as the type its ingredient's rarity stands beside (P22): never as much as Cull or Hunt.
+  const COLLECT_PAYS_AS = { common: "travel", uncommon: "escort", rare: "search", epic: "deliver", legendary: "deliver" };
   // Quests that are a journey to another place and back (Courier counts them, G34).
   const JOURNEYS = ["deliver", "escort", "travel"];
   const GREAT_HUNT_FACTOR = 2.4, GREAT_HUNT_REPUTATION_TIMES = 3;
@@ -68,6 +71,7 @@
     return table;
   }
   const reward = (type, level, bonuses) => ({ ...rewardTable(level, bonuses)[type] });
+  const collectReward = (rarity, level, bonuses) => reward(COLLECT_PAYS_AS[rarity] || "travel", level, bonuses);
   // Great Hunts: x2.4 money and three times x2.4 Reputation, at the boss's level or the quest level,
   // whichever is higher, so they always pay more than a Hunt at the same guild (x1.8 at the quest level).
   function greatHuntReward(bossLevel, level, bonuses = {}) {
@@ -159,6 +163,7 @@
     if (quest.type === "escort") return `A Caravan to ${place}`;
     if (quest.type === "travel") return `The Road to ${place}`;
     if (quest.type === "great-hunt") return `Great Hunt: ${quest.enemy}`;
+    if (quest.type === "collect") return `A Call for ${quest.ingredientName || "Ingredients"}`;
     return NAMES[quest.type] || "Contract";
   }
 
@@ -178,7 +183,7 @@
   }
 
   root.GuildQuestRules = {
-    TYPES, RANKED, FACTORS, NAMES, JOURNEYS, OFFERS, RECRUITS, CULL, SEARCH, ESCAPE_FACTORS, AMBUSH, AMBUSH_GROUPS,
+    TYPES, RANKED, FACTORS, NAMES, COLLECT_PAYS_AS, collectReward, JOURNEYS, OFFERS, RECRUITS, CULL, SEARCH, ESCAPE_FACTORS, AMBUSH, AMBUSH_GROUPS,
     GREAT_HUNT_FACTOR, GREAT_HUNT_REPUTATION_TIMES,
     regionLevelRange, rangeText, questLevel, cullRequired, rewardTable, reward, greatHuntReward,
     isGuild, isCastleGuild, guildsIn, settlementsIn, links, adjacentRegions, firstStep, tripMinutes,

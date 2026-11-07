@@ -176,7 +176,14 @@
   }
   const raceHasEffect = (actor, type, state = battle) => racePassiveEffectsOf(actor, state).some(effect => effect.type === type);
   const healingDisabled = (actor, state = battle) => raceHasEffect(actor, "healing-disabled", state);
-  const debuffImmune = (actor, state = battle) => raceHasEffect(actor, "debuff-immunity", state);
+  // Port task 9 (the Potion Rework): Elixir of the Unbroken, Purging Elixir and Panacea make their drinker immune too.
+  const debuffImmune = (actor, state = battle) => raceHasEffect(actor, "debuff-immunity", state) || Boolean(actor?.effects?.some(effect => effect.type === "debuff-immune"));
+  // Timed effects of potions, poisons and eaten ingredients (port task 9), summed by type.
+  const timedTotal = (actor, type) => (actor?.effects || []).filter(effect => effect.type === type).reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0);
+  // Potion of Steadfastness: no stuns and no AP loss (and every immunity to debuffs covers them too).
+  const controlImmune = (actor, state = battle) => debuffImmune(actor, state) || Boolean(actor?.effects?.some(effect => effect.type === "control-immune"));
+  // Giantsbane Draught's foes: bosses, Empowered and Sparkling enemies.
+  const eliteFoe = actor => Boolean(actor && (actor.unique || actor.empowered || actor.sparkling));
   function values(actor, state = battle) {
     // A single stat evaluation is read-only too: share class/party lookups
     // within it, but discard them before healing, expiry, or another action.
@@ -309,7 +316,7 @@
   }
   function skillsOf(actor, state = battle) { return withActor(actor, () => calculateClassEffects().skills, state); }
   function passivesOf(actor, state = battle) { return withActor(actor, () => calculateClassEffects().passives, state); }
-  function actionPointMaximum(actor, state = battle) { return Math.max(0, 5 + withActor(actor, () => Math.floor(calculateClassEffects().actionPointsFlat), state)); }
+  function actionPointMaximum(actor, state = battle) { return Math.max(0, 5 + withActor(actor, () => Math.floor(calculateClassEffects().actionPointsFlat), state) + Math.floor(timedTotal(actor, "turn-start-ap"))); }
   function actionAllowed(actor, action, state = battle) {
     if (action === "end") return true;
     // An undead spellcaster bound to his art (a lich: "unlivingCaster") casts despite Unliving.
@@ -720,6 +727,22 @@
         log(`${shield.name}: ${actorLabel(target)} holds on at 1 HP.`);
       }
     }
+    // Port task 9: an Undying Draught holds its drinker at 1 HP; a Phoenix Tonic raises them once with a share of max HP.
+    if (amount >= currentHealth && !phaseDamageFloor(target) && battle?.actors.includes(target)) {
+      const undying = target.effects.find(effect => effect.type === "undying");
+      const phoenix = undying ? null : target.effects.find(effect => effect.type === "rise-again-percent");
+      if (undying) {
+        amount = currentHealth - 1;
+        log(`${undying.name}: ${actorLabel(target)} will not fall and holds on at 1 HP.`);
+        if (!amount) return 0;
+      } else if (phoenix) {
+        target.effects = target.effects.filter(effect => effect !== phoenix);
+        setHp(target, Math.max(1, Math.floor(values(target).maxHp * Math.max(0, toNumber(phoenix.amount, 0)) / 100)));
+        log(`${phoenix.name}: ${actorLabel(target)} falls, and rises again at ${hp(target)} HP.`);
+        if (onStage(target)) stage("status", { actorId: target.id, label: "Risen", debuff: false });
+        return currentHealth;
+      }
+    }
     if (!lichManaBarrier(target) || mana(target) <= 0) {
       const dealt = Math.min(Math.max(0, currentHealth - phaseDamageFloor(target)), amount);
       setHp(target, currentHealth - dealt);
@@ -882,6 +905,23 @@
     stage("log", { message });
     if (battle.log.length > 200) battle.log.shift();
   }
+  /* Port task 9: what potion effects do as they end: a Bulwark barrier's remainder fades, an Undying Draught heals its
+     drinker, and the Elixir of Ascendance takes its toll. */
+  function expirePotionEffects(actor) {
+    const ending = actor.effects.filter(effect => effect.expiresTurn <= actor.turns);
+    for (const effect of ending) {
+      if (effect.type === "potion-barrier") actor.barrierHp = Math.max(0, toNumber(actor.barrierHp, 0) - Math.min(toNumber(actor.barrierHp, 0), toNumber(effect.amount, 0)));
+      if (effect.type === "undying" && hp(actor) > 0 && effect.healPercent > 0 && !healingDisabled(actor)) {
+        const gain = healHp(actor, Math.max(1, Math.floor(values(actor).maxHp * effect.healPercent / 100)), battle, actor);
+        if (gain) log(`${effect.name} ends: ${actorLabel(actor)} recovers ${actor.team === "player" ? gain + " " : ""}HP.`);
+      }
+      if (Array.isArray(effect.aftermath) && effect.aftermath.length && hp(actor) > 0) {
+        actor.effects = actor.effects.filter(existing => existing !== effect);
+        applyTimedEffects(actor, `${effect.name}:aftermath`, `${effect.name} (toll)`, effect.aftermath.map(after => ({ ...after, unpreventable: true })));
+        log(`${effect.name} fades and takes its toll on ${actorLabel(actor)}.`);
+      }
+    }
+  }
   function expire(actor, state = battle) {
     // A Smoke Trap's cover lifts when its owner's next turn begins; if the owner has fallen, at each ally's own next
     // turn (R28).
@@ -979,7 +1019,9 @@
       }
       for (const effect of actor.effects.filter(effect => state === battle && effect.type === "class-poison" && effect.expiresTurn >= actor.turns && hp(actor) > 0)) {
         const source = actorById(effect.ownerId);
-        const poison = Math.max(0, toNumber(effect.amount, 0)) + Math.floor(values(actor).maxHp * Math.max(0, toNumber(effect.percentMaxHp, 0)) / 100);
+        const rawPoison = Math.max(0, toNumber(effect.amount, 0)) + Math.floor(values(actor).maxHp * Math.max(0, toNumber(effect.percentMaxHp, 0)) / 100);
+        // Port task 9: a thrown poison is Nature damage that Nature resistance lowers (the class poisons stay as they were).
+        const poison = effect.itemPoison ? Math.floor(rawPoison * Math.max(0, Math.min(2, 1 - resistance(actor, "nature") / 100))) : rawPoison;
         const dealt = directDamage(actor, effect.percentMaxHp && poison === 0 ? 1 : poison, false, "nature", source);
         if (dealt) log(`${actorLabel(actor)} suffers ${dealt} poison damage.`);
       }
@@ -999,6 +1041,7 @@
       if (battle?.phoenix?.[actor.id]?.pending && battle.phoenix[actor.id].fallenId !== actor.id && hp(actor) > 0) risePhoenix(actor.id);
       artifactTurnStart(actor);
     }
+    if (state === battle) expirePotionEffects(actor);
     actor.effects = actor.effects.filter(effect => effect.expiresTurn > actor.turns);
     const states = skillStates(actor);
     for (const [key, turn] of Object.entries(actor.skillExpiry)) {
@@ -1192,7 +1235,7 @@
       startNextPhase(next, state);
       const stunnedBeforeExpiry = next.effects.some(effect => effect.type === "stun" && effect.expiresTurn > next.turns);
       expire(next, state);
-      const stunned = stunnedBeforeExpiry || next.effects.some(effect => effect.type === "stun" && effect.expiresTurn > next.turns);
+      const stunned = (stunnedBeforeExpiry || next.effects.some(effect => effect.type === "stun" && effect.expiresTurn > next.turns)) && !(state === battle && controlImmune(next, state) && next.effects.some(effect => effect.type === "control-immune"));
       if (hp(next) <= 0) { next.alive = false; continue; }
       if (next.summonDurationTurns && next.turns > next.summonDurationTurns) {
         setHp(next, 0); next.alive = false;
@@ -1223,6 +1266,10 @@
         continue;
       }
       state.current = next.id; state.ap = actionPointMaximum(next, state);
+      if (state === battle && (next.rootedAp || next.staggerAp || next.trapApLoss) && next.effects.some(effect => effect.type === "control-immune")) {
+        log(`${actorLabel(next)} keeps their footing: no AP lost.`);
+        next.rootedAp = 0; next.staggerAp = 0; next.staggerReason = null; next.trapApLoss = 0;
+      }
       if (state === battle && next.rootedAp) {
         state.ap = Math.max(0, state.ap - next.rootedAp);
         log(`${actorLabel(next)} struggles against the binding roots and loses ${next.rootedAp} AP.`);
@@ -1435,6 +1482,8 @@
       addEnemyLoot(actor.character.inventory.filter(id => itemCanDropNormally(id) && !(actor.noDropItems || []).includes(id)).filter(rollEquipmentDrop));
       const salvageChance = living().filter(ally => ally.team === "player").flatMap(passiveEffectsOf).filter(effect => effect.type === "salvage-supply-chance").reduce((best, effect) => Math.max(best, toNumber(effect.amount, 0)), 0);
       if (salvageChance && rules.roll(salvageChance)) addEnemyLoot(["consumable-camping-supplies"], salvageChance < 100);
+      // Port task 9 (P12): the enemy's own ingredients; Empowered and Sparkling ones drop more, bosses always.
+      if (window.AlchemyRules) addEnemyLoot(AlchemyRules.enemyDrops(actor.enemyDefinitionId, { elite: Boolean(actor.empowered || actor.sparkling) }));
       for (const drop of actor.dropTable || []) {
         const droppedItem = getItem(drop.itemId);
         // An Exotic drops only while Limitless is on (task 7, 5.1); Luck raises its chance like a masterwork's.
@@ -1754,7 +1803,10 @@
   function resistance(target, element, spell = false) {
     const resistances = elementList(element).map(singleElement => {
       let amount = toNumber(target.resistances?.[singleElement], 0) + armorResistance(target, singleElement) + weaponResistance(target, singleElement)
-        + artifactEffectsOf(target, "element-resistance-percent").filter(effect => effect.element === singleElement).reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0);
+        + artifactEffectsOf(target, "element-resistance-percent").filter(effect => effect.element === singleElement).reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0)
+        // Port task 9: ward potions (Emberward, Tidal, Storm, Grave, Prismatic) and Hexing Vial; no elements means all.
+        + (target.effects || []).filter(effect => effect.type === "element-resistance-percent" && (!effect.elements?.length || effect.elements.includes(singleElement))).reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0)
+        + toNumber(withActor(target, () => calculateClassEffects().elementResistancePercent?.[singleElement]), 0);
       if (spell) withActor(target, () => {
         for (const effect of getSelectedRace()?.passive.effects || []) {
           const protectedElement = String(effect.element || "").toLowerCase();
@@ -2079,11 +2131,11 @@
     // its size is already a share of a finished hit (A24).
     const firstLight = chainStrikeDepth ? 0 : firstLightPercent(attacker, attackKind);
     const artifactPercent = chainStrikeDepth ? 0 : artifactDamagePercent(attacker, target) + firstLight;
-    const markedPower = chainStrikeDepth ? power : power * actionChargeMultiplier * (1 + (spell ? toNumber(attacker?.phaseSpellDamagePercent, 0) : 0) / 100) * (1 + toNumber(mark?.damagePercent, 0) / 100) * (1 + toNumber(tacticalMark?.damagePercent, 0) / 100) * (1 + damagePercentAgainstTarget(attacker, target) / 100) * (1 + (toNumber(attackerEffects?.outgoingDamagePercent, 0) + spellDamagePercent + randomDamagePercent + eminenceBonus + terrorBonus + reaverBonus + situationalBonus + standardBonus + artifactPercent) / 100) * (1 + toNumber(worldEnder?.effect?.damagePercent, 0) / 100);
-    const armorPierce = Math.max(0, Math.min(100, toNumber(armorPierceOverride, 0) + toNumber(worldEnder?.effect?.armorPiercePercent, 0) + (["melee", "ranged"].includes(attackKind) ? toNumber(attackerEffects?.weaponArmorPiercePercent, 0) + toNumber(attackerEffects?.weaponArmorPiercePercentByType?.[attackKind], 0) : 0)));
+    const markedPower = chainStrikeDepth ? power : power * actionChargeMultiplier * (1 + (spell ? toNumber(attacker?.phaseSpellDamagePercent, 0) : 0) / 100) * (1 + toNumber(mark?.damagePercent, 0) / 100) * (1 + toNumber(tacticalMark?.damagePercent, 0) / 100) * (1 + damagePercentAgainstTarget(attacker, target) / 100) * (1 + (toNumber(attackerEffects?.outgoingDamagePercent, 0) + spellDamagePercent + randomDamagePercent + eminenceBonus + terrorBonus + reaverBonus + situationalBonus + standardBonus + artifactPercent) / 100) * (1 + toNumber(worldEnder?.effect?.damagePercent, 0) / 100) * (attacker && eliteFoe(target) ? 1 + timedTotal(attacker, "elite-damage-percent") / 100 : 1);
+    const armorPierce = Math.max(0, Math.min(100, toNumber(armorPierceOverride, 0) + toNumber(worldEnder?.effect?.armorPiercePercent, 0) + (["melee", "ranged"].includes(attackKind) ? toNumber(attackerEffects?.weaponArmorPiercePercent, 0) + toNumber(attackerEffects?.weaponArmorPiercePercentByType?.[attackKind], 0) + timedTotal(attacker, "armor-pierce-percent") : 0)));
     const rangedArmorPercent = attackKind === "ranged" ? target.effects.filter(effect => effect.type === "incoming-ranged-armor-percent").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) : 0;
     const effectiveArmor = values(target).armor * (1 + rangedArmorPercent / 100);
-    const criticalBonusPercent = toNumber(attackerEffects?.criticalDamagePercent, 0) + (["melee", "ranged"].includes(attackKind) ? activeWeaponCritDamage : 0) + artifactAmount(attacker, "crit-damage-percent");
+    const criticalBonusPercent = toNumber(attackerEffects?.criticalDamagePercent, 0) + (["melee", "ranged"].includes(attackKind) ? activeWeaponCritDamage + timedTotal(attacker, "crit-damage-percent") : 0) + artifactAmount(attacker, "crit-damage-percent");
     // Spells ignore armor; only elemental resistance protects against them.
     // The Golden Apex's prism: Basic damage splits into four quarters, three of them random other elements.
     const prism = !worldSaver && !unreducible && elementList(element).length === 1 && elementList(element)[0] === "basic" && attacker && withActor(attacker, equippedWeaponItems).some(item => (item.effects || []).some(effect => effect.kind === "prism-basic-damage"));
@@ -2294,6 +2346,13 @@
   }
   function applyNewClassWeaponEffects(actor, target, weapon, amount, activeSkillsForAttack) {
     if (hp(target) <= 0) return;
+    // Port task 9: an Assimilator who ate a poison-only ingredient poisons with each weapon hit (refreshed, not stacked).
+    for (const carried of actor.effects.filter(effect => effect.type === "weapon-poison" && effect.poisonId)) {
+      const poison = getItem(carried.poisonId);
+      if (!poison?.poison || hp(target) <= 0) continue;
+      const effects = AlchemyRules.scaledPoison(poison.effects || [], toNumber(carried.amount, 0));
+      applyEffects(actor, target, target.unique ? AlchemyRules.halved(effects) : effects, 0, "nature", carried.name);
+    }
     const passives = passiveEffectsOf(actor);
     const bonuses = withActor(actor, calculateClassEffects);
     const toxin = passives.filter(effect => effect.type === "poison-on-hit").reduce((sum, effect) => sum + toNumber(effect.damage, 0), bonuses.poisonOnHitDamage);
@@ -2565,7 +2624,7 @@
     const rangedHitPercent = weaponType === "ranged" ? target.effects.filter(effect => effect.type === "incoming-ranged-hit-percent").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) : 0;
     const incomingHitPercent = toNumber(targetHitEffects.all, 0) + toNumber(targetHitEffects[weaponType], 0) + rangedHitPercent;
     const hit = rules.weaponHitChance((attackValues.hit + toNumber(mark?.hitFlat, 0)) * (1 + (weatherHitPercent + toNumber(mark?.hitPercent, 0) + hitPercent) / 100) * (1 + incomingHitPercent / 100), evasionAgainst(targetEvasion, weaponType));
-    const critChance = weaponCritChanceAgainst(target, weapon, attackValues.crit, attackValues.critRating);
+    const critChance = Math.min(100, weaponCritChanceAgainst(target, weapon, attackValues.crit, attackValues.critRating) + (attackValues.crit > 0 ? timedTotal(actor, "crit-chance-percent") : 0));
     const weaponLabel = `${weapon.name}${offHand ? " (off-hand)" : ""}`;
     const guaranteedHit = attackValues.alwaysHit || target.effects.some((effect) => effect.type === "incoming-weapon-hit-always");
     const incomingDamagePercent = target.effects.filter((effect) => effect.type === "incoming-weapon-damage-percent").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0);
@@ -2732,7 +2791,11 @@
     "incoming-race-damage-percent", "incoming-ranged-armor-percent", "incoming-ranged-hit-percent",
     "incoming-spell-damage-from-target-percent", "incoming-spell-damage-percent", "incoming-spell-miss-chance",
     "incoming-weapon-damage-percent", "instant-death-per-thousand", "melee-retaliation",
-    "outgoing-attack-damage-percent", "spell-power-percent", "unarmed-bonus-damage", "weather-control", ...trapEffects
+    "outgoing-attack-damage-percent", "spell-power-percent", "unarmed-bonus-damage", "weather-control", ...trapEffects,
+    // Port task 9 (the Potion Rework): potions, poisons and eaten ingredients.
+    "weapon-hit-percent", "element-resistance-percent", "crit-chance-percent", "crit-damage-percent", "armor-pierce-percent", "elite-damage-percent",
+    "control-immune", "debuff-immune", "barrier-percent", "turn-start-ap", "rise-again-percent", "undying", "cure", "poison-dot",
+    "turn-start-restore-percent", "spell-cost-percent", "weapon-poison", "devour-ready"
   ]);
   function activeTrapCount(actor) {
     return battle.actors
@@ -3908,6 +3971,20 @@
       }
     }
   }
+  // Removes up to `count` negative effects (poisons included), a poison first when asked; returns their names.
+  function cureEffects(recipient, count, poisonFirst = false) {
+    const removed = [];
+    for (let index = 0; index < count; index++) {
+      const debuffs = recipient.effects.filter(effect => isRemovableDebuff(effect) || effect.type === "class-poison");
+      if (!debuffs.length) break;
+      const poisons = debuffs.filter(effect => effect.type === "class-poison");
+      const pool = poisonFirst && poisons.length ? poisons : debuffs;
+      const chosen = pool[Math.floor(Math.random() * pool.length)];
+      recipient.effects = recipient.effects.filter(existing => existing !== chosen);
+      removed.push(chosen.name || "a debuff");
+    }
+    return removed;
+  }
   function isRemovableDebuff(effect) {
     if (effect.unremovable) return false;
     if (["stun", "hunter-mark", "delayed-hp-loss-percent", "turn-start-max-hp-loss-percent", "incoming-weapon-hit-always"].includes(effect.type)) return true;
@@ -4008,6 +4085,7 @@
       } else if (effect.type === "root-ap") {
         // Roots: the recipient loses Action Points at the start of their next turn.
         for (const recipient of recipientsFor(actor, target, effect).filter(entry => entry && hp(entry) > 0)) {
+          if (controlImmune(recipient)) { log(`${actorLabel(recipient)} resists ${source}'s binding.`); continue; }
           recipient.rootedAp = Math.max(toInteger(recipient.rootedAp, 0), Math.max(1, toInteger(amount, 1)));
           recipient.effects = recipient.effects.filter(entry => entry.type !== "rooted");
           recipient.effects.push({ key: "rooted", name: "Binding Roots", type: "rooted", amount: -recipient.rootedAp, seasonFoe: true, unremovable: true, expiresTurn: recipient.turns + 1 });
@@ -4087,7 +4165,7 @@
         }
       } else if (effect.type === "stun") {
         for (const recipient of recipientsFor(actor, target, effect).filter(Boolean)) {
-          if (debuffImmune(recipient) || withActor(recipient, () => calculateClassEffects().stunImmune)) {
+          if (controlImmune(recipient) || withActor(recipient, () => calculateClassEffects().stunImmune)) {
             log(`${actorLabel(recipient)} resists the stun from ${source}.`);
             continue;
           }
@@ -4097,7 +4175,7 @@
         }
       } else if (effect.type === "stun-chance") {
         for (const recipient of recipientsFor(actor, target, effect).filter(Boolean)) {
-          if (rules.roll(amount) && !debuffImmune(recipient) && !withActor(recipient, () => calculateClassEffects().stunImmune)) {
+          if (rules.roll(amount) && !controlImmune(recipient) && !withActor(recipient, () => calculateClassEffects().stunImmune)) {
             recipient.effects = recipient.effects.filter(existing => existing.type !== "stun");
             recipient.effects.push({ key: `${source}:stun`, name: "Stunned", type: "stun", amount: 1, expiresTurn: recipient.turns + 1 });
             log(`${source} stuns ${actorLabel(recipient)}.`);
@@ -4115,6 +4193,32 @@
           remainingHits: 1, expiresTurn: Number.MAX_SAFE_INTEGER
         });
         log(`${actorLabel(actor)} enchants their next melee attack with ${source}.`);
+      } else if (effect.type === "cure") {
+        // Antidote, Clarity Draught, Purging Elixir, Panacea (port task 9): up to "amount" negative effects, a poison first.
+        for (const recipient of recipientsFor(actor, target, effect).filter(entry => entry && hp(entry) > 0)) {
+          const removed = cureEffects(recipient, Math.max(1, toInteger(amount, 1)), effect.poisonFirst === true);
+          log(removed.length ? `${source} removes ${removed.join(", ")} from ${actorLabel(recipient)}.` : `${source} finds nothing to cure on ${actorLabel(recipient)}.`);
+        }
+      } else if (effect.type === "poison-dot") {
+        // A thrown poison (port task 9): Nature damage at the start of each of the target's turns; the same poison refreshes.
+        for (const recipient of recipientsFor(actor, target, effect).filter(entry => entry && hp(entry) > 0)) {
+          if (debuffImmune(recipient)) { log(`${actorLabel(recipient)} shrugs off ${source}.`); continue; }
+          const key = `${source}:poison`;
+          recipient.effects = recipient.effects.filter(existing => existing.key !== key);
+          recipient.effects.push({ key, name: source, type: "class-poison", itemPoison: true, ownerId: actor.id, amount: Math.max(0, toNumber(amount, 0)), percentMaxHp: Math.max(0, toNumber(effect.percentMaxHp, 0)), healingPenalty: 0, expiresTurn: recipient.turns + Math.max(1, toInteger(effect.durationTurns, 1)) });
+          log(`${source} poisons ${actorLabel(recipient)}.`);
+        }
+      } else if (effect.type === "barrier-percent") {
+        // Bulwark Potion (port task 9): a barrier of a share of max HP; what is left fades when it ends. Drunk again, it is renewed.
+        for (const recipient of recipientsFor(actor, target, effect).filter(entry => entry && hp(entry) > 0)) {
+          const key = `${source}:barrier`, previous = recipient.effects.find(existing => existing.key === key);
+          if (previous) recipient.barrierHp = Math.max(0, toNumber(recipient.barrierHp, 0) - Math.min(toNumber(recipient.barrierHp, 0), toNumber(previous.amount, 0)));
+          const added = Math.max(1, Math.floor(values(recipient).maxHp * Math.max(0, toNumber(amount, 0)) / 100));
+          recipient.barrierHp = toNumber(recipient.barrierHp, 0) + added;
+          recipient.effects = recipient.effects.filter(existing => existing.key !== key);
+          recipient.effects.push({ key, name: source, type: "potion-barrier", amount: added, expiresTurn: recipient.turns + Math.max(1, toInteger(effect.durationTurns, 1)) });
+          log(`${source} wraps ${actorLabel(recipient)} in a ${added} HP barrier.`);
+        }
       } else if (effect.type === "remove-random-debuff") {
         const candidates = effect.recipient === "random-ally" ? living().filter(candidate => candidate.team === actor.team && candidate.effects.some(isRemovableDebuff)) : recipientsFor(actor, target, effect);
         const recipients = effect.recipient === "all-allies" ? candidates : candidates.length ? [candidates[Math.floor(Math.random() * candidates.length)]] : [];
@@ -4310,8 +4414,10 @@
       if (!rules.roll(withActor(actor, calculateClassEffects).consumableRetentionChance)) owned.splice(owned.indexOf(item.id), 1);
       return true;
     }
+    if (item?.category === "ingredient") return eatIngredient(actor, item);
     if (!actionAllowed(actor, "item") || !item || !consumablesOf(actor).some(entry => entry.id === item.id) || !effectsUsable(item.effects || [])) return false;
     if (item.effects.some(effect => effect.type === "damage") && !opponents(actor).includes(target)) return false;
+    if (item.poison && requiresEnemyTarget(item.effects) && !opponents(actor).includes(target)) return false;
     if (item.effects.some(effect => effect.recipient === "friendly-target") && (!target || target.team !== actor.team || hp(target) <= 0)) return false;
     if (trapCapacityReason(actor, item.effects)) return false;
     if (!spend(actor, 1)) return false;
@@ -4330,8 +4436,46 @@
     }
     const supplyBonus = living().filter(ally => ally.team === actor.team).flatMap(passiveEffectsOf).filter(effect => effect.type === "party-consumable-power-percent").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0);
     const scaledEffects = (item.effects || []).map(effect => ["heal", "restore-mana"].includes(effect.type) ? { ...effect, amount: toNumber(effect.amount, 0) * (1 + supplyBonus / 100), maxPercent: toNumber(effect.maxPercent, 0) * (1 + supplyBonus / 100) } : effect);
-    applyEffects(actor, target, scaledEffects, 0, item.element || "basic", item.name);
+    if (item.poison) throwPoison(actor, target, item);
+    else applyEffects(actor, target, scaledEffects, 0, item.element || "basic", item.name);
     if (retained) log(`${actorLabel(actor)} recovers ${item.name} after placing it.`);
+    return true;
+  }
+  /* Port task 9 (the Potion Rework): a poison is thrown at one enemy or every enemy (Plague Bomb); bosses take it at half
+     strength (P8). */
+  function throwPoison(actor, target, item) {
+    const all = (item.effects || []).some(effect => effect.recipient === "all-enemies");
+    const foes = all ? opponents(actor).filter(foe => hp(foe) > 0 && !foe.inert) : [target].filter(Boolean);
+    log(`${actorLabel(actor)} throws ${item.name}${all ? " among the enemies" : " at " + actorLabel(target)}.`);
+    for (const foe of foes) {
+      const effects = item.effects.map(effect => ({ ...effect, recipient: "target" }));
+      applyEffects(actor, foe, foe.unique ? AlchemyRules.halved(effects) : effects, 0, "nature", foe.unique ? `${item.name} (half strength)` : item.name);
+    }
+  }
+  // An Assimilator's level, and the ingredients they could eat now (Raw Assimilation, P29, P30).
+  const assimilatorLevel = actor => actorClassLevel(actor, "assimilator");
+  function ingredientsOf(actor) {
+    if (!assimilatorLevel(actor)) return [];
+    const owned = actor.id === "player" ? inventory : actor.character.inventory;
+    return [...new Set(owned)].map(getItem).filter(item => item?.category === "ingredient");
+  }
+  function eatIngredient(actor, item) {
+    const level = assimilatorLevel(actor);
+    if (!level || !actionAllowed(actor, "item") || !ingredientsOf(actor).some(entry => entry.id === item.id)) return false;
+    const devour = actor.effects.find(effect => effect.type === "devour-ready");
+    const result = AlchemyRules.assimilation(item.id, level, getItem, { devour: Boolean(devour) });
+    if (!result?.effects.length) return false;
+    if (!devour && !spend(actor, 1)) return false;
+    battle.actionSerial = toInteger(battle.actionSerial, 0) + 1;
+    recordTurnAction(actor, "item");
+    if (devour) actor.effects = actor.effects.filter(effect => effect !== devour);
+    const owned = actor.id === "player" ? inventory : actor.character.inventory;
+    // Level 5: a 25% chance the ingredient isn't used up.
+    const kept = rules.roll(withActor(actor, () => calculateClassEffects().ingredientRetentionChance));
+    if (!kept) owned.splice(owned.indexOf(item.id), 1);
+    if (onStage(actor)) stage("item", { actorId: actor.id, targetId: actor.id, itemId: item.id, name: item.name, potion: true, resource: null, trap: 0 });
+    log(`${actorLabel(actor)} ${devour ? "devours" : "eats"} ${item.name}${kept ? " and keeps some for later" : ""}.`);
+    applyEffects(actor, actor, result.effects.map(effect => ({ ...effect, recipient: "self" })), 0, "basic", `${item.name} (eaten)`);
     return true;
   }
   function isDebuffDefinition(effect) {
@@ -4364,6 +4508,10 @@
         sourceActorId: effect.sourceActorId,
         ...(healer && effect.type === "turn-start-restore-percent" ? { healerId: healer.id } : {}),
         ...(effect.burnPercent != null ? { burnPercent: toNumber(effect.burnPercent, 0), burnTurns: Math.max(1, toInteger(effect.burnTurns, 2)) } : {}),
+        // Port task 9: Elixir of Ascendance's toll, Undying Draught's closing heal, an eaten poison ingredient's poison.
+        ...(Array.isArray(effect.aftermath) ? { aftermath: copy(effect.aftermath) } : {}),
+        ...(effect.healPercent != null ? { healPercent: toNumber(effect.healPercent, 0) } : {}),
+        ...(effect.poisonId ? { poisonId: effect.poisonId } : {}),
         unpreventable: effect.unpreventable === true,
         unremovable: effect.unremovable === true,
         remainingHits: Number.isFinite(effect.remainingHits) ? Math.max(1, toInteger(effect.remainingHits, 1)) : Number.isFinite(effect.durationHits) ? Math.max(1, toInteger(effect.durationHits, 1)) : undefined,
@@ -4718,10 +4866,10 @@
     const worldEnder = canCharge ? chargedSkillEffect(attacker, "next-damage-overload") : null;
     const terrorBonus = attacker ? passiveEffectsOf(attacker).filter(effect => effect.type === "damage-percent-vs-low-hp" && hp(target) < values(target).maxHp * toNumber(effect.threshold, 50) / 100).reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) : 0;
     const chargeMultiplier = attacker && ["melee", "ranged", "spell", "bonus"].includes(attackKind) ? equipmentActionDamage.get(attacker.id) || equipmentChargeMultiplier(attacker) : 1;
-    const markedPower = power * chargeMultiplier * (1 + (spell ? toNumber(attacker?.phaseSpellDamagePercent, 0) : 0) / 100) * (1 + toNumber(mark?.damagePercent, 0) / 100) * (1 + toNumber(tacticalMark?.damagePercent, 0) / 100) * (1 + damagePercentAgainstTarget(attacker, target) / 100) * (1 + (toNumber(attackerEffects?.outgoingDamagePercent, 0) + spellDamagePercent + eminenceBonus + terrorBonus + artifactDamagePercent(attacker, target)) / 100) * (1 + toNumber(worldEnder?.effect?.damagePercent, 0) / 100);
-    const armorPierce = Math.max(0, Math.min(100, toNumber(armorPierceOverride, 0) + toNumber(worldEnder?.effect?.armorPiercePercent, 0) + (["melee", "ranged"].includes(attackKind) ? toNumber(attackerEffects?.weaponArmorPiercePercent, 0) + toNumber(attackerEffects?.weaponArmorPiercePercentByType?.[attackKind], 0) : 0)));
+    const markedPower = power * chargeMultiplier * (1 + (spell ? toNumber(attacker?.phaseSpellDamagePercent, 0) : 0) / 100) * (1 + toNumber(mark?.damagePercent, 0) / 100) * (1 + toNumber(tacticalMark?.damagePercent, 0) / 100) * (1 + damagePercentAgainstTarget(attacker, target) / 100) * (1 + (toNumber(attackerEffects?.outgoingDamagePercent, 0) + spellDamagePercent + eminenceBonus + terrorBonus + artifactDamagePercent(attacker, target)) / 100) * (1 + toNumber(worldEnder?.effect?.damagePercent, 0) / 100) * (attacker && eliteFoe(target) ? 1 + timedTotal(attacker, "elite-damage-percent") / 100 : 1);
+    const armorPierce = Math.max(0, Math.min(100, toNumber(armorPierceOverride, 0) + toNumber(worldEnder?.effect?.armorPiercePercent, 0) + (["melee", "ranged"].includes(attackKind) ? toNumber(attackerEffects?.weaponArmorPiercePercent, 0) + toNumber(attackerEffects?.weaponArmorPiercePercentByType?.[attackKind], 0) + timedTotal(attacker, "armor-pierce-percent") : 0)));
     const armor = Number.isFinite(defenseOverride?.armor) ? defenseOverride.armor : values(target).armor;
-    const criticalBonusPercent = toNumber(attackerEffects?.criticalDamagePercent, 0) + (["melee", "ranged"].includes(attackKind) ? activeWeaponCritDamage : 0) + artifactAmount(attacker, "crit-damage-percent");
+    const criticalBonusPercent = toNumber(attackerEffects?.criticalDamagePercent, 0) + (["melee", "ranged"].includes(attackKind) ? activeWeaponCritDamage + timedTotal(attacker, "crit-damage-percent") : 0) + artifactAmount(attacker, "crit-damage-percent");
     const rangedArmorPercent = attackKind === "ranged" ? target.effects.filter(effect => effect.type === "incoming-ranged-armor-percent").reduce((sum, effect) => sum + toNumber(effect.amount, 0), 0) : 0;
     let amount = worldSaver || unreducible ? Math.floor(markedPower * rules.criticalMultiplier(critical, criticalBonusPercent)) : rules.damage(markedPower, spell ? 0 : armor * (1 + rangedArmorPercent / 100) * (1 - armorPierce / 100), resistance(target, element, spell), critical, criticalBonusPercent) * incomingDamageFactor(target, attacker, attackKind, element);
     if (spell && !worldSaver && !unreducible) {
@@ -4760,7 +4908,7 @@
     const incomingHitPercent = toNumber(targetHitEffects.all, 0) + toNumber(targetHitEffects[weaponType], 0) + rangedHitPercent;
     const targetEvasion = Number.isFinite(defenseOverride?.evasion) ? defenseOverride.evasion : targetValues.evasion;
     const hitChance = rules.weaponHitChance((attackValues.hit + toNumber(mark?.hitFlat, 0)) * (1 + (weatherHitPercent + toNumber(mark?.hitPercent, 0)) / 100) * (1 + incomingHitPercent / 100), evasionAgainst(targetEvasion, weaponType));
-    const critChance = weaponCritChanceAgainst(target, weapon, attackValues.crit, attackValues.critRating);
+    const critChance = Math.min(100, weaponCritChanceAgainst(target, weapon, attackValues.crit, attackValues.critRating) + (attackValues.crit > 0 ? timedTotal(actor, "crit-chance-percent") : 0));
     const guaranteedHit = attackValues.alwaysHit || target.effects.some(effect => effect.type === "incoming-weapon-hit-always");
     const hitProbability = guaranteedHit ? 1 : hitChance / 100;
     const criticalProbability = attackValues.alwaysCrit ? 1 : rules.critChanceAfterMisses(critChance, actor.critMisses) / 100;
@@ -6161,9 +6309,11 @@
     $("combat-ability-title").textContent = isSpell ? "Choose a spell" : "Use an item";
     const trapStatus = isSpell ? "" : ` · Traps ${activeTrapCount(actor)}/${trapCapacity(actor)}`;
     $("combat-picker-resources").textContent = `${battle.ap} AP remaining · ${mana(actor)} Mana${trapStatus} · ${selectedTarget() ? actorLabel(selectedTarget()) + " targeted" : "No target"}`;
-    const entries = isSpell ? spellsOf(actor) : consumablesOf(actor);
+    // Port task 9: an Assimilator's pack ingredients join the items, to eat (P29).
+    const entries = isSpell ? spellsOf(actor) : [...consumablesOf(actor), ...ingredientsOf(actor)];
     $("combat-ability-list").innerHTML = entries.length ? entries.map(entry => {
-      const effects = isSpell ? spellEffects(entry) : entry.archivedSpellId ? spellEffects(getSpell(entry.archivedSpellId) || {}) : entry.effects || [];
+      const eaten = !isSpell && entry.category === "ingredient" ? AlchemyRules.assimilation(entry.id, assimilatorLevel(actor), getItem, { devour: actor.effects.some(effect => effect.type === "devour-ready") }) : null;
+      const effects = isSpell ? spellEffects(entry) : eaten ? eaten.effects.map(effect => ({ ...effect, recipient: "self" })) : entry.archivedSpellId ? spellEffects(getSpell(entry.archivedSpellId) || {}) : entry.effects || [];
       const ap = isSpell ? withActor(actor, () => calculateSpellActionPoints(entry)) : 1;
       const cost = isSpell ? withActor(actor, () => calculateSpellManaCost(entry)) : 0;
       const needsEnemy = requiresEnemyTarget(effects);
@@ -6172,7 +6322,7 @@
       const trapBlocked = !isSpell ? trapCapacityReason(actor, effects) : "";
       const target = selectedTarget();
       const reason = !effectsUsable(effects) ? "No usable effect" : needsEnemy && !opponents(actor).includes(target) ? "Choose an enemy" : needsFriendly && (!target || target.team !== actor.team) ? "Choose yourself or an ally" : summonBlocked ? effects.some(effect => effect.requiresDefeatedEnemy) && !defeatedEnemyFor(actor) ? "No defeated enemy" : "Summon already active" : trapBlocked || (battle.ap < ap ? "Not enough AP" : mana(actor) < cost ? "Not enough Mana" : "");
-      const description = isSpell ? withActor(actor, () => spellDescription(entry)) : entry.description;
+      const description = isSpell ? withActor(actor, () => spellDescription(entry)) : eaten ? `Eat it: ${window.Alchemy?.describeEffects(eaten.effects) || ""} for ${eaten.durationTurns} turns.` : entry.description;
       const owned = actor.id === "player" ? inventory : actor.character.inventory;
       const meta = isSpell ? `${cost} Mana · ${ap} AP` : `×${owned.filter(id => id === entry.id).length} owned · 1 AP`;
       // Lament: cast it on a second target too, for 50% more Mana (M19).
@@ -6180,7 +6330,7 @@
       const sideCount = lament ? (needsEnemy ? opponents(actor).length : living().filter(ally => ally.team === actor.team).length) : 0;
       const lamentReason = !lament ? "" : reason || (sideCount < 2 ? "No second target" : mana(actor) < Math.floor(cost * (1 + toNumber(lament.amount, 0) / 100)) ? "Not enough Mana" : "");
       const lamentButton = lament ? `<button type="button" class="combat-lament-button" data-combat-lament="${escapeHtml(entry.id)}" ${lamentReason ? "disabled" : ""}>${escapeHtml(lamentReason || `Lament: +1 target (+${formatValue(lament.amount)}% Mana)`)}</button>` : "";
-      return `<article class="combat-ability-entry"><div><strong>${escapeHtml(entry.name)}</strong><small>${meta}</small><p>${escapeHtml(description || "")}</p></div><button type="button" data-combat-ability="${escapeHtml(entry.id)}" ${reason ? "disabled" : ""}>${escapeHtml(reason || (isSpell ? "Cast" : "Use"))}</button>${lamentButton}</article>`;
+      return `<article class="combat-ability-entry"><div><strong>${escapeHtml(entry.name)}</strong><small>${meta}</small><p>${escapeHtml(description || "")}</p></div><button type="button" data-combat-ability="${escapeHtml(entry.id)}" ${reason ? "disabled" : ""}>${escapeHtml(reason || (isSpell ? "Cast" : eaten ? (actor.effects.some(effect => effect.type === "devour-ready") ? "Devour" : "Eat") : entry.poison ? "Throw" : "Use"))}</button>${lamentButton}</article>`;
     }).join("") : `<p class="combat-picker-empty">${isSpell ? "No spells learned yet." : "No usable items in your inventory."}</p>`;
   }
 
@@ -6210,6 +6360,8 @@
       });
       itemCatalog.consumables = catalog;
       itemCatalog.keyItems = keyItems;
+      // Port task 9: the potion ingredients (alchemy-data.js), items of their own.
+      itemCatalog.ingredients = (window.AlchemyRules?.INGREDIENTS || []).map(entry => ({ ...entry, category: "ingredient", type: "ingredient", catalogueAvailable: true, shopAvailable: false }));
       rebuildItems();
       window.Shop?.onCatalogChange();
       updateItemSourceStatus();
@@ -6613,6 +6765,8 @@
       battle.targetId = id; render(); saveCharacter();
       return true;
     },
+    // Port task 9: enemy ids by name (the encounter tables name enemies; their ingredients are keyed by id).
+    enemyIdsNamed: names => { const wanted = new Set(names); return enemyDefinitions.filter(definition => wanted.has(definition.name)).map(definition => definition.id); },
     active: isActive, statPercent, permanentStatPercent, permanentDefensePercent, statValue, defense, resourceMaximum, cacheCalculation, serialize: () => battle ? copy(battle) : null, restore, onSheetChange, loadConsumables, startEncounter, attemptTravelEscape, rollSparkling, sparklingChance, SPARKLING: () => copy(SPARKLING),
     async enemyDropSources() {
       await ensureEnemiesLoaded();

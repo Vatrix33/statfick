@@ -161,16 +161,17 @@
     })(),
     gloamfenMarsh: (() => {
       const mirewatch = { x: 670, y: 355 }, reedcross = { x: 765, y: 770 }, fork = { x: 1100, y: 570 };
+      // Port task 8 (W5, W6): the Jungle lies south of the marsh now, so its road leaves Reedcross southward; the causeway
+      // ends at Mirewatch, which no longer has a road north.
       const northRoad = join(
         cubic({ x: 1620, y: 600 }, { x: 1450, y: 625 }, { x: 1250, y: 565 }, fork),
-        cubic(fork, { x: 920, y: 495 }, { x: 820, y: 385 }, mirewatch),
-        cubic(mirewatch, { x: 580, y: 270 }, { x: 705, y: 135 }, { x: 640, y: -20 })
+        cubic(fork, { x: 920, y: 495 }, { x: 820, y: 385 }, mirewatch)
       );
-      const southRoad = cubic(fork, { x: 965, y: 640 }, { x: 865, y: 740 }, reedcross);
+      const southRoad = join(cubic(fork, { x: 965, y: 640 }, { x: 865, y: 740 }, reedcross), quadratic(reedcross, { x: 735, y: 880 }, { x: 760, y: 1020 }));
       return {
         id: "gloamfen-marsh", name: "Gloamfen Marsh",
         eyebrow: "GLOAMFEN MARSH · LEVEL 35–55", title: "Across the <em>drowned earth</em>",
-        description: "A vast peat swamp threaded by two raised roads. Mirewatch guards the northern causeway, Reedcross survives on southern hummocks, and a small rocky rise breaks the wetlands to the west.",
+        description: "A vast peat swamp threaded by two raised roads. Mirewatch guards the northern causeway; the southern one runs past Reedcross's hummocks on to the jungle, and a small rocky rise breaks the wetlands to the west.",
         levelRange: { minimum: 35, maximum: 55 }, start: { x: 1532, y: 600 }, // 55 since port task 6 (N10), the Abyssal Rift.
         settlements: [
           { id: "mirewatch", name: "Mirewatch", kind: "Castle city", ...mirewatch },
@@ -184,7 +185,7 @@
         abyssalRift: { x: 380, y: 885, rx: 215, ry: 88 },
         exits: [
           { id: "east-road", name: "Road to Stormwake Hills", point: { x: 1580, y: 600 }, retreat: { x: 1532, y: 600 }, targetRegionId: "stormwake-hills", targetPoint: { x: 68, y: 630 }, prompt: "Return east to Stormwake Hills?", destinationName: "Stormwake Hills" },
-          { id: "north-road", name: "Road to Verdigris Jungle", point: { x: 640, y: 20 }, retreat: { x: 650, y: 68 }, targetRegionId: "verdigris-jungle", targetPoint: { x: 840, y: 932 }, prompt: "Travel north into Verdigris Jungle?", destinationName: "Verdigris Jungle" },
+          { id: "south-road", name: "Road to Verdigris Jungle", point: { x: 760, y: 980 }, retreat: { x: 760, y: 932 }, targetRegionId: "verdigris-jungle", targetPoint: { x: 790, y: 68 }, prompt: "Travel south into Verdigris Jungle?", destinationName: "Verdigris Jungle" },
         ],
       };
     })(),
@@ -194,18 +195,19 @@
         id: "verdigris-jungle", name: "Verdigris Jungle",
         eyebrow: "VERDIGRIS JUNGLE · LEVEL 45–65", title: "Beneath an <em>endless canopy</em>",
         description: "An unbroken jungle of tangled roots, flooded shadows and ancient trees. One hard-won road reaches Canopyhold, the sole castle city beneath its leaves.",
-        levelRange: { minimum: 45, maximum: 65 }, start: { x: 840, y: 932 },
+        levelRange: { minimum: 45, maximum: 65 }, start: { x: 790, y: 68 },
         settlements: [{ id: "canopyhold", name: "Canopyhold", kind: "Castle city", ...canopyhold }],
+        // Port task 8 (W5, W6): its one road leaves Canopyhold northward, toward Gloamfen above it.
         roads: [join(
-          cubic({ x: 840, y: 1020 }, { x: 900, y: 830 }, { x: 680, y: 690 }, { x: 805, y: 560 }),
-          quadratic({ x: 805, y: 560 }, { x: 880, y: 475 }, canopyhold)
+          cubic({ x: 790, y: -20 }, { x: 820, y: 120 }, { x: 735, y: 240 }, { x: 770, y: 320 }),
+          quadratic({ x: 770, y: 320 }, { x: 760, y: 375 }, canopyhold)
         )], river: null,
         outerCanopy: { x: 795, y: 495, rx: 780, ry: 490 },
         denseCanopy: { x: 660, y: 380, rx: 565, ry: 365 },
         oldGrowth: { x: 475, y: 290, rx: 300, ry: 220 },
         highCanopy: { x: 1300, y: 300, rx: 245, ry: 195 },
         exits: [
-          { id: "south-road", name: "Road to Gloamfen Marsh", point: { x: 840, y: 980 }, retreat: { x: 840, y: 932 }, targetRegionId: "gloamfen-marsh", targetPoint: { x: 650, y: 68 }, prompt: "Return south to Gloamfen Marsh?", destinationName: "Gloamfen Marsh" },
+          { id: "north-road", name: "Road to Gloamfen Marsh", point: { x: 790, y: 20 }, retreat: { x: 790, y: 68 }, targetRegionId: "gloamfen-marsh", targetPoint: { x: 760, y: 932 }, prompt: "Return north to Gloamfen Marsh?", destinationName: "Gloamfen Marsh" },
         ],
       };
     })(),
@@ -251,12 +253,13 @@
         ],
         roads: [northRoad,
           quadratic(dunecross, { x: 820, y: 805 }, { x: 850, y: 1020 }),
-          quadratic(dunecross, { x: 1320, y: 780 }, { x: 1620, y: 820 })],
+          // Port task 8 (W19, layout draft 6): the road to the Deep Desert leaves high on the east side.
+          quadratic(dunecross, { x: 1300, y: 330 }, { x: 1620, y: 120 })],
         river: null,
         exits: [
           { id: "north-road", name: "Road to Mirrormere Basin", point: { x: 850, y: 20 }, retreat: { x: 821, y: 68 }, targetRegionId: "mirrormere-basin", targetPoint: { x: 850, y: 932 }, prompt: "Return north to Mirrormere Basin?", destinationName: "Mirrormere Basin" },
           { id: "south-road", name: "Road to the Crimson Divide", point: { x: 850, y: 980 }, retreat: { x: 850, y: 932 }, targetRegionId: "crimson-divide", targetPoint: { x: 855, y: 68 }, prompt: "Travel south to the Crimson Divide?", destinationName: "Crimson Divide" },
-          { id: "southeast-road", name: "Road to the Deep Desert", point: { x: 1580, y: 820 }, retreat: { x: 1532, y: 800 }, targetRegionId: "deep-desert", targetPoint: { x: 68, y: 210 }, prompt: "Travel southeast into the Deep Desert?", destinationName: "Deep Desert" },
+          { id: "east-road", name: "Road to the Deep Desert", point: { x: 1580, y: 120 }, retreat: { x: 1532, y: 140 }, targetRegionId: "deep-desert", targetPoint: { x: 68, y: 880 }, prompt: "Travel east into the Deep Desert?", destinationName: "Deep Desert" },
         ],
       };
     })(),
@@ -266,13 +269,14 @@
         id: "deep-desert", name: "Deep Desert", eyebrow: "DEEP DESERT · LEVEL 45–55",
         title: "Where the sand <em>remembers</em>",
         description: "Beyond the last caravan outpost lies an immense silent waste. Wind-carved ruins circle an ancient pyramid at its heart.",
-        levelRange: { minimum: 45, maximum: 55 }, start: { x: 68, y: 210 },
+        levelRange: { minimum: 45, maximum: 55 }, start: { x: 68, y: 880 },
         pyramid: { x: 820, y: 500, rx: 175, ry: 145 }, necropolis: { x: 820, y: 500, rx: 315, ry: 250 },
         obsidianFlats: { x: 1320, y: 685, rx: 265, ry: 240 },
         settlements: [{ id: "lastlight", name: "Lastlight", kind: "Town", guildServices: ["quest", "artifacts", "great-hunts", "recruit"], ...lastlight }],
-        roads: [quadratic({ x: -20, y: 210 }, { x: 135, y: 230 }, lastlight)], river: null,
+        // Port task 8 (W19, layout draft 6): the road from the Saffron Expanse arrives low on the west side.
+        roads: [cubic({ x: -20, y: 900 }, { x: 90, y: 800 }, { x: 230, y: 480 }, lastlight)], river: null,
         exits: [
-          { id: "northwest-road", name: "Road to the Saffron Expanse", point: { x: 20, y: 210 }, retreat: { x: 68, y: 210 }, targetRegionId: "saffron-expanse", targetPoint: { x: 1532, y: 800 }, prompt: "Return northwest to the Saffron Expanse?", destinationName: "Saffron Expanse" },
+          { id: "west-road", name: "Road to the Saffron Expanse", point: { x: 20, y: 900 }, retreat: { x: 68, y: 880 }, targetRegionId: "saffron-expanse", targetPoint: { x: 1532, y: 140 }, prompt: "Return west to the Saffron Expanse?", destinationName: "Saffron Expanse" },
         ],
       };
     })(),
@@ -321,7 +325,8 @@
         quadratic({ x: 1620, y: 565 }, { x: 1430, y: 550 }, { x: 1220, y: 540 }),
         quadratic({ x: 1085, y: 530 }, { x: 925, y: 490 }, { x: 780, y: 480 }),
         quadratic({ x: 635, y: 485 }, { x: 480, y: 495 }, { x: 350, y: 500 }),
-        quadratic({ x: 245, y: 500 }, { x: 115, y: 500 }, { x: -20, y: 500 }),
+        // Port task 8 (W19, layout draft 6): Duskpine lies north now; the last stretch turns north to it.
+        cubic({ x: 330, y: 400 }, { x: 350, y: 250 }, { x: 470, y: 120 }, { x: 500, y: -20 }),
       ];
       return {
         id: "ancient-battlefield", name: "Ancient Battlefield", eyebrow: "ANCIENT BATTLEFIELD · LEVEL 65–75",
@@ -333,7 +338,7 @@
         settlements: [], roads, river: null,
         exits: [
           { id: "east-road", name: "Road to Bloodstone Coast", point: { x: 1580, y: 565 }, retreat: { x: 1532, y: 565 }, targetRegionId: "bloodstone-coast", targetPoint: { x: 68, y: 560 }, prompt: "Return east to the Bloodstone Coast?", destinationName: "Bloodstone Coast" },
-          { id: "west-road", name: "Road to Duskpine Forest", point: { x: 20, y: 500 }, retreat: { x: 68, y: 500 }, targetRegionId: "duskpine-forest", targetPoint: { x: 1532, y: 500 }, prompt: "Continue west into Duskpine Forest?", destinationName: "Duskpine Forest" },
+          { id: "north-road", name: "Road to Duskpine Forest", point: { x: 500, y: 20 }, retreat: { x: 500, y: 68 }, targetRegionId: "duskpine-forest", targetPoint: { x: 500, y: 932 }, prompt: "Continue north into Duskpine Forest?", destinationName: "Duskpine Forest" },
         ],
       };
     })(),
@@ -343,13 +348,14 @@
         id: "duskpine-forest", name: "Duskpine Forest", eyebrow: "DUSKPINE FOREST · LEVEL 60–75",
         title: "Beneath the <em>black pines</em>",
         description: "Cold fog hangs among ancient firs and black pines. Ravenwatch is the only castle city, reached by the road that survives the battlefield.",
-        levelRange: { minimum: 60, maximum: 75 }, start: { x: 1532, y: 500 },
+        levelRange: { minimum: 60, maximum: 75 }, start: { x: 500, y: 932 },
         deepBoreal: { x: 620, y: 300, rx: 340, ry: 245 },
         frostBog: { x: 315, y: 765, rx: 260, ry: 170 },
         shadowHollow: { x: 1240, y: 750, rx: 250, ry: 175 },
         settlements: [{ id: "ravenwatch", name: "Ravenwatch", kind: "Castle city", ...ravenwatch }],
-        roads: [quadratic({ x: 1620, y: 500 }, { x: 1200, y: 480 }, ravenwatch)], river: null,
-        exits: [{ id: "east-road", name: "Road to the Ancient Battlefield", point: { x: 1580, y: 500 }, retreat: { x: 1532, y: 500 }, targetRegionId: "ancient-battlefield", targetPoint: { x: 68, y: 500 }, prompt: "Return east to the Ancient Battlefield?", destinationName: "Ancient Battlefield" }],
+        // Port task 8 (W19, layout draft 6): the Battlefield lies south now; the road leaves south to it.
+        roads: [cubic({ x: 500, y: 1020 }, { x: 560, y: 860 }, { x: 760, y: 700 }, ravenwatch)], river: null,
+        exits: [{ id: "south-road", name: "Road to the Ancient Battlefield", point: { x: 500, y: 980 }, retreat: { x: 500, y: 932 }, targetRegionId: "ancient-battlefield", targetPoint: { x: 500, y: 68 }, prompt: "Return south to the Ancient Battlefield?", destinationName: "Ancient Battlefield" }],
       };
     })(),
     sunwardCoast: (() => {
@@ -367,7 +373,7 @@
         settlements: [
           { id: "westport", name: "Westport", kind: "Castle city", ...westport },
           { id: "dunehaven", name: "Dunehaven", kind: "Town", ...dunehaven },
-          { id: "seabridge", name: "Seabridge", kind: "Town", ...seabridge, boat: { regionId: "cinder-isle", settlementId: "emberhaven", minutes: 540 } },
+          { id: "seabridge", name: "Seabridge", kind: "Town", ...seabridge, boat: { regionId: "cinder-isle", settlementId: "emberhaven", minutes: 756 } },
         ],
         roads: coastRoads, river: null,
         saltMarsh: { x: 930, y: 825, rx: 235, ry: 145 },
@@ -385,11 +391,24 @@
         volcano: { x: 1030, y: 455, rx: 325, ry: 285 },
         // Port task 3: Hearth Home on the volcano's south-west edge where the road ends, Ornn its boss (R14).
         sites: [{ id: "hearth-home", name: "Hearth Home", kind: "Forge", x: 858, y: 596, radius: 38 }],
-        settlements: [{ id: "emberhaven", name: "Emberhaven", kind: "Town", guildServices: ["quest", "artifacts", "great-hunts", "recruit"], ...emberhaven, boat: { regionId: "sunward-coast", settlementId: "seabridge", minutes: 540 } }],
+        settlements: [{ id: "emberhaven", name: "Emberhaven", kind: "Town", guildServices: ["quest", "artifacts", "great-hunts", "recruit"], ...emberhaven, boat: { regionId: "sunward-coast", settlementId: "seabridge", minutes: 756 } }],
         roads: [join(quadratic(emberhaven, { x: 450, y: 640 }, { x: 630, y: 650 }), quadratic({ x: 630, y: 650 }, { x: 740, y: 670 }, { x: 825, y: 630 }), quadratic({ x: 825, y: 630 }, { x: 845, y: 612 }, { x: 858, y: 596 }, 6))],
         river: null, exits: [],
       };
     })(),
+    /* Port task 8: the three regions layout draft 6 adds (W19, W26) are empty in the old game: their names, identity,
+       terrain, enemies, level bands, towns and connections are made in the port (W27). Their ground can be walked, with
+       no encounters, towns or quests; the map's header reads "Uncharted land" with no level range and the music of the
+       region you came from plays on (W28); the map shows them as blank parchment marked "Uncharted" (W29). */
+    ...Object.fromEntries([
+      ["unchartedHighlands", "uncharted-highlands", "alder-vale"],
+      ["unchartedSteppe", "uncharted-steppe", "alder-vale"],
+      ["unchartedDelta", "uncharted-delta", "saffron-expanse"],
+    ].map(([key, id, safeRetreatRegionId]) => [key, {
+      id, name: "Uncharted land", eyebrow: "UNCHARTED LAND", title: "Not yet <em>charted</em>",
+      description: "Land no map has charted yet.", uncharted: true, start: { x: 800, y: 500 }, safeRetreatRegionId,
+      settlements: [], sites: [], roads: [], river: null, exits: [],
+    }])),
   };
   if (typeof module !== "undefined" && module.exports) module.exports = root.WorldRegionData;
 })(globalThis);

@@ -4,8 +4,10 @@ async function runMapChecks() {
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
   const $ = id => document.getElementById(id);
   const click = id => $(id).dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  // Port task 8: points are in the current region's own units; the map is the continent's.
   const pointClick = (x, y) => {
-    const p = new DOMPoint(x, y).matrixTransform($("regional-map").getScreenCTM());
+    const c = WorldRules.toContinent(worldState.regionId, { x, y });
+    const p = new DOMPoint(c.x, c.y).matrixTransform($("regional-map").getScreenCTM());
     $("regional-map").dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: p.x, clientY: p.y }));
   };
   applyCharacter(normalizeCharacter({ ...defaultCharacter(), classLevels: { warrior: 5 } }));
@@ -56,7 +58,7 @@ async function runMapChecks() {
   assert(!$("map-select-character"), "Travel no longer requires a separate character-selection control");
   pointClick(700, 490);
   assert(worldState.destination?.x > 690 && WorldMap.isTravelling(), "One map click sets a destination and immediately starts travel");
-  assert(WorldRules.routeTravelMinutes(worldState.position, worldState.route) <= WorldRules.travelMinutes(worldState.position, worldState.destination) + 1e-6, "Travel automatically chooses a route no slower than direct travel");
+  assert(WorldRules.continentRouteMinutes(WorldRules.standing(worldState), worldState.route) <= WorldRules.continentTravelMinutes(WorldRules.standing(worldState), worldState.destination) + 1e-6, "Travel automatically chooses a route no slower than direct travel");
   assert(!$("map-follow-roads"), "Follow Roads control is removed");
   await wait(400);
   click("map-pause");
@@ -78,7 +80,8 @@ async function runMapChecks() {
   const savedJourney = backupPayload();
   applyCharacter(normalizeCharacter(defaultCharacter()));
   applyCharacter(normalizeCharacter(savedJourney.character));
-  assert(JSON.stringify(worldState) === closed, "Loading preserves a paused destination and location");
+  const before = JSON.parse(closed), changed = Object.keys(before).filter(key => JSON.stringify(before[key]) !== JSON.stringify(worldState[key]));
+  assert(JSON.stringify(worldState) === closed, "Loading preserves a paused destination and location" + (changed.length ? " (changed: " + changed.map(key => key + " " + JSON.stringify(before[key]).slice(0, 160).replaceAll('"', "") + " -> " + JSON.stringify(worldState[key]).slice(0, 160).replaceAll('"', "")).join("; ") + ")" : ""));
 
   // A short actual trip across midnight resets daily skills exactly at the boundary.
   worldState.minutes = 1439;
@@ -97,8 +100,10 @@ async function runMapChecks() {
   // Arrival caps elapsed time to the actual remaining distance.
   const shortTrip = WorldRules.normalize({ position: { x: 1000, y: 500 }, destination: { x: 1000 + WorldRules.UNITS_PER_KM, y: 500 } });
   const result = WorldRules.step(shortTrip, 500);
-  assert(result.arrived && Math.abs(result.elapsed - 12) < 1e-8 && !shortTrip.destination && shortTrip.position.x === 1000 + WorldRules.UNITS_PER_KM, "Arrival does not overshoot");
-  assert(Math.abs(shortTrip.distanceTraveledKm - 1) < 1e-8, "Travel distance is recorded in kilometers");
+  // Port task 8 (W3): a region's own units cover 1.4 times the ground on the continent, so this kilometre of the old
+  // map is 1.4 km long now.
+  assert(result.arrived && Math.abs(result.elapsed - 12 * 1.4) < 1e-6 && !shortTrip.destination && Math.abs(shortTrip.position.x - (1000 + WorldRules.UNITS_PER_KM)) < 1e-6, "Arrival does not overshoot");
+  assert(Math.abs(shortTrip.distanceTraveledKm - 1.4) < 1e-6, "Travel distance is recorded in kilometers");
   worldState.position = { x: 700, y: 500 }; worldState.destination = null;
   WorldMap.resetView();
   assert($("map-rest").disabled, "Resting unavailable in plains");
@@ -146,7 +151,8 @@ async function runMapChecks() {
   const migrated = normalizeCharacter({ activeSkills: { legacy: { lastUsedDay: "2026-09-09" } } });
   assert(migrated.activeSkills.legacy.lastUsedDay === "world-day-1", "Old daily cooldowns migrate conservatively");
   const malformed = WorldRules.normalize({ minutes: -1, position: { x: 9000, y: NaN }, destination: { x: "bad", y: 1 } });
-  assert(malformed.minutes === 0 && malformed.position.x === 1580 && malformed.destination === null, "Invalid save data is normalized");
+  // Port task 8: a position is held to its region's reach on the continent and moved onto land.
+  assert(malformed.minutes === 0 && Number.isFinite(malformed.position.x) && Number.isFinite(malformed.position.y) && malformed.position.x <= 1600 + WorldRules.REACH && WorldRules.passableAt(WorldRules.standing(malformed)) && malformed.destination === null, "Invalid save data is normalized");
 
   // Travel/rest cannot alter an active battle, even from the character sheet.
   document.querySelector("[data-map-close]").click();

@@ -12,7 +12,11 @@
   // Regions were tripled in size (40 × 25 km became 120 × 75 km) without moving anything:
   // each map unit now covers three times the ground. Travel time, encounter spacing and
   // saved distances scale with it.
-  const UNITS_PER_KM = 40 / 3, MAP_SCALE = 3, ENCOUNTER_MINUTES = 90;
+  // Port task 8 (W3, W4): the regions sit on one continent, each 1.4× larger (CONTINENT.SCALE). UNITS_PER_KM counts
+  // continent units; a region's own (local) units cover 1.4 times the ground. Encounters keep their number per trip,
+  // so their spacing grew by the same 1.4 (90 → 126 travel minutes).
+  const CONTINENT = root.ContinentRules || null, SCALE = CONTINENT?.SCALE || 1;
+  const UNITS_PER_KM = 40 / 3, LOCAL_UNITS_PER_KM = UNITS_PER_KM / SCALE, MAP_SCALE = 3, ENCOUNTER_MINUTES = 90 * SCALE;
   const normalizeTimeSpeed = value => timeSpeeds.includes(value) ? value : 1;
   // Regular speed: thirty-six minutes per second when travelling (the regions grew threefold,
   // so the clock runs three times faster and a crossing takes as long as before), one minute
@@ -21,10 +25,12 @@
   const validPoint = value => value && typeof value === "object" && Number.isFinite(value.x) && Number.isFinite(value.y);
   // Older saves can have the retired generic dragon in an encounter or quest.
   const currentEnemyName = name => name === "Lesser Dragon" ? "Red Dragon" : name;
-  const point = p => ({ x: clamp(number(p?.x, 420), 20, 1580), y: clamp(number(p?.y, 490), 20, 980) });
+  // A region's points reach past its edges as far as its land can (port task 8: layout draft 6's land, W26).
+  const REACH = CONTINENT ? CONTINENT.REACH : 0;
+  const point = p => ({ x: clamp(number(p?.x, 420), -REACH, 1600 + REACH), y: clamp(number(p?.y, 490), -REACH, 1000 + REACH) });
   const regionalPoint = (value, fallback) => ({
-    x: clamp(number(value?.x, fallback.x), 20, 1580),
-    y: clamp(number(value?.y, fallback.y), 20, 980),
+    x: clamp(number(value?.x, fallback.x), -REACH, 1600 + REACH),
+    y: clamp(number(value?.y, fallback.y), -REACH, 1000 + REACH),
   });
   function pendingEncounter(value) {
     if (!value || typeof value !== "object" || !Array.isArray(value.enemies)) return null;
@@ -64,8 +70,8 @@
       regionId: normalizeRegionId(value.regionId), settlementId: text(value.settlementId), name: text(value.name) || text(value.settlementId), point: point(value.point),
     } : null;
     // Quests of the Guild Rework (port task 2) carry version 2; Hunt and Search kept their kind.
-    const QUEST_TYPES = ["hunt", "cull", "deliver", "search", "escort", "travel", "great-hunt", "clear"];
-    const normalizeQuest = quest => quest && typeof quest === "object" && QUEST_TYPES.includes(quest.type) ? {
+    const QUEST_TYPES = ["hunt", "cull", "deliver", "search", "escort", "travel", "collect", "great-hunt", "clear"];
+    const normalizeQuest = quest => quest && typeof quest === "object" && QUEST_TYPES.includes(quest.type) && (quest.type !== "collect" || typeof quest.ingredientId === "string" && quest.ingredientId.startsWith("ingredient-")) ? {
       ...quest,
       version: quest.version === 2 ? 2 : 1,
       title: text(quest.title),
@@ -90,6 +96,9 @@
       ambushes: Array.isArray(quest.ambushes) ? quest.ambushes.filter(entry => entry && Number.isFinite(entry.at)).slice(0, 2).map(entry => ({ at: Math.max(0, entry.at), done: entry.done === true })) : [],
       travelled: Math.max(0, number(quest.travelled, 0)),
       tripMinutes: Math.max(1, number(quest.tripMinutes, 1)),
+      // Port task 9: a Collect quest's ingredient (P22–P25).
+      ingredientId: typeof quest.ingredientId === "string" && quest.ingredientId.startsWith("ingredient-") ? quest.ingredientId : null,
+      ingredientName: text(quest.ingredientName, 60),
       taken: quest.taken === true,
     } : null;
     // The standard quest and the Great Hunt are held apart (one of each at a time). Older saves kept a
@@ -171,20 +180,24 @@
       ...(Array.isArray(rawGuild.avoidedGreatHunts) ? rawGuild.avoidedGreatHunts : []),
       ...(requestedAvoidance === "great-hunt-rematch" && greatHuntRematch ? [greatHuntRematch.uniqueId] : [])
     ])].filter(id => greatHuntRematches.some(rematch => rematch.uniqueId === id));
-    const destination = validPoint(saved?.destination) ? point(saved.destination) : null;
+    const regionId = normalizeRegionId(saved?.regionId);
+    /* Port task 8: a destination and its route are continent points; saves from before kept them in their region's
+       units. Those saves see the whole continent and have every caravan (W15). A crossing prompt no longer exists. */
+    const legacy = Boolean(saved && typeof saved === "object" && saved.continentVersion !== CONTINENT_VERSION && (saved.position || saved.regionId || saved.minutes != null));
+    const stored = value => legacy ? toContinent(regionId, point(value)) : continentPoint(value);
+    const destination = validPoint(saved?.destination) ? stored(saved.destination) : null;
     const route = destination && Array.isArray(saved?.route)
-      ? saved.route.filter(validPoint).slice(0, 512).map(point)
+      ? saved.route.filter(validPoint).slice(0, 2048).map(stored)
       : [];
     if (destination && (!route.length || Math.hypot(route.at(-1).x - destination.x, route.at(-1).y - destination.y) > 1e-7)) route.push({ ...destination });
-    const regionId = normalizeRegionId(saved?.regionId);
-    const pendingRegionTransition = saved?.pendingRegionTransition && typeof saved.pendingRegionTransition === "object"
-      && typeof saved.pendingRegionTransition.exitId === "string"
-      && exitById(saved.pendingRegionTransition.exitId, regionId)
-      ? { regionId, exitId: saved.pendingRegionTransition.exitId }
-      : null;
+    const pendingRegionTransition = null;
+    const castleIds = castleCityIds();
+    const visitedRegions = legacy ? Object.keys(regions) : [...new Set((Array.isArray(saved?.visitedRegions) ? saved.visitedRegions : []).filter(id => typeof id === "string" && regions[id]))];
+    const caravans = legacy ? [...castleIds] : [...new Set((Array.isArray(saved?.caravans) ? saved.caravans : []).filter(id => castleIds.includes(id)))];
     // Saves from before the regions grew counted kilometres on the smaller maps.
     const kmFactor = number(saved?.mapScale, 1) >= MAP_SCALE ? 1 : MAP_SCALE;
-    return {
+    const state = {
+      continentVersion: CONTINENT_VERSION,
       mapScale: MAP_SCALE,
       minutes: clamp(number(saved?.minutes, 480), 0, 1000000000),
       timeSpeed: normalizeTimeSpeed(saved?.timeSpeed),
@@ -216,7 +229,24 @@
       position: regionalPoint(saved?.position, getRegion(regionId).start),
       destination,
       route,
+      visitedRegions,
+      caravans,
+      // The horse carriage (W9, W35): bought, switched on, and where it waits while you are on an island (a port's id).
+      carriage: {
+        owned: Boolean(saved?.carriage?.owned),
+        active: Boolean(saved?.carriage?.owned && saved?.carriage?.active && !saved?.carriage?.parkedAt),
+        parkedAt: saved?.carriage?.owned && typeof saved?.carriage?.parkedAt === "string" ? saved.carriage.parkedAt : null,
+      },
+      // The last region with its own music you stood in: it plays on in the regions empty until the port (W28).
+      lastChartedRegionId: charted(saved?.lastChartedRegionId) ? saved.lastChartedRegionId : charted(regionId) ? regionId : normalizeRegionId(getRegion(regionId).safeRetreatRegionId),
     };
+    if (continent && !passableAt(standing(state))) {
+      const safe = nearestPassable(standing(state));
+      if (safe) { const at = fromContinent(safe); state.regionId = at.regionId; state.position = at.position; }
+      else state.position = { ...getRegion(regionId).start };
+    }
+    noteVisit(state);
+    return state;
   }
   const day = minutes => Math.floor(Math.max(0, number(minutes, 0)) / 1440) + 1;
   const time = minutes => {
@@ -311,8 +341,19 @@
     ...(bloodstoneCoast ? { [bloodstoneCoast.id]: bloodstoneCoast } : {}),
     ...(ancientBattlefield ? { [ancientBattlefield.id]: ancientBattlefield } : {}),
     ...(duskpineForest ? { [duskpineForest.id]: duskpineForest } : {}),
+    // Port task 8: the three regions layout draft 6 adds, empty until the port (W27-W29).
+    ...Object.fromEntries(["unchartedHighlands", "unchartedSteppe", "unchartedDelta"].map(key => root.WorldRegionData?.[key]).filter(Boolean).map(region => [region.id, region])),
   });
+  // The continent built from the regions' exits (port task 8): road links across the border strips.
+  const continent = CONTINENT ? CONTINENT.build(regions) : null;
+  // A region's roads with its halves of the border crossings (in its own coordinates, past its edge).
+  const roadsWithCrossings = region => [...(region.roads || []), ...(continent ? CONTINENT.linksOf(region.id).map(link => link.halves[region.id]) : [])];
   let activeRegionId = alder.id;
+  // Saves of the continent (port task 8) carry this version.
+  const CONTINENT_VERSION = 1;
+  const castleCityIds = () => Object.values(regions).flatMap(region => (region.settlements || []).filter(place => place.kind === "Castle city").map(place => place.id));
+  // A region with its own content (not one of the three empty until the port, W27).
+  const charted = regionId => typeof regionId === "string" && Boolean(regions[regionId]) && !regions[regionId].uncharted;
   function normalizeRegionId(regionId) { return typeof regionId === "string" && regions[regionId] ? regionId : alder.id; }
   function getRegion(regionId = activeRegionId) { return regions[normalizeRegionId(regionId)]; }
   function setActiveRegion(regionId) { activeRegionId = normalizeRegionId(regionId); return getRegion(); }
@@ -333,7 +374,7 @@
         minX: Math.min(start.x, end.x), maxX: Math.max(start.x, end.x),
         minY: Math.min(start.y, end.y), maxY: Math.max(start.y, end.y) };
     }));
-    const result = { roads: segments(region.roads || []), river: segments(region.river ? [region.river] : []) };
+    const result = { roads: segments(roadsWithCrossings(region)), river: segments(region.river ? [region.river] : []) };
     cachedTerrainSegments.set(id, result);
     return result;
   }
@@ -346,6 +387,11 @@
       if (dx * dx + dy * dy <= limit) return true;
     }
     return false;
+  }
+  // Port task 9: by a river (about 4 km), where foraging adds the rivers' own ingredients (P31).
+  function nearRiver(position, regionId = activeRegionId, reach = 60) {
+    if (!isLand(position, regionId)) return false;
+    return nearSegments(position, terrainSegments(normalizeRegionId(regionId)).river, reach);
   }
   function terrainAt(position, regionId = activeRegionId) {
     if (!isLand(position, regionId)) return "sea";
@@ -364,11 +410,24 @@
     }
     return false;
   }
+  const outsideBox = position => position.x < 0 || position.x > 1600 || position.y < 0 || position.y > 1000;
+  // On the continent (port task 8, W17) the land is natural: past a region's edge its wild ground reaches out where the
+  // continent's land does, and inside it the sea or the mountains may bite in; then its own lakes and seas.
+  const clampBox = position => ({ x: clamp(position.x, 0, 1600), y: clamp(position.y, 0, 1000) });
   function isLand(position, regionId = activeRegionId) {
     const region = getRegion(regionId);
+    if (continent) {
+      if (CONTINENT.landAt(CONTINENT.toC(region.id, position)) <= 0) return false;
+      if (outsideBox(position)) return true;
+    }
+    return ownLand(position, region);
+  }
+  // A region's own land, in its box: not its lake (but its island and bridges) nor its sea.
+  function ownLand(position, region) {
     if (region.lake && insideEllipse(position, region.lake)) return Boolean(region.island && insideEllipse(position, region.island) || onBridge(position, region));
     const shape = region.landShape;
-    if (!shape) return true;
+    // On the continent a coast region's shore and an island's coast are the continent's own (W17, draft 6).
+    if (!shape || continent) return true;
     if (shape.type === "coast") return position.x <= shape.shoreX;
     if (shape.type === "south-coast") return position.y <= shape.shoreY;
     if (shape.type === "ellipse") return insideEllipse(position, shape);
@@ -377,6 +436,8 @@
   function zoneAt(position, regionId = activeRegionId) {
     const region = getRegion(regionId);
     if (!isLand(position, region.id)) return region.lake ? "Open Water" : "Open Sea";
+    // Port task 8: the regions empty until the port have no zones and no encounters (W28).
+    if (region.uncharted) return "Uncharted land";
     const landmark = landmarkAt(position, region.id);
     if (landmark && !canAccessSettlement(landmark)) return "Vampire Citadel";
     if (settlementAt(position, region.id)) return "Town";
@@ -384,6 +445,8 @@
     if (site) return site.name;
     const terrain = terrainAt(position, region.id);
     if (terrain === "road") return "Road";
+    // Wild ground past a region's old edge has the edge's zone (W17).
+    if (outsideBox(position)) position = clampBox(position);
     if (region.id === "stoneveil-foothills") {
       let zone = terrain === "river"
         ? "River"
@@ -516,7 +579,34 @@
         : zone === "Caldera" ? 2 : zone === "Dunes" || zone === "Beach" || zone === "Ashen Slope" || zone === "Thunder Hills" || zone === "Windcut Bluffs" || zone === "Dry Steppe" || zone === "Desert Fringe" ? 4
           : zone === "Floodplain" || zone === "Reed Marsh" || zone === "Stormcrest" ? 3
             : zone === "Shifting Dunes" || zone === "Glass Dunes" || zone === "Howling Dunes" || zone === "Buried Necropolis" || zone === "Caravan Dunes" || zone === "Crimson Dunes" || zone === "Heart of the Red Waste" || zone === "Mass Graves" || zone === "Bone Pits" || zone === "Deep Boreal" || zone === "Shadowroot Hollow" ? 4 : 5;
-    return Math.max(0.1, base + Math.max(0, flat) + Math.max(0, river));
+    // The horse carriage (port task 8, W9, W10): twice the speed on a road, half as fast again off it.
+    const carriage = typeof bonus === "object" && bonus?.carriage ? terrain === "road" ? CARRIAGE.ROAD : CARRIAGE.OFF_ROAD : 1;
+    return Math.max(0.1, (base + Math.max(0, flat) + Math.max(0, river)) * carriage);
+  }
+  /* ---------- The horse carriage (port task 8: W9, W10, W33-W35) ----------
+     Bought once at a General Store for 50,000 silver. It drives on every road but the steep mountain roads of the High
+     Stoneveil and the Summit, and off the roads only on open land (OPEN_ZONES: plains, hills, downs, steppe, flats,
+     beaches, open sand that is not dunes, the uncharted land; never forest, jungle, marsh or bog, dunes, rock or
+     cliffs, lava, rivers, nor the Ancient Battlefield off its roads); it stays on the mainland (it waits at the port
+     while you are on Cinder Isle) and comes along with the caravan. */
+  const CARRIAGE = Object.freeze({
+    PRICE_SILVER: 50000, ROAD: 2, OFF_ROAD: 1.5,
+    MOUNTAIN_ROADS: Object.freeze(["high-stoneveil", "stoneveil-summit"]), ISLANDS: Object.freeze(["cinder-isle"]),
+    OPEN_ZONES: Object.freeze(new Set(["Town", "Plains", "Hill-Plains", "Coastal Plains", "Windswept Plains", "Beach", "Rainwashed Downs", "Thunder Hills",
+      "Lake Shore", "Dry Steppe", "Sunburnt Flats", "Salt Pans", "Obsidian Flats", "Bloodglass Flats", "Outer Wastes", "Open Desert", "Sanguine Wastes",
+      "Blood Coast", "Uncharted land", "Church of Talos", "Institute of Magic"])),
+  });
+  // Whether the carriage can be driven at a point of a region, and if not, why.
+  function carriageGround(position, regionId = activeRegionId) {
+    const region = getRegion(regionId);
+    if (CARRIAGE.ISLANDS.includes(region.id)) return { ok: false, reason: "The carriage stays on the mainland." };
+    if (CARRIAGE.MOUNTAIN_ROADS.includes(region.id)) return { ok: false, reason: "The carriage cannot climb the Stoneveil's steep mountain roads." };
+    if (!isLand(position, region.id)) return { ok: false, reason: "The carriage cannot cross water." };
+    const terrain = terrainAt(position, region.id);
+    if (terrain === "road") return { ok: true, reason: "" };
+    if (terrain === "river") return { ok: false, reason: "The carriage cannot ford a river." };
+    const zone = zoneAt(position, region.id), open = zone.replace(/ - near Town$/, "");
+    return CARRIAGE.OPEN_ZONES.has(open) ? { ok: true, reason: "" } : { ok: false, reason: `Rough ground for a carriage: ${zone}.` };
   }
   function travelMinutes(a, b, speedBonus = 0, regionId = activeRegionId) {
     const totalDistance = distance(a, b);
@@ -527,7 +617,7 @@
       const segment = Math.min(5, totalDistance - travelled);
       const midpoint = { x: a.x + dx * (travelled + segment / 2), y: a.y + dy * (travelled + segment / 2) };
       if (getRegion(regionId).lake && !isLand(midpoint, regionId)) return Infinity;
-      minutes += segment / UNITS_PER_KM / speedAt(midpoint, speedBonus, regionId) * 60;
+      minutes += segment / LOCAL_UNITS_PER_KM / speedAt(midpoint, speedBonus, regionId) * 60;
       travelled += segment;
     }
     return minutes;
@@ -550,7 +640,7 @@
       if (!edges[first].some(edge => edge.to === second)) edges[first].push({ to: second, length });
       if (!edges[second].some(edge => edge.to === first)) edges[second].push({ to: first, length });
     };
-    getRegion(normalizedRegionId).roads.forEach(path => {
+    roadsWithCrossings(getRegion(normalizedRegionId)).forEach(path => {
       let previous = null;
       path.forEach(rawPoint => {
         const current = nodeId(rawPoint);
@@ -575,7 +665,7 @@
     if (!count) return directRoute;
     const flatSpeedBonus = typeof speedBonus === "object" ? number(speedBonus?.all, 0) : number(speedBonus, 0);
     const riverSpeedBonus = typeof speedBonus === "object" ? number(speedBonus?.river, 0) : 0;
-    const fastestMinutesPerUnit = 1.5 / Math.max(0.1, Math.max(7 + Math.max(0, flatSpeedBonus), 2 + Math.max(0, flatSpeedBonus) + Math.max(0, riverSpeedBonus)));
+    const fastestMinutesPerUnit = 60 / LOCAL_UNITS_PER_KM / Math.max(0.1, Math.max(7 + Math.max(0, flatSpeedBonus), 2 + Math.max(0, flatSpeedBonus) + Math.max(0, riverSpeedBonus)));
     const lowerBound = (first, second) => distance(first, second) * fastestMinutesPerUnit;
     const useful = graph.nodes.map(node => lowerBound(start, node) + lowerBound(node, end) < directMinutes - 1e-7);
     const costs = Array(count).fill(Infinity), previous = Array(count).fill(-1), visited = new Set();
@@ -634,46 +724,349 @@
     }
     return total;
   }
+  /* ---------- The continent (port task 8) ----------
+     Travel runs in continent units: a destination and its route are continent points, and the traveller's region and
+     local position follow from where they stand (the nearest region's territory). Region rules (terrain, zones, speed)
+     still answer in each region's own coordinates. */
+  const toContinent = (regionId, position) => continent ? CONTINENT.toC(normalizeRegionId(regionId), position) : { x: position.x, y: position.y };
+  function fromContinent(c) {
+    if (!continent) return { regionId: activeRegionId, position: point(c) };
+    const regionId = CONTINENT.regionAt(c);
+    return { regionId, position: CONTINENT.toLocal(regionId, c) };
+  }
+  const continentPoint = c => ({ x: number(c?.x, 0), y: number(c?.y, 0) });
+  function passableAt(c) {
+    if (!continent) return isLand(c);
+    const { regionId, position } = fromContinent(c);
+    return isLand(position, regionId);
+  }
+  // The nearest point that can be stood on (a save from before the land took its natural shape can stand where the sea
+  // or the mountains bit in, W17): rings every 10 units out to 1,200.
+  function nearestPassable(c) {
+    if (passableAt(c)) return c;
+    for (let r = 10; r <= 1200; r += 10) {
+      const steps = Math.ceil(2 * Math.PI * r / 10);
+      for (let k = 0; k < steps; k++) {
+        const p = { x: c.x + Math.cos(k / steps * 2 * Math.PI) * r, y: c.y + Math.sin(k / steps * 2 * Math.PI) * r };
+        if (passableAt(p)) return p;
+      }
+    }
+    return null;
+  }
+  function continentSpeedAt(c, bonus = 0) {
+    const { regionId, position } = fromContinent(c);
+    return speedAt(position, bonus, regionId);
+  }
+  // Minutes along a straight line, sampled every 5 units; Infinity if it crosses ground no one can stand on.
+  // With `allowed` (a test of region ids), also Infinity where the line crosses a region it refuses.
+  function continentTravelMinutes(a, b, bonus = 0, allowed = null) {
+    const totalDistance = distance(a, b);
+    if (!totalDistance) return 0;
+    const dx = (b.x - a.x) / totalDistance, dy = (b.y - a.y) / totalDistance;
+    let travelled = 0, minutes = 0;
+    while (travelled < totalDistance - 1e-8) {
+      const segment = Math.min(5, totalDistance - travelled);
+      const midpoint = { x: a.x + dx * (travelled + segment / 2), y: a.y + dy * (travelled + segment / 2) };
+      if (!passableAt(midpoint) || allowed && !allowed(CONTINENT.regionAt(midpoint))) return Infinity;
+      if (typeof bonus === "object" && bonus?.carriage) { const at = fromContinent(midpoint); if (!carriageGround(at.position, at.regionId).ok) return Infinity; }
+      minutes += segment / UNITS_PER_KM / continentSpeedAt(midpoint, bonus) * 60;
+      travelled += segment;
+    }
+    return minutes;
+  }
+  // Every region's roads and border crossings in continent units, one graph.
+  let continentGraph = null;
+  const ROAD_GAP = CONTINENT ? CONTINENT.ROAD_GAP : 200 * SCALE;
+  function continentRoadGraph() {
+    if (continentGraph) return continentGraph;
+    const nodes = [], regionOf = [], edges = [], ids = new Map();
+    const nodeId = (c, regionId) => {
+      const key = c.x.toFixed(3) + ":" + c.y.toFixed(3);
+      if (ids.has(key)) return ids.get(key);
+      ids.set(key, nodes.length); nodes.push(c); regionOf.push(regionId); edges.push([]);
+      return nodes.length - 1;
+    };
+    const connect = (first, second) => {
+      if (first === second || edges[first].some(edge => edge.to === second)) return;
+      const length = distance(nodes[first], nodes[second]);
+      edges[first].push({ to: second, length }); edges[second].push({ to: first, length });
+    };
+    for (const region of Object.values(regions)) {
+      const paths = roadsWithCrossings(region).map(path => {
+        const indexes = [];
+        for (const raw of path) {
+          const current = nodeId(toContinent(region.id, point(raw)), region.id);
+          if (indexes.length) connect(indexes.at(-1), current);
+          indexes.push(current);
+        }
+        return indexes;
+      });
+      // A road's end joins the nearest point of another road of its region close by: a crossing's half meets the
+      // road it continues, and broken roads (the Ancient Battlefield's) are walked across their gaps.
+      paths.forEach((indexes, pathIndex) => {
+        for (const end of [indexes[0], indexes.at(-1)]) {
+          let best = -1, bestDistance = ROAD_GAP;
+          paths.forEach((other, otherIndex) => {
+            if (otherIndex === pathIndex) return;
+            for (const candidate of other) {
+              const d = distance(nodes[end], nodes[candidate]);
+              if (d < bestDistance && d > 1e-7) { best = candidate; bestDistance = d; }
+            }
+          });
+          if (best >= 0) connect(end, best);
+        }
+      });
+    }
+    continentGraph = { nodes, regionOf, edges };
+    return continentGraph;
+  }
+  const bonusKey = bonus => typeof bonus === "object" ? `${number(bonus?.all, 0)}|${number(bonus?.river, 0)}|${number(bonus?.carriage, 0)}|${number(bonus?.carriageRoad, 0)}` : String(number(bonus, 0));
+  const edgeMinutes = new Map();
+  function graphEdgeMinutes(graph, from, edge, bonus) {
+    const key = bonusKey(bonus);
+    let table = edgeMinutes.get(key);
+    if (!table) { table = new Map(); edgeMinutes.set(key, table); if (edgeMinutes.size > 12) edgeMinutes.delete(edgeMinutes.keys().next().value); }
+    const id = from < edge.to ? from * 100000 + edge.to : edge.to * 100000 + from;
+    if (!table.has(id)) table.set(id, continentTravelMinutes(graph.nodes[from], graph.nodes[edge.to], bonus));
+    return table.get(id);
+  }
+  // The fastest way between two continent points: straight, or onto the roads near the start, along any roads and
+  // border crossings, and off them near the end (Dijkstra on travel minutes, port task 8, W13).
+  /* The fastest way from one continent point to another: straight, or onto the roads and along them. Given `entered`
+     (the regions the traveller has entered), off the roads it crosses only those and the regions where the trip starts
+     and ends; anywhere else it keeps to the roads (W30). */
+  /* A way across country where a straight line is blocked (the natural coast's bays and inland waters, W17-W26): A* on
+     a grid of LAND_CELL units over the ground that can be stood on (and the regions `allowed` lets it cross), within
+     LAND_SEARCH units round the two points, then pulled straight wherever a straight line is clear. The waypoints after
+     `a`, ending at `b`; null when no way is found. */
+  const LAND_CELL = 32, LAND_SEARCH = 2400, NEAREST_NODES = 24;
+  function landPath(a, b, allowed = null, bonus = 0) {
+    const carriage = typeof bonus === "object" && bonus?.carriage;
+    const x0 = Math.min(a.x, b.x) - LAND_SEARCH, y0 = Math.min(a.y, b.y) - LAND_SEARCH;
+    const cols = Math.ceil((Math.max(a.x, b.x) + LAND_SEARCH - x0) / LAND_CELL) + 1, rows = Math.ceil((Math.max(a.y, b.y) + LAND_SEARCH - y0) / LAND_CELL) + 1;
+    const cell = c => [Math.round((c.x - x0) / LAND_CELL), Math.round((c.y - y0) / LAND_CELL)];
+    const centre = (col, row) => ({ x: x0 + col * LAND_CELL, y: y0 + row * LAND_CELL });
+    const known = new Int8Array(cols * rows);
+    const open = (col, row) => {
+      if (col < 0 || row < 0 || col >= cols || row >= rows) return false;
+      const i = row * cols + col;
+      if (!known[i]) { const c = centre(col, row), at = carriage && fromContinent(c); known[i] = passableAt(c) && (!allowed || allowed(CONTINENT.regionAt(c))) && (!carriage || carriageGround(at.position, at.regionId).ok) ? 1 : 2; }
+      return known[i] === 1;
+    };
+    const [sc, sr] = cell(a), [gc, gr] = cell(b);
+    const goal = gr * cols + gc, startIndex = sr * cols + sc;
+    const g = new Float64Array(cols * rows).fill(Infinity), from = new Int32Array(cols * rows).fill(-1), closed = new Uint8Array(cols * rows);
+    const heap = [];
+    const push = (f, index) => { heap.push([f, index]); let i = heap.length - 1; while (i > 0) { const parent = (i - 1) >> 1; if (heap[parent][0] <= heap[i][0]) break; [heap[parent], heap[i]] = [heap[i], heap[parent]]; i = parent; } };
+    const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = i * 2 + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
+    const h = index => Math.hypot(index % cols - gc, Math.floor(index / cols) - gr);
+    g[startIndex] = 0; push(h(startIndex), startIndex);
+    while (heap.length) {
+      const [, current] = pop();
+      if (closed[current]) continue;
+      closed[current] = 1;
+      if (current === goal) break;
+      const col = current % cols, row = Math.floor(current / cols);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        const nc = col + dx, nr = row + dy, next = nr * cols + nc;
+        if (!(next === goal && nc >= 0 && nr >= 0 && nc < cols && nr < rows) && !open(nc, nr)) continue;
+        if (dx && dy && !(open(col + dx, row) && open(col, row + dy))) continue;
+        const cost = g[current] + (dx && dy ? Math.SQRT2 : 1);
+        if (cost < g[next]) { g[next] = cost; from[next] = current; push(cost + h(next), next); }
+      }
+    }
+    if (!Number.isFinite(g[goal])) return null;
+    const cells = [];
+    for (let i = from[goal]; i >= 0 && i !== startIndex; i = from[i]) cells.push(centre(i % cols, Math.floor(i / cols)));
+    cells.reverse();
+    const points = [...cells, { ...b }], route = [];
+    let cursor = a;
+    for (let i = 0; i < points.length;) {
+      let far = i;
+      for (let j = points.length - 1; j > i; j--) if (Number.isFinite(continentTravelMinutes(cursor, points[j], carriage ? { carriage: 1 } : 0, allowed))) { far = j; break; }
+      route.push(points[far]); cursor = points[far]; i = far + 1;
+    }
+    return route;
+  }
+  const routeMinutes = (a, points, bonus, allowed) => { let total = 0, cursor = a; for (const p of points) { total += continentTravelMinutes(cursor, p, bonus, allowed); cursor = p; } return total; };
+  function continentRoute(startValue, endValue, bonus = 0, { maxSpeed = 7, entered = null, roadsOnly = false } = {}) {
+    const start = continentPoint(startValue), end = continentPoint(endValue);
+    if (distance(start, end) < 1e-7) return [{ ...end }];
+    const startRegion = fromContinent(start).regionId, endRegion = fromContinent(end).regionId;
+    const known = entered ? new Set(entered) : null;
+    // `roadsOnly`: along the roads all the way, but for the steps onto them and off at the ends (the caravan, W8).
+    const allowed = roadsOnly ? () => true : known ? id => known.has(id) || id === startRegion || id === endRegion : null;
+    let direct = roadsOnly ? Infinity : continentTravelMinutes(start, end, bonus, allowed), directVia = null;
+    // Blocked straight: round the water across country, if near enough to search.
+    if (!roadsOnly && !Number.isFinite(direct) && distance(start, end) <= LAND_SEARCH * 2) {
+      directVia = landPath(start, end, allowed, bonus);
+      if (directVia) direct = routeMinutes(start, directVia, bonus, allowed);
+    }
+    const graph = continentRoadGraph(), count = graph.nodes.length;
+    const flat = typeof bonus === "object" ? number(bonus?.all, 0) : number(bonus, 0);
+    const fastest = Math.max(maxSpeed, 7) + Math.max(0, flat) + (typeof bonus === "object" ? Math.max(0, number(bonus?.river, 0)) : 0);
+    const minutesPerUnit = 60 / UNITS_PER_KM / Math.max(0.1, fastest * Math.max(1, typeof bonus === "object" ? 1 + Math.max(0, number(bonus?.carriageRoad, 0)) / 100 : 1));
+    const bound = (a, b) => distance(a, b) * minutesPerUnit;
+    // On and off the roads only in the region where the trip starts or ends, and not farther than a region's width.
+    const reach = roadsOnly ? (CONTINENT?.CW || 1600) : Math.max(CONTINENT?.CW || 1600, CONTINENT?.CH || 1000);
+    const costs = new Float64Array(count).fill(Infinity), previous = new Int32Array(count).fill(-1), done = new Uint8Array(count);
+    const heap = [];
+    const push = (cost, index) => { heap.push([cost, index]); let i = heap.length - 1; while (i > 0) { const parent = (i - 1) >> 1; if (heap[parent][0] <= heap[i][0]) break; [heap[parent], heap[i]] = [heap[i], heap[parent]]; i = parent; } };
+    const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = i * 2 + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
+    const entranceVia = new Map();
+    // Onto the roads and off them at the NEAREST_NODES nearest road points of the start's and the end's regions.
+    const nearestOf = (point, regionId) => graph.nodes.map((node, index) => index).filter(index => graph.regionOf[index] === regionId && distance(point, graph.nodes[index]) <= reach)
+      .sort((p, q) => distance(point, graph.nodes[p]) - distance(point, graph.nodes[q])).slice(0, NEAREST_NODES);
+    const finishNodes = new Set(nearestOf(end, endRegion));
+    for (const index of nearestOf(start, startRegion)) {
+      if (bound(start, graph.nodes[index]) + bound(graph.nodes[index], end) >= direct) continue;
+      const entrance = continentTravelMinutes(start, graph.nodes[index], bonus, allowed);
+      if (Number.isFinite(entrance) && entrance < costs[index]) { costs[index] = entrance; push(entrance, index); }
+    }
+    // No straight way onto a road: across country to the nearest road of the start's region.
+    if (!heap.length) {
+      const nearest = graph.nodes.map((node, index) => index).filter(index => graph.regionOf[index] === startRegion).sort((p, q) => distance(start, graph.nodes[p]) - distance(start, graph.nodes[q]))[0];
+      const via = nearest != null && landPath(start, graph.nodes[nearest], allowed, bonus);
+      if (via) { costs[nearest] = routeMinutes(start, via, bonus, allowed); entranceVia.set(nearest, via.slice(0, -1)); push(costs[nearest], nearest); }
+    }
+    let best = direct, exit = -1;
+    const finishes = new Map();
+    while (heap.length) {
+      const [cost, current] = pop();
+      if (done[current] || cost > costs[current]) continue;
+      done[current] = 1;
+      if (cost + bound(graph.nodes[current], end) >= best - 1e-7) continue;
+      if (finishNodes.has(current)) {
+        if (!finishes.has(current)) finishes.set(current, continentTravelMinutes(graph.nodes[current], end, bonus, allowed));
+        const finish = cost + finishes.get(current);
+        if (finish < best - 1e-7) { best = finish; exit = current; }
+      }
+      for (const edge of graph.edges[current]) {
+        if (done[edge.to]) continue;
+        const next = cost + graphEdgeMinutes(graph, current, edge, bonus);
+        if (next < costs[edge.to] && next + bound(graph.nodes[edge.to], end) < best - 1e-7) { costs[edge.to] = next; previous[edge.to] = current; push(next, edge.to); }
+      }
+    }
+    // No straight way off the roads to the end: across country from the nearest road reached in the end's region.
+    let finishVia = null;
+    if (exit < 0 && !Number.isFinite(direct)) {
+      const nearest = graph.nodes.map((node, index) => index).filter(index => done[index] && graph.regionOf[index] === endRegion).sort((p, q) => distance(end, graph.nodes[p]) - distance(end, graph.nodes[q]))[0];
+      const via = nearest != null && landPath(graph.nodes[nearest], end, allowed, bonus);
+      if (via) { exit = nearest; finishVia = via.slice(0, -1); }
+    }
+    if (exit < 0) return Number.isFinite(direct) ? [...(directVia || [{ ...end }])].map(p => ({ ...p })) : [];
+    if (roadsOnly && !Number.isFinite(best) && !finishVia) return [];
+    const path = [];
+    for (let current = exit; current >= 0; current = previous[current]) path.push(graph.nodes[current]);
+    path.reverse();
+    const route = [...(entranceVia.get(path.length ? graph.nodes.indexOf(path[0]) : -1) || []), ...path, ...(finishVia || []), end].reduce((result, routePoint) => {
+      if (!result.length || distance(result.at(-1), routePoint) > 1e-7) result.push({ ...routePoint });
+      return result;
+    }, []);
+    while (route.length > 1 && distance(start, route[0]) < 1e-7) route.shift();
+    return route;
+  }
+  function continentRouteDistance(startValue, routeValue) {
+    let cursor = continentPoint(startValue), total = 0;
+    for (const raw of Array.isArray(routeValue) ? routeValue : []) { if (!validPoint(raw)) continue; total += distance(cursor, raw); cursor = continentPoint(raw); }
+    return total;
+  }
+  function continentRouteMinutes(startValue, routeValue, bonus = 0) {
+    let cursor = continentPoint(startValue), total = 0;
+    for (const raw of Array.isArray(routeValue) ? routeValue : []) { if (!validPoint(raw)) continue; total += continentTravelMinutes(cursor, raw, bonus); cursor = continentPoint(raw); }
+    return total;
+  }
+  /* ---------- The caravan (port task 8: W7, W8, W16) ----------
+     Paid travel between castle cities whose caravan the traveller has unlocked (by visiting them), along the roads:
+     21 km of road an hour (three times walking pace on a road) and 2 silver a km of road. */
+  const CARAVAN = Object.freeze({ KM_PER_HOUR: 21, SILVER_PER_KM: 2 });
+  const castleCity = id => { for (const region of Object.values(regions)) { const place = (region.settlements || []).find(candidate => candidate.id === id && candidate.kind === "Castle city"); if (place) return { regionId: region.id, place }; } return null; };
+  const caravanTrips = new Map();
+  function caravanTrip(fromId, toId) {
+    const key = fromId + ">" + toId;
+    if (caravanTrips.has(key)) return caravanTrips.get(key);
+    const from = castleCity(fromId), to = castleCity(toId);
+    let trip = null;
+    if (from && to && fromId !== toId) {
+      const start = toContinent(from.regionId, from.place), end = toContinent(to.regionId, to.place);
+      const route = continentRoute(start, end, 0, { roadsOnly: true });
+      if (route.length) {
+        const km = continentRouteDistance(start, route) / UNITS_PER_KM;
+        trip = { from: fromId, to: toId, toRegionId: to.regionId, name: to.place.name, start, route, km, minutes: Math.round(km / CARAVAN.KM_PER_HOUR * 60), fare: Math.round(km * CARAVAN.SILVER_PER_KM) };
+      }
+    }
+    caravanTrips.set(key, trip);
+    return trip;
+  }
+  // The trips the caravan offers from a castle city: to every other castle city with an unlocked caravan the traveller
+  // may enter, nearest first.
+  function caravanTrips_(state, fromId) {
+    const unlocked = Array.isArray(state?.caravans) ? state.caravans : [];
+    if (!unlocked.includes(fromId)) return [];
+    return unlocked.filter(id => id !== fromId && castleCity(id) && canAccessSettlement(castleCity(id).place)).map(id => caravanTrip(fromId, id)).filter(Boolean).sort((a, b) => a.km - b.km);
+  }
+  // Where a traveller stands on the continent.
+  const standing = state => toContinent(state.regionId, state.position);
+  // The region they stand in counts as entered (W12), the castle city they stand in as visited (caravans, W16).
+  function noteVisit(state) {
+    if (!Array.isArray(state.visitedRegions)) state.visitedRegions = [];
+    if (!state.visitedRegions.includes(state.regionId)) state.visitedRegions.push(state.regionId);
+    if (charted(state.regionId)) state.lastChartedRegionId = state.regionId;
+    const place = settlementAt(state.position, state.regionId);
+    if (place?.kind === "Castle city") {
+      if (!Array.isArray(state.caravans)) state.caravans = [];
+      if (!state.caravans.includes(place.id)) state.caravans.push(place.id);
+    }
+  }
+  // Puts a traveller at a continent point: their region follows from it.
+  function placeAt(state, c) {
+    const { regionId, position } = fromContinent(c);
+    state.regionId = regionId; state.position = position;
+    noteVisit(state);
+  }
   function prepareRoute(state) {
     if (!validPoint(state.destination)) { state.destination = null; state.route = []; return []; }
-    state.destination = point(state.destination);
-    let route = Array.isArray(state.route) ? state.route.filter(validPoint).slice(0, 512).map(point) : [];
+    state.destination = continentPoint(state.destination);
+    const here = standing(state);
+    let route = Array.isArray(state.route) ? state.route.filter(validPoint).slice(0, 2048).map(continentPoint) : [];
     if (!route.length || distance(route.at(-1), state.destination) > 1e-7) route = [{ ...state.destination }];
-    while (route.length && distance(state.position, route[0]) < 1e-7) route.shift();
+    while (route.length && distance(here, route[0]) < 1e-7) route.shift();
     state.route = route;
     return route;
   }
   function stepToward(state, target, available, speedBonus) {
-    const origin = { ...state.position }, totalDistance = distance(origin, target);
-    if (!totalDistance) return { elapsed: 0, travelled: 0, reached: true };
+    const origin = standing(state), totalDistance = distance(origin, target);
+    if (!totalDistance) return { elapsed: 0, travelled: 0, reached: true, blocked: false };
     const dx = (target.x - origin.x) / totalDistance, dy = (target.y - origin.y) / totalDistance;
-    let travelled = 0, elapsed = 0;
+    let travelled = 0, elapsed = 0, blocked = false;
     while (available > 1e-8 && travelled < totalDistance - 1e-8) {
       const segment = Math.min(5, totalDistance - travelled);
       const midpoint = { x: origin.x + dx * (travelled + segment / 2), y: origin.y + dy * (travelled + segment / 2) };
-      const speed = speedAt(midpoint, speedBonus, state.regionId), segmentMinutes = segment / UNITS_PER_KM / speed * 60;
+      if (!passableAt(midpoint)) { blocked = true; break; }
+      const speed = continentSpeedAt(midpoint, speedBonus), segmentMinutes = segment / UNITS_PER_KM / speed * 60;
       const used = Math.min(available, segmentMinutes);
       travelled += segment * used / segmentMinutes;
       elapsed += used; available -= used;
       if (used < segmentMinutes) break;
     }
-    state.position.x = origin.x + dx * travelled;
-    state.position.y = origin.y + dy * travelled;
-    return { elapsed, travelled, reached: totalDistance - travelled < 1e-7 };
+    placeAt(state, { x: origin.x + dx * travelled, y: origin.y + dy * travelled });
+    return { elapsed, travelled, reached: !blocked && totalDistance - travelled < 1e-7, blocked };
   }
   function step(state, minutes, speedBonus = 0) {
     if (!state.destination) { state.route = []; return { elapsed: 0, arrived: false }; }
-    let route = prepareRoute(state), available = Math.max(0, number(minutes, 0)), elapsed = 0, travelled = 0;
+    let route = prepareRoute(state), available = Math.max(0, number(minutes, 0)), elapsed = 0, travelled = 0, blocked = false;
     while (route.length && available > 1e-8) {
       const leg = stepToward(state, route[0], available, speedBonus);
       elapsed += leg.elapsed; travelled += leg.travelled; available -= leg.elapsed;
+      if (leg.blocked) { blocked = true; break; }
       if (!leg.reached) break;
-      state.position = { ...route[0] }; route.shift();
+      placeAt(state, route[0]); route.shift();
     }
     state.distanceTraveledKm = Math.max(0, number(state.distanceTraveledKm, 0)) + travelled / UNITS_PER_KM;
-    const arrived = route.length === 0 && distance(state.position, state.destination) < 1e-7;
-    if (arrived) { state.position = { ...state.destination }; state.destination = null; state.route = []; }
-    return { elapsed, arrived };
+    const arrived = !blocked && route.length === 0 && distance(standing(state), state.destination) < 1e-7;
+    if (arrived || blocked) { if (arrived) placeAt(state, state.destination); state.destination = null; state.route = []; }
+    return { elapsed, arrived, blocked };
   }
   function lighting(minutes) {
     const hour = (((number(minutes, 0) % 1440) + 1440) % 1440) / 60;
@@ -728,7 +1121,8 @@
     const keep = list => (Array.isArray(list) ? list : []).filter(id => !RETIRED_ARTIFACT_IDS.has(id));
     return { ...information, offers: { ...information.offers, item: keep(information.offers?.item) }, revealed: { ...information.revealed, item: keep(information.revealed?.item) } };
   }
-  const api = { RETIRED_ARTIFACT_IDS, UNITS_PER_KM, MAP_SCALE, ENCOUNTER_MINUTES, RENAMED_ENEMIES, settlements, forests, regions, normalizeRegionId, getRegion, setActiveRegion, activeRegion, settlementsForRegion, nearestSettlement, setSettlementAccessResolver, canAccessSettlement, landmarkAt, siteAt, normalize, timeSpeeds, normalizeTimeSpeed, realTimeMinutes, day, time, point, distance, settlementAt, isLand, terrainAt, zoneAt, speedAt, travelMinutes, routeBetween, routeDistance, routeTravelMinutes, exitAt, exitById, step, lighting };
+  const api = { CARRIAGE, carriageGround, CARAVAN, castleCity, caravanTrip, caravanTrips: caravanTrips_, CONTINENT_VERSION, SCALE, LOCAL_UNITS_PER_KM, REACH, castleCityIds, toContinent, fromContinent, passableAt, continentSpeedAt, continentTravelMinutes, continentRoadGraph, continentRoute, continentRouteDistance, continentRouteMinutes, placeAt, noteVisit, standing, get continent() { return continent; },
+    RETIRED_ARTIFACT_IDS, UNITS_PER_KM, MAP_SCALE, ENCOUNTER_MINUTES, RENAMED_ENEMIES, settlements, forests, regions, normalizeRegionId, getRegion, setActiveRegion, activeRegion, settlementsForRegion, nearestSettlement, setSettlementAccessResolver, canAccessSettlement, landmarkAt, siteAt, normalize, timeSpeeds, normalizeTimeSpeed, realTimeMinutes, day, time, point, distance, settlementAt, isLand, nearRiver, terrainAt, zoneAt, speedAt, travelMinutes, routeBetween, routeDistance, routeTravelMinutes, exitAt, exitById, step, lighting };
   root.WorldRules = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(globalThis);
