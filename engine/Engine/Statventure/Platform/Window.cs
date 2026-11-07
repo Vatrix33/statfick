@@ -38,6 +38,14 @@ public sealed class Window : IDisposable
     /// <summary>Raised from <see cref="PollEvents"/> when the framebuffer changes size (in pixels).</summary>
     public event Action<int, int>? FramebufferResized;
 
+    /// <summary>
+    /// Raised from <see cref="PollEvents"/> when files or folders are dropped on the window from the desktop
+    /// (GLFW's drop callback; Docs/Editor.md, step 3): their paths as the window system gives them, in the
+    /// order it gives them. GLFW reports only the drop: no position and no events while dragging, so nothing
+    /// can be shown before it. The game doesn't listen, and a drop nothing listens to does nothing.
+    /// </summary>
+    public event Action<IReadOnlyList<string>>? PathsDropped;
+
     Window(GlfwWindow native)
     {
         Native = native;
@@ -73,6 +81,8 @@ public sealed class Window : IDisposable
         // Caps Lock and Num Lock come with the modifiers (the keypad's keys depend on Num Lock).
         native.SetInputMode(GlfwInputMode.LockKeyMods, 1);
         native.OnFramebufferSize += (_, size) => FramebufferResized?.Invoke(size.X, size.Y);
+        // Files dropped from the desktop: the paths only (X11's XDND and Wayland's data device, as GLFW 3.4 reads them).
+        native.OnDrop += (_, _, paths) => PathsDropped?.Invoke(paths);
     }
 
     public static Window Create(WindowOptions options)
@@ -150,8 +160,19 @@ public sealed class Window : IDisposable
     public float ContentScale => Width > 0 ? FramebufferWidth / (float)Width : Native.ContentScale.X;
 
     /// <summary>The window is minimized: GLFW says so (X11, Windows; never on Wayland) or there is nothing to draw into (Windows).</summary>
-    public bool IsMinimized => Native.IsIconified || FramebufferWidth == 0 || FramebufferHeight == 0;
+    public bool IsMinimized => MinimizedForTests || Native.IsIconified || FramebufferWidth == 0 || FramebufferHeight == 0;
 
+    /// <summary>
+    /// Tests: the window counts as minimized without the window system minimizing it, so the application's
+    /// loop runs its minimized branch (updates, no frames) on a hidden window, which nothing shows and which
+    /// Wayland can't minimize.
+    /// </summary>
+    internal bool MinimizedForTests { get; set; }
+
+    /// <summary>
+    /// GLFW's close flag: set when the player closes the window (or by setting it), cleared by setting it
+    /// false. The application's loop ends on it once the application agrees (<c>Application.ConfirmClose</c>).
+    /// </summary>
     public bool CloseRequested
     {
         get => Native.ShouldClose;

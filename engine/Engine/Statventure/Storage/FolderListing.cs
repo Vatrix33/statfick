@@ -21,10 +21,11 @@ public static class FolderListing
 
     /// <summary>
     /// The folders and files directly in <paramref name="folder"/>, hidden ones too (flagged), in
-    /// ordinal order of their names; what the picker shows and how it sorts is the port's.
+    /// ordinal order of their names; what the picker shows and how it sorts is the port's (the file
+    /// browser's model, <see cref="FileBrowser"/>). A folder that can't be read lists as empty
+    /// (<see cref="EnumerationOptions.IgnoreInaccessible"/>), without an exception.
     /// </summary>
-    /// <exception cref="DirectoryNotFoundException">There is no such folder.</exception>
-    /// <exception cref="UnauthorizedAccessException">It can't be listed.</exception>
+    /// <exception cref="DirectoryNotFoundException">There is no such folder (or it is a file).</exception>
     public static IReadOnlyList<FolderEntry> List(string folder)
     {
         var entries = new List<FolderEntry>();

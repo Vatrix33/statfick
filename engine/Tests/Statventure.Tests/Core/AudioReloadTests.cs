@@ -8,7 +8,8 @@ namespace Statventure.Tests.Core;
 /// The sound when the data reloads (Docs/Assets.md, step 9; S9-D), on the audio system's mixer without a
 /// device or thread: the theme playing restarts through the switch Play makes when its music changed (its theme,
 /// or any instrument, percussion voice or room, by binary form) and plays on otherwise; later plays use the new
-/// library; the data's effect patches that are new or changed are registered, the others left as they are.
+/// library; the data's effect patches that are new or changed are registered, the others left as they are. The
+/// swap is public since M11 step 3 (the editor's preview of an edited theme: Docs/Editor.md, step 3).
 /// </summary>
 public class AudioReloadTests
 {
@@ -200,6 +201,19 @@ public class AudioReloadTests
         var heard = Render(reloaded, 40);
         Assert.Contains(heard, s => s != 0);
         Assert.Equal(Render(expected, 40), heard);
+    }
+
+    /// <summary>
+    /// The swap these tests render is public (Docs/Editor.md, step 3): the editor's preview plays an edited theme
+    /// through it, as the game's Reload does.
+    /// </summary>
+    [Fact]
+    public void TheSwapIsPublic()
+    {
+        var reload = typeof(AudioSystem).GetMethod(nameof(AudioSystem.Reload), [typeof(MusicLibrary)]);
+        Assert.NotNull(reload);
+        Assert.True(reload.IsPublic);
+        Assert.Equal(typeof(void), reload.ReturnType);
     }
 
     [Fact]

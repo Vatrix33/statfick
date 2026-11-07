@@ -19,6 +19,9 @@ the user and wait for their go-ahead before starting the next one.
 - Build and test: `Tools/Scripts/test.sh` (Windows: `Tools\Scripts\test.ps1`); all tests must pass
   before a step counts as done. They pass the same on the PC's GPU, on a CPU Vulkan (the cloud) and
   on Windows: they act as Chromium on Linux with the reference PC's fonts and font settings.
+  Tests make their windows hidden (`WindowOptions.Visible = false`: a surface and a swapchain all the same, nothing
+  shown; the default stays visible for the game). The one exception is `SwapchainTests`: a hidden surface isn't paced
+  by every compositor, and wlroots hangs its five vsync frames (`Docs/Editor.md`, "How it works", step 3).
 - Packs (`.pak`, `Docs/Assets.md`) in `git diff` as their dumps: once per clone, from the repo's root,
   `git config diff.pak.textconv engine/Tools/Packer/textconv.sh`.
   `Tools/Scripts/make-ui-pack.sh` makes `Assets/Packs/ui.pak` (the old game's five fonts and their licences).

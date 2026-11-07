@@ -448,7 +448,10 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   its steps, then the quantum renders; nothing locks while rendering. The audio thread renders
   whole buffers whenever the output can take one; a rendering error is logged once and silence
   follows. `Pause`/`Resume`; `Application` pauses all audio while its window is minimized (step 7's
-  decision) and creates the system unless `ApplicationOptions.Audio` is off.
+  decision) and creates the system unless `ApplicationOptions.Audio` is off. `Reload(MusicLibrary)` swaps in
+  another library (Docs/Assets.md, S9-D: the theme playing restarts through music.js's switch when its music
+  changed, new or changed effect patches registered); public since M11 step 3, for the editor's preview of an
+  edited theme (Docs/Editor.md, "How it works", step 3), the same swap the game's Reload makes.
 - **`OpenAlOutput`:** OpenAL Soft 1.25.2 (the BRUTAL package's natives): the default device, a
   context with HRTF and OpenAL's output limiter off, a streaming source with direct channels (left
   to left, right to right; on more speakers the others stay silent), 4 queued buffers of whole

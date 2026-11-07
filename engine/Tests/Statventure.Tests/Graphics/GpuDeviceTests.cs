@@ -184,7 +184,12 @@ public class GpuDeviceTests(GpuFixture gpu)
     }
 }
 
-/// <summary>Tests that need a display: a real window and swapchain.</summary>
+/// <summary>
+/// Tests that need a display: a real window and swapchain. In the "Window" collection, alone: GLFW is one for the
+/// process, and a hidden window presenting beside this one stalled its frames under wlroots (Docs/Editor.md, "How it
+/// works", step 3).
+/// </summary>
+[Collection("Window")]
 public class SwapchainTests
 {
     static bool HasDisplay => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY")) || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"));
@@ -194,6 +199,9 @@ public class SwapchainTests
     {
         if (!HasDisplay)
             return;
+        // The one test window left visible (Docs/Editor.md, "How it works", step 3): it presents five frames with vsync,
+        // and a hidden window's surface, which no compositor shows, isn't paced by all of them (wlroots never lets the
+        // second frame through: the test hangs), so hidden it would check a compositor's leniency, not the swapchain.
         using var window = Window.Create(new WindowOptions { Title = "Statventure swapchain test", Width = 320, Height = 200 });
         using var device = GpuDevice.Create(new GpuDeviceOptions { ApplicationName = "Statventure Tests" });
         using var swapchain = new Swapchain(device, window);

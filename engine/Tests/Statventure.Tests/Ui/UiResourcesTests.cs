@@ -208,7 +208,7 @@ public class UiResourcesTests
     }
 }
 
-/// <summary>A window's host reads its document's images and SVG text through <see cref="UiResources"/> (a real window: skipped without a display).</summary>
+/// <summary>A window's host reads its document's images and SVG text through <see cref="UiResources"/> (a real window, hidden: skipped without a display).</summary>
 [Collection("GPU")]
 public class UiHostResourceTests(GpuFixture gpu)
 {
@@ -225,7 +225,7 @@ public class UiHostResourceTests(GpuFixture gpu)
         folder.Write("data/ui/images/b.svg", "<svg width=\"8\" height=\"6\"></svg>");
         using var files = new VirtualFileSystem([Mount.Folder(folder["data"])]);
         var document = new UiDocument(TestFonts.Library) { Files = files };
-        using var window = Statventure.Platform.Window.Create(new Statventure.Platform.WindowOptions { Title = "Statventure UI resources test", Width = 64, Height = 48 });
+        using var window = Statventure.Platform.Window.Create(new Statventure.Platform.WindowOptions { Title = "Statventure UI resources test", Width = 64, Height = 48, Visible = false });
         using var host = new UiHost(window, gpu.Device, document);
         Assert.Equal(new System.Numerics.Vector2(5, 4), document.Layout.Context.ImageSize!("ui/images/a.png"));
         Assert.Null(document.Layout.Context.ImageSize!("ui/images/gone.png"));

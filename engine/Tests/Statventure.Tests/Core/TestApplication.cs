@@ -5,11 +5,12 @@ using Statventure.Platform;
 namespace Statventure.Tests.Core;
 
 /// <summary>
-/// A real application with a small window whose Load, Update and Unload are the test's; it quits after the
-/// update unless <see cref="OnUpdate"/> asks to go on. Needs a display, as the swapchain test.
+/// A real application with a small hidden window (nothing is shown; its frames are presented all the same) whose
+/// Load, Update and Unload are the test's; it quits after the update unless <see cref="OnUpdate"/> asks to go on.
+/// Needs a display, as the swapchain test.
 /// </summary>
 sealed class TestApplication(ApplicationOptions options)
-    : Application(options with { Window = new WindowOptions { Title = "Statventure test", Width = 160, Height = 100 } })
+    : Application(options with { Window = new WindowOptions { Title = "Statventure test", Width = 160, Height = 100, Visible = false } })
 {
     public static bool HasDisplay =>
         !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY")) || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"));

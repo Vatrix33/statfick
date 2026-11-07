@@ -29,6 +29,14 @@ public sealed record ApplicationOptions
     /// <see cref="Application.Storage"/>. Null: this machine's (<see cref="Storage.GameFolder.ForThisMachine"/>).
     /// </summary>
     public string? GameFolder { get; init; }
+    /// <summary>
+    /// Whether <see cref="Application.Data"/> holds the game's area packs only (Docs/Editor.md, step 3; the editor,
+    /// which shows one pack over the game's packs, P6): no <c>classes/</c>, no mods folder, no development folder
+    /// (neither <see cref="DevelopmentFolder"/> nor <c>$STATVENTURE_DEV_FOLDER</c>), so nothing of the player's can
+    /// stop the start; Reload re-reads the same. False, the default: the game's data (<c>Application.DataMounts</c>).
+    /// The game doesn't set it.
+    /// </summary>
+    public bool GamePacksOnly { get; init; }
 }
 
 /// <summary>Time for one update.</summary>
@@ -82,7 +90,8 @@ public abstract class Application : IDisposable
     /// (the player's game folder's <c>mods/</c>; mounted even when missing, so a mod put there later
     /// appears on Reload), then the development folder (<see cref="ApplicationOptions.DevelopmentFolder"/>,
     /// else the folder <paramref name="environment"/> gives for <see cref="DevelopmentFolderVariable"/>).
-    /// Which packs and folders mount is decided here, once: Reload re-reads these.
+    /// With <see cref="ApplicationOptions.GamePacksOnly"/> the area packs only. Which packs and folders mount
+    /// is decided here, once: Reload re-reads these.
     /// </summary>
     internal static List<Mount> DataMounts(ApplicationOptions options, string executableFolder, Func<string, string?> environment, string? modsFolder = null)
     {
@@ -91,6 +100,8 @@ public abstract class Application : IDisposable
         foreach (var area in AreaPacks)
             if (File.Exists(Path.Combine(packs, area + ".pak")))
                 mounts.Add(Mount.Pack(Path.Combine(packs, area + ".pak")));
+        if (options.GamePacksOnly)
+            return mounts;
         var classes = Path.Combine(executableFolder, "classes");
         if (Directory.Exists(classes))
             mounts.Add(Mount.Folder(classes, "classes"));
@@ -128,8 +139,29 @@ public abstract class Application : IDisposable
         return _captureDone.Task;
     }
 
-    /// <summary>Stops the loop after the current frame.</summary>
+    /// <summary>Stops the loop after the current frame (without asking <see cref="ConfirmClose"/>).</summary>
     public void Quit() => Running = false;
+
+    /// <summary>
+    /// Asked when the window's close was requested (the player closed the window: <see cref="Platform.Window.CloseRequested"/>),
+    /// before the loop ends for it: before the next frame, and while the window is minimized after the update
+    /// (Docs/Editor.md, step 3). True, the default, ends the loop as it always has; false keeps the application
+    /// running and clears the request, so the next close asks again (the editor answers false while it shows its
+    /// "unsaved changes" dialog, M11-17). An application that refused and then wants to end calls <see cref="Quit"/>
+    /// or requests the close again. Asked once per request, on the loop's thread.
+    /// </summary>
+    protected virtual bool ConfirmClose() => true;
+
+    /// <summary>Whether the loop ends for a close request: one is there and <see cref="ConfirmClose"/> agrees; a refused one is cleared.</summary>
+    bool CloseAccepted()
+    {
+        if (!Window.CloseRequested)
+            return false;
+        if (ConfirmClose())
+            return true;
+        Window.CloseRequested = false;
+        return false;
+    }
 
     /// <summary>
     /// Reloads the game's data (Docs/Assets.md, step 9; S9-C), on the game's thread: <see cref="Data"/> mounts
@@ -206,7 +238,7 @@ public abstract class Application : IDisposable
             var last = 0.0;
             long frames = 0;
             var pausedAudio = false;
-            while (Running && !Window.CloseRequested)
+            while (Running && !CloseAccepted())
             {
                 Window.PollEvents();
                 if (Window.IsMinimized)
@@ -224,7 +256,7 @@ public abstract class Application : IDisposable
                     var hiddenNow = clock.Elapsed.TotalSeconds;
                     Update(new GameTime(hiddenNow, Math.Min(hiddenNow - last, 0.25), frames));
                     last = hiddenNow;
-                    if (!Running || Window.CloseRequested)
+                    if (!Running || CloseAccepted())
                         break;
                     if (Window.TakeWakeUp() is { } wait)
                         Window.WaitEvents(wait);
