@@ -276,7 +276,7 @@ async function checkCarriage() {
   assert(!W.carriageGround({ x: 820, y: 40 }, "high-stoneveil").ok && W.terrainAt({ x: 820, y: 30 }, "high-stoneveil") === "road" && !W.carriageGround({ x: 820, y: 30 }, "high-stoneveil").ok, "Not on the Stoneveil's mountain roads (W10)");
   assert(!W.carriageGround({ x: 300, y: 500 }, "cinder-isle").ok, "Not on Cinder Isle (W10)");
   // Bought once at a General Store.
-  await mapReworkChecks.start(mapReworkChecks.continentState(), { money: 60000 });
+  await mapReworkChecks.start(mapReworkChecks.continentState(), { money: 120000 });
   assert(document.getElementById("map-carriage").hidden, "No switch before the carriage is bought");
   document.getElementById("map-item-shop").click();
   await mapReworkChecks.wait(300);
@@ -284,9 +284,12 @@ async function checkCarriage() {
   assert(buy && buy.textContent === "Buy", "The General Store offers the carriage");
   buy.click();
   await mapReworkChecks.wait(100);
-  assert(worldState.carriage.owned && ShopRules.walletValue(currencies) === 10000, "Bought for 50,000 silver");
+  assert(worldState.carriage.owned && ShopRules.walletValue(currencies) === 70000, "Bought for 50,000 silver");
   const again = document.querySelector("[data-buy-carriage]");
-  assert(again.disabled && again.textContent === "Owned", "It is bought only once");
+  assert(again.disabled && again.textContent === "Owned", "It is bought only once, though there is coin for another");
+  again.disabled = false; again.click();
+  await mapReworkChecks.wait(100);
+  assert(ShopRules.walletValue(currencies) === 70000, "A second purchase charges nothing");
   document.querySelector("[data-shop-close]").click();
   await mapReworkChecks.wait(100);
   const toggle = document.getElementById("map-carriage");

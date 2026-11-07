@@ -38,12 +38,13 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 8. `8_Map_Rework.txt`: one continuous continent about 40% larger instead of separate regional maps, music that crosses
    over between regions, a boat-travel animation, fog and clouds as the mountain rises, caravan fast travel between
    visited castle towns, and a horse carriage to buy.
-   **Being built in the old game (from 2026-11-06).** Its layout is approved (draft 6, 2026-11-07, `Engine-Plan.md`,
-   "Decisions for task 8", W26): the picture, the scripts that make it and every region's place are in
-   `8_Map_Rework/`, the reference for the port's visual redesign of the map. Its three new regions (rocky highlands
-   east of the Alder Vale, a steppe south of it, a west-coast delta below the Verdigris Jungle) are left empty in the
-   old game: their names, identity, terrain, enemies, level bands, towns and connections are all made in the port
-   (the user, W27).
+   **Already done in the old game (2026-11-07): don't build it again.** The port carries it over with the rest of the
+   game; left for the port: its placeholder looks, remade in the port's 3D map (below), and the three new regions.
+   Its layout (draft 6, 2026-11-07, `Engine-Plan.md`, "Decisions for task 8", W26): the picture, the scripts that make
+   it and every region's place are in `8_Map_Rework/`, the reference for the port's visual redesign of the map. Its
+   three new regions (rocky highlands east of the Alder Vale, a steppe south of it, a west-coast delta below the
+   Verdigris Jungle) are left empty in the old game (walkable, no encounters, parchment marked "Uncharted"): their
+   names, identity, terrain, enemies, level bands, towns and connections are all made in the port (the user, W27).
 9. `9_Potion_Rework.txt`: an Apothecary in every town, 40 new potions and 12 poisons, at least 50 ingredients, foraging
    on the map, brewing and recipes, the Alchemist and Assimilator classes, and a Collect quest for the guild.
 10. `10_Class_Rework.txt`: every class reviewed and reworked where needed (identity, requirements, passive and skill, a
@@ -84,7 +85,8 @@ is built in the old game too (user decision 2026-11-06, G1), also with placehold
 after the faithful port, or while porting). Task 4 too was built in the old game (the user asked for it on 2026-11-06;
 A1 kept its art placeholder), and so were task 6 (the user asked for it the same day; N4 kept its art placeholder) and
 task 5 (asked for after tasks 4 and 6 were merged; M1 kept its art placeholder), and task 7 (asked for after task 5
-was merged, while M11's engine work went on; L1 kept its art placeholder).
+was merged, while M11's engine work went on; L1 kept its art placeholder), and task 8 (asked for after task 7 was
+merged; W1 kept its 2D looks placeholder for the port's 3D map).
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
@@ -145,6 +147,18 @@ was merged, while M11's engine work went on; L1 kept its art placeholder).
   `old-game/test-client/tests/limitless-browser.js`, are the reference the ported rules are tested against. Still to do
   in the port: only the art (below). Old game only. Later enemies (task 14's dungeons and the like) scale through the
   same `scaleEnemy` when they spawn.
+- Task 8, Map Rework (2026-11-06 to 2026-11-07, a cloud session, one pull request): one continent instead of separate
+  regional maps, laid out as the user's approved draft 6 (`8_Map_Rework/`): every region whole, 1.4 times larger, so
+  every trip takes 1.4 times longer with as many encounters on it as before (W4); a natural coast and two inland waters; no
+  barriers between neighbours (the map's header names the region you stand in and its levels); Cinder Isle 250 km out
+  (the boat 12.6 hours); regions under fog until first entered; clicks that walk across regions along the fastest way
+  (off the roads only through entered regions); the music crossfading at borders; the boat trip played on the map; fog
+  and clouds as the Stoneveil rises; the caravan between visited castle cities; the horse carriage. The three new
+  regions are empty until the port (W27–W29). The user's design answers are in `Engine-Plan.md`, "Decisions for task 8,
+  Map Rework" (W1–W35); where each rule lives is in `../../../old-game/Docs/Notes.md`, "Map Rework: one continent"; the
+  old game's checks, `old-game/test-client/tests/map-rework-browser.js`, are the reference the ported rules are tested
+  against. Still to do in the port: the looks (below) and the three new regions; and the engine's soundtrack, ported
+  before task 8, gains the crossfade between region themes (`Docs/Audio.md`, "Theme API"). Old game only.
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and
@@ -197,6 +211,14 @@ task 3's scenes are listed in `PLACEHOLDER_ART`):
   Winged Hussar's wings its defining feature. The Exotic colour itself (dark neon green and purple in a moving wave,
   `old-game/styles.css`, the task 7 block) and the sheet's look while Limitless is on are real, not placeholder; nor
   are the rules behind them.
+- Task 8 (user decision W1: its 2D looks are placeholders for the port's 3D map): the continent's painting (the
+  regions' own pictures side by side over their territories, meeting along wandering lines, `map-terrain.js` and
+  `ContinentRules.cover`; the far-out overviews and backdrop and the coast line, `map-continent.js`), the fog over
+  unentered regions, the empty regions' parchment marked "Uncharted" (W29), the boat and its drifting waves (W31), the
+  caravan's wagon and route line, the horse carriage's drawing in the General Store (`CARRIAGE_ART` in `shop.js`) and its switch on the map, and the
+  mountain's fog and cloud banks (W32), all in `old-game/scripts/map.js` and the files named. The port remakes them in
+  its 3D map, with draft 6 (`8_Map_Rework/continent-draft-6.png`) as the reference for the continent's shape. The rules
+  behind them (the land, the routes, the timings and amounts) are not placeholder.
 
 **Found before the work:**
 - Tasks 1 and 2 were checked against the engine work on 2026-11-03 (tasks 3 and 4 on 2026-11-06): none touches it (the

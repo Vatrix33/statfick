@@ -1,8 +1,10 @@
 # Task 8's approved continent: layout draft 6
 
 The layout of the continent the user approved on 2026-11-07 (`../../Engine-Plan.md`, "Decisions for task 8, Map
-Rework", W26; the road to it W17–W25). Kept as the reference for the port's visual redesign of the map (W27), and for
-building the layout into the old game.
+Rework", W26; the road to it W17–W25). Kept as the reference for the port's visual redesign of the map (W27). It is
+built into the old game (2026-11-07; `old-game/Docs/Notes.md`, "Map Rework: one continent"): its land through
+`bake.py`, its places in `old-game/scripts/continent-engine.js` (`ORIGINS`), its moved roads in
+`old-game/scripts/world-region-data.js`.
 
 - `continent-draft-6.png`: the picture the user approved. Region colours only tell regions apart; the real map paints
   each region's own terrain, blending softly where two regions meet.
@@ -43,12 +45,15 @@ Continent units (C): a region's own map is 1600 × 1000 units, placed on the con
 | Bloodstone Coast | (−1770, 8710) | 55–70 | |
 | Ancient Battlefield | (−4254, 8710) | 65–75 | |
 | Duskpine Forest | (−4254, 7066) | 60–75 | moved north of the Battlefield (W19) |
-| **New: rocky highlands** | (2484, −56) | (15–30 proposed) | east of the Alder Vale, south of the Sunward Coast; the one rocky region (W20) |
-| **New: steppe** | (672, 1644) | (20–35 proposed) | south of the Alder Vale, east of Stormwake |
-| **New: west-coast delta** | (−4296, 5422) | (50–65 proposed) | below the Jungle, above Duskpine, west of Saffron |
+| **New: rocky highlands** (`uncharted-highlands`) | (2484, −56) | (15–30 proposed) | east of the Alder Vale, south of the Sunward Coast; the one rocky region (W20) |
+| **New: steppe** (`uncharted-steppe`) | (672, 1644) | (20–35 proposed) | south of the Alder Vale, east of Stormwake |
+| **New: west-coast delta** (`uncharted-delta`) | (−4296, 5422) | (50–65 proposed) | below the Jungle, above Duskpine, west of Saffron |
 
 The three new regions' names, identities, level bands and contents are **not decided**: they are left empty in the old
-game and made entirely in the port (W27). The labels and level bands in the picture are only the draft's proposals.
+game and made entirely in the port (W27). The labels and level bands in the picture are only the draft's proposals. In
+the old game (W28, W29) they can be walked, have no encounters, towns or quests, read "Uncharted land" in the map's
+header with no levels, keep the last region's music and are painted as parchment marked "Uncharted"; their ids above
+are the old game's placeholders.
 
 ## Roads moved (every connection kept, W19)
 

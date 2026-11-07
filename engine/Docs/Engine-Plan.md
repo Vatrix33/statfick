@@ -102,24 +102,21 @@ scripts, markup, stylesheet, eleven boss files and test client) and these docs, 
 read none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't
 count task 7 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`,
 "New Game Plus: Limitless and the Exotics".
-**Beside the engine, old game only (2026-11-06): port task 8, Map Rework, is being built in the old game** (W1; decisions
-in "Decisions for task 8, Map Rework" below; the cloud branch `claude/fervent-carson-f5ol9s`). **The layout is approved:
-draft 6 (2026-11-07, W26),** kept with its scripts and every region's place in `Docs/Port-Tasks/8_Map_Rework/`; its three
-new regions stay empty in the old game and are made in the port (W27–W29). **Built so far in `../old-game/`:** draft 6's
-land baked into `scripts/continent-shape.js` (by `8_Map_Rework/bake.py`) and read by the rules
-(`scripts/continent-engine.js`, `world-engine.js`): the new places, the two re-routed roads (the Battlefield north to
-Duskpine, Saffron east to the Deep Desert), Cinder Isle 250 km out with the 12.6-hour boat (W11, W21), the three empty
-regions (`uncharted` in `world-region-data.js`: walkable, no encounters, the last region's music, W28), off-road routes
-only through entered regions (W30); and the map painted to it (`map-terrain.js`, `map-continent.js`, `map.js`): each
-region's terrain over its whole territory to the natural coast, the coast and inland waters from the baked land,
-regions' pictures meeting along wandering lines, the empty regions as parchment marked "Uncharted" (W29), fog along the
-same lines; the music crossfade (W14), the boat trip on the map (W31), the mountain's fog and clouds (W32), the caravan
-(W7, W8, W14, W16: a Caravan button in castle cities, a list docked over the map previewing each road, the wagon's
-trip), off-road paths round water where a straight line is blocked, and the horse carriage (W9, W10, W33-W35: sold by
-General Stores, its switch at the map's top right, its own ground for planning, off by itself on rough ground, waiting
-at Seabridge while you are on Cinder Isle). **Next:** the checks (the
-older checks that expect the old map, e.g. the boat's nine hours, to be brought up to date), the mutation proof and the
-docs. **Engine work goes on uninterrupted.**
+**Beside the engine, old game only (2026-11-07): port task 8, Map Rework, is done in the old game**, as tasks 1–7 were
+(W1; decisions W1–W35 in "Decisions for task 8, Map Rework" below; built on the cloud branch
+`claude/fervent-carson-f5ol9s`, one pull request). One continent laid out as the user's approved draft 6 (W26, kept with
+its scripts and every region's place in `Docs/Port-Tasks/8_Map_Rework/`), every region whole and 1.4 times larger, a
+natural coast with two inland waters and no barriers between neighbours, Cinder Isle 250 km out with the 12.6-hour boat,
+fog over regions not yet entered, walks across regions (off the roads only through entered ones, W30), the music's
+crossfade, the boat trip on the map, the mountain's fog and clouds, the caravan and the horse carriage. Its three new
+regions are empty in the old game (walkable, no encounters, parchment marked "Uncharted") and are made in the port
+(W27–W29). The port doesn't build it again; left for it: the map's placeholder looks, remade in its 3D map, and the three
+new regions (`Docs/Port-Tasks/README.md`), and the region crossfade for the engine's soundtrack, which switches themes
+as music.js did before task 8 (`Docs/Audio.md`, "Theme API"). It touches only `../old-game/` (its scripts, markup, stylesheet and test
+client) and these docs, never the engine (the engine's tests read none of what changed: the fonts, `classes/` and the
+images their captures name are untouched), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on
+uninterrupted**; don't count task 8 as the engine's current task. How it's built, its checks and their results:
+`../old-game/Docs/Notes.md`, "Map Rework: one continent".
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
