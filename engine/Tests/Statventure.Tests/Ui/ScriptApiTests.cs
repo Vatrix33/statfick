@@ -104,22 +104,39 @@ public class ScriptApiTests
         var document = Document("");
         var loopThread = Environment.CurrentManagedThreadId;
         var log = new List<string>();
-        var started = new ManualResetEventSlim();
-        document.RunScript(() => Work());
-        started.Wait(TimeSpan.FromSeconds(10));
-        // The continuation was posted from the pool: it waits for the loop's next turn.
-        for (var i = 0; i < 200 && log.Count < 2; i++)
+        var release = new ManualResetEventSlim();
+        var posted = new ManualResetEventSlim();
+        var continued = new ManualResetEventSlim();
+        // The signal an application's loop sleeps on (UiHost: the window's empty event): another thread posted a task.
+        document.EventLoop.Wake = posted.Set;
+        try
         {
-            Thread.Sleep(5);
-            document.Update(document.Animations.Time + 1 / 60.0);
+            document.RunScript(() => Work());
+            // The work waits to be let go, so the await has handed its continuation to the loop.
+            Assert.Equal(["before"], log);
+            release.Set();
+            Assert.True(WaitHandle.WaitAny([posted.WaitHandle, continued.WaitHandle], TimeSpan.FromSeconds(30)) != WaitHandle.WaitTimeout,
+                "the work's continuation was neither posted to the loop nor run within 30 s");
+            // Posted from the other thread, it waits for the loop's next turn.
+            Assert.Equal(["before"], log);
+            document.Update(1 / 60.0);
+            Assert.Equal(["before", $"after on loop {true}"], log);
         }
-        Assert.Equal(["before", $"after on loop {true}"], log);
+        finally
+        {
+            release.Set();
+        }
 
         async void Work()
         {
             log.Add("before");
-            await Task.Run(() => started.Set());
+            // A thread of its own, not the pool's: this test runs on one of xunit's pool threads and blocks it, so work
+            // it queued to the pool would wait in that thread's local queue until another worker stole it, which a busy
+            // test run can delay by seconds (Docs/Engine-Plan.md, Progress, "The flaky ScriptApiTests: work stuck in a
+            // blocked pool thread's queue").
+            await Task.Factory.StartNew(() => release.Wait(), CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             log.Add($"after on loop {Environment.CurrentManagedThreadId == loopThread}");
+            continued.Set();
         }
     }
 
