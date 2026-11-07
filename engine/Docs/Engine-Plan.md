@@ -108,12 +108,11 @@ draft 6 (2026-11-07, W26),** kept with its scripts and every region's place in `
 new regions stay empty in the old game and are made in the port (W27). Built so far in `../old-game/`: the continent's
 geometry and travel rules (`scripts/continent-engine.js`, `world-engine.js`) and a first continent map view, **still on
 the superseded draft-2 layout and its first natural shape** (W17's mountain cores between neighbours, which W20 and W22
-replaced). **Next (the user stopped for the day on 2026-11-07; wait for their go):** build draft 6 into the old game
+replaced). **Now (the user's go, 2026-11-07):** build draft 6 into the old game
 (the new places, the two moved roads, Cinder Isle, the land growing into the gaps, the inland waters, the Deep Desert's
 island, the new regions as empty ground), then paint the map to it; then the music crossfade, the boat, the mountain fog,
-the caravan, the carriage, the checks and the docs. **Open question to ask first:** what "empty" means for walking in
-the old game: whether the three new regions' ground can be walked (with no encounters, towns or name) or stays closed
-until the port. **Engine work goes on uninterrupted.**
+the caravan, the carriage, the checks and the docs. The empty regions can be walked and are blank parchment (W28,
+W29). **Engine work goes on uninterrupted.**
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
@@ -1348,6 +1347,12 @@ M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.t
   continent; their names, identity, terrain, enemies, level bands, towns and connections are made in the port. The user
   asked to document this and to keep draft 6 as the reference for the port's visual redesign of the map (kept in
   `Docs/Port-Tasks/8_Map_Rework/`, pointed to from `Docs/Port-Tasks/README.md`).
+- W28 **Walking the empty regions in the old game:** their ground can be walked like any other, with no encounters,
+  towns or quests; the map's header reads "Uncharted land" with no level range; the music of the region you came from
+  keeps playing; they are fogged until first entered like every region (W12). (Not closed until the port; not the
+  nearest old region's wild ground with its enemies.)
+- W29 **How the empty regions look on the old game's map:** blank parchment marked "Uncharted", so they read as
+  unfinished. (Not plain placeholder ground in fitting colours, the recommendation.)
 
 **Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
 after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**
