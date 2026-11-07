@@ -935,7 +935,8 @@ Supersedes the separate regional maps of "Map rework (2026-10-10)" above: the re
   table and failed once on Ool's phylactery taking no turn in a random 30-step fight, and passed three runs out of three
   alone (chance, not task 8). Before the older checks were brought up to date (above), `coast-island`, `guild`,
   `guild-rematches`, `map-speed` and `map-browser`'s `runMapChecks` failed on the old map's units and times; they pass.
-  The 11 known failures are unchanged. (The suites: below, once run.)
+  The 11 known failures are unchanged. Smoke, enemies (530 cases) and lifecycle pass; the combat suite gives no result,
+  as in task 7's run (it stops at the known Barbarian failure).
 
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in
