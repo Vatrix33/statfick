@@ -137,13 +137,13 @@ internal static partial class Score
     }
 
     /// <summary>Bars split at "|", trimmed; an empty last bar dropped.</summary>
-    static List<string> Bars(string text)
+    internal static List<string> Bars(string text)
     {
         var all = text.Split('|').Select(bar => bar.Trim()).ToList();
         return all.Where((bar, index) => bar.Length > 0 || index < all.Count - 1).ToList();
     }
 
-    static List<ChordEntry> CompileChords(string text, double[] scale, double steps)
+    internal static List<ChordEntry> CompileChords(string text, double[] scale, double steps)
     {
         var timeline = new List<ChordEntry>();
         Chord? previous = null;
@@ -171,7 +171,7 @@ internal static partial class Score
     }
 
     /// <summary>A melody: "5/2 6/1 b7/1 | 1'/4", durations in grid steps, "_" rests, "-" ties, "!" accents.</summary>
-    static List<NoteEvent> CompileLine(string text, double[] scale, double steps, string label)
+    internal static List<NoteEvent> CompileLine(string text, double[] scale, double steps, string label)
     {
         var events = new List<NoteEvent>();
         var bars = Bars(text);

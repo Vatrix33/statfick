@@ -769,7 +769,7 @@ internal sealed class Performance
     }
 
     // Continuous beds of wind, rain, surf, embers and leaves for one section.
-    static readonly Dictionary<string, (BiquadFilterType Type, double Frequency, double Q, double Rate, double Depth)> Textures = new()
+    internal static readonly Dictionary<string, (BiquadFilterType Type, double Frequency, double Q, double Rate, double Depth)> Textures = new()
     {
         ["wind"] = (BiquadFilterType.Bandpass, 520, 0.8, 0.07, 0.6), ["rain"] = (BiquadFilterType.Highpass, 3200, 0.5, 0.31, 0.12),
         ["surf"] = (BiquadFilterType.Lowpass, 760, 0.6, 0.085, 0.85), ["embers"] = (BiquadFilterType.Bandpass, 2400, 2, 1.7, 0.7),
@@ -1074,4 +1074,46 @@ internal sealed class Performance
             }
         }
     }
+}
+
+/// <summary>
+/// What the composer (<see cref="Performance"/>) knows by name, so a theme can be checked against it without
+/// playing (M11 step 5; Docs/Audio.md, "Checks and marks"): the layer types its sequencer plays and what each
+/// reads, its textures and instrument kinds, and which instruments make a sound. Read from its code above;
+/// nothing here takes part in playing.
+/// </summary>
+internal static class ComposerNames
+{
+    /// <summary>The layer types <see cref="Performance.Step"/> plays, in its order; any other is "Unknown layer".</summary>
+    public static readonly IReadOnlyList<string> LayerTypes = ["pad", "drone", "arp", "bass", "pulse", "strum", "mel", "line", "drums", "hit", "tex", "drips"];
+
+    /// <summary>The layer types whose notes are played on the layer's instrument (a drips layer's is the kalimba when it names none).</summary>
+    public static readonly IReadOnlyList<string> InstrumentLayers = ["pad", "drone", "arp", "bass", "pulse", "strum", "mel", "line", "drips"];
+
+    /// <summary>The instrument a drips layer plays when it names none (or names "").</summary>
+    public const string DripsInstrument = "kalimba";
+
+    /// <summary>The layer types that play a step pattern (arp, bass and pulse fail without one; a strum reads it unchecked).</summary>
+    public static readonly IReadOnlyList<string> PatternLayers = ["arp", "bass", "pulse", "strum"];
+
+    /// <summary>The layer types whose notes are the section's chords (a pad's voicing, the patterns' chord tones, a strum's).</summary>
+    public static readonly IReadOnlyList<string> ChordLayers = ["pad", "arp", "bass", "pulse", "strum"];
+
+    /// <summary>The percussion voices a drums layer tunes to the chord (<see cref="Performance.Step"/>'s timp and log), and a hit's timpani.</summary>
+    public static readonly IReadOnlyList<string> TunedDrums = ["timp", "log"];
+
+    /// <summary>The textures a tex layer plays, in the composer's order.</summary>
+    public static IEnumerable<string> Textures => Performance.Textures.Keys;
+
+    /// <summary>The instrument kinds the composer plays a note with, in its order; any other makes no sound.</summary>
+    public static readonly IReadOnlyList<string> InstrumentKinds = ["pluck", "mallet", "glass", "sub", "bowed", "brass", "choir", "organ", "wind"];
+
+    /// <summary>
+    /// Whether a note on <paramref name="instrument"/> sounds, as the composer plays it: a pluck, mallet, glass
+    /// or sub note does, and an organ's or wind's always has its oscillators; bowed, brass and choir notes have
+    /// one per voice; any other kind has none. A note with no oscillators is "Instrument … makes no sound".
+    /// </summary>
+    public static bool MakesSound(InstrumentSpec instrument) =>
+        instrument.Kind is "pluck" or "mallet" or "glass" or "sub" or "organ" or "wind"
+        || instrument.Kind is "bowed" or "brass" or "choir" && instrument.Voices is { Length: > 0 };
 }

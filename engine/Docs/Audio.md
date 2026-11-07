@@ -385,7 +385,8 @@ fixed time; the engine has no such step (the game's nodes are let go explicitly)
   (one level, key by key), the form and loop point. JavaScript's semantics kept where they show:
   numbers are doubles, `Math.round` is V8's, a held chord shares its chord object (entries merge by
   identity), note steps may be fractional (and then never play), notes by step keep insertion
-  order. All themes compile when `Soundtrack` is first used.
+  order. All themes compile when `Soundtrack` is first used (since M11 step 5 a library loaded from the data
+  compiles them as it loads, checking them: "Checks and marks").
 - **The composer (`GraphBuilder.cs`, `Composer.cs`):** `Performance` is music-composer.js's
   `perform`: the theme's EQ (34 Hz highpass, 140 Hz shelf, 2.6 kHz presence), dry gain, room
   (`impulse`: smoothed seeded noise decaying over the room's length, darkening, with seven early
@@ -653,6 +654,91 @@ For the sequencer's audio cues (Docs/Scene.md, M10-8, Q27, S6-B, S6-C); the game
   within a quantum instead of fading it out; a switch at a time inside a quantum fades it. Ported line for
   line in step 1, the M8 fixtures switch only after a fade-in finished, so this isn't checked against
   Chromium; the engine's path is unchanged.
+
+### Checks and marks (M11 step 5, 2026-11-07)
+
+For the editor (Docs/Editor.md, "The engine's kinds: checks and marks", step 5) and the game's loading (the
+user's G4 and G5). `Audio/Music/ThemeCheck.cs` (new), `Audio/Music/ThemeData.cs`, `Audio/Music/MusicLibrary.cs`,
+`Audio/Effects/EffectPatch.cs`; `Score.cs` and `Composer.cs` only expose what a check needs without playing
+(`Score.Bars`, `CompileChords` and `CompileLine` made internal; the composer's texture table internal; the
+`ComposerNames` beside the composer: its layer types and what each reads, its textures and instrument kinds,
+`MakesSound`). Nothing the music plays changed: no line of the score's or the composer's logic, every music test
+as it was (the 61 performances' call logs, the scores and lint, the fixtures).
+- **Kinds and names:** `[Kind]` on the record types: "Theme" (`audio/themes`), "Instrument" (`audio/instruments`),
+  "Percussion voice" (`audio/percussion`), "Room" (`audio/rooms`), "Sound effect" (`audio/effects`), each with
+  `MusicNameRule`, the music's rule (S6-1) as a `NameRule` over `MusicNames.ToPathName` and `FromPathName`, so a tool
+  names entries as the library reads them; "Theme order" without a folder (one entry, `audio/theme-order`); the
+  nested kinds' names ("EQ", "Section", "Layer", "Harmony", "Doubling", the effect's "Layer", "Filter", "Range").
+- **Marks:** a help text on every audio kind and field, for someone making a mod; units (bpm, steps, dB, Hz, s,
+  cents, semitones; octaves, velocities, levels and pans have none); choices, each what the engine accepts in its
+  order: a theme's mode (`Score.Modes`), a layer's type and texture, an instrument's kind (`ComposerNames`);
+  references: a theme's room, a layer's instrument (an instrument for the types that play one, a percussion voice
+  for a hit, nothing for tex and drums), the drums' keys (percussion voices), a harmony's and a doubling's
+  instrument, the theme order's ids (themes). **Limits (G4):** only the effect patch's, exactly the numbers its
+  check held before M11: a voice at least, a layer's delay and attack 0 or more, its length above 0 (NaN never).
+- **The effect patch's check** (`EffectPatch`'s `[Check]`): its rules in their order at the path of what each
+  names (no layers at `$.layers`, no voices at `$.maxVoices`, a layer's length, attack or delay at that field, a
+  harmonics layer's harmonics), in the words the game has always used. `Problem()`, which registering and loading
+  call, is now the first problem of `RecordChecks.Check` (its own rules, then the declared limits, which the rules
+  already hold): the game refuses what it refused, with the same message, and so enforces the declared limits (G4).
+- **The theme's check** (`ThemeCheck`, `ThemeSpec`'s `[Check]`; with the data its room and the names its layers
+  play, without it the score and the layers' own rules): what today fails only when the music is compiled (all
+  themes at the first one asked for: the audio system's warm-up at the start) or played (on the sound thread), each
+  at the path of what it names, in the score's and the composer's words. In order: the room (the rule `Load`
+  already had: its room, or the hall to fall back on); the score, compiled once (`Score.Compile`; only when that
+  fails is it walked part by part, in the compile's order, to find where: the mode, the meter's two numbers, each
+  section the form plays, once, its chords, melody and lines' notes at the section or like that writes them, a
+  missing or chordless section, a first bar of `%`, an empty form, a loop point outside it; anything the walk
+  doesn't know still fails, reported for the whole theme in the compile's words); then each of those sections'
+  layers by the composer's rules for its type: an unknown type, an instrument it plays (a drips layer's kalimba
+  when it names none; a melody's doublings and harmony) that isn't there or makes no sound (bowed, brass or choir
+  with no voices, or a kind the composer doesn't know), a percussion voice (a hit's, the drums' keys), a texture, an
+  arpeggio, bass, pulse or strum without its pattern, an arpeggio, bass or pulse with doublings (the old script's
+  "Unknown instrument undefined"), a drone's or hit's scale degree, and a chord line opening with a held chord
+  where a layer reads the chords. A section the form doesn't play is never compiled or played, so isn't checked. A
+  layer is checked by what its type reads, not by whether a note of it is reached (a pattern of rests, bars it never
+  plays in). The theme it compiled comes back with the problems, for the library to keep.
+  Not checked, because only playing finds them: arrays of an instrument or percussion voice too short for what the
+  composer reads (a mallet partial or metal partial of fewer than three numbers, a peak of fewer than two), a pad's
+  voice count below 0, numbers the composer's arithmetic can't use.
+- **The theme order's check** (`ThemeOrder`'s `[Check]`): `Load`'s rules at the id each names (once, storable,
+  with the data an entry), shared with `Load` (`MusicLibrary.OrderProblems`; the room's rule likewise,
+  `RoomProblem`), whose messages are unchanged.
+- **Loading (G4, G5; the user's decision of 2026-11-07):** `MusicLibrary.Load` checks what it checked before, first
+  and with the same messages, and through the effect patch's `Problem()` the declared limits; then each theme against
+  the instruments, percussion voices and rooms it read, in path order, the first problem refusing the data as the
+  file system's error naming the pack and entry, its text "message (at path)" ("Unknown instrument theremin (at
+  $.sections["A"].layers[3].instrument)"). The themes compiled on the way are the library's (`Compiled` doesn't
+  compile them again), so the start's compile moves from the warm-up thread (or the first theme played) to loading,
+  and a Reload no longer compiles them a second time. A theme that doesn't compile used to fail the warm-up thread at
+  the start (an exception on a background thread ends the process); now loading stops with its entry named, as for a
+  damaged pack, and a Reload keeps the music it had ("the music isn't reloaded …"). Measured before it went in, on this
+  PC (Release, the committed packs mounted as the game mounts them, `MusicLibrary.Load` alone, no sound device):
+
+  | | Before | With the check |
+  | --- | --- | --- |
+  | Cold start (15 fresh processes, medians) | 48.9 ms, and 17.2 ms of compiling all 55 themes a moment later (the warm-up thread, or the first theme played) | 69.6 ms, the compile included, none later |
+  | Warm (200 loads in one process, each from a collected heap, medians) | 1.4 ms (3.4 ms of compiling later) | 4.5 ms |
+  | Reload (remount and load, medians) | 3.8 ms (3.4 ms of compiling again when the theme playing changed) | 8.6 ms |
+
+  At the start that is 20.7 ms more on the game's thread and 3.5 ms more work in all; compiling the 55 themes takes
+  1.9 ms warm, the whole check 2.0 ms. The user accepted both of its consequences: a layer that never sounds (no bar
+  of its cycle, a pattern of rests) naming an instrument that isn't there is refused too, and the tests' libraries
+  whose sample theme doesn't compile (3 steps in a 12-step bar) were given a playable one (`MusicLibraryTests.PlayableTheme`;
+  the record fixtures keep the sample, whose refusal a test now shows).
+- **How it is checked:** `Tests/Statventure.Tests/Audio/ThemeCheckTests.cs`: every rule broken once on a small theme,
+  each verdict the composer's own (the theme compiled and every step of its form played, past its loop point, on a
+  graph that doesn't render: a refused theme fails, in the first problem's words where the score or the composer
+  has words of its own, and a passed one plays), every instrument kind with no, none and one voice played against
+  `MakesSound`, every layer type and texture played, the parts of a like reported where they are written, every
+  theme of the game passing (its compiled score the score's) against the library and the committed pack, the data's
+  parts read by the music's rule. `AudioMarksTests.cs`: the kinds, folders and rule (every name of the game's music
+  both ways), the choices against the score's and composer's lists, the references with their kinds, folders,
+  rules and conditions, units, help, the limits against the patch's check value for value, the patch's and the
+  order's problems at their paths, the committed `audio.pak`'s 118 records and the proof cutscene's three patches
+  passing every check, mark and reference. `MusicLibraryTests`: a theme the composer can't play refused at load
+  (a pack, a loose file, a mod) with its entry and field, the older checks' words first, a loaded library's themes
+  compiled by its check (equal to the score's) and a library given in code compiling as before.
 
 ## Status
 

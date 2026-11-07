@@ -43,6 +43,26 @@ public class MusicLibraryTests
         },
     };
 
+    /// <summary>
+    /// The sample theme made playable, for the libraries that load (since M11 step 5 the data's themes are checked
+    /// against the composer when they load, G5): its melody's and line's bars fill the meter's 12 steps (the sample's
+    /// hold 3 and 6, which the score refuses), every field still set. <see cref="Music"/> gives the instruments and
+    /// percussion voices it plays.
+    /// </summary>
+    internal static ThemeSpec PlayableTheme(string id = "boss@sample-vale", string? room = "cavern")
+    {
+        var theme = SampleTheme(id, room);
+        var a = theme.Sections["A"];
+        var layers = a.Layers!.Select(l => l.Notes != null ? l with { Notes = "1/6 5/6" } : l).ToArray();
+        return theme with
+        {
+            Sections = new Dictionary<string, SectionSpec>(theme.Sections) { ["A"] = a with { Melody = "1/6 3/6 | 5/12", Layers = layers } },
+        };
+    }
+
+    /// <summary>The instruments and percussion voices <see cref="SampleTheme"/> plays.</summary>
+    static readonly string[] SampleInstruments = ["cellos", "drone", "fiddle", "flute", "harp", "oboe", "strings"], SampleVoices = ["gong", "shaker"];
+
     internal static readonly InstrumentSpec SampleInstrument = new()
     {
         Kind = "pluck", Voices = [-7, 0, 6], Cutoff = 2400, Attack = 0.01, Release = 0.3, Vibrato = [5.5, 8, 0.25], Level = 0.12, Pan = -0.3, Send = 0.5,
@@ -208,6 +228,11 @@ public class MusicLibraryTests
         }
         writer.AddRecord(MusicNames.PathOf(MusicNames.Instruments, "lowSpiccato"), SampleInstrument);
         writer.AddRecord(MusicNames.PathOf(MusicNames.Percussion, "frame"), SamplePercussion);
+        // What the sample theme plays, so its libraries pass the check at load (G5).
+        foreach (var name in SampleInstruments)
+            writer.AddRecord(MusicNames.PathOf(MusicNames.Instruments, name), SampleInstrument);
+        foreach (var name in SampleVoices)
+            writer.AddRecord(MusicNames.PathOf(MusicNames.Percussion, name), SamplePercussion);
     }
 
     static MusicLibrary Load(params Mount[] mounts)
@@ -224,16 +249,16 @@ public class MusicLibraryTests
         using var folder = new TempFolder();
         var pack = Pack(folder, "audio.pak", w =>
         {
-            Music(w, [SampleTheme("combat@alder-vale"), SampleTheme("alder-vale")], ["combat@alder-vale", "alder-vale"]);
+            Music(w, [PlayableTheme("combat@alder-vale"), PlayableTheme("alder-vale")], ["combat@alder-vale", "alder-vale"]);
             w.AddRecord(MusicNames.PathOf(MusicNames.Effects, "runeSlot"), SampleEffect);
         });
         var library = Load(Mount.Pack(pack));
         Assert.Equal(["combat@alder-vale", "alder-vale"], library.Themes);
-        RecordAssert.Equal(SampleTheme("alder-vale"), library.Theme("alder-vale"));
+        RecordAssert.Equal(PlayableTheme("alder-vale"), library.Theme("alder-vale"));
         Assert.Null(library.Theme("nothing"));
-        Assert.Equal(["lowSpiccato"], library.Instruments.Keys);
+        Assert.Equal(["cellos", "drone", "fiddle", "flute", "harp", "lowSpiccato", "oboe", "strings"], library.Instruments.Keys);
         RecordAssert.Equal(SampleInstrument, library.Instruments["lowSpiccato"]);
-        Assert.Equal(["frame"], library.Percussion.Keys);
+        Assert.Equal(["frame", "gong", "shaker"], library.Percussion.Keys);
         Assert.Equal(["cavern", "hall"], library.Rooms.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(["runeSlot"], library.Effects.Keys);
         RecordAssert.Equal(SampleEffect, library.Effects["runeSlot"]);
@@ -244,7 +269,7 @@ public class MusicLibraryTests
     public void ALooseFolderReplacesOneTheme()
     {
         using var folder = new TempFolder();
-        var pack = Pack(folder, "audio.pak", w => Music(w, [SampleTheme("a"), SampleTheme("b")], ["a", "b"]));
+        var pack = Pack(folder, "audio.pak", w => Music(w, [PlayableTheme("a"), PlayableTheme("b")], ["a", "b"]));
         using (var original = PackFile.Open(pack))
             original.ExtractTo(folder["extracted"]);
         var fromFolder = Load(Mount.Folder(folder["extracted"]));
@@ -254,7 +279,7 @@ public class MusicLibraryTests
             RecordAssert.Equal(fromPack.Theme(id), fromFolder.Theme(id));
         RecordAssert.Equal(fromPack.Instruments.ToArray(), fromFolder.Instruments.ToArray());
 
-        folder.Write("dev/audio/themes/b.json", RecordSerializer.ToJson(SampleTheme("b") with { Tempo = 140 }));
+        folder.Write("dev/audio/themes/b.json", RecordSerializer.ToJson(PlayableTheme("b") with { Tempo = 140 }));
         var modded = Load(Mount.Pack(pack), Mount.Folder(folder["dev"]));
         Assert.Equal(["a", "b"], modded.Themes);
         Assert.Equal(140, modded.Theme("b")!.Tempo);
@@ -266,10 +291,10 @@ public class MusicLibraryTests
     public void ThemesTheOrderDoesntNameFollowInPathOrder()
     {
         using var folder = new TempFolder();
-        var pack = Pack(folder, "audio.pak", w => Music(w, [SampleTheme("m"), SampleTheme("z"), SampleTheme("a"), SampleTheme("combat@b"), SampleTheme("combatB")], ["z", "m"]));
+        var pack = Pack(folder, "audio.pak", w => Music(w, [PlayableTheme("m"), PlayableTheme("z"), PlayableTheme("a"), PlayableTheme("combat@b"), PlayableTheme("combatB")], ["z", "m"]));
         // Path order: a, combat.b, combat_b ('.' before '_').
         Assert.Equal(["z", "m", "a", "combat@b", "combatB"], Load(Mount.Pack(pack)).Themes);
-        var mod = Pack(folder, "mod.pak", w => w.AddRecord(MusicNames.PathOf(MusicNames.Themes, "new-boss"), SampleTheme("new-boss")));
+        var mod = Pack(folder, "mod.pak", w => w.AddRecord(MusicNames.PathOf(MusicNames.Themes, "new-boss"), PlayableTheme("new-boss")));
         Assert.Equal(["z", "m", "a", "combat@b", "combatB", "new-boss"], Load(Mount.Pack(pack), Mount.Pack(mod)).Themes);
         Assert.Empty(Load(Mount.Pack(Pack(folder, "empty-order.pak", w => Music(w, [], [])))).Themes);
     }
@@ -278,17 +303,17 @@ public class MusicLibraryTests
     public void TheOrderMustNameEachThemeOnceAndOnlyThemesThatAreThere()
     {
         using var folder = new TempFolder();
-        var twice = Pack(folder, "twice.pak", w => Music(w, [SampleTheme("a"), SampleTheme("b")], ["a", "b", "a"]));
+        var twice = Pack(folder, "twice.pak", w => Music(w, [PlayableTheme("a"), PlayableTheme("b")], ["a", "b", "a"]));
         var problem = Fails(Mount.Pack(twice));
         Assert.Equal((twice, MusicNames.ThemeOrder), (problem.File, problem.Entry));
         Assert.Equal("it names the theme 'a' twice", problem.Problem);
 
-        var missing = Pack(folder, "missing.pak", w => Music(w, [SampleTheme("a")], ["a", "combat@b"]));
+        var missing = Pack(folder, "missing.pak", w => Music(w, [PlayableTheme("a")], ["a", "combat@b"]));
         problem = Fails(Mount.Pack(missing));
         Assert.Equal((missing, MusicNames.ThemeOrder), (problem.File, problem.Entry));
         Assert.Equal("it names the theme 'combat@b', which has no entry 'audio/themes/combat.b'", problem.Problem);
 
-        var unstorable = Pack(folder, "unstorable.pak", w => Music(w, [SampleTheme("a")], ["a", "b c"]));
+        var unstorable = Pack(folder, "unstorable.pak", w => Music(w, [PlayableTheme("a")], ["a", "b c"]));
         Assert.Equal("it names the theme 'b c', which no data path can hold", Fails(Mount.Pack(unstorable)).Problem);
     }
 
@@ -298,16 +323,16 @@ public class MusicLibraryTests
         using var folder = new TempFolder();
         var pack = Pack(folder, "audio.pak", w =>
         {
-            Music(w, [SampleTheme("a")], ["a"]);
-            w.AddRecord("audio/themes/combat.b", SampleTheme("combatB"));
+            Music(w, [PlayableTheme("a")], ["a"]);
+            w.AddRecord("audio/themes/combat.b", PlayableTheme("combatB"));
         });
         var problem = Fails(Mount.Pack(pack));
         Assert.Equal((pack, "audio/themes/combat.b"), (problem.File, problem.Entry));
         Assert.Equal("the theme's id is 'combatB', but its path holds 'combat@b' (a theme's path is made from its id)", problem.Problem);
 
         // A loose file is named as the file system names its own: the file, no entry.
-        folder.Write("dev/audio/themes/a.json", RecordSerializer.ToJson(SampleTheme("b")));
-        problem = Fails(Mount.Pack(Pack(folder, "good.pak", w => Music(w, [SampleTheme("a")], ["a"]))), Mount.Folder(folder["dev"]));
+        folder.Write("dev/audio/themes/a.json", RecordSerializer.ToJson(PlayableTheme("b")));
+        problem = Fails(Mount.Pack(Pack(folder, "good.pak", w => Music(w, [PlayableTheme("a")], ["a"]))), Mount.Folder(folder["dev"]));
         Assert.Equal((folder["dev/audio/themes/a.json"], null), (problem.File, problem.Entry));
         Assert.StartsWith("the theme's id is 'b', but its path holds 'a'", problem.Problem);
     }
@@ -323,7 +348,7 @@ public class MusicLibraryTests
         using var folder = new TempFolder();
         var pack = Pack(folder, "audio.pak", w =>
         {
-            Music(w, [SampleTheme("a")], ["a"]);
+            Music(w, [PlayableTheme("a")], ["a"]);
             w.AddRecord(path, new RoomSpec(1, 0.5, 0.2));
         });
         var problem = Fails(Mount.Pack(pack));
@@ -337,14 +362,14 @@ public class MusicLibraryTests
         using var folder = new TempFolder();
         var pack = Pack(folder, "audio.pak", w =>
         {
-            Music(w, [SampleTheme("a")], ["a"]);
+            Music(w, [PlayableTheme("a")], ["a"]);
             w.AddRecord(MusicNames.PathOf(MusicNames.Instruments, "hall"), new RoomSpec(1, 0.5, 0.2));
         });
         var problem = Fails(Mount.Pack(pack));
         Assert.Equal("a record of type audio.room, not audio.instrument", problem.Problem);
         var file = Pack(folder, "file.pak", w =>
         {
-            Music(w, [SampleTheme("a")], ["a"]);
+            Music(w, [PlayableTheme("a")], ["a"]);
             w.Add("audio/effects/readme", "text"u8);
         });
         Assert.Equal("a file, not a record (expected a audio.effect)", Fails(Mount.Pack(file)).Problem);
@@ -357,22 +382,101 @@ public class MusicLibraryTests
         using var folder = new TempFolder();
         var noHall = Pack(folder, "no-hall.pak", w =>
         {
-            Music(w, [SampleTheme("a", room: "cavern"), SampleTheme("b", room: "nowhere")], ["a", "b"], rooms: false);
+            Music(w, [PlayableTheme("a", room: "cavern"), PlayableTheme("b", room: "nowhere")], ["a", "b"], rooms: false);
             w.AddRecord(MusicNames.PathOf(MusicNames.Rooms, "cavern"), new RoomSpec(3.4, 0.75, 0.36));
         });
         var problem = Fails(Mount.Pack(noHall));
         Assert.Equal((noHall, "audio/themes/b"), (problem.File, problem.Entry));
         Assert.Equal("its room 'nowhere' isn't in the data, nor is the room 'hall' the composer falls back on", problem.Problem);
-        var noRoom = Pack(folder, "no-room.pak", w => Music(w, [SampleTheme("a", room: null)], ["a"], rooms: false));
+        var noRoom = Pack(folder, "no-room.pak", w => Music(w, [PlayableTheme("a", room: null)], ["a"], rooms: false));
         Assert.Equal("its room 'hall' isn't in the data, nor is the room 'hall' the composer falls back on", Fails(Mount.Pack(noRoom)).Problem);
         // An empty room is no room, as the score compiles it (spec.room || "hall").
-        var emptyRoom = Pack(folder, "empty-room.pak", w => Music(w, [SampleTheme("a", room: "")], ["a"], rooms: false));
+        var emptyRoom = Pack(folder, "empty-room.pak", w => Music(w, [PlayableTheme("a", room: "")], ["a"], rooms: false));
         Assert.Equal("its room 'hall' isn't in the data, nor is the room 'hall' the composer falls back on", Fails(Mount.Pack(emptyRoom)).Problem);
 
         // With the hall there, an unknown room sounds as the hall, as in the old composer.
-        var library = Load(Mount.Pack(Pack(folder, "hall.pak", w => Music(w, [SampleTheme("b", room: "nowhere"), SampleTheme("c", room: "")], ["b", "c"]))));
+        var library = Load(Mount.Pack(Pack(folder, "hall.pak", w => Music(w, [PlayableTheme("b", room: "nowhere"), PlayableTheme("c", room: "")], ["b", "c"]))));
         Assert.Equal(library.Rooms["hall"], library.Room("nowhere"));
         Assert.Equal(library.Rooms["cavern"], library.Room("cavern"));
+    }
+
+    // ---------------- Themes checked against the composer as they load (G5; M11 step 5) ----------------
+
+    /// <summary>
+    /// A theme the composer can't play is refused when the data loads (G5, the user's decision of 2026-11-07), naming
+    /// the pack and entry, and the field: a score that doesn't compile (the record fixtures' sample theme, whose bars
+    /// hold 3 of the meter's 12 steps), a layer playing an instrument that isn't there, a mode the score doesn't know.
+    /// </summary>
+    [Fact]
+    public void AThemeTheComposerCantPlayIsRefusedWhenTheDataLoads()
+    {
+        using var folder = new TempFolder();
+        var sample = Pack(folder, "sample.pak", w => Music(w, [PlayableTheme("a"), SampleTheme("b")], ["a", "b"]));
+        var problem = Fails(Mount.Pack(sample));
+        Assert.Equal((sample, "audio/themes/b"), (problem.File, problem.Entry));
+        Assert.Equal("b/A/mel: bar 1 has 3 steps, expected 12 (at $.sections[\"A\"].melody)", problem.Problem);
+
+        var theme = PlayableTheme("b");
+        var a = theme.Sections["A"];
+        var unknown = theme with
+        {
+            Sections = new Dictionary<string, SectionSpec>(theme.Sections) { ["A"] = a with { Layers = [.. a.Layers!, new LayerSpec { Type = "pad", Instrument = "theremin" }] } },
+        };
+        var pack = Pack(folder, "unknown.pak", w => Music(w, [PlayableTheme("a"), unknown], ["a", "b"]));
+        problem = Fails(Mount.Pack(pack));
+        Assert.Equal((pack, "audio/themes/b"), (problem.File, problem.Entry));
+        Assert.Equal($"Unknown instrument theremin (at $.sections[\"A\"].layers[{a.Layers!.Length}].instrument)", problem.Problem);
+
+        // A loose file is named as the file system names its own; a mod's theme as its pack.
+        folder.Write("dev/audio/themes/a.json", RecordSerializer.ToJson(PlayableTheme("a") with { Mode = "blues" }));
+        var good = Pack(folder, "good.pak", w => Music(w, [PlayableTheme("a")], ["a"]));
+        problem = Fails(Mount.Pack(good), Mount.Folder(folder["dev"]));
+        Assert.Equal((folder["dev/audio/themes/a.json"], null), (problem.File, problem.Entry));
+        Assert.Equal("Unknown mode blues (at $.mode)", problem.Problem);
+        var mod = Pack(folder, "mod.pak", w => w.AddRecord(MusicNames.PathOf(MusicNames.Themes, "new-boss"), unknown with { Id = "new-boss" }));
+        problem = Fails(Mount.Pack(good), Mount.Pack(mod));
+        Assert.Equal((mod, "audio/themes/new-boss"), (problem.File, problem.Entry));
+        Assert.StartsWith("Unknown instrument theremin (at ", problem.Problem);
+        Assert.Equal(["a"], Load(Mount.Pack(good)).Themes);
+    }
+
+    /// <summary>The checks made before the theme's come first, so what they refuse keeps their words.</summary>
+    [Fact]
+    public void TheChecksMadeBeforeComeFirst()
+    {
+        using var folder = new TempFolder();
+        // "a" fails the composer's check, "b" (after it) the id rule: the id rule's words.
+        var id = Pack(folder, "id.pak", w =>
+        {
+            Music(w, [SampleTheme("a")], ["a"]);
+            w.AddRecord("audio/themes/b", PlayableTheme("c"));
+        });
+        Assert.Equal("the theme's id is 'c', but its path holds 'b' (a theme's path is made from its id)", Fails(Mount.Pack(id)).Problem);
+        Assert.Equal("its room 'nowhere' isn't in the data, nor is the room 'hall' the composer falls back on",
+            Fails(Mount.Pack(Pack(folder, "room.pak", w => Music(w, [SampleTheme("a", room: "nowhere")], ["a"], rooms: false)))).Problem);
+        Assert.Equal("it names the theme 'a' twice", Fails(Mount.Pack(Pack(folder, "order.pak", w => Music(w, [SampleTheme("a")], ["a", "a"])))).Problem);
+        var patch = Pack(folder, "patch.pak", w =>
+        {
+            Music(w, [SampleTheme("a")], ["a"]);
+            w.AddRecord(MusicNames.PathOf(MusicNames.Effects, "broken"), Chime with { Layers = [] });
+        });
+        Assert.Equal("the effect patch 'broken' has no layers", Fails(Mount.Pack(patch)).Problem);
+    }
+
+    /// <summary>The themes compiled when the data's were checked are the library's: none is compiled again when it plays.</summary>
+    [Fact]
+    public void ALoadedLibrarysThemesAreCompiledByItsCheck()
+    {
+        using var data = new VirtualFileSystem([Mount.Pack(TestMusic.Pack)]);
+        var library = MusicLibrary.Load(data);
+        Assert.True(library.ThemesCompiled);
+        foreach (var id in library.Themes)
+            Assert.Equal(MusicTests.Digest(Score.Compile(library.Theme(id)!)), MusicTests.Digest(library.Compiled(id)!));
+        // A library given in code compiles its themes the first time one is asked for, as before.
+        var given = new MusicLibrary([library.Theme("alder-vale")!], library.Instruments, library.Percussion, library.Rooms, library.Effects);
+        Assert.False(given.ThemesCompiled);
+        Assert.NotNull(given.Compiled("alder-vale"));
+        Assert.True(given.ThemesCompiled);
     }
 
     /// <summary>S6-3: no music in the data, no music (effects still load); some music without the theme order is an error.</summary>
@@ -397,7 +501,7 @@ public class MusicLibraryTests
             {
                 switch (name)
                 {
-                    case "theme": w.AddRecord(path, SampleTheme("a", room: null)); w.AddRecord(MusicNames.PathOf(MusicNames.Rooms, "hall"), new RoomSpec(2.4, 0.55, 0.3)); break;
+                    case "theme": w.AddRecord(path, PlayableTheme("a", room: null)); w.AddRecord(MusicNames.PathOf(MusicNames.Rooms, "hall"), new RoomSpec(2.4, 0.55, 0.3)); break;
                     case "instrument": w.AddRecord(path, SampleInstrument); break;
                     case "percussion": w.AddRecord(path, SamplePercussion); break;
                     default: w.AddRecord(path, new RoomSpec(1, 0.5, 0.2)); break;

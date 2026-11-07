@@ -1251,6 +1251,8 @@ the importer `Tools/Scripts/make-music-data.sh` with `Tools/AudioReference/music
   it doesn't name follow in path order (S6-2). Every problem is a `DataFileException` named as the file
   system names its own (`VirtualFileSystem.Problem`, step 5's): the pack and entry, or the loose `.json`
   file alone; a wrong record type or a file where a record should be is the file system's own error.
+  Since M11 step 5 (G4, G5) it then checks each theme against the composer, its first problem naming the entry
+  and field, and keeps the themes it compiled on the way (`Docs/Audio.md`, "Checks and marks").
 - **Instances, not statics** (Q3): `AudioSystem(MusicLibrary)` (public; the internal constructors take
   one too) prepares its library's rooms, registers its effect patches under their names (S6-4), and
   warms up on those of `alder-vale`, `combat` and `great-imp-jiruan` the library has. `Soundtrack` holds

@@ -806,6 +806,11 @@ later milestones", "At port time").
   measured first: a broken theme or cutscene is reported when the game starts or reloads its data, naming the
   entry; the step measures the added loading time first, and if it is noticeable the manager goes back to the
   user before it goes in (steps 5 and 6).
+  **For the music (step 5): wired, the user's decision of 2026-11-07** (the question tool), after the step measured
+  it and stopped: a cold start's loading 48.9 → 69.6 ms on the game's thread (the 17.2 ms compile of all themes moved
+  there from the warm-up thread; 3.5 ms more work in all), warm about 3 ms more, a Reload about 5 ms more; both
+  consequences accepted (a silent layer naming an instrument that isn't there is refused; the tests' sample theme
+  that doesn't compile is refused, the tests given a playable one). "How it works", step 5.
 - **G6. Where the editor keeps its own settings** (recent places, M11-9; its window size and volume; the
   cutscene preview's stand-ins).
   (a) In an `editor/` folder inside the player's game folder, beside `settings.json`, `saves/` and `mods/`
@@ -1456,6 +1461,84 @@ Lesson for later steps' tests: never read `Task.Result` of a dialog a broken rul
 shell, the window's title, the zoom keys through `UiHost.PageZoom`, a splitter dragged with the mouse and its
 cursor); Windows.
 
+### Step 5: audio kinds: checks and marks (engine)
+
+The audio side in full: `Docs/Audio.md`, "Checks and marks". Code: `Engine/Statventure/Audio/Music/ThemeCheck.cs`
+(new: `ThemeCheck`, `MusicParts`), `Audio/Music/ThemeData.cs` and `Audio/Effects/EffectPatch.cs` (the marks and
+the kinds' `[Check]`s), `Audio/Music/MusicLibrary.cs` (`MusicNameRule`; the room's and the order's rules shared
+with loading as `RoomProblem` and `OrderProblems`, their messages unchanged), `Score.cs` and `Composer.cs` only
+exposing (three of the score's functions made internal; `ComposerNames`; the composer's texture table internal).
+Tests: `Tests/Statventure.Tests/Audio/ThemeCheckTests.cs`, `AudioMarksTests.cs`.
+- **Each kind's check, with paths (P20):** `audio.effect`: the patch's rules at the field each names, in its old
+  words, and `Problem()` (what registering and loading call) now the first of `RecordChecks.Check`'s problems, so the
+  game's messages are as they were and it enforces the declared limits (G4). `audio.theme`: the check against the
+  composer (G5; the rules, their order and what isn't checked: `Docs/Audio.md`), given the data through the
+  `CheckContext` for the room and the names its layers play, else only the score and the layers' own rules.
+  `audio.theme-order`: loading's rules at the id each names (with the data, each id's entry). `audio.instrument`,
+  `.percussion`, `.room` have none of their own (as before: they fail only when a theme plays them, which the theme's
+  check covers at the theme's layer).
+- **Marks:** kinds with their folders and `MusicNameRule` (the music's rule as a `NameRule`, as step 1 left it); help
+  on every audio kind and field (M11-21: plain English, what the field does for someone making a mod); units;
+  choices on a theme's mode, a layer's type and texture and an instrument's kind; references (six fields, below);
+  limits only on the effect patch (G4: the four numbers its check held). No colours, no bulk fields (none in audio).
+- **References (M11-11):** `ThemeSpec.Room` → rooms; `LayerSpec.Instrument` → instruments when its type is one that
+  plays an instrument (pad, drone, arp, bass, pulse, strum, mel, line, drips), percussion voices when it is `hit`,
+  nothing otherwise (tex and drums read no name); `LayerSpec.Drums` keys → percussion voices (`Keys = true`);
+  `HarmonySpec.Instrument`, `DoublingSpec.Instrument` → instruments; `ThemeOrder.Themes` → themes. Each takes its
+  kind's folder and rule.
+- **Loading (G4, G5): the declared limits and, by the user's decision of 2026-11-07, the theme check.**
+  `MusicLibrary.Load` runs what it ran, first and with the same messages, and through `EffectPatch.Problem()` the
+  declared limits (which are those rules): everything that loaded before still does (the committed `audio.pak`, the
+  tests' data, the proof cutscene's three patches). Then each theme is checked against the parts the library read, in
+  path order, the first problem thrown as the file system's error naming the pack and entry, its text "message (at
+  path)"; the themes compiled on the way are the library's, so the warm-up and the first theme played don't compile
+  them again. The step measured the added time first, as its condition said, and stopped; the manager brought it to
+  the user, who decided on 2026-11-07 (the question tool) to wire it, with these numbers shown (Release, the committed
+  `audio.pak` and `ui.pak` mounted as the game mounts them, `MusicLibrary.Load` alone, no sound device, this PC):
+
+  | | Before | With the check |
+  | --- | --- | --- |
+  | Cold start (15 fresh processes, medians) | 48.9 ms, and 17.2 ms of compiling all 55 themes a moment later (the audio system's warm-up thread, or the first theme played) | 69.6 ms, the compile included, none later |
+  | Warm (200 loads in one process, each from a collected heap, medians) | 1.4 ms (3.4 ms of compiling later) | 4.5 ms |
+  | Reload (remount and load, medians) | 3.8 ms (3.4 ms of compiling again when the theme playing changed) | 8.6 ms |
+
+  So 20.7 ms more at the start on the game's thread and 3.5 ms more work in all, about 3 ms more warm and 5 ms more
+  on a Reload; compiling the 55 themes takes 1.9 ms warm, the whole check 2.0 ms. The user accepted both consequences
+  the step named: a layer that never sounds (no bar of its cycle, a pattern of rests) naming an instrument that isn't
+  there is refused too (`ThemeCheckTests.ASilentLayerNamingAnUnknownInstrumentIsRefused`); and four of
+  `MusicLibraryTests`' libraries, whose sample theme doesn't compile (its melody's bars hold 3 of the meter's 12
+  steps) and whose instruments weren't in them, are given a playable theme (`PlayableTheme`, every field still set)
+  and the instruments it plays, the record fixtures keeping the sample, whose refusal at load a test shows. Before,
+  a theme that didn't compile failed the audio system's warm-up thread at the start (an exception on a background
+  thread ends the process); now loading stops naming its entry, and a Reload keeps the music it had.
+- **Duplicates the editor will meet (step 10):** a declared limit and the kind's own rule report one mistake twice
+  at one path (the patch's "has a layer 1 that needs a length above 0 …" and the limit's "must be above 0 (it is 0)"),
+  and so do a choice and the theme's check ("Unknown mode blues" and "\"blues\" isn't one of the choices: …") and,
+  given a lookup, a reference and the theme's check ("Unknown instrument theremin" and "no instrument \"theremin\"
+  (audio/instruments/theremin)"); the kind's own words come first. Step 6's kinds do the same.
+
+Choices the design left to the step (named here, decided by the step): the names (`ThemeCheck`, `MusicParts`,
+`ComposerNames`, `MusicNameRule`, the kinds' display names); `LayerSpec.Instrument` marked for exactly the types
+that play an instrument or a percussion voice, rather than an instrument unconditionally (step 1's suggestion), so a
+tex or drums layer's name names nothing, as the composer reads none; the room marked as a reference, so the editor
+(given a lookup) flags a room that isn't there, and `""`, where the game plays the hall; help on every audio field;
+the units above, none for octaves; the theme checked by what each layer's type reads, not by whether a note is
+reached, and only in the sections the form plays; the score compiled once and walked only when it fails; words of
+the step's own for what fails today without words (a meter of one number, an empty form, a loop point outside it,
+a first bar of `%`, a strum or an empty pattern: "a strum layer without a pattern", in the composer's form).
+
+Found against step 1's API: a kind's check isn't told its entry's path (`CheckContext` has the data and the
+lookup only), so the theme's rule that its id is the one its path stores (and that the order is at
+`audio/theme-order`) can't be a `[Check]`; it stays in `MusicLibrary.Load`, and the editor (step 10) checks it
+itself or step 1's `CheckContext` gains the path.
+
+For later steps: step 6's `AudioCue.Name` can reference `typeof(EffectPatch)` and `typeof(ThemeSpec)` with no folder
+of its own (these kinds bring theirs and the music's rule). Step 10: the duplicates above; the theme's id against its
+path; a theme's check with the data loads each instrument it names through the custom mount (once per check), and
+an instrument entry that isn't one is reported at the layer in the file system's words. Step 13: `MusicLibrary.Load` on
+the custom mount checks and compiles every theme (the game's 55 in about 2 ms warm), and a theme that doesn't pass
+refuses the whole library, so the preview keeps its last valid library then (P35).
+
 ### Step 7: the mod's info entry (engine)
 
 Code: `Engine/Statventure/Packs/ModInfo.cs`. Its layout `Tests/Statventure.Tests/Data/Records/Layouts/mod.info.txt`
@@ -1593,6 +1676,27 @@ verdict (a worker of its own on the painter; fixed on 2026-11-06, branch `lcd-fi
 the capture harness's iframe root isn't composited as a main frame's is (the stylesheet rule, convention 2). Not
 checked: the program in a real window (to check by hand), Windows. Remembering the zoom and the window's size (P4,
 G6): step 8, the manager's decision (a) of 2026-11-06 ("Steps", step 8).
+
+**Step 5, audio kinds: checks and marks (engine): done (2026-11-07, on the worker branch `m11-step5`, rebased on
+`1f598ec`).** ("How it works", step 5; `Docs/Audio.md`, "Checks and marks".) Each audio kind's check with the paths
+of what it names: the effect patch's rules in their old words (`Problem()` now the first of `RecordChecks.Check`, so
+the game enforces the declared limits, G4), the theme against the composer (G5: the room, the score compiled once and
+walked only where it fails, each played section's layers by the composer's rules; every rule broken once, each
+verdict the composer's own), the theme order's. Marks: the kinds with their folders and the music's name rule
+(`MusicNameRule`), help on every audio field, units, choices (mode, layer type and texture, instrument kind),
+references (six fields), limits on the effect patch only (the four numbers its check held). **The theme check runs
+when the data loads** (after the older checks, keeping their words), the user's decision of 2026-11-07 after the step
+measured it and stopped: a cold start's loading 48.9 → 69.6 ms on the game's thread (the compile of all 55 themes
+moved there from the warm-up thread, 3.5 ms more work in all), warm about 3 ms more, a Reload about 5 ms more; the
+user accepted that a silent layer naming an instrument that isn't there is refused, and that four of the tests'
+libraries, whose sample theme doesn't compile, are given a playable one. All 55 themes, the committed `audio.pak`'s
+118 records and the proof cutscene's three patches pass every check, mark and reference; every music test is
+unchanged (no line of the score's or the composer's logic changed). 115 new tests (`ThemeCheckTests` 93,
+`AudioMarksTests` 19, `MusicLibraryTests` 3). The full suite passes on the GPU and on lavapipe, headless: 2940 tests
+(`main`'s 2825 and 115 new). Mutations: 124 (`~/.cache/stat-fick-build/claude-work/m11/step5-mutations.json`, made by
+`make-step5-mutations.py` beside it; the wiring's 8 also in `step5-mutations-2.json`), all killed, nothing written to
+the player's real folders. Found: step 1's `CheckContext` gives no entry path, so the theme's id rule stays in `Load`;
+the duplicates step 10 will meet. Not checked: Windows (nothing of the step depends on the system).
 
 **Step 7, the mod's info entry (engine): done (2026-11-06, on the worker branch `m11-step7`).** ("How it
 works", step 7; `Docs/Assets.md`, "The virtual file system", "A mod's info".) The record `mod.info` (`ModInfo`:
