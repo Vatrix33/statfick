@@ -174,20 +174,21 @@ public class OpenerTests
         using var scratch = new Scratch();
         using var editor = scratch.Editor();
         var model = scratch.Folder.Write("drops/arena.glb", [1]);
-        var css = scratch.Folder.Write("drops/style.css", [1]);
-        var queued = 0;
+        var css = scratch.Folder.Write("drops/style.css", "}"u8.ToArray());
         var drop = editor.Run(() => editor.Opener().DropAsync([model, scratch.Folder["player/mods/a.pak"], scratch.Folder["drops"],
             scratch.Folder["player/mods/b.pak"], css, "https://example.com/x.pak", scratch.Folder["drops/gone.png"]]));
         Assert.True(drop.IsCompleted);
         Assert.Equal("a.pak", editor.Session.Pack!.Name);
-        Assert.Equal([model, css], editor.Session.PendingImports);
-        Assert.Equal("Opened a.pak: 1 entry; 2 files waiting for import; not opened: drops, b.pak, x.pak, gone.png.", editor.View.Status);
-        // Once something takes the imports (step 12), the status doesn't say they wait.
-        editor.Session.ImportsQueued += () => queued++;
-        drop = editor.Run(() => editor.Opener().DropAsync([model]));
-        Assert.Equal(1, queued);
-        Assert.Equal([model, css, model], editor.Session.PendingImports);
-        Assert.Equal("Opened a.pak: 1 entry; 2 files waiting for import; not opened: drops, b.pak, x.pak, gone.png.", editor.View.Status);
+        // Step 12's import takes the queue at once (so the status doesn't say the files wait) and asks about each file
+        // in its order: these two can't be imported.
+        Assert.True(editor.Session.CanImport);
+        Assert.Empty(editor.Session.PendingImports);
+        Assert.Equal("Opened a.pak: 1 entry; not opened: drops, b.pak, x.pak, gone.png.", editor.View.Status);
+        Assert.StartsWith("arena.glb can't be imported: the models importer: ", editor.Asked().Text);
+        editor.Answer("OK");
+        Assert.StartsWith("style.css can't be imported: the ui importer: ", editor.Asked().Text);
+        editor.Answer("OK");
+        Assert.Null(editor.View.Dialogs.Top);
         // A pack the case of whose ending differs opens too; over unsaved work, after asking.
         var upper = scratch.Pack("player/mods/C.PAK", "audio/rooms/c");
         Change(editor);

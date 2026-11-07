@@ -68,12 +68,15 @@ public class EditorApplicationTests
                 var n = updates++;
                 if (n == 0)
                 {
-                    // A pack dropped on the window opens; another file waits for import.
+                    // A pack dropped on the window opens; another file is queued for import, which step 12's import takes.
                     Drop(a.Window, mod, image);
                 }
                 else if (n == 2)
                 {
-                    seen.Add($"opened {a.Session.PackName}, waiting {string.Join(", ", a.Session.PendingImports.Select(Path.GetFileName))}");
+                    // The import asks for the file's path: cancelled.
+                    var import = a.View.Part<Statventure.Editor.Import.ImportPart>().Current;
+                    seen.Add($"opened {a.Session.PackName}, importing {import?.Source.Name}, waiting {a.Session.PendingImports.Count}");
+                    a.View.Document.RunScript(() => import?.Dialog.Close(null));
                     var crypt = a.Session.Entry("audio/rooms/crypt")!;
                     a.Session.Commit(crypt, crypt.Draft!.With("Seconds", Statventure.Records.DraftValue.Of(4.0)));
                     // Resized, then maximized: the size remembered is the last normal one.
@@ -100,7 +103,7 @@ public class EditorApplicationTests
         application.Run();
         Assert.Equal([
             "load 1000x700 zoom 2 True",
-            "opened my-mod.pak, waiting stone.png",
+            "opened my-mod.pak, importing stone.png, waiting 0",
             "asked: Unsaved changes; close requested False; running True",
         ], seen);
         Assert.InRange(updates, 5, 39);

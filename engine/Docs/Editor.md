@@ -2108,6 +2108,198 @@ groups open, nested rows indented with a line); the dialogs' words ("That can't 
   width to find (the engine's own UI, not this step's): an open item in `Docs/Engine-Plan.md`, "Small tasks left from
   earlier milestones", and in M5's known differences.
 
+### Step 12: import (2026-11-07)
+
+**Files.** `Tools/Editor/Session/EditorSession.Import.cs` (the session's import, no DOM: `ImportSource`, `ImportWay`,
+`ImportPlan`, `ImportTarget`, `ImportAction`, `ImportException`, and the partial `EditorEntry` member for imported files),
+`Tools/Editor/Import/` (`ImportPart.cs`: the Import command, the queue of dropped files, the import dialog, the replace
+question and the keep-or-take list; `ImportNames.cs`: the path suggested; `ImportMerge.cs`: `ImportComparison` and
+`ImportDifference`, how an entry and a file imported again over it are compared, P29; `Import.css`). Tests in
+`Tests/Statventure.Tests/Editor/Import/`: `ImportTesting.cs` (a scratch folder of files to import, the player's folder, a mod
+over the repo's packs, the Import button and the browser, drops, the packer's entry of the same file to compare with),
+`ImportKindsTests.cs`, `ImportPathTests.cs`, `ImportReplaceTests.cs`, `ImportAgainTests.cs`, `ImportComparisonTests.cs`,
+`ImportVariants.cs` (record kinds in the tests' variants namespace, which the layout guard leaves out: bulk data under a
+nullable, in a map, in a union's subtype and two records deep; a nullable member of two words), `ImportScreens.cs` (the fixtures `import-path`, `import-replace`, `import-again`); goldens `Golden/editor-import-path@1.png`
+and `@1.65.png`, `editor-import-replace@…`, `editor-import-again@…`.
+
+**Decided by the manager (2026-11-07), at this step's questions** (each the recommended option; the step stopped and
+reported them before writing code):
+- *Q1, how values are matched when importing again (P29):* by path along the kind's shape. Bulk fields come from the file
+  and are never listed; records are compared field by field; a list whose elements hold bulk data (a model's nodes and
+  animations) keeps the file's length and is compared element by element by index; any other list, and a map or pairs,
+  element by element when the lengths (a map's keys, in order) are the same, else as one value ("Cover slots: 3 elements
+  in the entry, 4 in the file"; keep keeps the entry's whole list); a nullable set on one side only, a union of another
+  subtype, a value given on one side only: one value; a whole value that holds bulk data is never listed (its structure
+  is the file's); a plain value (number, text, flag, member, vector, colour, matrix) when it isn't the same bit for bit.
+  Keep by default, with Keep all and Take all. **Known limit** (recorded with the decision): a node inserted in the file
+  shifts the names after it by index, so each shifted name is listed as differing (kept by default); Take all takes them.
+- *Q2, the folder suggested when the kind has none:* by ending: fonts (`.ttf`, `.otf`) in `ui/fonts` (as `ui.pak` holds
+  them), images (`.png`, `.svg`) in `ui/images` (where `StylesheetImporter`'s notes put them, a stylesheet's urls pointing
+  there), texts (`.txt`) and record kinds without a folder (a state machine) at the top of the data, the mod's info
+  (`mod.info`) at `mod/info` (`ModInfo.Path`, its one place).
+- *Q3, what an import does to the session:* importing again over a record of the same kind is one step of that entry's
+  history (undoable as an edit; over a game entry in a mod it makes the mod's own copy, P7); into a free path a new entry
+  (`EntrySource.New`, not undoable, as New is, M11-7); over an entry of another kind, or a file over a file, a replacement,
+  asked first and not undoable: a pack's entry replaced is listed in `Session.Removed` for saving, a new one goes, a game
+  entry stays under the new one (`Session.Overridden`), back to the game's draft, and shows again when the new one is
+  removed or renamed.
+- *Q4, the dialogs:* one file at a time in the order given (the button's pick, or the files dropped in their order, P27):
+  the import dialog first, then only when the path is taken the replace question, or for a record of the same kind whose
+  values differ the keep-or-take list; Cancel skips only that file. Screens: `import-path`, `import-replace`,
+  `import-again`.
+- *The step's own choices, confirmed:* below ("Choices the design left to the step"), among them the partial `EditorEntry`
+  member holding an imported file's bytes.
+
+**The session's import** (`EditorSession.Import.cs`; no DOM):
+- `Session.Importers` (the engine's by default, like `Session.Types`: G3 keeps every option open), `Session.ImportEndings`
+  (the importers' endings in ordinal order, then `.json`, then `FileEndings` `.ttf .otf .png .svg .txt`, each once: the
+  browser's filter and the refusal's list), `Session.CanImportFiles` (a pack is open and takes changes).
+- `ImportSourceOf(file)` → `ImportSource(File, Way, Ending, Stem, Importer)`: by the file's name in any case
+  (`Arena.GLB`'s ending is `.glb`, step 2's note): the importer its lower-case name's ending chooses (`ImportWay.Importer`),
+  else a `.json` (`ImportWay.Record`: whether it starts as a record's JSON form and of which kind is the import's to find,
+  as packing finds it; `LooseRecord` is the engine's internal), else one of `FileEndings` (`ImportWay.File`); anything else,
+  a name that is only its ending, or a file that isn't there is an `ImportException` ("the editor imports .css, .glb,
+  .terrain.json, .json, .ttf, .otf, .png, .svg and .txt files"). `SourcePath(path)`: the entry path with the ending for an
+  importer or a record (`models/stages/arena` + `.glb`), a file's path as it is (with its own ending).
+- `SuggestImportPath(source)` → (path, kind): the file imported once at its fitted name at the top of the data (a file at
+  its ending's folder) to learn what it makes (`PackWriter.ImportFile`; a problem is the `ImportException` the dialogs
+  show before asking a path), the entry there (else the first made) read as the session reads a pack's record
+  (`RecordSerializer.RootTypeName`, `Session.Types`); a record suggested by `ImportNames.ForRecord(kind, stem)`, a file
+  (or an importer that makes a file, not a record) at the trial path. `ImportNames.Fit(name)`: accents dropped (FormD,
+  non-spacing marks), small letters, every character the path rule doesn't take made `-`, runs of `-` made one, `-` and
+  dots taken off both ends, at most 120 characters (`MaxLength`), a Windows device name given `-1` before its first dot
+  (`con-1`, `aux-1.tar`), `imported` when nothing is left. `ForRecord`: `mod/info` for `ModInfo`, else the kind's rule
+  on the name as it is (a theme exported as `combat@alder-vale.json` comes back to its own path, M11-18), else on the
+  fitted name, else the fitted name at the top (a kind without a folder). `ForFile`: `FolderOf(ending)` and the fitted
+  name with the ending.
+- `ImportPathProblem(source, path)`: empty ("Give the entry a path."), the path rule ("That can't be its path: <the rule's
+  words>."), the path rule with the ending added (a name over 255 characters), and an ending that would import it as
+  something else (a file's path ending as an importer's or `.json`; a record's or importer's path whose ending, added,
+  chooses another importer: `a/b.terrain` + `.json`).
+- `PlanImport(source, path)` → `ImportPlan` (`Source`, `Path`, `Targets`, `Main`: the target at the path chosen, else the
+  first): the path's problem, the import at `SourcePath(path)` with `ImportSources.Exists = DataHas` (P28: the data the
+  mod sees, which is the entries shown: the game's other packs' and the open pack's as edited, new and imported ones
+  included, so a stylesheet may name an image imported a moment before) and the session's types and importers; a `.json`
+  that made a file, not a record, refused ("it isn't a record's JSON form (its first key isn't $types)"); then per entry
+  made (`ImportTarget`: `Entry`, `Record`, `Kind`, `Existing`, `Action`, `Comparison`): a path that would be the folder of
+  an entry shown or below one refused in `Session.PathProblem`'s words; free: `Add`; an entry of another of the game's
+  packs beside a game pack in the dev setup: refused ("…is in another of the game's packs, which is read-only beside this
+  one."); a record of the same kind: `ImportAgain` with `ImportComparison.Of(existing draft, file's draft)`; anything else:
+  `Replace`. Problems are `ImportException`s in the importer's or the packer's words (`DataFileException.Problem`, "the
+  file isn't there", an unreadable file's .NET message, "the import made no entry", "a record of type x, which isn't a
+  record type known here"); no pack that takes changes is an `InvalidOperationException`. The session isn't changed.
+- `Import(plan, take?)` (Q3): the plan must still fit (each target's path holding the entry it was planned over, else an
+  `InvalidOperationException`); `ImportAgain` commits `Comparison.Merge(take)` to the entry (`Session.Commit`: one step);
+  `Replace` takes the entry out first (`EntriesChanged` Removed, the selection cleared when it was the one); then a new
+  entry: a record `EditorEntry.ForNew(path, RecordDraft.From(record))`, a file `EditorEntry.ForImportedFile(path, bytes)`,
+  refreshed with the session's checks, reported Added. Gives the entries at the plan's paths in its order; `Changed`
+  told once. Nothing is written: the pack file is as it was until step 11 saves.
+- **For step 11 (saving) and steps 10 and 13 (the custom mount):** an imported record is a new entry like New's (its
+  draft built gives the binary form the packer gives the same file: the tests compare); an imported file is a new entry
+  (`EntrySource.New`, `EntryContent.File`, read-only, `FileSize`) whose bytes are `EditorEntry.ImportedFile`
+  (`ReadOnlyMemory<byte>?`; null for every other entry): save it with `PackWriter.Add(path, entry.ImportedFile.Value.Span)`,
+  and the custom mount reads it from there (a copy per read, `ToArray()`), not from the pack. A replaced pack entry is in
+  `Removed`; a game entry replaced in a mod is under the new one (`Overridden(path)`).
+
+**Comparing when importing again** (`ImportMerge.cs`; P29 as Q1 decided): `ImportComparison.Of(present, file)` (one kind,
+else an `ArgumentException`) walks the kind's fields in number order, depth first, giving `Differences`
+(`ImportDifference(Path, Name, Present, File, Shape, Field)`, `IsWhole` when either side isn't a plain value): the path as
+problems write it (`$.materials[0].baseColor`, `$.scores["b"]`), the name as the form names rows ("Materials › 0 › Base
+color": display names, list elements from 0, a map's values by their key's text). `Merge(take?)`: the file's draft with the
+entry's value put back at every difference not taken (none taken: the default, keep). `HoldsBulk(shape)` (remembered per
+kind, a kind that holds itself guarded): a field marked bulk anywhere below, through records, unions' subtypes, lists, maps
+and nullables. `Same(a, b)`: floats and doubles, vectors, quaternions and matrices bit for bit (0 and −0 differ, NaN is
+NaN), byte arrays byte for byte, the rest by `Equals`.
+
+**The import part** (`Import/ImportPart.cs`, a part without a pane):
+- *Import* (the top bar's button; no key: the design has none) asks the file browser (`BrowserRequest("Import a file",
+  "Import", Session.ImportEndings)`, from the most recent place, else Documents) and imports the file picked; enabled while
+  `CanImportFiles`. *Drops:* step 8's opener queues the files that aren't packs (P27); the part listens to
+  `ImportsQueued` and takes the queue at once (so step 8's "waiting for import" is no longer said in the editor), in order.
+  `ImportFiles(files)` imports one file at a time; files given while one is being asked about (a drop meanwhile, another
+  call) are queued and taken after it. With no pack open, or a read-only one, one dialog says so for the files given
+  ("Nothing imported": "notes.txt and a.ttf can't be imported: no pack is open. Open a mod or make one first."; "…: x.pak
+  is read-only (<why>)…").
+- *Per file:* a file that can't be imported (its kind, the import at its trial path) is said ("Can't import": "x can't be
+  imported: <why>.", OK) and the next comes; else the **import dialog** ("Import": "Arena Stage.GLB imports as a model.
+  Its entry's path:" — "a file", "a room (its JSON form)", "an instrument …"; the path field with the suggestion,
+  focused; a line for what is wrong; Import, Cancel). Import (or Enter in the field, without Shift, Ctrl, Alt or the Super
+  key) plans the import at the path typed: a problem shows on the line (typing clears it) and the dialog stays; else it
+  closes. Then, only when a path is taken: the **replace question** for what is replaced or imported again with no value
+  differing ("Replace the entry": "notes/readme.txt is already there (a file). Replace it with the imported file? This
+  can't be undone." — "(a file of the game's)… The game's own entry shows again if the new one is removed." for a game
+  entry; "Import again": "audio/rooms/crypt is already a room. Import crypt.json again over it? Its bulk data comes from
+  the file; no value edited in the form differs."; Replace or Import again, Cancel), and for each record imported again
+  whose values differ the **keep-or-take list** ("Import again": "models/blocks is already a model: its bulk data comes from
+  blocks.glb. 3 values differ between the entry and the file: keep the entry's or take the file's."; Keep all, Take all;
+  a row per difference: its name (its path as tooltip), the entry's value and the file's, each a radio button (keep checked
+  first) with the value as the form writes it (a number in its shortest form with its unit, "yes"/"no", a member's display
+  name, "(empty)", a colour's `#rrggbb`/`#rrggbbaa` with a swatch, a vector's numbers, a matrix's, "3 elements", "1 entry",
+  a record's kind, "none", "not given"); Import again (focused), Cancel). Cancel anywhere skips the file. Then the entries
+  join the session, the main one selected, and the status line says "Imported x as path." ("…again into path.", "…as path,
+  replacing what was there.").
+- Its stylesheet (`Import.css`): the path field as the form's fields, the list's dialog 640 px wide, rows 26 px with lines
+  between, names 200 px, radios ember, swatches 14 px; the list scrolls past 290 px.
+
+**Screens against Chromium (P36):** `import-path` (1000 × 640: a mod open, the import dialog for `Arena Stage.GLB` with
+`models/arena-stage`), `import-replace` (the replace question for a text over the mod's `notes/readme.txt`) and
+`import-again` (the keep-or-take list of `blocks.glb` imported again over the mod's model with a node's name, a material's
+colour and a flag edited), the focus on each dialog's first button, moved there by code. Captured with
+`claude-work/m11/step12-capture.sh` (step 8's: make-editor-references.sh's harness, flags and fonts in a headless cage
+with its own Xwayland, one fixture per Chromium run; **at 1.65 too the headless output made 2400 × 2400 first**, else
+cage cut the 1650 × 1056 capture to its 1280 × 720 output). Pixels past 12 levels (the limit 0.2 %), GPU: `import-path` 57 of 640,000 at 1× (0.009 %, worst 62) and 166 of 1,742,400 at 1.65 (0.010 %, worst 99), `import-replace` 57 (0.009 %) and 110 (0.006 %), the same as step 4's `dialog` (the dialog box's and its focused button's rounded corners), `import-again` 353 (0.055 %, worst 62) and 1,646 (0.094 %, worst 197): the radio buttons' rims, the swatches' corners, and at 1.65 its buttons' labels a device pixel low (below); on lavapipe within 12 pixels of these.
+
+**Found** (reported to the manager, the engine not changed):
+- *A dialog over a composited scroller has grayscale text at 1.65 where Chromium's is LCD.* The keep-or-take list's first
+  version had the model's form showing behind the dialog (the form pane a scroller with more rows than it shows): at 1.65
+  every glyph of the dialog was grayscale in the engine (colour spread 9–13) and LCD in Chromium (93–130), 23,374 pixels
+  past 12 levels (1.34 %); at 1× both LCD, and with the form pane empty both LCD at 1.65. At 1.65 the pane's scroller is
+  composited and the dialog over it with it, and the engine's verdict for that layer's text differs from cc's; perhaps
+  the same rule as the open item "A composited box's text grayscale at 1.65 where Chromium's is LCD". Recorded as an open
+  item of its own (`Docs/Engine-Plan.md`, "Small tasks left from earlier milestones", "An editor dialog over a
+  composited scroller"). The fixture shows the dialog over an empty form pane.
+- *Within the limits, known:* the keep-or-take list's buttons' labels at 1.65 (the open item "Control labels a device pixel
+  low at 1.65", here `<button>`s at that dialog's height) and the radio buttons' rims (a few pixels each); the focus ring
+  of a button focused by a script after a click isn't `:focus-visible` (Blink's rule, which the engine has too), so the
+  fixtures focus without a click.
+
+**Mutations** (`claude-work/m11/step12-mutations.json`, made by `step12/make-mutations.py`; every rule of the session's
+import, the names, the comparison, the part and its stylesheet broken once; run in four chunks, the editor's tests and the
+import screens): 221 in the first run, 195 killed, 26 survived, none failed to build. Of the survivors, 17 were gaps,
+closed by new tests (an importer's stem, a file named only `.json`, an import refused once the pack no longer takes
+changes, the session's checks run on an imported record, a record's JSON form read in the session's kinds, the
+comparison's own words for two kinds, a list holding bulk data longer in the file, a structure holding bulk data that
+differs left the file's, a difference's shape, bulk data under a nullable, in a union, in a union's subtype and two records
+deep (record kinds of the tests' variants, `ImportVariants.cs`), a problem made a sentence, a member's display name and a
+nullable one's, no swatch for a text not marked a colour); 3 were redundant code, removed (the import dialog's check that
+it closed by Import before giving its plan, which is made only then; its path field's `autofocus`, the dialog's first
+control anyway; its class, whose rule gave the problems' red every dialog already has); 2 were killed in fact: the test run
+crashed on a stack overflow (the bulk check without its guard on a kind that holds itself, the queue taken while an import
+runs), which `mutate.py` reads as a survivor since an aborted run still prints "Passed!" for the tests it ran (checked by
+hand, `step12/crash-check.py`); 1 can't change any answer (the bulk check's answers remembered per kind, a cache); 3 are
+looks under the screens' limits (the radio buttons' ember, the path label's muted colour, the path field's border colour:
+a few hundred pixels each). The reruns (`step12-mutations-rerun.json`, 17, then `-rerun2.json`, the one the first rerun
+left) killed all. So the list as it stands (218, the three of removed code taken out) is all killed but those 4 accounted
+for, the 2 crashes checked by hand. Nothing written to the player's real folders.
+
+**Changed in earlier steps' tests:** step 8's `OpenerTests.ADroppedPackOpensAndOtherFilesWaitForImport` (with step 12's
+part listening, the dropped files are taken at once and asked about, so the status no longer says they wait; the files'
+order and the passed-over ones checked as before) and `EditorApplicationTests.TheEditorStartsAsItWasLeftAsksBeforeClosingOverUnsavedWorkAndRemembers`
+(the image dropped with the pack is taken by the import, whose dialog the test cancels, instead of waiting; it runs only
+with a display, so only the full run in a headless cage showed it); a comment in step 4's `CommandTests` (Import has a handler now, which
+can't run with no pack open).
+
+**Choices the design left to the step** (made here, confirmed by the manager on 2026-11-07): the names above; the
+importable endings exactly the design's list (the importers', a record's `.json`, `.ttf .otf .png .svg .txt`), anything
+else and a `.json` that isn't a record's form refused with why; the file's name tried as it is by the kind's rule first,
+then fitted (lower case, accents dropped, other characters `-`, runs made one, ends trimmed, 120 characters, device names
+`-1`, `imported` for nothing); the path field a whole path (any folder: `models/stages/arena`); the suggestion found by
+importing once at the fitted name (the kind an importer makes is known only by running it), the import at the chosen path
+done again; P28's data the entries shown (the base's and the pack's as edited); imports with no pack that takes changes
+refused in one dialog; the imported entry selected and the status line's words; the browser for import from Documents
+unless a recent place is known; the dialogs' words and look; imported files as new entries of the session holding their
+bytes (`EditorEntry.ImportedFile`, a partial member in the session's import file).
+
 ## Status
 
 **Where M11 stands (2026-11-07, 18:10):** on `main` (`3e6df0f`): steps 1, 2, 3, 4, 5 and 7; in progress on worker branches, not on `main`: steps 6 (`m11-step6`), 8 (`m11-step8`) and 9 (`m11-step9`); to come: steps 10, 12 and 13, then 11 and 14. The full suite on `main`: 2940 tests, passing on the GPU and on lavapipe, nothing held (`Docs/Engine-Plan.md`, "Current task").
@@ -2300,3 +2492,23 @@ step's parts. The full suite passes on the GPU and on lavapipe, inside a headles
 Mutations: 251 in the first run (`~/.cache/stat-fick-build/claude-work/m11/step8-mutations.json`, its chunks `-1` to `-4` and `-window`, the editor application's wiring run inside a headless cage; made by `step8/make-mutations.py`): 229 killed, 18 survived, 4 didn't build; 3 survivors were redundant code, removed (the tree's press handler: a press focuses the tree anyway; Right's check that an open folder's next item is inside it, which it always is; a `[hidden]` rule the browser's own stylesheet has), 12 were gaps closed by tests (a game pack's problem named without its folder, a compressed file's size, a settings file that isn't an object, the "Hidden" box kept when going to a folder, the selection kept when listing again, a size between 1,000 and 1,024 of a unit, a dialog's task read only once done (one survivor was a test waiting on a question a broken rule left open), a refused drop's own task, a relative name dropped, the status line's capital, the overscan's number, and the window's options in the settings tests' filter), and the 4 that didn't build were rewritten to build; the rerun (`step8-mutations-rerun.json`, 16) killed all 16. The list as it stands, 248, has 245 killed and 3 accounted for: looks under the screens' limits (the marks not ember, the active row's 1 px outline, an open folder's triangle closed: a few hundred pixels of 640,000). Nothing written to the player's real folders. Renders for the user:
 `claude-work/m11/step8/render-{list,browser}-audio@{1,1.65}.png`. Not checked: a real drop from a file manager and a real
 close by the title bar (to check by hand), the editor in a real window, Windows.
+
+**Step 12, import (editor): done (2026-11-07, on the worker branch `m11-step12`, rebased on `c26a6ed`, its full runs on `ac2306e`).** ("How it works", step 12.)
+The step stopped at four questions before writing code; the manager decided them on 2026-11-07 (each the recommended option:
+P29's values matched by path along the kind's shape with its known limit, files' folders by ending, a re-import one
+undoable step and anything else a new entry or a replacement asked first, one file at a time with the dialogs only when
+the path is taken) and confirmed the step's own choices. Each kind the editor imports, by the Import button through the
+file browser and by a drop, is the packer's entry of the same file at the same path (a `.glb` model, a `.terrain.json`
+terrain with its images beside it, a `.css` stylesheet whose urls are checked against the game's packs, the mod and what
+the session imported, a record's `.json` form, `.ttf`, `.otf`, `.png`, `.svg` and `.txt` files); the path suggested from the
+kind's folder by its rule and the file's name made to fit the path rule, editable, its problems said in the dialog; the
+replace question for an entry already there (the pack's listed as removed, a game entry kept under the new one); a record
+imported again over its kind with the bulk data from the file and each differing value kept or taken (Keep all, Take all;
+one step of the entry's history; over a game entry, the mod's copy); a record's JSON form exported from the JSON tab back
+in (M11-18). Importing never writes the pack. The screens against Chromium at 1 and 1.65: `import-path` 0.009 % and 0.010 %, `import-replace` 0.009 % and 0.006 %, `import-again` 0.055 % and 0.094 % (pixels past 12 levels, the limit 0.2 %). Found and recorded:
+an editor dialog over a composited scroller has grayscale text at 1.65 where Chromium's is LCD (an open item in
+`Docs/Engine-Plan.md`, "Small tasks left from earlier milestones"). 61 new tests (`Tests/Statventure.Tests/Editor/Import/`: 55 and the three screens at both scales);
+step 8's drop test and application test see step 12's part take the queue. The full suite passes on the GPU and on lavapipe, inside a headless
+Wayland compositor: 3311 tests (`main`'s 3250 at `ac2306e` and 61 new), none skipped. Mutations: 221 (`~/.cache/stat-fick-build/claude-work/m11/step12-mutations.json`, made by `step12/make-mutations.py`): 195 killed; of the 26 survivors 17 were gaps closed by new tests, 3 redundant lines removed, 2 killed in fact (the test run crashed on a stack overflow, which `mutate.py` reads as passing: checked by hand), 1 a cache, 3 looks under the screens' limits; the reruns (17, then 1) killed all; nothing written to the player's real folders. Not checked: a real drop and the dialogs in a real window (by
+hand), Windows (`ImportSources`' default lookup on a file system that ignores case: "Windows check", item 8b, can now be
+done in the editor).

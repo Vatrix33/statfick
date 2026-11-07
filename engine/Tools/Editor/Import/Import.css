@@ -1,0 +1,30 @@
+/* Import (Docs/Editor.md, "Import (step 12)"): the import dialog's path field, the replace question, and the
+   keep-or-take list of the values that differ when a file is imported again (P29). Controls keep the shell's
+   colours (no color-scheme: convention 2). */
+.import-field { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
+.import-label { flex: none; width: 40px; color: var(--muted); }
+.import-field input {
+  flex: 1;
+  min-width: 0;
+  height: 22px;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--ink);
+  background: var(--paper);
+  font: inherit;
+  line-height: 20px;
+}
+.import-problem { min-height: 24px; color: var(--problem); }  /* the editor's problem red (Form.css gives every dialog it) */
+
+.dialog.import-again-dialog { width: 640px; }
+.import-tools { display: flex; gap: 4px; margin: 0 0 8px; }
+.import-values { max-height: 290px; overflow: auto; border: 1px solid var(--line); border-radius: 3px; background: var(--paper); }
+.import-row { display: flex; align-items: center; gap: 8px; height: 26px; padding: 0 8px; border-top: 1px solid var(--line); }
+.import-row:first-child { border-top: none; }
+.import-head { color: var(--muted); }
+.import-name { flex: none; width: 200px; overflow: hidden; white-space: nowrap; }
+.import-choice { display: flex; flex: 1 1 0; align-items: center; gap: 6px; min-width: 0; overflow: hidden; white-space: nowrap; }
+.import-choice input { flex: none; margin: 0; accent-color: var(--ember); }
+.import-swatch { flex: none; width: 14px; height: 14px; border: 1px solid var(--line); border-radius: 2px; }
+.import-text { overflow: hidden; }

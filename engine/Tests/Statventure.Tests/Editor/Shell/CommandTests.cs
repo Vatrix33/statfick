@@ -51,7 +51,7 @@ public class CommandTests
         Assert.True(save.IsDisabled);
         editor.Click(save);
         Assert.Single(part.Requests);
-        // A handler registered later enables its button at once (Import: no part of the editor's handles it yet).
+        // A handler registered later enables its button at once (Import: the editor's own handler can't run with no pack open).
         using var bare = new EditorHarness();
         Assert.True(bare.View.Button(EditorCommand.Import)!.IsDisabled);
         bare.View.Commands.Handle(EditorCommand.Import, _ => true);
