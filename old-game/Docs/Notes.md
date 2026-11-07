@@ -84,7 +84,7 @@ The user's main project is **Stat Fick**, a vanilla-JS fantasy RPG (character sh
 
 **Shop and guild banners (2026-10-08):** `scripts/scene-banners.js` (loaded before `shop.js`) draws ink interiors with SpriteKit.
 - `SceneBanners.show(host, kind, place, regionId)` fills `#shop-banner` and `#guild-banner`.
-- Castle cities get a big variant: great forge, emporium, arcane athenaeum, and a perspective great hall for the guild. Towns get small rooms; a town's reduced guild is a tavern.
+- Castle cities get a big variant: great forge, emporium, arcane athenaeum, and a perspective great hall for the guild. Towns get small rooms; a town's reduced guild is a tavern. Since port task 9 the Apothecary has both too (`apothecary-castle`, `apothecary-town`, placeholder art; "Potion Rework" below).
 - Scenes are seeded by settlement. Region picks the materials; game time picks day/dusk/night windows.
 - Each banner is a static SVG (scene, masked darkness with light holes, hatching) plus an `.sb-live` screen-blended SVG of animated flames and glows. Emitted things always draw above the scene, so keep fires clear of anything that should stand in front of them.
 
@@ -1010,8 +1010,9 @@ remaking the placeholder art (P2; `engine/Docs/Port-Tasks/README.md`). The user'
   `checkRecipeOffers`, `checkBrewing`, `checkPotionsInBattle`, `checkPoisons`, `checkAssimilator`, `checkForaging`,
   `checkIngredientDrops`, `checkAlchemyClasses`, `checkCollectQuests`, `checkAlchemySaves`. They use a second copy of
   `combat.js` with a hook (`window.__potionChecks`). Old checks updated for task 9: `guild-rework`'s reward check (Collect
-  pays by rarity) and wording, and `adventure-improvements`' `runCombatRewardChecks` (its no-drops fight holds the dice
-  high, since enemies drop ingredients now).
+  pays by rarity) and wording, `regional-guild` (a Collect contract is paid only with its ingredients in the pack), and
+  `adventure-improvements`' `runCombatRewardChecks` (its no-drops fight holds the dice high, since enemies drop
+  ingredients now).
 - **Not covered by a check:** how the banners, cauldron and icons look; the brewing animation; the AI (enemies carry no
   new potions; companions are yours to command).
 - **The checks can fail:** each rule was broken once in a copy of the game (97 mutations, by the earlier tasks' runner, in

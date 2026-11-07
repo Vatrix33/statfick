@@ -1,7 +1,10 @@
 # Task 9 draft: potions, poisons, ingredients and recipes
 
-For review (P5). Made by `draft.py`, which checks the counts and recipes. The decisions behind it are P1–P29 in
-`engine/Docs/Engine-Plan.md`, "Decisions for task 9".
+Approved by the user on 2026-11-07 (P31, after the classes were reshaped, P30), and built into the old game the same
+day; kept as the reference for the port. Made by `draft.py`, which checks the counts and recipes. The decisions
+behind it are P1–P31 in `engine/Docs/Engine-Plan.md`, "Decisions for task 9". The old game's data now lives in
+`old-game/objects/consumables.json` and `old-game/scripts/alchemy-data.js` (generated from this once); where the two
+differ later, the game's data is the newer.
 
 **How to read it**
 - Durations count the turns of whoever has the effect, in battle (the game's timed effects). A potion's buff is
@@ -10,9 +13,10 @@ For review (P5). Made by `draft.py`, which checks the counts and recipes. The de
   buff spells do. Damage and resistance changes add to the target's other changes of that kind.
 - Prices are in silver. No item in the game has a carry limit, so neither do these.
 - Any potion can be drunk or handed to an ally, 1 AP (P9). Health, Mana and cures also work outside battle (P6).
-- A poison is thrown at an enemy, 1 AP. Poison damage is Nature damage (Nature resistance lowers it, as for
-  the Poisoner's poison). On the 12 bosses every poison works at half strength: its damage, its
-  reductions, its chances and its duration halved, rounded up (P8). The same poison again refreshes it.
+- A poison is thrown at an enemy, 1 AP. Poison damage is Nature damage, and Nature resistance lowers each tick (the
+  Poisoner's own poison ignores resistance; thrown ones don't). On the 12 bosses every poison works at half
+  strength: its damage, its reductions, its chances and its duration halved, rounded up (P8). The same poison
+  again refreshes it.
 
 **Totals:** 40 new potions, 12 poisons, 56 ingredients, 62 recipes (10 Health and Mana, 40 new potions, 12 poisons).
 

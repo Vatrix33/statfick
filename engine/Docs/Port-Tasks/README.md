@@ -170,7 +170,8 @@ waited, into the same pull request, P1; P2 kept its art placeholder).
   (the two Lesser ones known from the start, the rest bought at ten times the potion), the Alchemist (better foraging,
   Ingredient Lore) and the Assimilator (eats ingredients in battle for buffs), and the guild's Collect quest. The user's
   design answers are in `Engine-Plan.md`, "Decisions for task 9, Potion Rework" (P1–P31); the approved content is
-  `9_Potion_Rework/draft.md`; where each rule lives is in `../../../old-game/Docs/Notes.md`, "Potion Rework"; the old
+  `9_Potion_Rework/draft.md` (its README says what the folder holds); where each rule lives is in
+  `../../../old-game/Docs/Notes.md`, "Potion Rework"; the old
   game's checks, `old-game/test-client/tests/potion-rework-browser.js`, are the reference the ported rules are tested
   against. Still to do in the port: only the art (below). Old game only.
 
@@ -247,11 +248,14 @@ task 3's scenes are listed in `PLACEHOLDER_ART`):
   engine's tests use their own copy of the stylesheet and saved captures; the game's code and tables come over at port
   time). After tasks 2–6 were merged (pull requests #8–#11), the full suite ran on the PC on `a32c5cb` (2026-11-06):
   2547 tests passing on the GPU and on lavapipe, the same as before the merges. Task 7 (pull request #12) changed no
-  file the engine's tests read either.
+  file the engine's tests read either, nor did tasks 8 and 9 (pull request #14; the only class file the tests read,
+  `Black Knight.json`, is untouched). Task 8 did change `music.js`'s theme switch (the region crossfade), which the
+  engine's soundtrack restates by hand; its tests keep the old switch until the port adds the crossfade
+  (`../Audio.md`, "Theme API").
 - The game-screen references predate the tasks (checked 2026-11-06): the 22 captured screens and the tests' copy of the
   stylesheet (`engine/Tests/Statventure.Tests/Data/Game/styles.css`) came in with the repo's first commit (`f45ca7a`,
   2026-10-30), the copy being that commit's `old-game/styles.css`. The old game's stylesheet differs from it since the
-  small changes of 2026-11-03 (`7cdd47e`) and grew with tasks 2, 3 and 5 (3915 lines in the copy, 4080 in the old game);
+  small changes of 2026-11-03 (`7cdd47e`) and grew with tasks 2, 3, 5, 7, 8 and 9 (3915 lines in the copy, 4184 in the old game);
   its markup and scripts changed too. So the engine's game-screen tests check the old looks, as intended for now; the
   screens are to be captured again from the current old game. When (before the port starts, or screen by screen as the
   port reaches each) is a question to ask at port time (`Engine-Plan.md`, "Open questions for later milestones", "At
