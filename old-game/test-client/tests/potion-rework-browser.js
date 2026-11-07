@@ -20,7 +20,7 @@ const potionChecks = {
     const source = await (await fetch("scripts/combat.js")).text();
     const marker = "  window.Combat = {";
     const script = document.createElement("script");
-    script.textContent = source.replace(marker, "  window.__potionChecks = { actorById, hp, setHp, values, getBattle: () => battle, useItem, applyEffects, applyCombatDamage, hurt, directDamage, resistance, expire, actionPointMaximum, awardDefeatedEnemyExperience, applyNewClassWeaponEffects, estimatedWeaponStrike, attackLoadout, endTurn, currentActor, isControlledTurn, debuffImmune, controlImmune, eatIngredient, useSkill, skillsOf, classSkillKey, renderPicker: () => { pickerKind = \"item\"; renderPicker(); }, definitions: () => enemyDefinitions };\n" + marker);
+    script.textContent = source.replace(marker, "  window.__potionChecks = { actorById, hp, setHp, values, getBattle: () => battle, useItem, applyEffects, applyCombatDamage, hurt, strike, directDamage, resistance, expire, actionPointMaximum, awardDefeatedEnemyExperience, applyNewClassWeaponEffects, estimatedWeaponStrike, attackLoadout, endTurn, currentActor, isControlledTurn, debuffImmune, controlImmune, eatIngredient, useSkill, skillsOf, classSkillKey, renderPicker: () => { pickerKind = \"item\"; renderPicker(); }, definitions: () => enemyDefinitions };\n" + marker);
     document.head.append(script);
     await waitForSourceFiles();
     if (window.BattleStage) window.BattleStage.enabled = () => false;
@@ -348,8 +348,18 @@ async function checkPotionsInBattle() {
   const forecast = () => h.estimatedWeaponStrike(player, foe, weapon);
   h.setHp(foe, h.values(foe).maxHp);
   const base = forecast();
+  // A strike whose dice land between the first-roll crit chances without and with the potion (crits build momentum).
+  const strikeCrits = async () => {
+    h.setHp(foe, h.values(foe).maxHp); player.critMisses = 0;
+    const from = battle.log.length;
+    const roll = (CombatRules.critChanceAfterMisses(base.critChance, 0) + CombatRules.critChanceAfterMisses(base.critChance + 10, 0)) / 200;
+    await potionChecks.withRandom(() => roll, async () => { h.strike(player, foe, weapon); });
+    return battle.log.slice(from).some(line => /\(critical\)/.test(String(line)));
+  };
+  assert(!await strikeCrits(), "Without the potion that roll is no critical hit");
   use(player, player, "Potion of Precision");
   assert(base.critChance > 0 && base.critChance < 90 && forecast().critChance === base.critChance + 10, "Potion of Precision: +10% critical hit chance");
+  assert(await strikeCrits(), "With it the same roll is a critical hit");
   const blow = (critical, target = foe) => { h.setHp(target, h.values(target).maxHp); return h.hurt(target, 200, "basic", critical, false, player, "melee"); };
   const critBefore = blow(true);
   use(player, player, "Duelist's Draught");
@@ -433,7 +443,8 @@ async function checkPoisons() {
   turn(); h.useItem(player, foe, P("Wyrmbane Venom"));
   assert(foe.effects.find(effect => effect.name === "Wyrmbane Venom").amount === 20, "Full strength on an ordinary enemy");
   turn(); h.useItem(player, boss, P("Corrosive Flask"));
-  assert(boss.effects.find(effect => effect.type === "defense-percent").amount === -10, "Corrosive Flask's −20% Armor is −10% on a boss");
+  const corroded = boss.effects.find(effect => effect.type === "defense-percent");
+  assert(corroded.amount === -10 && corroded.expiresTurn === boss.turns + 2, "Corrosive Flask's −20% Armor for 3 turns is −10% for 2 turns on a boss (halves rounded up)");
   // Paralytic Toxin: a 35% stun chance (18% on a boss) and 1 AP lost.
   await potionChecks.withRandom(() => 0.3, async () => { turn(); h.useItem(player, third, P("Paralytic Toxin")); });
   assert(third.effects.some(effect => effect.type === "stun") && third.rootedAp === 1, "Paralytic Toxin: stunned on a 35% roll, and 1 AP lost");

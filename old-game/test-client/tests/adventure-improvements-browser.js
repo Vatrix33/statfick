@@ -294,7 +294,10 @@ async function runCombatRewardChecks() {
     assert(chances.at(-1) === 5 && Combat.serialize().ap === 4 && Combat.serialize().log.some(line => line.includes("fails to escape (5% chance)")), "Run in combat spends its AP and rolls at least five percent against an overwhelmingly fast enemy");
     $("combat-sheet-button").click(); battle = Combat.serialize();
     battle.actors.filter(actor => actor.team === "enemy").forEach(actor => { actor.character.currentHp = 0; actor.character.inventory = []; actor.dropTable = []; });
-    Combat.restore(battle); Combat.onSheetChange(); await until(() => !$("combat-loot-modal").hidden, "A fight with no item drops still shows its rewards");
+    // Port task 9: enemies also drop their own ingredients (a quarter of kills); high dice keep this fight empty-handed.
+    const dice = Math.random; Math.random = () => 0.99;
+    try { Combat.restore(battle); Combat.onSheetChange(); } finally { Math.random = dice; }
+    await until(() => !$("combat-loot-modal").hidden, "A fight with no item drops still shows its rewards");
     assert(!Combat.serialize().lootItems.length && $("combat-loot-list").textContent.includes("no usable items") && $("combat-loot-exp").textContent.includes("EXP"), "EXP and money remain visible even without item drops");
   } finally { CombatRules.roll = originalRoll; Combat.restore(null); applyCharacter(normalizeCharacter(defaultCharacter())); WorldMap.setAmbientEnabled(false); }
   return { passed: true, checks };

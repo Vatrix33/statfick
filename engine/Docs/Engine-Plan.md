@@ -117,6 +117,16 @@ client) and these docs, never the engine (the engine's tests read none of what c
 images their captures name are untouched), so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on
 uninterrupted**; don't count task 8 as the engine's current task. How it's built, its checks and their results:
 `../old-game/Docs/Notes.md`, "Map Rework: one continent".
+**Beside the engine, old game only (2026-11-07): port task 9, Potion Rework, is done in the old game**, as tasks 1–8
+were (decisions P1–P31 in "Decisions for task 9, Potion Rework" below; on the cloud branch `claude/fervent-carson-f5ol9s`,
+in the same pull request as task 8, P1). The Apothecary in every settlement (potions, ingredients, brewing, recipes,
+selling), 40 new potions and 12 poisons, 56 ingredients (foraged and dropped), 62 recipes, the Alchemist and the
+Assimilator, and the guild's Collect quest; the approved content is `Docs/Port-Tasks/9_Potion_Rework/draft.md` (P31).
+The port doesn't build it again; only its placeholder art is remade (`Docs/Port-Tasks/README.md`). It touches only
+`../old-game/` (its scripts, data, two new class files, markup, stylesheet and test client) and these docs, never the
+engine (the engine's tests read none of what changed: the one class file they read is untouched), so
+`Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count task 9 as the engine's
+current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Potion Rework".
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game

@@ -47,6 +47,9 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
    names, identity, terrain, enemies, level bands, towns and connections are all made in the port (the user, W27).
 9. `9_Potion_Rework.txt`: an Apothecary in every town, 40 new potions and 12 poisons, at least 50 ingredients, foraging
    on the map, brewing and recipes, the Alchemist and Assimilator classes, and a Collect quest for the guild.
+   **Already done in the old game (2026-11-07): don't build it again.** The port carries it over with the rest of the
+   game; only its placeholder art is left to remake (below). The approved content (every potion, poison, ingredient
+   and recipe) is `9_Potion_Rework/draft.md`.
 10. `10_Class_Rework.txt`: every class reviewed and reworked where needed (identity, requirements, passive and skill, a
     capstone, its colour rarity), then 26 named new classes and 15 more; for the new classes the user is asked about
     each one's identity, levels, requirements and rarity, in that order.
@@ -86,7 +89,8 @@ after the faithful port, or while porting). Task 4 too was built in the old game
 A1 kept its art placeholder), and so were task 6 (the user asked for it the same day; N4 kept its art placeholder) and
 task 5 (asked for after tasks 4 and 6 were merged; M1 kept its art placeholder), and task 7 (asked for after task 5
 was merged, while M11's engine work went on; L1 kept its art placeholder), and task 8 (asked for after task 7 was
-merged; W1 kept its 2D looks placeholder for the port's 3D map).
+merged; W1 kept its 2D looks placeholder for the port's 3D map), and task 9 (asked for while task 8's pull request
+waited, into the same pull request, P1; P2 kept its art placeholder).
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
@@ -159,6 +163,16 @@ merged; W1 kept its 2D looks placeholder for the port's 3D map).
   old game's checks, `old-game/test-client/tests/map-rework-browser.js`, are the reference the ported rules are tested
   against. Still to do in the port: the looks (below) and the three new regions; and the engine's soundtrack, ported
   before task 8, gains the crossfade between region themes (`Docs/Audio.md`, "Theme API"). Old game only.
+- Task 9, Potion Rework (2026-11-07, a cloud session, in the same pull request as task 8, P1): the Apothecary in every
+  settlement (potions, ingredients, brewing at a cauldron, recipes, selling), the ten Health and Mana Potions always on
+  sale there by level band and gone from the General Store, 40 new potions and 12 throwable poisons (half strength on
+  bosses), 56 ingredients foraged on the map (Forage, an hour) and dropped by every enemy, 62 three-ingredient recipes
+  (the two Lesser ones known from the start, the rest bought at ten times the potion), the Alchemist (better foraging,
+  Ingredient Lore) and the Assimilator (eats ingredients in battle for buffs), and the guild's Collect quest. The user's
+  design answers are in `Engine-Plan.md`, "Decisions for task 9, Potion Rework" (P1–P31); the approved content is
+  `9_Potion_Rework/draft.md`; where each rule lives is in `../../../old-game/Docs/Notes.md`, "Potion Rework"; the old
+  game's checks, `old-game/test-client/tests/potion-rework-browser.js`, are the reference the ported rules are tested
+  against. Still to do in the port: only the art (below). Old game only.
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and
@@ -219,6 +233,14 @@ task 3's scenes are listed in `PLACEHOLDER_ART`):
   mountain's fog and cloud banks (W32), all in `old-game/scripts/map.js` and the files named. The port remakes them in
   its 3D map, with draft 6 (`8_Map_Rework/continent-draft-6.png`) as the reference for the continent's shape. The rules
   behind them (the land, the routes, the timings and amounts) are not placeholder.
+- Task 9 (user decision P2): the two Apothecary banners (`apothecaryHall` for castle cities, `apothecaryShop` for towns,
+  in `old-game/scripts/scene-banners.js` and its `PLACEHOLDER_ART`: stone and plaster rooms of potion shelves, hanging
+  herbs, a bubbling cauldron and the apothecary at the counter), the brewing cauldron and its animation
+  (`old-game/scripts/apothecary.js`, `styles.css`), and the icons of the 40 new potions, the 12 poisons and the 56
+  ingredients (`potionArt` coloured by effect, a skull on poisons, and `ingredientArt`'s simple herb, mushroom, mineral,
+  animal-part and essence shapes, in `old-game/scripts/forge-art.js`). The port remakes them as proper art: the two
+  banners sharing an apothecary look, grand and modest; each potion, poison and ingredient its own. The rules behind
+  them are not placeholder.
 
 **Found before the work:**
 - Tasks 1 and 2 were checked against the engine work on 2026-11-03 (tasks 3 and 4 on 2026-11-06): none touches it (the

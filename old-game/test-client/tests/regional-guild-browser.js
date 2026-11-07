@@ -46,6 +46,8 @@ async function runRegionalGuildChecks() {
     Guild.accept(board.offers.indexOf(regular[0]));
     assert(worldState.guild.quest?.originRegionId === regionId && WorldRules.normalize(worldState).guild.quest.originRegionId === regionId, `${castle.name} contract survives save normalization`);
     worldState.guild.quest.complete = true; worldState.guild.quest.progress = 1;
+    // Port task 9: a Collect contract is paid only for the ingredients in the pack (P24).
+    if (worldState.guild.quest.type === "collect") inventory.push(...Array(worldState.guild.quest.required).fill(worldState.guild.quest.ingredientId));
     const before = worldState.guild.reputation;
     document.querySelector('#guild-banner [data-guild-spot="counter"]').dispatchEvent(new MouseEvent("click", { bubbles: true }));
     assert(!worldState.guild.quest && worldState.guild.reputation > before, `${castle.name} pays completed contracts at its counter`);
