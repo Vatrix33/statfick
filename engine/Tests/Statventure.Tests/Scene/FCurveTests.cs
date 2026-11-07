@@ -14,31 +14,34 @@ public class FCurveTests
 {
     static FCurveKey K(double frame, double value) => new(F(frame), value);
 
-    public static TheoryData<string, FCurveKey[]> Refused => new()
+    public static TheoryData<string, FCurveKey[], string> Refused => new()
     {
-        { "an F-curve needs at least one key", [] },
-        { "key 1 (at 0.1 s): keys must be in increasing time order at least 0.01 frame (1/6000 s) apart, and key 0 is at 0.2 s", [K(12, 0), K(6, 1)] },
-        { "key 1 (at 0.2 s): keys must be in increasing time order at least 0.01 frame (1/6000 s) apart, and key 0 is at 0.2 s", [K(12, 0), K(12, 1)] },
-        { $"key 1 (at {F(12.005):R} s): keys must be in increasing time order at least 0.01 frame (1/6000 s) apart, and key 0 is at 0.2 s", [K(12, 0), K(12.005, 1)] },
-        { "key 0: its time and value must be finite numbers", [new(double.NaN, 0)] },
-        { "key 1: its time and value must be finite numbers", [K(0, 0), new(F(3), double.PositiveInfinity)] },
-        { "key 0 (at 0 s): its left handle is free but has no position (time and value)", [new(0, 0, Left: HandleType.Free, Right: HandleType.Auto)] },
-        { "key 0 (at 0 s): its right handle is aligned but has no position (time and value)", [new(0, 0, Right: HandleType.Aligned, RightTime: 0.1)] },
-        { "key 0 (at 0 s): its left handle is auto-clamped, which is worked out, but a position is given", [new(0, 0, LeftTime: -0.1, LeftValue: 0)] },
-        { "key 0 (at 0 s): its right handle is vector, which is worked out, but a position is given", [new(0, 0, Right: HandleType.Vector, RightValue: 1)] },
-        { "key 0 (at 0 s): its left handle's position must be finite numbers", [FCurveKey.Free(0, 0, (double.NegativeInfinity, 0), (0.1, 0))] },
-        { "key 0 (at 0 s): back, amplitude and period must be finite numbers", [new(0, 0, Period: double.NaN)] },
-        { "key 0 (at 0 s): a negative amplitude (-0.5; Blender's are 0 or more)", [new(0, 0, Amplitude: -0.5)] },
-        { "key 0 (at 0 s): an interpolation, easing or handle type that isn't one", [new(0, 0, (KeyInterpolation)13)] },
-        { "key 1 is null", [K(0, 0), null!] },
+        { "an F-curve needs at least one key", [], "$.keys" },
+        { "key 1 (at 0.1 s): keys must be in increasing time order at least 0.01 frame (1/6000 s) apart, and key 0 is at 0.2 s", [K(12, 0), K(6, 1)], "$.keys[1].time" },
+        { "key 1 (at 0.2 s): keys must be in increasing time order at least 0.01 frame (1/6000 s) apart, and key 0 is at 0.2 s", [K(12, 0), K(12, 1)], "$.keys[1].time" },
+        { $"key 1 (at {F(12.005):R} s): keys must be in increasing time order at least 0.01 frame (1/6000 s) apart, and key 0 is at 0.2 s", [K(12, 0), K(12.005, 1)], "$.keys[1].time" },
+        { "key 0: its time and value must be finite numbers", [new(double.NaN, 0)], "$.keys[0].time" },
+        { "key 1: its time and value must be finite numbers", [K(0, 0), new(F(3), double.PositiveInfinity)], "$.keys[1].value" },
+        { "key 0 (at 0 s): its left handle is free but has no position (time and value)", [new(0, 0, Left: HandleType.Free, Right: HandleType.Auto)], "$.keys[0].leftTime" },
+        { "key 0 (at 0 s): its right handle is aligned but has no position (time and value)", [new(0, 0, Right: HandleType.Aligned, RightTime: 0.1)], "$.keys[0].rightValue" },
+        { "key 0 (at 0 s): its left handle is auto-clamped, which is worked out, but a position is given", [new(0, 0, LeftTime: -0.1, LeftValue: 0)], "$.keys[0].leftTime" },
+        { "key 0 (at 0 s): its right handle is vector, which is worked out, but a position is given", [new(0, 0, Right: HandleType.Vector, RightValue: 1)], "$.keys[0].rightValue" },
+        { "key 0 (at 0 s): its left handle's position must be finite numbers", [FCurveKey.Free(0, 0, (double.NegativeInfinity, 0), (0.1, 0))], "$.keys[0].leftTime" },
+        { "key 0 (at 0 s): back, amplitude and period must be finite numbers", [new(0, 0, Period: double.NaN)], "$.keys[0].period" },
+        { "key 0 (at 0 s): a negative amplitude (-0.5; Blender's are 0 or more)", [new(0, 0, Amplitude: -0.5)], "$.keys[0].amplitude" },
+        { "key 0 (at 0 s): an interpolation, easing or handle type that isn't one", [new(0, 0, (KeyInterpolation)13)], "$.keys[0].interpolation" },
+        { "key 1 is null", [K(0, 0), null!], "$.keys[1]" },
     };
 
     /// <summary>Making a curve, copying one with other keys and reading one each refuse what breaks the rules, naming the key and the rule.</summary>
     [Theory]
     [MemberData(nameof(Refused))]
-    public void CurvesThatBreakTheRulesAreRefused(string expected, FCurveKey[] keys)
+    public void CurvesThatBreakTheRulesAreRefused(string expected, FCurveKey[] keys, string path)
     {
         Assert.Equal(expected, Assert.ThrowsAny<ArgumentException>(() => new FCurve(keys)).Message);
+        // The curve's rules for keys a form edits (M11 step 6): the same words first, at the path of what they name in the curve.
+        var first = FCurve.ProblemsOf(keys)[0];
+        Assert.Equal((path, expected), (first.Path.ToString(), first.Message));
         var good = new FCurve([K(0, 1)]);
         Assert.Equal(expected, Assert.ThrowsAny<ArgumentException>(() => good with { Keys = keys }).Message);
         if (keys.All(k => k != null) && keys.All(k => Enum.IsDefined(k.Interpolation)))
@@ -56,6 +59,18 @@ public class FCurveTests
             }.ToJsonString();
             Assert.Equal(expected, Assert.ThrowsAny<ArgumentException>(() => RecordSerializer.FromJson<FCurve>(json)).Message);
         }
+    }
+
+    /// <summary>The curve's rules for keys a form edits name every key that breaks one, at each field it names; good keys have none.</summary>
+    [Fact]
+    public void ProblemsOfNamesEveryKeyAtItsFields()
+    {
+        FCurveKey[] keys = [new(0, double.NaN, Amplitude: -1), null!, new(F(1), 0, Left: HandleType.Free), K(0.5, 1)];
+        Assert.Equal(["$.keys[0].value", "$.keys[0].amplitude", "$.keys[1]", "$.keys[2].leftTime", "$.keys[2].leftValue", "$.keys[3].time"],
+            FCurve.ProblemsOf(keys).Select(p => p.Path.ToString()));
+        Assert.Empty(FCurve.ProblemsOf([K(0, 0), FCurveKey.Free(F(1), 1, (F(0.5), 0), (F(1.5), 2)), K(2, 0)]));
+        // Making one refuses it with the first.
+        Assert.Equal("key 0: its time and value must be finite numbers", Assert.ThrowsAny<ArgumentException>(() => new FCurve(keys)).Message);
     }
 
     [Fact]

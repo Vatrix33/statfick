@@ -2117,6 +2117,32 @@ compared with Blender (S7-8, S7-12).
     great-imp-jiruan and jiruan-rift-opens, jiruan-flash, jiruan-title-card at volume 0"), no underruns, the
     events at 0 and 4.067 s.
 
+### M11 step 6: the sequence's and the curve's checks with paths, marks, the data (2026-11-06)
+
+In full: `Docs/Editor.md`, "How it works", step 6. What changed here (`Scene/Sequence.cs`, `Scene/FCurve.cs`):
+- **`SequenceChecks` reports instead of throwing:** every rule keeps its words (the sequence, the track, the cue) and
+  gains the path of what it names (`$.tracks[3].cues[2].pan`); a part (a role, a stage, a check of a track's field, a
+  strip, a cue, a span) stops at its own first problem and the rest is checked on. `Validate()` throws the first
+  problem of `RecordChecks.Check(sequence)` (the sequence's own `[Check]`, then the limits its fields declare, which
+  its rules already hold, G4); `Validate(stages)` the first of the rules with the stages, then the limits; so every
+  message the game logs, `Load`'s and `Play`'s, is as it was. Guards keep report mode from reading what an earlier
+  rule found missing (a stage not given, a clip track's stage that isn't one, an empty clip).
+- **The sequence against the data** (the check given `CheckContext.Data`, G5): its stages read from the data (`Load`'s
+  words for one missing), the names in them, and its particle effects and sounds as `Play` checks them: each particle
+  cue's effect there and keeping its rules, each audio cue's effect patch and theme there under the music's names
+  (`SequenceChecks.AgainstData`). **`Sequence.Load` runs it too** (the user's decision of 2026-11-07, with the added
+  loading time measured: `Docs/Editor.md`, step 6), after its stages' names: one missing is "not a valid sequence: …"
+  naming the sequence, a broken one its own error naming its entry. So the sandbox's cutscene mode now mounts
+  `packs/audio.pak` beside it under the proof's data, and `JiruanIntroTests` the committed `audio.pak`
+  (`JiruanIntro.SoundPack`), as the game mounts its packs: the proof's theme is checked against it.
+- **`FCurve.ProblemsOf(keys)`:** the curve's rules for keys a form edits, each at its key's field (`$.keys[1].time`);
+  making or reading a curve throws the first, as before.
+- **Marks:** "Cutscene" in `world/cutscenes`; help texts and units on every field of the sequence, its roles, spans,
+  strips, tracks, cues, curves and keys; the limits its rules hold; the stages (models in `models/stages`) and a
+  particle cue's effect (particle effects in `models/effects`) as references by whole path; the palette cue's fill as a
+  colour; the audio cue's name references a sound effect when it plays one and a theme when it switches the music,
+  by step 5's music name rule.
+
 ## Status
 
 **M10 done (2026-11-05): all seven steps; the proof cutscene approved by the user.** (Before the steps, on 2026-11-04,

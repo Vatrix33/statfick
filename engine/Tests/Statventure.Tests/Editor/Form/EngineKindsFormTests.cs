@@ -41,9 +41,15 @@ public class EngineKindsFormTests(ITestOutputHelper output)
     {
         var blank = RecordDraft.Blank(shape);
         foreach (var field in shape.Fields.Where(f => f.Required))
-            blank = blank.With(field, Filler(field.Value));
+            blank = blank.With(field, field.IsBulk ? new DraftLeaf(BulkFiller(field.Value.Type)) : Filler(field.Value));
         return blank;
     }
+
+    /// <summary>A bulk field's value (kept as the object itself, M11 step 6's marks on the engine kinds): an empty array or list, else the type's default.</summary>
+    static object BulkFiller(Type type) =>
+        type.IsArray ? Array.CreateInstance(type.GetElementType()!, 0)
+        : type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IReadOnlyList<>) ? Array.CreateInstance(type.GetGenericArguments()[0], 0)
+        : Activator.CreateInstance(type)!;
 
     [Theory]
     [MemberData(nameof(Kinds))]
@@ -57,7 +63,8 @@ public class EngineKindsFormTests(ITestOutputHelper output)
         var entry = editor.Session.Selected!;
         foreach (var field in shape.Fields)
             Assert.Equal(field.DisplayName, editor.Row("$." + field.JsonName).ElementChildren.First().ElementChildren.First(e => e.HasClass("name")).TextContent);
-        if (shape.Fields.Count == 0)
+        // A kind with no field or only bulk ones (a compiled stylesheet: they change only by importing again, P21) isn't edited.
+        if (shape.Fields.All(f => f.IsBulk))
             return;
         var (path, expected) = Edit(editor, shape);
         var want = entry.SavedDraft!.With(path, expected).Build();

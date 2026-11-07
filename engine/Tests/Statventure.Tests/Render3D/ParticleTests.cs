@@ -241,51 +241,81 @@ public class ParticleTests
     public static TheoryData<string> BrokenEffects => [.. Broken.Keys];
 
     /// <summary>Each rule broken alone, and the problem named.</summary>
-    static readonly Dictionary<string, (Func<ParticleEffect, ParticleEffect> Break, string Problem)> Broken = new()
+    static readonly Dictionary<string, (Func<ParticleEffect, ParticleEffect> Break, string Problem, string Path)> Broken = new()
     {
-        ["no shape"] = (e => e with { Shape = null! }, "it has no shape"),
-        ["no spawn"] = (e => e with { Spawn = null! }, "it has no spawn"),
-        ["no start colour"] = (e => e with { StartColor = "" }, "its start and end colours must name palette slots"),
-        ["no end colour"] = (e => e with { EndColor = "" }, "its start and end colours must name palette slots"),
-        ["ring 0"] = (e => e with { Shape = new ParticleShape.Ring(0) }, "a ring's thickness (0) must be above 0 and at most 1"),
-        ["ring over 1"] = (e => e with { Shape = new ParticleShape.Ring(1.5f) }, "a ring's thickness (1.5) must be above 0 and at most 1"),
-        ["spark width"] = (e => e with { Shape = new ParticleShape.Spark(0, 0.1f) }, "a spark's width (0) must be above 0 and at most 1"),
-        ["spark stretch"] = (e => e with { Shape = new ParticleShape.Spark(0.5f, -0.1f) }, "a spark's stretch (-0.1 s) must be a finite number, 0 or more"),
-        ["spark stretch infinite"] = (e => e with { Shape = new ParticleShape.Spark(0.5f, float.PositiveInfinity) }, "a spark's stretch (Infinity s) must be a finite number, 0 or more"),
-        ["puff"] = (e => e with { Shape = new ParticleShape.Puff(float.NaN) }, "a puff's softness (NaN) must be above 0 and at most 1"),
-        ["shard"] = (e => e with { Shape = new ParticleShape.Shard(-0.25f) }, "a shard's width (-0.25) must be above 0 and at most 1"),
-        ["sphere"] = (e => e with { Spawn = new ParticleSpawn.Sphere(-1) }, "a sphere's radius (-1 m) must be a finite number, 0 or more"),
-        ["sphere infinite"] = (e => e with { Spawn = new ParticleSpawn.Sphere(float.PositiveInfinity) }, "a sphere's radius (Infinity m) must be a finite number, 0 or more"),
-        ["cone axis"] = (e => e with { Spawn = new ParticleSpawn.Cone(Vector3.Zero, 10) }, "a cone's axis (0, 0, 0) must be a finite direction, not zero"),
-        ["cone axis NaN"] = (e => e with { Spawn = new ParticleSpawn.Cone(new(0, float.NaN, 1), 10) }, "a cone's axis (0, NaN, 1) must be a finite direction, not zero"),
-        ["cone angle"] = (e => e with { Spawn = new ParticleSpawn.Cone(Vector3.UnitY, 181) }, "a cone's half angle (181°) must be from 0 to 180"),
-        ["cone angle negative"] = (e => e with { Spawn = new ParticleSpawn.Cone(Vector3.UnitY, -1) }, "a cone's half angle (-1°) must be from 0 to 180"),
-        ["life order"] = (e => e with { Life = new(2, 1) }, "its life's min (2) is above its max (1)"),
-        ["life negative"] = (e => e with { Life = new(-1, 1) }, "its life (-1–1) must be 0 or more"),
-        ["life infinite"] = (e => e with { Life = new(1, float.PositiveInfinity) }, "its life (1–Infinity) must be finite numbers"),
-        ["size negative"] = (e => e with { Size = -0.5f }, "its size (-0.5–-0.5) must be 0 or more"),
-        ["speed negative"] = (e => e with { Speed = new(-1, 2) }, "its speed (-1–2) must be 0 or more"),
-        ["angle order"] = (e => e with { Angle = new(10, -10) }, "its angle's min (10) is above its max (-10)"),
-        ["spin NaN"] = (e => e with { Spin = new(float.NaN, 1) }, "its spin (NaN–1) must be finite numbers"),
-        ["opacity"] = (e => e with { Opacity = 1.25f }, "its opacity (1.25) must be from 0 to 1"),
-        ["opacity negative"] = (e => e with { Opacity = -0.25f }, "its opacity (-0.25) must be from 0 to 1"),
-        ["grow in"] = (e => e with { GrowIn = 1.5f }, "its grow-in (1.5) and fade-out (0) must be shares of its life, from 0 to 1"),
-        ["fade out"] = (e => e with { FadeOut = -0.5f }, "its grow-in (0) and fade-out (-0.5) must be shares of its life, from 0 to 1"),
-        ["outline"] = (e => e with { OutlineWidth = -1 }, "its ink line's width (-1) must be a finite number, 0 or more"),
-        ["outline infinite"] = (e => e with { OutlineWidth = float.PositiveInfinity }, "its ink line's width (Infinity) must be a finite number, 0 or more"),
-        ["drag"] = (e => e with { Drag = -0.5f }, "its drag (-0.5) must be a finite number, 0 or more"),
-        ["drag NaN"] = (e => e with { Drag = float.NaN }, "its drag (NaN) must be a finite number, 0 or more"),
-        ["drag infinite"] = (e => e with { Drag = float.PositiveInfinity }, "its drag (Infinity) must be a finite number, 0 or more"),
-        ["gravity"] = (e => e with { Gravity = new(0, float.NegativeInfinity, 0) }, "its gravity (0, -Infinity, 0) must be finite"),
-        ["inherit"] = (e => e with { Inherit = float.NaN }, "its inherited share of the emitter's velocity (NaN) must be a finite number"),
+        ["no shape"] = (e => e with { Shape = null! }, "it has no shape", "$.shape"),
+        ["no spawn"] = (e => e with { Spawn = null! }, "it has no spawn", "$.spawn"),
+        ["no start colour"] = (e => e with { StartColor = "" }, "its start and end colours must name palette slots", "$.startColor"),
+        ["no end colour"] = (e => e with { EndColor = "" }, "its start and end colours must name palette slots", "$.endColor"),
+        ["ring 0"] = (e => e with { Shape = new ParticleShape.Ring(0) }, "a ring's thickness (0) must be above 0 and at most 1", "$.shape.thickness"),
+        ["ring over 1"] = (e => e with { Shape = new ParticleShape.Ring(1.5f) }, "a ring's thickness (1.5) must be above 0 and at most 1", "$.shape.thickness"),
+        ["spark width"] = (e => e with { Shape = new ParticleShape.Spark(0, 0.1f) }, "a spark's width (0) must be above 0 and at most 1", "$.shape.width"),
+        ["spark stretch"] = (e => e with { Shape = new ParticleShape.Spark(0.5f, -0.1f) }, "a spark's stretch (-0.1 s) must be a finite number, 0 or more", "$.shape.stretch"),
+        ["spark stretch infinite"] = (e => e with { Shape = new ParticleShape.Spark(0.5f, float.PositiveInfinity) }, "a spark's stretch (Infinity s) must be a finite number, 0 or more", "$.shape.stretch"),
+        ["puff"] = (e => e with { Shape = new ParticleShape.Puff(float.NaN) }, "a puff's softness (NaN) must be above 0 and at most 1", "$.shape.softness"),
+        ["shard"] = (e => e with { Shape = new ParticleShape.Shard(-0.25f) }, "a shard's width (-0.25) must be above 0 and at most 1", "$.shape.width"),
+        ["sphere"] = (e => e with { Spawn = new ParticleSpawn.Sphere(-1) }, "a sphere's radius (-1 m) must be a finite number, 0 or more", "$.spawn.radius"),
+        ["sphere infinite"] = (e => e with { Spawn = new ParticleSpawn.Sphere(float.PositiveInfinity) }, "a sphere's radius (Infinity m) must be a finite number, 0 or more", "$.spawn.radius"),
+        ["cone axis"] = (e => e with { Spawn = new ParticleSpawn.Cone(Vector3.Zero, 10) }, "a cone's axis (0, 0, 0) must be a finite direction, not zero", "$.spawn.axis"),
+        ["cone axis NaN"] = (e => e with { Spawn = new ParticleSpawn.Cone(new(0, float.NaN, 1), 10) }, "a cone's axis (0, NaN, 1) must be a finite direction, not zero", "$.spawn.axis"),
+        ["cone angle"] = (e => e with { Spawn = new ParticleSpawn.Cone(Vector3.UnitY, 181) }, "a cone's half angle (181°) must be from 0 to 180", "$.spawn.halfAngle"),
+        ["cone angle negative"] = (e => e with { Spawn = new ParticleSpawn.Cone(Vector3.UnitY, -1) }, "a cone's half angle (-1°) must be from 0 to 180", "$.spawn.halfAngle"),
+        ["life order"] = (e => e with { Life = new(2, 1) }, "its life's min (2) is above its max (1)", "$.life.min"),
+        ["life negative"] = (e => e with { Life = new(-1, 1) }, "its life (-1–1) must be 0 or more", "$.life"),
+        ["life infinite"] = (e => e with { Life = new(1, float.PositiveInfinity) }, "its life (1–Infinity) must be finite numbers", "$.life"),
+        ["size negative"] = (e => e with { Size = -0.5f }, "its size (-0.5–-0.5) must be 0 or more", "$.size"),
+        ["speed negative"] = (e => e with { Speed = new(-1, 2) }, "its speed (-1–2) must be 0 or more", "$.speed"),
+        ["angle order"] = (e => e with { Angle = new(10, -10) }, "its angle's min (10) is above its max (-10)", "$.angle.min"),
+        ["spin NaN"] = (e => e with { Spin = new(float.NaN, 1) }, "its spin (NaN–1) must be finite numbers", "$.spin"),
+        ["opacity"] = (e => e with { Opacity = 1.25f }, "its opacity (1.25) must be from 0 to 1", "$.opacity"),
+        ["opacity negative"] = (e => e with { Opacity = -0.25f }, "its opacity (-0.25) must be from 0 to 1", "$.opacity"),
+        ["grow in"] = (e => e with { GrowIn = 1.5f }, "its grow-in (1.5) and fade-out (0) must be shares of its life, from 0 to 1", "$.growIn"),
+        ["fade out"] = (e => e with { FadeOut = -0.5f }, "its grow-in (0) and fade-out (-0.5) must be shares of its life, from 0 to 1", "$.fadeOut"),
+        ["outline"] = (e => e with { OutlineWidth = -1 }, "its ink line's width (-1) must be a finite number, 0 or more", "$.outlineWidth"),
+        ["outline infinite"] = (e => e with { OutlineWidth = float.PositiveInfinity }, "its ink line's width (Infinity) must be a finite number, 0 or more", "$.outlineWidth"),
+        ["drag"] = (e => e with { Drag = -0.5f }, "its drag (-0.5) must be a finite number, 0 or more", "$.drag"),
+        ["drag NaN"] = (e => e with { Drag = float.NaN }, "its drag (NaN) must be a finite number, 0 or more", "$.drag"),
+        ["drag infinite"] = (e => e with { Drag = float.PositiveInfinity }, "its drag (Infinity) must be a finite number, 0 or more", "$.drag"),
+        ["gravity"] = (e => e with { Gravity = new(0, float.NegativeInfinity, 0) }, "its gravity (0, -Infinity, 0) must be finite", "$.gravity"),
+        ["inherit"] = (e => e with { Inherit = float.NaN }, "its inherited share of the emitter's velocity (NaN) must be a finite number", "$.inherit"),
     };
 
+    /// <summary>Each rule broken alone: <see cref="ParticleEffect.Problem"/> names it, and the effect's check (M11 step 6, P20) reports it first, at the path of what it names.</summary>
     [Theory]
     [MemberData(nameof(BrokenEffects))]
     public void EachRuleRefusesWhatBreaksIt(string name)
     {
-        var (breaking, problem) = Broken[name];
-        Assert.Equal(problem, breaking(Defaults()).Problem());
+        var (breaking, problem, path) = Broken[name];
+        var effect = breaking(Defaults());
+        Assert.Equal(problem, effect.Problem());
+        Assert.Equal(new RecordProblem(PathOf(path), problem), RecordChecks.Check(effect)[0]);
+    }
+
+    /// <summary>A path as the serializer writes it (<c>$.shape.thickness</c>), made from its text.</summary>
+    internal static RecordPath PathOf(string text)
+    {
+        var path = RecordPath.Root;
+        foreach (var part in text[1..].Split('.', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var bracket = part.IndexOf('[');
+            path = path.Field(bracket < 0 ? part : part[..bracket]);
+            for (var rest = bracket < 0 ? "" : part[bracket..]; rest.Length > 0; rest = rest[(rest.IndexOf(']') + 1)..])
+                path = path.Index(int.Parse(rest[1..rest.IndexOf(']')], System.Globalization.CultureInfo.InvariantCulture));
+        }
+        return path;
+    }
+
+    /// <summary>The effect's check reports every rule it breaks, each at its path: several at once, both colours, and grow-in and fade-out apart.</summary>
+    [Fact]
+    public void TheCheckReportsEveryBrokenRuleAtItsPath()
+    {
+        var effect = Defaults() with
+        {
+            Shape = new ParticleShape.Spark(0, -1), StartColor = "", EndColor = "", Spawn = new ParticleSpawn.Cone(Vector3.Zero, 200),
+            Opacity = 2, GrowIn = 2, FadeOut = 2,
+        };
+        Assert.Equal(["$.startColor", "$.endColor", "$.shape.width", "$.shape.stretch", "$.spawn.axis", "$.spawn.halfAngle", "$.opacity", "$.growIn", "$.fadeOut"],
+            RecordChecks.Check(effect).Where(p => !p.Message.StartsWith("must be ", StringComparison.Ordinal)).Select(p => p.Path.ToString()));
     }
 
     /// <summary>The rules' edges are kept: proportions of exactly 1, a zero radius, stretch, life, size, speed, drag and ink line, a cone of 0° and of 180°, opacity and shares of 0 and 1, negative angles, spins, gravity and inherited velocity.</summary>

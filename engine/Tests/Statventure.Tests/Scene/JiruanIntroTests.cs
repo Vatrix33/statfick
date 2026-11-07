@@ -46,7 +46,9 @@ public class JiruanIntroTests(GpuFixture gpu)
         var models = new PackWriter();
         models.AddRecord(JiruanIntro.StagePath, stage);
         models.Write(folder["models.pak"]);
-        using var files = new VirtualFileSystem([Mount.Pack(folder["models.pak"]), Mount.Folder(JiruanIntro.DataFolder)]);
+        // With the sound pack, as the game mounts it: loading checks the cues' theme and sounds against the data (M11
+        // step 6, the user's decision of 2026-11-07).
+        using var files = new VirtualFileSystem([Mount.Pack(JiruanIntro.SoundPack), Mount.Pack(folder["models.pak"]), Mount.Folder(JiruanIntro.DataFolder)]);
         RecordAssert.Equal(built, Sequence.Load(files, JiruanIntro.Path));
         // What the proof is: seven seconds, skippable and blocking, with its reduced variant the still card.
         Assert.Equal((7.0, true, true), (built.Duration, built.Skippable, built.Blocking));

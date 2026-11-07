@@ -1566,7 +1566,10 @@ parsing leaves out), `UI/Css/FontFaceDescriptors.cs`, `UI/Style/Stylesheet.cs` (
   `ModelData.Load`) and checks it (`Validate(stages)`); a problem is a `DataFileException` naming the
   sequence's pack and entry or loose file through `VirtualFileSystem.Problem` (a curve that breaks its
   rules arrives from the serializer as an `ArgumentException` and is named the same way), except a broken
-  stage, whose own error names the stage's entry.
+  stage, whose own error names the stage's entry. Since M11 step 6 (the user's decision of 2026-11-07) it also
+  checks the declared limits and, after its stages, its particle effects (`models/effects/…`), effect patches
+  (`audio/effects/<name>`) and themes (`audio/themes/<id>`) against the same data, a broken one being its own error
+  naming its entry; so data a cutscene with music loads from holds the sound pack (`Docs/Editor.md`, step 6).
 
 ### Particle effects (M10 step 5; `Docs/Scene.md`, "How it works", step 5)
 
@@ -1652,6 +1655,31 @@ of `PackFile.Open`'s checks, of `Application.Data`'s mounts or of the packer's o
 - **Not checked:** Windows: writing over a pack the editor holds open (sharing read, write and delete; M9's
   "Windows check", item 2a), and `ImportSources`' default lookup on a file system that ignores case (a
   description naming `vale-height.png` would find `Vale-Height.png` there; packing the folder refuses that name).
+
+### Checks with paths and marks (M11 step 6; `Docs/Editor.md`, "How it works", step 6)
+
+The models', particle effects', terrains', state machines' and stylesheets' rules (above) report the path of what they
+name; their words, the loaders and what they refuse are as before. Code: `Render3D/ModelData.cs`, `Render3D/Particles.cs`,
+`Render3D/Terrain.cs`, `Animation/StateMachineDefinition.cs`, `UI/Css/StylesheetRecords.cs`, `UI/Style/Stylesheet.cs`
+(sequences: `Docs/Scene.md`, "M11 step 6").
+- **The checks:** each kind's rules are its `[Check]` (P20), every problem at its path (`$.nodes[2].mesh`,
+  `$.meshes[0].primitives[0].indices[2]`, `$.shape.thickness`, `$.layers[0].transitions[1].from`, `$.width`); a rule
+  that would read past an index an earlier one found broken skips it. `ModelData.Validate()`, `TerrainData.Validate()`,
+  `StateMachineDefinition.Validate()` throw the first problem of `RecordChecks.Check` and `ParticleEffect.Problem()`
+  returns it, so `Load` (and the models importer, the state machine builder, an emitter's start) also hold the
+  declared limits after the kind's own rules (G4), which already hold them. `ModelCamera.Problem()` and
+  `ModelLight.Problem()` stay (the glTF import uses them), each rule now also with its field. A compiled stylesheet's
+  check is `Stylesheet.FromRecord`'s rules read in a mode that reports and goes on (`Stylesheet.ProblemsOf`);
+  `FromRecord` and `Load` throw the first as before and run no `RecordChecks` (no limit is declared on a sheet, and
+  walking a compiled sheet's records costs about as much as reading it: 61 ms for the game's in a Debug build, against
+  48 ms for `FromRecord`).
+- **The marks:** "Model" in `models`, "Particle effect" in `models/effects`, "Terrain" in `world/terrain`, "Stylesheet" in
+  `ui/styles` (each the folder its data is read from today), "State machine" without a folder (no data holds one yet);
+  bulk, shown as a summary and changed only by importing again (M11-14, P21): a model's meshes, skins, roots, channels
+  and its nodes' indices and transforms, a terrain's height samples and covers, a sheet's rules; colours: a material's
+  base colour and emission; limits its rules hold: the sun's strength and angle, a terrain's width and depth, a
+  particle effect's proportions, shares, ink line and drag (`Docs/Editor.md`, step 6, lists them); help texts and units
+  on every particle effect field.
 
 ## Status
 

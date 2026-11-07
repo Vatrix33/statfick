@@ -67,6 +67,8 @@ public sealed record LayerDefinition([property: Field(1)] string Name, [property
 /// its own (<c>animation.state-machine</c>), packed from its JSON form.
 /// </summary>
 [Record("animation.state-machine", 1)]
+[Kind("State machine")]
+[Help("How a figure's clips follow each other: layers of states, each playing a clip, and the transitions between them that the game's values start.")]
 public sealed record StateMachineDefinition([property: Field(1)] string Name, [property: Field(2)] IReadOnlyList<ParameterDefinition> Parameters,
     [property: Field(3)] IReadOnlyList<LayerDefinition> Layers)
 {
@@ -90,48 +92,99 @@ public sealed record StateMachineDefinition([property: Field(1)] string Name, [p
         return definition;
     }
 
-    /// <summary>Throws when a name doesn't resolve or a condition doesn't fit its parameter.</summary>
+    /// <summary>
+    /// Throws when a name doesn't resolve or a condition doesn't fit its parameter: the first of
+    /// <see cref="RecordChecks.Check"/>'s problems (its own rules, <see cref="Rules"/>).
+    /// </summary>
     public void Validate()
     {
+        if (RecordChecks.Check(this).FirstOrDefault() is { } problem)
+            throw new ArgumentException(problem.Message);
+    }
+
+    /// <summary>
+    /// The machine's own check (P20): <see cref="Validate"/>'s rules, in their order and with their words, at
+    /// the path of what they name (a parameter's or state's name defined twice, the layers, a speed
+    /// parameter, a layer's entry, a transition's states, duration, exit time, a condition's parameter,
+    /// comparison or value, a transition with neither conditions nor an exit time). A rule that needs what
+    /// an earlier one found broken skips it.
+    /// </summary>
+    [Check]
+    static void Rules(StateMachineDefinition machine, CheckContext check)
+    {
+        static RecordPath F(string field) => RecordPath.Root.Field(field);
+        var name = machine.Name;
         var parameters = new Dictionary<string, ParameterKind>();
-        foreach (var p in Parameters)
-            if (!parameters.TryAdd(p.Name, p.Kind))
-                throw new ArgumentException($"{Name}: the parameter {p.Name} is defined twice");
-        if (Layers.Count == 0)
-            throw new ArgumentException($"{Name}: no layers");
-        foreach (var layer in Layers)
+        for (var i = 0; i < machine.Parameters.Count; i++)
         {
+            var p = machine.Parameters[i];
+            if (!parameters.TryAdd(p.Name, p.Kind))
+                check.Report(F("parameters").Index(i).Field("name"), $"{name}: the parameter {p.Name} is defined twice");
+        }
+        if (machine.Layers.Count == 0)
+            check.Report(F("layers"), $"{name}: no layers");
+        for (var l = 0; l < machine.Layers.Count; l++)
+        {
+            var layer = machine.Layers[l];
+            var at = F("layers").Index(l);
             var states = new HashSet<string>();
-            foreach (var state in layer.States)
+            for (var s = 0; s < layer.States.Count; s++)
             {
+                var state = layer.States[s];
                 if (!states.Add(state.Name))
-                    throw new ArgumentException($"{Name}/{layer.Name}: the state {state.Name} is defined twice");
+                    check.Report(at.Field("states").Index(s).Field("name"), $"{name}/{layer.Name}: the state {state.Name} is defined twice");
                 if (state.SpeedParameter is { } speed && (!parameters.TryGetValue(speed, out var kind) || kind != ParameterKind.Float))
-                    throw new ArgumentException($"{Name}/{layer.Name}/{state.Name}: the speed parameter {speed} isn't a float parameter");
+                    check.Report(at.Field("states").Index(s).Field("speedParameter"), $"{name}/{layer.Name}/{state.Name}: the speed parameter {speed} isn't a float parameter");
             }
             if (!states.Contains(layer.Entry))
-                throw new ArgumentException($"{Name}/{layer.Name}: no entry state {layer.Entry}");
-            foreach (var t in layer.Transitions)
+                check.Report(at.Field("entry"), $"{name}/{layer.Name}: no entry state {layer.Entry}");
+            for (var n = 0; n < layer.Transitions.Count; n++)
             {
-                if (t.From != null && !states.Contains(t.From) || !states.Contains(t.To))
-                    throw new ArgumentException($"{Name}/{layer.Name}: a transition {t.From ?? "(any)"} → {t.To} names a state that doesn't exist");
-                if (t.Duration < 0 || t.ExitTime < 0)
-                    throw new ArgumentException($"{Name}/{layer.Name}: a transition to {t.To} has a negative duration or exit time");
-                foreach (var c in t.Conditions)
+                var t = layer.Transitions[n];
+                var transition = at.Field("transitions").Index(n);
+                var from = t.From == null || states.Contains(t.From);
+                if (!from || !states.Contains(t.To))
                 {
-                    if (!parameters.TryGetValue(c.Parameter, out var kind))
-                        throw new ArgumentException($"{Name}/{layer.Name}: a transition to {t.To} tests {c.Parameter}, which isn't a parameter");
-                    if (kind == ParameterKind.Trigger && (c.Compare != Compare.Equal || c.Value != 1))
-                        throw new ArgumentException($"{Name}/{layer.Name}: a trigger condition ({c.Parameter}) can only test that it's set");
-                    if (kind == ParameterKind.Bool && c.Compare is not (Compare.Equal or Compare.NotEqual))
-                        throw new ArgumentException($"{Name}/{layer.Name}: a bool condition ({c.Parameter}) can only test equality");
+                    var message = $"{name}/{layer.Name}: a transition {t.From ?? "(any)"} → {t.To} names a state that doesn't exist";
+                    if (!from)
+                        check.Report(transition.Field("from"), message);
+                    if (!states.Contains(t.To))
+                        check.Report(transition.Field("to"), message);
+                }
+                if (t.Duration < 0 || t.ExitTime < 0)
+                {
+                    var message = $"{name}/{layer.Name}: a transition to {t.To} has a negative duration or exit time";
+                    if (t.Duration < 0)
+                        check.Report(transition.Field("duration"), message);
+                    if (t.ExitTime < 0)
+                        check.Report(transition.Field("exitTime"), message);
+                }
+                for (var c = 0; c < t.Conditions.Count; c++)
+                {
+                    var condition = t.Conditions[c];
+                    var where = transition.Field("conditions").Index(c);
+                    if (!parameters.TryGetValue(condition.Parameter, out var kind))
+                    {
+                        check.Report(where.Field("parameter"), $"{name}/{layer.Name}: a transition to {t.To} tests {condition.Parameter}, which isn't a parameter");
+                        continue;
+                    }
+                    if (kind == ParameterKind.Trigger && (condition.Compare != Compare.Equal || condition.Value != 1))
+                    {
+                        var message = $"{name}/{layer.Name}: a trigger condition ({condition.Parameter}) can only test that it's set";
+                        if (condition.Compare != Compare.Equal)
+                            check.Report(where.Field("compare"), message);
+                        if (condition.Value != 1)
+                            check.Report(where.Field("value"), message);
+                    }
+                    if (kind == ParameterKind.Bool && condition.Compare is not (Compare.Equal or Compare.NotEqual))
+                        check.Report(where.Field("compare"), $"{name}/{layer.Name}: a bool condition ({condition.Parameter}) can only test equality");
                 }
                 if (t.Conditions.Count == 0 && t.ExitTime == null)
-                    throw new ArgumentException($"{Name}/{layer.Name}: a transition to {t.To} has neither conditions nor an exit time");
+                    check.Report(transition, $"{name}/{layer.Name}: a transition to {t.To} has neither conditions nor an exit time");
                 // An exit time counts passes through the state's clip: an empty state has none, and
-                // a transition from any state doesn't know whose.
-                if (t.ExitTime != null && (t.From == null || layer.States.Single(st => st.Name == t.From).Clip == null))
-                    throw new ArgumentException($"{Name}/{layer.Name}: a transition to {t.To} has an exit time but no clip to count it in");
+                // a transition from any state doesn't know whose (a state that isn't one is the first rule's).
+                if (t.ExitTime != null && (t.From == null || from && layer.States.First(st => st.Name == t.From).Clip == null))
+                    check.Report(transition.Field("exitTime"), $"{name}/{layer.Name}: a transition to {t.To} has an exit time but no clip to count it in");
             }
         }
     }

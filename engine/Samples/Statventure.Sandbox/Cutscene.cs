@@ -67,14 +67,17 @@ sealed class CutsceneSandbox(string name, string? capture, int captureFrame) : A
         _surface = _document.AllElements().Single(e => e.Tag == "surface");
         _host = new UiHost(Window, Gpu, _document) { Audio = Audio };
 
-        // The game's data: the stage's record in a pack (the models importer's, made here from its .glb), the
-        // sequence and the effects from the proof's data folder.
+        // The game's data: the sound pack beside the sandbox (packs/audio.pak, as the game mounts its packs; the
+        // sequence's theme is checked against it when it loads: M11 step 6, the user's decision of 2026-11-07), the
+        // stage's record in a pack (the models importer's, made here from its .glb), the sequence and the effects
+        // from the proof's data folder.
         var stageFile = Path.Combine(Data, "Models", "jiruan.glb");
         _pack = Path.Combine(Path.GetTempPath(), $"statventure-cutscene-{Environment.ProcessId}.pak");
         var writer = new PackWriter();
         writer.AddRecord("models/stages/jiruan", ModelData.Load(stageFile));
         writer.Write(_pack);
-        using (var files = new VirtualFileSystem([Mount.Pack(_pack), Mount.Folder(Path.Combine(Data, "Cutscenes"))]))
+        using (var files = new VirtualFileSystem([Mount.Pack(Path.Combine(AppContext.BaseDirectory, "packs", "audio.pak")), Mount.Pack(_pack),
+                   Mount.Folder(Path.Combine(Data, "Cutscenes"))]))
         {
             _sequence = Sequence.Load(files, "world/cutscenes/jiruan");
             _mist = ParticleEffect.Load(files, "models/effects/jiruan-mist");

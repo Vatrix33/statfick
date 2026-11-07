@@ -336,6 +336,42 @@ public class TerrainPackTests(TestTerrainPack pack) : IClassFixture<TestTerrainP
         ];
     }
 
+    /// <summary>The path of what each broken terrain's problem names (M11 step 6, P20).</summary>
+    static readonly Dictionary<string, string> BrokenPaths = new()
+    {
+        ["no-columns"] = "$.width", ["no-rows"] = "$.depth", ["negative"] = "$.width", ["samples"] = "$.heightSamples", ["covers"] = "$.covers",
+        ["overflow"] = "$.heightSamples",
+    };
+
+    /// <summary>
+    /// Each rule broken: <see cref="TerrainData.Validate"/>'s problem, which the terrain's check reports first at the
+    /// path of what it names; a grid of no points isn't compared with its samples and covers; and the declared
+    /// limits (a grid at least 1 × 1) after the terrain's own words for the same values (G4).
+    /// </summary>
+    [Fact]
+    public void EachBrokenRuleIsNamedAtItsPath()
+    {
+        var cases = BrokenTerrains();
+        Assert.Equal(BrokenPaths.Keys.Order(), cases.Select(c => c.Name).Order());
+        foreach (var (name, terrain, problem) in cases)
+        {
+            Assert.Equal(problem, Assert.Throws<InvalidDataException>(terrain.Validate).Message);
+            var first = RecordChecks.Check(terrain)[0];
+            Assert.Equal((BrokenPaths[name], problem), (first.Path.ToString(), first.Message));
+        }
+        var negative = cases.Single(c => c.Name == "negative").Terrain;
+        Assert.Equal(["$.width: the grid is -1x-1 points", "$.depth: the grid is -1x-1 points", "$.width: must be 1 or more (it is -1)", "$.depth: must be 1 or more (it is -1)"],
+            RecordChecks.Check(negative).Select(p => $"{p.Path}: {p.Message}"));
+        var both = cases.Single(c => c.Name == "samples").Terrain;
+        both = new TerrainData
+        {
+            Width = both.Width, Depth = both.Depth, CellSize = 1, HeightMin = 0, HeightMax = 1, HeightSamples = both.HeightSamples, Covers = new byte[3], CoverSlots = [],
+        };
+        Assert.Equal(["$.heightSamples", "$.covers"], RecordChecks.Check(both).Select(p => p.Path.ToString()));
+        var flat = new TerrainData { Width = 0, Depth = 2, CellSize = 1, HeightMin = 0, HeightMax = 1, HeightSamples = new ushort[2], Covers = new byte[2], CoverSlots = [] };
+        Assert.Equal(["$.width", "$.width"], RecordChecks.Check(flat).Select(p => p.Path.ToString()));
+    }
+
     [Fact]
     public void TheSmallestTerrainsAndTheFixturesAreValid()
     {

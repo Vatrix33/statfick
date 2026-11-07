@@ -1,0 +1,11 @@
+terrain "Terrain" in world/terrain by PlainNames
+  help: A region's ground imported from a terrain description and its height and cover images: heights, the palette slot covering each point, and the water. Its heights and covers change only by importing again.
+  width "Width": limits 1 or more
+  depth "Depth": limits 1 or more
+  cellSize "Cell size"
+  heightMin "Height min"
+  heightMax "Height max"
+  heightSamples "Height samples": bulk "{0:N0} height samples"
+  covers "Covers": bulk "{0:N0} covers"
+  coverSlots "Cover slots"
+  waterLevel "Water level"

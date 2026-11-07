@@ -55,47 +55,47 @@ public class ModelValidationTests
     static ModelData Channel(int index, Func<ModelAnimationChannel, ModelAnimationChannel> change) =>
         With(animations: [Small.Animations[0] with { Channels = [.. Small.Animations[0].Channels.Select((c, i) => i == index ? change(c) : c)] }, Small.Animations[1]]);
 
-    static readonly Dictionary<string, (Func<ModelData> Model, string Problem)> Broken = new()
+    static readonly Dictionary<string, (Func<ModelData> Model, string Problem, string Path)> Broken = new()
     {
-        ["a child that isn't a node"] = (() => Node(0, n => n with { Children = [1, 2, 3] }), "node 0 (Rig) has a child 3 that doesn't exist"),
-        ["a negative child"] = (() => Node(0, n => n with { Children = [1, 2, -1] }), "node 0 (Rig) has a child -1 that doesn't exist"),
-        ["its own child"] = (() => Node(0, n => n with { Children = [0, 1, 2] }), "node 0 (Rig) is its own child or the child of two nodes"),
-        ["the child of two nodes"] = (() => Node(1, n => n with { Children = [2] }), "node 2 (Body) is its own child or the child of two nodes"),
-        ["a parent that doesn't list it"] = (() => Node(1, n => n with { Parent = 2 }), "node 1 (Bone) has the parent 2, but node 0 lists it as a child"),
-        ["a parent no node agrees with"] = (() => Node(0, n => n with { Children = [1] }), "node 2 (Body) has the parent 0, but no node lists it as a child"),
-        ["a mesh that doesn't exist"] = (() => Node(2, n => n with { Mesh = 1 }), "node 2 (Body) shows mesh 1, which doesn't exist"),
-        ["a mesh below -1"] = (() => Node(2, n => n with { Mesh = -2 }), "node 2 (Body) shows mesh -2, which doesn't exist"),
-        ["a skin that doesn't exist"] = (() => Node(2, n => n with { Skin = 1 }), "node 2 (Body) has skin 1, which doesn't exist"),
-        ["a skin below -1"] = (() => Node(2, n => n with { Skin = -2 }), "node 2 (Body) has skin -2, which doesn't exist"),
-        ["a root that isn't a node"] = (() => With(roots: [0, 3]), "the root 3 isn't a node without a parent"),
-        ["a negative root"] = (() => With(roots: [-1]), "the root -1 isn't a node without a parent"),
-        ["a root with a parent"] = (() => With(roots: [0, 1]), "the root 1 isn't a node without a parent"),
-        ["normals for other vertices"] = (() => Primitive(normals: [Vector3.UnitZ, Vector3.UnitZ]), "mesh 0 (Body), primitive 0 has 2 normals for 3 vertices"),
-        ["texture coordinates for other vertices"] = (() => Primitive(texCoords: new Vector2[4]), "mesh 0 (Body), primitive 0 has 4 texCoords for 3 vertices"),
-        ["joints for other vertices"] = (() => Primitive(joints: new JointIndices[2]), "mesh 0 (Body), primitive 0 has 2 joints for 3 vertices"),
-        ["weights for other vertices"] = (() => Primitive(weights: new Vector4[1]), "mesh 0 (Body), primitive 0 has 1 weights for 3 vertices"),
-        ["a triangle cut short"] = (() => Primitive(indices: [0, 1, 2, 0]), "mesh 0 (Body), primitive 0 has 4 indices, not whole triangles"),
-        ["an index past the vertices"] = (() => Primitive(indices: [0, 1, 3]), "mesh 0 (Body), primitive 0 has the index 3 beyond its 3 vertices"),
-        ["a material that doesn't exist"] = (() => Primitive(material: 2), "mesh 0 (Body), primitive 0 has material 2, which doesn't exist"),
-        ["a material below -1"] = (() => Primitive(material: -2), "mesh 0 (Body), primitive 0 has material -2, which doesn't exist"),
-        ["joint index 2 first"] = (() => Primitive(joints: [new(2, 0, 0, 0), default, default]), "node 2 (Body) shows mesh 0, whose primitive 0 has the joint index 2 beyond its skin's 2 joints"),
-        ["joint index 2 second"] = (() => Primitive(joints: [default, new(0, 2, 0, 0), default]), "node 2 (Body) shows mesh 0, whose primitive 0 has the joint index 2 beyond its skin's 2 joints"),
-        ["joint index 7 third"] = (() => Primitive(joints: [default, default, new(0, 0, 7, 0)]), "node 2 (Body) shows mesh 0, whose primitive 0 has the joint index 7 beyond its skin's 2 joints"),
-        ["joint index 2 fourth"] = (() => Primitive(joints: [default, default, new(0, 0, 0, 2)]), "node 2 (Body) shows mesh 0, whose primitive 0 has the joint index 2 beyond its skin's 2 joints"),
-        ["a joint that isn't a node"] = (() => Skin(s => s with { Joints = [0, 3] }), "skin 0 (Armature) has the joint 3, which isn't a node"),
-        ["a negative joint"] = (() => Skin(s => s with { Joints = [-1, 1] }), "skin 0 (Armature) has the joint -1, which isn't a node"),
-        ["too few inverse bind matrices"] = (() => Skin(s => s with { InverseBindMatrices = [Matrix4x4.Identity] }), "skin 0 (Armature) has 2 joints but 1 inverse bind matrices"),
-        ["a skeleton that isn't a node"] = (() => Skin(s => s with { Skeleton = 3 }), "skin 0 (Armature) has the skeleton 3, which isn't a node"),
-        ["a skeleton below -1"] = (() => Skin(s => s with { Skeleton = -2 }), "skin 0 (Armature) has the skeleton -2, which isn't a node"),
-        ["a channel on a node that doesn't exist"] = (() => Channel(0, c => c with { Node = 3 }), "animation 0 (swing), channel 0 drives node 3, which doesn't exist"),
-        ["a channel on a negative node"] = (() => Channel(2, c => c with { Node = -1 }), "animation 0 (swing), channel 2 drives node -1, which doesn't exist"),
-        ["a channel without keys"] = (() => Channel(2, c => c with { Times = [], Values = [] }), "animation 0 (swing), channel 2 has 0 values for 0 keys"),
-        ["values for other keys"] = (() => Channel(0, c => c with { Values = [0, 0.75f, 0, 0, 1] }), "animation 0 (swing), channel 0 has 5 values for 2 keys"),
-        ["a cubic spline without tangents"] = (() => Channel(1, c => c with { Values = c.Values[3..11] }), "animation 0 (swing), channel 1 has 8 values for 2 keys"),
-        ["a cubic spline of one key"] = (() => Channel(1, c => c with { Times = [0], Values = c.Values[..12] }), "animation 0 (swing), channel 1 is a cubic spline with fewer than 2 keys"),
-        ["two keys at one time"] = (() => Channel(0, c => c with { Times = [0.5f, 0.5f] }), "animation 0 (swing), channel 0 has key times that don't increase"),
-        ["key times going back"] = (() => Channel(1, c => c with { Times = [0.5f, 0] }), "animation 0 (swing), channel 1 has key times that don't increase"),
-        ["a key time that isn't a number"] = (() => Channel(0, c => c with { Times = [0, float.NaN] }), "animation 0 (swing), channel 0 has key times that don't increase"),
+        ["a child that isn't a node"] = (() => Node(0, n => n with { Children = [1, 2, 3] }), "node 0 (Rig) has a child 3 that doesn't exist", "$.nodes[0].children[2]"),
+        ["a negative child"] = (() => Node(0, n => n with { Children = [1, 2, -1] }), "node 0 (Rig) has a child -1 that doesn't exist", "$.nodes[0].children[2]"),
+        ["its own child"] = (() => Node(0, n => n with { Children = [0, 1, 2] }), "node 0 (Rig) is its own child or the child of two nodes", "$.nodes[0].children[0]"),
+        ["the child of two nodes"] = (() => Node(1, n => n with { Children = [2] }), "node 2 (Body) is its own child or the child of two nodes", "$.nodes[1].children[0]"),
+        ["a parent that doesn't list it"] = (() => Node(1, n => n with { Parent = 2 }), "node 1 (Bone) has the parent 2, but node 0 lists it as a child", "$.nodes[1].parent"),
+        ["a parent no node agrees with"] = (() => Node(0, n => n with { Children = [1] }), "node 2 (Body) has the parent 0, but no node lists it as a child", "$.nodes[2].parent"),
+        ["a mesh that doesn't exist"] = (() => Node(2, n => n with { Mesh = 1 }), "node 2 (Body) shows mesh 1, which doesn't exist", "$.nodes[2].mesh"),
+        ["a mesh below -1"] = (() => Node(2, n => n with { Mesh = -2 }), "node 2 (Body) shows mesh -2, which doesn't exist", "$.nodes[2].mesh"),
+        ["a skin that doesn't exist"] = (() => Node(2, n => n with { Skin = 1 }), "node 2 (Body) has skin 1, which doesn't exist", "$.nodes[2].skin"),
+        ["a skin below -1"] = (() => Node(2, n => n with { Skin = -2 }), "node 2 (Body) has skin -2, which doesn't exist", "$.nodes[2].skin"),
+        ["a root that isn't a node"] = (() => With(roots: [0, 3]), "the root 3 isn't a node without a parent", "$.roots[1]"),
+        ["a negative root"] = (() => With(roots: [-1]), "the root -1 isn't a node without a parent", "$.roots[0]"),
+        ["a root with a parent"] = (() => With(roots: [0, 1]), "the root 1 isn't a node without a parent", "$.roots[1]"),
+        ["normals for other vertices"] = (() => Primitive(normals: [Vector3.UnitZ, Vector3.UnitZ]), "mesh 0 (Body), primitive 0 has 2 normals for 3 vertices", "$.meshes[0].primitives[0].normals"),
+        ["texture coordinates for other vertices"] = (() => Primitive(texCoords: new Vector2[4]), "mesh 0 (Body), primitive 0 has 4 texCoords for 3 vertices", "$.meshes[0].primitives[0].texCoords"),
+        ["joints for other vertices"] = (() => Primitive(joints: new JointIndices[2]), "mesh 0 (Body), primitive 0 has 2 joints for 3 vertices", "$.meshes[0].primitives[0].joints"),
+        ["weights for other vertices"] = (() => Primitive(weights: new Vector4[1]), "mesh 0 (Body), primitive 0 has 1 weights for 3 vertices", "$.meshes[0].primitives[0].weights"),
+        ["a triangle cut short"] = (() => Primitive(indices: [0, 1, 2, 0]), "mesh 0 (Body), primitive 0 has 4 indices, not whole triangles", "$.meshes[0].primitives[0].indices"),
+        ["an index past the vertices"] = (() => Primitive(indices: [0, 1, 3]), "mesh 0 (Body), primitive 0 has the index 3 beyond its 3 vertices", "$.meshes[0].primitives[0].indices[2]"),
+        ["a material that doesn't exist"] = (() => Primitive(material: 2), "mesh 0 (Body), primitive 0 has material 2, which doesn't exist", "$.meshes[0].primitives[0].material"),
+        ["a material below -1"] = (() => Primitive(material: -2), "mesh 0 (Body), primitive 0 has material -2, which doesn't exist", "$.meshes[0].primitives[0].material"),
+        ["joint index 2 first"] = (() => Primitive(joints: [new(2, 0, 0, 0), default, default]), "node 2 (Body) shows mesh 0, whose primitive 0 has the joint index 2 beyond its skin's 2 joints", "$.meshes[0].primitives[0].joints[0]"),
+        ["joint index 2 second"] = (() => Primitive(joints: [default, new(0, 2, 0, 0), default]), "node 2 (Body) shows mesh 0, whose primitive 0 has the joint index 2 beyond its skin's 2 joints", "$.meshes[0].primitives[0].joints[1]"),
+        ["joint index 7 third"] = (() => Primitive(joints: [default, default, new(0, 0, 7, 0)]), "node 2 (Body) shows mesh 0, whose primitive 0 has the joint index 7 beyond its skin's 2 joints", "$.meshes[0].primitives[0].joints[2]"),
+        ["joint index 2 fourth"] = (() => Primitive(joints: [default, default, new(0, 0, 0, 2)]), "node 2 (Body) shows mesh 0, whose primitive 0 has the joint index 2 beyond its skin's 2 joints", "$.meshes[0].primitives[0].joints[2]"),
+        ["a joint that isn't a node"] = (() => Skin(s => s with { Joints = [0, 3] }), "skin 0 (Armature) has the joint 3, which isn't a node", "$.skins[0].joints[1]"),
+        ["a negative joint"] = (() => Skin(s => s with { Joints = [-1, 1] }), "skin 0 (Armature) has the joint -1, which isn't a node", "$.skins[0].joints[0]"),
+        ["too few inverse bind matrices"] = (() => Skin(s => s with { InverseBindMatrices = [Matrix4x4.Identity] }), "skin 0 (Armature) has 2 joints but 1 inverse bind matrices", "$.skins[0].inverseBindMatrices"),
+        ["a skeleton that isn't a node"] = (() => Skin(s => s with { Skeleton = 3 }), "skin 0 (Armature) has the skeleton 3, which isn't a node", "$.skins[0].skeleton"),
+        ["a skeleton below -1"] = (() => Skin(s => s with { Skeleton = -2 }), "skin 0 (Armature) has the skeleton -2, which isn't a node", "$.skins[0].skeleton"),
+        ["a channel on a node that doesn't exist"] = (() => Channel(0, c => c with { Node = 3 }), "animation 0 (swing), channel 0 drives node 3, which doesn't exist", "$.animations[0].channels[0].node"),
+        ["a channel on a negative node"] = (() => Channel(2, c => c with { Node = -1 }), "animation 0 (swing), channel 2 drives node -1, which doesn't exist", "$.animations[0].channels[2].node"),
+        ["a channel without keys"] = (() => Channel(2, c => c with { Times = [], Values = [] }), "animation 0 (swing), channel 2 has 0 values for 0 keys", "$.animations[0].channels[2].values"),
+        ["values for other keys"] = (() => Channel(0, c => c with { Values = [0, 0.75f, 0, 0, 1] }), "animation 0 (swing), channel 0 has 5 values for 2 keys", "$.animations[0].channels[0].values"),
+        ["a cubic spline without tangents"] = (() => Channel(1, c => c with { Values = c.Values[3..11] }), "animation 0 (swing), channel 1 has 8 values for 2 keys", "$.animations[0].channels[1].values"),
+        ["a cubic spline of one key"] = (() => Channel(1, c => c with { Times = [0], Values = c.Values[..12] }), "animation 0 (swing), channel 1 is a cubic spline with fewer than 2 keys", "$.animations[0].channels[1].times"),
+        ["two keys at one time"] = (() => Channel(0, c => c with { Times = [0.5f, 0.5f] }), "animation 0 (swing), channel 0 has key times that don't increase", "$.animations[0].channels[0].times"),
+        ["key times going back"] = (() => Channel(1, c => c with { Times = [0.5f, 0] }), "animation 0 (swing), channel 1 has key times that don't increase", "$.animations[0].channels[1].times"),
+        ["a key time that isn't a number"] = (() => Channel(0, c => c with { Times = [0, float.NaN] }), "animation 0 (swing), channel 0 has key times that don't increase", "$.animations[0].channels[0].times"),
     };
 
     public static TheoryData<string> BrokenNames => [.. Broken.Keys];
@@ -112,8 +112,40 @@ public class ModelValidationTests
     [MemberData(nameof(BrokenNames))]
     public void EachBrokenRuleIsItsOwnProblem(string name)
     {
-        var (model, problem) = Broken[name];
+        var (model, problem, path) = Broken[name];
         Assert.Equal(problem, Assert.Throws<InvalidDataException>(() => model().Validate()).Message);
+        // The model's check (M11 step 6, P20) reports it first, at the path of what it names.
+        var first = RecordChecks.Check(model())[0];
+        Assert.Equal((path, problem), (first.Path.ToString(), first.Message));
+    }
+
+    /// <summary>
+    /// The model's check reports every rule a model breaks, each once at its path, and skips what reading past
+    /// a broken index would need (a node showing a mesh that isn't there, a joint index of a skin that isn't).
+    /// </summary>
+    [Fact]
+    public void TheCheckReportsEveryBrokenRuleAndSkipsWhatItCantRead()
+    {
+        var p = Small.Meshes[0].Primitives[0];
+        var primitive = new ModelPrimitive
+        {
+            Positions = p.Positions, Normals = [Vector3.UnitZ], TexCoords = p.TexCoords, Joints = [new(9, 0, 0, 0), new(9, 0, 0, 0), default],
+            Weights = p.Weights, Indices = [0, 1, 5, 7], Material = 4,
+        };
+        var model = With(
+            nodes: [.. Small.Nodes.Select((n, i) => i == 2 ? n with { Mesh = 3 } : n)],
+            meshes: [Small.Meshes[0] with { Primitives = [primitive, Small.Meshes[0].Primitives[1]] }],
+            skins: [Small.Skins[0] with { Joints = [7, 8] }],
+            roots: [0, 5]);
+        Assert.Equal(["$.nodes[2].mesh", "$.roots[1]", "$.meshes[0].primitives[0].normals", "$.meshes[0].primitives[0].indices",
+                "$.meshes[0].primitives[0].indices[2]", "$.meshes[0].primitives[0].material", "$.skins[0].joints[0]", "$.skins[0].joints[1]"],
+            RecordChecks.Check(model).Select(problem => problem.Path.ToString()));
+        // A primitive's joints: the first index past its skin (the message names one); a channel's times: once, however many go back.
+        var joints = RecordChecks.Check(Primitive(joints: [new(5, 0, 0, 0), new(6, 0, 0, 0), default])).Select(problem => problem.Path.ToString()).ToList();
+        Assert.Contains("$.meshes[0].primitives[0].joints[0]", joints);
+        Assert.DoesNotContain("$.meshes[0].primitives[0].joints[1]", joints);
+        var times = Channel(0, c => c with { Times = [0.5f, 0.25f, 0f], Values = new float[c.Values.Length / c.Times.Length * 3] });
+        Assert.Equal(["$.animations[0].channels[0].times"], RecordChecks.Check(times).Select(problem => problem.Path.ToString()));
     }
 
     [Fact]

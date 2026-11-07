@@ -176,7 +176,8 @@ public class RecordShapeTests
         Assert.Same(NameRule.Plain, RecordShape.Of<Part>().Rule);
         Assert.Equal("parts/horn", RecordShape.Of<Part>().PathOf("horn"));
         Assert.Equal("horn", RecordShape.Of<Part>().NameOf("parts/horn"));
-        Assert.Equal("F curve", RecordShape.Of<Statventure.Scene.FCurve>().DisplayName);
+        // The engine's F-curve has its name from its mark since M11 step 6 (made from its code name it was "F curve").
+        Assert.Equal("F-curve", RecordShape.Of<Statventure.Scene.FCurve>().DisplayName);
         // A kind without a folder makes no paths, whatever its rule would.
         var loose = RecordShape.Of<LooseKind>();
         Assert.IsType<AnyNames>(loose.Rule);

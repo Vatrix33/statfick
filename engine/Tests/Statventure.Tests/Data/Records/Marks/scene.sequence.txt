@@ -1,0 +1,282 @@
+scene.sequence "Cutscene" in world/cutscenes by PlainNames
+  help: A cutscene: tracks on a timeline that move the stage and the figures, cut between cameras, light the scene, start particles, play sound and change the screen.
+  name "Name"
+    help: The cutscene's name, used in the messages about it.
+  duration "Duration": unit s; limits above 0
+    help: How long the cutscene lasts. When it ends, or the player skips it, every track is as it is at this time.
+  skippable "Skippable"
+    help: Whether the player can skip the cutscene.
+  blocking "Blocking"
+    help: Whether the game holds the battle while the cutscene plays. Leave it off for a short scene that plays beside the battle.
+  roles "Roles"
+    help: The names the game fills in when it plays the cutscene: figures, scene nodes, models, screen elements and palettes.
+  stages "Stages": references model in models/stages by PathNames
+    help: The stages the cutscene brings, each a model at models/stages/<name>. The tracks call a stage by its name, the last part of its path.
+  tracks "Tracks"
+    help: What happens on the timeline. Where two tracks set the same thing, the later one wins.
+  reduced "Reduced"
+    help: A shorter version, played when the player's system asks for reduced motion: parts of the timeline in order, each played and then held (not set: none).
+scene.role "Sequence role"
+  help: A name the game fills in when it plays the cutscene, such as the boss's figure or the card on the screen.
+  name "Name"
+    help: The name the tracks use for it.
+  kind "Kind"
+    help: What the game puts there: a figure (actor), a scene node, a model, a screen element or a palette.
+scene.track "Track"
+  help: One kind of thing that happens on the timeline.
+scene.span "Sequence span"
+  help: A part of the timeline the shorter version plays, then holds at its end.
+  from "From": unit s; limits 0 or more
+    help: Where the part starts on the timeline.
+  to "To": unit s; limits 0 or more
+    help: Where the part ends on the timeline (the same as its start: only that moment, held).
+  hold "Hold": unit s; limits 0 or more
+    help: How long the part's end is held after it plays.
+scene.clip-track "Clip track"
+  help: Plays one of a stage's own clips (its animation from Blender) on the stage.
+  stage "Stage"
+    help: The stage, by its name (the last part of its path).
+  strip "Strip"
+    help: The clip and where it plays on the timeline.
+scene.transform-track "Transform track"
+  help: Moves, turns or scales a node over time with curves. A part without a curve keeps the node's own value.
+  node "Node"
+    help: The node it moves: <stage>/<node> for a stage's node, or a node role.
+  locationX "Location X": unit m
+    help: The node's location along X over time.
+  locationY "Location Y": unit m
+    help: The node's location along Y over time.
+  locationZ "Location Z": unit m
+    help: The node's location along Z over time.
+  rotationX "Rotation X": unit rad
+    help: The node's turn about X over time (turned about X first, then Y, then Z).
+  rotationY "Rotation Y": unit rad
+    help: The node's turn about Y over time.
+  rotationZ "Rotation Z": unit rad
+    help: The node's turn about Z over time.
+  scaleX "Scale X"
+    help: The node's scale along X over time (1: its size).
+  scaleY "Scale Y"
+    help: The node's scale along Y over time.
+  scaleZ "Scale Z"
+    help: The node's scale along Z over time.
+scene.visibility-track "Visibility track"
+  help: Shows and hides a node, with everything below it.
+  node "Node"
+    help: The node: <stage>/<node> for a stage's node, or a node role.
+  cues "Cues"
+    help: When it shows and hides.
+scene.animation-track "Animation track"
+  help: Animates a figure: where it stands, the clips it plays and the values of its state machine.
+  actor "Actor"
+    help: The figure, by its actor role.
+  mark "Mark"
+    help: A node the figure stands on while the cutscene plays (not set: it stays where it is).
+  strips "Strips"
+    help: The clips the figure plays, in time order and not overlapping.
+  cues "Cues"
+    help: Values for the figure's state machine.
+scene.palette-track "Palette track"
+  help: Changes the colours of a figure, a model or a stage.
+  target "Target"
+    help: What it colours: an actor or model role, or a stage by its name.
+  cues "Cues"
+    help: When its colours change.
+scene.event-track "Event track"
+  help: Tells the game's code when moments of the cutscene come.
+  cues "Cues"
+    help: The moments, each with its name.
+scene.camera-track "Camera track"
+  help: Cuts between cameras, and can change the camera's field of view over time.
+  cuts "Cuts"
+    help: The cuts, each to a camera.
+  fieldOfView "Field of view": unit rad
+    help: How wide the camera sees, from top to bottom, over time (not set: the camera's own).
+scene.light-track "Light track"
+  help: Switches the sun that lights the scene, and can change its strength and angle over time.
+  cues "Cues"
+    help: When the sun switches, each to a sun.
+  strength "Strength"
+    help: The sun's strength over time, as Blender's (not set: the sun's own).
+  angle "Angle": unit °
+    help: How wide the sun is across over time, which softens its shadows' edges (not set: the sun's own).
+scene.particle-track "Particle track"
+  help: Starts particle emitters on nodes.
+  cues "Cues"
+    help: The emitters, each started at its time.
+scene.audio-track "Audio track"
+  help: Plays sound effects and switches the music.
+  cues "Cues"
+    help: The sounds and music, each at its time.
+scene.ui-track "Ui track"
+  help: Changes texts, classes and attributes of elements on the screen, such as a title card.
+  host "Host"
+    help: The screen element, by its element role, inside which the cues find their elements.
+  cues "Cues"
+    help: The changes, each at its time.
+scene.strip "Sequence strip"
+  help: A clip placed on the timeline, as a strip in Blender's NLA editor.
+  clip "Clip"
+    help: The clip's name, as it is called in its model.
+  start "Start": unit s
+    help: When the clip starts on the cutscene's timeline.
+  clipStart "Clip start": unit s; limits 0 or more
+    help: Where in the clip it starts playing.
+  clipEnd "Clip end": unit s; limits 0 or more
+    help: Where in the clip it stops playing (not set: the clip's end).
+  scale "Scale": limits above 0
+    help: How much longer the clip takes to play: 2 plays it at half speed.
+  repeat "Repeat": limits above 0
+    help: How many times the clip plays in a row; infinite loops it until the cutscene ends.
+  reversed "Reversed"
+    help: Plays the clip backwards.
+  blendIn "Blend in": unit s; limits 0 or more
+    help: How long the clip takes to fade in over what is below it.
+  blendOut "Blend out": unit s; limits 0 or more
+    help: How long the clip takes to fade out at its end.
+  influence "Influence": limits 0 or more and at most 1
+    help: How strongly the clip counts, from 0 (not at all) to 1 (fully; also when not set).
+  mode "Mode"
+    help: How the clip mixes with what is below it: replace it, or add to it.
+  extrapolation "Extrapolation"
+    help: What the clip shows outside its time: nothing, its first and last frames (hold), or its last frame until the next clip (hold forward).
+scene.curve "F-curve"
+  help: A value changing over time, as an F-curve in Blender's graph editor: keys, and how the curve runs between them.
+  keys "Keys"
+    help: The keys, in time order, at least one.
+  extrapolation "Extrapolation"
+    help: Before the first key and after the last: the end key's value (constant), or the line through it (linear).
+  smoothing "Smoothing"
+    help: How the worked-out handles of a run of keys are smoothed: each from its neighbours alone, or together so the motion has no jolts (Blender's default).
+scene.visibility-cue "Visibility cue"
+  help: Shows or hides the node from then on.
+  time "Time": unit s
+    help: When the cue happens on the cutscene's timeline, or, with a marker, how long after the marker (before it when negative).
+  shown "Shown"
+    help: Whether the node, with everything below it, shows from then on.
+  marker "Marker"
+    help: A marker of a stage the time counts from, written <stage>/<marker> (not set: the time counts from the start).
+scene.parameter-cue "Parameter cue"
+  help: Sets a value of the figure's state machine from then on, or fires one of its triggers.
+  time "Time": unit s
+    help: When the cue happens on the cutscene's timeline, or, with a marker, how long after the marker (before it when negative).
+  parameter "Parameter"
+    help: The state machine's parameter or trigger, by its name.
+  kind "Kind"
+    help: The parameter's kind, as the state machine has it.
+  value "Value"
+    help: The value it gets: a whole number for an int, 0 or 1 for a bool, 1 for a trigger.
+  marker "Marker"
+    help: A marker of a stage the time counts from, written <stage>/<marker> (not set: the time counts from the start).
+scene.palette-cue "Palette cue"
+  help: Colours the target from then on: in a palette role's colours, all in one colour, or with neither in its own colours again.
+  time "Time": unit s
+    help: When the cue happens on the cutscene's timeline, or, with a marker, how long after the marker (before it when negative).
+  palette "Palette"
+    help: A palette role whose colours the target takes.
+  fill "Fill": colour
+    help: One colour for every part of the target (#rrggbb), such as an all-ink silhouette.
+  marker "Marker"
+    help: A marker of a stage the time counts from, written <stage>/<marker> (not set: the time counts from the start).
+scene.event-cue "Event cue"
+  help: A moment the game's code is told about, also when the player skips past it.
+  time "Time": unit s
+    help: When the cue happens on the cutscene's timeline, or, with a marker, how long after the marker (before it when negative).
+  name "Name"
+    help: The name the game's code gets.
+  marker "Marker"
+    help: A marker of a stage the time counts from, written <stage>/<marker> (not set: the time counts from the start).
+scene.camera-cut "Camera cut"
+  help: Cuts to a camera: the view looks through it from then on.
+  time "Time": unit s
+    help: When the cue happens on the cutscene's timeline, or, with a marker, how long after the marker (before it when negative).
+  camera "Camera"
+    help: The node of the camera: <stage>/<node> for a stage's camera, or a node role.
+  marker "Marker"
+    help: A marker of a stage the time counts from, written <stage>/<marker> (not set: the time counts from the start).
+scene.light-cue "Light cue"
+  help: Switches the sun: the scene is lit by it from then on.
+  time "Time": unit s
+    help: When the cue happens on the cutscene's timeline, or, with a marker, how long after the marker (before it when negative).
+  sun "Sun"
+    help: The node of the sun: <stage>/<node> for a stage's sun, or a node role.
+  marker "Marker"
+    help: A marker of a stage the time counts from, written <stage>/<marker> (not set: the time counts from the start).
+scene.particle-cue "Particle cue"
+  help: Starts a particle emitter on a node: a burst at once, then a stream for a while.
+  time "Time": unit s
+    help: When the cue happens on the cutscene's timeline, or, with a marker, how long after the marker (before it when negative).
+  effect "Effect": references particle.effect in models/effects by PathNames
+    help: The particle effect, by its path models/effects/<name>.
+  node "Node"
+    help: The node the emitter sits on: <stage>/<node>, or a node role.
+  seed "Seed"
+    help: Picks each particle's random values: the same seed gives the same particles every time.
+  burst "Burst": limits 0 or more
+    help: How many particles start at once.
+  rate "Rate": unit /s; limits 0 or more
+    help: How many particles start each second after the burst.
+  duration "Duration": unit s; limits 0 or more
+    help: How long the stream of particles lasts.
+  palette "Palette"
+    help: The palette role the particles take their colours from (not set: none).
+  marker "Marker"
+    help: A marker of a stage the time counts from, written <stage>/<marker> (not set: the time counts from the start).
+scene.audio-cue "Audio cue"
+  help: Plays a sound effect, switches the music to a theme, or stops the music.
+  time "Time": unit s
+    help: When the cue happens on the cutscene's timeline, or, with a marker, how long after the marker (before it when negative).
+  kind "Kind"
+    help: What it does: play a sound effect, switch the music, or stop the music.
+  name "Name": references audio.effect in audio/effects by MusicNameRule when Kind is Effect; references audio.theme in audio/themes by MusicNameRule when Kind is Music
+    help: The sound effect's or the music theme's name (none to stop the music).
+  volume "Volume": limits 0 or more
+    help: The sound effect's volume: 1 plays it as it is made.
+  pan "Pan": limits -1 or more and at most 1
+    help: Where the sound effect is heard, from −1 (left) through 0 (the middle) to 1 (right).
+  pitch "Pitch": limits above 0
+    help: The sound effect's pitch as a factor: 2 is an octave higher, 0.5 an octave lower.
+  marker "Marker"
+    help: A marker of a stage the time counts from, written <stage>/<marker> (not set: the time counts from the start).
+scene.ui-cue "Ui cue"
+  help: Changes an element on the screen: its text, a class or an attribute.
+  time "Time": unit s
+    help: When the cue happens on the cutscene's timeline, or, with a marker, how long after the marker (before it when negative).
+  action "Action"
+    help: What it does: set the text, add or remove a class, set or remove an attribute.
+  element "Element"
+    help: The id of the element inside the host (not set: the host itself).
+  name "Name"
+    help: The class's or the attribute's name (none to set the text).
+  value "Value"
+    help: The text, or the attribute's value (none to add or remove a class or remove an attribute).
+  marker "Marker"
+    help: A marker of a stage the time counts from, written <stage>/<marker> (not set: the time counts from the start).
+scene.key "Key"
+  help: A key of a curve: its value at its time, and how the curve runs on to the next key, as in Blender's graph editor.
+  time "Time": unit s
+    help: When the key is.
+  value "Value"
+    help: The curve's value at the key.
+  interpolation "Interpolation"
+    help: How the curve runs to the next key: holding, straight, a Bezier curve, or one of Blender's easings.
+  easing "Easing"
+    help: Which end of an eased segment the easing is at (auto: Blender's choice for the easing).
+  left "Left"
+    help: The left handle's type: free and aligned handles keep their position, the others are worked out from the keys around.
+  right "Right"
+    help: The right handle's type: free and aligned handles keep their position, the others are worked out from the keys around.
+  leftTime "Left time": unit s
+    help: The left handle's time, for a free or aligned handle only.
+  leftValue "Left value"
+    help: The left handle's value, for a free or aligned handle only.
+  rightTime "Right time": unit s
+    help: The right handle's time, for a free or aligned handle only.
+  rightValue "Right value"
+    help: The right handle's value, for a free or aligned handle only.
+  back "Back"
+    help: How far a back easing overshoots.
+  amplitude "Amplitude": limits 0 or more
+    help: How far an elastic easing swings (0: as far as the change).
+  period "Period": unit s
+    help: How long each swing of an elastic easing is (0: 0.3 of the segment).

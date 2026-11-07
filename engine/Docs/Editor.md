@@ -38,7 +38,10 @@ editor matters or as following from the user's answers, two kept for the port).
   the data loads, with the cost measured first.** A broken theme or cutscene is reported when the game starts
   or reloads its data, naming the entry; the step measures the added loading time first, and if it is
   noticeable the manager goes back to the user before it goes in. (Not the editor only with the game as
-  today.) The recommended option.
+  today.) The recommended option. **For cutscenes (step 6), the user's decision of 2026-11-07**, shown the measured
+  time: the declared limits and the effects-and-sounds check go into `Sequence.Load`, and the loaders that built the
+  proof's data without the sound pack (the sandbox's cutscene mode, `JiruanIntroTests`) mount it as the game does
+  ("How it works", step 6).
 - **G6, decided by the manager** (the editor's own settings): an `editor/` folder in the player's per-user
   game folder, beside `settings.json`, `saves/` and `mods/`; the game ignores it.
 - **G2 and G3, not asked now** (no M11 step waits for them), kept for the port in `Docs/Engine-Plan.md`,
@@ -825,6 +828,10 @@ later milestones", "At port time").
   there from the warm-up thread; 3.5 ms more work in all), warm about 3 ms more, a Reload about 5 ms more; both
   consequences accepted (a silent layer naming an instrument that isn't there is refused; the tests' sample theme
   that doesn't compile is refused, the tests given a playable one). "How it works", step 5.
+  **For cutscenes (step 6): wired, the user's decision of 2026-11-07**, with the
+  measurement shown (the proof's `Sequence.Load` cold 137 → 159 → 192 ms, +12 ms once the music is loaded, warm
+  +0.2 ms): the declared limits and the effects-and-sounds check go into loading, and the loaders that built the
+  proof's data without the sound pack mount it as the game does ("How it works", step 6).
 - **G6. Where the editor keeps its own settings** (recent places, M11-9; its window size and volume; the
   cutscene preview's stand-ins).
   (a) In an `editor/` folder inside the player's game folder, beside `settings.json`, `saves/` and `mods/`
@@ -977,6 +984,16 @@ or the cloud under Xvfb).
     - Finished: problems at their fields, at the top and in the list, the cross-entry checks after a pause;
       the reference field's list and its flag; rename and remove listing referrers and updating them.
       Mutations: each.
+    - **One problem per field (the manager's decision, 2026-11-06, on step 6's report):** the engine reports a broken
+      value once per check that holds it, so a declared limit and the kind's own rule (G4: every limit in M11 is one
+      an own rule already holds), or a reference mark and a kind's own check against the data (a sequence's stage or
+      effect missing), give two problems at one path in different words; both stay reported (`RecordChecks.Check`
+      lists the kind's own checks first), and **the editor shows only the first problem per field**, which is the
+      kind's own, the words the game logs.
+    - **`AudioCue.Name`'s references** (the manager's decision, 2026-11-06: with step 5's music name rule once steps 5
+      and 6 are both merged): marked by step 6 itself once rebased on step 5 (`3e6df0f`), where it was trivial (the
+      coordinator's go, 2026-11-07): a sound effect (`audio.effect`, `audio/effects`) when its kind is `Effect`, a theme
+      (`audio.theme`, `audio/themes`) when `Music`, both by `MusicNameRule`; nothing when it stops the music.
 11. **Saving and mods (editor).** After 2, 3, 7, 8, 9, 10.
     - Owns: `Tools/Editor/Saving/`, the mod info's form, tests, the dialog fixture.
     - Finished: save refused with problems; a pack written keeps unchanged entries byte for byte; the changed
@@ -1552,6 +1569,160 @@ path; a theme's check with the data loads each instrument it names through the c
 an instrument entry that isn't one is reported at the layer in the file system's words. Step 13: `MusicLibrary.Load` on
 the custom mount checks and compiles every theme (the game's 55 in about 2 ms warm), and a theme that doesn't pass
 refuses the whole library, so the preview keeps its last valid library then (P35).
+### Step 6: the scene, model, particle, terrain, state machine and stylesheet kinds (engine)
+
+Code: `Engine/Statventure/Scene/Sequence.cs`, `Scene/FCurve.cs`, `Render3D/Particles.cs`, `Render3D/ModelData.cs`,
+`Render3D/Terrain.cs`, `Animation/StateMachineDefinition.cs`, `UI/Css/StylesheetRecords.cs`, `UI/Style/Stylesheet.cs`.
+Tests: `Tests/Statventure.Tests/Scene/EngineKindMarksTests.cs` (the marks, G4, what loads today, references, bulk),
+`Scene/SequenceDataCheckTests.cs` (the sequence against the data), and every existing rule's test with its path
+(`SequenceRecordTests`, `FCurveTests`, `ParticleTests`, `ModelValidationTests`, `ModelCameraLightTests`,
+`TerrainPackTests`, `StateMachineTests`, `StylesheetCompileTests`). The marks as recorded:
+`Tests/Statventure.Tests/Data/Records/Marks/<kind>.txt` (one per kind, its nested types with it; a missing file is
+written by a run with `STATVENTURE_RECORD_FIXTURES=1`, a changed mark fails until the file is written again, as a
+layout does).
+
+- **Each kind's check with paths (P20).** The rules each kind kept are now its `[Check]` method (`Rules`; the
+  stylesheet record's `Sheet`), reporting every problem with the words it had at the path of what it names, in the
+  order it met them. The rule for a path: the field the message is about; the record for a relation or the whole
+  ("names a palette and a fill", "has no curve", "plays for no time", "has neither conditions nor an exit time");
+  a message about several fields at each field that breaks its part ("its scale and repeat must be above 0, its
+  blends not negative" at `scale` and `blendIn` when both are wrong; both colours; grow-in and fade-out). The old
+  entry points give the first problem, with their exception types: `Sequence.Validate()`, `ModelData.Validate()`,
+  `TerrainData.Validate()`, `StateMachineDefinition.Validate()` throw the first of `RecordChecks.Check(value)`,
+  `ParticleEffect.Problem()` returns its message; so the kind's own rules come first and the declared limits after
+  them, and the messages the game logs are as they were (every existing rule's test checks both). Two kinds can't
+  go through `RecordChecks` this way: an `FCurve` refuses its keys when it is made, so its rules are
+  `FCurve.ProblemsOf(keys)` (paths within the curve, `$.keys[2].leftTime`; the constructor throws the first), for a
+  form to put below the curve's own path (step 1's build reports the curve); and `Stylesheet.FromRecord` builds the
+  sheet as it checks, so it reads in two modes (`RecordReading`: without a list it throws the first problem as an
+  `InvalidDataException`, as before; with one, `Stylesheet.ProblemsOf`, each problem goes in at its path and its part
+  is left out), the record's `[Check]` reporting those.
+- **Going on past a problem.** A check reports every problem it can tell apart: the sequence's parts (a role, a stage,
+  each check of a track's field, a strip, a cue, a span) stop at their own first problem and the rest is checked on;
+  a model's, a state machine's and a terrain's rules each report and go on, skipping what would read past an index an
+  earlier rule found broken (a node showing a mesh that isn't there, a state defined twice that a transition with an
+  exit time comes from) or what has nothing to compare with (a grid of no points); a model reports one index past
+  its vertices, one joint index past its skin per primitive and once a channel's times that don't increase (each
+  message names one); a stylesheet's rule, keyframe and font face stop at their first problem, a style rule's
+  declaration at its own; a curve's keys are each checked in full.
+- **The paths per kind:** a sequence: `$.name`, `$.duration`, `$.roles[i].name|kind`, `$.stages[i]`, a track's field
+  (`$.tracks[t].node`, `.actor`, `.mark`, `.target`, `.host`, `.stage`), a strip's (`.strip.clip`,
+  `.strips[i].scale`), a cue's (`$.tracks[t].cues[i].time`, `.marker`, `.parameter`, `.kind`, `.value`, `.palette`,
+  `.fill`, `.name`, `.effect`, `.node`, `.burst`, `.rate`, `.duration`, `.volume`, `.pan`, `.pitch`, `.action`,
+  `.element`; a camera cut's `$.tracks[t].cuts[i].camera`), the two-marks rule at each such track's `.mark`, a span's
+  (`$.reduced[i].from|to|hold`, `$.reduced` for none); a curve's key fields; a particle effect's fields, its shape's
+  and spawn's (`$.shape.thickness`, `$.spawn.halfAngle`), a range itself or its `min` (`$.life`, `$.life.min`); a
+  model's node fields (`$.nodes[i].children[k]`, `.parent`, `.mesh`, `.skin`, `.camera`, `.light`), `$.lights`,
+  `$.roots[r]`, a primitive's (`$.meshes[m].primitives[p].normals`, `.indices`, `.indices[k]`, `.material`,
+  `.joints[v]`), a skin's (`.joints[k]`, `.inverseBindMatrices`, `.skeleton`), a channel's (`.node`, `.values`,
+  `.times`), a camera's and the sun's values (`$.cameras[c].verticalFieldOfView`, `$.lights[0].angle`); a terrain's
+  `$.width`, `$.depth`, `$.heightSamples`, `$.covers`; a state machine's `$.parameters[i].name`, `$.layers`, a state's
+  `.name` or `.speedParameter`, a layer's `.entry`, a transition's `.from`, `.to`, `.duration`, `.exitTime`, a
+  condition's `.parameter`, `.compare`, `.value`, or the transition; a stylesheet's selector tokens
+  (`$.rules[i].selectors[j]`), selector, media tokens, a declaration's `.property`, `.shorthand`, `.value` or token
+  (`.value[j]`, a url), a keyframe's `.offsets` and declarations, a font face.
+- **The sequence against the data (G5).** Given the data (`CheckContext.Data`) and keeping its own rules, the
+  sequence's check reads its stages from it (one the data hasn't is `Sequence.Load`'s words at `$.stages[i]`, a broken
+  one its own error naming its entry), checks the names in them when all are there, and checks its particle effects
+  and sounds as `Play` checks them against what is bound and registered (`SequenceChecks.AgainstData`): each particle
+  cue's effect there and keeping its rules (`ParticleEffect.Load`), each audio cue's effect patch
+  (`audio/effects/<name>`) and theme (`audio/themes/<id>`), named by the music's rule (`MusicNames`), there as records
+  of their kind; at the cue's `effect` or `name`, in the sequence's words ("the sequence jiruan, track 10 (audio): cue
+  0 plays the theme great-imp-jiruan, which isn't in the game's data (audio/themes/great-imp-jiruan)"), an entry that
+  is there but broken with its own error (reported in the editor; given `reportBroken: false`, thrown as it is,
+  naming its entry, as a broken stage is). Each entry is read once per check. **In `Sequence.Load` too** (the user's
+  decision of 2026-11-07, below), after its stages' names.
+- **Marks.** Kinds (P9; a kind's folder is the one its loader reads it from in the data today, the committed packs
+  and the tests' data, the manager's rule of 2026-11-06): `scene.sequence` "Cutscene" in `world/cutscenes`,
+  `particle.effect` "Particle effect" in `models/effects`, `model` "Model" in `models` (a stage is a model in
+  `models/stages`, named by its whole path through the sequence's reference), `terrain` "Terrain" in `world/terrain`
+  (the test terrain packed at `world/terrain/test`), `ui.stylesheet` "Stylesheet" in `ui/styles`, and without a folder
+  `animation.state-machine` "State machine" (no committed data holds one: the tests' machines are built in C# and
+  written by the tests) and `scene.curve` "F-curve" (curves live inside sequences); all with plain names; display
+  names "Track" (the union), "Animation track" (`ActorTrack`, the record `scene.animation-track`) and "Key"
+  (`scene.key`). Help texts (M11-10, the kinds with a preview first): every field and type of a particle effect and
+  of a cutscene's records (the sequence, roles, spans, strips, every track and cue, curves and keys), and every kind;
+  units on the same (s, /s, m, m/s, m/s², rad, °, °/s, px) and the sun's angle. Limits (G4), each one a rule of the
+  kind's own already holds, the minimum or maximum excluded where the rule's is: a sequence's duration (above 0), a
+  span's from, to and hold, a strip's clip start and end, blends (0 or more), scale and repeat (above 0), influence
+  (0–1), a particle cue's burst, rate and duration, an audio cue's volume (0 or more), pan (−1–1) and pitch (above 0),
+  a key's amplitude; a particle effect's opacity, grow-in and fade-out (0–1), ink line and drag (0 or more), a ring's
+  thickness, a spark's, puff's and shard's proportions (above 0, at most 1), a spark's stretch and a sphere's radius
+  (0 or more), a cone's half angle (0–180); the sun's strength (0 or more) and angle (0, below 180); a terrain's
+  width and depth (1 or more): 34 fields. Not declared, as their rules let NaN through (a limit never contains NaN):
+  a transition's duration and exit time; nor where the rule depends on another field (a camera's values, by its
+  projection; a range's ends, by which field holds it); nor on a stylesheet (its rules are bulk). Bulk (P21, M11-14):
+  a model's meshes, skins, roots, channels and its nodes' parent, children, local matrix, translation, rotation,
+  scale, mesh, skin, camera and light (the hierarchy's indices and transforms); a terrain's height samples and
+  covers; a stylesheet's style rules, @keyframes and @font-face rules. Colours: a material's base colour and emission,
+  a palette cue's fill. References: a sequence's stages (models in `models/stages` by their whole path), a particle
+  cue's effect (particle effects in `models/effects` by their whole path, `PathNames`), an audio cue's name (a sound
+  effect when its kind is `Effect`, a theme when `Music`, by step 5's `MusicNameRule`; marked once rebased on step 5).
+- **The game's loading (G4, G5).** The declared limits are enforced wherever the kinds' checks run, since
+  `Validate()`/`Problem()` are the first problem of `RecordChecks.Check`: in `Sequence.Load` (alone and with its
+  stages), `ParticleEffect.Load`, `ModelData.Load` and the models importer, `TerrainData.Load`,
+  `StateMachineDefinition.Load` and `StateMachineBuilder.Build`, `SequenceBuilder.Build`, `SceneView.Play` and an
+  emitter's start; a limit can't fire before the kind's own rule there (`EveryDeclaredLimitIsHeldByTheKindsOwnCheck`),
+  so nothing that loaded stops loading and no logged message changes. `Stylesheet.Load` runs no `RecordChecks`: no
+  limit is declared on a stylesheet, and the walk would cost more than reading it (below). **`Sequence.Load` also
+  checks the sequence's effects and sounds against the data** (G5; the user's decision of 2026-11-07, below): after
+  `Validate(stages)`, the first of `SequenceChecks.AgainstData(sequence, files, reportBroken: false)` is a
+  `DataFileException` naming the sequence's pack and entry ("not a valid sequence: the sequence jiruan, track 10
+  (audio): cue 0 plays the theme great-imp-jiruan, which isn't in the game's data (audio/themes/great-imp-jiruan)"),
+  and an effect, patch or theme there but broken is its own error naming its entry, as a broken stage's is.
+- **The loading time measured (2026-11-07, the PC, 8 cores, idle: load about 1).** `Sequence.Load` of the proof (the
+  committed JSON form from `Data/Cutscenes`, its stage's record in a pack made from `jiruan.glb`, 85,167 vertices,
+  `audio.pak` mounted), Release, three copies of the engine: `main` (the branch's base, `42fdd90`), the branch (the
+  limits through `RecordChecks` in `Validate`, the data checks not wired) and the branch wired. A scratch bench outside
+  the repo (`claude-work/m11/step6/bench/`: `Program.cs`, `setup.sh`, `run.sh`, `run-game.sh`, results beside them).
+  *Cold*, one load in a fresh process, 30 runs each, interleaved, medians: 137.1, 159.0 and 191.6 ms (the limits
+  +21.9 ms, the data checks +32.6 ms, both +54.5 ms). *Cold after the game's other loading* (the music library and the
+  two particle effects loaded first in the process, as the game has them before a cutscene plays): 110.3, 122.0 and
+  122.7 ms (the limits +11.7 ms, the data checks +0.8 ms, both +12.4 ms). *Warm*, 500 loads after 10, three runs,
+  medians: 12.06, 12.15 and 12.24 ms (+0.08 and +0.09 ms, both +0.17 ms). The limits' cold cost is the first
+  `RecordChecks` of a sequence and of a model in a process (their shapes made, their getters and checks compiled);
+  the data checks' cold cost is mostly reading an effect patch and a theme for the first time, which the game's
+  music library has done before a cutscene loads.
+- **What the wiring would have refused that loaded before:** the proof's own data, as the sandbox's cutscene mode
+  (`Samples/Statventure.Sandbox/Cutscene.cs`) and `JiruanIntroTests` built it (the stage's pack and `Data/Cutscenes`, no
+  `audio.pak`), held no theme `great-imp-jiruan`; and the test sequence's load test (`SequenceRecordTests`) had neither
+  its particle effect nor its two sounds nor its theme in its data. The game itself mounts `audio.pak` with its other
+  packs. The options put to the user: wire it in and give those loaders the sound pack; wire it in but check a music
+  cue's theme only when the data holds music; keep it out of loading, the editor only.
+- **The user's decisions (2026-11-07, the question tool, with the measurement above shown: cold 137 → 159 → 192 ms,
+  +12 ms once the music is loaded, warm +0.2 ms):** (1) the declared limits and the effects-and-sounds check go into
+  loading (`Sequence.Load`, as above); (2) the loaders that built the proof's data without `audio.pak` get the sound
+  pack, as the game mounts it: the sandbox's cutscene mode mounts `packs/audio.pak` beside it (below the stage's pack
+  and the proof's folder; nothing else of it changed) and `JiruanIntroTests` the committed `audio.pak`
+  (`JiruanIntro.SoundPack`); the test sequence's load test holds its effect, its sounds and the sound pack. So the proof
+  loads and the check holds everywhere. Checked: the sandbox's cutscene mode run headless at volume 0 (`claude-work/m11/`
+  `step6-sandbox-proof.sh`: "sound: great-imp-jiruan and jiruan-rift-opens, jiruan-flash, jiruan-title-card at volume 0",
+  played, frame 30 captured; the per-user folders pointed at a scratch folder), and every test loading
+  `Data/Cutscenes` passes.
+
+**Decided by the manager on step 6's report (2026-11-06):** the same broken value reported twice (a limit and the kind's
+own rule; a reference mark and the sequence's data check) stays so, and the editor shows the first problem per field
+(step 10's entry under "Steps"); `AudioCue.Name` marked with step 5's rule once both are merged (step 10's entry;
+in the end marked here, once rebased on step 5, where it was trivial); a kind's folder is the one its loader reads it from in the data today, none when there is no such folder
+(the editor's New then can't make one, as for `mod.info`); `RecordChecks` walking every nested record (about 61 ms on
+the compiled game stylesheet, Debug) is an API gap left for step 1's author (a layout could note whether any check
+or mark applies below a field), so no check is wired into `Stylesheet.Load`; the sequence's effects-and-sounds check
+went to the user (answered 2026-11-07, above).
+
+Choices the doc left to the step (made here): the path rule above and going on past a problem; the check methods'
+names; `FCurve.ProblemsOf` and `Stylesheet.ProblemsOf` (internal) with their paths; the sequence's data check only once
+its own rules hold, its missing-entry words in its own style; which fields get units beside the help texts; the bulk
+summaries ("{0} meshes", "{0:N0} height samples", "a matrix, as imported" for a node's local matrix, the value itself
+for a node's indices and transforms); the display names "Cutscene", "Track", "Animation track", "Key", "F-curve"; the
+marks guard as text files per kind.
+
+A stylesheet's url check leaves @font-faces' urls to `FontFaceDescriptors.Of`: the one url a face the engine reads can
+hold is its src, which that checks by the same rule, so a face refused for its src isn't reported twice. Changed in step 9's `EngineKindsFormTests` (the same as in step 1's): its filler gives a bulk field
+its object, and a kind whose fields are all bulk (a compiled stylesheet) is shown but not edited (P21). Changed in step
+1's tests (their own words anticipated it): `RecordShapeTests` expects the engine's F-curve's display
+name from its mark, "F-curve" (it was made from the code name, "F curve"); `RecordDraftTests`' helper filling a
+blank draft's required fields gives a bulk field its object (an empty list or the type's default), as a draft holds
+one, now that the engine's kinds have bulk fields.
 
 ### Step 7: the mod's info entry (engine)
 
@@ -1871,6 +2042,22 @@ unchanged (no line of the score's or the composer's logic changed). 115 new test
 `make-step5-mutations.py` beside it; the wiring's 8 also in `step5-mutations-2.json`), all killed, nothing written to
 the player's real folders. Found: step 1's `CheckContext` gives no entry path, so the theme's id rule stays in `Load`;
 the duplicates step 10 will meet. Not checked: Windows (nothing of the step depends on the system).
+**Step 6, the scene, model, particle, terrain, state machine and stylesheet kinds (engine): done (2026-11-07, on the
+worker branch `m11-step6`, rebased on `3ee8d7b`).** ("How it works", step 6; `Docs/Scene.md`, "M11 step 6";
+`Docs/Assets.md`, "Checks with paths and marks".) Each kind's rules with the path of what they name, their words
+unchanged (every existing rule's test checks both); going on past a problem; `FCurve.ProblemsOf`; the stylesheet's
+rules in a reporting mode; the marks (names, folders, help and units on every particle effect and cutscene field, 34
+limits each held by the kind's own rule, bulk, colours, three references), recorded per kind and guarded; the sequence
+against the data, **wired into `Sequence.Load` by the user's decision of 2026-11-07** after the measurement, the
+sandbox's cutscene mode and the proof's tests mounting the sound pack; everything that loads today passes (the
+fixtures, the test models and terrain, the proof and its effects, the test sequence, the machines, the game's
+compiled stylesheet; the committed packs hold none of these kinds). 67 new tests; the full suite passes on the GPU
+and on lavapipe, headless, on `3ee8d7b`: 3156 tests (`main`'s 3089 and 67 new; one flaky failure outside the step in
+the first GPU run, `ScriptApiTests.WorkFromAnotherThreadComesBackAsATaskOfTheLoop`, reported). Mutations: 347 (`~/.cache/stat-fick-build/claude-work/m11/step6-mutations.json`, made by `make-step6-mutations.py` beside it; five chunks and a rerun): 344 in the first run, 333 killed; of the 11 survivors 7 were gaps, closed by new tests (a visibility track's node at its path, a curve made with several problems refused with the first, a terrain without a grid not compared with its counts, a stylesheet's value token, unquoted url, keyframe url and a keyframe's refused second declaration at their paths), 1 was code rewritten (the stylesheet's url check scanned @font-faces too, reporting a face refused for its src url twice: it now leaves them to `FontFaceDescriptors.Of`), and 3 can't change what any check sees (`Sequence.Validate()` and `Validate(stages)` without the declared limits: every declared limit is one the kind's own rule holds first, as the G4 test shows; each data entry read once per check, a cache); the rerun (11: the 7, the url check's new mutation and the audio cue's three reference marks) all killed. Nothing written to the player's real folders. Nothing written to the
+player's real folders. Decided by the manager on the report: one problem per field shown (step 10), `AudioCue.Name`
+with step 5's rule (marked here once rebased on step 5), kinds' folders, no check in `Stylesheet.Load`. Step 9's
+`EngineKindsFormTests` gives a bulk field its object when it fills a draft and leaves a kind of bulk fields only (a
+compiled stylesheet) unedited, as step 1's draft test does. Not checked: Windows.
 
 **Step 7, the mod's info entry (engine): done (2026-11-06, on the worker branch `m11-step7`).** ("How it
 works", step 7; `Docs/Assets.md`, "The virtual file system", "A mod's info".) The record `mod.info` (`ModInfo`:

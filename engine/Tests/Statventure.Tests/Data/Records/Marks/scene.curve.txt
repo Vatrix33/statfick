@@ -1,0 +1,36 @@
+scene.curve "F-curve"
+  help: A value changing over time, as an F-curve in Blender's graph editor: keys, and how the curve runs between them.
+  keys "Keys"
+    help: The keys, in time order, at least one.
+  extrapolation "Extrapolation"
+    help: Before the first key and after the last: the end key's value (constant), or the line through it (linear).
+  smoothing "Smoothing"
+    help: How the worked-out handles of a run of keys are smoothed: each from its neighbours alone, or together so the motion has no jolts (Blender's default).
+scene.key "Key"
+  help: A key of a curve: its value at its time, and how the curve runs on to the next key, as in Blender's graph editor.
+  time "Time": unit s
+    help: When the key is.
+  value "Value"
+    help: The curve's value at the key.
+  interpolation "Interpolation"
+    help: How the curve runs to the next key: holding, straight, a Bezier curve, or one of Blender's easings.
+  easing "Easing"
+    help: Which end of an eased segment the easing is at (auto: Blender's choice for the easing).
+  left "Left"
+    help: The left handle's type: free and aligned handles keep their position, the others are worked out from the keys around.
+  right "Right"
+    help: The right handle's type: free and aligned handles keep their position, the others are worked out from the keys around.
+  leftTime "Left time": unit s
+    help: The left handle's time, for a free or aligned handle only.
+  leftValue "Left value"
+    help: The left handle's value, for a free or aligned handle only.
+  rightTime "Right time": unit s
+    help: The right handle's time, for a free or aligned handle only.
+  rightValue "Right value"
+    help: The right handle's value, for a free or aligned handle only.
+  back "Back"
+    help: How far a back easing overshoots.
+  amplitude "Amplitude": limits 0 or more
+    help: How far an elastic easing swings (0: as far as the change).
+  period "Period": unit s
+    help: How long each swing of an elastic easing is (0: 0.3 of the segment).

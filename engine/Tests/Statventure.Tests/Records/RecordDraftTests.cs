@@ -91,9 +91,15 @@ public class RecordDraftTests
     {
         var blank = RecordDraft.Blank(shape);
         foreach (var field in shape.Fields.Where(f => f.Required))
-            blank = blank.With(field, Filler(field.Value));
+            blank = blank.With(field, field.IsBulk ? new DraftLeaf(BulkFiller(field.Value.Type)) : Filler(field.Value));
         return blank;
     }
+
+    /// <summary>A bulk field's value (kept as the object itself, M11 step 6's marks on the engine kinds): an empty array or list, else the type's default.</summary>
+    static object BulkFiller(Type type) =>
+        type.IsArray ? Array.CreateInstance(type.GetElementType()!, 0)
+        : type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IReadOnlyList<>) ? Array.CreateInstance(type.GetGenericArguments()[0], 0)
+        : Activator.CreateInstance(type)!;
 
     /// <summary>Every engine record type a draft can be of: the plain ones and every union's subtypes.</summary>
     public static TheoryData<string> EngineKinds()

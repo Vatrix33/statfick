@@ -7,7 +7,9 @@ namespace Statventure.Render3D;
 
 // Particle effects (Docs/Renderer-3D.md, "Particles"): what an effect's particles are, as records
 // (particle.*, version 1; Docs/Scene.md, S5-1) in models.pak at models/effects/<name> (Q25), and
-// emitters that release them, computed from age (closed form, deterministic, rewindable).
+// emitters that release them, computed from age (closed form, deterministic, rewindable). Marks for tools
+// (M11, Docs/Editor.md, step 6): help texts, units, the limits the checks already hold (G4); the effect's
+// check reports the path of what it names.
 
 /// <summary>
 /// A particle's shape (record union <c>particle.shape</c>; Docs/Renderer-3D.md, "Particles"): flat,
@@ -15,6 +17,7 @@ namespace Statventure.Render3D;
 /// particle's size at that moment (metres).
 /// </summary>
 [Record("particle.shape", 1)]
+[Help("The particles' shape, drawn flat and facing the camera.")]
 [Subtype(1, typeof(ParticleShape.Disc))]
 [Subtype(2, typeof(ParticleShape.Ring))]
 [Subtype(3, typeof(ParticleShape.Spark))]
@@ -24,21 +27,24 @@ public abstract record ParticleShape
 {
     ParticleShape() { }
 
-    /// <summary>What's wrong with its proportions, or null (S5-1).</summary>
-    internal abstract string? Problem();
+    /// <summary>What's wrong with its proportions (S5-1): each problem with the field it names, in order.</summary>
+    internal abstract IEnumerable<(string Field, string Message)> Problems();
 
     /// <summary>A filled circle the size across.</summary>
     [Record("particle.disc", 1)]
+    [Help("A filled circle, the particle's size across.")]
     public sealed record Disc : ParticleShape
     {
-        internal override string? Problem() => null;
+        internal override IEnumerable<(string Field, string Message)> Problems() => [];
     }
 
     /// <summary>A ring the size across, its band <paramref name="Thickness"/> of the radius wide.</summary>
     [Record("particle.ring", 1)]
-    public sealed record Ring([property: Field(1)] float Thickness) : ParticleShape
+    [Help("A ring, the particle's size across.")]
+    public sealed record Ring(
+        [property: Field(1), Help("How wide the ring's band is, as a share of its radius (1: a filled circle)."), Limits(0, 1, MinExclusive = true)] float Thickness) : ParticleShape
     {
-        internal override string? Problem() => Share(Thickness, "a ring's thickness");
+        internal override IEnumerable<(string Field, string Message)> Problems() => Share(Thickness, "thickness", "a ring's thickness");
     }
 
     /// <summary>
@@ -47,28 +53,36 @@ public abstract record ParticleShape
     /// <paramref name="Stretch"/> seconds.
     /// </summary>
     [Record("particle.spark", 1)]
-    public sealed record Spark([property: Field(1)] float Width, [property: Field(2)] float Stretch) : ParticleShape
+    [Help("A streak along the particle's motion, longer the faster it moves.")]
+    public sealed record Spark(
+        [property: Field(1), Help("How wide the spark is, as a share of the particle's size."), Limits(0, 1, MinExclusive = true)] float Width,
+        [property: Field(2), Help("How far the spark stretches back along its motion: as far as the particle moves in this time."), Unit("s"), Limits(0, double.PositiveInfinity)] float Stretch) : ParticleShape
     {
-        internal override string? Problem() => Share(Width, "a spark's width")
-            ?? (float.IsFinite(Stretch) && Stretch >= 0 ? null : $"a spark's stretch ({Number(Stretch)} s) must be a finite number, 0 or more");
+        internal override IEnumerable<(string Field, string Message)> Problems() => Share(Width, "width", "a spark's width")
+            .Concat(float.IsFinite(Stretch) && Stretch >= 0 ? [] : [("stretch", $"a spark's stretch ({Number(Stretch)} s) must be a finite number, 0 or more")]);
     }
 
     /// <summary>A disc the size across whose opacity eases to nothing over the outer <paramref name="Softness"/> of its radius.</summary>
     [Record("particle.puff", 1)]
-    public sealed record Puff([property: Field(1)] float Softness) : ParticleShape
+    [Help("A soft disc that fades out toward its edge, like smoke or mist.")]
+    public sealed record Puff(
+        [property: Field(1), Help("How much of the disc's radius, from its edge inward, fades out (1: all of it)."), Limits(0, 1, MinExclusive = true)] float Softness) : ParticleShape
     {
-        internal override string? Problem() => Share(Softness, "a puff's softness");
+        internal override IEnumerable<(string Field, string Message)> Problems() => Share(Softness, "softness", "a puff's softness");
     }
 
     /// <summary>A rhombus the size long and <paramref name="Width"/> of that wide, turned by the particle's angle.</summary>
     [Record("particle.shard", 1)]
-    public sealed record Shard([property: Field(1)] float Width) : ParticleShape
+    [Help("A diamond shape, the particle's size long, turned by the particle's angle.")]
+    public sealed record Shard(
+        [property: Field(1), Help("How wide the diamond is, as a share of its length."), Limits(0, 1, MinExclusive = true)] float Width) : ParticleShape
     {
-        internal override string? Problem() => Share(Width, "a shard's width");
+        internal override IEnumerable<(string Field, string Message)> Problems() => Share(Width, "width", "a shard's width");
     }
 
     /// <summary>A proportion of the size: above 0, at most 1.</summary>
-    static string? Share(float value, string what) => value > 0 && value <= 1 ? null : $"{what} ({Number(value)}) must be above 0 and at most 1";
+    static IEnumerable<(string Field, string Message)> Share(float value, string field, string what) =>
+        value > 0 && value <= 1 ? [] : [(field, $"{what} ({Number(value)}) must be above 0 and at most 1")];
 
     internal static string Number(float value) => value.ToString("R", CultureInfo.InvariantCulture);
 
@@ -77,27 +91,34 @@ public abstract record ParticleShape
 
 /// <summary>A value drawn for each particle, evenly between <see cref="Min"/> and <see cref="Max"/> (record <c>particle.range</c>).</summary>
 [Record("particle.range", 1)]
-public readonly record struct ParticleRange([property: Field(1)] float Min, [property: Field(2)] float Max)
+[Help("A value drawn for each particle, evenly between the two numbers (the same twice: always that value).")]
+public readonly record struct ParticleRange(
+    [property: Field(1), Help("The smallest value.")] float Min,
+    [property: Field(2), Help("The largest value.")] float Max)
 {
     public static implicit operator ParticleRange(float value) => new(value, value);
 
     public float At(float share) => Min + (Max - Min) * share;
 
-    /// <summary>What's wrong with it, or null: finite ends, the min not above the max, and with <paramref name="positive"/> neither below 0.</summary>
-    internal string? Problem(string what, bool positive)
+    /// <summary>
+    /// What's wrong with it, or null: finite ends, the min not above the max, and with <paramref name="positive"/>
+    /// neither below 0; with the field of the range it names (<c>min</c>), or null for the range itself.
+    /// </summary>
+    internal (string? Field, string Message)? Problem(string what, bool positive)
     {
         if (!float.IsFinite(Min) || !float.IsFinite(Max))
-            return $"its {what} ({ParticleShape.Number(Min)}–{ParticleShape.Number(Max)}) must be finite numbers";
+            return (null, $"its {what} ({ParticleShape.Number(Min)}–{ParticleShape.Number(Max)}) must be finite numbers");
         if (Min > Max)
-            return $"its {what}'s min ({ParticleShape.Number(Min)}) is above its max ({ParticleShape.Number(Max)})";
+            return ("min", $"its {what}'s min ({ParticleShape.Number(Min)}) is above its max ({ParticleShape.Number(Max)})");
         if (positive && Min < 0)
-            return $"its {what} ({ParticleShape.Number(Min)}–{ParticleShape.Number(Max)}) must be 0 or more";
+            return (null, $"its {what} ({ParticleShape.Number(Min)}–{ParticleShape.Number(Max)}) must be 0 or more");
         return null;
     }
 }
 
 /// <summary>Where an emitter's particles start and which way they go (record union <c>particle.spawn</c>).</summary>
 [Record("particle.spawn", 1)]
+[Help("Where the particles start and which way they go.")]
 [Subtype(1, typeof(ParticleSpawn.Point))]
 [Subtype(2, typeof(ParticleSpawn.Sphere))]
 [Subtype(3, typeof(ParticleSpawn.Cone))]
@@ -105,31 +126,41 @@ public abstract record ParticleSpawn
 {
     ParticleSpawn() { }
 
-    /// <summary>What's wrong with it, or null (S5-1).</summary>
-    internal abstract string? Problem();
+    /// <summary>What's wrong with it (S5-1): each problem with the field it names, in order.</summary>
+    internal abstract IEnumerable<(string Field, string Message)> Problems();
 
     /// <summary>From the emitter's point, in any direction.</summary>
     [Record("particle.point", 1)]
+    [Help("From the emitter's point, in every direction.")]
     public sealed record Point : ParticleSpawn
     {
-        internal override string? Problem() => null;
+        internal override IEnumerable<(string Field, string Message)> Problems() => [];
     }
 
     /// <summary>From anywhere in a ball of <paramref name="Radius"/> metres about the emitter, outward from its centre.</summary>
     [Record("particle.sphere", 1)]
-    public sealed record Sphere([property: Field(1)] float Radius) : ParticleSpawn
+    [Help("From anywhere in a ball around the emitter, outward from its centre.")]
+    public sealed record Sphere(
+        [property: Field(1), Help("The ball's radius."), Unit("m"), Limits(0, double.PositiveInfinity)] float Radius) : ParticleSpawn
     {
-        internal override string? Problem() => float.IsFinite(Radius) && Radius >= 0 ? null : $"a sphere's radius ({ParticleShape.Number(Radius)} m) must be a finite number, 0 or more";
+        internal override IEnumerable<(string Field, string Message)> Problems() =>
+            float.IsFinite(Radius) && Radius >= 0 ? [] : [("radius", $"a sphere's radius ({ParticleShape.Number(Radius)} m) must be a finite number, 0 or more")];
     }
 
     /// <summary>From the emitter's point, within <paramref name="HalfAngle"/> degrees of <paramref name="Axis"/>.</summary>
     [Record("particle.cone", 1)]
-    public sealed record Cone([property: Field(1)] Vector3 Axis, [property: Field(2)] float HalfAngle) : ParticleSpawn
+    [Help("From the emitter's point, within a cone around a direction.")]
+    public sealed record Cone(
+        [property: Field(1), Help("The direction the cone points in (any length but zero; on a node, in the node's own space).")] Vector3 Axis,
+        [property: Field(2), Help("How far from that direction a particle may go: 0 only along it, 180 any way."), Unit("°"), Limits(0, 180)] float HalfAngle) : ParticleSpawn
     {
-        internal override string? Problem() =>
-            !float.IsFinite(Axis.X) || !float.IsFinite(Axis.Y) || !float.IsFinite(Axis.Z) || Axis == Vector3.Zero ? $"a cone's axis {ParticleShape.Vector(Axis)} must be a finite direction, not zero"
-            : float.IsFinite(HalfAngle) && HalfAngle >= 0 && HalfAngle <= 180 ? null
-            : $"a cone's half angle ({ParticleShape.Number(HalfAngle)}°) must be from 0 to 180";
+        internal override IEnumerable<(string Field, string Message)> Problems()
+        {
+            if (!float.IsFinite(Axis.X) || !float.IsFinite(Axis.Y) || !float.IsFinite(Axis.Z) || Axis == Vector3.Zero)
+                yield return ("axis", $"a cone's axis {ParticleShape.Vector(Axis)} must be a finite direction, not zero");
+            if (!(float.IsFinite(HalfAngle) && HalfAngle >= 0 && HalfAngle <= 180))
+                yield return ("halfAngle", $"a cone's half angle ({ParticleShape.Number(HalfAngle)}°) must be from 0 to 180");
+        }
     }
 }
 
@@ -147,56 +178,82 @@ public abstract record ParticleSpawn
 /// (<see cref="Problem"/>) are checked when it is loaded and when an emitter of it starts.
 /// </summary>
 [Record("particle.effect", 1)]
+[Kind("Particle effect", "models/effects")]
+[Help("What an effect's particles look like and how they move, for battles and cutscenes. Its colours come from the palette of whatever starts it.")]
 public sealed record ParticleEffect
 {
-    [Field(1)] public required ParticleShape Shape { get; init; }
-    [Field(2)] public required string StartColor { get; init; }
-    [Field(3)] public required string EndColor { get; init; }
-    [Field(4)] public float Opacity { get; init; } = 1;
-    [Field(5)] public float OutlineWidth { get; init; }
-    [Field(6)] public bool Glow { get; init; }
-    [Field(7)] public required ParticleRange Life { get; init; }
-    [Field(8)] public required ParticleRange Size { get; init; }
-    [Field(9)] public required ParticleRange Speed { get; init; }
-    [Field(10)] public required ParticleSpawn Spawn { get; init; }
-    [Field(11)] public float GrowIn { get; init; }
-    [Field(12)] public float FadeOut { get; init; }
-    [Field(13)] public Vector3 Gravity { get; init; }
-    [Field(14)] public float Drag { get; init; }
-    [Field(15)] public ParticleRange Angle { get; init; }
-    [Field(16)] public ParticleRange Spin { get; init; }
-    [Field(17)] public float Inherit { get; init; }
+    [Field(1), Help("The particles' shape.")] public required ParticleShape Shape { get; init; }
+    [Field(2), Help("The palette slot the particles are coloured from when they start; they turn to the end colour over their life.")]
+    public required string StartColor { get; init; }
+    [Field(3), Help("The palette slot the particles are coloured from at the end of their life.")] public required string EndColor { get; init; }
+    [Field(4), Help("How solid the particles are, from 0 (unseen) to 1."), Limits(0, 1)] public float Opacity { get; init; } = 1;
+    [Field(5), Help("The width of the ink line around each particle (0: none)."), Unit("px"), Limits(0, double.PositiveInfinity)] public float OutlineWidth { get; init; }
+    [Field(6), Help("Whether the particles glow.")] public bool Glow { get; init; }
+    [Field(7), Help("How long each particle lives."), Unit("s")] public required ParticleRange Life { get; init; }
+    [Field(8), Help("Each particle's size across."), Unit("m")] public required ParticleRange Size { get; init; }
+    [Field(9), Help("How fast each particle starts moving."), Unit("m/s")] public required ParticleRange Speed { get; init; }
+    [Field(10), Help("Where the particles start and which way they go.")] public required ParticleSpawn Spawn { get; init; }
+    [Field(11), Help("The share of its life at the start over which a particle grows to its size (0: at once)."), Limits(0, 1)] public float GrowIn { get; init; }
+    [Field(12), Help("The share of its life at the end over which a particle shrinks and fades away (0: it doesn't)."), Limits(0, 1)] public float FadeOut { get; init; }
+    [Field(13), Help("The pull on the particles, such as (0, −9.81, 0) for falling."), Unit("m/s²")] public Vector3 Gravity { get; init; }
+    [Field(14), Help("How quickly the particles slow down to the speed gravity keeps (0: they don't)."), Unit("/s"), Limits(0, double.PositiveInfinity)] public float Drag { get; init; }
+    [Field(15), Help("Each particle's turn when it starts."), Unit("°")] public ParticleRange Angle { get; init; }
+    [Field(16), Help("How fast each particle turns."), Unit("°/s")] public ParticleRange Spin { get; init; }
+    [Field(17), Help("The share of a moving emitter's own speed its particles start with, which makes a trail.")] public float Inherit { get; init; }
 
     /// <summary>
     /// What breaks the effect's rules (S5-1), or null: its shape and spawn given and their proportions
     /// (a ring's thickness, a spark's width, a puff's softness, a shard's width above 0 and at most 1; a
     /// spark's stretch and a sphere's radius 0 or more; a cone's axis not zero and its half angle 0–180°);
     /// its colours naming slots; every number finite; each range's min not above its max, life, size and
-    /// speed not below 0; opacity, grow-in and fade-out from 0 to 1; the ink line's width and drag 0 or more.
+    /// speed not below 0; opacity, grow-in and fade-out from 0 to 1; the ink line's width and drag 0 or more;
+    /// and the limits its fields declare (G4). The first of <see cref="RecordChecks.Check"/>'s problems.
     /// </summary>
-    public string? Problem()
+    public string? Problem() => RecordChecks.Check(this).FirstOrDefault()?.Message;
+
+    /// <summary>The effect's own check (P20): every rule of <see cref="Problem"/>, in its order, at the path of what it names.</summary>
+    [Check]
+    static void Rules(ParticleEffect effect, CheckContext check)
     {
         static string N(float value) => ParticleShape.Number(value);
         static bool Share(float value) => value >= 0 && value <= 1;
-        if (Shape is null)
-            return "it has no shape";
-        if (Spawn is null)
-            return "it has no spawn";
-        if (string.IsNullOrEmpty(StartColor) || string.IsNullOrEmpty(EndColor))
-            return "its start and end colours must name palette slots";
-        return Shape.Problem()
-            ?? Spawn.Problem()
-            ?? Life.Problem("life", positive: true)
-            ?? Size.Problem("size", positive: true)
-            ?? Speed.Problem("speed", positive: true)
-            ?? Angle.Problem("angle", positive: false)
-            ?? Spin.Problem("spin", positive: false)
-            ?? (Share(Opacity) ? null : $"its opacity ({N(Opacity)}) must be from 0 to 1")
-            ?? (Share(GrowIn) && Share(FadeOut) ? null : $"its grow-in ({N(GrowIn)}) and fade-out ({N(FadeOut)}) must be shares of its life, from 0 to 1")
-            ?? (float.IsFinite(OutlineWidth) && OutlineWidth >= 0 ? null : $"its ink line's width ({N(OutlineWidth)}) must be a finite number, 0 or more")
-            ?? (float.IsFinite(Drag) && Drag >= 0 ? null : $"its drag ({N(Drag)}) must be a finite number, 0 or more")
-            ?? (float.IsFinite(Gravity.X) && float.IsFinite(Gravity.Y) && float.IsFinite(Gravity.Z) ? null : $"its gravity {ParticleShape.Vector(Gravity)} must be finite")
-            ?? (float.IsFinite(Inherit) ? null : $"its inherited share of the emitter's velocity ({N(Inherit)}) must be a finite number");
+        static RecordPath F(string field) => RecordPath.Root.Field(field);
+        if (effect.Shape is null)
+            check.Report(F("shape"), "it has no shape");
+        if (effect.Spawn is null)
+            check.Report(F("spawn"), "it has no spawn");
+        foreach (var (field, color) in new[] { ("startColor", effect.StartColor), ("endColor", effect.EndColor) })
+            if (string.IsNullOrEmpty(color))
+                check.Report(F(field), "its start and end colours must name palette slots");
+        foreach (var (field, message) in effect.Shape?.Problems() ?? [])
+            check.Report(F("shape").Field(field), message);
+        foreach (var (field, message) in effect.Spawn?.Problems() ?? [])
+            check.Report(F("spawn").Field(field), message);
+        foreach (var (field, range, what, positive) in new[]
+                 {
+                     ("life", effect.Life, "life", true), ("size", effect.Size, "size", true), ("speed", effect.Speed, "speed", true),
+                     ("angle", effect.Angle, "angle", false), ("spin", effect.Spin, "spin", false),
+                 })
+            if (range.Problem(what, positive) is var (part, message))
+                check.Report(part == null ? F(field) : F(field).Field(part), message);
+        if (!Share(effect.Opacity))
+            check.Report(F("opacity"), $"its opacity ({N(effect.Opacity)}) must be from 0 to 1");
+        if (!Share(effect.GrowIn) || !Share(effect.FadeOut))
+        {
+            var message = $"its grow-in ({N(effect.GrowIn)}) and fade-out ({N(effect.FadeOut)}) must be shares of its life, from 0 to 1";
+            if (!Share(effect.GrowIn))
+                check.Report(F("growIn"), message);
+            if (!Share(effect.FadeOut))
+                check.Report(F("fadeOut"), message);
+        }
+        if (!(float.IsFinite(effect.OutlineWidth) && effect.OutlineWidth >= 0))
+            check.Report(F("outlineWidth"), $"its ink line's width ({N(effect.OutlineWidth)}) must be a finite number, 0 or more");
+        if (!(float.IsFinite(effect.Drag) && effect.Drag >= 0))
+            check.Report(F("drag"), $"its drag ({N(effect.Drag)}) must be a finite number, 0 or more");
+        if (!(float.IsFinite(effect.Gravity.X) && float.IsFinite(effect.Gravity.Y) && float.IsFinite(effect.Gravity.Z)))
+            check.Report(F("gravity"), $"its gravity {ParticleShape.Vector(effect.Gravity)} must be finite");
+        if (!float.IsFinite(effect.Inherit))
+            check.Report(F("inherit"), $"its inherited share of the emitter's velocity ({N(effect.Inherit)}) must be a finite number");
     }
 
     /// <summary>

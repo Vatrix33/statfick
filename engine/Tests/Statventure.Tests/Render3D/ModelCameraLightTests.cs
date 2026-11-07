@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json.Nodes;
 using Statventure.Packs;
+using Statventure.Records;
 using Statventure.Render3D;
 using Statventure.Tests.Packs;
 using Statventure.Tests.Records;
@@ -166,30 +167,30 @@ public class ModelCameraLightTests
     static ModelData Plan(Func<ModelCamera, ModelCamera> change) => With(cameras: [Stage.Cameras[0], change(Stage.Cameras[1])]);
     static ModelData Sun(Func<ModelLight, ModelLight> change) => With(lights: [change(Stage.Lights[0])]);
 
-    static readonly Dictionary<string, (Func<ModelData> Model, string Problem)> Broken = new()
+    static readonly Dictionary<string, (Func<ModelData> Model, string Problem, string Path)> Broken = new()
     {
-        ["a camera that doesn't exist"] = (() => With((n, i) => i == 0 ? n with { Camera = 2 } : n), "node 0 (Rig) carries camera 2, which doesn't exist"),
-        ["a camera below -1"] = (() => With((n, i) => i == 2 ? n with { Camera = -2 } : n), "node 2 (Body) carries camera -2, which doesn't exist"),
-        ["a light that doesn't exist"] = (() => With((n, i) => i == 1 ? n with { Light = 1 } : n), "node 1 (Bone) carries light 1, which doesn't exist"),
-        ["a light below -1"] = (() => With((n, i) => i == 2 ? n with { Light = -2 } : n), "node 2 (Body) carries light -2, which doesn't exist"),
-        ["two lights"] = (() => With(lights: [Stage.Lights[0], Stage.Lights[0]]), "2 lights: a model has one sun or none"),
-        ["two nodes carrying the sun"] = (() => With((n, i) => i == 2 ? n with { Light = 0 } : n), "nodes 1 (Bone) and 2 (Body) both carry the sun: a model has one sun or none"),
-        ["no field of view"] = (() => Lens(c => c with { VerticalFieldOfView = 0 }), "camera 0 (Lens) has a vertical field of view of 0 radians (more than 0 and less than π)"),
+        ["a camera that doesn't exist"] = (() => With((n, i) => i == 0 ? n with { Camera = 2 } : n), "node 0 (Rig) carries camera 2, which doesn't exist", "$.nodes[0].camera"),
+        ["a camera below -1"] = (() => With((n, i) => i == 2 ? n with { Camera = -2 } : n), "node 2 (Body) carries camera -2, which doesn't exist", "$.nodes[2].camera"),
+        ["a light that doesn't exist"] = (() => With((n, i) => i == 1 ? n with { Light = 1 } : n), "node 1 (Bone) carries light 1, which doesn't exist", "$.nodes[1].light"),
+        ["a light below -1"] = (() => With((n, i) => i == 2 ? n with { Light = -2 } : n), "node 2 (Body) carries light -2, which doesn't exist", "$.nodes[2].light"),
+        ["two lights"] = (() => With(lights: [Stage.Lights[0], Stage.Lights[0]]), "2 lights: a model has one sun or none", "$.lights"),
+        ["two nodes carrying the sun"] = (() => With((n, i) => i == 2 ? n with { Light = 0 } : n), "nodes 1 (Bone) and 2 (Body) both carry the sun: a model has one sun or none", "$.nodes[2].light"),
+        ["no field of view"] = (() => Lens(c => c with { VerticalFieldOfView = 0 }), "camera 0 (Lens) has a vertical field of view of 0 radians (more than 0 and less than π)", "$.cameras[0].verticalFieldOfView"),
         ["a half turn of field of view"] = (() => Lens(c => c with { VerticalFieldOfView = MathF.PI }),
-            "camera 0 (Lens) has a vertical field of view of 3.1415927 radians (more than 0 and less than π)"),
+            "camera 0 (Lens) has a vertical field of view of 3.1415927 radians (more than 0 and less than π)", "$.cameras[0].verticalFieldOfView"),
         ["a field of view that isn't a number"] = (() => Lens(c => c with { VerticalFieldOfView = float.NaN }),
-            "camera 0 (Lens) has a vertical field of view of NaN radians (more than 0 and less than π)"),
-        ["a perspective near plane at 0"] = (() => Lens(c => c with { Near = 0 }), "camera 0 (Lens) has its near plane at 0 (a perspective camera's is beyond 0)"),
-        ["a far plane at the near one"] = (() => Lens(c => c with { Far = 0.1f }), "camera 0 (Lens) has its far plane at 0.1, not finite and beyond its near plane at 0.1"),
-        ["an infinite far plane"] = (() => Lens(c => c with { Far = float.PositiveInfinity }), "camera 0 (Lens) has its far plane at Infinity, not finite and beyond its near plane at 0.1"),
-        ["a flat orthographic camera"] = (() => Plan(c => c with { OrthographicHeight = 0 }), "camera 1 (Plan) has a height of 0 in view (more than 0)"),
-        ["an orthographic near plane behind it"] = (() => Plan(c => c with { Near = -1 }), "camera 1 (Plan) has its near plane at -1 (at 0 or beyond)"),
-        ["an orthographic far plane at its near one"] = (() => Plan(c => c with { Far = 0 }), "camera 1 (Plan) has its far plane at 0, not finite and beyond its near plane at 0"),
-        ["a negative strength"] = (() => Sun(l => l with { Strength = -1 }), "light 0 (Daylight) has a strength of -1 (finite, 0 or more)"),
-        ["an infinite strength"] = (() => Sun(l => l with { Strength = float.PositiveInfinity }), "light 0 (Daylight) has a strength of Infinity (finite, 0 or more)"),
-        ["a negative angle"] = (() => Sun(l => l with { Angle = -1 }), "light 0 (Daylight) has an angle of -1° (0 or more, less than 180)"),
-        ["a sun 180° across"] = (() => Sun(l => l with { Angle = 180 }), "light 0 (Daylight) has an angle of 180° (0 or more, less than 180)"),
-        ["an angle that isn't a number"] = (() => Sun(l => l with { Angle = float.NaN }), "light 0 (Daylight) has an angle of NaN° (0 or more, less than 180)"),
+            "camera 0 (Lens) has a vertical field of view of NaN radians (more than 0 and less than π)", "$.cameras[0].verticalFieldOfView"),
+        ["a perspective near plane at 0"] = (() => Lens(c => c with { Near = 0 }), "camera 0 (Lens) has its near plane at 0 (a perspective camera's is beyond 0)", "$.cameras[0].near"),
+        ["a far plane at the near one"] = (() => Lens(c => c with { Far = 0.1f }), "camera 0 (Lens) has its far plane at 0.1, not finite and beyond its near plane at 0.1", "$.cameras[0].far"),
+        ["an infinite far plane"] = (() => Lens(c => c with { Far = float.PositiveInfinity }), "camera 0 (Lens) has its far plane at Infinity, not finite and beyond its near plane at 0.1", "$.cameras[0].far"),
+        ["a flat orthographic camera"] = (() => Plan(c => c with { OrthographicHeight = 0 }), "camera 1 (Plan) has a height of 0 in view (more than 0)", "$.cameras[1].orthographicHeight"),
+        ["an orthographic near plane behind it"] = (() => Plan(c => c with { Near = -1 }), "camera 1 (Plan) has its near plane at -1 (at 0 or beyond)", "$.cameras[1].near"),
+        ["an orthographic far plane at its near one"] = (() => Plan(c => c with { Far = 0 }), "camera 1 (Plan) has its far plane at 0, not finite and beyond its near plane at 0", "$.cameras[1].far"),
+        ["a negative strength"] = (() => Sun(l => l with { Strength = -1 }), "light 0 (Daylight) has a strength of -1 (finite, 0 or more)", "$.lights[0].strength"),
+        ["an infinite strength"] = (() => Sun(l => l with { Strength = float.PositiveInfinity }), "light 0 (Daylight) has a strength of Infinity (finite, 0 or more)", "$.lights[0].strength"),
+        ["a negative angle"] = (() => Sun(l => l with { Angle = -1 }), "light 0 (Daylight) has an angle of -1° (0 or more, less than 180)", "$.lights[0].angle"),
+        ["a sun 180° across"] = (() => Sun(l => l with { Angle = 180 }), "light 0 (Daylight) has an angle of 180° (0 or more, less than 180)", "$.lights[0].angle"),
+        ["an angle that isn't a number"] = (() => Sun(l => l with { Angle = float.NaN }), "light 0 (Daylight) has an angle of NaN° (0 or more, less than 180)", "$.lights[0].angle"),
     };
 
     public static TheoryData<string> BrokenNames => [.. Broken.Keys];
@@ -208,8 +209,11 @@ public class ModelCameraLightTests
     [MemberData(nameof(BrokenNames))]
     public void EachBrokenRuleIsItsOwnProblem(string name)
     {
-        var (model, problem) = Broken[name];
+        var (model, problem, path) = Broken[name];
         Assert.Equal(problem, Assert.Throws<InvalidDataException>(() => model().Validate()).Message);
+        // The model's check (M11 step 6, P20) reports it first, at the path of what it names.
+        var first = RecordChecks.Check(model())[0];
+        Assert.Equal((path, problem), (first.Path.ToString(), first.Message));
     }
 
     [Fact]

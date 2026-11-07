@@ -1,4 +1,5 @@
 using Statventure.Packs;
+using Statventure.Records;
 using Statventure.UI.Css;
 
 namespace Statventure.UI.Style;
@@ -281,105 +282,231 @@ public sealed class Stylesheet
     /// whose value has no var()), a keyframe offset outside 0–1 or a keyframe declaration that parsing would
     /// drop, a @font-face the engine can't honour, a url() that is neither a data: url nor a data path.
     /// </summary>
-    public static Stylesheet FromRecord(StylesheetRecord record, string name = "", StyleOrigin origin = StyleOrigin.Author)
+    public static Stylesheet FromRecord(StylesheetRecord record, string name = "", StyleOrigin origin = StyleOrigin.Author) =>
+        new RecordReading(null).Read(record, name, origin);
+
+    /// <summary>
+    /// Every problem <see cref="FromRecord"/> refuses a compiled stylesheet for, with its words, at the path of
+    /// what it names (P20; Docs/Editor.md, step 6): a token of a selector, a media query or a value
+    /// (<c>$.rules[0].selectors[2]</c>), a selector that doesn't parse, a declaration's property, pending
+    /// shorthand or value, a keyframe's offsets, a @font-face, a url()'s token. A rule, a keyframe and a
+    /// @font-face stop at their first problem, a declaration of a rule at its own; the rest is read on.
+    /// </summary>
+    internal static IReadOnlyList<RecordProblem> ProblemsOf(StylesheetRecord record)
     {
-        var sheet = new Stylesheet(name, origin);
-        for (var i = 0; i < record.Rules.Count; i++)
+        var problems = new List<RecordProblem>();
+        new RecordReading(problems).Read(record, "", StyleOrigin.Author);
+        return problems;
+    }
+
+    /// <summary>
+    /// Reading a compiled stylesheet (<see cref="FromRecord"/>): without a list, its first problem is an
+    /// <see cref="InvalidDataException"/>; with one, each problem goes into it at its path and the part it
+    /// is in is left out (<see cref="ProblemsOf"/>).
+    /// </summary>
+    sealed class RecordReading(List<RecordProblem>? problems)
+    {
+        /// <summary>Ends the part being read after its problem.</summary>
+        sealed class Stop : Exception;
+
+        /// <summary>The problem, as what to throw: an <see cref="InvalidDataException"/>, or (reporting) what ends the part.</summary>
+        Exception Fail(RecordPath path, string message, Exception? inner = null)
         {
-            var rule = record.Rules[i];
-            var tokens = Tokens(rule.Selectors, $"rule {i + 1}");
-            var selectors = SelectorParser.ParseList(CssParser.Trim(tokens))
-                ?? throw new InvalidDataException($"rule {i + 1}: the selector '{Text(tokens)}' doesn't parse");
-            var where = $"rule {i + 1} ({Text(tokens)})";
-            var declarations = rule.Declarations.Select(d => Prepared(d, where)).ToList();
-            sheet.Rules.Add(new Rule(new CssStyleRule(selectors, [], i) { SelectorTokens = tokens }, Media(rule.Media, where), declarations));
+            if (problems == null)
+                return new InvalidDataException(message, inner);
+            problems.Add(new(path, message));
+            return new Stop();
         }
-        foreach (var keyframes in record.Keyframes)
+
+        void Part(Action read)
         {
-            var where = $"@keyframes {keyframes.Name}";
-            var frames = new List<CssKeyframe>();
-            foreach (var frame in keyframes.Frames)
+            if (problems == null)
             {
-                if (frame.Offsets.Count == 0 || frame.Offsets.Any(o => o is not (>= 0 and <= 1)))
-                    throw new InvalidDataException($"{where}: a keyframe's offsets [{string.Join(", ", frame.Offsets)}] aren't from 0 to 1");
-                var declarations = frame.Declarations.Select(d => AsWritten(d, where)).ToList();
-                var refused = new List<string>();
-                Prepare(declarations.Where(d => !d.Important).ToList(), null, (d, why) => refused.Add($"{why}: {d.Property}: {d.ValueText}"));
-                if (refused.Count > 0)
-                    throw new InvalidDataException($"{where}: {refused[0]}");
-                frames.Add(new CssKeyframe([.. frame.Offsets], declarations));
+                read();
+                return;
             }
-            sheet.Keyframes.Add((new CssKeyframesRule(keyframes.Name, frames), Media(keyframes.Media, where)));
+            try
+            {
+                read();
+            }
+            catch (Stop)
+            {
+            }
         }
-        foreach (var face in record.FontFaces)
+
+        public Stylesheet Read(StylesheetRecord record, string name, StyleOrigin origin)
         {
-            var rule = new CssFontFaceRule([.. face.Descriptors.Select(d => AsWritten(d, "@font-face"))]);
-            FontFaceDescriptors.Of(rule);
-            sheet.FontFaces.Add(rule);
+            var sheet = new Stylesheet(name, origin);
+            for (var i = 0; i < record.Rules.Count; i++)
+            {
+                var rule = record.Rules[i];
+                var at = RecordPath.Root.Field("rules").Index(i);
+                var index = i;
+                Part(() =>
+                {
+                    var tokens = Tokens(rule.Selectors, $"rule {index + 1}", at.Field("selectors"));
+                    var selectors = SelectorParser.ParseList(CssParser.Trim(tokens))
+                        ?? throw Fail(at.Field("selectors"), $"rule {index + 1}: the selector '{Text(tokens)}' doesn't parse");
+                    var where = $"rule {index + 1} ({Text(tokens)})";
+                    var declarations = new List<PreparedDeclaration>();
+                    for (var k = 0; k < rule.Declarations.Count; k++)
+                    {
+                        var declaration = rule.Declarations[k];
+                        var path = at.Field("declarations").Index(k);
+                        Part(() => declarations.Add(Prepared(declaration, where, path)));
+                    }
+                    sheet.Rules.Add(new Rule(new CssStyleRule(selectors, [], index) { SelectorTokens = tokens }, Media(rule.Media, where, at.Field("media")), declarations));
+                });
+            }
+            for (var n = 0; n < record.Keyframes.Count; n++)
+            {
+                var keyframes = record.Keyframes[n];
+                var at = RecordPath.Root.Field("keyframes").Index(n);
+                Part(() =>
+                {
+                    var where = $"@keyframes {keyframes.Name}";
+                    var frames = new List<CssKeyframe>();
+                    for (var m = 0; m < keyframes.Frames.Count; m++)
+                    {
+                        var frame = keyframes.Frames[m];
+                        var path = at.Field("frames").Index(m);
+                        Part(() => frames.Add(Keyframe(frame, where, path)));
+                    }
+                    sheet.Keyframes.Add((new CssKeyframesRule(keyframes.Name, frames), Media(keyframes.Media, where, at.Field("media"))));
+                });
+            }
+            for (var f = 0; f < record.FontFaces.Count; f++)
+            {
+                var face = record.FontFaces[f];
+                var at = RecordPath.Root.Field("fontFaces").Index(f);
+                Part(() =>
+                {
+                    var rule = new CssFontFaceRule([.. face.Descriptors.Select((d, k) => AsWritten(d, "@font-face", at.Field("descriptors").Index(k)))]);
+                    try
+                    {
+                        FontFaceDescriptors.Of(rule);
+                    }
+                    catch (InvalidDataException problem) when (problems != null)
+                    {
+                        throw Fail(at, problem.Message);
+                    }
+                    sheet.FontFaces.Add(rule);
+                });
+            }
+            // The sheet's urls (Urls()'s order and rule), each at its token in the record.
+            foreach (var (url, path) in RecordUrls(record))
+                if (!IsDataUrl(url) && PackPath.Problem(url) is { } problem)
+                    Part(() => throw Fail(path, $"url(\"{url}\") isn't a data path: {problem}"));
+            return sheet;
         }
-        foreach (var url in sheet.Urls())
-            if (!IsDataUrl(url) && PackPath.Problem(url) is { } problem)
-                throw new InvalidDataException($"url(\"{url}\") isn't a data path: {problem}");
-        return sheet;
-    }
 
-    static List<CssToken> Tokens(IReadOnlyList<CssTokenRecord> records, string where)
-    {
-        try
+        CssKeyframe Keyframe(KeyframeRecord frame, string where, RecordPath at)
         {
-            return CssTokenRecord.ToTokens(records);
+            if (frame.Offsets.Count == 0 || frame.Offsets.Any(o => o is not (>= 0 and <= 1)))
+                throw Fail(at.Field("offsets"), $"{where}: a keyframe's offsets [{string.Join(", ", frame.Offsets)}] aren't from 0 to 1");
+            var declarations = frame.Declarations.Select((d, k) => AsWritten(d, where, at.Field("declarations").Index(k))).ToList();
+            var refused = new List<(CssDeclaration Declaration, string Why)>();
+            Prepare(declarations.Where(d => !d.Important).ToList(), null, (d, why) => refused.Add((d, why)));
+            if (refused.Count > 0)
+            {
+                var (declaration, why) = refused[0];
+                var field = why == "an unknown property" ? "property" : "value";
+                throw Fail(at.Field("declarations").Index(declarations.IndexOf(declaration)).Field(field), $"{where}: {why}: {declaration.Property}: {declaration.ValueText}");
+            }
+            return new CssKeyframe([.. frame.Offsets], declarations);
         }
-        catch (InvalidDataException problem)
+
+        List<CssToken> Tokens(IReadOnlyList<CssTokenRecord> records, string where, RecordPath at)
         {
-            throw new InvalidDataException($"{where}: {problem.Message}", problem);
+            var tokens = new List<CssToken>(records.Count);
+            for (var j = 0; j < records.Count; j++)
+            {
+                try
+                {
+                    tokens.Add(records[j].ToToken());
+                }
+                catch (InvalidDataException problem)
+                {
+                    throw Fail(at.Index(j), $"{where}: {problem.Message}", problem);
+                }
+            }
+            return tokens;
         }
-    }
 
-    static MediaQuery? Media(IReadOnlyList<CssTokenRecord>? media, string where) =>
-        media is null ? null : MediaQuery.Parse(Tokens(media, $"{where}, its media query"));
+        MediaQuery? Media(IReadOnlyList<CssTokenRecord>? media, string where, RecordPath at) =>
+            media is null ? null : MediaQuery.Parse(Tokens(media, $"{where}, its media query", at));
 
-    static CssDeclaration AsWritten(DeclarationRecord declaration, string where)
-    {
-        if (declaration.Shorthand is not null)
-            throw new InvalidDataException($"{where}: '{declaration.Property}' names a pending shorthand outside a style rule");
-        return new CssDeclaration(declaration.Property, Tokens(declaration.Value, where), declaration.Important);
-    }
-
-    /// <summary>A style rule's declaration as <see cref="Prepare"/> made it, checked.</summary>
-    static PreparedDeclaration Prepared(DeclarationRecord declaration, string where)
-    {
-        var value = Tokens(declaration.Value, where);
-        var property = declaration.Property;
-        var hasVar = ContainsVar(value);
-        var keyword = WideKeyword(value);
-        string Problem(string why) => $"{where}: '{property}: {Text(value)}' {why}";
-        if (property.StartsWith("--", StringComparison.Ordinal))
+        CssDeclaration AsWritten(DeclarationRecord declaration, string where, RecordPath at)
         {
-            if (property.Length == 2)
-                throw new InvalidDataException(Problem("has no custom property name"));
             if (declaration.Shorthand is not null)
-                throw new InvalidDataException(Problem("is a custom property with a pending shorthand"));
+                throw Fail(at.Field("shorthand"), $"{where}: '{declaration.Property}' names a pending shorthand outside a style rule");
+            return new CssDeclaration(declaration.Property, Tokens(declaration.Value, where, at.Field("value")), declaration.Important);
         }
-        else if (Properties.Get(property) is null || Properties.Canonical(property) != property)
-            throw new InvalidDataException(Problem("isn't a property the cascade takes (a longhand by its canonical name)"));
-        else if (declaration.Shorthand is { } shorthand)
+
+        /// <summary>A style rule's declaration as <see cref="Prepare"/> made it, checked.</summary>
+        PreparedDeclaration Prepared(DeclarationRecord declaration, string where, RecordPath at)
         {
-            if (Properties.Canonical(shorthand) != shorthand || !Properties.LonghandsOf(shorthand).Contains(property))
-                throw new InvalidDataException(Problem($"names '{shorthand}', which isn't a shorthand setting it"));
-            if (!hasVar)
-                throw new InvalidDataException(Problem($"waits for its shorthand '{shorthand}' without a var() to substitute"));
+            var value = Tokens(declaration.Value, where, at.Field("value"));
+            var property = declaration.Property;
+            var hasVar = ContainsVar(value);
+            var keyword = WideKeyword(value);
+            Exception Problem(string field, string why) => Fail(field.Length == 0 ? at : at.Field(field), $"{where}: '{property}: {Text(value)}' {why}");
+            if (property.StartsWith("--", StringComparison.Ordinal))
+            {
+                if (property.Length == 2)
+                    throw Problem("property", "has no custom property name");
+                if (declaration.Shorthand is not null)
+                    throw Problem("shorthand", "is a custom property with a pending shorthand");
+            }
+            else if (Properties.Get(property) is null || Properties.Canonical(property) != property)
+                throw Problem("property", "isn't a property the cascade takes (a longhand by its canonical name)");
+            else if (declaration.Shorthand is { } shorthand)
+            {
+                if (Properties.Canonical(shorthand) != shorthand || !Properties.LonghandsOf(shorthand).Contains(property))
+                    throw Problem("shorthand", $"names '{shorthand}', which isn't a shorthand setting it");
+                if (!hasVar)
+                    throw Problem("", $"waits for its shorthand '{shorthand}' without a var() to substitute");
+            }
+            else if (keyword is null && !hasVar && !Validate(property, value))
+                throw Problem("value", "isn't a value the engine can parse");
+            return new PreparedDeclaration
+            {
+                Property = property,
+                Value = value,
+                Important = declaration.Important,
+                HasVar = hasVar,
+                PendingShorthand = declaration.Shorthand,
+                Keyword = keyword,
+            };
         }
-        else if (keyword is null && !hasVar && !Validate(property, value))
-            throw new InvalidDataException(Problem("isn't a value the engine can parse"));
-        return new PreparedDeclaration
-        {
-            Property = property,
-            Value = value,
-            Important = declaration.Important,
-            HasVar = hasVar,
-            PendingShorthand = declaration.Shorthand,
-            Keyword = keyword,
-        };
+    }
+
+    /// <summary>
+    /// The url()s of a compiled sheet's declarations and keyframes, in <see cref="Urls"/>' order and by its rule (an
+    /// unquoted url token, or url("…")'s string), each with the path of its token in the record. Not a @font-face's:
+    /// the one url a face the engine reads can hold is its src, which <see cref="FontFaceDescriptors.Of"/> has checked
+    /// by the same rule (a face it refused isn't the sheet's, and isn't reported twice).
+    /// </summary>
+    static IEnumerable<(string Url, RecordPath Path)> RecordUrls(StylesheetRecord record)
+    {
+        IEnumerable<(IReadOnlyList<CssTokenRecord> Value, RecordPath Path)> values = record.Rules
+            .SelectMany((rule, i) => rule.Declarations.Select((d, k) => (d.Value, RecordPath.Root.Field("rules").Index(i).Field("declarations").Index(k).Field("value"))))
+            .Concat(record.Keyframes.SelectMany((keyframes, n) => keyframes.Frames.SelectMany((frame, m) => frame.Declarations.Select((d, k) =>
+                (d.Value, RecordPath.Root.Field("keyframes").Index(n).Field("frames").Index(m).Field("declarations").Index(k).Field("value"))))));
+        foreach (var (value, path) in values)
+            for (var i = 0; i < value.Count; i++)
+            {
+                if (value[i].Kind == CssTokenKind.Url)
+                    yield return (value[i].Text ?? "", path.Index(i));
+                else if (value[i] is { Kind: CssTokenKind.Function, Text: "url" })
+                {
+                    var j = i + 1;
+                    while (j < value.Count && value[j].Kind == CssTokenKind.Whitespace)
+                        j++;
+                    if (j < value.Count && value[j].Kind == CssTokenKind.String)
+                        yield return (value[j].Text ?? "", path.Index(j));
+                }
+            }
     }
 
     static readonly HashSet<string> CssWideKeywords = ["inherit", "initial", "unset", "revert", "revert-layer"];

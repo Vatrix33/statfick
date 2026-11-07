@@ -59,6 +59,8 @@ public static class JiruanIntro
     public static string StageFile => System.IO.Path.Combine(Render3DReferenceTests.ModelDirectory, "jiruan.glb");
     public static string ActingFile => System.IO.Path.Combine(Render3DReferenceTests.ModelDirectory, "jiruan-acting.glb");
     public static string FixtureFile => System.IO.Path.Combine(DataFolder, "world", "cutscenes", "jiruan.json");
+    /// <summary>The committed sound pack (his theme), which the game mounts with its other packs: loading the sequence checks its music and sounds against the data (M11 step 6).</summary>
+    public static string SoundPack => System.IO.Path.Combine(TestPaths.Packs, "audio.pak");
     /// <summary>The fixture as committed (the build output's copy is the source's).</summary>
     public static string SourceFixtureFile => System.IO.Path.GetFullPath(System.IO.Path.Combine(Golden.GoldenPath("x"), "..", "..", "Data", "Cutscenes", "world", "cutscenes", "jiruan.json"));
     public static string CardCss => File.ReadAllText(System.IO.Path.Combine(DataFolder, "ui", "jiruan-card.css"));

@@ -20,21 +20,23 @@ namespace Statventure.Render3D;
 /// Q26, S8-2).
 /// </summary>
 [Record("terrain", 1)]
+[Kind("Terrain", "world/terrain")]
+[Help("A region's ground imported from a terrain description and its height and cover images: heights, the palette slot covering each point, and the water. Its heights and covers change only by importing again.")]
 public sealed class TerrainData
 {
     float[]? _heights;
 
-    [Field(1)] public required int Width { get; init; }
-    [Field(2)] public required int Depth { get; init; }
+    [Field(1), Limits(1, double.PositiveInfinity)] public required int Width { get; init; }
+    [Field(2), Limits(1, double.PositiveInfinity)] public required int Depth { get; init; }
     [Field(3)] public required float CellSize { get; init; }
     /// <summary>The height of the sample 0.</summary>
     [Field(4)] public required float HeightMin { get; init; }
     /// <summary>The height of the sample 65535.</summary>
     [Field(5)] public required float HeightMax { get; init; }
     /// <summary>Each point's height as a 16-bit sample of the range (the height image's pixels).</summary>
-    [Field(6)] public required ushort[] HeightSamples { get; init; }
+    [Field(6), Bulk("{0:N0} height samples")] public required ushort[] HeightSamples { get; init; }
     /// <summary>Each point's cover: an index into <see cref="CoverSlots"/>.</summary>
-    [Field(7)] public required byte[] Covers { get; init; }
+    [Field(7), Bulk("{0:N0} covers")] public required byte[] Covers { get; init; }
     [Field(8)] public required string[] CoverSlots { get; init; }
     [Field(9)] public float? WaterLevel { get; init; }
 
@@ -96,17 +98,38 @@ public sealed class TerrainData
     /// Throws an <see cref="InvalidDataException"/> unless the grid is at least 1 × 1 and has a height
     /// sample and a cover for each point: what the description's loader checks of its images (each
     /// <see cref="Width"/> × <see cref="Depth"/>). A terrain from a pack or a loose folder breaks it
-    /// only if it was edited.
+    /// only if it was edited. Also the limits its fields declare (G4). The first of
+    /// <see cref="RecordChecks.Check"/>'s problems.
     /// </summary>
     public void Validate()
     {
-        if (Width < 1 || Depth < 1)
-            throw new InvalidDataException($"the grid is {Width}x{Depth} points");
-        var points = (long)Width * Depth;
-        if (HeightSamples.Length != points)
-            throw new InvalidDataException($"{HeightSamples.Length} height samples for {Width}x{Depth} points");
-        if (Covers.Length != points)
-            throw new InvalidDataException($"{Covers.Length} covers for {Width}x{Depth} points");
+        if (RecordChecks.Check(this).FirstOrDefault() is { } problem)
+            throw new InvalidDataException(problem.Message);
+    }
+
+    /// <summary>
+    /// The terrain's own check (P20): <see cref="Validate"/>'s rules with their words, at the path of what
+    /// they name (the grid's width or depth; the height samples; the covers). Without a grid the counts
+    /// aren't compared.
+    /// </summary>
+    [Check]
+    static void Rules(TerrainData terrain, CheckContext check)
+    {
+        int width = terrain.Width, depth = terrain.Depth;
+        if (width < 1 || depth < 1)
+        {
+            var message = $"the grid is {width}x{depth} points";
+            if (width < 1)
+                check.Report(RecordPath.Root.Field("width"), message);
+            if (depth < 1)
+                check.Report(RecordPath.Root.Field("depth"), message);
+            return;
+        }
+        var points = (long)width * depth;
+        if (terrain.HeightSamples.Length != points)
+            check.Report(RecordPath.Root.Field("heightSamples"), $"{terrain.HeightSamples.Length} height samples for {width}x{depth} points");
+        if (terrain.Covers.Length != points)
+            check.Report(RecordPath.Root.Field("covers"), $"{terrain.Covers.Length} covers for {width}x{depth} points");
     }
 
     /// <summary>

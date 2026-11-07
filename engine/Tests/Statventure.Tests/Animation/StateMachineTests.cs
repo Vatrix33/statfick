@@ -1,4 +1,5 @@
 using Statventure.Animation;
+using Statventure.Records;
 using Statventure.Render3D;
 using Statventure.Tests.Render3D;
 using static Statventure.Animation.ConditionDefinition;
@@ -83,6 +84,75 @@ public class StateMachineTests
         Assert.Throws<ArgumentException>(() => Base().Layer("l", BlendMode.Replace, "a", l => l.State("a", "idle").Transition("a", "a", 0, Trigger("nope"))).Build());
         new Rig().Machine.SetFloat("swingSpeed", 2);
         Assert.Throws<ArgumentException>(() => new Rig().Machine.SetBool("swingSpeed", true));
+    }
+
+    static readonly ParameterDefinition[] Parameters = [new("go", ParameterKind.Trigger), new("on", ParameterKind.Bool), new("f", ParameterKind.Float)];
+
+    /// <summary>A machine "m" with the parameters go (trigger), on (bool) and f (float) and one layer "l" entering "a", with the states and transitions given.</summary>
+    static StateMachineDefinition Machine(StateDefinition[] states, params TransitionDefinition[] transitions) =>
+        new("m", Parameters, [new LayerDefinition("l", BlendMode.Replace, "a", states, transitions)]);
+
+    static readonly StateDefinition[] AB = [new("a", "idle"), new("b", "swing")];
+
+    static readonly Dictionary<string, (Func<StateMachineDefinition> Machine, string Problem, string Path)> Broken = new()
+    {
+        ["parameter twice"] = (() => new("m", [.. Parameters, new("go", ParameterKind.Bool)], Machine(AB).Layers), "m: the parameter go is defined twice", "$.parameters[3].name"),
+        ["no layers"] = (() => new("m", Parameters, []), "m: no layers", "$.layers"),
+        ["state twice"] = (() => Machine([new("a", "idle"), new("a", "swing")]), "m/l: the state a is defined twice", "$.layers[0].states[1].name"),
+        ["speed parameter"] = (() => Machine([new("a", "idle", SpeedParameter: "on")]), "m/l/a: the speed parameter on isn't a float parameter", "$.layers[0].states[0].speedParameter"),
+        ["no speed parameter"] = (() => Machine([new("a", "idle", SpeedParameter: "nope")]), "m/l/a: the speed parameter nope isn't a float parameter", "$.layers[0].states[0].speedParameter"),
+        ["no entry"] = (() => Machine([new("b", "idle")]), "m/l: no entry state a", "$.layers[0].entry"),
+        ["no target"] = (() => Machine([new("a", "idle")], new TransitionDefinition("a", "b", [ConditionDefinition.Trigger("go")])),
+            "m/l: a transition a → b names a state that doesn't exist", "$.layers[0].transitions[0].to"),
+        ["no source"] = (() => Machine(AB, new TransitionDefinition("x", "b", [ConditionDefinition.Trigger("go")])),
+            "m/l: a transition x → b names a state that doesn't exist", "$.layers[0].transitions[0].from"),
+        ["negative duration"] = (() => Machine(AB, new TransitionDefinition("a", "b", [ConditionDefinition.Trigger("go")], Duration: -1)),
+            "m/l: a transition to b has a negative duration or exit time", "$.layers[0].transitions[0].duration"),
+        ["negative exit time"] = (() => Machine(AB, new TransitionDefinition("a", "b", [], ExitTime: -1)),
+            "m/l: a transition to b has a negative duration or exit time", "$.layers[0].transitions[0].exitTime"),
+        ["not a parameter"] = (() => Machine(AB, new TransitionDefinition("a", "b", [ConditionDefinition.Trigger("nope")])),
+            "m/l: a transition to b tests nope, which isn't a parameter", "$.layers[0].transitions[0].conditions[0].parameter"),
+        ["trigger compared"] = (() => Machine(AB, new TransitionDefinition("a", "b", [ConditionDefinition.Of("go", Compare.Less, 1)])),
+            "m/l: a trigger condition (go) can only test that it's set", "$.layers[0].transitions[0].conditions[0].compare"),
+        ["trigger value"] = (() => Machine(AB, new TransitionDefinition("a", "b", [ConditionDefinition.Of("go", Compare.Equal, 0)])),
+            "m/l: a trigger condition (go) can only test that it's set", "$.layers[0].transitions[0].conditions[0].value"),
+        ["bool compared"] = (() => Machine(AB, new TransitionDefinition("a", "b", [ConditionDefinition.Of("on", Compare.Greater, 0)])),
+            "m/l: a bool condition (on) can only test equality", "$.layers[0].transitions[0].conditions[0].compare"),
+        ["neither"] = (() => Machine(AB, new TransitionDefinition("a", "b", [])),
+            "m/l: a transition to b has neither conditions nor an exit time", "$.layers[0].transitions[0]"),
+        ["exit time without a clip"] = (() => Machine([new("a", null), new("b", "swing")], new TransitionDefinition("a", "b", [], ExitTime: 1)),
+            "m/l: a transition to b has an exit time but no clip to count it in", "$.layers[0].transitions[0].exitTime"),
+        ["exit time from any"] = (() => Machine(AB, new TransitionDefinition(null, "b", [], ExitTime: 1)),
+            "m/l: a transition to b has an exit time but no clip to count it in", "$.layers[0].transitions[0].exitTime"),
+    };
+
+    public static TheoryData<string> BrokenNames => [.. Broken.Keys];
+
+    /// <summary>Each rule broken alone: <see cref="StateMachineDefinition.Validate"/>'s problem, which the machine's check (M11 step 6, P20) reports first at the path of what it names.</summary>
+    [Theory]
+    [MemberData(nameof(BrokenNames))]
+    public void EachRuleIsNamedAtItsPath(string name)
+    {
+        var (machine, problem, path) = Broken[name];
+        Assert.Equal(problem, Assert.Throws<ArgumentException>(machine().Validate).Message);
+        var first = RecordChecks.Check(machine())[0];
+        Assert.Equal((path, problem), (first.Path.ToString(), first.Message));
+    }
+
+    /// <summary>The check reports every rule a machine breaks at its path, and doesn't stumble on what an earlier rule found broken (a state defined twice that a transition with an exit time comes from).</summary>
+    [Fact]
+    public void TheCheckReportsEveryBrokenRule()
+    {
+        var machine = Machine([new("a", "idle"), new("a", null), new("b", "swing", SpeedParameter: "go")],
+            new TransitionDefinition("a", "c", [ConditionDefinition.Of("go", Compare.Less, 0), ConditionDefinition.Of("on", Compare.Greater, 1)], ExitTime: 1));
+        Assert.Equal(["$.layers[0].states[1].name", "$.layers[0].states[2].speedParameter", "$.layers[0].transitions[0].to",
+                "$.layers[0].transitions[0].conditions[0].compare", "$.layers[0].transitions[0].conditions[0].value", "$.layers[0].transitions[0].conditions[1].compare"],
+            RecordChecks.Check(machine).Select(p => p.Path.ToString()));
+        Machine(AB, new TransitionDefinition("a", "b", [], ExitTime: 1), new TransitionDefinition(null, "a", [ConditionDefinition.Is("on")], MayRestart: true)).Validate();
+        // An unknown parameter isn't tested for its kind, and an unknown source isn't looked up for its clip.
+        Assert.Equal(["$.layers[0].transitions[0].conditions[0].parameter", "$.layers[0].transitions[1].from"],
+            RecordChecks.Check(Machine(AB, new TransitionDefinition("a", "b", [ConditionDefinition.Of("nope", Compare.Greater, 2)]),
+                new TransitionDefinition("x", "b", [], ExitTime: 1))).Select(p => p.Path.ToString()));
     }
 
     [Fact]

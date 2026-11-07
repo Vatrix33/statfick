@@ -1,0 +1,78 @@
+particle.effect "Particle effect" in models/effects by PlainNames
+  help: What an effect's particles look like and how they move, for battles and cutscenes. Its colours come from the palette of whatever starts it.
+  shape "Shape"
+    help: The particles' shape.
+  startColor "Start color"
+    help: The palette slot the particles are coloured from when they start; they turn to the end colour over their life.
+  endColor "End color"
+    help: The palette slot the particles are coloured from at the end of their life.
+  opacity "Opacity": limits 0 or more and at most 1
+    help: How solid the particles are, from 0 (unseen) to 1.
+  outlineWidth "Outline width": unit px; limits 0 or more
+    help: The width of the ink line around each particle (0: none).
+  glow "Glow"
+    help: Whether the particles glow.
+  life "Life": unit s
+    help: How long each particle lives.
+  size "Size": unit m
+    help: Each particle's size across.
+  speed "Speed": unit m/s
+    help: How fast each particle starts moving.
+  spawn "Spawn"
+    help: Where the particles start and which way they go.
+  growIn "Grow in": limits 0 or more and at most 1
+    help: The share of its life at the start over which a particle grows to its size (0: at once).
+  fadeOut "Fade out": limits 0 or more and at most 1
+    help: The share of its life at the end over which a particle shrinks and fades away (0: it doesn't).
+  gravity "Gravity": unit m/s²
+    help: The pull on the particles, such as (0, −9.81, 0) for falling.
+  drag "Drag": unit /s; limits 0 or more
+    help: How quickly the particles slow down to the speed gravity keeps (0: they don't).
+  angle "Angle": unit °
+    help: Each particle's turn when it starts.
+  spin "Spin": unit °/s
+    help: How fast each particle turns.
+  inherit "Inherit"
+    help: The share of a moving emitter's own speed its particles start with, which makes a trail.
+particle.shape "Particle shape"
+  help: The particles' shape, drawn flat and facing the camera.
+particle.range "Particle range"
+  help: A value drawn for each particle, evenly between the two numbers (the same twice: always that value).
+  min "Min"
+    help: The smallest value.
+  max "Max"
+    help: The largest value.
+particle.spawn "Particle spawn"
+  help: Where the particles start and which way they go.
+particle.disc "Disc"
+  help: A filled circle, the particle's size across.
+particle.ring "Ring"
+  help: A ring, the particle's size across.
+  thickness "Thickness": limits above 0 and at most 1
+    help: How wide the ring's band is, as a share of its radius (1: a filled circle).
+particle.spark "Spark"
+  help: A streak along the particle's motion, longer the faster it moves.
+  width "Width": limits above 0 and at most 1
+    help: How wide the spark is, as a share of the particle's size.
+  stretch "Stretch": unit s; limits 0 or more
+    help: How far the spark stretches back along its motion: as far as the particle moves in this time.
+particle.puff "Puff"
+  help: A soft disc that fades out toward its edge, like smoke or mist.
+  softness "Softness": limits above 0 and at most 1
+    help: How much of the disc's radius, from its edge inward, fades out (1: all of it).
+particle.shard "Shard"
+  help: A diamond shape, the particle's size long, turned by the particle's angle.
+  width "Width": limits above 0 and at most 1
+    help: How wide the diamond is, as a share of its length.
+particle.point "Point"
+  help: From the emitter's point, in every direction.
+particle.sphere "Sphere"
+  help: From anywhere in a ball around the emitter, outward from its centre.
+  radius "Radius": unit m; limits 0 or more
+    help: The ball's radius.
+particle.cone "Cone"
+  help: From the emitter's point, within a cone around a direction.
+  axis "Axis"
+    help: The direction the cone points in (any length but zero; on a node, in the node's own space).
+  halfAngle "Half angle": unit °; limits 0 or more and at most 180
+    help: How far from that direction a particle may go: 0 only along it, 180 any way.

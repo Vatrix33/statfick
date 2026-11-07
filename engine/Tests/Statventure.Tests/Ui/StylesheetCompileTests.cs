@@ -362,12 +362,71 @@ public class StylesheetCompileTests
         };
     }
 
+    /// <summary>The path of what each refusal names in the record (M11 step 6, P20).</summary>
+    static readonly Dictionary<string, string> UnloadablePaths = new()
+    {
+        ["selector"] = "$.rules[0].selectors", ["token"] = "$.rules[0].selectors[0]", ["media token"] = "$.rules[0].media[0]",
+        ["shorthand"] = "$.rules[0].declarations[0].property", ["alias"] = "$.rules[0].declarations[0].property",
+        ["unknown"] = "$.rules[0].declarations[0].property", ["ignored"] = "$.rules[0].declarations[0].property",
+        ["value"] = "$.rules[0].declarations[0].value", ["not a shorthand"] = "$.rules[0].declarations[0].shorthand",
+        ["other shorthand"] = "$.rules[0].declarations[0].shorthand", ["alias shorthand"] = "$.rules[0].declarations[0].shorthand",
+        ["pending without var"] = "$.rules[0].declarations[0]", ["custom with shorthand"] = "$.rules[0].declarations[0].shorthand",
+        ["custom without a name"] = "$.rules[0].declarations[0].property", ["no offsets"] = "$.keyframes[0].frames[0].offsets",
+        ["offset"] = "$.keyframes[0].frames[0].offsets", ["NaN offset"] = "$.keyframes[0].frames[0].offsets",
+        ["keyframe unknown"] = "$.keyframes[0].frames[0].declarations[0].property", ["keyframe value"] = "$.keyframes[0].frames[0].declarations[0].value",
+        ["keyframe shorthand"] = "$.keyframes[0].frames[0].declarations[0].shorthand", ["font face"] = "$.fontFaces[0]",
+        ["url"] = "$.rules[0].declarations[0].value[1]", ["font url"] = "$.fontFaces[0]",
+    };
+
+    /// <summary>Each refusal of loading, which the sheet's check (M11 step 6) reports first, with its words, at the path of what it names.</summary>
     [Theory]
     [MemberData(nameof(Unloadable))]
     public void LoadingRefuses(string which, string problem)
     {
         Stylesheet.FromRecord(BaseRecord());
-        Assert.Contains(problem, Assert.Throws<InvalidDataException>(() => Stylesheet.FromRecord(Broken(which))).Message);
+        Assert.Empty(RecordChecks.Check(BaseRecord()));
+        var thrown = Assert.Throws<InvalidDataException>(() => Stylesheet.FromRecord(Broken(which))).Message;
+        Assert.Contains(problem, thrown);
+        var first = RecordChecks.Check(Broken(which))[0];
+        Assert.Equal((UnloadablePaths[which], thrown), (first.Path.ToString(), first.Message));
+    }
+
+    /// <summary>
+    /// What the sheet's check names besides: a value's token, an unquoted url and a keyframe's url at their tokens, a
+    /// keyframe's refused declaration at its own place among its frame's, and a @font-face refused for its url once.
+    /// </summary>
+    [Fact]
+    public void TheCheckNamesTokensAndUrlsWhereTheyAre()
+    {
+        string Paths(StylesheetRecord record) => string.Join(" | ", RecordChecks.Check(record).Select(p => p.Path.ToString()));
+        Assert.Equal("$.rules[0].declarations[0].value[0]", Paths(WithDeclaration(new DeclarationRecord("color", [new CssTokenRecord(CssTokenKind.Integer)]))));
+        Assert.Equal("$.rules[0].declarations[0].value[0]", Paths(WithDeclaration(new DeclarationRecord("background-image", Tokens("url(../u.png)")))));
+        Assert.Equal("$.keyframes[0].frames[0].declarations[0].value[1]",
+            Paths(WithKeyframe(new KeyframeRecord([0], [new DeclarationRecord("background-image", Tokens("url(\"../k.png\")"))]))));
+        Assert.Equal("$.keyframes[0].frames[0].declarations[1].value",
+            Paths(WithKeyframe(new KeyframeRecord([0], [new DeclarationRecord("opacity", Tokens("0")), new DeclarationRecord("opacity", Tokens("x"))]))));
+        Assert.Equal("$.fontFaces[0]", Paths(Broken("font url")));
+    }
+
+    /// <summary>
+    /// The sheet's check goes on past a refusal: a declaration refused leaves its rule's other declarations read, a rule or
+    /// keyframe refused the others, a font face the urls; each problem at its path, in the order loading meets them.
+    /// </summary>
+    [Fact]
+    public void TheCheckReportsEveryRefusal()
+    {
+        var record = BaseRecord();
+        record = record with
+        {
+            Rules = [record.Rules[0] with { Declarations = [new DeclarationRecord("colr", Tokens("red")), new DeclarationRecord("color", Tokens("12px")), .. record.Rules[0].Declarations] },
+                record.Rules[0] with { Selectors = Tokens(">") }, record.Rules[0] with { Media = [new CssTokenRecord(CssTokenKind.Dimension, null, 1)] }],
+            Keyframes = [record.Keyframes[0] with { Frames = [new KeyframeRecord([2], []), new KeyframeRecord([0], [new DeclarationRecord("opacity", Tokens("x"))])] }],
+            FontFaces = [new FontFaceRecord([new DeclarationRecord("font-family", Tokens("A"))]), .. record.FontFaces],
+        };
+        record = record with { Rules = [.. record.Rules, new StyleRuleRecord(Tokens(".b"), [new DeclarationRecord("background-image", Tokens("url(\"../b.png\")"))])] };
+        Assert.Equal(["$.rules[0].declarations[0].property", "$.rules[0].declarations[1].value", "$.rules[1].selectors", "$.rules[2].media[0]",
+                "$.keyframes[0].frames[0].offsets", "$.keyframes[0].frames[1].declarations[0].value", "$.fontFaces[0]", "$.rules[3].declarations[0].value[1]"],
+            RecordChecks.Check(record).Select(p => p.Path.ToString()));
     }
 
     [Fact]

@@ -197,7 +197,21 @@ public sealed record FontFaceRecord(
 /// @font-face rules, each in the order the sheet has them.
 /// </summary>
 [Record("ui.stylesheet", 1)]
+[Kind("Stylesheet", "ui/styles")]
+[Help("A stylesheet for the game's screens, imported from a .css file. Its rules change only by importing the file again.")]
 public sealed record StylesheetRecord(
-    [property: Field(1)] IReadOnlyList<StyleRuleRecord> Rules,
-    [property: Field(2)] IReadOnlyList<KeyframesRecord> Keyframes,
-    [property: Field(3)] IReadOnlyList<FontFaceRecord> FontFaces);
+    [property: Field(1), Bulk("{0:N0} style rules")] IReadOnlyList<StyleRuleRecord> Rules,
+    [property: Field(2), Bulk("{0:N0} @keyframes rules")] IReadOnlyList<KeyframesRecord> Keyframes,
+    [property: Field(3), Bulk("{0:N0} @font-face rules")] IReadOnlyList<FontFaceRecord> FontFaces)
+{
+    /// <summary>
+    /// The sheet's own check (P20): what <see cref="Style.Stylesheet.FromRecord"/> refuses, with its words, at
+    /// the path of what it names (<see cref="Style.Stylesheet.ProblemsOf"/>).
+    /// </summary>
+    [Check]
+    static void Sheet(StylesheetRecord record, CheckContext check)
+    {
+        foreach (var problem in Style.Stylesheet.ProblemsOf(record))
+            check.Report(problem.Path, problem.Message);
+    }
+}

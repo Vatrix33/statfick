@@ -47,20 +47,22 @@ public enum CurveSmoothing { None, ContinuousAcceleration }
 /// value). The defaults are Blender's for an inserted key (its period 4.1 frames).
 /// </summary>
 [Record("scene.key", 1)]
+[Kind("Key")]
+[Help("A key of a curve: its value at its time, and how the curve runs on to the next key, as in Blender's graph editor.")]
 public sealed record FCurveKey(
-    [property: Field(1)] double Time,
-    [property: Field(2)] double Value,
-    [property: Field(3)] KeyInterpolation Interpolation = KeyInterpolation.Bezier,
-    [property: Field(4)] KeyEasing Easing = KeyEasing.Auto,
-    [property: Field(5)] HandleType Left = HandleType.AutoClamped,
-    [property: Field(6)] HandleType Right = HandleType.AutoClamped,
-    [property: Field(7)] double? LeftTime = null,
-    [property: Field(8)] double? LeftValue = null,
-    [property: Field(9)] double? RightTime = null,
-    [property: Field(10)] double? RightValue = null,
-    [property: Field(11)] double Back = FCurveKey.DefaultBack,
-    [property: Field(12)] double Amplitude = FCurveKey.DefaultAmplitude,
-    [property: Field(13)] double Period = FCurveKey.DefaultPeriod)
+    [property: Field(1), Help("When the key is."), Unit("s")] double Time,
+    [property: Field(2), Help("The curve's value at the key.")] double Value,
+    [property: Field(3), Help("How the curve runs to the next key: holding, straight, a Bezier curve, or one of Blender's easings.")] KeyInterpolation Interpolation = KeyInterpolation.Bezier,
+    [property: Field(4), Help("Which end of an eased segment the easing is at (auto: Blender's choice for the easing).")] KeyEasing Easing = KeyEasing.Auto,
+    [property: Field(5), Help("The left handle's type: free and aligned handles keep their position, the others are worked out from the keys around.")] HandleType Left = HandleType.AutoClamped,
+    [property: Field(6), Help("The right handle's type: free and aligned handles keep their position, the others are worked out from the keys around.")] HandleType Right = HandleType.AutoClamped,
+    [property: Field(7), Help("The left handle's time, for a free or aligned handle only."), Unit("s")] double? LeftTime = null,
+    [property: Field(8), Help("The left handle's value, for a free or aligned handle only.")] double? LeftValue = null,
+    [property: Field(9), Help("The right handle's time, for a free or aligned handle only."), Unit("s")] double? RightTime = null,
+    [property: Field(10), Help("The right handle's value, for a free or aligned handle only.")] double? RightValue = null,
+    [property: Field(11), Help("How far a back easing overshoots.")] double Back = FCurveKey.DefaultBack,
+    [property: Field(12), Help("How far an elastic easing swings (0: as far as the change)."), Limits(0, double.PositiveInfinity)] double Amplitude = FCurveKey.DefaultAmplitude,
+    [property: Field(13), Help("How long each swing of an elastic easing is (0: 0.3 of the segment)."), Unit("s")] double Period = FCurveKey.DefaultPeriod)
 {
     /// <summary>Blender's overshoot for a new key (animrig's initialize_bezt).</summary>
     public const double DefaultBack = 1.70158;
@@ -116,6 +118,8 @@ public readonly record struct KeyHandles(double LeftTime, double LeftValue, doub
 /// smoothing pass); a copy made with <c>with</c> resolves its own.
 /// </summary>
 [Record("scene.curve", 1)]
+[Kind("F-curve")]
+[Help("A value changing over time, as an F-curve in Blender's graph editor: keys, and how the curve runs between them.")]
 public sealed record FCurve
 {
     /// <summary>The frame rate Blender's frames are counted in (the clips', M7): its thresholds are in frames.</summary>
@@ -136,7 +140,7 @@ public sealed record FCurve
     }
 
     /// <summary>The keys, in time order.</summary>
-    [Field(1)]
+    [Field(1), Help("The keys, in time order, at least one.")]
     public IReadOnlyList<FCurveKey> Keys
     {
         get => _keys;
@@ -149,7 +153,7 @@ public sealed record FCurve
         }
     }
 
-    [Field(2)]
+    [Field(2), Help("Before the first key and after the last: the end key's value (constant), or the line through it (linear).")]
     public CurveExtrapolation Extrapolation
     {
         get;
@@ -162,7 +166,7 @@ public sealed record FCurve
         }
     }
 
-    [Field(3)]
+    [Field(3), Help("How the worked-out handles of a run of keys are smoothed: each from its neighbours alone, or together so the motion has no jolts (Blender's default).")]
     public CurveSmoothing Smoothing
     {
         get;
@@ -229,41 +233,69 @@ public sealed record FCurve
         return hash.ToHashCode();
     }
 
-    /// <summary>The rules every curve keeps (S2-3).</summary>
+    /// <summary>The rules every curve keeps (S2-3): the first problem of <see cref="ProblemsOf"/> as an <see cref="ArgumentException"/>.</summary>
     static void Check(FCurveKey[] keys)
     {
-        if (keys.Length == 0)
-            throw new ArgumentException("an F-curve needs at least one key");
-        for (var i = 0; i < keys.Length; i++)
+        if (ProblemsOf(keys).FirstOrDefault() is { } problem)
+            throw new ArgumentException(problem.Message);
+    }
+
+    /// <summary>
+    /// What a curve with these keys would break (S2-3; the rules making or reading one refuses, with their
+    /// words), each at the path of what it names within the curve: <c>$.keys</c> when there are none, a key
+    /// (<c>$.keys[1]</c>) that is null, else the key's fields (its time, value, types, easing numbers, a
+    /// handle's position; a key too close after the one before at its time), in key order and each key's in
+    /// the order a curve checks them. A curve that exists keeps every rule, so a built record never has these
+    /// (its check is empty): a form edits keys first, and takes these paths below the curve's own (M11, P10).
+    /// </summary>
+    public static IReadOnlyList<RecordProblem> ProblemsOf(IReadOnlyList<FCurveKey> keys)
+    {
+        var problems = new List<RecordProblem>();
+        var list = RecordPath.Root.Field("keys");
+        if (keys.Count == 0)
+            problems.Add(new(list, "an F-curve needs at least one key"));
+        for (var i = 0; i < keys.Count; i++)
         {
-            var key = keys[i] ?? throw new ArgumentException($"key {i} is null");
+            var key = keys[i];
+            var at = list.Index(i);
+            void Report(string message, params (bool Broken, string Field)[] fields)
+            {
+                foreach (var (broken, field) in fields)
+                    if (broken)
+                        problems.Add(new(at.Field(field), message));
+            }
+            if (key == null)
+            {
+                problems.Add(new(at, $"key {i} is null"));
+                continue;
+            }
             var where = $"key {i} (at {key.Time:R} s)";
-            if (!double.IsFinite(key.Time) || !double.IsFinite(key.Value))
-                throw new ArgumentException($"key {i}: its time and value must be finite numbers");
-            if (!Enum.IsDefined(key.Interpolation) || !Enum.IsDefined(key.Easing) || !Enum.IsDefined(key.Left) || !Enum.IsDefined(key.Right))
-                throw new ArgumentException($"{where}: an interpolation, easing or handle type that isn't one");
-            if (!double.IsFinite(key.Back) || !double.IsFinite(key.Amplitude) || !double.IsFinite(key.Period))
-                throw new ArgumentException($"{where}: back, amplitude and period must be finite numbers");
-            if (key.Amplitude < 0)
-                throw new ArgumentException($"{where}: a negative amplitude ({key.Amplitude:R}; Blender's are 0 or more)");
-            CheckSide(where, "left", key.Left, key.LeftTime, key.LeftValue);
-            CheckSide(where, "right", key.Right, key.RightTime, key.RightValue);
-            if (i > 0 && !((key.Time - keys[i - 1].Time) * FramesPerSecond > MergeThreshold))
-                throw new ArgumentException(
-                    $"{where}: keys must be in increasing time order at least {MergeThreshold} frame (1/{FramesPerSecond / MergeThreshold:R} s) apart, and key {i - 1} is at {keys[i - 1].Time:R} s");
+            Report($"key {i}: its time and value must be finite numbers", (!double.IsFinite(key.Time), "time"), (!double.IsFinite(key.Value), "value"));
+            Report($"{where}: an interpolation, easing or handle type that isn't one", (!Enum.IsDefined(key.Interpolation), "interpolation"),
+                (!Enum.IsDefined(key.Easing), "easing"), (!Enum.IsDefined(key.Left), "left"), (!Enum.IsDefined(key.Right), "right"));
+            Report($"{where}: back, amplitude and period must be finite numbers", (!double.IsFinite(key.Back), "back"),
+                (!double.IsFinite(key.Amplitude), "amplitude"), (!double.IsFinite(key.Period), "period"));
+            Report($"{where}: a negative amplitude ({key.Amplitude:R}; Blender's are 0 or more)", (key.Amplitude < 0, "amplitude"));
+            Side(Report, where, "left", key.Left, key.LeftTime, key.LeftValue);
+            Side(Report, where, "right", key.Right, key.RightTime, key.RightValue);
+            if (i > 0 && keys[i - 1] is { } before && !((key.Time - before.Time) * FramesPerSecond > MergeThreshold))
+                Report($"{where}: keys must be in increasing time order at least {MergeThreshold} frame (1/{FramesPerSecond / MergeThreshold:R} s) apart, and key {i - 1} is at {before.Time:R} s",
+                    (true, "time"));
         }
+        return problems;
     }
 
     static string Name(HandleType type) => type == HandleType.AutoClamped ? "auto-clamped" : type.ToString().ToLowerInvariant();
 
-    static void CheckSide(string where, string side, HandleType type, double? time, double? value)
+    /// <summary>A handle's rules: a free or aligned side has its finite position, a worked-out one none.</summary>
+    static void Side(Action<string, (bool, string)[]> report, string where, string side, HandleType type, double? time, double? value)
     {
         var stored = type is HandleType.Free or HandleType.Aligned;
         if (stored && (time == null || value == null))
-            throw new ArgumentException($"{where}: its {side} handle is {Name(type)} but has no position (time and value)");
-        if (!stored && (time != null || value != null))
-            throw new ArgumentException($"{where}: its {side} handle is {Name(type)}, which is worked out, but a position is given");
-        if (stored && (!double.IsFinite(time!.Value) || !double.IsFinite(value!.Value)))
-            throw new ArgumentException($"{where}: its {side} handle's position must be finite numbers");
+            report($"{where}: its {side} handle is {Name(type)} but has no position (time and value)", [(time == null, side + "Time"), (value == null, side + "Value")]);
+        else if (!stored && (time != null || value != null))
+            report($"{where}: its {side} handle is {Name(type)}, which is worked out, but a position is given", [(time != null, side + "Time"), (value != null, side + "Value")]);
+        else if (stored && (!double.IsFinite(time!.Value) || !double.IsFinite(value!.Value)))
+            report($"{where}: its {side} handle's position must be finite numbers", [(!double.IsFinite(time.Value), side + "Time"), (!double.IsFinite(value.Value), side + "Value")]);
     }
 }

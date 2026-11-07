@@ -7,6 +7,9 @@ namespace Statventure.Render3D;
 
 // A model's data is a record (Docs/Assets.md, "How it works", "Models and state machines in packs"): one
 // entry of models.pak per .glb holding what GltfImport reads from it (ModelImporter), its types model.*.
+// Marks for tools (M11, Docs/Editor.md, step 6; P21, M11-14): what only an import changes is bulk (the
+// meshes, skins, channels, the hierarchy's indices and transforms), shown as a summary; the materials'
+// colours; the sun's limits its rule already holds (G4). The model's check reports the path of what it names.
 
 /// <summary>The four joints a skinned vertex follows (glTF's JOINTS_0), as indices into its skin's joints.</summary>
 [Record("model.joints", 1)]
@@ -43,13 +46,13 @@ public sealed record ModelMesh([property: Field(1)] string Name, [property: Fiel
 /// a material with the custom property <c>hatch = 0</c> (material extras).
 /// </summary>
 [Record("model.material", 1)]
-public sealed record ModelMaterial([property: Field(1)] string Name, [property: Field(2)] Vector4 BaseColor, [property: Field(3)] bool DoubleSided)
+public sealed record ModelMaterial([property: Field(1)] string Name, [property: Field(2), Colour] Vector4 BaseColor, [property: Field(3)] bool DoubleSided)
 {
     /// <summary>glTF's default material: white, one-sided.</summary>
     public static readonly ModelMaterial Default = new("", Vector4.One, false);
 
     public string Slot => Palette.SlotOf(Name);
-    [Field(4)] public Vector3 Emission { get; init; }
+    [Field(4), Colour] public Vector3 Emission { get; init; }
     [Field(5)] public bool Unlit { get; init; }
     [Field(6)] public bool Hatch { get; init; } = true;
 
@@ -66,13 +69,13 @@ public sealed record ModelMaterial([property: Field(1)] string Name, [property: 
 /// <see cref="ModelData.Lights"/>; −1: none).
 /// </summary>
 [Record("model.node", 2)]
-public sealed record ModelNode([property: Field(1)] string Name, [property: Field(2)] int Parent, [property: Field(3)] IReadOnlyList<int> Children,
-    [property: Field(4)] Matrix4x4 Local, [property: Field(5)] Vector3 Translation, [property: Field(6)] Quaternion Rotation, [property: Field(7)] Vector3 Scale,
-    [property: Field(8)] int Mesh, [property: Field(9)] int Skin)
+public sealed record ModelNode([property: Field(1)] string Name, [property: Field(2), Bulk] int Parent, [property: Field(3), Bulk("{0} children")] IReadOnlyList<int> Children,
+    [property: Field(4), Bulk("a matrix, as imported")] Matrix4x4 Local, [property: Field(5), Bulk] Vector3 Translation, [property: Field(6), Bulk] Quaternion Rotation,
+    [property: Field(7), Bulk] Vector3 Scale, [property: Field(8), Bulk] int Mesh, [property: Field(9), Bulk] int Skin)
 {
     [Field(10)] public bool Ink { get; init; } = true;
-    [Field(11)] public int Camera { get; init; } = -1;
-    [Field(12)] public int Light { get; init; } = -1;
+    [Field(11), Bulk] public int Camera { get; init; } = -1;
+    [Field(12), Bulk] public int Light { get; init; } = -1;
 
     /// <summary>Version 1 (M9): no camera or light.</summary>
     [Record("model.node", 1)]
@@ -110,26 +113,28 @@ public sealed record ModelCamera
     /// plane beyond 0; an orthographic one's height above 0 and its near plane at 0 or beyond; the far
     /// plane finite and beyond the near one.
     /// </summary>
-    public string? Problem()
+    public string? Problem() => Problems().Select(p => p.Message).FirstOrDefault();
+
+    /// <summary><see cref="Problem"/>'s rules, each broken one with the field it names, in order.</summary>
+    internal IEnumerable<(string Field, string Message)> Problems()
     {
         var at = CultureInfo.InvariantCulture;
         if (Projection == Projection.Perspective)
         {
             if (!(VerticalFieldOfView > 0 && VerticalFieldOfView < MathF.PI))
-                return string.Create(at, $"a vertical field of view of {VerticalFieldOfView} radians (more than 0 and less than π)");
+                yield return ("verticalFieldOfView", string.Create(at, $"a vertical field of view of {VerticalFieldOfView} radians (more than 0 and less than π)"));
             if (!(Near > 0))
-                return string.Create(at, $"its near plane at {Near} (a perspective camera's is beyond 0)");
+                yield return ("near", string.Create(at, $"its near plane at {Near} (a perspective camera's is beyond 0)"));
         }
         else
         {
             if (!(OrthographicHeight > 0))
-                return string.Create(at, $"a height of {OrthographicHeight} in view (more than 0)");
+                yield return ("orthographicHeight", string.Create(at, $"a height of {OrthographicHeight} in view (more than 0)"));
             if (!(Near >= 0))
-                return string.Create(at, $"its near plane at {Near} (at 0 or beyond)");
+                yield return ("near", string.Create(at, $"its near plane at {Near} (at 0 or beyond)"));
         }
         if (!(Far > Near) || !float.IsFinite(Far))
-            return string.Create(at, $"its far plane at {Far}, not finite and beyond its near plane at {Near}");
-        return null;
+            yield return ("far", string.Create(at, $"its far plane at {Far}, not finite and beyond its near plane at {Near}"));
     }
 }
 
@@ -140,13 +145,20 @@ public sealed record ModelCamera
 /// node, which shines it down its −Z. Only suns: other kinds of light are refused at import.
 /// </summary>
 [Record("model.light", 1)]
-public sealed record ModelLight([property: Field(1)] string Name, [property: Field(2)] float Strength, [property: Field(3)] float Angle)
+public sealed record ModelLight([property: Field(1)] string Name, [property: Field(2), Limits(0, double.PositiveInfinity)] float Strength,
+    [property: Field(3), Unit("°"), Limits(0, 180, MaxExclusive = true)] float Angle)
 {
     /// <summary>What no sun can be, or null: its strength finite and not below 0, its angle from 0 to less than 180°.</summary>
-    public string? Problem() =>
-        !(Strength >= 0) || !float.IsFinite(Strength) ? string.Create(CultureInfo.InvariantCulture, $"a strength of {Strength} (finite, 0 or more)")
-        : !(Angle >= 0 && Angle < 180) ? string.Create(CultureInfo.InvariantCulture, $"an angle of {Angle}° (0 or more, less than 180)")
-        : null;
+    public string? Problem() => Problems().Select(p => p.Message).FirstOrDefault();
+
+    /// <summary><see cref="Problem"/>'s rules, each broken one with the field it names, in order.</summary>
+    internal IEnumerable<(string Field, string Message)> Problems()
+    {
+        if (!(Strength >= 0) || !float.IsFinite(Strength))
+            yield return ("strength", string.Create(CultureInfo.InvariantCulture, $"a strength of {Strength} (finite, 0 or more)"));
+        if (!(Angle >= 0 && Angle < 180))
+            yield return ("angle", string.Create(CultureInfo.InvariantCulture, $"an angle of {Angle}° (0 or more, less than 180)"));
+    }
 }
 
 /// <summary>
@@ -200,7 +212,7 @@ public sealed record ModelAnimationEvent([property: Field(1)] string Name, [prop
 /// list (the action's pose markers, which the export script copies there), in time order.
 /// </summary>
 [Record("model.animation", 1)]
-public sealed record ModelAnimation([property: Field(1)] string Name, [property: Field(2)] IReadOnlyList<ModelAnimationChannel> Channels)
+public sealed record ModelAnimation([property: Field(1)] string Name, [property: Field(2), Bulk("{0} channels")] IReadOnlyList<ModelAnimationChannel> Channels)
 {
     [Field(3)] public IReadOnlyList<ModelAnimationEvent> Events { get; init; } = [];
 }
@@ -211,16 +223,18 @@ public sealed record ModelAnimation([property: Field(1)] string Name, [property:
 /// version 2 (Docs/Scene.md, step 3, Q9) a stage's cameras and its sun, carried by nodes.
 /// </summary>
 [Record("model", 2)]
+[Kind("Model", "models")]
+[Help("A model imported from a .glb file made in Blender: its parts, materials, bones, clips, and a stage's cameras and sun. Its shape changes only by importing the file again.")]
 public sealed class ModelData
 {
     [Field(1)] public required IReadOnlyList<ModelNode> Nodes { get; init; }
-    [Field(2)] public required IReadOnlyList<ModelMesh> Meshes { get; init; }
+    [Field(2), Bulk("{0} meshes")] public required IReadOnlyList<ModelMesh> Meshes { get; init; }
     [Field(3)] public required IReadOnlyList<ModelMaterial> Materials { get; init; }
-    [Field(4)] public required IReadOnlyList<ModelSkin> Skins { get; init; }
+    [Field(4), Bulk("{0} skins")] public required IReadOnlyList<ModelSkin> Skins { get; init; }
     /// <summary>The file's animations (Docs/Animation.md), in file order.</summary>
     [Field(5)] public IReadOnlyList<ModelAnimation> Animations { get; init; } = [];
     /// <summary>The scene's root nodes.</summary>
-    [Field(6)] public required IReadOnlyList<int> Roots { get; init; }
+    [Field(6), Bulk("{0} roots")] public required IReadOnlyList<int> Roots { get; init; }
     /// <summary>The file's cameras, in file order (<see cref="ModelNode.Camera"/> places them).</summary>
     [Field(7)] public IReadOnlyList<ModelCamera> Cameras { get; init; } = [];
     /// <summary>The file's light, the model's sun, or none (<see cref="ModelNode.Light"/> places it).</summary>
@@ -275,108 +289,149 @@ public sealed class ModelData
     /// times that increase; nodes' cameras and lights that exist, one light at most and on one node at
     /// most (one sun per view), and cameras and lights whose values make a projection and a sun
     /// (<see cref="ModelCamera.Problem"/>, <see cref="ModelLight.Problem"/>; Docs/Scene.md, step 3). A model
-    /// from a pack or a loose folder breaks them only if it was edited.
+    /// from a pack or a loose folder breaks them only if it was edited. Also the limits its fields declare
+    /// (G4). The first of <see cref="RecordChecks.Check"/>'s problems.
     /// </summary>
     public void Validate()
     {
-        static void Fail(string problem) => throw new InvalidDataException(problem);
-        var count = Nodes.Count;
+        if (RecordChecks.Check(this).FirstOrDefault() is { } problem)
+            throw new InvalidDataException(problem.Message);
+    }
+
+    /// <summary>
+    /// The model's own check (P20): every rule of <see cref="Validate"/>, in its order and with its words, at
+    /// the path of what it names (a node's child, parent, mesh, skin, camera or light; a camera's or the sun's
+    /// value; a root; a primitive's attribute, index or material; a skin's joint, matrices or skeleton; a
+    /// vertex's joints; a channel's node, values or times). A rule that would read past what an earlier one
+    /// found broken skips that part.
+    /// </summary>
+    [Check]
+    static void Rules(ModelData model, CheckContext check)
+    {
+        static RecordPath F(string field) => RecordPath.Root.Field(field);
+        var nodes = model.Nodes;
+        var count = nodes.Count;
         var parents = new int[count];
         Array.Fill(parents, -1);
         for (var i = 0; i < count; i++)
-            foreach (var child in Nodes[i].Children)
+            for (var k = 0; k < nodes[i].Children.Count; k++)
             {
+                var child = nodes[i].Children[k];
+                var at = F("nodes").Index(i).Field("children").Index(k);
                 if (child < 0 || child >= count)
-                    Fail($"node {i} ({Nodes[i].Name}) has a child {child} that doesn't exist");
-                if (child == i || parents[child] >= 0)
-                    Fail($"node {child} ({Nodes[child].Name}) is its own child or the child of two nodes");
-                parents[child] = i;
+                    check.Report(at, $"node {i} ({nodes[i].Name}) has a child {child} that doesn't exist");
+                else if (child == i || parents[child] >= 0)
+                    check.Report(at, $"node {child} ({nodes[child].Name}) is its own child or the child of two nodes");
+                else
+                    parents[child] = i;
             }
         for (var i = 0; i < count; i++)
         {
-            var node = Nodes[i];
+            var node = nodes[i];
+            var at = F("nodes").Index(i);
             if (node.Parent != parents[i])
-                Fail($"node {i} ({node.Name}) has the parent {node.Parent}, but {(parents[i] < 0 ? "no node" : $"node {parents[i]}")} lists it as a child");
-            if (node.Mesh < -1 || node.Mesh >= Meshes.Count)
-                Fail($"node {i} ({node.Name}) shows mesh {node.Mesh}, which doesn't exist");
-            if (node.Skin < -1 || node.Skin >= Skins.Count)
-                Fail($"node {i} ({node.Name}) has skin {node.Skin}, which doesn't exist");
-            if (node.Camera < -1 || node.Camera >= Cameras.Count)
-                Fail($"node {i} ({node.Name}) carries camera {node.Camera}, which doesn't exist");
-            if (node.Light < -1 || node.Light >= Lights.Count)
-                Fail($"node {i} ({node.Name}) carries light {node.Light}, which doesn't exist");
+                check.Report(at.Field("parent"), $"node {i} ({node.Name}) has the parent {node.Parent}, but {(parents[i] < 0 ? "no node" : $"node {parents[i]}")} lists it as a child");
+            if (node.Mesh < -1 || node.Mesh >= model.Meshes.Count)
+                check.Report(at.Field("mesh"), $"node {i} ({node.Name}) shows mesh {node.Mesh}, which doesn't exist");
+            if (node.Skin < -1 || node.Skin >= model.Skins.Count)
+                check.Report(at.Field("skin"), $"node {i} ({node.Name}) has skin {node.Skin}, which doesn't exist");
+            if (node.Camera < -1 || node.Camera >= model.Cameras.Count)
+                check.Report(at.Field("camera"), $"node {i} ({node.Name}) carries camera {node.Camera}, which doesn't exist");
+            if (node.Light < -1 || node.Light >= model.Lights.Count)
+                check.Report(at.Field("light"), $"node {i} ({node.Name}) carries light {node.Light}, which doesn't exist");
         }
         // One sun per view (Docs/Scene.md, Q12): a model has one light or none, on one node.
-        if (Lights.Count > 1)
-            Fail($"{Lights.Count} lights: a model has one sun or none");
-        if (Enumerable.Range(0, count).Where(i => Nodes[i].Light >= 0).Take(2).ToArray() is [var first, var second])
-            Fail($"nodes {first} ({Nodes[first].Name}) and {second} ({Nodes[second].Name}) both carry the sun: a model has one sun or none");
-        for (var c = 0; c < Cameras.Count; c++)
-            if (Cameras[c].Problem() is { } problem)
-                Fail($"camera {c} ({Cameras[c].Name}) has {problem}");
-        for (var l = 0; l < Lights.Count; l++)
-            if (Lights[l].Problem() is { } problem)
-                Fail($"light {l} ({Lights[l].Name}) has {problem}");
-        foreach (var root in Roots)
-            if (root < 0 || root >= count || Nodes[root].Parent >= 0)
-                Fail($"the root {root} isn't a node without a parent");
-        for (var m = 0; m < Meshes.Count; m++)
-            for (var p = 0; p < Meshes[m].Primitives.Count; p++)
+        if (model.Lights.Count > 1)
+            check.Report(F("lights"), $"{model.Lights.Count} lights: a model has one sun or none");
+        if (Enumerable.Range(0, count).Where(i => nodes[i].Light >= 0).Take(2).ToArray() is [var first, var second])
+            check.Report(F("nodes").Index(second).Field("light"), $"nodes {first} ({nodes[first].Name}) and {second} ({nodes[second].Name}) both carry the sun: a model has one sun or none");
+        for (var c = 0; c < model.Cameras.Count; c++)
+            foreach (var (field, problem) in model.Cameras[c].Problems())
+                check.Report(F("cameras").Index(c).Field(field), $"camera {c} ({model.Cameras[c].Name}) has {problem}");
+        for (var l = 0; l < model.Lights.Count; l++)
+            foreach (var (field, problem) in model.Lights[l].Problems())
+                check.Report(F("lights").Index(l).Field(field), $"light {l} ({model.Lights[l].Name}) has {problem}");
+        for (var r = 0; r < model.Roots.Count; r++)
+        {
+            var root = model.Roots[r];
+            if (root < 0 || root >= count || nodes[root].Parent >= 0)
+                check.Report(F("roots").Index(r), $"the root {root} isn't a node without a parent");
+        }
+        for (var m = 0; m < model.Meshes.Count; m++)
+            for (var p = 0; p < model.Meshes[m].Primitives.Count; p++)
             {
-                var primitive = Meshes[m].Primitives[p];
-                var where = $"mesh {m} ({Meshes[m].Name}), primitive {p}";
+                var primitive = model.Meshes[m].Primitives[p];
+                var at = F("meshes").Index(m).Field("primitives").Index(p);
+                var where = $"mesh {m} ({model.Meshes[m].Name}), primitive {p}";
                 var vertices = primitive.Positions.Length;
                 foreach (var (name, length) in new[] { ("normals", (int?)primitive.Normals.Length), ("texCoords", primitive.TexCoords?.Length),
                              ("joints", primitive.Joints?.Length), ("weights", primitive.Weights?.Length) })
                     if (length is { } l && l != vertices)
-                        Fail($"{where} has {l} {name} for {vertices} vertices");
+                        check.Report(at.Field(name), $"{where} has {l} {name} for {vertices} vertices");
                 if (primitive.Indices.Length % 3 != 0)
-                    Fail($"{where} has {primitive.Indices.Length} indices, not whole triangles");
-                foreach (var index in primitive.Indices)
-                    if (index >= vertices)
-                        Fail($"{where} has the index {index} beyond its {vertices} vertices");
-                if (primitive.Material < -1 || primitive.Material >= Materials.Count)
-                    Fail($"{where} has material {primitive.Material}, which doesn't exist");
+                    check.Report(at.Field("indices"), $"{where} has {primitive.Indices.Length} indices, not whole triangles");
+                // The first index past the vertices (the message names one).
+                var past = Array.FindIndex(primitive.Indices, index => index >= vertices);
+                if (past >= 0)
+                    check.Report(at.Field("indices").Index(past), $"{where} has the index {primitive.Indices[past]} beyond its {vertices} vertices");
+                if (primitive.Material < -1 || primitive.Material >= model.Materials.Count)
+                    check.Report(at.Field("material"), $"{where} has material {primitive.Material}, which doesn't exist");
             }
-        for (var s = 0; s < Skins.Count; s++)
+        for (var s = 0; s < model.Skins.Count; s++)
         {
-            var skin = Skins[s];
-            foreach (var joint in skin.Joints)
-                if (joint < 0 || joint >= count)
-                    Fail($"skin {s} ({skin.Name}) has the joint {joint}, which isn't a node");
+            var skin = model.Skins[s];
+            var at = F("skins").Index(s);
+            for (var k = 0; k < skin.Joints.Count; k++)
+                if (skin.Joints[k] < 0 || skin.Joints[k] >= count)
+                    check.Report(at.Field("joints").Index(k), $"skin {s} ({skin.Name}) has the joint {skin.Joints[k]}, which isn't a node");
             if (skin.InverseBindMatrices.Count < skin.Joints.Count)
-                Fail($"skin {s} ({skin.Name}) has {skin.Joints.Count} joints but {skin.InverseBindMatrices.Count} inverse bind matrices");
+                check.Report(at.Field("inverseBindMatrices"), $"skin {s} ({skin.Name}) has {skin.Joints.Count} joints but {skin.InverseBindMatrices.Count} inverse bind matrices");
             if (skin.Skeleton < -1 || skin.Skeleton >= count)
-                Fail($"skin {s} ({skin.Name}) has the skeleton {skin.Skeleton}, which isn't a node");
+                check.Report(at.Field("skeleton"), $"skin {s} ({skin.Name}) has the skeleton {skin.Skeleton}, which isn't a node");
         }
         // Joint indices index the skin of each node showing the mesh: the GPU reads its joint matrices by them.
         for (var i = 0; i < count; i++)
         {
-            if (Nodes[i].Mesh < 0 || Nodes[i].Skin < 0)
+            var (mesh, skin) = (nodes[i].Mesh, nodes[i].Skin);
+            if (mesh < 0 || skin < 0 || mesh >= model.Meshes.Count || skin >= model.Skins.Count)
                 continue;
-            var joints = Skins[Nodes[i].Skin].Joints.Count;
-            var primitives = Meshes[Nodes[i].Mesh].Primitives;
+            var joints = model.Skins[skin].Joints.Count;
+            var primitives = model.Meshes[mesh].Primitives;
             for (var p = 0; p < primitives.Count; p++)
-                foreach (var j in primitives[p].Joints ?? [])
-                    if (Math.Max(Math.Max(j.J0, j.J1), Math.Max(j.J2, j.J3)) is var highest && highest >= joints)
-                        Fail($"node {i} ({Nodes[i].Name}) shows mesh {Nodes[i].Mesh}, whose primitive {p} has the joint index {highest} beyond its skin's {joints} joints");
-        }
-        for (var a = 0; a < Animations.Count; a++)
-            for (var c = 0; c < Animations[a].Channels.Count; c++)
             {
-                var channel = Animations[a].Channels[c];
-                var where = $"animation {a} ({Animations[a].Name}), channel {c}";
+                var vertexJoints = primitives[p].Joints ?? [];
+                for (var v = 0; v < vertexJoints.Length; v++)
+                {
+                    var j = vertexJoints[v];
+                    if (Math.Max(Math.Max(j.J0, j.J1), Math.Max(j.J2, j.J3)) is var highest && highest >= joints)
+                    {
+                        check.Report(F("meshes").Index(mesh).Field("primitives").Index(p).Field("joints").Index(v),
+                            $"node {i} ({nodes[i].Name}) shows mesh {mesh}, whose primitive {p} has the joint index {highest} beyond its skin's {joints} joints");
+                        break;
+                    }
+                }
+            }
+        }
+        for (var a = 0; a < model.Animations.Count; a++)
+            for (var c = 0; c < model.Animations[a].Channels.Count; c++)
+            {
+                var channel = model.Animations[a].Channels[c];
+                var at = F("animations").Index(a).Field("channels").Index(c);
+                var where = $"animation {a} ({model.Animations[a].Name}), channel {c}";
                 if (channel.Node < 0 || channel.Node >= count)
-                    Fail($"{where} drives node {channel.Node}, which doesn't exist");
+                    check.Report(at.Field("node"), $"{where} drives node {channel.Node}, which doesn't exist");
                 var cubic = channel.Interpolation == AnimationInterpolation.CubicSpline;
                 var perKey = channel.Components * (cubic ? 3 : 1);
                 if (channel.Times.Length == 0 || channel.Values.Length != channel.Times.Length * perKey)
-                    Fail($"{where} has {channel.Values.Length} values for {channel.Times.Length} keys");
+                    check.Report(at.Field("values"), $"{where} has {channel.Values.Length} values for {channel.Times.Length} keys");
                 if (cubic && channel.Times.Length < 2)
-                    Fail($"{where} is a cubic spline with fewer than 2 keys");
+                    check.Report(at.Field("times"), $"{where} is a cubic spline with fewer than 2 keys");
                 for (var k = 1; k < channel.Times.Length; k++)
                     if (!(channel.Times[k] > channel.Times[k - 1]))
-                        Fail($"{where} has key times that don't increase");
+                    {
+                        check.Report(at.Field("times"), $"{where} has key times that don't increase");
+                        break;
+                    }
             }
     }
 

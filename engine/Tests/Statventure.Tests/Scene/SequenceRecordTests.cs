@@ -146,99 +146,108 @@ public class SequenceRecordTests
 
     static Sequence With(params SequenceTrack[] tracks) => Valid() with { Tracks = [.. Valid().Tracks, .. tracks] };
 
-    static readonly Dictionary<string, (Func<Sequence> Make, string Problem)> Broken = new()
+    static readonly Dictionary<string, (Func<Sequence> Make, string Problem, string Path)> Broken = new()
     {
-        ["no name"] = (() => Valid() with { Name = "" }, "a sequence needs a name"),
-        ["no duration"] = (() => Valid() with { Duration = 0 }, "the sequence valid: its duration (0 s) must be a finite number above 0"),
-        ["NaN duration"] = (() => Valid() with { Duration = double.NaN }, "its duration (NaN s) must be a finite number above 0"),
-        ["role twice"] = (() => Valid() with { Roles = [new("a", RoleKind.Node), new("a", RoleKind.Actor)] }, "the role a is defined twice"),
-        ["role with a slash"] = (() => Valid() with { Roles = [new("a/b", RoleKind.Node)] }, "the role \"a/b\" needs a name without /"),
-        ["role kind"] = (() => Valid() with { Roles = [new("a", (RoleKind)9)] }, "the role a has a kind that isn't one"),
-        ["stage path"] = (() => Valid() with { Stages = ["models/hierarchy"], Tracks = [] }, "the stage models/hierarchy isn't a path models/stages/<name>"),
-        ["stage twice"] = (() => Valid() with { Stages = [TestSequence.StagePath, TestSequence.StagePath] }, "the stage hierarchy is named twice"),
-        ["stage folder"] = (() => Valid() with { Stages = ["world/stages/arena"], Tracks = [] }, "the stage world/stages/arena isn't a path models/stages/<name>"),
-        ["stage depth"] = (() => Valid() with { Stages = ["models/stages/a/b"], Tracks = [] }, "the stage models/stages/a/b isn't a path models/stages/<name>"),
-        ["stage as role"] = (() => Valid() with { Roles = [new("hierarchy", RoleKind.Node)] }, "the stage models/stages/hierarchy has the name of the role hierarchy"),
-        ["null track"] = (() => Valid() with { Tracks = [null!] }, "the sequence valid, track 0: it is null"),
-        ["clip stage"] = (() => With(new ClipTrack { Stage = "arena", Strip = new("base") }), "track 1 (clip): arena isn't one of its stages"),
-        ["strip scale"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", Scale: 0) }), "track 1 (clip): its strip (base): its scale and repeat must be above 0, its blends not negative"),
-        ["strip repeat"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", Repeat: 0) }), "its scale and repeat must be above 0"),
-        ["strip blend"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", BlendOut: -1) }), "its scale and repeat must be above 0, its blends not negative"),
-        ["strip part"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", ClipStart: 0.5, ClipEnd: 0.25) }), "its part (0.5–0.25 s) must start at 0 or later and not end before it starts"),
-        ["strip part start"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", ClipStart: -0.25) }), "its part (-0.25– s) must start at 0 or later and not end before it starts"),
-        ["strip influence"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", Influence: 1.5) }), "its influence must be from 0 to 1"),
-        ["strip NaN"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", Start: double.NaN) }), "its numbers must be finite (its repeat may be infinite)"),
-        ["strip mode"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", Mode: (BlendMode)7) }), "a blend mode or extrapolation that isn't one"),
-        ["strip clip"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("") }), "its strip names no clip"),
-        ["no curve"] = (() => With(new TransformTrack { Node = "pivot" }), "track 1 (transform): it has no curve"),
-        ["node kind"] = (() => With(new TransformTrack { Node = "hero", LocationX = Ramp(0, 1) }), "its node hero is a role of kind actor, not node"),
-        ["node role"] = (() => With(new TransformTrack { Node = "nobody", LocationX = Ramp(0, 1) }), "its node nobody isn't a role"),
-        ["node stage"] = (() => With(new TransformTrack { Node = "arena/Base", LocationX = Ramp(0, 1) }), "its node arena/Base isn't a node role or <stage>/<node> of one of its stages"),
-        ["node empty"] = (() => With(new TransformTrack { Node = "hierarchy/", LocationX = Ramp(0, 1) }), "isn't a node role or <stage>/<node> of one of its stages"),
-        ["cue late"] = (() => With(new VisibilityTrack { Node = "pivot", Cues = [new(2.5, true)] }), "track 1 (visibility): cue 0 at 2.5 s is outside the timeline (0–2 s)"),
-        ["cue early"] = (() => With(new VisibilityTrack { Node = "pivot", Cues = [new(-0.5, true)] }), "cue 0 at -0.5 s is outside the timeline"),
-        ["cue NaN"] = (() => With(new VisibilityTrack { Node = "pivot", Cues = [new(double.NaN, true)] }), "cue 0: its time must be a finite number"),
-        ["null cue"] = (() => With(new VisibilityTrack { Node = "pivot", Cues = [null!] }), "cue 0 is null"),
-        ["marker form"] = (() => With(new VisibilityTrack { Node = "pivot", Cues = [new(0, true, "open")] }), "cue 0's marker open isn't <stage>/<marker> of one of its stages"),
-        ["marker end"] = (() => With(new VisibilityTrack { Node = "pivot", Cues = [new(0, true, "hierarchy/")] }), "cue 0's marker hierarchy/ isn't <stage>/<marker> of one of its stages"),
-        ["marker stage"] = (() => With(new VisibilityTrack { Node = "pivot", Cues = [new(0, true, "arena/open")] }), "cue 0's marker arena/open isn't <stage>/<marker>"),
-        ["actor"] = (() => With(new ActorTrack { Actor = "pivot" }), "track 1 (animation): its actor pivot is a role of kind node, not actor"),
-        ["mark"] = (() => With(new ActorTrack { Actor = "hero", Mark = "tint" }), "its mark tint is a role of kind palette, not node"),
-        ["strip null"] = (() => With(new ActorTrack { Actor = "hero", Strips = [null!] }), "strip 0 is null"),
-        ["parameter"] = (() => With(new ActorTrack { Actor = "hero", Cues = [new(0, "", ParameterKind.Float)] }), "cue 0 names no parameter"),
-        ["parameter kind"] = (() => With(new ActorTrack { Actor = "hero", Cues = [new(0, "a", (ParameterKind)9)] }), "cue 0 has a kind that isn't one"),
-        ["parameter value"] = (() => With(new ActorTrack { Actor = "hero", Cues = [new(0, "a", ParameterKind.Float, double.PositiveInfinity)] }), "cue 0's value must be a finite number"),
-        ["trigger value"] = (() => With(new ActorTrack { Actor = "hero", Cues = [new(0, "a", ParameterKind.Trigger, 0)] }), "cue 0: a trigger cue's value must be 1"),
-        ["bool value"] = (() => With(new ActorTrack { Actor = "hero", Cues = [new(0, "a", ParameterKind.Bool, 2)] }), "cue 0: a bool cue's value must be 0 or 1"),
-        ["int value"] = (() => With(new ActorTrack { Actor = "hero", Cues = [new(0, "a", ParameterKind.Int, 1.5)] }), "cue 0: an int cue's value must be a whole number"),
+        ["no name"] = (() => Valid() with { Name = "" }, "a sequence needs a name", "$.name"),
+        ["no duration"] = (() => Valid() with { Duration = 0 }, "the sequence valid: its duration (0 s) must be a finite number above 0", "$.duration"),
+        ["NaN duration"] = (() => Valid() with { Duration = double.NaN }, "its duration (NaN s) must be a finite number above 0", "$.duration"),
+        ["role twice"] = (() => Valid() with { Roles = [new("a", RoleKind.Node), new("a", RoleKind.Actor)] }, "the role a is defined twice", "$.roles[1].name"),
+        ["role with a slash"] = (() => Valid() with { Roles = [new("a/b", RoleKind.Node)] }, "the role \"a/b\" needs a name without /", "$.roles[0].name"),
+        ["role kind"] = (() => Valid() with { Roles = [new("a", (RoleKind)9)] }, "the role a has a kind that isn't one", "$.roles[0].kind"),
+        ["stage path"] = (() => Valid() with { Stages = ["models/hierarchy"], Tracks = [] }, "the stage models/hierarchy isn't a path models/stages/<name>", "$.stages[0]"),
+        ["stage twice"] = (() => Valid() with { Stages = [TestSequence.StagePath, TestSequence.StagePath] }, "the stage hierarchy is named twice", "$.stages[1]"),
+        ["stage folder"] = (() => Valid() with { Stages = ["world/stages/arena"], Tracks = [] }, "the stage world/stages/arena isn't a path models/stages/<name>", "$.stages[0]"),
+        ["stage depth"] = (() => Valid() with { Stages = ["models/stages/a/b"], Tracks = [] }, "the stage models/stages/a/b isn't a path models/stages/<name>", "$.stages[0]"),
+        ["stage as role"] = (() => Valid() with { Roles = [new("hierarchy", RoleKind.Node)] }, "the stage models/stages/hierarchy has the name of the role hierarchy", "$.stages[0]"),
+        ["null track"] = (() => Valid() with { Tracks = [null!] }, "the sequence valid, track 0: it is null", "$.tracks[0]"),
+        ["clip stage"] = (() => With(new ClipTrack { Stage = "arena", Strip = new("base") }), "track 1 (clip): arena isn't one of its stages", "$.tracks[1].stage"),
+        ["strip scale"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", Scale: 0) }), "track 1 (clip): its strip (base): its scale and repeat must be above 0, its blends not negative", "$.tracks[1].strip.scale"),
+        ["strip repeat"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", Repeat: 0) }), "its scale and repeat must be above 0", "$.tracks[1].strip.repeat"),
+        ["strip blend"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", BlendOut: -1) }), "its scale and repeat must be above 0, its blends not negative", "$.tracks[1].strip.blendOut"),
+        ["strip part"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", ClipStart: 0.5, ClipEnd: 0.25) }), "its part (0.5–0.25 s) must start at 0 or later and not end before it starts", "$.tracks[1].strip.clipEnd"),
+        ["strip part start"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", ClipStart: -0.25) }), "its part (-0.25– s) must start at 0 or later and not end before it starts", "$.tracks[1].strip.clipStart"),
+        ["strip influence"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", Influence: 1.5) }), "its influence must be from 0 to 1", "$.tracks[1].strip.influence"),
+        ["strip NaN"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", Start: double.NaN) }), "its numbers must be finite (its repeat may be infinite)", "$.tracks[1].strip.start"),
+        ["strip mode"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("base", Mode: (BlendMode)7) }), "a blend mode or extrapolation that isn't one", "$.tracks[1].strip.mode"),
+        ["strip clip"] = (() => With(new ClipTrack { Stage = "hierarchy", Strip = new("") }), "its strip names no clip", "$.tracks[1].strip.clip"),
+        ["no curve"] = (() => With(new TransformTrack { Node = "pivot" }), "track 1 (transform): it has no curve", "$.tracks[1]"),
+        ["node kind"] = (() => With(new TransformTrack { Node = "hero", LocationX = Ramp(0, 1) }), "its node hero is a role of kind actor, not node", "$.tracks[1].node"),
+        ["node role"] = (() => With(new TransformTrack { Node = "nobody", LocationX = Ramp(0, 1) }), "its node nobody isn't a role", "$.tracks[1].node"),
+        ["node stage"] = (() => With(new TransformTrack { Node = "arena/Base", LocationX = Ramp(0, 1) }), "its node arena/Base isn't a node role or <stage>/<node> of one of its stages", "$.tracks[1].node"),
+        ["node empty"] = (() => With(new TransformTrack { Node = "hierarchy/", LocationX = Ramp(0, 1) }), "isn't a node role or <stage>/<node> of one of its stages", "$.tracks[1].node"),
+        ["visibility node"] = (() => With(new VisibilityTrack { Node = "nobody" }), "track 1 (visibility): its node nobody isn't a role", "$.tracks[1].node"),
+        ["cue late"] =(() => With(new VisibilityTrack { Node = "pivot", Cues = [new(2.5, true)] }), "track 1 (visibility): cue 0 at 2.5 s is outside the timeline (0–2 s)", "$.tracks[1].cues[0].time"),
+        ["cue early"] = (() => With(new VisibilityTrack { Node = "pivot", Cues = [new(-0.5, true)] }), "cue 0 at -0.5 s is outside the timeline", "$.tracks[1].cues[0].time"),
+        ["cue NaN"] = (() => With(new VisibilityTrack { Node = "pivot", Cues = [new(double.NaN, true)] }), "cue 0: its time must be a finite number", "$.tracks[1].cues[0].time"),
+        ["null cue"] = (() => With(new VisibilityTrack { Node = "pivot", Cues = [null!] }), "cue 0 is null", "$.tracks[1].cues[0]"),
+        ["marker form"] = (() => With(new VisibilityTrack { Node = "pivot", Cues = [new(0, true, "open")] }), "cue 0's marker open isn't <stage>/<marker> of one of its stages", "$.tracks[1].cues[0].marker"),
+        ["marker end"] = (() => With(new VisibilityTrack { Node = "pivot", Cues = [new(0, true, "hierarchy/")] }), "cue 0's marker hierarchy/ isn't <stage>/<marker> of one of its stages", "$.tracks[1].cues[0].marker"),
+        ["marker stage"] = (() => With(new VisibilityTrack { Node = "pivot", Cues = [new(0, true, "arena/open")] }), "cue 0's marker arena/open isn't <stage>/<marker>", "$.tracks[1].cues[0].marker"),
+        ["actor"] = (() => With(new ActorTrack { Actor = "pivot" }), "track 1 (animation): its actor pivot is a role of kind node, not actor", "$.tracks[1].actor"),
+        ["mark"] = (() => With(new ActorTrack { Actor = "hero", Mark = "tint" }), "its mark tint is a role of kind palette, not node", "$.tracks[1].mark"),
+        ["strip null"] = (() => With(new ActorTrack { Actor = "hero", Strips = [null!] }), "strip 0 is null", "$.tracks[1].strips[0]"),
+        ["parameter"] = (() => With(new ActorTrack { Actor = "hero", Cues = [new(0, "", ParameterKind.Float)] }), "cue 0 names no parameter", "$.tracks[1].cues[0].parameter"),
+        ["parameter kind"] = (() => With(new ActorTrack { Actor = "hero", Cues = [new(0, "a", (ParameterKind)9)] }), "cue 0 has a kind that isn't one", "$.tracks[1].cues[0].kind"),
+        ["parameter value"] = (() => With(new ActorTrack { Actor = "hero", Cues = [new(0, "a", ParameterKind.Float, double.PositiveInfinity)] }), "cue 0's value must be a finite number", "$.tracks[1].cues[0].value"),
+        ["trigger value"] = (() => With(new ActorTrack { Actor = "hero", Cues = [new(0, "a", ParameterKind.Trigger, 0)] }), "cue 0: a trigger cue's value must be 1", "$.tracks[1].cues[0].value"),
+        ["bool value"] = (() => With(new ActorTrack { Actor = "hero", Cues = [new(0, "a", ParameterKind.Bool, 2)] }), "cue 0: a bool cue's value must be 0 or 1", "$.tracks[1].cues[0].value"),
+        ["int value"] = (() => With(new ActorTrack { Actor = "hero", Cues = [new(0, "a", ParameterKind.Int, 1.5)] }), "cue 0: an int cue's value must be a whole number", "$.tracks[1].cues[0].value"),
         ["two marks"] = (() => With(new ActorTrack { Actor = "hero", Mark = "pivot" }, new ActorTrack { Actor = "hero", Mark = "hierarchy/Tip" }),
-            "the sequence valid: the actor hero has a mark on 2 animation tracks (one at most: it stands on one node)"),
-        ["palette target"] = (() => With(new PaletteTrack { Target = "pivot" }), "track 1 (palette): its target pivot is a role of kind node, not actor or model"),
-        ["palette both"] = (() => With(new PaletteTrack { Target = "prop", Cues = [new(0, "tint", "#000000")] }), "cue 0 names a palette and a fill: one or neither"),
-        ["palette role"] = (() => With(new PaletteTrack { Target = "prop", Cues = [new(0, "card")] }), "cue 0's palette card is a role of kind element, not palette"),
-        ["palette fill"] = (() => With(new PaletteTrack { Target = "hero", Cues = [new(0, null, "#00000g")] }), "cue 0's fill #00000g isn't a colour (#rrggbb)"),
-        ["event name"] = (() => With(new EventTrack { Cues = [new(0, "")] }), "track 1 (event): cue 0 has no name"),
-        ["camera"] = (() => With(new CameraTrack { Cuts = [new(0, "hero")] }), "track 1 (camera): cue 0's camera hero is a role of kind actor, not node"),
-        ["sun"] = (() => With(new LightTrack { Cues = [new(0, "card")] }), "track 1 (light): cue 0's sun card is a role of kind element, not node"),
-        ["effect"] = (() => With(new ParticleTrack { Cues = [new(0, "models/mist", "pivot")] }), "track 1 (particles): cue 0's effect models/mist isn't a path under models/effects/"),
-        ["burst"] = (() => With(new ParticleTrack { Cues = [new(0, "models/effects/mist", "pivot", Burst: -1)] }), "cue 0: its burst, rate and duration must be 0 or more"),
-        ["particle palette"] = (() => With(new ParticleTrack { Cues = [new(0, "models/effects/mist", "pivot", Palette: "prop")] }), "cue 0's palette prop is a role of kind model, not palette"),
-        ["particle node"] = (() => With(new ParticleTrack { Cues = [new(0, "models/effects/mist", "nobody")] }), "cue 0's node nobody isn't a role"),
-        ["stop named"] = (() => With(new AudioTrack { Cues = [new(0, AudioCueKind.StopMusic, "theme")] }), "track 1 (audio): cue 0 stops the music but names theme"),
-        ["music unnamed"] = (() => With(new AudioTrack { Cues = [new(0, AudioCueKind.Music)] }), "cue 0 names no theme"),
-        ["effect unnamed"] = (() => With(new AudioTrack { Cues = [new(0, AudioCueKind.Effect)] }), "cue 0 names no effect"),
-        ["pan"] = (() => With(new AudioTrack { Cues = [new(0, AudioCueKind.Effect, "hit", Pan: 2)] }), "cue 0: its volume must be 0 or more, its pan from −1 to 1 and its pitch above 0"),
-        ["pitch"] = (() => With(new AudioTrack { Cues = [new(0, AudioCueKind.Effect, "hit", Pitch: 0)] }), "its pitch above 0"),
-        ["audio kind"] = (() => With(new AudioTrack { Cues = [new(0, (AudioCueKind)5, "hit")] }), "cue 0 has a kind that isn't one"),
-        ["host"] = (() => With(new UiTrack { Host = "prop" }), "track 1 (ui): its host prop is a role of kind model, not element"),
-        ["ui text named"] = (() => With(new UiTrack { Host = "card", Cues = [new(0, UiCueAction.SetText, "title", "x", "text")] }), "cue 0: SetText takes no name and a value"),
-        ["ui class unnamed"] = (() => With(new UiTrack { Host = "card", Cues = [new(0, UiCueAction.AddClass)] }), "cue 0: AddClass takes a name and no value"),
-        ["ui attribute value"] = (() => With(new UiTrack { Host = "card", Cues = [new(0, UiCueAction.SetAttribute, null, "hidden")] }), "cue 0: SetAttribute takes a name and a value"),
-        ["ui class value"] = (() => With(new UiTrack { Host = "card", Cues = [new(0, UiCueAction.AddClass, null, "on", "x")] }), "cue 0: AddClass takes a name and no value"),
-        ["ui element"] = (() => With(new UiTrack { Host = "card", Cues = [new(0, UiCueAction.AddClass, "", "on")] }), "cue 0 names an empty element id"),
-        ["ui action"] = (() => With(new UiTrack { Host = "card", Cues = [new(0, (UiCueAction)9, null, "on")] }), "cue 0 has an action that isn't one"),
-        ["no spans"] = (() => Valid() with { Reduced = [] }, "its reduced variant has no spans (null: none)"),
+            "the sequence valid: the actor hero has a mark on 2 animation tracks (one at most: it stands on one node)", "$.tracks[2].mark"),
+        ["palette target"] = (() => With(new PaletteTrack { Target = "pivot" }), "track 1 (palette): its target pivot is a role of kind node, not actor or model", "$.tracks[1].target"),
+        ["palette both"] = (() => With(new PaletteTrack { Target = "prop", Cues = [new(0, "tint", "#000000")] }), "cue 0 names a palette and a fill: one or neither", "$.tracks[1].cues[0]"),
+        ["palette role"] = (() => With(new PaletteTrack { Target = "prop", Cues = [new(0, "card")] }), "cue 0's palette card is a role of kind element, not palette", "$.tracks[1].cues[0].palette"),
+        ["palette fill"] = (() => With(new PaletteTrack { Target = "hero", Cues = [new(0, null, "#00000g")] }), "cue 0's fill #00000g isn't a colour (#rrggbb)", "$.tracks[1].cues[0].fill"),
+        ["event name"] = (() => With(new EventTrack { Cues = [new(0, "")] }), "track 1 (event): cue 0 has no name", "$.tracks[1].cues[0].name"),
+        ["camera"] = (() => With(new CameraTrack { Cuts = [new(0, "hero")] }), "track 1 (camera): cue 0's camera hero is a role of kind actor, not node", "$.tracks[1].cuts[0].camera"),
+        ["sun"] = (() => With(new LightTrack { Cues = [new(0, "card")] }), "track 1 (light): cue 0's sun card is a role of kind element, not node", "$.tracks[1].cues[0].sun"),
+        ["effect"] = (() => With(new ParticleTrack { Cues = [new(0, "models/mist", "pivot")] }), "track 1 (particles): cue 0's effect models/mist isn't a path under models/effects/", "$.tracks[1].cues[0].effect"),
+        ["burst"] = (() => With(new ParticleTrack { Cues = [new(0, "models/effects/mist", "pivot", Burst: -1)] }), "cue 0: its burst, rate and duration must be 0 or more", "$.tracks[1].cues[0].burst"),
+        ["particle palette"] = (() => With(new ParticleTrack { Cues = [new(0, "models/effects/mist", "pivot", Palette: "prop")] }), "cue 0's palette prop is a role of kind model, not palette", "$.tracks[1].cues[0].palette"),
+        ["particle node"] = (() => With(new ParticleTrack { Cues = [new(0, "models/effects/mist", "nobody")] }), "cue 0's node nobody isn't a role", "$.tracks[1].cues[0].node"),
+        ["stop named"] = (() => With(new AudioTrack { Cues = [new(0, AudioCueKind.StopMusic, "theme")] }), "track 1 (audio): cue 0 stops the music but names theme", "$.tracks[1].cues[0].name"),
+        ["music unnamed"] = (() => With(new AudioTrack { Cues = [new(0, AudioCueKind.Music)] }), "cue 0 names no theme", "$.tracks[1].cues[0].name"),
+        ["effect unnamed"] = (() => With(new AudioTrack { Cues = [new(0, AudioCueKind.Effect)] }), "cue 0 names no effect", "$.tracks[1].cues[0].name"),
+        ["pan"] = (() => With(new AudioTrack { Cues = [new(0, AudioCueKind.Effect, "hit", Pan: 2)] }), "cue 0: its volume must be 0 or more, its pan from −1 to 1 and its pitch above 0", "$.tracks[1].cues[0].pan"),
+        ["pitch"] = (() => With(new AudioTrack { Cues = [new(0, AudioCueKind.Effect, "hit", Pitch: 0)] }), "its pitch above 0", "$.tracks[1].cues[0].pitch"),
+        ["audio kind"] = (() => With(new AudioTrack { Cues = [new(0, (AudioCueKind)5, "hit")] }), "cue 0 has a kind that isn't one", "$.tracks[1].cues[0].kind"),
+        ["host"] = (() => With(new UiTrack { Host = "prop" }), "track 1 (ui): its host prop is a role of kind model, not element", "$.tracks[1].host"),
+        ["ui text named"] = (() => With(new UiTrack { Host = "card", Cues = [new(0, UiCueAction.SetText, "title", "x", "text")] }), "cue 0: SetText takes no name and a value", "$.tracks[1].cues[0].name"),
+        ["ui class unnamed"] = (() => With(new UiTrack { Host = "card", Cues = [new(0, UiCueAction.AddClass)] }), "cue 0: AddClass takes a name and no value", "$.tracks[1].cues[0].name"),
+        ["ui attribute value"] = (() => With(new UiTrack { Host = "card", Cues = [new(0, UiCueAction.SetAttribute, null, "hidden")] }), "cue 0: SetAttribute takes a name and a value", "$.tracks[1].cues[0].value"),
+        ["ui class value"] = (() => With(new UiTrack { Host = "card", Cues = [new(0, UiCueAction.AddClass, null, "on", "x")] }), "cue 0: AddClass takes a name and no value", "$.tracks[1].cues[0].value"),
+        ["ui element"] = (() => With(new UiTrack { Host = "card", Cues = [new(0, UiCueAction.AddClass, "", "on")] }), "cue 0 names an empty element id", "$.tracks[1].cues[0].element"),
+        ["ui action"] = (() => With(new UiTrack { Host = "card", Cues = [new(0, (UiCueAction)9, null, "on")] }), "cue 0 has an action that isn't one", "$.tracks[1].cues[0].action"),
+        ["no spans"] = (() => Valid() with { Reduced = [] }, "its reduced variant has no spans (null: none)", "$.reduced"),
         ["span order"] = (() => Valid() with { Reduced = [new(0.5, 1), new(0.75, 1.5)] },
-            "reduced span 1 (0.75–1.5 s, held 0 s) must lie in the timeline after the span before, its end not before its start, its hold not negative"),
-        ["span late"] = (() => Valid() with { Reduced = [new(1, 2.5)] }, "reduced span 0 (1–2.5 s, held 0 s) must lie in the timeline"),
-        ["span backwards"] = (() => Valid() with { Reduced = [new(1, 0.5)] }, "reduced span 0 (1–0.5 s, held 0 s) must lie in the timeline"),
-        ["span hold"] = (() => Valid() with { Reduced = [new(1, 1, -1)] }, "reduced span 0 (1–1 s, held -1 s) must lie in the timeline"),
-        ["span empty"] = (() => Valid() with { Reduced = [new(1, 1)] }, "reduced span 0 plays for no time"),
-        ["span NaN"] = (() => Valid() with { Reduced = [new(double.NaN, 1)] }, "reduced span 0: its times must be finite numbers"),
-        ["span null"] = (() => Valid() with { Reduced = [null!] }, "reduced span 0 is null"),
+            "reduced span 1 (0.75–1.5 s, held 0 s) must lie in the timeline after the span before, its end not before its start, its hold not negative", "$.reduced[1].from"),
+        ["span late"] = (() => Valid() with { Reduced = [new(1, 2.5)] }, "reduced span 0 (1–2.5 s, held 0 s) must lie in the timeline", "$.reduced[0].to"),
+        ["span backwards"] = (() => Valid() with { Reduced = [new(1, 0.5)] }, "reduced span 0 (1–0.5 s, held 0 s) must lie in the timeline", "$.reduced[0].to"),
+        ["span hold"] = (() => Valid() with { Reduced = [new(1, 1, -1)] }, "reduced span 0 (1–1 s, held -1 s) must lie in the timeline", "$.reduced[0].hold"),
+        ["span empty"] = (() => Valid() with { Reduced = [new(1, 1)] }, "reduced span 0 plays for no time", "$.reduced[0]"),
+        ["span NaN"] = (() => Valid() with { Reduced = [new(double.NaN, 1)] }, "reduced span 0: its times must be finite numbers", "$.reduced[0].from"),
+        ["span null"] = (() => Valid() with { Reduced = [null!] }, "reduced span 0 is null", "$.reduced[0]"),
     };
 
     public static TheoryData<string> BrokenCases => [.. Broken.Keys];
 
-    /// <summary>Each rule a sequence keeps by itself, broken one at a time: an <see cref="ArgumentException"/> naming the sequence, the track, the cue and the problem.</summary>
+    /// <summary>
+    /// Each rule a sequence keeps by itself, broken one at a time: an <see cref="ArgumentException"/> naming
+    /// the sequence, the track, the cue and the problem; the sequence's check (M11 step 6, P20) reports it with
+    /// the same words at the path of what it names, first among its problems.
+    /// </summary>
     [Theory]
     [MemberData(nameof(BrokenCases))]
     public void ValidateRefusesASequenceBreakingARule(string label)
     {
-        var (make, problem) = Broken[label];
+        var (make, problem, path) = Broken[label];
         var sequence = make();
-        Assert.Contains(problem, Assert.Throws<ArgumentException>(sequence.Validate).Message);
+        var thrown = Assert.Throws<ArgumentException>(sequence.Validate).Message;
+        Assert.Contains(problem, thrown);
         Assert.Contains(problem, Assert.Throws<ArgumentException>(() => sequence.Validate(new Dictionary<string, ModelData> { [TestSequence.StagePath] = TestSequence.Stage() })).Message);
+        var problems = RecordChecks.Check(sequence);
+        Assert.Equal(thrown, problems[0].Message);
+        Assert.Contains(problems, p => p.Path.ToString() == path && p.Message.Contains(problem, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -248,35 +257,123 @@ public class SequenceRecordTests
         Valid().Validate(new Dictionary<string, ModelData> { [TestSequence.StagePath] = TestSequence.Stage() });
     }
 
-    static readonly Dictionary<string, (Func<Sequence> Make, string Problem)> BrokenWithTheStage = new()
+    static readonly Dictionary<string, (Func<Sequence> Make, string Problem, string Path)> BrokenWithTheStage = new()
     {
         ["stage node"] = (() => With(new TransformTrack { Node = "hierarchy/Nope", LocationX = Ramp(0, 1) }),
-            "track 1 (transform): its node hierarchy/Nope: the stage models/stages/hierarchy has no node Nope"),
-        ["mark node"] = (() => With(new ActorTrack { Actor = "hero", Mark = "hierarchy/Nope" }), "its mark hierarchy/Nope: the stage models/stages/hierarchy has no node Nope"),
-        ["stage clip"] = (() => Valid() with { Tracks = [new ClipTrack { Stage = "hierarchy", Strip = new("sweep") }] }, "track 0 (clip): the stage models/stages/hierarchy has no clip sweep"),
+            "track 1 (transform): its node hierarchy/Nope: the stage models/stages/hierarchy has no node Nope", "$.tracks[1].node"),
+        ["mark node"] = (() => With(new ActorTrack { Actor = "hero", Mark = "hierarchy/Nope" }), "its mark hierarchy/Nope: the stage models/stages/hierarchy has no node Nope", "$.tracks[1].mark"),
+        ["stage clip"] = (() => Valid() with { Tracks = [new ClipTrack { Stage = "hierarchy", Strip = new("sweep") }] }, "track 0 (clip): the stage models/stages/hierarchy has no clip sweep", "$.tracks[0].strip.clip"),
         ["marker name"] = (() => With(new EventTrack { Cues = [new(0, "x", "hierarchy/nope")] }),
-            "track 1 (event): cue 0's marker hierarchy/nope: the stage models/stages/hierarchy's clip base has no marker nope"),
+            "track 1 (event): cue 0's marker hierarchy/nope: the stage models/stages/hierarchy's clip base has no marker nope", "$.tracks[1].cues[0].marker"),
         ["marker clip track"] = (() => Valid() with { Tracks = [new EventTrack { Cues = [new(0, "x", "hierarchy/open")] }] },
-            "track 0 (event): cue 0's marker hierarchy/open: the stage models/stages/hierarchy has no clip track, so no markers on the timeline"),
+            "track 0 (event): cue 0's marker hierarchy/open: the stage models/stages/hierarchy has no clip track, so no markers on the timeline", "$.tracks[0].cues[0].marker"),
         ["marker outside"] = (() => With(new EventTrack { Cues = [new(1.7, "x", "hierarchy/open")] }),
-            "cue 0 at 1.7 s from the marker hierarchy/open falls at 2.1 s, outside the timeline (0–2 s)"),
-        ["marker before"] = (() => With(new EventTrack { Cues = [new(-0.5, "x", "hierarchy/open")] }), "falls at -0.09999999999999998 s, outside the timeline"),
-        ["stage missing"] = (() => Valid() with { Stages = [TestSequence.StagePath, "models/stages/arena"] }, "the sequence valid: its stage models/stages/arena isn't given"),
+            "cue 0 at 1.7 s from the marker hierarchy/open falls at 2.1 s, outside the timeline (0–2 s)", "$.tracks[1].cues[0].time"),
+        ["marker before"] = (() => With(new EventTrack { Cues = [new(-0.5, "x", "hierarchy/open")] }), "falls at -0.09999999999999998 s, outside the timeline", "$.tracks[1].cues[0].time"),
+        ["stage missing"] = (() => Valid() with { Stages = [TestSequence.StagePath, "models/stages/arena"] }, "the sequence valid: its stage models/stages/arena isn't given", "$.stages[1]"),
     };
 
     public static TheoryData<string> BrokenWithTheStageCases => [.. BrokenWithTheStage.Keys];
 
-    /// <summary>The names in its stages (Q15, S4-2): nodes, clips and markers, cues at markers within the timeline; a sequence that breaks none of them alone.</summary>
+    /// <summary>
+    /// The names in its stages (Q15, S4-2): nodes, clips and markers, cues at markers within the timeline; a
+    /// sequence that breaks none of them alone. Its check given the data the stage is in reports each at the
+    /// path of what it names (a stage the data doesn't have in <see cref="Sequence.Load"/>'s words).
+    /// </summary>
     [Theory]
     [MemberData(nameof(BrokenWithTheStageCases))]
     public void ValidateWithTheStagesRefusesNamesTheyDontHave(string label)
     {
-        var (make, problem) = BrokenWithTheStage[label];
+        var (make, problem, path) = BrokenWithTheStage[label];
         var sequence = make();
         if (label != "stage missing")
             sequence.Validate();
         var stages = new Dictionary<string, ModelData> { [TestSequence.StagePath] = TestSequence.Stage() };
         Assert.Contains(problem, Assert.Throws<ArgumentException>(() => sequence.Validate(stages)).Message);
+        Assert.Empty(RecordChecks.Check(sequence));
+        using var data = new StageData();
+        var problems = RecordChecks.Check(sequence, data.Files);
+        var expected = label == "stage missing" ? "its stage models/stages/arena isn't in the game's data" : problem;
+        Assert.Contains(problems, p => p.Path.ToString() == path && p.Message.Contains(expected, StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// The sequence's check goes on past a problem (M11 step 6): each role, stage, track field, strip, cue and span stops
+    /// at its own first problem and the rest is checked on, each problem at its path; a message about several fields
+    /// at each one that breaks it; nothing cascades from an empty clip.
+    /// </summary>
+    [Fact]
+    public void TheCheckReportsEveryBrokenPartAtItsPath()
+    {
+        var sequence = Valid() with
+        {
+            Roles = [.. Valid().Roles, new("hero", RoleKind.Node)],
+            Tracks =
+            [
+                new ClipTrack { Stage = "hierarchy", Strip = new("", Scale: 0, BlendIn: -1) },
+                new TransformTrack { Node = "nobody" },
+                new AudioTrack { Cues = [new(5, AudioCueKind.Effect, "hit", Volume: -1, Pitch: 0), new(0, AudioCueKind.Music)] },
+                new ActorTrack { Actor = "pivot", Strips = [new("swing", Repeat: 0), new("swing")], Cues = [new(0, "", ParameterKind.Float)] },
+            ],
+            Reduced = [new(0.5, 0.25), new(1, 1)],
+        };
+        Assert.Equal([
+                "$.roles[5].name", "$.tracks[0].strip.clip", "$.tracks[1].node", "$.tracks[1]",
+                "$.tracks[2].cues[0].time", "$.tracks[2].cues[0].volume", "$.tracks[2].cues[0].pitch", "$.tracks[2].cues[1].name",
+                "$.tracks[3].actor", "$.tracks[3].strips[0].repeat", "$.tracks[3].cues[0].parameter",
+                "$.reduced[0].to", "$.reduced[1]",
+            ],
+            SequenceChecks.Of(sequence).Select(p => p.Path.ToString()));
+        // With the stage given, the empty clip isn't looked for in it.
+        Assert.DoesNotContain(SequenceChecks.Of(sequence, new Dictionary<string, ModelData> { [TestSequence.StagePath] = TestSequence.Stage() }),
+            p => p.Message.Contains("has no clip", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// A stage not given doesn't stop the check at its tracks: a clip track, a node and a cue at a marker of it are left
+    /// to that problem (with the stages given, the first problem is the stage, as <see cref="Sequence.Validate(IReadOnlyDictionary{string, ModelData})"/> throws it).
+    /// </summary>
+    [Fact]
+    public void AStageNotGivenLeavesItsNamesAlone()
+    {
+        var sequence = Valid() with
+        {
+            Stages = [TestSequence.StagePath, "models/stages/arena"],
+            Tracks =
+            [
+                new ClipTrack { Stage = "hierarchy", Strip = new("base") }, new ClipTrack { Stage = "arena", Strip = new("sweep") },
+                new VisibilityTrack { Node = "arena/door", Cues = [new(0, true, "arena/open")] },
+            ],
+        };
+        var stages = new Dictionary<string, ModelData> { [TestSequence.StagePath] = TestSequence.Stage() };
+        Assert.Equal(["$.stages[1]: the sequence valid: its stage models/stages/arena isn't given"],
+            SequenceChecks.Of(sequence, stages).Select(p => $"{p.Path}: {p.Message}"));
+        Assert.Equal("the sequence valid: its stage models/stages/arena isn't given", Assert.Throws<ArgumentException>(() => sequence.Validate(stages)).Message);
+    }
+
+    /// <summary>The test stage (<see cref="TestSequence.Stage"/>) at its path in a pack of a temporary folder, mounted.</summary>
+    internal sealed class StageData : IDisposable
+    {
+        readonly TempFolder _folder = new();
+
+        public StageData(Action<PackWriter>? add = null)
+        {
+            var writer = new PackWriter();
+            writer.AddRecord(TestSequence.StagePath, TestSequence.Stage());
+            add?.Invoke(writer);
+            writer.Write(_folder["models.pak"]);
+            Files = new VirtualFileSystem([Mount.Pack(_folder["models.pak"])]);
+        }
+
+        public VirtualFileSystem Files { get; }
+
+        public string Pack => _folder["models.pak"];
+
+        public void Dispose()
+        {
+            Files.Dispose();
+            _folder.Dispose();
+        }
     }
 
     /// <summary>A stage's node its scene doesn't reach (no root above it) is no node of the stage: it is never instanced.</summary>
@@ -351,14 +448,21 @@ public class SequenceRecordTests
     /// <see cref="Sequence.Load"/> reads a sequence from a pack and from a loose folder with its stage from
     /// the same data; a broken one is a <see cref="DataFileException"/> naming the pack and entry or the
     /// file: a curve that breaks its rules, a rule of the sequence, a name its stage doesn't have, a stage
-    /// the data doesn't have (each with the exception inside).
+    /// the data doesn't have (each with the exception inside), a sound the data doesn't have (M11 step 6). The
+    /// data holds the test sequence's particle effect and sounds, and the sound pack for its theme.
     /// </summary>
     [Fact]
     public void SequencesLoadFromPacksAndLooseFilesAndBrokenOnesAreRefusedNamingTheFile()
     {
         var stage = TestSequence.Stage();
-        var broken = new Dictionary<string, (Sequence Sequence, string Problem, Type Inner)>
+        var patch = JiruanIntro.SoundPatches()[JiruanIntro.FlashSound];
+        var broken = new Dictionary<string, (Sequence Sequence, string Problem, Type? Inner)>
         {
+            ["world/cutscenes/sound"] = (With(new AudioTrack { Cues = [new(0, AudioCueKind.Effect, "boom")] }),
+                "not a valid sequence: the sequence valid, track 1 (audio): cue 0 plays the effect boom, which isn't in the game's data (audio/effects/boom)", null),
+            // The names in its stages come before the effects and sounds.
+            ["world/cutscenes/name-and-sound"] = (With(new AudioTrack { Cues = [new(0, AudioCueKind.Effect, "boom")] }, new VisibilityTrack { Node = "hierarchy/Nope", Cues = [new(0, true)] }),
+                "not a valid sequence: the sequence valid, track 2 (visibility): its node hierarchy/Nope: the stage models/stages/hierarchy has no node Nope", typeof(ArgumentException)),
             ["world/cutscenes/curve"] = (WithBrokenCurve(), "not a valid sequence: key 1 (at 0 s): keys must be in increasing time order at least 0.01 frame (1/6000 s) apart, and key 0 is at 0 s", typeof(ArgumentException)),
             ["world/cutscenes/rule"] = (Valid() with { Duration = -1 }, "not a valid sequence: the sequence valid: its duration (-1 s) must be a finite number above 0", typeof(ArgumentException)),
             ["world/cutscenes/name"] = (With(new VisibilityTrack { Node = "hierarchy/Nope", Cues = [new(0, true)] }),
@@ -374,21 +478,30 @@ public class SequenceRecordTests
         writer.Write(folder["world.pak"]);
         var models = new PackWriter();
         models.AddRecord(TestSequence.StagePath, stage);
+        models.AddRecord(TestSequence.EffectPath, TestSequence.Effect);
+        models.AddRecord("audio/effects/chime", patch);
+        models.AddRecord("audio/effects/thud", patch);
         models.Write(folder["models.pak"]);
-        using (var packed = new VirtualFileSystem([Mount.Pack(folder["models.pak"]), Mount.Pack(folder["world.pak"])]))
+        using (var packed = new VirtualFileSystem([Mount.Pack(JiruanIntro.SoundPack), Mount.Pack(folder["models.pak"]), Mount.Pack(folder["world.pak"])]))
         {
             RecordAssert.Equal(TestSequence.Build(stage), Sequence.Load(packed, "world/cutscenes/test"));
             foreach (var (path, (_, expected, inner)) in broken)
             {
                 var problem = Assert.Throws<DataFileException>(() => Sequence.Load(packed, path));
                 Assert.Equal((Path.GetFullPath(folder["world.pak"]), path, expected), (problem.File, problem.Entry, problem.Problem));
-                Assert.IsType(inner, problem.InnerException);
+                if (inner == null)
+                    Assert.Null(problem.InnerException);
+                else
+                    Assert.IsType(inner, problem.InnerException);
             }
         }
         folder.Write("dev/world/cutscenes/test.json", RecordSerializer.ToJson(TestSequence.Build(stage)));
         var file = folder.Write("dev/world/cutscenes/curve.json", RecordSerializer.ToJson(WithBrokenCurve()));
         folder.Write("dev/models/stages/hierarchy.json", RecordSerializer.ToJson(stage));
-        using var loose = new VirtualFileSystem([Mount.Folder(folder["dev"])]);
+        folder.Write("dev/models/effects/sparks.json", RecordSerializer.ToJson(TestSequence.Effect));
+        folder.Write("dev/audio/effects/chime.json", RecordSerializer.ToJson(patch));
+        folder.Write("dev/audio/effects/thud.json", RecordSerializer.ToJson(patch));
+        using var loose = new VirtualFileSystem([Mount.Pack(JiruanIntro.SoundPack), Mount.Folder(folder["dev"])]);
         RecordAssert.Equal(TestSequence.Build(stage), Sequence.Load(loose, "world/cutscenes/test"));
         var looseProblem = Assert.Throws<DataFileException>(() => Sequence.Load(loose, "world/cutscenes/curve"));
         Assert.Equal((Path.GetFullPath(file), (string?)null, broken["world/cutscenes/curve"].Problem), (looseProblem.File, looseProblem.Entry, looseProblem.Problem));
