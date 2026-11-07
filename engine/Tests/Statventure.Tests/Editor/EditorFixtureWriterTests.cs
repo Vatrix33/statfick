@@ -67,7 +67,10 @@ public class EditorFixtureWriterTests
     [Fact]
     public void TheListHoldsEveryPartsFixturesByNameAsPaintReferenceReadsThem()
     {
-        Assert.Equal(["dialog", "shell"], EditorFixtures.All.Select(f => f.Name));
+        // Every part's fixtures (the shell's among them), by name.
+        Assert.Equal(EditorFixtures.All.Select(f => f.Name).Order(StringComparer.Ordinal), EditorFixtures.All.Select(f => f.Name));
+        Assert.Equal("dialog", EditorFixtures.All[0].Name);
+        Assert.Contains("shell", EditorFixtures.All.Select(f => f.Name));
         var list = JsonDocument.Parse(EditorFixtures.ListJson()).RootElement;
         Assert.Equal(EditorFixtures.All.Count, list.GetArrayLength());
         var dialog = list[0];
@@ -79,7 +82,7 @@ public class EditorFixtureWriterTests
         Assert.Equal(EditorFixtures.Html(editor.Document), dialog.GetProperty("html").GetString());
         Assert.Contains("class=\"dialog-layer\"", dialog.GetProperty("html").GetString());
         Assert.Contains("<button class=\"primary\" type=\"button\" data-focus>OK</button>", dialog.GetProperty("html").GetString());
-        Assert.DoesNotContain("dialog-layer", list[1].GetProperty("html").GetString());
+        Assert.DoesNotContain("dialog-layer", list.EnumerateArray().Single(f => f.GetProperty("name").GetString() == "shell").GetProperty("html").GetString());
         // A fixture drawn with the window unfocused says so.
         var unfocused = JsonDocument.Parse(EditorFixtures.ListJson([new EditorFixture("blurred", 300, 200, _ => { }, WindowFocused: false)])).RootElement;
         Assert.False(Assert.Single(unfocused.EnumerateArray()).GetProperty("windowFocused").GetBoolean());

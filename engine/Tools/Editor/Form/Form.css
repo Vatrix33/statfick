@@ -1,0 +1,79 @@
+/* The form pane (Docs/Editor.md, "The form (step 9)"): the entry's head, the Form and JSON tabs, a row per field
+   (the name, the controls, the unit, tools), groups for records, lists and maps, problems under their rows in red
+   (P16); and the entry dialogs' fields. Controls keep the shell's colours (no color-scheme: convention 2). */
+.form-part, .dialog { --problem: #e5735f; }
+
+.form-part { padding: 8px 12px 16px; }
+.form-part input[type=text], .form-part input[type=number], .form-part select,
+.dialog .dialog-field input, .dialog .dialog-field select {
+  height: 22px;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--ink);
+  background: var(--paper);
+  font: inherit;
+  line-height: 20px;
+}
+.form-part input:disabled, .form-part select:disabled { color: var(--soft); background: var(--paper-deep); }
+.form-part input[type=checkbox], .form-part input[type=range] { accent-color: var(--ember); }
+.form-part input.bad { border-color: var(--problem); }
+
+/* The entry: its path, kind and actions. */
+.form-head { display: flex; align-items: center; gap: 8px; min-height: 28px; margin-bottom: 4px; }
+.form-title { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; }
+.form-path { font-weight: 700; }
+.form-kind, .form-state { margin-left: 10px; color: var(--muted); }
+.form-actions { display: flex; flex: none; gap: 4px; }
+.form-about { color: var(--muted); }
+
+/* The tabs. */
+.form-tabs { display: flex; margin-bottom: 8px; border-bottom: 1px solid var(--line); }
+.form-tabs .tab { height: 28px; padding: 0 14px; border: none; border-bottom: 2px solid transparent; border-radius: 0; color: var(--muted); background: transparent; line-height: 26px; }
+.form-tabs .tab.selected { border-bottom-color: var(--ember); color: var(--ink); }
+.form-tabs .tab:active:not(:disabled) { background: transparent; }
+
+/* The rows: a leaf's row is a line; a block's is a group (open), its nested rows indented under its summary. A
+   narrow pane shrinks the fields rather than wrapping the line. */
+.form-rows .row > .line { display: flex; align-items: center; min-height: 26px; }
+.form-rows .name { flex: none; width: 140px; padding-right: 8px; overflow: hidden; color: var(--muted); white-space: nowrap; }
+.form-rows .controls, .form-rows .inner { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
+.form-rows .controls input, .form-rows .controls select { flex: 0 1 auto; min-width: 48px; }
+.form-rows .controls input[type=checkbox] { flex: none; min-width: 0; }
+.form-rows .group > summary { min-height: 26px; line-height: 26px; white-space: nowrap; }
+.form-rows .group > summary > .name { display: inline-block; width: 127px; vertical-align: top; }
+.form-rows .group > summary > .controls, .form-rows .group > summary > .tools { height: 26px; vertical-align: top; }
+.form-rows .group .rows, .form-rows .group .items, .form-rows .group .entries { margin-left: 4px; padding-left: 12px; border-left: 1px solid var(--line); }
+.form-rows .name.key { display: flex; align-items: center; }
+.form-rows .name.key input, .form-rows .name.key select { width: 130px; }
+.form-rows .group > summary > .name.key { display: inline-flex; height: 26px; vertical-align: top; }
+.form-rows .tools { display: inline-flex; flex: none; align-items: center; gap: 2px; margin-left: 8px; }
+.form-rows button.tool { height: 20px; padding: 0 6px; color: var(--muted); line-height: 18px; }
+.form-rows button.tool:disabled { color: var(--soft); }
+.form-rows .text { width: 260px; }
+.form-rows .number { width: 150px; }
+.form-rows .component { width: 80px; }
+.form-rows .hex { width: 96px; }
+.form-rows .slider { width: 140px; margin: 0 4px; }
+.form-rows .unit, .form-rows .count, .form-rows .none, .form-rows .summary { color: var(--muted); }
+.form-rows .count { margin-right: 4px; }
+.form-rows .summary { overflow: hidden; white-space: nowrap; }
+.form-rows .swatch { flex: none; width: 18px; height: 18px; border: 1px solid var(--line); border-radius: 3px; }
+
+/* Problems (P16): under their row's line, red; the whole entry's at the top. */
+.form-part .problem { padding-left: 140px; color: var(--problem); line-height: 20px; }
+.form-problems .problem { padding-left: 0; }
+.form-rows .has-problem > .line > .name, .form-rows .has-problem > summary > .name { color: var(--problem); }
+
+/* The JSON tab (M11-18, P22). */
+.json-bar { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+.json-note { flex: 1; color: var(--muted); }
+.json-view.stale .json-note { color: var(--ember); }
+.json-text { margin: 0; padding: 6px 8px; overflow-x: auto; border: 1px solid var(--line); border-radius: 3px; background: var(--paper); font: inherit; line-height: 18px; white-space: pre; }
+.json-more { margin-top: 6px; color: var(--muted); }
+
+/* The entry dialogs' fields (New, Duplicate, Rename). */
+.dialog .dialog-field { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
+.dialog .dialog-label { flex: none; width: 110px; color: var(--muted); }
+.dialog .dialog-field input, .dialog .dialog-field select { flex: 1; min-width: 0; }
+.dialog .dialog-problem { min-height: 24px; color: var(--problem); }

@@ -137,11 +137,14 @@ public class ShellTests
         NotingPart.Attached.Clear();
         using var editor = new EditorHarness(parts: [typeof(PreviewPart), typeof(FormSecondToo), typeof(EntriesLate), typeof(FormSecond), typeof(NoPane), typeof(FormFirst), typeof(RecordingPart)]);
         Assert.Equal(["NoPane", "EntriesLate", "FormFirst", "FormSecond", "FormSecondToo", "PreviewPart"], NotingPart.Attached);
-        Assert.Equal(["NoPane", "RecordingPart", "EntriesLate", "FormFirst", "FormSecond", "FormSecondToo", "PreviewPart"], editor.View.Parts.Select(p => p.GetType().Name));
+        // The test parts among the editor's own (the later steps' parts are attached by the same rule).
+        Assert.Equal(["NoPane", "RecordingPart", "EntriesLate", "FormFirst", "FormSecond", "FormSecondToo", "PreviewPart"],
+            editor.View.Parts.Where(p => p.GetType().Assembly == typeof(NotingPart).Assembly).Select(p => p.GetType().Name));
         Assert.Null(editor.View.Part<NoPane>().Element);
         // A part with a pane has its own element there, stacked in order.
+        var noted = editor.View.Parts.OfType<NotingPart>().Select(p => p.Element).ToList();
         Assert.Equal([editor.View.Part<FormFirst>().Element, editor.View.Part<FormSecond>().Element, editor.View.Part<FormSecondToo>().Element],
-            editor.View.Pane(EditorPane.Form).ElementChildren);
+            editor.View.Pane(EditorPane.Form).ElementChildren.Where(noted.Contains));
         Assert.All(editor.View.Parts.OfType<NotingPart>().Where(p => p.Pane is not null), p => Assert.Equal("part", p.Element!.ClassName));
         Assert.Same(editor.View.Pane(EditorPane.Preview), editor.View.Part<PreviewPart>().Element!.Parent);
         Assert.All(editor.View.Parts.OfType<NotingPart>(), p => Assert.True(p.HadSessionAndView));

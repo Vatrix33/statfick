@@ -359,6 +359,16 @@ M9 left for the port's file picker (Q19).
   as `PaintFixtures` are), screenshotted by `Tools/PaintReference` at 1 and 1.65, and compared with the
   engine's paint of the live document at the paint fixtures' limits (12 levels, 0.2 %). The preview pane is
   left out (P36). A difference is a rule to find, as everywhere.
+- **Capturing the screens without a window on the user's screen** (found by step 9, 2026-11-07): run
+  `make-editor-references.sh`'s harness inside a headless `cage` (`WLR_BACKENDS=headless`, the user's `DISPLAY` and
+  `WAYLAND_DISPLAY` unset; cage gives it an Xwayland of its own). Two quirks there: **at 1.65 a PaintReference run
+  stalls after its first fixture, so capture one fixture per run** (`claude-work/m11/step9-capture-scale.sh 1.65 -
+  <names>`); and cage makes a window larger than its 1280 × 720 output that size, cutting the capture, so at 1× give the
+  headless output a large mode first (`wlr-randr --output HEADLESS-1 --custom-mode 2400x2400`;
+  `claude-work/m11/step9-capture.sh <names>`), and at 1.65 leave it as it is (with the large mode even a first fixture
+  stalled). Both ways give the shell's committed goldens pixel for pixel. A fixture far taller than a screen (2,460 px)
+  never captured at 1.65: split such a screen into parts (step 9's form is two fixtures, the second scrolled).
+  End a wrapper's own cage when its command ends (a cage outliving its child held the shared lock once).
 - **Behaviour through data and UI events:** tests drive the editor's document with the UI's input (pointer,
   keys, text, as `UiInputTests` do) and check the session's data: drafts, histories, problems, references,
   the packs it writes (read back as the game reads them, mounted in `Application.DataMounts`' order), the
@@ -618,6 +628,10 @@ at the manager's discretion), every one as recommended: the option marked "(a, d
   on the first change ("Revert to the game's" removes the copy); game entries can't be renamed or removed in a
   mod (mods can't delete, Q8). Why: overriding is what a mod does, without a step in between. (b) An explicit
   "Override in this mod" first. (c) Only the mod's own entries editable.
+  *Revert (the manager, 2026-11-06, at step 9's report):* the data side is step 9's: the session reverts an entry
+  that is the mod's own copy over a game entry (the copy dropped, the game's entry shown again with its history
+  cleared), not undoable and asking first like a removal (M11-7), and the form shows the button only for such
+  entries; step 11 wires it to saving ("How it works", step 9).
 - **P8. The entry list.** (a, decided by the manager, 2026-11-06) A tree by path with the kind's name beside
   each entry, a filter, and marks for changed, added, overriding, problems and unreadable. Why: paths are the
   data's own order (folders by area and kind). (b) Grouped by kind, flat. (c) One flat sorted list.
@@ -1588,6 +1602,164 @@ has no marks, and no `[Kind]`: without it the kind's display name is made from t
 has no folder, which is right, as a mod has one info at the fixed path `mod/info` rather than entries named in a
 folder (a folder `mod` would let P15's New make `mod/<name>` entries); step 11 edits it in a form of its own.
 
+### Step 9: the form, undo and the JSON view (2026-11-07)
+
+**Files.** `Tools/Editor/Session/`: `EditorEntry.cs` (the working entry), `EditorSession.Drafts.cs` (the session's
+entries, selection, commits and histories, New, Duplicate, Rename, Remove, Revert). `Tools/Editor/Form/`:
+`FormPart.cs` (the form pane: head, tabs, Undo and Redo, the JSON tab; `IExportFilePicker`), `FormView.cs` (one
+entry's rows, problems and typing state), `ValueEditors.cs` (a control per value shape, and `Rows`), `Slot.cs`
+(where a value sits in a draft), `ValueText.cs` (numbers, colours and start values as text), `EntryActions.cs` (the
+entry dialogs, F2 and Delete), `Form.css`. Tests in `Tests/Statventure.Tests/Editor/Form/`: `FormTesting.cs` (the
+helpers and `ScratchExportPicker`), `SessionEntriesTests.cs`, `FormEditingTests.cs`, `FormUndoTests.cs`,
+`EntryActionTests.cs`, `JsonTabTests.cs`, `EngineKindsFormTests.cs`, `FormVariants.cs` (a union whose subtypes share a field name with two kinds of value, in the variants' namespace), `FormScreens.cs` (the fixtures `form-controls`,
+`form-controls-end` and `form-json`); goldens `Golden/editor-form-controls@1.png` and `@1.65.png`,
+`editor-form-controls-end@…`, `editor-form-json@…`. Two tests of step 4's written before the editor had parts of its
+own now look at their own parts among the editor's (`Shell/ShellTests.cs`, the parts' order; `EditorFixtureWriterTests.cs`,
+the fixture list), as step 8's parts will need too.
+
+**The session's entries: the API step 8 (and steps 10, 11, 13) use.** All in `Statventure.Editor.Session`; no DOM.
+- **An entry** is an `EditorEntry`, made by whoever lists entries: `EditorEntry.ForRecord(path, record, source,
+  readOnly = false)` (the record as `RecordSerializer.FromBinary` gives it, of any version), `ForFile(path, size,
+  source)`, `ForUnreadable(path, reason, source)` (both always read-only); `source` is `EntrySource.Pack` (the open
+  pack's) or `EntrySource.Game` (a game pack's, the base the open pack is seen over); `EntrySource.New` entries are
+  made only by the session. `readOnly` is for a game entry that can't be copied into the open pack (P7: the step
+  that lists decides). An entry has `Path` (changed by a rename), `SavedPath` (the path in its pack; null for a new
+  one), `Source`, `Content` (`Record`, `File`, `Unreadable`), `IsRecord`, `Kind` (the `RecordShape`; null for files
+  and unreadable entries), `KindName` (its display name, "File", "Unreadable"), `Name` (in its kind's folder by its
+  rule, else the last path segment), `Saved` (the record as read), `SavedDraft`, `Draft` (the current step of its
+  history), `Build` (the current draft built), `Builds`, `LastBuilt` (the last value that built: the JSON tab's and
+  the preview's last valid state), `Problems` (the draft's build problems while it doesn't build, else what the
+  session's checks give), `History` and `HistoryPosition`, `CanUndo`, `CanRedo`, `IsChanged` (a new entry always; a
+  record whose current draft isn't the saved one and doesn't build into the saved record's binary form in the
+  current versions: an edit taken back by another isn't a change), `IsRenamed`, `ReadOnly`, `FileSize`, `Reason`.
+- **The set:** `Session.ShowEntries(entries)` replaces it (the open pack's entries and the game's; where both have a
+  path, the pack's is shown and the game's kept under it, `Session.Overridden(path)`); it clears the selection and
+  the removed list and reports `EntriesChangeKind.Shown`. `Session.Entries` (shown, by path, ordinal),
+  `Session.Entry(path)`, `Session.Removed` (the pack's entries removed since: saving leaves them out). `Session.Types`
+  (the record kinds known; the engine's by default) and `Session.Writable` (the open pack takes changes: a mod, or in
+  the dev setup a game pack; false with no pack or one that can't be fully read, M11-16; set by step 8 when it opens
+  a pack). Nothing can be edited, added, renamed, removed or reverted while it is false.
+- **Selected and shown:** `Session.Select(entry or null)` (one of `Entries`); `Session.Selected`;
+  `Session.SelectionChanged`. The form shows the selected entry; the list (step 8) selects on a click or Enter and
+  highlights on `SelectionChanged` (the session also selects: New and Duplicate select what they made, Remove clears
+  the selection, Revert moves it to the game's entry).
+- **Editing:** `Session.CanEdit(entry)` (writable, a record, not read-only; a game entry too: its first change makes
+  the mod's own copy, P7); `Session.Commit(entry, draft)` (one step of the entry's history; false when it is the
+  current draft), `Session.Undo(entry)`, `Session.Redo(entry)` (M11-7: only that entry), each reported by
+  `Session.EntryChanged`. Checks (step 10): `Session.AddCheck((entry, built) => problems)` (run when an entry's draft
+  changes and builds) and `Session.Recheck(entry)` (run them again, e.g. after a pause; reported as changed).
+- **New, Duplicate, Rename, Remove, Revert** (not undoable; M11-7, P14, P15, P7). The session's methods act at once:
+  `Session.Add(path, draft)` (a New entry, `Source` New), `Session.Duplicate(entry, path)` (a copy of its current
+  draft), `Session.Rename(entry, path)`, `Session.Remove(entry)`, `Session.Revert(entry)`; with `Session.CanAdd`,
+  `Session.CanRenameOrRemove(entry)` (the pack's own and new entries; never a game entry, P7), `Session.IsModCopy(entry)`
+  (an entry of the pack over a game entry, or a game entry changed in this session), `Session.CanRevert(entry)`,
+  `Session.PathProblem(path, except)` (the path rule, an entry there, an entry that is a folder of it or below it, in
+  words), `Session.NewKinds()` (every plain kind of `Types` by display name; unions offer their subtypes). A rename
+  or removal of the pack's entry over a game entry shows the game's again; a revert drops the copy (the pack's goes to
+  `Removed`) and shows the game's with its history cleared. Every change of the set is reported by
+  `Session.EntriesChanged` with an `EntriesChange(Kind, Entry, OldPath)`: `Shown`, `Added` (made, or a game entry
+  shown again), `Removed`, `Renamed` (with the old path).
+- **Asking first** is the view's: `View.Part<EntryActions>()` has `New(kind?)`, `Duplicate(entry)`, `Rename(entry)`,
+  `Remove(entry)`, `Revert(entry)`, each showing its dialog and acting only when the user confirms (giving the entry
+  made, or whether it acted). Step 8's list calls these (from its buttons, menus or keys), never the session's
+  methods directly; call them from the editor's own listeners (a task of the document's loop), where what they do
+  after the dialog closes runs. F2 and Delete already ask for the selected entry (Delete only when the key isn't in
+  the form's rows, whose controls own it). Other parts add to these dialogs through `EntryActions.Asking` (an
+  `EntryDialog`: its action, entry and dialog, and `Confirmed`, actions run after the session's change with the new
+  path, null for a removal): step 10's referrers (P19).
+- **Unsaved work:** the entries register `Session.HasUnsavedEntries` (an entry changed, renamed or added, or one of
+  the pack's removed) as a source of the title's "•" when entries are first shown or added. Saving (step 11)
+  resets what it saved in a file of its own (the classes are partial).
+
+**The form** (`FormPart`, the form pane; nothing shows while no entry is selected). The head: the entry's path,
+its kind's name, "read-only" when it can't be edited, and Revert to the game's (shown only for the pack's own copy
+of a game entry), Duplicate, Rename, Remove (each enabled as the session allows). Two tabs (Form, JSON; P22; the
+arrow keys move between them; the tab chosen stays when another entry is selected). A record entry's rows come from
+its kind's shape (P11) and are brought up to date in place after every change of the draft (`FormView.Update`): a
+group is rebuilt only when its structure changes (a list's or map's count, a union's subtype, a nullable set or
+unset), so focus, open groups and a field's text survive. A file says its size; an unreadable entry its reason.
+- **Rows:** a leaf's row is `div.row` with a line (`div.line`: the name, the controls, tools); a record, union, list,
+  map (or a nullable one of them) is a group, `details.group` (open) with the same line as its summary and its rows
+  indented under it. Each row has `data-path`, its path as problems name it (`$.layers[0].length`; a map's value by
+  its key's text). Names are the fields' display names (M11-10), their help as the name's tooltip, units after the
+  numbers; list elements are named by index from 0 (as the engine's messages count them).
+- **Controls** (P11): a bool a checkbox; a number a number field (`step` 1 for whole numbers, `any` for floats; `min`
+  and `max` its kind's range and the field's limits) with a slider (`input type=range`, out of the tab order) when the
+  field's limits are both finite (M11-10); a string a text field, with a swatch before it for a colour mark; a string
+  with choices and an enum a select (a value not among them shows as "x (not a choice)", "3 (not a member)"; the
+  empty choice as "(empty)"); a vector 2–4 number fields (X Y Z W), a colour vector a swatch and `#rrggbb`
+  (`#rrggbbaa` for a Vector4, `#rrggbb` keeping alpha 1; 255 steps, rounded to the nearest, clamped); byte arrays,
+  quaternions, matrices and bulk fields read-only text (a bulk field its `Summarize`, P21; a list of matrices can't
+  grow); a nullable a "set" box before its value's controls ("none" when unset); a record its rows (one not given
+  yet: Make, its blank draft); a union a select of its subtypes and the chosen one's rows (switching keeps the values
+  of fields of the same JSON name and value signature); a list its elements with Up, Down, Remove and Add at the end;
+  a dictionary its entries, the key in the name's place, with Remove and Add; ordered pairs with Up and Down too. A
+  value made by the form starts as `ValueText.Start`: zero, false, "", the first member, an empty list or map, a
+  record's blank, a union's first subtype's blank, and a nullable as its value's start, not null; a map's new key is
+  "" (then "new", "new 2" …), the next integer above the largest, or the first member not used.
+- **Commits** (P12, P13): a text field commits on its change event (Enter, leaving it, a spin button's release, an
+  arrow key's step); its text is read in the invariant form (`ValueText.TryNumber`: a point, an exponent allowed;
+  whole numbers in their kind's range; a float32 not past its range); text that doesn't read stays in the field,
+  marked (`bad`, a red border) with why under its row ("\"300\" isn't a whole number from -128 to 127", "needs a
+  number", "\"#12\" isn't a colour (#rrggbb)"), and isn't committed; the same value typed another way ("0.10") is no
+  commit, and the field shows it as the form writes it (the shortest round-trip text). A slider moves the field's
+  text while dragged and commits once on release; a checkbox, select, set box and the list and map buttons commit at
+  once. Enter in the text field of a required value not given yet gives it (an empty text too). A field's text is
+  put back from the draft only when the draft's value there changed (undo, redo, another commit), so text that
+  doesn't read survives other commits.
+- **Undo and redo** (M11-7, P13): the shell's Undo and Redo (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z, the top bar's buttons)
+  are the selected entry's history, enabled while it has a step to go to and can be edited. A key in one of the
+  form's fields that has typing of its own is left to the field: Undo while its text isn't the committed one, Redo
+  while it has undone its own typing since (or has typing not committed); the field's own editing undo does it (the
+  document's undo stack, Blink's). The top bar's buttons always act on the entry (the field commits as it loses the
+  focus first).
+- **Problems** (P16; step 10 adds its checks through `Session.AddCheck`): under their row's line in red (a group's
+  before its nested rows), the row's name red; a path without a row of its own under its nearest row above (a bulk
+  field's element); the whole entry's at the form's top; and why a field's text doesn't read, under its row.
+- **The JSON tab** (M11-18, P22): `RecordSerializer.ToJson` of the draft when it builds, else of the last one that
+  did ("The entry doesn't build now: this is the last version that did.", in ember), or nothing for an entry that
+  never built; at most the first 2,000 lines shown (`FormPart.JsonLines`; "N more lines: copy or export the entry for
+  all of it."), in the editor's Lato (not monospace: the fonts the Chromium comparison has). Copy writes it all to the
+  document's clipboard (the system's in the program, `UiHost`; tests: the document's own stand-in), with a status
+  line. Export asks an `IExportFilePicker` for a file (`PickExportFile(title, suggestedName)`: "Export <path>",
+  "<name>.json") and writes it all there; a write that fails says why in a dialog. The picker is `FormPart.ExportPicker`
+  when set, else the first part that implements the interface: **step 8's file browser implements
+  `IExportFilePicker`** (any ending, M11-9); until then Export is disabled ("Export needs the file browser").
+
+**Screens against Chromium (P36):** the form with every control kind and a problem, in two halves of one window
+(`form-controls` and `form-controls-end`, 1280 × 1400: a `test.kinds` record with a value in every kind of field and
+an element in a few lists and maps, its required text taken out so "needs a value" shows; the second with the form
+pane scrolled by 1,020 px, short of its end so a pixel of height can't move it), and `form-json` (1280 × 800: the JSON
+tab of audio.pak's `audio/instruments/harp`, Export enabled through a picker set in the fixture). Captured with
+PaintReference, `make-editor-references.sh`'s harness and flags, inside a headless `cage` (its own Xwayland: no
+window reaches the user's screen): at 1× the repo's script with the headless output made 2400 × 2400 first
+(`wlr-randr --custom-mode`; cage made a window larger than its 1280 × 720 output that size, cutting the capture),
+at 1.65 one fixture per Chromium run with the output as it is (a 1.65 run there stalls after its first fixture);
+`claude-work/m11/step9-capture.sh` and `step9-capture-scale.sh`. Both ways give the shell's committed goldens pixel
+for pixel at 1 and 1.65. One fixture as tall as the whole form (2,460 px) stalled at 1.65 in any one run, hence the
+two halves.
+
+**Choices the design left to the step** (made here, the manager's word on those marked so, 2026-11-06): the names
+above; the session API's shape (the entries' set with the game's kept under the pack's, `Writable`, the events, the
+asking methods on `EntryActions` and the `Asking` hook); New offering every plain kind until kinds have folder marks
+(confirmed by the manager); Export disabled until the file browser exists (confirmed); the JSON tab at most 2,000
+lines, copy and export giving all (confirmed); Delete only from outside the form's rows (confirmed); list elements
+numbered from 0 (confirmed); a red of the editor's own for problems, `--problem: #e5735f` (the game's dark colours
+have none; confirmed); "Revert to the game's" (P7) built here on the data side and as the head's button (the
+manager's decision, 2026-11-06; step 11 wires it to saving); changed meaning a different binary form (an edit taken
+back isn't a change); a field's own typing undone first while its text isn't the committed one; Enter giving a
+required value not given yet; a new map key's and a started value's rules; the rows' look (names 140 px, rows 26 px,
+groups open, nested rows indented with a line); the dialogs' words ("That can't be its path: …").
+
+**Found** (reported to the manager, the engine not changed):
+- *A select with author padding is 6–7 px wider in the engine than in Chromium.* The form's selects (`padding: 0 4px;
+  border: 1px solid; height: 22px; font: 13px Lato`, `appearance` left auto) measure 79, 67 and 80 px in the engine and
+  72, 61 and 73 px in Chromium (`form-controls` at 1×: the Shade, Huge and Words selects, their borders found in the
+  render and the golden), so what follows a select on its line moves too. Within the limits (`form-controls` 0.108 % at
+  1× and 0.139 % at 1.65, `form-controls-end` 0.115 % and 0.155 %, mostly this); a rule of the menu list's intrinsic
+  width to find (the engine's own UI, not this step's): an open item in `Docs/Engine-Plan.md`, "Small tasks left from
+  earlier milestones", and in M5's known differences.
+
 ## Status
 
 **Where M11 stands (2026-11-07, 18:10):** on `main` (`3e6df0f`): steps 1, 2, 3, 4, 5 and 7; in progress on worker branches, not on `main`: steps 6 (`m11-step6`), 8 (`m11-step8`) and 9 (`m11-step9`); to come: steps 10, 12 and 13, then 11 and 14. The full suite on `main`: 2940 tests, passing on the GPU and on lavapipe, nothing held (`Docs/Engine-Plan.md`, "Current task").
@@ -1723,3 +1895,22 @@ the type changes that build, killed). Nothing written to the player's real folde
 does (no listing, check or log line of the game's); nothing of P1–P38 or G1–G6 changed; the step's own choices are
 at the end of "How it works", step 7 (among them each field defaulting to empty text, not required). Not checked:
 Windows (nothing of the step depends on the system).
+
+**Step 9, the form, undo and the JSON view (editor): done (2026-11-07, on the worker branch `m11-step9`, rebased on
+`6a8cd78`).** ("How it works", step 9.) The session's entries (the set shown, the pack's over the game's, the
+selection, commits with each entry's own history, what counts as changed, the problems with a hook for step 10's
+checks; New, Duplicate, Rename, Remove and Revert, each reported) and the form over them: a row per field of every
+kind of value through UI events (`test.kinds`' 63 fields: each integer kind, floats in their shortest form, text,
+colour text and vectors, choices and members, nullables set and unset, vectors, lists, maps and pairs with their
+keys, records, a record not given made, unions switched keeping their shared fields, bulk and read-only values never
+changed), text that doesn't read kept out and marked, a slider's drag one step; undo and redo per entry by the keys
+and buttons, a field's own typing undone and redone first; the entry dialogs asking first (names in the kind's
+folder by its rule, paths checked), F2 and Delete; the JSON tab with copy and export (through the file browser's
+`IExportFilePicker`, step 8's); every engine record kind shown and edited, every record of audio.pak shown as read.
+The screens against Chromium (P36, at 1 and 1.65; the paint fixtures' limits, 12 levels and 0.2 %):
+`form-controls` 0.108 % and 0.139 %, `form-controls-end` 0.115 % and 0.155 %, `form-json` 0 and 0.001 %; most of
+the form's differences are one engine rule, found and reported (a select with author padding 6–7 px wider than
+Chromium's). 149 tests (`Tests/Statventure.Tests/Editor/Form/`); the full suite passes on the GPU and on lavapipe
+inside a headless Wayland compositor: 3089 tests (`main`'s 2940 on `3e6df0f`, where they ran, and 149 new). Mutations: 231 run (`~/.cache/stat-fick-build/claude-work/m11/step9-mutations.json`, made by `make-step9-mutations.py` beside it; four chunks, then two reruns, `step9-rerun.json` and `step9-mutations-rerun2.json`): 207 killed at first; of the 22 that survived, 16 were gaps closed by new tests or assertions (a new entry shown, the removed list on a new set, a removal and a rename alone as unsaved work, an untouched entry whose record can't be written, an alpha typed into a Vector3, a new integer key above the largest, a colour text that isn't one in the swatch (two), a member's display name of two words, a union's switch between fields of one name and two kinds, a map entry removing itself, Undo and Revert once the pack takes no changes (two), a rename to the same name, a cancelled dialog's additions: with it, a same-name rename no longer runs them), 3 were redundant code, removed (a game entry's history cleared on a revert, though it was never shown; a field's mark cleared twice; the read-only guards no event reaches), and 3 are looks under the screens' limits (the problems' red, the selected tab's underline, the head's bold path: a few hundred pixels each where the form screens are at 0.11–0.16 % of the 0.2 %); 2 didn't build and were rewritten; the reruns (24) killed all, so the list as it stands (228) is all killed but those 3 looks; nothing written to the player's real folders. The manager's decisions of 2026-11-06 recorded (Revert,
+P7; New's kinds, Export until the browser, the JSON tab's 2,000 lines, Delete outside the rows, elements from 0,
+the problems' red, confirmed). Not checked: the program in a real window (to check by hand), Windows.
