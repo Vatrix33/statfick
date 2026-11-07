@@ -38,7 +38,9 @@ public class ShellTests
         Assert.Equal(["New mod", "Open", "Save", "Save As", "Import", "Undo", "Redo"], buttons.Select(b => b.TextContent));
         EditorCommand[] commands = [EditorCommand.NewMod, EditorCommand.Open, EditorCommand.Save, EditorCommand.SaveAs, EditorCommand.Import, EditorCommand.Undo, EditorCommand.Redo];
         Assert.Equal(buttons, commands.Select(c => editor.View.Button(c)));
-        Assert.All(buttons, b => Assert.True(b.IsDisabled));
+        // Open is the editor's own from step 8 (Browser.Opener); the others wait for their parts.
+        Assert.All(buttons.Where(b => b != editor.View.Button(EditorCommand.Open)), b => Assert.True(b.IsDisabled));
+        Assert.False(editor.View.Button(EditorCommand.Open)!.IsDisabled);
         Assert.Null(editor.View.Button(EditorCommand.Rename));
     }
 
@@ -161,8 +163,8 @@ public class ShellTests
         Assert.DoesNotContain(typeof(NotingPart), found);
         Assert.Equal(found.Select(t => t.FullName).Order(StringComparer.Ordinal), found.Select(t => t.FullName));
         Assert.All(found, t => Assert.True(t.IsSubclassOf(typeof(EditorPart))));
-        // The editor's own parts are those of its assembly (none before step 8).
+        // The editor's own parts are those of its assembly (attached in the order of their panes).
         using var editor = new EditorHarness();
-        Assert.Equal(EditorPart.Find(typeof(EditorView).Assembly), editor.View.Parts.Select(p => p.GetType()));
+        Assert.Equal(EditorPart.Find(typeof(EditorView).Assembly), editor.View.Parts.Select(p => p.GetType()).OrderBy(t => t.FullName, StringComparer.Ordinal));
     }
 }

@@ -107,11 +107,10 @@ public class JsonTabTests
         picker.Next = "other.json";
         Assert.Null(editor.Done(editor.Ask(_ => editor.Form().ExportJson())));
         Assert.False(File.Exists(Path.Combine(picker.Folder, "other.json")));
-        // Without a file browser there is no export.
+        // None set: the file browser (step 8) picks.
         editor.Form().ExportPicker = null;
-        Assert.True(Button(editor, "export").HasAttribute("disabled"));
-        Assert.Equal("Export needs the file browser", Button(editor, "export").GetAttribute("title"));
-        Assert.Null(editor.Done(editor.Ask(_ => editor.Form().ExportJson())));
+        Assert.Same(editor.View.Part<Statventure.Editor.Browser.FileBrowserPart>(), editor.Form().ExportPicker);
+        Assert.False(Button(editor, "export").HasAttribute("disabled"));
     }
 
     [Fact]

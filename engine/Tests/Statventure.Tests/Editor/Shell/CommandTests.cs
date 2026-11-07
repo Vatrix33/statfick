@@ -51,11 +51,11 @@ public class CommandTests
         Assert.True(save.IsDisabled);
         editor.Click(save);
         Assert.Single(part.Requests);
-        // A handler registered later enables its button at once.
+        // A handler registered later enables its button at once (Import: no part of the editor's handles it yet).
         using var bare = new EditorHarness();
-        Assert.True(bare.View.Button(EditorCommand.Open)!.IsDisabled);
-        bare.View.Commands.Handle(EditorCommand.Open, _ => true);
-        Assert.False(bare.View.Button(EditorCommand.Open)!.IsDisabled);
+        Assert.True(bare.View.Button(EditorCommand.Import)!.IsDisabled);
+        bare.View.Commands.Handle(EditorCommand.Import, _ => true);
+        Assert.False(bare.View.Button(EditorCommand.Import)!.IsDisabled);
     }
 
     public static TheoryData<string, string, KeyModifiers, EditorCommand?> Chords => new()
@@ -108,6 +108,21 @@ public class CommandTests
         if (command is null)
         {
             Assert.Empty(part.Requests);
+            return;
+        }
+        // Open and Filter are the editor's own parts' from step 8 (the browser opens; the entry list's filter takes the focus), before the test's part.
+        if (command == EditorCommand.Open)
+        {
+            Assert.Empty(part.Requests);
+            Assert.Equal("Open a pack", editor.View.Dialogs.Top!.Element.ElementChildren.First().TextContent);
+            Assert.False(allowed);
+            return;
+        }
+        if (command == EditorCommand.Filter)
+        {
+            Assert.Empty(part.Requests);
+            Assert.True(editor.Document.FocusedElement!.HasClass("entries-filter"));
+            Assert.False(allowed);
             return;
         }
         var request = Assert.Single(part.Requests);

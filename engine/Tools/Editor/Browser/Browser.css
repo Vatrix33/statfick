@@ -1,0 +1,39 @@
+/* The file browser (Docs/Editor.md, "Opening packs (step 8)", M11-9, P26): a dialog over the shell, wider than the
+   others; the places on the left, the folder's listing with its path field on the right. */
+.dialog.browser-dialog { width: 760px; --problem: #e5735f; }
+.browser { display: flex; gap: 12px; height: 380px; }
+.browser-places { display: flex; flex: none; flex-direction: column; width: 150px; overflow: auto; }
+.browser-places-title { margin-top: 8px; padding: 0 8px; color: var(--soft); }
+.browser button.browser-place { flex: none; overflow: hidden; border-color: transparent; background: transparent; text-align: left; text-overflow: ellipsis; }
+.browser button.browser-place.current { background: var(--ember-pale); }
+.browser-main { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.browser-bar { display: flex; flex: none; align-items: center; gap: 8px; margin-bottom: 6px; }
+.browser-where { flex: 1; min-width: 0; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.browser-hidden { display: flex; flex: none; align-items: center; gap: 4px; color: var(--muted); }
+.browser-hidden input { margin: 0; accent-color: var(--ember); }
+.browser-head, .browser-row { display: flex; gap: 12px; padding: 0 8px; white-space: nowrap; }
+.browser-head { flex: none; border-bottom: 1px solid var(--line); color: var(--soft); }
+.browser-head .name, .browser-row .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.browser-head .size, .browser-row .size { flex: none; width: 70px; text-align: right; }
+.browser-head .date, .browser-row .date { flex: none; width: 120px; }
+.browser-row .size, .browser-row .date { color: var(--muted); }
+.browser-listing { flex: 1; min-height: 0; overflow: auto; border: 1px solid var(--line); border-top: none; background: var(--paper); }
+.browser-listing:focus { outline: none; }
+.browser-listing:focus-visible { outline: 2px solid var(--ember); outline-offset: -2px; }
+.browser-row { height: var(--row); line-height: var(--row); cursor: default; user-select: none; }
+.browser-row.selected { background: var(--ember-pale); }
+.browser-empty { padding: 0 8px; color: var(--muted); }
+.browser-path { flex: none; margin-top: 8px; }
+.browser-path input {
+  display: block;
+  width: 100%;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--ink);
+  background: var(--paper);
+  font: inherit;
+  line-height: 22px;
+}
+.browser-message { flex: none; min-height: 24px; color: var(--problem); }

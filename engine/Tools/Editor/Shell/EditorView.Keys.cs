@@ -20,6 +20,29 @@ public sealed partial class EditorView
     public Action<float>? ApplyZoom { get; set; }
 
     /// <summary>
+    /// The zoom level (<see cref="Zoom"/> is 1.2 to its power): 0 at the start, moved by half a step by the zoom keys;
+    /// set from the editor's settings when it starts (step 8: <c>editor/shell.json</c>, P4, G6), put into effect at once.
+    /// Only a level the keys can reach can be set (<see cref="IsZoomLevel"/>).
+    /// </summary>
+    public double ZoomLevel
+    {
+        get => _zoomLevel;
+        set
+        {
+            if (!IsZoomLevel(value))
+                throw new ArgumentOutOfRangeException(nameof(value), value, "not a zoom level the shell has (a half step from 53 % to 299 %)");
+            SetZoomLevel(value);
+        }
+    }
+
+    /// <summary>Whether <paramref name="level"/> is a level the zoom keys reach: a half step, its zoom within <see cref="MinZoom"/> and <see cref="MaxZoom"/>.</summary>
+    public static bool IsZoomLevel(double level) =>
+        level * 2 == Math.Round(level * 2) && Math.Pow(1.2, level) is >= MinZoom and <= MaxZoom;
+
+    /// <summary>The zoom level changed (by a key, or set).</summary>
+    public event Action? ZoomChanged;
+
+    /// <summary>
     /// The shell's keys (Docs/Editor.md, "The shell (step 4)"), each a command given to the parts' handlers:
     /// Ctrl+S, Ctrl+Shift+S, Ctrl+O, Ctrl+Z, Ctrl+Y and Ctrl+Shift+Z, Ctrl+F, F2, Delete, Ctrl+= (or +) and Ctrl+-.
     /// </summary>
@@ -90,11 +113,17 @@ public sealed partial class EditorView
         var zoom = Math.Pow(1.2, level);
         if (zoom < MinZoom || zoom > MaxZoom)
             return true;
+        SetZoomLevel(level);
+        return true;
+    }
+
+    void SetZoomLevel(double level)
+    {
         _zoomLevel = level;
         if (ApplyZoom is { } apply)
             apply(Zoom);
         else
             Document.SetZoom(Document.DeviceScale, Zoom);
-        return true;
+        ZoomChanged?.Invoke();
     }
 }

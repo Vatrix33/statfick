@@ -69,16 +69,17 @@ public class EditorFixtureWriterTests
     {
         // Every part's fixtures (the shell's among them), by name.
         Assert.Equal(EditorFixtures.All.Select(f => f.Name).Order(StringComparer.Ordinal), EditorFixtures.All.Select(f => f.Name));
-        Assert.Equal("dialog", EditorFixtures.All[0].Name);
+        Assert.Contains("dialog", EditorFixtures.All.Select(f => f.Name));
         Assert.Contains("shell", EditorFixtures.All.Select(f => f.Name));
         var list = JsonDocument.Parse(EditorFixtures.ListJson()).RootElement;
         Assert.Equal(EditorFixtures.All.Count, list.GetArrayLength());
-        var dialog = list[0];
+        Assert.Equal(EditorFixtures.All.Select(f => f.Name), list.EnumerateArray().Select(f => f.GetProperty("name").GetString()));
+        var dialog = list.EnumerateArray().Single(f => f.GetProperty("name").GetString() == "dialog");
         Assert.Equal(["name", "width", "height", "css", "html", "scrollX", "scrollY", "windowFocused"], dialog.EnumerateObject().Select(p => p.Name));
         Assert.Equal(("dialog", 1000, 640, true), (dialog.GetProperty("name").GetString(), dialog.GetProperty("width").GetInt32(), dialog.GetProperty("height").GetInt32(), dialog.GetProperty("windowFocused").GetBoolean()));
         Assert.Equal(EditorFixtures.Css, dialog.GetProperty("css").GetString());
         // The live editor in the fixture's state at scale 1.
-        using var editor = EditorFixtures.Build(EditorFixtures.All[0], 1);
+        using var editor = EditorFixtures.Build(EditorFixtures.All.Single(f => f.Name == "dialog"), 1);
         Assert.Equal(EditorFixtures.Html(editor.Document), dialog.GetProperty("html").GetString());
         Assert.Contains("class=\"dialog-layer\"", dialog.GetProperty("html").GetString());
         Assert.Contains("<button class=\"primary\" type=\"button\" data-focus>OK</button>", dialog.GetProperty("html").GetString());

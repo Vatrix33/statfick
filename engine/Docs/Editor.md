@@ -1386,8 +1386,8 @@ below needs a shared file edited.
    open only the zoom keys are commands, and Escape cancels the topmost dialog. The zoom is the shell's own
    handler: half a zoom level a step, the page zoom 1.2 to the power of the level (the old game's View menu,
    Electron's zoomIn and zoomOut roles), from 53 % (level −3.5) to 299 % (level 6), Electron's default limits
-   of 50 % and 300 %; not remembered yet: step 8 adds that, with the window's size, to the `editor/` settings
-   (the manager's decision (a), 2026-11-06; "Steps", step 8).
+   of 50 % and 300 %; remembered since step 8, with the window's size, in `editor/shell.json` (the manager's decision
+   (a), 2026-11-06; "How it works", step 8: `EditorView.ZoomLevel` is set at start).
 4. **Dialogs** (`View.Dialogs`): `Ask(title, message, (text, value) ...)` gives a `Task<string?>`: the value of the
    button clicked, null for a button with a null value or Escape; the first button with a value is the primary
    one (ember). Your own: `var d = View.Dialogs.Create(title)`, fill `d.Content` (and `d.Buttons`, or
@@ -1773,6 +1773,183 @@ has no marks, and no `[Kind]`: without it the kind's display name is made from t
 has no folder, which is right, as a mod has one info at the fixed path `mod/info` rather than entries named in a
 folder (a folder `mod` would let P15's New make `mod/<name>` entries); step 11 edits it in a form of its own.
 
+### Step 8: opening packs, the browser, drops and the entry list (2026-11-07)
+
+**Files.** `Tools/Editor/Session/EditorSession.Opening.cs` (the session's opening, `OpenPack`), `Tools/Editor/Settings/`
+`EditorSettings.cs` (the `editor/` settings files: `EditorSettings`, `ShellSettings`, `RecentPlacesFile`),
+`Tools/Editor/Browser/` (`FileBrowserPart.cs`, `FileBrowserDialog.cs`: the file browser; `Opener.cs`: Open, drops, the
+unsaved-work question, the close; `Browser.css`), `Tools/Editor/Entries/` (`EntryList.cs`, `Entries.css`), and the two
+hooks in step 4's files: `Shell/EditorView.Keys.cs` (`ZoomLevel`, settable, and `ZoomChanged`) and `EditorApplication.cs`
+(the window's size from the settings, `GamePacksOnly`, `ConfirmClose`, drops, the settings written at close). Tests in
+`Tests/Statventure.Tests/Editor/Opening/`: `OpeningTesting.cs` (scratch games and packs, each kind of unreadable entry),
+`SessionOpeningTests.cs`, `EntryListTests.cs`, `BrowserTests.cs`, `OpenerTests.cs`, `SettingsTests.cs`,
+`EditorApplicationTests.cs` (a real application in a hidden window, the "Window" collection), `OpeningScreens.cs` (the
+fixtures `list-marks`, `list-unreadable`, `browser`); goldens `Golden/editor-list-marks@1.png` and `@1.65.png`,
+`editor-list-unreadable@…`, `editor-browser@…`.
+
+**Decided by the manager (2026-11-07), at this step's questions:**
+- *The settings files:* one small JSON file per concern in `<player folder>/editor/`: `recent-places.json` (what
+  `RecentPlaces.Folders` holds) and `shell.json` (the page zoom level and the window's size). Read tolerantly: a missing,
+  damaged or foreign-version file is ignored and written again on the next save; written whole and swapped in, like the
+  game's `settings.json`. Later steps add their own files there (the stand-ins, the volume).
+- *The browser is a dialog over the shell* (step 4's dialogs: the rest inert, the focus kept inside, Escape cancels), not
+  a pane: Open, New mod's folder, Save As and export all use the same dialog, and the three panes keep their space.
+- *The window size saved is the last normal size at close*, at least the shell's smallest (800 × 500); not taken while
+  maximized or full screen (the last normal size seen stays); applied at start through `EditorApplication`'s
+  `WindowOptions`.
+
+**The session's opening** (`EditorSession.Opening.cs`; no DOM):
+- `Session.PlayerFolder` (the application's `Storage.Folder`, which follows `--player-folder`; by default this machine's
+  game folder, in tests the run's redirected one), `ModsFolder`, `SettingsFolder` (`<player folder>/editor`, G6).
+- `Session.GamePacks`: the area packs in `Game.PacksFolder` that are there, in the game's order (`Application.AreaPacks`);
+  another `.pak` there isn't the game's. `IsGamePack(file)`.
+- `Session.Open(file)` (`PackFile.Open`, which throws for a pack it refuses: nothing changes) and `Session.Open(PackFile)`
+  (the session owns it): every entry of the pack and of the game's other packs read and classified by
+  `EditorSession.ReadEntry` (public, for step 10's lookup and step 11): a record of a kind `Session.Types` knows
+  (`EditorEntry.ForRecord`), a file (`ForFile`, its content length), or unreadable (`ForUnreadable`) with the reason in
+  the words of the pack's dump: "the content doesn't match its hash (damaged)", "not a readable record: …" (the binary
+  form doesn't start as a record), "a record of type x, which isn't a record type known here", "not a readable x record:
+  …" (a newer version than the engine reads, damaged data, or values its type refuses: an `ArgumentException` from its
+  constructor, e.g. an `FCurve`'s keys out of order). The pack's entries over the game's (step 9's `ShowEntries`).
+- `Session.Pack` (`OpenPack`: `File`, `Name`, `IsGamePack`, `IndexHashHex` as opened, for step 11's P23 check,
+  `ReadOnlyReason`, `Writable`, `Unreadable`), `Session.PackFile` (kept open for step 11's `AddFrom`), `Session.Base` (a
+  `VirtualFileSystem` of the game's other packs in the game's order, for steps 10 and 13's custom mount on top),
+  `Session.GamePackProblems` (a game pack `Open` refuses is left out of the list and the base and named here),
+  `PackOpened`. The previous pack's file and base are closed; the session closes the last with itself.
+- **Read-only** (`Session.Writable` false, `ReadOnlyReason`): any entry it can't read ("an entry can't be read", "3
+  entries can't be read"; M11-16), or one of the game's packs outside the dev setup ("the game's packs open read-only
+  (only the repo's dev setup saves into them)"; M11-5, P5). In the dev setup a game pack opened takes changes, and the
+  game's other packs' entries are shown beside it read-only (copying one would put its path in two of the game's packs);
+  over a mod, the game's records can be edited (the mod's copy, P7).
+- **The import queue** (drops, P27; step 12 implements import): `Session.QueueImports(files)` (in order; `ImportsQueued`
+  told when any came), `PendingImports`, `TakeImports()` (the queue emptied), `CanImport` (something listens).
+
+**The editor's settings** (`Settings/EditorSettings.cs`): `EditorSettings.Read(file)` gives a file's values or null (a
+file that is missing, can't be read, isn't JSON, isn't an object, repeats a key or has another `"version"` than 1);
+`Write(file, values)` writes `{ "version": 1, … }` indented by two spaces into `<file>.tmp`, flushed, then moved over the
+file (the `editor/` folder made, mode 0700 on Linux); a failure is logged and gives false. `ShellSettings(ZoomLevel,
+Width, Height)` in `editor/shell.json`: a zoom level the shell can't have (not a half step, past 53–299 %) or a size that
+isn't a whole number from 1 is left out (the default), a size under 800 × 500 made the smallest, value by value.
+`RecentPlacesFile` in `editor/recent-places.json` (`"folders"`, strings only; step 3's `RecentPlaces` drops what isn't a
+path here). The zoom: `EditorView.ZoomLevel` (set at start, `IsZoomLevel`, `ZoomChanged`).
+
+**The program** (`EditorApplication`): `OptionsFor(shell, playerFolder, visible)`: the window 1280 × 800 unless
+`shell.json` has a size (read before the window opens), at least 800 × 500, hidden in tests, no sound, the player's
+folder, **`GamePacksOnly = true`** (step 3). `Load`: the session's player folder is `Storage.Folder`, the view's zoom level
+the file's, the window's drops go to the opener. Each update keeps the window's size while it is normal (not iconified,
+maximized or full screen); `Unload` writes `shell.json` (that size and the zoom level). **`ConfirmClose`** asks the
+opener: with unsaved work it shows the question and refuses (the loop goes on), once however often the window is closed
+meanwhile; Discard quits.
+
+**Opening from the view** (`Browser/Opener.cs`, a part without a pane): the Open command (Ctrl+O, the top bar's Open)
+asks the browser for a `.pak` and opens it. `OpenFile(file)`: a pack `Open` refuses is said in a dialog, "x.pak can't be
+opened: <why>." (the problem without the paths; "the file isn't there"), and nothing else changes; over unsaved work it
+asks first, "Unsaved changes: a.pak has changes that aren't saved. Discard them and open b.pak?", Discard and Cancel —
+**step 11 adds Save** by setting `Opener.SaveFirst` (`Func<Task<bool>>`: offered first; true goes on). The status line
+says "Opened x.pak: n entries", with ", read-only: <why>" when so. **Drops** (`Drop(paths)`, P27): the first `.pak` (any
+case) opens (asking first over unsaved work), then the other files are queued for import in their order; further packs
+aren't opened (one pack at a time, P6), and what isn't a file here (a folder, a URI GLFW passes on, a missing file) is
+passed over; the status line says each ("…; 2 files waiting for import; not opened: drops, b.pak."; "waiting" only while
+nothing takes imports). Every action starts as a task of the document's loop (`RunScript`), so what follows a dialog
+runs there.
+
+**The file browser** (`Browser/FileBrowserPart.cs`, `FileBrowserDialog.cs`; M11-9, P26): a dialog over the shell, 760 px
+wide (`.dialog.browser-dialog`). `Pick(BrowserRequest)` gives the file picked (a full path) or null; one browser at a
+time (another request gives null). `PickPack()` (".pak", button Open); `PickExportFile(title, name)` (any file, a new
+name allowed, button Export: **the JSON tab's export picker**, step 9's `IExportFilePicker`). `BrowserRequest`'s
+`Endings`, `NewFile`, `SuggestedName`, `StartFolder` and `Fallback` place serve New mod's folder, Save As and import.
+- *Places* (left, buttons, the folder as tooltip): Mods, Game packs ("Game packs (read-only)" outside the dev setup; P5:
+  the editor adds it after the mods folder), Documents, Home, the roots, then "Recent" and the recent places that are
+  folders now (step 3's `FileBrowser.Places`), the current one marked.
+- *Where it starts:* the request's folder, else the most recent place that is a folder, else the request's fallback place
+  (the mods folder to open, Documents to export), else the first place there. A start folder that isn't there yet (the
+  mods folder before a mod is saved) is shown empty with "This folder isn't there yet."; going to a folder that isn't
+  there later says so and stays.
+- *The listing:* step 3's `FileBrowser.List` (folders first, then the files the endings show, hidden ones with the
+  "Hidden" box), a row per entry: the name (a folder's with "/"), a file's size (bytes below 1 KB, then KB, MB, GB, TB of
+  1,024, one decimal below 10: "1.5 KB", "12 bytes") and date ("2026-11-07 16:50", this machine's time zone). Over it
+  Up (disabled at a root) and the folder named from the deepest of the mods folder, the game's packs, Documents and home
+  that holds it ("Mods / old"), else its full path. The listing is one stop for Tab (focused first, unless a name is
+  suggested): arrows, Home and End select (Up from none: the last), Enter or a double click opens a folder or picks a
+  file, Backspace goes up; a press selects; the selection is scrolled into view.
+- *The path field:* Enter (or the button with text typed) reads it (step 3's `ReadPath`): a folder is gone to (the field
+  emptied); a file the endings show is picked ("x isn't a .pak file." otherwise); a new name is picked when the request
+  allows it; else "x isn't there." or "x isn't a path here.". Tab completes its last name (`FileBrowser.Complete`) when
+  that changes the text, else moves the focus as usual; Shift+Tab never completes. The button with nothing typed and
+  nothing selected says "Choose a file." ("Type a file name." to export). An export's suggested name is in the field,
+  its name before the ending selected.
+- *Picking:* an export over a file that is there asks "Replace the file?" first (the browser inert meanwhile); the dialog
+  closes with the file, its folder becomes the most recent place and `editor/recent-places.json` is written. The recent
+  places are read from that file when the browser is first asked for them.
+- Seams for the screens' fixture: `PlacesOverride`, `ListOverride` (a listing of the fixture's own, so no path of this
+  machine's is in its markup), `TimeZone`.
+
+**The entry list** (`Entries/EntryList.cs`, the entry pane; P8):
+- *Head:* the pack's name (bold) and its state ("mod", "game pack", "read-only"; "No pack open" before one is), and a
+  notice when there is something to say: how to open a pack (none open), "Read-only: <why>.", each unreadable entry as
+  "path: reason" (red), each game pack that couldn't be read. Then the filter (`input type=search`, "Filter").
+- *The tree* (`role=tree`, one stop for Tab): the session's entries by path, folders first then entries, each by its
+  name (ordinal); a folder row with a disclosure triangle (`display: list-item; list-style: inside disclosure-closed`,
+  `disclosure-open` when open, as a summary's), an entry row with its name, its marks and its kind's name
+  (`EditorEntry.KindName`: the kind's display name, "File", "Unreadable"); indented 14 px a level; `aria-level`,
+  `aria-expanded`, `aria-selected`. When a pack opens its top folders are open, the rest closed; open folders are kept
+  across changes; an entry added or renamed, or selected, opens the folders that hold it.
+- *Marks:* ↑ the mod's own copy of a game entry (`Session.IsModCopy`), + added (a new entry), • changed (`IsChanged` or
+  renamed), ! problems ("A problem", "3 problems"), × unreadable (its reason as tooltip); the game's entries not copied
+  dimmed (`--muted`), an unreadable entry's name red. Rows follow `EntryChanged`, `EntriesChanged` and `SelectionChanged`.
+- *Keys and pointer:* an active item (outlined while the tree has the focus) apart from the selection (the form's entry,
+  ember-pale): Down and Up move it (Down from none: the first), Home and End, Right opens a folder then goes to its first
+  item, Left closes an open folder (not while filtering) or goes to the item's folder, Enter selects an entry or opens and
+  closes a folder, letters type ahead (Blink's list box: within 1 s of each other a text; the next item whose name starts
+  with it, ignoring case, from the one after the active for a first letter, going round). A press focuses the tree (its
+  rows are no stops of their own); a click makes the item active and opens it as Enter does. Closing a folder that holds the active item makes the
+  folder active. Ctrl+F (`EditorCommand.Filter`) focuses the filter, its text selected.
+- *Filter:* entries whose path or kind's name holds the text (ignoring case), their folders all open; Escape empties it;
+  Down goes into the tree; "No entry matches the filter." when none does.
+- *Rows only where seen (P37).* Measured first (Release, a pack of 2,000 entries in 20 folders over the repo's packs, the
+  editor at 1000 × 640; `claude-work/m11/step8/ListBenchmark`, a scratch program like `Tools/UiBenchmark`): with every row
+  an element, opening took 214 ms, but painting a frame with the 2,021 rows of an open tree took 109 ms (the painter draws
+  every row of the scroll container, seen or not), and typing in the filter or adding an entry 99–106 ms; so the tree is
+  now a flat list of its shown items of which only those in the pane's view and 10 on either side are elements, between
+  two spacers as high as the rows they stand for (rows 24 px, `EntryList.RowHeight`), made again when the pane scrolls or
+  the window resizes, and the active item scrolled into view as Blink's "nearest" does. Then: opening 34–41 ms, a frame
+  1.4 ms with 2,021 rows shown, the filter 2.8 ms, an added entry 4.2 ms, a selection 4.8 ms, an arrow key 3.8 ms, a
+  commit's marks under 0.1 ms.
+
+**Screens against Chromium (P36):** `list-marks` (1000 × 640: a mod over the repo's packs with a copy of the game's hall,
+its own crypt changed, a new room with problems, a game room changed in the session, the crypt selected and active in the
+focused tree, the form showing it), `list-unreadable` (1000 × 800: a pack with an entry of each unreadable way, read-only,
+the notice with every reason, the game's audio closed) and `browser` (1000 × 640: Open over the empty editor, a mods
+folder of the fixture's own with a folder and three packs, a row selected, the listing focused). Every editor fixture
+shows the entry pane, so this step's list changed the shell's, the dialog's and step 9's screens too: all eight were
+captured again (`claude-work/m11/step8-capture.sh`: make-editor-references.sh's harness, flags and fonts inside a
+headless cage with its own Xwayland, the output made 2400 × 2400, one fixture per Chromium run; no window on the user's
+screen); the dialog's box is pixel for pixel the committed capture's. Pixels past 12 levels (the limit 0.2 %), GPU:
+`list-marks` 0 at 1× and 28 at 1.65 (0.002 %), `list-unreadable` 0 and 28 (0.001 %), `browser` 28 (0.004 %) and 147
+(0.008 %); the others as before: `shell` 0 and 28, `dialog` 57 and 110, `form-json` 0 and 28, `form-controls` 0.108 % and
+0.139 %, `form-controls-end` 0.115 % and 0.155 %.
+
+**Found:**
+- *The capture harness's window was out of X11's range at 1.65.* `Tools/PaintReference` placed its window at -20000 DIPs,
+  which at a forced scale of 1.65 is -33000 px, past X11's 16-bit window positions: under a headless cage's Xwayland such a
+  window isn't managed and never gets the focus, so the 1.65 captures had no focus rings (`:focus`, `:focus-visible`;
+  the dialog's OK button, the tree's active item, the browser's listing), while 1× and the user's desktop (step 4's
+  captures) had them. Fixed in the harness: -10000 DIPs (-16500 px at 1.65), off every screen all the same; the
+  captures are otherwise the same (the dialog's box at 1.65 now pixel for pixel step 4's capture on the desktop).
+- *The painter paints every row of a scroll container, seen or not* (no cull rect as Blink's): 0.05 ms a row on the GPU,
+  which is what made P37's list slow. The engine wasn't changed; the editor's list makes only the rows in view.
+
+**Choices the design left to the step** (made here): the names above; the marks' glyphs for a copy (↑) and an unreadable
+entry (×) (in Lato, which has no ▸ or ⚠); folders first, then entries; the top folders open when a pack opens; an active
+item apart from the selection (arrows move it, Enter or a click opens it); type-ahead as Blink's list box; the filter
+matching paths and kinds' names; the browser's 760 px width, its places' labels, the listing's columns and size and
+date formats, the start folder's order, Tab completing in the path field only when it changes the text, the replace
+question for an export; a refused pack said in a dialog; the unsaved-work question's words (Discard, Cancel; Save first
+once step 11 sets it); a drop's first `.pak` opened and the rest passed over; the status line's words; the session's
+reasons in the dump's words; a game pack that can't be read left out and named; in the dev setup the other game packs'
+entries read-only beside an open game pack; the settings files' format (`{ "version": 1, … }`, two-space indents) and the
+`ShellSettings` and `RecentPlacesFile` names; the list's rows only where seen with 10 rows of overscan.
+
 ### Step 9: the form, undo and the JSON view (2026-11-07)
 
 **Files.** `Tools/Editor/Session/`: `EditorEntry.cs` (the working entry), `EditorSession.Drafts.cs` (the session's
@@ -2101,3 +2278,25 @@ Chromium's). 149 tests (`Tests/Statventure.Tests/Editor/Form/`); the full suite 
 inside a headless Wayland compositor: 3089 tests (`main`'s 2940 on `3e6df0f`, where they ran, and 149 new). Mutations: 231 run (`~/.cache/stat-fick-build/claude-work/m11/step9-mutations.json`, made by `make-step9-mutations.py` beside it; four chunks, then two reruns, `step9-rerun.json` and `step9-mutations-rerun2.json`): 207 killed at first; of the 22 that survived, 16 were gaps closed by new tests or assertions (a new entry shown, the removed list on a new set, a removal and a rename alone as unsaved work, an untouched entry whose record can't be written, an alpha typed into a Vector3, a new integer key above the largest, a colour text that isn't one in the swatch (two), a member's display name of two words, a union's switch between fields of one name and two kinds, a map entry removing itself, Undo and Revert once the pack takes no changes (two), a rename to the same name, a cancelled dialog's additions: with it, a same-name rename no longer runs them), 3 were redundant code, removed (a game entry's history cleared on a revert, though it was never shown; a field's mark cleared twice; the read-only guards no event reaches), and 3 are looks under the screens' limits (the problems' red, the selected tab's underline, the head's bold path: a few hundred pixels each where the form screens are at 0.11–0.16 % of the 0.2 %); 2 didn't build and were rewritten; the reruns (24) killed all, so the list as it stands (228) is all killed but those 3 looks; nothing written to the player's real folders. The manager's decisions of 2026-11-06 recorded (Revert,
 P7; New's kinds, Export until the browser, the JSON tab's 2,000 lines, Delete outside the rows, elements from 0,
 the problems' red, confirmed). Not checked: the program in a real window (to check by hand), Windows.
+
+**Step 8, opening packs: the browser, drops and the entry list: done (2026-11-07, on the worker branch `m11-step8`).**
+("How it works", step 8.) The session opens one pack over the game's packs (P6), every entry read and classified (a
+record, a file, or unreadable with its reason in the dump's words: damaged, not a record, a kind not known, a newer
+version, values its type refuses), read-only when any can't be read (M11-16) or when it is one of the game's packs
+outside the dev setup (M11-5), a pack `Open` refuses said with why and nothing changed, the base of the game's other packs,
+and the import queue drops fill (step 12 takes it); the file browser as a dialog over the shell (places with the game's
+packs, a folder's listing with sizes and dates, the path field with completion, the endings of what is picked, recent
+places), Ctrl+O and drops (P27), the unsaved-work question when opening and closing (Discard, Cancel; step 11 adds Save),
+`GamePacksOnly` and `ConfirmClose` wired; the entry list (P8: a tree by path with the kinds' names, the marks, the
+filter, the keys and type-ahead), its rows made only where seen after P37's measurement (a frame took 109 ms with 2,021
+rows painted; 1.4 ms now); the `editor/` settings (`shell.json`: the zoom level and the window's last normal size;
+`recent-places.json`), the manager's decisions of 2026-11-07. The screens against Chromium at both scales: `list-marks`
+0 and 0.002 %, `list-unreadable` 0 and 0.001 %, `browser` 0.004 % and 0.008 % (the limit 0.2 %); the shell's, the dialog's
+and step 9's screens captured again with the list in their entry pane, as before. Found and fixed: the capture harness's
+window sat out of X11's range at 1.65 (no focus rings in captures made under cage); found, not changed: the painter
+paints every row of a scroll container, seen or not. 94 new tests (`Tests/Statventure.Tests/Editor/Opening/`); step 4's
+and step 9's tests that assumed no Open handler, no file browser or the dialog first in the fixture list now see this
+step's parts. The full suite passes on the GPU and on lavapipe, inside a headless Wayland compositor: 3250 tests (`main`'s 3156 at `22ee667` and 94 new), none skipped (the GPU 1 min 15 s, lavapipe 1 min 41 s; the screens on lavapipe within a few pixels of the GPU's).
+Mutations: 251 in the first run (`~/.cache/stat-fick-build/claude-work/m11/step8-mutations.json`, its chunks `-1` to `-4` and `-window`, the editor application's wiring run inside a headless cage; made by `step8/make-mutations.py`): 229 killed, 18 survived, 4 didn't build; 3 survivors were redundant code, removed (the tree's press handler: a press focuses the tree anyway; Right's check that an open folder's next item is inside it, which it always is; a `[hidden]` rule the browser's own stylesheet has), 12 were gaps closed by tests (a game pack's problem named without its folder, a compressed file's size, a settings file that isn't an object, the "Hidden" box kept when going to a folder, the selection kept when listing again, a size between 1,000 and 1,024 of a unit, a dialog's task read only once done (one survivor was a test waiting on a question a broken rule left open), a refused drop's own task, a relative name dropped, the status line's capital, the overscan's number, and the window's options in the settings tests' filter), and the 4 that didn't build were rewritten to build; the rerun (`step8-mutations-rerun.json`, 16) killed all 16. The list as it stands, 248, has 245 killed and 3 accounted for: looks under the screens' limits (the marks not ember, the active row's 1 px outline, an open folder's triangle closed: a few hundred pixels of 640,000). Nothing written to the player's real folders. Renders for the user:
+`claude-work/m11/step8/render-{list,browser}-audio@{1,1.65}.png`. Not checked: a real drop from a file manager and a real
+close by the title bar (to check by hand), the editor in a real window, Windows.

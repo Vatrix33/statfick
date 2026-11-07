@@ -1,0 +1,40 @@
+/* The entry list (Docs/Editor.md, "Opening packs (step 8)", P8): the open pack's name and state, why it is read-only,
+   the filter, and the tree of entries by path: folders (a disclosure triangle, as a summary's), then entries with
+   their marks and kind's name; the game's entries dimmed (a colour, not opacity: convention 2). Only the rows near
+   the pane's view are made, between two spacers (P37); every row is var(--row) high, as EntryList.RowHeight says. */
+.entries-part { --problem: #e5735f; padding: 4px 0 12px; }
+.entries-head { display: flex; align-items: baseline; gap: 8px; height: 26px; padding: 0 8px; overflow: hidden; white-space: nowrap; }
+.entries-pack { flex: 0 1 auto; min-width: 0; overflow: hidden; font-weight: 700; text-overflow: ellipsis; }
+.entries-state { flex: none; color: var(--muted); }
+.entries-notice { margin: 2px 8px 6px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 3px; color: var(--muted); line-height: 20px; }
+.entries-note { overflow-wrap: anywhere; }
+.entries-note.unreadable { color: var(--problem); }
+.entries-filter {
+  display: block;
+  width: calc(100% - 16px);
+  height: 24px;
+  margin: 2px 8px 6px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--ink);
+  background: var(--paper);
+  font: inherit;
+  line-height: 22px;
+}
+.entries-tree { padding: 0 0 4px; }
+.entries-tree:focus { outline: none; }
+.entries-item { height: var(--row); padding-right: 8px; overflow: hidden; line-height: var(--row); white-space: nowrap; cursor: default; user-select: none; }
+.entries-item.entry { display: flex; }
+.entries-item.folder { display: list-item; color: var(--muted); list-style: inside disclosure-closed; text-overflow: ellipsis; }
+.entries-item.folder.open { list-style-type: disclosure-open; }
+.entries-item .name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.entries-item .marks { flex: none; margin-left: 4px; color: var(--ember); font-weight: 700; }
+.entries-item .mark + .mark { margin-left: 3px; }
+.entries-item .mark.problem, .entries-item .mark.unreadable { color: var(--problem); }
+.entries-item .kind { flex: 0 1 auto; min-width: 0; max-width: 55%; margin-left: 8px; overflow: hidden; color: var(--soft); text-overflow: ellipsis; }
+.entries-item.game .name { color: var(--muted); }
+.entries-item.unreadable .name { color: var(--problem); }
+.entries-item.selected { background: var(--ember-pale); }
+.entries-tree:focus .entries-item.active { outline: 1px solid var(--ember); outline-offset: -1px; }
+.entries-none { padding: 0 12px; color: var(--muted); }

@@ -47,9 +47,12 @@ app.whenReady().then(async () => {
       size++;
     return size;
   };
+  // Off the screens, but within X11's 16-bit window positions at any scale used (-10000 DIPs is -16500 px at 1.65;
+  // -20000 was -33000, out of range: under a headless cage's Xwayland such a window wasn't managed and never got the
+  // focus, so focus rings were missing from the 1.65 captures; M11 step 8).
   const window = new BrowserWindow({
     width: whole(maxWidth * pageZoom), height: whole(maxHeight * pageZoom), useContentSize: true,
-    show: false, frame: false, x: -20000, y: -20000, opacity: 0, skipTaskbar: true,
+    show: false, frame: false, x: -10000, y: -10000, opacity: 0, skipTaskbar: true,
     webPreferences: { sandbox: true, contextIsolation: true, backgroundThrottling: false, spellcheck: false },
   });
   window.showInactive();
