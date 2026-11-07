@@ -1259,6 +1259,11 @@ and 6 were merged; the task is `Docs/Port-Tasks/5_New_Masterworks.txt`).** Asked
   from the Abyss Witch only, as drafted; not 3% from undead and demon casters of Level 45 and up, not 2% from every
   caster from Level 40, not sold in Ravenwatch.)
 
+**Decisions for task 9, Potion Rework (2026-11-07, a cloud session; the user asked for task 9 while task 8's pull request,
+#14, waited to be merged; the task is `Docs/Port-Tasks/9_Potion_Rework.txt`).**
+- P1 **Where:** "Since i cant merge right now, you can start the next task and put it in the same push request": built
+  in the old game like tasks 1–8, on the same branch, in the same pull request as task 8 (#14).
+
 **Decisions for task 8, Map Rework (2026-11-06, a cloud session; the user asked for task 8 after task 7 was merged, while
 M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.txt`).** Asked before any code:
 - W1 **Where:** in the old game, like tasks 1–7: the continent, its rules and every system built and playable there; its
