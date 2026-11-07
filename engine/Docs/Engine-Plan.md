@@ -105,14 +105,17 @@ count task 7 as the engine's current task. How it's built, its checks and their 
 **Beside the engine, old game only (2026-11-06): port task 8, Map Rework, is being built in the old game** (W1; decisions
 in "Decisions for task 8, Map Rework" below; the cloud branch `claude/fervent-carson-f5ol9s`). **The layout is approved:
 draft 6 (2026-11-07, W26),** kept with its scripts and every region's place in `Docs/Port-Tasks/8_Map_Rework/`; its three
-new regions stay empty in the old game and are made in the port (W27). Built so far in `../old-game/`: the continent's
-geometry and travel rules (`scripts/continent-engine.js`, `world-engine.js`) and a first continent map view, **still on
-the superseded draft-2 layout and its first natural shape** (W17's mountain cores between neighbours, which W20 and W22
-replaced). **Now (the user's go, 2026-11-07):** build draft 6 into the old game
-(the new places, the two moved roads, Cinder Isle, the land growing into the gaps, the inland waters, the Deep Desert's
-island, the new regions as empty ground), then paint the map to it; then the music crossfade, the boat, the mountain fog,
-the caravan, the carriage, the checks and the docs. The empty regions can be walked and are blank parchment (W28,
-W29). **Engine work goes on uninterrupted.**
+new regions stay empty in the old game and are made in the port (W27–W29). **Built so far in `../old-game/`:** draft 6's
+land baked into `scripts/continent-shape.js` (by `8_Map_Rework/bake.py`) and read by the rules
+(`scripts/continent-engine.js`, `world-engine.js`): the new places, the two re-routed roads (the Battlefield north to
+Duskpine, Saffron east to the Deep Desert), Cinder Isle 250 km out with the 12.6-hour boat (W11, W21), the three empty
+regions (`uncharted` in `world-region-data.js`: walkable, no encounters, the last region's music, W28), off-road routes
+only through entered regions (W30); and the map painted to it (`map-terrain.js`, `map-continent.js`, `map.js`): each
+region's terrain over its whole territory to the natural coast, the coast and inland waters from the baked land,
+regions' pictures meeting along wandering lines, the empty regions as parchment marked "Uncharted" (W29), fog along the
+same lines. **Next:** the music crossfade, the boat, the mountain fog, the caravan, the carriage, then the checks (the
+older checks that expect the old map, e.g. the boat's nine hours, to be brought up to date), the mutation proof and the
+docs. **Engine work goes on uninterrupted.**
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
@@ -1353,6 +1356,11 @@ M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.t
   nearest old region's wild ground with its enemies.)
 - W29 **How the empty regions look on the old game's map:** blank parchment marked "Uncharted", so they read as
   unfinished. (Not plain placeholder ground in fitting colours, the recommendation.)
+- W30 **Long walks across open land** (asked when W20 let the planner cut across country between regions: Alderkeep to
+  Lakespire became a straight 284 km through the empty steppe instead of 432 km of road): the fastest way, but off the
+  roads only through regions already entered; through any other region a click follows the roads (leaving them only in
+  the regions where the trip starts and ends). Refines W13. (Not always along the roads, the recommendation; not the
+  fastest way across any land.)
 
 **Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
 after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**

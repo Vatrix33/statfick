@@ -897,6 +897,10 @@
     "bloodstone-coast": { chances: bloodstoneChances, profiles: bloodstoneProfiles, tables: bloodstoneTables },
     "ancient-battlefield": { chances: battlefieldChances, profiles: battlefieldProfiles, tables: battlefieldTables },
     "duskpine-forest": { chances: duskpineChances, profiles: duskpineProfiles, tables: duskpineTables },
+    // Port task 8: the three regions empty until the port have no encounters (W27, W28).
+    "uncharted-highlands": { chances: {}, profiles: {}, tables: {} },
+    "uncharted-steppe": { chances: {}, profiles: {}, tables: {} },
+    "uncharted-delta": { chances: {}, profiles: {}, tables: {} },
   };
   function regionRules(regionId) {
     return regionRuleSets[regionId] || regionRuleSets["alder-vale"];

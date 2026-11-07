@@ -148,8 +148,9 @@
     drawQueued = true;
     requestAnimationFrame(() => { drawQueued = false; drawTerrain(); });
   }
-  /* The terrain (port task 8): the sea, the ground between regions (MapContinent's backdrop), each entered region as
-     its overview picture when far out or its painted tiles when close, the roads across the border strips, the
+  /* The terrain (port task 8): the sea, the continent's land (MapContinent's backdrop; the regions empty until the port
+     as parchment, W29), each entered region over its whole territory as its overview picture when far out or its
+     painted tiles when close (in ContinentRules.IDS order, so neighbours blend), the roads between regions, the
      coastline, and the fog over regions never entered (W12). */
   const SEA = "#3f5b60", OVERVIEW_BELOW = 0.55, KEEP_WORLDS = 3;
   const visited = id => (worldState.visitedRegions || []).includes(id);
@@ -158,10 +159,10 @@
     const w = viewSize.width / camera.scale, h = viewSize.height / camera.scale;
     return { x0: camera.x - w / 2, y0: camera.y - h / 2, x1: camera.x + w / 2, y1: camera.y + h / 2 };
   }
-  function regionsInView(pad = continentRules.STRIP) {
+  // The regions whose pictures can reach into the view, in the order their pictures are drawn (ContinentRules.cover).
+  function regionsInView(pad = continentRules.REACH * SCALE) {
     const v = viewRect();
-    return continentRules.IDS.filter(id => { const r = continentRules.RECTS[id]; return r.x1 + pad > v.x0 && r.x0 - pad < v.x1 && r.y1 + pad > v.y0 && r.y0 - pad < v.y1; })
-      .sort((a, b) => (a === worldState.regionId ? -1 : b === worldState.regionId ? 1 : 0));
+    return continentRules.IDS.filter(id => { const r = continentRules.RECTS[id]; return r.x1 + pad > v.x0 && r.x0 - pad < v.x1 && r.y1 + pad > v.y0 && r.y0 - pad < v.y1; });
   }
   const worldOf = id => MapTerrain.world(rules.getRegion(id));
   let keptWorlds = [];
@@ -172,27 +173,29 @@
     const s = camera.scale * dpr, v = viewRect(), left = v.x0, top = v.y0;
     const toScreen = (x, y) => ({ x: (x - left) * s, y: (y - top) * s });
     ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-    const back = MapContinent.backdrop(), cell = MapContinent.CELL;
+    const back = MapContinent.backdrop(), cell = back.CELL;
     const b0 = toScreen(back.x0 - cell / 2, back.y0 - cell / 2);
     ctx.drawImage(back.canvas, b0.x, b0.y, back.cols * cell * s, back.rows * cell * s);
     const pxPerLocal = camera.scale * SCALE * dpr, close = pxPerLocal >= OVERVIEW_BELOW;
     const wanted = levelFor(camera.scale), missing = [], needOverview = [], needWorld = [];
-    for (const id of regionsInView()) {
-      if (!visited(id)) continue;
+    // Regions empty until the port are the backdrop's parchment (W29); the others paint their whole territory.
+    const inView = regionsInView(), nearFirst = [...inView].sort((a, b) => (a === worldState.regionId ? -1 : b === worldState.regionId ? 1 : 0));
+    for (const id of inView) {
+      if (!visited(id) || rules.getRegion(id).uncharted) continue;
       const origin = continentRules.ORIGINS[id];
       const drawOverview = () => {
         const picture = MapContinent.overview(id);
         if (!picture) { needOverview.push(id); return; }
-        const half = MapContinent.STRIDE / 2, a = toScreen(origin.x - half * SCALE, origin.y - half * SCALE);
-        ctx.drawImage(picture, a.x, a.y, picture.width * MapContinent.STRIDE * SCALE * s, picture.height * MapContinent.STRIDE * SCALE * s);
+        const half = MapContinent.STRIDE / 2, a = toScreen(origin.x + (picture.x0 - half) * SCALE, origin.y + (picture.y0 - half) * SCALE);
+        ctx.drawImage(picture.canvas, a.x, a.y, picture.canvas.width * MapContinent.STRIDE * SCALE * s, picture.canvas.height * MapContinent.STRIDE * SCALE * s);
       };
       if (!close) { drawOverview(); continue; }
       const terrain = worldOf(id);
       if (!terrain?.ready) { drawOverview(); needWorld.push(id); continue; }
       const drawLevel = (level, onlyMissing = null) => {
-        const units = MapTerrain.TILE / level, l0 = continentRules.toLocal(id, { x: v.x0, y: v.y0 }), l1 = continentRules.toLocal(id, { x: v.x1, y: v.y1 });
-        const x0 = Math.max(0, Math.floor(l0.x / units)), y0 = Math.max(0, Math.floor(l0.y / units));
-        const x1 = Math.min(Math.ceil(MapTerrain.W / units) - 1, Math.floor(l1.x / units)), y1 = Math.min(Math.ceil(MapTerrain.H / units) - 1, Math.floor(l1.y / units));
+        const units = MapTerrain.TILE / level, l0 = continentRules.toLocal(id, { x: v.x0, y: v.y0 }), l1 = continentRules.toLocal(id, { x: v.x1, y: v.y1 }), e = terrain.extent;
+        const x0 = Math.max(Math.floor(e.x0 / units), Math.floor(l0.x / units)), y0 = Math.max(Math.floor(e.y0 / units), Math.floor(l0.y / units));
+        const x1 = Math.min(Math.ceil(e.x1 / units) - 1, Math.floor(l1.x / units)), y1 = Math.min(Math.ceil(e.y1 / units) - 1, Math.floor(l1.y / units));
         for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
           const tile = MapTerrain.tile(terrain, level, tx, ty), a = toScreen(origin.x + tx * units * SCALE, origin.y + ty * units * SCALE), size = units * SCALE * s;
           if (tile) ctx.drawImage(tile, Math.floor(a.x), Math.floor(a.y), Math.ceil(size + 1), Math.ceil(size + 1));
@@ -202,24 +205,14 @@
       drawLevel(1, missing);
       if (wanted > 1) { if (wanted > 2) drawLevel(2); drawLevel(wanted, missing); }
     }
-    // Roads across the border strips, where both sides have been entered.
+    // Roads across the ground between regions, where both sides have been entered, drawn with the regions' own roads
+    // (on their tiles, close up).
     ctx.lineCap = "round"; ctx.lineJoin = "round";
-    for (const link of continentRules.built?.links || []) {
+    for (const link of close ? continentRules.built?.links || [] : []) {
       if (!link.regions.every(visited)) continue;
       const [a, z] = link.path.map(p => toScreen(p.x, p.y));
       ctx.strokeStyle = "#2c2118"; ctx.lineWidth = Math.max(1, 5.2 * s); ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(z.x, z.y); ctx.stroke();
       ctx.strokeStyle = "#a08a64"; ctx.lineWidth = Math.max(0.6, 3.4 * s); ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(z.x, z.y); ctx.stroke();
-    }
-    // Ridges: hatched peaks once they are big enough to read.
-    if (s > 0.04) {
-      ctx.strokeStyle = "rgba(42,32,24,.75)"; ctx.lineWidth = Math.max(0.8, 5 * s);
-      ctx.beginPath();
-      for (const mark of back.ridges) {
-        if (mark.x < v.x0 - 200 || mark.x > v.x1 + 200 || mark.y < v.y0 - 200 || mark.y > v.y1 + 200) continue;
-        const p = toScreen(mark.x, mark.y), r = Math.min(26 * dpr, 30 * mark.s * s);
-        ctx.moveTo(p.x - r, p.y + r * 0.6); ctx.lineTo(p.x, p.y - r * 0.7); ctx.lineTo(p.x + r, p.y + r * 0.6);
-      }
-      ctx.stroke();
     }
     // The coastline in ink.
     ctx.save(); ctx.setTransform(s, 0, 0, s, -left * s, -top * s);
@@ -234,7 +227,7 @@
       ctx.restore();
     }
     if (missing.length) queuePaint(missing.sort((a, b) => a.distance - b.distance));
-    if (needOverview.length || needWorld.length) queueCharting(needOverview, needWorld);
+    if (needOverview.length || needWorld.length) queueCharting(needOverview.sort((a, b) => nearFirst.indexOf(a) - nearFirst.indexOf(b)), needWorld.sort((a, b) => nearFirst.indexOf(a) - nearFirst.indexOf(b)));
   }
   let paintJobs = [];
   function queuePaint(jobs) {
@@ -388,16 +381,19 @@
     if (renderedArt !== signature) {
       renderedArt = signature;
       const entered = continentRules.IDS.filter(visited);
+      // A region empty until the port is marked "Uncharted" at every zoom (W29).
+      const unchartedMark = id => { const r = continentRules.RECTS[id]; return `<g data-pin="1" data-x="${(r.x0 + r.x1) / 2}" data-y="${(r.y0 + r.y1) / 2}"><text class="map-uncharted-name" dy="0.35em">Uncharted</text></g>`; };
       $("map-landscape").innerHTML = entered.map(id => {
         const place = rules.getRegion(id);
+        if (place.uncharted) return unchartedMark(id);
         return `<g class="map-region-art" data-region="${id}" transform="${regionTransform(id)}">${labelsFor(place)}${townArtFor(place.settlements || [])}${siteArtFor(place.sites)}</g>`;
       }).join("");
       const nameOf = id => rules.getRegion(id).name.replace(/^The /, "");
-      $("map-region-names").innerHTML = entered.map(id => {
+      $("map-region-names").innerHTML = entered.filter(id => !rules.getRegion(id).uncharted).map(id => {
         const r = continentRules.RECTS[id];
         const words = nameOf(id).split(" "), lines = words.length > 1 ? [words.slice(0, Math.ceil(words.length / 2)).join(" "), words.slice(Math.ceil(words.length / 2)).join(" ")] : words;
         return `<g data-pin="1" data-x="${(r.x0 + r.x1) / 2}" data-y="${(r.y0 + r.y1) / 2}"><text class="map-region-name">${lines.map((line, index) => `<tspan x="0" dy="${index ? "1.05em" : lines.length > 1 ? "-0.2em" : "0.35em"}">${escapeHtml(line)}</tspan>`).join("")}</text></g>`;
-      }).join("") + continentRules.BARRIER_NAMES.map(barrier => `<g data-pin="0.8" data-x="${barrier.x}" data-y="${barrier.y}"><text class="map-barrier-name">${escapeHtml(barrier.name)}</text></g>`).join("");
+      }).join("");
       if (!modal.hidden) applyCamera();
     }
     if (renderedRegionId === region.id) return region;
@@ -846,7 +842,7 @@
       if (!travelling) resume();
       return true;
     }
-    const route = rules.continentRoute(here(), destination, travelBonuses());
+    const route = rules.continentRoute(here(), destination, travelBonuses(), { entered: worldState.visitedRegions });
     if (!route.length) { $("map-status").textContent = "No road or path leads there from here. Use a port to sail."; return false; }
     worldState.destination = destination;
     worldState.route = route;
@@ -1152,13 +1148,13 @@
       pause(false); encounterResolving = false;
       ambientLast = performance.now(); ambientCarry = 0;
       if (window.Combat?.active()) worldState.pendingEncounter = null;
-      if (worldState.destination) worldState.route = rules.continentRoute(here(), worldState.destination, travelBonuses());
+      if (worldState.destination) worldState.route = rules.continentRoute(here(), worldState.destination, travelBonuses(), { entered: worldState.visitedRegions });
       encounterModal.hidden = true;
       transitionModal.hidden = true;
       $("map-status").textContent = 'Roads are fastest; rivers, marsh, sand and volcanic slopes slow travel.';
       render();
     },
   };
-  if (worldState.destination) worldState.route = rules.continentRoute(here(), worldState.destination, travelBonuses());
+  if (worldState.destination) worldState.route = rules.continentRoute(here(), worldState.destination, travelBonuses(), { entered: worldState.visitedRegions });
   render();
 })();

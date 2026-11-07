@@ -675,7 +675,8 @@ body.modal-open { overflow: hidden; }
 #map-region-names { display: none; }
 #regional-map.is-continent #map-region-names { display: inline; }
 .map-region-name { fill: #f4e6c4; stroke: #140d08; stroke-width: 9px; paint-order: stroke; stroke-linejoin: round; text-anchor: middle; font: italic 2.6rem "STIX Two Text", Georgia, serif; letter-spacing: .03em; }
-.map-barrier-name { fill: #d8c6a0; stroke: #140d08; stroke-width: 7px; paint-order: stroke; stroke-linejoin: round; text-anchor: middle; font: italic 2.2rem "STIX Two Text", Georgia, serif; }
+/* Port task 8: a region empty until the port, on blank parchment (W29). */
+.map-uncharted-name { fill: #6b5a44; text-anchor: middle; font: italic 2.6rem "STIX Two Text", Georgia, serif; letter-spacing: .12em; opacity: .75; }
 #regional-map.is-continent .map-settlement:not(.is-castle), #regional-map.is-continent .map-town-kind, #regional-map.is-continent .map-terrain-label, #regional-map.is-continent .map-river-label { display: none; }
 .map-exit-button .map-exit-arrow { color: var(--accent, #c9a96a); font-weight: 600; }
 #regional-map.is-mouse-steering { cursor: grabbing; }

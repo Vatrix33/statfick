@@ -12,6 +12,9 @@ building the layout into the old game.
   water between Duskpine and the Crimson Divide); `draft6.py` runs it for that.
 - `regions.json`: the 17 regions' data the drafts read (names, level ranges, roads, settlements, sites, exits, lake,
   own sea), exported from `old-game/scripts/world-region-data.js` before the layout moved anything.
+- `bake.py`: bakes draft 6's land into the old game (`python3 bake.py` writes `old-game/scripts/continent-shape.js`: the
+  land field on draft 6's grid, Cinder Isle included, quantized and run-length coded). The old game's rules and map read
+  it, so the old game's coast is exactly the approved one.
 
 ## Units
 

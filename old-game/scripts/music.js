@@ -331,7 +331,9 @@
 
   // Ordinary battles play the region's own arrangement of the battle theme.
   function desiredTheme() {
-    const region = typeof worldState !== "undefined" ? worldState?.regionId : null;
+    // Port task 8: in a region empty until the port, the last region's music plays on (W28).
+    const standing = typeof worldState !== "undefined" ? worldState?.regionId : null;
+    const region = standing && window.WorldRules?.getRegion(standing)?.uncharted ? worldState.lastChartedRegionId : standing;
     if (window.Combat?.active()) {
       const theme = window.Combat.musicTheme?.() || "combat";
       if (theme === "combat" && scores["combat@" + region]) return "combat@" + region;
