@@ -1014,8 +1014,32 @@ remaking the placeholder art (P2; `engine/Docs/Port-Tasks/README.md`). The user'
   high, since enemies drop ingredients now).
 - **Not covered by a check:** how the banners, cauldron and icons look; the brewing animation; the AI (enemies carry no
   new potions; companions are yours to command).
-- **The checks can fail:** MUTATION_PLACEHOLDER
-- **Regression** REGRESSION_PLACEHOLDER
+- **The checks can fail:** each rule was broken once in a copy of the game (97 mutations, by the earlier tasks' runner, in
+  the cloud session's `claude-work/potions/`, not kept): the content (rarities, recipes, starting recipes), the
+  Apothecary (a button in every settlement, the two banners, the standing Health and Mana Potions and their band, the
+  random stock, the ingredient stock, stock kept until the restock), the General Store's potions gone both ways, selling,
+  the recipe offers (unknown only, the price, never twice, leaning to the band), brewing (nothing used on a failed brew,
+  free, any order, known recipes only, duplicates, collecting, the count), every potion effect (stacking, durations,
+  Haste, both immunities, the barrier, Undying, Phoenix, the toll, wards, crit chance in the strike and the forecast, crit
+  damage, pierce, Giantsbane, the cures, Kinship, Mending, outside battle), poisons (not at yourself, Nature resistance,
+  half on bosses and its rounding, refreshing, Plague Bomb, immunity, the stun chance), the Assimilator (class only,
+  strength, durations, two kinds, Level 4 and 6, refreshing, weapon poison, keeping, Devour, AP), foraging (the hour, the
+  encounter roll, the find chance, the Alchemist, Keen Harvest, towns, rivers, weights, the count), drops (chance,
+  Empowered, bosses, none at all), the classes (both requirements, Lore and its secrecy, Nature resistance), Collect (the
+  band, quantities, pay, the guild, the ingredients taken, nearby only, saving) and saves. All 97 were caught after a
+  second pass; the first let six through, all weak checks: a recipe with a doubled ingredient (now three different, as
+  approved), a recipe bought twice (the purse was measured after the second try), rare ingredients' duration (Glass Sand
+  is uncommon; Stormfeather added), foraging in a town by a river, Collect's rarity cap (now also around Lakespire, where
+  rarer ingredients are in reach) and its quantities (checked against the constant itself; now the approved numbers).
+- **Regression** (2026-11-07, the cloud, Xvfb, on a frozen copy of the game): all 161 entries of the 48 check files and
+  the four suites, against task 8's run (`claude-work/continent/final-results.txt` in the cloud session). Every entry
+  gives that run's result except: the 12 task 9 entries pass (new); `guild-rework`'s `runGuildRewardChecks` and
+  `runGuildReworkChecks` failed on the Collect offer's reward (they looked it up by type) and `regional-guild` when its
+  board's first contract was a Collect (paid only with the ingredients), `adventure-improvements`' `runCombatRewardChecks`
+  on an ingredient dropping in its no-drops fight: all four pass updated (above); `map-speed` failed once on its timing
+  under the run's parallel load and passes alone (as in task 8's run); `coast-lich-bosses`' Ool check, which failed by
+  chance in task 8's run, passes. The 11 known failures are unchanged. Smoke, enemies (530 cases) and lifecycle pass; the
+  combat suite gives no result, as before (it stops at the known Barbarian failure).
 
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in

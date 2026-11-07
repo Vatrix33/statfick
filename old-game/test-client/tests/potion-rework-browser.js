@@ -71,7 +71,7 @@ async function checkAlchemyContent() {
   assert(A.INGREDIENTS.length >= 50 && A.INGREDIENTS.length === 56 && new Set(A.INGREDIENTS.map(entry => entry.name)).size === 56, "56 distinct ingredients (at least 50)");
   assert(A.INGREDIENTS.every(entry => getItem(entry.id)?.category === "ingredient" && entry.description), "Every ingredient is an item with a description");
   // Every recipe: three ingredients, a known product; every potion and poison has one; no two alike.
-  assert(A.RECIPES.length === 62 && A.RECIPES.every(recipe => recipe.ingredients.length === 3 && recipe.ingredients.every(A.isIngredientId) && getItem(recipe.id)), "62 recipes, each three ingredients");
+  assert(A.RECIPES.length === 62 && A.RECIPES.every(recipe => recipe.ingredients.length === 3 && new Set(recipe.ingredients).size === 3 && recipe.ingredients.every(A.isIngredientId) && getItem(recipe.id)), "62 recipes, each three different ingredients (as approved)");
   assert([...potions, ...poisons, ...healthMana].every(item => A.recipeFor(item.id)), "Every potion and poison has a recipe");
   assert(new Set(A.RECIPES.map(recipe => [...recipe.ingredients].sort().join("|"))).size === 62, "No two recipes share their three ingredients");
   // Every ingredient is in a recipe and has a source (foraged, dropped or a boss's).
@@ -182,8 +182,9 @@ async function checkRecipeOffers() {
   document.querySelector(`[data-apothecary-recipe="${first}"]`).click();
   assert(alchemy.known.includes(first) && ShopRules.walletValue(currencies) === before - price, "A recipe costs ten times its potion and is learned at once (P14)");
   assert(!document.querySelector(`[data-apothecary-recipe="${first}"]`) && document.querySelectorAll("[data-apothecary-recipe]").length === 2, "A bought recipe isn't offered again");
-  Apothecary.buyRecipe(first);
   const after = ShopRules.walletValue(currencies);
+  Apothecary.buyRecipe(first);
+  assert(ShopRules.walletValue(currencies) === after && alchemy.known.filter(id => id === first).length === 1, "A known recipe can't be bought twice");
   Apothecary.close(); Apothecary.open(); Apothecary.setMenu("recipes");
   assert(JSON.stringify(Apothecary.stock().recipes) === JSON.stringify(offered) && ShopRules.walletValue(currencies) === after, "The offer stays the same until the restock, and nothing is charged twice");
   worldState.minutes += 360; Shop.onTimeChange();
@@ -491,7 +492,9 @@ async function checkAssimilator() {
   const eaten = player.effects.filter(effect => effect.name === "Glass Sand (eaten)");
   assert(eaten.length === expected.effects.length && eaten.length === 2 && expected.factor === 1 / 3, "Glass Sand: its potions' two strongest kinds, at a third");
   const crit = eaten.find(effect => effect.type === "crit-damage-percent");
-  assert(crit && crit.amount === 10 && crit.expiresTurn === player.turns + 3, "Duelist's +30% critical damage becomes +10% for 3 turns (a rare ingredient)");
+  assert(crit && crit.amount === 10 && crit.expiresTurn === player.turns + 3, "Duelist's +30% critical damage becomes +10% for 3 turns (an uncommon ingredient)");
+  const lasts = id => AlchemyRules.assimilation(id, 1, getItem).durationTurns;
+  assert(lasts(I("Meadowmint")) === 2 && lasts(feather) === 3 && lasts(I("Dragon Blood")) === 4 && lasts(I("Starfall Dust")) === 4, "2 turns for a common ingredient, 3 for a rare one, 4 for epic and legendary");
   // The same ingredient refreshes; another adds up.
   player.turns += 1;
   potionChecks.turnOf(h, player); h.useItem(player, player, getItem(glass));
@@ -575,6 +578,7 @@ async function checkForaging() {
   WorldMap.render();
   assert(document.getElementById("map-forage").hidden, "No foraging in a town");
   assert(!AlchemyRules.canForage("alder-vale", "Road") && !AlchemyRules.canForage("uncharted-steppe", "Uncharted land") && !AlchemyRules.canForage("alder-vale", "Open Sea"), "Nor on a road, at sea or in the uncharted regions");
+  assert(!AlchemyRules.canForage("alder-vale", "Town", true) && !AlchemyRules.canForage("alder-vale", "Road", true), "not even where a river runs through a town or by a road");
   const plains = AlchemyRules.forageTable("alder-vale", "Plains - near Town", true).map(entry => entry.id);
   assert(plains.includes(I("Riverreed")) && plains.includes(I("Clearwater Moss")) && plains.includes(I("Meadowmint")), "By a river, Riverreed and Clearwater Moss join the zone's table");
   // Rarer ingredients are rarer finds: weights by rarity.
@@ -672,11 +676,25 @@ async function checkCollectQuests() {
     const offer = Guild.makeOffer("collect"), ingredient = AlchemyRules.ingredient(offer.ingredientId);
     assert(offer.type === "collect" && nearby.has(offer.ingredientId), "The ingredient is found in this region or a neighbour's: " + ingredient?.name);
     assert(["common", "uncommon"].includes(ingredient.rarity), "At Level 20 (uncommon band) no rarer ingredient is asked for");
-    assert(offer.required === AlchemyRules.COLLECT.QUANTITY[ingredient.rarity], "The quantity follows the rarity");
+    assert(offer.required === { common: 6, uncommon: 4, rare: 3, epic: 2, legendary: 1 }[ingredient.rarity], "6 of a common ingredient, 4 uncommon, 3 rare, 2 epic, 1 legendary");
     const pays = GuildQuestRules.reward(GuildQuestRules.COLLECT_PAYS_AS[ingredient.rarity], level, calculateClassEffects());
     assert(offer.reward.silver === pays.silver && offer.reward.reputation === pays.reputation, "It pays like " + GuildQuestRules.COLLECT_PAYS_AS[ingredient.rarity]);
   }
-  const table = GuildQuestRules.rewardTable(level, calculateClassEffects());
+  // At Lakespire, with rare and epic ingredients in reach, a Level 20 hero is still asked for none of them.
+  goTo("mirrormere-basin", "lakespire");
+  const lakeside = new Set(["mirrormere-basin", ...GuildQuestRules.adjacentRegions("mirrormere-basin")].flatMap(id => Alchemy.regionIngredients(id)));
+  assert([...lakeside].some(id => ["rare", "epic"].includes(AlchemyRules.ingredient(id).rarity)), "Rarer ingredients are found around Lakespire");
+  for (let index = 0; index < 120; index++) {
+    const offer = Guild.makeOffer("collect");
+    assert(["common", "uncommon"].includes(AlchemyRules.ingredient(offer.ingredientId).rarity), "Around Lakespire too, none above the band");
+  }
+  goTo("alder-vale", "alderkeep");
+  // The rarity cap with every ingredient a candidate: never above the band.
+  const everything = AlchemyRules.INGREDIENTS.map(entry => entry.id);
+  for (let index = 0; index < 200; index++) {
+    const pick = AlchemyRules.collectPick({ candidates: everything, maxRarity: "uncommon", level: 20 });
+    assert(["common", "uncommon"].includes(AlchemyRules.ingredient(pick.id).rarity), "With every ingredient possible, none above the band is asked for");
+  }
   assert(["common", "uncommon", "rare", "epic", "legendary"].every(rarity => GuildQuestRules.collectReward(rarity, level, {}).silver < GuildQuestRules.rewardTable(level, {}).cull.silver), "Never as much as Cull or Hunt");
   assert(GuildQuestRules.COLLECT_PAYS_AS.common === "travel" && GuildQuestRules.COLLECT_PAYS_AS.uncommon === "escort" && GuildQuestRules.COLLECT_PAYS_AS.rare === "search" && GuildQuestRules.COLLECT_PAYS_AS.epic === "deliver", "Common like Travel, uncommon Escort, rare Search, epic and legendary Deliver (P22)");
   // Take one: on the board, the notice and Accept.
