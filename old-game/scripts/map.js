@@ -218,6 +218,18 @@
     ctx.save(); ctx.setTransform(s, 0, 0, s, -left * s, -top * s);
     ctx.strokeStyle = "rgba(26,18,12,.85)"; ctx.lineWidth = Math.max(1.4, 2.2 * dpr) / s; ctx.stroke(back.coast);
     ctx.restore();
+    // On the boat trip (W31) the waves drift: short strokes over the open sea, moving with time.
+    if (voyage) {
+      const t = (performance.now() - voyage.start) / 1000, step = 46 * dpr;
+      ctx.strokeStyle = "rgba(226,236,232,.35)"; ctx.lineWidth = Math.max(1, 1.4 * dpr); ctx.beginPath();
+      for (let sy = (t * 9 * dpr) % step - step; sy < terrainCanvas.height + step; sy += step)
+        for (let sx = ((Math.floor((sy - (t * 9 * dpr) % step) / step) & 1) * step / 2 + t * 14 * dpr) % step - step; sx < terrainCanvas.width + step; sx += step) {
+          const w = { x: left + sx / s, y: top + sy / s };
+          if (continentRules.landAt(w) > -60) continue;
+          ctx.moveTo(sx - 9 * dpr, sy); ctx.quadraticCurveTo(sx - 4.5 * dpr, sy - 4 * dpr, sx, sy); ctx.quadraticCurveTo(sx + 4.5 * dpr, sy + 4 * dpr, sx + 9 * dpr, sy);
+        }
+      ctx.stroke();
+    }
     if (continentRules.IDS.some(id => !visited(id))) {
       const fog = MapContinent.fogImage(worldState.visitedRegions || []);
       ctx.drawImage(fog.canvas, b0.x, b0.y, back.cols * cell * s, back.rows * cell * s);
@@ -226,8 +238,59 @@
       ctx.strokeStyle = "rgba(26,18,12,.6)"; ctx.lineWidth = Math.max(1.2, 1.8 * dpr) / s; ctx.stroke(back.coast);
       ctx.restore();
     }
+    drawAltitude(ctx, s, left, top);
     if (missing.length) queuePaint(missing.sort((a, b) => a.distance - b.distance));
     if (needOverview.length || needWorld.length) queueCharting(needOverview.sort((a, b) => nearFirst.indexOf(a) - nearFirst.indexOf(b)), needWorld.sort((a, b) => nearFirst.indexOf(a) - nearFirst.indexOf(b)));
+  }
+  /* The mountain's height (port task 8, W32; PLACEHOLDER ART, the port remakes it in 3D): the height rises smoothly
+     going north through the Stoneveil Foothills, the High Stoneveil and the Summit (0 at the Foothills' south edge, 1 at
+     the Summit's north edge; everywhere else is lowland, 0). From the High Stoneveil on, everything lower than you
+     fades under a fog that thickens as you climb; on the Summit cloud banks drift below and around you. A wide clear
+     circle stays round you, and the markers and towns (drawn above the terrain) stay readable. */
+  const MOUNTAIN = ["stoneveil-foothills", "high-stoneveil", "stoneveil-summit"];
+  const MOUNTAIN_FOOT = continentRules.RECTS["stoneveil-foothills"].y1, MOUNTAIN_TOP = continentRules.RECTS["stoneveil-summit"].y0;
+  const smoothUnit = v => { const t = Math.max(0, Math.min(1, v)); return t * t * (3 - 2 * t); };
+  // Full on the three regions' own maps, falling off over 700 units past them; the sea is low ground; the fog's line
+  // wanders a little.
+  const altitudeAt = c => {
+    const near = Math.min(...MOUNTAIN.map(id => continentRules.rectDistance(continentRules.RECTS[id], c)));
+    if (near >= 700 || continentRules.landAt(c) <= 0) return 0;
+    const rise = smoothUnit((MOUNTAIN_FOOT - c.y) / (MOUNTAIN_FOOT - MOUNTAIN_TOP)) + (MapContinent.fbm(c.x / 520, c.y / 520, 67) - 0.5) * 0.12;
+    return Math.max(0, rise) * (1 - smoothUnit(near / 700));
+  };
+  // The climb's effects where you stand: fog's thickness (from the High Stoneveil on) and the clouds' (on the Summit).
+  function altitudeEffects() {
+    const at = here(), height = altitudeAt(at);
+    return { at, height, fog: smoothUnit((height - 0.3) / 0.45) * 0.85, clouds: smoothUnit((height - 0.62) / 0.23) };
+  }
+  let altitudeCanvas = null, altitudeAnimating = false;
+  function drawAltitude(ctx, s, left, top) {
+    const effects = altitudeEffects();
+    if (effects.fog <= 0.001) { altitudeAnimating = false; return; }
+    const factor = 6, w = Math.ceil(terrainCanvas.width / factor), h = Math.ceil(terrainCanvas.height / factor);
+    if (!altitudeCanvas || altitudeCanvas.width !== w || altitudeCanvas.height !== h) { altitudeCanvas = document.createElement("canvas"); altitudeCanvas.width = w; altitudeCanvas.height = h; }
+    const actx = altitudeCanvas.getContext("2d"), image = actx.createImageData(w, h), data = image.data, time = performance.now() / 1000;
+    for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) {
+      const c = { x: left + (px + 0.5) * factor / s, y: top + (py + 0.5) * factor / s }, o = (py * w + px) * 4;
+      const below = effects.height - altitudeAt(c), away = Math.hypot(c.x - effects.at.x, c.y - effects.at.y);
+      const fog = smoothUnit((below - 0.04) / 0.2) * effects.fog * smoothUnit((away - 520) / 700);
+      let cloud = 0;
+      if (effects.clouds > 0) {
+        const n = MapContinent.fbm((c.x + time * 22) / 760, (c.y + time * 6) / 760, 61);
+        cloud = smoothUnit((n - 0.44) / 0.22) * effects.clouds * (below > 0.03 ? 1 : 0.4) * smoothUnit((away - 380) / 520);
+      }
+      const a = 1 - (1 - fog) * (1 - cloud * 0.92);
+      if (a <= 0.003) continue;
+      const shade = cloud > 0 ? 0.9 + MapContinent.noise((c.x + time * 22) / 260, c.y / 260, 63) * 0.1 : 1;
+      data[o] = 236 * shade; data[o + 1] = 238 * shade; data[o + 2] = 241 * shade; data[o + 3] = 255 * a;
+    }
+    actx.putImageData(image, 0, 0);
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(altitudeCanvas, 0, 0, w * factor, h * factor);
+    ctx.restore();
+    // Clouds drift: keep drawing while they show.
+    altitudeAnimating = effects.clouds > 0 && !modal.hidden;
+    if (altitudeAnimating) requestDraw();
   }
   let paintJobs = [];
   function queuePaint(jobs) {
@@ -353,6 +416,7 @@
     <g id="map-guild-areas" pointer-events="none"></g>
     <g id="map-guild-markers"></g>
     <g id="map-marker" hidden pointer-events="none"><ellipse rx="13" ry="5" fill="${MapInk.INK}" opacity=".45"/><circle r="11" fill="none" stroke="#f0dfb4" stroke-width="3"/><path d="M0 0v-42" stroke="${MapInk.INK}" stroke-width="3"/><path d="M0 -42l26 8-26 12Z" fill="#8a2c22" stroke="${MapInk.INK}" stroke-width="2.4" stroke-linejoin="round"/></g>
+    <g id="map-voyage" hidden pointer-events="none"><path d="M-30 4H30L22 16H-22Z" fill="#5a3a24" stroke="${MapInk.INK}" stroke-width="2.4" stroke-linejoin="round"/><path d="M-2 4V-34" stroke="${MapInk.INK}" stroke-width="2.6"/><path d="M0 -32Q20 -16 2 0Z" fill="#f0dfb4" stroke="${MapInk.INK}" stroke-width="2" stroke-linejoin="round"/><path d="M-4 -30Q-22 -14 -4 -2Z" fill="#e6d2a4" stroke="${MapInk.INK}" stroke-width="2" stroke-linejoin="round"/><path d="M-38 20Q-30 15 -22 20T-6 20M6 20Q14 15 22 20T38 20" fill="none" stroke="#f0dfb4" stroke-width="2" opacity=".8"/></g>
     <g id="map-character" role="button" tabindex="0" aria-label="Current position. Click to pause or resume travel" aria-pressed="false">
       <circle r="32" fill="transparent"/><circle class="map-character-ring" r="22" fill="#fff0c6" fill-opacity=".18" stroke="#fff2c6" stroke-width="3"/>
       <circle r="17" fill="#2a1d14" stroke="${MapInk.INK}" stroke-width="2"/><circle r="14" fill="#5e2620" stroke="#e8cf92" stroke-width="2"/><circle cy="-4.5" r="4.6" fill="#f0dfb4"/><path d="M-7.6 9Q-7.6 -.5 0 -.5T7.6 9Z" fill="#f0dfb4"/>
@@ -887,6 +951,7 @@
     (worldState.pendingEncounter ? $("map-encounter-fight") : pendingExit?.targetRegionId ? $("map-transition-travel") : worldState.pendingRegionTransition ? $("map-transition-stay") : modal.querySelector(".modal-close")).focus();
   }
   function close() {
+    finishVoyage();
     pause(); modal.hidden = true; renderEncounterPrompt(); renderTransitionPrompt(); updateModalState(); $("map-open-button").focus();
   }
   function rest() {
@@ -922,23 +987,75 @@
     updateDerivedValues(); renderOwnedItems(); renderKnownSpells(); renderSkills(); saveCharacter(); render();
     $("map-status").textContent = 'Camped for 8 hours. ' + (retained ? 'Camping Supplies recovered' : 'One set of Camping Supplies consumed') + '; HP and Mana fully restored.';
   }
+  /* The boat trip (port task 8, W11, W14, W31): about five seconds on the map itself. The camera pulls out to show both
+     ports, a small boat sails across the real sea from one to the other while the waves drift and the clock runs on
+     the trip's hours, then the camera settles on the arrival. A click or Esc skips to the end; the trip itself (time,
+     place) is applied once, at the end. */
+  const VOYAGE_MS = 5000;
+  let voyage = null;
+  // A way across the sea from one port to the other: the straight line, or the first gentle curve off it that stays on
+  // water (but for the ports' own shores).
+  function seaPath(a, b) {
+    const dx = b.x - a.x, dy = b.y - a.y, length = Math.hypot(dx, dy) || 1, nx = -dy / length, ny = dx / length;
+    const curve = bend => t => { const k = 4 * t * (1 - t) * bend * length; return { x: a.x + dx * t + nx * k, y: a.y + dy * t + ny * k }; };
+    for (const bend of [0, 0.12, -0.12, 0.24, -0.24, 0.36, -0.36]) {
+      const at = curve(bend);
+      let wet = true;
+      for (let t = 0.06; t <= 0.94 && wet; t += 0.01) wet = continentRules.landAt(at(t)) < 0;
+      if (wet) return at;
+    }
+    return curve(0);
+  }
   function travelByBoat() {
     const place = rules.settlementAt(worldState.position, worldState.regionId);
     const boat = place?.boat;
     const destination = boat && rules.settlementsForRegion(boat.regionId).find(candidate => candidate.id === boat.settlementId);
-    if (!destination || travelling || encounterResolving || worldState.pendingEncounter || worldState.pendingRegionTransition || window.Combat?.active() || currentHp <= 0) return;
-    const previousRegionId = worldState.regionId;
+    if (voyage || !destination || travelling || encounterResolving || worldState.pendingEncounter || worldState.pendingRegionTransition || window.Combat?.active() || currentHp <= 0) return;
     pause(false);
     worldState.destination = null; worldState.route = [];
-    advanceWorldTime(boat.minutes);
-    rules.placeAt(worldState, rules.toContinent(boat.regionId, destination));
-    rules.setActiveRegion(boat.regionId);
+    const from = here(), to = rules.toContinent(boat.regionId, destination);
+    voyage = { start: performance.now(), path: seaPath(from, to), place, destination, boat, previousRegionId: worldState.regionId, minutes: worldState.minutes, follow: camera.follow };
+    // Both ports in view.
+    const margin = 900;
+    camera.follow = false;
+    camera.x = (from.x + to.x) / 2; camera.y = (from.y + to.y) / 2;
+    camera.scale = Math.min(viewSize.width / (Math.abs(to.x - from.x) + margin * 2), viewSize.height / (Math.abs(to.y - from.y) + margin * 2));
+    $("map-voyage").removeAttribute("hidden");
+    $("map-character").setAttribute("visibility", "hidden");
+    $("map-status").textContent = `Sailing from ${place.name} to ${destination.name}… (click or Esc to skip)`;
+    applyCamera(); render();
+    requestAnimationFrame(voyageStep);
+  }
+  function voyageStep(now) {
+    if (!voyage) return;
+    const t = Math.min(1, (now - voyage.start) / VOYAGE_MS), eased = t * t * (3 - 2 * t);
+    const p = voyage.path(eased), ahead = voyage.path(Math.min(1, eased + 0.01)), behind = voyage.path(Math.max(0, eased - 0.01));
+    // The boat faces the way it sails (drawn facing east).
+    $("map-voyage").setAttribute("transform", pin(p.x, p.y, 1.4) + (ahead.x < behind.x ? " scale(-1 1)" : ""));
+    $("map-voyage").dataset.progress = t.toFixed(3);
+    // The clock runs on with the trip (shown only; the hours are added once at the end).
+    const minutes = voyage.minutes + voyage.boat.minutes * t;
+    $("map-day").textContent = "Day " + rules.day(minutes); $("map-clock").textContent = rules.time(minutes);
+    requestDraw();
+    if (t >= 1) finishVoyage(); else requestAnimationFrame(voyageStep);
+  }
+  function finishVoyage() {
+    const trip = voyage;
+    if (!trip) return;
+    voyage = null;
+    $("map-voyage").setAttribute("hidden", "");
+    $("map-character").removeAttribute("visibility");
+    advanceWorldTime(trip.boat.minutes);
+    rules.placeAt(worldState, rules.toContinent(trip.boat.regionId, trip.destination));
+    rules.setActiveRegion(trip.boat.regionId);
     worldState.encounterTravelMinutes = 0;
     renderedRegionId = null;
     window.Music?.sync();
-    window.Guild?.onRegionChange(previousRegionId);
-    $("map-status").textContent = `Sailed from ${place.name} to ${destination.name} in ${boat.minutes / 60} hours.`;
-    saveCharacter(); render(); fitMap();
+    window.Guild?.onRegionChange(trip.previousRegionId);
+    $("map-status").textContent = `Sailed from ${trip.place.name} to ${trip.destination.name} in ${trip.boat.minutes / 60} hours.`;
+    // The camera settles on the arrival.
+    camera.follow = true;
+    saveCharacter(); render(); setScale(DEFAULT_SCALE());
   }
   $("map-open-button").addEventListener("click", open);
   modal.querySelectorAll("[data-map-close]").forEach(button => button.addEventListener("click", close));
@@ -1037,6 +1154,8 @@
   svg.addEventListener("lostpointercapture", releaseMapHold);
   window.addEventListener("blur", () => { if (cancelMapHold()) saveCharacter(); });
   modal.addEventListener("click", event => {
+    // A click during the boat trip skips to its end (not the click that started it, still bubbling).
+    if (voyage) { if (performance.now() - voyage.start > 120 && !event.target.closest("[data-map-close]")) finishVoyage(); return; }
     if (event.detail > 0 && event.target.closest("#regional-map") && performance.now() < suppressMapClickUntil) return;
     if (event.target.closest("#map-character")) {
       if (worldState.destination) travelling ? pause() : resume();
@@ -1065,7 +1184,7 @@
   modal.addEventListener("keydown", event => {
     const target = event.target.closest("#map-character, g[data-map-town], g[data-map-site], g[data-map-exit], .map-guild-marker");
     if (target && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); target.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
-    if (event.key === "Escape") { event.preventDefault(); close(); }
+    if (event.key === "Escape") { event.preventDefault(); if (voyage) finishVoyage(); else close(); }
     if (event.key === "Tab") {
       const focusable = [...modal.querySelectorAll('button:not(:disabled), [tabindex="0"]')].filter(el => !el.classList.contains("modal-backdrop"));
       const first = focusable[0], last = focusable.at(-1);

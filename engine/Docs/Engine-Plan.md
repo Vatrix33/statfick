@@ -1361,6 +1361,14 @@ M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.t
   roads only through regions already entered; through any other region a click follows the roads (leaving them only in
   the regions where the trip starts and ends). Refines W13. (Not always along the roads, the recommendation; not the
   fastest way across any land.)
+- W31 **The boat trip** (about 5 seconds, W14): on the map itself: the camera pulls out to show both coasts, a small boat
+  leaves Seabridge and sails across the real sea to Emberhaven while the waves drift and the clock runs on 12.6 hours,
+  then the camera settles on the island; Esc or a click skips to the end. (Not a separate scene card.)
+- W32 **The mountain's height on the map:** the height rises smoothly as you go north through the Foothills, the High
+  Stoneveil and the Summit; from the High Stoneveil on, everything lower than you (the Foothills, the Alder Vale and
+  beyond) fades under a soft fog that thickens as you climb; on the Summit slow-drifting cloud banks lie below and around
+  you; a wide clear circle round you, and markers and towns always stay readable. (Not a ring of fog only near you; not
+  just dimming the lowlands.)
 
 **Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
 after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**
