@@ -15,7 +15,7 @@
     ["map-speed-fast", "⇧3", ["shift+3"]], ["map-speed-double", "⇧4", ["shift+4"]],
     ["map-pause", "Space", [" "]], ["map-cancel", "X", ["x"]],
     ["map-force-encounter", "E", ["e"]], ["map-camp", "C", ["c"]], ["map-rest", "R", ["r"]],
-    ["map-blacksmith", "B", ["b"]], ["map-item-shop", "G", ["g"]], ["map-tailor", "U", ["u"]],
+    ["map-blacksmith", "B", ["b"]], ["map-item-shop", "G", ["g"]], ["map-tailor", "U", ["u"]], ["map-apothecary", "O", ["o"]], ["map-forage", "D", ["d"]],
     ["map-guild", "A", ["a"]], ["map-church", "T", ["t"]], ["map-magic-tower", "W", ["w"]], ["map-institute", "I", ["i"]], ["map-hearth-home", "H", ["h"]],
     ["map-class-respec", "L", ["l"]], ["map-stat-respec", "P", ["p"]],
     ["map-caravan", "K", ["k"]], ["map-carriage", "N", ["n"]], ["map-boat", "V", ["v"]], ["map-search", "F", ["f"]], ["map-track-quarry", "Q", ["q"]], ["map-quests", "J", ["j"]],
@@ -588,7 +588,14 @@
     $("map-rest").disabled = !canRest;
     $("map-rest").textContent = 'Rest · 10 hours · ' + ShopRules.formatPrice(restPrice);
     $("map-rest").title = place ? 'Rest in ' + place.name + ' and fully restore HP and Mana' : 'Reach a settlement to rest';
-    [$("map-blacksmith"), $("map-item-shop"), $("map-tailor")].forEach(button => { button.hidden = !place || mapLocked || travelling; button.disabled = !place || mapLocked || travelling; });
+    [$("map-blacksmith"), $("map-item-shop"), $("map-tailor"), $("map-apothecary")].forEach(button => { button.hidden = !place || mapLocked || travelling; button.disabled = !place || mapLocked || travelling; });
+    $("map-apothecary").title = place ? 'Potions, ingredients, brewing and recipes at the apothecary in ' + place.name : 'Reach a settlement to shop';
+    // Port task 9: Forage (P10, P11) where the ground here can be searched.
+    const forageZone = rules.zoneAt(worldState.position, worldState.regionId);
+    const canForage = window.AlchemyRules?.canForage(worldState.regionId, forageZone, rules.nearRiver(worldState.position, worldState.regionId)) && !mapLocked && !travelling;
+    $("map-forage").hidden = !canForage;
+    $("map-forage").disabled = !canForage;
+    $("map-forage").textContent = 'Forage · 1 hour' + (alchemy.keenHarvestReady ? ' · Keen Harvest' : '');
     $("map-tailor").title = place ? 'Buy, sell and reforge clothing at the tailor in ' + place.name : 'Reach a settlement to shop';
     $("map-blacksmith").title = place ? 'Browse weapons and armor at the blacksmith in ' + place.name : 'Reach a settlement to shop';
     $("map-item-shop").title = place ? 'Browse the general store in ' + place.name : 'Reach a settlement to shop';
@@ -983,6 +990,32 @@
     updateDerivedValues(); renderKnownSpells(); renderSkills(); saveCharacter(); render();
     $("map-status").textContent = 'Rested 10 hours in ' + place.name + ' for ' + ShopRules.formatPrice(price) + '. HP and Mana fully restored.';
   }
+  /* Port task 9 (the Potion Rework): Forage (P10, P11, P30). An hour searching the ground here for ingredients; a find
+     45% of the time (and the Alchemist's bonus), the zone's own ingredients and the river's beside one; then the zone's
+     encounter roll for an hour of travel. Keen Harvest makes the next one sure, rarer finds weighing double. */
+  function forage() {
+    if (travelling || encounterResolving || worldState.pendingEncounter || worldState.pendingRegionTransition || window.Combat?.active()) return false;
+    const zone = rules.zoneAt(worldState.position, worldState.regionId), nearRiver = rules.nearRiver(worldState.position, worldState.regionId);
+    if (!AlchemyRules.canForage(worldState.regionId, zone, nearRiver)) return false;
+    worldState.destination = null; worldState.route = [];
+    advanceWorldTime(AlchemyRules.FORAGE.MINUTES);
+    const bonus = window.Alchemy?.forageBonus() || { find: 0, extraOne: false }, keen = alchemy.keenHarvestReady;
+    alchemy.keenHarvestReady = false;
+    const found = AlchemyRules.forage({ regionId: worldState.regionId, zone, nearRiver, findBonus: bonus.find, extraOne: bonus.extraOne, sure: keen, rareWeight: keen ? 2 : 1 });
+    if (found.found) {
+      inventory.push(...Array(found.quantity).fill(found.id));
+      alchemy.foraged += found.quantity;
+    }
+    const name = found.found ? getItem(found.id)?.name || found.id : "";
+    $("map-status").textContent = found.found ? `You forage for an hour and find ${found.quantity > 1 ? found.quantity + "× " : ""}${name}.` : "You search for an hour but find nothing useful.";
+    renderOwnedItems(); renderClasses(); saveCharacter();
+    const multiplier = Math.max(0, 1 + calculateClassEffects().encounterChancePercent / 100) * AlchemyRules.FORAGE.MINUTES / rules.ENCOUNTER_MINUTES;
+    const rolled = EncounterRules.roll(zone, { level, regionId: worldState.regionId, encounterChanceMultiplier: multiplier });
+    const encounter = rolled?.length ? window.Guild?.adjustEncounter(rolled, zone) || rolled : rolled;
+    if (encounter?.length) presentTravelEncounter(encounter, zone);
+    render();
+    return found;
+  }
   function camp() {
     if (travelling || encounterResolving || worldState.pendingEncounter || worldState.pendingRegionTransition || window.Combat?.active()) return;
     const suppliesIndex = inventory.indexOf("consumable-camping-supplies");
@@ -1202,6 +1235,7 @@
   $("map-rest").addEventListener("click", rest);
   $("map-force-encounter").addEventListener("click", forceEncounter);
   $("map-camp").addEventListener("click", camp);
+  $("map-forage").addEventListener("click", forage);
   $("map-boat").addEventListener("click", travelByBoat);
   $("map-caravan").addEventListener("click", openCaravan);
   $("map-carriage").addEventListener("click", toggleCarriage);
@@ -1412,6 +1446,7 @@
     pause, render, renderClock, open,
     // Port task 8, for the checks: the climb's fog and clouds where you stand, and the journey under way.
     altitude: () => { const effects = altitudeEffects(); return { height: effects.height, fog: effects.fog, clouds: effects.clouds }; },
+    forage,
     journey: () => voyage ? { element: voyage.element, duration: voyage.duration, minutes: voyage.minutes } : null,
     isTravelling: () => travelling,
     checkTravelEncounter, checkGuildObjective,

@@ -70,8 +70,8 @@
       regionId: normalizeRegionId(value.regionId), settlementId: text(value.settlementId), name: text(value.name) || text(value.settlementId), point: point(value.point),
     } : null;
     // Quests of the Guild Rework (port task 2) carry version 2; Hunt and Search kept their kind.
-    const QUEST_TYPES = ["hunt", "cull", "deliver", "search", "escort", "travel", "great-hunt", "clear"];
-    const normalizeQuest = quest => quest && typeof quest === "object" && QUEST_TYPES.includes(quest.type) ? {
+    const QUEST_TYPES = ["hunt", "cull", "deliver", "search", "escort", "travel", "collect", "great-hunt", "clear"];
+    const normalizeQuest = quest => quest && typeof quest === "object" && QUEST_TYPES.includes(quest.type) && (quest.type !== "collect" || typeof quest.ingredientId === "string" && quest.ingredientId.startsWith("ingredient-")) ? {
       ...quest,
       version: quest.version === 2 ? 2 : 1,
       title: text(quest.title),
@@ -96,6 +96,9 @@
       ambushes: Array.isArray(quest.ambushes) ? quest.ambushes.filter(entry => entry && Number.isFinite(entry.at)).slice(0, 2).map(entry => ({ at: Math.max(0, entry.at), done: entry.done === true })) : [],
       travelled: Math.max(0, number(quest.travelled, 0)),
       tripMinutes: Math.max(1, number(quest.tripMinutes, 1)),
+      // Port task 9: a Collect quest's ingredient (P22–P25).
+      ingredientId: typeof quest.ingredientId === "string" && quest.ingredientId.startsWith("ingredient-") ? quest.ingredientId : null,
+      ingredientName: text(quest.ingredientName, 60),
       taken: quest.taken === true,
     } : null;
     // The standard quest and the Great Hunt are held apart (one of each at a time). Older saves kept a
@@ -384,6 +387,11 @@
       if (dx * dx + dy * dy <= limit) return true;
     }
     return false;
+  }
+  // Port task 9: by a river (about 4 km), where foraging adds the rivers' own ingredients (P31).
+  function nearRiver(position, regionId = activeRegionId, reach = 60) {
+    if (!isLand(position, regionId)) return false;
+    return nearSegments(position, terrainSegments(normalizeRegionId(regionId)).river, reach);
   }
   function terrainAt(position, regionId = activeRegionId) {
     if (!isLand(position, regionId)) return "sea";
@@ -1114,7 +1122,7 @@
     return { ...information, offers: { ...information.offers, item: keep(information.offers?.item) }, revealed: { ...information.revealed, item: keep(information.revealed?.item) } };
   }
   const api = { CARRIAGE, carriageGround, CARAVAN, castleCity, caravanTrip, caravanTrips: caravanTrips_, CONTINENT_VERSION, SCALE, LOCAL_UNITS_PER_KM, REACH, castleCityIds, toContinent, fromContinent, passableAt, continentSpeedAt, continentTravelMinutes, continentRoadGraph, continentRoute, continentRouteDistance, continentRouteMinutes, placeAt, noteVisit, standing, get continent() { return continent; },
-    RETIRED_ARTIFACT_IDS, UNITS_PER_KM, MAP_SCALE, ENCOUNTER_MINUTES, RENAMED_ENEMIES, settlements, forests, regions, normalizeRegionId, getRegion, setActiveRegion, activeRegion, settlementsForRegion, nearestSettlement, setSettlementAccessResolver, canAccessSettlement, landmarkAt, siteAt, normalize, timeSpeeds, normalizeTimeSpeed, realTimeMinutes, day, time, point, distance, settlementAt, isLand, terrainAt, zoneAt, speedAt, travelMinutes, routeBetween, routeDistance, routeTravelMinutes, exitAt, exitById, step, lighting };
+    RETIRED_ARTIFACT_IDS, UNITS_PER_KM, MAP_SCALE, ENCOUNTER_MINUTES, RENAMED_ENEMIES, settlements, forests, regions, normalizeRegionId, getRegion, setActiveRegion, activeRegion, settlementsForRegion, nearestSettlement, setSettlementAccessResolver, canAccessSettlement, landmarkAt, siteAt, normalize, timeSpeeds, normalizeTimeSpeed, realTimeMinutes, day, time, point, distance, settlementAt, isLand, nearRiver, terrainAt, zoneAt, speedAt, travelMinutes, routeBetween, routeDistance, routeTravelMinutes, exitAt, exitById, step, lighting };
   root.WorldRules = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(globalThis);

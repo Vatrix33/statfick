@@ -6,7 +6,8 @@
 (() => {
   const $ = id => document.getElementById(id);
   const modal = $("shop-modal"), stockList = $("shop-stock-list"), detail = $("shop-detail"), status = $("shop-status");
-  const STOCK_VERSION = 25;
+  // 26: port task 9 moved every potion to the Apothecary (P3, P28).
+  const STOCK_VERSION = 26;
   const OVERTIER_SPELL_CHANCE = 0.1;
   // Blacksmith shelves: forged melee and ranged weapons, then forged armor without clothing (castle 4, town 3:
   // user decision R8). Regional offers take armor places. The Tailor's shelves hold clothing only (R7).
@@ -102,7 +103,6 @@
     normalizeState();
     const castle = isCastle(settlement);
     const availableItems = items.filter(item => purchasableItem(item, settlement));
-    const desiredRarity = ShopRules.levelBand(level).rarity;
     const blacksmithPool = availableItems.filter(item => (item.category === "weapon" || item.category === "armor") && !isClothing(item));
     const generalPool = availableItems.filter(item => item.category !== "weapon" && item.category !== "armor");
     const regionalOffers = [...blacksmithPool.filter(item => item.shopOffer), ...masterworkOffers(settlement).map(key => getItem(ForgeRules.encode(ForgeRules.generateMasterwork({ key, level, random: unitRandom }))))];
@@ -124,9 +124,7 @@
     const smithReserved = [...regionalOffers, ...forgedWeapons, ...forgedArmor];
     const smithIds = new Set(smithReserved.map(item => item.id));
     const selectedBlacksmith = [...smithReserved, ...ShopRules.itemStock(blacksmithPool.filter(item => !smithIds.has(item.id) && !item.shopOffer), smithPlan(settlement).total - smithReserved.length, level)];
-    const guaranteedPotions = ["hp", "mana"].map(resource => generalPool.find(item => item.potionResource === resource && item.rarity === desiredRarity)).filter(Boolean);
-    const generalIds = new Set(guaranteedPotions.map(item => item.id));
-    const selectedGeneral = [...guaranteedPotions, ...ShopRules.itemStock(generalPool.filter(item => !generalIds.has(item.id)), generalCount(settlement) - guaranteedPotions.length, level)];
+    const selectedGeneral = ShopRules.itemStock(generalPool, generalCount(settlement), level);
     const selectedSpells = towerSpellCount(settlement) ? ShopRules.spellStock(spells.filter(normallyPurchasableSpell), towerSpellCount(settlement), level) : [];
     const overtierSpells = spells.filter(overtierPurchasableSpell);
     if (selectedSpells.length && overtierSpells.length && unitRandom() < OVERTIER_SPELL_CHANCE) {
@@ -151,8 +149,10 @@
     return minimum + Math.floor(unitRandom() * (maximum - minimum + 1));
   }
 
+  // Potions, poisons and ingredients are the Apothecary's alone (port task 9, P3, P28).
+  const alchemyGoods = item => Boolean(item && (item.potion || item.poison || item.category === "ingredient"));
   function purchasableItem(item, settlement = place) {
-    return Boolean(item && item.category !== "artifact" && item.category !== "rune" && (item.catalogueAvailable !== false || item.forged) && item.shopAvailable !== false && Number.isFinite(item.priceSilver)
+    return Boolean(item && item.category !== "artifact" && item.category !== "rune" && !alchemyGoods(item) && (item.catalogueAvailable !== false || item.forged) && item.shopAvailable !== false && Number.isFinite(item.priceSilver)
       && (!item.shopOffer || item.shopOffer.regionId === worldState.regionId && item.shopOffer.settlementId === settlement?.id));
   }
 
@@ -238,7 +238,7 @@
   function itemArt(item, size = "small") {
     if (!item || !window.ForgeArt) return "";
     if (item.forged) return ForgeArt.weapon(item, size);
-    if (["rune", "consumable", "artifact"].includes(item.category)) return ForgeArt.goods(item, size);
+    if (["rune", "consumable", "artifact", "ingredient"].includes(item.category)) return ForgeArt.goods(item, size);
     return "";
   }
   // One line of a shop list. Hovering or focusing it shows the entry in the detail panel.
@@ -323,7 +323,7 @@
     if (!item || item.category === "rune") return false;
     const equipmentItem = item.category === "weapon" || item.category === "armor";
     // Staffs and wands are bought at the Magic Tower, but any smith buys them back; clothing is the Tailor's.
-    return kind === "blacksmith" ? equipmentItem && !isClothing(item) : kind === "tailor" ? isClothing(item) : kind === "hearth" ? transaction === "buy" && equipmentItem && !isClothing(item) : kind === "general" ? !equipmentItem && (transaction === "sell" || item.category !== "artifact") : false;
+    return kind === "blacksmith" ? equipmentItem && !isClothing(item) : kind === "tailor" ? isClothing(item) : kind === "hearth" ? transaction === "buy" && equipmentItem && !isClothing(item) : kind === "general" ? !equipmentItem && !alchemyGoods(item) && (transaction === "sell" || item.category !== "artifact") : false;
   }
 
   function sellableInventory() {

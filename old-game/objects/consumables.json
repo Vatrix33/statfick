@@ -95,6 +95,8 @@
     "rarity": "common",
     "potionResource": "hp",
     "priceSilver": 450,
+    "potion": true,
+    "outsideBattle": true,
     "effects": [
       { "type": "heal", "amount": 25, "maxPercent": 10, "recipient": "friendly-target" }
     ]
@@ -106,6 +108,8 @@
     "rarity": "uncommon",
     "potionResource": "hp",
     "priceSilver": 1200,
+    "potion": true,
+    "outsideBattle": true,
     "effects": [
       { "type": "heal", "amount": 50, "maxPercent": 15, "recipient": "friendly-target" }
     ]
@@ -117,6 +121,8 @@
     "rarity": "common",
     "potionResource": "mana",
     "priceSilver": 400,
+    "potion": true,
+    "outsideBattle": true,
     "effects": [
       { "type": "restore-mana", "amount": 10, "maxPercent": 5, "recipient": "friendly-target" }
     ]
@@ -128,6 +134,8 @@
     "rarity": "uncommon",
     "potionResource": "mana",
     "priceSilver": 1000,
+    "potion": true,
+    "outsideBattle": true,
     "effects": [
       { "type": "restore-mana", "amount": 20, "maxPercent": 10, "recipient": "friendly-target" }
     ]
@@ -139,6 +147,8 @@
     "rarity": "rare",
     "potionResource": "hp",
     "priceSilver": 3500,
+    "potion": true,
+    "outsideBattle": true,
     "effects": [
       { "type": "heal", "amount": 75, "maxPercent": 15, "recipient": "friendly-target" }
     ]
@@ -150,6 +160,8 @@
     "rarity": "rare",
     "potionResource": "mana",
     "priceSilver": 3000,
+    "potion": true,
+    "outsideBattle": true,
     "effects": [
       { "type": "restore-mana", "amount": 30, "maxPercent": 15, "recipient": "friendly-target" }
     ]
@@ -161,6 +173,8 @@
     "rarity": "epic",
     "potionResource": "hp",
     "priceSilver": 8000,
+    "potion": true,
+    "outsideBattle": true,
     "effects": [
       { "type": "heal", "amount": 100, "maxPercent": 20, "recipient": "friendly-target" }
     ]
@@ -172,6 +186,8 @@
     "rarity": "epic",
     "potionResource": "mana",
     "priceSilver": 7000,
+    "potion": true,
+    "outsideBattle": true,
     "effects": [
       { "type": "restore-mana", "amount": 40, "maxPercent": 20, "recipient": "friendly-target" }
     ]
@@ -183,6 +199,8 @@
     "rarity": "legendary",
     "potionResource": "hp",
     "priceSilver": 18000,
+    "potion": true,
+    "outsideBattle": true,
     "effects": [
       { "type": "heal", "amount": 200, "maxPercent": 25, "recipient": "friendly-target" }
     ]
@@ -194,8 +212,669 @@
     "rarity": "legendary",
     "potionResource": "mana",
     "priceSilver": 16000,
+    "potion": true,
+    "outsideBattle": true,
     "effects": [
       { "type": "restore-mana", "amount": 50, "maxPercent": 20, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-draught-of-vigor",
+    "name": "Draught of Vigor",
+    "description": "+10% Strength. Lasts 3 turns.",
+    "rarity": "common",
+    "priceSilver": 350,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "stat-percent", "amount": 10, "durationTurns": 3, "recipient": "friendly-target", "target": "strength" }
+    ]
+  },
+  {
+    "id": "consumable-mindspark-tonic",
+    "name": "Mindspark Tonic",
+    "description": "+10% spell power. Lasts 3 turns.",
+    "rarity": "common",
+    "priceSilver": 400,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "spell-power-percent", "amount": 10, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-barkskin-tonic",
+    "name": "Barkskin Tonic",
+    "description": "+15% Armor. Lasts 3 turns.",
+    "rarity": "common",
+    "priceSilver": 350,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "defense-percent", "amount": 15, "durationTurns": 3, "recipient": "friendly-target", "target": "armor" }
+    ]
+  },
+  {
+    "id": "consumable-swiftwind-draught",
+    "name": "Swiftwind Draught",
+    "description": "+10% Speed (your turns come sooner). Lasts 3 turns.",
+    "rarity": "common",
+    "priceSilver": 400,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "stat-percent", "amount": 10, "durationTurns": 3, "recipient": "friendly-target", "target": "speed" }
+    ]
+  },
+  {
+    "id": "consumable-hawkeye-drops",
+    "name": "Hawkeye Drops",
+    "description": "+10% hit chance with weapons. Lasts 3 turns.",
+    "rarity": "common",
+    "priceSilver": 350,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "weapon-hit-percent", "amount": 10, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-antidote",
+    "name": "Antidote",
+    "description": "Removes one negative effect (a poison first, if any).",
+    "rarity": "common",
+    "priceSilver": 300,
+    "potion": true,
+    "alchemy": true,
+    "outsideBattle": true,
+    "effects": [
+      { "type": "cure", "amount": 1, "poisonFirst": true, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-mending-draught",
+    "name": "Mending Draught",
+    "description": "Heals 4% of max HP at the start of each of your turns. Lasts 4 turns.",
+    "rarity": "common",
+    "priceSilver": 450,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "turn-start-restore-percent", "amount": 0, "hp": 4, "durationTurns": 4, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-emberward-tonic",
+    "name": "Emberward Tonic",
+    "description": "+20% Fire resistance. Lasts 4 turns.",
+    "rarity": "common",
+    "priceSilver": 400,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "element-resistance-percent", "amount": 20, "durationTurns": 4, "recipient": "friendly-target", "elements": ["fire"] }
+    ]
+  },
+  {
+    "id": "consumable-elixir-of-might",
+    "name": "Elixir of Might",
+    "description": "+20% Strength. Lasts 3 turns.",
+    "rarity": "uncommon",
+    "priceSilver": 1100,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "stat-percent", "amount": 20, "durationTurns": 3, "recipient": "friendly-target", "target": "strength" }
+    ]
+  },
+  {
+    "id": "consumable-arcane-draught",
+    "name": "Arcane Draught",
+    "description": "+20% spell power. Lasts 3 turns.",
+    "rarity": "uncommon",
+    "priceSilver": 1200,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "spell-power-percent", "amount": 20, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-stoneskin-potion",
+    "name": "Stoneskin Potion",
+    "description": "-15% weapon damage taken. Lasts 3 turns.",
+    "rarity": "uncommon",
+    "priceSilver": 1200,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "incoming-weapon-damage-percent", "amount": -15, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-spellward-potion",
+    "name": "Spellward Potion",
+    "description": "-15% spell damage taken. Lasts 3 turns.",
+    "rarity": "uncommon",
+    "priceSilver": 1200,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "incoming-spell-damage-percent", "amount": -15, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-catseye-potion",
+    "name": "Catseye Potion",
+    "description": "+15% Evasion. Lasts 3 turns.",
+    "rarity": "uncommon",
+    "priceSilver": 1000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "defense-percent", "amount": 15, "durationTurns": 3, "recipient": "friendly-target", "target": "evasion" }
+    ]
+  },
+  {
+    "id": "consumable-potion-of-precision",
+    "name": "Potion of Precision",
+    "description": "+10% critical hit chance. Lasts 3 turns.",
+    "rarity": "uncommon",
+    "priceSilver": 1300,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "crit-chance-percent", "amount": 10, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-tidal-ward",
+    "name": "Tidal Ward",
+    "description": "+25% Water and Ice resistance. Lasts 4 turns.",
+    "rarity": "uncommon",
+    "priceSilver": 1000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "element-resistance-percent", "amount": 25, "durationTurns": 4, "recipient": "friendly-target", "elements": ["water", "ice"] }
+    ]
+  },
+  {
+    "id": "consumable-storm-ward",
+    "name": "Storm Ward",
+    "description": "+25% Lightning and Wind resistance. Lasts 4 turns.",
+    "rarity": "uncommon",
+    "priceSilver": 1000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "element-resistance-percent", "amount": 25, "durationTurns": 4, "recipient": "friendly-target", "elements": ["lightning", "wind"] }
+    ]
+  },
+  {
+    "id": "consumable-grave-ward",
+    "name": "Grave Ward",
+    "description": "+25% Dark and Death resistance. Lasts 4 turns.",
+    "rarity": "uncommon",
+    "priceSilver": 1100,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "element-resistance-percent", "amount": 25, "durationTurns": 4, "recipient": "friendly-target", "elements": ["dark", "death"] }
+    ]
+  },
+  {
+    "id": "consumable-clarity-draught",
+    "name": "Clarity Draught",
+    "description": "Removes up to two negative effects.",
+    "rarity": "uncommon",
+    "priceSilver": 900,
+    "potion": true,
+    "alchemy": true,
+    "outsideBattle": true,
+    "effects": [
+      { "type": "cure", "amount": 2, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-manaflow-tonic",
+    "name": "Manaflow Tonic",
+    "description": "Restores 5% of max Mana at the start of each of your turns. Lasts 4 turns.",
+    "rarity": "uncommon",
+    "priceSilver": 1100,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "turn-start-restore-percent", "amount": 0, "mana": 5, "durationTurns": 4, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-bloodroot-tonic",
+    "name": "Bloodroot Tonic",
+    "description": "+20% healing received. Lasts 4 turns.",
+    "rarity": "uncommon",
+    "priceSilver": 1000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "healing-received-percent", "amount": 20, "durationTurns": 4, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-berserkers-brew",
+    "name": "Berserker's Brew",
+    "description": "+25% weapon damage dealt, but -10% Armor. Lasts 3 turns.",
+    "rarity": "rare",
+    "priceSilver": 3000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "outgoing-attack-damage-percent", "amount": 25, "durationTurns": 3, "recipient": "friendly-target", "attackKinds": ["melee", "ranged"] },
+      { "type": "defense-percent", "amount": -10, "durationTurns": 3, "recipient": "friendly-target", "target": "armor" }
+    ]
+  },
+  {
+    "id": "consumable-sorcerers-philtre",
+    "name": "Sorcerer's Philtre",
+    "description": "+30% spell power. Lasts 3 turns.",
+    "rarity": "rare",
+    "priceSilver": 3500,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "spell-power-percent", "amount": 30, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-potion-of-steadfastness",
+    "name": "Potion of Steadfastness",
+    "description": "Immune to stuns and AP loss. Lasts 4 turns.",
+    "rarity": "rare",
+    "priceSilver": 3000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "control-immune", "amount": 1, "durationTurns": 4, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-duelists-draught",
+    "name": "Duelist's Draught",
+    "description": "+30% critical damage and +5% critical hit chance. Lasts 3 turns.",
+    "rarity": "rare",
+    "priceSilver": 3500,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "crit-damage-percent", "amount": 30, "durationTurns": 3, "recipient": "friendly-target" },
+      { "type": "crit-chance-percent", "amount": 5, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-wraithstep-elixir",
+    "name": "Wraithstep Elixir",
+    "description": "+25% Evasion, and spells aimed at you miss 15% of the time. Lasts 3 turns.",
+    "rarity": "rare",
+    "priceSilver": 3500,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "defense-percent", "amount": 25, "durationTurns": 3, "recipient": "friendly-target", "target": "evasion" },
+      { "type": "incoming-spell-miss-chance", "amount": 15, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-bulwark-potion",
+    "name": "Bulwark Potion",
+    "description": "A barrier of 15% of max HP that takes damage first. Lasts 3 turns (what's left then fades).",
+    "rarity": "rare",
+    "priceSilver": 3000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "barrier-percent", "amount": 15, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-elixir-of-renewal",
+    "name": "Elixir of Renewal",
+    "description": "Heals 7% of max HP at the start of each of your turns, and +15% healing received. Lasts 4 turns.",
+    "rarity": "rare",
+    "priceSilver": 3500,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "turn-start-restore-percent", "amount": 0, "hp": 7, "durationTurns": 4, "recipient": "friendly-target" },
+      { "type": "healing-received-percent", "amount": 15, "durationTurns": 4, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-prismatic-ward",
+    "name": "Prismatic Ward",
+    "description": "+20% resistance to every element. Lasts 3 turns.",
+    "rarity": "rare",
+    "priceSilver": 4000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "element-resistance-percent", "amount": 20, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-piercing-draught",
+    "name": "Piercing Draught",
+    "description": "Weapon attacks ignore 20% of the target's Armor. Lasts 3 turns.",
+    "rarity": "rare",
+    "priceSilver": 3000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "armor-pierce-percent", "amount": 20, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-purging-elixir",
+    "name": "Purging Elixir",
+    "description": "Removes every negative effect; none can take hold until your next turn. The protection lasts until your next turn.",
+    "rarity": "rare",
+    "priceSilver": 2800,
+    "potion": true,
+    "alchemy": true,
+    "outsideBattle": true,
+    "effects": [
+      { "type": "cure", "amount": 99, "recipient": "friendly-target" },
+      { "type": "debuff-immune", "amount": 1, "durationTurns": 1, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-titans-draught",
+    "name": "Titan's Draught",
+    "description": "+20% to every attribute. Lasts 3 turns.",
+    "rarity": "epic",
+    "priceSilver": 9000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "all-stats-percent", "amount": 20, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-elixir-of-the-unbroken",
+    "name": "Elixir of the Unbroken",
+    "description": "Immune to every negative effect (those you have stay). Lasts 3 turns.",
+    "rarity": "epic",
+    "priceSilver": 8000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "debuff-immune", "amount": 1, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-draught-of-haste",
+    "name": "Draught of Haste",
+    "description": "+1 AP at the start of each of your turns. Lasts 3 turns.",
+    "rarity": "epic",
+    "priceSilver": 9000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "turn-start-ap", "amount": 1, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-giantsbane-draught",
+    "name": "Giantsbane Draught",
+    "description": "+30% damage dealt to bosses and Empowered or Sparkling enemies. Lasts 4 turns.",
+    "rarity": "epic",
+    "priceSilver": 8500,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "elite-damage-percent", "amount": 30, "durationTurns": 4, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-phoenix-tonic",
+    "name": "Phoenix Tonic",
+    "description": "If you fall, you rise again once with 30% of max HP. Lasts 4 turns.",
+    "rarity": "epic",
+    "priceSilver": 9500,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "rise-again-percent", "amount": 30, "durationTurns": 4, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-archmages-elixir",
+    "name": "Archmage's Elixir",
+    "description": "+30% spell power, and spells cost 25% less Mana. Lasts 3 turns.",
+    "rarity": "epic",
+    "priceSilver": 9000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "spell-power-percent", "amount": 30, "durationTurns": 3, "recipient": "friendly-target" },
+      { "type": "spell-cost-percent", "amount": 25, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-elixir-of-ascendance",
+    "name": "Elixir of Ascendance",
+    "description": "+35% to every attribute and +15% damage dealt; afterwards -15% to every attribute for 2 turns. Lasts 3 turns.",
+    "rarity": "legendary",
+    "priceSilver": 24000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "all-stats-percent", "amount": 35, "durationTurns": 3, "recipient": "friendly-target", "aftermath": [{"type": "all-stats-percent", "amount": -15, "durationTurns": 2}] },
+      { "type": "outgoing-attack-damage-percent", "amount": 15, "durationTurns": 3, "recipient": "friendly-target" },
+      { "type": "spell-power-percent", "amount": 15, "durationTurns": 3, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-undying-draught",
+    "name": "Undying Draught",
+    "description": "You can't fall below 1 HP; when it ends you heal 20% of max HP. Lasts 2 turns.",
+    "rarity": "legendary",
+    "priceSilver": 22000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "undying", "amount": 1, "durationTurns": 2, "recipient": "friendly-target", "healPercent": 20 }
+    ]
+  },
+  {
+    "id": "consumable-panacea",
+    "name": "Panacea",
+    "description": "Heals 40% of max HP and Mana, removes every negative effect, and none can take hold. The immunity lasts 2 turns.",
+    "rarity": "legendary",
+    "priceSilver": 20000,
+    "potion": true,
+    "alchemy": true,
+    "outsideBattle": true,
+    "effects": [
+      { "type": "heal", "amount": 0, "maxPercent": 40, "recipient": "friendly-target" },
+      { "type": "restore-mana", "amount": 0, "maxPercent": 40, "recipient": "friendly-target" },
+      { "type": "cure", "amount": 99, "recipient": "friendly-target" },
+      { "type": "debuff-immune", "amount": 1, "durationTurns": 2, "recipient": "friendly-target" }
+    ]
+  },
+  {
+    "id": "consumable-elixir-of-kinship",
+    "name": "Elixir of Kinship",
+    "description": "Every ally heals 25% of max HP and gains +15% to every attribute. Lasts 3 turns.",
+    "rarity": "legendary",
+    "priceSilver": 25000,
+    "potion": true,
+    "alchemy": true,
+    "effects": [
+      { "type": "heal", "amount": 0, "maxPercent": 25, "recipient": "all-allies" },
+      { "type": "all-stats-percent", "amount": 15, "durationTurns": 3, "recipient": "all-allies" }
+    ]
+  },
+  {
+    "id": "consumable-toxic-vial",
+    "name": "Toxic Vial",
+    "description": "Thrown at an enemy: nature damage of 6 plus 2% of its max HP at the start of each of its turns. Lasts 3 turns. Bosses take it at half strength.",
+    "rarity": "common",
+    "priceSilver": 350,
+    "poison": true,
+    "alchemy": true,
+    "element": "nature",
+    "effects": [
+      { "type": "poison-dot", "amount": 6, "durationTurns": 3, "recipient": "target", "percentMaxHp": 2 }
+    ]
+  },
+  {
+    "id": "consumable-blinding-powder",
+    "name": "Blinding Powder",
+    "description": "Thrown at an enemy: -15% hit chance. Lasts 2 turns. Bosses take it at half strength.",
+    "rarity": "common",
+    "priceSilver": 300,
+    "poison": true,
+    "alchemy": true,
+    "element": "nature",
+    "effects": [
+      { "type": "weapon-hit-percent", "amount": -15, "durationTurns": 2, "recipient": "target" }
+    ]
+  },
+  {
+    "id": "consumable-corrosive-flask",
+    "name": "Corrosive Flask",
+    "description": "Thrown at an enemy: -20% Armor. Lasts 3 turns. Bosses take it at half strength.",
+    "rarity": "uncommon",
+    "priceSilver": 1000,
+    "poison": true,
+    "alchemy": true,
+    "element": "nature",
+    "effects": [
+      { "type": "defense-percent", "amount": -20, "durationTurns": 3, "recipient": "target", "target": "armor" }
+    ]
+  },
+  {
+    "id": "consumable-enfeebling-vial",
+    "name": "Enfeebling Vial",
+    "description": "Thrown at an enemy: -15% damage dealt (attacks and spells). Lasts 3 turns. Bosses take it at half strength.",
+    "rarity": "uncommon",
+    "priceSilver": 1100,
+    "poison": true,
+    "alchemy": true,
+    "element": "nature",
+    "effects": [
+      { "type": "outgoing-attack-damage-percent", "amount": -15, "durationTurns": 3, "recipient": "target" },
+      { "type": "spell-power-percent", "amount": -15, "durationTurns": 3, "recipient": "target" }
+    ]
+  },
+  {
+    "id": "consumable-viper-flask",
+    "name": "Viper Flask",
+    "description": "Thrown at an enemy: nature damage of 12 plus 3% of its max HP each turn, and -25% healing received. Lasts 3 turns. Bosses take it at half strength.",
+    "rarity": "uncommon",
+    "priceSilver": 1300,
+    "poison": true,
+    "alchemy": true,
+    "element": "nature",
+    "effects": [
+      { "type": "poison-dot", "amount": 12, "durationTurns": 3, "recipient": "target", "percentMaxHp": 3 },
+      { "type": "healing-received-percent", "amount": -25, "durationTurns": 3, "recipient": "target" }
+    ]
+  },
+  {
+    "id": "consumable-sluggards-dust",
+    "name": "Sluggard's Dust",
+    "description": "Thrown at an enemy: -20% Speed. Lasts 3 turns. Bosses take it at half strength.",
+    "rarity": "uncommon",
+    "priceSilver": 1000,
+    "poison": true,
+    "alchemy": true,
+    "element": "nature",
+    "effects": [
+      { "type": "stat-percent", "amount": -20, "durationTurns": 3, "recipient": "target", "target": "speed" }
+    ]
+  },
+  {
+    "id": "consumable-paralytic-toxin",
+    "name": "Paralytic Toxin",
+    "description": "Thrown at an enemy: 35% chance to stun it for 1 turn, and it loses 1 AP on its next turn. Lasts 1 turn. Bosses take it at half strength.",
+    "rarity": "rare",
+    "priceSilver": 3500,
+    "poison": true,
+    "alchemy": true,
+    "element": "nature",
+    "effects": [
+      { "type": "stun-chance", "amount": 35, "durationTurns": 1, "recipient": "target" },
+      { "type": "root-ap", "amount": 1, "recipient": "target" }
+    ]
+  },
+  {
+    "id": "consumable-hexing-vial",
+    "name": "Hexing Vial",
+    "description": "Thrown at an enemy: -20% resistance to every element. Lasts 3 turns. Bosses take it at half strength.",
+    "rarity": "rare",
+    "priceSilver": 3200,
+    "poison": true,
+    "alchemy": true,
+    "element": "nature",
+    "effects": [
+      { "type": "element-resistance-percent", "amount": -20, "durationTurns": 3, "recipient": "target" }
+    ]
+  },
+  {
+    "id": "consumable-wyrmbane-venom",
+    "name": "Wyrmbane Venom",
+    "description": "Thrown at an enemy: nature damage of 20 plus 4% of its max HP each turn. Lasts 4 turns. Bosses take it at half strength.",
+    "rarity": "rare",
+    "priceSilver": 3800,
+    "poison": true,
+    "alchemy": true,
+    "element": "nature",
+    "effects": [
+      { "type": "poison-dot", "amount": 20, "durationTurns": 4, "recipient": "target", "percentMaxHp": 4 }
+    ]
+  },
+  {
+    "id": "consumable-mindrot-toxin",
+    "name": "Mindrot Toxin",
+    "description": "Thrown at an enemy: -20% Intelligence and Wisdom (its spells weaken). Lasts 3 turns. Bosses take it at half strength.",
+    "rarity": "rare",
+    "priceSilver": 3000,
+    "poison": true,
+    "alchemy": true,
+    "element": "nature",
+    "effects": [
+      { "type": "stat-percent", "amount": -20, "durationTurns": 3, "recipient": "target", "target": "intelligence" },
+      { "type": "stat-percent", "amount": -20, "durationTurns": 3, "recipient": "target", "target": "wisdom" }
+    ]
+  },
+  {
+    "id": "consumable-plague-bomb",
+    "name": "Plague Bomb",
+    "description": "Thrown at every enemy: nature damage of 15 plus 2% of max HP each turn, and -15% Armor. Lasts 3 turns. Bosses take it at half strength.",
+    "rarity": "epic",
+    "priceSilver": 8500,
+    "poison": true,
+    "alchemy": true,
+    "element": "nature",
+    "effects": [
+      { "type": "poison-dot", "amount": 15, "durationTurns": 3, "recipient": "all-enemies", "percentMaxHp": 2 },
+      { "type": "defense-percent", "amount": -15, "durationTurns": 3, "recipient": "all-enemies", "target": "armor" }
+    ]
+  },
+  {
+    "id": "consumable-deathcap-essence",
+    "name": "Deathcap Essence",
+    "description": "Thrown at an enemy: nature damage of 35 plus 5% of its max HP each turn, -50% healing received, -15% to every attribute. Lasts 3 turns. Bosses take it at half strength.",
+    "rarity": "epic",
+    "priceSilver": 9000,
+    "poison": true,
+    "alchemy": true,
+    "element": "nature",
+    "effects": [
+      { "type": "poison-dot", "amount": 35, "durationTurns": 3, "recipient": "target", "percentMaxHp": 5 },
+      { "type": "healing-received-percent", "amount": -50, "durationTurns": 3, "recipient": "target" },
+      { "type": "all-stats-percent", "amount": -15, "durationTurns": 3, "recipient": "target" }
     ]
   }
 ]

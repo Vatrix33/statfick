@@ -1332,6 +1332,9 @@ and 6 were merged; the task is `Docs/Port-Tasks/5_New_Masterworks.txt`).** Asked
   "two-thirds at the last level" now at Level 6, before the capstone), the skill Devour at Level 7. The Alchemist likewise
   gains its identity, Ingredient Lore, at Level 1, in 5 levels with the skill Keen Harvest as its capstone.
   (Not a skill at Level 5 with eating capped at half; not two-thirds for all eating at Level 5 without a skill.)
+- P31 **The content approved** (2026-11-07, "Now i am satisfied"): `Docs/Port-Tasks/9_Potion_Rework/draft.md` as it
+  stands after P30 (made by `draft.py` there): the 40 potions, 12 poisons, 56 ingredients, 62 recipes, forage and drop
+  rules, the Apothecary, the two classes and Collect quests.
 
 **Decisions for task 8, Map Rework (2026-11-06, a cloud session; the user asked for task 8 after task 7 was merged, while
 M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.txt`).** Asked before any code:

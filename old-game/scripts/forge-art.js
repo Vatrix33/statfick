@@ -830,8 +830,47 @@
      a general store buys back each get a simple drawing in the same ink style. */
   const RARITY_TIER = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, masterwork: 4 };
   const RARITY_GEM = { common: "#c8c0b0", uncommon: "#5ac878", rare: "#4a8aff", epic: "#b45aff", legendary: "#ffb43a", masterwork: "#ff5a5a" };
+  /* Port task 9 (the Potion Rework): the new potions' and poisons' liquids by what they do, and the ingredients' simple
+     shapes. PLACEHOLDER ART (user decision P2): the port draws them properly. */
+  const POTION_LIQUIDS = [
+    [/^(stat-percent|all-stats-percent|outgoing-attack-damage-percent|elite-damage-percent|armor-pierce-percent)$/, "#e07a2a"],
+    [/^(spell-power-percent|spell-cost-percent|turn-start-ap)$/, "#8a4ae0"],
+    [/^(defense-percent|incoming-weapon-damage-percent|incoming-spell-damage-percent|barrier-percent|incoming-spell-miss-chance)$/, "#5a8ab0"],
+    [/^element-resistance-percent$/, "#3ab0a0"],
+    [/^(crit-chance-percent|crit-damage-percent|weapon-hit-percent)$/, "#e0c03a"],
+    [/^(cure|debuff-immune|control-immune)$/, "#e8e8d8"],
+    [/^(turn-start-restore-percent|heal|healing-received-percent|rise-again-percent|undying)$/, "#e0506a"],
+  ];
+  function liquidOf(item) {
+    if (item.potionResource) return item.potionResource === "mana" ? "#3a6ae0" : "#d8303a";
+    if (item.poison) return /deathcap|mindrot|hexing|plague/.test(item.id) ? "#7a3ab0" : "#5aa83a";
+    const type = item.effects?.[0]?.type || "";
+    return (POTION_LIQUIDS.find(([pattern]) => pattern.test(type)) || [null, "#c86ad8"])[1];
+  }
+  function ingredientArt(item) {
+    const lower = item.name.toLowerCase(), tier = RARITY_TIER[item.rarity] ?? 0, gemColor = RARITY_GEM[item.rarity] || "#c8c0b0";
+    let out;
+    if (/cap|glowcap|stormcap/.test(lower)) out = path("M-12 0Q-12 -12 0 -12Q12 -12 12 0Z", /glow/.test(lower) ? "#d8e8c0" : /storm/.test(lower) ? "#6a7ab0" : "#b04a3a") + path("M-4 0H4L5 14H-5Z", "#e8dcc0") + dot(-5, -6, 1.6, "#f6efdf") + dot(4, -8, 1.4, "#f6efdf");
+    else if (/salt|glass|obsidian|pearl|shard|sand|amber|dust|ember/.test(lower)) {
+      const color = /salt|sand/.test(lower) ? "#e8e0d0" : /obsidian/.test(lower) ? "#2a2830" : /amber|ember|sunheart/.test(lower) ? "#e0902a" : /blood/.test(lower) ? "#b02a3a" : /pearl|star/.test(lower) ? "#f0f0ff" : gemColor;
+      out = path("M0 -14L10 -3L6 12H-6L-10 -3Z", color) + line("M0 -14L-2 12M-10 -3L10 -3", "!#ffffff", 0.8, 'opacity=".5"');
+    } else if (/fang|horn|marrow|knuckle|bone/.test(lower)) out = path("M-4 -14Q8 -6 6 14L-2 12Q2 -2 -8 -10Z", "#e8e0c8") + line("M-2 -6Q2 0 2 10", "#b8b098", 0.8);
+    else if (/feather|down|plume/.test(lower)) out = path("M0 -15Q10 -2 2 14L0 16L-2 14Q-10 -2 0 -15Z", /storm/.test(lower) ? "#6a7a9a" : /griffon/.test(lower) ? "#d8c8a0" : "#9a8a7a") + line("M0 -13V16", "#4a3a2a", 0.9);
+    else if (/scale/.test(lower)) out = path("M0 -12Q12 -8 10 4Q6 14 0 16Q-6 14 -10 4Q-12 -8 0 -12Z", /wyrm/.test(lower) ? "#6a8a5a" : "#5ab0b0") + path("M-6 0Q0 6 6 0", "none", 'stroke="#2a3a3a" stroke-width=".9" fill="none"');
+    else if (/blood|venom|fat|ash|dew|essence|sap|heart/.test(lower)) {
+      const color = /blood|heart/.test(lower) ? "#a01e28" : /venom/.test(lower) ? "#6aa83a" : /fat/.test(lower) ? "#e8d8a8" : /ash/.test(lower) ? "#8a8a8a" : /sap/.test(lower) ? "#d8a83a" : "#8ad8f0";
+      out = path("M0 -14Q10 0 8 6A8 8 0 0 1 -8 6Q-10 0 0 -14Z", color) + dot(-3, 2, 1.8, "#ffffff");
+    } else if (/seed|bean|bulb|berry|fruit/.test(lower)) out = K.circle(0, 2, 10, /berry/.test(lower) ? "#c8303a" : /sun/.test(lower) ? "#e0b03a" : /seed/.test(lower) ? "#8a5a2a" : "#7a8a3a") + line("M0 -8Q2 -14 6 -15", "#4a6a2a", 1.2) + dot(-3, -1, 1.8, "#ffffff");
+    else if (/bark|wood|root/.test(lower)) out = path("M-10 -12H10V14H-10Z", "#7a5a3a") + line("M-6 -12V14M0 -12V14M5 -12V14", "#4a3420", 0.9);
+    else if (/clay|myrrh/.test(lower)) out = path("M-11 2Q-11 -10 0 -10Q11 -10 11 2Q11 12 0 12Q-11 12 -11 2Z", /clay/.test(lower) ? "#b0503a" : "#c8a060");
+    else if (/lotus|lily|edelweiss|orchid|nightshade|laurel/.test(lower)) {
+      const petals = /nightshade/.test(lower) ? "#4a2a6a" : /orchid/.test(lower) ? "#d85aa8" : /laurel/.test(lower) ? "#5a8a3a" : /edelweiss|lotus/.test(lower) ? "#f0f0f6" : "#c8b8f0";
+      out = line("M0 16V0", "#4a6a2a", 1.4) + [0, 72, 144, 216, 288].map(angle => { const r = angle * Math.PI / 180; return ellipse(n(Math.sin(r) * 6), n(-6 - Math.cos(r) * 6), 4, 6, petals); }).join("") + K.circle(0, -6, 2.6, "#e0c03a");
+    } else out = path("M0 16V-4", "none", 'stroke="#4a6a2a" stroke-width="1.6" fill="none"') + path("M0 -2Q-12 -6 -10 -16Q-2 -12 0 -2Z", /moss|lichen/.test(lower) ? "#7a9a5a" : "#5a9a4a") + path("M0 4Q12 0 10 -10Q2 -6 0 4Z", "#6aa84a");
+    return tier >= 3 ? `<g class="sp-glow" style="color:${gemColor}">${out}</g>` : out;
+  }
   function potionArt(item) {
-    const tier = RARITY_TIER[item.rarity] ?? 0, liquid = item.potionResource === "mana" ? "#3a6ae0" : "#d8303a", gold = "#d8ae4a";
+    const tier = RARITY_TIER[item.rarity] ?? 0, liquid = liquidOf(item), gold = "#d8ae4a";
     const glass = "!#d8e4ea";
     let body, neckTop;
     if (tier === 0) { body = "M-2.6 -6V-2C-7 -0.6 -9 3 -9 6.5A9 9 0 0 0 9 6.5C9 3 7 -0.6 2.6 -2V-6Z"; neckTop = -6; }
@@ -840,9 +879,10 @@
     else if (tier === 3) { body = "M-3 -12V-6L-9 -1V12L-5 16H5L9 12V-1L3 -6V-12Z"; neckTop = -12; }
     else { body = "M-2.8 -13V-7Q-11 -4 -11 4Q-11 13 0 17Q11 13 11 4Q11 -4 2.8 -7V-13Z"; neckTop = -13; }
     const fillTop = tier === 2 ? 2 : tier === 3 ? 0 : 2;
-    const liquidShape = `<clipPath id="pot${tier}${item.potionResource || "x"}"><path d="${body}"/></clipPath>`;
+    const clipId = `pot${tier}${item.potionResource || liquid.slice(1)}`;
+    const liquidShape = `<clipPath id="${clipId}"><path d="${body}"/></clipPath>`;
     let out = `<defs>${liquidShape}</defs>` + path(body, glass, 'fill-opacity=".55"');
-    out += `<g clip-path="url(#pot${tier}${item.potionResource || "x"})"><rect x="-14" y="${fillTop}" width="28" height="20" fill="${liquid}"/><path d="M-14 ${fillTop}Q-4 ${fillTop - 2} 0 ${fillTop}T14 ${fillTop}" fill="none" stroke="#ffffff" stroke-opacity=".45" stroke-width=".8"/></g>`;
+    out += `<g clip-path="url(#${clipId})"><rect x="-14" y="${fillTop}" width="28" height="20" fill="${liquid}"/><path d="M-14 ${fillTop}Q-4 ${fillTop - 2} 0 ${fillTop}T14 ${fillTop}" fill="none" stroke="#ffffff" stroke-opacity=".45" stroke-width=".8"/></g>`;
     out += path(body, "none") + line(`M-6 ${tier === 2 ? 6 : 3}Q-7 ${tier === 2 ? 10 : 8} -4 ${tier === 2 ? 12 : 11}`, "!#ffffff", 1.1, 'opacity=".6"');
     out += path(`M-3.4 ${neckTop - 4}H3.4V${neckTop + 0.6}H-3.4Z`, "#8a6a44", 'stroke-width=".8"');
     if (tier >= 3) out += path(`M-4 ${neckTop + 0.4}H4V${neckTop + 2.6}H-4Z`, gold, 'stroke-width=".6"') + (tier === 4 ? line("M-11 4H11M0 -7V17", gold, 1, 'opacity=".9"') : "");
@@ -988,7 +1028,8 @@
     const small = size === "small";
     let markup;
     if (item.category === "rune") return runeArt(item.rune, size);
-    if (item.potionResource) markup = K.withPen(small ? 1.1 : 0.9, () => potionArt(item));
+    if (item.potionResource || item.potion || item.poison) markup = K.withPen(small ? 1.1 : 0.9, () => potionArt(item) + (item.poison ? path("M-3 4A3 3 0 1 1 3 4V6H-3Z", "#f0f0e0", 'stroke-width=".6"') + dot(-1.2, 3, 0.8, "#2a2a2a") + dot(1.2, 3, 0.8, "#2a2a2a") : ""));
+    else if (item.category === "ingredient") markup = K.withPen(small ? 1.1 : 0.9, () => ingredientArt(item));
     else if (item.mapAction === "camp") markup = K.withPen(small ? 1.1 : 0.9, campArt);
     else if (/trap/.test(item.id)) markup = K.withPen(small ? 1.1 : 0.9, () => trapArt(item));
     else if (item.category === "artifact" && (item.look || item.rarity === "masterwork")) markup = K.withPen(small ? 1.1 : 0.9, () => artifactArt(item));

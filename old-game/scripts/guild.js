@@ -254,6 +254,8 @@
   const originOf = quest => placeOf(quest.originRegionId || quest.regionId || "alder-vale", quest.originCastleId || "alderkeep");
   const titleOf = quest => quest.title || Q().title(quest);
   const isJourney = quest => Q().JOURNEYS.includes(quest?.type);
+  // Copies of a Collect quest's ingredient in the pack (P24: any copies count).
+  const collectHeld = quest => quest?.ingredientId ? inventory.filter(id => id === quest.ingredientId).length : 0;
   const rewardText = reward => `${ShopRules.formatPrice(reward.silver)} · ${reward.reputation} Reputation`;
   let dock = null, selectedNotice = null, noteTimer = null;
   const setStatus = message => { $("guild-status").textContent = message; };
@@ -455,6 +457,14 @@
         const required = Q().cullRequired(questLevel);
         quest = { ...base, zone: zone.name, enemy, required, radius: Q().CULL.radius, point: zonePoint(zone, regionId), description: `Defeat ${required} ${Q().pluralFor(enemy, required)} inside the marked circle in the ${zone.name}, about 6 km across. While this quest is active, half of all encounters there are ${Q().plural(enemy)}. Only kills inside the circle count.` };
       }
+    } else if (type === "collect") {
+      // Port task 9 (P22–P25): an ingredient of this region or a neighbour's, of your level band's rarity or below.
+      const candidates = [regionId, ...Q().adjacentRegions(regionId)].flatMap(id => window.Alchemy?.regionIngredients(id) || []);
+      const chosen = window.AlchemyRules?.collectPick({ candidates, maxRarity: ShopRules.levelBand(level).rarity, level });
+      const ingredient = chosen && getItem(chosen.id);
+      if (!ingredient) return null;
+      quest = { ...base, ingredientId: ingredient.id, ingredientName: ingredient.name, required: chosen.quantity, reward: Q().collectReward(ingredient.rarity, questLevel, bonuses()),
+        description: `Gather ${chosen.quantity} ${ingredient.name} and bring ${chosen.quantity === 1 ? "it" : "them"} to the guild counter in ${host.name}. Foraged, dropped or bought: any will do.` };
     } else if (type === "search") {
       for (const zone of shuffle(zones)) {
         const point = searchPoint(zone, regionId);
@@ -541,6 +551,8 @@
     if (!quest || !host) return false;
     if (quest.type === "great-hunt") return quest.complete && (quest.originRegionId || quest.regionId) === worldState.regionId;
     if (isJourney(quest)) return quest.progress >= 1 && quest.originCastleId === host.id && (quest.originRegionId || quest.regionId) === worldState.regionId;
+    // Collect: at the guild that offered it, with enough copies in the pack (P23, P24).
+    if (quest.type === "collect") return quest.originCastleId === host.id && (quest.originRegionId || quest.regionId) === worldState.regionId && collectHeld(quest) >= quest.required;
     return quest.complete;
   }
   function pay(quest) {
@@ -571,6 +583,13 @@
     for (const slot of ["quest", "greatHunt"]) {
       const entry = guild()[slot];
       if (!handInReady(entry, host)) continue;
+      // A Collect quest's ingredients leave the pack as it is handed in.
+      if (entry.type === "collect") {
+        for (let count = 0; count < entry.required; count++) inventory.splice(inventory.indexOf(entry.ingredientId), 1);
+        if (!inventory.includes(entry.ingredientId)) favoriteItems = favoriteItems.filter(id => id !== entry.ingredientId);
+        entry.complete = true; entry.progress = entry.required;
+        renderOwnedItems();
+      }
       paid.push({ quest: entry, silver: pay(entry) }); guild()[slot] = null;
     }
     if (paid.length) {
@@ -701,6 +720,7 @@
   /* Quest texts shared by the board, the counter and the map's quest card. */
   function placeText(quest) {
     if (isJourney(quest)) return `${quest.destination?.name || "Unknown"} · ${regionName(quest.destination?.regionId)} · recommended ${quest.recommended || Q().rangeText(Q().regionLevelRange(quest.destination?.regionId))}`;
+    if (quest.type === "collect") return `${quest.ingredientName || "An ingredient"} · bring to ${originOf(quest)?.name || "the issuing guild"}`;
     return `${quest.zone || "Unknown"} · ${regionName(quest.regionId)}`;
   }
   function progressText(quest) {
@@ -711,6 +731,7 @@
     if (quest.type === "deliver") return quest.progress ? `Letters delivered · return to the guild counter in ${origin}` : `Hand the letters over at the guild counter in ${quest.destination.name}.`;
     if (quest.type === "escort") return quest.progress ? `Caravan delivered · return to the guild counter in ${origin}` : `Bring the caravan to ${quest.destination.name}.`;
     if (quest.type === "travel") return quest.progress ? `Destination reached · return to the guild counter in ${origin}` : `Reach ${quest.destination.name}.`;
+    if (quest.type === "collect") { const held = collectHeld(quest); return `${quest.ingredientName}: ${Math.min(held, quest.required)} / ${quest.required} in your pack${held >= quest.required ? ` · hand them in at the guild counter in ${origin}` : ""}`; }
     if (quest.type === "great-hunt") return quest.complete ? `Defeated · hand it in at a guild counter in ${regionName(quest.originRegionId || quest.regionId)}` : `Defeat ${quest.enemy} in the ${quest.zone} of ${regionName(quest.regionId)}.`;
     return "";
   }
@@ -721,12 +742,14 @@
     if (quest.type === "search") return "Searching starts a fight; escaping it is half as likely. Winning or escaping completes the search.";
     if (quest.type === "escort") return "Bandits are likely to ambush you on the way out, even on roads: most often once, sometimes not at all, sometimes twice. Escaping them is 70% less likely.";
     if (quest.type === "travel") return "No fight is forced: just get there and back.";
+    if (quest.type === "collect") return "Foraged, dropped or bought: any copies count. They leave your pack when you hand them in at the guild that offered the quest.";
     if (quest.type === "great-hunt") return "A Great Hunt can be carried beside a standard quest, one at a time.";
     return "";
   }
   function targetText(quest) {
     if (quest.type === "cull") return `${quest.required} ${Q().pluralFor(quest.enemy, quest.required)}`;
     if (["hunt", "great-hunt"].includes(quest.type)) return quest.type === "hunt" ? `Empowered ${quest.enemy}` : quest.enemy;
+    if (quest.type === "collect") return `${quest.required} ${quest.ingredientName}`;
     return "";
   }
   function activeQuestMarkup(slot, quest, withGiveUp = true) {
@@ -948,6 +971,10 @@
     if (quest && !quest.complete) {
       if (["hunt", "cull", "search"].includes(quest.type) && quest.point && here === (quest.regionId || "alder-vale")) {
         result.push({ point: quest.point, label: quest.type === "hunt" ? `Empowered ${quest.enemy}` : quest.type === "cull" ? `Cull · ${Q().plural(quest.enemy)} ${Math.min(quest.progress, quest.required)}/${quest.required}` : `Search · ${quest.zone}`, kind: "quest" });
+      }
+      if (quest.type === "collect" && collectHeld(quest) >= quest.required) {
+        const origin = originOf(quest), regionId = quest.originRegionId || quest.regionId;
+        if (origin) { const marker = here === regionId ? { point: { x: origin.x, y: origin.y }, label: `Return to ${origin.name}`, kind: "quest" } : towardMarker(regionId, `Return to ${origin.name}`); if (marker) result.push(marker); }
       }
       if (isJourney(quest)) {
         const origin = originOf(quest);

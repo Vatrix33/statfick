@@ -422,6 +422,7 @@
                 <button class="spell-filter-button" type="button" data-item-filter="armor" aria-pressed="false">Armor</button>
                 <button class="spell-filter-button" type="button" data-item-filter="artifact" aria-pressed="false">Artifacts</button>
                 <button class="spell-filter-button" type="button" data-item-filter="consumable" aria-pressed="false">Consumables</button>
+                <button class="spell-filter-button" type="button" data-item-filter="ingredient" aria-pressed="false">Ingredients</button>
                 <button class="spell-filter-button" type="button" data-item-filter="rune" aria-pressed="false">Runes</button>
               </div>
               <div class="known-spells-list owned-items-list" id="owned-items-list"></div>
@@ -768,8 +769,10 @@
             <button class="backup-button" id="map-force-encounter" type="button" title="Trigger an encounter from the current area's normal enemy pool" hidden disabled>Force encounter</button>
             <button class="backup-button" id="map-camp" type="button">Camp · 8 hours</button>
             <button class="backup-button" id="map-rest" type="button">Rest · 10 hours</button>
+            <button class="backup-button" id="map-forage" type="button" title="Search the ground here for potion ingredients: one hour, and the area's encounter risk">Forage · 1 hour</button>
             <button class="backup-button" id="map-blacksmith" type="button">Blacksmith</button>
             <button class="backup-button" id="map-item-shop" type="button">General Store</button>
+            <button class="backup-button" id="map-apothecary" type="button">Apothecary</button>
             <button class="backup-button" id="map-tailor" type="button">Tailor</button>
             <button class="backup-button" id="map-magic-tower" type="button" hidden>Magic Tower</button>
             <button class="backup-button" id="map-guild" type="button" hidden>Adventurers Guild</button>
@@ -875,6 +878,33 @@
         <p class="shop-status" id="magic-tower-status" role="status" aria-live="polite"></p>
       </section>
     </div>
+    <div class="modal-layer" id="apothecary-modal" hidden>
+      <button class="modal-backdrop" type="button" data-apothecary-close aria-label="Close the Apothecary"></button>
+      <section class="spellbook-dialog shop-dialog shop-hall apothecary-dialog" role="dialog" aria-modal="true" aria-labelledby="apothecary-title">
+        <div class="shop-scene" id="apothecary-scene" aria-hidden="true" hidden></div>
+        <header class="dialog-header shop-header">
+          <div><p class="eyebrow" id="apothecary-eyebrow">ALDERKEEP · APOTHECARY</p><h2 id="apothecary-title">Potions and <em>poisons</em></h2></div>
+          <div class="shop-purse"><span>Your purse</span><strong id="apothecary-purse">5 Gold</strong></div>
+          <button class="modal-close" type="button" data-apothecary-close aria-label="Close the Apothecary">×</button>
+        </header>
+        <div class="shop-toolbar">
+          <div class="shop-mode-tabs" id="apothecary-menus" role="group" aria-label="Apothecary menus">
+            <button type="button" data-apothecary-menu="potions" aria-pressed="true">Potions</button>
+            <button type="button" data-apothecary-menu="ingredients" aria-pressed="false">Ingredients</button>
+            <button type="button" data-apothecary-menu="brewing" aria-pressed="false">Brewing</button>
+            <button type="button" data-apothecary-menu="recipes" aria-pressed="false">Recipes</button>
+            <button type="button" data-apothecary-menu="sell" aria-pressed="false">Sell</button>
+          </div>
+          <div class="shop-meta"><p id="apothecary-description"></p><p id="apothecary-refresh"></p></div>
+        </div>
+        <div class="shop-workspace apothecary-workspace" id="apothecary-workspace" data-mode="buy">
+          <section class="shop-detail-panel" id="apothecary-detail-panel" aria-label="Details"><div class="shop-detail" id="apothecary-detail"></div></section>
+          <section class="cauldron-panel" id="apothecary-cauldron" aria-label="The cauldron" hidden></section>
+          <section class="shop-list-panel" aria-labelledby="apothecary-list-title"><h3 class="shop-list-title" id="apothecary-list-title">On the shelves</h3><div class="shop-stock-list" id="apothecary-list"></div></section>
+        </div>
+        <p class="shop-status" id="apothecary-status" role="status" aria-live="polite"></p>
+      </section>
+    </div>
     <div class="modal-layer" id="church-store-modal" hidden>
       <button class="modal-backdrop" type="button" data-church-store-close aria-label="Close the Storm Reliquary"></button>
       <section class="spellbook-dialog shop-dialog shop-hall church-store-dialog" role="dialog" aria-modal="true" aria-labelledby="church-store-title">
@@ -958,7 +988,7 @@
     </div>
     <script>
       (async () => {
-        const files = ["settings.js", "world-region-data.js", "continent-shape.js", "continent-engine.js", "guild-information-engine.js", "world-engine.js", "encounter-engine.js", "guild-quest-engine.js", "shop-engine.js", "forge-engine.js", "combat-engine.js", "combat-ai.js", "limitless-engine.js", "app.js", "tier10-cinematics.js", "sprite-kit.js", "sprite-equipment.js", "sprite-humanoid.js", "sprite-creatures.js", "sprite-catalog.js", "forge-art.js", "boss-intros.js", "battle-scenery.js", "battle-effects.js", "battle-stage.js", "combat.js", "map-ink.js", "map-terrain.js", "map-regions.js", "map-continent.js", "map.js", "church-of-talos.js", "hearth-home.js", "scene-banners.js", "shop.js", "reforge.js", "magic-tower.js", "guild.js", "companion-sheet-details.js", "companions.js", "limitless.js", "interface.js", "music-composer.js", "music-themes.js", "music.js"].map(name => "scripts/" + name);
+        const files = ["settings.js", "world-region-data.js", "continent-shape.js", "continent-engine.js", "guild-information-engine.js", "world-engine.js", "encounter-engine.js", "guild-quest-engine.js", "shop-engine.js", "alchemy-data.js", "alchemy-engine.js", "forge-engine.js", "combat-engine.js", "combat-ai.js", "limitless-engine.js", "app.js", "tier10-cinematics.js", "sprite-kit.js", "sprite-equipment.js", "sprite-humanoid.js", "sprite-creatures.js", "sprite-catalog.js", "forge-art.js", "boss-intros.js", "battle-scenery.js", "battle-effects.js", "battle-stage.js", "combat.js", "map-ink.js", "map-terrain.js", "map-regions.js", "map-continent.js", "map.js", "church-of-talos.js", "hearth-home.js", "scene-banners.js", "shop.js", "reforge.js", "magic-tower.js", "apothecary.js", "guild.js", "companion-sheet-details.js", "companions.js", "limitless.js", "interface.js", "music-composer.js", "music-themes.js", "music.js"].map(name => "scripts/" + name);
         for (const file of files) {
           await new Promise((resolve, reject) => {
             const script = document.createElement("script");
