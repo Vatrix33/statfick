@@ -110,7 +110,7 @@ and the mountains' feet up to 400 units from the old straight edges (the coast r
 oval too), keeps a mountain core between neighbours no road joins and a pass where one does, and never cuts a road,
 place, site or exit. The user reviewed that shape (too much impassable rock; the Deep Desert, Duskpine and the
 Battlefield stick out; Cinder Isle too close) and answered W19–W23. **Waiting for the user:** their review of layout
-draft 4 (draft 3 with their W22 changes; made by `claude-work/continent/draft4.py` in the cloud session, not kept in the
+draft 5 (draft 4 with their W24 changes; made by `claude-work/continent/draft5.py` in the cloud session, not kept in the
 repo). Still to come: painting the map to that shape, the music crossfade, the boat, the mountain fog,
 the caravan, the carriage, the checks and the docs. **Engine work goes on uninterrupted.**
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
@@ -1332,6 +1332,11 @@ M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.t
   displayed in the map view, that is warning enough": the map's header names the region you stand in and its levels
   ("STORMWAKE HILLS · LEVEL 15–35") and changes as you cross. (Not a warning the first time you step into a region 10+
   levels above you, the recommendation; not a warning every time.)
+- W24 **Draft 4's review** (2026-11-07; draft 4: draft 3 with W22's changes, the rocky highlands moved east of the Alder
+  Vale to join the Sunward Coast to the mainland, the steppe south of the Alder Vale, the Deep Desert a little further
+  up, Cinder Isle level with the Verdant Reach): too smooth; the coasts of draft 3 were better. Kept from draft 3: an
+  inland water between the Alder Vale and the highlands, one between Duskpine and the Crimson Divide, and the Deep
+  Desert's little island. Drawn as draft 5.
 
 **Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
 after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**
