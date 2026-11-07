@@ -938,6 +938,85 @@ Supersedes the separate regional maps of "Map rework (2026-10-10)" above: the re
   The 11 known failures are unchanged. Smoke, enemies (530 cases) and lifecycle pass; the combat suite gives no result,
   as in task 7's run (it stops at the known Barbarian failure).
 
+**Potion Rework (port task 9, 2026-11-07, a cloud session, branch `claude/fervent-carson-f5ol9s`, in the same pull request
+as task 8, #14 (P1); the task is `engine/Docs/Port-Tasks/9_Potion_Rework.txt`).** Built in the old game, as tasks 1–8
+were; old game only, the engine is untouched. Done: the port brings it over and doesn't build it again; its port work is
+remaking the placeholder art (P2; `engine/Docs/Port-Tasks/README.md`). The user's answers are in
+`engine/Docs/Engine-Plan.md`, "Decisions for task 9, Potion Rework" (P1–P31); the approved content is
+`engine/Docs/Port-Tasks/9_Potion_Rework/draft.md` (made by `draft.py` there; P31).
+- **The data.** The 40 potions and 12 poisons are consumables in `objects/consumables.json` (`potion: true` or
+  `poison: true`, `alchemy: true` for the new ones, `outsideBattle` for the Health, Mana and cure potions; effects in the
+  battle's own format). The ten Health and Mana Potions keep their effects and prices (now `potion` and `outsideBattle`).
+  `scripts/alchemy-data.js` (`AlchemyData`): the 56 ingredients (rarity, price, description), the 62 recipes (product id
+  and three ingredient ids), the two starting recipes, every region's forage tables by zone (`zoneAt`'s names), the
+  rivers' two, each enemy's ingredients (by enemy id) and the bosses' pairs. Edit there to rebalance. It was generated
+  once from the approved draft by a script in the cloud session's `claude-work/potions/` (not kept); since then the game
+  files are the source.
+- **The rules** (`scripts/alchemy-engine.js`, `AlchemyRules`, pure): `matchRecipe` (any order), `recipesUsing`,
+  `normalizeKnown` (valid ids, the starting two always), `forageTable`/`canForage`/`forage` (P10, P11: 45% to find, weights
+  common 10, uncommon 5, rare 2, epic 1, legendary 0.5, "seldom" halved; a common find 1–2), `enemyDrops` (P12: 25%,
+  Empowered and Sparkling 50% twice, bosses one of two and 35% both), `regionIngredients` (foraged there or dropped by its
+  enemies), `ingredientStock`, `recipeOffers` (`ShopRules.itemStock` by the product's rarity, P16), `recipePrice` (×10,
+  P14), `collectPick` and `COLLECT` (P22, P25), `halved` (bosses: P8, rounded up), `assimilation` (P20, P21, P30) and
+  `scaledPoison`.
+- **The Apothecary** (`scripts/apothecary.js`, `#apothecary-modal`, the map button O beside the General Store, P26): five
+  menus like the Magic Tower's: Potions (the Health and Mana pairs of your level band and every weaker one, always and
+  unlimited, P3; then castle 8, town 5 random new potions and poisons), Ingredients (every common ×10 and the region's
+  rarer ones, castle 5, town 3, P13), Brewing (the cauldron, below), Recipes (three unknown, P14–P16) and Sell (potions,
+  poisons, ingredients at half price, P28). Its stock is `shopState.locations["apothecary:<settlement id>"]` and turns
+  over with the shops every 6 hours (P15); `normalizeCharacter` keeps it. The General Store no longer sells or buys
+  potions (`alchemyGoods` in `shop.js`, `STOCK_VERSION` 26). `window.Alchemy` holds the shared helpers (effects in
+  words, Ingredient Lore, ingredient sources, a region's ingredients).
+- **Brewing** (P31): three boxes above the cauldron, your ingredients as chips below (a click fills the next box, a click
+  on a box empties it), known recipes on the right (picking one fills the boxes when you have the ingredients). Brew
+  checks the three are filled, that you have them (duplicates counted), and that they make a known recipe; only then are
+  they used up; nothing else is paid. The result waits on the cauldron for Collect (closing the window collects it);
+  `alchemy.brewed` counts it.
+- **In battle** (`combat.js`; P6–P9): a potion is used on yourself or any ally for 1 AP (Kinship reaches every ally);
+  its effects are timed effects keyed by the potion's name, so the same potion refreshes and different ones add up. New
+  timed effects: `crit-chance-percent` (both the strike and its forecast), `crit-damage-percent`, `armor-pierce-percent`,
+  `elite-damage-percent` (bosses, Empowered, Sparkling), `element-resistance-percent` (in `resistance()`; also the
+  Hexing Vial's minus), `control-immune` (stuns and AP loss), `debuff-immune` (in `debuffImmune`), `turn-start-ap` (in
+  `actionPointMaximum`), `barrier-percent` (a `potion-barrier` whose remainder fades), `rise-again-percent` and `undying`
+  (in `applyCombatDamage`), `cure` (`cureEffects`, a poison first for Antidote), the Ascendance toll (`aftermath`, applied
+  by `expirePotionEffects`). A poison is thrown (`throwPoison`) at one enemy or all (Plague Bomb); `poison-dot` is a
+  `class-poison` marked `itemPoison`, whose ticks Nature resistance lowers; bosses (`unique`) take `AlchemyRules.halved`
+  effects, named "(half strength)" (P8). Outside battle (`app.js`, P6): a Use button on Health, Mana and cure potions,
+  for you or a companion, only when it would do something (`potionOutsideReason`, `usePotionOutsideBattle`).
+- **Ingredients** (category `ingredient`, ids `ingredient-…`, their own inventory tab, P27): their details show where
+  they are found, the Alchemist's Ingredient Lore (every potion and poison they go into; the other ingredients only of
+  known recipes) and an Assimilator's eaten buff. Enemies drop them through `awardDefeatedEnemyExperience`.
+- **Forage** (`map.js` `forage`, the button D, P10, P11, P26): one hour, a find at 45% plus the Alchemist's bonus, then
+  `EncounterRules.roll` with the encounter multiplier scaled to an hour of travel (60/126); `WorldRules.nearRiver` (60
+  units) adds the river's two; `alchemy.foraged` counts finds. Keen Harvest (`alchemy.keenHarvestReady`) makes the next
+  forage sure, rarer finds weighing double.
+- **The classes** (`classes/Alchemist.json`, `classes/Assimilator.json`; P18, P19, P30; requirement types
+  `potions-brewed`, `ingredients-foraged`). Alchemist, 5 levels: Ingredient Lore, forage +10%, Wisdom +5%, forage +10% and
+  one more common or uncommon, Keen Harvest (daily skill). Assimilator, 7 levels: Raw Assimilation (eat in battle from the
+  item menu, 1 AP: `eatIngredient`; a third, half from Level 4 with a turn more, two-thirds and special effects from 6),
+  Vitality +5%, Nature resistance +10% (class `element-resistance-percent`), 25% kept, Devour (once per battle: the next
+  ingredient free and twice as long, `devour-ready`). An ingredient only in poisons gives a `weapon-poison` effect that
+  poisons each weapon hit (`applyNewClassWeaponEffects`).
+- **Collect quests** (`guild-quest-engine.js` `collectReward`, `COLLECT_PAYS_AS`; `guild.js`; P22–P25): an ingredient of
+  the guild's region or a neighbour's at or below your band's rarity, 6/4/3/2/1 by rarity, paying like Travel, Escort,
+  Search or Deliver; progress counts the pack; handed in only at the issuing guild, where the copies are taken; a map
+  marker points back once you hold enough. Saved with `ingredientId` (`WorldRules.normalize`).
+- **Saves**: the character's `alchemy` record `{ known, brewed, foraged, keenHarvestReady }` (`normalizeAlchemy`); old saves
+  get the two starting recipes and keep their potions.
+- **PLACEHOLDER ART** (P2): the two Apothecary banners (`apothecaryHall`, `apothecaryShop` in `scene-banners.js`, in
+  `PLACEHOLDER_ART`), the cauldron and its brewing animation, the new potions', poisons' and ingredients' icons
+  (`potionArt` by effect colour, a skull on poisons, `ingredientArt` in `forge-art.js`).
+- **Tests:** `test-client/tests/potion-rework-browser.js`, 12 entries: `checkAlchemyContent`, `checkApothecaryShop`,
+  `checkRecipeOffers`, `checkBrewing`, `checkPotionsInBattle`, `checkPoisons`, `checkAssimilator`, `checkForaging`,
+  `checkIngredientDrops`, `checkAlchemyClasses`, `checkCollectQuests`, `checkAlchemySaves`. They use a second copy of
+  `combat.js` with a hook (`window.__potionChecks`). Old checks updated for task 9: `guild-rework`'s reward check (Collect
+  pays by rarity) and wording, and `adventure-improvements`' `runCombatRewardChecks` (its no-drops fight holds the dice
+  high, since enemies drop ingredients now).
+- **Not covered by a check:** how the banners, cauldron and icons look; the brewing animation; the AI (enemies carry no
+  new potions; companions are yours to command).
+- **The checks can fail:** MUTATION_PLACEHOLDER
+- **Regression** REGRESSION_PLACEHOLDER
+
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in
 the engine's way. The list's rune slotting sound was left out: the port adds proper sound effects instead.
