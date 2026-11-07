@@ -1324,6 +1324,14 @@ and 6 were merged; the task is `Docs/Port-Tasks/5_New_Masterworks.txt`).** Asked
 - P28 **Selling back:** the Apothecary buys potions, poisons and ingredients at half price; the General Store keeps buying
   its other goods but no longer potions. (Not both, not nobody.)
 - P29 **When an Assimilator eats:** in battle, 1 AP, from the battle's item menu like a potion. (Not also on the map.)
+- P30 **The two classes in the usual shape** (the user's review of the content draft: "My only complaint are the classes.
+  Compared to other classes, they seem very different. Bring them more in line"): one gain per level, small fixed
+  bonuses on most levels, a skill as the capstone. The Assimilator (the user's own answer): "Give the Assimilator 7
+  levels. Its captstone will be a skill, since at Level 1 it should gain the Passive that allows ingrediant-eating":
+  Raw Assimilation at Level 1 (a third of its potions' strength), half at Level 4, two-thirds at Level 6 (P20's
+  "two-thirds at the last level" now at Level 6, before the capstone), the skill Devour at Level 7. The Alchemist likewise
+  gains its identity, Ingredient Lore, at Level 1, in 5 levels with the skill Keen Harvest as its capstone.
+  (Not a skill at Level 5 with eating capped at half; not two-thirds for all eating at Level 5 without a skill.)
 
 **Decisions for task 8, Map Rework (2026-11-06, a cloud session; the user asked for task 8 after task 7 was merged, while
 M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.txt`).** Asked before any code:
