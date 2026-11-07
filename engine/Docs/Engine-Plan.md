@@ -109,8 +109,9 @@ a first continent map view, and the natural land (W17, W18) in the rules: one no
 and the mountains' feet up to 400 units from the old straight edges (the coast regions' own shores and Cinder Isle's
 oval too), keeps a mountain core between neighbours no road joins and a pass where one does, and never cuts a road,
 place, site or exit. The user reviewed that shape (too much impassable rock; the Deep Desert, Duskpine and the
-Battlefield stick out; Cinder Isle too close) and answered W19–W21: a restructured layout with new regions where gaps
-remain is being drafted for review. Still to come: painting the map to that shape, the music crossfade, the boat, the mountain fog,
+Battlefield stick out; Cinder Isle too close) and answered W19–W23. **Waiting for the user:** their review of layout
+draft 4 (draft 3 with their W22 changes; made by `claude-work/continent/draft4.py` in the cloud session, not kept in the
+repo). Still to come: painting the map to that shape, the music crossfade, the boat, the mountain fog,
 the caravan, the carriage, the checks and the docs. **Engine work goes on uninterrupted.**
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
@@ -1319,6 +1320,18 @@ M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.t
   thin ranges only where needed, the recommendation; not water between them; not today's ranges without their bites.)
 - W21 **Cinder Isle:** about 250 km offshore; the boat keeps its 12.6 hours (W11). (Not about 150 km, the
   recommendation, nor about 100 km.)
+- W22 **Draft 3's review** (2026-11-07; draft 3 placed Duskpine north of the Battlefield, the Deep Desert up beside
+  Saffron, three new regions: rocky highlands south of the Alder Vale, an east-coast steppe, a west-coast delta): not
+  approved as drawn. The user's changes: the Stoneveil Summit must not look cut off from the High Stoneveil (one
+  mountain); Cinder Isle further south, about level with the Verdant Reach; the Sunward Coast joined to the mainland; the
+  water north-west of Mirrormere (it read as a second, bigger lake beside the basin's own) filled with land to the Marsh
+  by enlarging Gloamfen, the Jungle and Stormwake; the Crimson Divide joined to the Saffron Expanse by land by enlarging
+  the Expanse. So: regions grow into the ground between them (no sea or rock between neighbours; capes and bays only on
+  the outer coast). Drawn as draft 4.
+- W23 **Keeping low levels out where regions touch:** no barrier and no prompt; "the current recommended level should be
+  displayed in the map view, that is warning enough": the map's header names the region you stand in and its levels
+  ("STORMWAKE HILLS · LEVEL 15–35") and changes as you cross. (Not a warning the first time you step into a region 10+
+  levels above you, the recommendation; not a warning every time.)
 
 **Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
 after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**
