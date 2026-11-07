@@ -1590,6 +1590,8 @@ folder (a folder `mod` would let P15's New make `mod/<name>` entries); step 11 e
 
 ## Status
 
+**Where M11 stands (2026-11-07, 18:10):** on `main` (`3e6df0f`): steps 1, 2, 3, 4, 5 and 7; in progress on worker branches, not on `main`: steps 6 (`m11-step6`), 8 (`m11-step8`) and 9 (`m11-step9`); to come: steps 10, 12 and 13, then 11 and 14. The full suite on `main`: 2940 tests, passing on the GPU and on lavapipe, nothing held (`Docs/Engine-Plan.md`, "Current task").
+
 **M11 started (2026-11-06):** the user's go; the decisions recorded (M11-1–M11-21 and the user's rule for
 M11); what exists checked against the code; the method; the design proposed, with 38 editor choices for the
 manager (P1–P38) and six questions for the user about the game (G1–G6); fourteen steps proposed with their

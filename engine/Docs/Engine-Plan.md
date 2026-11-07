@@ -5,20 +5,35 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-11-06): M11 (editor foundation) started on 2026-11-06** with the user's go ("Once that worker
-finishes you can start with M11", given after the full run on `a32c5cb`, below). Its detail round is answered: M11-1 to
-M11-8 on 2026-11-05, M11-9 to M11-21 on 2026-11-06 ("Decisions for M11" below), with **the user's rule for M11**: only
-questions meant for the game go to the user, the editor itself is the manager's to decide (big decisions told to the
-user; the manager's reading of it is in "Decisions for M11" and under "Ask the user about design choices" below). The
-design doc is `Docs/Editor.md`: what exists checked against the code, the method, the design and fourteen steps with
-their dependencies and which can run side by side. **The design is decided (2026-11-06):** the editor's own choices
-P1–P38 by the manager, all as recommended; of the game's questions, G4 and G5 answered by the user (the game enforces
-declared limits too; the checks that today run only when something plays also run when the data loads, the added
-loading time measured first and brought to the manager), G1 and G6 decided by the manager (the mod's info as a
-`mod/info` entry of a kind the engine knows; the editor's settings in an `editor/` folder of the player's game folder),
-G2 and G3 kept for the port ("Open questions for later milestones", "At port time"); "Decisions for M11" below. **The
-steps in `Docs/Editor.md`, "Steps", are the plan; none has started.** Next: wave 1, steps 1–4 side by side, full runs
-serialized by the lock that "Steps" gives (`flock ~/.cache/stat-fick-build/claude-work/full-run.lock …`).
+**Current task (2026-11-07, 18:10): M11 (editor foundation), mid-way.** `main` is `3e6df0f`. On it from M11
+(Progress, "M11 step 1" to "M11 step 7"; `Docs/Editor.md`, Status): step 2, packs for the editor (2026-11-06,
+`5af923e`); step 4, the editor's shell (2026-11-06, `8c06f86`); step 1, record shapes, drafts and marks (2026-11-06,
+`65ee082`); step 7, the mod's info entry (2026-11-06, `42fdd90`); step 3, the window, sound and file-browser hooks
+(2026-11-06, `69f090b`); step 5, the audio kinds' checks and marks (2026-11-07, `3e6df0f`; the theme check runs when
+the data loads, the user's decision of 2026-11-07). Beside M11, also on `main`: the background-layer port (`2323779`,
+below), the painter's fix for text first in a paint chunk (`d5b8b39`; Progress, "Text first in a paint chunk"), and the
+old game's port tasks 7 (pull requests #12 and #13) and 8 and 9 (#14), merged by the user. **The full suite on `main` is
+2940 tests, passing on the GPU and on lavapipe, nothing held.** In progress on worker branches, not on `main`: step 6
+(`m11-step6`: all seven kinds' checks and marks written; the declared limits and the sequence's effects-and-sounds check
+being wired into `Sequence.Load` per the user's decisions of 2026-11-07, recorded on that branch under "Decisions for
+M11"; its runs and docs to come), step 9 (`m11-step9`: the form, undo and the JSON view written and within the limits
+against Chromium; its mutation run and full runs under way), step 8 (`m11-step8`: opening packs, the browser dialog and
+the entry list, started 2026-11-07; its branch is built on step 9's work in progress, `d69afb5`). Then wave 3 (steps
+10, 12 and 13, as the steps each waits for reach `main`) and wave 4 (11, then 14) (`Docs/Editor.md`, "Steps"). M11
+started on 2026-11-06 with the user's go ("Once that worker finishes you can start with M11", given after the full run
+on `a32c5cb`, below). Its detail round is answered: M11-1 to M11-8 on 2026-11-05, M11-9 to M11-21 on 2026-11-06
+("Decisions for M11" below), with **the user's rule for M11**: only questions meant for the game go to the user, the
+editor itself is the manager's to decide (big decisions told to the user; the manager's reading of it is in "Decisions
+for M11" and under "Ask the user about design choices" below). The design doc is `Docs/Editor.md`: what exists checked
+against the code, the method, the design and fourteen steps with their dependencies and which can run side by side.
+**The design is decided (2026-11-06):** the editor's own choices P1–P38 by the manager, all as recommended; of the
+game's questions, G4 and G5 answered by the user (the game enforces declared limits too; the checks that today run only
+when something plays also run when the data loads, the added loading time measured first and brought to the manager),
+G1 and G6 decided by the manager (the mod's info as a `mod/info` entry of a kind the engine knows; the editor's settings
+in an `editor/` folder of the player's game folder), G2 and G3 kept for the port ("Open questions for later
+milestones", "At port time"); "Decisions for M11" below. The steps in `Docs/Editor.md`, "Steps", are the plan: workers
+side by side in worktrees, each step merged into `main` by a merge worker ("Merging" below), full runs serialized by
+the shared lock and run inside a headless compositor ("How each step is finished", item 1).
 M10 (scene and sequencer) is done and ticked (2026-11-05). It started on 2026-11-04 with
 the user's go (its eleven questions and 33 step details answered that day, the steps' own questions on the way; "Decisions
 for M10" below; the design doc is `Docs/Scene.md`), and all seven steps are merged on `main` (Progress, "M10 step 1" to
@@ -26,10 +41,10 @@ for M10" below; the design doc is `Docs/Scene.md`), and all seven steps are merg
 from glTF, the sequence record, builder and player, camera, light and particle tracks, audio and UI tracks, and the proof
 cutscene, Ji'ruan's intro. **The user approved the proof on 2026-11-05** ("The scene is perfect. I can't fully judge it
 because of the placeholder model, but it's very good."; S7-5), and since the shadow blur port (`515c128`) its title card
-matches Chromium at all six sampled moments, so nothing of M10 is held. `main` is `a32c5cb` (2026-11-06): pull requests
-#8–#11 brought port tasks 2–6 into the old game ("Beside the engine" below), the engine's code untouched. The full suite on
-it is 2547 tests, passing on the GPU and on lavapipe, with nothing held (run on the PC on 2026-11-06, below; the same 2547
-as on `7fd3aac`, Progress, "Canvas: inset shadows cast from Blink's frame").
+matches Chromium at all six sampled moments, so nothing of M10 is held. When M11 started, `main` was `a32c5cb`
+(2026-11-06): pull requests #8–#11 brought port tasks 2–6 into the old game ("Beside the engine" below), the engine's
+code untouched. The full suite on it was 2547 tests, passing on the GPU and on lavapipe, with nothing held (run on the PC
+on 2026-11-06, below; the same 2547 as on `7fd3aac`, Progress, "Canvas: inset shadows cast from Blink's frame").
 Done on the way, each by a worker of its own (Progress, by name): the flaky
 `OutputTests.TheDefaultDevicePacesTheGraph` traced to OpenAL's process-wide current context and fixed, with the user's
 two output follow-ups ("OpenAL outputs in one process"); test runs kept out of the player's real folders ("Test runs kept
@@ -37,7 +52,7 @@ out of the player's folders"); and three rules the proof's title card found, eac
 antialiasing under non-uniform transforms ("Canvas: box antialiasing under non-uniform transforms"), Blink's paint offset
 of transformed boxes ("Paint offset of transformed boxes") and blurred shadows with Skia's one device sigma ("Canvas:
 blurred shadows under non-uniform transforms"); after M10, the inset shadow's caster (merged on `main` as `7fd3aac`,
-2026-11-05; Progress, "Canvas: inset shadows cast from Blink's frame"). Then background-image layers painted as Blink paints them, the whole layer rule with seamless tiling (Progress, "Background layers as Blink paints them"; "Decision on background layers"), **finished and on `main` since its merge** (the branch `background-layers-aa`, one commit on `5af923e`; the user approved the merge on 2026-11-06 with the game screens' movement shown to them, and decided the one open question: the clip-layer bleed avoidance stays a known difference). Still open from M10 step 6: the music switch exactly on a quantum's start
+2026-11-05; Progress, "Canvas: inset shadows cast from Blink's frame"). Then background-image layers painted as Blink paints them, the whole layer rule with seamless tiling (Progress, "Background layers as Blink paints them"; "Decision on background layers"), **finished and on `main` since its merge** (`2323779`; the branch `background-layers-aa`, one commit on `5af923e`; the user approved the merge on 2026-11-06 with the game screens' movement shown to them, and decided the one open question: the clip-layer bleed avoidance stays a known difference). Still open from M10 step 6: the music switch exactly on a quantum's start
 during the old theme's fade-in, to check against Chromium (below, "Small tasks left from earlier milestones"). M9
 (assets and data) is done and ticked (2026-11-03; Progress, "M9 done"); M8's music the user has listened to with
 `play-theme.sh` and is happy with (2026-11-02). Nothing since 2026-10-30 has run on Windows ("Windows check" below). The
@@ -180,15 +195,31 @@ what needs the user's machines):**
   the user's ear for level, length and the thunder's delay to the flash's peak (their levels and lengths are first
   guesses). `Tools/Scripts/play-cutscene.sh jiruan [--volume 0-100]` plays it. Standing rule: when a script or a session
   plays audio, it sends only volume 0 (it is audible on the user's headset); listening is the user's, in a real terminal.
-- Housekeeping (open, needs the user's go; recorded 2026-11-05): finished workers' worktrees and merged local branches
-  are still there and can go (after `git worktree unlock` for the locked ones): the worktrees
+- By-hand checks for the user on Linux (open, recorded 2026-11-07, no go yet: the user decides when; no window may be
+  shown on the PC from a session, so these are the user's, in a real terminal): (a) `engine/Tools/Scripts/editor.sh`:
+  the editor's shell in a real window (M11 step 4): the window and its title, the zoom keys (Ctrl+= and Ctrl+-) through
+  the host (`UiHost.PageZoom`), a splitter dragged with the mouse, and its cursor (`Docs/Editor.md`, "How it works",
+  step 4, "Not checked"); (b) `~/.cache/stat-fick-build/claude-work/m11/drop-check.sh` (the session's window system,
+  Wayland on the PC) and `drop-check.sh x11` (X11 through XWayland), a window that logs drops and closes (M11 step 3): a
+  real drop of files from a file manager (the paths printed), closing by the title bar (the first close refused, the
+  next ends it), and closing from the taskbar while minimized (`Docs/Editor.md`, "How it works", step 3, "Not checked
+  here (by hand)"). The same on Windows: "Windows check", item 8.
+- Housekeeping (open, needs the user's go; recorded 2026-11-05; checked against `git worktree list` and `git branch` on
+  2026-11-07, 18:10, listing only what is there): finished workers' worktrees and merged local branches are still there
+  and can go (after `git worktree unlock` for the locked ones). From before M11: the worktrees
   `.claude/worktrees/agent-a100365f9dd9f6455`, `agent-a854dc507294edc31` (`shadow-inset-caster`),
-  `agent-a90b2ab8c1e10ed5b` (locked), `agent-ab2955e985eacee1d` and `stray-saves` (locked), and from the evening's docs
-  commits (still there on 2026-11-06, both merged) `agent-a2e8de9d65afa90cf` (branch `docs-2026-11-05-evening`) and
-  `agent-a93b8e77b1ce8d3b9` (branch `docs-m11-answers`); the local branches
-  `step7-unsquashed-backup`, `paint-offset-rounding`, `worktree-agent-a854dc507294edc31` and the worktrees' own branches.
-  Since the background-layer port merged (2026-11-06), the worktree `agent-a55b0fabf44a865d5` (locked) and its branch
-  `background-layers-aa` can go too.
+  `agent-a90b2ab8c1e10ed5b`, `agent-ab2955e985eacee1d`, `stray-saves` (locked), and from the evening's docs commits of
+  2026-11-05 `agent-a2e8de9d65afa90cf` (branch `docs-2026-11-05-evening`) and `agent-a93b8e77b1ce8d3b9` (branch
+  `docs-m11-answers`); the local branches `step7-unsquashed-backup` (M10 step 7's commits before their squash, so git
+  doesn't count it as merged) and `paint-offset-rounding`. From M11 and the work beside it, all merged on `main`
+  (2026-11-06 and 2026-11-07): the worktrees `agent-a7af00a2756e64974` (branch `m11-step2`), `agent-a426936d050e88bec`
+  (`m11-step4`), `agent-a1ec0e500ee3cb5ea` (`m11-step1`), `agent-a6537232e954bf00b` (`m11-step7`),
+  `agent-aec1ea5dc55ab019d` (`m11-step3`, locked), `agent-a4031ddbb1001df19` (`m11-step5`, locked),
+  `agent-abcc33021821690f3` (`lcd-first-text`), `agent-a55b0fabf44a865d5` (`background-layers-aa`, locked),
+  `agent-a6d967f5c503ec975` (`m11-design`) and `agent-a4bb2c94143be5ce9` (`docs-after-port-tasks`), and the branch
+  `worktree-agent-aff23c463ed886502` (no worktree, at step 3's `69f090b`). With each `agent-<id>` worktree goes its own
+  branch `worktree-agent-<id>` (all merged). Not yet: the worktrees and branches of steps 6, 8 and 9 (in progress, with
+  `m11-step6-wip-backup`).
 - Control labels a device pixel low at 1.65 (found 2026-11-06 by the text-verdict fix, Progress, "Text first in a paint
   chunk"; open, no go yet: the user decides when): a select's or an input button's label sits one device pixel below
   Chromium's at a device scale of 1.65 (at 1× they match). In a 20 px tall `appearance: none` select or button with Lato
@@ -227,11 +258,11 @@ solution built for `win-x64` from Linux with 0 errors and the Windows natives co
 1. **Set up, build, test.** Do: `Tools\Scripts\setup.ps1` once, then `Tools\Scripts\build.ps1`, then
    `Tools\Scripts\test.ps1`. Passes: `build.ps1` ends without errors and leaves in `$STATVENTURE_GAME` the published
    sandbox with `packs\` (`audio.pak`, `ui.pak`) beside it, stale files removed and changed packs put in place with
-   `File.Replace` (run it twice: the second run copies nothing); `test.ps1` gives the same 1907 results as Linux, all
-   passing (the goldens are platform-pinned: the tests act as Chromium on Linux with the reference PC's font settings,
-   `ReferencePlatform.cs`, `SystemFonts.cs`, so Windows must not need its own). From: `build.ps1` never run (M9 step 9,
-   `Docs/Assets.md`, "How it works", step 9, and Status, step 9); the setup scripts from the move to GitHub (Progress,
-   "Moved to one git repo for GitHub").
+   `File.Replace` (run it twice: the second run copies nothing); `test.ps1` gives the same results as Linux (2940 tests
+   on `3e6df0f`, 2026-11-07), all passing (the goldens are platform-pinned: the tests act as Chromium on Linux with the
+   reference PC's font settings, `ReferencePlatform.cs`, `SystemFonts.cs`, so Windows must not need its own). From:
+   `build.ps1` never run (M9 step 9, `Docs/Assets.md`, "How it works", step 9, and Status, step 9); the setup scripts
+   from the move to GitHub (Progress, "Moved to one git repo for GitHub").
 2. **M9's per-step items.** (a) *Packs* (step 1): a running game with a pack open; replace the pack (`build.ps1` again
    with a changed pack, or a rename over it) and Reload. Passes: the rename over the open pack succeeds (the pack is
    opened with delete sharing for this), and the tests on read sharing pass. From: `Docs/Assets.md`, "How it works",
@@ -274,15 +305,47 @@ solution built for `win-x64` from Linux with 0 errors and the Windows natives co
    Windows suite is not protected from a test that forgets its own folder (mutations never run there), so ask the user
    how to close it (for example a test-only folder override in `GameFolder` and `DocumentsFolder`). From: the 2026-11-05
    decision (Progress, "Test runs kept out of the player's folders").
+8. **M11's per-step items (so far: steps 2, 3 and 4; recorded 2026-11-07).** (a) *Writing over a pack held open*
+   (step 2): `PackRewriteTests.ARewrittenPackKeepsEveryOtherEntryAsItWasStored` in item 1's `test.ps1` writes a pack
+   over itself while it is open, as the editor saves (and, once step 11 is merged, a save in the editor). Passes: the
+   test passes: the writer's new file is moved over the open pack (`PackFile` opens it sharing read, write and delete;
+   item 2a is the game's side). From: `Docs/Editor.md`, Status, step 2; `Docs/Assets.md`, "Packs for the editor", "Not
+   checked". (b) *Import's default lookup on a file system that ignores case* (step 2): import one terrain description
+   whose image is named in another case than the file beside it (it names `vale-height.png`, the file is
+   `Vale-Height.png`): in the editor once step 12 is merged, until then through `PackWriter.ImportFile` with the default
+   `ImportSources`. Passes: record the answer, whether the import finds the file there; packing the folder refuses that
+   name on every system, so if the import finds it, one file imported differs from the folder packed on Windows: report
+   it. From: the same places. (c) *A real file drop and a real close* (step 3): in the editor's window (once step 8 wires
+   drops; the refused close once step 11 asks before closing), drop files from Explorer, close it by the title bar, and
+   minimize it and close it from the taskbar. Passes: the drop reaches the window with Explorer's paths in its order (a
+   dropped `.pak` opens, P27); each close is asked once (`Application.ConfirmClose`), also while minimized; a refused
+   one keeps the window running and the next ends it. On Linux the check program is
+   `~/.cache/stat-fick-build/claude-work/m11/drop-check.sh`, which isn't on the Windows PC. From: `Docs/Editor.md`,
+   "How it works", step 3, "Not checked here (by hand)", and Status, step 3. (d) *The editor in a real window* (step
+   4): there is no `Tools\Scripts\editor.ps1` yet (the editor needs its Windows script with M12 or earlier); by hand it
+   is what `editor.sh` does: `dotnet build Tools\Editor -c Release`, then `dotnet
+   Tools\Editor\bin\Release\net10.0\Statventure.Editor.dll --repo <the engine folder>`. Passes: the shell shows as
+   `editor.sh` shows it on Linux (the by-hand check in "Small tasks"): the window and its title, the zoom keys (Ctrl+=
+   and Ctrl+-) through the host, a splitter dragged with the mouse and its cursor. From: `Docs/Editor.md`, "How it
+   works", step 4, "Not checked", and Status, step 4.
 
 When done, record: a Progress entry "Windows check" (date, what ran, results, anything that failed and why), a dated line
-in `Docs/Notes.md`, and the "Not checked: Windows" lines in `Docs/Assets.md`, Status (and its "How it works" notes)
-turned into "checked on Windows <date>"; then this subsection marked done.
+in `Docs/Notes.md`, and the "Not checked: Windows" lines in `Docs/Assets.md`, Status (and its "How it works" notes),
+and in `Docs/Editor.md`, Status and "How it works" (item 8), turned into "checked on Windows <date>"; then this
+subsection marked done.
 
 **How each step is finished** (the user's standing rules, for every step of every milestone):
-1. Tests: `Tools/Scripts/test.sh` passes in full on the GPU and on lavapipe (the variables are in `CLAUDE.md`). Don't tune
-   numbers until a test passes: find the rule. A number the user chose, or a tolerance, isn't yours to change to make a
-   test pass; ask. Report failures as they are; a flaky test gets its cause found, not a wider margin.
+1. Tests: `Tools/Scripts/test.sh` passes in full on the GPU and on lavapipe (the variables are in `CLAUDE.md`). Don't
+   tune numbers until a test passes: find the rule. A number the user chose, or a tolerance, isn't yours to change to
+   make a test pass; ask. Report failures as they are; a flaky test gets its cause found, not a wider margin. Since M11,
+   with workers side by side (the manager's practice, 2026-11-06 and 2026-11-07): every full run, on either driver, and
+   every `mutate.py` run takes the shared lock (`flock -o ~/.cache/stat-fick-build/claude-work/full-run.lock …`;
+   `Docs/Editor.md`, "Steps"); full runs, and mutation runs whose tests open windows, run inside a headless compositor
+   (`cage` on wlroots' headless backend, the user's displays unset), so no window reaches the user's screen; the
+   engine's test windows are hidden since M11 step 3, all but `SwapchainTests`' (`engine/CLAUDE.md`). The wrappers use
+   `flock -o` and set `MSBUILDDISABLENODEREUSE=1 DOTNET_CLI_USE_MSBUILD_SERVER=0`, because MSBuild's reusable nodes
+   otherwise outlive the run and keep the lock, and end their `cage` when its command ends
+   (`claude-work/m11/step5-full-run.sh` and `step5-headless.sh` are the model).
 2. New tests can fail: break each rule they cover, one at a time (`Tools/Scripts/mutate.py`), and account for every
    survivor: nothing can differ (say why) or it's a gap to close. Report the count. Mutation runs are also checked for
    writes to the player's real folders (decided 2026-11-05, "Decision on test runs and the player's folders"): `mutate.py`
