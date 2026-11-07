@@ -1263,6 +1263,67 @@ and 6 were merged; the task is `Docs/Port-Tasks/5_New_Masterworks.txt`).** Asked
 #14, waited to be merged; the task is `Docs/Port-Tasks/9_Potion_Rework.txt`).**
 - P1 **Where:** "Since i cant merge right now, you can start the next task and put it in the same push request": built
   in the old game like tasks 1–8, on the same branch, in the same pull request as task 8 (#14).
+- P2 **Art:** placeholder like tasks 1–8: the two Apothecary banners, the cauldron and its brewing animation, and the
+  potions', poisons' and ingredients' icons are simple versions from the existing drawing kits, marked PLACEHOLDER ART
+  and listed for the port's remake. Every potion, poison and ingredient is real and complete. (Not finished art now.)
+- P3 **The ten Health and Mana Potions at the Apothecary** (Lesser, plain, Greater, Superior, Ultimate of each): always on
+  sale in unlimited quantity, outside the random stock: the pair of your level band and every weaker pair (the General
+  Store's bands today: up to Level 15 common, 30 uncommon, 60 rare, 90 epic, then legendary). (Not all ten always, the
+  recommendation; not your band's pair only.)
+- P4 **Recipes known from the start:** the Potion of Lesser Health's and Lesser Mana's, from easy-to-find ingredients; the
+  other eight Health and Mana recipes are bought like the new potions'. (Not the four common and uncommon ones, not all ten.)
+- P5 **The content** (40 potions, 12 poisons, 50+ ingredients with their sources and drop tables, every recipe): drafted
+  as a full list and shown for review before anything is built. (Not built directly.)
+- P6 **Potions outside battle:** Health, Mana and cure potions can be used anytime from the inventory, on yourself or a
+  companion (a cure only when there is something to cure); buff potions only in battle, where their durations count the
+  drinker's turns. (Not buffs drunk on the map carried into the next battle; not battle only, as today.)
+- P7 **Stacking:** each potion's buff is held once; the same potion again only refreshes its duration; different potions
+  add up, even on the same stat (the game's timed effects today). (Not "the strongest wins", not one potion buff at a time.)
+- P8 **Poisons and bosses:** every poison works on the 12 bosses, at half strength: its damage, reductions and durations
+  halved. (Not "no stuns or AP loss on bosses", the recommendation; not a 50% resist chance; not fully.)
+- P9 **Who a buff potion reaches:** any ally, like Health and Mana Potions today: the user drinks it or hands it to a
+  companion or summon, 1 AP. (Not the drinker only.)
+- P10 **What a forage costs:** one hour of game time, with the zone's encounter chance rolled as for an hour of travel
+  there. (Not 30 minutes without encounters, not 2 hours with a full roll.)
+- P11 **Where Forage works:** every wild zone of every region, rivers and lake shores included; not in towns, on roads, at
+  sites, or in the three uncharted regions (empty until the port, W27). (Not also on roads and near towns.)
+- P12 **Ingredient drops:** each enemy has its own fitting ingredients, about a 25% chance a kill drops one (common ones
+  more often, rare ones less); bosses and Empowered enemies drop more and rarer ones. (Not 1 in 2, not 1 in 10.)
+- P13 **The Apothecary's ingredient menu:** every common ingredient always, plus a random selection of the region's own
+  uncommon and rarer ingredients, a few of each, re-rolled with the other shops' stock every 6 game hours. (Not a random
+  selection from all, not every ingredient everywhere.)
+- P14 **A recipe's price:** ten times its potion's (Lesser Health's 4,500 silver). (Not 5×, not 20×.)
+- P15 **When an Apothecary's three recipes change:** every 6 game hours, with the rest of the shops' stock; each
+  Apothecary has its own three, the same however often the menu is opened. (Not once a game day, the recommendation; not
+  every 3 game days.)
+- P16 **Which recipes are offered:** any recipe not yet known, weighted toward your level band's rarity as the General
+  Store weights its goods. (Not only up to your band's rarity, not evenly.)
+- P17 **Poisons are brewed too:** each has a three-ingredient recipe bought like the potions' (62 recipes: the ten Health
+  and Mana, the 40 new potions, the 12 poisons); poisons are also sold ready-made. (Not bought only.)
+- P18 **The Alchemist's way in:** character Level 20 and 10 potions brewed. (Not Level 10 and 25 ingredients foraged, the
+  recommendation; not open from Level 1.)
+- P19 **The Assimilator's way in:** character Level 10 and 25 ingredients found by foraging. (Not Level 15 and 20 potions
+  drunk, the recommendation; not Level 15 and three Alchemist levels.)
+- P20 **A raw ingredient's strength:** at the first Assimilator level its combined buff is about a third of its potions'
+  effects, rising to about two-thirds at the last; rarer ingredients last longer; potions stay the stronger choice. (Not
+  half rising to full, not a quarter rising to half.)
+- P21 **Ingredient buffs stack like potions:** the same ingredient refreshes its buff, different ingredients add up.
+  (Not one at a time, the recommendation; not more slots as the class levels.)
+- P22 **What a Collect quest pays:** by its ingredient's rarity: common like Travel (×1.0), uncommon like Escort (×1.1), rare
+  like Search (×1.2), epic or legendary like Deliver (×1.35); the quantity asked is set so each rarity takes similar effort;
+  never as much as Cull or Hunt. (Not one rate of ×1.15, not always like Deliver.)
+- P23 **Where a Collect quest is handed in:** the guild that offered it. (Not any guild.)
+- P24 **Which copies count:** any copies in the pack when handed in at the counter: foraged, dropped or bought. (Not only
+  those found after taking the quest.)
+- P25 **Which ingredient a Collect quest asks for:** one found in the guild's own region or a neighbouring one, of a
+  rarity fitting your level band. (Not any from a region already entered.)
+- P26 **Keys:** the Apothecary button O (among every settlement's services, beside the General Store), Forage D (with
+  Camp and Rest). (Not M and S, not O and S.)
+- P27 **Ingredients in the inventory:** their own Ingredients tab; potions and poisons stay in Consumables. (Not with the
+  consumables.)
+- P28 **Selling back:** the Apothecary buys potions, poisons and ingredients at half price; the General Store keeps buying
+  its other goods but no longer potions. (Not both, not nobody.)
+- P29 **When an Assimilator eats:** in battle, 1 AP, from the battle's item menu like a potion. (Not also on the map.)
 
 **Decisions for task 8, Map Rework (2026-11-06, a cloud session; the user asked for task 8 after task 7 was merged, while
 M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.txt`).** Asked before any code:
