@@ -5,7 +5,8 @@
   rules.setSettlementAccessResolver(classId => toInteger(classLevels[classId], 0) > 0);
   let travelling = false, encounterResolving = false, frame = null, lastFrame = 0, lastSave = 0, lastFullRender = 0;
   let mapHold = null, mapHoldTimer = null, mapSteeringTimer = null, suppressMapClickUntil = 0;
-  const travelBonuses = () => { const effects = calculateClassEffects(); return { all: effects.travelSpeedFlat, river: effects.riverSpeedFlat }; };
+  // Port task 8: the horse carriage (W9, W10) speeds travel while it is on.
+  const travelBonuses = () => { const effects = calculateClassEffects(); return { all: effects.travelSpeedFlat, river: effects.riverSpeedFlat, carriage: worldState.carriage?.active ? 1 : 0 }; };
   let renderedRegionId = null;
   let lastClockMinute = null, lastClockRegionId = null;
   let ambientEnabled = true, ambientLast = performance.now(), ambientCarry = 0;
@@ -17,7 +18,7 @@
     ["map-blacksmith", "B", ["b"]], ["map-item-shop", "G", ["g"]], ["map-tailor", "U", ["u"]],
     ["map-guild", "A", ["a"]], ["map-church", "T", ["t"]], ["map-magic-tower", "W", ["w"]], ["map-institute", "I", ["i"]], ["map-hearth-home", "H", ["h"]],
     ["map-class-respec", "L", ["l"]], ["map-stat-respec", "P", ["p"]],
-    ["map-caravan", "K", ["k"]], ["map-boat", "V", ["v"]], ["map-search", "F", ["f"]], ["map-track-quarry", "Q", ["q"]], ["map-quests", "J", ["j"]],
+    ["map-caravan", "K", ["k"]], ["map-carriage", "N", ["n"]], ["map-boat", "V", ["v"]], ["map-search", "F", ["f"]], ["map-track-quarry", "Q", ["q"]], ["map-quests", "J", ["j"]],
     ["map-zoom-in", "+", ["+", "="]], ["map-zoom-out", "−", ["-"]], ["map-fit", "0", ["0"]], ["map-follow", "Y", ["y"]],
   ];
   function labelShortcut(button, hint, ariaKey = hint) {
@@ -622,6 +623,7 @@
     const canBoat = Boolean(boatDestination) && !mapLocked && !travelling && currentHp > 0;
     $("map-boat").hidden = !canBoat; $("map-boat").disabled = !canBoat;
     $("map-boat").title = boatDestination ? `Sail to ${boatDestination.name} · ${place.boat.minutes / 60} hours` : "Reach a port to travel by boat";
+    renderCarriage(mapLocked);
     const atCastle = Boolean(caravanHere()) && !mapLocked && currentHp > 0, caravanWhy = caravanReason();
     $("map-caravan").hidden = !atCastle; $("map-caravan").disabled = !atCastle || travelling || Boolean(caravanWhy) || Boolean(voyage);
     $("map-caravan").title = caravanWhy || "Travel by caravan to another castle city you have visited";
@@ -864,6 +866,11 @@
     window.Guild?.onTravel(result.elapsed);
     window.Guild?.onPositionChange();
     if (result.blocked) { travelling = false; $("map-status").textContent = "The way is blocked."; saveCharacter(); render(); return; }
+    // Steered into rough ground with the carriage on (W34): it switches itself off and you go on foot.
+    if (worldState.carriage?.active) {
+      const ground = rules.carriageGround(worldState.position, worldState.regionId);
+      if (!ground.ok) { worldState.carriage.active = false; $("map-status").textContent = ground.reason + " The carriage is off; you go on on foot."; }
+    }
     const currentZone = rules.zoneAt(worldState.position, worldState.regionId);
     if (currentZone === "Vampire Citadel" && previousZone !== currentZone) {
       presentTravelEncounter(EncounterRules.generate(currentZone, { level, regionId: worldState.regionId }), currentZone);
@@ -912,7 +919,7 @@
       return true;
     }
     const route = rules.continentRoute(here(), destination, travelBonuses(), { entered: worldState.visitedRegions });
-    if (!route.length) { $("map-status").textContent = "No road or path leads there from here. Use a port to sail."; return false; }
+    if (!route.length) { $("map-status").textContent = worldState.carriage?.active ? "No way a carriage can drive leads there. Switch the carriage off to walk." : "No road or path leads there from here. Use a port to sail."; return false; }
     worldState.destination = destination;
     worldState.route = route;
     $("map-status").textContent = 'Fastest route set. Click another point, or hold the left mouse button to steer.';
@@ -1071,6 +1078,41 @@
     camera.follow = true;
     saveCharacter(); render(); setScale(DEFAULT_SCALE());
   }
+  /* The horse carriage's switch (port task 8, W9, W10, W33-W35), at the toolbar's top right once bought: pressed while
+     it is on, unavailable (with the reason) where it cannot go or while it waits at a port. Switching it re-plans the way
+     to your marker (W34: the carriage keeps to its own ground). */
+  function carriageReason() {
+    const carriage = worldState.carriage;
+    if (!carriage?.owned) return "Buy a horse carriage at a General Store";
+    if (carriage.parkedAt) return `Your carriage waits at ${rules.settlementsForRegion("sunward-coast").find(place => place.id === carriage.parkedAt)?.name || "the port"}.`;
+    return rules.carriageGround(worldState.position, worldState.regionId).reason;
+  }
+  function renderCarriage(mapLocked) {
+    const button = $("map-carriage"), carriage = worldState.carriage;
+    button.hidden = !carriage?.owned;
+    if (!carriage?.owned) return;
+    const reason = carriageReason();
+    button.setAttribute("aria-pressed", String(Boolean(carriage.active)));
+    button.disabled = Boolean(mapLocked || voyage) || (!carriage.active && Boolean(reason));
+    button.title = carriage.active ? "Carriage on: twice as fast on roads, half again as fast on open land. Click to go on foot." : reason || "Ride the carriage: twice as fast on roads, half again as fast on open land.";
+  }
+  function toggleCarriage() {
+    const carriage = worldState.carriage;
+    if (!carriage?.owned || voyage) return;
+    if (!carriage.active && carriageReason()) { $("map-status").textContent = carriageReason(); return; }
+    carriage.active = !carriage.active;
+    if (worldState.destination) {
+      const route = rules.continentRoute(here(), worldState.destination, travelBonuses(), { entered: worldState.visitedRegions });
+      if (!route.length) {
+        carriage.active = false;
+        $("map-status").textContent = "No way a carriage can drive leads to your marker. The carriage stays off.";
+        render(); return;
+      }
+      worldState.route = route;
+    }
+    $("map-status").textContent = carriage.active ? "You ride the carriage." : "The carriage is off; you go on foot.";
+    saveCharacter(); render();
+  }
   function travelByBoat() {
     const place = rules.settlementAt(worldState.position, worldState.regionId);
     const boat = place?.boat;
@@ -1079,7 +1121,16 @@
     const from = here(), to = rules.toContinent(boat.regionId, destination);
     startJourney({ path: seaPath(from, to), duration: VOYAGE_MS, element: "map-voyage", minutes: boat.minutes, waves: true, points: [from, to],
       status: `Sailing from ${place.name} to ${destination.name}…`,
-      finish: () => { rules.placeAt(worldState, to); $("map-status").textContent = `Sailed from ${place.name} to ${destination.name} in ${boat.minutes / 60} hours.`; } });
+      finish: () => {
+        rules.placeAt(worldState, to);
+        $("map-status").textContent = `Sailed from ${place.name} to ${destination.name} in ${boat.minutes / 60} hours.`;
+        // The carriage stays on the mainland (W10, W35): it waits at the port and is there again when you sail back.
+        const carriage = worldState.carriage;
+        if (carriage?.owned) {
+          if (rules.CARRIAGE.ISLANDS.includes(boat.regionId)) { carriage.parkedAt = place.id; carriage.active = false; $("map-status").textContent += ` Your carriage waits at ${place.name}.`; }
+          else if (carriage.parkedAt === destination.id) carriage.parkedAt = null;
+        }
+      } });
   }
   const VOYAGE_MS = 5000;
   /* The caravan (W7, W8, W14, W16): offered in a castle city whose caravan you have unlocked, once you have unlocked a
@@ -1153,6 +1204,7 @@
   $("map-camp").addEventListener("click", camp);
   $("map-boat").addEventListener("click", travelByBoat);
   $("map-caravan").addEventListener("click", openCaravan);
+  $("map-carriage").addEventListener("click", toggleCarriage);
   $("map-caravan-close").addEventListener("click", () => closeCaravan());
   $("map-caravan-list").addEventListener("click", event => { const go = event.target.closest("[data-caravan-go]"); if (go) travelByCaravan(go.dataset.caravanGo); });
   const caravanRowTrip = row => row && rules.caravanTrips(worldState, $("map-caravan-panel").dataset.from).find(trip => trip.to === row.dataset.to);

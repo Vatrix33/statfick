@@ -115,7 +115,9 @@ region's terrain over its whole territory to the natural coast, the coast and in
 regions' pictures meeting along wandering lines, the empty regions as parchment marked "Uncharted" (W29), fog along the
 same lines; the music crossfade (W14), the boat trip on the map (W31), the mountain's fog and clouds (W32), the caravan
 (W7, W8, W14, W16: a Caravan button in castle cities, a list docked over the map previewing each road, the wagon's
-trip), and off-road paths round water where a straight line is blocked. **Next:** the carriage, then the checks (the
+trip), off-road paths round water where a straight line is blocked, and the horse carriage (W9, W10, W33-W35: sold by
+General Stores, its switch at the map's top right, its own ground for planning, off by itself on rough ground, waiting
+at Seabridge while you are on Cinder Isle). **Next:** the checks (the
 older checks that expect the old map, e.g. the boat's nine hours, to be brought up to date), the mutation proof and the
 docs. **Engine work goes on uninterrupted.**
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
@@ -1371,6 +1373,15 @@ M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.t
   beyond) fades under a soft fog that thickens as you climb; on the Summit slow-drifting cloud banks lie below and around
   you; a wide clear circle round you, and markers and towns always stay readable. (Not a ring of fog only near you; not
   just dimming the lowlands.)
+- W33 **The carriage's ground where W10 left it open:** open sand that is not dunes (the Deep Desert's Outer Wastes, the
+  Crimson Divide's Open Desert, the Bloodstone Coast's Sanguine Wastes and Blood Coast) and the uncharted land may be
+  crossed; the Mountainfoot, Stormcrest, Floodplain and Desert Fringe, and all of the Ancient Battlefield off its roads,
+  may not. (Not hills and edges, the recommendation; not the Battlefield's open ground.)
+- W34 **Planning with the carriage on:** a click plans a way the carriage can drive (roads and its open land) and says
+  so if there is none; the carriage switches itself off only when you steer it into rough ground yourself. (Not
+  planning as on foot and switching off on the way.)
+- W35 **Where the carriage is after a journey:** it comes along with the caravan; by boat it stays at Seabridge (W10)
+  and is there again when you sail back. (Not left where you boarded the caravan.)
 
 **Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
 after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**

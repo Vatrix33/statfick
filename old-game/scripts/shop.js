@@ -376,10 +376,27 @@
     bulkButton.title = bulkEntries.length ? "Sell " + bulkTotals.quantity + " non-favorited items for " + ShopRules.formatPrice(bulkTotals.price) + ". Equipped copies and items this shop cannot buy are kept." : "No eligible non-favorited items to sell here.";
     if (!entries.some(entry => entry.id === previewId)) previewId = entries[0]?.id || null;
     $("shop-list-title").textContent = mode === "sell" ? "Your pack" : kind === "blacksmith" ? "On the racks" : kind === "tailor" ? "On the rails" : "On the shelves";
-    stockList.innerHTML = entries.length ? entries.map(entry => mode === "sell" ? sellRowFor(entry, entry.id === previewId) : buyRow(entry)).join("") : '<div class="shop-empty">' + (mode === "sell" ? "You have nothing this shop will buy." : "No stock is available.") + '</div>';
+    stockList.innerHTML = (kind === "general" && mode === "buy" ? carriageRow() : "") + (entries.length ? entries.map(entry => mode === "sell" ? sellRowFor(entry, entry.id === previewId) : buyRow(entry)).join("") : '<div class="shop-empty">' + (mode === "sell" ? "You have nothing this shop will buy." : "No stock is available.") + '</div>');
     renderDetail(entries);
   }
 
+  /* Port task 8: the horse carriage (W9), sold by every General Store for 50,000 silver and bought once; afterwards its
+     switch sits at the map's top right. PLACEHOLDER ART: its drawing. */
+  const CARRIAGE_ART = '<svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 7H25V19H5Z" fill="#c9a96a" stroke="#2a1d14" stroke-width="2" stroke-linejoin="round"/><path d="M5 7Q15 0 25 7" fill="#e6d2a4" stroke="#2a1d14" stroke-width="2"/><path d="M25 13H33" stroke="#2a1d14" stroke-width="2"/><circle cx="10" cy="24" r="5" fill="#6b4a2c" stroke="#2a1d14" stroke-width="2"/><circle cx="21" cy="24" r="5" fill="#6b4a2c" stroke="#2a1d14" stroke-width="2"/><path d="M33 24V14Q37 7 43 10L45 15H40V24" fill="#8a6a4a" stroke="#2a1d14" stroke-width="2" stroke-linejoin="round"/></svg>';
+  function carriageRow() {
+    const owned = Boolean(worldState.carriage?.owned), price = WorldRules.CARRIAGE.PRICE_SILVER, poor = ShopRules.walletValue(currencies) < price;
+    return '<article class="shop-row shop-carriage-row' + (owned ? ' is-sold-out' : '') + '" tabindex="0"><span class="shop-row-art" aria-hidden="true">' + CARRIAGE_ART + '</span>' +
+      '<span class="shop-row-main"><strong>Horse Carriage</strong><small>Transport · bought once · twice as fast on roads, half again as fast on open land</small></span>' +
+      '<b class="shop-row-price">' + escapeHtml(ShopRules.formatPrice(price)) + '</b><span class="shop-row-actions"><button type="button" data-buy-carriage' + (owned || poor ? " disabled" : "") + '>' + (owned ? "Owned" : poor ? "Cannot afford" : "Buy") + '</button></span></article>';
+  }
+  function buyCarriage() {
+    const current = currentPlace();
+    if (modal.hidden || kind !== "general" || mode !== "buy" || !current || current.id !== place?.id || busy() || worldState.carriage?.owned) return;
+    if (!pay(WorldRules.CARRIAGE.PRICE_SILVER)) { setStatus("You do not have enough coin for the carriage.", "error"); return; }
+    worldState.carriage = { owned: true, active: false, parkedAt: null };
+    setStatus("Horse Carriage purchased for " + ShopRules.formatPrice(WorldRules.CARRIAGE.PRICE_SILVER) + ". Its switch is at the top right of the map.", "success");
+    saveCharacter(); render(); window.WorldMap?.render();
+  }
   function buyRow(entry) {
     const item = getItem(entry.id);
     if (!item) return "";
@@ -514,6 +531,7 @@
   stockList.addEventListener("click", event => {
     const buy = event.target.closest("[data-buy-item]");
     if (buy) { buyItem(buy.dataset.buyItem); return; }
+    if (event.target.closest("[data-buy-carriage]")) { buyCarriage(); return; }
     const one = event.target.closest("[data-sell-item]");
     if (one) { sellItem(one.dataset.sellItem); return; }
     const all = event.target.closest("[data-sell-all-item]");

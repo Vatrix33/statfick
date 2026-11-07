@@ -228,6 +228,12 @@
       route,
       visitedRegions,
       caravans,
+      // The horse carriage (W9, W35): bought, switched on, and where it waits while you are on an island (a port's id).
+      carriage: {
+        owned: Boolean(saved?.carriage?.owned),
+        active: Boolean(saved?.carriage?.owned && saved?.carriage?.active && !saved?.carriage?.parkedAt),
+        parkedAt: saved?.carriage?.owned && typeof saved?.carriage?.parkedAt === "string" ? saved.carriage.parkedAt : null,
+      },
       // The last region with its own music you stood in: it plays on in the regions empty until the port (W28).
       lastChartedRegionId: charted(saved?.lastChartedRegionId) ? saved.lastChartedRegionId : charted(regionId) ? regionId : normalizeRegionId(getRegion(regionId).safeRetreatRegionId),
     };
@@ -565,7 +571,34 @@
         : zone === "Caldera" ? 2 : zone === "Dunes" || zone === "Beach" || zone === "Ashen Slope" || zone === "Thunder Hills" || zone === "Windcut Bluffs" || zone === "Dry Steppe" || zone === "Desert Fringe" ? 4
           : zone === "Floodplain" || zone === "Reed Marsh" || zone === "Stormcrest" ? 3
             : zone === "Shifting Dunes" || zone === "Glass Dunes" || zone === "Howling Dunes" || zone === "Buried Necropolis" || zone === "Caravan Dunes" || zone === "Crimson Dunes" || zone === "Heart of the Red Waste" || zone === "Mass Graves" || zone === "Bone Pits" || zone === "Deep Boreal" || zone === "Shadowroot Hollow" ? 4 : 5;
-    return Math.max(0.1, base + Math.max(0, flat) + Math.max(0, river));
+    // The horse carriage (port task 8, W9, W10): twice the speed on a road, half as fast again off it.
+    const carriage = typeof bonus === "object" && bonus?.carriage ? terrain === "road" ? CARRIAGE.ROAD : CARRIAGE.OFF_ROAD : 1;
+    return Math.max(0.1, (base + Math.max(0, flat) + Math.max(0, river)) * carriage);
+  }
+  /* ---------- The horse carriage (port task 8: W9, W10, W33-W35) ----------
+     Bought once at a General Store for 50,000 silver. It drives on every road but the steep mountain roads of the High
+     Stoneveil and the Summit, and off the roads only on open land (OPEN_ZONES: plains, hills, downs, steppe, flats,
+     beaches, open sand that is not dunes, the uncharted land; never forest, jungle, marsh or bog, dunes, rock or
+     cliffs, lava, rivers, nor the Ancient Battlefield off its roads); it stays on the mainland (it waits at the port
+     while you are on Cinder Isle) and comes along with the caravan. */
+  const CARRIAGE = Object.freeze({
+    PRICE_SILVER: 50000, ROAD: 2, OFF_ROAD: 1.5,
+    MOUNTAIN_ROADS: Object.freeze(["high-stoneveil", "stoneveil-summit"]), ISLANDS: Object.freeze(["cinder-isle"]),
+    OPEN_ZONES: Object.freeze(new Set(["Town", "Plains", "Hill-Plains", "Coastal Plains", "Windswept Plains", "Beach", "Rainwashed Downs", "Thunder Hills",
+      "Lake Shore", "Dry Steppe", "Sunburnt Flats", "Salt Pans", "Obsidian Flats", "Bloodglass Flats", "Outer Wastes", "Open Desert", "Sanguine Wastes",
+      "Blood Coast", "Uncharted land", "Church of Talos", "Institute of Magic"])),
+  });
+  // Whether the carriage can be driven at a point of a region, and if not, why.
+  function carriageGround(position, regionId = activeRegionId) {
+    const region = getRegion(regionId);
+    if (CARRIAGE.ISLANDS.includes(region.id)) return { ok: false, reason: "The carriage stays on the mainland." };
+    if (CARRIAGE.MOUNTAIN_ROADS.includes(region.id)) return { ok: false, reason: "The carriage cannot climb the Stoneveil's steep mountain roads." };
+    if (!isLand(position, region.id)) return { ok: false, reason: "The carriage cannot cross water." };
+    const terrain = terrainAt(position, region.id);
+    if (terrain === "road") return { ok: true, reason: "" };
+    if (terrain === "river") return { ok: false, reason: "The carriage cannot ford a river." };
+    const zone = zoneAt(position, region.id), open = zone.replace(/ - near Town$/, "");
+    return CARRIAGE.OPEN_ZONES.has(open) ? { ok: true, reason: "" } : { ok: false, reason: `Rough ground for a carriage: ${zone}.` };
   }
   function travelMinutes(a, b, speedBonus = 0, regionId = activeRegionId) {
     const totalDistance = distance(a, b);
@@ -727,6 +760,7 @@
       const segment = Math.min(5, totalDistance - travelled);
       const midpoint = { x: a.x + dx * (travelled + segment / 2), y: a.y + dy * (travelled + segment / 2) };
       if (!passableAt(midpoint) || allowed && !allowed(CONTINENT.regionAt(midpoint))) return Infinity;
+      if (typeof bonus === "object" && bonus?.carriage) { const at = fromContinent(midpoint); if (!carriageGround(at.position, at.regionId).ok) return Infinity; }
       minutes += segment / UNITS_PER_KM / continentSpeedAt(midpoint, bonus) * 60;
       travelled += segment;
     }
@@ -798,7 +832,8 @@
      LAND_SEARCH units round the two points, then pulled straight wherever a straight line is clear. The waypoints after
      `a`, ending at `b`; null when no way is found. */
   const LAND_CELL = 32, LAND_SEARCH = 2400;
-  function landPath(a, b, allowed = null) {
+  function landPath(a, b, allowed = null, bonus = 0) {
+    const carriage = typeof bonus === "object" && bonus?.carriage;
     const x0 = Math.min(a.x, b.x) - LAND_SEARCH, y0 = Math.min(a.y, b.y) - LAND_SEARCH;
     const cols = Math.ceil((Math.max(a.x, b.x) + LAND_SEARCH - x0) / LAND_CELL) + 1, rows = Math.ceil((Math.max(a.y, b.y) + LAND_SEARCH - y0) / LAND_CELL) + 1;
     const cell = c => [Math.round((c.x - x0) / LAND_CELL), Math.round((c.y - y0) / LAND_CELL)];
@@ -807,7 +842,7 @@
     const open = (col, row) => {
       if (col < 0 || row < 0 || col >= cols || row >= rows) return false;
       const i = row * cols + col;
-      if (!known[i]) { const c = centre(col, row); known[i] = passableAt(c) && (!allowed || allowed(CONTINENT.regionAt(c))) ? 1 : 2; }
+      if (!known[i]) { const c = centre(col, row), at = carriage && fromContinent(c); known[i] = passableAt(c) && (!allowed || allowed(CONTINENT.regionAt(c))) && (!carriage || carriageGround(at.position, at.regionId).ok) ? 1 : 2; }
       return known[i] === 1;
     };
     const [sc, sr] = cell(a), [gc, gr] = cell(b);
@@ -841,7 +876,7 @@
     let cursor = a;
     for (let i = 0; i < points.length;) {
       let far = i;
-      for (let j = points.length - 1; j > i; j--) if (Number.isFinite(continentTravelMinutes(cursor, points[j], 0, allowed))) { far = j; break; }
+      for (let j = points.length - 1; j > i; j--) if (Number.isFinite(continentTravelMinutes(cursor, points[j], carriage ? { carriage: 1 } : 0, allowed))) { far = j; break; }
       route.push(points[far]); cursor = points[far]; i = far + 1;
     }
     return route;
@@ -857,7 +892,7 @@
     let direct = roadsOnly ? Infinity : continentTravelMinutes(start, end, bonus, allowed), directVia = null;
     // Blocked straight: round the water across country, if near enough to search.
     if (!roadsOnly && !Number.isFinite(direct) && distance(start, end) <= LAND_SEARCH * 2) {
-      directVia = landPath(start, end, allowed);
+      directVia = landPath(start, end, allowed, bonus);
       if (directVia) direct = routeMinutes(start, directVia, bonus, allowed);
     }
     const graph = continentRoadGraph(), count = graph.nodes.length;
@@ -881,7 +916,7 @@
     // No straight way onto a road: across country to the nearest road of the start's region.
     if (!heap.length) {
       const nearest = graph.nodes.map((node, index) => index).filter(index => graph.regionOf[index] === startRegion).sort((p, q) => distance(start, graph.nodes[p]) - distance(start, graph.nodes[q]))[0];
-      const via = nearest != null && landPath(start, graph.nodes[nearest], allowed);
+      const via = nearest != null && landPath(start, graph.nodes[nearest], allowed, bonus);
       if (via) { costs[nearest] = routeMinutes(start, via, bonus, allowed); entranceVia.set(nearest, via.slice(0, -1)); push(costs[nearest], nearest); }
     }
     let best = direct, exit = -1;
@@ -906,7 +941,7 @@
     let finishVia = null;
     if (exit < 0 && !Number.isFinite(direct)) {
       const nearest = graph.nodes.map((node, index) => index).filter(index => done[index] && graph.regionOf[index] === endRegion).sort((p, q) => distance(end, graph.nodes[p]) - distance(end, graph.nodes[q]))[0];
-      const via = nearest != null && landPath(graph.nodes[nearest], end, allowed);
+      const via = nearest != null && landPath(graph.nodes[nearest], end, allowed, bonus);
       if (via) { exit = nearest; finishVia = via.slice(0, -1); }
     }
     if (exit < 0) return Number.isFinite(direct) ? [...(directVia || [{ ...end }])].map(p => ({ ...p })) : [];
@@ -1075,7 +1110,7 @@
     const keep = list => (Array.isArray(list) ? list : []).filter(id => !RETIRED_ARTIFACT_IDS.has(id));
     return { ...information, offers: { ...information.offers, item: keep(information.offers?.item) }, revealed: { ...information.revealed, item: keep(information.revealed?.item) } };
   }
-  const api = { CARAVAN, castleCity, caravanTrip, caravanTrips: caravanTrips_, CONTINENT_VERSION, SCALE, LOCAL_UNITS_PER_KM, REACH, castleCityIds, toContinent, fromContinent, passableAt, continentSpeedAt, continentTravelMinutes, continentRoadGraph, continentRoute, continentRouteDistance, continentRouteMinutes, placeAt, noteVisit, standing, get continent() { return continent; },
+  const api = { CARRIAGE, carriageGround, CARAVAN, castleCity, caravanTrip, caravanTrips: caravanTrips_, CONTINENT_VERSION, SCALE, LOCAL_UNITS_PER_KM, REACH, castleCityIds, toContinent, fromContinent, passableAt, continentSpeedAt, continentTravelMinutes, continentRoadGraph, continentRoute, continentRouteDistance, continentRouteMinutes, placeAt, noteVisit, standing, get continent() { return continent; },
     RETIRED_ARTIFACT_IDS, UNITS_PER_KM, MAP_SCALE, ENCOUNTER_MINUTES, RENAMED_ENEMIES, settlements, forests, regions, normalizeRegionId, getRegion, setActiveRegion, activeRegion, settlementsForRegion, nearestSettlement, setSettlementAccessResolver, canAccessSettlement, landmarkAt, siteAt, normalize, timeSpeeds, normalizeTimeSpeed, realTimeMinutes, day, time, point, distance, settlementAt, isLand, terrainAt, zoneAt, speedAt, travelMinutes, routeBetween, routeDistance, routeTravelMinutes, exitAt, exitById, step, lighting };
   root.WorldRules = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
