@@ -2299,6 +2299,190 @@ done again; P28's data the entries shown (the base's and the pack's as edited); 
 refused in one dialog; the imported entry selected and the status line's words; the browser for import from Documents
 unless a recent place is known; the dialogs' words and look; imported files as new entries of the session holding their
 bytes (`EditorEntry.ImportedFile`, a partial member in the session's import file).
+### Step 13: the preview (2026-11-07)
+
+**The data as edited (`Session/EditorSession.EditedData.cs`; the contract steps 10 and 13 share, written first so
+step 10 builds on it; the manager's decision Q4 of 2026-11-07: step 13 owns it, step 10 uses it and makes none of its
+own).** `Session.EditedData` is "the data as the game would see it after saving" (P38): a `VirtualFileSystem` of
+`Session.Base`'s mounts (the game's packs other than the open one, in the game's order) with `Mount.Custom(<the open
+pack's file>, entries)` on top, so a loader's error names the open pack and the entry as the saved pack's would.
+- **What the custom mount gives:** every entry of the open pack (`EntrySource.Pack`) at its path now (a renamed one at
+  its new path; a removed one not at all, so a game entry under it shows through, as in the game after saving), every
+  new entry that has built once, and every game entry changed in this session (the mod's own copy, P7). A record is
+  given as the binary form of its `EditorEntry.LastBuilt` value (current versions), so **an entry whose draft doesn't
+  build is given as the last value that did** (M11-12; a new entry that never built isn't there); an unchanged record
+  of the pack, and every file and unreadable entry, as the open pack stores it (`Session.PackFile`, at its
+  `SavedPath`: an older record version as stored; reading a damaged entry throws the pack's error); a file imported in
+  this session (step 12) as a file with its bytes (`EditorEntry.ImportedFile`). Game entries not changed come from
+  `Base`'s own mounts below.
+- **Kept up to date when read:** each read of the property takes the custom mount's paths and kinds again (so it is
+  current also inside a listener of the session's events that runs before any other, or inside a check during a
+  commit) and, when they differ from those mounted (an entry added, removed or renamed, a game entry becoming the mod's
+  copy or taken back), calls `VirtualFileSystem.Reload()` on it (its `Reloaded` listeners hear that); the bytes are read
+  from the entries whenever a path is read (a record's binary form cached per value built, a fresh array each read). A pack opened
+  since gives a new file system (the old one disposed with its open files), so **read `Session.EditedData` each time
+  the data is used**, don't keep it across changes; disposed with the session. On the editor's thread, as the session.
+- **Null** while no pack is open, or when the session's entries can't be mounted together (a record at `x` beside a
+  file `x.json`, which no pack holds either): `Session.EditedDataProblem` says why (the custom mount's check, in
+  `DataFileException`'s words naming the open pack and the entry); a read after the entries changed tries again (the
+  same entries aren't tried twice).
+
+**The manager's decisions on the step's questions (2026-11-07):**
+- *Q1, the wiring:* `EditorApplication.Load` gains, after the host is made, `_host.Audio = Audio;` (the document's
+  audibility, as the sandbox does) and the preview part's `Connect(Gpu, _host.Views, Audio)`, as step 8 wired
+  `Opener.Drop`; and `ApplicationOptions.Audio` is on. Nothing else of step 4's files changes.
+- *Q2, Stop for a sound effect:* the engine's `SoundEffects` has no stop (`Register`, `Play`, `PlayAt`; a voice once
+  started plays to its end; `ScheduledSound.Cancel` works only before its time). In M11 Stop stops the theme and
+  cancels effect plays not yet started; **a sounding effect isn't cut, it ends by itself.** The gap (a stop for sound
+  effects, e.g. `SoundEffects.StopAll` with the steal's 5 ms fade, by the audio's owner) is an open small task in
+  `Docs/Engine-Plan.md`.
+- *Q3, the editor's volume when nothing is remembered:* 50 %.
+- *Q4, the data as edited:* above.
+- *Q5, element roles' stand-ins:* the host is an element of the preview holding empty elements with the ids the UI
+  cues name, with no stylesheet in M11 (a game stylesheet added to the editor's document would restyle the editor:
+  the engine's stylesheets apply to the whole document). Later: scoped stylesheets or a second document drawn into the
+  pane (engine work).
+- *Q6, palette roles' stand-ins:* a preview palette per palette role, as P32's (a distinct colour per slot its cues
+  use), editable, remembered with the stand-ins.
+- *Confirmed choices:* selecting another entry stops the previous preview (a theme fades out, a cutscene is finished
+  and its stages removed), except that a theme keeps playing while an instrument, percussion voice or room is selected
+  (P31); Space is Play/Stop for sound only (P31); the particle loop's stream lasts 2 × the effect's longest life; the
+  particle and model previews share the turnable camera (drag, wheel, reset).
+
+**Files.** `Tools/Editor/Session/EditorSession.EditedData.cs` (the data as edited, above). `Tools/Editor/Preview/`:
+`PreviewPart.cs` (the pane: the selection, the devices, the editor's volume, the stand-ins store, Space, the preview's
+clock), `PreviewView.cs` (a preview's base: the kinds, the last valid state and its note, the controls, the 3D view's
+surface with the camera's drag and wheel), `SoundPreview.cs` (`EffectPreview`, `ThemePreview`, `MusicPartPreview`),
+`PreviewSound.cs` (the music library from the data as edited, the theme playing), `ParticlePreview.cs`,
+`ModelPreview.cs`, `CutscenePreview.cs`, `Viewport.cs` (the shared `View3D` and `SceneView`; `OrbitCamera`),
+`PreviewColours.cs` (the preview's palettes), `PreviewSettings.cs` (`VolumeFile`, `StandIn`, `StandInsFile`),
+`Preview.css`. `EditorApplication.cs`: `Audio = true` and the two lines of Q1. Tests in
+`Tests/Statventure.Tests/Editor/Preview/`: `PreviewTesting.cs` (`PreviewEditor`: the editor over a scratch mod with
+the preview connected to an offline sound and, for 3D, the tests' headless GPU), `EditedDataTests.cs`,
+`SoundPreviewTests.cs`, `ScenePreviewTests.cs` (particles, models, the camera), `CutscenePreviewTests.cs`,
+`PreviewSettingsTests.cs`, `PreviewApplicationTests.cs` (the program's wiring, a hidden window), `PreviewScreens.cs`
+(the fixtures `preview-effect`, `preview-model`, `preview-cutscene`); goldens `Golden/editor-preview-*@1.png` and
+`@1.65.png`. Changed in step 8's tests: `Opening/SettingsTests.cs` expects the sound on.
+
+**The pane** (`PreviewPart`, the preview pane's part). It shows the selected entry's preview, chosen by the entry's
+record type (M11-13): a sound effect (`audio.effect`), a theme (`audio.theme`), an instrument, percussion voice or room
+(no preview of its own), a particle effect, a model (a stage too), a cutscene; nothing for any other kind, a file or an
+unreadable entry (and nothing for the music's parts while no theme plays, so the screens of steps 4, 8 and 9 are
+unchanged). Selecting another entry takes the shown preview away (what it played stopped, its scene and hosts removed);
+a theme playing fades out then, unless the entry selected is an instrument, percussion voice or room (a theme playing
+takes their edits, P31) or that theme itself. **The program connects it** (`Connect(gpu, views, audio)`, Q1): the 3D view
+then exists (one `View3D` on the pane's colour `#292c28` and its `SceneView`, a frame client of the editor's document,
+shown in the preview's `surface`), and the sound takes the editor's volume. Without a GPU the controls show the same
+and the view stays empty; without sound nothing plays (the tests' editors).
+- **The last valid state (M11-12, P35):** a preview takes the entry's value when its draft builds, it has no problems
+  (`EditorEntry.Problems`: step 10's checks once merged) and the engine takes it (registering a patch, an emitter of the
+  effect, `ModelData.Validate`, `Sequence.Load` on the data as edited, a play); otherwise what it took last stays and a
+  note under the controls (ember) says why, in the engine's words: "This version doesn't build: the preview keeps the
+  last valid version.", "The sound effect isn't playable (…): …", "… : nothing to preview yet." before anything was
+  valid. An edit of the entry shown (a commit, undo, redo) or a change of the set of entries is taken at once.
+- **The editor's volume** (P31, Q3): `PreviewPart.Volume`, the sound's master volume (`AudioSystem.MasterVolume`, its
+  40 ms ramp), 0–100 % on a slider in the sound previews, remembered in `editor/volume.json` (`{ "version": 1, "volume":
+  0.5 }`, read tolerantly as step 8's files: a value that isn't a number from 0 to 1 is the default, 50 %); set, it is
+  written at once.
+- **Space** plays or stops the sound previewed (P31): an effect plays, a theme plays or stops; for the music's parts it
+  stops the theme playing. Only when the key reaches the document not cancelled, with no modifier and no dialog open,
+  and isn't its target's own (a field that takes text, a form control, a summary, a link, a tab, button or checkbox
+  role); the entry list's Space is passed on unless it typed ahead, so Space plays what was just chosen in the list.
+  Nothing for particles, models and cutscenes (P31 names sound only; the manager's word).
+
+**Sound effects** (`EffectPreview`, P31). Play, Stop, the editor's volume, and the play's own volume (a factor, 0–2,
+1 as made), pan (−1–1) and pitch (in semitones, −24–24, the factor 2^(s/12)), kept while the editor runs, not
+remembered. A valid value is registered under the entry's name (its kind's rule: `audio/effects/chime` is `chime`) in
+the editor's sound at once (P35), checked first with the patch's own rules (`RecordChecks.Check`, its declared limits
+among them), so the next Play is the new patch; Play is `Effects.Play(name, volume, pan, pitch)`, exactly as by hand (the
+tests' renders). **Stop doesn't cut a sounding effect** (Q2: the engine's effects have no stop); it stops a theme
+playing.
+
+**Themes** (`ThemePreview`, `PreviewSound`, P31). Play makes the music library from the data as edited
+(`MusicLibrary.Load(Session.EditedData)`), gives it to the sound (`AudioSystem.Reload`, step 3) and plays the theme
+(`Music.Play`); Stop fades it out (`Music.Stop`); a state says "Playing" or "Stopped". While it plays, every valid edit
+of the theme, or of an instrument, percussion voice, room or effect while one of those is selected, makes the library
+again and swaps it in: the theme restarts through music.js's fades when its music changed, plays on otherwise. One theme
+that doesn't pass refuses the whole library (step 5): the last library that loaded plays on, the note naming the entry
+and why ("The music doesn't load (… Unknown mode blues …)"). The library is made again only after the data changed.
+
+**Particle effects** (`ParticlePreview`, P32). An emitter of the effect at the origin (a node of the preview's at the
+scene's root), looping: a burst of 20 and 20 a second for 2 × the effect's longest life, started again (a new emitter)
+in the first frame after the one its clock reached its end (its last birth plus the longest life), seeded by the seed
+field (1 at first; Restart starts it again). The preview's palette: a distinct colour per slot the effect names (start,
+then end), from `PreviewColours.Distinct` (the ember first, then blue, green, yellow, purple, teal, pink, grey), each
+editable as `#rrggbb` beside a swatch, kept per slot name while the editor runs (P32: not in the pack). A valid edit
+starts the loop again with the new effect. The camera frames the effect's reach: the farthest its particles go in the
+longest life at the greatest speed under gravity and drag (the motion's closed form, each part at its greatest), half
+its greatest size and a sphere spawn's radius, at least a quarter metre.
+
+**Models** (`ModelPreview`, P33). The model in its materials' own colours (no palette), instanced on a node of the
+preview's (each top-level object its own, its cameras and sun on their nodes, as a stage is), checked first
+(`ModelData.Validate`); a stage's sun lights it when it has one. The clips (`AnimationClip.AllOf`) in a select ("(none)":
+the rest pose), Play/Pause, Loop (on at first), a time slider and the time; the preview's clock moves the clip on and
+applies it to the instance's nodes (`ModelInstance.Apply`: equal to applying it by hand). The turnable camera
+(`OrbitCamera`) framed on the model's rest pose (a ball round its meshes' points, a skinned mesh's at its bind pose):
+dragged with the main button under the pointer's capture (half a degree per CSS px), the wheel a fifth nearer or
+farther per notch (a hundredth to a hundred times the framing), Reset view; the near and far planes from what was
+framed. The camera select lists the stage's cameras by their nodes' names ("Free camera" first; disabled when it has
+none): looking through one makes it the scene's camera (drag and wheel then do nothing). A valid edit shows the new
+model at once (a new GPU model; the old one given back once the scene no longer draws it), the clip, its time, the
+camera chosen and the turned camera kept.
+
+**Cutscenes** (`CutscenePreview`, P34). The sequence as the game loads it from the data as edited (`Sequence.Load`:
+its stages, particle effects, sounds and theme checked against the same data), played on the shared scene as a
+**preview copy** (`sequence with` its roles and tracks; the record untouched), starting paused at its start: Play/Pause,
+a time slider (`Seek`: nothing fires; the state there in the next frame), the time "1.25 / 7.00 s". At its end it ends
+(its end state); Play then plays it again from its start, a seek plays it again from there, paused. **Stand-ins**
+(`editor/stand-ins.json`, `{ "version": 1, "cutscenes": { "<path>": { "<role>": { "model", "clips", "colours" } } } }`,
+per cutscene, read tolerantly, written whole at each choice; not in the mod): each actor role a figure (a select of the
+data's model entries; `Actor` on a node of the preview's at the origin, its animator on its own stack) and a clip library
+(a select of the model entries with clips, bound by bone names as S7-5; none chosen: the figure's own clips); each model
+role a model of the data (`ModelInstance`); each palette role the preview's palette (Q6): the slots its cues use (the
+start and end slots of the particle effects its particle cues name, then the material slots of what its palette tracks
+colour: a chosen model's, a stage's) in distinct colours, each editable and remembered; each element role an empty host
+over the view (`div.preview-host`) holding an empty element for each id its UI cues name, no stylesheet (Q5; the cues'
+texts show plainly over the view); each node role an empty node at the origin. **Left out of the copy, each listed with
+why** ("Left out: track 3 (animation track): no figure chosen for king"): an actor's or model's tracks (animation,
+palette) with no stand-in chosen (or one not a valid model in the data), an animation track whose strips name a clip
+its clip library hasn't, or with parameter cues (a stand-in has no state machine), a camera track cutting to a node
+role or a light track to one (an empty node carries neither), an audio track when the sound is off or the music
+doesn't load (the data's patches the cues name are registered first, over whatever the sound had under those names);
+roles left unbound go from the copy's roles. The play is made beside the one before, which is ended and taken away
+only once the new one plays (so a version `Play` refuses keeps the last); its stages instanced by the player at the
+scene's root, the stand-ins under the preview's node. **A valid edit, or a stand-in chosen, plays the new copy from the
+same time, paused as it was** (P35). Taken away (another entry selected): the copy finished, its stages, stand-ins and
+hosts removed, the music it started stopped.
+
+**The screens against Chromium** (P36, M11-20; the preview's 3D view left out: the fixture writer puts an empty box of
+the `surface`'s size in its place): `preview-effect` (1000 × 640: a sound effect's controls), `preview-model` (1000 ×
+640: the dolly stage's camera, clip, loop and time controls), `preview-cutscene` (1000 × 800: a small cutscene on the
+dolly with a role of every kind, a figure chosen, a palette colour edited, a model role not chosen and its track left
+out; its form's roles and tracks folded, their selects being step 9's known difference). Captured with
+`claude-work/m11/step13-capture.sh` (step 8's: make-editor-references.sh's harness inside a headless cage, the output
+2400 × 2400, one fixture per Chromium run at 1.65). The preview's selects take their line's room from no width of their
+own (`flex: 1 1 0`): a select's width from its options is wider in the engine than in Chromium (M5's known difference,
+14 px on the cutscene's), which put the first capture over the limit.
+
+**Choices the design left to the step** (made here; the manager's word on those marked so, 2026-11-07): the names above;
+the pane's layout (a 200 px high view, names 96 px, sliders with their value after them); the play's volume 0–2 and pitch
+in semitones ±24; the theme's state line; the music part's line ("Playing alder-vale, which takes this entry's changes");
+the stand-ins' rows and the left-out list's words; the cutscene starting paused; a model's Loop on at first and "Free
+camera" first; the orbit camera's turn, zoom, limits and planes; the particle seed starting at 1; the distinct colours'
+list; the files' names `volume.json` and `stand-ins.json` (one per concern, step 8's convention); model roles bound to a
+model of the data (P34 names actor, palette, element and node roles; a model role takes a model as an actor takes a
+figure); the confirmed choices above.
+
+**Found** (reported to the manager): the engine's sound effects have no stop (Q2; a small task in Engine-Plan.md). The
+first `Session.EditedData` relied on the session's events to know it was stale, and a listener subscribed before it
+read a game entry's old value on the edit that made the mod's copy: it now takes its paths on every read.
+
+**Results.** The screens against Chromium (pixels past 12 levels; the limit 0.2 %), GPU: `preview-effect` 448 and 1,556 pixels (0.070 % at 1×, 0.089 % at 1.65), `preview-model` 27 and 2,190 (0.004 %, 0.126 %), `preview-cutscene` 81 and 361 (0.010 %, 0.017 %); what is left is the form's (its selects, step 9's known difference) and the range thumbs' antialiasing. Silence: every sound test renders an audio system with no device and no thread (`new AudioSystem(new AudioGraph(rate, 2), library)`, rendered quantum by quantum by the test); the two program tests open the default device and play nothing on it. Mutations: 183 in the first run (`~/.cache/stat-fick-build/claude-work/m11/step13-mutations-{1,2,3,4,window}.json`, made by `make-step13-mutations.py` beside them; the program's wiring inside a headless cage): 154 killed, 24 survived, 5 didn't build. Of the survivors, 17 were gaps closed by new tests (an old emitter left on its node at Restart; a clip chosen keeping the time, played again from its end, looping from 0 instead of on, no rest pose without one; the note never hidden again; the drag without the pointer's capture and never ending; a slider's value not written; a library that doesn't load dropping the last; the framing on a skinned mesh's node and on the box's corner; a cutscene's view not ended when it goes, a refused play keeping its stand-ins; an unchanged record of an older version written again in the current one; Space with a dialog open, and Space the list typed ahead), 4 were redundant code, removed (the loop's own end check: the scene takes a done emitter off its node in the frame its clock got there; the sliders' change listeners: a range's change always follows its input; the cutscene registering the data's patches again: the swap registers those new or changed, and the effect preview only what the data holds; a `[hidden]` rule the UA's already holds), and 3 can't change what the checks see (two assignments swapped with nothing between them; the note's colour, in no screen: the fixtures show valid entries; the host's sound, which only gives the document its audibility, seen only with sound on a device). The rerun (`step13-mutations-rerun.json`, made by `make-step13-rerun.py`: the 17, the 5 rewritten to build, and 5 for the imported files the data as edited serves and the loop's restart as it is now) killed all 27: the list as it stands, 183, has 180 killed and 3 accounted for. Nothing written to the player's real folders.
+
+**Not checked here** (by hand, in a real terminal: nothing may be heard or shown from a session): the preview in the
+program's window (`editor.sh`: a model turned with the mouse and the wheel, a cutscene played); the sound by ear (an
+effect at its play's volume, pan and pitch; a theme, its restart through the fades after an edit; the editor's volume
+and its 40 ms ramp); Windows.
 
 ## Status
 
@@ -2512,3 +2696,20 @@ step 8's drop test and application test see step 12's part take the queue. The f
 Wayland compositor: 3311 tests (`main`'s 3250 at `ac2306e` and 61 new), none skipped. Mutations: 221 (`~/.cache/stat-fick-build/claude-work/m11/step12-mutations.json`, made by `step12/make-mutations.py`): 195 killed; of the 26 survivors 17 were gaps closed by new tests, 3 redundant lines removed, 2 killed in fact (the test run crashed on a stack overflow, which `mutate.py` reads as passing: checked by hand), 1 a cache, 3 looks under the screens' limits; the reruns (17, then 1) killed all; nothing written to the player's real folders. Not checked: a real drop and the dialogs in a real window (by
 hand), Windows (`ImportSources`' default lookup on a file system that ignores case: "Windows check", item 8b, can now be
 done in the editor).
+**Step 13, the preview (editor): done (2026-11-07, on the worker branch `m11-step13`, rebased on `fa56257`).** ("How it
+works", step 13.) The manager's decisions of 2026-11-07 on the step's six questions recorded there (the program's
+wiring, Stop and a sounding effect, the editor's volume at 50 %, the data as edited owned here, element roles without a
+stylesheet, a preview palette per palette role). `Session.EditedData`, the data as the game would see it after saving
+(P38), written first for step 10 too. The preview pane: sound effects (Play, Stop, Space, the editor's volume, the play's
+volume, pan and pitch; each valid edit registered at once) and themes (the library from the data as edited swapped in,
+the theme following valid edits of itself and of its music while it plays, the last library that loaded kept), particle
+effects looping at the origin in the preview's palette with a seed and Restart, models with their clips, the turnable
+camera and a stage's cameras, cutscenes played, paused and sought with stand-ins chosen per cutscene and remembered, the
+tracks that can't be bound left out and listed; an invalid edit keeps the last valid state, saying why (M11-12, P35).
+`editor/volume.json` and `editor/stand-ins.json`. The screens against Chromium at both scales (the preview's 3D view left
+out): `preview-effect` 448 and 1,556 pixels (0.070 % at 1×, 0.089 % at 1.65), `preview-model` 27 and 2,190 (0.004 %, 0.126 %), `preview-cutscene` 81 and 361 (0.010 %, 0.017 %) (pixels past 12
+levels, GPU; the limit 0.2 %). 60 new tests (`Tests/Statventure.Tests/Editor/Preview/`) and the screens' six cases;
+step 8's options test expects the sound on. The full suite passes on the GPU and on lavapipe, inside a headless Wayland compositor (`claude-work/m11/step13-full-run.sh`): 3377 tests (`main`'s 3311 at `fa56257` and 66 new), none skipped (the GPU 1 min 48 s, lavapipe 1 min 31 s; the screens on lavapipe within a few pixels of the GPU's: `preview-effect` 0.071 % and 0.093 %, `preview-model` 0.004 % and 0.126 %, `preview-cutscene` 0.010 % and 0.017 %); the player's real game folder stayed missing and the Documents folder's top level unchanged (also on `ac2306e` before the rebase, 3310 tests). Mutations: 183 in the first run (`~/.cache/stat-fick-build/claude-work/m11/step13-mutations-{1,2,3,4,window}.json`, made by `make-step13-mutations.py` beside them; the program's wiring inside a headless cage): 154 killed, 24 survived, 5 didn't build. Of the survivors, 17 were gaps closed by new tests (an old emitter left on its node at Restart; a clip chosen keeping the time, played again from its end, looping from 0 instead of on, no rest pose without one; the note never hidden again; the drag without the pointer's capture and never ending; a slider's value not written; a library that doesn't load dropping the last; the framing on a skinned mesh's node and on the box's corner; a cutscene's view not ended when it goes, a refused play keeping its stand-ins; an unchanged record of an older version written again in the current one; Space with a dialog open, and Space the list typed ahead), 4 were redundant code, removed (the loop's own end check: the scene takes a done emitter off its node in the frame its clock got there; the sliders' change listeners: a range's change always follows its input; the cutscene registering the data's patches again: the swap registers those new or changed, and the effect preview only what the data holds; a `[hidden]` rule the UA's already holds), and 3 can't change what the checks see (two assignments swapped with nothing between them; the note's colour, in no screen: the fixtures show valid entries; the host's sound, which only gives the document its audibility, seen only with sound on a device). The rerun (`step13-mutations-rerun.json`, made by `make-step13-rerun.py`: the 17, the 5 rewritten to build, and 5 for the imported files the data as edited serves and the loop's restart as it is now) killed all 27: the list as it stands, 183, has 180 killed and 3 accounted for. Nothing written to the player's real folders. Renders for the user:
+`claude-work/m11/step13/render-{model,particles,cutscene}@{1,1.65}.png`. Found: the engine's sound effects have no stop
+(a small task, Engine-Plan.md). Not checked: the preview in a real window and its sound by ear (to check by hand,
+Engine-Plan.md, "By-hand checks", (c)); Windows.

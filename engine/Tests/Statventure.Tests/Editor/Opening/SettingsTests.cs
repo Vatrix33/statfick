@@ -159,7 +159,8 @@ public class SettingsTests
         var options = EditorApplication.OptionsFor(new ShellSettings(1, 1400, 900), "/players/one");
         Assert.Equal((EditorView.Name, 1400, 900, 800, 500, true, true), (options.Window.Title, options.Window.Width, options.Window.Height,
             options.Window.MinWidth, options.Window.MinHeight, options.Window.Resizable, options.Window.Visible));
-        Assert.Equal(("/players/one", true, false), (options.GameFolder, options.GamePacksOnly, options.Audio));
+        // The sound on for the preview (step 13).
+        Assert.Equal(("/players/one", true, true), (options.GameFolder, options.GamePacksOnly, options.Audio));
         var none = EditorApplication.OptionsFor(new ShellSettings(), null, visible: false);
         Assert.Equal((1280, 800, false, null), (none.Window.Width, none.Window.Height, none.Window.Visible, none.GameFolder));
         Assert.True(none.GamePacksOnly);

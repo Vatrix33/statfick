@@ -1,5 +1,6 @@
 using Statventure.Core;
 using Statventure.Editor.Browser;
+using Statventure.Editor.Preview;
 using Statventure.Editor.Session;
 using Statventure.Editor.Settings;
 using Statventure.Editor.Shell;
@@ -48,7 +49,7 @@ public sealed class EditorApplication : Application
 
     /// <summary>
     /// The application's options: the window (step 4's: "Statventure Editor", 1280 × 800 unless <paramref name="shell"/>
-    /// remembers a size, at least 800 × 500), no sound until the preview (step 13), the player's folder, and the game's
+    /// remembers a size, at least 800 × 500), the sound (the preview's, step 13), the player's folder, and the game's
     /// packs only for its data (P6).
     /// </summary>
     internal static ApplicationOptions OptionsFor(ShellSettings shell, string? playerFolder, bool visible = true) => new()
@@ -62,8 +63,8 @@ public sealed class EditorApplication : Application
             MinHeight = ShellSettings.MinHeight,
             Visible = visible,
         },
-        // No sound until the preview (step 13) needs it.
-        Audio = false,
+        // The preview's sound (step 13).
+        Audio = true,
         GameFolder = playerFolder,
         GamePacksOnly = true,
     };
@@ -86,6 +87,8 @@ public sealed class EditorApplication : Application
         _session = new EditorSession(_game) { PlayerFolder = Storage.Folder };
         _view = new EditorView(_session, _uiData);
         _host = new UiHost(Window, Gpu, _view.Document);
+        _host.Audio = Audio;
+        _view.Part<PreviewPart>().Connect(Gpu, _host.Views, Audio);
         _view.ApplyZoom = zoom => _host.PageZoom = zoom;
         _view.ZoomLevel = _shell.ZoomLevel;
         _view.TitleChanged += () => Window.Title = _view.Title;
