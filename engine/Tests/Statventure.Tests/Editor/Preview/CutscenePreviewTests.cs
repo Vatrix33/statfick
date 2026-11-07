@@ -259,9 +259,9 @@ public class CutscenePreviewTests(GpuFixture gpu)
         p.Break(CutscenePath, "Name");
         Assert.Equal("This version doesn't build: the preview keeps the last valid version.", p.Note);
         Assert.Same(playing, preview.Player);
-        // Built, but the game's loader refuses it.
+        // Built, but with a problem (its own check: its tracks name a stage it no longer has).
         p.Commit(CutscenePath, sequence with { Stages = ["models/stages/nowhere"] });
-        Assert.StartsWith(p.Mod + ": entry 'world/cutscenes/jiruan': not a valid sequence: ", p.Note);
+        Assert.StartsWith("This version has problems (the sequence jiruan", p.Note);
         Assert.EndsWith(": the preview keeps the last valid version.", p.Note);
         Assert.Same(playing, preview.Player);
         Assert.Equal(7.5, preview.Sequence!.Duration);

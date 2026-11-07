@@ -1,0 +1,27 @@
+/* References (M11-11; Docs/Editor.md, "How it works", step 10): the reference field's list under a field naming
+   another entry (in its row's flow under the row's line, at the field's left and as wide: margin and width set by the
+   part), and the referrers in the rename and remove dialogs (P19). Colours from the shell; the problem red from the
+   form. */
+.form-rows .reference-list {
+  box-sizing: border-box;
+  max-height: 180px;
+  margin: 2px 0 4px;
+  padding: 2px 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--paper);
+  line-height: 22px;
+  white-space: nowrap;
+}
+.form-rows .reference-option { padding: 0 8px; color: var(--ink); }
+.form-rows .reference-option.game { color: var(--muted); }
+.form-rows .reference-option.active { color: var(--ink); background: var(--line); }
+.form-rows .reference-flag { padding: 0 8px; color: var(--problem); }
+
+.dialog .referrers p { margin: 8px 0 4px; }
+.dialog .referrer-list { margin: 0 0 8px; padding-left: 18px; color: var(--muted); }
+.dialog .referrer-list .more { list-style: none; }
+.dialog .referrer-update { display: flex; align-items: center; gap: 6px; }
+.dialog .referrer-update input { margin: 0; accent-color: var(--ember); }

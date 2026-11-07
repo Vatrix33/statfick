@@ -78,7 +78,7 @@ public class SoundPreviewTests
         Play();
         // Built, but not playable (the engine's own check, which registering holds).
         p.Commit(ChimePath, Chime with { Layers = [Chime.Layers[0] with { Length = -1 }] });
-        Assert.StartsWith("The sound effect isn't playable (", p.Note);
+        Assert.StartsWith("This version has problems (has a layer 0 that needs a length above 0", p.Note);
         Assert.EndsWith("): the preview keeps the last valid version.", p.Note);
         Play();
         p.Commit(ChimePath, Tone(440));
@@ -135,7 +135,7 @@ public class SoundPreviewTests
     {
         using var p = new PreviewEditor(w => w.AddRecord(ChimePath, Chime with { Layers = [Chime.Layers[0] with { Length = 0 }] }));
         p.Select(ChimePath);
-        Assert.StartsWith("The sound effect isn't playable (", p.Note);
+        Assert.StartsWith("This version has problems (has a layer 0 that needs a length above 0", p.Note);
         Assert.EndsWith("): nothing to preview yet.", p.Note);
         p.Editor.Click(p.Control("play"));
         Assert.All(Render(p.Audio!, 30), s => Assert.Equal(0, s));
@@ -266,9 +266,9 @@ public class SoundPreviewTests
         Assert.Equal("This version doesn't build: the preview keeps the last valid version.", p.Note);
         Assert.Equal(Render(byHand, 60), Render(p.Audio, 60));
 
-        // Built, but the music doesn't load (the theme's own check refuses the library): the last library plays on.
+        // Built, but with a problem (the theme's own check, which also refuses the library): the last library plays on.
         p.Commit(ThemePath, theme with { Mode = "blues" });
-        Assert.StartsWith("The music doesn't load (", p.Note);
+        Assert.StartsWith("This version has problems (Unknown mode blues", p.Note);
         Assert.Contains("blues", p.Note);
         Assert.EndsWith("): the preview keeps the last valid version.", p.Note);
         Assert.Equal(Render(byHand, 60), Render(p.Audio, 60));

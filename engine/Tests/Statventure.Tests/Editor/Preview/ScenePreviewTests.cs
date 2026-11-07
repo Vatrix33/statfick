@@ -130,7 +130,8 @@ public class ScenePreviewTests(GpuFixture gpu)
         Assert.Equal("This version doesn't build: the preview keeps the last valid version.", p.Note);
         Assert.Equal((longer, 2), (preview.Effect, preview.Starts));
         p.Commit(SparksPath, Sparks with { Opacity = 2 });
-        Assert.StartsWith("The particle effect isn't valid (its opacity (2) must be from 0 to 1", p.Note);
+        // Its own check's problem (step 10's checks in the editor), in the kind's words.
+        Assert.StartsWith("This version has problems (its opacity (2) must be from 0 to 1", p.Note);
         var note = p.Document.QuerySelector(".preview-part .preview-note")!;
         Assert.False(note.HasAttribute("hidden"));
         Assert.Equal((longer, 2), (preview.Effect, preview.Starts));
@@ -425,7 +426,7 @@ public class ScenePreviewTests(GpuFixture gpu)
         Assert.Same(shown, preview.Instance);
         var broken = Copy(recoloured, roots: [99]);
         p.Commit(HierarchyPath, broken);
-        Assert.StartsWith("The model isn't valid (", p.Note);
+        Assert.StartsWith("This version has problems (the root 99 ", p.Note);
         Assert.Same(shown, preview.Instance);
     }
 

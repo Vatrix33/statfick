@@ -369,7 +369,9 @@ M9 left for the port's file picker (Q19).
   <names>`); and cage makes a window larger than its 1280 × 720 output that size, cutting the capture, so at 1× give the
   headless output a large mode first (`wlr-randr --output HEADLESS-1 --custom-mode 2400x2400`;
   `claude-work/m11/step9-capture.sh <names>`), and at 1.65 leave it as it is (with the large mode even a first fixture
-  stalled). Both ways give the shell's committed goldens pixel for pixel. A fixture far taller than a screen (2,460 px)
+  stalled). Both ways give the shell's committed goldens pixel for pixel. (Steps 8 and 10 captured at 1.65 with the large
+  mode too, one fixture per run, without a stall; a fixture wider than 1280 / 1.65 CSS px needs it, or the window is
+  made the output's size and the capture cut: `claude-work/m11/step10-capture.sh 1.65 2400x2400 <name>`.) A fixture far taller than a screen (2,460 px)
   never captured at 1.65: split such a screen into parts (step 9's form is two fixtures, the second scrolled).
   End a wrapper's own cage when its command ends (a cage outliving its child held the shared lock once).
 - **Behaviour through data and UI events:** tests drive the editor's document with the UI's input (pointer,
@@ -2108,6 +2110,183 @@ groups open, nested rows indented with a line); the dialogs' words ("That can't 
   width to find (the engine's own UI, not this step's): an open item in `Docs/Engine-Plan.md`, "Small tasks left from
   earlier milestones", and in M5's known differences.
 
+### Step 10: checks and references in the editor (2026-11-07)
+
+**Files.** `Tools/Editor/Checks/` (`EntryChecks.cs`: the checks, no DOM; `ChecksPart.cs`: the pause on the document's
+clock), `Tools/Editor/Session/EditorSession.Checks.cs` (`Session.Checks`, `Session.EntriesWithProblems`),
+`Tools/Editor/References/` (`EntryReferences.cs`: `SessionReferences`, `ReferenceAt`, `EntryReferences`;
+`ReferenceListPart.cs`: the reference field's list; `ReferrersPart.cs`: the referrers in the rename and remove dialogs;
+`References.css`). It builds on step 13's `Session.EditedData` (the manager's decision of 2026-11-07: step 13 owns the
+data as edited, this step reads it and makes none of its own). Tests in `Tests/Statventure.Tests/Editor/Checks/`:
+`CheckTesting.cs` (mods in the run's scratch folder opened over the repo's packs, the pause passed on the document's
+clock), `EntryChecksTests.cs`, `ChecksViewTests.cs`, `EntryReferencesTests.cs`, `ReferenceListTests.cs`,
+`ReferrersTests.cs`, `CheckVariants.cs` (two record types in the variants' namespace, which the layout guard leaves
+out: a kind whose check throws, references in a map with enum keys), `ChecksScreens.cs` (the fixtures `checks-problems`
+and `references-list`); goldens `Golden/editor-checks-problems@1.png` and `@1.65.png`, `editor-references-list@…`.
+
+**The manager's decisions (2026-11-07), at this step's questions:**
+- *Q-A, what a removal's update is (P19, M11-11):* (a) the remove dialog lists the referrers and offers "Point them
+  at:" a select of the removed entry's kind's other entries (the game's and the pack's, each named by the first
+  referrer's mark), "Leave them" first and the default; left ones show their problems once the checks across entries
+  run (P18). A rename: the list and "Update them to the new name", ticked by default. (Not taking the references out;
+  not listing only.)
+- *Q-B, what shows between a commit and the pause (P17):* (a) after a commit the entry's own problems are fresh at
+  once, and what the last run found across entries stays shown until the next run replaces it (stale for at most the
+  pause; nothing flickers). (Not dropping them until the pause.)
+- *Confirmed with them:* the checks across entries go over every record entry, the game's too (a mod's broken
+  instrument breaks a game theme, which the game would refuse: M11-12), the cost measured below; "the first problem per
+  field" is per path; the music's load-time rules outside the kinds' checks as below; the reference list attached to
+  the form's documented markup (a row's `data-path`, its text input) without changing the form, open while the field
+  has the focus.
+
+**The checks** (`EntryChecks`, `Session.Checks`; M11-12, P16, P17). Started the first time `Session.Checks` is asked
+for (the view's `ChecksPart` asks when it is attached; a session without a view when its user asks), through step 9's
+`Session.AddCheck`. Each record entry that builds shows:
+- *its own problems*, worked out at every change of its draft (each commit, undo and redo, at once; P17's "the entry's
+  own check per commit") and again at once when it is renamed: `RecordChecks.Check(value)` with no data and no lookup
+  (the kind's checks, its marks' limits and choices) and the rule the music's loading keeps that only the entry's path
+  tells: a theme in `audio/themes` must hold the id its path stores, at `$.id`, in `MusicLibrary.Load`'s words ("the
+  theme's id is 'x', but its path holds 'y' (a theme's path is made from its id)"; step 5 left it to the editor).
+  Kept per entry while its value and path are the same (a commit of a theme: 3.4 ms the first time, 0.3 ms after,
+  Debug);
+- *what the checks across entries add* (`EntryChecks.Run`), a pause after the last change (`EntryChecks.Pause`,
+  200 ms, P17): every record entry that builds, the game's too, checked with `RecordChecks.Check(value,
+  Session.EditedData, new SessionReferences(session))` (its kind's checks against the data as the game would see it
+  after saving, unsaved work included, and its references resolved), and what that adds to its own problems (the same
+  path and words are the same problem) kept for it; then, while no record entry under `audio/` has a problem, the
+  game's own music loading, `MusicLibrary.Load(Session.EditedData)`, whose first problem goes at the root of the record
+  entry it names, in its words (what only it refuses: a music folder holding another kind, a name the music's rule
+  can't store, music without a theme order), or, when no record entry can show it (a file there), is
+  `Checks.DataProblem`, as is `Session.EditedDataProblem` when the entries can't be mounted together. Each entry whose
+  problems change is reported changed (`Session.Recheck`: the list's mark and the form follow); `Checks.Ran` after.
+- *shown:* its own problems, then what the last run added (the manager's Q-B), **only the first at each path** (the
+  manager's decision of 2026-11-06: `EntryChecks.FirstPerPath`; RecordChecks lists a kind's own checks first, so the
+  first is the kind's own, in the words the game logs: "Unknown mode blues", not the choice's "\"blues\" isn't one of
+  the choices: …"; the sequence's "the sequence intro, track 0 (audio): cue 0 plays the effect boom, which isn't in the
+  game's data (…)", not the reference's "no sound effect \"boom\" (…)"). A draft that doesn't build shows its build
+  problems only (step 9).
+- *A check that throws* (a port kind's check with a bug, or one reading an entry the data can't give) is the entry's
+  problem at its root ("its check failed: <message>") rather than the end of the checks. An entry whose draft doesn't
+  build has no value and isn't checked; once it builds, its own problems show at once and nothing of an earlier run.
+- *Where they show* is step 9's and step 8's: under the field's row (P16; a path without a row of its own under its
+  nearest row), the whole entry's at the form's top, the list's `!` mark with the count. Nothing of the form or the list
+  changed.
+- *When:* `Checks.Pending` (something changed since the last run: a commit, undo, redo, a recheck, an entry added,
+  removed, renamed, reverted, a pack opened), `Checks.Due` (the view's `ChecksPart` starts the pause again on each, a
+  timer of the document's loop), `Checks.RunPending()` (runs only when due; the timer calls it, saving calls it first).
+- *The cost* (Debug, this PC; `claude-work/m11/step10/measure.txt`): a run over a mod opened over the repo's packs
+  (126 entries, the game's 55 themes checked against their instruments and the music loaded once) took 53 ms the first
+  time and 23–28 ms after; with the dev setup's `audio.pak` itself open, 39 ms, then 23–32 ms.
+
+**What saving reads (step 11):** `Session.Checks.RunPending()` first, then `Session.EntriesWithProblems` (the entries
+shown with a problem, in path order; each one's first problem is `Problems[0]`; removed entries aren't among them) and
+`Session.Checks.DataProblem` (a problem no entry can show; saving refuses while either has something). The preview
+(step 13) reads an entry's `Builds` and `Problems` to tell "valid" (M11-12, P35).
+
+**References** (`EntryReferences`; M11-11). `SessionReferences` is the lookup the checks resolve names against: the kind
+(`RecordShape.Name`) of the entry the session shows at a path, the open pack's over the game's (step 1's note: the file
+system can't tell a record entry's kind without loading it); null for a file, an unreadable entry or nothing there.
+`EntryReferences.In(draft)` finds every name a draft holds that a mark points at (a string, through nullables, lists'
+elements, maps' values, a map's keys for a `Keys` mark, in nested records and unions' subtypes; each mark's condition
+read from the draft, so a draft that doesn't build is read too; bulk values aren't walked), each a `ReferenceAt`: its
+path, the mark, the name, the entry path it names (`Target`, null when the rule can't store it) and for a key the map's
+path. `At(draft, path, key)` is the one at a form row's path (a required name not given yet too, its name empty).
+`To(session, entry)` gives the entries naming an entry (P19: the open pack's own and new entries and the mod's copies of
+game entries, `IsThePacks`; a mark of another kind pointing at the same path isn't one). `PointAt(draft, references,
+path)` points names at another entry (a string written again, a key replaced in its place, the map's order kept; a name
+whose mark's rule can't give the path is left and counted). `Candidates(session, mark)` are the entries a mark can name:
+the session's records of its kind its rule names, by name (ordinal).
+
+**The reference field's list** (`ReferenceListPart`, a part without a pane; M11-11). While a form field naming another
+entry has the focus (a text input in the form's rows whose row's `data-path` a reference mark holds for, by the draft's
+condition; a map's key in the row's name too; not another control of the row, such as a nullable name's "set" box), a
+list opens in the row under its line (before the row's problem lines), at the
+field's left and as wide (`margin-left` and `width` set from the field's box; the rows below make room): the
+`Candidates` by name, the game's own dimmed (`--muted`, a mod's copy not), each with its path as tooltip; every name when
+it opens, then, once something is typed, those holding the text (ignoring case); its last line in the problem red flags
+a text that names no entry ("\"c\" names no room") or a kind with none ("No creature in the data"). Down and Up move
+an active option (the line colour behind it; clamped at the ends; scrolled as little as shows it), Enter
+picks it (the name put in the field and the field's own change event sent, so the form commits it: one step of the
+history, at once, so the field's own Enter and change after it find the value given), Enter with none moved to commits
+the text typed and closes it, a click picks (a press in the list keeps the focus in the field), Escape closes it,
+typing or Down opens it again (Down and Up, and Down opening it, don't move the field's caret; with a modifier they are
+the field's), leaving the field (for anywhere) or selecting another entry closes it; after a change of the entries it
+follows its field in a task after the change's listeners (parts without a pane are attached before the form, so they
+hear the session first): filled again, or closed when the form made its row again. `role=listbox`, the field's
+`aria-expanded` and `aria-autocomplete`.
+
+**Referrers** (`ReferrersPart`, through step 9's `EntryActions.Asking`; P19, Q-A). A rename's and a removal's dialog
+gets, when entries of the pack name the one renamed or removed (a removed entry isn't its own referrer), "N entries
+refer to it:" and their paths (the first `ReferrersPart.Listed`, 8, then "and N more"); a rename "Update them to the new
+name" (ticked), a removal "Point them at:" (the select above, "Leave them" chosen). Confirmed, after the session's
+rename or removal, each referrer's names are pointed at the new path in one commit of its own history (undone per entry,
+M11-7), and the status line says "Pointed 3 entries that referred to parts/arm at parts/limb" (with "; 1 name can't name
+it and stay as they were" when a mark's rule can't give the new path, e.g. renamed out of its folder). A duplicate's
+dialog gets nothing.
+
+**Screens against Chromium (P36):** `checks-problems` (1280 × 665: a mod's copy of the game's `alder-vale` with its id,
+mode and room wrong after a run: the id's and the mode's own problems, one of the mode's two, the room's found across
+entries, the names red, the list's `↑ !`) and `references-list` (1280 × 665: the room's field focused without a press,
+"c" typed, Down pressed: three rooms, the first active, the game's dimmed, and the flag). Pixels past 12 levels (the
+limit 0.2 %), the GPU: `checks-problems` 0.050 % at 1× and 0.187 % at 1.65, `references-list` 0.046 % and 0.152 % (rebased on step 13; before it 0.047 % and 0.185 %, 0.042 % and 0.150 %); the
+rest the known select width (step 9's "Found"), the status line below (and at 1.65 the caret Chromium draws in the
+focused field). Captured with step 8's capture script's way (`claude-work/m11/step10-capture.sh`: a headless cage, one
+fixture per run): **a fixture wider than the cage's 1280 × 720 output needs the large output mode at 1.65 too**
+(`2400x2400`; without it the window was made the output's size and the capture cut, 1281 × 722); the 1.65 runs didn't
+stall with it here.
+
+**Found** (reported to the manager; the engine not changed; open, no go yet, in `Docs/Engine-Plan.md`, "Small tasks left from earlier milestones", and M5's known differences; the manager's word of 2026-11-07: the list stays in the flow, the overlay coming back only if the engine composites such boxes as Chromium does):
+- *At 1.65 the status line's text is grayscale in the engine where Chromium's is LCD while the form pane is a tall
+  scroller* (1,823 pixels of `checks-problems@1.65` while its pack was named `broken-vale.pak`, 1,440 of
+  `references-list@1.65`; step 9's `form-controls@1.65` has 815 of it already; none at 1×, none while the form pane
+  doesn't scroll). The status line has no background of its own. Why the engine draws it grayscale there isn't looked
+  into (the painter's).
+  Not the status line's top on a fractional device pixel: the fixtures' height, 665, puts it on a whole one at 1.65 and
+  the difference stayed. The pack's short name (fewer of the status line's pixels) keeps both screens within the limit.
+- *A positioned box with a z-index inside the form pane's scroller paints from the root's stacking context; Chromium
+  composites it apart (it must scroll with the scroller but paint after it), its text grayscale; the engine paints it in
+  the scroller with LCD text.* The list was first an overlay (`position: absolute; z-index: 2`): `references-list@1`
+  0.21 % and `@1.65` 0.26 %, the list's text. A stacking context on the form's rows to keep it inside (`isolation:
+  isolate`, or `position: relative; z-index: 0`) turned the whole form's text grayscale in the engine at 1.65
+  (`form-controls@1.65` 1.12 %; Chromium's look with it not captured). So the list is in the rows' flow (the step's
+  choice, recorded above), no positioning, which both draw alike.
+
+**With step 13 (rebased on its merge, `034b83c`, 2026-11-08).** `Session.EditedData` is step 13's final one (its paths
+taken again on every read, imported files' bytes served); this step's own copy of it was dropped. The preview takes an
+entry only when it builds and has no problem (P35, step 13's `PreviewView.Take`), so with the checks running an invalid
+entry's note is now its first problem, in the kind's own words ("This version has problems (Unknown mode blues): the
+preview keeps the last valid version."), where step 13's tests, written before the checks existed, met the loaders'
+words further on ("The music doesn't load (…)", "The sound effect isn't playable (…)", "The particle effect isn't valid
+(…)", "The model isn't valid (…)", the sequence's load error): six of their expectations take the problem's words now
+(`Tests/.../Editor/Preview/SoundPreviewTests.cs`, `ScenePreviewTests.cs`, `CutscenePreviewTests.cs`), nothing of the
+preview's code changed. The two screens were captured again, the preview pane showing the theme's sound controls and that
+note: `checks-problems` 0.050 % at 1× and 0.187 % at 1.65, `references-list` 0.046 % and 0.152 % (before, 0.047 % and
+0.185 %, 0.042 % and 0.150 %); the other fixtures, step 12's and 13's among them, as they were.
+
+**Mutations** (`~/.cache/stat-fick-build/claude-work/m11/step10-mutations.json`, made by `make-step10-mutations.py`
+beside it, run in four chunks; then `step10-mutations-rerun.json`, made by `make-step10-rerun.py`): 176 in the first
+run, every rule of the checks, the pause, the references, the list, the referrers and the list's look broken once: 146
+killed, 4 didn't build (rewritten), 26 survived. Of those, 11 were gaps closed by tests (an entry made to build after a
+run, the music's loading held back by a music entry's problem found across entries and not by another entry's, leaving
+the field for outside the form, a nullable name's "set" box, the list before the row's problem lines, a mod's copy not
+dimmed, one referrer's words, the number listed, an entry of another kind a mark could name not offered, "Leave them"
+pointing nothing anywhere); 7 were redundant code, removed (a second test of the data's problem, the run's empty
+findings dropped, the list's tests of a disabled field, of the form's rows and of the key's target, which focus and the
+row's path already make, and Enter's default and propagation, which the pick's commit at once makes harmless); 2 are
+equivalent (each entry's own check kept while its value and path are the same, a cache; the candidates sorted by name,
+which every name rule there is keeps in path order); 6 are looks (the list's corners, the game's options' grey and the
+flag's red under the screens' limits; the referrers' three rules in the dialogs, which no fixture shows). The rerun
+(20: the 11 gaps, the 4 rewritten, 5 on the code changed since) killed 19; the one left, checking an entry that doesn't
+build, is equivalent (it has no value: its check fails alike alone and across entries, so nothing of it shows). Nothing
+written to the player's real folders.
+
+**Choices the design left to the step** (made here): the names above; the list in the row's flow under the field
+rather than an overlay (the "Found" above), every name when it opens and filtered once typed, a name matching anywhere
+ignoring case, the flag's words, at most 8 rows seen (180 px) before it scrolls, the active option's look; Enter
+without an active option closing it; a removal's options named by the first referrer's mark; the referrers listed up to
+8; the status line's words; a check that throws shown as the entry's problem; the theme's id rule as the entry's own
+check, and the music's loading as the last check (confirmed by the manager).
+
 ### Step 12: import (2026-11-07)
 
 **Files.** `Tools/Editor/Session/EditorSession.Import.cs` (the session's import, no DOM: `ImportSource`, `ImportWay`,
@@ -2676,6 +2855,19 @@ step's parts. The full suite passes on the GPU and on lavapipe, inside a headles
 Mutations: 251 in the first run (`~/.cache/stat-fick-build/claude-work/m11/step8-mutations.json`, its chunks `-1` to `-4` and `-window`, the editor application's wiring run inside a headless cage; made by `step8/make-mutations.py`): 229 killed, 18 survived, 4 didn't build; 3 survivors were redundant code, removed (the tree's press handler: a press focuses the tree anyway; Right's check that an open folder's next item is inside it, which it always is; a `[hidden]` rule the browser's own stylesheet has), 12 were gaps closed by tests (a game pack's problem named without its folder, a compressed file's size, a settings file that isn't an object, the "Hidden" box kept when going to a folder, the selection kept when listing again, a size between 1,000 and 1,024 of a unit, a dialog's task read only once done (one survivor was a test waiting on a question a broken rule left open), a refused drop's own task, a relative name dropped, the status line's capital, the overscan's number, and the window's options in the settings tests' filter), and the 4 that didn't build were rewritten to build; the rerun (`step8-mutations-rerun.json`, 16) killed all 16. The list as it stands, 248, has 245 killed and 3 accounted for: looks under the screens' limits (the marks not ember, the active row's 1 px outline, an open folder's triangle closed: a few hundred pixels of 640,000). Nothing written to the player's real folders. Renders for the user:
 `claude-work/m11/step8/render-{list,browser}-audio@{1,1.65}.png`. Not checked: a real drop from a file manager and a real
 close by the title bar (to check by hand), the editor in a real window, Windows.
+
+**Step 10, checks and references in the editor: done (2026-11-07, on the worker branch `m11-step10`).** ("How it works",
+step 10.) The manager's decisions Q-A (a removal's referrers offered "Point them at:" another entry of the kind, "Leave
+them" by default; a rename's "Update them to the new name", ticked) and Q-B (the cross-entry problems of the last run
+stay until the next replaces them) recorded there. Each entry's own check at every change of its draft; the checks across
+entries (step 13's `Session.EditedData`, the session's own references, then the game's music loading) 200 ms after the
+last change, over every record entry, the game's too; only the first problem per path; problems at their fields, at the
+top and in the list through steps 8's and 9's display; `Session.EntriesWithProblems`, `Checks.DataProblem` and
+`Checks.RunPending()` for step 11's save; the reference field's list (in the row under the field, filtered as typed, the
+flag); rename and remove listing the referrers and updating them in the same step. Tests: 46 (42 in
+`Tests/Statventure.Tests/Editor/Checks/`, the two screens at two scales). Screens: `checks-problems` 0.050 % and 0.187 %,
+`references-list` 0.046 % and 0.152 % (1 and 1.65, the GPU). The full suite passes on the GPU (1 min 28 s) and on lavapipe (1 min 55 s), inside a headless Wayland compositor, rebased on step 13's merge (`034b83c`): 3423 tests (`main`'s 3377 and 46 new), none skipped (before the rebase, on `ac2306e` with step 13's `Session.EditedData`: 3296, 1 min 24 s and 1 min 52 s); the player's real game folder stayed missing and the Documents folder's top level unchanged. Mutations: 176 in the first run (146 killed, 4 didn't build and were rewritten, 26 survived: 11 gaps closed by tests, 7 redundant code removed, 2 equivalent, 6 looks: 3 under the screens' limits and 3 of the dialogs no fixture shows), then a rerun of 20 (the gaps, the rewritten, the code changed since): 19 killed, 1 equivalent (an entry that doesn't build has no value to check); nothing written to the player's real folders. Not
+checked: the editor in a real window (the list, the dialogs), Windows.
 
 **Step 12, import (editor): done (2026-11-07, on the worker branch `m11-step12`, rebased on `c26a6ed`, its full runs on `ac2306e`).** ("How it works", step 12.)
 The step stopped at four questions before writing code; the manager decided them on 2026-11-07 (each the recommended option:
