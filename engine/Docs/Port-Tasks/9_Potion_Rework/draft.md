@@ -290,9 +290,11 @@ at the level's strength. Healing and Mana from restoring potions come at the sta
 ingredient only in poisons puts the poison's effect on your weapon hits instead. The same ingredient again refreshes
 its buff; different ingredients add up (P21).
 
-Example: **Glass Sand** is in the Potion of Precision (+10% crit chance) and Duelist's Draught (+30% crit damage, +5%
-crit chance). Crit chance counts once, at +10%; with crit damage +30%: at Level 1 about +3% crit chance and +10% crit
-damage for 3 turns; at Level 6 about +7% and +20% for 4 turns.
+Example: **Glass Sand** is in the Potion of Precision (+10% crit chance, uncommon), Duelist's Draught (+30% crit
+damage and +5% crit chance, rare) and the Piercing Draught (20% armor pierce, rare). Crit chance counts once, at
++10%; the two strongest kinds are the rare ones, crit damage +30% and armor pierce 20%: at Level 1 +10% crit damage
+and 7% armor pierce for 3 turns; at Level 6 +20% and 13% for 4 turns. (Corrected 2026-11-07: the example first left
+out the Piercing Draught; the rule is unchanged.)
 
 ## Collect quests (P22–P25)
 

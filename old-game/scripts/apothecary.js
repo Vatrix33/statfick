@@ -378,6 +378,6 @@
   modal.addEventListener("keydown", event => { if (event.key === "Escape") { event.preventDefault(); close(); } });
   $("map-apothecary")?.addEventListener("click", open);
 
-  window.Apothecary = { open, close, render, setMenu, stock: () => place ? stock() : null, slots: () => [...slots], result: () => result, placeIngredient, pickRecipe, brew, collect, standingPotions, regionIngredients };
+  window.Apothecary = { open, close, render, setMenu, buy, buyRecipe, stock: () => place ? stock() : null, slots: () => [...slots], result: () => result, placeIngredient, pickRecipe, brew, collect, standingPotions, regionIngredients };
   window.Alchemy = { describeEffect, describeEffects, ingredientUses, ingredientSources, hasLore, forageBonus, regionEnemyIds, regionIngredients };
 })();
