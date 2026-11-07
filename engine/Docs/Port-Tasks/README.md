@@ -38,6 +38,12 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 8. `8_Map_Rework.txt`: one continuous continent about 40% larger instead of separate regional maps, music that crosses
    over between regions, a boat-travel animation, fog and clouds as the mountain rises, caravan fast travel between
    visited castle towns, and a horse carriage to buy.
+   **Being built in the old game (from 2026-11-06).** Its layout is approved (draft 6, 2026-11-07, `Engine-Plan.md`,
+   "Decisions for task 8", W26): the picture, the scripts that make it and every region's place are in
+   `8_Map_Rework/`, the reference for the port's visual redesign of the map. Its three new regions (rocky highlands
+   east of the Alder Vale, a steppe south of it, a west-coast delta below the Verdigris Jungle) are left empty in the
+   old game: their names, identity, terrain, enemies, level bands, towns and connections are all made in the port
+   (the user, W27).
 9. `9_Potion_Rework.txt`: an Apothecary in every town, 40 new potions and 12 poisons, at least 50 ingredients, foraging
    on the map, brewing and recipes, the Alchemist and Assimilator classes, and a Collect quest for the guild.
 10. `10_Class_Rework.txt`: every class reviewed and reworked where needed (identity, requirements, passive and skill, a

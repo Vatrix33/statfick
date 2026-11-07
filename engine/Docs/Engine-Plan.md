@@ -103,16 +103,17 @@ read none of what changed), so `Tools/Scripts/test.sh` was not run for it. **Eng
 count task 7 as the engine's current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`,
 "New Game Plus: Limitless and the Exotics".
 **Beside the engine, old game only (2026-11-06): port task 8, Map Rework, is being built in the old game** (W1; decisions
-in "Decisions for task 8, Map Rework" below; the cloud branch `claude/fervent-carson-f5ol9s`). The layout is approved (W6);
-built so far: the continent's geometry and travel rules (`../old-game/scripts/continent-engine.js`, `world-engine.js`),
-a first continent map view, and the natural land (W17, W18) in the rules: one noise-shaped land field moves the coast
-and the mountains' feet up to 400 units from the old straight edges (the coast regions' own shores and Cinder Isle's
-oval too), keeps a mountain core between neighbours no road joins and a pass where one does, and never cuts a road,
-place, site or exit. The user reviewed that shape (too much impassable rock; the Deep Desert, Duskpine and the
-Battlefield stick out; Cinder Isle too close) and answered W19–W23. **Waiting for the user:** their review of layout
-draft 6 (draft 5 with their W25 changes; made by `claude-work/continent/draft6.py` from draft 3's saved field
-`draft3-field.npy`, in the cloud session, not kept in the repo). Still to come: painting the map to that shape, the music crossfade, the boat, the mountain fog,
-the caravan, the carriage, the checks and the docs. **Engine work goes on uninterrupted.**
+in "Decisions for task 8, Map Rework" below; the cloud branch `claude/fervent-carson-f5ol9s`). **The layout is approved:
+draft 6 (2026-11-07, W26),** kept with its scripts and every region's place in `Docs/Port-Tasks/8_Map_Rework/`; its three
+new regions stay empty in the old game and are made in the port (W27). Built so far in `../old-game/`: the continent's
+geometry and travel rules (`scripts/continent-engine.js`, `world-engine.js`) and a first continent map view, **still on
+the superseded draft-2 layout and its first natural shape** (W17's mountain cores between neighbours, which W20 and W22
+replaced). **Next (the user stopped for the day on 2026-11-07; wait for their go):** build draft 6 into the old game
+(the new places, the two moved roads, Cinder Isle, the land growing into the gaps, the inland waters, the Deep Desert's
+island, the new regions as empty ground), then paint the map to it; then the music crossfade, the boat, the mountain fog,
+the caravan, the carriage, the checks and the docs. **Open question to ask first:** what "empty" means for walking in
+the old game: whether the three new regions' ground can be walked (with no encounters, towns or name) or stays closed
+until the port. **Engine work goes on uninterrupted.**
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
@@ -1340,6 +1341,13 @@ M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/8_Map_Rework.t
 - W25 **Draft 5's review** (2026-11-07): the Deep Desert's island must look as it did in draft 3, and the water between
   Duskpine and the Crimson Divide be as large as it was there. Drawn as draft 6 (draft 3's coast taken over at both
   places).
+- W26 **The layout:** draft 6 approved (2026-11-07, after its legend was made smaller and moved to the bottom right):
+  `Docs/Port-Tasks/8_Map_Rework/` (the picture, the scripts that make it, every region's place in continent units).
+- W27 **The three new regions** (the rocky highlands, the steppe, the west-coast delta): "they will be empty for now,
+  because everything for these regions will be done during the port": in the old game they are only ground on the
+  continent; their names, identity, terrain, enemies, level bands, towns and connections are made in the port. The user
+  asked to document this and to keep draft 6 as the reference for the port's visual redesign of the map (kept in
+  `Docs/Port-Tasks/8_Map_Rework/`, pointed to from `Docs/Port-Tasks/README.md`).
 
 **Decisions for task 7, New Game Plus: Limitless, Exotic and Exium (2026-11-06, a cloud session; the user asked for task 7
 after task 5 was merged, while M11's engine work goes on on the PC; the task is `Docs/Port-Tasks/7_New_Game_Plus.txt`).**
