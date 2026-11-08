@@ -38,9 +38,11 @@ public class ShellTests
         Assert.Equal(["New mod", "Open", "Save", "Save As", "Import", "Undo", "Redo"], buttons.Select(b => b.TextContent));
         EditorCommand[] commands = [EditorCommand.NewMod, EditorCommand.Open, EditorCommand.Save, EditorCommand.SaveAs, EditorCommand.Import, EditorCommand.Undo, EditorCommand.Redo];
         Assert.Equal(buttons, commands.Select(c => editor.View.Button(c)));
-        // Open is the editor's own from step 8 (Browser.Opener); the others wait for their parts.
-        Assert.All(buttons.Where(b => b != editor.View.Button(EditorCommand.Open)), b => Assert.True(b.IsDisabled));
-        Assert.False(editor.View.Button(EditorCommand.Open)!.IsDisabled);
+        // Open (step 8's Browser.Opener) and New mod (step 11's Saving.SavingPart) can always run; with no pack open the
+        // others can't (their parts' handlers say so).
+        EditorCommand[] always = [EditorCommand.NewMod, EditorCommand.Open];
+        Assert.All(buttons.Where(b => !always.Any(c => editor.View.Button(c) == b)), b => Assert.True(b.IsDisabled));
+        Assert.All(always, c => Assert.False(editor.View.Button(c)!.IsDisabled));
         Assert.Null(editor.View.Button(EditorCommand.Rename));
     }
 

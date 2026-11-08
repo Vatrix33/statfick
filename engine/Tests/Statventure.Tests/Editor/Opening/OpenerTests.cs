@@ -107,6 +107,8 @@ public class OpenerTests
         using var editor = scratch.Editor();
         editor.Session.Open(scratch.Folder["player/mods/a.pak"]);
         Change(editor);
+        // (Without step 11's Save first: Discard and Cancel only.)
+        editor.Opener().SaveFirst = null;
         var cancelled = editor.Run(() => editor.Opener().OpenFile(scratch.Folder["player/mods/b.pak"]));
         Assert.Equal(("Unsaved changes", "a.pak has changes that aren't saved. Discard them and open b.pak?"), editor.Asked());
         Assert.Equal(["Discard", "Cancel"], editor.Buttons());
@@ -120,7 +122,7 @@ public class OpenerTests
         Assert.True(discarded.IsCompleted && discarded.Done());
         Assert.Equal("b.pak", editor.Session.Pack!.Name);
         Assert.False(editor.Session.HasUnsavedWork);
-        // Save first once step 11 gives it: offered first; a save that didn't happen keeps the pack open.
+        // Save first (step 11 gives it): offered first; a save that didn't happen keeps the pack open.
         Change(editor);
         var saves = new Queue<bool>([false, true]);
         editor.Opener().SaveFirst = () => Task.FromResult(saves.Dequeue());

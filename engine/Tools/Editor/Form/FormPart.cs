@@ -17,7 +17,8 @@ public enum FormTab
 /// The form pane (Docs/Editor.md, "The form (step 9)"): the selected entry's path, kind and actions (Duplicate,
 /// Rename, Remove), a Form tab with a row per field (P11) and a JSON tab with the entry's JSON form, copy and export
 /// (M11-18, P22). Nothing shows while no entry is selected. It handles Undo and Redo for the selected entry (M11-7),
-/// a form field's own typing first (P13).
+/// a form field's own typing first (P13). An entry a part's <see cref="IEntryForm"/> shows (step 11's mod info) is shown
+/// in that form instead.
 /// </summary>
 public sealed class FormPart : EditorPart
 {
@@ -29,6 +30,7 @@ public sealed class FormPart : EditorPart
     UiElement? _panel;
     readonly List<UiElement> _tabs = [];
     FormView? _form;
+    IEntryForm? _own;
     UiElement? _json;
     EditorEntry? _shown;
     FormTab _tab = FormTab.Form;
@@ -47,7 +49,12 @@ public sealed class FormPart : EditorPart
         };
         Session.EntriesChanged += change =>
         {
-            if (change.Entry is { } entry && entry == _shown)
+            if (change.Entry is not { } entry || entry != _shown)
+                return;
+            // A rename may take the entry into or out of a form of its own.
+            if (OwnFormOf(entry) != _own)
+                Show();
+            else
                 HeadState();
         };
         View.Commands.Handle(EditorCommand.Undo, request => UndoOrRedo(request, redo: false), () => Session.Selected is { CanUndo: true } entry && Session.CanEdit(entry));
@@ -81,6 +88,8 @@ public sealed class FormPart : EditorPart
             return false;
         if (request.Key is not null && _form is { } form && (redo ? form.HasTypingToRedo(request.Target) : form.HasTypingToUndo(request.Target)))
             return false;
+        if (request.Key is not null && _own is { } own && (redo ? own.HasTypingToRedo(request.Target) : own.HasTypingToUndo(request.Target)))
+            return false;
         return redo ? Session.Redo(entry) : Session.Undo(entry);
     }
 
@@ -91,6 +100,7 @@ public sealed class FormPart : EditorPart
         _shown = entry;
         _element.ClearChildren();
         _form = null;
+        _own = null;
         _json = null;
         _view = null;
         _head = null;
@@ -99,6 +109,13 @@ public sealed class FormPart : EditorPart
         _tabs.Clear();
         if (entry is null)
             return;
+        if (OwnFormOf(entry) is { } own)
+        {
+            _own = own;
+            own.Show(entry, _element.Append("div", "form-own"));
+            View.Pane(EditorPane.Form).ScrollTop = 0;
+            return;
+        }
         _view = _element.Append("div", "form-view");
         _head = _view.Append("div", "form-head");
         Head();
@@ -210,6 +227,7 @@ public sealed class FormPart : EditorPart
     {
         HeadState();
         _form?.Update();
+        _own?.Update();
         if (_tab == FormTab.Json)
             Json();
     }
@@ -310,8 +328,39 @@ public sealed class FormPart : EditorPart
 
     // ---------- For tests and other parts ----------
 
-    /// <summary>The form of the shown record entry (null for none, a file or an unreadable entry).</summary>
+    /// <summary>The form of the shown record entry (null for none, a file or an unreadable entry, or one shown in a form of its own).</summary>
     internal FormView? Form => _form;
+
+    /// <summary>The form of its own the shown entry is in (<see cref="IEntryForm"/>), or null.</summary>
+    public IEntryForm? OwnForm => _own;
+
+    /// <summary>The first part (in the parts' order) whose form of its own shows <paramref name="entry"/>, or null.</summary>
+    IEntryForm? OwnFormOf(EditorEntry entry) => View.Parts.OfType<IEntryForm>().FirstOrDefault(form => form.Shows(entry));
+}
+
+/// <summary>
+/// A form of its own for some entries, in place of the generic one (Docs/Editor.md, "How it works", step 11: the hook step 11
+/// added for the mod's info, the manager's decision of 2026-11-08). A part that implements it is asked, in the parts'
+/// order, whether it shows the entry selected; the first that does gets the form pane's content (no head, tabs or rows of
+/// the generic form) and is told when that entry changes. Undo and Redo stay the form pane's (the entry's history),
+/// after a field's own typing, which the form says it has.
+/// </summary>
+public interface IEntryForm
+{
+    /// <summary>Whether this form shows <paramref name="entry"/> (asked when it is selected and when it is renamed).</summary>
+    bool Shows(EditorEntry entry);
+
+    /// <summary>Builds the form of <paramref name="entry"/> into <paramref name="element"/> (the form pane's, emptied before).</summary>
+    void Show(EditorEntry entry, UiElement element);
+
+    /// <summary>The entry shown changed (a commit, undo, redo, the checks): its fields follow its draft.</summary>
+    void Update();
+
+    /// <summary>Whether <paramref name="element"/> is one of the form's fields with typing not committed (its own undo goes first, P13).</summary>
+    bool HasTypingToUndo(UiElement? element);
+
+    /// <summary>Whether <paramref name="element"/> is one of the form's fields with typing to redo.</summary>
+    bool HasTypingToRedo(UiElement? element);
 }
 
 /// <summary>

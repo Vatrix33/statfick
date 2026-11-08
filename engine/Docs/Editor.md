@@ -2287,6 +2287,216 @@ without an active option closing it; a removal's options named by the first refe
 8; the status line's words; a check that throws shown as the entry's problem; the theme's id rule as the entry's own
 check, and the music's loading as the last check (confirmed by the manager).
 
+### Step 11: saving and mods (2026-11-08)
+
+**Files.** `Tools/Editor/Session/EditorSession.Saving.cs` (the session's saving, no DOM: `SaveProblem`, `SaveAsChoice`, and
+the partial `EditorEntry.MarkSaved`), `Tools/Editor/Saving/` (`SavingPart.cs`: Save, Save As, New mod, the refusal and the
+changed-file question, `Opener.SaveFirst`; `SaveAsDialog.cs`; `NewModDialog.cs`; `ModInfoForm.cs`: the mod's info in a form
+of its own; `Saving.css`), and the one hook in step 9's `Form/FormPart.cs` (`IEntryForm`, below). Tests in
+`Tests/Statventure.Tests/Editor/Saving/`: `SavingTesting.cs` (a scratch player's folder and mods, a scratch copy of the
+repo's packs for the dev setup, packs read back as stored), `SessionSavingTests.cs`, `SessionSaveAsTests.cs`,
+`SessionNewModTests.cs`, `SavingViewTests.cs`, `NewModViewTests.cs`, `ModInfoFormTests.cs` (with `EntryFormHookTests`, the
+hook with a form of the tests' own), `SavingScreens.cs` (the fixtures `saving-save-as`, `saving-new-mod`,
+`saving-mod-info`); goldens `Golden/editor-saving-save-as@1.png` and `@1.65.png`, `editor-saving-new-mod@…`,
+`editor-saving-mod-info@…`. Every other editor golden was captured again (below).
+
+**The manager's decisions (2026-11-08), at this step's questions** (the step stopped and reported them before writing
+code; each the recommended option, (a)):
+- *Q1, where the mod's info gets "a form of its own" (M11-15, G1):* in the form pane: choosing `mod/info` (the engine's
+  `mod.info`) shows a form of its own instead of the generic rows, through a small documented hook in step 9's `FormPart`
+  (a part can supply an entry's form; the Undo key's "field has typing of its own" asks that form), with a test; no
+  existing screen changes because of the hook. New mod selects it after making the mod. (Not a "Mod info" dialog from a
+  top-bar button, which would change every screen's top bar; not a dialog opened when the entry is chosen in the list.)
+- *Q2, when New mod writes the file:* at once: the pack holding only `mod/info` (the name typed; author, version and
+  description empty) is written into the player's mods folder and opened. (Not made in memory and written at the first
+  save.)
+- *Q3, Save As's order and what is open afterwards (M11-16, P24):* the ticks first, then the file browser; written, the
+  new file opens in place of the old one; entries left unticked with unsaved changes are named as let go. (Not the
+  browser first; not the old pack kept open.)
+- *Q4, a pack it can't fully read:* the entries it reads offered ticked; every entry whose content is intact but which it
+  can't read as a record (a kind not known here, a newer version, a record that doesn't read) offered unticked with its
+  reason, kept byte for byte when ticked; a damaged content (its hash) listed last, not offered. (Not those intact entries
+  ticked too; not only unknown kinds and newer versions offered.)
+- *Q5, a subset (M11-12, P18):* Save As checks the entries ticked as the game would see them: the game's packs the open
+  pack is seen over with only the ticked entries mounted on top, step 10's checks across entries on that data (every
+  record it shows, the ticked ones and the game's: the kind's checks against the data, references resolved there, the
+  theme's path rule), then the music's loading; a problem refuses it, naming the entries. (Not only the session's own
+  problems on the ticked entries.)
+- *Q6, histories across a save (M11-7):* kept: the entries stay, each saved one's saved state becomes its current draft;
+  Undo goes back past the save and marks the entry changed again. (Not cleared by opening the pack again.)
+- *The step's smaller choices, confirmed as listed* ("Choices the design left to the step" below).
+
+**The session's saving** (`EditorSession.Saving.cs`; no DOM):
+- `Session.CanSave` (a pack is open and takes changes: a mod, or in the dev setup one of the game's packs, M11-5;
+  not a pack it can't fully read, M11-16), `Session.CanSaveAs` (a pack is open), `Session.SaveEntries` (what a save
+  writes, by path: the open pack's own entries at their paths now, the new ones, made, duplicated or imported, and the
+  game's entries changed in this session, the mod's own copies, P7; removed entries and the game's unchanged ones aren't
+  among them).
+- `Session.SaveProblems()` (M11-12, P18): step 10's `Checks.RunPending()` first, then each of `Session.EntriesWithProblems`
+  with its first problem (`SaveProblem(Entry, Problem)`, the problem as the form shows it: "allows no voices (at
+  $.maxVoices)"), then `Checks.DataProblem` (`Entry` null); empty when it can be saved.
+- `Session.ChangedOnDisk()` (P23): the file opened again and its index hash compared with the one read when it was opened
+  or last saved (`OpenPack.IndexHashHex`): null when the same; else "was changed by another program since it was opened
+  here", "isn't there any more", "can't be read now: <the pack's problem>". A file written again with the same index (the
+  same entries stored the same way) is no change.
+- `Session.Save()` (M11-17, P23): refused (an `InvalidOperationException`, nothing written) unless `CanSave` and with
+  `SaveProblems()` empty; every entry of `SaveEntries` written as step 2 says: an imported file with its bytes
+  (`PackWriter.Add`, `EditorEntry.ImportedFile`), an edited, new or copied record from its draft in the current versions
+  (`AddRecord`), anything else as the open pack stores it at its path now (`AddFrom(pack, entry, path)`: its stored bytes,
+  compression and record flag, an older record version, a renamed one at its new path); removed ones (and a copy reverted
+  to the game's, step 9's revert, which puts it in `Removed`) left out; then `Write` (a temporary file swapped in). The
+  view asks about a changed file first. After the write the pack is read again (`Session.PackFile` the new file, so later
+  reads see it; `Pack` with its new index hash, the one compared next time), `Removed` emptied, and each entry whose marks
+  change is saved in place (`EditorEntry.MarkSaved`: it is the pack's at its path, `SavedPath` its path, an edited, new or
+  copied record's built value its `Saved` and its current draft its `SavedDraft`, an imported file read from the pack from
+  then on) and reported (`EntryChanged`, then `Changed`): the list's marks and the title's "•" go. A game entry the mod
+  now holds its own copy of gets the game's entry under it again (`Overridden`), so "Revert to the game's" (P7) works on
+  it as on any copy. Histories stay (Q6).
+- **Save As** (M11-16, P24, Q3–Q5): `Session.SaveAsChoices()` (Q4: `SaveAsChoice(Entry, Offered, Ticked, Reason)` for each of
+  `SaveEntries`; `KeptUnread` for an offered one it can't read); `Session.SaveAsFileProblem(file)` (one of the game's packs
+  outside the dev setup, M11-5: "x.pak is one of the game's packs, which are read-only (only the repo's dev setup saves into
+  them)"; the open pack when it can't be saved over: "x.pak is the pack open here, which can't be saved over: <why>"; null
+  otherwise, the open pack too when it takes changes); `Session.SaveAsProblems(ticked, file)` (Q5: the data
+  `Session.SaveAsData(ticked, file)`, the base with a custom mount of the ticked entries named by the new file, each as
+  Save As writes it; every record that data shows checked as step 10's checks across entries check the session, the
+  ticked ones by their built value and the game's by theirs (those under a ticked entry left out, those under an entry of
+  the pack left unticked put back), `RecordChecks.Check` with that data and references resolved against it (the ticked
+  entries over the game's), then `EntryChecks.PathRules`, the first problem per path, a check that throws as "its check
+  failed: …"; then, while no music entry has a problem, `MusicLibrary.Load` on it, its problem at the record it names or
+  as the data's; a ticked record whose draft doesn't build gives its first build problem; entries that can't be mounted
+  together are the data's problem; in path order, the data's last); `Session.SaveAs(file, ticked)` (only entries of
+  `SaveEntries`; refused for the file and for problems as above; the ticked ones written as a save writes them, then
+  `Open(file)`: the new file opens in place of the open pack, read again, histories begun anew).
+- **New mod** (M11-5, M11-15, P25, Q2): `EditorSession.NewModFileName(name)` (the name trimmed, `ImportNames.Fit`, `.pak`
+  added: "My Mod" → `my-mod.pak`; "mod.pak" when nothing of the name fits, import's "imported" only for a mod named so;
+  "" for no name); `Session.NewModProblem(name, fileName)` (in words for the dialog's line: "Give the mod a name.", "Give
+  the mod's file a name.", "A mod's file name ends in .pak.", "That can't be the file's name: it holds a '/'." or the path
+  rule's words, "There is already x.pak in the mods folder." for a file or folder of that name in any case: never
+  replaced); `Session.NewMod(name, fileName)` (the pack holding `ModInfo { Name = name }` at `ModInfo.Path` written into
+  `Session.ModsFolder`, made when missing, then opened).
+
+**The form pane's hook** (`Form/FormPart.cs`, the one change to step 9's files, the manager's word Q1): a part implementing
+`IEntryForm` (`Shows(entry)`, `Show(entry, element)`, `Update()`, `HasTypingToUndo(element)`, `HasTypingToRedo(element)`)
+is asked, in the parts' order, whether it shows the entry selected; the first that does gets the form pane's content
+(a `div.form-own`, nothing of the generic head, tabs or rows; `FormPart.OwnForm`), is told when that entry changes, and is
+asked first by the Undo and Redo keys (not the top bar's buttons) whether the field the key went to has typing of its own
+(P13). A rename that takes the entry into or out of such a form shows it again.
+
+**The mod's info in a form of its own** (`Saving/ModInfoForm.cs`, an `IEntryForm`; M11-15, G1, Q1): the record
+`mod/info` of the kind `mod.info`: a head ("Mod info", its path, "read-only" when it can't change), what it is for ("What
+players will see of this mod in a mod list (the game doesn't show it yet). It is saved with the mod."), then Name,
+Author and Version as text fields and Description as a textarea, labelled as the generic form's rows. A field commits on
+its change event (Enter in a text field, leaving it) as the generic form's do: one step of the entry's history unless the
+text is the draft's; the fields follow the draft only where its value changed (typing elsewhere survives); its own typing
+undone and redone first, as `FormView` does (P13). A `mod.info` record elsewhere, or another kind at `mod/info`, shows in
+the generic form. A mod without the entry (made by hand) can get one through New (Mod info at `mod/info`), as before.
+
+**From the view** (`Saving/SavingPart.cs`, a part without a pane; each action a task of the document's loop):
+- *Save* (Ctrl+S, the top bar's button; enabled while `CanSave`): a text field being typed in commits first (blurred and
+  focused again, as the button's click does by taking the focus); nothing unsaved: "Nothing to save: x.pak is as saved."
+  and nothing written; problems: "Can't save" — "x.pak can't be saved until these are fixed:" and a list, each entry (bold)
+  with its first problem, the first `SavingPart.Listed` (8) then "and N more", the data's problem as a line of its own;
+  OK. A changed file: "The file changed" — "x.pak <why>. Overwrite it with the editor's version, save as another file, or
+  cancel?" (Overwrite, Save As, Cancel; Save As goes on to Save As). A write that fails: "Can't save" — "x.pak couldn't be
+  written: <why>." (the pack's problem for a damaged entry, else the system's message). Saved: "Saved x.pak."
+- *The unsaved-changes question's Save* (step 8's `Opener.SaveFirst` is `Save`): opening another pack, New mod and closing
+  the editor offer Save, Discard, Cancel; a save refused or cancelled keeps the pack open and the editor running.
+- *Save As* (Ctrl+Shift+S, the button; enabled while a pack is open): the field committed first; the **Save As dialog**
+  (`SaveAsDialog`, 560 px): "x.pak is read-only (<why>). Tick the entries to keep in a new pack; it opens in place of x.pak
+  once saved." (or "Tick the entries of x.pak to save in a new pack; …"), All and None, the list (the offered entries by
+  path, then those not offered; a row is a label: the tick, the path, the kind's name, and under it "Kept as it is, unread:
+  <reason>" or "Not offered: <reason>"), a note (in ember) naming what is let go ("Left out, their unsaved changes are let go:
+  a, b." — entries changed, new or renamed left unticked, the first 8 then "and N more"), "The new pack keeps entries the
+  editor can't read, so it opens read-only." when one is ticked, "Tick the entries to save." with "Choose file…" disabled
+  when none is; "Choose file…" (focused) and Cancel. Then the file browser ("Save As", button "Save", `.pak`, a new name
+  allowed, the open pack's name suggested, from the most recent place else the mods folder); a name without `.pak` gets it
+  (asking "Replace the file?" when that one is there); a file `SaveAsFileProblem` refuses is said ("Can't save there" —
+  "<why>. Choose another file.") and the browser shows again; over the open pack changed on disk: "The file changed" —
+  "… Overwrite it with the entries ticked, choose another file, or cancel?" (Overwrite, Another file, Cancel); the subset's
+  problems refuse it ("The entries ticked can't be saved as y.pak until these are fixed:", the list as Save's); a write that
+  fails is said; then the new file is open: "Saved 3 entries as y.pak." (", open read-only: <why>." when it keeps entries
+  it can't read).
+- *New mod* (the button; always enabled): the **New mod dialog** (`NewModDialog`): "The mod is made in your mods folder: a
+  pack whose entries add to the game's data or replace its entries.", Name (focused) and File (the suggestion following the
+  name until the file name is edited by hand), a line for what is wrong (typing clears it), "Mods load in file-name order:
+  where two mods hold the same entry, the one whose file name comes later wins." (P25), Create (or Enter in a field, its
+  keypress kept from the New mod button the focus returns to) and Cancel. Then the open pack's unsaved work asked about
+  ("…Discard them and make the mod x.pak?", Save, Discard, Cancel), the names checked again (a file of that name come
+  meanwhile is said, "Can't make the mod"), the mod written and opened, `mod/info` selected (its own form), "Made x.pak in the
+  mods folder." A write that fails: "Can't make the mod" — "x.pak couldn't be made: <why>."
+- Its stylesheet (`Saving.css`): the Save As list as step 12's keep-or-take list (rows with lines between, the reasons in the
+  problem red indented under the path, not-offered rows soft), the note in ember, the New mod fields as the import dialog's,
+  the mod info's rows as the form's (names 140 px, muted), the textarea 360 px wide and 106 px high, not resizable,
+  `line-height: normal` (below, "Found").
+
+**Screens against Chromium (P36):** `saving-save-as` (1000 × 800: a mod it can't fully read, the game's audio closed so the
+entry pane doesn't scroll: its room and text ticked, an unknown kind ticked with the read-only note, a newer version
+unticked, a damaged entry not offered; "Choose file…" focused by code), `saving-new-mod` (1000 × 640: the empty editor,
+"Brighter Halls" and its file name, a mod of that file name already in the fixture's mods folder so the problem line shows;
+Create focused by code) and `saving-mod-info` (1000 × 640: a mod with its info filled in, two lines of description, selected).
+**Every other editor screen was captured again:** New mod is now always enabled, and Save and Save As are enabled with a
+pack open, so every top bar changed (before the captures `checks-problems`, `references-list` and `preview-model` at 1.65
+were past the limit, 0.26 %, 0.22 % and 0.22 %, the rest within it). Captured with `claude-work/m11/step11-capture.sh`
+(step 13's: make-editor-references.sh's harness, flags and fonts in a headless cage, the output 2400 × 2400 at both scales,
+one fixture per Chromium run). Pixels past 12 levels (the limit 0.2 %), the GPU: `saving-save-as` 80 of 800,000 at 1×
+(0.010 %, worst 62) and 458 of 2,178,000 at 1.65 (0.021 %, worst 99), `saving-new-mod` 57 (0.009 %) and 1,067 (0.061 %,
+worst 197: its buttons' labels a device pixel low at 1.65, the known open item), `saving-mod-info` 0 and 28 (0.002 %); the
+16 captured again give the numbers they gave before, pixel for pixel the same counts (`shell` 0 and 28, `dialog` 57 and
+110, `browser` 28 and 147, `list-marks` 0 and 28, `list-unreadable` 0 and 28, `form-controls` 0.108 % and 0.139 %,
+`form-controls-end` 0.115 % and 0.155 %, `form-json` 0 and 28, `import-path` 0.009 % and 0.010 %, `import-replace`
+0.009 % and 0.006 %, `import-again` 0.055 % and 0.094 %, `checks-problems` 0.050 % and 0.187 %, `references-list`
+0.046 % and 0.152 %, `preview-effect` 0.070 % and 0.089 %, `preview-model` 0.004 % and 0.126 %, `preview-cutscene`
+0.010 % and 0.017 %). On lavapipe within a few pixels of these (`saving-save-as` 80 and 466, `saving-new-mod` 57 and
+1,069, `saving-mod-info` 0 and 28).
+
+**Found** (reported to the manager; the engine not changed):
+- *The engine's textarea lays its lines out at the normal line height whatever the author's `line-height`.* With
+  `line-height: 20px` (and `font: inherit` from a body of 24 px lines), Chromium's textarea put the description's lines 20
+  px apart, the engine's 16 px (Lato 13 px's normal height), its first line 2 px higher: `saving-mod-info` 0.53 % at 1× and
+  0.43 % at 1.65. The editor's textarea is `line-height: normal`, which both lay out alike (0 and 0.002 %). The input fixtures
+  (`Ui/InputFixtures.cs`) have textareas only at the normal height. An open item for the engine's UI (`Docs/Engine-Plan.md`,
+  "Small tasks left from earlier milestones").
+- *Known, met again:* a dialog over a scroller composited at 1.65 has grayscale text (step 12's "Found"): the Save As
+  dialog over the entry pane holding the long notice of a pack it can't read was 2.08 % at 1.65; the fixture closes the
+  game's audio so the pane doesn't scroll, as step 8's `list-unreadable` does.
+- *A key whose listener closes a dialog sends its keypress to what has the focus after:* Enter in the New mod dialog
+  created the mod and then pressed the New mod button the focus went back to, opening the dialog again (Chromium does the
+  same: keypress goes to the focused element); the field's listener cancels the key's default action.
+
+**Mutations** (`~/.cache/stat-fick-build/claude-work/m11/step11-mutations.json`, made by `step11/make-mutations.py`, run in
+four chunks under the shared lock; every rule of the session's saving, Save As and New mod, the saving part, the two
+dialogs, the mod info's form, the form pane's hook and the stylesheet broken once): 232 in the first run, 205 killed, 27
+survived, none failed to build. Of the survivors, 14 were gaps closed by new tests (Save As by its key and button, Save
+giving true when nothing is unsaved, the ticks dialog cancelled ending Save As (two), a damaged entry not ticked by All or
+by code, no read-only note while nothing kept unread is ticked, `ChangedOnDisk` with no pack, a game entry under a ticked
+one not checked, the theme's path rule in Save As's check, the mod info's own undos counted down by a redo, started again by
+typing and by the draft's value changing, the first of two forms of its own in the parts' order); 6 were redundant code,
+removed (Save As committing the field, which its dialog's focus does; `Ticked` excluding what can't be ticked; the saved
+entries' problems refreshed, the same values at the same paths; `MarkSaved` sparing an unchanged record, whose built value
+is the one it was read as; Save As's first problem per path, of which only the first was taken; the mod info's commit
+skipping the draft's own text, which its change event never carries); 7 are accounted for: 1 equivalent (a mod info field
+"not given" shown as empty text: no `mod.info` draft holds one, its four fields having defaults), 1 the engine's known
+difference (the textarea at `line-height: 20px` renders as at normal in the engine, the "Found" above) and 5 looks under
+the screens' limits or in no fixture (the kind's names and the not-offered rows in ink, the problem line's height while it
+holds text, the mod info's title not bold, the refusal's list not indented: no fixture shows the refusal). The rerun
+(`step11-mutations-rerun.json`, made by `step11/make-rerun.py`: the 14 and 6 on the code changed since) killed all 20; the
+list as it stands (`step11-mutations-standing.json`, 228) has 221 killed and 7 accounted for. Nothing written to the
+player's real folders (`mutate.py`'s watch; the game folder missing and the Documents folder's top level the same before
+and after, `claude-work/m11/step11/real-folders-*.txt`), nor to the repo's packs. Lesson: a mutation run's screen tests
+rewrite `Reference/editor-fixtures.json` from the mutated stylesheet or markup and leave it so: put it back (`git checkout`)
+after a run.
+
+**Choices the design left to the step** (made here, confirmed by the manager on 2026-11-08): the names above; Save enabled
+while the pack takes changes and writing nothing when nothing is unsaved ("Nothing to save"); Save As enabled while a pack
+is open, New mod always; Ctrl+S and Ctrl+Shift+S committing the field being typed in first; the refusal's dialog (the
+first 8 entries, "and N more", the data's problem last, OK only); the changed-file question's words and buttons (Overwrite,
+Save As, Cancel; in Save As over the open pack, Another file); `.pak` added to a Save As name without it (asking before
+replacing that file); the game's packs outside the dev setup and the open pack that can't be saved over refused as Save
+As's file, the browser shown again; the open pack's name suggested; the Save As dialog's look, words, All and None, its
+note; the New mod dialog's fields and words, the file name following the name until edited, the path rule on the file name
+and `.pak`, a name already in the mods folder in any case refused (never replaced); "mod.pak" for a name of which nothing
+fits; the mod's info form's words and look; the status line's words.
+
 ### Step 12: import (2026-11-07)
 
 **Files.** `Tools/Editor/Session/EditorSession.Import.cs` (the session's import, no DOM: `ImportSource`, `ImportWay`,
@@ -2868,6 +3078,40 @@ flag); rename and remove listing the referrers and updating them in the same ste
 `Tests/Statventure.Tests/Editor/Checks/`, the two screens at two scales). Screens: `checks-problems` 0.050 % and 0.187 %,
 `references-list` 0.046 % and 0.152 % (1 and 1.65, the GPU). The full suite passes on the GPU (1 min 28 s) and on lavapipe (1 min 55 s), inside a headless Wayland compositor, rebased on step 13's merge (`034b83c`): 3423 tests (`main`'s 3377 and 46 new), none skipped (before the rebase, on `ac2306e` with step 13's `Session.EditedData`: 3296, 1 min 24 s and 1 min 52 s); the player's real game folder stayed missing and the Documents folder's top level unchanged. Mutations: 176 in the first run (146 killed, 4 didn't build and were rewritten, 26 survived: 11 gaps closed by tests, 7 redundant code removed, 2 equivalent, 6 looks: 3 under the screens' limits and 3 of the dialogs no fixture shows), then a rerun of 20 (the gaps, the rewritten, the code changed since): 19 killed, 1 equivalent (an entry that doesn't build has no value to check); nothing written to the player's real folders. Not
 checked: the editor in a real window (the list, the dialogs), Windows.
+
+**Step 11, saving and mods (editor): done (2026-11-08, on the worker branch `m11-step11`, rebased on step 10's merge `7e3ff8d`).** ("How it works", step 11.)
+The step stopped at six questions before writing code; the manager decided them on 2026-11-08, each (a): the mod's info in a
+form of its own in the form pane through a small documented hook in step 9's `FormPart` (`IEntryForm`); New mod writing the
+mod at once with `mod/info` holding its name; Save As's ticks first, then the browser, then the new file open in place of
+the old, the unticked entries with unsaved changes named as let go; a pack it can't fully read offering its readable
+entries ticked, the intact ones it can't read unticked (kept byte for byte when ticked) and the damaged ones not offered;
+the subset checked as the game would see it (step 10's checks against the game's packs with only the ticked entries on
+top, then the music's loading); histories kept across a save; and the step's smaller choices confirmed. Save (Ctrl+S, the
+button) writes the whole pack as step 2 says (unchanged entries as stored, older versions too; edited, new and copied
+records in the current versions; imported files with their bytes; renamed ones at their paths; removed and reverted ones
+left out; the file swapped in), refused while an entry has a problem, naming each with its first (M11-12, step 10's
+`RunPending`, `EntriesWithProblems`, `DataProblem`); the file's index hash compared first (P23: Overwrite, Save As, Cancel);
+the pack read again after (its hash refreshed), the entries saved in place (their marks and the title's "•" gone, their
+histories kept). Save As as above; New mod (its name and file name under the path rule, mods' file-name order said) into
+the player's mods folder, its info selected in its own form; a new mod saved and mounted by `Application.DataMounts` as
+the game mounts mods reads back equal; the dev setup's game pack saved in place (a scratch copy of the repo's packs);
+closing and opening over unsaved work offer Save (step 8's `Opener.SaveFirst`). 62 new tests (`Tests/Statventure.Tests/Editor/Saving/`: 56,
+and the three screens at both scales); step 4's `ShellTests` (New mod always enabled) and step 8's `OpenerTests` (its
+Discard-and-Cancel part sets `SaveFirst` to null) take step 11's handlers. The screens against Chromium at 1 and 1.65 (pixels past 12 levels, the limit 0.2 %, the
+GPU): `saving-save-as` 0.010 % and 0.021 %, `saving-new-mod` 0.009 % and 0.061 %, `saving-mod-info` 0 and 0.002 %; every
+other editor screen captured again (its top bar changed: New mod always enabled, Save and Save As with a pack open), each
+giving the counts it gave before. The full suite passes on the GPU (1 min 33 s) and on lavapipe (2 min 2 s), inside a
+headless Wayland compositor, rebased on step 10's merge (`7e3ff8d`): 3485 tests (`main`'s 3423 and 62 new), none skipped;
+the player's real game folder stayed missing, the Documents folder's top level and the repo's packs (this worktree's and the
+main checkout's) unchanged. Mutations: 232 in the first run (`~/.cache/stat-fick-build/claude-work/m11/step11-mutations.json`,
+made by `step11/make-mutations.py`): 205 killed, 27 survived: 14 gaps closed by new tests, 6 redundant lines removed, 7
+accounted for (1 equivalent, 1 the engine's textarea line height, 5 looks under the screens' limits or in no fixture); the
+rerun (20) killed all; the list as it stands, 228, has 221 killed and 7 accounted for; nothing written to the player's real
+folders.
+Renders for the user: `claude-work/m11/step11/render-saving-{save-as,new-mod,mod-info}@{1,1.65}.png`. Found: the engine's
+textarea ignores the author's `line-height` (an open item in `Docs/Engine-Plan.md`). Not checked: the editor in a real
+window (saving, New mod, Save As and the close by hand: Engine-Plan.md, "By-hand checks", (d)); Windows (writing over the
+open pack, "Windows check", item 8a).
 
 **Step 12, import (editor): done (2026-11-07, on the worker branch `m11-step12`, rebased on `c26a6ed`, its full runs on `ac2306e`).** ("How it works", step 12.)
 The step stopped at four questions before writing code; the manager decided them on 2026-11-07 (each the recommended option:
