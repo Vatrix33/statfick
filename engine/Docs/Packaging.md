@@ -57,7 +57,8 @@ library now through a stand-in (Q19) and gets `--capture` (Q20); logs named by l
 10 crash files (Q21); the crash window as proposed (Q22), dark, in the engine's embedded Lato (Q23); without a
 window the crash file and a terminal message (Q24); the log only for what .NET can't catch (Q25); tag
 `v2026.11.8.1` (Q26); the release script checks a clean, pushed tree and runs no tests (Q27); package checks in a
-script of their own (Q28). Q11's answer raises two questions of its own, Q29 and Q30, still to ask.
+script of their own (Q28). Q11's answer raised two questions of its own, answered the same day as recommended:
+the splash (Q29) and the credits view (Q30).
 
 Decided earlier: Linux and Windows only (2026-10-16); no OS dialogs (2026-10-17); the per-user game folder
 (M9: `settings.json`, `saves/`, `mods/`; M11's G6: the editor's `editor/`); `packs/` and `classes/` beside the
@@ -316,7 +317,7 @@ against Chromium as the editor's screens are (M11-20).
 
 ## Design
 
-The design the steps work from, decided except where Q29 and Q30 (below) are named.
+The design the steps work from, decided (Q1–Q30).
 
 ### The two downloads (M12-1–M12-4, M12-12; Q4–Q10, Q12)
 
@@ -378,7 +379,7 @@ would have. Nothing of the player's per-user folder is in either. A new version 
 - `EngineInfo.Version` (the engine's own, 0.1.0, given to Vulkan) is not the program's version (left to the
   steps whether it follows).
 
-### The BRUTAL logo and the credits (Q11; Q29, Q30)
+### The BRUTAL logo and the credits (Q11, Q29, Q30)
 
 The BRUTAL licence's 2.1–2.3 met in M12 for both programs (the ported game shows them again in its own screens):
 - **`NOTICE.txt`** beside each program (2.3, Q10).
@@ -388,13 +389,20 @@ The BRUTAL licence's 2.1–2.3 met in M12 for both programs (the ported game sho
   `docs/branding/LOGO_BRUTAL_WHT.png` and `LOGO_BRUTAL_BLK.png` (712 × 168, RGBA), in the BRUTAL source in the
   build cache (its README shows them as the logo); not in any BRUTAL package (those carry only a 32 px icon). The
   licence names ahwoo.com/brutal-branding as the logo's source: step 4 checks the repo's files against that page
-  and stops to ask if they differ. Embedded in the engine, shown unaltered except for scaling. Its look, length
-  and skipping: Q29. Tests' applications don't show it (an option the programs leave on).
+  and stops to ask if they differ. Embedded in the engine, shown unaltered except for scaling. **Its look (Q29):** the
+  white logo (`LOGO_BRUTAL_WHT.png`) centred on the dark ground of the crash window's look (Q23), at its own size
+  (scaled down only to fit the window), nothing else on it, for 2 seconds at every start of both programs; a key or a
+  click skips it after its first second. Tests' applications don't show it (an option the programs leave on).
 - **The credits (2.1):** one engine view of the credits used by both programs: the program and its version,
   BRUTAL's copyright notice ("BRUTAL game development framework is Copyright (c) 2024 Ahwoo Limited.") and its
   `NOTICE.txt` text verbatim, FreeType's required credit ("Portions of this software are copyright © <year> The
   FreeType Project (https://freetype.org). All rights reserved.", FTL section 2), and each other component with
-  its licence and copyright line; where each program opens it and the exact list: Q30.
+  its licence and copyright line. **Its list and place (Q30):** the program's name and version; "Built with BRUTAL",
+  BRUTAL's copyright line and `NOTICE.txt` verbatim; every component with its licence and copyright line (FreeType
+  with its credit line, GLFW, OpenAL Soft under the LGPL with where its source is, HarfBuzz, stb, VMA, zlib, libpng,
+  gli, KTX, .NET, the fonts Lato and STIX Two under the OFL); and a pointer to `licenses/`. The editor opens it from
+  an "About" button in its top bar (a dialog; the top bar changes, so all 19 editor screens are captured again), the
+  sandbox from an "About" button on its page.
 
 ### Logs (M12-8; Q21)
 
@@ -522,7 +530,7 @@ except **Q1, Q11 and Q12**.
   packages not shared beyond the user meanwhile. (b) Also a BRUTAL logo splash and an About view in each program
   now. (c) Ask Ahwoo for written permission. **Answer: (b), not the recommendation (a):** a logo splash and an
   About/credits view in both programs now (the sandbox stand-in and the editor; the ported game gets them again in
-  its own screens later): "The BRUTAL logo and the credits" above; their details are Q29 and Q30.
+  its own screens later): "The BRUTAL logo and the credits" above; their details are Q29 and Q30 below.
 - **Q12. A readme in each download.** (a) A short `README.txt`. (b) Only the release's text on GitHub. (c) None.
   **Answer: (b), not the recommendation (a):** no readme in the downloads; the release's text carries what the
   readme would have said (Design, "Releases").
@@ -575,17 +583,18 @@ except **Q1, Q11 and Q12**.
 - **Q28. Where the package checks run.** (a) `check-packages.sh`, run by the packaging steps and before a release,
   not in `test.sh`. (b) All in `test.sh`. (c) The Linux packages in `test.sh`. **Answer: (a).**
 
-## Questions for the user (Q29–Q30), from Q11's answer
+## Decided (Q29–Q30, the user, 2026-11-08), from Q11's answer
 
-Not asked yet; steps 4–6 need them (step 4 builds both pieces, step 5 shows the splash, steps 5 and 6 open the
-credits).
+Raised by Q11's answer and asked with the question tool the same day; both answers the recommended option. Steps
+4–6 use them (step 4 builds both pieces, step 5 shows the splash, steps 5 and 6 open the credits).
 
 - **Q29. The BRUTAL splash: its look, length and skipping.** (a) The white logo (`LOGO_BRUTAL_WHT.png`) centred on
   the dark ground of the crash window's look (Q23), at its own size (scaled down only to fit the window), for 2
   seconds at every start of both programs; a key or a click skips it after its first second; nothing else on it.
   *Recommended:* legible and unaltered as the licence asks, short, and in the look the engine already owns. (b) The
   same, never skippable. (c) The black logo on a light ground (the game's parchment), 2 seconds, skippable after
-  the first.
+  the first. **Answer: (a)**: the white logo centred on the dark ground at its own size, 2 seconds at every start of
+  both programs, a key or a click skipping it after the first second.
 - **Q30. The credits view: where each program opens it, and what it lists.** (a) One engine view for both: the
   program's name and version; "Built with BRUTAL", BRUTAL's copyright notice and `NOTICE.txt` text verbatim; then
   each component with its licence and copyright line (FreeType with its required credit, GLFW, OpenAL Soft under
@@ -594,7 +603,9 @@ credits).
   bar (a dialog: every editor screen is captured again, the top bar changing), the sandbox from an "About" button
   on its page. *Recommended:* one list kept beside the licence files, each program offering it where its own
   commands are. (b) The same view, opened with F1 in both instead of buttons (no top bar change). (c) As (a), but
-  the sandbox shows the credits as a section at the foot of its page instead of a button.
+  the sandbox shows the credits as a section at the foot of its page instead of a button. **Answer: (a)**: one engine
+  credits view for both, an "About" button in the editor's top bar (its 19 screens captured again) and on the
+  sandbox's page.
 
 ## Left to the steps
 
@@ -636,7 +647,7 @@ the player's real folders (scratch per-user folders for every program run from a
 Engine-Plan's "Current task" (the merge worker does). Steps side by side touch no file in common besides those
 docs (each its own entry).
 
-**Order:** **wave 1:** 1, 2, 3 and 4 side by side (4 needs Q29 and Q30 answered); **wave 2:** 5 (after 2 and 4), 6
+**Order:** **wave 1:** 1, 2, 3 and 4 side by side; **wave 2:** 5 (after 2 and 4), 6
 (after 1, 2, 3 and 4; rebased on 5 for one call) and 7 (after 1 and 3) side by side; **wave 3:** 8 (after all). Then the manager ticks M12 and
 stops. **The fonts' order:** the engine's embedded Lato comes first (step 4), because the crash window (step 5)
 and the editor's whole UI, its "Where is Stat Fick?" screen included (step 6), are drawn in it; the editor's
@@ -681,7 +692,7 @@ the tests run without the splash.
      need unmet); the unpacked Linux stand-in starts headless, draws and quits (`--capture`) on a scratch per-user
      folder; sizes reported. Mutations: the check's rules (packages broken one way at a time) and the publish's.
 4. **The engine's embedded Lato and BRUTAL logo; the splash and the credits as engine pieces** (engine, new
-   files). Independent; needs Q29 and Q30.
+   files). Independent.
    - Owns: new resources under `Engine/Statventure/UI/Resources/` (Lato regular and bold with the OFL text; the
      BRUTAL logo, checked against ahwoo.com/brutal-branding, stopping to ask if the repo's file differs),
      `Engine/Statventure/Statventure.csproj` (the resource lines), new `UI/EngineFonts.cs` (the embedded Lato for
@@ -753,9 +764,9 @@ Filled in as the steps are done.
 
 ## Status
 
-**M12's design decided (2026-11-08): the main questions (M12-1–M12-12) and the detail round (Q1–Q28) answered by
-the user, M12-9 clarified; eight steps are the plan, none started; Q29 and Q30 (the splash's look and the credits
-view, from Q11's answer) still to ask before steps 4–6.** Nothing implemented.
+**M12's design decided (2026-11-08): the main questions (M12-1–M12-12), the detail round (Q1–Q28) and the two
+questions Q11's answer raised (Q29, the splash; Q30, the credits view) answered by the user, M12-9 clarified; nothing
+is open; the eight steps are the plan, none started.** Nothing implemented.
 
 **M12 started (2026-11-08):** the decisions recorded (M12-1–M12-12), what exists checked against the code, the
 method, the design proposed with 28 questions for the user, seven steps proposed. Found by the survey (each in

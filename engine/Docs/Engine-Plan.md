@@ -7,10 +7,9 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 **Current task (2026-11-08): M12 (packaging) started on the user's go ("Then start with M12"); its twelve questions
 (M12-1–M12-12) and the detail round its design doc raised (Q1–Q28, and the M12-9 clarification) are answered ("Decisions
-for M12"); the design doc is `Docs/Packaging.md`, and its eight steps, in three waves, are the plan, none started. Two
-questions that Q11's answer (the BRUTAL logo splash and credits now) raised, Q29 (the splash's look, length and skipping)
-and Q30 (where each program opens the credits and what they list), are still to ask; step 4 waits for them, the other
-wave-1 steps (1–3) don't. The rule to ask stands in full again in M12, the editor's packaging included (M11's exception
+for M12"), and so are the two questions Q11's answer (the BRUTAL logo splash and credits now) raised, Q29 (the
+splash) and Q30 (the credits view); nothing is open. The design doc is `Docs/Packaging.md`, and its eight steps, in
+three waves, are the plan, none started. The rule to ask stands in full again in M12, the editor's packaging included (M11's exception
 was for M11's editor only).** No code of M12 yet. M11 (editor foundation) is done and ticked: `main` is the merge of `m11-step14` (step 14, on `00e5bd4`, "M11
 fixes after step 14").
 **All fourteen steps of M11 are on `main`** (Progress, "M11 step 1" to "M11 step 14", "M11 fixes after step 14" and "M11
@@ -35,10 +34,10 @@ composited scroller and in a status line beside a tall scroller, a select with i
 painter painting every row of a scroll container, a textarea's `line-height`, a positioned box with a z-index inside a
 scroller, a stacking context on the form's rows, `ValueShape.TextOf`, a stop for sound effects); the Windows checklist
 ("Windows check" below, items 1–8, item 8 M11's, completed at M11's end); and the housekeeping list (finished workers'
-worktrees and branches). **Next: Q29 and Q30 for the user, and M12's steps** (`Docs/Packaging.md`, "Steps": wave 1,
+worktrees and branches). **Next: M12's steps** (`Docs/Packaging.md`, "Steps": wave 1,
 side by side: 1 the version and invariant globalization, 2 logs and crash files, 3 publishing, the archives and their
-check with `editor.ps1`, 4 the engine's embedded Lato and BRUTAL logo with the splash and the credits as engine pieces
-(after Q29 and Q30); wave 2: 5 the splash before `Load` and the crash window (after 2 and 4), 6 the editor as a download
+check with `editor.ps1`, 4 the engine's embedded Lato and BRUTAL logo with the splash and the credits as engine pieces;
+wave 2: 5 the splash before `Load` and the crash window (after 2 and 4), 6 the editor as a download
 of its own (after 1–4, rebased on 5 for one call), 7 the release script and its text (after 1 and 3); wave 3: 8 end to end with the Windows items).
 Before M11: M10 (scene and sequencer) done 2026-11-05 (the proof cutscene approved by the user), M9 (assets and data)
 2026-11-03, M8's music listened to and approved 2026-11-02 (Progress). Nothing since 2026-10-30 has run on Windows
@@ -652,8 +651,8 @@ the design and the tests):
   G6 decided by the manager (2026-11-06, "Decisions for M11"); G2 and G3 are kept for the port ("At port time" below).
   M11 is done (2026-11-08).
 - **M12 Packaging:** answered 2026-11-08 (see "Decisions for M12" below; M12-9 closes G3); M12 started on 2026-11-08.
-  The detail round (`Docs/Packaging.md`, Q1–Q28) and the M12-9 clarification were answered the same day; Q29 and Q30
-  (the BRUTAL splash and the credits view, raised by Q11's answer) are still to ask before step 4. How the editor is
+  The detail round (`Docs/Packaging.md`, Q1–Q28), the M12-9 clarification and Q29–Q30 (the BRUTAL splash and the
+  credits view, raised by Q11's answer) were answered the same day; nothing is open. How the editor is
   started on Windows (`editor.ps1`, "Windows check", item 8d) is in that doc's step 3.
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
@@ -973,8 +972,8 @@ in the user's words. The design doc is `Docs/Editor.md`.
 were asked on 2026-11-08 with the question tool by the manager, after reading the plan and the code, on the user's go.
 Every answer was the recommended option except the shipped folders (M12-1), icons (M12-5) and versioning (M12-6); M12-7
 is an in-game update check later with the first option's way meanwhile. The design doc is `Docs/Packaging.md`; the
-details these answers left open, its Q1–Q28, were answered the same day (the detail round below), and Q11's answer raised
-Q29 and Q30, still to ask.
+details these answers left open, its Q1–Q28, were answered the same day (the detail round below), and so were Q29 and
+Q30, which Q11's answer raised.
 - **The user's go (2026-11-08):** "Then start with M12"; M12 started on 2026-11-08.
 - **The rule to ask stands in full again (2026-11-08):** every design choice of M12 is asked, the editor's packaging
   included; the M11 discretion rule ("Decisions for M11", the user's rule for M11) was for M11's editor only.
@@ -1037,7 +1036,7 @@ Q29 and Q30, still to ask.
   - **Q11, BRUTAL's logo and credits, not the recommendation: a BRUTAL logo splash and an About/credits view in both
     programs now** (the sandbox stand-in and the editor; the ported game gets them again in its own screens, "At port
     time"). (The recommendation was `NOTICE.txt` now and the logo and credits at port time, the packages not shared
-    meanwhile; not asking Ahwoo for written permission.) Its details are Q29 and Q30, still to ask.
+    meanwhile; not asking Ahwoo for written permission.) Its details are Q29 and Q30 below.
   - **Q12, a readme, not the recommendation: none in the downloads;** the release's text on GitHub carries what it
     would have said. (The recommendation was a short `README.txt` in each; not nothing at all.) Q13: the stand-in keeps
     its title "Statventure Sandbox" and the release's text says it stands in for the game (not a line on its page;
@@ -1062,9 +1061,15 @@ Q29 and Q30, still to ask.
     clean and its commit is on GitHub's `main`, and runs no tests (not the full suite; not no checks). Q28 the package
     checks in `Tools/Scripts/check-packages.sh`, run by the packaging steps and before a release, not in `test.sh`
     (not all in `test.sh`; not the Linux packages in it).
-- **Still to ask, raised by Q11's answer:** Q29 (the splash: which logo, its ground, how long, whether and when it can
-  be skipped) and Q30 (the credits view: where each program opens it, what it lists), in `Docs/Packaging.md`,
-  "Questions for the user (Q29–Q30)"; step 4 waits for them.
+- **Q29 and Q30, raised by Q11's answer (the user, 2026-11-08, the question tool; both the recommended option;
+  `Docs/Packaging.md`, "Decided (Q29–Q30)"):** Q29, the splash: the white logo (`LOGO_BRUTAL_WHT.png`) centred on the
+  dark ground (Q23's look) at its own size, for 2 seconds at every start of both programs, skippable by a key or a
+  click after the first second (not never skippable; not the black logo on the game's parchment). Q30, the credits:
+  one engine credits view for both programs, opened by an "About" button in the editor's top bar (its 19 screens
+  captured again) and one on the sandbox's page; it lists the program's name and version, "Built with BRUTAL" with
+  BRUTAL's copyright line and `NOTICE.txt` verbatim, every component with its licence and copyright line (FreeType's
+  credit line, OpenAL Soft under the LGPL with where its source is, the OFL fonts, the rest) and a pointer to
+  `licenses/` (not F1 instead of buttons; not the sandbox's credits as a section of its page).
 
 **Decisions for the window's visibility (2026-11-03, the small task "send `visibilitychange` and `pagehide`"; asked after
 probing Chromium 152 under Xvfb with and without a window manager; every answer the recommended option):**
@@ -2567,6 +2572,7 @@ Asked after the regression run (2026-11-06):
   - **M11 done (2026-11-08, 3496 tests):** all fourteen steps merged on `main`, with the fixes step 14's flow called for (`00e5bd4`); M11 ran from 2026-11-06 to 2026-11-08 under the user's rule for M11 (the editor's design the manager's: P1–P38 and every step's questions; the game's questions G4 and G5 the user's, G1 and G6 the manager's, G2 and G3 kept for the port). The Statventure Editor (`Tools/Editor`) opens one pack over the game's packs, edits every record kind through one form made from the kinds' definitions with undo per entry, checks as you edit with the engine's own checks (the game runs them at load too, G4, G5), references, import, a live preview, and saves mods (and, in the dev setup, the game's packs); a mod made from nothing through its UI loads in the game as the editor showed it (step 14). The full suite passes on the GPU and on lavapipe, inside a headless Wayland compositor under the shared lock: 3496 tests, none held (M11 started at 2547 on `a32c5cb`; the work beside it, the background-layer port and the first-text LCD fix among it, is in its own entries). Every one of the editor's 19 screens matches Chromium 152 at 1 and 1.65 within the paint fixtures' limits on both devices. Mutations: every step's list killed or accounted for (each step's entry; about 2,460 in the lists as they stand, 42 accounted for, none writing to the player's real folders). Found on the way and recorded as small tasks (open, no go yet): control labels a device pixel low at 1.65; text grayscale at 1.65 in a composited box, under a dialog over a composited scroller and in a status line beside a tall scroller; a select with its own padding wider than Chromium's; the painter painting every row of a scroll container; a textarea's `line-height`; a positioned box with a z-index inside a scroller; a stacking context on the form's rows; `ValueShape.TextOf`; a stop for sound effects. Fixed on the way: text first in a paint chunk (`lcd-first-text`), the capture harness's window out of X11's range at 1.65 (step 8), the flaky `ScriptApiTests` (a test's own fault). Not checked: the editor in a real window and by ear (the by-hand checks (a)–(e) in "Small tasks left from earlier milestones"), Windows ("Windows check", item 8). What it leaves for the port: "What M11 leaves for the port" under "How to continue". Ticked under Milestones; M12 waits for the user's go, its questions first.
   - **M12 started (2026-11-08, docs only, on the branch `m12-design` from `bb2e443`):** the user's go ("Then start with M12"); the twelve questions asked and answered the same day, all with the recommended options except the shipped folders (M12-1: two separate downloads, the editor told where the game is), icons (M12-5: none in M12) and versioning (M12-6: date-based); M12-7 an in-game update check later, draft GitHub releases meanwhile; M12-9 closes G3 (the `Statventure.Game.Data` library); the rule to ask stands in full again ("Decisions for M12"). Design doc `Docs/Packaging.md`: what exists checked against the code (the build publishes only the sandbox, framework-dependent, with every runtime's natives, 159 MB; nothing publishes the editor; the executable takes the assembly's name, so M12-2's names come from renaming it at publish or naming the assembly per platform; no program version anywhere, only the engine's own `EngineInfo.Version` 0.1.0; no program sets `ApplicationOptions.LogFile`; a crash is logged and rethrown after the window, device and sound are disposed, so a crash window needs a window, device and loop of its own, and the engine embeds no font; the editor's fonts are the game's `ui.pak`'s, so an editor downloaded apart can't draw before it knows the game; BRUTAL's Windows libraries need the Visual C++ runtime, `VCRUNTIME140.dll` and for some `MSVCP140.dll`, which nothing ships; a Windows `.exe` built on Linux gets no version resources, NETSDK1074; the Linux libraries need glibc 2.34 and carry `RUNPATH $ORIGIN`, each up to three times as copies; the BRUTAL licence asks for `NOTICE.txt`, the copyright in the credits and the logo before the program's primary function, the README waiving the logo for non-profit projects while the licence text names written permission), the method, a proposed design, 28 questions for the user (Q1–Q28, not asked yet) and seven proposed steps (the version; logs and crash files; publishing and the archives with their check and `editor.ps1`; the crash window; the editor as a download of its own; the release script; end to end with the Windows items) in three waves. No code yet.
   - **M12's detail round answered (2026-11-08, docs only, the branch `m12-design`):** the user answered Q1–Q28 of `Docs/Packaging.md` and clarified M12-9 with the question tool, all as recommended except Q1 (versions always of four numbers, `2026.11.8.1`), Q11 (a BRUTAL logo splash and a credits view in both programs now) and Q12 (no readme in the downloads, the release's text instead); M12-9: no copy of the data library in the editor's download ("Decisions for M12", "The detail round"). `Docs/Packaging.md`'s questions became "Decided (Q1–Q28)", its design and steps follow them: an eighth step (4, the engine's embedded Lato, one resource the crash window, the splash, the credits and the editor share, and the BRUTAL logo, with the splash and the credits as engine pieces), the splash and the crash window together in step 5 (both `Application.Run`'s own screens), the release's text carrying what a readme would have said (step 7). The logo: BRUTAL's own `docs/branding/LOGO_BRUTAL_WHT.png` and `LOGO_BRUTAL_BLK.png` (712 × 168) in the BRUTAL source in the build cache, not in any package; step 4 checks them against ahwoo.com/brutal-branding. Two new questions from Q11's answer, Q29 (the splash's look, length and skipping) and Q30 (where each program opens the credits, what they list), still to ask; step 4 waits for them. The eight steps are the plan; none started. No code yet.
+  - **M12's Q29 and Q30 answered (2026-11-08, docs only, the branch `m12-design`):** both as recommended ("Decisions for M12"; `Docs/Packaging.md`, "Decided (Q29–Q30)"): the BRUTAL splash is the white logo centred on the dark ground at its own size, 2 s at every start of both programs, skippable by a key or click after the first second; one engine credits view for both programs, opened by an "About" button in the editor's top bar (its 19 screens captured again) and on the sandbox's page, listing the program and version, "Built with BRUTAL" with the copyright line and `NOTICE.txt` verbatim, every component with its licence and copyright line, and a pointer to `licenses/`. Nothing of M12's design is open; step 4 no longer waits; the eight steps are the plan, none started. No code yet.
 
 ## Milestones
 

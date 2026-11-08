@@ -44,7 +44,7 @@ the user and wait for their go-ahead before starting the next one.
   run the tests once (they write `Reference/editor-fixtures.json`), then `Tools/Scripts/make-editor-references.sh
   [fixture ...]` (PaintReference at 1 and 1.65, an invisible window; only the named fixtures when given).
 - Packaging (M12, `Docs/Packaging.md`): the decisions (two downloads, the game and the editor; the detail round Q1–Q28
-  answered 2026-11-08; Q29–Q30, the BRUTAL splash and credits, still to ask), what exists, the method, the design and
+  and Q29–Q30, the BRUTAL splash and credits, answered 2026-11-08), what exists, the method, the design and
   the eight steps; no packaging scripts yet. Every M12 choice is asked, the editor's packaging too (M11's exception
   ended with M11).
 - Audio (M8, `Docs/Audio.md`): `Tools/Scripts/play-theme.sh [theme] [--volume 0-100]` plays the music on the real
