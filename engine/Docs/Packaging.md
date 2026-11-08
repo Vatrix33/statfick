@@ -1049,7 +1049,104 @@ Step 4's prerequisite, a commit of its own (the user's decision (a), "Decided (t
 
 - **Mutations and full runs:** with step 4's (below).
 
+### Step 4: the engine's embedded Lato and BRUTAL logo; the splash and the credits (2026-11-08)
+
+**The engine's embedded Lato (`UI/EngineFonts.cs`, Q17, Q23):** `UI/Resources/lato-regular.ttf`, `lato-bold.ttf`
+and `lato-ofl.txt`, copied from `old-game/objects/fonts/` (`Lato-Regular.ttf`, `Lato-Bold.ttf`, `Lato-OFL.txt`, the
+files `make-ui-pack.sh` packs), embedded as `Statventure.UI.<name>` (`Statventure.csproj`: `*.ttf` and `*.txt` beside
+the existing `*.png`). `EngineFonts.Regular`, `Bold`, `Licence` (the bytes); `EngineFonts.AddTo(FontLibrary)` adds
+both faces as the family `Lato` (`EngineFonts.Family`), weights 400 and 700, so a document needs no @font-face (the
+engine's own documents); `EngineFonts.Mount()`, a custom mount giving them at ui.pak's paths
+(`ui/fonts/lato-regular.ttf`, `lato-bold.ttf`, `lato-ofl.txt`), so a stylesheet whose @font-face rules name those
+paths loads them from a document's `Files` unchanged. **For step 6:** the editor switches by making its `_uiData`
+`new VirtualFileSystem([EngineFonts.Mount()])` in place of the game's ui.pak (its `Fonts.css` unchanged), or by
+`EngineFonts.AddTo` and dropping `Fonts.css`. **For step 5:** the crash window's document takes `EngineFonts.AddTo`.
+(Left to the step, "a mount or a font library": both, for those two uses.)
+
+**The splash (`UI/Splash.cs`, Q29, and the logo's decision):** `UI/Resources/LOGO_BRUTAL_WHT.png` is the branding
+page's file byte for byte (4096 × 896; no colour chunks, so Chromium draws it untouched under the harness's sRGB
+profile). `new Splash()` is a document of its own: the logo as `<img class="logo" src="engine/brutal-logo.png">`
+in its own data (`Splash.LogoPath`, a custom mount in its `Files`, so a `UiHost` shows it with no wiring), on
+`html { background: #1a1c1a }` (`Splash.Ground`, the editor's `--paper`), centred by flex,
+`width: 696px; max-width: 100%; max-height: 100%; object-fit: contain` (`Splash.LogoWidth`): 696 × 152.25 CSS px,
+narrower in a narrower window, shorter (kept whole, centred in its box) in a shorter one; the engine's Lato in its
+library though no text shows. Its clock: `Advance(time)`, once a frame with the frame's time (after the host updated
+the document); the first call starts it; `Elapsed`; `Finished` once 2 s (`Splash.Length`) have passed or it was
+skipped; a `keydown` or a `mousedown` (any button) the document gets from 1 s on (`Splash.SkippableAfter`, at the
+time of the last `Advance`) skips it (`Skipped`), earlier ones do nothing. Left to the step and chosen: a key's
+press and any mouse button's press count ("a key or a click"); events count at the last frame's time, at most a frame
+late. On the PC the logo's first draw makes its level-2 copy (1024 × 224 at 1×, level 1, 2048 × 448, at 1.65) from
+the decoded 4096 × 896. **For step 5:** `using var splash = new Splash(); var host = new UiHost(window, gpu,
+splash.Document);` then each frame `host.Update(t); splash.Advance(t); if (splash.Finished) break; host.Render(…)`.
+
+**The credits (`UI/Credits.cs`, Q30):** `Credits.Markup(title, ProgramInfo)` and `Credits.Css` (rules under
+`.credits`) for a program's own dialog; `new Credits(title, program)` a whole document (`Credits.ViewCss`: the
+dark ground, a scroller `.credits-view` with the editor's scrollbar colours; `Scroller`), its own library with the
+engine's Lato. Layout (left to the step): the title (`h1`, the program's display name: "Statventure Editor",
+"Statventure Sandbox") and "Version 2026.11.8.1" (`ProgramInfo.Version`, "Version dev" for a dev build; no commit,
+Q3); "Built with BRUTAL" (`h2`) with `NOTICE.txt` verbatim (`UI/Resources/brutal-notice.txt`, every BRUTAL
+package's, its first line BRUTAL's copyright line, so the line shows once), `white-space: pre-wrap`; "Components",
+each with its name and version (`h3`), its licence and its copyright lines as its licence text states them, and its
+notes; "Licences": "The full texts of these licences are in the licenses folder beside the program (BRUTAL's in
+licenses/BRUTAL-LICENSE.txt), and BRUTAL's notice in NOTICE.txt." Lato 13/20 px, headings bold, the licence names in `--muted`. **The components**
+(`Credits.Components`, 36): every component the shipped texts name: FreeType 2.14.3 (FTL, with its credit, "Portions
+of this software are copyright © 2026 The FreeType Project (https://freetype.org). All rights reserved.", the year
+BRUTAL's FreeType notice gives, and "This software is based in part of the work of the FreeType Team."), its BDF and
+PCF drivers, libpng, zlib, GLFW with SDL_GameControllerDB and the Wayland protocol descriptions, OpenAL Soft 1.25.2
+(LGPL-2.0-or-later; its source, `https://github.com/kcat/openal-soft` at commit `dd4e07de…`, unmodified, the
+separate library beside the program; its licence's text `licenses/openal-soft-COPYING.txt`) with
+Spherical-Harmonic-Transform, PFFFT, {fmt} and GSL, stb, the Vulkan headers and reference pages, VMA, GLI and GLM,
+the glTF schemas, KTX-Software with Basis Universal, miniz, Zstandard, astc-encoder, dfdutils and its Vulkan headers,
+HarfBuzzSharp and HarfBuzz, .NET 10 (with a pointer to its third-party notices) with Brotli and zlib-ng,
+Microsoft.Extensions and the .NET Community Toolkit (each with a pointer to its notices file), Lato and STIX Two
+(OFL). Components whose texts state no copyright
+line (OpenAL Soft, KTX-Software, Basis Universal, astc-encoder, dfdutils, the Vulkan headers in libktx) show their
+licence only. Lato's line spells "Łukasz": the shipped OFL text (the old game's, ui.pak's) has the letter
+mis-encoded (U+0106 U+0081, its UTF-8 read as Latin-1 and written again). **Checked against the texts**
+(`EngineScreensTests`): each copyright and note line is in the text it names (whitespace runs made single spaces),
+the text being where the publish takes it (the BRUTAL packages' `LICENSES/`, HarfBuzzSharp's, .NET's runtime pack,
+the old game's fonts; step 3's `Tools/Packaging/licenses.txt`); every component each BRUTAL package's notices name
+(their "Name" fields, or KTX's and stb's section titles) is credited, the count exact; every shipped text is named by
+a component (its text or a note), BRUTAL's licence by the closing line.
+**For steps 5 and 6:** the sandbox's About button shows `new Credits("Statventure Sandbox", ProgramInfo.Of(…))`
+(its own document) and the editor's dialog `Credits.Markup("Statventure Editor", EditorView's ProgramInfo)` with
+`Credits.Css` in its document (its scroller its own).
+
+**Fixtures** (`Ui/EngineScreensPaintReferenceTests.cs`, `engine-screen-fixtures.json`, the documents' own
+stylesheets with no base sheet; the logo as a data url for Chromium): `splash` (1000 × 600), `splash-narrow`
+(480 × 300), `splash-short` (800 × 100), `credits` (720 × 800, a release's version) and `credits-end` (scrolled to the
+foot), each at 1 and 1.65; the engine renders the real documents, their image from their own data. Pixels beyond 12
+levels: the splashes none (worst 1 at 1×, 11 at 1.65), credits 2 (1×) and 324 (0.021 %, 1.65), credits-end 199
+(0.035 %) and 151 (0.010 %), at the paint fixtures' limits (12 levels, 0.2 %). Renders kept in
+`~/.cache/stat-fick-build/claude-work/m12/step4/`.
+
+**Mutations** (the prerequisite's and the pieces' together): 96 (`~/.cache/stat-fick-build/claude-work/m12/step4-mutations.json`,
+made by `step4-make-mutations-pre.py`, the prerequisite's 41, and `step4-make-mutations.py`, the pieces' 55, beside it):
+94 killed at first; the 2 survivors were gaps, closed: the canvas's own scale left out of a draw's matrix (the GPU
+test's checks give the same mean at any level; a test of columns through a canvas scale of 2 added: the UI paints at
+the canvas's scale 1, so only direct canvas users see it) and the cover cut left out (a cut from an even column
+changes nothing a copy shows, and the first case's 450 pixels stayed under 0.2 %: the cover image now cut from
+column 33 and 120 × 76, `image-shrink` captured again); both killed when run again (`step4-rerun.json`,
+`step4-rerun2.json`); nothing written to the player's real folders.
+
+**Full runs:** the full suite passes on the GPU (1 min 55 s) and on lavapipe (2 min 27 s), inside a headless Wayland
+compositor under the shared lock, on `2911b84` with both commits: 3625 tests (main's 3544 and 81 new), none skipped
+(before the rebase, on `345388f`: 3592, 1 min 33 s and 1 min 57 s); the prerequisite's commit alone builds and passes
+the UI, canvas, 3D and editor-screen tests (1244); the player's real game folder stayed missing and the Documents
+folder's top level unchanged.
+
 ## Status
+
+**Step 4 done (2026-11-08, branch `m12-step4`, 3625 tests on the GPU and on lavapipe):** the logo's check found
+the branding page's 4096 × 896 files newer than BRUTAL's 712 × 168 copies and stopped; the user's decision (a)
+("Decided (the logo's file)"): the page's white logo at the approved 696 CSS px, Chromium's shrunk images ported first
+(its own commit: cc's decode cache, Skia's mipmaps and legacy bilinear sampling, premultiplied images, Blink's fitted
+`<img>`; two image fixtures; every existing render the same). Then `UI/EngineFonts` (ui.pak's Lato bytes, a font
+library or a mount), `UI/Splash` (Q29: 2 s, skippable from 1 s, on the document's clock) and `UI/Credits` (Q30:
+the program and version, `NOTICE.txt` verbatim, 36 components checked against the shipped texts, FreeType's credit,
+OpenAL Soft's source, the pointer to `licenses/`), five fixtures against Chromium at 1 and 1.65 within the paint
+limits. Mutations: 96, 94 killed, the 2 survivors gaps closed and killed when run again. Not checked: Windows; the splash and the credits in a real window (steps 5 and 6).
+("How it works", step 4.)
 
 **Step 2 done (2026-11-08, branch `m12-step2`, 3544 tests on the GPU and on lavapipe):** one log per run in the
 player's `logs/` (`stat-fick-2026-11-08_14-03-22.log`, the editor's `statventure-editor-…`) with its first lines (the

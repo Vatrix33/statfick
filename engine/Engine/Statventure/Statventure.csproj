@@ -24,6 +24,9 @@
     <!-- Engine shaders, compiled to SPIR-V by Tools/ShaderCompiler before the build. -->
     <EmbeddedResource Include="Shaders/Bin/*.spv" LogicalName="Statventure.Shaders.%(Filename).spv" />
     <EmbeddedResource Include="UI/Resources/*.png" LogicalName="Statventure.UI.%(Filename).png" />
+    <!-- The engine's own Lato (regular, bold, its OFL text) and BRUTAL's notice (M12 step 4: UI/EngineFonts.cs, UI/Credits.cs). -->
+    <EmbeddedResource Include="UI/Resources/*.ttf" LogicalName="Statventure.UI.%(Filename).ttf" />
+    <EmbeddedResource Include="UI/Resources/*.txt" LogicalName="Statventure.UI.%(Filename).txt" />
   </ItemGroup>
 
   <ItemGroup>
