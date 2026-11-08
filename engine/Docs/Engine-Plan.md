@@ -5,66 +5,40 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-11-07, 18:10): M11 (editor foundation), mid-way.** `main` is `3e6df0f`. On it from M11
-(Progress, "M11 step 1" to "M11 step 7"; `Docs/Editor.md`, Status): step 2, packs for the editor (2026-11-06,
-`5af923e`); step 4, the editor's shell (2026-11-06, `8c06f86`); step 1, record shapes, drafts and marks (2026-11-06,
-`65ee082`); step 7, the mod's info entry (2026-11-06, `42fdd90`); step 3, the window, sound and file-browser hooks
-(2026-11-06, `69f090b`); step 5, the audio kinds' checks and marks (2026-11-07, `3e6df0f`; the theme check runs when
-the data loads, the user's decision of 2026-11-07). Beside M11, also on `main`: the background-layer port (`2323779`,
-below), the painter's fix for text first in a paint chunk (`d5b8b39`; Progress, "Text first in a paint chunk"), and the
-old game's port tasks 7 (pull requests #12 and #13) and 8 and 9 (#14), merged by the user. **The full suite on `main` is
-2940 tests, passing on the GPU and on lavapipe, nothing held.** In progress on worker branches, not on `main`: step 6
-(`m11-step6`: all seven kinds' checks and marks written; the declared limits and the sequence's effects-and-sounds check
-being wired into `Sequence.Load` per the user's decisions of 2026-11-07, recorded on that branch under "Decisions for
-M11"; its runs and docs to come), step 9 (`m11-step9`: the form, undo and the JSON view written and within the limits
-against Chromium; its mutation run and full runs under way), step 8 (`m11-step8`: opening packs, the browser dialog and
-the entry list, started 2026-11-07; its branch is built on step 9's work in progress, `d69afb5`). Then wave 3 (steps
-10, 12 and 13, as the steps each waits for reach `main`) and wave 4 (11, then 14) (`Docs/Editor.md`, "Steps"). M11
-started on 2026-11-06 with the user's go ("Once that worker finishes you can start with M11", given after the full run
-on `a32c5cb`, below). Its detail round is answered: M11-1 to M11-8 on 2026-11-05, M11-9 to M11-21 on 2026-11-06
-("Decisions for M11" below), with **the user's rule for M11**: only questions meant for the game go to the user, the
-editor itself is the manager's to decide (big decisions told to the user; the manager's reading of it is in "Decisions
-for M11" and under "Ask the user about design choices" below). The design doc is `Docs/Editor.md`: what exists checked
-against the code, the method, the design and fourteen steps with their dependencies and which can run side by side.
-**The design is decided (2026-11-06):** the editor's own choices P1–P38 by the manager, all as recommended; of the
-game's questions, G4 and G5 answered by the user (the game enforces declared limits too; the checks that today run only
-when something plays also run when the data loads, the added loading time measured first and brought to the manager),
-G1 and G6 decided by the manager (the mod's info as a `mod/info` entry of a kind the engine knows; the editor's settings
-in an `editor/` folder of the player's game folder), G2 and G3 kept for the port ("Open questions for later
-milestones", "At port time"); "Decisions for M11" below. The steps in `Docs/Editor.md`, "Steps", are the plan: workers
-side by side in worktrees, each step merged into `main` by a merge worker ("Merging" below), full runs serialized by
-the shared lock and run inside a headless compositor ("How each step is finished", item 1).
-M10 (scene and sequencer) is done and ticked (2026-11-05). It started on 2026-11-04 with
-the user's go (its eleven questions and 33 step details answered that day, the steps' own questions on the way; "Decisions
-for M10" below; the design doc is `Docs/Scene.md`), and all seven steps are merged on `main` (Progress, "M10 step 1" to
-"M10 step 7" and "M10 done"; `Docs/Scene.md`, Status): the node tree and the scene, F-curves and easing, cameras and a sun
-from glTF, the sequence record, builder and player, camera, light and particle tracks, audio and UI tracks, and the proof
-cutscene, Ji'ruan's intro. **The user approved the proof on 2026-11-05** ("The scene is perfect. I can't fully judge it
-because of the placeholder model, but it's very good."; S7-5), and since the shadow blur port (`515c128`) its title card
-matches Chromium at all six sampled moments, so nothing of M10 is held. When M11 started, `main` was `a32c5cb`
-(2026-11-06): pull requests #8–#11 brought port tasks 2–6 into the old game ("Beside the engine" below), the engine's
-code untouched. The full suite on it was 2547 tests, passing on the GPU and on lavapipe, with nothing held (run on the PC
-on 2026-11-06, below; the same 2547 as on `7fd3aac`, Progress, "Canvas: inset shadows cast from Blink's frame").
-Done on the way, each by a worker of its own (Progress, by name): the flaky
-`OutputTests.TheDefaultDevicePacesTheGraph` traced to OpenAL's process-wide current context and fixed, with the user's
-two output follow-ups ("OpenAL outputs in one process"); test runs kept out of the player's real folders ("Test runs kept
-out of the player's folders"); and three rules the proof's title card found, each against Chromium: the canvas's box
-antialiasing under non-uniform transforms ("Canvas: box antialiasing under non-uniform transforms"), Blink's paint offset
-of transformed boxes ("Paint offset of transformed boxes") and blurred shadows with Skia's one device sigma ("Canvas:
-blurred shadows under non-uniform transforms"); after M10, the inset shadow's caster (merged on `main` as `7fd3aac`,
-2026-11-05; Progress, "Canvas: inset shadows cast from Blink's frame"). Then background-image layers painted as Blink paints them, the whole layer rule with seamless tiling (Progress, "Background layers as Blink paints them"; "Decision on background layers"), **finished and on `main` since its merge** (`2323779`; the branch `background-layers-aa`, one commit on `5af923e`; the user approved the merge on 2026-11-06 with the game screens' movement shown to them, and decided the one open question: the clip-layer bleed avoidance stays a known difference). Still open from M10 step 6: the music switch exactly on a quantum's start
-during the old theme's fade-in, to check against Chromium (below, "Small tasks left from earlier milestones"). M9
-(assets and data) is done and ticked (2026-11-03; Progress, "M9 done"); M8's music the user has listened to with
-`play-theme.sh` and is happy with (2026-11-02). Nothing since 2026-10-30 has run on Windows ("Windows check" below). The
-project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo `github.com/Vatrix33/statfick`; the
-user's tasks for the port are in `Docs/Port-Tasks/`, read when the port starts ("Decision on the user's tasks for the
-port"; "Open questions for later milestones", "At port time").
-The inset shadow's caster is merged on `main` (`7fd3aac`, 2026-11-05; worker branch `shadow-inset-caster`, rebased on
-`5c11c06`): `shadow-rotate` un-held at 12 levels / 1 %, `shadow-scale-x` and `shadow-scale-y` at 1.65 at the paint
-fixtures' 12 / 0.2 %, `shadow-scale-y` at 1× at 12 / 0.25 % (the user's limit, 2026-11-05), so nothing is held; the
-game screens' slight move away from Chromium (the blur kernel's shape) is a known difference the user accepted the same
-day (Progress, "Canvas: inset shadows cast from Blink's frame"; "Decision on blurred shadows under non-uniform
-transforms").
+**Current task (2026-11-08): M11 (editor foundation) is done and ticked; M12 (packaging) starts only on the user's go,
+first with its questions.** `main` is the merge of `m11-step14` (step 14, on `00e5bd4`, "M11 fixes after step 14").
+**All fourteen steps of M11 are on `main`** (Progress, "M11 step 1" to "M11 step 14", "M11 fixes after step 14" and "M11
+done"; `Docs/Editor.md`, Status): record shapes, drafts and marks (step 1), packs for the editor (2), the window, sound
+and file-browser hooks (3), the shell (4), the audio kinds' checks and marks (5) and the other kinds' (6), the mod's info
+entry (7), opening packs, the browser and the entry list (8), the form, undo and the JSON view (9), checks and references
+(10), saving and mods (11), import (12), the preview (13), and the whole editor end to end (14), with the fixes its flow
+called for (New entry in the top bar and Ctrl+N; Enter in the import dialog; the empty Stand-ins heading). **The full
+suite on `main` is 3496 tests, passing on the GPU and on lavapipe, nothing held** (2026-11-08, inside a headless
+Wayland compositor under the shared lock; "How each step is finished", item 1). M11 ran from 2026-11-06 (the user's go,
+after the full run on `a32c5cb`) to 2026-11-08 under **the user's rule for M11** (questions about the game to the user,
+the editor's own design the manager's, big decisions told; "Decisions for M11"): the editor's choices P1–P38 and each
+step's questions were the manager's, the game's questions G4 and G5 the user's (the game enforces declared limits; the
+play-time checks also run at load, their cost measured and accepted for the music and the cutscenes on 2026-11-07), G1
+and G6 the manager's, G2 and G3 kept for the port ("Open questions for later milestones", "At port time"). What M11 leaves
+for the port is below ("What M11 leaves for the port"). **Open, none of it blocking M12, each waiting for the user's go:**
+the by-hand checks for the user on Linux, (a)–(e) in "Small tasks left from earlier milestones" (the editor in a real
+window, real drops and closes, the preview's sound by ear, saving, and step 14's mod by hand); the small tasks with no go
+yet in the same list (the music switch during a fade-in; the proof cutscene's sounds by ear; the engine findings of M11:
+control labels a device pixel low at 1.65, text grayscale at 1.65 in a composited box, under an editor dialog over a
+composited scroller and in a status line beside a tall scroller, a select with its own padding wider than Chromium's, the
+painter painting every row of a scroll container, a textarea's `line-height`, a positioned box with a z-index inside a
+scroller, a stacking context on the form's rows, `ValueShape.TextOf`, a stop for sound effects); the Windows checklist
+("Windows check" below, items 1–8, item 8 M11's, completed at M11's end); and the housekeeping list (finished workers'
+worktrees and branches). **Next: M12 (packaging), only on the user's go**, and first its questions under "Open questions
+for later milestones" (the shipped folder's layout and the executables' names, the editor's place in it and its
+executable's name, M11-19, the file G3's answer may add, self-contained .NET, installer or archive per platform, icon,
+versioning, updates, crash logs), asked all at once with the question tool, then planned in the order "Starting M9" gives.
+Before M11: M10 (scene and sequencer) done 2026-11-05 (the proof cutscene approved by the user), M9 (assets and data)
+2026-11-03, M8's music listened to and approved 2026-11-02 (Progress). Nothing since 2026-10-30 has run on Windows
+("Windows check"). The project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo
+`github.com/Vatrix33/statfick`; the user's tasks for the port are in `Docs/Port-Tasks/`, read when the port starts
+("Decision on the user's tasks for the port"; "Open questions for later milestones", "At port time"); tasks 1–9 are done
+in the old game (the paragraphs below).
 **Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is done in the old game**, as task 1 was
 (the user's answer G1, "Decisions for task 2, Guild Rework" below; built on the cloud branch `claude/fervent-carson-f5ol9s`
 and merged through a pull request). The port doesn't build it again; only its two guild interiors, placeholder art, are
@@ -212,7 +186,11 @@ what needs the user's machines):**
   mods made stay out of the real mods folder): New mod (its name and file name, the mod's info in its own form), an
   entry edited and Ctrl+S (the title's "•" and the list's marks go), Save As with some entries unticked (the browser,
   the new file open after), and closing with unsaved work (Save, Discard, Cancel) by the title bar (`Docs/Editor.md`,
-  "How it works", step 11).
+  "How it works", step 11). (e) Step 14's mod by hand (`editor.sh --player-folder <a scratch folder>`, the copy of
+  `~/.cache/stat-fick-build/claude-work/m11/step14/ember-rite.pak` in its `mods/`): New entry by the top bar's button and
+  by Ctrl+N, a reference picked from its list with the mouse, the JSON tab, the cutscene `world/cutscenes/rite` previewed
+  and its chime heard at a volume of the user's choosing (`Docs/Editor.md`, "How it works", step 14). The same on
+  Windows: "Windows check", item 8 (gathered in `Docs/Editor.md`, Status).
 - A stop for sound effects (open, recorded 2026-11-07 by M11 step 13; no go yet): the engine's `SoundEffects` has
   `Register`, `Play` and `PlayAt` only; a voice once started plays to its end (`ScheduledSound.Cancel` works only before
   its time), so the editor's preview can't cut a sounding effect with Stop (P31; the manager's decision Q2 of 2026-11-07:
@@ -220,21 +198,23 @@ what needs the user's machines):**
   effects (e.g. `SoundEffects.StopAll()`, every voice faded out over the steal's 5 ms), which the preview's Stop then
   calls (`Docs/Editor.md`, "How it works", step 13).
 - Housekeeping (open, needs the user's go; recorded 2026-11-05; checked against `git worktree list` and `git branch` on
-  2026-11-07, 18:10, listing only what is there): finished workers' worktrees and merged local branches are still there
-  and can go (after `git worktree unlock` for the locked ones). From before M11: the worktrees
-  `.claude/worktrees/agent-a100365f9dd9f6455`, `agent-a854dc507294edc31` (`shadow-inset-caster`),
-  `agent-a90b2ab8c1e10ed5b`, `agent-ab2955e985eacee1d`, `stray-saves` (locked), and from the evening's docs commits of
-  2026-11-05 `agent-a2e8de9d65afa90cf` (branch `docs-2026-11-05-evening`) and `agent-a93b8e77b1ce8d3b9` (branch
-  `docs-m11-answers`); the local branches `step7-unsquashed-backup` (M10 step 7's commits before their squash, so git
-  doesn't count it as merged) and `paint-offset-rounding`. From M11 and the work beside it, all merged on `main`
-  (2026-11-06 and 2026-11-07): the worktrees `agent-a7af00a2756e64974` (branch `m11-step2`), `agent-a426936d050e88bec`
-  (`m11-step4`), `agent-a1ec0e500ee3cb5ea` (`m11-step1`), `agent-a6537232e954bf00b` (`m11-step7`),
-  `agent-aec1ea5dc55ab019d` (`m11-step3`, locked), `agent-a4031ddbb1001df19` (`m11-step5`, locked),
-  `agent-abcc33021821690f3` (`lcd-first-text`), `agent-a55b0fabf44a865d5` (`background-layers-aa`, locked),
-  `agent-a6d967f5c503ec975` (`m11-design`) and `agent-a4bb2c94143be5ce9` (`docs-after-port-tasks`), and the branch
-  `worktree-agent-aff23c463ed886502` (no worktree, at step 3's `69f090b`). With each `agent-<id>` worktree goes its own
-  branch `worktree-agent-<id>` (all merged). Not yet: the worktrees and branches of steps 6, 8 and 9 (in progress, with
-  `m11-step6-wip-backup`).
+  2026-11-08 at M11's end, listing only what is there): every worktree under `.claude/worktrees/` is a finished worker's
+  whose work is on `main` (the docs-only ones superseded) and can go, after `git worktree unlock` for the locked ones.
+  From before M11: `agent-a100365f9dd9f6455`, `agent-a854dc507294edc31` (`shadow-inset-caster`), `agent-a90b2ab8c1e10ed5b`,
+  `agent-ab2955e985eacee1d`, `stray-saves` (locked), `agent-a2e8de9d65afa90cf` (`docs-2026-11-05-evening`) and
+  `agent-a93b8e77b1ce8d3b9` (`docs-m11-answers`). From M11 and the work beside it: `agent-a7af00a2756e64974`
+  (`m11-step2`), `agent-a426936d050e88bec` (`m11-step4`), `agent-a1ec0e500ee3cb5ea` (`m11-step1`),
+  `agent-a6537232e954bf00b` (`m11-step7`), `agent-aec1ea5dc55ab019d` (`m11-step3`, locked), `agent-a4031ddbb1001df19`
+  (`m11-step5`, locked), `agent-a5af0bef78dd7cefd` (`m11-step6`), `agent-adb75d946c33c35be` (`m11-step9`), `m11-step8`
+  (locked), `m11-step12` (locked), `agent-a5fd483069282c022` (`m11-step13`), `agent-a02497cf032af0aed` (`m11-step10`),
+  `agent-acf904db51cc4ffe5` (`m11-fixes-1`, locked; it held step 11's branch `m11-step11` before), `agent-ac865c716354051df`
+  (`m11-step14`, once merged), `agent-abcc33021821690f3` (`lcd-first-text`), `agent-a55b0fabf44a865d5`
+  (`background-layers-aa`, locked), `agent-a8c8ea516c01d3cb0` (`flaky-script-api-task`, locked), `agent-a6d967f5c503ec975`
+  (`m11-design`), `agent-a4bb2c94143be5ce9` (`docs-after-port-tasks`) and `agent-a36386867198a2222` (`docs-m11-midway`).
+  With each `agent-<id>` worktree goes its own branch `worktree-agent-<id>`; and the branches with no worktree:
+  `m11-step11`, `worktree-agent-a7ff929d77cdfabea`, `worktree-agent-aff23c463ed886502`, and the backups git doesn't count
+  as merged (work in progress kept before a squash): `m11-step6-wip-backup`, `m11-step10-wip`, `m11-step10-wip2`,
+  `m11-step13-wip-backup`, `step7-unsquashed-backup` and `paint-offset-rounding`.
 - Control labels a device pixel low at 1.65 (found 2026-11-06 by the text-verdict fix, Progress, "Text first in a paint
   chunk"; open, no go yet: the user decides when): a select's or an input button's label sits one device pixel below
   Chromium's at a device scale of 1.65 (at 1× they match). In a 20 px tall `appearance: none` select or button with Lato
@@ -350,8 +330,8 @@ solution built for `win-x64` from Linux with 0 errors and the Windows natives co
 1. **Set up, build, test.** Do: `Tools\Scripts\setup.ps1` once, then `Tools\Scripts\build.ps1`, then
    `Tools\Scripts\test.ps1`. Passes: `build.ps1` ends without errors and leaves in `$STATVENTURE_GAME` the published
    sandbox with `packs\` (`audio.pak`, `ui.pak`) beside it, stale files removed and changed packs put in place with
-   `File.Replace` (run it twice: the second run copies nothing); `test.ps1` gives the same results as Linux (2940 tests
-   on `3e6df0f`, 2026-11-07), all passing (the goldens are platform-pinned: the tests act as Chromium on Linux with the
+   `File.Replace` (run it twice: the second run copies nothing); `test.ps1` gives the same results as Linux (3496 tests
+   on `main` at M11's end, 2026-11-08), all passing (the goldens are platform-pinned: the tests act as Chromium on Linux with the
    reference PC's font settings, `ReferencePlatform.cs`, `SystemFonts.cs`, so Windows must not need its own). From:
    `build.ps1` never run (M9 step 9, `Docs/Assets.md`, "How it works", step 9, and Status, step 9); the setup scripts
    from the move to GitHub (Progress, "Moved to one git repo for GitHub").
@@ -397,18 +377,18 @@ solution built for `win-x64` from Linux with 0 errors and the Windows natives co
    Windows suite is not protected from a test that forgets its own folder (mutations never run there), so ask the user
    how to close it (for example a test-only folder override in `GameFolder` and `DocumentsFolder`). From: the 2026-11-05
    decision (Progress, "Test runs kept out of the player's folders").
-8. **M11's per-step items (so far: steps 2, 3 and 4; recorded 2026-11-07).** (a) *Writing over a pack held open*
-   (step 2): `PackRewriteTests.ARewrittenPackKeepsEveryOtherEntryAsItWasStored` in item 1's `test.ps1` writes a pack
-   over itself while it is open, as the editor saves (and, once step 11 is merged, a save in the editor). Passes: the
+8. **M11's items (recorded 2026-11-07, completed 2026-11-08 at M11's end; `Docs/Editor.md`, Status, gathers them).**
+   (a) *Writing over a pack held open* (steps 2 and 11): `PackRewriteTests.ARewrittenPackKeepsEveryOtherEntryAsItWasStored` in item 1's `test.ps1` writes a pack
+   over itself while it is open, as the editor saves (a save in the editor is (g)). Passes: the
    test passes: the writer's new file is moved over the open pack (`PackFile` opens it sharing read, write and delete;
    item 2a is the game's side). From: `Docs/Editor.md`, Status, step 2; `Docs/Assets.md`, "Packs for the editor", "Not
    checked". (b) *Import's default lookup on a file system that ignores case* (step 2): import one terrain description
    whose image is named in another case than the file beside it (it names `vale-height.png`, the file is
-   `Vale-Height.png`): in the editor once step 12 is merged, until then through `PackWriter.ImportFile` with the default
+   `Vale-Height.png`): in the editor (Import, or a drop; step 12), or through `PackWriter.ImportFile` with the default
    `ImportSources`. Passes: record the answer, whether the import finds the file there; packing the folder refuses that
    name on every system, so if the import finds it, one file imported differs from the folder packed on Windows: report
-   it. From: the same places. (c) *A real file drop and a real close* (step 3): in the editor's window (once step 8 wires
-   drops; the refused close once step 11 asks before closing), drop files from Explorer, close it by the title bar, and
+   it. From: the same places. (c) *A real file drop and a real close* (steps 3, 8 and 11): in the editor's window (drops
+   wired by step 8, the refused close by step 11), drop files from Explorer, close it by the title bar, and
    minimize it and close it from the taskbar. Passes: the drop reaches the window with Explorer's paths in its order (a
    dropped `.pak` opens, P27); each close is asked once (`Application.ConfirmClose`), also while minimized; a refused
    one keeps the window running and the next ends it. On Linux the check program is
@@ -419,7 +399,17 @@ solution built for `win-x64` from Linux with 0 errors and the Windows natives co
    Tools\Editor\bin\Release\net10.0\Statventure.Editor.dll --repo <the engine folder>`. Passes: the shell shows as
    `editor.sh` shows it on Linux (the by-hand check in "Small tasks"): the window and its title, the zoom keys (Ctrl+=
    and Ctrl+-) through the host, a splitter dragged with the mouse and its cursor. From: `Docs/Editor.md`, "How it
-   works", step 4, "Not checked", and Status, step 4.
+   works", step 4, "Not checked", and Status, step 4. Also New entry by its button and Ctrl+N, a reference picked from
+   its list, and Open, Save, Save As and New mod through the file browser (steps 8–12, 14). (e) *The file browser's places on
+   Windows* (steps 3 and 8): the drive roots, Documents (the known folder) and the mods folder (`%APPDATA%\Stat Fick\mods`)
+   listed, names compared ignoring case (`FileBrowser.NameComparison`), a path typed with `\` and `~\` read. Passes: as
+   on Linux, with Windows' own roots and folders. From: `Docs/Editor.md`, "How it works", steps 3 and 8. (f) *The preview's
+   sound* (step 13): a sound effect and a theme played in the editor through OpenAL Soft (at a volume of the user's
+   choosing). Passes: as on Linux (item 4 for the music). From: `Docs/Editor.md`, "How it works", step 13, "Not checked
+   here". (g) *A mod made and loaded* (steps 11 and 14): a mod made in the editor (New mod, an entry, Save) into
+   `%APPDATA%\Stat Fick\mods\`, then the sandbox started from `$STATVENTURE_GAME`. Passes: the editor's save swaps the file
+   in while it is open (8a), the sandbox mounts the mod (its log names it); the end-to-end tests pass in item 1's
+   `test.ps1`. From: `Docs/Editor.md`, "How it works", steps 11 and 14.
 
 When done, record: a Progress entry "Windows check" (date, what ran, results, anything that failed and why), a dated line
 in `Docs/Notes.md`, and the "Not checked: Windows" lines in `Docs/Assets.md`, Status (and its "How it works" notes),
@@ -449,6 +439,42 @@ subsection marked done.
    instead). Everything on GitHub stays private.
 5. At the end of a milestone: tick it under Milestones, update the notes, report what was done and what wasn't checked,
    and stop until the user says to go on.
+
+**What M11 leaves for the port:** the **Statventure Editor** (`Tools/Editor`, the program `Statventure.Editor`;
+`Docs/Editor.md`), a separate program on the engine's UI that ships with the game for modding (M11-4; its place in the
+shipped folder and its executable's name are M12's), in English, in the old game's dark colours and Lato. It opens one
+pack at a time over the game's packs (P6): a mod in the player's `mods/` folder, or, in the dev setup only, one of the
+game's packs in `engine/Assets/Packs`, saved in place. **How a modder uses it:** New mod (a pack in the mods folder
+holding `mod/info`, the mod's name, author, version and description, edited in a form of its own; the game doesn't read
+it yet, M11-15); then entries: New entry (the top bar or Ctrl+N: a kind and a name in its folder), Duplicate, a game entry
+edited (the mod's own copy, P7; "Revert to the game's" drops it), Import (the button or a drop: `.glb` models and stages,
+`.terrain.json` terrain, `.css` stylesheets, a record's `.json` form, fonts, images and texts; importing again keeps or
+takes each value that differs); every record kind in one generic form made from its definition (a row per field, undo
+and redo per entry, a JSON tab with copy and export); the engine's own checks as you edit, the problems at their fields,
+at the form's top and in the list; references picked from lists, kept up to date on rename and remove; a live preview
+(sound effects and themes, particle effects, models and stages, cutscenes with stand-ins); Save (Ctrl+S; refused while
+anything has a problem, so a saved mod loads in the game, as step 14's flow shows from New mod to the game's loaders) and
+Save As (a subset into a new file). **How it is started:** `Tools/Scripts/editor.sh [--player-folder <folder>]` from the
+repo (Release, the dev setup); the program's options: `--repo <engine folder>` (the dev setup: the game's packs are
+`<engine>/Assets/Packs` and can be saved in place), `--game <game folder>` (an installed game's `packs/`, read-only; by
+default the `packs/` beside the program), `--player-folder <folder>` (the player's game folder: its mods, and the
+editor's own settings in `editor/`: `shell.json`, `recent-places.json`, `volume.json`, `stand-ins.json`; by default this
+machine's, so a script passes a scratch one); no `editor.ps1` yet (Windows, M12). **What the port's own record kinds
+(items, enemies, spells, shops) must do to be editable with no editor code (M11-2):** be records as M9's are (`[Record]`,
+`[Field]`, `[Subtype]`); mark the kind with `[Kind(display name, folder) { Rule }]` (the folder and name rule New entry and
+references use; without a folder New takes a whole path) and their fields with `[Help]`, `[Unit]`, `[Limits]` (only
+limits the game's own check already enforces: a new limit is a question for the user, G4), `[Choices]`, `[Colour]`,
+`[Bulk]` and `[References(typeof(kind)) { Folder, Rule, Keys, When, Is }]`; and give their rules as a `[Check] static void
+Name(T value, CheckContext check)` reporting each problem at its path (with the data, for checks across entries), which
+their own loaders run too, so the game refuses what the editor refuses (G4, G5). **How those kinds reach the editor and
+the packer is G3, kept open for the port** (recommended then: a data library of their own shipped beside the game, which
+the game and the editor both load; until then the editor and the packer take record kinds from any assembly they are
+given), and G2 (a mod with parts the game can't read) is asked with the game's mod list. Left for later: special views
+(a cutscene timeline, a map view, sound or particle editors; M11-2), previews of state machines, UI files and terrain
+(M11-13), a stop for sound effects (Small tasks), a mod depending on another mod (P18's known limit), the repo's
+script-made packs switching to `packer update` once an editor-made entry is committed into them (P30). Not checked: the
+editor in a real window and its sound by ear (Small tasks, "By-hand checks", (a)–(e)) and Windows ("Windows check", items
+1 and 8).
 
 **What M10 leaves for the port:** the scene: a tree of `SceneNode`s (local translation, rotation and scale; the world by
 Blender's parenting rule as glTF carries it) shown by a `SceneView` (a frame client, its `View3D` in a `surface` element;
@@ -613,11 +639,13 @@ the design and the tests):
   user's rule for M11 the editor's own design is the manager's (P1–P38, decided 2026-11-06); of the questions about
   the game it raised (`Docs/Editor.md`, "The game's questions (G1–G6)"), G4 and G5 are answered by the user and G1 and
   G6 decided by the manager (2026-11-06, "Decisions for M11"); G2 and G3 are kept for the port ("At port time" below).
+  M11 is done (2026-11-08).
 - **M12 Packaging:** shipped folder layout and executable name, self-contained .NET, installer or
   archive per platform, icon, versioning, updates, crash log location? The editor is shipped with the game (M11's
   answer 4, "Decisions for M11"), so M12's questions include where it sits in the shipped folder and its executable's
   file name (M11-19: it is called "Statventure Editor", `Tools/Editor` in the repo; both left to M12), and the file
-  the answer to G3 (how the port's own record kinds reach the editor) may add to the shipped folder ("At port time").
+  the answer to G3 (how the port's own record kinds reach the editor) may add to the shipped folder ("At port time"), and
+  how the editor is started on Windows (there is only `Tools/Scripts/editor.sh`; "Windows check", item 8d).
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -2421,6 +2449,8 @@ Asked after the regression run (2026-11-06):
   - **M11 step 10, checks and references in the editor (2026-11-07 and 08, 3423 tests, on its worker branch `m11-step10`, rebased on step 13's merge `034b83c`):** two questions came up and the manager decided them (2026-11-07; `Docs/Editor.md`, "How it works", step 10): Q-A, a removal's referrers are offered "Point them at:" another entry of the kind, "Leave them" by default, a rename's "Update them to the new name" ticked by default; Q-B, after a commit the entry's own problems are fresh at once and the cross-entry problems of the last run stay until the next replaces them; and confirmed the step's other choices (every record entry checked across entries, the game's too; the first problem per path; the theme's id against its path as the editor's own rule, `MusicLibrary.Load` on the data as edited as the last check; the reference list attached to the form's markup, open while the field has the focus). The data as edited is step 13's (the manager's decision of 2026-11-07); this step reads it. `Tools/Editor/Checks/` (`EntryChecks`: each entry's own check at every change of its draft and at a rename, the checks across entries over every record entry with `Session.EditedData` and the session's references, then the game's music loading while no music entry has a problem, a check that throws shown as the entry's problem, only the first problem per path, `Pending`, `Due`, `RunPending`, `DataProblem`; `ChecksPart`: the 200 ms pause on the document's clock, P17), `Tools/Editor/Session/EditorSession.Checks.cs` (`Session.Checks`, `Session.EntriesWithProblems`: what step 11's save reads, after `Checks.RunPending()`), `Tools/Editor/References/` (`SessionReferences`, the lookup from the session's own entries; `EntryReferences`: the references in a draft, at a form row's path, the entries naming one, pointing names at another entry, the entries a mark can name; `ReferenceListPart`: the reference field's list in the row under the field, filtered as typed, the flag, keys and clicks, M11-11; `ReferrersPart`: the referrers in the rename and remove dialogs, updated in the same step, P19). Measured (Debug): the checks across entries over a mod opened over the repo's packs (126 entries) 53 ms the first time, 23–28 ms after; a theme's commit with its own check 0.3 ms. The screens against Chromium (P36; pixels past 12 levels, the limit 0.2 %, the GPU): `checks-problems` 0.050 % at 1× and 0.187 % at 1.65, `references-list` 0.046 % and 0.152 % (captured again after the rebase: the preview pane shows content), captured in a headless cage with the large output mode at 1.65 too (a fixture wider than the output is otherwise cut). Found, the engine not changed (`Docs/Editor.md`, step 10, "Found"): at 1.65 the status line's text is grayscale in the engine while the form pane is a tall scroller (Chromium LCD; already in step 9's `form-controls@1.65`); a positioned box inside the form pane's scroller is composited apart by Chromium (grayscale text) and not by the engine (LCD), so the list is in the rows' flow; a stacking context on the form's rows (isolation, or a z-index) turned the form's text grayscale in the engine at 1.65 (Chromium's look not captured). Tests: 46 (42 in `Tests/Statventure.Tests/Editor/Checks/`, the two screens at two scales). The full suite passes on the GPU (1 min 28 s) and on lavapipe (1 min 55 s), inside a headless Wayland compositor, rebased on step 13's merge (`034b83c`): 3423 tests (`main`'s 3377 and 46 new), none skipped (before the rebase, on `ac2306e` with step 13's `Session.EditedData`: 3296, 1 min 24 s and 1 min 52 s). With step 13's preview, an invalid entry's note is now its first problem, so six of step 13's test expectations take the problems' words (`Docs/Editor.md`, step 10, "With step 13"); nothing of the preview's code changed; the player's real game folder stayed missing and the Documents folder's top level unchanged. Mutations (`~/.cache/stat-fick-build/claude-work/m11/step10-mutations.json` and `step10-mutations-rerun.json`, made by `make-step10-mutations.py` and `make-step10-rerun.py` beside them): 176 in the first run (146 killed, 4 didn't build and were rewritten, 26 survived: 11 gaps closed by tests, 7 redundant code removed, 2 equivalent, 6 looks: 3 under the screens' limits and 3 of the dialogs no fixture shows), then a rerun of 20 (the gaps, the rewritten, the code changed since): 19 killed, 1 equivalent (an entry that doesn't build has no value to check); nothing written to the player's real folders. Renders for the user: `claude-work/m11/step10/render-{checks-problems,references-list}@{1,1.65}.png`. Not checked: the editor in a real window (the list and the dialogs by hand), Windows. Details: `Docs/Editor.md`, "How it works", step 10.
   - **M11 step 11, saving and mods (2026-11-08, 3485 tests, on its worker branch `m11-step11`, rebased on step 10's merge `7e3ff8d`):** six questions came up and the step stopped before writing code; **the manager's decisions of 2026-11-08** (each (a)) are recorded in `Docs/Editor.md`, "How it works", step 11: Q1, the mod's info in a form of its own in the form pane through a small documented hook in step 9's `FormPart` (`IEntryForm`; no existing screen changed by it); Q2, New mod writes the mod at once with `mod/info` holding its name; Q3, Save As's ticks first, then the file browser, then the new file open in place of the old, unticked entries with unsaved changes named as let go; Q4, a pack it can't fully read offers its readable entries ticked, the intact entries it can't read unticked (kept byte for byte when ticked), the damaged ones not offered; Q5, Save As checks the entries ticked as the game would see them (step 10's checks against the game's packs with only them on top, then the music's loading), a problem refusing it; Q6, histories kept across a save; the step's smaller choices confirmed. `Tools/Editor/Session/EditorSession.Saving.cs` (`CanSave`, `CanSaveAs`, `SaveEntries`, `SaveProblems` after step 10's `RunPending`, `ChangedOnDisk` by the index hash, P23; `Save`: unchanged entries as stored (older versions, renamed ones at their paths), edited, new and copied records in the current versions, imported files with their bytes, removed and reverted ones left out, the file swapped in, then the pack read again and the entries saved in place; `SaveAsChoices`, `SaveAsFileProblem`, `SaveAsData`, `SaveAsProblems`, `SaveAs`; `NewModFileName`, `NewModProblem`, `NewMod`; `EditorEntry.MarkSaved`) and `Tools/Editor/Saving/` (`SavingPart`: Save, Save As and New mod from the keys and buttons, the refusal naming the entries, the changed-file question, `Opener.SaveFirst`; `SaveAsDialog`; `NewModDialog`; `ModInfoForm`; `Saving.css`). A new mod saved is mounted by `Application.DataMounts` as the game mounts mods and read back equal; the dev setup's game pack saves in place (tested on a scratch copy of the repo's packs). The screens against Chromium (pixels past 12 levels, the limit 0.2 %, the GPU): `saving-save-as` 0.010 % at 1× and 0.021 % at 1.65, `saving-new-mod` 0.009 % and 0.061 %, `saving-mod-info` 0 and 0.002 %; **all 16 earlier editor screens captured again** (their top bar changed: New mod always enabled, Save and Save As with a pack open; before, `checks-problems`, `references-list` and `preview-model` at 1.65 were past the limit), each giving the counts it gave before. Found, the engine not changed: the engine's textarea ignores the author's `line-height` (an open item above, "A textarea's `line-height`"); a dialog over a composited scroller at 1.65 met again (the fixture closes the game's audio, as `list-unreadable` does); a key whose listener closes a dialog sends its keypress to what has the focus after (Chromium too: the New mod dialog's Enter cancels its default action). Changed in earlier steps' tests: step 4's `ShellTests` (New mod always enabled) and step 8's `OpenerTests` (its Discard-and-Cancel part sets `SaveFirst` to null). Tests: 62 (56 in `Tests/Statventure.Tests/Editor/Saving/`, the three screens at two scales). The full suite passes on the GPU (1 min 33 s) and on lavapipe (2 min 2 s), inside a headless Wayland compositor: 3485 tests (`main`'s 3423 and 62 new), none skipped; the player's real game folder stayed missing, the Documents folder's top level and the repo's packs unchanged. Mutations (`~/.cache/stat-fick-build/claude-work/m11/step11-mutations.json`, `-rerun.json` and `-standing.json`, made by `step11/make-mutations.py` and `make-rerun.py`): 232 in the first run, 205 killed, 27 survived (14 gaps closed by tests, 6 redundant lines removed, 7 accounted for: 1 equivalent, 1 the engine's textarea line height, 5 looks under the screens' limits or in no fixture); the rerun of 20 killed all; the list as it stands, 228, has 221 killed and 7 accounted for; nothing written to the player's real folders. Renders for the user: `claude-work/m11/step11/render-saving-{save-as,new-mod,mod-info}@{1,1.65}.png`. Not checked: the editor in a real window ("By-hand checks", (d)), Windows (writing over the open pack, "Windows check", item 8a). Details: `Docs/Editor.md`, "How it works", step 11.
   - **M11 fixes after step 14 (2026-11-08, 3493 tests, on the branch `m11-fixes-1` from `4f6120e`):** step 14's end-to-end flow found two faults in the editor and one look; **the manager's decisions of 2026-11-08** are recorded in `Docs/Editor.md`, "How it works", "Fixes after step 14". (1) Nothing in the UI started New entry (P15: `EntryActions.New` had no caller): decision (a), a "New entry" button in the top bar between Save As and Import, a command of its own (`EditorCommand.NewEntry`) with Ctrl+N, enabled while `Session.CanAdd`, opening step 9's dialog, also from a field of the mod info's own form. (2) Enter in the import dialog's path field closed it without cancelling the key's default action, so its keypress pressed the top bar's Import button and opened the file browser again: the listener now cancels it, as the New mod and entry dialogs do; the other dialogs' Enter handlers checked again (none else closes a dialog from a text field without cancelling it). (3) The cutscene preview's "Stand-ins" heading showed with nothing under it for a cutscene without roles: hidden until a cutscene with roles is taken. The top bar changed, so **all 19 editor screens were captured again** at 1 and 1.65 (`claude-work/m11/step11-capture.sh`, a headless cage, one fixture per run): each gives step 11's counts again (within 4 pixels at 1.65), from 0.16–0.70 % with the new button against the old goldens (`claude-work/m11/fixes-1/table.md`); one 1× capture (`list-marks`) lacked the focused tree's outline (Chromium's window unfocused in that run) and was captured again. Tests: 8 new (`Editor/Form/NewEntryCommandTests.cs` 2, `Editor/Import/ImportEnterTests.cs` 2, `Editor/Preview/StandInsHeadingTests.cs` 2, step 4's `CommandTests` Ctrl+N and Ctrl+Shift+N), step 4's `ShellTests` with the new button. The full suite passes on the GPU (1 min 34 s) and on lavapipe (2 min 1 s), inside a headless Wayland compositor: 3493 tests (`main`'s 3485 and 8 new), none skipped; the player's real game folder stayed missing, the Documents folder's top level and the repo's packs unchanged. Mutations (`~/.cache/stat-fick-build/claude-work/m11/fixes-1-mutations.json`, made by `fixes-1/make-mutations.py`): 13, all killed (the command's handler, its availability, the button, its tooltip and place, the key, the import dialog's Enter, the heading's four rules); nothing written to the player's real folders. Not checked: the editor in a real window ("By-hand checks", (d)), Windows.
+  - **M11 step 14, the whole editor, end to end (2026-11-08, 3496 tests, on its worker branch `m11-step14`, rebased on `00e5bd4`):** tests only (`Tests/Statventure.Tests/Editor/EndToEnd/`: `EndToEndTesting.cs`, `ModFromScratchTests.cs`, `DevSetupTests.cs`, `FoundTests.cs`); details in `Docs/Editor.md`, "How it works", step 14. **A mod made from scratch through the UI**, driven as a modder drives it (the top bar, New entry by its button and by Ctrl+N, the form's fields, selects, Add, Make and set boxes, the reference lists, the list's filter, Import and Open through the file browser's path field, the JSON tab, the mod info's own form): New mod "Ember Rite" and its info; the game's hall changed in the mod (its copy, P7); a sound effect, a particle effect, a stage imported from the tests' `dolly.glb` (the packer's entry of the same file), a readme imported as a file, and a cutscene using the three, its stage, effect and sound picked from the reference lists; Save refused for a camera node typed wrong ("… cue 0's camera dolly/Lens: the stage models/stages/dolly has no node Lens", under the field and in the refusal), fixed, saved; then mounted as the game mounts mods over its packs (`Application.DataMounts`) and read by `Sequence.Load`, `ParticleEffect.Load`, `MusicLibrary.Load` and `ModelData.Load`, each the value the editor showed (binary form and JSON tab), the mod's hall over the game's, the game's 55 themes all there; opened again (Open, the browser), the same seven entries. **The dev setup:** `--repo` (the program's own `EditorArguments.Parse`) on a scratch copy of `engine/Assets/Packs`: the game's `audio.pak` opened writable, the harp's level typed and Ctrl+S: saved in place, every other entry's stored bytes kept, the dump changed only at the harp; the manager's decision of 2026-11-08: the test reads the dump in-process, and `textconv.sh` itself was run by hand once on the test's saved pack (the diff: the harp's `level` 0.22 → 0.375, its `storedLength` and `sha256`; `claude-work/m11/step14/textconv.diff`). **Found, and fixed apart before the step went on** ("M11 fixes after step 14" above): nothing in the UI started New entry (the flow first started it as step 9's tests do, then stopped and reported it); Enter in the import dialog opened the file browser again (a probe of every key and click event showed the keypress pressing the Import button the focus went back to; `FoundTests` keeps it as the end-to-end witness); the empty "Stand-ins" heading. **Every editor screen against Chromium** at 1 and 1.65 on the GPU and on lavapipe with `m11-fixes-1`'s goldens: all 19 within the limit (pixels past 12 levels, 0.2 %; the worst `checks-problems@1.65`, 0.187 % on the GPU and 0.188 % on lavapipe; the table in `Docs/Editor.md`, step 14), nothing captured again; P36's six screens are all there, so no fixture remained to add. Tests: 3 new. The full suite passes on the GPU (1 min 33 s) and on lavapipe (1 min 57 s), inside a headless Wayland compositor: 3496 tests (`main`'s 3493 and 3 new), none skipped; the player's real game folder stayed missing, the Documents folder's top level and the repo's packs (this worktree's and the main checkout's) unchanged. Mutations (`~/.cache/stat-fick-build/claude-work/m11/step14-mutations.json` and `-rerun.json`, made by `step14/make-mutations.py` and `make-rerun.py`; each a rule of the editor or the engine the flow goes through, only this step's tests run against it): 30 in the first run, 25 killed, 5 survived: 1 gap closed (no loose file was imported, so imported files left out of a save went unseen: the readme now), 1 malformed mutation rewritten (the mods also still mounted above the packs), 3 that can't differ on what the flow saves (a kept entry re-added from its record: the writer keeps a content's stored bytes by its hash; `Sequence.Load`'s and `ParticleEffect.Load`'s own checks: a mod the editor saved passes them by construction); the rerun of 3 (the gap, the rewritten one, a kept entry left out) killed all; the list as it stands, 31, has 28 killed and 3 accounted for; nothing written to the player's real folders. Renders for the user: `claude-work/m11/step14/render-cutscene@{1,1.65}.png` (the whole editor with the finished cutscene selected, its preview paused at 0.8 s) and the saved mod, `ember-rite.pak`. Not checked: the editor in a real window ("By-hand checks", (e)), Windows ("Windows check", item 8).
+  - **M11 done (2026-11-08, 3496 tests):** all fourteen steps merged on `main`, with the fixes step 14's flow called for (`00e5bd4`); M11 ran from 2026-11-06 to 2026-11-08 under the user's rule for M11 (the editor's design the manager's: P1–P38 and every step's questions; the game's questions G4 and G5 the user's, G1 and G6 the manager's, G2 and G3 kept for the port). The Statventure Editor (`Tools/Editor`) opens one pack over the game's packs, edits every record kind through one form made from the kinds' definitions with undo per entry, checks as you edit with the engine's own checks (the game runs them at load too, G4, G5), references, import, a live preview, and saves mods (and, in the dev setup, the game's packs); a mod made from nothing through its UI loads in the game as the editor showed it (step 14). The full suite passes on the GPU and on lavapipe, inside a headless Wayland compositor under the shared lock: 3496 tests, none held (M11 started at 2547 on `a32c5cb`; the work beside it, the background-layer port and the first-text LCD fix among it, is in its own entries). Every one of the editor's 19 screens matches Chromium 152 at 1 and 1.65 within the paint fixtures' limits on both devices. Mutations: every step's list killed or accounted for (each step's entry; about 2,460 in the lists as they stand, 42 accounted for, none writing to the player's real folders). Found on the way and recorded as small tasks (open, no go yet): control labels a device pixel low at 1.65; text grayscale at 1.65 in a composited box, under a dialog over a composited scroller and in a status line beside a tall scroller; a select with its own padding wider than Chromium's; the painter painting every row of a scroll container; a textarea's `line-height`; a positioned box with a z-index inside a scroller; a stacking context on the form's rows; `ValueShape.TextOf`; a stop for sound effects. Fixed on the way: text first in a paint chunk (`lcd-first-text`), the capture harness's window out of X11's range at 1.65 (step 8), the flaky `ScriptApiTests` (a test's own fault). Not checked: the editor in a real window and by ear (the by-hand checks (a)–(e) in "Small tasks left from earlier milestones"), Windows ("Windows check", item 8). What it leaves for the port: "What M11 leaves for the port" under "How to continue". Ticked under Milestones; M12 waits for the user's go, its questions first.
 
 ## Milestones
 
@@ -2476,7 +2506,7 @@ Each milestone is finished only when its tests pass.
 - [x] **M10 Scene and sequencer:**
   - Nodes and transforms.
   - A timeline sequencer for cutscenes: tracks for transforms, animations, camera, text, audio and effects. Tweening.
-- [ ] **M11 Editor foundation:**
+- [x] **M11 Editor foundation** (done 2026-11-08):
   - An editor app shell on the engine UI: property grid, lists, undo and redo.
   - Pack editing.
 - [ ] **M12 Packaging:**

@@ -2903,9 +2903,193 @@ the button (main `4f6120e`, step 11's numbers) within 4 pixels at 1.65 and the s
 the old goldens they were 0.16–0.70 % (`claude-work/m11/fixes-1/table.md`). One capture at 1× (`list-marks`) came without
 the focused tree's outline (Chromium's window not focused in that run: 604 pixels) and was captured again, then 0.
 
+### Step 14: the whole editor, end to end (2026-11-08)
+
+**Files.** Tests only, in `Tests/Statventure.Tests/Editor/EndToEnd/`: `EndToEndTesting.cs` (a folder of the test's own in
+the run's scratch folder, `PerUserFolders.Root/editor-end-to-end/<id>/`, holding the player's folder `player/` with its
+mods, an installed game's folder `game/packs/` with copies of the repo's packs, and the files a modder imports,
+`downloads/`; and the editor driven as a modder drives it: the top bar's buttons, New entry by its button or Ctrl+N, the
+form's fields typed and committed with Enter, its selects, Add, Make and set boxes, the reference lists, the entry list's
+filter (Ctrl+F) and rows, Import and Open through the file browser's path field, the JSON tab, the mod info's own form),
+`ModFromScratchTests.cs`, `DevSetupTests.cs`, `FoundTests.cs`. Nothing outside the tests changed in this step (the faults
+it found were fixed apart, "Fixes after step 14" above).
+
+**A mod made from scratch through the UI** (`ModFromScratchTests`; the editor over the repo's packs, the harness's game
+data, the player's folder the test's own):
+1. *New mod* (the top bar): "Ember Rite" typed, the file name `ember-rite.pak` suggested, Enter: the mod written into the
+   player's mods folder and opened, `mod/info` selected in its own form; its author, version and description typed there.
+2. *A game entry changed in the mod:* the game's `audio/rooms/hall` found with the list's filter and clicked, its echo's
+   seconds typed (4.5): the mod's own copy (P7).
+3. *A sound effect* (`audio/effects/chime`): New entry by Ctrl+N (from a field of the mod info's form), the kind "Sound
+   effect" and the name chosen in step 9's dialog; its required layers shown as a problem, a layer added (Add), its
+   source chosen (Sine), its frequency, length and the effect's level typed.
+4. *A particle effect* (`models/effects/sparks`): New entry by the top bar's button; the shape and spawn chosen (Disc,
+   Point), the colours' slots typed, the life, size and speed ranges made (Make) and set, the fade-out and gravity typed.
+5. *A stage:* `Dolly Stage.glb` (the tests' `dolly.glb`, a stage with cameras, a sun and its clip) imported by the
+   Import button through the file browser, the path suggested (`models/dolly-stage`) typed over with `models/stages/dolly`,
+   Enter: the entry is the packer's entry of the same file at that path. And the mod's readme, a `.txt` imported the same
+   way at the path suggested (`readme.txt`), a file entry.
+6. *A cutscene* (`world/cutscenes/rite`): New entry's button; its name and duration; its stage added and picked from the
+   reference list; four tracks (a clip track playing the stage's timeline; a camera track; a particle track starting the
+   sparks on the stage's crate, the effect picked from its list after typing "spa"; an audio track playing the chime, the
+   cue's name set and picked from its list), the union's kind chosen per track.
+7. *Save* (Ctrl+S): refused while the camera cut names `dolly/Lens` (the camera's name, not its node's): "Can't save" names
+   the cutscene with its problem, which also shows under the field ("… cue 0's camera dolly/Lens: the stage
+   models/stages/dolly has no node Lens", found by the checks across entries against the stage); the field typed again
+   (`dolly/Camera`), Ctrl+S saves ("Saved ember-rite.pak.", the title's "•" gone). Then each entry's value and its JSON tab
+   as the editor shows them.
+8. *The game:* the saved mod mounted as the game mounts mods (`Application.DataMounts` over the game folder's packs and
+   the player's mods folder) and read by the engine's own loaders: `Sequence.Load` (its stage, effect and sound checked
+   against the same data), `ParticleEffect.Load`, `MusicLibrary.Load` (the chime among the game's effects, the mod's hall
+   over the game's, the game's 55 themes all there), `ModelData.Load`, the mod's info: each the value the editor showed,
+   by binary form and by the JSON tab's text; the readme's bytes as imported.
+9. *Opened again* (Open, the browser's path field): the same seven entries, unchanged, no problem, the same JSON.
+
+What it shows: a modder can make a mod of every kind the preview covers from nothing through the UI alone; what the editor
+shows is what the game loads (M11-12's "a mod made by the editor always loads": the save refused the one broken
+reference, the game's own loaders take everything it saved); the mod's copy of a game entry wins over the game's in the
+game's own mounts.
+
+**The dev setup** (`DevSetupTests`; P5, M11-5): the program's own reading of `--repo <engine folder>` and `--player-folder`
+(`EditorArguments.Parse`) on a scratch copy of the repo's `engine/Assets/Packs` (never the real one), the editor's view
+over that session (a small driver of the test's own: the shared harness is fixed to the repo's packs); Ctrl+O and the
+game's `audio.pak` typed into the browser's path field: open as a game pack that takes changes; the harp found with the
+filter, its level typed (0.375), Ctrl+S: saved in place. Every other entry of the pack keeps its stored bytes, `ui.pak`
+and the repo's own `audio.pak` are untouched, and the pack's dump (`PackDump.ToText`, what `packer dump` and so
+`textconv.sh` print) differs from the one before only at the harp: its `level`, `storedLength` and `sha256`. **The
+manager's decision (2026-11-08):** the test reads the dump in-process, and `textconv.sh` itself is run once by hand on the
+test's saved pack and recorded (running it inside a test would build the packer in Release during the run and again for
+every mutation of the engine): `claude-work/m11/step14-textconv.sh` dumped the committed `audio.pak` and the saved copy
+through the repo's `textconv.sh` as git runs it; the diff (`claude-work/m11/step14/textconv.diff`) is three lines of the
+harp's entry, `"storedLength": 95` → `82`, its `"sha256"`, and `"level": 0.22` → `0.375`.
+
+**Found** (reported to the manager; fixed apart on the branch `m11-fixes-1`, "Fixes after step 14" above, then this step
+rebased on it, `00e5bd4`):
+- *Nothing in the UI started New entry* (P15: `EntryActions.New` had no caller; the flow started it as step 9's tests do,
+  until the fix's top-bar button and Ctrl+N; the flow now uses both).
+- *Enter in the import dialog opened the file browser again* (the keypress reached the top bar's Import button the focus
+  went back to; a probe logging every key and click event showed `keydown` on `input.import-path`, then `keypress` and
+  `click` on the Import button). `FoundTests.EnterInTheImportDialogImportsAndOpensNothingElse` stays as the end-to-end
+  witness (the fix's own test is step 12's `ImportEnterTests`).
+- *A look:* the cutscene preview's "Stand-ins" heading with nothing under it for a cutscene without roles (now hidden).
+
+**Every editor screen against Chromium at both scales**, rerun on the GPU and on lavapipe with the goldens `m11-fixes-1`
+captured (none captured again here): pixels past 12 levels, the limit 0.2 %.
+
+| Fixture | GPU 1× | GPU 1.65 | lavapipe 1× | lavapipe 1.65 |
+| --- | --- | --- | --- | --- |
+| `browser` | 0.004 % | 0.008 % | 0.004 % | 0.009 % |
+| `checks-problems` | 0.050 % | 0.187 % | 0.050 % | 0.188 % |
+| `dialog` | 0.009 % | 0.006 % | 0.009 % | 0.006 % |
+| `form-controls` | 0.108 % | 0.139 % | 0.109 % | 0.140 % |
+| `form-controls-end` | 0.115 % | 0.155 % | 0.116 % | 0.156 % |
+| `form-json` | 0 | 0.001 % | 0 | 0.001 % |
+| `import-again` | 0.055 % | 0.094 % | 0.057 % | 0.094 % |
+| `import-path` | 0.009 % | 0.010 % | 0.009 % | 0.009 % |
+| `import-replace` | 0.009 % | 0.006 % | 0.009 % | 0.006 % |
+| `list-marks` | 0 | 0.002 % | 0 | 0.002 % |
+| `list-unreadable` | 0 | 0.001 % | 0 | 0.001 % |
+| `preview-cutscene` | 0.010 % | 0.017 % | 0.010 % | 0.017 % |
+| `preview-effect` | 0.070 % | 0.090 % | 0.071 % | 0.093 % |
+| `preview-model` | 0.004 % | 0.126 % | 0.004 % | 0.126 % |
+| `references-list` | 0.046 % | 0.152 % | 0.046 % | 0.153 % |
+| `saving-mod-info` | 0 | 0.002 % | 0 | 0.002 % |
+| `saving-new-mod` | 0.009 % | 0.061 % | 0.009 % | 0.061 % |
+| `saving-save-as` | 0.010 % | 0.021 % | 0.010 % | 0.021 % |
+| `shell` | 0 | 0.002 % | 0 | 0.002 % |
+
+The worst is `checks-problems@1.65` (0.187 % and 0.188 %: the known status line beside a tall scroller, and the select
+widths). The same numbers as before the button (step 11's, also measured again by this step on `4f6120e`) within 4 pixels.
+P36's six screens are all there (the unsaved-changes dialog is step 4's `dialog`, the same `Dialogs.Ask` markup), so no
+fixture remained to add. Counted by `claude-work/m11/step14-screens.sh` (the screen tests with `STATVENTURE_KEEP_RENDERS=1`,
+then `step14-compare.py`: any channel past 12 levels, as `Golden.Match` counts); tables in `claude-work/m11/step14/`
+`screens-{gpu,lavapipe}.txt`.
+
+**Mutations** (`~/.cache/stat-fick-build/claude-work/m11/step14-mutations.json`, made by `step14/make-mutations.py`): the
+end-to-end tests add no code, so each mutation breaks a rule of the editor or the engine the flow goes through, and only
+this step's tests run against it (`Editor.EndToEnd`): New entry's command, key and selection, New mod's folder, the mod
+info's commit, the JSON tab's text, the pack's dump, the form's Add, Make, union switch and set box, the reference list's
+pick, the list's filter, the import dialog's Enter, the checks across entries with the data, Save's refusal, what a save
+writes (edited records, imported files, kept entries), `--repo`, the dev setup's writable game pack, the game's mounts
+(the mods there and above the packs, the mods listed, the topmost source winning) and the loaders (the sequence's stages
+and data check, the particle effect's check, the music's effects). 30 in the first run: 25 killed, 5 survived. Of those,
+1 was a gap, closed (the flow imported no loose file, so leaving imported files out of a save went unseen: the mod's
+readme is imported now), 1 a malformed mutation, rewritten (the mods mounted below the packs, but also still above
+them), and 3 can't differ on what the flow saves: a kept entry added again from its record (every record of the
+committed `audio.pak` is in the current version, and the writer keeps a content's stored bytes by its hash, so the bytes
+are the same; a kept entry left out is killed), and `Sequence.Load`'s and `ParticleEffect.Load`'s own checks not run
+(a mod the editor saved passes them by construction: Save refuses what they refuse, which the flow shows through the
+checks across entries; their rules are step 6's and M10's tests). The rerun (`step14-mutations-rerun.json`, made by
+`step14/make-rerun.py`: the gap, the rewritten one and a kept entry left out) killed all 3. The list as it stands, 31,
+has 28 killed and 3 accounted for. Nothing written to the player's real folders (`mutate.py`'s watch), the repo's packs
+unchanged.
+
+**The full suite** passes on the GPU (1 min 33 s) and on lavapipe (1 min 57 s), inside a headless Wayland compositor under the
+shared lock (`claude-work/m11/step14-full-run.sh`): 3496 tests (`main`'s 3493 at `00e5bd4` and this step's 3),
+none skipped; the player's real game folder stayed missing, the Documents folder's top level and the repo's packs (this
+worktree's and the main checkout's) unchanged.
+
+**Renders for the user** (`claude-work/m11/step14/`): `render-cutscene@1.png` and `@1.65.png`, the whole editor (1280 ×
+800 CSS px) with the finished mod's cutscene selected: the list, the form and the preview (the 3D view drawn on the
+tests' GPU, the cutscene played from its start and paused at 0.8 s, the sparks out on the crate in M6's grey, as no
+palette role colours them); and `ember-rite.pak`, the saved mod. To try it: copy the `.pak` into the player's mods folder
+(Linux `~/.local/share/stat-fick/mods/`, Windows `%APPDATA%\Stat Fick\mods\`), or, to keep the real folder as it is, run
+`editor.sh --player-folder <a scratch folder>` with the `.pak` in `<that folder>/mods/`, then Open it and select
+`world/cutscenes/rite`; the game mounts it over its packs, but nothing in the sandbox plays that cutscene (the editor's
+preview does). Its chime is heard only when the user plays it, in a real terminal, at a volume of the user's choosing.
+
+**Choices the design left to the step** (made here; the dev-setup dump confirmed by the manager, 2026-11-08): the test
+.glb (`dolly.glb`: a stage with a clip, cameras and a sun, small enough to import in a test); the mod's folder in the
+run's scratch folder (what PerUserFolders redirects) rather than the system's temporary folder; the editor over the
+repo's packs and the game's mounts over copies of them in a game folder of the test's own; comparing what the editor
+showed by binary form (records holding lists don't compare by equality) and by the JSON tab's text; the mod's content
+(a camera node typed wrong to show Save's refusal, a game entry changed to show the mods' order); the dev-setup test's own
+driver; the two faults found kept as end-to-end witnesses (`FoundTests` and the flow's New entry).
+
 ## Status
 
-**Where M11 stands (2026-11-07, 18:10):** on `main` (`3e6df0f`): steps 1, 2, 3, 4, 5 and 7; in progress on worker branches, not on `main`: steps 6 (`m11-step6`), 8 (`m11-step8`) and 9 (`m11-step9`); to come: steps 10, 12 and 13, then 11 and 14. The full suite on `main`: 2940 tests, passing on the GPU and on lavapipe, nothing held (`Docs/Engine-Plan.md`, "Current task").
+**M11 done (2026-11-08): all fourteen steps on `main`, and the fixes step 14 found; ticked in `Docs/Engine-Plan.md`,
+"Milestones".** The Statventure Editor makes a mod from nothing through its UI that the game loads as the editor showed it
+(step 14), edits the game's own packs in the dev setup, and every one of its 19 screens matches Chromium 152 at 1 and 1.65
+on the GPU and on lavapipe. **The full suite: 3496 tests, passing on the GPU and on lavapipe, nothing held**
+(inside a headless Wayland compositor under the shared lock). Each step's own entry follows; what they left, gathered:
+
+- **To check by hand, in a real window and by ear** (none may be shown or heard from a session; the user's, in a real
+  terminal, when the user decides; `Docs/Engine-Plan.md`, "Small tasks left from earlier milestones", "By-hand checks"):
+  (a) the shell (`editor.sh`): the window and its title, the zoom keys (Ctrl+= and Ctrl+-) through the host, a splitter
+  dragged with the mouse and its cursor (step 4); (b) a real drop of files from a file manager under Wayland and X11 (a
+  dropped `.pak` opens, other files import), closing by the title bar (asked once over unsaved work, the next close ends
+  it) and from the taskbar while minimized (steps 3, 8, 12; `claude-work/m11/drop-check.sh` for the bare window); (c) the
+  preview: a sound effect at its play's volume, pan and pitch, a theme played, edited while it plays (its restart through
+  the fades) and stopped, Space from the list, the editor's volume and its ramp; a model turned with the mouse and the
+  wheel, its clips, a stage's cameras; a particle effect looping; a cutscene with stand-ins played, paused and sought
+  (step 13); (d) saving: New mod, Ctrl+S (the title's "•" and the list's marks go), Save As with entries unticked, closing
+  with unsaved work (Save, Discard, Cancel) by the title bar (step 11), with `editor.sh --player-folder <a scratch
+  folder>`; (e) step 14's mod by hand: New entry by the top bar's button and by Ctrl+N, the reference lists and the JSON
+  tab with the mouse, and `claude-work/m11/step14/ember-rite.pak` opened (its cutscene previewed, the chime heard at a
+  volume of the user's choosing). The dialogs and the lists of steps 8–12 are part of these.
+- **Windows** (nothing of M11 has run there; `Docs/Engine-Plan.md`, "Windows check", items 1 and 8): the whole suite
+  (`test.ps1`, the editor's tests and screens among them); writing over a pack held open (steps 2 and 11, item 8a);
+  import's default lookup on a file system that ignores case (steps 2 and 12, 8b); a real drop and a real close (steps 3,
+  8 and 11, 8c); the editor in a real window, with no `editor.ps1` yet (step 4, 8d); the file browser's places (drive
+  roots, the Documents known folder, names compared ignoring case; step 3 and 8, 8e); the preview's sound through OpenAL
+  Soft (step 13, 8f); a mod made and saved into `%APPDATA%\Stat Fick\mods\` and loaded by the sandbox (steps 11 and 14,
+  8g).
+- **Known limits, by design** (each recorded with its decision): one pack open at a time, over the game's packs only (P6),
+  so a mod that refers to another mod's entries can't be saved (P18); adding, removing and renaming entries aren't undoable
+  (M11-7); importing again matches values by path, so a node inserted in the file shifts the names after it (P29, step 12);
+  the editor shows the first problem per field (step 10); the JSON tab shows at most 2,000 lines (copy and export give
+  all); Stop doesn't cut a sounding effect (the engine's effects have no stop; step 13); a cutscene's element roles' stand-ins
+  have no stylesheet (step 13, Q5); no preview for state machines, UI files and terrain, and no special views (a cutscene
+  timeline, a map view; M11-2, M11-13); the editor and the packer know the engine's kinds only until the port answers G3;
+  the repo's script-made packs still pack whole (P30).
+- **Engine findings, recorded as small tasks** (open, no go yet; `Docs/Engine-Plan.md`, "Small tasks left from earlier
+  milestones"): control labels a device pixel low at 1.65 (step 4 and on); a composited box's text grayscale at 1.65 where
+  Chromium's is LCD (and an editor dialog over a composited scroller, step 12; a status line beside a tall scroller, step
+  10); a select with its own padding 6–7 px wider than Chromium's (step 9); the painter paints every row of a scroll
+  container (step 8); a textarea's `line-height` (step 11); a positioned box with a z-index inside a scroller, composited
+  apart in Chromium, and a stacking context on the form's rows (step 10); `ValueShape.TextOf` made public (step 10); a stop
+  for sound effects (step 13).
 
 **M11 started (2026-11-06):** the user's go; the decisions recorded (M11-1–M11-21 and the user's rule for
 M11); what exists checked against the code; the method; the design proposed, with 38 editor choices for the
@@ -3179,3 +3363,34 @@ step 8's options test expects the sound on. The full suite passes on the GPU and
 `claude-work/m11/step13/render-{model,particles,cutscene}@{1,1.65}.png`. Found: the engine's sound effects have no stop
 (a small task, Engine-Plan.md). Not checked: the preview in a real window and its sound by ear (to check by hand,
 Engine-Plan.md, "By-hand checks", (c)); Windows.
+
+**Fixes after step 14 (2026-11-08, the branch `m11-fixes-1` from `4f6120e`, merged as `00e5bd4`).** ("How it works",
+"Fixes after step 14".) The manager's decisions on what step 14's flow found: New entry in the top bar between Save As and
+Import, a command of its own (`EditorCommand.NewEntry`) with Ctrl+N, enabled while entries can be added; Enter in the
+import dialog cancelling the key's default action; the empty "Stand-ins" heading hidden. All 19 editor screens captured
+again (the top bar changed), each giving step 11's counts again. 8 new tests; the full suite passes on the GPU and on
+lavapipe: 3493 tests. Mutations: 13, all killed.
+
+**Step 14, the whole editor, end to end: done (2026-11-08, on the worker branch `m11-step14`, rebased on `00e5bd4`).**
+("How it works", step 14.) A mod made from scratch through the UI alone (New mod and its info; a game entry changed in
+the mod; a sound effect by New entry's Ctrl+N, a particle effect by its button, both filled in the form; a stage imported
+from a test `.glb` and a readme from a `.txt` through Import and the file browser; a cutscene by New entry using the three,
+its references picked from the reference lists; Save refused for a camera node typed wrong, the problem fixed, saved),
+mounted as the game mounts mods over its packs and read by `Sequence.Load`, `ParticleEffect.Load`, `MusicLibrary.Load`
+and `ModelData.Load`, each value the one the editor showed (binary form and JSON tab), the mod's hall over the game's;
+opened again equal. A scratch copy of the game's `audio.pak` edited in the dev setup (`--repo` read by the program's own
+arguments): the harp's level changed and saved in place, every other entry's stored bytes kept, the dump changed only at
+the harp (in the test; `textconv.sh` itself run by hand once, the manager's decision of 2026-11-08: the diff is the
+harp's level, stored length and hash). Every editor screen against Chromium at 1 and 1.65 on the GPU and on lavapipe:
+all 19 within the limit (worst `checks-problems@1.65`, 0.187 % and 0.188 %), nothing captured again. **Found, and fixed
+apart before the step went on** (the manager's decisions of 2026-11-08, "Fixes after step 14"): nothing in the UI started
+New entry (P15); Enter in the import dialog opened the file browser again; the empty "Stand-ins" heading. Tests: 3
+(`Tests/Statventure.Tests/Editor/EndToEnd/`: `ModFromScratchTests`, `DevSetupTests`, and `FoundTests`, the import
+dialog's Enter as the end-to-end witness). The full suite passes on the GPU and on lavapipe, headless: 3496 tests
+(`main`'s 3493 and 3 new), none skipped; nothing written to the player's real folders, the repo's packs unchanged.
+Mutations (`~/.cache/stat-fick-build/claude-work/m11/step14-mutations.json` and `-rerun.json`, made by
+`step14/make-mutations.py` and `make-rerun.py`): 30 in the first run, 25 killed, 5 survived (1 gap closed by the flow
+importing a loose file, 1 malformed mutation rewritten, 3 that can't differ on what the flow saves); the rerun of 3 killed
+all; the list as it stands, 31, has 28 killed and 3 accounted for. Renders for the user: `claude-work/m11/step14/`
+`render-cutscene@{1,1.65}.png` and the mod itself, `ember-rite.pak`. Not checked: the editor in a real window and its
+sound by ear (the by-hand checks, (a)–(e) above), Windows ("Windows check", items 1 and 8).
