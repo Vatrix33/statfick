@@ -5,14 +5,13 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-11-08): M12 (packaging) started on the user's go ("Then start with M12"); its twelve questions are
-answered ("Decisions for M12", M12-1–M12-12), its design doc is `Docs/Packaging.md`, and the questions that doc raises for
-the user (Q1–Q28: the version's exact form, how the separately downloaded editor finds the game, the archives' names, the
-program files' form, the Visual C++ runtime on Windows, the licences and BRUTAL's logo, the crash window, the logs' names
-and retention, the release's tag and checks, where the package checks run, and the rest) are still to ask, all at once
-with the question tool; then the seven steps it proposes, in three waves, in the order "Starting M9" gives. The rule to
-ask stands in full again in M12, the editor's packaging included (M11's exception was for M11's editor only).** No code
-of M12 yet. M11 (editor foundation) is done and ticked: `main` is the merge of `m11-step14` (step 14, on `00e5bd4`, "M11
+**Current task (2026-11-08): M12 (packaging) started on the user's go ("Then start with M12"); its twelve questions
+(M12-1–M12-12) and the detail round its design doc raised (Q1–Q28, and the M12-9 clarification) are answered ("Decisions
+for M12"); the design doc is `Docs/Packaging.md`, and its eight steps, in three waves, are the plan, none started. Two
+questions that Q11's answer (the BRUTAL logo splash and credits now) raised, Q29 (the splash's look, length and skipping)
+and Q30 (where each program opens the credits and what they list), are still to ask; step 4 waits for them, the other
+wave-1 steps (1–3) don't. The rule to ask stands in full again in M12, the editor's packaging included (M11's exception
+was for M11's editor only).** No code of M12 yet. M11 (editor foundation) is done and ticked: `main` is the merge of `m11-step14` (step 14, on `00e5bd4`, "M11
 fixes after step 14").
 **All fourteen steps of M11 are on `main`** (Progress, "M11 step 1" to "M11 step 14", "M11 fixes after step 14" and "M11
 done"; `Docs/Editor.md`, Status): record shapes, drafts and marks (step 1), packs for the editor (2), the window, sound
@@ -36,9 +35,11 @@ composited scroller and in a status line beside a tall scroller, a select with i
 painter painting every row of a scroll container, a textarea's `line-height`, a positioned box with a z-index inside a
 scroller, a stacking context on the form's rows, `ValueShape.TextOf`, a stop for sound effects); the Windows checklist
 ("Windows check" below, items 1–8, item 8 M11's, completed at M11's end); and the housekeeping list (finished workers'
-worktrees and branches). **Next: the questions of `Docs/Packaging.md` ("Questions for the user", Q1–Q28) for the user,
-then M12's steps** (`Docs/Packaging.md`, "Steps": the version; logs and crash files; publishing and the archives; the crash
-window; the editor as a download of its own; the release script; end to end with the Windows items).
+worktrees and branches). **Next: Q29 and Q30 for the user, and M12's steps** (`Docs/Packaging.md`, "Steps": wave 1,
+side by side: 1 the version and invariant globalization, 2 logs and crash files, 3 publishing, the archives and their
+check with `editor.ps1`, 4 the engine's embedded Lato and BRUTAL logo with the splash and the credits as engine pieces
+(after Q29 and Q30); wave 2: 5 the splash before `Load` and the crash window (after 2 and 4), 6 the editor as a download
+of its own (after 1–4, rebased on 5 for one call), 7 the release script and its text (after 1 and 3); wave 3: 8 end to end with the Windows items).
 Before M11: M10 (scene and sequencer) done 2026-11-05 (the proof cutscene approved by the user), M9 (assets and data)
 2026-11-03, M8's music listened to and approved 2026-11-02 (Progress). Nothing since 2026-10-30 has run on Windows
 ("Windows check"). The project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo
@@ -651,14 +652,9 @@ the design and the tests):
   G6 decided by the manager (2026-11-06, "Decisions for M11"); G2 and G3 are kept for the port ("At port time" below).
   M11 is done (2026-11-08).
 - **M12 Packaging:** answered 2026-11-08 (see "Decisions for M12" below; M12-9 closes G3); M12 started on 2026-11-08.
-  The details the answers leave open (the version's exact form and where it shows, the archives' names and the folder
-  inside, the program files' form, the Windows console, symbols, ICU, the Visual C++ runtime, the licences and BRUTAL's
-  logo, a readme, the stand-in note, signing, where the Windows archives are built, how the separately downloaded editor
-  finds the game and its own fonts, a game of another version, the data library's loading now or later, the logs' names
-  and retention, the crash window's content and look, a crash with no window possible or one .NET can't catch, the
-  release's tag and checks, where the package checks run) are `Docs/Packaging.md`, "Questions for the user" (Q1–Q28),
-  still to ask before the steps start. How the editor is started on Windows (`editor.ps1`, "Windows check", item 8d) is
-  in that doc's step 3.
+  The detail round (`Docs/Packaging.md`, Q1–Q28) and the M12-9 clarification were answered the same day; Q29 and Q30
+  (the BRUTAL splash and the credits view, raised by Q11's answer) are still to ask before step 4. How the editor is
+  started on Windows (`editor.ps1`, "Windows check", item 8d) is in that doc's step 3.
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -697,7 +693,10 @@ the design and the tests):
   (M12-7: a check against that place; until then no check, and releases are drafts on the private repo that the user
   publishes); **new icons for both programs**, the game and the editor, with the port's art pass (M12-5: none in M12, the
   system's generic icon meanwhile; a Windows `.exe` built on Linux carries no icon or version resources, NETSDK1074, so
-  the icons need a Windows build or a resource step then: `Docs/Packaging.md`, "The executables' names").
+  the icons need a Windows build or a resource step then: `Docs/Packaging.md`, "The executables' names"); **the
+  BRUTAL logo before the game starts and BRUTAL's copyright with the other credits in the game's own screens** (Q11:
+  M12 gives both programs a splash and a credits view now, which the port's start sequence and credits screen take
+  over).
 
 ## Folders
 
@@ -974,7 +973,8 @@ in the user's words. The design doc is `Docs/Editor.md`.
 were asked on 2026-11-08 with the question tool by the manager, after reading the plan and the code, on the user's go.
 Every answer was the recommended option except the shipped folders (M12-1), icons (M12-5) and versioning (M12-6); M12-7
 is an in-game update check later with the first option's way meanwhile. The design doc is `Docs/Packaging.md`; the
-details these answers leave open are its "Questions for the user" (Q1–Q28), still to ask.
+details these answers left open, its Q1–Q28, were answered the same day (the detail round below), and Q11's answer raised
+Q29 and Q30, still to ask.
 - **The user's go (2026-11-08):** "Then start with M12"; M12 started on 2026-11-08.
 - **The rule to ask stands in full again (2026-11-08):** every design choice of M12 is asked, the editor's packaging
   included; the M11 discretion rule ("Decisions for M11", the user's rule for M11) was for M11's editor only.
@@ -1014,6 +1014,57 @@ details these answers leave open are its "Questions for the user" (Q1–Q28), st
 - The first packages (M12-12): the sandbox as the game's stand-in, plus the editor: the whole pipeline (publish,
   archives, versions, logs, crash handling, releases) is built and proven now with the sandbox where the game will be;
   the port later replaces the stand-in. (Not the editor only; not building the pipeline without publishing.)
+- **M12-9 clarified (the user, 2026-11-08, with the detail round):** the editor's download carries no copy of the data
+  library; the editor loads the game's (the "one file" is the game's download's).
+- **The detail round (Q1–Q28 of `Docs/Packaging.md`, answered 2026-11-08 with the question tool, after the design
+  doc):** every answer the recommended option except Q1, Q11 and Q12; in full, with each option, in
+  `Docs/Packaging.md`, "Decided (Q1–Q28)".
+  - **Q1, the version's form, not the recommendation: always four numbers,** `2026.11.8.1`, a second release the same
+    day `2026.11.8.2`; a build from the repo that isn't a release says `dev` (its commit in the log). (The
+    recommendation was `2026.11.8` with `.2` only for a same-day second; not `2026.11.08` as text.) Q2: the date is the
+    released commit's UTC date, the fourth number counting that date's releases (not the day the script runs). Q3: the
+    version in the editor's title; the version and commit in the first lines of every log and crash file; the game's
+    title stays its name (not both titles; not logs only; not the commit in the title).
+  - The downloads: Q4 `stat-fick-2026.11.8.1-linux.tar.gz`, `-windows.zip`, `statventure-editor-…` likewise, each
+    holding a folder named with the version, so a new version unpacks beside the old (not `Stat Fick/` unpacked over
+    the old; not no folder). Q5 single-file executables with the native libraries beside them, the data library a
+    file of its own (not the usual folder of about 200 files; not the natives inside). Q6 no console window on
+    Windows for either (not console programs; not the editor with one). Q7 symbols embedded, stacks with file and
+    line (not `.pdb` files; not none). Q8 .NET's invariant globalization for the programs and the tests (not the
+    system's ICU; not ICU shipped). Q9 the Visual C++ runtime's three DLLs beside the Windows programs, local
+    deployment, kept in the build cache (not required of the player; not Microsoft's installer in the zip). Q10
+    `NOTICE.txt` and a `licenses/` folder (not one joined file).
+  - **Q11, BRUTAL's logo and credits, not the recommendation: a BRUTAL logo splash and an About/credits view in both
+    programs now** (the sandbox stand-in and the editor; the ported game gets them again in its own screens, "At port
+    time"). (The recommendation was `NOTICE.txt` now and the logo and credits at port time, the packages not shared
+    meanwhile; not asking Ahwoo for written permission.) Its details are Q29 and Q30, still to ask.
+  - **Q12, a readme, not the recommendation: none in the downloads;** the release's text on GitHub carries what it
+    would have said. (The recommendation was a short `README.txt` in each; not nothing at all.) Q13: the stand-in keeps
+    its title "Statventure Sandbox" and the release's text says it stands in for the game (not a line on its page;
+    not nothing). Q14: unsigned for now (not a certificate now). Q15: the Windows archives built on Linux, so their
+    `.exe` files carry no version resources for now (NETSDK1074; not on the Windows PC; not GitHub's runners).
+  - The editor: Q16 a "Where is Stat Fick?" screen with its file browser on its first start (and when the remembered
+    folder no longer holds the game), remembered in `editor/`; `--game` and `--repo` stay (not the usual places
+    first; not the command line only). Q17 Lato regular and bold embedded (not an `editor.pak`; not only for the first
+    screen), with Q23 one engine resource every single-file program carries. Q18 a game of another version refused,
+    naming both (not a warning; not no check). Q19 the data library's loading now, through a stand-in
+    `Statventure.Game.Data` library with a test kind in `Samples/`, carried by the packaged sandbox (not at port
+    time). Q20 `--capture <png> --frames N` for the editor (not an environment variable; not no option).
+  - Logs and crashes: Q21 `stat-fick-2026-11-08_14-03-22.log` in local time, the last 10 runs per program and the last
+    10 crash files (not 10 in all; not crash files kept for ever). Q22 the crash window: a heading, one line naming the
+    error, the crash file's path with Copy, "Open logs folder" (the system's file manager, not a dialog) and Close
+    (not without the folder button; not with the stack). Q23 the editor's dark look for both, Lato embedded in the
+    engine (not the game's parchment; not `ui.pak`'s Lato). Q24 with no window possible, the crash file and a
+    terminal message (not a Windows message box). Q25 a crash .NET can't catch: the log only (not a crash file at the
+    next start; not the crash window then).
+  - Releases and checks: Q26 tag `v2026.11.8.1`, title "Stat Fick 2026.11.8.1", a fixed text the user can edit in the
+    draft (not `stat-fick-2026.11.8.1`; not the commits listed). Q27 the release script refuses unless the tree is
+    clean and its commit is on GitHub's `main`, and runs no tests (not the full suite; not no checks). Q28 the package
+    checks in `Tools/Scripts/check-packages.sh`, run by the packaging steps and before a release, not in `test.sh`
+    (not all in `test.sh`; not the Linux packages in it).
+- **Still to ask, raised by Q11's answer:** Q29 (the splash: which logo, its ground, how long, whether and when it can
+  be skipped) and Q30 (the credits view: where each program opens it, what it lists), in `Docs/Packaging.md`,
+  "Questions for the user (Q29–Q30)"; step 4 waits for them.
 
 **Decisions for the window's visibility (2026-11-03, the small task "send `visibilitychange` and `pagehide`"; asked after
 probing Chromium 152 under Xvfb with and without a window manager; every answer the recommended option):**
@@ -2515,6 +2566,7 @@ Asked after the regression run (2026-11-06):
   - **M11 step 14, the whole editor, end to end (2026-11-08, 3496 tests, on its worker branch `m11-step14`, rebased on `00e5bd4`):** tests only (`Tests/Statventure.Tests/Editor/EndToEnd/`: `EndToEndTesting.cs`, `ModFromScratchTests.cs`, `DevSetupTests.cs`, `FoundTests.cs`); details in `Docs/Editor.md`, "How it works", step 14. **A mod made from scratch through the UI**, driven as a modder drives it (the top bar, New entry by its button and by Ctrl+N, the form's fields, selects, Add, Make and set boxes, the reference lists, the list's filter, Import and Open through the file browser's path field, the JSON tab, the mod info's own form): New mod "Ember Rite" and its info; the game's hall changed in the mod (its copy, P7); a sound effect, a particle effect, a stage imported from the tests' `dolly.glb` (the packer's entry of the same file), a readme imported as a file, and a cutscene using the three, its stage, effect and sound picked from the reference lists; Save refused for a camera node typed wrong ("… cue 0's camera dolly/Lens: the stage models/stages/dolly has no node Lens", under the field and in the refusal), fixed, saved; then mounted as the game mounts mods over its packs (`Application.DataMounts`) and read by `Sequence.Load`, `ParticleEffect.Load`, `MusicLibrary.Load` and `ModelData.Load`, each the value the editor showed (binary form and JSON tab), the mod's hall over the game's, the game's 55 themes all there; opened again (Open, the browser), the same seven entries. **The dev setup:** `--repo` (the program's own `EditorArguments.Parse`) on a scratch copy of `engine/Assets/Packs`: the game's `audio.pak` opened writable, the harp's level typed and Ctrl+S: saved in place, every other entry's stored bytes kept, the dump changed only at the harp; the manager's decision of 2026-11-08: the test reads the dump in-process, and `textconv.sh` itself was run by hand once on the test's saved pack (the diff: the harp's `level` 0.22 → 0.375, its `storedLength` and `sha256`; `claude-work/m11/step14/textconv.diff`). **Found, and fixed apart before the step went on** ("M11 fixes after step 14" above): nothing in the UI started New entry (the flow first started it as step 9's tests do, then stopped and reported it); Enter in the import dialog opened the file browser again (a probe of every key and click event showed the keypress pressing the Import button the focus went back to; `FoundTests` keeps it as the end-to-end witness); the empty "Stand-ins" heading. **Every editor screen against Chromium** at 1 and 1.65 on the GPU and on lavapipe with `m11-fixes-1`'s goldens: all 19 within the limit (pixels past 12 levels, 0.2 %; the worst `checks-problems@1.65`, 0.187 % on the GPU and 0.188 % on lavapipe; the table in `Docs/Editor.md`, step 14), nothing captured again; P36's six screens are all there, so no fixture remained to add. Tests: 3 new. The full suite passes on the GPU (1 min 33 s) and on lavapipe (1 min 57 s), inside a headless Wayland compositor: 3496 tests (`main`'s 3493 and 3 new), none skipped; the player's real game folder stayed missing, the Documents folder's top level and the repo's packs (this worktree's and the main checkout's) unchanged. Mutations (`~/.cache/stat-fick-build/claude-work/m11/step14-mutations.json` and `-rerun.json`, made by `step14/make-mutations.py` and `make-rerun.py`; each a rule of the editor or the engine the flow goes through, only this step's tests run against it): 30 in the first run, 25 killed, 5 survived: 1 gap closed (no loose file was imported, so imported files left out of a save went unseen: the readme now), 1 malformed mutation rewritten (the mods also still mounted above the packs), 3 that can't differ on what the flow saves (a kept entry re-added from its record: the writer keeps a content's stored bytes by its hash; `Sequence.Load`'s and `ParticleEffect.Load`'s own checks: a mod the editor saved passes them by construction); the rerun of 3 (the gap, the rewritten one, a kept entry left out) killed all; the list as it stands, 31, has 28 killed and 3 accounted for; nothing written to the player's real folders. Renders for the user: `claude-work/m11/step14/render-cutscene@{1,1.65}.png` (the whole editor with the finished cutscene selected, its preview paused at 0.8 s) and the saved mod, `ember-rite.pak`. Not checked: the editor in a real window ("By-hand checks", (e)), Windows ("Windows check", item 8).
   - **M11 done (2026-11-08, 3496 tests):** all fourteen steps merged on `main`, with the fixes step 14's flow called for (`00e5bd4`); M11 ran from 2026-11-06 to 2026-11-08 under the user's rule for M11 (the editor's design the manager's: P1–P38 and every step's questions; the game's questions G4 and G5 the user's, G1 and G6 the manager's, G2 and G3 kept for the port). The Statventure Editor (`Tools/Editor`) opens one pack over the game's packs, edits every record kind through one form made from the kinds' definitions with undo per entry, checks as you edit with the engine's own checks (the game runs them at load too, G4, G5), references, import, a live preview, and saves mods (and, in the dev setup, the game's packs); a mod made from nothing through its UI loads in the game as the editor showed it (step 14). The full suite passes on the GPU and on lavapipe, inside a headless Wayland compositor under the shared lock: 3496 tests, none held (M11 started at 2547 on `a32c5cb`; the work beside it, the background-layer port and the first-text LCD fix among it, is in its own entries). Every one of the editor's 19 screens matches Chromium 152 at 1 and 1.65 within the paint fixtures' limits on both devices. Mutations: every step's list killed or accounted for (each step's entry; about 2,460 in the lists as they stand, 42 accounted for, none writing to the player's real folders). Found on the way and recorded as small tasks (open, no go yet): control labels a device pixel low at 1.65; text grayscale at 1.65 in a composited box, under a dialog over a composited scroller and in a status line beside a tall scroller; a select with its own padding wider than Chromium's; the painter painting every row of a scroll container; a textarea's `line-height`; a positioned box with a z-index inside a scroller; a stacking context on the form's rows; `ValueShape.TextOf`; a stop for sound effects. Fixed on the way: text first in a paint chunk (`lcd-first-text`), the capture harness's window out of X11's range at 1.65 (step 8), the flaky `ScriptApiTests` (a test's own fault). Not checked: the editor in a real window and by ear (the by-hand checks (a)–(e) in "Small tasks left from earlier milestones"), Windows ("Windows check", item 8). What it leaves for the port: "What M11 leaves for the port" under "How to continue". Ticked under Milestones; M12 waits for the user's go, its questions first.
   - **M12 started (2026-11-08, docs only, on the branch `m12-design` from `bb2e443`):** the user's go ("Then start with M12"); the twelve questions asked and answered the same day, all with the recommended options except the shipped folders (M12-1: two separate downloads, the editor told where the game is), icons (M12-5: none in M12) and versioning (M12-6: date-based); M12-7 an in-game update check later, draft GitHub releases meanwhile; M12-9 closes G3 (the `Statventure.Game.Data` library); the rule to ask stands in full again ("Decisions for M12"). Design doc `Docs/Packaging.md`: what exists checked against the code (the build publishes only the sandbox, framework-dependent, with every runtime's natives, 159 MB; nothing publishes the editor; the executable takes the assembly's name, so M12-2's names come from renaming it at publish or naming the assembly per platform; no program version anywhere, only the engine's own `EngineInfo.Version` 0.1.0; no program sets `ApplicationOptions.LogFile`; a crash is logged and rethrown after the window, device and sound are disposed, so a crash window needs a window, device and loop of its own, and the engine embeds no font; the editor's fonts are the game's `ui.pak`'s, so an editor downloaded apart can't draw before it knows the game; BRUTAL's Windows libraries need the Visual C++ runtime, `VCRUNTIME140.dll` and for some `MSVCP140.dll`, which nothing ships; a Windows `.exe` built on Linux gets no version resources, NETSDK1074; the Linux libraries need glibc 2.34 and carry `RUNPATH $ORIGIN`, each up to three times as copies; the BRUTAL licence asks for `NOTICE.txt`, the copyright in the credits and the logo before the program's primary function, the README waiving the logo for non-profit projects while the licence text names written permission), the method, a proposed design, 28 questions for the user (Q1–Q28, not asked yet) and seven proposed steps (the version; logs and crash files; publishing and the archives with their check and `editor.ps1`; the crash window; the editor as a download of its own; the release script; end to end with the Windows items) in three waves. No code yet.
+  - **M12's detail round answered (2026-11-08, docs only, the branch `m12-design`):** the user answered Q1–Q28 of `Docs/Packaging.md` and clarified M12-9 with the question tool, all as recommended except Q1 (versions always of four numbers, `2026.11.8.1`), Q11 (a BRUTAL logo splash and a credits view in both programs now) and Q12 (no readme in the downloads, the release's text instead); M12-9: no copy of the data library in the editor's download ("Decisions for M12", "The detail round"). `Docs/Packaging.md`'s questions became "Decided (Q1–Q28)", its design and steps follow them: an eighth step (4, the engine's embedded Lato, one resource the crash window, the splash, the credits and the editor share, and the BRUTAL logo, with the splash and the credits as engine pieces), the splash and the crash window together in step 5 (both `Application.Run`'s own screens), the release's text carrying what a readme would have said (step 7). The logo: BRUTAL's own `docs/branding/LOGO_BRUTAL_WHT.png` and `LOGO_BRUTAL_BLK.png` (712 × 168) in the BRUTAL source in the build cache, not in any package; step 4 checks them against ahwoo.com/brutal-branding. Two new questions from Q11's answer, Q29 (the splash's look, length and skipping) and Q30 (where each program opens the credits, what they list), still to ask; step 4 waits for them. The eight steps are the plan; none started. No code yet.
 
 ## Milestones
 
