@@ -277,7 +277,8 @@ versioned.
 - **The folder:** Linux `$XDG_DATA_HOME/stat-fick/`, else `~/.local/share/stat-fick/`; Windows
   `%APPDATA%\Stat Fick\` (`Environment.SpecialFolder.ApplicationData`); made on first use. Resolved by
   a pure function of the system, the environment and the home folder, so the tests check every case
-  without touching the real folder. It holds `settings.json`, `saves/` and `mods/`.
+  without touching the real folder. It holds `settings.json`, `saves/` and `mods/`, and beside them `logs/`: each
+  program's run logs and the crash files (M12-8, M12 step 2; `Docs/Packaging.md`, "Logs" and "How it works", step 2).
 - **Save slots** (Q15): named slots with free names the player gives, each its own file and backup:
   `saves/<name>.dat` and `saves/<name>.dat.bak`, the names under the path rule (Q4), at most 100
   characters (Q40); the engine lists the folder, there's no fixed count, and the slot screen is the
@@ -1373,8 +1374,9 @@ helper `Core/TestApplication.cs`: a real application with a small window, as `Ap
   `Docs/Editor.md`, "How it works", step 3) leaves the area packs only: no `classes/`, no mods folder, no
   development folder (the option's nor `$STATVENTURE_DEV_FOLDER`), so a damaged mod can't stop its start; Reload
   re-reads the same. Off by default; the game and the sandbox don't set it.
-- **`Application.Storage`** (S9-B): made first in `Run()` (`ApplicationOptions.GameFolder`, made a full path,
-  else `GameFolder.ForThisMachine()`; logged, "Storage"); creating it touches nothing on disk. `Dispose()`,
+- **`Application.Storage`** (S9-B): made first in `Run()`, after the run's log when the program names one (M12 step 2)
+  (`ApplicationOptions.GameFolder`, made a full path, else `GameFolder.ForThisMachine()`; logged, "Storage");
+  creating it touches nothing on disk. `Dispose()`,
   which `Run()` ends with whether the start, the loop or the game's `Unload()` failed or not, disposes it
   after the window and the sound (the window is gone while the last saves are written): pending saves and
   settings are written, then it refuses more (`ObjectDisposedException`); the property is null afterwards.

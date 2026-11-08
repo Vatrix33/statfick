@@ -29,17 +29,19 @@ public sealed class EditorApplication : Application
     UiHost _host = null!;
     int _width, _height;
 
-    public EditorApplication(GameData game, string? playerFolder) : this(game, playerFolder, visible: true)
+    /// <summary>The editor as its program makes it: its window shown, its logs written (M12-8, <see cref="ApplicationOptions.LogName"/>).</summary>
+    public EditorApplication(GameData game, string? playerFolder) : this(game, playerFolder, visible: true, logName: "statventure-editor")
     {
     }
 
-    /// <summary>The editor with its window <paramref name="visible"/> or not (tests make theirs hidden).</summary>
-    internal EditorApplication(GameData game, string? playerFolder, bool visible)
-        : this(game, ShellSettings.Read(playerFolder ?? GameFolder.ForThisMachine()), playerFolder, visible)
+    /// <summary>The editor with its window <paramref name="visible"/> or not (tests make theirs hidden), writing no log unless given <paramref name="logName"/>.</summary>
+    internal EditorApplication(GameData game, string? playerFolder, bool visible, string? logName = null)
+        : this(game, ShellSettings.Read(playerFolder ?? GameFolder.ForThisMachine()), playerFolder, visible, logName)
     {
     }
 
-    EditorApplication(GameData game, ShellSettings shell, string? playerFolder, bool visible) : base(OptionsFor(shell, playerFolder, visible))
+    EditorApplication(GameData game, ShellSettings shell, string? playerFolder, bool visible, string? logName)
+        : base(OptionsFor(shell, playerFolder, visible) with { LogName = logName })
     {
         _game = game;
         _shell = shell;

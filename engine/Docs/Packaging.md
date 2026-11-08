@@ -685,6 +685,13 @@ the tests run without the splash.
      kept, only those name forms touched; a crash file for each kind of crash with its parts; tests' applications
      write no log unless asked; nothing outside the scratch folder. Mutations: the kept numbers, which files count,
      the names, each part of the crash file, each crash source, the order (the crash file before the teardown).
+   - **Decided by the manager (2026-11-08; implementation details the design leaves to the step, asked by the
+     step's worker):** (1) the log's program name is set only on the program's own path (the editor's public
+     constructor, which its `Main` uses; the sandbox's options); the tests' construction (the editor's internal
+     constructor) leaves it unset, so tests write no log unless they ask (not: set in `OptionsFor` with the editor's
+     tests writing logs into their scratch folders; not: a switch for the whole process the tests turn off). (2) The
+     cutscene player (`Samples/Statventure.Sandbox/Cutscene.cs`, the sandbox's other application) logs under the
+     game's name too; its one line is step 2's.
 3. **Publishing, the archives and their check; `editor.ps1`** (scripts). Independent.
    - Owns: new `Tools/Scripts/publish.sh`, `publish.ps1` and `check-packages.sh`, a new `Tools/Packaging/` (the
      expected listings, the licence files' list), `Samples/Statventure.Sandbox/Statventure.Sandbox.csproj` and
@@ -838,7 +845,120 @@ Filled in as the steps are done.
   titles), the editor's version its own assembly's. The title's text in five other editor tests (`NewModViewTests`,
   `SavingViewTests`, `OpenerTests`, `ModFromScratchTests`, `DevSetupTests`).
 
+### Step 2: logs and crash files (2026-11-08)
+
+- **The option (`ApplicationOptions.LogName`, in place of the unused `LogFile`):** the program's name for its logs.
+  `stat-fick` in the sandbox's options (`Program.cs`) and the cutscene player's (`Cutscene.cs`), the stand-in logging
+  as the game; `statventure-editor` given by the editor's public constructor only, which its `Main` uses (the
+  internal one the tests use leaves it null; the manager's decisions, Steps, step 2). Null, the default: the console
+  only, no log file, no crash file, no terminal message; a test that wants a log sets a name and its own game folder.
+- **The run's log (`Core/LogFiles.cs`, `Start`):** `Run()` first finds the game folder (`ApplicationOptions.GameFolder`,
+  else this machine's), then, with a name, opens `<game folder>/logs/<name>-yyyy-MM-dd_HH-mm-ss.log`, local time (the
+  run's `DateTimeOffset.Now`): each missing folder level made 0700 on Linux (`StorageFiles.CreateFolder`), the file
+  made new (`FileMode.CreateNew`, 0600 on Linux, as the game folder's other files), UTF-8 without a byte order mark,
+  every line flushed (`Log.OpenFile(stream, path)`). **A name already taken** (two starts in one second) gets `-2`,
+  `-3` … before `.log` (chosen: never overwritten; rare enough not to be a name the player meets). **The first lines**
+  (category `Program`): `stat-fick 2026.11.8.1, commit <full hash>` (the program's log name, then `ProgramInfo.Of`
+  of the application class's own assembly, step 1's: `dev` for a build that isn't a release, `commit unknown` for a
+  build without git), `started 2026-11-08 14:03:22 +01:00`, and the system: `<OS description> (<OS version>)
+  <architecture>, .NET 10.0.13` (on Linux .NET's OS description is the distribution's name, "Bazzite", so the
+  kernel's version follows in brackets: "Bazzite (Unix 7.2.15.1) X64, .NET 10.0.13"). Then the lines as before: the
+  game folder, the mounts, the window, the GPU's name. **A log that can't be made** (the folder can't be made, a
+  file in its place) is a warning on the console ("no log file in …") and the run goes on; **a log that can't be
+  written any more** (a full disk) is dropped with one line on standard error and the console goes on (chosen: a
+  log never stops the program).
+- **Which logs are kept (`Prune`, at each start, after the first lines):** of `<name>-<stamp>[-n].log` the run's own
+  log and the 9 newest others, so the last 10 runs of that program (the game's and the editor's counted apart); of
+  `crash-<stamp>[-n].txt` the 10 newest, so a crash in this run makes 11 until the next start (removed "when a program
+  starts", as the design says). Newest by the stamp in the name, then by the number after it (as a number: `-12`
+  after `-3`), not by the files' times. Only files of those exact forms count (anchored patterns, the program's name
+  exactly, ASCII digits, files only: `stat-fick.log`, `stat-fick-notes-….log`, `….log.bak`, `crash-old.txt`,
+  `Stat-Fick-….log`, a folder with a log's name are all left alone). A file that can't be removed (on Windows another
+  running copy's open log) stays, with a warning; a folder that can't be listed, a warning. The run's own log is
+  never removed, even when older runs are dated later (a clock set back).
+- **What counts as a crash, and the order:** an exception out of the start (once the log is open: the storage, the
+  data, the window, the device, the sound), `Load`, `Update`, `Render`, `Unload`, or the teardown (`Dispose`; chosen:
+  a teardown that fails is a crash too, and after a crash it is logged as another); an unhandled exception on any
+  other thread while the application runs. Not crashes, as before: a UI listener's or script task's exception, the
+  audio thread's rendering failure, a failed save write; nor a faulted `Task` (its exception stays in the task, .NET's
+  default, `TaskScheduler.UnobservedTaskException` not used). **The order (`Run`):** (1) the crash file, at once, in
+  `Run`'s catch before the teardown (`Crashed`), so a failing teardown can't lose it; (2) the teardown, `Dispose`, as
+  before (the pending saves written, S9-B; the log closed; `Dispose` closes the log only if this application opened
+  it, so another application ending, a test's, leaves a program's log open); (3) the run's end, `Ended` (even after a
+  failing teardown): threads waiting are let go, the terminal message (Q24); (4) the exception leaves `Run()`. The
+  programs' `Main` doesn't catch it: .NET prints it and ends the process (SIGABRT, 134 on Linux), as before; step 5
+  adds the crash window between (3) and (4). The run's first crash is its crash (`Application.Crash`) and writes
+  the file; a later one is only logged ("another crash, …").
+- **The crash file, `logs/crash-yyyy-MM-dd_HH-mm-ss.txt`** (local time, `-2` … when taken; written whole, flushed to
+  the disk, 0600): line 1 the program line; line 2 `crashed 2026-11-08 14:05:10 +01:00 <where>` (`on the main
+  thread`, `on the thread "Statventure audio rooms"`, `on a thread-pool thread`, `on an unnamed thread`); line 3 the
+  system; line 4 `log <the run's log>`; a blank line; the exception's `ToString()` (its type, message and stack with
+  files and lines in a build with symbols, its inner exceptions); a blank line; `The log's last lines:` and the run's
+  log up to the crash, at most its last 100 lines (chosen: `Log` keeps its last 100 lines since its file opened,
+  `Log.Tail()`; taken before the crash's own error line, which repeats the stack). Then the log gets `crashed <where>:
+  <exception>` and `crash file <path>`. A crash file that can't be written is an error in the log; the crash goes on
+  without one (`Crash.File` null).
+- **Other threads (the handler):** .NET 10's `ExceptionHandling.SetUnhandledExceptionHandler`, set once per process
+  at the first `Run()`, is called for an exception no code caught on any thread but the main one (the thread pool
+  too; the main thread's are `Run`'s); answering true lets that thread end and the process go on (checked in a
+  scratch program first: a thread's and a pool thread's, a blocking handler, the exception rethrown on the main
+  thread). It hands the crash to the running application (the first whose `Run` is going on; none: false, .NET's
+  own way), which writes the crash file at once and hands it to the main loop: the loop takes it at the top of its
+  next iteration and throws it there (`ExceptionDispatchInfo`), so the run ends as for its own crash, in the same
+  order (the teardown, the pending saves); a minimized loop asleep in `WaitEvents` is woken (`Window.PostEmptyEvent`,
+  callable from any thread). The thread waits until the loop has taken it or the run has ended (true), at most
+  `CrashAnswerTime`, 10 s (chosen); a loop that doesn't answer in time (stuck, or in a long `Load`): the terminal
+  message and false, so .NET ends the process at once, the crash file written. A crash that arrives after the loop
+  (in `Unload` or the teardown) ends the run all the same (`Ended` throws it when the run had no crash of its own).
+  The audio's warm-up and room-preparing threads, the thread pool and any other thread are covered alike. **The step
+  split:** bringing another thread's crash to the main loop is listed under step 5 ("Steps"); it is done here, because
+  ending the program in order (the teardown on the main thread, the pending saves) needs it; step 5 adds only the
+  window after the teardown, for both kinds of crash.
+- **What step 5 reads:** `Application.Crash`, a `CrashReport` (`Core/LogFiles.cs`): `Exception`, `Where`, `Time`,
+  `File` (the crash file's full path; null without a log name, or when it couldn't be written), `Message` (the one
+  line naming the error, its kind and message: "InvalidOperationException: …", Q22) and `TerminalText(program)`
+  ("<program> stopped because of an error." / the message / "The details are in: <file>", the crash window's words,
+  Q22, Q24). The terminal message is printed once in `Ended` (`TellTheTerminal`), with a log name only, the window's
+  title as the program's name (the stand-in says "Statventure Sandbox stopped because of an error."), to standard
+  error (`Application.Terminal`, internal, which the tests catch): step 5 shows the window there instead and keeps
+  this for when no window can be drawn. `CrashAnswerTime` is internal too (the tests' shorter).
+- **A fault .NET can't catch (Q25):** the run's log as written up to it (every line flushed); nothing else.
+- **Scripts and sessions:** the sandbox (`play-cutscene.sh`, its `--capture` runs) now writes `logs/` in the per-user
+  folder; a script or session that runs it sets `XDG_DATA_HOME` to a scratch folder (the editor: `--player-folder`).
+- **Tests (`Tests/Statventure.Tests/Core/`, the non-parallel "Storage log" collection, the log at Info while they run:
+  the GPU tests' fixture leaves it at Warning):** `LogFilesTests` (12): the names; the run's log and its first lines
+  (and modes 0700/0600, no byte order mark); a start keeping the game's last 10 runs, the editor's all, the 10 newest
+  crash files and every other name form (a folder of 12 runs of each program, 12 crash files and 17 other names,
+  made shuffled with file times the reverse of the names', same-second numbers at the cut); the editor's start; the
+  run's own log kept against later dates; a taken name numbered, nothing overwritten; a crash file written whole; a
+  folder that can't be made or listed; a crash file's exact text; the crash's message and terminal words; the log's
+  last 100 lines; a log that can't be written. `ApplicationCrashTests` (21; real applications in hidden windows, a
+  game folder of the test's own; those that run many updates minimized with immediate wake-ups, as a hidden window's
+  presents hang after a few frames under wlroots): the run's log in the player's folder with its first lines; tests'
+  applications writing nothing (nor in this machine's redirected folder); a log that can't be made; an application
+  closing only its own log; the editor's name on the program's path only; a crash in the start, `Load`, `Update`,
+  `Render` and `Unload` (each: the crash file's parts in order against the run's log, written before the teardown,
+  the log's lines, the terminal message); a failing teardown after a run and after a crash; a crash on a thread of its
+  own, a thread-pool thread and the audio's room thread (a room that can't be prepared), each taken by the next
+  update, the pending save (held 1.5 s) written and the thread let go when the loop takes the crash, not after the
+  teardown (an answer time of 1 s, shorter than the teardown); a minimized loop woken; a loop that doesn't answer in time
+  (told at once, false); a crash during the teardown, with and without a crash before; after the run (not the
+  application's, and the next application's: an unnamed thread); a crash file that can't be written.
+
 ## Status
+
+**Step 2 done (2026-11-08, branch `m12-step2`, 3544 tests on the GPU and on lavapipe):** one log per run in the
+player's `logs/` (`stat-fick-2026-11-08_14-03-22.log`, the editor's `statventure-editor-…`) with its first lines (the
+program, version and commit from step 1's `ProgramInfo`, the start time, the system); the last 10 runs per program and
+the last 10 crash files kept, only those name forms touched; a crash file for every crash, on the main thread (the
+start, `Load`, `Update`, `Render`, `Unload`, the teardown) or any other thread (.NET 10's unhandled-exception handler:
+the audio's threads, the thread pool, any other), written before the teardown, the crash then handed to the main loop
+so the run ends in order (the pending saves written), its message on the terminal (Q24); `Application.Crash` for step
+5's window; tests' applications write nothing unless they ask (the manager's decisions (1), (2), Steps, step 2).
+Mutations: 100, 93 killed by mutate.py's reading, 6 killed by crashing the test host (mutate.py reads only the
+summary line, which an aborted run prints as "Passed!" with fewer tests; each shown aborted when run again), 1
+accounted for (the crash file's flush to the disk can't be seen by a test). Not checked: Windows. ("How it works",
+step 2.)
 
 **Step 1 done (2026-11-08, branch `m12-step1`, 3511 tests on the GPU and on lavapipe in invariant mode):** the dev
 default `dev` and a release's `-p:Version`, the commit from git by the SDK's Source Link (a build without git says

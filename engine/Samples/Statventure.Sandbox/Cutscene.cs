@@ -19,6 +19,7 @@ using Statventure.UI.Dom;
 sealed class CutsceneSandbox(string name, string? capture, int captureFrame) : Application(new ApplicationOptions
 {
     Window = new WindowOptions { Title = "Statventure: Ji'ruan's intro (the M10 proof)", Width = 1200, Height = 680 },
+    LogName = "stat-fick", // its logs as the game's, as the sandbox's (Docs/Packaging.md, "Logs")
 })
 {
     const string SurfaceCss = """

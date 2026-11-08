@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 using Brutal.VulkanApi;
 using Statventure.Audio;
 using Statventure.Graphics;
@@ -13,8 +14,15 @@ public sealed record ApplicationOptions
 {
     public WindowOptions Window { get; init; } = new();
     public bool VSync { get; init; } = true;
-    /// <summary>Where the log file goes (null: console only).</summary>
-    public string? LogFile { get; init; }
+    /// <summary>
+    /// The program's name for its logs (Docs/Packaging.md, "Logs"; M12-8, Q21): <c>stat-fick</c> for the game (and the
+    /// sandbox standing in for it), <c>statventure-editor</c> for the editor. With a name, <see cref="Application.Run"/>
+    /// writes the run's log in the player's game folder's <c>logs/</c> (<see cref="LogFiles"/>), and a crash writes a
+    /// crash file there and its message on the terminal (<see cref="Application.Crash"/>). Null, the default: the console
+    /// only, no files, nothing on the terminal (tests' applications write none unless they ask: the programs set it on
+    /// their own path only, the editor in its public constructor).
+    /// </summary>
+    public string? LogName { get; init; }
     /// <summary>Whether to open the sound output (<see cref="Application.Audio"/>).</summary>
     public bool Audio { get; init; } = true;
     /// <summary>
@@ -75,6 +83,43 @@ public abstract class Application : IDisposable
     public bool Running { get; private set; }
 
     bool _remounted, _musicFailed;
+
+    /// <summary>The application whose <see cref="Run"/> is going on (the first, if several are), which a crash on another thread is handed to.</summary>
+    static Application? s_running;
+    static int s_crashHandlerSet;
+    readonly object _crashGate = new();
+    readonly ManualResetEventSlim _crashTaken = new();
+    CrashReport? _crash;
+    /// <summary>Another thread's crash, for the main loop to take (<see cref="TakeCrashFromElsewhere"/>).</summary>
+    Exception? _elsewhere;
+    bool _ended, _ownsLog, _told;
+    string? _logsFolder;
+
+    /// <summary>
+    /// The run's crash (Docs/Packaging.md, "Crashes"; M12-10), once there is one: its exception, where it happened, the one
+    /// line naming the error and the crash file's path. The first crash of a run is the one; later ones are only logged.
+    /// </summary>
+    public CrashReport? Crash
+    {
+        get
+        {
+            lock (_crashGate)
+                return _crash;
+        }
+    }
+
+    /// <summary>
+    /// The program's version and commit for its logs' and crash files' first lines (Q3): what the program file of the
+    /// application's own class records (<see cref="ProgramInfo.Of"/>).
+    /// </summary>
+    ProgramInfo ThisProgram => _program ??= ProgramInfo.Of(GetType().Assembly);
+    ProgramInfo? _program;
+
+    /// <summary>Where a crash's message goes when no window can show it (Q24): the terminal (standard error); tests catch it.</summary>
+    internal Action<string> Terminal { get; init; } = text => Console.Error.WriteLine(text);
+
+    /// <summary>How long another thread's crash waits for the main loop to take it before the process ends at once (the crash file written).</summary>
+    internal TimeSpan CrashAnswerTime { get; init; } = TimeSpan.FromSeconds(10);
 
     /// <summary>The area packs in <c>packs/</c>, in the order they mount (S3-4); each mounts only if it is there.</summary>
     public static IReadOnlyList<string> AreaPacks { get; } = ["models", "audio", "ui", "world", "data"];
@@ -211,15 +256,28 @@ public abstract class Application : IDisposable
         audio.Reload(music);
     }
 
+    /// <summary>
+    /// Runs the application: the player's game folder (with <see cref="ApplicationOptions.LogName"/>, the run's log in its
+    /// <c>logs/</c>, its first lines the program, version and commit, the start time and the system), the data, the
+    /// window, the device, the sound, <see cref="Load"/>, the loop, <see cref="Unload"/>, then the teardown
+    /// (<see cref="Dispose"/>: the pending saves written, S9-B). A crash (Docs/Packaging.md, "Crashes"; M12-10), an
+    /// exception out of any of that or an unhandled exception on another thread while it runs (<see cref="CrashedElsewhere"/>),
+    /// writes the crash file first (with a log name), then the application is torn down, its message goes to the
+    /// terminal (with a log name; Q24) and the exception leaves <see cref="Run"/>.
+    /// </summary>
     public void Run()
     {
         NativeLibraries.Install();
-        if (Options.LogFile is { } logFile)
-            Log.OpenFile(logFile);
+        SetCrashHandler();
+        Interlocked.CompareExchange(ref s_running, this, null);
+        var crashed = false;
         try
         {
-            // The player's game folder, whose mods are part of the data (S9-B).
-            Storage = new GameStorage(StorageFolder(Options));
+            // The player's game folder: the run's log in it first, then the storage, whose mods are part of the data (S9-B).
+            var folder = StorageFolder(Options);
+            if (Options.LogName is { } program)
+                StartLog(folder, program);
+            Storage = new GameStorage(folder);
             Log.Info("Storage", "game folder " + Storage.Folder);
             // The data first: a damaged pack stops the start before a window opens.
             var mounts = DataMounts(Options, AppContext.BaseDirectory, Environment.GetEnvironmentVariable, Storage.ModsFolder);
@@ -240,6 +298,7 @@ public abstract class Application : IDisposable
             var pausedAudio = false;
             while (Running && !CloseAccepted())
             {
+                TakeCrashFromElsewhere();
                 Window.PollEvents();
                 if (Window.IsMinimized)
                 {
@@ -301,13 +360,185 @@ public abstract class Application : IDisposable
         }
         catch (Exception exception)
         {
-            Log.Error("Application", exception);
+            crashed = true;
+            Crashed(exception, "on the main thread");
             throw;
         }
         finally
         {
-            Dispose();
+            try
+            {
+                Dispose();
+            }
+            catch (Exception exception)
+            {
+                // A teardown that fails is a crash too (after one, the crash file has the first and the log this one).
+                crashed = true;
+                Crashed(exception, "on the main thread");
+                throw;
+            }
+            finally
+            {
+                Ended(crashed);
+            }
         }
+    }
+
+    /// <summary>Opens the run's log in <paramref name="gameFolder"/>'s <c>logs/</c>; a log that can't be made is a warning, not a crash.</summary>
+    void StartLog(string gameFolder, string program)
+    {
+        _logsFolder = LogFiles.Folder(gameFolder);
+        try
+        {
+            LogFiles.Start(_logsFolder, program, ThisProgram, DateTimeOffset.Now);
+            _ownsLog = true;
+        }
+        catch (Exception problem) when (problem is IOException or UnauthorizedAccessException)
+        {
+            Log.Warning("Application", $"no log file in {_logsFolder}: {problem.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Records a crash: the run's first writes its crash file at once (with a log name; <see cref="LogFiles.CrashText"/>,
+    /// the log's end being the lines before it), then logs the error and the file. A later crash of the same run is only
+    /// logged. Gives the run's crash.
+    /// </summary>
+    CrashReport Crashed(Exception exception, string where)
+    {
+        lock (_crashGate)
+        {
+            if (_crash is { } first)
+            {
+                if (!ReferenceEquals(first.Exception, exception))
+                    Log.Error("Application", $"another crash, {where}: {exception}");
+                return first;
+            }
+            var time = DateTimeOffset.Now;
+            string? file = null;
+            if (_logsFolder is { } folder)
+            {
+                try
+                {
+                    file = LogFiles.WriteCrashFile(folder, time, LogFiles.CrashText(Options.LogName!, ThisProgram, time, where, exception, Log.Tail(), Log.FilePath));
+                }
+                catch (Exception problem) when (problem is IOException or UnauthorizedAccessException)
+                {
+                    Log.Error("Application", $"the crash file couldn't be written in {folder}: {problem.Message}");
+                }
+            }
+            Log.Error("Application", $"crashed {where}: {exception}");
+            if (file is not null)
+                Log.Info("Application", "crash file " + file);
+            return _crash = new CrashReport(exception, where, time, file);
+        }
+    }
+
+    /// <summary>
+    /// Sets .NET's handler for exceptions no code catches on threads other than the main one (the audio's warm-up and
+    /// room threads, the thread pool, any other), once for the process: <see cref="CrashedElsewhere"/>.
+    /// </summary>
+    static void SetCrashHandler()
+    {
+        if (Interlocked.Exchange(ref s_crashHandlerSet, 1) == 1)
+            return;
+        try
+        {
+            ExceptionHandling.SetUnhandledExceptionHandler(CrashedElsewhere);
+        }
+        catch (InvalidOperationException)
+        {
+            Log.Warning("Application", "another handler takes unhandled exceptions: a crash on another thread ends the program without a crash file");
+        }
+    }
+
+    /// <summary>
+    /// An exception no code caught on a thread other than the main one: true when the running application took it
+    /// (<see cref="CrashedOnAnotherThread"/>), and the thread just ends; false with none running, and .NET ends the
+    /// process as it does.
+    /// </summary>
+    internal static bool CrashedElsewhere(Exception exception)
+    {
+        var thread = Thread.CurrentThread;
+        var where = thread.IsThreadPoolThread ? "on a thread-pool thread"
+            : thread.Name is { Length: > 0 } name ? $"on the thread \"{name}\"" : "on an unnamed thread";
+        return Volatile.Read(ref s_running) is { } application && application.CrashedOnAnotherThread(exception, where);
+    }
+
+    /// <summary>
+    /// Another thread's crash (Docs/Packaging.md, "Crashes"): its crash file written at once (<see cref="Crashed"/>), then
+    /// handed to the main loop, which ends the run in order (the teardown, the pending saves; <see cref="Run"/> throws
+    /// it); the loop is woken if it sleeps (a minimized window). True once the main loop has taken it or the run has
+    /// ended; false when the main loop doesn't take it within <see cref="CrashAnswerTime"/> (its message then goes to
+    /// the terminal, and the process ends at once with the crash file written) or the run had already ended.
+    /// </summary>
+    internal bool CrashedOnAnotherThread(Exception exception, string where)
+    {
+        lock (_crashGate)
+        {
+            if (_ended)
+                return false;
+            Crashed(exception, where);
+            _elsewhere ??= exception;
+        }
+        if (Window is not null)
+        {
+            try
+            {
+                Window.PostEmptyEvent();
+            }
+            catch (Exception)
+            {
+                // GLFW ended already (the teardown): nothing sleeps.
+            }
+        }
+        if (_crashTaken.Wait(CrashAnswerTime))
+            return true;
+        TellTheTerminal();
+        return false;
+    }
+
+    /// <summary>On the main thread: another thread's crash, if there is one, thrown here, so the run ends as for its own.</summary>
+    void TakeCrashFromElsewhere()
+    {
+        if (Volatile.Read(ref _elsewhere) is { } exception)
+        {
+            _crashTaken.Set();
+            ExceptionDispatchInfo.Throw(exception);
+        }
+    }
+
+    /// <summary>
+    /// The end of <see cref="Run"/>, after the teardown (even a failing one): a crash on another thread that the loop
+    /// didn't take (it came after the loop, in <see cref="Unload"/> or the teardown) ends the run all the same; any thread
+    /// waiting is let go; the crash's message goes to the terminal (Q24).
+    /// </summary>
+    void Ended(bool crashed)
+    {
+        Exception? untaken;
+        lock (_crashGate)
+        {
+            _ended = true;
+            untaken = crashed ? null : _elsewhere;
+        }
+        _crashTaken.Set();
+        Interlocked.CompareExchange(ref s_running, null, this);
+        TellTheTerminal();
+        if (untaken is not null)
+            ExceptionDispatchInfo.Throw(untaken);
+    }
+
+    /// <summary>The crash's message on the terminal (Q24; with a log name only), once.</summary>
+    void TellTheTerminal()
+    {
+        string? text;
+        lock (_crashGate)
+        {
+            text = Options.LogName is not null && !_told && _crash is { } crash ? crash.TerminalText(Options.Window.Title) : null;
+            _told |= text is not null;
+        }
+        if (text is not null)
+            Terminal(text);
     }
 
     void SaveCapture(GpuImage image, GpuBuffer readback, string path)
@@ -342,7 +573,9 @@ public abstract class Application : IDisposable
         // written before the application ends (Q16, S9-B), the window already closed.
         Storage?.Dispose();
         Data?.Dispose();
-        Log.CloseFile();
+        if (_ownsLog)
+            Log.CloseFile();
+        _ownsLog = false;
         Gpu = null!;
         Window = null!;
         Data = null!;

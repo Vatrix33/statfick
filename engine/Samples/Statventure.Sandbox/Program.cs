@@ -40,6 +40,7 @@ sandbox.Run();
 sealed class Sandbox(string? capture, int captureFrame, bool logVisibility) : Application(new ApplicationOptions
 {
     Window = new WindowOptions { Title = "Statventure Sandbox", Width = 960, Height = 600 },
+    LogName = "stat-fick", // its logs as the game's, whose stand-in it is (Docs/Packaging.md, "Logs")
 })
 {
     UiHost _host = null!;
