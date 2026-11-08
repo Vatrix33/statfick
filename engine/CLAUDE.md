@@ -43,6 +43,9 @@ the user and wait for their go-ahead before starting the next one.
   from the repo (the dev setup, Release; from a script, pass a scratch player folder); its screens against Chromium:
   run the tests once (they write `Reference/editor-fixtures.json`), then `Tools/Scripts/make-editor-references.sh
   [fixture ...]` (PaintReference at 1 and 1.65, an invisible window; only the named fixtures when given).
+- Packaging (M12, `Docs/Packaging.md`): the decisions (two downloads, the game and the editor), what exists, the
+  method, the design with its questions for the user (Q1–Q28, still to ask) and the proposed steps; no packaging
+  scripts yet. Every M12 choice is asked, the editor's packaging too (M11's exception ended with M11).
 - Audio (M8, `Docs/Audio.md`): `Tools/Scripts/play-theme.sh [theme] [--volume 0-100]` plays the music on the real
   device, to listen to it (in a real terminal; testing it from a script, send only volume 0).
   `Tools/Scripts/audio-benchmark.sh [--split | --start [--warm] | --live | --effects] [theme ...]` times it (Release).
