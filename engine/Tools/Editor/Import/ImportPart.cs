@@ -170,7 +170,12 @@ public sealed class ImportPart : EditorPart
             PathField.AddEventListener<UiKeyboardEvent>("keydown", e =>
             {
                 if (e.Key == "Enter" && !e.CtrlKey && !e.AltKey && !e.MetaKey && !e.ShiftKey)
+                {
+                    // (Its keypress would otherwise reach what has the focus once the dialog closes: the Import button,
+                    // opening the file browser again; found by step 14.)
+                    e.PreventDefault();
                     Act();
+                }
             });
             PathField.AddEventListener("input", _ => _problem.TextContent = "");
             var button = _dialog.Buttons.Append("button", "primary", "Import");

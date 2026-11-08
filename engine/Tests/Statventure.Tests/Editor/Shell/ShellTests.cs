@@ -35,8 +35,8 @@ public class ShellTests
     {
         using var editor = new EditorHarness();
         var buttons = editor.Q(".topbar").ElementChildren.Where(e => e.Tag == "button").ToList();
-        Assert.Equal(["New mod", "Open", "Save", "Save As", "Import", "Undo", "Redo"], buttons.Select(b => b.TextContent));
-        EditorCommand[] commands = [EditorCommand.NewMod, EditorCommand.Open, EditorCommand.Save, EditorCommand.SaveAs, EditorCommand.Import, EditorCommand.Undo, EditorCommand.Redo];
+        Assert.Equal(["New mod", "Open", "Save", "Save As", "New entry", "Import", "Undo", "Redo"], buttons.Select(b => b.TextContent));
+        EditorCommand[] commands = [EditorCommand.NewMod, EditorCommand.Open, EditorCommand.Save, EditorCommand.SaveAs, EditorCommand.NewEntry, EditorCommand.Import, EditorCommand.Undo, EditorCommand.Redo];
         Assert.Equal(buttons, commands.Select(c => editor.View.Button(c)));
         // Open (step 8's Browser.Opener) and New mod (step 11's Saving.SavingPart) can always run; with no pack open the
         // others can't (their parts' handlers say so).

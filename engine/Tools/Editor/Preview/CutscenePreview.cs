@@ -30,7 +30,7 @@ sealed class CutscenePreview(PreviewPart part, EditorEntry entry) : PreviewView(
     SequencePlayer? _player;
     Played? _played;
     readonly Dictionary<string, (ModelData Data, Model Model)> _models = new(StringComparer.Ordinal);
-    UiElement _surface = null!, _hosts = null!, _play = null!, _slider = null!, _time = null!, _standIns = null!, _leftOut = null!;
+    UiElement _surface = null!, _hosts = null!, _play = null!, _slider = null!, _time = null!, _heading = null!, _standIns = null!, _leftOut = null!;
     bool _framed, _seeking;
 
     /// <summary>What one play put in the scene and the document, taken away when the next replaces it.</summary>
@@ -67,7 +67,9 @@ sealed class CutscenePreview(PreviewPart part, EditorEntry entry) : PreviewView(
         // (A range's change always follows its input: input is enough.)
         _slider.AddEventListener("input", _ => Seek(_slider.ValueAsNumber));
         _time = line.Append("span", "preview-value", "");
-        Root.Append("div", "preview-heading", "Stand-ins");
+        // (Shown once a cutscene with roles is used: a cutscene without roles has no stand-ins to choose.)
+        _heading = Root.Append("div", "preview-heading", "Stand-ins");
+        _heading.ToggleAttribute("hidden", true);
         _standIns = Root.Append("div", "preview-stand-ins");
         _leftOut = Root.Append("div", "preview-left-out");
         Controls();
@@ -513,6 +515,7 @@ sealed class CutscenePreview(PreviewPart part, EditorEntry entry) : PreviewView(
         if (_last is not { } sequence)
             return;
         _standIns.ClearChildren();
+        _heading.ToggleAttribute("hidden", sequence.Roles.Count == 0);
         var standIns = Part.StandInsOf(Entry.Path);
         var models = Part.Session.Entries.Where(e => e.LastBuilt is ModelData).Select(e => e.Path).ToList();
         var libraries = Part.Session.Entries.Where(e => e.LastBuilt is ModelData { Animations.Count: > 0 }).Select(e => e.Path).ToList();

@@ -2873,6 +2873,36 @@ program's window (`editor.sh`: a model turned with the mouse and the wheel, a cu
 effect at its play's volume, pan and pitch; a theme, its restart through the fades after an edit; the editor's volume
 and its 40 ms ramp); Windows.
 
+### Fixes after step 14 (2026-11-08)
+
+Step 14's end-to-end flow found two faults in the editor and one look; **the manager's decisions (2026-11-08)**, fixed on
+the branch `m11-fixes-1`:
+- **Nothing in the UI started New entry (P15):** `EntryActions.New` had no caller. Decision (a): a **"New entry" button in
+  the top bar, between Save As and Import, a command of its own (`EditorCommand.NewEntry`) with Ctrl+N**, enabled while
+  `Session.CanAdd` (a pack that takes changes), opening step 9's New entry dialog (the selected entry's kind first); it
+  works from anywhere a command does, also from a field of the mod info's own form. The button's tooltip is "New entry
+  (Ctrl+N)". Its handler is `EntryActions`' own (`Form/EntryActions.cs`), the command and the key the shell's
+  (`Shell/EditorCommands.cs`, `Shell/EditorView.cs`, `Shell/EditorView.Keys.cs`). Tests:
+  `Editor/Form/NewEntryCommandTests.cs`, step 4's `ShellTests` and `CommandTests` (Ctrl+N; Ctrl+Shift+N none).
+- **Enter in the import dialog opened the file browser again:** its path field's Enter listener closed the dialog without
+  cancelling the key's default action, so the keypress reached the top bar's Import button the focus went back to (step
+  14's probe: `keydown` on `input.import-path`, `keypress` and `click` on the Import button). Fixed as the New mod dialog
+  and the entry dialogs do it: the listener cancels the key's default action (`Import/ImportPart.cs`). Test:
+  `Editor/Import/ImportEnterTests.cs` (Enter imports and opens nothing else, the focus back on the Import button; Enter
+  with a path refused keeps the dialog). The other dialogs' Enter handlers checked again: the entry dialogs (`NameForm`),
+  New mod and the file browser's listing and path field cancel it; the reference list's Enter is a form field's own (no
+  dialog closes); the Save As, keep-or-take and question dialogs have no text field, their buttons activated by Enter
+  themselves.
+- **Look: an empty "Stand-ins" heading:** the cutscene preview showed its heading with nothing under it for a cutscene
+  without roles. Now hidden until a cutscene is taken and while the one taken has no roles (`Preview/CutscenePreview.cs`).
+  Test: `Editor/Preview/StandInsHeadingTests.cs`.
+
+**All 19 editor screens captured again** (the top bar has the new button), with `claude-work/m11/step11-capture.sh` (a
+headless cage, the output 2400 × 2400 at both scales, one fixture per Chromium run). Each gives the counts it gave before
+the button (main `4f6120e`, step 11's numbers) within 4 pixels at 1.65 and the same at 1×; with the new top bar against
+the old goldens they were 0.16–0.70 % (`claude-work/m11/fixes-1/table.md`). One capture at 1× (`list-marks`) came without
+the focused tree's outline (Chromium's window not focused in that run: 604 pixels) and was captured again, then 0.
+
 ## Status
 
 **Where M11 stands (2026-11-07, 18:10):** on `main` (`3e6df0f`): steps 1, 2, 3, 4, 5 and 7; in progress on worker branches, not on `main`: steps 6 (`m11-step6`), 8 (`m11-step8`) and 9 (`m11-step9`); to come: steps 10, 12 and 13, then 11 and 14. The full suite on `main`: 2940 tests, passing on the GPU and on lavapipe, nothing held (`Docs/Engine-Plan.md`, "Current task").

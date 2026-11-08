@@ -33,8 +33,9 @@ public sealed class EntryDialog(EntryAction action, EditorEntry? entry, EditorDi
 }
 
 /// <summary>
-/// New, Duplicate, Rename and Remove (M11-7, P14, P15), each asking first in a dialog, none undoable; F2 renames and
-/// Delete removes the selected entry (Delete only from outside the form's rows, where it belongs to the controls).
+/// New, Duplicate, Rename and Remove (M11-7, P14, P15), each asking first in a dialog, none undoable; the top bar's New entry
+/// and Ctrl+N start New, F2 renames and Delete removes the selected entry (Delete only from outside the form's rows, where
+/// it belongs to the controls).
 /// The entry list (step 8) asks through these methods as the form's buttons do; the session reports the change
 /// (<see cref="EditorSession.EntriesChanged"/>).
 /// </summary>
@@ -42,6 +43,12 @@ public sealed class EntryActions : EditorPart
 {
     protected internal override void Attach(UiElement? element)
     {
+        // New entry (P15): the top bar's button and Ctrl+N (the manager's decision of 2026-11-08, after step 14).
+        View.Commands.Handle(EditorCommand.NewEntry, request =>
+        {
+            _ = New();
+            return true;
+        }, () => Session.CanAdd);
         View.Commands.Handle(EditorCommand.Rename, request =>
         {
             _ = Rename(Session.Selected!);

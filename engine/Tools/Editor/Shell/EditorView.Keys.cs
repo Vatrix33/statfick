@@ -44,7 +44,7 @@ public sealed partial class EditorView
 
     /// <summary>
     /// The shell's keys (Docs/Editor.md, "The shell (step 4)"), each a command given to the parts' handlers:
-    /// Ctrl+S, Ctrl+Shift+S, Ctrl+O, Ctrl+Z, Ctrl+Y and Ctrl+Shift+Z, Ctrl+F, F2, Delete, Ctrl+= (or +) and Ctrl+-.
+    /// Ctrl+S, Ctrl+Shift+S, Ctrl+O, Ctrl+N, Ctrl+Z, Ctrl+Y and Ctrl+Shift+Z, Ctrl+F, F2, Delete, Ctrl+= (or +) and Ctrl+-.
     /// </summary>
     public static EditorCommand? CommandFor(UiKeyboardEvent e)
     {
@@ -63,6 +63,7 @@ public sealed partial class EditorView
             ("s", false) => EditorCommand.Save,
             ("s", true) => EditorCommand.SaveAs,
             ("o", false) => EditorCommand.Open,
+            ("n", false) => EditorCommand.NewEntry,
             ("z", false) => EditorCommand.Undo,
             ("z", true) or ("y", false) => EditorCommand.Redo,
             ("f", false) => EditorCommand.Filter,

@@ -9,6 +9,7 @@ public enum EditorCommand
     Open,
     Save,
     SaveAs,
+    NewEntry,
     Import,
     Undo,
     Redo,
