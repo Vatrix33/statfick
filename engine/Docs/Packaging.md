@@ -370,7 +370,8 @@ would have. Nothing of the player's per-user folder is in either. A new version 
   release the same day `2026.11.8.2`. A build from the repo that isn't a release says `dev` (its commit in the
   log).
 - **Its date (Q2):** the UTC date of the commit released; the fourth number counts the releases already tagged with
-  that date (`v2026.11.8.*`), so the same commit always gives the same version.
+  that date (`v2026.11.8.*`), so the same commit always gives the same date, whenever the script runs (a commit
+  released a second time gets the next number: "How it works", step 7, the manager's decision).
 - **One place:** `Directory.Build.props` holds the dev default; a release's version comes in as `-p:Version=…` from
   the release script. Each program reads its own version and commit from its program file at run time (the
   informational version, "<version>+<commit>").
@@ -796,6 +797,7 @@ the tests run without the splash.
    - Finished: the dry run's version for a first and a same-day release (`.1`, `.2`), its refusals (a dirty tree, a
      commit not on GitHub's `main`), the `gh` call with the tag, target, title, text and four archives. Mutations:
      each.
+   - **Done (2026-11-08, "How it works", step 7).**
 8. **End to end, and the Windows items.** After all.
    - The Linux archives unpacked into scratch folders: both programs started headless on a scratch per-user folder,
      each showing the splash and ending by itself; their logs (one each, version and commit; an eleventh run
@@ -1207,6 +1209,12 @@ Filled in as the steps are done.
   (which checks the four) and uploads them. Step 8: the Windows items (`publish.ps1` with the runtime's `/layout`,
   `editor.ps1`, the zips started from Explorer). Q13 (the stand-in's title) is the sandbox's `Program.cs`, not
   changed here.
+- **Open (found by step 7, 2026-11-08; the manager decides who fixes it): publish fails when the repo is reached
+  through a symlink.** On the PC `/home` is a symbolic link to `/var/home`; a clone made through `/home/…` gave MSBuild
+  the projects under both paths (the shell's `/home/…`, .NET's working folder `/var/home/…`), the program's restore
+  came out with no project references (the sandbox's `project.assets.json`: one package, ILLink) and `Publish.cs`'s
+  licence check refused every text ("the program has no package Ahwoo.BRUTAL.*"). The repo's own path holds no link.
+  `pwd -P` in `env.sh` likely fixes it; not tried.
 
 ### Step 4, first: a shrunk raster image as Chromium 152 draws one (2026-11-08)
 
@@ -1367,6 +1375,114 @@ compositor under the shared lock, on `2911b84` with both commits: 3625 tests (ma
 the UI, canvas, 3D and editor-screen tests (1244); the player's real game folder stayed missing and the Documents
 folder's top level unchanged.
 
+### Step 7: the release script and its text (2026-11-08)
+
+- **Commands.** `Tools/Scripts/release.sh [--dry-run]` on the PC (where `gh` is logged in), from a clean checkout of a
+  commit on GitHub's `main` (`main` itself after a pull, or a worktree on a commit of it); `release.sh --self-test` runs
+  its tests. It makes the four archives of that commit, checks them, and leaves them on GitHub as a draft release; the
+  user then opens the address `gh` prints (or the repo's Releases page), reads the draft, edits its text there if
+  wanted, and publishes it, which makes the tag `v<version>` at the commit (the repo is private, so the release is too).
+  `--dry-run` does all of it but the upload. Nothing here reads or writes the player's per-user folders.
+- **The refusals (Q27).** The work tree clean: `git status --porcelain` empty, so no change staged or not and no
+  untracked file (one in a project's folder would be built into the programs); git-ignored files (`release/`, the
+  builds) don't count. The commit on GitHub's `main`: `git fetch origin +refs/heads/main:refs/remotes/origin/main`
+  (forced, so GitHub's `main` as it is now, even after it moved back), then `git merge-base --is-ancestor <commit>
+  origin/main`: any commit of `main`'s history, not only its tip (left to the step; chosen: a commit `main` has moved on
+  from is still on it). git reaches GitHub with `GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=/bin/false SSH_ASKPASS=` (the
+  repo's push form), so a missing login fails instead of asking on the terminal or opening a password window. No `gh`
+  on `PATH` is refused at once. No tests run (Q27).
+- **The version (Q1, Q2; how the earlier releases are found, left to the step: chosen).** The date is the commit's
+  committer date in UTC (`git log -1 --format=%ct`, the time `publish.sh` dates the archives with; a rebased commit's
+  author date is older), `date -u +%Y.%-m.%-d`, never zero-padded (`2026.1.5`). The earlier releases of that date are
+  GitHub's tags (`git ls-remote --tags --refs origin`; local tags don't count) **and the tags of GitHub's releases,
+  drafts included** (`gh release list --limit 1000 --json tagName --jq '.[].tagName'`, read-only): a draft's tag is
+  made only when it is published, so without the drafts a second run before the first draft is published would make a
+  second `.1`. Only names of the form `v<date>.<n>` count (`n` from 1, no leading zero; `v2026.11.8`,
+  `v2026.11.8.0`, `v2026.11.8.01`, `v2026.11.8.6-rc`, `v2026.11.80.1` don't); the fourth number is one more than the
+  highest found, by number (`.11` after `.10`), not the count (so after a deleted `.1` under a `.2`, `.3`, never a
+  second `.2`). The day the script runs plays no part. **A commit released twice gets the next number the second time
+  (the manager's decision, 2026-11-08, (a), asked by the step):** Q2's fourth number counts the date's releases, and
+  the design's "the same commit always gives the same version" holds for the date, which comes from the commit, not
+  the day of the run; no refusal, as Q27 names the only two. (Not chosen: (b) refusing a commit that already has a
+  `v…` tag or draft at it.)
+- **The archives (Q28).** `publish.sh --version <v> --no-check` for the four, then `check-packages.sh --version <v>`
+  (the four in `release/`, the Linux ones run headless), each failure named and stopping the release; each of the four
+  archives must be in `release/`.
+- **The release's text (Q12, Q13; its wording left to the step: chosen).** `Tools/Packaging/release-text.md`, Markdown
+  as GitHub shows a release's text: the two downloads and what each is, with Q13's notice "Statventure Sandbox stands in
+  for the game until the port"; the versioned folders (a new version beside the old); starting each on Linux (`tar
+  -xzf`, `./stat-fick-<v>/stat-fick`, the editor likewise) and on Windows (Extract All, `Stat Fick.exe`, `Statventure
+  Editor.exe`; unsigned, so SmartScreen's **More info** and **Run anyway**, Q14; no version details in the programs'
+  Properties, the version in the folder's name, the editor's title and the logs, Q15); the editor asking "Where is Stat
+  Fick?" on its first start and opening only the game of its own version (Q16, Q18); the player's folder on each system
+  (`~/.local/share/stat-fick` or `$XDG_DATA_HOME/stat-fick`, `%APPDATA%\Stat Fick`) and what is in it (`saves/`,
+  `mods/`, `logs/` with the crash files, `settings.json`, the editor's `editor/`); what they need (step 3's findings: a
+  Vulkan 1.3 driver; Linux x86-64 with glibc 2.34 and GCC 12's libstdc++: Ubuntu 22.04, Debian 12, Fedora 36 or later,
+  not RHEL 9 or its rebuilds; X11 or Wayland; Windows 10 or 11, 64-bit, the Visual C++ runtime shipped); the licences
+  (Built with BRUTAL, `NOTICE.txt`, `licenses/`, each program's About). Its placeholders: `{{version}}` and the
+  archives' names, `{{stat-fick-linux}}`, `{{stat-fick-windows}}`, `{{statventure-editor-linux}}`,
+  `{{statventure-editor-windows}}`, filled from the names the upload gives; a `{{…}}` nothing fills is refused. The
+  filled text is written to `release/release-text-<v>.md` and given to `gh`; the draft's text is the user's to edit
+  (Q26), the template the next release's start.
+- **The draft (Q26).** From the repo's root: `gh release create v<v> --draft --target <the commit's full hash> --title
+  "Stat Fick <v>" --notes-file release/release-text-<v>.md release/stat-fick-<v>-linux.tar.gz
+  release/stat-fick-<v>-windows.zip release/statventure-editor-<v>-linux.tar.gz
+  release/statventure-editor-<v>-windows.zip`; `gh` prints the draft's address, and the script what comes next. An
+  upload that fails part-way can leave a draft on GitHub, which holds the version's number: the script says to delete it
+  before trying again.
+- **The dry run's output (left to the step: chosen).** The version line (`release: 2026.11.8.1, the commit <hash>
+  (<time> UTC), on GitHub's main`), the publish's and the check's own output, then `release: dry run, so no draft; the
+  upload would be (from <repo>):`, the `gh` command as it would be typed (arguments with spaces in single quotes), and
+  the release's text.
+- **Its tests (`release.sh --self-test`, `Tools/Packaging/release_test.py`; not in `test.sh`, like Q28's package
+  checks: no C#, nothing the solution builds).** Each test makes a scratch git repository with a bare one as its
+  GitHub, holding copies of this tree's `release.sh`, `env.sh` and `release-text.md`, stand-ins for `publish.sh`
+  (writing four stand-in archives), `check-packages.sh` and `test.sh`, and a stand-in `gh` first on `PATH` (an empty
+  `gh` configuration, so even the real one would be logged out; it answers only the exact `release list` call and
+  `release create`, recording the text it was given and which files were there); every stand-in records its
+  arguments and folder; the run's time zone is UTC+14, so a local date is a day off. 31 tests, about 3 s: the version
+  for a first release of a date (`.1`, with tags of other dates and forms, and a local tag, not counted) and a same-day
+  second (`.2`), the highest by number (`.1`, `.9`, `.10` give `.11`), a draft holding its number, tags and drafts
+  together, the commit's UTC date both ways across midnight, the committer's date, no zero padding, an older commit of
+  `main`, an ignored file; the refusals: a changed file, a staged change, an untracked file, a commit not pushed, one
+  pushed to another branch, GitHub's `main` moved back (the local `origin/main` still holding it), GitHub unreachable,
+  its tags unreadable after a good fetch, its releases unreadable (`gh` logged out), no `gh`; a failed publish, check
+  or upload, and a missing archive, each stopping it; the draft (`gh release create` with the tag, `--draft`, the
+  commit as target, the title, the filled text and the four archives, from the repo's root; its address printed); a
+  placeholder nothing fills; every placeholder filled; the text's required parts (each of the points above, the
+  archives' names); the usage; git asking for no password (a scratch HTTP server answering 401, the script run on a
+  terminal of its own with an askpass program set: no prompt, the askpass never called) and ssh given no askpass (the
+  same release through an ssh stand-in that serves the scratch GitHub); and no test run by the release.
+- **Run against the real repo (read-only):** a clone of GitHub's `main` at `77854d4` (origin GitHub's address; the
+  step's three files copied in and listed in `.git/info/exclude`, so the tree is clean), `release.sh --dry-run` under
+  the shared lock (`claude-work/m12/step7-real-dry-run.sh`; log `step7/real-dry-run.log`): `release: 2026.11.8.1, the
+  commit 77854d4a639aee6ab0ace04d4f3c197b90571cc2 (2026-11-08 18:26:59 UTC), on GitHub's main` (GitHub had only the tag
+  and release `old-game-2026-10-16`), the four published (step 3's sizes: 45.1, 41.3, 41.8 and 38.0 MB) and checked (the
+  Linux two run headless), the text written and printed, and the upload printed: `gh release create v2026.11.8.1 --draft
+  --target 77854d4a639aee6ab0ace04d4f3c197b90571cc2 --title 'Stat Fick 2026.11.8.1' --notes-file
+  release/release-text-2026.11.8.1.md release/stat-fick-2026.11.8.1-linux.tar.gz
+  release/stat-fick-2026.11.8.1-windows.zip release/statventure-editor-2026.11.8.1-linux.tar.gz
+  release/statventure-editor-2026.11.8.1-windows.zip`; 22 s with the packages cached; GitHub's tags and releases the
+  same after; the player's real game folder still missing. From the worktree itself (the branch's commit isn't on
+  `main`): refused, "isn't on GitHub's main". **Found:** the clone first made through `/home/…` (on the PC `/home` is a
+  symbolic link to `/var/home`) made `publish.sh` fail: MSBuild met the projects under both paths (the shell's
+  `/home/…`, .NET's working folder `/var/home/…`), the sandbox's restore came out with no project references (its
+  `project.assets.json` holding one package, ILLink), and `Publish.cs`'s licence check refused every text ("the program
+  has no package Ahwoo.BRUTAL.*"); the release stopped there, as it should ("publish.sh failed"). The repo's own path
+  holds no link, so its releases aren't touched; step 3's scripts are left as they are (an open item under step 3:
+  resolving the path, `pwd -P` in `env.sh`, would likely end it; not tried).
+- **Mutations** (`~/.cache/stat-fick-build/claude-work/m12/step7-mutations.json`, made by `step7-make-mutations.py`, run
+  by `step7-mutate.py` under the shared lock in a headless cage: each change applied, the self-test run, which must
+  fail, the change undone; `mutate.py` runs only `dotnet test`): 100 changes to `release.sh` (each refusal and its
+  order, the fetch, the prompts, the date's source, zone and form, the tags' and drafts' reading, the pattern, the
+  highest number, the publish's and check's calls and failures, the archives, the filling, the `gh` call's every part,
+  the dry run) and to `release-text.md` (each required part, a placeholder written out or misspelt). 97 killed at first;
+  the 3 survivors were gaps, closed: `SSH_ASKPASS=` left out (with `GIT_ASKPASS` set git never uses it, but ssh does for
+  an ssh remote: the ssh stand-in's test), a failed `ls-remote` after a good fetch not refused (the stand-in failing
+  from its second call) and `Stat Fick.exe` dropped from the Windows start line (the name is in the editor's paragraph
+  too: the required phrase is now the start line's); all 100 killed when run again; nothing written to the player's real
+  folders.
+
 ## Status
 
 **Step 3 done (2026-11-08, branch `m12-step3`, rebased on step 4's merge; the suite unchanged by it, 3511 tests on
@@ -1405,6 +1521,20 @@ the program and version, `NOTICE.txt` verbatim, 36 components checked against th
 OpenAL Soft's source, the pointer to `licenses/`), five fixtures against Chromium at 1 and 1.65 within the paint
 limits. Mutations: 96, 94 killed, the 2 survivors gaps closed and killed when run again. Not checked: Windows; the splash and the credits in a real window (steps 5 and 6).
 ("How it works", step 4.)
+**Step 7 done (2026-11-08, branch `m12-step7`; scripts and data, nothing the solution builds):**
+`Tools/Scripts/release.sh [--dry-run]` refuses a work tree that isn't clean or a commit not on GitHub's `main` (fetched
+now), and runs no tests (Q27); takes the version from the commit's UTC date and one more than the highest of that date's
+releases on GitHub, tags and drafts (Q1, Q2); publishes and checks the four; fills `Tools/Packaging/release-text.md`
+(what a readme would have said: the downloads, the stand-in, starting each program, SmartScreen, the missing version
+details, the editor's question, the player's folders, the system needs, the licences; Q12–Q15) and makes the draft with
+`gh release create v<v> --draft --target <commit> --title "Stat Fick <v>"` and the four archives (Q26); `--dry-run`
+prints the upload and the text instead. Tests: `release.sh --self-test`, 31 in scratch repositories with stand-ins.
+Mutations: 100, 97 killed at first, the 3 survivors gaps closed (ssh's askpass, a failed tag read after a good fetch,
+the Windows start line's program name) and all 100 killed when run again. Against the real repo (read-only):
+`2026.11.8.1` for `77854d4`, the four published and checked, the upload printed, GitHub's tags and releases unchanged;
+the publish fails when the repo is reached through a symbolic link (`/home` → `/var/home`), reported, the repo's own
+path holding none. Not checked: a real draft (the first is made only on the user's word); Windows (nothing of it runs
+there). ("How it works", step 7.)
 
 **Step 2 done (2026-11-08, branch `m12-step2`, 3544 tests on the GPU and on lavapipe):** one log per run in the
 player's `logs/` (`stat-fick-2026-11-08_14-03-22.log`, the editor's `statventure-editor-…`) with its first lines (the
