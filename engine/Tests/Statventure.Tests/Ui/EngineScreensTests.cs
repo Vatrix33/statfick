@@ -165,61 +165,44 @@ public class EngineScreensTests
         Assert.Equal("Version dev", dev.Document.QuerySelector(".version")!.TextContent);
     }
 
-    static string NuGet => Environment.GetEnvironmentVariable("NUGET_PACKAGES") is { Length: > 0 } folder
-        ? folder
-        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+    /// <summary>The packages' licence texts as step 3 keeps them (Tools/Packaging: licenses.txt, NOTICE.txt, licenses/).</summary>
+    static string Packaging => Path.GetFullPath(Path.Combine(TestPaths.Packs, "..", "..", "Tools", "Packaging"));
 
-    /// <summary>A file of a NuGet package (the single version the build restored).</summary>
-    static string Package(string package, string path) =>
-        Path.Combine(Directory.GetDirectories(Path.Combine(NuGet, package)).Single(), path);
+    /// <summary>
+    /// The texts the downloads ship (Q10), as Tools/Packaging/licenses.txt lists them (its <c>text</c> lines' shipped
+    /// paths: <c>NOTICE.txt</c> and <c>licenses/…</c>), each the file kept there; the publish copies them unchanged.
+    /// </summary>
+    static readonly Lazy<Dictionary<string, string>> ShippedTexts = new(() => File.ReadAllLines(Path.Combine(Packaging, "licenses.txt"))
+        .Where(l => l.StartsWith("text ", StringComparison.Ordinal))
+        .Select(l => l.Split(' ')[1])
+        .Distinct()
+        .ToDictionary(path => path, path => Path.Combine(Packaging, path)));
+
+    static Dictionary<string, string> Shipped => ShippedTexts.Value;
+
+    [Fact]
+    public void TheShippedListAndItsTextsAgree()
+    {
+        // Every text listed is kept, and every text kept is listed: the credits read the set the packages ship.
+        Assert.All(Shipped.Values, file => Assert.True(File.Exists(file), $"{file} is listed in licenses.txt but isn't kept"));
+        var kept = Directory.GetFiles(Path.Combine(Packaging, "licenses")).Select(f => "licenses/" + Path.GetFileName(f)).Append("NOTICE.txt");
+        Assert.Equal(kept.Order(StringComparer.Ordinal), Shipped.Keys.Order(StringComparer.Ordinal));
+        Assert.Contains("licenses/Chromium-LICENSE.txt", Shipped.Keys);
+    }
 
     [Fact]
     public void TheCreditsHoldBrutalsNoticeVerbatim()
     {
-        // Every BRUTAL package's NOTICE.txt, the one the downloads ship (Q10).
-        var notice = File.ReadAllText(Package("ahwoo.brutal.core", "NOTICE.txt"));
+        // The NOTICE.txt the downloads ship (every BRUTAL package's, Q10).
+        var notice = File.ReadAllText(Shipped["NOTICE.txt"]);
         Assert.Equal(notice, Credits.Notice);
         Assert.StartsWith(Credits.BrutalCopyright + "\n", notice);
         using var credits = new Credits("Statventure Sandbox", Release);
         Assert.Equal("Built with BRUTAL", credits.Document.QuerySelectorAll("h2").First().TextContent);
         Assert.Equal(notice, credits.Document.QuerySelector(".notice")!.TextContent);
+        // The engine's Lato licence is the one shipped.
+        Assert.Equal(File.ReadAllBytes(Shipped["licenses/Lato-OFL.txt"]), EngineFonts.Licence.ToArray());
     }
-
-    /// <summary>
-    /// The licence texts the downloads ship (Docs/Packaging.md, Q10), as their sources hold them: <c>licenses/&lt;name&gt;</c>
-    /// from the packages in the build's NuGet cache and the old game's font licences (the publish of M12 step 3
-    /// copies them unchanged, Tools/Packaging/licenses.txt).
-    /// </summary>
-    static readonly Dictionary<string, Func<string>> Shipped = new()
-    {
-        ["licenses/BRUTAL-LICENSE.txt"] = () => Package("ahwoo.brutal.core", "LICENSE.txt"),
-        ["licenses/FTL.txt"] = () => Package("ahwoo.brutal.freetype", "LICENSES/FTL.txt"),
-        ["licenses/BRUTAL-FREETYPE-THIRD-PARTY-NOTICES.txt"] = () => Package("ahwoo.brutal.freetype", "LICENSES/BRUTAL-FREETYPE-THIRD-PARTY-NOTICES.txt"),
-        ["licenses/BRUTAL-GLFW-THIRD-PARTY-NOTICES.txt"] = () => Package("ahwoo.brutal.glfw", "LICENSES/BRUTAL-GLFW-THIRD-PARTY-NOTICES.txt"),
-        ["licenses/BRUTAL-GLI-THIRD-PARTY-NOTICES.txt"] = () => Package("ahwoo.brutal.gli", "LICENSES/BRUTAL-GLI-THIRD-PARTY-NOTICES.txt"),
-        ["licenses/BRUTAL-GLTF-THIRD-PARTY-NOTICES.txt"] = () => Package("ahwoo.brutal.gltf", "LICENSES/BRUTAL-GLTF-THIRD-PARTY-NOTICES.txt"),
-        ["licenses/BRUTAL-KTX-THIRD-PARTY-NOTICES.txt"] = () => Package("ahwoo.brutal.ktx", "LICENSES/BRUTAL-KTX-THIRD-PARTY-NOTICES.txt"),
-        ["licenses/BRUTAL-OPENAL-THIRD-PARTY-NOTICES.txt"] = () => Package("ahwoo.brutal.openal", "LICENSES/BRUTAL-OPENAL-THIRD-PARTY-NOTICES.txt"),
-        ["licenses/openal-soft-COPYING.txt"] = () => Package("ahwoo.brutal.openal", "LICENSES/openal-soft-COPYING.txt"),
-        ["licenses/openal-soft-BSD-3Clause.txt"] = () => Package("ahwoo.brutal.openal", "LICENSES/openal-soft-BSD-3Clause.txt"),
-        ["licenses/openal-soft-LICENSE-pffft.txt"] = () => Package("ahwoo.brutal.openal", "LICENSES/openal-soft-LICENSE-pffft.txt"),
-        ["licenses/openal-soft-fmt-LICENSE.txt"] = () => Package("ahwoo.brutal.openal", "LICENSES/openal-soft-fmt-LICENSE.txt"),
-        ["licenses/openal-soft-gsl-LICENSE.txt"] = () => Package("ahwoo.brutal.openal", "LICENSES/openal-soft-gsl-LICENSE.txt"),
-        ["licenses/BRUTAL-STB-THIRD-PARTY-NOTICES.txt"] = () => Package("ahwoo.brutal.stb", "LICENSES/BRUTAL-STB-THIRD-PARTY-NOTICES.txt"),
-        ["licenses/BRUTAL-VULKAN-THIRD-PARTY-NOTICES.txt"] = () => Package("ahwoo.brutal.vulkan", "LICENSES/BRUTAL-VULKAN-THIRD-PARTY-NOTICES.txt"),
-        ["licenses/BRUTAL-VULKAN-ABSTRACTIONS-THIRD-PARTY-NOTICES.txt"] = () => Package("ahwoo.brutal.vulkan.abstractions", "LICENSES/BRUTAL-VULKAN-ABSTRACTIONS-THIRD-PARTY-NOTICES.txt"),
-        ["licenses/BRUTAL-VULKAN-VMA-THIRD-PARTY-NOTICES.txt"] = () => Package("ahwoo.brutal.vulkan.vma", "LICENSES/BRUTAL-VULKAN-VMA-THIRD-PARTY-NOTICES.txt"),
-        ["licenses/BRUTAL-ZLIB-THIRD-PARTY-NOTICES.txt"] = () => Package("ahwoo.brutal.zlib", "LICENSES/BRUTAL-ZLIB-THIRD-PARTY-NOTICES.txt"),
-        ["licenses/HarfBuzzSharp-LICENSE.txt"] = () => Package("harfbuzzsharp", "LICENSE.txt"),
-        ["licenses/HarfBuzzSharp-THIRD-PARTY-NOTICES.txt"] = () => Package("harfbuzzsharp.nativeassets.linux", "THIRD-PARTY-NOTICES.txt"),
-        ["licenses/dotnet-LICENSE.txt"] = () => Package("microsoft.netcore.app.runtime.linux-x64", "LICENSE.TXT"),
-        ["licenses/dotnet-THIRD-PARTY-NOTICES.txt"] = () => Package("microsoft.netcore.app.runtime.linux-x64", "THIRD-PARTY-NOTICES.TXT"),
-        ["licenses/Microsoft.Extensions.ObjectPool-THIRD-PARTY-NOTICES.txt"] = () => Package("microsoft.extensions.objectpool", "THIRD-PARTY-NOTICES.TXT"),
-        ["licenses/CommunityToolkit.HighPerformance-License.md"] = () => Package("communitytoolkit.highperformance", "License.md"),
-        ["licenses/CommunityToolkit.HighPerformance-ThirdPartyNotices.txt"] = () => Package("communitytoolkit.highperformance", "ThirdPartyNotices.txt"),
-        ["licenses/Lato-OFL.txt"] = () => Path.Combine(TestPaths.OldGame, "objects", "fonts", "Lato-OFL.txt"),
-        ["licenses/STIX-OFL.txt"] = () => Path.Combine(TestPaths.OldGame, "objects", "fonts", "STIX-OFL.txt"),
-    };
 
     /// <summary>A text with its line breaks and runs of spaces made single spaces (the licence texts wrap and align their lines).</summary>
     static string Flat(string text) => Regex.Replace(text.Replace(" * ", " "), @"\s+", " ");
@@ -233,17 +216,17 @@ public class EngineScreensTests
             Assert.True(Shipped.ContainsKey(component.Text), $"{component.Name}: {component.Text} isn't a shipped licence text");
             // The Lato OFL text's "Ł" is mis-encoded (its UTF-8 read as Latin-1 and written again: U+0106 U+0081); the
             // credits spell the name right.
-            var text = Flat(File.ReadAllText(Shipped[component.Text]()).Replace("\u0106\u0081", "Ł"));
+            var text = Flat(File.ReadAllText(Shipped[component.Text]).Replace("\u0106\u0081", "Ł"));
             foreach (var line in component.Copyrights)
                 Assert.True(text.Contains(Flat(line), StringComparison.Ordinal), $"{component.Name}: \"{line}\" isn't in {component.Text}");
         }
         // FreeType's credit (FTL, section 2) with the year BRUTAL's FreeType gives, and OpenAL Soft's source.
         var freeType = Credits.Components.Single(c => c.Name.StartsWith("FreeType "));
         Assert.Contains("Portions of this software are copyright © 2026 The FreeType Project (https://freetype.org). All rights reserved.", freeType.Notes!);
-        Assert.Contains(Flat(freeType.Notes![0]), Flat(File.ReadAllText(Shipped["licenses/BRUTAL-FREETYPE-THIRD-PARTY-NOTICES.txt"]())));
+        Assert.Contains(Flat(freeType.Notes![0]), Flat(File.ReadAllText(Shipped["licenses/BRUTAL-FREETYPE-THIRD-PARTY-NOTICES.txt"])));
         var openAl = Credits.Components.Single(c => c.Name.StartsWith("OpenAL Soft "));
         Assert.StartsWith("GNU Library General Public License", openAl.Licence);
-        var openAlNotice = File.ReadAllText(Shipped["licenses/BRUTAL-OPENAL-THIRD-PARTY-NOTICES.txt"]());
+        var openAlNotice = File.ReadAllText(Shipped["licenses/BRUTAL-OPENAL-THIRD-PARTY-NOTICES.txt"]);
         Assert.Contains("https://github.com/kcat/openal-soft", openAlNotice);
         Assert.Contains("dd4e07de0fe73d8c0326c4502f63e71da8ef268b", openAlNotice);
         Assert.Contains("https://github.com/kcat/openal-soft at commit dd4e07de0fe73d8c0326c4502f63e71da8ef268b", openAl.Notes![0]);
@@ -278,7 +261,7 @@ public class EngineScreensTests
     [InlineData("licenses/BRUTAL-STB-THIRD-PARTY-NOTICES.txt", "stb=stb_image 2.30 and stb_image_write 1.16")]
     public void EveryComponentAPackagesNoticesNameIsCredited(string text, params string[] pairs)
     {
-        var named = NamedIn(File.ReadAllText(Shipped[text]()));
+        var named = NamedIn(File.ReadAllText(Shipped[text]));
         // The notices name exactly these, in this order (a package that names one more fails here until the credits list it).
         Assert.Equal(pairs.Length, named.Count);
         foreach (var (pair, name) in pairs.Zip(named))
@@ -292,12 +275,20 @@ public class EngineScreensTests
     [Fact]
     public void EveryShippedTextIsNamedByTheCredits()
     {
-        // BRUTAL's licence by the closing line, every other text by a component (its text or a note).
+        // NOTICE.txt and BRUTAL's licence by the BRUTAL section and the closing line, every other text by a component
+        // (its text or a note).
         var named = Credits.Components.Select(c => c.Text).Concat(Credits.Components.SelectMany(c => c.Notes ?? []).SelectMany(n => Shipped.Keys.Where(n.Contains))).ToHashSet();
-        foreach (var text in Shipped.Keys.Where(t => t is not "licenses/BRUTAL-LICENSE.txt"))
+        foreach (var text in Shipped.Keys.Where(t => t is not "NOTICE.txt" and not "licenses/BRUTAL-LICENSE.txt"))
             Assert.True(named.Contains(text), $"no component names {text}");
         Assert.Contains("licenses/BRUTAL-LICENSE.txt", Credits.LicencesLine);
+        Assert.Contains("NOTICE.txt", Credits.LicencesLine);
         Assert.Contains("BRUTAL License v1.0", Credits.Notice);
+        // And the other way: every text a component, a note or the closing line names is shipped.
+        var mentioned = Credits.Components.Select(c => c.Text)
+            .Concat(Credits.Components.SelectMany(c => c.Notes ?? []).Append(Credits.LicencesLine)
+                .SelectMany(line => Regex.Matches(line, @"licenses/[A-Za-z0-9._-]+?\.(txt|md)").Select(m => m.Value)));
+        foreach (var text in mentioned)
+            Assert.True(Shipped.ContainsKey(text), $"the credits name {text}, which isn't shipped");
     }
 
     [Fact]

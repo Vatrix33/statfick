@@ -40,7 +40,8 @@ public sealed class Credits : IDisposable
 
     /// <summary>
     /// The shipped components, in the credits' order: BRUTAL's libraries with what each contains (as each package's
-    /// third-party notices list them), then HarfBuzz, .NET and its libraries, and the fonts.
+    /// third-party notices list them), then HarfBuzz, .NET and its libraries, then what the engine itself embeds besides
+    /// BRUTAL's logo: the fonts and Chromium's two search field images.
     /// </summary>
     public static IReadOnlyList<CreditedComponent> Components { get; } =
     [
@@ -135,6 +136,8 @@ public sealed class Credits : IDisposable
         new("STIX Two", "SIL Open Font License 1.1",
             ["Copyright 2001-2021 The STIX Fonts Project Authors (https://github.com/stipub/stixfonts), with Reserved Font Name \"TM Math\". STIX Fonts™ is a trademark of The Institute of Electrical and Electronics Engineers, Inc."],
             "licenses/STIX-OFL.txt"),
+        new("Chromium 152 (the search field's cancel button images, in the engine)", "BSD 3-Clause License",
+            ["Copyright 2015 The Chromium Authors"], "licenses/Chromium-LICENSE.txt"),
     ];
 
     /// <summary>The credits' stylesheet (the editor's dark look, Lato 13 px; every rule under <c>.credits</c>).</summary>

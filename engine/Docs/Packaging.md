@@ -1313,7 +1313,7 @@ package's, its first line BRUTAL's copyright line, so the line shows once), `whi
 each with its name and version (`h3`), its licence and its copyright lines as its licence text states them, and its
 notes; "Licences": "The full texts of these licences are in the licenses folder beside the program (BRUTAL's in
 licenses/BRUTAL-LICENSE.txt), and BRUTAL's notice in NOTICE.txt." Lato 13/20 px, headings bold, the licence names in `--muted`. **The components**
-(`Credits.Components`, 36): every component the shipped texts name: FreeType 2.14.3 (FTL, with its credit, "Portions
+(`Credits.Components`, 36; 37 with the follow-up's Chromium): every component the shipped texts name: FreeType 2.14.3 (FTL, with its credit, "Portions
 of this software are copyright © 2026 The FreeType Project (https://freetype.org). All rights reserved.", the year
 BRUTAL's FreeType notice gives, and "This software is based in part of the work of the FreeType Team."), its BDF and
 PCF drivers, libpng, zlib, GLFW with SDL_GameControllerDB and the Wayland protocol descriptions, OpenAL Soft 1.25.2
@@ -1327,11 +1327,19 @@ Microsoft.Extensions and the .NET Community Toolkit (each with a pointer to its 
 line (OpenAL Soft, KTX-Software, Basis Universal, astc-encoder, dfdutils, the Vulkan headers in libktx) show their
 licence only. Lato's line spells "Łukasz": the shipped OFL text (the old game's, ui.pak's) has the letter
 mis-encoded (U+0106 U+0081, its UTF-8 read as Latin-1 and written again). **Checked against the texts**
-(`EngineScreensTests`): each copyright and note line is in the text it names (whitespace runs made single spaces),
-the text being where the publish takes it (the BRUTAL packages' `LICENSES/`, HarfBuzzSharp's, .NET's runtime pack,
-the old game's fonts; step 3's `Tools/Packaging/licenses.txt`); every component each BRUTAL package's notices name
-(their "Name" fields, or KTX's and stb's section titles) is credited, the count exact; every shipped text is named by
-a component (its text or a note), BRUTAL's licence by the closing line.
+(`EngineScreensTests`): each copyright and note line is in the text it names (whitespace runs made single spaces);
+every component each BRUTAL package's notices name (their "Name" fields, or KTX's and stb's section titles) is
+credited, the count exact; every shipped text is named by a component (its text or a note), `NOTICE.txt` and BRUTAL's
+licence by the BRUTAL section and the closing line; and every text a component, a note or the closing line names is
+shipped. **The shipped set is step 3's** (since the follow-up, 2026-11-08): the tests read `Tools/Packaging/licenses.txt`'s
+`text` lines and the texts kept beside it (`NOTICE.txt`, `licenses/`), and check that the two agree (every text listed
+kept, every text kept listed), so the credits and the packages can't drift apart; `NOTICE.txt` and the Lato OFL text
+compared byte for byte with the engine's own copies. **The follow-up (2026-11-08, branch `m12-step4-credits` from
+`77854d4`):** step 3 found the engine has embedded Chromium 152's two search field cancel images
+(`UI/Resources/search_cancel*.png`) since before M12 and ships `licenses/Chromium-LICENSE.txt` (BSD-3-Clause); the
+credits list "Chromium 152 (the search field's cancel button images, in the engine)", BSD 3-Clause License, "Copyright
+2015 The Chromium Authors", last, with the fonts (what the engine itself embeds besides BRUTAL's logo); 37 components.
+`credits` and `credits-end` captured again (the new lines, and the top's scrollbar thumb shorter for them).
 **For steps 5 and 6:** the sandbox's About button shows `new Credits("Statventure Sandbox", ProgramInfo.Of(…))`
 (its own document) and the editor's dialog `Credits.Markup("Statventure Editor", EditorView's ProgramInfo)` with
 `Credits.Css` in its document (its scroller its own).
@@ -1382,6 +1390,11 @@ assemblies and their symbols name no `github` and hold no Source Link entry). Fr
 four made and checked, byte for byte the worktree's.
 Not checked: Windows (`publish.ps1`, `editor.ps1`, the zips), the cloud's own SDK publishing for Windows. ("How it
 works", step 3.)
+**Step 4's follow-up done (2026-11-08, branch `m12-step4-credits` from `77854d4`, 3626 tests on the GPU and on
+lavapipe):** Chromium (its search field images, `licenses/Chromium-LICENSE.txt`) credited; the credits' tests read the
+shipped set from `Tools/Packaging/licenses.txt` and the texts kept there (both directions: every shipped text named,
+every named text shipped); `credits`, `credits-end` captured again. Mutations: 8, all killed. ("How it works", step 4.)
+
 **Step 4 done (2026-11-08, branch `m12-step4`, 3625 tests on the GPU and on lavapipe):** the logo's check found
 the branding page's 4096 × 896 files newer than BRUTAL's 712 × 168 copies and stopped; the user's decision (a)
 ("Decided (the logo's file)"): the page's white logo at the approved 696 CSS px, Chromium's shrunk images ported first
