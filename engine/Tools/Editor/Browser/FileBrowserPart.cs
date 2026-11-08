@@ -9,10 +9,14 @@ namespace Statventure.Editor.Browser;
 /// <summary>
 /// What the file browser is asked to pick: the dialog's title and its button's text, the endings of the files it
 /// shows (none: any file), whether a name that isn't there yet may be picked (an export's new file), the name to
-/// start with in the path field, and the folder to start in (none: the most recent place, else <paramref name="Fallback"/>).
+/// start with in the path field, and the folder to start in (none: the most recent place, else <paramref name="Fallback"/>);
+/// whether it picks a folder rather than a file (<paramref name="Folder"/>: the game's folder, M12 step 6), a line said
+/// above it (<paramref name="Lead"/>), and a check of what is picked (<paramref name="Accept"/>: why it can't be, said
+/// under the listing with the browser left open, or null).
 /// </summary>
 public sealed record BrowserRequest(string Title, string Button, IReadOnlyCollection<string>? Endings = null, bool NewFile = false,
-    string? SuggestedName = null, string? StartFolder = null, BrowserPlaceKind Fallback = BrowserPlaceKind.Mods);
+    string? SuggestedName = null, string? StartFolder = null, BrowserPlaceKind Fallback = BrowserPlaceKind.Mods,
+    bool Folder = false, string? Lead = null, Func<string, string?>? Accept = null);
 
 /// <summary>
 /// A place the browser lists: its label and folder, and what it is (null: the game's packs, P5, which the editor adds
@@ -30,7 +34,7 @@ public sealed record BrowserPlaceItem(string Label, string Folder, BrowserPlaceK
 /// import and export all ask through it; it is the JSON tab's export picker (<see cref="IExportFilePicker"/>). The
 /// recent places are kept in <c>editor/recent-places.json</c> (G6): read when it first opens, written at each pick.
 /// </summary>
-public sealed class FileBrowserPart : EditorPart, IExportFilePicker
+public sealed class FileBrowserPart : EditorPart, IExportFilePicker, IFileBrowserHost
 {
     /// <summary>The endings of the files a pack can be opened from.</summary>
     public static readonly IReadOnlyCollection<string> PackEndings = [".pak"];
@@ -54,8 +58,12 @@ public sealed class FileBrowserPart : EditorPart, IExportFilePicker
     public Func<string, IReadOnlyCollection<string>?, bool, IReadOnlyList<FolderEntry>>? ListOverride { get; set; }
 
     /// <summary>A folder's listing (<see cref="ListOverride"/>, else <see cref="FileBrowser.List"/>).</summary>
-    internal IReadOnlyList<FolderEntry> List(string folder, IReadOnlyCollection<string>? endings, bool showHidden) =>
+    public IReadOnlyList<FolderEntry> List(string folder, IReadOnlyCollection<string>? endings, bool showHidden) =>
         ListOverride is { } list ? list(folder, endings, showHidden) : FileBrowser.List(folder, endings, showHidden);
+
+    UiDocument IFileBrowserHost.Document => View.Document;
+
+    Task<string?> IFileBrowserHost.Ask(string title, string message, params (string Text, string? Value)[] buttons) => View.Dialogs.Ask(title, message, buttons);
 
     /// <summary>The browser's dialog while it is open, else null.</summary>
     public FileBrowserDialog? Current { get; private set; }
@@ -119,8 +127,8 @@ public sealed class FileBrowserPart : EditorPart, IExportFilePicker
     public Task<string?> PickExportFile(string title, string suggestedName) =>
         Pick(new BrowserRequest(title, "Export", null, NewFile: true, SuggestedName: suggestedName, Fallback: BrowserPlaceKind.Documents));
 
-    /// <summary>A file was picked: its folder becomes the most recent place, and the recent places are written.</summary>
-    internal void Picked(string file)
+    /// <summary>A file (or a folder) was picked: the folder holding it becomes the most recent place, and the recent places are written.</summary>
+    public void Picked(string file)
     {
         if (Path.GetDirectoryName(file) is not { Length: > 0 } folder)
             return;

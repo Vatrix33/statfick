@@ -794,6 +794,18 @@ the tests run without the splash.
    - Finished: the lookup's rules on scratch game folders (none, remembered, gone, another version, `--game`,
      `--repo`); the new screen against Chromium; the stand-in's kinds read from a game folder; `--capture`; the
      credits opened. Mutations: each.
+   - **Done (2026-11-08, "How it works", step 6).** Before its code the step asked three questions, which the manager
+     answered (2026-11-08; recorded for the user), each the recommended option (a): **Q-A** under `--repo` the data library
+     comes from the library project's own build in the repo (`Samples/Statventure.Game.Data/bin/<the editor's
+     configuration>/net10.0/`, one constant the port changes), `editor.sh` builds it beside the editor, no reference from
+     the editor; **Q-B** the packer references the library's project, so `pack`, `update`, `extract`, `dump` and
+     `textconv.sh` know the game's kinds with no option (`Tools/Packer/` added to the step's files); **Q-C** the engine
+     keeps one record kind per name for the process, so a run uses one build of the library: Game folder… switches at once
+     for the run's build, otherwise says "Start the editor again to work on the game in <folder>" and remembers it. The
+     step's own choices were confirmed by the manager as listed ("How it works", step 6). One rule of step 3's check had
+     to change, which the step reported: the game's Windows archive failed on the data library's import of `mscoree.dll`,
+     which every managed assembly has and .NET doesn't use; **the manager's decision (a), 2026-11-08:** the check skips
+     the native-import rule for IL-only .NET assemblies ("How it works", step 3 and step 6, "The packages").
 7. **The release script and its text** (scripts). After 1 and 3.
    - Owns: a new `Tools/Scripts/release.sh` (the version from the commit's UTC date and the repo's `v<date>.*`
      tags, Q1, Q2; the refusals, Q27; the publish and `check-packages.sh` for all four; the draft through `gh`,
@@ -1136,7 +1148,11 @@ Filled in as the steps are done.
   `$ORIGIN` in its RUNPATH, or the system's (libc, libm, libdl, librt, libpthread, libgcc_s, libstdc++, the loader,
   `libvulkan.so.1`), its versions at most `GLIBC_2.34` and `GLIBCXX_3.4.30`; every PE file's imports (read from its
   import table) in the folder or Windows' (KERNEL32, USER32, GDI32, SHELL32, ADVAPI32, ole32, OLEAUT32, AVRT, WINMM,
-  `vulkan-1.dll`, the UCRT's `api-ms-win-crt-*`); every file and every file inside the program covered by
+  `vulkan-1.dll`, the UCRT's `api-ms-win-crt-*`), **except an IL-only .NET assembly's** (added by step 6, the manager's
+  decision (a), 2026-11-08: a PE file whose CLI header, data directory 14, has the IL-only flag, `is_il_only`; every
+  managed PE file imports `mscoree.dll`, the old CLR's entry, which .NET doesn't use: it loads such an assembly itself,
+  never through Windows' loader; the game's data library lies beside its Windows program since step 6; a mixed .NET
+  assembly, native code in it, is checked as a native DLL); every file and every file inside the program covered by
   `licenses.txt`. **The run** (Linux packages; `--no-run` skips it): unpacked, started in a headless compositor
   (`cage` on wlroots' headless backend, the user's `DISPLAY` and `WAYLAND_DISPLAY` unset; `xvfb-run` where there is no
   cage, as in the cloud), `XDG_DATA_HOME` a scratch folder (so the per-user folder is scratch: the stand-in logs
@@ -1516,6 +1532,251 @@ folder's top level unchanged.
   `~/.cache/stat-fick-build/claude-work/m12/step5/` (the sandbox's splash, credits and crash window captured headless at 1;
   offscreen renders of the same at 1 and 1.65; the fixtures' renders in `renders-gpu/` and `renders-lavapipe/`).
 
+### Step 6: the editor as a download of its own (2026-11-08)
+
+**The manager's decisions (2026-11-08; asked by the step before its code; Q-A and Q-B repo tooling, Q-C an editor
+behaviour under the user's standing delegation of the editor's own design; recorded for the user), each the recommended
+option (a):**
+- **Q-A, the dev setup's data library:** under `--repo` the library comes from the library project's own build in the
+  repo, `<engine>/Samples/Statventure.Game.Data/bin/<the editor's configuration>/net10.0/Statventure.Game.Data.dll`
+  (`GameLibrary.InRepo`; one constant, `GameLibrary.RepoProject`, which the port changes when it makes its own project);
+  `editor.sh` (and `editor.ps1`) build it beside the editor; it is checked like any game's; the editor's project has no
+  reference to it. (Not a copy beside the editor's dev build; not a `--game-data` option.)
+- **Q-B, the packer:** the packer references the library's project directly (`Tools/Packer/` added to the step), so
+  `pack`, `update`, `extract`, `dump` and `textconv.sh` know the game's kinds with no option. (Not a `--game` option; not
+  left to the port.) The brief's mention of a packer `--types` was a slip of the brief, not of the docs: no such option
+  existed.
+- **Q-C, one build of the library per run:** the engine keeps one record kind per record name for the whole process
+  (`Records/RecordFamily.cs`, `ByName`, which throws for two types of one name), so a run can use one build of the
+  library. Game folder… in the editor switches at once when the folder's library is the build the run has loaded (any
+  copy of one release); otherwise it says "Start the editor again to work on the game in <folder>" and remembers the
+  folder for the next start. (Not a restart for every change; not no change from the editor.)
+
+**Files.** `Tools/Editor/`: `EditorProgram.cs` (the start: the command line, the game it names, the editor run, Q6's
+message), `Program.cs` (calls it), `EditorArguments.cs`, `EditorApplication.cs`, `Game/` (`GameLibrary.cs`: the library's
+file read and loaded, `GameLibraryLoader`; `GameLookup.cs`: the game's folder checked, `GameProblem` and its words,
+`RememberedGame`; `GameScreen.cs` and `Game.css`: "Where is Stat Fick?"; `GamePart.cs`: Game folder…), `About/`
+(`AboutPart.cs`, `About.css`), `Browser/FileBrowserView.cs` (step 8's dialog's browser, now built into any element, with a
+folder mode; `FileBrowserDialog.cs` wraps it), `Session/GameData.cs`, `Session/EditorSession.cs` (the game's kinds),
+`Shell/EditorView.cs` (the engine's Lato, the credits' sheet, About and Game folder… in the top bar), `Shell/Shell.css`,
+`Shell/Fonts.css` (its comment), `Shell/EditorCommands.cs`, `Browser/Browser.css`. `Samples/Statventure.Game.Data/` (new),
+`Statventure.slnx`, `Samples/Statventure.Sandbox/Statventure.Sandbox.csproj`, `Tools/Packer/` (`Packer.csproj`,
+`Program.cs`), `Tools/Scripts/editor.sh` and `editor.ps1`, `Tools/Packaging/licenses.txt` and the game's two listings.
+Tests in `Tests/Statventure.Tests/Editor/Game/` and `Editor/About/` (and the shell's, the arguments', the harness, the
+fixtures' record), `Statventure.Tests.csproj` (builds the library and the packer, references neither).
+
+**The stand-in data library (Q19; `Samples/Statventure.Game.Data`):** a class library on the engine, `Statventure.Game.Data`,
+with one test kind, `StandInItem` (left to the step, chosen): `[Record("stand-in.item", 1)]`, `[Kind("Stand-in item",
+"stand-in/items")]`, a help text, and three fields, `Title` (text), `Price` (gold, from 0) and `Rarity` (Common, Rare,
+Exotic), so the form shows a text field, a number with its unit and a select. The port replaces its contents. **The
+game links it:** the sandbox references the project; a target of its own (`KeepTheDataLibraryBeside`, before the SDK's
+`_ComputeFilesToBundle`) marks it `ExcludeFromSingleFile`, so a runtime publish leaves it beside the program, a file of its
+own (Q5), and build.sh's dev layout (`runtime/`) has it beside `Statventure.Sandbox` too. The editor's projects don't
+reference it (M12-9, clarified: no copy in the editor's download). The tests build it (a project reference with
+`ReferenceOutputAssembly="false"`) and load it only the editor's way.
+
+**Finding the game (Q16; `Game/GameLookup.cs`):** in this order: `--repo <engine>` (the dev setup: the repo's
+`Assets/Packs`, writable, and the library built in the repo, Q-A); `--game <folder>`; else the folder remembered in
+`<player folder>/editor/game.json` (`{ "version": 1, "folder": "<full path>" }`, written when the player chooses one on the
+screen or with Game folder…, never for `--game` or `--repo`; a file that can't be used, or a folder that isn't a full path,
+remembers nothing); else the "Where is Stat Fick?" screen. **The editor no longer looks for `packs/` beside its program**
+(the one-folder layout before M12-1; Q16 (a): it asks, rather than looking in the usual places). **A game's folder (left to
+the step, chosen)** holds a `packs/` folder and `Statventure.Game.Data.dll`; its program isn't looked at, so build.sh's dev
+layout (whose program is `Statventure.Sandbox`) works with `--game` too; `ui.pak` is no longer needed (the editor's fonts
+are the engine's, below), so `GameData.UiPack` and `GameData.Problem` are gone. **Its version (Q18; step 1's note):** the
+data library's informational version, read from its metadata without loading it (`GameLibrary.Read`: `System.Reflection.
+Metadata`, the `AssemblyInformationalVersionAttribute`'s string, `ProgramInfo.Parse`; also its assembly name, which must
+be `Statventure.Game.Data`, and its build id, the module's version id), so a library the editor refuses is never loaded.
+It must equal the editor's own (`EditorView.Version`): a release's exactly; **dev builds (left to the step, chosen) match
+any dev build whatever their commits** (`dev` against `dev`), a dev game refused by a release's editor and the other way
+round. **Loading (`GameLibraryLoader`):** into an `AssemblyLoadContext` of its own whose engine, BRUTAL and .NET are the
+editor's (its `Load` gives nothing, so what the library names comes from the default context: one engine, so its
+`[Record]` and `[Kind]` are the engine's), then `RecordTypes.Of(engine, library)` and `Importers.Find(engine, library)`
+(`GameData.Types`, `Importers`, which the session takes). Once per run (Q-C): the run's loader keeps the first build it
+loads; another copy of that build (the same module version id) is the same assembly and the same kinds; a different build
+is `AnotherBuild`. A library whose kinds can't be loaded (built against another engine, a part it names missing, two kinds
+of one name) is "can't be used: its kinds can't be loaded: …", nothing kept. Tests may make a loader of their own.
+**The problems and their words (`GameProblem`):** `Missing` "<folder> isn't there" (a remembered one: "Stat Fick isn't in
+<folder> any more"); `NotTheGame` "<folder> isn't Stat Fick's folder: its packs folder [and Statventure.Game.Data.dll]
+isn't/aren't in it" (remembered: "<folder> doesn't hold Stat Fick any more: …"); `Unreadable` "Stat Fick's data library in
+<folder> can't be used: <why>" ("it isn't a .NET assembly", "it is the assembly X, not Statventure.Game.Data", the system's
+message, the kinds'); `OtherVersion` "<folder> holds Stat Fick 2026.11.8.1, and this editor works only with Stat Fick
+2026.11.9.1" (Q18: both named); `NotBuilt` (`--repo`) "the game's data library isn't built: <file> isn't there
+(Tools/Scripts/editor.sh builds it)"; `AnotherBuild` "this editor has already loaded another build of Stat Fick's data
+library (from <file>)". On the command line as they are; on the screen and in the browser as sentences.
+
+**The command line and the start (`EditorArguments`, `EditorProgram`; Q6, Q20):** `[--repo <engine folder> | --game <game
+folder>] [--player-folder <folder>] [--capture <file.png> [--frames <n>]]`, folders and the capture's file made full paths.
+**The usage text (left to the step, chosen)** names the program as M12-2 does: "usage: statventure-editor …" on Linux,
+"usage: \"Statventure Editor.exe\" …" on Windows (quoted for its space). Problems: "'x' isn't an option", "--repo needs a
+folder" (and `--game`, `--player-folder`), "--capture needs a file", "--frames needs a number", "--frames needs a whole
+number from 1, not '0'" (digits only), "--frames goes with --capture", each option given twice, "--repo and --game name the
+game's data once". `--repo` and `--game` are found before any window: a game the editor can't work on is a command-line
+problem as a wrong option is (left to the step, chosen; Q18's refusal on the command line), and so is a dev setup whose
+library isn't built. A problem: "Statventure Editor: <problem>" and the usage on the terminal, exit code 2; on Windows,
+where the editor has no console (Q6), also step 5's `MessageWindow.Show` ("Statventure Editor <version>", "Statventure
+Editor can't start", the problem as a sentence, a blank line, the usage), the terminal having had it first (so a window
+that can't be made leaves the terminal's). Then `EditorApplication(game, player folder, capture, frames)` runs.
+
+**The program (`EditorApplication`):** its window titled "Statventure Editor <version>" from the start (Q3; step 1's note:
+`OptionsFor` takes `TitleOf(Version, null, false)`; step 5's splash shows that title, and a crash's window and terminal
+message say "Statventure Editor dev stopped because of an error"). Step 5's splash comes first on the program's own runs (its
+log name), none in the tests. `Load`: the command line's game, else the remembered one, else the screen (with the
+remembered folder's problem). A game chosen on the screen or with Game folder… is shown from the next update: what was
+shown closed (the device waited for, its `UiHost` disposed, the view, the session, the screen), a new session, view and
+host on the game, the page zoom kept. The screen takes the shell's remembered zoom; closing the window on the screen ends
+the run at once (nothing to ask about). Drops reach the view only. **`--capture <file> --frames N` (Q20; left to the step,
+chosen: as the sandbox's):** at the loop's frame N (30 by default; the loop's frames start after the splash, step 5), the
+frame is saved and the editor quits; `Application.CrashCapture` is set to the same file (step 5's), so a capture run that
+crashes saves the crash window's first frame and ends by itself.
+
+**The editor's fonts (Q17):** every editor document reads Lato from `EditorView.FontFiles()`, a file system of the
+engine's `EngineFonts.Mount()` (ui.pak's paths, so `Fonts.css` is unchanged), which the view (and the screen) owns; so the
+editor draws before it knows the game, and nothing of `ui.pak` is read. `EditorView.MakeDocument` gives a document in the
+editor's look (the fonts, every stylesheet in order).
+
+**"Where is Stat Fick?" (`Game/GameScreen.cs`, `Game.css`; Q16; its wording and layout left to the step, chosen):** a page of
+its own in the editor's look, its column 760 px wide (the browser dialog's), centred: the heading "Where is Stat Fick?";
+"Statventure Editor makes mods for Stat Fick and works on the game's data, so it needs the game: choose the folder Stat
+Fick was unpacked into, the one holding stat-fick and its packs folder." ("Stat Fick.exe" on Windows); "This is Statventure
+Editor 2026.11.8.1, which works with Stat Fick 2026.11.8.1." (muted); the remembered folder's problem in the problem colour
+when there is one; then the file browser built into the page in a box of the dialogs' colour, taking the height left, and
+"Use this folder" under it at the right (no Cancel: nothing to go back to; the window's close ends the editor). The
+browser's places: the mods folder, Documents, home, the roots and the recent places (no game packs: no game yet); it starts
+beside the remembered folder when there is one, else in the most recent place, else at home, the listing focused, files
+listed too (the game's folder recognised by them). A folder the editor can't work on is said under the listing in the
+problem colour, the browser staying; the game found is remembered, its folder's place becomes the most recent place, and
+the program shows the editor on it.
+
+**The browser's folder mode (`FileBrowserView`, `BrowserRequest.Folder`, `Accept`, `Lead`; left to the step, chosen):**
+step 8's browser, its markup unchanged (the `browser` fixture's), now built into an element of any host
+(`IFileBrowserHost`: `FileBrowserPart` in the editor, the screen before it); the dialog over the shell wraps it. Picking a
+folder: the button ("Use this folder") picks what the path field names when something is typed (a folder; a file stands
+for the folder holding it), else the selected row when it is a folder, else the folder shown; Enter in the path field still
+goes to a typed folder; a file activated (a double click, Enter) stands for the folder holding it. The request's `Accept`
+may refuse a pick, said under the listing; a `Lead` line shows above the browser.
+
+**Game folder… (`Game/GamePart.cs`; where it lives left to the step, chosen):** a button at the right end of the top bar,
+before About (a filler between Redo and them); off in the dev setup, whose game is the repo; its tooltip "Stat Fick's
+folder: <folder>". It shows the browser dialog picking a folder, "Where is Stat Fick?", the screen's lead line with "The
+editor works on the game in <folder> now.", starting beside the game's folder; a folder it can't work on is said under the
+listing; a game of the run's build: the open pack's unsaved work asked about ("…Discard them and work on the game in
+<folder>?", Save, Discard, Cancel), then remembered and shown (a new session and view); another build: "Start the editor
+again" — "Start the editor again to work on the game in <folder>: this editor has already loaded another build of Stat
+Fick's data library (from <file>). The folder is remembered for the next start." (Q-C), remembered.
+
+**About (`About/AboutPart.cs`, `About.css`; Q30):** the top bar's About (always on) opens a dialog titled "About" holding
+the engine's credits as step 4 made them for a dialog, `Credits.Markup("Statventure Editor", ProgramInfo of the editor's own
+assembly)` (the version, no commit) with `Credits.Css` among the editor's stylesheets (third, after the shell's, so the
+parts' sheets can adjust it: `EditorView.CreditsSheet`), and Close (focused; Escape closes it too). **Its look (left to the
+step, chosen):** 640 px wide (the credits' column), at most the window's height less 48 px, its content scrolling on its
+own (`flex: 0 1 auto`), the credits without their page padding. One at a time.
+
+**The packer (Q-B):** `Tools/Packer/Program.cs` takes `RecordTypes.Of(engine, Statventure.Game.Data)` and the importers of
+both for `pack`, `update`, `extract` and `dump` (the assembly loaded by name, which the port's library keeps); git's diff
+driver shows the game's records.
+
+**The packages:** the game's archives gain `Statventure.Game.Data.dll` beside the program (its listings one line each;
+`licenses.txt`: `cover Statventure.Game.Data.dll -`, ours); the editor's are unchanged (no library: M12-9). Sizes
+(2026.11.8.1): the game's Linux archive 45.1 MB, 72 files (was 71), Windows 41.3 MB, 65 (was 64), the editor's 41.8 MB,
+51, and 38.0 MB, 44. **`check-packages.sh`:** at first the editor's two archives and the game's Linux one passed and the game's Windows one
+failed on one rule: "needs: Statventure.Game.Data.dll imports mscoree.dll, which is neither in the folder nor Windows'".
+Every managed PE file imports `mscoree.dll` (the old CLR's entry, `_CorDllMain`), which .NET doesn't use: it loads an
+IL-only assembly itself; until now no managed assembly lay beside a Windows program (all were inside the bundle). The rule
+being step 3's, the step reported it with two proposals; **the manager's decision (a), 2026-11-08:** the check skips the
+native-import rule for IL-only .NET assemblies (`check_packages.py`, `is_il_only`: a CLI header, data directory 14, whose
+flags have the IL-only bit; a mixed assembly, native code in it, is still checked; the reason in the check's and
+`check-packages.sh`'s comments and in step 3's entry above), and the self-test gained a break for it (the data library's
+IL-only flag cleared must give "needs: Statventure.Game.Data.dll imports mscoree.dll"). With it, the four `2026.11.8.1` archives of the final code pass (the Linux ones run headless), and the self-test on the
+four catches all of its 119 breaks (step 3's 118 and the new one).
+**The packaged editor run** (`claude-work/m12/step6-packaged.sh`: the two Linux archives unpacked, the editor in a headless
+cage on a scratch per-user folder, OpenAL Soft's null device): its first start with `--capture` drew "Where is Stat Fick?"
+and ended with 0; with `--game` the unpacked game's folder, the single-file editor loaded the game's library from there
+(2026.11.8.1 against its own 2026.11.8.1; 81 record kinds, the engine's 80 and the stand-in's) and drew the editor; the
+player's real folders unchanged.
+
+**Screens against Chromium:** five new fixtures, `game-where` (1000 × 640: the first start, the fixture's own folders, a
+game's folder selected), `game-where-gone` (800 × 500, the window's smallest: the remembered folder gone, said), `game-folder`
+(1000 × 640: Game folder… over the shell of an installed game) in `Editor/Game/GameScreens.cs`, `about` and `about-end`
+(1000 × 640: the credits at their top and scrolled to their end, opened as the command does) in `Editor/About/AboutScreens.cs`;
+`EditorFixture` gained an optional game (an installed game's look) and the harness a screen in the view's place. **The 19
+earlier screens captured again** (the top bar gained Game folder… and About): the numbers before (the base's renders against the earlier captures) and after (the new captures), pixels past 12 levels,
+on the GPU (lavapipe within a few pixels: the table in `claude-work/m12/step6/screens-table.md`): at 1× every one of the 19
+gives the same count as before (`shell` 0, `dialog` 57, `browser` 28, `list-marks` 0, `list-unreadable` 0, `form-controls`
+1,943, `form-controls-end` 2,065, `form-json` 0, `import-path` 57, `import-replace` 57, `import-again` 353,
+`checks-problems` 425, `references-list` 390, `preview-effect` 448, `preview-model` 27, `preview-cutscene` 81,
+`saving-save-as` 80, `saving-new-mod` 57, `saving-mod-info` 0); at 1.65 those whose top bar isn't under a dialog's layer gain 8
+(the two new buttons' rounded corners: `shell` 32 → 40, `checks-problems` 4,340 → 4,348, 0.188 %, the closest to the 0.2 %
+limit as before), the others the same. The new ones: `game-where` 28 (0.004 %) and 346 (0.020 %), `game-where-gone` 28
+(0.007 %) and 332 (0.030 %), `game-folder` 28 (0.004 %) and 150 (0.009 %), `about` 61 (0.010 %) and 193 (0.011 %),
+`about-end` 230 (0.036 %) and 547 (0.031 %), at 1× and 1.65; lavapipe within 11 pixels of these.
+Captured with `claude-work/m12/step6-capture.sh` (step 13's: make-editor-references.sh's harness, flags and fonts in a
+headless cage, the output 2400 × 2400 at both scales, one fixture per Chromium run).
+
+**Tests:** 61 new (the suite 3,719, step 5's 3,658 and these): `Editor/Game/GameLookupTests` (12: a game's folder, not the game, a library that isn't the game's,
+another version refused naming both and never loaded, dev matching dev, the kinds in a load context of their own on the
+editor's engine, one build per run and another after a new start (a loader of the test's own), unloadable kinds, a library
+changed between its reading and its loading, the dev setup's library built in the repo, `editor/game.json`, every problem's
+words); `GameScreenTests` (6, the screen driven as the user drives it in the harness: its content and look, its start
+folder, a remembered folder's problem, choosing the game, folders it refuses, the button's and the field's rules);
+`GamePartTests` (4: off in the dev setup, a game of the run's build after the unsaved work is let go or kept, folders
+refused in the browser, another build's restart); `EditorProgramTests` (4: a wrong command line on the terminal and in
+Windows' message window, a game the command line names that can't be used, the editor run with its arguments, the
+message window the engine's); `GameApplicationTests` (5, real applications in hidden windows: the first start's screen then
+the game chosen, the remembered game, gone, and the command line's winning, the screen's zoom and close, Game folder…
+making the session and view anew, `--capture` and the crash capture); `StandInKindTests` (3: the stand-in's entry in the
+form and in New entry, unknown without the library, the packer's `dump`, `extract`, `pack` and `update` run on a pack of
+it); `Editor/About/AboutTests` (3: the credits in the dialog, their scrolling within the window at 1000 × 640 and 800 × 500,
+one at a time); and changed: `EditorArgumentsTests` (rewritten for the new command line: `--repo` with the repo's library,
+`--game`, neither, `--capture` and `--frames`, 19 wrong command lines, the usage on each system), `ShellTests` (the top bar's
+ten buttons and their places, the stylesheets' order with the credits' third, the engine's Lato at ui.pak's paths),
+`SettingsTests` (the title before a view), `DevSetupTests` (the scratch repo with the library's build), the harness (a game
+given, the screen) and the fixtures' record (an optional game), and the 10 new screen comparisons.
+
+**Found:**
+- *A hidden window's second present hangs under wlroots* (known, step 2): the in-process `--capture` test captures the first
+  frame and counts the window minimized from the second update on (no frame acquired then); the 30-frame default is checked
+  with the packaged program instead.
+- *`flex: 1` (a 0 % basis) in a column flexbox of indefinite height* gave the About dialog's content no height in the engine
+  (the dialog 102 px high); the spec and, as far as known, Chromium take a percentage basis there as the content's size.
+  Not checked against Chromium; the dialog uses `flex: 0 1 auto`, which both lay out alike (its fixtures). An item for the
+  engine's UI.
+- *Fixtures taller than 720 px came out cut at 1×* in a capture at the headless cage's default output (1280 × 720): the
+1× captures need the large output too (2400 × 2400, as M11's notes say for both scales).
+
+**Mutations:** the step's rules, `~/.cache/stat-fick-build/claude-work/m12/step6-mutations.json` (made by `step6-make-mutations.py`, run
+under the shared lock in a headless cage): 157 in the first run on the final base, 146 killed, 10 survived, 1 failed to
+build (a mutation of the fixture's places that didn't compile, written again). Of the survivors, 5 were gaps closed by
+tests (a library changed between its reading and its loading; a file named `packs` named in the problem; the message
+window's capital; the screen's start at home, not the mods folder, when that is there; the recent place written by a
+choice), 2 were redundant code, removed (an empty remembered folder refused, which the full-path rule refuses anyway; the
+browser's lead line's own margin, which the dialogs' paragraph rule overrode), and 3 are accounted for: the library's
+importers left out of the kinds, twice (the loader's and the session's: the stand-in has no importer, so nothing can
+differ until the port's library has one), and the usage naming Linux's program on any system (only Windows differs: the
+"Windows check"). Rerun (`step6-rerun.json`): the 5 gaps, the replacement of a redundant check and the rewritten mutation,
+all 7 killed. The standing list: 155, 152 killed, 3 accounted for. Before the rebase on step 5 a first run, stopped at
+its tenth mutation, had found one more redundant check (a file without metadata refused, which the catch of a reading
+that fails does anyway), removed. **The packaging's rules** (`step6-publish-mutate.py`: each change applied, the game's
+Linux package published and checked, or `editor.sh` run headless with `--capture` from a tree without the library's
+Release build, and undone; the unchanged tree passing first): the library bundled into the program (the target off), the
+library not linked, no `cover` line, the listing without it, `editor.sh` not building it: 5, all killed (the check's
+"missing"/"extra"/"licence" problems; "the game's data library isn't built"). **The check's new rule** (`step6-rule-mutate.py`: each change to `check_packages.py` applied, the check or its
+self-test run on the game's Windows archive, the change undone; the unchanged script passing both first): the rule dropped
+(the data library's `mscoree.dll` import then a need: the check fails), every PE file counted IL-only (no native DLL's
+imports checked: the self-test's "a library importing a DLL not there" uncaught) and any CLI header counted IL-only (the
+flag not read: the self-test's new break uncaught): 3, all killed. Nothing written to the player's real
+folders (`mutate.py`'s watch; the game folder missing and the Documents folder's top level the same before and after
+each run).
+
+**Full runs:** the full suite passes on the GPU (1 min 54 s) and on lavapipe (2 min 12 s), inside a headless Wayland
+compositor under the shared lock, rebased on `60ee79b` (step 5's merge, `04dd980`, and the old game's port tasks 10–14,
+nothing the engine builds; on `04dd980` the same, 1 min 56 s and 2 min 9 s): 3,719 tests, none skipped; the player's real
+game folder stayed missing and the Documents folder's top level unchanged.
+
+**Not checked:** Windows (the message window for a wrong command line, `Statventure Editor.exe`'s usage, `editor.ps1`
+building the library); the editor in a real window by hand: the first start's screen, choosing the game's folder with the
+mouse and the keyboard, Game folder… and its restart message, About scrolled with the wheel (the user's "to check by hand").
+
 ### Step 7: the release script and its text (2026-11-08)
 
 - **Commands.** `Tools/Scripts/release.sh [--dry-run]` on the PC (where `gh` is logged in), from a clean checkout of a
@@ -1625,6 +1886,21 @@ folder's top level unchanged.
   folders.
 
 ## Status
+
+**Step 6 done (2026-11-08, branch `m12-step6`, rebased on step 5's merge, 3719 tests on the GPU and on lavapipe):** the
+editor as a download of its own: it finds the game (`--repo` with the library built in the repo, the manager's Q-A;
+`--game`; the folder remembered in `editor/game.json`; else "Where is Stat Fick?", a page with the file browser built in,
+picking a folder, Q16), refuses a game of another version naming both (the data library's version read from its metadata,
+never loaded when refused, Q18), loads `Statventure.Game.Data.dll` from the game's folder for its kinds (once per run, the
+manager's Q-C, Q19), draws in the engine's Lato (Q17), has Game folder… and About (the engine's credits in a dialog, Q30)
+in its top bar, `--capture` and `--frames` (Q20), the usage naming `statventure-editor`, step 5's message window on Windows
+(Q6) and its title with the version from the start. The stand-in library `Samples/Statventure.Game.Data` (one test kind,
+`stand-in.item`) beside the sandbox's program, not in its bundle; the packer references it (Q-B). Five new fixtures, the 19
+earlier ones captured again (at 1× each as before). The four archives pass `check-packages.sh`, after the check's one
+change (the manager's decision (a): an IL-only .NET assembly's `mscoree.dll` import isn't a need; the data library is
+the first managed DLL beside a Windows program). Mutations: 155 standing, 152 killed, 3 accounted for (the stand-in has
+no importer; the usage on Linux), the 5 packaging rules and the check rule's 3 killed. Not checked: Windows; the editor by hand in a real
+window. ("How it works", step 6.)
 
 **Step 5 done (2026-11-08, branch `m12-step5`, rebased on `b08013b`, 3658 tests on the GPU and on lavapipe):** the BRUTAL
 splash in `Application.Run` once the window and device are made, before the sound and `Load`, on a program's own run (a

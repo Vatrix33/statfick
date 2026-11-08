@@ -11,7 +11,8 @@
 # the Visual C++ runtime's DLLs vc-runtime.txt pins (Q9); the program ELF x86-64, or PE32+ x86-64 with the GUI
 # subsystem (Q6), single-file (Q5) with the files inside it the listing names, its own assemblies' symbols embedded
 # with paths from the repo's root (Q7); every native library's needs met in the folder (through $ORIGIN on Linux) or
-# by the system, glibc 2.34 and GCC 12's libstdc++ at most; every file covered by licenses.txt with its texts there.
+# by the system, glibc 2.34 and GCC 12's libstdc++ at most (an IL-only .NET assembly beside the program, the game's data
+# library, has none: .NET loads it, its mscoree.dll import unused); every file covered by licenses.txt with its texts there.
 # The Linux packages are also run (not with --no-run): unpacked, started headless (cage, else xvfb-run; the user's
 # displays unset) on a scratch per-user folder, OpenAL Soft on its null device: the game draws and quits with
 # --capture, the editor given a wrong argument prints its usage and ends with 2; the player's real folders unchanged.

@@ -1,5 +1,8 @@
 // The packer (Docs/Assets.md, "Packs" and "The packer"; update: "Packs for the editor"): the engine's pack
-// functions from the command line. Record types and importers are the engine's own.
+// functions from the command line. Record types and importers are the engine's and the game data library's
+// (Statventure.Game.Data, M12-9: the packer references its project, so the repo's packs and their dumps know the game's
+// kinds with no option; Docs/Packaging.md, "How it works", step 6).
+using System.Reflection;
 using Statventure.Packs;
 
 const string Usage = """
@@ -19,6 +22,10 @@ const string Usage = """
       packer dump <file.pak>               the pack as JSON text for review (what git's diff driver for packs shows)
     """;
 
+var gameData = Assembly.Load("Statventure.Game.Data");
+var types = RecordTypes.Of(typeof(RecordTypes).Assembly, gameData);
+var importers = Importers.Find(typeof(RecordTypes).Assembly, gameData);
+
 try
 {
     switch (args)
@@ -26,7 +33,7 @@ try
         case ["pack", var folder, var pak]:
         {
             var writer = new PackWriter();
-            writer.AddFolder(folder);
+            writer.AddFolder(folder, types, importers);
             var result = writer.Write(pak);
             if (result.OldProblem is not null)
                 Console.Error.WriteLine($"Not reusing the old pack: {result.OldProblem}");
@@ -37,7 +44,7 @@ try
         }
         case ["update", var folder, var pak]:
         {
-            var update = PackWriter.Update(pak, folder);
+            var update = PackWriter.Update(pak, folder, types, importers);
             var result = update.Written;
             foreach (var damaged in result.DamagedInOld)
                 Console.Error.WriteLine($"Not reusing the old pack's damaged entry '{damaged}'");
@@ -66,7 +73,7 @@ try
         case ["extract", var pak, var folder]:
         {
             using var pack = PackFile.Open(pak);
-            pack.ExtractTo(folder);
+            pack.ExtractTo(folder, types);
             Console.WriteLine($"{pack.Entries.Count} entries into {Path.GetFullPath(folder)}");
             return 0;
         }
@@ -74,7 +81,7 @@ try
         {
             using var pack = PackFile.Open(pak);
             using var output = Console.OpenStandardOutput();
-            output.Write(PackDump.ToUtf8(pack));
+            output.Write(PackDump.ToUtf8(pack, types));
             return 0;
         }
         default:

@@ -1,0 +1,6 @@
+/* The About dialog (M12 step 6, Q30): the engine's credits (Credits.Css, rules under .credits) in a dialog as wide as
+   their column, its content scrolling on its own within the window's height. */
+.dialog.about-dialog { display: flex; flex-direction: column; width: 640px; max-height: calc(100% - 48px); }
+.about-dialog .dialog-content { flex: 0 1 auto; min-height: 0; overflow: auto; }
+.about-dialog .credits { max-width: none; padding: 0 12px 0 0; }
+.about-dialog .dialog-buttons { flex: none; }

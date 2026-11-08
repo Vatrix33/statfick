@@ -39,10 +39,15 @@ the user and wait for their go-ahead before starting the next one.
 - Cutscenes (M10, `Docs/Scene.md`, step 7): `Tools/Scripts/play-cutscene.sh jiruan [--volume 0-100]` plays Ji'ruan's intro, the proof, with its sound in
   the sandbox's window (Escape or its Skip button skips, R replays; `--dump <folder>` writes its frames instead);
   `Tools/Scripts/make-cutscene-references.sh` captures the old game's card in Chromium at the sampled times.
-- The editor (M11, `Docs/Editor.md`): `Tools/Scripts/editor.sh [--player-folder <folder>]` runs the Statventure Editor
-  from the repo (the dev setup, Release; from a script, pass a scratch player folder); its screens against Chromium:
-  run the tests once (they write `Reference/editor-fixtures.json`), then `Tools/Scripts/make-editor-references.sh
-  [fixture ...]` (PaintReference at 1 and 1.65, an invisible window; only the named fixtures when given).
+- The editor (M11, `Docs/Editor.md`): `Tools/Scripts/editor.sh [--player-folder <folder>] [--capture <file.png>
+  [--frames N]]` runs the Statventure Editor from the repo (the dev setup, `--repo`, with the game data library built
+  beside it; Release; from a script, pass a scratch player folder; `--capture` draws N frames, 30 by default, after the
+  splash, saves the last and quits). The program's own command line (M12 step 6, `Docs/Packaging.md`): `statventure-editor
+  [--repo <engine folder> | --game <game folder>] [--player-folder <folder>] [--capture <file.png> [--frames N]]`;
+  without `--repo` or `--game` it takes the game's folder it remembers (`editor/game.json`), else asks "Where is Stat
+  Fick?". Its screens against Chromium: run the tests once (they write `Reference/editor-fixtures.json`), then
+  `Tools/Scripts/make-editor-references.sh [fixture ...]` (PaintReference at 1 and 1.65, an invisible window; only the
+  named fixtures when given; from a headless compositor, make its output large, 2400 × 2400, at both scales).
 - Packaging (M12, `Docs/Packaging.md`): the decisions (two downloads, the game and the editor; the detail round Q1–Q28
   and Q29–Q30, the BRUTAL splash and credits, answered 2026-11-08), what exists, the method, the design and
   the eight steps. `Tools/Scripts/publish.sh [--version <v>]` (Windows: `publish.ps1`) makes the four archives

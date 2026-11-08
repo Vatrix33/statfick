@@ -3,6 +3,7 @@
     <Project Path="Engine/Statventure/Statventure.csproj" />
   </Folder>
   <Folder Name="/Samples/">
+    <Project Path="Samples/Statventure.Game.Data/Statventure.Game.Data.csproj" />
     <Project Path="Samples/Statventure.Sandbox/Statventure.Sandbox.csproj" />
   </Folder>
   <Folder Name="/Tests/">

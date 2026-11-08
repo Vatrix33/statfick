@@ -603,7 +603,7 @@ step 4, running beside it, asked Q38 on):
   error), which adds records and files and may read other files of the folder, which then aren't packed
   themselves; then records' JSON forms become records and every other file goes in as it is. A source
   whose name doesn't say what it is gets a distinguishing ending (a terrain description, e.g.
-  `<name>.terrain.json`: step 8's to settle; settled as that, S8-1). The packer looks for importers in the engine's assembly.
+  `<name>.terrain.json`: step 8's to settle; settled as that, S8-1). The packer looks for importers in the engine's assembly (since M12 step 6 also in the game data library's).
   (Not by name per command, `packer import <importer> …`; not both.)
 - **S3-4. The game's packs** in `Application.Data` are the five area packs by name, in the order
   `models`, `audio`, `ui`, `world`, `data`, each mounted if it is in `packs/`; other files there are
@@ -1029,9 +1029,10 @@ the records are step 2's test types).
   is needed then; no step of M9 needs it (steps 6 and 7 build their packs whole). **Done in M11 step 2
   (2026-11-06):** `packer update <folder> <file.pak>` (`PackWriter.Update`; "Packs for the editor" below);
   `make-music-data.sh` and `make-ui-pack.sh` still pack whole, switching to it once an editor-made entry is
-  committed into their pack (Docs/Editor.md, P30). The packer reads only the
-  engine's record types and importers; the port's own record types will need it to load the game's
-  assembly too (Docs/Editor.md, G3, kept for the port).
+  committed into their pack (Docs/Editor.md, P30). The packer reads the engine's record types and importers and
+  the game data library's (`Statventure.Game.Data`, M12-9: the packer references its project, so `pack`, `update`,
+  `extract`, `dump` and git's diff driver know the game's kinds with no option; until the port the stand-in's one test
+  kind; M12 step 6, the manager's decision Q-B, Docs/Packaging.md, "How it works", step 6).
 
 ### The game folder, saves, settings and character files (step 4: `Engine/Statventure/Storage/`)
 

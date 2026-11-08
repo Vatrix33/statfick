@@ -33,6 +33,7 @@ file Ktx.dll
 file NOTICE.txt
 file OpenAL32.dll
 file Stat Fick.exe
+file Statventure.Game.Data.dll
 file VulkanEx.dll
 file freetype.dll
 file glfw3.dll

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The game's data library (M12-9, Q19; Docs/Packaging.md, "The editor on its own"): the record kinds the game links
+       and the editor loads from the game's folder. Until the port, a stand-in with one test kind, carried by the
+       packaged sandbox beside its program (not inside its single-file bundle); the port puts its kinds here. The editor's
+       own download has no copy (M12-9, clarified): the editor loads the game's. The packer references it, so the repo's
+       packs and their dumps know the game's kinds. -->
+  <PropertyGroup>
+    <RootNamespace>Statventure.Game.Data</RootNamespace>
+    <AssemblyName>Statventure.Game.Data</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Engine/Statventure/Statventure.csproj" />
+  </ItemGroup>
+</Project>

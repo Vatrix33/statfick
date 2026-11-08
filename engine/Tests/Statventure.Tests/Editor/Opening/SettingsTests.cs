@@ -157,7 +157,8 @@ public class SettingsTests
     public void TheWindowsOptionsTakeTheRememberedSize()
     {
         var options = EditorApplication.OptionsFor(new ShellSettings(1, 1400, 900), "/players/one");
-        Assert.Equal((EditorView.Name, 1400, 900, 800, 500, true, true), (options.Window.Title, options.Window.Width, options.Window.Height,
+        // The title before a view gives its own: the editor's name and version (Q3; M12 step 1's note, step 6).
+        Assert.Equal(("Statventure Editor dev", 1400, 900, 800, 500, true, true), (options.Window.Title, options.Window.Width, options.Window.Height,
             options.Window.MinWidth, options.Window.MinHeight, options.Window.Resizable, options.Window.Visible));
         // The sound on for the preview (step 13).
         Assert.Equal(("/players/one", true, true), (options.GameFolder, options.GamePacksOnly, options.Audio));

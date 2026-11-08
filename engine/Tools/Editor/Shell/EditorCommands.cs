@@ -18,6 +18,8 @@ public enum EditorCommand
     Remove,
     ZoomIn,
     ZoomOut,
+    GameFolder,
+    About,
 }
 
 /// <summary>

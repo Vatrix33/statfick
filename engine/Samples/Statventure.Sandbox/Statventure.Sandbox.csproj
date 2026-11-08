@@ -19,7 +19,18 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../Engine/Statventure/Statventure.csproj" />
+    <!-- The game's data library (M12-9, Q19): the game links it; until the port the stand-in with its test kind. -->
+    <ProjectReference Include="../Statventure.Game.Data/Statventure.Game.Data.csproj" />
   </ItemGroup>
+  <!-- The data library stays a file of its own beside the single-file program (Q5): the editor loads it from the game's
+       folder (M12-9, Q19). -->
+  <Target Name="KeepTheDataLibraryBeside" BeforeTargets="_ComputeFilesToBundle">
+    <ItemGroup>
+      <ResolvedFileToPublish Condition="'%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'Statventure.Game.Data.dll'">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
   <ItemGroup>
     <!-- The game's fonts (as the tests use them). -->
     <None Include="../../Tests/Statventure.Tests/Data/Fonts/**" LinkBase="Data/Fonts" CopyToOutputDirectory="PreserveNewest" />

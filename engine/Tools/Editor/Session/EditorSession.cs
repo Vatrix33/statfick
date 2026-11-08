@@ -15,9 +15,12 @@ public sealed partial class EditorSession : IDisposable
     public EditorSession(GameData game)
     {
         Game = game;
+        // The game's kinds and importers, the engine's and its data library's (M12 step 6); tests may give others.
+        Types = game.Types;
+        Importers = game.Importers;
     }
 
-    /// <summary>Where the game's packs are, and whether this is the dev setup (P5).</summary>
+    /// <summary>Where the game's packs are, whether this is the dev setup (P5), and its kinds.</summary>
     public GameData Game { get; }
 
     /// <summary>The open pack as the title names it (its file name), or null when none is open.</summary>

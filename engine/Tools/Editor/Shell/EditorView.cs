@@ -3,6 +3,7 @@ using Statventure.Core;
 using Statventure.Editor.Session;
 using Statventure.Packs;
 using Statventure.Text;
+using Statventure.UI;
 using Statventure.UI.Dom;
 
 namespace Statventure.Editor.Shell;
@@ -21,11 +22,14 @@ public sealed partial class EditorView : IDisposable
     /// <summary>The editor's version as its build recorded it (M12-6, Q1): a release's <c>2026.11.8.1</c>, else <c>dev</c>; in the title (Q3).</summary>
     public static string Version { get; } = ProgramInfo.Of(typeof(EditorView).Assembly).Version;
 
-    /// <summary>The stylesheet holding the shell's @font-face rules (the game's Lato from ui.pak, P4); the only one that may.</summary>
+    /// <summary>The stylesheet holding the shell's @font-face rules (the engine's embedded Lato at ui.pak's paths, P4, Q17); the only one that may.</summary>
     public const string FontsSheet = "Statventure.Editor.Shell.Fonts.css";
 
     /// <summary>The shell's own stylesheet, added right after the fonts.</summary>
     public const string ShellSheet = "Statventure.Editor.Shell.Shell.css";
+
+    /// <summary>The engine's credits' stylesheet (<see cref="Credits.Css"/>, its rules under <c>.credits</c>), added after the shell's: the About dialog shows the credits (Q30).</summary>
+    public const string CreditsSheet = "Statventure.UI.Credits";
 
     /// <summary>A pane's narrowest width by a splitter (CSS px); the middle one's is <see cref="MinFormWidth"/>.</summary>
     public const float MinSideWidth = 120;
@@ -34,6 +38,7 @@ public sealed partial class EditorView : IDisposable
     public const float MinFormWidth = 200;
 
     readonly FontLibrary _fonts = new();
+    readonly VirtualFileSystem _files = FontFiles();
     readonly Dictionary<EditorPane, UiElement> _panes = [];
     readonly Dictionary<EditorCommand, UiElement> _buttons = [];
     readonly List<EditorPart> _parts = [];
@@ -41,14 +46,11 @@ public sealed partial class EditorView : IDisposable
     string _title = "";
 
     /// <param name="session">The session the view shows.</param>
-    /// <param name="uiData">The data the document reads its fonts from (a file system holding the game's ui.pak).</param>
     /// <param name="extraParts">Parts besides those of the editor's assembly (tests).</param>
-    public EditorView(EditorSession session, VirtualFileSystem uiData, IEnumerable<Type>? extraParts = null)
+    public EditorView(EditorSession session, IEnumerable<Type>? extraParts = null)
     {
         Session = session;
-        Document = new UiDocument(_fonts) { Files = uiData };
-        foreach (var (name, css) in Stylesheets)
-            Document.AddStylesheet(css, name);
+        Document = MakeDocument(_fonts, _files);
         Markup.SetInnerHtml(Document.Body, ShellMarkup);
         Shell = Document.Body.ElementChildren.Single();
         foreach (var pane in Enum.GetValues<EditorPane>())
@@ -147,12 +149,13 @@ public sealed partial class EditorView : IDisposable
     static string PaneName(EditorPane pane) => pane.ToString().ToLowerInvariant();
 
     const string ShellMarkup = """
-        <div class="shell"><header class="topbar"><button type="button" data-command="new-mod">New mod</button><button type="button" data-command="open" title="Open (Ctrl+O)">Open</button><span class="topbar-gap"></span><button type="button" data-command="save" title="Save (Ctrl+S)">Save</button><button type="button" data-command="save-as" title="Save As (Ctrl+Shift+S)">Save As</button><span class="topbar-gap"></span><button type="button" data-command="new-entry" title="New entry (Ctrl+N)">New entry</button><button type="button" data-command="import">Import</button><span class="topbar-gap"></span><button type="button" data-command="undo" title="Undo (Ctrl+Z)">Undo</button><button type="button" data-command="redo" title="Redo (Ctrl+Y)">Redo</button></header><main class="panes"><section class="pane" data-pane="entries" style="width: 280px"></section><div class="splitter" data-splitter="entries" role="separator" aria-orientation="vertical"></div><section class="pane" data-pane="form"></section><div class="splitter" data-splitter="preview" role="separator" aria-orientation="vertical"></div><section class="pane" data-pane="preview" style="width: 360px"></section></main><footer class="status">No pack open</footer></div>
+        <div class="shell"><header class="topbar"><button type="button" data-command="new-mod">New mod</button><button type="button" data-command="open" title="Open (Ctrl+O)">Open</button><span class="topbar-gap"></span><button type="button" data-command="save" title="Save (Ctrl+S)">Save</button><button type="button" data-command="save-as" title="Save As (Ctrl+Shift+S)">Save As</button><span class="topbar-gap"></span><button type="button" data-command="new-entry" title="New entry (Ctrl+N)">New entry</button><button type="button" data-command="import">Import</button><span class="topbar-gap"></span><button type="button" data-command="undo" title="Undo (Ctrl+Z)">Undo</button><button type="button" data-command="redo" title="Redo (Ctrl+Y)">Redo</button><span class="topbar-fill"></span><button type="button" data-command="game-folder">Game folder…</button><button type="button" data-command="about">About</button></header><main class="panes"><section class="pane" data-pane="entries" style="width: 280px"></section><div class="splitter" data-splitter="entries" role="separator" aria-orientation="vertical"></div><section class="pane" data-pane="form"></section><div class="splitter" data-splitter="preview" role="separator" aria-orientation="vertical"></div><section class="pane" data-pane="preview" style="width: 360px"></section></main><footer class="status">No pack open</footer></div>
         """;
 
     /// <summary>
     /// The editor's stylesheets in the order the document has them: <see cref="FontsSheet"/>, <see cref="ShellSheet"/>,
-    /// then every other <c>.css</c> file of the editor's folders by its resource name (ordinal).
+    /// the engine's credits' (<see cref="CreditsSheet"/>), then every other <c>.css</c> file of the editor's folders by its
+    /// resource name (ordinal).
     /// </summary>
     public static IReadOnlyList<(string Name, string Css)> Stylesheets { get; } = LoadStylesheets();
 
@@ -160,8 +163,25 @@ public sealed partial class EditorView : IDisposable
     {
         var assembly = typeof(EditorView).Assembly;
         var names = assembly.GetManifestResourceNames().Where(n => n.EndsWith(".css", StringComparison.Ordinal)).ToList();
-        var ordered = new[] { FontsSheet, ShellSheet }.Concat(names.Where(n => n is not FontsSheet and not ShellSheet).OrderBy(n => n, StringComparer.Ordinal));
-        return [.. ordered.Select(name => (name, Read(assembly, name)))];
+        var parts = names.Where(n => n is not FontsSheet and not ShellSheet).OrderBy(n => n, StringComparer.Ordinal);
+        return [(FontsSheet, Read(assembly, FontsSheet)), (ShellSheet, Read(assembly, ShellSheet)), (CreditsSheet, Credits.Css),
+            .. parts.Select(name => (name, Read(assembly, name)))];
+    }
+
+    /// <summary>
+    /// The files an editor document reads its fonts from (Q17): the engine's embedded Lato at ui.pak's paths
+    /// (<see cref="EngineFonts.Mount"/>), which <see cref="FontsSheet"/>'s @font-face rules name; the editor draws before
+    /// it knows where the game is.
+    /// </summary>
+    public static VirtualFileSystem FontFiles() => new([EngineFonts.Mount()]);
+
+    /// <summary>A document in the editor's look: <paramref name="fonts"/> its library, <paramref name="files"/> (<see cref="FontFiles"/>) its files, every one of <see cref="Stylesheets"/> in order.</summary>
+    public static UiDocument MakeDocument(FontLibrary fonts, VirtualFileSystem files)
+    {
+        var document = new UiDocument(fonts) { Files = files };
+        foreach (var (name, css) in Stylesheets)
+            document.AddStylesheet(css, name);
+        return document;
     }
 
     static string Read(Assembly assembly, string name)
@@ -171,6 +191,10 @@ public sealed partial class EditorView : IDisposable
         return reader.ReadToEnd();
     }
 
-    /// <summary>Gives back the fonts (the document is no longer drawn after this).</summary>
-    public void Dispose() => _fonts.Dispose();
+    /// <summary>Gives back the fonts and their files (the document is no longer drawn after this).</summary>
+    public void Dispose()
+    {
+        _fonts.Dispose();
+        _files.Dispose();
+    }
 }

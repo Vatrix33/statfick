@@ -35,12 +35,17 @@ public class ShellTests
     {
         using var editor = new EditorHarness();
         var buttons = editor.Q(".topbar").ElementChildren.Where(e => e.Tag == "button").ToList();
-        Assert.Equal(["New mod", "Open", "Save", "Save As", "New entry", "Import", "Undo", "Redo"], buttons.Select(b => b.TextContent));
-        EditorCommand[] commands = [EditorCommand.NewMod, EditorCommand.Open, EditorCommand.Save, EditorCommand.SaveAs, EditorCommand.NewEntry, EditorCommand.Import, EditorCommand.Undo, EditorCommand.Redo];
+        Assert.Equal(["New mod", "Open", "Save", "Save As", "New entry", "Import", "Undo", "Redo", "Game folder…", "About"], buttons.Select(b => b.TextContent));
+        EditorCommand[] commands = [EditorCommand.NewMod, EditorCommand.Open, EditorCommand.Save, EditorCommand.SaveAs, EditorCommand.NewEntry, EditorCommand.Import,
+            EditorCommand.Undo, EditorCommand.Redo, EditorCommand.GameFolder, EditorCommand.About];
         Assert.Equal(buttons, commands.Select(c => editor.View.Button(c)));
-        // Open (step 8's Browser.Opener) and New mod (step 11's Saving.SavingPart) can always run; with no pack open the
-        // others can't (their parts' handlers say so).
-        EditorCommand[] always = [EditorCommand.NewMod, EditorCommand.Open];
+        // Game folder… and About at the right end (M12 step 6, Q30): after a filler taking the width left.
+        Assert.Equal(1000 - 8, editor.Rect("[data-command=about]").Right, 0.01f);
+        Assert.Equal(editor.Rect("[data-command=about]").X - 4, editor.Rect("[data-command=game-folder]").Right, 0.01f);
+        // Open (step 8's Browser.Opener), New mod (step 11's Saving.SavingPart) and About (step 6 of M12) can always
+        // run; with no pack open the others can't (their parts' handlers say so), and the dev setup has no game folder
+        // to change.
+        EditorCommand[] always = [EditorCommand.NewMod, EditorCommand.Open, EditorCommand.About];
         Assert.All(buttons.Where(b => !always.Any(c => editor.View.Button(c) == b)), b => Assert.True(b.IsDisabled));
         Assert.All(always, c => Assert.False(editor.View.Button(c)!.IsDisabled));
         Assert.Null(editor.View.Button(EditorCommand.Rename));
@@ -59,10 +64,12 @@ public class ShellTests
     public void TheStylesheetsAreTheFontsTheShellsThenEveryOtherOneByName()
     {
         var names = EditorView.Stylesheets.Select(s => s.Name).ToList();
-        Assert.Equal([EditorView.FontsSheet, EditorView.ShellSheet], names.Take(2));
-        Assert.Equal(names.Skip(2).Order(StringComparer.Ordinal), names.Skip(2));
+        // The engine's credits' sheet third (the About dialog's content, M12 step 6), before the parts' (About.css adjusts it).
+        Assert.Equal([EditorView.FontsSheet, EditorView.ShellSheet, EditorView.CreditsSheet], names.Take(3));
+        Assert.Equal(Statventure.UI.Credits.Css, EditorView.Stylesheets[2].Css);
+        Assert.Equal(names.Skip(3).Order(StringComparer.Ordinal), names.Skip(3));
         var resources = typeof(EditorView).Assembly.GetManifestResourceNames().Where(n => n.EndsWith(".css", StringComparison.Ordinal));
-        Assert.Equal(resources.Order(StringComparer.Ordinal), names.Order(StringComparer.Ordinal));
+        Assert.Equal(resources.Order(StringComparer.Ordinal), names.Where(n => n != EditorView.CreditsSheet).Order(StringComparer.Ordinal));
         // Only the fonts sheet has @font-face rules.
         Assert.All(EditorView.Stylesheets, s => Assert.Equal(s.Name == EditorView.FontsSheet, s.Css.Contains("@font-face")));
         using var editor = new EditorHarness();
@@ -70,9 +77,15 @@ public class ShellTests
     }
 
     [Fact]
-    public void TheFontsAreTheGamesLatoFromUiPak()
+    public void TheFontsAreTheEnginesLatoAtUiPaksPaths()
     {
+        // Q17 (M12 step 6): the engine's embedded Lato (EngineFonts.Mount), not the game's ui.pak: the editor draws before
+        // it knows the game. Fonts.css names ui.pak's paths, which the engine's mount gives.
         using var editor = new EditorHarness();
+        var files = editor.Document.Files!;
+        Assert.Equal(["the engine's fonts"], files.Mounts.Select(m => m.Path));
+        Assert.Equal(Statventure.UI.EngineFonts.Regular.ToArray(), files.ReadAllBytes("ui/fonts/lato-regular.ttf"));
+        Assert.Equal(Statventure.UI.EngineFonts.Bold.ToArray(), files.ReadAllBytes("ui/fonts/lato-bold.ttf"));
         Assert.Empty(editor.Document.Fonts.Faces);
         Assert.Equal([("Lato", 400), ("Lato", 700)], editor.Document.Fonts.SheetFaces.Select(f => (f.Family, f.Weight)));
         // Lato Regular and Lato Bold (the tests' copies are ui.pak's files, UiResourcesTests).

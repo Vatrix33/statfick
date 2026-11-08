@@ -222,6 +222,17 @@ def pe_directory(data, index):
     return (pe_offset(section_list, rva) if rva else None), size, section_list
 
 
+def is_il_only(data):
+    """Whether a PE file is an IL-only .NET assembly: a CLI header (the COM descriptor, data directory 14) whose flags
+    have COMIMAGE_FLAGS_ILONLY (1), so no native code. .NET loads such an assembly itself (beside a single-file program:
+    the game's data library, M12-9), never through Windows' loader, so its one import, mscoree.dll (the old CLR's
+    entry, which every managed PE file names), is no need of it (M12 step 6; the manager's decision (a), 2026-11-08)."""
+    at, size, _ = pe_directory(data, 14)
+    if at is None or size < 20:
+        return False
+    return bool(struct.unpack_from("<I", data, at + 16)[0] & 1)
+
+
 def pe_imports(data):
     """The DLLs a PE file imports by name (its import table)."""
     at, _, section_list = pe_directory(data, 1)
@@ -512,7 +523,8 @@ def check_natives(package, problems):
                 glibc, cxx = version_of(version, "GLIBC_"), version_of(version, "GLIBCXX_")
                 if glibc and glibc > GLIBC_MOST or cxx and cxx > GLIBCXX_MOST:
                     problems.append(f"needs: {entry} needs {version}, newer than GLIBC_2.34 and GLIBCXX_3.4.30")
-        elif package.platform == "windows" and is_pe(data):
+        elif package.platform == "windows" and is_pe(data) and not is_il_only(data):
+            # A native DLL's (or a mixed .NET one's) imports; an IL-only assembly's only import isn't a need (is_il_only).
             for name in pe_imports(data):
                 if name.lower() not in lower and name.lower() not in WINDOWS_SYSTEM and not WINDOWS_UCRT.match(name.lower()):
                     problems.append(f"needs: {entry} imports {name}, which is neither in the folder nor Windows'")

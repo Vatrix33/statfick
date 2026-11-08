@@ -15,6 +15,12 @@
     <ProjectReference Include="../../Engine/Statventure/Statventure.csproj" />
     <!-- The editor (M11, P1): its tests are in Editor/. -->
     <ProjectReference Include="../../Tools/Editor/Editor.csproj" />
+    <!-- The game's data library (M12 step 6): built before the tests, which load it as the editor does, from its build in
+         the repo or copies of it in scratch game folders, never as a reference of their own (the engine keeps one record
+         kind per name for the process: the editor's loader is the only way in). -->
+    <ProjectReference Include="../../Samples/Statventure.Game.Data/Statventure.Game.Data.csproj" ReferenceOutputAssembly="false" />
+    <!-- The packer, built before the tests that run it (the game's kinds in its dumps, M12 step 6). -->
+    <ProjectReference Include="../../Tools/Packer/Packer.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>

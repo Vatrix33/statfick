@@ -7,8 +7,10 @@
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
 cd "$STATVENTURE_SOURCE"
-if ! output="$(dotnet build Tools/Editor -c Release -v quiet -nologo 2>&1)"; then
-  echo "$output" >&2
-  exit 1
-fi
+for project in Tools/Editor Samples/Statventure.Game.Data; do
+  if ! output="$(dotnet build "$project" -c Release -v quiet -nologo 2>&1)"; then
+    echo "$output" >&2
+    exit 1
+  fi
+done
 exec dotnet Tools/Editor/bin/Release/net10.0/Statventure.Editor.dll --repo "$STATVENTURE_SOURCE" "$@"

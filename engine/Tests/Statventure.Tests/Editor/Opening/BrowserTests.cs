@@ -109,7 +109,7 @@ public class BrowserTests
         Assert.Equal(["Documents", "Home", "/"], places.Skip(2).Select(p => p.Label));
         using var game = new ScratchGame();
         using var session = game.Session(devSetup: false);
-        using var view = new EditorView(session, editor.UiData);
+        using var view = new EditorView(session);
         Assert.Equal("Game packs (read-only)", view.Part<FileBrowserPart>().Places()[1].Label);
         // Each place a button; a click goes there.
         var picked = editor.Run(() => editor.Browser().PickPack());

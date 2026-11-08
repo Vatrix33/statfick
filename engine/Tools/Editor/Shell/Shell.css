@@ -45,6 +45,8 @@ button.primary:active:not(:disabled) { background: var(--ember); }
 .shell { display: flex; flex-direction: column; height: 100%; }
 .topbar { display: flex; flex: none; align-items: center; gap: 4px; height: 33px; padding: 0 8px; border-bottom: 1px solid var(--line); }
 .topbar-gap { width: 8px; }
+/* Game folder… and About at the right end (M12 step 6, Q30). */
+.topbar-fill { flex: 1; }
 .panes { display: flex; flex: 1; min-height: 0; }
 .pane { flex: 0 1 auto; min-width: 120px; overflow: auto; background: var(--paper-deep); }
 .pane[data-pane=form] { flex: 1 1 0; min-width: 200px; }

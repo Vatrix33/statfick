@@ -271,7 +271,9 @@ the names inside it.
 `RecordSerializer.FindTypes`, `RecordTypes.Of` and `Importers.Find` take any assemblies; the packer, the dump
 and `AddFolder` default to the engine's. No game assembly exists yet (the sandbox is the game's stand-in);
 the port's kinds (items, enemies, spells, shops) will be in the game's code. How they reach the editor is
-G3, kept for the port.
+G3, kept for the port. **Since M12 (M12-9 closes G3; step 6, 2026-11-08):** the port's kinds go into the game's data
+library, `Statventure.Game.Data` (until the port the stand-in `Samples/Statventure.Game.Data`, one test kind), which the
+game links, the editor loads from the game's folder and the packer references ("How it works", "M12 step 6").
 
 ### The UI for a tool (`Engine/Statventure/UI/`)
 
@@ -409,8 +411,11 @@ questions and their outcomes, both below.
 - **Statventure Editor** (`Tools/Editor`; the executable's file name and place: M12, M11-19): an
   `Application` with one window showing the editor's document through a `UiHost`. Three panes (M11-6): the
   entry list left, the form in the middle (a Form and a JSON tab, M11-18), the preview right, with
-  splitters; a top bar (New mod, Open, Save, Save As, Import, Undo, Redo), a status line, dialogs as
-  overlays with the rest `inert`. Text in English (M11-21).
+  splitters; a top bar (New mod, Open, Save, Save As, Import, Undo, Redo; since M12 step 6 also Game folder… and
+  About at its right end), a status line, dialogs as overlays with the rest `inert`. Text in English (M11-21). Since M12
+  step 6 it is a download of its own (M12-1): it finds the game (`--repo`, `--game`, the folder it remembers, or the
+  "Where is Stat Fick?" screen), draws in the engine's Lato before it knows it (Q17), and takes the game's kinds from its
+  data library ("How it works", "M12 step 6").
 - **One pack open at a time (P6):** a mod (from the player's mods folder by default), or in the dev setup
   (P5) one of the game's packs in `engine/Assets/Packs/` (M11-5). The game's own data, its packs, is the
   base the open pack is seen over: its entries are listed and open read-only; editing one inside a mod makes
@@ -422,7 +427,7 @@ questions and their outcomes, both below.
   base with a custom mount on top (step 2, P38) giving the open pack's entries as edited: the engine's own
   loaders and cross-entry checks run on it unchanged (M11-12).
 - **Kinds:** record kinds from the engine's assembly and any assemblies the editor is given (the packer
-  likewise), so every option of G3 stays open for the port; each kind's rows, check, references, bulk fields, help, units and limits come from its
+  likewise; since M12 step 6 the game's data library's, loaded from the game's folder, M12-9); each kind's rows, check, references, bulk fields, help, units and limits come from its
   definition (step 1's marks; M11-2: no editor code per kind). Files (fonts, images, texts) are entries of
   their own kind by their ending.
 
@@ -1339,7 +1344,8 @@ are `<engine>/Assets/Packs`, `GameData.DevSetup` true; P5); `--game <game folder
 `<folder>/packs`, read-only; neither: `packs/` beside the program, read-only; `--player-folder <folder>` the player's
 game folder (`ApplicationOptions.GameFolder`; default this machine's), so a check runs it on a scratch folder. A
 wrong command line or a packs folder without `ui.pak` (no fonts) stops it before a window opens, with the usage
-(exit code 2). The window: "Statventure Editor", 1280 × 800, at least 800 × 500, no sound (step 13 turns
+(exit code 2). (Changed by M12 step 6: no `packs/` beside the program and no `ui.pak` needed; without `--repo` or `--game`
+the folder remembered, or "Where is Stat Fick?"; `--capture`; "How it works", "M12 step 6".) The window: "Statventure Editor", 1280 × 800, at least 800 × 500, no sound (step 13 turns
 `ApplicationOptions.Audio` on in `EditorApplication`, the one line of this step's files it changes); its title and
 page zoom follow the view's (`View.TitleChanged`, `View.ApplyZoom` → `UiHost.PageZoom`).
 
@@ -3047,7 +3053,48 @@ showed by binary form (records holding lists don't compare by equality) and by t
 (a camera node typed wrong to show Save's refusal, a game entry changed to show the mods' order); the dev-setup test's own
 driver; the two faults found kept as end-to-end witnesses (`FoundTests` and the flow's New entry).
 
+### M12 step 6: the editor as a download of its own (2026-11-08)
+
+M12's step, not M11's (its design choices under M12's rule, every one asked: `Docs/Packaging.md`, "Steps", step 6, and
+"How it works", step 6, which has the whole of it; the manager's decisions Q-A, Q-B and Q-C there). What it changed in the
+editor:
+- **The game is found, not assumed** (Q16, M12-1): `--repo <engine folder>` (the dev setup, as before, its kinds now those
+  of the data library built in the repo), `--game <game folder>`, else the folder remembered in `editor/game.json`, else
+  the "Where is Stat Fick?" screen (`Game/GameScreen.cs`: a page of its own with the file browser built in, picking a
+  folder). No `packs/` beside the program any more. A game's folder holds `packs/` and `Statventure.Game.Data.dll`; the
+  library's version (read from its metadata, never loaded when refused) must be the editor's (Q18; dev matches dev). The
+  game chosen is remembered; the program makes the session and view on it (`EditorApplication`: the screen, or the view,
+  shown through one `UiHost` at a time, made anew when the game changes).
+- **The game's kinds** (M12-9, Q19): the data library is loaded into a load context of its own on the editor's engine, once
+  per run (the engine's one record kind per name), and its kinds and importers join the engine's (`GameData.Types`,
+  `Importers`, which `EditorSession` takes). An entry of the stand-in's kind (`stand-in.item`) opens in the generic form;
+  New entry offers it.
+- **Fonts** (Q17): `EditorView` no longer takes a file system: its documents read Lato from the engine's embedded faces at
+  ui.pak's paths (`EditorView.FontFiles()`, `EngineFonts.Mount()`); `Fonts.css` is unchanged; `ui.pak` isn't read.
+- **The top bar** gains, at its right end after a filler, **Game folder…** (`Game/GamePart.cs`: the browser dialog
+  picking a folder, the game changed at once for the run's build of the library after the unsaved work is asked about,
+  else "Start the editor again"; off in the dev setup) and **About** (`About/AboutPart.cs`: the engine's credits,
+  `Credits.Markup` and `Credits.Css`, in a dialog 640 px wide whose content scrolls, Q30). New commands `GameFolder`,
+  `About`. The engine's `Credits.Css` is the third stylesheet (`EditorView.CreditsSheet`).
+- **The file browser** (step 8's) is now `FileBrowserView`, built into any element of a host (`IFileBrowserHost`), with a
+  folder mode (`BrowserRequest.Folder`, `Accept`, `Lead`); `FileBrowserDialog` wraps it over the shell, its markup and API
+  as before.
+- **The command line** (`EditorArguments`, `EditorProgram`): `--capture <file.png> [--frames <n>]` (Q20; 30 frames by
+  default, after the splash), the usage naming `statventure-editor` (`"Statventure Editor.exe"` on Windows), a game the
+  command line names that can't be used refused before any window (exit 2), on Windows also in step 5's message window
+  (Q6). The window's title is "Statventure Editor <version>" from the start (Q3).
+- **Tests and screens:** `Tests/Statventure.Tests/Editor/Game/` (the lookup, the screen, Game folder…, the program's
+  start, the application, the stand-in kind and the packer) and `Editor/About/`; `EditorHarness` takes a game and shows
+  the screen in the view's place; `EditorFixture` an optional game. Five new fixtures (`game-where`, `game-where-gone`,
+  `game-folder`, `about`, `about-end`), and the 19 earlier ones captured again for the top bar (at 1× each gives the count it gave before; at 1.65 the screens whose top bar shows gain the new buttons' 8 corner pixels; the new ones 0.004–0.036 %).
+
 ## Status
+
+**M12 step 6 (2026-11-08): the editor as a download of its own** ("How it works", "M12 step 6"; `Docs/Packaging.md`,
+step 6): it finds the game (`--repo`, `--game`, the folder remembered in `editor/game.json`, or "Where is Stat Fick?"),
+refuses a game of another version naming both, takes the game's kinds from its data library, draws in the engine's Lato,
+and has Game folder… and About in its top bar; `--capture` and `--frames`; 24 screens against Chromium (5 new, the 19
+captured again). Not checked: Windows; the screen, Game folder… and About by hand in a real window.
 
 **M11 done (2026-11-08): all fourteen steps on `main`, and the fixes step 14 found; ticked in `Docs/Engine-Plan.md`,
 "Milestones".** The Statventure Editor makes a mod from nothing through its UI that the game loads as the editor showed it

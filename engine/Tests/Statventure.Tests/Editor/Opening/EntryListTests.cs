@@ -200,7 +200,7 @@ public class EntryListTests
         using var game = new ScratchGame();
         File.WriteAllText(game.Folder["packs/ui.pak"], "damaged");
         using var session = game.Session();
-        var view = new EditorView(session, editor.UiData);
+        var view = new EditorView(session);
         try
         {
             session.Open(game.Pack("player/mods/a.pak", w => w.Add("notes/a.txt", "a"u8)));

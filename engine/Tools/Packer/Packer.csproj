@@ -6,5 +6,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../Engine/Statventure/Statventure.csproj" />
+    <!-- The game's data library (M12-9; the manager's decision, M12 step 6, Q-B): the packer, a repo tool, knows the
+         game's record kinds beside the engine's, so packing, extracting and dumping (git's diff driver) read them. -->
+    <ProjectReference Include="../../Samples/Statventure.Game.Data/Statventure.Game.Data.csproj" />
   </ItemGroup>
 </Project>

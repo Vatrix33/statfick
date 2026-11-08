@@ -30,6 +30,7 @@ file Data/Models/figure.glb
 file Data/Models/jiruan-acting.glb
 file Data/Models/jiruan.glb
 file NOTICE.txt
+file Statventure.Game.Data.dll
 exec libHarfBuzzSharp.so
 exec libKtx.so
 exec libVulkanEx.so

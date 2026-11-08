@@ -26,14 +26,12 @@ public class DevSetupTests
     /// <summary>The editor's view over a session of its own (the harness's is the repo's packs), driven through its document's input.</summary>
     sealed class Driver : IDisposable
     {
-        readonly VirtualFileSystem _ui;
         double _time;
 
-        public Driver(EditorArguments arguments)
+        public Driver(GameData game, string playerFolder)
         {
-            _ui = new VirtualFileSystem([Mount.Pack(arguments.Game!.UiPack)]);
-            Session = new EditorSession(arguments.Game) { PlayerFolder = arguments.PlayerFolder! };
-            View = new EditorView(Session, _ui);
+            Session = new EditorSession(game) { PlayerFolder = playerFolder };
+            View = new EditorView(Session);
             View.Document.SetViewport(1280, 900);
             View.Document.SetZoom(1);
             View.Document.Update(0);
@@ -74,7 +72,6 @@ public class DevSetupTests
         {
             View.Dispose();
             Session.Dispose();
-            _ui.Dispose();
         }
     }
 
@@ -84,22 +81,21 @@ public class DevSetupTests
         using var scratch = new Folders();
         // The scratch copy of the repo's packs, as editor.sh's --repo names the engine folder.
         var packs = scratch["engine/Assets/Packs"];
-        Directory.CreateDirectory(packs);
-        foreach (var pack in Directory.GetFiles(TestPaths.Packs, "*.pak"))
-            File.Copy(pack, Path.Combine(packs, Path.GetFileName(pack)));
+        Game.GameTesting.MakeRepo(scratch["engine"]);
         var audio = Path.Combine(packs, "audio.pak");
         var realAudio = File.ReadAllBytes(Path.Combine(TestPaths.Packs, "audio.pak"));
         var others = Directory.GetFiles(packs).Where(f => f != audio).ToDictionary(f => f, File.ReadAllBytes);
-        var arguments = EditorArguments.Parse(["--repo", scratch["engine"], "--player-folder", scratch.Player], scratch["program"]);
+        var arguments = EditorArguments.Parse(["--repo", scratch["engine"], "--player-folder", scratch.Player]);
         Assert.Null(arguments.Problem);
-        Assert.Equal(new GameData(packs, DevSetup: true), arguments.Game);
+        var game = arguments.FindGame(EditorView.Version).Game!;
+        Assert.Equal((packs, true), (game.PacksFolder, game.DevSetup));
         var before = Saving.SavingTesting.Stored(audio);
         string dumpBefore;
         using (var file = PackFile.Open(audio))
             dumpBefore = PackDump.ToText(file);
         double level;
 
-        using (var editor = new Driver(arguments))
+        using (var editor = new Driver(game, arguments.PlayerFolder!))
         {
             // Open (Ctrl+O): the browser's path field, the game's audio.pak, Enter. In the dev setup it takes changes.
             editor.Key("o", "KeyO", KeyModifiers.Control);

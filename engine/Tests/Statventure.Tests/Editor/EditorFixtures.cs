@@ -13,9 +13,10 @@ namespace Statventure.Tests.Editor;
 /// as attributes, <see cref="EditorFixtures.Html"/>) into <c>Reference/editor-fixtures.json</c>;
 /// <c>Tools/Scripts/make-editor-references.sh</c> screenshots it in Chromium at 1 and 1.65 into
 /// <c>Golden/editor-&lt;name&gt;@1.png</c> and <c>@1.65.png</c>, which the engine's paint of the live editor must
-/// match at the paint fixtures' limits. <see cref="WindowFocused"/> false draws it with the window unfocused.
+/// match at the paint fixtures' limits. <see cref="WindowFocused"/> false draws it with the window unfocused. <see cref="Game"/>
+/// makes the harness's session on that game instead of the repo's dev setup (an installed game's look: Game folder… on).
 /// </summary>
-public sealed record EditorFixture(string Name, int Width, int Height, Action<EditorHarness> Setup, bool WindowFocused = true);
+public sealed record EditorFixture(string Name, int Width, int Height, Action<EditorHarness> Setup, bool WindowFocused = true, Func<Statventure.Editor.Session.GameData>? Game = null);
 
 /// <summary>
 /// A part's editor fixtures, in a file of its own beside its tests (Docs/Editor.md, "How it works", step 4): every
@@ -46,7 +47,9 @@ public static class EditorFixtures
     /// <summary>The live editor in the fixture's state, at <paramref name="scale"/>.</summary>
     public static EditorHarness Build(EditorFixture fixture, float scale)
     {
-        var harness = new EditorHarness(fixture.Width, fixture.Height, scale);
+        var harness = fixture.Game is { } game
+            ? new EditorHarness(game(), fixture.Width, fixture.Height, scale)
+            : new EditorHarness(fixture.Width, fixture.Height, scale);
         fixture.Setup(harness);
         if (!fixture.WindowFocused)
             harness.Input.WindowBlur();

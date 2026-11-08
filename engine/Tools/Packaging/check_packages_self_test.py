@@ -183,6 +183,17 @@ def pe_field(package, delta, value):
     patch(package, package.program_file, None, value, at + delta)
 
 
+def mixed_mode_library(package, context):
+    """The game's data library's IL-only flag cleared (a mixed .NET assembly, native code in it): its imports count."""
+    entry = "Statventure.Game.Data.dll"
+    data = package.read(entry)
+    at, size, _ = c.pe_directory(data, 14)
+    if at is None:
+        raise ValueError(f"{entry} has no CLI header")
+    flags = struct.unpack_from("<I", data, at + 16)[0]
+    patch(package, entry, None, struct.pack("<I", flags & ~1), at + 16)
+
+
 def breaks():
     """(label, applies to (program, platform), break, problems the check must report, run the program)."""
     L, W = "linux", "windows"
@@ -261,6 +272,8 @@ def breaks():
          ["needs: libKtx.so needs GLIBCXX_3.4.32"], False),
         ("a library importing a DLL not there", (None, W), lambda p, x: patch(p, "vma.dll", b"VCRUNTIME140_1.dll", b"VCRUNTIME140_9.dll"),
          ["needs: vma.dll imports VCRUNTIME140_9.dll"], False),
+        ("the data library not IL-only (its imports then needs)", ("stat-fick", W), mixed_mode_library,
+         ["needs: Statventure.Game.Data.dll imports mscoree.dll"], False),
         ("the game drawing nothing", ("stat-fick", L), lambda p, x: script(p, "exit 0"),
          ["run: {program} drew nothing"], True),
         ("the game drawing one colour", ("stat-fick", L),
