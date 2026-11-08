@@ -44,8 +44,8 @@ public sealed partial class UiPainter : IDisposable
     /// <summary>A box's position where it is painted (see <see cref="Placed"/>).</summary>
     Vector2 PlacedAt(LayoutBox box) => box.ViewportPosition + _shift;
 
-    /// <summary>The bindless texture of an image by url (null while it isn't loaded).</summary>
-    public Func<string, int?>? ImageTexture { get; set; }
+    /// <summary>A raster image by url (null while it isn't loaded), drawn as Chromium draws a decoded image (<see cref="CanvasImage"/>).</summary>
+    public Func<string, CanvasImage?>? ImageTexture { get; set; }
 
     public UiPainter(UiDocument document)
     {

@@ -32,9 +32,11 @@ public class PaintReferenceTests(GpuFixture gpu)
 
     /// <summary>A fixture as the engine shows it: laid out, scrolled as its data attributes say.</summary>
     /// <param name="pageZoom">A page zoom on top of the device scale; the fixture keeps its size in CSS px (the references lay it out in an iframe that size).</param>
-    public static UiDocument Build(PaintFixture fixture, float deviceScale = 1, float pageZoom = 1)
+    /// <param name="prepare">Called on the new document before anything is laid out (the image sizes a fixture's images need).</param>
+    public static UiDocument Build(PaintFixture fixture, float deviceScale = 1, float pageZoom = 1, Action<UiDocument>? prepare = null)
     {
         var document = new UiDocument(TestFonts.Library);
+        prepare?.Invoke(document);
         document.SetViewport(fixture.Width * pageZoom, fixture.Height * pageZoom);
         document.SetZoom(deviceScale, pageZoom);
         document.AddStylesheet(LayoutFixtures.BaseCss + fixture.Css, fixture.Name);

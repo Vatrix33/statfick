@@ -194,8 +194,10 @@ public class View3DTests(GpuFixture gpu)
 
     /// <summary>
     /// A surface element shows its view's picture as an image element shows the same picture: laid
-    /// out by CSS, clipped to its rounded content box, in a turned, translucent frame, at device
-    /// scales 1 and 2 (the picture rendered at the content box's device pixels).
+    /// out by CSS, clipped to its rounded content box, in a moved, translucent frame, at device
+    /// scales 1 and 2 (the picture rendered at the content box's device pixels). Unturned since M12
+    /// step 4: an image is sampled as Skia's raster backend samples one (weights in sixteenths), a
+    /// surface by the GPU, so the two agree only where the picture lands on whole pixels.
     /// </summary>
     [Theory]
     [InlineData(1f)]
@@ -204,7 +206,7 @@ public class View3DTests(GpuFixture gpu)
     {
         const string Css = """
             body { margin: 0; background: #e8dcc0; }
-            .frame { position: absolute; left: 24px; top: 18px; padding: 6px; background: #6a4a2a; transform: rotate(-4deg); opacity: 0.85; }
+            .frame { position: absolute; left: 24px; top: 18px; padding: 6px; background: #6a4a2a; transform: translate(7px, -5px); opacity: 0.85; }
             surface, img { display: block; width: 210px; height: 120px; border: 2px solid #2a1a0a; border-radius: 14px; }
             """;
         UiDocument Document(string html)
@@ -220,13 +222,15 @@ public class View3DTests(GpuFixture gpu)
         var (view, model, _) = ShapesView();
         using var _v = view;
         using var _m = model;
-        view.Background = null;
+        // The shapes' own opaque background: an image is premultiplied as it is decoded and filtered premultiplied
+        // (CanvasImage, as Chromium draws a decoded image), the surface's picture filtered as it is, so the two agree
+        // only where the picture is opaque (its transparent background is the test above's).
         int width = (int)(280 * scale), height = (int)(180 * scale);
         var shown = Document("<div class=frame><surface></surface></div>");
         var surface = shown.AllElements().Single(e => e.Tag == "surface");
         var views = new SurfaceViews(shown);
         views.Show(surface, view);
-        RgbaImage Paint(UiDocument document, Func<UiElement, int?>? surfaces, Func<string, int?>? images)
+        RgbaImage Paint(UiDocument document, Func<UiElement, int?>? surfaces, Func<string, Statventure.Canvas.CanvasImage?>? images)
         {
             using var painter = new UiPainter(document) { SurfaceTexture = surfaces, ImageTexture = images };
             using var canvas = new CanvasRenderer(gpu.Device);
@@ -245,14 +249,14 @@ public class View3DTests(GpuFixture gpu)
         Assert.Equal((210 * (int)scale, 120 * (int)scale), (view.Picture!.Width, view.Picture.Height));
         // The same picture as an image.
         var pixels = view.Picture.ReadPixels();
-        using var texture = GpuImage.CreateTexture(gpu.Device, view.Picture.Width, view.Picture.Height, pixels);
+        using var picture = new Statventure.Canvas.CanvasImage(new RgbaImage(view.Picture.Width, view.Picture.Height, pixels));
         var asImage = Document("<div class=frame><img src=view.png></div>");
         asImage.Layout.Context.ImageSize = url => new Vector2(view.Picture.Width, view.Picture.Height);
         asImage.Update(0);
-        var withImage = Paint(asImage, null, url => texture.BindlessIndex);
+        var withImage = Paint(asImage, null, url => picture);
         Assert.Equal(withImage.Pixels, withView.Pixels);
-        // The model shows through the frame: the view isn't empty.
-        Assert.Contains(pixels.Where((_, i) => i % 4 == 3), a => a == 255);
+        // The model shows: the picture isn't its background alone.
+        Assert.True(Enumerable.Range(0, pixels.Length / 4).Select(i => BitConverter.ToInt32(pixels, i * 4)).Distinct().Count() > 1);
     }
 
     [Fact]

@@ -255,7 +255,8 @@ What each program loads, from the engine's `obj/project.assets.json` and the pac
 - **The logo's files:** the BRUTAL source in the build cache has `docs/branding/LOGO_BRUTAL_WHT.png` and
   `LOGO_BRUTAL_BLK.png` (712 × 168, RGBA), which its README shows as the logo; the packages carry only a 32 px
   `brutal-icon-32px.png`. The licence names ahwoo.com/brutal-branding as the logo's source; BRUTAL's
-  `CONTRIBUTING.md` names brutal@ahwoo.com for a waiver.
+  `CONTRIBUTING.md` names brutal@ahwoo.com for a waiver. (Step 4 found the branding page offering 4096 × 896
+  versions since 2026-10-21; the engine embeds the page's white one: "Decided (the logo's file)".)
 - **Third-party texts a download must carry:** each BRUTAL package's `LICENSES/` (FreeType's FTL, GLFW, OpenAL
   Soft's LGPL-2.0 and its four parts: BSD-3-Clause, PFFFT, {fmt}, GSL; stb, VMA, Vulkan, zlib, gli, KTX, glTF),
   HarfBuzzSharp's `LICENSE.txt` and `THIRD-PARTY-NOTICES.txt`, the .NET runtime's licence and third-party notices
@@ -393,6 +394,9 @@ The BRUTAL licence's 2.1–2.3 met in M12 for both programs (the ported game sho
   white logo (`LOGO_BRUTAL_WHT.png`) centred on the dark ground of the crash window's look (Q23), at its own size
   (scaled down only to fit the window), nothing else on it, for 2 seconds at every start of both programs; a key or a
   click skips it after its first second. Tests' applications don't show it (an option the programs leave on).
+  **The file (the user, 2026-11-08, step 4's question):** the branding page's current 4096 × 896 white logo, drawn
+  696 CSS px wide (the size Q29 was decided with: the earlier 712 × 168 file's artwork) and scaled down further
+  only to fit the window, with Chromium's mipmapped downscaling ported first ("Decided (the logo's file)").
 - **The credits (2.1):** one engine view of the credits used by both programs: the program and its version,
   BRUTAL's copyright notice ("BRUTAL game development framework is Copyright (c) 2024 Ahwoo Limited.") and its
   `NOTICE.txt` text verbatim, FreeType's required credit ("Portions of this software are copyright © <year> The
@@ -606,6 +610,41 @@ Raised by Q11's answer and asked with the question tool the same day; both answe
   the sandbox shows the credits as a section at the foot of its page instead of a button. **Answer: (a)**: one engine
   credits view for both, an "About" button in the editor's top bar (its 19 screens captured again) and on the
   sandbox's page.
+
+## Decided (the logo's file, the user, 2026-11-08), from step 4's check
+
+Step 4 checked BRUTAL's `docs/branding/LOGO_BRUTAL_WHT.png` against ahwoo.com/brutal-branding, as the design asked, and
+stopped: the files differ. **The branding page** is a 301 to `github.com/ahwootech/brutal-branding`, a repository of
+three files: `LOGO_BRUTAL_WHT.png`, `LOGO_BRUTAL_BLK.png` and `NOTICE.txt` (the same as every BRUTAL package's), no
+licence or terms of its own. Its logos were replaced on 2026-10-21 (commit `5d38373a24`, pull request #3, "Logos: replace
+with 4096px-wide versions": "too small for the splash screens we're asking people to use them on"): **4096 × 896**,
+cropped to the artwork (2 px margins; the ratio 4.24 : 1 became 4.57 : 1), SHA-256 `59768c2ab60fc835af29b1d686e5a76604e959fb4e84adf2bfb7fd26e7355d0c`
+(white) and `e6ccd85325925a2ca3989e19568be30e64c067b7bff710d43ed6ed277ed293f1` (black). **The 712 × 168 files** of BRUTAL's
+source (and of its README on its `main`, `7a3b72d843`, 2026-10-26) are byte for byte the branding repository's first
+version (`69ef8a855e`, 2026-10-15; white `6e259ecd95b6e0cbc52744b59ffeee3646be9ba4d8b640d9864938c49fdb9556`, black
+`f5edbde828ac4a8046ae2d93933a52fb3a44fda21191458b6040870925a8e0b8`), the same artwork with 8 px margins. Everything
+fetched is kept in `~/.cache/stat-fick-build/reference-src/brutal-branding-2026-11-08/` (the first version in
+`at-69ef8a855e/`).
+
+- **The question (asked with the question tool, 2026-11-08).** (a) Embed the page's current 4096 × 896 white logo
+  byte for byte, draw it at the size Q29 was decided with (the 712 px file's artwork, about 696 × 152 CSS px) and
+  scale it down further only to fit the window, after porting Chromium's mipmapped downscaling of images into the
+  engine (the canvas drew images with plain bilinear filtering, which aliases at a 6× shrink where Chromium uses a
+  mip level). *Recommended:* the licence's named source as it stands, the approved look, sharp at 1.65. (b) Embed the
+  712 × 168 file at its own size (soft when scaled up 1.65×; the record saying it is the page's earlier version).
+  (c) The 4096 file at its own size, scaled down only to fit (filling the window's width). (d) Ask Ahwoo
+  (brutal@ahwoo.com). **Answer: (a).**
+- **The terms of use** are the BRUTAL License v1.0's 2.2 (the page carries none of its own): "The Brutal logo available
+  from ahwoo.com/brutal-branding shall be displayed in all copies of the Product prior to commencement of gameplay or
+  the Software's primary function, unless permission has been granted in writing by Ahwoo Limited or the Product is
+  not capable of displaying graphics. The logo shall be shown unaltered except for scaling, for long enough to be
+  legible, and shall be no less prominent than logos for other parties." The splash shows the file unaltered, scaled
+  only, for 2 s (Q29).
+- **The 712 × 168 files' status:** not used. They stay in BRUTAL's source and its README; the engine embeds only the
+  page's current white logo (`Engine/Statventure/UI/Resources/LOGO_BRUTAL_WHT.png`, its SHA-256 above, checked by
+  `EngineScreensTests`).
+- The prerequisite, Chromium's downscaling, came first as a commit of its own on step 4's branch ("How it works",
+  step 4).
 
 ## Left to the steps
 
@@ -944,6 +983,71 @@ Filled in as the steps are done.
   teardown (an answer time of 1 s, shorter than the teardown); a minimized loop woken; a loop that doesn't answer in time
   (told at once, false); a crash during the teardown, with and without a crash before; after the run (not the
   application's, and the next application's: an unnamed thread); a crash file that can't be written.
+
+### Step 4, first: a shrunk raster image as Chromium 152 draws one (2026-11-08)
+
+Step 4's prerequisite, a commit of its own (the user's decision (a), "Decided (the logo's file)"; the sources in
+`reference-src/chromium-152-source/mipmap/` and `reference-src/skia/mipmap/`). The references are rastered on the CPU
+(`--disable-gpu-compositing`), so the path is Blink → cc's software decode cache → Skia's raster backend:
+- **Blink** asks every decoded image (`BitmapImage::IsLazyDecoded`) for medium filter quality
+  (`GraphicsContext::ComputeFilterQuality`, `GetDefaultInterpolationQuality`: medium off Android), which only
+  `image-rendering: pixelated` would lower to none (the engine ignores `image-rendering`). `ImagePainter::PaintIntoRect`
+  draws an `<img>` into its fitted rect pixel-snapped, and where the content box doesn't hold that rect (object-fit:
+  cover, none) cuts the source and the destination to the snapped content box instead of clipping
+  (`UiPainter.Content`, `DrawFitted`).
+- **cc** (`SoftwareImageDecodeCache`, `CacheKey::FromDrawImage`; `Canvas/ImageDecodeScale.cs`): the draw's scale
+  from the matrix image → device (its diagonal, or `SkMatrix::decomposeScale`'s column lengths); the target size, the
+  source part (rounded out, inside the image; a pattern's is the whole image) times that scale, rounded; the mip
+  level, the deepest whose next level (each half the last, **rounded up**, `MipMapUtil`) isn't smaller than the target
+  in either direction. Level 0 (anything shrunk by less than half, every upscale): the image itself; deeper: a copy of
+  the source part at that level's size; an empty target: nothing drawn. The copy is sampled bilinearly (low quality).
+- **Skia** makes the copy with `SkPixmap::scalePixels` at linear filtering and the nearest mipmap
+  (`Canvas/SkiaMipmap.cs`): the decoded pixels premultiplied (the PNG codec's `RGBA_to_rgbA`, `(c·a + 127) / 255`);
+  mip levels by the HQ downsampler Chromium builds (each half the last, **rounded down**: a 2 × 2 box, widened to
+  1 2 1 along an odd side, weights summed in integers and shifted, truncated); the level `SkMipmapAccessor` picks
+  from the scale's geometric mean (`SK_SUPPORT_LEGACY_ANISOTROPIC_MIPMAP_SCALE`), log2 less a half, rounded; then
+  sampled bilinearly at each target pixel's centre. Where cc's size (rounded up) and Skia's levels (rounded down)
+  disagree (odd sizes), the copy is a level resampled, or the image itself (a 201-wide image's first copy, 101 wide,
+  is Skia's base resampled).
+- **The draw** (`Canvas.DrawImage(CanvasImage, …)`, `canvas.frag`'s `skiaBilerp`): Chromium's raster draws an image
+  through Skia's legacy shader context (`SK_ENABLE_LEGACY_SHADERCONTEXT`; `SkBitmapProcState`): the pixel's centre
+  mapped to the texture, less half a texel, its fraction's top four bits the weight (sixteenths), the four texels
+  summed in integers and divided by 256, truncated; clamped, or wrapped for a pattern. The shader does the same with
+  `texelFetch` from a map of canvas pixels to texels the canvas computes in double precision. Before it, the GPU's
+  bilinear filtering left 239 pixels beyond 12 levels in one image at 1× and 0.3 % of image-shrink at 1.65.
+- **`Canvas/CanvasImage.cs`:** a decoded image kept as Chromium keeps it: premultiplied, its original texture and its
+  scaled copies (by source part and size) made on first use, on the device of the first canvas that draws it. The
+  UI's images are canvas images now (`UiPainter.ImageTexture` is `Func<string, CanvasImage?>`; `UiHost` makes them
+  from its decoded PNGs); they are drawn premultiplied (straight alpha filtered was another difference at alpha
+  edges: a straight white beside transparent white).
+- **Found on the way:** on RADV a `texelFetch` through a `sampler2D` built from the bindless arrays
+  (`sampler2D(Textures[nonuniformEXT(i)], Samplers[...])`) lost the index's non-uniformity: lanes of a wave drawing
+  different images read one image's texels (clusters of 4 to 8 wrong pixels; lavapipe was right). Samplerless fetches
+  (`GL_EXT_samplerless_texture_functions`, `texelFetch(Textures[nonuniformEXT(i)], …)`) are right on both. The
+  painter's existing `sampleTexture` (`texture()` through the same construction) is untouched.
+- **Tests:** `Canvas/ImageScalingTests.cs` (each rule against numbers worked from the sources: levels and sizes,
+  the scale's decomposition, the copy chosen, premultiplication, the downsampler's filters, Skia's level, scaling
+  pixels; on the GPU the first level at half size through the canvas's scale and transform, the image itself past
+  half, nothing for an empty target, sixteenths and truncation clamped and wrapped, a part cut before it is shrunk,
+  a pattern shrinking the whole image, premultiplied filtering) and `Ui/ImageScalingPaintReferenceTests.cs`, two
+  Chromium fixtures (`image-fixtures.json`; images in `Tests/Statventure.Tests/Data/Images/`, made by `make-images.py`
+  there: one-pixel checks, stripes, rings, yellow beside transparent white, translucent lines): `image-shrink`
+  (shrunk 1.5, 2, 2.7, 3.2, 4 and 6 times, by a transform, rounded, object-fit contain and cover; an odd-sized image
+  2, 3.3 and 4.3 times) and `image-shrink-backgrounds` (a single tile shrunk 5 and 3 times, one rounded, a pattern
+  8 times). Each draw has an image of its own (a data url with its own parameter): cc scales a second draw of one
+  image from a copy it already holds (`FindCachedCandidate`), in whatever order its tiles raster. Against Chromium,
+  pixels beyond 12 levels: image-shrink 15 of 251,600 at 1× (0.006 %) and 318 of 684,981 at 1.65 (0.046 %),
+  image-shrink-backgrounds 33 of 54,000 (0.06 %) and 19 of 147,015 (0.013 %); the rest a level or two (rounded
+  corners and the cover cut's edge, where Skia clamps to the source part, keep up to 40).
+- **What moved:** no existing reference draws a raster image (the game screens' images are the six race SVGs), so
+  every existing render is the same pixel for pixel. One test changed: `View3DTests`'
+  surface-against-image test now uses the shapes' opaque background and an unturned frame (an image is filtered
+  premultiplied in sixteenths, a surface's picture by the GPU: they agree where the picture lands on whole pixels).
+- **Not ported:** `image-rendering` (no nearest-neighbour draw); Skia's strict source-rect constraint for a cut
+  `<img>` (the engine samples one texel past the cut's edge); a second draw of one image at another size taking
+  its copy from a copy cc already holds (the engine always scales from the original).
+
+- **Mutations and full runs:** with step 4's (below).
 
 ## Status
 

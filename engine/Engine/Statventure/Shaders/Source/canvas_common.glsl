@@ -11,6 +11,8 @@ const uint KIND_COMPOSITE_ALPHA = 6u; // a layer's alpha as a mask for the colou
 
 const uint FLAG_DASHED = 1u;
 const uint FLAG_LCD32 = 4u;          // LCD mask with Skia's mask gamma built in, coverage 0-32 a channel
+const uint FLAG_SKIA_IMAGE = 8u;     // a premultiplied image sampled as Skia's legacy raster shader does (skiaBilerp):
+                                     // params and border.xy map canvas pixels to texels
 const uint KIND_LCD = 7u;            // LCD glyph mask (rgb coverage), drawn by canvas_lcd.frag
 const uint NO_INDEX = 0xffffffffu;
 

@@ -38,7 +38,8 @@ public sealed class UiHost : IDisposable
     sealed class LoadedImage
     {
         public required RgbaImage Pixels;
-        public GpuImage? Texture;
+        // Drawn as Chromium draws a decoded image (premultiplied, its scaled-down copies made when needed).
+        public Canvas.CanvasImage? Drawn;
     }
 
     public UiDocument Document { get; }
@@ -102,7 +103,7 @@ public sealed class UiHost : IDisposable
         Views = new SurfaceViews(document);
         _painter = new UiPainter(document)
         {
-            ImageTexture = url => Texture(url)?.BindlessIndex,
+            ImageTexture = Drawn,
             TextResource = _resources.Text,
             SurfaceTexture = Views.Texture,
         };
@@ -137,11 +138,11 @@ public sealed class UiHost : IDisposable
         return image;
     }
 
-    GpuImage? Texture(string url)
+    Canvas.CanvasImage? Drawn(string url)
     {
         if (Image(url) is not { } image)
             return null;
-        return image.Texture ??= GpuImage.CreateTexture(_gpu, image.Pixels.Width, image.Pixels.Height, image.Pixels.Pixels);
+        return image.Drawn ??= new Canvas.CanvasImage(image.Pixels);
     }
 
     /// <summary>The document's viewport is the window's size in window units (DIPs), laid out at the window's content scale.</summary>
@@ -262,7 +263,7 @@ public sealed class UiHost : IDisposable
         _painter.Dispose();
         _canvas.Dispose();
         foreach (var image in _images.Values)
-            image?.Texture?.Dispose();
+            image?.Drawn?.Dispose();
         _images.Clear();
     }
 }

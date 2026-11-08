@@ -49,6 +49,8 @@ public sealed partial class Canvas : IDisposable
     internal const uint NoIndex = uint.MaxValue;
     internal const uint KindBox = 0, KindShadow = 1, KindInsetShadow = 2, KindImage = 3, KindCoverage = 4, KindComposite = 5, KindCompositeAlpha = 6;
     const uint FlagDashed = 1;
+    /// <summary>A premultiplied image sampled as Skia's legacy raster shader samples one (canvas.frag, skiaBilerp).</summary>
+    const uint FlagSkiaImage = 8;
 
     readonly GpuDevice _device;
     readonly List<CanvasPrimitive> _primitives = [];
@@ -453,6 +455,92 @@ public sealed partial class Canvas : IDisposable
 
     public void DrawImage(GpuImage image, RectF rect, RectF? uv = null, CornerRadii radii = default, Color? tint = null, SamplerKind sampler = SamplerKind.LinearClamp, bool premultiplied = false) =>
         DrawImage(image.BindlessIndex, rect, uv, radii, tint, sampler, premultiplied);
+
+    /// <summary>
+    /// Draws (part of) a raster image as Chromium 152 draws a decoded image (<see cref="ImageDecodeScale"/>): the part
+    /// <paramref name="uv"/> picks (in the image's 0..1; beyond it with a repeat sampler, a pattern of the whole image)
+    /// lands on <paramref name="rect"/>; where that shrinks it to half or less on this canvas's pixels, a copy scaled
+    /// down to the mip level above that size is drawn instead; sampled bilinearly, premultiplied.
+    /// </summary>
+    public void DrawImage(CanvasImage image, RectF rect, RectF? uv = null, CornerRadii radii = default, SamplerKind sampler = SamplerKind.LinearClamp)
+    {
+        if (rect.IsEmpty || image.Width <= 0 || image.Height <= 0)
+            return;
+        var u = uv ?? new RectF(0, 0, 1, 1);
+        // The part of the image used, in its pixels.
+        var part = new RectF(u.X * image.Width, u.Y * image.Height, u.Width * image.Width, u.Height * image.Height);
+        if (part.Width <= 0 || part.Height <= 0)
+            return;
+        // A pattern (an image shader) decodes the whole image; a draw the part used, rounded out and inside the image
+        // (DrawImageRectOp::RasterWithFlags, GetSrcRect).
+        var pattern = sampler is SamplerKind.LinearRepeat or SamplerKind.NearestRepeat or SamplerKind.AnisotropicRepeat or SamplerKind.LinearMirror;
+        var source = pattern ? new ImageDecodeScale.RectI(0, 0, image.Width, image.Height) : RoundOutInside(part, image.Width, image.Height);
+        if (source.IsEmpty)
+            return;
+        // Image pixels to this canvas's pixels.
+        var toDevice = Matrix3x2.CreateScale(rect.Width / part.Width, rect.Height / part.Height) * _transform * Matrix3x2.CreateScale(Scale);
+        var decode = ImageDecodeScale.For(image.Width, image.Height, source, toDevice);
+        switch (decode.Kind)
+        {
+            case ImageDecodeScale.DecodeKind.Nothing:
+                return;
+            case ImageDecodeScale.DecodeKind.Original:
+                DrawSkiaImage(image.Original(_device), rect, u, radii, sampler);
+                return;
+            default:
+                var copy = image.Scaled(_device, decode.Source, decode.TargetWidth, decode.TargetHeight);
+                // The copy holds the source part only (a pattern's is the whole image, its uv unchanged).
+                var copyUv = pattern ? u : new RectF((part.X - source.X) / source.Width, (part.Y - source.Y) / source.Height, part.Width / source.Width, part.Height / source.Height);
+                DrawSkiaImage(copy, rect, copyUv, radii, sampler);
+                return;
+        }
+    }
+
+    /// <summary>
+    /// A premultiplied texture drawn as Skia's raster backend draws an image with linear filtering through the legacy
+    /// shader context Chromium builds (<c>SK_ENABLE_LEGACY_SHADERCONTEXT</c>; <c>SkImageShader::onMakeContext</c>,
+    /// SkBitmapProcState): each pixel's centre mapped back to the texture, half a texel taken off, the four texels
+    /// around it weighed in sixteenths (the fraction's top four bits) and summed in integers (canvas.frag,
+    /// skiaBilerp). The shader gets the map from this canvas's pixels to the texture's texels.
+    /// </summary>
+    void DrawSkiaImage(GpuImage texture, RectF rect, RectF uv, CornerRadii radii, SamplerKind sampler)
+    {
+        var primitive = LocalPrimitive(rect, KindComposite);
+        SetRadii(ref primitive, radii.Fit(rect.Size));
+        primitive.Texture = (uint)texture.BindlessIndex;
+        primitive.Sampler = (uint)sampler;
+        primitive.Uv = new Vector4(uv.Left, uv.Top, uv.Right, uv.Bottom);
+        primitive.Color = Vector4.One;
+        if (sampler is SamplerKind.LinearClamp or SamplerKind.LinearRepeat)
+        {
+            // Local units to pixels (the primitive's transform), inverted in double precision; local units to texels.
+            double a = primitive.X0.X, b = primitive.X0.Y, c = primitive.X1.X, d = primitive.X1.Y, e = primitive.X2.X, f = primitive.X2.Y;
+            var det = a * d - b * c;
+            if (det != 0 && rect.Width > 0 && rect.Height > 0)
+            {
+                // pixel -> local: local.x = (d (px - e) - c (py - f)) / det, local.y = (a (py - f) - b (px - e)) / det.
+                double ix = d / det, iy = -c / det, jx = -b / det, jy = a / det;
+                double kx = -(ix * e + iy * f), ky = -(jx * e + jy * f);
+                // local -> texel: texel = (uv0 + (uv1 - uv0) · local / size) · texture size.
+                double sx = (double)uv.Width * texture.Width / rect.Width, sy = (double)uv.Height * texture.Height / rect.Height;
+                double ox = (double)uv.Left * texture.Width, oy = (double)uv.Top * texture.Height;
+                primitive.Params = new Vector4((float)(sx * ix), (float)(sx * iy), (float)(sy * jx), (float)(sy * jy));
+                primitive.Border = new Vector4((float)(sx * kx + ox), (float)(sy * ky + oy), 0, 0);
+                primitive.Flags |= FlagSkiaImage;
+            }
+        }
+        Add(primitive);
+    }
+
+    /// <summary>SkRect::roundOut, then kept inside the image (cc's GetSrcRect).</summary>
+    static ImageDecodeScale.RectI RoundOutInside(RectF part, int width, int height)
+    {
+        var left = Math.Max(0, (int)MathF.Floor(part.Left));
+        var top = Math.Max(0, (int)MathF.Floor(part.Top));
+        var right = Math.Min(width, (int)MathF.Ceiling(part.Right));
+        var bottom = Math.Min(height, (int)MathF.Ceiling(part.Bottom));
+        return new ImageDecodeScale.RectI(left, top, right - left, bottom - top);
+    }
 
     /// <summary>Paints a coverage mask (the red channel of a texture: glyphs, paths) with a brush.</summary>
     public void DrawCoverage(int textureIndex, RectF rect, RectF uv, Brush brush, SamplerKind sampler = SamplerKind.LinearClamp)

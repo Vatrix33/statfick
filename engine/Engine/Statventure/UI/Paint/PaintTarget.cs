@@ -658,6 +658,14 @@ internal sealed class PaintTarget
             _canvas!.DrawImage(image, rect, uv, radii, tint, sampler);
     }
 
+    /// <summary>A raster image as Chromium draws a decoded one (<see cref="CanvasRenderer.DrawImage(CanvasImage, RectF, RectF?, CornerRadii, SamplerKind)"/>).</summary>
+    public void DrawImage(CanvasImage image, RectF rect, RectF? uv = null, CornerRadii radii = default, SamplerKind sampler = SamplerKind.LinearClamp)
+    {
+        Record(rect);
+        if (Draws)
+            _canvas!.DrawImage(image, rect, uv, radii, sampler);
+    }
+
     public void FillPath(CanvasPath path, Brush brush, FillRule rule = FillRule.NonZero)
     {
         Record(path.Bounds);

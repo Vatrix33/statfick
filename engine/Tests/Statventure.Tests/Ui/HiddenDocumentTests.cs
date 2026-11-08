@@ -375,8 +375,9 @@ public class HiddenDocumentTests
             document.SetViewport(200, 100);
             document.Layout.Context.ImageSize = _ => new System.Numerics.Vector2(10, 10);
             Markup.SetInnerHtml(document.Body, html);
-            // Recorded only (never rendered), so any texture index will do.
-            using var painter = new UiPainter(document) { ImageTexture = _ => 0, SurfaceTexture = _ => 0 };
+            // Recorded only (never rendered), so any image and texture index will do.
+            using var image = new Statventure.Canvas.CanvasImage(new Statventure.Imaging.RgbaImage(10, 10));
+            using var painter = new UiPainter(document) { ImageTexture = _ => image, SurfaceTexture = _ => 0 };
             using var canvas = new CanvasRenderer(gpu.Device);
             document.Update(0.5);
             canvas.Begin(200, 100);

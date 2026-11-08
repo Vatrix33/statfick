@@ -58,18 +58,18 @@ public class GamePaintTests(GpuFixture gpu)
         var document = GameLayoutTests.Build(state, deviceScale: deviceScale);
         var width = (int)MathF.Round(state.GetProperty("width").GetSingle() * deviceScale);
         var height = (int)MathF.Round(state.GetProperty("height").GetSingle() * deviceScale);
-        var textures = new Dictionary<string, GpuImage?>();
+        var textures = new Dictionary<string, Statventure.Canvas.CanvasImage?>();
         var sizes = state.GetProperty("images").EnumerateObject().ToDictionary(p => p.Name, p => new Vector2(p.Value[0].GetSingle(), p.Value[1].GetSingle()));
-        GpuImage? Texture(string url)
+        Statventure.Canvas.CanvasImage? Texture(string url)
         {
             if (textures.TryGetValue(url, out var cached))
                 return cached;
-            GpuImage? texture = null;
+            Statventure.Canvas.CanvasImage? texture = null;
             var file = Path.Combine(GameFolder, url);
             if (!url.StartsWith("data:") && !url.EndsWith(".svg") && File.Exists(file))
             {
                 var pixels = ImageFile.Load(file);
-                texture = GpuImage.CreateTexture(device, pixels.Width, pixels.Height, pixels.Pixels);
+                texture = new Statventure.Canvas.CanvasImage(pixels);
                 sizes.TryAdd(url, new Vector2(pixels.Width, pixels.Height));
             }
             textures[url] = texture;
@@ -78,7 +78,7 @@ public class GamePaintTests(GpuFixture gpu)
         document.Layout.Context.ImageSize = url => sizes.TryGetValue(url, out var size) ? size : Texture(url) is not null ? sizes[url] : null;
         using var painter = new UiPainter(document)
         {
-            ImageTexture = url => Texture(url)?.BindlessIndex,
+            ImageTexture = Texture,
             TextResource = url => File.Exists(Path.Combine(GameFolder, url)) ? File.ReadAllText(Path.Combine(GameFolder, url)) : null,
         };
         using var canvas = new CanvasRenderer(device);

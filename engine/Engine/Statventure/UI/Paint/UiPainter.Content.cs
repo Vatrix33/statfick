@@ -504,7 +504,7 @@ public sealed partial class UiPainter
                 else if (ImageTexture?.Invoke(src) is { } texture && _document.Layout.Context.ImageSize?.Invoke(src) is { } natural)
                 {
                     _contentful = true;
-                    DrawFitted(texture, natural, content, box);
+                    DrawFitted(texture, natural, new RectF(placed.X + box.ContentLeft, placed.Y + box.ContentTop, box.ContentWidth, box.ContentHeight), box);
                 }
                 break;
             case "canvas":
@@ -530,8 +530,12 @@ public sealed partial class UiPainter
         }
     }
 
-    /// <summary>An image in its content box by object-fit (centred, as object-position's default).</summary>
-    void DrawFitted(int texture, Vector2 natural, RectF content, LayoutBox box)
+    /// <summary>
+    /// An image in its content box (<paramref name="content"/>, unsnapped) by object-fit (centred, as object-position's
+    /// default), as Blink's ImagePainter::PaintIntoRect draws it: the fitted rect pixel-snapped; where the content box
+    /// doesn't hold the fitted rect, the source and the destination cut to the snapped content box (no clip).
+    /// </summary>
+    void DrawFitted(CanvasImage texture, Vector2 natural, RectF content, LayoutBox box)
     {
         if (natural.X <= 0 || natural.Y <= 0 || content.Width <= 0 || content.Height <= 0)
             return;
@@ -544,9 +548,19 @@ public sealed partial class UiPainter
             _ => content.Size,
         };
         var placed = new RectF(content.X + (content.Width - size.X) / 2, content.Y + (content.Height - size.Y) / 2, size.X, size.Y);
-        _canvas.PushClip(content);
-        _canvas.DrawImage(texture, placed);
-        _canvas.PopClip();
+        var dest = Snap(placed);
+        if (dest.Width <= 0 || dest.Height <= 0)
+            return;
+        var uv = new RectF(0, 0, 1, 1);
+        if (!(content.Left <= placed.Left && content.Top <= placed.Top && content.Right >= placed.Right && content.Bottom >= placed.Bottom))
+        {
+            var cut = Snap(content).Intersect(dest);
+            if (cut.Width <= 0 || cut.Height <= 0)
+                return;
+            uv = new RectF((cut.X - dest.X) / dest.Width, (cut.Y - dest.Y) / dest.Height, cut.Width / dest.Width, cut.Height / dest.Height);
+            dest = cut;
+        }
+        _canvas.DrawImage(texture, dest, uv);
     }
 
     void PaintFittedSvg(UiElement svg, Vector2 natural, RectF content, LayoutBox box)

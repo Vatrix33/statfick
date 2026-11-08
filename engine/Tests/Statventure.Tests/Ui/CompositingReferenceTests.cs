@@ -98,10 +98,11 @@ public class CompositingReferenceTests
         var state = Captures[scale].Value.GetProperty("states").EnumerateArray().Single(s => s.GetProperty("name").GetString() == name);
         var document = GameLayoutTests.Build(state, deviceScale: scale);
         var images = state.GetProperty("images").EnumerateObject().Select(p => p.Name).ToHashSet();
+        using var stand = new Statventure.Canvas.CanvasImage(new Statventure.Imaging.RgbaImage(1, 1));
         using var painter = new UiPainter(document)
         {
             // Drawn images count as drawings (their pixels don't matter here).
-            ImageTexture = url => images.Contains(url) ? 0 : null,
+            ImageTexture = url => images.Contains(url) ? stand : null,
             TextResource = url => File.Exists(Path.Combine(GameFolder, url)) ? File.ReadAllText(Path.Combine(GameFolder, url)) : null,
             // The game draws its canvases (the map's terrain) before the captures.
             SurfaceTexture = element => element.Tag == "canvas" ? 0 : null,

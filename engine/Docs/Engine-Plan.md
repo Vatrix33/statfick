@@ -1070,6 +1070,14 @@ Q30, which Q11's answer raised.
   BRUTAL's copyright line and `NOTICE.txt` verbatim, every component with its licence and copyright line (FreeType's
   credit line, OpenAL Soft under the LGPL with where its source is, the OFL fonts, the rest) and a pointer to
   `licenses/` (not F1 instead of buttons; not the sandbox's credits as a section of its page).
+- **The logo's file (the user, 2026-11-08, the question tool, asked by M12 step 4 when its check found the files
+  differ; `Docs/Packaging.md`, "Decided (the logo's file)"):** ahwoo.com/brutal-branding (a 301 to
+  github.com/ahwootech/brutal-branding) has offered 4096 × 896 logos since 2026-10-21 (commit `5d38373a24`), while
+  BRUTAL's source and README keep the page's first 712 × 168 version (`69ef8a855e`). **(a), the recommendation:** the
+  page's current white logo embedded byte for byte, drawn at the size Q29 was decided with (the earlier file's
+  artwork, 696 × 152 CSS px) and scaled down further only to fit the window, Chromium's mipmapped downscaling of images
+  ported into the engine first (step 4's prerequisite). (Not the 712 × 168 file at its own size, soft at 1.65; not the
+  4096 file at its own size, filling the window; not asking Ahwoo.)
 
 **Decisions for the window's visibility (2026-11-03, the small task "send `visibilitychange` and `pagehide`"; asked after
 probing Chromium 152 under Xvfb with and without a window manager; every answer the recommended option):**

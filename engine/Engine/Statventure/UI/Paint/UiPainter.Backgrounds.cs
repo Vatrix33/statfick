@@ -47,7 +47,7 @@ public sealed partial class UiPainter
     /// A layer's image: a gradient, an SVG image or a raster texture, with its natural size and aspect
     /// ratio (device pixels) and the box's zoom (an SVG's user unit, as SVGImageForContainer's).
     /// </summary>
-    sealed record LayerImage(ImageValue Value, UiElement? Svg, int? Texture, Vector2? Natural, Vector2? Ratio, float Zoom)
+    sealed record LayerImage(ImageValue Value, UiElement? Svg, CanvasImage? Texture, Vector2? Natural, Vector2? Ratio, float Zoom)
     {
         /// <summary>Image::HasIntrinsicSize: raster images and SVGs with a width and height (not gradients).</summary>
         public bool Intrinsic => Natural is not null;
@@ -627,7 +627,7 @@ public sealed partial class UiPainter
             }
         }
         else
-            _canvas.DrawImage(image.Texture!.Value, ToCanvasUnits(dest, k), uv, radii);
+            _canvas.DrawImage(image.Texture!, ToCanvasUnits(dest, k), uv, radii);
     }
 
     /// <summary>

@@ -1,5 +1,46 @@
 #version 460
 #include "canvas_fragment.glsl"
+#extension GL_EXT_samplerless_texture_functions : require
+
+// Skia's raster sampling of an image with linear filtering through its legacy shader context (Chromium builds it:
+// SK_ENABLE_LEGACY_SHADERCONTEXT): the pixel's centre mapped to the texture (SkBitmapProcStateAutoMapper), less half a
+// texel (the filter's bias), its integer part the first texel and the top four bits of its fraction the weight of
+// the second (SkBitmapProcState_matrixProcs.cpp, pack: clamped to the texture, or wrapped for a pattern); the four
+// texels weighed in sixteenths along x, then along y, summed in integers and divided by 256, truncated
+// (S32_alpha_D32_filter_DX, SkBitmapProcState_opts.h).
+// (Samplerless: a texel fetch through a sampler2D built from the bindless arrays lost its non-uniform index on RADV, the
+// lanes of a wave drawing different images reading one image's texels.)
+ivec4 texel8(uint textureIndex, ivec2 at)
+{
+    return ivec4(round(texelFetch(Textures[nonuniformEXT(textureIndex)], at, 0) * 255.0));
+}
+
+vec4 skiaBilerp(Primitive p, vec2 pixel)
+{
+    vec2 texel = vec2(dot(p.params.xy, pixel) + p.border.x, dot(p.params.zw, pixel) + p.border.y);
+    ivec2 size = textureSize(Textures[nonuniformEXT(p.textureIndex)], 0);
+    vec2 v = texel - 0.5;
+    vec2 low = floor(v);
+    ivec2 w = ivec2(floor((v - low) * 16.0));
+    ivec2 i0 = ivec2(low), i1 = i0 + 1;
+    if (p.samplerIndex == SAMPLER_LINEAR_REPEAT)
+    {
+        i0 = ((i0 % size) + size) % size;
+        i1 = ((i1 % size) + size) % size;
+    }
+    else
+    {
+        i0 = clamp(i0, ivec2(0), size - 1);
+        i1 = clamp(i1, ivec2(0), size - 1);
+    }
+    ivec4 a0 = texel8(p.textureIndex, ivec2(i0.x, i0.y));
+    ivec4 a1 = texel8(p.textureIndex, ivec2(i1.x, i0.y));
+    ivec4 b0 = texel8(p.textureIndex, ivec2(i0.x, i1.y));
+    ivec4 b1 = texel8(p.textureIndex, ivec2(i1.x, i1.y));
+    ivec4 top = a0 * (16 - w.x) + a1 * w.x;
+    ivec4 bottom = b0 * (16 - w.x) + b1 * w.x;
+    return vec4((top * 16 + (bottom - top) * w.y) >> 8) / 255.0;
+}
 
 layout(location = 0) in vec2 vLocal;
 layout(location = 1) flat in uint vIndex;
@@ -94,7 +135,9 @@ void main()
         float shape = boxCoverage(local, p.size, p.radiiX, p.radiiY);
         vec2 t = clamp(local / max(p.size, vec2(1e-4)), 0.0, 1.0);
         vec2 uv = mix(p.uv.xy, p.uv.zw, t);
-        vec4 texel = sampleTexture(p.textureIndex, p.samplerIndex, uv);
+        vec4 texel = (p.flags & FLAG_SKIA_IMAGE) != 0u
+            ? skiaBilerp(p, gl_FragCoord.xy + pc.targetOrigin)
+            : sampleTexture(p.textureIndex, p.samplerIndex, uv);
         if (p.kind == KIND_IMAGE)
             color = vec4(texel.rgb * texel.a, texel.a) * p.color;
         else if (p.kind == KIND_COVERAGE)
