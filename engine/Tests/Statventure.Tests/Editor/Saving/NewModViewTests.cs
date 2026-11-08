@@ -55,7 +55,7 @@ public class NewModViewTests
         Assert.Equal("Made halls-2.pak in the mods folder.", editor.View.Status);
         Assert.Same(editor.Session.At(ModInfo.Path), editor.Session.Selected);
         Assert.Same(editor.ModInfoForm(), editor.View.Part<Statventure.Editor.Form.FormPart>().OwnForm);
-        Assert.Equal("Statventure Editor — halls-2.pak", editor.View.Title);
+        Assert.Equal("Statventure Editor dev — halls-2.pak", editor.View.Title);
         Assert.Null(editor.Saving().NewModShown);
     }
 

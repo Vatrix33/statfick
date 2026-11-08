@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using HarfBuzzSharp;
 using Statventure.Packs;
 using Statventure.Records;
 
@@ -38,16 +39,8 @@ public static class ImportNames
     public static string Fit(string name)
     {
         var text = new StringBuilder(name.Length);
-        foreach (var c in name.Normalize(NormalizationForm.FormD))
-        {
-            if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark)
-                continue;
-            var small = char.ToLowerInvariant(c);
-            var kept = small is >= 'a' and <= 'z' or >= '0' and <= '9' or '_' or '.' or '-' ? small : '-';
-            if (kept == '-' && text.Length > 0 && text[^1] == '-')
-                continue;
-            text.Append(kept);
-        }
+        foreach (var rune in name.EnumerateRunes())
+            Add(text, rune.Value);
         var fitted = text.ToString().Trim('-', '.');
         if (fitted.Length > MaxLength)
             fitted = fitted[..MaxLength].TrimEnd('-', '.');
@@ -60,6 +53,32 @@ public static class ImportNames
             fitted = dot < 0 ? fitted + "-1" : fitted[..dot] + "-1" + fitted[dot..];
         }
         return fitted;
+    }
+
+    /// <summary>
+    /// <paramref name="codePoint"/> added to a fitted name: taken apart by its canonical decompositions first, its
+    /// non-spacing marks (the accents) left out, as .NET's <c>Normalize(NormalizationForm.FormD)</c> did with ICU. The
+    /// programs and the tests run in .NET's invariant globalization (M12, Q8), where that normalization leaves the text as
+    /// it is, so the decompositions are HarfBuzz's Unicode data (shipped with the engine): the same results as ICU's FormD
+    /// (M12 step 1: Ü, ï, ô, Ä, ǖ, Å to their letters; ß, æ, ﬁ, Ǆ kept, having none).
+    /// </summary>
+    static void Add(StringBuilder text, int codePoint)
+    {
+        if (UnicodeFunctions.Default.TryDecompose(codePoint, out var first, out var second))
+        {
+            Add(text, first);
+            if (second != 0)
+                Add(text, second);
+            return;
+        }
+        var rune = new Rune(codePoint);
+        if (Rune.GetUnicodeCategory(rune) == UnicodeCategory.NonSpacingMark)
+            return;
+        var small = Rune.ToLowerInvariant(rune).Value;
+        var kept = small is >= 'a' and <= 'z' or >= '0' and <= '9' or '_' or '.' or '-' ? (char)small : '-';
+        if (kept == '-' && text.Length > 0 && text[^1] == '-')
+            return;
+        text.Append(kept);
     }
 
     /// <summary>

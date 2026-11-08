@@ -665,6 +665,13 @@ the tests run without the splash.
      and the commit; the title "Statventure Editor 2026.11.8.1 — <pack>"; the full suite passes in invariant mode
      (if a test needs ICU, the step stops and reports it). Mutations: the reading of each part, the dev text, the
      title's form, the invariant switch.
+   - **Done (2026-11-08, "How it works", step 1).** A test needed ICU: `ImportNames.Fit` (the editor's suggested
+     names, accents dropped) used `string.Normalize(FormD)`, which leaves the text as it is in invariant mode; the step
+     stopped and reported it. **The manager's decision (2026-11-08, (a); Q8 and the editor's rule unchanged, so an
+     implementation choice):** `Fit` takes accents off through HarfBuzz's canonical decompositions
+     (`UnicodeFunctions.Default.TryDecompose`, repeated, then the non-spacing marks left out), the three tests as
+     they were; same results as ICU's FormD on every sample checked; `Tools/Editor/Import/ImportNames.cs` added to
+     the step for that edit only. `EngineInfo.Version` stays 0.1.0 (the manager, 2026-11-08: Vulkan's limit).
 2. **Logs and crash files** (engine). Independent (its first lines take step 1's `ProgramInfo` once merged: a
    rebase for that line).
    - Owns: `Engine/Statventure/Core/Log.cs`, a new `Core/LogFiles.cs` (folder, names, rotation),
@@ -762,7 +769,85 @@ the tests run without the splash.
 
 Filled in as the steps are done.
 
+### Step 1: the version and invariant globalization (2026-11-08)
+
+- **The version in the build (`Directory.Build.props`):** `<InformationalVersion Condition="'$(Version)' ==
+  ''">dev</InformationalVersion>`, the dev default; a release is built with `-p:Version=2026.11.8.1` (the release
+  script, step 7), which also gives every assembly's version and file version (a dev build keeps the SDK's
+  1.0.0.0). `-p:Version` is a global property, so the program, the engine and any library of the same build (the
+  data library, M12-9) carry the same version. Nothing checks the version's form (Q1's four numbers are the
+  release script's to make): the program reads what its build was given.
+- **The commit (left to this step; chosen):** from git at build time by the .NET SDK's own Source Link
+  (`Microsoft.Build.Tasks.Git`, in the SDK since .NET 8: `InitializeSourceControlInformation` sets `SourceRevisionId`
+  from HEAD, `AddSourceRevisionToInformationalVersion` appends `+<full hash>`), so every build carries it, dev builds
+  too, and the publish script needn't pass it (a script may: the SDK keeps a `-p:SourceRevisionId` given). It reads
+  `.git` itself, no git program needed; worktrees work (their `.git` file). HEAD's commit only: a dirty tree isn't
+  marked (a release comes from a clean tree, Q27). **A build without git** (an unpacked source archive: `git archive`
+  of `engine/` at the step's commit, built with its own `build.sh` in a scratch folder): 0 errors and the same 141
+  warnings as in the repo (the SDK's implicit Source Link doesn't warn without a repository), the engine's, the
+  editor's and the sandbox's informational version `dev` with nothing after it, so the program says `dev` and has no
+  commit (`ProgramInfo.Commit` null).
+- **`Core/ProgramInfo.cs`:** `record ProgramInfo(string Name, string Version, string? Commit)`. `Of(Assembly)` reads
+  the assembly's name and its `AssemblyInformationalVersionAttribute`; `Parse(name, informationalVersion)`: the
+  version before the first `+` (none, or no attribute: `Dev`), the commit after it (none or empty: null); `Dev` is
+  `"dev"`; `IsDev`. A program passes its own assembly (the one holding its `Main`, or its `Application` subclass's,
+  `GetType().Assembly`), not `Assembly.GetEntryAssembly()`, which in the tests is the test host. In a single-file
+  program the assembly is inside the executable and reads the same. **For the later steps:** step 2 writes `Version`
+  and `Commit` in the first lines of the logs and crash files; the credits (steps 4–6) name `Version`; step 6's
+  check of the game's version (Q18): `ProgramInfo.Of` works on any loaded assembly (the game's data library once the
+  editor loads it), while reading the version out of the `stat-fick` single-file bundle without running it would
+  need the bundle parsed (nothing does that).
+- **`EngineInfo.Version` stays the engine's own 0.1.0** (left to the steps; confirmed by the manager, 2026-11-08):
+  it goes to Vulkan as the engine's version (`GpuDevice`, `VK_MAKE_VERSION`), whose major number has 10 bits (at most
+  1023), so 2026 can't go there; and it is the engine's, not the program's.
+- **The editor's title (Q3):** `EditorView.Version` (the editor's own assembly's `ProgramInfo.Version`) and
+  `EditorView.TitleOf(version, pack, unsaved)`: "Statventure Editor 2026.11.8.1", then " — <pack>" with a pack open,
+  "• " first while there is unsaved work; a dev build's "Statventure Editor dev — my-mod.pak". The commit is in no
+  title. The editor's document is unchanged: no screen captured again. The window's title is the view's from `Load`
+  on; before it, the window is made with `EditorApplication.OptionsFor`'s `EditorView.Name` (also Vulkan's
+  application name). **For step 5 and step 6:** once step 5 shows the splash before `Load`, that title would show
+  without the version for the splash's 2 s, so `OptionsFor` should take `EditorView.TitleOf(EditorView.Version,
+  null, false)` then (the editor's file, step 6's; the assert in `SettingsTests`, line 160, follows).
+- **Invariant globalization (Q8):** `<InvariantGlobalization>true</InvariantGlobalization>` in `Directory.Build.props`,
+  so every project's runtime configuration has `System.Globalization.Invariant` (and
+  `System.Globalization.PredefinedCulturesOnly`): both programs, the tools and the tests (the test host runs with the
+  test project's runtime configuration). What it changes: no culture but the invariant one (a named culture throws),
+  culture-aware comparisons and searches by code point (`StartsWith(string)`, `EndsWith(string)` and default string
+  sorts: in the engine CSS keywords, an SVG filter reference, a diagnostic set; nothing a test or a player sees),
+  casing as before (.NET 8 and later case all of Unicode without ICU). **One rule needed ICU:**
+  `string.Normalize(NormalizationForm.FormD)` leaves the text as it is, so `ImportNames.Fit` (the editor's suggested
+  names, M11 step 12, accents dropped) made accented letters `-`: "Ünïcode Tales!" gave `n-code-tales`, and three
+  tests failed (`SessionNewModTests` "Ünïcode Tales!", `ImportKindsTests` "Icône.SVG", `ImportPathTests` "Ärger über
+  Öl"). The step stopped and reported it; the manager's decision (a) (Steps, step 1): `Fit` takes each code point
+  apart by HarfBuzz's canonical decompositions (HarfBuzzSharp's `UnicodeFunctions.Default.TryDecompose`, repeated;
+  HarfBuzz's Unicode data ships with the engine) and leaves out the non-spacing marks, each code point then as
+  before (small letters, the rest `-`). Checked in a scratch program in invariant mode against ICU's FormD: Ü, ï,
+  ô, Ä, Ö, ü to their letters, ǖ (two levels) to u, Å to A; ß, æ, ﬁ and Ǆ kept, as FormD keeps them (no canonical
+  decomposition). (Not chosen: a hand table of Latin letters; accented letters becoming `-`; ICU again.) Nothing
+  else in the suite needed ICU.
+- **Tests (`Tests/Statventure.Tests/Core/`):** `ProgramInfoTests`: the parse (9 cases), `IsDev`, the tests' own build
+  a dev build of the repo's commit (`git rev-parse HEAD`, so a commit made between the build and the run fails it;
+  `test.sh` and `mutate.py` build first; the tests', the editor's and the engine's assemblies),
+  the tests running invariant (the switch, the current culture, `de-DE` refused, comparison by code point), the
+  editor's runtime configuration (copied beside the tests'). `ProgramBuildTests`: a scratch program built with the
+  repo's props (`-p:DirectoryBuildPropsPath`) by the SDK the tests run on (`--disable-build-servers`, git's and
+  MSBuild's variables of the run taken out, nothing left running) in a scratch git repository: `-p:Version=2026.11.8.1`
+  reads that version and the commit, `2026.11.8.2` likewise, no version `dev` and the commit; a copy without git
+  `dev`, and the release's version, with no commit; every runtime configuration invariant (a few seconds).
+  `ShellTests` (step 4's): the title with the version (`TitleOf` with a release's and with `dev`, the live view's dev
+  titles), the editor's version its own assembly's. The title's text in five other editor tests (`NewModViewTests`,
+  `SavingViewTests`, `OpenerTests`, `ModFromScratchTests`, `DevSetupTests`).
+
 ## Status
+
+**Step 1 done (2026-11-08, branch `m12-step1`, 3511 tests on the GPU and on lavapipe in invariant mode):** the dev
+default `dev` and a release's `-p:Version`, the commit from git by the SDK's Source Link (a build without git says
+`dev`, no commit), `Core/ProgramInfo` (name, version, commit) for the later steps, the version in the editor's title
+(Q3), invariant globalization for every project (Q8); one rule needed ICU (`ImportNames.Fit`'s accents), fixed by
+the manager's decision (a) with HarfBuzz's decompositions; `EngineInfo.Version` stays 0.1.0. Mutations: 36, 34
+killed, 2 accounted for (in the tests' dev build the editor's version is `dev`, so the title given the literal `dev`
+can't differ; every assembly of one build carries the same version, so the editor's version read from the engine's
+assembly can't differ). Not checked: Windows. ("How it works", step 1.)
 
 **M12's design decided (2026-11-08): the main questions (M12-1–M12-12), the detail round (Q1–Q28) and the two
 questions Q11's answer raised (Q29, the splash; Q30, the credits view) answered by the user, M12-9 clarified; nothing

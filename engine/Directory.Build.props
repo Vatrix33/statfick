@@ -10,5 +10,12 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <BrutalVersion>2026.10.2</BrutalVersion>
     <HarfBuzzSharpVersion>14.2.1.301</HarfBuzzSharpVersion>
+    <!-- The program's version (M12-6, Q1-Q3; Docs/Packaging.md, "The version"): a release is built with
+         -p:Version=2026.11.8.1 (the release script's); any other build is a dev build, its version "dev". The SDK adds
+         "+<commit>" to the informational version from git as it builds (Source Link's SourceRevisionId, or one given
+         with -p:SourceRevisionId); a build without git records none. Core/ProgramInfo.cs reads both. -->
+    <InformationalVersion Condition="'$(Version)' == ''">dev</InformationalVersion>
+    <!-- .NET's invariant globalization for the programs and the tests (Q8): no ICU needed on the player's system. -->
+    <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 </Project>

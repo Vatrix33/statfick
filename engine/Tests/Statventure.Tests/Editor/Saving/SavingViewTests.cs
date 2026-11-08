@@ -68,11 +68,11 @@ public class SavingViewTests
         editor.Session.Change(crypt, "Seconds", 4.0);
         editor.Session.Select(crypt);
         editor.Frame();
-        Assert.Equal("• Statventure Editor — my-mod.pak", editor.View.Title);
+        Assert.Equal("• Statventure Editor dev — my-mod.pak", editor.View.Title);
         Assert.Contains("•", editor.List().Row(crypt)!.TextContent);
         Save(editor);
         Assert.Equal("Saved my-mod.pak.", editor.View.Status);
-        Assert.Equal("Statventure Editor — my-mod.pak", editor.View.Title);
+        Assert.Equal("Statventure Editor dev — my-mod.pak", editor.View.Title);
         Assert.DoesNotContain("•", editor.List().Row(crypt)!.TextContent);
         Assert.Equal((true, Binary(CryptRoom with { Wet = 1, Seconds = 4.0 })), Contents(mod)[Crypt]);
         // The button saves too.
@@ -253,7 +253,7 @@ public class SavingViewTests
         Pick(editor, scratch["player/mods/copy"]);
         Assert.True(task.Done());
         Assert.Equal("copy.pak", editor.Session.Pack!.Name);
-        Assert.Equal("Statventure Editor — copy.pak", editor.View.Title);
+        Assert.Equal("Statventure Editor dev — copy.pak", editor.View.Title);
         Assert.Equal("Saved 2 entries as copy.pak.", editor.View.Status);
         Assert.Equal([Crypt, GameRoom], Contents(scratch["player/mods/copy.pak"]).Keys.Order(StringComparer.Ordinal));
         Assert.False(File.Exists(scratch["player/mods/copy"]));

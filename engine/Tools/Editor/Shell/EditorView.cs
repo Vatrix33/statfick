@@ -1,4 +1,5 @@
 using System.Reflection;
+using Statventure.Core;
 using Statventure.Editor.Session;
 using Statventure.Packs;
 using Statventure.Text;
@@ -14,8 +15,11 @@ namespace Statventure.Editor.Shell;
 /// </summary>
 public sealed partial class EditorView : IDisposable
 {
-    /// <summary>The window's title without an open pack (M11-19).</summary>
+    /// <summary>The editor's name, its window's title before the version (M11-19).</summary>
     public const string Name = "Statventure Editor";
+
+    /// <summary>The editor's version as its build recorded it (M12-6, Q1): a release's <c>2026.11.8.1</c>, else <c>dev</c>; in the title (Q3).</summary>
+    public static string Version { get; } = ProgramInfo.Of(typeof(EditorView).Assembly).Version;
 
     /// <summary>The stylesheet holding the shell's @font-face rules (the game's Lato from ui.pak, P4); the only one that may.</summary>
     public const string FontsSheet = "Statventure.Editor.Shell.Fonts.css";
@@ -110,8 +114,20 @@ public sealed partial class EditorView : IDisposable
         set => _status.TextContent = value;
     }
 
-    /// <summary>The window's title: "Statventure Editor — &lt;pack&gt;", with "• " first while there is unsaved work (M11-17).</summary>
+    /// <summary>The window's title (<see cref="TitleOf"/> for this editor's <see cref="Version"/>, the session's pack and unsaved work).</summary>
     public string Title => _title;
+
+    /// <summary>
+    /// The window's title for the editor of <paramref name="version"/>: "Statventure Editor 2026.11.8.1" (Q3), then
+    /// " — &lt;pack&gt;" with <paramref name="pack"/> open (M11-19), and "• " first while there is unsaved work (M11-17).
+    /// </summary>
+    public static string TitleOf(string version, string? pack, bool unsaved)
+    {
+        var title = $"{Name} {version}";
+        if (pack is not null)
+            title += $" — {pack}";
+        return unsaved ? "• " + title : title;
+    }
 
     /// <summary>The title changed (the program sets the window's).</summary>
     public event Action? TitleChanged;
@@ -121,9 +137,7 @@ public sealed partial class EditorView : IDisposable
     {
         foreach (var (command, button) in _buttons)
             button.ToggleAttribute("disabled", !Commands.CanRun(command));
-        var title = Session.PackName is { } pack ? $"{Name} — {pack}" : Name;
-        if (Session.HasUnsavedWork)
-            title = "• " + title;
+        var title = TitleOf(Version, Session.PackName, Session.HasUnsavedWork);
         if (title == _title)
             return;
         _title = title;

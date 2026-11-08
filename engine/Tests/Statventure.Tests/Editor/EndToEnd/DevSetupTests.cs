@@ -126,7 +126,7 @@ public class DevSetupTests
             editor.Type("0.375");
             editor.Key("Enter", "Enter");
             Assert.True(harp.IsChanged);
-            Assert.Equal("• Statventure Editor — audio.pak", editor.View.Title);
+            Assert.Equal("• Statventure Editor dev — audio.pak", editor.View.Title);
 
             // Ctrl+S: written in place.
             editor.Key("s", "KeyS", KeyModifiers.Control);

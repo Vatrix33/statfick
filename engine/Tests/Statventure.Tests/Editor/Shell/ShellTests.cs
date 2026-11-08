@@ -81,14 +81,15 @@ public class ShellTests
     }
 
     [Fact]
-    public void TheTitleNamesTheOpenPackAndMarksUnsavedWork()
+    public void TheTitleNamesTheVersionTheOpenPackAndMarksUnsavedWork()
     {
         using var editor = new EditorHarness();
         var changes = 0;
         editor.View.TitleChanged += () => changes++;
-        Assert.Equal("Statventure Editor", editor.View.Title);
+        // The tests' build is a dev build (Directory.Build.props; ProgramInfoTests): its version is "dev".
+        Assert.Equal("Statventure Editor dev", editor.View.Title);
         editor.Session.PackName = "my-mod.pak";
-        Assert.Equal("Statventure Editor — my-mod.pak", editor.View.Title);
+        Assert.Equal("Statventure Editor dev — my-mod.pak", editor.View.Title);
         Assert.Equal(1, changes);
         var unsaved = false;
         editor.Session.AddUnsavedWork(() => false);
@@ -97,14 +98,28 @@ public class ShellTests
         Assert.Equal(1, changes);
         unsaved = true;
         editor.Session.NotifyChanged();
-        Assert.Equal("• Statventure Editor — my-mod.pak", editor.View.Title);
+        Assert.Equal("• Statventure Editor dev — my-mod.pak", editor.View.Title);
         Assert.Equal(2, changes);
         editor.Session.PackName = null;
-        Assert.Equal("• Statventure Editor", editor.View.Title);
+        Assert.Equal("• Statventure Editor dev", editor.View.Title);
         unsaved = false;
         editor.View.Refresh();
-        Assert.Equal("Statventure Editor", editor.View.Title);
+        Assert.Equal("Statventure Editor dev", editor.View.Title);
         Assert.Equal(4, changes);
+    }
+
+    [Fact]
+    public void TheTitleCarriesTheEditorsVersionAReleasesOrDev()
+    {
+        // Q3: the version in the editor's title, the commit in none (M12-6, Q1: a release's four numbers, else "dev").
+        Assert.Equal("Statventure Editor 2026.11.8.1 — ember-rite.pak", EditorView.TitleOf("2026.11.8.1", "ember-rite.pak", unsaved: false));
+        Assert.Equal("Statventure Editor 2026.11.8.1", EditorView.TitleOf("2026.11.8.1", null, unsaved: false));
+        Assert.Equal("• Statventure Editor 2026.11.8.1 — ember-rite.pak", EditorView.TitleOf("2026.11.8.1", "ember-rite.pak", unsaved: true));
+        Assert.Equal("• Statventure Editor dev", EditorView.TitleOf("dev", null, unsaved: true));
+        // The editor's version is what its own program file records, the editor's assembly's (not the test host's).
+        var recorded = Statventure.Core.ProgramInfo.Of(typeof(EditorView).Assembly);
+        Assert.Equal(("Statventure.Editor", "dev"), (recorded.Name, EditorView.Version));
+        Assert.Equal(recorded.Version, EditorView.Version);
     }
 
     [Fact]

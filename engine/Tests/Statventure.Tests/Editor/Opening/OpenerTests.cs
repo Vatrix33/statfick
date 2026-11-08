@@ -67,7 +67,7 @@ public class OpenerTests
         editor.Key("Enter", "Enter");
         Assert.Null(editor.View.Dialogs.Top);
         Assert.Equal("a.pak", editor.Session.Pack!.Name);
-        Assert.Equal("Statventure Editor — a.pak", editor.View.Title);
+        Assert.Equal("Statventure Editor dev — a.pak", editor.View.Title);
         Assert.Equal("Opened a.pak: 1 entry", editor.View.Status);
         // The top bar's button too; cancelled, nothing changes.
         editor.Click(editor.View.Button(EditorCommand.Open)!);

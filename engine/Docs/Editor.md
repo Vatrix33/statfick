@@ -2554,8 +2554,9 @@ reported them before writing code):
   its ending's folder) to learn what it makes (`PackWriter.ImportFile`; a problem is the `ImportException` the dialogs
   show before asking a path), the entry there (else the first made) read as the session reads a pack's record
   (`RecordSerializer.RootTypeName`, `Session.Types`); a record suggested by `ImportNames.ForRecord(kind, stem)`, a file
-  (or an importer that makes a file, not a record) at the trial path. `ImportNames.Fit(name)`: accents dropped (FormD,
-  non-spacing marks), small letters, every character the path rule doesn't take made `-`, runs of `-` made one, `-` and
+  (or an importer that makes a file, not a record) at the trial path. `ImportNames.Fit(name)`: accents dropped (canonical
+  decompositions, non-spacing marks; HarfBuzz's decompositions since M12 step 1, as .NET's FormD needs ICU and the
+  programs run in invariant globalization: `Docs/Packaging.md`, "How it works", step 1), small letters, every character the path rule doesn't take made `-`, runs of `-` made one, `-` and
   dots taken off both ends, at most 120 characters (`MaxLength`), a Windows device name given `-1` before its first dot
   (`con-1`, `aux-1.tar`), `imported` when nothing is left. `ForRecord`: `mod/info` for `ModInfo`, else the kind's rule
   on the name as it is (a theme exported as `combat@alder-vale.json` comes back to its own path, M11-18), else on the
