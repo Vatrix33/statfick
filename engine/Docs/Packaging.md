@@ -772,6 +772,14 @@ the tests run without the splash.
      launches the file manager on `logs/` (caught); Close ends with the error code; the window failing gives the
      terminal message (Q24); another thread's crash shown by the main loop; the crash window matches Chromium.
      Mutations: each.
+   - **Done (2026-11-08, "How it works", step 5).** What the step chose where the design left it (none visible beyond the
+     design's words): the splash shown only on a run with a log name (the option on by default; tests' applications, the
+     editor's tests included, show none); during it, a close ends the run before anything loads and a crash is the start's;
+     the crash window 640 × 240, fixed, in the design's wording; after a crash a program ends with exit code 1 through
+     `Environment.Exit`, the crash kept and thrown only after the run's end (rethrown at once, .NET reported it unhandled
+     before the teardown and the window ran); `--capture` counting the page's frames after the splash; the sandbox's
+     `--crash` and `--crash-thread`; its credits view with a Close of its own and Escape. Found, for the UI's owner: a
+     focused field's range selection revealed by its caret end where Blink reveals its bounds.
 6. **The editor as a download of its own** (editor; the stand-in data library). After 1, 2, 3 and 4.
    - Owns: `Tools/Editor/**` (its UI in the engine's embedded Lato in place of `ui.pak`'s, Q17; the "Where is Stat
      Fick?" screen with the file browser and the remembered folder, Q16; the version check, Q18; loading
@@ -1375,6 +1383,139 @@ compositor under the shared lock, on `2911b84` with both commits: 3625 tests (ma
 the UI, canvas, 3D and editor-screen tests (1244); the player's real game folder stayed missing and the Documents
 folder's top level unchanged.
 
+### Step 5: the application's own screens: the splash before `Load`, the crash window after a crash (2026-11-08)
+
+- **The splash in `Application.Run` (`Core/Application.cs`, Q29):** `ApplicationOptions.Splash` (true by default) and
+  `Application.ShowsSplash`, the option on a program's own run, one with a `LogName`. **The option for tests (left to the
+  step; chosen):** only a run with a log name shows it, as only it writes logs (step 2's rule and the manager's decision
+  (1): the program's own path), so tests' applications show none, the editor's tests (its internal constructor, no log
+  name) included, with no switch for the whole process and nothing changed in the editor; the editor's program (its
+  public constructor gives `statventure-editor`), the sandbox and the cutscene player (`stat-fick`) show it with no change
+  of theirs; a test that gives a log name turns `Splash` off (step 2's `Crasher`). **Where:** once the window, device and
+  swapchain are made, before the sound and `Load`: the engine's `Splash` document in a `UiHost` of its own on the
+  application's window, a loop of its own drawing each frame (vsync) at the frame's time until it is `Finished` (2 s, or a
+  key or a mouse button after its first second: step 4's rule, now through the window's input); its last frame stays in
+  the window while the sound and `Load` run. Minimized, its time goes on and nothing is drawn (the loop sleeps until its
+  end, an event or a wake-up). Logged: `the splash shown (2 s)`, or `the splash skipped at 1.3 s`. The application's own
+  loop (`Loop`: its clock, its frame numbers) starts after it, as before. A capture asked for before `Run`
+  (`CaptureNextFrame`) takes the splash's first frame.
+- **During the splash (left to the step, "a crash during the splash"; chosen):** a crash in it (its own, the device's) is
+  the start's crash: the crash file, the teardown, the crash window, no `Load`; another thread's crash is taken by the
+  splash's loop as by the main loop (its sleep woken by it); a close of the window ends the run before anything loads
+  (no sound, no `Load`, no `Unload`; `ConfirmClose` isn't asked, nothing being loaded to ask about; logged `the window closed
+  during the splash, at 0.4 s: the run ends without loading`).
+- **The end of a crashed run, reworked (`Run`, `Ended`):** the crash is now caught and kept (`ExceptionDispatchInfo`), not
+  rethrown, until the run has ended, then thrown. Rethrown at once (step 2's `throw;`), .NET counted it unhandled at its
+  first pass, before any `finally` ran: the sandbox printed "Unhandled exception." and the stack before its crash window had
+  even opened (seen with `--crash`), and on Windows that is where Windows Error Reporting steps in. **After a crash on a
+  program's run** (a log name), after the teardown: the crash window (`ShowCrashWindow`), or, when it can't be shown,
+  step 2's message on the terminal (Q24); the run's log closed (now kept open through the window, for its lines: `the crash
+  window opens`, `the crash window closed`, a file manager that failed, a window that couldn't be shown with its exception);
+  then the program ends with `Application.CrashExitCode`, **1** (chosen; exit codes were left to the steps; the editor's 2
+  stays its command line's), through `Environment.Exit` (`Application.Exit`, internal: the tests catch it). So a crashed
+  program no longer aborts (no SIGABRT 134, no core dump) and .NET prints nothing of its own. Without a log name (tests'
+  applications) nothing changed: no window, no exit, the exception leaves `Run` (a failing teardown's, as C#'s rule gave).
+- **`Core/CrashWindow.cs`, the look (`EngineWindows`; Q23):** the editor's dark look (P4's colours: `#1a1c1a` ground,
+  `#eeeae1` text, `#aaa9a1` muted, `#292c28` fields and buttons, `#3a3d38` borders, the ember `#d77a50` for the main button,
+  a focused field's border and focus rings), Lato 13/20 px from `EngineFonts.AddTo` (no data needed), a 15 px bold heading,
+  the content scrolling when long, the buttons at the foot on the right. **Its size (left to the step; chosen): 640 × 240
+  CSS px, fixed, not resizable**: a typical crash file's path fits its field (about 85 characters), and an error of three
+  lines (longer ones scroll in their own box). `EngineWindows.Run`: a document in a window of its own (a new window, GPU
+  device, swapchain and `UiHost`; the application's are gone, and the failure may have been theirs), drawing each frame
+  (vsync) until Close or the window's own close, both seen before each time round and after the update, so a closed window
+  neither draws nor sleeps; minimized it sleeps until an event or a wake-up; everything disposed when it returns; what fails
+  (no display, no Vulkan) is thrown to the caller.
+- **`CrashWindow(program, crash, logsFolder)` (Q22):** the heading "Statventure Sandbox stopped because of an error"
+  (`CrashWindow.Heading`; the program's name is the application's window title, `Options.Window.Title`, as step 2's terminal
+  message, and the window's title too), the error's line (`CrashReport.Message`), "The details are in:" and the crash file's
+  full path in a read-only text field, focused with its whole text selected (laid out first: only a rendered field takes
+  focus, where Chromium's `focus()` lays out itself), Copy beside it; "Open logs folder" and Close at the foot. **Wording
+  (left to the step; chosen):** the design's and the terminal's, as above, "Copy", "Open logs folder", "Close". Copy writes
+  the path to the document's clipboard, which a window's host makes the system's (GLFW's); "Open logs folder" starts
+  `GameStorage.FileManagerStart` on the logs folder (`xdg-open` from its parent with `MM_NOTTTY=1` on Linux; the shell's open,
+  Explorer, on Windows; not waited for), any failure logged and caught, the window staying; Close ends the window, and the
+  program with its exit code. Without a crash file (it couldn't be written) the details and Copy are left out; without a
+  logs folder (a crash before the log's folder was known) that button. `Show(visible, capture, eachFrame)`: hidden when the
+  application's window was (tests); with a capture, its first frame saved and it closes.
+- **`Application.CrashCapture`:** a scripted run's crash window saves its first frame there and closes by itself. The
+  sandbox (and the cutscene player) set it from `--capture`, so a capture run that crashes ends (exit 1) with a picture of
+  the crash window instead of waiting headless for ever (step 3's check, step 8's flow). **For step 6:** the editor's
+  `--capture` (Q20) should set it as well.
+- **`MessageWindow(heading, text)` (Q6), for step 6:** the same look: the heading, the text with its lines kept
+  (`white-space: pre-wrap`, scrolling when long) and Close. `MessageWindow.Show(title, heading, text)` shows it until it is
+  closed and gives false (logged) when no window can be shown, so the caller says it on the terminal instead. **For step
+  6:** the editor's wrong command line, e.g. `MessageWindow.Show("Statventure Editor", "Statventure Editor can't start",
+  $"{problem}\n{EditorArguments.Usage}")` (the wording step 6's), then its exit code 2. **Also for step 6:** the crash window's
+  heading names `Options.Window.Title`; if the editor's window takes the title with the version before `Load` (step 1's
+  note), the heading reads "Statventure Editor 2026.11.8.1 stopped because of an error" (and step 2's terminal message
+  likewise); keep the name alone there or say so. The editor's About: `Credits.Markup`/`Credits.Css` (step 4's note); the
+  splash already runs for the editor's program through `Application` (its tests show none: no log name).
+- **The sandbox (`Samples/Statventure.Sandbox/Program.cs`):** its title "Statventure Sandbox" (Q13; it was already, now
+  `Sandbox.Title`). **The credits (Q30):** an About button at the page's top right shows the engine's `Credits` for
+  "Statventure Sandbox" and its own `ProgramInfo` in place of the page (a document of its own in a second `UiHost` on the
+  window); **back to the page (left to the step; chosen):** a Close of its own at the view's top right, in the credits' dark
+  look, and Escape. **`--capture` and the splash (left to the step; chosen of the two the design named):** the frames are
+  counted after the splash (the page's own, `GameTime.Frame`), so the capture waits until the splash is over: the packaged
+  stand-in shows the splash at every start as the licence asks, and its checks capture the page; no option skips it.
+  `--capture-splash <png>` saves the splash's first frame; `--about` clicks the About button at the start; **the crash
+  trigger (for step 8; left to the step):** `--crash` throws in the first update after `Load` (a crash on the main thread),
+  `--crash-thread` on a thread of its own, "Sandbox crash" (another thread's, taken by the main loop); with `--capture`, the
+  crash window's first frame is saved there and the run ends with 1. From a script: `XDG_DATA_HOME` to a scratch folder,
+  OpenAL's null output (`ALSOFT_DRIVERS=null`).
+- **Tests (`Tests/Statventure.Tests/Core/`, 32 new):** `ApplicationScreensTests` (11; real applications in hidden windows,
+  counted as minimized after at most one presented frame): the splash once before `Load` for its length (its first frame
+  captured: the logo on the ground), none with the option off or without a log name (the editor's program shows it, its
+  tests' construction doesn't), a click in its first second doing nothing and a key after it skipping it (through the
+  window's input), a close during it ending the run without loading, a crash in it (no `Load`, the crash window after the
+  teardown, no splash again) and another thread's crash taken by it; after a crash on the main thread and on another thread
+  the crash window after the teardown (the pending save written, the window gone, the log open), its error, path, focus and
+  selection, Copy on the clipboard (a stand-in), "Open logs folder" on `logs/` (a stand-in launcher), Close giving exit 1, no
+  terminal message; a window that fails giving the terminal's message and exit 1; none without a log name; a scripted
+  run's window saving its first frame and closing. `CrashWindowTests` (12): the documents (heading, error, read-only
+  focused selected path, the buttons in order, text not markup, the parts left out without a file or a folder), Copy, the
+  file manager's start on the logs folder (and a failing or refusing launcher), Close, the message window, the look's
+  computed colours and Lato; their windows (640 × 240, not resizable, hidden in tests) ended by a click on Close through
+  the window's input and by the window's close, a failure thrown, the message's `Show` giving false. `CrashWindowPaintReferenceTests`
+  (9): `crash-window`, `crash-window-long` (a FileNotFoundException of four lines in its scrolling box, a Windows path),
+  `crash-window-no-file` and `message-window` (the editor's usage) at 1 and 1.65 (`Reference/crash-window-fixtures.json`;
+  Chromium's page selects the path with `select()` and focuses it, `data-focus`), and the list. `ApplicationCrashTests`
+  (step 2's): its application shows no splash and no crash window (`CrashWindowAllowed`, internal), its program's end caught,
+  exit 1 checked after each crash, none without a log name. Tests that drive a window end it after ten frames whatever
+  happens, so a broken rule fails rather than hangs.
+- **Against Chromium** (beyond 12 levels, at the paint fixtures' limits of 0.2 %; the same on the GPU and on lavapipe):
+  crash-window 40 of 153,600 pixels at 1 (0.026 %) and 68 of 418,176 at 1.65 (0.016 %); crash-window-long 219 (0.143 %) and
+  205 (0.049 %); crash-window-no-file 16 (0.010 %) and 32 (0.008 %); message-window 16 (0.010 %) and 28 (0.007 %): rounded
+  corners' antialiasing, and in crash-window-long the Copy label (below).
+- **The sandbox checked by running it** (`claude-work/m12/step5-sandbox-check.py`, headless in a cage, scratch per-user
+  folders, the null sound output): the splash's first frame (the logo on the ground) and `--capture` taking the page after
+  it; `--about` showing the credits; `--crash` and `--crash-thread` each giving a crash file naming where, the crash window's
+  frame, exit 1 and nothing of .NET's "Unhandled exception".
+- **Found (for the UI's owner, not changed here):** (1) the engine reveals a focused text field's caret end where Blink's
+  `UpdateSelectionOnFocus` reveals a range selection's bounds (`FrameSelection::RevealSelection`, `kDoNotRevealExtent`), which
+  don't scroll a field they cover: a path longer than the field shows its end in the engine and its start in Chromium
+  (tried as a fixture: 2.5 % of pixels at 1, 2.1 % at 1.65; the fixture's path kept within the field; the evidence in
+  `claude-work/m12/step5/finding-long-path/`). (2) In crash-window-long the engine draws "Copy" in grayscale where
+  Chromium uses LCD text: likely the error's scrolling box's contents counted past its clip in the engine's overlap test
+  (the box's text reaches 4 px into the path's row); within the limits. (3) Under cage at a fractional output scale (1.65)
+  any engine window dies of a Wayland protocol error at its first commit (GLFW's integer buffer scale 2 against an odd
+  framebuffer height); not new; the 1.65 renders are offscreen.
+- **Mutations:** 67 (`~/.cache/stat-fick-build/claude-work/m12/step5-mutations.json`, made by `step5-make-mutations.py`
+  beside it): 66 killed; the 67th, the end check after the update left out, hangs the next test (a crash window closed
+  while minimized with no wake-up sleeps in `WaitEvents()`), which `mutate.py` reads as "SURVIVED" with no counts (its
+  600 s timeout); run by hand it never ended (stopped at 120 s): noticed. Not listed: the launcher not handed to the crash
+  window (it would start the real file manager through the session's D-Bus) and the crash window allowed in step 2's tests
+  (a test switch: they would show windows they don't drive). The rules only a real process shows, broken one at a time
+  against the sandbox's check (`step5-sandbox-mutate.py`, under the lock): 9, all killed (the crash rethrown at once,
+  printing .NET's "Unhandled exception."; the application's frames not captured; no crash capture; `--crash`;
+  `--crash-thread`; the About button and `--about`; the credits not drawn; `--capture-splash`); `--capture`'s count after
+  the splash is structural (the splash's loop runs before `Loop`, whose frame numbers start at 0), the check confirming the
+  capture is the page, taken after the splash's end. Nothing written to the player's real folders.
+- **Full runs:** the full suite passes on the GPU (1 min 59 s) and on lavapipe (2 min 17 s), inside a headless Wayland
+  compositor under the shared lock, on `b08013b` with this step: 3658 tests (main's 3626 and 32 new), none skipped; the
+  player's real game folder stayed missing and the Documents folder's top level unchanged. Renders kept in
+  `~/.cache/stat-fick-build/claude-work/m12/step5/` (the sandbox's splash, credits and crash window captured headless at 1;
+  offscreen renders of the same at 1 and 1.65; the fixtures' renders in `renders-gpu/` and `renders-lavapipe/`).
+
 ### Step 7: the release script and its text (2026-11-08)
 
 - **Commands.** `Tools/Scripts/release.sh [--dry-run]` on the PC (where `gh` is logged in), from a clean checkout of a
@@ -1484,6 +1625,18 @@ folder's top level unchanged.
   folders.
 
 ## Status
+
+**Step 5 done (2026-11-08, branch `m12-step5`, rebased on `b08013b`, 3658 tests on the GPU and on lavapipe):** the BRUTAL
+splash in `Application.Run` once the window and device are made, before the sound and `Load`, on a program's own run (a
+log name; `ApplicationOptions.Splash`, on by default; tests' applications show none); the crash window after the teardown
+for a crash on the main thread or another (`Core/CrashWindow.cs`: the error, the crash file's path selected with Copy,
+"Open logs folder", Close; 640 × 240 in the dark look and the engine's Lato), the terminal's message when it can't be shown,
+then exit 1; the crash kept and thrown only after the run's end (no more "Unhandled exception." from .NET, no abort);
+`MessageWindow` for step 6; the sandbox's About (the engine's credits), `--crash` and `--crash-thread`, `--capture-splash`,
+`--about`, a crashing `--capture` run ending with the crash window's picture. Four fixtures at 1 and 1.65 within the paint
+limits (at most 0.143 % beyond 12 levels). Mutations: 67, 66 killed, 1 killed by hanging the next test (checked by hand);
+the sandbox's 9 by its own check. Not checked: Windows; the splash, the crash window, Copy and "Open logs folder" on a real
+desktop. ("How it works", step 5.)
 
 **Step 3 done (2026-11-08, branch `m12-step3`, rebased on step 4's merge; the suite unchanged by it, 3511 tests on
 the GPU and on lavapipe before the rebases):**

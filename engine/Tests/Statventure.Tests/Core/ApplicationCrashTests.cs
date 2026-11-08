@@ -16,7 +16,8 @@ namespace Statventure.Tests.Core;
 /// <see cref="Application.Run"/> writes the run's log in the player's game folder's <c>logs/</c>; a crash on the main thread
 /// (the start, <c>Load</c>, <c>Update</c>, <c>Render</c>, <c>Unload</c>, the teardown) or on any other thread (a thread of
 /// its own, the thread pool, the audio's room thread) writes its crash file first, then the application is torn down in
-/// order (the pending saves written, S9-B), its message goes to the terminal and the exception leaves <c>Run</c>. Real
+/// order (the pending saves written, S9-B), its message goes to the terminal (the crash window turned off here: step 5's
+/// tests, <c>ApplicationScreensTests</c>), the program's end is caught and the exception leaves <c>Run</c>. Real
 /// applications in hidden windows, each with a game folder of the test's own. In the non-parallel "Storage log"
 /// collection: the log, and the running application a crash on another thread is handed to, are one for the process.
 /// </summary>
@@ -36,7 +37,9 @@ public class ApplicationCrashTests : IDisposable
     /// <summary>
     /// An application in a small hidden window whose Load, Update, Render and Unload are the test's (it quits after the
     /// update unless <see cref="OnUpdate"/> asks to go on), which writes down the logs folder's files when its teardown
-    /// starts, then runs <see cref="OnTeardown"/> after it, and catches what goes to the terminal. A test that runs
+    /// starts, then runs <see cref="OnTeardown"/> after it, and catches what goes to the terminal and how the program would
+    /// end (<see cref="Exits"/>). No splash and no crash window (M12 step 5's, <c>ApplicationScreensTests</c>): a crash's
+    /// message goes to the terminal, as when no window can be shown. A test that runs
     /// many updates has it <see cref="Minimized"/> with an immediate <see cref="WakeUp"/>: it then presents no frames
     /// (a hidden window's presents aren't paced by every compositor, and wlroots hangs after a few; engine/CLAUDE.md)
     /// and its loop never sleeps.
@@ -50,14 +53,20 @@ public class ApplicationCrashTests : IDisposable
             GameFolder = folder["player"],
             DevelopmentFolder = developmentFolder,
             LogName = logName,
+            Splash = false,
         })
         {
             Logs = folder["player/logs"];
             Terminal = Told.Add;
+            Exit = Exits.Add;
+            CrashWindowAllowed = false;
         }
 
         public string Logs { get; }
         public List<string> Told { get; } = [];
+
+        /// <summary>The exit codes the program would have ended with (a program's process ends at the first).</summary>
+        public List<int> Exits { get; } = [];
         public Action<Crasher>? OnLoad { get; init; }
         public Func<Crasher, long, bool>? OnUpdate { get; init; }
         public Action<Crasher>? OnRender { get; init; }
@@ -148,6 +157,7 @@ public class ApplicationCrashTests : IDisposable
         Assert.Null(Log.FilePath);
         Assert.Null(application.Crash);
         Assert.Empty(application.Told);
+        Assert.Empty(application.Exits);
         Assert.Equal(["logs"], Directory.GetFileSystemEntries(folder["player"]).Select(Path.GetFileName));
     }
 
@@ -162,13 +172,14 @@ public class ApplicationCrashTests : IDisposable
         using (var quiet = new Crasher(folder, logName: null))
             quiet.Run();
         Assert.False(Directory.Exists(folder["player/logs"]));
-        // A crash: recorded, but no file and nothing on the terminal.
+        // A crash: recorded, but no file, nothing on the terminal, and the exception leaves Run (no program to end).
         using var crashing = new Crasher(folder, logName: null) { OnUpdate = (_, _) => throw new InvalidOperationException("a loop that fails") };
         var thrown = Assert.Throws<InvalidOperationException>(crashing.Run);
         Assert.Same(thrown, crashing.Crash!.Exception);
         Assert.Equal("on the main thread", crashing.Crash.Where);
         Assert.Null(crashing.Crash.File);
         Assert.Empty(crashing.Told);
+        Assert.Empty(crashing.Exits);
         Assert.False(Directory.Exists(folder["player/logs"]));
         Assert.False(Path.Exists(folder["player"]), "the game folder was made");
         // Nor in this machine's game folder (the tests' redirect).
@@ -250,8 +261,9 @@ public class ApplicationCrashTests : IDisposable
         // The log names the crash and its file.
         Assert.Contains(logLines, line => Text(line).StartsWith($"[Application] crashed {where}: {thrown.GetType().FullName}: {thrown.Message}"));
         Assert.Contains(logLines, line => Text(line) == "[Application] crash file " + file);
-        // The terminal (Q24), after the teardown.
+        // The terminal (Q24), after the teardown (no crash window here), then the program's end with the crash's code.
         Assert.Equal([$"Crash test stopped because of an error.\n{crash.Message}\nThe details are in: {file}"], application.Told);
+        Assert.Equal([Application.CrashExitCode], application.Exits);
         Assert.Null(Log.FilePath);
     }
 
@@ -318,6 +330,7 @@ public class ApplicationCrashTests : IDisposable
         // After a crash, the teardown's failure is logged as another.
         Assert.Equal(afterACrash, logged.Any(line => line.StartsWith("Error: another crash, on the main thread: System.IO.IOException: a teardown that fails")));
         Assert.Equal([$"Crash test stopped because of an error.\n{crash.Message}\nThe details are in: {file}"], application.Told);
+        Assert.Equal([Application.CrashExitCode], application.Exits);
         Assert.Null(Log.FilePath);
     }
 
@@ -468,6 +481,7 @@ public class ApplicationCrashTests : IDisposable
         Assert.Equal(1, toldThen);
         Assert.Single(crashFilesThen);
         Assert.Single(application.Told);
+        Assert.Equal([Application.CrashExitCode], application.Exits);
     }
 
     [Theory]
@@ -511,6 +525,7 @@ public class ApplicationCrashTests : IDisposable
         }
         Assert.Single(application.CrashFiles());
         Assert.Single(application.Told);
+        Assert.Equal([Application.CrashExitCode], application.Exits);
     }
 
     [Fact]
@@ -572,5 +587,6 @@ public class ApplicationCrashTests : IDisposable
         Assert.Null(application.Crash!.File);
         Assert.Empty(application.CrashFiles());
         Assert.Equal(["Crash test stopped because of an error.\nInvalidOperationException: an update that fails"], application.Told);
+        Assert.Equal([Application.CrashExitCode], application.Exits);
     }
 }
