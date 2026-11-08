@@ -984,6 +984,230 @@ Filled in as the steps are done.
   (told at once, false); a crash during the teardown, with and without a crash before; after the run (not the
   application's, and the next application's: an unnamed thread); a crash file that can't be written.
 
+### Step 3: publishing, the archives and their check; `editor.ps1` (2026-11-08)
+
+- **Commands.** `Tools/Scripts/publish.sh [--version 2026.11.8.1] [--no-check] [<package> ...]` makes
+  `stat-fick-<v>-linux.tar.gz`, `stat-fick-<v>-windows.zip`, `statventure-editor-<v>-linux.tar.gz` and
+  `statventure-editor-<v>-windows.zip` (all four, or the packages named: `stat-fick-linux`, `stat-fick-windows`,
+  `statventure-editor-linux`, `statventure-editor-windows`) in `release/` at the repo's root (git-ignored), then runs
+  `check-packages.sh` on them; without `--version` the version is `dev` (no `-p:Version`, so step 1's dev default).
+  About 20 s for all four on the PC once the packages are in the NuGet cache (the first Windows publish downloads the
+  Windows runtime pack). `Tools/Scripts/check-packages.sh [--no-run] <archive>...` or `--version <v>` (the four in
+  `release/`); `--self-test <archive>...`; `--listing <archive>` (prints the archive's listing). Windows:
+  `Tools\Scripts\publish.ps1 [-Version <v>] [<package> ...]` (no check there). Neither touches build.sh's dev layout
+  (`$STATVENTURE_GAME`) or the per-user folders.
+- **The publish, `Tools/Packaging/Publish.cs` (left to the step; chosen):** a .NET 10 file-based program (`dotnet run
+  Tools/Packaging/Publish.cs -- --engine <engine> --version <v> --time <commit time> [--vc-runtime <folder>]
+  <package>...`), so publish.sh and publish.ps1 share one layout and one archive writer (tested here; only the
+  PowerShell around it is untested); the scripts compile the shaders first, as build.sh does (a clean tree has
+  none), and fetch the Visual C++ runtime. It refuses a version not of Q1's form. Per package: `dotnet publish <the
+  program's project> -c Release -r linux-x64|win-x64 -p:DebugType=embedded -p:ContinuousIntegrationBuild=true
+  [-p:Version=<v>] --artifacts-path release/.publish/artifacts -o release/.publish/<package>/<program>-<v>`; the
+  executable renamed to M12-2's name (`Statventure.Sandbox` → `stat-fick` and `Stat Fick.exe`, `Statventure.Editor` →
+  `statventure-editor` and `Statventure Editor.exe`; renaming rather than naming the assembly per platform, as
+  proposed; the single-file host starts the program it carries whatever it is called: the renamed stand-in runs);
+  every `.pdb` deleted (only the native `libHarfBuzzSharp.pdb`, 23 MB, is there: the managed symbols are embedded);
+  the game's `packs/` made `Assets/Packs/*.pak` exactly (the sandbox's project copies `audio.pak`; that folder is
+  dropped first), none for the editor; `NOTICE.txt` and `licenses/` from `Tools/Packaging/`; on Windows the three
+  Visual C++ runtime DLLs; each licence text checked against the package it came from; the archive written. The work
+  folder `release/.publish` is removed before and after.
+- **Symbols (Q7):** `DebugType=embedded` and `ContinuousIntegrationBuild=true` (the SDK's DeterministicSourcePaths:
+  every source path under git's root becomes `/_/…`, `/_/engine/Engine/Statventure/Core/Application.cs`) go on the
+  command line, as global properties, because the engine's assembly is built by its own project, whose settings
+  aren't the program's. **Found:** the files the build generates (`AssemblyInfo.cs`, global usings, the source
+  generators' files) live in the intermediate folder, and with that outside the repo (a first try in the build cache)
+  their full machine paths stayed in the symbols; so the work folder is inside the repo, `release/.publish`, and they
+  read `/_/release/.publish/artifacts/obj/…`. The check reads every embedded PDB's documents.
+- **The program projects** (`Statventure.Sandbox.csproj`, `Editor.csproj`): a property group for a runtime publish
+  only (`'$(RuntimeIdentifier)' != ''`): `SelfContained` (M12-3), `PublishSingleFile` with
+  `IncludeNativeLibrariesForSelfExtract` false (Q5: the natives beside it), `PublishTrimmed` false (M12-3), `OutputType`
+  `WinExe` for a `win-*` runtime (Q6: the GUI subsystem, no console). Builds without a runtime are as before: build.sh's
+  dev layout (framework-dependent, every runtime's natives, S9-A), the tests (the test project references the editor's
+  project), editor.sh, play-cutscene.sh; a dev build on Windows keeps its console.
+- **What a single-file program holds:** 210 files inside the executable (about 80 MB): the program's assembly and its
+  `.deps.json` and `.runtimeconfig.json`, `Statventure.dll`, BRUTAL's 19 assemblies, 13 `Microsoft.Extensions.*`
+  (BRUTAL's logging), `CommunityToolkit.HighPerformance.dll`, `HarfBuzzSharp.dll` and .NET's 172 libraries; the same
+  210 on Linux and Windows. .NET's own native parts (`System.Native`, the cryptography shim, compression with Brotli
+  and zlib-ng) are linked into the host: nothing of .NET lies beside it (the doc's "Native libraries" listed
+  `libSystem.*.so` for self-contained; single-file has none). Beside it: BRUTAL's and HarfBuzz's natives only.
+- **The archives (left to the step; chosen):** made by `Publish.cs`, so neither `zip` nor Python is needed to make
+  them (the cloud's setup gets no `zip`). `.tar.gz`: .NET's `TarWriter` (ustar), entries sorted, owner and group 0
+  with no names (numeric owner 0), mode 755 for folders and every ELF file (the program and the native libraries),
+  644 for the rest (not "kept modes": NuGet unpacks the natives 744, and modes from the file system would depend on
+  the machine), gzip at its smallest. `.zip`: .NET's `ZipArchive`, entries sorted, folders as entries, no Unix modes.
+  Both dated at the released commit's time (`git log -1 --format=%ct`), so one commit gives the same archives, byte
+  for byte: two publishes of one commit in the worktree, and a fresh clone's publish against the worktree's, compared
+  (once Source Link was off: before, the SDK's Source Link put an entry naming the git remote in the embedded symbols,
+  `{"documents":{"/_/*":"https://raw.githubusercontent.com/Vatrix33/statfick/<commit>/*"}}` from a clone of the GitHub
+  repo, none from a clone of a local path, the only difference between the two; "The repo's address" below).
+- **The Linux soname copies (left to the step; kept):** each library under every name its package gives
+  (`libfreetype.so`, `.so.6`, `.so.6.20.6`; `libglfw`, `libopenal`, `libpng18`, `libzlib` likewise), as build.sh's
+  dev layout has them: no knowledge needed of which name BRUTAL's loader asks for (it can change with a BRUTAL
+  update). Their cost: 8.1 MiB unpacked, 1.8 MB in the `.tar.gz`. (Symbolic links would save that, but not every
+  archive tool or file system keeps them.) The listings record them.
+- **No `classes/`:** the brief named `packs/` and `classes/`; the design says `classes/` comes with the port (M9
+  Q27, Q31: the port makes the shipped folder) and the repo has no source for it, so neither package has one yet.
+  When the port adds it, `Publish.cs` copies it beside the game's program and the game's two listings gain its paths
+  (with a `cover` line in `licenses.txt` for the class files).
+- **The licence texts (Q10), `Tools/Packaging/`:** `NOTICE.txt` (BRUTAL's, the same in all 19 BRUTAL packages) beside
+  the program and 28 texts in `licenses/`, the same set in all four packages (the credits view, Q30, is one view for
+  both programs and points to `licenses/`): `BRUTAL-LICENSE.txt` (the BRUTAL License v1.0, every BRUTAL package's
+  `LICENSE.txt`); each BRUTAL package's own `LICENSES/` files as given: FreeType's `BRUTAL-FREETYPE-THIRD-PARTY-NOTICES.txt`
+  (FreeType 2.14.3 and libpng 1.8.0.git) and `FTL.txt`; GLFW's (3.5.1 and its Wayland protocols); OpenAL Soft's
+  `BRUTAL-OPENAL-THIRD-PARTY-NOTICES.txt` (1.25.2, built from upstream commit `dd4e07de…`, upstream
+  openal-soft.org and github.com/kcat/openal-soft: where its source is) with `openal-soft-COPYING.txt` (the LGPL 2.0
+  text), `openal-soft-BSD-3Clause.txt`, `openal-soft-LICENSE-pffft.txt`, `openal-soft-fmt-LICENSE.txt` and
+  `openal-soft-gsl-LICENSE.txt`; gli's (gli 0.8.3, glm 0.9.9.9), KTX's (KTX-Software and six statically linked
+  components, Apache-2.0 and Zstandard's BSD), stb's (MIT or Unlicense), VMA's, zlib's, Vulkan's and Vulkan
+  Abstractions' (the Khronos registry, Apache-2.0, in the bindings), glTF's (Khronos' schema licence, in
+  `Brutal.Gltf.dll`); `HarfBuzzSharp-LICENSE.txt` (MIT, Microsoft) and `HarfBuzzSharp-THIRD-PARTY-NOTICES.txt`
+  (HarfBuzz and the rest built into it); `dotnet-LICENSE.txt` and `dotnet-THIRD-PARTY-NOTICES.txt` (the runtime pack's:
+  .NET's MIT licence and its notices, Brotli and zlib-ng among them; the 12 `Microsoft.Extensions.*` 10.0 packages
+  give the same notices); `Microsoft.Extensions.ObjectPool-THIRD-PARTY-NOTICES.txt` (**found:** BRUTAL's logging pulls
+  `Microsoft.Extensions.ObjectPool` 11.0 preview 5, whose notices are another release's); `CommunityToolkit.HighPerformance-License.md`
+  and `-ThirdPartyNotices.txt` (MIT); `Lato-OFL.txt` and `STIX-OFL.txt` (from `old-game/objects/fonts/`, `ui.pak`'s
+  sources, the same as `Data/Fonts`'); `Chromium-LICENSE.txt` (Chromium 152's BSD-3-Clause licence, "Copyright 2015
+  The Chromium Authors": **found** on the rebase on step 4, the engine has embedded Chromium's two search-field cancel
+  images, `search_cancel.png` and `search_cancel_pressed.png`, since before M12 (`UI/Resources/README.md`), and the
+  BSD licence asks for its notice with a binary; taken from Chromium's GitHub mirror at 152.0.7977.89, `LICENSE`, into
+  the reference sources' `chromium-152-source/license/`; in no package or repo file, so its `text` line's source is
+  `fixed:`, a text kept as committed; step 4's credits view doesn't list Chromium yet). Kept byte for byte as given, some with CRLF line ends, by
+  `Tools/Packaging/.gitattributes` (`-text`; the repo's rule otherwise makes every text LF).
+  `Tools/Packaging/licenses.txt` says where each text came from (`text` lines: `nuget:<package>/<path>`, `*` for any
+  part of a name, `{rid}` the runtime; `repo:<path>`) and which texts cover which file (`cover` lines: a pattern on the
+  folder's paths, `{program}` the executable, `bundle:<pattern>` the files inside it, `-` none needed: the game's own
+  files, the texts, the Visual C++ runtime). **The publish** checks every text against every source at the version
+  the program's restore resolved (`project.assets.json`; line ends aside: the Linux runtime pack's are LF, the Windows
+  one's CRLF) and refuses a text no line names; **the check** fails on a file nothing covers or a covering text
+  missing. Every binary found and its licence: the program (.NET's host and runtime: MIT and .NET's notices);
+  inside it BRUTAL's assemblies (BRUTAL License; Vulkan's, Vulkan Abstractions' and glTF's notices for those three),
+  `Microsoft.Extensions.*` and .NET's libraries (MIT), CommunityToolkit (MIT), HarfBuzzSharp (MIT and its notices),
+  `Statventure.dll` (ours, with step 4's Lato (OFL), BRUTAL's logo and notice (BRUTAL License, `NOTICE.txt`) and
+  Chromium's two images (`Chromium-LICENSE.txt`)); beside it `libglfw`/`glfw3.dll` (zlib/libpng
+  licence), `libfreetype`/`freetype.dll` (FTL), `libpng18`/`png18.dll` (libpng), `libzlib`/`zlib.dll` (zlib),
+  `libopenal`/`OpenAL32.dll` (LGPL-2.0-or-later and its four parts), `libstb`/`stb.dll`, `libvma`/`vma.dll` (MIT),
+  `libVulkanEx`/`VulkanEx.dll` (BRUTAL's own native: BRUTAL License), `libgli`/`gli.dll` (MIT), `libKtx`/`Ktx.dll`
+  (Apache-2.0, BSD-3-Clause), `libHarfBuzzSharp` (MIT, HarfBuzz's Old MIT); `ui.pak` (Lato and STIX Two, OFL); the
+  stand-in's `Data/Fonts` (the same OFL fonts); the Visual C++ runtime (Visual Studio's licence, below).
+- **The Visual C++ runtime (Q9):** `Tools/Packaging/vc-runtime.txt` pins Microsoft's redistributable, `VC_redist.x64.exe`
+  14.44.35211 (its download URL and SHA-256; `aka.ms/vs/17/release/vc_redist.x64.exe` pointed there on 2026-11-08), and
+  the SHA-256 of `vcruntime140.dll`, `vcruntime140_1.dll` and `msvcp140.dll` in it. `publish.sh` takes them, when the
+  build cache lacks them or holds others, into `$STATVENTURE_CACHE/vc-runtime/14.44.35211/`: `curl`, the download's
+  SHA-256 checked, `cabextract` on the bundle (its payloads are cabinets), then on each payload for `*_amd64`, each DLL
+  taken only if its SHA-256 is the pinned one (`vcruntime140.dll_amd64` in the `vcRuntimeMinimum_x64` cabinet).
+  `publish.ps1` does the same with the redistributable's own `/layout` (which installs nothing) and Windows'
+  `expand.exe` (not run: no Windows here). A newer runtime is a new pin (URL, SHA-256, the three DLLs'). **Never in
+  git**, as the design says. **The licence, checked (2026-11-08):** the redistributable's own terms ("MICROSOFT VISUAL
+  C++ 2015 - 2022 RUNTIME", its `license.rtf`) grant installing and using it and forbid to "share, publish, rent or
+  lease the software" or "provide the software as a stand-alone offering or combined with any of your applications
+  for others to use"; the right to ship its DLLs with a program is Visual Studio's: Microsoft's redistribution list for
+  Visual Studio 2022 (learn.microsoft.com/visualstudio/releases/2022/redistribution, "Visual C++ Runtime Files") lets
+  a "validly licensed" Visual Studio 2022 Enterprise, Professional or Community user "copy and distribute with your
+  program" the files of `VC\redist`, and "Distribution of the Visual C++ Runtime Redistributable package, merge
+  modules, and individual binaries obtained from those pages is limited to licensed Visual Studio users and is subject
+  to its license terms" (its "Distributable Code" conditions; the licence page renders its text by script and wasn't
+  read here). **The user's answer (2026-11-08, the question tool): they ship.** The user states they are (or will
+  be) a licensed Visual Studio user and ships the three DLLs under Visual Studio's Distributable Code terms; recorded
+  in `vc-runtime.txt` too.
+- **The check, `Tools/Scripts/check-packages.sh` → `Tools/Packaging/check_packages.py`** (Python 3 and `objdump`;
+  Linux): each archive unpacked into a scratch folder in the build cache and held to every rule; all problems
+  reported, the size reported (not judged). The rules: the archive's name (`<program>-<version>-linux.tar.gz` or
+  `-windows.zip`, the version Q1's form or `dev`) and one folder `<program>-<version>/` (Q4); every path in it, folder
+  or file, and the executable bit as `Tools/Packaging/listings/<program>-<platform>.txt` lists them (`dir`, `file`,
+  `exec`; nothing missing, nothing extra; a `.pdb`, a wrong name, `classes/` all show here); tar entries of mode 755
+  or 644 (folders 755), owned by 0:0, no links; the game's `packs/` the committed packs byte for byte, the editor none;
+  `NOTICE.txt` and `licenses/` Tools/Packaging's, all and only them; on Windows the three runtime DLLs with the pinned
+  SHA-256; the program an x86-64 ELF, or a PE32+ x86-64 with subsystem 2 (GUI, Q6); single-file (the .NET bundle's
+  marker) with exactly the files inside that the listing names (`bundle` lines: a trimmed, framework-dependent or
+  native-bundling publish shows here); the program's assembly and `Statventure.dll` with embedded symbols, every
+  embedded PDB's documents under `/_/`; the repo's own assemblies (`Statventure*.dll`) and their embedded symbols
+  naming no `github` and holding no Source Link entry (the user's answer, below); the program's assembly's informational version (`<version>+<commit>`, read
+  from inside the bundle) the archive's version; every ELF file's needs (`objdump -p`) in the folder, found through
+  `$ORIGIN` in its RUNPATH, or the system's (libc, libm, libdl, librt, libpthread, libgcc_s, libstdc++, the loader,
+  `libvulkan.so.1`), its versions at most `GLIBC_2.34` and `GLIBCXX_3.4.30`; every PE file's imports (read from its
+  import table) in the folder or Windows' (KERNEL32, USER32, GDI32, SHELL32, ADVAPI32, ole32, OLEAUT32, AVRT, WINMM,
+  `vulkan-1.dll`, the UCRT's `api-ms-win-crt-*`); every file and every file inside the program covered by
+  `licenses.txt`. **The run** (Linux packages; `--no-run` skips it): unpacked, started in a headless compositor
+  (`cage` on wlroots' headless backend, the user's `DISPLAY` and `WAYLAND_DISPLAY` unset; `xvfb-run` where there is no
+  cage, as in the cloud), `XDG_DATA_HOME` a scratch folder (so the per-user folder is scratch: the stand-in logs
+  `game folder …/player/stat-fick`, and since step 2 writes its log file in that folder's `logs/`),
+  `ALSOFT_DRIVERS=null` (OpenAL Soft's "No Output": nothing audible): the
+  stand-in with `--capture <png> --frames 30` must end with 0 having written a PNG of more than one colour (it draws
+  its page: `claude-work/m12/step3/capture.png`, about 1.3 s); the editor given `--player-folder <scratch>
+  --not-an-option` must end with 2 printing its usage (its `--capture` is step 6's); this machine's game folder and
+  Documents folder's top level compared before and after (as `mutate.py` does).
+- **The listings, `Tools/Packaging/listings/`:** made by `check-packages.sh --listing` from a good archive (version-free):
+  the game's Linux package 84 paths and its program's 210 files, Windows 77 and 210, the editor's 52 and 210, 45 and
+  210 (step 4's embedded resources changed no file inside the programs; its rebase added `Chromium-LICENSE.txt`). A change meant to alter the packages (a new native library, a new file in the stand-in's `Data/`, a new package)
+  makes its listing again in the same commit; step 6 adds the data library's lines.
+- **The check's own test, `check-packages.sh --self-test <archive>...`** (`Tools/Packaging/check_packages_self_test.py`;
+  Q28's checks aren't C# tests): each archive packed again unbroken must pass, then is broken one way at a time and
+  must fail naming the rule: a licence text, `NOTICE.txt` or a native library left out; a file, a `.pdb`, a text
+  `licenses.txt` doesn't name added; the program not renamed; the folder without the version; the archive's name
+  with a zero-padded day, or with another version than the program's; a pack changed or left out, a pack in the
+  editor's; `NOTICE.txt` changed; the program or a library without its executable bit, a text with it; a file of
+  mode 600, a folder of 700, entries owned by 1000, a symbolic link; the Visual C++ runtime left out or changed;
+  the console subsystem, a 32-bit or ARM program; the bundle's marker gone; a file inside the program renamed (to
+  one `licenses.txt` doesn't cover); the engine's embedded symbols gone, or their paths `/X/…`, or holding a Source
+  Link entry, or naming `github`; the engine's assembly naming `github`; a library needing a
+  file not there, one without `$ORIGIN`, one needing `GLIBC_2.39`, one `GLIBCXX_3.4.32`, a DLL importing one not
+  there; and run: the stand-in drawing nothing, drawing one colour, failing, writing into the (here a scratch) real
+  game folder; the editor ending with 0, or with 2 but no usage. On the four `2026.11.8.1` archives (rebased on step
+  2): 118 breaks, all caught (about 2 minutes).
+- **The publish's rules shown able to fail** (left to the steps: `mutate.py` runs `dotnet test` only, so a runner of
+  this step's own, `claude-work/m12/step3-mutate.py`, applies each change, runs `publish.sh` with its check and undoes
+  it; the list `claude-work/m12/step3-mutations.json`, made by `step3-make-mutations.py`): 45 changes to `Publish.cs`
+  (the renames, the `.pdb`s, the packs, the texts, the runtime DLLs, the symbol properties, Source Link left on, the work folder, the
+  version, the folder and archive names, modes and owner), `publish.sh` (the shaders from a tree without them, the
+  cached runtime's SHA-256 with a damaged cache), both projects (self-contained, single-file, the natives inside,
+  trimmed, a console program, the settings off), the listings, `licenses.txt` and `vc-runtime.txt`: 44 killed (two by
+  another rule than expected: with a project's runtime settings off, the publish has no runtime pack and its licence
+  check refuses it), 1 accounted for (the publish's own refusal of a version not of Q1's form, off: the check refuses
+  the archive's name all the same); and 5 tests of the publish's guards, each passing (a licence text not its
+  package's, a text `licenses.txt` doesn't name, a text from a package the program hasn't and a version not of Q1's
+  form all refused; a tree without compiled shaders publishing), each guard switched off letting its bad input through
+  but the version's.
+- **`editor.ps1`:** the Windows counterpart of `editor.sh`: env.ps1, `dotnet build Tools/Editor -c Release`, then
+  `dotnet Tools\Editor\bin\Release\net10.0\Statventure.Editor.dll --repo <engine> <arguments>`, its exit code passed
+  on (not run here: no PowerShell; "Windows check", item 8d).
+- **From a clean tree:** a fresh clone of the branch (no build, no compiled shaders, no `release/`), its own
+  `publish.sh --version 2026.11.8.1`: the shaders compiled, the four archives made and checked (the Linux ones run),
+  23 s (`claude-work/m12/step3-clean-tree.sh`).
+- **The repo's address stays out of the programs (the user, 2026-11-08, the question tool; (a), the recommended
+  option).** Found: built from a clone of the GitHub repo (as the release script will be), every program carried in
+  its embedded symbols Source Link's `https://raw.githubusercontent.com/Vatrix33/statfick/<commit>/*` (the SDK's
+  default; debuggers would fetch the sources there, which a private repo refuses). Options asked: (a) leave it out of
+  the packages, (b) keep it. Now `Publish.cs` passes `-p:EnableSourceLink=false`: no Source Link entry, the commit
+  still in the version (`2026.11.8.1+<commit>`, from the SDK's git information), the paths still `/_/…`; and the
+  check fails on any of the repo's own assemblies (`Statventure*.dll`, inside the program or beside it) whose bytes or
+  embedded symbols name `github` (any case; `raw.githubusercontent.com` too) or whose symbols hold a Source Link entry
+  (its kind's GUID or a `{"documents"` map). Third-party assemblies keep theirs (CommunityToolkit's symbols carry its
+  own public Source Link; .NET's and BRUTAL's assemblies name their public GitHub repos in their metadata).
+- **The cloud's setup:** `cloud-setup.sh` installs `binutils` (objdump) and `cabextract`; the run there uses
+  `xvfb-run` (already installed). Not run in the cloud: whether Ubuntu's own .NET SDK publishes for `win-x64` (it
+  downloads Microsoft's runtime pack) is to see there.
+- **What the Linux packages need of the system (for step 7's release text):** x86-64, glibc 2.34 or later **and**
+  GCC 12's libstdc++ (`GLIBCXX_3.4.30`, which libKtx and libopenal need): Ubuntu 22.04, Debian 12, Fedora 36 and
+  later; not Fedora 35 (GCC 11) and not RHEL 9 or its rebuilds (Rocky, Alma: glibc 2.34 but GCC 11's libstdc++). Also
+  `libvulkan.so.1` with a Vulkan 1.3 driver, X11 or Wayland, and the sound server's libraries. The check holds every
+  library to `GLIBC_2.34` and `GLIBCXX_3.4.30` at most, so a BRUTAL update needing more fails it. Windows: 10 or 11,
+  x64, a Vulkan driver (the Visual C++ runtime is shipped).
+- **Found (adding to "What exists"):** `libHarfBuzzSharp.so` carries no RUNPATH (it needs only system libraries:
+  harmless); **libKtx and libopenal need `GLIBCXX_3.4.30`, GCC 12's libstdc++** (libgli 3.4.29): Ubuntu 22.04 and
+  Debian 12 have it, but Fedora 35 (glibc 2.34, GCC 11) and RHEL 9 and its rebuilds don't, so "glibc 2.34 or later"
+  isn't the whole need: the release's text (step 7) should say Ubuntu 22.04, Debian 12, Fedora 36 or later; the
+  stand-in's window in a headless cage is maximized to 1280 × 683; nothing writes outside the scratch per-user folder
+  (something writes `gvfs-metadata/` into `XDG_DATA_HOME`: the scratch one).
+- **For the later steps:** step 4: `licenses.txt` already covers `Statventure.dll` with Lato's OFL. Step 6: the data
+  library beside the program, not in the bundle (an `ExcludeFromSingleFile` item metadata on its
+  `ResolvedFileToPublish` in the sandbox's project), its lines in the stand-in's listings and a `cover` line; the
+  usage text with the new names (`EditorArguments.Usage` still says `Statventure.Editor`); Q18's reading of the game's
+  version: `check_packages.py` reads it from inside the single-file bundle (the manifest after the host's bundle
+  marker, the program's assembly's informational version). Step 7: `release.sh` runs `publish.sh --version <v>`
+  (which checks the four) and uploads them. Step 8: the Windows items (`publish.ps1` with the runtime's `/layout`,
+  `editor.ps1`, the zips started from Explorer). Q13 (the stand-in's title) is the sandbox's `Program.cs`, not
+  changed here.
+
 ### Step 4, first: a shrunk raster image as Chromium 152 draws one (2026-11-08)
 
 Step 4's prerequisite, a commit of its own (the user's decision (a), "Decided (the logo's file)"; the sources in
@@ -1137,6 +1361,27 @@ folder's top level unchanged.
 
 ## Status
 
+**Step 3 done (2026-11-08, branch `m12-step3`, rebased on step 4's merge; the suite unchanged by it, 3511 tests on
+the GPU and on lavapipe before the rebases):**
+`Tools/Scripts/publish.sh [--version <v>]` (and `publish.ps1`) makes the four archives into `release/` through one
+.NET file-based program, `Tools/Packaging/Publish.cs` (self-contained single-file publishes for Linux and Windows made
+on Linux, symbols embedded with `/_/` paths, the executables renamed per M12-2, `packs/`, `NOTICE.txt` and 28 licence
+texts, the Visual C++ runtime's three DLLs on Windows, no `.pdb`), then `Tools/Scripts/check-packages.sh` checks them
+(the listings in `Tools/Packaging/listings/`, the packs, the texts, the runtime DLLs, the formats and the GUI
+subsystem, the files inside the single-file program, its symbols and version, every native library's needs, every
+file's licence; the Linux programs run headless on a scratch per-user folder). Sizes (2026.11.8.1): the game's Linux
+archive 45.1 MB (71 files), Windows 41.3 MB (64), the editor's 41.8 MB (51) and 38.0 MB (44). The check's self-test:
+118 breaks, all caught; the publish's rules: 45 mutations, 44 killed, 1 accounted for (a version not of Q1's form
+refused by the check's name rule too), and 5 tests of its guards. `editor.ps1` for Windows. Found: libKtx and
+libopenal need GCC 12's libstdc++ (`GLIBCXX_3.4.30`), so Fedora 36 rather than 35 and no RHEL 9; the Visual C++
+runtime's own licence forbids shipping it with a program, Visual Studio's lets licensed Visual Studio users do it:
+**the user's answer (2026-11-08): they ship**, the user a licensed Visual Studio user under its Distributable Code
+terms; built from a clone of the GitHub repo, Source Link named the private repo's address in the programs' symbols:
+**the user's answer (2026-11-08): left out** (`-p:EnableSourceLink=false`, and a check rule that the repo's own
+assemblies and their symbols name no `github` and hold no Source Link entry). From a clean tree (a fresh clone): the
+four made and checked, byte for byte the worktree's.
+Not checked: Windows (`publish.ps1`, `editor.ps1`, the zips), the cloud's own SDK publishing for Windows. ("How it
+works", step 3.)
 **Step 4 done (2026-11-08, branch `m12-step4`, 3625 tests on the GPU and on lavapipe):** the logo's check found
 the branding page's 4096 × 896 files newer than BRUTAL's 712 × 168 copies and stopped; the user's decision (a)
 ("Decided (the logo's file)"): the page's white logo at the approved 696 CSS px, Chromium's shrunk images ported first

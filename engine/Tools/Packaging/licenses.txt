@@ -1,0 +1,114 @@
+# The licence texts the packages ship and what each covers (Q10; Docs/Packaging.md, "How it works", step 3).
+#
+# text <shipped path> <source>
+#   A text kept in this folder, shipped in every package at that path (NOTICE.txt beside the program, licenses/<name>),
+#   and where it came from: nuget:<package>/<path in the package> (at the version the publish resolved; * matches any
+#   part of a package name, {rid} is the publish's runtime), repo:<path from the repo's root>, or fixed:<where it was
+#   taken from> for a text that is in no package or file of the repo (kept as committed, not compared). The publish
+#   checks each text against every source named for it (the same text, line ends aside) and refuses a text in this
+#   folder with no line here.
+# cover <pattern> <text>... | -
+#   The texts that cover a file of a package: a pattern on paths in the program's folder ({program} is the program's
+#   executable), or bundle:<pattern> on the files inside the single-file program. The first line that matches counts;
+#   "-" is a file that needs no text (the engine's and the game's own files, the texts themselves, the Visual C++
+#   runtime, which Visual Studio's licence lets its users ship). check-packages.sh fails on a file no line covers and on
+#   a covering text missing from the package.
+
+text NOTICE.txt nuget:Ahwoo.BRUTAL.*/NOTICE.txt
+text licenses/BRUTAL-LICENSE.txt nuget:Ahwoo.BRUTAL.*/LICENSE.txt
+text licenses/BRUTAL-FREETYPE-THIRD-PARTY-NOTICES.txt nuget:Ahwoo.BRUTAL.FreeType/LICENSES/BRUTAL-FREETYPE-THIRD-PARTY-NOTICES.txt
+text licenses/FTL.txt nuget:Ahwoo.BRUTAL.FreeType/LICENSES/FTL.txt
+text licenses/BRUTAL-GLFW-THIRD-PARTY-NOTICES.txt nuget:Ahwoo.BRUTAL.Glfw/LICENSES/BRUTAL-GLFW-THIRD-PARTY-NOTICES.txt
+text licenses/BRUTAL-GLI-THIRD-PARTY-NOTICES.txt nuget:Ahwoo.BRUTAL.Gli/LICENSES/BRUTAL-GLI-THIRD-PARTY-NOTICES.txt
+text licenses/BRUTAL-GLTF-THIRD-PARTY-NOTICES.txt nuget:Ahwoo.BRUTAL.Gltf/LICENSES/BRUTAL-GLTF-THIRD-PARTY-NOTICES.txt
+text licenses/BRUTAL-KTX-THIRD-PARTY-NOTICES.txt nuget:Ahwoo.BRUTAL.Ktx/LICENSES/BRUTAL-KTX-THIRD-PARTY-NOTICES.txt
+text licenses/BRUTAL-OPENAL-THIRD-PARTY-NOTICES.txt nuget:Ahwoo.BRUTAL.OpenAl/LICENSES/BRUTAL-OPENAL-THIRD-PARTY-NOTICES.txt
+text licenses/openal-soft-COPYING.txt nuget:Ahwoo.BRUTAL.OpenAl/LICENSES/openal-soft-COPYING.txt
+text licenses/openal-soft-BSD-3Clause.txt nuget:Ahwoo.BRUTAL.OpenAl/LICENSES/openal-soft-BSD-3Clause.txt
+text licenses/openal-soft-LICENSE-pffft.txt nuget:Ahwoo.BRUTAL.OpenAl/LICENSES/openal-soft-LICENSE-pffft.txt
+text licenses/openal-soft-fmt-LICENSE.txt nuget:Ahwoo.BRUTAL.OpenAl/LICENSES/openal-soft-fmt-LICENSE.txt
+text licenses/openal-soft-gsl-LICENSE.txt nuget:Ahwoo.BRUTAL.OpenAl/LICENSES/openal-soft-gsl-LICENSE.txt
+text licenses/BRUTAL-STB-THIRD-PARTY-NOTICES.txt nuget:Ahwoo.BRUTAL.Stb/LICENSES/BRUTAL-STB-THIRD-PARTY-NOTICES.txt
+text licenses/BRUTAL-VULKAN-THIRD-PARTY-NOTICES.txt nuget:Ahwoo.BRUTAL.Vulkan/LICENSES/BRUTAL-VULKAN-THIRD-PARTY-NOTICES.txt
+text licenses/BRUTAL-VULKAN-ABSTRACTIONS-THIRD-PARTY-NOTICES.txt nuget:Ahwoo.BRUTAL.Vulkan.Abstractions/LICENSES/BRUTAL-VULKAN-ABSTRACTIONS-THIRD-PARTY-NOTICES.txt
+text licenses/BRUTAL-VULKAN-VMA-THIRD-PARTY-NOTICES.txt nuget:Ahwoo.BRUTAL.Vulkan.Vma/LICENSES/BRUTAL-VULKAN-VMA-THIRD-PARTY-NOTICES.txt
+text licenses/BRUTAL-ZLIB-THIRD-PARTY-NOTICES.txt nuget:Ahwoo.BRUTAL.ZLib/LICENSES/BRUTAL-ZLIB-THIRD-PARTY-NOTICES.txt
+text licenses/HarfBuzzSharp-LICENSE.txt nuget:HarfBuzzSharp/LICENSE.txt
+text licenses/HarfBuzzSharp-LICENSE.txt nuget:HarfBuzzSharp.NativeAssets.*/LICENSE.txt
+text licenses/HarfBuzzSharp-THIRD-PARTY-NOTICES.txt nuget:HarfBuzzSharp.NativeAssets.*/THIRD-PARTY-NOTICES.txt
+text licenses/dotnet-LICENSE.txt nuget:Microsoft.NETCore.App.Runtime.{rid}/LICENSE.TXT
+text licenses/dotnet-THIRD-PARTY-NOTICES.txt nuget:Microsoft.NETCore.App.Runtime.{rid}/THIRD-PARTY-NOTICES.TXT
+text licenses/dotnet-THIRD-PARTY-NOTICES.txt nuget:Microsoft.Extensions.Configuration*/THIRD-PARTY-NOTICES.TXT
+text licenses/dotnet-THIRD-PARTY-NOTICES.txt nuget:Microsoft.Extensions.DependencyInjection*/THIRD-PARTY-NOTICES.TXT
+text licenses/dotnet-THIRD-PARTY-NOTICES.txt nuget:Microsoft.Extensions.Logging*/THIRD-PARTY-NOTICES.TXT
+text licenses/dotnet-THIRD-PARTY-NOTICES.txt nuget:Microsoft.Extensions.Options*/THIRD-PARTY-NOTICES.TXT
+text licenses/dotnet-THIRD-PARTY-NOTICES.txt nuget:Microsoft.Extensions.Primitives/THIRD-PARTY-NOTICES.TXT
+text licenses/Microsoft.Extensions.ObjectPool-THIRD-PARTY-NOTICES.txt nuget:Microsoft.Extensions.ObjectPool/THIRD-PARTY-NOTICES.TXT
+text licenses/CommunityToolkit.HighPerformance-License.md nuget:CommunityToolkit.HighPerformance/License.md
+text licenses/CommunityToolkit.HighPerformance-ThirdPartyNotices.txt nuget:CommunityToolkit.HighPerformance/ThirdPartyNotices.txt
+text licenses/Lato-OFL.txt repo:old-game/objects/fonts/Lato-OFL.txt
+text licenses/STIX-OFL.txt repo:old-game/objects/fonts/STIX-OFL.txt
+text licenses/Chromium-LICENSE.txt fixed:https://raw.githubusercontent.com/chromium/chromium/152.0.7977.89/LICENSE
+
+# The texts and the game's own data.
+cover NOTICE.txt -
+cover licenses/* -
+cover packs/audio.pak -
+cover packs/ui.pak licenses/Lato-OFL.txt licenses/STIX-OFL.txt
+# The stand-in's own files (the sandbox's Data/: the tests' fonts, the proof cutscene and its models).
+cover Data/Fonts/*-OFL.txt -
+cover Data/Fonts/Lato-* licenses/Lato-OFL.txt
+cover Data/Fonts/STIXTwoText-* licenses/STIX-OFL.txt
+cover Data/Cutscenes/* -
+cover Data/Models/* -
+# The program: .NET's host and runtime (its own native parts, Brotli and zlib among them, are linked into it).
+cover {program} licenses/dotnet-LICENSE.txt licenses/dotnet-THIRD-PARTY-NOTICES.txt
+# The native libraries beside it.
+cover libglfw.so* licenses/BRUTAL-GLFW-THIRD-PARTY-NOTICES.txt
+cover glfw3.dll licenses/BRUTAL-GLFW-THIRD-PARTY-NOTICES.txt
+cover libfreetype.so* licenses/FTL.txt licenses/BRUTAL-FREETYPE-THIRD-PARTY-NOTICES.txt
+cover freetype.dll licenses/FTL.txt licenses/BRUTAL-FREETYPE-THIRD-PARTY-NOTICES.txt
+cover libpng18.so* licenses/BRUTAL-FREETYPE-THIRD-PARTY-NOTICES.txt
+cover png18.dll licenses/BRUTAL-FREETYPE-THIRD-PARTY-NOTICES.txt
+cover libzlib.so* licenses/BRUTAL-ZLIB-THIRD-PARTY-NOTICES.txt
+cover zlib.dll licenses/BRUTAL-ZLIB-THIRD-PARTY-NOTICES.txt
+cover libopenal.so* licenses/BRUTAL-OPENAL-THIRD-PARTY-NOTICES.txt licenses/openal-soft-COPYING.txt licenses/openal-soft-BSD-3Clause.txt licenses/openal-soft-LICENSE-pffft.txt licenses/openal-soft-fmt-LICENSE.txt licenses/openal-soft-gsl-LICENSE.txt
+cover OpenAL32.dll licenses/BRUTAL-OPENAL-THIRD-PARTY-NOTICES.txt licenses/openal-soft-COPYING.txt licenses/openal-soft-BSD-3Clause.txt licenses/openal-soft-LICENSE-pffft.txt licenses/openal-soft-fmt-LICENSE.txt licenses/openal-soft-gsl-LICENSE.txt
+cover libstb.so licenses/BRUTAL-STB-THIRD-PARTY-NOTICES.txt
+cover stb.dll licenses/BRUTAL-STB-THIRD-PARTY-NOTICES.txt
+cover libvma.so licenses/BRUTAL-VULKAN-VMA-THIRD-PARTY-NOTICES.txt
+cover vma.dll licenses/BRUTAL-VULKAN-VMA-THIRD-PARTY-NOTICES.txt
+cover libVulkanEx.so NOTICE.txt licenses/BRUTAL-LICENSE.txt licenses/BRUTAL-VULKAN-THIRD-PARTY-NOTICES.txt
+cover VulkanEx.dll NOTICE.txt licenses/BRUTAL-LICENSE.txt licenses/BRUTAL-VULKAN-THIRD-PARTY-NOTICES.txt
+cover libgli.so licenses/BRUTAL-GLI-THIRD-PARTY-NOTICES.txt
+cover gli.dll licenses/BRUTAL-GLI-THIRD-PARTY-NOTICES.txt
+cover libKtx.so licenses/BRUTAL-KTX-THIRD-PARTY-NOTICES.txt
+cover Ktx.dll licenses/BRUTAL-KTX-THIRD-PARTY-NOTICES.txt
+cover libHarfBuzzSharp.so licenses/HarfBuzzSharp-LICENSE.txt licenses/HarfBuzzSharp-THIRD-PARTY-NOTICES.txt
+cover libHarfBuzzSharp.dll licenses/HarfBuzzSharp-LICENSE.txt licenses/HarfBuzzSharp-THIRD-PARTY-NOTICES.txt
+cover vcruntime140.dll -
+cover vcruntime140_1.dll -
+cover msvcp140.dll -
+# Inside the single-file program. The engine embeds Lato for its own screens, BRUTAL's logo and notice for the splash
+# and the credits (step 4), and Chromium 152's search field cancel images (UI/Resources/README.md).
+cover bundle:Statventure.dll licenses/Lato-OFL.txt NOTICE.txt licenses/BRUTAL-LICENSE.txt licenses/Chromium-LICENSE.txt
+cover bundle:Statventure.*.dll -
+cover bundle:*.deps.json -
+cover bundle:*.runtimeconfig.json -
+cover bundle:Brutal.Vulkan.dll NOTICE.txt licenses/BRUTAL-LICENSE.txt licenses/BRUTAL-VULKAN-THIRD-PARTY-NOTICES.txt
+cover bundle:Brutal.Vulkan.Abstractions.dll NOTICE.txt licenses/BRUTAL-LICENSE.txt licenses/BRUTAL-VULKAN-ABSTRACTIONS-THIRD-PARTY-NOTICES.txt
+cover bundle:Brutal.Gltf.dll NOTICE.txt licenses/BRUTAL-LICENSE.txt licenses/BRUTAL-GLTF-THIRD-PARTY-NOTICES.txt
+cover bundle:Brutal.*.dll NOTICE.txt licenses/BRUTAL-LICENSE.txt
+cover bundle:HarfBuzzSharp.dll licenses/HarfBuzzSharp-LICENSE.txt licenses/HarfBuzzSharp-THIRD-PARTY-NOTICES.txt
+cover bundle:CommunityToolkit.HighPerformance.dll licenses/CommunityToolkit.HighPerformance-License.md licenses/CommunityToolkit.HighPerformance-ThirdPartyNotices.txt
+cover bundle:Microsoft.Extensions.ObjectPool.dll licenses/dotnet-LICENSE.txt licenses/Microsoft.Extensions.ObjectPool-THIRD-PARTY-NOTICES.txt
+cover bundle:Microsoft.Extensions.*.dll licenses/dotnet-LICENSE.txt licenses/dotnet-THIRD-PARTY-NOTICES.txt
+# .NET's own libraries.
+cover bundle:System.dll licenses/dotnet-LICENSE.txt licenses/dotnet-THIRD-PARTY-NOTICES.txt
+cover bundle:System.*.dll licenses/dotnet-LICENSE.txt licenses/dotnet-THIRD-PARTY-NOTICES.txt
+cover bundle:Microsoft.CSharp.dll licenses/dotnet-LICENSE.txt licenses/dotnet-THIRD-PARTY-NOTICES.txt
+cover bundle:Microsoft.VisualBasic*.dll licenses/dotnet-LICENSE.txt licenses/dotnet-THIRD-PARTY-NOTICES.txt
+cover bundle:Microsoft.Win32.*.dll licenses/dotnet-LICENSE.txt licenses/dotnet-THIRD-PARTY-NOTICES.txt
+cover bundle:mscorlib.dll licenses/dotnet-LICENSE.txt licenses/dotnet-THIRD-PARTY-NOTICES.txt
+cover bundle:netstandard.dll licenses/dotnet-LICENSE.txt licenses/dotnet-THIRD-PARTY-NOTICES.txt
+cover bundle:WindowsBase.dll licenses/dotnet-LICENSE.txt licenses/dotnet-THIRD-PARTY-NOTICES.txt

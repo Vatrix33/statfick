@@ -1,0 +1,4 @@
+# The texts shipped in the packages (Q10) stay byte for byte as their packages give them (some with CRLF line ends)
+# on every checkout: the publish compares them with the packages' own files.
+NOTICE.txt -text
+licenses/** -text

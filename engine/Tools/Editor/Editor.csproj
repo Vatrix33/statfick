@@ -6,6 +6,19 @@
     <RootNamespace>Statventure.Editor</RootNamespace>
     <AssemblyName>Statventure.Editor</AssemblyName>
   </PropertyGroup>
+  <!-- A runtime publish (Tools/Scripts/publish.sh, publish.ps1; Docs/Packaging.md, "Building them"): self-contained
+       (M12-3), one single-file program with the native libraries beside it (Q5), not trimmed (M12-3: the record system
+       finds its kinds by reflection), a GUI program on Windows, no console (Q6). The symbols are embedded with paths from
+       the repo's root (Q7) for every assembly of the program, the engine's too, so the publish passes those as global
+       properties (DebugType=embedded, ContinuousIntegrationBuild=true). Builds without a runtime (build.sh's dev
+       layout, the tests) stay as they are. -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>false</IncludeNativeLibrariesForSelfExtract>
+    <PublishTrimmed>false</PublishTrimmed>
+    <OutputType Condition="$(RuntimeIdentifier.StartsWith('win'))">WinExe</OutputType>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../Engine/Statventure/Statventure.csproj" />
   </ItemGroup>

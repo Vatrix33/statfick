@@ -7,6 +7,8 @@
 #   - Vulkan on the CPU (Mesa's lavapipe: the cloud has no GPU; the tests pass on it)
 #   - fontconfig, Xvfb and the libraries Electron needs (reference harnesses; Chromium runs under Xvfb)
 #   - Pillow (the reference scripts crop screenshots with it)
+#   - binutils and cabextract (the packages, M12: check-packages.sh reads the native libraries' needs with objdump;
+#     publish.sh takes the Visual C++ runtime out of Microsoft's redistributable with cabextract)
 #   - Electron 44.5.0 (Chromium 152) in the cache Tools/Scripts/chromium.sh uses
 set -uo pipefail
 export DEBIAN_FRONTEND=noninteractive
@@ -17,7 +19,7 @@ apt-get install -y -qq --no-install-recommends \
   fontconfig xvfb xauth \
   libgtk-3-0t64 libnss3 libasound2t64 libgbm1 libxss1 libxtst6 libatk-bridge2.0-0t64 libcups2t64 \
   libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libpango-1.0-0 libcairo2 \
-  python3-pil >/dev/null || echo "setup: some packages failed to install"
+  python3-pil binutils cabextract >/dev/null || echo "setup: some packages failed to install"
 ELECTRON_DIR="$HOME/.cache/stat-fick-build/electron-44.5.0"
 mkdir -p "$ELECTRON_DIR"
 (
