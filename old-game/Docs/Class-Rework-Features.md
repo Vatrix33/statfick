@@ -28,8 +28,11 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
 - Batch 3 (approved 2026-11-10, Grand Theft still on a critical hit): the archer's path (Hunter, Sharpshooter, Blood Hunter, Demon Hunter, Drakeslayer, Monster
   Hunter), the rogue's path (Assassin, Ambusher, Fencer, Poisoner, Shadow, Eminence, Stalker, Thief, Trap Layer, Trap
   Master) and weapons and spells together (Spellblade, Spell Sniper, Hexblade, Nullblade, Spellbreaker).
-- Batch 4, for review: the mage's path (Spellcaster, Wizard, Sorcerer, Great Mage, Scholar, Wise Man, Archivist,
+- Batch 4 (approved 2026-11-10): the mage's path (Spellcaster, Wizard, Sorcerer, Great Mage, Scholar, Wise Man, Archivist,
   Chronomancer, Mirror Mage, Dreamweaver, Elemental Siphon, Sage, Energist, Psykic).
+- Batch 5, for review: the eleven other elemental mages on the Hierophant's template (Aeromancer, Aquamancer,
+  Botanomancer, Cryomancer, Electromancer, Geomancer, Hemomancer, Luxomancer, Necromancer, Pyromancer, Umbramancer) and
+  the masters of elements (Avatar, Stormcaller, Sunstrider, Plaguebinder).
 
 # The sample of four (approved 2026-11-10)
 
@@ -918,7 +921,7 @@ Identity: The mage-killer: shrugs off and shuts down enemy spells.
 Why: it fits; Countercast fizzled a spell one time in four while Guarding, too seldom to count on, and both features
 grow a little for a blue class.
 
-# Batch 4: the mage's path (for review)
+# Batch 4: the mage's path (approved 2026-11-10)
 
 ## Spellcaster
 
@@ -1151,3 +1154,230 @@ Identity: Fights with its own mind instead of many spells: psychic attacks and b
 Why: an exception to the one-skill rule like the Ki Warrior (your answer, C27): its four skills stand in for the
 spells it doesn't know, and keep their shape. Its passive also makes them a little cheaper, since a Psykic lives on
 Mana, and the lance stuns a little more often.
+
+# Batch 5: the elemental mages and the masters of elements (for review)
+
+## The eleven elemental mages, on the Hierophant's template
+
+All twelve share one shape (the Hierophant's, approved with the sample): 9 levels, rarity no colour, Requires: Level 20 ·
+Spellcaster 7 or Wizard 7 · Know at least 7 spells of the element. As an exception to the one-skill rule (C21) each has
+two skills and two passives. **Levels 1, 4, 6 and 8 are the same for all of them:**
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Element spell power +10% | Element spell power +10% |
+| 4 | Element spells cost 10% less Mana | Element spells cost 10% less Mana and 30% less to learn |
+| 6 | Maximum Mana +10% | Maximum Mana +10% |
+| 7 | Element spell damage +15% | *each mage's own second passive (below)* |
+| 8 | Element spells cost 30% less to learn | Element spell damage +15% |
+
+Below, each mage's own levels (2, 3, 5, 7, 9). Level 2 now gives two stats, as the Hierophant's always did. The great
+skill at level 9 becomes once per battle, a step smaller, unless it is one of the big bursts that stays once a day (a
+stun on every enemy, the great party heal, an army of the dead, the blood apotheosis), as the rules say.
+
+### Aeromancer
+
+Identity: The Wind mage: swift casting that makes the whole party faster and harder to hit.
+
+| Level | Before | Remade |
+|---|---|---|
+| 2 | Speed +5% | Speed and Intelligence +5% |
+| 3 | **Tailwind** (skill, once per battle, 1 AP): every ally +20% Speed and Evasion for 2 turns | **Tailwind** (skill, once per battle, 1 AP): every ally +20% Speed and Evasion for 2 turns |
+| 5 | **Weightless Casting** (passive): Wind spells use 1 fewer AP (at least 1) | **Weightless Casting** (passive): Wind spells use 1 fewer AP (at least 1) |
+| 7 | Wind spell damage +15% | **Gale Step** (passive): each Wind spell you cast gives you 5% Speed for the battle, up to 15% (new) |
+| 9 | **Eye of the Storm** (skill, once a day, 1 AP): every ally +30% Speed and Evasion for 3 turns; Wind spell power +40% | **Eye of the Storm** (skill, capstone; once per battle, 1 AP): every ally +25% Speed and Evasion for 3 turns; Wind spell power +30% |
+
+### Aquamancer
+
+Identity: The Water mage: efficient spells, restoring itself, and casting twice.
+
+| Level | Before | Remade |
+|---|---|---|
+| 2 | Mind +5% | Mind and Wisdom +5% |
+| 3 | **Replenishing Tide** (skill, once per battle, 1 AP): restore 20% HP and 15% Mana | **Replenishing Tide** (skill, once per battle, 1 AP): restore 20% HP and 15% Mana |
+| 5 | **Living Current** (passive): Water spells +10% power and another 10% cheaper | **Living Current** (passive): Water spells +10% power and another 10% cheaper |
+| 7 | Water spell damage +15% | **Ebb and Flow** (passive): each Water spell you cast gives back 2% of your maximum Mana (new) |
+| 9 | **Sovereign Tide** (skill, once a day): next Water spell +25% power and cast a second time for free | **Sovereign Tide** (skill, capstone; once per battle): your next Water spell is cast a second time at 75% power, for no Mana or AP |
+
+### Botanomancer
+
+Identity: The Nature mage: healing over time and animal allies.
+
+| Level | Before | Remade |
+|---|---|---|
+| 2 | Wisdom +5% | Wisdom and Vitality +5% |
+| 3 | **Regenerative Bloom** (skill, once per battle, 1 AP): every ally restores 5% HP at the start of their turn for 3 turns | **Regenerative Bloom** (skill, once per battle, 1 AP): every ally restores 5% HP at the start of their turn for 3 turns |
+| 5 | **Cycle of Growth** (passive): Nature spells +15% power, maximum HP +10% | **Cycle of Growth** (passive): Nature spells +15% power, maximum HP +10% |
+| 7 | Nature spell damage +15% | **Deep Roots** (passive): your healing over time lasts 1 turn longer and heals 20% more (new) |
+| 9 | **Call of the Ancient Pack** (skill, once a day, 2 AP): summon 2 animals | **Call the Grove** (skill, capstone; once per battle, 2 AP): summon a treant ally, its level half yours, for the battle (new) |
+
+Why the change at 9: the draft found Call of the Ancient Pack to be the Beastmaster's Call the Pack. Its animal ally
+becomes a treant, the forest's own, which keeps the identity without copying the Beastmaster.
+
+### Cryomancer
+
+Identity: The Ice mage: freezes enemies in place and weathers their attacks.
+
+| Level | Before | Remade |
+|---|---|---|
+| 2 | Wisdom +5% | Wisdom and Intelligence +5% |
+| 3 | **Flash Freeze** (skill, once per battle, 2 AP): stun one enemy for 1 turn | **Flash Freeze** (skill, once per battle, 2 AP): stun one enemy for 1 turn |
+| 5 | **Permafrost** (passive): Ice spells +10% power, 5% less damage taken | **Permafrost** (passive): Ice spells +10% power, 5% less damage taken |
+| 7 | Ice spell damage +15% | **Frostbite** (passive): Ice spells slow their target: 10% less Speed for 2 turns |
+| 9 | **Absolute Dominion** (skill, once a day; 15% Mana, 3 AP): stun every enemy for 1 turn | **Absolute Dominion** (skill, capstone; once a day; 15% Mana, 3 AP): stun every enemy for 1 turn |
+
+### Electromancer
+
+Identity: The Lightning mage: overcharged bursts and storms over every enemy.
+
+| Level | Before | Remade |
+|---|---|---|
+| 2 | Intelligence +5% | Intelligence and Speed +5% |
+| 3 | **Voltaic Overcharge** (skill, once per battle): next Lightning spell +50% power, 20% more Mana | **Voltaic Overcharge** (skill, once per battle): next Lightning spell +50% power, 20% more Mana |
+| 5 | **Static Momentum** (passive): Lightning spells +20% power; Speed +5% | **Static Momentum** (passive): Lightning spells +15% power; Speed +5% |
+| 7 | Lightning spell damage +15% | **Arc** (passive): a Lightning spell on one enemy has a 20% chance to jump to a second for half its damage (new) |
+| 9 | **Chain Overload** (skill, once a day; 12% Mana, 2 AP): Lightning damage to every enemy | **Chain Overload** (skill, capstone; once per battle; 12% Mana, 2 AP): Lightning damage to every enemy |
+
+Static Momentum's power comes down 5 points to pay for Arc, as Perfect Formula's did for the Hierophant's Resonance.
+
+### Geomancer
+
+Identity: The Earth mage: stone defence and heavy, armour-breaking strikes.
+
+| Level | Before | Remade |
+|---|---|---|
+| 2 | Vitality +5% | Vitality and Wisdom +5% |
+| 3 | **Stoneform** (skill, once per battle): 3 turns of +50% Armor and −25% Evasion | **Stoneform** (skill, once per battle): 3 turns of +50% Armor and −25% Evasion |
+| 5 | **Stone Soul** (passive): Armor +15%; 25% less Earth spell damage taken | **Stone Soul** (passive): Armor +15%; 25% less Earth spell damage taken |
+| 7 | Earth spell damage +15% | **Tremor** (passive): Earth spells lower their target's Armor by 10% for 2 turns |
+| 9 | **Worldshaker** (skill, once a day; 10% Mana, 2 AP): heavy Earth damage to one enemy, 25% Armor Pierce | **Worldshaker** (skill, capstone; once per battle; 10% Mana, 2 AP): heavy Earth damage to one enemy, 25% Armor Pierce |
+
+### Hemomancer
+
+Identity: The Blood mage: spends its own blood as fuel for its magic.
+
+| Level | Before | Remade |
+|---|---|---|
+| 2 | Vitality +5% | Vitality and Intelligence +5% |
+| 3 | **Blood Channel** (skill, once per battle): give 15% of maximum HP (not below 1) for 30% Mana | **Blood Channel** (skill, once per battle): give 15% of maximum HP (not below 1) for 30% Mana |
+| 5 | **Blood Is Power** (passive): Blood spells +25% power; maximum HP +5% | **Blood Is Power** (passive): Blood spells +20% power; maximum HP +5% |
+| 7 | Blood spell damage +15% | **Sanguine Flow** (passive): Blood spells heal you for 10% of the damage they deal (new) |
+| 9 | **Crimson Apotheosis** (skill, once a day): give 25% HP for 50% Mana; 3 turns of +60% Blood spell power and +15% all stats | **Crimson Apotheosis** (skill, capstone; once a day): give 25% HP for 50% Mana; 3 turns of +60% Blood spell power and +15% all stats |
+
+Blood Is Power comes down 5 points to pay for Sanguine Flow, which gives back some of the blood it spends.
+
+### Luxomancer
+
+Identity: The Holy mage: heals the party and wards off darkness.
+
+| Level | Before | Remade |
+|---|---|---|
+| 2 | Mind +5% | Mind and Wisdom +5% |
+| 3 | **Healing Halo** (skill, once per battle, 1 AP): heal every ally (grows with Mind) | **Healing Halo** (skill, once per battle, 1 AP): heal every ally (grows with Mind) |
+| 5 | **Sacred Radiance** (passive): Holy spells +15% power; 20% less Dark spell damage taken | **Sacred Radiance** (passive): Holy spells +15% power; 20% less Dark spell damage taken |
+| 7 | Holy spell damage +15% | **Light That Mends** (passive): your damaging Holy spells heal the ally with the least HP for 10% of the damage (new) |
+| 9 | **Miracle** (skill, once a day; 15% Mana, 2 AP): greatly heal every ally and remove one debuff from each | **Miracle** (skill, capstone; once a day; 15% Mana, 2 AP): greatly heal every ally and remove one debuff from each |
+
+### Necromancer
+
+Identity: The Death mage: raises the undead to fight for it.
+
+| Level | Before | Remade |
+|---|---|---|
+| 2 | Mind +5% | Mind and Intelligence +5% |
+| 3 | **Raise Thrall** (skill, once per battle, 2 AP): summon an undead thrall (two can stand at once) | **Raise Thrall** (skill, once per battle, 2 AP): summon an undead thrall (two can stand at once) |
+| 5 | **Grave Authority** (passive): Death spells +15% power; summons +15% base stats | **Grave Authority** (passive): Death spells +15% power; summons +15% base stats |
+| 7 | Death spell damage +15% | **Death's Toll** (passive): each enemy that dies restores 5% of your maximum Mana and gives your summons 5% more stats for the battle, up to 25% (new) |
+| 9 | **Army of the Dead** (skill, once a day; 15% Mana, 3 AP): summon 3 undead thralls | **Army of the Dead** (skill, capstone; once a day; 15% Mana, 3 AP): summon 3 undead thralls |
+
+### Pyromancer
+
+Identity: The Fire mage: raw destruction at the price of its own safety.
+
+| Level | Before | Remade |
+|---|---|---|
+| 2 | Intelligence +5% | Intelligence and Mind +5% |
+| 3 | **Kindle** (skill, once per battle): next Fire spell +40% power, 25% less Mana | **Kindle** (skill, once per battle): next Fire spell +40% power, 25% less Mana |
+| 5 | **Kindled Soul** (passive): Fire spells deal 15% more damage; 20% less Fire spell damage taken | **Kindled Soul** (passive): Fire spells deal 15% more damage; 20% less Fire spell damage taken |
+| 7 | Fire spell damage +15% | **Ablaze** (passive): Fire spells set their target burning: 2% of its maximum HP at the start of each of its turns for 2 turns (new) |
+| 9 | **Living Inferno** (skill, once a day): 3 turns of +50% Fire power, 25% less Mana; you take 10% more damage | **Living Inferno** (skill, capstone; once per battle): 3 turns of +40% Fire power, 25% less Mana; you take 10% more damage |
+
+### Umbramancer
+
+Identity: The Dark mage: hides in shadow and weakens every enemy.
+
+| Level | Before | Remade |
+|---|---|---|
+| 2 | Intelligence +5% | Intelligence and Mind +5% |
+| 3 | **Shadow Veil** (skill, once per battle): 2 turns of +50% Evasion and +20% Dark spell power | **Shadow Veil** (skill, once per battle): 2 turns of +50% Evasion and +20% Dark spell power |
+| 5 | **Eclipse Born** (passive): Dark spells +20% power; Holy spells deal 10% more to you | **Eclipse Born** (passive): Dark spells +15% power; Holy spells deal 10% more to you |
+| 7 | Dark spell damage +15% | **Creeping Dark** (passive): Dark spells lower their target's Accuracy by 10% for 2 turns |
+| 9 | **Total Eclipse** (skill, once a day; 12% Mana, 2 AP): every enemy loses 20% of all stats for 3 turns | **Total Eclipse** (skill, capstone; once per battle; 12% Mana, 2 AP): every enemy loses 15% of all stats for 3 turns |
+
+Eclipse Born comes down 5 points to pay for Creeping Dark.
+
+## Avatar
+
+4 levels · rarity purple (raised on your note) · Requires: Level 1 · At least 4 core elemental mages at Level 5
+Identity: Master of the six core elements: wields them all at once and always finds the enemy's weakness.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Core elemental spells +20% power and +10% damage | Core elemental spells +20% power and +10% damage |
+| 2 | Core elemental spells cost 15% less; 15% less damage from those elements | Core elemental spells cost 15% less; 15% less damage from those elements |
+| 3 | **Prismatic Soul** (passive): core elemental spells count as all six elements and use the target's lowest resistance | **Prismatic Soul** (passive): core elemental spells count as all six elements and use the target's lowest resistance |
+| 4 | **Avatar State** (skill, once a day): 3 turns of core elemental spells +60% power, 30% less Mana, 1 fewer AP | **Avatar State** (skill, capstone; once per battle): 3 turns of core elemental spells +40% power, 30% less Mana, 1 fewer AP |
+
+Why: it fits; Avatar State works every battle at a step less power, a purple class's peak now that its rarity rose.
+
+## Stormcaller
+
+7 levels · rarity purple · Requires: Level 30 · Aeromancer 5 · Electromancer 5
+Identity: Wind and Lightning in rhythm: alternates the two to build up a storm.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Wind and Lightning spell power +5% | Wind and Lightning spell power +5% |
+| 2 | Speed +5% | Speed +5% |
+| 3 | **Storm Rhythm** (passive): alternating Wind and Lightning spells builds up to 20 charges, each +5% spell power | **Storm Rhythm** (passive): alternating Wind and Lightning spells builds up to 10 charges, each +3% spell power |
+| 4 | Wind and Lightning spells cost 5% less | Wind and Lightning spells cost 5% less |
+| 5 | Lightning spell power +5% | Wind and Lightning spell power +5% |
+| 6 | Wind spell power +5% | A Wind spell makes your next Lightning spell cost 10% less, and the other way round (new) |
+| 7 | **Stormburst** (skill, once per battle): spend all charges: 10 damage per charge to every enemy; allies' turn bars +60 per charge | **Stormburst** (skill, capstone; once per battle): spend all charges: Lightning damage of 8 per charge plus 0.5× Intelligence to every enemy; allies' turn bars +40 per charge |
+
+Why: Storm Rhythm could reach +100% spell power (20 charges of 5%), far beyond anything else; now it tops out at +30%
+over 10 charges, which a battle actually reaches. Stormburst's flat damage grows with the caster, and level 6 rewards
+the rhythm itself. Its two single-element levels merge.
+
+## Sunstrider
+
+6 levels · rarity purple · Requires: Level 25 · Luxomancer 5 · Priest 5
+Identity: The sun's holy power: strongest by day.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Holy spells 10% cheaper by day, 5% at night | Holy spells 10% cheaper by day, 5% at night |
+| 2 | Speed +5% by day | Speed +5% by day |
+| 3 | **Solar Reserve** (passive): Holy spell power +15% by day (06:00–18:00), +5% at night | **Solar Reserve** (passive): Holy spell power +15% by day (06:00–18:00), +5% at night |
+| 4 | Maximum Mana +10% | Maximum Mana +10% |
+| 5 | Holy spells 5% cheaper at all hours | By day your healing spells heal 15% more (new) |
+| 6 | **Sunflare** (skill, once per battle): 30 Holy damage to every enemy by day, 15 at night | **Sunflare** (skill, capstone; once per battle): Holy damage of 30 plus 0.5× Wisdom to every enemy, half again as much by day |
+
+Why: Sunflare's flat 30 damage was nothing at the levels a purple class is played; it now grows with the caster. The
+second cheaper-spells level gives way to stronger healing by day, for a class that comes through the Priest.
+
+## Plaguebinder
+
+6 levels · rarity blue (raised on your note) · Requires: Level 25 · Warlock 5 or Necromancer 5
+Identity: Spreads sickness: poisons and curses that jump from enemy to enemy.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Dark and Death spell power +5% | Dark and Death spell power +5% |
+| 2 | Mind +5% | Mind +5% |
+| 3 | **Contagion** (passive): when an enemy dies poisoned or cursed, what's left spreads to one other enemy | **Contagion** (passive): when an enemy dies poisoned or cursed, what's left spreads to two other enemies |
+| 4 | Dark and Death spells cost 5% less | Dark and Death spells cost 5% less |
+| 5 | Spell power +5% | Your poisons and curses last 1 turn longer |
+| 6 | **Pestilent Cloud** (skill, once per battle): poison every enemy for 6% of maximum HP a turn for 3 turns | **Pestilent Cloud** (skill, capstone; once per battle): poison every enemy for 6% of maximum HP a turn for 3 turns |
+
+Why: it fits; now blue, its sickness spreads wider and lingers longer.

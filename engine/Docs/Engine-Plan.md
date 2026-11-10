@@ -134,8 +134,8 @@ rarity, 130 current and 40 new. The features round: a sample of four remade clas
 rest group by group (C22) in `../old-game/Docs/Class-Rework-Features.md` (batch 1, the starting classes and the melee
 fighters, approved 2026-11-10; batch 2, the knights and defenders, the holy warriors and the unarmed fighters, approved
 the same day, the Ki Warrior after its revision with two more Ki skills, C26; batch 3, the archer's path, the rogue's
-path and weapons and spells together, approved, Grand Theft still on a critical hit; batch 4, the mage's path, waiting
-for the user's review); one passive and one skill per class, but the
+path and weapons and spells together, approved, Grand Theft still on a critical hit; batch 4, the mage's path, approved;
+batch 5, the elemental mages and the masters of elements, waiting for the user's review); one passive and one skill per class, but the
 elemental mages, the item classes, the Vampire Lord, the Ki Warrior and the Psykic (C21, C24, C26, C27). Once every class is approved, both drafts move
 to `Docs/Port-Tasks/10_Class_Rework/` beside the task (C23). Nothing changes in the old game. **Engine work goes on
 uninterrupted**; don't count task 10 as the engine's current task.
@@ -1988,7 +1988,8 @@ The features round (2026-11-10):
   fighters) approved the same day but the Ki Warrior (C26); the revised Ki Warrior taken as approved when the user went
   on without notes ("Go ahead"). Batch 3 (the archer's path, the rogue's path, weapons and spells together) approved the
   same day, but the Thief's Grand Theft still triggers on a critical hit, as before (the user's note; the draft had let
-  any hit steal); its new share of the enemy's money stays. Batch 4 (the mage's path) written the same day for review.
+  any hit steal); its new share of the enemy's money stays. Batch 4 (the mage's path) approved the same day. Batch 5
+  (the eleven other elemental mages on the Hierophant's template, the masters of elements) written for review.
 - C27 **The Psykic is an exception to the one-skill rule too**, like the Ki Warrior (asked before batch 4): its four
   skills stand in for the spells it doesn't know, with one passive. (Not folded into one skill.)
 - C26 **The Ki Warrior is an exception to the one-skill rule** (the user: "I wanted it to have many skills to simulate a
