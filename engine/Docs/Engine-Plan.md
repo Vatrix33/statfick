@@ -131,7 +131,8 @@ Poisoner reworked as an existing class, no class removed, old saves ignored, C13
 instead of two, C15 identities as a short playstyle, C16–C19 the user's review notes and the questions they raised). **The draft is reviewed and the user's notes are
 applied** (2026-11-10): `../old-game/Docs/Class-Rework-Draft.md`, every class's identity, levels, requirements and
 rarity, 130 current and 40 new. The features round: a sample of four remade classes approved (C20, C21), then the
-rest group by group (C22) in `../old-game/Docs/Class-Rework-Features.md`; one passive and one skill per class, but the
+rest group by group (C22) in `../old-game/Docs/Class-Rework-Features.md` (batch 1, the starting classes and the melee
+fighters, written 2026-11-10 and waiting for the user's review); one passive and one skill per class, but the
 elemental mages, the item classes and the Vampire Lord (C21, C24). Once every class is approved, both drafts move
 to `Docs/Port-Tasks/10_Class_Rework/` beside the task (C23). Nothing changes in the old game. **Engine work goes on
 uninterrupted**; don't count task 10 as the engine's current task.
