@@ -30,7 +30,7 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
   Master) and weapons and spells together (Spellblade, Spell Sniper, Hexblade, Nullblade, Spellbreaker).
 - Batch 4 (approved 2026-11-10): the mage's path (Spellcaster, Wizard, Sorcerer, Great Mage, Scholar, Wise Man, Archivist,
   Chronomancer, Mirror Mage, Dreamweaver, Elemental Siphon, Sage, Energist, Psykic).
-- Batch 5, for review: the eleven other elemental mages on the Hierophant's template (Aeromancer, Aquamancer,
+- Batch 5 (approved 2026-11-10, the Stormcaller's peak kept at +100%): the eleven other elemental mages on the Hierophant's template (Aeromancer, Aquamancer,
   Botanomancer, Cryomancer, Electromancer, Geomancer, Hemomancer, Luxomancer, Necromancer, Pyromancer, Umbramancer) and
   the masters of elements (Avatar, Stormcaller, Sunstrider, Plaguebinder).
 
@@ -1155,7 +1155,7 @@ Why: an exception to the one-skill rule like the Ki Warrior (your answer, C27): 
 spells it doesn't know, and keep their shape. Its passive also makes them a little cheaper, since a Psykic lives on
 Mana, and the lance stuns a little more often.
 
-# Batch 5: the elemental mages and the masters of elements (for review)
+# Batch 5: the elemental mages and the masters of elements (approved 2026-11-10)
 
 ## The eleven elemental mages, on the Hierophant's template
 
@@ -1339,15 +1339,15 @@ Identity: Wind and Lightning in rhythm: alternates the two to build up a storm.
 |---|---|---|
 | 1 | Wind and Lightning spell power +5% | Wind and Lightning spell power +5% |
 | 2 | Speed +5% | Speed +5% |
-| 3 | **Storm Rhythm** (passive): alternating Wind and Lightning spells builds up to 20 charges, each +5% spell power | **Storm Rhythm** (passive): alternating Wind and Lightning spells builds up to 10 charges, each +3% spell power |
+| 3 | **Storm Rhythm** (passive): alternating Wind and Lightning spells builds up to 20 charges, each +5% spell power | **Storm Rhythm** (passive): alternating Wind and Lightning spells builds up to 25 charges, each +4% spell power |
 | 4 | Wind and Lightning spells cost 5% less | Wind and Lightning spells cost 5% less |
 | 5 | Lightning spell power +5% | Wind and Lightning spell power +5% |
 | 6 | Wind spell power +5% | A Wind spell makes your next Lightning spell cost 10% less, and the other way round (new) |
 | 7 | **Stormburst** (skill, once per battle): spend all charges: 10 damage per charge to every enemy; allies' turn bars +60 per charge | **Stormburst** (skill, capstone; once per battle): spend all charges: Lightning damage of 8 per charge plus 0.5× Intelligence to every enemy; allies' turn bars +40 per charge |
 
-Why: Storm Rhythm could reach +100% spell power (20 charges of 5%), far beyond anything else; now it tops out at +30%
-over 10 charges, which a battle actually reaches. Stormburst's flat damage grows with the caster, and level 6 rewards
-the rhythm itself. Its two single-element levels merge.
+Why: Storm Rhythm keeps its peak of +100% spell power (the user's note: "I want Stormcaller to peak out at +100% spell
+power"), now over 25 charges of 4% instead of 20 of 5%, so the storm takes a little longer to build. Stormburst's flat
+damage grows with the caster, and level 6 rewards the rhythm itself. Its two single-element levels merge.
 
 ## Sunstrider
 
