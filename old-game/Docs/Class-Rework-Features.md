@@ -7,8 +7,8 @@ reworked classes from these drafts once every class is approved (C23).
 
 **The rules** (the sample's, approved 2026-11-10, C21):
 - A class has **one passive and one skill**. Exceptions: the twelve elemental mages, the classes acquired by an item
-  (Dragonkin, Lich, Madman, Sharmat, Vampire) and the Vampire Lord; the enemy-only classes (Raid Boss, Beast, Great
-  Beast, Monster) stay outside the rule.
+  (Dragonkin, Lich, Madman, Sharmat, Vampire), the Vampire Lord, and the Ki Warrior, whose Ki skills stand in for spells
+  (C26); the enemy-only classes (Raid Boss, Beast, Great Beast, Monster) stay outside the rule.
 - Every level does something worth taking; repeated small bonuses are merged rather than spread over several levels.
 - Skills that worked once a day become once per battle where they aren't a big burst, so they are used, not saved.
 - No penalties that make a feature miss more than it helps.
@@ -22,7 +22,7 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
 - The sample of four (approved 2026-11-10): Warrior, Vampire, Hierophant, Reaver.
 - Batch 1 (approved 2026-11-10): the starting classes (Archer, Mage, Rogue) and the melee fighters (Barbarian,
   Berserker, Champion, Gladiator, Slayer, Soldier, Weaponmaster).
-- Batch 2, for review: the knights and defenders (Knight, Heavy Knight, Guardian, Bulwark, Echo Knight, Black Knight),
+- Batch 2 (approved 2026-11-10; the Ki Warrior revised with two more Ki skills, for review): the knights and defenders (Knight, Heavy Knight, Guardian, Bulwark, Echo Knight, Black Knight),
   the holy warriors (Cleric, Paladin, Death Paladin, Oathsworn, Templar) and the unarmed fighters (Brawler, Monk, Elder
   Monk, Ki Warrior).
 
@@ -288,7 +288,7 @@ Why: its skill shared the name Perfect Form with the Elder Monk's passive, so it
 every battle. Armor Pierce and Crit Rating merge, freeing level 5 for the off-hand, so a master of every weapon also
 fights well with two. Weapon power at level 6 comes down a little to pay for that.
 
-# Batch 2: knights and defenders, holy warriors, unarmed fighters (for review)
+# Batch 2: knights and defenders, holy warriors, unarmed fighters (approved 2026-11-10, but the Ki Warrior, revised for review)
 
 ## Knight
 
@@ -553,13 +553,19 @@ Identity: Runs on Ki, an inner energy gathered during battle and spent on bursts
 | 2 | Strength and Dexterity +5% | Strength and Dexterity +5% |
 | 3 | Weapon Accuracy +10%, spell power +5% | Weapon Accuracy +10%, spell power +5% |
 | 4 | **Ki Focus** (skill, no limit): spend 1 Ki: next attack or spell +20% power | **Ki Focus** (skill, no limit, no AP): spend 1 Ki: your next attack or spell gains 20% power |
-| 5 | **Ki Infusion** (skill, once per battle): spend 2 Ki: restore 40% Mana plus half your Mind | **Ki to Mana:** at the start of your turn, if your Mana is below 25%, 1 Ki turns into 20% of your maximum Mana (new) |
-| 6 | Strength +5%; spells cost 5% less Mana | Strength +5%; spells cost 5% less Mana |
+| 5 | **Ki Infusion** (skill, once per battle): spend 2 Ki: restore 40% Mana plus half your Mind | **Ki Blast** (skill, no limit but Ki; 2 AP): spend 2 Ki: hurl your Ki at one enemy for Basic damage of 30 plus 0.4× Strength and 0.4× Intelligence (new) |
+| 6 | Strength +5%; spells cost 5% less Mana | Strength and Speed +5%; spells cost 5% less Mana |
 | 7 | **Flow of Ki** (passive): regain 1 Ki every second turn | **Flow of Ki:** regain 1 Ki every second turn (no longer a passive) |
-| 8 | Speed +5% | Speed +5% |
+| 8 | Speed +5% | **Ki Wave** (skill, no limit but Ki; 3 AP): spend 3 Ki: release a wave of Ki that deals Basic damage of 20 plus 0.3× Strength and 0.3× Intelligence to every enemy (new) |
 | 9 | Weapon power and spell power +10% | Weapon power and spell power +10% |
 | 10 | **Ki Overdrive** (skill, once per battle): spend 3 Ki: +45% damage with attacks and spells for 2 turns | **Overflowing Ki** (passive, capstone): while you hold 3 or more Ki, your attacks and spells deal 20% more damage and you take 10% less damage |
 
-Why: it had two passives and three skills; now Ki Focus is its one skill and Overflowing Ki its one passive. Gaining
-Ki stays (as plain features at levels 1 and 7), Ki Infusion becomes an automatic Mana rescue, and the capstone turns
-Ki into a choice: spend it on Focus for bursts, or hold three for a lasting edge. A purple class's peak.
+Why: the Ki Warrior is the one fighter whose skills stand in for spells, so it keeps several (C26): Ki Focus to
+empower an attack or a spell, Ki Blast and Ki Wave as its own attacks on one enemy or all of them, paid with Ki instead
+of Mana and scaling on Strength and Intelligence alike, so they suit blade and spell. Its one passive, Overflowing Ki,
+turns Ki into a choice: spend it, or hold three for a lasting edge. Gaining Ki stays as plain features (levels 1 and
+7). Level 8's Speed moves into level 6; the old Ki Infusion (Ki into Mana) gives its place to Ki Blast. A purple class's
+peak.
+Revised on the user's note (2026-11-10): "I wanted it to have many skills to simulate a spell replacement. Overflowing
+Ki can stay, but add 2 more skills to that class that use Ki points." (The first version had Ki Focus as its only skill
+and an automatic "Ki to Mana" at level 5.)
