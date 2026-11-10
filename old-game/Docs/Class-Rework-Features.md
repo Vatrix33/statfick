@@ -45,8 +45,11 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
   current class has been gone through.
 - Batch 9 (approved 2026-11-10, Hotshot and Spell Sparkler requirements per C28): the new classes, part 1: the first twelve of the task's list (Acolyte, Bruiser, Spell Sparkler,
   Hermit, Blade Dancer, Hotshot, Juggernaut, Rearguard, Vanguard, Caravanist, Acrobat, Explorer).
-- Batch 10, for review: the new classes, part 2: the other thirteen of the task's list (Smith, Mastersmith, Tinkerer,
+- Batch 10 (approved 2026-11-10; Mastersmith and Seeker level revisions, C29, C30): the new classes, part 2: the other thirteen of the task's list (Smith, Mastersmith, Tinkerer,
   Informant, Infiltrator, Rune Knight, Martial Artist, Reaper, Ascended, Titan, Seeker, Cycle, Unreality).
+- Batch 11, for review: the new classes, part 3, the last: the seven from `classes/newc/` (Chronicler, Shaman, Elder
+  Shaman, Trickster, Awakened, Warden, Scout) and my eight (Field Medic, Sentinel, Beast Tamer, Sunderer, Camp Cook,
+  Leywalker, Nightwalker, Mentor).
 
 # The sample of four (approved 2026-11-10)
 
@@ -2344,7 +2347,7 @@ Identity: Goes where no one has been: rewarded for discovering new places, enemi
 
 How it plays: a map class that pays off for going everywhere first; the unknown is worth more to it than to anyone.
 
-# Batch 10: the new classes, part 2 (for review)
+# Batch 10: the new classes, part 2 (approved 2026-11-10)
 
 As in batch 9: one column of proposed levels, one passive and one skill, the capstone at the last level, and every
 requirement and skill checked against a turn's 5 AP (C28).
@@ -2559,3 +2562,245 @@ its to change.
 
 How it plays: above gold, for the one who has mastered both the madness and the false dream. Reality itself is
 unreliable around it, and once a battle it decides what the rules are. It also frees the Madman from the veil's price.
+
+# Batch 11: the new classes, part 3, the last (for review)
+
+As in batches 9 and 10. With it, every class has its features.
+
+## Chronicler
+
+5 levels · rarity blue · Requires: Level 20 · Scholar 3 · Defeat 50 different kinds of enemy
+Identity: Keeps the record of every battle: the more of an enemy kind it has fought, the better it fights them.
+
+| Level | Feature |
+|---|---|
+| 1 | Intelligence and Wisdom +5% |
+| 2 | **Bestiary** (passive): for every 10 enemies of a kind you have defeated, you deal 2% more damage to that kind and take 2% less from it, up to 10% each (new) |
+| 3 | +10% Accuracy against kinds you have defeated 10 times or more |
+| 4 | Mind +5%; spells cost 10% less to learn |
+| 5 | **Recall** (skill, capstone; once per battle, no AP): recall everything about one enemy: for 3 turns you deal 25% more damage to it, and your allies 10% more |
+
+How it plays: it grows with the record it keeps: the enemies it has fought most are the ones it beats best.
+
+## Shaman
+
+6 levels · rarity no colour · Requires: Level 10 · Mage 5 · Know 2 Nature and 2 Wind spells
+Identity: Speaks with spirits: raises totems on the battlefield that aid the party until they are broken.
+
+| Level | Feature |
+|---|---|
+| 1 | Wisdom and Mind +5% |
+| 2 | **Raise Totem** (skill, once per battle, 2 AP): raise a totem of your choice that stands until the enemy breaks it: Mending (every ally restores 4% HP each turn), Warding (every ally takes 10% less damage) or Empowering (every ally deals 10% more damage) (new) |
+| 3 | Nature and Wind spell power +10% |
+| 4 | Your totems have 50% more HP (new) |
+| 5 | Maximum Mana +10%; Nature and Wind spells cost 10% less |
+| 6 | **Spirit Bond** (passive, capstone): while one of your totems stands, you restore 4% Mana each turn and your spells gain 10% power (new) |
+
+How it plays: it plants a spirit on the field for the whole party and then protects it; a totem left standing keeps
+giving, to the party and to the Shaman.
+
+## Elder Shaman
+
+4 levels · rarity blue · Requires: Level 45 · Shaman 6
+Identity: The Shaman's elder: commands more and stronger spirits and calls on the ancestors.
+
+| Level | Feature |
+|---|---|
+| 1 | Raise Totem can be used twice a battle, and two of your totems can stand at once |
+| 2 | **Ancestral Voices** (passive): your totems' effects are 50% stronger |
+| 3 | Wisdom +10%; your totems have another 50% more HP |
+| 4 | **Call the Ancestors** (skill, capstone; once per battle, 2 AP): an ancestral spirit, half your level, fights beside the party for the battle, and while it lives your totems can't be broken (new) |
+
+How it plays: two totems at once, each stronger, and at its peak an ancestor who guards them.
+
+## Trickster
+
+5 levels · rarity no colour · Requires: Level 10 · Rogue 5 · At least 60 Luck
+Identity: Fights with tricks: feints, misdirection, and the enemy's own strength turned against it.
+
+| Level | Feature |
+|---|---|
+| 1 | Luck and Dexterity +5% |
+| 2 | **Misdirection** (passive): when an enemy misses you, it has a 25% chance to strike another enemy instead (new) |
+| 3 | Evasion +10% |
+| 4 | Your weapon hits have a 15% chance to take one buff from the target onto yourself (new) |
+| 5 | **Feint** (skill, capstone; once per battle, 1 AP): feint at one enemy: it wastes its next turn striking at nothing (new) |
+
+How it plays: it wants to be attacked and missed, since every miss may hurt the enemy's own side; it steals the enemy's
+blessings and makes one waste a whole turn.
+
+## Awakened
+
+5 levels · rarity purple · Requires: Level 50 · 4 classes at their final level
+Identity: Mastery awakened: rewards a character who masters classes rather than dabbling.
+
+| Level | Feature |
+|---|---|
+| 1 | **Mastery Awakened** (passive): all stats +3% for every class you have at its final level, up to +30% (new) |
+| 2 | Maximum HP and Mana +10% |
+| 3 | Weapon power and spell power +10% |
+| 4 | All stats +5% |
+| 5 | **Awakening** (skill, capstone; once per battle, no AP): for 3 turns, Mastery Awakened's bonus doubles and you take 15% less damage |
+
+How it plays: the reward for finishing classes; the more of them a character has mastered, the stronger it is, and the
+Jack of all Trades' opposite. It also leads to Ascended.
+
+## Warden
+
+6 levels · rarity blue · Requires: Level 30 · Spellbreaker 3
+Identity: Keeps the enemy in check: seals their abilities and wards its allies.
+
+| Level | Feature |
+|---|---|
+| 1 | Wisdom and Vitality +5% |
+| 2 | **Warding** (passive): at the start of each battle, every ally gets a barrier of 8% of their maximum HP (new) |
+| 3 | Armor +10%; 10% less spell damage taken |
+| 4 | Your barriers are 50% stronger, and an ally whose barrier breaks gains 10% Armor for 2 turns (new) |
+| 5 | Your weapon hits have a 20% chance to seal one of the target's skills for 2 turns (new) |
+| 6 | **Seal** (skill, capstone; once per battle, 1 AP): one enemy can't use skills or cast spells for 2 turns (1 turn on a boss) (new) |
+
+How it plays: it shields the whole party before the first blow and takes the enemy's tricks away; the Spellbreaker's
+silence grown into a lock on everything an enemy can do but strike.
+
+## Scout
+
+5 levels · rarity no colour · Requires: Level 5 · Archer 3 · Travel 300 km
+Identity: Ahead of the party: sees encounters coming and chooses whether to fight, avoid or ambush.
+
+| Level | Feature |
+|---|---|
+| 1 | Speed +5%; ranged weapon Accuracy +5% |
+| 2 | **Lookout** (passive): on the map you see an encounter before it starts, and choose: fight, avoid it (escaping before the fight far likelier) or ambush it (new) |
+| 3 | Dexterity +5%; Evasion +10% |
+| 4 | When you ambush, the party acts first and its first attacks deal 15% more damage (new) |
+| 5 | **Scout Ahead** (skill, capstone; once a day, on the map): for the next hour of travel you meet only the encounters you choose (new) |
+
+How it plays: the party's choice of fights; it picks the battles worth having and opens them on its own terms.
+
+## Field Medic
+
+5 levels · rarity no colour · Requires: Level 10 · Use 20 healing items in battle
+Identity: Heals without magic, with bandages and salves.
+
+| Level | Feature |
+|---|---|
+| 1 | Healing items restore 15% more |
+| 2 | **Bandage** (skill, once a turn, 2 AP): bind an ally's wounds: they restore 8% of their maximum HP, no Mana needed (new) |
+| 3 | Vitality and Dexterity +5% |
+| 4 | Once a turn, handing a potion to an ally costs no AP (new) |
+| 5 | **Field Triage** (passive, capstone): your bandages and the healing items you use also cure one poison or debuff, and heal 50% more on an ally below a third of their HP (new) |
+
+How it plays: a healer for any party, needing neither spells nor Mana: steady bandaging every turn, potions handed out
+for free, and the most help where the wounds are worst.
+
+## Sentinel
+
+6 levels · rarity no colour · Requires: Level 25 · Soldier 3
+Identity: Watches and reacts: waits for the enemy to move, then strikes first.
+
+| Level | Feature |
+|---|---|
+| 1 | Vitality and Dexterity +5% |
+| 2 | **Stand Watch** (skill, once a turn; ends your turn): stand ready; the first enemy that acts before your next turn is struck first, at 100% damage plus 10% for each AP you kept (new) |
+| 3 | Weapon Accuracy +10% |
+| 4 | Your Stand Watch strike gains 10 Crit Rating |
+| 5 | Maximum HP and Armor +10% |
+| 6 | **Vigilance** (passive, capstone): if no enemy acts before your next turn while you stand watch, your next turn comes 200 sooner and your next attack deals 20% more (new) |
+
+How it plays: it gives up acting now to strike first later; either the enemy walks into its blade, or it comes back
+sooner and stronger.
+
+## Beast Tamer
+
+5 levels · rarity blue · Requires: Level 15 · Beastmaster 3 · Defeat 50 Beast-class enemies
+Identity: Tames animals in battle (wolves, bears, griffons, and any animal kind added later) to fight for the party.
+
+| Level | Feature |
+|---|---|
+| 1 | Summon spells cost 10% less Mana; Mind +5% |
+| 2 | **Tame** (skill, once per battle, 2 AP): tame an animal enemy below 30% HP and below your level (not a boss): it fights for the party until the battle ends (new) |
+| 3 | Your tamed and summoned animals gain 15% base stats |
+| 4 | Tame works on an animal below 50% HP |
+| 5 | **Pack Bond** (passive, capstone): an animal you tamed that survives the battle comes back at the start of your next battle (one at a time) (new) |
+
+How it plays: it turns the wild's own animals against the enemy, and keeps the best of them; every animal fight is
+also a chance at a new companion beast.
+
+## Sunderer
+
+5 levels · rarity no colour · Requires: Level 20 · Warrior 5
+Identity: Breaks armour: strips the enemy's protection away piece by piece.
+
+| Level | Feature |
+|---|---|
+| 1 | Strength +5%; weapon Armor Pierce +10% |
+| 2 | **Sunder** (passive): each weapon hit lowers the target's Armor by 5% for the rest of the battle, up to 6 times (−30%) (new) |
+| 3 | +15% damage to enemies in heavy armour |
+| 4 | Maximum HP +10% |
+| 5 | **Armor Breaker** (skill, capstone; once per battle): a strike that also takes away half of the target's remaining Armor for 3 turns |
+
+How it plays: each blow leaves the enemy weaker for the whole party, and the tougher the shell, the better it works;
+the party's opener against armoured foes and bosses.
+
+## Camp Cook
+
+4 levels · rarity no colour · Requires: Level 10 · Forage 30 ingredients
+Identity: Cooks at camp: meals that prepare the party for the battles ahead.
+
+| Level | Feature |
+|---|---|
+| 1 | Forage finds something 10% more often |
+| 2 | **Hearty Meals** (passive): when the party camps (with Camping Supplies), you can cook a meal from 2 ingredients: the party gains a buff made from the potions they go into, a third as strong, for its next 3 battles (new) |
+| 3 | Vitality +5%; Camping Supplies have a 20% chance not to be used up |
+| 4 | **Feast** (skill, capstone; once a day, at camp): cook two meals at once: the party gets both buffs, for its next 5 battles (new) |
+
+How it plays: its work is done before the fight: it forages, camps and feeds the party, and the meal carries through
+the battles after. Task 9's ingredients and potions are its cookbook.
+
+## Leywalker
+
+6 levels · rarity blue · Requires: Level 30 · Mage 5 · Know spells of 4 elements
+Identity: Draws on the land: its magic changes with where it fights.
+
+| Level | Feature |
+|---|---|
+| 1 | Spell power +5%; Mind +5% |
+| 2 | **Ley Lines** (passive): the land where you fight lends its element (forests Nature, rivers, lakes and the coast Water, mountains and hills Earth, plains and steppe Wind, marshes Death, volcanic ground Fire, snow Ice, storm country Lightning, the Abyssal Rift Dark, holy places Holy): spells of that element gain 20% power and cost 10% less (new) |
+| 3 | Maximum Mana +10% |
+| 4 | You take 10% less damage from the land's element |
+| 5 | Intelligence and Wisdom +5% |
+| 6 | **Ley Surge** (skill, capstone; once per battle, 1 AP): your next spell takes the land's element and gains 50% power (new) |
+
+How it plays: a caster of many elements who reads the ground: every region of the continent favours a different
+spell, and its surge turns any spell into the land's.
+
+## Nightwalker
+
+5 levels · rarity blue · Requires: Level 25 · Rogue 5 · Win 30 battles at night
+Identity: The night's own: strongest after dark, the Sunstrider's opposite.
+
+| Level | Feature |
+|---|---|
+| 1 | Speed and Dexterity +5% |
+| 2 | **Night's Own** (passive): weapon hits and Dark spells deal 15% more at night (18:00–06:00), 5% more by day, and at night enemies are less likely to attack you |
+| 3 | Evasion +10% at night |
+| 4 | Dark spell power +10%; weapon Crit Rating +5 |
+| 5 | **Eclipse** (skill, capstone; once per battle): for 3 turns it is night for you, whatever the hour, and your attacks deal 10% more |
+
+How it plays: it hunts at night, when it is at its best and hardest to find, and once a battle brings the night with
+it; the mirror of the Sunstrider's day.
+
+## Mentor
+
+4 levels · rarity no colour · Requires: Level 40 · Strategist 3 · 2 companions
+Identity: Teaches its companions, helping them grow and fight above their level.
+
+| Level | Feature |
+|---|---|
+| 1 | Companions gain 15% more EXP |
+| 2 | **Guidance** (passive): allies below your level gain 2% all stats for each level they are below you, up to 20% (new) |
+| 3 | Wisdom +5%; allies deal 5% more damage to an enemy you hit this turn (new) |
+| 4 | **Lesson** (skill, capstone; once per battle, 1 AP): one ally gains 20% all stats for 3 turns, and its next skill costs no AP |
+
+How it plays: it makes the party better rather than itself: companions level faster and fight above their level, and
+a lesson at the right moment turns an ally's turn.
