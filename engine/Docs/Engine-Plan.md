@@ -132,7 +132,8 @@ instead of two, C15 identities as a short playstyle, C16–C19 the user's review
 applied** (2026-11-10): `../old-game/Docs/Class-Rework-Draft.md`, every class's identity, levels, requirements and
 rarity, 130 current and 40 new. The features round: a sample of four remade classes approved (C20, C21), then the
 rest group by group (C22) in `../old-game/Docs/Class-Rework-Features.md` (batch 1, the starting classes and the melee
-fighters, written 2026-11-10 and waiting for the user's review); one passive and one skill per class, but the
+fighters, approved 2026-11-10; batch 2, the knights and defenders, the holy warriors and the unarmed fighters, written
+the same day and waiting for the user's review); one passive and one skill per class, but the
 elemental mages, the item classes and the Vampire Lord (C21, C24). Once every class is approved, both drafts move
 to `Docs/Port-Tasks/10_Class_Rework/` beside the task (C23). Nothing changes in the old game. **Engine work goes on
 uninterrupted**; don't count task 10 as the engine's current task.
@@ -1980,7 +1981,8 @@ The features round (2026-11-10):
   Trap Master) are brought to one of each in their remakes.
 - C22 **The rest, group by group:** a few of the draft's groups at a time, added to the features file for the user's
   review, the new classes last; the user's notes on one batch shape the next. (Not all current then all new, not all at
-  once.)
+  once.) Batch 1 (the four starting classes but Warrior, the melee fighters but Reaver) approved as written
+  (2026-11-10, "Approved. Continue with the next").
 - C23 **Not built in the old game** (the user: "The newly approved classes should not be implemented into the old game.
   They are added only on game port, so after I approved all classes, keep the drafts in a good location and note this
   down somewhere"): the old game's classes stay as they are; the port builds the reworked set from the approved

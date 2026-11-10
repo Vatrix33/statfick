@@ -20,8 +20,11 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
 
 **Contents**
 - The sample of four (approved 2026-11-10): Warrior, Vampire, Hierophant, Reaver.
-- Batch 1, for review: the starting classes (Archer, Mage, Rogue) and the melee fighters (Barbarian, Berserker,
-  Champion, Gladiator, Slayer, Soldier, Weaponmaster).
+- Batch 1 (approved 2026-11-10): the starting classes (Archer, Mage, Rogue) and the melee fighters (Barbarian,
+  Berserker, Champion, Gladiator, Slayer, Soldier, Weaponmaster).
+- Batch 2, for review: the knights and defenders (Knight, Heavy Knight, Guardian, Bulwark, Echo Knight, Black Knight),
+  the holy warriors (Cleric, Paladin, Death Paladin, Oathsworn, Templar) and the unarmed fighters (Brawler, Monk, Elder
+  Monk, Ki Warrior).
 
 # The sample of four (approved 2026-11-10)
 
@@ -106,7 +109,7 @@ bonus already covers) and once a battle. Now it is a real finisher that chains t
 the Hunter's Mark comes back on a kill. Each kill also heals a little, so the momentum keeps it standing, and level 6
 makes its finishing blows more likely to be critical. Accuracy merges into level 5. A blue class's power.
 
-# Batch 1: the starting classes and the melee fighters (for review)
+# Batch 1: the starting classes and the melee fighters (approved 2026-11-10)
 
 Warrior and Reaver, from these groups, are in the sample above.
 
@@ -284,3 +287,279 @@ Identity: Master of every weapon: gets the most out of whatever it holds, with p
 Why: its skill shared the name Perfect Form with the Elder Monk's passive, so it is renamed Masterstroke, and it works
 every battle. Armor Pierce and Crit Rating merge, freeing level 5 for the off-hand, so a master of every weapon also
 fights well with two. Weapon power at level 6 comes down a little to pay for that.
+
+# Batch 2: knights and defenders, holy warriors, unarmed fighters (for review)
+
+## Knight
+
+7 levels · rarity no colour · Requires: Level 1 · Warrior 5
+Identity: The armoured knight: a durable front-liner in heavy armour that hits hard, refuses to fall, and can stake
+everything on one blow.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Strength +10% in heavy armour | Strength +10% in heavy armour |
+| 2 | Vitality +5% | Vitality +5% |
+| 3 | **Last Stand** (passive): below 10% HP, all stats +20% | **Last Stand** (passive): below 25% HP, all stats +15% |
+| 4 | Melee weapons gain 0.2× Strength scaling | Melee weapons gain 0.2× Strength scaling |
+| 5 | Armor +10% | Armor +10% |
+| 6 | Maximum HP +10% | Maximum HP +10% |
+| 7 | **All or Nothing** (skill, once a day): next attack deals triple damage and always hits, can't be critical; then for 3 turns weapon attacks on you always hit and deal 50% more | **All or Nothing** (skill, capstone; once per battle): next attack deals double damage and always hits, can't be critical; then for 2 turns weapon attacks on you always hit and deal 25% more |
+
+Why: Last Stand needed the Knight below 10% HP, a moment that seldom comes and seldom lasts; at 25% it actually fires.
+All or Nothing becomes a once-per-battle gamble, so its blow and its price both come down a step. The rest already
+fits.
+
+## Heavy Knight
+
+5 levels · rarity no colour · Requires: Level 1 · Knight 5 · Heavy armour and a shield
+Identity: The tank: draws the enemy's attacks onto itself and gets harder to hurt the more it is hit.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **Taunt** (skill, no limit): until your next turn, enemies have a 50% chance to attack you instead of an ally | **Taunt** (skill, no limit): until your next turn, enemies have a 50% chance to attack you instead of an ally |
+| 2 | Armor +10% | Armor +10% |
+| 3 | Maximum HP +5% | Maximum HP +5% and Strength +5% |
+| 4 | Strength +5% | Shields grant 15% more Armor |
+| 5 | **Ramping Defense** (passive): each melee or ranged hit taken adds 2% Armor for the battle, up to 100% | **Ramping Defense** (passive, capstone): each melee or ranged hit taken adds 3% Armor for the battle, up to 60% |
+
+Why: it already follows the rules. Ramping Defense needed fifty hits to reach its top, so it hardened too slowly to
+matter; now it ramps faster to a lower top. The two small stats merge, leaving room for a shield bonus that fits a
+class that must carry one.
+
+## Guardian
+
+7 levels · rarity no colour · Requires: Level 1 · Knight 3 · Most maximum HP in the party
+Identity: The bodyguard: steps in front of attacks meant for its allies and takes them itself.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Vitality +5% | Vitality +5% |
+| 2 | Armor +10% | Armor +10% |
+| 3 | **Interpose** (passive): 35% chance to take a single-target attack aimed at an ally | **Interpose** (passive): 35% chance to take a single-target attack aimed at an ally; attacks you take this way deal 15% less to you |
+| 4 | Maximum HP +10% | Maximum HP +10% |
+| 5 | Shields grant 25% more Armor | Shields grant 25% more Armor |
+| 6 | Take 10% less damage from everything | Take 10% less damage from everything |
+| 7 | **Aegis Bond** (skill, once per battle): for 3 turns every single-target attack on one ally comes to you; Armor +20% | **Aegis Bond** (skill, capstone; once per battle): for 3 turns every single-target attack on one ally comes to you; Armor +20% |
+
+Why: it fits its identity and the rules. The only change: what the Guardian takes for its allies hurts it a little
+less, so stepping in doesn't simply move the damage.
+
+## Bulwark
+
+7 levels · rarity no colour · Requires: Level 20 · Knight 4 · 10 defensive actions
+Identity (sharpened): The immovable wall: makes Guarding its strength and holds the line, rather than covering one ally.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Armor +16% | Armor +15% |
+| 2 | Guard's Armor bonus +10% | Guard's Armor bonus +20% |
+| 3 | Maximum HP +8% | Maximum HP +8% |
+| 4 | **Wall of Steel** (passive): take 10% less damage while Guarding | **Wall of Steel** (passive): take 15% less damage while Guarding |
+| 5 | Shield Armor +12% | Shield Armor +12% |
+| 6 | Guard's Armor bonus +10% | Guarding restores 3% of your maximum HP at the start of your next turn (new) |
+| 7 | **Interpose** (skill, once per battle): guard one ally for 2 of their turns | **Hold the Line** (skill, capstone; once per battle, no AP): you Guard at once, and until your next turn you can't be stunned, take 30% less damage, and melee attackers take back 20% of what they deal you |
+
+Why: sharpened in the draft. Its skill Interpose copied the Guardian (even its name); Hold the Line makes its last level
+the Bulwark's own: a turn of standing firm that punishes whoever strikes it. The two Guard bonuses merge into level 2,
+and level 6 lets a Bulwark that Guards well recover while it does.
+
+## Echo Knight
+
+7 levels · rarity blue · Requires: Level 35 · Knight 7 · Summoner 4
+Identity: A knight with a spectral double: its strikes echo, landing again as ghostly blows.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Weapon Accuracy +10% | Weapon Accuracy +10% |
+| 2 | Armor +10% | Armor +10% |
+| 3 | **Echo Blade** (passive): the first weapon hit each turn repeats for 15% of its damage | **Echo Blade** (passive): the first weapon hit each turn repeats for 15% of its damage |
+| 4 | Weapon power +5% | Weapon power +5% and maximum HP +5% |
+| 5 | Maximum HP +5% | Echoes can be critical hits (new) |
+| 6 | Echo Blade's echo +10% | Echo Blade's echo +10% |
+| 7 | **Spectral Double** (skill, once per battle): your next weapon hit repeats at 50% | **Spectral Double** (skill, capstone; once per battle): for 2 turns every weapon hit you land repeats at 40% |
+
+Why: Spectral Double was one half-strength echo, small for a blue class's last level; now the double fights beside the
+knight for two turns. Weapon power and HP merge so level 5 can let the echoes crit.
+
+## Black Knight
+
+5 levels · rarity no colour · Requires: Level 1 · Knight 7 · At least 10 Dark spells known
+Identity: The dark knight: heavy armour and weapon fused with Dark magic, able to turn into something monstrous for a
+short time.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Dark spell power +15%, Dark spells cost 10% less Mana | Dark spell power +15%, Dark spells cost 10% less Mana |
+| 2 | Strength and Mind +5% | Strength and Mind +5% |
+| 3 | Weapon Armor Pierce +15% | Weapon Armor Pierce +15% |
+| 4 | **Void-Forged Plate** (passive): heavy armour gives 25% more Armor; Dark spells deal 30% less to you | **Void-Forged Plate** (passive): heavy armour gives 25% more Armor; Dark spells deal 30% less to you |
+| 5 | **Abyssal Transformation** (skill, once a day, 1 AP): 3 turns of +35% weapon and Dark spell power, −20% damage taken, +20% Holy damage taken | **Abyssal Transformation** (skill, capstone; once per battle, 1 AP): 3 turns of +25% weapon and Dark spell power, −15% damage taken, +20% Holy damage taken |
+
+Why: it follows the rules; its transformation becomes once per battle and a step smaller to pay for that. (The
+engine's tests read this class file; since C23 the old game's files don't change, so that stays as it is.)
+
+## Cleric
+
+7 levels · rarity no colour · Requires: Level 1 · Warrior 5 · 3 Holy spells known
+Identity (sharpened): The battle priest: fights in the front line while keeping the party going with prayers.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Wisdom +5% | Wisdom and Vitality +5% |
+| 2 | Holy spells cost 10% less Mana | Holy spells cost 10% less Mana |
+| 3 | Mind +5% | Mind +5% |
+| 4 | **Holy Warrior** (passive): Dark spells deal 20% less to you; all stats +10% against demons and devils | **Combat Prayer** (skill, once per battle, 1 AP): for 3 turns every ally gains 15% Accuracy and Evasion and restores 4% of their maximum HP at the start of each turn |
+| 5 | **Combat Prayer** (skill, once a day): you and every ally gain 20% Accuracy and Evasion for 3 turns | Holy spells gain 10% power and cost 30% less to learn |
+| 6 | Vitality +5% | Melee weapon power +10% |
+| 7 | Holy spells cost 30% less to learn | **Battle Faith** (passive, capstone): each weapon hit you land restores 3% of maximum HP to the ally with the least HP (new) |
+
+Why: it broke the capstone rule (passive at 4, skill at 5, then plain bonuses), and its demon bonus repeated the
+Paladin's and Templar's. Now it is a fighting priest: its prayer also mends and works every battle, and at its peak
+every blow it lands heals the ally who needs it most, so it heals by fighting.
+
+## Paladin
+
+7 levels · rarity no colour · Requires: Level 10 · Knight 4 or Cleric 4 · No Dark or Blood spells · Not with Oathsworn
+Identity (sharpened): The holy smiter: turns its Mana into holy strikes and hunts demons and devils, forswearing dark and
+blood magic.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Strength +5% | Strength +5% |
+| 2 | Mind +5% | Mind +5% and maximum Mana +5% |
+| 3 | **Sworn Oath** (passive): +10% damage to Monster-class enemies, −10% damage from them | **Holy Edge:** weapon hits on demons and devils deal 10% more damage |
+| 4 | Maximum Mana +5% | Armor +10% |
+| 5 | **Divine Smite** (skill, once per battle): spend 10% Mana; next weapon hit adds Holy damage equal to 10% of maximum Mana | **Divine Smite** (skill, once per battle): spend 10% Mana; your next weapon hit adds Holy damage equal to 15% of maximum Mana, double against demons and devils |
+| 6 | Armor +10% | Holy spell power +10% |
+| 7 | **Banish Evil** (skill, once a day): next attack +50% damage against a demon or devil | **Sworn Oath** (passive, capstone): +15% damage to demons and devils and −15% damage from them, and Divine Smite can be used twice a battle |
+
+Why: it had two skills; Banish Evil goes and Divine Smite, the class's heart, does its job against demons and devils.
+Sworn Oath now aims at the same foes (its Monster-class bonus is left to the Monster Hunter, as the draft says) and
+becomes the capstone, with a second smite each battle.
+
+## Death Paladin
+
+6 levels · rarity blue (raised in the draft) · Requires: Level 1 · Paladin 7 · At least 10 Death spells known
+Identity: A paladin turned to Death: smites with holy and death power together and weakens what it strikes.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Death spell power +15% | Death spell power +15% and Death spells cost 10% less Mana |
+| 2 | Death spells cost 10% less Mana | **Withering Touch:** weapon hits lower the target's Armor by 5% for 2 turns |
+| 3 | Strength and Mind +5% | Strength and Mind +5% |
+| 4 | Maximum Mana and Armor +10% | Maximum Mana and Armor +10% |
+| 5 | **Grave Smite** (passive): Divine Smite's damage rises to 15% of maximum Mana and counts as Holy and Death | **Grave Smite** (passive): Divine Smite's damage rises by another 5% of maximum Mana and counts as Holy and Death |
+| 6 | **Final Rite** (skill, once a day): next weapon attack +75% power, extra Death damage equal to 15% of maximum Mana, target's stats −10% for 2 turns | **Final Rite** (skill, capstone; once per battle): next weapon attack +60% power, extra Death damage equal to 15% of maximum Mana, target's stats −10% for 2 turns |
+
+Why: it follows the rules. The two Death-spell levels merge, and level 2 gives every blow a little of the weakening its
+identity speaks of. Final Rite works every battle at a little less power; as a blue class now, it keeps most of it.
+Grave Smite adds to the Paladin's new, larger smite rather than setting it.
+
+## Oathsworn
+
+7 levels · rarity purple · Requires: Level 10 · Knight 4 · Hierophant 4 · No Dark or Blood spells · Not with Paladin
+Identity (sharpened): A knight bound by vows: swears an oath each battle and draws great power while it keeps it.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Strength and Mind +5% | Strength and Mind +5% |
+| 2 | Maximum Mana +10% | Maximum Mana +10% |
+| 3 | **Arcane Vow** (passive): +15% damage to Monster-class enemies, −10% damage from them | **Sworn Vow** (passive): at the start of each battle, swear one of three oaths. Protection: allies take 10% less damage; broken if an ally falls. Steadfast: you take 15% less damage; broken if you Run or Evade. Vengeance: pick an enemy and deal 25% more damage to it; broken if you attack another first. While it holds, all your stats +10%; once broken, all stats −10% for the rest of the battle (new) |
+| 4 | Armor +10% | Armor +10% |
+| 5 | Maximum Mana +10%; Basic and Holy spell power +10% | Maximum Mana +10%; Basic and Holy spell power +10% |
+| 6 | Weapon power +10% | Weapon power +10% |
+| 7 | **Divine Smite** (skill, once per battle): spend 10% Mana; next weapon hit adds Holy damage equal to 15% of maximum Mana | **Oathblade** (skill, capstone; once per battle): spend 10% Mana; your next weapon hit adds Basic and Holy damage equal to 20% of maximum Mana, 40% while your oath holds |
+
+Why: sharpened in the draft: it was a Paladin with bigger numbers (the same Divine Smite, a stronger Sworn Oath). Now
+its vow is the class: a choice each battle that rewards keeping it and punishes breaking it, and its last strike is
+strongest while the oath holds. Purple power, purple risk.
+
+## Templar
+
+6 levels · rarity no colour · Requires: Level 1 · Cleric 7 or Priest 7
+Identity (sharpened): The holy defender: shields the whole party and stands against the undead and dark magic.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Strength and Wisdom +5% | Strength and Wisdom +5% |
+| 2 | Holy spell power +15% | Holy spell power +15% |
+| 3 | Armor +15% | Armor +15% |
+| 4 | Maximum HP and Mana +10% | Maximum HP and Mana +10% |
+| 5 | **Consecrated Arms** (passive): +20% damage to demons, devils and undead; Dark spells deal 20% less to you | **Consecrated Ground** (passive): every ally takes 15% less damage from Dark spells and from the undead, and you deal 20% more to the undead |
+| 6 | **Templar's Aegis** (skill, once a day, 1 AP): for 3 turns every ally takes 20% less damage and gains 25% Armor and 20% Accuracy | **Templar's Aegis** (skill, capstone; once per battle, 1 AP): for 3 turns every ally takes 15% less damage and gains 20% Armor |
+
+Why: sharpened in the draft: its passive now shields the whole party against what the Templar stands against, and its
+demon bonus is left to the Paladin. The Aegis works every battle and drops the Accuracy that didn't fit a defender.
+
+## Brawler
+
+6 levels · rarity no colour · Requires: Level 1 · Use 5 unarmed attacks
+Identity: The tavern fighter: fists and dirty tricks, scrappy and tough.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Strength and Vitality +5% | Strength and Vitality +5% |
+| 2 | Unarmed attacks gain 2 base power | Unarmed attacks gain 3 base power |
+| 3 | **Rough Battle** (skill, once a day): 3 turns of −10% melee damage taken and +10% Armor Pierce for unarmed and melee attacks | **Rough Battle** (skill, once per battle): 3 turns of −15% melee damage taken and +15% Armor Pierce for unarmed and melee attacks |
+| 4 | Strength +5% | Strength +5% |
+| 5 | Evasion +20% | Evasion +10% and unarmed Accuracy +10% |
+| 6 | **Tavern Brawler** (passive): melee attacks have a 30% chance to deal 2–10 more damage | **Tavern Brawler** (passive, capstone): melee and unarmed hits have a 30% chance to deal 15% more damage |
+
+Why: its passive added a flat 2–10 damage, which is nothing past the first levels; now it grows with the Brawler. Rough
+Battle works every battle. A little of level 5's Evasion becomes Accuracy, so the fists land.
+
+## Monk
+
+8 levels · rarity no colour · Requires: Level 6 · 30 unarmed attacks
+Identity: The disciplined unarmed fighter: precise, stunning blows and a mind that resists magic.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Unarmed attacks deal 50% more damage | Unarmed attacks deal 50% more damage |
+| 2 | Unarmed attacks gain 20% Accuracy | Unarmed attacks gain 20% Accuracy |
+| 3 | **Stunning Strike** (skill, once per battle): next unarmed attack has a 20% chance to stun for 1 turn | **Stunning Strike** (skill, once per battle): your next unarmed attack has a 35% chance to stun for 1 turn |
+| 4 | Strength +5% | Strength and Wisdom +5% |
+| 5 | Wisdom +5% | Unarmed attacks gain 10 Crit Rating |
+| 6 | Unarmed attacks gain 0.1× Wisdom scaling | Unarmed attacks gain 0.1× Wisdom scaling |
+| 7 | Speed +5% | Speed +5% |
+| 8 | **Discipline Training** (passive): 5% less spell damage, with a 10% chance to cut a hit by 20% more | **Discipline Training** (passive, capstone): 10% less spell damage, and each spell that hits you makes your next unarmed attack deal 10% more (new) |
+
+Why: Stunning Strike missed its stun four times in five, and the capstone passive was hardly felt; both now do what
+the identity promises. Strength and Wisdom merge, and level 5 adds precision.
+
+## Elder Monk
+
+4 levels · rarity blue · Requires: Level 45 · Monk 8
+Identity: The monk's mastery: devastating fists that stun and heal.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Unarmed power +35% | Unarmed power +35% |
+| 2 | Stunning Strike's stun chance +15 points | Stunning Strike's stun chance +15 points |
+| 3 | **Inner Fist** (skill, once per battle): next unarmed attack +65% damage, heals you for 25% of it | **Inner Fist** (skill, once per battle): your next unarmed attack deals 80% more damage and heals you for 30% of it |
+| 4 | **Perfect Form** (passive): unarmed attacks gain 0.2× Wisdom scaling; 10% less spell damage | **Perfect Form** (passive, capstone): unarmed attacks gain 0.2× Wisdom scaling; 10% less spell damage |
+
+Why: it follows the rules and fits its identity; Inner Fist grows a little for a blue class.
+
+## Ki Warrior
+
+10 levels · rarity purple · Requires: Level 30 · Energist 5 or Psykic 8
+Identity: Runs on Ki, an inner energy gathered during battle and spent on bursts of power; suits blade and spell alike.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **Inner Ki** (passive): start each battle with Ki equal to 10% of your level (at least 1) | **Inner Ki:** start each battle with Ki equal to 10% of your level (at least 1); it lasts only for the battle (no longer a passive) |
+| 2 | Strength and Dexterity +5% | Strength and Dexterity +5% |
+| 3 | Weapon Accuracy +10%, spell power +5% | Weapon Accuracy +10%, spell power +5% |
+| 4 | **Ki Focus** (skill, no limit): spend 1 Ki: next attack or spell +20% power | **Ki Focus** (skill, no limit, no AP): spend 1 Ki: your next attack or spell gains 20% power |
+| 5 | **Ki Infusion** (skill, once per battle): spend 2 Ki: restore 40% Mana plus half your Mind | **Ki to Mana:** at the start of your turn, if your Mana is below 25%, 1 Ki turns into 20% of your maximum Mana (new) |
+| 6 | Strength +5%; spells cost 5% less Mana | Strength +5%; spells cost 5% less Mana |
+| 7 | **Flow of Ki** (passive): regain 1 Ki every second turn | **Flow of Ki:** regain 1 Ki every second turn (no longer a passive) |
+| 8 | Speed +5% | Speed +5% |
+| 9 | Weapon power and spell power +10% | Weapon power and spell power +10% |
+| 10 | **Ki Overdrive** (skill, once per battle): spend 3 Ki: +45% damage with attacks and spells for 2 turns | **Overflowing Ki** (passive, capstone): while you hold 3 or more Ki, your attacks and spells deal 20% more damage and you take 10% less damage |
+
+Why: it had two passives and three skills; now Ki Focus is its one skill and Overflowing Ki its one passive. Gaining
+Ki stays (as plain features at levels 1 and 7), Ki Infusion becomes an automatic Mana rescue, and the capstone turns
+Ki into a choice: spend it on Focus for bursts, or hold three for a lasting edge. A purple class's peak.
