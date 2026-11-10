@@ -126,9 +126,10 @@ current task. How it's built, its checks and their results: `../old-game/Docs/No
 task, don't start it yet").** It is to be built in the old game, as tasks 1–9 were; the user's first answers are
 C1–C12 in "Decisions for task 10, Class Rework" below (the enemies' classes reworked in the port, every class
 reviewed, seven of the `classes/newc/` drafts' names added, the review through two draft files in `../old-game/Docs/`,
-Poisoner reworked as an existing class, no class removed, old saves ignored). Nothing
-built yet; wait for the user's go before writing the first draft. **Engine work goes on uninterrupted**; don't count
-task 10 as the engine's current task.
+Poisoner reworked as an existing class, no class removed, old saves ignored, C13 the drafts' form). **Draft 1 is
+written and waits for the user's review** (the user's go, 2026-11-10): `../old-game/Docs/Class-Rework-Draft-1.md`, every
+class's identity and number of levels, 130 current and 40 new. Nothing built in the game yet. **Engine work goes on
+uninterrupted**; don't count task 10 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
@@ -1920,6 +1921,14 @@ Asked the same day about what reading the old game turned up:
   `../old-game/scripts/combat.js`).
 - C12 **Saved characters are ignored:** no one will play the pre-port version of the game, so nothing is done for saves
   with more levels in a class than its new maximum.
+Said while draft 1 was written (the user's go for it, 2026-11-10):
+- C13 **The drafts' form:** each current class's identity is drawn from all its features, its passives and skills
+  included, but the draft doesn't list the passives and skills. Draft 1 is `../old-game/Docs/Class-Rework-Draft-1.md`
+  (made by `~/.cache/stat-fick-build/claude-work/class-rework/make_draft1.py`, which checks that every class file
+  appears once; the file is the source now, edit it directly). Proposed there, for the user to approve: Scavenger 7 → 5
+  levels (the only change of levels); eight identities sharpened where two classes do the same thing (Champion,
+  Bulwark, Cleric, Paladin, Oathsworn, Templar, Assassin, Archivist); 40 new classes with identity and levels, among
+  them my eight (Field Medic, Sentinel, Beast Tamer, Sunderer, Camp Cook, Leywalker, Nightwalker, Mentor).
 Still to ask (nothing assumed):
 - How the passives, skills and other level features are reviewed after the second draft.
 Kept in mind:

@@ -1051,7 +1051,7 @@ Shaman, Elder Shaman, Trickster, Awakened, Warden, Scout), all their content pro
 ignored; Poisoner exists already and is reworked, not added; 40 new classes (the task's other 25, Ascended spelled
 so, those seven, 8 of my own); no class removed; old saves ignored. The review goes through two draft files in this
 folder (`old-game/Docs/`): first every class's identity and number of levels, then every class's requirements and
-rarity (colour).
+rarity (colour). Draft 1, `Class-Rework-Draft-1.md`, was written on 2026-11-10 and waits for the user's review.
 
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in
