@@ -2360,7 +2360,7 @@ Identity: The craftsman in the field: better and cheaper forge work, and gear sh
 | 2 | **Whetstone** (passive): at the start of each battle your weapon gains 10% power and your armour 10% Armor, for 3 turns (new) |
 | 3 | Strength and Vitality +5% |
 | 4 | Fitting runes costs you half, and taking them out costs half too (new) |
-| 5 | **Field Forge** (skill, capstone; once a day, outside battle): reforge one item wherever you are, without an anvil (new) |
+| 5 | **Field Forge** (skill, capstone; once a day, outside battle): reforge one item wherever you are, without an anvil, as the anvil for that item would (new) |
 
 How it plays: a craftsman who spends less at the anvils, goes into every fight with a fresh edge, and at its peak
 carries the forge with it.
@@ -2372,13 +2372,15 @@ Identity: The Smith perfected: makes forged gear better than any forge sells it.
 
 | Level | Feature |
 |---|---|
-| 1 | Reforging gives you two results to choose from (new) |
+| 1 | When you reforge, the new parts can be one rarity above the main part's (the anvils cap them at it) (new) |
 | 2 | **Master's Touch** (passive): your forged weapons and armour give 10% more of their stats, and matching makers' bonuses count double for you (new) |
 | 3 | Gear you reforge can come out with one more rune slot (new) |
 | 4 | **Temper** (skill, capstone; once per battle, 1 AP): give your gear one of Ornn's tempers for the rest of the battle: Molten Edge (weapon hits burn), Hardened Plate (15% less damage taken) or Spiked Plate (melee attackers take damage) (new) |
 
-How it plays: its best work happens at the anvil, where it gets better results than anyone; in battle it tempers its
-gear the way Ornn, the god of the forge, does.
+How it plays: its best work happens at the anvil, where it fits parts finer than the main part and adds rune slots no
+forge does; in battle it tempers its gear the way Ornn, the god of the forge, does. (Level 1 revised on your question:
+the first version offered "two results to choose from", but reforging isn't random: you choose the second and third
+parts yourself.)
 
 ## Tinkerer
 

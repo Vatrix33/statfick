@@ -2015,6 +2015,11 @@ The features round (2026-11-10):
   The same check found Hotshot's Quick Draw too strong (every shot at 1 AP and 75%, five a turn); revised before review
   to one full shot and then 1-AP half shots. The other 38 new classes' requirements checked the same way: all within
   reach. Batch 9 approved after it (2026-11-10). Batch 10, the other thirteen of the task's list, written for review.
+- C29 **The Mastersmith's level 1** (the user asked what "reforging gives you two results to choose from" means; it
+  meant nothing: reforging isn't random, the player picks the second and third parts, up to the main part's rarity, and
+  the main part, level, slots and runes stay; `reforgeOptions` in `../old-game/scripts/forge-engine.js`): when the
+  Mastersmith reforges, the new parts can be one rarity above the main part's. (Not changing the main part too, not
+  half-price reforging.) The Smith's Field Forge follows the rules of the anvil the item would need.
 - C27 **The Psykic is an exception to the one-skill rule too**, like the Ki Warrior (asked before batch 4): its four
   skills stand in for the spells it doesn't know, with one passive. (Not folded into one skill.)
 - C26 **The Ki Warrior is an exception to the one-skill rule** (the user: "I wanted it to have many skills to simulate a
