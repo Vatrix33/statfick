@@ -1042,6 +1042,16 @@ remaking the placeholder art (P2; `engine/Docs/Port-Tasks/README.md`). The user'
   chance in task 8's run, passes. The 11 known failures are unchanged. Smoke, enemies (530 cases) and lifecycle pass; the
   combat suite gives no result, as before (it stops at the known Barbarian failure).
 
+**Class Rework (port task 10; prepared 2026-11-10, a cloud session, not started; the task is
+`engine/Docs/Port-Tasks/10_Class_Rework.txt`).** To be built here, as tasks 1–9 were. The user's answers so far are
+`engine/Docs/Engine-Plan.md`, "Decisions for task 10, Class Rework" (C1–C8), with what is still to ask and the facts
+found. In short: every class, the 130 here and the new ones, is reviewed and listed even if unchanged; the enemies that
+use classes are reworked in the port, not in this task; of `classes/newc/` only seven names are used (Chronicler,
+Shaman, Elder Shaman, Trickster, Awakened, Warden, Scout), all their content proposed fresh, the rest of that folder
+ignored; 41 new classes (the task's 26, those seven, 8 of my own). The review goes through two draft files in this
+folder (`old-game/Docs/`): first every class's identity and number of levels, then every class's requirements and
+rarity (colour).
+
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in
 the engine's way. The list's rune slotting sound was left out: the port adds proper sound effects instead.

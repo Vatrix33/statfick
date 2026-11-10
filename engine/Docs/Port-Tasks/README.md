@@ -53,6 +53,13 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 10. `10_Class_Rework.txt`: every class reviewed and reworked where needed (identity, requirements, passive and skill, a
     capstone, its colour rarity), then 26 named new classes and 15 more; for the new classes the user is asked about
     each one's identity, levels, requirements and rarity, in that order.
+    **Prepared, not started (2026-11-10):** built in the old game (C1); the enemies that use the old classes are fully
+    reworked during the port, not in this task (C2); every class, current and new, is reviewed and listed even if
+    unchanged (C3); of `old-game/classes/newc/` only seven names are added (Chronicler, Shaman, Elder Shaman, Trickster,
+    Awakened, Warden, Scout), counted among the 15, so 8 more of my own and 41 new classes in all (C4, C6, C7); the
+    review goes through two draft files in `old-game/Docs/` (first identity and levels, then requirements and rarity),
+    which is how the new classes' four questions are asked (C5, C8). `Engine-Plan.md`, "Decisions for task 10, Class
+    Rework", has them all and what is still to ask.
 11. `11_New_races.txt`: three new playable races with icons (Half-Beast, Merfolk made playable, Goliath), each with a
     racial class.
 12. `12_Spell_Rework.txt`: every spell brought up to date (power, scaling, effects, mana cost; tiers kept), two new

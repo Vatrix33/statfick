@@ -122,6 +122,12 @@ The port doesn't build it again; only its placeholder art is remade (`Docs/Port-
 engine (the engine's tests read none of what changed: the one class file they read is untouched), so
 `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count task 9 as the engine's
 current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Potion Rework".
+**Port task 10, Class Rework, is prepared, not started (2026-11-10, a cloud session; the user: "Inform yourself of this
+task, don't start it yet").** It is to be built in the old game, as tasks 1–9 were; the user's first answers are
+C1–C8 in "Decisions for task 10, Class Rework" below (the enemies' classes reworked in the port, every class reviewed,
+seven of the `classes/newc/` drafts' names added, the review through two draft files in `../old-game/Docs/`). Nothing
+built yet; wait for the user's go before writing the first draft. **Engine work goes on uninterrupted**; don't count
+task 10 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
@@ -697,6 +703,9 @@ the design and the tests):
   BRUTAL logo before the game starts and BRUTAL's copyright with the other credits in the game's own screens** (Q11:
   M12 gives both programs a splash and a credits view now, which the port's start sequence and credits screen take
   over).
+  From task 10 (the user, 2026-11-10, C2): **every enemy that uses the old classes is fully reworked during the port**
+  (the enemy files' class levels and the bosses' `BOSS_CLASSES`), after task 10 has reworked the classes in the old
+  game; their full rework is not part of task 10.
 
 ## Folders
 
@@ -1873,6 +1882,47 @@ Asked after the regression run (2026-11-06):
 - L33 **The victory screen's EXP at your level cap** (Level 100 without Limitless, 200 with it), where you gain none
   (L18): it reads 0 EXP; companions below their cap still gain the battle's EXP. (Not the number with a note, not left
   showing the battle's EXP.)
+
+**Decisions for task 10, Class Rework (2026-11-10, a cloud session; the task is `Docs/Port-Tasks/10_Class_Rework.txt`).**
+The user had the task read but not started ("Inform yourself of this task, don't start it yet"), then gave C1–C5 as
+notes to keep; C6–C8 were asked the same day to settle them. Nothing is built yet.
+- C1 **Where:** the classes are built in the old game, as tasks 1–9 were; the faithful port brings them over.
+- C2 **Enemies with classes:** the current enemies that use the old classes (enemy files with class levels, the
+  bosses' `BOSS_CLASSES` of task 7, L29) need a full rework, but that happens during the game port, not in this task
+  ("Open questions for later milestones", "At port time").
+- C3 **Every class is reviewed:** all 130 current classes and every new one are gone through and listed, even where
+  nothing changes.
+- C4 **`../old-game/classes/newc/`:** its files are ignored, except seven, which are added as new classes too:
+  Chronicler, Shaman, Elder Shaman, Trickster, Awakened, Warden and Scout. They count toward the task's 15 classes of
+  my own. Ignored: the drafts there for classes on the task's list (Acrobat, Blade Dancer, Bruiser, Hotshot,
+  Infiltrator, Mastersmith, Smith; the empty Juggernaut, Tinkerer and Vanguard; Explorer and Spell Sparkler in
+  `newc/IGNORE/`), which still come from the list, and Runesmith, Temperer and the template.
+- C5 **The review is done in draft files, in two rounds, both with every class, the current ones and the new ones of
+  this task:** first draft, every class with its identity and its number of levels; when that is done, a second draft,
+  every class with its requirements and its rarity (colour). For the new classes this is how the task's four
+  questions (identity, levels, then requirements, rarity) are asked.
+- C6 **Classes of my own:** 8 more besides the seven of C4, so 15 in all, as the task says. (The user's note said 9;
+  asked: 8.) The new classes are then 41: the task's 26, the seven of C4 and 8 of my own.
+- C7 **The seven of C4 are names only:** everything about them is proposed fresh. Awakened's and Warden's filled-in
+  drafts are not used. (Not their files' identity, levels, requirements and colour.)
+- C8 **Where the drafts go:** `../old-game/Docs/`, beside the old game's notes. (Not `Docs/Port-Tasks/10_Class_Rework/`
+  as task 9's draft was.)
+Still to ask (found while reading, 2026-11-10; nothing assumed):
+- Poisoner already exists (`classes/Poisoner.json`, from the earlier batch of 32 new classes that `newc-browser.js`
+  checks) and is on the task's list of new classes.
+- "Ascendend" in the list: its spelling (Ascendant? Ascended?).
+- How the passives, skills and other level features are reviewed after the second draft.
+- Saved characters (the player's and companions') with more levels in a class than its new maximum, or in a removed
+  class, if any; and the same for enemies until their rework in the port (C2): the old game refuses an enemy file
+  that names a class it doesn't have (`validateEnemy` in `../old-game/scripts/combat.js`).
+- `classes/Black Knight.json` is read by the engine's tests (`LooseRecordTests`); if it changes, `Tools/Scripts/test.sh`
+  must run. The class files are hand-formatted: edit them keeping their layout, never through `json.dump`
+  (`../old-game/Docs/Notes.md`).
+Facts found (2026-11-10): 130 class files (104 without a colour, 18 blue, 6 purple, 2 gold: Hero and Demon Lord; Raid
+Boss unobtainable; Beast, Monster and Great Beast need a race players can't pick). Ten break the task's capstone rule:
+Assassin, Barbarian, Cleric, Cultist, Jack of all Trades and Vampire have their passive or skill before the last level;
+Beast, Monster, Trap Layer and Trap Master have neither. 18 have more than one (the twelve element mages two skills
+each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy files carry class levels.
 
 **Decisions for the move to GitHub (2026-10-30):**
 - One private GitHub repo with two folders: `engine/` (the engine and port, formerly `Stat Fick Source/`) and `old-game/` (the JavaScript game, formerly `Stats/`).
