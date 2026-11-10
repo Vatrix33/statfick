@@ -22,9 +22,12 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
 - The sample of four (approved 2026-11-10): Warrior, Vampire, Hierophant, Reaver.
 - Batch 1 (approved 2026-11-10): the starting classes (Archer, Mage, Rogue) and the melee fighters (Barbarian,
   Berserker, Champion, Gladiator, Slayer, Soldier, Weaponmaster).
-- Batch 2 (approved 2026-11-10; the Ki Warrior revised with two more Ki skills, for review): the knights and defenders (Knight, Heavy Knight, Guardian, Bulwark, Echo Knight, Black Knight),
+- Batch 2 (approved 2026-11-10, the Ki Warrior after its revision): the knights and defenders (Knight, Heavy Knight, Guardian, Bulwark, Echo Knight, Black Knight),
   the holy warriors (Cleric, Paladin, Death Paladin, Oathsworn, Templar) and the unarmed fighters (Brawler, Monk, Elder
   Monk, Ki Warrior).
+- Batch 3, for review: the archer's path (Hunter, Sharpshooter, Blood Hunter, Demon Hunter, Drakeslayer, Monster
+  Hunter), the rogue's path (Assassin, Ambusher, Fencer, Poisoner, Shadow, Eminence, Stalker, Thief, Trap Layer, Trap
+  Master) and weapons and spells together (Spellblade, Spell Sniper, Hexblade, Nullblade, Spellbreaker).
 
 # The sample of four (approved 2026-11-10)
 
@@ -288,7 +291,7 @@ Why: its skill shared the name Perfect Form with the Elder Monk's passive, so it
 every battle. Armor Pierce and Crit Rating merge, freeing level 5 for the off-hand, so a master of every weapon also
 fights well with two. Weapon power at level 6 comes down a little to pay for that.
 
-# Batch 2: knights and defenders, holy warriors, unarmed fighters (approved 2026-11-10, but the Ki Warrior, revised for review)
+# Batch 2: knights and defenders, holy warriors, unarmed fighters (approved 2026-11-10; the Ki Warrior after its revision)
 
 ## Knight
 
@@ -569,3 +572,346 @@ peak.
 Revised on the user's note (2026-11-10): "I wanted it to have many skills to simulate a spell replacement. Overflowing
 Ki can stay, but add 2 more skills to that class that use Ki points." (The first version had Ki Focus as its only skill
 and an automatic "Ki to Mana" at level 5.)
+
+# Batch 3: the archer's path, the rogue's path, weapons and spells together (for review)
+
+## Hunter
+
+7 levels · rarity no colour · Requires: Level 1 · Archer 5
+Identity: The hunter: marks one quarry and brings it down with the bow, striking hardest before it can react.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Bow damage +10% | Bow damage +10% |
+| 2 | Evasion +10%, another 10% without heavy armour | Evasion +10%, another 10% without heavy armour |
+| 3 | **Silent Killer** (passive): +25% weapon damage to enemies that haven't acted yet | **Silent Killer** (passive): +25% weapon damage to enemies that haven't acted yet |
+| 4 | Speed +5%, another 5% without heavy armour | Speed +5%, another 5% without heavy armour |
+| 5 | Luck +5% | Luck and Dexterity +5% |
+| 6 | Dexterity +5% | Bow attacks gain 10% Armor Pierce |
+| 7 | **Hunter's Mark** (skill, once a day, back when the mark dies): marked enemy takes +10% weapon and spell damage, weapon attacks on it +40% Accuracy | **Hunter's Mark** (skill, capstone; once per battle, back when you kill the marked enemy): marked enemy takes +10% weapon and spell damage, weapon attacks on it +40% Accuracy |
+
+Why: it fits; the mark the other hunters build on now works every battle (still coming back on each kill). Luck and
+Dexterity merge so level 6 can pierce armour.
+
+## Sharpshooter
+
+5 levels · rarity no colour · Requires: Level 1 · Archer 5
+Identity: The precision archer: few shots, each one sure to land and likely to be critical.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **Over-Precision** (skill, once a day): next bow attack +40% Accuracy, +20 Crit Rating | **Deadeye** (passive): bow attacks gain 10 Crit Rating, 20 against the enemy you shot last |
+| 2 | Dexterity +5% | Dexterity and Luck +5% |
+| 3 | Luck +5% | Critical hits with bows deal 15% more damage |
+| 4 | Bow Accuracy +20% | Bow Accuracy +20% |
+| 5 | **True Shot** (skill, once a day): next bow attack is a sure critical hit; then you are stunned for 1 turn | **True Shot** (skill, capstone; once per battle): your next bow attack is a sure critical hit and gains 40% Accuracy |
+
+Why: it had two skills and no passive. Over-Precision's lift becomes Deadeye, a passive that rewards staying on one
+target; True Shot works every battle and loses the stunned turn that cost as much as it gave.
+
+## Blood Hunter
+
+5 levels · rarity no colour · Requires: Level 1 · Hunter 7 · At least 5 Blood spells known
+Identity: A hunter armed with blood magic: hunts vampires and the undead and drains life from its prey.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Blood spells cost 10% less Mana | Blood spells cost 10% less Mana |
+| 2 | Weapon power and Blood spell power +10% | Weapon power and Blood spell power +10% |
+| 3 | Maximum HP +10% | Maximum HP +10% |
+| 4 | **Blood Quarry** (passive): Hunter's Mark +10% damage and +10% Accuracy; +20% damage to the undead and vampires | **Blood Quarry** (passive): Hunter's Mark +10% damage and +10% Accuracy; +20% damage to the undead and vampires |
+| 5 | **Crimson Pursuit** (skill, once per battle): next 3 weapon attacks +30% power, heal 25% of the damage | **Crimson Pursuit** (skill, capstone; once per battle): next 3 weapon attacks +30% power, heal 25% of the damage |
+
+Why: unchanged; it already fits its identity and the rules.
+
+## Demon Hunter
+
+6 levels · rarity no colour · Requires: Level 1 · Hunter 7 · Defeat 40 devils, demons and impids
+Identity: The hunter of demons, devils and impids.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | +15% damage to devils, demons and impids | +15% damage to devils, demons and impids |
+| 2 | Luck +5% | Luck and Strength +5% |
+| 3 | −10% damage from devils, demons and impids | −10% damage from devils, demons and impids |
+| 4 | **Fiend's Bane** (passive): Hunter's Mark +15% damage and +20% Accuracy; another +10% damage to those foes | **Fiend's Bane** (passive): Hunter's Mark +15% damage and +20% Accuracy; another +10% damage to those foes |
+| 5 | Strength +5% | +10% Accuracy against devils, demons and impids |
+| 6 | **Exorcising Strike** (skill, once per battle): next weapon attack +40% power, +60% more against those foes | **Exorcising Strike** (skill, capstone; once per battle): next weapon attack +40% power, +60% more against those foes |
+
+Why: it fits; the two small stats merge so level 5 adds to the hunt itself.
+
+## Drakeslayer
+
+6 levels · rarity no colour · Requires: Level 1 · Hunter 7 · Defeat 3 dragons
+Identity: The hunter of dragons.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | +10% damage to dragons | +15% damage to dragons |
+| 2 | −10% damage from dragons | −10% damage from dragons |
+| 3 | **Breath Reader** (passive): −15% spell damage from dragons | **Breath Reader** (passive): −20% spell damage from dragons |
+| 4 | Weapon Armor Pierce +10% | Weapon Armor Pierce +10% |
+| 5 | +10% damage to dragons | Dragons you defeat are twice as likely to drop a Vial of Dragonblood (new) |
+| 6 | **Drake's Tell** (skill, once per battle): mark a dragon: +30% Accuracy and +15% damage against it | **Drake's Tell** (skill, capstone; once per battle): mark a dragon: +30% Accuracy and +25% damage against it until it falls |
+
+Why: the draft found it seldom useful, since dragons are few. Its damage bonuses are gathered at level 1 and in the mark,
+and level 5 gives a reason to hunt them: the vial that makes a Dragonkin.
+
+## Monster Hunter
+
+7 levels · rarity no colour · Requires: Level 1 · Hunter 7 · At least 30 Monster-class enemies slain
+Identity: The hunter of Monster-class enemies.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | +15% damage to Monster-class enemies | +15% damage to Monster-class enemies |
+| 2 | Weapon Accuracy +20% | Weapon Accuracy +20% |
+| 3 | −10% damage from Monster-class enemies | −10% damage from Monster-class enemies |
+| 4 | Maximum HP +10% | Maximum HP +10% |
+| 5 | Weapon Armor Pierce +15% | Weapon Armor Pierce +15% |
+| 6 | **Relentless Quarry** (passive): Hunter's Mark +10% damage and +20% Accuracy | **Relentless Quarry** (passive): Hunter's Mark +10% damage and +20% Accuracy |
+| 7 | **Cull the Aberration** (skill, once per battle): next weapon attack on a monster +80% power, +20% Armor Pierce | **Cull the Aberration** (skill, capstone; once per battle): next weapon attack on a monster +80% power, +20% Armor Pierce |
+
+Why: unchanged; it already fits, and it now also holds the bonus against monsters the Paladin gave up (draft).
+
+## Assassin
+
+6 levels · rarity no colour · Requires: Level 1 · Rogue 5 or Sharpshooter 3
+Identity (sharpened): The killer of one target: everything goes into a single lethal, critical strike.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Luck +5% | Luck and Dexterity +5% |
+| 2 | **Combatstalker** (passive): +25% damage to enemies that haven't acted yet | **Marked for Death** (passive): each attack on the same enemy adds 5 Crit Rating against it, up to 25; switching targets starts again (new) |
+| 3 | Dexterity +5% | Speed +10% |
+| 4 | Speed +10% | Critical hits deal 25% more damage |
+| 5 | **Execute** (skill, once a day): next attack is a sure critical hit with +50% Armor Pierce | One-handed weapons and bows gain 10% Armor Pierce |
+| 6 | Critical hits deal 25% more damage | **Execute** (skill, capstone; once per battle): your next attack is a sure critical hit with +50% Armor Pierce, and deals 25% more to an enemy below half HP |
+
+Why: it broke the capstone rule (Execute at 5, critical damage at 6), and its passive was the Hunter's Silent Killer;
+the draft leaves striking first to the Ambusher. Now it works one target over, growing more lethal with each attack on
+it, and finishes with Execute every battle.
+
+## Ambusher
+
+7 levels · rarity no colour · Requires: Level 1 · Rogue 5 · Speed is your highest stat
+Identity: Strikes first: fast, with an opening blow far stronger than the rest.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Speed +5% | Speed and Dexterity +5% |
+| 2 | Weapon power +5% | Weapon power +5% |
+| 3 | Dexterity +5% | Your turn bar starts each battle a little filled, so you tend to act first (new) |
+| 4 | **First Strike** (passive): first weapon attack of the first turn +35% damage | **First Strike** (passive): your first weapon attack of the battle deals 50% more damage, and attacks on enemies that haven't acted yet deal 15% more |
+| 5 | Luck +5% | Luck +5% |
+| 6 | Weapon Accuracy +20% | Weapon Accuracy +20% |
+| 7 | **Shadow Opening** (skill, once per battle): next weapon attack +60% power, +40% Accuracy | **Shadow Opening** (skill, capstone; once per battle): next weapon attack +60% power, +40% Accuracy |
+
+Why: it now holds striking first (the Assassin's old bonus, as the draft says): a stronger opening blow, a smaller edge on
+every enemy that hasn't moved yet, and a head start so it really does go first.
+
+## Fencer
+
+6 levels · rarity no colour · Requires: Level 18 · Rogue 5 · 7 one-handed attacks
+Identity: The duelling swordsman with a free off-hand: precise, evasive, and punishing every miss with a riposte.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | One-handed sword Accuracy +20% (empty off-hand) | One-handed sword Accuracy +20% (empty off-hand) |
+| 2 | Evasion +10% (one-handed sword, empty off-hand) | Evasion +10% (one-handed sword, empty off-hand) |
+| 3 | **Riposte** (passive): counterattack at 35% damage when a foe misses you, once a turn | **Riposte** (passive): counterattack at 50% damage when a foe misses you, once a turn |
+| 4 | One-handed sword power +10% (empty off-hand) | One-handed sword power +10% (empty off-hand) |
+| 5 | One-handed sword Crit Rating +5 (empty off-hand) | One-handed sword Crit Rating +10 (empty off-hand) |
+| 6 | **Perfect Lunge** (skill, once per battle): next one-handed sword attack +40% Accuracy, +25% power | **Perfect Lunge** (skill, capstone; once per battle): next one-handed sword attack +40% Accuracy, +25% power |
+
+Why: it fits; the riposte, its heart, hits a little harder, and level 5 counts for more.
+
+## Poisoner
+
+7 levels · rarity no colour · Requires: Level 15 · Rogue 5
+Identity (remade on your note): The master of the game's poisons (task 9): throws them and coats its weapons with them,
+and every poison works stronger and longer in its hands.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Weapon Accuracy +10% | Poisons you throw last 1 turn longer |
+| 2 | Dexterity +5% | Dexterity +5% and weapon Accuracy +10% |
+| 3 | **Toxic Edge** (passive): weapon hits poison for 3% of maximum HP a turn for 2 turns | **Coated Blade** (passive): when you throw a poison, your weapon takes it too: your next 2 weapon hits apply it at half strength (new) |
+| 4 | Poisoned targets heal 20% less | Poisoned enemies heal 20% less, and your poisons deal 15% more damage |
+| 5 | Weapon Crit Rating +5 | Throwing a poison has a 25% chance not to use it up |
+| 6 | Toxic Edge +2% of maximum HP a turn | Your poisons ignore Nature resistance, and their weakening effects (on Armor, hit chance, Speed and the like) are 25% stronger |
+| 7 | **Noxious Coating** (skill, once per battle): next 2 weapon hits add 2% maximum-HP poison and −20% Accuracy | **Venom Volley** (skill, capstone; once per battle): throw one poison at every enemy, for the price of one |
+
+Why: remade on your note: it poisoned with its own blade, untouched by the 12 poisons task 9 added. Now those poisons
+are its weapon: thrown longer, stronger and cheaper, carried onto its blade, and at its peak thrown at every enemy at
+once.
+
+## Shadow
+
+6 levels · rarity no colour · Requires: Level 18 · Rogue 5
+Identity: The one the enemy overlooks: avoids being targeted and slips out of sight when it must.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Evasion +10% | Evasion +10% |
+| 2 | Speed +5% | Speed and Luck +5% |
+| 3 | **Low Profile** (passive): with another living ally (not a summon), enemies are less likely to attack you | **Low Profile** (passive): with another living ally (not a summon), enemies are less likely to attack you |
+| 4 | Luck +5% | Weapon attacks on an enemy that isn't attacking you this turn deal 10% more damage (new) |
+| 5 | Weapon Accuracy +20% | Weapon Accuracy +20% |
+| 6 | **Vanish** (skill, once per battle, no AP): 2 turns of +30% Evasion and far less likely to be attacked | **Vanish** (skill, capstone; once per battle, no AP): 2 turns of +30% Evasion and far less likely to be attacked, and your first attack out of it deals 30% more |
+
+Why: it hid well but did little from hiding; now striking from the shadows pays (level 4, and the attack out of
+Vanish). Speed and Luck merge to make room.
+
+## Eminence
+
+4 levels · rarity blue · Requires: Level 1 · Shadow 6 · 7 flawless victories
+Identity: The untouched: deadly as long as it isn't hit, so it plays to avoid damage entirely.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Weapon power +10% | Weapon power +10% |
+| 2 | **Untouched Edge** (skill, once per battle): next weapon attack up to +60% power, less the more damage taken | **Untouched Edge** (skill, once per battle): next weapon attack up to +60% power, less the more damage taken |
+| 3 | Luck +5% | Luck +5% and Evasion +10% |
+| 4 | **Unscathed Presence** (passive): all damage up to +50%, less the more damage taken (none after losing half your HP) | **Unscathed Presence** (passive, capstone): all damage up to +50%, less the more damage taken (none after losing half your HP) |
+
+Why: it fits; level 3 adds Evasion, which is how an untouched class stays untouched.
+
+## Stalker
+
+4 levels · rarity no colour · Requires: Level 12 · Rogue 5
+Identity: The tracker: hunts down a chosen kind of enemy on the map.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **Trail Sense** (passive): the map lists the enemy kinds you can track in your zone | **Trail Sense** (passive): the map lists the enemy kinds you can track in your zone |
+| 2 | Speed +5% | Speed +5% |
+| 3 | Weapon Accuracy +20% | Weapon Accuracy +15%, and +15% damage to the kind of enemy you tracked today (new) |
+| 4 | **Track Quarry** (skill, once a day, on the map): start a fight with a chosen local enemy kind | **Track Quarry** (skill, capstone; once a day, on the map): start a fight with a chosen local enemy kind |
+
+Why: it fits; Track Quarry stays once a day since it starts fights on the map rather than acting in one. Level 3 lets
+the Stalker fight its quarry better once it has found it.
+
+## Thief
+
+5 levels · rarity no colour · Requires: Level 1 · Rogue 5
+Identity: The thief: profits from every fight and can even steal an enemy's weapon.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Luck +5% | Luck +5% |
+| 2 | **Greedy Loot** (passive): enemies drop 15% more money | **Greedy Loot** (passive): enemies drop 15% more money |
+| 3 | Speed +5% | Speed +5% |
+| 4 | Evasion +20% | Evasion +20% |
+| 5 | **Grand Theft** (skill, once a day): if your next attack is a critical hit, steal the enemy's weapon | **Grand Theft** (skill, capstone; once a day): if your next attack hits, steal the enemy's weapon and some of its money |
+
+Why: Grand Theft needed a critical hit, so it mostly came to nothing; now any hit steals. It stays once a day, as it
+brings loot rather than fighting power.
+
+## Trap Layer
+
+4 levels · rarity no colour · Requires: Level 1 · Rogue 5 · 3 traps used
+Identity: Sets traps that strike enemies for it.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Traps deal 50% more damage | Traps deal 50% more damage |
+| 2 | Traps gain 50% Armor Pierce | **Hidden Snares** (passive): enemies caught in your traps lose 15% Speed for 2 turns (new) |
+| 3 | Placing a trap has a 30% chance not to use it up | Traps gain 50% Armor Pierce, and placing one has a 30% chance not to use it up |
+| 4 | Each trap triggers one more time | **Lay Snare** (skill, capstone; once per battle, no AP): place a trap that triggers one more time |
+
+Why: it had neither a passive nor a skill, so nothing for a capstone. Its bonuses gather into levels 1 and 3, the snare
+now slows what it catches, and the extra trigger becomes a skill for one free trap each battle.
+
+## Trap Master
+
+3 levels · rarity no colour · Requires: Level 30 · Trap Layer 4
+Identity: The trap expert: more and deadlier traps on the field at once.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Traps deal 50% more damage and gain 50% Armor Pierce | Traps deal 50% more damage and gain 50% Armor Pierce, and another 20% chance not to use one up |
+| 2 | Another 20% chance not to use a trap up | **Twin Traps** (passive): you can have 2 traps active at once |
+| 3 | You can have 2 traps active at once | **Detonate** (skill, capstone; once per battle): set off all your traps at once, against every enemy (new) |
+
+Why: it had neither a passive nor a skill either. Two traps at once becomes its passive, and its capstone sets them all
+off together.
+
+## Spellblade
+
+5 levels · rarity no colour · Requires: Level 1 · Warrior 3 · Mage 3 · 3 different spells known
+Identity: The warrior-mage: melee strikes charged with magic.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Strength and Intelligence +5% | Strength and Intelligence +5% |
+| 2 | Maximum Mana +5% | Maximum Mana +5% |
+| 3 | **Arcane Edge** (passive): melee weapons gain 0.2× Intelligence scaling | **Arcane Edge** (passive): melee weapons gain 0.2× Intelligence scaling |
+| 4 | Melee Accuracy +10%, spell power +5% | Melee Accuracy +10%, spell power +5% |
+| 5 | **Spellstrike** (skill, once per battle): spend 10% Mana; next melee attack adds Basic damage equal to 15% of maximum Mana | **Spellstrike** (skill, capstone; once per battle): spend 10% Mana; next melee attack adds Basic damage equal to 15% of maximum Mana |
+
+Why: unchanged; it already fits its identity and the rules.
+
+## Spell Sniper
+
+5 levels · rarity no colour · Requires: Level 1 · Archer 3 · Mage 3 · 3 different spells known
+Identity: The archer-mage: bow shots charged with magic.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Dexterity and Intelligence +5% | Dexterity and Intelligence +5% |
+| 2 | Maximum Mana +5% | Maximum Mana +5% |
+| 3 | **Arcane Ballistics** (passive): bows gain 0.2× Intelligence scaling | **Arcane Ballistics** (passive): bows gain 0.2× Intelligence scaling |
+| 4 | Bow Accuracy +10%, spell power +5% | Bow Accuracy +10%, spell power +5% |
+| 5 | **Spellshot** (skill, once per battle): spend 10% Mana; next bow attack adds Basic damage equal to 15% of maximum Mana | **Spellshot** (skill, capstone; once per battle): spend 10% Mana; next bow attack adds Basic damage equal to 15% of maximum Mana |
+
+Why: unchanged, like its twin the Spellblade.
+
+## Hexblade
+
+5 levels · rarity blue · Requires: Level 1 · Spellblade 5 · Know 5 Dark spells
+Identity: A spellblade of curses: weakens enemies with every hit and brands one to take more from it.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Dark spell power +10% | Dark spell power +10% |
+| 2 | Weapon Accuracy +10% | Weapon Accuracy +10% |
+| 3 | **Cursed Edge** (passive): weapon hits lower the target's Armor by 10% for 2 turns | **Cursed Edge** (passive): weapon hits lower the target's Armor by 10% for 2 turns |
+| 4 | Dark spells cost 10% less Mana | Dark spells cost 10% less Mana |
+| 5 | **Hexbrand** (skill, once per battle): your attacks and spells deal 20% more to one marked enemy | **Hexbrand** (skill, capstone; once per battle): your attacks and spells deal 25% more to one marked enemy |
+
+Why: it fits; the brand grows a little for a blue class.
+
+## Nullblade
+
+6 levels · rarity blue (raised on your note) · Requires: Level 25 · Spellblade 5
+Identity: Cuts magic away: its strikes strip enemies of their magical protection.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Weapon Accuracy +10% | Weapon Accuracy +10% |
+| 2 | 5% less spell damage taken | 5% less spell damage taken |
+| 3 | **Unraveling Edge** (passive): weapon hits strip one magical buff from the target | **Unraveling Edge** (passive): weapon hits strip one magical buff from the target |
+| 4 | Weapon power +5% | Weapon power +5%, spells cost 5% less Mana |
+| 5 | Spells cost 5% less Mana | Weapon hits on an enemy with no magical buffs left deal 10% more damage (new) |
+| 6 | **Null Strike** (skill, once per battle): next weapon hit weakens the target's next spell by 25% | **Severing Cut** (skill, capstone; once per battle): strip every magical buff from one enemy, and your hit deals 10% more for each one removed (new) |
+
+Why: Null Strike was a smaller copy of the Spellbreaker's Mute Sigil, left to it in the draft. The Nullblade's own last
+skill strips everything at once, and level 5 rewards cutting an enemy bare. A blue class's power now.
+
+## Spellbreaker
+
+6 levels · rarity blue · Requires: Level 30 · Enlightened 5 or Spellblade 5
+Identity: The mage-killer: shrugs off and shuts down enemy spells.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | 10% less spell damage taken | 10% less spell damage taken |
+| 2 | Guard's favoured defence +10% | Guard's favoured defence +10% |
+| 3 | **Countercast** (passive): while Guarding, the first enemy spell at you each turn has a 25% chance to fizzle | **Countercast** (passive): while Guarding, the first enemy spell at you each turn has a 40% chance to fizzle |
+| 4 | Weapon Accuracy +10% | Weapon Accuracy +10% |
+| 5 | 5% less spell damage taken | 5% less spell damage taken |
+| 6 | **Mute Sigil** (skill, once per battle): one enemy's next spell deals or heals 40% less | **Mute Sigil** (skill, capstone; once per battle): one enemy's next spell deals or heals 50% less |
+
+Why: it fits; Countercast fizzled a spell one time in four while Guarding, too seldom to count on, and both features
+grow a little for a blue class.
