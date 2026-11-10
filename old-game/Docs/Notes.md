@@ -1051,7 +1051,10 @@ Shaman, Elder Shaman, Trickster, Awakened, Warden, Scout), all their content pro
 ignored; Poisoner exists already and is reworked, not added; 40 new classes (the task's other 25, Ascended spelled
 so, those seven, 8 of my own); no class removed; old saves ignored. The review goes through one draft file in this
 folder (C14, which folded the planned two into one): `Class-Rework-Draft.md`, every class's identity, levels,
-requirements and rarity, written on 2026-11-10 and waiting for the user's review.
+requirements and rarity, written on 2026-11-10 and waiting for the user's review. A class's `requirements` have five
+fields, not three: `level`, `classes` (all of them), `anyClasses` (one of them; 28 classes, the elemental mages'
+Spellcaster 7 or Wizard 7 among them), `other` and `excludes` (can't be held together: Hero and Demon Lord, Paladin and
+Oathsworn). The draft's first version missed the last two; the user caught it on Reaver.
 
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in

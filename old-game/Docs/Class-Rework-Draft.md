@@ -80,13 +80,13 @@ Fighters who win with the weapon in their hand.
 
 ### Berserker
 6 levels · rarity no colour
-- **Requires:** Level 15 · Kill at least 3 enemies in one combat 5 times
+- **Requires:** Level 15 · Warrior 5 or Archer 5 · Kill at least 3 enemies in one combat 5 times
 - **Identity:** Thrives in a crowd: the more enemies alive, the harder it hits, and Rampage sweeps them all.
 - Found: Bonuses per living enemy are spread over many classes (Champion, Slayer, Traveler, Warrior); here they are the core.
 
 ### Champion
 4 levels · rarity no colour
-- **Requires:** Level 40
+- **Requires:** Level 40 · Slayer 5 or Gladiator 5
 - **Identity:** Sharpened: the one who takes on the strongest enemy: an all-round fighter that grows stronger against the toughest foe on the field (the boss, the enemy with the most HP).
 - Found: Champion's Challenge is almost the Gladiator's Duel (one enemy, three turns, protected), and Arena Champion is the Berserker's per-enemy bonus. Sharpened so the duel stays the Gladiator's.
 
@@ -97,7 +97,7 @@ Fighters who win with the weapon in their hand.
 
 ### Reaver
 7 levels · rarity blue
-- **Requires:** Level 25
+- **Requires:** Level 25 · Barbarian 5 or Berserker 6
 - **Identity:** The finisher: hits wounded enemies harder and gets its next turn sooner after every kill.
 
 ### Slayer
@@ -107,7 +107,7 @@ Fighters who win with the weapon in their hand.
 
 ### Soldier
 6 levels · rarity no colour
-- **Requires:** Level 25
+- **Requires:** Level 25 · Warrior 5 or Archer 5 or Rogue 5
 - **Identity:** The disciplined veteran: steady Accuracy and toughness, growing stronger each turn the battle lasts.
 - Found: Veteran's Momentum (+25% damage, −20% damage taken, +20% Armor and Evasion for 3 turns) is very strong for a class without a colour.
 
@@ -164,7 +164,7 @@ Warriors of the faith. Today their features overlap a lot (four of them get bonu
 
 ### Paladin
 7 levels · rarity no colour
-- **Requires:** Level 10 · No Dark or Blood spells known
+- **Requires:** Level 10 · Knight 4 or Cleric 4 · No Dark or Blood spells known · Not together with Oathsworn
 - **Identity:** Sharpened: the holy smiter: Divine Smite, Mana turned into Holy weapon damage, against demons and devils; it forswears Dark and Blood magic.
 - Found: Sworn Oath works against Monster-class enemies and Banish Evil against demons; Oathsworn has the same Divine Smite and a stronger Sworn Oath.
 
@@ -175,13 +175,13 @@ Warriors of the faith. Today their features overlap a lot (four of them get bonu
 
 ### Oathsworn
 7 levels · rarity purple
-- **Requires:** Level 10 · Knight 4 · Hierophant 4 · Know no Dark or Blood spells
+- **Requires:** Level 10 · Knight 4 · Hierophant 4 · Know no Dark or Blood spells · Not together with Paladin
 - **Identity:** Sharpened: the knight bound by vows: swears an oath for the battle (to protect, to stand, to slay) and draws great power while it keeps it; Basic and Holy magic through the blade.
 - Found: Today it is a stronger Paladin: Arcane Vow is Sworn Oath with bigger numbers, and its skill is Divine Smite again.
 
 ### Templar
 6 levels · rarity no colour
-- **Requires:** Level 1
+- **Requires:** Level 1 · Cleric 7 or Priest 7
 - **Identity:** Sharpened: the holy defender: armour and Holy power that shield the whole party, against the undead and dark magic.
 - Found: Consecrated Arms (demons, devils, undead) repeats the demon bonus of the Cleric and Paladin.
 
@@ -206,7 +206,7 @@ Fists, discipline and inner power.
 
 ### Ki Warrior
 10 levels · rarity purple
-- **Requires:** Level 30
+- **Requires:** Level 30 · Energist 5 or Psykic 8
 - **Identity:** Ki as a resource: gathers Ki through the battle and spends it to empower attacks and spells, restore Mana or go into overdrive.
 
 ## The archer's path (6)
@@ -252,7 +252,7 @@ Speed, stealth, poisons, traps and the killing blow.
 
 ### Assassin
 6 levels · rarity no colour
-- **Requires:** Level 1
+- **Requires:** Level 1 · Rogue 5 or Sharpshooter 3
 - **Identity:** Sharpened: the killer of one target: critical hits and a guaranteed execution (the first-turn bonus is left to the Ambusher).
 - Found: Breaks the capstone rule: Execute comes at level 5; level 6 is critical damage. Combatstalker is the Hunter's Silent Killer, and the Ambusher's First Strike is the same idea.
 
@@ -331,7 +331,7 @@ Hybrids that fight with a weapon and magic at once.
 
 ### Spellbreaker
 6 levels · rarity blue
-- **Requires:** Level 30
+- **Requires:** Level 30 · Enlightened 5 or Spellblade 5
 - **Identity:** The mage-killer: resists spells, makes them fizzle while Guarding, and silences the next one.
 
 ## The mage's path (14)
@@ -398,7 +398,7 @@ Spellcraft itself: learning, casting, Mana and the mind.
 
 ### Sage
 5 levels · rarity blue
-- **Requires:** Level 1 · Maximum Mana above maximum HP
+- **Requires:** Level 1 · Spellcaster 7 or Wizard 7 · Maximum Mana above maximum HP
 - **Identity:** The deep well of Mana: far more Mana, regeneration, and Mana for the party.
 
 ### Energist
@@ -408,7 +408,7 @@ Spellcraft itself: learning, casting, Mana and the mind.
 
 ### Psykic
 8 levels · rarity purple
-- **Requires:** Level 30 · Know at most 15 spells
+- **Requires:** Level 30 · Spellcaster 7 or Wizard 7 · Know at most 15 spells
 - **Identity:** Mind over matter: its own mind-powered attacks paid with Mana (Telekinetic Burst, Psychic Lance, Mindstorm), for those who keep few spells.
 
 ## The twelve elemental mages (12)
@@ -417,63 +417,63 @@ One per element, all built the same way: an early skill (level 3), a passive (5)
 
 ### Aeromancer
 9 levels · rarity no colour
-- **Requires:** Level 20 · Know at least 7 Wind spells
+- **Requires:** Level 20 · Spellcaster 7 or Wizard 7 · Know at least 7 Wind spells
 - **Identity:** Wind magic: Speed and Evasion for the party, and Wind spells that cost fewer Action Points.
 
 ### Aquamancer
 9 levels · rarity no colour
-- **Requires:** Level 20 · Know at least 7 Water spells
+- **Requires:** Level 20 · Spellcaster 7 or Wizard 7 · Know at least 7 Water spells
 - **Identity:** Water magic: restoring HP and Mana, efficient Water spells, and a Water spell cast twice.
 
 ### Botanomancer
 9 levels · rarity no colour
-- **Requires:** Level 20 · Know at least 7 Nature spells
+- **Requires:** Level 20 · Spellcaster 7 or Wizard 7 · Know at least 7 Nature spells
 - **Identity:** Nature magic: healing over time and animal allies.
 - Found: Call of the Ancient Pack is the Beastmaster's Call the Pack.
 
 ### Cryomancer
 9 levels · rarity no colour
-- **Requires:** Level 20 · Know at least 7 Ice spells
+- **Requires:** Level 20 · Spellcaster 7 or Wizard 7 · Know at least 7 Ice spells
 - **Identity:** Ice magic: freezing (stunning) enemies and less damage taken.
 
 ### Electromancer
 9 levels · rarity no colour
-- **Requires:** Level 20 · Know at least 7 Lightning spells
+- **Requires:** Level 20 · Spellcaster 7 or Wizard 7 · Know at least 7 Lightning spells
 - **Identity:** Lightning magic: overcharged bursts, and damage to every enemy.
 
 ### Geomancer
 9 levels · rarity no colour
-- **Requires:** Level 20 · Know at least 7 Earth spells
+- **Requires:** Level 20 · Spellcaster 7 or Wizard 7 · Know at least 7 Earth spells
 - **Identity:** Earth magic: stone defence, and heavy Earth strikes on one enemy.
 
 ### Hemomancer
 9 levels · rarity no colour
-- **Requires:** Level 20 · Know at least 7 Blood spells
+- **Requires:** Level 20 · Spellcaster 7 or Wizard 7 · Know at least 7 Blood spells
 - **Identity:** Blood magic: HP turned into Mana, and blood spell power.
 
 ### Hierophant
 9 levels · rarity no colour
-- **Requires:** Level 20 · Know at least 7 Basic spells
+- **Requires:** Level 20 · Spellcaster 7 or Wizard 7 · Know at least 7 Basic spells
 - **Identity:** Basic magic: cheaper, quicker Basic spells, cast again as echoes.
 
 ### Luxomancer
 9 levels · rarity no colour
-- **Requires:** Level 20 · Know at least 7 Holy spells
+- **Requires:** Level 20 · Spellcaster 7 or Wizard 7 · Know at least 7 Holy spells
 - **Identity:** Holy magic: healing the party and warding off darkness.
 
 ### Necromancer
 9 levels · rarity no colour
-- **Requires:** Level 20 · Know at least 7 Death spells
+- **Requires:** Level 20 · Spellcaster 7 or Wizard 7 · Know at least 7 Death spells
 - **Identity:** Death magic: raising undead thralls.
 
 ### Pyromancer
 9 levels · rarity no colour
-- **Requires:** Level 20 · Know at least 7 Fire spells
+- **Requires:** Level 20 · Spellcaster 7 or Wizard 7 · Know at least 7 Fire spells
 - **Identity:** Fire magic: raw fire damage, at the price of taking more.
 
 ### Umbramancer
 9 levels · rarity no colour
-- **Requires:** Level 20 · Know at least 7 Dark spells
+- **Requires:** Level 20 · Spellcaster 7 or Wizard 7 · Know at least 7 Dark spells
 - **Identity:** Dark magic: hiding in shadow, and weakening every enemy.
 
 ## Masters of elements (4)
@@ -497,7 +497,7 @@ Classes built on several elements or one element's special side.
 
 ### Plaguebinder
 6 levels · rarity no colour
-- **Requires:** Level 25
+- **Requires:** Level 25 · Warlock 5 or Necromancer 5
 - **Identity:** Spreads afflictions: poisons and curses that jump from the dead to the living, and a plague cloud over every enemy.
 
 ## Priests and healers (4)
@@ -516,7 +516,7 @@ Healing and protecting the party with magic.
 
 ### Lifewarden
 6 levels · rarity no colour
-- **Requires:** Level 30
+- **Requires:** Level 30 · Priest 5 or Cleric 5
 - **Identity:** The keeper of life: healing that turns its excess into barriers, and a heal for everyone.
 
 ### Sanguine Medic
@@ -621,8 +621,8 @@ Fortune, dice and wagers.
 - Found: Level 4 has no effect at all.
 
 ### Joker
-3 levels · **rarity no colour → blue** (needs 220 Luck)
-- **Requires:** Level 1 · 220 Luck
+3 levels · **rarity no colour → blue** (needs 220 Luck and Jack of all Trades 4 or Jester 5)
+- **Requires:** Level 1 · Jack of all Trades 4 or Jester 5 · 220 Luck
 - **Identity:** Pure chaos: random damage boosts from enormous Luck, and a reckless spree of cheap spells.
 
 ### Gambit
@@ -658,7 +658,7 @@ Travel, money, supplies, quests, artifacts and alchemy.
 
 ### Riverstrider
 5 levels · rarity no colour
-- **Requires:** Level 18
+- **Requires:** Level 18 · Traveler 3 or Aquamancer 3
 - **Identity:** At home on rivers: faster river crossings, Evasion in river zones, Water magic.
 - Found: Narrow: most of it works only in river zones.
 
@@ -680,7 +680,7 @@ Travel, money, supplies, quests, artifacts and alchemy.
 
 ### Bounty Broker
 4 levels · rarity no colour
-- **Requires:** Level 1 · Complete 5 guild quests
+- **Requires:** Level 1 · Hunter 4 or Salesman 2 · Complete 5 guild quests
 - **Identity:** The guild's contractor: better rewards, more quests, and marks on bounty targets.
 
 ### Relic Warden
@@ -786,12 +786,12 @@ Unlocked by an item that is used up (a vial, a core, a crystal, a gem).
 
 ### Hero
 3 levels · rarity gold
-- **Requires:** Level 92
+- **Requires:** Level 92 · Not together with Demon Lord
 - **Identity:** The legend who saves the world: inspires the party, restores everyone each turn, and lands a strike nothing can lessen.
 
 ### Demon Lord
 3 levels · rarity gold
-- **Requires:** Level 92
+- **Requires:** Level 92 · Not together with Hero
 - **Identity:** The legend who ends it: terror over every enemy, and a world-ending strike.
 
 ### Raid Boss
