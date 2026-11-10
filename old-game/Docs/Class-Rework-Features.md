@@ -36,6 +36,9 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
 - Batch 6 (approved 2026-11-10, Overprotective as a chance for a summon to intercept): priests and healers (Priest, Cardinal Priest, Lifewarden, Sanguine Medic), summoners and dark
   pacts (Summoner, Beastmaster, Wildwarden, Soul Shepherd, Druid, Warlock, Pactkeeper, Cultist, Chaos Cultist) and
   leaders and minds (Strategist, General, Flagbearer, Enlightened, Diviner).
+- Batch 7, for review: luck (Bard, Jester, Joker, Gambit) and the road, trade and the guild (Traveler, Cartographer,
+  Courier, Pilgrim, Riverstrider, Salesman, Scavenger, Quartermaster, Bounty Broker, Relic Warden, Alchemist,
+  Assimilator).
 
 # The sample of four (approved 2026-11-10)
 
@@ -1681,3 +1684,248 @@ Identity: Foresight: predicts the enemy's next move and is nearly untouchable wh
 | 7 | **Perfect Foresight** (passive): a right Foretell gives +125% Armor and Evasion and 20% less damage for 2 turns | **Perfect Foresight** (passive, capstone): a right Foretell gives +125% Armor and Evasion and 20% less damage for 2 turns |
 
 Why: unchanged; it already fits its identity and the rules.
+
+# Batch 7: luck, and the road, trade and the guild (for review)
+
+## Bard
+
+5 levels · rarity no colour · Requires: Level 1 · At least 50 Luck
+Identity: The lucky performer: lifts the whole party with music and fortune.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Luck +5% | Luck +5% |
+| 2 | Mind +5% | Mind +5% |
+| 3 | **Fortunate Refrain** (passive): Luck another 5%; spells cost 5% less Mana | **Fortunate Refrain** (passive): every ally gains 5% Luck; your spells cost 5% less Mana |
+| 4 | Maximum Mana and spell power +5% | Maximum Mana and spell power +5% |
+| 5 | **Heroic Ballad** (skill, once a day): every ally +10% all stats, +20% Accuracy and Evasion for 3 turns | **Heroic Ballad** (skill, capstone; once per battle): every ally +10% all stats, +15% Accuracy and Evasion for 3 turns |
+
+Why: its passive only helped the Bard; now its luck reaches the party it plays for. The ballad works every battle,
+a little smaller.
+
+## Jester
+
+5 levels · rarity blue (raised on your note) · Requires: Level 1 · 120 Luck
+Identity: The fool fortune loves: lucky drops and lucky hits.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Luck +5% | Luck +5% |
+| 2 | **Lady Luck** (passive): masterwork weapons, armour and artifacts 10% more likely to drop | **Lady Luck** (passive): masterwork weapons, armour and artifacts 10% more likely to drop |
+| 3 | Evasion +20% | Evasion +20% |
+| 4 | No effect | Luck +5% and weapon Crit Rating +10 |
+| 5 | **6-sided Luck** (skill, once per battle): roll a die until it shows a six; then your next melee or ranged attack is a sure critical hit | **6-sided Luck** (skill, capstone; once per battle): roll a die until it shows a six; then your next melee or ranged attack is a sure critical hit and deals 25% more |
+
+Why: level 4 did nothing at all (the draft); it now adds luck and critical hits. Its rarity rose to blue on your
+note, so the lucky blow also hits harder.
+
+## Joker
+
+3 levels · rarity purple (raised on your note) · Requires: Level 1 · Jack of all Trades 4 or Jester 5 · 220 Luck
+Identity: Pure chaos: wildly random power fuelled by enormous Luck.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **All Things Random** (passive): a chance of 0.2× Luck % that any damage you deal grows by a random 0.1× to 0.4× Luck % | **All Things Random** (passive): a chance of 0.2× Luck % that any damage you deal grows by a random 0.1× to 0.4× Luck % |
+| 2 | Luck +10% | Luck +10% |
+| 3 | **The World Revolving** (skill, once a day): for 4 turns (+1 per 80 Luck) spells cost 80% less Mana and 1 fewer AP but deal 65% less damage; then you are stunned for 3 turns | **The World Revolving** (skill, capstone; once per battle): for 3 turns your spells and attacks cost no Mana and 1 fewer AP, and each deals a random 50% to 150% of its damage (every 50 Luck lifts the bottom by 10 points) |
+
+Why: the old skill cut the damage by 65% and then stunned the Joker for three turns, so it mostly hurt its user. Now
+it is pure chaos with Luck tilting the odds, every battle, as a purple class's peak.
+
+## Gambit
+
+5 levels · rarity blue · Requires: Level 20 · Jester 3
+Identity: The gambler: wagers its actions on risky strikes.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Luck +5% | Luck +5% |
+| 2 | Weapon Accuracy +16% | Weapon Accuracy +16% |
+| 3 | **Second Chance** (passive): once a turn, a missed Attack gives back 1 AP | **Second Chance** (passive): once a turn, a missed Attack gives back 1 AP |
+| 4 | Weapon Crit Rating +5 | Weapon Crit Rating +5 |
+| 5 | **Double Down** (skill, once per battle): wager 3 AP on a strike: +20% Accuracy, +40% damage; a hit returns 2 AP, a miss ends your turn | **Double Down** (skill, capstone; once per battle): wager 3 AP on a strike: +20% Accuracy, +40% damage; a hit returns 2 AP, a miss ends your turn |
+
+Why: unchanged; the wager is its identity, and its risk is the point rather than a penalty.
+
+## Traveler
+
+3 levels · rarity no colour · Requires: Level 10 · 600 km travelled
+Identity: The road: travels faster and further.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Travel speed +1 km/h | Travel speed +1 km/h, and Camping Supplies have a 50% chance not to be used up |
+| 2 | Camping Supplies have a 50% chance not to be used up | **Shortcut** (skill, once a day, on the map): your next trip takes 25% less time (new) |
+| 3 | **The Road Ahead** (passive): Speed +4% per living enemy in battle | **The Road Ahead** (passive, capstone): after 30 km or more on the road since your last battle, you start the next one with your turn bar half filled (new) |
+
+Why: it had no skill, and its passive (Speed per enemy) had nothing to do with travelling (the draft). Now its skill
+shortens a journey and its passive turns a long road into a quick start in the fight that ends it.
+
+## Cartographer
+
+5 levels · rarity no colour · Requires: Level 1 · Traveler 3 · Travel 1,500 km
+Identity: Maps the land: travels efficiently, avoids trouble and knows what lies ahead.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Travel speed +1 km/h | Travel speed +1 km/h |
+| 2 | 10% fewer wild encounters | 10% fewer wild encounters |
+| 3 | **Surveyor's Eye** (passive): the map shows the current zone and nearby towns and quest markers | **Surveyor's Eye** (passive): the map shows the regions next to yours before you enter them (no fog), with their towns and quest targets (new) |
+| 4 | Travel speed +1 km/h; Camping Supplies kept 20% more often | Travel speed +1 km/h; Camping Supplies kept 20% more often |
+| 5 | **Charted Course** (skill, once per battle): every ally +20% Evasion and weapon Accuracy for 2 turns | **Charted Course** (skill, capstone; once per battle): every ally +20% Evasion and weapon Accuracy for 2 turns |
+
+Why: Surveyor's Eye came from before the one continent of task 8 (the draft); on the continent, knowing what lies ahead
+means seeing past the fog into the next regions.
+
+## Courier
+
+3 levels · rarity no colour · Requires: Level 1 · Traveler 3 · Complete 15 guild Travel quests
+Identity: Delivers for the guild: fast and safe on the road.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Travel speed +2 km/h | Travel speed +2 km/h |
+| 2 | **Dispatch Guard** (passive): Armor and Evasion +10% on a Travel, Escort or Deliver quest | **Dispatch Guard** (passive): Armor and Evasion +10%, and travel 10% faster, on a Travel, Escort or Deliver quest |
+| 3 | **Haste the Route** (skill, once per battle): every ally +15% Speed for 2 turns | **Haste the Route** (skill, capstone; once per battle): every ally +15% Speed for 2 turns |
+
+Why: it fits; its passive now also speeds the delivery itself.
+
+## Pilgrim
+
+5 levels · rarity no colour · Requires: Level 1 · Priest 4 · Traveler 3
+Identity: The holy traveller: blessed by the road it walks, and blesses the party in turn.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Travel speed +1 km/h | Travel speed +1 km/h |
+| 2 | Camping Supplies kept 25% more often | Camping Supplies kept 25% more often |
+| 3 | **Pilgrim's Blessing** (passive): after 60 km since resting, the party gains 10% Armor and Evasion | **Pilgrim's Blessing** (passive): after 60 km since resting, the party gains 10% Armor and Evasion |
+| 4 | Quest Reputation +10% | Quest Reputation +10% |
+| 5 | **Roadside Prayer** (skill, once per battle): every ally restores 15% HP and Mana | **Roadside Prayer** (skill, capstone; once per battle): every ally restores 15% HP and Mana |
+
+Why: unchanged; it already fits its identity and the rules.
+
+## Riverstrider
+
+5 levels · rarity no colour · Requires: Level 18 · Traveler 3 or Aquamancer 3
+Identity: At home on rivers: fast across water and elusive near it.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | River crossing +2 km/h | River crossing +2 km/h |
+| 2 | Water spell power +5% | Water spell power +5% |
+| 3 | **Flowstep** (passive): Evasion +16% in river zones | **Flowstep** (passive): Evasion +15% when fighting by water: river, lake, coast and marsh zones |
+| 4 | River crossing +2 km/h | River crossing +2 km/h, and boat trips take 20% less time (new) |
+| 5 | **River Dance** (skill, once per battle): +20% Evasion for 2 turns and 10% Mana | **River Dance** (skill, capstone; once per battle): +20% Evasion for 2 turns and 10% Mana |
+
+Why: the draft found it narrow, working only in river zones. Task 8's continent has lakes, a coast and boat trips, so
+the water it is at home on now includes them.
+
+## Salesman
+
+4 levels · rarity no colour · Requires: Level 1 · Sell at least 200 items
+Identity: Money: earns more, and turns its wealth into power.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Items sell for 20% more | Items sell for 20% more |
+| 2 | Luck +5%; enemies drop 20% more money | Luck +5%; enemies drop 20% more money |
+| 3 | **Liquid Assets** (passive): in battle, all stats +1% per 5 gold you carry, up to 20% | **Liquid Assets** (passive): in battle, all stats +1% per 5 gold you carry, up to 20% |
+| 4 | **Paid Advantage** (skill, once per battle): spend 1 gold: +25% damage and +20% Evasion for 3 turns | **Paid Advantage** (skill, capstone; once per battle): spend 1 gold: +25% damage and +20% Evasion for 3 turns |
+
+Why: unchanged; it already fits its identity and the rules.
+
+## Scavenger
+
+5 levels (7 → 5 in the draft) · rarity no colour · Requires: Level 1 · Loot 30 enemies
+Identity: Picks the battlefield clean: more money, masterworks and supplies from every fight.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Enemies drop 5% more money | Enemies drop 10% more money |
+| 2 | Masterwork drop chance +1 point | Masterwork drop chance +1 point |
+| 3 | **Salvage Sense** (passive): each defeated enemy has a 15% chance to leave Camping Supplies | **Salvage Sense** (passive): each defeated enemy has a 15% chance to leave Camping Supplies |
+| 4 | Enemies drop 5% more money | Enemies drop 5% more money; masterwork drop chance +1 point |
+| 5 | Masterwork drop chance +1 point | **Field Scrounge** (skill, capstone; once a day, after a victory): search the field again: one more roll of one defeated enemy's drops (new) |
+| 6 | Enemies drop 5% more money | *(gone)* |
+| 7 | **Field Scrounge** (skill, once a day): gain one Camping Supplies item outside battle | *(gone)* |
+
+Why: the draft cut it to five levels, since three were the same +5% money and two the same +1 masterwork chance; the
+totals stay (15% money, +2 points). Field Scrounge only made a Camping Supplies item; now it truly picks the field
+clean, once a day.
+
+## Quartermaster
+
+3 levels · rarity no colour · Requires: Level 20 · 2 companions
+Identity: Keeps the party supplied: consumables go further in its hands.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Consumables have a 15% chance not to be used up | Consumables have a 15% chance not to be used up |
+| 2 | **Shared Supplies** (passive): consumables restore 5% more HP and Mana to allies | **Shared Supplies** (passive): consumables restore 5% more HP and Mana to allies |
+| 3 | **Emergency Rations** (skill, once per battle): every ally restores 10% HP and Mana | **Emergency Rations** (skill, capstone; once per battle): every ally restores 10% HP and Mana |
+
+Why: unchanged; it already fits its identity and the rules.
+
+## Bounty Broker
+
+4 levels · rarity no colour · Requires: Level 1 · Hunter 4 or Salesman 2 · Complete 5 guild quests
+Identity: The guild's contractor: profits from guild work and hunts bounty targets.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Guild quest Reputation +10% | Guild quest Reputation +10% |
+| 2 | Guild quest money +10%; the guild offers one more quest | Guild quest money +10%; the guild offers one more quest |
+| 3 | **Contract Sense** (passive): +10% damage to the enemies your Clear or Hunt quest names | **Contract Sense** (passive): +10% damage to the enemies your Hunt or Cull quest names |
+| 4 | **Bounty Mark** (skill, once per battle): mark an enemy; every ally deals 10% more to it until it falls | **Bounty Mark** (skill, capstone; once per battle): mark an enemy; every ally deals 10% more to it, and it drops 50% more money when it falls |
+
+Why: its passive named the Clear quest, which task 2's guild retired; it now follows the Hunt and Cull quests. The mark
+pays out like a bounty, which sets it apart from the Strategist's Focus Fire.
+
+## Relic Warden
+
+5 levels · rarity no colour · Requires: Level 25 · 2 artifacts equipped
+Identity: The keeper of artifacts: makes the most of them and shares their power with the party.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Armor +10% with two artifacts worn | Armor +10% with two artifacts worn |
+| 2 | Maximum HP +5% | Maximum HP +5% |
+| 3 | **Shared Relics** (passive): living allies get 25% of your artifacts' stat bonuses | **Shared Relics** (passive): living allies get 25% of your artifacts' stat bonuses |
+| 4 | Your artifacts' stat bonuses +10% | Your artifacts' stat bonuses +10% |
+| 5 | **Relic Shelter** (skill, once per battle): every ally takes 15% less damage for 2 turns | **Relic Shelter** (skill, capstone; once per battle): every ally takes 15% less damage for 2 turns |
+
+Why: unchanged; it already fits its identity and the rules.
+
+## Alchemist
+
+5 levels · rarity no colour · Requires: Level 20 · 10 potions brewed
+Identity: The brewer: forages, and knows ingredients better than anyone (task 9).
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **Ingredient Lore** (passive): an ingredient's details list every potion and poison it goes into | **Ingredient Lore** (passive): an ingredient's details list every potion and poison it goes into |
+| 2 | Forage finds something 10% more often | Forage finds something 10% more often |
+| 3 | Wisdom +5% | Wisdom +5% |
+| 4 | Forage finds something 10% more often; a common or uncommon find brings one more | Forage finds something 10% more often; a common or uncommon find brings one more |
+| 5 | **Keen Harvest** (skill, once a day, outside battle): your next forage is sure to find something, rare ingredients twice as likely | **Keen Harvest** (skill, capstone; once a day, outside battle): your next forage is sure to find something, rare ingredients twice as likely |
+
+Why: unchanged; it was made with task 9 and already follows the rules.
+
+## Assimilator
+
+7 levels · rarity no colour · Requires: Level 10 · 25 ingredients foraged
+Identity: Eats ingredients in battle for their power (task 9).
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **Raw Assimilation** (passive): eat an ingredient in battle (1 AP) for a buff a third as strong as its potions | **Raw Assimilation** (passive): eat an ingredient in battle (1 AP) for a buff a third as strong as its potions |
+| 2 | Vitality +5% | Vitality +5% |
+| 3 | Nature resistance +10% | Nature resistance +10% |
+| 4 | Buffs half as strong as their potions, 1 turn longer | Buffs half as strong as their potions, 1 turn longer |
+| 5 | Eating has a 25% chance not to use the ingredient up | Eating has a 25% chance not to use the ingredient up |
+| 6 | Buffs two thirds as strong, with their special effects | Buffs two thirds as strong, with their special effects |
+| 7 | **Devour** (skill, once per battle): your next ingredient this turn costs no AP and its buff lasts twice as long | **Devour** (skill, capstone; once per battle): your next ingredient this turn costs no AP and its buff lasts twice as long |
+
+Why: unchanged; it was made with task 9 and already follows the rules.
