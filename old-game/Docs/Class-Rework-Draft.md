@@ -840,7 +840,8 @@ The 26 names in the task, but Poisoner, which is already in the game (C9); "Asce
 
 ### Spell Sparkler
 5 levels · rarity blue
-- **Requires:** Level 10 · Mage 5 · Cast 3 spells in one turn, 5 times
+- **Requires:** Level 10 · Mage 5 · Spellcaster 5 · Cast 3 spells in one turn, 5 times
+- *Changed on your answer (C28): Spellcaster 5 added; its Quickened Spell is the way to three spells in a turn (5 AP a turn, most spells 3, the cheapest 2).*
 - **Identity:** Showers the enemy with many small spells in one turn instead of one big one.
 - *Your note, applied: Since this is quite difficult to achieve, increase its color to blue. Also make its requirement a small tad easier (10 times → 5)*
 
@@ -856,7 +857,8 @@ The 26 names in the task, but Poisoner, which is already in the game (C9); "Asce
 
 ### Hotshot
 6 levels · rarity no colour
-- **Requires:** Level 15 · Archer 5 · Make 3 ranged attacks in one turn, 20 times
+- **Requires:** Level 15 · Archer 5 · Hit 2 different enemies with ranged attacks in one turn, 25 times
+- *Changed on your answer (C28): three ranged attacks in a turn need 6 AP, one more than a turn has.*
 - **Identity:** Fast and flashy with ranged weapons: many quick, lighter shots spread over the enemy.
 
 ### Juggernaut

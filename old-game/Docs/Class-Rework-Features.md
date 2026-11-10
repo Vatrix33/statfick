@@ -2178,7 +2178,7 @@ where that health is needed.
 
 ## Spell Sparkler
 
-5 levels · rarity blue · Requires: Level 10 · Mage 5 · Cast 3 spells in one turn, 5 times
+5 levels · rarity blue · Requires: Level 10 · Mage 5 · Spellcaster 5 · Cast 3 spells in one turn, 5 times (C28)
 Identity: Showers the enemy with many small spells in one turn instead of one big one.
 
 | Level | Feature |
@@ -2228,20 +2228,22 @@ touch, and a miss costs it all. The flurry builds the rhythm in one move.
 
 ## Hotshot
 
-6 levels · rarity no colour · Requires: Level 15 · Archer 5 · Make 3 ranged attacks in one turn, 20 times
+6 levels · rarity no colour · Requires: Level 15 · Archer 5 · Hit 2 different enemies with ranged attacks in one turn, 25 times (C28)
 Identity: Fast and flashy with ranged weapons: many quick, lighter shots spread over the enemy.
 
 | Level | Feature |
 |---|---|
 | 1 | Dexterity +5% |
-| 2 | **Quick Draw** (passive): ranged attacks cost 1 fewer AP (at least 1) but deal 25% less damage (new) |
+| 2 | **Quick Draw** (passive): after your first ranged attack in a turn, each further one costs 1 AP and deals 50% damage (new) |
 | 3 | Ranged weapon Accuracy +10% |
 | 4 | **Spread Fire:** a ranged attack on an enemy you haven't shot yet this turn deals 10% more damage (new) |
 | 5 | Speed +5% |
 | 6 | **Volley** (skill, capstone; once per battle, 2 AP): shoot every enemy once at 70% damage |
 
-How it plays: more shots each turn, each a little lighter, best spread over different enemies; against a crowd it
-outshoots the patient archers, against one tough target it doesn't.
+How it plays: more shots each turn, the later ones lighter, best spread over different enemies. A turn's 5 AP buy one
+full shot and three half shots (about 250% of a shot, against an archer's two full ones), a little more spread out;
+against a crowd it outshoots the patient archers, against one tough target barely. (Revised before review: the first
+version made every shot cost 1 AP at 75%, five shots a turn, nearly twice an archer's damage.)
 
 ## Juggernaut
 

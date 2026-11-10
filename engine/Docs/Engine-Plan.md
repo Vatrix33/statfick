@@ -2004,6 +2004,16 @@ The features round (2026-11-10):
   note): it makes the next one free, 40% stronger and its weakening a turn longer (the draft had a fire attack of its
   own). Every current class is through. Batch 9, the new classes part 1 (the first twelve of the task's list), written
   for review.
+- C28 **Requirements that a turn's Action Points must allow** (the user asked whether Hotshot's and Spell Sparkler's
+  requirements are achievable; checked in the code: a turn has 5 AP, a weapon attack costs 2 (unarmed 1), most spells 3
+  and eight Tier 1–2 spells 2; only the Draught of Haste, +1 AP a turn for 3 turns at 9,000 silver, adds AP).
+  Hotshot: "make 3 ranged attacks in one turn" needed 6 AP; it now requires hitting 2 different enemies with ranged
+  attacks in one turn, 25 times (not defeating 3 with ranged attacks in a battle, not 2 ranged attacks in a turn).
+  Spell Sparkler: three spells in a turn are possible only through Spellcaster 5's Quickened Spell (2 + 2 + 1 AP) or a
+  Haste draught; Spellcaster 5 joins its requirement so the way is clear (not kept as it was, not 2 spells in a turn).
+  The same check found Hotshot's Quick Draw too strong (every shot at 1 AP and 75%, five a turn); revised before review
+  to one full shot and then 1-AP half shots. The other 38 new classes' requirements checked the same way: all within
+  reach.
 - C27 **The Psykic is an exception to the one-skill rule too**, like the Ki Warrior (asked before batch 4): its four
   skills stand in for the spells it doesn't know, with one passive. (Not folded into one skill.)
 - C26 **The Ki Warrior is an exception to the one-skill rule** (the user: "I wanted it to have many skills to simulate a
