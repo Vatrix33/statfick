@@ -33,7 +33,7 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
 - Batch 5 (approved 2026-11-10, the Stormcaller's peak kept at +100%): the eleven other elemental mages on the Hierophant's template (Aeromancer, Aquamancer,
   Botanomancer, Cryomancer, Electromancer, Geomancer, Hemomancer, Luxomancer, Necromancer, Pyromancer, Umbramancer) and
   the masters of elements (Avatar, Stormcaller, Sunstrider, Plaguebinder).
-- Batch 6, for review: priests and healers (Priest, Cardinal Priest, Lifewarden, Sanguine Medic), summoners and dark
+- Batch 6 (approved 2026-11-10, Overprotective as a chance for a summon to intercept): priests and healers (Priest, Cardinal Priest, Lifewarden, Sanguine Medic), summoners and dark
   pacts (Summoner, Beastmaster, Wildwarden, Soul Shepherd, Druid, Warlock, Pactkeeper, Cultist, Chaos Cultist) and
   leaders and minds (Strategist, General, Flagbearer, Enlightened, Diviner).
 
@@ -1385,7 +1385,7 @@ Identity: Spreads sickness: poisons and curses that jump from enemy to enemy.
 
 Why: it fits; now blue, its sickness spreads wider and lingers longer.
 
-# Batch 6: priests and healers, summoners and dark pacts, leaders and minds (for review)
+# Batch 6: priests and healers, summoners and dark pacts, leaders and minds (approved 2026-11-10)
 
 ## Priest
 
@@ -1460,15 +1460,16 @@ Identity: Lets its creatures fight for it and stays safe behind them.
 |---|---|---|
 | 1 | Summon spells cost 30% less Mana | Summon spells cost 30% less Mana |
 | 2 | Mind +5% | Mind and Speed +5% |
-| 3 | **Overprotective** (passive): while one of your summons lives, you can't be attacked | **Overprotective** (passive): while one of your summons lives, enemies are far less likely to attack you, and you take 15% less damage |
+| 3 | **Overprotective** (passive): while one of your summons lives, you can't be attacked | **Overprotective** (passive): while one of your summons lives, each single-target attack aimed at you has a 35% chance to be taken by a random summon of yours instead (new) |
 | 4 | Speed +5% | Your summons' base stats +20% |
 | 5 | **Double Summon** (skill, once a day): next summon spell costs no Mana and only 2 AP | Mind and maximum Mana +5% |
 | 6 | Mind +5% | Your summons' turn bars start each battle a little filled (new) |
 | 7 | **Powerful Friends** (passive): your summons' base stats +20% | **Double Summon** (skill, capstone; once per battle): your next summon spell costs no Mana and only 2 AP |
 
 Why: it had two passives. Powerful Friends keeps its effect as a plain bonus (level 4) and Double Summon becomes the
-capstone, every battle. The draft found Overprotective too strong (no attack could reach the Summoner at all); now it
-still keeps the Summoner safe behind its creatures, but not untouchable.
+capstone, every battle. The draft found Overprotective too strong (no attack could reach the Summoner at all); now its
+creatures throw themselves in front of attacks on it by chance (the user's note: so enemies with the class can use it
+too), which keeps the Summoner safe behind them, but not untouchable.
 
 ## Beastmaster
 

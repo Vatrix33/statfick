@@ -136,7 +136,7 @@ fighters, approved 2026-11-10; batch 2, the knights and defenders, the holy warr
 the same day, the Ki Warrior after its revision with two more Ki skills, C26; batch 3, the archer's path, the rogue's
 path and weapons and spells together, approved, Grand Theft still on a critical hit; batch 4, the mage's path, approved;
 batch 5, the elemental mages and the masters of elements, approved, the Stormcaller at 25 charges of 4%; batch 6,
-priests and healers, summoners and dark pacts, leaders and minds, waiting for the user's review); one passive and one skill per class, but the
+priests and healers, summoners and dark pacts, leaders and minds, approved, Overprotective as an intercepting summon); one passive and one skill per class, but the
 elemental mages, the item classes, the Vampire Lord, the Ki Warrior and the Psykic (C21, C24, C26, C27). Once every class is approved, both drafts move
 to `Docs/Port-Tasks/10_Class_Rework/` beside the task (C23). Nothing changes in the old game. **Engine work goes on
 uninterrupted**; don't count task 10 as the engine's current task.
@@ -1992,7 +1992,10 @@ The features round (2026-11-10):
   any hit steal); its new share of the enemy's money stays. Batch 4 (the mage's path) approved the same day. Batch 5
   (the eleven other elemental mages on the Hierophant's template, the masters of elements) approved the same day, but
   the Stormcaller peaks at +100% spell power as before (the user's note): Storm Rhythm up to 25 charges of 4% (the
-  draft had 10 of 3%). Batch 6 (priests and healers, summoners and dark pacts, leaders and minds) written for review.
+  draft had 10 of 3%). Batch 6 (priests and healers, summoners and dark pacts, leaders and minds) approved the same day,
+  but the Summoner's Overprotective becomes a chance (35%) that a random summon of its intercepts a single-target attack
+  aimed at it, "that way enemies can use it too" (the user's note; the draft had made enemies far less likely to attack
+  it).
 - C27 **The Psykic is an exception to the one-skill rule too**, like the Ki Warrior (asked before batch 4): its four
   skills stand in for the spells it doesn't know, with one passive. (Not folded into one skill.)
 - C26 **The Ki Warrior is an exception to the one-skill rule** (the user: "I wanted it to have many skills to simulate a
