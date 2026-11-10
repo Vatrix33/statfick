@@ -2020,6 +2020,11 @@ The features round (2026-11-10):
   the main part, level, slots and runes stay; `reforgeOptions` in `../old-game/scripts/forge-engine.js`): when the
   Mastersmith reforges, the new parts can be one rarity above the main part's. (Not changing the main part too, not
   half-price reforging.) The Smith's Field Forge follows the rules of the anvil the item would need.
+- C30 **The Seeker's level 4** (the user asked whether it was redundant; it was: the hit chance is Accuracy ÷ (Accuracy +
+  Evasion), `weaponHitChance` in `../old-game/scripts/combat-engine.js`, so 15% less enemy Evasion is just more Accuracy
+  in a class that already has it and can't-miss features, and a Search quest's fight starts at its marked spot with no
+  search time, G20): the guild's Search quests give the Seeker 25% more money and Reputation. (Not ignoring evasion
+  buffs, not more damage after a miss.)
 - C27 **The Psykic is an exception to the one-skill rule too**, like the Ki Warrior (asked before batch 4): its four
   skills stand in for the spells it doesn't know, with one passive. (Not folded into one skill.)
 - C26 **The Ki Warrior is an exception to the one-skill rule** (the user: "I wanted it to have many skills to simulate a

@@ -2522,10 +2522,13 @@ Identity: Never loses its target: its attacks find even the most elusive enemy.
 | 1 | Weapon Accuracy +10% |
 | 2 | **Relentless Aim** (passive): after you miss an enemy, your next attack on it can't miss (new) |
 | 3 | Dexterity and Luck +5% |
-| 4 | Enemies you attack have 15% less Evasion against you, and the guild's Search quests find their target sooner (new) |
+| 4 | The guild's Search quests give you 25% more money and Reputation |
 | 5 | **Lock On** (skill, capstone; once per battle): mark one enemy: for 3 turns your attacks on it can't miss and deal 15% more damage |
 
-How it plays: the answer to enemies that dodge: a miss is never wasted, and its marked target has nowhere to hide.
+How it plays: the answer to enemies that dodge: a miss is never wasted, and its marked target has nowhere to hide. It
+is also the guild's searcher, paid better for the Search quests that lead to it. (Level 4 revised on your question:
+the first version cut enemies' Evasion, which in this game's hit chance, Accuracy ÷ (Accuracy + Evasion), is just more
+Accuracy, and found Search targets "sooner", though a Search fight starts at its marked spot without any search time.)
 
 ## Cycle
 
