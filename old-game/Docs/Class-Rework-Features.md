@@ -36,7 +36,7 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
 - Batch 6 (approved 2026-11-10, Overprotective as a chance for a summon to intercept): priests and healers (Priest, Cardinal Priest, Lifewarden, Sanguine Medic), summoners and dark
   pacts (Summoner, Beastmaster, Wildwarden, Soul Shepherd, Druid, Warlock, Pactkeeper, Cultist, Chaos Cultist) and
   leaders and minds (Strategist, General, Flagbearer, Enlightened, Diviner).
-- Batch 7, for review: luck (Bard, Jester, Joker, Gambit) and the road, trade and the guild (Traveler, Cartographer,
+- Batch 7 (approved 2026-11-10, 6-sided Luck one roll a battle): luck (Bard, Jester, Joker, Gambit) and the road, trade and the guild (Traveler, Cartographer,
   Courier, Pilgrim, Riverstrider, Salesman, Scavenger, Quartermaster, Bounty Broker, Relic Warden, Alchemist,
   Assimilator).
 
@@ -1685,7 +1685,7 @@ Identity: Foresight: predicts the enemy's next move and is nearly untouchable wh
 
 Why: unchanged; it already fits its identity and the rules.
 
-# Batch 7: luck, and the road, trade and the guild (for review)
+# Batch 7: luck, and the road, trade and the guild (approved 2026-11-10)
 
 ## Bard
 
@@ -1714,10 +1714,11 @@ Identity: The fool fortune loves: lucky drops and lucky hits.
 | 2 | **Lady Luck** (passive): masterwork weapons, armour and artifacts 10% more likely to drop | **Lady Luck** (passive): masterwork weapons, armour and artifacts 10% more likely to drop |
 | 3 | Evasion +20% | Evasion +20% |
 | 4 | No effect | Luck +5% and weapon Crit Rating +10 |
-| 5 | **6-sided Luck** (skill, once per battle): roll a die until it shows a six; then your next melee or ranged attack is a sure critical hit | **6-sided Luck** (skill, capstone; once per battle): roll a die until it shows a six; then your next melee or ranged attack is a sure critical hit and deals 25% more |
+| 5 | **6-sided Luck** (skill, once per battle): roll a die, again and again (free) until it shows a six; then your next melee or ranged attack is a sure critical hit | **6-sided Luck** (skill, capstone; once per battle): roll a die once: on a six, your next melee or ranged attack is a sure critical hit and deals 25% more; on 1–5 nothing happens |
 
 Why: level 4 did nothing at all (the draft); it now adds luck and critical hits. Its rarity rose to blue on your
-note, so the lucky blow also hits harder.
+note, so the lucky blow also hits harder. 6-sided Luck is a true gamble now (the user's note): one roll a battle, and
+only a six pays, where before free rerolls made the six certain.
 
 ## Joker
 
