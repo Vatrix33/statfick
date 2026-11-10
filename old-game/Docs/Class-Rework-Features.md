@@ -25,7 +25,7 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
 - Batch 2 (approved 2026-11-10, the Ki Warrior after its revision): the knights and defenders (Knight, Heavy Knight, Guardian, Bulwark, Echo Knight, Black Knight),
   the holy warriors (Cleric, Paladin, Death Paladin, Oathsworn, Templar) and the unarmed fighters (Brawler, Monk, Elder
   Monk, Ki Warrior).
-- Batch 3, for review: the archer's path (Hunter, Sharpshooter, Blood Hunter, Demon Hunter, Drakeslayer, Monster
+- Batch 3 (approved 2026-11-10, Grand Theft still on a critical hit): the archer's path (Hunter, Sharpshooter, Blood Hunter, Demon Hunter, Drakeslayer, Monster
   Hunter), the rogue's path (Assassin, Ambusher, Fencer, Poisoner, Shadow, Eminence, Stalker, Thief, Trap Layer, Trap
   Master) and weapons and spells together (Spellblade, Spell Sniper, Hexblade, Nullblade, Spellbreaker).
 
@@ -573,7 +573,7 @@ Revised on the user's note (2026-11-10): "I wanted it to have many skills to sim
 Ki can stay, but add 2 more skills to that class that use Ki points." (The first version had Ki Focus as its only skill
 and an automatic "Ki to Mana" at level 5.)
 
-# Batch 3: the archer's path, the rogue's path, weapons and spells together (for review)
+# Batch 3: the archer's path, the rogue's path, weapons and spells together (approved 2026-11-10)
 
 ## Hunter
 
@@ -803,10 +803,10 @@ Identity: The thief: profits from every fight and can even steal an enemy's weap
 | 2 | **Greedy Loot** (passive): enemies drop 15% more money | **Greedy Loot** (passive): enemies drop 15% more money |
 | 3 | Speed +5% | Speed +5% |
 | 4 | Evasion +20% | Evasion +20% |
-| 5 | **Grand Theft** (skill, once a day): if your next attack is a critical hit, steal the enemy's weapon | **Grand Theft** (skill, capstone; once a day): if your next attack hits, steal the enemy's weapon and some of its money |
+| 5 | **Grand Theft** (skill, once a day): if your next attack is a critical hit, steal the enemy's weapon | **Grand Theft** (skill, capstone; once a day): if your next attack is a critical hit, steal the enemy's weapon and some of its money |
 
-Why: Grand Theft needed a critical hit, so it mostly came to nothing; now any hit steals. It stays once a day, as it
-brings loot rather than fighting power.
+Why: Grand Theft also takes some of the enemy's money now. It still needs a critical hit (the user's note on the first
+version, which let any hit steal), and stays once a day, as it brings loot rather than fighting power.
 
 ## Trap Layer
 

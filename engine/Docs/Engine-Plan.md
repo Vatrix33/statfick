@@ -134,7 +134,7 @@ rarity, 130 current and 40 new. The features round: a sample of four remade clas
 rest group by group (C22) in `../old-game/Docs/Class-Rework-Features.md` (batch 1, the starting classes and the melee
 fighters, approved 2026-11-10; batch 2, the knights and defenders, the holy warriors and the unarmed fighters, approved
 the same day, the Ki Warrior after its revision with two more Ki skills, C26; batch 3, the archer's path, the rogue's
-path and weapons and spells together, waiting for the user's review); one passive and one skill per class, but the
+path and weapons and spells together, approved, Grand Theft still on a critical hit); one passive and one skill per class, but the
 elemental mages, the item classes, the Vampire Lord and the Ki Warrior (C21, C24, C26). Once every class is approved, both drafts move
 to `Docs/Port-Tasks/10_Class_Rework/` beside the task (C23). Nothing changes in the old game. **Engine work goes on
 uninterrupted**; don't count task 10 as the engine's current task.
@@ -1985,8 +1985,9 @@ The features round (2026-11-10):
   once.) Batch 1 (the four starting classes but Warrior, the melee fighters but Reaver) approved as written
   (2026-11-10, "Approved. Continue with the next"). Batch 2 (the knights and defenders, the holy warriors, the unarmed
   fighters) approved the same day but the Ki Warrior (C26); the revised Ki Warrior taken as approved when the user went
-  on without notes ("Go ahead"). Batch 3 (the archer's path, the rogue's path, weapons and spells together) written the
-  same day for review.
+  on without notes ("Go ahead"). Batch 3 (the archer's path, the rogue's path, weapons and spells together) approved the
+  same day, but the Thief's Grand Theft still triggers on a critical hit, as before (the user's note; the draft had let
+  any hit steal); its new share of the enemy's money stays.
 - C26 **The Ki Warrior is an exception to the one-skill rule** (the user: "I wanted it to have many skills to simulate a
   spell replacement. Overflowing Ki can stay, but add 2 more skills to that class that use Ki points"): Ki Focus, plus
   Ki Blast (2 Ki, one enemy) and Ki Wave (3 Ki, every enemy) at levels 5 and 8, its own attacks paid with Ki and scaling
