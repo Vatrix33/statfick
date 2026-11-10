@@ -1,17 +1,18 @@
 # Task 10, Class Rework: the draft, every class's identity, levels, requirements and rarity
 
-**For the user's review (written 2026-11-10).** The one draft of task 10 (C14): every class, the 130 in the game and the 40 new ones, with its identity, its number of levels, its requirements and its rarity (colour). Nothing is built yet. The decisions behind it are C1–C14 in `engine/Docs/Engine-Plan.md`, "Decisions for task 10, Class Rework"; the task is `engine/Docs/Port-Tasks/10_Class_Rework.txt`.
+**For the user's review (written 2026-11-10; the user's review notes applied the same day).** The one draft of task 10 (C14): every class, the 130 in the game and the 40 new ones, with its identity, its number of levels, its requirements and its rarity (colour). Nothing is built yet. The decisions behind it are C1–C19 in `engine/Docs/Engine-Plan.md`, "Decisions for task 10, Class Rework"; the task is `engine/Docs/Port-Tasks/10_Class_Rework.txt`.
 
 **How to read it**
 - **Identity:** a short description of the class's playstyle, without its skills or passives (they can change) and without specific stat gains. For a current class it is kept, only put into words; where I propose to change one it says **Sharpened** and why (almost always two classes doing the same thing). For a new class it is my proposal.
 - **Levels:** kept unless an arrow shows the change.
 - **Requirements:** every current class keeps its own (the task: change them only when absolutely necessary; none is). The new classes' are proposed, in the same kinds the game already uses where it can; a few need a new count the game would keep (days away from towns, caravan trips, runes fitted and the like).
-- **Rarity** (no colour, blue, purple, gold): kept unless an arrow shows the change, with the reason. A rarer class gets a stronger power level when its features are made.
+- **Rarity** (no colour, blue, purple, gold, and red above gold, for Unreality alone): kept unless an arrow shows the change, with the reason. A rarer class gets a stronger power level when its features are made.
+- **Your notes** from the review of 2026-11-10 are applied; each changed class shows its note, and the three questions they raised were asked (C16–C19 in `engine/Docs/Engine-Plan.md`).
 - **Found:** what I noticed while mapping a current class (overlaps, the capstone rule, power), for the features round; nothing there is decided. **The capstone rule** (the task): a class's last level must give its passive or its skill; ten classes break it today, and they are marked.
 - **New classes:** the task's names, the seven kept from `old-game/classes/newc/`, and eight of my own.
 - **How to answer:** approve as a whole, or name the classes to change and how (in chat, or in this file).
 
-**Totals:** 130 current classes (1 with a change of levels: Scavenger 7 → 5; 8 identities sharpened: Champion, Bulwark, Cleric, Paladin, Oathsworn, Templar, Assassin, Archivist; 9 rarities raised: Avatar → blue, Cardinal Priest → blue, Great Mage → blue, Chaos Cultist → blue, Joker → blue, Dragonkin → blue, Vampire → blue, Madman → purple, Sharmat → purple), 40 new classes, 170 in all. Rarity across all of them: 116 without a colour, 38 blue, 13 purple, 3 gold.
+**Totals:** 130 current classes (1 with a change of levels: Scavenger 7 → 5; 8 identities sharpened: Champion, Bulwark, Cleric, Paladin, Oathsworn, Templar, Assassin, Archivist; 1 renamed: Element Siphon → Elemental Siphon; 1 remade: Poisoner; 15 rarities raised: Avatar → purple, Cardinal Priest → blue, Great Mage → blue, Chaos Cultist → blue, Joker → purple, Dragonkin → blue, Vampire → blue, Madman → gold, Sharmat → gold, Death Paladin → blue, Nullblade → blue, Plaguebinder → blue, Jester → blue, Vampire Lord → purple, Jack of all Trades → blue), 40 new classes, 170 in all. Rarity across all of them: 109 without a colour, 42 blue, 13 purple, 5 gold, 1 red.
 
 ## Contents
 
@@ -169,9 +170,10 @@ Warriors of the faith. Today their features overlap a lot (four of them get bonu
 - Found: Sworn Oath works against Monster-class enemies and Banish Evil against demons; Oathsworn has the same Divine Smite and a stronger Sworn Oath.
 
 ### Death Paladin
-6 levels · rarity no colour
+6 levels · **rarity no colour → blue** (your note)
 - **Requires:** Level 1 · Paladin 7 · At least 10 Death spells known
 - **Identity:** A paladin turned to Death: smites with holy and death power together and weakens what it strikes.
+- *Your note, applied: This class can have the blue rarity*
 
 ### Oathsworn
 7 levels · rarity purple
@@ -269,8 +271,9 @@ Speed, stealth, poisons, traps and the killing blow.
 ### Poisoner
 7 levels · rarity no colour
 - **Requires:** Level 15 · Rogue 5
-- **Identity:** Poisons its blade: wears enemies down with poison that keeps hurting and stops them healing.
+- **Identity:** **Remade.** The master of the game's poisons (task 9): throws them and coats its weapons with them, and every poison works stronger and longer in its hands.
 - Found: Already in the game; reworked like the other current classes, not added again (C9).
+- *Your note, applied: Since Poisons have been added to the game, this class should be remade into using them*
 
 ### Shadow
 6 levels · rarity no colour
@@ -324,10 +327,11 @@ Hybrids that fight with a weapon and magic at once.
 - **Identity:** A spellblade of curses: weakens enemies with every hit and brands one to take more from it.
 
 ### Nullblade
-6 levels · rarity no colour
+6 levels · **rarity no colour → blue** (your note)
 - **Requires:** Level 25 · Spellblade 5
 - **Identity:** Cuts magic away: its strikes strip enemies of their magical protection.
 - Found: Null Strike (weaken the target's next spell) is the Spellbreaker's Mute Sigil, smaller; left to the Spellbreaker.
+- *Your note, applied: This classes color should be blue*
 
 ### Spellbreaker
 6 levels · rarity blue
@@ -391,10 +395,13 @@ Spellcraft itself: learning, casting, Mana and the mind.
 - **Requires:** Level 30 · Sorcerer 5
 - **Identity:** Puts enemies to sleep and preys on them while they can't act.
 
-### Element Siphon
+### Elemental Siphon
+Renamed from Element Siphon; its id stays `element-siphon`.
+
 5 levels · rarity blue
 - **Requires:** Level 30 · Spellcaster 7 · Know spells of 6 elements
 - **Identity:** Feeds on enemy magic, turning the elements thrown at it back on the enemy.
+- *Your note, applied: Rename it to Elemental Siphon*
 
 ### Sage
 5 levels · rarity blue
@@ -481,9 +488,10 @@ One per element, all built the same way: an early skill (level 3), a passive (5)
 Classes built on several elements or one element's special side.
 
 ### Avatar
-4 levels · **rarity no colour → blue** (needs four elemental mages at Level 5)
+4 levels · **rarity no colour → purple** (your note; it needs four elemental mages at Level 5)
 - **Requires:** Level 1 · At least 4 core elemental mancer classes at Level 5
 - **Identity:** Master of the six core elements: wields them all at once and always finds the enemy's weakness.
+- *Your note, applied: Since this is somewhat hard to get, upgrade its color to purple*
 
 ### Stormcaller
 7 levels · rarity purple
@@ -496,9 +504,10 @@ Classes built on several elements or one element's special side.
 - **Identity:** The sun's holy power: strongest by day.
 
 ### Plaguebinder
-6 levels · rarity no colour
+6 levels · **rarity no colour → blue** (your note)
 - **Requires:** Level 25 · Warlock 5 or Necromancer 5
 - **Identity:** Spreads sickness: poisons and curses that jump from enemy to enemy.
+- *Your note, applied: Increase its color to blue*
 
 ## Priests and healers (4)
 
@@ -615,15 +624,17 @@ Fortune, dice and wagers.
 - **Identity:** The lucky performer: lifts the whole party with music and fortune.
 
 ### Jester
-5 levels · rarity no colour
+5 levels · **rarity no colour → blue** (your note)
 - **Requires:** Level 1 · 120 Luck
 - **Identity:** The fool fortune loves: lucky drops and lucky hits.
 - Found: Level 4 has no effect at all.
+- *Your note, applied: Increase its color to blue*
 
 ### Joker
-3 levels · **rarity no colour → blue** (needs 220 Luck and Jack of all Trades 4 or Jester 5)
+3 levels · **rarity no colour → purple** (your note; it needs 220 Luck and Jack of all Trades 4 or Jester 5)
 - **Requires:** Level 1 · Jack of all Trades 4 or Jester 5 · 220 Luck
 - **Identity:** Pure chaos: wildly random power fuelled by enormous Luck.
+- *Your note, applied: Increase its color to purple*
 
 ### Gambit
 5 levels · rarity blue
@@ -762,14 +773,16 @@ Unlocked by an item that is used up (a vial, a core, a crystal, a gem).
 - **Identity:** Undying: can't be killed while it has Mana, and commands the undead.
 
 ### Madman
-3 levels · **rarity no colour → purple** (needs a Shadow Crystal (0.05% from any enemy))
+3 levels · **rarity no colour → gold** (your note; it needs a Shadow Crystal, 0.05% from any enemy)
 - **Requires:** Level 1 · Shadow Crystal (consumed on acquisition)
 - **Identity:** Sees without the veil: no defence at all, but enormous damage and health.
+- *Your note, applied: Increase its color to golden*
 
 ### Sharmat
-3 levels · **rarity no colour → purple** (needs a Gem of False Dreams, Ur-Mat's drop at Level 93)
+3 levels · **rarity no colour → gold** (your note; it needs a Gem of False Dreams, Ur-Mat's drop at Level 93)
 - **Requires:** Level 1 · Gem of False Dreams (consumed on acquisition)
 - **Identity:** The false dreamer's power: can restore everything once in a battle, at a lasting price.
+- *Your note, applied: Increase its color to golden*
 
 ### Vampire
 4 levels · **rarity no colour → blue** (needs a Blood Crystal, a boss's drop (Tankina))
@@ -778,9 +791,10 @@ Unlocked by an item that is used up (a vial, a core, a crystal, a gem).
 - Found: Breaks the capstone rule: Bloodfeed comes at level 1 and Heart of Crimson at 2; levels 3 and 4 are stats and cheaper Blood spells.
 
 ### Vampire Lord
-3 levels · rarity no colour
+3 levels · **rarity no colour → purple** (your note)
 - **Requires:** Level 40 · Vampire 4
 - **Identity:** The vampire's lord: feeds freely and can burn all its blood in a frenzy.
+- *Your note, applied: Increase its color to purple*
 
 ## Legends and the rest (4)
 
@@ -801,10 +815,11 @@ Unlocked by an item that is used up (a vial, a core, a crystal, a gem).
 - Found: Can't be acquired by players.
 
 ### Jack of all Trades
-4 levels · rarity no colour
+4 levels · **rarity no colour → blue** (your note)
 - **Requires:** Level 1 · Warrior 3 · Archer 3 · Mage 3 · Rogue 3
 - **Identity:** A bit of everything: rewards a character who has tried all four starting paths.
 - Found: Breaks the capstone rule: its passive comes at level 2; level 4 fills the prerequisites.
+- *Your note, applied: Increase its color to blue*
 
 # New classes
 
@@ -819,13 +834,15 @@ The 26 names in the task, but Poisoner, which is already in the game (C9); "Asce
 
 ### Bruiser
 6 levels · rarity no colour
-- **Requires:** Level 15 · Warrior 5 · Win 10 battles in which you fell below half HP
-- **Identity:** Takes hits to hit back harder: the more it is hurt, the harder it strikes.
+- **Requires:** Level 15 · Warrior 5 · Vitality is your highest stat
+- **Identity:** A big, tough front-liner whose blows grow with its body: the higher its maximum HP, the harder it hits.
+- *Your note, applied: I want this classes identity to do stronger hits the higher max HP it has (requirement asked after: Vitality is your highest stat)*
 
 ### Spell Sparkler
-5 levels · rarity no colour
-- **Requires:** Level 10 · Mage 5 · Cast 3 spells in one turn, 10 times
+5 levels · rarity blue
+- **Requires:** Level 10 · Mage 5 · Cast 3 spells in one turn, 5 times
 - **Identity:** Showers the enemy with many small spells in one turn instead of one big one.
+- *Your note, applied: Since this is quite difficult to achieve, increase its color to blue. Also make its requirement a small tad easier (10 times → 5)*
 
 ### Hermit
 5 levels · rarity blue
@@ -845,7 +862,8 @@ The 26 names in the task, but Poisoner, which is already in the game (C9); "Asce
 ### Juggernaut
 6 levels · rarity blue
 - **Requires:** Level 30 · Knight 5 · Heavy Armor equipped
-- **Identity:** Heavy armour as a weapon: unstoppable, and its armour makes it hit harder.
+- **Identity:** Heavy armour as a weapon: unstoppable, its armour making it hit harder, and for all its weight its turns come sooner.
+- *Your note, applied: I also want to add to its identity to increase its turn counter to act faster*
 
 ### Rearguard
 5 levels · rarity no colour
@@ -933,9 +951,10 @@ The 26 names in the task, but Poisoner, which is already in the game (C9); "Asce
 - **Identity:** Lives in a cycle of phases (strike, guard, mend, focus), each turn bringing the next.
 
 ### Unreality
-5 levels · rarity purple
-- **Requires:** Level 60 · Dreamweaver 5
-- **Identity:** Bends what is real: illusions, misdirection, and spells of uncertain outcome.
+3 levels · rarity red
+- **Requires:** Level 1 · Sharmat 3 · Madman 3
+- **Identity:** Rewrites the rules of reality: in its battles what is real gives way, and the rules of the fight itself are its to change.
+- *Your note, applied: I want this class to be the only red rarity class (higher than gold). It requires both Sharmat and Madman at maximum Level and focuses on completely rewrtiting the rules of reality. I also want this class to have only 3 Levels. (Asked after: no level or other class of its own.)*
 
 ## The seven from classes/newc/ (7)
 
@@ -992,8 +1011,9 @@ Picked for what no class does yet, and kept clear of the classes tasks 11–14 a
 
 ### Beast Tamer
 5 levels · rarity blue
-- **Requires:** Level 15 · Beastmaster 3 · Defeat 50 wolves, bears and griffons
-- **Identity:** Tames wild animals in battle to fight for the party.
+- **Requires:** Level 15 · Beastmaster 3 · Defeat 50 Beast-class enemies
+- **Identity:** Tames animals in battle (wolves, bears, griffons, and any animal kind added later) to fight for the party.
+- *Your note, applied: Change its requirements to be all beast-class enemies, in case more Beasts get added to the game (asked after: it tames animals only)*
 
 ### Sunderer
 5 levels · rarity no colour

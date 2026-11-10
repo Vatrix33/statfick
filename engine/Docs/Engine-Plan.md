@@ -127,9 +127,10 @@ task, don't start it yet").** It is to be built in the old game, as tasks 1–9 
 C1–C12 in "Decisions for task 10, Class Rework" below (the enemies' classes reworked in the port, every class
 reviewed, seven of the `classes/newc/` drafts' names added, the review through one draft file in `../old-game/Docs/`,
 Poisoner reworked as an existing class, no class removed, old saves ignored, C13 the draft's form, C14 one draft
-instead of two, C15 identities as explanations). **The draft is written and waits for the user's proper review** (2026-11-10):
-`../old-game/Docs/Class-Rework-Draft.md`, every class's identity, levels, requirements and rarity, 130 current and 40
-new. Nothing built in the game yet. **Engine work goes on
+instead of two, C15 identities as a short playstyle, C16–C19 the user's review notes and the questions they raised). **The draft is reviewed and the user's notes are
+applied** (2026-11-10): `../old-game/Docs/Class-Rework-Draft.md`, every class's identity, levels, requirements and
+rarity, 130 current and 40 new; next is the user's word on it, then how the features are reviewed (still to ask).
+Nothing built in the game yet. **Engine work goes on
 uninterrupted**; don't count task 10 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
@@ -1942,8 +1943,27 @@ Said while draft 1 was written (the user's go for it, 2026-11-10):
   playstyle without mentioning its skills/passives and not mentioning specific stat gains"): one or two sentences on
   how the class plays; never its skills or passives (they can change), never specific stat gains. They live in
   `~/.cache/stat-fick-build/claude-work/class-rework/identities.py` beside `make_draft.py`; the draft is the source now.
+The user's review of the draft (2026-11-10; their notes, "E-Notes", on 17 classes, everything else accepted as drafted):
+- C16 **The notes, applied:** rarity raised: Death Paladin, Nullblade, Plaguebinder, Jester and Jack of all Trades to
+  blue; Vampire Lord and Joker to purple; Avatar to purple (not blue as I proposed); Madman and Sharmat to gold (not
+  purple). Element Siphon renamed **Elemental Siphon** (its id `element-siphon` stays, as Juila's did when her name was
+  corrected). Poisoner remade to use the game's poisons (task 9). Bruiser's identity: hits harder the higher its
+  maximum HP. Spell Sparkler blue, its requirement a little easier (3 spells in one turn 5 times, not 10). Juggernaut's
+  identity also: its turns come sooner. Beast Tamer's requirement counts every Beast-class enemy (in case more are
+  added). **Unreality: the only red class, a new rarity above gold**, needs Sharmat and Madman at their maximum level,
+  rewrites the rules of reality, 3 levels. Rarity across the 170 now: 109 without a colour, 42 blue, 13 purple, 5 gold,
+  1 red. Each note stands word for word under its class in the draft.
+Asked about the notes the same day:
+- C17 **Unreality's requirement:** Sharmat 3 and Madman 3 only, no level or other class of its own (Ur-Mat's gem and the
+  0.05% Shadow Crystal make it late anyway). (Not also Level 60, not also Dreamweaver 5.)
+- C18 **Bruiser's requirement:** Level 15, Warrior 5, Vitality is your highest stat (the old "win 10 battles in which you
+  fell below half HP" fitted the old identity). (Not kept, not the most maximum HP in the party.)
+- C19 **Beast Tamer tames animals only** (wolves, bears, griffons and animal kinds added later), though its requirement
+  counts every Beast-class enemy: 49 enemies carry the Beast class, every dragon (Anatemis too), the treants and others
+  among them. (Not every non-boss Beast-class enemy.)
 Still to ask (nothing assumed):
 - How the passives, skills and other level features are reviewed after the draft is approved.
+- The red rarity's look (Unreality's colour in the class list and details), when the classes are built (C16).
 Kept in mind:
 - `classes/Black Knight.json` is read by the engine's tests (`LooseRecordTests`); if it changes, `Tools/Scripts/test.sh`
   must run. The class files are hand-formatted: edit them keeping their layout, never through `json.dump`
