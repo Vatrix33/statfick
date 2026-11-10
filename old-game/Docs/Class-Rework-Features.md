@@ -7,8 +7,8 @@ reworked classes from these drafts once every class is approved (C23).
 
 **The rules** (the sample's, approved 2026-11-10, C21):
 - A class has **one passive and one skill**. Exceptions: the twelve elemental mages, the classes acquired by an item
-  (Dragonkin, Lich, Madman, Sharmat, Vampire), the Vampire Lord, and the Ki Warrior, whose Ki skills stand in for spells
-  (C26); the enemy-only classes (Raid Boss, Beast, Great Beast, Monster) stay outside the rule.
+  (Dragonkin, Lich, Madman, Sharmat, Vampire), the Vampire Lord, and the Ki Warrior and the Psykic, whose skills stand in
+  for spells (C26, C27); the enemy-only classes (Raid Boss, Beast, Great Beast, Monster) stay outside the rule.
 - Every level does something worth taking; repeated small bonuses are merged rather than spread over several levels.
 - Skills that worked once a day become once per battle where they aren't a big burst, so they are used, not saved.
 - No penalties that make a feature miss more than it helps.
@@ -28,6 +28,8 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
 - Batch 3 (approved 2026-11-10, Grand Theft still on a critical hit): the archer's path (Hunter, Sharpshooter, Blood Hunter, Demon Hunter, Drakeslayer, Monster
   Hunter), the rogue's path (Assassin, Ambusher, Fencer, Poisoner, Shadow, Eminence, Stalker, Thief, Trap Layer, Trap
   Master) and weapons and spells together (Spellblade, Spell Sniper, Hexblade, Nullblade, Spellbreaker).
+- Batch 4, for review: the mage's path (Spellcaster, Wizard, Sorcerer, Great Mage, Scholar, Wise Man, Archivist,
+  Chronomancer, Mirror Mage, Dreamweaver, Elemental Siphon, Sage, Energist, Psykic).
 
 # The sample of four (approved 2026-11-10)
 
@@ -915,3 +917,237 @@ Identity: The mage-killer: shrugs off and shuts down enemy spells.
 
 Why: it fits; Countercast fizzled a spell one time in four while Guarding, too seldom to count on, and both features
 grow a little for a blue class.
+
+# Batch 4: the mage's path (for review)
+
+## Spellcaster
+
+7 levels · rarity no colour · Requires: Level 1 · Mage 5 · Intelligence higher than Wisdom
+Identity: The caster of intellect: efficient, focused spellcasting, one well-placed spell at a time.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Intelligence +5% | Intelligence and Wisdom +5% |
+| 2 | Wisdom +5% | Spell power +5% |
+| 3 | Basic spells deal 5% more damage | Basic spells deal 10% more damage |
+| 4 | Spells cost 5% less to learn | Spells cost 10% less to learn |
+| 5 | **Quickened Spell** (skill, once per battle): next spell uses 1 fewer AP | **Quickened Spell** (skill, once per battle): your next spell uses 1 fewer AP |
+| 6 | Mind +5% | Mind and maximum Mana +5% |
+| 7 | **Pure Spells** (passive): if you cast exactly one spell in a turn and did nothing else, 25% of its Mana comes back | **Pure Spells** (passive, capstone): if you cast exactly one spell in a turn and did nothing else, 30% of its Mana comes back |
+
+Why: it fits its identity; its levels were each a single small stat, so they are gathered and given a little more
+weight, and the focused-casting passive grows a step.
+
+## Wizard
+
+7 levels · rarity no colour · Requires: Level 1 · Mage 5 · Wisdom higher than Intelligence
+Identity: The caster of wisdom: casts its spells twice over and shares its knowledge with the party.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Wisdom +5% | Wisdom and Intelligence +5% |
+| 2 | Intelligence +5% | Spell power +5% |
+| 3 | Basic spells cost 5% less Mana | Basic spells cost 10% less Mana |
+| 4 | Spells cost 5% less to learn | Spells cost 10% less to learn |
+| 5 | **Doubled Spell** (skill, once a day): next spell costs 2 more AP and is cast twice for one Mana price | **Doubled Spell** (skill, once per battle): your next spell costs 2 more AP and is cast twice for one Mana price |
+| 6 | Mind +5% | Mind and maximum Mana +5% |
+| 7 | **Knowledge Guide** (passive): a spell another party member knows costs the others half to learn | **Knowledge Guide** (passive, capstone): a spell another party member knows costs the others half to learn, and allies casting a spell you also know cast it 10% stronger (new) |
+
+Why: Doubled Spell pays with two extra AP, a fair price every battle. Its capstone helped only when buying spells; now
+the shared knowledge also shows in battle. The single small stats are gathered, as for the Spellcaster.
+
+## Sorcerer
+
+5 levels · rarity no colour · Requires: Level 30 · Mage 5 · Know 20 different spells
+Identity: Builds up sorcery with every spell it casts, which protects it and can be unleashed all at once.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Spells cost 5% less Mana | Spells cost 5% less Mana |
+| 2 | Intelligence and Wisdom +5% | Intelligence and Wisdom +5% |
+| 3 | **Sorcery Point** (passive): +1 point per spell cast; 1% less spell damage taken per 2 points | **Sorcery Point** (passive): +1 point per spell cast, up to 20; each 2 points give 1% less spell damage taken and 1% more spell power |
+| 4 | Evasion +10% | Evasion +10% and maximum Mana +5% |
+| 5 | **Sorcery Blast** (skill, 2 AP): spend all points: 5 Basic damage per point to one enemy | **Sorcery Blast** (skill, capstone; 2 AP): spend all points: Basic damage of 12 per point plus 0.4× Intelligence and 0.4× Wisdom to one enemy |
+
+Why: the draft found Sorcery Blast weak at the level the class needs (30): 5 damage a point hardly mattered. Now it
+grows with the Sorcerer, and the points also strengthen spells while they build, so holding them and spending them are
+both worth it.
+
+## Great Mage
+
+7 levels · rarity blue (raised in the draft) · Requires: Level 50 · Mage 5
+Identity: The archmage: raw, all-round spell power for a dedicated caster.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Spell power +20% | Spell power +20% |
+| 2 | Maximum Mana +20% | Maximum Mana +20% |
+| 3 | Spells cost 15% less Mana | Spells cost 15% less Mana |
+| 4 | **Grand Theory** (passive): spells deal 20% more damage, cost 50% less to learn | **Grand Theory** (passive): spells deal 20% more damage, cost 50% less to learn |
+| 5 | Mind, Intelligence and Wisdom +10% | Mind, Intelligence and Wisdom +10% |
+| 6 | All spells use 1 fewer AP (at least 1) | All spells use 1 fewer AP (at least 1) |
+| 7 | **Magnum Opus** (skill, once a day): next 3 spells +50% power, 25% less Mana, 1 fewer AP | **Magnum Opus** (skill, capstone; once a day): next 3 spells +50% power, 25% less Mana, 1 fewer AP |
+
+Why: unchanged. Its strength now matches its rarity (raised to blue in the draft rather than weakened), and Magnum
+Opus stays once a day as the big burst it is.
+
+## Scholar
+
+5 levels · rarity no colour · Requires: Level 1 · Mage 5 · Know at least 10 different spells
+Identity: The learner: picks up spells cheaply and can cast surprising spells from anywhere in the catalogue.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Spells cost 15% less to learn | Spells cost 15% less to learn |
+| 2 | Intelligence and Wisdom +5% | Intelligence and Wisdom +5% |
+| 3 | **Careful Study** (passive): spells cost another 15% less to learn; maximum Mana +5% | **Careful Study** (passive): spells cost another 15% less to learn; maximum Mana +5% |
+| 4 | Mind +5% | Mind +5% |
+| 5 | **Wild Thesis** (skill, once per battle): cast a random spell from the whole game (no higher than your best tier) for free | **Wild Thesis** (skill, capstone; once per battle): cast a random spell from the whole game (no higher than your best tier) for free |
+
+Why: unchanged; it already fits its identity and the rules.
+
+## Wise Man
+
+5 levels · rarity no colour · Requires: Level 1 · Scholar 5
+Identity: The party's teacher: makes magic cheaper for everyone and can cast one spell three times.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Spells cost 25% less to learn | Spells cost 25% less to learn |
+| 2 | Maximum Mana +10% | Maximum Mana +10% |
+| 3 | **Shared Insight** (passive): every party member's spells cost 10% less Mana (several Wise Men add up) | **Shared Insight** (passive): every party member's spells cost 10% less Mana (several Wise Men add up) |
+| 4 | Wisdom +5%; your spells cost 10% less Mana | Wisdom +5%; your spells cost 10% less Mana |
+| 5 | **Arcane Chorus** (skill, once a day): next spell costs 2 more AP and is cast 3 times at 40% less power, Mana paid once | **Arcane Chorus** (skill, capstone; once per battle): your next spell costs 2 more AP and is cast 3 times at 40% less power, Mana paid once |
+
+Why: it fits; Arcane Chorus (180% in all, for two extra AP) isn't a burst that needs saving, so it works every battle.
+
+## Archivist
+
+5 levels · rarity blue · Requires: Level 20 · Scholar 5 · Know 20 spells
+Identity (sharpened): Records the enemy's magic and keeps it as scrolls to use later.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Spells cost 10% less to learn | Spells cost 20% less to learn |
+| 2 | Mind +5% | Mind +5% |
+| 3 | **Field Notes** (passive): after a victory, turn one enemy spell seen in the battle (up to your best tier) into a scroll that casts it once | **Field Notes** (passive): after a victory, turn one enemy spell seen in the battle (up to your best tier) into a scroll that casts it once |
+| 4 | Spells cost another 10% less to learn | Scrolls you made cast 20% stronger |
+| 5 | **Open Ledger** (skill, once per battle): copy the target's last spell at 70% power | **Transcribe** (skill, capstone; once per battle, no AP): write down an enemy spell seen this battle at once: its scroll is yours now, usable in this battle (new) |
+
+Why: sharpened in the draft: copying a spell on the spot is the Mirror Mage's. The Archivist's skill now stays with its
+records: it can make a scroll mid-battle instead of waiting for the victory, and its scrolls cast stronger. The two
+cheaper-learning levels merge into level 1.
+
+## Chronomancer
+
+5 levels · rarity blue · Requires: Level 45 · Wizard 7 · Know 10 Basic spells
+Identity: Bends time: acts sooner while the enemy acts later.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Basic spells cost 5% less Mana | Basic spells cost 5% less Mana |
+| 2 | Mind +5% | Mind +5% |
+| 3 | **Temporal Drift** (passive): your turn bar fills 8% faster without more Speed | **Temporal Drift** (passive): your turn bar fills 10% faster without more Speed |
+| 4 | Basic spell power +10% | Basic spell power +10% |
+| 5 | **Time Shift** (skill, once per battle): your turn bar +250, one enemy's −250 | **Time Shift** (skill, capstone; once per battle): your turn bar +250, one enemy's −250 |
+
+Why: it fits; Temporal Drift grows a step for a blue class.
+
+## Mirror Mage
+
+4 levels · rarity blue · Requires: Level 40 · Wizard 7
+Identity: The mirror: turns enemy magic back on its casters and copies their spells.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | 10% less spell damage taken | 10% less spell damage taken |
+| 2 | **Reflective Veil** (passive): 15% of enemy spell damage taken goes back to its caster | **Reflective Veil** (passive): 20% of enemy spell damage taken goes back to its caster |
+| 3 | Mind +5% | Mind +5% |
+| 4 | **Spell Mirror** (skill, once per battle): copy the target's last spell at 75% power | **Spell Mirror** (skill, capstone; once per battle): copy the target's last spell at 75% power |
+
+Why: it fits, and now alone holds copying a spell on the spot (the Archivist's copy is gone). The reflection grows a
+step for a blue class.
+
+## Dreamweaver
+
+6 levels · rarity no colour · Requires: Level 30 · Sorcerer 5
+Identity: Puts enemies to sleep and preys on them while they can't act.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Dark and Basic spell power +5% | Dark and Basic spell power +10% |
+| 2 | Mind +5% | Mind +5% |
+| 3 | **Nightmare Harvest** (passive): +15% damage to stunned enemies | **Nightmare Harvest** (passive): +15% damage to stunned enemies |
+| 4 | Spells cost 5% less Mana | Spells cost 5% less Mana |
+| 5 | Dark and Basic spell power +5% | Enemies you stun wake from it with 10% less Speed for 2 turns (new) |
+| 6 | **Lullaby** (skill, once per battle): stun one enemy for 1 turn | **Lullaby** (skill, capstone; once per battle): stun one enemy for 1 turn |
+
+Why: it fits; its two identical spell-power levels merge into level 1, and level 5 lets the nightmare linger after the
+sleep.
+
+## Elemental Siphon
+
+5 levels · rarity blue · Requires: Level 30 · Spellcaster 7 · Know spells of 6 elements
+Identity: Feeds on enemy magic, turning the elements thrown at it back on the enemy. (Renamed from Element Siphon on your
+note.)
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | 10% less elemental spell damage taken | 10% less elemental spell damage taken |
+| 2 | Maximum Mana +8% | Maximum Mana +8% |
+| 3 | **Arcane Intake** (passive): get back Mana equal to 20% of the enemy elemental spell damage you take | **Arcane Intake** (passive): get back Mana equal to 20% of the enemy elemental spell damage you take |
+| 4 | Spell power +5% | Spell power +5% |
+| 5 | **Siphon Charge** (skill, once per battle): after an enemy's elemental hit, turn your next spell into that element | **Siphon Charge** (skill, capstone; once per battle): after an enemy's elemental hit, turn your next spell into that element and give it 20% more power |
+
+Why: it fits; Siphon Charge only changed the element, so it now also carries the stolen power.
+
+## Sage
+
+5 levels · rarity blue · Requires: Level 1 · Spellcaster 7 or Wizard 7 · Maximum Mana above maximum HP
+Identity: The deep well of Mana: outlasts every fight and keeps the party's Mana flowing.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Maximum Mana +20% | Maximum Mana +20% |
+| 2 | Mind +5% | Mind +5% |
+| 3 | **Mana Well** (skill, once per battle, 1 AP): every ally restores 25% of their maximum Mana | **Mana Well** (skill, once per battle, 1 AP): every ally restores 25% of their maximum Mana |
+| 4 | Maximum Mana +20% | While your Mana is above 75%, your spells deal 10% more damage (new) |
+| 5 | **Deep Reservoir** (passive): maximum Mana +20%; restore 4% of maximum Mana each turn | **Deep Reservoir** (passive, capstone): maximum Mana +20%; restore 4% of maximum Mana each turn |
+
+Why: three of its five levels gave the same +20% Mana. Level 4 now turns a full well into power, the reward for a class
+that never runs dry.
+
+## Energist
+
+5 levels · rarity no colour · Requires: Level 20 · Maximum Mana at least 70% of maximum HP
+Identity: Balances body and mind, steadily renewing both through a fight.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Maximum HP and Mana +5% | Maximum HP and Mana +5% |
+| 2 | Vitality and Mind +5% | Vitality and Mind +5% |
+| 3 | **Inner Current** (passive): restore 3% HP and 5% Mana at the start of each turn | **Inner Current** (passive): restore 3% HP and 5% Mana at the start of each turn |
+| 4 | Spells cost 10% less Mana; maximum HP +5% | Spells cost 10% less Mana; maximum HP +5% |
+| 5 | **Equilibrium** (skill, once per battle): restore 20% HP and 20% Mana | **Equilibrium** (skill, capstone; once per battle): restore 20% HP and 20% Mana |
+
+Why: unchanged; it already fits its identity and the rules.
+
+## Psykic
+
+8 levels · rarity purple · Requires: Level 30 · Spellcaster 7 or Wizard 7 · Know at most 15 spells
+Identity: Fights with its own mind instead of many spells: psychic attacks and barriers paid for with Mana.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **Telekinetic Burst** (skill, once a turn; 12% Mana, 2 AP): 30 + 0.5× Intelligence + 0.2× Mind Basic damage to one enemy | **Telekinetic Burst** (skill, once a turn; 12% Mana, 2 AP): 30 + 0.5× Intelligence + 0.2× Mind Basic damage to one enemy |
+| 2 | Mind +10% | Mind +10% |
+| 3 | **Mind Barrier** (skill, once per battle; 15% Mana, 1 AP): 2 turns of +40% Armor and Evasion, 15% less damage taken | **Mind Barrier** (skill, once per battle; 15% Mana, 1 AP): 2 turns of +40% Armor and Evasion, 15% less damage taken |
+| 4 | Maximum Mana +15% | Maximum Mana +15% |
+| 5 | **Psychic Lance** (skill, once per battle; 18% Mana, 2 AP): 50 + 0.6× Intelligence + 0.3× Mind Basic damage, 25% chance to stun | **Psychic Lance** (skill, once per battle; 18% Mana, 2 AP): 50 + 0.6× Intelligence + 0.3× Mind Basic damage, 35% chance to stun |
+| 6 | Intelligence +10% | Intelligence +10% |
+| 7 | **Mental Pressure** (passive): Psykic skills deal 15% more damage | **Mental Pressure** (passive): Psykic skills deal 15% more damage and cost 10% less Mana |
+| 8 | **Mindstorm** (skill, once per battle; 25% Mana, 3 AP): 40 + 0.5× Intelligence + 0.3× Wisdom Basic damage to every enemy, −15% Speed for 2 turns | **Mindstorm** (skill, capstone; once per battle; 25% Mana, 3 AP): 40 + 0.5× Intelligence + 0.3× Wisdom Basic damage to every enemy, −15% Speed for 2 turns |
+
+Why: an exception to the one-skill rule like the Ki Warrior (your answer, C27): its four skills stand in for the
+spells it doesn't know, and keep their shape. Its passive also makes them a little cheaper, since a Psykic lives on
+Mana, and the lance stuns a little more often.
