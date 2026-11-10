@@ -1937,9 +1937,10 @@ Said while draft 1 was written (the user's go for it, 2026-11-10):
   purple), as the task lets me ask; 40 new classes with identity, levels, requirements and rarity, among them my eight
   (Field Medic, Sentinel, Beast Tamer, Sunderer, Camp Cook, Leywalker, Nightwalker, Mentor). Rarity across the 170:
   116 without a colour, 38 blue, 13 purple, 3 gold.
-- C15 **Identities as explanations** (the user, the same day: "a proper small explanation of what the class does"):
-  each class's identity in the draft is two to four sentences on what it is for and how it plays (for a current class,
-  its features in prose without listing the passives and skills, C13). They live in
+- C15 **Identities: a short playstyle** (the user, the same day, first "a proper small explanation of what the class
+  does", then, after seeing it: "I don't need a description that detailed ... a short description of this class's
+  playstyle without mentioning its skills/passives and not mentioning specific stat gains"): one or two sentences on
+  how the class plays; never its skills or passives (they can change), never specific stat gains. They live in
   `~/.cache/stat-fick-build/claude-work/class-rework/identities.py` beside `make_draft.py`; the draft is the source now.
 Still to ask (nothing assumed):
 - How the passives, skills and other level features are reviewed after the draft is approved.
