@@ -33,6 +33,9 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
 - Batch 5 (approved 2026-11-10, the Stormcaller's peak kept at +100%): the eleven other elemental mages on the Hierophant's template (Aeromancer, Aquamancer,
   Botanomancer, Cryomancer, Electromancer, Geomancer, Hemomancer, Luxomancer, Necromancer, Pyromancer, Umbramancer) and
   the masters of elements (Avatar, Stormcaller, Sunstrider, Plaguebinder).
+- Batch 6, for review: priests and healers (Priest, Cardinal Priest, Lifewarden, Sanguine Medic), summoners and dark
+  pacts (Summoner, Beastmaster, Wildwarden, Soul Shepherd, Druid, Warlock, Pactkeeper, Cultist, Chaos Cultist) and
+  leaders and minds (Strategist, General, Flagbearer, Enlightened, Diviner).
 
 # The sample of four (approved 2026-11-10)
 
@@ -1381,3 +1384,299 @@ Identity: Spreads sickness: poisons and curses that jump from enemy to enemy.
 | 6 | **Pestilent Cloud** (skill, once per battle): poison every enemy for 6% of maximum HP a turn for 3 turns | **Pestilent Cloud** (skill, capstone; once per battle): poison every enemy for 6% of maximum HP a turn for 3 turns |
 
 Why: it fits; now blue, its sickness spreads wider and lingers longer.
+
+# Batch 6: priests and healers, summoners and dark pacts, leaders and minds (for review)
+
+## Priest
+
+7 levels · rarity no colour · Requires: Level 1 · Mage 5 · 3 Holy spells known
+Identity: The holy healer: keeps the party alive and protected.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Wisdom +5% | Wisdom and Mind +5% |
+| 2 | Holy spells cost 10% less Mana | Holy spells cost 10% less Mana |
+| 3 | Mind +5% | Your healing spells heal 10% more |
+| 4 | **Blessed Vessel** (passive): maximum HP +10%; 15% less Dark spell damage | **Blessed Vessel** (passive): maximum HP +10%; 15% less Dark spell damage |
+| 5 | Holy spells gain 10% power | Holy spells gain 10% power |
+| 6 | Maximum Mana +10% | Maximum Mana +10% |
+| 7 | **Sanctuary** (skill, once a day): 3 turns: you and every ally take 15% less damage and restore 5% HP each turn | **Sanctuary** (skill, capstone; once per battle): 3 turns: you and every ally take 15% less damage and restore 4% HP each turn |
+
+Why: it fits; Sanctuary works every battle with slightly less healing, and the two small stats merge so level 3 makes
+the healer heal better.
+
+## Cardinal Priest
+
+4 levels · rarity blue (raised in the draft) · Requires: Level 55 · Priest 7
+Identity: The high priest: powerful holy magic and protection for the whole party.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Holy spell power +20% | Holy spell power +20% |
+| 2 | Wisdom +10%, maximum Mana +15% | Wisdom +10%, maximum Mana +15% |
+| 3 | **Cardinal's Benediction** (passive): every party member's spells cost 10% less Mana; Holy spells cost you half to learn | **Cardinal's Benediction** (passive): every party member's spells cost 10% less Mana; Holy spells cost you half to learn |
+| 4 | **Pontifical Decree** (skill, once a day, 1 AP): 3 turns: every ally takes 25% less damage and restores 7% HP and 5% Mana each turn | **Pontifical Decree** (skill, capstone; once a day, 1 AP): 3 turns: every ally takes 25% less damage and restores 7% HP and 5% Mana each turn |
+
+Why: unchanged. Its rarity rose to blue in the draft, and the Decree stays once a day as the big burst it is.
+
+## Lifewarden
+
+6 levels · rarity no colour · Requires: Level 30 · Priest 5 or Cleric 5
+Identity: The keeper of life: heals so much that the excess turns into shields.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Maximum Mana +5% | Maximum Mana +5%; spells cost 5% less Mana |
+| 2 | Spells cost 5% less Mana | Your healing is 10% stronger |
+| 3 | **Overflow Ward** (passive): healing beyond maximum HP becomes a barrier of up to 10% of maximum HP | **Overflow Ward** (passive): healing beyond maximum HP becomes a barrier of up to 10% of maximum HP |
+| 4 | Maximum HP +5% | Maximum HP +5% |
+| 5 | Holy and Water spell power +10% | Holy and Water spell power +10% |
+| 6 | **Sanctuary Pulse** (skill, once per battle): heal every ally for 20% of maximum HP | **Sanctuary Pulse** (skill, capstone; once per battle): heal every ally for 20% of maximum HP |
+
+Why: it fits; its two small levels merge so level 2 can make the healing stronger, which also fills the overflow
+barriers sooner.
+
+## Sanguine Medic
+
+5 levels · rarity blue · Requires: Level 1 · Hemomancer 5 · Priest 5
+Identity: Heals with its own blood, giving up its own health to save its allies.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Maximum HP +5% | Maximum HP +10% |
+| 2 | Blood and Holy spell power +5% | Blood and Holy spell power +5% |
+| 3 | **Red Triage** (passive): healing you give is 20% stronger while you are below half HP | **Red Triage** (passive): healing you give is 20% stronger while you are below half HP |
+| 4 | Maximum HP +5% | Each time you heal an ally, you regain 3% of your maximum HP (new) |
+| 5 | **Blood Transfusion** (skill, once per battle): spend 15% of your maximum HP to restore 30% of an ally's | **Blood Transfusion** (skill, capstone; once per battle): spend 15% of your maximum HP to restore 30% of an ally's |
+
+Why: it fits; the two HP levels merge, and level 4 gives back a little of the blood it spends, so it can keep giving.
+
+## Summoner
+
+7 levels · rarity no colour · Requires: Level 1 · Mage 5 · 10 summon spells used
+Identity: Lets its creatures fight for it and stays safe behind them.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Summon spells cost 30% less Mana | Summon spells cost 30% less Mana |
+| 2 | Mind +5% | Mind and Speed +5% |
+| 3 | **Overprotective** (passive): while one of your summons lives, you can't be attacked | **Overprotective** (passive): while one of your summons lives, enemies are far less likely to attack you, and you take 15% less damage |
+| 4 | Speed +5% | Your summons' base stats +20% |
+| 5 | **Double Summon** (skill, once a day): next summon spell costs no Mana and only 2 AP | Mind and maximum Mana +5% |
+| 6 | Mind +5% | Your summons' turn bars start each battle a little filled (new) |
+| 7 | **Powerful Friends** (passive): your summons' base stats +20% | **Double Summon** (skill, capstone; once per battle): your next summon spell costs no Mana and only 2 AP |
+
+Why: it had two passives. Powerful Friends keeps its effect as a plain bonus (level 4) and Double Summon becomes the
+capstone, every battle. The draft found Overprotective too strong (no attack could reach the Summoner at all); now it
+still keeps the Summoner safe behind its creatures, but not untouchable.
+
+## Beastmaster
+
+7 levels · rarity no colour · Requires: Level 1 · Summoner 3 · At least 1 Nature summon spell known
+Identity: Fights with animals at its side, never without a companion beast.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Summon spells cost 15% less Mana | Summon spells cost 15% less Mana |
+| 2 | Mind +5% | Mind +5% |
+| 3 | **Animal Companion** (passive): each battle starts with a wolf, bear or griffon beside you, at most half your level | **Animal Companion** (passive): each battle starts with a wolf, bear or griffon beside you, at most half your level |
+| 4 | Your summons' base stats +15% | Your summons' base stats +25% |
+| 5 | Maximum Mana +10% | Maximum Mana +10% |
+| 6 | Your summons' base stats +15% | Your animals can reach three quarters of your level instead of half |
+| 7 | **Call the Pack** (skill, once a day): summon two wolves, bears or griffons, at most half your level | **Call the Pack** (skill, capstone; once per battle): summon two wolves, bears or griffons, at most your animals' level |
+
+Why: it fits; Call the Pack works every battle, and the two summon-stat levels merge so level 6 can make its animals
+grow up with it.
+
+## Wildwarden
+
+5 levels · rarity no colour · Requires: Level 1 · Beastmaster 5 · Know 1 Nature summon spell
+Identity: The pack's protector: keeps its animal summons alive and strong.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Nature summon spells cost 10% less Mana | Nature summon spells cost 10% less Mana |
+| 2 | Armor +10% in forest zones | Armor +10%, another 10% in forest zones |
+| 3 | **Pack Guardian** (passive): your animal summons take 10% less damage while you live | **Pack Guardian** (passive): your animal summons take 10% less damage while you live |
+| 4 | Summon base stats +10% | Summon base stats +10% |
+| 5 | **Shield the Pack** (skill, once per battle): your animal summons gain 20% Armor for 2 turns | **Shield the Pack** (skill, capstone; once per battle): your animal summons gain 25% Armor and take 10% less damage for 2 turns |
+
+Why: it fits; level 2 no longer works only in forests, and its shield grows a little.
+
+## Soul Shepherd
+
+5 levels · rarity blue · Requires: Level 35 · Summoner 7
+Identity: The shepherd of summoned souls: its summons are its strength, and even their loss feeds it.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Summon base stats +10% | Summon base stats +15% |
+| 2 | Summon spells cost 10% less | Summon spells cost 10% less |
+| 3 | **Soul Reclaim** (passive): when one of your summons dies, recover 5% HP and Mana | **Soul Reclaim** (passive): when one of your summons dies, recover 5% HP and Mana |
+| 4 | Summon base stats +10% | When one of your summons dies, your other summons gain 10% stats for the battle (new) |
+| 5 | **Spirit Shelter** (skill, once per battle): your summons gain 25% Armor for 2 turns | **Guide the Soul** (skill, capstone; once per battle): bring back your last fallen summon at half its HP (new) |
+
+Why: Spirit Shelter was the Wildwarden's Shield the Pack for every summon. The shepherd's own skill now brings a lost
+soul back, and level 4 lets a loss strengthen the rest, as the identity says.
+
+## Druid
+
+7 levels · rarity no colour · Requires: Level 1 · Mage 5 · 3 Nature spells known
+Identity: Nature's own caster: one with the wild, and nature answers when it is in danger.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Nature spells cost 15% less Mana | Nature spells cost 15% less Mana |
+| 2 | **One with the World** (skill, once a day): 5 turns of +10% all stats; Nature spells 15% cheaper and +30% power | **One with the World** (skill, once per battle): 3 turns of +10% all stats; Nature spells 15% cheaper and +25% power |
+| 3 | Mind and Wisdom +5% | Mind and Wisdom +5% |
+| 4 | Nature spells cost 50% less to learn | Nature spells cost 50% less to learn |
+| 5 | **Preservation of Nature** (passive): 20% less Nature spell damage; Nature spells +20% power | Nature spells +20% power; 20% less Nature spell damage taken (no longer a passive) |
+| 6 | Mind +5% | Mind +5% |
+| 7 | **Call of Nature** (passive, once a day): below 10% HP, an animal at most half your level comes to your aid | **Call of Nature** (passive, capstone; once per battle): when you fall below 30% HP, an animal at most half your level comes to your aid and you restore 10% of your HP |
+
+Why: it had two passives; Preservation keeps its effect as a plain bonus. Call of Nature needed the Druid below 10%
+HP, once a day; now nature answers at 30%, every battle, and the Druid also heals. One with the World works every
+battle, shorter and a little weaker.
+
+## Warlock
+
+7 levels · rarity no colour · Requires: Level 1 · Mage 5 · 3 Dark spells known
+Identity: The Dark caster: draws power from a pact with darkness, at a risk to itself.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Intelligence +5% | Intelligence and Mind +5% |
+| 2 | Dark spells cost 10% less Mana | Dark spells cost 10% less Mana |
+| 3 | Maximum Mana +10% | Maximum Mana +10% |
+| 4 | **Pactbound** (passive): Dark spells +10% power; 15% less Dark spell damage taken | **Pactbound** (passive): Dark spells +10% power; 15% less Dark spell damage taken |
+| 5 | Mind +5% | Dark spells deal 15% more damage while you are below half HP (new) |
+| 6 | Dark spells cost 30% less to learn | Dark spells cost 30% less to learn |
+| 7 | **Dark Ascendance** (skill, once per battle): 3 turns of Dark spells +30% power and 20% cheaper; you take 10% more damage | **Dark Ascendance** (skill, capstone; once per battle): 3 turns of Dark spells +30% power and 20% cheaper; you take 10% more damage |
+
+Why: it fits; its two single stats merge, and level 5 is the pact's risk and reward: the darkness answers best when the
+Warlock is hurt.
+
+## Pactkeeper
+
+4 levels · rarity blue · Requires: Level 30 · Warlock 7 · Summoner 5 · Cast the same summon 10 times
+Identity: Bound to one familiar that returns every battle and grows over time.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Summon base stats +10% | Summon base stats +10% |
+| 2 | Maximum Mana +5% | Maximum Mana +5% |
+| 3 | **Bound Familiar** (passive): a chosen summon returns at the start of every battle for 5% of your maximum HP and grows 2% per battle survived, up to 20% | **Bound Familiar** (passive): a chosen summon returns at the start of every battle for 5% of your maximum HP and grows 2% per battle survived, up to 20% |
+| 4 | **Pact Renewal** (skill, once per battle): your summons restore 25% HP and Mana | **Pact Renewal** (skill, capstone; once per battle): your summons restore 25% HP and Mana |
+
+Why: unchanged; it already fits its identity and the rules.
+
+## Cultist
+
+7 levels · rarity no colour · Requires: Level 1 · Use 10 Dark summon spells
+Identity: Dark summoning rites: calls creatures cheaply and makes them stronger through ritual.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Mind +5% | Mind +5% |
+| 2 | Summon spells cost 20% less (30% for Dark ones) | Summon spells cost 20% less (30% for Dark ones) |
+| 3 | **Summon Ritual** (skill, once per battle, 5 AP): next summon 50% cheaper, its creatures +10% all stats | **Summon Ritual** (skill, once per battle, 3 AP): your next summon is 50% cheaper and its creatures gain 10% all stats |
+| 4 | Mind +5% | Intelligence and Wisdom +5% |
+| 5 | Speed +5% | Speed and Mind +5% |
+| 6 | **Dark Rituals** (passive): your other summons count as Dark | Your non-Dark summons count as Dark (no longer a passive) |
+| 7 | Intelligence and Wisdom +5% | **Dark Communion** (passive, capstone): your Dark summons gain 15% all stats, and each one alive makes your spells 5% cheaper, up to 15% (new) |
+
+Why: it broke the capstone rule (its skill at 3, its passive at 6, stats at 7). Dark Rituals keeps its effect as a plain
+level, and the new capstone passive rewards keeping a dark host alive. The ritual cost 5 AP, a whole turn and more for
+a small gain; 3 is a fair price.
+
+## Chaos Cultist
+
+3 levels · rarity blue (raised in the draft) · Requires: Level 50 · Cultist 7 · Use 100 Dark summon spells
+Identity: The cult's high caller: opens every battle with a demon and can call a whole host.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **Void Tear** (passive): each battle starts with a random Dark summon of Tier 3 or lower that you know | **Void Tear** (passive): each battle starts with a random Dark summon of Tier 4 or lower that you know |
+| 2 | Mind +10% | Mind +10% |
+| 3 | **Grand Demon Summoning** (skill, once a day, 5 AP): you are stunned next turn; your next summon costs no Mana, 5 AP, and brings one more creature | **Grand Demon Summoning** (skill, capstone; once a day, 4 AP): your next summon costs no Mana and brings one more creature |
+
+Why: the summoning stunned its caller and took 10 AP in all, a price that outweighed the creature it added. Now it is a
+plain once-a-day call for the host, and Void Tear reaches a tier higher, as a blue class's.
+
+## Strategist
+
+7 levels · rarity no colour · Requires: Level 20 · 15 defensive actions by the whole party
+Identity: Commands the party: makes everyone quicker and better at defending, and directs the attack at one target.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Every ally +5% Speed | Every ally +5% Speed |
+| 2 | Mind +5% | Mind +5% |
+| 3 | Every ally +5% Dexterity | Every ally +5% Dexterity |
+| 4 | **Coordinated Defense** (passive): every ally's Guard and Evade give 15% more | **Coordinated Defense** (passive): every ally's Guard and Evade give 15% more |
+| 5 | Every ally +5% Luck | Every ally +5% Luck |
+| 6 | Evasion +20% | Evasion +20% |
+| 7 | **Focus Fire** (skill, once per battle): mark one enemy; every ally deals 20% more to it until it falls | **Focus Fire** (skill, capstone; once per battle): mark one enemy; every ally deals 20% more to it until it falls |
+
+Why: unchanged; it already fits its identity and the rules.
+
+## General
+
+5 levels · rarity blue · Requires: Level 50 · Strategist 7
+Identity: The commander: keeps the party's tempo high and its line firm.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Every ally another 5% Speed | Every ally another 5% Speed |
+| 2 | Every ally's Guard and Evade another 15% | Every ally's Guard and Evade another 15% |
+| 3 | Mind +10% | Mind +10% |
+| 4 | **Battlefield Command** (passive): Focus Fire +10% more damage; each hit on the marked enemy brings the other allies' turns 100 closer | **Battlefield Command** (passive): Focus Fire +10% more damage; each hit on the marked enemy brings the other allies' turns 100 closer |
+| 5 | **Rally the Line** (skill, once per battle): every ally +25% Armor and Evasion for 2 turns | **Rally the Line** (skill, capstone; once per battle): every ally +25% Armor and Evasion for 2 turns |
+
+Why: unchanged; it already fits its identity and the rules.
+
+## Flagbearer
+
+4 levels · rarity blue · Requires: Level 1 · Strategist 5 · 2 companions
+Identity: Carries the colours: strengthens its companions and raises a standard the enemy must break.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Living companions +5% Strength and Dexterity | Living companions +5% Strength and Dexterity |
+| 2 | Armor +10% | Armor +10% |
+| 3 | **Rallying Colors** (passive): living companions +5% Speed while you stand | **Rallying Colors** (passive): while you stand, living companions gain 10% Speed and deal 5% more damage |
+| 4 | **Raise Standard** (skill, once per battle): a fragile standard: allies deal 15% more damage while it stands | **Raise Standard** (skill, capstone; once per battle): a fragile standard: allies deal 15% more damage while it stands |
+
+Why: it fits; its passive was a small +5% Speed for a blue class and now carries the colours properly.
+
+## Enlightened
+
+5 levels · rarity no colour · Requires: Level 10 · 25 defensive actions
+Identity: Insight in defence: guards and dodges well and reads what the enemy will do.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Guard and Evade give 10% more | Guard and Evade give 10% more |
+| 2 | Mind +5% | Mind +5% |
+| 3 | **Read Intent** (skill, once per battle, free): see an enemy's most likely next action | **Read Intent** (skill, once per battle, free): see an enemy's most likely next action |
+| 4 | Guard and Evade give another 10% | Guard and Evade give another 10% |
+| 5 | **Measured Defense** (passive): 10% less damage while Guarding or Evading | **Measured Defense** (passive, capstone): 10% less damage while Guarding or Evading |
+
+Why: unchanged; it already fits its identity and the rules.
+
+## Diviner
+
+7 levels · rarity blue · Requires: Level 35 · Enlightened 5
+Identity: Foresight: predicts the enemy's next move and is nearly untouchable when right.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Mind +10% | Mind +10% |
+| 2 | Guard and Evade give 15% more | Guard and Evade give 15% more |
+| 3 | Evasion +20% | Evasion +20% |
+| 4 | **Foretell** (skill, once per battle): predict an enemy's next action; right: +75% Armor and Evasion for 2 turns; wrong: +10% for 1 turn | **Foretell** (skill, once per battle): predict an enemy's next action; right: +75% Armor and Evasion for 2 turns; wrong: +10% for 1 turn |
+| 5 | Armor +20% | Armor +20% |
+| 6 | Guard and Evade give another 15% | Guard and Evade give another 15% |
+| 7 | **Perfect Foresight** (passive): a right Foretell gives +125% Armor and Evasion and 20% less damage for 2 turns | **Perfect Foresight** (passive, capstone): a right Foretell gives +125% Armor and Evasion and 20% less damage for 2 turns |
+
+Why: unchanged; it already fits its identity and the rules.
