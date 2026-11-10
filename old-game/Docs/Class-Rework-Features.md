@@ -39,6 +39,10 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
 - Batch 7 (approved 2026-11-10, 6-sided Luck one roll a battle): luck (Bard, Jester, Joker, Gambit) and the road, trade and the guild (Traveler, Cartographer,
   Courier, Pilgrim, Riverstrider, Salesman, Scavenger, Quartermaster, Bounty Broker, Relic Warden, Alchemist,
   Assimilator).
+- Batch 8, for review: the race classes (Noble, Reveler, Stonebreaker, Sylvan, Dragonblood; Beast, Great Beast and
+  Monster unchanged), the classes from rare items (Dragonkin, Lich, Madman, Sharmat, Vampire Lord; the Vampire is in the
+  sample) and the legends and the rest (Hero, Demon Lord, Jack of all Trades; Raid Boss unchanged). With it, every
+  current class has been gone through.
 
 # The sample of four (approved 2026-11-10)
 
@@ -1930,3 +1934,202 @@ Identity: Eats ingredients in battle for their power (task 9).
 | 7 | **Devour** (skill, once per battle): your next ingredient this turn costs no AP and its buff lasts twice as long | **Devour** (skill, capstone; once per battle): your next ingredient this turn costs no AP and its buff lasts twice as long |
 
 Why: unchanged; it was made with task 9 and already follows the rules.
+
+# Batch 8: race classes, classes from rare items, legends and the rest (for review)
+
+The five playable race classes share one shape (a passive at level 1, a skill at level 3) and are the model for task
+11's three new racial classes, so they are remade alike: their skills become once per battle, a step smaller.
+
+## Noble
+
+3 levels · rarity no colour · Requires: Level 30 · Race: Human
+Identity: The human's class: wealth, reputation, and inspiring the party.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **Important Presence** (passive): 20% more money and 50% more Reputation from quests | **Important Presence** (passive): 20% more money and 50% more Reputation from quests |
+| 2 | Evasion +10% in clothing | Evasion +10% in clothing |
+| 3 | **Grand Inspiration** (skill, once a day): every ally +40% Accuracy and Evasion for 2 turns | **Grand Inspiration** (skill, capstone; once per battle): every ally +25% Accuracy and Evasion for 2 turns |
+
+## Reveler
+
+3 levels · rarity no colour · Requires: Level 30 · Race: Hobbit
+Identity: The hobbit's class: good company that makes the whole party nimbler and luckier.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **Good Company** (passive): every ally, you too, +10% Dexterity, Speed and Luck | **Good Company** (passive): every ally, you too, +10% Dexterity, Speed and Luck |
+| 2 | Maximum Mana +20% | Maximum Mana +20% |
+| 3 | **Grand Feast** (skill, once a day, 1 AP): every ally restores 25% Mana and gains 20% Dexterity, Speed and Luck for 3 turns | **Grand Feast** (skill, capstone; once per battle, 1 AP): every ally restores 15% Mana and gains 15% Dexterity, Speed and Luck for 3 turns |
+
+## Stonebreaker
+
+3 levels · rarity no colour · Requires: Level 30 · Race: Dwarf
+Identity: The dwarf's class: an iron body in heavy armour that shatters what it hits.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **Bones of Iron** (passive): 10% less melee and ranged damage; can't be stunned | **Bones of Iron** (passive): 10% less melee and ranged damage; can't be stunned |
+| 2 | Heavy armour gives 30% more Armor | Heavy armour gives 30% more Armor |
+| 3 | **Mighty Shatter** (skill, once a day): next melee attack +100% damage and stuns; the next hit you take deals 50% more | **Mighty Shatter** (skill, capstone; once per battle): your next melee attack deals 75% more damage and stuns |
+
+Why the penalty goes: the next hit dealing 50% more undid much of a once-a-day blow; every battle and a step smaller,
+it needs no price.
+
+## Sylvan
+
+3 levels · rarity no colour · Requires: Level 30 · Race: Elf or Dark Elf
+Identity: The elf's and dark elf's class: a well of Mana that never runs dry.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **Forest Soul** (passive): restore 4% Mana at the start of each turn | **Forest Soul** (passive): restore 4% Mana at the start of each turn |
+| 2 | Maximum Mana +20%; Mind +5% | Maximum Mana +20%; Mind +5% |
+| 3 | **Sylvan Renewal** (skill, once a day): restore 30% Mana now and 6% at the start of each of your next 3 turns | **Sylvan Renewal** (skill, capstone; once per battle): restore 20% Mana now and 5% at the start of each of your next 3 turns |
+
+## Dragonblood
+
+3 levels · rarity no colour · Requires: Level 30 · Race: Lizardman
+Identity: The lizardman's class: a dragon's body, and blood that can awaken.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **Draconic Physique** (passive): all stats +5%, maximum HP +10% | **Draconic Physique** (passive): all stats +5%, maximum HP +10% |
+| 2 | Armor +10%; Strength +5% | Armor +10%; Strength +5% |
+| 3 | **Blood Awakening** (skill, once a day, no AP): all stats +15% for 3 turns | **Blood Awakening** (skill, capstone; once per battle, no AP): all stats +12% for 3 turns |
+
+Why (all five): they fit their races and the rules; only their skills change, to once per battle and a step smaller,
+so the five stay alike for task 11's new races to follow.
+
+## Beast, Great Beast and Monster
+
+Enemy-only: the classes of races players can't choose. Outside the rules (C25) and unchanged; they are reworked with
+the enemies in the port (C2). Beast (3 levels): natural claws, its body, the four starting classes' prerequisites.
+Great Beast (10 levels): stronger claws and body, Terrifying Beast (passive), Mighty Charge (skill). Monster (3 levels):
+a monster's body, the four prerequisites.
+
+## Dragonkin
+
+7 levels · rarity blue (raised in the draft) · Requires: Vial of Dragonblood (consumed)
+Identity: Has drunk a dragon's blood: a draconic body that can take to the air.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | All stats +10% | All stats +10% |
+| 2 | Maximum HP +10% | Maximum HP +10% |
+| 3 | Armor +25% | Armor +25% |
+| 4 | **Draconic Flight** (skill, each use takes a Vial of Dragonblood): 5 turns of +50% Speed and Evasion; melee attacks on you −50% Accuracy | **Draconic Flight** (skill, once per battle): 3 turns of +40% Speed and Evasion; melee attacks on you −50% Accuracy |
+| 5 | Maximum Mana +10% | **Dragon's Breath** (skill, once per battle, 2 AP): breathe fire on every enemy: Fire damage of 30 plus 0.5× Strength (new) |
+| 6 | Vitality +5% | Maximum Mana +10%; Vitality +5% |
+| 7 | **Draconic Heart** (passive): 10% less melee and ranged damage; restore 3% HP each turn | **Draconic Heart** (passive, capstone): 10% less melee and ranged damage; restore 3% HP each turn |
+
+Why: its flight cost a Vial of Dragonblood (0.5% from dragons) every time, so it was hardly ever used; now it works every
+battle, shorter. As an item class it may have more than one skill (C21), so a dragon's body also breathes fire, a blue
+class's power. Mana and Vitality merge to make room.
+
+## Lich
+
+5 levels · rarity purple · Requires: Phylactery Core (consumed)
+Identity: Undying: can't be killed while it has Mana, and commands the undead.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **Immortal Body** (passive): damage can't take you below 1 HP while you have Mana; it drains Mana instead | **Immortal Body** (passive): damage can't take you below 1 HP while you have Mana; it drains Mana instead |
+| 2 | Restore 5% Mana each turn | Restore 5% Mana each turn |
+| 3 | Maximum Mana +10% | Maximum Mana +10% |
+| 4 | Death spells cost 50% less Mana | Death spells cost 50% less Mana |
+| 5 | **Lord of Death** (skill, once a day): summon 3 undead thralls with double base stats | **Lord of Death** (skill, capstone; once a day): summon 3 undead thralls with double base stats |
+
+Why: unchanged; it fits a purple class, and Lord of Death stays once a day as the big summoning it is.
+
+## Madman
+
+3 levels · rarity gold (raised on your note) · Requires: Shadow Crystal (consumed)
+Identity: Sees without the veil: no defence at all, but enormous damage and health.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | **World Without Veil** (passive): Armor and Evasion locked at 0; maximum HP +50%, all damage +30% | **World Without Veil** (passive): Armor and Evasion locked at 0; maximum HP +50%, all damage +40% |
+| 2 | All stats +10% | All stats +15% |
+| 3 | **Mad Revelation** (skill, once a day): 3 turns of +30% all stats, double damage, every weapon attack hits and is critical; you take 15% more damage | **Mad Revelation** (skill, capstone; once a day): 3 turns of +30% all stats, double damage, every weapon attack hits and is critical; you take 15% more damage |
+
+Why: its rarity rose to gold on your note, so its passive and stats grow; Mad Revelation stays the once-a-day frenzy it
+is. (Madman at its maximum level is half of what Unreality needs.)
+
+## Sharmat
+
+3 levels · rarity gold (raised on your note) · Requires: Gem of False Dreams (consumed)
+Identity: The false dreamer's power: can restore everything once in a battle, at a lasting price.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | All stats +10% | All stats +15% |
+| 2 | **Dreamstate** (passive): 10% less damage from everything | **Dreamstate** (passive): 15% less damage from everything |
+| 3 | **Lucid Change** (skill; the first use comes with the gem, each later use takes another Gem of False Dreams): restore all HP and Mana and every other skill; all stats +20% and spells half price for the battle; then lose 10% of maximum HP each turn | **Lucid Change** (skill, capstone; once a day, and again the same day for a Gem of False Dreams): restore all HP and Mana and every other skill; all stats +20% and spells half price for the battle; then lose 5% of maximum HP each turn |
+
+Why: Lucid Change needed a new gem (Ur-Mat's drop at Level 93) for every use after the first, so a gold class's peak was
+almost never used. Now it comes back once a day, a gem buys a second use, and its price is lighter. (Sharmat at its
+maximum level is the other half of what Unreality needs.)
+
+## Vampire Lord
+
+3 levels · rarity purple (raised on your note) · Requires: Level 40 · Vampire 4
+Identity: The vampire's lord: feeds freely and can burn all its blood in a frenzy.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Bloodfeed loses no Accuracy and works 5 times a battle | Bloodfeed works 5 times a battle and stores 3 Blood Supplies instead of 2 |
+| 2 | Heart of Crimson restores another 10% HP and 5% Mana | Heart of Crimson restores another 10% HP and 5% Mana |
+| 3 | **Blood Frenzy** (skill, once every 7 days): drink all Blood Supplies: +10% all stats per supply for 3 turns, 10% HP and Mana each turn; then HP and Mana drop to 10 | **Blood Frenzy** (skill, capstone; once a day): drink all Blood Supplies: +8% all stats per supply (up to +60%) for 3 turns, 10% HP and Mana each turn |
+
+Why: Bloodfeed already lost its Accuracy penalty in the Vampire's remake, so level 1 gives more blood instead. Blood
+Frenzy came once a week and left the Lord at 10 HP and 10 Mana, near death; now it is a once-a-day frenzy without the
+crash, its top set at +60%, a purple class's peak. (An exception to the one-skill rule like the Vampire, C24; it keeps
+the Vampire's passive and skill and adds its own skill.)
+
+## Hero
+
+3 levels · rarity gold · Requires: Level 92 · Not together with the Demon Lord
+Identity: The legend who saves the world: lifts and protects the whole party (never together with the Demon Lord).
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | All stats +15% | All stats +15% |
+| 2 | **Heroic Inspiration** (passive): every other ally +10% all stats; you and every ally restore 5% HP and Mana each turn | **Heroic Inspiration** (passive): every other ally +10% all stats; you and every ally restore 5% HP and Mana each turn |
+| 3 | **World Saver** (skill, once per battle): your next damaging attack or spell can't be lessened; then the team takes 35% less damage for 4 of your turns | **World Saver** (skill, capstone; once per battle): your next damaging attack or spell can't be lessened; then the team takes 35% less damage for 4 of your turns |
+
+Why: unchanged; it fits a gold class.
+
+## Demon Lord
+
+3 levels · rarity gold · Requires: Level 92 · Not together with the Hero
+Identity: The legend who ends it: terrifies every enemy and destroys the weakened (never together with the Hero).
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | All stats +15% | All stats +15% |
+| 2 | **Symbol of Terror** (passive): every enemy −10% all stats; +50% damage to targets below half HP | **Symbol of Terror** (passive): every enemy −10% all stats; +50% damage to targets below half HP |
+| 3 | **World Ender** (skill, once per battle): next damaging attack or spell +300% damage and +50% Armor Pierce; burns Mana equal to 25% of the damage | **World Ender** (skill, capstone; once per battle): next damaging attack or spell +300% damage and +50% Armor Pierce; burns Mana equal to 25% of the damage |
+
+Why: unchanged; it fits a gold class.
+
+## Raid Boss
+
+Enemy-only and unobtainable: outside the rules (C25) and unchanged (Grand Enemy, its one passive); reworked with the
+enemies in the port (C2).
+
+## Jack of all Trades
+
+4 levels · rarity blue (raised on your note) · Requires: Level 1 · Warrior 3 · Archer 3 · Mage 3 · Rogue 3
+Identity: A bit of everything: rewards a character who has tried all four starting paths.
+
+| Level | Before | Remade |
+|---|---|---|
+| 1 | Strength, Dexterity, Intelligence and Luck +5% | Strength, Dexterity, Intelligence and Luck +5% |
+| 2 | **Learner of All, Master of None** (passive): all stats +2% for every class at level 3 or more | **Learner of All, Master of None** (passive): all stats +2% for every class at level 3 or more |
+| 3 | Armor and Evasion +10% | Armor and Evasion +10%, and you count as having Warrior, Archer, Mage and Rogue at level 5 for other classes' requirements |
+| 4 | Counts as having Warrior, Archer, Mage and Rogue at level 5 for requirements | **Improvise** (skill, capstone; once per battle): use one of the four starting classes' skills (Battle Cry, Sharpshoot, Mana Overload, Lucky Hit) at half strength (new) |
+
+Why: it broke the capstone rule (its passive at 2, the prerequisites at 4) and had no skill. The prerequisites move to
+level 3, and its capstone lets it borrow a trick from each of the four paths it has tried, as a jack of all trades
+would.
