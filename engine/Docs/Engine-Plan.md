@@ -137,8 +137,8 @@ the same day, the Ki Warrior after its revision with two more Ki skills, C26; ba
 path and weapons and spells together, approved, Grand Theft still on a critical hit; batch 4, the mage's path, approved;
 batch 5, the elemental mages and the masters of elements, approved, the Stormcaller at 25 charges of 4%; batch 6,
 priests and healers, summoners and dark pacts, leaders and minds, approved, Overprotective as an intercepting summon; batch 7, luck and the road, trade and the guild, approved, 6-sided
-Luck one roll a battle; batch 8, the race classes, rare items, legends and the rest, the last current ones, waiting for
-the user's review; then the 40 new classes); one passive and one skill per class, but the
+Luck one roll a battle; batch 8, the race classes, rare items, legends and the rest, approved, Dragon's Breath on the
+Dragonbreath spells; batch 9, the first twelve new classes, waiting for the user's review; then the other 28 new ones); one passive and one skill per class, but the
 elemental mages, the item classes, the Vampire Lord, the Ki Warrior and the Psykic (C21, C24, C26, C27). Once every class is approved, both drafts move
 to `Docs/Port-Tasks/10_Class_Rework/` beside the task (C23). Nothing changes in the old game. **Engine work goes on
 uninterrupted**; don't count task 10 as the engine's current task.
@@ -2000,7 +2000,10 @@ The features round (2026-11-10):
   it). Batch 7 (luck, the road, trade and the guild) approved the same day, but the Jester's 6-sided Luck rolls once a
   battle and pays only on a six (the user's note; the old game, and the draft, let it reroll for free until a six).
   Batch 8 (the race classes, the classes from rare items, the legends and the rest), the last of the current classes,
-  written for review.
+  approved the same day, but the Dragonkin's Dragon's Breath makes better use of the 23 Dragonbreath spells (the user's
+  note): it makes the next one free, 40% stronger and its weakening a turn longer (the draft had a fire attack of its
+  own). Every current class is through. Batch 9, the new classes part 1 (the first twelve of the task's list), written
+  for review.
 - C27 **The Psykic is an exception to the one-skill rule too**, like the Ki Warrior (asked before batch 4): its four
   skills stand in for the spells it doesn't know, with one passive. (Not folded into one skill.)
 - C26 **The Ki Warrior is an exception to the one-skill rule** (the user: "I wanted it to have many skills to simulate a

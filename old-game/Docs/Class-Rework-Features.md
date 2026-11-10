@@ -39,10 +39,12 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
 - Batch 7 (approved 2026-11-10, 6-sided Luck one roll a battle): luck (Bard, Jester, Joker, Gambit) and the road, trade and the guild (Traveler, Cartographer,
   Courier, Pilgrim, Riverstrider, Salesman, Scavenger, Quartermaster, Bounty Broker, Relic Warden, Alchemist,
   Assimilator).
-- Batch 8, for review: the race classes (Noble, Reveler, Stonebreaker, Sylvan, Dragonblood; Beast, Great Beast and
+- Batch 8 (approved 2026-11-10, Dragon's Breath empowering the Dragonbreath spells): the race classes (Noble, Reveler, Stonebreaker, Sylvan, Dragonblood; Beast, Great Beast and
   Monster unchanged), the classes from rare items (Dragonkin, Lich, Madman, Sharmat, Vampire Lord; the Vampire is in the
   sample) and the legends and the rest (Hero, Demon Lord, Jack of all Trades; Raid Boss unchanged). With it, every
   current class has been gone through.
+- Batch 9, for review: the new classes, part 1: the first twelve of the task's list (Acolyte, Bruiser, Spell Sparkler,
+  Hermit, Blade Dancer, Hotshot, Juggernaut, Rearguard, Vanguard, Caravanist, Acrobat, Explorer).
 
 # The sample of four (approved 2026-11-10)
 
@@ -1935,7 +1937,7 @@ Identity: Eats ingredients in battle for their power (task 9).
 
 Why: unchanged; it was made with task 9 and already follows the rules.
 
-# Batch 8: race classes, classes from rare items, legends and the rest (for review)
+# Batch 8: race classes, classes from rare items, legends and the rest (approved 2026-11-10)
 
 The five playable race classes share one shape (a passive at level 1, a skill at level 3) and are the model for task
 11's three new racial classes, so they are remade alike: their skills become once per battle, a step smaller.
@@ -2019,13 +2021,14 @@ Identity: Has drunk a dragon's blood: a draconic body that can take to the air.
 | 2 | Maximum HP +10% | Maximum HP +10% |
 | 3 | Armor +25% | Armor +25% |
 | 4 | **Draconic Flight** (skill, each use takes a Vial of Dragonblood): 5 turns of +50% Speed and Evasion; melee attacks on you −50% Accuracy | **Draconic Flight** (skill, once per battle): 3 turns of +40% Speed and Evasion; melee attacks on you −50% Accuracy |
-| 5 | Maximum Mana +10% | **Dragon's Breath** (skill, once per battle, 2 AP): breathe fire on every enemy: Fire damage of 30 plus 0.5× Strength (new) |
+| 5 | Maximum Mana +10% | **Dragon's Breath** (skill, once per battle, no AP): your next Dragonbreath spell costs no Mana, gains 40% power, and its weakening effect lasts 1 turn longer |
 | 6 | Vitality +5% | Maximum Mana +10%; Vitality +5% |
 | 7 | **Draconic Heart** (passive): 10% less melee and ranged damage; restore 3% HP each turn | **Draconic Heart** (passive, capstone): 10% less melee and ranged damage; restore 3% HP each turn |
 
 Why: its flight cost a Vial of Dragonblood (0.5% from dragons) every time, so it was hardly ever used; now it works every
-battle, shorter. As an item class it may have more than one skill (C21), so a dragon's body also breathes fire, a blue
-class's power. Mana and Vitality merge to make room.
+battle, shorter. As an item class it may have more than one skill (C21), so it also breathes like a dragon: Dragon's
+Breath makes the most of the game's 23 Dragonbreath spells (the user's note on the first version, a fire attack of its
+own), free, stronger and longer-lasting once a battle. Mana and Vitality merge to make room.
 
 ## Lich
 
@@ -2133,3 +2136,206 @@ Identity: A bit of everything: rewards a character who has tried all four starti
 Why: it broke the capstone rule (its passive at 2, the prerequisites at 4) and had no skill. The prerequisites move to
 level 3, and its capstone lets it borrow a trick from each of the four paths it has tried, as a jack of all trades
 would.
+
+# Batch 9: the new classes, part 1 (for review)
+
+The new classes have no old version, so each has one column: its levels as proposed. Each keeps the identity, levels,
+requirements and rarity approved in the draft, has one passive and one skill, and gives one of them at its last level.
+"How it plays" says what the levels add up to.
+
+## Acolyte
+
+5 levels · rarity no colour · Requires: Level 1 · Know 1 Holy spell
+Identity: A novice of the faith: supports allies with small prayers that grow stronger the more it helps in a battle.
+
+| Level | Feature |
+|---|---|
+| 1 | Wisdom +5%; Holy spells cost 20% less to learn |
+| 2 | Holy spells cost 10% less Mana |
+| 3 | **Devotion** (passive): each time you heal or bless an ally in a battle, your next healing or blessing is 5% stronger, up to 25% (new) |
+| 4 | Mind +5%; your healing is 5% stronger |
+| 5 | **Prayer of Grace** (skill, capstone; once per battle, 1 AP): every ally restores 10% of their HP and gains 10% Armor for 2 turns, made stronger by your Devotion |
+
+How it plays: the way into holy magic without the mage's path. Every heal it gives builds devotion, so it grows into a
+battle the longer it keeps its allies standing, and its prayer is the reward at the end.
+
+## Bruiser
+
+6 levels · rarity no colour · Requires: Level 15 · Warrior 5 · Vitality is your highest stat
+Identity: A big, tough front-liner whose blows grow with its body: the higher its maximum HP, the harder it hits.
+
+| Level | Feature |
+|---|---|
+| 1 | Vitality +5%; maximum HP +5% |
+| 2 | **Heavy Hands** (passive): your weapon attacks deal extra damage equal to 2% of your maximum HP (new) |
+| 3 | Strength +5% |
+| 4 | Maximum HP +10% |
+| 5 | Armor +10% |
+| 6 | **Body Blow** (skill, capstone; once per battle): a weapon strike with extra damage equal to 10% of your maximum HP that also pushes the target's next turn back (new) |
+
+How it plays: every point of HP is also a point of damage, so it builds health, not just Strength, and stands in front
+where that health is needed.
+
+## Spell Sparkler
+
+5 levels · rarity blue · Requires: Level 10 · Mage 5 · Cast 3 spells in one turn, 5 times
+Identity: Showers the enemy with many small spells in one turn instead of one big one.
+
+| Level | Feature |
+|---|---|
+| 1 | Tier 1–3 spells cost 10% less Mana |
+| 2 | **Sparkle Chain** (passive): each spell you cast after the first in the same turn gains 10% power more than the one before (+10%, +20%, +30%...) (new) |
+| 3 | Intelligence and Mind +5% |
+| 4 | Tier 1–3 spells use 1 fewer AP (at least 1) |
+| 5 | **Sparkler Burst** (skill, capstone; once per battle, no AP): your next 3 Tier 1–3 spells cost no Mana |
+
+How it plays: cheap, quick little spells cast three or four in a turn, each brighter than the last; at its peak a burst
+of them for free. A blue class: hard to set up, strong when it is.
+
+## Hermit
+
+5 levels · rarity blue · Requires: Level 25 · Spend 10 days in a row without entering a town
+Identity: Draws strength from solitude: stronger the longer it stays in the wild, and self-sufficient in a small party.
+
+| Level | Feature |
+|---|---|
+| 1 | Wisdom and Vitality +5% |
+| 2 | **Solitude** (passive): every day away from towns gives all stats +2%, up to 14% after 7 days; entering a town starts it again (new) |
+| 3 | With one companion or none, you deal 10% more damage and take 10% less (new) |
+| 4 | Restore 3% of your HP and Mana at the start of each turn |
+| 5 | **Withdraw** (skill, capstone; once per battle, 1 AP): withdraw into yourself: restore 25% of your HP and Mana, and you can't be stunned until your next turn |
+
+How it plays: it lives in the wild between towns, growing stronger with every day out there, and needs no healer; it
+suits a lone wanderer or a party of two.
+
+## Blade Dancer
+
+7 levels · rarity blue · Requires: Level 20 · Rogue 5 · Bard 3 · Land 5 weapon hits in a row in one battle, 10 times
+Identity: Fights like a dance: each hit in a row makes it quicker and harder to hit, and a miss breaks the rhythm.
+
+| Level | Feature |
+|---|---|
+| 1 | Dexterity +5% |
+| 2 | Evasion +10% in light armour or clothing |
+| 3 | **Rhythm** (passive): each weapon hit in a row gives +4% Evasion and +3% Speed, up to 5 hits; a miss starts it again (new) |
+| 4 | One-handed weapon Accuracy +10% |
+| 5 | Weapon Crit Rating +5; off-hand attacks deal 10% more damage |
+| 6 | Speed +5% |
+| 7 | **Whirling Flurry** (skill, capstone; once per battle): strike one enemy three times at 60% damage each; each hit counts for your Rhythm |
+
+How it plays: it wants to keep hitting, so Accuracy matters as much as damage; once the rhythm builds it is hard to
+touch, and a miss costs it all. The flurry builds the rhythm in one move.
+
+## Hotshot
+
+6 levels · rarity no colour · Requires: Level 15 · Archer 5 · Make 3 ranged attacks in one turn, 20 times
+Identity: Fast and flashy with ranged weapons: many quick, lighter shots spread over the enemy.
+
+| Level | Feature |
+|---|---|
+| 1 | Dexterity +5% |
+| 2 | **Quick Draw** (passive): ranged attacks cost 1 fewer AP (at least 1) but deal 25% less damage (new) |
+| 3 | Ranged weapon Accuracy +10% |
+| 4 | **Spread Fire:** a ranged attack on an enemy you haven't shot yet this turn deals 10% more damage (new) |
+| 5 | Speed +5% |
+| 6 | **Volley** (skill, capstone; once per battle, 2 AP): shoot every enemy once at 70% damage |
+
+How it plays: more shots each turn, each a little lighter, best spread over different enemies; against a crowd it
+outshoots the patient archers, against one tough target it doesn't.
+
+## Juggernaut
+
+6 levels · rarity blue · Requires: Level 30 · Knight 5 · Heavy armour equipped
+Identity: Heavy armour as a weapon: unstoppable, its armour making it hit harder, and for all its weight its turns come
+sooner.
+
+| Level | Feature |
+|---|---|
+| 1 | Armor +10% |
+| 2 | **Unstoppable** (passive): you can't be stunned or slowed, and your turn bar fills 5% faster (new) |
+| 3 | Melee attacks deal extra damage equal to 5% of your Armor (new) |
+| 4 | Maximum HP +10% |
+| 5 | Strength +5%; your turn bar fills another 5% faster |
+| 6 | **Juggernaut Charge** (skill, capstone; once per battle): a melee attack with 50% more damage that pushes the target's next turn back by 200 and brings yours 200 closer |
+
+How it plays: a walking fortress that still acts early and often (your note), turning its Armor into damage; nothing
+stops it, and its charge breaks the enemy's tempo.
+
+## Rearguard
+
+5 levels · rarity no colour · Requires: Level 15 · Warrior 5 · Win 20 battles in which no companion fell
+Identity: Covers the back of the party: protects the weaker allies and makes retreating safe.
+
+| Level | Feature |
+|---|---|
+| 1 | Vitality +5%; Armor +5% |
+| 2 | **Covering Strike** (passive): when an enemy attacks an ally below half HP, you strike it back at 50% damage, once a turn (new) |
+| 3 | The party's Run succeeds 50% more often (new) |
+| 4 | Allies below half HP gain 15% Armor |
+| 5 | **Cover the Retreat** (skill, capstone; once per battle, 1 AP): for 2 turns every ally takes 15% less damage, and the party's Run can't fail |
+
+How it plays: it watches over whoever is hurt, punishing enemies that go for the weak, and when a fight goes wrong it
+gets everyone out alive.
+
+## Vanguard
+
+5 levels · rarity no colour · Requires: Level 15 · Warrior 5 · Take the first turn of a battle 25 times
+Identity: The front of the charge: strongest at the start of a battle, getting the party moving first.
+
+| Level | Feature |
+|---|---|
+| 1 | Speed +5% |
+| 2 | **Spearhead** (passive): in your first 2 turns of each battle you deal 20% more damage and take 10% less (new) |
+| 3 | Strength +5%; weapon Accuracy +10% |
+| 4 | The party's turn bars start each battle a little filled (new) |
+| 5 | **Charge!** (skill, capstone; once per battle, in your first two turns): a strike with 40% more damage, and every ally's next turn comes 150 closer |
+
+How it plays: it decides the opening of every fight, hitting hard first and pulling the party in behind it; its edge
+fades as the battle goes on.
+
+## Caravanist
+
+4 levels · rarity no colour · Requires: Level 20 · Traveler 3 · Travel by caravan 5 times
+Identity: A merchant of the road: cheaper and faster caravan travel, better trading, and supplies for the party.
+
+| Level | Feature |
+|---|---|
+| 1 | Caravan fares cost 25% less, and caravan trips take 15% less time (new) |
+| 2 | **Trade Routes** (passive): items sell for 10% more, and shops sell to you 5% cheaper |
+| 3 | Once a day, arriving by caravan, the wagon hands you a random consumable (new) |
+| 4 | **Wagon Stores** (skill, capstone; once per battle, 1 AP): use one consumable from your pack on every ally at once (new) |
+
+How it plays: a trader who crosses the continent (task 8's caravans) cheaply and comes out ahead in every town, and
+whose stores, in battle, reach the whole party at once.
+
+## Acrobat
+
+6 levels · rarity no colour · Requires: Level 10 · Rogue 5 · Dexterity is your highest stat
+Identity: Dodges everything, and turns each dodge into momentum.
+
+| Level | Feature |
+|---|---|
+| 1 | Dexterity +5% |
+| 2 | Evasion +10% |
+| 3 | **Momentum** (passive): each attack you dodge gives your next attack 10% more damage, up to 30% (new) |
+| 4 | The Evade action costs 1 fewer AP and gives 20% more Evasion |
+| 5 | Speed +5% |
+| 6 | **Flip** (skill, capstone; once per battle, no AP): until your next turn you dodge every single-target attack (new) |
+
+How it plays: it invites attacks and makes them miss, and every miss loads its next strike; Evade becomes a real
+action for it rather than a last resort.
+
+## Explorer
+
+5 levels · rarity no colour · Requires: Level 15 · Traveler 3 · Enter 8 regions
+Identity: Goes where no one has been: rewarded for discovering new places, enemies and hidden finds.
+
+| Level | Feature |
+|---|---|
+| 1 | Travel speed +1 km/h |
+| 2 | **Discovery** (passive): your first battle against a kind of enemy you have never fought gives 50% more EXP, and entering a region for the first time gives EXP (new) |
+| 3 | Foraging finds something 15% more often |
+| 4 | Once a day, the map marks a hidden cache in your region: silver and an item (new) |
+| 5 | **Trailblazer** (skill, capstone; once a day, on the map): reveal your whole region: its fog, a hidden cache and its best foraging spots (new) |
+
+How it plays: a map class that pays off for going everywhere first; the unknown is worth more to it than to anyone.
