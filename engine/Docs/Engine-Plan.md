@@ -138,7 +138,8 @@ path and weapons and spells together, approved, Grand Theft still on a critical 
 batch 5, the elemental mages and the masters of elements, approved, the Stormcaller at 25 charges of 4%; batch 6,
 priests and healers, summoners and dark pacts, leaders and minds, approved, Overprotective as an intercepting summon; batch 7, luck and the road, trade and the guild, approved, 6-sided
 Luck one roll a battle; batch 8, the race classes, rare items, legends and the rest, approved, Dragon's Breath on the
-Dragonbreath spells; batch 9, the first twelve new classes, waiting for the user's review; then the other 28 new ones); one passive and one skill per class, but the
+Dragonbreath spells; batch 9, the first twelve new classes, approved; batch 10, the other thirteen of the task's list, waiting for the
+user's review; then the seven newc classes and my eight); one passive and one skill per class, but the
 elemental mages, the item classes, the Vampire Lord, the Ki Warrior and the Psykic (C21, C24, C26, C27). Once every class is approved, both drafts move
 to `Docs/Port-Tasks/10_Class_Rework/` beside the task (C23). Nothing changes in the old game. **Engine work goes on
 uninterrupted**; don't count task 10 as the engine's current task.
@@ -2013,7 +2014,7 @@ The features round (2026-11-10):
   Haste draught; Spellcaster 5 joins its requirement so the way is clear (not kept as it was, not 2 spells in a turn).
   The same check found Hotshot's Quick Draw too strong (every shot at 1 AP and 75%, five a turn); revised before review
   to one full shot and then 1-AP half shots. The other 38 new classes' requirements checked the same way: all within
-  reach.
+  reach. Batch 9 approved after it (2026-11-10). Batch 10, the other thirteen of the task's list, written for review.
 - C27 **The Psykic is an exception to the one-skill rule too**, like the Ki Warrior (asked before batch 4): its four
   skills stand in for the spells it doesn't know, with one passive. (Not folded into one skill.)
 - C26 **The Ki Warrior is an exception to the one-skill rule** (the user: "I wanted it to have many skills to simulate a

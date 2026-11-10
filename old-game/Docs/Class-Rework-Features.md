@@ -43,8 +43,10 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
   Monster unchanged), the classes from rare items (Dragonkin, Lich, Madman, Sharmat, Vampire Lord; the Vampire is in the
   sample) and the legends and the rest (Hero, Demon Lord, Jack of all Trades; Raid Boss unchanged). With it, every
   current class has been gone through.
-- Batch 9, for review: the new classes, part 1: the first twelve of the task's list (Acolyte, Bruiser, Spell Sparkler,
+- Batch 9 (approved 2026-11-10, Hotshot and Spell Sparkler requirements per C28): the new classes, part 1: the first twelve of the task's list (Acolyte, Bruiser, Spell Sparkler,
   Hermit, Blade Dancer, Hotshot, Juggernaut, Rearguard, Vanguard, Caravanist, Acrobat, Explorer).
+- Batch 10, for review: the new classes, part 2: the other thirteen of the task's list (Smith, Mastersmith, Tinkerer,
+  Informant, Infiltrator, Rune Knight, Martial Artist, Reaper, Ascended, Titan, Seeker, Cycle, Unreality).
 
 # The sample of four (approved 2026-11-10)
 
@@ -2137,7 +2139,7 @@ Why: it broke the capstone rule (its passive at 2, the prerequisites at 4) and h
 level 3, and its capstone lets it borrow a trick from each of the four paths it has tried, as a jack of all trades
 would.
 
-# Batch 9: the new classes, part 1 (for review)
+# Batch 9: the new classes, part 1 (approved 2026-11-10)
 
 The new classes have no old version, so each has one column: its levels as proposed. Each keeps the identity, levels,
 requirements and rarity approved in the draft, has one passive and one skill, and gives one of them at its last level.
@@ -2341,3 +2343,214 @@ Identity: Goes where no one has been: rewarded for discovering new places, enemi
 | 5 | **Trailblazer** (skill, capstone; once a day, on the map): reveal your whole region: its fog, a hidden cache and its best foraging spots (new) |
 
 How it plays: a map class that pays off for going everywhere first; the unknown is worth more to it than to anyone.
+
+# Batch 10: the new classes, part 2 (for review)
+
+As in batch 9: one column of proposed levels, one passive and one skill, the capstone at the last level, and every
+requirement and skill checked against a turn's 5 AP (C28).
+
+## Smith
+
+5 levels · rarity no colour · Requires: Level 10 · Reforge 5 items
+Identity: The craftsman in the field: better and cheaper forge work, and gear sharpened and mended before a fight.
+
+| Level | Feature |
+|---|---|
+| 1 | Reforging costs you 20% less (new) |
+| 2 | **Whetstone** (passive): at the start of each battle your weapon gains 10% power and your armour 10% Armor, for 3 turns (new) |
+| 3 | Strength and Vitality +5% |
+| 4 | Fitting runes costs you half, and taking them out costs half too (new) |
+| 5 | **Field Forge** (skill, capstone; once a day, outside battle): reforge one item wherever you are, without an anvil (new) |
+
+How it plays: a craftsman who spends less at the anvils, goes into every fight with a fresh edge, and at its peak
+carries the forge with it.
+
+## Mastersmith
+
+4 levels · rarity purple · Requires: Level 45 · Smith 5 · Reforge 25 items
+Identity: The Smith perfected: makes forged gear better than any forge sells it.
+
+| Level | Feature |
+|---|---|
+| 1 | Reforging gives you two results to choose from (new) |
+| 2 | **Master's Touch** (passive): your forged weapons and armour give 10% more of their stats, and matching makers' bonuses count double for you (new) |
+| 3 | Gear you reforge can come out with one more rune slot (new) |
+| 4 | **Temper** (skill, capstone; once per battle, 1 AP): give your gear one of Ornn's tempers for the rest of the battle: Molten Edge (weapon hits burn), Hardened Plate (15% less damage taken) or Spiked Plate (melee attackers take damage) (new) |
+
+How it plays: its best work happens at the anvil, where it gets better results than anyone; in battle it tempers its
+gear the way Ornn, the god of the forge, does.
+
+## Tinkerer
+
+5 levels · rarity no colour · Requires: Level 15 · Trap Layer 3
+Identity: Builds clockwork gadgets in battle that act on their own, and better traps.
+
+| Level | Feature |
+|---|---|
+| 1 | Traps deal 20% more damage |
+| 2 | **Clockwork Turret** (passive): each battle starts with a small turret beside you that shoots a random enemy on each of your turns, for damage that grows with your Dexterity and Intelligence, until it is destroyed (new) |
+| 3 | Dexterity and Intelligence +5% |
+| 4 | Your gadgets take 25% less damage, and placing a trap has a 20% chance not to use it up |
+| 5 | **Contraption** (skill, capstone; once per battle, 2 AP): build one more device: a decoy that draws enemy attacks for 2 turns, or a mending pump that heals every ally 5% a turn for 3 turns (new) |
+
+How it plays: it fights through its machines: a turret that keeps firing on its own, traps, and a device for what the
+battle needs.
+
+## Informant
+
+4 levels · rarity no colour · Requires: Level 20 · Rogue 5 · Buy information from the hooded man 3 times
+Identity: Knows everything about the enemy and helps the party exploit it.
+
+| Level | Feature |
+|---|---|
+| 1 | **Dossier** (passive): at the start of each battle, see every enemy's stats, resistances and drops (new) |
+| 2 | Dexterity and Luck +5%; the hooded man's information costs 25% less |
+| 3 | The party's attacks and spells in an enemy's weakest element deal 10% more damage to it (new) |
+| 4 | **Expose** (skill, capstone; once per battle, 1 AP): reveal one enemy's next action and its weak point: for 2 turns the party's attacks on it gain 15% Accuracy and 15% damage |
+
+How it plays: the party's eyes. It knows what every enemy is before the first blow and turns that into damage for
+everyone.
+
+## Infiltrator
+
+5 levels · rarity blue · Requires: Level 20 · Rogue 5 · Shadow 3
+Identity: Gets past the enemy's defenders to strike the ones behind them and spoil their plans.
+
+| Level | Feature |
+|---|---|
+| 1 | Speed and Dexterity +5% |
+| 2 | **Slip Through** (passive): your attacks ignore taunts, guards and interceptions (new) |
+| 3 | +15% damage to enemies that cast a spell on their last turn (new) |
+| 4 | Weapon Accuracy +10%; Evasion +10% |
+| 5 | **Sabotage** (skill, capstone; once per battle): strike an enemy and spoil its next turn: it loses 2 AP |
+
+How it plays: the enemy's protectors don't stop it; it goes straight for the casters and leaders behind them and
+throws their next move off.
+
+## Rune Knight
+
+6 levels · rarity blue · Requires: Level 25 · Knight 5 · Spellblade 3 · Fit 10 runes
+Identity: Awakens the runes in its gear, making them stronger and able to unleash their power.
+
+| Level | Feature |
+|---|---|
+| 1 | Strength and Intelligence +5% |
+| 2 | **Runebound** (passive): the runes in your weapon and armour are 25% stronger (new) |
+| 3 | Weapon Accuracy +10%; Armor +10% |
+| 4 | Fitting runes costs you half |
+| 5 | Melee weapons gain 0.1× Intelligence scaling for each rune in them (new) |
+| 6 | **Rune Burst** (skill, capstone; once per battle, 1 AP): your next weapon hit adds 15% damage for each rune in your gear, in the elements of its elemental runes (new) |
+
+How it plays: the more runes its gear holds, the stronger it is; it fills every slot, and once a battle sets them all
+loose in one blow.
+
+## Martial Artist
+
+7 levels · rarity blue · Requires: Level 20 · Monk 4 · Brawler 3
+Identity: Fights in stances, switching between offence, defence and counters as the battle demands.
+
+| Level | Feature |
+|---|---|
+| 1 | Unarmed attacks deal 20% more damage |
+| 2 | **Stances** (passive): at the start of each of your turns, choose a stance: Tiger (+15% damage), Crane (15% less damage taken, +10% Evasion) or Mantis (strike back at 40% damage when hit in melee, once a turn) (new) |
+| 3 | Strength and Dexterity +5% |
+| 4 | Unarmed and one-handed weapon Accuracy +10% |
+| 5 | The turn you change stance, your first attack deals 15% more damage (new) |
+| 6 | Speed +5% |
+| 7 | **Perfect Stance** (skill, capstone; once per battle, no AP): for 2 turns you hold all three stances at once |
+
+How it plays: every turn is a choice of how to fight, read from the battle: attack, hold, or wait for the enemy to
+strike; switching often pays.
+
+## Reaper
+
+6 levels · rarity purple · Requires: Level 40 · Reaver 5 · Know 5 Death spells
+Identity: Harvests the souls of the fallen and uses them for deadly strikes or healing.
+
+| Level | Feature |
+|---|---|
+| 1 | Death spell power +10%; weapon power +5% |
+| 2 | **Soul Harvest** (passive): each enemy that dies in the battle gives you a soul, up to 10; each soul adds 2% of your weapon hits' damage as Death damage (new) |
+| 3 | Strength and Mind +5% |
+| 4 | +15% damage to enemies below 30% HP |
+| 5 | When you fall below half HP, a soul is spent to restore 8% of your HP, once a turn (new) |
+| 6 | **Reap** (skill, capstone; once per battle): spend all your souls on one strike: +15% damage per soul, as Death damage; if it kills, you keep half of them (new) |
+
+How it plays: it grows with every death on the field, and chooses when to spend the dead: on its own survival, or on
+one devastating harvest.
+
+## Ascended
+
+4 levels · rarity gold · Requires: Level 85 · Awakened 5
+Identity: A mortal grown beyond itself, transcending its limits as it rises in level; the step after Awakened.
+
+| Level | Feature |
+|---|---|
+| 1 | All stats +1% for every 5 character levels, up to +40% at Level 200 (new) |
+| 2 | **Transcendence** (passive): 10% less damage from everything, and above Level 100 (Limitless) another 1% less for every 10 levels (new) |
+| 3 | Maximum HP and Mana +15%; your attacks and spells deal 10% more damage |
+| 4 | **Ascension** (skill, capstone; once per battle): for 3 turns you take 40% less damage, and your attacks and spells deal 30% more and count as Holy as well (new) |
+
+How it plays: the class that keeps growing: every level, before Level 100 and above it with Limitless, makes it
+stronger, and once a battle it rises above harm.
+
+## Titan
+
+5 levels · rarity purple · Requires: Level 50 · Strength is your highest stat · Defeat 30 giants
+Identity: Colossal: slow, enormous and crushing, hitting several enemies at once.
+
+| Level | Feature |
+|---|---|
+| 1 | Maximum HP +20% and Strength +10%; Speed −10% |
+| 2 | **Colossus** (passive): your melee attacks also hit one other enemy for 50% damage (new) |
+| 3 | Armor +15% |
+| 4 | Two-handed weapons deal 15% more damage |
+| 5 | **Earthshaker** (skill, capstone; once per battle, 3 AP): slam the ground: a melee attack on every enemy, and each loses 15% Speed for 2 turns |
+
+How it plays: slower than anyone, but every swing lands on two enemies and its slam on all of them; built for
+two-handed weapons.
+
+## Seeker
+
+5 levels · rarity no colour · Requires: Level 20 · Hunter 3 · Complete 5 Search quests
+Identity: Never loses its target: its attacks find even the most elusive enemy.
+
+| Level | Feature |
+|---|---|
+| 1 | Weapon Accuracy +10% |
+| 2 | **Relentless Aim** (passive): after you miss an enemy, your next attack on it can't miss (new) |
+| 3 | Dexterity and Luck +5% |
+| 4 | Enemies you attack have 15% less Evasion against you, and the guild's Search quests find their target sooner (new) |
+| 5 | **Lock On** (skill, capstone; once per battle): mark one enemy: for 3 turns your attacks on it can't miss and deal 15% more damage |
+
+How it plays: the answer to enemies that dodge: a miss is never wasted, and its marked target has nowhere to hide.
+
+## Cycle
+
+4 levels · rarity blue · Requires: Level 40 · In one battle, Attack, Guard, use a healing item and cast a spell; 10 times
+Identity: Lives in a cycle of phases (strike, guard, mend, focus), each turn bringing the next.
+
+| Level | Feature |
+|---|---|
+| 1 | **The Cycle** (passive): each of your turns brings the next phase, in order: Strike (+20% damage), Guard (+20% Armor, 10% less damage taken), Mend (restore 8% of your HP) and Focus (+20% spell power, spells 20% cheaper) (new) |
+| 2 | All stats +5% |
+| 3 | Each full cycle (four turns) gives all stats +5% for the rest of the battle, up to 3 times (new) |
+| 4 | **Turn of the Wheel** (skill, capstone; once per battle, no AP): skip to the phase you choose and double its bonus this turn |
+
+How it plays: it plans four turns ahead, attacking in Strike and casting in Focus, and grows stronger every time the
+wheel comes round; once a battle it can turn the wheel to the phase it needs.
+
+## Unreality
+
+3 levels · rarity red (the only one) · Requires: Sharmat 3 · Madman 3
+Identity: Rewrites the rules of reality: in its battles what is real gives way, and the rules of the fight itself are
+its to change.
+
+| Level | Feature |
+|---|---|
+| 1 | **Unwritten** (passive): every hit you take has a 20% chance never to have happened, and every attack or spell you make has a 20% chance to happen twice (new) |
+| 2 | All stats +20%, and the Madman's lock on your Armor and Evasion no longer holds (new) |
+| 3 | **Rewrite** (skill, capstone; once per battle, no AP): change one rule of the battle for 3 turns, of your choice: Inverted (enemy damage heals your party, and healing hurts the enemies), Stillness (the enemies' turn bars stand still), Mirror (each enemy's strongest and weakest stats trade places) or Undone (the damage your party took in the last 2 turns is undone) (new) |
+
+How it plays: above gold, for the one who has mastered both the madness and the false dream. Reality itself is
+unreliable around it, and once a battle it decides what the rules are. It also frees the Madman from the veil's price.
