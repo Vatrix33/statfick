@@ -1043,8 +1043,10 @@ remaking the placeholder art (P2; `engine/Docs/Port-Tasks/README.md`). The user'
   combat suite gives no result, as before (it stops at the known Barbarian failure).
 
 **Class Rework (port task 10; prepared 2026-11-10, a cloud session, not started; the task is
-`engine/Docs/Port-Tasks/10_Class_Rework.txt`).** To be built here, as tasks 1–9 were. The user's answers so far are
-`engine/Docs/Engine-Plan.md`, "Decisions for task 10, Class Rework" (C1–C14), with what is still to ask and the facts
+`engine/Docs/Port-Tasks/10_Class_Rework.txt`).** **Not built here** (C23, 2026-11-10): the old game's classes stay as
+they are, and the port builds the reworked set from the approved drafts, which then move to
+`engine/Docs/Port-Tasks/10_Class_Rework/`. The user's answers are
+`engine/Docs/Engine-Plan.md`, "Decisions for task 10, Class Rework" (C1–C25), with what is still to ask and the facts
 found. In short: every class, the 130 here and the new ones, is reviewed and listed even if unchanged; the enemies that
 use classes are reworked in the port, not in this task; of `classes/newc/` only seven names are used (Chronicler,
 Shaman, Elder Shaman, Trickster, Awakened, Warden, Scout), all their content proposed fresh, the rest of that folder
@@ -1052,7 +1054,8 @@ ignored; Poisoner exists already and is reworked, not added; 40 new classes (the
 so, those seven, 8 of my own); no class removed; old saves ignored. The review goes through one draft file in this
 folder (C14, which folded the planned two into one): `Class-Rework-Draft.md`, every class's identity, levels,
 requirements and rarity, written on 2026-11-10 and reviewed by the user the same day (their notes applied, C16–C19).
-The features round began with four classes remade as a sample (C20): `Class-Rework-Features.md`. A class's `requirements` have five
+The features round began with four classes remade as a sample (C20, approved, C21) and goes on group by group (C22):
+`Class-Rework-Features.md`. A class's `requirements` have five
 fields, not three: `level`, `classes` (all of them), `anyClasses` (one of them; 28 classes, the elemental mages'
 Spellcaster 7 or Wizard 7 among them), `other` and `excludes` (can't be held together: Hero and Demon Lord, Paladin and
 Oathsworn). The draft's first version missed the last two; the user caught it on Reaver.

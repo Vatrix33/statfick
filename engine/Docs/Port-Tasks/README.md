@@ -54,7 +54,10 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 10. `10_Class_Rework.txt`: every class reviewed and reworked where needed (identity, requirements, passive and skill, a
     capstone, its colour rarity), then 26 named new classes and 15 more; for the new classes the user is asked about
     each one's identity, levels, requirements and rarity, in that order.
-    **Prepared, not started (2026-11-10):** built in the old game (C1); the enemies that use the old classes are fully
+    **Under review (2026-11-10), for the port:** not built in the old game; the port builds it from the approved
+    drafts, which move into `10_Class_Rework/` beside the task once every class is approved (C23, replacing C1). The
+    features: one passive and one skill per class, but the elemental mages and the item classes (C21, C24, C25). The
+    enemies that use the old classes are fully
     reworked during the port, not in this task (C2); every class, current and new, is reviewed and listed even if
     unchanged (C3); of `old-game/classes/newc/` only seven names are added (Chronicler, Shaman, Elder Shaman, Trickster,
     Awakened, Warden, Scout), counted among the 15, so 8 more of my own (C4, C6, C7); Poisoner, which already exists,

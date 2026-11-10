@@ -123,15 +123,17 @@ engine (the engine's tests read none of what changed: the one class file they re
 `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count task 9 as the engine's
 current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Potion Rework".
 **Port task 10, Class Rework, is prepared, not started (2026-11-10, a cloud session; the user: "Inform yourself of this
-task, don't start it yet").** It is to be built in the old game, as tasks 1–9 were; the user's first answers are
+task, don't start it yet").** Unlike tasks 1–9 it is **not built in the old game: the port builds it** from the
+approved drafts (C23, which replaced C1); the user's first answers are
 C1–C12 in "Decisions for task 10, Class Rework" below (the enemies' classes reworked in the port, every class
 reviewed, seven of the `classes/newc/` drafts' names added, the review through one draft file in `../old-game/Docs/`,
 Poisoner reworked as an existing class, no class removed, old saves ignored, C13 the draft's form, C14 one draft
 instead of two, C15 identities as a short playstyle, C16–C19 the user's review notes and the questions they raised). **The draft is reviewed and the user's notes are
 applied** (2026-11-10): `../old-game/Docs/Class-Rework-Draft.md`, every class's identity, levels, requirements and
-rarity, 130 current and 40 new. The features round started with a sample of four remade classes (C20,
-`../old-game/Docs/Class-Rework-Features.md`), waiting for the user's review.
-Nothing built in the game yet. **Engine work goes on
+rarity, 130 current and 40 new. The features round: a sample of four remade classes approved (C20, C21), then the
+rest group by group (C22) in `../old-game/Docs/Class-Rework-Features.md`; one passive and one skill per class, but the
+elemental mages, the item classes and the Vampire Lord (C21, C24). Once every class is approved, both drafts move
+to `Docs/Port-Tasks/10_Class_Rework/` beside the task (C23). Nothing changes in the old game. **Engine work goes on
 uninterrupted**; don't count task 10 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
@@ -1892,7 +1894,8 @@ Asked after the regression run (2026-11-06):
 The user had the task read but not started ("Inform yourself of this task, don't start it yet"), then gave C1–C5 as
 notes to keep; C6–C8 were asked the same day to settle them, and C9–C12 answer what was still open. Nothing is built
 yet.
-- C1 **Where:** the classes are built in the old game, as tasks 1–9 were; the faithful port brings them over.
+- C1 (replaced by C23: the port builds them, not the old game) **Where:** the classes are built in the old game, as
+  tasks 1–9 were; the faithful port brings them over.
 - C2 **Enemies with classes:** the current enemies that use the old classes (enemy files with class levels, the
   bosses' `BOSS_CLASSES` of task 7, L29) need a full rework, but that happens during the game port, not in this task
   ("Open questions for later milestones", "At port time").
@@ -1969,11 +1972,31 @@ The features round (2026-11-10):
   (old and remade level by level, with why); not built until approved. It also tries out rules for the rest, for the
   user to judge: no filler levels, once-a-day skills once per battle unless they are big bursts, no self-defeating
   penalties, power by rarity, and Hierophant's shape as the template for all twelve elemental mages.
+- C21 **The sample is approved** ("Otherwise, this draft is good"), its rules with it, and one more the user forgot:
+  **a class has exactly one passive and one skill.** Exceptions: the twelve elemental mages and the classes acquired
+  by an item (Dragonkin, Lich, Madman, Sharmat, Vampire), and the Vampire Lord (C24). Today's classes with more
+  (Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner) or with none of one (Jack of all Trades, Trap Layer,
+  Trap Master) are brought to one of each in their remakes.
+- C22 **The rest, group by group:** a few of the draft's groups at a time, added to the features file for the user's
+  review, the new classes last; the user's notes on one batch shape the next. (Not all current then all new, not all at
+  once.)
+- C23 **Not built in the old game** (the user: "The newly approved classes should not be implemented into the old game.
+  They are added only on game port, so after I approved all classes, keep the drafts in a good location and note this
+  down somewhere"): the old game's classes stay as they are; the port builds the reworked set from the approved
+  drafts. Replaces C1. When every class is approved, `Class-Rework-Draft.md` and `Class-Rework-Features.md` move from
+  `../old-game/Docs/` to `Docs/Port-Tasks/10_Class_Rework/`, beside the task, as task 9's approved draft sits in
+  `Docs/Port-Tasks/9_Potion_Rework/` (and `Docs/Port-Tasks/README.md` lists task 10 as left for the port). (Not after
+  each batch, not at the end in the old game.)
+- C24 **The Vampire Lord is an exception** to the one-passive-one-skill rule, like the Vampire it grows from (it needs
+  Vampire 4, not an item). (Not following the rule.)
+- C25 **The enemy-only classes stay outside the rule:** Raid Boss (unobtainable), and Beast, Great Beast and Monster
+  (for races players can't pick); the enemies' classes are reworked in the port anyway (C2). (Not given a passive and a
+  skill each.)
 Still to ask (nothing assumed):
-- How the rest of the features are reviewed, after the sample of four (C20).
-- The red rarity's look (Unreality's colour in the class list and details), when the classes are built (C16).
+- The red rarity's look (Unreality's colour in the class list and details), when the port builds the classes (C16, C23).
 Kept in mind:
-- `classes/Black Knight.json` is read by the engine's tests (`LooseRecordTests`); if it changes, `Tools/Scripts/test.sh`
+- (Moot since C23: the old game's class files don't change.) `classes/Black Knight.json` is read by the engine's tests
+  (`LooseRecordTests`); if it changes, `Tools/Scripts/test.sh`
   must run. The class files are hand-formatted: edit them keeping their layout, never through `json.dump`
   (`../old-game/Docs/Notes.md`).
 Facts found (2026-11-10): 130 class files (104 without a colour, 18 blue, 6 purple, 2 gold: Hero and Demon Lord; Raid
