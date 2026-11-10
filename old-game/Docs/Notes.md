@@ -1044,11 +1044,12 @@ remaking the placeholder art (P2; `engine/Docs/Port-Tasks/README.md`). The user'
 
 **Class Rework (port task 10; prepared 2026-11-10, a cloud session, not started; the task is
 `engine/Docs/Port-Tasks/10_Class_Rework.txt`).** To be built here, as tasks 1–9 were. The user's answers so far are
-`engine/Docs/Engine-Plan.md`, "Decisions for task 10, Class Rework" (C1–C8), with what is still to ask and the facts
+`engine/Docs/Engine-Plan.md`, "Decisions for task 10, Class Rework" (C1–C12), with what is still to ask and the facts
 found. In short: every class, the 130 here and the new ones, is reviewed and listed even if unchanged; the enemies that
 use classes are reworked in the port, not in this task; of `classes/newc/` only seven names are used (Chronicler,
 Shaman, Elder Shaman, Trickster, Awakened, Warden, Scout), all their content proposed fresh, the rest of that folder
-ignored; 41 new classes (the task's 26, those seven, 8 of my own). The review goes through two draft files in this
+ignored; Poisoner exists already and is reworked, not added; 40 new classes (the task's other 25, Ascended spelled
+so, those seven, 8 of my own); no class removed; old saves ignored. The review goes through two draft files in this
 folder (`old-game/Docs/`): first every class's identity and number of levels, then every class's requirements and
 rarity (colour).
 

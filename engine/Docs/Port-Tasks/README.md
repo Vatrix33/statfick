@@ -3,7 +3,8 @@
 The user's tasks to add to the game during the port (user decision 2026-11-05), done in their number order (a plain
 file listing puts `10_` before `1_`; the list below is the order). The `.txt` files are the user's own text, unchanged
 (only their line endings were made LF, as the repo stores text), except three names in task 7 the user confirmed on
-2026-11-05: "Laila" is Juila, "Zik" is Zik Lun, "Mythium" is Mythilium. Fourteen tasks.
+2026-11-05: "Laila" is Juila, "Zik" is Zik Lun, "Mythium" is Mythilium; and one in task 10 the user confirmed on
+2026-11-10: "Ascendend" is Ascended. Fourteen tasks.
 
 1. `1_Masterwork_Elementals.txt`: six masterworks remade from the elementals' former unique items (Plasma Blade,
    Tidepiercer, First Comet, Peace and Balance, Kugelblitz, Avalanche); the elementals' placeholder weapons stay.
@@ -56,10 +57,11 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
     **Prepared, not started (2026-11-10):** built in the old game (C1); the enemies that use the old classes are fully
     reworked during the port, not in this task (C2); every class, current and new, is reviewed and listed even if
     unchanged (C3); of `old-game/classes/newc/` only seven names are added (Chronicler, Shaman, Elder Shaman, Trickster,
-    Awakened, Warden, Scout), counted among the 15, so 8 more of my own and 41 new classes in all (C4, C6, C7); the
-    review goes through two draft files in `old-game/Docs/` (first identity and levels, then requirements and rarity),
-    which is how the new classes' four questions are asked (C5, C8). `Engine-Plan.md`, "Decisions for task 10, Class
-    Rework", has them all and what is still to ask.
+    Awakened, Warden, Scout), counted among the 15, so 8 more of my own (C4, C6, C7); Poisoner, which already exists,
+    is reworked with the current classes, not added (C9), so 40 new classes in all; the review goes through two draft
+    files in `old-game/Docs/` (first identity and levels, then requirements and rarity), which is how the new classes'
+    four questions are asked (C5, C8); "Ascendend" is Ascended (C10); no class is removed (C11); old saves are ignored
+    (C12). `Engine-Plan.md`, "Decisions for task 10, Class Rework", has them all and what is still to ask.
 11. `11_New_races.txt`: three new playable races with icons (Half-Beast, Merfolk made playable, Goliath), each with a
     racial class.
 12. `12_Spell_Rework.txt`: every spell brought up to date (power, scaling, effects, mana cost; tiers kept), two new

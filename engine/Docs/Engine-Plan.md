@@ -124,8 +124,9 @@ engine (the engine's tests read none of what changed: the one class file they re
 current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Potion Rework".
 **Port task 10, Class Rework, is prepared, not started (2026-11-10, a cloud session; the user: "Inform yourself of this
 task, don't start it yet").** It is to be built in the old game, as tasks 1–9 were; the user's first answers are
-C1–C8 in "Decisions for task 10, Class Rework" below (the enemies' classes reworked in the port, every class reviewed,
-seven of the `classes/newc/` drafts' names added, the review through two draft files in `../old-game/Docs/`). Nothing
+C1–C12 in "Decisions for task 10, Class Rework" below (the enemies' classes reworked in the port, every class
+reviewed, seven of the `classes/newc/` drafts' names added, the review through two draft files in `../old-game/Docs/`,
+Poisoner reworked as an existing class, no class removed, old saves ignored). Nothing
 built yet; wait for the user's go before writing the first draft. **Engine work goes on uninterrupted**; don't count
 task 10 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
@@ -703,7 +704,7 @@ the design and the tests):
   BRUTAL logo before the game starts and BRUTAL's copyright with the other credits in the game's own screens** (Q11:
   M12 gives both programs a splash and a credits view now, which the port's start sequence and credits screen take
   over).
-  From task 10 (the user, 2026-11-10, C2): **every enemy that uses the old classes is fully reworked during the port**
+  From task 10 (the user, 2026-11-10, C2, C11): **every enemy that uses the old classes is fully reworked during the port**
   (the enemy files' class levels and the bosses' `BOSS_CLASSES`), after task 10 has reworked the classes in the old
   game; their full rework is not part of task 10.
 
@@ -1885,7 +1886,8 @@ Asked after the regression run (2026-11-06):
 
 **Decisions for task 10, Class Rework (2026-11-10, a cloud session; the task is `Docs/Port-Tasks/10_Class_Rework.txt`).**
 The user had the task read but not started ("Inform yourself of this task, don't start it yet"), then gave C1–C5 as
-notes to keep; C6–C8 were asked the same day to settle them. Nothing is built yet.
+notes to keep; C6–C8 were asked the same day to settle them, and C9–C12 answer what was still open. Nothing is built
+yet.
 - C1 **Where:** the classes are built in the old game, as tasks 1–9 were; the faithful port brings them over.
 - C2 **Enemies with classes:** the current enemies that use the old classes (enemy files with class levels, the
   bosses' `BOSS_CLASSES` of task 7, L29) need a full rework, but that happens during the game port, not in this task
@@ -1902,19 +1904,25 @@ notes to keep; C6–C8 were asked the same day to settle them. Nothing is built 
   every class with its requirements and its rarity (colour). For the new classes this is how the task's four
   questions (identity, levels, then requirements, rarity) are asked.
 - C6 **Classes of my own:** 8 more besides the seven of C4, so 15 in all, as the task says. (The user's note said 9;
-  asked: 8.) The new classes are then 41: the task's 26, the seven of C4 and 8 of my own.
+  asked: 8.) The new classes are then 40 (41 before C9): the task's 25 other names, the seven of C4 and 8 of my own.
 - C7 **The seven of C4 are names only:** everything about them is proposed fresh. Awakened's and Warden's filled-in
   drafts are not used. (Not their files' identity, levels, requirements and colour.)
 - C8 **Where the drafts go:** `../old-game/Docs/`, beside the old game's notes. (Not `Docs/Port-Tasks/10_Class_Rework/`
   as task 9's draft was.)
-Still to ask (found while reading, 2026-11-10; nothing assumed):
-- Poisoner already exists (`classes/Poisoner.json`, from the earlier batch of 32 new classes that `newc-browser.js`
-  checks) and is on the task's list of new classes.
-- "Ascendend" in the list: its spelling (Ascendant? Ascended?).
+Asked the same day about what reading the old game turned up:
+- C9 **Poisoner** already exists (`classes/Poisoner.json`, from the earlier batch of 32 new classes that
+  `newc-browser.js` checks): it is dropped from the task's list of new classes and reworked like every other current
+  class.
+- C10 **"Ascendend"** in the task's list is a misspelling: the class is **Ascended** (like Enlightened and Awakened; not
+  Ascendant). The task's text is corrected to it, as task 7's names were (`Docs/Port-Tasks/README.md`).
+- C11 **No class is removed** in this task, so every enemy keeps naming classes that exist until the port reworks them
+  (C2; the old game refuses an enemy file naming a class it doesn't have, `validateEnemy` in
+  `../old-game/scripts/combat.js`).
+- C12 **Saved characters are ignored:** no one will play the pre-port version of the game, so nothing is done for saves
+  with more levels in a class than its new maximum.
+Still to ask (nothing assumed):
 - How the passives, skills and other level features are reviewed after the second draft.
-- Saved characters (the player's and companions') with more levels in a class than its new maximum, or in a removed
-  class, if any; and the same for enemies until their rework in the port (C2): the old game refuses an enemy file
-  that names a class it doesn't have (`validateEnemy` in `../old-game/scripts/combat.js`).
+Kept in mind:
 - `classes/Black Knight.json` is read by the engine's tests (`LooseRecordTests`); if it changes, `Tools/Scripts/test.sh`
   must run. The class files are hand-formatted: edit them keeping their layout, never through `json.dump`
   (`../old-game/Docs/Notes.md`).
