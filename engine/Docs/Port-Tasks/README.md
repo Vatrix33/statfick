@@ -58,9 +58,9 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
     reworked during the port, not in this task (C2); every class, current and new, is reviewed and listed even if
     unchanged (C3); of `old-game/classes/newc/` only seven names are added (Chronicler, Shaman, Elder Shaman, Trickster,
     Awakened, Warden, Scout), counted among the 15, so 8 more of my own (C4, C6, C7); Poisoner, which already exists,
-    is reworked with the current classes, not added (C9), so 40 new classes in all; the review goes through two draft
-    files in `old-game/Docs/` (first identity and levels, then requirements and rarity), which is how the new classes'
-    four questions are asked (C5, C8); "Ascendend" is Ascended (C10); no class is removed (C11); old saves are ignored
+    is reworked with the current classes, not added (C9), so 40 new classes in all; the review goes through one draft
+    file, `old-game/Docs/Class-Rework-Draft.md` (identity, levels, requirements and rarity of every class), which is how
+    the new classes' four questions are asked (C5, C8, C14); "Ascendend" is Ascended (C10); no class is removed (C11); old saves are ignored
     (C12). `Engine-Plan.md`, "Decisions for task 10, Class Rework", has them all and what is still to ask.
 11. `11_New_races.txt`: three new playable races with icons (Half-Beast, Merfolk made playable, Goliath), each with a
     racial class.

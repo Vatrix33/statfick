@@ -125,10 +125,11 @@ current task. How it's built, its checks and their results: `../old-game/Docs/No
 **Port task 10, Class Rework, is prepared, not started (2026-11-10, a cloud session; the user: "Inform yourself of this
 task, don't start it yet").** It is to be built in the old game, as tasks 1–9 were; the user's first answers are
 C1–C12 in "Decisions for task 10, Class Rework" below (the enemies' classes reworked in the port, every class
-reviewed, seven of the `classes/newc/` drafts' names added, the review through two draft files in `../old-game/Docs/`,
-Poisoner reworked as an existing class, no class removed, old saves ignored, C13 the drafts' form). **Draft 1 is
-written and waits for the user's review** (the user's go, 2026-11-10): `../old-game/Docs/Class-Rework-Draft-1.md`, every
-class's identity and number of levels, 130 current and 40 new. Nothing built in the game yet. **Engine work goes on
+reviewed, seven of the `classes/newc/` drafts' names added, the review through one draft file in `../old-game/Docs/`,
+Poisoner reworked as an existing class, no class removed, old saves ignored, C13 the draft's form, C14 one draft
+instead of two). **The draft is written and waits for the user's proper review** (2026-11-10):
+`../old-game/Docs/Class-Rework-Draft.md`, every class's identity, levels, requirements and rarity, 130 current and 40
+new. Nothing built in the game yet. **Engine work goes on
 uninterrupted**; don't count task 10 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
@@ -1900,7 +1901,7 @@ yet.
   my own. Ignored: the drafts there for classes on the task's list (Acrobat, Blade Dancer, Bruiser, Hotshot,
   Infiltrator, Mastersmith, Smith; the empty Juggernaut, Tinkerer and Vanguard; Explorer and Spell Sparkler in
   `newc/IGNORE/`), which still come from the list, and Runesmith, Temperer and the template.
-- C5 **The review is done in draft files, in two rounds, both with every class, the current ones and the new ones of
+- C5 (replaced by C14: one draft) **The review is done in draft files, in two rounds, both with every class, the current ones and the new ones of
   this task:** first draft, every class with its identity and its number of levels; when that is done, a second draft,
   every class with its requirements and its rarity (colour). For the new classes this is how the task's four
   questions (identity, levels, then requirements, rarity) are asked.
@@ -1922,15 +1923,22 @@ Asked the same day about what reading the old game turned up:
 - C12 **Saved characters are ignored:** no one will play the pre-port version of the game, so nothing is done for saves
   with more levels in a class than its new maximum.
 Said while draft 1 was written (the user's go for it, 2026-11-10):
-- C13 **The drafts' form:** each current class's identity is drawn from all its features, its passives and skills
-  included, but the draft doesn't list the passives and skills. Draft 1 is `../old-game/Docs/Class-Rework-Draft-1.md`
-  (made by `~/.cache/stat-fick-build/claude-work/class-rework/make_draft1.py`, which checks that every class file
-  appears once; the file is the source now, edit it directly). Proposed there, for the user to approve: Scavenger 7 → 5
-  levels (the only change of levels); eight identities sharpened where two classes do the same thing (Champion,
-  Bulwark, Cleric, Paladin, Oathsworn, Templar, Assassin, Archivist); 40 new classes with identity and levels, among
-  them my eight (Field Medic, Sentinel, Beast Tamer, Sunderer, Camp Cook, Leywalker, Nightwalker, Mentor).
+- C13 **The draft's form:** each current class's identity is drawn from all its features, its passives and skills
+  included, but the draft doesn't list the passives and skills.
+- C14 **One draft, not two** (the user, after seeing draft 1: "With the draft being structured like this, I see no
+  reason to do a second draft"): identity, levels, requirements and rarity of every class in one file, which the user
+  then reviews properly. (Replaces C5's two rounds; draft 1 was folded into it.) It is
+  `../old-game/Docs/Class-Rework-Draft.md` (made by `~/.cache/stat-fick-build/claude-work/class-rework/make_draft.py`,
+  which checks that every class file appears once and that the new classes' required classes exist; the file is the
+  source now, edit it directly). Proposed there, for the user to approve: Scavenger 7 → 5 levels (the only change of
+  levels); eight identities sharpened where two classes do the same thing (Champion, Bulwark, Cleric, Paladin,
+  Oathsworn, Templar, Assassin, Archivist); every current requirement kept (none needs changing); nine rarities raised
+  (Avatar, Cardinal Priest, Great Mage, Chaos Cultist, Joker, Dragonkin and Vampire to blue; Madman and Sharmat to
+  purple), as the task lets me ask; 40 new classes with identity, levels, requirements and rarity, among them my eight
+  (Field Medic, Sentinel, Beast Tamer, Sunderer, Camp Cook, Leywalker, Nightwalker, Mentor). Rarity across the 170:
+  116 without a colour, 38 blue, 13 purple, 3 gold.
 Still to ask (nothing assumed):
-- How the passives, skills and other level features are reviewed after the second draft.
+- How the passives, skills and other level features are reviewed after the draft is approved.
 Kept in mind:
 - `classes/Black Knight.json` is read by the engine's tests (`LooseRecordTests`); if it changes, `Tools/Scripts/test.sh`
   must run. The class files are hand-formatted: edit them keeping their layout, never through `json.dump`
