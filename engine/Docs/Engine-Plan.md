@@ -129,7 +129,8 @@ reviewed, seven of the `classes/newc/` drafts' names added, the review through o
 Poisoner reworked as an existing class, no class removed, old saves ignored, C13 the draft's form, C14 one draft
 instead of two, C15 identities as a short playstyle, C16–C19 the user's review notes and the questions they raised). **The draft is reviewed and the user's notes are
 applied** (2026-11-10): `../old-game/Docs/Class-Rework-Draft.md`, every class's identity, levels, requirements and
-rarity, 130 current and 40 new; next is the user's word on it, then how the features are reviewed (still to ask).
+rarity, 130 current and 40 new. The features round started with a sample of four remade classes (C20,
+`../old-game/Docs/Class-Rework-Features.md`), waiting for the user's review.
 Nothing built in the game yet. **Engine work goes on
 uninterrupted**; don't count task 10 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
@@ -1961,8 +1962,15 @@ Asked about the notes the same day:
 - C19 **Beast Tamer tames animals only** (wolves, bears, griffons and animal kinds added later), though its requirement
   counts every Beast-class enemy: 49 enemies carry the Beast class, every dragon (Anatemis too), the treants and others
   among them. (Not every non-boss Beast-class enemy.)
+The features round (2026-11-10):
+- C20 **It starts with a sample of four** (the user: remake one random starting class, one random item-acquired class,
+  one random elemental mage and one random class overall, with the old class as the reference and the capstone rule in
+  mind). Drawn at random: Warrior, Vampire, Hierophant, Reaver. Proposed in `../old-game/Docs/Class-Rework-Features.md`
+  (old and remade level by level, with why); not built until approved. It also tries out rules for the rest, for the
+  user to judge: no filler levels, once-a-day skills once per battle unless they are big bursts, no self-defeating
+  penalties, power by rarity, and Hierophant's shape as the template for all twelve elemental mages.
 Still to ask (nothing assumed):
-- How the passives, skills and other level features are reviewed after the draft is approved.
+- How the rest of the features are reviewed, after the sample of four (C20).
 - The red rarity's look (Unreality's colour in the class list and details), when the classes are built (C16).
 Kept in mind:
 - `classes/Black Knight.json` is read by the engine's tests (`LooseRecordTests`); if it changes, `Tools/Scripts/test.sh`
