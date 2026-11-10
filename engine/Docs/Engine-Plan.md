@@ -127,7 +127,7 @@ task, don't start it yet").** It is to be built in the old game, as tasks 1–9 
 C1–C12 in "Decisions for task 10, Class Rework" below (the enemies' classes reworked in the port, every class
 reviewed, seven of the `classes/newc/` drafts' names added, the review through one draft file in `../old-game/Docs/`,
 Poisoner reworked as an existing class, no class removed, old saves ignored, C13 the draft's form, C14 one draft
-instead of two). **The draft is written and waits for the user's proper review** (2026-11-10):
+instead of two, C15 identities as explanations). **The draft is written and waits for the user's proper review** (2026-11-10):
 `../old-game/Docs/Class-Rework-Draft.md`, every class's identity, levels, requirements and rarity, 130 current and 40
 new. Nothing built in the game yet. **Engine work goes on
 uninterrupted**; don't count task 10 as the engine's current task.
@@ -1937,6 +1937,10 @@ Said while draft 1 was written (the user's go for it, 2026-11-10):
   purple), as the task lets me ask; 40 new classes with identity, levels, requirements and rarity, among them my eight
   (Field Medic, Sentinel, Beast Tamer, Sunderer, Camp Cook, Leywalker, Nightwalker, Mentor). Rarity across the 170:
   116 without a colour, 38 blue, 13 purple, 3 gold.
+- C15 **Identities as explanations** (the user, the same day: "a proper small explanation of what the class does"):
+  each class's identity in the draft is two to four sentences on what it is for and how it plays (for a current class,
+  its features in prose without listing the passives and skills, C13). They live in
+  `~/.cache/stat-fick-build/claude-work/class-rework/identities.py` beside `make_draft.py`; the draft is the source now.
 Still to ask (nothing assumed):
 - How the passives, skills and other level features are reviewed after the draft is approved.
 Kept in mind:
