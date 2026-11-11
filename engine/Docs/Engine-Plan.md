@@ -145,6 +145,15 @@ level (the task's capstone rule), requirements and skills within a turn's 5 AP (
 "Decisions for task 10, Class Rework" below. Left for the port: building the classes, the red rarity's look (C16), the
 full rework of every enemy that uses classes (C2), and the "(new)" mechanics the features file marks. Nothing changes
 in the old game. **Engine work goes on uninterrupted**; don't count task 10 as the engine's current task.
+**Port task 12, Spell Rework, is being designed for the port (from 2026-11-11, a cloud session),** like task 10: not
+built in the old game (SP1); drafts in `Docs/Port-Tasks/12_Spell_Rework/` (SP21). The spells get a system of their
+own, Spell Augmentation (SP9–SP16): heroes pay at the Magic Towers (less at the Institute of Magic and, for Lightning,
+the Church of Talos) to raise a spell's attributes, up to 5 ranks each and 10 per spell; only the Spellweaver changes
+elements, scalings and tiers. Measured first (SP8), the curve keeps Mana as scarce as now, puts all-enemies spells at
+75% and raises the high tiers (SP17–SP22). Where it stands: the system draft, `Spell-Augmentation.md`, waits for the
+user's review; then a sample of four spells, one batch per element, the 168 new spells and the two classes (SP2,
+SP3, SP15); the menu's look is asked last (SP23). Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
+**Engine work goes on uninterrupted**; don't count task 12 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
@@ -1990,6 +1999,14 @@ attacks against same-level enemies (spells ignore armor and Evasion, so they pul
   (Not spell crits.)
 - SP21 **Where the drafts live:** `Docs/Port-Tasks/12_Spell_Rework/` from the start, since task 12 is for the port only
   and nothing moves later. (Not `../old-game/Docs/` during the review, as task 10's were.)
+- SP22 **The gap closes by raising the high tiers:** with Mana kept (SP17), Tiers 1–3 keep about today's power, so the
+  early game is unchanged, and higher tiers gain power step by step for the same Mana: for a raw caster at the level
+  each tier unlocks, Tier 5 about 235 (174 now), Tier 7 about 500 (281), Tier 9 about 940 (430), Tier 10 about 1,600
+  (740); all-enemies spells 75% of that (SP18). Tier 1 to Tier 9 power per Mana: 2.75× instead of 5.4×. (Not split
+  with dearer Tiers 1–3, not the low tiers lowered.)
+- SP23 **The Augmentation menu's look is asked later** (the user, while the system draft was being written: "When it
+  comes to how the augmentation menu should look, ask me later. Prepare everything else first"): the system draft says
+  only what the menu does; its look is asked once everything else is prepared.
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:

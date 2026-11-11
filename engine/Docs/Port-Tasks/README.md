@@ -66,6 +66,10 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 12. `12_Spell_Rework.txt`: every spell brought up to date (power, scaling, effects, mana cost; tiers kept), two new
     spells per element in tiers 1–5 and one in tiers 6–9 (at least four new summons), and the Spellweaver and Ritual
     Caster classes.
+    **Being designed (from 2026-11-11), for the port:** like task 10, not built in the old game (SP1); its drafts are
+    in `12_Spell_Rework/` (its README gives the review's order). The spells get a system of their own, Spell
+    Augmentation (SP9): heroes pay at the Magic Towers to raise their spells' attributes; the Spellweaver weaves
+    elements, scalings and tiers. Decisions SP1 onward in `Engine-Plan.md`, "Decisions for task 12, Spell Rework".
 13. `13_New_classes.txt`: new classes by focus (four each for melee, ranged, spells and the rogue path, two for each of
     six combinations, nine without a focus), then more until players can acquire 250 classes; the user is asked about
     each one's identity, levels, requirements and rarity, in that order.
