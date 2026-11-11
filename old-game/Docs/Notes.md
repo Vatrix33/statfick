@@ -1042,6 +1042,52 @@ remaking the placeholder art (P2; `engine/Docs/Port-Tasks/README.md`). The user'
   chance in task 8's run, passes. The 11 known failures are unchanged. Smoke, enemies (530 cases) and lifecycle pass; the
   combat suite gives no result, as before (it stops at the known Barbarian failure).
 
+**New Races (port task 11, 2026-11-11, a cloud session; the task is `engine/Docs/Port-Tasks/11_New_races.txt`).**
+Half-Beast and Goliath are new playable races and Merfolk become playable, each with a placeholder seal and placeholder
+looks; their racial classes (Wildheart, Deepcaller, Peakwarden) are not here but in task 10's drafts for the port
+(T1). The design answers are T1–T17 in `engine/Docs/Engine-Plan.md`, "Decisions for task 11, New Races". Where each
+rule lives:
+- **The races** (`objects/races.json`, after the Lizardman): `half-beast` (stats T9: Strength, Vitality, Dexterity,
+  Wisdom, Speed +1, Mind −1, Intelligence and Luck −2; passive Natural Claws, T10) and `goliath` (stats T11: Strength
+  and Vitality +3, Luck +1, Mind, Dexterity and Speed −2, Intelligence −1; passive Giant's Blood, T12); `merfolk` keeps
+  its stats and Fishman Physiology (T8, T15), now `playable` with an icon. The race list (`renderRaces`) shows every
+  playable race, so nine now; `raceAccent` (app.js) gives the two new ones their colours.
+- **Race passives' new effects** (`calculateRaceEffectsUncached`, app.js; a race passive only understands the effect
+  types listed there): `max-hp-percent` (into `calculateMaxHpWithArtifacts`, which combat's `values` also uses for
+  companions and enemies), `unarmed-power-per-levels` (base power every N levels) and `unarmed-name`.
+- **Natural Claws** (T13): the claws are the Half-Beast's unarmed attacks, not a natural weapon: `unarmedWeaponOf`
+  (combat.js) names the unarmed attack "Claws" and keeps it `unarmed` (1 AP, every unarmed bonus: Monk, Brawler,
+  Martial Artist); `weaponAttackValues` adds the race's 1 base power per 10 levels to the unarmed power. A weapon in hand
+  is used as before.
+- **Looks** (placeholder art, T5; `scripts/sprite-catalog.js`, `RACES`): four male and four female looks each.
+  Half-Beast: wolf, fox, bear and lynx kin (T14), claws for hands, a beast's tail and beast ears; Merfolk on legs with
+  fin ears and sea-tinted skin (T3; the merfolk enemies keep their fishtails, as every enemy's sprite is looked up by
+  `enemyName` first); Goliath a head taller (`playableSpec` size 1.18 against a human's 1), heavy-built, stone-grey
+  (T4). Beast ears are two new ear styles in `scripts/sprite-humanoid.js`, `beast` (pointed) and `beast-round` (bear),
+  drawn over the hair (`earParts.top`) in the hair's colour; the default ear style `round` is the human ear.
+- **Seals** (placeholder art, T5): `objects/race-half-beast.svg`, `race-goliath.svg`, `race-merfolk.svg`, simple
+  stand-ins marked PLACEHOLDER ART. The engine's tests read only the six older seals, which didn't change.
+- **Recruits** (T7, T16; `scripts/companions.js`): male, female and family names for the three races; recruits are
+  drawn from every playable race that has names, so the new races join the taverns.
+- **Checks:** `test-client/tests/new-races-browser.js`, one entry per part (`checkNewRaceData`, `checkGiantsBlood`,
+  `checkNaturalClaws`, `checkNewRaceLooks`, `checkNewRaceRecruits`, `checkNewRacePicker`; `runNewRaceChecks` runs them
+  all), all passing. Each rule was broken once (22 mutations: playability, icons, each race's stats, Giant's Blood and
+  its two code paths, the claws' name, unarmed kind and growth, the accent, the placeholder mark, the Goliath's height,
+  the Merfolk's legs, a missing tail, claws, a look, the beast ears and their drawing, the recruit names): all caught.
+- **Regression** (2026-11-11, the cloud, Xvfb, three runs at a time): every entry of the 44 check files (158, the run
+  functions or, in a file without one, its check functions) and the four suites, 162 in all: 148 pass. The 14 that
+  don't, each run again on the code before task 11 (`b52eecf`, a clean checkout): 12 fail there the same way, the known
+  ones (`adventure-improvements`' `runMapImprovementChecks` and `runAdventureImprovementsChecks`, `bloody-mary`,
+  `combat-lifecycle`'s two entries outside its suite, `music`, `newc`, `settings-companions`, `shop`, `talos-edge`,
+  `trap`, and the combat suite, which stops at `talos-edge`'s legacy bonus-choice assertion); 2 are intermittent:
+  `adventure-improvements`' `runGreatHuntRewardChecks` (fails 3 runs in 4 on the old code too, with the same "reading
+  'reputation'" error) and `map-speed`, the known timing check (passes run alone, twice). Smoke, enemies (530 cases) and
+  lifecycle pass, and so does `new-races-browser.js`.
+- **Found while building:** at low stats a human's Rulers of the World (+2 maximum HP every fifth level) outweighs
+  Giant's Blood's +10% (at Level 40 with the default allotted stats: human 48 HP, Goliath 40); against a race without an
+  HP passive (the Dwarf, same Vitality bonus) the Goliath has its 10% more. A balance point for the port's race review,
+  not changed here.
+
 **Class Rework (port task 10; prepared 2026-11-10, a cloud session, not started; the task is
 `engine/Docs/Port-Tasks/10_Class_Rework.txt`).** **Not built here** (C23, 2026-11-10): the old game's classes stay as
 they are, and the port builds the reworked set from the approved drafts, which then move to

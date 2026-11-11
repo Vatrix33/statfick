@@ -95,6 +95,41 @@
     }
   },
   {
+    "id": "half-beast",
+    "name": "Half-Beast",
+    "playable": true,
+    "icon": "objects/race-half-beast.svg",
+    "statModifiers": { "strength": 1, "vitality": 1, "mind": -1, "dexterity": 1, "intelligence": -2, "wisdom": 1, "speed": 1, "luck": -2 },
+    "passive": {
+      "id": "natural-claws",
+      "name": "Natural Claws",
+      "condition": "Always active",
+      "description": "Your unarmed attacks are claws: they gain 1 base power for every 10 character levels and count as unarmed attacks.",
+      "effects": [
+        { "type": "unarmed-name", "name": "Claws" },
+        { "type": "unarmed-power-per-levels", "amount": 1, "interval": 10 }
+      ]
+    }
+  },
+  {
+    "id": "goliath",
+    "name": "Goliath",
+    "playable": true,
+    "icon": "objects/race-goliath.svg",
+    "statModifiers": { "strength": 3, "vitality": 3, "mind": -2, "dexterity": -2, "intelligence": -1, "wisdom": 0, "speed": -2, "luck": 1 },
+    "passive": {
+      "id": "giants-blood",
+      "name": "Giant's Blood",
+      "condition": "Always active",
+      "description": "Maximum HP increases by 10% and Armor by 5%, but Evasion is reduced by 10%.",
+      "effects": [
+        { "type": "max-hp-percent", "amount": 10 },
+        { "type": "defense-permanent-percent", "target": "armor", "amount": 5 },
+        { "type": "defense-permanent-percent", "target": "evasion", "amount": -10 }
+      ]
+    }
+  },
+  {
     "id": "goblin",
     "name": "Goblin",
     "playable": false,
@@ -414,8 +449,8 @@
   {
     "id": "merfolk",
     "name": "Merfolk",
-    "playable": false,
-    "icon": null,
+    "playable": true,
+    "icon": "objects/race-merfolk.svg",
     "statModifiers": { "strength": 1, "vitality": 3, "mind": 1, "dexterity": 2, "intelligence": -2, "wisdom": 0, "speed": -1, "luck": -2 },
     "passive": {
       "id": "fishman-physiology",

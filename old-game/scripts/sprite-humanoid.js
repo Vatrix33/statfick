@@ -132,6 +132,15 @@
       const d = `M${n(ex + R * 0.05)} ${n(ey - R * 0.25)} L${n(ex - R * 0.9)} ${n(ey - R * 0.55)} L${n(ex - R * 0.7)} ${n(ey - R * 0.1)} L${n(ex - R * 0.95)} ${n(ey + R * 0.25)} L${n(ex + R * 0.05)} ${n(ey + R * 0.25)}Z`;
       return { back: "", front: path(d, lighten(skin, 0.1)) + line(`M${n(ex - R * 0.05)} ${n(ey - R * 0.1)} L${n(ex - R * 0.7)} ${n(ey - R * 0.38)} M${n(ex - R * 0.05)} ${n(ey + R * 0.1)} L${n(ex - R * 0.75)} ${n(ey + R * 0.1)}`, shade, 0.8) };
     }
+    // Beast ears on top of the head, drawn over the hair (port task 11's Half-Beasts, placeholder art): pointed
+    // (wolf, fox, lynx) or round (bear), in the fur's colour.
+    if (style === "beast" || style === "beast-round") {
+      const bx = hx - R * 0.3, by = hy - R * 0.9;
+      const top = style === "beast"
+        ? path(`M${n(bx - R * 0.28)} ${n(by + R * 0.28)} L${n(bx - R * 0.12)} ${n(by - R * 0.52)} L${n(bx + R * 0.3)} ${n(by + R * 0.02)}Z`, skin) + path(`M${n(bx - R * 0.16)} ${n(by + R * 0.12)} L${n(bx - R * 0.1)} ${n(by - R * 0.3)} L${n(bx + R * 0.12)} ${n(by + R * 0.02)}Z`, shade || darken(skin, 0.25), 'stroke="none"')
+        : ellipse(bx, by, R * 0.27, R * 0.25, skin) + ellipse(bx + R * 0.02, by + R * 0.02, R * 0.13, R * 0.12, shade || darken(skin, 0.25), 'stroke="none"');
+      return { back: "", front: "", top };
+    }
     if (style === "animal") {
       const d = `M${n(ex)} ${n(ey - R * 0.55)} L${n(ex - R * 0.35)} ${n(ey - R * 1.15)} L${n(ex + R * 0.25)} ${n(ey - R * 0.75)}Z`;
       return { back: path(d, skin), front: "" };
@@ -1068,14 +1077,14 @@
     // Head pieces are drawn with a finer pen.
     const head = K.withPen(1.25, () => {
       const hairParts = hair(p.hair, hx, headY, R);
-      const earParts = ears(p.ears || "round", hx, headY, R, s.skin, s.shade);
+      const earParts = /^beast/.test(p.ears || "") ? ears(p.ears, hx, headY, R, p.hair?.color || s.skin, darken(p.hair?.color || s.skin, 0.3)) : ears(p.ears || "round", hx, headY, R, s.skin, s.shade);
       const hornParts = horns(p.horns || (primary?.kind === "horns" ? { style: "ram", color: "#3d2b27", molten: true } : null), hx, headY, R);
       const hatParts = p.helm ? warHelm(p.helm, hx, headY, R) : armor?.head ? armor.head : headwear(p.headwear, hx, headY, R);
       const hideHair = armor?.hidesHair || p.helm;
       const headD = headPath(hx, headY, R, p.head);
       const headShape = path(headD, s.skin, 'stroke-width="1.5"');
       const shading = headShade(headD, hx, headY, R, ink * 0.9, p.head);
-      return `<g class="sp-head">${hornParts.back}${hideHair ? "" : hairParts.back}${hatParts.back || ""}${earParts.back}${headShape}${K.materialDecor(p.material, hx - R * 0.6, headY - R * 0.6, R * 1.2, R * 1.2, "head")}${shading}${eyes(p, hx, headY, R, s)}${p.warpaint ? warPaint(p.warpaint, hx, headY, R) : ""}${p.lightningScars ? lightningScars(p.lightningScars, hx, headY, R) : ""}${p.forgeCracks ? forgeCracks(p.forgeCracks, hx, headY, R) : ""}${p.veins ? earthVeins(p.veins, p.veinsDim, hx, headY, R) : ""}${p.brand ? infernalBrand(p.brand, hx, headY, R) : ""}${p.embers ? embers(p.embers, p.emberLevel || 1, hx, headY, R) : ""}${p.static ? staticSparks(p.static, p.staticLevel || 1, hx, headY, R) : ""}${mouthAndNose(p, hx, headY, R, s)}${earParts.front}${beard(p.beard, hx, headY, R)}${hideHair ? "" : hairParts.front}${crest(p.crest, hx, headY, R)}${hornParts.front}${hatParts.front || ""}${p.tabard?.sigil ? oolSigil(hx + R * 0.3, headY - R * 0.68, R * 0.17, p.tabard.sigil) : ""}${p.thirdEye ? thirdEye(p.thirdEye, hx, headY, R) : ""}${p.lawGlyph ? lawGlyph(p.lawGlyph, p.glyphs || "#c9b0ff", hx, headY, R) : ""}${p.accessory === "earring" ? dot(hx - R * 0.28, headY + R * 0.42, R * 0.07, "#a8925a", 'stroke="#130e0b" stroke-width=".5"') : ""}${p.accessory === "eyepatch" ? line(`M${n(hx + R * 0.1)} ${n(headY - R * 0.6)} L${n(hx + R * 0.95)} ${n(headY + R * 0.25)}`, INK, 0.9) + ellipse(hx + R * 0.42, headY - R * 0.04, R * 0.2, R * 0.16, INK, 'stroke="none"') : ""}</g>`;
+      return `<g class="sp-head">${hornParts.back}${hideHair ? "" : hairParts.back}${hatParts.back || ""}${earParts.back}${headShape}${K.materialDecor(p.material, hx - R * 0.6, headY - R * 0.6, R * 1.2, R * 1.2, "head")}${shading}${eyes(p, hx, headY, R, s)}${p.warpaint ? warPaint(p.warpaint, hx, headY, R) : ""}${p.lightningScars ? lightningScars(p.lightningScars, hx, headY, R) : ""}${p.forgeCracks ? forgeCracks(p.forgeCracks, hx, headY, R) : ""}${p.veins ? earthVeins(p.veins, p.veinsDim, hx, headY, R) : ""}${p.brand ? infernalBrand(p.brand, hx, headY, R) : ""}${p.embers ? embers(p.embers, p.emberLevel || 1, hx, headY, R) : ""}${p.static ? staticSparks(p.static, p.staticLevel || 1, hx, headY, R) : ""}${mouthAndNose(p, hx, headY, R, s)}${earParts.front}${beard(p.beard, hx, headY, R)}${hideHair ? "" : hairParts.front}${earParts.top || ""}${crest(p.crest, hx, headY, R)}${hornParts.front}${hatParts.front || ""}${p.tabard?.sigil ? oolSigil(hx + R * 0.3, headY - R * 0.68, R * 0.17, p.tabard.sigil) : ""}${p.thirdEye ? thirdEye(p.thirdEye, hx, headY, R) : ""}${p.lawGlyph ? lawGlyph(p.lawGlyph, p.glyphs || "#c9b0ff", hx, headY, R) : ""}${p.accessory === "earring" ? dot(hx - R * 0.28, headY + R * 0.42, R * 0.07, "#a8925a", 'stroke="#130e0b" stroke-width=".5"') : ""}${p.accessory === "eyepatch" ? line(`M${n(hx + R * 0.1)} ${n(headY - R * 0.6)} L${n(hx + R * 0.95)} ${n(headY + R * 0.25)}`, INK, 0.9) + ellipse(hx + R * 0.42, headY - R * 0.04, R * 0.2, R * 0.16, INK, 'stroke="none"') : ""}</g>`;
     });
     const neckD = `M${n(hx - R * 0.5)} ${n(sy + 1)} L${n(hx - R * 0.42)} ${n(headY + R * 0.6)} L${n(hx + R * 0.38)} ${n(headY + R * 0.75)} L${n(hx + R * 0.48)} ${n(sy + 1)}Z`;
     const neck = path(neckD, s.skin, 'stroke-width="1.4"') + K.clipped(neckD, `<rect x="${n(hx - R)}" y="${n(headY)}" width="${n(R * 2)}" height="${n(R * 1.35)}" fill="${INK}" opacity="${ink * 0.85}"/>` + `<rect x="${n(hx - R)}" y="${n(headY)}" width="${n(R * 0.62)}" height="${n(R * 3)}" fill="${INK}" opacity="${ink * 0.7}"/>`);

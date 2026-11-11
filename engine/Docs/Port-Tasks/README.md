@@ -60,6 +60,9 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
     "Designed for the port" below.
 11. `11_New_races.txt`: three new playable races with icons (Half-Beast, Merfolk made playable, Goliath), each with a
     racial class.
+    **The races are done in the old game (2026-11-11): don't build them again;** the port carries them over with the
+    rest of the game, and only their placeholder seals and looks are left to remake (below). Their three racial classes
+    (Wildheart, Deepcaller, Peakwarden) are not in the old game: they are in task 10's drafts, built by the port (T1).
 12. `12_Spell_Rework.txt`: every spell brought up to date (power, scaling, effects, mana cost; tiers kept), two new
     spells per element in tiers 1–5 and one in tiers 6–9 (at least four new summons), and the Spellweaver and Ritual
     Caster classes.
@@ -100,7 +103,9 @@ A1 kept its art placeholder), and so were task 6 (the user asked for it the same
 task 5 (asked for after tasks 4 and 6 were merged; M1 kept its art placeholder), and task 7 (asked for after task 5
 was merged, while M11's engine work went on; L1 kept its art placeholder), and task 8 (asked for after task 7 was
 merged; W1 kept its 2D looks placeholder for the port's 3D map), and task 9 (asked for while task 8's pull request
-waited, into the same pull request, P1; P2 kept its art placeholder).
+waited, into the same pull request, P1; P2 kept its art placeholder). Task 11 (asked for after task 10's design, on
+2026-11-11) is split (T1): its races, seals and looks in the old game, with placeholder art (T5); its racial classes
+in task 10's drafts for the port.
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
@@ -184,6 +189,16 @@ waited, into the same pull request, P1; P2 kept its art placeholder).
   `../../../old-game/Docs/Notes.md`, "Potion Rework"; the old
   game's checks, `old-game/test-client/tests/potion-rework-browser.js`, are the reference the ported rules are tested
   against. Still to do in the port: only the art (below). Old game only.
+- Task 11, New Races (2026-11-11, a cloud session): Half-Beast (balanced feral stats; Natural Claws, its unarmed
+  attacks as claws that grow with its level and keep every unarmed bonus) and Goliath (mighty and slow; Giant's Blood,
+  +10% maximum HP and +5% Armor for −10% Evasion) are new playable races, and Merfolk are playable, keeping the enemies'
+  stats and Fishman Physiology; each has a seal, four male and four female looks (Half-Beasts as wolf, fox, bear and
+  lynx kin with beast ears, tails and claws; Merfolk on legs with fin ears; Goliaths a head taller) and recruit names,
+  so they join the taverns. The user's design answers are in `Engine-Plan.md`, "Decisions for task 11, New Races"
+  (T1–T17); where each rule lives is in `../../../old-game/Docs/Notes.md`, "New Races"; the old game's checks,
+  `old-game/test-client/tests/new-races-browser.js`, are the reference the ported rules are tested against. Still to
+  do in the port: the art (below) and the three racial classes, which are in task 10's drafts (`10_Class_Rework/`, at
+  the end of both files). Old game only for the races; it touched no engine file.
 
 **Designed for the port, not built in the old game:**
 - Task 10, Class Rework (2026-11-10 to 2026-11-11, a cloud session, C1–C32 in `Engine-Plan.md`, "Decisions for task 10,
@@ -267,6 +282,13 @@ task 3's scenes are listed in `PLACEHOLDER_ART`):
   animal-part and essence shapes, in `old-game/scripts/forge-art.js`). The port remakes them as proper art: the two
   banners sharing an apothecary look, grand and modest; each potion, poison and ingredient its own. The rules behind
   them are not placeholder.
+- Task 11 (user decision T5: simple placeholders): the three new race seals (`old-game/objects/race-half-beast.svg`,
+  `race-goliath.svg`, `race-merfolk.svg`: a paw, mountains, waves, each marked PLACEHOLDER ART) and the 24 looks of
+  Half-Beast, Merfolk and Goliath (`RACES` in `old-game/scripts/sprite-catalog.js`, under a PLACEHOLDER ART comment,
+  with the two beast ear styles, `beast` and `beast-round`, in `sprite-humanoid.js`). The port remakes them as proper
+  art: seals that sit with the six older ones, Half-Beasts that clearly show their beast (wolf, fox, bear, lynx),
+  Merfolk recognisably sea-folk on land, and Goliaths visibly giant-blooded (the stone-grey skin and rune-like markings
+  of T4, which the placeholders don't draw). The rules behind them are not placeholder.
 
 **Found before the work:**
 - Tasks 1 and 2 were checked against the engine work on 2026-11-03 (tasks 3 and 4 on 2026-11-06): none touches it (the

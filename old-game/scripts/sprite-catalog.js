@@ -100,6 +100,55 @@
         { label: "Violetfin", skin: "#7a5ca8", tail: { style: "lizard", color: "#7a5ca8" }, crest: { style: "fin", color: "#7fd0c0" }, eyes: { style: "slit", color: "#ffd23a" }, outfit: { top: "loincloth", color: "#8f4f6b", color2: "#5a2f46", pants: null } },
       ],
     },
+    // PLACEHOLDER ART (port task 11, T5): the three new playable races' looks, simple stand-ins for the port's remake.
+    // Half-Beast: wolf, fox, bear and lynx kin (T14); claws for hands (Natural Claws).
+    "half-beast": {
+      base: { ears: "beast", hands: "claws", eyes: { color: "#c98a2a" } },
+      male: [
+        { label: "Greyhowl", skin: "#c9a07a", hair: { style: "shaggy", color: "#6b6b6b" }, tail: { style: "wolf", color: "#6b6b6b" }, eyes: { color: "#e8c04a", fierce: true }, outfit: tunic("#5f6a4a") },
+        { label: "Emberbrush", skin: "#e0a878", hair: { style: "spiky", color: "#c2622a" }, tail: { style: "wolf", color: "#c2622a" }, eyes: { color: "#d89a2a" }, outfit: { top: "vest", color: "#7a4f2a", pants: "#5f5446" } },
+        { label: "Bramblehide", skin: "#a8704a", ears: "beast-round", hair: { style: "crop", color: "#5a3a24" }, beard: { style: "full", color: "#5a3a24" }, tail: { style: "tuft", color: "#5a3a24" }, eyes: { color: "#3a2a20" }, outfit: tunic("#6b4a2f") },
+        { label: "Tuftear", skin: "#d8b088", hair: { style: "messy", color: "#a8875a" }, tail: { style: "tuft", color: "#a8875a" }, eyes: { style: "narrow", color: "#7fd0a0" }, outfit: tunic("#4f6b5f") },
+      ],
+      female: [
+        { label: "Moonfang", skin: "#d8b090", hair: { style: "long", color: "#8a8a8a" }, tail: { style: "wolf", color: "#8a8a8a" }, eyes: { color: "#7fb8e8" }, lashes: true, outfit: tunic("#4f5f6b") },
+        { label: "Russetail", skin: "#ecc0a0", hair: { style: "braid", color: "#d0702f", tie: "#5f6a4a" }, tail: { style: "wolf", color: "#d0702f" }, eyes: { color: "#d89a2a" }, lashes: true, outfit: dress("#6b8f4f") },
+        { label: "Honeypaw", skin: "#b07a56", ears: "beast-round", hair: { style: "bun", color: "#7a4f2a" }, tail: { style: "tuft", color: "#7a4f2a" }, eyes: { color: "#5a3a24" }, lashes: true, outfit: tunic("#8f6b3a") },
+        { label: "Snowpelt", skin: "#f0d0b4", hair: { style: "curls", color: "#e0d8c8" }, tail: { style: "tuft", color: "#e0d8c8" }, eyes: { style: "narrow", color: "#e8c04a" }, lashes: true, outfit: dress("#5f6f8f") },
+      ],
+    },
+    // Merfolk on land (T3): legs, fin ears and sea-tinted skin; the enemies keep their fishtails.
+    merfolk: {
+      base: { ears: "fin", eyes: { color: "#1f4f6f" } },
+      male: [
+        { label: "Reefwarden", skin: "#8fbfc8", hair: { style: "long", color: "#2f6f7a" }, crest: { style: "fin", color: "#3f8f9f" }, outfit: tunic("#3f6f7a", "#3a4a4f") },
+        { label: "Tidecaster", skin: "#7fb8a8", hair: { style: "topknot", color: "#1f4f5f" }, outfit: tunic("#4f6b8f", "#3a3f46") },
+        { label: "Pearldiver", skin: "#a8c8d0", hair: { style: "crop", color: "#3f5f6f" }, outfit: { top: "vest", color: "#6f8f8a", pants: "#4a5a5f" } },
+        { label: "Kelpkeeper", skin: "#8fb898", hair: { style: "shaggy", color: "#3f5f2a" }, beard: { style: "stubble", color: "#3f5f2a" }, outfit: tunic("#5f7f4f") },
+      ],
+      female: [
+        { label: "Shellsinger", skin: "#a8d0d8", hair: { style: "long", color: "#3f8f9f" }, lashes: true, outfit: dress("#3f7a8a") },
+        { label: "Coralmaid", skin: "#9fc0c8", hair: { style: "braid", color: "#c95a5a", tie: "#e0d8c8" }, lashes: true, outfit: dress("#c97a6a") },
+        { label: "Wavecrest", skin: "#8fb8c0", hair: { style: "curls", color: "#2f6f8f" }, crest: { style: "fin", color: "#4f9fb8" }, lashes: true, outfit: tunic("#2f5f7a") },
+        { label: "Saltbraid", skin: "#b0d0c8", hair: { style: "twinbraids", color: "#e0d8c8", tie: "#3f8f9f" }, lashes: true, outfit: tunic("#6f8f9f") },
+      ],
+    },
+    // Goliath (T4): a head taller (size in playableSpec), heavy-built, stone-grey skin.
+    goliath: {
+      base: { build: { legs: 25, torso: 30, head: 19, shoulders: 14, hips: 11.5, arm: 24, armW: 10, legW: 10.5 }, nose: "big" },
+      male: [
+        { label: "Stonebrow", skin: "#a8a49a", hair: { style: "bald" }, beard: { style: "full", color: "#4a4640" }, eyes: { color: "#3a5f7a", fierce: true }, outfit: tunic("#6b5a46") },
+        { label: "Peakrunner", skin: "#9a958a", hair: { style: "topknot", color: "#2b2420" }, eyes: { color: "#4a3020" }, outfit: tunic("#4f6b5f", "#46403a") },
+        { label: "Cairnkeeper", skin: "#b8b0a0", hair: { style: "long", color: "#6b665f" }, beard: { style: "braided", color: "#6b665f", tie: "#8a3b3b" }, eyes: { color: "#5a6a7a" }, outfit: tunic("#7a6a4f") },
+        { label: "Cliffbreaker", skin: "#8a857c", hair: { style: "crop", color: "#3a3530" }, eyes: { color: "#2b1d14", fierce: true }, outfit: { top: "vest", color: "#5f4f3f", pants: "#4a4036" } },
+      ],
+      female: [
+        { label: "Runebearer", skin: "#b0aa9e", hair: { style: "braid", color: "#3a3530", tie: "#4f8fa8" }, eyes: { color: "#4f8fa8" }, lashes: true, outfit: tunic("#4f5f7a") },
+        { label: "Ridgewalker", skin: "#9e998e", hair: { style: "bun", color: "#6b4a2f" }, eyes: { color: "#5a3a24" }, lashes: true, outfit: tunic("#6b7a4f") },
+        { label: "Snowpeak", skin: "#c0bab0", hair: { style: "long", color: "#e0d8c8" }, eyes: { color: "#7fa8d0" }, lashes: true, outfit: dress("#7a8a9a") },
+        { label: "Boulderheart", skin: "#8f8a80", hair: { style: "twinbraids", color: "#2b2420", tie: "#c9a24a" }, eyes: { color: "#3a2a20" }, lashes: true, outfit: tunic("#8f4f3a") },
+      ],
+    },
   };
 
   function deepMerge(base, extra) {
@@ -117,7 +166,7 @@
     const look = list[Math.max(0, Math.min(list.length - 1, Math.floor(Number(variant) || 0)))];
     const spec = deepMerge(race.base, look);
     if (look.eyes) spec.eyes = { ...(race.base.eyes || {}), ...look.eyes };
-    return { rig: "humanoid", race: raceId, sex: gender === "female" ? "female" : "male", size: raceId === "dwarf" ? 0.86 : raceId === "hobbit" ? 0.74 : raceId === "elf" || raceId === "dark-elf" ? 1.04 : 1, ...spec };
+    return { rig: "humanoid", race: raceId, sex: gender === "female" ? "female" : "male", size: raceId === "dwarf" ? 0.86 : raceId === "hobbit" ? 0.74 : raceId === "elf" || raceId === "dark-elf" ? 1.04 : raceId === "goliath" ? 1.18 : 1, ...spec };
   }
 
   /* ---------------- Enemy families ---------------- */
