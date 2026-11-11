@@ -3,7 +3,8 @@
 The user's tasks to add to the game during the port (user decision 2026-11-05), done in their number order (a plain
 file listing puts `10_` before `1_`; the list below is the order). The `.txt` files are the user's own text, unchanged
 (only their line endings were made LF, as the repo stores text), except three names in task 7 the user confirmed on
-2026-11-05: "Laila" is Juila, "Zik" is Zik Lun, "Mythium" is Mythilium. Fourteen tasks.
+2026-11-05: "Laila" is Juila, "Zik" is Zik Lun, "Mythium" is Mythilium; and one in task 10 the user confirmed on
+2026-11-10: "Ascendend" is Ascended. Fourteen tasks.
 
 1. `1_Masterwork_Elementals.txt`: six masterworks remade from the elementals' former unique items (Plasma Blade,
    Tidepiercer, First Comet, Peace and Balance, Kugelblitz, Avalanche); the elementals' placeholder weapons stay.
@@ -53,6 +54,10 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 10. `10_Class_Rework.txt`: every class reviewed and reworked where needed (identity, requirements, passive and skill, a
     capstone, its colour rarity), then 26 named new classes and 15 more; for the new classes the user is asked about
     each one's identity, levels, requirements and rarity, in that order.
+    **Designed and approved (2026-11-10 to 2026-11-11), for the port:** not built in the old game; the port builds it
+    from the approved drafts in `10_Class_Rework/` (C23, C31; its README says what each file holds): every class's
+    identity, levels, requirements and rarity (130 current, 40 new), and every class's features level by level. See
+    "Designed for the port" below.
 11. `11_New_races.txt`: three new playable races with icons (Half-Beast, Merfolk made playable, Goliath), each with a
     racial class.
 12. `12_Spell_Rework.txt`: every spell brought up to date (power, scaling, effects, mana cost; tiers kept), two new
@@ -71,6 +76,11 @@ time" points here). Before each task's code, ask its design questions with the q
 in `Engine-Plan.md`, as for every step. Skip the tasks under "Done in the old game so far": they are part of the game the
 port starts from, so their design questions are answered and their rules are already in its code and data. For those,
 only the art under "Placeholder art the port remakes fully" is left.
+
+**A general port task beside the tasks (the user, 2026-11-11):** all enemies are revamped during the port, because their
+classes have changed (task 10) and task 12 will change the spell system as well. Every enemy, not only those with class
+levels; the revamp takes both the reworked classes and the reworked spells into account (`Engine-Plan.md`, "At port
+time"; task 10's narrower note on enemies with classes, C2, is part of it).
 
 **The order (checked 2026-11-05):** each task builds only on earlier ones (the Cull quest of task 2 before task 5, the
 reforging of task 3 before task 9, Sparkling enemies of task 5 before task 7, the new locations of tasks 3
@@ -174,6 +184,21 @@ waited, into the same pull request, P1; P2 kept its art placeholder).
   `../../../old-game/Docs/Notes.md`, "Potion Rework"; the old
   game's checks, `old-game/test-client/tests/potion-rework-browser.js`, are the reference the ported rules are tested
   against. Still to do in the port: only the art (below). Old game only.
+
+**Designed for the port, not built in the old game:**
+- Task 10, Class Rework (2026-11-10 to 2026-11-11, a cloud session, C1–C32 in `Engine-Plan.md`, "Decisions for task 10,
+  Class Rework"): the user had the old game left as it is (C23) and the reworked classes built by the port from
+  `10_Class_Rework/`: `Class-Rework-Draft.md` (identity, levels, requirements and rarity of all 170 classes: the 130
+  current, every one reviewed, and 40 new: 25 of the task's names, Poisoner already existing and reworked, seven names
+  from `old-game/classes/newc/` and eight of the session's own) and `Class-Rework-Features.md` (each class's levels,
+  the old beside the remade for current classes, approved in a sample of four and eleven batches). Rules: one passive
+  and one skill per class (exceptions: the elemental mages, the item classes, the Vampire Lord, the Ki Warrior, the
+  Psykic; enemy-only classes outside the rules), the passive or skill at the last level, requirements and skills
+  within a turn's 5 AP. A new rarity, red, above gold, for Unreality alone (its look decided when the port builds it).
+  Also for the port: the full rework of every enemy that uses classes (C2), and the mechanics the features mark "(new)".
+  **The port's three duties (the user, 2026-11-11, C32):** the classes are unchanged in the old game, and during the
+  port the classes in the drafts are added; during porting, every class is inspected for possible errors and
+  inconsistencies; after the port, every class feature is tested so that it works as intended.
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and
