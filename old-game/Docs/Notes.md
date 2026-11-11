@@ -1074,6 +1074,15 @@ rule lives:
   all), all passing. Each rule was broken once (22 mutations: playability, icons, each race's stats, Giant's Blood and
   its two code paths, the claws' name, unarmed kind and growth, the accent, the placeholder mark, the Goliath's height,
   the Merfolk's legs, a missing tail, claws, a look, the beast ears and their drawing, the recruit names): all caught.
+- **Regression** (2026-11-11, the cloud, Xvfb, three runs at a time): every entry of the 44 check files (158, the run
+  functions or, in a file without one, its check functions) and the four suites, 162 in all: 148 pass. The 14 that
+  don't, each run again on the code before task 11 (`b52eecf`, a clean checkout): 12 fail there the same way, the known
+  ones (`adventure-improvements`' `runMapImprovementChecks` and `runAdventureImprovementsChecks`, `bloody-mary`,
+  `combat-lifecycle`'s two entries outside its suite, `music`, `newc`, `settings-companions`, `shop`, `talos-edge`,
+  `trap`, and the combat suite, which stops at `talos-edge`'s legacy bonus-choice assertion); 2 are intermittent:
+  `adventure-improvements`' `runGreatHuntRewardChecks` (fails 3 runs in 4 on the old code too, with the same "reading
+  'reputation'" error) and `map-speed`, the known timing check (passes run alone, twice). Smoke, enemies (530 cases) and
+  lifecycle pass, and so does `new-races-browser.js`.
 - **Found while building:** at low stats a human's Rulers of the World (+2 maximum HP every fifth level) outweighs
   Giant's Blood's +10% (at Level 40 with the default allotted stats: human 48 HP, Goliath 40); against a race without an
   HP passive (the Dwarf, same Vitality bonus) the Goliath has its 10% more. A balance point for the port's race review,

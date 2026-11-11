@@ -122,11 +122,16 @@ The port doesn't build it again; only its placeholder art is remade (`Docs/Port-
 engine (the engine's tests read none of what changed: the one class file they read is untouched), so
 `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count task 9 as the engine's
 current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Potion Rework".
-**Port task 11, New Races, is under way (2026-11-11, a cloud session):** Half-Beast, Goliath and playable Merfolk go
-into the old game now with placeholder icons and looks (T1, T5); their three racial classes (Wildheart, Deepcaller,
-Peakwarden) join task 10's drafts for the port. Decisions T1–T17 in "Decisions for task 11, New Races" below; how it is
-built: `../old-game/Docs/Notes.md`, "New Races". Old game only, as tasks 1–9: the engine's tests read only the six
-existing race seals, which don't change.
+**Beside the engine, old game only (2026-11-11): port task 11, New Races, is done in the old game** for its races, and
+in task 10's drafts for its classes (T1). Half-Beast (balanced feral stats, Natural Claws) and Goliath (mighty and slow,
+Giant's Blood) are playable, and so are the Merfolk (the enemies' stats and passive kept); each has a placeholder seal,
+four male and four female placeholder looks and recruit names (T5, T7). Their racial classes, Wildheart, Deepcaller and
+Peakwarden, are at the end of both drafts in `Docs/Port-Tasks/10_Class_Rework/` (173 classes there now). Decisions
+T1–T17 in "Decisions for task 11, New Races" below; where each rule lives, the checks (`new-races-browser.js`, 22 rules
+each shown able to fail) and the regression (148 of 162 pass; the 14 others fail on the code before it too or are the
+known intermittent ones): `../old-game/Docs/Notes.md`, "New Races". The engine's tests read only the six older race
+seals, which didn't change, so `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't
+count task 11 as the engine's current task.
 **Port task 10, Class Rework, is designed and approved, for the port (2026-11-10 to 2026-11-11, a cloud session).**
 Unlike tasks 1–9 it is **not built in the old game: the port builds it** from the approved drafts (C23, which replaced
 C1), now in `Docs/Port-Tasks/10_Class_Rework/` (C31; its README says what each file holds); during porting every
