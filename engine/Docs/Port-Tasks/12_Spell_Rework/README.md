@@ -30,7 +30,8 @@ The review's order (SP2, SP15):
 4. The new spells, element by element: two per element in each of Tiers 1–5, one in each of Tiers 6–9, Basic
    included (168, SP3); at least four new summons, one each for Nature and Death and two for the elements with the
    fewest summons: Basic, which has none players can learn (SP34), and Wind (SP48).
-   - `New-01-Basic.md`: 14 spells, Basic's summon among them. **Under review.** Every element keeps
+   - `New-01-Basic.md`: 14 spells, Basic's summon among them. **Approved (SP49).**
+   - `New-02-Fire.md`: 14 spells. **Under review.** Every element keeps
    at least one summon and one Dragonbreath spell (SP33).
 5. The Spellweaver (built around Spell Augmentation, SP9) and the Ritual Caster, added to task 10's drafts
    (`../10_Class_Rework/`).
