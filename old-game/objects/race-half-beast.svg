@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Half-Beast seal">
+  <title>Half-Beast seal</title>
+  <!-- PLACEHOLDER ART (port task 11, T5): a simple stand-in seal, to be remade in the port. -->
+  <circle cx="64" cy="64" r="61" fill="#120c08"/>
+  <circle cx="64" cy="64" r="58.5" fill="#241a12" stroke="#c49a56" stroke-width="5"/>
+  <circle cx="64" cy="64" r="50" fill="none" stroke="#6e5232" stroke-width="1.4"/>
+  <g stroke="#120c08" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="64" cy="76" rx="17" ry="14" fill="#9a6a3f" stroke-width="3"/>
+    <ellipse cx="44" cy="54" rx="7" ry="9" fill="#9a6a3f" stroke-width="2.6"/>
+    <ellipse cx="57" cy="44" rx="7" ry="9" fill="#9a6a3f" stroke-width="2.6"/>
+    <ellipse cx="71" cy="44" rx="7" ry="9" fill="#9a6a3f" stroke-width="2.6"/>
+    <ellipse cx="84" cy="54" rx="7" ry="9" fill="#9a6a3f" stroke-width="2.6"/>
+  </g>
+</svg>

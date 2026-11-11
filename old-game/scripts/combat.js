@@ -393,6 +393,11 @@
      with the Beast class. A natural attack costs 2 AP like a weapon attack and hits like a
      forged weapon of the attacker's level (ForgeRules.naturalWeapon). */
   const naturalWeaponKind = actor => actor?.naturalWeapon || (actor && hasClass(actor, "beast") ? "beast-claws" : null);
+  // A race may give its unarmed attacks a name of their own (the Half-Beast's claws, port task 11); they stay unarmed.
+  function unarmedWeaponOf(actor) {
+    const name = withActor(actor, () => calculateRaceEffects().unarmedName);
+    return name ? { ...unarmedWeapon, name } : unarmedWeapon;
+  }
   function naturalWeaponOf(actor) {
     const kind = naturalWeaponKind(actor);
     if (!kind || !window.ForgeRules) return null;
@@ -418,7 +423,7 @@
   }
   function attackLoadout(actor) {
     const slots = weaponSlotsOf(actor);
-    const primary = slots.primary || slots.offHand || naturalWeaponOf(actor) || unarmedWeapon;
+    const primary = slots.primary || slots.offHand || naturalWeaponOf(actor) || unarmedWeaponOf(actor);
     const offHand = slots.primary && slots.offHand && slots.primary.handed === 1 && slots.offHand.handed === 1 ? slots.offHand : null;
     return { primary, offHand, cost: primary.unarmed ? 1 : 2 };
   }
@@ -2295,7 +2300,7 @@
       hit,
       crit: classEffects.weaponCritDisabled ? 0 : rules.weaponCritChance(actorValues.luck, classEffects.weaponCritFlat + toNumber(classEffects.weaponCritFlatByType.melee, 0) + toNumber(classEffects.weaponCritFlatByType.unarmed, 0) + withActor(actor, () => calculateArtifactEffects().weaponCritFlat)),
       critRating: 5 + Math.max(0, toNumber(actorValues.luck, 0)) * 0.15 + classEffects.weaponCritFlat + toNumber(classEffects.weaponCritFlatByType.melee, 0) + toNumber(classEffects.weaponCritFlatByType.unarmed, 0) + withActor(actor, () => calculateArtifactEffects().weaponCritFlat),
-      power: Math.max(1, Math.floor((1 + classEffects.unarmedPowerFlat + (0.3 * actorValues.strength) + extraScaling) * (1 + (classEffects.unarmedPowerPercent + classEffects.weaponPowerPercent + toNumber(classEffects.weaponPowerPercentByType.melee, 0)) / 100) * classEffects.weaponPowerMultiplier * 0.5)),
+      power: Math.max(1, Math.floor((1 + classEffects.unarmedPowerFlat + withActor(actor, () => calculateRaceEffects().unarmedPowerFlat) + (0.3 * actorValues.strength) + extraScaling) * (1 + (classEffects.unarmedPowerPercent + classEffects.weaponPowerPercent + toNumber(classEffects.weaponPowerPercentByType.melee, 0)) / 100) * classEffects.weaponPowerMultiplier * 0.5)),
       alwaysCrit,
       alwaysHit: classEffects.weaponHitAlways
     };

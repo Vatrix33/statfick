@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Goliath seal">
+  <title>Goliath seal</title>
+  <!-- PLACEHOLDER ART (port task 11, T5): a simple stand-in seal, to be remade in the port. -->
+  <circle cx="64" cy="64" r="61" fill="#120c08"/>
+  <circle cx="64" cy="64" r="58.5" fill="#241a12" stroke="#c49a56" stroke-width="5"/>
+  <circle cx="64" cy="64" r="50" fill="none" stroke="#6e5232" stroke-width="1.4"/>
+  <g stroke="#120c08" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M24 94L52 44l14 22 10-14 28 42Z" fill="#7d7a72" stroke-width="3"/>
+    <path d="M52 44l-6 12 6-2 4 6Z" fill="#e0d8c8" stroke-width="1.6"/>
+  </g>
+</svg>

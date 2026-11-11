@@ -13,6 +13,10 @@ Class Rework", C1â€“C32; the task is `../10_Class_Rework.txt`). Unlike tasks 1â€
   plays". It was approved in a sample of four (Warrior, Vampire, Hierophant, Reaver) and eleven batches; each batch's
   notes and the questions they raised are recorded in `Engine-Plan.md`.
 
+**Added by task 11** (2026-11-11, T1, T17 in `Engine-Plan.md`, "Decisions for task 11"): the racial classes of the
+three new races, Wildheart (Half-Beast), Deepcaller (Merfolk) and Peakwarden (Goliath), at the end of both files, so
+the drafts hold 173 classes. The races themselves are in the old game.
+
 **What the port must do with them** (the user, 2026-11-11, C32):
 1. The classes are unchanged in the old game. During the port, the classes in these drafts are added.
 2. During porting, every class is inspected for possible errors and inconsistencies.

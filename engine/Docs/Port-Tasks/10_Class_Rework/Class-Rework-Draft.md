@@ -1042,3 +1042,31 @@ Picked for what no class does yet, and kept clear of the classes tasks 11–14 a
 4 levels · rarity no colour
 - **Requires:** Level 40 · Strategist 3 · 2 companions
 - **Identity:** Teaches its companions, helping them grow and fight above their level.
+
+# Racial classes added by task 11
+
+Task 11 (New Races) made Half-Beast, Goliath and Merfolk playable in the old game and put their racial classes here,
+for the port (`engine/Docs/Engine-Plan.md`, "Decisions for task 11", T1 and T17, approved by the user on 2026-11-11
+question by question). They follow the five race classes' shape. With them the drafts hold 173 classes.
+
+### Wildheart
+
+3 levels · rarity no colour
+
+- **Requires:** Level 30 · Race: Half-Beast
+- **Identity:** The Half-Beast's class: lets the beast within loose, fast and savage with its claws.
+
+### Deepcaller
+
+3 levels · rarity no colour
+
+- **Requires:** Level 30 · Race: Merfolk
+- **Identity:** The Merfolk's class: calls on the power of the deep sea, its Water magic freed of the sea-folk's weakness
+  to fire.
+
+### Peakwarden
+
+3 levels · rarity no colour
+
+- **Requires:** Level 30 · Race: Goliath
+- **Identity:** The Goliath's class: the unmoving wall of the mountains, shielding the party behind it.

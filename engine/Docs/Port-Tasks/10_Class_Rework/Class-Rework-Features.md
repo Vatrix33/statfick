@@ -51,6 +51,8 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
 - Batch 11 (approved 2026-11-11): the new classes, part 3, the last: the seven from `classes/newc/` (Chronicler, Shaman, Elder
   Shaman, Trickster, Awakened, Warden, Scout) and my eight (Field Medic, Sentinel, Beast Tamer, Sunderer, Camp Cook,
   Leywalker, Nightwalker, Mentor).
+- Task 11's racial classes (approved 2026-11-11, T17): Wildheart, Deepcaller and Peakwarden, for Half-Beast, Merfolk
+  and Goliath, at the end of this file.
 
 # The sample of four (approved 2026-11-10)
 
@@ -2805,3 +2807,52 @@ Identity: Teaches its companions, helping them grow and fight above their level.
 
 How it plays: it makes the party better rather than itself: companions level faster and fight above their level, and
 a lesson at the right moment turns an ally's turn.
+
+# Task 11's racial classes (approved 2026-11-11, T17)
+
+Added by task 11 (New Races), whose races are in the old game while their classes wait here for the port (T1). Like
+the five race classes (batch 8): Level 30 and the race, 3 levels, no colour, a passive at level 1 and a skill at level 3,
+once per battle. Chosen by the user question by question (T17).
+
+## Wildheart
+
+3 levels · rarity no colour · Requires: Level 30 · Race: Half-Beast
+Identity: The Half-Beast's class: lets the beast within loose, fast and savage with its claws.
+
+| Level | Feature |
+|---|---|
+| 1 | **Wild Blood** (passive): your claws deal 10% more damage, and Speed +5% |
+| 2 | Strength and Dexterity +5% |
+| 3 | **Unleash the Beast** (skill, capstone; once per battle): 3 turns of +20% claw damage and +15% Speed |
+
+How it plays: a Half-Beast fighting with its own claws (its race's unarmed attacks), quicker and fiercer, and once a
+battle all beast.
+
+## Deepcaller
+
+3 levels · rarity no colour · Requires: Level 30 · Race: Merfolk
+Identity: The Merfolk's class: calls on the power of the deep sea, its Water magic freed of the sea-folk's weakness to
+fire.
+
+| Level | Feature |
+|---|---|
+| 1 | **Call of the Deep** (passive): Water spell power +15%, and the race's 10% more Fire spell damage taken is gone |
+| 2 | Vitality and Mind +5% |
+| 3 | **Maelstrom** (skill, capstone; once per battle): Water damage to every enemy, and each loses 15% Speed for 2 turns |
+
+How it plays: a Merfolk caster of the sea's own element, no longer fearing fire, who once a battle drowns the whole
+field in a whirlpool.
+
+## Peakwarden
+
+3 levels · rarity no colour · Requires: Level 30 · Race: Goliath
+Identity: The Goliath's class: the unmoving wall of the mountains, shielding the party behind it.
+
+| Level | Feature |
+|---|---|
+| 1 | **Unmoving** (passive): 10% less damage taken while Guarding, and you can't be slowed |
+| 2 | Armor +10%; Vitality +5% |
+| 3 | **Mountain's Shelter** (skill, capstone; once per battle): every other ally takes 15% less damage for 2 turns |
+
+How it plays: a Goliath standing in front, slow and immovable, Guarding to hold the line and once a battle sheltering
+everyone behind its bulk.

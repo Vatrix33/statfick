@@ -1058,7 +1058,10 @@ function calculateClassEffectsUncached() {
 function emptyRaceEffects() {
   return {
     maxHpFlat: 0,
+    maxHpPercent: 0,
     maxManaFlat: 0,
+    unarmedPowerFlat: 0,
+    unarmedName: null,
     spellCostPercent: 0,
     spellCostPercentModifiers: [],
     statPermanentPercent: { ...defaultBonuses },
@@ -1118,6 +1121,13 @@ function calculateRaceEffectsUncached() {
         const interval = Math.max(1, toInteger(effect.interval, 1));
         totals.maxManaFlat += Math.floor(level / interval) * amount;
       }
+      // Port task 11, New Races: Goliath's Giant's Blood and the Half-Beast's Natural Claws.
+      if (type === "max-hp-percent") totals.maxHpPercent += amount;
+      if (type === "unarmed-power-per-levels") {
+        const interval = Math.max(1, toInteger(effect.interval, 1));
+        totals.unarmedPowerFlat += Math.floor(level / interval) * amount;
+      }
+      if (type === "unarmed-name" && effect.name) totals.unarmedName = String(effect.name);
       if (type === "spell-cost-percent") {
         if (effect.namePrefix || effect.element) totals.spellCostPercentModifiers.push({
           amount,
@@ -1208,7 +1218,7 @@ function calculateMaxHpWithArtifacts(values) {
   const classEffects = calculateClassEffects();
   const baseMaxHp = calculateMaxHp(values) + artifactEffects.maxHpFlat + raceEffects.maxHpFlat;
   const armorHpPercent = equippedDefenseItems().reduce((sum, item) => sum + toNumber(item.hpPercent, 0), 0);
-  return Math.max(0, Math.floor(baseMaxHp * (1 + ((artifactEffects.maxHpPercent + classEffects.maxHpPercent + armorHpPercent) / 100))));
+  return Math.max(0, Math.floor(baseMaxHp * (1 + ((artifactEffects.maxHpPercent + classEffects.maxHpPercent + raceEffects.maxHpPercent + armorHpPercent) / 100))));
 }
 
 function calculateMaxManaWithEffects(values) {
@@ -2944,7 +2954,7 @@ function normalizeRaceDefinition(raw, index) {
 }
 
 function raceAccent(raceId) {
-  return ({ human: "#c7683f", elf: "#728577", "dark-elf": "#77607e", dwarf: "#8b684e", hobbit: "#858b6c", lizardman: "#66806a", goblin: "#76904f", impid: "#a14f61", merfolk: "#4c9a8a" })[raceId] || "#c7683f";
+  return ({ human: "#c7683f", elf: "#728577", "dark-elf": "#77607e", dwarf: "#8b684e", hobbit: "#858b6c", lizardman: "#66806a", "half-beast": "#9a6a3f", goliath: "#7d7a72", goblin: "#76904f", impid: "#a14f61", merfolk: "#4c9a8a" })[raceId] || "#c7683f";
 }
 
 function setRaceStatus(message, state = "") {
@@ -5081,6 +5091,8 @@ function classEffectDescription(effect) {
   if (type === "defense-percent" || type === "defense-permanent-percent") return (effect.target === "armor" ? "Armor" : effect.target === "evasion" ? "Evasion" : effect.target || "Defense") + (type === "defense-permanent-percent" ? " permanent bonus " : " ") + (effect.amount >= 0 ? "+" : "−") + Math.abs(effect.amount) + "%";
   if (type === "defense-cap") return (effect.target || "Defense") + " cannot exceed " + effect.amount;
   if (type === "all-stats-flat-per-level-up") return "All basic stats +" + effect.amount + " each time you level up";
+  if (type === "unarmed-power-per-levels") return "Unarmed attacks +" + effect.amount + " base power every " + effect.interval + " levels";
+  if (type === "unarmed-name") return "Unarmed attacks are " + String(effect.name || "").toLowerCase();
   if (type === "spell-cost-percent") return (effect.summonOnly ? "Summon spell" : effect.namePrefix ? effect.namePrefix + " spell" : effect.element ? spellElementLabel(effect.element) + " spell" : effect.elements?.length ? effect.elements.map(spellElementLabel).join("/") + " spells" : "Spell") + " Mana cost " + (effect.amount >= 0 ? "−" : "+") + Math.abs(effect.amount) + "%";
   if (type === "spell-action-points-set") return (effect.summonOnly ? "Summon spell" : effect.element ? spellElementLabel(effect.element) + " spell" : "Spell") + " Action Point cost becomes " + effect.amount;
   if (type === "spell-action-points-flat") return (effect.summonOnly ? "Summon spell" : effect.element ? spellElementLabel(effect.element) + " spell" : "Spell") + " Action Point cost " + (effect.amount >= 0 ? "+" : "−") + Math.abs(effect.amount);

@@ -102,6 +102,22 @@
       female: "Akssha Chassa Drisha Hisska Issara Krazza Moksha Rassha Ssatha Thessa",
       family: "Amberclaw Ashscale Blackfang Bogrunner Brinefang Coldscale Dawncrest Deepmarsh Duskcoil Embercrest Fernscale Flinttail Greenthroat Ironcrest Mirefang Mossback Mudscale Reedstalker Riverclaw Scalehide Sharpcrest Siltwalker Stonejaw Sunscale Thornback",
     },
+    // Port task 11 (T7, T16): the new playable races' recruit names.
+    "half-beast": {
+      male: "Brakka Fenrick Garro Hask Korvin Lupen Rusk Tavor Ulfgar Wren",
+      female: "Ashka Brindle Fenna Kesra Lyssa Maren Nyx Rhosa Sable Tova",
+      family: "Ashpelt Bramblecoat Duskmane Emberbrush Fallowhide Frostfang Greymane Hollowpaw Ironclaw Longstride Moonhowl Mossback Nightstalker Quickfoot Redtail Ridgeback Rimewhisker Shadowpelt Silvertuft Stormhowl Swiftpaw Thornhide Wildrun Wolfsbane",
+    },
+    merfolk: {
+      male: "Aeron Caspian Coralin Delmar Kai Marlo Nerin Orvan Pelagos Thalen",
+      female: "Ailsa Coralie Isla Lorelei Marina Meris Nerissa Pearl Sirelle Undine",
+      family: "Brinecrest Coralreach Deepwater Driftwood Foamcrest Gullwing Kelpwood Pearlshell Reefsong Saltmarsh Seaglass Shellhaven Shoalwalker Silverscale Stillwater Stormtide Sunkenbell Tidehollow Tidewalker Wavecrest Whitecap Wrackline",
+    },
+    goliath: {
+      male: "Bralgar Dunmor Grathok Harrun Korvald Mordak Ozrin Tharn Uldrek Vorgan",
+      female: "Agra Brenna Duva Halda Kesta Mora Runa Sigra Thyra Volka",
+      family: "Boulderbrow Cairnward Cliffborn Crackstone Deepquarry Flintheart Graniteback Highcrag Ironpeak Ledgewalker Longstride Mountainson Peakwatch Ridgeborn Rockhewn Runestone Shalehand Skyreach Slatebrow Stonebrow Stormpeak Summitkin Thunderfoot Tallcairn",
+    },
   };
   const words = value => value.split(" ");
   const choose = values => values[Math.floor(Math.random() * values.length)];
