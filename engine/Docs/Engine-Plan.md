@@ -2050,6 +2050,16 @@ The user's notes on the system draft (2026-11-11):
   Fire Bolt burning on a 20% chance with its hit raised from about 85% to about 95% of the reference (the burn's
   expected share counted, SP22), the Stone Giant Cracking on a 40% chance per hit; Greater Heal's Blessed stays
   certain, as Blessing is half of what that spell is for.
+Asked while batch 1 (Basic) waited for review (the user: "Does basic not have a summon spell?"; its one summon, War
+Horn, is Zik Lun's and left out, SP4):
+- SP33 **Every element has at least one summon and at least one Dragonbreath spell** among the spells players can learn
+  (the user: "Make sure that each element has at least 1 Summon spell. Same applies for Dragonbreaths"). Checked: every
+  element already has a Dragonbreath spell (23 in all: Fire 5, Lightning and Ice 3, Water, Wind and Death 2, the rest
+  1), and every element but Basic a learnable summon (Nature 5; Water, Fire, Death, Earth and Dark 3; Holy and Lightning
+  2; Blood, Wind and Ice 1).
+- SP34 **Basic's summon is one of its new spells,** counting as one of the task's two extra new summons (Basic has the
+  fewest, none); the other extra goes to Blood, Ice or Wind (one each), asked when the new spells are written. Batch 1
+  stays as it is. (Not a Basic spell reworked into a summon now, not both.)
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:
