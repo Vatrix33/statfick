@@ -1973,6 +1973,23 @@ Mana cost; 3 AP unless the spell says otherwise; 29 summon spells) and how they 
   Mana curve per tier (SP8). Then the sample using it, then the elements. (Not shown together with the sample.)
 - SP16 **Enemies' spells** may carry augmentations, chosen per enemy in the port's enemy revamp (the general port
   task), stronger and later enemies more. (Not bosses only, not never.)
+Asked after the measurement (SP8; a hero of the old game without classes or gear, levels 1–100, against the 174 enemy
+definitions; the script and its data are in `~/.cache/stat-fick-build/claude-work/t12/`): a pure caster's Mana covers
+2–3 casts of the best spell they can learn and heroes regain none in battle; all-enemies spells deal 90–97% of a
+same-tier single-target spell's power for about the same Mana; at Level 100 a Tier 1 spell gives about 11 power per
+Mana and a Tier 9 spell about 2 (3.6× as strong per cast); a spell's damage per turn is about a fighter's two weapon
+attacks against same-level enemies (spells ignore armor and Evasion, so they pull ahead against armored ones).
+- SP17 **Mana stays as scarce as now:** no regeneration in battle and no flatter Mana curve; gear, classes, potions and
+  Mana-cost augmentation are what stretch it. (Not a flatter curve, not regeneration, not both milder.)
+- SP18 **All-enemies spells deal about 75%** of a same-tier single-target spell's power for the same Mana (the user's
+  own number; offered: about 60%, the same power for about 50% more Mana, or kept as now).
+- SP19 **A narrower gap between tiers:** higher tiers stay stronger per cast and less efficient per Mana, but the gap
+  shrinks, to about 2.5–3× power per Mana from Tier 1 to Tier 9 instead of about 5×; low tiers stay the cheap filler.
+  (Not equal per Mana, not today's gap.)
+- SP20 **Spells never critically hit:** critical chance stays a weapon attribute and is not in the augmentation list.
+  (Not spell crits.)
+- SP21 **Where the drafts live:** `Docs/Port-Tasks/12_Spell_Rework/` from the start, since task 12 is for the port only
+  and nothing moves later. (Not `../old-game/Docs/` during the review, as task 10's were.)
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:
