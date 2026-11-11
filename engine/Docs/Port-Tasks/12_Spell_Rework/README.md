@@ -23,7 +23,10 @@ The review's order (SP2, SP15):
    - `Batch-09-Dark.md`: 32 spells. **Approved (SP44).**
    - `Batch-10-Nature.md`: 32 spells. **Approved (SP45).**
    - `Batch-11-Death.md`: 32 spells. **Approved (SP46).**
-   - `Batch-12-Blood.md`: 32 spells. **Under review.**
+   - `Batch-12-Blood.md`: 32 spells. **Approved (SP47).** All 381 learnable spells are reworked.
+
+   For the port: the Tier 10 spell animations (`old-game/scripts/tier10-cinematics.js`) are reworked to go with the
+   reworked Tier 10 spells (SP47).
 4. The new spells, element by element: two per element in each of Tiers 1–5, one in each of Tiers 6–9, Basic
    included (168, SP3); at least four new summons, one each for Nature and Death and two for the elements with the
    fewest summons: Basic, which has none players can learn (SP34), and one of Blood, Ice and Wind. Every element keeps

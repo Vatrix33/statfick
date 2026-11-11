@@ -151,11 +151,10 @@ own, Spell Augmentation (SP9–SP16, SP24–SP26): heroes pay at the Magic Tower
 Church of Talos) to raise a spell's attributes, up to 5 ranks each and 10 per spell, on a magic circle per element
 that only the port draws; only the Spellweaver changes elements, scalings and tiers. Measured first (SP8), the curve
 keeps Mana as scarce as now, puts all-enemies spells at 75% and raises the high tiers (SP17–SP22). Where it stands:
-the system draft, `Spell-Augmentation.md`, the sample of four spells (`Spell-Sample.md`) and the element statuses and
-reactions (`Element-Statuses.md`) are approved (SP27, SP31, SP32); the element batches have begun (every spell players
-can learn, reworked, in the game's element order: Basic, Fire, Water, Earth, Wind, Lightning, Ice, Holy, Dark, Nature,
-Death, Blood): Basic's (`Batch-01-Basic.md`) approved (SP35), Fire's (`Batch-02-Fire.md`) approved (SP36), Water's (`Batch-03-Water.md`) approved (SP37), Earth's (`Batch-04-Earth.md`) approved (SP38), Wind's (`Batch-05-Wind.md`) approved (SP39), Lightning's (`Batch-06-Lightning.md`) approved (SP41), Ice's (`Batch-07-Ice.md`) approved (SP42), Holy's (`Batch-08-Holy.md`) approved (SP43), Dark's (`Batch-09-Dark.md`) approved (SP44), Nature's (`Batch-10-Nature.md`) approved (SP45), Death's (`Batch-11-Death.md`) approved (SP46), Blood's (`Batch-12-Blood.md`, the last) waiting for the user's review; then the 168 new spells and the two
-classes (SP2, SP3, SP15). The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
+the system draft (`Spell-Augmentation.md`), the sample of four spells (`Spell-Sample.md`), the element statuses and
+reactions (`Element-Statuses.md`) and all twelve element batches (`Batch-01-Basic.md` to `Batch-12-Blood.md`, every
+spell players can learn, 381, reworked in the game's element order) are approved (SP27, SP31, SP32, SP35–SP47); next
+the 168 new spells (SP3, SP33, SP34) and the two classes (SP2, SP3, SP15). The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
 curve) and a specs file per element. Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
 **Engine work goes on uninterrupted**; don't count task 12 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
@@ -738,6 +737,9 @@ the design and the tests):
   need to be revamped because their classes has been changed and an upcoming task will change the spell system as
   well"). Every enemy, not only those with class levels: the revamp takes both into account, the reworked classes and
   the reworked spells. It includes the narrower point below.
+  From task 12 (the user, 2026-11-11, SP47): **the port reworks the Tier 10 spell animations** (the old game's
+  full-screen cinematics, `../old-game/scripts/tier10-cinematics.js`), to go with the reworked Tier 10 spells
+  (`Docs/Port-Tasks/12_Spell_Rework/`, one per element in its batch).
   From task 10 (the user, 2026-11-10, C2, C11): **every enemy that uses the old classes is fully reworked during the port**
   (the enemy files' class levels and the bosses' `BOSS_CLASSES`), once the port has built task 10's reworked classes;
   their full rework is not part of task 10's design.
@@ -2080,6 +2082,10 @@ Horn, is Zik Lun's and left out, SP4):
 - SP46 **Batch 11, Death, is approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/Batch-11-Death.md`;
   with it, bosses can't be defeated outright by any instant-death effect (today they can; Basic's Axiom Lance already
   followed the rule).
+- SP47 **Batch 12, Blood, is approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/Batch-12-Blood.md`:
+  every spell players can learn is now reworked (381, in twelve batches). With it the user asked to note for the port:
+  **the port reworks the Tier 10 spell animations** ("Please also note for the port that it should rework the Tier 10
+  spell animations"; "At port time" above).
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:
