@@ -1,9 +1,10 @@
 # The sample: four reworked spells (task 12)
 
-**Status: a draft for the user's review (SP2, SP28).** One spell of each kind, from four elements, to settle the style
+**Status: approved (2026-11-11, SP31); then updated for SP32 (each spell sets its status's chance and duration):
+Fire Bolt now burns on a 20% chance with its hit raised to match, the Stone Giant Cracks on a 40% chance.** One spell of each kind, from four elements, to settle the style
 before the element batches: a low-tier single-target attack, a mid-tier all-enemies attack, a defensive spell and a
 summon. They follow the approved system (`Spell-Augmentation.md`: the curve, the all-enemies rule, the attributes) and
-the element statuses and reactions under review beside this sample (`Element-Statuses.md`, SP30). "(new)" marks a
+the element statuses and reactions approved beside this sample (`Element-Statuses.md`, SP30). "(new)" marks a
 mechanic the game doesn't have yet.
 
 The numbers by level are for a raw caster (a Human with half of every level's points in Intelligence and a quarter
@@ -15,21 +16,22 @@ draft. "Now" is the old game's spell as it is.
 | | Now | Reworked |
 |---|---|---|
 | AP, Mana | 3 AP, 12 Mana | 3 AP, 12 Mana |
-| Power | 7 + Int ×0.4 + Wis ×0.1 | 5 + Int ×0.30 + Wis ×0.10 (about 85% of Tier 1's reference: it also burns) |
-| Effect | none | sets the target **Burning** for 2 turns, for 15% of the hit each turn (new) |
+| Power | 7 + Int ×0.4 + Wis ×0.1 | 6 + Int ×0.33 + Wis ×0.10 (about 95% of Tier 1's reference: it may also burn) |
+| Effect | none | a 20% chance to set the target **Burning** for 2 turns, for 15% of the hit each turn (new) |
 | Price | 650 | 650 |
 
-**Description:** "Hurl a bolt of fire at one enemy for [X] Fire damage and set it Burning: it takes 15% of that
-again at the start of each of its next 2 turns."
+**Description:** "Hurl a bolt of fire at one enemy for [X] Fire damage, with a 20% chance to set it Burning: it
+takes 15% of that again at the start of each of its next 2 turns."
 
 | Level | 1 | 20 | 40 | 60 | 80 | 100 |
 |---|---|---|---|---|---|---|
 | Now: the hit | 12 | 43 | 76 | 108 | 141 | 173 |
-| Reworked: the hit + Burning | 9 + 1 + 1 | 33 + 5 + 5 | 59 + 9 + 9 | 84 + 13 + 13 | 110 + 16 + 16 | 135 + 20 + 20 |
+| Reworked: the hit (+ Burning, 20%) | 10 (+ 1 + 1) | 37 (+ 5 + 5) | 64 (+ 10 + 10) | 92 (+ 14 + 14) | 120 (+ 18 + 18) | 147 (+ 22 + 22) |
 
-**Why:** the cheapest way to set Burning, which Wind spreads (Wildfire) and Water puts out (Steam); the total stays
-about today's (SP22). **Augments:** Power, Resistance penetration, Effect strength (the burn's share), Effect duration
-(its turns), Mana cost.
+**Why:** a cheap damage spell whose goal is the hit, so it burns only now and then (SP32); Burning is what Wind spreads
+(Wildfire) and Water puts out (Steam). With the burn's chance counted, the total stays about today's (SP22).
+**Augments:** Power, Resistance penetration, Effect strength (the burn's share), Effect duration (its turns), Effect
+chance (the 20%), Mana cost.
 
 ## 2. Chain Resonance: Tier 5 Lightning, offensive, all enemies
 
@@ -59,7 +61,7 @@ Resistance penetration, Effect chance (Shocked), Mana cost.
 |---|---|---|
 | AP, Mana | 3 AP, 34 Mana | 3 AP, 35 Mana |
 | Power | 30 + Wis ×0.5 + Int ×0.3 | 12 + Wis ×0.70 + Int ×0.20 |
-| Effect | heals [X] + 10% of maximum HP | heals [X] + 5% of maximum HP, and **Blesses** them for 2 turns: 20% of [X] at the start of each of their turns (new) |
+| Effect | heals [X] + 10% of maximum HP | heals [X] + 5% of maximum HP, and always **Blesses** them for 2 turns: 20% of [X] at the start of each of their turns (new; certain, as Blessing is half of what the spell is for) |
 | Reaction | none | **Purify:** ends Hexed and Withered on them |
 | Price | 3,300 | 3,300 |
 
@@ -82,11 +84,11 @@ heal), Effect strength (Blessed's share), Effect duration (Blessed's turns), Man
 |---|---|---|
 | AP, Mana | 3 AP, 140 Mana | 3 AP, 140 Mana |
 | Power | none | 31 + Int ×1.82 + Wis ×0.52 (Tier 7's reference; it drives the giant, SP29) |
-| Effect | summons a Level 48 Stone Giant (1,518 HP) with +15% maximum HP; one at a time | summons the Level 48 Stone Giant; its maximum HP rises by 200% of [X] and every attack it makes by 25% of [X] (new); its hits **Crack** the target (1 stack each, new); one at a time |
+| Effect | summons a Level 48 Stone Giant (1,518 HP) with +15% maximum HP; one at a time | summons the Level 48 Stone Giant; its maximum HP rises by 200% of [X] and every attack it makes by 25% of [X] (new); each of its hits has a 40% chance to **Crack** the target for 3 turns (1 stack, new); one at a time |
 | Price | 19,000 | 19,000 |
 
 **Description:** "Summon a friendly Stone Giant whose maximum HP rises by twice [X] and whose attacks deal a quarter of
-[X] more. Its blows Crack its targets. Only one may be active at a time."
+[X] more. Each of its blows has a 40% chance to Crack its target for 3 turns. Only one may be active at a time."
 
 | Caster's level | 60 | 80 | 100 |
 |---|---|---|---|

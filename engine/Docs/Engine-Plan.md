@@ -151,9 +151,9 @@ own, Spell Augmentation (SP9–SP16, SP24–SP26): heroes pay at the Magic Tower
 Church of Talos) to raise a spell's attributes, up to 5 ranks each and 10 per spell, on a magic circle per element
 that only the port draws; only the Spellweaver changes elements, scalings and tiers. Measured first (SP8), the curve
 keeps Mana as scarce as now, puts all-enemies spells at 75% and raises the high tiers (SP17–SP22). Where it stands:
-the system draft, `Spell-Augmentation.md`, is approved (SP27); the sample of four spells (`Spell-Sample.md`) and the
-element statuses and reactions (`Element-Statuses.md`, SP30) wait for the user's review; then one batch per element,
-the 168 new spells and the two classes (SP2, SP3, SP15). Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
+the system draft, `Spell-Augmentation.md`, the sample of four spells (`Spell-Sample.md`) and the element statuses and
+reactions (`Element-Statuses.md`) are approved (SP27, SP31, SP32); next one batch per element (every spell players can
+learn, reworked), then the 168 new spells and the two classes (SP2, SP3, SP15). Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
 **Engine work goes on uninterrupted**; don't count task 12 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
@@ -2034,6 +2034,19 @@ The user's notes on the system draft (2026-11-11):
   and the elements react with each other (Lightning on Soaked targets, Fire melting Frozen ones, Wind spreading
   Burning, …), so mixing elements in a party pays off. Drafted in `Docs/Port-Tasks/12_Spell_Rework/Element-Statuses.md`.
   (Not statuses without reactions, not no element statuses.)
+- SP31 **The sample is approved** ("Spell samples are approved"): Fire Bolt, Chain Resonance, Greater Heal and
+  Summon - Stone Giant as drafted in `Docs/Port-Tasks/12_Spell_Rework/Spell-Sample.md`, the style the element batches
+  follow; among its choices, summons don't offer the Power attribute (Vitality and Might raise what it drives), a
+  creature resisting an element by 100 or more is immune to its status, Chain Resonance's Speed loss goes to Water and
+  Ice.
+- SP32 **The statuses and reactions are approved, with each spell setting its own chance and duration** (the user: "I
+  approve the general choice for statuses and reactions. However, each spell should only have a set chance of applying
+  that status. For example, a simple fire bolt with a goal of damage should have a low chance of applying burning, but a
+  fire spell making a wall of fire should have a high chance of it. Also, the duration of the status should be spell
+  dependend as well"): the statuses' fixed durations went (only Shocked and Frozen keep theirs); the sample followed it,
+  Fire Bolt burning on a 20% chance with its hit raised from about 85% to about 95% of the reference (the burn's
+  expected share counted, SP22), the Stone Giant Cracking on a 40% chance per hit; Greater Heal's Blessed stays
+  certain, as Blessing is half of what that spell is for.
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:

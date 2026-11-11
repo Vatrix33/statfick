@@ -8,7 +8,8 @@ The review's order (SP2, SP15):
 1. `Spell-Augmentation.md`: the spells' new system and the power curve every spell follows. **Approved (SP27).** The
    Augmentation menu's look was given with the notes (SP25).
 2. `Spell-Sample.md`: a sample of four reworked spells, one of each kind (SP28), with `Element-Statuses.md`, each
-   element's status and the reactions between them (SP30). **Under review.**
+   element's status and the reactions between them (SP30). **Both approved (SP31, SP32);** each spell sets its status's
+   chance and duration.
 3. One batch per element: every spell players can learn, reworked (the seven boss and enemy-only spells are left out,
    SP4).
 4. The new spells, element by element: two per element in each of Tiers 1–5, one in each of Tiers 6–9, Basic
