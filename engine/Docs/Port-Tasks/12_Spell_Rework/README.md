@@ -16,7 +16,7 @@ The review's order (SP2, SP15):
    - `Batch-02-Fire.md`: 31 spells. **Approved (SP36).**
    - `Batch-03-Water.md`: 32 spells. **Approved (SP37).**
    - `Batch-04-Earth.md`: 31 spells. **Approved (SP38).**
-   - `Batch-05-Wind.md`: 32 spells. **Under review.**
+   - `Batch-05-Wind.md`: 32 spells. **Approved (SP39).**
 4. The new spells, element by element: two per element in each of Tiers 1–5, one in each of Tiers 6–9, Basic
    included (168, SP3); at least four new summons, one each for Nature and Death and two for the elements with the
    fewest summons: Basic, which has none players can learn (SP34), and one of Blood, Ice and Wind. Every element keeps
