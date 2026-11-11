@@ -147,12 +147,12 @@ full rework of every enemy that uses classes (C2), and the "(new)" mechanics the
 in the old game. **Engine work goes on uninterrupted**; don't count task 10 as the engine's current task.
 **Port task 12, Spell Rework, is being designed for the port (from 2026-11-11, a cloud session),** like task 10: not
 built in the old game (SP1); drafts in `Docs/Port-Tasks/12_Spell_Rework/` (SP21). The spells get a system of their
-own, Spell Augmentation (SP9–SP16): heroes pay at the Magic Towers (less at the Institute of Magic and, for Lightning,
-the Church of Talos) to raise a spell's attributes, up to 5 ranks each and 10 per spell; only the Spellweaver changes
-elements, scalings and tiers. Measured first (SP8), the curve keeps Mana as scarce as now, puts all-enemies spells at
-75% and raises the high tiers (SP17–SP22). Where it stands: the system draft, `Spell-Augmentation.md`, waits for the
-user's review; then a sample of four spells, one batch per element, the 168 new spells and the two classes (SP2,
-SP3, SP15); the menu's look is asked last (SP23). Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
+own, Spell Augmentation (SP9–SP16, SP24–SP26): heroes pay at the Magic Towers (less at the Institute of Magic and the
+Church of Talos) to raise a spell's attributes, up to 5 ranks each and 10 per spell, on a magic circle per element
+that only the port draws; only the Spellweaver changes elements, scalings and tiers. Measured first (SP8), the curve
+keeps Mana as scarce as now, puts all-enemies spells at 75% and raises the high tiers (SP17–SP22). Where it stands:
+the system draft, `Spell-Augmentation.md`, is approved (SP27); next a sample of four spells, then one batch per
+element, the 168 new spells and the two classes (SP2, SP3, SP15). Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
 **Engine work goes on uninterrupted**; don't count task 12 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
@@ -1969,7 +1969,7 @@ Mana cost; 3 AP unless the spell says otherwise; 29 summon spells) and how they 
   resistance penetration, effect duration, Mana cost and the others); changing a spell's element, its scaling stats or
   raising its tier only a Spellweaver can do. (Not open to everyone, not element and scaling for everyone with only the
   tier the Spellweaver's.)
-- SP12 **The discounts:** the Institute of Magic takes 25% off every spell's augmentation; the Church of Talos takes 40%
+- SP12 (the Church's part replaced by SP24) **The discounts:** the Institute of Magic takes 25% off every spell's augmentation; the Church of Talos takes 40%
   off, on Lightning spells only. (Not 25% at both with the Church on Lightning only, not 25% on every spell at both.)
 - SP13 **Undoing it:** at any Magic Tower a spell's augmentation can be reset, for half of what was paid back;
   unlearning a spell resets it the same way. Augmentation belongs to each hero (the player and every companion). (Not
@@ -2007,6 +2007,22 @@ attacks against same-level enemies (spells ignore armor and Evasion, so they pul
 - SP23 **The Augmentation menu's look is asked later** (the user, while the system draft was being written: "When it
   comes to how the augmentation menu should look, ask me later. Prepare everything else first"): the system draft says
   only what the menu does; its look is asked once everything else is prepared.
+The user's notes on the system draft (2026-11-11):
+- SP24 **The Church of Talos's discount** (replaces SP12's part on the Church): 10% off every spell's augmentation, 40%
+  off Lightning and Wind spells. (The draft had proposed Lightning spells only.)
+- SP25 **The Augmentation menu's look** (the user gave it with the notes, ahead of SP23's "later"; built only in the
+  port, the old game gets no menu): an empty circle with one open slot, into which a known spell is placed, picked
+  from two separate lists, the player's spells and the companions'. With a spell placed, the empty circle becomes a
+  lit-up magic circle, with a small animation and a fitting sound. Each element has its own magic circle, shared by
+  all of its spells, with a symbol of its own for offensive, summon and defensive spells. Each attribute is a separate
+  spot on the circle; clicking one shows the attribute's details and its upgrade button. An upgraded attribute's spot
+  is visibly reinforced (more symbols, more connections, or just a small outline around it).
+- SP26 **Summons' attributes:** the effect-based attributes (effect strength, duration and chance) don't apply to
+  summon spells; in their place summons have Summon Vitality, Summon Might and a third, new one, Summon Speed.
+- SP27 **The system draft is approved** ("Everything else is approved"), with SP24–SP26 applied: its proposals stand,
+  among them Effect duration stopping at 3 ranks, the k-th rank on a spell costing k × 10% of the spell's Magic Tower
+  price, each attribute's value per rank, the weavings' prices (an element 100% of the spell's price, a scaling stat
+  50%, a tier 200%; how many a Spellweaver may weave is settled with the class), and the reference spell per tier.
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:

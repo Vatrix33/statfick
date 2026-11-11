@@ -1,10 +1,10 @@
 # Spell Augmentation: the system draft (task 12)
 
-**Status: a draft for the user's review (SP15).** It describes the spells' new system and the power curve every
-reworked and new spell follows. The sample of four reworked spells comes after it is approved, then the elements
-(SP2). Everything here is for the port: the old game stays unchanged (SP1). The decisions it follows are SP1–SP22 in
-`engine/Docs/Engine-Plan.md`, "Decisions for task 12, Spell Rework". "(new)" marks a mechanic the game doesn't have yet
-(SP6). Points marked **Proposal** are my own and wait for your approval or notes.
+**Status: approved (2026-11-11, SP27), with the user's notes applied (SP24–SP26).** It describes the spells' new
+system and the power curve every reworked and new spell follows; the sample of four reworked spells and the elements
+come next (SP2). Everything here is for the port: the old game stays unchanged (SP1). The decisions it follows are SP1
+onward in `engine/Docs/Engine-Plan.md`, "Decisions for task 12, Spell Rework". "(new)" marks a mechanic the game doesn't
+have yet (SP6).
 
 ## 1. What it is
 
@@ -18,22 +18,29 @@ Augmentation belongs to each hero, the player and every companion (SP13).
 |---|---|---|
 | Every Magic Tower (castle cities) | every spell | full price |
 | The Institute of Magic (Mirrormere's lake) | every spell | 25% off (SP12) |
-| The Church of Talos (the Storm Reliquary) | **Proposal:** Lightning spells only, as it sells only Lightning spells | 40% off (SP12) |
+| The Church of Talos (the Storm Reliquary) | every spell | 10% off; 40% off Lightning and Wind spells (SP24) |
 | Anywhere, from the spellbook | a Spellweaver's own spells | the Spellweaver's discount (set with the class) |
 
 The Spellweaver's own discount, and whether it adds to the Institute's or the Church's, is settled with the class
 (SP9, SP11).
 
-## 3. The Augmentation menu (new): what it does
+## 3. The Augmentation menu (new)
 
-A new menu in every Magic Tower, beside its others; the Institute of Magic and the Storm Reliquary get it too. **How
-it looks is asked later (SP23)**; this section says only what it lets you do.
+A new menu in every Magic Tower, beside its others; the Institute of Magic and the Storm Reliquary get it too. **Its
+look (SP25) is made only in the port:** the old game gets no Augmentation menu (SP1).
 
-1. **Choose a hero:** the player or a companion in the party.
-2. **Choose a spell** that hero knows, seeing how many of its 10 ranks it holds.
-3. **See the spell's attributes** that apply to it (SP14): the ranks each holds, what the next rank adds, and its
-   price. Buying a rank takes the money at once and changes the spell for every battle after.
-4. **Reset** the spell: all of its ranks undone, half of what they cost paid back (SP13).
+1. **An empty circle with one open slot.** Beside it, two separate lists of known spells: the player's, and the
+   companions'. A spell is placed into the slot from either list.
+2. **The circle lights up.** With a spell placed, the empty circle becomes a lit-up magic circle, appearing with a
+   small animation and a fitting sound. Each element has its own magic circle, shared by all of its spells, with a
+   symbol of its own in it for offensive, summon and defensive spells (Damage, summon and other Support spells).
+3. **Each attribute is a spot on the circle:** one spot for each attribute that applies to the spell (SP14, section
+   5). Clicking a spot shows that attribute's details (the ranks it holds, what the next rank adds, its price) and its
+   upgrade button. Buying a rank takes the money at once and changes the spell for every battle after; the spell's
+   10-rank total shows too.
+4. **An upgraded spot is reinforced:** each rank shows on its spot, as more symbols, more connections, or just a small
+   outline around it.
+5. **Reset** the spell: all of its ranks undone, half of what they cost paid back (SP13).
 
 Wherever a spell's numbers are shown (the spellbook, its description, the shops), they are the augmented ones: the
 description's [X] is the augmented power. Unlearning a spell resets it the same way, with half paid back (SP13).
@@ -42,25 +49,27 @@ description's [X] is the augmented power. Unlearning a spell resets it the same 
 
 - Each attribute has up to **5 ranks**, and a spell holds at most **10 ranks** in all (SP10). Two attributes can be
   maxed, or the ranks spread.
-- **Proposal: Effect duration stops at 3 ranks** (+3 turns), the one exception to 5: five extra turns would make
-  almost every lasting effect last the whole fight.
+- **Effect duration stops at 3 ranks** (+3 turns), the one exception to 5: five extra turns would make almost every
+  lasting effect last the whole fight.
 - A rank costs more than the one before it and more for a higher tier (SP10), below.
 
 ## 5. The attributes (one common list, SP14)
 
-Every spell uses this list; a spell shows only the attributes that apply to it. **Proposal:** the attributes and their
-values per rank.
+Every spell uses this list; a spell shows only the attributes that apply to it. The effect-based attributes (effect
+strength, duration and chance) don't apply to summon spells: summons have Summon Vitality, Summon Might and Summon
+Speed in their place (SP26).
 
 | Attribute | Applies to | Per rank | At the most |
 |---|---|---|---|
 | Power | anything the spell's power drives: damage, healing, barriers, retaliation | +6% power | +30% (5 ranks) |
 | Resistance penetration (new) | damaging spells | the target's resistance to the spell counts 10 points lower, never below 0 (a weakness isn't deepened) | −50 (5 ranks) |
-| Effect strength | the amounts of lasting effects: buffs, debuffs, damage over time, healing received, retaliation shares | +10% of the effect's amount (−20% Armor becomes −22%) | +50% (5 ranks) |
-| Effect duration | lasting effects, not stuns or summons | +1 turn | +3 turns (3 ranks, above) |
-| Effect chance | chance-based effects: stun chance, instant death, any other "chance to" | +20% of the chance (a 10% stun chance becomes 12%) | double (5 ranks) |
+| Effect strength | non-summon spells' lasting effects: buffs, debuffs, damage over time, healing received, retaliation shares | +10% of the effect's amount (−20% Armor becomes −22%) | +50% (5 ranks) |
+| Effect duration | non-summon spells' lasting effects, not stuns | +1 turn | +3 turns (3 ranks, above) |
+| Effect chance | non-summon spells' chance-based effects: stun chance, instant death, any other "chance to" | +20% of the chance (a 10% stun chance becomes 12%) | double (5 ranks) |
 | Mana cost | every spell | −5% Mana | −25% (5 ranks) |
-| Summon vitality | summons | the summoned ally's maximum HP +10% | +50% (5 ranks) |
-| Summon might | summons | the summoned ally's damage +10% | +50% (5 ranks) |
+| Summon Vitality | summons | the summoned ally's maximum HP +10% | +50% (5 ranks) |
+| Summon Might | summons | the summoned ally's damage +10% | +50% (5 ranks) |
+| Summon Speed (new) | summons | the summoned ally's Speed +10% | +50% (5 ranks) |
 
 Resistances, for scale: most resisting enemies have 30 or 50 against an element (139 of the 174 enemy definitions
 resist something), so 3–5 ranks of penetration cancel a usual resistance.
@@ -70,7 +79,7 @@ its design (SP7).
 
 ## 6. Costs
 
-**Proposal:** the k-th rank bought on a spell costs **k × 10% of the spell's Magic Tower price** (its listed price,
+The k-th rank bought on a spell costs **k × 10% of the spell's Magic Tower price** (its listed price,
 before learning discounts). The order of the attributes doesn't matter: the 1st rank costs 10%, the 10th 100%, all 10
 cost 5.5× the spell's price. A higher tier costs more because its spells cost more.
 
@@ -88,8 +97,8 @@ Prices in silver (100 silver a gold, 10,000 a platinum). A reset pays back half 
 
 ## 7. Weaving: the Spellweaver's augmentations (new)
 
-Changing a spell's element, its scaling or its tier only a Spellweaver can do (SP11). **Proposal** for how each works;
-how many a Spellweaver may weave, from which class level, and whether weavings use any of the 10 ranks are settled
+Changing a spell's element, its scaling or its tier only a Spellweaver can do (SP11). How each works is approved
+(SP27); how many a Spellweaver may weave, from which class level, and whether weavings use any of the 10 ranks are settled
 with the class (the last part of the task).
 
 - **Element weaving:** the spell becomes another of the 12 elements. It counts as that element for everything:
@@ -131,7 +140,7 @@ tier, a single-target damage spell at 3 AP scaling with Intelligence and Wisdom:
 level's points into Intelligence and a quarter each into Mind and Wisdom, without classes or gear (Level 100:
 Intelligence 357, Wisdom 233, 525 Mana).
 
-How the individual spells use it (**Proposal**):
+How the individual spells use it:
 - **All enemies:** 75% of the reference power for the same Mana (SP18). Spells that hit a few targets (two, a row)
   sit between.
 - **AP (SP7):** 3 AP is the norm. A 2 AP spell has about 65% of the power for about 70% of the Mana; a 4 AP spell about
@@ -150,8 +159,9 @@ Spellweaver class), chosen per enemy in the port's enemy revamp, stronger and la
 
 ## 10. What the port builds
 
-- The Augmentation menu in every Magic Tower, the Institute of Magic and the Storm Reliquary; the Spellweaver's
-  augmenting from the spellbook.
+- The Augmentation menu in every Magic Tower, the Institute of Magic and the Storm Reliquary, with its magic circles
+  (section 3: one per element, a symbol per kind of spell, a spot per attribute, the lighting-up animation and sound,
+  the reinforced spots); the Spellweaver's augmenting from the spellbook.
 - Each hero's ranks and weavings per spell, in the character file and the save; enemies' in their definitions.
 - The attributes in spell power, Mana cost, resistance, effect amounts, durations, chances and summons.
 - Weaving: element, scaling and tier.

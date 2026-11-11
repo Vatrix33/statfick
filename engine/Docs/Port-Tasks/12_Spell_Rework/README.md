@@ -5,8 +5,8 @@ drafts live in this folder from the start (SP21). The decisions are SP1 onward i
 for task 12, Spell Rework".
 
 The review's order (SP2, SP15):
-1. `Spell-Augmentation.md`: the spells' new system and the power curve every spell follows. **Under review.** How the
-   Augmentation menu looks is asked last, once everything else is prepared (SP23).
+1. `Spell-Augmentation.md`: the spells' new system and the power curve every spell follows. **Approved (SP27).** The
+   Augmentation menu's look was given with the notes (SP25).
 2. A sample of four reworked spells (not written yet).
 3. One batch per element: every spell players can learn, reworked (the seven boss and enemy-only spells are left out,
    SP4).
