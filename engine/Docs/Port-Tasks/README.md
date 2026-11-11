@@ -181,7 +181,7 @@ waited, into the same pull request, P1; P2 kept its art placeholder).
   against. Still to do in the port: only the art (below). Old game only.
 
 **Designed for the port, not built in the old game:**
-- Task 10, Class Rework (2026-11-10 to 2026-11-11, a cloud session, C1–C31 in `Engine-Plan.md`, "Decisions for task 10,
+- Task 10, Class Rework (2026-11-10 to 2026-11-11, a cloud session, C1–C32 in `Engine-Plan.md`, "Decisions for task 10,
   Class Rework"): the user had the old game left as it is (C23) and the reworked classes built by the port from
   `10_Class_Rework/`: `Class-Rework-Draft.md` (identity, levels, requirements and rarity of all 170 classes: the 130
   current, every one reviewed, and 40 new: 25 of the task's names, Poisoner already existing and reworked, seven names
