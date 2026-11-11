@@ -151,8 +151,9 @@ own, Spell Augmentation (SP9–SP16, SP24–SP26): heroes pay at the Magic Tower
 Church of Talos) to raise a spell's attributes, up to 5 ranks each and 10 per spell, on a magic circle per element
 that only the port draws; only the Spellweaver changes elements, scalings and tiers. Measured first (SP8), the curve
 keeps Mana as scarce as now, puts all-enemies spells at 75% and raises the high tiers (SP17–SP22). Where it stands:
-the system draft, `Spell-Augmentation.md`, is approved (SP27); next a sample of four spells, then one batch per
-element, the 168 new spells and the two classes (SP2, SP3, SP15). Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
+the system draft, `Spell-Augmentation.md`, is approved (SP27); the sample of four spells (`Spell-Sample.md`) and the
+element statuses and reactions (`Element-Statuses.md`, SP30) wait for the user's review; then one batch per element,
+the 168 new spells and the two classes (SP2, SP3, SP15). Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
 **Engine work goes on uninterrupted**; don't count task 12 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
@@ -2023,6 +2024,16 @@ The user's notes on the system draft (2026-11-11):
   among them Effect duration stopping at 3 ranks, the k-th rank on a spell costing k × 10% of the spell's Magic Tower
   price, each attribute's value per rank, the weavings' prices (an element 100% of the spell's price, a scaling stat
   50%, a tier 200%; how many a Spellweaver may weave is settled with the class), and the reference spell per tier.
+- SP28 **The sample's four spells: one of each kind,** from four elements: a low-tier single-target attack (Fire Bolt,
+  Tier 1 Fire), a mid-tier all-enemies attack (Chain Resonance, Tier 5 Lightning), a defensive spell (Greater Heal,
+  Tier 3 Holy) and a summon (Summon - Stone Giant, Tier 7 Earth). (Not four at random, not four Fire spells.)
+- SP29 **Summons scale with spell power:** the summoned creature keeps its level, but its HP and damage grow with the
+  caster's spell power, like a damage spell's power (the summon spell's own scaling). Summon Vitality, Might and Speed
+  add on top. (Not following the caster's level, not fixed as now.)
+- SP30 **Element statuses and reactions:** each element gets a signature status (new) its spells apply and build on,
+  and the elements react with each other (Lightning on Soaked targets, Fire melting Frozen ones, Wind spreading
+  Burning, …), so mixing elements in a party pays off. Drafted in `Docs/Port-Tasks/12_Spell_Rework/Element-Statuses.md`.
+  (Not statuses without reactions, not no element statuses.)
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:
