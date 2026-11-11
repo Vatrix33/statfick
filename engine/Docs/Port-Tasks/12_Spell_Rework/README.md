@@ -37,7 +37,8 @@ The review's order (SP2, SP15):
    - `New-05-Wind.md`: 14 spells, Wind's summon among them. **Approved (SP53).**
    - `New-06-Lightning.md`: 14 spells. **Approved (SP54).**
    - `New-07-Ice.md`: 14 spells. **Approved (SP55).**
-   - `New-08-Holy.md`: 14 spells. **Under review.** Every element keeps
+   - `New-08-Holy.md`: 14 spells. **Approved (SP56).**
+   - `New-09-Dark.md`: 14 spells. **Under review.** Every element keeps
    at least one summon and one Dragonbreath spell (SP33).
 5. The Spellweaver (built around Spell Augmentation, SP9) and the Ritual Caster, added to task 10's drafts
    (`../10_Class_Rework/`).
