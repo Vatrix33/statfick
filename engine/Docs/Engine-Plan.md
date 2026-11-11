@@ -154,7 +154,7 @@ keeps Mana as scarce as now, puts all-enemies spells at 75% and raises the high 
 the system draft, `Spell-Augmentation.md`, the sample of four spells (`Spell-Sample.md`) and the element statuses and
 reactions (`Element-Statuses.md`) are approved (SP27, SP31, SP32); the element batches have begun (every spell players
 can learn, reworked, in the game's element order: Basic, Fire, Water, Earth, Wind, Lightning, Ice, Holy, Dark, Nature,
-Death, Blood), Basic's (`Batch-01-Basic.md`) waiting for the user's review; then the 168 new spells and the two
+Death, Blood): Basic's (`Batch-01-Basic.md`) approved (SP35), Fire's (`Batch-02-Fire.md`) waiting for the user's review; then the 168 new spells and the two
 classes (SP2, SP3, SP15). The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
 curve) and a specs file per element. Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
 **Engine work goes on uninterrupted**; don't count task 12 as the engine's current task.
@@ -2060,6 +2060,7 @@ Horn, is Zik Lun's and left out, SP4):
 - SP34 **Basic's summon is one of its new spells,** counting as one of the task's two extra new summons (Basic has the
   fewest, none); the other extra goes to Blood, Ice or Wind (one each), asked when the new spells are written. Batch 1
   stays as it is. (Not a Basic spell reworked into a summon now, not both.)
+- SP35 **Batch 1, Basic, is approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/Batch-01-Basic.md`.
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:
