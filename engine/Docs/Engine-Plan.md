@@ -124,13 +124,14 @@ engine (the engine's tests read none of what changed: the one class file they re
 current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Potion Rework".
 **Port task 10, Class Rework, is designed and approved, for the port (2026-11-10 to 2026-11-11, a cloud session).**
 Unlike tasks 1–9 it is **not built in the old game: the port builds it** from the approved drafts (C23, which replaced
-C1), now in `Docs/Port-Tasks/10_Class_Rework/` (C31; its README says what each file holds): `Class-Rework-Draft.md`,
+C1), now in `Docs/Port-Tasks/10_Class_Rework/` (C31; its README says what each file holds); during porting every
+class is inspected for errors and inconsistencies, and after the port every class feature is tested (C32): `Class-Rework-Draft.md`,
 every class's identity, levels, requirements and rarity (130 current, 40 new; 109 without a colour, 42 blue, 13
 purple, 5 gold, 1 red), and `Class-Rework-Features.md`, every class's level-by-level features (a sample of four, then
 eleven batches, each approved by the user, with their notes applied). The rules they follow: every class reviewed
 (C3), one passive and one skill per class but the elemental mages, the item classes, the Vampire Lord, the Ki Warrior
 and the Psykic (C21, C24, C26, C27), the enemy-only classes outside the rules (C25), the passive or skill at the last
-level (the task's capstone rule), requirements and skills within a turn's 5 AP (C28). All answers: C1–C31 in
+level (the task's capstone rule), requirements and skills within a turn's 5 AP (C28). All answers: C1–C32 in
 "Decisions for task 10, Class Rework" below. Left for the port: building the classes, the red rarity's look (C16), the
 full rework of every enemy that uses classes (C2), and the "(new)" mechanics the features file marks. Nothing changes
 in the old game. **Engine work goes on uninterrupted**; don't count task 10 as the engine's current task.
@@ -710,8 +711,14 @@ the design and the tests):
   M12 gives both programs a splash and a credits view now, which the port's start sequence and credits screen take
   over).
   From task 10 (the user, 2026-11-10, C2, C11): **every enemy that uses the old classes is fully reworked during the port**
-  (the enemy files' class levels and the bosses' `BOSS_CLASSES`), after task 10 has reworked the classes in the old
-  game; their full rework is not part of task 10.
+  (the enemy files' class levels and the bosses' `BOSS_CLASSES`), once the port has built task 10's reworked classes;
+  their full rework is not part of task 10's design.
+  From task 10 (the user, 2026-11-11, C32), three requirements for the port: **(1) the classes are unchanged in the old
+  game; during the port, the classes in the drafts are added** (`Docs/Port-Tasks/10_Class_Rework/`:
+  `Class-Rework-Draft.md` and `Class-Rework-Features.md`, all 170); **(2) during porting, every class is inspected for
+  possible errors and inconsistencies** (in the drafts and against the game's rules, before or while it is built);
+  **(3) after the port, every class feature is tested so that it works as intended** (every level of all 170 classes,
+  passives and skills included).
 
 ## Folders
 
@@ -2022,6 +2029,11 @@ The features round (2026-11-10):
   went from `../old-game/Docs/` to `Docs/Port-Tasks/10_Class_Rework/`, with a README there as task 9's folder has;
   `Docs/Port-Tasks/README.md` lists task 10 as designed for the port. The scripts that first made the draft
   (`~/.cache/stat-fick-build/claude-work/class-rework/`) are not kept: the two files are the source.
+- C32 **What the port must do with them** (the user, 2026-11-11: "I want the port to note the following: Classes are
+  unchanged in the old game. During the port, the classes in the draft are added. During porting, every class needs to
+  be inspected for possible errors and inconsistencies. After the port, every class feature needs to be tested so it
+  works as intended."): recorded under "Open questions for later milestones", "At port time", in
+  `Docs/Port-Tasks/README.md` and in `Docs/Port-Tasks/10_Class_Rework/README.md`.
 - C27 **The Psykic is an exception to the one-skill rule too**, like the Ki Warrior (asked before batch 4): its four
   skills stand in for the spells it doesn't know, with one passive. (Not folded into one skill.)
 - C26 **The Ki Warrior is an exception to the one-skill rule** (the user: "I wanted it to have many skills to simulate a

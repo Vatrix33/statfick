@@ -191,6 +191,9 @@ waited, into the same pull request, P1; P2 kept its art placeholder).
   Psykic; enemy-only classes outside the rules), the passive or skill at the last level, requirements and skills
   within a turn's 5 AP. A new rarity, red, above gold, for Unreality alone (its look decided when the port builds it).
   Also for the port: the full rework of every enemy that uses classes (C2), and the mechanics the features mark "(new)".
+  **The port's three duties (the user, 2026-11-11, C32):** the classes are unchanged in the old game, and during the
+  port the classes in the drafts are added; during porting, every class is inspected for possible errors and
+  inconsistencies; after the port, every class feature is tested so that it works as intended.
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and
