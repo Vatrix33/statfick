@@ -77,6 +77,11 @@ in `Engine-Plan.md`, as for every step. Skip the tasks under "Done in the old ga
 port starts from, so their design questions are answered and their rules are already in its code and data. For those,
 only the art under "Placeholder art the port remakes fully" is left.
 
+**A general port task beside the tasks (the user, 2026-11-11):** all enemies are revamped during the port, because their
+classes have changed (task 10) and task 12 will change the spell system as well. Every enemy, not only those with class
+levels; the revamp takes both the reworked classes and the reworked spells into account (`Engine-Plan.md`, "At port
+time"; task 10's narrower note on enemies with classes, C2, is part of it).
+
 **The order (checked 2026-11-05):** each task builds only on earlier ones (the Cull quest of task 2 before task 5, the
 reforging of task 3 before task 9, Sparkling enemies of task 5 before task 7, the new locations of tasks 3
 and 6 before the map rework of task 8, the guild quests of task 2 before Collect and Delve, caravans and poisons

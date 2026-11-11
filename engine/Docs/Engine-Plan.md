@@ -710,6 +710,11 @@ the design and the tests):
   BRUTAL logo before the game starts and BRUTAL's copyright with the other credits in the game's own screens** (Q11:
   M12 gives both programs a splash and a credits view now, which the port's start sequence and credits screen take
   over).
+  A general port task (the user, 2026-11-11): **all enemies are revamped during the port, because their classes have
+  changed (task 10) and an upcoming task will change the spell system as well (task 12, Spell Rework)** ("All enemies
+  need to be revamped because their classes has been changed and an upcoming task will change the spell system as
+  well"). Every enemy, not only those with class levels: the revamp takes both into account, the reworked classes and
+  the reworked spells. It includes the narrower point below.
   From task 10 (the user, 2026-11-10, C2, C11): **every enemy that uses the old classes is fully reworked during the port**
   (the enemy files' class levels and the bosses' `BOSS_CLASSES`), once the port has built task 10's reworked classes;
   their full rework is not part of task 10's design.
@@ -1301,7 +1306,9 @@ Masterworks, 6 New Areas, 7 New Game Plus, 8 Map Rework, 9 Potion Rework, 10 Cla
 Rework, 13 New Classes, 14 Dungeons; its README sums them up and notes what the order means for them). The text is
 kept as written except three names in task 7 the user confirmed the same day (Laila → Juila, Zik → Zik Lun, Mythium →
 Mythilium); task 7's Limitless scaling is meant to cover every later kind of enemy too (task 14's dungeon enemies), and
-the class count going past 250 with task 14's two classes is intended. They are added to the game during the port, in that order, and read when the port
+the class count going past 250 with task 14's two classes is intended. A general port task added on 2026-11-11 (the
+user): every enemy is revamped during the port, since task 10 changed the classes and task 12 will change the spells
+("Open questions for later milestones", "At port time"). They are added to the game during the port, in that order, and read when the port
 starts. (Not a top-level folder, not in `../old-game/Docs/`.) Still open: whether they come after the faithful port or
 while porting (the user will answer later).
 - **Task 1 is done in the old game now (user decision 2026-11-05):** before the port, with placeholder looks for the six
