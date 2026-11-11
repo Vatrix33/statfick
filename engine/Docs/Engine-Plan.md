@@ -153,8 +153,9 @@ that only the port draws; only the Spellweaver changes elements, scalings and ti
 keeps Mana as scarce as now, puts all-enemies spells at 75% and raises the high tiers (SP17–SP22). Where it stands:
 the system draft (`Spell-Augmentation.md`), the sample of four spells (`Spell-Sample.md`), the element statuses and
 reactions (`Element-Statuses.md`) and all twelve element batches (`Batch-01-Basic.md` to `Batch-12-Blood.md`, every
-spell players can learn, 381, reworked in the game's element order) are approved (SP27, SP31, SP32, SP35–SP47); next
-the 168 new spells (SP3, SP33, SP34) and the two classes (SP2, SP3, SP15). The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
+spell players can learn, 381, reworked in the game's element order) are approved (SP27, SP31, SP32, SP35–SP47); the
+168 new spells come next, fourteen per element in the same order (SP3, SP33, SP34, SP48), Basic's (`New-01-Basic.md`)
+waiting for the user's review; then the two classes (SP2, SP3, SP15). The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
 curve) and a specs file per element. Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
 **Engine work goes on uninterrupted**; don't count task 12 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
@@ -2086,6 +2087,9 @@ Horn, is Zik Lun's and left out, SP4):
   every spell players can learn is now reworked (381, in twelve batches). With it the user asked to note for the port:
   **the port reworks the Tier 10 spell animations** ("Please also note for the port that it should rework the Tier 10
   spell animations"; "At port time" above).
+- SP48 **The fourth new summon goes to Wind** (asked before the new spells: Blood, Ice and Wind tied with one learnable
+  summon each). The four new summons: one each for Nature and Death (the task), Basic (the fewest, none; SP34) and Wind.
+  (Not Blood, which was recommended, not Ice.)
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:
