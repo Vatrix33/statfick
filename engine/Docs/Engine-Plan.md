@@ -154,7 +154,7 @@ keeps Mana as scarce as now, puts all-enemies spells at 75% and raises the high 
 the system draft, `Spell-Augmentation.md`, the sample of four spells (`Spell-Sample.md`) and the element statuses and
 reactions (`Element-Statuses.md`) are approved (SP27, SP31, SP32); the element batches have begun (every spell players
 can learn, reworked, in the game's element order: Basic, Fire, Water, Earth, Wind, Lightning, Ice, Holy, Dark, Nature,
-Death, Blood): Basic's (`Batch-01-Basic.md`) approved (SP35), Fire's (`Batch-02-Fire.md`) approved (SP36), Water's (`Batch-03-Water.md`) approved (SP37), Earth's (`Batch-04-Earth.md`) approved (SP38), Wind's (`Batch-05-Wind.md`) approved (SP39), Lightning's (`Batch-06-Lightning.md`) approved (SP41), Ice's (`Batch-07-Ice.md`) waiting for the user's review; then the 168 new spells and the two
+Death, Blood): Basic's (`Batch-01-Basic.md`) approved (SP35), Fire's (`Batch-02-Fire.md`) approved (SP36), Water's (`Batch-03-Water.md`) approved (SP37), Earth's (`Batch-04-Earth.md`) approved (SP38), Wind's (`Batch-05-Wind.md`) approved (SP39), Lightning's (`Batch-06-Lightning.md`) approved (SP41), Ice's (`Batch-07-Ice.md`) approved (SP42), Holy's (`Batch-08-Holy.md`) waiting for the user's review; then the 168 new spells and the two
 classes (SP2, SP3, SP15). The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
 curve) and a specs file per element. Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
 **Engine work goes on uninterrupted**; don't count task 12 as the engine's current task.
@@ -2071,6 +2071,7 @@ Horn, is Zik Lun's and left out, SP4):
   Electrocute share a name; the user: "keep both, no reason to rename either"). (Not the reaction renamed, not the spell.)
 - SP41 **Batch 6, Lightning, is approved** ("Approved"), as drafted in
   `Docs/Port-Tasks/12_Spell_Rework/Batch-06-Lightning.md`.
+- SP42 **Batch 7, Ice, is approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/Batch-07-Ice.md`.
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:
