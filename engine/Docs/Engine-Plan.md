@@ -1913,6 +1913,67 @@ Asked after the regression run (2026-11-06):
   (L18): it reads 0 EXP; companions below their cap still gain the battle's EXP. (Not the number with a note, not left
   showing the battle's EXP.)
 
+**Decisions for task 12, Spell Rework (2026-11-11, a cloud session; the user: "Go ahead with Task 12"; the task is
+`Docs/Port-Tasks/12_Spell_Rework.txt`).** Asked before any work, after reading the old game's spells
+(`objects/spells.json`: 388 spells in 12 elements, Basic among them; Tiers 1–10, 4–6 per element in Tiers 1–5, 3 in
+Tiers 6–7, 2 in Tiers 8–9, 1 in Tier 10; power = base power + a primary and a secondary stat × their multipliers; a
+Mana cost; 3 AP unless the spell says otherwise; 29 summon spells) and how they are cast (`calculateSpellValue`,
+`calculateSpellManaCost`, `calculateSpellActionPoints` in `scripts/app.js`, `cast` in `scripts/combat.js`):
+- SP1 **Where:** drafts for the port, as task 10: the spells are designed in draft files the user reviews and
+  approves; the old game stays unchanged and the port builds them, so the old game's enemies and classes stay
+  balanced until they are revamped together at the port. (Not built in the old game, not split with the classes in
+  drafts.)
+- SP2 **The review:** a sample of four reworked spells first, to settle the style; then one batch per element (about
+  32 spells each); then the new spells, element by element; then the two classes. (Not by tier, not one full draft.)
+- SP3 **Basic counts as an element** for the new spells: 12 elements, so 168 new spells (two per element in each of
+  Tiers 1–5, 120; one per element in each of Tiers 6–9, 48). (Not the other 11 only.)
+- SP4 **The boss and enemy-only spells are left out:** War Horn, Call the Storm, Thunderbolt of Talos, Stonecrust,
+  Wheel of the Year, Vulcanic Charge and Summon Imp Retinue stay exactly as they are; the rework covers the spells
+  players can learn. (Not reviewed with their mechanics kept, not reworked like the others.)
+- SP5 **Not just an effect on every spell** (the user: "I dont mean small effects just to flesh spells out. The
+  weapon/armor system is very detailed and complex, and i want spells to have a similar detailed and fitting unique
+  system. Just adding effects to every spell wont bring them in line with weapons/armors"): spells get a system of
+  their own, as detailed as forging is for weapons and armor; its design is asked next.
+- SP6 **New mechanics are allowed**, each marked "(new)" in the draft so the port knows to build it, as task 10's
+  features file does. (Not only mechanics the game already has, not only the spells' own effect types.)
+- SP7 **AP cost** (the user: "Most spells need 3 AP with other specialized faster spells using 2 AP, but 1 AP, 4 AP and
+  5 AP spells may be added (or reworked into) if a spells powerlevel needs it"): 3 AP is the norm, 2 AP for
+  specialised faster spells, and 1, 4 or 5 AP where a spell's power calls for it.
+- SP8 **Power level:** measured first (spells against weapon attacks and the enemies' HP at several levels), then a
+  power and Mana curve per tier is proposed with the sample, for the user to approve. (Not today's curve kept, not
+  spells made generally stronger.)
+- SP9 **The spells' system is Spell Augmentation** (the user, answering SP5's question, which offered scribed spells
+  made like forged gear, spell mastery by casting, glyph slots, or scribed spells with mastery: "Something like the
+  mastery system, but its called Spell Augmentation. Add a new menu to each Magic Tower that allows selecting known
+  spells to further boost certain attributes of them (Enhanced power, resistance penetration and effect duration
+  increase may be some examples, but further can be added). That costs money, but augmenting in the Institute of Magic
+  or the Church of Talos has a discount. Also change the Spellweaver class to be able to augment anywhere at reduced
+  cost and make that class generally focus on this augmentation. If any further design or system questions appear,
+  ask me about it"): a new Augmentation menu in every Magic Tower; you pick a spell you know and pay to boost its
+  attributes (enhanced power, resistance penetration, longer effects and others); the Institute of Magic and the
+  Church of Talos augment for less; the Spellweaver augments anywhere, for less, and the class is built around
+  augmentation. Its details are asked one by one (SP10 on).
+- SP10 **Augmentation's limits:** each attribute is raised in ranks, up to 5, but a spell holds at most 10 ranks in
+  all, so each spell gets a build of its own; a rank costs more than the one before it and more for a higher tier.
+  (Not 5 ranks of everything with only money as the limit, not a total that grows with the caster's level.)
+- SP11 **Element, scaling and tier changes are the Spellweaver's alone:** everyone can buy the plain boosts (power,
+  resistance penetration, effect duration, Mana cost and the others); changing a spell's element, its scaling stats or
+  raising its tier only a Spellweaver can do. (Not open to everyone, not element and scaling for everyone with only the
+  tier the Spellweaver's.)
+- SP12 **The discounts:** the Institute of Magic takes 25% off every spell's augmentation; the Church of Talos takes 40%
+  off, on Lightning spells only. (Not 25% at both with the Church on Lightning only, not 25% on every spell at both.)
+- SP13 **Undoing it:** at any Magic Tower a spell's augmentation can be reset, for half of what was paid back;
+  unlearning a spell resets it the same way. Augmentation belongs to each hero (the player and every companion). (Not
+  permanent, not a free reset.)
+- SP14 **One common list of attributes:** every spell uses the same list, showing only the attributes that apply to
+  it (no effect duration on a spell without a lasting effect, summon attributes only on summons). (Not the common list
+  plus a signature augmentation per spell, not a list of its own for each spell.)
+- SP15 **A system draft comes first:** before the sample of four spells (SP2), a short draft of the system for the
+  user's approval: the Augmentation menu, the attributes and what a rank does, the costs, and the measured power and
+  Mana curve per tier (SP8). Then the sample using it, then the elements. (Not shown together with the sample.)
+- SP16 **Enemies' spells** may carry augmentations, chosen per enemy in the port's enemy revamp (the general port
+  task), stronger and later enemies more. (Not bosses only, not never.)
+
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:
 stat modifiers adding up to about 0, one passive, a seal icon; four male and four female looks each in
