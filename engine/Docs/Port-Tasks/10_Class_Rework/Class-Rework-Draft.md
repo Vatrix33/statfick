@@ -1,6 +1,7 @@
 # Task 10, Class Rework: the draft, every class's identity, levels, requirements and rarity
 
-**For the user's review (written 2026-11-10; the user's review notes applied the same day).** The one draft of task 10 (C14): every class, the 130 in the game and the 40 new ones, with its identity, its number of levels, its requirements and its rarity (colour). Nothing is built yet. The decisions behind it are C1–C19 in `engine/Docs/Engine-Plan.md`, "Decisions for task 10, Class Rework"; the task is `engine/Docs/Port-Tasks/10_Class_Rework.txt`.
+**Approved by the user (2026-11-10; their review notes applied, then the requirement fixes of C28), the reference for
+the port; every class's features are in `Class-Rework-Features.md` beside it.** The one draft of task 10 (C14): every class, the 130 in the game and the 40 new ones, with its identity, its number of levels, its requirements and its rarity (colour). Nothing is built yet. The decisions behind it are C1–C19 in `engine/Docs/Engine-Plan.md`, "Decisions for task 10, Class Rework"; the task is `engine/Docs/Port-Tasks/10_Class_Rework.txt`.
 
 **How to read it**
 - **Identity:** a short description of the class's playstyle, without its skills or passives (they can change) and without specific stat gains. For a current class it is kept, only put into words; where I propose to change one it says **Sharpened** and why (almost always two classes doing the same thing). For a new class it is my proposal.

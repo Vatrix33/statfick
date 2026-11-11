@@ -1,9 +1,10 @@
 # Task 10, Class Rework: the features
 
-The level-by-level features of every class, remade group by group for the user's review (C22). Each class keeps its
+**Approved by the user (2026-11-10 to 2026-11-11), the reference for the port.** The level-by-level features of every
+class, remade group by group for the user's review (C22). Each class keeps its
 identity, levels, requirements and rarity from `Class-Rework-Draft.md`, uses its old features as the reference, and
 gives its passive or its skill at its last level (the capstone rule). **Not built in the old game:** the port builds the
-reworked classes from these drafts once every class is approved (C23).
+reworked classes from these drafts (C23); the old game's classes stay as they are.
 
 **The rules** (the sample's, approved 2026-11-10, C21):
 - A class has **one passive and one skill**. Exceptions: the twelve elemental mages, the classes acquired by an item
@@ -47,7 +48,7 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
   Hermit, Blade Dancer, Hotshot, Juggernaut, Rearguard, Vanguard, Caravanist, Acrobat, Explorer).
 - Batch 10 (approved 2026-11-10; Mastersmith and Seeker level revisions, C29, C30): the new classes, part 2: the other thirteen of the task's list (Smith, Mastersmith, Tinkerer,
   Informant, Infiltrator, Rune Knight, Martial Artist, Reaper, Ascended, Titan, Seeker, Cycle, Unreality).
-- Batch 11, for review: the new classes, part 3, the last: the seven from `classes/newc/` (Chronicler, Shaman, Elder
+- Batch 11 (approved 2026-11-11): the new classes, part 3, the last: the seven from `classes/newc/` (Chronicler, Shaman, Elder
   Shaman, Trickster, Awakened, Warden, Scout) and my eight (Field Medic, Sentinel, Beast Tamer, Sunderer, Camp Cook,
   Leywalker, Nightwalker, Mentor).
 
@@ -2563,7 +2564,7 @@ its to change.
 How it plays: above gold, for the one who has mastered both the madness and the false dream. Reality itself is
 unreliable around it, and once a battle it decides what the rules are. It also frees the Madman from the veil's price.
 
-# Batch 11: the new classes, part 3, the last (for review)
+# Batch 11: the new classes, part 3, the last (approved 2026-11-11)
 
 As in batches 9 and 10. With it, every class has its features.
 

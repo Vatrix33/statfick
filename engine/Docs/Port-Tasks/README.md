@@ -54,17 +54,10 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 10. `10_Class_Rework.txt`: every class reviewed and reworked where needed (identity, requirements, passive and skill, a
     capstone, its colour rarity), then 26 named new classes and 15 more; for the new classes the user is asked about
     each one's identity, levels, requirements and rarity, in that order.
-    **Under review (2026-11-10), for the port:** not built in the old game; the port builds it from the approved
-    drafts, which move into `10_Class_Rework/` beside the task once every class is approved (C23, replacing C1). The
-    features: one passive and one skill per class, but the elemental mages and the item classes (C21, C24, C25). The
-    enemies that use the old classes are fully
-    reworked during the port, not in this task (C2); every class, current and new, is reviewed and listed even if
-    unchanged (C3); of `old-game/classes/newc/` only seven names are added (Chronicler, Shaman, Elder Shaman, Trickster,
-    Awakened, Warden, Scout), counted among the 15, so 8 more of my own (C4, C6, C7); Poisoner, which already exists,
-    is reworked with the current classes, not added (C9), so 40 new classes in all; the review goes through one draft
-    file, `old-game/Docs/Class-Rework-Draft.md` (identity, levels, requirements and rarity of every class), which is how
-    the new classes' four questions are asked (C5, C8, C14); "Ascendend" is Ascended (C10); no class is removed (C11); old saves are ignored
-    (C12). `Engine-Plan.md`, "Decisions for task 10, Class Rework", has them all and what is still to ask.
+    **Designed and approved (2026-11-10 to 2026-11-11), for the port:** not built in the old game; the port builds it
+    from the approved drafts in `10_Class_Rework/` (C23, C31; its README says what each file holds): every class's
+    identity, levels, requirements and rarity (130 current, 40 new), and every class's features level by level. See
+    "Designed for the port" below.
 11. `11_New_races.txt`: three new playable races with icons (Half-Beast, Merfolk made playable, Goliath), each with a
     racial class.
 12. `12_Spell_Rework.txt`: every spell brought up to date (power, scaling, effects, mana cost; tiers kept), two new
@@ -186,6 +179,18 @@ waited, into the same pull request, P1; P2 kept its art placeholder).
   `../../../old-game/Docs/Notes.md`, "Potion Rework"; the old
   game's checks, `old-game/test-client/tests/potion-rework-browser.js`, are the reference the ported rules are tested
   against. Still to do in the port: only the art (below). Old game only.
+
+**Designed for the port, not built in the old game:**
+- Task 10, Class Rework (2026-11-10 to 2026-11-11, a cloud session, C1–C31 in `Engine-Plan.md`, "Decisions for task 10,
+  Class Rework"): the user had the old game left as it is (C23) and the reworked classes built by the port from
+  `10_Class_Rework/`: `Class-Rework-Draft.md` (identity, levels, requirements and rarity of all 170 classes: the 130
+  current, every one reviewed, and 40 new: 25 of the task's names, Poisoner already existing and reworked, seven names
+  from `old-game/classes/newc/` and eight of the session's own) and `Class-Rework-Features.md` (each class's levels,
+  the old beside the remade for current classes, approved in a sample of four and eleven batches). Rules: one passive
+  and one skill per class (exceptions: the elemental mages, the item classes, the Vampire Lord, the Ki Warrior, the
+  Psykic; enemy-only classes outside the rules), the passive or skill at the last level, requirements and skills
+  within a turn's 5 AP. A new rarity, red, above gold, for Unreality alone (its look decided when the port builds it).
+  Also for the port: the full rework of every enemy that uses classes (C2), and the mechanics the features mark "(new)".
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and

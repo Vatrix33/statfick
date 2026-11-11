@@ -122,28 +122,18 @@ The port doesn't build it again; only its placeholder art is remade (`Docs/Port-
 engine (the engine's tests read none of what changed: the one class file they read is untouched), so
 `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count task 9 as the engine's
 current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Potion Rework".
-**Port task 10, Class Rework, is prepared, not started (2026-11-10, a cloud session; the user: "Inform yourself of this
-task, don't start it yet").** Unlike tasks 1–9 it is **not built in the old game: the port builds it** from the
-approved drafts (C23, which replaced C1); the user's first answers are
-C1–C12 in "Decisions for task 10, Class Rework" below (the enemies' classes reworked in the port, every class
-reviewed, seven of the `classes/newc/` drafts' names added, the review through one draft file in `../old-game/Docs/`,
-Poisoner reworked as an existing class, no class removed, old saves ignored, C13 the draft's form, C14 one draft
-instead of two, C15 identities as a short playstyle, C16–C19 the user's review notes and the questions they raised). **The draft is reviewed and the user's notes are
-applied** (2026-11-10): `../old-game/Docs/Class-Rework-Draft.md`, every class's identity, levels, requirements and
-rarity, 130 current and 40 new. The features round: a sample of four remade classes approved (C20, C21), then the
-rest group by group (C22) in `../old-game/Docs/Class-Rework-Features.md` (batch 1, the starting classes and the melee
-fighters, approved 2026-11-10; batch 2, the knights and defenders, the holy warriors and the unarmed fighters, approved
-the same day, the Ki Warrior after its revision with two more Ki skills, C26; batch 3, the archer's path, the rogue's
-path and weapons and spells together, approved, Grand Theft still on a critical hit; batch 4, the mage's path, approved;
-batch 5, the elemental mages and the masters of elements, approved, the Stormcaller at 25 charges of 4%; batch 6,
-priests and healers, summoners and dark pacts, leaders and minds, approved, Overprotective as an intercepting summon; batch 7, luck and the road, trade and the guild, approved, 6-sided
-Luck one roll a battle; batch 8, the race classes, rare items, legends and the rest, approved, Dragon's Breath on the
-Dragonbreath spells; batch 9, the first twelve new classes, approved; batch 10, the other thirteen of the task's list, approved; batch 11,
-the seven newc classes and my eight, the last, waiting for the user's review; once it is approved, both drafts move to
-`Docs/Port-Tasks/10_Class_Rework/`, C23); one passive and one skill per class, but the
-elemental mages, the item classes, the Vampire Lord, the Ki Warrior and the Psykic (C21, C24, C26, C27). Once every class is approved, both drafts move
-to `Docs/Port-Tasks/10_Class_Rework/` beside the task (C23). Nothing changes in the old game. **Engine work goes on
-uninterrupted**; don't count task 10 as the engine's current task.
+**Port task 10, Class Rework, is designed and approved, for the port (2026-11-10 to 2026-11-11, a cloud session).**
+Unlike tasks 1–9 it is **not built in the old game: the port builds it** from the approved drafts (C23, which replaced
+C1), now in `Docs/Port-Tasks/10_Class_Rework/` (C31; its README says what each file holds): `Class-Rework-Draft.md`,
+every class's identity, levels, requirements and rarity (130 current, 40 new; 109 without a colour, 42 blue, 13
+purple, 5 gold, 1 red), and `Class-Rework-Features.md`, every class's level-by-level features (a sample of four, then
+eleven batches, each approved by the user, with their notes applied). The rules they follow: every class reviewed
+(C3), one passive and one skill per class but the elemental mages, the item classes, the Vampire Lord, the Ki Warrior
+and the Psykic (C21, C24, C26, C27), the enemy-only classes outside the rules (C25), the passive or skill at the last
+level (the task's capstone rule), requirements and skills within a turn's 5 AP (C28). All answers: C1–C31 in
+"Decisions for task 10, Class Rework" below. Left for the port: building the classes, the red rarity's look (C16), the
+full rework of every enemy that uses classes (C2), and the "(new)" mechanics the features file marks. Nothing changes
+in the old game. **Engine work goes on uninterrupted**; don't count task 10 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
@@ -1923,7 +1913,8 @@ yet.
   asked: 8.) The new classes are then 40 (41 before C9): the task's 25 other names, the seven of C4 and 8 of my own.
 - C7 **The seven of C4 are names only:** everything about them is proposed fresh. Awakened's and Warden's filled-in
   drafts are not used. (Not their files' identity, levels, requirements and colour.)
-- C8 **Where the drafts go:** `../old-game/Docs/`, beside the old game's notes. (Not `Docs/Port-Tasks/10_Class_Rework/`
+- C8 **Where the drafts go:** `../old-game/Docs/`, beside the old game's notes, while under review (moved to
+  `Docs/Port-Tasks/10_Class_Rework/` once approved, C23, C31). (Not `Docs/Port-Tasks/10_Class_Rework/`
   as task 9's draft was.)
 Asked the same day about what reading the old game turned up:
 - C9 **Poisoner** already exists (`classes/Poisoner.json`, from the earlier batch of 32 new classes that
@@ -1942,7 +1933,7 @@ Said while draft 1 was written (the user's go for it, 2026-11-10):
 - C14 **One draft, not two** (the user, after seeing draft 1: "With the draft being structured like this, I see no
   reason to do a second draft"): identity, levels, requirements and rarity of every class in one file, which the user
   then reviews properly. (Replaces C5's two rounds; draft 1 was folded into it.) It is
-  `../old-game/Docs/Class-Rework-Draft.md` (made by `~/.cache/stat-fick-build/claude-work/class-rework/make_draft.py`,
+  `Class-Rework-Draft.md` (now in `Docs/Port-Tasks/10_Class_Rework/`, C31; made by `~/.cache/stat-fick-build/claude-work/class-rework/make_draft.py`,
   which checks that every class file appears once and that the new classes' required classes exist; the file is the
   source now, edit it directly). Proposed there, for the user to approve: Scavenger 7 → 5 levels (the only change of
   levels); eight identities sharpened where two classes do the same thing (Champion, Bulwark, Cleric, Paladin,
@@ -1977,7 +1968,7 @@ Asked about the notes the same day:
 The features round (2026-11-10):
 - C20 **It starts with a sample of four** (the user: remake one random starting class, one random item-acquired class,
   one random elemental mage and one random class overall, with the old class as the reference and the capstone rule in
-  mind). Drawn at random: Warrior, Vampire, Hierophant, Reaver. Proposed in `../old-game/Docs/Class-Rework-Features.md`
+  mind). Drawn at random: Warrior, Vampire, Hierophant, Reaver. Proposed in `Class-Rework-Features.md` (now in `Docs/Port-Tasks/10_Class_Rework/`, C31)
   (old and remade level by level, with why); not built until approved. It also tries out rules for the rest, for the
   user to judge: no filler levels, once-a-day skills once per battle unless they are big bursts, no self-defeating
   penalties, power by rarity, and Hierophant's shape as the template for all twelve elemental mages.
@@ -2026,7 +2017,11 @@ The features round (2026-11-10):
   in a class that already has it and can't-miss features, and a Search quest's fight starts at its marked spot with no
   search time, G20): the guild's Search quests give the Seeker 25% more money and Reputation. (Not ignoring evasion
   buffs, not more damage after a miss.) Batch 10 approved after it (2026-11-10). Batch 11, the last (the seven newc
-  classes and my eight), written for review; with it every class has its features.
+  classes and my eight), approved as written (2026-11-11); with it every class has its approved features.
+- C31 **The drafts moved, task 10's design done** (2026-11-11, after the last batch's approval, as C23 set): both drafts
+  went from `../old-game/Docs/` to `Docs/Port-Tasks/10_Class_Rework/`, with a README there as task 9's folder has;
+  `Docs/Port-Tasks/README.md` lists task 10 as designed for the port. The scripts that first made the draft
+  (`~/.cache/stat-fick-build/claude-work/class-rework/`) are not kept: the two files are the source.
 - C27 **The Psykic is an exception to the one-skill rule too**, like the Ki Warrior (asked before batch 4): its four
   skills stand in for the spells it doesn't know, with one passive. (Not folded into one skill.)
 - C26 **The Ki Warrior is an exception to the one-skill rule** (the user: "I wanted it to have many skills to simulate a
