@@ -152,8 +152,11 @@ Church of Talos) to raise a spell's attributes, up to 5 ranks each and 10 per sp
 that only the port draws; only the Spellweaver changes elements, scalings and tiers. Measured first (SP8), the curve
 keeps Mana as scarce as now, puts all-enemies spells at 75% and raises the high tiers (SP17–SP22). Where it stands:
 the system draft, `Spell-Augmentation.md`, the sample of four spells (`Spell-Sample.md`) and the element statuses and
-reactions (`Element-Statuses.md`) are approved (SP27, SP31, SP32); next one batch per element (every spell players can
-learn, reworked), then the 168 new spells and the two classes (SP2, SP3, SP15). Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
+reactions (`Element-Statuses.md`) are approved (SP27, SP31, SP32); the element batches have begun (every spell players
+can learn, reworked, in the game's element order: Basic, Fire, Water, Earth, Wind, Lightning, Ice, Holy, Dark, Nature,
+Death, Blood), Basic's (`Batch-01-Basic.md`) waiting for the user's review; then the 168 new spells and the two
+classes (SP2, SP3, SP15). The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
+curve) and a specs file per element. Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
 **Engine work goes on uninterrupted**; don't count task 12 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all

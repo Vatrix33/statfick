@@ -11,7 +11,8 @@ The review's order (SP2, SP15):
    element's status and the reactions between them (SP30). **Both approved (SP31, SP32);** each spell sets its status's
    chance and duration.
 3. One batch per element: every spell players can learn, reworked (the seven boss and enemy-only spells are left out,
-   SP4).
+   SP4), in the game's element order:
+   - `Batch-01-Basic.md`: 33 spells. **Under review.**
 4. The new spells, element by element: two per element in each of Tiers 1–5, one in each of Tiers 6–9, Basic
    included (168, SP3); at least four new summons, one each for Nature and Death and two for the elements with the
    fewest summons.
