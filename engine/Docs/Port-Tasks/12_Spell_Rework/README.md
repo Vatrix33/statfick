@@ -32,7 +32,8 @@ The review's order (SP2, SP15):
    fewest summons: Basic, which has none players can learn (SP34), and Wind (SP48).
    - `New-01-Basic.md`: 14 spells, Basic's summon among them. **Approved (SP49).**
    - `New-02-Fire.md`: 14 spells. **Approved (SP50).**
-   - `New-03-Water.md`: 14 spells. **Under review.** Every element keeps
+   - `New-03-Water.md`: 14 spells. **Approved (SP51).**
+   - `New-04-Earth.md`: 14 spells. **Under review.** Every element keeps
    at least one summon and one Dragonbreath spell (SP33).
 5. The Spellweaver (built around Spell Augmentation, SP9) and the Ritual Caster, added to task 10's drafts
    (`../10_Class_Rework/`).
