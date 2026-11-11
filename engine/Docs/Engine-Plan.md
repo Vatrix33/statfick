@@ -122,6 +122,11 @@ The port doesn't build it again; only its placeholder art is remade (`Docs/Port-
 engine (the engine's tests read none of what changed: the one class file they read is untouched), so
 `Tools/Scripts/test.sh` was not run for it. **Engine work goes on uninterrupted**; don't count task 9 as the engine's
 current task. How it's built, its checks and their results: `../old-game/Docs/Notes.md`, "Potion Rework".
+**Port task 11, New Races, is under way (2026-11-11, a cloud session):** Half-Beast, Goliath and playable Merfolk go
+into the old game now with placeholder icons and looks (T1, T5); their three racial classes (Wildheart, Deepcaller,
+Peakwarden) join task 10's drafts for the port. Decisions T1–T17 in "Decisions for task 11, New Races" below; how it is
+built: `../old-game/Docs/Notes.md`, "New Races". Old game only, as tasks 1–9: the engine's tests read only the six
+existing race seals, which don't change.
 **Port task 10, Class Rework, is designed and approved, for the port (2026-11-10 to 2026-11-11, a cloud session).**
 Unlike tasks 1–9 it is **not built in the old game: the port builds it** from the approved drafts (C23, which replaced
 C1), now in `Docs/Port-Tasks/10_Class_Rework/` (C31; its README says what each file holds); during porting every
@@ -1902,6 +1907,49 @@ Asked after the regression run (2026-11-06):
 - L33 **The victory screen's EXP at your level cap** (Level 100 without Limitless, 200 with it), where you gain none
   (L18): it reads 0 EXP; companions below their cap still gain the battle's EXP. (Not the number with a note, not left
   showing the battle's EXP.)
+
+**Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
+`Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:
+stat modifiers adding up to about 0, one passive, a seal icon; four male and four female looks each in
+`scripts/sprite-catalog.js`; recruit names in `scripts/companions.js`; an accent colour) and its racial classes:
+- T1 **Where:** the races, their icons and looks go into the old game now; the three racial classes are added to task
+  10's drafts for the port (`Docs/Port-Tasks/10_Class_Rework/`), since they follow task 10's reworked race classes,
+  which exist only there. (Not all in drafts for the port, not all in the old game.)
+- T2 **Half-Beast's looks:** one race whose looks vary by beast, one shared racial trait. (Not wolf-kin only, not a
+  beast chosen at creation with its own trait.)
+- T3 **Merfolk's look:** legs on land, with fin ears, scales and webbed hands, so armour and boots fit as everyone's.
+  (Not the enemies' fishtail.)
+- T4 **Goliath's size:** a head taller than humans and heavy-built, with giant-blooded marks (stone-grey skin,
+  rune-like markings), using the same gear. (Not giant-size.)
+- T5 **Art:** simple placeholders, the icons (seals) and the looks alike, to be remade in the port, as the guild
+  interiors were. (Not in the six seals' finished style.)
+- T6 **Review:** question by question, not through a draft file.
+- T7 **Recruits:** the new races appear among the tavern recruits too, with their own names.
+- T8 **Merfolk's passive:** kept (Fishman Physiology: 20% less Water spell damage, 10% more Fire), shared with the
+  merfolk enemies. (Not a new trait for both.)
+- T9 **Half-Beast's stats:** "balanced feral": Strength, Vitality, Dexterity, Wisdom and Speed +1; Mind −1,
+  Intelligence −2, Luck −2. (Not the agile hunter, not the brute.)
+- T10 **Half-Beast's passive: Natural Claws:** its unarmed attacks are claws that grow with its level. (Not Feral
+  Instinct, not Keen Senses.)
+- T11 **Goliath's stats:** "mighty and slow": Strength and Vitality +3, Luck +1; Mind, Dexterity and Speed −2,
+  Intelligence −1. (Not the steadier-minded spread.)
+- T12 **Goliath's passive: Giant's Blood:** maximum HP +10%, Armor +5%, Evasion −10%, a lighter Large Form. (Not
+  Mighty Frame, not Stone Hide.)
+- T13 **The claws count as unarmed:** 1 AP, every unarmed bonus applies (Monk, Brawler, Martial Artist), a little
+  stronger than fists and growing with level. (Not a 2-AP natural weapon like the Beast class's, without unarmed
+  bonuses.)
+- T14 **Half-Beast's beasts:** wolf, fox, bear and lynx, two looks each. (Not wolf, bear and a griffon-feathered kin;
+  not wolf, fox, lynx and boar.)
+- T15 **Merfolk's stats:** kept as the enemies' (Strength +1, Vitality +3, Mind +1, Dexterity +2; Intelligence −2,
+  Speed −1, Luck −2). (Not brought to 0.)
+- T16 **Recruit names:** written by me in each race's style. (Not given by the user.)
+- T17 **The racial classes** (for task 10's drafts; Level 30 and the race, 3 levels, no colour, a passive at level 1
+  and a skill at level 3, like the five existing ones): Half-Beast **Wildheart** (Wild Blood: claws +10% damage, Speed
+  +5%; Strength and Dexterity +5%; Unleash the Beast: 3 turns of +20% claw damage and +15% Speed, once per battle);
+  Merfolk **Deepcaller** (Call of the Deep: Water spell power +15% and no more Fire weakness; Vitality and Mind +5%;
+  Maelstrom: Water damage to every enemy and 15% less Speed for 2 turns, once per battle); Goliath **Peakwarden**
+  (Unmoving: 10% less damage while Guarding, can't be slowed; Armor +10%, Vitality +5%; Mountain's Shelter: every other
+  ally takes 15% less damage for 2 turns, once per battle). (Not Packblood, Tideborn or Giantkin.)
 
 **Decisions for task 10, Class Rework (2026-11-10, a cloud session; the task is `Docs/Port-Tasks/10_Class_Rework.txt`).**
 The user had the task read but not started ("Inform yourself of this task, don't start it yet"), then gave C1–C5 as
