@@ -2326,7 +2326,7 @@ for the drafts the port writes and the user approves then (DG2), in the task's o
 - The eleven throwing items' numbers (prices, the knives' damage, DG43) and the four extra ones (DG39).
 - The smithing materials as items: which drop where and in which dungeons, their Forage odds and prices (DG29–DG32);
   the reforge menu's mark for a carried material (DG26).
-- ~~The Dungeon Delver and the Throwing Specialist~~: drafted now instead (DG75–DG77,
+- Not the two classes any more: the Dungeon Delver and the Throwing Specialist are drafted now (DG75–DG77,
   `Docs/Port-Tasks/14_Dungeons/Classes.md`), for the user's review, then into task 10's drafts.
 - The numbers left open: the Delve chance per board (DG18), the time a stage and a camp take (DG12), Ravenwatch's
   quest text and reward (DG55).
