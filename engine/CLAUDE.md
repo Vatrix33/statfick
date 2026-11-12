@@ -72,4 +72,7 @@ the user and wait for their go-ahead before starting the next one.
 - On the PC a step is also checked on the CPU Vulkan the cloud uses (Mesa's lavapipe):
   `VK_DRIVER_FILES=/usr/share/vulkan/icd.d/lvp_icd.x86_64.json VK_ICD_FILENAMES=$VK_DRIVER_FILES Tools/Scripts/test.sh`.
 - Reference sources: `~/.cache/stat-fick-build/reference-src/` (save new downloads there).
+- The port of the game (after M12): `Docs/Game-Plan.md`, the game's milestones GM1–GM18 (what each builds, its art,
+  its checks against the old game, Blender and Chromium, its questions for the user); read its "How to use this plan"
+  first.
 - Notes kept from earlier sessions (history, gotchas, recipes): `Docs/Notes.md`.

@@ -40,6 +40,9 @@ run on Windows ("Windows check"). The project is one git repo (`../`, see `../CL
 ("Decision on the user's tasks for the port"; "Open questions for later milestones", "At port time"); tasks 1–9 are done
 in the old game, task 11 in the old game for its races, and tasks 10, 12 and 13 are designed and approved for the port
 to build (the paragraphs below); task 14 (Dungeons), the last, is built during the port itself (DG1).
+**The game's milestone plan was written on 2026-11-12 (`Docs/Game-Plan.md`, GM1–GM18, after a survey of the whole
+repo; its GP-1 answers the open question above: the reworks are built in while porting), its open questions are being
+asked, and GM1 starts on the user's go.**
 **Port task 14, Dungeons, is built during the port itself (the user, 2026-11-12, a cloud session; DG1):** nothing of it
 is built in the old game and nothing of it is built or drafted now. Only its design questions are asked now, all of
 them, and their answers recorded in "Decisions for task 14, Dungeons" below (the user: "I dont want you to do the task,
@@ -754,6 +757,14 @@ the design and the tests):
   The detail round (`Docs/Packaging.md`, Q1–Q28), the M12-9 clarification and Q29–Q30 (the BRUTAL splash and the
   credits view, raised by Q11's answer) were answered the same day; nothing is open. How the editor is
   started on Windows (`editor.ps1`, "Windows check", item 8d) is in that doc's step 3.
+- **Decisions for the game plan (2026-11-12):** GP-1–GP-7, the user's, asked through the manager: the reworks built in
+  while porting (GP-1, which answers "whether the approved port tasks 10, 12, 13 and 14 are built while porting or after
+  the faithful port"), milestones cut by aspect (GP-2), each milestone closing with its final art (GP-3), the models
+  made by Blender scripts (GP-4), no early playable loop, the milestones ordered for implementation (GP-5), each
+  milestone's questions asked at its start (GP-6), their answers recorded in `Docs/Game-Plan.md` under "Decisions for
+  GMn" with a line here (GP-7); all in `Docs/Game-Plan.md`, "Decisions for the plan".
+- **Decisions for GM1 (2026-11-12):** `Docs/Game-Plan.md`, GM1, "Decisions for GM1" (GM1-1–GM1-11; GM1-10 answers G2;
+  GM1-12 and GM1-13 open for GM1's design round).
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -783,7 +794,9 @@ the design and the tests):
   mods and the game's mod list are asked: **G2**, what the game does with a mod that has parts it can't read (a kind it
   doesn't know, or a newer version of one, from a newer editor or made by hand): today it loads the mod and stops with
   an error naming the mod and the part only when that part is used; the alternatives are a check of every mod at start
-  that stops naming the mod, or a warning in the log at start, going on as today (recommended then: as today). **G3**,
+  that stops naming the mod, or a warning in the log at start, going on as today (recommended then: as today). **G2 is
+  answered (the user, 2026-11-12, GM1-10 in `Docs/Game-Plan.md`, "Decisions for GM1"):** a mod list in the settings,
+  every mod checked at start, a broken one named and left out. **G3**,
   how the port's own record kinds (items, enemies, spells, shops) reach the editor and the packer, is **closed by M12-9
   (the user, 2026-11-08):** a data library of their own, `Statventure.Game.Data`, with their rules, which the game links
   and the editor loads from the game's folder (not the editor loading the game's program file; not the kinds in the
@@ -3681,3 +3694,4 @@ Each milestone is finished only when its tests pass.
   - Pack editing.
 - [x] **M12 Packaging** (done 2026-11-12):
   - Linux and Windows publish into the shipped folder layout, crash logs.
+- The game's milestones (GM1–GM18) are in `Docs/Game-Plan.md`.

@@ -796,7 +796,7 @@ later milestones", "At port time").
   naming the mod and the part. (c) When it starts, it writes a warning naming such parts in its log and goes
   on as today.
   **Outcome: not asked now, kept for the port** (where mods and the game's mod list are asked); the game stays
-  as today (a), and no M11 step changes it.
+  as today (a), and no M11 step changes it. **Answered 2026-11-12** (GM1-10, `Docs/Game-Plan.md`, "Decisions for GM1").
 - **G3. How the game's own kinds of data (items, enemies, spells, shops, once the port makes them) reach the
   editor** (M11-2: editable with no new editor code).
   (a) The port keeps them, with their rules, in a data library of their own (one file shipped beside the
