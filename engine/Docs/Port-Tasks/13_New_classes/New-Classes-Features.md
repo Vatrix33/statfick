@@ -1,6 +1,6 @@
 # Task 13, New Classes: the features
 
-**Under review: the sample of four and batch 1 approved (2026-11-12, NC11, NC12); batch 2 written for review.** The level-by-level features of the 79 new
+**Under review: the sample of four and batches 1 and 2 approved (2026-11-12, NC11–NC13); batch 3 written for review.** The level-by-level features of the 79 new
 classes, made for the port (NC1). Each keeps the identity, levels, requirements and rarity approved in
 `New-Classes-Draft.md` (NC9). It starts with a sample of four, one class from each focus drawn at random, as task 10's
 features began (C20); the rest follow in batches once the sample is approved, the user's notes on each batch shaping
@@ -29,9 +29,11 @@ do and the port would need to add.
 - Batch 1 (approved 2026-11-12, Bribe never on bosses): the rest of the task's single-focus classes: Twinblade,
   Avenger, Crusher (melee); Arbalest, Fletcher, Deadeye (ranged); Enchanter, Riftmage, Glyphmage (spells); Cutthroat,
   Opportunist, Con Artist (the rogue's path).
-- Batch 2 (for review): the six pairs: Warcaster, Cinderblade (melee and spells); Wandslinger, Prism Archer (ranged and
+- Batch 2 (approved 2026-11-12): the six pairs: Warcaster, Cinderblade (melee and spells); Wandslinger, Prism Archer (ranged and
   spells); Spellthief, Illusionist (rogue and spells); Corsair, Thug (melee and rogue); Ranger, Skirmisher (melee and
   ranged); Sniper, Poacher (rogue and ranged).
+- Batch 3 (for review): the nine without a focus: Prodigy, Steadfast, Equilibrist, Fateweaver, Conqueror, Martyr,
+  Financier, Collector, Chameleon.
 
 # The sample of four (approved 2026-11-12)
 
@@ -329,7 +331,7 @@ its next turn instead.)*
 How it plays: the most use outside battle, in every shop and guild payout; in battle a slippery talker, and once a
 fight it buys an enemy out of it, trading that enemy's rewards for a shorter, safer battle. Bosses can't be bought.
 
-# Batch 2: the six pairs (for review)
+# Batch 2: the six pairs (approved 2026-11-12)
 
 Twelve classes, two for each pair of paths, each built in its own shape (NC11): four get their passive at level 1,
 three their skill at level 1, two their skill at level 2 after a first feature, three their passive at level 3; the
@@ -541,3 +543,163 @@ brings down.
 
 How it plays: a hunter's trade turned to profit: the beasts of the wild pay better when the Poacher is along, and its
 snare holds the most dangerous of them for the party. The Beast Tamer keeps animals; the Poacher sells them.
+
+# Batch 3: the nine without a focus (for review)
+
+Nine classes that belong to no path, built in their own shapes (NC11): two get their passive at level 1, two their
+skill at level 1, two their skill at level 2 after a first feature, two their passive at level 3, one its skill at
+level 3; the capstone is a skill for four and a passive for five. Some do most of their work outside battle, as the
+road and trade classes of task 10 do.
+
+## Prodigy
+
+4 levels · rarity no colour · Requires: Level 5 · Defeat an enemy at least 10 levels above you
+Identity: A fast learner: gains experience quicker than anyone, and picks up a new class's ways in a fraction of the
+time.
+
+| Level | Feature |
+|---|---|
+| 1 | You gain 15% more experience, 30% more from enemies above your level |
+| 2 | **Beginner's Luck** (skill, once per battle, no AP): your next attack or spell gains 25% power for every 5 levels its target is above you, up to +75% |
+| 3 | Your lowest stat +10% |
+| 4 | **Gifted** (passive, capstone): the first level of the next 2 classes you take costs no perk point (new) |
+
+How it plays: an early class (Level 5) that speeds up the climb, best for a character that likes to fight above its
+level. A perk point comes with each level up to 100 and a class level costs one; Gifted gives two of Prodigy's four
+back, so its levels are cheap as well as quick.
+
+## Steadfast
+
+5 levels · rarity no colour · Requires: Level 20 · Win 20 battles while carrying a status an enemy put on you
+Identity: Shrugs off what the enemy puts on it: statuses and weakenings fade fast, and often never take hold.
+
+| Level | Feature |
+|---|---|
+| 1 | Statuses and debuffs on you last 1 turn less (at least 1 turn) |
+| 2 | Vitality and Mind +5% |
+| 3 | **Unshaken** (passive): each status, debuff or stun an enemy puts on you has a 35% chance not to take hold (new) |
+| 4 | Maximum HP +10%; Armor +5% |
+| 5 | **Shake It Off** (skill, capstone; once per battle, 1 AP): remove every status and debuff from yourself; for 2 turns nothing new takes hold on you |
+
+How it plays: once the port's enemies cast task 12's statuses on heroes (Burning, Chilled, Hexed and the rest), the
+Steadfast is the one they don't stick to; a sound class for any character that keeps getting frozen, stunned or cursed.
+
+## Equilibrist
+
+5 levels · rarity no colour · Requires: Level 30 · No stat more than a quarter above your lowest
+Identity: Strength in balance: the more evenly its stats are spread, the better it does everything, with no single
+weakness to exploit.
+
+| Level | Feature |
+|---|---|
+| 1 | **Balance** (passive): while no stat of yours is more than a quarter above your lowest, all your stats are 8% higher; up to a third above, 4% (new) |
+| 2 | Your two lowest stats +5% |
+| 3 | Maximum HP and maximum Mana +10% |
+| 4 | Each of your elemental resistances counts as at least 15 (new) |
+| 5 | **Centered** (skill, capstone; once per battle, 1 AP): for 3 turns your Balance bonus doubles and you can't be critically hit |
+
+How it plays: the reward for a build that spreads its points: a little better at everything, with no element that
+hurts it much more than another. It suits a character that fights with weapons and spells alike.
+
+## Fateweaver
+
+5 levels · rarity blue · Requires: Level 25 · Bard 5 · At least 100 Luck
+Identity: Doesn't trust to luck, it spends it: chooses when fortune turns, sparing an ally a deadly blow or making a
+hit land.
+
+| Level | Feature |
+|---|---|
+| 1 | **Twist Fate** (skill, no AP, also outside your turn; once per battle for every 50 Luck you have, up to 4 times): turn an ally's miss into a hit, or an enemy's critical hit on an ally into a normal hit (new) |
+| 2 | Luck +10% |
+| 3 | Twist Fate can also turn an ally's hit into a critical hit |
+| 4 | Speed and Mind +5% |
+| 5 | **Fate's Favourite** (passive, capstone): the first time in each battle that an ally would fall, they keep 1 HP instead (new) |
+
+How it plays: the luck classes of task 10 (Bard, Jester, Joker, Gambit) let chance decide; the Fateweaver decides when
+chance goes the party's way, a few times a battle, more with more Luck. At its capstone it keeps an ally standing once
+a battle.
+
+## Conqueror
+
+5 levels · rarity no colour · Requires: Level 20 · Win 50 battles in a row without a defeat
+Identity: Lives for the next victory: every battle won in a row makes it stronger, until it loses.
+
+| Level | Feature |
+|---|---|
+| 1 | While you have won 5 battles or more in a row, battles give you 10% more experience |
+| 2 | Maximum HP +10%; Speed +5% |
+| 3 | **Winning Streak** (passive): each battle won in a row gives you +1% damage and +1% Armor, up to +10% at 10 wins; a defeat or a battle fled from starts it again (new) |
+| 4 | With 10 wins or more in a row, your first turn in each battle comes 100 sooner |
+| 5 | **Claim Victory** (skill, capstone; once per battle, 2 AP): a weapon attack with double damage on an enemy below 30% HP; if it defeats it, your streak counts one more win |
+
+How it plays: a careful player's class: never lose, never run, and it stays at its best; ten wins rebuild the streak
+after a loss. Its finisher feeds the streak it lives on.
+
+## Martyr
+
+4 levels · rarity no colour · Requires: Level 15 · Fall in 10 battles your party went on to win
+Identity: Its fall is never in vain: when it goes down its allies rise stronger, and the harder it fought, the more
+they gain.
+
+| Level | Feature |
+|---|---|
+| 1 | **Last Gift** (passive): when you fall, each ally heals 15% of their maximum HP and deals 15% more damage for 3 turns; both rise by 5% for each enemy you defeated in the battle, up to +15% more (new) |
+| 2 | Vitality and Mind +5% |
+| 3 | Maximum HP +10%; Last Gift also removes one debuff from each ally |
+| 4 | **Final Stand** (skill, capstone; once per battle, 2 AP): for 2 turns every attack aimed at an ally strikes you instead, and you take 30% less damage; if you fall during it, Last Gift is doubled |
+
+How it plays: a front-liner whose fall turns a battle rather than losing it: the party heals and hits harder the
+moment it drops, and the more it did before, the bigger the gift. Revived afterwards, it can give again.
+
+## Financier
+
+4 levels · rarity no colour · Requires: Level 20 · Hold 50,000 silver at once
+Identity: Makes money work while it adventures: its savings grow day by day, and its stakes in the towns pay back in
+goods and favours.
+
+| Level | Feature |
+|---|---|
+| 1 | **Stake** (skill, in a town, once a day): invest up to 20,000 silver in the town's trade, in one town at a time: after 7 days it comes back with 15% more, and while it is invested the town's shops sell to the party for 10% less (new) |
+| 2 | Luck and Mind +5% |
+| 3 | Your stakes come back after 5 days, and you can hold stakes in up to 3 towns at once |
+| 4 | **Interest** (passive, capstone): each day the silver you carry grows by 0.5%, up to 500 silver a day (new) |
+
+How it plays: a class for the road and the town, like the Caravanist and the Salesman: it barely fights better, but
+its money grows while the party travels, and the towns it invests in treat the party well. The Salesman earns more
+from selling; the Financier earns from what it already has.
+
+## Collector
+
+5 levels · rarity blue · Requires: Level 25 · Own 10 different masterworks over time
+Identity: Keeps one of everything: grows stronger with each different masterwork and artifact it has owned, whether
+it carries them or not.
+
+| Level | Feature |
+|---|---|
+| 1 | The masterworks you wear are 10% stronger (their power and their effects) (new) |
+| 2 | Mind and Luck +5% |
+| 3 | **Showcase** (skill, once per battle, 1 AP): call on a masterwork you own but aren't wearing: for 3 turns you have its effects as if you wore it (new) |
+| 4 | Maximum HP and maximum Mana +10% |
+| 5 | **Collection** (passive, capstone): +1% to all your stats for every 2 different masterworks you have ever owned, up to +10% (at 20) (new) |
+
+How it plays: every masterwork found is worth something to it, even one it never wears: its whole collection lifts its
+stats, and once a battle it borrows the effect of a piece left in the pack. The Relic Warden makes the most of what it
+wears; the Collector of everything it has ever had.
+
+## Chameleon
+
+5 levels · rarity no colour · Requires: Level 20 · Be hit by spells of 10 different elements
+Identity: Adapts as it fights: hardens against whatever hits it, an element or a kind of attack, the longer a battle
+goes.
+
+| Level | Feature |
+|---|---|
+| 1 | Armor +5%; you take 5% less damage of the element that last hit you |
+| 2 | **Mimetic Hide** (skill, once per battle, 1 AP): take on an enemy's resistances for 3 turns: each of your elemental resistances becomes the higher of yours and its, up to 50 (new) |
+| 3 | Vitality and Mind +5% |
+| 4 | Maximum HP +10% |
+| 5 | **Adaptation** (passive, capstone): each hit of an element raises your resistance to it by 5 for the rest of the battle, up to 25; each weapon hit raises your Armor by 3%, up to +15% (new) |
+
+How it plays: the longer the fight, the less the same attack hurts: against an enemy that keeps casting one element,
+it soon shrugs it off. The Elemental Siphon turns the elements back on the enemy; the Chameleon simply stops minding
+them.
