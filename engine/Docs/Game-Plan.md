@@ -350,10 +350,11 @@ readable JSON in the Documents folder through an in-game file picker. The old El
 Ctrl+S, Load Character Ctrl+O, Open game folder, Quit; View › reload, zoom, fullscreen; Help › About) becomes an in-game
 menu (Decisions for M5: no native menu bar, no OS dialogs), About showing the credits with BRUTAL's copyright (M12 Q11).
 The Settings screen holds the volumes (music, and the master and effects volumes M8 added), zoom, fullscreen, the theme
-(both kept, dark by default, GM1-4), Dev Mode's switch (the old ✦ button disabled, GM1-3) and the mod list (each mod
-named from its `mod/info`, every mod checked at start, a broken one named and left out, GM1-10); the battle settings
-join it in GM5. Buttons and windows opening and closing sound softly (GM1-11). There is nothing to play yet: the sheet
-comes with GM2.
+(both kept, dark by default, GM1-4), Dev Mode's switch (the old ✦ button disabled, GM1-3; off by default and turned on
+there when wanted, GM1-12; kept in `settings.json`, the same for every character, as the theme is, GM1-13) and the mod
+list (each mod named from its `mod/info`, every mod checked at start, a broken one named and left out, GM1-10); the
+battle settings join it in GM5. Buttons and windows opening and closing sound softly (GM1-11). There is nothing to play
+yet: the sheet comes with GM2.
 
 **What the old game has.**
 - The desktop shell (`desktop/`, Electron 44.5.0): `main.cjs` (94 lines: the `statfick://game/` protocol, the check that
@@ -408,8 +409,8 @@ comes with GM2.
   damaged-save question ("use the backup, start new", Q17), the file picker (Q19), the in-game menu, About with the
   credits, the mod list: built from the old game's panels, buttons and dialogs and shown as captures before their tests
   (GM1-8).
-- Dev Mode moved into the settings screen, the sheet's ✦ button disabled (GM1-3; its default and where its state is
-  kept: GM1-12, GM1-13).
+- Dev Mode moved into the settings screen, the sheet's ✦ button disabled (GM1-3); off by default (GM1-12) and kept in
+  `settings.json`, the same for every character (GM1-13), so the save doesn't hold it.
 - The mod list and the check of every mod at start (GM1-10, which answers M11's G2): a broken mod is named and left
   out instead of stopping the game when its part is used.
 - The port's own stylesheet in `ui.pak` ("What M9 leaves for the port"), started from the old game's current
@@ -444,7 +445,8 @@ extends.
 
 **Decisions for GM1 (the user, 2026-11-12, the question tool, asked by the manager before the milestone; GP-6):**
 every answer was the recommended option except Dev Mode (GM1-3, the user's own answer), the mod list (GM1-10) and the
-interface sounds (GM1-11).
+interface sounds (GM1-11). GM1-12 and GM1-13, which GM1-3's answer left open, were asked after the eleven the same day
+and answered as recommended.
 - GM1-1 **The game-screen references:** captured again once at GM1's start, all 11 states at 1 and 1.65 from today's
   old game, the tests' stylesheet copy brought up to it. (Not screen by screen as each milestone reaches its screen.)
 - GM1-2 **After the splash:** a start screen in the game's look with Continue (the last character), New character, Load
@@ -453,9 +455,9 @@ interface sounds (GM1-11).
 - GM1-3 **Dev Mode, the user's own answer, none of the options:** "Toggleable from the settings, old button disabled".
   Dev Mode is switched on and off in the settings screen; the old ✦ button beside the game's name on the sheet is
   disabled. Whether the disabled button stays (present but inert) or goes is left to the step that builds the top bar,
-  and asked if it would show the player something different. Its default for a new character was not stated (GM1-12),
-  nor where its state is kept (GM1-13). (Not the ✦ switch kept and off for a new character, the recommendation; not kept
-  and on, as the old game; not development builds only; not moved into the editor.)
+  and asked if it would show the player something different. Its default for a new character and where its state is
+  kept were not stated; asked afterwards as GM1-12 and GM1-13. (Not the ✦ switch kept and off for a new character, the
+  recommendation; not kept and on, as the old game; not development builds only; not moved into the editor.)
 - GM1-4 **The theme:** a game setting in `settings.json`, both themes kept, dark by default. (Not per character and
   light by default, as the old game; not dark only.)
 - GM1-5 **Randomness and reloading:** as the old game, every load draws fresh randomness; the random state is not saved.
@@ -475,14 +477,12 @@ interface sounds (GM1-11).
   log at start.)
 - GM1-11 **Interface sounds, not the recommendation:** soft sounds for buttons and for windows opening and closing,
   besides the game-event sounds. (Not game events only, the recommendation.)
-
-**Open questions for the user** (from GM1-3's answer):
-- GM1-12 **Dev Mode's default** (to ask in GM1's design round; GM1-3 didn't state it): (a) off [recommended: a new
-  hero starts without editing]; (b) on, as the old game does for a new character.
-- GM1-13 **Where Dev Mode's state is kept** (to ask with GM1-12; "toggleable from the settings" doesn't say): (a) in
-  `settings.json`, the same for every character [recommended: it is switched in the settings screen, and the theme
-  became a game setting too, GM1-4]; (b) with each character, as the old game (recruits with it off), the settings
-  screen showing the current character's.
+- GM1-12 **Dev Mode's default** (the user, 2026-11-12, the question tool, asked by the manager after the eleven; GM1-3
+  hadn't stated it): off by default for a new character; it is turned on in the settings when wanted. (Not on by
+  default, as the old game for a new character.)
+- GM1-13 **Where Dev Mode's state is kept** (the user, 2026-11-12, asked with GM1-12; "toggleable from the settings"
+  hadn't said): in `settings.json`, the same for every character, switched in the settings screen like the theme
+  (GM1-4). (Not with each character, as the old game did, the settings screen showing the current character's.)
 
 ## GM2 The hero: the character sheet, races and looks
 
@@ -1684,11 +1684,11 @@ companions (each a full record), recruit offers, pending class spell choices, th
 The port's save adds: Spell Augmentation's ranks and weavings per hero and companion (task 12, `Spell-Augmentation.md`
 §10); tasks 10, 13 and 14's new counts and the Moonfang; the smithing materials; the dungeon state (the dungeon, its
 stage, the stages cleared, bomb stuns used, Waylight, bosses met; the battle and stage resumed on load: "Decisions for
-task 14", "Following from the answers"); Dev Mode's state if GM1-13 keeps it with the character (the theme is a game
-setting, GM1-4, and the random state is not saved, GM1-5). Its form is M9's: a binary versioned record behind the `SVSV`
-header, named slots with a `.bak`, a damaged slot set aside and the player asked, written on every request by the
-background writer. Each milestone adds its part as a new version with its `Upgrade()` and committed fixtures, so a save
-made in GM2 loads in GM18 (the port's own saves are upgraded; the old game's never). No old save's size was ever
+task 14", "Following from the answers"). It doesn't hold Dev Mode's state or the theme, which are game settings in
+`settings.json` (GM1-13, GM1-4), nor the random state (GM1-5). Its form is M9's: a binary versioned record behind the
+`SVSV` header, named slots with a `.bak`, a damaged slot set aside and the player asked, written on every request by
+the background writer. Each milestone adds its part as a new version with its `Upgrade()` and committed fixtures, so a
+save made in GM2 loads in GM18 (the port's own saves are upgraded; the old game's never). No old save's size was ever
 measured; GM5 measures the save with a battle in it.
 
 ### Dev Mode
@@ -1696,7 +1696,8 @@ measured; GM5 measures the save with a battle in it.
 The old game turns it on for a new character and saves it with the character; it unlocks editing the attributes,
 bonuses and the purse, the EXP form, "Restore to full", the spell and item catalogues, the Combat test screen, levelling
 without EXP, companion dev tools and Force encounter. In the port it is switched in the settings screen and the old ✦
-button is disabled (GM1-3); its default and where its state is kept are GM1-12 and GM1-13. The tests reach the same
+button is disabled (GM1-3); it is off by default and turned on in the settings when wanted (GM1-12), and its state is
+kept in `settings.json`, the same for every character, as the theme's is (GM1-13, GM1-4). The tests reach the same
 powers through the game's API, not its screens.
 
 ### Randomness and seeding
@@ -1831,11 +1832,10 @@ Found against the repo on 2026-11-12; the repo's figures are the ones used above
 ## What this plan leaves open
 
 Every question below is about the game. Each milestone's are asked with the question tool when it begins (GP-6) and
-answered in its section (GP-7); GM1's eleven were answered on 2026-11-12 ("Decisions for GM1"), and GM1-12 and GM1-13
-came out of GM1-3's answer. The sound questions are asked with their milestones (GM1-6).
+answered in its section (GP-7); GM1's thirteen were all answered on 2026-11-12 ("Decisions for GM1": the eleven, then
+GM1-12 and GM1-13, which came out of GM1-3's answer), so none of GM1's is left. The sound questions are asked with their
+milestones (GM1-6).
 
-- GM1-12 Dev Mode's default: off / on (GM1's design round).
-- GM1-13 Where Dev Mode's state is kept: settings.json / with each character (with GM1-12).
 - GM2-1 The 72 looks: faithful 3D remakes / new looks per race / a character maker.
 - GM2-2 The hero on the sheet: no figure / a live 3D figure.
 - GM2-3 Palettes, light, lines, hatching: the engine's look with the old palettes / a new palette.
@@ -1892,8 +1892,8 @@ came out of GM1-3's answer. The sound questions are asked with their milestones 
 - GM18-1 The icons: new ones from the game's art / the old icon for the game.
 - GM18-2 The editor for the game's kinds: the generic form / special views.
 
-Questions per milestone: GM1 2, GM2 5, GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
-GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 57 in all.
+Questions per milestone: GM1 0, GM2 5, GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
+GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
 
 ## Status
 
@@ -1902,5 +1902,6 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 57 in all.
   the milestones reordered for it), GP-6 (each milestone's questions asked at its start) and GP-7 (the answers recorded
   here, a pointer in `Docs/Engine-Plan.md`), then GM1's eleven questions ("Decisions for GM1": all as recommended but
   Dev Mode in the settings with the old button disabled, the user's own answer; the mod list with a check at start,
-  which answers M11's G2; soft interface sounds). Open for GM1's design round: GM1-12 and GM1-13. No milestone started;
-  GM1 starts on the user's go.
+  which answers M11's G2; soft interface sounds), and after them GM1-12 and GM1-13, both as recommended (Dev Mode off
+  by default; its state in `settings.json`, the same for every character): GM1's questions are all answered. No
+  milestone started; GM1 starts on the user's go.

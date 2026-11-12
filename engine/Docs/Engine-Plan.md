@@ -763,8 +763,8 @@ the design and the tests):
   made by Blender scripts (GP-4), no early playable loop, the milestones ordered for implementation (GP-5), each
   milestone's questions asked at its start (GP-6), their answers recorded in `Docs/Game-Plan.md` under "Decisions for
   GMn" with a line here (GP-7); all in `Docs/Game-Plan.md`, "Decisions for the plan".
-- **Decisions for GM1 (2026-11-12):** `Docs/Game-Plan.md`, GM1, "Decisions for GM1" (GM1-1–GM1-11; GM1-10 answers G2;
-  GM1-12 and GM1-13 open for GM1's design round).
+- **Decisions for GM1 (2026-11-12):** `Docs/Game-Plan.md`, GM1, "Decisions for GM1" (GM1-1–GM1-13; GM1-10 answers G2;
+  GM1-12 and GM1-13, from GM1-3's answer, answered the same day: Dev Mode off by default, its state in `settings.json`).
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
