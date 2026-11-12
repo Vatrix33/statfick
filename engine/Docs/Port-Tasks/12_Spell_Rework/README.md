@@ -41,7 +41,8 @@ The review's order (SP2, SP15):
    - `New-09-Dark.md`: 14 spells. **Approved (SP57).**
    - `New-10-Nature.md`: 14 spells, Nature's summon among them. **Approved (SP58).**
    - `New-11-Death.md`: 14 spells, Death's summon among them. **Approved (SP59).**
-   - `New-12-Blood.md`: 14 spells, the last. **Under review.** Every element keeps
+   - `New-12-Blood.md`: 14 spells, the last. **Approved (SP62).** All 168 new spells are approved; 28 spells across the
+     reworked and new ones borrow another element's status (SP60, SP61; `Element-Statuses.md`, "Borrowed statuses"). Every element keeps
    at least one summon and one Dragonbreath spell (SP33).
 5. The Spellweaver (built around Spell Augmentation, SP9) and the Ritual Caster, added to task 10's drafts
    (`../10_Class_Rework/`).

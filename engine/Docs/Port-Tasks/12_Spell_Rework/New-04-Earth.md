@@ -4,7 +4,7 @@
 each of Tiers 6–9. They follow the approved system and curve (`Spell-Augmentation.md`), the sample's style and the
 element statuses (`Element-Statuses.md`). Prices are the tier's usual. [X] values are for the raw caster of the system
 draft (no classes or gear) at the level the tier unlocks and at Level 100.
-**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
+**Updated 2026-11-12 (SP60, SP61):** some spells here borrow another element's status; each says so ("borrowed, SP60" or "SP61").
 
 ## What Earth gains
 
@@ -25,7 +25,7 @@ resisted by bosses).
 |---|---|---|---|---|---|
 | 1 | Pebble Shot | offensive, one target | 2 | 8 | 2 AP, 25% Crack |
 | 1 | Stoneskin | defensive, yourself or an ally | 3 | 12 | weapon damage −15% for 3 turns |
-| 2 | Sandblast | offensive, all enemies | 3 | 22 | 30% chance to Crack each enemy |
+| 2 | Sandblast | offensive, all enemies | 3 | 22 | 30% Crack and 25% Off-Balance on each enemy (borrowed status) |
 | 2 | Earthen Wall | defensive, all allies | 3 | 22 | ranged attacks on your side deal 30% less for 3 turns |
 | 3 | Taunting Stone | defensive, yourself or an ally | 3 | 34 | 2 turns: enemies' single-target attacks 50% likely to aim at them; −15% damage |
 | 3 | Boulder | offensive, one target | 3 | 35 | 40% Off-Balance (borrowed status), 30% Crack |
@@ -57,9 +57,9 @@ resisted by bosses).
 
 ### Sandblast: Tier 2, offensive, all enemies (new spell)
 
-- **The spell:** 3 AP, 22 Mana, 1,450 silver; power 6 + Int ×0.35 + Str ×0.1 (65% of the tier's reference, 75% for all enemies, less its effect). Each enemy struck has a 30% chance to be **Cracked** (1 stack) for 3 turns.
-- **Description:** "Scour all enemies with blasting sand for [X] Earth damage; each has a 30% chance to be Cracked."
-- **[X]:** Level 10: 23; Level 100: 142.
+- **The spell:** 3 AP, 22 Mana, 1,450 silver; power 5 + Int ×0.32 + Str ×0.1 (60% of the tier's reference, 75% for all enemies, less its effect). Each enemy struck has a 30% chance to be **Cracked** (1 stack) for 3 turns. Each enemy also has a 25% chance to be put **Off-Balance** (Wind's status, borrowed, SP61) for 2 turns: blinding sand.
+- **Description:** "Scour all enemies with blasting sand for [X] Earth damage; each has a 30% chance to be Cracked. Each also has a 25% chance to be blinded Off-Balance."
+- **[X]:** Level 10: 20; Level 100: 130.
 - **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** A group Crack a tier earlier than Faultline.
 

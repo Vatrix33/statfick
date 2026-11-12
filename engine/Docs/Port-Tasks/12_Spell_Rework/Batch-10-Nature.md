@@ -6,7 +6,7 @@ style (`Spell-Sample.md`) and the element statuses (`Element-Statuses.md`): each
 duration (SP32). Tiers and prices stay. "(new)" marks a mechanic the game doesn't have yet. [X] values are for the raw
 caster of the system draft (no classes or gear) at the level the tier unlocks and at Level 100, shown for a
 Wisdom-first caster as Nature's spells scale with Wisdom and Mind.
-**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
+**Updated 2026-11-12 (SP60, SP61):** some spells here borrow another element's status; each says so ("borrowed, SP60" or "SP61").
 
 ## Nature's identity
 
@@ -62,7 +62,7 @@ thorns that grow inside a target, raising maximum HP for a few turns.
 | 8 | Worldbloom | defensive, all allies | 3 | 170 | heals every ally, healing received +20% |
 | 8 | Ancestor Root | offensive, one target | 3 | 190 | always Roots for 3 turns |
 | 9 | Elderwood Renewal | defensive, all allies | 3 | 240 | heals every ally, maximum HP +15% |
-| 9 | Thorn Tyrant | offensive, one target | 3 | 260 | thorns grow in it: 20% of [X] each turn; always Roots |
+| 9 | Thorn Tyrant | offensive, one target | 3 | 260 | thorns grow in it (20% of [X] each turn); always Roots; 40% Bleed (borrowed status) |
 | 10 | Worldseed Miracle | defensive, all allies | 3 | 350 | heals, all stats +10% kept, cleanses every ally |
 
 ## The spells
@@ -338,10 +338,10 @@ thorns that grow inside a target, raising maximum HP for a few turns.
 ### Thorn Tyrant: Tier 9, offensive, one target
 
 - **Now:** 3 AP, 260 Mana, power 95 + Wis ×1 + Mind ×0.5. Impale one enemy for [X] Nature damage and reduce healing received by 25% for 2 turns.
-- **Reworked:** 3 AP, 260 Mana; power 38 + Wis ×2.23 + Mind ×0.64 (85% of the tier's reference, and 20% of [X] at each of its next 3 turns). The thorns grow inside it: at the start of each of its next 3 turns it takes 20% of [X] (new), and it is always **Rooted** for 3 turns (was healing received −25%).
-- **Description:** "Impale one enemy on a tyrant's thorns for [X] Nature damage; they grow in it for 20% of that at the start of each of its next 3 turns, and it is Rooted for 3 turns."
-- **[X], now → reworked:** Level 80: 476 → 798; Level 100: 568 → 983.
-- **Augments:** Power, Resistance penetration, Effect strength, Effect duration, Mana cost.
+- **Reworked:** 3 AP, 260 Mana; power 36 + Wis ×2.1 + Mind ×0.6 (80% of the tier's reference, and 20% of [X] at each of its next 3 turns). The thorns grow inside it: at the start of each of its next 3 turns it takes 20% of [X] (new), and it is always **Rooted** for 3 turns (was healing received −25%). A 40% chance to make it **Bleed** (Blood's status, borrowed, SP61) for 3 turns.
+- **Description:** "Impale one enemy on a tyrant's thorns for [X] Nature damage; they grow in it for 20% of that at the start of each of its next 3 turns, and it is Rooted for 3 turns. It has a 40% chance to Bleed."
+- **[X], now → reworked:** Level 80: 476 → 752; Level 100: 568 → 926.
+- **Augments:** Power, Resistance penetration, Effect strength, Effect duration, Effect chance, Mana cost.
 - **Why:** Nature's great single-target spell; healing loss is Death's.
 
 ### Worldseed Miracle: Tier 10, defensive, all allies

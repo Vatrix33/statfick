@@ -4,7 +4,7 @@
 in each of Tiers 6–9. They follow the approved system and curve (`Spell-Augmentation.md`), the sample's style and the
 element statuses (`Element-Statuses.md`). Prices are the tier's usual. [X] values are for the raw caster of the system
 draft (no classes or gear) at the level the tier unlocks and at Level 100.
-**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
+**Updated 2026-11-12 (SP60, SP61):** some spells here borrow another element's status; each says so ("borrowed, SP60" or "SP61").
 
 ## What Lightning gains
 
@@ -37,7 +37,7 @@ made stronger and dearer.
 | 5 | Static Field | offensive, the whole field | 3 | 75 | 3 turns: every enemy that casts a spell takes [X], 50% Shock |
 | 5 | Supercharge | offensive, yourself or an ally | 2 | 52 | 2 AP: their next spell +40% power, costs 30% more |
 | 6 | Lightning Rod | defensive, yourself or an ally | 3 | 100 | 3 turns: draws enemy Lightning spells; takes half and turns some into Mana |
-| 7 | Raging Storm | offensive, all enemies | 4 | 168 | 4 AP: Shocks every enemy for certain |
+| 7 | Raging Storm | offensive, all enemies | 4 | 168 | 4 AP: Shocks every enemy; 30% Soak (borrowed status) |
 | 8 | Wrath Bolt | offensive, one target | 5 | 252 | 5 AP: one enormous bolt, 50% stun |
 | 9 | Superconductor | offensive, all enemies | 3 | 250 | 3 turns: Lightning damage to one enemy strikes all others for 30% |
 
@@ -128,10 +128,10 @@ made stronger and dearer.
 
 ### Raging Storm: Tier 7, offensive, all enemies (new spell)
 
-- **The spell:** 4 AP, 168 Mana, 17,500 silver; power 29 + Int ×1.73 + Speed ×0.49 (95% of the tier's reference, the 4 AP rule on an all-enemies spell). A heavy 4 AP storm; every enemy struck is always **Shocked**.
-- **Description:** "Unleash a raging storm on all enemies for [X] Lightning damage, Shocking every one of them. This spell costs 4 AP."
-- **[X]:** Level 60: 438; Level 100: 700.
-- **Augments:** Power, Resistance penetration, Mana cost.
+- **The spell:** 4 AP, 168 Mana, 17,500 silver; power 28 + Int ×1.64 + Speed ×0.47 (90% of the tier's reference, the 4 AP rule on an all-enemies spell). A heavy 4 AP storm; every enemy struck is always **Shocked**. Each enemy also has a 30% chance to be **Soaked** (Water's status, borrowed, SP61) for 2 turns by the storm's rain, ready for Electrocute.
+- **Description:** "Unleash a raging storm on all enemies for [X] Lightning damage, Shocking every one of them. The storm's rain has a 30% chance to Soak each of them. This spell costs 4 AP."
+- **[X]:** Level 60: 416; Level 100: 665.
+- **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** Lightning's biggest group hit below Tier 10, for most of a turn.
 
 ### Wrath Bolt: Tier 8, offensive, one target (new spell)

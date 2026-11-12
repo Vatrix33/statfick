@@ -59,7 +59,7 @@ When a spell hits a target that carries another element's status, they react. Ea
 A reaction needs the spell to hit; an all-enemies spell reacts on each target separately. Effects that read "spell
 damage" (classes, gear) apply to a reaction's extra damage as to the rest.
 
-## Borrowed statuses (SP60, 2026-11-12)
+## Borrowed statuses (SP60, SP61, 2026-11-12)
 
 A spell may apply another element's status where it fits (the user's idea, from Boiling Blood; the list below
 approved as proposed). The rules:
@@ -70,7 +70,8 @@ approved as proposed). The rules:
   steamed by Water).
 - **Augmentation** treats it like the spell's own status (Effect strength, duration, chance), and it costs a little of
   the spell's power, like any effect.
-- **Sparingly:** each element's own status stays its main one; only these fourteen borrow.
+- **Sparingly:** each element's own status stays its main one; only these twenty-eight borrow (fourteen in SP60,
+  fourteen more in SP61), about one spell in twenty.
 
 | Spell | Element | Borrowed status | In |
 |---|---|---|---|
@@ -88,3 +89,17 @@ approved as proposed). The rules:
 | Briar Volley | Nature | Bleeding (25%) | `Batch-10-Nature.md` |
 | Hellfire Wave | Fire | Hexed (30%) | `Batch-02-Fire.md` |
 | Spore Cloud | Nature | Withered (30%) | `New-10-Nature.md` |
+| Prismatic Bolt (SP61) | Basic | the status of the element it strikes as (30%) | `New-01-Basic.md` |
+| Ashfall (SP61) | Fire | Off-Balance (40%, replacing its Accuracy loss) | `Batch-02-Fire.md` |
+| Meteor Spire (SP61) | Earth | Burning (30%) | `Batch-04-Earth.md` |
+| Avalanche (SP61) | Earth | Chilled (30%) | `Batch-04-Earth.md` |
+| Sandblast (SP61) | Earth | Off-Balance (25%) | `New-04-Earth.md` |
+| Tsunami (SP61) | Water | Off-Balance (30%) | `New-03-Water.md` |
+| Sky Scythe (SP61) | Wind | Bleeding (25%) | `Batch-05-Wind.md` |
+| Raging Storm (SP61) | Lightning | Soaked (30%) | `New-06-Lightning.md` |
+| Icicle Volley (SP61) | Ice | Bleeding (15% per icicle) | `New-07-Ice.md` |
+| Dawnbringer (SP61) | Holy | Burning (40%) | `New-08-Holy.md` |
+| Umbral Hook (SP61) | Dark | Off-Balance (30%) | `Batch-09-Dark.md` |
+| Thorn Tyrant (SP61) | Nature | Bleeding (40%) | `Batch-10-Nature.md` |
+| Pale Requiem (SP61) | Death | Chilled (30%) | `Batch-11-Death.md` |
+| Crimson Rain (SP61) | Blood | Soaked (25%) | `New-12-Blood.md` |

@@ -6,7 +6,7 @@ sample's style (`Spell-Sample.md`, where Fire Bolt was approved) and the element
 each spell sets its status's chance and duration (SP32). Tiers and prices stay. "(new)" marks a mechanic the game
 doesn't have yet; [X] values are for the raw caster of the system draft (no classes or gear), at the level the tier
 unlocks and at Level 100.
-**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
+**Updated 2026-11-12 (SP60, SP61):** some spells here borrow another element's status; each says so ("borrowed, SP60" or "SP61").
 
 ## Fire's identity
 
@@ -40,7 +40,7 @@ kill, a spear that pierces into a second enemy, a burn that ignores immunity.
 | 2 | Fire Whip | offensive, one target | 2 | 15 | 2 AP, 25% Burn |
 | 2 | Summon - Fire Spirit | summon | 3 | 25 | the spirit grows with spell power; 30% Burn on its hits |
 | 2 | Burning Cloak | defensive, yourself | 3 | 20 | retaliation, 50% chance to Burn the attacker |
-| 2 | Ashfall | offensive, all enemies | 3 | 26 | Accuracy −10% on every enemy |
+| 2 | Ashfall | offensive, all enemies | 3 | 26 | 40% chance to put each enemy Off-Balance (borrowed status) |
 | 3 | Dragonbreath - Cinderstorm | offensive, all enemies | 3 | 38 | Vitality −8% kept (Dragonbreath), 25% Burn |
 | 3 | Summon - Greater Fire Spirit | summon | 3 | 40 | a stronger spirit that bursts when it falls; 50% Burn |
 | 3 | Phoenix Mantle | defensive, yourself or an ally | 3 | 27 | −40% Fire damage, can't Burn, Chill thawed |
@@ -133,10 +133,10 @@ kill, a spear that pierces into a second enemy, a burn that ignores immunity.
 ### Ashfall: Tier 2, offensive, all enemies
 
 - **Now:** 3 AP, 26 Mana, power 9 + Int ×0.5 + Wis ×0.2. Scatter embers over all enemies for [X] Fire damage and reduce their healing received by 10% for 2 turns.
-- **Reworked:** 3 AP, 26 Mana; power 6 + Int ×0.38 + Wis ×0.11 (70% of the tier's reference, 75% for all enemies, less the blinding ash). The falling ash lowers every enemy's Accuracy by 10% for 2 turns (was healing received −10%).
-- **Description:** "Bring down burning ash on all enemies for [X] Fire damage and reduce their Accuracy by 10% for 2 turns."
+- **Reworked:** 3 AP, 26 Mana; power 6 + Int ×0.38 + Wis ×0.11 (70% of the tier's reference, 75% for all enemies, less the blinding ash). Each enemy struck has a 40% chance to be put **Off-Balance** (Wind's status, borrowed, SP61) for 2 turns: ash in the eyes (was healing received −10%; the first draft's Accuracy −10% becomes the status).
+- **Description:** "Bring down burning ash on all enemies for [X] Fire damage; each has a 40% chance to be put Off-Balance for 2 turns."
 - **[X], now → reworked:** Level 10: 36 → 25; Level 100: 234 → 167.
-- **Augments:** Power, Resistance penetration, Effect strength, Effect duration, Mana cost.
+- **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** Healing loss belongs to Death; ash in the eyes suits Fire and protects the party.
 
 ### Dragonbreath - Cinderstorm: Tier 3, offensive, all enemies (Dragonbreath)

@@ -6,7 +6,7 @@ boss-only spell). They follow the approved system and curve (`Spell-Augmentation
 (SP32). Tiers and prices stay. "(new)" marks a mechanic the game doesn't have yet. [X] values are for the raw caster of
 the system draft (no classes or gear) at the level the tier unlocks and at Level 100, shown for a Wisdom-first caster
 as Death's spells scale with Wisdom and Mind.
-**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
+**Updated 2026-11-12 (SP60, SP61):** some spells here borrow another element's status; each says so ("borrowed, SP60" or "SP61").
 
 ## Death's identity
 
@@ -47,7 +47,7 @@ heals the party when its target dies, immunity to Withered and to instant death,
 | 3 | Soul Rend | offensive, one target | 3 | 36 | +30% on a Withered target |
 | 3 | Grave Chill | offensive, all enemies | 3 | 37 | 30% Wither, 30% Chill on each enemy (borrowed status) |
 | 3 | Death Ward | defensive, yourself | 3 | 32 | −20% spell damage; immune to Withered and instant death |
-| 3 | Pale Requiem | offensive, all enemies | 3 | 38 | Strength −10% on every enemy (kept) |
+| 3 | Pale Requiem | offensive, all enemies | 3 | 38 | Strength −10% kept; 30% Chill (borrowed status) |
 | 4 | Deathwave | offensive, all enemies | 3 | 55 | always Withers every enemy |
 | 4 | Soul Extinction | offensive, one target | 3 | 50 | 20 in 1000 to die, 40 if Withered; bosses can't be defeated outright |
 | 4 | Grave Aegis | defensive, yourself or an ally | 3 | 45 | a barrier and Holy −30% |
@@ -171,10 +171,10 @@ heals the party when its target dies, immunity to Withered and to instant death,
 ### Pale Requiem: Tier 3, offensive, all enemies
 
 - **Now:** 3 AP, 38 Mana, power 28 + Wis ×0.6 + Mind ×0.1. Sweep all enemies with grave-cold for [X] Death damage and reduce their Strength by 10% for 2 turns.
-- **Reworked:** 3 AP, 38 Mana; power 9 + Wis ×0.54 + Mind ×0.15 (70% of the tier's reference, 75% for all enemies, less the weakening). Every enemy's Strength −10% for 2 turns (kept: the one early Strength loss of the six Death spells that had one).
-- **Description:** "Sweep all enemies with grave-cold for [X] Death damage and reduce their Strength by 10% for 2 turns."
-- **[X], now → reworked:** Level 20: 79 → 59; Level 100: 265 → 237.
-- **Augments:** Power, Resistance penetration, Effect strength, Effect duration, Mana cost.
+- **Reworked:** 3 AP, 38 Mana; power 8 + Wis ×0.5 + Mind ×0.14 (65% of the tier's reference, 75% for all enemies, less the weakening). Every enemy's Strength −10% for 2 turns (kept: the one early Strength loss of the six Death spells that had one). Each enemy also has a 30% chance to be **Chilled** (Ice's status, borrowed, SP61; 1 stack) for 2 turns: grave-cold.
+- **Description:** "Sweep all enemies with grave-cold for [X] Death damage and reduce their Strength by 10% for 2 turns. Each also has a 30% chance to be Chilled."
+- **[X], now → reworked:** Level 20: 79 → 54; Level 100: 265 → 219.
+- **Augments:** Power, Resistance penetration, Effect strength, Effect duration, Effect chance, Mana cost.
 - **Why:** Kept; most of Death's other Strength-lowering spells now do something else.
 
 ### Deathwave: Tier 4, offensive, all enemies

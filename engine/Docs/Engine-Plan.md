@@ -153,9 +153,10 @@ that only the port draws; only the Spellweaver changes elements, scalings and ti
 keeps Mana as scarce as now, puts all-enemies spells at 75% and raises the high tiers (SP17–SP22). Where it stands:
 the system draft (`Spell-Augmentation.md`), the sample of four spells (`Spell-Sample.md`), the element statuses and
 reactions (`Element-Statuses.md`) and all twelve element batches (`Batch-01-Basic.md` to `Batch-12-Blood.md`, every
-spell players can learn, 381, reworked in the game's element order) are approved (SP27, SP31, SP32, SP35–SP47); the
-168 new spells come next, fourteen per element in the same order (SP3, SP33, SP34, SP48), Basic's (`New-01-Basic.md`)
-approved (SP49), Fire's (`New-02-Fire.md`) approved (SP50), Water's (`New-03-Water.md`) approved (SP51), Earth's (`New-04-Earth.md`) approved (SP52), Wind's (`New-05-Wind.md`) approved (SP53), Lightning's (`New-06-Lightning.md`) approved (SP54), Ice's (`New-07-Ice.md`) approved (SP55), Holy's (`New-08-Holy.md`) approved (SP56), Dark's (`New-09-Dark.md`) approved (SP57), Nature's (`New-10-Nature.md`) approved (SP58), Death's (`New-11-Death.md`) approved (SP59), Blood's (`New-12-Blood.md`, the last) waiting for the user's review; then the two classes (SP2, SP3, SP15). The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
+spell players can learn, 381, reworked in the game's element order) are approved (SP27, SP31, SP32, SP35–SP47), and so are
+the 168 new spells (`New-01-Basic.md` to `New-12-Blood.md`, fourteen per element, the four new summons among them;
+SP3, SP33, SP34, SP48–SP59, SP62), with 28 spells borrowing another element's status (SP60, SP61). Next: the two
+classes, the Spellweaver and the Ritual Caster, into task 10's drafts (SP2, SP3, SP15). The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
 curve) and a specs file per element. Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
 **Engine work goes on uninterrupted**; don't count task 12 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
@@ -2113,6 +2114,14 @@ like that where it would be possible?"):
   Squall, Crystal Shards and Briar Volley make Bleed, Hellfire Wave Hexes, Spore Cloud Withers. Their batches (approved
   or not) were updated to match; the rules and the list are in `Docs/Port-Tasks/12_Spell_Rework/Element-Statuses.md`,
   "Borrowed statuses". (Offered too: only Boiling Blood, or keeping statuses to their element.)
+- SP61 **Fourteen more borrow** (the user: "Are there any more spells out of all existing ones that an other status could
+  apply to?"; asked with the list, the answer "Add all 14"): Prismatic Bolt (the status of the element it strikes as),
+  Ashfall, Sandblast, Tsunami and Umbral Hook (Off-Balance), Meteor Spire and Dawnbringer (Burning), Avalanche and Pale
+  Requiem (Chilled), Sky Scythe, Icicle Volley and Thorn Tyrant (Bleeding), Raging Storm and Crimson Rain (Soaked):
+  twenty-eight of the 549 spells in all. (Not none of them.)
+- SP62 **New spells 12, Blood, and the borrowed-status lists are approved** (the user: "Otherwise both drafts are
+  approved", then the fourteen more added): all 168 new spells are approved (`Docs/Port-Tasks/12_Spell_Rework/New-01-Basic.md`
+  to `New-12-Blood.md`, SP49–SP59, SP62).
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:

@@ -4,7 +4,7 @@
 Tiers 1–5, one in each of Tiers 6–9. They follow the approved system and curve (`Spell-Augmentation.md`), the sample's
 style and the element statuses (`Element-Statuses.md`). Prices are the tier's usual. [X] values are for the raw caster
 of the system draft (no classes or gear) at the level the tier unlocks and at Level 100.
-**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
+**Updated 2026-11-12 (SP60, SP61):** some spells here borrow another element's status; each says so ("borrowed, SP60" or "SP61").
 
 ## What Blood gains
 
@@ -34,7 +34,7 @@ night when every attack heals, an enemy made to strike its own ally.
 | 3 | Blood Link | offensive, one target | 3 | 35 | 3 turns: 30% of the damage you take is dealt to it too |
 | 3 | Boiling Blood | offensive, one target | 3 | 35 | always Burns (25% of the hit, 2 turns), Speed −10% (borrowed status) |
 | 4 | Crimson Fury | offensive, yourself or an ally | 3 | 50 | 3 turns: attacks +20% and heal 10%, but 10% more damage taken |
-| 4 | Crimson Rain | offensive, all enemies | 3 | 50 | 40% Bleed on each enemy, heals you 10% |
+| 4 | Crimson Rain | offensive, all enemies | 3 | 50 | 40% Bleed and 25% Soak on each enemy (borrowed status), heals you 10% |
 | 5 | Puppet Strings | offensive, one target | 3 | 75 | on its next turn it attacks one of its own allies (not bosses) |
 | 5 | Sanguine Bond | defensive, an ally | 3 | 75 | 3 turns: half the damage they take comes to you instead |
 | 6 | Crimson Tide | offensive, all enemies | 4 | 120 | 4 AP: every enemy Bleeds; heals you 15% |
@@ -100,9 +100,9 @@ night when every attack heals, an enemy made to strike its own ally.
 
 ### Crimson Rain: Tier 4, offensive, all enemies (new spell)
 
-- **The spell:** 3 AP, 50 Mana, 6,000 silver; power 10 + Int ×0.56 + Vit ×0.16 (60% of the tier's reference, 75% for all enemies, less its effects). Each enemy struck has a 40% chance to **Bleed** for 3 turns; you heal for 10% of the damage.
-- **Description:** "Bring a crimson rain down on all enemies for [X] Blood damage; each has a 40% chance to Bleed, and you heal for a tenth of the damage."
-- **[X]:** Level 30: 79; Level 100: 227.
+- **The spell:** 3 AP, 50 Mana, 6,000 silver; power 9 + Int ×0.52 + Vit ×0.15 (55% of the tier's reference, 75% for all enemies, less its effects). Each enemy struck has a 40% chance to **Bleed** for 3 turns; you heal for 10% of the damage. Each enemy also has a 25% chance to be **Soaked** (Water's status, borrowed, SP61) for 2 turns: a rain of blood.
+- **Description:** "Bring a crimson rain down on all enemies for [X] Blood damage; each has a 40% chance to Bleed, and you heal for a tenth of the damage. Each also has a 25% chance to be Soaked."
+- **[X]:** Level 30: 73; Level 100: 211.
 - **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** A mid-tier group Bleed.
 

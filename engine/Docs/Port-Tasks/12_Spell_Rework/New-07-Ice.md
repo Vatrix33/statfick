@@ -4,6 +4,7 @@
 of Tiers 6–9. They follow the approved system and curve (`Spell-Augmentation.md`), the sample's style and the element
 statuses (`Element-Statuses.md`). Prices are the tier's usual. [X] values are for the raw caster of the system draft (no
 classes or gear) at the level the tier unlocks and at Level 100.
+**Updated 2026-11-12 (SP61):** some spells here borrow another element's status; each says so ("borrowed, SP61").
 
 ## What Ice gains
 
@@ -24,7 +25,7 @@ chills at each enemy turn, a two-turn freeze.
 |---|---|---|---|---|---|
 | 1 | Frost Nip | offensive, one target | 2 | 8 | 2 AP, 30% Chill |
 | 1 | Frost Weapon | offensive, yourself or an ally | 3 | 12 | 2 turns: their weapon attacks +[X] Ice, 25% Chill |
-| 2 | Icicle Volley | offensive, random enemies | 3 | 22 | three icicles at random enemies, 20% Chill each |
+| 2 | Icicle Volley | offensive, random enemies | 3 | 22 | three icicles at random enemies, 20% Chill and 15% Bleed each (borrowed status) |
 | 2 | Frost Armor | defensive, yourself or an ally | 3 | 22 | Armor +20%; melee attackers 40% Chilled, 3 turns |
 | 3 | Ice Block | defensive, yourself | 2 | 25 | 2 AP: no damage until your next turn, but you skip it |
 | 3 | Numbing Frost | offensive, one target | 3 | 35 | always Chills for 3 turns; Accuracy −10% |
@@ -57,9 +58,9 @@ chills at each enemy turn, a two-turn freeze.
 
 ### Icicle Volley: Tier 2, offensive, random enemies (new spell)
 
-- **The spell:** 3 AP, 22 Mana, 1,450 silver; power 3 + Int ×0.16 + Mind ×0.05 (30% of the tier's reference, per icicle; three, 90% in all). Three icicles (new) each strike a random enemy for [X], each with a 20% chance to **Chill** it (1 stack, 2 turns).
-- **Description:** "Loose three icicles at random enemies, each dealing [X] Ice damage with a 20% chance to Chill its target."
-- **[X]:** Level 10: 11; Level 100: 72 (each icicle).
+- **The spell:** 3 AP, 22 Mana, 1,450 silver; power 3 + Int ×0.15 + Mind ×0.04 (28% of the tier's reference, per icicle; three, 90% in all). Three icicles (new) each strike a random enemy for [X], each with a 20% chance to **Chill** it (1 stack, 2 turns). Each icicle also has a 15% chance to make its target **Bleed** (Blood's status, borrowed, SP61) for 3 turns.
+- **Description:** "Loose three icicles at random enemies, each dealing [X] Ice damage with a 20% chance to Chill its target. Each icicle also has a 15% chance to make its target Bleed."
+- **[X]:** Level 10: 10; Level 100: 66 (each icicle).
 - **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** Several early rolls for Chill on a group.
 

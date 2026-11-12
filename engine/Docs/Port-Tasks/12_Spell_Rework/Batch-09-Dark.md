@@ -6,7 +6,7 @@ Retinue, which only enemies cast, is left out, SP4). They follow the approved sy
 each spell sets its status's chance and duration (SP32). Tiers and prices stay. "(new)" marks a mechanic the game
 doesn't have yet. [X] values are for the raw caster of the system draft (no classes or gear) at the level the tier
 unlocks and at Level 100; Dark's spells scale with Intelligence and Mind.
-**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
+**Updated 2026-11-12 (SP60, SP61):** some spells here borrow another element's status; each says so ("borrowed, SP60" or "SP61").
 
 ## Dark's identity
 
@@ -38,7 +38,7 @@ summon, a summon that weakens enemy spells.
 | 2 | Dark Siphon | offensive, one target | 3 | 27 | steals Mana: 25% of the damage |
 | 2 | Spellstop | defensive, yourself | 3 | 25 | swallows the next spell that hits you and returns its Mana |
 | 2 | Hellstride | defensive and offensive, yourself | 3 | 19 | Speed, Luck and weapon damage +15% for 3 turns |
-| 2 | Umbral Hook | offensive, one target | 3 | 23 | steals the target's newest buff |
+| 2 | Umbral Hook | offensive, one target | 3 | 23 | steals the newest buff; 30% Off-Balance (borrowed status) |
 | 3 | Abyssal Bolt | offensive, one target | 3 | 36 | +15% per Hex stack on the target |
 | 3 | Night Mantle | defensive, yourself | 3 | 34 | Evasion +25%, Dark damage −30% |
 | 3 | Curse of Frailty | offensive, one target | 3 | 35 | all stats −10% for 3 turns and always Hexes |
@@ -129,10 +129,10 @@ summon, a summon that weakens enemy spells.
 ### Umbral Hook: Tier 2, offensive, one target
 
 - **Now:** 3 AP, 23 Mana, power 12 + Int ×0.5 + Mind ×0.1. Snare one enemy with shadow for [X] Dark damage and reduce its Speed by 10% for 2 turns.
-- **Reworked:** 3 AP, 23 Mana; power 8 + Int ×0.46 + Mind ×0.14 (85% of the tier's reference). **Steals** the target's newest buff: it ends on the target and you gain it for its remaining turns (new; was Speed −10%).
-- **Description:** "Snare one enemy with a hook of shadow for [X] Dark damage and steal its newest buff for yourself."
-- **[X], now → reworked:** Level 10: 36 → 32; Level 100: 213 → 205.
-- **Augments:** Power, Resistance penetration, Mana cost.
+- **Reworked:** 3 AP, 23 Mana; power 7 + Int ×0.43 + Mind ×0.13 (80% of the tier's reference). **Steals** the target's newest buff: it ends on the target and you gain it for its remaining turns (new; was Speed −10%). A 30% chance to drag the target **Off-Balance** (Wind's status, borrowed, SP61) for 2 turns.
+- **Description:** "Snare one enemy with a hook of shadow for [X] Dark damage and steal its newest buff for yourself. It has a 30% chance to drag the target Off-Balance."
+- **[X], now → reworked:** Level 10: 36 → 29; Level 100: 213 → 191.
+- **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** The thief's first trick: what the enemy cast on itself becomes yours.
 
 ### Abyssal Bolt: Tier 3, offensive, one target

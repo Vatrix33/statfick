@@ -4,7 +4,7 @@
 each of Tiers 6–9. They follow the approved system and curve (`Spell-Augmentation.md`), the sample's style and the
 element statuses (`Element-Statuses.md`). Prices are the tier's usual. [X] values are for the raw caster of the system
 draft (no classes or gear) at the level the tier unlocks and at Level 100, for a Wisdom-first caster.
-**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
+**Updated 2026-11-12 (SP60, SP61):** some spells here borrow another element's status; each says so ("borrowed, SP60" or "SP61").
 
 ## What Water gains
 
@@ -35,7 +35,7 @@ heal's overflow turned into a barrier, a strike that reaches every Soaked enemy.
 | 4 | Swirling Eddy | offensive, all enemies | 3 | 50 | Soaks every enemy; none can flee |
 | 5 | Water Prison | offensive, one target | 3 | 75 | stuns it for a turn, but it takes 50% less while held |
 | 5 | Wellspring | defensive, all allies | 3 | 75 | 3 turns: every heal your side gives also restores 10% of it as Mana |
-| 6 | Tsunami | offensive, all enemies | 4 | 120 | 4 AP: a great wave on every enemy; always Soaks |
+| 6 | Tsunami | offensive, all enemies | 4 | 120 | 4 AP: always Soaks every enemy; 30% Off-Balance (borrowed status) |
 | 7 | Ocean's Embrace | defensive, yourself or an ally | 3 | 140 | heals; what's beyond full HP becomes a barrier |
 | 8 | Drowning Depths | offensive, all enemies | 3 | 180 | every Soaked enemy loses 1 AP at its next turn |
 | 9 | Eternal Spring | defensive, all allies | 3 | 250 | 3 turns: every ally regains 8% HP and 4% Mana each turn; no Burning |
@@ -122,10 +122,10 @@ heal's overflow turned into a barrier, a strike that reaches every Soaked enemy.
 
 ### Tsunami: Tier 6, offensive, all enemies (new spell)
 
-- **The spell:** 4 AP, 120 Mana, 11,700 silver; power 24 + Wis ×1.4 + Int ×0.4 (95% of the tier's reference, the 4 AP rule on an all-enemies spell). A heavy 4 AP wave; every enemy struck is always **Soaked** for 2 turns, and Burning ones are Steamed (the reaction).
-- **Description:** "Bring a tsunami down on all enemies for [X] Water damage, Soaking every one of them. This spell costs 4 AP."
-- **[X]:** Level 50: 327; Level 100: 617.
-- **Augments:** Power, Resistance penetration, Effect duration, Mana cost.
+- **The spell:** 4 AP, 120 Mana, 11,700 silver; power 22 + Wis ×1.32 + Int ×0.38 (90% of the tier's reference, the 4 AP rule on an all-enemies spell). A heavy 4 AP wave; every enemy struck is always **Soaked** for 2 turns, and Burning ones are Steamed (the reaction). Each enemy also has a 30% chance to be knocked **Off-Balance** (Wind's status, borrowed, SP61) for 2 turns.
+- **Description:** "Bring a tsunami down on all enemies for [X] Water damage, Soaking every one of them. Each also has a 30% chance to be knocked Off-Balance. This spell costs 4 AP."
+- **[X]:** Level 50: 308; Level 100: 582.
+- **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** Water's biggest group hit below Tier 10, for most of a turn.
 
 ### Ocean's Embrace: Tier 7, defensive, yourself or an ally (new spell)

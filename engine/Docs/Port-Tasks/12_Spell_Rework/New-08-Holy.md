@@ -4,7 +4,7 @@
 each of Tiers 6–9. They follow the approved system and curve (`Spell-Augmentation.md`), the sample's style and the
 element statuses (`Element-Statuses.md`). Prices are the tier's usual. [X] values are for the raw caster of the system
 draft (no classes or gear) at the level the tier unlocks and at Level 100, for a Wisdom-first caster.
-**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
+**Updated 2026-11-12 (SP60, SP61):** some spells here borrow another element's status; each says so ("borrowed, SP60" or "SP61").
 
 ## What Holy gains
 
@@ -36,7 +36,7 @@ heals the party, holy fire over time.
 | 4 | Radiant Burst | offensive, all enemies; defensive, all allies | 3 | 50 | damages every enemy and heals every ally |
 | 5 | Resurrection | defensive, a fallen ally | 4 | 90 | 4 AP: raises a fallen ally with [X] + 10% HP |
 | 5 | Aegis of Faith | defensive, yourself or an ally | 2 | 52 | 2 AP: the next blow over 20% of their HP does nothing |
-| 6 | Dawnbringer | offensive, one target | 4 | 120 | 4 AP: a great strike, +50% on Devils, Demons and Undead, blinds |
+| 6 | Dawnbringer | offensive, one target | 4 | 120 | 4 AP: +50% on Devils, Demons and Undead, blinds, 40% Burn (borrowed status) |
 | 7 | Hallowed Refuge | defensive, all allies | 3 | 140 | 3 turns: every ally takes 25% less damage and heals 5% a turn |
 | 8 | Piercing Radiance | offensive, one target | 2 | 126 | 2 AP: blinds (Accuracy −30%); +50% on Devils, Demons and Undead |
 | 9 | Last Grace | defensive, all allies | 3 | 250 | 2 turns: no ally can fall below 1 HP |
@@ -123,10 +123,10 @@ heals the party, holy fire over time.
 
 ### Dawnbringer: Tier 6, offensive, one target (new spell)
 
-- **The spell:** 4 AP, 120 Mana, 11,700 silver; power 32 + Wis ×1.91 + Int ×0.55 (130% of the tier's reference, the 4 AP rule). A heavy 4 AP strike; 50% more to Devils, Demons and Undead, and the target is blinded (Accuracy −25% for 2 turns).
-- **Description:** "Bring the dawn down on one enemy for [X] Holy damage, half again against Devils, Demons and Undead, blinding it for 2 turns. This spell costs 4 AP."
-- **[X]:** Level 50: 446; Level 100: 842.
-- **Augments:** Power, Resistance penetration, Effect strength, Effect duration, Mana cost.
+- **The spell:** 4 AP, 120 Mana, 11,700 silver; power 31 + Wis ×1.84 + Int ×0.53 (125% of the tier's reference, the 4 AP rule). A heavy 4 AP strike; 50% more to Devils, Demons and Undead, and the target is blinded (Accuracy −25% for 2 turns). A 40% chance to set the target **Burning** (Fire's status, borrowed, SP61) for 2 turns, for 15% of the hit each turn: the dawn's fire.
+- **Description:** "Bring the dawn down on one enemy for [X] Holy damage, half again against Devils, Demons and Undead, blinding it for 2 turns. It has a 40% chance to set the target Burning. This spell costs 4 AP."
+- **[X]:** Level 50: 429; Level 100: 811.
+- **Augments:** Power, Resistance penetration, Effect strength, Effect duration, Effect chance, Mana cost.
 - **Why:** Holy's heaviest strike below Tier 10.
 
 ### Hallowed Refuge: Tier 7, defensive, all allies (new spell)

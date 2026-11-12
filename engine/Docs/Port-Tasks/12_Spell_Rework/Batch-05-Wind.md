@@ -6,7 +6,7 @@ boss-only spell). They follow the approved system and curve (`Spell-Augmentation
 (SP32). Tiers and prices stay. "(new)" marks a mechanic the game doesn't have yet. [X] values are for the raw caster of
 the system draft (no classes or gear) at the level the tier unlocks and at Level 100, shown for a Wisdom-first caster
 as Wind's spells scale with Wisdom and Speed.
-**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
+**Updated 2026-11-12 (SP60, SP61):** some spells here borrow another element's status; each says so ("borrowed, SP60" or "SP61").
 
 ## Wind's identity
 
@@ -48,7 +48,7 @@ side's Speed, two gusts in one spell.
 | 4 | Skyward Rush | offensive, one target | 3 | 49 | your next turn comes 30% sooner |
 | 4 | Cyclone Guard | defensive, all allies | 3 | 47 | every ally's Evasion +20% for 3 turns |
 | 4 | Eye of the Gale | defensive, all allies | 3 | 52 | every ally's Speed +15%, no Speed loss |
-| 5 | Sky Scythe | offensive, all enemies | 3 | 74 | 50% Off-Balance on each enemy |
+| 5 | Sky Scythe | offensive, all enemies | 3 | 74 | 50% Off-Balance and 25% Bleed on each enemy (borrowed status) |
 | 5 | Pressure Vortex | offensive, one target | 3 | 74 | its next turn comes 40% later; can't flee |
 | 5 | Gale Lance | offensive, one target | 3 | 72 | +1% per point of Speed you have over the target (up to +40%) |
 | 5 | Dragonbreath - Razor Gale | offensive, all enemies | 3 | 77 | 10% stun kept (Dragonbreath), 25% Off-Balance |
@@ -207,9 +207,9 @@ side's Speed, two gusts in one spell.
 ### Sky Scythe: Tier 5, offensive, all enemies
 
 - **Now:** 3 AP, 74 Mana, power 42 + Wis ×0.6 + Speed ×0.3. Sweep all enemies with cutting wind for [X] Wind damage and reduce their Speed by 15% for 2 turns.
-- **Reworked:** 3 AP, 74 Mana; power 14 + Wis ×0.79 + Speed ×0.23 (65% of the tier's reference, 75% for all enemies, less its effect). Each enemy struck has a 50% chance to be **Off-Balance** for 2 turns (was Speed −15%).
-- **Description:** "Sweep all enemies with cutting wind for [X] Wind damage; each has a 50% chance to be put Off-Balance for 2 turns."
-- **[X], now → reworked:** Level 40: 144 → 141; Level 100: 288 → 321.
+- **Reworked:** 3 AP, 74 Mana; power 13 + Wis ×0.73 + Speed ×0.21 (60% of the tier's reference, 75% for all enemies, less its effect). Each enemy struck has a 50% chance to be **Off-Balance** for 2 turns (was Speed −15%). Each enemy also has a 25% chance to **Bleed** (Blood's status, borrowed, SP61) for 3 turns: the scythe cuts.
+- **Description:** "Sweep all enemies with cutting wind for [X] Wind damage; each has a 50% chance to be put Off-Balance for 2 turns. Each also has a 25% chance to Bleed."
+- **[X], now → reworked:** Level 40: 144 → 131; Level 100: 288 → 296.
 - **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** Crosswind's stronger sibling.
 

@@ -7,6 +7,7 @@ system and curve (`Spell-Augmentation.md`), the sample's style and the element s
 "(new)" marks a mechanic the game doesn't have yet, beyond those the twelve batches already added. Prices are the
 tier's usual (the median of today's spells of that tier). [X] values are for the raw caster of the system draft (no
 classes or gear) at the level the tier unlocks and at Level 100.
+**Updated 2026-11-12 (SP61):** some spells here borrow another element's status; each says so ("borrowed, SP61").
 
 ## What Basic gains
 
@@ -39,7 +40,7 @@ falls.
 | 4 | Summon - Mana Golem | summon | 3 | 56 | Basic's summon (SP34): a golem of Mana that returns Mana when it falls |
 | 4 | Arcane Missiles | offensive, one target | 3 | 50 | three missiles at one enemy, 25% Expose each |
 | 5 | Arcane Empowerment | defensive, all allies | 3 | 75 | every ally's spells +15% power for 3 turns |
-| 5 | Prismatic Bolt | offensive, one target | 3 | 75 | strikes as the element the target resists least |
+| 5 | Prismatic Bolt | offensive, one target | 3 | 75 | strikes as the element the target resists least; 30% chance of that element's status (borrowed) |
 | 6 | Spellward Dome | defensive, all allies | 3 | 100 | the next enemy spell at each ally deals 50% less |
 | 7 | Arcane Overload | offensive, one target | 5 | 196 | 5 AP: a whole turn for one enormous blast |
 | 8 | Recursion | defensive, yourself | 2 | 126 | 2 AP: your next spell is cast twice, the second at 60% |
@@ -118,10 +119,10 @@ falls.
 
 ### Prismatic Bolt: Tier 5, offensive, one target (new spell)
 
-- **The spell:** 3 AP, 75 Mana, 8,800 silver; power 20 + Int ×1.16 + Wis ×0.33 (95% of the tier's reference). Deals the damage of whichever element the target resists least, and counts as that element for reactions (new).
-- **Description:** "Split a bolt of Mana through a prism at one enemy for [X] damage of whichever element it resists least."
-- **[X]:** Level 40: 223; Level 100: 511.
-- **Augments:** Power, Mana cost.
+- **The spell:** 3 AP, 75 Mana, 8,800 silver; power 19 + Int ×1.1 + Wis ×0.32 (90% of the tier's reference). Deals the damage of whichever element the target resists least, and counts as that element for reactions (new). A 30% chance to apply that element's status for 2 turns (Basic's Exposed if it strikes as Basic; borrowed, SP61).
+- **Description:** "Split a bolt of Mana through a prism at one enemy for [X] damage of whichever element it resists least. It has a 30% chance to leave that element's status for 2 turns."
+- **[X]:** Level 40: 212; Level 100: 486.
+- **Augments:** Power, Effect duration, Effect chance, Mana cost.
 - **Why:** Raw Mana takes any form: the generalist's answer to an enemy that resists Basic.
 
 ### Spellward Dome: Tier 6, defensive, all allies (new spell)

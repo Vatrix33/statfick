@@ -7,6 +7,7 @@ spell sets its status's chance and duration (SP32). Tiers and prices stay. "(new
 have yet. [X] values are for the raw caster of the system draft (no classes or gear) at the level the tier unlocks and
 at Level 100; Earth's spells scale with Intelligence and Strength, so a hybrid with more Strength gets more from them
 than this caster.
+**Updated 2026-11-12 (SP61):** some spells here borrow another element's status; each says so ("borrowed, SP61").
 
 ## Earth's identity
 
@@ -51,10 +52,10 @@ Armor, AP losses from a spell.
 | 5 | Sundering Rift | offensive, all enemies | 3 | 75 | always Cracks every enemy |
 | 5 | Obsidian Spire | offensive, one target | 3 | 76 | 25% stun |
 | 5 | Mountain Shelter | defensive, all allies | 3 | 71 | every ally takes 25% less weapon damage for 3 turns |
-| 5 | Avalanche | offensive, all enemies | 3 | 77 | buries: 25% chance each enemy loses 1 AP |
+| 5 | Avalanche | offensive, all enemies | 3 | 77 | buries (25% lose 1 AP), 30% Chill (borrowed status) |
 | 6 | Summon - Earth Elemental | summon | 3 | 100 | while it stands, your side's Armor +10% |
 | 6 | Seismic Crown | offensive, all enemies | 3 | 96 | always Cracks every enemy, 40% a second time |
-| 6 | Meteor Spire | offensive, one target | 3 | 104 | splashes 25% on the others, 20% stun |
+| 6 | Meteor Spire | offensive, one target | 3 | 104 | splashes 25%, 20% stun, 30% Burn (borrowed status) |
 | 7 | Summon - Stone Giant | summon | 3 | 140 | as approved in the sample |
 | 7 | Faultline Burst | offensive, all enemies | 3 | 134 | +10% per Cracked stack on each enemy |
 | 7 | Obsidian Pillar | offensive, one target | 3 | 146 | a barrier of 30% of the damage dealt |
@@ -236,10 +237,10 @@ Armor, AP losses from a spell.
 ### Avalanche: Tier 5, offensive, all enemies
 
 - **Now:** 3 AP, 77 Mana, power 43 + Int ×0.7 + Str ×0.3. Bury all enemies for [X] Earth damage and reduce their Evasion by 20% for 2 turns.
-- **Reworked:** 3 AP, 77 Mana; power 14 + Int ×0.79 + Str ×0.23 (65% of the tier's reference, 75% for all enemies, less its effect). Each enemy struck has a 25% chance to be buried: it loses 1 AP at its next turn (was Evasion −20%).
-- **Description:** "Bury all enemies under an avalanche for [X] Earth damage; each has a 25% chance to lose 1 AP on its next turn."
-- **[X], now → reworked:** Level 40: 160 → 141; Level 100: 325 → 321.
-- **Augments:** Power, Resistance penetration, Effect chance, Mana cost.
+- **Reworked:** 3 AP, 77 Mana; power 13 + Int ×0.73 + Str ×0.21 (60% of the tier's reference, 75% for all enemies, less its effect). Each enemy struck has a 25% chance to be buried: it loses 1 AP at its next turn (was Evasion −20%). Each enemy also has a 30% chance to be **Chilled** (Ice's status, borrowed, SP61; 1 stack) for 2 turns: snow and ice.
+- **Description:** "Bury all enemies under an avalanche for [X] Earth damage; each has a 25% chance to lose 1 AP on its next turn. Each also has a 30% chance to be Chilled."
+- **[X], now → reworked:** Level 40: 160 → 131; Level 100: 325 → 296.
+- **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** Evasion loss belongs to Wind; an avalanche slows what it buries.
 
 ### Summon - Earth Elemental: Tier 6, summon
@@ -263,10 +264,10 @@ Armor, AP losses from a spell.
 ### Meteor Spire: Tier 6, offensive, one target
 
 - **Now:** 3 AP, 104 Mana, power 68 + Int ×0.8 + Str ×0.3. Impale one enemy with a falling stone spire for [X] Earth damage and gain a 30% chance to stun it.
-- **Reworked:** 3 AP, 104 Mana; power 21 + Int ×1.25 + Str ×0.36 (85% of the tier's reference). The falling spire splashes every other enemy for 25% of [X] (new); a 20% chance to stun the target for 1 turn (was 30%).
-- **Description:** "Bring a stone spire down on one enemy for [X] Earth damage, splashing every other enemy for 25% of that, with a 20% chance to stun the target."
-- **[X], now → reworked:** Level 50: 231 → 270; Level 100: 386 → 506.
-- **Augments:** Power, Resistance penetration, Effect chance, Mana cost.
+- **Reworked:** 3 AP, 104 Mana; power 20 + Int ×1.18 + Str ×0.34 (80% of the tier's reference). The falling spire splashes every other enemy for 25% of [X] (new); a 20% chance to stun the target for 1 turn (was 30%). A 30% chance to set the target **Burning** (Fire's status, borrowed, SP61) for 2 turns, for 15% of the hit each turn: a falling meteor.
+- **Description:** "Bring a stone spire down on one enemy for [X] Earth damage, splashing every other enemy for 25% of that, with a 20% chance to stun the target. The target has a 30% chance to catch fire for 2 turns."
+- **[X], now → reworked:** Level 50: 231 → 255; Level 100: 386 → 478.
+- **Augments:** Power, Resistance penetration, Effect strength, Effect duration, Effect chance, Mana cost.
 - **Why:** A stunning spell that still touches the rest of a group.
 
 ### Summon - Stone Giant: Tier 7, summon
