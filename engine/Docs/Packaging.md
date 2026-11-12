@@ -832,6 +832,16 @@ the tests run without the splash.
    - Owns: tests or a script of its own for the flow, the "Windows check" items, this doc's Status.
    - Finished: the flow passes on the PC (GPU and lavapipe) and in the cloud's setup if it can run there; then the
      manager ticks M12 in Engine-Plan's Milestones, updates the notes and stops for the user.
+   - **Done (2026-11-12, "How it works", step 8).** The flow is a script, `Tools/Scripts/end-to-end.sh`
+     (`Tools/Packaging/end_to_end.py`), with one new test of the suite for its in-process part (`GameFolderModTests`, run
+     by the script built with the packages' version); `release.sh` doesn't run it (Q27). The step's choices, none visible
+     to players, are listed there (a script, not a test project; not in the release; the mod and the editor's About made
+     in-process; the other version's library built with `-p:Version`; the remembered folder written by the flow; one
+     per-user folder for both programs; pictures judged by their colours). Not run in the cloud (its setup has Xvfb, which
+     the script uses where there is no cage). The Windows items are Engine-Plan.md's "Windows check", item 9. Its one
+     finding needing a decision, `--game`'s library line missing from the editor's log, was decided by the manager
+     (2026-11-12, (a)): the editor logs it once its log is open (`EditorApplication.LogGivenLibrary`). **M12 is done and
+     ticked (2026-11-12).**
 
 ## How it works
 
@@ -1885,7 +1895,210 @@ mouse and the keyboard, Game folder… and its restart message, About scrolled w
   too: the required phrase is now the start line's); all 100 killed when run again; nothing written to the player's real
   folders.
 
+### Step 8: end to end, and the Windows items (2026-11-12)
+
+- **Commands.** `Tools/Scripts/end-to-end.sh [--publish] --version <v> [--work <folder>]` takes the four archives of
+  that version in `release/` (made first with `--publish`, which runs `publish.sh --version <v>` and so checks them;
+  else checked first with `check-packages.sh --version <v>`: the Windows two checked, the Linux two run); `end-to-end.sh
+  [--work <folder>] <stat-fick-<v>-linux.tar.gz> <statventure-editor-<v>-linux.tar.gz>` takes the two given (no check:
+  the caller's; the break runs give broken ones). It compiles the shaders (for its own build, below) and runs
+  `Tools/Packaging/end_to_end.py`, which prints one line per expectation, `ok` or `FAIL` with its name and what it saw,
+  a few facts (the archives' sizes, the GPU, the newest logs' first lines, the commit) and `end to end: N of N
+  expectations held in <s> s; ALL PASSED` (or `FAILED: n`, exit 1). A part of the flow that stops on a problem of its
+  own is a failure ("<part>: the flow went through") and the other parts still run. Its pictures, logs and each start's
+  output stay in `<work>/run/` (`captures/`, `runs/NN-<name>/`, `player/stat-fick/logs/`); `<work>/build` and
+  `<work>/other-build` keep its two builds for the next run (incremental). The work folder is
+  `$STATVENTURE_CACHE/end-to-end/` unless given. About 90 s on the PC's GPU and as long on lavapipe (the starts are
+  mostly the splash's 2 s): 23 program starts. Needs Python 3 with Pillow (the cloud's setup installs `python3-pil`) and
+  `cage` with `wlr-randr`, else `xvfb-run`.
+- **A script, not a test project (left to the step; chosen):** the flow starts the programs from their archives, as
+  `check-packages.sh` does (Q28: the package checks are scripts of their own, not in `test.sh`); only its in-process
+  part is C#, one test of the suite (below), which the script runs built with the packages' version. **Not run by
+  `release.sh` (chosen):** Q27 (the user's answer) is that the release script runs no tests, and the flow builds and
+  runs one of the suite's tests and starts the programs; the dry run does what the release does but the upload, so it
+  doesn't either. It is run by hand before a release (`end-to-end.sh --version <v>` on the release's archives, or with
+  `--publish`).
+- **Headless, scratch, silent (the Method's rules; chosen as follows):** every program start in a headless display of
+  its own: `cage` on wlroots' headless backend with its output given 2400 × 2400 first (`wlr-randr --output HEADLESS-1
+  --custom-mode`, as the editor fixtures' captures; cage makes every window its output's size less libdecor's title bar,
+  so the pictures are 2400 × 2363 on the PC, the crash window's too, which is 640 × 240 on a desktop), or `xvfb-run -s
+  "-screen 0 2400x2400x24"` where there is no cage (the cloud); `DISPLAY` and `WAYLAND_DISPLAY` taken out; a start that
+  doesn't end within 240 s is killed and fails. The per-user folder is scratch and **one for both programs, as on a
+  player's machine**: `XDG_DATA_HOME=<work>/run/player` for both and the editor's `--player-folder
+  <work>/run/player/stat-fick`, so the stand-in finds the editor's mod in its `mods/` and both programs' logs share one
+  `logs/`. `ALSOFT_DRIVERS=null` (OpenAL Soft's "No Output"). `HOME` stays the user's: the editor's "Where is Stat
+  Fick?" browser starts at home and lists its folders (read only; the captures stay in the cache). The player's real
+  folders (this machine's game folder, whole, and the Documents folder's top level, as `mutate.py` and
+  `check-packages.sh` watch them) are compared before and after: one expectation.
+- **The stand-in's expectations** (`stat-fick`): a start with `--capture-splash` and `--capture`: exit 0, the splash's
+  first frame the BRUTAL logo on the dark ground (the ground most, the logo's yellow and white there), the page (its
+  parchment most) captured after "the splash shown (2 s)"; `--about`: "the credits view opened", light text on the dark
+  ground; `--crash` and `--crash-thread`: exit 1; one new crash file, its first line `stat-fick <v>, commit <hash>`, its
+  second `crashed <time> on the main thread` or `on the thread "Sandbox crash"`, its fourth the run's log, the
+  exception's message in it; the log's order (the crash file, the crash window opening, its capture, its closing);
+  nothing of .NET's own ("Unhandled exception"); the crash window's picture (the ground, the field's border and Close in
+  ember); and once the editor has made the mod, a start whose log names it (`[Data] mod <player>/mods/ember-rite.pak`)
+  and whose page is drawn (the stand-in loads the mod's sounds into its music at its start, so a mod it can't read would
+  crash it).
+- **The editor's expectations** (`statventure-editor`): the first start, no `editor/game.json`: `no game's folder known:
+  "Where is Stat Fick?"` in its log, the picture the screen (the dark ground and its ember accents: the listing's
+  focused border and "Use this folder"); `--game <the unpacked game>`: exit 0, `the game's data library
+  <game>/Statventure.Game.Data.dll: <v>, commit <hash>, 81 record kinds` (the versions one: the archives', the editor's
+  own, the library's), `the game in <game>` in its log (the library's line there since the manager's decision on "Found"
+  (1)), the picture the editor's shell (its panes' colour most); the remembered folder, `editor/game.json` written by
+  the flow in the editor's own form (`{"version": 1, "folder": …}`; choosing it on the screen needs input, which the
+  headless display has none of), naming a game of another version: the screen, its log saying `"Where is Stat Fick?":
+  <folder> holds Stat Fick <v'>, and this editor works only with Stat Fick <v>`; that folder with `--game` (and
+  `--capture`, so an editor that took it would end by itself): exit 2, no log (refused before any window), `Statventure
+  Editor: <folder> holds Stat Fick <v'>, and this editor works only with Stat Fick <v>` and the usage naming
+  `statventure-editor` on the terminal; the remembered folder naming the game: its library's line and `the game in
+  <game>` in the log, the shell drawn.
+- **The game of another version (left to the step; chosen):** a copy of the unpacked game whose
+  `Statventure.Game.Data.dll` is built with the day's next release number (`<v'>` is `2026.11.12.2` for `2026.11.12.1`;
+  for `dev`, today's `.1`): the library's project built with `-p:Version=<v'>`, the publish's property, into
+  `<work>/other-build` (not a second publish: `release/` untouched, the build incremental). The editor reads the version
+  from the library's metadata and never loads it.
+- **The mod, made in-process with `--game` (chosen):** the packaged editor has no scripted way to make a mod, and the
+  headless display has no input to drive its window with (that needs a virtual input tool; `ydotool` works through the
+  kernel's `uinput`, which reaches the user's real session: not used). So the flow runs the suite's
+  `Editor/EndToEnd/GameFolderModTests` (new, below) with `dotnet test --filter`, **built from this tree with the
+  packages' version** (`dotnet build Tests/Statventure.Tests -p:Version=<v> --artifacts-path <work>/build`: its own
+  artifacts, the repo's builds untouched), because the editor accepts only a game of its own version (Q18): the
+  in-process editor and the unpacked game's library are then of one version, as a player's are. The test reads `--game
+  <the unpacked game> --player-folder …` with the program's `EditorArguments`, finds the game (its library loaded from
+  the unpacked folder, its version the editor's), makes step 14's mod through the UI (`ModFromScratchTests.MakeMod`: New
+  mod and its info, the game's hall changed, a sound effect, a particle effect, a stage imported, a readme, a cutscene;
+  Save refused, the problem fixed, saved) and, in the same mod, an entry of the game's own kind (New entry, "Stand-in
+  item (stand-in.item)", `lantern`, its Title, Price and Rarity in the form: a value of the unpacked library's type),
+  saves, opens About (the credits' "Version <v>") and draws it (`EditorScreenTests.Render`, the GPU) into
+  `captures/editor-about.png`; then mounts the mod as the game mounts the player's mods over the unpacked game's packs
+  and reads every entry back as the editor showed it; and copies `ember-rite.pak` into the flow's per-user `mods/`,
+  where the packaged stand-in then mounts it. **The editor's About is captured in-process** for the same reason (the
+  program has no option that opens it); the sandbox's credits are its own `--about`.
+- **The logs kept:** every start that opens a window must leave exactly one new `<program>-<date>_<time>.log` whose
+  first line is `<program> <v>, commit <40 hex>`, then the start time and the system, and "the splash shown (2 s)"
+  before the program's own lines; the stand-in and the editor are each started until they have run 11 times (their
+  expectations' starts, then plain `--capture` starts): after the 10th, 10 logs and the first there; after the 11th, 10
+  kept, the first gone, the newest there, the crash files and the other program's logs untouched. One commit in every
+  log, crash file and the game's library's line.
+- **`GameFolderModTests` in the suite** (`Tests/Statventure.Tests/Editor/EndToEnd/`, 1 test, `[Collection("GPU")]`):
+  without the flow's variables the game's folder is a scratch one laid out as the download (`GameTesting.MakeGame`: the
+  repo's packs and the dev build of the library) and everything above is checked but the picture and the copy; with them
+  (`STATVENTURE_END_TO_END_GAME`, `_VERSION`, `_MODS`, `_ABOUT`) it works on the unpacked game, checks that the editor's
+  version is the packages', draws the About picture and copies the mod. Changed for it: `ModFromScratchTests.MakeMod`'s
+  title assertion takes the editor's version (`Statventure Editor {EditorView.Version} — ember-rite.pak`, "dev" in the
+  suite as before), and `EditorScreenTests.Render` is internal (was private). **Its mutations** (`mutate.py`,
+  `claude-work/m12/step8/step8-test-mutations.json`, made by `make-test-mutations.py`, under the shared lock in a
+  headless cage): 10, all killed: `--game`'s folder not kept; `--game` found as the dev setup; an installed game's packs
+  folder named otherwise; the library's kinds not joined to the engine's; the game found without its library's file; the
+  version check turned round; the player's mods not mounted; the mods folder's packs not found; the credits' version
+  line naming the program; the editor's About with another version. Its branches for the flow (the version asserted, the
+  picture, the copy, the flow's game folder) are killed by the flow's breaks (below); nothing written to the player's
+  real folders.
+- **Run (2026-11-12, `2026.11.12.1` published from this step's tree on `9bea4e0`):** `publish.sh --version
+  2026.11.12.1`: the four archives (the game's Linux archive 45.1 MB, 47,330,147 bytes, 72 files; Windows 41.3 MB, 65
+  files; the editor's Linux 41.8 MB, 43,829,307 bytes, 51 files; Windows 38.0 MB, 44 files; as step 6's),
+  `check-packages.sh` ok on all four (the Linux two run). `end-to-end.sh --version 2026.11.12.1` (the check, then the
+  flow) under the shared lock: on the GPU (AMD Radeon RX 9070 XT, RADV) 157 of 157 expectations held, 92 s for the flow,
+  97 s in all; on lavapipe (llvmpipe, Vulkan 1.4, the flow's in-process build and test on it too) 157 of 157, 94 s, 99 s
+  in all; the player's real game folder missing and the Documents folder's top level the same before and after both; and
+  `end-to-end.sh --publish --version 2026.11.12.1` on the GPU (the publish, its check and the flow, 111 s): 157 of 157,
+  the four archives byte for byte the first publish's. After the manager's decision on "Found" (1) (the editor's new log
+  line): published again (the editor's Linux archive 43,829,196 bytes, its Windows one 39,816,404, the game's unchanged
+  but for the commit in them), the editor's 631 tests on the GPU, and the flow on the GPU with `--publish`: 157 of 157,
+  `--game`'s library line read from the log. The captures of a run (`<work>/run/captures/`): the stand-in's splash,
+  page, credits, crash windows and page with the mod; the editor's "Where is Stat Fick?" (first start, and the
+  remembered folder of another version, saying both versions in the problem colour), its shell on the game (`--game`,
+  remembered) and its About over the finished mod (in-process).
+- **The log read-back** (the run on the GPU): `stat-fick-2026-11-12_18-17-42.log` and on, each beginning `stat-fick
+  2026.11.12.1, commit 9bea4e09f3e83d902d33ad867b02b09465f66c87`, `started 2026-11-12 18:17:42 +01:00`, `Bazzite (Unix
+  7.3.3.1) X64, .NET 10.0.13`; the editor's `statventure-editor 2026.11.12.1, commit 9bea4e0…`; the crash files
+  `stat-fick 2026.11.12.1, commit 9bea4e0…` with `crashed 2026-11-12 18:17:52 +01:00 on the main thread` and `… on the
+  thread "Sandbox crash"`; the 11th start of each removed its first log (`stat-fick-2026-11-12_18-17-42.log`,
+  `statventure-editor-2026-11-12_18-17-56.log`), 10 of each kept, the two crash files kept; the stand-in with the mod:
+  `[Data] mod <work>/run/player/stat-fick/mods/ember-rite.pak`.
+- **Found:** (1) **With `--game` the log didn't name the game's data library**: the editor finds and loads the game the
+  command line names before `Run` opens the log (so that a game it can't use is refused before any window, step 6), so
+  the line `the game's data library …: <v>, commit …, 81 record kinds` went to the terminal only and the log had `the
+  game in <folder>`; with the remembered folder (found in `Load`) the line was in the log. The step reported it with two
+  options; **the manager's decision (a), 2026-11-12:** `EditorApplication.LogGivenLibrary` (the one change to the
+  editor's code in this step) logs a given game's library line (`--game`, and `--repo`'s library built in the repo) once
+  the log is open, in the loader's words (the library's file, version and commit, the kinds counted), so both starts log
+  alike; the flow reads `--game`'s line from the log too, and its break (below) shows it able to fail. (2) **Another
+  release's data library can't load against this engine at all**: every assembly of a release carries its version (step
+  1), so the library's reference to `Statventure` names the other version; with the version check off (a break, below)
+  the start still ends with 2, saying "its kinds can't be loaded: Could not load file or assembly 'Statventure,
+  Version=2026.11.12.2'": Q18's check gives the words, the loader is the backstop. (3) A crash rethrown at once (a
+  break) has .NET 10 print "Unhandled exception." and the stack on Linux and then still run the run's `finally`: the
+  crash window shows and the exit is 1, so only the print tells (step 5's reason to keep the crash and throw it after
+  the run: on Windows that print is where Windows Error Reporting steps in, "Windows check", 9c). (4) MSBuild takes
+  `SourceRevisionId` from the environment, so a publish with that variable set carries that commit in its programs (a
+  break uses it); nothing in the repo sets it. (5) A "command form" of `mutate.py` doesn't exist (`mutate.py` runs
+  `dotnet test` only; "Left to the steps" had it as an option): the breaks have a runner of their own, as steps 3, 5, 6
+  and 7 did.
+- **The expectations shown able to fail:** the first run, 31 breaks (`claude-work/m12/step8/step8-mutations.json`, made
+  by `make-mutations.py`, run by `step8-mutate.py` under the shared lock: each applied alone, the Linux packages it
+  touches published again or the good archive broken and packed again, `end-to-end.sh` run, the break undone; the good
+  archives put back after): the game's `audio.pak` cut to half (the stand-in crashes at its start); the stand-in without
+  its log name; both programs of another version (`2026.11.12.3`) in the `2026.11.12.1` archives; the log's start line
+  worded otherwise; no splash; the page white; `--about` and `--crash` ignored; the crash thread named otherwise; the
+  crash's message otherwise; no crash capture (the crash window waits; each such start killed after 240 s); the crash
+  rethrown at once; the crash window without its ember; the editor's first start logged otherwise; the editor's accent
+  not ember; the game's archive without its data library; `--game` read but not used; the remembered folder never read;
+  no version check (Q18); the usage naming another program; the editor's package from another commit (`SourceRevisionId`
+  in the publish's environment); the game mounting no mods; the test keeping the mod to itself; the test drawing no
+  About picture; the in-process editor built without the packages' version; the other version's library not built; the
+  in-process flow not built; 11, then 9 logs kept; every program's logs counted as one's own; the programs on the
+  caller's per-user folder (a scratch folder standing in for the real one, so nothing real is written): **all 31
+  killed**, 29 on every line expected, 2 on their own lines but not on further lines the list expected (the rethrow: the
+  window and exit 1 came all the same; the version check: the start still ended with 2, "Found" (2) and (3)). The second
+  run, 4 (`step8-rerun.json`): those two with the lines they break, the other version's library not built again (the
+  refused start now has `--capture`, so an editor that takes the game ends by itself: 91 s, 330 s before), and the test
+  ignoring the flow's game folder (a scratch game with the dev library: refused by the packages' editor): all 4 killed.
+  The third run, 1 (`step8-logline.json`, made by `make-logline-break.py`), after the manager's decision on "Found" (1):
+  the given game's library not logged once the log is open (the call left out, the editor's package published again):
+  killed on `editor --game: the game's data library loaded … (the log)`, and on nothing else. Each run's own check of
+  the real folders held, and this machine's game folder stayed missing.
+- **The Windows items:** Engine-Plan.md, "Windows check", item 9 (a)–(i): both zips started from Explorer with no
+  console, the names with spaces, the splash, the logs in `%APPDATA%\Stat Fick\logs` (10 kept), the crash window after
+  `--crash` and `--crash-thread` with exit 1 and no Windows Error Reporting dialog, the editor finding the game ("Where
+  is Stat Fick?", `--game`, the remembered folder, another version refused in the message window), a wrong command
+  line's message window, SmartScreen on an unsigned `.exe`, the Visual C++ runtime on a Windows without its
+  redistributable (Windows Sandbox), `publish.ps1` and `editor.ps1`, a mod made and loaded with the packaged programs.
+
 ## Status
+
+**M12 done (2026-11-12; ticked in Engine-Plan.md's Milestones):** all eight steps on `main` (step 4 with its follow-up),
+3720 tests passing on the GPU and on lavapipe. The two downloads per platform, each a self-contained single-file program
+in a versioned folder (the game's, until the port the sandbox standing in, with its data library beside it; the editor,
+which finds the game, refuses another version and loads the game's library), published and checked from Linux, the
+BRUTAL splash and the credits in both programs, a log per run and a crash file and crash window after a crash, the
+version in the logs, the editor's title and the credits, draft releases through `release.sh`, and the whole run end to
+end by `end-to-end.sh`. At `2026.11.12.1`: the game's Linux archive 45.1 MB (72 files), Windows 41.3 MB (65), the
+editor's Linux 41.8 MB (51), Windows 38.0 MB (44). The first real draft release is made only on the user's word. Not
+checked: Windows (Engine-Plan.md, "Windows check", item 9, and items 1–8 before it); the programs by hand in a real
+window on Linux; the flow in the cloud.
+
+**Step 8 done (2026-11-12, branch `m12-step8` on `9bea4e0`, 3720 tests on the GPU and on lavapipe):** the packages end
+to end. `Tools/Scripts/end-to-end.sh [--publish] --version <v>` (or two Linux archives named;
+`Tools/Packaging/end_to_end.py`) unpacks the two Linux archives and starts both programs headless (a cage per start at
+2400 × 2400, else Xvfb) on one scratch per-user folder, nothing audible, and holds 157 expectations: the stand-in's
+splash, page, credits, `--crash` and `--crash-thread` (the crash file, the crash window's picture, exit 1, nothing of
+.NET's own); the editor's first start ("Where is Stat Fick?"), `--game` (the game's data library loaded, the versions
+one), the remembered folder, a game of another version refused (exit 2 naming both, and the screen saying it); a mod
+made by the editor against the unpacked game (in-process: the suite's new `GameFolderModTests`, built with the packages'
+version; step 14's mod and the game's own kind) and mounted by the packaged stand-in (its log names it); every start's
+log (the program, version and commit first; after 11 starts 10 kept); one commit; the real folders unchanged. The
+editor's About captured in-process (the program has no scripted way to open it). With `2026.11.12.1` (the game's Linux
+archive 45.1 MB, 72 files; Windows 41.3 MB, 65; the editor's Linux 41.8 MB, 51; Windows 38.0 MB, 44; `check-packages.sh`
+ok on all four, the Linux two run): 157 of 157 on the GPU (92 s) and on lavapipe (94 s), and with `--publish` (111 s,
+the archives byte for byte the same). Not run by `release.sh` (Q27). Breaks: 31, then 4, then 1, all killed; the new
+test's mutations: 10, all killed. Found: with `--game` the editor's log didn't name the game's library (it is loaded
+before the log opens); the manager's decision (a), 2026-11-12: the editor logs it once its log is open
+(`EditorApplication.LogGivenLibrary`), its break killed; another release's library can't load against this engine at all
+(Q18's check gives the words); `Reference/editor-fixtures.json` on `main` was stale (step 6), committed as the tests
+write it. The Windows items: Engine-Plan.md, "Windows check", item 9 (a)–(i). Not checked: Windows (item 9); the cloud
+(Xvfb in place of cage, not run here); the programs by hand in a real window. ("How it works", step 8.)
 
 **Step 6 done (2026-11-08, branch `m12-step6`, rebased on step 5's merge, 3719 tests on the GPU and on lavapipe):** the
 editor as a download of its own: it finds the game (`--repo` with the library built in the repo, the manager's Q-A;

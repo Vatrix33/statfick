@@ -115,7 +115,10 @@ public sealed class EditorApplication : Application
     {
         Window.PathsDropped += paths => _view?.Part<Opener>().Drop(paths);
         if (_given is { } game)
+        {
+            LogGivenLibrary(game);
             ShowEditor(game);
+        }
         else
         {
             var remembered = GameLookup.Remembered(Storage.Folder, EditorView.Version);
@@ -125,6 +128,26 @@ public sealed class EditorApplication : Application
                 ShowScreen(remembered.Problem);
         }
         AfterLoad?.Invoke(this);
+    }
+
+    /// <summary>
+    /// The game the command line named (<c>--game</c>, <c>--repo</c>) was found and its data library loaded before the run's
+    /// log opened (a game the editor can't use is refused before any window), so the library's line, which the loader logs
+    /// for a remembered game, is logged again now in the same words: both starts name it in the log (M12 step 8).
+    /// </summary>
+    static void LogGivenLibrary(GameData game)
+    {
+        if (game.Library is not { } file)
+            return;
+        try
+        {
+            var library = GameLibrary.Read(file);
+            Log.Info("Editor", $"the game's data library {library.File}: {library.Version}{(library.Program.Commit is { } commit ? ", commit " + commit : "")}, {game.Types.ByName.Count} record kinds");
+        }
+        catch (Exception problem) when (problem is GameLibraryException or IOException or UnauthorizedAccessException)
+        {
+            Log.Warning("Editor", $"the game's data library {file} can't be read again: {problem.Message}");
+        }
     }
 
     /// <summary>The editor's view on <paramref name="game"/>: what was shown before (the screen, or the view on another game) closed first.</summary>

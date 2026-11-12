@@ -52,9 +52,11 @@ the user and wait for their go-ahead before starting the next one.
   and Q29–Q30, the BRUTAL splash and credits, answered 2026-11-08), what exists, the method, the design and
   the eight steps. `Tools/Scripts/publish.sh [--version <v>]` (Windows: `publish.ps1`) makes the four archives
   (`stat-fick-<v>-linux.tar.gz`, `-windows.zip`, `statventure-editor-…`) into `release/` and checks them with
-  `Tools/Scripts/check-packages.sh` (`--self-test` breaks each one rule at a time); the listings, licence texts and the
-  Visual C++ runtime's pin are in `Tools/Packaging/`; `Tools/Scripts/editor.ps1` is `editor.sh` for Windows. Every M12
-  choice is asked, the editor's packaging too (M11's exception ended with M11).
+  `Tools/Scripts/check-packages.sh` (`--self-test` breaks each one rule at a time); `Tools/Scripts/end-to-end.sh
+  [--publish] --version <v>` runs the two Linux packages as a player and a modder would, headless (about 90 s; not in
+  `test.sh`); the listings, licence texts and the Visual C++ runtime's pin are in `Tools/Packaging/`;
+  `Tools/Scripts/editor.ps1` is `editor.sh` for Windows. Every M12 choice is asked, the editor's packaging too (M11's
+  exception ended with M11).
   `Tools/Scripts/release.sh [--dry-run | --self-test]` makes a release, a draft on GitHub (a real one only on the user's word).
 - Audio (M8, `Docs/Audio.md`): `Tools/Scripts/play-theme.sh [theme] [--volume 0-100]` plays the music on the real
   device, to listen to it (in a real terminal; testing it from a script, send only volume 0).

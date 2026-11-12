@@ -235,7 +235,8 @@ public class ModFromScratchTests
         Assert.Null(editor.View.Dialogs.Top);
         Assert.Equal("Saved ember-rite.pak.", editor.View.Status);
         Assert.False(editor.Session.HasUnsavedWork);
-        Assert.Equal("Statventure Editor dev — ember-rite.pak", editor.View.Title);
+        // The title with the editor's version: "dev" in the suite, the packages' when end-to-end.sh builds it with theirs (M12 step 8).
+        Assert.Equal($"Statventure Editor {EditorView.Version} — ember-rite.pak", editor.View.Title);
 
         // What the editor shows of each entry: its value and its JSON tab.
         foreach (var path in new[] { ModInfo.Path, Hall, Chime, Sparks, Stage, Rite })

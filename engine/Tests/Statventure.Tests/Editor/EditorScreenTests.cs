@@ -50,7 +50,8 @@ public class EditorScreenTests(GpuFixture gpu)
         Golden.Match($"editor-{name}@{EditorFixtures.ScaleName(scale)}", Render(gpu.Device, editor, width, height), tolerance: 12, maxDifferentRatio: 0.002);
     }
 
-    static RgbaImage Render(GpuDevice device, EditorHarness editor, int width, int height)
+    /// <summary>The harness's document drawn offscreen at <paramref name="width"/> × <paramref name="height"/> device pixels (also the end-to-end flow's About picture, M12 step 8).</summary>
+    internal static RgbaImage Render(GpuDevice device, EditorHarness editor, int width, int height)
     {
         using var painter = new UiPainter(editor.Document);
         using var canvas = new CanvasRenderer(device);
