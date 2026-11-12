@@ -44,8 +44,21 @@ Before M11: M10 (scene and sequencer) done 2026-11-05 (the proof cutscene approv
 ("Windows check"). The project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo
 `github.com/Vatrix33/statfick`; the user's tasks for the port are in `Docs/Port-Tasks/`, read when the port starts
 ("Decision on the user's tasks for the port"; "Open questions for later milestones", "At port time"); tasks 1–9 are done
-in the old game, task 11 in the old game for its races, and tasks 10 and 12 are designed and approved for the port to
-build (the paragraphs below); task 13 is next.
+in the old game, task 11 in the old game for its races, and tasks 10, 12 and 13 are designed and approved for the
+port to build (the paragraphs below); task 14 (Dungeons) is the last, not started.
+**Port task 13, New Classes, is designed and approved, for the port (2026-11-12, a cloud session),** like task 10:
+not built in the old game (NC1). 79 new classes (NC2): the task's 37 by focus (4 melee, 4 ranged, 4 spells, 4 from the
+rogue's path, 2 for each of the six pairs, 9 without a focus) and 42 more chosen to fill gaps, so that players can
+acquire 250 (171 of task 10's 175 could; Raid Boss, Beast, Great Beast and Monster can't be had); with task 14's two,
+252. Each focus class builds on its path, from any class on it (NC3), and each is built in its own shape (NC11). One
+draft of identity, levels, requirements and rarity (NC4), approved with the user's notes (NC6–NC9), then the features
+as a sample of four and seven batches (NC10–NC18), all approved (NC19). **They are now at the end of task 10's two
+drafts** in `Docs/Port-Tasks/10_Class_Rework/` (254 classes there, 250 for players; NC5, NC19); the drafts in
+`Docs/Port-Tasks/13_New_classes/` stay as the task's record. Rarity: 51 without a colour, 22 blue, 4 purple, 1 gold,
+1 red: the Limitbreaker, the second red class (NC6). For the port besides: the hooded man offers no red class while the
+player is Level 99 or lower (NC7, "At port time"), and the new counts, requirement kinds and the Moonfang key item the
+requirements use (listed at the end of task 13's part of the draft). Decisions NC1–NC19 in "Decisions for task 13, New
+Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
 **Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is done in the old game**, as task 1 was
 (the user's answer G1, "Decisions for task 2, Guild Rework" below; built on the cloud branch `claude/fervent-carson-f5ol9s`
 and merged through a pull request). The port doesn't build it again; only its two guild interiors, placeholder art, are
@@ -127,7 +140,7 @@ current task. How it's built, its checks and their results: `../old-game/Docs/No
 in task 10's drafts for its classes (T1). Half-Beast (balanced feral stats, Natural Claws) and Goliath (mighty and slow,
 Giant's Blood) are playable, and so are the Merfolk (the enemies' stats and passive kept); each has a placeholder seal,
 four male and four female placeholder looks and recruit names (T5, T7). Their racial classes, Wildheart, Deepcaller and
-Peakwarden, are at the end of both drafts in `Docs/Port-Tasks/10_Class_Rework/` (173 classes then; 175 with task 12's two). Decisions
+Peakwarden, are at the end of both drafts in `Docs/Port-Tasks/10_Class_Rework/` (173 classes then; 175 with task 12's two, 254 with task 13's). Decisions
 T1–T17 in "Decisions for task 11, New Races" below; where each rule lives, the checks (`new-races-browser.js`, 22 rules
 each shown able to fail) and the regression (148 of 162 pass; the 14 others fail on the code before it too or are the
 known intermittent ones): `../old-game/Docs/Notes.md`, "New Races". The engine's tests read only the six older race
@@ -159,7 +172,7 @@ spell players can learn, 381, reworked in the game's element order) are approved
 the 168 new spells (`New-01-Basic.md` to `New-12-Blood.md`, fourteen per element, the four new summons among them;
 SP3, SP33, SP34, SP48–SP59, SP62), with 28 spells borrowing another element's status (SP60, SP61). The two
 classes, the Spellweaver and the Ritual Caster (`Classes.md`, SP63–SP69), are approved and added to task 10's drafts
-(175 classes there now). What the port builds besides (new creatures, the Tier 10 animations, the menu's magic circles):
+(175 classes then; 254 with task 13's). What the port builds besides (new creatures, the Tier 10 animations, the menu's magic circles):
 `Docs/Port-Tasks/README.md`, "Designed for the port". The drafts hold the final numbers; they were generated with scratch
 scripts in `~/.cache/stat-fick-build/claude-work/t12/` (the curve and a spec file per element; `Docs/Notes.md`,
 2026-11-11/12), not needed to read or build them. Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
@@ -758,10 +771,16 @@ the design and the tests):
   their full rework is not part of task 10's design.
   From task 10 (the user, 2026-11-11, C32), three requirements for the port: **(1) the classes are unchanged in the old
   game; during the port, the classes in the drafts are added** (`Docs/Port-Tasks/10_Class_Rework/`:
-  `Class-Rework-Draft.md` and `Class-Rework-Features.md`, all 170); **(2) during porting, every class is inspected for
-  possible errors and inconsistencies** (in the drafts and against the game's rules, before or while it is built);
-  **(3) after the port, every class feature is tested so that it works as intended** (every level of all 170 classes,
-  passives and skills included).
+  `Class-Rework-Draft.md` and `Class-Rework-Features.md`, all 170, and the 84 tasks 11–13 added at their end: 254);
+  **(2) during porting, every class is inspected for possible errors and inconsistencies** (in the drafts and against
+  the game's rules, before or while it is built); **(3) after the port, every class feature is tested so that it works
+  as intended** (every level of all 254 classes, passives and skills included).
+  From task 13 (the user, 2026-11-12, NC1, NC19): **the port builds task 13's 79 new classes** from the end of task
+  10's drafts ("Classes added by task 13", "Task 13's classes"), with the three duties above, and adds the counts,
+  requirement kinds and the Moonfang key item their requirements use (listed there).
+  From task 13 (the user, 2026-11-12, NC7): **the hooded man never offers information on a red class while the player
+  is Level 99 or lower;** from Level 100 the red classes (Unreality, Limitbreaker) join his class offers, the
+  Limitbreaker despite needing Level 110 (his old rule leaving out classes above Level 100 doesn't apply to it).
 
 ## Folders
 
@@ -1941,6 +1960,103 @@ Asked after the regression run (2026-11-06):
   (L18): it reads 0 EXP; companions below their cap still gain the battle's EXP. (Not the number with a note, not left
   showing the battle's EXP.)
 
+**Decisions for task 13, New Classes (2026-11-12, a cloud session; the user: "Start with Task 13. For the new classes,
+the same rules apply as in Task 10"; the task is `Docs/Port-Tasks/13_New_classes.txt`).** Asked before any work, after
+reading task 10's decisions and drafts:
+- NC1 **Task 10's rules apply** (the user's words when starting it): the classes are drafts for the port, not built
+  in the old game (C23); identities are a short playstyle without skills, passives or stat gains (C15); a class has one
+  passive and one skill, and its last level gives one of them (C21, the capstone rule); every level worth taking, power
+  by rarity, no self-defeating penalties (C20, C21); requirements a turn's 5 AP allows (C28); the four questions
+  (identity, levels, requirements, rarity) asked through one draft (C14), then the features in batches (C22).
+- NC2 **The count to 250 is of classes players can acquire:** 171 of task 10's 175 (not Raid Boss, Beast, Great Beast
+  or Monster), so 79 new: the task's 37 by focus and 42 more, their kinds my choice as the task says. With task 14's
+  two, players end with 252 (as the user meant, `Docs/Port-Tasks/README.md`). (Not all 175, which would make 75.)
+- NC3 **A focus class builds on its path in its requirements and its playstyle,** from any class on that path, not
+  only the starting class (the user: "A new melee focused class could branch off from Knight and a mage focused one
+  could branch off from Mage or Sorcerer ... they don't need to immediately branch off from a starting class"). The
+  pairs build on both their paths. (Not the rogue classes alone, not playstyle only.)
+- NC4 **One draft with all 79** (identity, levels, requirements, rarity), then the features in batches. (Not the 37
+  first and the 42 after, not a draft per focus group.)
+- NC5 **Where:** drafted in `Docs/Port-Tasks/13_New_classes/` while under review; once approved, added to the end of
+  task 10's two drafts, as tasks 11 and 12 did, so the port has every class in one place. (Not a folder of its own for
+  good, not straight into task 10's files.)
+Where it stands (2026-11-12): the draft, `Docs/Port-Tasks/13_New_classes/New-Classes-Draft.md`, written for the user's
+review: the 37 by focus and 42 more (8 next steps for the new classes, 7 melee, 3 fighters with an element, 5 ranged,
+3 rogue, 7 spells, 9 without a focus), 51 without a colour, 22 blue, 4 purple, 2 gold; every identity checked against
+task 10's 175 and task 14's two, every required class checked to exist at that level, every requirement within a
+turn's 5 AP, the new counts listed at its end.
+The user's review of the draft (2026-11-12; their notes on two classes, everything else approved as drafted):
+- NC6 **Limitbreaker is red** (the user: "Limitbreaker is a bit unreachable, since you cannot gain perk points above
+  Level 100, except if you save them up. Make it a red rarity class"): gold → red; its Level 110 kept (points saved up
+  before Level 100 pay for it). Unreality is no longer the only red class (C16's "only red class"); the red rarity's
+  look, still to ask when the port builds the classes, covers both.
+- NC7 **The hooded man and red classes** (the user: "add a feature that the hooded man cannot reveal information on red
+  rarity classes while the player is Level 99 or lower"): while the player is Level 99 or lower he never offers a red
+  class; **from Level 100 the red classes join his offers, the Limitbreaker too** (asked: his rule leaving out every
+  class that needs above Level 100, `playerClasses` in `../old-game/scripts/guild-information-engine.js`, no longer
+  leaves it out). (Not Unreality only.) For the port, where the red classes are built ("At port time").
+- NC8 **Paragon's requirement:** Level 85 · Jack of all Trades 4 · **Knight 5 · Sharpshooter 5 · Spellcaster 5 ·
+  Assassin 5** (the user: the starting classes were redundant beside Jack of all Trades, so a direct upgrade of each
+  at Level 5 instead; asked whether one class may count for two starting classes, the answer "Make it 4 set classes
+  instead of all direct upgrades. For example, for the Warrior path, it needs only Knight at Level 5"; the other three
+  asked after). (Not Hunter, Scholar and Thief; not Hunter, Wizard and Shadow.) Jack of all Trades itself needs the
+  starting classes at Level 3.
+- NC9 **The draft is approved** with NC6–NC8 applied ("Everything else is good"): 79 classes, 51 without a colour, 22
+  blue, 4 purple, 1 gold, 1 red. Next: their features, in batches (C22).
+- NC10 **The features start with a sample of four**, one class from each focus drawn at random, as task 10's began
+  (C20); then the rest in batches. (Not seven batches in the draft's order at once, not four batches of about 20.)
+  Drawn: Bladebound (melee), Harrier (ranged), Catalyst (spells), Mimic (the rogue's path); written for review in
+  `Docs/Port-Tasks/13_New_classes/New-Classes-Features.md` (2026-11-12), under task 10's rules.
+- NC11 **The sample is approved, and the classes aren't all built the same way** (the user: "The four of them are quite
+  similarily build (Pure stat buff at Level 1 and a skill/passive at Level 2). It is fine for the four classes, but mix
+  it up a bit for all other classes so they dont appear too equally build"): for the other 75, where the passive or the
+  skill comes, which of the two is the capstone and where the stat levels fall vary from class to class. Batch 1, the
+  other twelve single-focus classes of the task (Twinblade, Avenger, Crusher, Arbalest, Fletcher, Deadeye, Enchanter,
+  Riftmage, Glyphmage, Cutthroat, Opportunist, Con Artist), written for review the same day; the batches follow the
+  draft's order a few groups at a time (C22): next the six pairs, then the nine without a focus, then the 42 more.
+- NC12 **Batch 1 is approved, the Con Artist's Bribe never on bosses** (the user: "Make it so the Bribe of the Con
+  Artist does not work on bosses at all. Approved otherwise"; the batch had a boss lose its next turn instead). Batch 2,
+  the six pairs (Warcaster, Cinderblade, Wandslinger, Prism Archer, Spellthief, Illusionist, Corsair, Thug, Ranger,
+  Skirmisher, Sniper, Poacher), written for review the same day.
+- NC13 **Batch 2 is approved** as written ("Approved"). Batch 3, the nine without a focus (Prodigy, Steadfast,
+  Equilibrist, Fateweaver, Conqueror, Martyr, Financier, Collector, Chameleon), written for review the same day; with
+  it all 37 of the task's own classes have features. Next: the 42 more, a few groups at a time.
+- NC14 **Batch 3 is approved, the Conqueror's Winning Streak up to 50 wins** (the user: "The Conquerors Winning Streak
+  is too weak. Increase it to a cap of 50 wins. All else is approved"): +1% damage and Armor per win in a row, now up to
+  +50% at 50 (the batch had +10% at 10); with the class's requirement of 50 wins in a row, a Conqueror whose streak
+  holds starts at the full bonus. Batch 4, the first of the 42 more (the next steps Bladestorm, Transmuter,
+  Phantasmist, Voidwalker, Doppelganger, Kingpin, Artificer, Warlord, the Warlord sharing a quarter of the streak; the
+  fighters with an element Frostwarden, Stormblade, Thornguard), written for review the same day.
+- NC15 **Batch 4 is approved** as written ("Approved"). Batch 5, the melee extras (Lancer, Scourge, Shieldmaster,
+  Grappler, Drunken Master, Skald, Knight-Errant) and the ranged extras (Trickshot, Huntmaster, Bowmaster, Giantslayer,
+  Lightbearer), written for review the same day. Found while writing it: shields give Armor only (no block chance in
+  the old game), so the Shieldmaster's blocks are attacks taken while Guarding; Escort quests fight as bandit ambushes
+  on the road (`../old-game/scripts/guild-quest-engine.js`, G16).
+- NC16 **Batch 5 is approved** as written ("Approved"). Batch 6, the rogue extras (Saboteur, Accomplice, Vigilante)
+  and the spell extras (Soulbinder, Beguiler, Astromancer, Golemancer, Hedge Witch, Dirgesinger, Abjurer), written for
+  review the same day. The last batch, the nine extras without a focus, follows.
+- NC17 **Batch 6 is approved** as written ("Approved"). Batch 7, the last (Guildmaster, Limitbreaker, Treasure Hunter,
+  Daredevil, Surgeon, Ascetic, Lycanthrope, Paragon, Schemer), written for review the same day: with it all 79 classes
+  have features. Proposed in it: the Moonfang as a 1% drop from a wolf defeated at night; the Lycanthrope, a class from
+  a rare item, with two skills as the item classes may have (C21). Once it is approved, the classes go to the end of
+  task 10's drafts (NC5).
+- NC18 **Batch 7 revised on the user's notes** (2026-11-12): **the Limitbreaker's passive no longer weakens the
+  enemies** (the user: "Remake the Limitbreaker Passive to not debuff the enemies. Instead it should help you close the
+  gap"; asked how, the answer: while Limitless is on, all your stats +25%, the margin Limitless gives every enemy
+  after lifting it to your level, `scaleEnemy` in `../old-game/scripts/limitless-engine.js`; not matching the strongest
+  enemy stat by stat, not growing 2.5% per 10 levels); **the Ascetic's Nothing to Lose is +14% to all stats per empty
+  slot, up to +56%** ("since taking away Artifacts is a huge debuff"; the batch had 4%, up to +16%); **the Paragon of
+  Paths is +3% to all stats per class at its final level, without a limit** (the batch had 1%, up to +20%). The rest
+  of batch 7 awaits the user's word.
+- NC19 **Batch 7 is approved as revised, and with it task 13's design** (the user: "Approved", then "Also properly
+  update all documentation"): all 79 classes are approved and **added to the end of task 10's two drafts** (NC5):
+  `Class-Rework-Draft.md` ("Classes added by task 13", 254 classes, 250 for players; the new counts and requirement
+  kinds after them) and `Class-Rework-Features.md` ("Task 13's classes", the sample and seven batches; the Lycanthrope
+  among the item classes in its rules). The drafts in `Docs/Port-Tasks/13_New_classes/` stay as the task's record, as
+  task 12's `Classes.md` does. Task 10's words "red ... for Unreality alone" now name the Limitbreaker too (NC6), and
+  the hooded man's rule (NC7) and the port's work on the new classes are under "At port time". **Task 13's design is
+  complete.**
+
 **Decisions for task 12, Spell Rework (2026-11-11, a cloud session; the user: "Go ahead with Task 12"; the task is
 `Docs/Port-Tasks/12_Spell_Rework.txt`).** Asked before any work, after reading the old game's spells
 (`objects/spells.json`: 388 spells in 12 elements, Basic among them; Tiers 1–10, 4–6 per element in Tiers 1–5, 3 in
@@ -2362,7 +2478,8 @@ The features round (2026-11-10):
   (for races players can't pick); the enemies' classes are reworked in the port anyway (C2). (Not given a passive and a
   skill each.)
 Still to ask (nothing assumed):
-- The red rarity's look (Unreality's colour in the class list and details), when the port builds the classes (C16, C23).
+- The red rarity's look (Unreality's colour in the class list and details, and the Limitbreaker's since task 13, NC6),
+  when the port builds the classes (C16, C23).
 Kept in mind:
 - (Moot since C23: the old game's class files don't change.) `classes/Black Knight.json` is read by the engine's tests
   (`LooseRecordTests`); if it changes, `Tools/Scripts/test.sh`
