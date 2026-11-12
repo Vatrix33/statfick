@@ -1,6 +1,6 @@
 # Task 13, New Classes: the draft, every new class's identity, levels, requirements and rarity
 
-**For the user's review (written 2026-11-12).** The one draft of task 13 (NC4): all 79 new classes, each with its
+**Approved by the user (2026-11-12, their notes applied: Limitbreaker red, Paragon's requirement; NC6–NC9).** The one draft of task 13 (NC4): all 79 new classes, each with its
 identity, its number of levels, its requirements and its rarity (colour), the task's four questions in its order.
 Nothing is built: like task 10's classes these are for the port (NC1, C23). Once approved they go to the end of task
 10's two drafts in `../10_Class_Rework/` (NC5), and their features are then made level by level in batches, as task
@@ -17,15 +17,18 @@ Classes"; the task is `engine/Docs/Port-Tasks/13_New_classes.txt`.
   count)"; the list of them is at the end. Every one was checked against a turn's 5 AP (C28). **A focus class builds
   on its path** (NC3): it needs a class on that path, not always the starting class; a pair class needs one on each of
   its two paths (or a class that is already both, such as the Spellblade); the classes without a focus need none.
-- **Rarity** (no colour, blue, purple, gold; red stays the Unreality's alone): the harder or more exotic a class is to
-  get, the rarer, and the stronger its features will be made.
-- **How to answer:** approve as a whole, or name the classes to change and how (in chat, or in this file, as for task
-  10's draft).
+- **Rarity** (no colour, blue, purple, gold, and red above gold: the Unreality's and, from this task, the
+  Limitbreaker's): the harder or more exotic a class is to get, the rarer, and the stronger its features will be made.
+  **The hooded man and red classes** (NC7, for the port): while the player is Level 99 or lower he never offers
+  information on a red class; from Level 100 the red classes join his offers, the Limitbreaker too (his old rule
+  leaving out every class that needs above Level 100 no longer leaves it out).
+- **Your notes** from the review of 2026-11-12 are applied; each changed class shows its note word for word, and the
+  questions they raised were asked (NC6–NC8 in `engine/Docs/Engine-Plan.md`).
 
 **Totals:** 79 new classes: the task's 37 by focus (4 melee, 4 ranged, 4 spells, 4 from the rogue's path, 2 for each of
 the six pairs, 9 without a focus) and 42 more (NC2). Players can then acquire 250 classes (171 of task 10's 175, as Raid
 Boss, Beast, Great Beast and Monster can't be had, and these 79); with task 14's two, 252. Rarity of the 79: 51 without a
-colour, 22 blue, 4 purple, 2 gold (task 10's 170: 109, 42, 13, 5, and 1 red).
+colour, 22 blue, 4 purple, 1 gold, 1 red (task 10's 170: 109, 42, 13, 5, and 1 red).
 
 ## Contents
 
@@ -658,10 +661,15 @@ Melee and spells, as the Cinderblade is with Fire; each with an element's own wa
 
 ### Limitbreaker
 
-3 levels · rarity gold
+3 levels · **rarity gold → red** (your note)
 
-- **Requires:** Level 110 (only reachable in Limitless, task 7)
+- **Requires:** Level 110 (only reachable in Limitless, task 7; perk points come only up to Level 100, so it takes
+  points saved up for it)
 - **Identity:** Born of Limitless: turns its scaling around, growing stronger the stronger Limitless makes its enemies.
+- *Your note, applied: Limitbreaker is a bit unreachable, since you cannot gain perk points above Level 100, except if
+  you save them up. Make it a red rarity class. Also, add a feature that the hooded man cannot reveal information on
+  red rarity classes while the player is Level 99 or lower. (Asked after: from Level 100 he offers the Limitbreaker
+  too.)*
 
 ### Treasure Hunter
 
@@ -704,8 +712,14 @@ Melee and spells, as the Cinderblade is with Fire; each with an element's own wa
 
 3 levels · rarity gold
 
-- **Requires:** Level 85 · Jack of all Trades 4 · Warrior 5 · Archer 5 · Mage 5 · Rogue 5
+- **Requires:** Level 85 · Jack of all Trades 4 · Knight 5 · Sharpshooter 5 · Spellcaster 5 · Assassin 5
+- *Changed on your note: four set classes, one on each starting class's path, instead of the starting classes (Knight
+  your example for the Warrior; the other three asked after).*
 - **Identity:** The Jack of all Trades grown into a legend: every path mastered, and it excels at all of them.
+- *Your note, applied: The Paragon's requirements is redundant, since Jack of all Trades already requires the starting
+  classes at Level 5. Make it so it requires Jack of all Trades and instead of the starting classes it requires a direct
+  upgrade to them at Level 5 instead. (Asked after: "Make it 4 set classes instead of all direct upgrades. For example,
+  for the Warrior path, it needs only Knight at Level 5"; then Sharpshooter, Spellcaster and Assassin.)*
 
 ### Schemer
 

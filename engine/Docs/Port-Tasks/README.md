@@ -74,8 +74,10 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
     each one's identity, levels, requirements and rarity, in that order.
     **Being designed (started 2026-11-12), for the port:** like task 10, not built in the old game (NC1). 79 new
     classes, the 37 by focus and 42 more (171 of task 10's 175 can be acquired; NC2), drafted in `13_New_classes/`
-    (its README says what each file holds) and added to the end of task 10's drafts once approved (NC5). Decisions NC1
-    onward in `Engine-Plan.md`, "Decisions for task 13, New Classes".
+    (its README says what each file holds) and added to the end of task 10's drafts once approved (NC5). Their
+    identity, levels, requirements and rarity are approved (2026-11-12, NC9); their features come next. With it a
+    second red class, the Limitbreaker (NC6), and a rule for the port: the hooded man offers no red class while the
+    player is Level 99 or lower (NC7). Decisions NC1 onward in `Engine-Plan.md`, "Decisions for task 13, New Classes".
 14. `14_Dungeons.txt`: dungeons (nine named, three more), each with stages and a boss; Camping Supplies between
     stages; defeat penalties and a warning before entry; the Delve guild quest; Saffron and Ool move from Great Hunts
     to dungeon bosses; three masterworks and an Exotic; the Dungeon Delver and Throwing Specialist classes; eleven

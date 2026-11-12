@@ -52,8 +52,9 @@ task 10's two drafts once approved (NC1, NC5). 79 new classes (NC2): the task's 
 spells, 4 from the rogue's path, 2 for each of the six pairs, 9 without a focus) and 42 more, so that players can
 acquire 250 (171 of task 10's 175 now; Raid Boss, Beast, Great Beast and Monster can't be had). Each focus class builds
 on its path, from any class on it, not only the starting class (NC3). One draft with all 79 (identity, levels,
-requirements, rarity; NC4), then the features in batches, as task 10. Decisions NC1 onward in "Decisions for task 13,
-New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
+requirements, rarity; NC4) approved on 2026-11-12 with the user's notes applied (Limitbreaker red; the hooded man
+offering no red class below Level 100; Paragon's four set classes; NC6–NC9); next, the features in batches, as task
+10. Decisions NC1 onward in "Decisions for task 13, New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
 **Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is done in the old game**, as task 1 was
 (the user's answer G1, "Decisions for task 2, Guild Rework" below; built on the cloud branch `claude/fervent-carson-f5ol9s`
 and merged through a pull request). The port doesn't build it again; only its two guild interiors, placeholder art, are
@@ -770,6 +771,9 @@ the design and the tests):
   possible errors and inconsistencies** (in the drafts and against the game's rules, before or while it is built);
   **(3) after the port, every class feature is tested so that it works as intended** (every level of all 170 classes,
   passives and skills included).
+  From task 13 (the user, 2026-11-12, NC7): **the hooded man never offers information on a red class while the player
+  is Level 99 or lower;** from Level 100 the red classes (Unreality, Limitbreaker) join his class offers, the
+  Limitbreaker despite needing Level 110 (his old rule leaving out classes above Level 100 doesn't apply to it).
 
 ## Folders
 
@@ -1974,6 +1978,24 @@ review: the 37 by focus and 42 more (8 next steps for the new classes, 7 melee, 
 3 rogue, 7 spells, 9 without a focus), 51 without a colour, 22 blue, 4 purple, 2 gold; every identity checked against
 task 10's 175 and task 14's two, every required class checked to exist at that level, every requirement within a
 turn's 5 AP, the new counts listed at its end.
+The user's review of the draft (2026-11-12; their notes on two classes, everything else approved as drafted):
+- NC6 **Limitbreaker is red** (the user: "Limitbreaker is a bit unreachable, since you cannot gain perk points above
+  Level 100, except if you save them up. Make it a red rarity class"): gold → red; its Level 110 kept (points saved up
+  before Level 100 pay for it). Unreality is no longer the only red class (C16's "only red class"); the red rarity's
+  look, still to ask when the port builds the classes, covers both.
+- NC7 **The hooded man and red classes** (the user: "add a feature that the hooded man cannot reveal information on red
+  rarity classes while the player is Level 99 or lower"): while the player is Level 99 or lower he never offers a red
+  class; **from Level 100 the red classes join his offers, the Limitbreaker too** (asked: his rule leaving out every
+  class that needs above Level 100, `playerClasses` in `../old-game/scripts/guild-information-engine.js`, no longer
+  leaves it out). (Not Unreality only.) For the port, where the red classes are built ("At port time").
+- NC8 **Paragon's requirement:** Level 85 · Jack of all Trades 4 · **Knight 5 · Sharpshooter 5 · Spellcaster 5 ·
+  Assassin 5** (the user: the starting classes were redundant beside Jack of all Trades, so a direct upgrade of each
+  at Level 5 instead; asked whether one class may count for two starting classes, the answer "Make it 4 set classes
+  instead of all direct upgrades. For example, for the Warrior path, it needs only Knight at Level 5"; the other three
+  asked after). (Not Hunter, Scholar and Thief; not Hunter, Wizard and Shadow.) Jack of all Trades itself needs the
+  starting classes at Level 3.
+- NC9 **The draft is approved** with NC6–NC8 applied ("Everything else is good"): 79 classes, 51 without a colour, 22
+  blue, 4 purple, 1 gold, 1 red. Next: their features, in batches (C22).
 
 **Decisions for task 12, Spell Rework (2026-11-11, a cloud session; the user: "Go ahead with Task 12"; the task is
 `Docs/Port-Tasks/12_Spell_Rework.txt`).** Asked before any work, after reading the old game's spells
@@ -2396,7 +2418,8 @@ The features round (2026-11-10):
   (for races players can't pick); the enemies' classes are reworked in the port anyway (C2). (Not given a passive and a
   skill each.)
 Still to ask (nothing assumed):
-- The red rarity's look (Unreality's colour in the class list and details), when the port builds the classes (C16, C23).
+- The red rarity's look (Unreality's colour in the class list and details, and the Limitbreaker's since task 13, NC6),
+  when the port builds the classes (C16, C23).
 Kept in mind:
 - (Moot since C23: the old game's class files don't change.) `classes/Black Knight.json` is read by the engine's tests
   (`LooseRecordTests`); if it changes, `Tools/Scripts/test.sh`
