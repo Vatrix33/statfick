@@ -46,3 +46,5 @@ The review's order (SP2, SP15):
    at least one summon and one Dragonbreath spell (SP33).
 5. The Spellweaver (built around Spell Augmentation, SP9) and the Ritual Caster, added to task 10's drafts
    (`../10_Class_Rework/`).
+   - `Classes.md`: both classes, identity, levels, requirements, rarity and features. **Under review.** Once
+     approved they go into task 10's drafts.

@@ -155,8 +155,9 @@ the system draft (`Spell-Augmentation.md`), the sample of four spells (`Spell-Sa
 reactions (`Element-Statuses.md`) and all twelve element batches (`Batch-01-Basic.md` to `Batch-12-Blood.md`, every
 spell players can learn, 381, reworked in the game's element order) are approved (SP27, SP31, SP32, SP35–SP47), and so are
 the 168 new spells (`New-01-Basic.md` to `New-12-Blood.md`, fourteen per element, the four new summons among them;
-SP3, SP33, SP34, SP48–SP59, SP62), with 28 spells borrowing another element's status (SP60, SP61). Next: the two
-classes, the Spellweaver and the Ritual Caster, into task 10's drafts (SP2, SP3, SP15). The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
+SP3, SP33, SP34, SP48–SP59, SP62), with 28 spells borrowing another element's status (SP60, SP61). The two
+classes, the Spellweaver and the Ritual Caster (`Classes.md`, SP63–SP66), wait for the user's review; once approved
+they go into task 10's drafts (SP2), and the Augmentation menu's look (SP25) is already set. The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
 curve) and a specs file per element. Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
 **Engine work goes on uninterrupted**; don't count task 12 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
@@ -2122,6 +2123,16 @@ like that where it would be possible?"):
 - SP62 **New spells 12, Blood, and the borrowed-status lists are approved** (the user: "Otherwise both drafts are
   approved", then the fourteen more added): all 168 new spells are approved (`Docs/Port-Tasks/12_Spell_Rework/New-01-Basic.md`
   to `New-12-Blood.md`, SP49–SP59, SP62).
+Asked before the two classes (2026-11-12):
+- SP63 **Weavings sit outside the 10 ranks:** at most one element weaving, one per scaling stat and one tier raise per
+  spell, unlocked by Spellweaver levels, costing only money (SP27's prices). (Not 2 ranks each, not one weaving of any
+  kind per spell.)
+- SP64 **The Ritual Caster's delay:** 1, 2 or 3 turns, each cutting the spell's Mana cost by 30% (30%, 60%, 90%); the
+  spell goes off at the start of the caster's turn that many turns later. (Not 1–2 turns at 40%, not 1–4 at 20%.)
+- SP65 **Only a stun breaks a ritual** (or anything else that stops casting); damage alone doesn't. A broken ritual's
+  Mana is lost. (Not a stun or a heavy blow, not never.)
+- SP66 **A ritual's AP is paid when it begins;** when it goes off it costs no AP, and if its target has fallen it
+  strikes another random enemy (a heal or buff another random ally). (Not AP when it fires, not a fizzle.)
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:
