@@ -1,6 +1,7 @@
 # Task 13, New Classes: the features
 
-**Under review: the sample of four and batches 1–5 approved (2026-11-12, NC11–NC16); batch 6 written for review.** The level-by-level features of the 79 new
+**Under review: the sample of four and batches 1–6 approved (2026-11-12, NC11–NC17); batch 7, the last, written for
+review.** The level-by-level features of the 79 new
 classes, made for the port (NC1). Each keeps the identity, levels, requirements and rarity approved in
 `New-Classes-Draft.md` (NC9). It starts with a sample of four, one class from each focus drawn at random, as task 10's
 features began (C20); the rest follow in batches once the sample is approved, the user's notes on each batch shaping
@@ -39,8 +40,10 @@ do and the port would need to add.
   Stormblade, Thornguard).
 - Batch 5 (approved 2026-11-12): the melee extras (Lancer, Scourge, Shieldmaster, Grappler, Drunken Master, Skald,
   Knight-Errant) and the ranged extras (Trickshot, Huntmaster, Bowmaster, Giantslayer, Lightbearer).
-- Batch 6 (for review): the rogue extras (Saboteur, Accomplice, Vigilante) and the spell extras (Soulbinder, Beguiler,
+- Batch 6 (approved 2026-11-12): the rogue extras (Saboteur, Accomplice, Vigilante) and the spell extras (Soulbinder, Beguiler,
   Astromancer, Golemancer, Hedge Witch, Dirgesinger, Abjurer).
+- Batch 7 (for review), the last: the extras without a focus: Guildmaster, Limitbreaker, Treasure Hunter, Daredevil,
+  Surgeon, Ascetic, Lycanthrope, Paragon, Schemer.
 
 # The sample of four (approved 2026-11-12)
 
@@ -1112,7 +1115,7 @@ Identity: Shoots light: its arrows mend the allies they pass and sear the undead
 How it plays: a healer that never stops shooting: each turn one shot mends an ally while it hurts an enemy, and against
 the undead and the demons of the Abyss its arrows burn. Task 12's Blessed and Purify carry its light.
 
-# Batch 6: the rogue and spell extras (for review)
+# Batch 6: the rogue and spell extras (approved 2026-11-12)
 
 Three rogue and seven spell classes of the 42 more. Shapes (NC11): three get their passive at level 1, three their
 skill at level 1, one its skill at level 2 after a first feature, one its skill at level 3, two their passive at level
@@ -1283,3 +1286,154 @@ it.
 
 How it plays: the defensive caster of many elements: it reads the enemy and wards the party against exactly what it
 throws. The Templar shields against the undead and the dark; the Abjurer against any element it knows.
+
+# Batch 7: the extras without a focus (for review)
+
+The last nine of the 42 more, among them the second red class (the Limitbreaker, NC6), a gold one (the Paragon) and a
+class from a rare item (the Lycanthrope, which like the other item classes may have more than one skill). Shapes
+(NC11): two get their passive at level 1, three their skill at level 1, two their skill at level 2 after a first
+feature, one its skill at level 3, one its passive at level 3; the capstone is a skill for four and a passive for five.
+
+## Guildmaster
+
+4 levels · rarity blue · Requires: Level 40 · Bounty Broker 3 · Complete 50 guild quests
+Identity: The guild's own: commands its quests and recruits, and the companions it brings in join stronger.
+
+| Level | Feature |
+|---|---|
+| 1 | **Call the Guild** (skill, once per battle, 2 AP): call a guild adventurer of your level, of a random class the guild trains, to fight for the party until the battle ends (new) |
+| 2 | Mind and Luck +5%; maximum HP +10% |
+| 3 | Recruiting at the tavern costs you 25% less, and your companions gain 10% more experience |
+| 4 | **Guild's Own** (passive, capstone): the guild's daily boards offer you one more quest, guild quests pay you 15% more Reputation, and the recruits at the tavern are 2 levels higher (new) |
+
+How it plays: the Bounty Broker profits from guild work; the Guildmaster runs it: better boards, cheaper and stronger
+recruits, and in battle a guild adventurer at its call. Task 2's guild is its home.
+
+## Limitbreaker
+
+3 levels · rarity red · Requires: Level 110 (only in Limitless, task 7; perk points saved up before Level 100)
+Identity: Born of Limitless: turns its scaling around, growing stronger the stronger Limitless makes its enemies.
+
+| Level | Feature |
+|---|---|
+| 1 | **Limit Reversed** (passive): while Limitless is on, its 25% on the enemies becomes yours: in your battles the enemies' stats count without it, and your stats are 25% higher (new) |
+| 2 | All your stats +1% for every 5 levels above 100 (+2% at Level 110, up to +20% at 200); maximum HP and Mana +15% |
+| 3 | **Breaking Point** (skill, capstone; once per battle, no AP): for 3 turns there is no limit: your attacks and spells ignore Armor and resistances, and you can't fall below 1 HP (new) |
+
+How it plays: the class for those who go on past Level 100: Limitless's own advantage turned against it, and a body
+that keeps growing to Level 200. Above gold, like the Unreality; it takes three perk points saved before Level 100,
+since none come after (task 7). The hooded man won't speak of it below Level 100 (NC7).
+
+## Treasure Hunter
+
+4 levels · rarity blue · Requires: Level 20 · Defeat 3 Sparkling enemies
+Identity: Follows the glitter: finds Sparkling enemies more often and gets more out of them.
+
+| Level | Feature |
+|---|---|
+| 1 | Sparkling enemies give the party 25% more experience and money |
+| 2 | Luck and Speed +5% |
+| 3 | **Glint** (passive): enemies are three times as likely to be Sparkling in your battles (0.1% becomes 0.3%, a Cull quest's target 2% becomes 6%) (new) |
+| 4 | **Strike the Glitter** (skill, capstone; once per battle, 2 AP): an attack on a Sparkling enemy that can't miss and deals double damage; if it defeats it, the enemy rolls once more for a masterwork |
+
+How it plays: task 5's Sparkling enemies are rare luck for everyone else; for the Treasure Hunter they are a regular
+find, worth more each time, and the masterworks they carry come more often.
+
+## Daredevil
+
+5 levels · rarity no colour · Requires: Level 25 · Win 20 battles against an enemy above your level
+Identity: Asks for harder fights: makes battles more dangerous on purpose, and is paid in power and loot for every
+risk it takes.
+
+| Level | Feature |
+|---|---|
+| 1 | **Raise the Stakes** (skill, once per battle, no AP, at the start of a battle): the enemies gain 20% to their stats, and the battle gives the party 25% more experience and money and 25% better drop chances (new) |
+| 2 | Speed and Luck +5% |
+| 3 | While the stakes are raised, you deal 10% more damage and gain 5 Crit Rating |
+| 4 | Maximum HP +10%; you can raise the stakes higher: the enemies gain 40% for 60% more rewards |
+| 5 | **Thrill of Danger** (passive, capstone): the lower your HP, the harder you hit: 1% more damage for every 4% of your HP missing, up to +20%, and 5% more against an enemy above your level (new) |
+
+How it plays: the player decides how hard each battle is, and the Daredevil is paid for it: easy fights made worth
+fighting, and the dangerous ones worth the danger. The Champion seeks the strongest enemy; the Daredevil makes every
+enemy stronger.
+
+## Surgeon
+
+4 levels · rarity blue · Requires: Level 35 · Field Medic 5 · Use 100 healing items in battle
+Identity: The Field Medic's mastery: brings the fallen back in battle without magic, and mends wounds no potion could.
+
+| Level | Feature |
+|---|---|
+| 1 | Healing items you use on others heal 20% more |
+| 2 | **Field Surgery** (skill, once per battle, 2 AP): bring a fallen ally back with 30% of their HP, without magic (new) |
+| 3 | Wisdom and Vitality +5%; maximum HP +10% |
+| 4 | **Steady Hands** (passive, capstone): each healing item you use also removes one debuff or status, and the ally you heal takes 15% less damage until your next turn (new) |
+
+How it plays: a healer for any party, needing no Mana and no spells: its bandages and potions do more, clean wounds as
+they heal them, and once a battle bring someone back from the brink.
+
+## Ascetic
+
+5 levels · rarity no colour · Requires: Level 20 · Monk 4 or Hermit 3 · No artifacts equipped
+Identity: Owns almost nothing: the less it carries and wears, the stronger it is.
+
+| Level | Feature |
+|---|---|
+| 1 | Unarmed and quarterstaff attacks gain 10% Accuracy; without armour, Evasion +5% |
+| 2 | Wisdom and Vitality +5% |
+| 3 | **Clear Mind** (skill, once per battle, 1 AP): for 3 turns you take 25% less damage and your attacks can't miss |
+| 4 | Maximum HP +10%; without armour you take 10% less damage |
+| 5 | **Nothing to Lose** (passive, capstone): all your stats are 4% higher for each of your off-hand, armour and two artifact slots that is empty, up to +16% (new) |
+
+How it plays: the opposite of the Collector and the Relic Warden: it gives up its gear for power, and fully bare it is
+a sixth stronger in everything. It suits the Monk's fists and the Hermit's road.
+
+## Lycanthrope
+
+5 levels · rarity blue · Requires: Level 1 · Moonfang (consumed on acquisition)
+Identity: Carries the beast's curse: turns into a wolf in battle, savage and quick, and the night draws it out.
+
+| Level | Feature |
+|---|---|
+| 1 | **Wolf Form** (skill, once per battle, 1 AP): turn into a wolf for 4 turns: your attacks become claws and fangs (as a two-handed weapon of your level scaling with Strength and Speed), you gain 20% Speed and Evasion, and you can't cast spells or use items (new) |
+| 2 | **Night's Call** (passive): at night (18:00–06:00) you deal 10% more damage and gain 10% Speed, and your Wolf Form lasts the whole battle (new) |
+| 3 | Strength and Speed +5%; maximum HP +10% |
+| 4 | In Wolf Form your hits make the target Bleed for 2 turns |
+| 5 | **Howl** (skill, capstone; once per battle, 2 AP): every ally gains 15% damage and Speed for 3 turns, and every enemy below your level is Hexed (1 stack) |
+
+How it plays: a class from a rare item, like the Vampire and the Dragonkin (two skills, as they may): a fighter that
+becomes a beast for part of each battle and all of it at night. The Moonfang is a new key item, proposed as a 1% drop
+from a wolf defeated at night (the seven wolf enemies). The Half-Beast's Wildheart is born to its beast; the
+Lycanthrope is cursed with one.
+
+## Paragon
+
+3 levels · rarity gold · Requires: Level 85 · Jack of all Trades 4 · Knight 5 · Sharpshooter 5 · Spellcaster 5 ·
+Assassin 5
+Identity: The Jack of all Trades grown into a legend: every path mastered, and it excels at all of them.
+
+| Level | Feature |
+|---|---|
+| 1 | Your melee attacks, ranged attacks and spells all deal 15% more damage, and your Crit Rating is +10 |
+| 2 | **Peerless** (skill, once per battle, no AP): for your next 2 turns you have 2 more AP, and your attacks and spells can't miss |
+| 3 | **Paragon of Paths** (passive, capstone): all your stats are 1% higher for each class you have at its final level, up to +20% (new) |
+
+How it plays: a gold legend like the Hero and the Demon Lord, but for one's own sake: strong with blade, bow and spell
+alike, and stronger for every class it has mastered. Once a battle it acts as two for two turns.
+
+## Schemer
+
+5 levels · rarity no colour · Requires: Level 25 · Strategist 3
+Identity: Plans every move: what it doesn't use this turn it keeps for the next, building up to one decisive turn.
+
+| Level | Feature |
+|---|---|
+| 1 | **Plan Ahead** (passive): AP you don't use in a turn is kept for your next turn, up to 2 (new) |
+| 2 | Mind and Speed +5% |
+| 3 | You can keep up to 3 AP |
+| 4 | Maximum HP +10%; in a turn in which you keep AP, you take 10% less damage until your next turn |
+| 5 | **Grand Scheme** (skill, capstone; once per battle, no AP): this turn you gain as many AP again as you kept (up to +3) |
+
+How it plays: it never wastes an AP: a turn with an odd point left over pays into the next, and once a battle a turn of
+eleven AP does the work of two normal turns. The Sentinel spends its kept AP on one strike; the Schemer on a
+whole turn.

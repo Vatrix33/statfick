@@ -54,8 +54,8 @@ acquire 250 (171 of task 10's 175 now; Raid Boss, Beast, Great Beast and Monster
 on its path, from any class on it, not only the starting class (NC3). One draft with all 79 (identity, levels,
 requirements, rarity; NC4) approved on 2026-11-12 with the user's notes applied (Limitbreaker red; the hooded man
 offering no red class below Level 100; Paragon's four set classes; NC6–NC9); their features have begun with a sample
-of four and batches 1–5 approved, all 37 of the task's own classes and 23 of the 42 more (NC10–NC16); batch 6 (ten
-rogue and spell extras) is written for review; the last nine follow. Decisions NC1 onward in "Decisions for task 13, New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
+of four and batches 1–6 approved, all 37 of the task's own classes and 33 of the 42 more (NC10–NC17); batch 7, the
+last nine, is written for review. Decisions NC1 onward in "Decisions for task 13, New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
 **Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is done in the old game**, as task 1 was
 (the user's answer G1, "Decisions for task 2, Guild Rework" below; built on the cloud branch `claude/fervent-carson-f5ol9s`
 and merged through a pull request). The port doesn't build it again; only its two guild interiors, placeholder art, are
@@ -2029,6 +2029,11 @@ The user's review of the draft (2026-11-12; their notes on two classes, everythi
 - NC16 **Batch 5 is approved** as written ("Approved"). Batch 6, the rogue extras (Saboteur, Accomplice, Vigilante)
   and the spell extras (Soulbinder, Beguiler, Astromancer, Golemancer, Hedge Witch, Dirgesinger, Abjurer), written for
   review the same day. The last batch, the nine extras without a focus, follows.
+- NC17 **Batch 6 is approved** as written ("Approved"). Batch 7, the last (Guildmaster, Limitbreaker, Treasure Hunter,
+  Daredevil, Surgeon, Ascetic, Lycanthrope, Paragon, Schemer), written for review the same day: with it all 79 classes
+  have features. Proposed in it: the Moonfang as a 1% drop from a wolf defeated at night; the Lycanthrope, a class from
+  a rare item, with two skills as the item classes may have (C21). Once it is approved, the classes go to the end of
+  task 10's drafts (NC5).
 
 **Decisions for task 12, Spell Rework (2026-11-11, a cloud session; the user: "Go ahead with Task 12"; the task is
 `Docs/Port-Tasks/12_Spell_Rework.txt`).** Asked before any work, after reading the old game's spells
