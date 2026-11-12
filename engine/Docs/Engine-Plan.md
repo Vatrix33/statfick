@@ -2295,6 +2295,16 @@ The questions (2026-11-12, four at a time, the recommended option first):
 - DG74 **Vampires replay the keep's dungeon like anyone once the quest is done:** while holding Ravenwatch's quest they
   enter where outsiders do (the hostile fortress's entrance); once it is done the keep's replay button (DG59) is theirs
   too, with the lighter penalties. (Not shut out for good after the quest.)
+- DG75 **The two classes are designed now, not at port time** (the user, after DG1–DG74: "Can you create both classes
+  as well and put them into the Task 10 draft, just like task 13 did"): this replaces DG3's "designed at port time";
+  task 10's rules still apply (DG3), and DG4's throwing items. The rest of task 14 stays with the port (DG1, DG2).
+- DG76 **One draft with both parts:** with only two classes, their identity, levels, requirements and rarity and their
+  features level by level are in one draft, reviewed at once. (Not two steps, as task 13's were, NC4 and NC10.)
+- DG77 **Drafted in `Docs/Port-Tasks/14_Dungeons/Classes.md`,** kept as the task's record as task 12's `Classes.md`
+  and task 13's folder are; once approved, added to the end of task 10's two drafts (`10_Class_Rework/`), which the
+  port reads. (Not written straight into task 10's drafts.) Written for review the same day: the Dungeon Delver (5
+  levels, blue; Level 15, 2 different dungeons finished) and the Throwing Specialist (6 levels, no colour; Level 12, 30
+  throwing items thrown in battle).
 
 Following from the answers (not asked): a Delve failed by a defeat in the keep's dungeon (DG16, DG64) is offered again
 at Ravenwatch, since it is offered until done (DG55); the game's own save goes on inside a dungeon (the world, the
@@ -2316,7 +2326,8 @@ for the drafts the port writes and the user approves then (DG2), in the task's o
 - The eleven throwing items' numbers (prices, the knives' damage, DG43) and the four extra ones (DG39).
 - The smithing materials as items: which drop where and in which dungeons, their Forage odds and prices (DG29–DG32);
   the reforge menu's mark for a carried material (DG26).
-- The Dungeon Delver and the Throwing Specialist under task 10's rules (DG3, DG4), into task 10's drafts.
+- ~~The Dungeon Delver and the Throwing Specialist~~: drafted now instead (DG75–DG77,
+  `Docs/Port-Tasks/14_Dungeons/Classes.md`), for the user's review, then into task 10's drafts.
 - The numbers left open: the Delve chance per board (DG18), the time a stage and a camp take (DG12), Ravenwatch's
   quest text and reward (DG55).
 
