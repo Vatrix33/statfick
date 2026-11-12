@@ -54,7 +54,8 @@ acquire 250 (171 of task 10's 175 now; Raid Boss, Beast, Great Beast and Monster
 on its path, from any class on it, not only the starting class (NC3). One draft with all 79 (identity, levels,
 requirements, rarity; NC4) approved on 2026-11-12 with the user's notes applied (Limitbreaker red; the hooded man
 offering no red class below Level 100; Paragon's four set classes; NC6–NC9); their features have begun with a sample
-of four for review (Bladebound, Harrier, Catalyst, Mimic; NC10), the rest to follow in batches. Decisions NC1 onward in "Decisions for task 13, New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
+of four, approved (Bladebound, Harrier, Catalyst, Mimic; NC10, NC11); batch 1 (twelve classes) is written for review,
+the rest to follow in batches. Decisions NC1 onward in "Decisions for task 13, New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
 **Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is done in the old game**, as task 1 was
 (the user's answer G1, "Decisions for task 2, Guild Rework" below; built on the cloud branch `claude/fervent-carson-f5ol9s`
 and merged through a pull request). The port doesn't build it again; only its two guild interiors, placeholder art, are
@@ -2000,6 +2001,13 @@ The user's review of the draft (2026-11-12; their notes on two classes, everythi
   (C20); then the rest in batches. (Not seven batches in the draft's order at once, not four batches of about 20.)
   Drawn: Bladebound (melee), Harrier (ranged), Catalyst (spells), Mimic (the rogue's path); written for review in
   `Docs/Port-Tasks/13_New_classes/New-Classes-Features.md` (2026-11-12), under task 10's rules.
+- NC11 **The sample is approved, and the classes aren't all built the same way** (the user: "The four of them are quite
+  similarily build (Pure stat buff at Level 1 and a skill/passive at Level 2). It is fine for the four classes, but mix
+  it up a bit for all other classes so they dont appear too equally build"): for the other 75, where the passive or the
+  skill comes, which of the two is the capstone and where the stat levels fall vary from class to class. Batch 1, the
+  other twelve single-focus classes of the task (Twinblade, Avenger, Crusher, Arbalest, Fletcher, Deadeye, Enchanter,
+  Riftmage, Glyphmage, Cutthroat, Opportunist, Con Artist), written for review the same day; the batches follow the
+  draft's order a few groups at a time (C22): next the six pairs, then the nine without a focus, then the 42 more.
 
 **Decisions for task 12, Spell Rework (2026-11-11, a cloud session; the user: "Go ahead with Task 12"; the task is
 `Docs/Port-Tasks/12_Spell_Rework.txt`).** Asked before any work, after reading the old game's spells
