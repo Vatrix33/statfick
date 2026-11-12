@@ -54,8 +54,8 @@ acquire 250 (171 of task 10's 175 now; Raid Boss, Beast, Great Beast and Monster
 on its path, from any class on it, not only the starting class (NC3). One draft with all 79 (identity, levels,
 requirements, rarity; NC4) approved on 2026-11-12 with the user's notes applied (Limitbreaker red; the hooded man
 offering no red class below Level 100; Paragon's four set classes; NC6–NC9); their features have begun with a sample
-of four and batches 1–4 approved, all 37 of the task's own classes and the first eleven of the 42 more (NC10–NC15);
-batch 5 (twelve melee and ranged extras) is written for review; the rest follow in batches. Decisions NC1 onward in "Decisions for task 13, New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
+of four and batches 1–5 approved, all 37 of the task's own classes and 23 of the 42 more (NC10–NC16); batch 6 (ten
+rogue and spell extras) is written for review; the last nine follow. Decisions NC1 onward in "Decisions for task 13, New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
 **Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is done in the old game**, as task 1 was
 (the user's answer G1, "Decisions for task 2, Guild Rework" below; built on the cloud branch `claude/fervent-carson-f5ol9s`
 and merged through a pull request). The port doesn't build it again; only its two guild interiors, placeholder art, are
@@ -2026,6 +2026,9 @@ The user's review of the draft (2026-11-12; their notes on two classes, everythi
   Lightbearer), written for review the same day. Found while writing it: shields give Armor only (no block chance in
   the old game), so the Shieldmaster's blocks are attacks taken while Guarding; Escort quests fight as bandit ambushes
   on the road (`../old-game/scripts/guild-quest-engine.js`, G16).
+- NC16 **Batch 5 is approved** as written ("Approved"). Batch 6, the rogue extras (Saboteur, Accomplice, Vigilante)
+  and the spell extras (Soulbinder, Beguiler, Astromancer, Golemancer, Hedge Witch, Dirgesinger, Abjurer), written for
+  review the same day. The last batch, the nine extras without a focus, follows.
 
 **Decisions for task 12, Spell Rework (2026-11-11, a cloud session; the user: "Go ahead with Task 12"; the task is
 `Docs/Port-Tasks/12_Spell_Rework.txt`).** Asked before any work, after reading the old game's spells

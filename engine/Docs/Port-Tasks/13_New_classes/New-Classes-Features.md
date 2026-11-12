@@ -1,6 +1,6 @@
 # Task 13, New Classes: the features
 
-**Under review: the sample of four and batches 1–4 approved (2026-11-12, NC11–NC15); batch 5 written for review.** The level-by-level features of the 79 new
+**Under review: the sample of four and batches 1–5 approved (2026-11-12, NC11–NC16); batch 6 written for review.** The level-by-level features of the 79 new
 classes, made for the port (NC1). Each keeps the identity, levels, requirements and rarity approved in
 `New-Classes-Draft.md` (NC9). It starts with a sample of four, one class from each focus drawn at random, as task 10's
 features began (C20); the rest follow in batches once the sample is approved, the user's notes on each batch shaping
@@ -37,8 +37,10 @@ do and the port would need to add.
 - Batch 4 (approved 2026-11-12), the first of the 42 more: the next step for eight new classes (Bladestorm, Transmuter,
   Phantasmist, Voidwalker, Doppelganger, Kingpin, Artificer, Warlord) and the fighters with an element (Frostwarden,
   Stormblade, Thornguard).
-- Batch 5 (for review): the melee extras (Lancer, Scourge, Shieldmaster, Grappler, Drunken Master, Skald,
+- Batch 5 (approved 2026-11-12): the melee extras (Lancer, Scourge, Shieldmaster, Grappler, Drunken Master, Skald,
   Knight-Errant) and the ranged extras (Trickshot, Huntmaster, Bowmaster, Giantslayer, Lightbearer).
+- Batch 6 (for review): the rogue extras (Saboteur, Accomplice, Vigilante) and the spell extras (Soulbinder, Beguiler,
+  Astromancer, Golemancer, Hedge Witch, Dirgesinger, Abjurer).
 
 # The sample of four (approved 2026-11-12)
 
@@ -900,7 +902,7 @@ where they stand.
 How it plays: a guardian that holds enemies in place and makes them pay for every blow; Earth's Cracked from the
 party's spells makes its roots certain. The Frostwarden slows its attackers; the Thornguard hurts them.
 
-# Batch 5: the melee and ranged extras (for review)
+# Batch 5: the melee and ranged extras (approved 2026-11-12)
 
 Seven melee and five ranged classes of the 42 more: weapons and fighting styles no class was built around (spear and
 lance, flail, shield, grappling, drinking), songs and the road, and the ranged path's trick shots, hunts, bows, giants
@@ -1109,3 +1111,175 @@ Identity: Shoots light: its arrows mend the allies they pass and sear the undead
 
 How it plays: a healer that never stops shooting: each turn one shot mends an ally while it hurts an enemy, and against
 the undead and the demons of the Abyss its arrows burn. Task 12's Blessed and Purify carry its light.
+
+# Batch 6: the rogue and spell extras (for review)
+
+Three rogue and seven spell classes of the 42 more. Shapes (NC11): three get their passive at level 1, three their
+skill at level 1, one its skill at level 2 after a first feature, one its skill at level 3, two their passive at level
+3; the capstone is a skill for five and a passive for five.
+
+## Saboteur
+
+5 levels · rarity no colour · Requires: Level 20 · Trap Layer 3
+Identity: Ruins the enemy's fight before it starts: blunted weapons, cut straps and spoiled supplies leave them weaker
+all battle.
+
+| Level | Feature |
+|---|---|
+| 1 | **Sabotage** (passive): at the start of each battle each enemy has a 40% chance to start sabotaged for the battle: a blunted weapon (it deals 10% less damage) or cut straps (its Armor −15%) (new) |
+| 2 | Dexterity and Speed +5% |
+| 3 | Your traps are 20% stronger, and setting one costs you 1 AP less |
+| 4 | Sabotage's chance rises to 60%, and a sabotaged enemy's potions and healing items heal half (spoiled supplies) |
+| 5 | **Spoil the Plan** (skill, capstone; once per battle, 1 AP): sabotage every enemy at once, with both a blunted weapon and cut straps |
+
+How it plays: its work is done before the first blow: a good share of the enemies start the fight weaker, and its
+traps finish what the sabotage began. The Sunderer breaks armour blow by blow; the Saboteur has it broken before the
+battle.
+
+## Accomplice
+
+4 levels · rarity no colour · Requires: Level 15 · Rogue 5 · 2 companions
+Identity: The partner in crime: sets up its allies' attacks, leaving every enemy it touches open to their critical
+hits.
+
+| Level | Feature |
+|---|---|
+| 1 | **Set Up** (skill, once a turn, 2 AP): a weapon attack that leaves its target open: the next ally attack on it gains 20 Crit Rating (new) |
+| 2 | Dexterity and Speed +5% |
+| 3 | Set Up also gives that ally attack 10% more damage |
+| 4 | **Partner in Crime** (passive, capstone): enemies you have hit in this battle take 10% more critical damage from your allies, and when an ally crits an enemy you hit, your next turn comes 50 sooner (new) |
+
+How it plays: a rogue for a full party: its own blows are the opening, the allies' critical hits the finish. With two
+companions who hit hard, it is worth more than another striker.
+
+## Vigilante
+
+5 levels · rarity no colour · Requires: Level 20 · Stalker 2 · Defeat 40 outlaws
+Identity: Hunts the outlaws of the land: deadly against bandits and raiders, and rewarded by every town it rids of
+them.
+
+| Level | Feature |
+|---|---|
+| 1 | Your weapon hits deal 15% more damage to outlaws (the bandit and raider enemies) |
+| 2 | Strength and Dexterity +5% |
+| 3 | **Bring to Justice** (skill, once per battle, 2 AP): an attack with double damage on an outlaw or on any enemy below 30% HP; an outlaw it defeats pays a bounty of 30 silver × its level (new) |
+| 4 | Maximum HP +10%; you take 15% less damage from outlaws |
+| 5 | **Town's Champion** (passive, capstone): for every 10 outlaws you defeat, the next town you enter thanks you: 500 silver and 10 guild Reputation (new) |
+
+How it plays: the Stalker's road turned to the bandits: it is at its best on the roads they haunt and in the guild's
+Escort ambushes, and the towns pay it for every gang it breaks.
+
+## Soulbinder
+
+5 levels · rarity blue · Requires: Level 30 · Wizard 5 · Priest 3
+Identity: Binds the party's lives together: harm to one is shared by all, and healing on one spreads to the rest.
+
+| Level | Feature |
+|---|---|
+| 1 | Healing spells cost 10% less Mana |
+| 2 | Wisdom and Mind +5% |
+| 3 | **Soul Link** (passive): while you stand, 20% of the damage any ally takes is shared out among the other allies (you too), and 20% of any healing an ally receives also heals every other ally (new) |
+| 4 | Maximum HP +10%; damage shared through the link is 20% lower |
+| 5 | **Bound Fate** (skill, capstone; once per battle, 2 AP): for 3 turns the link shares 40% of the damage and spreads 40% of the healing |
+
+How it plays: no ally is hit alone and none is healed alone: a single heal on the tank reaches the whole party, and a
+heavy blow on the mage is spread over everyone. It makes single-target healing count for all.
+
+## Beguiler
+
+5 levels · rarity blue · Requires: Level 30 · Dreamweaver 3
+Identity: Charms its enemies: turns a foe to its side for a few turns, or makes it falter before it strikes.
+
+| Level | Feature |
+|---|---|
+| 1 | **Enthralling Presence** (passive): each enemy's first attack in a battle has a 25% chance to falter: it hesitates and the attack is lost (new) |
+| 2 | Intelligence and Mind +5% |
+| 3 | The falter chance rises to 35%, and an enemy that falters is Hexed (1 stack) |
+| 4 | Maximum Mana +10%; spells cost you 5% less Mana |
+| 5 | **Charm** (skill, capstone; once per battle, 3 AP): charm an enemy that isn't a boss: it fights for the party for 3 turns, then is Hexed (2 stacks) (new) |
+
+How it plays: the Dreamweaver puts enemies to sleep; the Beguiler makes them hesitate and, once a battle, fight their
+own side. The Beast Tamer keeps an animal for good; the Beguiler borrows any enemy for three turns.
+
+## Astromancer
+
+5 levels · rarity no colour · Requires: Level 20 · Wizard 5 · Win 20 battles at night
+Identity: Reads the stars: each battle they grant it a different boon, and at night their power is fullest.
+
+| Level | Feature |
+|---|---|
+| 1 | Spells cost 10% less Mana at night (18:00–06:00) |
+| 2 | Intelligence and Wisdom +5% |
+| 3 | **Starlit Boon** (passive): at the start of each battle the stars grant the party one boon at random for the battle: the Hunter (Accuracy +10%), the Scholar (spell power +10%), the Dancer (Evasion +10%) or the Healer (each ally heals 3% of their maximum HP at the start of their turns); at night it is twice as strong (new) |
+| 4 | Maximum Mana +10%; you can see which boon the next battle will bring |
+| 5 | **Starfall** (skill, capstone; once per battle, 3 AP): stars fall on every enemy: Basic damage as your strongest damage spell would deal it, at 80% power, 120% at night |
+
+How it plays: every battle starts with a gift for the whole party, a different one each time, doubled after dark. The
+Sunstrider and the Nightwalker are strongest by day or by night; the Astromancer reads the sky and shares it.
+
+## Golemancer
+
+6 levels · rarity blue · Requires: Level 30 · Geomancer 3
+Identity: Builds a golem of stone and iron that fights beside it, grows with it, and can be rebuilt when it falls.
+
+| Level | Feature |
+|---|---|
+| 1 | **Stone Servant** (passive): every battle begins with your golem at your side: a summon of your level with 60% of your maximum HP, whose blows scale with your Intelligence (new) |
+| 2 | Enemies are 20% more likely to attack your golem than you |
+| 3 | Intelligence and Vitality +5% |
+| 4 | Your golem has 80% of your maximum HP, and your Armor |
+| 5 | Earth spells cost 10% less Mana; your golem's blows make their target Cracked a quarter of the time |
+| 6 | **Rebuild** (skill, capstone; once per battle, 2 AP): raise your fallen golem with full HP, or, if it stands, make it 30% stronger for the battle |
+
+How it plays: a caster with a bodyguard that is always there: the golem takes the blows and cracks the enemy's armour
+for the Earth spells, and it comes back once a battle when it falls. The Pactkeeper's familiar grows over many battles;
+the golem grows with its maker's level.
+
+## Hedge Witch
+
+5 levels · rarity no colour · Requires: Level 10 · Mage 5 · Forage 20 ingredients
+Identity: Magic from the hedgerow: gathers what the land offers and folds it into its spells.
+
+| Level | Feature |
+|---|---|
+| 1 | Foraging finds something 15% more often |
+| 2 | **Fold In** (skill, once a turn, no AP): spend one foraged ingredient to give your next spell this turn 20% more power, 30% with a rare ingredient or better (new) |
+| 3 | Wisdom and Intelligence +5% |
+| 4 | A spell you Fold In costs 15% less Mana |
+| 5 | **Green Wisdom** (passive, capstone): one Fold In in three uses no ingredient, and each spell you Fold In restores 3% of your maximum Mana (new) |
+
+How it plays: an early caster (Level 10) that turns task 9's foraging into spell power: every ingredient on the road
+is a stronger spell later. The Alchemist brews ingredients into potions; the Hedge Witch casts them.
+
+## Dirgesinger
+
+5 levels · rarity no colour · Requires: Level 20 · Mage 5 · Bard 3
+Identity: Sings the enemy down: mournful songs that slow and weaken every foe that hears them.
+
+| Level | Feature |
+|---|---|
+| 1 | **Lament** (skill, once per battle, 2 AP): for 3 turns every enemy is Hexed (1 stack) and fills its turn bar 10% slower (new) |
+| 2 | Mind and Wisdom +5% |
+| 3 | Lament can be sung twice per battle |
+| 4 | Maximum Mana +10%; Dark spells cost 10% less Mana |
+| 5 | **Endless Dirge** (passive, capstone): while you stand, every enemy fills its turn bar 5% slower and deals 5% less damage (new) |
+
+How it plays: the Bard's opposite: it lifts nobody, it brings every enemy down a little and keeps them there. Its
+Hexed stacks feed Dark's Devour and the Phantasmist's Dread.
+
+## Abjurer
+
+5 levels · rarity no colour · Requires: Level 25 · Spellcaster 5 · Know spells of 5 elements
+Identity: Wards the party against the enemy's element: the better it knows an element, the better it guards against
+it.
+
+| Level | Feature |
+|---|---|
+| 1 | **Ward** (skill, once a turn, 1 AP): ward an ally (or yourself) against an element whose spells you know, for 3 turns: they take 20% less damage of that element, and its status lasts at most 1 turn on them (new) |
+| 2 | Wisdom and Mind +5% |
+| 3 | A ward is stronger the more of its element's spells you know: 2% more for each, up to +20% (40% in all) |
+| 4 | Maximum HP and maximum Mana +10% |
+| 5 | **Great Ward** (passive, capstone): at the start of each battle the whole party is warded against the element the enemies use most (new) |
+
+How it plays: the defensive caster of many elements: it reads the enemy and wards the party against exactly what it
+throws. The Templar shields against the undead and the dark; the Abjurer against any element it knows.
