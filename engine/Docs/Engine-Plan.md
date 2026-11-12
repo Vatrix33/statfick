@@ -54,8 +54,8 @@ acquire 250 (171 of task 10's 175 now; Raid Boss, Beast, Great Beast and Monster
 on its path, from any class on it, not only the starting class (NC3). One draft with all 79 (identity, levels,
 requirements, rarity; NC4) approved on 2026-11-12 with the user's notes applied (Limitbreaker red; the hooded man
 offering no red class below Level 100; Paragon's four set classes; NC6–NC9); their features have begun with a sample
-of four, approved (Bladebound, Harrier, Catalyst, Mimic; NC10, NC11); batch 1 (twelve classes) is written for review,
-the rest to follow in batches. Decisions NC1 onward in "Decisions for task 13, New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
+of four and batch 1 (twelve classes) approved (NC10–NC12); batch 2, the six pairs, is written for review, the rest to
+follow in batches. Decisions NC1 onward in "Decisions for task 13, New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
 **Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is done in the old game**, as task 1 was
 (the user's answer G1, "Decisions for task 2, Guild Rework" below; built on the cloud branch `claude/fervent-carson-f5ol9s`
 and merged through a pull request). The port doesn't build it again; only its two guild interiors, placeholder art, are
@@ -2008,6 +2008,10 @@ The user's review of the draft (2026-11-12; their notes on two classes, everythi
   other twelve single-focus classes of the task (Twinblade, Avenger, Crusher, Arbalest, Fletcher, Deadeye, Enchanter,
   Riftmage, Glyphmage, Cutthroat, Opportunist, Con Artist), written for review the same day; the batches follow the
   draft's order a few groups at a time (C22): next the six pairs, then the nine without a focus, then the 42 more.
+- NC12 **Batch 1 is approved, the Con Artist's Bribe never on bosses** (the user: "Make it so the Bribe of the Con
+  Artist does not work on bosses at all. Approved otherwise"; the batch had a boss lose its next turn instead). Batch 2,
+  the six pairs (Warcaster, Cinderblade, Wandslinger, Prism Archer, Spellthief, Illusionist, Corsair, Thug, Ranger,
+  Skirmisher, Sniper, Poacher), written for review the same day.
 
 **Decisions for task 12, Spell Rework (2026-11-11, a cloud session; the user: "Go ahead with Task 12"; the task is
 `Docs/Port-Tasks/12_Spell_Rework.txt`).** Asked before any work, after reading the old game's spells
