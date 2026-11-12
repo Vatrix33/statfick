@@ -2139,6 +2139,13 @@ Asked before the two classes (2026-11-12):
   bonuses (Intelligence, Wisdom, Mind, spell power, maximum Mana, Mana cost), and folds each class's mechanics into its
   passive (Spellweaving, Rituals: both growing with the class level, which keeps SP63's weavings "unlocked by
   Spellweaver levels") and its capstone skill (Weave in Battle, Grand Rite).
+- SP68 **A passive applies in full when it is gained** (the user, on the second draft: "Both passives are too weird. A
+  passives effect always apply immediatly, not after another class level has been reached"; then asked where): the
+  Spellweaver's **Spellweaving at Level 2** with everything at once (augmenting and resetting anywhere for 20% less,
+  element, scaling and tier weaving, woven spells +10% power; the user's own level, offered Level 1, 4 or 7), which
+  replaces SP63's "unlocked by Spellweaver levels"; the Ritual Caster's **Rituals at Level 1** in full (delays of 1–3
+  turns, +10% power per turn waited) with **one ritual** waiting at a time (not two, not at the capstone). Grand Rite,
+  with one ritual, sets it off at once with the power of a full 3-turn wait.
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:
