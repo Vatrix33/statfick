@@ -40,7 +40,8 @@ The review's order (SP2, SP15):
    - `New-08-Holy.md`: 14 spells. **Approved (SP56).**
    - `New-09-Dark.md`: 14 spells. **Approved (SP57).**
    - `New-10-Nature.md`: 14 spells, Nature's summon among them. **Approved (SP58).**
-   - `New-11-Death.md`: 14 spells, Death's summon among them. **Under review.** Every element keeps
+   - `New-11-Death.md`: 14 spells, Death's summon among them. **Approved (SP59).**
+   - `New-12-Blood.md`: 14 spells, the last. **Under review.** Every element keeps
    at least one summon and one Dragonbreath spell (SP33).
 5. The Spellweaver (built around Spell Augmentation, SP9) and the Ritual Caster, added to task 10's drafts
    (`../10_Class_Rework/`).
