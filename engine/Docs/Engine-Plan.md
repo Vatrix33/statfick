@@ -45,7 +45,14 @@ Before M11: M10 (scene and sequencer) done 2026-11-05 (the proof cutscene approv
 `github.com/Vatrix33/statfick`; the user's tasks for the port are in `Docs/Port-Tasks/`, read when the port starts
 ("Decision on the user's tasks for the port"; "Open questions for later milestones", "At port time"); tasks 1–9 are done
 in the old game, task 11 in the old game for its races, and tasks 10, 12 and 13 are designed and approved for the
-port to build (the paragraphs below); task 14 (Dungeons) is the last, not started.
+port to build (the paragraphs below); task 14 (Dungeons), the last, is built during the port itself (DG1).
+**Port task 14, Dungeons, is built during the port itself (the user, 2026-11-12, a cloud session; DG1):** nothing of it
+is built in the old game and nothing of it is built or drafted now. Only its design questions are asked now, all of
+them, and their answers recorded in "Decisions for task 14, Dungeons" below (the user: "I dont want you to do the task,
+i want this done during the port itself (Please document that fact). I want you do ask me all design questions needed
+and document them as well"). The port builds it from `Docs/Port-Tasks/14_Dungeons.txt` and those decisions ("At port
+time"). What the old game has for it and what it lacks (checked 2026-11-12) are listed at the start of that section.
+**Engine work goes on uninterrupted**; don't count task 14 as the engine's current task.
 **Port task 13, New Classes, is designed and approved, for the port (2026-11-12, a cloud session),** like task 10:
 not built in the old game (NC1). 79 new classes (NC2): the task's 37 by focus (4 melee, 4 ranged, 4 spells, 4 from the
 rogue's path, 2 for each of the six pairs, 9 without a focus) and 42 more chosen to fill gaps, so that players can
@@ -778,6 +785,9 @@ the design and the tests):
   From task 13 (the user, 2026-11-12, NC1, NC19): **the port builds task 13's 79 new classes** from the end of task
   10's drafts ("Classes added by task 13", "Task 13's classes"), with the three duties above, and adds the counts,
   requirement kinds and the Moonfang key item their requirements use (listed there).
+  From task 14 (the user, 2026-11-12, DG1): **the port builds task 14, Dungeons, itself**, from
+  `Docs/Port-Tasks/14_Dungeons.txt` and the answers in "Decisions for task 14, Dungeons" (DG1 onward); nothing of it is
+  in the old game or in drafts. Where an answer leaves a draft to port time, that draft is written and approved then.
   From task 13 (the user, 2026-11-12, NC7): **the hooded man never offers information on a red class while the player
   is Level 99 or lower;** from Level 100 the red classes (Unreality, Limitbreaker) join his class offers, the
   Limitbreaker despite needing Level 110 (his old rule leaving out classes above Level 100 doesn't apply to it).
@@ -1959,6 +1969,97 @@ Asked after the regression run (2026-11-06):
 - L33 **The victory screen's EXP at your level cap** (Level 100 without Limitless, 200 with it), where you gain none
   (L18): it reads 0 EXP; companions below their cap still gain the battle's EXP. (Not the number with a note, not left
   showing the battle's EXP.)
+
+**Decisions for task 14, Dungeons (2026-11-12, a cloud session; the task is `Docs/Port-Tasks/14_Dungeons.txt`).**
+Asked after reading the task, the earlier tasks' decisions and the old game's systems it touches (below). The port
+builds the task from its text and these answers; where an answer leaves something to a draft at port time, it says so.
+- DG1 **Task 14 is built during the port itself** (the user: "I dont want you to do the task, i want this done during
+  the port itself (Please document that fact). I want you do ask me all design questions needed and document them as
+  well"): nothing in the old game, nothing built or drafted now; every design question is asked now and its answer
+  recorded here. (Not in the old game, as tasks 1–9 were; not drafts now, as tasks 10, 12 and 13 were.)
+- Given before (not asked again): Limitless scales the dungeon enemies as it does every enemy (the user, 2026-11-05,
+  `Docs/Port-Tasks/README.md`, "The order"); task 14's two classes bring the classes players can acquire to 252 (the
+  same day; NC2); task 13's classes were kept clear of the Dungeon Delver and the Throwing Specialist (NC2,
+  `13_New_classes/New-Classes-Draft.md`); the port doesn't import the old game's saves (2026-10-16, `Docs/Assets.md`),
+  so moving Saffron and Ool concerns only the port's own saves.
+
+What the old game has for task 14 and what it lacks (checked 2026-11-12, `../old-game/`; the port starts from it):
+- **No dungeons, no battles in stages:** `finish` ends the whole battle (`scripts/combat.js`). A defeat costs nothing
+  today: `returnDefeatedPartyToTown` (`combat.js`) moves the party to the nearest settlement (along the regions'
+  `safeRetreatRegionId`), HP stays at 0 until a paid Rest or potions; no money or item is lost anywhere in the game.
+- **Camping Supplies exist** (`objects/consumables.json`, common, 80 silver, `mapAction: "camp"`): on the map, 8 hours,
+  full HP and Mana for the player and every companion (`camp` in `scripts/map.js`, `Companions.restoreAll`); a class
+  chance to keep them (`campingSupplyRetentionChance`: Traveler, Pilgrim, Cartographer); the Scavenger's Field Scrounge
+  and Salvage Sense make them. Not usable in battle.
+- **The party:** the player and up to 3 companions, each with their own HP, Mana, AP, inventory and gear; companions are
+  player-controlled in battle. Inventories are arrays of item ids, one entry per copy; equipped gear stays in the array
+  (`equipment` maps slot → id). The five key items (`objects/key-items.json`) are the only items marked as never sold.
+- **Consumables** have a rarity (common to legendary) and a `priceSilver`; 71 today (Camping Supplies, 8 traps, 10
+  Health and Mana Potions, 40 alchemy potions, 12 thrown poisons). An item costs 1 AP and doesn't end the turn; its
+  target is one enemy (`target`), an ally or self, or all enemies (`all-enemies`); a failed check before spending keeps
+  it, a used one is gone whatever its roll (retention chances aside). Thrown poisons never roll to hit; bosses (`unique`)
+  take them at half strength (`AlchemyRules.halved`). Traps fire when an enemy attacks.
+- **Stun:** `{type: "stun"}` for 1 turn, a new one replaces the old (no stacking); resisted only by debuff or control
+  immunity (potions, a race, the Stonebreaker); **bosses have no stun resistance or immunity.** Timed effects count the
+  recipient's own turns and end when its next turn starts (turn order by Speed, no rounds); the same source refreshes,
+  different sources add up. Status icons (stun, mark, debuff, buff…) with turns left, and a combat log, exist.
+- **Hit chance:** Accuracy / (Accuracy + Evasion); marks and Blinding Powder change Accuracy by a percentage. Spells
+  always hit unless a spell miss chance applies (`spellMissChanceAgainst`: the caster's `spell-miss-chance`, the
+  target's `incoming-spell-miss-chance`); spells' effects say whether they are single-target or all enemies.
+- **Escape:** Run, 1 AP, max(5, 50 + 0.5·Speed + 0.2·Luck − 0.4·the fastest enemy's Speed) (`combat-engine.js`); no
+  block for bosses; on the map a +25 bonus before a battle. No item escapes, teleports or skips encounters.
+- **General Store:** random stock only, a rarity-weighted pick by the player's level band from 9 items (Camping
+  Supplies and the 8 traps), 3–6 of each in castle cities, 2–4 in towns, restocked every 6 game hours; Camping
+  Supplies can be sold out. (The Apothecary's standing potions are always in stock.)
+- **Great Hunts** (`greatHunts` in `scripts/guild.js`): ten, one random eligible hunt added to each daily board, never
+  offered again once completed (rematch markers instead). Saffron (Level 66, Deep Desert, the Pyramid Sanctum, with his
+  three Great Devil Servants) and Ool (Level 78, offered at Ravenwatch, fought in the Ancient Battlefield's Mass Graves,
+  with his Legionnaires and Phylactery) are among them. Task 3's Ornn is the precedent for taking a boss out of the
+  hunts (R14, R15: `RETIRED_HUNTS`, an active hunt withdrawn with a note, rematch markers dropped; fought at a site).
+  Guild quests have no failed state (giving up empties the slot); one standard quest and one Great Hunt at a time.
+- **Map sites** (the Church of Talos, the Institute of Magic, Hearth Home): a point with a radius in the region data,
+  safe, their own button; a site boss starts without the escape prompt and never rolls Sparkling.
+- **Enemies the dungeons name:** none of the eight new bosses exists (Hobgoblin Leader, Deep Sea Apparition, Imp Lord
+  Ru'manon, Goblin Paladin, Great Mountain Mole, Goblin King, Goblin Champion, Void Lord Firadialin). Goblins go up to
+  Level 17 (Goblin Warlord); Water and Earth Elementals are Level 25 (water spirits 3–17, Greater Earth Spirit 18);
+  impids (a race of its own) and demons: Lesser Imp 1, Void Imp 12 and Void Stalker 16 (summons), Ji'ruan 18 (demon),
+  Abyssal Imp 46, Rift Fiend 50, Abyss Witch 54; the only devils are Saffron and his Servants (56); undead: Tomb Guardian
+  50, Dust Revenant 52, Sand Wraith 47, Gravebound Legionnaire 68, Duskpine Wraith 69 (Thrall and Hulk are summons).
+- **Bosses** are `unique` enemies with `maxHpPercent`, an `aiProfile`, an intro (`boss-intros.js`) and a music theme;
+  balanced by simulation (Ji'ruan and Zik Lun about 90% for a prepared party; Saffron and Ool about 20% for a prepared
+  party three levels above them; `../old-game/Docs/Notes.md`). Masterworks drop from bosses at about 5–12%; the five
+  Exotics at 4–5% from named bosses, only with Limitless on, never doubled.
+- Task 13's Huntmaster needs 5 completed Great Hunts; with Saffron and Ool gone (and Ornn before them), eight remain.
+
+The questions (2026-11-12, four at a time, the recommended option first):
+- DG2 **How far the questions go now:** every rule and main choice now (places, themes, level ranges, what kind each
+  thing is); the names, numbers, boss mechanics, item effects and the classes' features are drafted at port time and
+  approved by the user then. (Not everything by questions now; not one-line outlines now.)
+- DG3 **The two classes follow task 10's rules** (C21, C28: one passive and one skill, the last level giving one of
+  them; within a turn's 5 AP; a rarity colour), designed at port time as task 13's were (identity, levels,
+  requirements and rarity in one draft, then the features; NC4) and added to task 10's drafts. The Dungeon Delver has
+  exactly 5 levels (the task); the Throwing Specialist's count is set in its draft. (Not both fixed at 5; not outside
+  task 10's rules.)
+- DG4 **The Throwing Specialist's "throwing items" are the eleven new ones and task 9's twelve thrown poisons**, so its
+  bonuses reach the poisons too and it shares them with the Poisoner (task 10's class, which throws them; the two
+  drafts are kept apart at port time). Traps are not throwing items. (Not the eleven alone, the recommendation; not
+  traps too.)
+- DG5 **The nine named dungeons' places** (each in a region whose zone level and theme fit; the exact spot on the
+  port's 3D map at port time):
+
+  | Dungeon (levels) | Region, zone (the zone's levels) |
+  |---|---|
+  | Goblin Cave (4–8) | Alder Vale, Forest (5–11), goblin land |
+  | River Portal (10–14) | Stoneveil Foothills, River (12–17) |
+  | Abandoned City (20–24) | Mirrormere Basin, Lake Shore (20–26) |
+  | Ruined Castle (25–30) | Stormwake Hills, Thunder Hills (23–29) |
+  | Mountain Portal (38–40) | Cinder Isle, Lava Fields (36–39): the volcano, home of the Earth Elementals |
+  | Ancient Prison Ruin (42–46) | Crimson Divide, Sunscorched Escarpment (44–47) |
+  | Great Void Rift (62–68) | Bloodstone Coast, Giant Rock Spires (62–67) |
+  | Ancient Pyramid (65–70) | Deep Desert, Pyramid Sanctum (Saffron's place today) |
+  | Shattered Castle (74–78) | Ancient Battlefield, Silent Westfield (72–75), beside the Mass Graves (Ool's place today) |
+
+  (Not each asked one by one; not left to port time.)
 
 **Decisions for task 13, New Classes (2026-11-12, a cloud session; the user: "Start with Task 13. For the new classes,
 the same rules apply as in Task 10"; the task is `Docs/Port-Tasks/13_New_classes.txt`).** Asked before any work, after

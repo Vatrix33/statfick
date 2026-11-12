@@ -80,6 +80,10 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
     stages; defeat penalties and a warning before entry; the Delve guild quest; Saffron and Ool move from Great Hunts
     to dungeon bosses; three masterworks and an Exotic; the Dungeon Delver and Throwing Specialist classes; eleven
     throwing consumables for the General Store.
+    **Built during the port itself (the user, 2026-11-12, DG1):** nothing in the old game, nothing built or drafted
+    before the port; its design questions are asked and answered beforehand, in `Engine-Plan.md`, "Decisions for task
+    14, Dungeons" (DG1 onward), and the port builds it from this file and those answers. See "Built by the port from
+    the decisions" below.
 
 **How to use them:** read them when the port starts (`Engine-Plan.md`, "Open questions for later milestones", "At port
 time" points here). Before each task's code, ask its design questions with the question tool and record the answers
@@ -118,7 +122,8 @@ waited, into the same pull request, P1; P2 kept its art placeholder). Task 11 (a
 2026-11-11) is split (T1): its races, seals and looks in the old game, with placeholder art (T5); its racial classes
 in task 10's drafts for the port. Tasks 10, 12 and 13 are not built in the old game at all: designed in drafts and
 built by the port (C23, 2026-11-10; SP1, 2026-11-11; NC1, 2026-11-12), with task 12's two classes and task 13's 79
-added to task 10's drafts.
+added to task 10's drafts. Task 14 is built during the port itself (the user, 2026-11-12, DG1): not in the old game and
+not drafted beforehand; only its design questions are answered before the port.
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
@@ -253,6 +258,12 @@ added to task 10's drafts.
   despite its Level 110; NC7); the new counts, requirement kinds and the Moonfang key item the requirements use
   (listed at the end of task 13's part of `Class-Rework-Draft.md`); and the mechanics the features mark "(new)". Task
   10's three duties (C32) cover these classes too.
+
+**Built by the port from the decisions, not designed in drafts:**
+- Task 14, Dungeons (2026-11-12, a cloud session, DG1 onward in `Engine-Plan.md`, "Decisions for task 14, Dungeons"):
+  the user wants it done during the port itself. Nothing of it is in the old game or in drafts; the design questions
+  are answered and recorded beforehand, with what the old game has for it and lacks (checked 2026-11-12), and the port
+  builds the whole task from `14_Dungeons.txt` and those answers.
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and
