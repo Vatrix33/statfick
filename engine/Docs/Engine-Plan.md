@@ -52,6 +52,12 @@ them, and their answers recorded in "Decisions for task 14, Dungeons" below (the
 i want this done during the port itself (Please document that fact). I want you do ask me all design questions needed
 and document them as well"). The port builds it from `Docs/Port-Tasks/14_Dungeons.txt` and those decisions ("At port
 time"). What the old game has for it and what it lacks (checked 2026-11-12) are listed at the start of that section.
+**All its design questions are answered (DG1–DG74, 2026-11-12):** the rules and main choices now, the content (enemies,
+bosses, items, classes, numbers) drafted at port time for the user's approval (DG2; the list at the section's end).
+Among the answers: the nine dungeons' places (DG5) and three more (harpies in the rocky highlands, Nocturne Keep as the
+vampire dungeon with Ravenwatch's quest opening the keep to non-vampires, dragons on the Stoneveil Summit; DG51–DG74);
+the smithing materials made into items that cut reforging to them by 75% (DG26, DG29–DG32); a 3D dungeon overview
+(DG69).
 **Engine work goes on uninterrupted**; don't count task 14 as the engine's current task.
 **Port task 13, New Classes, is designed and approved, for the port (2026-11-12, a cloud session),** like task 10:
 not built in the old game (NC1). 79 new classes (NC2): the task's 37 by focus (4 melee, 4 ranged, 4 spells, 4 from the
@@ -787,7 +793,10 @@ the design and the tests):
   requirement kinds and the Moonfang key item their requirements use (listed there).
   From task 14 (the user, 2026-11-12, DG1): **the port builds task 14, Dungeons, itself**, from
   `Docs/Port-Tasks/14_Dungeons.txt` and the answers in "Decisions for task 14, Dungeons" (DG1 onward); nothing of it is
-  in the old game or in drafts. Where an answer leaves a draft to port time, that draft is written and approved then.
+  in the old game or in drafts. Where an answer leaves a draft to port time, that draft is written and approved then
+  (the list ends that section). All its questions are answered (DG1–DG74, 2026-11-12); among what the answers add to
+  the task's text: the smithing materials as items with a 75% reforge discount (DG26, DG29–DG32), Nocturne Keep opened
+  to non-vampires by Ravenwatch's quest (DG52–DG64, DG73, DG74), the harpy dungeon in the rocky highlands (DG65).
   From task 13 (the user, 2026-11-12, NC7): **the hooded man never offers information on a red class while the player
   is Level 99 or lower;** from Level 100 the red classes (Unreality, Limitbreaker) join his class offers, the
   Limitbreaker despite needing Level 110 (his old rule leaving out classes above Level 100 doesn't apply to it).
@@ -2237,7 +2246,7 @@ The questions (2026-11-12, four at a time, the recommended option first):
   dungeon procedure and this dungeon is played as if a Delve quest is active, even if another quest is active at the
   time)"): the keep has no random Delve (DG18 doesn't apply to it); once the quest is done, the opened keep offers a
   replay button that runs the regular procedure (the warning, the Waylight choice, the stages) with the Delve's lighter
-  penalties always, whatever quest the player holds. DG61 says what such a replay pays. (Not a random Delve after the
+  penalties always, whatever quest the player holds. DG62 says what such a replay pays. (Not a random Delve after the
   quest, the recommendation; not no Delve.)
 - DG60 **A vampire player meets the keep's dungeon like anyone:** Ravenwatch offers them the quest and they can enter;
   the keep stays open to them throughout. (Not the dungeon without the quest.)
@@ -2273,6 +2282,43 @@ The questions (2026-11-12, four at a time, the recommended option first):
   keep's button, DG59), in full and in large text, with a line that a Delve quest would lighten it when none is held,
   the recommended levels, the Waylight choice (DG23) and a confirm button. (Not both cases with the applying one
   marked, the recommendation.)
+- DG71 **Guild quests keep their places:** Hunt and Cull count only battles in their own zone, as today; dungeon
+  battles count only for the dungeon and its Delve. Collect quests' ingredients are items, so any found in a dungeon
+  count. (Not dungeon kills counting for Hunt and Cull.)
+- DG72 **A dungeon entrance is a site,** like the Church of Talos, the Institute of Magic and Hearth Home: a marked point
+  with a small safe radius (no encounters right there) and an Enter button. (Not a point with the zone's encounters
+  around it.)
+- DG73 **A vampire player can't enter the keep's dungeon unless Ravenwatch's quest is active** (the user's own answer:
+  "The dungeon cannot be accessed for player vampires, unless the Ravenwatch quest is active"): for them there is no
+  entry without the quest (DG63's full-penalty entry is for players who aren't vampires); after the quest, see DG74.
+  (Not a button in the keep, the recommendation; not the outsiders' entrance.)
+- DG74 **Vampires replay the keep's dungeon like anyone once the quest is done:** while holding Ravenwatch's quest they
+  enter where outsiders do (the hostile fortress's entrance); once it is done the keep's replay button (DG59) is theirs
+  too, with the lighter penalties. (Not shut out for good after the quest.)
+
+Following from the answers (not asked): a Delve failed by a defeat in the keep's dungeon (DG16, DG64) is offered again
+at Ravenwatch, since it is offered until done (DG55); the game's own save goes on inside a dungeon (the world, the
+battle and the stage are saved and a loaded game resumes there, as the old game saves its battles), and the save
+holds the dungeon, the stage, the stages cleared, the bomb stuns used (DG48), whether a Waylight was used and whether
+each boss has been met (DG68); the new bosses gain a Level-100 character's class levels under Limitless, as every boss
+does (task 7), their class sets drafted with them.
+
+**Where task 14 stands (2026-11-12): every design question is answered (DG1–DG74); nothing is built or drafted.** Left
+for the drafts the port writes and the user approves then (DG2), in the task's order:
+- The twelve dungeons: their stages (counts given by the task for the nine; for the three extra ones, in their drafts),
+  each stage's pool of groups (DG7) and the dungeon-only enemy types (DG9) with the general enemy revamp; the three extra
+  dungeons' names and identities (harpies at 50–56 in the rocky highlands, Nocturne Keep at 66–70, dragons at 85–92 on
+  Cloudbreak Ridge; DG51–DG57, DG61, DG65); the exact spots on the 3D map (DG5); the music themes (DG34) and the 3D
+  overview scenes (DG69).
+- The eleven new bosses (the eight the task names, the keep's vampire lord, the harpy and dragon bosses): mechanics,
+  intros, themes, models (DG27, DG28, DG58), balanced by simulation; their drops (DG35).
+- The three masterworks (kinds per boss, DG37) and the Exotic (a kind none of the five is, DG38), with drop chances.
+- The eleven throwing items' numbers (prices, the knives' damage, DG43) and the four extra ones (DG39).
+- The smithing materials as items: which drop where and in which dungeons, their Forage odds and prices (DG29–DG32);
+  the reforge menu's mark for a carried material (DG26).
+- The Dungeon Delver and the Throwing Specialist under task 10's rules (DG3, DG4), into task 10's drafts.
+- The numbers left open: the Delve chance per board (DG18), the time a stage and a camp take (DG12), Ravenwatch's
+  quest text and reward (DG55).
 
 **Decisions for task 13, New Classes (2026-11-12, a cloud session; the user: "Start with Task 13. For the new classes,
 the same rules apply as in Task 10"; the task is `Docs/Port-Tasks/13_New_classes.txt`).** Asked before any work, after

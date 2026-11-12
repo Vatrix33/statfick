@@ -263,7 +263,14 @@ not drafted beforehand; only its design questions are answered before the port.
 - Task 14, Dungeons (2026-11-12, a cloud session, DG1 onward in `Engine-Plan.md`, "Decisions for task 14, Dungeons"):
   the user wants it done during the port itself. Nothing of it is in the old game or in drafts; the design questions
   are answered and recorded beforehand, with what the old game has for it and lacks (checked 2026-11-12), and the port
-  builds the whole task from `14_Dungeons.txt` and those answers.
+  builds the whole task from `14_Dungeons.txt` and those answers. **All answered (DG1–DG74, 2026-11-12):** the rules and
+  main choices; the content (dungeon enemies and stages, the eleven new bosses, the masterworks and the Exotic, the four
+  extra throwing items, the two classes, the numbers) is drafted at port time for the user's approval (DG2; listed at
+  the end of the decisions). Beyond the task's text, the answers add: the smithing materials (weapon, armor, staff and
+  wand parts, not Mythilium or Exium) as items that drop and are foraged, a carried one cutting a reforge to it by 75%
+  (DG26, DG29–DG32); Nocturne Keep as the vampire dungeon, whose unique quest from Ravenwatch opens the keep to
+  players who aren't vampires (DG52–DG64, DG73, DG74); the harpy dungeon in the rocky highlands, one of task 8's new
+  regions (DG65); and a 3D dungeon overview (DG69).
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and
