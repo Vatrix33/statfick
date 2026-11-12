@@ -4,6 +4,7 @@
 each of Tiers 6–9. They follow the approved system and curve (`Spell-Augmentation.md`), the sample's style and the
 element statuses (`Element-Statuses.md`). Prices are the tier's usual. [X] values are for the raw caster of the system
 draft (no classes or gear) at the level the tier unlocks and at Level 100, for a Wisdom-first caster.
+**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
 
 ## What Holy gains
 
@@ -29,7 +30,7 @@ heals the party, holy fire over time.
 | 1 | Bless Weapon | offensive, yourself or an ally | 3 | 12 | 2 turns: their weapon attacks +[X] Holy, +50% on Devils, Demons and Undead |
 | 2 | Ward of Light | defensive, yourself or an ally | 3 | 22 | a barrier; Blessed (2% HP a turn) while it holds |
 | 2 | Reprimand | offensive, one target | 3 | 22 | its next attack on your side deals 30% less |
-| 3 | Sacred Flame | offensive, one target | 3 | 35 | holy fire: 45% of [X] at each of its next 3 turns, doubled on Devils, Demons and Undead |
+| 3 | Sacred Flame | offensive, one target | 3 | 35 | always Burns for 3 turns (45% of the hit), twice as hot on Devils, Demons and Undead (borrowed status) |
 | 3 | Mending Vow | defensive, an ally | 3 | 35 | heals [X] the next time they're hit (within 3 turns) |
 | 4 | Devoted Aura | defensive, all allies | 3 | 50 | 4 turns: every ally's Armor +10%, 2% HP a turn |
 | 4 | Radiant Burst | offensive, all enemies; defensive, all allies | 3 | 50 | damages every enemy and heals every ally |
@@ -76,11 +77,11 @@ heals the party, holy fire over time.
 
 ### Sacred Flame: Tier 3, offensive, one target (new spell)
 
-- **The spell:** 3 AP, 35 Mana, 3,300 silver; power 7 + Wis ×0.42 + Int ×0.12 (55% of the tier's reference, now; 25% of the reference at each of its next 3 turns). Holy fire clings to it (new): at the start of each of its next 3 turns it takes 45% of [X] again, twice as much if it is one of the Devils, Demons and Undead.
-- **Description:** "Set one enemy alight with sacred flame for [X] Holy damage; it burns for 45% of that at the start of each of its next 3 turns, twice as much against Devils, Demons and Undead."
+- **The spell:** 3 AP, 35 Mana, 3,300 silver; power 7 + Wis ×0.42 + Int ×0.12 (55% of the tier's reference, its Burning is the rest). Holy fire clings to it: the target is always set **Burning** (Fire's status, borrowed, SP60) for 3 turns, for 45% of the hit each turn, twice as hot on Devils, Demons and Undead.
+- **Description:** "Set one enemy alight with sacred flame for [X] Holy damage; it Burns for 45% of that at the start of each of its next 3 turns, twice as much against Devils, Demons and Undead."
 - **[X]:** Level 20: 46; Level 100: 185.
-- **Augments:** Power, Resistance penetration, Effect duration, Mana cost.
-- **Why:** Holy's damage over time, its old foes' bane.
+- **Augments:** Power, Resistance penetration, Effect strength, Effect duration, Mana cost.
+- **Why:** Holy fire as true Burning (SP60), still the old foes' bane.
 
 ### Mending Vow: Tier 3, defensive, an ally (new spell)
 

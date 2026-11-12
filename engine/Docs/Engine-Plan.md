@@ -2102,6 +2102,17 @@ Horn, is Zik Lun's and left out, SP4):
 - SP57 **New spells 9, Dark, are approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/New-09-Dark.md`.
 - SP58 **New spells 10, Nature, are approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/New-10-Nature.md`.
 - SP59 **New spells 11, Death, are approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/New-11-Death.md`.
+Asked while the Blood new spells waited for review (2026-11-12; the user: "Is it possible to apply some element-specific
+status-effects outside of their element? Like for example Boiling Blood that burns the target? Are there more spells
+like that where it would be possible?"):
+- SP60 **Borrowed statuses:** a spell may apply another element's status where it fits; the status keeps its own
+  element (damage type, immunities), reactions follow the spell's element, augmentation treats it as the spell's own,
+  and it costs a little power. Fourteen spells borrow, the list proposed and approved as it stood (the user: "If this
+  draft would be the same as your list above, i already approve it"): Boiling Blood and Sacred Flame Burn, Freezing
+  Spray and Mudslide Soak, Riptide, Boulder and Thunderclap put Off-Balance, Grave Chill Chills, Shadow Rend, Razor
+  Squall, Crystal Shards and Briar Volley make Bleed, Hellfire Wave Hexes, Spore Cloud Withers. Their batches (approved
+  or not) were updated to match; the rules and the list are in `Docs/Port-Tasks/12_Spell_Rework/Element-Statuses.md`,
+  "Borrowed statuses". (Offered too: only Boiling Blood, or keeping statuses to their element.)
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:

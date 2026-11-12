@@ -6,6 +6,7 @@ boss-only spell). They follow the approved system and curve (`Spell-Augmentation
 (SP32). Tiers and prices stay. "(new)" marks a mechanic the game doesn't have yet. [X] values are for the raw caster of
 the system draft (no classes or gear) at the level the tier unlocks and at Level 100, shown for a Wisdom-first caster
 as Death's spells scale with Wisdom and Mind.
+**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
 
 ## Death's identity
 
@@ -44,7 +45,7 @@ heals the party when its target dies, immunity to Withered and to instant death,
 | 2 | Eerie Shock | offensive, one target | 2 | 15 | 2 AP kept, 25% Wither |
 | 2 | Soul Leech | offensive, one target | 3 | 25 | feeds on the Withered: 30% of the damage as Mana |
 | 3 | Soul Rend | offensive, one target | 3 | 36 | +30% on a Withered target |
-| 3 | Grave Chill | offensive, all enemies | 3 | 37 | 30% chance to Wither each enemy |
+| 3 | Grave Chill | offensive, all enemies | 3 | 37 | 30% Wither, 30% Chill on each enemy (borrowed status) |
 | 3 | Death Ward | defensive, yourself | 3 | 32 | −20% spell damage; immune to Withered and instant death |
 | 3 | Pale Requiem | offensive, all enemies | 3 | 38 | Strength −10% on every enemy (kept) |
 | 4 | Deathwave | offensive, all enemies | 3 | 55 | always Withers every enemy |
@@ -153,9 +154,9 @@ heals the party when its target dies, immunity to Withered and to instant death,
 ### Grave Chill: Tier 3, offensive, all enemies
 
 - **Now:** 3 AP, 37 Mana, power 26 + Wis ×0.6 + Mind ×0.1. Release the chill of the grave, dealing [X] Death damage to all enemies and decreasing their Speed by 10% for 2 turns.
-- **Reworked:** 3 AP, 37 Mana; power 9 + Wis ×0.54 + Mind ×0.15 (70% of the tier's reference, 75% for all enemies, less its effect). Each enemy struck has a 30% chance to be **Withered** for 2 turns (was Speed −10%).
-- **Description:** "Release the chill of the grave over all enemies for [X] Death damage; each has a 30% chance to be Withered."
-- **[X], now → reworked:** Level 20: 77 → 59; Level 100: 263 → 237.
+- **Reworked:** 3 AP, 37 Mana; power 8 + Wis ×0.5 + Mind ×0.14 (65% of the tier's reference, 75% for all enemies, less its effect). Each enemy struck has a 30% chance to be **Withered** for 2 turns and a 30% chance to be **Chilled** (Ice's status, borrowed, SP60; 1 stack) for 2 turns (was Speed −10%).
+- **Description:** "Release the chill of the grave over all enemies for [X] Death damage; each has a 30% chance to be Withered and a 30% chance to be Chilled."
+- **[X], now → reworked:** Level 20: 77 → 54; Level 100: 263 → 219.
 - **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** Speed loss belongs to Water and Ice.
 

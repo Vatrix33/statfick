@@ -4,6 +4,7 @@
 Tiers 1–5, one in each of Tiers 6–9. They follow the approved system and curve (`Spell-Augmentation.md`), the sample's
 style and the element statuses (`Element-Statuses.md`). Prices are the tier's usual. [X] values are for the raw caster
 of the system draft (no classes or gear) at the level the tier unlocks and at Level 100.
+**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
 
 ## What Blood gains
 
@@ -31,7 +32,7 @@ night when every attack heals, an enemy made to strike its own ally.
 | 2 | Open Veins | offensive, one target | 3 | 22 | always Bleeds |
 | 2 | Sanguine Aura | offensive, all allies | 3 | 22 | 3 turns: every ally's weapon attacks heal them for 10% |
 | 3 | Blood Link | offensive, one target | 3 | 35 | 3 turns: 30% of the damage you take is dealt to it too |
-| 3 | Boiling Blood | offensive, one target | 3 | 35 | its blood boils: 25% of [X] at its next 2 turns, Speed −10% |
+| 3 | Boiling Blood | offensive, one target | 3 | 35 | always Burns (25% of the hit, 2 turns), Speed −10% (borrowed status) |
 | 4 | Crimson Fury | offensive, yourself or an ally | 3 | 50 | 3 turns: attacks +20% and heal 10%, but 10% more damage taken |
 | 4 | Crimson Rain | offensive, all enemies | 3 | 50 | 40% Bleed on each enemy, heals you 10% |
 | 5 | Puppet Strings | offensive, one target | 3 | 75 | on its next turn it attacks one of its own allies (not bosses) |
@@ -84,11 +85,11 @@ night when every attack heals, an enemy made to strike its own ally.
 
 ### Boiling Blood: Tier 3, offensive, one target (new spell)
 
-- **The spell:** 3 AP, 35 Mana, 3,300 silver; power 9 + Int ×0.54 + Vit ×0.15 (70% of the tier's reference, now; 25% of [X] again at each of its next 2 turns). Its blood boils: at the start of each of its next 2 turns it takes 25% of [X] again, and its Speed −10% for 2 turns.
-- **Description:** "Boil one enemy's blood for [X] Blood damage; it scalds for a quarter of that at the start of each of its next 2 turns, slowed by 10%."
+- **The spell:** 3 AP, 35 Mana, 3,300 silver; power 9 + Int ×0.54 + Vit ×0.15 (70% of the tier's reference, its Burning is the rest). Its blood boils into flame: the target is always set **Burning** (Fire's status, borrowed, SP60) for 2 turns, for 25% of the hit each turn, and its Speed −10% for 2 turns.
+- **Description:** "Boil one enemy's blood for [X] Blood damage until it burns: it is set Burning for 2 turns, taking a quarter of that each turn, and is slowed by 10%."
 - **[X]:** Level 20: 55; Level 100: 218.
 - **Augments:** Power, Resistance penetration, Effect strength, Effect duration, Mana cost.
-- **Why:** A second damage over time for Blood, beside Bleeding.
+- **Why:** A Blood spell that Burns (SP60): Wind can spread its fire and Water put it out.
 
 ### Crimson Fury: Tier 4, offensive, yourself or an ally (new spell)
 

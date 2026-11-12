@@ -6,6 +6,7 @@ sample's style (`Spell-Sample.md`, where Fire Bolt was approved) and the element
 each spell sets its status's chance and duration (SP32). Tiers and prices stay. "(new)" marks a mechanic the game
 doesn't have yet; [X] values are for the raw caster of the system draft (no classes or gear), at the level the tier
 unlocks and at Level 100.
+**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
 
 ## Fire's identity
 
@@ -45,7 +46,7 @@ kill, a spear that pierces into a second enemy, a burn that ignores immunity.
 | 3 | Phoenix Mantle | defensive, yourself or an ally | 3 | 27 | −40% Fire damage, can't Burn, Chill thawed |
 | 3 | Flame Spiral | offensive, all enemies | 3 | 37 | Burning enemies are struck twice |
 | 4 | Inferno Orb | offensive, one target | 3 | 52 | splashes 30% on the others, 30% Burn |
-| 4 | Hellfire Wave | offensive, all enemies | 3 | 55 | 40% chance of a hotter burn (20%, 3 turns) |
+| 4 | Hellfire Wave | offensive, all enemies | 3 | 55 | 40% chance of a hotter burn, 30% Hex (borrowed status) |
 | 4 | Flame Rebirth | defensive, yourself or an ally | 3 | 43 | if they fall within 3 turns, they rise with [X] HP |
 | 4 | Ember Lance | offensive, one target | 3 | 50 | +30% against a Burning target |
 | 5 | Dragonbreath - Starfire | offensive, all enemies | 3 | 79 | Vitality −10% kept (Dragonbreath), 25% Burn |
@@ -185,9 +186,9 @@ kill, a spear that pierces into a second enemy, a burn that ignores immunity.
 ### Hellfire Wave: Tier 4, offensive, all enemies
 
 - **Now:** 3 AP, 55 Mana, power 35 + Int ×0.7 + Wis ×0.2. Sweep hellfire over all enemies for [X] Fire damage and decrease their Vitality by 10% for 3 turns.
-- **Reworked:** 3 AP, 55 Mana; power 10 + Int ×0.61 + Wis ×0.18 (65% of the tier's reference, 75% for all enemies, less the hotter burn). Each enemy struck has a 40% chance to be **Burning** for 3 turns, for 20% of the hit each turn (hellfire burns hotter; was Vitality −10% for 3 turns).
-- **Description:** "Send a wave of hellfire through all enemies for [X] Fire damage; each has a 40% chance to burn for 20% of that at the start of each of its next 3 turns."
-- **[X], now → reworked:** Level 30: 129 → 92; Level 100: 332 → 270.
+- **Reworked:** 3 AP, 55 Mana; power 10 + Int ×0.56 + Wis ×0.16 (60% of the tier's reference, 75% for all enemies, less the hotter burn). Each enemy struck has a 40% chance to be **Burning** for 3 turns, for 20% of the hit each turn, and a 30% chance to be **Hexed** (Dark's status, borrowed, SP60; 1 stack) for 3 turns: hellfire is demonic (was Vitality −10% for 3 turns).
+- **Description:** "Send a wave of hellfire through all enemies for [X] Fire damage; each has a 40% chance to burn for 20% of that at the start of each of its next 3 turns and a 30% chance to be Hexed."
+- **[X], now → reworked:** Level 30: 128 → 85; Level 100: 331 → 247.
 - **Augments:** Power, Resistance penetration, Effect strength, Effect duration, Effect chance, Mana cost.
 - **Why:** The element's mid-tier group burn.
 

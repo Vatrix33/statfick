@@ -4,6 +4,7 @@
 each of Tiers 6–9. They follow the approved system and curve (`Spell-Augmentation.md`), the sample's style and the
 element statuses (`Element-Statuses.md`). Prices are the tier's usual. [X] values are for the raw caster of the system
 draft (no classes or gear) at the level the tier unlocks and at Level 100.
+**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
 
 ## What Earth gains
 
@@ -27,9 +28,9 @@ resisted by bosses).
 | 2 | Sandblast | offensive, all enemies | 3 | 22 | 30% chance to Crack each enemy |
 | 2 | Earthen Wall | defensive, all allies | 3 | 22 | ranged attacks on your side deal 30% less for 3 turns |
 | 3 | Taunting Stone | defensive, yourself or an ally | 3 | 34 | 2 turns: enemies' single-target attacks 50% likely to aim at them; −15% damage |
-| 3 | Boulder | offensive, one target | 3 | 35 | 30% chance to lose 1 AP, 30% Crack |
-| 4 | Mudslide | offensive, all enemies | 3 | 50 | buries: 30% chance each loses 1 AP, Soaked ones for certain |
-| 4 | Crystal Shards | offensive, random enemies | 3 | 50 | four shards at random enemies, 30% Crack each |
+| 3 | Boulder | offensive, one target | 3 | 35 | 40% Off-Balance (borrowed status), 30% Crack |
+| 4 | Mudslide | offensive, all enemies | 3 | 50 | buries (30% to lose 1 AP, Soaked ones surely); 30% Soak (borrowed status) |
+| 4 | Crystal Shards | offensive, random enemies | 3 | 50 | four shards at random enemies, 30% Crack and 15% Bleed each (borrowed status) |
 | 5 | Turn to Stone | offensive, one target | 3 | 75 | it can't act on its next turn, then Cracks twice |
 | 5 | Seismic Charge | offensive, yourself or an ally | 3 | 75 | 3 turns: their weapon attacks +[X] Earth and 50% Crack |
 | 6 | Earthquake | offensive, all enemies | 4 | 120 | 4 AP: always Cracks every enemy; 50% chance each loses 1 AP |
@@ -78,25 +79,25 @@ resisted by bosses).
 
 ### Boulder: Tier 3, offensive, one target (new spell)
 
-- **The spell:** 3 AP, 35 Mana, 3,300 silver; power 12 + Int ×0.69 + Str ×0.2 (90% of the tier's reference). A 30% chance that the target loses 1 AP at its next turn (knocked down) and a 30% chance to **Crack** it (1 stack) for 3 turns.
-- **Description:** "Roll a boulder into one enemy for [X] Earth damage, with a 30% chance to knock it down (it loses 1 AP on its next turn) and a 30% chance to Crack it."
-- **[X]:** Level 20: 71; Level 100: 280.
+- **The spell:** 3 AP, 35 Mana, 3,300 silver; power 11 + Int ×0.65 + Str ×0.19 (85% of the tier's reference). A 40% chance to knock the target **Off-Balance** (Wind's status, borrowed, SP60) for 2 turns, ready for Earth's Topple, and a 30% chance to **Crack** it (1 stack) for 3 turns (the knock-down's AP loss becomes the Off-Balance).
+- **Description:** "Roll a boulder into one enemy for [X] Earth damage, with a 40% chance to knock it Off-Balance and a 30% chance to Crack it."
+- **[X]:** Level 20: 67; Level 100: 264.
 - **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** A plain heavy blow for the early tiers.
 
 ### Mudslide: Tier 4, offensive, all enemies (new spell)
 
-- **The spell:** 3 AP, 50 Mana, 6,000 silver; power 10 + Int ×0.56 + Str ×0.16 (60% of the tier's reference, 75% for all enemies, less its effect). Each enemy struck has a 30% chance to lose 1 AP at its next turn, a **Soaked** one for certain (mud is earth and water).
-- **Description:** "Bring a mudslide down on all enemies for [X] Earth damage; each has a 30% chance to lose 1 AP on its next turn, and every Soaked one does."
-- **[X]:** Level 30: 79; Level 100: 227.
+- **The spell:** 3 AP, 50 Mana, 6,000 silver; power 9 + Int ×0.52 + Str ×0.15 (55% of the tier's reference, 75% for all enemies, less its effect). Each enemy struck has a 30% chance to lose 1 AP at its next turn, a **Soaked** one for certain; then each has a 30% chance to be **Soaked** (Water's status, borrowed, SP60) for 2 turns (mud is earth and water).
+- **Description:** "Bring a mudslide down on all enemies for [X] Earth damage; each has a 30% chance to lose 1 AP on its next turn (every Soaked one does), and then a 30% chance to be Soaked."
+- **[X]:** Level 30: 73; Level 100: 211.
 - **Augments:** Power, Resistance penetration, Effect chance, Mana cost.
 - **Why:** An Earth spell for a party with Water in it.
 
 ### Crystal Shards: Tier 4, offensive, random enemies (new spell)
 
-- **The spell:** 3 AP, 50 Mana, 6,000 silver; power 4 + Int ×0.26 + Str ×0.08 (28% of the tier's reference, per shard; four, 112% in all). Four shards (new) each strike a random enemy for [X], each with a 30% chance to **Crack** it (1 stack) for 3 turns.
-- **Description:** "Hurl four crystal shards at random enemies, each dealing [X] Earth damage with a 30% chance to Crack its target."
-- **[X]:** Level 30: 36; Level 100: 106 (each shard).
+- **The spell:** 3 AP, 50 Mana, 6,000 silver; power 4 + Int ×0.24 + Str ×0.07 (26% of the tier's reference, per shard; four, 104% in all). Four shards (new) each strike a random enemy for [X], each with a 30% chance to **Crack** it (1 stack, 3 turns) and a 15% chance to make it **Bleed** (Blood's status, borrowed, SP60) for 3 turns.
+- **Description:** "Hurl four crystal shards at random enemies, each dealing [X] Earth damage with a 30% chance to Crack and a 15% chance to make its target Bleed."
+- **[X]:** Level 30: 34; Level 100: 97 (each shard).
 - **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** Several rolls stack Cracks, like Basic's Arcane Barrage stacks Exposed.
 

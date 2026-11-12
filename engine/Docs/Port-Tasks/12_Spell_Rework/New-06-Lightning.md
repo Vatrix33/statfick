@@ -4,6 +4,7 @@
 in each of Tiers 6–9. They follow the approved system and curve (`Spell-Augmentation.md`), the sample's style and the
 element statuses (`Element-Statuses.md`). Prices are the tier's usual. [X] values are for the raw caster of the system
 draft (no classes or gear) at the level the tier unlocks and at Level 100.
+**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
 
 ## What Lightning gains
 
@@ -31,7 +32,7 @@ made stronger and dearer.
 | 2 | Ball Lightning | offensive, random enemies over 3 turns | 3 | 22 | an orb strikes a random enemy at each of your next 3 turns |
 | 3 | Magnetize | offensive, one target | 3 | 35 | Evasion −20%, weapon attacks on it +10%, 2 turns |
 | 3 | Arc Flash | offensive, one target | 2 | 25 | 2 AP, 30% Shock |
-| 4 | Thunderclap | offensive, all enemies | 3 | 50 | 15% stun on each enemy |
+| 4 | Thunderclap | offensive, all enemies | 3 | 50 | 15% stun and 25% Off-Balance on each enemy (borrowed status) |
 | 4 | Capacitor | defensive, yourself | 2 | 35 | 3 turns: you regain 3% Mana whenever your side Shocks an enemy |
 | 5 | Static Field | offensive, the whole field | 3 | 75 | 3 turns: every enemy that casts a spell takes [X], 50% Shock |
 | 5 | Supercharge | offensive, yourself or an ally | 2 | 52 | 2 AP: their next spell +40% power, costs 30% more |
@@ -90,10 +91,10 @@ made stronger and dearer.
 
 ### Thunderclap: Tier 4, offensive, all enemies (new spell)
 
-- **The spell:** 3 AP, 50 Mana, 6,000 silver; power 9 + Int ×0.52 + Speed ×0.15 (55% of the tier's reference, 75% for all enemies, less the stuns). Each enemy struck has a 15% chance to be stunned for 1 turn.
-- **Description:** "Clap thunder over all enemies for [X] Lightning damage; each has a 15% chance to be stunned for 1 turn."
-- **[X]:** Level 30: 73; Level 100: 211.
-- **Augments:** Power, Resistance penetration, Effect chance, Mana cost.
+- **The spell:** 3 AP, 50 Mana, 6,000 silver; power 8 + Int ×0.47 + Speed ×0.14 (50% of the tier's reference, 75% for all enemies, less the stuns). Each enemy struck has a 15% chance to be stunned for 1 turn and a 25% chance to be staggered **Off-Balance** (Wind's status, borrowed, SP60) for 2 turns.
+- **Description:** "Clap thunder over all enemies for [X] Lightning damage; each has a 15% chance to be stunned and a 25% chance to be staggered Off-Balance."
+- **[X]:** Level 30: 66; Level 100: 191.
+- **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** A group stun chance for the mid tiers.
 
 ### Capacitor: Tier 4, defensive, yourself (new spell)

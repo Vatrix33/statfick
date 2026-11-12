@@ -6,6 +6,7 @@ boss-only spell). They follow the approved system and curve (`Spell-Augmentation
 (SP32). Tiers and prices stay. "(new)" marks a mechanic the game doesn't have yet. [X] values are for the raw caster of
 the system draft (no classes or gear) at the level the tier unlocks and at Level 100, shown for a Wisdom-first caster
 as Wind's spells scale with Wisdom and Speed.
+**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
 
 ## Wind's identity
 
@@ -39,7 +40,7 @@ side's Speed, two gusts in one spell.
 | 2 | Allgust | offensive, all enemies | 3 | 25 | 25% Off-Balance on each enemy |
 | 2 | Deflect Missiles | defensive, all allies | 3 | 27 | enemy ranged hit chance −30% for 3 turns |
 | 2 | Crosswind | offensive, all enemies | 3 | 25 | 50% Off-Balance on each enemy |
-| 3 | Razor Squall | offensive, all enemies | 3 | 38 | two gusts at every enemy, 20% Off-Balance each |
+| 3 | Razor Squall | offensive, all enemies | 3 | 38 | two gusts at every enemy, 20% Off-Balance and 15% Bleed each (borrowed status) |
 | 3 | Gale Step | defensive, yourself | 3 | 34 | Evasion +30% and your next turn comes sooner |
 | 3 | Sky Cutter | offensive, one target | 3 | 33 | you gain Speed +10% (kept) |
 | 3 | Wind Shear | offensive, one target | 3 | 35 | always Off-Balance |
@@ -137,9 +138,9 @@ side's Speed, two gusts in one spell.
 ### Razor Squall: Tier 3, offensive, all enemies
 
 - **Now:** 3 AP, 38 Mana, power 26 + Wis ×0.4 + Speed ×0.3. Fill the battlefield with cutting gusts that deal [X] Wind damage to all enemies and decrease their Evasion by 10% for 2 turns.
-- **Reworked:** 3 AP, 38 Mana; power 5 + Wis ×0.27 + Speed ×0.08 (35% of the tier's reference, per gust; two gusts, 70% in all). Two gusts (new) each strike every enemy for [X], each with a 20% chance to put it **Off-Balance** for 2 turns (was one strike and Evasion −10%).
-- **Description:** "Fill the battlefield with two cutting gusts, each dealing [X] Wind damage to all enemies with a 20% chance to put each Off-Balance for 2 turns."
-- **[X], now → reworked:** Level 20: 65 → 28; Level 100: 201 → 110 (each gust).
+- **Reworked:** 3 AP, 38 Mana; power 4 + Wis ×0.25 + Speed ×0.07 (33% of the tier's reference, per gust; two gusts, 70% in all). Two gusts (new) each strike every enemy for [X], each with a 20% chance to put it **Off-Balance** for 2 turns and a 15% chance to make it **Bleed** (Blood's status, borrowed, SP60) for 3 turns (was one strike and Evasion −10%).
+- **Description:** "Fill the battlefield with two cutting gusts, each dealing [X] Wind damage to all enemies with a 20% chance to put each Off-Balance and a 15% chance to make it Bleed."
+- **[X], now → reworked:** Level 20: 65 → 25; Level 100: 201 → 101 (each gust).
 - **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** Two rolls for the status, and two hits that Basic's Exposed and Burning's Wildfire both like.
 

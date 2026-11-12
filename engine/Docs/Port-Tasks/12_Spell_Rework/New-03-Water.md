@@ -4,6 +4,7 @@
 each of Tiers 6–9. They follow the approved system and curve (`Spell-Augmentation.md`), the sample's style and the
 element statuses (`Element-Statuses.md`). Prices are the tier's usual. [X] values are for the raw caster of the system
 draft (no classes or gear) at the level the tier unlocks and at Level 100, for a Wisdom-first caster.
+**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
 
 ## What Water gains
 
@@ -27,7 +28,7 @@ heal's overflow turned into a barrier, a strike that reaches every Soaked enemy.
 | 1 | Splash | offensive, one target | 2 | 8 | 2 AP, 30% Soak |
 | 1 | Healing Mist | defensive, all allies | 3 | 14 | a small heal on every ally |
 | 2 | Bubble Shield | defensive, yourself or an ally | 3 | 22 | a barrier; no Burning while it holds |
-| 2 | Riptide | offensive, one target | 3 | 22 | always Soaks |
+| 2 | Riptide | offensive, one target | 3 | 22 | always Soaks, 30% Off-Balance (borrowed status) |
 | 3 | Purifying Spring | defensive, all allies | 3 | 35 | removes a debuff from every ally, a small heal |
 | 3 | Tidal Lash | offensive, one target and every Soaked enemy | 3 | 35 | strikes the target and every Soaked enemy (40%) |
 | 4 | Mana Tide | defensive, all allies but you | 3 | 50 | every other ally regains 5% of their maximum Mana |
@@ -67,10 +68,10 @@ heal's overflow turned into a barrier, a strike that reaches every Soaked enemy.
 
 ### Riptide: Tier 2, offensive, one target (new spell)
 
-- **The spell:** 3 AP, 22 Mana, 1,450 silver; power 7 + Wis ×0.43 + Int ×0.13 (80% of the tier's reference). Always **Soaks** the target for 2 turns.
-- **Description:** "Drag one enemy into a riptide for [X] Water damage and Soak it for 2 turns."
-- **[X]:** Level 10: 29; Level 100: 191.
-- **Augments:** Power, Resistance penetration, Effect duration, Mana cost.
+- **The spell:** 3 AP, 22 Mana, 1,450 silver; power 7 + Wis ×0.41 + Int ×0.12 (75% of the tier's reference). Always **Soaks** the target for 2 turns, and has a 30% chance to put it **Off-Balance** (Wind's status, borrowed, SP60) for 2 turns.
+- **Description:** "Drag one enemy into a riptide for [X] Water damage, Soaking it for 2 turns, with a 30% chance to drag it Off-Balance."
+- **[X]:** Level 10: 28; Level 100: 181.
+- **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** A cheap, sure Soak for a Lightning or Ice ally's next spell (Water's sure ones today start at Tier 5).
 
 ### Purifying Spring: Tier 3, defensive, all allies (new spell)

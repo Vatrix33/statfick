@@ -6,6 +6,7 @@ Retinue, which only enemies cast, is left out, SP4). They follow the approved sy
 each spell sets its status's chance and duration (SP32). Tiers and prices stay. "(new)" marks a mechanic the game
 doesn't have yet. [X] values are for the raw caster of the system draft (no classes or gear) at the level the tier
 unlocks and at Level 100; Dark's spells scale with Intelligence and Mind.
+**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
 
 ## Dark's identity
 
@@ -46,7 +47,7 @@ summon, a summon that weakens enemy spells.
 | 4 | Void Lance | offensive, one target | 3 | 50 | steals 10% Intelligence and Wisdom for 3 turns |
 | 4 | Black Sanctuary | defensive, yourself or an ally | 3 | 46 | −30% spell damage; the next enemy to hit them is Hexed |
 | 4 | Summon - Void Stalker | summon | 3 | 50 | an elusive hunter: Evasion +30%, 40% Hex |
-| 4 | Shadow Rend | offensive, one target | 3 | 51 | 50% chance to Hex twice |
+| 4 | Shadow Rend | offensive, one target | 3 | 51 | 50% chance to Hex twice, 30% Bleed (borrowed status) |
 | 5 | Void Maw | offensive, all enemies | 3 | 75 | always Hexes every enemy |
 | 5 | Nightpiercer | offensive, one target | 3 | 76 | steals Mana: 30% of the damage; 30% Hex |
 | 5 | Eclipse Mantle | defensive, yourself | 3 | 70 | spells against you 25% likely to miss; 50% Hex on melee attackers |
@@ -207,9 +208,9 @@ summon, a summon that weakens enemy spells.
 ### Shadow Rend: Tier 4, offensive, one target
 
 - **Now:** 3 AP, 51 Mana, power 48 + Int ×0.7 + Mind ×0.1. Tear through one enemy for [X] Dark damage and reduce its healing received by 20% for 2 turns.
-- **Reworked:** 3 AP, 51 Mana; power 14 + Int ×0.8 + Mind ×0.23 (85% of the tier's reference). A 50% chance to **Hex** the target with 2 stacks for 3 turns (was healing received −20%, which is Death's now).
-- **Description:** "Tear through one enemy with shadow for [X] Dark damage, with a 50% chance to Hex it twice over for 3 turns."
-- **[X], now → reworked:** Level 30: 133 → 121; Level 100: 321 → 353.
+- **Reworked:** 3 AP, 51 Mana; power 13 + Int ×0.75 + Mind ×0.22 (80% of the tier's reference). A 50% chance to **Hex** the target with 2 stacks for 3 turns, and a 30% chance to make it **Bleed** (Blood's status, borrowed, SP60) for 3 turns (was healing received −20%, which is Death's now).
+- **Description:** "Tear through one enemy with shadow for [X] Dark damage, with a 50% chance to Hex it twice over and a 30% chance to leave it Bleeding."
+- **[X], now → reworked:** Level 30: 133 → 114; Level 100: 321 → 332.
 - **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** Healing loss belongs to Death's Withered.
 

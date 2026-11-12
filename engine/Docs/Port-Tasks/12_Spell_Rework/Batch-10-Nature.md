@@ -6,6 +6,7 @@ style (`Spell-Sample.md`) and the element statuses (`Element-Statuses.md`): each
 duration (SP32). Tiers and prices stay. "(new)" marks a mechanic the game doesn't have yet. [X] values are for the raw
 caster of the system draft (no classes or gear) at the level the tier unlocks and at Level 100, shown for a
 Wisdom-first caster as Nature's spells scale with Wisdom and Mind.
+**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
 
 ## Nature's identity
 
@@ -40,7 +41,7 @@ thorns that grow inside a target, raising maximum HP for a few turns.
 | 2 | Thorns Shot | offensive, one target | 2 | 15 | 2 AP kept, 25% Root |
 | 2 | Bramble Bind | offensive, one target | 3 | 24 | 50% chance to Root |
 | 3 | Summon - Adult Bear | summon | 3 | 39 | enrages below half HP (+30%); 40% Root |
-| 3 | Briar Volley | offensive, all enemies | 3 | 36 | 25% chance to Root each enemy |
+| 3 | Briar Volley | offensive, all enemies | 3 | 36 | 25% Root and 25% Bleed on each enemy (borrowed status) |
 | 3 | Regrowth | defensive, yourself or an ally | 3 | 30 | heals, removes a debuff, healing received +20% |
 | 3 | Vine Whip | offensive, one target | 3 | 35 | 40% chance to Root |
 | 4 | Verdant Eruption | offensive, all enemies | 3 | 55 | 50% chance to Root each enemy |
@@ -149,9 +150,9 @@ thorns that grow inside a target, raising maximum HP for a few turns.
 ### Briar Volley: Tier 3, offensive, all enemies
 
 - **Now:** 3 AP, 36 Mana, power 32 + Wis ×0.5 + Mind ×0.3. Launch a storm of living thorns that deals [X] Nature damage to all enemies.
-- **Reworked:** 3 AP, 36 Mana; power 9 + Wis ×0.54 + Mind ×0.15 (70% of the tier's reference, 75% for all enemies, less its effect). Each enemy struck has a 25% chance to be **Rooted** for 2 turns.
-- **Description:** "Launch a storm of living thorns at all enemies for [X] Nature damage; each has a 25% chance to be Rooted."
-- **[X], now → reworked:** Level 20: 86 → 59; Level 100: 280 → 237.
+- **Reworked:** 3 AP, 36 Mana; power 8 + Wis ×0.5 + Mind ×0.14 (65% of the tier's reference, 75% for all enemies, less its effect). Each enemy struck has a 25% chance to be **Rooted** for 2 turns and a 25% chance to **Bleed** (Blood's status, borrowed, SP60) for 3 turns.
+- **Description:** "Launch a storm of living thorns at all enemies for [X] Nature damage; each has a 25% chance to be Rooted and a 25% chance to Bleed."
+- **[X], now → reworked:** Level 20: 86 → 54; Level 100: 280 → 219.
 - **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** The early group spell, with the element's status.
 

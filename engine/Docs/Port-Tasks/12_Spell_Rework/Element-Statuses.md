@@ -58,3 +58,33 @@ When a spell hits a target that carries another element's status, they react. Ea
 
 A reaction needs the spell to hit; an all-enemies spell reacts on each target separately. Effects that read "spell
 damage" (classes, gear) apply to a reaction's extra damage as to the rest.
+
+## Borrowed statuses (SP60, 2026-11-12)
+
+A spell may apply another element's status where it fits (the user's idea, from Boiling Blood; the list below
+approved as proposed). The rules:
+- **The status keeps its own element:** Burning from a Blood spell still deals Fire damage, and a creature immune to Fire
+  (resisting it by 100 or more) can't Burn.
+- **Reactions follow the spell's element,** not the status's: a Blood spell on a Withered enemy still sets off Blood
+  Harvest. The borrowed status sets up its own element's partners (a Blood spell's Burning can be spread by Wind,
+  steamed by Water).
+- **Augmentation** treats it like the spell's own status (Effect strength, duration, chance), and it costs a little of
+  the spell's power, like any effect.
+- **Sparingly:** each element's own status stays its main one; only these fourteen borrow.
+
+| Spell | Element | Borrowed status | In |
+|---|---|---|---|
+| Boiling Blood | Blood | Burning (certain, replacing its own scald) | `New-12-Blood.md` |
+| Sacred Flame | Holy | Burning (certain, replacing its holy fire) | `New-08-Holy.md` |
+| Freezing Spray | Ice | Soaked (30%) | `Batch-07-Ice.md` |
+| Mudslide | Earth | Soaked (30%) | `New-04-Earth.md` |
+| Riptide | Water | Off-Balance (30%) | `New-03-Water.md` |
+| Boulder | Earth | Off-Balance (40%, replacing its AP loss) | `New-04-Earth.md` |
+| Thunderclap | Lightning | Off-Balance (25%) | `New-06-Lightning.md` |
+| Grave Chill | Death | Chilled (30%) | `Batch-11-Death.md` |
+| Shadow Rend | Dark | Bleeding (30%) | `Batch-09-Dark.md` |
+| Razor Squall | Wind | Bleeding (15% per gust) | `Batch-05-Wind.md` |
+| Crystal Shards | Earth | Bleeding (15% per shard) | `New-04-Earth.md` |
+| Briar Volley | Nature | Bleeding (25%) | `Batch-10-Nature.md` |
+| Hellfire Wave | Fire | Hexed (30%) | `Batch-02-Fire.md` |
+| Spore Cloud | Nature | Withered (30%) | `New-10-Nature.md` |

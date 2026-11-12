@@ -6,6 +6,7 @@ boss-only spell). They follow the approved system and curve (`Spell-Augmentation
 (SP32). Tiers and prices stay. "(new)" marks a mechanic the game doesn't have yet. [X] values are for the raw caster of
 the system draft (no classes or gear) at the level the tier unlocks and at Level 100; Ice's spells scale with
 Intelligence and Mind.
+**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
 
 ## Ice's identity
 
@@ -39,7 +40,7 @@ enemies freeze at two stacks, guarding against the next two weapon hits.
 | 2 | Icy Burst | offensive, all enemies | 3 | 25 | 25% chance to Chill each enemy |
 | 2 | Dragonbreath - Frost Form | offensive, one target | 3 | 27 | 15% stun kept (Dragonbreath), 25% Chill |
 | 2 | Sudden Spike | offensive, one target | 2 | 15 | 2 AP kept, 30% Chill |
-| 2 | Freezing Spray | offensive, all enemies | 3 | 26 | 50% chance to Chill each enemy |
+| 2 | Freezing Spray | offensive, all enemies | 3 | 26 | 50% Chill on each enemy, then a 30% chance to Soak (borrowed status) |
 | 3 | Dragonbreath - Rimefang | offensive, one target | 3 | 38 | 25% stun kept (Dragonbreath), 25% Chill |
 | 3 | Glacial Prison | offensive, one target | 3 | 35 | always Chills twice (3 turns) |
 | 3 | Icebound Aegis | defensive, yourself | 3 | 32 | Armor +30%, Fire −25%, 40% Chill on melee attackers |
@@ -130,9 +131,9 @@ enemies freeze at two stacks, guarding against the next two weapon hits.
 ### Freezing Spray: Tier 2, offensive, all enemies
 
 - **Now:** 3 AP, 26 Mana, power 9 + Int ×0.4 + Mind ×0.2. Spray all enemies with ice for [X] Ice damage and reduce their Speed by 10% for 2 turns.
-- **Reworked:** 3 AP, 26 Mana; power 5 + Int ×0.32 + Mind ×0.1 (60% of the tier's reference, 75% for all enemies, less its likely Chill). Each enemy struck has a 50% chance to be **Chilled** (1 stack) for 2 turns (was Speed −10%).
-- **Description:** "Spray all enemies with freezing water for [X] Ice damage; each has a 50% chance to be Chilled for 2 turns."
-- **[X], now → reworked:** Level 10: 31 → 21; Level 100: 198 → 143.
+- **Reworked:** 3 AP, 26 Mana; power 5 + Int ×0.3 + Mind ×0.09 (55% of the tier's reference, 75% for all enemies, less its likely Chill). Each enemy struck has a 50% chance to be **Chilled** (1 stack) for 2 turns, and then a 30% chance to be **Soaked** (Water's status, borrowed, SP60) for 2 turns, setting up the next Ice or Lightning spell (was Speed −10%).
+- **Description:** "Spray all enemies with freezing water for [X] Ice damage; each has a 50% chance to be Chilled and then a 30% chance to be Soaked for 2 turns."
+- **[X], now → reworked:** Level 10: 31 → 20; Level 100: 198 → 133.
 - **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** Built around chilling, so it often does.
 

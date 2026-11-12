@@ -5,6 +5,7 @@ each of Tiers 6–9, among them **Nature's new summon** (the task gives Nature a
 approved system and curve (`Spell-Augmentation.md`), the sample's style and the element statuses
 (`Element-Statuses.md`). Prices are the tier's usual. [X] values are for the raw caster of the system draft (no classes
 or gear) at the level the tier unlocks and at Level 100, for a Wisdom-first caster.
+**Updated 2026-11-12 (SP60):** some spells here borrow another element's status; each says so ("borrowed, SP60").
 
 ## What Nature gains
 
@@ -30,7 +31,7 @@ each turn, attackers rooted for striking an ally.
 | 1 | Thorn Prick | offensive, one target | 3 | 12 | thorns grow in it: 25% of [X] at each of its next 2 turns |
 | 2 | Grasping Weeds | offensive, all enemies | 3 | 14 | 30% chance to Root each enemy, no damage |
 | 2 | Photosynthesis | defensive, yourself or an ally | 3 | 22 | 3 turns: 4% HP and 2% Mana at the start of each of their turns |
-| 3 | Spore Cloud | offensive, all enemies | 3 | 35 | drowsy spores: 30% chance each enemy loses 1 AP |
+| 3 | Spore Cloud | offensive, all enemies | 3 | 35 | drowsy spores (30% to lose 1 AP), 30% Wither (borrowed status) |
 | 3 | Bear's Form | defensive and offensive, yourself | 3 | 35 | 3 turns as a bear: Strength and Vitality +25%, Armor +20%, no spells |
 | 4 | Summon - Dryad | summon | 3 | 56 | Nature's new summon: a dryad who heals and Roots |
 | 4 | Strangling Vines | offensive, one target | 3 | 50 | always Roots for 3 turns; the vines choke for 25% of [X] each turn |
@@ -75,10 +76,10 @@ each turn, attackers rooted for striking an ally.
 
 ### Spore Cloud: Tier 3, offensive, all enemies (new spell)
 
-- **The spell:** 3 AP, 35 Mana, 3,300 silver; power 7 + Wis ×0.42 + Mind ×0.12 (55% of the tier's reference, 75% for all enemies, less its effect). Each enemy struck has a 30% chance to be drowsy: it loses 1 AP at its next turn.
-- **Description:** "Release a cloud of drowsy spores over all enemies for [X] Nature damage; each has a 30% chance to lose 1 AP on its next turn."
-- **[X]:** Level 20: 46; Level 100: 185.
-- **Augments:** Power, Resistance penetration, Effect chance, Mana cost.
+- **The spell:** 3 AP, 35 Mana, 3,300 silver; power 6 + Wis ×0.39 + Mind ×0.11 (50% of the tier's reference, 75% for all enemies, less its effect). Each enemy struck has a 30% chance to be drowsy (it loses 1 AP at its next turn) and a 30% chance to be **Withered** (Death's status, borrowed, SP60) for 2 turns.
+- **Description:** "Release a cloud of drowsy, rotting spores over all enemies for [X] Nature damage; each has a 30% chance to lose 1 AP on its next turn and a 30% chance to be Withered."
+- **[X]:** Level 20: 42; Level 100: 171.
+- **Augments:** Power, Resistance penetration, Effect duration, Effect chance, Mana cost.
 - **Why:** A soft group slow in Nature's own way.
 
 ### Bear's Form: Tier 3, defensive and offensive, yourself (new spell)
