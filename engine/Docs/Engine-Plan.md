@@ -2147,6 +2147,72 @@ The questions (2026-11-12, four at a time, the recommended option first):
   from the enemies they fit (metals from armoured foes and golems, woods from treants, threads and fabrics from
   bandits…), and the map's Forage (task 9) also finds them (woods, ores and the like). The spread is drafted at port
   time. (Not sold at the Blacksmith and Tailor.)
+- DG33 **Saffron and Ool move unchanged,** as Ornn did (R14): their levels (66, 78), mechanics, retinues (the three
+  Great Devil Servants; the Legionnaires and the Phylactery) and drops stay, revamped with every enemy in the port. In
+  the port's own saves an active Saffron or Ool hunt is withdrawn with a note (R15's way), and hunts already completed
+  still count where completed Great Hunts count (the Huntmaster's 5). (Not reworked for their dungeons.)
+- DG34 **Each dungeon has a music theme of its own,** as each region does; the boss battle plays the boss's theme
+  (DG28). (Not one shared dungeon theme; not the region's music.)
+- DG35 **Only the task's three masterworks are new:** the other new bosses drop rare gear, consumables, materials and
+  money; Saffron and Ool keep their masterworks and Exotics (Hellish Rebuke, Seventh Cycle, Fletcher; Staff of the
+  Guild, Heartless Enricher, Tough-Out). (Not a masterwork for every new boss.)
+- DG36 **The new Exotic drops as the five Exotics do** (task 7): only with Limitless on, never doubled, at their rate
+  (4–5% from each of the Great Mountain Mole, Void Lord Firadialin and the Goblin King). (Not also without Limitless.)
+- DG37 **The three masterworks' kinds are chosen in the port-time draft,** per boss, any kind (weapon, armor or artifact)
+  that fits it and serves a different build from the other two. (Not one weapon, one armor and one artifact, the
+  recommendation; not three weapons.)
+- DG38 **The new Exotic is a kind none of the five is** (they are a dagger, a tower shield, a longsword, a lance and a
+  brigandine): a bow, a staff or wand, an artifact or another, chosen in the port-time draft. (Not an artifact by rule;
+  not any kind.)
+- DG39 **The four extra throwing items cover four tactics:** damage over time (an elemental burn or the like), lowered
+  defences (Armor or a resistance), disrupted abilities (no spells or skills for a turn, or the like) and a party buff;
+  one item each, their names, effects, rarities and prices drafted at port time.
+- DG40 **Sparkling enemies appear in regular dungeon stages** at the normal chance, never in the boss stage (the game
+  keeps them out of boss fights already). (Not never in dungeons; not more often.)
+- DG41 **The General Store sells the new items through its random stock:** the eleven (and the four of DG39) join the
+  rarity-weighted pool with the traps and Camping Supplies (`ShopEngine`: the level band's rarity weighted 60, lower ones
+  less, higher ones far less; 3–6 of each in castle cities, 2–4 in towns; restocked every 6 game hours), so the rare
+  and epic ones (the Waylight) are scarcer at low levels, and Camping Supplies stay as they are, sometimes sold out.
+  (Not always in stock, the recommendation; not the cheap ones always and the rest at random.)
+- DG42 **To hit:** the knives roll like a ranged attack (Accuracy against Evasion, the target's Evasion halved as for
+  ranged attacks); the bombs and status throws always land, their stun and other chances still rolling; the thrown
+  poisons stay as they are (no roll). (Not nothing rolling; not everything.)
+- DG43 **The knives' damage comes from the thrower:** a ranged physical hit from the thrower's own stats and level,
+  smaller than a weapon attack (the size drafted at port time), so it keeps its use from Level 1 to 200 and the
+  Throwing Specialist can raise it. (Not a fixed amount per knife; not a share of the target's HP.)
+- DG44 **A throw costs 1 AP** and doesn't end the turn, as every consumable does. (Not 2 AP for the bombs.)
+- DG45 **"For one turn" is the turn the effect is for:** a debuff on enemies (the Dust Bomb) lasts through each
+  enemy's next turn; a bonus for the party (the Marked Knife's mark, the Flash Bomb's escape bonus) lasts until the
+  thrower's next turn starts, so every turn of the party in between has it. (Today's timed effects end when the affected
+  one's next turn starts, which would end a Dust Bomb before the enemy acts.) (Not one full round.)
+- DG46 **The hit chances are points on the final hit chance:** the Marked Knife adds 20 points to the hit chance of
+  everyone on the party's side attacking the marked target (60% becomes 80%), the Dust Bomb takes 40 points off the
+  enemies' (60% becomes 20%), after Accuracy against Evasion and inside the game's 1–100 limits; only attacks that roll
+  to hit (weapon attacks, melee and ranged) are affected. The Dust Bomb's 20% miss chance is for the enemies'
+  single-target hostile spells only (the task's words), not heals, buffs or area spells. (Not a percentage of Accuracy,
+  the recommendation, which the game's marks and Blinding Powder use.)
+- DG47 **Bomb stuns at half chance on bosses,** as the thrown poisons are at half strength (`AlchemyRules.halved`):
+  the Sparkle Bomb stuns a boss on a 50% roll, the Flash Bomb on 20%. (Not immune; not full effect.)
+- DG48 **The stun limits are separate and count only stuns that land:** one Sparkle Bomb stun and one Flash Bomb stun
+  per enemy per battle, as written; a missed roll or an immune enemy doesn't use the chance up; a Sparkle Bomb thrown at
+  an enemy that has had its Sparkle stun is refused, so the item is kept ("not consumed if the action cannot be
+  completed"); a Flash Bomb still lands its escape bonus and skips the stun roll for enemies that have had theirs.
+  (Not one shared limit; not every throw counting.)
+- DG49 **The same item's effect refreshes, never adds up,** on a target, whoever threw it (two Marked Knives from two
+  heroes: one +20); different items' effects coexist (a mark and an acid together). (Not per thrower, as the game's
+  timed effects are keyed today.)
+- DG50 **The Flash Bomb's escape bonus is +50 points** on the Run chance (40% becomes 90%), as the hit chances are
+  points (DG46). (Not ×1.5.)
+- DG51 **The three extra dungeons sit in the level gaps** (the nine cover 4–30, 38–46 and 62–78): about 15–19, 50–56
+  and 85–92, one early, one in the large mid-game gap, one in the endgame before Anatemis (DG54 places the vampire one).
+  (Not all in the endgame; not tied to the three new regions.)
+- DG52 **Two of the extra dungeons' themes: vampires and dragons**, and **the vampire dungeon is Nocturne Keep, the
+  vampire city** (the user's own answer: "Vampires, but make the Vampire City the dungeon with a special quest given by
+  the city in the Boreal Forest. Defeating the dungeon and completing the quest unlocks the city for use by
+  non-vampires"). Nocturne Keep is the Bloodstone Coast's castle city (55–70), open today only to a player with the
+  Vampire class ("outsiders find a hostile fortress instead"); the city in the Boreal Forest is Ravenwatch (Duskpine
+  Forest, 60–75, the only castle city there). Ravenwatch gives the special quest; finishing the dungeon and the quest
+  opens Nocturne Keep to players who aren't vampires. The details are DG53–DG57. The third theme: DG53.
 
 **Decisions for task 13, New Classes (2026-11-12, a cloud session; the user: "Start with Task 13. For the new classes,
 the same rules apply as in Task 10"; the task is `Docs/Port-Tasks/13_New_classes.txt`).** Asked before any work, after
