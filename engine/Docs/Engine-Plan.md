@@ -2212,7 +2212,35 @@ The questions (2026-11-12, four at a time, the recommended option first):
   non-vampires"). Nocturne Keep is the Bloodstone Coast's castle city (55–70), open today only to a player with the
   Vampire class ("outsiders find a hostile fortress instead"); the city in the Boreal Forest is Ravenwatch (Duskpine
   Forest, 60–75, the only castle city there). Ravenwatch gives the special quest; finishing the dungeon and the quest
-  opens Nocturne Keep to players who aren't vampires. The details are DG53–DG57. The third theme: DG53.
+  opens Nocturne Keep to players who aren't vampires. The details are DG54–DG56 and after. The third theme: DG53.
+- DG53 **The third extra dungeon's theme is harpies:** a roost of fast, evasive flyers (harpies today: Level 12–46).
+  (Not trolls and giants, the recommendation; not merfolk and sirens; not orcs.)
+- DG54 **Nocturne Keep's dungeon is about Level 66–70,** the Vampire Citadel zone's level beside it (67–70), overlapping
+  the Great Void Rift (62–68) and the Ancient Pyramid (65–70); so it doesn't take DG51's mid-game slot. (Not about
+  56–62, the recommendation; not 50–56.)
+- DG55 **Ravenwatch's quest is unique and always offered:** a one-time quest of its own at Ravenwatch's guild, offered
+  from the dungeon's lowest level until it is done (never random), giving the Delve's lighter defeat penalties while
+  held; its text and reward are drafted at port time. Finishing the dungeon while holding it completes it and opens the
+  keep. (Not the keep's Delve; not a chain of quests.)
+- DG56 **Once opened, Nocturne Keep offers a player who isn't a vampire everything it offers a vampire,** its Vampiric
+  gear included (sold only there; `requiresClass: "vampire"` in `../old-game/scripts/world-region-data.js` no longer
+  shuts them out). (Not all but the Vampiric gear.)
+- DG57 **The harpy dungeon is about Level 50–56 and the dragon dungeon about 85–92:** the harpies fill the mid-game
+  gap with stronger harpies drafted for it (today's go up to the Harpy Sentinel, 46); the dragons are an endgame lair
+  before Anatemis, beside the great dragons (Ancient Frost 88, Tempest 92, Crownfire 95). So the twelve cover 4–30,
+  38–56, 62–78 and 85–92. (Not harpies at 15–19, the recommendation; not dragons at 50–56.)
+- DG58 **Nocturne Keep's boss is a new vampire lord,** the keep's ruler, drafted at port time like the other new
+  bosses (DG27, DG28). (Not the Pale Monarch made a boss.)
+- DG59 **Ravenwatch's unique quest is Nocturne Keep's Delve, and replays start from a button in the keep** (the
+  user's own answer: "That unique quest is the Delve Quest for Nocturne Keep. To replay the dungeon, a new button in
+  Nocture Keep will be offered, allowing the player to replay the dungeon (pressing the button follows the regular
+  dungeon procedure and this dungeon is played as if a Delve quest is active, even if another quest is active at the
+  time)"): the keep has no random Delve (DG18 doesn't apply to it); once the quest is done, the opened keep offers a
+  replay button that runs the regular procedure (the warning, the Waylight choice, the stages) with the Delve's lighter
+  penalties always, whatever quest the player holds. DG61 says what such a replay pays. (Not a random Delve after the
+  quest, the recommendation; not no Delve.)
+- DG60 **A vampire player meets the keep's dungeon like anyone:** Ravenwatch offers them the quest and they can enter;
+  the keep stays open to them throughout. (Not the dungeon without the quest.)
 
 **Decisions for task 13, New Classes (2026-11-12, a cloud session; the user: "Start with Task 13. For the new classes,
 the same rules apply as in Task 10"; the task is `Docs/Port-Tasks/13_New_classes.txt`).** Asked before any work, after
