@@ -28,8 +28,8 @@ check" below, items 1–9 (item 9 M12's: both zips from Explorer, the logs, the 
 Reporting, the editor finding the game, SmartScreen, the Visual C++ runtime, `publish.ps1` and `editor.ps1`, a mod made
 and loaded). **Also open, none blocking, each waiting for the user's go:** M11's by-hand checks on Linux, (a)–(e) in
 "Small tasks left from earlier milestones" (the editor in a real window, real drops and closes, the preview's sound by
-ear, saving, step 14's mod by hand); the small tasks with no go yet in the same list (among them M11's engine findings);
-and the housekeeping list (finished workers' worktrees and branches). **Next, on the user's go: the port of the game**
+ear, saving, step 14's mod by hand); and the small tasks with no go yet in the same list (among them M11's engine
+findings). **Next, on the user's go: the port of the game**
 (`Docs/Port-Tasks/`, read its README first; "Open questions for later milestones", "At port time"); **the open question
 for the user:** whether the approved port tasks 10, 12, 13 and 14 are built while porting or after the faithful port
 (left open since 2026-11-05). Before M12: M11 (editor foundation) done 2026-11-08 (3496 tests; Progress, "M11 done";
@@ -268,24 +268,10 @@ what needs the user's machines):**
   in M11 Stop stops a theme playing and a sounding effect ends by itself). To add, by the audio's owner: a stop for the
   effects (e.g. `SoundEffects.StopAll()`, every voice faded out over the steal's 5 ms), which the preview's Stop then
   calls (`Docs/Editor.md`, "How it works", step 13).
-- Housekeeping (open, needs the user's go; recorded 2026-11-05; checked against `git worktree list` and `git branch` on
-  2026-11-08 at M11's end, listing only what is there): every worktree under `.claude/worktrees/` is a finished worker's
-  whose work is on `main` (the docs-only ones superseded) and can go, after `git worktree unlock` for the locked ones.
-  From before M11: `agent-a100365f9dd9f6455`, `agent-a854dc507294edc31` (`shadow-inset-caster`), `agent-a90b2ab8c1e10ed5b`,
-  `agent-ab2955e985eacee1d`, `stray-saves` (locked), `agent-a2e8de9d65afa90cf` (`docs-2026-11-05-evening`) and
-  `agent-a93b8e77b1ce8d3b9` (`docs-m11-answers`). From M11 and the work beside it: `agent-a7af00a2756e64974`
-  (`m11-step2`), `agent-a426936d050e88bec` (`m11-step4`), `agent-a1ec0e500ee3cb5ea` (`m11-step1`),
-  `agent-a6537232e954bf00b` (`m11-step7`), `agent-aec1ea5dc55ab019d` (`m11-step3`, locked), `agent-a4031ddbb1001df19`
-  (`m11-step5`, locked), `agent-a5af0bef78dd7cefd` (`m11-step6`), `agent-adb75d946c33c35be` (`m11-step9`), `m11-step8`
-  (locked), `m11-step12` (locked), `agent-a5fd483069282c022` (`m11-step13`), `agent-a02497cf032af0aed` (`m11-step10`),
-  `agent-acf904db51cc4ffe5` (`m11-fixes-1`, locked; it held step 11's branch `m11-step11` before), `agent-ac865c716354051df`
-  (`m11-step14`, once merged), `agent-abcc33021821690f3` (`lcd-first-text`), `agent-a55b0fabf44a865d5`
-  (`background-layers-aa`, locked), `agent-a8c8ea516c01d3cb0` (`flaky-script-api-task`, locked), `agent-a6d967f5c503ec975`
-  (`m11-design`), `agent-a4bb2c94143be5ce9` (`docs-after-port-tasks`) and `agent-a36386867198a2222` (`docs-m11-midway`).
-  With each `agent-<id>` worktree goes its own branch `worktree-agent-<id>`; and the branches with no worktree:
-  `m11-step11`, `worktree-agent-a7ff929d77cdfabea`, `worktree-agent-aff23c463ed886502`, and the backups git doesn't count
-  as merged (work in progress kept before a squash): `m11-step6-wip-backup`, `m11-step10-wip`, `m11-step10-wip2`,
-  `m11-step13-wip-backup`, `step7-unsquashed-backup` and `paint-offset-rounding`.
+- Housekeeping: **done (2026-11-12, the user's go)**: 36 worktrees removed, 75 branches deleted (the five WIP backups
+  among them, their last hashes: `m11-step6-wip-backup` `c777749`, `m11-step10-wip` `33ea4ef`, `m11-step10-wip2`
+  `fb2cc0e`, `m11-step13-wip-backup` `78ee58c`, `step7-unsquashed-backup` `9ac6da1`), 54 GB freed; only `main` and its
+  checkout remain; worker worktrees are removed after each merge from now on.
 - Control labels a device pixel low at 1.65 (found 2026-11-06 by the text-verdict fix, Progress, "Text first in a paint
   chunk"; open, no go yet: the user decides when): a select's or an input button's label sits one device pixel below
   Chromium's at a device scale of 1.65 (at 1× they match). In a 20 px tall `appearance: none` select or button with Lato

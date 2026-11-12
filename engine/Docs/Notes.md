@@ -221,6 +221,14 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   enemies at each dungeon's level) and ends with the drafts left for port time. Asked four at a time; the session's
   worker restarted three times mid-round, and each time the docs were intact and the unanswered round was asked again
   (commit after each round or two: the answers are the only record).
+- 2026-11-12 (the PC, the user's go; no code changed, no tests run): **housekeeping done**: the 36 finished workers'
+  worktrees under `.claude/worktrees/` removed (all clean; the 12 locked ones unlocked first) and 75 local branches
+  deleted, 70 merged ones with `-d` and the five WIP backups with `-D` (`m11-step6-wip-backup` `c777749`,
+  `m11-step10-wip` `33ea4ef`, `m11-step10-wip2` `fb2cc0e`, `m11-step13-wip-backup` `78ee58c`, `step7-unsquashed-backup`
+  `9ac6da1`; their work is squashed onto `main`), 54 GB freed; only `main` and its checkout remain, and a worker's
+  worktree and branch go once its work is merged. `git remote prune origin --dry-run` prunes nothing (the cloud
+  sessions' `origin/claude/*` branches are still on GitHub). Gotcha: `pgrep -af 'dotnet|cage'` matches the shell running
+  it (the pattern is in its command line); `pgrep -af '[d]otnet|[c]age'` doesn't.
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).
