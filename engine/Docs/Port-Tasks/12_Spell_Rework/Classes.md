@@ -1,11 +1,13 @@
 # The two new classes (task 12)
 
-**Status: a draft for the user's review (SP2).** The task's two classes, the Spellweaver and the Ritual Caster, for the
-port. Once approved they are added to task 10's drafts (`../10_Class_Rework/`), as task 11's racial classes were, and
-built with them. They follow task 10's rules: one passive and one skill (C21), the passive or the skill at the last level
-(the capstone rule), requirements within the game's kinds (C28), and its rarities (no colour, blue, purple, gold, red).
-The mechanics they use were decided first: Spell Augmentation and its weavings (SP9–SP16, SP27, SP63) and the ritual's
-delay (SP64–SP66).
+**Status: a draft for the user's review (SP2), second version (SP67: the user's note on the first, "Classes should also
+give appropriate stat bonuses. Most of the class features for both classes are things that would classify as their own
+skill/passive").** The task's two classes, the Spellweaver and the Ritual Caster, for the port. Once approved they are
+added to task 10's drafts (`../10_Class_Rework/`), as task 11's racial classes were, and built with them. They follow
+task 10's rules and shape: levels give stat bonuses, and each class's mechanics sit in its one passive and its one skill
+(C21), the passive or the skill at the last level (the capstone rule), requirements within the game's kinds (C28),
+task 10's rarities. The mechanics they use were decided first: Spell Augmentation and its weavings (SP9–SP16, SP27,
+SP63) and the ritual's delay (SP64–SP66).
 
 ## Spellweaver
 
@@ -18,19 +20,20 @@ delay (SP64–SP66).
 
 | Level | Feature |
 |---|---|
-| 1 | Augment and reset your own spells anywhere, from the spellbook (SP9); augmentation costs you 10% less |
-| 2 | **Element weaving** unlocked: change a spell's element (SP27: 100% of its price) |
-| 3 | Your augmented spells gain 1% power for each rank they hold (up to +10%) |
-| 4 | Augmentation costs you 20% less (instead of 10%) |
-| 5 | **Scaling weaving** unlocked: change a spell's primary or secondary stat (50% of its price each) |
-| 6 | **Weave in Battle** (skill, once per battle, 1 AP): your next spell this turn takes any element you choose, for that cast |
-| 7 | **Master Weaver** (passive, capstone): **tier weaving** unlocked (raise a spell one tier, 200% of its price), and your woven spells gain 10% power; augmentation costs you 30% less (instead of 20%) |
+| 1 | **Spellweaving** (passive): you augment and reset your own spells anywhere, from the spellbook, for 10% less (SP9), and you can weave them (SP27's prices, outside the 10 ranks, SP63); it grows with the class: **element weaving** from Spellweaver 1; **scaling weaving** and 20% less from Spellweaver 4; **tier weaving** and 30% less from Spellweaver 7. Your woven spells gain 10% power. |
+| 2 | Intelligence +10% |
+| 3 | Spell power +10% |
+| 4 | Maximum Mana +15% (and Spellweaving's scaling weaving and 20% discount) |
+| 5 | Wisdom +10% |
+| 6 | Spells cost 10% less Mana |
+| 7 | **Weave in Battle** (skill, capstone; once per battle, 1 AP): your next spell this turn takes any element you choose, for that cast (and Spellweaving's tier weaving and 30% discount) |
 
-- **Discounts together** (SP9 left it to the class): the Spellweaver's discount adds to the Institute of Magic's (25%)
-  and the Church of Talos's (10%, 40% on Lightning and Wind), up to 50% off in all. **Proposal.**
-- **Why purple:** tier weaving lets one spell climb a tier and element weaving lets any spell carry the element a
-  party needs; both reach far beyond a blue class's power, and the class asks for Level 50 and a real investment in
-  augmentation first.
+- **Discounts together** (SP9 left it to the class): Spellweaving's discount adds to the Institute of Magic's (25%) and
+  the Church of Talos's (10%, 40% on Lightning and Wind), up to 50% off in all. **Proposal.**
+- **Why purple:** tier weaving lets a spell climb a tier and element weaving lets any spell carry the element a party
+  needs; both reach far beyond a blue class, and the class asks for Level 50 and a real investment in augmentation
+  first. Its stat bonuses sit a little below the Great Mage's (blue, all raw power), as its strength is in the spells
+  it reshapes.
 
 ## Ritual Caster
 
@@ -42,24 +45,24 @@ delay (SP64–SP66).
 
 | Level | Feature |
 |---|---|
-| 1 | **Rituals:** any spell you cast can be delayed by 1 turn for 30% less Mana (SP64); you can have 1 ritual waiting |
-| 2 | Delays of up to 2 turns (60% less Mana) |
-| 3 | **Patient Circle** (passive): a ritual spell gains 10% power for every turn it waited |
-| 4 | Delays of up to 3 turns (90% less Mana); you can have 2 rituals waiting |
-| 5 | **Grand Rite** (skill, capstone; once per battle, 1 AP): every ritual you have waiting goes off now, keeping its full Mana discount and its Patient Circle power for the turns it waited |
+| 1 | **Rituals** (passive): any spell you cast can be delayed, for 30% less Mana per turn of delay (SP64), and gains 10% power for every turn it waited; it grows with the class: 1 turn and 1 ritual waiting from Ritual Caster 1; 2 turns from Ritual Caster 3; 3 turns (90% less) and 2 rituals waiting from Ritual Caster 5 |
+| 2 | Wisdom +10% |
+| 3 | Maximum Mana +15% (and Rituals' delays of 2 turns) |
+| 4 | Mind +10% |
+| 5 | **Grand Rite** (skill, capstone; once per battle, 1 AP): every ritual you have waiting goes off now, keeping its full Mana discount and its waiting power (and Rituals' delays of 3 turns and a second ritual) |
 
 How a ritual works (SP64–SP66): you choose the spell, its target and the delay; you pay the spell's AP now and its Mana
-less the discount; the spell goes off at the start of your turn that many turns later, costing no AP then; if its
-target has fallen it strikes another random enemy (a heal or a buff another random ally); a stun (or anything else
-that stops your casting) breaks every ritual you have waiting, and their Mana is lost. A ritual can be augmented like
-any spell; Augmentation's Mana cost applies before the ritual's discount. **Proposal.**
+less the discount; the spell goes off at the start of your turn that many turns later, costing no AP then; if its target
+has fallen it strikes another random enemy (a heal or a buff another random ally); a stun (or anything else that stops
+your casting) breaks every ritual you have waiting, and their Mana is lost. A ritual can be augmented like any spell;
+Augmentation's Mana cost applies before the ritual's discount. **Proposal.**
 
-- **Why blue:** at 90% off, a Tier 9 spell costs 25 Mana, but it waits three turns and a stun wastes it; strong for a
+- **Why blue:** at 90% off a Tier 9 spell costs 25 Mana, but it waits three turns and a stun wastes it; strong for a
   patient caster, within a blue class's reach.
 
 ## What the port builds
 
-- The Spellweaver's augmenting anywhere, its discounts, the three weavings unlocking by level, Weave in Battle, Master
-  Weaver; the count of augmentation ranks bought, for its requirement.
-- The Ritual Caster's rituals (a delay picked when casting, up to its level's limit), the waiting rituals shown in
-  battle, their breaking by a stun, Patient Circle, Grand Rite.
+- The Spellweaver's Spellweaving (augmenting anywhere, its discounts, the three weavings by class level, woven spells'
+  power), Weave in Battle; the count of augmentation ranks bought, for its requirement.
+- The Ritual Caster's Rituals (a delay picked when casting, up to its level's limit, the waiting rituals shown in battle,
+  their breaking by a stun, the waiting power), Grand Rite.

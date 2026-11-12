@@ -2133,6 +2133,12 @@ Asked before the two classes (2026-11-12):
   Mana is lost. (Not a stun or a heavy blow, not never.)
 - SP66 **A ritual's AP is paid when it begins;** when it goes off it costs no AP, and if its target has fallen it
   strikes another random enemy (a heal or buff another random ally). (Not AP when it fires, not a fizzle.)
+- SP67 **The classes give stat bonuses, and their mechanics sit in the one passive and the one skill** (the user, on the
+  first class draft: "Classes should also give appropriate stat bonuses. Most of the class features for both classes
+  are things that would classify as their own skill/passive"): the second draft gives the levels between them stat
+  bonuses (Intelligence, Wisdom, Mind, spell power, maximum Mana, Mana cost), and folds each class's mechanics into its
+  passive (Spellweaving, Rituals: both growing with the class level, which keeps SP63's weavings "unlocked by
+  Spellweaver levels") and its capstone skill (Weave in Battle, Grand Rite).
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:
