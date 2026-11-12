@@ -66,6 +66,9 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 12. `12_Spell_Rework.txt`: every spell brought up to date (power, scaling, effects, mana cost; tiers kept), two new
     spells per element in tiers 1–5 and one in tiers 6–9 (at least four new summons), and the Spellweaver and Ritual
     Caster classes.
+    **Designed and approved (2026-11-11 to 2026-11-12), for the port:** like task 10, not built in the old game (SP1);
+    the port builds it from the approved drafts in `12_Spell_Rework/` (its README says what each file holds). See
+    "Designed for the port" below. Decisions SP1–SP69 in `Engine-Plan.md`, "Decisions for task 12, Spell Rework".
 13. `13_New_classes.txt`: new classes by focus (four each for melee, ranged, spells and the rogue path, two for each of
     six combinations, nine without a focus), then more until players can acquire 250 classes; the user is asked about
     each one's identity, levels, requirements and rarity, in that order.
@@ -84,6 +87,9 @@ only the art under "Placeholder art the port remakes fully" is left.
 classes have changed (task 10) and task 12 will change the spell system as well. Every enemy, not only those with class
 levels; the revamp takes both the reworked classes and the reworked spells into account (`Engine-Plan.md`, "At port
 time"; task 10's narrower note on enemies with classes, C2, is part of it).
+
+**Also for the port, from task 12 (the user, 2026-11-11, SP47):** the Tier 10 spell animations (the old game's
+full-screen cinematics, `old-game/scripts/tier10-cinematics.js`) are reworked to go with the reworked Tier 10 spells.
 
 **The order (checked 2026-11-05):** each task builds only on earlier ones (the Cull quest of task 2 before task 5, the
 reforging of task 3 before task 9, Sparkling enemies of task 5 before task 7, the new locations of tasks 3
@@ -214,6 +220,19 @@ in task 10's drafts for the port.
   **The port's three duties (the user, 2026-11-11, C32):** the classes are unchanged in the old game, and during the
   port the classes in the drafts are added; during porting, every class is inspected for possible errors and
   inconsistencies; after the port, every class feature is tested so that it works as intended.
+- Task 12, Spell Rework (2026-11-11 to 2026-11-12, a cloud session, SP1–SP69 in `Engine-Plan.md`, "Decisions for task
+  12, Spell Rework"): the old game stays as it is (SP1) and the port builds from `12_Spell_Rework/`: **Spell
+  Augmentation** (`Spell-Augmentation.md`: the Augmentation menu with a magic circle per element, made only in the
+  port, SP25; ranks, attributes, costs, discounts, resets; the Spellweaver's weavings; the power curve every spell
+  follows), the **element statuses and reactions** (`Element-Statuses.md`, with 28 spells borrowing another element's
+  status), **every spell players can learn reworked** (381, `Batch-01-Basic.md` to `Batch-12-Blood.md`; the seven boss
+  and enemy-only spells left as they are, SP4) and **168 new spells** (`New-01-Basic.md` to `New-12-Blood.md`, fourteen
+  per element, every element keeping at least one summon and one Dragonbreath spell). Its two classes, the Spellweaver
+  and the Ritual Caster, are in task 10's drafts (`10_Class_Rework/`, 175 classes now). Also for the port: the
+  mechanics the drafts mark "(new)"; two new creatures for the new summons, the Mana Golem (Basic) and the Storm Roc
+  (Wind), with their looks and stats (Nature's Dryad and Death's Wraith use creatures the game has); the Tier 10 spell
+  animations reworked (SP47); bosses can't be defeated outright by instant death (SP46); and every enemy's spells,
+  augmentations included, revamped with the general enemy revamp (SP16).
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and

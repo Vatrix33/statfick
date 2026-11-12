@@ -1070,3 +1070,26 @@ question by question). They follow the five race classes' shape. With them the d
 
 - **Requires:** Level 30 · Race: Goliath
 - **Identity:** The Goliath's class: the unmoving wall of the mountains, shielding the party behind it.
+
+# Classes added by task 12
+
+Task 12 (Spell Rework) designed its two classes for the port and put them here (`engine/Docs/Engine-Plan.md`,
+"Decisions for task 12", SP63–SP69; approved by the user on 2026-11-12; their features in `Class-Rework-Features.md`
+and the mechanics they use in `../12_Spell_Rework/`). With them the drafts hold 175 classes.
+
+### Spellweaver
+
+7 levels · rarity purple
+
+- **Requires:** Level 50 · Mage 5 · at least 30 augmentation ranks bought across your spells (a new count, from task
+  12's Spell Augmentation)
+- **Identity:** The augmenter: reshapes the spells it knows, strengthening them anywhere and weaving their element,
+  scaling and tier into new forms.
+
+### Ritual Caster
+
+5 levels · rarity blue
+
+- **Requires:** Level 35 · Mage 5 · Know at least 15 different spells
+- **Identity:** The patient caster: begins its spells turns ahead, for a fraction of their Mana, and lets them go off
+  when the time comes.

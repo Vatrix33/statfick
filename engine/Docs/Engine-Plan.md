@@ -126,7 +126,7 @@ current task. How it's built, its checks and their results: `../old-game/Docs/No
 in task 10's drafts for its classes (T1). Half-Beast (balanced feral stats, Natural Claws) and Goliath (mighty and slow,
 Giant's Blood) are playable, and so are the Merfolk (the enemies' stats and passive kept); each has a placeholder seal,
 four male and four female placeholder looks and recruit names (T5, T7). Their racial classes, Wildheart, Deepcaller and
-Peakwarden, are at the end of both drafts in `Docs/Port-Tasks/10_Class_Rework/` (173 classes there now). Decisions
+Peakwarden, are at the end of both drafts in `Docs/Port-Tasks/10_Class_Rework/` (173 classes then; 175 with task 12's two). Decisions
 T1–T17 in "Decisions for task 11, New Races" below; where each rule lives, the checks (`new-races-browser.js`, 22 rules
 each shown able to fail) and the regression (148 of 162 pass; the 14 others fail on the code before it too or are the
 known intermittent ones): `../old-game/Docs/Notes.md`, "New Races". The engine's tests read only the six older race
@@ -145,6 +145,23 @@ level (the task's capstone rule), requirements and skills within a turn's 5 AP (
 "Decisions for task 10, Class Rework" below. Left for the port: building the classes, the red rarity's look (C16), the
 full rework of every enemy that uses classes (C2), and the "(new)" mechanics the features file marks. Nothing changes
 in the old game. **Engine work goes on uninterrupted**; don't count task 10 as the engine's current task.
+**Port task 12, Spell Rework, is designed and approved, for the port (2026-11-11 to 2026-11-12, a cloud session),**
+like task 10: not built in the old game (SP1); the port builds it from the approved drafts in
+`Docs/Port-Tasks/12_Spell_Rework/` (SP21). The spells get a system of their
+own, Spell Augmentation (SP9–SP16, SP24–SP26): heroes pay at the Magic Towers (less at the Institute of Magic and the
+Church of Talos) to raise a spell's attributes, up to 5 ranks each and 10 per spell, on a magic circle per element
+that only the port draws; only the Spellweaver changes elements, scalings and tiers. Measured first (SP8), the curve
+keeps Mana as scarce as now, puts all-enemies spells at 75% and raises the high tiers (SP17–SP22). Where it stands:
+the system draft (`Spell-Augmentation.md`), the sample of four spells (`Spell-Sample.md`), the element statuses and
+reactions (`Element-Statuses.md`) and all twelve element batches (`Batch-01-Basic.md` to `Batch-12-Blood.md`, every
+spell players can learn, 381, reworked in the game's element order) are approved (SP27, SP31, SP32, SP35–SP47), and so are
+the 168 new spells (`New-01-Basic.md` to `New-12-Blood.md`, fourteen per element, the four new summons among them;
+SP3, SP33, SP34, SP48–SP59, SP62), with 28 spells borrowing another element's status (SP60, SP61). The two
+classes, the Spellweaver and the Ritual Caster (`Classes.md`, SP63–SP69), are approved and added to task 10's drafts
+(175 classes there now). What the port builds besides (new creatures, the Tier 10 animations, the menu's magic circles):
+`Docs/Port-Tasks/README.md`, "Designed for the port". The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
+curve) and a specs file per element. Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
+**Engine work goes on uninterrupted**; don't count task 12 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all
 passing, none skipped, on the GPU (1 min 10 s) and on lavapipe (1 min 25 s), as on `7fd3aac`; the player's real game
@@ -725,6 +742,15 @@ the design and the tests):
   need to be revamped because their classes has been changed and an upcoming task will change the spell system as
   well"). Every enemy, not only those with class levels: the revamp takes both into account, the reworked classes and
   the reworked spells. It includes the narrower point below.
+  From task 12 (SP1, SP69): **the port builds the Spell Rework from its approved drafts** (`Docs/Port-Tasks/12_Spell_Rework/`:
+  Spell Augmentation and its menu's magic circles, made only in the port (SP25); the element statuses, reactions and
+  borrowed statuses; the 381 reworked and 168 new spells; the two new creatures, Mana Golem and Storm Roc; the "(new)"
+  mechanics), with its two classes from task 10's drafts. The old game's spells stay as they are until then, and the
+  enemy revamp gives enemies the reworked spells and their augmentations (SP16). Bosses can't be defeated outright by
+  instant death (SP46).
+  From task 12 (the user, 2026-11-11, SP47): **the port reworks the Tier 10 spell animations** (the old game's
+  full-screen cinematics, `../old-game/scripts/tier10-cinematics.js`), to go with the reworked Tier 10 spells
+  (`Docs/Port-Tasks/12_Spell_Rework/`, one per element in its batch).
   From task 10 (the user, 2026-11-10, C2, C11): **every enemy that uses the old classes is fully reworked during the port**
   (the enemy files' class levels and the bosses' `BOSS_CLASSES`), once the port has built task 10's reworked classes;
   their full rework is not part of task 10's design.
@@ -1912,6 +1938,226 @@ Asked after the regression run (2026-11-06):
 - L33 **The victory screen's EXP at your level cap** (Level 100 without Limitless, 200 with it), where you gain none
   (L18): it reads 0 EXP; companions below their cap still gain the battle's EXP. (Not the number with a note, not left
   showing the battle's EXP.)
+
+**Decisions for task 12, Spell Rework (2026-11-11, a cloud session; the user: "Go ahead with Task 12"; the task is
+`Docs/Port-Tasks/12_Spell_Rework.txt`).** Asked before any work, after reading the old game's spells
+(`objects/spells.json`: 388 spells in 12 elements, Basic among them; Tiers 1–10, 4–6 per element in Tiers 1–5, 3 in
+Tiers 6–7, 2 in Tiers 8–9, 1 in Tier 10; power = base power + a primary and a secondary stat × their multipliers; a
+Mana cost; 3 AP unless the spell says otherwise; 29 summon spells) and how they are cast (`calculateSpellValue`,
+`calculateSpellManaCost`, `calculateSpellActionPoints` in `scripts/app.js`, `cast` in `scripts/combat.js`):
+- SP1 **Where:** drafts for the port, as task 10: the spells are designed in draft files the user reviews and
+  approves; the old game stays unchanged and the port builds them, so the old game's enemies and classes stay
+  balanced until they are revamped together at the port. (Not built in the old game, not split with the classes in
+  drafts.)
+- SP2 **The review:** a sample of four reworked spells first, to settle the style; then one batch per element (about
+  32 spells each); then the new spells, element by element; then the two classes. (Not by tier, not one full draft.)
+- SP3 **Basic counts as an element** for the new spells: 12 elements, so 168 new spells (two per element in each of
+  Tiers 1–5, 120; one per element in each of Tiers 6–9, 48). (Not the other 11 only.)
+- SP4 **The boss and enemy-only spells are left out:** War Horn, Call the Storm, Thunderbolt of Talos, Stonecrust,
+  Wheel of the Year, Vulcanic Charge and Summon Imp Retinue stay exactly as they are; the rework covers the spells
+  players can learn. (Not reviewed with their mechanics kept, not reworked like the others.)
+- SP5 **Not just an effect on every spell** (the user: "I dont mean small effects just to flesh spells out. The
+  weapon/armor system is very detailed and complex, and i want spells to have a similar detailed and fitting unique
+  system. Just adding effects to every spell wont bring them in line with weapons/armors"): spells get a system of
+  their own, as detailed as forging is for weapons and armor; its design is asked next.
+- SP6 **New mechanics are allowed**, each marked "(new)" in the draft so the port knows to build it, as task 10's
+  features file does. (Not only mechanics the game already has, not only the spells' own effect types.)
+- SP7 **AP cost** (the user: "Most spells need 3 AP with other specialized faster spells using 2 AP, but 1 AP, 4 AP and
+  5 AP spells may be added (or reworked into) if a spells powerlevel needs it"): 3 AP is the norm, 2 AP for
+  specialised faster spells, and 1, 4 or 5 AP where a spell's power calls for it.
+- SP8 **Power level:** measured first (spells against weapon attacks and the enemies' HP at several levels), then a
+  power and Mana curve per tier is proposed with the sample, for the user to approve. (Not today's curve kept, not
+  spells made generally stronger.)
+- SP9 **The spells' system is Spell Augmentation** (the user, answering SP5's question, which offered scribed spells
+  made like forged gear, spell mastery by casting, glyph slots, or scribed spells with mastery: "Something like the
+  mastery system, but its called Spell Augmentation. Add a new menu to each Magic Tower that allows selecting known
+  spells to further boost certain attributes of them (Enhanced power, resistance penetration and effect duration
+  increase may be some examples, but further can be added). That costs money, but augmenting in the Institute of Magic
+  or the Church of Talos has a discount. Also change the Spellweaver class to be able to augment anywhere at reduced
+  cost and make that class generally focus on this augmentation. If any further design or system questions appear,
+  ask me about it"): a new Augmentation menu in every Magic Tower; you pick a spell you know and pay to boost its
+  attributes (enhanced power, resistance penetration, longer effects and others); the Institute of Magic and the
+  Church of Talos augment for less; the Spellweaver augments anywhere, for less, and the class is built around
+  augmentation. Its details are asked one by one (SP10 on).
+- SP10 **Augmentation's limits:** each attribute is raised in ranks, up to 5, but a spell holds at most 10 ranks in
+  all, so each spell gets a build of its own; a rank costs more than the one before it and more for a higher tier.
+  (Not 5 ranks of everything with only money as the limit, not a total that grows with the caster's level.)
+- SP11 **Element, scaling and tier changes are the Spellweaver's alone:** everyone can buy the plain boosts (power,
+  resistance penetration, effect duration, Mana cost and the others); changing a spell's element, its scaling stats or
+  raising its tier only a Spellweaver can do. (Not open to everyone, not element and scaling for everyone with only the
+  tier the Spellweaver's.)
+- SP12 (the Church's part replaced by SP24) **The discounts:** the Institute of Magic takes 25% off every spell's augmentation; the Church of Talos takes 40%
+  off, on Lightning spells only. (Not 25% at both with the Church on Lightning only, not 25% on every spell at both.)
+- SP13 **Undoing it:** at any Magic Tower a spell's augmentation can be reset, for half of what was paid back;
+  unlearning a spell resets it the same way. Augmentation belongs to each hero (the player and every companion). (Not
+  permanent, not a free reset.)
+- SP14 **One common list of attributes:** every spell uses the same list, showing only the attributes that apply to
+  it (no effect duration on a spell without a lasting effect, summon attributes only on summons). (Not the common list
+  plus a signature augmentation per spell, not a list of its own for each spell.)
+- SP15 **A system draft comes first:** before the sample of four spells (SP2), a short draft of the system for the
+  user's approval: the Augmentation menu, the attributes and what a rank does, the costs, and the measured power and
+  Mana curve per tier (SP8). Then the sample using it, then the elements. (Not shown together with the sample.)
+- SP16 **Enemies' spells** may carry augmentations, chosen per enemy in the port's enemy revamp (the general port
+  task), stronger and later enemies more. (Not bosses only, not never.)
+Asked after the measurement (SP8; a hero of the old game without classes or gear, levels 1–100, against the 174 enemy
+definitions; the script and its data are in `~/.cache/stat-fick-build/claude-work/t12/`): a pure caster's Mana covers
+2–3 casts of the best spell they can learn and heroes regain none in battle; all-enemies spells deal 90–97% of a
+same-tier single-target spell's power for about the same Mana; at Level 100 a Tier 1 spell gives about 11 power per
+Mana and a Tier 9 spell about 2 (3.6× as strong per cast); a spell's damage per turn is about a fighter's two weapon
+attacks against same-level enemies (spells ignore armor and Evasion, so they pull ahead against armored ones).
+- SP17 **Mana stays as scarce as now:** no regeneration in battle and no flatter Mana curve; gear, classes, potions and
+  Mana-cost augmentation are what stretch it. (Not a flatter curve, not regeneration, not both milder.)
+- SP18 **All-enemies spells deal about 75%** of a same-tier single-target spell's power for the same Mana (the user's
+  own number; offered: about 60%, the same power for about 50% more Mana, or kept as now).
+- SP19 **A narrower gap between tiers:** higher tiers stay stronger per cast and less efficient per Mana, but the gap
+  shrinks, to about 2.5–3× power per Mana from Tier 1 to Tier 9 instead of about 5×; low tiers stay the cheap filler.
+  (Not equal per Mana, not today's gap.)
+- SP20 **Spells never critically hit:** critical chance stays a weapon attribute and is not in the augmentation list.
+  (Not spell crits.)
+- SP21 **Where the drafts live:** `Docs/Port-Tasks/12_Spell_Rework/` from the start, since task 12 is for the port only
+  and nothing moves later. (Not `../old-game/Docs/` during the review, as task 10's were.)
+- SP22 **The gap closes by raising the high tiers:** with Mana kept (SP17), Tiers 1–3 keep about today's power, so the
+  early game is unchanged, and higher tiers gain power step by step for the same Mana: for a raw caster at the level
+  each tier unlocks, Tier 5 about 235 (174 now), Tier 7 about 500 (281), Tier 9 about 940 (430), Tier 10 about 1,600
+  (740); all-enemies spells 75% of that (SP18). Tier 1 to Tier 9 power per Mana: 2.75× instead of 5.4×. (Not split
+  with dearer Tiers 1–3, not the low tiers lowered.)
+- SP23 **The Augmentation menu's look is asked later** (the user, while the system draft was being written: "When it
+  comes to how the augmentation menu should look, ask me later. Prepare everything else first"): the system draft says
+  only what the menu does; its look is asked once everything else is prepared.
+The user's notes on the system draft (2026-11-11):
+- SP24 **The Church of Talos's discount** (replaces SP12's part on the Church): 10% off every spell's augmentation, 40%
+  off Lightning and Wind spells. (The draft had proposed Lightning spells only.)
+- SP25 **The Augmentation menu's look** (the user gave it with the notes, ahead of SP23's "later"; built only in the
+  port, the old game gets no menu): an empty circle with one open slot, into which a known spell is placed, picked
+  from two separate lists, the player's spells and the companions'. With a spell placed, the empty circle becomes a
+  lit-up magic circle, with a small animation and a fitting sound. Each element has its own magic circle, shared by
+  all of its spells, with a symbol of its own for offensive, summon and defensive spells. Each attribute is a separate
+  spot on the circle; clicking one shows the attribute's details and its upgrade button. An upgraded attribute's spot
+  is visibly reinforced (more symbols, more connections, or just a small outline around it).
+- SP26 **Summons' attributes:** the effect-based attributes (effect strength, duration and chance) don't apply to
+  summon spells; in their place summons have Summon Vitality, Summon Might and a third, new one, Summon Speed.
+- SP27 **The system draft is approved** ("Everything else is approved"), with SP24–SP26 applied: its proposals stand,
+  among them Effect duration stopping at 3 ranks, the k-th rank on a spell costing k × 10% of the spell's Magic Tower
+  price, each attribute's value per rank, the weavings' prices (an element 100% of the spell's price, a scaling stat
+  50%, a tier 200%; how many a Spellweaver may weave is settled with the class), and the reference spell per tier.
+- SP28 **The sample's four spells: one of each kind,** from four elements: a low-tier single-target attack (Fire Bolt,
+  Tier 1 Fire), a mid-tier all-enemies attack (Chain Resonance, Tier 5 Lightning), a defensive spell (Greater Heal,
+  Tier 3 Holy) and a summon (Summon - Stone Giant, Tier 7 Earth). (Not four at random, not four Fire spells.)
+- SP29 **Summons scale with spell power:** the summoned creature keeps its level, but its HP and damage grow with the
+  caster's spell power, like a damage spell's power (the summon spell's own scaling). Summon Vitality, Might and Speed
+  add on top. (Not following the caster's level, not fixed as now.)
+- SP30 **Element statuses and reactions:** each element gets a signature status (new) its spells apply and build on,
+  and the elements react with each other (Lightning on Soaked targets, Fire melting Frozen ones, Wind spreading
+  Burning, …), so mixing elements in a party pays off. Drafted in `Docs/Port-Tasks/12_Spell_Rework/Element-Statuses.md`.
+  (Not statuses without reactions, not no element statuses.)
+- SP31 **The sample is approved** ("Spell samples are approved"): Fire Bolt, Chain Resonance, Greater Heal and
+  Summon - Stone Giant as drafted in `Docs/Port-Tasks/12_Spell_Rework/Spell-Sample.md`, the style the element batches
+  follow; among its choices, summons don't offer the Power attribute (Vitality and Might raise what it drives), a
+  creature resisting an element by 100 or more is immune to its status, Chain Resonance's Speed loss goes to Water and
+  Ice.
+- SP32 **The statuses and reactions are approved, with each spell setting its own chance and duration** (the user: "I
+  approve the general choice for statuses and reactions. However, each spell should only have a set chance of applying
+  that status. For example, a simple fire bolt with a goal of damage should have a low chance of applying burning, but a
+  fire spell making a wall of fire should have a high chance of it. Also, the duration of the status should be spell
+  dependend as well"): the statuses' fixed durations went (only Shocked and Frozen keep theirs); the sample followed it,
+  Fire Bolt burning on a 20% chance with its hit raised from about 85% to about 95% of the reference (the burn's
+  expected share counted, SP22), the Stone Giant Cracking on a 40% chance per hit; Greater Heal's Blessed stays
+  certain, as Blessing is half of what that spell is for.
+Asked while batch 1 (Basic) waited for review (the user: "Does basic not have a summon spell?"; its one summon, War
+Horn, is Zik Lun's and left out, SP4):
+- SP33 **Every element has at least one summon and at least one Dragonbreath spell** among the spells players can learn
+  (the user: "Make sure that each element has at least 1 Summon spell. Same applies for Dragonbreaths"). Checked: every
+  element already has a Dragonbreath spell (23 in all: Fire 5, Lightning and Ice 3, Water, Wind and Death 2, the rest
+  1), and every element but Basic a learnable summon (Nature 5; Water, Fire, Death, Earth and Dark 3; Holy and Lightning
+  2; Blood, Wind and Ice 1).
+- SP34 **Basic's summon is one of its new spells,** counting as one of the task's two extra new summons (Basic has the
+  fewest, none); the other extra goes to Blood, Ice or Wind (one each), asked when the new spells are written. Batch 1
+  stays as it is. (Not a Basic spell reworked into a summon now, not both.)
+- SP35 **Batch 1, Basic, is approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/Batch-01-Basic.md`.
+- SP36 **Batch 2, Fire, is approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/Batch-02-Fire.md`.
+- SP37 **Batch 3, Water, is approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/Batch-03-Water.md`
+  (from it on, a Wisdom spell's [X] is shown for a Wisdom-first caster).
+- SP38 **Batch 4, Earth, is approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/Batch-04-Earth.md`;
+  the spell Mountain Shelter and the Peakwarden's skill Mountain's Shelter (task 11) keep their names.
+- SP39 **Batch 5, Wind, is approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/Batch-05-Wind.md`.
+- SP40 **Electrocute keeps both its uses** (asked before batch 6: the Tier 1 Lightning spell Electrocute and the reaction
+  Electrocute share a name; the user: "keep both, no reason to rename either"). (Not the reaction renamed, not the spell.)
+- SP41 **Batch 6, Lightning, is approved** ("Approved"), as drafted in
+  `Docs/Port-Tasks/12_Spell_Rework/Batch-06-Lightning.md`.
+- SP42 **Batch 7, Ice, is approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/Batch-07-Ice.md`.
+- SP43 **Batch 8, Holy, is approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/Batch-08-Holy.md`
+  (Dawn's Shelter and Dawn Shelter keep their near-twin names).
+- SP44 **Batch 9, Dark, is approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/Batch-09-Dark.md`.
+- SP45 **Batch 10, Nature, is approved** ("Approved"), as drafted in
+  `Docs/Port-Tasks/12_Spell_Rework/Batch-10-Nature.md`.
+- SP46 **Batch 11, Death, is approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/Batch-11-Death.md`;
+  with it, bosses can't be defeated outright by any instant-death effect (today they can; Basic's Axiom Lance already
+  followed the rule).
+- SP47 **Batch 12, Blood, is approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/Batch-12-Blood.md`:
+  every spell players can learn is now reworked (381, in twelve batches). With it the user asked to note for the port:
+  **the port reworks the Tier 10 spell animations** ("Please also note for the port that it should rework the Tier 10
+  spell animations"; "At port time" above).
+- SP48 **The fourth new summon goes to Wind** (asked before the new spells: Blood, Ice and Wind tied with one learnable
+  summon each). The four new summons: one each for Nature and Death (the task), Basic (the fewest, none; SP34) and Wind.
+  (Not Blood, which was recommended, not Ice.)
+- SP49 **New spells 1, Basic, are approved** ("Approved"): the fourteen in `Docs/Port-Tasks/12_Spell_Rework/New-01-Basic.md`,
+  Basic's summon (the Mana Golem, a new creature) among them.
+- SP50 **New spells 2, Fire, are approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/New-02-Fire.md`.
+- SP51 **New spells 3, Water, are approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/New-03-Water.md`.
+- SP52 **New spells 4, Earth, are approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/New-04-Earth.md`.
+- SP53 **New spells 5, Wind, are approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/New-05-Wind.md`.
+- SP54 **New spells 6, Lightning, are approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/New-06-Lightning.md`.
+- SP55 **New spells 7, Ice, are approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/New-07-Ice.md`.
+- SP56 **New spells 8, Holy, are approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/New-08-Holy.md`.
+- SP57 **New spells 9, Dark, are approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/New-09-Dark.md`.
+- SP58 **New spells 10, Nature, are approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/New-10-Nature.md`.
+- SP59 **New spells 11, Death, are approved** ("Approved"), as drafted in `Docs/Port-Tasks/12_Spell_Rework/New-11-Death.md`.
+Asked while the Blood new spells waited for review (2026-11-12; the user: "Is it possible to apply some element-specific
+status-effects outside of their element? Like for example Boiling Blood that burns the target? Are there more spells
+like that where it would be possible?"):
+- SP60 **Borrowed statuses:** a spell may apply another element's status where it fits; the status keeps its own
+  element (damage type, immunities), reactions follow the spell's element, augmentation treats it as the spell's own,
+  and it costs a little power. Fourteen spells borrow, the list proposed and approved as it stood (the user: "If this
+  draft would be the same as your list above, i already approve it"): Boiling Blood and Sacred Flame Burn, Freezing
+  Spray and Mudslide Soak, Riptide, Boulder and Thunderclap put Off-Balance, Grave Chill Chills, Shadow Rend, Razor
+  Squall, Crystal Shards and Briar Volley make Bleed, Hellfire Wave Hexes, Spore Cloud Withers. Their batches (approved
+  or not) were updated to match; the rules and the list are in `Docs/Port-Tasks/12_Spell_Rework/Element-Statuses.md`,
+  "Borrowed statuses". (Offered too: only Boiling Blood, or keeping statuses to their element.)
+- SP61 **Fourteen more borrow** (the user: "Are there any more spells out of all existing ones that an other status could
+  apply to?"; asked with the list, the answer "Add all 14"): Prismatic Bolt (the status of the element it strikes as),
+  Ashfall, Sandblast, Tsunami and Umbral Hook (Off-Balance), Meteor Spire and Dawnbringer (Burning), Avalanche and Pale
+  Requiem (Chilled), Sky Scythe, Icicle Volley and Thorn Tyrant (Bleeding), Raging Storm and Crimson Rain (Soaked):
+  twenty-eight of the 549 spells in all. (Not none of them.)
+- SP62 **New spells 12, Blood, and the borrowed-status lists are approved** (the user: "Otherwise both drafts are
+  approved", then the fourteen more added): all 168 new spells are approved (`Docs/Port-Tasks/12_Spell_Rework/New-01-Basic.md`
+  to `New-12-Blood.md`, SP49–SP59, SP62).
+Asked before the two classes (2026-11-12):
+- SP63 **Weavings sit outside the 10 ranks:** at most one element weaving, one per scaling stat and one tier raise per
+  spell, unlocked by Spellweaver levels, costing only money (SP27's prices). (Not 2 ranks each, not one weaving of any
+  kind per spell.)
+- SP64 **The Ritual Caster's delay:** 1, 2 or 3 turns, each cutting the spell's Mana cost by 30% (30%, 60%, 90%); the
+  spell goes off at the start of the caster's turn that many turns later. (Not 1–2 turns at 40%, not 1–4 at 20%.)
+- SP65 **Only a stun breaks a ritual** (or anything else that stops casting); damage alone doesn't. A broken ritual's
+  Mana is lost. (Not a stun or a heavy blow, not never.)
+- SP66 **A ritual's AP is paid when it begins;** when it goes off it costs no AP, and if its target has fallen it
+  strikes another random enemy (a heal or buff another random ally). (Not AP when it fires, not a fizzle.)
+- SP67 **The classes give stat bonuses, and their mechanics sit in the one passive and the one skill** (the user, on the
+  first class draft: "Classes should also give appropriate stat bonuses. Most of the class features for both classes
+  are things that would classify as their own skill/passive"): the second draft gives the levels between them stat
+  bonuses (Intelligence, Wisdom, Mind, spell power, maximum Mana, Mana cost), and folds each class's mechanics into its
+  passive (Spellweaving, Rituals: both growing with the class level, which keeps SP63's weavings "unlocked by
+  Spellweaver levels") and its capstone skill (Weave in Battle, Grand Rite).
+- SP68 **A passive applies in full when it is gained** (the user, on the second draft: "Both passives are too weird. A
+  passives effect always apply immediatly, not after another class level has been reached"; then asked where): the
+  Spellweaver's **Spellweaving at Level 2** with everything at once (augmenting and resetting anywhere for 20% less,
+  element, scaling and tier weaving, woven spells +10% power; the user's own level, offered Level 1, 4 or 7), which
+  replaces SP63's "unlocked by Spellweaver levels"; the Ritual Caster's **Rituals at Level 1** in full (delays of 1–3
+  turns, +10% power per turn waited) with **one ritual** waiting at a time (not two, not at the capstone). Grand Rite,
+  with one ritual, sets it off at once with the power of a full 3-turn wait.
+- SP69 **The two classes are approved** ("Approved"): the Spellweaver (7 levels, purple) and the Ritual Caster (5 levels,
+  blue) as in `Docs/Port-Tasks/12_Spell_Rework/Classes.md`, with its proposals (the Spellweaver's discount adding to
+  the Institute's and the Church's, up to 50%; a ritual augmented like any spell, Augmentation's Mana cost first); added
+  to the end of task 10's drafts (175 classes). **Task 12's design is complete.**
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:
