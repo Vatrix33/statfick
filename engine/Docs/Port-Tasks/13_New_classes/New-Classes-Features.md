@@ -1,7 +1,7 @@
 # Task 13, New Classes: the features
 
-**Under review: the sample of four and batches 1–6 approved (2026-11-12, NC11–NC17); batch 7, the last, written for
-review.** The level-by-level features of the 79 new
+**Under review: the sample of four and batches 1–6 approved (2026-11-12, NC11–NC17); batch 7, the last, revised on the
+user's notes (NC18) for review.** The level-by-level features of the 79 new
 classes, made for the port (NC1). Each keeps the identity, levels, requirements and rarity approved in
 `New-Classes-Draft.md` (NC9). It starts with a sample of four, one class from each focus drawn at random, as task 10's
 features began (C20); the rest follow in batches once the sample is approved, the user's notes on each batch shaping
@@ -42,7 +42,7 @@ do and the port would need to add.
   Knight-Errant) and the ranged extras (Trickshot, Huntmaster, Bowmaster, Giantslayer, Lightbearer).
 - Batch 6 (approved 2026-11-12): the rogue extras (Saboteur, Accomplice, Vigilante) and the spell extras (Soulbinder, Beguiler,
   Astromancer, Golemancer, Hedge Witch, Dirgesinger, Abjurer).
-- Batch 7 (for review), the last: the extras without a focus: Guildmaster, Limitbreaker, Treasure Hunter, Daredevil,
+- Batch 7 (revised on your notes, for review), the last: the extras without a focus: Guildmaster, Limitbreaker, Treasure Hunter, Daredevil,
   Surgeon, Ascetic, Lycanthrope, Paragon, Schemer.
 
 # The sample of four (approved 2026-11-12)
@@ -1316,13 +1316,18 @@ Identity: Born of Limitless: turns its scaling around, growing stronger the stro
 
 | Level | Feature |
 |---|---|
-| 1 | **Limit Reversed** (passive): while Limitless is on, its 25% on the enemies becomes yours: in your battles the enemies' stats count without it, and your stats are 25% higher (new) |
+| 1 | **Closing the Gap** (passive): while Limitless is on, you gain what it gives every enemy: all your stats are 25% higher, so you meet them as equals (new) |
 | 2 | All your stats +1% for every 5 levels above 100 (+2% at Level 110, up to +20% at 200); maximum HP and Mana +15% |
 | 3 | **Breaking Point** (skill, capstone; once per battle, no AP): for 3 turns there is no limit: your attacks and spells ignore Armor and resistances, and you can't fall below 1 HP (new) |
 
-How it plays: the class for those who go on past Level 100: Limitless's own advantage turned against it, and a body
-that keeps growing to Level 200. Above gold, like the Unreality; it takes three perk points saved before Level 100,
-since none come after (task 7). The hooded man won't speak of it below Level 100 (NC7).
+*Your note, applied: Remake the Limitbreaker Passive to not debuff the enemies. Instead it should help you close the
+gap. (Asked after: the 25% that Limitless adds to every enemy, as +25% to all your stats. The batch had taken the 25%
+off the enemies as well.)*
+
+How it plays: the class for those who go on past Level 100: Limitless's own margin matched, so the enemies it lifts
+to your level and 25% beyond meet you as equals, and a body that keeps growing to Level 200. Above gold, like the
+Unreality; it takes three perk points saved before Level 100, since none come after (task 7). The hooded man won't
+speak of it below Level 100 (NC7).
 
 ## Treasure Hunter
 
@@ -1383,10 +1388,14 @@ Identity: Owns almost nothing: the less it carries and wears, the stronger it is
 | 2 | Wisdom and Vitality +5% |
 | 3 | **Clear Mind** (skill, once per battle, 1 AP): for 3 turns you take 25% less damage and your attacks can't miss |
 | 4 | Maximum HP +10%; without armour you take 10% less damage |
-| 5 | **Nothing to Lose** (passive, capstone): all your stats are 4% higher for each of your off-hand, armour and two artifact slots that is empty, up to +16% (new) |
+| 5 | **Nothing to Lose** (passive, capstone): all your stats are 14% higher for each of your off-hand, armour and two artifact slots that is empty, up to +56% (new) |
 
-How it plays: the opposite of the Collector and the Relic Warden: it gives up its gear for power, and fully bare it is
-a sixth stronger in everything. It suits the Monk's fists and the Hermit's road.
+*Your note, applied: For the Ascetic, buff Nothing to lose to increase stats by 14% for up to 56% since taking away
+Artifacts is a huge debuff. (The batch had 4% a slot, up to +16%.)*
+
+How it plays: the opposite of the Collector and the Relic Warden: it gives up its gear for power. Without its two
+artifacts, as its requirement asks, it is 28% stronger in everything; fully bare, 56%. It suits the Monk's fists and
+the Hermit's road.
 
 ## Lycanthrope
 
@@ -1416,10 +1425,14 @@ Identity: The Jack of all Trades grown into a legend: every path mastered, and i
 |---|---|
 | 1 | Your melee attacks, ranged attacks and spells all deal 15% more damage, and your Crit Rating is +10 |
 | 2 | **Peerless** (skill, once per battle, no AP): for your next 2 turns you have 2 more AP, and your attacks and spells can't miss |
-| 3 | **Paragon of Paths** (passive, capstone): all your stats are 1% higher for each class you have at its final level, up to +20% (new) |
+| 3 | **Paragon of Paths** (passive, capstone): all your stats are 3% higher for each class you have at its final level, without a limit (new) |
+
+*Your note, applied: The Paragon of Paths should not have a limit and should increase by 3% instead. (The batch had
+1% a class, up to +20%.)*
 
 How it plays: a gold legend like the Hero and the Demon Lord, but for one's own sake: strong with blade, bow and spell
-alike, and stronger for every class it has mastered. Once a battle it acts as two for two turns.
+alike, and stronger for every class it has mastered, with no ceiling: a character with ten classes at their final
+level is 30% stronger in everything, with twenty 60%. Once a battle it acts as two for two turns.
 
 ## Schemer
 

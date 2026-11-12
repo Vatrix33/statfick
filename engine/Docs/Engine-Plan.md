@@ -55,7 +55,7 @@ on its path, from any class on it, not only the starting class (NC3). One draft 
 requirements, rarity; NC4) approved on 2026-11-12 with the user's notes applied (Limitbreaker red; the hooded man
 offering no red class below Level 100; Paragon's four set classes; NC6–NC9); their features have begun with a sample
 of four and batches 1–6 approved, all 37 of the task's own classes and 33 of the 42 more (NC10–NC17); batch 7, the
-last nine, is written for review. Decisions NC1 onward in "Decisions for task 13, New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
+last nine, revised on the user's notes (NC18), is for review. Decisions NC1 onward in "Decisions for task 13, New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
 **Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is done in the old game**, as task 1 was
 (the user's answer G1, "Decisions for task 2, Guild Rework" below; built on the cloud branch `claude/fervent-carson-f5ol9s`
 and merged through a pull request). The port doesn't build it again; only its two guild interiors, placeholder art, are
@@ -2034,6 +2034,14 @@ The user's review of the draft (2026-11-12; their notes on two classes, everythi
   have features. Proposed in it: the Moonfang as a 1% drop from a wolf defeated at night; the Lycanthrope, a class from
   a rare item, with two skills as the item classes may have (C21). Once it is approved, the classes go to the end of
   task 10's drafts (NC5).
+- NC18 **Batch 7 revised on the user's notes** (2026-11-12): **the Limitbreaker's passive no longer weakens the
+  enemies** (the user: "Remake the Limitbreaker Passive to not debuff the enemies. Instead it should help you close the
+  gap"; asked how, the answer: while Limitless is on, all your stats +25%, the margin Limitless gives every enemy
+  after lifting it to your level, `scaleEnemy` in `../old-game/scripts/limitless-engine.js`; not matching the strongest
+  enemy stat by stat, not growing 2.5% per 10 levels); **the Ascetic's Nothing to Lose is +14% to all stats per empty
+  slot, up to +56%** ("since taking away Artifacts is a huge debuff"; the batch had 4%, up to +16%); **the Paragon of
+  Paths is +3% to all stats per class at its final level, without a limit** (the batch had 1%, up to +20%). The rest
+  of batch 7 awaits the user's word.
 
 **Decisions for task 12, Spell Rework (2026-11-11, a cloud session; the user: "Go ahead with Task 12"; the task is
 `Docs/Port-Tasks/12_Spell_Rework.txt`).** Asked before any work, after reading the old game's spells
