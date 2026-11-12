@@ -1,6 +1,6 @@
 # New spells 5: Wind (task 12)
 
-**Status: a draft for the user's review (SP2, SP3).** Wind's fourteen new spells: two in each of Tiers 1–5, one in
+**Status: approved (2026-11-11, SP53), for the port (SP2, SP3).** Wind's fourteen new spells: two in each of Tiers 1–5, one in
 each of Tiers 6–9, among them **Wind's new summon** (SP48). They follow the approved system and curve
 (`Spell-Augmentation.md`), the sample's style and the element statuses (`Element-Statuses.md`). Prices are the tier's
 usual. [X] values are for the raw caster of the system draft (no classes or gear) at the level the tier unlocks and at

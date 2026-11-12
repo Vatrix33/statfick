@@ -1,6 +1,6 @@
 # Batch 8: Holy (task 12)
 
-**Status: a draft for the user's review (SP2).** Every Holy spell players can learn, reworked: 32 spells (Holy has no
+**Status: approved (2026-11-11, SP43), for the port (SP2).** Every Holy spell players can learn, reworked: 32 spells (Holy has no
 boss-only spell). They follow the approved system and curve (`Spell-Augmentation.md`), the sample's style
 (`Spell-Sample.md`, where Greater Heal was approved) and the element statuses (`Element-Statuses.md`): each spell sets
 its status's chance and duration (SP32). Tiers and prices stay. "(new)" marks a mechanic the game doesn't have yet.

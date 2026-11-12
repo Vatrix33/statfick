@@ -44,7 +44,8 @@ Before M11: M10 (scene and sequencer) done 2026-11-05 (the proof cutscene approv
 ("Windows check"). The project is one git repo (`../`, see `../CLAUDE.md`), on the private GitHub repo
 `github.com/Vatrix33/statfick`; the user's tasks for the port are in `Docs/Port-Tasks/`, read when the port starts
 ("Decision on the user's tasks for the port"; "Open questions for later milestones", "At port time"); tasks 1–9 are done
-in the old game (the paragraphs below).
+in the old game, task 11 in the old game for its races, and tasks 10 and 12 are designed and approved for the port to
+build (the paragraphs below); task 13 is next.
 **Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is done in the old game**, as task 1 was
 (the user's answer G1, "Decisions for task 2, Guild Rework" below; built on the cloud branch `claude/fervent-carson-f5ol9s`
 and merged through a pull request). The port doesn't build it again; only its two guild interiors, placeholder art, are
@@ -159,8 +160,9 @@ the 168 new spells (`New-01-Basic.md` to `New-12-Blood.md`, fourteen per element
 SP3, SP33, SP34, SP48–SP59, SP62), with 28 spells borrowing another element's status (SP60, SP61). The two
 classes, the Spellweaver and the Ritual Caster (`Classes.md`, SP63–SP69), are approved and added to task 10's drafts
 (175 classes there now). What the port builds besides (new creatures, the Tier 10 animations, the menu's magic circles):
-`Docs/Port-Tasks/README.md`, "Designed for the port". The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
-curve) and a specs file per element. Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
+`Docs/Port-Tasks/README.md`, "Designed for the port". The drafts hold the final numbers; they were generated with scratch
+scripts in `~/.cache/stat-fick-build/claude-work/t12/` (the curve and a spec file per element; `Docs/Notes.md`,
+2026-11-11/12), not needed to read or build them. Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
 **Engine work goes on uninterrupted**; don't count task 12 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
 engine tests. With pull requests #8–#11 merged (`main` `a32c5cb`), `Tools/Scripts/test.sh` gives 2547 tests, all

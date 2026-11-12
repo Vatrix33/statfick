@@ -1,8 +1,8 @@
 # Spell Augmentation: the system draft (task 12)
 
 **Status: approved (2026-11-11, SP27), with the user's notes applied (SP24–SP26).** It describes the spells' new
-system and the power curve every reworked and new spell follows; the sample of four reworked spells and the elements
-come next (SP2). Everything here is for the port: the old game stays unchanged (SP1). The decisions it follows are SP1
+system and the power curve every reworked and new spell follows; the sample, the element batches, the new spells and
+the two classes followed and are approved too (SP31–SP69); the class settled its open points (sections 2 and 7). Everything here is for the port: the old game stays unchanged (SP1). The decisions it follows are SP1
 onward in `engine/Docs/Engine-Plan.md`, "Decisions for task 12, Spell Rework". "(new)" marks a mechanic the game doesn't
 have yet (SP6).
 
@@ -19,10 +19,10 @@ Augmentation belongs to each hero, the player and every companion (SP13).
 | Every Magic Tower (castle cities) | every spell | full price |
 | The Institute of Magic (Mirrormere's lake) | every spell | 25% off (SP12) |
 | The Church of Talos (the Storm Reliquary) | every spell | 10% off; 40% off Lightning and Wind spells (SP24) |
-| Anywhere, from the spellbook | a Spellweaver's own spells | the Spellweaver's discount (set with the class) |
+| Anywhere, from the spellbook | a Spellweaver's own spells (Spellweaving, its passive from Spellweaver 2) | 20% off (SP68) |
 
-The Spellweaver's own discount, and whether it adds to the Institute's or the Church's, is settled with the class
-(SP9, SP11).
+Settled with the class (SP68, SP69): the Spellweaver's 20% adds to the Institute's or the Church's discount, up to 50%
+off in all (`Classes.md`).
 
 ## 3. The Augmentation menu (new)
 
@@ -98,8 +98,9 @@ Prices in silver (100 silver a gold, 10,000 a platinum). A reset pays back half 
 ## 7. Weaving: the Spellweaver's augmentations (new)
 
 Changing a spell's element, its scaling or its tier only a Spellweaver can do (SP11). How each works is approved
-(SP27); how many a Spellweaver may weave, from which class level, and whether weavings use any of the 10 ranks are settled
-with the class (the last part of the task).
+(SP27); settled with the class: weavings sit outside the 10 ranks, at most one element weaving, one per scaling stat and
+one tier raise per spell (SP63), all three open from Spellweaving, the Spellweaver's passive at its Level 2 (SP68), and
+woven spells gain 10% power (`Classes.md`).
 
 - **Element weaving:** the spell becomes another of the 12 elements. It counts as that element for everything:
   resistances, gear, classes, elemental mages, the storm of Talos. Its effects stay; damage they deal takes the new

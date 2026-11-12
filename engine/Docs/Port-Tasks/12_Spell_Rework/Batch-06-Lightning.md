@@ -1,6 +1,6 @@
 # Batch 6: Lightning (task 12)
 
-**Status: a draft for the user's review (SP2).** Every Lightning spell players can learn, reworked: 31 spells (Call the
+**Status: approved (2026-11-11, SP41), for the port (SP2).** Every Lightning spell players can learn, reworked: 31 spells (Call the
 Storm and Thunderbolt of Talos, the Church of Talos's followers', are left out, SP4). They follow the approved system
 and curve (`Spell-Augmentation.md`), the sample's style (`Spell-Sample.md`, where Chain Resonance was approved) and the
 element statuses (`Element-Statuses.md`): each spell sets its status's chance and duration (SP32). Tiers and prices
