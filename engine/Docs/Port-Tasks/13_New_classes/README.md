@@ -1,4 +1,4 @@
-# Task 13's drafts: New Classes (under review)
+# Task 13's drafts: New Classes (being designed)
 
 Task 13 (`../13_New_classes.txt`) designed for the port, like task 10 (`../../Engine-Plan.md`, "Decisions for task 13,
 New Classes", NC1 onward): **not built in the old game**; the port builds the classes from the approved drafts.
@@ -7,7 +7,8 @@ New Classes", NC1 onward): **not built in the old game**; the port builds the cl
   with each one's identity, levels, requirements and rarity (NC2, NC4). Approved on 2026-11-12 with the user's notes
   applied (NC6–NC9): the Limitbreaker red, the hooded man offering no red class below Level 100, Paragon's four set
   classes.
-- To come once the draft is approved: their features level by level, in batches (C22), in a features file here.
+- `New-Classes-Features.md`: their features level by level (NC10): a sample of four first (Bladebound, Harrier,
+  Catalyst, Mimic), for the user's review (2026-11-12); the rest in batches after it (C22).
 
 Once everything is approved, both files' classes go to the end of task 10's two drafts in `../10_Class_Rework/`
 (NC5), as task 11's and task 12's classes did, so that the port has every class in one place. Then task 10's files'
