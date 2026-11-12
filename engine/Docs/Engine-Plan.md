@@ -2060,6 +2060,93 @@ The questions (2026-11-12, four at a time, the recommended option first):
   | Shattered Castle (74–78) | Ancient Battlefield, Silent Westfield (72–75), beside the Mass Graves (Ool's place today) |
 
   (Not each asked one by one; not left to port time.)
+- DG6 **Entry needs nothing:** any party can enter at any level; the warning before entry shows the recommended level
+  range and says plainly when the player's level is below it. (Not the range's lowest level; not 5 below it.)
+- DG7 **Stage battles from designed pools:** each stage has a few designed enemy groups, one drawn at random on each
+  run, so replays differ; later stages have harder groups, with Empowered enemies (the game's ×1.3 kind) as their
+  elites. The pools are drafted per dungeon at port time. (Not one fixed group per stage; not groups drawn at random
+  from the dungeon's enemy list.)
+- DG8 **Enemy levels rise by stage:** the regular enemies are at the range's lowest level in stage 1 and at its highest
+  in the last stage before the boss; the boss is at the top. With Limitless on they rise to the player's level as every
+  enemy does (task 7). (Not the player's level held inside the range, as the map's zones do.)
+- DG9 **The enemy types:** each dungeon gets types of its own (dungeon-only, drafted at port time with the general
+  enemy revamp), and existing types join where their level fits. (Not only new types; not mostly existing ones raised.)
+- DG10 **Between stages** the player can do everything they can outside a battle except travel, towns and shops:
+  potions, gear, inventory, the character sheet, Camping Supplies, items such as the Emergency Rope. (Not only Camping
+  Supplies and potions.)
+- DG11 **Camping Supplies in a dungeon:** at most one after each cleared stage; it restores 20% of maximum HP and Mana to
+  every party member, fallen companions too (as camping on the map raises them; a race that can't heal stays as camping
+  treats it); the class chances to keep them (Traveler, Pilgrim, Cartographer and the reworked classes') apply. (Not any
+  number per stage; not without the keep chances.)
+- DG12 **Time passes inside a dungeon:** each stage and each use of Camping Supplies takes a set time, the amounts set at
+  port time, so the day's guild boards, the shops' restock, night-time things (the Moonfang) and once-a-day skills go
+  on. (Not a stopped clock.)
+- DG13 **Fleeing:** the party can Run from any dungeon battle, the boss's too, as the game allows today; it is back on
+  the dungeon's overview with the stage not cleared, fights it again with a newly drawn group, and has no Camping
+  Supplies until it clears it. (Not regular stages only; not never.)
+- DG14 **The items a defeat can take:** every unequipped item of the player and the companions, except key items and
+  the items an active guild quest needs (a Collect quest's ingredients); favourites can be lost. Equipped gear is never
+  taken. (Not favourites kept safe; not only consumables and materials.)
+- DG15 **Counting and rounding the losses:** each copy is one item; the share (50% or 10%) of the eligible count is
+  rounded down and the items are picked at random; money loses the share (75% or 35%) of the purse's whole value
+  (silver, gold and platinum together), rounded down to whole silver. A summary after the defeat lists the money and
+  every item lost. (Not rounded up; not by stack.)
+- DG16 **A defeat with an active Delve quest:** the party wakes in the settlement nearest the dungeon (the defeat
+  rule's own pick, `returnDefeatedPartyToTown`), at 1% HP and 0% Mana; the Delve ends as failed with a note, no reward
+  and no further cost. (Not the town whose guild gave it; no Reputation lost.)
+- DG17 **Replays have no limit:** a dungeon can be entered again right after it is finished, as often as the player
+  likes. (Not once a day.)
+- DG18 **How Delves appear:** like the Great Hunt slot, each daily board has a chance (set at port time) to add one
+  Delve, drawn from the dungeons whose lowest level the player has reached, on top of the board's normal count; so
+  reaching the level makes it possible, never certain. (Not one of the shuffled types; not a roll per dungeon.)
+- DG19 **Where Delves are offered:** the guilds of the dungeon's region, as Great Hunts are offered by region (a nearby
+  guild stands in where the region has none, as Ravenwatch does for Ool). (Not any guild; not castle cities only.)
+- DG20 **A Delve pays like a Great Hunt:** ×2.4 silver and 3× Reputation, at the dungeon's top level, on top of the
+  dungeon's own rewards. (Not more; not less.)
+- DG21 **A Delve takes the standard quest's slot and can be offered again** (the user's own answer: "It takes the
+  standart quest slot and the quest can appear again"): holding a Delve means holding no other standard quest (Hunt,
+  Cull, Deliver, Search, Escort, Travel, Collect), the Great Hunt slot stays free; a dungeon's Delve can come back on the
+  boards after it is completed. (Not a slot of its own, the recommendation; not the Great Hunt's slot; not once per
+  dungeon.)
+- DG22 **The Emergency Rope works between stages only,** on the overview: the party leaves at the dungeon's entrance with
+  its HP and Mana as they are, with no defeat penalty; an active Delve stays active, so the player can try again. (Not
+  in regular battles; not any time.)
+- DG23 **The Waylight is a choice on the entry warning:** offered there ("Use a Waylight") when the player carries one,
+  used up only once entry is confirmed; the overview then shows stage 1 as skipped. The skipped stage gives no rewards.
+  It never skips the boss's stage. (Not used on the map beforehand; no rewards from the skipped stage.)
+- DG24 **Regular stages give their enemies' normal EXP, money and drops plus dungeon materials** (the user chose them
+  over normal rewards alone, the recommendation); what the materials are for is DG26.
+- DG25 **Finishing a dungeon gives only the boss's drops,** as a site boss does: no completion chest, first time or
+  later. (Not a first-clear reward, the recommendation; not a chest every clear.)
+- DG26 **The dungeon materials are the smithing materials, made into items** (the user's own answer: "I want to add the
+  weapon/armor materials as ingredients as well. Some of them can be dungeon-specific drops, all others need to be
+  distributed so it makes sense. Having a smithing material in the inventory gives a huge discount on reforging a
+  weapon/armor if that material is chosen (a visual indicator needs to be added to the reforging menu if a material is
+  available in the inventory)"; asked how many kinds: "See former anwser"). Today the materials (`MATERIAL_ROWS` and
+  `ARMOR_MATERIAL_LIST` in `../old-game/scripts/forge-engine.js`: metals, woods, threads, fabrics…) are only choices on
+  the anvils (task 3's reforging, a changed part costing 3 × its rarity's `RARITY_PRICE`). They become inventory items
+  like task 9's ingredients: some drop only in dungeons, the others are spread over the world where they make sense;
+  carrying one makes reforging a part to that material much cheaper, and the reforge menu marks every option whose
+  material the player carries. The details are DG29–DG32. (Not trades at the guild, the recommendation; not a new
+  upgrade system; not brewing ingredients; not trade goods only.)
+- DG27 **Boss difficulty like the Great Hunts:** each dungeon boss on the Great Hunts' curve for its level (the early
+  ones about 90% won by a prepared party, falling to about 20% for the late ones, as Saffron and Ool), measured by
+  simulation as the boss reworks were. (Not harder than a Great Hunt of its level; not one rate for all.)
+- DG28 **Every new dungeon boss gets what the Great Hunt bosses have:** an intro cinematic, a music theme of its own and
+  its own detailed model (the port's bar, "At port time": as detailed as the cutscene scenes). (Not a shared boss
+  theme; not without intros.)
+- DG29 **Every natural material on every anvil becomes an item:** the weapon and armor materials (metals, woods,
+  threads, fabrics) and the staff and wand parts (handle woods, jewels and gems, inks). **The masterwork and Exotic
+  materials, Mythilium and Exium, never drop** (the user, while this round was asked: "The Masterwork and Exotic specific
+  material is undroppable"); they stay what they are, the masterworks' and Exotics' own. (Not weapons and armor only.)
+- DG30 **Reforging with a carried material uses it up:** one copy for each changed part made of it; without one, the
+  full price is paid as today. (Not kept, carrying one being enough.)
+- DG31 **The discount is 75%:** a part reforged to a carried material costs a quarter of its price (3 × its rarity's
+  part price today, 360 silver for common to 36,000 for legendary). (Not 90%, 50% or free.)
+- DG32 **Where the materials come from:** each dungeon has one or two of its theme that drop only there; the rest drop
+  from the enemies they fit (metals from armoured foes and golems, woods from treants, threads and fabrics from
+  bandits…), and the map's Forage (task 9) also finds them (woods, ores and the like). The spread is drafted at port
+  time. (Not sold at the Blacksmith and Tailor.)
 
 **Decisions for task 13, New Classes (2026-11-12, a cloud session; the user: "Start with Task 13. For the new classes,
 the same rules apply as in Task 10"; the task is `Docs/Port-Tasks/13_New_classes.txt`).** Asked before any work, after
