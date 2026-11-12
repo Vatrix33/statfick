@@ -108,7 +108,8 @@ remember (the user's answers, 2026-11-05):
   Dungeons only come with task 14 (which needs task 7's Exotic rarity), so task 14 gives its dungeon enemies the
   Limitless scaling.
 - Task 13 adds classes until there are 250; task 14's two classes come on top (252 in the end), as intended. (Done:
-  task 13's 79 bring the classes players can acquire to 250, NC2.)
+  task 13's 79 bring the classes players can acquire to 250, NC2, and task 14's two, approved 2026-11-12, to 252,
+  DG78.)
 
 **When:** task 1 is done in the old game before the port (user decision 2026-11-05), its new art as placeholders; task 2
 is built in the old game too (user decision 2026-11-06, G1), also with placeholder art, and so is task 3 (the user,
@@ -241,7 +242,7 @@ not drafted beforehand; only its design questions are answered before the port.
   status), **every spell players can learn reworked** (381, `Batch-01-Basic.md` to `Batch-12-Blood.md`; the seven boss
   and enemy-only spells left as they are, SP4) and **168 new spells** (`New-01-Basic.md` to `New-12-Blood.md`, fourteen
   per element, every element keeping at least one summon and one Dragonbreath spell). Its two classes, the Spellweaver
-  and the Ritual Caster, are in task 10's drafts (`10_Class_Rework/`, 175 classes then, 254 with task 13's). Also for
+  and the Ritual Caster, are in task 10's drafts (`10_Class_Rework/`, 175 classes then, 254 with task 13's, 256 with task 14's). Also for
   the port: the mechanics the drafts mark "(new)"; two new creatures for the new summons, the Mana Golem (Basic) and
   the Storm Roc (Wind), with their looks and stats (Nature's Dryad and Death's Wraith use creatures the game has); the
   Tier 10 spell animations reworked (SP47); bosses can't be defeated outright by instant death (SP46); and every
@@ -263,7 +264,9 @@ not drafted beforehand; only its design questions are answered before the port.
 - Task 14, Dungeons (2026-11-12, a cloud session, DG1 onward in `Engine-Plan.md`, "Decisions for task 14, Dungeons"):
   the user wants it done during the port itself. Nothing of it is in the old game or in drafts; the design questions
   are answered and recorded beforehand, with what the old game has for it and lacks (checked 2026-11-12), and the port
-  builds the whole task from `14_Dungeons.txt` and those answers. **All answered (DG1–DG74, 2026-11-12):** the rules and
+  builds the whole task from `14_Dungeons.txt` and those answers, but for its two classes: **the Dungeon Delver and the
+  Throwing Specialist were designed beforehand at the user's request and are in task 10's drafts** (DG75–DG78,
+  2026-11-12; drafted in `14_Dungeons/Classes.md`, the task's record). **All answered (DG1–DG74, 2026-11-12):** the rules and
   main choices; the content (dungeon enemies and stages, the eleven new bosses, the masterworks and the Exotic, the four
   extra throwing items, the two classes, the numbers) is drafted at port time for the user's approval (DG2; listed at
   the end of the decisions). Beyond the task's text, the answers add: the smithing materials (weapon, armor, staff and

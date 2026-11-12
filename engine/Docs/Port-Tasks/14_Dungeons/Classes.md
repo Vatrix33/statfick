@@ -1,6 +1,7 @@
 # The two new classes (task 14)
 
-**Status: for the user's review (2026-11-12, DG75–DG77).** Task 14's two classes, the Dungeon Delver and the Throwing
+**Status: approved by the user (2026-11-12, DG78: "Approved") and added to the end of task 10's two drafts
+(`../10_Class_Rework/`), which the port reads; this file stays as the task's record.** Task 14's two classes, the Dungeon Delver and the Throwing
 Specialist, drafted in one go: identity, levels, requirements and rarity, then the features level by level (DG76).
 Once approved they go to the end of task 10's two drafts (`../10_Class_Rework/`), as task 13's did, and this file stays
 as the task's record (DG77). The rest of task 14 is built by the port from its decisions (`../../Engine-Plan.md`,
