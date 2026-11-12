@@ -126,7 +126,7 @@ current task. How it's built, its checks and their results: `../old-game/Docs/No
 in task 10's drafts for its classes (T1). Half-Beast (balanced feral stats, Natural Claws) and Goliath (mighty and slow,
 Giant's Blood) are playable, and so are the Merfolk (the enemies' stats and passive kept); each has a placeholder seal,
 four male and four female placeholder looks and recruit names (T5, T7). Their racial classes, Wildheart, Deepcaller and
-Peakwarden, are at the end of both drafts in `Docs/Port-Tasks/10_Class_Rework/` (173 classes there now). Decisions
+Peakwarden, are at the end of both drafts in `Docs/Port-Tasks/10_Class_Rework/` (173 classes then; 175 with task 12's two). Decisions
 T1–T17 in "Decisions for task 11, New Races" below; where each rule lives, the checks (`new-races-browser.js`, 22 rules
 each shown able to fail) and the regression (148 of 162 pass; the 14 others fail on the code before it too or are the
 known intermittent ones): `../old-game/Docs/Notes.md`, "New Races". The engine's tests read only the six older race
@@ -145,8 +145,9 @@ level (the task's capstone rule), requirements and skills within a turn's 5 AP (
 "Decisions for task 10, Class Rework" below. Left for the port: building the classes, the red rarity's look (C16), the
 full rework of every enemy that uses classes (C2), and the "(new)" mechanics the features file marks. Nothing changes
 in the old game. **Engine work goes on uninterrupted**; don't count task 10 as the engine's current task.
-**Port task 12, Spell Rework, is being designed for the port (from 2026-11-11, a cloud session),** like task 10: not
-built in the old game (SP1); drafts in `Docs/Port-Tasks/12_Spell_Rework/` (SP21). The spells get a system of their
+**Port task 12, Spell Rework, is designed and approved, for the port (2026-11-11 to 2026-11-12, a cloud session),**
+like task 10: not built in the old game (SP1); the port builds it from the approved drafts in
+`Docs/Port-Tasks/12_Spell_Rework/` (SP21). The spells get a system of their
 own, Spell Augmentation (SP9–SP16, SP24–SP26): heroes pay at the Magic Towers (less at the Institute of Magic and the
 Church of Talos) to raise a spell's attributes, up to 5 ranks each and 10 per spell, on a magic circle per element
 that only the port draws; only the Spellweaver changes elements, scalings and tiers. Measured first (SP8), the curve
@@ -156,8 +157,9 @@ reactions (`Element-Statuses.md`) and all twelve element batches (`Batch-01-Basi
 spell players can learn, 381, reworked in the game's element order) are approved (SP27, SP31, SP32, SP35–SP47), and so are
 the 168 new spells (`New-01-Basic.md` to `New-12-Blood.md`, fourteen per element, the four new summons among them;
 SP3, SP33, SP34, SP48–SP59, SP62), with 28 spells borrowing another element's status (SP60, SP61). The two
-classes, the Spellweaver and the Ritual Caster (`Classes.md`, SP63–SP66), wait for the user's review; once approved
-they go into task 10's drafts (SP2), and the Augmentation menu's look (SP25) is already set. The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
+classes, the Spellweaver and the Ritual Caster (`Classes.md`, SP63–SP69), are approved and added to task 10's drafts
+(175 classes there now). What the port builds besides (new creatures, the Tier 10 animations, the menu's magic circles):
+`Docs/Port-Tasks/README.md`, "Designed for the port". The batches' numbers come from `~/.cache/stat-fick-build/claude-work/t12/batchgen.py` (the
 curve) and a specs file per element. Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
 **Engine work goes on uninterrupted**; don't count task 12 as the engine's current task.
 **The full run after the merges (2026-11-06, on the PC):** the paragraphs above are the cloud session's, which ran no
@@ -740,6 +742,12 @@ the design and the tests):
   need to be revamped because their classes has been changed and an upcoming task will change the spell system as
   well"). Every enemy, not only those with class levels: the revamp takes both into account, the reworked classes and
   the reworked spells. It includes the narrower point below.
+  From task 12 (SP1, SP69): **the port builds the Spell Rework from its approved drafts** (`Docs/Port-Tasks/12_Spell_Rework/`:
+  Spell Augmentation and its menu's magic circles, made only in the port (SP25); the element statuses, reactions and
+  borrowed statuses; the 381 reworked and 168 new spells; the two new creatures, Mana Golem and Storm Roc; the "(new)"
+  mechanics), with its two classes from task 10's drafts. The old game's spells stay as they are until then, and the
+  enemy revamp gives enemies the reworked spells and their augmentations (SP16). Bosses can't be defeated outright by
+  instant death (SP46).
   From task 12 (the user, 2026-11-11, SP47): **the port reworks the Tier 10 spell animations** (the old game's
   full-screen cinematics, `../old-game/scripts/tier10-cinematics.js`), to go with the reworked Tier 10 spells
   (`Docs/Port-Tasks/12_Spell_Rework/`, one per element in its batch).
@@ -2146,6 +2154,10 @@ Asked before the two classes (2026-11-12):
   replaces SP63's "unlocked by Spellweaver levels"; the Ritual Caster's **Rituals at Level 1** in full (delays of 1–3
   turns, +10% power per turn waited) with **one ritual** waiting at a time (not two, not at the capstone). Grand Rite,
   with one ritual, sets it off at once with the power of a full 3-turn wait.
+- SP69 **The two classes are approved** ("Approved"): the Spellweaver (7 levels, purple) and the Ritual Caster (5 levels,
+  blue) as in `Docs/Port-Tasks/12_Spell_Rework/Classes.md`, with its proposals (the Spellweaver's discount adding to
+  the Institute's and the Church's, up to 50%; a ritual augmented like any spell, Augmentation's Mana cost first); added
+  to the end of task 10's drafts (175 classes). **Task 12's design is complete.**
 
 **Decisions for task 11, New Races (2026-11-11, a cloud session; the user: "You can now start Task 11"; the task is
 `Docs/Port-Tasks/11_New_races.txt`).** Asked before any work, after reading the old game's races (`objects/races.json`:

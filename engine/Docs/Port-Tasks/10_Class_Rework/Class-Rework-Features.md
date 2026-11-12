@@ -53,6 +53,8 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
   Leywalker, Nightwalker, Mentor).
 - Task 11's racial classes (approved 2026-11-11, T17): Wildheart, Deepcaller and Peakwarden, for Half-Beast, Merfolk
   and Goliath, at the end of this file.
+- Task 12's classes (approved 2026-11-12, SP69): the Spellweaver and the Ritual Caster, after them at the end of this
+  file.
 
 # The sample of four (approved 2026-11-10)
 
@@ -2856,3 +2858,52 @@ Identity: The Goliath's class: the unmoving wall of the mountains, shielding the
 
 How it plays: a Goliath standing in front, slow and immovable, Guarding to hold the line and once a battle sheltering
 everyone behind its bulk.
+
+# Task 12's classes (approved 2026-11-12, SP69)
+
+The Spellweaver and the Ritual Caster, from task 12 (Spell Rework). They use its Spell Augmentation (weaving: SP11,
+SP27, SP63) and its rituals (SP64–SP66); the mechanics are in `../12_Spell_Rework/` (`Spell-Augmentation.md`,
+`Classes.md`). Their levels give stat bonuses, and each passive applies in full from the level it is gained (SP67,
+SP68).
+
+## Spellweaver
+
+7 levels · rarity purple · Requires: Level 50 · Mage 5 · at least 30 augmentation ranks bought
+Identity: The augmenter: reshapes the spells it knows, strengthening them anywhere and weaving their element, scaling
+and tier into new forms.
+
+| Level | Feature |
+|---|---|
+| 1 | Intelligence +10% |
+| 2 | **Spellweaving** (passive): you augment and reset your own spells anywhere, from the spellbook, for 20% less, and you can weave them: element, scaling and tier weaving (outside the 10 ranks, at task 12's prices); your woven spells gain 10% power (new) |
+| 3 | Spell power +10% |
+| 4 | Maximum Mana +15% |
+| 5 | Wisdom +10% |
+| 6 | Spells cost 10% less Mana |
+| 7 | **Weave in Battle** (skill, capstone; once per battle, 1 AP): your next spell this turn takes any element you choose, for that cast (new) |
+
+Spellweaving's 20% adds to the Institute of Magic's and the Church of Talos's discounts, up to 50% off in all.
+
+How it plays: a caster who spends money and time on a handful of spells, then bends each to the fight: the element
+the enemy fears, the stat the caster is strongest in, a tier above where it began.
+
+## Ritual Caster
+
+5 levels · rarity blue · Requires: Level 35 · Mage 5 · Know at least 15 different spells
+Identity: The patient caster: begins its spells turns ahead, for a fraction of their Mana, and lets them go off when the
+time comes.
+
+| Level | Feature |
+|---|---|
+| 1 | **Rituals** (passive): any spell you cast can be delayed by 1, 2 or 3 turns, for 30%, 60% or 90% less Mana, and gains 10% power for every turn it waited; one ritual can wait at a time (new) |
+| 2 | Wisdom +10% |
+| 3 | Maximum Mana +15% |
+| 4 | Mind +10% |
+| 5 | **Grand Rite** (skill, capstone; once per battle, 1 AP): your waiting ritual goes off now, keeping its full Mana discount, with the power of a full 3-turn wait (new) |
+
+A ritual's AP is paid when it begins; it goes off at the start of your turn that many turns later, costing no AP; a
+fallen target means another random enemy (or ally, for a heal or buff); a stun breaks it and its Mana is lost. A ritual
+can be augmented like any spell (Augmentation's Mana cost first, then the ritual's discount).
+
+How it plays: a caster who plans ahead, beginning great spells for a fraction of their Mana while the party holds
+the line, and once a battle calls the waiting spell down at once.

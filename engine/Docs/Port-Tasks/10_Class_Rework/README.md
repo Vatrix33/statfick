@@ -17,6 +17,10 @@ Class Rework", C1–C32; the task is `../10_Class_Rework.txt`). Unlike tasks 1�
 three new races, Wildheart (Half-Beast), Deepcaller (Merfolk) and Peakwarden (Goliath), at the end of both files, so
 the drafts hold 173 classes. The races themselves are in the old game.
 
+**Added by task 12** (2026-11-12, SP63–SP69 in `Engine-Plan.md`, "Decisions for task 12"): the Spellweaver (purple)
+and the Ritual Caster (blue), at the end of both files, so the drafts hold 175 classes. The spell mechanics they use
+are in `../12_Spell_Rework/`.
+
 **What the port must do with them** (the user, 2026-11-11, C32):
 1. The classes are unchanged in the old game. During the port, the classes in these drafts are added.
 2. During porting, every class is inspected for possible errors and inconsistencies.

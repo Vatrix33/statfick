@@ -1,4 +1,4 @@
-# Task 12, Spell Rework: the drafts
+# Task 12, Spell Rework: the approved drafts
 
 The user's task is `../12_Spell_Rework.txt`. It is designed here for the port and not built in the old game (SP1); the
 drafts live in this folder from the start (SP21). The decisions are SP1 onward in `../../Engine-Plan.md`, "Decisions
@@ -46,5 +46,8 @@ The review's order (SP2, SP15):
    at least one summon and one Dragonbreath spell (SP33).
 5. The Spellweaver (built around Spell Augmentation, SP9) and the Ritual Caster, added to task 10's drafts
    (`../10_Class_Rework/`).
-   - `Classes.md`: both classes, identity, levels, requirements, rarity and features. **Under review.** Once
-     approved they go into task 10's drafts.
+   - `Classes.md`: both classes, identity, levels, requirements, rarity and features. **Approved (SP69)** and added to
+     the end of task 10's drafts (175 classes there now).
+
+**Task 12's design is complete and approved (2026-11-12).** The port builds it from these files; what it builds besides
+is listed in `../README.md`, "Designed for the port".
