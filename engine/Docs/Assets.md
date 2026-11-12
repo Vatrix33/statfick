@@ -151,6 +151,10 @@ Nothing of M9 yet: no pack, virtual file system, serializer, save or settings co
   is the disk usage of all 150 files there, which include 21 draft `.txt` files in `classes/newc/`);
   `enemies/` 169 files (182 KB; 696 KB on disk); `objects/`: `spells.json` 279 KB, `artifacts.json`
   17 KB, `races.json` 17 KB, `consumables.json` 5 KB, `key-items.json` 2 KB, the fonts 2.5 MB, 7 SVGs.
+  (Recounted 2026-11-12: at this doc's first commit, `1dd1234`, `classes/` held 128 class files beside the
+  `newc/` folder, 129 entries, and `newc/` 22 `.txt` files; `enemies/`' 169 files were 168 enemies and
+  `index.json`. Port task 6 added six enemies (2026-11-06) and task 9 the Alchemist and the Assimilator
+  (2026-11-07), so on 2026-11-12 there are 130 class files and 174 enemy files beside `index.json`.)
 - **Packages:** .NET 10's `System.IO.Compression` (Brotli, Deflate, GZip, ZLib) and
   `System.Security.Cryptography` (SHA-256) cover the decisions; `Ahwoo.BRUTAL.ZLib` ships only native
   binaries. Nothing new is needed.

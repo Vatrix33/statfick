@@ -75,4 +75,5 @@ the user and wait for their go-ahead before starting the next one.
 - The port of the game (after M12): `Docs/Game-Plan.md`, the game's milestones GM1–GM18 (what each builds, its art,
   its checks against the old game, Blender and Chromium, its questions for the user); read its "How to use this plan"
   first.
+- The survey the game plan was written from (2026-11-12, `29d110d`; a snapshot): `Docs/Game/Survey/`, its README first.
 - Notes kept from earlier sessions (history, gotchas, recipes): `Docs/Notes.md`.

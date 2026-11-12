@@ -3684,7 +3684,8 @@ Each milestone is finished only when its tests pass.
 - [x] **M9 Assets and data:**
   - The `.pak` format: writer, reader, compression, hashes.
   - A virtual file system (packs plus loose development folders).
-  - Asset loaders, binary data serialization with versioning, the JSON class loader.
+  - Asset loaders, data serialization with versioning (each record in a binary and a JSON form), the shipped `classes/`
+    folder mounted as loose files (the class record and its loader come with the port: `Docs/Assets.md`, Q27).
   - Saves and settings.
 - [x] **M10 Scene and sequencer:**
   - Nodes and transforms.

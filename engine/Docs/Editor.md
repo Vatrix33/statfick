@@ -806,7 +806,8 @@ later milestones", "At port time").
   with its own kinds.
   **Outcome: not asked now, kept for the port** (it decides how the port lays out its code and adds a file to
   the shipped folder, M12). No M11 step waits: the editor and the packer take record kinds from any assembly
-  they are given, so every option stays open.
+  they are given, so every option stays open. **Answered 2026-11-08** (M12-9, (a): the data library
+  `Statventure.Game.Data`; `Docs/Engine-Plan.md`, "Decisions for M12"; built by M12 step 6, "How it works", "M12 step 6").
 - **G4. Limits on values** (M11-10's "allowed limits", e.g. a sound's level from 0 to 1): **does the game
   also refuse data outside them?**
   (a) Yes: a declared limit is part of the engine's own check, so the game refuses data outside it when it
@@ -3129,7 +3130,9 @@ on the GPU and on lavapipe. **The full suite: 3496 tests, passing on the GPU and
   the editor shows the first problem per field (step 10); the JSON tab shows at most 2,000 lines (copy and export give
   all); Stop doesn't cut a sounding effect (the engine's effects have no stop; step 13); a cutscene's element roles' stand-ins
   have no stylesheet (step 13, Q5); no preview for state machines, UI files and terrain, and no special views (a cutscene
-  timeline, a map view; M11-2, M11-13); the editor and the packer know the engine's kinds only until the port answers G3;
+  timeline, a map view; M11-2, M11-13); the editor and the packer know the engine's kinds only until the port answers G3
+  (answered by M12-9, 2026-11-08: they also take the game data library's, until the port the stand-in's one test kind;
+  "How it works", "M12 step 6");
   the repo's script-made packs still pack whole (P30).
 - **Engine findings, recorded as small tasks** (open, no go yet; `Docs/Engine-Plan.md`, "Small tasks left from earlier
   milestones"): control labels a device pixel low at 1.65 (step 4 and on); a composited box's text grayscale at 1.65 where

@@ -4,10 +4,11 @@ The engine is finished to M12 (`Docs/Engine-Plan.md`, "Milestones"; 3720 tests o
 the plan for the port of the game itself (`../old-game/`) onto it: the game's milestones GM1–GM18, what each one gives
 the player, what it starts from in the old game and the engine, what it adds from the approved port tasks, the art it
 must close with, how it is checked, what it needs and what needs it, its weight, and the questions to ask the user
-before it starts. Written on 2026-11-12 from a survey of the whole repo (four survey files kept outside the repo in
-`~/.cache/stat-fick-build/claude-work/port-plan/`: `old-game-systems.md`, `engine-for-the-port.md`,
-`port-tasks-state.md`, `content-inventory.md`); every pointer below was checked against the repo the same day, and where
-a survey and the repo disagree the repo's figure is given (listed in "Cross-cutting", "Corrections to the survey").
+before it starts. Written on 2026-11-12 from a survey of the whole repo (four survey files, in the repo since the same
+day in `Docs/Game/Survey/`, its README first: `old-game-systems.md`, `engine-for-the-port.md`, `port-tasks-state.md`,
+`content-inventory.md`; a snapshot of `29d110d`, not kept current); every pointer below was checked against the repo the
+same day, and where a survey and the repo disagree the repo's figure is given (listed in "Cross-cutting", "Corrections
+to the survey").
 
 Paths are relative to `engine/` unless they start with `../old-game/` or `old-game/`. "The old game" is `../old-game/`
 as it is on `main`; "the drafts" are the approved port-task files in `Docs/Port-Tasks/`.
@@ -270,16 +271,17 @@ the user's go, its questions asked first (GP-6).
 
 ### Why this grouping and this order
 
-**The grouping** follows GP-2's aspects and the old game's own dependency graph (the survey's `old-game-systems.md`, §4:
-pure rules → catalogue data → the character record → the sheet → enemies → combat → AI and bosses → art → presentation →
-loot → world → interiors → shops → companions → guild → sites → Limitless → music). Aspects too large for one team were
-split where the code splits them: the world into the continent and travel (GM4: `world-engine.js`, the continent, the
-map view) and the regions in battle (GM10: `encounter-engine.js`, `battle-scenery.js`, foraging); combat into its core
-(GM5) and the bosses (GM13, GM14, GM16: `combat.js` 2957–3916 and the AI profiles 5850–6007); the character into the
-hero (GM2) and the classes (GM8). Enemies are their own aspect (GM9) because the revamp is one body of content and the
-creature rigs are one body of art. The bosses are grouped by where the player meets them: the two site bosses with their
-sites (GM13), the eight that stay Great Hunts (GM14), Saffron and Ool with the dungeons they move to (GM16, DG33). The
-Institute of Magic sits with the Magic Towers in GM7, because in the code it is the tower window's second venue
+**The grouping** follows GP-2's aspects and the old game's own dependency graph (`Docs/Game/Survey/old-game-systems.md`,
+§4: pure rules → catalogue data → the character record → the sheet → enemies → combat → AI and bosses → art →
+presentation → loot → world → interiors → shops → companions → guild → sites → Limitless → music). Aspects too large
+for one team were split where the code splits them: the world into the continent and travel (GM4: `world-engine.js`,
+the continent, the map view) and the regions in battle (GM10: `encounter-engine.js`, `battle-scenery.js`, foraging);
+combat into its core (GM5) and the bosses (GM13, GM14, GM16: `combat.js` 2957–3916 and the AI profiles 5850–6007); the
+character into the hero (GM2) and the classes (GM8). Enemies are their own aspect (GM9) because the revamp is one body
+of content and the creature rigs are one body of art. The bosses are grouped by where the player meets them: the two
+site bosses with their sites (GM13), the eight that stay Great Hunts (GM14), Saffron and Ool with the dungeons they move
+to (GM16, DG33).
+The Institute of Magic sits with the Magic Towers in GM7, because in the code it is the tower window's second venue
 (`magic-tower.js`, venues `tower` and `institute`). Companions go with the guild (GM11) because the tavern is where they
 are hired (the only other way in is a character file) and recruits are one of the guild's own rules (`GuildQuestRules`'
 `RECRUITS`). Music needs no milestone of its own: the soundtrack is already the engine's (M8), and each milestone wires
@@ -371,8 +373,9 @@ yet: the sheet comes with GM2.
   The theme and Dev Mode are saved with the character: `editingEnabled: true` and `darkMode: false` for a new character
   (`app.js` 1354–1355); recruits come with Dev Mode off.
 - Dev Mode unlocks: editing the attributes, permanent bonuses, Armor and Evasion bonuses and the purse; the EXP form;
-  "Restore to full"; adding spells and items from the catalogues (screens 6 and 8 of the survey's list); the Combat
-  test screen (16); levelling without EXP; companion dev tools; Force encounter.
+  "Restore to full"; adding spells and items from the catalogues (screens 6 and 8 in
+  `Docs/Game/Survey/old-game-systems.md`, §3); the Combat test screen (16); levelling without EXP; companion dev tools;
+  Force encounter.
 - The markup: `index.html` (1004 lines, 24 `.modal-layer` dialogs; the sheet's top bar with ✦, the name, the world
   clock, the autosave dot, the theme toggle, Save/Load/New Character and "Return to combat" in lines 64–300);
   `styles.css` 4184 lines (245 `@keyframes`).
@@ -1825,7 +1828,8 @@ Found against the repo on 2026-11-12; the repo's figures are the ones used above
    counting differently).
 5. `ARTIFACT_SHAPES` draws 49 objects while the artifact records name 50 shapes and 76 glyphs (the surveys gave one
    figure each).
-6. `Docs/Assets.md` still counts 129 class files and 169 enemy files (2026-11-02); the repo has 130 and 174.
+6. `Docs/Assets.md` still counts 129 class files and 169 enemy files (2026-11-02); the repo has 130 and 174. (Settled
+   2026-11-12: Assets.md, "What exists", now adds today's counts beside its dated ones.)
 7. Nygheir's file has no `phaseTransitions` entry (one survey listed him among the bosses with a phase transition); how
    his scene `nygheir-phase` is reached is GM14's to read in `combat.js`.
 
