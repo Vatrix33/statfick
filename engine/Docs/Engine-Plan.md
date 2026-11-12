@@ -45,7 +45,22 @@ Before M11: M10 (scene and sequencer) done 2026-11-05 (the proof cutscene approv
 `github.com/Vatrix33/statfick`; the user's tasks for the port are in `Docs/Port-Tasks/`, read when the port starts
 ("Decision on the user's tasks for the port"; "Open questions for later milestones", "At port time"); tasks 1–9 are done
 in the old game, task 11 in the old game for its races, and tasks 10, 12 and 13 are designed and approved for the
-port to build (the paragraphs below); task 14 (Dungeons) is the last, not started.
+port to build (the paragraphs below); task 14 (Dungeons), the last, is built during the port itself (DG1).
+**Port task 14, Dungeons, is built during the port itself (the user, 2026-11-12, a cloud session; DG1):** nothing of it
+is built in the old game and nothing of it is built or drafted now. Only its design questions are asked now, all of
+them, and their answers recorded in "Decisions for task 14, Dungeons" below (the user: "I dont want you to do the task,
+i want this done during the port itself (Please document that fact). I want you do ask me all design questions needed
+and document them as well"). The port builds it from `Docs/Port-Tasks/14_Dungeons.txt` and those decisions ("At port
+time"). What the old game has for it and what it lacks (checked 2026-11-12) are listed at the start of that section.
+**All its design questions are answered (DG1–DG74, 2026-11-12):** the rules and main choices now, the content (enemies,
+bosses, items, numbers) drafted at port time for the user's approval (DG2; the list at the section's end). **Its two
+classes were then designed at the user's request and approved (DG75–DG78):** the Dungeon Delver (5 levels, blue) and
+the Throwing Specialist (6 levels, no colour) are at the end of task 10's drafts, which now hold 256 classes, 252 for
+players; `Docs/Port-Tasks/14_Dungeons/Classes.md` is their record. Among the answers: the nine dungeons' places (DG5) and three more (harpies in the rocky highlands, Nocturne Keep as the
+vampire dungeon with Ravenwatch's quest opening the keep to non-vampires, dragons on the Stoneveil Summit; DG51–DG74);
+the smithing materials made into items that cut reforging to them by 75% (DG26, DG29–DG32); a 3D dungeon overview
+(DG69).
+**Engine work goes on uninterrupted**; don't count task 14 as the engine's current task.
 **Port task 13, New Classes, is designed and approved, for the port (2026-11-12, a cloud session),** like task 10:
 not built in the old game (NC1). 79 new classes (NC2): the task's 37 by focus (4 melee, 4 ranged, 4 spells, 4 from the
 rogue's path, 2 for each of the six pairs, 9 without a focus) and 42 more chosen to fill gaps, so that players can
@@ -53,7 +68,7 @@ acquire 250 (171 of task 10's 175 could; Raid Boss, Beast, Great Beast and Monst
 252. Each focus class builds on its path, from any class on it (NC3), and each is built in its own shape (NC11). One
 draft of identity, levels, requirements and rarity (NC4), approved with the user's notes (NC6–NC9), then the features
 as a sample of four and seven batches (NC10–NC18), all approved (NC19). **They are now at the end of task 10's two
-drafts** in `Docs/Port-Tasks/10_Class_Rework/` (254 classes there, 250 for players; NC5, NC19); the drafts in
+drafts** in `Docs/Port-Tasks/10_Class_Rework/` (254 classes there then, 250 for players; 256 with task 14's two; NC5, NC19); the drafts in
 `Docs/Port-Tasks/13_New_classes/` stay as the task's record. Rarity: 51 without a colour, 22 blue, 4 purple, 1 gold,
 1 red: the Limitbreaker, the second red class (NC6). For the port besides: the hooded man offers no red class while the
 player is Level 99 or lower (NC7, "At port time"), and the new counts, requirement kinds and the Moonfang key item the
@@ -140,7 +155,7 @@ current task. How it's built, its checks and their results: `../old-game/Docs/No
 in task 10's drafts for its classes (T1). Half-Beast (balanced feral stats, Natural Claws) and Goliath (mighty and slow,
 Giant's Blood) are playable, and so are the Merfolk (the enemies' stats and passive kept); each has a placeholder seal,
 four male and four female placeholder looks and recruit names (T5, T7). Their racial classes, Wildheart, Deepcaller and
-Peakwarden, are at the end of both drafts in `Docs/Port-Tasks/10_Class_Rework/` (173 classes then; 175 with task 12's two, 254 with task 13's). Decisions
+Peakwarden, are at the end of both drafts in `Docs/Port-Tasks/10_Class_Rework/` (173 classes then; 175 with task 12's two, 254 with task 13's, 256 with task 14's). Decisions
 T1–T17 in "Decisions for task 11, New Races" below; where each rule lives, the checks (`new-races-browser.js`, 22 rules
 each shown able to fail) and the regression (148 of 162 pass; the 14 others fail on the code before it too or are the
 known intermittent ones): `../old-game/Docs/Notes.md`, "New Races". The engine's tests read only the six older race
@@ -172,7 +187,7 @@ spell players can learn, 381, reworked in the game's element order) are approved
 the 168 new spells (`New-01-Basic.md` to `New-12-Blood.md`, fourteen per element, the four new summons among them;
 SP3, SP33, SP34, SP48–SP59, SP62), with 28 spells borrowing another element's status (SP60, SP61). The two
 classes, the Spellweaver and the Ritual Caster (`Classes.md`, SP63–SP69), are approved and added to task 10's drafts
-(175 classes then; 254 with task 13's). What the port builds besides (new creatures, the Tier 10 animations, the menu's magic circles):
+(175 classes then; 254 with task 13's, 256 with task 14's). What the port builds besides (new creatures, the Tier 10 animations, the menu's magic circles):
 `Docs/Port-Tasks/README.md`, "Designed for the port". The drafts hold the final numbers; they were generated with scratch
 scripts in `~/.cache/stat-fick-build/claude-work/t12/` (the curve and a spec file per element; `Docs/Notes.md`,
 2026-11-11/12), not needed to read or build them. Decisions SP1 onward in "Decisions for task 12, Spell Rework" below.
@@ -771,13 +786,19 @@ the design and the tests):
   their full rework is not part of task 10's design.
   From task 10 (the user, 2026-11-11, C32), three requirements for the port: **(1) the classes are unchanged in the old
   game; during the port, the classes in the drafts are added** (`Docs/Port-Tasks/10_Class_Rework/`:
-  `Class-Rework-Draft.md` and `Class-Rework-Features.md`, all 170, and the 84 tasks 11–13 added at their end: 254);
+  `Class-Rework-Draft.md` and `Class-Rework-Features.md`, all 170, and the 86 tasks 11–14 added at their end: 256);
   **(2) during porting, every class is inspected for possible errors and inconsistencies** (in the drafts and against
   the game's rules, before or while it is built); **(3) after the port, every class feature is tested so that it works
-  as intended** (every level of all 254 classes, passives and skills included).
+  as intended** (every level of all 256 classes, passives and skills included).
   From task 13 (the user, 2026-11-12, NC1, NC19): **the port builds task 13's 79 new classes** from the end of task
   10's drafts ("Classes added by task 13", "Task 13's classes"), with the three duties above, and adds the counts,
   requirement kinds and the Moonfang key item their requirements use (listed there).
+  From task 14 (the user, 2026-11-12, DG1): **the port builds task 14, Dungeons, itself**, from
+  `Docs/Port-Tasks/14_Dungeons.txt` and the answers in "Decisions for task 14, Dungeons" (DG1 onward); nothing of it is
+  in the old game or in drafts. Where an answer leaves a draft to port time, that draft is written and approved then
+  (the list ends that section). All its questions are answered (DG1–DG74, 2026-11-12); among what the answers add to
+  the task's text: the smithing materials as items with a 75% reforge discount (DG26, DG29–DG32), Nocturne Keep opened
+  to non-vampires by Ravenwatch's quest (DG52–DG64, DG73, DG74), the harpy dungeon in the rocky highlands (DG65).
   From task 13 (the user, 2026-11-12, NC7): **the hooded man never offers information on a red class while the player
   is Level 99 or lower;** from Level 100 the red classes (Unreality, Limitbreaker) join his class offers, the
   Limitbreaker despite needing Level 110 (his old rule leaving out classes above Level 100 doesn't apply to it).
@@ -1959,6 +1980,362 @@ Asked after the regression run (2026-11-06):
 - L33 **The victory screen's EXP at your level cap** (Level 100 without Limitless, 200 with it), where you gain none
   (L18): it reads 0 EXP; companions below their cap still gain the battle's EXP. (Not the number with a note, not left
   showing the battle's EXP.)
+
+**Decisions for task 14, Dungeons (2026-11-12, a cloud session; the task is `Docs/Port-Tasks/14_Dungeons.txt`).**
+Asked after reading the task, the earlier tasks' decisions and the old game's systems it touches (below). The port
+builds the task from its text and these answers; where an answer leaves something to a draft at port time, it says so.
+- DG1 **Task 14 is built during the port itself** (the user: "I dont want you to do the task, i want this done during
+  the port itself (Please document that fact). I want you do ask me all design questions needed and document them as
+  well"): nothing in the old game, nothing built or drafted now; every design question is asked now and its answer
+  recorded here. (Not in the old game, as tasks 1–9 were; not drafts now, as tasks 10, 12 and 13 were.)
+- Given before (not asked again): Limitless scales the dungeon enemies as it does every enemy (the user, 2026-11-05,
+  `Docs/Port-Tasks/README.md`, "The order"); task 14's two classes bring the classes players can acquire to 252 (the
+  same day; NC2); task 13's classes were kept clear of the Dungeon Delver and the Throwing Specialist (NC2,
+  `13_New_classes/New-Classes-Draft.md`); the port doesn't import the old game's saves (2026-10-16, `Docs/Assets.md`),
+  so moving Saffron and Ool concerns only the port's own saves.
+
+What the old game has for task 14 and what it lacks (checked 2026-11-12, `../old-game/`; the port starts from it):
+- **No dungeons, no battles in stages:** `finish` ends the whole battle (`scripts/combat.js`). A defeat costs nothing
+  today: `returnDefeatedPartyToTown` (`combat.js`) moves the party to the nearest settlement (along the regions'
+  `safeRetreatRegionId`), HP stays at 0 until a paid Rest or potions; no money or item is lost anywhere in the game.
+- **Camping Supplies exist** (`objects/consumables.json`, common, 80 silver, `mapAction: "camp"`): on the map, 8 hours,
+  full HP and Mana for the player and every companion (`camp` in `scripts/map.js`, `Companions.restoreAll`); a class
+  chance to keep them (`campingSupplyRetentionChance`: Traveler, Pilgrim, Cartographer); the Scavenger's Field Scrounge
+  and Salvage Sense make them. Not usable in battle.
+- **The party:** the player and up to 3 companions, each with their own HP, Mana, AP, inventory and gear; companions are
+  player-controlled in battle. Inventories are arrays of item ids, one entry per copy; equipped gear stays in the array
+  (`equipment` maps slot → id). The five key items (`objects/key-items.json`) are the only items marked as never sold.
+- **Consumables** have a rarity (common to legendary) and a `priceSilver`; 71 today (Camping Supplies, 8 traps, 10
+  Health and Mana Potions, 40 alchemy potions, 12 thrown poisons). An item costs 1 AP and doesn't end the turn; its
+  target is one enemy (`target`), an ally or self, or all enemies (`all-enemies`); a failed check before spending keeps
+  it, a used one is gone whatever its roll (retention chances aside). Thrown poisons never roll to hit; bosses (`unique`)
+  take them at half strength (`AlchemyRules.halved`). Traps fire when an enemy attacks.
+- **Stun:** `{type: "stun"}` for 1 turn, a new one replaces the old (no stacking); resisted only by debuff or control
+  immunity (potions, a race, the Stonebreaker); **bosses have no stun resistance or immunity.** Timed effects count the
+  recipient's own turns and end when its next turn starts (turn order by Speed, no rounds); the same source refreshes,
+  different sources add up. Status icons (stun, mark, debuff, buff…) with turns left, and a combat log, exist.
+- **Hit chance:** Accuracy / (Accuracy + Evasion); marks and Blinding Powder change Accuracy by a percentage. Spells
+  always hit unless a spell miss chance applies (`spellMissChanceAgainst`: the caster's `spell-miss-chance`, the
+  target's `incoming-spell-miss-chance`); spells' effects say whether they are single-target or all enemies.
+- **Escape:** Run, 1 AP, max(5, 50 + 0.5·Speed + 0.2·Luck − 0.4·the fastest enemy's Speed) (`combat-engine.js`); no
+  block for bosses; on the map a +25 bonus before a battle. No item escapes, teleports or skips encounters.
+- **General Store:** random stock only, a rarity-weighted pick by the player's level band from 9 items (Camping
+  Supplies and the 8 traps), 3–6 of each in castle cities, 2–4 in towns, restocked every 6 game hours; Camping
+  Supplies can be sold out. (The Apothecary's standing potions are always in stock.)
+- **Great Hunts** (`greatHunts` in `scripts/guild.js`): ten, one random eligible hunt added to each daily board, never
+  offered again once completed (rematch markers instead). Saffron (Level 66, Deep Desert, the Pyramid Sanctum, with his
+  three Great Devil Servants) and Ool (Level 78, offered at Ravenwatch, fought in the Ancient Battlefield's Mass Graves,
+  with his Legionnaires and Phylactery) are among them. Task 3's Ornn is the precedent for taking a boss out of the
+  hunts (R14, R15: `RETIRED_HUNTS`, an active hunt withdrawn with a note, rematch markers dropped; fought at a site).
+  Guild quests have no failed state (giving up empties the slot); one standard quest and one Great Hunt at a time.
+- **Map sites** (the Church of Talos, the Institute of Magic, Hearth Home): a point with a radius in the region data,
+  safe, their own button; a site boss starts without the escape prompt and never rolls Sparkling.
+- **Enemies the dungeons name:** none of the eight new bosses exists (Hobgoblin Leader, Deep Sea Apparition, Imp Lord
+  Ru'manon, Goblin Paladin, Great Mountain Mole, Goblin King, Goblin Champion, Void Lord Firadialin). Goblins go up to
+  Level 17 (Goblin Warlord); Water and Earth Elementals are Level 25 (water spirits 3–17, Greater Earth Spirit 18);
+  impids (a race of its own) and demons: Lesser Imp 1, Void Imp 12 and Void Stalker 16 (summons), Ji'ruan 18 (demon),
+  Abyssal Imp 46, Rift Fiend 50, Abyss Witch 54; the only devils are Saffron and his Servants (56); undead: Tomb Guardian
+  50, Dust Revenant 52, Sand Wraith 47, Gravebound Legionnaire 68, Duskpine Wraith 69 (Thrall and Hulk are summons).
+- **Bosses** are `unique` enemies with `maxHpPercent`, an `aiProfile`, an intro (`boss-intros.js`) and a music theme;
+  balanced by simulation (Ji'ruan and Zik Lun about 90% for a prepared party; Saffron and Ool about 20% for a prepared
+  party three levels above them; `../old-game/Docs/Notes.md`). Masterworks drop from bosses at about 5–12%; the five
+  Exotics at 4–5% from named bosses, only with Limitless on, never doubled.
+- Task 13's Huntmaster needs 5 completed Great Hunts; with Saffron and Ool gone (and Ornn before them), eight remain.
+
+The questions (2026-11-12, four at a time, the recommended option first):
+- DG2 **How far the questions go now:** every rule and main choice now (places, themes, level ranges, what kind each
+  thing is); the names, numbers, boss mechanics, item effects and the classes' features are drafted at port time and
+  approved by the user then. (Not everything by questions now; not one-line outlines now.)
+- DG3 **The two classes follow task 10's rules** (C21, C28: one passive and one skill, the last level giving one of
+  them; within a turn's 5 AP; a rarity colour), designed at port time as task 13's were (identity, levels,
+  requirements and rarity in one draft, then the features; NC4) and added to task 10's drafts. The Dungeon Delver has
+  exactly 5 levels (the task); the Throwing Specialist's count is set in its draft. (Not both fixed at 5; not outside
+  task 10's rules.)
+- DG4 **The Throwing Specialist's "throwing items" are the eleven new ones and task 9's twelve thrown poisons**, so its
+  bonuses reach the poisons too and it shares them with the Poisoner (task 10's class, which throws them; the two
+  drafts are kept apart at port time). Traps are not throwing items. (Not the eleven alone, the recommendation; not
+  traps too.)
+- DG5 **The nine named dungeons' places** (each in a region whose zone level and theme fit; the exact spot on the
+  port's 3D map at port time):
+
+  | Dungeon (levels) | Region, zone (the zone's levels) |
+  |---|---|
+  | Goblin Cave (4–8) | Alder Vale, Forest (5–11), goblin land |
+  | River Portal (10–14) | Stoneveil Foothills, River (12–17) |
+  | Abandoned City (20–24) | Mirrormere Basin, Lake Shore (20–26) |
+  | Ruined Castle (25–30) | Stormwake Hills, Thunder Hills (23–29) |
+  | Mountain Portal (38–40) | Cinder Isle, Lava Fields (36–39): the volcano, home of the Earth Elementals |
+  | Ancient Prison Ruin (42–46) | Crimson Divide, Sunscorched Escarpment (44–47) |
+  | Great Void Rift (62–68) | Bloodstone Coast, Giant Rock Spires (62–67) |
+  | Ancient Pyramid (65–70) | Deep Desert, Pyramid Sanctum (Saffron's place today) |
+  | Shattered Castle (74–78) | Ancient Battlefield, Silent Westfield (72–75), beside the Mass Graves (Ool's place today) |
+
+  (Not each asked one by one; not left to port time.)
+- DG6 **Entry needs nothing:** any party can enter at any level; the warning before entry shows the recommended level
+  range and says plainly when the player's level is below it. (Not the range's lowest level; not 5 below it.)
+- DG7 **Stage battles from designed pools:** each stage has a few designed enemy groups, one drawn at random on each
+  run, so replays differ; later stages have harder groups, with Empowered enemies (the game's ×1.3 kind) as their
+  elites. The pools are drafted per dungeon at port time. (Not one fixed group per stage; not groups drawn at random
+  from the dungeon's enemy list.)
+- DG8 **Enemy levels rise by stage:** the regular enemies are at the range's lowest level in stage 1 and at its highest
+  in the last stage before the boss; the boss is at the top. With Limitless on they rise to the player's level as every
+  enemy does (task 7). (Not the player's level held inside the range, as the map's zones do.)
+- DG9 **The enemy types:** each dungeon gets types of its own (dungeon-only, drafted at port time with the general
+  enemy revamp), and existing types join where their level fits. (Not only new types; not mostly existing ones raised.)
+- DG10 **Between stages** the player can do everything they can outside a battle except travel, towns and shops:
+  potions, gear, inventory, the character sheet, Camping Supplies, items such as the Emergency Rope. (Not only Camping
+  Supplies and potions.)
+- DG11 **Camping Supplies in a dungeon:** at most one after each cleared stage; it restores 20% of maximum HP and Mana to
+  every party member, fallen companions too (as camping on the map raises them; a race that can't heal stays as camping
+  treats it); the class chances to keep them (Traveler, Pilgrim, Cartographer and the reworked classes') apply. (Not any
+  number per stage; not without the keep chances.)
+- DG12 **Time passes inside a dungeon:** each stage and each use of Camping Supplies takes a set time, the amounts set at
+  port time, so the day's guild boards, the shops' restock, night-time things (the Moonfang) and once-a-day skills go
+  on. (Not a stopped clock.)
+- DG13 **Fleeing:** the party can Run from any dungeon battle, the boss's too, as the game allows today; it is back on
+  the dungeon's overview with the stage not cleared, fights it again with a newly drawn group, and has no Camping
+  Supplies until it clears it. (Not regular stages only; not never.)
+- DG14 **The items a defeat can take:** every unequipped item of the player and the companions, except key items and
+  the items an active guild quest needs (a Collect quest's ingredients); favourites can be lost. Equipped gear is never
+  taken. (Not favourites kept safe; not only consumables and materials.)
+- DG15 **Counting and rounding the losses:** each copy is one item; the share (50% or 10%) of the eligible count is
+  rounded down and the items are picked at random; money loses the share (75% or 35%) of the purse's whole value
+  (silver, gold and platinum together), rounded down to whole silver. A summary after the defeat lists the money and
+  every item lost. (Not rounded up; not by stack.)
+- DG16 **A defeat with an active Delve quest:** the party wakes in the settlement nearest the dungeon (the defeat
+  rule's own pick, `returnDefeatedPartyToTown`), at 1% HP and 0% Mana; the Delve ends as failed with a note, no reward
+  and no further cost. (Not the town whose guild gave it; no Reputation lost.)
+- DG17 **Replays have no limit:** a dungeon can be entered again right after it is finished, as often as the player
+  likes. (Not once a day.)
+- DG18 **How Delves appear:** like the Great Hunt slot, each daily board has a chance (set at port time) to add one
+  Delve, drawn from the dungeons whose lowest level the player has reached, on top of the board's normal count; so
+  reaching the level makes it possible, never certain. (Not one of the shuffled types; not a roll per dungeon.)
+- DG19 **Where Delves are offered:** the guilds of the dungeon's region, as Great Hunts are offered by region (a nearby
+  guild stands in where the region has none, as Ravenwatch does for Ool). (Not any guild; not castle cities only.)
+- DG20 **A Delve pays like a Great Hunt:** ×2.4 silver and 3× Reputation, at the dungeon's top level, on top of the
+  dungeon's own rewards. (Not more; not less.)
+- DG21 **A Delve takes the standard quest's slot and can be offered again** (the user's own answer: "It takes the
+  standart quest slot and the quest can appear again"): holding a Delve means holding no other standard quest (Hunt,
+  Cull, Deliver, Search, Escort, Travel, Collect), the Great Hunt slot stays free; a dungeon's Delve can come back on the
+  boards after it is completed. (Not a slot of its own, the recommendation; not the Great Hunt's slot; not once per
+  dungeon.)
+- DG22 **The Emergency Rope works between stages only,** on the overview: the party leaves at the dungeon's entrance with
+  its HP and Mana as they are, with no defeat penalty; an active Delve stays active, so the player can try again. (Not
+  in regular battles; not any time.)
+- DG23 **The Waylight is a choice on the entry warning:** offered there ("Use a Waylight") when the player carries one,
+  used up only once entry is confirmed; the overview then shows stage 1 as skipped. The skipped stage gives no rewards.
+  It never skips the boss's stage. (Not used on the map beforehand; no rewards from the skipped stage.)
+- DG24 **Regular stages give their enemies' normal EXP, money and drops plus dungeon materials** (the user chose them
+  over normal rewards alone, the recommendation); what the materials are for is DG26.
+- DG25 **Finishing a dungeon gives only the boss's drops,** as a site boss does: no completion chest, first time or
+  later. (Not a first-clear reward, the recommendation; not a chest every clear.)
+- DG26 **The dungeon materials are the smithing materials, made into items** (the user's own answer: "I want to add the
+  weapon/armor materials as ingredients as well. Some of them can be dungeon-specific drops, all others need to be
+  distributed so it makes sense. Having a smithing material in the inventory gives a huge discount on reforging a
+  weapon/armor if that material is chosen (a visual indicator needs to be added to the reforging menu if a material is
+  available in the inventory)"; asked how many kinds: "See former anwser"). Today the materials (`MATERIAL_ROWS` and
+  `ARMOR_MATERIAL_LIST` in `../old-game/scripts/forge-engine.js`: metals, woods, threads, fabrics…) are only choices on
+  the anvils (task 3's reforging, a changed part costing 3 × its rarity's `RARITY_PRICE`). They become inventory items
+  like task 9's ingredients: some drop only in dungeons, the others are spread over the world where they make sense;
+  carrying one makes reforging a part to that material much cheaper, and the reforge menu marks every option whose
+  material the player carries. The details are DG29–DG32. (Not trades at the guild, the recommendation; not a new
+  upgrade system; not brewing ingredients; not trade goods only.)
+- DG27 **Boss difficulty like the Great Hunts:** each dungeon boss on the Great Hunts' curve for its level (the early
+  ones about 90% won by a prepared party, falling to about 20% for the late ones, as Saffron and Ool), measured by
+  simulation as the boss reworks were. (Not harder than a Great Hunt of its level; not one rate for all.)
+- DG28 **Every new dungeon boss gets what the Great Hunt bosses have:** an intro cinematic, a music theme of its own and
+  its own detailed model (the port's bar, "At port time": as detailed as the cutscene scenes). (Not a shared boss
+  theme; not without intros.)
+- DG29 **Every natural material on every anvil becomes an item:** the weapon and armor materials (metals, woods,
+  threads, fabrics) and the staff and wand parts (handle woods, jewels and gems, inks). **The masterwork and Exotic
+  materials, Mythilium and Exium, never drop** (the user, while this round was asked: "The Masterwork and Exotic specific
+  material is undroppable"); they stay what they are, the masterworks' and Exotics' own. (Not weapons and armor only.)
+- DG30 **Reforging with a carried material uses it up:** one copy for each changed part made of it; without one, the
+  full price is paid as today. (Not kept, carrying one being enough.)
+- DG31 **The discount is 75%:** a part reforged to a carried material costs a quarter of its price (3 × its rarity's
+  part price today, 360 silver for common to 36,000 for legendary). (Not 90%, 50% or free.)
+- DG32 **Where the materials come from:** each dungeon has one or two of its theme that drop only there; the rest drop
+  from the enemies they fit (metals from armoured foes and golems, woods from treants, threads and fabrics from
+  bandits…), and the map's Forage (task 9) also finds them (woods, ores and the like). The spread is drafted at port
+  time. (Not sold at the Blacksmith and Tailor.)
+- DG33 **Saffron and Ool move unchanged,** as Ornn did (R14): their levels (66, 78), mechanics, retinues (the three
+  Great Devil Servants; the Legionnaires and the Phylactery) and drops stay, revamped with every enemy in the port. In
+  the port's own saves an active Saffron or Ool hunt is withdrawn with a note (R15's way), and hunts already completed
+  still count where completed Great Hunts count (the Huntmaster's 5). (Not reworked for their dungeons.)
+- DG34 **Each dungeon has a music theme of its own,** as each region does; the boss battle plays the boss's theme
+  (DG28). (Not one shared dungeon theme; not the region's music.)
+- DG35 **Only the task's three masterworks are new:** the other new bosses drop rare gear, consumables, materials and
+  money; Saffron and Ool keep their masterworks and Exotics (Hellish Rebuke, Seventh Cycle, Fletcher; Staff of the
+  Guild, Heartless Enricher, Tough-Out). (Not a masterwork for every new boss.)
+- DG36 **The new Exotic drops as the five Exotics do** (task 7): only with Limitless on, never doubled, at their rate
+  (4–5% from each of the Great Mountain Mole, Void Lord Firadialin and the Goblin King). (Not also without Limitless.)
+- DG37 **The three masterworks' kinds are chosen in the port-time draft,** per boss, any kind (weapon, armor or artifact)
+  that fits it and serves a different build from the other two. (Not one weapon, one armor and one artifact, the
+  recommendation; not three weapons.)
+- DG38 **The new Exotic is a kind none of the five is** (they are a dagger, a tower shield, a longsword, a lance and a
+  brigandine): a bow, a staff or wand, an artifact or another, chosen in the port-time draft. (Not an artifact by rule;
+  not any kind.)
+- DG39 **The four extra throwing items cover four tactics:** damage over time (an elemental burn or the like), lowered
+  defences (Armor or a resistance), disrupted abilities (no spells or skills for a turn, or the like) and a party buff;
+  one item each, their names, effects, rarities and prices drafted at port time.
+- DG40 **Sparkling enemies appear in regular dungeon stages** at the normal chance, never in the boss stage (the game
+  keeps them out of boss fights already). (Not never in dungeons; not more often.)
+- DG41 **The General Store sells the new items through its random stock:** the eleven (and the four of DG39) join the
+  rarity-weighted pool with the traps and Camping Supplies (`ShopEngine`: the level band's rarity weighted 60, lower ones
+  less, higher ones far less; 3–6 of each in castle cities, 2–4 in towns; restocked every 6 game hours), so the rare
+  and epic ones (the Waylight) are scarcer at low levels, and Camping Supplies stay as they are, sometimes sold out.
+  (Not always in stock, the recommendation; not the cheap ones always and the rest at random.)
+- DG42 **To hit:** the knives roll like a ranged attack (Accuracy against Evasion, the target's Evasion halved as for
+  ranged attacks); the bombs and status throws always land, their stun and other chances still rolling; the thrown
+  poisons stay as they are (no roll). (Not nothing rolling; not everything.)
+- DG43 **The knives' damage comes from the thrower:** a ranged physical hit from the thrower's own stats and level,
+  smaller than a weapon attack (the size drafted at port time), so it keeps its use from Level 1 to 200 and the
+  Throwing Specialist can raise it. (Not a fixed amount per knife; not a share of the target's HP.)
+- DG44 **A throw costs 1 AP** and doesn't end the turn, as every consumable does. (Not 2 AP for the bombs.)
+- DG45 **"For one turn" is the turn the effect is for:** a debuff on enemies (the Dust Bomb) lasts through each
+  enemy's next turn; a bonus for the party (the Marked Knife's mark, the Flash Bomb's escape bonus) lasts until the
+  thrower's next turn starts, so every turn of the party in between has it. (Today's timed effects end when the affected
+  one's next turn starts, which would end a Dust Bomb before the enemy acts.) (Not one full round.)
+- DG46 **The hit chances are points on the final hit chance:** the Marked Knife adds 20 points to the hit chance of
+  everyone on the party's side attacking the marked target (60% becomes 80%), the Dust Bomb takes 40 points off the
+  enemies' (60% becomes 20%), after Accuracy against Evasion and inside the game's 1–100 limits; only attacks that roll
+  to hit (weapon attacks, melee and ranged) are affected. The Dust Bomb's 20% miss chance is for the enemies'
+  single-target hostile spells only (the task's words), not heals, buffs or area spells. (Not a percentage of Accuracy,
+  the recommendation, which the game's marks and Blinding Powder use.)
+- DG47 **Bomb stuns at half chance on bosses,** as the thrown poisons are at half strength (`AlchemyRules.halved`):
+  the Sparkle Bomb stuns a boss on a 50% roll, the Flash Bomb on 20%. (Not immune; not full effect.)
+- DG48 **The stun limits are separate and count only stuns that land:** one Sparkle Bomb stun and one Flash Bomb stun
+  per enemy per battle, as written; a missed roll or an immune enemy doesn't use the chance up; a Sparkle Bomb thrown at
+  an enemy that has had its Sparkle stun is refused, so the item is kept ("not consumed if the action cannot be
+  completed"); a Flash Bomb still lands its escape bonus and skips the stun roll for enemies that have had theirs.
+  (Not one shared limit; not every throw counting.)
+- DG49 **The same item's effect refreshes, never adds up,** on a target, whoever threw it (two Marked Knives from two
+  heroes: one +20); different items' effects coexist (a mark and an acid together). (Not per thrower, as the game's
+  timed effects are keyed today.)
+- DG50 **The Flash Bomb's escape bonus is +50 points** on the Run chance (40% becomes 90%), as the hit chances are
+  points (DG46). (Not ×1.5.)
+- DG51 **The three extra dungeons sit in the level gaps** (the nine cover 4–30, 38–46 and 62–78): about 15–19, 50–56
+  and 85–92, one early, one in the large mid-game gap, one in the endgame before Anatemis (DG54 places the vampire one).
+  (Not all in the endgame; not tied to the three new regions.)
+- DG52 **Two of the extra dungeons' themes: vampires and dragons**, and **the vampire dungeon is Nocturne Keep, the
+  vampire city** (the user's own answer: "Vampires, but make the Vampire City the dungeon with a special quest given by
+  the city in the Boreal Forest. Defeating the dungeon and completing the quest unlocks the city for use by
+  non-vampires"). Nocturne Keep is the Bloodstone Coast's castle city (55–70), open today only to a player with the
+  Vampire class ("outsiders find a hostile fortress instead"); the city in the Boreal Forest is Ravenwatch (Duskpine
+  Forest, 60–75, the only castle city there). Ravenwatch gives the special quest; finishing the dungeon and the quest
+  opens Nocturne Keep to players who aren't vampires. The details are DG54–DG56 and after. The third theme: DG53.
+- DG53 **The third extra dungeon's theme is harpies:** a roost of fast, evasive flyers (harpies today: Level 12–46).
+  (Not trolls and giants, the recommendation; not merfolk and sirens; not orcs.)
+- DG54 **Nocturne Keep's dungeon is about Level 66–70,** the Vampire Citadel zone's level beside it (67–70), overlapping
+  the Great Void Rift (62–68) and the Ancient Pyramid (65–70); so it doesn't take DG51's mid-game slot. (Not about
+  56–62, the recommendation; not 50–56.)
+- DG55 **Ravenwatch's quest is unique and always offered:** a one-time quest of its own at Ravenwatch's guild, offered
+  from the dungeon's lowest level until it is done (never random), giving the Delve's lighter defeat penalties while
+  held; its text and reward are drafted at port time. Finishing the dungeon while holding it completes it and opens the
+  keep. (Not the keep's Delve; not a chain of quests.)
+- DG56 **Once opened, Nocturne Keep offers a player who isn't a vampire everything it offers a vampire,** its Vampiric
+  gear included (sold only there; `requiresClass: "vampire"` in `../old-game/scripts/world-region-data.js` no longer
+  shuts them out). (Not all but the Vampiric gear.)
+- DG57 **The harpy dungeon is about Level 50–56 and the dragon dungeon about 85–92:** the harpies fill the mid-game
+  gap with stronger harpies drafted for it (today's go up to the Harpy Sentinel, 46); the dragons are an endgame lair
+  before Anatemis, beside the great dragons (Ancient Frost 88, Tempest 92, Crownfire 95). So the twelve cover 4–30,
+  38–56, 62–78 and 85–92. (Not harpies at 15–19, the recommendation; not dragons at 50–56.)
+- DG58 **Nocturne Keep's boss is a new vampire lord,** the keep's ruler, drafted at port time like the other new
+  bosses (DG27, DG28). (Not the Pale Monarch made a boss.)
+- DG59 **Ravenwatch's unique quest is Nocturne Keep's Delve, and replays start from a button in the keep** (the
+  user's own answer: "That unique quest is the Delve Quest for Nocturne Keep. To replay the dungeon, a new button in
+  Nocture Keep will be offered, allowing the player to replay the dungeon (pressing the button follows the regular
+  dungeon procedure and this dungeon is played as if a Delve quest is active, even if another quest is active at the
+  time)"): the keep has no random Delve (DG18 doesn't apply to it); once the quest is done, the opened keep offers a
+  replay button that runs the regular procedure (the warning, the Waylight choice, the stages) with the Delve's lighter
+  penalties always, whatever quest the player holds. DG62 says what such a replay pays. (Not a random Delve after the
+  quest, the recommendation; not no Delve.)
+- DG60 **A vampire player meets the keep's dungeon like anyone:** Ravenwatch offers them the quest and they can enter;
+  the keep stays open to them throughout. (Not the dungeon without the quest.)
+- DG61 **The dragon lair is on the mountain, the harpy dungeon in one of the port's new regions** (the user: "The
+  Dragons on the mountain, the Harpies dungeon will go to one of the new regions created in the port"): the dragon lair
+  on the Stoneveil Summit's Cloudbreak Ridge (88–92), below the Dragon Eyries; the harpy dungeon in one of task 8's three
+  regions the port makes (W27), which one in DG65. Nocturne Keep's dungeon is the keep itself. (Not both on the
+  mountain, the harpies in High Stoneveil's High Pass, the recommendation.)
+- DG62 **The keep's replay button gives only the lighter penalties:** a replay finished from it pays the boss's drops
+  and no guild reward; Ravenwatch's quest pays once. (Not the Delve's pay on every replay.)
+- DG63 **Before Ravenwatch's quest is done, the keep's dungeon can be entered without it,** as every dungeon can: the
+  hostile fortress outsiders find is its entrance, and without the quest the full penalties apply; finishing it
+  without the quest doesn't open the keep. (Not only with the quest.)
+- DG64 **A defeat in the keep's dungeon with the lighter penalties wakes the party in Ravenwatch,** always, the town
+  that gives the quest (not DG16's nearest settlement, which is the keep itself). (Not the nearest settlement the
+  player may enter, the recommendation.)
+- DG65 **The harpy dungeon is in the rocky highlands** east of the Alder Vale (task 8's `uncharted-highlands`, made in the
+  port, W27): their cliffs and crags hold the roost; the dungeon stays 50–56 whatever band the region is given. (Not the
+  steppe; not the delta; not left to the regions' design.)
+- DG66 **Ravenwatch's unique quest takes the Great Hunt slot** (the user's own answer: "It takes the Great Hunt slot"):
+  holding it means holding no Great Hunt, and the standard quest slot stays free. The other dungeons' Delves keep the
+  standard slot (DG21). (Not the standard slot, the recommendation; not a slot of its own.)
+- DG67 **The Dungeon Delver's "dungeon enemies" are every enemy fought inside a dungeon,** the bosses included, wherever
+  else that type lives; outside dungeons its bonuses against them are off. (Not only the dungeon-only types.)
+- DG68 **The boss is hidden on the overview until met:** its stage is marked as the boss's with a dark silhouette and
+  "???", named once the party has met it, and named on every later run. (Not named from the start; not always hidden.)
+- DG69 **The dungeon overview is a 3D scene:** the dungeon in the port's 3D renderer, the party moving from stage to
+  stage, with the task's information over it (the dungeon's name, the stage and the stages left, whether it is cleared,
+  the recommended levels, the party's HP and Mana, the Camping Supplies and other consumables, whether Camping
+  Supplies can be used now, whether the next stage is the boss's; DG68). (Not a 2D screen, the recommendation; not left
+  to the art pass.)
+- DG70 **The warning before every entry shows only the case that applies now** (without or with a Delve quest, or the
+  keep's button, DG59), in full and in large text, with a line that a Delve quest would lighten it when none is held,
+  the recommended levels, the Waylight choice (DG23) and a confirm button. (Not both cases with the applying one
+  marked, the recommendation.)
+- DG71 **Guild quests keep their places:** Hunt and Cull count only battles in their own zone, as today; dungeon
+  battles count only for the dungeon and its Delve. Collect quests' ingredients are items, so any found in a dungeon
+  count. (Not dungeon kills counting for Hunt and Cull.)
+- DG72 **A dungeon entrance is a site,** like the Church of Talos, the Institute of Magic and Hearth Home: a marked point
+  with a small safe radius (no encounters right there) and an Enter button. (Not a point with the zone's encounters
+  around it.)
+- DG73 **A vampire player can't enter the keep's dungeon unless Ravenwatch's quest is active** (the user's own answer:
+  "The dungeon cannot be accessed for player vampires, unless the Ravenwatch quest is active"): for them there is no
+  entry without the quest (DG63's full-penalty entry is for players who aren't vampires); after the quest, see DG74.
+  (Not a button in the keep, the recommendation; not the outsiders' entrance.)
+- DG74 **Vampires replay the keep's dungeon like anyone once the quest is done:** while holding Ravenwatch's quest they
+  enter where outsiders do (the hostile fortress's entrance); once it is done the keep's replay button (DG59) is theirs
+  too, with the lighter penalties. (Not shut out for good after the quest.)
+- DG75 **The two classes are designed now, not at port time** (the user, after DG1–DG74: "Can you create both classes
+  as well and put them into the Task 10 draft, just like task 13 did"): this replaces DG3's "designed at port time";
+  task 10's rules still apply (DG3), and DG4's throwing items. The rest of task 14 stays with the port (DG1, DG2).
+- DG76 **One draft with both parts:** with only two classes, their identity, levels, requirements and rarity and their
+  features level by level are in one draft, reviewed at once. (Not two steps, as task 13's were, NC4 and NC10.)
+- DG77 **Drafted in `Docs/Port-Tasks/14_Dungeons/Classes.md`,** kept as the task's record as task 12's `Classes.md`
+  and task 13's folder are; once approved, added to the end of task 10's two drafts (`10_Class_Rework/`), which the
+  port reads. (Not written straight into task 10's drafts.) Written for review the same day: the Dungeon Delver (5
+  levels, blue; Level 15, 2 different dungeons finished) and the Throwing Specialist (6 levels, no colour; Level 12, 30
+  throwing items thrown in battle).
+- DG78 **The two classes are approved as drafted** (the user: "Approved") and added to the end of task 10's two drafts
+  (`Class-Rework-Draft.md`, "Classes added by task 14", with the two new counts after them; `Class-Rework-Features.md`,
+  "Task 14's classes"): the drafts hold 256 classes, 252 for players (NC2). `14_Dungeons/Classes.md` stays as the
+  task's record. Task 10's three duties for the port (C32) cover them too.
+
+Following from the answers (not asked): a Delve failed by a defeat in the keep's dungeon (DG16, DG64) is offered again
+at Ravenwatch, since it is offered until done (DG55); the game's own save goes on inside a dungeon (the world, the
+battle and the stage are saved and a loaded game resumes there, as the old game saves its battles), and the save
+holds the dungeon, the stage, the stages cleared, the bomb stuns used (DG48), whether a Waylight was used and whether
+each boss has been met (DG68); the new bosses gain a Level-100 character's class levels under Limitless, as every boss
+does (task 7), their class sets drafted with them.
+
+**Where task 14 stands (2026-11-12): every design question is answered (DG1–DG74); nothing is built or drafted.** Left
+for the drafts the port writes and the user approves then (DG2), in the task's order:
+- The twelve dungeons: their stages (counts given by the task for the nine; for the three extra ones, in their drafts),
+  each stage's pool of groups (DG7) and the dungeon-only enemy types (DG9) with the general enemy revamp; the three extra
+  dungeons' names and identities (harpies at 50–56 in the rocky highlands, Nocturne Keep at 66–70, dragons at 85–92 on
+  Cloudbreak Ridge; DG51–DG57, DG61, DG65); the exact spots on the 3D map (DG5); the music themes (DG34) and the 3D
+  overview scenes (DG69).
+- The eleven new bosses (the eight the task names, the keep's vampire lord, the harpy and dragon bosses): mechanics,
+  intros, themes, models (DG27, DG28, DG58), balanced by simulation; their drops (DG35).
+- The three masterworks (kinds per boss, DG37) and the Exotic (a kind none of the five is, DG38), with drop chances.
+- The eleven throwing items' numbers (prices, the knives' damage, DG43) and the four extra ones (DG39).
+- The smithing materials as items: which drop where and in which dungeons, their Forage odds and prices (DG29–DG32);
+  the reforge menu's mark for a carried material (DG26).
+- Not the two classes any more: the Dungeon Delver and the Throwing Specialist are designed and approved (DG75–DG78)
+  and in task 10's drafts, built with the other classes; only the two new counts their requirements use are left.
+- The numbers left open: the Delve chance per board (DG18), the time a stage and a camp take (DG12), Ravenwatch's
+  quest text and reward (DG55).
 
 **Decisions for task 13, New Classes (2026-11-12, a cloud session; the user: "Start with Task 13. For the new classes,
 the same rules apply as in Task 10"; the task is `Docs/Port-Tasks/13_New_classes.txt`).** Asked before any work, after

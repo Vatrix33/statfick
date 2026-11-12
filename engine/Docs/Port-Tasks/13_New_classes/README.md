@@ -13,4 +13,5 @@ NC19), which the port reads;** the two files here stay as the task's record, as 
   Catalyst, Mimic), then seven batches, each class built in its own shape (NC11), the user's notes standing under
   their classes (the Con Artist's Bribe, the Conqueror's Winning Streak, the Limitbreaker, the Ascetic, the Paragon).
 
-With them task 10's drafts hold 254 classes, 250 for players; task 14's two classes will bring players to 252.
+With them task 10's drafts hold 254 classes, 250 for players; task 14's two classes (added 2026-11-12, DG78) bring
+them to 256, 252 for players.

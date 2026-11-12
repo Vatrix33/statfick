@@ -42,6 +42,7 @@ the port; every class's features are in `Class-Rework-Features.md` beside it.** 
 - Added by task 11: the racial classes (3)
 - Added by task 12: the Spellweaver and the Ritual Caster (2)
 - Added by task 13: by focus (37), the 42 more (42), and the new counts and requirement kinds they use
+- Added by task 14: the Dungeon Delver and the Throwing Specialist (2), and the counts they use
 
 # Current classes
 
@@ -1103,7 +1104,7 @@ Task 13 (New Classes) designed 79 new classes for the port (`engine/Docs/Engine-
 NC1–NC19; approved by the user on 2026-11-12 with their notes applied; first drafted in `../13_New_classes/`, NC5).
 They follow task 10's rules (NC1), and each focus class builds on its path (NC3). The task's 37 by focus come first,
 then 42 more so that players can acquire 250 classes (NC2). With them the drafts hold 254 classes, 250 of them for
-players (Raid Boss, Beast, Great Beast and Monster can't be had); task 14's two will bring players to 252. Their
+players (Raid Boss, Beast, Great Beast and Monster can't be had); task 14's two (after them) bring players to 252. Their
 features are at the end of `Class-Rework-Features.md`. Rarity of the 79: 51 without a colour, 22 blue, 4 purple, 1
 gold, 1 red (the Limitbreaker, NC6; while the player is Level 99 or lower the hooded man offers no red class, NC7).
 
@@ -1797,3 +1798,34 @@ What the port would add for these requirements (the game keeps none of them yet)
 - Counts the game already keeps, used as they are: different kinds of enemy defeated (as the Chronicler's), battles
   won at night (as the Nightwalker's), giants defeated (as the Titan's), healing items used in battle (as the Field
   Medic's), ingredients foraged, items sold, guild quests completed, companions, spells and elements known.
+
+# Classes added by task 14
+
+Task 14 (Dungeons) is built by the port itself (`engine/Docs/Engine-Plan.md`, "Decisions for task 14", DG1); only its
+two classes were designed beforehand, at the user's request (DG75), under task 10's rules (DG3), in one draft with
+their features (DG76; first drafted in `../14_Dungeons/Classes.md`, DG77; approved by the user on 2026-11-12, DG78).
+With them the drafts hold 256 classes, 252 of them for players (NC2). Their features are at the end of
+`Class-Rework-Features.md`. Rarity of the two: 1 blue, 1 without a colour. The dungeon rules they use (stages, Camping
+Supplies, the throwing items) are task 14's answers.
+
+### Dungeon Delver
+
+5 levels (the task) · rarity blue
+
+- **Requires:** Level 15 · Finish 2 different dungeons (a new count, from task 14)
+- **Identity:** Made for the long way down: lasts through stage after stage, makes the most of every rest, and is at
+  its strongest by the time the boss is reached.
+
+### Throwing Specialist
+
+6 levels · rarity no colour
+
+- **Requires:** Level 12 · Throw 30 throwing items in battle (a new count, from task 14; task 9's thrown poisons count,
+  DG4)
+- **Identity:** Fights from its bandolier: knives, bombs and poisons land harder and linger longer in its hands, and
+  cost it less to throw.
+
+## Task 14's new counts
+
+What the port would add for these requirements: different dungeons finished (Dungeon Delver); throwing items thrown
+in battle, the thrown poisons among them (Throwing Specialist).

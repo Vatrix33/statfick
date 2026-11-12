@@ -80,6 +80,10 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
     stages; defeat penalties and a warning before entry; the Delve guild quest; Saffron and Ool move from Great Hunts
     to dungeon bosses; three masterworks and an Exotic; the Dungeon Delver and Throwing Specialist classes; eleven
     throwing consumables for the General Store.
+    **Built during the port itself (the user, 2026-11-12, DG1):** nothing in the old game, nothing built or drafted
+    before the port; its design questions are asked and answered beforehand, in `Engine-Plan.md`, "Decisions for task
+    14, Dungeons" (DG1 onward), and the port builds it from this file and those answers. See "Built by the port from
+    the decisions" below.
 
 **How to use them:** read them when the port starts (`Engine-Plan.md`, "Open questions for later milestones", "At port
 time" points here). Before each task's code, ask its design questions with the question tool and record the answers
@@ -104,7 +108,8 @@ remember (the user's answers, 2026-11-05):
   Dungeons only come with task 14 (which needs task 7's Exotic rarity), so task 14 gives its dungeon enemies the
   Limitless scaling.
 - Task 13 adds classes until there are 250; task 14's two classes come on top (252 in the end), as intended. (Done:
-  task 13's 79 bring the classes players can acquire to 250, NC2.)
+  task 13's 79 bring the classes players can acquire to 250, NC2, and task 14's two, approved 2026-11-12, to 252,
+  DG78.)
 
 **When:** task 1 is done in the old game before the port (user decision 2026-11-05), its new art as placeholders; task 2
 is built in the old game too (user decision 2026-11-06, G1), also with placeholder art, and so is task 3 (the user,
@@ -118,7 +123,8 @@ waited, into the same pull request, P1; P2 kept its art placeholder). Task 11 (a
 2026-11-11) is split (T1): its races, seals and looks in the old game, with placeholder art (T5); its racial classes
 in task 10's drafts for the port. Tasks 10, 12 and 13 are not built in the old game at all: designed in drafts and
 built by the port (C23, 2026-11-10; SP1, 2026-11-11; NC1, 2026-11-12), with task 12's two classes and task 13's 79
-added to task 10's drafts.
+added to task 10's drafts. Task 14 is built during the port itself (the user, 2026-11-12, DG1): not in the old game and
+not drafted beforehand; only its design questions are answered before the port.
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
@@ -236,7 +242,7 @@ added to task 10's drafts.
   status), **every spell players can learn reworked** (381, `Batch-01-Basic.md` to `Batch-12-Blood.md`; the seven boss
   and enemy-only spells left as they are, SP4) and **168 new spells** (`New-01-Basic.md` to `New-12-Blood.md`, fourteen
   per element, every element keeping at least one summon and one Dragonbreath spell). Its two classes, the Spellweaver
-  and the Ritual Caster, are in task 10's drafts (`10_Class_Rework/`, 175 classes then, 254 with task 13's). Also for
+  and the Ritual Caster, are in task 10's drafts (`10_Class_Rework/`, 175 classes then, 254 with task 13's, 256 with task 14's). Also for
   the port: the mechanics the drafts mark "(new)"; two new creatures for the new summons, the Mana Golem (Basic) and
   the Storm Roc (Wind), with their looks and stats (Nature's Dryad and Death's Wraith use creatures the game has); the
   Tier 10 spell animations reworked (SP47); bosses can't be defeated outright by instant death (SP46); and every
@@ -253,6 +259,21 @@ added to task 10's drafts.
   despite its Level 110; NC7); the new counts, requirement kinds and the Moonfang key item the requirements use
   (listed at the end of task 13's part of `Class-Rework-Draft.md`); and the mechanics the features mark "(new)". Task
   10's three duties (C32) cover these classes too.
+
+**Built by the port from the decisions, not designed in drafts:**
+- Task 14, Dungeons (2026-11-12, a cloud session, DG1 onward in `Engine-Plan.md`, "Decisions for task 14, Dungeons"):
+  the user wants it done during the port itself. Nothing of it is in the old game or in drafts; the design questions
+  are answered and recorded beforehand, with what the old game has for it and lacks (checked 2026-11-12), and the port
+  builds the whole task from `14_Dungeons.txt` and those answers, but for its two classes: **the Dungeon Delver and the
+  Throwing Specialist were designed beforehand at the user's request and are in task 10's drafts** (DG75–DG78,
+  2026-11-12; drafted in `14_Dungeons/Classes.md`, the task's record). **All answered (DG1–DG74, 2026-11-12):** the rules and
+  main choices; the content (dungeon enemies and stages, the eleven new bosses, the masterworks and the Exotic, the four
+  extra throwing items, the two classes, the numbers) is drafted at port time for the user's approval (DG2; listed at
+  the end of the decisions). Beyond the task's text, the answers add: the smithing materials (weapon, armor, staff and
+  wand parts, not Mythilium or Exium) as items that drop and are foraged, a carried one cutting a reforge to it by 75%
+  (DG26, DG29–DG32); Nocturne Keep as the vampire dungeon, whose unique quest from Ravenwatch opens the keep to
+  players who aren't vampires (DG52–DG64, DG73, DG74); the harpy dungeon in the rocky highlands, one of task 8's new
+  regions (DG65); and a 3D dungeon overview (DG69).
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and

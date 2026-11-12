@@ -57,6 +57,8 @@ proposals to tune when built. "(new)" marks something the old game can't do and 
   file.
 - Task 13's classes (approved 2026-11-12, NC10–NC19): all 79, after them at the end of this file: a sample of four
   (Bladebound, Harrier, Catalyst, Mimic) and seven batches, built under these rules, and each in its own shape (NC11).
+- Task 14's classes (approved 2026-11-12, DG78): the Dungeon Delver and the Throwing Specialist, after them at the end
+  of this file.
 
 # The sample of four (approved 2026-11-10)
 
@@ -4325,3 +4327,62 @@ Identity: Plans every move: what it doesn't use this turn it keeps for the next,
 How it plays: it never wastes an AP: a turn with an odd point left over pays into the next, and once a battle a turn of
 eleven AP does the work of two normal turns. The Sentinel spends its kept AP on one strike; the Schemer on a
 whole turn.
+
+# Task 14's classes (approved 2026-11-12, DG78)
+
+The Dungeon Delver and the Throwing Specialist, from task 14 (Dungeons), designed with their identity, levels,
+requirements and rarity in one draft (DG76, first in `../14_Dungeons/Classes.md`). They rest on task 14's answers
+(`engine/Docs/Engine-Plan.md`, "Decisions for task 14", DG1 onward): a dungeon's stages and its pools of groups (DG7);
+Camping Supplies at most once after each cleared stage, 20% of maximum HP and Mana to everyone (DG11); "dungeon
+enemies" are every enemy fought in a dungeon, the bosses included (DG67). The Throwing Specialist's items are task 14's
+eleven and task 9's twelve thrown poisons (DG4); a throw costs 1 AP (DG44); knives roll to hit and deal damage from the
+thrower's stats (DG42, DG43); bombs always land, their stun chances halved on bosses (DG47), each enemy stunned at most
+once per battle by each kind of bomb (DG48); hit chances and the escape bonus are points (DG46, DG50); the same item's
+effect refreshes rather than adds up (DG49). The Emergency Rope and the Waylight aren't thrown, so its bonuses don't
+touch them; task 14's four extra throwing items are drafted at port time (DG39), and the features name them by their
+kinds, to be checked against them then.
+
+## Dungeon Delver
+
+5 levels · rarity blue · Requires: Level 15 · Finish 2 different dungeons
+Identity: Made for the long way down: lasts through stage after stage, makes the most of every rest, and is at its
+strongest by the time the boss is reached.
+
+| Level | Feature |
+|---|---|
+| 1 | While you are in the party, Camping Supplies used in a dungeon restore 30% of maximum HP and Mana instead of 20% (new) |
+| 2 | **Scout Ahead** (skill; on the dungeon's overview, between stages): see the next stage's enemies before it begins; once per dungeon run, draw its group again from the stage's pool (new) |
+| 3 | In a dungeon, you take 10% less damage, and your spells and skills cost 10% less Mana (new) |
+| 4 | In a dungeon, after each cleared stage, you and every companion recover 5% of maximum HP and Mana (new) |
+| 5 | **Deep Delve** (passive, capstone): in a dungeon, each stage cleared on this run gives you 2% more damage and 2% less damage taken, up to 8 stages (+16%, −16%); it ends with the run (new) |
+
+How it plays: a specialist for the expeditions. Before each stage it looks ahead and can turn away the worst draw
+once; between stages its party heals a little by itself and more from each rest; and the deeper the dungeon, the
+harder it hits and the less it takes, so it meets the boss at its peak. Outside dungeons it has nothing but its stats,
+so it doesn't replace the road's classes (Traveler, Scavenger, Camp Cook) or the fighters. The Quartermaster's
+Emergency Rations and the camping classes' chances to keep Camping Supplies add to it rather than overlap: the Delver
+neither restores in battle nor keeps supplies.
+
+## Throwing Specialist
+
+6 levels · rarity no colour · Requires: Level 12 · Throw 30 throwing items in battle
+Identity: Fights from its bandolier: knives, bombs and poisons land harder and linger longer in its hands, and cost it
+less to throw.
+
+| Level | Feature |
+|---|---|
+| 1 | Your thrown knives gain 15% Accuracy and deal 20% more damage |
+| 2 | Your bombs' stun chances +15 points (a Flash Bomb 55%), and the lasting effects of your knives, bombs and the four extra throws (the mark, the Dust Bomb's, the escape bonus) last 1 turn longer; poisons excepted (new) |
+| 3 | **Quick Hands** (passive): your first throw each turn costs no AP (new) |
+| 4 | Against bosses, your throws count at three-quarters strength instead of half: your thrown poisons, and your bombs' stun chances (a Sparkle Bomb 75%) (new) |
+| 5 | Your throwing items have a 20% chance not to be used up |
+| 6 | **Barrage** (skill, capstone; once per battle, 1 AP): throw up to three different throwing items in this one action, each at its own target (new) |
+
+How it plays: a thrower for any party: a knife that rarely misses to open, a Dust Bomb a turn longer when the enemy
+line is dangerous, a stun that lands more often, and once a battle three different throws at once (a mark, a bomb and
+a poison together). Its bonuses are by kind (knives hit, bombs stun and linger, poisons reach bosses), so it pays to
+carry a mix and to pick the right one. Kept apart from the Poisoner (DG4): it leaves poison durations and damage alone
+(level 2 excepts them), only lifts the bosses' half strength to three-quarters (level 4) and keeps some poisons (level
+5, beside the Poisoner's own 25% where both are taken); its Barrage throws different items at chosen targets, not one
+poison at all of them. The stun limits (DG48), the refreshing of the same item's effect (DG49), the 1-turn stun and the
+bosses' reduced share all stay; Quick Hands and Barrage stay within a turn's 5 AP (C28).
