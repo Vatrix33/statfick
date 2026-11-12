@@ -200,6 +200,18 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   `scripts/combat.js` with a line that hands them to `window` before `window.Combat = {`. Task 12's drafts were written
   from such a measurement plus a generator applying the approved curve to a spec file per element
   (`claude-work/t12/`, scratch; the drafts hold the final numbers).
+- 2026-11-12 (a cloud session, port task 13 designed in drafts, no scripts kept): **facts of the old game the class
+  designs rest on**, found in its code (for whoever builds or reviews the classes): a weapon attack strikes with the
+  off-hand weapon too, at 25% of its damage (`attack` in `scripts/combat.js`); a fighter acts when its turn counter
+  reaches 1,000, so a push of 100 is a tenth of a turn; a turn has 5 AP, a weapon attack costs 2 (unarmed 1); a perk
+  point comes with each level up to 100 (none in Limitless) and a class level costs one (`scripts/app.js`); Limitless
+  lifts an enemy below the player's level to it (+1 to each stat per level) and then multiplies its stats by 1.25
+  (`scaleEnemy` in `scripts/limitless-engine.js`); the hooded man's class offers leave out classes that need above
+  Level 100 (`playerClasses` in `scripts/guild-information-engine.js`); shields give Armor only, with no block chance;
+  Escort quests fight as bandit ambushes on the road (`scripts/guild-quest-engine.js`); Sparkling enemies are 0.1%
+  (2% for a Cull quest's target); five equipment slots (main hand, off-hand, armour, two artifacts); 174 enemies, among
+  them 7 giants, 7 wolves and a group of bandits and raiders. Checking a class draft: every class a requirement names
+  must exist with at least that many levels (a short Python pass over the `### ` blocks did it).
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

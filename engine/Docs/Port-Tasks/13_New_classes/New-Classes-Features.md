@@ -1,7 +1,8 @@
 # Task 13, New Classes: the features
 
-**Under review: the sample of four and batches 1–6 approved (2026-11-12, NC11–NC17); batch 7, the last, revised on the
-user's notes (NC18) for review.** The level-by-level features of the 79 new
+**Approved by the user (2026-11-12, the sample and seven batches, their notes applied; NC10–NC19) and added to the end
+of task 10's features, `../10_Class_Rework/Class-Rework-Features.md` (NC19), which the port reads; this file stays as
+the task's record.** The level-by-level features of the 79 new
 classes, made for the port (NC1). Each keeps the identity, levels, requirements and rarity approved in
 `New-Classes-Draft.md` (NC9). It starts with a sample of four, one class from each focus drawn at random, as task 10's
 features began (C20); the rest follow in batches once the sample is approved, the user's notes on each batch shaping
@@ -42,7 +43,7 @@ do and the port would need to add.
   Knight-Errant) and the ranged extras (Trickshot, Huntmaster, Bowmaster, Giantslayer, Lightbearer).
 - Batch 6 (approved 2026-11-12): the rogue extras (Saboteur, Accomplice, Vigilante) and the spell extras (Soulbinder, Beguiler,
   Astromancer, Golemancer, Hedge Witch, Dirgesinger, Abjurer).
-- Batch 7 (revised on your notes, for review), the last: the extras without a focus: Guildmaster, Limitbreaker, Treasure Hunter, Daredevil,
+- Batch 7 (approved 2026-11-12, the Limitbreaker, Ascetic and Paragon revised on your notes), the last: the extras without a focus: Guildmaster, Limitbreaker, Treasure Hunter, Daredevil,
   Surgeon, Ascetic, Lycanthrope, Paragon, Schemer.
 
 # The sample of four (approved 2026-11-12)
@@ -1287,7 +1288,7 @@ it.
 How it plays: the defensive caster of many elements: it reads the enemy and wards the party against exactly what it
 throws. The Templar shields against the undead and the dark; the Abjurer against any element it knows.
 
-# Batch 7: the extras without a focus (for review)
+# Batch 7: the extras without a focus (approved 2026-11-12)
 
 The last nine of the 42 more, among them the second red class (the Limitbreaker, NC6), a gold one (the Paragon) and a
 class from a rare item (the Lycanthrope, which like the other item classes may have more than one skill). Shapes

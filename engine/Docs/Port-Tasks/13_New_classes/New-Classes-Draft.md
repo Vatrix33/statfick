@@ -1,6 +1,8 @@
 # Task 13, New Classes: the draft, every new class's identity, levels, requirements and rarity
 
-**Approved by the user (2026-11-12, their notes applied: Limitbreaker red, Paragon's requirement; NC6–NC9).** The one draft of task 13 (NC4): all 79 new classes, each with its
+**Approved by the user (2026-11-12, their notes applied: Limitbreaker red, Paragon's requirement; NC6–NC9) and added to
+the end of task 10's draft, `../10_Class_Rework/Class-Rework-Draft.md` (NC19), which the port reads; this file stays as
+the task's record.** The one draft of task 13 (NC4): all 79 new classes, each with its
 identity, its number of levels, its requirements and its rarity (colour), the task's four questions in its order.
 Nothing is built: like task 10's classes these are for the port (NC1, C23). Once approved they go to the end of task
 10's two drafts in `../10_Class_Rework/` (NC5), and their features are then made level by level in batches, as task

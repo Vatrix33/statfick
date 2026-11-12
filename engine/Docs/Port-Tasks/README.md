@@ -72,13 +72,10 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 13. `13_New_classes.txt`: new classes by focus (four each for melee, ranged, spells and the rogue path, two for each of
     six combinations, nine without a focus), then more until players can acquire 250 classes; the user is asked about
     each one's identity, levels, requirements and rarity, in that order.
-    **Being designed (started 2026-11-12), for the port:** like task 10, not built in the old game (NC1). 79 new
-    classes, the 37 by focus and 42 more (171 of task 10's 175 can be acquired; NC2), drafted in `13_New_classes/`
-    (its README says what each file holds) and added to the end of task 10's drafts once approved (NC5). Their
-    identity, levels, requirements and rarity are approved (2026-11-12, NC9); their features are under way, a sample of
-    four and batches 1–6 approved, batch 7, the last, written (NC10–NC17). With it a
-    second red class, the Limitbreaker (NC6), and a rule for the port: the hooded man offers no red class while the
-    player is Level 99 or lower (NC7). Decisions NC1 onward in `Engine-Plan.md`, "Decisions for task 13, New Classes".
+    **Designed and approved (2026-11-12), for the port:** like task 10, not built in the old game (NC1); 79 new
+    classes, the 37 by focus and 42 more (171 of task 10's 175 could be acquired; NC2), now at the end of task 10's
+    drafts in `10_Class_Rework/` (NC19; drafted in `13_New_classes/`, which stays as the record). See "Designed for the
+    port" below. Decisions NC1–NC19 in `Engine-Plan.md`, "Decisions for task 13, New Classes".
 14. `14_Dungeons.txt`: dungeons (nine named, three more), each with stages and a boss; Camping Supplies between
     stages; defeat penalties and a warning before entry; the Delve guild quest; Saffron and Ool move from Great Hunts
     to dungeon bosses; three masterworks and an Exotic; the Dungeon Delver and Throwing Specialist classes; eleven
@@ -106,7 +103,8 @@ remember (the user's answers, 2026-11-05):
 - Task 7's "dungeon enemies" is meant to be future-proof: Limitless scales every kind of enemy, also those added later.
   Dungeons only come with task 14 (which needs task 7's Exotic rarity), so task 14 gives its dungeon enemies the
   Limitless scaling.
-- Task 13 adds classes until there are 250; task 14's two classes come on top (252 in the end), as intended.
+- Task 13 adds classes until there are 250; task 14's two classes come on top (252 in the end), as intended. (Done:
+  task 13's 79 bring the classes players can acquire to 250, NC2.)
 
 **When:** task 1 is done in the old game before the port (user decision 2026-11-05), its new art as placeholders; task 2
 is built in the old game too (user decision 2026-11-06, G1), also with placeholder art, and so is task 3 (the user,
@@ -118,8 +116,9 @@ was merged, while M11's engine work went on; L1 kept its art placeholder), and t
 merged; W1 kept its 2D looks placeholder for the port's 3D map), and task 9 (asked for while task 8's pull request
 waited, into the same pull request, P1; P2 kept its art placeholder). Task 11 (asked for after task 10's design, on
 2026-11-11) is split (T1): its races, seals and looks in the old game, with placeholder art (T5); its racial classes
-in task 10's drafts for the port. Tasks 10 and 12 are not built in the old game at all: designed in drafts and built
-by the port (C23, 2026-11-10; SP1, 2026-11-11), with task 12's two classes added to task 10's drafts.
+in task 10's drafts for the port. Tasks 10, 12 and 13 are not built in the old game at all: designed in drafts and
+built by the port (C23, 2026-11-10; SP1, 2026-11-11; NC1, 2026-11-12), with task 12's two classes and task 13's 79
+added to task 10's drafts.
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
@@ -223,7 +222,8 @@ by the port (C23, 2026-11-10; SP1, 2026-11-11), with task 12's two classes added
   the old beside the remade for current classes, approved in a sample of four and eleven batches). Rules: one passive
   and one skill per class (exceptions: the elemental mages, the item classes, the Vampire Lord, the Ki Warrior, the
   Psykic; enemy-only classes outside the rules), the passive or skill at the last level, requirements and skills
-  within a turn's 5 AP. A new rarity, red, above gold, for Unreality alone (its look decided when the port builds it).
+  within a turn's 5 AP. A new rarity, red, above gold, for Unreality (and, since task 13, the Limitbreaker; its look
+  decided when the port builds it).
   Also for the port: the full rework of every enemy that uses classes (C2), and the mechanics the features mark "(new)".
   **The port's three duties (the user, 2026-11-11, C32):** the classes are unchanged in the old game, and during the
   port the classes in the drafts are added; during porting, every class is inspected for possible errors and
@@ -236,11 +236,23 @@ by the port (C23, 2026-11-10; SP1, 2026-11-11), with task 12's two classes added
   status), **every spell players can learn reworked** (381, `Batch-01-Basic.md` to `Batch-12-Blood.md`; the seven boss
   and enemy-only spells left as they are, SP4) and **168 new spells** (`New-01-Basic.md` to `New-12-Blood.md`, fourteen
   per element, every element keeping at least one summon and one Dragonbreath spell). Its two classes, the Spellweaver
-  and the Ritual Caster, are in task 10's drafts (`10_Class_Rework/`, 175 classes now). Also for the port: the
-  mechanics the drafts mark "(new)"; two new creatures for the new summons, the Mana Golem (Basic) and the Storm Roc
-  (Wind), with their looks and stats (Nature's Dryad and Death's Wraith use creatures the game has); the Tier 10 spell
-  animations reworked (SP47); bosses can't be defeated outright by instant death (SP46); and every enemy's spells,
-  augmentations included, revamped with the general enemy revamp (SP16).
+  and the Ritual Caster, are in task 10's drafts (`10_Class_Rework/`, 175 classes then, 254 with task 13's). Also for
+  the port: the mechanics the drafts mark "(new)"; two new creatures for the new summons, the Mana Golem (Basic) and
+  the Storm Roc (Wind), with their looks and stats (Nature's Dryad and Death's Wraith use creatures the game has); the
+  Tier 10 spell animations reworked (SP47); bosses can't be defeated outright by instant death (SP46); and every
+  enemy's spells, augmentations included, revamped with the general enemy revamp (SP16).
+- Task 13, New Classes (2026-11-12, a cloud session, NC1–NC19 in `Engine-Plan.md`, "Decisions for task 13, New
+  Classes"): designed like task 10's classes (NC1) and built by the port from task 10's drafts, at whose end they now
+  stand (`10_Class_Rework/`: "Classes added by task 13" in `Class-Rework-Draft.md`, "Task 13's classes" in
+  `Class-Rework-Features.md`; drafted and reviewed in `13_New_classes/`, which stays as the record). 79 classes: the
+  task's 37 by focus (4 melee, 4 ranged, 4 spells, 4 from the rogue's path, 2 for each of the six pairs, 9 without a
+  focus) and 42 more chosen to fill gaps, so that players can acquire 250 (NC2); each focus class builds on its path
+  (NC3) and each is built in its own shape (NC11). Rarity: 51 without a colour, 22 blue, 4 purple, 1 gold (the
+  Paragon), 1 red (the Limitbreaker, the second red class, NC6). Also for the port: **the hooded man offers no
+  information on a red class while the player is Level 99 or lower** (from Level 100 he offers both, the Limitbreaker
+  despite its Level 110; NC7); the new counts, requirement kinds and the Moonfang key item the requirements use
+  (listed at the end of task 13's part of `Class-Rework-Draft.md`); and the mechanics the features mark "(new)". Task
+  10's three duties (C32) cover these classes too.
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and

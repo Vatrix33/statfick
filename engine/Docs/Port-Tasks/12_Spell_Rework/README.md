@@ -47,7 +47,7 @@ The review's order (SP2, SP15):
 5. The Spellweaver (built around Spell Augmentation, SP9) and the Ritual Caster, added to task 10's drafts
    (`../10_Class_Rework/`).
    - `Classes.md`: both classes, identity, levels, requirements, rarity and features. **Approved (SP69)** and added to
-     the end of task 10's drafts (175 classes there now).
+     the end of task 10's drafts (175 classes then; 254 with task 13's 79).
 
 **Task 12's design is complete and approved (2026-11-12).** The port builds it from these files; what it builds besides
 is listed in `../README.md`, "Designed for the port".
