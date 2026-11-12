@@ -8,9 +8,9 @@ New Classes", NC1 onward): **not built in the old game**; the port builds the cl
   applied (NC6–NC9): the Limitbreaker red, the hooded man offering no red class below Level 100, Paragon's four set
   classes.
 - `New-Classes-Features.md`: their features level by level (NC10, NC11): a sample of four (Bladebound, Harrier,
-  Catalyst, Mimic), batch 1 (the other twelve single-focus classes) and batch 2 (the six pairs), approved
-  2026-11-12; batch 3 (the nine without a focus) for review; the 42 more in batches after it (C22), each class built
-  in its own shape.
+  Catalyst, Mimic) and batches 1–3 (the rest of the task's 37), approved 2026-11-12; batch 4 (the next steps and the
+  fighters with an element, the first of the 42 more) for review; the others in batches after it (C22), each class
+  built in its own shape.
 
 Once everything is approved, both files' classes go to the end of task 10's two drafts in `../10_Class_Rework/`
 (NC5), as task 11's and task 12's classes did, so that the port has every class in one place. Then task 10's files'

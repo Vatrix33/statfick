@@ -54,8 +54,8 @@ acquire 250 (171 of task 10's 175 now; Raid Boss, Beast, Great Beast and Monster
 on its path, from any class on it, not only the starting class (NC3). One draft with all 79 (identity, levels,
 requirements, rarity; NC4) approved on 2026-11-12 with the user's notes applied (Limitbreaker red; the hooded man
 offering no red class below Level 100; Paragon's four set classes; NC6–NC9); their features have begun with a sample
-of four and batches 1 and 2 approved (NC10–NC13); batch 3, the nine without a focus, is written for review (all 37 of
-the task's own classes then have features); the 42 more follow in batches. Decisions NC1 onward in "Decisions for task 13, New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
+of four and batches 1–3 approved, all 37 of the task's own classes (NC10–NC14); batch 4, the first eleven of the 42
+more, is written for review; the rest follow in batches. Decisions NC1 onward in "Decisions for task 13, New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
 **Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is done in the old game**, as task 1 was
 (the user's answer G1, "Decisions for task 2, Guild Rework" below; built on the cloud branch `claude/fervent-carson-f5ol9s`
 and merged through a pull request). The port doesn't build it again; only its two guild interiors, placeholder art, are
@@ -2015,6 +2015,12 @@ The user's review of the draft (2026-11-12; their notes on two classes, everythi
 - NC13 **Batch 2 is approved** as written ("Approved"). Batch 3, the nine without a focus (Prodigy, Steadfast,
   Equilibrist, Fateweaver, Conqueror, Martyr, Financier, Collector, Chameleon), written for review the same day; with
   it all 37 of the task's own classes have features. Next: the 42 more, a few groups at a time.
+- NC14 **Batch 3 is approved, the Conqueror's Winning Streak up to 50 wins** (the user: "The Conquerors Winning Streak
+  is too weak. Increase it to a cap of 50 wins. All else is approved"): +1% damage and Armor per win in a row, now up to
+  +50% at 50 (the batch had +10% at 10); with the class's requirement of 50 wins in a row, a Conqueror whose streak
+  holds starts at the full bonus. Batch 4, the first of the 42 more (the next steps Bladestorm, Transmuter,
+  Phantasmist, Voidwalker, Doppelganger, Kingpin, Artificer, Warlord, the Warlord sharing a quarter of the streak; the
+  fighters with an element Frostwarden, Stormblade, Thornguard), written for review the same day.
 
 **Decisions for task 12, Spell Rework (2026-11-11, a cloud session; the user: "Go ahead with Task 12"; the task is
 `Docs/Port-Tasks/12_Spell_Rework.txt`).** Asked before any work, after reading the old game's spells

@@ -1,6 +1,6 @@
 # Task 13, New Classes: the features
 
-**Under review: the sample of four and batches 1 and 2 approved (2026-11-12, NC11–NC13); batch 3 written for review.** The level-by-level features of the 79 new
+**Under review: the sample of four and batches 1–3 approved (2026-11-12, NC11–NC14); batch 4 written for review.** The level-by-level features of the 79 new
 classes, made for the port (NC1). Each keeps the identity, levels, requirements and rarity approved in
 `New-Classes-Draft.md` (NC9). It starts with a sample of four, one class from each focus drawn at random, as task 10's
 features began (C20); the rest follow in batches once the sample is approved, the user's notes on each batch shaping
@@ -32,8 +32,11 @@ do and the port would need to add.
 - Batch 2 (approved 2026-11-12): the six pairs: Warcaster, Cinderblade (melee and spells); Wandslinger, Prism Archer (ranged and
   spells); Spellthief, Illusionist (rogue and spells); Corsair, Thug (melee and rogue); Ranger, Skirmisher (melee and
   ranged); Sniper, Poacher (rogue and ranged).
-- Batch 3 (for review): the nine without a focus: Prodigy, Steadfast, Equilibrist, Fateweaver, Conqueror, Martyr,
-  Financier, Collector, Chameleon.
+- Batch 3 (approved 2026-11-12, the Winning Streak up to 50 wins): the nine without a focus: Prodigy, Steadfast,
+  Equilibrist, Fateweaver, Conqueror, Martyr, Financier, Collector, Chameleon.
+- Batch 4 (for review), the first of the 42 more: the next step for eight new classes (Bladestorm, Transmuter,
+  Phantasmist, Voidwalker, Doppelganger, Kingpin, Artificer, Warlord) and the fighters with an element (Frostwarden,
+  Stormblade, Thornguard).
 
 # The sample of four (approved 2026-11-12)
 
@@ -544,7 +547,7 @@ brings down.
 How it plays: a hunter's trade turned to profit: the beasts of the wild pay better when the Poacher is along, and its
 snare holds the most dangerous of them for the party. The Beast Tamer keeps animals; the Poacher sells them.
 
-# Batch 3: the nine without a focus (for review)
+# Batch 3: the nine without a focus (approved 2026-11-12)
 
 Nine classes that belong to no path, built in their own shapes (NC11): two get their passive at level 1, two their
 skill at level 1, two their skill at level 2 after a first feature, two their passive at level 3, one its skill at
@@ -628,12 +631,16 @@ Identity: Lives for the next victory: every battle won in a row makes it stronge
 |---|---|
 | 1 | While you have won 5 battles or more in a row, battles give you 10% more experience |
 | 2 | Maximum HP +10%; Speed +5% |
-| 3 | **Winning Streak** (passive): each battle won in a row gives you +1% damage and +1% Armor, up to +10% at 10 wins; a defeat or a battle fled from starts it again (new) |
+| 3 | **Winning Streak** (passive): each battle won in a row gives you +1% damage and +1% Armor, up to +50% at 50 wins; a defeat or a battle fled from starts it again (new) |
 | 4 | With 10 wins or more in a row, your first turn in each battle comes 100 sooner |
 | 5 | **Claim Victory** (skill, capstone; once per battle, 2 AP): a weapon attack with double damage on an enemy below 30% HP; if it defeats it, your streak counts one more win |
 
-How it plays: a careful player's class: never lose, never run, and it stays at its best; ten wins rebuild the streak
-after a loss. Its finisher feeds the streak it lives on.
+*Your note, applied: The Conquerors Winning Streak is too weak. Increase it to a cap of 50 wins. (The draft capped it
+at +10% at 10 wins.)*
+
+How it plays: a careful player's class: never lose, never run, and it stays at its best. Its requirement is 50 wins in
+a row, so a Conqueror whose streak still holds starts at the full +50%; after a loss, fifty wins rebuild it. Its
+finisher feeds the streak it lives on.
 
 ## Martyr
 
@@ -703,3 +710,190 @@ goes.
 How it plays: the longer the fight, the less the same attack hurts: against an enemy that keeps casting one element,
 it soon shrugs it off. The Elemental Siphon turns the elements back on the enemy; the Chameleon simply stops minding
 them.
+
+# Batch 4: the next steps and the fighters with an element (for review)
+
+The first of the 42 more: the next step for eight of the new classes, each stronger than the class it grows from, as
+its rarity says (blue or purple), and the three fighters with an element besides the Cinderblade. Shapes (NC11): three
+get their passive at level 1, three their skill at level 1, two their skill at level 2 after a first feature, one its
+skill at level 3, two their passive at level 3; the capstone is a skill for five and a passive for six.
+
+## Bladestorm
+
+4 levels · rarity blue · Requires: Level 40 · Twinblade 6
+Identity: The Twinblade's mastery: both blades in a whirl of steel that reaches every enemy around it.
+
+| Level | Feature |
+|---|---|
+| 1 | **Whirling Blades** (passive): with a one-handed weapon in each hand, your attacks also strike every other enemy at 20% damage (new) |
+| 2 | Strength and Dexterity +5%; Evasion +5% |
+| 3 | In your attacks the off-hand weapon strikes at 75% of its damage (the Twinblade's 50% raised) |
+| 4 | **Bladestorm** (skill, capstone; once per battle, 3 AP): spin through the enemy: both your weapons strike every enemy at full damage |
+
+How it plays: the Twinblade fought one enemy at a time; the Bladestorm cuts into all of them with every attack, while
+Twin Rhythm still speeds it up. Against a crowd it is one of the strongest melee classes; against a lone boss it is a
+Twinblade with a sharper off-hand.
+
+## Transmuter
+
+5 levels · rarity purple · Requires: Level 50 · Catalyst 6 · Know spells of 8 elements
+Identity: The Catalyst perfected: turns one element into another mid-fight, changing statuses into others and
+reactions into chains.
+
+| Level | Feature |
+|---|---|
+| 1 | Your spells deal 10% more damage when their element differs from your last spell's |
+| 2 | Intelligence and Wisdom +5%; maximum Mana +10% |
+| 3 | **Transmute** (skill, once a turn, 1 AP): turn one status on an enemy into another element's status (an element whose spells you know), with the turns it has left (new) |
+| 4 | A reaction you set off leaves the target carrying your spell's own status, at the spell's usual chance (new) |
+| 5 | **Chain of Elements** (passive, capstone): when the status a reaction left (level 4) can react with another status the target still carries, that reaction follows at once at half strength, up to 2 more in a chain (new) |
+
+How it plays: the Catalyst needed the right statuses on the field; the Transmuter makes them: a Burning enemy becomes
+a Chilled one for the Fire spell to Melt, a Soaked one for the Lightning. At its capstone one spell sets off two or
+three reactions in a row.
+
+## Phantasmist
+
+4 levels · rarity blue · Requires: Level 40 · Illusionist 6
+Identity: Illusions that hurt: its phantoms strike like the real thing, and the enemy's own fear does the rest.
+
+| Level | Feature |
+|---|---|
+| 1 | An enemy that strikes one of your images is Hexed (1 stack: it deals 5% less damage per stack, up to 3) |
+| 2 | **Phantasm** (skill, once a turn, 2 AP): send a phantom at an enemy: it strikes as your strongest Basic damage spell would, at 70% power and without Mana, and Hexes it (1 stack) (new) |
+| 3 | Intelligence and Mind +5%; maximum Mana +10% |
+| 4 | **Dread** (passive, capstone): an enemy with 3 Hexed stacks loses its next turn (once per enemy in a battle), and Hexed enemies take 10% more damage from the party (new) |
+
+How it plays: the Illusionist only defended; the Phantasmist attacks with its illusions, a free spell each turn that
+leaves the enemy weaker and more afraid, until it freezes in terror. Task 12's Hexed is its fear.
+
+## Voidwalker
+
+5 levels · rarity purple · Requires: Level 50 · Riftmage 6
+Identity: Walks between places: steps through the void itself, and casts whole groups of enemies out of the fight.
+
+| Level | Feature |
+|---|---|
+| 1 | Basic spell power +10%; Rift sends enemies away 1 turn longer |
+| 2 | **Void Gate** (skill, once per battle, 3 AP): send up to 3 enemies (not bosses) out of the fight for 2 turns; each comes back Exposed (3 stacks) (new) |
+| 3 | Intelligence and Mind +5% |
+| 4 | Maximum HP and maximum Mana +10%; enemies coming back from a rift or the void act last (their turn bar starts at 0) |
+| 5 | **Voidstep** (passive, capstone): each single-target attack or spell aimed at you has a 25% chance to miss as you step through the void (new) |
+
+How it plays: in a large fight it empties most of the field for two turns, so the party fights one or two enemies at a
+time; it slips away from the blows aimed at it as easily as it sends enemies away.
+
+## Doppelganger
+
+4 levels · rarity purple · Requires: Level 45 · Mimic 5 · Defeat 80 different kinds of enemy
+Identity: Becomes its enemy: takes an enemy's shape, strength and tricks for a time, and fights it with its own power.
+
+| Level | Feature |
+|---|---|
+| 1 | **Take Shape** (skill, once per battle, 2 AP): become a copy of an enemy that isn't a boss for 3 turns: you take its stats where they are higher than yours, its resistances and its skills (usable as your own), and keep your HP, gear and own skills (new) |
+| 2 | Speed and Dexterity +5%; maximum HP +10% |
+| 3 | Take Shape lasts 4 turns, and works on a boss, giving half of how far its stats are above yours |
+| 4 | **Second Skin** (passive, capstone): in another's shape you deal 15% more damage and take 15% less from enemies of the kind you copied; when the shape ends, you keep its resistances for the rest of the battle (new) |
+
+How it plays: the Mimic copied one trick; the Doppelganger copies the whole enemy and adds its own power on top. It
+picks the most dangerous enemy on the field and becomes it; from level 3 even a boss.
+
+## Kingpin
+
+4 levels · rarity blue · Requires: Level 40 · Con Artist 4 · Informant 2
+Identity: Runs the underworld: thieves and informants work for it in every town, and hired muscle fights at its side.
+
+| Level | Feature |
+|---|---|
+| 1 | **Network** (passive): thieves and informants work for you in every town: each day you are paid 20 silver for each of your levels, and the hooded man's information costs you half the Reputation (new) |
+| 2 | Luck and Speed +5%; maximum HP +10% |
+| 3 | The Con Artist's Bribe costs you half and can be used twice per battle (still never on bosses) |
+| 4 | **Hired Muscle** (skill, capstone; once per battle, 2 AP): call two hired thugs who fight for the party until the battle ends, each with half your stats and a club (new) |
+
+How it plays: the Con Artist's road to the top: a daily income and cheaper secrets in town, two bribes a battle, and at
+its capstone a crew of its own in every fight.
+
+## Artificer
+
+5 levels · rarity blue · Requires: Level 35 · Enchanter 5 · Smith 3
+Identity: Makes magic that lasts: enchants artifacts and gear between battles, waking powers in them that no shop
+sells.
+
+| Level | Feature |
+|---|---|
+| 1 | **Imbue** (skill, in a town or at camp, once a day): give one weapon, armour or artifact a lasting enchantment in an element whose spells you know: a weapon's hits deal 10% extra damage of that element, armour gives 15 resistance to it, an artifact's effects become 10% stronger; one enchantment per item, replaced if imbued again (new) |
+| 2 | Intelligence and Mind +5% |
+| 3 | Your imbued enchantments are half again as strong (15% extra damage, 22 resistance, 15% stronger effects) |
+| 4 | Reforging an imbued item keeps its enchantment, and reforging costs you 20% less |
+| 5 | **Awakened Craft** (passive, capstone): your imbued items wake a second power: a weapon applies its element's status on 15% of its hits, armour makes that element's status on its wearer last 1 turn less, an artifact's effects are another 10% stronger (new) |
+
+How it plays: the Enchanter's magic lasted a battle; the Artificer's stays. A day at a time it outfits the whole party,
+companions too, and its work survives the forge. The Mastersmith makes better forged gear; the Artificer adds magic
+to any gear.
+
+## Warlord
+
+4 levels · rarity purple · Requires: Level 50 · Conqueror 5 · Strategist 5
+Identity: Leads the party from victory to victory: its winning streak carries every ally, and enemies falter before
+it.
+
+| Level | Feature |
+|---|---|
+| 1 | Enemies deal 1% less damage for every 5 wins of your Winning Streak, up to 10% less |
+| 2 | Strength and Vitality +5%; maximum HP +10% |
+| 3 | **Banner of Victory** (passive): your allies gain a quarter of your Winning Streak's bonus (up to +12% damage and Armor) (new) |
+| 4 | **Conquest** (skill, capstone; once per battle, 2 AP): for 3 turns every ally gains your full Winning Streak bonus |
+
+How it plays: the Conqueror's streak, up to +50% since the batch 3 note, now lifts the whole party: a quarter of it
+always, all of it for three turns once a battle, while the enemies weaken before a commander that hasn't lost in
+fifty fights.
+
+## Frostwarden
+
+6 levels · rarity no colour · Requires: Level 25 · Knight 5 · Know 5 Ice spells
+Identity: A defender wrapped in frost: whatever strikes it grows cold and slow, until it freezes in place.
+
+| Level | Feature |
+|---|---|
+| 1 | **Rime** (passive): an enemy that hits you with a melee attack has a 50% chance to be Chilled (Speed −10% a stack; a third stack Freezes it for its next turn) (new) |
+| 2 | Vitality +5%; Armor +5% |
+| 3 | Ice spells cost 10% less Mana and gain 5% power |
+| 4 | Maximum HP +10% |
+| 5 | Your weapon hits on a Chilled or Frozen enemy deal 15% more damage |
+| 6 | **Glacial Wall** (skill, capstone; once per battle, 2 AP): for 2 turns you take 30% less damage, and every enemy that attacks an ally is Chilled |
+
+How it plays: a knight that punishes being hit: the enemies that close in on it slow down and freeze, and its blows and
+the party's Fire spells (Melt) finish them. Task 12's Chilled and Frozen are its armour.
+
+## Stormblade
+
+5 levels · rarity no colour · Requires: Level 20 · Spellblade 3 · Know 5 Lightning spells
+Identity: Lightning in the blade: fast strikes that jolt enemies out of their turns.
+
+| Level | Feature |
+|---|---|
+| 1 | Your weapon hits deal 10% extra as Lightning damage |
+| 2 | Dexterity and Intelligence +5% |
+| 3 | **Static Charge** (passive): each weapon hit gives you a charge; at 3 charges your next hit uses them to Shock its target (it loses 1 AP at its next turn) and arc to another enemy for 50% as Lightning damage (new) |
+| 4 | Speed +5%; your turn bar fills 5% faster |
+| 5 | **Lightning Rush** (skill, capstone; once per battle, 2 AP): three quick strikes on random enemies at 60% damage each, each Shocking its target |
+
+How it plays: fast and relentless: every third hit jolts an enemy out of an AP and jumps to another, and once a battle
+it Shocks three at once. With Water spells on the field, its Lightning sets off Electrocute.
+
+## Thornguard
+
+5 levels · rarity no colour · Requires: Level 20 · Guardian 3 · Druid 3
+Identity: Grows thorns and roots: enemies that hit it tear themselves on its thorns, and those it strikes are held
+where they stand.
+
+| Level | Feature |
+|---|---|
+| 1 | **Entangling Strike** (skill, once a turn, 2 AP): a weapon attack with a 50% chance to Root the target for 2 turns (Evasion halved, can't flee); certain on a Cracked target, as Nature's Overgrowth (new) |
+| 2 | Vitality and Wisdom +5% |
+| 3 | Nature spells cost 10% less Mana; Armor +5% |
+| 4 | Maximum HP +10%; Rooted enemies deal 10% less damage to you |
+| 5 | **Thorns** (passive, capstone): enemies that hit you with a melee attack take 20% of the damage back as Nature damage, 30% if they are Rooted (new) |
+
+How it plays: a guardian that holds enemies in place and makes them pay for every blow; Earth's Cracked from the
+party's spells makes its roots certain. The Frostwarden slows its attackers; the Thornguard hurts them.
