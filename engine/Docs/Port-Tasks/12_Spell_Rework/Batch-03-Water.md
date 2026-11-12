@@ -1,6 +1,6 @@
 # Batch 3: Water (task 12)
 
-**Status: a draft for the user's review (SP2).** Every Water spell players can learn, reworked: 32 spells (Water has
+**Status: approved (2026-11-11, SP37), for the port (SP2).** Every Water spell players can learn, reworked: 32 spells (Water has
 no boss-only spell). They follow the approved system and curve (`Spell-Augmentation.md`), the sample's style
 (`Spell-Sample.md`) and the element statuses (`Element-Statuses.md`): each spell sets its status's chance and duration
 (SP32). Tiers and prices stay. "(new)" marks a mechanic the game doesn't have yet. [X] values are for the raw caster of

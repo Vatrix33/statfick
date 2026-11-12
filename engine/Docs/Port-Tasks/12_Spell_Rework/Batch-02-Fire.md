@@ -1,6 +1,6 @@
 # Batch 2: Fire (task 12)
 
-**Status: a draft for the user's review (SP2).** Every Fire spell players can learn, reworked: 31 spells (Vulcanic
+**Status: approved (2026-11-11, SP36), for the port (SP2).** Every Fire spell players can learn, reworked: 31 spells (Vulcanic
 Charge, the Vulcanic Ram's, is left out, SP4). They follow the approved system and curve (`Spell-Augmentation.md`), the
 sample's style (`Spell-Sample.md`, where Fire Bolt was approved) and the element statuses (`Element-Statuses.md`):
 each spell sets its status's chance and duration (SP32). Tiers and prices stay. "(new)" marks a mechanic the game

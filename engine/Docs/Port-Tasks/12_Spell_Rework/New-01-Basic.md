@@ -1,6 +1,6 @@
 # New spells 1: Basic (task 12)
 
-**Status: a draft for the user's review (SP2, SP3).** The task's new spells, element by element in the game's order:
+**Status: approved (2026-11-11, SP49), for the port (SP2, SP3).** The task's new spells, element by element in the game's order:
 two per element in each of Tiers 1–5 and one in each of Tiers 6–9, fourteen per element, 168 in all (SP3). Basic's
 fourteen are here, among them **Basic's summon** (SP34: Basic had none players can learn). They follow the approved
 system and curve (`Spell-Augmentation.md`), the sample's style and the element statuses (`Element-Statuses.md`).

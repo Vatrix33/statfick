@@ -1,9 +1,9 @@
 # The two new classes (task 12)
 
-**Status: a draft for the user's review (SP2), third version: stat bonuses with one passive and one skill (SP67), and
+**Status: approved (2026-11-12, SP69) and added to task 10's drafts (`../10_Class_Rework/`); the third version: stat bonuses with one passive and one skill (SP67), and
 passives that apply in full when gained (SP68: the user, "A passives effect always apply immediatly, not after another
-class level has been reached"; Spellweaving at Level 2, Rituals at Level 1 with one ritual).** The task's two classes, the Spellweaver and the Ritual Caster, for the port. Once approved they are
-added to task 10's drafts (`../10_Class_Rework/`), as task 11's racial classes were, and built with them. They follow
+class level has been reached"; Spellweaving at Level 2, Rituals at Level 1 with one ritual).** The task's two classes, the Spellweaver and the Ritual Caster, for the port. Like task 11's racial classes,
+they are now in task 10's drafts and are built with them. They follow
 task 10's rules and shape: levels give stat bonuses, and each class's mechanics sit in its one passive and its one skill
 (C21), the passive or the skill at the last level (the capstone rule), requirements within the game's kinds (C28),
 task 10's rarities. The mechanics they use were decided first: Spell Augmentation and its weavings (SP9–SP16, SP27,

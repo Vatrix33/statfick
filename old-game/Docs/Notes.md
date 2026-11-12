@@ -1088,7 +1088,7 @@ rule lives:
   HP passive (the Dwarf, same Vitality bonus) the Goliath has its 10% more. A balance point for the port's race review,
   not changed here.
 
-**Class Rework (port task 10; prepared 2026-11-10, a cloud session, not started; the task is
+**Class Rework (port task 10; designed 2026-11-10 to 2026-11-11, a cloud session, approved, for the port; the task is
 `engine/Docs/Port-Tasks/10_Class_Rework.txt`).** **Not built here** (C23, 2026-11-10): the old game's classes stay as
 they are, and the port builds the reworked set from the approved drafts, which then move to
 `engine/Docs/Port-Tasks/10_Class_Rework/`. The user's answers are
@@ -1106,6 +1106,20 @@ the classes here stay as they are. A class's `requirements` have five
 fields, not three: `level`, `classes` (all of them), `anyClasses` (one of them; 28 classes, the elemental mages'
 Spellcaster 7 or Wizard 7 among them), `other` and `excludes` (can't be held together: Hero and Demon Lord, Paladin and
 Oathsworn). The draft's first version missed the last two; the user caught it on Reaver.
+
+**Spell Rework (port task 12; designed 2026-11-11 to 2026-11-12, a cloud session, approved, for the port; the task is
+`engine/Docs/Port-Tasks/12_Spell_Rework.txt`).** **Not built here** (SP1): the spells in `objects/spells.json` stay as
+they are, and the port builds the reworked set, Spell Augmentation, the element statuses and the 168 new spells from
+the approved drafts in `engine/Docs/Port-Tasks/12_Spell_Rework/` (its README says what each file holds; decisions
+SP1–SP69 in `engine/Docs/Engine-Plan.md`, "Decisions for task 12, Spell Rework"). Its two classes, the Spellweaver and the
+Ritual Caster, are in task 10's drafts. What was read here for it: a spell's power is its base power plus a primary and
+a secondary stat times their multipliers (`calculateSpellValue` in `scripts/app.js`), its Mana cost and AP come from
+`calculateSpellManaCost` and `calculateSpellActionPoints` (3 AP unless the spell says otherwise), spells ignore Armor
+(several spells' "ignores n% of Armor" did nothing), a summon is a fixed enemy definition at its own level
+(`summonFriendly` in `scripts/combat.js`), and instant death today works on bosses too (`instant-death-per-thousand`;
+the rework makes bosses immune, SP46). The measurement behind its power curve (SP8): every enemy definition spawned in
+the headless test client against plain heroes of Levels 1–100 (`claude-work/t12/measure.js`, a browser script for
+`chromium.sh … --script … --call=t12measure`).
 
 **Small changes (2026-11-03, a cloud session; the user's list, every design choice asked first and recorded in
 `engine/Docs/Engine-Plan.md`, "Decisions for the old game's small changes").** Checked first that none of them gets in

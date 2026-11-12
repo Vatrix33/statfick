@@ -111,7 +111,8 @@ was merged, while M11's engine work went on; L1 kept its art placeholder), and t
 merged; W1 kept its 2D looks placeholder for the port's 3D map), and task 9 (asked for while task 8's pull request
 waited, into the same pull request, P1; P2 kept its art placeholder). Task 11 (asked for after task 10's design, on
 2026-11-11) is split (T1): its races, seals and looks in the old game, with placeholder art (T5); its racial classes
-in task 10's drafts for the port.
+in task 10's drafts for the port. Tasks 10 and 12 are not built in the old game at all: designed in drafts and built
+by the port (C23, 2026-11-10; SP1, 2026-11-11), with task 12's two classes added to task 10's drafts.
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
