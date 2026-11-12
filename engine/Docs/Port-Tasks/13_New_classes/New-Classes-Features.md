@@ -1,6 +1,6 @@
 # Task 13, New Classes: the features
 
-**Under review: the sample of four and batches 1–3 approved (2026-11-12, NC11–NC14); batch 4 written for review.** The level-by-level features of the 79 new
+**Under review: the sample of four and batches 1–4 approved (2026-11-12, NC11–NC15); batch 5 written for review.** The level-by-level features of the 79 new
 classes, made for the port (NC1). Each keeps the identity, levels, requirements and rarity approved in
 `New-Classes-Draft.md` (NC9). It starts with a sample of four, one class from each focus drawn at random, as task 10's
 features began (C20); the rest follow in batches once the sample is approved, the user's notes on each batch shaping
@@ -34,9 +34,11 @@ do and the port would need to add.
   ranged); Sniper, Poacher (rogue and ranged).
 - Batch 3 (approved 2026-11-12, the Winning Streak up to 50 wins): the nine without a focus: Prodigy, Steadfast,
   Equilibrist, Fateweaver, Conqueror, Martyr, Financier, Collector, Chameleon.
-- Batch 4 (for review), the first of the 42 more: the next step for eight new classes (Bladestorm, Transmuter,
+- Batch 4 (approved 2026-11-12), the first of the 42 more: the next step for eight new classes (Bladestorm, Transmuter,
   Phantasmist, Voidwalker, Doppelganger, Kingpin, Artificer, Warlord) and the fighters with an element (Frostwarden,
   Stormblade, Thornguard).
+- Batch 5 (for review): the melee extras (Lancer, Scourge, Shieldmaster, Grappler, Drunken Master, Skald,
+  Knight-Errant) and the ranged extras (Trickshot, Huntmaster, Bowmaster, Giantslayer, Lightbearer).
 
 # The sample of four (approved 2026-11-12)
 
@@ -711,7 +713,7 @@ How it plays: the longer the fight, the less the same attack hurts: against an e
 it soon shrugs it off. The Elemental Siphon turns the elements back on the enemy; the Chameleon simply stops minding
 them.
 
-# Batch 4: the next steps and the fighters with an element (for review)
+# Batch 4: the next steps and the fighters with an element (approved 2026-11-12)
 
 The first of the 42 more: the next step for eight of the new classes, each stronger than the class it grows from, as
 its rarity says (blue or purple), and the three fighters with an element besides the Cinderblade. Shapes (NC11): three
@@ -897,3 +899,213 @@ where they stand.
 
 How it plays: a guardian that holds enemies in place and makes them pay for every blow; Earth's Cracked from the
 party's spells makes its roots certain. The Frostwarden slows its attackers; the Thornguard hurts them.
+
+# Batch 5: the melee and ranged extras (for review)
+
+Seven melee and five ranged classes of the 42 more: weapons and fighting styles no class was built around (spear and
+lance, flail, shield, grappling, drinking), songs and the road, and the ranged path's trick shots, hunts, bows, giants
+and light. Shapes (NC11): four get their passive at level 1, two their skill at level 1, two their skill at level 2
+after a first feature, one its skill at level 3, one its skill at level 4, two their passive at level 3; the capstone
+is a skill for six and a passive for six. Shields add Armor only (the game has no block chance), so the Shieldmaster's
+blocks are the attacks it takes while Guarding.
+
+## Lancer
+
+5 levels · rarity no colour · Requires: Level 15 · Knight 3 · A spear or a lance equipped
+Identity: Fights at the length of a spear: charges each new enemy with a heavy first blow and keeps the rest at the
+point of its weapon.
+
+| Level | Feature |
+|---|---|
+| 1 | **First Blow** (passive): your first spear or lance hit on each enemy in a battle deals 40% more damage (new) |
+| 2 | Strength and Vitality +5% |
+| 3 | Spears and lances gain 10% Armor Pierce and 10% Accuracy |
+| 4 | An enemy that attacks you in melee is struck first by your weapon at 40% damage (once per enemy turn) (new) |
+| 5 | **Lance Charge** (skill, capstone; once per battle, 2 AP): charge an enemy: a hit with double damage that pushes its next turn back by 200 |
+
+How it plays: it opens on every enemy with a heavy blow, so it is at its best against many, and the enemies that come
+for it meet the point first. The Gladiator pins one enemy down; the Lancer greets each new one.
+
+## Scourge
+
+5 levels · rarity no colour · Requires: Level 15 · Warrior 5 · A flail equipped
+Identity: Fights with a flail: blows that wrap around shields and guards, hard to block and harder to predict.
+
+| Level | Feature |
+|---|---|
+| 1 | Your flail hits ignore what a Guard would stop and the Armor a shield gives (new) |
+| 2 | Strength and Luck +5% |
+| 3 | **Wild Swing** (skill, once per battle, 2 AP): a flail attack that strikes 2 to 4 times at random, at 50% damage each |
+| 4 | Flail Crit Rating +5; your critical flail hits deal 15% more damage |
+| 5 | **Unpredictable** (passive, capstone): enemies' Evasion counts only half against your flail attacks (new) |
+
+How it plays: the answer to enemies that hide behind shields, guard or dodge: its blows get around all three. The
+flail scales on Luck, so a lucky Scourge crits often.
+
+## Shieldmaster
+
+5 levels · rarity no colour · Requires: Level 20 · Heavy Knight 3
+Identity: The shield is its weapon too: every blow it blocks feeds a bash, and it fights as well with the shield as
+with the blade.
+
+| Level | Feature |
+|---|---|
+| 1 | **Shield Bash** (skill, once a turn, 2 AP): strike with your shield, as a one-handed mace of your level scaling with Vitality; it pushes the target's next turn back by 50 (new) |
+| 2 | Your shield's Armor +15% |
+| 3 | Vitality and Strength +5% |
+| 4 | Maximum HP +10%; each attack you take while Guarding makes your next Shield Bash 20% stronger, up to 3 times |
+| 5 | **Counterbash** (passive, capstone): when an enemy attacks you while you Guard, you bash it back at 50% (once per enemy turn) (new) |
+
+How it plays: it guards and bashes in turn; the more it's struck while guarding, the harder its next bash, and at its
+capstone every attack on its guard gets an answer. The Bulwark only holds the line; the Shieldmaster hits back.
+
+## Grappler
+
+5 levels · rarity no colour · Requires: Level 15 · Brawler 4
+Identity: Fights at the closest range: grabs one enemy and holds it, so that it can't act while the party works on it.
+
+| Level | Feature |
+|---|---|
+| 1 | Your unarmed hits deal 10% more damage; Strength +5% |
+| 2 | **Grapple** (skill, once per battle, 2 AP): grab an enemy that isn't a boss: it can't act on its next turn and can't dodge until then; while you hold it, your attacks go to it (new) |
+| 3 | Vitality +5%; maximum HP +10% |
+| 4 | Grapple can be used twice per battle; on a boss it pushes its next turn back by 200 instead |
+| 5 | **Chokehold** (passive, capstone): your unarmed hits on an enemy you hold deal 25% more damage and make it lose 1 AP at its next turn (new) |
+
+How it plays: it takes the most dangerous enemy out of the fight for a turn, twice a battle, and wears it down while
+it's held. The Monk stuns with a precise blow; the Grappler simply doesn't let go.
+
+## Drunken Master
+
+6 levels · rarity no colour · Requires: Level 20 · Brawler 3 · Drink 30 potions in battle
+Identity: Fights as if drunk, and often is: swaying and stumbling, impossible to predict, and harder to hit the more it
+has had.
+
+| Level | Feature |
+|---|---|
+| 1 | **Liquid Courage** (passive): each potion you drink in battle gives you 5% Evasion and 5% unarmed damage for the battle, up to 4 times (new) |
+| 2 | Drinking a potion in battle costs you 1 AP less |
+| 3 | Dexterity and Vitality +5% |
+| 4 | With at least one Liquid Courage, your unarmed attacks gain 10% Accuracy and 5 Crit Rating |
+| 5 | Maximum HP +10%; potions heal you 20% more |
+| 6 | **Drunken Flurry** (skill, capstone; once per battle, 2 AP): four staggering unarmed strikes on random enemies at 60% damage each, each with a 25% chance to leave its target Off-Balance |
+
+How it plays: it drinks to fight: the healing and buff potions it would use anyway make it harder to hit and harder
+hitting, and cost it less time. Task 9's potions are its stock.
+
+## Skald
+
+5 levels · rarity no colour · Requires: Level 15 · Warrior 5 · Bard 3
+Identity: The warrior-poet: battle songs that lift the party, roaring louder with every blow it lands.
+
+| Level | Feature |
+|---|---|
+| 1 | **War Chant** (passive): each of your weapon hits makes the party's weapon hits 2% stronger for the rest of the battle, up to +10% (new) |
+| 2 | Strength and Mind +5% |
+| 3 | Each of your weapon hits also heals the ally with the lowest HP for 2% of their maximum HP |
+| 4 | Maximum HP +10%; Vitality +5% |
+| 5 | **Saga** (skill, capstone; once per battle, 1 AP): for 3 turns War Chant's bonus is doubled and the party's turn bars fill 10% faster |
+
+How it plays: the Bard lifts the party with music and luck from the back; the Skald sings from the front line, and its
+song grows with every blow it lands. Five hits into a battle the whole party fights a tenth harder.
+
+## Knight-Errant
+
+5 levels · rarity no colour · Requires: Level 20 · Knight 3 · Complete 5 guild Escort quests
+Identity: The wandering knight who takes up causes: fights hardest for those in its care, on the road and on the
+field.
+
+| Level | Feature |
+|---|---|
+| 1 | Escort quests pay you 15% more, and in their ambushes the party takes 15% less damage |
+| 2 | Strength and Vitality +5% |
+| 3 | **Sworn Protector** (passive): at the start of each battle the ally with the lowest maximum HP becomes your ward: it takes 10% less damage, and you deal 20% more damage to every enemy that has hurt it (new) |
+| 4 | Maximum HP +10%; when your ward is hit, your next turn comes 50 sooner |
+| 5 | **Oath of the Road** (skill, capstone; once per battle, 1 AP): for 3 turns your ward can't fall below 1 HP |
+
+How it plays: it picks the party's most fragile member and fights for it: whoever hurts the ward becomes its target.
+The Guardian takes the blows for an ally; the Knight-Errant makes the enemy regret them. On the guild's Escort quests
+it is at home.
+
+## Trickshot
+
+5 levels · rarity no colour · Requires: Level 20 · Hotshot 3 · At least 80 Luck
+Identity: Shots no one else would try: arrows that ricochet to a second enemy, curve around cover and land where
+fortune puts them.
+
+| Level | Feature |
+|---|---|
+| 1 | **Ricochet** (passive): each ranged hit has a chance of a fifth of your Luck in percent (up to 40%) to ricochet to another enemy at 50% damage (new) |
+| 2 | Dexterity and Luck +5% |
+| 3 | Ranged weapon Accuracy +10%; ricochets can be critical hits |
+| 4 | A ricochet can bounce once more, to a third enemy at 25% damage |
+| 5 | **Impossible Shot** (skill, capstone; once per battle, 2 AP): a shot that ricochets through every enemy: full damage on the first, 60% on each other, each able to crit |
+
+How it plays: the Hotshot's quick shots, with luck on top: the more Luck, the more of them bounce on. At 80 Luck one
+shot in six ricochets; at 200 Luck two in five.
+
+## Huntmaster
+
+5 levels · rarity blue · Requires: Level 40 · Hunter 7 · Complete 5 Great Hunts
+Identity: Leads the Great Hunts: the bigger the quarry, the better it hunts, and the whole party hunts with it.
+
+| Level | Feature |
+|---|---|
+| 1 | **Call the Hunt** (skill, once per battle, 1 AP): name an enemy the quarry: for the battle every ally deals 10% more damage to it and has 15% more Accuracy against it, and your Hunter's Mark on it counts double (new) |
+| 2 | Dexterity and Speed +5% |
+| 3 | Great Hunts pay you 25% more money and Reputation; against a Great Hunt's quarry or a boss your weapon hits deal 15% more |
+| 4 | Maximum HP +10%; bow damage +10% |
+| 5 | **Pack Hunt** (passive, capstone): when an ally hits the quarry, your next attack on it deals 15% more, and when you hit it, the next ally attack on it does too (new) |
+
+How it plays: the Hunter's mark, made the whole party's: it names the quarry and everyone hunts it, each hit setting
+up the next. Built for the guild's Great Hunts and the bosses.
+
+## Bowmaster
+
+6 levels · rarity no colour · Requires: Level 25 · Archer 5 · Attack with 4 different kinds of bow
+Identity: Master of every bow: gets the most out of whatever it draws, from the shortbow to the ballista bow.
+
+| Level | Feature |
+|---|---|
+| 1 | All bows and crossbows gain 2 base power |
+| 2 | Ranged weapon Accuracy +10% |
+| 3 | **Masterful Draw** (passive): bows and crossbows gain 0.2× Dexterity and 0.2× Strength scaling (new) |
+| 4 | Each kind of bow gains a mastery: shortbow Speed +5%, longbow Accuracy +10%, warbow Armor Pierce +10%, ballista bow damage +10%, crossbow Crit Rating +5, compound bow Evasion +5% (new) |
+| 5 | Ranged weapon power +10%; Dexterity +5% |
+| 6 | **Arsenal** (skill, capstone; once per battle, no AP): switch to another bow from your pack and keep the previous one's mastery as well for 3 turns |
+
+How it plays: the archer's Weaponmaster: whatever bow it holds, it draws more from it, and each kind adds its own
+strength. Once a battle it swaps bows mid-fight and has the best of both.
+
+## Giantslayer
+
+6 levels · rarity no colour · Requires: Level 1 · Hunter 7 · Defeat 30 giants
+Identity: The hunter of giants: the bigger the enemy, the more surely it finds the weak spot.
+
+| Level | Feature |
+|---|---|
+| 1 | Your weapon hits deal 10% more damage to enemies with more maximum HP than you |
+| 2 | Dexterity and Vitality +5% |
+| 3 | Maximum HP +10% |
+| 4 | **Find the Weak Spot** (skill, once per battle, 1 AP): study an enemy: for the battle your attacks on it ignore 25% of its Armor and gain 10 Crit Rating, twice that on a giant (new) |
+| 5 | You take 15% less damage from enemies with more maximum HP than you |
+| 6 | **The Bigger They Are** (passive, capstone): your weapon hits deal 1% more damage for every 5% more maximum HP the target has than you, up to +40% (new) |
+
+How it plays: like the Drakeslayer and the Demon Hunter, the Hunter's path against one kind of foe, here the big ones:
+giants first, and anything with far more HP than it, bosses most of all.
+
+## Lightbearer
+
+5 levels · rarity no colour · Requires: Level 25 · Archer 5 · Priest 3
+Identity: Shoots light: its arrows mend the allies they pass and sear the undead and the dark.
+
+| Level | Feature |
+|---|---|
+| 1 | Your bow hits on the undead, demons, devils and impids deal 15% extra as Holy damage |
+| 2 | **Arrow of Light** (skill, once a turn, 2 AP): a bow shot that heals the ally with the lowest HP for 30% of the damage it deals (new) |
+| 3 | Wisdom and Dexterity +5% |
+| 4 | Holy spells cost 10% less Mana; the ally Arrow of Light heals is Blessed for 2 turns |
+| 5 | **Dawn's Reach** (passive, capstone): Arrow of Light also removes Hexed and Withered from the ally it heals, and your bow hits set off Purify on Hexed or Withered enemies as a Holy spell would (new) |
+
+How it plays: a healer that never stops shooting: each turn one shot mends an ally while it hurts an enemy, and against
+the undead and the demons of the Abyss its arrows burn. Task 12's Blessed and Purify carry its light.
