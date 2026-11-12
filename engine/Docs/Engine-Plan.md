@@ -2241,6 +2241,38 @@ The questions (2026-11-12, four at a time, the recommended option first):
   quest, the recommendation; not no Delve.)
 - DG60 **A vampire player meets the keep's dungeon like anyone:** Ravenwatch offers them the quest and they can enter;
   the keep stays open to them throughout. (Not the dungeon without the quest.)
+- DG61 **The dragon lair is on the mountain, the harpy dungeon in one of the port's new regions** (the user: "The
+  Dragons on the mountain, the Harpies dungeon will go to one of the new regions created in the port"): the dragon lair
+  on the Stoneveil Summit's Cloudbreak Ridge (88–92), below the Dragon Eyries; the harpy dungeon in one of task 8's three
+  regions the port makes (W27), which one in DG65. Nocturne Keep's dungeon is the keep itself. (Not both on the
+  mountain, the harpies in High Stoneveil's High Pass, the recommendation.)
+- DG62 **The keep's replay button gives only the lighter penalties:** a replay finished from it pays the boss's drops
+  and no guild reward; Ravenwatch's quest pays once. (Not the Delve's pay on every replay.)
+- DG63 **Before Ravenwatch's quest is done, the keep's dungeon can be entered without it,** as every dungeon can: the
+  hostile fortress outsiders find is its entrance, and without the quest the full penalties apply; finishing it
+  without the quest doesn't open the keep. (Not only with the quest.)
+- DG64 **A defeat in the keep's dungeon with the lighter penalties wakes the party in Ravenwatch,** always, the town
+  that gives the quest (not DG16's nearest settlement, which is the keep itself). (Not the nearest settlement the
+  player may enter, the recommendation.)
+- DG65 **The harpy dungeon is in the rocky highlands** east of the Alder Vale (task 8's `uncharted-highlands`, made in the
+  port, W27): their cliffs and crags hold the roost; the dungeon stays 50–56 whatever band the region is given. (Not the
+  steppe; not the delta; not left to the regions' design.)
+- DG66 **Ravenwatch's unique quest takes the Great Hunt slot** (the user's own answer: "It takes the Great Hunt slot"):
+  holding it means holding no Great Hunt, and the standard quest slot stays free. The other dungeons' Delves keep the
+  standard slot (DG21). (Not the standard slot, the recommendation; not a slot of its own.)
+- DG67 **The Dungeon Delver's "dungeon enemies" are every enemy fought inside a dungeon,** the bosses included, wherever
+  else that type lives; outside dungeons its bonuses against them are off. (Not only the dungeon-only types.)
+- DG68 **The boss is hidden on the overview until met:** its stage is marked as the boss's with a dark silhouette and
+  "???", named once the party has met it, and named on every later run. (Not named from the start; not always hidden.)
+- DG69 **The dungeon overview is a 3D scene:** the dungeon in the port's 3D renderer, the party moving from stage to
+  stage, with the task's information over it (the dungeon's name, the stage and the stages left, whether it is cleared,
+  the recommended levels, the party's HP and Mana, the Camping Supplies and other consumables, whether Camping
+  Supplies can be used now, whether the next stage is the boss's; DG68). (Not a 2D screen, the recommendation; not left
+  to the art pass.)
+- DG70 **The warning before every entry shows only the case that applies now** (without or with a Delve quest, or the
+  keep's button, DG59), in full and in large text, with a line that a Delve quest would lighten it when none is held,
+  the recommended levels, the Waylight choice (DG23) and a confirm button. (Not both cases with the applying one
+  marked, the recommendation.)
 
 **Decisions for task 13, New Classes (2026-11-12, a cloud session; the user: "Start with Task 13. For the new classes,
 the same rules apply as in Task 10"; the task is `Docs/Port-Tasks/13_New_classes.txt`).** Asked before any work, after
