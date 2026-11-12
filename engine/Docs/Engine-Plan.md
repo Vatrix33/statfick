@@ -1969,6 +1969,11 @@ reading task 10's decisions and drafts:
 - NC5 **Where:** drafted in `Docs/Port-Tasks/13_New_classes/` while under review; once approved, added to the end of
   task 10's two drafts, as tasks 11 and 12 did, so the port has every class in one place. (Not a folder of its own for
   good, not straight into task 10's files.)
+Where it stands (2026-11-12): the draft, `Docs/Port-Tasks/13_New_classes/New-Classes-Draft.md`, written for the user's
+review: the 37 by focus and 42 more (8 next steps for the new classes, 7 melee, 3 fighters with an element, 5 ranged,
+3 rogue, 7 spells, 9 without a focus), 51 without a colour, 22 blue, 4 purple, 2 gold; every identity checked against
+task 10's 175 and task 14's two, every required class checked to exist at that level, every requirement within a
+turn's 5 AP, the new counts listed at its end.
 
 **Decisions for task 12, Spell Rework (2026-11-11, a cloud session; the user: "Go ahead with Task 12"; the task is
 `Docs/Port-Tasks/12_Spell_Rework.txt`).** Asked before any work, after reading the old game's spells
