@@ -45,7 +45,15 @@ Before M11: M10 (scene and sequencer) done 2026-11-05 (the proof cutscene approv
 `github.com/Vatrix33/statfick`; the user's tasks for the port are in `Docs/Port-Tasks/`, read when the port starts
 ("Decision on the user's tasks for the port"; "Open questions for later milestones", "At port time"); tasks 1–9 are done
 in the old game, task 11 in the old game for its races, and tasks 10 and 12 are designed and approved for the port to
-build (the paragraphs below); task 13 is next.
+build (the paragraphs below); task 13 is being designed (below).
+**Port task 13, New Classes, is being designed for the port (started 2026-11-12, a cloud session),** like task 10:
+not built in the old game; drafted in `Docs/Port-Tasks/13_New_classes/` while under review, then added to the end of
+task 10's two drafts once approved (NC1, NC5). 79 new classes (NC2): the task's 37 by focus (4 melee, 4 ranged, 4
+spells, 4 from the rogue's path, 2 for each of the six pairs, 9 without a focus) and 42 more, so that players can
+acquire 250 (171 of task 10's 175 now; Raid Boss, Beast, Great Beast and Monster can't be had). Each focus class builds
+on its path, from any class on it, not only the starting class (NC3). One draft with all 79 (identity, levels,
+requirements, rarity; NC4), then the features in batches, as task 10. Decisions NC1 onward in "Decisions for task 13,
+New Classes" below. **Engine work goes on uninterrupted**; don't count task 13 as the engine's current task.
 **Beside the engine, old game only (2026-11-06): port task 2, Guild Rework, is done in the old game**, as task 1 was
 (the user's answer G1, "Decisions for task 2, Guild Rework" below; built on the cloud branch `claude/fervent-carson-f5ol9s`
 and merged through a pull request). The port doesn't build it again; only its two guild interiors, placeholder art, are
@@ -1940,6 +1948,27 @@ Asked after the regression run (2026-11-06):
 - L33 **The victory screen's EXP at your level cap** (Level 100 without Limitless, 200 with it), where you gain none
   (L18): it reads 0 EXP; companions below their cap still gain the battle's EXP. (Not the number with a note, not left
   showing the battle's EXP.)
+
+**Decisions for task 13, New Classes (2026-11-12, a cloud session; the user: "Start with Task 13. For the new classes,
+the same rules apply as in Task 10"; the task is `Docs/Port-Tasks/13_New_classes.txt`).** Asked before any work, after
+reading task 10's decisions and drafts:
+- NC1 **Task 10's rules apply** (the user's words when starting it): the classes are drafts for the port, not built
+  in the old game (C23); identities are a short playstyle without skills, passives or stat gains (C15); a class has one
+  passive and one skill, and its last level gives one of them (C21, the capstone rule); every level worth taking, power
+  by rarity, no self-defeating penalties (C20, C21); requirements a turn's 5 AP allows (C28); the four questions
+  (identity, levels, requirements, rarity) asked through one draft (C14), then the features in batches (C22).
+- NC2 **The count to 250 is of classes players can acquire:** 171 of task 10's 175 (not Raid Boss, Beast, Great Beast
+  or Monster), so 79 new: the task's 37 by focus and 42 more, their kinds my choice as the task says. With task 14's
+  two, players end with 252 (as the user meant, `Docs/Port-Tasks/README.md`). (Not all 175, which would make 75.)
+- NC3 **A focus class builds on its path in its requirements and its playstyle,** from any class on that path, not
+  only the starting class (the user: "A new melee focused class could branch off from Knight and a mage focused one
+  could branch off from Mage or Sorcerer ... they don't need to immediately branch off from a starting class"). The
+  pairs build on both their paths. (Not the rogue classes alone, not playstyle only.)
+- NC4 **One draft with all 79** (identity, levels, requirements, rarity), then the features in batches. (Not the 37
+  first and the 42 after, not a draft per focus group.)
+- NC5 **Where:** drafted in `Docs/Port-Tasks/13_New_classes/` while under review; once approved, added to the end of
+  task 10's two drafts, as tasks 11 and 12 did, so the port has every class in one place. (Not a folder of its own for
+  good, not straight into task 10's files.)
 
 **Decisions for task 12, Spell Rework (2026-11-11, a cloud session; the user: "Go ahead with Task 12"; the task is
 `Docs/Port-Tasks/12_Spell_Rework.txt`).** Asked before any work, after reading the old game's spells
