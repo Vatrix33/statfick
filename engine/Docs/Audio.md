@@ -735,10 +735,63 @@ as it was (the 61 performances' call logs, the scores and lint, the fixtures).
   parts read by the music's rule. `AudioMarksTests.cs`: the kinds, folders and rule (every name of the game's music
   both ways), the choices against the score's and composer's lists, the references with their kinds, folders,
   rules and conditions, units, help, the limits against the patch's check value for value, the patch's and the
-  order's problems at their paths, the committed `audio.pak`'s 118 records and the proof cutscene's three patches
+  order's problems at their paths, the committed `audio.pak`'s 118 records (126 since GM1 step 4's eight sound effects) and the proof cutscene's three patches
   passing every check, mark and reference. `MusicLibraryTests`: a theme the composer can't play refused at load
   (a pack, a loose file, a mod) with its entry and field, the older checks' words first, a loaded library's themes
   compiled by its check (equal to the score's) and a library given in code compiling as before.
+
+### The game's sound effects (GM1 step 4, 2026-11-13)
+
+The first sounds the port adds (`Docs/Game/Foundation.md`, "The sounds" and "How it works", step 4; GM1-11, Q13, Q14,
+Q22): GM1's eight interface sounds in a "paper and ink" character, each an effect patch made from the nodes and rules
+above (nothing new in `Engine/Statventure/Audio/`), chosen by the user by ear from two or three candidates each.
+- **Where they are:** the sources are the patches' JSON forms in `engine/Assets/Audio/effects/<name>.json`, each exactly
+  as `RecordSerializer.ToJson` writes it (so the pack's extraction gives them back); `make-music-data.sh` copies them
+  into the importer's folder as `audio/effects/<name>` and packs them into `audio.pak` with the music (126 entries: the
+  118 of the music and the 8; GM1-P16's rule: the importer reruns in about a second, headless, and gives the committed
+  pack back byte for byte, so no script of its own). The audio system registers each under its name when it starts
+  (S6-4); the game plays them by name (`Game/Statventure.Game/Sounds/SoundNames`, GM1 step 2; wired by step 8).
+- **The eight** (levels at the patch; "noise" layers through the filter named; delay, attack and length in ms):
+
+  | Sound | What it is | Layers | Patch level |
+  | --- | --- | --- | --- |
+  | `ui-press` | a bright, short quill scritch | noise bandpass 6 kHz Q 1.2, 0.5/12; sine 3800→3000 Hz, 0.5/8, level 0.25 | 0.7943 |
+  | `ui-toggle` | one soft, low quill stroke | noise bandpass 1.2→2.2 kHz over 50 ms, Q 2, 15/70 | 0.9226 |
+  | `ui-open` | a crisp, short paper crinkle | noise bandpass 3.5 kHz Q 0.7, 15/80; three crackles (bandpass 6, 4.5 and 5 kHz) at 8, 30 and 55 ms | 0.3311 |
+  | `ui-close` | a crisp, short fold | noise bandpass 4.5→2.2 kHz Q 0.8, 8/70; a crackle (5.5 kHz) at 15 ms; a pat (lowpass 900 Hz) at 50 ms | 0.3981 |
+  | `game-saved` | a low seal thump | sine 150→62 Hz, 3/160; noise lowpass 600 Hz, 2/50, level 0.6; a contact (bandpass 1.2 kHz), 1/12, level 0.3 | 0.3846 |
+  | `game-opened` | a heavy page turned | noise bandpass 0.7→2.5 kHz over 150 ms, Q 0.9, 70/160; a flap (lowpass 600 Hz) at 160 ms, 3/70, level 1.4 | 0.3467 |
+  | `ui-refused` | a tight, muted double knock | two knocks 80 ms apart, each a triangle (300→222 Hz, 2/35) and a contact (lowpass 1.4 kHz, 1/15), the second at 0.85 | 0.4315 |
+  | `game-deleted` | a sheet crumpled | five crackles (bandpass 1.8, 3.2, 1.2, 2.6, 1.6 kHz) at 0, 30, 55, 90, 130 ms over a soft bed (lowpass 500 Hz, 10/150, level 0.5) | 0.8318 |
+
+  Every voice ends within 0.3 s (63–283 ms), one sound per action, 4 voices a patch, no per-play ranges (a noise
+  layer's start in the noise already differs on every play).
+- **How they were made and judged** (offline, nothing heard by the session): each candidate rendered in Chromium's
+  OfflineAudioContext from the effect fixtures' own script at 48 kHz and measured at the first start's effects volume
+  (60 %, master 100 %): the peak, the envelope (5 and 10 ms frames), the spectrum (octave bands, the centroid) and the
+  loudness over the loudest 100 ms both K-weighted (BS.1770, "LK-100") and A-weighted ("LA-100"). The two disagree by
+  about 3 dB on the paper sounds and by 9–15 dB on the thump and the knocks (K-weighting hardly discounts the lows,
+  A-weighting, nearer the ear at soft levels, does much), so each candidate's level was set so their mean is −31.5 dB,
+  `ui-press` 3 dB under (−34.5), the most heard. The eight at 60 %: peaks −14.2 to −20.5 dBFS (nothing near clipping),
+  LK-100 −32.1 (`ui-press`) and −24.1 to −30.5; by the mean of the two about 9 dB under a theme at full volume (−24 to
+  −21 dB RMS, Docs/Scene.md, step 7's measure). The scratch tools and the candidates stay in the build cache
+  (`claude-work/gm1/step4/`), out of the repo.
+- **Listening:** `Tools/Scripts/play-sounds.sh [name …] [--volume 0-100] [--candidates <folder>]` (`Tools/PlayTheme`'s
+  `--effect` mode, Release, the public API only): each sound's name printed, played through the default device on the
+  effects bus, a pause of 1.2 s after its end, the next; no names play every effect in `audio.pak` by name; `--volume`
+  is the effects volume, 60 by default with the master at 100 (the game's first start, Q22); `--candidates` plays a
+  folder's `<name>.json` patches instead, a name playing each of its candidates (`ui-press`: `ui-press-a`, `-b` …), as
+  a milestone does to have its sounds approved. Each patch is played once silently first, so the code is compiled
+  before the first one heard. From a script only `--volume 0` or `ALSOFT_DRIVERS=null`.
+- **How it is checked:** a fixture per sound against Chromium (`AudioFixtures.GameSound`, named as the sound; 48 kHz,
+  0.35 s; Chromium plays the source's patch, the engine the patch its audio system registered from the committed
+  `audio.pak` under that name; exact with up to two layers, step 6's shuffled-sums rule with three or more; the renders
+  `Golden/audio/<sound>.f32.gz`, the same as the renders the user heard); `GameSoundsTests`: the sources are the eight,
+  each checked, in its JSON form and ending within 0.3 s; the pack holds exactly them, each the record its source
+  holds; each registers under its name and, played by it, sounds and is over (its last sample, its voice released)
+  within 0.3 s. `play-sounds.sh`'s and `make-music-data.sh`'s rules are checked by runners of the step's own (the first
+  through OpenAL Soft's wave-file writer as the device: what it prints, the order, the pauses, the effects volume, the
+  candidates, the refusals; the second: the pack made again byte for byte, an importer writing `audio/effects/` refused).
 
 ## Status
 
@@ -895,3 +948,6 @@ as it was (the 61 performances' call logs, the scores and lint, the fixtures).
   `EveryOutputHearsTheDefaultDeviceChange`, `AnOutputFollowsTheDefaultDeviceUntilItIsDisposed`; the first two fail
   with the old behaviour put back. The synthesizer's samples don't change (only which buffers reach OpenAL after
   an underrun), so the opt-in theme check wasn't run again.
+- **The game's sound effects (2026-11-13, GM1 step 4):** GM1's eight interface sounds, chosen by the user by ear, in
+  `audio.pak` (above, "The game's sound effects"; `Docs/Game/Foundation.md`, "How it works", step 4). Nothing in the
+  engine's audio changed (the patches use its nodes and rules as they are), so the opt-in theme check wasn't run again.

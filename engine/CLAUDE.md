@@ -60,9 +60,13 @@ the user and wait for their go-ahead before starting the next one.
   `Tools/Scripts/release.sh [--dry-run | --self-test]` makes a release, a draft on GitHub (a real one only on the user's word).
 - Audio (M8, `Docs/Audio.md`): `Tools/Scripts/play-theme.sh [theme] [--volume 0-100]` plays the music on the real
   device, to listen to it (in a real terminal; testing it from a script, send only volume 0).
+  `Tools/Scripts/play-sounds.sh [name ...] [--volume 0-100] [--candidates <folder>]` plays the game's sound effects the
+  same way (GM1 step 4, `Docs/Audio.md`, "The game's sound effects": every effect in `audio.pak` with no names; the
+  effects volume, 60 by default as the game's first start; `--candidates` a folder of patches to have approved by ear).
   `Tools/Scripts/audio-benchmark.sh [--split | --start [--warm] | --live | --effects] [theme ...]` times it (Release).
   References: `make-audio-references.sh [names]` (fixtures), `make-music-data.sh` (the music importer: the old
-  JavaScript's themes, instruments, percussion and rooms into `Assets/Packs/audio.pak`), `make-music-references.sh`,
+  JavaScript's themes, instruments, percussion and rooms, and the game's sound effects from `Assets/Audio/effects/`,
+  into `Assets/Packs/audio.pak`; on the PC from a script inside a headless compositor), `make-music-references.sh`,
   `make-native-references.sh`, `make-v8-math-reference.sh`. After changing the synthesizer also run `test-themes.sh`
   (about 20 minutes; `make-theme-references.sh` once per machine first, 2.6 GB in the build cache, half an hour or
   more); the normal suite doesn't need those.

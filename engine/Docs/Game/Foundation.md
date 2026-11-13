@@ -816,6 +816,12 @@ per-object seeds; sound effects keep `SoundEffects.Seed`. GM1 has no roll; the s
   the oldest voice of its patch (4 a patch).
 - **Approval:** the user listens with `Tools/Scripts/play-sounds.sh [name …] [--volume 0-100]` in a real terminal;
   sessions and scripts play only at volume 0.
+- **Approved (the user, 2026-11-13, by ear through `play-sounds.sh --candidates`, step 4's three candidates a, b, c
+  per sound, at the first start's effects 60 %; "b c c c a c c c"; no changes asked, the levels as heard):**
+  `ui-press` b (a bright, short scritch), `ui-toggle` c (one soft, low stroke), `ui-open` c (a crisp, short crinkle),
+  `ui-close` c (a crisp, short fold), `game-saved` a (the low seal thump), `game-opened` c (the heavy page),
+  `ui-refused` c (the tight, muted double knock), `game-deleted` c (a sheet crumpled). Their patches: "How it works",
+  step 4; `Docs/Audio.md`, "The game's sound effects".
 
 ### End to end, the package check and Windows
 
@@ -1269,6 +1275,15 @@ stays as it is until the manager's ok (the recapture's freeze).
    - Must not touch: `Engine/Statventure/Audio/` (a patch needing a new rule stops and reports), the game program.
    - Finished: stops with the eight patches playable by `play-sounds.sh`; after the verdict each patch's fixture matching
      Chromium by M8's rule, `audio.pak` made again and reproducible. User approval: each sound by ear.
+   - **Done (2026-11-13, the branch `gm1-step4`; "How it works", step 4):** three candidates a sound, rendered in
+     Chromium and measured offline, then the user's picks by ear (b c c c a c c c, levels as heard). The step's choices:
+     `make-music-data.sh` by GM1-P16's rule (it reruns in about a second and gives the pack back byte for byte), now
+     copying `Assets/Audio/effects/*.json` in; the sources in the record's exact JSON form; the fixtures at 48 kHz, named
+     as the sounds, the engine side playing the patch registered from the pack by name; the loudness set by the mean of
+     a K- and an A-weighted measure over the loudest 100 ms; no per-play ranges; `play-sounds.sh` playing every effect
+     in the pack with no names, `--candidates` kept for later milestones; outside the audio fixtures, the tests that pin
+     `audio.pak`'s content brought to it (the manager's leave): `MusicLibraryTests`, `AudioMarksTests`, four
+     `EntryListTests`, the ten editor screens' markup and 20 goldens.
 5. **Saves, settings and the randomness service.** After 2; Q1, Q2, Q3, Q9, Q19, Q21, Q22, Q23, GM1-P5, P6, P11 decided.
    - Owns: `Game/Statventure.Game.Data/Saves/` (the record, its marks and checks), `Game/Statventure.Game/Settings/`,
      `Session/`, `Random/` (their parts as "The seams" outline them), their tests and fixtures in
@@ -1479,6 +1494,54 @@ lines lay out as the old game's did. The values are read from the repo's copies 
   lines it had in a draft, which made it look like ✦. ✦ is partly filled.
 - ✺ was redrawn as solid pointed petals; rays round an empty middle had read as a ring at 16 px.
 
+### Step 4: the sounds (2026-11-13, the branch `gm1-step4`)
+
+The eight interface sounds (GM1-6, GM1-11, Q13, Q14, Q22) as effect patches, made from the engine's existing nodes and
+rules (nothing changed in `Engine/Statventure/Audio/`), chosen by the user by ear; `Docs/Audio.md`, "The game's sound
+effects", has their layers, the measures and the checks.
+- **Candidates first:** for each sound three candidates (a, b, c) that differ in what a listener notices (brighter or
+  duller, shorter or longer, more noise or more tone; for `game-deleted`, which Q14 gave no image of its own, three
+  images: a page torn, a name struck through, a sheet crumpled), each voice under 0.3 s. Each was rendered in Chromium's
+  OfflineAudioContext from the effect fixtures' own script at 48 kHz, measured at the first start's level (effects 60 %,
+  master 100 %: the envelope, the octave bands and centroid, the peak, the loudest 100 ms K-weighted and A-weighted), and
+  its patch level set so the mean of the two loudness measures is −31.5 dB, `ui-press` −34.5 (the most heard, the
+  quietest). The user listened with `play-sounds.sh --candidates` and to the WAV files of the renders.
+- **The user's picks (2026-11-13), one line each, the candidate in the scratch folder `claude-work/gm1/step4/candidates/`
+  each source is a byte-identical copy of:**
+  - `ui-press` = `ui-press-b`: the brighter, shorter scritch (noise at 6 kHz and a falling 3.8 kHz sine, 12 ms).
+  - `ui-toggle` = `ui-toggle-c`: one softer, lower stroke (noise swept 1.2 → 2.2 kHz, 70 ms).
+  - `ui-open` = `ui-open-c`: the crisp, short crinkle (noise at 3.5 kHz with three crackles, 80 ms).
+  - `ui-close` = `ui-close-c`: the crisp, short fold (noise swept 4.5 → 2.2 kHz, a crackle, a soft pat, 70 ms).
+  - `game-saved` = `game-saved-a`: the seal thump (a sine 150 → 62 Hz, a low press and a contact, 160 ms).
+  - `game-opened` = `game-opened-c`: the heavy page (a slow swish 0.7 → 2.5 kHz and a deep flap, 283 ms in all).
+  - `ui-refused` = `ui-refused-c`: the tighter, harder knocks (two at 300 Hz, 80 ms apart).
+  - `game-deleted` = `game-deleted-c`: a sheet crumpled (five irregular crackles over a soft bed).
+  The rejected candidates stay in the scratch folder, out of the repo. The levels are as heard: each pick already met
+  the set's target, so none changed.
+- **Where they are:** `Assets/Audio/effects/<name>.json` (each the record's JSON form exactly as `RecordSerializer`
+  writes it); `audio.pak` made again by `make-music-data.sh` (GM1-P16: its importer reruns in about a second, headless,
+  and gives the committed pack back byte for byte, fresh or reusing its entries, so no `make-sound-data.sh`; the script
+  now copies the sources in as `audio/effects/<name>` and refuses an importer that writes that folder itself): 126
+  entries. The audio system registers them under their names at the start (S6-4), for step 8's `GameUi.Sound(name)`.
+- **`play-sounds.sh [name …] [--volume 0-100] [--candidates <folder>]`** (`Tools/PlayTheme --effect`, the public API):
+  every effect in `audio.pak` by name when no names are given; each name printed, played on the effects bus, 1.2 s
+  after its end the next; the effects volume, 60 by default, the master at 100; `--candidates` kept for the later
+  milestones' approvals.
+- **Checks:** a fixture per sound against Chromium (`AudioFixtures.GameSound`, M8's rule: exact up to two layers, the
+  shuffled-sums rule with three or more; renders `Golden/audio/<sound>.f32.gz`, the same as the candidates' renders the
+  user heard, three of them within Chromium's summing order, 3e-8); `GameSoundsTests` (the sources are the eight, each
+  checked, in its JSON form, under 0.3 s; the pack holds exactly them; each registers under its name and, played by it,
+  sounds and is over within 0.3 s); the two scripts' rules by runners of the step's own.
+- **Tests outside the audio fixtures brought to the pack's new content** (the manager's leave, 2026-11-13, for that
+  only): `Audio/MusicLibraryTests.TheCommittedPackHoldsTheGamesMusic` (the effects are the eight, 118 + 8 entries),
+  `Audio/AudioMarksTests.TheCommittedPackPasses` (126 entries); `Editor/Opening/EntryListTests` (the game's `audio`
+  folder now lists `effects` first: `TheTreeListsThePacksEntriesOverTheGamesByPath`, `TheKeysMoveThroughTheTreeAndEnterOpens`,
+  `TheFilterKeepsWhatMatchesByPathOrKind`, `OnlyTheRowsNearThePanesViewAreMade` 312 → 313 rows); the ten editor screens
+  whose entry list shows the game's `audio` folder (checks-problems, import-again, import-path, import-replace,
+  list-marks, preview-cutscene, preview-effect, preview-model, references-list, saving-mod-info): their markup in
+  `Reference/editor-fixtures.json` as the tests write it and their 20 Chromium goldens `Golden/editor-<name>@1.png` and
+  `@1.65.png` captured again headless (only the `effects` row and what it moves differ).
+
 ## Status
 
 **Step 3 done (2026-11-13, the branch `gm1-step3`): the 28 icons' outlines and boxes, approved by the user.**
@@ -1489,6 +1552,13 @@ lines lay out as the old game's did. The values are read from the repo's copies 
 - The manager's four decisions are recorded: the icon face draws before any font, the generator is committed, two-meaning
   symbols carry over unchanged, and the smallest uses keep the style.
 - Nothing the solution builds or the tests read changed, so no full runs were due ("How it works", step 3).
+
+**Step 4 done (2026-11-13, the branch `gm1-step4`): the eight interface sounds,** approved by the user by ear
+(`ui-press` b, `ui-toggle` c, `ui-open` c, `ui-close` c, `game-saved` a, `game-opened` c, `ui-refused` c, `game-deleted`
+c; "How it works", step 4), in `Assets/Audio/effects/` and `audio.pak` (126 entries, made by `make-music-data.sh`,
+reproducible byte for byte), each a fixture against Chromium; `play-sounds.sh` for the ear. The full suite passes on the GPU and on lavapipe, inside a headless compositor under the shared lock: 3738 tests (`main`'s 3720 and 18 new: 8 fixtures, 10 in `GameSoundsTests`), none skipped; the player's real folders unchanged.
+Mutations: 5 of the tests' rules, all killed; 22 of the two scripts' rules by runners of the step's own, 21 killed (the
+silent warm-up plays only move the code's first compile off the first sound heard); the 0.3 s rule by hand.
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,

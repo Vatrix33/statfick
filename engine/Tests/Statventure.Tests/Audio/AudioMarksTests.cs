@@ -296,7 +296,7 @@ public class AudioMarksTests
         using var data = new VirtualFileSystem([Mount.Pack(TestMusic.Pack)]);
         using var pack = PackFile.Open(TestMusic.Pack);
         var kinds = new Kinds(pack);
-        Assert.Equal(118, pack.Entries.Count);
+        Assert.Equal(126, pack.Entries.Count);
         foreach (var entry in pack.Entries)
         {
             Assert.True(entry.IsRecord, entry.Path);

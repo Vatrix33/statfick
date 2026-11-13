@@ -1,0 +1,63 @@
+{
+  "$types": {
+    "audio.effect": 1,
+    "audio.effect-layer": 1,
+    "audio.effect-filter": 1
+  },
+  "layers": [
+    {
+      "source": "noise",
+      "frequency": 440,
+      "filter": {
+        "type": "bandpass",
+        "frequency": 3500,
+        "q": 0.7
+      },
+      "delay": 0,
+      "attack": 0.015,
+      "level": 1,
+      "length": 0.08
+    },
+    {
+      "source": "noise",
+      "frequency": 440,
+      "filter": {
+        "type": "bandpass",
+        "frequency": 6000,
+        "q": 1.5
+      },
+      "delay": 0.008,
+      "attack": 0.0005,
+      "level": 1,
+      "length": 0.006
+    },
+    {
+      "source": "noise",
+      "frequency": 440,
+      "filter": {
+        "type": "bandpass",
+        "frequency": 4500,
+        "q": 1.2
+      },
+      "delay": 0.03,
+      "attack": 0.0005,
+      "level": 0.9,
+      "length": 0.008
+    },
+    {
+      "source": "noise",
+      "frequency": 440,
+      "filter": {
+        "type": "bandpass",
+        "frequency": 5000,
+        "q": 2
+      },
+      "delay": 0.055,
+      "attack": 0.0005,
+      "level": 0.8,
+      "length": 0.01
+    }
+  ],
+  "level": 0.3311,
+  "maxVoices": 4
+}

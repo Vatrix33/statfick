@@ -1996,3 +1996,7 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   - ★ and ✸ have the heavier lit line, the user's answers at stop 2. The set was approved.
   - The icon face draws its code points before any font (the manager; GM1-P10 changed in that point).
   - The details are in `Docs/Game/Foundation.md`, "How it works", step 3.
+- **2026-11-13, GM1 step 4 done (the branch `gm1-step4`):** the eight interface sounds, chosen by the user by ear from
+  three candidates each (`ui-press` b, `ui-toggle` c, `ui-open` c, `ui-close` c, `game-saved` a, `game-opened` c,
+  `ui-refused` c, `game-deleted` c; the levels as heard), in `Assets/Audio/effects/` and `audio.pak`
+  (`Docs/Game/Foundation.md`, "How it works", step 4); `Tools/Scripts/play-sounds.sh` to listen.

@@ -61,7 +61,7 @@ public class EntryListTests
         Assert.Equal("mod", editor.Q(".entries-state").TextContent);
         Assert.True(editor.Q(".entries-notice").HasAttribute("hidden"));
         // Folders first, then entries, each by name; the top folders open, the rest closed.
-        Assert.Equal(["audio", "audio/instruments", "audio/percussion", "audio/rooms", "audio/themes", "audio/theme-order",
+        Assert.Equal(["audio", "audio/effects", "audio/instruments", "audio/percussion", "audio/rooms", "audio/themes", "audio/theme-order",
             "notes", "notes/todo.txt", "ui", "ui/fonts"], list.Visible());
         Assert.True(list.IsOpen("audio"));
         Assert.False(list.IsOpen("audio/rooms"));
@@ -266,9 +266,9 @@ public class EntryListTests
         Assert.Equal("audio", list.Active);
         Press("ArrowDown");
         Press("ArrowDown");
-        Assert.Equal("audio/percussion", list.Active);
-        Press("ArrowUp");
         Assert.Equal("audio/instruments", list.Active);
+        Press("ArrowUp");
+        Assert.Equal("audio/effects", list.Active);
         Press("End");
         Assert.Equal("ui/fonts", list.Active);
         Press("Home");
@@ -284,11 +284,12 @@ public class EntryListTests
         Assert.True(list.IsOpen("audio"));
         Assert.Equal("audio", list.Active);
         Press("ArrowRight");
-        Assert.Equal("audio/instruments", list.Active);
+        Assert.Equal("audio/effects", list.Active);
         // Left from an item goes to its folder; closing a folder moves the active item out of it.
         Press("ArrowLeft");
         Assert.Equal("audio", list.Active);
         // Enter opens a folder or an entry.
+        Press("ArrowDown");
         Press("ArrowDown");
         Press("ArrowDown");
         Press("ArrowDown");
@@ -393,7 +394,7 @@ public class EntryListTests
         // Escape empties it: the folders as they were.
         editor.Key("Escape", "Escape");
         Assert.Equal("", list.Filter.Value);
-        Assert.Equal(["audio", "audio/instruments", "audio/percussion", "audio/rooms", "audio/themes", "audio/theme-order",
+        Assert.Equal(["audio", "audio/effects", "audio/instruments", "audio/percussion", "audio/rooms", "audio/themes", "audio/theme-order",
             "notes", "notes/todo.txt", "ui", "ui/fonts"], list.Visible());
         Assert.Same(list.Filter, editor.Document.FocusedElement);
     }
@@ -415,7 +416,7 @@ public class EntryListTests
         list.Toggle("rooms/many");
         editor.Frame();
         var shown = list.Visible();
-        Assert.Equal(312, shown.Count);
+        Assert.Equal(313, shown.Count);
         // The rows made: those whose box meets the pane's view, and ten more on either side, between two spacers.
         void Check()
         {

@@ -1276,7 +1276,12 @@ the importer `Tools/Scripts/make-music-data.sh` with `Tools/AudioReference/music
   in the order a depth-first walk meets the types, fields in field order, a non-nullable default written,
   `-0` kept), then packs the folder with the packer into `engine/Assets/Packs/audio.pak` (118 entries, 57
   KB; unchanged entries keep their stored bytes). Extracting the pack gives the importer's files back byte
-  for byte (checked by hand).
+  for byte (checked by hand). **Since GM1 step 4 (2026-11-13; GM1-P16)** the script also copies the game's sound
+  effects, the JSON forms in `engine/Assets/Audio/effects/<name>.json` (their sources, committed), into the folder as
+  `audio/effects/<name>` before packing, refusing an importer that wrote `audio/effects/` itself: 126 entries (the
+  118 and GM1's eight; `Docs/Audio.md`, "The game's sound effects"). It reruns in about a second (Electron hidden; on
+  the PC from a script inside a headless compositor, in the cloud under Xvfb) and gives the committed pack back byte
+  for byte, fresh or reusing its entries, so the pack stays reproducible from the repo by this one script.
 - **Checks:** before `MusicData.g.cs` was deleted, a one-off test compared every pack-loaded record with it
   (55 themes in order, 34 instruments, 21 percussion voices, 7 rooms, the theme order): equal field for
   field and bit for bit, and each entry's content the binary form of the generated record (it failed on
@@ -1296,7 +1301,9 @@ the importer `Tools/Scripts/make-music-data.sh` with `Tools/AudioReference/music
   `audio-benchmark.sh --start` times a theme start as before.
 - **Later needs:** the library is read once, when the audio system starts; reloading it on
   `Data.Reloaded` is step 9's (Reload; done: `AudioSystem.Reload`, S9-D). The packer still rebuilds `audio.pak` whole from the importer's
-  folder: once the pack holds the port's effect patches too, the "update" command above is needed.
+  folder: once the pack holds the port's effect patches too, the "update" command above is needed. (GM1 step 4: not
+  for the effect patches, whose sources are committed in `Assets/Audio/effects/` and copied into that folder by
+  `make-music-data.sh`; still for entries made in the editor and saved into the pack.)
 
 ### Terrain in packs (step 8)
 

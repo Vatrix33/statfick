@@ -162,5 +162,29 @@ internal static partial class AudioFixtures
         // The overall limit: 34 patches in turn, the oldest fading as the 33rd and 34th start.
         var many = Enumerable.Range(0, 34).Select(i => ($"p{i}", $$"""{ "layers": [{ "source": "sine", "frequency": {{200 + i * 37}}, "length": 0.5 }], "level": 0.05 }""")).ToArray();
         yield return Fx("fx-overall-limit", 0.8, many, [.. Enumerable.Range(0, 34).Select(i => new EffectPlay(i * 0.006, $"p{i}"))], ShuffledSums);
+        foreach (var name in GameSounds.Names)
+            yield return GameSound(name);
+    }
+
+    /// <summary>
+    /// A game sound (GM1 step 4, named as the sound): Chromium plays its source's patch (engine/Assets/Audio/effects/)
+    /// once at volume 1; the engine plays the patch its audio system registered under that name from the committed
+    /// audio.pak, as the game plays it. 48 kHz, the PC's device rate, so its highs are in the render; 0.35 s, past the
+    /// 0.3 s each may last. Exact with up to two layers; three or more sum at the voice's gain in Chromium's changing
+    /// order, so step 6's shuffled-sums rule.
+    /// </summary>
+    static AudioFixture GameSound(string name)
+    {
+        const int Rate = 48000;
+        var json = GameSounds.Source(name).Trim();
+        var layers = RecordSerializer.FromJson<EffectPatch>(json).Layers.Length;
+        var script = EffectFunctions + $"const patch0 = {json};\nfxPlay(\"{name}\", patch0, 1, 0, 1);\n";
+        return F(name, 2, Rate * 35 / 100, Rate, script, r =>
+        {
+            var system = new AudioSystem(r.G, TestMusic.Library);
+            system.Effects.Play(name);
+            system.BeforeQuantum();
+            r.EveryQuantum.Add(system.BeforeQuantum);
+        }, layers <= 2 ? Exact : ShuffledSums) with { Quanta = true };
     }
 }
