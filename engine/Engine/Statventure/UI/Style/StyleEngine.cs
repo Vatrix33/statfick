@@ -134,7 +134,8 @@ public sealed class StyleEngine
 
     /// <summary>
     /// The initial style at the current zoom (the root's parent): Properties.Initial with the medium
-    /// font size zoomed (Blink's initial font-size is the medium keyword, computed with the zoom).
+    /// font size zoomed (Blink's initial font-size is the medium keyword, computed with the zoom), and the
+    /// registered custom properties' initial values (Blink's StyleInitialData).
     /// </summary>
     public ComputedStyle Initial
     {
@@ -142,7 +143,8 @@ public sealed class StyleEngine
         {
             if (_initial is null)
             {
-                if (_environment.Zoom == 1 && !SubpixelPositioning)
+                var registrations = Registrations;
+                if (_environment.Zoom == 1 && !SubpixelPositioning && registrations.Count == 0)
                     _initial = Properties.Initial;
                 else
                 {
@@ -150,6 +152,8 @@ public sealed class StyleEngine
                     _initial.FontSize *= _environment.Zoom;
                     _initial.Zoom = _environment.Zoom;
                     _initial.SubpixelPositioning = SubpixelPositioning;
+                    if (registrations.Count > 0)
+                        _initial.Custom = registrations.Values.ToDictionary(r => r.Name, r => r.Initial, StringComparer.Ordinal);
                     _initial.Finish();
                 }
             }
@@ -172,9 +176,41 @@ public sealed class StyleEngine
     void Invalidate()
     {
         _index = null;
+        _registrations = null;
+        _initial = null;
         _shared.Clear();
         Version++;
     }
+
+    // ---------- Registered custom properties (@property) ----------
+
+    Dictionary<string, PropertyRegistration>? _registrations;
+    PropertyRegistration[] _notInherited = [];
+
+    /// <summary>
+    /// The custom properties the sheets' @property rules register (StyleEngine::AddPropertyRules: the sheets in order,
+    /// a later valid rule of a name winning; a rule that doesn't register its property changes nothing).
+    /// </summary>
+    public IReadOnlyDictionary<string, PropertyRegistration> Registrations
+    {
+        get
+        {
+            if (_registrations is null)
+            {
+                var registrations = new Dictionary<string, PropertyRegistration>(StringComparer.Ordinal);
+                foreach (var sheet in _sheets)
+                    foreach (var rule in sheet.PropertyRules)
+                        if (PropertyRegistration.Validate(rule).Registration is { } registration)
+                            registrations[registration.Name] = registration;
+                _notInherited = [.. registrations.Values.Where(r => !r.Inherits)];
+                _registrations = registrations;
+            }
+            return _registrations;
+        }
+    }
+
+    /// <summary>The registration of a custom property, or null when it isn't registered.</summary>
+    public PropertyRegistration? Registration(string name) => Registrations.GetValueOrDefault(name);
 
     /// <summary>Sets the viewport and preferences; the rule set is rebuilt if any media query changes.</summary>
     public void SetEnvironment(MediaEnvironment environment)
@@ -553,7 +589,9 @@ public sealed class StyleEngine
     /// (for blockification inside flex and grid containers). Elements with the same matched rules,
     /// style attribute and parent style share one result.
     /// </summary>
-    public ElementStyles Compute(UiElement element, ComputedStyle? parent, ComputedStyle? layoutParent, float rootFontSize)
+    /// <param name="overrides">Animated custom properties' values (the animation origin's, over the cascaded ones; <see cref="AnimationEngine.CustomOverrides"/>).</param>
+    public ElementStyles Compute(UiElement element, ComputedStyle? parent, ComputedStyle? layoutParent, float rootFontSize,
+        IReadOnlyDictionary<string, List<CssToken>?>? overrides = null)
     {
         StylesComputed++;
         var index = EnsureIndex();
@@ -563,7 +601,7 @@ public sealed class StyleEngine
         // Elements with the same rules, style attribute and parent style get the same styles (shared);
         // an SVG element's transform hint is shared by its text, so it can be part of the key.
         var transformHint = hints is [{ Property: "transform" } only] ? only : null;
-        var shareable = !isRoot && (hints is null || transformHint is not null);
+        var shareable = !isRoot && (hints is null || transformHint is not null) && overrides is not { Count: > 0 };
         if (shareable)
         {
             _probe.Set(_matched, element.GetAttribute("style"), parent, Blockifies(layoutParent), element.Tag is "input" or "textarea", rootFontSize,
@@ -589,7 +627,7 @@ public sealed class StyleEngine
         var important = new HashSet<string>(StringComparer.Ordinal);
         var authored = element.IsFormControl || element.Tag is "progress" or "meter" ? new HashSet<string>(StringComparer.Ordinal) : null;
         var winners = Cascade(normal, element.PreparedInlineStyle, important, hints, authored);
-        var style = ComputeStyle(winners, parent, layoutParent, isRoot, isRoot ? 16 : rootFontSize);
+        var style = ComputeStyle(winners, parent, layoutParent, isRoot, isRoot ? 16 : rootFontSize, overrides: overrides);
         // An outermost svg element stops decorations too.
         if (IsOutermostSvg(element))
         {
@@ -847,51 +885,69 @@ public sealed class StyleEngine
     UnitContext Units(float specifiedFontSize, float rootSpecifiedFontSize, float lineHeight = 0) =>
         new(specifiedFontSize, rootSpecifiedFontSize, _environment.Width, _environment.Height, lineHeight, _environment.Zoom);
 
-    ComputedStyle ComputeStyle(Dictionary<string, PreparedDeclaration> winners, ComputedStyle? parent, ComputedStyle? layoutParent, bool isRoot, float rootFontSize, bool pseudoBox = false, bool highlight = false)
+    /// <summary>
+    /// An element's custom properties (StyleCascade with CustomProperty::ApplyValue, ApplyInherit, ApplyInitial): the
+    /// parent's, a registered one that doesn't inherit starting from its initial value; the cascaded declarations
+    /// (CSS-wide keywords as for any property: inherit takes the parent's value, initial a registered property's
+    /// initial value or none, unset and revert either by whether it inherits); the animated values over them
+    /// (<paramref name="overrides"/>, the animation origin's); var() then substituted among them (a cycle or a
+    /// reference to nothing invalid at computed-value time; a value that comes to one CSS-wide keyword taken as that
+    /// keyword). A registered property's value is computed (<see cref="PropertyRegistration.ComputeColor"/>); invalid at
+    /// computed-value time it takes its unset value (inherit, or initial when it doesn't inherit), an unregistered one
+    /// is guaranteed-invalid (absent).
+    /// </summary>
+    Dictionary<string, List<CssToken>> CustomProperties(Dictionary<string, PreparedDeclaration> winners, ComputedStyle parentStyle,
+        IReadOnlyDictionary<string, List<CssToken>?>? overrides)
     {
-        var initial = Initial;
-        var parentStyle = parent ?? initial;
-        var style = new ComputedStyle { Zoom = _environment.Zoom, SubpixelPositioning = SubpixelPositioning };
-        foreach (var property in Properties.Inherited)
-            property.Copy(style, parentStyle);
-        style.Custom = parentStyle.Custom;
-
-        // Custom properties: cascade, then substitute var() among them.
+        var registrations = Registrations;
+        var custom = parentStyle.Custom;
+        var own = false;
+        void Set(string name, List<CssToken>? value)
+        {
+            if (!own)
+            {
+                custom = new Dictionary<string, List<CssToken>>(custom, StringComparer.Ordinal);
+                own = true;
+            }
+            if (value is null)
+                custom.Remove(name);
+            else
+                custom[name] = value;
+        }
+        foreach (var registration in _notInherited)
+            if (!ReferenceEquals(custom.GetValueOrDefault(registration.Name), registration.Initial))
+                Set(registration.Name, registration.Initial);
+        List<CssToken>? InitialOf(string name) => registrations.GetValueOrDefault(name)?.Initial;
+        List<CssToken>? Inherited(string name) => parentStyle.Custom.GetValueOrDefault(name) ?? InitialOf(name);
+        List<CssToken>? Unset(string name) => registrations.TryGetValue(name, out var r) && !r.Inherits ? r.Initial : Inherited(name);
+        List<CssToken>? ByKeyword(string name, string keyword) => keyword switch
+        {
+            "inherit" => Inherited(name),
+            "initial" => InitialOf(name),
+            _ => Unset(name),
+        };
         Dictionary<string, List<CssToken>>? raw = null;
         foreach (var (name, declaration) in winners)
         {
-            if (!declaration.IsCustom)
+            if (!declaration.IsCustom || overrides?.ContainsKey(name) == true)
                 continue;
-            if (raw is null)
+            if (declaration.Keyword is { } keyword)
+                Set(name, ByKeyword(name, keyword));
+            else if (declaration.HasVar)
             {
-                raw = new Dictionary<string, List<CssToken>>(StringComparer.Ordinal);
-                style.Custom = new Dictionary<string, List<CssToken>>(parentStyle.Custom, StringComparer.Ordinal);
+                (raw ??= new Dictionary<string, List<CssToken>>(StringComparer.Ordinal))[name] = declaration.Value;
+                Set(name, null);
             }
-            switch (declaration.Keyword)
-            {
-                case "inherit" or "unset" or "revert":
-                    if (parentStyle.Custom.TryGetValue(name, out var inherited))
-                        style.Custom[name] = inherited;
-                    else
-                        style.Custom.Remove(name);
-                    break;
-                case "initial":
-                    style.Custom.Remove(name);
-                    break;
-                default:
-                    if (declaration.HasVar)
-                    {
-                        raw[name] = declaration.Value;
-                        style.Custom.Remove(name);
-                    }
-                    else
-                        style.Custom[name] = declaration.Value;
-                    break;
-            }
+            else if (registrations.ContainsKey(name))
+                Set(name, PropertyRegistration.ComputeColor(declaration.Value) ?? Unset(name));
+            else
+                Set(name, declaration.Value);
         }
+        if (overrides is not null)
+            foreach (var (name, value) in overrides)
+                Set(name, value);
         if (raw is { Count: > 0 })
         {
-            var custom = style.Custom;
             var resolving = new HashSet<string>(StringComparer.Ordinal);
             var failed = new HashSet<string>(StringComparer.Ordinal);
             List<CssToken>? Resolve(string name)
@@ -908,17 +964,36 @@ public sealed class StyleEngine
                 }
                 var substituted = Substitute(value, custom, Resolve);
                 resolving.Remove(name);
+                List<CssToken>? result;
                 if (substituted is null || failed.Contains(name))
                 {
                     failed.Add(name);
-                    return null;
+                    result = registrations.ContainsKey(name) ? Unset(name) : null;
                 }
-                custom[name] = substituted;
-                return substituted;
+                else if (WideKeyword(substituted) is { } keyword)
+                    result = ByKeyword(name, keyword);
+                else if (registrations.ContainsKey(name))
+                    result = PropertyRegistration.ComputeColor(substituted) ?? Unset(name);
+                else
+                    result = substituted;
+                Set(name, result);
+                return result;
             }
             foreach (var name in raw.Keys)
                 Resolve(name);
         }
+        return custom;
+    }
+
+    ComputedStyle ComputeStyle(Dictionary<string, PreparedDeclaration> winners, ComputedStyle? parent, ComputedStyle? layoutParent, bool isRoot, float rootFontSize, bool pseudoBox = false, bool highlight = false,
+        IReadOnlyDictionary<string, List<CssToken>?>? overrides = null)
+    {
+        var initial = Initial;
+        var parentStyle = parent ?? initial;
+        var style = new ComputedStyle { Zoom = _environment.Zoom, SubpixelPositioning = SubpixelPositioning };
+        foreach (var property in Properties.Inherited)
+            property.Copy(style, parentStyle);
+        style.Custom = CustomProperties(winners, parentStyle, overrides);
 
         var context = new StyleContext
         {
@@ -1041,7 +1116,7 @@ public sealed class StyleEngine
         _ => display,
     };
 
-    static string? WideKeyword(List<CssToken> value)
+    internal static string? WideKeyword(List<CssToken> value)
     {
         var trimmed = CssParser.Trim(value);
         if (trimmed.Count == 1 && trimmed[0].Type == CssTokenType.Ident)

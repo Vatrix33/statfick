@@ -270,7 +270,8 @@ public class EngineKindMarksTests
     /// <summary>
     /// Everything of these kinds that loads today keeps every check: each kind's fixtures, the test models and the
     /// test terrain as imported, the proof's particle effects, the test sequence, the state machines, the compiled
-    /// copy of the game's stylesheet and the reference scenes' effects; the committed packs hold none of these kinds.
+    /// copy of the game's stylesheet, the reference scenes' effects and the committed packs' records of these kinds
+    /// (ui.pak's stylesheet).
     /// (The proof's sequence against its data: <see cref="SequenceDataCheckTests"/>.)
     /// </summary>
     [Fact]
@@ -297,12 +298,22 @@ public class EngineKindMarksTests
         foreach (var effect in Scenes3D.All.SelectMany(s => s.Particles).Select(e => e.Effect).Distinct())
             Keeps(effect, "a reference scene's effect");
         Assert.True(checkedCount > 40, $"{checkedCount}");
+        // The committed packs' records of these kinds (since GM1 step 1a ui.pak's stylesheet, ui/styles/game) keep them too.
+        var inPacks = 0;
         foreach (var file in Directory.GetFiles(TestPaths.Packs, "*.pak"))
         {
             using var pack = PackFile.Open(file);
             foreach (var entry in pack.Entries.Where(e => e.IsRecord))
-                Assert.DoesNotContain(RecordSerializer.RootTypeName(pack.Read(entry)), Kinds.Keys);
+            {
+                var bytes = pack.Read(entry);
+                if (Kinds.TryGetValue(RecordSerializer.RootTypeName(bytes), out var kind))
+                {
+                    Keeps(RecordSerializer.FromBinary(kind, bytes), $"{Path.GetFileName(file)}'s {entry.Path}");
+                    inPacks++;
+                }
+            }
         }
+        Assert.True(inPacks >= 1, "no committed pack holds a record of these kinds");
     }
 
     // ---------- References ----------

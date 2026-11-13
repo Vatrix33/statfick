@@ -221,7 +221,7 @@ public sealed partial class UiPainter
         var x = exact.X + (exact.Width - layout.Width) / 2;
         var y = SnapBaseline(exact.Y + (exact.Height - layout.Height) / 2, layout);
         _canvas.PushClip(content);
-        _canvas.DrawText(layout, new Vector2(x, y), style.Color);
+        _canvas.DrawText(layout, new Vector2(x, y), FillOf(style));
         _canvas.PopClip();
     }
 
@@ -232,20 +232,53 @@ public sealed partial class UiPainter
     /// </summary>
     void PaintTextField(LayoutBox box, UiElement element, RectF content)
     {
-        var editor = content;
         var type = element.InputType;
         if (type == "number" && SpinButtonOf(box, element, _shift) is { } spin)
-        {
-            editor = editor with { Width = MathF.Max(0, editor.Width - spin.Width) };
             PaintSpinButton(element, spin);
-        }
         else if (type == "search" && CancelButtonOf(box, element, _shift) is { } cancel)
-        {
-            editor = editor with { Width = MathF.Max(0, cancel.Button.X - cancel.MarginLeft - editor.X) };
             PaintCancelButton(element, cancel.Button);
-        }
-        PaintFieldText(box, element, content, editor, element.EditorText);
+        PaintFieldText(box, element, content, EditorOf(box, element, content), element.EditorText);
         PaintFieldSelection(box, element);
+    }
+
+    /// <summary>A single-line field's editor: the content box less the number field's spin button or the search field's cancel button.</summary>
+    RectF EditorOf(LayoutBox box, UiElement element, RectF content)
+    {
+        if (element.InputType == "number" && SpinButtonOf(box, element, _shift) is { } spin)
+            return content with { Width = MathF.Max(0, content.Width - spin.Width) };
+        if (element.InputType == "search" && CancelButtonOf(box, element, _shift) is { } cancel)
+            return content with { Width = MathF.Max(0, cancel.Button.X - cancel.MarginLeft - content.X) };
+        return content;
+    }
+
+    /// <summary>
+    /// A control's text alone, for a text mask (kTextClip paints the text of its inner elements, not their theme parts):
+    /// a field's value or placeholder in its editor, a button's label, a text area's text, a menu list's label.
+    /// </summary>
+    void PaintControlText(LayoutBox box, UiElement element)
+    {
+        var placed = Placed(box);
+        var content = Snap(new RectF(placed.X + box.ContentLeft, placed.Y + box.ContentTop, box.ContentWidth, box.ContentHeight));
+        switch (element.Tag)
+        {
+            case "input":
+                switch (element.InputType)
+                {
+                    case "checkbox" or "radio" or "color" or "file" or "hidden" or "range":
+                        return;
+                    case "submit" or "reset" or "button":
+                        PaintCenteredLabel(box, ReplacedContent.InputButtonLabel(element), content);
+                        return;
+                }
+                PaintFieldText(box, element, content, EditorOf(box, element, content), element.EditorText);
+                return;
+            case "textarea":
+                PaintFieldText(box, element, content, content, element.EditorText, multiline: true);
+                return;
+            case "select":
+                PaintSelect(box, element, content);
+                return;
+        }
     }
 
     /// <summary>The number field's spin button (null when its part has appearance or display none, or the field's look is textfield).</summary>
@@ -350,13 +383,13 @@ public sealed partial class UiPainter
                 _ => TextAlign.Left,
             },
         };
-        var color = textStyle.Color;
+        var color = FillOf(textStyle);
         // A textarea's text scrolls inside its padding box; a one-line field's inside its editor.
         var rect = Placed(box);
         var clip = multiline ? new RectF(rect.X + box.Border.Left, rect.Y + box.Border.Top, box.PaddingBoxWidth, box.PaddingBoxHeight) : editor;
         // The focused field holds the page's selection: its selected range paints as Blink paints selected text.
         var (start, end, _) = element.EditorSelection;
-        if (text == value && start != end && _document.FocusedElement == element && FieldGeometry.Of(_document, box, element, _shift) is { } geometry)
+        if (!_textClip && text == value && start != end && _document.FocusedElement == element && FieldGeometry.Of(_document, box, element, _shift) is { } geometry)
         {
             _canvas.PushClip(clip);
             PaintFieldTextSelected(geometry, style, color, start, end);
@@ -458,7 +491,8 @@ public sealed partial class UiPainter
 
     void PaintFieldRun(TextLayout layout, GlyphRun run, Vector2 origin, ComputedStyle style, Color color)
     {
-        DrawTextShadows(run, origin, style, run.Width);
+        if (!_textClip)
+            DrawTextShadows(run, origin, style, run.Width);
         var decorations = FieldRunDecorations(style, layout, run, origin);
         if (decorations is not null)
             PaintDecorationLines(decorations, lineThrough: false);
@@ -518,7 +552,7 @@ public sealed partial class UiPainter
         // The text sits where layout put the inner block; the clip is on whole pixels.
         var exact = ExactContent(box, _shift);
         _canvas.PushClip(textArea);
-        _canvas.DrawText(layout, new Vector2(exact.X + start, SnapBaseline(exact.Y + (exact.Height - layout.Height) / 2, layout)), style.Color);
+        _canvas.DrawText(layout, new Vector2(exact.X + start, SnapBaseline(exact.Y + (exact.Height - layout.Height) / 2, layout)), FillOf(style));
         _canvas.PopClip();
     }
 

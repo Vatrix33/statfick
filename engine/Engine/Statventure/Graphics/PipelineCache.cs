@@ -19,6 +19,8 @@ public enum BlendMode
     Screen,
     /// <summary>LCD text: per-channel coverage through dual-source blending (needs dualSrcBlend).</summary>
     DualSourceLcd,
+    /// <summary>Keeps what is there where the source covers it: result = destination × source alpha (Skia's kDstIn, a mask layer).</summary>
+    DestinationIn,
 }
 
 /// <summary>
@@ -207,6 +209,7 @@ public sealed unsafe class PipelineCache : IDisposable
             BlendMode.Multiply => State(VkBlendFactor.DstColor, VkBlendFactor.OneMinusSrcAlpha, VkBlendFactor.Zero, VkBlendFactor.One),
             BlendMode.Screen => State(VkBlendFactor.One, VkBlendFactor.OneMinusSrcColor, VkBlendFactor.Zero, VkBlendFactor.One),
             BlendMode.DualSourceLcd => State(VkBlendFactor.One, VkBlendFactor.OneMinusSrc1Color, VkBlendFactor.One, VkBlendFactor.OneMinusSrc1Alpha),
+            BlendMode.DestinationIn => State(VkBlendFactor.Zero, VkBlendFactor.SrcAlpha, VkBlendFactor.Zero, VkBlendFactor.SrcAlpha),
             _ => State(VkBlendFactor.One, VkBlendFactor.OneMinusSrcAlpha, VkBlendFactor.One, VkBlendFactor.OneMinusSrcAlpha),
         };
     }

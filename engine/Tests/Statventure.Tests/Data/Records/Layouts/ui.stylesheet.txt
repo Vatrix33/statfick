@@ -2,3 +2,9 @@ ui.stylesheet 1
   1 rules: list<ui.style-rule> (required)
   2 keyframes: list<ui.keyframes> (required)
   3 fontFaces: list<ui.font-face> (required)
+
+ui.stylesheet 2
+  1 rules: list<ui.style-rule> (required)
+  2 keyframes: list<ui.keyframes> (required)
+  3 fontFaces: list<ui.font-face> (required)
+  4 properties: list<ui.property-rule> = []

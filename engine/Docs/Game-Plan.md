@@ -2016,3 +2016,9 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   from the characters' names) and the randomness service (`xoshiro256**` through SplitMix64); the user's Q25 ("Start
   new" with nothing readable names the character by the slot's file name, not the recommendation) and Q26 (the save left
   out of the editor's New entry) answered on the way ("GM1's detail round").
+- **2026-11-13, GM1 step 1a done (the branch `gm1-step1a`):** today's stylesheet in the engine
+  (`Docs/Game/Foundation.md`, "How it works", step 1a).
+  - *The rules:* `@property` (registered `<color>` custom properties), `-webkit-text-fill-color` and
+    `background-clip: text`, ported from Blink with Chromium fixtures at 1 and 1.65.
+  - *The pack:* the port's stylesheet `Assets/UI/styles/game.css` is compiled into `ui.pak` as `ui/styles/game`.
+  - *For 1b:* a text field's text sits 1 px low when its line-height is under the font's.

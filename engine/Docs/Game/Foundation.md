@@ -1246,6 +1246,24 @@ stays as it is until the manager's ok (the recapture's freeze).
      limits.
    - Finished: each rule matching its fixture within the paint limits and shown able to fail; `ui/styles/game` in
      `ui.pak`, compiled from today's sheet; the full suite passing with the references as they are. User approval: none.
+   - **Done (2026-11-13, the branch `gm1-step1a`; "How it works", step 1a):** the three rules are ported from Blink.
+     - *The fixtures:* five, in their own list `Reference/stylesheet-rule-fixtures.json` (`property-rule`,
+       `text-fill-color`, `background-clip-text`, `background-clip-text-view`, `text-parent-rounding`). Each matches
+       Chromium at 1 and 1.65, and each rule is shown able to fail.
+     - *The pack:* `ui/styles/game` is in `ui.pak`, compiled from `Assets/UI/styles/game.css` (today's sheet), and the
+       pack is reproducible.
+     - *Found on the way:* a text's y is rounded against its parent inline box (ported). A field's text sits 1 px low
+       when its line-height is under the font's (left to 1b).
+     - *Outside the step's folders, with the manager's leave:* `BlendMode.DestinationIn` in `Graphics/PipelineCache.cs`;
+       the editor's entry list tests and twelve editor screens, for `ui.pak`'s new `ui/styles` folder.
+     - *The choices:*
+       - only `<color>` is registered, and compiling refuses any other `@property`;
+       - registered values are kept as their computed text;
+       - animated custom properties are applied by computing the style again;
+       - the text-rounding rule applies to all text;
+       - the harness gained `trigger`, `computed` and the selections;
+       - the background-clip fixture keeps out what the engine draws differently outside these rules (outside
+         markers, a button's outset border, inline opacity, a field's line-height).
 1b. **The recapture (GM1-1).** After 1a, the same worker, merged separately; the old game frozen meanwhile.
    - Owns: `Tests/Statventure.Tests/Reference/game-capture.js`, `Golden/game-*.png` (22), `Golden/game-ui.json.gz`,
      `game-ui@1.65.json.gz`, `Reference/scaled/game-layers@1.json` and `@1.65.json`, `Data/Game/styles.css`, the game-screen
@@ -2050,6 +2068,213 @@ on the GPU (the engine's tests 1 min 57 s) and on lavapipe (2 min 12 s): 3739 + 
 drive letters); the real Documents folder (the tests' resolver points into the run's scratch folder; step 10's picker
 uses it).
 
+### Step 1a: today's stylesheet in the engine and in `ui.pak` (2026-11-13, the branch `gm1-step1a`)
+
+Today's `old-game/styles.css` brought three rules the engine refused or ignored (`@property`, `-webkit-text-fill-color`,
+`background-clip: text`). They are ported from Chromium 152's source, each with a Chromium fixture at 1 and 1.65 of its
+own; the port's stylesheet is then compiled into `ui.pak`.
+
+- **Registered custom properties (`@property`).**
+  - *Parsing:* `CssParser` keeps a `@property` rule as `CssPropertyRule` (its prelude and descriptors as written).
+    `UI/Style/PropertyRegistration.cs` validates it as Blink does (`CSSParserImpl::ConsumePropertyRule`,
+    `AtRuleDescriptorParser`, `PropertyRegistration::ConvertSyntax`/`ConvertInherits`/`ConvertInitial`):
+    - the prelude is one custom property name;
+    - per descriptor the last valid declaration counts; an `!important` one is invalid; unknown descriptors are ignored;
+    - `syntax` is a string that `SyntaxDefinition` parses (a port of `CSSSyntaxStringParser`: `*`, or components between
+      `|`; one of the fifteen type names, case-sensitive, or an identifier that isn't a CSS-wide keyword or `default`;
+      `+` or `#`, but not after `<transform-list>`);
+    - `inherits` is `true` or `false`;
+    - `initial-value` is needed unless the syntax is `*`, and must parse for the syntax and be computationally
+      independent.
+    An invalid rule registers nothing, as in Chromium.
+  - *The registry:* the style engine registers the valid rules of all sheets in order, a later one of a name winning
+    (`StyleEngine::AddPropertyRules`). The registry and the initial style are made again when the sheets change.
+  - *Computed values:* a registered `<color>` value is computed (`ComputeRegisteredPropertyValue`): `currentcolor` stays
+    the keyword, and a function using `currentcolor` stays as written. Otherwise the value is replaced by the tokens of
+    its serialized colour, so `var()` substitutes Chromium's text: `rgb(r, g, b)` or `rgba(r, g, b, a)`
+    (`Color::SerializeLegacyColorAsCSSColor`, with alpha in two decimals when that is exact in floats, else three), or
+    `color(srgb r g b[ / a])` for `color-mix()` and `color()` (six significant digits). `ValueReader` now reads
+    `color(srgb …)` and `color(srgb-linear …)`.
+  - *The cascade:* `CustomProperty::ApplyValue`, `ApplyInherit` and `ApplyInitial`:
+    - an element without a value has the initial one;
+    - a property that doesn't inherit starts from its initial value;
+    - `inherit`, `initial`, `unset` and `revert` act as for any property;
+    - a value invalid at computed-value time (not a colour, a `var()` cycle, a reference to nothing) takes the unset
+      value;
+    - a value that comes to one CSS-wide keyword after substitution is taken as that keyword.
+  - *Animations and transitions:* a registered colour interpolates as Blink's `CSSColorInterpolationType`:
+    premultiplied, in legacy sRGB's 0–255 parameters, `currentcolor` as the element's colour, the result computed. Any
+    other custom property, and a registered one whose values aren't both colours, flips half way
+    (`CSSDefaultInterpolationType`). Keyframe values are taken as `MaybeConvertCustomPropertyDeclaration` takes them:
+    - `var()` is substituted from the element;
+    - `initial` gives the registered initial value;
+    - `inherit`, and `unset` of an inheriting property, give the parent's value;
+    - a missing 0 % or 100 % keyframe is the underlying value.
+    `transition: all` leaves custom properties out; a named one transitions only when registered as a colour with
+    colours at both ends.
+
+    The animated values are applied in the cascade (the animation origin, under `!important`):
+    - `AnimationEngine.Restyled` computes the element's style again with them (`StyleEngine.Compute(…, overrides)`,
+      not shared), so they reach the properties that use them, the pseudo-elements and the children;
+    - `Tick` queues a restyle of each element whose animated custom values changed (`TakeCustomRestyles`, run by
+      `UiDocument.UpdateStyleAndLayout`);
+    - as in Blink, animation-only restyles start no transitions.
+  - *Compiling* refuses three kinds of rule, so a compiled sheet registers exactly what Chromium registers:
+    - a rule Chromium ignores ("a @property rule Chromium ignores: …");
+    - a valid rule of another syntax ("… the engine can't take …");
+    - a rule inside `@media`.
+  - *The record:* `ui.stylesheet` is now version 2 with field 4 `properties` (`ui.property-rule` 1: the name and the
+    descriptors as written). Version 1, frozen as `StylesheetRecord.V1`, upgrades with no rules. Loading refuses a rule
+    that registers nothing, at its path. Its layouts, marks and the fixture `ui.stylesheet/with-properties` are in
+    `Data/Records/`.
+- **`-webkit-text-fill-color`** is inherited. Its initial `currentcolor` is kept as the keyword (null), so each element
+  fills with its own colour.
+  - *Painting* (`TextPainter::TextPaintingStyle`): glyphs fill with it — page text, the unselected glyphs beside a
+    selection (on both of Blink's selection paths), a field's value, an input button's label, a select's label. Shadows
+    keep `currentcolor`, the colour.
+  - *Decorations:* a decoration's `currentcolor` is the fill colour (`DecorationColorIncludingFallback`), and
+    `text-decoration-color: currentcolor` is now kept as the keyword too.
+  - *Animation:* it interpolates as a colour and only repaints.
+- **`background-clip`** is per layer (`border-box`, `padding-box`, `content-box`, `text`). Its `-webkit-` alias is the same
+  property, and the `background` shorthand sets it: the first box is the origin and the next the clip; one box, or
+  `text`, is the clip.
+  - *The layers:* the colour is painted with the bottom layer's clip (`BackgroundColorClip`). When that differs from
+    the bottom image layer's, the colour is painted first on its own.
+  - *Painting a layer clipped to text* (`BoxPainterBase::PaintFillLayer` and `PaintFillLayerTextFillBox`):
+    - there is no fast path; a rounded box clips to its snapped rounded border box first;
+    - then `PaintTarget.PushTextClipLayer` clips to the snapped border box and opens a layer (in the current display
+      item a save, a clip and a save layer, which end its opaqueness analysis);
+    - the colour and the image are drawn in it, with no destination adjustment for obscured borders
+      (`ComputeDestRectAdjustments`: none for `kText`);
+    - then `PushTextMask` opens a layer composited with **destination-in**, a new `BlendMode.DestinationIn` in
+      `Graphics/PipelineCache.cs` (Skia's `kDstIn`: the destination times the source's alpha; outside the step's
+      folders, accepted by the manager on 2026-11-13);
+    - the box's text is drawn there in black (`UiPainter.PaintTextClip`, Blink's `kTextClip` phase): the inline
+      content, block children, atomic inlines, list markers and a control's text (a field's value in its editor, an
+      input button's, a select's and a text area's text); no shadows, no selection; decorations in black
+      (`BackgroundClipTextDecoration`, stable in 152); the descendants' opacity and transforms aren't applied; no hit
+      regions;
+    - an inline box's mask is the text of its own fragment on the line being painted.
+  - *Mask text is grayscale:* text in the mask layer gets no LCD antialiasing (a transparent save layer).
+  - *The view:* the root's background, which the view paints, always clips to the border box
+    (`BoxBackgroundPaintContext`).
+- **A rule found on the way:** a text's y is rounded against its parent's offset (`TextFragmentPainter`'s
+  `ComputeBoxGeometry`, `UiPainter.ParentTop`). The parent is the innermost inline box around the text that has a box
+  fragment on the line (`LayoutInline::ComputeInitialShouldCreateBoxFragment`: positioned, translucent, filtered,
+  blended, clipped, a background, a border, a shadow, padding, margin or an outline), else the line. The engine had
+  always rounded against the line's top, so the relatively placed span in the fixture was one device pixel off at 1.65.
+  This applies to all text, not only masks.
+- **Text/ and Canvas/:** unchanged. The mask needed no change there; the blend mode is in `Graphics/`.
+- **What isn't ported, and what the engine does on meeting it:**
+  - **`@property` syntaxes other than `<color>`:** compiling refuses the rule. In a sheet parsed from text the property
+    stays unregistered (its value as written, inherited, `var()` substituting its tokens), where Chromium would compute
+    and type it.
+  - **`@property` inside `@media`:** compiling refuses it. Parsed, it registers whatever the media; Chromium registers it
+    only while the query matches.
+  - **Colour interpolation in other spaces:** a registered colour always interpolates in legacy sRGB parameters. Chromium
+    interpolates `color()`/`color-mix()` results in their own space and mixed spaces in Oklab.
+  - **The precision of an animated value:** an animated registered value is kept as its serialized text, so a transition
+    that starts part way starts from the rounded value. Blink keeps the float colour: at most one level per channel.
+  - **Custom properties animated on pseudo-elements,** and by script animations, aren't applied.
+  - **`::selection`'s own `-webkit-text-fill-color`** isn't read (selected text keeps `::selection`'s colour), and
+    `-webkit-text-stroke` (the decoration's fallback to the stroke colour) isn't the engine's.
+  - **`background-clip: padding-box` and `content-box`** are kept as computed values and painted as `border-box` (the
+    decision on background layers, 2026-11-05). `border-area`, which Chromium 152 parses, is invalid in the engine.
+  - **An inline box's background image over several lines** is painted per fragment (Blink's image strip,
+    `box-decoration-break: slice`, isn't the engine's).
+  - **cc's rule that a `SaveLayerOp`** in a cc layer's record keeps the layer's opacity save layers from preserving LCD
+    text (`PaintOpBuffer`) isn't modelled. Text in a translucent element sharing a cc layer with a clip-text box would
+    be grayscale in Chromium.
+- **The fixtures** (`Ui/StylesheetRuleFixtures.cs`; their own list `Reference/stylesheet-rule-fixtures.json`; Chromium
+  through `Tools/PaintReference` at 1 and 1.65, headless):
+  - *`property-rule`* (640 × 300): the descriptors, the rules Chromium ignores, every kind of initial value,
+    inheritance, invalid values, keywords, `var()`, keyframes (linear, ease-in-out, partial, invalid, unregistered) and
+    transitions.
+  - *`text-fill-color`* (520 × 404): the fill, the decorations, controls' text, and a page selection from a filled
+    paragraph into a clip-text one.
+  - *`background-clip-text`* (560 × 372): the game's Exotic wave and Sparkling tag, and the mask's every kind of
+    content (blocks, inline blocks, an inside marker, shadows, controls, a field's selection, an inline box's own text,
+    the colour's own clip, an opaque border, a composited layer at whole pixels).
+  - *`background-clip-text-view`* (200 × 60): the root's gradient over the whole canvas.
+  - *`text-parent-rounding`* (420 × 152): spans with a background colour, a background image or none, raised or lowered
+    by fractions of a pixel on lines of fractional heights.
+
+  Each paints within the paint fixtures' limits (12 levels, 0.2 % of the pixels; differing pixels at 1 and 1.65:
+  property-rule 0 and 0; text-fill-color 49 and 165; background-clip-text 229 and 606; the view 0 and 0; text-parent-rounding 0 and 0, against limits of 384–1144). Each also gives Chromium's computed values (`getComputedStyle`) for every element with an id
+  (`StylesheetRuleReferenceTests`, `ComputedValues`).
+
+  The harness gained four fixture features:
+  - `trigger`: a class added to the body after the first style pass, to start transitions;
+  - `computed`: writes `ui-<name>@<scale>.styles.json`;
+  - `data-select="start end"` on a focused field: its selection (a number field takes none from a script);
+  - `data-select-from` and `data-select-to`: the page's range in two elements' first text nodes.
+
+  `StylesheetRuleReferenceTests.Build` makes the same in the engine.
+
+  `StylesheetRuleReferenceTests` also check two things in the engine alone:
+  - *an outside marker's text is in the mask:* Chromium's first capture showed it, but the engine places an outside
+    marker apart from Chromium;
+  - *a text clip makes nothing known opaque:* `AnalyzeLayers` on the composited layer.
+
+  `PropertyRuleTests` cover the syntax strings, validation, computed text, compiling, the record (version 1 read with
+  its parts), the registry (a later sheet, the initial style made again), the cascade, keyframes (`var()`, keywords,
+  neutral keyframes, `currentcolor`, premultiplying, a keyframe's own timing, the discrete flip), transitions (from
+  where the value is; none for an unregistered colour), a fill change, a decoration's `currentcolor`, the paint-only
+  classification, and the shorthand (with `var()` too) and alias.
+- **Choices (the step's own, none visible to players):**
+  - Only `<color>` is registered, the syntax today's sheet uses.
+  - Compiling refuses what it can't register rather than half-registering it.
+  - Registered values are stored as the tokens of their computed text.
+  - Animated custom properties are applied by computing the style again rather than patching it.
+  - A control's mask text goes through the same functions as its painted text (`EditorOf` is shared with the field).
+  - Animated colours are read back through the colour parser. An exact `rgb()` reader was dropped: it couldn't change a
+    result.
+  - The background-clip fixture holds no case the engine draws differently outside these rules:
+    - *the list marker is inside:* the engine places an outside marker closer to its text than Chromium (`1.Marker` for
+      `1. Marker` at 26 px Lato bold), mask or not;
+    - *the input button has a plain border:* Chromium's outset border of a button with an author background differs;
+    - *the controls are sized;*
+    - *the shadow case has its own element:* the engine doesn't apply opacity to an inline box, which never makes a
+      stacking context in `UiPainter`, so a translucent span's shadow differs;
+    - *the stat field has `line-height: normal`:* see below.
+- **The port's stylesheet:** `Assets/UI/styles/game.css` is today's `old-game/styles.css` with its five `@font-face`
+  urls as `ui/fonts/…` data paths. It compiles with no problems; 2 `-moz-` rules are dropped as Chromium drops them.
+  - *Packing:* `Tools/Scripts/make-ui-pack.sh` copies `Assets/UI/styles/*.css` to `ui/styles/` beside the fonts, and the
+    packer's UI importer compiles each into `ui/styles/<name>`.
+  - *Size:* `ui.pak` goes from 998,882 to 1,082,802 bytes (8 entries) and is the same bytes when made again. The record
+    is 1,980,754 bytes, stored as 83,844: 3159 rules, 22,679 declarations, 245 `@keyframes`, 1 `@property`.
+  - *Load time* (Debug, the PC busy with other workers' runs): loading `ui/styles/game` from the pack took 209 ms the
+    first time (reading 40, building 169), then 121–198 ms. Parsing the text took 64–124 ms.
+  - *Tests:* `UiResourcesTests` check that `ui/styles/game` loads from the committed pack and is the compile of the
+    committed source, byte for byte and part for part, and that the source is today's sheet with the font paths.
+- **Brought to `ui.pak`'s new entry:** the editor lists the game's packs, so its entry tree now shows `ui/styles`
+  (under `ui/fonts`).
+  - `Editor/Opening/EntryListTests` follow it (four tests: the trees, the last item, 313 → 314 rows).
+  - The twelve editor screens whose markup the tests wrote differently are captured again headless at 1 and 1.65
+    (`Golden/editor-<name>@1.png` and `@1.65.png`): checks-problems, import-again, import-path, import-replace,
+    list-marks, list-unreadable, preview-cutscene, preview-effect, preview-model, references-list, saving-mod-info,
+    saving-save-as.
+  - Their markup in `Reference/editor-fixtures.json` is as the tests write it.
+- **Found, for 1b:** a text field's text sits 1 px low at 1 in the engine when its line-height is under the font's
+  ascent and descent (the stat inputs' `font: 700 1.625rem/1.2`; 26 px Lato bold: ascent 26, descent 6, line 31.2).
+  - *In Blink,* the inner editor's line box has the field's line-height, and the top half-leading is floored
+    (`floor(-0.4) = -1`, so the baseline is 25 px below the content top).
+  - *In the engine,* the field's text is laid out with a normal line (32 px, baseline 26) centred in the 31.2 px content
+    box.
+  - *Measured* with the same field plain and clipped to text: both sit 1 px low at 1 (`UiPainter.PaintFieldText`,
+    `FieldGeometry.Of`).
+- **Found, for later:** two more engine differences outside these rules.
+  - *Outside list markers:* the engine places one closer to its text than Chromium (`1.Marker` for `1. Marker`, disc
+    markers too, at 26 px Lato bold), mask or not.
+  - *Opacity on an inline box:* the engine doesn't apply it. An inline box never makes a stacking context in
+    `UiPainter.CreatesStackingContext`, so its translucent text and shadows are drawn opaque. Today's sheet may meet it at
+    `.boss-intro-top > span { opacity: .78 }` (the boss intro, not a captured screen).
+- **Breaks:** `mutate.py`, 146 of the rules on the final tree (`claude-work/gm1/step1a/make-mutations.py`, `final-1..3.json` and `final-sr.json`, the last every fixture-checked one again on the final fixtures): 144 killed. Two can't differ:
+  - *a colour with no alpha left not special-cased:* the general path divides 0 by 0, and .NET's saturating conversion makes each NaN channel 0, the same `rgba(0, 0, 0, 0)`;
+  - *a text layer's dest moved off an obscuring border:* that border is opaque and painted over the background in exactly the part the adjustment takes off.
+
+  The first runs' survivors were closed: tests and fixture cases added (`var()` in the shorthand, the version 1 upgrade, selections, an outside marker, the opaque analysis, the rounding spans, the shadows inside the box), an exact `rgb()` reader dropped and a redundant check removed. `make-ui-pack.sh`'s 3 rules ran through a runner of the step's own (`script-mutate.sh`), 3 killed; the unmutated script gave the same bytes. Nothing was written to the player's real folders.
+
 ## Status
 
 **Step 5 done (2026-11-13, the branch `gm1-step5`; "How it works", step 5): the save record `save.game` v1, the
@@ -2084,6 +2309,23 @@ them (the deviations from the outline listed there); the sandbox the engine's te
 (29 tests; the engine's 3738; the suite 3767); the four packages, their check and self-test, the end-to-end flow on the
 GPU and on lavapipe; the publish through a symbolic link fixed; `build.sh` unchanged for a failed shader (it stops, exit
 code 1). Not checked: Windows; the single instance and the window's states on a real desktop.
+
+**Step 1a done (2026-11-13, the branch `gm1-step1a`; "How it works", step 1a): today's stylesheet in the engine and in
+`ui.pak`.**
+- *The three rules,* ported from Chromium 152: `@property` (registered `<color>` custom properties),
+  `-webkit-text-fill-color` and `background-clip: text`. Each matches its Chromium fixtures at 1 and 1.65 and is shown
+  able to fail.
+- *A rule found on the way:* a text's y is rounded against its parent inline box's offset.
+- *The port's stylesheet:* `Assets/UI/styles/game.css` is in `ui.pak` as `ui/styles/game`, compiled with no problems
+  (998,882 → 1,082,802 bytes, reproducible; about 0.2 s to load, Debug).
+- *The editor:* its entry tree shows the new `ui/styles` folder; twelve of its screens were captured again.
+- *The full suite* passes on the GPU and on lavapipe inside a headless compositor under the shared lock: 3870 + 200 =
+  4070 tests (`main`'s 3739 + 200 and 131 new in the engine's project), none skipped; the player's real folders
+  unchanged. The first lavapipe run had one failure outside the step:
+  `Audio/ScheduledSoundTests.TheClockStandsStillWhileTheSoundIsPaused`. It passed alone and in the run made again. Its
+  likely cause is the test's sink, which takes no more buffers after 200 and isn't reset by a pause (reported to the
+  manager).
+- *Mutations:* 146 of the tests' rules on the final tree, 144 killed, 2 that can't differ ("How it works", step 1a); the pack script's 3, all killed.
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,

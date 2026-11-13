@@ -311,7 +311,45 @@ internal sealed class PaintTarget
         if (_verdicts is null || _chunks is null || _canvas is null || _state is not { } state || _suppressed > 0)
             return;
         var index = WillCreateNewChunk(state) ? _chunks.Count : _chunks.Count - 1;
-        _canvas.TextLcd = index < _verdicts.Count && _verdicts[index].LcdText;
+        // Text in a background's text mask is drawn into a transparent save layer: Skia gives it no LCD.
+        _canvas.TextLcd = _textMasks == 0 && index < _verdicts.Count && _verdicts[index].LcdText;
+    }
+
+    /// <summary>How many text masks are being drawn (<see cref="PushTextMask"/>).</summary>
+    int _textMasks;
+
+    /// <summary>
+    /// Begins a background layer painted through its box's text (Blink's BoxPainterBase::PaintFillLayerTextFillBox):
+    /// a clip to the box's snapped border box, then a layer the background is drawn into. In the current display
+    /// item these are a save, a clip and a save layer, which ends its opaqueness analysis.
+    /// </summary>
+    public void PushTextClipLayer(RectF rect)
+    {
+        PushClip(rect);
+        RecordOp(true);
+        PushLayer(new LayerOptions { Bounds = rect });
+    }
+
+    /// <summary>
+    /// Begins the text mask over a <see cref="PushTextClipLayer"/>'s background: a layer composited onto it with
+    /// destination-in (Skia's kDstIn), so only what the text covers is kept. Text drawn in it has no LCD antialiasing.
+    /// </summary>
+    public void PushTextMask(RectF rect)
+    {
+        PushLayer(new LayerOptions { Bounds = rect, Blend = BlendMode.DestinationIn });
+        _textMasks++;
+    }
+
+    public void PopTextMask()
+    {
+        _textMasks--;
+        PopLayer();
+    }
+
+    public void PopTextClipLayer()
+    {
+        PopLayer();
+        PopClip();
     }
 
     RectF ToScreen(RectF rect) => _transform.IsIdentity ? rect : rect.Transform(_transform);

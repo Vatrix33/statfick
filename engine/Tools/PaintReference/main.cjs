@@ -6,7 +6,9 @@
 // the factor of Electron's zoom level: 1.2 to its power). Each fixture is laid out in an iframe of
 // its exact size at the window's corner (the window manager decides the window's own size); the
 // window is invisible (opacity 0). Writes ui-<fixture>@<scale>[x<page zoom>].png and .json (every
-// element's getBoundingClientRect, CSS px).
+// element's getBoundingClientRect, CSS px). A fixture's "trigger" is a class added to the body once the page has been
+// styled (to start transitions); its "computed" lists properties whose getComputedStyle values are written for every
+// element with an id, as ui-<fixture>@<scale>[x<page zoom>].styles.json ({ id: { property: value } }).
 // With --measure=layout (the layout fixtures) it writes layout-<fixture>@<scale>[x<page zoom>].json
 // instead: what the 1× layout script measures (the html and body and every element's box, client
 // and scroll sizes; every text node's line rects), unrounded, with all the game's font faces.
@@ -99,8 +101,25 @@ app.whenReady().then(async () => {
       }
       for (const el of document.querySelectorAll("[data-indeterminate]")) el.indeterminate = true;
       for (const el of document.querySelectorAll("[data-focus]")) el.focus();
+      for (const el of document.querySelectorAll("[data-select]")) {
+        const [start, end] = el.dataset.select.split(" ").map(Number);
+        el.setSelectionRange(start, end);
+      }
+      const selectFrom = document.querySelector("[data-select-from]"), selectTo = document.querySelector("[data-select-to]");
+      if (selectFrom && selectTo) {
+        const range = document.createRange();
+        range.setStart(selectFrom.firstChild, Number(selectFrom.dataset.selectFrom));
+        range.setEnd(selectTo.firstChild, Number(selectTo.dataset.selectTo));
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+      }
       window.scrollTo(${fixture.scrollX || 0}, ${fixture.scrollY || 0});
     }`);
+    // A class added to the body once the page has been styled (to start transitions).
+    if (fixture.trigger) {
+      await window.webContents.executeJavaScript("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))", true);
+      await inFrame(`() => { getComputedStyle(document.body).color; document.body.classList.add(${JSON.stringify(fixture.trigger)}); }`);
+    }
     await wait(400);
     await window.webContents.executeJavaScript("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))", true);
     const suffix = `@${scale}${pageZoom !== 1 ? "x" + pageZoom : ""}`;
@@ -131,6 +150,14 @@ app.whenReady().then(async () => {
     // Every element's box (CSS px), in document order, for comparing layout numerically.
     const rects = await inFrame(`() => [...document.querySelectorAll("body, body *")].map(e => { const r = e.getBoundingClientRect(); return [e.localName, r.x, r.y, r.width, r.height]; })`);
     fs.writeFileSync(path.join(out, `ui-${fixture.name}${suffix}.json`), JSON.stringify(rects));
+    // The computed values of the listed properties (getComputedStyle's) of every element with an id.
+    if (fixture.computed) {
+      const styles = await inFrame(`() => Object.fromEntries([...document.querySelectorAll("[id]")].map(e => {
+        const style = getComputedStyle(e);
+        return [e.id, Object.fromEntries(${JSON.stringify(fixture.computed)}.map(p => [p, style.getPropertyValue(p)]))];
+      }))`);
+      fs.writeFileSync(path.join(out, `ui-${fixture.name}${suffix}.styles.json`), JSON.stringify(styles, null, 0));
+    }
     console.log(fixture.name, "capture", image.getSize().width + "x" + image.getSize().height, "->", pixelWidth + "x" + pixelHeight, "viewport", viewport.join(" "));
   }
   window.destroy();

@@ -1,0 +1,3 @@
+ui.property-rule 1
+  1 name: string (required)
+  2 descriptors: list<ui.declaration> (required)

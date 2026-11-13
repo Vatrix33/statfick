@@ -44,6 +44,18 @@ public sealed partial class UiPainter : IDisposable
     /// <summary>A box's position where it is painted (see <see cref="Placed"/>).</summary>
     Vector2 PlacedAt(LayoutBox box) => box.ViewportPosition + _shift;
 
+    /// <summary>
+    /// Painting a background's text mask (Blink's kTextClip phase, <see cref="PaintTextClip"/>): only text is drawn,
+    /// in black, without shadows or selection; decorations in black.
+    /// </summary>
+    bool _textClip;
+
+    /// <summary>
+    /// The colour glyphs are filled with (TextPainter::TextPaintingStyle): -webkit-text-fill-color, which is
+    /// currentcolor unless set; black in a text mask.
+    /// </summary>
+    Color FillOf(ComputedStyle s) => _textClip ? Color.Black : s.TextFillColor ?? s.Color;
+
     /// <summary>A raster image by url (null while it isn't loaded), drawn as Chromium draws a decoded image (<see cref="CanvasImage"/>).</summary>
     public Func<string, CanvasImage?>? ImageTexture { get; set; }
 
@@ -792,14 +804,16 @@ public sealed partial class UiPainter : IDisposable
         var hasInset = s.BoxShadows.Any(sh => sh.Inset);
         var background = skipBackground ? Color.Transparent : s.BackgroundColor;
         var layers = skipBackground ? [] : s.Backgrounds;
-        if (layers.Length == 0 && !hasInset)
+        // A colour clipped to the box's text goes through the background layers' painting (PaintFillLayerTextFillBox).
+        var colorThroughText = box is not null && background.A > 0 && s.BackgroundColorClip == BackgroundClip.Text;
+        if (layers.Length == 0 && !hasInset && !colorThroughText)
         {
             // The common case: one primitive for background and border.
             if (background.A > 0 || sides.IsVisible)
                 _canvas.DrawBox(rect, background.A > 0 ? Brush.Solid(background) : null, radii, sides);
             return;
         }
-        if (layers.Length > 0)
+        if (layers.Length > 0 || colorThroughText)
             PaintBoxBackground(s, unsnapped, rect, radii, sides, background, layers, box, appearance);
         else if (background.A > 0)
             _canvas.DrawBox(rect, Brush.Solid(background), radii, Border.None);

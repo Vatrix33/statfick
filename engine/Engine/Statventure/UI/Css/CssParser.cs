@@ -22,6 +22,20 @@ public sealed record CssKeyframesRule(string Name, List<CssKeyframe> Frames) : C
 
 public sealed record CssFontFaceRule(List<CssDeclaration> Declarations) : CssRule;
 
+/// <summary>
+/// A @property rule (CSS Properties and Values API): its prelude's tokens (a custom property's name when it is valid)
+/// and its descriptors as written. Whether it registers anything is decided by
+/// <see cref="Style.PropertyRegistration"/>, as Blink validates the rule after parsing it.
+/// </summary>
+public sealed record CssPropertyRule(List<CssToken> Prelude, List<CssDeclaration> Descriptors) : CssRule
+{
+    /// <summary>
+    /// The custom property's name: the prelude's one identifier starting with "--", three characters or more
+    /// (CSSVariableParser::IsValidVariableName, nothing after it: ConsumeEndOfPreludeForAtRuleWithBlock); null otherwise.
+    /// </summary>
+    public string? Name => CssParser.Trim(Prelude) is [{ Type: CssTokenType.Ident } name] && name.Value.Length >= 3 && name.Value.StartsWith("--", StringComparison.Ordinal) ? name.Value : null;
+}
+
 /// <summary>A media query list: matches when any of its queries does.</summary>
 public sealed class MediaQuery
 {
@@ -200,6 +214,9 @@ public static class CssParser
                         break;
                     case "font-face":
                         rules.Add(new CssFontFaceRule(ParseDeclarations(BlockContents(tokens, ref position), diagnostics)));
+                        break;
+                    case "property":
+                        rules.Add(new CssPropertyRule(Trim(prelude), ParseDeclarations(BlockContents(tokens, ref position), diagnostics)));
                         break;
                     default:
                         BlockContents(tokens, ref position);

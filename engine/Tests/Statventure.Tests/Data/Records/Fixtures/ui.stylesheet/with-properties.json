@@ -1,0 +1,281 @@
+{
+  "$types": {
+    "ui.stylesheet": 2,
+    "ui.style-rule": 1,
+    "ui.token": 1,
+    "ui.declaration": 1,
+    "ui.property-rule": 1
+  },
+  "rules": [
+    {
+      "selectors": [
+        {
+          "kind": "delim",
+          "text": "."
+        },
+        {
+          "kind": "ident",
+          "text": "a"
+        }
+      ],
+      "declarations": [
+        {
+          "property": "--tone",
+          "value": [
+            {
+              "kind": "hash",
+              "text": "8a3cf0"
+            }
+          ],
+          "important": false
+        },
+        {
+          "property": "color",
+          "value": [
+            {
+              "kind": "function",
+              "text": "var"
+            },
+            {
+              "kind": "ident",
+              "text": "--tone"
+            },
+            {
+              "kind": "rightParen"
+            }
+          ],
+          "important": false
+        },
+        {
+          "property": "-webkit-text-fill-color",
+          "value": [
+            {
+              "kind": "ident",
+              "text": "transparent"
+            }
+          ],
+          "important": false
+        },
+        {
+          "property": "background-color",
+          "value": [
+            {
+              "kind": "ident",
+              "text": "initial"
+            }
+          ],
+          "important": false
+        },
+        {
+          "property": "background-image",
+          "value": [
+            {
+              "kind": "function",
+              "text": "linear-gradient"
+            },
+            {
+              "kind": "ident",
+              "text": "red"
+            },
+            {
+              "kind": "comma"
+            },
+            {
+              "kind": "whitespace",
+              "text": " "
+            },
+            {
+              "kind": "ident",
+              "text": "blue"
+            },
+            {
+              "kind": "rightParen"
+            }
+          ],
+          "important": false
+        },
+        {
+          "property": "background-position",
+          "value": [
+            {
+              "kind": "percentage",
+              "number": 0
+            },
+            {
+              "kind": "whitespace",
+              "text": " "
+            },
+            {
+              "kind": "percentage",
+              "number": 0
+            }
+          ],
+          "important": false
+        },
+        {
+          "property": "background-size",
+          "value": [
+            {
+              "kind": "ident",
+              "text": "auto"
+            }
+          ],
+          "important": false
+        },
+        {
+          "property": "background-repeat",
+          "value": [
+            {
+              "kind": "ident",
+              "text": "repeat"
+            }
+          ],
+          "important": false
+        },
+        {
+          "property": "background-attachment",
+          "value": [
+            {
+              "kind": "ident",
+              "text": "scroll"
+            }
+          ],
+          "important": false
+        },
+        {
+          "property": "background-clip",
+          "value": [
+            {
+              "kind": "ident",
+              "text": "text"
+            }
+          ],
+          "important": false
+        }
+      ]
+    }
+  ],
+  "keyframes": [],
+  "fontFaces": [],
+  "properties": [
+    {
+      "name": "--tone",
+      "descriptors": [
+        {
+          "property": "syntax",
+          "value": [
+            {
+              "kind": "string",
+              "text": "<color>"
+            }
+          ],
+          "important": false
+        },
+        {
+          "property": "inherits",
+          "value": [
+            {
+              "kind": "ident",
+              "text": "true"
+            }
+          ],
+          "important": false
+        },
+        {
+          "property": "initial-value",
+          "value": [
+            {
+              "kind": "hash",
+              "text": "14b351"
+            }
+          ],
+          "important": false
+        }
+      ]
+    },
+    {
+      "name": "--flat",
+      "descriptors": [
+        {
+          "property": "syntax",
+          "value": [
+            {
+              "kind": "string",
+              "text": " <color> "
+            }
+          ],
+          "important": false
+        },
+        {
+          "property": "inherits",
+          "value": [
+            {
+              "kind": "ident",
+              "text": "false"
+            }
+          ],
+          "important": false
+        },
+        {
+          "property": "initial-value",
+          "value": [
+            {
+              "kind": "function",
+              "text": "rgb"
+            },
+            {
+              "kind": "integer",
+              "number": 10
+            },
+            {
+              "kind": "whitespace",
+              "text": " "
+            },
+            {
+              "kind": "integer",
+              "number": 20
+            },
+            {
+              "kind": "whitespace",
+              "text": " "
+            },
+            {
+              "kind": "integer",
+              "number": 30
+            },
+            {
+              "kind": "whitespace",
+              "text": " "
+            },
+            {
+              "kind": "delim",
+              "text": "/"
+            },
+            {
+              "kind": "whitespace",
+              "text": " "
+            },
+            {
+              "kind": "percentage",
+              "number": 50
+            },
+            {
+              "kind": "rightParen"
+            }
+          ],
+          "important": false
+        },
+        {
+          "property": "color",
+          "value": [
+            {
+              "kind": "ident",
+              "text": "red"
+            }
+          ],
+          "important": false
+        }
+      ]
+    }
+  ]
+}

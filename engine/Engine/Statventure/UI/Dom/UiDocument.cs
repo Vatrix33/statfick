@@ -917,6 +917,13 @@ public sealed partial class UiDocument
             if (inherited && pseudo.Length > 0)
                 RelayoutBoxes(element);
         }
+        // Animated custom properties that changed: the element's style is computed again (they reach the properties
+        // that use them, its pseudo-elements and the children that inherit them).
+        foreach (var (element, _) in Animations.TakeCustomRestyles())
+        {
+            InvalidateStyle(element, subtree: false);
+            restyle = true;
+        }
         if (restyle)
             UpdateStyles();
         if (_needsBoxes)
@@ -1109,8 +1116,10 @@ public sealed partial class UiDocument
                 }
             }
             element.Styles = styles;
-            // Animations and transitions start, continue or stop here; the style shown carries their values.
-            element.Style = Animations.Restyled(element, "", old, styles.Style, parent ?? Styles.Initial, _rootFontSize, styles.Important);
+            // Animations and transitions start, continue or stop here; the style shown carries their values. Animated
+            // custom properties are cascaded: the element's style is computed again with them.
+            element.Style = Animations.Restyled(element, "", old, styles.Style, parent ?? Styles.Initial, _rootFontSize, styles.Important,
+                custom => Styles.Compute(element, parent, layoutParent, _rootFontSize, custom).Style);
             // Pseudo-elements of an element that isn't rendered aren't either: their animations are cancelled.
             var rendered = element.Style.Display != Display.None;
             element.BeforeStyle = styles.Before is { } before && rendered ? Animations.Restyled(element, "before", element.BeforeStyle, before, element.Style, _rootFontSize, ElementStyles.EmptySet) : ForgetPseudo(element, "before", styles.Before);

@@ -41,7 +41,9 @@ public sealed partial class UiPainter
                 switch (item.Kind)
                 {
                     case LineItemKind.InlineBox:
+                        _inlineFragmentLine = (root, lineIndex);
                         PaintInlineFragment(root, origin, item);
+                        _inlineFragmentLine = null;
                         break;
                     case LineItemKind.Text:
                     case LineItemKind.Generated:
@@ -58,6 +60,95 @@ public sealed partial class UiPainter
                 }
             }
         }
+    }
+
+    /// <summary>The block and line of the inline box fragment being painted (its background's text mask is that fragment's text).</summary>
+    (LayoutBox Root, int Line)? _inlineFragmentLine;
+
+    // ---------- Text masks (background-clip: text) ----------
+
+    /// <summary>
+    /// A box's text as a mask, as Blink's kTextClip phase paints it (BoxFragmentPainter::PaintTextClipMask): every
+    /// text of its subtree (inline content, block children, atomic inlines, floats and positioned descendants, list
+    /// markers, a control's text), in black, without shadows or selection, decorations in black, no hit regions; the
+    /// descendants' opacity and transforms aren't applied. An inline box's mask is the text of its fragment on the line
+    /// being painted (InlineBoxFragmentPainter under kTextClip).
+    /// </summary>
+    void PaintTextClip(LayoutBox owner)
+    {
+        var saved = _textClip;
+        _textClip = true;
+        _canvas.IgnoreHits();
+        try
+        {
+            if (owner.Type == BoxType.Inline)
+            {
+                if (_inlineFragmentLine is { } at && at.Root.Inline is { } inline)
+                    PaintTextClipLine(at.Root, inline, at.Line, owner);
+            }
+            else
+                PaintTextClipBox(owner);
+        }
+        finally
+        {
+            _canvas.TakeHits();
+            _textClip = saved;
+        }
+    }
+
+    void PaintTextClipBox(LayoutBox box)
+    {
+        if (box.Type == BoxType.Replaced)
+        {
+            if (box.Element is { } element && box.Style.Visibility == Visibility.Visible)
+                PaintControlText(box, element);
+            return;
+        }
+        if (box.Marker is { Inline: { } markerLines } marker)
+            for (var i = 0; i < markerLines.Lines.Count; i++)
+                PaintTextClipLine(marker, markerLines, i, null);
+        if (box.Inline is { } inline)
+        {
+            for (var i = 0; i < inline.Lines.Count; i++)
+                PaintTextClipLine(box, inline, i, null);
+            return;
+        }
+        foreach (var child in box.Children)
+            if (child.Type is not (BoxType.Text or BoxType.LineBreak or BoxType.Inline))
+                PaintTextClipBox(child);
+    }
+
+    /// <summary>A line's text for a mask (only what is inside <paramref name="within"/> when given).</summary>
+    void PaintTextClipLine(LayoutBox root, InlineContent inline, int lineIndex, LayoutBox? within)
+    {
+        var line = inline.Lines[lineIndex];
+        if (line.Hidden)
+            return;
+        var origin = PlacedAt(root);
+        foreach (var item in line.Items)
+        {
+            if (within is not null && !IsInside(item.Box, within))
+                continue;
+            switch (item.Kind)
+            {
+                case LineItemKind.Text:
+                case LineItemKind.Generated:
+                    PaintText(root, origin, item, line, lineIndex);
+                    break;
+                case LineItemKind.Atomic:
+                    if (item.Box is { } atomic)
+                        PaintTextClipBox(atomic);
+                    break;
+            }
+        }
+    }
+
+    static bool IsInside(LayoutBox? box, LayoutBox ancestor)
+    {
+        for (var b = box; b is not null; b = b.Parent)
+            if (b == ancestor)
+                return true;
+        return false;
     }
 
     void PaintInlineFragment(LayoutBox root, Vector2 origin, LineItem item)
@@ -84,6 +175,33 @@ public sealed partial class UiPainter
         Hit(box, rect, radii);
     }
 
+    /// <summary>
+    /// The top a text item's y is rounded against (TextFragmentPainter's ComputeBoxGeometry: the parent offset): its
+    /// line's, or that of the innermost inline box around it that has a box fragment on this line, whose painter passes
+    /// its own offset as the parent offset (BoxFragmentPainter::PaintObject with a box item; culled inline boxes pass
+    /// the line's on).
+    /// </summary>
+    static float ParentTop(LayoutBox root, Vector2 origin, LineItem item, LineBox line, int lineIndex)
+    {
+        for (var box = item.Box?.Parent; box is not null && box != root; box = box.Parent)
+            if (box.Type == BoxType.Inline && HasBoxFragment(box.Style) && box.Fragments?.FirstOrDefault(f => f.Line == lineIndex) is { } fragment)
+                return origin.Y + InlineOffset(box, root).Y + fragment.Rect.Y;
+        return origin.Y + line.Top;
+    }
+
+    /// <summary>
+    /// Whether an inline box has box fragments (isn't culled; LayoutInline::ComputeInitialShouldCreateBoxFragment): a
+    /// self-painting layer or a containing block of positioned boxes (positioned, translucent, filtered, blended,
+    /// clipped), a box decoration background (a background, a border, a shadow), padding, margin or a painted outline.
+    /// </summary>
+    internal static bool HasBoxFragment(ComputedStyle s) =>
+        s.Position != PositionKind.Static || s.Opacity < 1 || s.Filters.Length > 0 || s.MixBlendMode != CssBlendMode.Normal || s.ClipPath is not null
+        || s.BackgroundColor.A > 0 || s.Backgrounds.Length > 0 || s.BoxShadows.Length > 0
+        || s.BorderTop > 0 || s.BorderRight > 0 || s.BorderBottom > 0 || s.BorderLeft > 0
+        || !s.PaddingTop.IsZero || !s.PaddingRight.IsZero || !s.PaddingBottom.IsZero || !s.PaddingLeft.IsZero
+        || !s.MarginTop.IsZero || !s.MarginRight.IsZero || !s.MarginBottom.IsZero || !s.MarginLeft.IsZero
+        || s.OutlineStyle != BorderLineStyle.None && s.OutlineWidth > 0;
+
     void PaintText(LayoutBox root, Vector2 origin, LineItem item, LineBox line, int lineIndex)
     {
         var style = item.Style;
@@ -91,10 +209,10 @@ public sealed partial class UiPainter
             return;
         var offset = item.Box is { } textBox ? InlineOffset(textBox, root) : Vector2.Zero;
         var unrounded = origin + offset + new Vector2(item.X, item.Baseline);
-        // ComputePhysicalBoxGeometry: the text's box moves with its line's top rounded to a pixel, so
-        // glyphs, shadows and decorations start from there; selection and hit testing don't.
-        var lineTop = origin.Y + line.Top;
-        var baseline = unrounded with { Y = unrounded.Y + MathF.Floor(lineTop + 0.5f) - lineTop };
+        // ComputePhysicalBoxGeometry: the text's box moves with its parent's top rounded to a pixel, so glyphs,
+        // shadows and decorations start from there; selection and hit testing don't.
+        var parentTop = ParentTop(root, origin, item, line, lineIndex);
+        var baseline = unrounded with { Y = unrounded.Y + MathF.Floor(parentTop + 0.5f) - parentTop };
         // The page's selection over this text, with its highlight (a preserved newline has no glyphs, only that).
         var selection = PageSelectionOf(root, item, line);
         if (run.Glyphs.Count > 0)
@@ -114,25 +232,28 @@ public sealed partial class UiPainter
         Hit(item.Box ?? root, new RectF(unrounded.X, unrounded.Y - item.Ascent, item.Width, item.Ascent + item.Descent), CornerRadii.Zero, text: true, item: item);
         if (!_canvas.Drawing)
             return;
-        DrawTextShadows(run, baseline, style, item.Width, item.Ascent, item.Descent);
+        // A text mask has no shadows and no selection (TextPainter::TextPaintingStyle, TextFragmentPainter under kTextClip).
+        if (!_textClip)
+            DrawTextShadows(run, baseline, style, item.Width, item.Ascent, item.Descent);
         var decorations = DecorationsOf(root, item, line, lineIndex, origin, baseline);
-        if (selection is { } range && item.Box?.TextNode?.Parent is { } owner)
+        var fill = FillOf(style);
+        if (!_textClip && selection is { } range && item.Box?.TextNode?.Parent is { } owner)
         {
             var (background, text) = SelectionColors(owner);
             var highlight = SelectionHighlight(root, item, line, unrounded, offset, range.From, range.To, range.LineBreak);
             GlyphRun Slice(int from, int to, bool overlapping) => SliceItemRun(item, run, from, to, overlapping);
             // Decorated text takes Blink's overlay path, other text the fast one.
             if (decorations is not null)
-                PaintOverlaySelection(decorations, Slice, baseline, style.Color, item.TextStart, item.TextEnd, range.From, range.To, highlight, background, text,
+                PaintOverlaySelection(decorations, Slice, baseline, fill, item.TextStart, item.TextEnd, range.From, range.To, highlight, background, text,
                     at => baseline.X + ItemX(item, at) - item.X);
             else
-                PaintSelectedGlyphs(Slice, baseline, style.Color, item.TextStart, item.TextEnd, range.From, range.To, highlight, background, text);
+                PaintSelectedGlyphs(Slice, baseline, fill, item.TextStart, item.TextEnd, range.From, range.To, highlight, background, text);
             return;
         }
         // Underlines and overlines under the text, line-throughs over it.
         if (decorations is not null)
             PaintDecorationLines(decorations, lineThrough: false);
-        _canvas.DrawGlyphs(run, baseline, style.Color);
+        _canvas.DrawGlyphs(run, baseline, fill);
         if (decorations is not null)
             PaintDecorationLines(decorations, lineThrough: true);
     }

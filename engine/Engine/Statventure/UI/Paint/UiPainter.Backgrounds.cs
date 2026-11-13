@@ -195,7 +195,7 @@ public sealed partial class UiPainter
             clipRect = Contract(snapped, new Edges(top, right, bottom, left));
             clipRadii = radii.Shrink(top, right, bottom, left);
         }
-        PaintFillLayers(s, box, snapped, radii, clipRect, clipRadii, bleed, background, layers);
+        PaintFillLayers(s, box, snapped, radii, clipRect, clipRadii, bleed, background, layers, owner);
     }
 
     /// <summary>
@@ -261,21 +261,39 @@ public sealed partial class UiPainter
         PaintFillLayers(s, box, canvasRect, CornerRadii.Zero, canvasRect, CornerRadii.Zero, BleedAvoidance.None, Color.Transparent, s.Backgrounds);
     }
 
+    /// <param name="owner">The box whose text a layer with background-clip: text is painted through (none for the view, whose clip is always the border box).</param>
     void PaintFillLayers(ComputedStyle s, FillBox box, RectF snapped, CornerRadii radii, RectF clipRect, CornerRadii clipRadii,
-        BleedAvoidance bleed, Color background, BackgroundLayer[] layers)
+        BleedAvoidance bleed, Color background, BackgroundLayer[] layers, LayoutBox? owner = null)
     {
         var roundedFill = !radii.IsZero && bleed != BleedAvoidance.ClipLayer;
         if (bleed == BleedAvoidance.ClipLayer)
             _canvas.PushClip(snapped, radii);
+        // The colour is painted with the bottom layer: the last one with an image unless the bottom layer has none and
+        // another clip (then the colour alone, first). Only text clips here (padding-box and content-box are painted
+        // as border-box: the decision on background layers, 2026-11-05).
+        var colorClip = ClipOf(s.BackgroundColorClip, owner);
+        var colorAlone = background.A > 0 && (layers.Length == 0 || ClipOf(layers[^1].Clip, owner) != colorClip);
+        if (colorAlone)
+        {
+            if (colorClip == BackgroundClip.Text)
+                PaintTextFill(owner!, snapped, radii, background, null, null);
+            else
+                PaintFastBottomLayer(null, null, roundedFill, roundedFill ? clipRect : snapped, roundedFill ? clipRadii : CornerRadii.Zero, background);
+        }
         for (var i = layers.Length - 1; i >= 0; i--)
         {
             var layer = layers[i];
             var bottom = i == layers.Length - 1;
             var image = LayerImageOf(layer, s.Zoom);
-            var paintColor = bottom && background.A > 0;
+            var paintColor = bottom && background.A > 0 && !colorAlone;
             if (image is null && !paintColor)
                 continue;
             var geometry = image is not null ? Geometry(layer, box, image) : null;
+            if (ClipOf(layer.Clip, owner) == BackgroundClip.Text)
+            {
+                PaintTextFill(owner!, snapped, radii, paintColor ? background : null, image, geometry);
+                continue;
+            }
             // The bottom layer when one tile covers it: drawn as the (rounded) rect itself (PaintFastBottomLayer;
             // ContouredRect::HasRoundCurvature holds for a square rect too, so square boxes take it as well).
             if (bottom && (image is null || bleed != BleedAvoidance.ShrinkBackground)
@@ -291,6 +309,36 @@ public sealed partial class UiPainter
                 _canvas.PopClip();
         }
         if (bleed == BleedAvoidance.ClipLayer)
+            _canvas.PopClip();
+    }
+
+    /// <summary>
+    /// The clip a layer is painted with: text for a box (BoxBackgroundPaintContext::EffectiveClip: the view's background
+    /// covers everything), the border box otherwise.
+    /// </summary>
+    static BackgroundClip ClipOf(BackgroundClip clip, LayoutBox? owner) =>
+        owner is not null && clip == BackgroundClip.Text ? BackgroundClip.Text : BackgroundClip.BorderBox;
+
+    /// <summary>
+    /// A layer (its colour and image) painted through its box's text, as BoxPainterBase::PaintFillLayer paints one with
+    /// background-clip: text: no fast path; a rounded box clipped to its snapped rounded border box (its fill is
+    /// rounded: not a border fill); then PaintFillLayerTextFillBox: the snapped border box clipped, the layer drawn in a
+    /// layer of its own, the box's text drawn in black in a layer composited onto it with destination-in.
+    /// </summary>
+    void PaintTextFill(LayoutBox owner, RectF snapped, CornerRadii radii, Color? color, LayerImage? image, LayerGeometry? geometry)
+    {
+        if (!radii.IsZero)
+            _canvas.PushClip(snapped, radii);
+        _canvas.PushTextClipLayer(snapped);
+        if (color is { } fill)
+            _canvas.FillRect(snapped, fill);
+        if (image is not null && geometry is { } g && !g.SnappedDest.IsEmpty && g.Tile.X > 0 && g.Tile.Y > 0)
+            DrawTiledBackground(image, g);
+        _canvas.PushTextMask(snapped);
+        PaintTextClip(owner);
+        _canvas.PopTextMask();
+        _canvas.PopTextClipLayer();
+        if (!radii.IsZero)
             _canvas.PopClip();
     }
 
@@ -339,14 +387,18 @@ public sealed partial class UiPainter
                 // The border-snapped inner border (PixelSnappedContouredInnerBorder).
                 var inner = PixelSnap(ClampSize(Contract(unsnappedArea, box.Widths)), allowZero: true);
                 // background-clip: border-box. Edges a border hides end at the snapped inner border (ObscuredBorderOutsets).
-                if (box.ObscuresTop)
-                    (destSnapped.Top, destUnsnapped.Top) = (inner.Top - paint.Top, box.Outsets.Top);
-                if (box.ObscuresRight)
-                    (destSnapped.Right, destUnsnapped.Right) = (paint.Right - inner.Right, box.Outsets.Right);
-                if (box.ObscuresBottom)
-                    (destSnapped.Bottom, destUnsnapped.Bottom) = (paint.Bottom - inner.Bottom, box.Outsets.Bottom);
-                if (box.ObscuresLeft)
-                    (destSnapped.Left, destUnsnapped.Left) = (inner.Left - paint.Left, box.Outsets.Left);
+                // A layer clipped to text keeps the whole border box (ComputeDestRectAdjustments: none for kText).
+                if (layer.Clip != BackgroundClip.Text)
+                {
+                    if (box.ObscuresTop)
+                        (destSnapped.Top, destUnsnapped.Top) = (inner.Top - paint.Top, box.Outsets.Top);
+                    if (box.ObscuresRight)
+                        (destSnapped.Right, destUnsnapped.Right) = (paint.Right - inner.Right, box.Outsets.Right);
+                    if (box.ObscuresBottom)
+                        (destSnapped.Bottom, destUnsnapped.Bottom) = (paint.Bottom - inner.Bottom, box.Outsets.Bottom);
+                    if (box.ObscuresLeft)
+                        (destSnapped.Left, destUnsnapped.Left) = (inner.Left - paint.Left, box.Outsets.Left);
+                }
                 // background-origin: padding-box, snapped to the inner border (InnerBorderOutsets).
                 areaSnapped = new Edges(inner.Top - unsnappedArea.Top, unsnappedArea.Right - inner.Right, unsnappedArea.Bottom - inner.Bottom, inner.Left - unsnappedArea.Left);
             }

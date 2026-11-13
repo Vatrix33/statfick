@@ -81,6 +81,26 @@ become Overlap layers; scrollbars are their own layers (RasterInducingScroll is 
   outside an item), so text first in a chunk (in an `overflow: hidden` or `clip` box, after a stacked layer's
   subsequence) took the previous chunk's: grayscale where Chromium has LCD after a chunk without text, LCD where it
   has grayscale after an LCD layer.
+- `background-clip: text` (GM1 step 1a, 2026-11-13; `Docs/Game/Foundation.md`, "How it works", step 1a):
+  `BoxPainterBase::PaintFillLayerTextFillBox` clips to the box's snapped border box, opens a layer (a SaveLayerOp), paints
+  the layer's colour and image into it, opens a second layer with `SkBlendMode::kDstIn` and paints the box's text into
+  it in black (the `kTextClip` phase), then closes both.
+  - *In the display item:* a save, a clip and a save layer, which end the item's opaqueness analysis.
+    `PaintTarget.PushTextClipLayer` records them so.
+  - *The mask layer:* `PushTextMask` composites it with `BlendMode.DestinationIn` (`Graphics/PipelineCache.cs`: the
+    destination times the source's alpha). Text drawn into it is grayscale: it is drawn into a transparent save layer,
+    whatever the chunk's verdict.
+  - *Not modelled:* cc's rule that a SaveLayerOp in a cc layer's record keeps that layer's SaveLayerAlpha ops from
+    preserving LCD text (`PaintOpBuffer`'s `has_effects_preventing_lcd_text_for_save_layer_alpha`). Text in a translucent
+    element sharing a cc layer with a clip-text box is grayscale in Chromium at 1×, LCD in the engine. No captured game
+    screen is expected to have a clip-text box.
+- A text's y is rounded against its parent's offset (`TextFragmentPainter`'s `ComputeBoxGeometry`; GM1 step 1a).
+  - *The parent:* the innermost inline box around it that has a box fragment on the line
+    (`LayoutInline::ComputeInitialShouldCreateBoxFragment`: positioned, translucent, filtered, blended, clipped, a
+    background, a border, a shadow, padding, margin or an outline), else the line. `BoxFragmentPainter` passes a box
+    item's own offset as the parent offset to its children.
+  - *Before:* the engine rounded every text against its line's top, so text in a relatively placed span could be one
+    device pixel off at fractional scales.
 
 ## Status (2026-10-25)
 

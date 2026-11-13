@@ -229,7 +229,8 @@ public sealed partial class UiPainter
         var skipInk = fragment.Style.TextDecorationSkipInk;
         foreach (var (decoration, box, thickness) in fragment.Decorations)
         {
-            var color = colorOverride ?? decoration.Color;
+            // In a text mask, black (TextDecorationPainter::LineColorForPhase with BackgroundClipTextDecoration, stable in 152).
+            var color = colorOverride ?? (_textClip ? Color.Black : decoration.Color);
             if (lineThrough)
             {
                 if (decoration.LineThrough)
@@ -254,7 +255,8 @@ public sealed partial class UiPainter
         if (geometries.Count == 0)
             return;
         // Cuts made by a line apply to it and to those drawn after it (Blink clips the context as it goes).
-        var shadows = fragment.Style.TextShadows;
+        // A text mask has no shadows.
+        ShadowValue[] shadows = _textClip ? [] : fragment.Style.TextShadows;
         for (var i = shadows.Length - 1; i >= 0; i--)
         {
             var shadow = shadows[i];

@@ -33,7 +33,7 @@ public static partial class Properties
         "content-visibility", "contain-intrinsic-size", "text-size-adjust", "-webkit-text-size-adjust", "speak", "forced-color-adjust",
         "color-scheme", "print-color-adjust", "-webkit-print-color-adjust", "tab-size", "hyphens", "orphans", "widows", "image-rendering",
         "font-optical-sizing", "font-synthesis", "-webkit-user-drag", "scroll-snap-type", "scroll-snap-align",
-        "unicode-range", "background-origin", "background-clip", "-webkit-background-clip",
+        "unicode-range", "background-origin",
         "table-layout", "border-collapse", "border-spacing", "quotes", "direction",
         "break-inside", "break-before", "break-after", "page-break-inside", "paint-order", "text-anchor", "dominant-baseline",
         // SVG presentation properties: the engine draws vector art itself instead of an SVG DOM.
@@ -1147,7 +1147,12 @@ public static partial class Properties
             (c.Style.Underline, c.Style.LineThrough, c.Style.Overline, c.Style.DecorationBlink) = (lines.Contains("underline"), lines.Contains("line-through"), lines.Contains("overline"), lines.Contains("blink"));
             return true;
         }, (t, s) => (t.Underline, t.LineThrough, t.Overline, t.DecorationBlink) = (s.Underline, s.LineThrough, s.Overline, s.DecorationBlink));
-        Add("text-decoration-color", false, ColorOf((s, v) => s.TextDecorationColor = v), (t, s) => t.TextDecorationColor = s.TextDecorationColor);
+        // currentcolor stays the keyword (null): a decoration's currentcolor is the text's fill colour (DecorationColorIncludingFallback).
+        Add("text-decoration-color", false, (r, c) => r.TryIdent("currentcolor") ? r.AtEnd && Set(() => c.Style.TextDecorationColor = null) : ColorOf((s, v) => s.TextDecorationColor = v)(r, c),
+            (t, s) => t.TextDecorationColor = s.TextDecorationColor);
+        // -webkit-text-fill-color: inherited, initially currentcolor, kept as the keyword (null) so each element fills with its own colour.
+        Add("-webkit-text-fill-color", true, (r, c) => r.TryIdent("currentcolor") ? r.AtEnd && Set(() => c.Style.TextFillColor = null) : ColorOf((s, v) => s.TextFillColor = v)(r, c),
+            (t, s) => t.TextFillColor = s.TextFillColor);
         Add("resize", false, Enum(new Dictionary<string, ResizeKind>
         {
             ["none"] = ResizeKind.None, ["both"] = ResizeKind.Both, ["horizontal"] = ResizeKind.Horizontal, ["vertical"] = ResizeKind.Vertical,
@@ -1292,6 +1297,29 @@ public static partial class Properties
             c.Style.BackgroundFixed = fixedLayers.ToArray();
             return fixedLayers.Count > 0;
         }, (t, s) => t.BackgroundFixed = s.BackgroundFixed);
+        // background-clip (Blink's ConsumeBackgroundClip: a visual box or text; border-area isn't the engine's).
+        Add("background-clip", false, (r, c) =>
+        {
+            var clips = new List<BackgroundClip>();
+            foreach (var part in CssParser.SplitOnCommas(r.Remaining()))
+            {
+                var p = new ValueReader(part);
+                BackgroundClip? clip = p.TryAnyIdent() switch
+                {
+                    "border-box" => BackgroundClip.BorderBox,
+                    "padding-box" => BackgroundClip.PaddingBox,
+                    "content-box" => BackgroundClip.ContentBox,
+                    "text" => BackgroundClip.Text,
+                    _ => null,
+                };
+                if (clip is not { } value || !p.AtEnd)
+                    return false;
+                clips.Add(value);
+            }
+            c.Style.BackgroundClips = clips.ToArray();
+            return clips.Count > 0;
+        }, (t, s) => t.BackgroundClips = s.BackgroundClips);
+        Alias("-webkit-background-clip", "background-clip");
         Add("box-shadow", false, ShadowsOf((s, v) => s.BoxShadows = v), (t, s) => t.BoxShadows = s.BoxShadows);
         Add("transform", false, (r, c) => ParseTransform(r.Remaining(), c) is { } f && Set(() => c.Style.Transform = f), (t, s) => t.Transform = s.Transform);
         Add("transform-origin", false, (r, c) => ParsePosition(r, c, out var x, out var y) && Set(() => (c.Style.TransformOriginX, c.Style.TransformOriginY) = (x, y)), (t, s) => (t.TransformOriginX, t.TransformOriginY) = (s.TransformOriginX, s.TransformOriginY));

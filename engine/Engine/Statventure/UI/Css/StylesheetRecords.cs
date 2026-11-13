@@ -192,11 +192,17 @@ public sealed record KeyframesRecord(
 public sealed record FontFaceRecord(
     [property: Field(1)] IReadOnlyList<DeclarationRecord> Descriptors);
 
+/// <summary>A @property rule (<c>ui.property-rule</c>): the custom property's name and its descriptors as written.</summary>
+[Record("ui.property-rule", 1)]
+public sealed record PropertyRuleRecord(
+    [property: Field(1)] string Name,
+    [property: Field(2)] IReadOnlyList<DeclarationRecord> Descriptors);
+
 /// <summary>
-/// A compiled stylesheet (<c>ui.stylesheet</c>): its style rules in cascade order, its @keyframes and its
-/// @font-face rules, each in the order the sheet has them.
+/// A compiled stylesheet (<c>ui.stylesheet</c>): its style rules in cascade order, its @keyframes, its @font-face
+/// rules and (since version 2, GM1 step 1a) its @property rules, each in the order the sheet has them.
 /// </summary>
-[Record("ui.stylesheet", 1)]
+[Record("ui.stylesheet", 2)]
 [Kind("Stylesheet", "ui/styles")]
 [Help("A stylesheet for the game's screens, imported from a .css file. Its rules change only by importing the file again.")]
 public sealed record StylesheetRecord(
@@ -204,6 +210,20 @@ public sealed record StylesheetRecord(
     [property: Field(2), Bulk("{0:N0} @keyframes rules")] IReadOnlyList<KeyframesRecord> Keyframes,
     [property: Field(3), Bulk("{0:N0} @font-face rules")] IReadOnlyList<FontFaceRecord> FontFaces)
 {
+    /// <summary>The @property rules, in the sheet's order.</summary>
+    [Field(4), Bulk("{0:N0} @property rules")]
+    public IReadOnlyList<PropertyRuleRecord> Properties { get; init; } = [];
+
+    /// <summary>Version 1 (M9 step 7): no @property rules.</summary>
+    [Record("ui.stylesheet", 1)]
+    public sealed record V1(
+        [property: Field(1)] IReadOnlyList<StyleRuleRecord> Rules,
+        [property: Field(2)] IReadOnlyList<KeyframesRecord> Keyframes,
+        [property: Field(3)] IReadOnlyList<FontFaceRecord> FontFaces)
+    {
+        public StylesheetRecord Upgrade() => new(Rules, Keyframes, FontFaces);
+    }
+
     /// <summary>
     /// The sheet's own check (P20): what <see cref="Style.Stylesheet.FromRecord"/> refuses, with its words, at
     /// the path of what it names (<see cref="Style.Stylesheet.ProblemsOf"/>).

@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Statventure.UI.Css;
 using Statventure.UI.Dom;
 
 namespace Statventure.UI.Style;
@@ -191,6 +192,9 @@ public sealed class AnimationEngine
         public TimingFunction? Timing;
     }
 
+    /// <summary>A keyframe of a custom property: its value (a registered one's computed value; null when invalid at computed-value time, or absent).</summary>
+    sealed record CustomFrame(float Offset, List<CssToken>? Value, TimingFunction? Timing);
+
     abstract class Effect
     {
         public required Target Target;
@@ -211,6 +215,8 @@ public sealed class AnimationEngine
         /// <summary>The sequence timeline it runs on (its start and pause time are that clock's), or null for the document's clock.</summary>
         public AnimationTimeline? Timeline;
         public Dictionary<string, List<Frame>>? Tracks;
+        /// <summary>Its custom properties' keyframes (their values as the target's base gives them).</summary>
+        public Dictionary<string, List<CustomFrame>>? CustomTracks;
         public bool Finished;
         /// <summary>Its place in animation-name (the composite order among the element's animations).</summary>
         public int Index;
@@ -249,6 +255,12 @@ public sealed class AnimationEngine
         public HashSet<string> AnimationWritten = new(StringComparer.Ordinal);
         /// <summary>A transition left: the values need writing once more.</summary>
         public bool Stale;
+        /// <summary>Recomputes the element's style with animated custom properties' values (null for a pseudo-element: its custom properties aren't animated).</summary>
+        public Func<IReadOnlyDictionary<string, List<CssToken>?>, ComputedStyle>? Recompute;
+        /// <summary>The animated custom properties' values the shown style was computed with (null: none).</summary>
+        public Dictionary<string, List<CssToken>?>? CustomShown;
+        /// <summary>What the animated values are written over: the base, or the base recomputed with the animated custom properties.</summary>
+        public ComputedStyle? VisibleBase;
 
         /// <summary>Nothing here changes with time: only finished or paused animations (their values are in the visible style already).</summary>
         public bool Settled => !Stale && Transitions.Count == 0 && Animations.TrueForAll(a => a.Finished || a.PausedAt is not null || a.Timeline is { Held: true });
@@ -266,7 +278,12 @@ public sealed class AnimationEngine
     /// After an element's base style was recomputed: starts, keeps or cancels its animations and starts
     /// or cancels transitions for changed properties. Returns the style to show (the base, or a copy with animated values).
     /// </summary>
-    public ComputedStyle Restyled(UiElement element, string pseudo, ComputedStyle? shown, ComputedStyle newBase, ComputedStyle parent, float rootFontSize, IReadOnlySet<string> important)
+    /// <param name="recompute">
+    /// Computes the element's style again with animated custom properties over its cascaded ones (they reach the
+    /// properties that use them, as in Blink's cascade); null when they aren't applied (pseudo-elements).
+    /// </param>
+    public ComputedStyle Restyled(UiElement element, string pseudo, ComputedStyle? shown, ComputedStyle newBase, ComputedStyle parent, float rootFontSize, IReadOnlySet<string> important,
+        Func<IReadOnlyDictionary<string, List<CssToken>?>, ComputedStyle>? recompute = null)
     {
         var key = (element, pseudo);
         _targets.TryGetValue(key, out var target);
@@ -303,6 +320,7 @@ public sealed class AnimationEngine
                 existing.Keyframes = keyframes;
                 existing.Index = i;
                 existing.Tracks = null;
+                existing.CustomTracks = null;
                 kept.Add(existing);
             }
             else
@@ -332,6 +350,7 @@ public sealed class AnimationEngine
         target.Parent = parent;
         target.RootFontSize = rootFontSize;
         target.Important = important;
+        target.Recompute = recompute;
         target.ScriptTracks.Clear();
         if (target.Animations.Count == 0 && target.Transitions.Count == 0 && !HasScripted(element, pseudo))
         {
@@ -340,9 +359,111 @@ public sealed class AnimationEngine
         }
         _targets[key] = target;
         target.Written.Clear();
-        var visible = newBase.Clone();
+        // Animated custom properties are part of the cascade: the style is computed again with them.
+        var custom = CustomOverrides(target);
+        target.CustomShown = custom;
+        target.VisibleBase = custom is not null && recompute is not null ? recompute(custom) : newBase;
+        var visible = target.VisibleBase.Clone();
         Evaluate(target, visible, out _);
         return visible;
+    }
+
+    // ---------- Custom properties ----------
+
+    /// <summary>Elements whose animated custom properties changed since their style was computed (the document restyles them).</summary>
+    readonly List<(UiElement Element, string Pseudo)> _customRestyles = [];
+
+    /// <summary>The elements whose animated custom properties changed at the last <see cref="Tick"/>: their styles must be computed again.</summary>
+    public List<(UiElement Element, string Pseudo)> TakeCustomRestyles()
+    {
+        var restyles = _customRestyles.ToList();
+        _customRestyles.Clear();
+        return restyles;
+    }
+
+    /// <summary>
+    /// The values of the target's animated custom properties now (Blink's active interpolations of custom properties,
+    /// applied in the cascade): its transitions', then its animations' (later ones over earlier ones); an !important
+    /// declaration of the property is left alone. Null when nothing animates a custom property.
+    /// </summary>
+    Dictionary<string, List<CssToken>?>? CustomOverrides(Target target)
+    {
+        if (target.Recompute is null)
+            return null;
+        Dictionary<string, List<CssToken>?>? values = null;
+        foreach (var (property, transition) in target.Transitions)
+        {
+            if (!IsCustom(property) || target.Important.Contains(property) || TransitionProgress(transition) is not { } t)
+                continue;
+            (values ??= new(StringComparer.Ordinal))[property] = CustomValues.Blend(_styles.Registration(property), CustomOf(transition.From, property), CustomOf(transition.To, property), t, target.Base, target.Parent);
+        }
+        foreach (var animation in target.Animations)
+        {
+            if (Progress(animation, out _) is not { } p)
+                continue;
+            animation.CustomTracks ??= BuildCustomTracks(animation, target);
+            foreach (var (property, frames) in animation.CustomTracks)
+            {
+                if (target.Important.Contains(property))
+                    continue;
+                var i = 0;
+                while (i < frames.Count - 2 && p > frames[i + 1].Offset)
+                    i++;
+                var a = frames[i];
+                var b = frames[Math.Min(i + 1, frames.Count - 1)];
+                var span = b.Offset - a.Offset;
+                var local = span > 0 ? Math.Clamp((p - a.Offset) / span, 0, 1) : 1;
+                var eased = (a.Timing ?? animation.Spec.Timing).Apply(local);
+                (values ??= new(StringComparer.Ordinal))[property] = CustomValues.Blend(_styles.Registration(property), a.Value, b.Value, eased, target.Base, target.Parent);
+            }
+        }
+        return values;
+    }
+
+    static bool IsCustom(string property) => property.StartsWith("--", StringComparison.Ordinal);
+
+    static List<CssToken>? CustomOf(ComputedStyle style, string property) => style.Custom.GetValueOrDefault(property);
+
+    /// <summary>
+    /// An animation's custom property tracks (CSSInterpolationType::MaybeConvertCustomPropertyDeclaration): each keyframe's
+    /// value with var() substituted from the base, a CSS-wide keyword taken as one (initial: the registered initial value;
+    /// inherit, and unset of a property that inherits: the parent's; unset otherwise: the initial value), a registered
+    /// one computed (null when invalid); missing 0 % and 100 % keyframes the base's value (the neutral keyframes' underlying value).
+    /// </summary>
+    Dictionary<string, List<CustomFrame>> BuildCustomTracks(RunningAnimation animation, Target target)
+    {
+        var tracks = new Dictionary<string, List<CustomFrame>>(StringComparer.Ordinal);
+        foreach (var property in animation.Keyframes.Properties)
+        {
+            if (!IsCustom(property))
+                continue;
+            var registration = _styles.Registration(property);
+            var frames = new List<CustomFrame>();
+            foreach (var frame in animation.Keyframes.Frames)
+                if (frame.Declarations.LastOrDefault(d => d.Property == property) is { } declaration)
+                    frames.Add(new CustomFrame(frame.Offset, CustomValues.OfKeyframe(registration, declaration, target.Base, target.Parent), frame.Timing));
+            if (frames.Count == 0)
+                continue;
+            var underlying = CustomOf(target.Base, property);
+            if (frames[0].Offset > 0)
+                frames.Insert(0, new CustomFrame(0, underlying, null));
+            if (frames[^1].Offset < 1)
+                frames.Add(new CustomFrame(1, underlying, null));
+            tracks[property] = frames;
+        }
+        return tracks;
+    }
+
+    static bool SameCustom(Dictionary<string, List<CssToken>?>? a, Dictionary<string, List<CssToken>?>? b)
+    {
+        if (a is null || b is null)
+            return a is null && b is null;
+        if (a.Count != b.Count)
+            return false;
+        foreach (var (name, value) in a)
+            if (!b.TryGetValue(name, out var other) || !(value is null ? other is null : other is not null && value.SequenceEqual(other)))
+                return false;
+        return true;
     }
 
     /// <summary>
@@ -373,7 +494,7 @@ public sealed class AnimationEngine
                 continue;
             if (target.Transitions.TryGetValue(property, out var running))
             {
-                if (Interpolation.ValuesEqual(property, running.To, newBase))
+                if (ValuesEqual(property, running.To, newBase))
                 {
                     running.To = newBase;
                     continue;
@@ -382,13 +503,13 @@ public sealed class AnimationEngine
             }
             if (newBase.Transitions.Length == 0 || TransitionFor(newBase, property) is not { } spec)
                 continue;
-            if (Interpolation.ValuesEqual(property, beforeChange, newBase) || !Interpolation.IsInterpolable(property) || spec.Duration + spec.Delay <= 0)
+            if (ValuesEqual(property, beforeChange, newBase) || !IsInterpolable(property, beforeChange, newBase) || spec.Duration + spec.Delay <= 0)
                 continue;
             var duration = spec.Duration;
             var delay = spec.Delay;
             var adjustedStart = beforeChange;
             var factor = 1.0;
-            if (running is not null && Interpolation.ValuesEqual(property, newBase, running.ReversingAdjustedStart) && TransitionProgress(running) is { } progress)
+            if (running is not null && ValuesEqual(property, newBase, running.ReversingAdjustedStart) && TransitionProgress(running) is { } progress)
             {
                 // Interrupted and going back: it takes as long as the part of the way it had come.
                 adjustedStart = running.To;
@@ -439,10 +560,41 @@ public sealed class AnimationEngine
         var style = oldBase.Clone();
         foreach (var (property, transition) in target.Transitions)
             if (TransitionProgress(transition) is { } progress)
-                Interpolation.Apply(property, transition.From, transition.To, (float)progress, style);
+            {
+                if (IsCustom(property))
+                {
+                    style.Custom = new Dictionary<string, List<CssToken>>(style.Custom, StringComparer.Ordinal);
+                    if (CustomValues.Blend(_styles.Registration(property), CustomOf(transition.From, property), CustomOf(transition.To, property), progress, target.Base, target.Parent) is { } value)
+                        style.Custom[property] = value;
+                    else
+                        style.Custom.Remove(property);
+                }
+                else
+                    Interpolation.Apply(property, transition.From, transition.To, (float)progress, style);
+            }
         style.Finish();
         return style;
     }
+
+    /// <summary>Do two styles agree on a property (a custom property: its tokens)?</summary>
+    static bool ValuesEqual(string property, ComputedStyle a, ComputedStyle b)
+    {
+        if (!IsCustom(property))
+            return Interpolation.ValuesEqual(property, a, b);
+        var x = CustomOf(a, property);
+        var y = CustomOf(b, property);
+        return x is null ? y is null : y is not null && x.SequenceEqual(y);
+    }
+
+    /// <summary>
+    /// Whether a change of the property transitions (a smooth interpolation exists: CSSAnimations::
+    /// CalculateTransitionUpdateForPropertyHandle without allow-discrete): a custom property only when registered as a
+    /// colour with both values colours (an unregistered one is discrete).
+    /// </summary>
+    bool IsInterpolable(string property, ComputedStyle before, ComputedStyle after) =>
+        IsCustom(property)
+            ? CustomValues.Smooth(_styles.Registration(property), CustomOf(before, property), CustomOf(after, property))
+            : Interpolation.IsInterpolable(property);
 
     /// <summary>The element no longer has a style (removed, or display: none above it): its animations and transitions are cancelled.</summary>
     public void Forget(UiElement element)
@@ -580,6 +732,12 @@ public sealed class AnimationEngine
             {
                 _targets.Remove(key);
                 CancelAll(target);
+                continue;
+            }
+            // Animated custom properties that changed: the style is computed again (Restyled evaluates the rest).
+            if (!SameCustom(CustomOverrides(target), target.CustomShown))
+            {
+                _customRestyles.Add(key);
                 continue;
             }
             Evaluate(target, visible, out var written);
@@ -1030,7 +1188,7 @@ public sealed class AnimationEngine
     void Evaluate(Target target, ComputedStyle visible, out HashSet<string> written)
     {
         foreach (var property in target.Written)
-            Properties.Get(property)?.Copy(visible, target.Base);
+            Properties.Get(property)?.Copy(visible, target.VisibleBase ?? target.Base);
         written = new HashSet<string>(target.Written, StringComparer.Ordinal);
         var now = new HashSet<string>(StringComparer.Ordinal);
         var animatedNow = new HashSet<string>(StringComparer.Ordinal);
@@ -1039,7 +1197,8 @@ public sealed class AnimationEngine
         // A transition past its end shows nothing (it leaves once a frame's timing update saw it end).
         foreach (var (property, transition) in target.Transitions)
         {
-            if (target.Important.Contains(property) || TransitionProgress(transition) is not { } t)
+            // (Custom properties are in the visible base already: CustomOverrides.)
+            if (IsCustom(property) || target.Important.Contains(property) || TransitionProgress(transition) is not { } t)
                 continue;
             Interpolation.Apply(property, transition.From, transition.To, (float)t, visible);
             now.Add(property);

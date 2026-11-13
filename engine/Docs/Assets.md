@@ -471,7 +471,7 @@ Every answer was the recommended option except Q15 and Q17. Also in `Docs/Engine
 - **Q1. What M9 commits as packs:** only what exists: `audio.pak` (55 themes, 34 instruments, 21
   percussion voices, 7 rooms) and `ui.pak` (the old game's five font faces); `models.pak`, `world.pak`
   and `data.pak` appear when the port makes their content, the port's stylesheet joins `ui.pak` when
-  it's written; every importer is tested on the test assets, packed inside the test run. Test data
+  it's written (it did: GM1 step 1a, 2026-11-13); every importer is tested on the test assets, packed inside the test run. Test data
   never ships, and no empty pack has to be kept in step. (Not the old `styles.css` compiled in, not
   test assets as stand-ins, not five packs with empty ones.)
 - **Q2. Run-time locations:** `packs/` and `classes/` beside the executable, mods in `mods/` in the
@@ -1477,7 +1477,10 @@ parsing leaves out), `UI/Css/FontFaceDescriptors.cs`, `UI/Style/Stylesheet.cs` (
   give it (a whitespace's " ", a comma made by a shorthand ","), null when empty. Every token the engine
   makes has an exact record (`CssTokenRecord.From` checks the round trip); a record whose fields don't fit
   its kind is refused at load. What a declaration's `HasVar` and `Keyword` are is worked out again from its
-  tokens (sizes and times below).
+  tokens (sizes and times below). Since GM1 step 1a (2026-11-13) `ui.stylesheet` is version 2: field 4, `properties`,
+  holds the sheet's `@property` rules (`ui.property-rule` 1: the name and the descriptors as written). Version 1 upgrades
+  with none (`StylesheetRecord.V1`). Compiling refuses a `@property` rule that registers nothing, and so does loading, at
+  the rule's path (`Docs/Game/Foundation.md`, "How it works", step 1a).
 - **Compiling** (`Stylesheet.Compile(text, fileExists)`, S7-2): the text is parsed and prepared exactly as
   `Stylesheet.Parse` does, with `CssParseDiagnostics` collecting what the parser leaves out and `Prepare`
   telling each declaration it drops for an unknown property or a value it can't parse. Problems: a rule
@@ -1551,7 +1554,15 @@ parsing leaves out), `UI/Css/FontFaceDescriptors.cs`, `UI/Style/Stylesheet.cs` (
   faces and the two licence texts there under `ui/fonts/` (`lato-regular.ttf`, `lato-semibold.ttf`,
   `lato-bold.ttf`, `stixtwotext-regular.otf`, `stixtwotext-italic.otf`, `lato-ofl.txt`, `stix-ofl.txt`) and
   packs the folder into `engine/Assets/Packs/ui.pak` (7 entries, 999 KB; unchanged entries keep their stored
-  bytes). The game's own sheet and images join that folder at port time.
+  bytes). The game's images join that folder at port time.
+  - *The port's stylesheets* (GM1 step 1a, 2026-11-13): the script also copies `engine/Assets/UI/styles/*.css` to
+    `ui/styles/`, and the UI importer compiles each into `ui/styles/<name>`.
+  - *`game.css`* is today's old sheet with its five font urls as `ui/fonts/…` paths. It makes `ui/styles/game`: a
+    record of 1,980,754 bytes, stored as 83,844, with 3159 rules, 245 `@keyframes` and 1 `@property`.
+  - *The pack* is then 8 entries, 1,082,802 bytes, the same bytes when made again.
+  - *Loading* `ui/styles/game` takes about 0.2 s (Debug: 209 ms the first time, 40 reading and 169 building; then
+    121–198 ms). Parsing the text takes 64–124 ms.
+  - *The check:* `UiResourcesTests` checks that it loads from the committed pack and is its source's compile.
 - **Tests:** the old game's sheet (`GameStylesheets`: the tests' copy with its five font urls rewritten,
   compiled by the importer into a pack made in the test run with the tests' font copies) gives the same
   computed styles as the text-parsed sheet on the 22 captured screens (11 states at device scales 1 and

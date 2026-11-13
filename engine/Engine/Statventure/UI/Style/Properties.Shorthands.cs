@@ -51,7 +51,7 @@ public static partial class Properties
         ["grid-area"] = ["grid-row-start", "grid-column-start", "grid-row-end", "grid-column-end"],
         ["grid-template"] = ["grid-template-rows", "grid-template-columns", "grid-template-areas"],
         ["text-decoration"] = ["text-decoration-line", "text-decoration-thickness", "text-decoration-style", "text-decoration-color"],
-        ["background"] = ["background-color", "background-image", "background-position", "background-size", "background-repeat", "background-attachment"],
+        ["background"] = ["background-color", "background-image", "background-position", "background-size", "background-repeat", "background-attachment", "background-clip"],
         ["list-style"] = ["list-style-type", "list-style-position"],
         ["font"] = ["font-style", "font-weight", "font-size", "line-height", "font-family", "font-variant-numeric"],
         ["transition"] = ["transition-property", "transition-duration", "transition-timing-function", "transition-delay"],
@@ -472,10 +472,14 @@ public static partial class Properties
         var sizes = new List<List<CssToken>>();
         var repeats = new List<List<CssToken>>();
         var attachments = new List<List<CssToken>>();
+        var clips = new List<List<CssToken>>();
         List<CssToken>? color = null;
         for (var l = 0; l < layers.Count; l++)
         {
             List<CssToken>? image = null, repeat = null, attachment = null;
+            // Boxes (ParseBackgroundOrMask): the first a visual box is background-origin (the engine's isn't a
+            // property), the next one background-clip, which takes text too; one box alone clips as well.
+            List<CssToken>? origin = null, clip = null;
             var position = new List<List<CssToken>>();
             var size = new List<List<CssToken>>();
             var parts = Components(layers[l]);
@@ -498,8 +502,10 @@ public static partial class Properties
                     position.Add(part);
                 else if (IsIdent(part, "scroll", "fixed", "local"))
                     attachment = part;
-                else if (IsIdent(part, "border-box", "padding-box", "content-box", "text"))
-                    continue;
+                else if (origin is null && IsIdent(part, "border-box", "padding-box", "content-box"))
+                    origin = part;
+                else if (clip is null && IsIdent(part, "border-box", "padding-box", "content-box", "text"))
+                    clip = part;
                 else if (l == layers.Count - 1 && color is null)
                     color = part;
                 else
@@ -510,6 +516,7 @@ public static partial class Properties
             sizes.Add(size.Count > 0 ? Join(size) : [new CssToken(CssTokenType.Ident, "auto")]);
             repeats.Add(repeat ?? [new CssToken(CssTokenType.Ident, "repeat")]);
             attachments.Add(attachment ?? [new CssToken(CssTokenType.Ident, "scroll")]);
+            clips.Add(clip ?? origin ?? [new CssToken(CssTokenType.Ident, "border-box")]);
         }
         return
         [
@@ -519,6 +526,7 @@ public static partial class Properties
             ("background-size", JoinCommas(sizes)),
             ("background-repeat", JoinCommas(repeats)),
             ("background-attachment", JoinCommas(attachments)),
+            ("background-clip", JoinCommas(clips)),
         ];
     }
 

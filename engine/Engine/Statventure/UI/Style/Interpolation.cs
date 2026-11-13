@@ -23,7 +23,7 @@ public static class Interpolation
         "color", "background-color", "background-image", "background-position", "background-size", "background-repeat",
         "border-top-color", "border-right-color", "border-bottom-color", "border-left-color", "outline-color", "outline-width", "outline-offset", "outline-style",
         "visibility", "clip-path", "pointer-events", "cursor", "mix-blend-mode", "z-index", "accent-color", "caret-color", "text-decoration-color",
-        "scrollbar-color", "text-decoration-thickness", "text-underline-offset",
+        "scrollbar-color", "text-decoration-thickness", "text-underline-offset", "-webkit-text-fill-color", "background-clip",
     ];
 
     static void Add<T>(string name, Func<ComputedStyle, T> get, Action<ComputedStyle, T> set, Func<T, T, float, T> lerp, Func<T, T, bool>? equals = null)
@@ -73,8 +73,11 @@ public static class Interpolation
         }
         Blends["outline-color"] = (from, to, t, target) => target.OutlineColor = OptionalColor(from.OutlineColor, to.OutlineColor, t, from.Color, to.Color);
         Equal["outline-color"] = (a, b) => (a.OutlineColor ?? a.Color) == (b.OutlineColor ?? b.Color);
-        Blends["text-decoration-color"] = (from, to, t, target) => target.TextDecorationColor = OptionalColor(from.TextDecorationColor, to.TextDecorationColor, t, from.Color, to.Color);
-        Equal["text-decoration-color"] = (a, b) => (a.TextDecorationColor ?? a.Color) == (b.TextDecorationColor ?? b.Color);
+        // A decoration's currentcolor is the fill colour (CSSColorInterpolationType's ResolveCurrentColor for text-decoration-color).
+        Blends["text-decoration-color"] = (from, to, t, target) => target.TextDecorationColor = OptionalColor(from.TextDecorationColor, to.TextDecorationColor, t, from.TextFillColor ?? from.Color, to.TextFillColor ?? to.Color);
+        Equal["text-decoration-color"] = (a, b) => (a.TextDecorationColor ?? a.TextFillColor ?? a.Color) == (b.TextDecorationColor ?? b.TextFillColor ?? b.Color);
+        Blends["-webkit-text-fill-color"] = (from, to, t, target) => target.TextFillColor = OptionalColor(from.TextFillColor, to.TextFillColor, t, from.Color, to.Color);
+        Equal["-webkit-text-fill-color"] = (a, b) => (a.TextFillColor ?? a.Color) == (b.TextFillColor ?? b.Color);
 
         foreach (var (name, get, set) in new (string, Func<ComputedStyle, Length>, Action<ComputedStyle, Length>)[]
         {

@@ -62,7 +62,7 @@ public class EntryListTests
         Assert.True(editor.Q(".entries-notice").HasAttribute("hidden"));
         // Folders first, then entries, each by name; the top folders open, the rest closed.
         Assert.Equal(["audio", "audio/effects", "audio/instruments", "audio/percussion", "audio/rooms", "audio/themes", "audio/theme-order",
-            "notes", "notes/todo.txt", "ui", "ui/fonts"], list.Visible());
+            "notes", "notes/todo.txt", "ui", "ui/fonts", "ui/styles"], list.Visible());
         Assert.True(list.IsOpen("audio"));
         Assert.False(list.IsOpen("audio/rooms"));
         var rooms = list.Folder("audio/rooms")!;
@@ -98,7 +98,7 @@ public class EntryListTests
         Assert.Equal("audio/rooms/hall", hall.GetAttribute("title"));
         // Closing a folder hides what it holds and keeps across rebuilds.
         list.Toggle("audio");
-        Assert.Equal(["audio", "notes", "notes/todo.txt", "ui", "ui/fonts"], list.Visible());
+        Assert.Equal(["audio", "notes", "notes/todo.txt", "ui", "ui/fonts", "ui/styles"], list.Visible());
         editor.Session.Add("notes/more", RecordDraft.Blank(typeof(RoomSpec)));
         Assert.False(list.IsOpen("audio"));
         // An entry added in a closed folder opens it (and its folders).
@@ -107,7 +107,7 @@ public class EntryListTests
         Assert.True(list.IsOpen("audio/percussion"));
         Assert.Contains("audio/percussion/new", list.Visible());
         list.Toggle("audio");
-        Assert.Equal(["audio", "notes", "notes/more", "notes/todo.txt", "ui", "ui/fonts"], list.Visible());
+        Assert.Equal(["audio", "notes", "notes/more", "notes/todo.txt", "ui", "ui/fonts", "ui/styles"], list.Visible());
     }
 
     [Fact]
@@ -270,7 +270,7 @@ public class EntryListTests
         Press("ArrowUp");
         Assert.Equal("audio/effects", list.Active);
         Press("End");
-        Assert.Equal("ui/fonts", list.Active);
+        Assert.Equal("ui/styles", list.Active);
         Press("Home");
         Assert.Equal("audio", list.Active);
         Assert.Single(list.Tree.ElementChildren, e => e.HasClass("active"));
@@ -395,7 +395,7 @@ public class EntryListTests
         editor.Key("Escape", "Escape");
         Assert.Equal("", list.Filter.Value);
         Assert.Equal(["audio", "audio/effects", "audio/instruments", "audio/percussion", "audio/rooms", "audio/themes", "audio/theme-order",
-            "notes", "notes/todo.txt", "ui", "ui/fonts"], list.Visible());
+            "notes", "notes/todo.txt", "ui", "ui/fonts", "ui/styles"], list.Visible());
         Assert.Same(list.Filter, editor.Document.FocusedElement);
     }
 
@@ -416,7 +416,7 @@ public class EntryListTests
         list.Toggle("rooms/many");
         editor.Frame();
         var shown = list.Visible();
-        Assert.Equal(313, shown.Count);
+        Assert.Equal(314, shown.Count);
         // The rows made: those whose box meets the pane's view, and ten more on either side, between two spacers.
         void Check()
         {
@@ -450,10 +450,10 @@ public class EntryListTests
         // End makes the last item active, scrolled into view at the pane's bottom; Home goes back to the top.
         list.Tree.Focus();
         editor.Key("End", "End");
-        Assert.Equal("ui/fonts", list.Active);
+        Assert.Equal("ui/styles", list.Active);
         Check();
-        Assert.True(list.Folder("ui/fonts")!.HasClass("active"));
-        var row = list.Folder("ui/fonts")!.GetBoundingClientRect();
+        Assert.True(list.Folder("ui/styles")!.HasClass("active"));
+        var row = list.Folder("ui/styles")!.GetBoundingClientRect();
         var paneBox = pane.GetBoundingClientRect();
         Assert.Equal(paneBox.Y + pane.ClientHeight, row.Y + row.Height, 0.5f);
         editor.Key("Home", "Home");

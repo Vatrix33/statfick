@@ -320,7 +320,7 @@ public sealed class ValueReader
                 }
                 break;
             }
-            case CssTokenType.Function when token.Value is "rgb" or "rgba" or "hsl" or "hsla" or "color-mix":
+            case CssTokenType.Function when token.Value is "rgb" or "rgba" or "hsl" or "hsla" or "color-mix" or "color":
             {
                 var save = _at;
                 var arguments = FunctionArguments();
@@ -348,6 +348,8 @@ public sealed class ValueReader
     {
         if (name == "color-mix")
             return ColorMix(arguments, current);
+        if (name == "color")
+            return ColorInSpace(arguments);
         var values = arguments.Where(t => t.Type is not (CssTokenType.Whitespace or CssTokenType.Comma) && !t.IsDelim('/')).ToList();
         if (values.Count is < 3 or > 4)
             return null;
@@ -387,6 +389,38 @@ public sealed class ValueReader
         var q2 = l < 0.5f ? l * (1 + s) : l + s - l * s;
         var p2 = 2 * l - q2;
         return new Color(HueToRgb(p2, q2, hue + 1f / 3), HueToRgb(p2, q2, hue), HueToRgb(p2, q2, hue - 1f / 3), alpha);
+    }
+
+    /// <summary>
+    /// color(srgb r g b [/ a]) and color(srgb-linear …) (CSS Color 4 §10): numbers 0–1 or percentages; how Blink
+    /// serializes a computed color-mix(), which a registered colour's var() substitutes.
+    /// </summary>
+    static Color? ColorInSpace(List<CssToken> arguments)
+    {
+        var values = arguments.Where(t => t.Type != CssTokenType.Whitespace).ToList();
+        if (values.Count is not (4 or 6) || values[0].Type != CssTokenType.Ident)
+            return null;
+        var space = values[0].Value.ToLowerInvariant();
+        if (space is not ("srgb" or "srgb-linear") || values.Count == 6 && !values[4].IsDelim('/'))
+            return null;
+        float Component(CssToken token) => token.Type switch
+        {
+            CssTokenType.Number => (float)token.Number,
+            CssTokenType.Percentage => (float)token.Number / 100f,
+            _ => float.NaN,
+        };
+        var r = Component(values[1]);
+        var g = Component(values[2]);
+        var b = Component(values[3]);
+        var alpha = values.Count == 6 ? Component(values[5]) : 1f;
+        if (float.IsNaN(r) || float.IsNaN(g) || float.IsNaN(b) || float.IsNaN(alpha))
+            return null;
+        if (space == "srgb-linear")
+        {
+            static float ToGamma(float c) => c <= 0.0031308f ? c * 12.92f : 1.055f * MathF.Pow(c, 1 / 2.4f) - 0.055f;
+            (r, g, b) = (ToGamma(r), ToGamma(g), ToGamma(b));
+        }
+        return new Color(Math.Clamp(r, 0, 1), Math.Clamp(g, 0, 1), Math.Clamp(b, 0, 1), Math.Clamp(alpha, 0, 1));
     }
 
     /// <summary>color-mix(in srgb, a [p%], b [p%]) (CSS Color 5): premultiplied mix in sRGB.</summary>

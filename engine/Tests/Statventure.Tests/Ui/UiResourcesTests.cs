@@ -8,6 +8,7 @@ using Statventure.Tests.Packs;
 using Statventure.UI;
 using Statventure.UI.Css;
 using Statventure.UI.Dom;
+using Statventure.UI.Style;
 
 namespace Statventure.Tests.Ui;
 
@@ -157,7 +158,7 @@ public class UiResourcesTests
 
     static string CommittedPack => Path.Combine(TestPaths.Packs, "ui.pak");
 
-    /// <summary>The pack's entries and the old game's files they are (S7-5, S7-6).</summary>
+    /// <summary>The pack's files and the old game's files they are (S7-5, S7-6).</summary>
     public static readonly (string Path, string File)[] Contents =
     [
         ("ui/fonts/lato-bold.ttf", "Lato-Bold.ttf"),
@@ -169,11 +170,17 @@ public class UiResourcesTests
         ("ui/fonts/stixtwotext-regular.otf", "STIXTwoText-Regular.otf"),
     ];
 
+    /// <summary>The port's stylesheets in the pack (GM1-P8): each compiled from engine/Assets/UI/styles/&lt;name&gt;.css.</summary>
+    public static readonly string[] Stylesheets = ["game"];
+
+    static string StylesheetSource(string name) => Path.Combine(TestPaths.Packs, "..", "UI", "styles", name + ".css");
+
     [Fact]
-    public void TheCommittedPackHoldsTheOldGamesFiveFontsAndTheirLicences()
+    public void TheCommittedPackHoldsTheOldGamesFiveFontsTheirLicencesAndThePortsStylesheets()
     {
         using var pack = PackFile.Open(CommittedPack);
-        Assert.Equal(Contents.Select(c => (c.Path, false)), pack.Entries.Select(e => (e.Path, e.IsRecord)));
+        Assert.Equal(Contents.Select(c => (c.Path, false)).Concat(Stylesheets.Select(s => ($"ui/styles/{s}", true))).Order(),
+            pack.Entries.Select(e => (e.Path, e.IsRecord)).Order());
         foreach (var (path, file) in Contents)
         {
             var content = pack.Read(pack.Find(path)!);
@@ -205,6 +212,38 @@ public class UiResourcesTests
         fresh.Write(folder["fresh.pak"]);
         using var again = PackFile.Open(folder["fresh.pak"]);
         Assert.Equal(committed.Entries.Select(e => (e.Path, e.IsRecord, e.ContentLength, e.HashHex)), again.Entries.Select(e => (e.Path, e.IsRecord, e.ContentLength, e.HashHex)));
+    }
+
+    /// <summary>
+    /// The port's stylesheet (GM1 step 1a): <c>ui/styles/game</c> loads from the committed pack and is the compile of the
+    /// committed source, engine/Assets/UI/styles/game.css, byte for byte in its record and part for part as a sheet
+    /// (Tools/Scripts/make-ui-pack.sh made the pack from it; run it again when the source changes).
+    /// </summary>
+    [Fact]
+    public void ThePortsStylesheetLoadsFromThePackAndIsItsSourcesCompile()
+    {
+        using var files = new VirtualFileSystem([Mount.Pack(CommittedPack)]);
+        foreach (var name in Stylesheets)
+        {
+            var loaded = Stylesheet.Load(files, $"ui/styles/{name}");
+            var compiled = Stylesheet.Compile(File.ReadAllText(StylesheetSource(name)), path => files.Exists(path));
+            Assert.Empty(compiled.Problems);
+            Assert.Equal(RecordSerializer.ToBinary(compiled.Record), RecordSerializer.ToBinary(files.Load<StylesheetRecord>($"ui/styles/{name}")));
+            Assert.Equal(StylesheetText.Of(Stylesheet.FromRecord(compiled.Record)), StylesheetText.Of(loaded));
+        }
+    }
+
+    /// <summary>The game sheet's source is today's old stylesheet with its five @font-face urls as ui.pak's data paths (when it was made: the port's own file since).</summary>
+    [Fact]
+    public void TheGameSheetsSourceStartedAsTheOldGamesStylesheet()
+    {
+        var source = File.ReadAllText(StylesheetSource("game"));
+        foreach (var (url, path, _) in GameStylesheets.Fonts)
+        {
+            Assert.DoesNotContain(url, source);
+            Assert.Single(source.Split($"url(\"{path}\")").Skip(1));
+        }
+        Assert.Contains("@property --exotic-tone", source);
     }
 }
 

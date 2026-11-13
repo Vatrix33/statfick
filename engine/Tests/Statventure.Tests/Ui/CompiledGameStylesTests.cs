@@ -164,6 +164,12 @@ public static class StylesheetText
                 if (fontSources || d.Property != "src")
                     text.Append($"  {d.Property} important={d.Important}: {Tokens(d.Value)}\n");
         }
+        foreach (var rule in sheet.PropertyRules)
+        {
+            text.Append($"@property {Tokens(rule.Prelude)}\n");
+            foreach (var d in rule.Descriptors)
+                text.Append($"  {d.Property} important={d.Important}: {Tokens(d.Value)}\n");
+        }
         if (unknown)
             text.Append($"unknown {string.Join(",", sheet.UnknownProperties)}\n");
         return text.ToString();

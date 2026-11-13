@@ -61,6 +61,11 @@ public sealed class Stylesheet
     public List<Rule> Rules { get; } = [];
     public List<(CssKeyframesRule Rule, MediaQuery? Media)> Keyframes { get; } = [];
     public List<CssFontFaceRule> FontFaces { get; } = [];
+    /// <summary>
+    /// Its @property rules in order, valid or not (the style engine registers the valid ones, a later one of a name
+    /// winning; one inside @media registers whatever the media, as @font-face does).
+    /// </summary>
+    public List<CssPropertyRule> PropertyRules { get; } = [];
     /// <summary>Properties the engine doesn't know (for diagnostics; the game's styles should have none).</summary>
     public SortedSet<string> UnknownProperties { get; } = [];
     /// <summary>Rules dropped because the engine couldn't parse their selectors (a sheet parsed from text).</summary>
@@ -113,6 +118,17 @@ public sealed class Stylesheet
                     if (media is not null)
                         checks?.Problems.Add($"a @font-face inside @media {media.Text} (the engine doesn't make fonts conditional)");
                     break;
+                case CssPropertyRule property:
+                    PropertyRules.Add(property);
+                    if (checks is null)
+                        break;
+                    // Chromium registers one under a media query only while it matches; the engine always does.
+                    if (media is not null)
+                        checks.Problems.Add($"a @property inside @media {media.Text} (the engine doesn't make registrations conditional)");
+                    var validation = PropertyRegistration.Validate(property);
+                    if (validation.Problem is { } problem)
+                        checks.Problems.Add(validation.ChromiumIgnoresIt ? $"a @property rule Chromium ignores: {problem}" : $"a @property rule the engine can't take: {problem}");
+                    break;
             }
         }
     }
@@ -144,7 +160,9 @@ public sealed class Stylesheet
     /// doesn't handle (@charset aside), anything else the parser skips (a declaration or keyframe selector
     /// that doesn't parse, a stray brace), an unknown property, a value the engine can't parse for a property
     /// it takes (properties it deliberately ignores are dropped, as parsing drops them), a @font-face it
-    /// can't honour (<see cref="FontFaceDescriptors"/>) or one inside @media, and a url() that isn't a
+    /// can't honour (<see cref="FontFaceDescriptors"/>) or one inside @media, a @property rule that registers nothing
+    /// (one Chromium ignores, or of a syntax other than &lt;color&gt;: <see cref="PropertyRegistration.Validate"/>) or one
+    /// inside @media, and a url() that isn't a
     /// <c>data:</c> url or a data path under the path rule (S7-1), or names a file
     /// <paramref name="fileExists"/> doesn't know.
     /// </summary>
@@ -245,7 +263,11 @@ public sealed class Stylesheet
         [.. Keyframes.Select(k => new KeyframesRecord(k.Rule.Name,
             [.. k.Rule.Frames.Select(f => new KeyframeRecord(f.Offsets, [.. f.Declarations.Select(Written)]))],
             k.Media is { } media ? CssTokenRecord.From(media.Tokens) : null))],
-        [.. FontFaces.Select(f => new FontFaceRecord([.. f.Declarations.Select(Written)]))]);
+        [.. FontFaces.Select(f => new FontFaceRecord([.. f.Declarations.Select(Written)]))])
+    {
+        // (A rule without a custom property's name doesn't compile: it has no record.)
+        Properties = [.. PropertyRules.Where(p => p.Name is not null).Select(p => new PropertyRuleRecord(p.Name!, [.. p.Descriptors.Select(Written)]))],
+    };
 
     static DeclarationRecord Written(CssDeclaration declaration) =>
         new(declaration.Property, CssTokenRecord.From(declaration.Value), declaration.Important);
@@ -391,6 +413,23 @@ public sealed class Stylesheet
                         throw Fail(at, problem.Message);
                     }
                     sheet.FontFaces.Add(rule);
+                });
+            }
+            for (var p = 0; p < record.Properties.Count; p++)
+            {
+                var property = record.Properties[p];
+                var at = RecordPath.Root.Field("properties").Index(p);
+                Part(() =>
+                {
+                    var where = $"@property {property.Name}";
+                    var rule = new CssPropertyRule([new CssToken(CssTokenType.Ident, property.Name)],
+                        [.. property.Descriptors.Select((d, k) => AsWritten(d, where, at.Field("descriptors").Index(k)))]);
+                    if (rule.Name is null)
+                        throw Fail(at.Field("name"), $"{where}: '{property.Name}' isn't a custom property's name");
+                    // Only a rule that registers its property compiles (Compile refuses the others).
+                    if (PropertyRegistration.Validate(rule).Problem is { } problem)
+                        throw Fail(at, $"{where}: {problem}");
+                    sheet.PropertyRules.Add(rule);
                 });
             }
             // The sheet's urls (Urls()'s order and rule), each at its token in the record.

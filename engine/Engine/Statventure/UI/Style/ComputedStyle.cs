@@ -240,9 +240,18 @@ public readonly record struct BackgroundPosition(Length X, Length Y)
     public static readonly BackgroundPosition TopLeft = new(Length.Pct(0), Length.Pct(0));
 }
 
+/// <summary>
+/// background-clip of a layer (CSS Backgrounds 4): the box its background is painted within, or the text (the layer
+/// painted through its box's text as a mask). The painter honours <see cref="Text"/>; padding-box and content-box are
+/// kept as computed values and painted as border-box (the decision on background layers, 2026-11-05).
+/// </summary>
+public enum BackgroundClip { BorderBox, PaddingBox, ContentBox, Text }
+
 public sealed record BackgroundLayer(ImageValue Image, Length SizeX, Length SizeY, string SizeKeyword, Length PositionX, Length PositionY, BackgroundRepeat RepeatX, BackgroundRepeat RepeatY)
 {
     public bool Fixed { get; init; }
+    /// <summary>background-clip of the layer.</summary>
+    public BackgroundClip Clip { get; init; }
 
     public static BackgroundLayer Of(ImageValue image) => new(image, Length.Auto, Length.Auto, "", Length.Pct(0), Length.Pct(0), BackgroundRepeat.Repeat, BackgroundRepeat.Repeat);
 }
@@ -378,6 +387,11 @@ public sealed class ComputedStyle
     public UserSelect UsedUserSelect => IsInert ? UserSelect.None : UserSelect;
     public Color? AccentColor;
     public Color? CaretColor;
+    /// <summary>
+    /// -webkit-text-fill-color: the colour glyphs are filled with; null is currentcolor (the initial value), which
+    /// inherits as the keyword and so is each element's own colour.
+    /// </summary>
+    public Color? TextFillColor;
     public bool TabularNumbers;
     public UnderlinePosition TextUnderlinePosition;
     public TextDecorationSkipInk TextDecorationSkipInk;
@@ -416,8 +430,15 @@ public sealed class ComputedStyle
     public (BackgroundRepeat X, BackgroundRepeat Y)[] BackgroundRepeats = [(BackgroundRepeat.Repeat, BackgroundRepeat.Repeat)];
     /// <summary>background-attachment per layer: fixed layers are positioned against the viewport.</summary>
     public bool[] BackgroundFixed = [false];
+    /// <summary>background-clip per layer (the -webkit- alias sets it too).</summary>
+    public BackgroundClip[] BackgroundClips = [BackgroundClip.BorderBox];
     /// <summary>The background layers that have an image, bottom layer last (built by <see cref="Finish"/>).</summary>
     public BackgroundLayer[] Backgrounds = [];
+    /// <summary>
+    /// The bottom layer's background-clip, which the background colour is painted with (Blink paints the colour with
+    /// the bottom fill layer, whether or not it has an image; set by <see cref="Finish"/>).
+    /// </summary>
+    public BackgroundClip BackgroundColorClip;
     public ShadowValue[] BoxShadows = [];
     public TransformFunction[] Transform = [];
     public Length TransformOriginX = Length.Pct(50), TransformOriginY = Length.Pct(50);
@@ -492,8 +513,10 @@ public sealed class ComputedStyle
     /// </summary>
     public void Finish()
     {
+        // A decoration's currentcolor is the text's fill colour, which is currentcolor itself unless set
+        // (ComputedStyle::DecorationColorIncludingFallback).
         AppliedDecorations = IsDecoratingBox
-            ? [.. BaseDecorations, new AppliedDecoration(Underline, Overline, LineThrough, TextDecorationStyle, TextDecorationColor ?? Color, TextDecorationThickness, TextUnderlineOffset)]
+            ? [.. BaseDecorations, new AppliedDecoration(Underline, Overline, LineThrough, TextDecorationStyle, TextDecorationColor ?? TextFillColor ?? Color, TextDecorationThickness, TextUnderlineOffset)]
             : BaseDecorations;
         var layers = new List<BackgroundLayer>();
         for (var i = 0; i < BackgroundImages.Length; i++)
@@ -504,9 +527,14 @@ public sealed class ComputedStyle
             var size = BackgroundSizes[i % BackgroundSizes.Length];
             var position = BackgroundPositions[i % BackgroundPositions.Length];
             var repeat = BackgroundRepeats[i % BackgroundRepeats.Length];
-            layers.Add(new BackgroundLayer(image, size.X, size.Y, size.Keyword, position.X, position.Y, repeat.X, repeat.Y) { Fixed = BackgroundFixed[i % BackgroundFixed.Length] });
+            layers.Add(new BackgroundLayer(image, size.X, size.Y, size.Keyword, position.X, position.Y, repeat.X, repeat.Y)
+            {
+                Fixed = BackgroundFixed[i % BackgroundFixed.Length],
+                Clip = BackgroundClips[i % BackgroundClips.Length],
+            });
         }
         Backgrounds = layers.ToArray();
+        BackgroundColorClip = BackgroundClips[(BackgroundImages.Length - 1) % BackgroundClips.Length];
 
         var transitions = new List<TransitionSpec>();
         for (var i = 0; i < TransitionProperty.Length; i++)
@@ -545,6 +573,7 @@ public sealed class ComputedStyle
             || TextAlign != other.TextAlign || TextTransform != other.TextTransform || WhiteSpace != other.WhiteSpace
             || OverflowWrap != other.OverflowWrap || Visibility != other.Visibility || PointerEvents != other.PointerEvents || Interactivity != other.Interactivity || IsInert != other.IsInert
             || Cursor != other.Cursor || !CursorImages.AsSpan().SequenceEqual(other.CursorImages) || UserSelect != other.UserSelect || AccentColor != other.AccentColor || CaretColor != other.CaretColor
+            || TextFillColor != other.TextFillColor
             || TabularNumbers != other.TabularNumbers || ListStyleType != other.ListStyleType || ListStyleInside != other.ListStyleInside
             || ScrollbarThumb != other.ScrollbarThumb || ScrollbarTrack != other.ScrollbarTrack
             || TextUnderlinePosition != other.TextUnderlinePosition || TextDecorationSkipInk != other.TextDecorationSkipInk

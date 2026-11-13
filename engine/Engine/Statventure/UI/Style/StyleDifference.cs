@@ -45,6 +45,7 @@ public static class StyleDifference
         nameof(ComputedStyle.AppliedDecorations), nameof(ComputedStyle.BaseDecorations), nameof(ComputedStyle.DecorationBlink), nameof(ComputedStyle.TextUnderlinePosition), nameof(ComputedStyle.TextDecorationSkipInk),
         nameof(ComputedStyle.Opacity), nameof(ComputedStyle.BackgroundColor), nameof(ComputedStyle.BackgroundImages), nameof(ComputedStyle.BackgroundSizes),
         nameof(ComputedStyle.BackgroundPositions), nameof(ComputedStyle.BackgroundRepeats), nameof(ComputedStyle.BackgroundFixed), nameof(ComputedStyle.Backgrounds),
+        nameof(ComputedStyle.BackgroundClips), nameof(ComputedStyle.BackgroundColorClip), nameof(ComputedStyle.TextFillColor),
         nameof(ComputedStyle.BoxShadows), nameof(ComputedStyle.Transform), nameof(ComputedStyle.TransformOriginX), nameof(ComputedStyle.TransformOriginY), nameof(ComputedStyle.TransformBox),
         nameof(ComputedStyle.TranslateX), nameof(ComputedStyle.TranslateY), nameof(ComputedStyle.ScaleX), nameof(ComputedStyle.ScaleY), nameof(ComputedStyle.Rotate),
         nameof(ComputedStyle.Filters), nameof(ComputedStyle.BackdropFilters), nameof(ComputedStyle.MixBlendMode), nameof(ComputedStyle.Isolate), nameof(ComputedStyle.WillChange),
