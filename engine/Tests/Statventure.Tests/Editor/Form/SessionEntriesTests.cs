@@ -406,4 +406,23 @@ public class SessionEntriesTests
         Assert.DoesNotContain(kinds, k => k.Name == "test.shape");
         Assert.Equal(FormTesting.Types.ByName.Values.Count(t => !RecordShape.Of(t).IsUnion), kinds.Count);
     }
+
+    [Fact]
+    public void NewLeavesOutAKindMarkedNotAPackKind()
+    {
+        // The save (save.game) is marked so: its values are save slots and character files, never entries (the user's
+        // Q26 of GM1). Two kinds alike but for the mark: the one marked isn't offered, the other is.
+        var types = new Dictionary<string, Type>(FormTesting.Types.ByName)
+        {
+            ["variant.not-a-pack-kind"] = typeof(Statventure.Tests.Records.Variants.NotAPackKindVariant),
+            ["variant.a-pack-kind"] = typeof(Statventure.Tests.Records.Variants.APackKindVariant),
+        };
+        var session = new EditorSession(GameData.Repo(EditorHarness.EngineFolder)) { Types = new Statventure.Packs.RecordTypes(types), Writable = true };
+        var kinds = session.NewKinds();
+        Assert.Contains(kinds, k => k.Name == "variant.a-pack-kind");
+        Assert.DoesNotContain(kinds, k => k.Name == "variant.not-a-pack-kind");
+        Assert.Equal(types.Count(t => !RecordShape.Of(t.Value).IsUnion) - 1, kinds.Count);
+        Assert.Equal((false, true), (RecordShape.Of<Statventure.Tests.Records.Variants.NotAPackKindVariant>().IsPackKind,
+            RecordShape.Of<Statventure.Tests.Records.Variants.APackKindVariant>().IsPackKind));
+    }
 }

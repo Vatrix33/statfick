@@ -111,7 +111,7 @@ public class GameLookupTests
         Assert.Equal((folder["game/packs"], false, folder["game"], folder["game/Statventure.Game.Data.dll"]), (game.PacksFolder, game.DevSetup, game.Folder, game.Library));
         var kind = game.Types.Find(GameTesting.StandInKind)!;
         Assert.NotNull(game.Types.Find("audio.room"));
-        Assert.Equal(Statventure.Packs.RecordTypes.Engine.ByName.Count + 1, game.Types.ByName.Count);
+        Assert.Equal(Statventure.Packs.RecordTypes.Engine.ByName.Count + 2, game.Types.ByName.Count);
         Assert.Equal(Statventure.Packs.Importers.Engine.All.Select(i => i.Name), game.Importers.All.Select(i => i.Name));
         // Its own load context, its engine the editor's: the kind's marks are the engine's attributes.
         Assert.NotSame(AssemblyLoadContext.Default, AssemblyLoadContext.GetLoadContext(kind.Assembly));

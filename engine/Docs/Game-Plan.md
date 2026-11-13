@@ -506,8 +506,9 @@ and answered as recommended.
 
 **GM1's detail round (the user, 2026-11-13, the question tool, asked by the manager in six rounds of four after the
 design doc's first version; in full with each question's facts and options in `Docs/Game/Foundation.md`, "The detail
-round" and "The questions as asked"; Q24, raised by the answers, asked after the six rounds the same day):** every answer
-the recommended option except Q6, Q11, Q15, Q16 (and Q16b), Q18, Q22 and Q23. Nothing of GM1 is open.
+round" and "The questions as asked"; Q24, raised by the answers, asked after the six rounds the same day; Q25 and Q26,
+raised by step 5, the same day):** every answer the recommended option except Q6, Q11, Q15, Q16 (and Q16b), Q18, Q22,
+Q23 and Q25. Nothing of GM1 is open.
 - Q1 A character's name: any name up to 80 characters, kept in the save, the slot's file named from it.
 - Q2 The name asked before the sheet, "Character <n>" filled in.
 - Q3 The mod list: an on/off switch per mod, kept in `settings.json`; the order the files' name order.
@@ -545,6 +546,12 @@ the recommended option except Q6, Q11, Q15, Q16 (and Q16b), Q18, Q22 and Q23. No
 - Q24 (raised by Q6 and Q16), Load Character from the start screen: "Load Character…" in the slot list, loading a
   character file into a new slot; the menu's Load Character and Ctrl+O stay as well. (Not a seventh start-screen button;
   not Escape and Ctrl+O only.)
+- **Q25 (raised by step 5), not the recommendation: "The file's name".** "Start new" on a slot whose save and backup both
+  can't be read calls the new character by the slot's file name ("ser-alrik"), with no prompt; when the backup reads, its
+  name is kept. (Not the name prompt with the file's name filled in, the recommendation; not the next free "Character
+  <n>".)
+- Q26 (raised by step 5), the editor's New entry and the save: not offered; `save.game` is marked as not a pack kind
+  (`[NotAPackKind]`). (Not offered like any kind.)
 
 ## GM2 The hero: the character sheet, races and looks
 
@@ -1910,7 +1917,7 @@ Found against the repo on 2026-11-12; the repo's figures are the ones used above
 
 Every question below is about the game. Each milestone's are asked with the question tool when it begins (GP-6) and
 answered in its section (GP-7); GM1's thirteen were all answered on 2026-11-12 ("Decisions for GM1": the eleven, then
-GM1-12 and GM1-13, which came out of GM1-3's answer), and GM1's detail round (Q1–Q24 and Q16b) on 2026-11-13 ("GM1's
+GM1-12 and GM1-13, which came out of GM1-3's answer), and GM1's detail round (Q1–Q26 and Q16b) on 2026-11-13 ("GM1's
 detail round"), so none of GM1's is left. The sound questions are asked with their milestones (GM1-6).
 
 - GM2-1 The 72 looks: faithful 3D remakes / new looks per race / a character maker.
@@ -2004,3 +2011,8 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   (`Game/Statventure.Game`, published as `stat-fick` / `Stat Fick.exe`, one instance per per-user folder) and its real
   data library (`Game/Statventure.Game.Data`) in place of the sandbox and the stand-in; the program's seams with a stub
   for every part, on which steps 5–10 build; the game's own test project (two projects, the suite their sum).
+- **2026-11-13, GM1 step 5 done (the branch `gm1-step5`; `Docs/Game/Foundation.md`, "How it works", step 5):** the save
+  record `save.game` v1, `settings.json` (`GameSettings`), the slots and the open character (`GameSession`, slots named
+  from the characters' names) and the randomness service (`xoshiro256**` through SplitMix64); the user's Q25 ("Start
+  new" with nothing readable names the character by the slot's file name, not the recommendation) and Q26 (the save left
+  out of the editor's New entry) answered on the way ("GM1's detail round").

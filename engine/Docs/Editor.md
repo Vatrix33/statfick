@@ -1068,7 +1068,9 @@ through exposures only: `RecordLayout.Fields`, `Subtypes` and `Make` (the compil
 - **Marks** (`RecordMarks.cs`): `[Kind(displayName, folder) { Rule = typeof(…) }]`, `[Help(text)]` (fields and
   types), `[Unit(text)]`, `[Limits(min, max) { MinExclusive, MaxExclusive }]`, `[Choices(…)]`, `[Colour]`,
   `[Bulk(summary)]`, `[References(typeof(Kind)) { Folder, Rule, Keys, When, Is }]` (several per field),
-  `[Check]` (on methods). A mark that doesn't fit its field throws an `InvalidOperationException` naming the
+  `[Check]` (on methods), and since GM1 step 5 `[NotAPackKind]` (on a type: its values are never entries, so New
+  entry doesn't offer it, `RecordShape.IsPackKind` false; the save `save.game`, the user's Q26 of GM1, 2026-11-13;
+  Import and Duplicate don't look at it, Docs/Game/Foundation.md, "How it works", step 5). A mark that doesn't fit its field throws an `InvalidOperationException` naming the
   type and field when the shape's fields are first asked for: limits on what holds no numbers, a min above
   the max or NaN; choices or references on what holds no strings; a colour that isn't a `Vector3`,
   `Vector4` or string (or a list of them; maps refused); `Keys` on what isn't a map with string keys; a
@@ -2015,7 +2017,8 @@ the fixture list), as step 8's parts will need too.
   `Session.CanRenameOrRemove(entry)` (the pack's own and new entries; never a game entry, P7), `Session.IsModCopy(entry)`
   (an entry of the pack over a game entry, or a game entry changed in this session), `Session.CanRevert(entry)`,
   `Session.PathProblem(path, except)` (the path rule, an entry there, an entry that is a folder of it or below it, in
-  words), `Session.NewKinds()` (every plain kind of `Types` by display name; unions offer their subtypes). A rename
+  words), `Session.NewKinds()` (every plain kind of `Types` by display name; unions offer their subtypes; since GM1
+  step 5 not a kind marked `[NotAPackKind]`, the save `save.game`: the user's Q26 of GM1, 2026-11-13). A rename
   or removal of the pack's entry over a game entry shows the game's again; a revert drops the copy (the pack's goes to
   `Removed`) and shows the game's with its history cleared. Every change of the set is reported by
   `Session.EntriesChanged` with an `EntriesChange(Kind, Entry, OldPath)`: `Shown`, `Added` (made, or a game entry

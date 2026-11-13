@@ -1097,7 +1097,10 @@ Namespace `Statventure.Storage`. Tests: `Tests/Statventure.Tests/Storage/`, data
   (NaN) before anything changes, writes only when the value changes (by the writer, into `.tmp` then
   renamed over the file). System.Text.Json with camelCase property names and enums as camelCase names
   (integers refused), strict numbers; the file indented by two spaces, LF, a final line end, `version`
-  first, characters outside the BMP escaped as the records' JSON form does.
+  first, characters outside the BMP escaped as the records' JSON form does. (Found by GM1 step 5, 2026-11-13: a key
+  can't be made absent again, no `Remove`, and a stored null is logged as the wrong type; open in
+  `Docs/Engine-Plan.md`, "Small tasks left from earlier milestones". The game's use of these pieces, its `save.game`,
+  slots named from the characters' names and `settings.json`'s keys: `Docs/Game/Foundation.md`, "How it works", step 5.)
 - **Character files** (`CharacterFile`; Q19): `Export(file, value)` writes the record's JSON form
   (`RecordSerializer.ToJsonUtf8`) to a file beside the target (random name), flushed, then renamed over
   it (a failure removes it, the old file stays); `Import<T>(file)` reads and upgrades. The old game's

@@ -206,9 +206,12 @@ public sealed partial class EditorSession
 
     // ---------- New, duplicate, rename, remove (M11-7, P14, P15: not undoable; the view asks first) ----------
 
-    /// <summary>The plain record kinds New offers (unions have no blank: their subtypes are offered), by display name.</summary>
+    /// <summary>
+    /// The plain record kinds New offers (unions have no blank: their subtypes are offered), by display name; not a kind
+    /// marked <see cref="NotAPackKindAttribute"/> (the save: the user's Q26 of GM1).
+    /// </summary>
     public IReadOnlyList<RecordShape> NewKinds() =>
-        [.. Types.ByName.Values.Select(RecordShape.Of).Where(s => !s.IsUnion).OrderBy(s => s.DisplayName, StringComparer.Ordinal).ThenBy(s => s.Name, StringComparer.Ordinal)];
+        [.. Types.ByName.Values.Select(RecordShape.Of).Where(s => !s.IsUnion && s.IsPackKind).OrderBy(s => s.DisplayName, StringComparer.Ordinal).ThenBy(s => s.Name, StringComparer.Ordinal)];
 
     /// <summary>Whether entries can be added now (New, Duplicate).</summary>
     public bool CanAdd => Writable;

@@ -39,6 +39,7 @@ public sealed class RecordShape
         var kind = type.GetCustomAttribute<KindAttribute>(false);
         DisplayName = kind?.DisplayName ?? DisplayNames.Of(type.Name);
         Help = type.GetCustomAttribute<HelpAttribute>(false)?.Text;
+        IsPackKind = !type.IsDefined(typeof(NotAPackKindAttribute), false);
         if (kind?.Folder is { } folder && PackPath.Problem(folder) is { } problem)
             throw new InvalidOperationException($"{type.Name}: the kind's folder \"{folder}\" isn't a data path ({problem})");
         Folder = kind?.Folder;
@@ -75,6 +76,9 @@ public sealed class RecordShape
 
     /// <summary>Its <see cref="HelpAttribute"/>'s text, or null.</summary>
     public string? Help { get; }
+
+    /// <summary>Whether its values may be entries of the game's data: true unless it is marked <see cref="NotAPackKindAttribute"/> (the save).</summary>
+    public bool IsPackKind { get; }
 
     /// <summary>The folder of the kind's entries, from its <see cref="KindAttribute"/>; null when it has none.</summary>
     public string? Folder { get; }

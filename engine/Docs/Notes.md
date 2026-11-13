@@ -289,6 +289,14 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   still hang after a few frames under wlroots and the engine's `MinimizedForTests` is internal to the engine's tests, so
   the game's real-run test runs the game on a thread of its own with a time limit (a run that can't quit fails, not
   hangs: `mutate.py` reads a hang as "SURVIVED" with no counts).
+- 2026-11-13 (the PC, GM1 step 5's worker on the branch `gm1-step5`): **the save record `save.game` v1, the settings,
+  the session and the randomness service** (`Docs/Game/Foundation.md`, "How it works", step 5; the user's Q25 and Q26).
+  Gotchas: the game's tests must not open a namespace named like a part's (`Statventure.Game.Tests.Random` hid
+  `Statventure.Game.Random` from step 2's `Random.GameRandom` in the tests' root namespace); the engine's `Settings` can't
+  make a key absent and logs a stored null at every start ("Small tasks left from earlier milestones"); the records' JSON
+  form escapes characters outside the BMP (`🜂`); a worktree-isolated session refuses a heredoc into a scratch
+  file and a bare `source` (write files with the editor's tools, run `bash <script>`); running downloaded C reference code
+  is refused (the generators' composite outputs came from an own transcription checked against the published vectors).
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

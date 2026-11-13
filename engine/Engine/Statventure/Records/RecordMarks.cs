@@ -21,6 +21,14 @@ public sealed class KindAttribute(string displayName, string? folder = null) : A
     public Type? Rule { get; set; }
 }
 
+/// <summary>
+/// On a record type: its values are never entries of the game's data, so the editor offers no New entry of it (the save,
+/// <c>save.game</c>, whose values are save slots and character files: the user's Q26 of GM1, 2026-11-13). It changes
+/// nothing else: the forms, the layout signatures, the packer and the checks are as for any record type.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, Inherited = false)]
+public sealed class NotAPackKindAttribute : Attribute;
+
 /// <summary>A short help text: the row's tooltip in the editor (on a field), or the kind's (on a record type).</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class | AttributeTargets.Struct)]
 public sealed class HelpAttribute(string text) : Attribute

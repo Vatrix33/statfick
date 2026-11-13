@@ -75,12 +75,13 @@ In full, with the options not taken, in `Docs/Game-Plan.md`, GM1, "Decisions for
   window on the user's screen, nothing audible from a session ("How each step is finished", item 1; the standing rule
   in "Small tasks", "The proof cutscene's three sounds by ear").
 
-### The detail round (Q1–Q24 and Q16b, the user, 2026-11-13)
+### The detail round (Q1–Q26 and Q16b, the user, 2026-11-13)
 
 Asked by the manager with the question tool in six rounds of four after this doc's first version, then Q24, which the
-answers raised, the same day (the questions as asked, with their facts and options: "The questions as asked" below).
-Every answer the recommended option (a) except **Q6, Q11, Q15, Q16 (with its follow-up Q16b), Q18, Q22 and Q23**.
-Recorded in `Docs/Game-Plan.md`, "Decisions for GM1", too (GP-7). Nothing is open.
+answers raised, the same day, and Q25 and Q26, which step 5 raised, the same day (the questions as asked, with their
+facts and options: "The questions as asked" below). Every answer the recommended option (a) except **Q6, Q11, Q15, Q16
+(with its follow-up Q16b), Q18, Q22, Q23 and Q25**. Recorded in `Docs/Game-Plan.md`, "Decisions for GM1", too (GP-7).
+Nothing is open.
 - **Q1, a character's name and its file:** any name up to 80 characters, kept in the save; the slot's file is named from
   it by a rule ("Ser Alrik" → `saves/ser-alrik.dat`, a second one `ser-alrik-2.dat`). (Not only the path rule's
   characters accepted; not the name encoded reversibly in the file's name.)
@@ -143,6 +144,13 @@ Recorded in `Docs/Game-Plan.md`, "Decisions for GM1", too (GP-7). Nothing is ope
   start screen has no top bar), asked after the six rounds: **in the slot list**: the Load window gets a "Load
   Character…" button that loads a character file into a new slot (Q9); the menu's Load Character and Ctrl+O stay as
   well. (Not a seventh start-screen button; not Escape's menu and Ctrl+O only.)
+- **Q25, the name "Start new" keeps when neither the save nor its backup can be read** (raised by step 5: Q21's "the
+  name kept" had no name to keep then), **not the recommendation: "The file's name".** The new character is called by
+  the slot's file name ("ser-alrik"), with no prompt; when the backup reads, its name is kept as before. (Not the "Name
+  your character" prompt with the file's name filled in, the recommendation; not the next free "Character <n>".)
+- **Q26, the editor's New entry and the save** (raised by step 5: the editor offered New entry for every plain record
+  kind, `save.game` too): **"Not offered"**: the editor leaves `save.game` out of New entry; the record is marked as not
+  a pack kind (`[NotAPackKind]`, an engine mark). (Not offered like any kind.)
 
 **The old game is frozen for the recapture** (the user, 2026-11-13, in the chat with the manager): "Old game wont be
 touched until you give the ok, except if you need something". Nothing in `old-game/` changes while the references are
@@ -473,7 +481,7 @@ per-user folders, never the player's real ones ("How each step is finished", ite
 
 ## Design
 
-The design the steps work from, decided (Q1–Q24, Q16b; GM1-P1–GM1-P19).
+The design the steps work from, decided (Q1–Q26, Q16b; GM1-P1–GM1-P19).
 
 ### The program, the library and the repo
 
@@ -542,7 +550,8 @@ else `open-menu`), F11 `fullscreen`, the three zoom keys, Quit's key `quit`.
 GM2's. Version 1 holds:
 - `name` (field 1), the character's name as the player gave it (Q1): `[Help("The character's name, as the slot list
   shows it.")]`; its `[Check]`: not empty once trimmed, at most 80 characters, no control characters. Not marked `[Kind]`:
-  a save has no place in a mod (step 5 checks the editor offers no New entry for it, else asks the manager for a mark).
+  a save has no place in a mod; marked `[NotAPackKind]` so the editor offers no New entry of it (Q26: step 5 found the
+  editor offered one for every plain kind).
 - Nothing else: the theme and Dev Mode are settings (GM1-4, GM1-13), the random state isn't saved (GM1-5), the slot's
   last write time is its file's.
 
@@ -556,7 +565,8 @@ records of their own kinds, each versioned on its own (the `$types` table).
 **The slot's file** (Q1): named from the character's name by one rule: lowercased, letters and digits kept, every run of
 other characters one `-`, accents taken off as `ImportNames.Fit` does, cut to the path rule's limits, `character` when
 nothing is left, `-2`, `-3` … added when taken; the name itself kept whole in the save. Two characters may share a name;
-their files differ.
+their files differ. Its edge cases as step 5 decided them: "How it works", step 5 (`_` and `.` are other characters too,
+letters outside a–z after the accents' removal too; a Windows device name starts at `-2`).
 
 **The character file** is `save.game`'s JSON form (indented, its `$types` table first), written by `CharacterFile.Export`
 and read by `CharacterFile.Import`, which upgrades an older version and refuses a newer one or another kind; the game then
@@ -616,12 +626,16 @@ loading a character; GM2 on, every change of the sheet.
 **The slot list, Load** (Q17): a window listing every slot, newest first, its name and when it was last played
 ("13 November 2026, 14:03", fixed English, invariant globalization), with Open and Delete; Delete asks once ("Delete
 Ser Alrik? Its save and its backup are removed.") and removes the save and backup (Q41 of M9; files kept aside stay). A
-slot whose files can't be read shows its file's name and "damaged". A "Load Character…" button in it loads a character
+slot whose files can't be read shows its file's name and "damaged"; one whose save can't be read but whose backup can
+shows the backup's name and "damaged" (the manager, confirming step 5's reading, 2026-11-13; the session's `SlotInfo`
+says where the name came from). A "Load Character…" button in it loads a character
 file into a new slot, the same as the menu's Load Character and Ctrl+O (Q24), so the start screen's Load reaches it too.
 
 **The damaged-save question** (Q17 of M9, Q21): "Ser Alrik's save is damaged." with "Use the backup (saved <time>)" (only
-when the backup reads), "Start new" (a new character in this slot, the name kept) and "Back" (nothing changes). Either of
-the first two writes the slot, which keeps the damaged file aside (Q39 of M9).
+when the backup reads), "Start new" (a new character in this slot, the name kept: the backup's when it reads, else the
+slot's file name, "ser-alrik", with no prompt, Q25) and "Back" (nothing changes). Either of the first two writes the
+slot, which keeps the damaged file aside (Q39 of M9). The question's name is the same one (the backup's, else the file's
+name: the session's `OpenResult.Name`).
 
 **Save Character and Load Character** (the menu, Ctrl+S, Ctrl+O, Q6; Load Character also the slot list's button, Q24):
 the in-game file picker (GM1-P15). Save: in
@@ -841,7 +855,7 @@ per-object seeds; sound effects keep `SoundEffects.Seed`. GM1 has no roll; the s
   mounting a checked mod, the list showing it), 9a (the start screen, titled "Stat Fick", after the splash), 9c (the game's
   crash triggers) change; step 11 rewrites them.
 
-## The questions as asked (Q1–Q24, answered 2026-11-13)
+## The questions as asked (Q1–Q26, answered 2026-11-13)
 
 Each as the manager asked it with the question tool (2026-11-13), in asking order, the recommended option first; its
 answer after it and in "The detail round" above.
@@ -1057,6 +1071,28 @@ has no top bar, so a player who wants to bring a character file in at the start 
 - (b) **A seventh start-screen button:** "Load Character" beside the other six.
 - (c) **Escape and Ctrl+O only:** the menu on the start screen and the key, as first designed.
 - **Answer (the user, 2026-11-13): (a)**, the menu's Load Character and Ctrl+O staying as well.
+
+**Q25. The name on "Start new" when neither the save nor its backup can be read** (raised by step 5, asked by the
+manager the same day; the options as step 5 put them). Q21's "Start new" keeps the character's name. When the save is
+damaged but its backup reads, the backup holds the name; when neither reads, no name is known anywhere: the slot list
+shows the slot's file name ("ser-alrik" for "Ser Alrik").
+- (a) **A prompt, the file's name filled in:** "Start new" opens the "Name your character" prompt (New character's) with
+  the slot's file name filled in; the new character goes into this slot under the name typed. *Recommended:* Q1 keeps
+  names exactly as typed, and the file's name is a lossy form of the name the player can type back.
+- (b) **The file's name:** the slot's file name becomes the character's name ("ser-alrik"), no prompt.
+- (c) **The next free "Character <n>"**, no prompt.
+- **Answer (the user, 2026-11-13): (b), not the recommendation (a).** When the backup reads, its name is kept as before.
+
+**Q26. The editor's New entry and the save** (raised by step 5, asked by the manager the same day). The editor's New
+entry offers every plain record kind of the game's data library, with or without `[Kind]`
+(`EditorSession.NewKinds()`); once `save.game` is a record kind it would offer "Save game (save.game)", though a save
+has no place in a mod.
+- (a) **Not offered:** the editor leaves `save.game` out of New entry; the record is marked as not a pack kind.
+  *Recommended.*
+- (b) **Offered like any kind.**
+- **Answer (the user, 2026-11-13): (a).** The manager gave step 5 the mark (`Engine/Statventure/Records/`), the
+  editor's `NewKinds()` and its kinds-list tests for it; Import and Duplicate weren't asked about (step 5 looked:
+  "How it works", step 5).
 
 ## The proposals as made (GM1-P1–GM1-P19)
 
@@ -1304,6 +1340,16 @@ stays as it is until the manager's ok (the recapture's freeze).
      the session; the committed version-1 fixture and layout signature; the naming rule's cases; the settings' defaults
      (effects 0.6) and change events; seeded and scripted draws, `xoshiro256**` and SplitMix64 against their reference
      outputs; nothing outside scratch folders. Mutations: each rule. User approval: none.
+   - **Done (2026-11-13, the branch `gm1-step5`; "How it works", step 5).** Raised and answered on the way: Q25 (Start
+     new's name when nothing reads: the slot's file name) and Q26 (`save.game` marked `[NotAPackKind]`, left out of the
+     editor's New entry; the mark, `NewKinds()` and its tests given to this step), and from the manager the slot list's
+     backup names, the import refusal's words, `GameLookupTests`' kinds count and `lastCharacter` cleared in memory only
+     (the engine's `Settings` has no `Remove`: an engine item). The step's choices: the naming rule's edge cases (`_` and
+     `.` and letters outside a–z are other characters, `character` for nothing left, a device name starting at `-2`, the
+     cut keeping the number's room, taken by the files); the settings' ranges (the window 820 × 600 to 16384 × 16384; a
+     set window held within them; the other setters refusing); `Saved` on making and loading a character too; the
+     session's `ContinueSlot()`; the library's own layout guard in the game's tests; the generators' composite checked
+     by an own transcription of the reference code.
 6. **The mod check at start.** After 2; Q3, Q4, Q10, Q18, GM1-P13 decided.
    - Owns: `Engine/Statventure/Core/Application.cs` (the option), `Engine/Statventure/Packs/VirtualFileSystem.cs` and the
      new shared mod check in `Packs/`, the editor's `Tools/Editor/Checks/EntryChecks.cs` and
@@ -1787,7 +1833,232 @@ thread's name: **5 killed**, each on its own line. Nothing written to the player
 the single instance on a desktop with a real window (raising and focusing it, Wayland's attention request seen); the
 splash then maximize/full screen jump in a real window.
 
+### Step 5: saves, settings and the randomness service (2026-11-13)
+
+**Decided on the way.**
+- **The user (2026-11-13, the question tool, asked by the manager; "The detail round"):** Q25, "Start new" on a slot
+  whose save and backup both can't be read names the new character by the slot's file name (not the recommendation, a
+  prompt); Q26, the editor's New entry leaves `save.game` out, the record marked not a pack kind.
+- **The manager (2026-11-13):** a slot whose save can't be read but whose backup can carries the backup's name and is
+  still damaged (step 5's reading, confirmed; the model says where the name came from); a refused character file's words
+  are "That file is not a valid character save" for every wrong file and "That file is not a valid character save: <the
+  check's message>" for a `save.game` its check refuses; no engine change for `Settings`' missing `Remove` (below);
+  `GameLookupTests`' count of the library's kinds (the engine's + 2) and, for Q26, the mark, `NewKinds()` and its tests
+  given to this step.
+
+**The save record** (`Game/Statventure.Game.Data/Saves/SaveGame.cs`): `[NotAPackKind] [Record("save.game", 1)]`, the
+field `name` (1, `""` by default, its help "The character's name, as the slot list shows it."), no `[Kind]`.
+`SaveGame.NameProblems(name)` (and `NameProblem`, the first) are its `[Check]`'s rules, each reported at `$.name` as a
+phrase naming the name: "the name is empty" (empty once trimmed, .NET's `Trim`: Unicode white space), "the name has 81
+characters, more than 80" (counted in UTF-16 units, as the old name field's `maxlength`; `MaxNameLength`), "the name
+holds a control character (U+0007)" (`char.IsControl`: C0, DEL and C1; the first one only). Its layout signature is
+`save.game 1` / `1 name: string = ""`; the version-1 fixture `ser-alrik` (both forms) is the design's character file byte
+for byte; the JSON form keeps non-ASCII but escapes characters outside the BMP (the records' writer).
+
+**The library's layout guard** (`Tests/Statventure.Game.Tests/Saves/LibraryRecords.cs`, `LibraryRecordLayoutTests`;
+data in `Tests/Statventure.Game.Tests/Data/Records/`): the engine's guard (`RecordLayoutTests`) for the data library's
+record types, by the serializer's public API only (the game's tests don't see the engine's internals: a fixture's type
+table is read from the file itself). The development-only `stand-in.item` is left out (it never had a layout or fixture
+and goes in GM2). `STATVENTURE_RECORD_FIXTURES=1` writes what is missing, never an existing file; so GM2's version 2
+keeps `ser-alrik` as version 1's fixture and adds its own.
+
+**The mark (Q26):** `NotAPackKindAttribute` (`Engine/Statventure/Records/RecordMarks.cs`) on a record type,
+`RecordShape.IsPackKind` (false when marked), and `EditorSession.NewKinds()` leaving such kinds out
+(`Tools/Editor/Session/EditorSession.Drafts.cs`). Nothing else reads it: layouts, forms, the packer and the checks are
+unchanged, and no editor screen changed (the stand-in kind is still offered; the editor's fixtures came out the same).
+**Looked at, changed nothing (the manager's word):** the editor's Import takes a record's `.json` form of any kind the
+session knows, so a character file (`stat-fick-character.json`) imported into a mod becomes a `save.game` entry at
+`stat-fick-character` (a kind without a folder: its fitted name at the top) and passes its check; Duplicate copies any
+entry with a kind, such an entry too; `packer pack` packs a `save.game` JSON form like any record; and step 6's check
+will see `save.game` as a kind the game knows.
+
+**The settings** (`Game/Statventure.Game/Settings/GameSettings.cs`), `settings.json` version 1 through the engine's
+`Settings` (`GameStorage.LoadSettings(1, no upgrades)`):
+- **Reading:** each key with its first-start default (`masterVolume` 1, `musicVolume` 1, `effectsVolume` 0.6, `theme`
+  dark, `zoomLevel` 0, `fullscreen` false, `window` none, `devMode` false, `lastCharacter` none, `mods` all on,
+  `recentPlaces` none). A missing key, a null or a wrong type gives the default (the engine's `Get`, which logs
+  `[Storage] settings <file>: "<key>" holds <value>, not a <type>; its default is used`); a value of the right type out
+  of its range gives the default too, logged here: `[Settings] settings <file>: "<key>" holds <value>, not <range>; its
+  default is used`. The ranges: the volumes 0 to 1; the zoom level a half step whose zoom (1.2 to its power) is from 0.5
+  to 3 times (−3.5 to 6), as the editor's; the window whole numbers, its width from 820 and its height from 600 (the
+  window's smallest) to 16384 each (chosen: a swapchain's common limit; no screen shows a larger window, and a size the
+  device can't make would stop every start); `lastCharacter` a slot's name under the engine's rule. The theme is
+  `"dark"` or `"light"` (the engine's enum names; a number refused); `mods` an object of `{ "on": false }` objects (a
+  missing `"on"` is on, an entry of another shape makes the whole value the default); `recentPlaces` a list of strings
+  read through the engine's `RecentPlaces` (ten, full paths, repeats and non-paths dropped without a line). Unknown keys
+  are the engine's to keep.
+- **Setting:** a set that changes a value writes its key (the engine's `Set`, by the background writer) and raises
+  `Changed` with its key; a set to the value it has does nothing (so a wrong-typed value stays in the file until its
+  setting changes, Q43 of M9). The setters refuse what can't be kept: a volume outside 0–1 or NaN, a zoom level the game
+  hasn't, an undefined theme (`ArgumentOutOfRangeException`), a `LastCharacter` that isn't a slot's name
+  (`ArgumentException`), a null `Window` (`ArgumentNullException`: once kept it isn't cleared). A `Window` set is held
+  within its limits (chosen over a refusal: the application writes the real window's state each update, and a kiosk
+  compositor may make a window smaller than its minimum; what is kept always opens at the next start). The mods'
+  switches are written as `{ "<file>": { "on": false } }` for each one off, in the files' ordinal order, `{}` when none;
+  `IsModOn` compares file names exactly.
+- **`LastCharacter` cleared (the engine's `Settings` can't make a key absent):** the engine has no `Remove`, and its `Get`
+  logs a stored null as a wrong type at every start. So clearing `LastCharacter` (a deleted slot's) changes it in memory
+  and raises `Changed`, and writes nothing: the file keeps the deleted slot's name, which names no slot, and a later
+  write of another setting keeps it; the session takes a `lastCharacter` that names no slot as none when it starts
+  (in memory). A new character in a slot of that name sets it anew. The engine item is open in `Docs/Engine-Plan.md`,
+  "Small tasks left from earlier milestones" (the manager, 2026-11-13).
+- **`Peek(gameFolder)`** reads `settings.json` before the engine's storage exists by the engine's own rules (a byte order
+  mark allowed, repeated keys refused, an object with a whole-number `version` from 1 to the game's, the same upgrade
+  table; the engine's JSON options for the values, copied: camelCase, enums by camelCase name, strict numbers) and the
+  same typed readers as `Load` for the window, full screen and the mods; it writes nothing, makes no folder and logs
+  nothing (a broken file is kept aside and logged by `Load`, once the log is open). The tests check that it reads every
+  kind of file as `Load` does. `SettingsSnapshot` compares the mods' set by its contents (a record compares it by
+  reference).
+
+**The session** (`Game/Statventure.Game/Session/GameSession.cs`) on the engine's `SaveSlots`:
+- **Events:** every write of a slot raises `SlotsChanged`; a write that makes, loads or changes the open character also
+  raises `Saved` (the autosave dot: making and loading a character are changes, as the old game's `saveCharacter` after
+  them), after `Opened` when it opens one. In order: `New`, `Import`, `UseBackup`, `StartNew`: (the open one left:
+  `SlotsChanged`, `Closed`), `SlotsChanged`, `Opened`, `Saved`; `Open` of a readable slot: (the open one left), `Opened`
+  (nothing written: a slot's last-played time moves when it is left); `Change`: `SlotsChanged`, `Saved`; `Leave`:
+  `SlotsChanged`, `Closed`; `Delete`: (`Closed` if it was open, not saved), `SlotsChanged`.
+- **`Slots()`:** every slot `SaveSlots.List` finds (its save or backup there), the last played first (ties by name),
+  `LastPlayed` the save's write time (else the backup's) in UTC; `Name` the save's, else the backup's when it reads,
+  else the slot's file name, with `NameFrom` (`Save`, `Backup`, `File`); `Damaged` when the save doesn't read (damaged,
+  unreadable here, or missing beside its backup). It reads every slot's save on each call (small in GM1; GM5 measures a
+  save with a battle in it).
+- **`NextDefaultName()` (Q2):** "Character <n>" for the smallest n from 1 that no slot's character has (a damaged slot's
+  by its backup's name) and whose slot (`character-n`) isn't taken, so the offered name gets the plain slot.
+- **`New(name)`:** refused (`ArgumentException` with the check's words, nothing changed) when `NameProblem(name)` says
+  so; else the slot from the name (below), the open character left (saved), the save written at once, `lastCharacter`
+  set, opened.
+- **`Open(slot)`:** a readable save opens (the open one left first); otherwise nothing changes and `OpenResult` gives the
+  damaged-save question's facts: the backup's state (`Readable`; `Damaged` for a damaged or unreadable one; `Missing`),
+  its file's time when it is there, and the name the question shows and Start new keeps (the backup's, else the file's
+  name, Q25). "Back" is not calling anything.
+- **`UseBackup(slot)`** saves the backup's value into the slot (the engine keeps the damaged save aside as
+  `.dat.damaged`, `-2` … and leaves the backup as it is, Q39) and opens it; **`StartNew(slot)`** saves a new save under
+  the kept name (cut to 80 characters if a slot's file name is longer, a `-` left at the cut taken off) and opens it. Both
+  refuse a slot whose save reads (`InvalidOperationException`, nothing changed); `UseBackup` refuses a backup that
+  doesn't read before leaving the open character.
+- **`Delete(slot)`** closes it if open (not saved), removes its save, backup and a stale `.tmp` (the engine; files kept
+  aside stay) and clears `lastCharacter` if it named it. **`Change(update)`** refuses a save its check refuses
+  (`ArgumentException`, nothing changed) and saves; **`Leave()`** saves and closes.
+- **`ContinueSlot()`** (an addition for step 9): `lastCharacter` while its slot is there (save or backup), else null
+  (Continue greyed); the constructor drops a `lastCharacter` that names no slot.
+- **`Export(file)`** writes the open character's JSON form (`CharacterFile.Export`, replacing a file there); false with
+  no character open or when it can't be written (logged). **`Import(file)`** reads the file (`CharacterFile.Import`);
+  anything that isn't a `save.game` this game reads (not JSON, empty, an old game's file, another kind, a newer version,
+  an unknown key, a slot's binary file, over 10 MiB, missing, a folder) gives `NotACharacterSave`, "That file is not a
+  valid character save" (Q23); one its check refuses gives "That file is not a valid character save: the name is empty"
+  (the check's message); otherwise a new slot from its name (a number added when taken, Q9), the open one left (saved),
+  opened. Nothing changes on a refusal.
+
+**The slot's file from the name (Q1; `Session/SlotNames.cs`), the edge cases as decided:**
+- Each character taken apart by its canonical decompositions and its accents (non-spacing marks) dropped, with HarfBuzz's
+  Unicode data as `ImportNames.Fit` does (the program runs in invariant globalization), then lowercased: "Élise" and
+  "Elise" are both `elise`, "Ångström" `angstrom`, the Kelvin sign K `k`.
+- a–z and 0–9 kept; every run of anything else one `-`, `-` taken off both ends: `_` and `.` too (unlike `Fit`, so a slot
+  never ends in a dot nor looks like an extension), and letters outside a–z after the accents are gone: "Weiß" `wei`,
+  "Bjørn" `bj-rn`, Cyrillic or Chinese letters dashes.
+- **A name with no letter or digit the rule keeps** ("日本", "!!!", "🜂"): `character`, then `character-2` ….
+- **Names differing only in case or accents, or that meet in the rule** ("ser alrik", "Ser Alrik", "Ser Alrik!") share the
+  stem: the later one gets the next number. The number only follows the stem: "Ser Alrik 2" made after a second
+  "Ser Alrik" (`ser-alrik-2`) is `ser-alrik-2-2`.
+- **Taken** means the slot's save or backup is there (`SaveSlots.Exists`: what the files say, so a case-insensitive file
+  system counts as well); files kept aside and a stale `.tmp` don't take a name.
+- **A name the rule would make a Windows device name** (`con`, `prn`, `aux`, `nul`, `com0`–`com9`, `lpt0`–`lpt9`, which
+  the slot rule refuses): the numbering starts at `-2`, as if the plain name were taken: "Con" is `con-2`, "COM1"
+  `com1-2`; "Con Man", "Com 1" and "Aux.txt" (`aux-txt`) aren't device names.
+- **A very long name:** the stem is cut so that the slot with its number has at most 100 characters (the slot rule's
+  limit), a `-` left at the cut taken off. A character's name has at most 80 characters and its stem never more than
+  the name, so for the game's names the cut never happens; it keeps the rule total for any name.
+- The first free of `stem`, `stem-2`, `stem-3` … is taken (a gap is filled).
+
+**The randomness service** (`Game/Statventure.Game/Random/GameRandom.cs`): `xoshiro256**` 1.0, its state SplitMix64's
+first four outputs from the seed (as the generators' author suggests; also rand_xoshiro's `seed_from_u64`), `Next()` an
+output's top 53 bits times 2⁻⁵³, `Next(n)` `floor(Next() · n)` refusing n below 1 before drawing (an empty list has no
+member to pick), `FromSystem()` seeded from the system's cryptographic source (any 64-bit seed), `Seed` kept (the
+application logs it). `ScriptedRandom(draws)` hands its draws exactly as given (not checked to be in [0, 1), so an old
+check's stub replays as it was), fails with "the scripted draws ran out", and says `Remaining`. **The reference:** Vigna's
+`splitmix64.c` and `xoshiro256starstar.c` (prng.di.unimi.it) and rand_xoshiro's published reference outputs ("produced
+with the reference implementation": SplitMix64's 50 outputs from 1477776061723855037, `xoshiro256**`'s 10 from the state
+1, 2, 3, 4), saved in `~/.cache/stat-fick-build/reference-src/xoshiro/`; the tests check both lists, and the seeded
+composite, whose state from 1477776061723855037 is the published SplitMix64 list's first four, against outputs of an
+independent transcription of the reference code checked against both lists
+(`claude-work/gm1/step5/xoshiro/reference.py`; compiling the downloaded C wasn't allowed in the session).
+
+**The seams as built (where step 2's stubs changed; additions otherwise):**
+1. `SlotInfo.Name` is a `string`, never null (the save's, the backup's, or the slot's file name), and `SlotInfo` has a
+   fifth member, `NameFrom` (`SlotNameSource { Save, Backup, File }`).
+2. `OpenResult` has two more members at its end: `Name` (the save's when opened; the question's and Start new's name when
+   damaged) and `NameFrom`.
+3. `GameSession` adds `ContinueSlot()`, the static `NameProblem(name)` and the constant `NotACharacterSave`; `New` and
+   `Change` throw `ArgumentException` for a name the check refuses, `UseBackup` and `StartNew` throw
+   `InvalidOperationException` on a slot whose save reads (and `UseBackup` when its backup doesn't). `StartNew(slot)` keeps
+   its shape (Q25 needs no name from the screen).
+4. `GameSettings` adds its keys, `Version`, the first volumes, the zoom's limits, `MaxWindowSide` and `IsZoomLevel(level)`;
+   its setters throw for what can't be kept (above) and `Window` refuses null and holds sizes within limits;
+   `SettingsSnapshot` equality by value.
+5. `GameRandom`'s `Next(n)` throws for n below 1; `ScriptedRandom.Remaining`; internal `FromState`, `SplitMix64` and
+   `NextBits` for the tests.
+6. `SaveGame` adds `MaxNameLength`, `NameProblems(name)` and `NameProblem(name)`.
+The application class, `GameParts` and the other parts compile unchanged; step 2's tests pass unchanged.
+
+**For steps 9 and 10:** New character: the prompt filled with `NextDefaultName()`, its OK refused (`ui-refused`) while
+`GameSession.NameProblem(text)` gives a problem, else `New(text)`. Continue: enabled while `ContinueSlot()` isn't null,
+then `Open(it)`. The slot list: `Slots()` (newest first; `Name`, `NameFrom`, `Damaged`, `LastPlayed` in UTC for the
+screen to show in local time); `SlotsChanged` to refresh it. The damaged-save question: `Open`'s `OpenResult` (`Name` for
+"<Name>'s save is damaged.", `Backup` and `BackupTime` for "Use the backup (saved <time>)" only when `Readable`), then
+`UseBackup`, `StartNew` or nothing ("Back"). Save Character: `Export(file)` → "Character saved" / "Character could not be
+saved"; Load Character: `Import(file)` → `Slot` ("Loaded <file>") or `Problem` (the status line's words as given); the
+picker's recent places: `Settings.AddRecentPlace(folder)` and `Settings.RecentPlaces`. Delete: `Delete(slot)`. The
+settings screen's values and limits: the setters above (`IsZoomLevel` for the zoom's steps); the mods' switches through
+step 6's `GameMods.Switch`. The autosave dot: `Saved`.
+
+**Tests** (`Tests/Statventure.Game.Tests`, in the tests' root namespace: a test namespace named like a part's,
+`…Tests.Random`, hides the game's `Random` namespace from step 2's tests): 171 new, the project 29 → 200.
+`GameRandomTests` (8: both published lists, the seeding, a draw's bits, whole numbers and n refused before a draw, a
+seed repeated, the system's seed, the scripted source); `SaveGameTests` (9: the record and its marks, good names, every
+rule of the check with its words and path, both forms, a save file and a character file); `LibraryRecordLayoutTests` (7:
+the guard over the library, the save's layout, its fixture in both forms, written back byte for byte, the design's
+character file); `GameSettingsTests` (66: the first start writing nothing, every key read, 17 wrong types and 15
+out-of-range values each defaulted with its line and left in the file, the ends of the ranges kept, unknown keys kept,
+each set written with `Changed` and read back, a set changing nothing doing nothing, the setters' refusals, the window
+held, `lastCharacter` cleared in memory only, the mods' switches, the recent places, 11 files that can't be used kept
+aside (and peeked as the defaults, not moved), 10 files peeked as `Load` reads them, `Peek` writing nothing, the
+snapshot's equality); `SlotNamesTests` (41: the rule and each edge case above); `GameSessionTests` (40: a new character
+and its events, refused names, the next default name, the slot list with each kind of damage, opening, every damaged
+case of Q17 and Q39 (a damaged save with a readable, damaged or missing backup; an unreadable save; an unreadable backup;
+a save missing beside its backup; a stale `.tmp`; a readable save with a damaged backup; a save the system won't let be
+read; damaged twice: `-2`), the answers refused on a readable slot, Start new's name cut, Delete, a stale
+`lastCharacter` after a delete and a later write, Continue's slot, Change, Leave, Save Character, the Documents folder the
+run's own, Load Character into a new slot, 10 wrong files and 3 unreadable ones with the general words, files the check
+refuses (an empty name, none, a control character, too long) with their problem). The engine's project gains one (`SessionEntriesTests.NewLeavesOutAKindMarkedNotAPackKind`,
+two variant kinds in `Editor/Form/KindMarkVariants.cs`) and `GameLookupTests`' count changes (the engine's + 2): 3739.
+
+**Shown able to fail** (`mutate.py`, under the shared lock in a headless cage; `claude-work/gm1/step5/mutations.json`,
+made by `make-mutations.py`): 169 mutations, the randomness service 32, the save 13, the mark 3 (two in the engine's
+tests), the settings 58 (`Peek` 13 of them), the session 46 and the naming rule 17: **166 killed, 3 survived, each
+because nothing can differ**: Peek's "a `version` that isn't a JSON number" check (kept as the engine's `Settings` has
+it: `JsonValue.TryGetValue<int>` is already false for one), Peek's "repeated keys refused" option (`JsonObject` refuses a
+repeated key itself when its properties are first read, as the engine's comment says, so such a file gives the defaults
+either way) and the naming rule's taking of a decomposition's second part (a canonical decomposition's second part is a
+combining mark, dropped anyway, or a Hangul jamo or an Indic vowel sign, a dash the first part already gives; no a–z
+or 0–9 comes from a second part). Nothing written to the player's real folders.
+
+**Runs** (inside headless cages under the shared lock, scratch folders, on the step's tree on `a7390ad`): the full suite
+on the GPU (the engine's tests 1 min 57 s) and on lavapipe (2 min 12 s): 3739 + 200 = 3939 tests (`main`'s 3738 + 29 =
+3767, and 172 new), none skipped; the editor's screen fixtures came out unchanged; the player's real folders unchanged.
+
+**Not checked:** Windows (slot names on a case-insensitive file system, the device names in practice, `RecentPlaces` with
+drive letters); the real Documents folder (the tests' resolver points into the run's scratch folder; step 10's picker
+uses it).
+
 ## Status
+
+**Step 5 done (2026-11-13, the branch `gm1-step5`; "How it works", step 5): the save record `save.game` v1, the
+settings, the session and the randomness service** filled into step 2's seams (the seams' few changed shapes listed
+there for steps 9 and 10); the user's Q25 (Start new's name when nothing reads: the slot's file name) and Q26 (the save
+left out of the editor's New entry, `[NotAPackKind]`) answered on the way; the slot naming rule's edge cases decided and
+tested; an engine item found (`Settings` can't make a key absent; "Small tasks left from earlier milestones"). The full
+suite passes on the GPU and on lavapipe: 3739 + 200 = 3939 tests (`main`'s 3767 and 172 new), none skipped; 169
+mutations, 166 killed, 3 that can't differ; the player's real folders unchanged. Not checked: Windows.
 
 **Step 3 done (2026-11-13, the branch `gm1-step3`): the 28 icons' outlines and boxes, approved by the user.**
 - The outlines and boxes are in `Assets/UI/icons/`. The style is "Engraved", the user's pick, with the heavier lit
