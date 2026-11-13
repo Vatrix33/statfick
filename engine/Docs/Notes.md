@@ -244,6 +244,18 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   come with the port, Assets.md Q27), now said so; `Editor.md`'s G3 outcome and Status line now point to M12-9's
   answer; `Assets.md`'s 2026-11-02 counts recounted beside today's (at `1dd1234` 128 class files and the `newc/`
   folder, the 129 entries, and 168 enemies with `index.json`, the 169 files; now 130 and 174 with `index.json`).
+- 2026-11-13 (the PC, a design worker on the branch `gm1-design`, docs only, no tests run): **GM1's design doc,
+  `Docs/Game/Foundation.md`**, then the same day the user's detail round (Q1–Q24, Q16b; seven not the recommendation) and
+  the manager's 19 decisions recorded in it and in `Docs/Game-Plan.md`: the design and twelve steps (1a, 1b, 2–11) final,
+  nothing open; the old game frozen until the recapture is on `main`; 28 icons (☾ and ＋ left with the top bar's
+  toggle and New Character). The program's parts are step 2's stubs ("The seams"), so the wave-2 steps never share a
+  file; approval steps stop twice (the captures in `claude-work/gm1/step<k>/approval/`). Gotchas for the steps:
+  today's `old-game/styles.css` doesn't compile in the engine (`@property` at 3726 and `-webkit-text-fill-color` are
+  refused; `background-clip: text` is ignored), so the recapture (GM1-1) and the port's stylesheet in `ui.pak` wait for
+  that engine work; `game-capture.js` needs the hero in a settlement for `Shop.open`; no symbol icon exists in the engine
+  (30 to make: the 29 characters neither Lato nor STIX has, and ◌), found with a cmap scan (no fontTools on the PC:
+  `claude-work/gm1/design/symbols.py` reads the cmaps itself); slot names follow the path rule; Electron's source isn't in
+  the reference cache, so the old View menu's labels and keys are read by the step that needs them.
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

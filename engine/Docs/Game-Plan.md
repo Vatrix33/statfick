@@ -345,25 +345,31 @@ the bestiary, as DG9 has them drafted. The count stays 18: no merge or split was
 ## GM1 Foundation: the game program, its data library, saves and settings
 
 **What the player gets.** Starting `stat-fick` / `Stat Fick.exe` shows the BRUTAL splash (2 s, skippable after 1 s, M12)
-and then a start screen in the game's look (GM1-2): Continue (the last character), New character, Load (the slots) and
-Settings, then the sheet. A character is saved to its named slot after every change, as the old game's `saveCharacter`
-is called after every change (93 call sites), and on quit; Save Character and Load Character write and read the save's
-readable JSON in the Documents folder through an in-game file picker. The old Electron menu (File › Save Character
-Ctrl+S, Load Character Ctrl+O, Open game folder, Quit; View › reload, zoom, fullscreen; Help › About) becomes an in-game
-menu (Decisions for M5: no native menu bar, no OS dialogs), About showing the credits with BRUTAL's copyright (M12 Q11).
-The Settings screen holds the volumes (music, and the master and effects volumes M8 added), zoom, fullscreen, the theme
-(both kept, dark by default, GM1-4), Dev Mode's switch (the old ✦ button disabled, GM1-3; off by default and turned on
-there when wanted, GM1-12; kept in `settings.json`, the same for every character, as the theme is, GM1-13) and the mod
-list (each mod named from its `mod/info`, every mod checked at start, a broken one named and left out, GM1-10); the
-battle settings join it in GM5. Buttons and windows opening and closing sound softly (GM1-11). There is nothing to play
-yet: the sheet comes with GM2.
+and then a start screen in the game's look (GM1-2): Continue (the last character; greyed while there is none, Q16b), New
+character (its name asked first, Q2), Load (the slots, with "Load Character…" for a file, Q24), Settings, Quit and About
+(Q16), then the character's page: in
+GM1 the top bar over an empty page (Q5). A character is saved to its named slot after every change, as the old game's
+`saveCharacter` is called after every change (92 call sites), and on quit; Save Character and Load Character write and
+read the save's readable JSON in the Documents folder through an in-game file picker, a loaded file becoming a new slot
+(Q9). The old Electron menu (File › Save Character Ctrl+S, Load Character Ctrl+O, Open game folder, Quit; View › reload,
+zoom, fullscreen; Help › About) becomes an in-game menu (Decisions for M5: no native menu bar, no OS dialogs), opened by a
+Menu button in the top bar and by Escape (Q7), without Reload (Q18) and with Settings and "Start screen" added (Q8),
+About showing the credits with BRUTAL's copyright (M12 Q11) in the game's look (Q20). The Settings screen holds the
+volumes (music, and the master and effects volumes M8 added; effects at 60 % on a first start, Q22), zoom, fullscreen,
+the theme (both kept, dark by default, GM1-4; set only there, Q6), Dev Mode's switch (off by default and turned on there
+when wanted, GM1-12; kept in `settings.json`, the same for every character, as the theme is, GM1-13) and the mod list
+(each mod named from its `mod/info`, every mod checked at start, a broken one named and left out, GM1-10; an on/off
+switch each, Q3; changes take effect at the next start, Q18); the battle settings join it in GM5. Buttons and windows
+opening and closing sound softly (GM1-11, the eight sounds of Q13). No music plays in GM1 (Q15). There is nothing to play
+yet: the sheet comes with GM2. The detail round: "Decisions for GM1", "GM1's detail round"; the design:
+`Docs/Game/Foundation.md`.
 
 **What the old game has.**
 - The desktop shell (`desktop/`, Electron 44.5.0): `main.cjs` (94 lines: the `statfick://game/` protocol, the check that
   `index.html`, `styles.css`, `scripts/app.js`, `objects/artifacts.json`, `classes` and `enemies` exist, one window
   1440×950 with a minimum of 820×600 and a single instance, the menu, saving on close), `assets.cjs` (85),
   `preload.cjs` (6: `window.statFickDesktop.saveCharacter(json)` and `loadCharacter()`, native dialogs, a 10 MB limit).
-- The save: `saveCharacter()` (`app.js` 1838–1850) writes the whole state as one JSON object to
+- The save: `saveCharacter()` (`app.js` 1839–1850) writes the whole state as one JSON object to
   `localStorage["emberfall-character-stats"]` (its fields: "Cross-cutting", "The save and what goes in it"); the backup
   file `stat-fick-character.json` is `{ format: "emberfall-stat-block", version: 22, exportedAt, character }`
   (`backupPayload`, `app.js` 1857). Loading is migration (`normalizeCharacter`, `app.js` 1399–1564;
@@ -374,10 +380,12 @@ yet: the sheet comes with GM2.
   (`app.js` 1354–1355); recruits come with Dev Mode off.
 - Dev Mode unlocks: editing the attributes, permanent bonuses, Armor and Evasion bonuses and the purse; the EXP form;
   "Restore to full"; adding spells and items from the catalogues (screens 6 and 8 in
-  `Docs/Game/Survey/old-game-systems.md`, §3); the Combat test screen (16); levelling without EXP; companion dev tools;
-  Force encounter.
+  `Docs/Game/Survey/old-game-systems.md`, §3); the Combat test screen (16); levelling without EXP; choosing another
+  race once one is chosen and the enemy-only races; the appearance step skipped; companions taught any spell; companion
+  dev tools. (Corrected 2026-11-13, `Docs/Game/Foundation.md`: Force encounter isn't Dev Mode's, `map.js` 582–584.)
 - The markup: `index.html` (1004 lines, 24 `.modal-layer` dialogs; the sheet's top bar with ✦, the name, the world
-  clock, the autosave dot, the theme toggle, Save/Load/New Character and "Return to combat" in lines 64–300);
+  clock, the autosave dot, the theme toggle, Save/Load/New Character and "Return to combat" in lines 65–86, the sheet
+  page `main.shell` 64–300, the ⚙ Settings button outside it at the window's bottom right, 23–25);
   `styles.css` 4184 lines (245 `@keyframes`).
 
 **What the engine provides.**
@@ -405,24 +413,32 @@ yet: the sheet comes with GM2.
 **What is new.**
 - The game's program and the real data library (its name, its being one file beside the executable and its version
   matching the editor's are fixed by M12-9, Q18 and `Docs/Packaging.md`, step 6; where the two projects sit in the repo
-  is the design doc's to settle, and asked if it changes what ships).
-- The save record (version 1 holds what GM1 and GM2 need; each later milestone adds its part as a new version, M9's
-  rule) and the settings record; character files as the save's JSON form (Decisions for M9).
-- The screens the old game hasn't: the start screen (GM1-2), the slot list with the player's own names (Q15), the
-  damaged-save question ("use the backup, start new", Q17), the file picker (Q19), the in-game menu, About with the
-  credits, the mod list: built from the old game's panels, buttons and dialogs and shown as captures before their tests
-  (GM1-8).
-- Dev Mode moved into the settings screen, the sheet's ✦ button disabled (GM1-3); off by default (GM1-12) and kept in
-  `settings.json`, the same for every character (GM1-13), so the save doesn't hold it.
+  is the design doc's to settle, and asked if it changes what ships; settled: `Game/Statventure.Game/` and
+  `Game/Statventure.Game.Data/`, GM1-P1 in `Docs/Game/Foundation.md`).
+- The save record (version 1 holds what GM1 needs, the character's name; GM2's part comes as version 2, and each later
+  milestone adds its part as a new version, M9's rule); character files as the save's JSON form (Decisions for M9);
+  `settings.json`'s keys (not a record: M9's `Settings`). One record kind in GM1, `save.game`.
+- The screens the old game hasn't: the start screen (GM1-2), the slot list with the player's own names (Q15 of M9; the
+  name kept in the save and the file named from it, Q1 of GM1's detail round), the damaged-save question ("use the backup,
+  start new", Q17 of M9, with "Back"), the file picker (Q19 of M9), the in-game menu, About with the credits, the mod list,
+  the confirm and prompt dialogs in place of the old `window.confirm` and `window.prompt`: built from the old game's panels,
+  buttons and dialogs and shown as captures before their tests (GM1-8). The top bar changes too: the theme toggle and
+  Save/Load/New Character leave it, a Menu button joins it (Q6, Q7).
+- Dev Mode moved into the settings screen, the sheet's ✦ button disabled (GM1-3): it stays as the brand mark, always lit,
+  no tooltip (Q11); off by default (GM1-12) and kept in `settings.json`, the same for every character (GM1-13), so the
+  save doesn't hold it.
 - The mod list and the check of every mod at start (GM1-10, which answers M11's G2): a broken mod is named and left
   out instead of stopping the game when its part is used.
 - The port's own stylesheet in `ui.pak` ("What M9 leaves for the port"), started from the old game's current
   `styles.css`; the game-screen references recaptured once at GM1's start, the tests' stylesheet copy brought up to
-  the old game's (GM1-1).
-- The symbols the fonts lack (⚙ ✦ ☾ ↓ ＋ ⚔ ♟ …; the tests emulate Chromium with "a table of the fonts Chromium
-  picked for the game's 20 symbols", `Docs/Engine-Plan.md`, Progress, M4) become vector icons drawn by the engine in the
-  game's ink (GM1-7), as ♜ ♡ ◈ ▣ ◌ ◫ ◆ already are (the M4 Progress entry; `Docs/Notes.md`, "User decisions
-  (2026-10-16)").
+  the old game's (GM1-1). Engine work comes first: today's `styles.css` doesn't compile in the engine (`@property`,
+  `-webkit-text-fill-color`; `background-clip: text` ignored), and the capture script needs changes for today's old game
+  (`Shop.open` needs a settlement). The old game is frozen until the recapture is on `main` (the user, 2026-11-13).
+- The symbols the fonts lack (⚙ ✦ ⚔ ♟ …; the tests emulate Chromium with "a table of the fonts Chromium picked for the
+  game's 20 symbols", `Docs/Engine-Plan.md`, Progress, M4) become vector icons drawn by the engine in the game's ink
+  (GM1-7). None exists yet: ♜ ♡ ◈ ▣ ◌ ◫ ◆ were decided as icons on 2026-10-16 (`Docs/Notes.md`, "User decisions") but never
+  built. 28 icons: the 29 characters neither Lato nor STIX has and ◌, less ☾ and ＋, whose only uses left the top bar
+  (Q6); ↓ is in Lato. (Corrected 2026-11-13, `Docs/Game/Foundation.md`.)
 - The randomness service every rule draws from, fresh draws on every load as the old game's (GM1-5; "Cross-cutting",
   "Randomness and seeding").
 - The interface sounds (GM1-11) and the game-event sounds of GM1's own screens (GM1-6), as effect patches approved by
@@ -432,12 +448,13 @@ yet: the sheet comes with GM2.
 (GM1-4). No Blender script family starts here. Its sounds: the interface's (GM1-11).
 
 **How it is checked.** The save and settings records by round trips, damaged files and committed old-version fixtures,
-as M9's are. The settings screen and the sheet's top bar against the old game's captures (`game-settings`,
-`game-sheet`, at 1 and 1.65). The new screens through the user's approval of captures, then Chromium renders of the
-port's markup. The program end to end (`Tools/Scripts/end-to-end.sh`, which relies on the stand-in's `--capture`,
-`--about`, `--crash`, `--crash-thread`, its `[Data] mod …` log lines and its "parchment" page: the game offers the same
-or the check changes with it; `Docs/Packaging.md`, "How it works", step 8). Nothing here can be checked against the old
-game's behaviour beyond the settings and the top bar: its save and dialogs are browser- and Electron-specific.
+as M9's are. The new screens, and the settings screen and the top bar, which both change (Q6, Q11; corrected 2026-11-13:
+they are no longer compared with `game-settings` and `game-sheet`), through the user's approval of captures, then
+Chromium renders of the port's markup. The program end to end (`Tools/Scripts/end-to-end.sh`, which relies on the
+stand-in's `--capture`, `--about`, `--crash`, `--crash-thread`, its `[Data] mod …` log lines and its "parchment" page: the
+game offers the same or the check changes with it; `Docs/Packaging.md`, "How it works", step 8). Nothing here can be
+checked against the old game's behaviour: its save and dialogs are browser- and Electron-specific; its texts, keys and
+dialog behaviour are ported from its code.
 
 **Depends on / needed by.** Depends on M9–M12. Needed by every later milestone: each adds its kinds to the data library
 and its part to the save.
@@ -486,6 +503,48 @@ and answered as recommended.
 - GM1-13 **Where Dev Mode's state is kept** (the user, 2026-11-12, asked with GM1-12; "toggleable from the settings"
   hadn't said): in `settings.json`, the same for every character, switched in the settings screen like the theme
   (GM1-4). (Not with each character, as the old game did, the settings screen showing the current character's.)
+
+**GM1's detail round (the user, 2026-11-13, the question tool, asked by the manager in six rounds of four after the
+design doc's first version; in full with each question's facts and options in `Docs/Game/Foundation.md`, "The detail
+round" and "The questions as asked"; Q24, raised by the answers, asked after the six rounds the same day):** every answer
+the recommended option except Q6, Q11, Q15, Q16 (and Q16b), Q18, Q22 and Q23. Nothing of GM1 is open.
+- Q1 A character's name: any name up to 80 characters, kept in the save, the slot's file named from it.
+- Q2 The name asked before the sheet, "Character <n>" filled in.
+- Q3 The mod list: an on/off switch per mod, kept in `settings.json`; the order the files' name order.
+- Q4 A broken mod: what the editor refuses, checked at start alone over the game's packs, the whole mod left out; the
+  start time measured, the user asked again if noticeable.
+- Q5 In a character in GM1: the top bar over an empty parchment page, the ⚙ button.
+- **Q6, not the recommendation: "Name and status only".** The theme toggle and Save, Load and New Character leave the top
+  bar (the theme in Settings, Save and Load Character in the menu, New character on the start screen); the top bar holds
+  "Return to combat", the ✦, "Stat Fick", the clock, the autosave status and the Menu button, a changed screen. (Not all
+  kept and working; not the theme toggle alone dropped.)
+- Q7 The menu: a Menu button at the top bar's right end, and Escape when no window is open.
+- Q8 The menu adds Settings and "Start screen".
+- Q9 Load Character makes a new slot.
+- Q10 A line on the start screen names the mods left out.
+- **Q11, not the recommendation: "Inert, always lit".** The ✦ is the brand mark only: always lit, not clickable, no
+  tooltip, nothing to do with Dev Mode. (Not inert and showing Dev Mode; not removed.)
+- Q12 The icons in the text's colour, inked shapes, approved as a sheet of captures.
+- Q13 The eight interface sounds. Q14 Paper and ink.
+- **Q15, not the recommendation: "No music until GM4".** Nothing plays in GM1; the music volume stays a setting, applied
+  from GM4. (Not `alder-vale` throughout; not a silent start screen with `alder-vale` in a character.)
+- **Q16, not the recommendation: "Add Quit and About".** The start screen: Continue, New character, Load, Settings, Quit,
+  About. **Q16b (the manager's follow-up), not the recommendation:** Continue shown greyed while there is nothing to
+  continue, never left out. (Not the four plus Quit with Continue left out; not the four with Continue greyed.)
+- Q17 The slot list: Open and Delete.
+- **Q18, not the recommendation: "No Reload".** Data and mods read at start only, no Reload item or Ctrl+R; a mod
+  change takes effect at the next start, which the mod list says. (Not Reload with Dev Mode on; not Reload for everyone.)
+- Q19 The window as the player left it. Q20 About as a parchment dialog with the engine's credits text. Q21 The
+  damaged-save question: backup, new, or back.
+- **Q22, not the recommendation: "Effects lower".** Effects 60 %, master and music 100 % on a first start. (Not all at
+  100 %.)
+- **Q23, not the recommendation: the general message** for an old game's character file, as for any wrong file. (Not a
+  message of its own.)
+- Also the user (2026-11-13, in the chat): **the old game is frozen** for the recapture, "Old game wont be touched until
+  you give the ok, except if you need something"; the manager gives the ok once the recapture is on `main`.
+- Q24 (raised by Q6 and Q16), Load Character from the start screen: "Load Character…" in the slot list, loading a
+  character file into a new slot; the menu's Load Character and Ctrl+O stay as well. (Not a seventh start-screen button;
+  not Escape and Ctrl+O only.)
 
 ## GM2 The hero: the character sheet, races and looks
 
@@ -1164,7 +1223,8 @@ new regions' types (their count set by the drafts); four new rig families.
 **What the player gets.** While travelling, an encounter roll every 126 travel minutes at the zone's chance (0 in towns
 and on roads; 15–62 % elsewhere), less when the hero is 10 or 20 levels above the zone (70 % or 40 %); a prompt showing
 the enemies (Sparkling ones marked) with Fight or Run (a pre-fight escape with +25 %); the group's level near the hero's
-within the zone's range (weights 72/14/2 by distance); Dev Mode's Force encounter. Foraging on the map (an hour, 45 % to
+within the zone's range (weights 72/14/2 by distance); Force encounter (not Dev Mode's: shown in an encounter area or
+for a rematch, `map.js` 582–584; corrected 2026-11-13). Foraging on the map (an hour, 45 % to
 find something from the zone's table, rivers adding two, then the zone's encounter roll; not in towns, on roads, at
 sites or in the uncharted regions, P11). Each battle on its region's and zone's stage, by day, dusk or night, with its
 weather, and the region's battle theme (`combat@<region>`). From here a new hero meets revamped enemies on the map.
@@ -1652,9 +1712,9 @@ Every kind follows "What M11 leaves for the port": a record (`[Record]`, `[Field
 kinds are (dotted, lowercase, area first), marked for the editor (`[Kind(display name, folder)]`, `[Help]`, `[Unit]`,
 `[Limits]` only for limits the game's own check enforces, a new limit being a question for the user (G4), `[Choices]`,
 `[Colour]`, `[Bulk]`, `[References]`), its rules as `[Check]` methods that the game's loaders run too (G4, G5): the old
-game's `validateEnemy` and the class checks become `[Check]`s. The kinds arrive with their milestones: GM1 the save,
-the settings, the character file; GM2 races and the actor record; GM3 the forge's tables (makers, materials, weapon and
-armour types, caster parts, runes, masterworks, natural weapons), artifacts, key items; GM4 regions (places, roads,
+game's `validateEnemy` and the class checks become `[Check]`s. The kinds arrive with their milestones: GM1 the save
+(`save.game`; the character file is its JSON form and `settings.json` isn't a record, corrected 2026-11-13); GM2 races
+and the actor record; GM3 the forge's tables (makers, materials, weapon and armour types, caster parts, runes, masterworks, natural weapons), artifacts, key items; GM4 regions (places, roads,
 zones, exits, sites), the continent's land and the terrain (the engine's `terrain` kind); GM5 the statuses and
 reactions; GM6 shop sizes, consumables, ingredients, recipes; GM7 spells and the Augmentation attributes; GM8 the
 classes (loose JSON in `classes/`, GM8-1); GM9 enemies; GM10 encounter and forage tables, battle biomes; GM11 quest
@@ -1698,8 +1758,10 @@ measured; GM5 measures the save with a battle in it.
 
 The old game turns it on for a new character and saves it with the character; it unlocks editing the attributes,
 bonuses and the purse, the EXP form, "Restore to full", the spell and item catalogues, the Combat test screen, levelling
-without EXP, companion dev tools and Force encounter. In the port it is switched in the settings screen and the old ✦
-button is disabled (GM1-3); it is off by default and turned on in the settings when wanted (GM1-12), and its state is
+without EXP, another race once one is chosen and the enemy-only races, the appearance step skipped, companions taught any
+spell and companion dev tools (Force encounter isn't Dev Mode's; corrected 2026-11-13, `Docs/Game/Foundation.md`). In the
+port it is switched in the settings screen and the old ✦ button is disabled (GM1-3), staying as the brand mark, always
+lit (Q11 of GM1's detail round); it is off by default and turned on in the settings when wanted (GM1-12), and its state is
 kept in `settings.json`, the same for every character, as the theme's is (GM1-13, GM1-4). The tests reach the same
 powers through the game's API, not its screens.
 
@@ -1711,7 +1773,8 @@ boards); its checks stub `Math.random`. Its art randomness is seeded (interiors 
 mulberry32 `0x5eed`. The port draws every gameplay roll from one random service (GM1), seeded per run, its state not
 saved (fresh draws on every load, GM1-5); a test seeds it or hands it the exact draws the old check's stub gives, so a
 battle can be replayed against the old game's result draw for draw; art keeps its per-object seeds; sound effects vary
-from `SoundEffects.Seed` (M8). Nothing reproduces `Math.random` itself.
+from `SoundEffects.Seed` (M8). Nothing reproduces `Math.random` itself. Its generator (the manager, 2026-11-13, GM1-P11):
+`xoshiro256**` seeded through SplitMix64 from one 64-bit seed, a draw's top 53 bits as a double in [0, 1).
 
 ### The real-time clock
 
@@ -1734,7 +1797,9 @@ the port adds them (2026-11-03); the engine's `SoundEffects` (patches as data at
 for clip events, seeded variation, voice limits of 4 per patch and 32 in all; no stop yet: the small task "A stop for
 sound effects"). When and which (GM1-6): each milestone makes its own aspect's sounds, their list asked with its
 questions and approved by ear (GM4-8, GM5-4, GM6-2, GM7-3, GM9-5, GM10-2, GM13-2); GM1's own are the interface's,
-buttons and windows opening and closing as well as game events (GM1-11); the first sound the user asked for, a rune
+buttons and windows opening and closing as well as game events (GM1-11): eight, in paper and ink (Q13, Q14 of GM1's
+detail round), the effects volume at 60 % on a first start (Q22); no music plays in GM1 (Q15); the first sound the user
+asked for, a rune
 slotted, belongs to GM7's tower. The proof cutscene's three sounds still wait for the user's ear (small task), GM13-2.
 
 ### The old game's checks: the known failures and how the test client is reused
@@ -1769,7 +1834,11 @@ stylesheet (`Tests/Statventure.Tests/Data/Game/styles.css`, 3915 lines), all fro
 old game's `styles.css` is 4184 lines on `main` (`Docs/Engine-Plan.md`'s "At port time" gives 4080, measured on
 `a32c5cb` on 2026-11-06, before tasks 7–9 added the rest), and its markup and scripts changed with tasks 2–11. They are
 captured again once at GM1's start, the stylesheet copy with them (GM1-1; `make-game-references.sh`, which also copies
-the stylesheet, `make-scaled-game-references.sh`, `make-layer-references.sh`; on the PC or under Xvfb). Screens the 11
+the stylesheet, `make-scaled-game-references.sh`, `make-layer-references.sh`; on the PC or under Xvfb). Found on
+2026-11-13 (`Docs/Game/Foundation.md`): today's stylesheet doesn't compile in the engine (`@property` at `styles.css` 3726
+and `-webkit-text-fill-color` refused, `background-clip: text` ignored), so GM1's step 1a ports those first, and the
+capture script needs changes for today's old game (step 1b; `Shop.open` needs a settlement); the old game is frozen
+until the recapture is on `main` (the user, 2026-11-13). Screens the 11
 states don't cover (the race picker, the classic battle view, the tower, the Apothecary, the guild's panels, the
 encounter prompt, the Church, the Companions picker …) are added to `Reference/game-capture.js` by the milestone that
 ports them; `Docs/Compositing-Port.md`, "Next", asks to come back to it when new screens are captured.
@@ -1781,12 +1850,16 @@ and waits for the user's go, asked when its milestone reaches it:
 - "The painter paints every row of a scroll container" (2,021 rows took 109 ms a frame): the inventory (GM3), the shops
   (GM6), the spell book (GM7), the classes (GM8).
 - "Music switch during a fade-in": the region crossfade (GM4).
-- "A stop for sound effects": GM1-6's sounds.
+- "A stop for sound effects": GM1-6's sounds (GM1's own don't need it: each ends by itself, `Docs/Game/Foundation.md`).
+- The CSS today's old stylesheet uses and the engine lacks (`@property`, `-webkit-text-fill-color`, `background-clip:
+  text`): GM1's step 1a, before the recapture (found 2026-11-13).
 - The 1.65 findings in UI the game uses (control labels a device pixel low, text grayscale in a composited box, beside a
   tall scroller or under a stacking context, a select's padding, a textarea's `line-height`, a positioned box with a
   z-index inside a scroller): the first milestone whose screen meets one (GM1 on).
 - `flex: 1` with a 0 % basis in a column flexbox of indefinite height (`Docs/Packaging.md`, Status, step 6).
-- "publish fails when the repo is reached through a symlink" and the "Windows check", items 1–9: GM18.
+- "publish fails when the repo is reached through a symlink": GM1's step 2, which owns the build and publish scripts
+  (moved from GM18 by the manager, 2026-11-13). The "Windows check", items 1–9: GM18 (GM1's step 11 rewrites the items
+  the game changes).
 - The proof's sounds by ear: GM13 (GM13-2); the by-hand checks (a)–(e): GM18 at the latest.
 
 ### The three decision-id collisions
@@ -1837,8 +1910,8 @@ Found against the repo on 2026-11-12; the repo's figures are the ones used above
 
 Every question below is about the game. Each milestone's are asked with the question tool when it begins (GP-6) and
 answered in its section (GP-7); GM1's thirteen were all answered on 2026-11-12 ("Decisions for GM1": the eleven, then
-GM1-12 and GM1-13, which came out of GM1-3's answer), so none of GM1's is left. The sound questions are asked with their
-milestones (GM1-6).
+GM1-12 and GM1-13, which came out of GM1-3's answer), and GM1's detail round (Q1–Q24 and Q16b) on 2026-11-13 ("GM1's
+detail round"), so none of GM1's is left. The sound questions are asked with their milestones (GM1-6).
 
 - GM2-1 The 72 looks: faithful 3D remakes / new looks per race / a character maker.
 - GM2-2 The hero on the sheet: no figure / a live 3D figure.
@@ -1909,3 +1982,11 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   which answers M11's G2; soft interface sounds), and after them GM1-12 and GM1-13, both as recommended (Dev Mode off
   by default; its state in `settings.json`, the same for every character): GM1's questions are all answered. No
   milestone started; GM1 starts on the user's go.
+- **2026-11-13:** GM1 started on the user's go. Its design doc, `Docs/Game/Foundation.md` (docs only, the branch
+  `gm1-design` from `2bd4da9`): GM1's section checked against the code (what moved is listed there, "Where the plan was
+  wrong or has moved", and corrected here), the design, then the same day the user's detail round, complete (Q1–Q24 and
+  Q16b, "Decisions for GM1", "GM1's detail round"; seven answers not the recommendation: the top bar trimmed to name and
+  status, the ✦ always lit, no music in GM1, Quit and About on the start screen with Continue greyed, no Reload, effects
+  at 60 %, the general message for an old character file; Q24, raised by the answers, as recommended: "Load Character…"
+  in the slot list) and the manager's 19 decisions; the old game frozen until the recapture is on `main`; the design and
+  twelve steps (1a, 1b, 2–11) in four waves final, nothing open. Nothing ticked; no step started.

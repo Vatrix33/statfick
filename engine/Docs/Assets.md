@@ -146,7 +146,8 @@ Nothing of M9 yet: no pack, virtual file system, serializer, save or settings co
   line 1896) takes `{ character: … }` or the bare object, if it has stats. Its "Open game folder"
   opened the game's own folder, whose files were read live (View → Reload after editing them). It
   also caches edited class, spell, item and race files in localStorage (its in-game editing, M11's
-  question).
+  question). (Rechecked 2026-11-13, `Docs/Game/Foundation.md`: today `saveCharacter()` is at 1839, `exportBackup` at
+  1866 and `importCharacterText` at 1983, with 92 call sites, one of them in `desktop/main.cjs`.)
 - **The old game's data, measured:** `classes/` 129 class files (263 KB of JSON; the plan's 616 KB
   is the disk usage of all 150 files there, which include 21 draft `.txt` files in `classes/newc/`);
   `enemies/` 169 files (182 KB; 696 KB on disk); `objects/`: `spells.json` 279 KB, `artifacts.json`
