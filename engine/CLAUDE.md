@@ -77,5 +77,11 @@ the user and wait for their go-ahead before starting the next one.
   first.
 - GM1 (Foundation), started 2026-11-13: its design doc `Docs/Game/Foundation.md` (the user's and the manager's decisions,
   what exists, the design with the program's seams, the steps in waves); the old game is frozen until its recapture.
+- The symbols' icons (GM1-7, `Docs/Game/Foundation.md`, "How it works", step 3): the outlines and their box table in
+  `Assets/UI/icons/`, written by `Tools/IconSheet/gen/build.py` (Python with shapely and fonttools; its README; `--check`
+  after any change). `Tools/Scripts/make-icon-sheet.sh [--out <folder>] [--icons label=folder ...] [--symbols …]` draws
+  every icon in Chromium beside the old glyph at each of the old game's uses (`Tools/IconSheet/uses.json`), both themes,
+  the small ones enlarged, and at 96 px over its box (PaintReference; inside a headless cage of its own when cage
+  exists); `--uses` measures the old game's uses again.
 - The survey the game plan was written from (2026-11-12, `29d110d`; a snapshot): `Docs/Game/Survey/`, its README first.
 - Notes kept from earlier sessions (history, gotchas, recipes): `Docs/Notes.md`.

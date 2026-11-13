@@ -165,7 +165,9 @@ Every one as proposed ((a) where there were options) except GM1-P11's generator 
   program, the old pieces as the old HTML text. **GM1-P8** a committed `Assets/UI/styles/game.css` the port owns and a
   sheet per new screen part, packed by `make-ui-pack.sh`. **GM1-P9** one game document.
 - **GM1-P10** the icons as outlines in `Assets/UI/icons/` compiled into a table in the game, an engine icon face as the
-  last character fallback, each advance the glyph Chromium picked on the reference PC.
+  last character fallback, each advance the glyph Chromium picked on the reference PC. **Changed by the manager on
+  2026-11-13 (step 3):** the icon face draws its code points before any font, so ◌, which Lato and STIX have, is an icon
+  too ("The symbols as vector icons").
 - **GM1-P11, changed: the randomness service** in the game program; its generator `xoshiro256**` **seeded through
   SplitMix64 from one 64-bit seed**, `Next()` the top 53 bits as a double in [0, 1) (one draw per number, a long
   period). (Not `xoshiro128**`; not the engine's `Mulberry32`.)
@@ -719,7 +721,8 @@ dialog (a question, a text field, OK, Cancel), in the old dialogs' look (capture
 - **The markup** (GM1-P7): built in C# (2026-10-16), the old pieces (the top bar, the settings dialog's frame) kept as the
   old HTML text so they can be compared with `index.html`; the new screens' markup the old dialogs' structure and classes.
 - **Fonts:** the document's fonts are `ui.pak`'s (its `@font-face` rules); `serif` maps to STIX Two Text and `sans-serif`
-  to Lato (no system fonts, GM1-7), Lato and STIX each the other's fallback, the icons last.
+  to Lato (no system fonts, GM1-7), Lato and STIX each the other's fallback; the icons' code points drawn by the icon face
+  before any font (the manager, 2026-11-13; "The symbols as vector icons").
 
 ### The recapture (GM1-1)
 
@@ -745,37 +748,45 @@ dialog (a question, a text field, OK, Cancel), in the old dialogs' look (capture
 **The set: 28 icons**, the 29 characters neither font has and ◌ (decided 2026-10-16), less ☾ and ＋, whose only uses were
 the theme toggle (`index.html` 78, `app.js` 1634) and New Character's button (`index.html` 82), which left the top bar
 (Q6). Every other one is shown somewhere in the game, if not in GM1 (GM1 itself shows ⚙ and ✦). Where each is used and
-what Chromium drew it with on the reference PC (TestFonts; "fc" where fontconfig picks):
+what Chromium drew it with on the reference PC (the fonts of `TestFonts.SymbolFonts`; the rest found by step 3 in the old
+game's page: "How it works", step 3). The old game shows them in 83 places (`Tools/IconSheet/uses.json`):
 
 | Icon | Name | Used in | Chromium's font |
 | --- | --- | --- | --- |
 | ↶ | anticlockwise top semicircle arrow | combat.js | Noto Sans Math |
 | ↺ ↻ | open circle arrows | index.html (↻ 5) | Adwaita Sans |
-| ⇧ | upwards white arrow | map.js (6) | fc |
-| ⌄ | down arrowhead | companions.js (3) | fc |
+| ⇧ | upwards white arrow | map.js (6) | Adwaita Sans (fallback) |
+| ⌄ | down arrowhead | companions.js (3) | Adwaita Sans (fallback) |
 | ⌖ | position indicator | index.html | Adwaita Mono |
 | ▣ ◫ ◈ | squares and diamond | index.html, app.js, companions.js | Noto Sans Math |
-| ▲ ▼ ◎ ♛ ✸ | triangles, bullseye, queen, star | styles.css | fc |
-| ◆ | black diamond | styles.css, app.js, companions.js, map.js | fc |
+| ▲ ▼ | triangles | styles.css | Liberation Sans Bold: not a fallback, `--font-ui`'s Arial |
+| ◎ | bullseye | styles.css | Noto Sans Math (fallback) |
+| ♛ | queen | styles.css | Noto Sans Symbols 2 (fallback) |
+| ✸ | eight-pointed star | styles.css | Adwaita Mono (fallback) |
+| ◆ | black diamond | styles.css, app.js, companions.js, map.js | Adwaita Sans (fallback) |
 | ◇ ☆ ♡ | white diamond, star, heart | index.html, app.js, companions.js | Adwaita Sans |
-| ◌ | dotted circle | index.html, companions.js | fc (the serif Georgia falls back to) |
-| ★ | black star | app.js, map.js, shop.js | fc |
+| ◌ | dotted circle | index.html, companions.js | Liberation Serif: not a fallback, the serif of "Georgia, serif" |
+| ★ | black star | app.js, map.js, shop.js | Adwaita Sans (fallback) |
 | ☰ ⚙ ✦ ✧ ✺ | trigram, gear, stars, asterisk | index.html, app.js, styles.css, combat.js | Adwaita Mono |
 | ♜ | rook | app.js, index.html | Noto Sans Symbols 2 |
 | ♟ ⚔ | pawn, crossed swords | companions.js, index.html, combat.js | Noto Emoji |
 
-- **None is drawn by the engine today**; all 28 are new.
+- **None is drawn by the engine before step 7**; all 28 are new. Their outlines and boxes are in `Assets/UI/icons/`
+  (step 3, approved by the user on 2026-11-13; "How it works", step 3).
 - **How an icon is drawn** (Q12, GM1-P10): an outline (filled shapes with holes, SVG path data in `Assets/UI/icons/`,
   compiled into the game's table), drawn by the engine wherever the character appears in text, at the text's size, in the
-  colour the stylesheet gives the text, as a glyph is (selection, opacity, transforms alike), through an icon face
-  registered as the last character fallback; its shape the symbol's figure as an inked shape in the game's style. Its box
-  (advance and height) is the glyph Chromium picked on the reference PC, so every line lays out as the old game's did.
+  colour the stylesheet gives the text, as a glyph is (selection, opacity, transforms alike), through an icon face; its
+  shape the symbol's figure as an inked shape in the game's style (the "Engraved" style, the user's pick). Its box
+  (advance, ascent, descent) is the glyph Chromium picked on the reference PC, so every line lays out as the old game's did.
+- **Every code point of the icon table is drawn by the icon face before any font** (the manager, 2026-11-13; GM1-P10
+  changed in that one point, which said "the last character fallback"): ◌ stays an icon (the user's decision of
+  2026-10-16 names it) and is in Lato and STIX Two Text, which a last fallback would never get past. Step 7 builds it so.
 - **The game-screen tests and the real game:** the old game's captures keep being tested with Chromium's fallback fonts
   (`TestFonts.LibraryWithSystemFallback`), the engine against Chromium on the old markup; the real game has no system
   fonts and draws the icons. The port's screens' Chromium fixtures mask the icons' boxes; the icons themselves are checked
   on a sheet where Chromium draws each outline as inline SVG and the engine draws the icon.
 - **Approval:** a sheet of captures, every icon at the sizes and colours the game uses, in both themes, beside Chromium's
-  glyph from the old game, shown to the user before the engine work (step 3).
+  glyph from the old game, shown to the user before the engine work (step 3; made by `Tools/Scripts/make-icon-sheet.sh`).
 
 ### The randomness service (GM1-5, GM1-P11)
 
@@ -1238,6 +1249,17 @@ stays as it is until the manager's ok (the recapture's freeze).
    - Finished: stops with the sheet (each icon at the sizes and colours the game uses, both themes, beside Chromium's
      glyph) in `claude-work/gm1/step3/approval/`; after the verdict the outlines and boxes committed. User approval: the
      icons' looks.
+   - **Done (2026-11-13, the branch `gm1-step3`; "How it works", step 3):**
+     - The 28 outlines and `icons.json` are in `Assets/UI/icons/`, written by the committed generator
+       `Tools/IconSheet/gen/`.
+     - The style is "Engraved", the user's pick over the recommended Woodcut. ★ and ✸ have the heavier lit line, the
+       user's answers at stop 2; the set was approved the same day.
+     - The tooling is `Tools/Scripts/make-icon-sheet.sh` with `Tools/IconSheet/`; its fixture is `uses.json`, the 83
+       uses.
+     - Choices: each icon's box is the glyph Chromium drew, its ascent and descent read as Chromium reads them (OS/2's
+       typo metrics when USE_TYPO_METRICS is set), plus the line gap. The sheet script runs inside a cage of its own when
+       cage exists.
+     - Nothing the solution builds or the tests read changed, so no full runs were due.
 4. **The sounds and their approval (GM1-6, GM1-11).** Independent; Q13, Q14, Q22, GM1-P16 decided.
    - Owns: new `Assets/Audio/effects/*.json`, the packing script by GM1-P16's rule (`make-music-data.sh` if it reruns
      quickly and headless and gives `audio.pak` byte for byte, else a new `make-sound-data.sh` replacing only
@@ -1336,7 +1358,137 @@ stays as it is until the manager's ok (the recapture's freeze).
 
 Filled in as the steps are done.
 
+### Step 3: the icons' outlines and their approval (2026-11-13)
+
+**Decided.**
+- **The user (2026-11-13, the question tool, asked by the manager after each stop):**
+  1. **The style is "Engraved", not the recommendation.** It was one of three styles shown on six icons (⚙ ✦ ⚔ ♜ ♡ ◈).
+     The other two were "Woodcut" (solid ink with a highlight cut along the lit edge, recommended for its weight at small
+     sizes) and "Hatched" (the map's hatched shadow).
+  2. **★ and ✸ get the heavier lit line**, option (b) both times, as recommended. As first drawn, ★ read too close to ☆
+     on the same favourite button at 11–16 px, and ✸ was a faint dot at its only size, 9 px. (Not solid ink; not as
+     drawn.)
+  3. **The set of 28 is approved** as shown, with those two answers. ✦ stays as drawn; the user was offered the heavier
+     line for it too and didn't take it.
+- **The manager (2026-11-13):**
+  1. **The icon face draws its code points before any font.** ◌ stays an icon, and it is in Lato and STIX ("The symbols
+     as vector icons"; GM1-P10 changed in that one point).
+  2. **The generator is committed** in `Tools/IconSheet/gen/`, with a README. Nothing of the build or the tests needs
+     it; later milestones add their icons with it.
+  3. **Symbols with two meanings carry over unchanged**, as the old game has them. Guard is ◈ on the Guard action but ◆
+     on the stage's guard status. ▣ means Armor on the cards and Equipment on a companion's tab. ⚙ is the Settings button
+     and the trap status. ★ is a favourite and the great-hunt map marker.
+  4. **The smallest uses keep the approved style.** They are the battle statuses ▲ ▼ ◆ ◎ ⚙ ✸ at 9 px bold and the map's
+     ⇧ shortcut hints at 10 px. No icon was made simpler on the step's own judgement; the sheet shows those uses
+     enlarged, and each icon that might not read there went to the user (★ and ✸ above).
+
+**The style ("Engraved").** It follows the map's compass rose in `old-game/scripts/map-ink.js` ("each point is split
+into a lit and a shadowed half, as on an engraved rose") and an engraver's shade lines. The light comes from the upper
+right, as on the map's marks.
+- A filled figure (★ ♜ ◆ ▲ ✦ …) is an ink contour 0.056 em wide. Its shadow half is solid ink, and its lit half is open
+  inside the contour. The split follows the figure:
+  - stars and ✦ split per point, clockwise, as the compass rose;
+  - tall figures (♜ ♛'s foot ♟ ◆ ▲ ▼) split on the west half;
+  - squares and the gear split on the lower-left diagonal;
+  - an arrowhead splits along its axis.
+- An open figure (☆ ◇ ♡ ⇧ ◎ …) is a line 0.056 em wide on its lit side and 0.116 em on its shadow side. The inside
+  shifted towards the light is the hole, so the weight changes smoothly round the figure.
+- Thin parts are solid ink: ☰'s bars, ◫'s line, ⌖'s cross, ♛'s spikes and balls, ⌄'s strokes, ✺'s petals. Where a row
+  of marks faces the light, those on the shadow side are heavier: ◌'s dots and ✺'s petals grow towards the lower left,
+  and ⌄'s west stroke has a shade line under it.
+- ★ and ✸ have a 0.110 em line on their lit halves, so their open parts are slivers (decision 2).
+- The front sword of ⚔ cuts a 0.044 em gap round itself.
+- All weights are the same in em for every icon (`W` in `gen/iconlib.py`).
+
+**The files.**
+- **`Assets/UI/icons/<name>.svg`:** one per icon, the name being the character's Unicode name in lower case with hyphens
+  (`black-four-pointed-star.svg`).
+  - Each file has one `<path fill-rule="nonzero">`: filled shapes with holes, outer rings and holes wound in opposite
+    directions, coordinates to 1/10 unit.
+  - There are no strokes, styles, transforms, text or fill colour; the engine fills the path in the text's colour.
+  - Units are 1/1000 em: x from the pen position, y down from the baseline (y = 0).
+  - The `viewBox` is the icon's box (0, −ascent, advance, ascent + descent), and a comment states it.
+- **`Assets/UI/icons/icons.json`:** the box table, one icon a line in code-point order. Each entry has `codePoint`,
+  `character`, `name`, `file`, `advance`, `ascent`, `descent` and `lineGap` (in em), and `measured`: the font's name,
+  file and version string and how it was found.
+- **`Tools/IconSheet/gen/`:** `iconlib.py` (the geometry and the style), `figures.py` (the 28 figures), `build.py` and a
+  README.
+  - `build.py` writes the SVGs and the table. Each figure's ink box is centred on the old glyph's ink box, at about its
+    size: the figures are drawn to the old ink sizes, and `--fit` lists the differences.
+  - `--check` rebuilds into a temporary folder and compares byte for byte; it found 29 files and 0 differences on the
+    committed set. The outlines were written with shapely 2.2.0 and fonttools 4.68.0 on Python 3.15.
+- **`Tools/IconSheet/old-game-uses.js`, `uses.py`, `uses.json`:** the probe of the old game and the sheet's fixture.
+  - The probe runs in the old game's headless test client. It puts each script-built use's markup, taken from the
+    lines it names, into its real container. It reads the computed font, colour, opacity and ground in the light theme
+    and under `html.dark-mode`; the ground is composited up the tree, a gradient taken at its first stop. The Field tools
+    button's ☰ is read with the window at 800 px.
+  - With the canvas it measures each symbol's advance and ink box at 1000 px in each use's font, and compares pixels
+    with every installed family that has the symbol.
+  - `uses.json` holds the 83 uses of the 28 symbols, one use a line, sizes 9–63 px. The map markers' grounds are the
+    markers' circle colours, which the probe can't read.
+- **`Tools/IconSheet/sheet.py` and `Tools/Scripts/make-icon-sheet.sh`:** the sheet in Chromium. Each use is shown at its
+  real size, colour, opacity, ground and turn, with the words beside it, in both themes. Every use's measured advance
+  must be its icon's advance, or the sheet isn't made.
+  - Its pages are `-uses-` (every use), `-small-` (the uses at 13 px and under, with a 3× copy below) and `-large-`
+    (96 px over the box and the baseline).
+  - It renders with Tools/PaintReference at 1×, and crops each page to its content with PaintReference's element boxes.
+  - On a machine with cage it runs inside a headless cage of its own; without cage, `chromium.sh` uses Xvfb.
+  - `--icons label=folder` shows several sets side by side; it was used for the style sample and the questions.
+  - `--uses` measures the old game again (on the PC, with fontconfig's candidate families).
+
+**The boxes and the fonts.** Each icon keeps the box of the glyph Chromium drew for its symbol on the reference PC, so
+lines lay out as the old game's did. The values are read from the repo's copies of those fonts
+(`Tests/Statventure.Tests/Data/SystemFonts`).
+- **Advance:** the font's horizontal advance (`hmtx`) over its em. Chromium's measured advance equals it in every one of
+  the 83 uses, at every weight; Adwaita Sans's weight axis isn't set on a fallback.
+- **Ascent, descent and line gap:** as Chromium reads them. Skia, through its Fontations backend, takes OS/2's typo
+  metrics when USE_TYPO_METRICS is set, otherwise hhea's. Chromium's canvas `fontBoundingBox` agreed for every font it
+  could name.
+- **Which font drew each symbol:**
+  - **The 20 in `TestFonts.SymbolFonts`** use that table's fonts (Chromium's fallback in 2026-10).
+  - **⇧ ⌄ ◆ ★** are Adwaita Sans. For ⇧, fontconfig's recorded answer (`sans-serif:charset=21e7`) agrees.
+  - **◎** is Noto Sans Math, **✸** Adwaita Mono, and **♛** Noto Sans Symbols 2. In each case Chromium's advance and ink
+    box are that font's; for ♛ the ink box rules out Symbola, which has the same advance.
+  - **▲ ▼** are Liberation Sans Bold: `--font-ui` names Arial and the battle status is 700, so this is not a fallback.
+  - **◌** is Liberation Serif, the serif of "Georgia, serif".
+- **Adwaita Mono on the PC has been updated since the capture** (34.01 to 34.08), but its advances and metrics are
+  unchanged.
+- **Examples:**
+  - ✦: advance 0.6, ascent 0.965, descent 0.285 (Adwaita Mono's typo metrics; hhea says 0.215 plus a 0.07 gap).
+  - ⚔: advance 1.2695 (Noto Emoji).
+  - ◌: advance 0.5942 (Liberation Serif).
+
+**For step 7.**
+- The icon face draws the table's code points before any font (decision 1).
+- `icons.json` carries Chromium's metrics. The engine's `FontFace` reads FreeType's hhea values, so for Adwaita Mono it
+  would say descent 0.215 where Chromium says 0.285. This is an engine finding, left as it is (the game-screen tests
+  pass), but it matters for any line where an Adwaita Mono fallback glyph sits with `line-height: normal`.
+- ◆ and ★ also appear in the map's inline SVG as `<text fill="#fffaf5" font-size="1.25rem">` on the guild markers
+  (`map.js` 545), scaled with the map. The engine's SVG text needs the icons too.
+- The sheet's race sigil ✦ is turned −11° (`styles.css` 239); the sheet shows it so, and the turn comes from the
+  element's transform.
+- ▲ ▼ came from Liberation Sans Bold, through Arial, which the port doesn't have; their boxes are that font's.
+- The sheet's fixture `Tools/IconSheet/uses.json` lists every use with its font, colours and Chromium's advance, so step
+  7's icon fixtures can be built from it.
+
+**At the smallest sizes** (the sheet's `-small-` pages):
+- ↻ at 12 px bold, ⇧ at 10 px, and ▲ ▼ ◆ ◎ ⚙ at 9 px read as much as the old glyphs did, lighter.
+- ✸ at 9 px is a brighter dot with the heavier line than it was without it, though smaller than the old glyph's;
+  neither the old glyph nor the icon shows a star at that size.
+- ✦ (Skills) and ✧ (Spell book) sit side by side in the field tools at 18 px. ✧ is plainly open; it lost the inner
+  lines it had in a draft, which made it look like ✦. ✦ is partly filled.
+- ✺ was redrawn as solid pointed petals; rays round an empty middle had read as a ring at 16 px.
+
 ## Status
+
+**Step 3 done (2026-11-13, the branch `gm1-step3`): the 28 icons' outlines and boxes, approved by the user.**
+- The outlines and boxes are in `Assets/UI/icons/`. The style is "Engraved", the user's pick, with the heavier lit
+  line on ★ and ✸ (the user's answers at stop 2).
+- The generator is `Tools/IconSheet/gen/`. The sheet is made by `Tools/Scripts/make-icon-sheet.sh` from the old game's
+  83 uses (`Tools/IconSheet/uses.json`).
+- The manager's four decisions are recorded: the icon face draws before any font, the generator is committed, two-meaning
+  symbols carry over unchanged, and the smallest uses keep the style.
+- Nothing the solution builds or the tests read changed, so no full runs were due ("How it works", step 3).
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,

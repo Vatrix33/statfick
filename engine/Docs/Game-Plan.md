@@ -1990,3 +1990,9 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   at 60 %, the general message for an old character file; Q24, raised by the answers, as recommended: "Load Character…"
   in the slot list) and the manager's 19 decisions; the old game frozen until the recapture is on `main`; the design and
   twelve steps (1a, 1b, 2–11) in four waves final, nothing open. Nothing ticked; no step started.
+- **2026-11-13, GM1 step 3 (the icons' outlines):**
+  - The 28 icons are in `Assets/UI/icons/`.
+  - The style is the user's pick, "Engraved", not the recommendation (Woodcut).
+  - ★ and ✸ have the heavier lit line, the user's answers at stop 2. The set was approved.
+  - The icon face draws its code points before any font (the manager; GM1-P10 changed in that point).
+  - The details are in `Docs/Game/Foundation.md`, "How it works", step 3.

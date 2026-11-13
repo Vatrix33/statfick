@@ -256,6 +256,17 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   (30 to make: the 29 characters neither Lato nor STIX has, and ◌), found with a cmap scan (no fontTools on the PC:
   `claude-work/gm1/design/symbols.py` reads the cmaps itself); slot names follow the path rule; Electron's source isn't in
   the reference cache, so the old View menu's labels and keys are read by the step that needs them.
+- 2026-11-13 (the PC, a worker on the branch `gm1-step3`, assets, tools and a script, no tests run as none read them):
+  **GM1 step 3, the 28 icons' outlines** (`Assets/UI/icons/`, the user's "Engraved" style; `Docs/Game/Foundation.md`,
+  "How it works", step 3). Gotchas:
+  - A family name a canvas can't resolve falls back exactly as the symbol's own fallback does, so a "matching" family
+    proves nothing. "STIX" and "D050000L" matched every symbol; Noto Emoji and Noto Sans Symbols 2 can't be named in a
+    canvas. Identify a fallback font by its advance and ink box against the font files.
+  - Chromium reads OS/2's typo metrics when USE_TYPO_METRICS is set, and the engine's `FontFace` reads hhea.
+  - A worktree-isolated agent's shell refuses compound commands that run git or `cd` outside the worktree; edit files
+    with the editor tools instead of heredoc Python.
+  - Adwaita Mono on the PC changed since the capture (34.01 to 34.08) with identical metrics.
+  - The PC's Python has PIL but not shapely or fonttools; the generator needs a venv (its README).
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).
