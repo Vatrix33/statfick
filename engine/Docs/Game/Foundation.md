@@ -1248,6 +1248,16 @@ stays as it is until the manager's ok (the recapture's freeze).
      `/home/…` works; the shader repro run again and its exit code recorded (the script changed only if the build goes
      on). Mutations: the program's options, the single-instance rule, the window's options, the build's layout. User
      approval: none.
+   - **Done (2026-11-13, "How it works", step 2).** The probe confirmed GM1-P4's reason. The seams are built with the
+     nearest shape where the outline couldn't be written as it stands, each deviation listed there for steps 5–10 (static
+     `Load` factories; `WindowState?` for a window never kept; `GameMods.Attach(GameSettings)`; the session's result
+     records; `GameCommands`' shape, keys left to step 8; `IGameScreen`; the About stub registering `about` with the
+     engine's credits view until step 9; `Session.Leave()` in `Unload`; `--open <screen>` running `open-<screen>`).
+     The step's own choices: maximized and full screen put in place at `Load` (the engine's `WindowOptions` lack them;
+     no engine change); the single instance's channel in Linux's abstract namespace named by a hash of the folder's real
+     path, the lock file `stat-fick.lock` left in the per-user folder; a later start ends with 0; the stub page the
+     Gothic ink theme's parchment; the sandbox's leftovers removed by name; `mutate.py`'s project per mutation;
+     `env.sh`'s `pwd -P` on the scripts' folder only. `build.sh` unchanged for the shader item (the repro: exit code 1).
 3. **The icons' outlines and their approval (GM1-7).** Independent; Q12 and GM1-P10 decided.
    - Owns: new `Assets/UI/icons/` (28 outlines), the approval sheet's fixture and a script making it in Chromium (new,
      under `Tools/Scripts/`), the measured boxes (each icon's advance and height from the glyph Chromium picked).
@@ -1542,6 +1552,241 @@ effects", has their layers, the measures and the checks.
   `Reference/editor-fixtures.json` as the tests write it and their 20 Chromium goldens `Golden/editor-<name>@1.png` and
   `@1.65.png` captured again headless (only the `effects` row and what it moves differ).
 
+### Step 2: the game program and the real data library in place of the stand-ins; the seams (2026-11-13)
+
+**GM1-P4's reason, probed first** (`claude-work/gm1/step2/probe-p4/`: a program referencing both the editor and the
+library's project, run both ways round): a direct reference and the editor's loader in one process each list the 81
+record kinds, but whichever then uses its `stand-in.item` type second (written to its binary form and read back,
+`RecordSerializer`) is refused: "Statventure.Game.Data.StandIn.StandInItem and Statventure.Game.Data.StandIn.StandInItem
+are both named stand-in.item" (`RecordFamily`'s one kind per name). So the game's tests, which use the library's types
+directly, can't share a process with the editor's tests: a second test project, as decided.
+
+**The projects (GM1-P1).** `Game/Statventure.Game/` (an `Exe`, assembly and root namespace `Statventure.Game`; the runtime
+publish settings and `KeepTheDataLibraryBeside` the sandbox's project had; `InternalsVisibleTo` the game's tests) and
+`Game/Statventure.Game.Data/` (moved with `git mv` from `Samples/`; `Samples/Statventure.Game.Data/` is gone), in the
+solution's `/Game/` folder; both take their files by the SDK's wildcards (nothing listed). The library holds
+`StandIn/StandInItem.cs` (namespace `Statventure.Game.Data.StandIn`; record, fields and `[Kind]` unchanged; its help now
+"A development-only test kind, not part of the game: it goes when the game's first real kind arrives (GM2).", GM1-P3) and
+step 5's stub `Saves/SaveGame.cs` (`Statventure.Game.Data.Saves.SaveGame`, a plain record with `Name`, no attributes:
+not a record kind yet, so the editor and the packer still count 81 kinds). `GameLibrary.RepoProject` is
+`Game/Statventure.Game.Data`; the packer, `editor.sh`, `editor.ps1` and the engine's test project name the new path.
+
+**The program's own files** (the root, step 2's): `Program.cs` (`Main`: the options, the single instance, the game run),
+`StatFickGame.cs` (the application class), `GameParts.cs`, `IGameScreen.cs`, `GameOptions.cs`, `SingleInstance.cs`,
+`GameWindow.cs` (the window and the sound as the class uses them: `IGameWindow` with the engine's `EngineGameWindow`,
+`IGameVolumes` with `AudioVolumes`; internal, so the tests give their own) and `Sounds/SoundNames.cs` (final). **The
+stubs**, each in its part's folder, each the step's that fills it from now on: `Settings/GameSettings.cs`,
+`Session/GameSession.cs`, `Random/GameRandom.cs`, `Mods/GameMods.cs`, `Icons/GameIcons.cs`, `Ui/GameUi.cs`,
+`Screens/{Start,Sheet,Menu,About,Settings,Slots,Picker}/<Name>Screen.cs`.
+
+**The seams as built** ("The seams" is the contract; where the outline couldn't be written as it stands, the nearest
+shape, each listed here for the steps that fill them):
+1. `GameParts` is a positional record `GameParts(Settings, Session, Mods, Ui, Random, Game)`; "the application" is
+   `Game`, typed `StatFickGame` (its window, storage, data, sound, `Quit()`).
+2. `GameSettings.Load(GameStorage)` and `GameUi.Load(Application, GameSettings, VirtualFileSystem)` are static factories
+   giving the part (the outline's `Load(…)` with no owner). `GameSettings.Peek(gameFolder)` gives a
+   `SettingsSnapshot(WindowState? Window, bool Fullscreen, IReadOnlySet<string> ModsOff)` with `IsModOn(file)` and
+   `SettingsSnapshot.Defaults`. `GameSettings.Window` and the snapshot's `Window` are `WindowState?`: null while the
+   window was never kept (the design's "absent at first"), the application's own 1440 × 950 then
+   (`StatFickGame.FirstWidth`, `FirstHeight`). The typed values have setters raising `Changed(SettingKey)` when the value
+   changes; `SettingKey` has eleven keys (the three volumes, `Theme`, `ZoomLevel`, `Fullscreen`, `Window`, `DevMode`,
+   `LastCharacter`, `Mods`, `RecentPlaces`). The stub: the first start's values in memory (Q22, GM1-4, GM1-12), nothing
+   read or written.
+3. `GameMods.ApplyTo(ApplicationOptions, SettingsSnapshot)` is an instance method (the check's results stay with the
+   object for `Entries`), and the object has one more member than the outline: `Attach(GameSettings)`, called at `Load`
+   once the settings are made, so `Switch(file, on)` keeps the switch in them (the outline's "`GameMods` … `GameSettings`'
+   switches"). `ModEntry(File, Name, Author, Version, Description, State, Problem, MoreProblems, SwitchedSinceStart)`,
+   `ModState { Loaded, Off, LeftOut }`. The stub: the options unchanged, no entries.
+4. `GameSession(GameStorage, GameSettings)`: `Slots()` gives `SlotInfo(Slot, Name, LastPlayed, Damaged)`;
+   `NextDefaultName()`; `Current` (`SaveGame?`), `CurrentSlot`; `New(name)` gives the slot; `Open(slot)` gives
+   `OpenResult(Slot, Opened, Backup, BackupTime)` (`BackupState { Missing, Readable, Damaged }`); `UseBackup`,
+   `StartNew`, `Delete`; `Change(Func<SaveGame, SaveGame>)`; `Leave()`; `Export(file)` gives whether it was written;
+   `Import(file)` gives `ImportResult(Slot, Problem)`; events `Opened`, `Closed`, `Saved`, `SlotsChanged` (plain
+   `Action`). The stub works in memory (a placeholder slot naming; files refused with "That file is not a valid
+   character save").
+5. `IGameRandom` (`double Next()`, `int Next(int n)`), `GameRandom(ulong seed)` with `Seed`, static `FromSystem()` (the
+   stub: `FixedSeed`, 0x5EED, .NET's generator), `ScriptedRandom(IEnumerable<double>)` (fails when its draws run out).
+6. `GameIcons` is a static class: `Table` (code point → `GameIcon(Outline, Advance, Ascent, Descent)`), `AddTo(FontLibrary)`.
+7. `GameUi`: `Document`, `Host` (null without a window); `Windows` (`GameWindows`: `Open(UiElement)`, `Close(UiElement)`,
+   `CloseTop()` → whether one was open, `Top`); `Commands` (`GameCommands`: `Register(name, Action<string?> run,
+   Func<bool>? enabled)`, a second registration of a name throwing; `Run(name, argument)` → whether it ran, a name not
+   registered or not possible now logged and nothing done; `IsRegistered`, `IsEnabled`, `Names`); `Dialogs`
+   (`GameDialogs`: `Task<bool> Confirm(question, yes)`, `Task<string?> Prompt(question, value, ok)`); `Status(text,
+   StatusKind)` with `event Action<string, StatusKind> StatusShown` (`StatusKind { Info, Problem }`); `Sound(name)`;
+   `Update(double)`, `Render(Frame, GpuImage)`, `Dispose()`. The keys are step 8's: the stub has no binding API, and
+   step 8 adds it (the application class doesn't call it). The stub: a bare document, "Stat Fick" on the Gothic ink
+   theme's parchment (`#d5c39b`, ink `#22160d`) in the engine's Lato; windows only kept in a list; commands as above;
+   dialogs answered Cancel; no keys, theme, zoom or sound.
+8. A screen is an `IGameScreen` (`Attach(GameParts)`); the application makes one of each, `StatFickGame.NewScreens()`,
+   attached in this order: Start, Sheet, Menu, About, Settings, Slots, Picker.
+9. **The About stub isn't empty:** it registers `about` with the engine's dark credits view for "Stat Fick" (a
+   full-window layer in the game's document with a Close of its own; logged "[Game] the credits view opened"), so
+   `--about` is "run `about`" (GM1-P12's "the engine's credits view until step 9") and step 9 replaces only its folder.
+10. Quit and the window's close both leave the character through one `Session.Leave()` in `Unload` (which every end of
+    the loop reaches, `--capture`'s quit too): `Application.Quit()` isn't virtual, so step 8's `quit` command calls
+    `parts.Game.Quit()`, and `ConfirmClose` keeps the engine's default (agrees at once).
+11. The window's maximized and full screen states are put in place at `Load` (below); the class reaches the window and
+    the sound through `IGameWindow` and `IGameVolumes`, and the tests through `Compose` and `SettingsLoaded` (internal).
+12. `--open <screen>` runs `open-<screen>`; `--open start` runs `start-screen` (`GameOptions.OpenCommand`).
+13. Namespaces: the folders' (`Statventure.Game.Settings`, `.Session`, `.Random`, …). Inside the game's namespaces
+    `Random` names the folder's namespace (write `System.Random`) and `Settings` the settings' (the engine's
+    `Statventure.Storage.Settings` by its full name).
+
+**The start sequence** (`StatFickGame`; "Who calls whom"): **before `Run`** `StatFickGame.Create(options, gameFolder)` peeks
+the per-user folder's settings, makes the engine's options (`OptionsFor`: titled "Stat Fick", the remembered size or
+1440 × 950, at least 820 × 600, resizable, logging as `stat-fick`, the per-user folder given; splash and sound on) and
+passes them through `GameMods.ApplyTo`; `CrashCapture` is `--capture`'s file, and `--capture-splash` asks the next frame.
+**At `Load`** the command line's problems and the single instance's are logged, the engine's window and sound adapters
+made, then `Compose(Storage, Data)`: `GameSettings.Load`, `GameMods.Attach`, `new GameSession`, `GameRandom.FromSystem()`
+(logged "[Game] the run's random seed <n>"), `GameUi.Load(this, settings, data)`, the parts (kept at once, so a start
+command can reach them), every screen attached, the volumes put on the sound, maximized and full screen on the window
+when the settings say so, `Settings.Changed` followed (the volumes, full screen, and a maximized state written by
+anyone else), then `start-screen`, then `--open`'s command, then `about` for `--about`. **Each update:** `--crash` or
+`--crash-thread` at frame 0 (thrown on the main thread, or on the thread "Game crash"); a later start's request taken
+(below); the window's state kept; the document updated; `--capture` at frame N (the loop's, after the splash), then
+quit. **`Unload`:** the character left, the document disposed. No theme is started (Q15) and nothing reloads (Q18).
+With the stubs a start logs "[Commands] start-screen: not registered yet, nothing done" and draws the parchment page.
+
+**The window (Q19).** The engine's `WindowOptions` have a size, a minimum and visibility, but no maximized or full screen
+state, so those are put in place at `Load`, after the splash (a jump after it, as "Left to the steps" foresaw; the
+engine unchanged). `EngineGameWindow` uses the engine's `Window.Fullscreen` and GLFW's own window (`Window.Native`:
+`Maximize`, `Restore`, the `Maximized` and `Iconified` attributes, `Focus`, `RequestAttention`). Each update writes the
+window's state to the settings when neither minimized nor full screen: its size while not maximized, and the size it is
+restored to with `Maximized` when it is (the settings say a change only when the value changes). A `Window` change
+is put on the window only when its maximized state differs from the window's, so the class's own writes (taken from the
+window that moment) never move it.
+
+**One instance per per-user folder (GM1-P14; `SingleInstance`).** `Program.Start` claims the folder before anything else:
+the folder made if missing (each level 0700 on Linux, as the engine's storage makes them), an exclusive lock on
+`stat-fick.lock` there (`FileShare.None`, which .NET takes as `flock` on Linux; the file 0600, left in place, the lock
+released with the program, a crash too); the first then listens on a channel named `stat-fick-<16 hex digits of the
+SHA-256 of the folder's real path>` (links resolved, so `/home/…` and `/var/home/…` are one; capitals on Windows): a Unix
+socket in Linux's abstract namespace (no file, nothing left by a crash), a named pipe on Windows (current user only). A
+later start that finds the lock held (Linux: `EWOULDBLOCK`, 11, which .NET gives as the exception's HResult, checked on
+the PC; Windows: a sharing or lock violation) connects, says `forward`, waits for `ok` (trying for 3 s, the first may be
+just starting), prints "Stat Fick is already running for this player: its window was asked to come forward." and ends
+with 0 (unanswered: "… but it didn't answer.", 0). The first's listener thread raises `ForwardAsked`; the game notes it
+and wakes a sleeping loop (`Window.PostEmptyEvent`), and its next update restores the window if minimized, asks the
+focus and, on Wayland, GLFW's attention request, logged "[Game] another start asked for the window: focused, attention
+requested (Wayland)". Anything else on the channel gets nothing. A folder that can't be made or locked for another
+reason runs alone, the problem logged at `Load`. **Checked** with the dev layout and the packaged game, headless (two
+starts in one cage): the later start ended with 0 in 0.05–0.14 s with its line, the first logged the request, and a start
+on another per-user folder ran beside.
+
+**The command line (GM1-P12; `GameOptions`):** `--capture <png> [--frames N]` (30 by default; N a whole number from 1),
+`--capture-splash <png>`, `--about`, `--open <screen>`, `--crash`, `--crash-thread`; paths made full; no usage text; a
+wrong argument (unknown, a missing value, a bad `--frames`) is ignored and logged as a warning once the log is open.
+
+**The sandbox (GM1-P2):** its project has no reference to the data library and no publish settings; it logs as
+`statventure-sandbox` (its cutscene player too; the engine's log rotation takes any program's name, so no engine change);
+its title, `--cutscene`, `--log-visibility`, capture, About and crash options are as they were; `play-cutscene.sh` is
+unchanged. Checked headless on scratch per-user folders, nothing audible: `play-cutscene.sh jiruan --volume 0 --dump`
+wrote its 85 frames and 6 stills ("sound … at volume 0"), and `--log-visibility --capture` logged its timer, `pagehide`,
+`visibilitychange` and `unload` and captured its page, each run's log `statventure-sandbox-<date>_<time>.log`.
+
+**The editor and the packer on the real library:** `editor.sh --player-folder <scratch> --capture` loaded
+`Game/Statventure.Game.Data/bin/Release/net10.0/Statventure.Game.Data.dll` (81 record kinds) and drew its shell; the
+editor with `--game` on the dev layout (`$STATVENTURE_GAME`) loaded the library there; the packer packed and dumped a
+`stand-in.item` entry.
+
+**Build, test, publish.** `build.sh` and `build.ps1` publish `Game/Statventure.Game` into `$STATVENTURE_GAME`
+(framework-dependent, S9-A) and then remove the sandbox's leftovers there: its program files (`Statventure.Sandbox`,
+`.exe` on Windows, `.dll`, `.pdb`, `.deps.json`, `.runtimeconfig.json`) and its `Data/Fonts`, `Data/Cutscenes`,
+`Data/Models`, and `Data/` when nothing else is in it; nothing else of the folder (chosen: by name, as the sandbox laid
+them, rather than `Data/` whole). `test.sh` and `test.ps1` run `Tests/Statventure.Tests` then
+`Tests/Statventure.Game.Tests` with the same arguments, the second also after the first failed, and fail if either did.
+`mutate.py` takes a mutation's `"project"` (default the engine's tests), builds and tests it, and rebuilds every
+project it used at the end. **Packaging:** `Publish.cs`'s `stat-fick` package is `Game/Statventure.Game` (assembly
+`Statventure.Game`, renamed `stat-fick` / `Stat Fick.exe`); `check_packages.py` reads the game's version from
+`Statventure.Game` inside the bundle and now fails when a program's own assembly isn't in its bundle (before, a wrong
+name there skipped the version rule unseen: found by this step's breaks); the game's two listings made again (the sandbox's `Data/` gone, the `bundle` lines
+`Statventure.Game.*`; the editor's unchanged); `licenses.txt` without the stand-in's `Data/` lines;
+`release-text.md`'s first line and the game's bullet reworded (below) and `release_test.py`'s required phrases with them.
+**`end_to_end.py`:** the other version's library built from `Game/Statventure.Game.Data`, the page's colour the game's
+parchment (`#d5c39b`), and the game's own words where the flow read the sandbox's: `[Game]` for `[Sandbox]` (the
+splash-first check and the credits view's line) and the crash messages "the game crashed on purpose (--crash)" / "… on
+a thread of its own (--crash-thread)" on the thread "Game crash" (the flow's structure unchanged; step 11 extends it).
+
+**The release's text, reworded:** the first line "Stat Fick {{version}} for Linux and Windows: the game and its editor,
+each a download of its own. **The game is being ported to the Statventure engine:** its download holds Stat Fick's own
+program as far as the port has come, and there is nothing to play yet."; the game's bullet "`{{stat-fick-linux}}` for
+Linux, `{{stat-fick-windows}}` for Windows: Stat Fick on the Statventure engine, as far as the port has come." (true for
+every step of GM1; the user sees it in the next draft).
+
+**The packages (`2026.11.13.1`, from this step's tree rebased on step 4's `8acdc5a`):** the game's Linux archive 42.6 MB
+(44,717,413 bytes, 54 files; was 45.1 MB, 72), Windows 38.8 MB (40,696,827 bytes, 47; was 41.3 MB, 65), the editor's 41.8 MB (51) and 38.0 MB (44) as
+before; `check-packages.sh` ok on all four (the Linux two run headless); its self-test: 119 breaks, 119 caught.
+
+**GM1-P18.** *The publish through a symbolic link:* `env.sh` takes the scripts' folder by its real path (`pwd -P`; the
+engine's and the repo's folders follow from it), and `Publish.cs` resolves `--engine` to its real path (every link in
+it, a link to a link too). Shown on a clone of this step's tree under `claude-work/gm1/step2/clone`, reached through
+`/home/…` (`/home` is a link to `var/home`): `publish.sh` worked and its archive passed the check; with both fixes taken
+out it failed as M12 step 7 found (the program's restore without its project references: "error CS0246: The type or
+namespace name 'Brutal' could not be found"); either fix alone was enough for `publish.sh`; `Publish.cs` called directly
+with the `/home/…` path (as `publish.ps1` calls it, without `env.sh`) failed without its fix and worked with it.
+*`build.sh` after a failed shader:* the repro run again (`claude-work/gm1/step2/shader-repro.sh`: `test_color.frag`
+broken, `build.sh` run, the shader put back): **`build.sh` ended with exit code 1** right after "shaders: 0 built, 30 up to
+date, 1 failed", with no MSBuild output after it: the build stops (`set -euo pipefail`), so `build.sh` is unchanged.
+
+**Tests** (`Tests/Statventure.Game.Tests/`, a project of its own, GM1-P4; it references the engine, the game and the
+library, links `PerUserFolders`, `ReferencePlatform`, `SystemFonts`, `GpuFixture`, `Golden`, `TestPaths` and
+`Canvas/TestFonts` from the engine's tests (TestPaths beside the six named: the committed packs and the old game's
+folder for later steps), copies the engine tests' `Data/Fonts` beside it for `TestFonts`, and takes its own `Data/**`):
+29 tests. `GameOptionsTests` (7: a player's start, each option, `--open`'s commands, a wrong command line said and
+ignored); `SingleInstanceTests` (9: a later start forwarded and the first told, folders of their own, a start after the
+first ended, one folder through a link, a first that doesn't answer, only the game's question and answer counting,
+the folder and lock file private and a folder that can't be made, a later start ending with 0 without a game, the first
+running the game and reached by a later start); `StartSequenceTests` (10, in memory on the stubs: the options before
+`Run`, the parts made and every screen attached before `start-screen`, a command not registered logged, a command run
+when registered and possible, the command line's commands after the start screen, About's credits view until step 9,
+the volumes, full screen and the window following the settings, the settings at the start put on the window, the
+window's state kept, a later start's request taken once); `GameRunTests` (1: a real run in a hidden window on the stubs,
+no log or sound, on a thread of its own with a 60 s limit, so a run that doesn't quit fails rather than hangs: the window
+titled "Stat Fick", the engine's window and host, the first frame captured, the parchment page with the name, the
+request taken in the update, the window's state kept, the character left at the end);
+`Sounds/SoundNamesTests` (2: the eight names, and the committed `audio.pak` holding a patch at each name's path and no
+other effect, which step 4 left for the program). The engine's project gains or loses nothing (3720 on the step's base,
+3738 on `main` after step 4; nothing moved; `EditorArgumentsTests`' library path and a few comments changed).
+
+**Shown able to fail.** *The program's rules* (`mutate.py` with the game's project, under the shared lock in a headless
+cage; `claude-work/gm1/step2/mutations.json`, made by `make-mutations.py`): 100 mutations of the options, the single
+instance (`SingleInstance`, `Program.Start`), the window's options, the start sequence's wiring and the settings
+followed, the window's state kept, a later start's request, the run, and the stubs the program runs on (the page, the
+commands, About until step 9, the sounds' names). The first run (paused after 21 and finished from the 22nd,
+`mutations.json.log`, `mutations-rest.json.log`): 95 killed, 4 survived (two of them the stubs', below), 1 didn't
+build. Of those: "the screens not
+attached" hung the real-run test (its quit is a screen's; a hidden window's presents hang under wlroots), which
+`mutate.py` reads as a survivor: the run test now runs the game on a thread of its own with a 60 s limit; "the class's
+own window write put back" survived because the guard was redundant (a `Window` change reaches the window only when its
+maximized state differs from the window's, and the class's own write takes the window's at that moment): the guard
+removed, and a mutation of that condition listed instead; "`--about` not run" didn't build (rewritten). The rerun
+(`mutations-rerun.json`: those three and the 11 mutations the run test covers, the test having changed): 14 of 14 killed.
+The standing list: 100, **98 killed, 2 accounted for**: the options not passed through `GameMods.ApplyTo` and the settings
+not peeked (`GameSettings.Peek`) can't differ while those parts are stubs (the options come back unchanged and the
+snapshot is the defaults; steps 6 and 5 make them differ, and their tests reach the wiring). *The scripts' rules* (a
+runner of the step's own, `script-rules.py`: the worktree's `build.sh`, `test.sh`, `editor.sh`, `env.sh` and `mutate.py`
+copied into a scratch engine with a stand-in `dotnet`, each checked in a second): the game published into the game
+folder and the sandbox's leftovers removed and nothing else, both test projects run with the arguments and either's
+failure kept, `editor.sh`'s library, `env.sh` through a link, `mutate.py`'s project; 25 mutations, **25 killed**. *The
+sound pack test* (added after the rebase on step 4; `mutations-sounds.json`): a name not in `audio.pak`, the patches
+looked for elsewhere, a name left out of the list: **3 killed**. *The packaging, for real* (`packaging-breaks.py`,
+`check-break.py`): the stat-fick package's project back to the sandbox (its publish refused: no runtime pack, the
+licence check), the release text's old wording (`release.sh --self-test`: 30 of 31, its text test failing), both
+**killed**; the check's game assembly back to the sandbox's **survived** at first (the check skipped the version rule
+when the named assembly wasn't in the bundle: a gap, closed by the new rule above) and was **killed** after it. *The
+flow* (`e2e-breaks.py`: each of `end_to_end.py`'s changed expectations put back to the stand-in's, the flow run on the
+GPU): the page's colour, the other version's library's project, the credits view's line, the crash's words, the crash
+thread's name: **5 killed**, each on its own line. Nothing written to the player's real folders.
+
+**Runs** (all inside headless cages, scratch per-user folders, nothing audible; on the step's commit rebased on step 4's
+`8acdc5a`): `check-packages.sh` ok on the four archives (the Linux two run), its self-test 119 breaks, 119 caught;
+`end-to-end.sh` 157 of 157 on the GPU (91 s) and on lavapipe (96 s); the full suite on the GPU (the engine's tests
+1 min 59 s) and on lavapipe (2 min 18 s): 3738 + 29 = 3767 tests, none skipped.
+
+**Not checked:** Windows (the named pipe, `build.ps1`'s leftover removal, `test.ps1`, `editor.ps1`; "Windows check");
+the single instance on a desktop with a real window (raising and focusing it, Wayland's attention request seen); the
+splash then maximize/full screen jump in a real window.
+
 ## Status
 
 **Step 3 done (2026-11-13, the branch `gm1-step3`): the 28 icons' outlines and boxes, approved by the user.**
@@ -1559,6 +1804,15 @@ c; "How it works", step 4), in `Assets/Audio/effects/` and `audio.pak` (126 entr
 reproducible byte for byte), each a fixture against Chromium; `play-sounds.sh` for the ear. The full suite passes on the GPU and on lavapipe, inside a headless compositor under the shared lock: 3738 tests (`main`'s 3720 and 18 new: 8 fixtures, 10 in `GameSoundsTests`), none skipped; the player's real folders unchanged.
 Mutations: 5 of the tests' rules, all killed; 22 of the two scripts' rules by runners of the step's own, 21 killed (the
 silent warm-up plays only move the code's first compile off the first sound heard); the 0.3 s rule by hand.
+
+**Step 2 done (2026-11-13, the branch `gm1-step2`; "How it works", step 2):** the game's own program
+(`Game/Statventure.Game`, published as `stat-fick` / `Stat Fick.exe`, one instance per per-user folder, its window as the
+player left it, its checks' command line) and its real data library (`Game/Statventure.Game.Data`) in place of the
+sandbox and the stand-in; the program's seams with a stub for every part, the start sequence and the wiring running on
+them (the deviations from the outline listed there); the sandbox the engine's test bed; the game's own test project
+(29 tests; the engine's 3738; the suite 3767); the four packages, their check and self-test, the end-to-end flow on the
+GPU and on lavapipe; the publish through a symbolic link fixed; `build.sh` unchanged for a failed shader (it stops, exit
+code 1). Not checked: Windows; the single instance and the window's states on a real desktop.
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,

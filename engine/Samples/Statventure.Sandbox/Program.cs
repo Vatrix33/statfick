@@ -1,6 +1,7 @@
-// The Statventure sandbox: a window showing engine features as they are built; until the port, the game's stand-in in
-// the packages (M12-12), so it starts as the game will: the BRUTAL splash first (Application.Run, Q29), its logs as the
-// game's, a crash shown in the crash window (Docs/Packaging.md, "Crashes"), the credits behind its About button (Q30).
+// The Statventure sandbox, the engine's test bed (GM1-P2): a window showing engine features as they are built. It stood in
+// for the game in the packages until GM1 step 2 (M12-12) and starts as a program does: the BRUTAL splash first
+// (Application.Run, Q29), its own logs (statventure-sandbox-<date>_<time>.log), a crash shown in the crash window
+// (Docs/Packaging.md, "Crashes"), the credits behind its About button (Q30). Not published any more.
 //   dotnet run -- [--capture file.png] [--frames N] [--capture-splash file.png] [--about] [--crash | --crash-thread]
 //                 [--log-visibility] [--cutscene jiruan]
 // --capture saves the window at the N-th frame (30 by default) after the splash, the page's own frames counted (the
@@ -58,10 +59,13 @@ sandbox.Run();
 sealed class Sandbox(string? capture, int captureFrame, bool logVisibility, bool about, string? crash) : Application(new ApplicationOptions
 {
     Window = new WindowOptions { Title = Sandbox.Title, Width = 960, Height = 600 },
-    LogName = "stat-fick", // its logs as the game's, whose stand-in it is (Docs/Packaging.md, "Logs")
+    LogName = Sandbox.LogName, // its own logs since GM1 step 2 (GM1-P2; Docs/Packaging.md, "Logs")
 })
 {
-    /// <summary>The stand-in's name (Q13): its window's title, its credits' and its crash window's.</summary>
+    /// <summary>The sandbox's name for its logs (GM1-P2): its own, beside the game's and the editor's in the per-user <c>logs/</c>.</summary>
+    public const string LogName = "statventure-sandbox";
+
+    /// <summary>The sandbox's name (Q13): its window's title, its credits' and its crash window's.</summary>
     public const string Title = "Statventure Sandbox";
 
     UiHost _host = null!;

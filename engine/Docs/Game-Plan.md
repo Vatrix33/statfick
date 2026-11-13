@@ -2000,3 +2000,7 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   three candidates each (`ui-press` b, `ui-toggle` c, `ui-open` c, `ui-close` c, `game-saved` a, `game-opened` c,
   `ui-refused` c, `game-deleted` c; the levels as heard), in `Assets/Audio/effects/` and `audio.pak`
   (`Docs/Game/Foundation.md`, "How it works", step 4); `Tools/Scripts/play-sounds.sh` to listen.
+- **2026-11-13, GM1 step 2 done** (`Docs/Game/Foundation.md`, "How it works", step 2): the game's own program
+  (`Game/Statventure.Game`, published as `stat-fick` / `Stat Fick.exe`, one instance per per-user folder) and its real
+  data library (`Game/Statventure.Game.Data`) in place of the sandbox and the stand-in; the program's seams with a stub
+  for every part, on which steps 5–10 build; the game's own test project (two projects, the suite their sum).

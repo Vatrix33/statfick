@@ -24,8 +24,8 @@ public class EditorArgumentsTests
         Assert.Null(found.Problem);
         var game = found.Game!;
         Assert.Equal((TestPaths.Packs, true, null, GameTesting.BuiltLibrary), (game.PacksFolder, game.DevSetup, game.Folder, game.Library));
-        // The library's build in the repo: Samples/Statventure.Game.Data/bin/<the editor's configuration>/net10.0.
-        Assert.Equal(Path.Combine(EditorHarness.EngineFolder, "Samples", "Statventure.Game.Data", "bin", GameLibrary.Configuration, "net10.0", "Statventure.Game.Data.dll"), GameTesting.BuiltLibrary);
+        // The library's build in the repo: Game/Statventure.Game.Data/bin/<the editor's configuration>/net10.0.
+        Assert.Equal(Path.Combine(EditorHarness.EngineFolder, "Game", "Statventure.Game.Data", "bin", GameLibrary.Configuration, "net10.0", "Statventure.Game.Data.dll"), GameTesting.BuiltLibrary);
         Assert.NotNull(game.Types.Find(GameTesting.StandInKind));
         Assert.NotNull(game.Types.Find("audio.room"));
     }

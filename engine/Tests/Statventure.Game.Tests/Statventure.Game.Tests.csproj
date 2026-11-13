@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The game's tests (GM1-P4; Docs/Game/Foundation.md, "The program, the library and the repo"): the game's program and
+       its data library referenced, typed. A project of its own because the engine keeps one record kind per name for the
+       process, and the editor's tests (Tests/Statventure.Tests) load the data library through the editor's loader: a
+       direct reference there would make every kind of the library a second one (GM1 step 2's probe). Its files are taken
+       by the SDK's wildcards: the program's root tests at the top, each part's in a folder of its own (Settings/,
+       Session/, Random/, Saves/, Mods/, Icons/, Ui/, Screens/, Data/Records/), the step's that fills the part.
+       Tools/Scripts/test.sh runs it after the engine's tests; the suite's count is both projects' sum. -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../Engine/Statventure/Statventure.csproj" />
+    <ProjectReference Include="../../Game/Statventure.Game/Statventure.Game.csproj" />
+    <ProjectReference Include="../../Game/Statventure.Game.Data/Statventure.Game.Data.csproj" />
+  </ItemGroup>
+
+  <!-- The tests' shared infrastructure, linked from the engine's tests where it is (not moved, so their steps aren't
+       disturbed): the per-user folders pointed into a scratch folder before any test runs, the reference PC's platform
+       and fonts, the GPU device, golden images, the committed folders. Their paths (golden images, the system fonts'
+       table) stay the engine's tests' own. -->
+  <ItemGroup>
+    <Compile Include="../Statventure.Tests/Infrastructure/PerUserFolders.cs" Link="Infrastructure/PerUserFolders.cs" />
+    <Compile Include="../Statventure.Tests/Infrastructure/ReferencePlatform.cs" Link="Infrastructure/ReferencePlatform.cs" />
+    <Compile Include="../Statventure.Tests/Infrastructure/SystemFonts.cs" Link="Infrastructure/SystemFonts.cs" />
+    <Compile Include="../Statventure.Tests/Infrastructure/GpuFixture.cs" Link="Infrastructure/GpuFixture.cs" />
+    <Compile Include="../Statventure.Tests/Infrastructure/Golden.cs" Link="Infrastructure/Golden.cs" />
+    <Compile Include="../Statventure.Tests/Infrastructure/TestPaths.cs" Link="Infrastructure/TestPaths.cs" />
+    <Compile Include="../Statventure.Tests/Canvas/TestFonts.cs" Link="Infrastructure/TestFonts.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <None Include="Data/**" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The game's fonts as the engine's tests have them (TestFonts reads them beside the tests). -->
+    <None Include="../Statventure.Tests/Data/Fonts/**" LinkBase="Data/Fonts" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

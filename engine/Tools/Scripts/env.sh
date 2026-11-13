@@ -1,7 +1,11 @@
 # Source this before building: paths come from where the repo is; the .NET SDK and the caches live
 # outside it (~/.cache/stat-fick-build, or $STATVENTURE_CACHE). A git-ignored env.local.sh next to
 # this file can override anything for one machine.
-STATVENTURE_SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# The repo's real path, its symbolic links resolved (pwd -P; the folders above it follow from it): MSBuild and .NET
+# name the projects by the real path (their working folder's), and a restore that met one project under two paths (a
+# clone reached through /home, a link to /var/home) built the program with no project references (GM1-P18;
+# Docs/Packaging.md, "How it works", step 3).
+STATVENTURE_SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 export STATVENTURE_SCRIPTS
 export STATVENTURE_SOURCE="$(cd "$STATVENTURE_SCRIPTS/../.." && pwd)"
 export STATVENTURE_REPO="$(cd "$STATVENTURE_SOURCE/.." && pwd)"

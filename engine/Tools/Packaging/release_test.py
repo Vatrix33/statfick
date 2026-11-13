@@ -28,7 +28,7 @@ DAY = "2026-10-21T21:30:00+00:00"
 VERSION_DAY = "2026.10.21"
 # What the release's text must say (Q12: what a readme would have; Q13, Q14, Q15; the system needs from step 3).
 REQUIRED = [
-    "Statventure Sandbox stands in for the game until the port",
+    "The game is being ported to the Statventure engine", "nothing to play yet",
     "the game and its editor", "for making mods",
     "./stat-fick-{version}/stat-fick", "`statventure-editor` in `statventure-editor-{version}`",
     "tar -xzf stat-fick-{version}-linux.tar.gz", "Extract All", "run `Stat Fick.exe` in its folder",
@@ -519,7 +519,8 @@ def test_every_placeholder_filled(work):
 
 
 def test_the_release_text(work):
-    """The template says what a readme would have (Q12), the stand-in (Q13), SmartScreen (Q14), the missing version
+    """The template says what a readme would have (Q12), the port under way (Q13; since GM1 step 2 the game's own
+    program, no longer the sandbox standing in), SmartScreen (Q14), the missing version
     details (Q15), the player's folders, the system needs; uses only the five placeholders, each at least once."""
     problems = []
     template = open(TEMPLATE, encoding="utf-8").read()

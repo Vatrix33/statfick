@@ -19,6 +19,11 @@ the user and wait for their go-ahead before starting the next one.
 - Build and test: `Tools/Scripts/test.sh` (Windows: `Tools\Scripts\test.ps1`); all tests must pass
   before a step counts as done. They pass the same on the PC's GPU, on a CPU Vulkan (the cloud) and
   on Windows: they act as Chromium on Linux with the reference PC's fonts and font settings.
+  Since GM1 step 2 two test projects: `Tests/Statventure.Tests` (the engine's and the editor's) and
+  `Tests/Statventure.Game.Tests` (the game's: its program `Game/Statventure.Game` and its data library
+  `Game/Statventure.Game.Data` referenced; the shared infrastructure linked from the engine's tests); `test.sh` runs
+  both, and the suite's count is their sum. `mutate.py` takes a mutation's `"project"` (the engine's tests without one).
+  `build.sh` lays out the game (`stat-fick` once published; `Statventure.Game` in `$STATVENTURE_GAME`), not the sandbox.
   Tests make their windows hidden (`WindowOptions.Visible = false`: a surface and a swapchain all the same, nothing
   shown; the default stays visible for the game). The one exception is `SwapchainTests`: a hidden surface isn't paced
   by every compositor, and wlroots hangs its five vsync frames (`Docs/Editor.md`, "How it works", step 3).
@@ -28,7 +33,9 @@ the user and wait for their go-ahead before starting the next one.
 - Chromium 152 for references: `Tools/Scripts/chromium.sh` (Electron 44.5.0 from npm).
 - A minimized window's document (hidden documents: visibility, unloading, Blink's timer throttling; `Docs/Scripting.md`,
   "Hidden documents"): references from `Tools/Scripts/make-visibility-references.sh` (about six minutes);
-  `Samples/Statventure.Sandbox` with `--log-visibility` logs what a real minimize, restore and close do.
+  `Samples/Statventure.Sandbox` with `--log-visibility` logs what a real minimize, restore and close do. (The sandbox is
+  the engine's test bed since GM1 step 2: not published, logging as `statventure-sandbox`; from a script give it a
+  scratch `XDG_DATA_HOME`.)
 - The Documents folder (M9, character files; `Docs/Assets.md`): `Tools/Scripts/make-documents-reference.sh` captures
   Electron's `app.getPath("documents")` (and .NET's `MyDocuments` beside it) in 46 environments (about a minute).
 - Blender 5.2 for the 3D references (M6 on): `Tools/Scripts/make-blender-references.sh [scene ...]`
@@ -40,8 +47,8 @@ the user and wait for their go-ahead before starting the next one.
   the sandbox's window (Escape or its Skip button skips, R replays; `--dump <folder>` writes its frames instead);
   `Tools/Scripts/make-cutscene-references.sh` captures the old game's card in Chromium at the sampled times.
 - The editor (M11, `Docs/Editor.md`): `Tools/Scripts/editor.sh [--player-folder <folder>] [--capture <file.png>
-  [--frames N]]` runs the Statventure Editor from the repo (the dev setup, `--repo`, with the game data library built
-  beside it; Release; from a script, pass a scratch player folder; `--capture` draws N frames, 30 by default, after the
+  [--frames N]]` runs the Statventure Editor from the repo (the dev setup, `--repo`, with the game's data library
+  `Game/Statventure.Game.Data` built beside it; Release; from a script, pass a scratch player folder; `--capture` draws N frames, 30 by default, after the
   splash, saves the last and quits). The program's own command line (M12 step 6, `Docs/Packaging.md`): `statventure-editor
   [--repo <engine folder> | --game <game folder>] [--player-folder <folder>] [--capture <file.png> [--frames N]]`;
   without `--repo` or `--game` it takes the game's folder it remembers (`editor/game.json`), else asks "Where is Stat
@@ -87,5 +94,11 @@ the user and wait for their go-ahead before starting the next one.
   every icon in Chromium beside the old glyph at each of the old game's uses (`Tools/IconSheet/uses.json`), both themes,
   the small ones enlarged, and at 96 px over its box (PaintReference; inside a headless cage of its own when cage
   exists); `--uses` measures the old game's uses again.
+- The game's program (GM1 step 2, `Docs/Game/Foundation.md`, "How it works", step 2): `Game/Statventure.Game`
+  (`StatFickGame`, its parts in folders of their own, each a later step's; one instance per per-user folder), and its
+  data library `Game/Statventure.Game.Data`; its command line for checks only (`--capture <png> [--frames N]`,
+  `--capture-splash <png>`, `--about`, `--open <screen>`, `--crash`, `--crash-thread`); run it from a script as
+  `build.sh` lays it out (`$STATVENTURE_GAME/Statventure.Game`) with a scratch `XDG_DATA_HOME` and `ALSOFT_DRIVERS=null`,
+  inside a headless cage.
 - The survey the game plan was written from (2026-11-12, `29d110d`; a snapshot): `Docs/Game/Survey/`, its README first.
 - Notes kept from earlier sessions (history, gotchas, recipes): `Docs/Notes.md`.

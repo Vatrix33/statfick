@@ -4,7 +4,11 @@ The game and the editor as players get them: two downloads per platform (Linux a
 self-contained single-file program in an archive; the BRUTAL logo before each program starts and a credits view
 in each; per-run logs and crash files in the player's per-user folder and a crash window drawn by the engine;
 date-based versions; draft releases on the private GitHub repo that the user publishes. M12 builds and proves all
-of it with the sandbox standing in for the game (M12-12); the port replaces the stand-in.
+of it with the sandbox standing in for the game (M12-12); the port replaces the stand-in. **Since GM1 step 2
+(2026-11-13) the game's download holds the game's own program** (`Game/Statventure.Game`, published as `stat-fick` and
+`Stat Fick.exe`) and its real data library (`Game/Statventure.Game.Data`, with the development-only kind `stand-in.item`
+until GM2, GM1-P3); the sandbox is the engine's test bed, not published ("How it works", "GM1 step 2"; `Docs/Game/
+Foundation.md`).
 
 ## Decisions (user, 2026-11-08)
 
@@ -327,15 +331,16 @@ Four archives per release, two per platform, each holding one program in a folde
 
 ```
 stat-fick-2026.11.8.1-linux.tar.gz | stat-fick-2026.11.8.1-windows.zip
-  stat-fick-2026.11.8.1/             the game (until the port: the sandbox standing in, Q13)
+  stat-fick-2026.11.8.1/             the game (the sandbox stood in until GM1 step 2, Q13; now the game's program)
     stat-fick | Stat Fick.exe        one single-file executable: its code and .NET (Q5), not trimmed (M12-3),
                                      symbols embedded (Q7), invariant globalization (Q8); on Windows a GUI program (Q6)
     <native libraries>               as "Native libraries" lists them; on Windows also vcruntime140.dll,
                                      vcruntime140_1.dll and msvcp140.dll (Q9)
-    Statventure.Game.Data.dll        the data library, a file of its own beside the executable (M12-9; until the
-                                     port a stand-in with a test kind, Q19)
+    Statventure.Game.Data.dll        the data library, a file of its own beside the executable (M12-9; a stand-in
+                                     with a test kind until GM1 step 2, Q19; now the game's, GM1-P3)
     packs/audio.pak, packs/ui.pak    exactly the committed packs, as build.sh lays them out (M9 Q2, S9-A)
-    Data/                            the sandbox's own files (fonts, the proof cutscene); stand-in only
+    Data/                            the sandbox's own files (fonts, the proof cutscene); stand-in only, gone
+                                     since GM1 step 2
     NOTICE.txt, licenses/            BRUTAL's notice and every licence text as its package gives it (Q10)
 statventure-editor-2026.11.8.1-linux.tar.gz | statventure-editor-2026.11.8.1-windows.zip
   statventure-editor-2026.11.8.1/
@@ -343,7 +348,7 @@ statventure-editor-2026.11.8.1-linux.tar.gz | statventure-editor-2026.11.8.1-win
     <native libraries>, NOTICE.txt, licenses/     no data library: it loads the game's (M12-9, clarified)
 ```
 
-`classes/` comes with the port (M9 Q27); the stand-in has none. No readme (Q12): the release's text says what one
+`classes/` comes with the port (M9 Q27; GM8 makes the class files, GP-1); the stand-in had none, nor has GM1. No readme (Q12): the release's text says what one
 would have. Nothing of the player's per-user folder is in either. A new version unpacks beside the old.
 
 ### Building them (publish)
@@ -468,7 +473,9 @@ first screen before it knows the game. It is made before the crash window and th
   the game's version read from its program file (no extra file).
 - **The data library (M12-9, Q19):** the editor loads `Statventure.Game.Data.dll` from the game's folder (built
   against the same engine, hence Q18) and takes its record kinds; until the port the sandbox carries a stand-in
-  library of that name (`Samples/Statventure.Game.Data`, one test kind); the editor's own download has none.
+  library of that name (`Samples/Statventure.Game.Data`, one test kind); the editor's own download has none. Since GM1
+  step 2 the game carries its real library, `Game/Statventure.Game.Data`, `stand-in.item` in it as a development-only
+  kind until GM2's first real kind (GM1-P3).
 - **Ending by itself (Q20):** `--capture <file.png> --frames N`, as the sandbox's, in its usage text.
 - Its log in the same per-user `logs/` (M12-8); its title with the version (Q3); its credits view (Q30).
 
@@ -485,7 +492,8 @@ first screen before it knows the game. It is made before the crash window and th
   SmartScreen's "More info, Run anyway", Q14); what the system needs (a Vulkan 1.3 GPU driver; Linux x64 with
   glibc 2.34 or later; Windows 10 or 11, x64); where the player's folder and the logs are; that the editor needs
   the game and asks where it is on its first start; and that the game's download is the engine's sandbox standing
-  in for Stat Fick until the port.
+  in for Stat Fick until the port. (Since GM1 step 2: that the game is being ported, its download Stat Fick's own
+  program as far as the port has come, nothing to play yet.)
 
 ### What packaging never touches (M12-11)
 
@@ -2066,7 +2074,37 @@ mouse and the keyboard, Game folder… and its restart message, About scrolled w
   line's message window, SmartScreen on an unsigned `.exe`, the Visual C++ runtime on a Windows without its
   redistributable (Windows Sandbox), `publish.ps1` and `editor.ps1`, a mod made and loaded with the packaged programs.
 
+### GM1 step 2: the game's own program in the packages (2026-11-13)
+
+GM1's step, recorded in full in `Docs/Game/Foundation.md`, "How it works", step 2; what it changed here:
+- **The `stat-fick` package is the game's program:** `Publish.cs` publishes `Game/Statventure.Game` (assembly
+  `Statventure.Game`, renamed `stat-fick` and `Stat Fick.exe` as before) with its data library beside it
+  (`KeepTheDataLibraryBeside` moved to the game's project); `check_packages.py` reads the version from `Statventure.Game`
+  inside the bundle, and a new rule: the program's own assembly must be inside its bundle (a wrong name in the check's
+  table skipped the version rule unseen; found by GM1 step 2's breaks). The game's two listings made again: the sandbox's `Data/` gone (29 paths), the `bundle` lines
+  `Statventure.Game.deps.json`, `.dll`, `.runtimeconfig.json`; the editor's listings unchanged. `licenses.txt`: the
+  stand-in's `Data/` cover lines gone. `release-text.md`: the stand-in's two sentences reworded (Foundation.md has the
+  words; `release_test.py`'s required phrases follow). At `2026.11.13.1`: the game's Linux archive 42.6 MB (44,717,413
+  bytes, 54 files; was 45.1 MB, 72), Windows 38.8 MB (40,696,827 bytes, 47; was 41.3 MB, 65); the editor's as before (41.8
+  MB, 51; 38.0 MB, 44). `check-packages.sh` ok on all four (the Linux two run headless: the game draws its parchment page
+  with `--capture`); the self-test 119 breaks, 119 caught.
+- **The publish through a symbolic link** (found by step 7, "Open" in step 3's entry above): fixed (GM1-P18): `env.sh`
+  takes the scripts' folder by its real path (`pwd -P`) and `Publish.cs` resolves `--engine` to its real path. A clone
+  reached through `/home/…` publishes and checks; without both fixes it fails as step 7 saw; `Publish.cs` called directly
+  through `/home/…` needs its own.
+- **`build.sh` after a failed shader:** the repro run again: `build.sh` ends with exit code 1 at the failed shader and
+  builds nothing after it; unchanged.
+- **The end-to-end flow** (`end_to_end.py`): the other version's library from `Game/Statventure.Game.Data`, the page's
+  colour the game's parchment (`#d5c39b`), and the game's own words for the lines it read from the sandbox (`[Game]`, the
+  crash messages, the thread "Game crash"); otherwise as step 8 made it (GM1 step 11 extends it). On `2026.11.13.1`:
+  157 of 157 on the GPU (91 s) and on lavapipe (96 s); each of the changed expectations put back to the stand-in's
+  fails the flow on its own line (5 breaks, all killed).
+
 ## Status
+
+**GM1 step 2 (2026-11-13):** the game's download holds the game's own program (`Game/Statventure.Game`) and its real
+data library; the sandbox is no longer packaged. The four `2026.11.13.1` archives pass the check and its self-test; the
+publish works through a symbolic link; `end-to-end.sh` 157 of 157 on the GPU and on lavapipe. ("How it works", "GM1 step 2".)
 
 **M12 done (2026-11-12; ticked in Engine-Plan.md's Milestones):** all eight steps on `main` (step 4 with its follow-up),
 3720 tests passing on the GPU and on lavapipe. The two downloads per platform, each a self-contained single-file program

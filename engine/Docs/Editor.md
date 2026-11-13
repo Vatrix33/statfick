@@ -273,7 +273,11 @@ and `AddFolder` default to the engine's. No game assembly exists yet (the sandbo
 the port's kinds (items, enemies, spells, shops) will be in the game's code. How they reach the editor is
 G3, kept for the port. **Since M12 (M12-9 closes G3; step 6, 2026-11-08):** the port's kinds go into the game's data
 library, `Statventure.Game.Data` (until the port the stand-in `Samples/Statventure.Game.Data`, one test kind), which the
-game links, the editor loads from the game's folder and the packer references ("How it works", "M12 step 6").
+game links, the editor loads from the game's folder and the packer references ("How it works", "M12 step 6"). **Since GM1
+step 2 (2026-11-13)** it is the game's real library, `Game/Statventure.Game.Data` (`GameLibrary.RepoProject`), holding
+the test kind `stand-in.item` as a development-only kind until GM2's first real kind with `[Kind]` arrives (GM1-P3; then
+the editor's tests and the end-to-end mod switch to that kind); the editor's tests still load it only through the
+editor's loader, and the game's own tests are a project of their own (GM1-P4; `Docs/Game/Foundation.md`).
 
 ### The UI for a tool (`Engine/Statventure/UI/`)
 
@@ -3090,6 +3094,10 @@ editor:
   `game-folder`, `about`, `about-end`), and the 19 earlier ones captured again for the top bar (at 1× each gives the count it gave before; at 1.65 the screens whose top bar shows gain the new buttons' 8 corner pixels; the new ones 0.004–0.036 %).
 
 ## Status
+
+**GM1 step 2 (2026-11-13): the game's real data library** (`Game/Statventure.Game.Data`, `GameLibrary.RepoProject`;
+"Record kinds that aren't the engine's"): the editor, the packer and `editor.sh` take it in place of the stand-in; its
+kind `stand-in.item` stays as a development-only kind until GM2 (GM1-P3). Nothing else of the editor changed.
 
 **M12 step 6 (2026-11-08): the editor as a download of its own** ("How it works", "M12 step 6"; `Docs/Packaging.md`,
 step 6): it finds the game (`--repo`, `--game`, the folder remembered in `editor/game.json`, or "Where is Stat Fick?"),

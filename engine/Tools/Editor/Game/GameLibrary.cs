@@ -34,14 +34,13 @@ public static class GameLibrary
 
     /// <summary>
     /// The library's project in the repo, from the engine's folder (the dev setup, <c>--repo</c>, takes the library from
-    /// its build; the manager's decision Q-A, M12 step 6). Until the port the stand-in; the port changes this when it
-    /// makes its own.
+    /// its build; the manager's decision Q-A, M12 step 6): the game's own since GM1 step 2 (GM1-P1).
     /// </summary>
-    public const string RepoProject = "Samples/Statventure.Game.Data";
+    public const string RepoProject = "Game/Statventure.Game.Data";
 
 
     /// <summary>
-    /// The library as the repo's build makes it for the dev setup: <c>&lt;engine&gt;/Samples/Statventure.Game.Data/bin/&lt;the
+    /// The library as the repo's build makes it for the dev setup: <c>&lt;engine&gt;/Game/Statventure.Game.Data/bin/&lt;the
     /// editor's configuration&gt;/&lt;its target&gt;/Statventure.Game.Data.dll</c> (<c>editor.sh</c> builds both in Release, the tests
     /// in Debug).
     /// </summary>

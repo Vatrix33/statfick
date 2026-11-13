@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The game's data library (M12-9, Q19; Docs/Packaging.md, "The editor on its own"; GM1-P1, Docs/Game/Foundation.md,
+       "The program, the library and the repo"): the record kinds the game links and the editor loads from the game's
+       folder, a file of its own beside the game's single-file program. The editor's own download has no copy (M12-9,
+       clarified). The packer references it, so the repo's packs and their dumps know the game's kinds. Its files are
+       taken by the SDK's wildcards: each milestone adds its kinds in a folder of its own (GM1: Saves/, and the
+       development-only StandIn/ until GM2's first real kind, GM1-P3). -->
+  <PropertyGroup>
+    <RootNamespace>Statventure.Game.Data</RootNamespace>
+    <AssemblyName>Statventure.Game.Data</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Engine/Statventure/Statventure.csproj" />
+  </ItemGroup>
+</Project>

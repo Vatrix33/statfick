@@ -6,15 +6,16 @@ using Statventure.Tests.Infrastructure;
 namespace Statventure.Tests.Editor.Game;
 
 /// <summary>
-/// Scratch game folders for the editor's lookup of the game (M12 step 6): the repo's packs and the stand-in data library
-/// as the repo's build makes it (what <c>--repo</c> loads; the tests build it before they run, never referencing it:
+/// Scratch game folders for the editor's lookup of the game (M12 step 6): the repo's packs and the game's data library
+/// (with its development-only kind <c>stand-in.item</c>, GM1-P3) as the repo's build makes it (what <c>--repo</c> loads;
+/// the tests build it before they run, never referencing it:
 /// the editor's loader is the only way in, the engine keeping one record kind per name), and data libraries of the
 /// tests' own (another version, another build, not a library), made with <see cref="PersistedAssemblyBuilder"/> and
 /// never loaded.
 /// </summary>
 static class GameTesting
 {
-    /// <summary>The stand-in data library as the repo's build of the tests' configuration makes it.</summary>
+    /// <summary>The game's data library as the repo's build of the tests' configuration makes it.</summary>
     public static string BuiltLibrary => GameLibrary.InRepo(EditorHarness.EngineFolder);
 
     /// <summary>The stand-in's test kind's record name.</summary>
@@ -87,7 +88,7 @@ static class GameTesting
     public static Type StandInType()
     {
         var library = GameLibrary.Read(BuiltLibrary);
-        return GameLibraryLoader.Run.Kinds(library).Types.Find(StandInKind) ?? throw new InvalidOperationException("the stand-in library has no " + StandInKind);
+        return GameLibraryLoader.Run.Kinds(library).Types.Find(StandInKind) ?? throw new InvalidOperationException("the game's data library has no " + StandInKind);
     }
 
     /// <summary>A value of the stand-in kind.</summary>

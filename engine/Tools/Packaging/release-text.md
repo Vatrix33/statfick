@@ -1,8 +1,8 @@
-Stat Fick {{version}} for Linux and Windows: the game and its editor, each a download of its own. **Statventure Sandbox stands in for the game until the port:** the game's download holds the Statventure engine's sandbox where Stat Fick will be.
+Stat Fick {{version}} for Linux and Windows: the game and its editor, each a download of its own. **The game is being ported to the Statventure engine:** its download holds Stat Fick's own program as far as the port has come, and there is nothing to play yet.
 
 ## The downloads
 
-- **The game:** `{{stat-fick-linux}}` for Linux, `{{stat-fick-windows}}` for Windows. Until the port, the program in it is Statventure Sandbox, standing in for Stat Fick.
+- **The game:** `{{stat-fick-linux}}` for Linux, `{{stat-fick-windows}}` for Windows: Stat Fick on the Statventure engine, as far as the port has come.
 - **The editor:** `{{statventure-editor-linux}}` for Linux, `{{statventure-editor-windows}}` for Windows. The Statventure Editor, for making mods; it needs the game's download of the same version.
 
 Each holds one folder named with its version (`stat-fick-{{version}}`, `statventure-editor-{{version}}`), so a new version unpacks beside the old one. Keep the folder whole: each program needs the files beside it.

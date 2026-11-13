@@ -1,6 +1,6 @@
 # Windows: builds Statventure: compiles the engine shaders, then the solution, then lays out the game
-# folder ($env:STATVENTURE_GAME): the sandbox, the game's stand-in until the port, with the committed packs
-# in packs\ beside it (Docs/Assets.md, step 9; S9-A).
+# folder ($env:STATVENTURE_GAME): the game's program (Game/Statventure.Game, since GM1 step 2) with the committed
+# packs in packs\ beside it (Docs/Assets.md, step 9; S9-A).
 #   Tools\Scripts\build.ps1 [-Config Debug|Release]
 param([string]$Config = "Debug")
 $ErrorActionPreference = "Stop"
@@ -13,11 +13,26 @@ try {
     if ($LASTEXITCODE) { throw "the shaders didn't compile" }
     dotnet build Statventure.slnx -c $Config -v quiet -nologo
     if ($LASTEXITCODE) { throw "the build failed" }
-    # The game folder: the sandbox as the build just made it (framework-dependent), then packs\ made the
+    # The game folder: the game as the build just made it (framework-dependent), then packs\ made the
     # committed packs exactly: a pack no longer committed goes, a changed one is copied beside its place and
     # renamed over it, so a game running from the folder keeps reading the old one until it reloads.
-    dotnet publish Samples/Statventure.Sandbox -c $Config --no-build -o $env:STATVENTURE_GAME -v quiet -nologo
-    if ($LASTEXITCODE) { throw "the sandbox didn't publish" }
+    dotnet publish Game/Statventure.Game -c $Config --no-build -o $env:STATVENTURE_GAME -v quiet -nologo
+    if ($LASTEXITCODE) { throw "the game didn't publish" }
+    # The sandbox stood in for the game there until GM1 step 2: its program files and its own Data\ (the tests'
+    # fonts, the proof cutscene and its models) go; nothing else of the folder is touched.
+    foreach ($name in "Statventure.Sandbox.exe", "Statventure.Sandbox", "Statventure.Sandbox.dll", "Statventure.Sandbox.pdb",
+                      "Statventure.Sandbox.deps.json", "Statventure.Sandbox.runtimeconfig.json") {
+        $leftover = Join-Path $env:STATVENTURE_GAME $name
+        if (Test-Path -LiteralPath $leftover -PathType Leaf) { Remove-Item -LiteralPath $leftover }
+    }
+    $sandboxData = Join-Path $env:STATVENTURE_GAME "Data"
+    foreach ($name in "Fonts", "Cutscenes", "Models") {
+        $leftover = Join-Path $sandboxData $name
+        if (Test-Path -LiteralPath $leftover -PathType Container) { Remove-Item -LiteralPath $leftover -Recurse }
+    }
+    if ((Test-Path -LiteralPath $sandboxData -PathType Container) -and -not (Get-ChildItem -LiteralPath $sandboxData -Force)) {
+        Remove-Item -LiteralPath $sandboxData
+    }
     $committed = Join-Path $env:STATVENTURE_SOURCE "Assets\Packs"
     $packs = Join-Path $env:STATVENTURE_GAME "packs"
     New-Item -ItemType Directory -Force -Path $packs | Out-Null

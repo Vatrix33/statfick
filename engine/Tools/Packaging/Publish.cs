@@ -22,7 +22,9 @@ for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
     {
-        case "--engine": engine = Path.GetFullPath(args[++i]); break;
+        // Its real path (GM1-P18): MSBuild names the projects by their real path, and a restore that met them under two
+        // paths (the repo reached through a symbolic link, /home to /var/home) gave the program no project references.
+        case "--engine": engine = RealPath(args[++i]); break;
         case "--version": version = args[++i]; break;
         case "--time": time = long.Parse(args[++i]); break;
         case "--vc-runtime": vcRuntime = args[++i]; break;
@@ -136,6 +138,24 @@ static void DeleteFolder(string path)
         Directory.Delete(path, true);
 }
 
+/// <summary>The full path of an existing folder with every symbolic link in it resolved (a link to a link too).</summary>
+static string RealPath(string path, int depth = 0)
+{
+    if (depth > 40)
+        throw new IOException($"{path}: too many symbolic links");
+    var full = Path.GetFullPath(path);
+    var root = Path.GetPathRoot(full)!;
+    var real = root;
+    foreach (var part in full[root.Length..].Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries))
+    {
+        var next = Path.Combine(real, part);
+        if (new DirectoryInfo(next).LinkTarget is { } target)
+            next = RealPath(Path.IsPathRooted(target) ? target : Path.Combine(real, target), depth + 1);
+        real = next;
+    }
+    return real;
+}
+
 /// <summary>Runs a command; null when it succeeded, else its output.</summary>
 static string? Run(string program, IEnumerable<string> arguments)
 {
@@ -154,8 +174,8 @@ sealed record Packaged(string Name, string Project, string Assembly, string Linu
 {
     public static readonly Packaged[] All =
     [
-        // The game: until the port the sandbox stands in for it (M12-12, Q13).
-        new("stat-fick", "Samples/Statventure.Sandbox/Statventure.Sandbox.csproj", "Statventure.Sandbox", "stat-fick", "Stat Fick.exe", true),
+        // The game's own program since GM1 step 2 (GM1-P1; the sandbox stood in for it before, M12-12, Q13).
+        new("stat-fick", "Game/Statventure.Game/Statventure.Game.csproj", "Statventure.Game", "stat-fick", "Stat Fick.exe", true),
         new("statventure-editor", "Tools/Editor/Editor.csproj", "Statventure.Editor", "statventure-editor", "Statventure Editor.exe", false),
     ];
 }

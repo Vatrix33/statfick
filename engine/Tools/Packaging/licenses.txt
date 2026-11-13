@@ -55,13 +55,7 @@ cover NOTICE.txt -
 cover licenses/* -
 cover packs/audio.pak -
 cover packs/ui.pak licenses/Lato-OFL.txt licenses/STIX-OFL.txt
-# The stand-in's own files (the sandbox's Data/: the tests' fonts, the proof cutscene and its models).
-cover Data/Fonts/*-OFL.txt -
-cover Data/Fonts/Lato-* licenses/Lato-OFL.txt
-cover Data/Fonts/STIXTwoText-* licenses/STIX-OFL.txt
-cover Data/Cutscenes/* -
-cover Data/Models/* -
-# The game's data library beside the program (M12-9, Q19; until the port the stand-in, ours; the editor loads it).
+# The game's data library beside the program (M12-9, Q19; ours, the editor loads it).
 cover Statventure.Game.Data.dll -
 # The program: .NET's host and runtime (its own native parts, Brotli and zlib among them, are linked into it).
 cover {program} licenses/dotnet-LICENSE.txt licenses/dotnet-THIRD-PARTY-NOTICES.txt

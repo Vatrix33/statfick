@@ -25,7 +25,7 @@ PACKS = os.path.join(ENGINE, "Assets", "Packs")
 
 # M12-2: the executables' names; the assembly each program carries.
 PROGRAMS = {
-    "stat-fick": {"linux": "stat-fick", "windows": "Stat Fick.exe", "assembly": "Statventure.Sandbox", "packs": True},
+    "stat-fick": {"linux": "stat-fick", "windows": "Stat Fick.exe", "assembly": "Statventure.Game", "packs": True},
     "statventure-editor": {"linux": "statventure-editor", "windows": "Statventure Editor.exe",
                            "assembly": "Statventure.Editor", "packs": False},
 }
@@ -476,8 +476,11 @@ def check_program(package, problems):
         if pdb is not None and b"github" in pdb.lower():
             problems.append(f"repo address: {entry}'s symbols name github")
     # The version the program reads at run time (its informational version, "<version>+<commit>"; ProgramInfo) is the
-    # archive's.
-    if own in bundle:
+    # archive's. (The program's own assembly must be inside it: without this, a wrong name here skipped the check; GM1
+    # step 2.)
+    if own not in bundle:
+        problems.append(f"version: {own}, the program's own assembly, isn't inside {name}")
+    else:
         body = bundle[own][1]
         # The attribute's value is a length-prefixed string (ECMA-335 II.23.3).
         found = next((m for m in re.finditer(rb"(" + VERSION.encode() + rb")\+[0-9a-f]{40}", body)
@@ -666,8 +669,8 @@ def png_colours(path):
 
 
 def run_program(package, work, problems):
-    """The Linux program started headless on a scratch per-user folder, nothing audible: the game (until the port the
-    stand-in) draws and quits with --capture; the editor, given a wrong argument, prints its usage and ends with 2."""
+    """The Linux program started headless on a scratch per-user folder, nothing audible: the game draws and quits with
+    --capture; the editor, given a wrong argument, prints its usage and ends with 2."""
     scratch = tempfile.mkdtemp(dir=work)
     try:
         env = dict(os.environ, XDG_DATA_HOME=os.path.join(scratch, "player"), ALSOFT_DRIVERS="null")

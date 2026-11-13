@@ -24,7 +24,7 @@ public class GameLookupTests
         Assert.Equal((folder["game/Statventure.Game.Data.dll"], "Statventure.Game.Data", "dev"), (library!.File, library.Program.Name, library.Version));
         // Its build id is the module's: the same for every copy of one build.
         Assert.Equal(GameLibrary.Read(GameTesting.BuiltLibrary).Build, library.Build);
-        // The program beside it isn't looked at (build.sh's dev layout has Statventure.Sandbox): packs/ and the library are the game.
+        // The program beside it isn't looked at (build.sh's dev layout has Statventure.Game): packs/ and the library are the game.
         Assert.False(File.Exists(folder["game/stat-fick"]));
         // A trailing separator, a relative path: the same folder.
         Assert.Equal(library, GameLookup.Check(game + Path.DirectorySeparatorChar, EditorView.Version).Library);

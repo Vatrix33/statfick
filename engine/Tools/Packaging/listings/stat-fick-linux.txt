@@ -1,34 +1,5 @@
 # The stat-fick package for Linux: every path in its folder (stat-fick-<version>/ in the archive) and every file inside its single-file program. Made by
 # check-packages.sh --listing (Docs/Packaging.md, "How it works", step 3); a package must match it.
-dir Data/
-dir Data/Cutscenes/
-dir Data/Cutscenes/audio/
-dir Data/Cutscenes/audio/effects/
-file Data/Cutscenes/audio/effects/jiruan-flash.json
-file Data/Cutscenes/audio/effects/jiruan-rift-opens.json
-file Data/Cutscenes/audio/effects/jiruan-title-card.json
-dir Data/Cutscenes/models/
-dir Data/Cutscenes/models/effects/
-file Data/Cutscenes/models/effects/jiruan-embers.json
-file Data/Cutscenes/models/effects/jiruan-mist.json
-dir Data/Cutscenes/ui/
-file Data/Cutscenes/ui/jiruan-card.css
-file Data/Cutscenes/ui/jiruan-card.html
-dir Data/Cutscenes/world/
-dir Data/Cutscenes/world/cutscenes/
-file Data/Cutscenes/world/cutscenes/jiruan.json
-dir Data/Fonts/
-file Data/Fonts/Lato-Bold.ttf
-file Data/Fonts/Lato-OFL.txt
-file Data/Fonts/Lato-Regular.ttf
-file Data/Fonts/Lato-Semibold.ttf
-file Data/Fonts/STIX-OFL.txt
-file Data/Fonts/STIXTwoText-Italic.otf
-file Data/Fonts/STIXTwoText-Regular.otf
-dir Data/Models/
-file Data/Models/figure.glb
-file Data/Models/jiruan-acting.glb
-file Data/Models/jiruan.glb
 file NOTICE.txt
 file Statventure.Game.Data.dll
 exec libHarfBuzzSharp.so
@@ -124,9 +95,9 @@ bundle Microsoft.VisualBasic.Core.dll
 bundle Microsoft.VisualBasic.dll
 bundle Microsoft.Win32.Primitives.dll
 bundle Microsoft.Win32.Registry.dll
-bundle Statventure.Sandbox.deps.json
-bundle Statventure.Sandbox.dll
-bundle Statventure.Sandbox.runtimeconfig.json
+bundle Statventure.Game.deps.json
+bundle Statventure.Game.dll
+bundle Statventure.Game.runtimeconfig.json
 bundle Statventure.dll
 bundle System.AppContext.dll
 bundle System.Buffers.dll

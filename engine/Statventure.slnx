@@ -2,12 +2,16 @@
   <Folder Name="/Engine/">
     <Project Path="Engine/Statventure/Statventure.csproj" />
   </Folder>
+  <Folder Name="/Game/">
+    <Project Path="Game/Statventure.Game/Statventure.Game.csproj" />
+    <Project Path="Game/Statventure.Game.Data/Statventure.Game.Data.csproj" />
+  </Folder>
   <Folder Name="/Samples/">
-    <Project Path="Samples/Statventure.Game.Data/Statventure.Game.Data.csproj" />
     <Project Path="Samples/Statventure.Sandbox/Statventure.Sandbox.csproj" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="Tests/Statventure.Tests/Statventure.Tests.csproj" />
+    <Project Path="Tests/Statventure.Game.Tests/Statventure.Game.Tests.csproj" />
   </Folder>
   <Folder Name="/Tools/">
     <Project Path="Tools/ShaderCompiler/ShaderCompiler.csproj" />

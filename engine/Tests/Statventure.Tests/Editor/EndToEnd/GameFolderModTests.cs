@@ -24,7 +24,7 @@ namespace Statventure.Tests.Editor.EndToEnd;
 /// editor's version. In the suite the folder is a scratch one laid out as the game's download
 /// (<see cref="GameTesting.MakeGame"/>, the suite's dev build). <c>Tools/Scripts/end-to-end.sh</c> runs this test built
 /// with the packages' version on the game's package unpacked (<see cref="GameVariable"/>, <see cref="VersionVariable"/>),
-/// and takes the mod into its player's mods folder for the packaged stand-in (<see cref="ModsVariable"/>) and a picture
+/// and takes the mod into its player's mods folder for the packaged game (<see cref="ModsVariable"/>) and a picture
 /// of the About dialog (<see cref="AboutVariable"/>).
 /// </summary>
 [Collection("GPU")]
@@ -36,7 +36,7 @@ public class GameFolderModTests(GpuFixture gpu)
     /// <summary>The version the editor must have (end-to-end.sh: the packages'); unset, the suite's build's, whatever it is.</summary>
     public const string VersionVariable = "STATVENTURE_END_TO_END_VERSION";
 
-    /// <summary>A mods folder the mod is copied into once read back (end-to-end.sh: its player's, for the packaged stand-in).</summary>
+    /// <summary>A mods folder the mod is copied into once read back (end-to-end.sh: its player's, for the packaged game).</summary>
     public const string ModsVariable = "STATVENTURE_END_TO_END_MODS";
 
     /// <summary>A PNG file the About dialog over the editor is drawn into (end-to-end.sh: the editor's credits captured).</summary>

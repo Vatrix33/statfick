@@ -1370,7 +1370,8 @@ Code: `Tools/Scripts/build.sh` and `build.ps1`, `Core/Application.cs` (`Storage`
 helper `Core/TestApplication.cs`: a real application with a small window, as `ApplicationMusicTests`).
 
 - **The game folder the build makes** (S9-A): after the solution, `build.sh` publishes the sandbox from that
-  build into `$STATVENTURE_GAME` (`dotnet publish --no-build`, framework-dependent, so the folder holds the
+  build (since GM1 step 2 the game's own program, `Game/Statventure.Game`, the sandbox's leftovers there removed:
+  `Docs/Game/Foundation.md`, "How it works", step 2) into `$STATVENTURE_GAME` (`dotnet publish --no-build`, framework-dependent, so the folder holds the
   BRUTAL natives of every runtime: 154 MB, copied once, then only what changed), then makes `packs/` hold
   exactly `Assets/Packs/*.pak`: a `.pak` there that isn't committed is removed (other files are left), an
   unchanged one is left alone (compared byte for byte), a changed or missing one is copied beside its place

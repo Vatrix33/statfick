@@ -1,36 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- A visual test bed for the engine. -->
+  <!-- The engine's test bed (GM1-P2; Docs/Game/Foundation.md, "The program, the library and the repo"): a window showing
+       engine features, the cutscene player (Tools/Scripts/play-cutscene.sh) and the minimize check (its log-visibility
+       option); its logs as statventure-sandbox. Not published since GM1 step 2 (the game's own program is,
+       Game/Statventure.Game), and no reference to the game's data library. -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>Statventure.Sandbox</RootNamespace>
   </PropertyGroup>
-  <!-- A runtime publish (Tools/Scripts/publish.sh, publish.ps1; Docs/Packaging.md, "Building them"): self-contained
-       (M12-3), one single-file program with the native libraries beside it (Q5), not trimmed (M12-3: the record system
-       finds its kinds by reflection), a GUI program on Windows, no console (Q6). The symbols are embedded with paths from
-       the repo's root (Q7) for every assembly of the program, the engine's too, so the publish passes those as global
-       properties (DebugType=embedded, ContinuousIntegrationBuild=true). Builds without a runtime (build.sh's dev
-       layout, the tests) stay as they are. -->
-  <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
-    <SelfContained>true</SelfContained>
-    <PublishSingleFile>true</PublishSingleFile>
-    <IncludeNativeLibrariesForSelfExtract>false</IncludeNativeLibrariesForSelfExtract>
-    <PublishTrimmed>false</PublishTrimmed>
-    <OutputType Condition="$(RuntimeIdentifier.StartsWith('win'))">WinExe</OutputType>
-  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../Engine/Statventure/Statventure.csproj" />
-    <!-- The game's data library (M12-9, Q19): the game links it; until the port the stand-in with its test kind. -->
-    <ProjectReference Include="../Statventure.Game.Data/Statventure.Game.Data.csproj" />
   </ItemGroup>
-  <!-- The data library stays a file of its own beside the single-file program (Q5): the editor loads it from the game's
-       folder (M12-9, Q19). -->
-  <Target Name="KeepTheDataLibraryBeside" BeforeTargets="_ComputeFilesToBundle">
-    <ItemGroup>
-      <ResolvedFileToPublish Condition="'%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'Statventure.Game.Data.dll'">
-        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      </ResolvedFileToPublish>
-    </ItemGroup>
-  </Target>
   <ItemGroup>
     <!-- The game's fonts (as the tests use them). -->
     <None Include="../../Tests/Statventure.Tests/Data/Fonts/**" LinkBase="Data/Fonts" CopyToOutputDirectory="PreserveNewest" />

@@ -44,7 +44,7 @@ RUNS = KEPT + 1             # each program started this often: the oldest log re
 TEST = "Statventure.Tests.Editor.EndToEnd.GameFolderModTests.AModMadeAgainstTheGameFolderNamedWithGameLoadsInThatGame"
 GROUND = (0x1a, 0x1c, 0x1a)         # the dark ground of the splash, the credits, the crash window and the editor (P4)
 PANES = (0x29, 0x2c, 0x28)          # the editor's panes
-PARCHMENT = (0xe9, 0xdc, 0xc0)      # the stand-in's page
+PARCHMENT = (0xd5, 0xc3, 0x9b)      # the game's page (GM1 step 2's: the Gothic ink theme's parchment)
 BRUTAL_YELLOW = (0xf1, 0xc4, 0x0f)  # the BRUTAL logo's yellow
 EMBER = (0xd7, 0x7a, 0x50)          # the editor's accent: a focused field's border, the main button
 
@@ -170,7 +170,7 @@ class Programs:
                    len(lines) > 2 and re.search(r"\[Program\] started \d{4}-\d\d-\d\d \d\d:\d\d:\d\d [+-]\d\d:\d\d$", lines[1])
                    and re.search(r"\[Program\] .+ X64, \.NET \d+\.\d+\.\d+$", lines[2]))
         splash = text.find("[Application] the splash shown (2 s)")
-        loaded = min([i for i in (text.find("[Sandbox]"), text.find("[Editor]"), text.find("[Application] captured")) if i >= 0] or [len(text)])
+        loaded = min([i for i in (text.find("[Game]"), text.find("[Editor]"), text.find("[Application] captured")) if i >= 0] or [len(text)])
         if "--capture-splash" not in arguments:
             flow.check(f"{name}: the splash shown for its 2 s before the program's own", 0 <= splash < loaded)
         return output, text, name_of_log
@@ -240,13 +240,13 @@ def stand_in_runs(flow, p):
     flow.fact(f"the GPU: {gpu.group(1) if gpu else 'not logged'}")
 
     output, log, _ = p.start("stand-in credits", "stat-fick", ["--about", "--capture", p.capture("stand-in-credits")])
-    flow.check("stand-in credits: the credits view opened (--about)", "[Sandbox] the credits view opened" in log)
+    flow.check("stand-in credits: the credits view opened (--about)", "[Game] the credits view opened" in log)
     picture(flow, "stand-in credits", p.capture("stand-in-credits"), "the credits view: light text on the dark ground",
             lambda f: near(f[0][1], GROUND) and share(f, lambda c: min(c) > 200) > 0.002)
 
-    for kind, where, message in (("--crash", "on the main thread", "the sandbox crashed on purpose (--crash)"),
-                                 ("--crash-thread", 'on the thread "Sandbox crash"',
-                                  "the sandbox crashed on purpose on a thread of its own (--crash-thread)")):
+    for kind, where, message in (("--crash", "on the main thread", "the game crashed on purpose (--crash)"),
+                                 ("--crash-thread", 'on the thread "Game crash"',
+                                  "the game crashed on purpose on a thread of its own (--crash-thread)")):
         name = "stand-in " + kind[2:]
         crashes = p.crash_files()
         output, log, log_name = p.start(name, "stat-fick", [kind, "--capture", p.capture(name.replace(" ", "-"))], expect_code=1)
@@ -406,7 +406,7 @@ def main(argv):
     # library's project as the publish builds it, -p:Version; the editor reads its version and never loads it).
     other = other_version(version)
     other_build = os.path.join(work, "other-build")
-    built = dotnet(["build", "Samples/Statventure.Game.Data/Statventure.Game.Data.csproj", "-c", "Release", f"-p:Version={other}",
+    built = dotnet(["build", "Game/Statventure.Game.Data/Statventure.Game.Data.csproj", "-c", "Release", f"-p:Version={other}",
                     "--artifacts-path", other_build, "-v", "quiet", "-nologo"], os.path.join(logs, "other-version.log"))
     other_game = os.path.join(run_folder, "other-game", f"stat-fick-{other}")
     shutil.copytree(game, other_game)
