@@ -951,3 +951,16 @@ above (nothing new in `Engine/Statventure/Audio/`), chosen by the user by ear fr
 - **The game's sound effects (2026-11-13, GM1 step 4):** GM1's eight interface sounds, chosen by the user by ear, in
   `audio.pak` (above, "The game's sound effects"; `Docs/Game/Foundation.md`, "How it works", step 4). Nothing in the
   engine's audio changed (the patches use its nodes and rules as they are), so the opt-in theme check wasn't run again.
+- **The flaky `TheClockStandsStillWhileTheSoundIsPaused` (2026-11-14, the branch `gm1-audio-test`):** the cause was in
+  the test, not the engine. Its sink stopped taking buffers after 201 and refused them while paused.
+  - *How it failed:* under load the audio thread could write all 201 before the test's pause was taken, and then nothing
+    rendered after the resume. A probe showed it on purpose: with the pause made 500 ms late, the sink was full at 201 and
+    the clock didn't move in 3 s after the resume; a cap of 12 did the same with no delay.
+  - *What the old sink also hid:* the audio thread rendering on while paused went unnoticed, since the sink refused the
+    buffers.
+  - *The fix:* the sink now takes a buffer at most every millisecond, paused or not, and never fills up. The test also
+    checks that nothing is written while paused.
+  - *The other test outputs:* `AudibilityTests.Sink` is paced with no cap. `OutputTests.RecordingOutput` keeps a cap in
+    `PausingFreezesTheGraphAndResumingGoesOn`, but it is 100,000 buffers, about nine minutes of a theme. The thread can't
+    render that before the test pauses after its first 20, so that test has no such race. The engine's audio is
+    unchanged.

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Statventure.Audio;
 
 namespace Statventure.Tests.Audio;
@@ -186,15 +187,26 @@ public class ScheduledSoundTests
         Assert.Equal(ScheduledSoundState.Done, at.State);
     }
 
-    /// <summary>An output that takes buffers until it is paused.</summary>
+    /// <summary>
+    /// An output that takes a buffer at most every millisecond, paused or not, and counts them. It never fills up, so
+    /// how many the audio thread writes before the test pauses it doesn't matter. (The sink this replaced stopped taking
+    /// buffers after 201 and refused them while paused: under load the thread could spend all 201 before the pause was
+    /// taken, and then nothing rendered after the resume; and a thread rendering on while paused went unnoticed.)
+    /// </summary>
     sealed class Sink(int sampleRate) : IAudioOutput
     {
+        // Read and restarted on the audio thread only.
+        readonly Stopwatch _since = Stopwatch.StartNew();
         public int SampleRate { get; } = sampleRate;
         public int BufferFrames { get; } = OpenAlOutput.FramesPerBuffer(sampleRate);
         public volatile bool Paused;
         public volatile int Written;
-        public int Writable => Paused || Written > 200 ? 0 : 1;
-        public void Write(ReadOnlySpan<float> interleaved) => Written++;
+        public int Writable => _since.ElapsedTicks >= Stopwatch.Frequency / 1000 ? 1 : 0;
+        public void Write(ReadOnlySpan<float> interleaved)
+        {
+            Written++;
+            _since.Restart();
+        }
         public void Maintain() { }
         public void Pause() => Paused = true;
         public void Resume() => Paused = false;
@@ -203,6 +215,10 @@ public class ScheduledSoundTests
         public void Dispose() { }
     }
 
+    /// <summary>
+    /// The clock stands still while the sound is paused: the audio thread renders nothing, though the output would take
+    /// buffers, and goes on from there once resumed.
+    /// </summary>
     [Fact]
     public void TheClockStandsStillWhileTheSoundIsPaused()
     {
@@ -210,11 +226,14 @@ public class ScheduledSoundTests
         using var system = new AudioSystem(output, MusicLibrary.Empty);
         Assert.True(SpinWait.SpinUntil(() => output.Written > 10, TimeSpan.FromSeconds(10)));
         system.Pause();
+        // The output is paused after the buffer the thread was writing: nothing is written after it.
         Assert.True(SpinWait.SpinUntil(() => output.Paused, TimeSpan.FromSeconds(10)));
         var time = system.Time;
+        var written = output.Written;
         Assert.True(time > 0);
         Thread.Sleep(50);
         Assert.Equal(time, system.Time);
+        Assert.Equal(written, output.Written);
         Assert.Equal(system.Graph.CurrentTime, time);
         system.Resume();
         Assert.True(SpinWait.SpinUntil(() => system.Time > time, TimeSpan.FromSeconds(10)));
