@@ -25,8 +25,10 @@ public class GameSettingsTests
 
         public string File => Storage.SettingsFile;
 
+        /// <summary>The settings file written by hand, the writer's pending write of it done first (else it lands after).</summary>
         public void Write(string json)
         {
+            Storage.Flush();
             Directory.CreateDirectory(Path);
             System.IO.File.WriteAllText(File, json);
         }
@@ -152,9 +154,10 @@ public class GameSettingsTests
         { "masterVolume", "-0.01", "from 0 to 1" },
         { "musicVolume", "-0.1", "from 0 to 1" },
         { "effectsVolume", "2", "from 0 to 1" },
-        { "zoomLevel", "0.25", "a half step whose zoom is from 0.5 to 3 times" },
-        { "zoomLevel", "6.5", "a half step whose zoom is from 0.5 to 3 times" },
-        { "zoomLevel", "-4", "a half step whose zoom is from 0.5 to 3 times" },
+        { "zoomLevel", "0.25", "a half step from 0, or from a clamped end, whose zoom is from 0.25 to 5 times" },
+        { "zoomLevel", "9", "a half step from 0, or from a clamped end, whose zoom is from 0.25 to 5 times" },
+        { "zoomLevel", "-8", "a half step from 0, or from a clamped end, whose zoom is from 0.25 to 5 times" },
+        { "zoomLevel", "8.8", "a half step from 0, or from a clamped end, whose zoom is from 0.25 to 5 times" },
         { "window", "{ \"width\": 819, \"height\": 700 }", "a size from 820 × 600 to 16384 × 16384" },
         { "window", "{ \"width\": 1000, \"height\": 599 }", "a size from 820 × 600 to 16384 × 16384" },
         { "window", "{ \"width\": 16385, \"height\": 700 }", "a size from 820 × 600 to 16384 × 16384" },
@@ -191,9 +194,13 @@ public class GameSettingsTests
             ("musicVolume", "0", s => s.MusicVolume, 0.0),
             ("effectsVolume", "1", s => s.EffectsVolume, 1.0),
             ("effectsVolume", "0", s => s.EffectsVolume, 0.0),
-            ("zoomLevel", "-3.5", s => s.ZoomLevel, -3.5),
-            ("zoomLevel", "6", s => s.ZoomLevel, 6.0),
+            ("zoomLevel", "-7.5", s => s.ZoomLevel, -7.5),
+            ("zoomLevel", "8.5", s => s.ZoomLevel, 8.5),
             ("zoomLevel", "0.5", s => s.ZoomLevel, 0.5),
+            // Electron's clamped ends (25 % and 500 %) and a step back from one, as the zoom roles reach them.
+            ("zoomLevel", Json(GameSettings.MaxZoomLevel), s => s.ZoomLevel, GameSettings.MaxZoomLevel),
+            ("zoomLevel", Json(GameSettings.MinZoomLevel), s => s.ZoomLevel, GameSettings.MinZoomLevel),
+            ("zoomLevel", Json(GameSettings.MaxZoomLevel - 1.5), s => s.ZoomLevel, GameSettings.MaxZoomLevel - 1.5),
             ("window", "{ \"width\": 820, \"height\": 600 }", s => s.Window, new WindowState(820, 600, false)),
             ("window", "{ \"width\": 16384, \"height\": 16384 }", s => s.Window, new WindowState(16384, 16384, false)),
             ("lastCharacter", "\"character-2\"", s => s.LastCharacter, "character-2"),
@@ -333,7 +340,7 @@ public class GameSettingsTests
             Assert.Throws<ArgumentOutOfRangeException>(() => settings.MusicVolume = volume);
             Assert.Throws<ArgumentOutOfRangeException>(() => settings.EffectsVolume = volume);
         }
-        foreach (var level in new[] { 0.25, 6.5, -4, double.NaN, double.PositiveInfinity })
+        foreach (var level in new[] { 0.25, 9, -8, GameSettings.MaxZoomLevel - 0.25, double.NaN, double.PositiveInfinity })
             Assert.Throws<ArgumentOutOfRangeException>(() => settings.ZoomLevel = level);
         Assert.Throws<ArgumentOutOfRangeException>(() => settings.Theme = (GameTheme)7);
         Assert.Throws<ArgumentException>(() => settings.LastCharacter = "Ser Alrik");
@@ -346,11 +353,14 @@ public class GameSettingsTests
         Assert.False(File.Exists(folder.File));
         // The ends of the ranges are allowed.
         settings.MasterVolume = 0;
-        settings.ZoomLevel = -3.5;
-        settings.ZoomLevel = 6;
-        Assert.Equal((0.0, 6.0), (settings.MasterVolume, settings.ZoomLevel));
-        Assert.Equal([false, true, true, true, false, false],
-            new[] { -4, -3.5, 0, 6, 6.5, 0.1 }.Select(GameSettings.IsZoomLevel));
+        settings.ZoomLevel = -7.5;
+        settings.ZoomLevel = 8.5;
+        Assert.Equal((0.0, 8.5), (settings.MasterVolume, settings.ZoomLevel));
+        // Electron's zoom: half steps from 0, clamped at 25 % and 500 %, and half steps back from a clamped end.
+        var (min, max) = (GameSettings.MinZoomLevel, GameSettings.MaxZoomLevel);
+        Assert.Equal((0.25, 5.0), (Math.Pow(1.2, min), Math.Pow(1.2, max)), new Close());
+        Assert.Equal([false, true, true, true, true, true, true, true, false, false, false, false],
+            new[] { -8, -7.5, min, min + 0.5, 0, 8.5, max, max - 0.5, 9, 0.1, min - 0.5, max - 0.25 }.Select(GameSettings.IsZoomLevel));
     }
 
     [Fact]
@@ -517,5 +527,16 @@ public class GameSettingsTests
         Assert.NotEqual(a, new SettingsSnapshot(null, true, new HashSet<string> { "a.pak" }));
         Assert.False(a.IsModOn("a.pak"));
         Assert.True(a.IsModOn("b.pak"));
+    }
+
+    /// <summary>A number as the settings' file writes it (its shortest round-trip form).</summary>
+    static string Json(double value) => value.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>Two zooms equal within float rounding.</summary>
+    sealed class Close : IEqualityComparer<(double, double)>
+    {
+        public bool Equals((double, double) a, (double, double) b) => Math.Abs(a.Item1 - b.Item1) < 1e-12 && Math.Abs(a.Item2 - b.Item2) < 1e-12;
+
+        public int GetHashCode((double, double) obj) => 0;
     }
 }

@@ -170,8 +170,8 @@ public class UiResourcesTests
         ("ui/fonts/stixtwotext-regular.otf", "STIXTwoText-Regular.otf"),
     ];
 
-    /// <summary>The port's stylesheets in the pack (GM1-P8): each compiled from engine/Assets/UI/styles/&lt;name&gt;.css.</summary>
-    public static readonly string[] Stylesheets = ["game"];
+    /// <summary>The port's stylesheets in the pack (GM1-P8): each compiled from engine/Assets/UI/styles/&lt;name&gt;.css (GM1 step 8's document, dialogs and controls beside step 1a's game).</summary>
+    public static readonly string[] Stylesheets = ["controls", "dialogs", "document", "game"];
 
     static string StylesheetSource(string name) => Path.Combine(TestPaths.Packs, "..", "UI", "styles", name + ".css");
 

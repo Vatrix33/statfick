@@ -133,21 +133,26 @@ public static unsafe class SkiaGlyphs
         return rgba;
     }
 
-    static readonly Dictionary<nint, bool> TrueTypeFaces = [];
+    /// <summary>
+    /// The answer for each face, by its <see cref="FontFace.Id"/>, which no other face ever has: not by its FreeType face's
+    /// address, which FreeType gives a later face once this one is freed (a CFF face then took a freed TrueType face's
+    /// answer and was autohinted, and the other way round: GM1 step 8, Docs/Game/Foundation.md, "How it works").
+    /// </summary>
+    static readonly Dictionary<int, bool> TrueTypeFaces = [];
 
     /// <summary>Whether the face has TrueType outlines (a glyf table), which Fontations autohints at slight hinting.</summary>
-    static bool HasGlyf(FontFace face)
+    internal static bool HasGlyf(FontFace face)
     {
         lock (TrueTypeFaces)
         {
-            if (TrueTypeFaces.TryGetValue((nint)face.FtFace, out var known))
+            if (TrueTypeFaces.TryGetValue(face.Id, out var known))
                 return known;
             CULong length = default;
             const uint glyf = ('g' << 24) | ('l' << 16) | ('y' << 8) | 'f';
             // Asking only for the length reads the face's table directory, which never changes (no
             // stream or slot): no need for the face's lock.
             var has = FreeType.LoadSfntTable(face.FtFace, new CULong(glyf), new CLong(0), null, &length) == 0;
-            TrueTypeFaces[(nint)face.FtFace] = has;
+            TrueTypeFaces[face.Id] = has;
             return has;
         }
     }

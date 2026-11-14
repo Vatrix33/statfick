@@ -388,6 +388,37 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
     again (`claude-work/gm1/step6c/probe/`), splits the code's first run from the work; use the game's kinds
     (`RecordTypes.Of` of the engine and the data library): with the engine's alone a mod holding a stand-in item is
     refused at once and the timing means nothing.
+- 2026-11-14 (the PC, GM1 step 8's worker on the branch `gm1-step8`): **the game's document, windows, dialogs and
+  commands** (`Game/Statventure.Game/Ui/`; `Docs/Game/Foundation.md`, "How it works", step 8). Facts: **Electron 44 makes
+  `window.prompt` throw** ("prompt() is not supported.", set by its renderer init and put over the main world under
+  context isolation), so the old game's five prompts never showed in the desktop game (`app.js` 5235 and 5454,
+  `companions.js` 461, `church-of-talos.js` 69, `combat.js` 1459): the milestones that port them should know; Electron's
+  `zoomIn` accelerator `CommandOrControl+Plus` is Ctrl+Shift+= (its parser adds Shift for "Plus"), and its zoom roles
+  clamp at Blink's 25 % and 500 %, not 50 % and 300 % (the editor's range, which stays); the engine wrote a select's
+  device-pixel font size back as the list's CSS size (zoomed twice at 1.65 and with a page zoom; fixed, one line). Gotchas:
+  the worker sandbox refuses `source`, a heredoc or a command line naming "github" (a raw URL) as "git": a wrapper script
+  (`claude-work/gm1/step8/run.sh`) and WebFetch did; xUnit 2 filters a theory row by `DisplayName~<argument>`, not
+  `FullyQualifiedName`; the engine places the top layer's pieces in whole device pixels at each scale, so a Chromium
+  fixture with a select list, a tooltip or a bubble needs its markup at 1.65 too; a `:is()` takes its most specific
+  argument, so the old encounter dialog's blood stripe never shows (the Gothic panel rule wins); a hovered element or a
+  caret blinking half a second after its focus differs from PaintReference's capture; PaintReference's fixture frame (a
+  srcdoc iframe) draws a fixed tooltip's text in LCD where Chromium's main frame, as the game's page, draws it grayscale
+  as the engine does (found by the engine task `gm1-lcd-top-layer` after Q31): the game's screens are captured as the
+  main frame (`mainFrame: true`); a headless cage's 2400 × 2400 output does for those captures at 1 and 1.65 (the view
+  keeps the fixture's size whatever cage makes of the window: check the "viewport" PaintReference prints).
+  - *Never key a cache by a native address:* FreeType (like any allocator's user) gives a freed face's address to the next
+    face, so `SkiaGlyphs`' glyf cache, keyed by `FtFace`, gave a later CFF face a freed TrueType face's answer and the
+    text drew another way (a game screen flaked 87 or 1,609 pixels). Key by `FontFace.Id` or the object itself. To test
+    a reused address, make the reuse certain: a FreeType library's memory (`FT_MemoryRec`, the library's first field) can
+    be swapped for one that gives a freed block to the next request of its size (`Text/GlyfCacheTests`); freeing and
+    making back to back and trusting the system's allocator failed under the parallel tests.
+  - *The storage writer keeps only the latest of two pending saves of a file:* a test that expects the earlier save on
+    disk (as the backup) waits for it first (`Storage.Flush()`), and a hand write of a file the writer may still be
+    writing flushes first. Show such a race by forcing the order (a held piece of work of the writer's own ahead of the
+    saves, `BeforeWork`), not by rerunning (`claude-work/gm1/step8/force-order.py`).
+  - *The game's sheets reach whatever a screen puts in the game's document:* game.css's bare `h1, h2` and `h1, h2, h3`
+    rules set the title font, the ink and a dark-mode shadow on any heading, beating what it inherits; step 2's About
+    stub drew the engine's credits headings in STIX until a rule of its own kept them (found by `end-to-end.sh`).
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

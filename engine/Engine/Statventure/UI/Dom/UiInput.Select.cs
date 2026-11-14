@@ -244,11 +244,12 @@ public sealed partial class UiInput
         _popup?.Remove();
         _popupRows.Clear();
         var popup = new UiElement("sv-select-popup");
-        // The list takes the select's font (Chromium's popup uses the select's style).
+        // The list takes the select's font (Chromium's popup uses the select's style): its size in CSS px before the zoom
+        // (the computed FontSize is in device pixels; written back as px it would be zoomed twice; GM1 step 8).
         if (select.Style is { } style)
         {
             popup.SetStyle("font-family", string.Join(", ", style.FontFamilies.Select(f => "\"" + f + "\"")));
-            popup.SetStyle("font-size", style.FontSize.ToString(CultureInfo.InvariantCulture) + "px");
+            popup.SetStyle("font-size", style.SpecifiedFontSize.ToString(CultureInfo.InvariantCulture) + "px");
             popup.SetStyle("font-weight", style.FontWeight.ToString(CultureInfo.InvariantCulture));
         }
         if (select.Id is { Length: > 0 } id)

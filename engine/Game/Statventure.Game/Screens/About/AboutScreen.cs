@@ -12,11 +12,17 @@ namespace Statventure.Game.Screens.About;
 /// </summary>
 public sealed class AboutScreen : IGameScreen
 {
-    /// <summary>The stub's view: the engine's credits (<see cref="Credits.Css"/>) on their dark ground, filling the window, scrolling on their own.</summary>
+    /// <summary>
+    /// The stub's view: the engine's credits (<see cref="Credits.Css"/>) on their dark ground, filling the window, scrolling
+    /// on their own. The game's document holds the port's sheets (step 8), whose bare heading rules (game.css: the title
+    /// font, the ink, the letter spacing, a dark-mode shadow) would reach the credits' headings, which take their font and
+    /// colour from <c>.credits</c>: the last rule keeps them the credits' own (M12's approved look) until step 9.
+    /// </summary>
     const string ViewCss = """
         .engine-credits { position: fixed; inset: 0; background: #1a1c1a; }
         .engine-credits .credits-view { height: 100%; overflow: auto; scrollbar-color: #7d817b #292c28; }
         .engine-credits .credits-close { position: absolute; top: 12px; right: 28px; height: 24px; padding: 0 10px; border: 1px solid #3a3d38; border-radius: 3px; color: #eeeae1; background: #292c28; font: 13px/22px Lato; }
+        .engine-credits .credits :is(h1, h2, h3) { font-family: inherit; color: inherit; letter-spacing: normal; text-shadow: none; }
         """;
 
     public void Attach(GameParts parts) => parts.Ui.Commands.Register("about", _ => Show(parts));

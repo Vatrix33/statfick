@@ -44,7 +44,7 @@ RUNS = KEPT + 1             # each program started this often: the oldest log re
 TEST = "Statventure.Tests.Editor.EndToEnd.GameFolderModTests.AModMadeAgainstTheGameFolderNamedWithGameLoadsInThatGame"
 GROUND = (0x1a, 0x1c, 0x1a)         # the dark ground of the splash, the credits, the crash window and the editor (P4)
 PANES = (0x29, 0x2c, 0x28)          # the editor's panes
-PARCHMENT = (0xd5, 0xc3, 0x9b)      # the game's page (GM1 step 2's: the Gothic ink theme's parchment)
+STONE = (0x11, 0x0c, 0x09)          # the game's page: the game's document in its first start's dark theme (GM1 step 8: html.dark-mode's --paper)
 BRUTAL_YELLOW = (0xf1, 0xc4, 0x0f)  # the BRUTAL logo's yellow
 EMBER = (0xd7, 0x7a, 0x50)          # the editor's accent: a focused field's border, the main button
 
@@ -233,7 +233,7 @@ def stand_in_runs(flow, p):
             lambda f: near(f[0][1], GROUND) and share(f, lambda c: near(c, BRUTAL_YELLOW, 12)) > 0.001
             and share(f, lambda c: min(c) > 240) > 0.003)
     picture(flow, "stand-in start", p.capture("stand-in-page"), "--capture after the splash: the page",
-            lambda f: near(f[0][1], PARCHMENT))
+            lambda f: near(f[0][1], STONE))
     splash, captured = log.find("the splash shown (2 s)"), log.rfind("[Application] captured")
     flow.check("stand-in start: the page captured after the splash's 2 s", 0 <= splash < captured)
     gpu = re.search(r"\[Graphics\] GPU (.+)", log)
@@ -341,7 +341,7 @@ def mod_in_process(flow, p, build, logs):
 
     output, log_text, _ = p.start("stand-in with the mod", "stat-fick", ["--capture", p.capture("stand-in-mod")])
     flow.check("stand-in with the mod: its log names the mod mounted from mods/", f"[Data] mod {mod}\n" in log_text + "\n")
-    picture(flow, "stand-in with the mod", p.capture("stand-in-mod"), "the page drawn (the mod's sounds loaded)", lambda f: near(f[0][1], PARCHMENT))
+    picture(flow, "stand-in with the mod", p.capture("stand-in-mod"), "the page drawn (the mod's sounds loaded)", lambda f: near(f[0][1], STONE))
 
 
 def rotation(flow, p):

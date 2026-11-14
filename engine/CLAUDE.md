@@ -111,5 +111,10 @@ the user and wait for their go-ahead before starting the next one.
   `--capture-splash <png>`, `--about`, `--open <screen>`, `--crash`, `--crash-thread`); run it from a script as
   `build.sh` lays it out (`$STATVENTURE_GAME/Statventure.Game`) with a scratch `XDG_DATA_HOME` and `ALSOFT_DRIVERS=null`,
   inside a headless cage.
+- The game's screens against Chromium (GM1-P17, `Docs/Game/Foundation.md`, "How it works", step 8): the game's tests
+  write `Reference/game-screen-fixtures.json` (`Tests/Statventure.Game.Tests/Ui/GameScreenFixtures.cs`; a part's fixtures
+  in a class of its own implementing `IGameScreenFixtures`); `Tools/Scripts/make-game-screen-references.sh [fixture ...]`
+  captures them as main frames (`mainFrame`, sizes in multiples of 20 px) at 1 and 1.65 into `Golden/game-screen-*.png`
+  (on the PC inside a headless cage with a 2400 × 2400 output).
 - The survey the game plan was written from (2026-11-12, `29d110d`; a snapshot): `Docs/Game/Survey/`, its README first.
 - Notes kept from earlier sessions (history, gotchas, recipes): `Docs/Notes.md`.

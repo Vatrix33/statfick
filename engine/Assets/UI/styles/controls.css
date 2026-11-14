@@ -1,0 +1,34 @@
+/* The engine's own pieces in the game's look (Decisions for M5; GM1 step 8): the title tooltip (sv-tooltip) as the
+   leather combat tooltip (game.css: .combat-skill-tooltip in the Gothic ink theme), the open list of a select
+   (sv-select-popup) as a parchment list in the game's font, the validation bubble (sv-validation-bubble) as a leather
+   note with the alert dialogs' blood stripe. They live in the top layer, a child of the root, not of the body, so each
+   sets the lettering it would otherwise take from the page. Loaded after ui/styles/game. */
+
+sv-tooltip {
+  padding: 11px 13px; border: 1px solid #6e5538; border-radius: 2px;
+  color: var(--leather-text); background: linear-gradient(180deg, var(--leather-hi), var(--leather-lo));
+  box-shadow: 0 10px 30px #000000b0;
+  font: 400 .875rem/1.6 var(--font-ui); letter-spacing: normal; text-align: left; text-transform: none;
+}
+
+/* The list takes the select's font (the engine copies its family, size and weight onto the list). */
+sv-select-popup {
+  padding: 3px 0; border: 1px solid var(--line-strong); border-radius: 2px;
+  color: var(--ink); background: var(--grain) 0 0 / 240px 240px, var(--surface-hi);
+  box-shadow: var(--shadow);
+  line-height: normal; letter-spacing: normal; text-align: left; text-transform: none;
+}
+sv-select-option { padding: 6px 12px; }
+sv-select-group sv-select-option { padding-inline-start: 24px; }
+/* The highlighted row in the game's selection colours (game.css's ::selection), the same in both themes. */
+sv-select-option[highlighted] { color: #f6ecd2; background: #7a2a1d; }
+sv-select-option[disabled], sv-select-group[disabled] { color: var(--soft); }
+sv-select-group-label { padding: 8px 12px 2px; color: var(--ember); font: 400 .8125rem/1.4 var(--font-title); letter-spacing: .2em; text-transform: uppercase; }
+
+sv-validation-bubble {
+  margin-top: 6px; padding: 8px 12px; border: 1px solid #6e5538; border-top: 3px solid var(--blood); border-radius: 2px;
+  color: var(--leather-text); background: linear-gradient(180deg, var(--leather-hi), var(--leather-lo));
+  box-shadow: 0 10px 30px #000000b0;
+  font: 400 .875rem/1.5 var(--font-ui); letter-spacing: normal; text-align: left; text-transform: none;
+}
+sv-validation-sub { margin-top: 2px; color: var(--leather-accent); font-size: .8125rem; }

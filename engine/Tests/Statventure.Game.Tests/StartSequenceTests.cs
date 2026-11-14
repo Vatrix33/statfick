@@ -62,7 +62,9 @@ public class StartSequenceTests
         // The mods' switches kept in the run's settings (Q3).
         parts.Mods.Switch("ember-rite.pak", false);
         Assert.False(parts.Settings.IsModOn("ember-rite.pak"));
-        Assert.Equal("Stat Fick", parts.Ui.Document.QuerySelector(".game-name")!.TextContent);
+        // The game's document (step 8): dark as the first start's theme, its body empty until a screen fills it.
+        Assert.True(parts.Ui.Document.Root.HasClass("dark-mode"));
+        Assert.Empty(parts.Ui.Document.Body.Children);
         Assert.Null(parts.Ui.Host);
         // The run's randomness, its seed logged.
         Assert.Contains($"Info [Game] the run's random seed {((Random.GameRandom)parts.Random).Seed}", log);
@@ -82,7 +84,7 @@ public class StartSequenceTests
         var log = GameTesting.CaptureLog(() => game.Compose(storage, data));
         Assert.Contains("Info [Commands] start-screen: not registered yet, nothing done", log);
         Assert.Contains("Info [Commands] open-settings: not registered yet, nothing done", log);
-        Assert.False(game.Parts!.Ui.Commands.Run("quit"));
+        Assert.False(game.Parts!.Ui.Commands.Run("save-character"));
     }
 
     [Fact]
@@ -101,12 +103,13 @@ public class StartSequenceTests
         Assert.True(commands.Run("open-slot"));
         var log = GameTesting.CaptureLog(() => Assert.False(commands.Run("continue")));
         Assert.Equal(["Info [Commands] continue: not possible now, nothing done"], log);
-        Assert.Equal((true, false, false), (commands.IsRegistered("continue"), commands.IsEnabled("continue"), commands.IsRegistered("quit")));
+        Assert.Equal((true, false, false), (commands.IsRegistered("continue"), commands.IsEnabled("continue"), commands.IsRegistered("save-character")));
         possible = true;
         Assert.True(commands.IsEnabled("continue"));
         Assert.True(commands.Run("continue"));
         Assert.Equal(["ser-alrik", null, "continued"], ran);
-        Assert.Equal(["continue", "open-slot"], commands.Names.Order());
+        // The test's two beside the game document's own (step 8).
+        Assert.Equal(["continue", "fullscreen", "open-game-folder", "open-slot", "quit", "zoom-in", "zoom-out", "zoom-reset"], commands.Names.Order());
         // One part per command: a second registration is a mistake.
         Assert.Throws<InvalidOperationException>(() => commands.Register("continue", _ => { }));
     }
@@ -143,6 +146,33 @@ public class StartSequenceTests
         Assert.Single(document.QuerySelectorAll(".engine-credits"));
         document.QuerySelector(".engine-credits .credits-close")!.Click();
         Assert.Null(document.QuerySelector(".engine-credits"));
+    }
+
+    [Fact]
+    public void AboutsCreditsKeepTheirOwnHeadingsOverTheGamesSheets()
+    {
+        // The game's document with the port's sheets (ui.pak): game.css's bare heading rules (the title font, the ink, the
+        // letter spacing, the dark theme's shadow) don't reach the credits' headings, which stay the credits' own (M12).
+        using var scratch = new ScratchFolder();
+        using var game = GameTesting.Game(scratch["p"], new GameOptions { About = true });
+        using var storage = new GameStorage(scratch["p"]);
+        using var data = new VirtualFileSystem([Mount.Pack(Path.Combine(Statventure.Tests.Infrastructure.TestPaths.Packs, "ui.pak"))]);
+        game.Compose(storage, data);
+        var document = game.Parts!.Ui.Document;
+        Assert.Contains("ui/styles/game", game.Parts.Ui.Sheets);
+        Assert.True(document.Root.HasClass(Statventure.Game.Ui.GameUi.DarkModeClass));
+        document.Update(0);
+        var credits = document.QuerySelector(".engine-credits .credits")!.Style!;
+        Assert.Equal(["Lato"], credits.FontFamilies);
+        foreach (var selector in new[] { ".engine-credits .credits h1", ".engine-credits .credits h2" })
+        {
+            var heading = document.QuerySelector(selector)!.Style!;
+            Assert.Equal(credits.FontFamilies, heading.FontFamilies);
+            Assert.Equal(credits.Color, heading.Color);
+            Assert.Equal(0, heading.LetterSpacing);
+            Assert.Empty(heading.TextShadows);
+            Assert.Equal(700, heading.FontWeight);
+        }
     }
 
     [Fact]

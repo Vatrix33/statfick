@@ -20,6 +20,8 @@ public class GameRunTests
             record.Add($"window {parts.Game.GameWindow?.GetType().Name}");
             record.Add($"host {parts.Ui.Host is not null}");
             parts.Session.New("Ser Alrik");
+            // Something to draw on the game's document (its body is empty until a screen fills it).
+            parts.Ui.Document.Body.Append("h1", "probe-name", "Stat Fick");
             // A later start's request before the first update: taken in it.
             parts.Game.AskForward();
             parts.Ui.Document.SetTimeout(() =>
@@ -69,7 +71,8 @@ public class GameRunTests
         Assert.Contains(log, line => line.StartsWith("Info [Game] another start asked for the window: ", StringComparison.Ordinal));
         // The window's state kept in the settings by the update.
         Assert.NotNull(game.Parts!.Settings.Window);
-        // The page drawn: the game's name on the parchment, captured from the first frame.
+        // The page drawn, captured from the first frame: the probe's heading on the game's document. The test's folder has no
+        // packs, so the document has none of the port's sheets (each logged) and shows the page's base white.
         var page = ImageFile.Load(capture);
         var colours = new Dictionary<(byte, byte, byte), int>();
         for (var i = 0; i < page.Pixels.Length; i += 4)
@@ -77,8 +80,9 @@ public class GameRunTests
             var colour = (page.Pixels[i], page.Pixels[i + 1], page.Pixels[i + 2]);
             colours[colour] = colours.GetValueOrDefault(colour) + 1;
         }
-        Assert.Equal(((byte)0xd5, (byte)0xc3, (byte)0x9b), colours.MaxBy(c => c.Value).Key);
-        Assert.True(colours.Count > 2, "the game's name is drawn on the page");
+        Assert.Contains("Error [Ui] the stylesheet ui/styles/game isn't in the game's data: left out", log);
+        Assert.Equal(((byte)0xff, (byte)0xff, (byte)0xff), colours.MaxBy(c => c.Value).Key);
+        Assert.True(colours.Count > 2, "the probe's heading is drawn on the page");
         // Its end left the character, saved to its slot.
         Assert.Null(game.Parts!.Session.Current);
         Assert.Equal(["ser-alrik"], game.Parts.Session.Slots().Select(s => s.Slot));

@@ -49,6 +49,13 @@ public class GameSessionTests
             Session.SlotsChanged += () => Events.Add("slots");
         }
 
+        /// <summary>
+        /// Waits until the saves asked for so far are written. Two saves of a slot asked for before the writer takes the
+        /// first are written once, the latest (the engine's rule, M9's Q16), so a test that expects the earlier save on
+        /// disk (the backup the next save makes of it) waits for it here first.
+        /// </summary>
+        public void Written() => Storage.Flush();
+
         /// <summary>A slot's file written as it is, by hand (the engine's writer flushed first).</summary>
         public void Put(string slot, string extension, byte[] bytes)
         {
@@ -216,6 +223,7 @@ public class GameSessionTests
         using var player = new Player();
         player.Session.New("Ser Alrik");
         player.Session.New("Élise");
+        player.Written();
         player.Events.Clear();
         var opened = player.Session.Open("ser-alrik");
         Assert.Equal(new OpenResult("ser-alrik", true, BackupState.Missing, null, "Ser Alrik", SlotNameSource.Save), opened);
@@ -286,6 +294,7 @@ public class GameSessionTests
         using var player = new Player();
         player.Put("bram", ".dat", [(byte)'S', (byte)'V']);
         player.Session.New("Élise");
+        player.Written();
         player.Events.Clear();
         Assert.Equal(new OpenResult("bram", false, BackupState.Missing, null, "bram", SlotNameSource.File), player.Session.Open("bram"));
         // No backup to use: refused before anything changes (the open character stays open, unsaved).
@@ -435,6 +444,7 @@ public class GameSessionTests
     {
         using var player = new Player();
         player.Session.New("Élise");
+        player.Written();
         player.Session.New("Ser Alrik");
         player.Session.Change(s => s with { Name = "Ser Alrik the Bold" });
         player.Put("ser-alrik", ".dat.damaged", Good("kept aside"));
@@ -506,6 +516,7 @@ public class GameSessionTests
         using var player = new Player();
         Assert.Throws<InvalidOperationException>(() => player.Session.Change(s => s));
         player.Session.New("Ser Alrik");
+        player.Written();
         player.Events.Clear();
         player.Session.Change(s => s with { Name = "Ser Alrik the Bold" });
         Assert.Equal(["slots", "saved"], player.Events);
@@ -527,6 +538,7 @@ public class GameSessionTests
         player.Session.Leave();
         Assert.Empty(player.Events);
         player.Session.New("Ser Alrik");
+        player.Written();
         player.Events.Clear();
         player.Session.Leave();
         Assert.Equal(["slots", "closed"], player.Events);
@@ -582,6 +594,7 @@ public class GameSessionTests
         var file = player["stat-fick-character.json"];
         Assert.True(player.Session.Export(file));
         player.Session.New("Élise");
+        player.Written();
         player.Events.Clear();
         // Q9: a new slot, the name taken so its slot gets a number; the one open before left, saved.
         Assert.Equal(new ImportResult("ser-alrik-2", null), player.Session.Import(file));

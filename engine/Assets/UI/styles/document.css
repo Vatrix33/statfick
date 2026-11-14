@@ -1,0 +1,5 @@
+/* The game's one document (GM1-P9; GM1 step 8): its page fills the window. The old page's body was always taller than the
+   window, so its parchment or stone (game.css: the body's grain, stains and vignette) showed under every screen and
+   window; the port's screens may be shorter (a window over a page with nothing yet, a full-window layer), and without
+   this the page would be the root's flat paper. Loaded right after ui/styles/game. */
+body { min-height: 100vh; }

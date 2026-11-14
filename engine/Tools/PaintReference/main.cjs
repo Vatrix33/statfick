@@ -8,7 +8,9 @@
 // window is invisible (opacity 0). Writes ui-<fixture>@<scale>[x<page zoom>].png and .json (every
 // element's getBoundingClientRect, CSS px). A fixture's "trigger" is a class added to the body once the page has been
 // styled (to start transitions); its "computed" lists properties whose getComputedStyle values are written for every
-// element with an id, as ui-<fixture>@<scale>[x<page zoom>].styles.json ({ id: { property: value } }).
+// element with an id, as ui-<fixture>@<scale>[x<page zoom>].styles.json ({ id: { property: value } }). A fixture's "htmlClass",
+// "bodyClass" and "bodyStyle" go on the root and the body; "gameFonts" gives it the game's five faces (Lato's semibold too)
+// as the layout fixtures have them (the game's screens, GM1-P17).
 // With --measure=layout (the layout fixtures) it writes layout-<fixture>@<scale>[x<page zoom>].json
 // instead: what the 1× layout script measures (the html and body and every element's box, client
 // and scroll sizes; every text node's line rects), unrounded, with all the game's font faces.
@@ -77,14 +79,17 @@ app.whenReady().then(async () => {
       window.webContents.focus();
     }
     const face = (file, weight, family = "Lato", style = "normal") => `@font-face { font-family: ${family}; src: url("file://${fonts}/${file}"); font-weight: ${weight}; font-style: ${style}; }`;
-    const faces = layout
+    // The game's screens (GM1-P17, fixture.gameFonts) have the game's five faces as ui.pak's @font-face rules give them.
+    const faces = layout || fixture.gameFonts
       ? [face("Lato-Regular.ttf", 400), face("Lato-Semibold.ttf", "500 600"), face("Lato-Bold.ttf", "700 900"),
          face("STIXTwoText-Regular.otf", 400, '"STIX Two Text"'), face("STIXTwoText-Italic.otf", 400, '"STIX Two Text"', "italic")]
       // (The game's STIX faces too, as the game loads them: regular and italic only, so its bold
       // is synthetic; the system's STIX Two Text, which has a bold face, must not stand in.)
       : [face("Lato-Regular.ttf", 400), face("Lato-Bold.ttf", 700),
          face("STIXTwoText-Regular.otf", 400, '"STIX Two Text"'), face("STIXTwoText-Italic.otf", 400, '"STIX Two Text"', "italic")];
-    const page = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${faces.join("\n")}\n${fixture.css}</style></head><body>${fixture.html}</body></html>`;
+    // The root's and the body's classes and the body's style, when the fixture gives them (the game's screens: html.dark-mode, body.modal-open).
+    const attribute = (name, value) => value ? ` ${name}="${String(value).replace(/&/g, "&amp;").replace(/"/g, "&quot;")}"` : "";
+    const page = `<!DOCTYPE html><html${attribute("class", fixture.htmlClass)}><head><meta charset="utf-8"><style>${faces.join("\n")}\n${fixture.css}</style></head><body${attribute("class", fixture.bodyClass)}${attribute("style", fixture.bodyStyle)}>${fixture.html}</body></html>`;
     // The fixture in a srcdoc iframe (same origin as the host page, so its document can be reached).
     const host = path.join(scratch, fixture.name + "-host.html");
     // The frame in whole device pixels (a fractional frame rect makes the compositor scale its content

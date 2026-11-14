@@ -83,8 +83,15 @@ public sealed class GameSettings
     /// <summary>The first start's volumes (Q22): the effects lower.</summary>
     public const double FirstMasterVolume = 1, FirstMusicVolume = 1, FirstEffectsVolume = 0.6;
 
-    /// <summary>The page zoom's limits, Electron's default limits of a page's zoom (as the editor's).</summary>
-    public const double MinZoom = 0.5, MaxZoom = 3;
+    /// <summary>
+    /// The page zoom's limits, as the old menu's zoom roles reached them (the manager, 2026-11-14; GM1 step 8): Electron 44's
+    /// <c>WebContentsZoomController::SetZoomLevel</c> clamps the level to Blink's <c>kMinimumBrowserZoomFactor</c> and
+    /// <c>kMaximumBrowserZoomFactor</c> (0.25 and 5 on the desktop, <c>page_zoom.cc</c>). (The editor keeps its own 0.5–3.)
+    /// </summary>
+    public const double MinZoom = 0.25, MaxZoom = 5;
+
+    /// <summary>The zoom levels of <see cref="MinZoom"/> and <see cref="MaxZoom"/> (Blink's <c>ZoomFactorToZoomLevel</c>: log₁.₂ of the zoom), about −7.6035 and 8.8275.</summary>
+    public static readonly double MinZoomLevel = Math.Log(MinZoom) / Math.Log(1.2), MaxZoomLevel = Math.Log(MaxZoom) / Math.Log(1.2);
 
     /// <summary>The largest side a kept window may have (larger ones aren't a window any screen shows; a swapchain's limit).</summary>
     public const int MaxWindowSide = 16384;
@@ -111,7 +118,7 @@ public sealed class GameSettings
         _theme = values.Get(ThemeKey, GameTheme.Dark);
         _zoom = values.Get(ZoomLevelKey, 0.0);
         if (!IsZoomLevel(_zoom))
-            _zoom = values.OutOfRange(ZoomLevelKey, _zoom, $"a half step whose zoom is from {MinZoom} to {MaxZoom} times", 0.0);
+            _zoom = values.OutOfRange(ZoomLevelKey, _zoom, ZoomRange, 0.0);
         _fullscreen = values.Get(FullscreenKey, false);
         _window = ReadWindow(values);
         _devMode = values.Get(DevModeKey, false);
@@ -158,18 +165,30 @@ public sealed class GameSettings
     }
 
     /// <summary>
-    /// The page zoom's level (1.2 to its power is the zoom, as Chromium's), in Electron's half steps between
-    /// <see cref="MinZoom"/> and <see cref="MaxZoom"/> (−3.5 to 6); 0 (100 %) on a first start. Only such a level can be set.
+    /// The page zoom's level (1.2 to its power is the zoom, as Chromium's) as the old menu's zoom roles reach it
+    /// (<see cref="IsZoomLevel"/>): Electron's half steps, clamped at <see cref="MinZoomLevel"/> and <see cref="MaxZoomLevel"/>;
+    /// 0 (100 %) on a first start. Only such a level can be set.
     /// </summary>
     public double ZoomLevel
     {
         get => _zoom;
-        set => Store(ref _zoom, IsZoomLevel(value) ? value : throw new ArgumentOutOfRangeException(nameof(value), value, "not a zoom level (a half step whose zoom is from 0.5 to 3 times)"),
+        set => Store(ref _zoom, IsZoomLevel(value) ? value : throw new ArgumentOutOfRangeException(nameof(value), value, $"not a zoom level ({ZoomRange})"),
             ZoomLevelKey, SettingKey.ZoomLevel);
     }
 
-    /// <summary>Whether <paramref name="level"/> is a zoom level the game has: a half step, its zoom within <see cref="MinZoom"/> and <see cref="MaxZoom"/>.</summary>
-    public static bool IsZoomLevel(double level) => level * 2 == Math.Round(level * 2) && Math.Pow(1.2, level) is >= MinZoom and <= MaxZoom;
+    /// <summary>The zoom levels the game has, in words (the log's and the refusal's).</summary>
+    const string ZoomRange = "a half step from 0, or from a clamped end, whose zoom is from 0.25 to 5 times";
+
+    /// <summary>
+    /// Whether <paramref name="level"/> is a zoom level the old menu's roles reach (Electron's <c>zoomLevel ± 0.5</c> from
+    /// Actual Size's 0, clamped at the limits): within <see cref="MinZoomLevel"/> and <see cref="MaxZoomLevel"/>, and a
+    /// whole number of half steps from 0, from the smallest level or from the largest (a step back from a clamped end).
+    /// </summary>
+    public static bool IsZoomLevel(double level) =>
+        level >= MinZoomLevel && level <= MaxZoomLevel
+        && (HalfSteps(level) || HalfSteps(MaxZoomLevel - level) || HalfSteps(level - MinZoomLevel));
+
+    static bool HalfSteps(double distance) => distance * 2 == Math.Round(distance * 2);
 
     /// <summary>Full screen (off on a first start).</summary>
     public bool Fullscreen { get => _fullscreen; set => Store(ref _fullscreen, value, FullscreenKey, SettingKey.Fullscreen); }

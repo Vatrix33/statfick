@@ -507,8 +507,9 @@ and answered as recommended.
 **GM1's detail round (the user, 2026-11-13, the question tool, asked by the manager in six rounds of four after the
 design doc's first version; in full with each question's facts and options in `Docs/Game/Foundation.md`, "The detail
 round" and "The questions as asked"; Q24, raised by the answers, asked after the six rounds the same day; Q25 and Q26,
-raised by step 5, the same day; Q27 and Q28, raised by step 6, on 2026-11-14):** every answer the recommended option
-except Q6, Q11, Q15, Q16 (and Q16b), Q18, Q22, Q23 and Q25. Nothing of GM1 is open.
+raised by step 5, the same day; Q27 and Q28, raised by step 6, on 2026-11-14; Q29–Q31, raised by step 8, the same
+day):** every answer the recommended option except Q6, Q11, Q15, Q16 (and Q16b), Q18, Q22, Q23 and Q25. Nothing of GM1
+is open.
 - Q1 A character's name: any name up to 80 characters, kept in the save, the slot's file named from it.
 - Q2 The name asked before the sheet, "Character <n>" filled in.
 - Q3 The mod list: an on/off switch per mod, kept in `settings.json`; the order the files' name order.
@@ -558,6 +559,15 @@ except Q6, Q11, Q15, Q16 (and Q16b), Q18, Q22, Q23 and Q25. Nothing of GM1 is op
 - Q28 (2026-11-14, raised by step 6), the editor's Import and a character file: Import refuses a record of a kind marked
   as not a pack kind (the save), so nothing in the editor makes a save entry; the mod check unchanged. (Not Import left
   as it was.)
+- Q29 (2026-11-14, raised by step 8's captures), the confirm dialog's focus: the action button, so Enter confirms and
+  Escape cancels, as the old native box. (Not Cancel focused.)
+- Q30 (2026-11-14, raised by step 8), Zoom In's key: both Electron's Ctrl+Plus (Ctrl+Shift+=) and plain Ctrl+=. (Not
+  Ctrl+Plus only, as the old game.)
+- Q31 (2026-11-14, raised by step 8's screen fixtures), the tooltip's grayscale text: fixed now as an engine task of its
+  own, the tooltip's comparison held until it lands. (Not held and fixed later with the other three LCD findings.) The
+  task found the engine right the same day: in a main frame, as the game's page is, Chromium draws that text grayscale
+  too; only the harness's srcdoc iframe drew it in LCD. So the game's screens are captured as the main frame (the
+  manager) and no hold remained.
 
 ## GM2 The hero: the character sheet, races and looks
 
@@ -1924,8 +1934,8 @@ Found against the repo on 2026-11-12; the repo's figures are the ones used above
 
 Every question below is about the game. Each milestone's are asked with the question tool when it begins (GP-6) and
 answered in its section (GP-7); GM1's thirteen were all answered on 2026-11-12 ("Decisions for GM1": the eleven, then
-GM1-12 and GM1-13, which came out of GM1-3's answer), and GM1's detail round (Q1–Q26 and Q16b on 2026-11-13, Q27 and
-Q28 on 2026-11-14; "GM1's detail round"), so none of GM1's is left. The sound questions are asked with their milestones (GM1-6).
+GM1-12 and GM1-13, which came out of GM1-3's answer), and GM1's detail round (Q1–Q26 and Q16b on 2026-11-13, Q27–Q31
+on 2026-11-14; "GM1's detail round"), so none of GM1's is left. The sound questions are asked with their milestones (GM1-6).
 
 - GM2-1 The 72 looks: faithful 3D remakes / new looks per race / a character maker.
 - GM2-2 The hero on the sheet: no figure / a live 3D figure.
@@ -2065,3 +2075,15 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   stylesheet). Two more exact cuts named for the manager: the game's side kept between starts (about 300 ms of the first
   mod's cost) and ahead-of-time publishing (the code's first run, about 185 ms of it). The editor's data as edited no
   longer goes stale after entries that can't be mounted together.
+- **2026-11-14, GM1 step 8 done (the branch `gm1-step8`):** the game's document, windows, dialogs and commands (GM1-P7,
+  P9, P17; Q7, Q13, Q15): the one game document (the port's sheets from `ui.pak` in a fixed order, the screens' after
+  them; the sheets' fonts; `html.dark-mode` and the page zoom following the settings; the page filling the window), the
+  window manager as the old `.modal-layer`s, the commands and keys (Electron 44's role labels and keys read from its
+  source; plain Ctrl+= too, Q30; no Reload), the confirm and prompt dialogs (Q29: the action focused) and the tooltip's,
+  select list's and bubble's looks approved by the user, sounds one per action, no music; the zoom's range Electron's own
+  (25 % to 500 %); the screens against Chromium (`Reference/game-screen-fixtures.json`,
+  `make-game-screen-references.sh`, captured as the main frame, as the game's page is: Q31's finding, nothing held).
+  Found: the old game's five prompts never showed in the desktop game (Electron makes `window.prompt` throw); the
+  engine's select list zoomed its font twice (fixed); the engine's glyf cache, keyed by a FreeType face's address, gave a
+  face a freed face's answer (fixed); seven of step 5's tests raced the storage writer (fixed); the port's sheets reached step 2's About stub's credits headings (one rule there)
+  (`Docs/Game/Foundation.md`, "How it works", step 8).

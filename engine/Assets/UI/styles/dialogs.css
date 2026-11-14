@@ -1,0 +1,27 @@
+/* The confirm and prompt dialogs (GM1 step 8; Docs/Game/Foundation.md, "Dialogs, tooltips and the window manager"),
+   in place of the old window.confirm and window.prompt. Their markup is the old game's alert dialogs' (index.html: the
+   travel encounter and the regional border, a .modal-layer.map-encounter-layer with a .map-encounter-dialog and its
+   .map-encounter-actions of two .backup-buttons), so game.css draws them as those (the framed parchment panel with its
+   brass corners and grain, the blood stripe on top, the darkened ground, the brass-edged buttons); these rules only add
+   what a question needs. Loaded after ui/styles/game. */
+
+/* Over every other window (the settings window is 60), under the full-window cinematics (101 and up). */
+.game-dialog-layer { z-index: 70; }
+
+/* The question: the old dialogs' title lettering, a size down, in ink; its line breaks kept (window.prompt's lists). */
+.map-encounter-dialog.game-dialog > .game-dialog-question {
+  display: block; margin: 0; color: var(--ink);
+  font: 400 1.25rem/1.45 var(--font-title); letter-spacing: -.01em;
+  white-space: pre-line; overflow-wrap: anywhere;
+}
+
+/* The prompt's field: an inked field (game.css), the width of the dialog. */
+.game-dialog .game-prompt-field {
+  display: block; width: 100%; margin: 16px 0 0; padding: 10px 12px;
+  font: 1rem/1.4 var(--font-ui); letter-spacing: normal;
+}
+
+/* The buttons: Cancel, then the action, as the regional border's "Turn back" and "Travel onward"; the action in the
+   ember of the encounter's Fight (as specific as the Gothic theme's buttons, which it follows; their hover still wins). */
+.game-dialog .game-dialog-actions { margin-top: 24px; }
+.map-encounter-dialog.game-dialog .game-dialog-accept { border-color: var(--ember); color: var(--ember-dark); }

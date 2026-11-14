@@ -75,13 +75,13 @@ In full, with the options not taken, in `Docs/Game-Plan.md`, GM1, "Decisions for
   window on the user's screen, nothing audible from a session ("How each step is finished", item 1; the standing rule
   in "Small tasks", "The proof cutscene's three sounds by ear").
 
-### The detail round (Q1–Q28 and Q16b, the user, 2026-11-13 and 2026-11-14)
+### The detail round (Q1–Q31 and Q16b, the user, 2026-11-13 and 2026-11-14)
 
 Asked by the manager with the question tool in six rounds of four after this doc's first version, then Q24, which the
 answers raised, the same day, and Q25 and Q26, which step 5 raised, the same day, then Q27 and Q28, which step 6 raised,
-on 2026-11-14 (the questions as asked, with their facts and options: "The questions as asked" below). Every answer the
-recommended option (a) except **Q6, Q11, Q15, Q16 (with its follow-up Q16b), Q18, Q22, Q23 and Q25**. Recorded in
-`Docs/Game-Plan.md`, "Decisions for GM1", too (GP-7). Nothing is open.
+on 2026-11-14, and Q29–Q31, which step 8 raised, the same day (the questions as asked, with their facts and options: "The
+questions as asked" below). Every answer the recommended option (a) except **Q6, Q11, Q15, Q16 (with its follow-up Q16b),
+Q18, Q22, Q23 and Q25**. Recorded in `Docs/Game-Plan.md`, "Decisions for GM1", too (GP-7). Nothing is open.
 - **Q1, a character's name and its file:** any name up to 80 characters, kept in the save; the slot's file is named from
   it by a rule ("Ser Alrik" → `saves/ser-alrik.dat`, a second one `ser-alrik-2.dat`). (Not only the path rule's
   characters accepted; not the name encoded reversibly in the file's name.)
@@ -164,6 +164,19 @@ recommended option (a) except **Q6, Q11, Q15, Q16 (with its follow-up Q16b), Q18
   editor makes a save entry (New entry leaves it out, Q26; Duplicate has none to copy). The shared mod check stays as it
   is: a hand-made mod holding a save entry isn't broken for that, and the game ignores the entry. (Not Import left as it
   was.)
+- **Q29, the confirm dialog's focus** (the user, 2026-11-14, asked by the manager with step 8's captures): **the action
+  button** has the focus when the dialog opens, so Enter confirms and Escape cancels, as the old native box. (Not Cancel
+  focused.)
+- **Q30, Zoom In's key** (the user, 2026-11-14, asked with step 8's captures; Electron's role is `CommandOrControl+Plus`,
+  which its parser makes the =/+ key with Shift): **both**: Ctrl+Plus (Ctrl+Shift+=) and plain Ctrl+= zoom in; Zoom Out
+  Ctrl+- and Actual Size Ctrl+0 as Electron's roles. (Not Ctrl+Plus only, as the old game.)
+- **Q31, the tooltip's grayscale text** (the user, 2026-11-14, asked by the manager after step 8 found it: the engine
+  drew the top layer's text grayscale where Chromium drew the same markup's in LCD): **fixed now, as an engine task of
+  its own**, the tooltip's comparison held until it landed. (Not held and fixed later with the other three LCD findings.)
+  That task (`gm1-lcd-top-layer`) found the engine right the same day: in a main frame, as the game's page is, Chromium
+  draws that text grayscale too; only `Tools/PaintReference`'s fixture frame (a srcdoc iframe) drew it in LCD (Chromium
+  against itself: 2,777 pixels at 1, 5,234 at 1.65). So the game's screen fixtures are captured as the main frame (the
+  manager, 2026-11-14), and no hold remained.
 
 **The old game is frozen for the recapture** (the user, 2026-11-13, in the chat with the manager): "Old game wont be
 touched until you give the ok, except if you need something". Nothing in `old-game/` changes while the references are
@@ -314,7 +327,7 @@ Nothing of GM1 yet: no game program, no game record kind, no game screen.
 - **The window** (`Platform/Window.cs`): `WindowOptions` (9–19: title, width, height, resizable, visible, `MinWidth`,
   `MinHeight`), `Fullscreen` (182), the clipboard. No single-instance lock anywhere in the engine. **The page zoom:**
   `UiHost.PageZoom` (`UI/UiHost.cs` 77–85), 1.2 to the power of a zoom level; the editor moves the level by half steps
-  between 0.5 and 3, Electron's default limits, and keeps it in `editor/shell.json` with its window size
+  between 0.5 and 3 (described as Electron's default limits; Electron 44 clamps at Blink's 0.25 and 5, step 8 found), and keeps it in `editor/shell.json` with its window size
   (`Tools/Editor/Shell/EditorView.Keys.cs` 7–30; `Tools/Editor/Settings/EditorSettings.cs` 105–140).
 - **Storage** (`Engine/Statventure/Storage/`, `Docs/Assets.md`, "How it works", step 4): `GameStorage` (settings file,
   `saves/`, `mods/`, `OpenInFileManager` on the per-user folder, 72–89; one background writer), `SaveSlots` (named slots,
@@ -596,7 +609,9 @@ upgrade.
   `Soundtrack.Volume` and `AudioSystem.EffectsVolume`. The music volume is kept and applied though no theme plays in GM1
   (Q15).
 - `theme`: `"dark"` or `"light"`, default `"dark"` (GM1-4).
-- `zoomLevel`: a half step between Electron's limits (0.5 to 3 times), default 0 (100 %), as the editor's.
+- `zoomLevel`: Electron's zoom level as the old menu's roles reach it (half steps from 0, clamped at Blink's 25 % and
+  500 %, and half steps back from a clamped end; the manager, 2026-11-14, corrected by step 8: "0.5 to 3 times" was the
+  editor's range, which stays the editor's), default 0 (100 %).
 - `fullscreen`: default false; `window`: `{ "width", "height", "maximized" }`, absent at first (1440 × 950) (Q19).
 - `devMode`: default false (GM1-12, GM1-13).
 - `lastCharacter`: the slot Continue opens, or absent.
@@ -665,9 +680,10 @@ Documents, home, the drives or `/`, recent places.
 
 **The in-game menu** (Q7, Q8, Q18): opened by the top bar's Menu button and by Escape when no window is open (Escape still
 closes the topmost window first, as the old game). Its items, the old menu's in its order and words (the View items and
-Quit with Electron 44's role labels and keys, read by step 8), Reload left out, Settings and Start screen added: Save
-Character (Ctrl+S), Load Character (Ctrl+O), Open game folder (the per-user folder, M9), Settings, Start screen (saves and
-goes back), the zoom's reset, in and out, full screen, About, Quit.
+Quit with Electron 44's role labels and keys, read by step 8: Actual Size Ctrl+0, Zoom In Ctrl+Plus, Zoom Out Ctrl+-,
+Toggle Full Screen F11, Quit Ctrl+Q on Linux and "Exit" with no keys on Windows; `Ui/MenuRoles.cs`), Reload left out,
+Settings and Start screen added: Save Character (Ctrl+S), Load Character (Ctrl+O), Open game folder (the per-user folder,
+M9), Settings, Start screen (saves and goes back), the zoom's reset, in and out, full screen, About, Quit.
 
 **The settings screen**: the old settings dialog grown, its header and the "Sound volume" row's look kept: the master,
 music and effects volumes (what the music row says with no theme playing, Q15, is part of its captures), the theme (here
@@ -681,13 +697,14 @@ rows join it in GM5.
 same text the credits tests check.
 
 **The window:** 1440 × 950 the first time, minimum 820 × 600; then as the player left it (Q19); full screen by F11, the
-menu or the setting; the page zoom by Ctrl+=, Ctrl+-, Ctrl+0, the menu or the setting, in Electron's half levels, applied to
-every game document (`UiHost.PageZoom`).
+menu or the setting; the page zoom by Ctrl+Plus and Ctrl+= (Q30), Ctrl+-, Ctrl+0, the menu or the setting, in Electron's
+half levels clamped at 25 % and 500 % (the old roles' own: `webContents.zoomLevel ± 0.5`, clamped by Electron's
+`WebContentsZoomController::SetZoomLevel` to Blink's limits), applied to the game's document (`UiHost.PageZoom`).
 
 **Keys:** Ctrl+S and Ctrl+O (`main.cjs` 82–83); the zoom items', full screen's and Quit's keys as Electron 44's roles give
-them on each system (expected Ctrl+0, Ctrl+= or Ctrl+Plus, Ctrl+-, F11, Ctrl+Q on Linux; step 8 reads them from
-Electron's source and records them); no Reload and no Ctrl+R (Q18); Escape; Tab kept inside an open dialog and Enter and
-Space on buttons (the engine's).
+them on each system (read by step 8 from Electron's source: Ctrl+0, Ctrl+Plus, which is Ctrl+Shift+=, Ctrl+-, F11, and
+Ctrl+Q on Linux, none for Quit on Windows), and plain Ctrl+= zooming in too (Q30); no Reload and no Ctrl+R (Q18); Escape;
+Tab kept inside an open dialog and Enter and Space on buttons (the engine's).
 
 **Quit and close:** both save the open character and end at once; no question (as the old close, `main.cjs` 73–79).
 `ConfirmClose` agrees at once.
@@ -891,7 +908,7 @@ per-object seeds; sound effects keep `SoundEffects.Seed`. GM1 has no roll; the s
   mounting a checked mod, the list showing it), 9a (the start screen, titled "Stat Fick", after the splash), 9c (the game's
   crash triggers) change; step 11 rewrites them.
 
-## The questions as asked (Q1–Q28, answered 2026-11-13 and 2026-11-14)
+## The questions as asked (Q1–Q31, answered 2026-11-13 and 2026-11-14)
 
 Each as the manager asked it with the question tool (2026-11-13), in asking order, the recommended option first; its
 answer after it and in "The detail round" above.
@@ -1149,6 +1166,35 @@ path:", then "Imported Ser Alrik.json as ser-alrik."), though no mod holds a sav
 - (b) **Import left as it is.**
 - **Answer (the user, 2026-11-14): (a).** Built by step 6 ("How it works", step 6); the shared mod check and the packer
   unchanged.
+
+**Q29. The confirm dialog's focus** (raised by step 8's captures, asked by the manager on 2026-11-14 with the user's
+verdict on them). The confirm dialog has Cancel and a button named for the action. The old `window.confirm` was
+Electron's native message box, its OK the default button (not checked in Electron's source).
+- (a) **The action button focused:** Enter confirms, Escape cancels, as the old native box. *Recommended:* the old box's
+  behaviour.
+- (b) **Cancel focused:** Enter cancels, safer for deletions.
+- **Answer (the user, 2026-11-14): (a).** Built by step 8.
+
+**Q30. Zoom In's key** (raised by step 8, asked on 2026-11-14 with the captures). Electron 44's `zoomIn` role has the
+accelerator `CommandOrControl+Plus`; its parser (`accelerator_util.cc`, `keyboard_util.cc`) makes "Plus" the =/+ key with
+Shift, so in the old game Ctrl+Shift+= zoomed in and plain Ctrl+= did nothing; the design's text said Ctrl+=.
+- (a) **Ctrl+Plus only:** as Electron's role.
+- (b) **Both:** Ctrl+Plus and plain Ctrl+=. *Recommended:* the key most players press works too.
+- **Answer (the user, 2026-11-14): (b).** Zoom Out Ctrl+- and Actual Size Ctrl+0 as Electron's roles. Built by step 8.
+
+**Q31. The tooltip's grayscale text** (raised by step 8's screen fixtures, asked by the manager on 2026-11-14). The
+engine draws the top layer's text (the tooltip; the select list and the bubble sit there too) grayscale where Chromium
+draws the same markup's in LCD: the engine makes `sv-top-layer` a composited "Overlap" layer whose LCD verdict is
+"background-color-not-opaque" although the tooltip's background is opaque. On step 8's 800 × 600 two-line tooltip
+fixtures: 2,830 pixels at 1 (0.59 %) and 5,515 at 1.65 (0.42 %), against 0.2 %. One of the engine's LCD-verdict
+findings ("Small tasks left from earlier milestones").
+- (a) **Fixed now, as an engine task of its own;** the comparison held until it lands. *Recommended:* the player sees it
+  on every tooltip.
+- (b) **Held, fixed later** with the other three LCD findings.
+- **Answer (the user, 2026-11-14): (a).** The task was started the same day (`gm1-lcd-top-layer`) and found the engine
+  right: in a main frame, as the game's page is, Chromium draws that text grayscale too; only the harness's fixture frame
+  (a srcdoc iframe) drew it in LCD. The manager (2026-11-14): the game's screen fixtures captured as the main frame; no
+  hold remained ("How it works", step 8).
 
 ## The proposals as made (GM1-P1–GM1-P19)
 
@@ -1489,6 +1535,34 @@ stays as it is until the manager's ok (the recapture's freeze).
      close as the old `.modal-layer`s (Escape, focus kept and given back, `modal-open`); the dialogs and controls matching
      Chromium; the keys and commands; each sound name played at its action (counted, silent); no theme started.
      Mutations: each rule. User approval: the dialogs' and controls' looks.
+   - **Done (2026-11-14, the branch `gm1-step8`; "How it works", step 8):** the looks approved by the user as captured
+     (both themes); Q29 (the confirm's focus on its action), Q30 (plain Ctrl+= zooms in too) and Q31 (the tooltip's
+     grayscale text an engine task of its own; it found the engine right and the harness's iframe the difference, so the
+     game's screens are captured as the main frame and nothing is held) answered on the way.
+     - *Electron's roles, read from its source:* Actual Size Ctrl+0, Zoom In Ctrl+Plus (Ctrl+Shift+=), Zoom Out Ctrl+-,
+       Toggle Full Screen F11, Quit Ctrl+Q on Linux and "Exit" with no keys on Windows; the zoom roles clamp at 25 % and
+       500 % (the game's range now, the manager's word).
+     - *Outside the step's folders, with the manager's leave:* `GameSettings`' zoom range and its tests, step 2's
+       `StartSequenceTests` and `GameRunTests`, `end_to_end.py`'s page colour, the engine's `UiInput.Select.cs` (one line:
+       the select list's font zoomed twice) with `UiSelectListZoomTests`, `UiResourcesTests.Stylesheets`,
+       `Tools/PaintReference/main.cjs` (four additive fixture fields), the engine's `Text/Skia/SkiaGlyphs.cs` (the glyf
+       cache keyed by the face) with `Text/GlyfCacheTests`, step 5's `GameSessionTests` and `GameSettingsTests` (their
+       races), step 2's About stub (`Screens/About/AboutScreen.cs`, one rule: the credits' headings kept their own) with a
+       `StartSequenceTests` assertion.
+     - *The choices:* `document.css`, the page filling the window (as the approved captures showed it; a bare page was one
+       flat colour, which the package check reads as nothing drawn); the screens ask their sheets with `UseStylesheet` (the order the order asked, after the part's); the
+       engine's Lato as the faces in code (hidden by the sheets'); a window is shown and hidden (`hidden`), put in the body
+       and taken out again only when `Open` put it there; Tab kept in the window as the old settings window's trap, and
+       into it from outside; the page not made inert (the old game's wasn't); a dialog closed by anything else is
+       cancelled; the dialogs' backdrop does nothing; the dialog layer at z-index 70; the sounds weighed per action (an
+       event over a window's opening over its closing over a switch over a press); a key matches its chord exactly, its
+       value taken to its unshifted US character; the fixtures name their sheets (the script reads the sources) and carry
+       their markup at 1.65 where it differs.
+     - *Found:* the old game's five prompts never showed in the desktop game; the old encounter dialog's blood stripe never
+       shows (the Gothic panel rule is more specific); the editor's "Electron's default limits" (50–300 %) aren't
+       Electron's; the engine's glyf cache gave a face a freed face's answer (fixed); seven of step 5's tests raced the
+       storage writer (fixed); the port's sheets reached step 2's About stub's credits headings (one rule
+       there).
 9. **The start screen, the character's page and its top bar, the in-game menu, About.** After 5, 6, 7 and 8; Q2, Q5–Q8,
    Q10, Q11, Q16, Q16b, Q20 decided.
    - Owns: `Game/Statventure.Game/Screens/Start/`, `Screens/Sheet/` (the GM1 page and the top bar), `Screens/Menu/`,
@@ -1989,7 +2063,8 @@ will see `save.game` as a kind the game knows.
   `[Storage] settings <file>: "<key>" holds <value>, not a <type>; its default is used`); a value of the right type out
   of its range gives the default too, logged here: `[Settings] settings <file>: "<key>" holds <value>, not <range>; its
   default is used`. The ranges: the volumes 0 to 1; the zoom level a half step whose zoom (1.2 to its power) is from 0.5
-  to 3 times (−3.5 to 6), as the editor's; the window whole numbers, its width from 820 and its height from 600 (the
+  to 3 times (−3.5 to 6), as the editor's (changed by step 8 on the manager's word, 2026-11-14: Electron's own range,
+  half steps clamped at 25 % and 500 %, "How it works", step 8); the window whole numbers, its width from 820 and its height from 600 (the
   window's smallest) to 16384 each (chosen: a swapchain's common limit; no screen shows a larger window, and a size the
   device can't make would stop every start); `lastCharacter` a slot's name under the engine's rule. The theme is
   `"dark"` or `"light"` (the engine's enum names; a number refused); `mods` an object of `{ "on": false }` objects (a
@@ -3187,6 +3262,351 @@ flow: 157 of 157 in 94 s) and the flow on lavapipe (157 of 157, 103 s), the edit
 6b's); no expectation changed; the player's real folders unchanged (this machine's game folder and the Documents
 folder's top level).
 
+### Step 8: the game's document, windows, dialogs and commands (2026-11-14, the branch `gm1-step8`)
+
+**Decided on the way.** The user (2026-11-14, through the manager): the dialogs' and controls' looks approved as captured
+(both themes); Q29, the confirm's focus on its action; Q30, plain Ctrl+= zooming in beside Ctrl+Plus; Q31, the tooltip's
+grayscale text fixed as an engine task of its own and its comparison held until then ("The detail round"; the task found
+the engine right, below). The manager (2026-11-14): the zoom's range Electron's own (below); leave for the select list's
+font fix in the engine, step 2's root tests where the stub's page, `quit` and the command names changed, the additive
+fixture fields in `Tools/PaintReference`, the end-to-end page colour, `GameSettings`' zoom range and its tests; after
+Q31's finding, the game's screen fixtures captured as the main frame and no hold; the glyf cache's fix in the engine and
+step 5's racy tests (both found by this step's runs); the About stub's heading rule, the end-to-end flow's credits
+expectation kept as it is.
+
+**The document** (`Ui/GameUi.cs`, `GameUi.Load`): one `UiDocument` for the game (GM1-P9), its data the game's
+(`UiDocument.Files`), its sheets compiled from `ui.pak` in a fixed order: `GameUi.Stylesheets` (`ui/styles/game`,
+`ui/styles/document`, `ui/styles/dialogs`, `ui/styles/controls`), then those the screens ask for with `UseStylesheet(path)` in the order asked
+(steps 9 and 10 call it from their `Attach`, so no list in `Ui/` needs their edit; a sheet asked twice stays where it is; one
+not in the data is logged as an error, "[Ui] the stylesheet <path> isn't in the game's data: left out", and the document
+made all the same: a test's empty data). **The fonts:** the sheets' `@font-face` faces (`ui.pak`'s five); `serif` mapped to
+STIX Two Text and `sans-serif` to Lato, each the other's fallback, no system font and no character fallback but the icons'
+(`GameIcons.AddTo`, after the engine's Lato and before anything is laid out: since step 7 the 28 icons, drawn before any
+font); the engine's embedded Lato is added in code, hidden by the sheets' Lato and
+drawing only where there are no sheets. **The theme:** `html.dark-mode` while `GameSettings.Theme` is dark, following
+`Settings.Changed`. **The zoom:** `UiHost.PageZoom` (without a host the document's) is 1.2 to the zoom level's power,
+following `Settings.Changed`. The body starts empty: the screens fill it (step 2's stub heading is gone). **The page:**
+`document.css` makes the body at least the window's height (`min-height: 100vh`), so the page's parchment or stone
+(game.css: the body's grain, stains and vignette) shows under every screen and window as under the old page, whose body
+was always taller than the window; without it a page with nothing yet (the game before step 9's start screen, a window
+over a short screen) was the root's flat paper, one colour, which the package check reads as "drew nothing". The
+approved captures showed the page so (their body filled by hand then); chosen by this step to keep the package check
+and the end-to-end flow passing, reported to the manager.
+
+**The seams as built (where step 2's stub changed; additions otherwise):**
+1. `GameUi.Load(Application, GameSettings, VirtualFileSystem)` as before; an internal overload takes the sound
+   (`AudioSystem?`; the application's at `Load`, a test's own). New: `GameUi.Stylesheets`, `Sheets`, `UseStylesheet(path)`,
+   `Keys(windows?)` (the bindings), `DarkModeClass`, `MenuCommand` (`open-menu`), `Lato`/`Stix`, `event SoundPlayed`
+   (every sound played after its action was weighed, with or without a device: the checks count them); internal
+   `OpenGameFolder` and `QuitGame` (what those commands do; the tests give theirs).
+2. `GameWindows`: `Open(layer, focus?, escape?)` (shown, `body.modal-open`, `ui-open`, the focus moved in; `escape` is what
+   Escape does while it is the topmost, by default closing it), `Close(layer)`, `CloseTop()`, `Top`, `Layers` (the open
+   ones, the topmost last), `IsOpen(layer)`, events `Opened`, `Closed`, `ModalOpenClass`. Its constructor is internal.
+3. `GameCommands`: `Register`, `Run`, `IsRegistered`, `IsEnabled`, `Names` as before; new `Bind(keys, command)` (an
+   accelerator's text, "Ctrl+S", "Ctrl+Plus", "F11"; keys bound twice throw), `Bindings`, `KeysOf(command)` (the keys as
+   bound first, for the menu), `CommandFor(UiKeyboardEvent)`; `KeyChord` (`Parse(text)`, `Of(event)`): the key and exactly
+   its modifiers, as Electron matches an accelerator.
+4. `GameDialogs`: `Confirm(question, yes)`; `Prompt(question, value, ok, check?, maxLength?)` (`check` gives a text's
+   problem or null); `Open` (the topmost dialog's layer); `CancelText`. A dialog closed by anything else is cancelled.
+5. `MenuRoles` (new, in `Ui/`): the old menu's role items with Electron's labels and keys per system (`All(windows?)`,
+   `Quit(windows)`, `ResetZoom`, `ZoomIn`, `ZoomOut`, `ToggleFullScreen`).
+6. `GameSettings` (step 5's, changed with the manager's leave): `MinZoom` 0.25 and `MaxZoom` 5, new `MinZoomLevel` and
+   `MaxZoomLevel`, `IsZoomLevel` as below.
+7. `Status`, `StatusShown`, `Sound(name)`, `Update`, `Render`, `Dispose`, `Document`, `Host` as before.
+
+**The window manager** (`Ui/GameWindows.cs`), read from the old code (`app.js` 5751–5942, `music.js` 1164–1196, the
+modules' `open` and `close`): a window is a layer (`.modal-layer`); `Open` puts it in the body if it isn't in the document
+(and takes it out again on closing; one that was in the markup stays there, hidden, as the old ones), takes `hidden`
+away, sets `body.modal-open` while any window is open (the old `updateModalState`), plays `ui-open` and moves the focus to
+the element asked for, else the layer's `.modal-close` (as most old windows), else its first control. **Tab** while a window
+is open: the old settings window's trap (`music.js` 1186–1195): among its buttons, fields and selects that can take the
+focus, not the backdrop, from the last to the first and back, and (the design's "kept there") from outside the window into
+it (Tab to its first, Shift+Tab to its last). **Escape** (a document listener, after the page's: a key the page cancelled
+isn't taken) runs the topmost window's own Escape (by default it closes), else the command `open-menu` (Q7); either way
+the key is taken from the page. **Close** hides the layer, updates `modal-open`, plays `ui-close` and gives the focus back to
+where it was when the window opened (the old modules focus their opening button), when the closed window was the topmost
+and that element can take it; a window above it opened from inside it takes over that place. The page isn't made inert
+(the old game's wasn't; its backdrop covers the page).
+
+**The commands and keys** (`Ui/GameCommands.cs`, `Ui/MenuRoles.cs`). The part registers `fullscreen` (the setting
+toggled; the application class puts it on the window), `zoom-in` and `zoom-out` (the zoom level ± 0.5, clamped at the
+limits, as Electron's roles: `webContents.zoomLevel ± 0.5`, which `WebContentsZoomController::SetZoomLevel` clamps to
+Blink's `kMinimumBrowserZoomFactor` 0.25 and `kMaximumBrowserZoomFactor` 5 on the desktop, `page_zoom.cc`), `zoom-reset`
+(0), `open-game-folder` (the per-user folder in the file manager, `GameStorage.OpenInFileManager`; a failure logged) and
+`quit` (`Application.Quit`; `Unload` leaves the character). **The keys** (`GameUi.Keys`), bound at `Load` and run by the
+document's keydown listener when the page left the key (Electron's menu takes the keys the page didn't handle): Ctrl+S
+`save-character`, Ctrl+O `load-character` (`main.cjs` 82–83), the roles' keys, plain Ctrl+= `zoom-in` too (Q30); no
+Reload and no Ctrl+R (Q18). A key matches its chord exactly (Ctrl+Shift+S isn't Ctrl+S); a key's value is taken to its
+unshifted US character as Electron's `KeyboardCodeFromCharCode` does (so "+" with Shift is the =/+ key with Shift: the
+engine names that key "=", a browser "+"), letters in lower case.
+
+**Electron 44.5.0's role labels and keys, read from its source** (saved in `reference-src/electron-44.5.0/`:
+`lib/browser/api/menu-item-roles.ts`, `shell/browser/ui/accelerator_util.cc`, `shell/common/keyboard_util.cc`; the
+labels and accelerators also in the binary's snapshot): `resetZoom` "Actual Size" `CommandOrControl+0`; `zoomIn` "Zoom In"
+`CommandOrControl+Plus` (the parser makes "Plus" VKEY_OEM_PLUS with a shifted '+', so Shift is part of it: Ctrl+Shift+= on a
+US keyboard); `zoomOut` "Zoom Out" `CommandOrControl+-`; `togglefullscreen` "Toggle Full Screen" `F11` (macOS
+`Control+Command+F`); `quit` "Quit" `CommandOrControl+Q` on Linux, "Exit" with no accelerator on Windows ("Quit <name>" on
+macOS); `reload` "Reload" `CmdOrCtrl+R` (left out, Q18). CommandOrControl is Ctrl on Linux and Windows.
+
+**Found: the old game's prompts never showed in the desktop game.** Electron 44.5.0's renderer init (bundled in the
+binary) sets `window.prompt = function () { throw new Error("prompt() is not supported.") }` and, with context isolation on
+(the old shell's), puts it over the main world's too (`overrideGlobalValueFromIsolatedWorld(["prompt"], …)`). So each of
+the old game's five `window.prompt` calls threw in the desktop game: `app.js` 5235 (the Pactkeeper's familiar), 5454 (a
+class level's stat choice), `companions.js` 461 (a companion's class stat choice), `church-of-talos.js` 69 (an older
+save's choice bonus), `combat.js` 1459 (Field Notes' spell to archive). The port's prompt dialog asks them; the
+milestones that port them decide with that in mind (GM2, GM5, GM8, GM11, GM13). `window.confirm` was Electron's native
+message box.
+
+**The dialogs** (`Ui/GameDialogs.cs`; GM1-P7: the old dialogs' structure and classes): the old alert dialogs' markup
+(`index.html` 797–824, the travel encounter and the regional border): a `.modal-layer.map-encounter-layer` with a
+`div.modal-backdrop` that does nothing (a question waits for its answer), a `.map-encounter-dialog`
+(`section[role=alertdialog]` for the confirm, a `form[role=dialog][novalidate]` for the prompt) and its
+`.map-encounter-actions` of two `.backup-button`s, the one that stays first ("Cancel", then the action), with classes of
+their own (`game-dialog-layer`, `game-dialog`, `game-confirm`, `game-prompt`, `game-dialog-question`, `game-prompt-field`,
+`game-dialog-cancel`, `game-dialog-accept`). The question is text (never markup), its line breaks kept (`pre-line`: the old
+prompts' numbered lists). **Confirm:** the action has the focus (Q29): Enter confirms; Cancel, Escape and the window closed
+by anything else answer no. **Prompt:** the question is the field's label; the field holds the value, focused, its text
+selected (as Chromium's own prompt), `maxlength` when given; OK is the form's submit button, so Enter in the field is OK; a
+`check` may refuse the text: its problem goes on the field (`setCustomValidity`, `reportValidity`: the validation bubble),
+`ui-refused` plays and the dialog stays; typing takes the problem away; an empty text is an answer like any other unless the
+check refuses it (window.prompt's); Cancel, Escape and the window closed elsewhere answer null.
+
+**The looks** (approved by the user, 2026-11-14): `Assets/UI/styles/dialogs.css` (the dialog layer at z-index 70, over
+every window and under the cinematics; the question in the old titles' STIX, 1.25rem/1.45, in ink; the field the inked
+field the width of the dialog; the action in the ember of the encounter's Fight, as specific as the Gothic theme's buttons
+so it follows them) and `controls.css` (`sv-tooltip` as the Gothic leather combat tooltip: its border, leather gradient,
+shadow, Lato .875rem/1.6, padding 11/13, the same in both themes; `sv-select-popup` a parchment list with the grain on
+`--surface-hi`, a `--line-strong` border, rows 6/12 px, the highlighted row in the game's selection colours `#7a2a1d`/
+`#f6ecd2` in both themes, a group's label as the eyebrow; `sv-validation-bubble` a leather note with the alert dialogs'
+3 px blood stripe on top, its sub-message in the leather's accent). The top layer is a child of the root, not of the body,
+so each piece sets the lettering it would otherwise take from the page. Found: the old encounter dialog's blood stripe
+(`:root .map-encounter-dialog { border-top: 3px solid var(--blood) }`) never shows, in the old game either: the Gothic
+framed-panel rule before it is more specific (`:is()` takes its most specific argument, `.combat-reward-summary > div`).
+
+**The sounds** (`Ui/GameSounds.cs`): every sound asked for while the document handles one action (an input event's
+dispatch, the tasks and microtasks it runs, until the event loop's next task; a new click or key ends the action before it)
+is held, and the one that says most plays when the action ends: an event sound (`game-saved`, `game-opened`,
+`game-deleted`, `ui-refused`; the first asked of them), else a window opening, else closing, else a switch, else a press.
+So a click that opens a window sounds `ui-open` only, Cancel `ui-close` only, a confirmed Delete `game-deleted` only. The
+window manager asks `ui-open` and `ui-close`; one capture listener on the document asks `ui-press` for a click on an enabled
+button (an `input` button too; a click on what a button holds is the button's) and `ui-toggle` for one with
+`role="switch"`; one asks `ui-toggle` for a `change` of a box, a radio button or a select (a slider's change is the settings
+screen's press, Q13; a text field's nothing). Played through `SoundEffects.Play` at the patches' own level on the effects
+bus; a name with no patch in the data is logged once ("[Ui] sound <name>: no patch at audio/effects/<name> in the data,
+skipped") and skipped from then on. No music is started anywhere in the part (Q15).
+
+**The select list's font, an engine bug fixed (the manager's leave):** `UiInput.Select.cs`, `BuildPopup`, wrote the
+select's computed `FontSize` (device pixels: the specified size times the zoom) back as the list's CSS `font-size`, so at a
+device scale or a page zoom other than 1 the list's text was zoomed twice (at 1.65 its 16 px text drew at 26.4 CSS px, its
+rows overflowed and it scrolled). Now the specified size (`SpecifiedFontSize`), as Blink gives the list picker the select's
+own font. Looked at beside it: the list's place and size (`PlaceSelectPopup`: device pixels written back through
+`CssPx`, divided by the zoom), the tooltip's (DIPs times the scale, divided by the zoom) and the bubble's, the resizer's
+sizes (divided by the zoom): none is the same mistake. Test: `Ui/UiSelectListZoomTests` (the engine's; the list's size the
+select's at 1, at 1.65, at a page zoom of 1.44 and both, its rows the 1× rows zoomed once). No engine or editor screen moved.
+
+**The glyf cache, an engine bug fixed (the manager's leave):** whether a face has TrueType outlines decides how its glyphs
+are outlined at slight hinting (a glyf face through skrifa's autohinter, a CFF face as FreeType loads it), and
+`Text/Skia/SkiaGlyphs.cs` cached the answer in a static dictionary keyed by the FreeType face's address. FreeType gives a
+freed face's address to a face made after it, so once a document's fonts were freed a later document's STIX Two Text (CFF)
+could take a freed Lato's answer and be autohinted, or a Lato a freed STIX's and not be. The game's tests make a document
+per test, so it showed there: in the whole game project `dialog-prompt-lines-dark` at 1 drew its STIX question one way or
+the other, 87 pixels past 12 levels or 1,609 (0.34 %, past the limit), 4 of 9 runs; a probe making, drawing and freeing 60
+game documents found 101 of the cache's 363 answers for their faces wrong. Now keyed by `FontFace.Id`, which no other face
+ever has. Nothing else in `Text/` keys a cache by a native address: the glyph atlas (`Canvas/CanvasText.cs`) and the
+outlines for skipping ink (`GlyphOutlines`) key by `FontFace.Id`, the autohinter's fonts by the face itself
+(`ConditionalWeakTable`), the shaping by each face's own HarfBuzz font; the icon faces keep their outlines in
+themselves. A game of one document whose fonts live as long as it, as the game is, never meets it; documents made and
+freed again, as the tests make them, did. Test: `Text/GlyfCacheTests` (the engine's, 3: each face its own answer; a CFF face made where a TrueType
+face was freed and the other way round). The reuse is made certain, not likely: the test's library gets a FreeType memory
+of the test's own (the library's `FT_MemoryRec`, its alloc, free and realloc) that keeps a freed block and gives it to
+the next request of its size, the last freed first; both kinds of face are FreeType's same sfnt face record, the last
+block freed of a face and among the first asked for making one, so the next face takes the freed face's address every
+time (the test asserts it too). A first version that only freed and made faces back to back, leaving it to the system's
+allocator, failed once in a full run (with the other tests allocating beside it no address came back in 200 tries) and
+once in three runs alone. With the fix the screens drew closer to Chromium than before (below): what was measured earlier in
+one process had met the bug too.
+
+**Step 5's racy tests, fixed (the manager's leave).** The storage writer keeps only the latest of two saves of a slot asked
+for before it takes the first (the engine's rule, M9's Q16), and writes a settings change after the call that asked for it.
+Seven of step 5's tests assumed otherwise and failed now and then under load (in the whole game project with step 8's
+screens beside them, 4 of about 11 runs; `TheRecentPlacesAreTheLastTenFoldersTheLatestFirst` on `main` too, 1 of 6):
+- *An earlier save expected on disk (its backup) with no wait between the saves:* `GameSessionTests`'
+  `OpeningAReadableSlotLeavesTheOpenCharacterAndOpensIt`, `ADamagedSaveWithNoBackupStartsNew`,
+  `DeletingASlotRemovesItsSaveAndBackupAndClosesItIfOpen`, `AChangeSavesTheOpenCharacter`,
+  `LeavingSavesAndClosesTheOpenCharacter`, `LoadCharacterMakesANewSlotUnderTheNameItHoldsAndOpensIt`: each now waits
+  for the first save (`Player.Written()`, the storage flushed) before the save that makes it the backup.
+- *A hand write of a file while a write of it was pending:* `GameSettingsTests`' `Folder.Write` now flushes the writer
+  first (`TheRecentPlacesAreTheLastTenFoldersTheLatestFirst` wrote the file while its last change's write was pending,
+  which then landed over it).
+
+The rest of the two classes was gone through for the same shapes: their other hand writes and reads already flush first
+(`Put`, `Bytes`, `Read`, `Files`, `Text`), a settings `Load` waits for the file's pending write, and the other tests
+expect no earlier save. The order was forced on purpose to show it (`claude-work/gm1/step8/force-order.py`, the tests
+patched for the run and put back): in the session tests a 300 ms piece of work of the writer's own asked for when the
+session is made, at each of its events and after each hand-written file, so a save waits behind it and the next save of
+the slot meets it in the queue; in the settings tests each write waiting 300 ms before it writes. So forced, the seven
+fail without their fixes and pass with them, and every test of the two classes (40 and 67) passes with the fixes. The
+code is right: a save asked for while an older one waits replaces it, and the newest state is the one written.
+**The screens against Chromium (GM1-P17):** `Tests/Statventure.Game.Tests/Ui/GameScreenFixtures.cs` (as the editor's
+`EditorFixtures`): a `GameScreenFixture(Name, Width, Height, Theme, Setup)` builds the game's document
+(`GameUiHarness`: `GameUi.Load` on the committed packs, a scratch per-user folder, no window) at a size, a scale and a
+theme; every class implementing `IGameScreenFixtures` in the test assembly is found (steps 9 and 10 add theirs);
+`GameScreenTests.TheFixtureListIsUpToDate` writes `Tests/Statventure.Tests/Reference/game-screen-fixtures.json` when it
+changed. A fixture there holds its markup as the editor's do (a field's value, checked boxes, selected options,
+`data-focus` and, for a focused field's selected text, `data-select`, scroll offsets), the top layer's markup at the body's
+end, the root's and the body's classes and the body's style, the sheets by name (the script reads their committed
+sources: the list stays 42 KB), the engine's plain top-layer rules at no specificity (`:where`, as a user-agent sheet's),
+`gameFonts`, and the markup at 1.65 where it isn't 1's (`htmlByScale`: the engine places the list, the tooltip and the
+bubble in whole device pixels at each scale), and `mainFrame: true` on every fixture: PaintReference's main-frame mode
+(`gm1-lcd-top-layer`'s), the page Chromium draws the document of a view of the fixture's size, as the game's is, not the
+harness's srcdoc iframe, where the top layer and the fixed dialogs would merge into the page's layer (Q31's finding,
+below). `TheFixtureListIsUpToDate` also checks that every fixture has it and that every fixture's size is whole device
+pixels at both scales (a view is whole DIPs: multiples of 20 px; step 8's 800 × 600 and 1000 × 860 already were, none
+changed). `Tools/Scripts/make-game-screen-references.sh [fixture ...]` makes them in Chromium through
+`Tools/PaintReference` at 1 and 1.65 (one Chromium run per fixture and scale) into
+`Golden/game-screen-<name>@<scale>.png`, and refuses a fixture without `mainFrame`. In a headless cage a 2400 × 2400
+output does at both scales: the view keeps the fixture's size however cage sizes the window (the captures' viewports
+800 × 600 and 1000 × 860 at 1 and 1.65).
+`Tools/PaintReference/main.cjs` gained four fixture fields, additive: `htmlClass`, `bodyClass`, `bodyStyle` (the root's
+and the body's), `gameFonts` (the game's five faces, Lato's semibold too, as the layout fixtures have them). The
+comparison: 12 levels, 0.2 % of the pixels; the icons' boxes (each character
+of `GameIcons.Table` on the laid-out lines: its cluster's width by its line's height, a pixel around) taken from the golden
+in both (step 7 compares the icons; no character of step 8's fixtures is an icon).
+
+**Step 8's fixtures** (`Ui/DialogScreenFixtures.cs`, 13: six in both themes and one dark; the page under them the game's
+own, the pointer where no hover look shows): `dialog-confirm`, `dialog-prompt` (its text selected),
+`dialog-prompt-refused` (the validation bubble; its words a stand-in, step 9's), `dialog-prompt-lines`, `control-tooltip`
+(800 × 600, a title on text with no hover look, two lines), `control-select` (1000 × 860, the old settings window with
+Battle pace's list open), and `dialog-confirm-over-window-dark` (a confirm asked over the settings window: the dialog
+layer above every window's; it also shows the sheets' order, which a button's colour alone can't at the limits). All
+pass at 1 and 1.65 at the unchanged limits, captured as the main frame. Pixels past 12 levels with the glyf cache fixed
+(below; the limit 0.2 %: 960 of 800 × 600 at 1, 2,613 at 1.65; 1,720 and 4,682 for 1000 × 860): the tooltips 4 at 1 and
+21 and 22 at 1.65; the dialogs 34 to 306 at 1 (0.01 % to 0.06 %) and 63 to 943 at 1.65 (up to 0.07 %); the confirm over
+the settings window 36 and 118; the select list 65 and 70 at 1 (0.01 %), 1,143 and 1,458 at 1.65 (0.05 % and 0.06 %).
+Chromium's main frame against its
+iframe: the tooltips 2,825 at 1 and 5,519 at 1.65; every other fixture, the dialogs' fixed `.modal-layer` and the list
+over the settings window included, within 2 levels everywhere (six goldens came out byte for byte the same).
+
+**Q31's finding: the main frame, not the harness's iframe.** Captured first in PaintReference's fixture frame (a srcdoc
+iframe), the tooltip's text was LCD in Chromium and grayscale in the engine (2,830 pixels at 1, 0.59 % of 800 × 600, and
+5,515 at 1.65, 0.42 %, against 0.2 %); the user had it fixed as an engine task of its own (Q31), the comparison held
+meanwhile. That task (`gm1-lcd-top-layer`) found the engine right: in a main frame, as the game's page is, Chromium draws
+that text grayscale too, and only its iframe drew it in LCD (Chromium's main frame against its iframe: 2,777 pixels at 1,
+5,234 at 1.65). So the game's screens are captured as the main frame (the manager, 2026-11-14), the 26 goldens captured
+again so, and nothing is held: the tooltips go through `TheScreenPaintsLikeChromium` as the rest. The looks the user
+approved were the engine's own renders, so they are unchanged.
+
+**Changed outside `Ui/`** (each with the manager's leave): step 2's `StartSequenceTests` (the document starts dark with an
+empty body; a name not registered is now `save-character`; the command names include the part's six) and `GameRunTests`
+(the probe draws a heading on the game's document; the test's folder has no packs, so the page is the document's base
+white and the missing sheets are logged); `GameSettings` and `GameSettingsTests` (the zoom's range); `end_to_end.py`'s page
+colour (`STONE`, `#110c09`: the game's page in the first start's dark theme, `html.dark-mode`'s `--paper` under the body's
+grain and vignette, its most common colour within the check's 6 levels: measured `#100c0a`, 49 % of the picture within 6 of
+it, 652 colours; the check's structure unchanged); the engine's `UiInput.Select.cs` (one line) and `UiResourcesTests.Stylesheets` (`controls`,
+`dialogs`, `document`, `game`: the pack's four sheets, each the compile of its source); `Tools/PaintReference/main.cjs` (the four
+fields); the engine's `Text/Skia/SkiaGlyphs.cs` (the glyf cache keyed by the face; `HasGlyf` internal for its test) and
+step 5's `GameSessionTests` and `GameSettingsTests` (their races, above); step 2's About stub,
+`Screens/About/AboutScreen.cs`, one rule in its `ViewCss`. The stub puts the engine's credits (`Credits.Css`, M12's
+approved look) into the game's document, which now holds the port's sheets, and game.css's bare heading rules (`h1, h2`
+the title font and letter spacing, `h1, h2, h3` the ink, `html.dark-mode :is(h1, h2, h3)` a shadow) apply to the
+credits' headings themselves, beating what they inherit from `.credits`: the end-to-end flow found it (the stand-in's
+credits drew their headings in STIX and the game's cream ink). Now `.engine-credits .credits :is(h1, h2, h3)` gives them
+the credits' own font and colour, no letter spacing and no shadow, until step 9 replaces the stub;
+`StartSequenceTests.AboutsCreditsKeepTheirOwnHeadingsOverTheGamesSheets` checks a heading's computed font, colour,
+spacing and shadow with `ui.pak` mounted. **`ui.pak`** made again (`make-ui-pack.sh`): 11 entries (the three new sheets), 1,084,693 bytes, the same bytes when
+made again. **The editor:** nothing changed: its entry tree shows `ui/styles` collapsed, so the three new entries add no row,
+and no editor screen opens that folder (`EntryListTests`, the editor's screens and `Reference/editor-fixtures.json`
+unchanged).
+
+**Tests** (`Tests/Statventure.Game.Tests/Ui/`, with `GameUiHarness`): `GameDocumentTests` (6: the sheets and their order, the page filling the window,
+a screen's sheet after them, once, a missing one logged, the fonts, the theme's class, the zoom); `GameWindowsTests` (8:
+opening, the focus asked for or the first control, closing and the focus back, a window under the top closing, Escape
+closing the topmost then the menu, Escape logged without a menu and a window's own Escape, Tab kept in the window, the
+events); `GameKeysTests` (21 with their rows: the roles' labels and keys on both systems, the accelerators' texts, an
+event's chord, each key running its command, other modifiers and Reload doing nothing, a key the page handled, the keys
+with a window open and from a field, the zoom's clamped half steps, the part's commands); `GameDialogsTests` (7: the
+confirm's markup and focus, its answers, the prompt's markup, its answers, the check's refusal, a dialog closed elsewhere,
+dialogs stacked and the question as text); `GameSoundsTests` (5: press and toggle, boxes, radios and selects, one sound per
+action, the weights, the sounds through a sound of the test's own with a missing patch and no music started);
+`GameScreenTests` (28: the fixture list, 26 screens, the icons' mask); `GameSettingsTests` one more (a level just off a
+clamped end refused); `StartSequenceTests` one more (the About stub's headings). The game's project 223 → 300 (77 new); the engine's `UiSelectListZoomTests` (4) and
+`GlyfCacheTests` (3): 4040 → 4047.
+
+**Shown able to fail** (`mutate.py` under the shared lock in a headless cage; `claude-work/gm1/step8/make-mutations.py`
+writes the list): **the code's rules, 123, all killed**: the document's sheets, fonts, theme and zoom (18), the
+commands, keys, Escape, Tab and the sounds' listeners (29), the sounds' weighing (12), the window manager (22), the
+dialogs (18), the chords, bindings and roles (15), the zoom's range (7), the select list's font (2). 114 were killed at
+the first run; the other 9 after the tests were made stronger (the icons' face checked; the focus on `.modal-close` with
+a control before it; the form's submit checked in the log; the dialog tests answered at once, `Answered`, so a dialog
+that never answers fails rather than waits: `mutate.py` had read five hanging test hosts as survivors; one mutation
+rewritten, it didn't build). The 114 whose filter held the screens were run again without `GameScreenTests`: all 114
+killed by the other tests alone, so none rests on the goldens. **The sheets' rules, 6, all killed on the main-frame
+goldens** (`claude-work/gm1/step8/css-mutate.py`, `ui.pak` made again for each): the prompt's line breaks, the action's
+ember, the tooltip's leather, the list's highlighted row, the page filled, the bubble's stripe. **The fixtures' own rules,
+2, killed:** a fixture not marked `mainFrame`, a fixture's size not whole device pixels at 1.65
+(`TheFixtureListIsUpToDate`). **The script's and PaintReference's rules** (`script-breaks.py`: each broken, the named
+fixture captured again by the script, its two comparisons run, every golden put back): 4 of 8 killed (the markup at 1.65
+always 1's; the main frame not asked, so the tooltip captured in the iframe; the sheets in the other order; `htmlClass`
+ignored). The other 4 can't show in step 8's screens: the sheets' `@font-face` rules kept (their `url()`s are the
+pack's paths, so Chromium skips those faces and uses `gameFonts`' own), `bodyStyle` (no fixture has a body style: the
+page's height is `document.css`'s), `bodyClass` (no rule step 8's screens meet reads `body.modal-open`) and
+`gameFonts` (no semibold text in them). Those three fields were checked directly instead, in main-frame mode and in the
+iframe (`claude-work/gm1/step8/fields-probe/`): a body style, a body class and a root class each give the page their
+colour, and `gameFonts` gives a 600-weight Lato line Lato's semibold (251.5 px wide against 253.5 synthesized). A
+fixture without `mainFrame` captures as before the merge: two of step 8's fixtures in the iframe came out byte for
+byte as before at 1 and 1.65 (a first run differed by 2 levels in 44 channel values of one capture, Chromium's own
+noise from run to run). **The two fixes:** the glyf cache keyed by the FreeType face's address again: killed
+(`GlyfCacheTests`, 3 of 3 fail). Step 5's own mutations of the session, the saves and the settings whose tests the race
+fixes touched, run again (119 of its 169): every one it killed is killed again (113), its 2 survivors there survive as
+they did (Peek's version and repeated keys), and 4 no longer apply (step 5's zoom-range texts, which this step rewrote: its
+own 7 zoom mutations above). The race fixes themselves were shown by forcing the order (above). **The About stub's rule,
+4, all killed** (`StartSequenceTests`): the rule left out, its font not the credits', its colour not the credits', and
+the rule less specific than the dark theme's heading shadow (`.engine-credits :is(…)`).
+
+**Runs** (inside headless cages under the shared lock, scratch per-user folders, nothing audible; the step's commit
+rebased on `8077dfa`): the full suite twice on the GPU and twice on lavapipe on `8d1b437` (both fixes in,
+the About stub's rule not yet): 4047 + 299 = 4346 each time, none skipped (the engine's tests 2 min 36 s and 2 min 43 s
+on the GPU, 3 min 9 s and 3 min 14 s on lavapipe; the game's 20 to 22 s), nothing else running on the machine (no other
+test, mutation or end-to-end run; load averages 4 to 11, these runs' own). An earlier round had failed once on the GPU
+with `GlyfCacheTests`' first version (replaced, above). `end-to-end.sh --publish --version 2026.11.14.8` then failed one
+expectation on both drivers, 156 of 157: the stand-in's credits view drew its headings in the game's title font and ink,
+its near-white text 0.129 % of the picture against the check's 0.2 % (0.257 % on `main`), the port's sheets reaching
+step 2's About stub (below). With its rule (`0c2097f`): a run of what the rule reaches (the game's `StartSequenceTests`,
+`GameOptionsTests`, `SingleInstanceTests` and `GameRunTests`, 28, on the GPU and on lavapipe; the rule is in the stub's
+own stylesheet, added only when About opens, so no full run again) and `end-to-end.sh --publish` on the GPU (157 of
+157 in 100 s) and on lavapipe (157 of 157 in 143 s), the credits' near-white text back at 0.258 %. The suite now
+4047 + 300 = 4347 (`main`'s 4040 + 223 and 84 new). The player's real folders (this machine's game folder and the
+Documents folder's top level) unchanged through every run.
+
+**For steps 9 and 10:**
+- *A screen:* in its `Attach(parts)`: build its markup on `parts.Ui.Document` (the body is empty; the old pieces as the old
+  HTML text, GM1-P7), ask its sheet with `parts.Ui.UseStylesheet("ui/styles/<name>")`, register its commands with
+  `parts.Ui.Commands.Register`. A window: a `.modal-layer` (the old markup), opened with `parts.Ui.Windows.Open(layer,
+  focus?, escape?)` and closed with `Close(layer)`; its close button wired by the screen (the manager doesn't wire
+  `.modal-close`). Sounds: the manager and the document's listener play `ui-open`, `ui-close`, `ui-press` and `ui-toggle`
+  by themselves; a screen plays its events' (`parts.Ui.Sound(SoundNames.Saved)` …) and, for a slider let go, `ui-press`.
+- *A dialog:* `await parts.Ui.Dialogs.Confirm(question, yes)` / `Prompt(question, value, ok, check, maxLength)`; New
+  character's: `Prompt("Name your character", session.NextDefaultName(), <ok>, GameSession.NameProblem, 80)` with the
+  bubble's words step 9's.
+- *A command and its keys:* `Commands.Register(name, run, enabled)`; the game's keys are bound already (`GameUi.Keys`); a
+  new key `Commands.Bind("Ctrl+…", name)` (keys bound twice throw); the menu shows `Commands.KeysOf(name)` and
+  `MenuRoles`' labels ("Exit" on Windows).
+- *A sheet:* `Assets/UI/styles/<name>.css`, then `Tools/Scripts/make-ui-pack.sh`; add its name to
+  `UiResourcesTests.Stylesheets` (the engine's tests); the editor's entry tree doesn't change (`ui/styles` stays collapsed).
+- *A fixture:* a class implementing `IGameScreenFixtures` in the screen's test folder; run the game's tests once (they
+  write `Reference/game-screen-fixtures.json`), then `Tools/Scripts/make-game-screen-references.sh <names>` inside a
+  headless cage with a 2400 × 2400 output (GM1 step 8's `claude-work/gm1/step8/headless.sh` with `MODE=2400x2400`).
+  Anything with a hover look under the pointer, or a caret in a focused field half a second after its focus, differs from
+  PaintReference's capture; place the pointer away. A fixture's size in multiples of 20 px (a main frame is whole device
+  pixels at 1.65; `TheFixtureListIsUpToDate` checks it); `mainFrame` is set by the list's writer.
+- *The game's sheets reach every screen in the document:* game.css's bare element rules (headings, buttons, fields) apply
+  to whatever a screen puts in the body, so a screen styled for a bare document (as step 2's About stub was) sets what it
+  keeps, at a specificity above the sheet's (the stub's rule, above).
+
+**Not checked:** Windows (Quit without keys, "Exit"); a real window (the focus ring of a script focus after a mouse
+press, the keys through a real keyboard layout other than US; Electron's VKEY of a key follows the layout, ours the key's
+character); the sounds by ear in the game (the patches were approved by ear in step 4).
+
 ## Status
 
 **Step 5 done (2026-11-13, the branch `gm1-step5`; "How it works", step 5): the save record `save.game` v1, the
@@ -3305,6 +3725,21 @@ entries that can't be mounted together it no longer gives the data mounted befor
 lost the data's problem and Save stopped refusing). The full suite passes on the GPU and on lavapipe on the step on
 `96164e7`: 4040 + 223 = 4263 tests (4 new), none skipped, no editor screen changed; `end-to-end.sh --publish` 157 of 157
 on both; mutations 19 of 19 killed; the player's real folders unchanged. Not checked: Windows; the cloud.
+
+**Step 8 done (2026-11-14, the branch `gm1-step8`; "How it works", step 8): the game's document, windows, dialogs and
+commands.** The one game document (the port's sheets from `ui.pak` in a fixed order and the screens' after them, the
+sheets' fonts, `html.dark-mode`, the page zoom, both following the settings; the page filling the window); the window manager as the old
+`.modal-layer`s (Escape, the focus moved in, kept and given back, `modal-open`, the sounds of opening and closing); the
+commands and keys (Electron 44's role labels and keys read from its source, plain Ctrl+= too, Q30; no Reload); the confirm
+and prompt dialogs (Q29: the confirm's focus on its action) and the tooltip's, select list's and bubble's looks, approved
+by the user; sounds by name, one per action; no music. The zoom's range is now Electron's own (25 % to 500 %, the
+manager); the engine's select list no longer zooms its font twice (fixed with the manager's leave); the old game's prompts
+never showed in the desktop game (Electron makes `window.prompt` throw); the engine's glyf cache gave a face a freed face's answer (fixed, keyed by the face), and seven of step 5's tests raced the storage writer (fixed in the tests). The screens against Chromium (GM1-P17):
+`Reference/game-screen-fixtures.json`, `Tools/Scripts/make-game-screen-references.sh`, 13 fixtures. Captured as the main frame, as the game's page is (Q31's finding: the engine task it ordered found the engine right and the harness's srcdoc iframe the difference); nothing held. The tests: 4047 + 300 = 4347
+(`main`'s 4040 + 223 and 84 new); the full suite twice on the GPU and twice on lavapipe, `end-to-end.sh --publish` 157 of
+157 on both; every rule shown able to fail; the player's real folders unchanged. Found on the way and fixed: the port's
+sheets reached step 2's About stub's credits headings (one rule there). Not checked: Windows; a real window; the sounds
+by ear in the game.
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,
