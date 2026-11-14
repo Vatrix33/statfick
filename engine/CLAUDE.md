@@ -94,7 +94,12 @@ the user and wait for their go-ahead before starting the next one.
   after any change). `Tools/Scripts/make-icon-sheet.sh [--out <folder>] [--icons label=folder ...] [--symbols …]` draws
   every icon in Chromium beside the old glyph at each of the old game's uses (`Tools/IconSheet/uses.json`), both themes,
   the small ones enlarged, and at 96 px over its box (PaintReference; inside a headless cage of its own when cage
-  exists); `--uses` measures the old game's uses again.
+  exists); `--uses` measures the old game's uses again. Since step 7 the engine draws them: `FontLibrary.AddIcons`
+  (`Text/IconFace.cs`) takes the icons' characters before any font, the canvas fills their outlines; the game's table
+  `Game/Statventure.Game/Icons/GameIconTable.cs` is written from `Assets/UI/icons/` by the game's tests
+  (`STATVENTURE_ICON_TABLE=write`, then rebuild) and given to a library by `GameIcons.AddTo`;
+  `Tools/Scripts/make-icon-references.sh [scale …]` captures the icon fixtures (`Reference/icon-fixtures.json`, written
+  by the tests) in Chromium (on the PC inside a headless cage with a 2400 × 2400 output).
 - The game's program (GM1 step 2, `Docs/Game/Foundation.md`, "How it works", step 2): `Game/Statventure.Game`
   (`StatFickGame`, its parts in folders of their own, each a later step's; one instance per per-user folder), and its
   data library `Game/Statventure.Game.Data`; its command line for checks only (`--capture <png> [--frames N]`,

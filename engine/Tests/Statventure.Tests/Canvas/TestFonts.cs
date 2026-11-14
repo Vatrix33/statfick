@@ -23,7 +23,13 @@ public static class TestFonts
     /// <summary>fontconfig's pick for a pattern, as on the PC the references come from (<see cref="SystemFonts"/>).</summary>
     static string FcMatch(string pattern) => SystemFonts.Match(pattern);
 
-    static readonly Lazy<FontLibrary> WithSystem = new(() =>
+    static readonly Lazy<FontLibrary> WithSystem = new(NewLibraryWithSystemFallback);
+
+    /// <summary>
+    /// A library of its own as <see cref="LibraryWithSystemFallback"/> is (the game's fonts, the system's as Chromium falls
+    /// back to them), for a test that adds to it (GM1 step 7's icons) without changing the shared one.
+    /// </summary>
+    public static FontLibrary NewLibraryWithSystemFallback()
     {
         var fonts = Create();
         // Generic families are the system's (fontconfig's sans-serif, serif and monospace), as in the browser.
@@ -86,7 +92,7 @@ public static class TestFonts
             return result;
         }
         return fonts;
-    });
+    }
 
     /// <summary>
     /// The fonts the game's Chromium was measured to fall back to for the game's symbols: a file, or a

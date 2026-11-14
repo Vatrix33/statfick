@@ -59,6 +59,11 @@ public sealed partial class Canvas
     /// </summary>
     public void DrawGlyphs(GlyphRun run, Vector2 origin, Color color)
     {
+        if (run.Font.Face.IsIconFace)
+        {
+            DrawIcons(run, origin, color);
+            return;
+        }
         var m = _transform * Matrix3x2.CreateScale(Scale);
         var pixelScale = MathF.Sqrt(MathF.Abs(m.GetDeterminant()));
         // Glyphs are made at the font's size as Blink's font cache keeps it, to 0.01 px truncated
@@ -106,6 +111,51 @@ public sealed partial class Canvas
             Add(primitive);
         }
         Blend = previousBlend;
+    }
+
+    /// <summary>
+    /// An icon face's glyphs (<see cref="FontLibrary.AddIcons"/>; GM1 step 7): each icon's outline filled by the path
+    /// fill in <paramref name="color"/>, at the run's size as its glyphs would be made (Blink's font size to 0.01 px,
+    /// truncated), where its glyph would land: with no rotation or skew the baseline rounded to a pixel and the pen to
+    /// the quarter pixel at or after it, as Skia places glyphs (SkGlyphPositionRoundingSpec; whole pixels without
+    /// <see cref="SubpixelText"/>), else exactly. Coverage is grayscale and takes no mask gamma whatever the text's LCD
+    /// verdict, as Chromium fills an inline SVG path, the icons' references; the blend mode, colour filter, clip and
+    /// layers are the canvas's as for any drawing. A space (the parent font's, <see cref="IconFaceData"/>) draws nothing.
+    /// </summary>
+    void DrawIcons(GlyphRun run, Vector2 origin, Color color)
+    {
+        var m = _transform * Matrix3x2.CreateScale(Scale);
+        var size = (int)(run.Style.Size * 100f) / 100f;
+        if (size * MathF.Sqrt(MathF.Abs(m.GetDeterminant())) < 0.5f || color.A <= 0)
+            return;
+        var group = run.Font.Face.Icons!.Group;
+        var brush = Brush.Solid(color);
+        var em = Matrix3x2.CreateScale(size);
+        var axisAligned = MathF.Abs(m.M12) < 1e-5f && MathF.Abs(m.M21) < 1e-5f;
+        foreach (var glyph in run.Glyphs)
+        {
+            if (group.Outline(glyph.Glyph) is not { } outline)
+                continue;
+            var local = origin + new Vector2(glyph.X, glyph.Y);
+            var placed = em * Matrix3x2.CreateTranslation(local) * m;
+            if (axisAligned)
+            {
+                var pixel = Vector2.Transform(local, m);
+                float x;
+                if (SubpixelText)
+                {
+                    var mapped = pixel.X + 1f / (2 * GlyphRasterizer.SubpixelSteps);
+                    var whole = MathF.Floor(mapped);
+                    var subpixel = (int)((mapped - whole + 1f) * GlyphRasterizer.SubpixelSteps) & (GlyphRasterizer.SubpixelSteps - 1);
+                    x = whole + subpixel / (float)GlyphRasterizer.SubpixelSteps;
+                }
+                else
+                    x = MathF.Floor(pixel.X + 0.5f);
+                placed.M31 = x;
+                placed.M32 = MathF.Floor(pixel.Y + 0.5f);
+            }
+            DrawPath(outline, brush, FillRule.NonZero, null, placed);
+        }
     }
 
     (AtlasEntry Entry, int Left, int Top) Glyph(ResolvedFont font, uint glyph, float size, int subpixel, bool lcd, int luminance)

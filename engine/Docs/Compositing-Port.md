@@ -94,6 +94,15 @@ become Overlap layers; scrollbars are their own layers (RasterInducingScroll is 
     preserving LCD text (`PaintOpBuffer`'s `has_effects_preventing_lcd_text_for_save_layer_alpha`). Text in a translucent
     element sharing a cc layer with a clip-text box is grayscale in Chromium at 1×, LCD in the engine. No captured game
     screen is expected to have a clip-text box.
+- Icons (GM1 step 7; `Docs/Game/Foundation.md`, "How it works", step 7): an icon is a glyph of an icon face in a text
+  run, drawn by `Canvas.DrawGlyphs` as its outline through the path fill. *Its part in the verdict:* the painter records
+  its run as text (`PaintTarget.DrawGlyphs`: `Record(…, text: true)`, `UseChunkTextVerdict`), so a chunk holding an icon
+  is a text chunk for the layerization (`contents_opaque_for_text`, text known to be on an opaque background) as
+  Chromium's chunk holding the fallback glyph it stands for was (the drawing's recorded bounds the icon face's box).
+  *Its own drawing:* always grayscale with no mask gamma, whatever the chunk's verdict (`Canvas.TextLcd` isn't
+  read for it), as Chromium fills an inline SVG path, the icons' reference (`Ui/IconReferenceTests`); letters beside it
+  keep the verdict. Why not LCD: an icon isn't a glyph of a font, Skia never draws a path with LCD coverage, and the
+  comparison with Chromium is with its path fill.
 - A text's y is rounded against its parent's offset (`TextFragmentPainter`'s `ComputeBoxGeometry`; GM1 step 1a).
   - *The parent:* the innermost inline box around it that has a box fragment on the line
     (`LayoutInline::ComputeInitialShouldCreateBoxFragment`: positioned, translucent, filtered, blended, clipped, a

@@ -37,6 +37,8 @@ public static unsafe class SkiaGlyphs
     /// </summary>
     public static GlyphBitmap Render(FontFace face, uint glyph, float size, int subpixel, bool syntheticBold, bool syntheticOblique, FontRenderSettings settings, bool lcd, int luminanceKey)
     {
+        if (face.IsIconFace)
+            throw new InvalidOperationException($"{face} is an icon face: the canvas fills its outlines as paths (Canvas.DrawGlyphs)");
         lcd &= settings.IsSubpixel;
         var empty = new GlyphBitmap(0, 0, 0, 0, [], lcd, Preblended: true);
         var path = Outline(face, glyph, size, settings.Hinting);

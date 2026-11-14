@@ -17,11 +17,13 @@ public sealed partial class Canvas
 
     public void StrokePath(Path path, Brush brush, StrokeStyle stroke) => DrawPath(path, brush, FillRule.NonZero, stroke);
 
-    void DrawPath(Path path, Brush brush, FillRule rule, StrokeStyle? stroke)
+    void DrawPath(Path path, Brush brush, FillRule rule, StrokeStyle? stroke) => DrawPath(path, brush, rule, stroke, _transform * Matrix3x2.CreateScale(Scale));
+
+    /// <summary>A path drawn with <paramref name="m"/> taking its units to this canvas's pixels (an icon's to where its glyph goes).</summary>
+    void DrawPath(Path path, Brush brush, FillRule rule, StrokeStyle? stroke, Matrix3x2 m)
     {
         if (path.IsEmpty)
             return;
-        var m = _transform * Matrix3x2.CreateScale(Scale);
         // Cache per shape, scale/rotation and quarter-pixel position.
         var fraction = new Vector2(Quantize(m.M31 - MathF.Floor(m.M31), 4), Quantize(m.M32 - MathF.Floor(m.M32), 4));
         var linear = new Vector4(Quantize(m.M11, 1000), Quantize(m.M12, 1000), Quantize(m.M21, 1000), Quantize(m.M22, 1000));

@@ -21,6 +21,8 @@ public static unsafe class GlyphRasterizer
 
     public static GlyphBitmap Render(FontFace face, uint glyph, float sizePixels, int subpixel, bool syntheticBold, bool syntheticOblique, FontRenderSettings? settings = null, bool lcd = false)
     {
+        if (face.IsIconFace)
+            throw new InvalidOperationException($"{face} is an icon face: the canvas fills its outlines as paths (Canvas.DrawGlyphs)");
         lock (face.FreeTypeLock)
             return RenderLocked(face, glyph, sizePixels, subpixel, syntheticBold, syntheticOblique, settings, lcd);
     }

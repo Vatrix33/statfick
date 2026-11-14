@@ -72,6 +72,9 @@ public static unsafe class GlyphOutlines
 
     static List<Vector2[]> Load(FontFace face, uint glyph, float size, bool syntheticBold, bool syntheticOblique)
     {
+        // An icon's outline as drawn (no synthesis); a space has none.
+        if (face.Icons is { } icons)
+            return icons.Contours(glyph, size);
         // The face's size, transform and glyph slot are shared with whatever else uses it now.
         lock (face.FreeTypeLock)
             return LoadLocked(face, glyph, size, syntheticBold, syntheticOblique);

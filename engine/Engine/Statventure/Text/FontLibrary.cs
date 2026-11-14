@@ -270,9 +270,67 @@ public sealed class FontLibrary : IDisposable
 
     Func<int, ResolvedFont, ResolvedFont?>? _characterFallback;
 
-    /// <summary>A face that has the character: the resolved one, else the fallback families in order, else <see cref="CharacterFallback"/>.</summary>
+    // The icons by code point (a snapshot replaced whole when icons are added, so lookups don't lock), and their faces by
+    // group and parent face (made on first use; IconFaceData).
+    volatile Dictionary<int, IconGroup> _iconGroups = [];
+    readonly List<IconGroup> _groups = [];
+    readonly ConcurrentDictionary<(int Group, int Parent), FontFace> _iconFaces = new();
+
+    /// <summary>The code points drawn as icons (<see cref="AddIcons"/>).</summary>
+    public IReadOnlyCollection<int> IconCodePoints => _iconGroups.Keys;
+
+    /// <summary>
+    /// Adds icons (GM1 step 7): from now on each icon's character is drawn as the icon wherever it appears in text,
+    /// before any font, the requested family's included (a character a font has too, such as ◌ in Lato, is the icon).
+    /// It is shaped as a single glyph of its own, measured by its box (<see cref="IconGlyph"/>; a line with
+    /// <c>line-height: normal</c> takes its ascent as a fallback font's) and drawn by the canvas as its outline filled in
+    /// the text's colour (<see cref="Canvas.Canvas.DrawGlyphs"/>); no weight or style changes it (no synthetic bold or
+    /// oblique). Icons with the same box share a face, as a font's glyphs share theirs, so a run of them is one run.
+    /// A code point already an icon, or an outline that isn't SVG path data, is refused.
+    /// </summary>
+    public void AddIcons(IEnumerable<IconGlyph> icons)
+    {
+        var list = icons.ToList();
+        lock (_lock)
+        {
+            var known = new HashSet<int>(_iconGroups.Keys);
+            foreach (var icon in list)
+                if (!known.Add(icon.CodePoint))
+                    throw new ArgumentException($"U+{icon.CodePoint:X4} is an icon already", nameof(icons));
+            // All made (each outline parsed) before any is taken: a refused call adds nothing.
+            var groups = list.GroupBy(i => (i.Ascent, i.Descent, i.LineGap)).Select((box, i) => new IconGroup(_groups.Count + i, [.. box])).ToList();
+            var map = new Dictionary<int, IconGroup>(_iconGroups);
+            foreach (var group in groups)
+                foreach (var icon in group.Icons)
+                    map[icon.CodePoint] = group;
+            _groups.AddRange(groups);
+            // (Nothing resolved before is forgotten: ResolveFor asks the icons before its caches.)
+            _iconGroups = map;
+        }
+    }
+
+    /// <summary>The icon face drawing <paramref name="codepoint"/> in text whose primary font is <paramref name="preferred"/>; null when it isn't an icon.</summary>
+    ResolvedFont? IconFor(int codepoint, ResolvedFont preferred)
+    {
+        if (!_iconGroups.TryGetValue(codepoint, out var group))
+            return null;
+        // Icon faces take their parent's space: an icon face asked for again stands for its parent.
+        var parent = preferred.Face.Icons is { } icons ? icons.Parent : preferred.Face;
+        var key = (group.Index, parent?.Id ?? 0);
+        if (!_iconFaces.TryGetValue(key, out var face))
+            lock (_lock)
+                face = _iconFaces.GetOrAdd(key, _ => new FontFace(this, group, parent));
+        return new ResolvedFont(face, false, false);
+    }
+
+    /// <summary>
+    /// A face that has the character: an icon's (<see cref="AddIcons"/>) before any font, else the resolved one, else
+    /// the fallback families in order, else <see cref="CharacterFallback"/>.
+    /// </summary>
     public ResolvedFont? ResolveFor(int codepoint, ResolvedFont preferred)
     {
+        if (IconFor(codepoint, preferred) is { } icon)
+            return icon;
         if (preferred.Face.Has(codepoint))
             return preferred;
         var key = (preferred.Face.Id, preferred.SyntheticBold, preferred.SyntheticOblique, codepoint);
@@ -299,6 +357,9 @@ public sealed class FontLibrary : IDisposable
             face.Dispose();
         _sheetFaces.Clear();
         _retired.Clear();
+        foreach (var face in _iconFaces.Values)
+            face.Dispose();
+        _iconFaces.Clear();
         FreeType.DoneFreeType(_freeType);
     }
 }

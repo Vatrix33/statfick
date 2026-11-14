@@ -5,16 +5,26 @@ namespace Statventure.Text;
 
 /// <summary>
 /// One font file (one face): FreeType draws its glyphs, HarfBuzz shapes text with it. The data stays
-/// pinned in unmanaged memory for both libraries.
+/// pinned in unmanaged memory for both libraries. Or an icon face (<see cref="FontLibrary.AddIcons"/>,
+/// <see cref="IsIconFace"/>): no file, its glyphs icons' outlines that the canvas fills as paths.
 /// </summary>
 public sealed unsafe class FontFace : IDisposable
 {
     static int _nextId;
     readonly byte* _data;
-    readonly Blob _blob;
+    readonly Blob? _blob;
     readonly Face _hbFace;
     internal readonly Font HbFont;
+    /// <summary>The FreeType face; null for an icon face, which has no font file.</summary>
     internal readonly FreeType.FaceRec* FtFace;
+    /// <summary>The icons when this is an icon face, else null.</summary>
+    internal readonly IconFaceData? Icons;
+
+    /// <summary>Whether this is an icon face: its glyphs are icons (<see cref="IconGlyph"/>), drawn by the canvas as paths, measured by their own boxes.</summary>
+    public bool IsIconFace => Icons is not null;
+
+    /// <summary>The icon a glyph of an icon face draws; null for any other glyph or face.</summary>
+    public IconGlyph? IconOf(uint glyph) => Icons?.Group.Icon(glyph);
     /// <summary>The library the face was made in (FreeType's library state: the LCD filter, making and destroying faces).</summary>
     internal readonly FontLibrary Library;
 
@@ -106,6 +116,36 @@ public sealed unsafe class FontFace : IDisposable
         }
     }
 
+    /// <summary>
+    /// An icon face (made by its library): the icons of <paramref name="group"/>, which share a box, taking the space of
+    /// <paramref name="parent"/> (the font the icons were asked for in; <see cref="IconFaceData"/>). Its units are the
+    /// outlines' (1/1000 em); its ascent, descent and line gap the box's, rounded to them (the layout takes the exact
+    /// box from <see cref="TextLayout.Metrics"/>).
+    /// </summary>
+    internal FontFace(FontLibrary library, IconGroup group, FontFace? parent)
+    {
+        Id = Interlocked.Increment(ref _nextId);
+        Library = library;
+        Icons = new IconFaceData(group, parent);
+        Family = parent is null ? $"icons {group.Index}" : $"icons {group.Index} in {parent}";
+        Weight = parent?.Weight ?? 400;
+        WeightMax = parent?.WeightMax ?? Weight;
+        Italic = parent?.Italic ?? false;
+        UnitsPerEm = IconGlyph.UnitsPerEm;
+        Ascent = (int)Math.Round(group.Ascent * UnitsPerEm);
+        Descent = (int)Math.Round(group.Descent * UnitsPerEm);
+        LineGap = (int)Math.Round(group.LineGap * UnitsPerEm);
+        // An icon face has no decorations of its own (the UI's take the decorating box's font); the canvas's own text
+        // API underlines a run with its face's: 0.1 em under the baseline, 0.05 em thick.
+        UnderlinePosition = UnitsPerEm / 10;
+        UnderlineThickness = UnitsPerEm / 20;
+        XHeight = UnitsPerEm / 2;
+        _hbFace = new Face((_, _) => null!) { UnitsPerEm = UnitsPerEm };
+        HbFont = new Font(_hbFace);
+        HbFont.SetScale(UnitsPerEm, UnitsPerEm);
+        IconFaceData.Attach(HbFont, Icons);
+    }
+
     /// <summary>The glyph for a character, or 0 when the face doesn't have it.</summary>
     public uint GlyphFor(int codepoint) => HbFont.TryGetGlyph((uint)codepoint, out var glyph) ? glyph : 0;
 
@@ -132,6 +172,8 @@ public sealed unsafe class FontFace : IDisposable
     {
         HbFont.Dispose();
         _hbFace.Dispose();
+        if (_blob is null)
+            return;
         _blob.Dispose();
         // FreeType destroys a library's faces one at a time, as it makes them.
         lock (Library.FreeTypeLock)

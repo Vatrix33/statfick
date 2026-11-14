@@ -2035,3 +2035,10 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   with it: +73 ms with one small mod, +232 ms with five, +111 ms with one of 2,056 entries (before the window opens),
   kept by the user (Q27); on step 1a's packs, the game's stylesheet checked with every mod, +494 ms, +1,440 ms and +515 ms
   (gone to the manager). The user's Q28 built: the editor's Import refuses a save.
+- **2026-11-14, GM1 step 7 done (the branch `gm1-step7`):** the icons in the engine (GM1-7, Q12, GM1-P10): the engine's
+  icon face takes the 28 symbols' characters before any font (◌ too) and the canvas fills their outlines in the text's
+  colour where the glyph lands, laid out by each icon's box (the glyph Chromium drew); the game's table compiled from
+  `Assets/UI/icons/` and `GameIcons.AddTo` for step 8's fonts (`Docs/Game/Foundation.md`, "How it works", step 7).
+  Checked against Chromium filling the same outlines (the 83 uses, the 28 large, the rules; 1 and 1.65) and with the 11
+  captured states laid out with the icons. For the manager: the UI's `line-height: normal` lines take a fallback's (an
+  icon's) ascent but not its descent, which Chromium's take; no captured line meets it.

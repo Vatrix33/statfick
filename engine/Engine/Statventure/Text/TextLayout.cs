@@ -456,6 +456,9 @@ public sealed partial class TextLayout
     /// </summary>
     internal static float Advance(FontFace face, uint glyph, int xAdvanceUnits, float size, float scale)
     {
+        // An icon's is its box's (no kerning: an icon face has no tables).
+        if (face.Icons is { } icons)
+            return icons.AdvancePixels(glyph, size);
         var nominal = face.HbFont.GetHorizontalGlyphAdvance(glyph);
         var keyed = (int)(size * 100f) / 100f;
         var fixedScale = Autohint.Fixed.Div((int)(keyed * 64f), face.UnitsPerEm);
@@ -490,17 +493,28 @@ public sealed partial class TextLayout
     /// </summary>
     public static (float Ascent, float Descent, float LineGap) Metrics(FontFace face, float size, bool subpixelPositioning = false)
     {
-        var scale = size / face.UnitsPerEm;
+        float exactAscent, exactDescent, exactGap;
+        if (face.Icons is { } icons)
+        {
+            // An icon face's box is the table's, in em (the glyph Chromium drew: its font's metrics as Skia read them),
+            // rounded as a font's.
+            var group = icons.Group;
+            (exactAscent, exactDescent, exactGap) = ((float)(group.Ascent * size), (float)(group.Descent * size), (float)(group.LineGap * size));
+        }
+        else
+        {
+            var scale = size / face.UnitsPerEm;
+            (exactAscent, exactDescent, exactGap) = (face.Ascent * scale, face.Descent * scale, face.LineGap * scale);
+        }
         // Skia and Blink round halves up (SkScalarRoundToScalar, lroundf), not to even.
-        var ascent = MathF.Round(face.Ascent * scale, MidpointRounding.AwayFromZero);
-        var exactDescent = face.Descent * scale;
+        var ascent = MathF.Round(exactAscent, MidpointRounding.AwayFromZero);
         var descent = MathF.Round(exactDescent, MidpointRounding.AwayFromZero);
         if (subpixelPositioning && !Platform.PlatformBehaviour.Windows && descent < exactDescent && ascent >= 1)
         {
             descent++;
             ascent--;
         }
-        return (ascent, descent, MathF.Round(face.LineGap * scale, MidpointRounding.AwayFromZero));
+        return (ascent, descent, MathF.Round(exactGap, MidpointRounding.AwayFromZero));
     }
 
     static (float Above, float Below) InlineBox(FontFace face, TextStyle style)

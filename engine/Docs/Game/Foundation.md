@@ -1438,6 +1438,19 @@ stays as it is until the manager's ok (the recapture's freeze).
    - Finished: every icon drawn at its box in the text's colour at any size and both scales, matching Chromium's drawing
      of its outline within the path tolerance; lines with icons laid out as the captures. Mutations: each rule. User
      approval: none beyond step 3's.
+   - **Done (2026-11-14, the branch `gm1-step7`; "How it works", step 7):** the engine's icon face (`IconGlyph`,
+     `FontLibrary.AddIcons`, taken before any font; one face per box and parent font, its space the parent's; the box's
+     advance and metrics; drawn by the canvas's path fill where the glyph lands, grayscale, as a glyph in every rule of
+     the painter), the game's table compiled from `Assets/UI/icons/` (`GameIconTable.cs`, written and checked by the
+     game's tests) and `GameIcons.AddTo`; the seam's `GameIcon` gained `LineGap`. Checked: Chromium filling the same
+     outlines where the engine's glyphs land (the 83 uses, the 28 large, the rules; 1 and 1.65; no pixel past 60
+     levels), every captured state laid out box for box with the icons. Nothing in `UI/` changed. The step's choices:
+     the face's shape (HarfBuzz font functions; per box and parent), the space from the parent, no synthesis, the
+     advance through the font path's truncations, the outline in em for the path cache, glyph snapping but none under a
+     rotation, no LCD for icons, the generated table, `AddTo` once per library, the fixtures placed from the engine's
+     layout per scale. Found for the manager: `InlineLayout` takes only a fallback run's ascent into a `line-height:
+     normal` line (Blink its descent and gap too; no captured line meets it); a transformed box's overflow scrolls in
+     Chromium, not in the engine; ◆ ★ as the map's SVG text left to GM4.
 8. **The game's document, windows, dialogs and commands.** After 1a and 2; Q7, Q13, Q15, GM1-P7, P9 decided.
    - Owns: `Game/Statventure.Game/Ui/` (`GameUi` as "The seams" outline it: the one document with the port's stylesheets
      from `ui.pak`, the theme class, the page zoom, the window manager, the dispatcher with its keys and its own commands,
@@ -2520,6 +2533,210 @@ the editor's `ember-rite.pak` checked and mounted (`[Mods] ember-rite.pak: loade
 `[Data] mod …` line): no expectation changed; the player's real folders unchanged (this machine's game folder, which the
 user's own runs of 2026-11-12 made, and the Documents folder's top level).
 
+### Step 7: the icons in the engine (2026-11-14, the branch `gm1-step7`)
+
+GM1-7, Q12, GM1-P10 (as changed by the manager on 2026-11-13: the icons before any font). The engine draws the 28 symbols
+as step 3's outlines wherever their characters appear in a font library's text that has the icons; the game compiles the
+outlines into its table and gives them to its fonts. Nothing in `UI/` changed: the layout and the painter reach icons
+through the font library and the canvas as they reach glyphs.
+
+**The icon face** (`Engine/Statventure/Text/IconFace.cs`, `FontFace.cs`, `FontLibrary.cs`, `TextLayout.cs`,
+`GlyphOutlines.cs`):
+- *The table:* `IconGlyph(CodePoint, Outline, Advance, Ascent, Descent, LineGap)`: the outline SVG path data in units
+  of 1/1000 em (`IconGlyph.UnitsPerEm`), x from the pen, y down from the baseline, filled nonzero (step 3's format); the
+  box in em. `FontLibrary.AddIcons(icons)` adds them (`IconCodePoints` lists them); a code point already an icon, or an
+  outline that isn't path data, refuses the whole call (nothing of it added).
+- *Before any font:* `FontLibrary.ResolveFor(codepoint, preferred)` asks the icons first, then the preferred face, the
+  fallback families and `CharacterFallback` as before; so ◌, which Lato and STIX have, is the icon (asked before the
+  library's caches, so what was resolved before the icons came needs no forgetting). Icons are reached only through
+  `ResolveFor` (no family names them), so a document's `font-family` never makes an icon face its primary font.
+- *Faces:* an icon face is a `FontFace` with no font file (`IsIconFace`, `IconOf(glyph)`): one per box (the icons with
+  the same ascent, descent and line gap: the icons of one of Chromium's fonts, so a run of them is one run as the
+  font's glyphs were) and per *parent*, the font the text asked for. The parent gives the face its space: Blink shapes a
+  space with the first font that has one (HarfBuzzShaper: only what a font lacks goes on to the next), while the engine's
+  layout keeps a space in the run before it (`InlineLayout`, `TextLayout`), so "↻ Refresh file" or "★ Favorite" would
+  otherwise shape their space with the icon face. The icon face maps U+0020 to a glyph of its own whose advance is the
+  parent's space (`TextLayout.Advance` on the parent's glyph): Chromium's width. No weight or style changes an icon (no
+  synthetic bold or oblique: the approved sheet drew the 9 px bold uses as the plain outline; no use is italic).
+- *Shaping:* HarfBuzz through font functions of the face's own (`IconFaceData`: the nominal glyph, the advance, the
+  outline's extents, the box as the font extents; an empty `Face` with no tables, so no substitution or kerning): each
+  icon one glyph (glyph i + 1 of its box's icons), the space glyph after them. Units 1000 to the em, so `Ascent`,
+  `Descent` and `LineGap` hold the box rounded to them for what reads a face's units (the drawing's bounds); the
+  layout's numbers come from the box itself.
+- *The advance* (`TextLayout.Advance` → `IconFaceData.AdvancePixels`): the box's advance in em times the size as a font's
+  glyphs are scaled, Blink's size kept to 0.01 px (truncated), then Skia's 26.6 (truncated: 26.4 px advances as 26.390625
+  px), the result to 1/65536 px, halves up, as skrifa gives a font's (0.6 em at 9 px is 353894/65536 px). For a font
+  with a power-of-two em (Adwaita, Noto Emoji, Liberation) that is Chromium's advance to 1/65536 px (icons.json's 10
+  digits are its exact value or a hair off it); for Noto Sans Math and Noto Sans Symbols 2 (1000 to the em) Chromium's
+  16.16 scale differs by up to about 2·10⁻⁴ px a glyph (1.257 em at 16 px: 20.11199951 here, 20.11184692 in Chromium),
+  far inside the layout's 0.5 px. (icons.json gives em, not the fonts' units: the table's numbers, as decided.)
+- *The metrics* (`TextLayout.Metrics`): the box's ascent, descent and line gap times the size, rounded as a font's are
+  (halves up; on Linux with text at subpixel positions a descent rounded down takes a pixel from the ascent, as Blink's
+  `AscentDescentWithHacks` does for every font, a fallback's too). The box is Chromium's (OS/2 typo metrics where the
+  font sets USE_TYPO_METRICS: Adwaita Mono's descent 0.285, where the engine's `FontFace` would read hhea's 0.215).
+
+**Line metrics, against what Chromium did with the fallback glyph** (Blink's `InlineBoxState`: `ComputeTextMetrics`
+gives a box its primary font's ascent and descent with the line-height's leading; with `line-height: normal`
+`AccumulateUsedFonts` unites in every font the shape result used, each with its own line gap shared out, the top half
+floored):
+- *A line of the canvas's `TextLayout`:* each run's box with its own line height: an icon run takes its box's ascent,
+  descent and line gap (`IconFaceTests.ALineOfTheCanvasLayoutTakesTheIconsBox`).
+- *A line of the UI* (`InlineLayout`, unchanged): an icon is a fallback run like any other. With a fixed line-height the
+  icon changes nothing (Chromium: likewise, the used fonts count only for `normal`). With `line-height: normal` the line
+  takes the icon's ascent above the primary font's half-leading (`FallbackAscent`), but **not its descent or line gap**,
+  which Chromium unites in. Whether the line holds only the icon or text of another font beside it is the same rule: the
+  primary font's box (the strut and the text) and the icon run's ascent. From icons.json against Lato (ascent 0.987,
+  descent 0.213 em, no gap): every icon's ascent is under Lato's but Noto Sans Math's (1.069: ↶ ▣ ◈ ◎ ◫) and Noto Sans
+  Symbols 2's (1.069: ♛ ♜), which the engine takes as Chromium does; every descent but ▲ ▼'s (0.212) is deeper than Lato's
+  (◌ 0.216 with a 0.042 gap, Adwaita Sans 0.241, Noto Emoji 0.244, Adwaita Mono 0.285, Noto Sans Math 0.423, Noto Sans
+  Symbols 2 0.63), so a `line-height: normal` Lato line holding one is that much deeper below in Chromium than in the
+  engine (♜ at 19 px: 12 px below the baseline against Lato's 4). The same held for the fallback fonts before (the
+  engine's rule, not the icons'), and **no captured line meets it**: every captured state at 1 and 1.65 lays out box
+  for box with the icons (`IconLayoutTests`), so the old game's icons sit in lines of fixed height or in boxes sized
+  otherwise. An engine finding for `UI/Layout/InlineLayout.cs` (not step 7's to change: "Found" below).
+
+**The drawing** (`Engine/Statventure/Canvas/CanvasText.cs`, `CanvasPaths.cs`): `Canvas.DrawGlyphs` gives an icon face's
+run to `DrawIcons`: each icon's outline filled by the canvas's path fill (`FillRule.NonZero`), in the colour the run is
+drawn with, at the run's size as its glyphs would be made (0.01 px, truncated) times the canvas's scale and transform,
+where its glyph would land: on an axis-aligned canvas the baseline rounded to a pixel and the pen to the quarter pixel
+at or after it, as Skia places glyphs (`SkGlyphPositionRoundingSpec`; whole pixels without `SubpixelText`), under a
+rotation or skew exactly. The outline is kept in em (scaled once from its 1/1000 em): the path cache keeps a transform's
+linear part to 1/1000, which in the outline's own units would hold a 20 px size to 1 %. A space draws nothing.
+- *Coverage* is grayscale and takes no mask gamma, as Chromium fills an inline SVG path (the icons' references), never
+  LCD whatever the text's verdict; the blend mode, colour filter, clip and layers are the canvas's as for any drawing.
+- *As a glyph is:* everything the painter does with a run reaches the icons: the text's colour and
+  `-webkit-text-fill-color` (`UiPainter.FillOf`), the selection's colour and its clip, a `background-clip: text` mask
+  (the mask's black text), text shadows, opacity and transforms (layers), decorations skipping ink (`GlyphOutlines`
+  gives an icon's outline at the size, so an underline skips it as a glyph's).
+- *How an icon takes part in a text chunk's LCD verdict* (`Docs/Compositing-Port.md`): as the glyph it stands for did.
+  The painter records the run as text (`PaintTarget.DrawGlyphs`, `Record(…, text: true)`), so a chunk holding it is a
+  text chunk for the layerization (`contents_opaque_for_text`, the opaque-background analysis) as Chromium's chunk with
+  the fallback glyph was (its recorded bounds the icon face's box). Only the icon itself is
+  drawn grayscale (an SVG path in Chromium is never LCD text), the letters beside it keep the chunk's verdict.
+
+**The game's table** (`Game/Statventure.Game/Icons/`):
+- `GameIcons.Table`: `GameIconTable.cs`, generated C# compiled into the game (GM1-P10: not in `ui.pak`), written by
+  `Tests/Statventure.Game.Tests/Icons/GameIconTableTests` from `Assets/UI/icons/` with `STATVENTURE_ICON_TABLE=write`
+  (then rebuild): each icon's code point, its file's path data as written, and icons.json's four numbers as written
+  (a C# literal of the same digits is the same double). Without the variable that test fails when the source isn't what
+  the files give. Chosen over embedding the files as resources (a change to step 2's project file) and over parsing at
+  start.
+- `GameIcons.AddTo(fonts)`: `fonts.AddIcons(…)` with the table; once per library (a second call is refused).
+- **The seam's change** (step 2's `GameIcon(Outline, Advance, Ascent, Descent)`): one more positional member at its end,
+  `LineGap` (in em); `Outline` is the file's path data in 1/1000 em (the stub's comment said em), filled nonzero.
+  `GameIcons` became `partial` (the table in its own file). `AddTo` now gives the icons before any font (the stub's
+  comment said last fallback).
+
+**For steps 8, 9 and 10:** `GameUi.Load` calls `GameIcons.AddTo(fonts)` once on the library its document is made with
+(after `EngineFonts.AddTo`, before laying anything out: a document laid out before keeps its runs until it lays them out
+again; shaped text is cached by face). Then any of the 28
+characters written in any text of that document (markup, a button's label, a field's value, the old HTML pieces) is
+drawn as its icon: in the text's colour, at the text's size, in the glyph's box; nothing else is needed (no class, no
+font). ☾ and ＋ aren't icons (Q6 took their uses away); the other characters the fonts lack still have no glyph. In
+Chromium's renders of the port's markup the symbols come from the PC's fallback fonts, so those fixtures mask the icons'
+boxes (the design's rule): the boxes are where the layout puts them, the glyph's (pen to pen plus advance, the baseline
+less the ascent to plus the descent; a fallback glyph's ink may reach a little past it, so mask a pixel or two wider).
+
+**Tests** (64 in the engine's project, 6 in the game's):
+- `Tests/Statventure.Tests/Text/IconFaceTests.cs` (18, made-up icons): before any font (◌ in Lato, also when Lato's ◌
+  was resolved before the icons came); one face per box (another descent or line gap: a face of its own) and one run of
+  them; one glyph each; the advance at seven sizes and advances (the 0.01 px and 26.6 truncations, the 1/65536
+  rounding), bold alike; the
+  metrics (the subpixel rule, the box not its unit rounding: 0.5005 em at 1000 px is 501); the canvas layout's line; the
+  space the text's font's; no synthesis; the extents; the ink for decorations; refusals; no font rendering of an icon face.
+- `Canvas/IconDrawingTests.cs` (15, GPU): the outline filled where the glyph goes at five positions and sizes (against
+  the canvas's path fill of the outline at the snapped pen, 2 levels), nonzero (an overlap filled), exact under a
+  rotation, with the canvas's scale, grayscale whatever the verdict (and Lato LCD beside it), the space and a transparent
+  colour drawing nothing; in documents at 1 and 1.65 against plain text: the fill colour, the selection's colour, the
+  text mask (2 levels), a shadow, opacity (2 levels).
+- `Ui/IconLayoutTests.cs` (23): the 11 captured states at 1 and 1.65 (`Golden/game-ui.json.gz`, `game-ui@1.65.json.gz`,
+  whichever capture is on `main`: the old ones until step 1b lands, then those) laid out with the 28 icons in a library of
+  their own (`TestFonts.NewLibraryWithSystemFallback`, Chromium's fallback fonts for everything else; ☾ and ＋ stay
+  fonts), compared box for box with `LayoutReferenceTests.Compare` at its 0.5 px, as the game-screen layout tests are;
+  the states taken are those whose markup holds an icon's character (all 11 today: 17 of the 28 symbols), and each must
+  lay icons out. A recapture is taken as it comes: the check holds as long as the game-screen layout tests hold on it,
+  because each icon's box is the glyph Chromium drew there. The game-screen tests' own `Build` isn't changed (step 1b's):
+  the test has its copy with the fonts given.
+- `Ui/IconReferenceTests.cs` (8): the fixture list and the three fixtures at 1 and 1.65 against Chromium (below).
+- `Tests/Statventure.Game.Tests/Icons/GameIconTableTests.cs` (3): the source written from the files; the table the
+  committed files' content (28, in code-point order, each outline and number); the set GM1-7 decided. Each file must be
+  one nonzero path and nothing else drawn (step 3's format, what the table holds). `GameIconsTests.cs` (3): `AddTo` gives
+  every symbol its icon before any font with the table's outline and box; the table's boxes lay out (⚔'s advance, ♜'s
+  metrics, ◌'s line gap); once per library.
+- `Tests/Statventure.Tests/Text/IconFiles.cs` reads the committed icons for the engine's tests (they can't reference the
+  game: GM1-P4); `Canvas/TestFonts.cs` gained `NewLibraryWithSystemFallback()` (the shared library's builder, made
+  public: a test that adds to a library must not add to the shared one).
+
+**The fixtures against Chromium** (`Reference/icon-fixtures.json`, written by `IconReferenceTests`; goldens
+`Golden/ui-icon-uses@1.png`, `@1.65`, `ui-icon-large@…`, `ui-icon-rules@…`; captured by the new
+`Tools/Scripts/make-icon-references.sh [scale …]`, PaintReference under X11 at each scale, on the PC inside a headless
+cage with a 2400 × 2400 output, about 15 s):
+- *The fixtures:* `icon-uses`, the old game's 83 uses (`Tools/IconSheet/uses.json`: size, weight, the light theme's
+  colour, ground, opacity and the sigil's turn); `icon-large`, the 28 at 96 px in the ink on the parchment;
+  `icon-rules`, runs of icons (pens at quarter pixels), the fill colour, opacity, a 30° turn, a fractional size (19.2 px),
+  the six 9 px bold battle statuses, the dark theme's inks and grounds. Cells of whole device pixels at both scales
+  (multiples of 20 px), each icon's text in Lato on a fixed line.
+- *What Chromium renders:* the same cells with each icon as an inline SVG of its outline filled with `currentColor`,
+  placed where the engine's glyph lands (read from the engine's layout: the pen on the baseline, snapped as the canvas
+  snaps a glyph, at the size its glyphs are made), in a box of whole device pixels with a view box putting the outline's
+  origin on the pen (Blink snaps an svg root's box to pixels; the CSS lengths a hair over the exact value so the layout's
+  truncation to 1/64 px gives the whole pixels). So the list differs between the scales (one fixture per scale; the
+  script captures each at its own). Where the glyph lands is the layout check's (`IconLayoutTests`); this compares the
+  drawing.
+- *The limits:* the inline SVG paint fixture's (`svg-transforms`: 60 levels, 0.2 % of the pixels; the canvas keeps its own
+  path antialiasing, the user's decision of 2026-10-25), none set anew. **No pixel of any fixture is past 60 levels**
+  (worst: uses 50 and 37 at 1 and 1.65, large 29 and 36, rules 53 and 48; past 12 levels: 766, 1285, 1999, 3697, 318 and
+  817 pixels, the outlines' edges).
+
+**Shown able to fail** (`mutate.py` under the shared lock in a headless cage; `claude-work/gm1/step7/make-mutations.py`
+writes the lists): 48 rules broken one at a time (`mutations.json`): the icons' place before the fonts (after the text's
+font; never), the faces (one per icon; a box without its line gap or descent; a code point twice; synthesized as the
+text; the parent not the asker's), the space (not mapped; advancing nothing), the extents, each metric (the 0.01 px and
+26.6 truncations, the 1/65536 rounding, HarfBuzz's units for the box's pixels, the face's units for the box, ascent and
+descent swapped, no line gap), the outline (its units, y up, the ink for decorations at another size or none, even-odd),
+the colour (always the ink; its alpha dropped), the place (the baseline not on a pixel, the pen on whole pixels or not
+snapped, snapped under a rotation, the box's top at the pen), the size (not the canvas's scale, 5 % off), LCD for icons,
+a space drawn, icons as font glyphs; the painter's rules the document tests show an icon taking (its fill colour, the
+mask, the selection's colour, shadows: `UiPainter.Content.cs` broken for the run only, not changed); `AddTo` (no line
+gap, ascent and descent swapped, nothing added); the table (a number edited, an icon left out) and its making (the parse,
+the source's line gap, the outline). **45 killed, 3 survived:** forgetting what was resolved when icons are added can't
+differ (`ResolveFor` asks the icons before its caches; the call was removed); the 0.01 px truncation and the pen's
+snapping were gaps (no case where the truncation moves the 26.6 size, now 19.8 px, 12 px at 1.65; no pen on an eighth,
+where the path cache's own quarter pixels round to even, now 10.125), closed and killed (`mutations-rerun.json`, 2 of 2).
+The standing list `mutations-standing.json`: 47, all killed. Nothing written to the player's real folders.
+
+**Runs** (inside headless cages under the shared lock, nothing audible; the step's commit on `714be21`): the full suite on
+the GPU (the engine's tests 2 min 30 s) and on lavapipe (3 min 20 s): 3984 + 223 = 4207 tests (`main`'s 3920 + 217 and
+64 + 6 new), none skipped; `Reference/editor-fixtures.json` unchanged; the player's real folders unchanged (this
+machine's game folder there before and after, the Documents folder's top level the same).
+
+**Choices** (internal, the step's): the icon face as a `FontFace` with HarfBuzz font functions of its own (the layout and
+the painter use faces through `HbFont`, which a face with no file can give); one face per box and parent; the space from
+the parent (above); icons never synthesized; the advance through the font path's size truncations; units of 1000 to the
+em; the outline kept in em for the path cache; glyph snapping on an axis-aligned canvas, none under a rotation; no LCD
+and no mask gamma for icons; the canvas's text API underlining an icon run at 0.1 em, 0.05 em thick (the UI's
+decorations take the decorating box's font); a font-file face's FreeType paths refusing an icon face (`SkiaGlyphs.Render`,
+`GlyphRasterizer.Render` throw); the generated table; `AddTo` once per library; the fixtures' cells and the per-scale
+Chromium side.
+
+**Found:**
+- *Line metrics with `line-height: normal`:* the engine's `InlineLayout` unites only a fallback run's ascent into the line
+  (`FallbackAscent`); Blink unites each used font's ascent and descent with its line gap's halves
+  (`InlineBoxState::AccumulateUsedFonts`, in `~/.cache/stat-fick-build/reference-src/chromium-152-source/icons/`). Icons
+  are fallback runs, so a `line-height: normal` line holding a deeper icon (every one but ▲ ▼ under Lato) would be
+  shallower than Chromium's; no captured screen meets it. For the manager: an engine item in `UI/Layout/`.
+- *A transformed box's overflow:* Chromium gave the fixture page scrollbars where a turned cell reached past it (a
+  transformed box's overflow counts in Blink's scrollable overflow); the engine didn't. The fixture hides the root's
+  overflow; not looked into further (`UI/`).
+- *The path cache's scale:* the canvas keeps a path's linear transform to 1/1000 (`CanvasPaths.cs`), relative to the
+  path's units: inline SVG drawn in small user units at a large scale (a 1000-unit view box at 0.03 px a unit) is held to
+  about 1 %. Not changed (the icons avoid it by keeping their outlines in em).
+- **For GM4:** ◆ and ★ are also SVG `<text>` on the map's guild markers (`map.js` 545); the engine doesn't draw SVG text.
+  Recorded, nothing built: the map's milestone.
+
+**Not checked:** Windows; italic text with an icon (none in the game: drawn upright); the icons in the real game's screens
+(steps 8–10 show them).
+
 ## Status
 
 **Step 5 done (2026-11-13, the branch `gm1-step5`; "How it works", step 5): the save record `save.game` v1, the
@@ -2582,6 +2799,20 @@ checked with every mod, +494 ms, +1,440 ms and +515 ms (gone to the manager). Th
 lavapipe on the step rebased on `eec6576`: 3920 + 217 = 4137 tests, none skipped; `end-to-end.sh --publish` 157 of 157 on
 both; mutations 91 + 36 + 5 (the standing list: 89 killed, 2 that can't differ; the rest all killed); the player's real
 folders unchanged.
+
+**Step 7 done (2026-11-14, the branch `gm1-step7`; "How it works", step 7): the icons in the engine.** The engine's icon
+face (`FontLibrary.AddIcons`): the 28 symbols' characters taken before any font, ◌ too, each a glyph of a face per box
+and parent font (its space the parent's), measured by its box (Chromium's glyph), drawn by the canvas's path fill in the
+text's colour where the glyph lands, grayscale; every rule of the painter reaches it as a glyph (fill colour, selection,
+the text mask, shadows, opacity, transforms, decorations). The game's table compiled from `Assets/UI/icons/`
+(`GameIconTable.cs`, written and checked by the game's tests) and `GameIcons.AddTo`; the seam's `GameIcon` gained
+`LineGap`. Against Chromium filling the same outlines (the 83 uses, the 28 at 96 px, the rules; 1 and 1.65): no pixel past
+60 levels; the 11 captured states at both scales lay out box for box with the icons. Nothing in `UI/` changed. Found for
+the manager: `line-height: normal` lines take a fallback's (an icon's) ascent but not its descent (Blink both; no captured
+line meets it); Chromium scrolls a page a transformed box reaches past; ◆ ★ as the map's SVG text left to GM4. The full
+suite passes on the GPU and on lavapipe on the step on `714be21`: 3984 + 223 = 4207 tests (64 + 6 new), none skipped; 48
+mutations, 45 killed, 1 that can't differ (its code removed), 2 gaps closed and killed (the standing 47 all killed); the
+player's real folders unchanged. Not checked: Windows.
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,
