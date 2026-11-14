@@ -31,7 +31,12 @@ the user and wait for their go-ahead before starting the next one.
   `git config diff.pak.textconv engine/Tools/Packer/textconv.sh`.
   `Tools/Scripts/make-ui-pack.sh` makes `Assets/Packs/ui.pak` (the old game's five fonts and their licences, and the
   port's stylesheets from `Assets/UI/styles/*.css`, compiled as `ui/styles/<name>`; GM1 step 1a).
-- Chromium 152 for references: `Tools/Scripts/chromium.sh` (Electron 44.5.0 from npm).
+- Chromium 152 for references: `Tools/Scripts/chromium.sh` (Electron 44.5.0 from npm). `Tools/PaintReference` renders a
+  fixture in an iframe; a fixture with `mainFrame: true` is rendered as a page's own document, as the game's and the
+  editor's documents are. Use it where a fixed box or a box composited apart sits over the page (the top layer's
+  tooltips, lists and bubbles; fixed dialogs): an iframe merges it into the page's layer and keeps LCD text where the main
+  frame doesn't (`Docs/Compositing-Port.md`, "The iframe and the main frame"). Its size must be whole device pixels at
+  1.65 (multiples of 20 px).
 - A minimized window's document (hidden documents: visibility, unloading, Blink's timer throttling; `Docs/Scripting.md`,
   "Hidden documents"): references from `Tools/Scripts/make-visibility-references.sh` (about six minutes);
   `Samples/Statventure.Sandbox` with `--log-visibility` logs what a real minimize, restore and close do. (The sandbox is

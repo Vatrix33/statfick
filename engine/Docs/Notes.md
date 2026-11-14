@@ -365,6 +365,16 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   - *The editor's `EditedData`* (step 13's, M11): after entries that can't be mounted together, the third read with the
     same entries gives the data mounted before them and clears `EditedDataProblem` (the early return for entries that
     failed before doesn't put the mount's snapshot back). Reported to the manager, not changed here.
+- 2026-11-14 (the PC, the top layer's LCD task on the branch `gm1-lcd-top-layer`, 4036 + 223 = 4259 tests on the GPU and lavapipe):
+  **a `Tools/PaintReference` capture is an iframe; the game's document is a main frame.** In an iframe a fixed or
+  otherwise separately composited box over the page merges into the page's layer and keeps LCD text; in the main frame it
+  gets a layer of its own and its own LCD verdict. Only the main frame's root scroller has the `kRootScroller` reason, and
+  a fixed box has `kFixedPosition` only while the page overflows. Capture such screens with the fixture field
+  `mainFrame: true` (`Docs/Compositing-Port.md`, "The iframe and the main frame"). Its size must be whole device pixels:
+  a view is whole DIPs where an iframe can be 664.85 px. Under cage the window fills the output, so a probe of the
+  window's own document wants the output at the fixture's size in device pixels. A fixture for a layer's LCD verdict
+  wants one box in the layer: a layer has one rect known to be opaque, so a second box's text is off it and the layer
+  is grayscale whatever the boxes are.
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

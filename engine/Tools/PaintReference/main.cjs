@@ -14,7 +14,15 @@
 // and scroll sizes; every text node's line rects), unrounded, with all the game's font faces.
 //
 // Usage: stat-fick-tests --no-sandbox --ozone-platform=x11 --fixtures=/abs/paint-fixtures.json --scale=1.65 [--page-zoom=1.2] [--measure=layout] --out=/abs/dir --fonts=/abs/fonts/dir
-const { app, BrowserWindow } = require("electron");
+//
+// A fixture with "mainFrame": true is captured as a page's own main frame instead (a WebContentsView of the fixture's
+// size over the window, the fixture's page its document), as the game's and the editor's documents are: in an iframe the
+// page's root scroller isn't the global root scroller (no RootScroller compositing reason; Blink's
+// CompositingReasonFinder), so a fixed or otherwise separately composited box over the page merges into the host's layer
+// and keeps LCD text where the main frame gives it a layer and an LCD verdict of its own (Docs/Compositing-Port.md,
+// "The iframe and the main frame"). Everything else (fonts, focus, scroll, selections, triggers, the capture, the
+// rectangles and computed values) is the same.
+const { app, BrowserWindow, WebContentsView } = require("electron");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -58,6 +66,8 @@ app.whenReady().then(async () => {
     webPreferences: { sandbox: true, contextIsolation: true, backgroundThrottling: false, spellcheck: false },
   });
   window.showInactive();
+  // The view main-frame fixtures are captured in (made when first needed).
+  let view = null;
   for (const fixture of fixtures) {
     // The window is active unless the fixture says otherwise (focus rings show only in an active window).
     if (fixture.windowFocused === false)
@@ -83,15 +93,35 @@ app.whenReady().then(async () => {
     const frameSize = length => Math.round(length * zoomed) / zoomed + 0.001;
     fs.writeFileSync(host, `<!DOCTYPE html><html><body style="margin:0;background:#fff"><iframe style="display:block;border:0;width:${frameSize(fixture.width)}px;height:${frameSize(fixture.height)}px"></iframe></body></html>`);
     await window.loadFile(host);
+    // A main-frame fixture: its page in a view of its size, its own top-level document. (A view's size is whole DIPs: give
+    // such a fixture a size of whole device pixels at each scale. With a page zoom the zoom comes after the page loads,
+    // before its scroll offsets are set.)
+    if (fixture.mainFrame) {
+      view ??= new WebContentsView({ webPreferences: { sandbox: true, contextIsolation: true, backgroundThrottling: false, spellcheck: false } });
+      window.contentView.addChildView(view);
+      view.setBounds({ x: 0, y: 0, width: Math.round(fixture.width * pageZoom), height: Math.round(fixture.height * pageZoom) });
+      const file = path.join(scratch, fixture.name + "-page.html");
+      fs.writeFileSync(file, page);
+      await view.webContents.loadFile(file);
+      if (fixture.windowFocused !== false)
+        view.webContents.focus();
+    }
+    else if (view)
+      window.contentView.removeChildView(view);
+    // The document the fixture is in: the view's (a main frame) or the host's (the iframe in it).
+    const target = fixture.mainFrame ? view.webContents : window.webContents;
     // The page zoom first, in effect before the fixture loads (a zoom change scales scroll offsets already set).
     if (pageZoom !== 1) {
-      window.webContents.setZoomFactor(pageZoom);
-      for (let i = 0; i < 100 && Math.abs(await window.webContents.executeJavaScript("devicePixelRatio", true) - scale * pageZoom) > 1e-3; i++)
+      target.setZoomFactor(pageZoom);
+      for (let i = 0; i < 100 && Math.abs(await target.executeJavaScript("devicePixelRatio", true) - scale * pageZoom) > 1e-3; i++)
         await wait(20);
     }
-    await window.webContents.executeJavaScript(`new Promise(resolve => { const frame = document.querySelector("iframe"); frame.onload = resolve; frame.srcdoc = ${JSON.stringify(page)}; })`, true);
-    // Runs a function with the iframe's window and document in place of the page's.
-    const inFrame = script => window.webContents.executeJavaScript(`(frame => ((window, document) => (${script})())(frame, frame.document))(document.querySelector("iframe").contentWindow)`, true);
+    if (!fixture.mainFrame)
+      await window.webContents.executeJavaScript(`new Promise(resolve => { const frame = document.querySelector("iframe"); frame.onload = resolve; frame.srcdoc = ${JSON.stringify(page)}; })`, true);
+    // Runs a function with the iframe's window and document in place of the page's (a main frame's own).
+    const inFrame = script => fixture.mainFrame
+      ? target.executeJavaScript(`(${script})()`, true)
+      : window.webContents.executeJavaScript(`(frame => ((window, document) => (${script})())(frame, frame.document))(document.querySelector("iframe").contentWindow)`, true);
     await inFrame(`async () => {
       await Promise.all([...document.fonts].map(f => f.load().catch(() => null)));
       await document.fonts.ready;
@@ -117,11 +147,11 @@ app.whenReady().then(async () => {
     }`);
     // A class added to the body once the page has been styled (to start transitions).
     if (fixture.trigger) {
-      await window.webContents.executeJavaScript("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))", true);
+      await target.executeJavaScript("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))", true);
       await inFrame(`() => { getComputedStyle(document.body).color; document.body.classList.add(${JSON.stringify(fixture.trigger)}); }`);
     }
     await wait(400);
-    await window.webContents.executeJavaScript("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))", true);
+    await target.executeJavaScript("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))", true);
     const suffix = `@${scale}${pageZoom !== 1 ? "x" + pageZoom : ""}`;
     if (layout) {
       const measured = await inFrame(`() => {
@@ -142,7 +172,7 @@ app.whenReady().then(async () => {
       console.log(fixture.name, "measured", measured.elements.length, "elements at", measured.devicePixelRatio);
       continue;
     }
-    const image = await window.webContents.capturePage();
+    const image = await target.capturePage();
     const pixelWidth = Math.round(fixture.width * scale * pageZoom), pixelHeight = Math.round(fixture.height * scale * pageZoom);
     const cropped = image.crop({ x: 0, y: 0, width: pixelWidth, height: pixelHeight });
     fs.writeFileSync(path.join(out, `ui-${fixture.name}${suffix}.png`), cropped.toPNG());

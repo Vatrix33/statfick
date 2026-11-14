@@ -111,6 +111,68 @@ become Overlap layers; scrollbars are their own layers (RasterInducingScroll is 
   - *Before:* the engine rounded every text against its line's top, so text in a relatively placed span could be one
     device pixel off at fractional scales.
 
+## The iframe and the main frame (2026-11-14)
+
+**A `Tools/PaintReference` capture is an iframe; the game's and the editor's documents are main frames.** For the same
+markup, Chromium 152 can composite a fixed (or otherwise separately composited) box over the page differently in the two,
+and give its text another LCD verdict. The engine models every document as a main frame and is right for the game. Found
+by GM1 step 8's tooltip fixture: the engine drew the tooltip's text grayscale, the fixture LCD.
+
+- **Why, from Blink's source:**
+  - *The root scroller:* `CompositingReasonFinder::RequiresCompositingForRootScroller` gives `kRootScroller` only to
+    `IsGlobalRootScroller()`, the page's root scroller: the main frame's LayoutView. So the main frame's scroll translation
+    is directly composited even when nothing scrolls; an iframe's isn't.
+  - *A fixed box:* gets `kFixedPosition` only when its frame's layout viewport `HasOverflow()`
+    (`CompositingReasonsForScrollDependentPosition`; the viewport-scroll reasons only in the outermost main frame).
+  - *In the main frame:* the fixed box's paint offset translation hangs off the root transform, outside the composited
+    scroll translation, so it isn't in the page contents' compositing boundary (`PendingLayer::CanUpcastWith`). It can't
+    merge into the page's layer; it overlaps it, so it is a layer of its own (the trace names its reasons `Viewport,
+    OverflowScrolling` while the page doesn't overflow, `Overlap` when it does).
+  - *Its verdict:* the layer's own, from cc's `PictureLayerImpl::ComputeLCDTextDisallowedReason`. Without
+    `contents_opaque_for_text` (text known to be on an opaque background) and with no opaque background colour, the
+    reason is `kBackgroundColorNotOpaque`.
+  - *The tooltip:* its 2 px radius and its shadow (drawn inside save, clip, restore) each end its display item's opaque
+    analysis. With the radius under an opaque border the gradient is painted under a rounded clip (the bleed avoidance's
+    shrinking, `BoxPainterBase::PaintFillLayer` off its fast path); and with the box's fractional height one tile doesn't
+    cover it, so it is also a pattern, not known to be opaque (`DrawTiledBackground`'s single-tile test). So its text
+    isn't known to be on an opaque background, and it is grayscale.
+  - *In a non-overflowing iframe:* nothing is directly composited, and the frame's content, the fixed box included, merges
+    into the host page's opaque scrolling layer with LCD text.
+- **The probe** (`claude-work/gm1/lcd/`: `LayerProbe`, the cc layer trace of `Tools/GameReference/layers.cjs`, the markup
+  rendered both ways at 1 and 1.65). A fixed `sv-top-layer` (inset 0, z-index max) holds a box with a leather gradient,
+  a border, Lato 14px/1.6, over a parchment page:
+  - *In the main frame,* two layers every time: the page's scrolling background (opaque, LCD) and `SV-TOP-LAYER` (not
+    opaque). Its LCD is `none` for the plain box. It is `background-color-not-opaque` with a 2 px radius, the
+    `0 10px 30px` shadow, both (the tooltip), a solid colour with both, or a translucent background.
+  - *In the iframe,* one layer (everything LCD), unless the iframe's page overflows: then the top layer is an `Overlap`
+    layer, grayscale, as in the main frame.
+  - *The pixels:* Chromium against itself (main frame against iframe, the 800 × 600 tooltip scene) differs in 2,777 pixels
+    past 12 levels at 1 (0.58 %) and 5,234 at 1.65 (0.40 %). Step 8 measured 2,830 and 5,515 between the engine and its
+    iframe fixture.
+- **What changed:** `Tools/PaintReference` takes a fixture field `mainFrame: true`. The fixture's page is the own document
+  of a `WebContentsView` of the fixture's size over the window, and everything else is done the same. A fixture without
+  the field is captured exactly as before: the `stylesheet-rule` and `chunk-text` lists captured again came out byte for
+  byte, their rectangles and computed values too.
+  - *Sizes:* a main-frame fixture's size must be whole DIPs, so use sizes that are whole device pixels at 1.65 (multiples
+    of 20 px). An iframe can be 664.85 px tall where a view can't, and a layout a fraction apart moves every pane.
+  - *When to use it:* for any screen with a fixed box or a box composited apart from the page's layer over it: the top
+    layer (tooltips, select lists, validation bubbles) and fixed dialogs or overlays.
+  - *The engine's fixtures:* `Ui/TopLayerReferenceTests` (`Reference/top-layer-fixtures.json`, main-frame, 480 × 240,
+    a page with two lines of text and boxes in its top layer), each at 1 and 1.65 against Chromium's main frame, pixels
+    past 12 levels (limits 230 and 627):
+    - `top-layer-tooltip`, the tooltip, two lines and one: 8 and 48. The same markup in an iframe (recorded, not a
+      test) differs from the engine in 3,385 pixels at 1 (2.94 %) and 6,564 at 1.65 (2.09 %).
+    - `top-layer-plain`, the two-line box alone without radius or shadow (LCD): 0 and 0.
+    - `top-layer-radius`, the radius alone (grayscale): 4 and 24. Its box has a height of whole pixels, so its gradient
+      is one tile and only the rounded clip ends the analysis.
+    - `top-layer-shadow`, the shadow alone (grayscale): 0 and 0.
+    - The test also checks each fixture's layers as the main frame's trace has them (the page's layer opaque with LCD;
+      the top layer an overlap layer, not opaque, its reason the fixture's), at both scales.
+    - *A layer has one rect known to be opaque:* with two boxes even the plain one is grayscale in Chromium's main frame
+      and in the engine (the second box's text is off the layer's opaque rect). The variations have one box each.
+- **The editor's screens** have no fixed boxes. `checks-problems` and `references-list` at 1.65 composite the same in
+  Chromium's main frame as in its iframe (six and eight layers).
+
 ## Status (2026-10-25)
 
 **All 22 game screens composite exactly like Chromium** (`CompositingReferenceTests`: every screen
@@ -147,6 +209,8 @@ The old heuristics (ScanLayerEffects, grayscale scopes) and the `SV_OLD_HINT` sw
   Text's verdict per chunk: `Tests/Statventure.Tests/Ui/ChunkTextLcdReferenceTests.cs` (the `chunk-text-lcd`
   fixture, its own list `Reference/chunk-text-fixtures.json`, Chromium 152 at 1 and 1.65 in
   `Golden/ui-chunk-text-lcd@*.png`: `Tools/Scripts/make-scaled-paint-references.sh <scale> 1 chunk-text-fixtures.json`).
+  A box in the top layer as the main frame composites it: `Tests/Statventure.Tests/Ui/TopLayerReferenceTests.cs`
+  (`Reference/top-layer-fixtures.json`, a main-frame fixture; "The iframe and the main frame" above).
 - **Debugging:** `COMPOSITING_CHUNKS=1 dotnet test … --filter "FullyQualifiedName~CompositingReference&DisplayName~shop"`
   lists each engine layer's first 40 chunks (owner, bounds, drawable, opaque rect, background colour,
   text flags, clip, effect). Blink sources for Chromium 152 are cached in
