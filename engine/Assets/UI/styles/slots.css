@@ -1,0 +1,27 @@
+/* The slot list, Load (GM1 step 10; Docs/Game/Foundation.md, "The slot list, Load"), and the damaged-save question: the
+   old windows' frame (a spell catalogue's dialog), the companions' toolbar for "Load Character…", the catalogue's rows
+   (.available-spell) with Open and Delete, and the old windows' status line (.spellbook-status). The question is the
+   confirm dialog's (dialogs.css) with three answers. Loaded after ui/styles/game. */
+
+.spell-picker-dialog.slots-dialog { width: min(620px, 100%); }
+.slots-dialog .slots-toolbar { padding: 12px 30px; }
+.slots-dialog .slots-list { padding-top: 18px; }
+.slots-dialog .slots-toolbar .backup-button { margin: 0; }
+.slot-row { padding: 11px 0 11px 13px; }
+.slot-row > div { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: 6px; }
+/* The time as the design writes it ("13 November 2026, 14:03"), not in the catalogue's capitals. */
+.available-spell.slot-row > div .slot-meta { display: flex; gap: 8px; letter-spacing: normal; text-transform: none; }
+.available-spell.slot-row > div .slot-meta span { letter-spacing: normal; text-transform: none; }
+.slot-row.is-damaged { --spell-accent: var(--blood); }
+.available-spell.slot-row > div .slot-damaged { color: var(--blood); font-weight: 700; }
+.slot-row .slot-open + .slot-delete { margin-left: -2px; }
+.slots-dialog .slots-list { padding-bottom: 12px; }
+.slots-dialog .slots-empty { min-height: 160px; }
+/* The old empty list's line is 32ch wide (game.css); the engine takes a ch as half an em where Blink measures the font's
+   "0", so the line keeps the width the approved captures show, 16em, in a unit both resolve alike. */
+.slots-dialog .slots-empty p { max-width: 16em; }
+.slots-dialog .slots-status { margin: 0; padding: 0 30px 20px; }
+
+/* The damaged-save question: the confirm's look (dialogs.css), its three answers in two rows, the backup's across both. */
+.damaged-save-dialog > .damaged-save-note { margin: 10px 0 0; }
+.damaged-save-actions .damaged-save-backup { grid-column: 1 / -1; }

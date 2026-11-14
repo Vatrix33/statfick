@@ -1,0 +1,43 @@
+/* The in-game file picker (GM1 step 10; GM1-P15; Docs/Game/Foundation.md, "Save Character and Load Character"): Save
+   Character and Load Character in place of the old native dialogs. The old windows' frame (a spell catalogue's dialog),
+   the places on the left, the folder's listing (only the rows near the view are made: rows of a fixed height, spacers
+   standing for the rest) and the file name field on the right, then Cancel and the action. Loaded after
+   ui/styles/game. */
+
+.spell-picker-dialog.picker-dialog { width: min(820px, 100%); }
+.picker { display: flex; gap: 18px; height: 460px; padding: 20px 30px 0; }
+.picker-places { display: flex; flex: none; flex-direction: column; gap: 4px; width: 160px; overflow: auto; }
+.picker-places-title { margin: 10px 0 2px; color: var(--soft); font: 700 .75rem/1.4 var(--font-ui); letter-spacing: .13em; text-transform: uppercase; }
+.picker-places .picker-place {
+  flex: none; overflow: hidden; padding: 7px 10px; border: 1px solid transparent; border-radius: 2px;
+  color: var(--ink); background: transparent; font: .875rem/1.4 var(--font-ui); text-align: left; text-overflow: ellipsis; white-space: nowrap;
+}
+.picker-places .picker-place:hover { border-color: var(--line); }
+.picker-places .picker-place.current { border-color: var(--line-strong); background: var(--ember-pale); }
+.picker-main { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.picker-bar { display: flex; flex: none; align-items: center; gap: 12px; margin-bottom: 10px; }
+.picker-bar .picker-up { margin: 0; }
+.picker-where { flex: 1; min-width: 0; overflow: hidden; color: var(--ink); font: 400 1.0625rem/1.4 var(--font-title); text-overflow: ellipsis; white-space: nowrap; }
+.picker-head, .picker-row { display: flex; gap: 12px; padding: 0 10px; white-space: nowrap; }
+.picker-head { flex: none; padding-bottom: 4px; border-bottom: 1px solid var(--line); color: var(--soft); font: 700 .75rem/1.4 var(--font-ui); letter-spacing: .1em; text-transform: uppercase; }
+.picker-name-cell { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.picker-size-cell { flex: none; width: 70px; text-align: right; }
+.picker-date-cell { flex: none; width: 160px; }
+.picker-listing { flex: 1; min-height: 0; overflow: auto; border: 1px solid var(--line); border-top: 0; background: var(--paper-deep); }
+.picker-listing:focus { outline: none; }
+.picker-listing:focus-visible { outline: 2px solid var(--ember); outline-offset: -2px; }
+.picker-row { height: 30px; color: var(--ink); font: .875rem/30px var(--font-ui); cursor: default; user-select: none; }
+.picker-row .picker-size-cell, .picker-row .picker-date-cell { color: var(--muted); }
+.picker-row.is-folder .picker-name-cell { font-weight: 700; }
+.picker-row.selected { color: #f6ecd2; background: #7a2a1d; }
+.picker-row.selected .picker-size-cell, .picker-row.selected .picker-date-cell { color: #f6ecd2; }
+.picker-empty { margin: 0; padding: 10px; color: var(--muted); font: .875rem/1.5 var(--font-ui); }
+.picker-field { display: flex; flex: none; align-items: center; gap: 12px; margin-top: 12px; }
+.picker-field span { flex: none; font: 700 .875rem/1.4 var(--font-ui); }
+.picker-field input { flex: 1; min-width: 0; padding: 9px 11px; border: 1px solid var(--line); border-radius: 2px; color: var(--ink); background: var(--paper); font: .875rem/1.4 var(--font-ui); }
+.picker-message { flex: none; min-height: 21px; margin: 6px 0 0; color: var(--blood); font: .8125rem/1.6 var(--font-ui); }
+.picker-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 30px 26px; }
+.picker-actions .backup-button { justify-content: center; margin: 0; padding: 12px; }
+/* The action in the ember of the dialogs' action (dialogs.css), as specific as the Gothic theme's buttons, which it
+   follows (their hover still wins). */
+.picker-dialog .picker-actions .picker-accept { border-color: var(--ember); color: var(--ember-dark); }

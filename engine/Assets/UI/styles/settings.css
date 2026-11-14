@@ -1,0 +1,40 @@
+/* The settings screen (GM1 step 10; Docs/Game/Foundation.md, "The settings screen"): the old settings window
+   (index.html 26–62, game.css's .settings-* rules) grown. Its header, its "Sound volume" row's look (taken by each of the
+   three volumes) and its sections' look are game.css's; these rules only add what the new rows need: a section's
+   heading that isn't a control's label (Zoom, Mods), the zoom's buttons, and the mod list, whose rows are the old
+   catalogue's (.available-spell), their stripe the mod's state. Loaded after ui/styles/game. */
+
+/* A section's heading as the old sections' labels look (.settings-section > label). */
+.settings-content .settings-heading {
+  display: block; margin: 0; color: inherit;
+  font: 700 .9375rem/1.5 var(--font-ui); letter-spacing: normal; text-transform: none; text-shadow: none;
+}
+
+/* The three volumes are the old "Sound volume" row each; the music row says what theme plays (Q15: none in GM1). */
+.settings-content .settings-volume .settings-current-track { margin-top: 8px; padding-top: 0; border-top: 0; }
+
+/* The zoom: its percentage as the volumes' value, the menu's three zoom items as buttons. */
+.settings-zoom { display: flex; gap: 8px; }
+.settings-zoom .backup-button { flex: 1 1 0; justify-content: center; margin: 0; }
+
+/* The mod list: the old catalogue's rows, the stripe the mod's state (loaded, off, left out). */
+.settings-mod-list { margin-top: 14px; }
+.settings-mod-list .settings-mod { align-items: flex-start; padding: 11px 13px; }
+.settings-mod.is-loaded { --spell-accent: var(--sage); }
+.settings-mod.is-off { --spell-accent: var(--soft); }
+.settings-mod.is-left-out { --spell-accent: var(--blood); }
+.settings-mod .settings-mod-text { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: 4px; }
+.settings-mod .settings-mod-text strong { color: var(--ink); font: 400 1rem/1.3 var(--font-title); overflow-wrap: anywhere; }
+.settings-content .settings-mod .settings-mod-meta { color: var(--muted); font: .75rem/1.4 var(--font-ui); letter-spacing: .03em; }
+/* The file's name as it is (names differ by case): not the catalogue's capitals. */
+.available-spell.settings-mod .settings-mod-file { letter-spacing: normal; text-transform: none; }
+.settings-content .settings-mod p { margin: 0; font-size: .8125rem; line-height: 1.5; overflow-wrap: anywhere; }
+.settings-content .settings-mod .settings-mod-description { color: var(--ink); }
+.settings-content .settings-mod .settings-mod-state { color: var(--muted); }
+.settings-content .settings-mod.is-loaded .settings-mod-state { color: var(--sage); }
+.settings-content .settings-mod.is-left-out .settings-mod-state { color: var(--blood); }
+.settings-mod .settings-mod-side { display: flex; flex: 0 0 auto; flex-direction: column; align-items: flex-end; gap: 6px; max-width: 132px; }
+.settings-mod .settings-mod-switch { display: flex; align-items: center; gap: 8px; font: 700 .8125rem/1.4 var(--font-ui); }
+.settings-mod .settings-mod-switch input { width: 18px; height: 18px; margin: 0; accent-color: var(--sage); }
+.settings-content .settings-mod .settings-mod-next-start { color: var(--ember-dark); font-size: .75rem; text-align: right; }
+.settings-content .settings-mods-empty { margin-top: 14px; }

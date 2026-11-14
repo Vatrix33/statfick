@@ -555,7 +555,10 @@ is open.
   (`[NotAPackKind]`). (Not offered like any kind.)
 - Q27 (2026-11-14, raised by step 6's measurement), the mod check's start time: keep the full check (+73 ms with one
   small mod, +232 ms with five, +111 ms with one of 2,056 entries, before the window opens). (Not a lighter check of the
-  files and kinds only.)
+  files and kinds only.) **Asked again** (2026-11-14, after steps 6b and 6c: +259 ms, +303 ms, +296 ms; +501, +1,669 and
+  +527 ms before the two jobs): **"Accept it"**, the recommended option, the check as it is. (Not a cache of the game's
+  side in the player's folder; not the lighter check.) Left for later: ready-to-run publishing at GM18, the game sharing
+  the check's reading of its stylesheet.
 - Q28 (2026-11-14, raised by step 6), the editor's Import and a character file: Import refuses a record of a kind marked
   as not a pack kind (the save), so nothing in the editor makes a save entry; the mod check unchanged. (Not Import left
   as it was.)
@@ -2087,3 +2090,12 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   engine's select list zoomed its font twice (fixed); the engine's glyf cache, keyed by a FreeType face's address, gave a
   face a freed face's answer (fixed); seven of step 5's tests raced the storage writer (fixed); the port's sheets reached step 2's About stub's credits headings (one rule there)
   (`Docs/Game/Foundation.md`, "How it works", step 8).
+- **2026-11-14, GM1 step 10 done (the branch `gm1-step10`):** the settings screen with the mod list, the slot list, the
+  damaged-save question and the in-game file picker (GM1-3, GM1-4, GM1-10, GM1-12, GM1-13, GM1-P15; Q1, Q3, Q9, Q13, Q15,
+  Q17, Q18, Q21–Q25, Q29), their looks and wordings approved by the user as captured; Q27's second answer, "Accept it"
+  (the mod check's cost as it is), recorded. The three volumes, the theme, the zoom, full screen, Dev Mode and the mods'
+  switches applied at once and kept in `settings.json`; the slots opened, deleted and their damaged saves answered; Save
+  and Load Character through the picker (Documents, home, the roots, the recent places; only the rows near the view
+  made). Against Chromium: 28 fixtures as the main frame, all within the limits but the picker's eight at 1.65, held
+  with the user's word (Q34). Found: the engine's `ch` and `ex` are half an em (`Docs/Engine-Plan.md`, small tasks)
+  (`Docs/Game/Foundation.md`, "How it works", step 10).

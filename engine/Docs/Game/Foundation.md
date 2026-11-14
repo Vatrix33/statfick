@@ -158,6 +158,12 @@ Q18, Q22, Q23 and Q25**. Recorded in `Docs/Game-Plan.md`, "Decisions for GM1", t
   ms with one small mod, +1,440 ms with five, +515 ms with one of 2,056 entries): measured by step 6 on 2026-11-14 and
   gone to the manager ("How it works", step 6). Step 6b then made the full check cheaper with no result changed (+359 ms,
   +386 ms and +385 ms; "How it works", step 6b), and step 6c more (+259 ms, +303 ms and +296 ms; "How it works", step 6c).
+  **Q27's second answer** (the user, 2026-11-14, the question tool, asked again by the manager after steps 6b and 6c with
+  those numbers: +259 ms with one small mod, +303 ms with five, +296 ms with one of 2,056 entries, the wall time, all
+  before the window opens; +501, +1,669 and +527 ms before the two jobs, +73, +232 and +111 ms when first accepted):
+  **"Accept it"**, the recommended option: the full check stays as it is, its cost accepted. (Not a cache of the
+  game's side of the check kept in the player's folder; not the lighter check of the files and kinds only.) Recorded by
+  step 10; the ideas left for later are in "Mods: the list and the check at start".
 - **Q28, the editor's Import and a character file** (the user, 2026-11-14, asked by the manager; raised by step 6, after
   Q26 left Import open): **"Import refuses it"**: importing a record's JSON form of a kind marked as not a pack kind (the
   save) is refused, in the editor's words ("a save game (save.game) isn't something a mod can hold"), so nothing in the
@@ -754,7 +760,11 @@ dialog (a question, a text field, OK, Cancel), in the old dialogs' look (capture
   ms with one small mod, +386 ms with five, +385 ms with one of 2,056 entries (the plain check on the same `main`: +7,
   +501, +1,666 and +508 ms). **And by step 6c (2026-11-14, on `96164e7`; "How it works", step 6c), every result the
   same:** +10 ms with none, +259 ms with one small mod, +303 ms with five, +296 ms with one of 2,056 entries (6b's on the
-  same `main`: +3, +356, +406 and +395 ms).
+  same `main`: +3, +356, +406 and +395 ms). **Accepted by the user as it is (Q27 asked again, 2026-11-14, "Accept it",
+  the recommended option; recorded by step 10):** not a cache of the game's side in the player's folder, not the
+  lighter check. **Left for later:** publishing the game ready to run (ReadyToRun, the code's first run: about 185 ms of
+  the first mod's cost) at GM18, where the downloads are made; the game sharing the check's reading of its stylesheet
+  once both read it at the start (step 6c's third cut: about 47 ms of reading and 62 ms of reading it as a stylesheet).
 - **The shortcuts' rule** (step 6b): the full check, made cheaper only where no result can change. The game's records are
   read and checked alone once per mount; each is checked with the game's data once, what it asked the data and the lookup
   recorded, and checked again with a mod's data only when the mod holds a path it asked about or one below a folder it
@@ -1156,6 +1166,18 @@ small mods, +111 ms with one mod of 2,056 entries.
   play, at a cost under a quarter of a second for several mods.
 - (b) **A lighter check at the start:** the files and the kinds only, values and references checked when used.
 - **Answer (the user, 2026-11-14): (a).**
+
+**Q27, asked again** (by the manager on 2026-11-14 after steps 6b and 6c, the question tool; Q4's rule: the added time
+measured, the user asked again if noticeable). After step 1a put the game's stylesheet in `ui.pak` the full check had cost
++501 ms with one small mod, +1,669 ms with five, +527 ms with one of 2,056 entries; steps 6b and 6c made it cheaper with
+no result changed: +259 ms, +303 ms and +296 ms (the wall time, Release, medians, all before the window opens). The
+options as the manager gave them to step 10, which recorded the answer:
+- (a) **Accept it:** the full check as it is now. *Recommended.*
+- (b) **A cache of the game's side in the player's folder:** step 6c's first exact cut (the game's records' checks kept
+  from one start to the next, keyed by the packs' index hashes; about 300 ms of the first mod's cost).
+- (c) **The lighter check:** the files and the kinds only, values and references checked when used.
+- **Answer (the user, 2026-11-14): (a).** Left for later (recorded in "Mods: the list and the check at start"):
+  ready-to-run publishing at GM18, and the game sharing the check's reading of its stylesheet.
 
 **Q28. The editor's Import and a character file** (raised by step 6, asked by the manager on 2026-11-14; Q26 left Import
 open). The editor's Import takes any record's JSON form of a kind the game knows; a character file (the save's JSON form)
@@ -1586,6 +1608,22 @@ stays as it is until the manager's ok (the recapture's freeze).
       the verdict: every setting applied and kept; Open, Delete and the damaged-save choices on scratch slots; Save and
       Load Character through the picker on scratch folders (never the real Documents); the screens matching Chromium.
       Mutations: each rule. User approval: those screens.
+    - **Done (2026-11-14, the branch `gm1-step10`; "How it works", step 10):** the looks and wordings approved by the user
+      as captured (both themes); Q27's second answer ("Accept it") recorded; the manager's eight choices accepted, the
+      status lines' rule and the coordination with step 9 (its page plays `game-opened`; `open-slot` for a damaged slot).
+      - *The choices:* the zoom as three buttons calling the menu's zoom commands, each disabled where it would do
+        nothing; the theme a select, full screen, Dev Mode and the mods' switches the old window's checkbox; the music row's
+        theme line under it; a mod's row the old catalogue's, its stripe the state's colour; the damaged-save question's
+        three answers in two rows, the backup's focused (else Start new), Escape Back; Save in Documents, Load in the most
+        recent place; a typed name saved as typed; the picker's places, columns and words; the picker closing before its
+        status; the slot list's line showing a status only while it is the topmost window; Delete's focus on the row in
+        the deleted one's place; the screens' times "13 November 2026, 14:03" in the player's zone; the picker's rows 30 px,
+        10 made beyond the view each side.
+      - *Outside the step's folders, with the manager's leave:* `GameUiHarness` (`PlayerFolder`, `Storage`, `Game`),
+        step 2's `StartSequenceTests` (one test), the engine's `UiResourcesTests.Stylesheets`, and the one hook in
+        `GameScreenTests` for `Ui/HeldScreens.cs` (Q34's holds: the picker's eight fixtures at 1.65).
+      - *Found:* the engine's `ch` and `ex` are half an em (Blink measures the font); the 1.65 layout precision (Q34) met
+        by the picker; PaintReference's focus after its scroll scrolls a focused element back into view.
 11. **End to end, the package check and the Windows items.** After 2–10; GM1-P12 decided.
     - Owns: `Tools/Packaging/end_to_end.py`, `Tools/Scripts/end-to-end.sh`, the game's in-process flow test in
       `Tests/Statventure.Game.Tests/EndToEnd/`, the listings if the game's files changed since step 2,
@@ -3607,6 +3645,226 @@ Documents folder's top level) unchanged through every run.
 press, the keys through a real keyboard layout other than US; Electron's VKEY of a key follows the layout, ours the key's
 character); the sounds by ear in the game (the patches were approved by ear in step 4).
 
+### Step 10: the settings screen with the mod list, the slot list, the damaged-save question, the file picker (2026-11-14, the branch `gm1-step10`)
+
+**Decided on the way.** The user (2026-11-14, the question tool, through the manager, after the step's 28 captures at 1×
+in both themes): **the looks and the wordings approved as captured** (every wording below), and **Q27's second answer,
+"Accept it"** ("The detail round"; "Mods: the list and the check at start"). Q34 (the user's word, 2026-11-14, through
+the manager, raised by step 9): at 1.65 the engine lays boxes out a hair off Chromium's, fixed as an engine task of its
+own (`gm1-layout-scale`), a comparison failing on it held until then (below). The manager (2026-11-14): the step's eight
+choices accepted (the zoom as three buttons calling the menu's zoom commands, each disabled where it would do nothing;
+the theme a select and the switches the old settings window's checkbox; the music row's theme line under it; the
+damaged-save question's focus and order; Save starting in Documents and Load in the most recent place; a typed name
+saved as typed; the picker closing before its status; Delete's focus on the row taking the deleted one's place); **one
+rule for the status lines**: `Ui.Status` the one channel, a status line showing a message only while its owner is the
+topmost surface (the slot list's while it is the topmost window; step 9's page and start screen's while no window is
+open); **with step 9**: it opens a character itself for Continue and New character and runs `open-slot` only for a damaged
+one, its page follows the session's `Opened` and `Closed` whoever opened the character and plays `game-opened` there (so
+step 10's screens never play it), the slot list closes itself on `Opened`; the leave for step 2's
+`StartSequenceTests.ACommandNotRegisteredYetDoesNothingAndIsLogged`, the engine's `UiResourcesTests.Stylesheets` and
+`GameUiHarness` (additive members); `make-ui-pack.sh` run under the shared lock (its scratch folder is one for every
+worktree) and the pack's entries checked after.
+
+**The approved wordings.**
+- *The settings screen* (the old window's header "PREFERENCES" / "Game *settings*"): "Master volume" — "Every sound of the
+  game. 0% is silent."; "Music volume" — "Adjust regional and battle music. 0% is silent." (the old row's) and "Current
+  theme: none playing" (Q15: no music in GM1); "Effects volume" — "Buttons, windows and the game's events. 0% is silent.";
+  "Theme" ("Dark", "Light"); "Zoom" with its percentage, "Zoom Out", "Actual Size", "Zoom In" (the menu's role labels) and
+  "Ctrl+Plus or Ctrl+= zooms in, Ctrl+- zooms out, Ctrl+0 is the actual size."; "Full screen" — "F11 switches it too.";
+  "Dev Mode" — "Unlocks editing the attributes, bonuses and money, the EXP form, restoring HP and Mana, adding spells and
+  items from the catalogues, the combat test, levelling without EXP and any race. The same for every character."; "Mods"
+  — "The .pak files in the mods folder, in the order they load. Switching one on or off takes effect when the game is
+  next started."; a mod's row: its name, "1.0 · by Vatrix · ember-rite.pak" (version, "by" its author, its file, those
+  given), its description, its state "Loaded", "Off" or "Left out: <its first problem in the editor's words> (and n
+  more)", its switch "On", and beside a switch changed since the start "Takes effect when the game is next started.";
+  with no mods "No mods. A mod is a .pak file in the mods folder of the game folder (Menu › Open game folder)."
+- *The slot list*: "LOAD" / "Your *characters*"; "Every character saved here, the last played first." and "Load
+  Character…"; a row: the name, "Damaged" when its save doesn't read, "13 November 2026, 14:03", "Open", "Delete"; none:
+  "No characters yet. New character on the start screen makes one, and Load Character… loads a character file."; Delete:
+  "Delete Ser Alrik? Its save and its backup are removed." with "Cancel" and "Delete".
+- *The damaged-save question*: "<Name>'s save is damaged." and "Whatever you choose, the damaged file is kept aside in the
+  saves folder."; "Back", "Start new", "Use the backup (saved 12 November 2026, 08:30)".
+- *The file picker*: "STAT FICK CHARACTER" (the old native dialogs' filter's name) / "Save *character*" or "Load
+  *character*"; places "Documents", "Home", the roots as their paths ("/"), "Recent" and each recent folder by its name;
+  "Up" (its tooltip "The folder above (Backspace)") and the folder named from the place that holds it ("Documents / old
+  saves"); columns "Name", "Size", "Modified", a folder written "name/", sizes "64 bytes", "1.5 KB"; "File name";
+  "Cancel" and "Save" or "Load"; under the listing "No folders or .json files here.", "Type a file name.", "Choose a
+  file.", "<typed> isn't there.", "<typed> isn't a path here.", "<folder> isn't there."; the replace question
+  "stat-fick-character.json is already in this folder. Replace it?" with "Replace"; the status lines the old game's
+  "Character saved", "Character could not be saved", "Loaded <file>", and the session's "That file is not a valid
+  character save" (with ": <the check's problem>" when the save's check refuses it).
+
+**The settings screen** (`Screens/Settings/SettingsScreen.cs`, `Assets/UI/styles/settings.css`; its command
+`open-settings`, so `--open settings`): the old window's markup (`old-game/index.html` 26–62) as text, grown: each of the
+three volumes the old "Sound volume" row (a label with its percentage, a 0–100 slider, a help line), the music's with the
+theme line (the old `.settings-current-track` moved under it; GM1 starts no theme), then the old sections' look for the
+theme's select, the zoom (its percentage in the volumes' heading look, three `.backup-button`s), full screen and Dev Mode
+(the old "Combat animations" checkbox) and the mods. Opened: its values as the settings have them, the first slider
+focused (the old window focused its slider); asked again while open: left as it is. A slider applies while it moves (its
+`input`: `GameSettings.MasterVolume` …, written to `settings.json` by the storage's writer) and asks `ui-press` when let go
+(its `change`: so the press sounds at the new level, Q13; a key's step is its own let-go); the theme's select, the boxes
+and the zoom's buttons (the commands `zoom-out`, `zoom-reset`, `zoom-in`, so they clamp as the keys do) apply at once.
+The screen follows `Settings.Changed` while open, each control alone (F11, the zoom keys, a setting changed elsewhere),
+the mods' switches in place, so the focus stays on the box clicked. The zoom's percentage is 1.2 to the level's power in
+whole percent, rounded half away from zero (`ZoomText`: 110 %, 91 %, 500 % at the clamped end); Zoom Out is disabled at
+the smallest level, Zoom In at the largest, Actual Size at 0. **The mod list** (`GameMods.Entries` in mounting order):
+each mod a row of the old catalogue (`.available-spell`), its stripe the state's colour (sage loaded, soft off, blood left
+out); name, the meta line (the version, "by" the author, the file's name: the file's name in its own case, the rest in the
+catalogue's capitals), the description, the state's words (`StateText`), the switch (checked while the settings have it
+on; a change is `GameMods.Switch`, kept in `settings.json`); the next-start line while `SwitchedSinceStart` (added and
+taken away in place as the switch changes). The screen's sheet is asked with `UseStylesheet` at `Attach`.
+
+**The slot list** (`Screens/Slots/SlotsScreen.cs`, `ScreenTimes.cs`, `Assets/UI/styles/slots.css`; its commands
+`open-slots` and `open-slot <slot>`): the old catalogue window (a `.spell-picker-dialog`, `index.html` 375–392), the
+companions' toolbar (957–962) holding "Load Character…" (it runs `load-character`), the rows (`.available-spell` with two
+`.available-spell-add` buttons; `GameSession.Slots()`, the last played first; the name the session gives: the save's, the
+backup's, else the file's), the old empty list's look (`.spell-list-empty`), and a status line of its own
+(`.spellbook-status`, `is-error` for a problem, `is-success` for news). **The times** (`ScreenTimes.Write`): "d MMMM
+yyyy, HH:mm" in invariant English, in the screen's time zone (the player's, `TimeZoneInfo.Local`; a test's own). **The
+status line** shows what `Ui.Status` says while the list is the topmost window, so a character file refused after "Load
+Character…" (the picker closed first) shows there alone; emptied when the list opens. The list follows
+`Session.SlotsChanged` while open and closes on `Session.Opened` (Open, the question's answers, Load Character, or a
+character opened anywhere). **Open** runs `open-slot`: a slot whose save reads opens (`GameSession.Open`); one whose save
+doesn't asks the damaged-save question; `open-slot` without a slot is logged and does nothing. **Delete** asks
+`Dialogs.Confirm` (its action focused, Q29), then `GameSession.Delete` and `game-deleted`; the focus goes to the Open of
+the row now in the deleted one's place, else the one before it, else "Load Character…". **The damaged-save question**:
+the confirm dialog's look (the old alert dialogs, `index.html` 797–824, with step 8's `game-dialog` classes, so
+`dialogs.css` styles it) with three answers: Back and Start new in a row, "Use the backup (saved <time>)" across the row
+under them, only when the backup reads (`OpenResult.Backup` is `Readable`; its time the backup file's, in the screen's
+zone); the focus on the backup, else on Start new (the action's look then too); Escape and Back close it and change
+nothing; Start new (`GameSession.StartNew`, the name the question shows, Q25) and Use the backup
+(`GameSession.UseBackup`) write the slot and open it, the damaged file kept aside by the engine.
+
+**The file picker** (`Screens/Picker/PickerScreen.cs`, `FilePicker.cs`, `Assets/UI/styles/picker.css`; GM1-P15: the
+game's own view on the engine's `FileBrowser` model, not the editor's code; its commands `save-character`, possible only
+while a character is open, and `load-character`, bound to Ctrl+S and Ctrl+O by the document): a window of the old
+catalogue's frame (820 px): the places on the left (Documents, home, the roots, then "Recent" and the recent places that
+are folders now: `GameSettings.RecentPlaces`), on the right Up and the folder's name, the listing (`FileBrowser.List` with
+the `.json` ending: folders, then the files, each by `NameOrder`; a row's size and date) and the "File name" field, a line
+for what can't be done, Cancel and the action (the dialogs' ember). **Rows near the view only:** rows of a fixed 30 px
+(`FilePicker.RowHeight`, the sheet's `.picker-row`), those in the listing's view and 10 more on each side made between two
+spacers as high as the rows they stand for, made again when the listing scrolls past them; a selection moves among the
+rows made (they keep their elements, so a double click's second press meets the first's row) and scrolls into view at the
+nearest edge. **The keys:** in the listing the arrows, Home and End select, Enter opens a folder or picks a file (as a
+double click), Backspace goes up; in the field Enter reads what is typed (`FileBrowser.ReadPath`: a folder is gone to and
+the field emptied, a file picked, to save a new name too; else "<typed> isn't there." / "<typed> isn't a path here."), Tab
+completes its last name when that changes it (`FileBrowser.Complete`). **Save:** starts in Documents
+(`DocumentsFolder.ForThisMachine`) with `stat-fick-character.json`, the field focused and the name before its ending
+selected; a file row selected puts its name in the field; a file that is there is replaced only after the question;
+`GameSession.Export` then "Character saved" (`game-saved`) or "Character could not be saved" (a problem, `ui-refused`); a
+name is saved as typed (no ending added, as the GTK dialog the old game had). **Load:** starts in the most recent place
+that is a folder now, else Documents, the listing focused; `GameSession.Import`: a new slot that opens and "Loaded
+<file>" (the page plays `game-opened`, step 9's), or the session's problem (`ui-refused`). **Both:** the picker closes
+before its status is said, so the status shows where the action was taken (the slot list's line, or step 9's page or
+start screen); the picked file's folder becomes the first recent place; one picker at a time; Escape, ×, the backdrop and
+Cancel cancel, and so does the window closed by anything else. **Seams for the tests** (internal): `Documents`, `Home`,
+`Roots`, `Listing`, `FolderIsThere`, `FileIsThere`, `TimeZone` (the fixtures list folders of their own, so no path of
+the machine is in a screen), `Open` (the picker open now).
+
+**The sounds:** a press, a box or a select, and a window opening or closing sound by step 8's document; the screens ask
+`ui-press` for a slider let go, `game-deleted` after Delete, `game-saved` after a file written, `ui-refused` for a file
+that couldn't be written or that isn't a character; never `game-opened` (the page's). One sound per action, the one that
+says most (step 8): a confirmed Delete sounds `game-deleted` only.
+
+**What steps 9 and 11 need.** Commands: `open-settings` (`--open settings`), `open-slots` (`--open slots`), `open-slot
+<slot>`, `save-character`, `load-character`. Log lines: `[Settings] the settings screen opened`, `[Slots] the slot list
+opened`, `[Slots] the damaged-save question for <slot> (its backup missing|readable|damaged)`, `[Picker] the file picker
+opened to save|load in <folder>`, `[Ui] status (Info|Problem): <text>`. Markup: `#settings-modal` (`#master-volume`,
+`#music-volume`, `#effects-volume`, `#game-theme`, `#zoom-out`, `#zoom-reset`, `#zoom-in`, `#game-fullscreen`,
+`#dev-mode`, `.settings-mod[data-mod="<file>"]` with `.settings-mod-state` and `.settings-mod-next-start`,
+`.settings-mods-empty`), `#slots-modal` (`.slot-row[data-slot="<slot>"]` with `.slot-open`, `.slot-delete`,
+`.slot-damaged`; `#slots-load-file`, `#slots-status`), the question (`.damaged-save-layer`: `.damaged-save-back`,
+`.damaged-save-new`, `.damaged-save-backup`), the picker (`.picker-layer`: `#picker-name`, `#picker-accept`,
+`#picker-listing`, `.picker-row[data-index]`). Step 9's status lines follow the manager's rule (no window open).
+
+**What the parts lacked:** nothing; every member the screens use was there (`GameSettings`' setters, `IsModOn`,
+`RecentPlaces`/`AddRecentPlace`; `GameSession`'s `Slots`, `Open`, `UseBackup`, `StartNew`, `Delete`, `Export`,
+`Import`, its events; `GameMods.Entries`/`Switch`; `GameUi`'s windows, commands, dialogs, `Status`/`StatusShown`,
+`Sound`, `UseStylesheet`).
+
+**The screens against Chromium** (GM1-P17): `Tests/Statventure.Game.Tests/Screens/StepTenScreenFixtures.cs` (28: the
+approval's 14 scenes in both themes, 1000 × 860, whole device pixels at 1.65), on `ScreenParts.cs` (the three screens
+attached to parts made on `GameUiHarness`: its settings, a session on its scratch per-user folder, mods checked there
+over no game data; the scenes the same on every machine: fixed names, contents and file times, the times shown in UTC,
+the picker's folders a listing of its own under `/home/player`); `Reference/game-screen-fixtures.json` written by the
+tests (41 fixtures, no machine path in it); the goldens captured with `make-game-screen-references.sh` inside a headless
+cage (2400 × 2400), as the main frame. Pixels past 12 levels on the GPU (the limit 0.2 %, 1,720 at 1 and 4,682 at 1.65):
+the settings screen 63–663 at 1 and 2,343–3,862 at 1.65 (up to 0.16 %); the slot list 34–1,020 at 1 and 58–1,574 at
+1.65; the question 36–44 and 105–217; the picker 36–1,042 at 1 (up to 0.12 %) and the replace question 64 and 132 at
+1.65. **Held, with the user's word (Q34):** the picker's eight other fixtures at 1.65, 5,002–9,744 pixels (0.21–0.42 %):
+its 820 px dialog centred in 1000 px lies at 148.4937 device px in the engine and at 148.5 in Chromium (its name field
+611.4937 against 611.5; at 1× every box the same), so its side borders snap to device columns 148 and 1,500 against 149
+and 1,501 (4,240 of the 5,141 pixels of `picker-load-dark@1.65` on those four columns). `Ui/HeldScreens.cs` names them
+(why, whose word, when) and `GameScreenTests` checks a held one with each pixel allowed to meet the golden at its place or
+one device pixel either side along the row, at the same limits (549–2,417 pixels then, up to 0.10 %); turned off by
+removing its line, or for a run with `STATVENTURE_UNHOLD_SCREENS=1`; never at 1×. **The fixtures' own care:** a focus
+moved by a script right after a mouse press doesn't match `:focus-visible` in the engine (as in Chromium), but
+PaintReference focuses the fixture's element with no input before it, so the scenes reach their state by the keyboard or a
+command (Delete pressed with Enter, the damaged-save question by `open-slot`); PaintReference scrolls first and focuses
+after, and a focus scrolls its element into view, so the settings scenes scrolled down take the focus off the first
+slider first (`Blur`, as a press on the window's text does).
+
+**Found for the manager (engine):** the `ch` and `ex` units are half an em in the engine (`UI/Style/CssLength.cs` 47–48),
+where Blink measures the font's "0" advance and x-height: game.css's `.spell-list-empty p { max-width: 32ch }` laid the
+empty slot list's line out narrower than Chromium (4 lines against 3); `slots.css` gives that line 16em, the width the
+approved capture shows, in a unit both resolve alike. And the 1.65 layout precision (Q34) met by the picker.
+
+**Changed outside the step's folders** (the manager's leave): `GameUiHarness` gained `PlayerFolder`, `Storage` and `Game`
+(additive); step 2's `StartSequenceTests.ACommandNotRegisteredYetDoesNothingAndIsLogged` names a screen nobody registers
+(`--open nowhere`; `open-settings` is registered now); the engine's `UiResourcesTests.Stylesheets` names the three new
+sheets; `GameScreenTests.TheScreenPaintsLikeChromium` asks `HeldScreens` first (one hook; Q34). **`ui.pak`** made again
+under the shared lock: 14 entries (the five faces, their two licences, seven sheets), the same bytes when made again; the
+editor unchanged (`ui/styles` collapsed in its tree; no editor test or screen changed).
+
+**Tests** (`Tests/Statventure.Game.Tests/Screens/`, in the tests' root namespace; 106 new, the game's project 300 → 406,
+the engine's 4047 unchanged): `SettingsScreenTests` (17: the opening with the settings as they are, the first slider
+focused, once, closed by ×, backdrop and Escape; a slider dragged applying while it moves and pressing once when let go,
+by the keys too, read back from `settings.json`; changes made elsewhere shown, and not while closed; the theme, full
+screen and Dev Mode applied and kept; the zoom's buttons and their disabling at each end; the zoom's percentage, 5 rows;
+the mods in mounting order with every part of a row and each state; a switch kept, said in place with the focus kept,
+switched back, an off one switched on; a state's words, 4 rows; no mods); `SlotsScreenTests` (10: every slot the last
+played first with names, damage, times and labels, a damaged row's stripe; the player's zone for the list and the
+question; no slots; Open opening and the list closing, `open-slot` with and without a slot, no `game-opened`; the question
+with a backup that reads, its words, order and focus, Back and Escape changing no file; Use the backup; Start new as the
+action without one, by Enter, the file's name; Delete asked once, Cancel, Delete and its focus, row after row; the list
+following the slots and closing on a character opened; "Load Character…", a refusal on the list's line alone with a
+stand-in page line, a status said under another window or after the list closed not shown there, the line emptied at
+opening); `PickerScreenTests` (21: Save possible only with a character, Ctrl+S, its start in Documents with the name's
+stem selected, the listing's folders and `.json` files, a folder bold and the action the ember's; Save writing the file,
+"Character saved", `game-saved`, the recent place, a typed folder and name; replacing only after the question, by the
+button and from the listing; a save that can't be written, on Linux; typed paths, completion, the messages, Escape; Load
+by Ctrl+O, from the most recent place that is there, a double click, a new slot, "Loaded <file>"; a wrong file and a file
+its check refuses; the places and Up, the listing's keys, an empty folder; a folder named from the deepest place; only
+the rows near the view made, scrolled, the selection's rows kept; one picker at a time, closed elsewhere, ×, Cancel; the
+commands' names, keys and sheets; a size's words, 8 rows; the dates in the player's zone); `HeldScreensTests` (2: only the
+named fixtures and only at 1.65; a pixel's leeway along the row and no more); `GameScreenTests` 56 more rows (the 28
+fixtures at 1 and 1.65).
+
+**Shown able to fail** (`claude-work/gm1/step10/make-mutations.py` writes the lists; under the shared lock in a headless
+cage): **the code's rules, 150** (`mutations.json`, `mutate.py`, the functional tests only, so none rests on a golden):
+the settings screen 49, the slot list and the question 35, the picker 61, the holds 5: 144 killed at the first run, 4
+survived and 2 didn't build. The survivors were gaps, closed with new cases: a folder named from the shallowest place
+(Documents always came before home in the tests; now Documents holds home), a file selected to save not named (the field
+already held that name), ArrowUp from the first row or none (never pressed there), a size between 10 and 100 KB with a
+fraction; the two that didn't build rewritten as the same rule (`_` was the listener's event; an `if` left without its
+body). The rerun (`mutations-rerun.json`): 6 of 6 killed; the standing list, 150, all killed. **The sheets' rules, 16**
+(`css-mutations.json`, `css-mutate.py`: `ui.pak` made again for each, the screen comparisons): 12 killed; 3 changed fewer
+pixels than the limits (a damaged row's stripe, the picker's action's ember, a folder's name in bold), now checked by
+their computed values in the functional tests (`css-rerun.json`: 3 of 3 killed); 1 can't differ in the engine: the empty
+list's line without its 16em falls back to game.css's 32ch, which the engine resolves to the same 16em (the rule is there
+for Chromium, which measures `ch` by the font). Nothing written to the player's real folders.
+
+**Runs** (inside headless cages under the shared lock, scratch per-user folders, nothing audible; the step's commit on
+`acffb2a`): the full suite on the GPU (the engine's tests 2 min 49 s, the game's 47 s) and on lavapipe (2 min 56 s and
+56 s): 4047 + 406 = 4453 tests (`main`'s 4047 + 300 and 106 new), none skipped, `Reference/editor-fixtures.json`
+unchanged; `end-to-end.sh --publish --version 2026.11.14.10` on the GPU (the four archives published and checked, the
+game's Linux one 42.8 MB, 54 files; then the flow: 157 of 157 in 100 s) and on lavapipe (157 of 157 in 146 s), no
+expectation changed; the player's real folders unchanged (this machine's game folder and the Documents folder's top level).
+
+**Not checked:** Windows (the picker's roots as drive letters, the picker fixtures' paths, which are POSIX ones as the
+editor's browser fixture's; Q34's holds aside); a real window (the slider dragged with a real mouse, the picker's rows
+scrolled by a wheel); the sounds by ear in the game.
+
 ## Status
 
 **Step 5 done (2026-11-13, the branch `gm1-step5`; "How it works", step 5): the save record `save.game` v1, the
@@ -3740,6 +3998,21 @@ never showed in the desktop game (Electron makes `window.prompt` throw); the eng
 157 on both; every rule shown able to fail; the player's real folders unchanged. Found on the way and fixed: the port's
 sheets reached step 2's About stub's credits headings (one rule there). Not checked: Windows; a real window; the sounds
 by ear in the game.
+
+**Step 10 done (2026-11-14, the branch `gm1-step10`; "How it works", step 10): the settings screen with the mod list, the
+slot list, the damaged-save question, the file picker.** The looks and wordings approved by the user as captured (both
+themes); Q27's second answer ("Accept it") recorded. The settings screen (`open-settings`): the old settings window grown
+with the three volumes, "Current theme: none playing", the theme, the zoom, full screen, Dev Mode and the mods with
+their states and switches; every change applied at once and kept in `settings.json`. The slot list (`open-slots`,
+`open-slot`): the slots the last played first, Open, Delete, "Load Character…", a status line of its own; the
+damaged-save question with Back, Start new and the backup when it reads. The file picker (`save-character`,
+`load-character`, Ctrl+S and Ctrl+O) on the engine's `FileBrowser`: Documents, home, the roots, the recent places, only
+the rows near the view made. 28 Chromium fixtures captured as the main frame, all within the limits but the picker's
+eight at 1.65, held with the user's word (Q34: the engine's layout a hair off Chromium's at 1.65). Found: the engine's
+`ch` and `ex` are half an em. The full suite passes on the GPU and on lavapipe: 4047 + 406 = 4453 tests (`main`'s 4347
+and 106 new), none skipped; `end-to-end.sh --publish` 157 of 157 on both; mutations: the code's 150 all killed (4 gaps closed, 2 rewritten), the sheets'
+16: 15 killed, 1 that can't differ in the engine; the player's real folders unchanged. Not checked: Windows; a real
+window; the sounds by ear in the game.
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,

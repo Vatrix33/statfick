@@ -1135,8 +1135,10 @@ Namespace `Statventure.Storage`. Tests: `Tests/Statventure.Tests/Storage/`, data
   `FileBrowser.List` (folders first, then the files whose names end in the endings asked for, in any case, each
   by name ignoring case; hidden ones when asked), `ReadPath` (the path field's text read against the folder
   shown: a folder, a file, a new file's name, nothing, not a path) and `Complete` (its last name completed), and
-  `RecentPlaces` (ten, most recent first, kept by the caller): the editor's browser screen, and later the
-  game's Load Character, are built on it.
+  `RecentPlaces` (ten, most recent first, kept by the caller): the editor's browser screen, and the game's Save
+  Character and Load Character (GM1 step 10, `Game/Statventure.Game/Screens/Picker/`: Documents, home, the roots and
+  the recent places kept in `settings.json`; folders and `.json` files; `Docs/Game/Foundation.md`, "How it works",
+  step 10), are built on it.
 - **Open game folder** (`GameStorage.OpenInFileManager()`): makes the folder, then as Electron's
   `shell.openPath` (the old game's menu item): Linux `xdg-open <folder>` from its parent folder with
   `MM_NOTTTY=1`, not waited for (Electron's Wayland activation token isn't ported); Windows the shell's

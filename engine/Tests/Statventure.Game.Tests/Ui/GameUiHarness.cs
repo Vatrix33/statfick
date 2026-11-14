@@ -54,6 +54,15 @@ sealed class GameUiHarness : IDisposable
 
     public GameSettings Settings { get; }
     public GameUi Ui { get; }
+
+    /// <summary>The scratch per-user folder (its settings, saves and mods; GM1 step 10).</summary>
+    public string PlayerFolder => _folder["p"];
+
+    /// <summary>The per-user folder's storage, the settings' and a session's (GM1 step 10).</summary>
+    public GameStorage Storage => _storage;
+
+    /// <summary>The game the document was loaded for (no window; a screen's <c>GameParts.Game</c>, GM1 step 10).</summary>
+    public StatFickGame Game => _game;
     public AudioSystem? Audio { get; }
     public UiDocument Document => Ui.Document;
     public UiInput Input => Document.Input;

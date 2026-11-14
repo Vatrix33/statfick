@@ -67,6 +67,12 @@ public class GameScreenTests(GpuFixture gpu)
             if (reference.Width == width && reference.Height == height)
                 Mask(render, reference, masks);
         }
+        // A comparison held with the user's word checks what it can (HeldScreens; GM1 step 10).
+        if (HeldScreens.Held(name, scale) is { } why)
+        {
+            HeldScreens.MatchWithinAPixel($"game-screen-{name}@{GameScreenFixtures.ScaleName(scale)}", render, why);
+            return;
+        }
         Golden.Match($"game-screen-{name}@{GameScreenFixtures.ScaleName(scale)}", render, tolerance: 12, maxDifferentRatio: 0.002);
     }
 

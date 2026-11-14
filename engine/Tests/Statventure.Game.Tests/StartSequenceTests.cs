@@ -77,14 +77,15 @@ public class StartSequenceTests
     public void ACommandNotRegisteredYetDoesNothingAndIsLogged()
     {
         using var scratch = new ScratchFolder();
-        // The program's own screens, all stubs: no screen registers start-screen yet.
-        using var game = GameTesting.Game(scratch["p"], new GameOptions { Open = "settings" });
+        // The program's own screens: no screen registers start-screen yet, and none a screen named "nowhere" (step 10's
+        // registers open-settings).
+        using var game = GameTesting.Game(scratch["p"], new GameOptions { Open = "nowhere" });
         using var storage = new GameStorage(scratch["p"]);
         using var data = new VirtualFileSystem([]);
         var log = GameTesting.CaptureLog(() => game.Compose(storage, data));
         Assert.Contains("Info [Commands] start-screen: not registered yet, nothing done", log);
-        Assert.Contains("Info [Commands] open-settings: not registered yet, nothing done", log);
-        Assert.False(game.Parts!.Ui.Commands.Run("save-character"));
+        Assert.Contains("Info [Commands] open-nowhere: not registered yet, nothing done", log);
+        Assert.False(game.Parts!.Ui.Commands.Run("not-a-command"));
     }
 
     [Fact]

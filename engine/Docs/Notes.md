@@ -419,6 +419,21 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   - *The game's sheets reach whatever a screen puts in the game's document:* game.css's bare `h1, h2` and `h1, h2, h3`
     rules set the title font, the ink and a dark-mode shadow on any heading, beating what it inherits; step 2's About
     stub drew the engine's credits headings in STIX until a rule of its own kept them (found by `end-to-end.sh`).
+- 2026-11-14 (the PC, GM1 step 10's worker on the branch `gm1-step10`, 4047 + 406 = 4453 tests on the GPU and lavapipe):
+  **the settings screen with the mod list, the slot list, the damaged-save question, the file picker**
+  (`Game/Statventure.Game/Screens/Settings/`, `Slots/`, `Picker/`; `Docs/Game/Foundation.md`, "How it works", step 10).
+  Facts: the engine takes `ch` and `ex` as half an em, Blink from the font (game.css's `32ch` empty lists wrap narrower
+  than Chromium's; Engine-Plan.md, small tasks); at 1.65 a box centred on a half device pixel lies a hair left of
+  Chromium's (148.4937 against 148.5) and its borders snap a column away (Q34, held). Gotchas for screen fixtures:
+  PaintReference scrolls first and focuses after, and a focus scrolls its element into view, so a scrolled fixture must
+  not keep the focus on an element out of view (blur it first); a script focus right after a mouse press doesn't match
+  `:focus-visible` (in the engine as in Chromium) while PaintReference's script focus does, so reach a fixture's focus by
+  the keyboard or a command, not a click; a window `GameWindows.Open` put in the body is taken out again on close
+  (query it through the screen, not the document); the per-user folder isn't made until something is written there; a
+  fixture's markup must hold no machine path (the list file would change at every run): give the picker a listing of the
+  fixture's own; a sheet rule whose pixels stay under the comparison's 0.2 % needs a computed-style check of its own
+  (`element.Style`) to be shown able to fail; a mutation's `new` inside a `_ =>` lambda can't use the discard `_`
+  (it is the parameter); a scratch script run as a program needs its execute bit (`css-mutate.py` ran `run.sh`).
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).
