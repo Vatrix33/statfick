@@ -114,7 +114,7 @@ public class CompiledGameStylesTests
     {
         var parsed = GameStylesheets.Parsed;
         var compiled = GameStylesheets.Compiled;
-        Assert.Equal(2941, parsed.Rules.Count);
+        Assert.Equal(3159, parsed.Rules.Count);
         Assert.Equal(StylesheetText.Of(parsed, fontSources: false), StylesheetText.Of(compiled, fontSources: false));
         Assert.Equal(
             [

@@ -336,6 +336,19 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   a reference SVG placed at a fractional point needs a whole-pixel box and a view box offset, its CSS lengths a hair over
   the exact value (the layout truncates to 1/64 px); the worktree guard refuses a Bash line naming `source` or a path
   with "Source" in it: a small script in the scratch folder runs `env.sh` and `dotnet`.
+- 2026-11-14 (the PC, GM1 step 1b's worker on the branch `gm1-step1b`, 4010 + 223 = 4233 tests on the GPU and
+  lavapipe): **the recapture** (the 22 game goldens, `game-ui*.json.gz`, the layer traces and the tests' `styles.css`
+  from today's old game; comments as nodes; a zero percentage stays one; `Docs/Game/Foundation.md`, "How it works",
+  step 1b). Gotchas:
+  - *The scale-1 layer trace in a headless cage* needs a 1440 × 950 output: cage maximises the window, and at
+    2400 × 2400 the trace comes out 2400 wide. The 1.65 captures and trace want 2400 × 2400.
+  - *The map's capture* must wait for `#map-charting` to hide: since port task 8 the region is charted a slice per
+    frame.
+  - *A layout question against Chromium* is quickest as a fixture measured with `Tools/PaintReference --measure=layout`
+    (every element's rect; `Ui/FlexDefinitenessReferenceTests` reads them).
+  - *The engine has no `float`:* don't build a fixture on floats.
+  - *`0%` and `0px` were the same `Length`* until this step. A rule that asks "is it a percentage" must ask
+    `HasPercent`, never `Percent != 0`.
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

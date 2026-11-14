@@ -1758,7 +1758,9 @@ given, the screen) and the fixtures' record (an optional game), and the 10 new s
 - *`flex: 1` (a 0 % basis) in a column flexbox of indefinite height* gave the About dialog's content no height in the engine
   (the dialog 102 px high); the spec and, as far as known, Chromium take a percentage basis there as the content's size.
   Not checked against Chromium; the dialog uses `flex: 0 1 auto`, which both lay out alike (its fixtures). An item for the
-  engine's UI.
+  engine's UI. **Done (GM1 step 1b, 2026-11-14; `Docs/Game/Foundation.md`, "How it works", step 1b):** the engine's
+  `Length` held `0%` as `0px`, so the basis was a definite 0. A zero percentage now stays a percentage, as in Blink, and
+  the basis is the content's height, checked against Chromium with layout fixtures of its own at 1 and 1.65.
 - *Fixtures taller than 720 px came out cut at 1×* in a capture at the headless cage's default output (1280 × 720): the
 1× captures need the large output too (2400 × 2400, as M11's notes say for both scales).
 

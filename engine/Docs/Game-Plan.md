@@ -1869,7 +1869,8 @@ and waits for the user's go, asked when its milestone reaches it:
 - The 1.65 findings in UI the game uses (control labels a device pixel low, text grayscale in a composited box, beside a
   tall scroller or under a stacking context, a select's padding, a textarea's `line-height`, a positioned box with a
   z-index inside a scroller): the first milestone whose screen meets one (GM1 on).
-- `flex: 1` with a 0 % basis in a column flexbox of indefinite height (`Docs/Packaging.md`, Status, step 6).
+- `flex: 1` with a 0 % basis in a column flexbox of indefinite height (`Docs/Packaging.md`, Status, step 6). Done by
+  GM1's step 1b (2026-11-14): a zero percentage stays a percentage.
 - "publish fails when the repo is reached through a symlink": GM1's step 2, which owns the build and publish scripts
   (moved from GM18 by the manager, 2026-11-13). The "Windows check", items 1–9: GM18 (GM1's step 11 rewrites the items
   the game changes).
@@ -2042,3 +2043,11 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   Checked against Chromium filling the same outlines (the 83 uses, the 28 large, the rules; 1 and 1.65) and with the 11
   captured states laid out with the icons. For the manager: the UI's `line-height: normal` lines take a fallback's (an
   icon's) ascent but not its descent, which Chromium's take; no captured line meets it.
+- **2026-11-14, GM1 step 1b done (the branch `gm1-step1b`):** the recapture (GM1-1). The 11 states at 1 and 1.65 and
+  the layer traces are captured from today's old game, headless, and the tests' stylesheet copy is today's
+  (`Docs/Game/Foundation.md`, "How it works", step 1b, with what changed in each picture).
+  - *Two rules from Blink:* a comment is a node; a zero percentage stays a percentage, which closes the `flex: 1` item
+    in the list above.
+  - *The tests:* every game-screen test passes at its limits, and nothing is held.
+  - *For the manager:* the engine has no `float`.
+  - *The old game* can be unfrozen once this is on `main` (the manager's ok).

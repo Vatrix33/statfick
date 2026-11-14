@@ -87,8 +87,12 @@ async function captureInner() {
   Math.random = () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   try { Shop.open("blacksmith"); } finally { Math.random = random; }
   await wait(400); await snap("shop"); await closeAll();
-  await click("map-open-button"); await wait(800); await snap("map"); await closeAll();
-  await Combat.startEncounter(["Bandit", "Bandit Archer"], "UI capture", "normal"); await wait(1500); await snap("combat");
+  // The map charts the region you're in a slice per frame (port task 8: "Charting …" shown meanwhile): wait until it is done.
+  await click("map-open-button");
+  for (let i = 0, done = 0; i < 400 && done < 5; i++) { await wait(50); done = document.getElementById("map-charting")?.hidden ? done + 1 : 0; }
+  await wait(800); await snap("map"); await closeAll();
+  // startEncounter(enemyNames, openingNote, guildObjective, sparkling): no guild objective, no sparkling foes.
+  await Combat.startEncounter(["Bandit", "Bandit Archer"], "UI capture"); await wait(1500); await snap("combat");
   const json = JSON.stringify({ userAgent: navigator.userAgent, devicePixelRatio, states });
   throw new Error("OUT" + json);
 }

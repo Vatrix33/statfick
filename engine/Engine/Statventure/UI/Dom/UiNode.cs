@@ -55,6 +55,19 @@ public sealed class UiText : UiNode
 }
 
 /// <summary>
+/// A comment (<c>&lt;!--…--&gt;</c>), a node of the tree as in the DOM: it generates no box and draws nothing, and it keeps
+/// the text nodes on either side of it apart (they aren't one text node, though their text lays out as if it were, as
+/// Blink's comments have no layout object). Selectors don't see it: <c>:empty</c> ignores it, and the structural
+/// pseudo-classes and sibling combinators count elements only. Its data isn't in <c>textContent</c>.
+/// </summary>
+public sealed class UiComment(string data) : UiNode
+{
+    public string Data { get; set; } = data;
+
+    public override string ToString() => "<!--" + Data + "-->";
+}
+
+/// <summary>
 /// A UI element, modelled on the HTML DOM so the game's stylesheets apply as they are: a tag,
 /// attributes (id, class, data-*, aria-*, style), children, and interaction states for the
 /// pseudo-classes (hover, active, focus, disabled, checked).

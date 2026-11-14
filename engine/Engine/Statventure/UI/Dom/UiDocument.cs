@@ -468,6 +468,10 @@ public sealed partial class UiDocument
     /// <summary>A child was added (<paramref name="inserted"/>) or removed; <paramref name="next"/> is the node after where it is or was.</summary>
     internal void ChildrenChanged(UiElement parent, UiNode child, bool inserted, UiNode? next)
     {
+        // A comment changes no style and no box: selectors don't see it (:empty ignores it, the structural pseudo-classes
+        // and sibling combinators count elements) and it generates no box.
+        if (child is UiComment)
+            return;
         var features = Styles.Features;
         if (inserted && child is UiElement element)
             InvalidateStyle(element, subtree: true);

@@ -438,6 +438,8 @@ Found on 2026-11-13; `Docs/Game-Plan.md`'s GM1 section and "Cross-cutting" corre
    settlement (`shop.js` 502–506), `Combat.startEncounter`'s third parameter is now `guildObjective` (`combat.js` 6675,
    the capture passes `"normal"`), and today's stylesheet doesn't compile in the engine (`@property`,
    `-webkit-text-fill-color`; `background-clip: text` ignored). "Engine items the port will meet" doesn't list these.
+   (Step 1b, 2026-11-14: the shop needed no change, since the capture's hero starts in Alderkeep. The capture no longer
+   passes `"normal"`, and the map now waits for its charting.)
 10. `make-scaled-game-references.sh` (6–7) and `make-layer-references.sh` (5) say the tests write
     `Reference/game-capture.js`: no test does; the file is committed.
 11. `Docs/Assets.md`, "What exists" (dated 2026-11-02), gives `saveCharacter()` at `app.js` 1753, `exportBackup` 1780 and
@@ -1316,6 +1318,16 @@ stays as it is until the manager's ok (the recapture's freeze).
      byte; every game-screen test passing at its limits; each rule met ported and shown able to fail, or recorded as held
      with the user's word. User approval: none, unless something is to be held. Once merged, the manager gives the user
      the ok on the old game.
+   - **Done (2026-11-14, the branch `gm1-step1b`; "How it works", step 1b):** the 11 states at 1 and 1.65 and the two
+     layer traces captured again from today's old game, headless; the copy today's `styles.css` byte for byte.
+     - *The capture script:* two changes (`startEncounter`'s arguments; the map waits for its charting). The shop needed
+       none.
+     - *Two rules the captures met, ported from Blink:* a comment is a node (the text either side of it two nodes);
+       a zero percentage stays a percentage (`flex: 1`'s 0 % basis in a column of indefinite height is the content's
+       height: the known item, closed). Each has tests of its own (the second Chromium layout fixtures at 1 and 1.65),
+       and each is shown able to fail.
+     - *The tests:* every game-screen test passes at its limits, step 7's icon layout too; nothing masked beyond what was;
+       no existing reference moved; nothing held.
 2. **The game program and the real data library in place of the stand-ins; the seams.** Independent; GM1-P1–P4, P12,
    P14, P18.
    - Owns: new `Game/Statventure.Game/` (the application class, `Program`, `GameParts`, `Sounds/SoundNames`, and every
@@ -2737,6 +2749,172 @@ Chromium side.
 **Not checked:** Windows; italic text with an icon (none in the game: drawn upright); the icons in the real game's screens
 (steps 8–10 show them).
 
+### Step 1b: the recapture (2026-11-14, the branch `gm1-step1b`)
+
+GM1-1. The 11 game states were captured again from today's old game (`old-game/` as on `main`, frozen), at 1 and 1.65,
+with both layer traces. The tests' stylesheet copy is now today's. The new captures met two engine rules, both ported
+from Blink 152. Every game-screen test passes at its limits, and nothing is masked beyond what was.
+
+**The captures.** All were taken inside a headless cage (`claude-work/gm1/step1b/cage-run.sh`): nothing on the user's
+screen, no sound.
+- *`game-capture.js`* changed in two places:
+  - *Combat:* `Combat.startEncounter(enemyNames, openingNote, guildObjective, sparkling)`. The capture's third argument
+    (`"normal"`, which is now the guild objective) is dropped.
+  - *The map:* it charts its region a slice per frame (port task 8; "Charting …" shows meanwhile). The capture waits
+    until `#map-charting` is hidden (5 checks 50 ms apart, up to 20 s), then 800 ms as before.
+  - *The shop* needed no change. The capture's hero starts in Alderkeep, a castle city, so `Shop.open("blacksmith")`
+    opens. "Where the plan was wrong" 9 and "The recapture" above expected the hero to be placed first.
+- *How each was run:*
+  - scale 1: `make-game-references.sh` (the old game's test client, offscreen);
+  - 1.65: `make-scaled-game-references.sh 1.65` (`Tools/GameReference`, a real X11 window, through cage's Xwayland) at a
+    2400 × 2400 output;
+  - the layer traces: `make-layer-references.sh 1.65` at 2400 × 2400, and `make-layer-references.sh 1` at a
+    **1440 × 950 output**. At 2400 × 2400 cage maximises the 1440 × 950 window, and the trace came out 2400 wide.
+- *The copy:* `Data/Game/styles.css` is `old-game/styles.css` byte for byte (`cmp`). It holds 3159 rules where the old
+  copy held 2941 (`CompiledGameStylesTests`).
+- *The three scripts' comments* said the tests write `game-capture.js` ("Where the plan was wrong" 10) and assumed an X
+  server of the user's. They now name the committed script and a headless compositor with its own Xwayland.
+- *The old references* are in `claude-work/gm1/step1b/old-references/` until the step is merged.
+
+**What changed in the pictures** (old capture against new: markup and texts compared by `state-diff.py`, the pictures
+side by side):
+- *The sheet* (also behind every dialog state):
+  - the top bar's "Dev-mode · Off" line is gone; Return to combat now sits beside the title;
+  - the next level needs 2790 EXP (3100 before);
+  - the ten defensive cards lost their "Temporary bonus %" field, so the page is 2780 px tall (2995 before) and
+    everything below the vitals sits higher;
+  - the markup names three more races' images (goliath, half-beast, merfolk), not shown.
+- *Inventory:* an "Ingredients" filter (the filters wrap to two rows), and "85 artifacts · 71 consumables" loaded
+  (36 · 14 before).
+- *Classes:* a "Class information" button beside Refresh files.
+- *Shop:*
+  - a "Reforge" mode beside Buy and Sell;
+  - 9 pieces on the racks (10 before), and "Clothing is the Tailor's." added;
+  - the first five pieces are the same. Further down the armour differs: no robe or garb, because the seeded roll now
+    draws from today's stock.
+- *Map:*
+  - the region is drawn; the old capture showed "Charting The Alder Vale… inking". The terrain is a canvas inside
+    `svg#regional-map`, under the mask the inline SVG art already had;
+  - four more service buttons: Apothecary, Tailor, Caravan, Quests (the row wraps).
+- *Combat:*
+  - the bandit's gear and the archer's bow are drawn differently, and one bandit's name plate has a gold ring;
+  - the turn order differs from the fourth place;
+  - the markup (in the map dialog) holds an HTML comment.
+- *Spell book, skills, passives, settings, companions:* the dialogs are unchanged; only the sheet behind them changed.
+
+**The first run on the new captures** (the UI tests, 915): 44 failed.
+- *Layout, 22:*
+  - every state but combat, at both scales: the sheet's equipment slots (Chromium 497.77 px, the engine the slot's
+    min-height, 164);
+  - combat at both scales: 2639 text nodes against Chromium's 2640 (a comment merged two).
+- *Compositing, 20:* the document's height, which follows from the slots.
+- *`CompiledGameStylesTests`:* the sheet's rule count.
+
+Paint (22), the hit tests, the incremental tests and the computed styles passed as they were.
+
+**Rule 1: a comment is a node** (`UI/Dom/UiNode.cs` `UiComment`, `Dom/Markup.cs`, `Css/Selectors.cs`,
+`Dom/UiDocument.cs`).
+
+Blink's `Comment` is a DOM node with no layout object. It makes no box, and it keeps the text nodes around it apart:
+two text nodes, whose whitespace collapses across the boundary into one run as between any two text nodes. The engine's
+markup reader dropped comments, which joined the two text nodes into one.
+
+What the engine does now:
+- *Parsing* follows the HTML tokenizer's comment states:
+  - `<!--` runs to the first `-->` or `--!>`;
+  - `<!-->` and `<!--->` are empty comments;
+  - an unclosed comment runs to the end;
+  - `<!…>` and `<?…>` are bogus comments up to the next `>` (the data starts after `<!`, or at the `?`);
+  - a DOCTYPE is ignored, as a fragment's parser does.
+- *Serializing* writes `<!--data-->` (the inner HTML).
+- *Selectors don't see comments:* `:empty` ignores them (in Blink's checker only an element, or a text with data, makes
+  an element non-empty). The structural selectors and combinators count elements only, as before.
+- *`textContent`* leaves a comment's data out.
+- *No work:* adding or removing a comment restyles nothing and lays nothing out (`ChildrenChanged` returns at once).
+- *Copies:* `IncrementalUpdateTests`' copy and its whitespace normalizing handle comments.
+
+Tests: `Ui/CommentNodeTests` (16): each tokenizer form, a comment as an element's child, serializing, the selectors, the
+text either side laid out as one run, a comment coming or going as no work.
+
+**Rule 2: a zero percentage stays a percentage** (`UI/Style/CssLength.cs`).
+
+The equipment slot's control is `flex: 1` (a 0 % basis) with `min-height: 108px`, inside a column flexbox of indefinite
+height. In Blink a percentage basis against an indefinite main size is indefinite, so the basis is the content's height
+(`FlexLayoutAlgorithm`, `is_used_flex_basis_indefinite`). The engine's `FlexLayout` had that rule already: a percentage
+basis with no definite main size is the content.
+
+The bug was in `Length`. It held `0%` as `Length(0 px, 0 %)`, the same value as `0px`, because `HasPercent` was
+`Percent != 0`. So `flex: 1`'s basis was a definite 0, and the item took its min-height. Blink's `Length` keeps its type
+(`kPercent`) at 0.
+
+The port:
+- `Length` carries whether it is a percentage. `Pct(0)` and a `0%` read keep it, and so do sums, differences, products
+  and interpolations.
+- `HasPercent`, `Resolve` (NaN against an unknown reference), `Equals` and `ToString` follow it.
+
+This was the known item "`flex: 1` with a 0 % basis in a column flexbox of indefinite height" (`Docs/Packaging.md`,
+Status, step 6; `Docs/Game-Plan.md`). It is one rule, not a definiteness rule: the engine's definiteness was Blink's
+already.
+
+The tests:
+- *Fixtures of its own, against Chromium* (`Ui/FlexDefiniteFixtures.cs`), three:
+  - `slot`: the equipment slot reduced, a button control and a div control in a grid row;
+  - `slot-block`: the same under a block, and with no min-height;
+  - `column-basis`: a 0 % basis in an auto-height column, with a min-height, in a definite column, and nested.
+- *Measured in Chromium* with `Tools/PaintReference --measure=layout` at 1 and 1.65
+  (`Reference/scaled/layout-flexdef-<name>@<scale>.json`; the list `Reference/flex-definite-fixtures.json` is written by
+  the tests).
+- *`FlexDefinitenessReferenceTests`* compares every element's box within 0.02 px.
+- *`ZeroPercentTests`* (3) checks the `Length` itself.
+
+Not ported: a `calc()` whose percentages come to 0 (`calc(0%)`, `calc(10% - 10% + 5px)`) is still read as no
+percentage, because `ValueReader` builds the term from its pixels and percent. Blink keeps such an expression
+percentage-dependent. The game's sheet has none.
+
+**After the two rules,** every game-screen test passes at its limits at 1 and 1.65:
+- the layout box for box (11 states);
+- the layers and LCD verdicts (`CompositingReferenceTests`; its 20 failures were the height alone);
+- paint (24 levels, 3 %);
+- the hit tests, the incremental tests, and the compiled sheet's computed styles;
+- step 7's `IconLayoutTests` on the new captures (23).
+
+No existing layout, paint or editor reference moved with the zero-percent rule (the full suite). Nothing is masked beyond
+the 3D views and inline SVG art, as before. No rule of the new sheet failed its computed-style test, so nothing had to be
+ported for a screen that isn't captured.
+
+**Shown able to fail:** 21 mutations (`claude-work/gm1/step1b/make-mutations.py` writes `mutations.json`; `mutate.py`
+under the shared lock in a headless cage):
+- *Comments:* kept out as before; each tokenizer form (`<!-->`, `<!--->`, `--!>`, unclosed); bogus comments dropped; a
+  DOCTYPE kept; a processing instruction's data; the serializer; `:empty`; the no-work return.
+- *The zero percentage:* made 0px; `Pct(0)`; `HasPercent`; `Resolve`; sums, differences, products and interpolations;
+  `Equals`; `ToString`.
+
+All 21 were killed. The Chromium fixtures kill the "made 0px" mutation themselves (9 of the 10 tests failed). Nothing was
+written to the player's real folders.
+
+**Runs** (inside headless cages under the shared lock, nothing audible, on the step's commit on `f22f048`): the full
+suite passes on the GPU (the engine's tests 2 min 31 s) and on lavapipe (2 min 59 s): 4010 + 223 = 4233 tests (`main`'s
+3984 + 223 and 26 new: 16 + 7 + 3), none skipped. `Reference/editor-fixtures.json` is unchanged, and so are the player's
+real folders (this machine's game folder before and after, and the Documents folder's top level).
+
+**Choices** (internal, the step's):
+- a comment is a node class of its own (`UiComment`) beside `UiText`, not a flagged text, and its data isn't in
+  `textContent`;
+- the percentage is a flag inside `Length`, not a kind of its own;
+- the flex fixtures have a list and a test of their own (layout only, so not the paint fixtures);
+- the old captures are kept outside the repo until the merge.
+
+**Found:**
+- *Floats:* the engine has no `float`; floated boxes stack as blocks. The game's sheet has none, so no screen meets it.
+  It came up because a first fixture used floats. For the manager: an engine item in `UI/Layout/`.
+- *The editor's fixture writer* (`Tests/Statventure.Tests/Editor/EditorFixtures.cs`, not the step's) casts every node that isn't text
+  to an element, so it would throw on a comment. The editor's markup has none. For the manager.
+- *Step 1a's "for 1b"* (a field's text 1 px low when its line-height is under the font's): no game-screen test fails on
+  it at the limits on the new captures. It stays the item in `Docs/Engine-Plan.md`, "Small tasks left from earlier
+  milestones".
+
+**Not checked:** Windows; the cloud (Xvfb).
+
 ## Status
 
 **Step 5 done (2026-11-13, the branch `gm1-step5`; "How it works", step 5): the save record `save.game` v1, the
@@ -2813,6 +2991,21 @@ line meets it); Chromium scrolls a page a transformed box reaches past; ◆ ★ 
 suite passes on the GPU and on lavapipe on the step on `714be21`: 3984 + 223 = 4207 tests (64 + 6 new), none skipped; 48
 mutations, 45 killed, 1 that can't differ (its code removed), 2 gaps closed and killed (the standing 47 all killed); the
 player's real folders unchanged. Not checked: Windows.
+
+**Step 1b done (2026-11-14, the branch `gm1-step1b`; "How it works", step 1b): the recapture (GM1-1).**
+- *The captures:* the 11 states at 1 and 1.65 and both layer traces, from today's old game, headless. The tests'
+  `styles.css` is today's byte for byte. `game-capture.js` changed for combat's arguments and the map's charting.
+- *Two rules from Blink:*
+  - a comment is a node: it makes no box and keeps the text either side as two nodes;
+  - a zero percentage stays a percentage, so `flex: 1`'s basis in a column of indefinite height is the content's
+    height. This closes the known `flex: 1` item, and the rule has Chromium layout fixtures of its own.
+- *The tests:* every game-screen test passes at its limits, at 1 and 1.65, step 7's icon layout too. No existing
+  reference moved, nothing was masked further, nothing is held.
+- *The pictures:* what changed per state is listed in "How it works".
+- *Found for the manager:* the engine has no `float`; the editor's fixture writer would throw on a comment.
+- *The full suite* passes on the GPU and on lavapipe on the step on `f22f048`: 4010 + 223 = 4233 tests (26 new), none
+  skipped. Mutations: 21, all killed. The player's real folders are unchanged.
+- *Not checked:* Windows; the cloud.
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,

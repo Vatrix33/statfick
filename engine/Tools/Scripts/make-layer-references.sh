@@ -2,7 +2,8 @@
 # Records how Chromium 152 composites the game's screens on a screen of a device scale (default 1.65):
 # each screen's cc layers (name, compositing reasons, screen quad, opaque, why LCD text is disallowed)
 # from cc's debug trace, into Tests/Statventure.Tests/Reference/scaled/game-layers@<scale>.json
-# (Tools/GameReference --layers). Run the tests once first (they write Reference/game-capture.js).
+# (Tools/GameReference --layers), driven by the committed capture script Reference/game-capture.js. On the PC run
+# it inside a headless compositor with its own Xwayland (it needs X11).
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
 SCALE="${1:-1.65}"

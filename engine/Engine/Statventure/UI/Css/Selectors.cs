@@ -565,8 +565,9 @@ public static class SelectorMatcher
 
     static bool IsEmpty(UiElement element)
     {
+        // Comments don't count (Blink's Element::IsEmpty… : only elements and text with data do).
         foreach (var child in element.Children)
-            if (child is not UiText { Text.Length: 0 })
+            if (child is not (UiText { Text.Length: 0 } or UiComment))
                 return false;
         return true;
     }

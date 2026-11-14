@@ -164,6 +164,8 @@ public class IncrementalUpdateTests
     {
         if (node is UiText text)
             return new UiText(text.Text);
+        if (node is UiComment comment)
+            return new UiComment(comment.Data);
         var element = (UiElement)node;
         var copy = new UiElement(element.Tag);
         foreach (var (name, value) in element.Attributes)
@@ -179,7 +181,7 @@ public class IncrementalUpdateTests
         return copy;
     }
 
-    /// <summary>Adjacent text nodes become one, empty ones go (a fresh parse would do the same).</summary>
+    /// <summary>Adjacent text nodes become one, empty ones go (a fresh parse would do the same; a comment between two keeps them apart).</summary>
     internal static void Normalize(UiElement element)
     {
         UiText? previous = null;
@@ -203,7 +205,8 @@ public class IncrementalUpdateTests
             else
             {
                 previous = null;
-                Normalize((UiElement)child);
+                if (child is UiElement inner)
+                    Normalize(inner);
             }
         }
     }

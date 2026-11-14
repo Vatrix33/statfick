@@ -3,8 +3,8 @@
 # (default 1.65, this machine's) and stores each screen's markup, environment and measured layout
 # as Tests/Statventure.Tests/Golden/game-ui@<scale>.json.gz and its screenshot as
 # Golden/game-<state>@<scale>.png (Tools/GameReference: the test client's capture in a real X11
-# window with a forced device scale factor). Run the tests once first (they write
-# Reference/game-capture.js).
+# window with a forced device scale factor), driven by the committed capture script
+# Reference/game-capture.js. On the PC run it inside a headless compositor with its own Xwayland (it needs X11).
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
 SCALE="${1:-1.65}"

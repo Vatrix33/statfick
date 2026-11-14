@@ -74,7 +74,8 @@ namespace Statventure.UI.Style
     /// <summary>
     /// A computed length: pixels + percent% of whatever percentages refer to (so calc(100% - 20px)
     /// stays exact until layout knows the reference), or a keyword, or a min/max/clamp of lengths
-    /// that still need that reference.
+    /// that still need that reference. A percentage stays one at zero (Blink's Length of type percent): 0% isn't
+    /// 0px, since against a reference that isn't known (an indefinite height) it resolves to nothing.
     /// </summary>
     public readonly struct Length : IEquatable<Length>
     {
@@ -82,13 +83,16 @@ namespace Statventure.UI.Style
         public readonly float Percent;
         public readonly LengthKind Kind;
         readonly Length[]? _arguments;
+        /// <summary>Whether it has a percentage, of any amount, zero too.</summary>
+        readonly bool _percentage;
 
-        public Length(float pixels, float percent = 0, LengthKind kind = LengthKind.Value, Length[]? arguments = null)
+        public Length(float pixels, float percent = 0, LengthKind kind = LengthKind.Value, Length[]? arguments = null, bool percentage = false)
         {
             Pixels = pixels;
             Percent = percent;
             Kind = kind;
             _arguments = arguments;
+            _percentage = kind == LengthKind.Value && (percentage || percent != 0);
         }
 
         public static readonly Length Zero = new(0);
@@ -99,12 +103,12 @@ namespace Statventure.UI.Style
         public static readonly Length FitContent = new(0, 0, LengthKind.FitContent);
 
         public static Length Px(float pixels) => new(pixels);
-        public static Length Pct(float percent) => new(0, percent);
+        public static Length Pct(float percent) => new(0, percent, percentage: true);
 
         public bool IsAuto => Kind == LengthKind.Auto;
         public bool IsNone => Kind == LengthKind.None;
         public bool IsValue => Kind == LengthKind.Value;
-        public bool HasPercent => Kind == LengthKind.Value ? Percent != 0 : _arguments?.Any(a => a.HasPercent) ?? false;
+        public bool HasPercent => Kind == LengthKind.Value ? _percentage : _arguments?.Any(a => a.HasPercent) ?? false;
         public bool IsDefinite => Kind is LengthKind.Value or LengthKind.Min or LengthKind.Max or LengthKind.Clamp;
         public bool IsZero => Kind == LengthKind.Value && Pixels == 0 && Percent == 0;
         public IReadOnlyList<Length> Arguments => _arguments ?? [];
@@ -115,7 +119,7 @@ namespace Statventure.UI.Style
             switch (Kind)
             {
                 case LengthKind.Value:
-                    if (Percent == 0)
+                    if (!_percentage)
                         return Pixels;
                     return float.IsNaN(reference) ? float.NaN : Pixels + Percent * reference / 100f;
                 case LengthKind.Min:
@@ -142,23 +146,23 @@ namespace Statventure.UI.Style
         public static Length Lerp(Length a, Length b, float t)
         {
             if (a.Kind == LengthKind.Value && b.Kind == LengthKind.Value)
-                return new Length(a.Pixels + (b.Pixels - a.Pixels) * t, a.Percent + (b.Percent - a.Percent) * t);
+                return new Length(a.Pixels + (b.Pixels - a.Pixels) * t, a.Percent + (b.Percent - a.Percent) * t, percentage: a._percentage || b._percentage);
             return t < 0.5f ? a : b;
         }
 
-        public static Length operator +(Length a, Length b) => new(a.Pixels + b.Pixels, a.Percent + b.Percent);
-        public static Length operator -(Length a, Length b) => new(a.Pixels - b.Pixels, a.Percent - b.Percent);
-        public static Length operator *(Length a, float f) => new(a.Pixels * f, a.Percent * f);
+        public static Length operator +(Length a, Length b) => new(a.Pixels + b.Pixels, a.Percent + b.Percent, percentage: a._percentage || b._percentage);
+        public static Length operator -(Length a, Length b) => new(a.Pixels - b.Pixels, a.Percent - b.Percent, percentage: a._percentage || b._percentage);
+        public static Length operator *(Length a, float f) => new(a.Pixels * f, a.Percent * f, percentage: a._percentage);
 
         public bool Equals(Length other) =>
-            Pixels == other.Pixels && Percent == other.Percent && Kind == other.Kind && Arguments.SequenceEqual(other.Arguments);
+            Pixels == other.Pixels && Percent == other.Percent && Kind == other.Kind && _percentage == other._percentage && Arguments.SequenceEqual(other.Arguments);
 
         public override bool Equals(object? obj) => obj is Length other && Equals(other);
-        public override int GetHashCode() => HashCode.Combine(Pixels, Percent, Kind);
+        public override int GetHashCode() => HashCode.Combine(Pixels, Percent, Kind, _percentage);
 
         public override string ToString() => Kind switch
         {
-            LengthKind.Value when Percent == 0 => $"{Pixels}px",
+            LengthKind.Value when !_percentage => $"{Pixels}px",
             LengthKind.Value when Pixels == 0 => $"{Percent}%",
             LengthKind.Value => $"calc({Percent}% + {Pixels}px)",
             LengthKind.Min or LengthKind.Max or LengthKind.Clamp => $"{Kind.ToString().ToLowerInvariant()}({string.Join(", ", Arguments)})",

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Drives the current game through its screens in the Stat Fick test client and stores each
 # screen's markup, environment and measured layout as Tests/Statventure.Tests/Golden/game-ui.json.gz,
-# with a copy of the game's stylesheet in Tests/Statventure.Tests/Data/Game/styles.css.
+# with a copy of the game's stylesheet in Tests/Statventure.Tests/Data/Game/styles.css, driven by the committed
+# capture script Reference/game-capture.js (the test client renders offscreen; on the PC run it headless all the same).
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
 TESTS="$STATVENTURE_SOURCE/Tests/Statventure.Tests"

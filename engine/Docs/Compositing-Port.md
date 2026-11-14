@@ -249,3 +249,14 @@ Compositing is done for every captured screen. Text pixels in composited layers 
 GamePaintTests (they pass with the per-chunk LCD verdicts). Nothing is left here; M5 is finished
 (2026-10-30, 493 tests). Come back to this doc when a change moves layers or LCD verdicts
 (`CompositingReferenceTests` fails) or when new screens are captured.
+
+### The recapture (GM1 step 1b, 2026-11-14)
+
+The 11 states were captured again from today's old game, with the layer traces at 1 and 1.65 (`Docs/Game/Foundation.md`,
+"How it works", step 1b).
+- *Before the step's layout rules,* `CompositingReferenceTests` failed for 20 states (every state but combat, at both
+  scales), on the document's height alone (2231 px against 2780 at 1). That came from the equipment slots' layout (a
+  zero percentage taken as `0px`).
+- *Once that was ported,* every captured screen's layers and LCD verdicts match at 1 and 1.65. Nothing new in
+  compositing came out from behind it.
+- *The capture:* the scale-1 trace needs a 1440 × 950 output when cage runs it, since cage maximises the window.

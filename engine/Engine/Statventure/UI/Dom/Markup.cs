@@ -50,13 +50,21 @@ public static class Markup
             {
                 if (string.CompareOrdinal(html, i, "<!--", 0, 4) == 0)
                 {
-                    var end = html.IndexOf("-->", i + 4, StringComparison.Ordinal);
-                    i = end < 0 ? html.Length : end + 3;
+                    FlushText();
+                    i = Comment(html, i + 4, stack[^1]);
                     continue;
                 }
-                if (i + 1 < html.Length && html[i + 1] == '!')
+                if (i + 1 < html.Length && html[i + 1] is '!' or '?')
                 {
+                    // A doctype has no node in a fragment; any other markup declaration, and a processing instruction,
+                    // is a bogus comment up to the next '>' (the data from after "<!", or from the '?').
                     var end = html.IndexOf('>', i);
+                    var close = end < 0 ? html.Length : end;
+                    if (string.Compare(html, i + 2, "doctype", 0, 7, StringComparison.OrdinalIgnoreCase) != 0)
+                    {
+                        FlushText();
+                        stack[^1].Append(new UiComment(html[(html[i + 1] == '?' ? i + 1 : i + 2)..close]));
+                    }
                     i = end < 0 ? html.Length : end + 1;
                     continue;
                 }
@@ -104,6 +112,40 @@ public static class Markup
         element.ClearChildren();
         foreach (var node in Parse(html))
             element.Append(node);
+    }
+
+    /// <summary>
+    /// A comment from after its "&lt;!--" (the HTML tokenizer's comment states): "&lt;!--&gt;" and "&lt;!---&gt;" are empty
+    /// comments; otherwise its data runs to the first "--&gt;" (or "--!&gt;"), or to the end of the markup. Appends it to
+    /// <paramref name="parent"/> and returns where parsing goes on.
+    /// </summary>
+    static int Comment(string html, int start, UiElement parent)
+    {
+        if (start < html.Length && html[start] == '>')
+        {
+            parent.Append(new UiComment(""));
+            return start + 1;
+        }
+        if (start + 1 < html.Length && html[start] == '-' && html[start + 1] == '>')
+        {
+            parent.Append(new UiComment(""));
+            return start + 2;
+        }
+        for (var i = start; i < html.Length; i++)
+        {
+            if (string.CompareOrdinal(html, i, "-->", 0, 3) == 0)
+            {
+                parent.Append(new UiComment(html[start..i]));
+                return i + 3;
+            }
+            if (string.CompareOrdinal(html, i, "--!>", 0, 4) == 0)
+            {
+                parent.Append(new UiComment(html[start..i]));
+                return i + 4;
+            }
+        }
+        parent.Append(new UiComment(html[start..]));
+        return html.Length;
     }
 
     /// <summary>Parses markup and returns its first element.</summary>
@@ -276,6 +318,9 @@ public static class Markup
             case UiText text:
                 foreach (var c in text.Text)
                     output.Append(c switch { '&' => "&amp;", '<' => "&lt;", '>' => "&gt;", ' ' => "&nbsp;", _ => c.ToString() });
+                break;
+            case UiComment comment:
+                output.Append("<!--").Append(comment.Data).Append("-->");
                 break;
             case UiElement element:
                 output.Append('<').Append(element.Tag);
