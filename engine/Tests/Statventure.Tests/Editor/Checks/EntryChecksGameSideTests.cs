@@ -15,9 +15,9 @@ public class EntryChecksGameSideTests
 {
     /// <summary>
     /// Each entry's problems (path and words) and the data's problem, after a run with the shortcut and after a plain run
-    /// (then, unless <paramref name="runAgain"/> is false, a run with the shortcut again, which the session keeps).
+    /// (then a run with the shortcut again, which the session keeps).
     /// </summary>
-    static void SameAsPlain(EditorSession session, string when, bool runAgain = true)
+    static void SameAsPlain(EditorSession session, string when)
     {
         session.Checks.GameSideShortcut = true;
         session.Checks.Run();
@@ -26,8 +26,7 @@ public class EntryChecksGameSideTests
         session.Checks.Run();
         var plain = Shown(session);
         session.Checks.GameSideShortcut = true;
-        if (runAgain)
-            session.Checks.Run();
+        session.Checks.Run();
         Assert.True(plain.SequenceEqual(fast), $"{when}: plain [{string.Join(" | ", plain)}] but [{string.Join(" | ", fast)}]");
     }
 
@@ -124,11 +123,9 @@ public class EntryChecksGameSideTests
         SameAsPlain(session, "a path below a folder listed added");
         session.Commit(session.At("targets/one"), RecordDraft.From(Asks("changed")));
         SameAsPlain(session, "a game entry loaded changed");
-        // No data as edited: the checks without the data, as the plain run's. (Two runs only: a third read of the session's
-        // EditedData with the same entries gives the data mounted before them, with no problem, an editor bug found here and
-        // reported, outside this step.)
+        // No data as edited: the checks without the data, as the plain run's.
         var beside = session.Add("notes/x", RecordDraft.From(Asks("beside")));
-        SameAsPlain(session, "entries that can't be mounted together", runAgain: false);
+        SameAsPlain(session, "entries that can't be mounted together");
         Assert.NotNull(session.Checks.DataProblem);
         Assert.DoesNotContain(session.EntriesWithProblems, e => e.Path.StartsWith("asks/", StringComparison.Ordinal));
         session.Remove(beside);

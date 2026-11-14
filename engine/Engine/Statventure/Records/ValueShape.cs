@@ -55,6 +55,7 @@ public sealed class ValueShape
     readonly Codec _codec;
     readonly Func<object, bool>? _isMember;
     readonly Func<object, string>? _jsonNameOf;
+    readonly Lazy<bool> _checksBelow;
     Func<object, IReadOnlyList<object?>>? _readItems;
     Func<object?[], object>? _makeList;
     Func<object, IReadOnlyList<KeyValuePair<object, object?>>>? _readEntries;
@@ -65,6 +66,7 @@ public sealed class ValueShape
         _codec = codec;
         Kind = kind;
         Type = codec.Type;
+        _checksBelow = new(() => HeldRecord is { } held && (!held.IsClosed || held.ChecksAnything));
         if (kind == ValueKind.Enum)
         {
             _isMember = codec.GetType().GetMethod("IsMember")!.CreateDelegate<Func<object, bool>>(codec);
@@ -100,6 +102,23 @@ public sealed class ValueShape
 
     /// <summary>Whether a value may hold records (in itself, its elements or its values).</summary>
     public bool HoldsRecords => _codec.HoldsRecords;
+
+    /// <summary>
+    /// The shape of the records a value may hold, at the end of this shape (itself, a nullable's value, a list's elements,
+    /// a map's or pairs' values; for a union the union's), or null when it holds none (GM1 step 6c).
+    /// </summary>
+    internal RecordShape? HeldRecord => Kind switch
+    {
+        ValueKind.Nullable or ValueKind.List or ValueKind.Map or ValueKind.Pairs => Element!.HeldRecord,
+        ValueKind.Record or ValueKind.Union => Record,
+        _ => null,
+    };
+
+    /// <summary>
+    /// Whether a record a value may hold can report anything when checked (GM1 step 6c): one of an open shape (a union, a
+    /// type that isn't sealed: each value's own type decides), or of a closed one whose <see cref="RecordShape.ChecksAnything"/>.
+    /// </summary>
+    internal bool ChecksBelow => _checksBelow.Value;
 
     public bool IsInteger => Kind is >= ValueKind.Int8 and <= ValueKind.UInt64;
     public bool IsFloat => Kind is ValueKind.Float32 or ValueKind.Float64;

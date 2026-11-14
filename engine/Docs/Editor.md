@@ -3150,6 +3150,23 @@ about 108 ms for a small mod (so does Save's check, which runs them when due); S
 `EditorSession.GameEntries()` is internal now. Found on the way: `EditedData`'s third read after entries that can't be
 mounted together returns the data mounted before them (Foundation.md, step 6b, "Found"; not changed).
 
+### GM1 step 6c: the data as edited after entries that can't be mounted together (2026-11-14)
+
+A fix of step 13's `EditorSession.EditedData` (`Tools/Editor/Session/EditorSession.EditedData.cs`; found by GM1 step 6b,
+fixed by step 6c with the manager's leave; `Docs/Game/Foundation.md`, "How it works", step 6c). After entries no pack can
+hold together (a record beside its loose form: `notes/x` beside `notes/x.json`), the read that found them put the mount's
+entries back as they were mounted, but the next read with the same entries returned early without doing so, and the read
+after that took the entries as unchanged and gave the file system mounted before them, with no problem. Now the early
+return puts them back too. **What a modder saw before:** once the data had been read twice with such entries (the checks
+across entries' run, the theme preview's library, the cutscene preview), the next run of the checks (after an edit of any
+other entry) no longer showed the data's problem ("… a record beside the file …, which is its loose form"), Save no longer
+refused those entries, and the previews and the checks used the data as it was before the entry that broke it. Test:
+`Editor/Preview/EditedDataTests.EntriesNoPackCanHoldTogetherStayTheProblemAtEveryRead` (three reads, an edit elsewhere, the
+checks' run and Save's problems); `EntryChecksGameSideTests` runs its comparison three times there again. No screen changed.
+
+The checks' walk itself (`RecordChecks`, the same step) passes by records that can't report anything; the form's problems
+and the lists of problems come out the same, problem for problem and in order (Foundation.md, step 6c).
+
 ## Status
 
 **GM1 step 2 (2026-11-13): the game's real data library** (`Game/Statventure.Game.Data`, `GameLibrary.RepoProject`;

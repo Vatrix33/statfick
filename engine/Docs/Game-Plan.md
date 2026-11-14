@@ -2058,3 +2058,10 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   step 6b). Every mod gets exactly the plain check's problems (compared problem for problem). The start time with the
   check: +359 ms with one small mod, +386 ms with five, +385 ms with one of 2,056 entries (the plain check: +501, +1,666
   and +508 ms). The editor's checks after an edit take about 9 ms instead of 108; Save As unchanged.
+- **2026-11-14, GM1 step 6c done (the branch `gm1-step6c`):** the checks don't walk records that can't report anything
+  (the game's stylesheet's thousands of nested records), every result the same (`Docs/Game/Foundation.md`, "How it
+  works", step 6c). The start time with the check: +259 ms with one small mod, +303 ms with five, +296 ms with one of
+  2,056 entries (6b's: +356, +406 and +395 ms; the user accepted +73, +232 and +111 ms for Q27 before step 1a's
+  stylesheet). Two more exact cuts named for the manager: the game's side kept between starts (about 300 ms of the first
+  mod's cost) and ahead-of-time publishing (the code's first run, about 185 ms of it). The editor's data as edited no
+  longer goes stale after entries that can't be mounted together.

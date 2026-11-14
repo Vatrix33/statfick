@@ -265,6 +265,40 @@ public class EditedDataTests
         Assert.Null(fresh.EditedDataProblem);
     }
 
+    /// <summary>
+    /// Entries no pack can hold together stay the problem at every read of the data as edited (GM1 step 6c: the third read
+    /// gave the data mounted before them, with no problem), so an edit elsewhere leaves the checks across entries and Save
+    /// saying so (before, after two reads, the checks' next run found no problem and Save went through).
+    /// </summary>
+    [Fact]
+    public void EntriesNoPackCanHoldTogetherStayTheProblemAtEveryRead()
+    {
+        using var game = new ScratchGame();
+        var mod = game.Pack("player/mods/mine.pak", w =>
+        {
+            w.Add("notes/crypt.json", "{}"u8);
+            w.AddRecord("audio/rooms/vault", Crypt);
+        });
+        using var session = game.Session();
+        session.Open(mod);
+        Assert.NotNull(session.EditedData);
+        session.Checks.Run();
+        Assert.Null(session.Checks.DataProblem);
+        session.Add("notes/crypt", RecordDraft.From(Crypt));
+        var problem = $"{mod}: entry 'notes/crypt': a record beside the file 'notes/crypt.json', which is its loose form";
+        for (var read = 1; read <= 3; read++)
+        {
+            Assert.Null(session.EditedData);
+            Assert.Equal(problem, session.EditedDataProblem);
+        }
+        // An edit elsewhere (the same paths): the checks across entries and Save still have the problem.
+        Commit(session, "audio/rooms/vault", d => d.Set("Wet", 0.75));
+        session.Checks.Run();
+        Assert.Equal(problem, session.Checks.DataProblem);
+        Assert.Contains(session.SaveProblems(), p => p.Problem == problem);
+        Assert.Null(session.EditedData);
+    }
+
     [Fact]
     public void ARecordStoredInAnOlderVersionIsGivenAsStored()
     {

@@ -157,7 +157,7 @@ recommended option (a) except **Q6, Q11, Q15, Q16 (with its follow-up Q16b), Q18
   the files and the kinds only.) After the answer, step 1a's stylesheet in `ui.pak` made each mod's check costlier (+494
   ms with one small mod, +1,440 ms with five, +515 ms with one of 2,056 entries): measured by step 6 on 2026-11-14 and
   gone to the manager ("How it works", step 6). Step 6b then made the full check cheaper with no result changed (+359 ms,
-  +386 ms and +385 ms; "How it works", step 6b).
+  +386 ms and +385 ms; "How it works", step 6b), and step 6c more (+259 ms, +303 ms and +296 ms; "How it works", step 6c).
 - **Q28, the editor's Import and a character file** (the user, 2026-11-14, asked by the manager; raised by step 6, after
   Q26 left Import open): **"Import refuses it"**: importing a record's JSON form of a kind marked as not a pack kind (the
   save) is refused, in the editor's words ("a save game (save.game) isn't something a mod can hold"), so nothing in the
@@ -735,13 +735,18 @@ dialog (a question, a text field, OK, Cancel), in the old dialogs' look (capture
   small mod, +1,440 ms with five, +515 ms with one of 2,056 entries; gone to the manager after Q27's answer. **Made
   cheaper by step 6b (2026-11-14, on `cde21a4`; "How it works", step 6b), every result the same:** +7 ms with none, +359
   ms with one small mod, +386 ms with five, +385 ms with one of 2,056 entries (the plain check on the same `main`: +7,
-  +501, +1,666 and +508 ms).
+  +501, +1,666 and +508 ms). **And by step 6c (2026-11-14, on `96164e7`; "How it works", step 6c), every result the
+  same:** +10 ms with none, +259 ms with one small mod, +303 ms with five, +296 ms with one of 2,056 entries (6b's on the
+  same `main`: +3, +356, +406 and +395 ms).
 - **The shortcuts' rule** (step 6b): the full check, made cheaper only where no result can change. The game's records are
   read and checked alone once per mount; each is checked with the game's data once, what it asked the data and the lookup
   recorded, and checked again with a mod's data only when the mod holds a path it asked about or one below a folder it
   listed (or it asked for the mounts); the music's loading the same way; a record whose check with the data didn't use
   it isn't walked alone again. A check is a function of its value and its answers, so each mod gets exactly the plain
-  check's problems, order and words. The editor's checks across entries take the game's side the same way.
+  check's problems, order and words. The editor's checks across entries take the game's side the same way. **Since step
+  6c** a record's check doesn't walk into records that can't report anything (no check, limits, choices or references
+  in them at any depth: a property of their type, found once), so the game's stylesheet is checked by its own rules
+  alone, without a walk through its thousands of nested records.
 - **The editor's Import** (Q28, 2026-11-14): a record's JSON form of a kind marked as not a pack kind (the save) is refused,
   so nothing in the editor makes a save entry; the check itself treats such a kind as any kind the game knows (a
   hand-made mod holding a save isn't broken for it; the game ignores the entry).
@@ -3062,6 +3067,126 @@ flow on lavapipe (157 of 157, 101 s), the editor's `ember-rite.pak` checked and 
 (Ember Rite 1.0 by Vatrix)` about 590 ms after `[Data] Mods …` on lavapipe); no expectation changed; the player's real
 folders unchanged (this machine's game folder and the Documents folder's top level).
 
+### Step 6c: the checks' walk passes by what can't report; the data as edited after a refused mount (2026-11-14, the branch `gm1-step6c`)
+
+The manager's job after 6b: step 6b's proposal granted (`RecordChecks` doesn't walk what has nothing to check), measured
+again, and the editor's bug 6b found fixed. No result of any check changed, in the game or in the editor.
+
+**The rule.** `RecordChecks.Check` walks a record and every record it holds: each one's own checks (its type's and the
+unions' it is a subtype of), then its fields' marks (limits, choices, references with a lookup), field by field. A record
+whose type has none of these, and holds no record that could have one, adds nothing to the walk. Whether it can is a
+property of the type (`RecordShape.ChecksAnything`, `Engine/Statventure/Records/RecordShape.cs`), found once per type: it
+has a check of its own or a union's, a field with limits, choices or references, or a field that may hold a record that
+can, through nullables, lists, maps and pairs, at any depth, recursive shapes included (a search over the types, each once).
+A field's records are followed by their declared type only when that type is **closed** (`RecordShape.IsClosed`: a plain
+record of a sealed type, so every value there is of that very type). A union, or a record type that isn't sealed, is
+**open**: values of other types can be held there (a union's subtypes, and in code a type deriving from it that the union
+doesn't list), so such a field is walked and each value decides by its own type. The walk (`RecordChecks.cs`) passes by a
+record whose own type can't report anything, and doesn't go into a field whose records are of a closed type that can't
+(`ValueShape.ChecksBelow`). A type the shapes can't read (a mark or a check that doesn't fit) counts as one that can
+report, so the walk meets it and throws as it always did. No layout or its signature changed (the flags are the shapes',
+not the layouts').
+
+**Why every result is the same.** A check reports only from a record's own checks and its fields' marks, met as the walk
+visits the records; a record whose type can't report anything, and everything below it, holds neither, so leaving it out
+leaves every other problem, its path and its place in the order as they were. The walk's reading of the values passed by
+(their properties, the lists' items) has no effect. The walk into everything is kept as the reference
+(`RecordChecks.CheckEveryRecord`, internal), which the tests compare with.
+
+**What it passes by today.** The game's stylesheet (`ui.stylesheet`: its rules, declarations, keyframes, font faces and
+the tokens of each, thousands of records, none with a check or a mark): its own check (`Stylesheet.ProblemsOf`, its
+rules) runs, its records aren't walked.
+
+**The editor's data as edited** (`Tools/Editor/Session/EditorSession.EditedData.cs`; the bug 6b found): after entries that
+can't be mounted together (a record beside its loose form, `notes/x` beside `notes/x.json`), the read that found them
+kept the mount's entries as they were, but a second read with the same entries took the session's entries for the mounted
+ones and didn't put them back (the early return for entries that failed before), so the third read found them "the same
+as mounted" and gave the file system mounted before them, with no problem. Now that return puts them back as the failed
+mount does. What a modder saw before: the data's problem ("… a record beside the file …, which is its loose form") shown
+by the checks across entries and refusing Save, until the data had been read twice more with those entries (the checks'
+run, a preview's read: the theme preview's library, the cutscene preview); then the next run of the checks (after an edit
+of any other entry) found no such problem, so Save no longer refused those entries (a pack the game's check at its start
+would leave out: the data with it can't be mounted), and the previews and the checks across entries used the data as it
+was before the entry that broke it. Test: `Editor/Preview/EditedDataTests.EntriesNoPackCanHoldTogetherStayTheProblemAtEveryRead` (three reads, then
+an edit elsewhere, the checks' run and Save's problems; it fails without the fix at the third read, and with only two
+reads at the checks' data problem). `EntryChecksGameSideTests` no longer avoids the third read. No screen changed.
+
+**The start time** (on `96164e7`, the same way as 6b's: Release builds laid out by `build.sh Release`, framework-dependent,
+started `--capture <png> --frames 1` on scratch per-user folders inside the headless cage on the GPU, OpenAL's null output,
+under the shared lock, 9 starts of each build, interleaved; medians; `claude-work/gm1/step6c/timing/summary.txt`). Four
+builds from exports: no check (`96164e7` with `GameMods.ApplyTo` giving no filter), the plain check (`96164e7` with the
+checker's shortcuts off: step 6's check), 6b's (`96164e7` as it is) and 6c's (the step's commit). What each adds to no
+check, mount / wall:
+
+| Mods | No check: mount / wall | Plain check (step 6) | Step 6b | Step 6c |
+| --- | --- | --- | --- | --- |
+| none | 114 / 2690 ms | +1 / +6 ms | −4 / +3 ms | −3 / +10 ms |
+| one small | 115 / 2698 ms | +616 / +498 ms | +473 / +356 ms | **+357 / +259 ms** |
+| five small | 117 / 2684 ms | +1781 / +1669 ms | +510 / +406 ms | **+403 / +303 ms** |
+| one large (2,056 entries) | 115 / 2717 ms | +651 / +527 ms | +507 / +395 ms | **+414 / +296 ms** |
+
+6c against 6b: about −100 ms of wall time in each set with mods (the first mod's check about −115 ms); none the same
+(within the noise of a few ms).
+
+**What is left of the first mod's cost and where it goes** (`claude-work/gm1/step6c/probe/`: the check's parts timed in a
+process of their own, as at the start, Release, five runs each, medians; the first time in the process, then again).
+The game's checker on the first small mod takes about 370 ms (484 ms with 6b's), a second mod about 10 ms. Of the first:
+- **The game's records read, about 110 ms:** the stylesheet about 74 ms (its 84 KB stored made into 1.9 MB, its hash
+  checked, read as records; 47 ms when the code has run once), the other 125 records about 35 ms (3 ms the second time).
+- **The stylesheet's own rules, about 172 ms** (`Stylesheet.ProblemsOf`: its selectors, values and keyframes read as the
+  style engine reads them; about 62 ms the second time). One walk of it serves both its own problems and its check with
+  the data (6b's third way).
+- **The other records' checks, up to about 48 ms** (alone and with the data; the themes compiled against the composer
+  and the rest; about the same the second time).
+- **The music's loading over the game's data, about 13 ms.** Mounting the game's packs about 10 ms (0.2 the second
+  time); the mod's own reading and the data with it under 3 ms.
+The parts timed one by one take about 430 ms the first time in the process and about 245 ms the second: about 185 ms of
+the first mod's cost is the code's first run.
+
+**Exact cuts still there (named, not built):**
+- *Done at every start though it changes only with the game's packs:* everything the checker does on the game's side
+  (its records read, their checks, the music over its data: about 350 of the first mod's 370 ms) depends only on the
+  game's packs, which ship with the game. Kept from one start to the next, or made with the packs, keyed by the packs'
+  index hashes (each game record's problems and what its check asked the data, the music's result and what it read), a
+  start with mods would read only the game records a mod touches and check those again: about 300 ms of the first
+  mod's cost, with the same results whenever the key matches (else checked as now). A file beside the packs or in the
+  per-user folder: a design choice for the manager.
+- *The code's first run* (about 185 ms here, and more across the whole start): publishing the game ahead of time
+  (ReadyToRun) would take most of it, for the check and for everything else the start runs once; a packaging choice
+  (the downloads grow).
+- *Done twice once the game reads its stylesheet at the start* (step 8): the game's own reading of `ui/styles/game` and
+  of it as a stylesheet repeats what the check did with a mod present (about 47 ms of reading and 62 ms of reading it
+  as a stylesheet, warm); one reading kept for both would save that. Today the game doesn't read it at its start, so
+  nothing is done twice yet; the music's loading is (the check's over the game's data, the game's over the data with the
+  mods: about 13 ms, and only the same when no mod touches the music).
+
+**Tests** (4 new in the engine's project, none in the game's): `Tests/Statventure.Tests/Records/RecordChecksPruningTests.cs`
+(3): every record of the committed packs (the music's, the sound effects, the stylesheets) checked by both walks, alone and with the
+data and a lookup, problem for problem, path for path and in order, and what the walk passes by (the stylesheet's rules
+and tokens); shapes of the tests' own (`Records/PruningVariants.cs`, in the variants' namespace) whose checks sit only
+deep down: a check in one subtype of a union in a list of maps of it, a subtype the union doesn't list, a union's own
+check on a subtype with none, a type that isn't sealed holding one deriving from it with a check, limits, choices and a
+reference each in a leaf of a recursive shape reached through a nullable, a list and pairs, a recursive shape with
+nothing to check, each as the root and deep down, with the problems written out; a mark that doesn't fit below a record
+with nothing else (both walks throw the same). `Editor/Preview/EditedDataTests.EntriesNoPackCanHoldTogetherStayTheProblemAtEveryRead` (1).
+
+**Shown able to fail** (`mutate.py` under the shared lock in a headless cage; `claude-work/gm1/step6c/make-mutations.py`):
+19, all killed: a union's checks not counted for its subtypes; checks, limits, choices or references not counted; the
+records held not followed; an open type held taken as the others; a type met again ending the search; a type that can't
+be read taken as checking nothing; unions taken as closed; types that aren't sealed taken as closed; a nullable's, a
+list's, a map's or pairs' records not followed; a union's records not seen; an open type's records not walked; a field's
+records never walked; the data as edited's snapshot not put back (killed by both the new test and the game side's).
+Nothing written to the player's real folders.
+
+**Runs** (inside headless cages under the shared lock, scratch per-user folders, nothing audible; the step's commit on
+`96164e7`): the full suite on the GPU (the engine's tests 2 min 42 s) and on lavapipe (3 min 18 s): 4040 + 223 = 4263
+tests (`main`'s 4036 + 223 and 4 new), none skipped, `Reference/editor-fixtures.json` unchanged (no editor screen
+changed); `end-to-end.sh --publish --version 2026.11.13.1` on the GPU (the four archives published and checked, then the
+flow: 157 of 157 in 94 s) and the flow on lavapipe (157 of 157, 103 s), the editor's `ember-rite.pak` checked and mounted
+(`[Mods] ember-rite.pak: loaded (Ember Rite 1.0 by Vatrix)` about 510 ms after `[Data] Mods …` on lavapipe, 590 ms with
+6b's); no expectation changed; the player's real folders unchanged (this machine's game folder and the Documents
+folder's top level).
+
 ## Status
 
 **Step 5 done (2026-11-13, the branch `gm1-step5`; "How it works", step 5): the save record `save.game` v1, the
@@ -3166,6 +3291,20 @@ ways are needed for the first mod's gain. The editor's checks after an edit (and
 the final tree 44 of 46 killed, 2 that can't differ); the player's real folders unchanged. Found: the editor's
 `EditedData` gives stale data on a third read after entries that can't be mounted together (for the manager). Not
 checked: Windows; the cloud.
+
+**Step 6c done (2026-11-14, the branch `gm1-step6c`; "How it works", step 6c): the checks' walk passes by what can't
+report; the data as edited after a refused mount.** `RecordChecks` doesn't walk records whose type can't report anything
+(no check, limits, choices or references at any depth; found once per type; unions and types that aren't sealed decided
+by each value's own type), every result the same (compared with the walk into everything over every committed record and
+over shapes with checks only deep down). The start time with the check, on `96164e7`: +259 ms with one small mod, +303 ms
+with five, +296 ms with one of 2,056 entries (6b's: +356, +406 and +395 ms; the plain check's: +498, +1,669 and +527 ms).
+What is left of the first mod's cost: the game's records read (about 110 ms), the stylesheet's own rules (about 172 ms),
+the other records' checks, the music; about 185 ms of it the code's first run. Two more exact cuts named for the manager
+(the game's side kept between starts, about 300 ms; ahead-of-time publishing). The editor's `EditedData` fixed: after
+entries that can't be mounted together it no longer gives the data mounted before them on its third read (the checks then
+lost the data's problem and Save stopped refusing). The full suite passes on the GPU and on lavapipe on the step on
+`96164e7`: 4040 + 223 = 4263 tests (4 new), none skipped, no editor screen changed; `end-to-end.sh --publish` 157 of 157
+on both; mutations 19 of 19 killed; the player's real folders unchanged. Not checked: Windows; the cloud.
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,

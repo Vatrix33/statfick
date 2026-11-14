@@ -68,9 +68,15 @@ public sealed partial class EditorSession
                 EditedDataProblem = null;
                 return _edited;
             }
-            // Entries that couldn't be mounted, unchanged since: not tried again.
+            // Entries that couldn't be mounted, unchanged since: not tried again. (The mount keeps the entries it was made
+            // with, as when mounting fails below: else the next read took those it was given now for the mounted ones and
+            // gave the file system mounted before, with no problem; GM1 step 6c.)
             if (_editedFailed is { } failed && entries.SameAs(failed))
+            {
+                if (_edited is not null)
+                    entries.Restore(mounted);
                 return null;
+            }
             try
             {
                 if (_edited is null)

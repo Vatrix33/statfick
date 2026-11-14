@@ -28,6 +28,7 @@ public sealed class RecordShape
     readonly Lazy<RecordShape[]> _subtypes;
     readonly Lazy<Action<object, CheckContext>[]> _checks;
     readonly Lazy<RecordShape[]> _checkedBy;
+    readonly Lazy<bool> _checksAnything;
 
     RecordShape(Type type)
     {
@@ -56,6 +57,7 @@ public sealed class RecordShape
                     chain.Insert(0, Of(t));
             return [.. chain];
         });
+        _checksAnything = new(FindWhetherChecksAnything);
     }
 
     /// <summary>The shape of a current record type (a plain record, a union or a union's subtype).</summary>
@@ -119,6 +121,60 @@ public sealed class RecordShape
 
     /// <summary>The shapes whose checks a value of this type gets: the unions it is a subtype of, outermost first, then its own.</summary>
     internal IReadOnlyList<RecordShape> CheckedBy => _checkedBy.Value;
+
+    /// <summary>
+    /// Whether every value held as this shape is of this very type (GM1 step 6c): a plain record of a sealed type. A union's
+    /// values are of types deriving from it (its subtypes, and in code any other), a plain record's that isn't sealed may be
+    /// of a type deriving from it.
+    /// </summary>
+    internal bool IsClosed => !IsUnion && Type.IsSealed;
+
+    /// <summary>
+    /// Whether checking a value of this very type can report anything (GM1 step 6c; asked of a value's own type, a plain
+    /// record, and of closed shapes: a union has no values of its own): it has a check of its own or of a union it is a
+    /// subtype of, a field with limits, choices or references, or a record it may hold (through nullables, lists, maps and
+    /// pairs, at any depth, recursive shapes included) that can: one of a closed shape (<see cref="IsClosed"/>) that has any
+    /// of these, or one of an open shape (a union, a type that isn't sealed), whose values' own types decide.
+    /// <see cref="RecordChecks"/> doesn't walk a value whose type has none: its walk would report nothing. Found once per
+    /// shape. True when a shape on the way can't be read (a mark or a check that doesn't fit), so the walk meets it and
+    /// throws as it always did.
+    /// </summary>
+    internal bool ChecksAnything => _checksAnything.Value;
+
+    bool FindWhetherChecksAnything()
+    {
+        try
+        {
+            var seen = new HashSet<RecordShape>();
+            var waiting = new Stack<RecordShape>();
+            waiting.Push(this);
+            while (waiting.Count > 0)
+            {
+                var shape = waiting.Pop();
+                if (!seen.Add(shape))
+                    continue;
+                foreach (var owner in shape.CheckedBy)
+                    if (owner.Checks.Count > 0)
+                        return true;
+                foreach (var field in shape.Fields)
+                {
+                    if (field.Limits is not null || field.Choices is not null || field.References.Count > 0)
+                        return true;
+                    if (field.Value.HeldRecord is { } held)
+                    {
+                        if (!held.IsClosed)
+                            return true;
+                        waiting.Push(held);
+                    }
+                }
+            }
+            return false;
+        }
+        catch (Exception problem) when (problem is not OutOfMemoryException)
+        {
+            return true;
+        }
+    }
 
     FieldShape[] MakeFields()
     {

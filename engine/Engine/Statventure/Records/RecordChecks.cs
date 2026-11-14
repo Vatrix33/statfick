@@ -77,21 +77,37 @@ public sealed class CheckContext
 /// checks: numbers within their <see cref="LimitsAttribute"/>, strings among their
 /// <see cref="ChoicesAttribute"/>, and, when a lookup is given, names that point at an entry of their
 /// <see cref="ReferencesAttribute"/>'s kind. A draft is checked once it builds (<see cref="RecordDraft.Build"/>
-/// reports what keeps it from building).
+/// reports what keeps it from building). The walk doesn't go into a record whose type can't report anything
+/// (<see cref="RecordShape.ChecksAnything"/>, GM1 step 6c: no check, limits, choices or references there at any depth), nor
+/// into a field whose records are all of a closed shape that can't (<see cref="ValueShape.ChecksBelow"/>), which leaves every
+/// problem, and their order, as the walk into everything gives them (<see cref="CheckEveryRecord"/>).
 /// </summary>
 public static class RecordChecks
 {
     /// <summary>Every problem of <paramref name="record"/>, in the order met: each record's own checks, then its fields' in number order.</summary>
-    public static IReadOnlyList<RecordProblem> Check(object record, VirtualFileSystem? data = null, IReferenceLookup? references = null)
+    public static IReadOnlyList<RecordProblem> Check(object record, VirtualFileSystem? data = null, IReferenceLookup? references = null) =>
+        Check(record, data, references, pruned: true);
+
+    /// <summary>
+    /// <see cref="Check"/> walking into every record held, whether or not anything there can report a problem: the walk as it
+    /// was before GM1 step 6c, kept as the reference the tests compare <see cref="Check"/> with.
+    /// </summary>
+    internal static IReadOnlyList<RecordProblem> CheckEveryRecord(object record, VirtualFileSystem? data = null, IReferenceLookup? references = null) =>
+        Check(record, data, references, pruned: false);
+
+    static IReadOnlyList<RecordProblem> Check(object record, VirtualFileSystem? data, IReferenceLookup? references, bool pruned)
     {
         var problems = new List<RecordProblem>();
-        Record(record, RecordPath.Root, new CheckContext(data, references, problems));
+        Record(record, RecordPath.Root, new CheckContext(data, references, problems), pruned);
         return problems;
     }
 
-    static void Record(object record, RecordPath path, CheckContext context)
+    static void Record(object record, RecordPath path, CheckContext context, bool pruned)
     {
         var shape = RecordShape.Of(record.GetType());
+        // (A value of a type nothing below can report on; a field's values are passed by too when their shape is closed.)
+        if (pruned && !shape.ChecksAnything)
+            return;
         foreach (var owner in shape.CheckedBy)
         {
             foreach (var check in owner.Checks)
@@ -118,9 +134,9 @@ public static class RecordChecks
             if (context.Lookup is { } lookup && field.ReferenceIn(record) is { } reference)
                 foreach (var (name, where) in reference.Keys ? Keys(field.Value, value, at) : Values(field.Value, value, at))
                     Reference(context, lookup, reference, (string)name, where);
-            if (field.Value.HoldsRecords)
+            if (field.Value.HoldsRecords && (!pruned || field.Value.ChecksBelow))
                 foreach (var (child, where) in Values(field.Value, value, at))
-                    Record(child, where, context);
+                    Record(child, where, context, pruned);
         }
     }
 
