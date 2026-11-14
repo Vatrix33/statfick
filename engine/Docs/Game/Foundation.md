@@ -156,7 +156,8 @@ recommended option (a) except **Q6, Q11, Q15, Q16 (with its follow-up Q16b), Q18
   check"**: the start checks every mod as the editor would (Q4), its cost accepted. (Not a lighter check at the start, of
   the files and the kinds only.) After the answer, step 1a's stylesheet in `ui.pak` made each mod's check costlier (+494
   ms with one small mod, +1,440 ms with five, +515 ms with one of 2,056 entries): measured by step 6 on 2026-11-14 and
-  gone to the manager ("How it works", step 6).
+  gone to the manager ("How it works", step 6). Step 6b then made the full check cheaper with no result changed (+359 ms,
+  +386 ms and +385 ms; "How it works", step 6b).
 - **Q28, the editor's Import and a character file** (the user, 2026-11-14, asked by the manager; raised by step 6, after
   Q26 left Import open): **"Import refuses it"**: importing a record's JSON form of a kind marked as not a pack kind (the
   save) is refused, in the editor's words ("a save game (save.game) isn't something a mod can hold"), so nothing in the
@@ -731,7 +732,16 @@ dialog (a question, a text field, OK, Cancel), in the old dialogs' look (capture
   check"):** +8 ms with no mods, +73 ms with one small mod, +232 ms with five, +111 ms with one of 2,056 entries (the
   wall time, Release, medians), all before the window opens ("How it works", step 6). **Measured again on step 1a's
   packs (2026-11-14; the game's stylesheet in `ui.pak` is checked with every mod):** −6 ms with none, +494 ms with one
-  small mod, +1,440 ms with five, +515 ms with one of 2,056 entries; gone to the manager after Q27's answer.
+  small mod, +1,440 ms with five, +515 ms with one of 2,056 entries; gone to the manager after Q27's answer. **Made
+  cheaper by step 6b (2026-11-14, on `cde21a4`; "How it works", step 6b), every result the same:** +7 ms with none, +359
+  ms with one small mod, +386 ms with five, +385 ms with one of 2,056 entries (the plain check on the same `main`: +7,
+  +501, +1,666 and +508 ms).
+- **The shortcuts' rule** (step 6b): the full check, made cheaper only where no result can change. The game's records are
+  read and checked alone once per mount; each is checked with the game's data once, what it asked the data and the lookup
+  recorded, and checked again with a mod's data only when the mod holds a path it asked about or one below a folder it
+  listed (or it asked for the mounts); the music's loading the same way; a record whose check with the data didn't use
+  it isn't walked alone again. A check is a function of its value and its answers, so each mod gets exactly the plain
+  check's problems, order and words. The editor's checks across entries take the game's side the same way.
 - **The editor's Import** (Q28, 2026-11-14): a record's JSON form of a kind marked as not a pack kind (the save) is refused,
   so nothing in the editor makes a save entry; the check itself treats such a kind as any kind the game knows (a
   hand-made mod holding a save isn't broken for it; the game ignores the entry).
@@ -2915,6 +2925,143 @@ real folders (this machine's game folder before and after, and the Documents fol
 
 **Not checked:** Windows; the cloud (Xvfb).
 
+### Step 6b: the mod check's cost at start (2026-11-14, the branch `gm1-step6b`)
+
+The manager's job after Q27 (the user kept the full check) and step 1a's stylesheet (each mod's check then reading and
+walking the game's compiled stylesheet, about 600 ms for the first mod and 240 ms for each further one): the check stays
+the full one, made cheaper only by shortcuts that can't change any result. Every mod gets exactly the problems, the order
+and the words the plain check gives, in the game and in the editor.
+
+**The rule the shortcuts stand on.** A record's check is a function of its value and of what it asks the data (the file
+system's answers) and the lookup (the kinds at the paths it names): the engine's and the data library's checks are. So a
+game record checked once over the game's data alone, with what it asked recorded, gets the same answers, and the same
+problems, with a mod on top whenever the mod holds none of the paths it asked about and none below a folder it listed (and
+it didn't ask for the mounts themselves: a mod is one more mount, whatever it holds). A record whose check with the data
+never asked for the data or the lookup, and read nothing, has the same problems alone.
+
+**Recording what a check asks** (`Engine/Statventure/Packs/DataReads.cs`, new): `DataReads.During(read, out reads)` keeps,
+for the flow that runs `read` (an `AsyncLocal`; nested recordings each get every question): the paths asked about (the file
+system's `Exists`, `IsRecord`, `ReadAllBytes`, `Load` both ways, `Origin`, `Problem`, and the kinds `ModCheck.KindLookup`
+gives), the folders listed (`List`; "" for every path), the mounts asked for (`Mounts`: everything), and whether a record
+check asked for its data or its lookup at all. `Touches(paths)`: the mounts asked for, a path asked about, or one below a
+folder listed. `UsedTheData`: any of them. The file system notes each question (`Packs/VirtualFileSystem.cs`, one line in
+each method).
+
+**The hook in `Records/`** (the manager's leave for a small recording hook in the context): `CheckContext.Data` and
+`CheckContext.References` note that the check asked for them (`DataReads.NoteConsulted`); `CheckContext.Lookup`
+(internal) gives the lookup without noting it, and `RecordChecks`' marks resolve references through it (a mark's
+reference is then noted by the path the lookup is asked about, not as the check asking for the lookup, so a record with
+a reference but no check of its own of the data is still walked once). Nothing else in `Records/` changed.
+
+**The checker** (`Engine/Statventure/Packs/ModChecker.cs`, new): `new ModChecker(game, kinds)` and `Check(file)` for each
+mod, the report exactly `ModCheck.Check`'s (which stays the plain check, the one the tests compare with). Its three ways,
+each exact on its own (`ModShortcuts`, internal; all three by default):
+1. **The game once** (`GameOnce`): the game's mounts mounted once, at the first mod's records; the game's records read
+   once (as `ModCheck.GameRecord` reads them) and their own problems found once, not once per mod.
+2. **Checked again only when touched** (`Independent`): each game record checked with the data over the game's data
+   alone, once, recording what it asked; with a mod, what that added is taken as it is unless the mod's paths touch the
+   recording, when the record is checked with the mod's data as before. The music's loading the same way (over the game's
+   data once, again with a mod only when the mod touches what it read: it lists the music's folders, so a mod with any
+   music entry loads it again).
+3. **One walk** (`OneWalk`): a record checked with the data first, recorded; when that check didn't use the data its
+   problems are its own problems too, so it isn't walked alone again. The game's stylesheet is such a record (its kind
+   checks only its own values): its one walk over the game's data gives both.
+When the game's data can't be mounted alone the mod is checked plainly (then the data with the mod can't be mounted
+either: the data's problem, as the plain check says). `GameMods.Filter` (`Game/Statventure.Game/Mods/`) makes one checker
+per mount and checks every mod switched on with it; nothing else in the game changed.
+
+**The editor** (`Tools/Editor/Checks/EntryChecks.cs`; its behaviour and screens unchanged): the checks across entries take
+the game's side the same way (`EntryChecks.GameSideShortcut`, on): each game entry the session doesn't change is checked
+over the game's packs (the session's base, with the game's kinds as its lookup) once per pack opened, its questions
+recorded, and checked with the data as edited only when the session's own entries (the open pack's, the new ones, the
+game's it changed) touch them; the music's loading the same way. Without the data as edited (entries that can't be
+mounted together) every entry is checked plainly, as before. Save As's check is unchanged (`EditorSession.SaveAsProblems`
+checks every record with the ticked entries' data each time). `EditorSession.GameEntries()` is internal now (the game
+side's kinds take the shadowed game entries too).
+
+**The start time** (on `cde21a4`, the same way as step 6's: the built game in Release, laid out by `build.sh Release`,
+framework-dependent, started `--capture <png> --frames 1` on scratch per-user folders inside the headless cage on the GPU,
+OpenAL's null output, under the shared lock, 9 starts of each build, interleaved; medians; `claude-work/gm1/step6b/timing/`,
+`summary.txt`). Six builds from exports: no check (`cde21a4` with `GameMods.ApplyTo` giving no filter), the plain check
+(`cde21a4` as it is, step 6's), and the step's commit with the first way alone, the first and second, the third alone, and
+all three (as committed). The mods' mount is the time from the log's `[Data] Mods …` line to the window's line; the wall
+time from the launch to the end. What each adds to no check:
+
+| Mods | No check: mount / wall | Plain check | Game once | Game once + touched | One walk | All three (the step) |
+| --- | --- | --- | --- | --- | --- | --- |
+| none | 113 / 2697 ms | +3 / +7 ms | +3 / +2 ms | +3 / +1 ms | +1 / +3 ms | +3 / +7 ms |
+| one small (info, an effect, an item, a file) | 115 / 2697 ms | +616 / +501 ms | +626 / +511 ms | +625 / +507 ms | +644 / +532 ms | **+474 / +359 ms** |
+| five small | 114 / 2699 ms | +1795 / +1666 ms | +1090 / +985 ms | +667 / +543 ms | +1107 / +990 ms | **+510 / +386 ms** |
+| one large (2,056 entries) | 118 / 2729 ms | +629 / +508 ms | +650 / +530 ms | +665 / +543 ms | +652 / +530 ms | **+511 / +385 ms** |
+
+What each way buys on its own: the game once saves each further mod's reading and own checks of the game's records (five
+mods: −681 ms of wall time against the plain check), nothing for the first; checked again only when touched saves each
+further mod's checks of the game's records with the data (five: another −442 ms), nothing for the first; one walk alone
+saves nothing (−676 ms with five only because it takes the game's side once as the first way does; the first mod about
++30 ms, its walk over the game's data alone made but not used); all three together save the first mod's second walk of
+the game's records too (their walk over the game's data gives both the own problems and the recording): the first mod
+−142 ms, five −1280 ms, the large one −123 ms. Each further mod now costs about 9 ms of mount time. What is left of the first mod's
+check is mostly the walk of the stylesheet (`RecordChecks` visiting each of its thousands of nested records, about 125–235
+ms in a probe, its own rules about 50 ms) and the first run of the code; making `RecordChecks` skip what has nothing to
+check is a change in `Records/` beyond this job, proposed to the manager. A first measurement on `46fc451` (before the
+rebase, `timing/summary-46fc451.txt`) gave the step +342, +390 and +383 ms of wall time.
+
+**The editor's Save and Save As** (`claude-work/gm1/step6b/editor-bench/`: a program of its own on the editor's session,
+built in Release against `cde21a4`'s editor and the step's, a small mod (its info and a sound effect) opened over the dev
+setup's packs, nine runs of each, interleaved, under the shared lock; medians): Save's check, the checks across entries
+run because something changed, takes about 9 ms after an edit instead of about 108 ms (4 ms instead of 64 ms when Save As
+ran before), and the checks the editor runs a pause after each change are the same run, so editing gains the same. The
+first Save after opening is the same (196 ms on `main`, 213 ms with the step's recording; 87 and 91 ms after a Save As).
+Save As's check isn't changed: measured before any Save, 170 and 169 ms the first time, 108 and 105 ms after an edit;
+measured after sixteen Saves, `main`'s is faster (62 ms against 111 ms) only because there its Saves had already run,
+and the runtime optimized, the same walks of the game's records, which the step's Saves no longer run.
+
+**Tests** (9 new in the engine's project, none in the game's):
+- `Tests/Statventure.Tests/Packs/ModCheckerTests.cs` (5): one checker per way (each alone and all three) checks a list of
+  mods in turn and every report is the plain check's, problem for problem, info and file, the mods in both orders: over
+  the committed packs (14 mods: touching nothing, an instrument the game's themes play made silent or the same, the room
+  they sound in and a theme the theme order names replaced by another kind, the theme order replaced, an effect and an
+  instrument added, a file among the instruments, a file over the game's stylesheet, broken ones); a game of the tests'
+  own whose parts depend on each other only through their references, and records that only ask for the data or the
+  lookup (5 mods); a game whose records ask the data in each of its ways (`AsksData`: whether a path is there, a record,
+  its length, a record loaded as one kind and as any, where it comes from, the pack a problem names, a folder two levels
+  down, the mounts; 8 mods, one with no entries at all); a game that can't be mounted; what a recording notes (each way
+  on a path of its own, nested recordings, `Touches`). Which records were checked again, or walked once, is counted.
+- `Tests/Statventure.Tests/Packs/DataCheckVariants.cs`: the variant kinds `variant.wants-data`, `variant.wants-lookup`,
+  `variant.asks-data` (in the variants' namespace, which the layout guard leaves out).
+- `Tests/Statventure.Tests/Editor/Checks/EntryChecksGameSideTests.cs` (4): after every change of a session the entries'
+  problems and the data's problem are the plain run's (over the repo's packs: an effect's edit, the game's instrument made
+  silent and back, the theme order changed, a music entry that doesn't build; a file the music refuses; another pack
+  opened in the same session; a game of the tests' own asking the data in several ways, with entries added where it asks,
+  a game entry it loads changed, and entries that can't be mounted together).
+
+**Shown able to fail** (`mutate.py` under the shared lock in a headless cage; `claude-work/gm1/step6b/make-mutations.py`):
+the first list, 46 (on `46fc451`): 34 killed, 12 survived. The gaps closed: each file-system question on a path of its
+own (five hid behind another question on the same path) and nested recordings, with the `AsksData` game in both the
+checker's and the editor's tests; the mounts touched by any mod, also one with no entries (the recording said "untouched"
+for no changed path, wrong for the mounts: fixed); the game's side made before the data with the mod, so a game that
+can't be mounted alone takes the plain path (it was never reached); one mutation that couldn't differ (a path starting
+with "/") replaced by one that can (only a listed folder's direct children counted). On the rebased tree (`cde21a4`), 46: 43
+killed, 3 survived; one closed by a game record the session never touches (`asks/elsewhere`; killed on the rerun), two
+can't differ: a folder listed noted as using the data (a record check reaches the file system only through
+`CheckContext.Data`, which notes it first), and a game entry's earlier result kept for another value (Known takes only
+game entries the session doesn't change, which can't be renamed and hold the game's binary form). Nothing written to the
+player's real folders.
+
+**Found:** the editor's `EditorSession.EditedData` (step 13's, M11) gives, on its third read after entries that can't be
+mounted together, the data mounted before them and clears `EditedDataProblem`: the early return for entries that failed
+before doesn't put the mount's snapshot back (`entries.Restore(mounted)` is missing there), so the next read finds the
+snapshot "unchanged" and returns the old file system. For the manager; not changed here (the step's test reads it twice
+only).
+
+**Runs** (inside headless cages under the shared lock, scratch per-user folders, nothing audible; the step's commit on
+`cde21a4`): the full suite on the GPU (the engine's tests 2 min 47 s) and on lavapipe (3 min 8 s): 4019 + 223 = 4242
+tests (`main`'s 4010 + 223 and 9 new), none skipped, `Reference/editor-fixtures.json` unchanged; `end-to-end.sh --publish
+--version 2026.11.13.1` on the GPU (the four archives published and checked, then the flow: 157 of 157 in 95 s) and the
+flow on lavapipe (157 of 157, 101 s), the editor's `ember-rite.pak` checked and mounted (`[Mods] ember-rite.pak: loaded
+(Ember Rite 1.0 by Vatrix)` about 590 ms after `[Data] Mods …` on lavapipe); no expectation changed; the player's real
+folders unchanged (this machine's game folder and the Documents folder's top level).
+
 ## Status
 
 **Step 5 done (2026-11-13, the branch `gm1-step5`; "How it works", step 5): the save record `save.game` v1, the
@@ -3006,6 +3153,19 @@ player's real folders unchanged. Not checked: Windows.
 - *The full suite* passes on the GPU and on lavapipe on the step on `f22f048`: 4010 + 223 = 4233 tests (26 new), none
   skipped. Mutations: 21, all killed. The player's real folders are unchanged.
 - *Not checked:* Windows; the cloud.
+
+**Step 6b done (2026-11-14, the branch `gm1-step6b`; "How it works", step 6b): the mod check's cost at start, no result
+changed.** The game's side of the check done once per mount (`Packs/ModChecker.cs`, `Packs/DataReads.cs`; the small
+recording hook in `Records/RecordChecks.cs`'s `CheckContext`), every mod's report exactly the plain check's (compared
+problem for problem over 27 mods on three games, each way alone and all together; the editor's checks across entries
+compared with the plain run after every change of a session). The start time with the check, on `cde21a4`: +359 ms with
+one small mod, +386 ms with five, +385 ms with one of 2,056 entries (the plain check: +501, +1,666 and +508 ms); all three
+ways are needed for the first mod's gain. The editor's checks after an edit (and Save's) take about 9 ms instead of
+108 ms; the first Save and Save As unchanged. The full suite passes on the GPU and on lavapipe on the step on `cde21a4`:
+4019 + 223 = 4242 tests (9 new), none skipped; `end-to-end.sh --publish` 157 of 157 on both; mutations 46 + 46 + 1 (on
+the final tree 44 of 46 killed, 2 that can't differ); the player's real folders unchanged. Found: the editor's
+`EditedData` gives stale data on a third read after entries that can't be mounted together (for the manager). Not
+checked: Windows; the cloud.
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,

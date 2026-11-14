@@ -80,93 +80,22 @@ public static class ModCheck
     /// </summary>
     public static ModReport Check(string file, IReadOnlyList<Mount> game, RecordTypes kinds)
     {
-        ArgumentNullException.ThrowIfNull(game);
-        ArgumentNullException.ThrowIfNull(kinds);
-        file = Path.GetFullPath(file);
-        PackFile pack;
-        try
-        {
-            pack = PackFile.Open(file);
-        }
-        catch (Exception problem) when (problem is IOException or UnauthorizedAccessException)
-        {
-            // (An entry the pack's index names, when the index refuses one.)
-            return new ModReport(file, null, [new ModProblem((problem as DataFileException)?.Entry, OpenProblem(problem))]);
-        }
-        using (pack)
-        {
-            ModInfo? info = null;
-            try
-            {
-                var reads = pack.Entries.Select(entry => Read(pack, entry, kinds)).ToList();
-                info = reads.FirstOrDefault(r => r.Entry.Path == ModInfo.Path)?.Record as ModInfo;
-                var unreadable = reads.Where(r => r.Problem is not null).Select(r => new ModProblem(r.Entry.Path, r.Problem!)).ToList();
-                if (unreadable.Count > 0)
-                    return new ModReport(file, info, unreadable);
-                return new ModReport(file, info, Checked(file, reads, game, kinds));
-            }
-            catch (Exception problem) when (problem is not OutOfMemoryException)
-            {
-                // (A file that can't be read on, the system's error; anything else that throws.)
-                return new ModReport(file, info, [new ModProblem(null, $"its check failed: {problem.Message}")]);
-            }
-        }
+        // The plain check: every record read and checked for this mod alone (the reference the shortcuts of a
+        // ModChecker are tested against).
+        using var checker = new ModChecker(game, kinds, ModShortcuts.None);
+        return checker.Check(file);
     }
 
     /// <summary>Why a pack can't be opened, as the editor's Open says it: the pack's problem, "the file isn't there", or the system's message.</summary>
-    static string OpenProblem(Exception problem) => problem switch
+    internal static string OpenProblem(Exception problem) => problem switch
     {
         DataFileException data => data.Problem,
         FileNotFoundException or DirectoryNotFoundException => "the file isn't there",
         _ => problem.Message,
     };
 
-    /// <summary>The record checks of a mod whose entries all read: the data the game would see with it, every record it shows checked.</summary>
-    static List<ModProblem> Checked(string file, List<PackEntryRead> reads, IReadOnlyList<Mount> game, RecordTypes kinds)
-    {
-        VirtualFileSystem data;
-        try
-        {
-            data = new VirtualFileSystem([.. game, Mount.Pack(file)]);
-        }
-        catch (DataFileException problem)
-        {
-            // The mod can't be mounted over the game's data (the editor's "entries that can't be mounted together").
-            return [new ModProblem(null, problem.Message)];
-        }
-        using (data)
-        {
-            var mine = reads.ToDictionary(r => r.Entry.Path, StringComparer.Ordinal);
-            var records = new List<RecordToCheck>();
-            var kindsAt = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach (var path in data.List())
-            {
-                // The mod is on top: a path it holds is its entry; any other is the game's.
-                var value = mine.TryGetValue(path, out var read) ? read.Record : GameRecord(data, path, kinds);
-                if (value is null)
-                    continue;
-                kindsAt[path] = RecordTypes.NameOf(value.GetType());
-                records.Add(new RecordToCheck(path, value, Problems(path, value)));
-            }
-            var result = CheckRecords(records, data, new KindLookup(kindsAt));
-            var problems = new List<ModProblem>();
-            for (var i = 0; i < records.Count; i++)
-                if (FirstPerPath([.. records[i].Own, .. result.Added[i]]) is { Count: > 0 } shown)
-                    problems.Add(new ModProblem(records[i].Path, shown[0].ToString()));
-            // A file where a mod keeps its info (a record of another kind there is a path rule, above).
-            if (mine.TryGetValue(ModInfo.Path, out var info) && info.IsFile)
-            {
-                var at = problems.FindIndex(p => string.CompareOrdinal(p.Entry, ModInfo.Path) > 0);
-                problems.Insert(at < 0 ? problems.Count : at, new ModProblem(ModInfo.Path, InfoProblem(null)));
-            }
-            if (result.DataProblem is { } dataProblem)
-                problems.Add(new ModProblem(null, dataProblem));
-            return problems;
-        }
-    }
-
     /// <summary>The game's record at <paramref name="path"/> (below the mod), or null for a file or a record the game's data can't give (which the editor shows unreadable and doesn't check).</summary>
-    static object? GameRecord(VirtualFileSystem data, string path, RecordTypes kinds)
+    internal static object? GameRecord(VirtualFileSystem data, string path, RecordTypes kinds)
     {
         if (!data.IsRecord(path))
             return null;
@@ -180,10 +109,17 @@ public static class ModCheck
         }
     }
 
-    /// <summary>The kinds of the record entries the data shows, by path (the editor's lookup is its session's entries, the same).</summary>
-    sealed class KindLookup(Dictionary<string, string> kinds) : IReferenceLookup
+    /// <summary>
+    /// The kinds of the record entries the data shows, by path (the editor's lookup is its session's entries, the same); each
+    /// question noted in the <see cref="DataReads"/> recordings running, as the file system's are.
+    /// </summary>
+    public sealed class KindLookup(IReadOnlyDictionary<string, string> kinds) : IReferenceLookup
     {
-        public string? KindAt(string path) => kinds.GetValueOrDefault(path);
+        public string? KindAt(string path)
+        {
+            DataReads.NotePath(path);
+            return kinds.GetValueOrDefault(path);
+        }
     }
 
     /// <summary>
@@ -285,21 +221,33 @@ public static class ModCheck
     /// another kind, a name the music's rule can't store, music without a theme order, a theme that doesn't compile with
     /// the data), its problem added to the record it names when that is one given with a value, else the data's problem.
     /// </summary>
-    public static RecordsChecked CheckRecords(IReadOnlyList<RecordToCheck> records, VirtualFileSystem? data, IReferenceLookup? references)
+    public static RecordsChecked CheckRecords(IReadOnlyList<RecordToCheck> records, VirtualFileSystem? data, IReferenceLookup? references) =>
+        CheckRecords(records, data, references, null, null);
+
+    /// <summary>
+    /// <see cref="CheckRecords(IReadOnlyList{RecordToCheck}, VirtualFileSystem?, IReferenceLookup?)"/> with what is known
+    /// already (<see cref="ModChecker"/>'s shortcuts): <paramref name="known"/> gives a record's added problems when they are
+    /// known to be what checking it would give (null: it is checked), <paramref name="music"/> the music's loading's
+    /// result (null: it is loaded from <paramref name="data"/>).
+    /// </summary>
+    public static RecordsChecked CheckRecords(IReadOnlyList<RecordToCheck> records, VirtualFileSystem? data, IReferenceLookup? references,
+        Func<int, IReadOnlyList<RecordProblem>?>? known, Func<DataFileException?>? music)
     {
         var added = new IReadOnlyList<RecordProblem>[records.Count];
         for (var i = 0; i < records.Count; i++)
-            added[i] = records[i].Value is { } value ? Without(Problems(records[i].Path, value, data, references), records[i].Own) : [];
-        return new RecordsChecked(added, data is null ? null : MusicProblem(records, data, added));
+            added[i] = records[i].Value is { } value
+                ? known?.Invoke(i) ?? Without(Problems(records[i].Path, value, data, references), records[i].Own)
+                : [];
+        return new RecordsChecked(added, data is null ? null : MusicProblem(records, data, added, music));
     }
 
     /// <summary>The music's loading for <see cref="CheckRecords"/>: null when it loads or isn't tried, or its problem is a record's (added to it there).</summary>
-    static string? MusicProblem(IReadOnlyList<RecordToCheck> records, VirtualFileSystem data, IReadOnlyList<RecordProblem>[] added)
+    static string? MusicProblem(IReadOnlyList<RecordToCheck> records, VirtualFileSystem data, IReadOnlyList<RecordProblem>[] added, Func<DataFileException?>? music)
     {
         for (var i = 0; i < records.Count; i++)
             if (records[i].Path.StartsWith(MusicFolder, StringComparison.Ordinal) && (records[i].Value is null || records[i].Own.Count > 0 || added[i].Count > 0))
                 return null;
-        if (Music(data) is not { } problem)
+        if ((music is null ? Music(data) : music()) is not { } problem)
             return null;
         if (problem.Entry is { } path)
             for (var i = 0; i < records.Count; i++)
@@ -326,7 +274,7 @@ public static class ModCheck
     }
 
     /// <summary><paramref name="all"/> without the problems of <paramref name="some"/> (by path and words).</summary>
-    static IReadOnlyList<RecordProblem> Without(IReadOnlyList<RecordProblem> all, IReadOnlyList<RecordProblem> some)
+    public static IReadOnlyList<RecordProblem> Without(IReadOnlyList<RecordProblem> all, IReadOnlyList<RecordProblem> some)
     {
         var known = new HashSet<RecordProblem>(some);
         return [.. all.Where(p => !known.Contains(p))];

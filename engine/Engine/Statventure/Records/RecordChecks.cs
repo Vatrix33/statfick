@@ -21,19 +21,42 @@ public interface IReferenceLookup
 public sealed class CheckContext
 {
     readonly List<RecordProblem> _problems;
+    readonly VirtualFileSystem? _data;
+    readonly IReferenceLookup? _references;
 
     internal CheckContext(VirtualFileSystem? data, IReferenceLookup? references, List<RecordProblem> problems)
     {
-        Data = data;
-        References = references;
+        _data = data;
+        _references = references;
         _problems = problems;
     }
 
-    /// <summary>The game's data as the value is checked against it (in the editor, with the open pack's entries as edited), or null when it is checked alone.</summary>
-    public VirtualFileSystem? Data { get; }
+    /// <summary>
+    /// The game's data as the value is checked against it (in the editor, with the open pack's entries as edited), or null when it is checked alone.
+    /// Asking for it is noted in the <see cref="DataReads"/> recordings running (GM1 step 6b: a check that never asks is
+    /// one whose problems are the same with the data and without).
+    /// </summary>
+    public VirtualFileSystem? Data
+    {
+        get
+        {
+            DataReads.NoteConsulted();
+            return _data;
+        }
+    }
 
-    /// <summary>The entries references are checked against, or null.</summary>
-    public IReferenceLookup? References { get; }
+    /// <summary>The entries references are checked against, or null (asking for it noted as for <see cref="Data"/>).</summary>
+    public IReferenceLookup? References
+    {
+        get
+        {
+            DataReads.NoteConsulted();
+            return _references;
+        }
+    }
+
+    /// <summary>The lookup as the marks' references use it (<see cref="RecordChecks"/>; not noted: each question it is asked is the lookup's to note).</summary>
+    internal IReferenceLookup? Lookup => _references;
 
     /// <summary>Where the value checked is, in the record being checked.</summary>
     internal RecordPath At { get; set; } = RecordPath.Root;
@@ -92,7 +115,7 @@ public static class RecordChecks
                 foreach (var (text, where) in Values(field.Value, value, at))
                     if (!choices.Contains((string)text, StringComparer.Ordinal))
                         context.ReportAt(where, $"\"{text}\" isn't one of the choices: {string.Join(", ", choices)}");
-            if (context.References is { } lookup && field.ReferenceIn(record) is { } reference)
+            if (context.Lookup is { } lookup && field.ReferenceIn(record) is { } reference)
                 foreach (var (name, where) in reference.Keys ? Keys(field.Value, value, at) : Values(field.Value, value, at))
                     Reference(context, lookup, reference, (string)name, where);
             if (field.Value.HoldsRecords)

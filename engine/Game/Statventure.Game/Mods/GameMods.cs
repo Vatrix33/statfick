@@ -100,12 +100,14 @@ public sealed class GameMods
     /// <summary>
     /// The game's mod check (<see cref="ApplicationOptions.ModFilter"/>), at each mount of the data: each mod in mounting
     /// order switched off (not checked), or checked alone over <paramref name="game"/> and kept when it passes; the entries
-    /// made anew and each mod logged.
+    /// made anew and each mod logged. One <see cref="ModChecker"/> for the mount (GM1 step 6b): the game's side of the check
+    /// done once for every mod, each mod's problems exactly the plain check's.
     /// </summary>
     IEnumerable<string> Filter(IReadOnlyList<string> mods, IReadOnlyList<Mount> game)
     {
         var entries = new List<ModEntry>();
         var accepted = new List<string>();
+        using var checker = new ModChecker(game, _kinds);
         foreach (var mod in mods)
         {
             var file = Path.GetFileName(mod);
@@ -115,7 +117,7 @@ public sealed class GameMods
                 Log.Info(LogCategory, $"{file}: off");
                 continue;
             }
-            var report = ModCheck.Check(mod, game, _kinds);
+            var report = checker.Check(mod);
             if (report.Passed)
             {
                 var entry = Entry(file, report.Info, ModState.Loaded);

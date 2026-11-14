@@ -102,7 +102,12 @@ public sealed class EntryChecks
             // Every record entry, the game's too; one whose draft doesn't build has no value (it holds the music back).
             var entries = _session.Entries.Where(e => e.IsRecord).ToList();
             var records = entries.Select(e => e.Builds ? new RecordToCheck(e.Path, e.Build!.Value!, Own(e, e.Build!.Value!)) : new RecordToCheck(e.Path, null, [])).ToList();
-            var result = ModCheck.CheckRecords(records, data, references);
+            // The game's side (GM1 step 6b): the game's entries the session doesn't change, checked over the game's packs once.
+            var game = data is not null && GameSideShortcut ? GameSide() : null;
+            var changedPaths = game is null ? null : ChangedPaths();
+            var result = ModCheck.CheckRecords(records, data, references,
+                game is null ? null : i => Known(game, entries[i], records[i], changedPaths!),
+                game is null ? null : () => game.MusicFor(data!, changedPaths!));
             var cross = new Dictionary<EditorEntry, IReadOnlyList<RecordProblem>>();
             for (var i = 0; i < entries.Count; i++)
                 if (records[i].Value is not null)
@@ -120,6 +125,86 @@ public sealed class EntryChecks
         }
         Ran?.Invoke();
     }
+
+    /// <summary>
+    /// Whether the checks across entries take the game's side once (GM1 step 6b, the shared mod check's <c>ModChecker</c>
+    /// shortcut): each game entry the session doesn't change checked with the data over the game's packs alone, once per
+    /// pack opened, its questions to the data recorded (<see cref="DataReads"/>), and checked again with the data as edited
+    /// only when the session's own entries (the open pack's, the new ones, the game's it changed) hold a path it asked
+    /// about or one below a folder it listed; the music's loading the same way. Each entry's problems are what the plain
+    /// run gives. On by default; the tests compare it with the plain run.
+    /// </summary>
+    internal bool GameSideShortcut { get; set; } = true;
+
+    /// <summary>How many game entries were checked again with the data as edited since the session's checks began (tests).</summary>
+    internal int GameRechecked { get; private set; }
+
+    GameChecks? _game;
+
+    /// <summary>The game's side for the pack open now (made again when another pack is opened).</summary>
+    GameChecks? GameSide()
+    {
+        if (_session.Base is not { } over)
+            return null;
+        if (_game?.Data != over)
+        {
+            // The kinds of the game's record entries, shown or under the pack's (what the session's references give where
+            // the session changes nothing).
+            var kinds = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var entry in _session.GameEntries())
+                if (entry.IsRecord && entry.Kind is { } kind)
+                    kinds[entry.Path] = kind.Name;
+            _game = new GameChecks(over, new ModCheck.KindLookup(kinds));
+        }
+        return _game;
+    }
+
+    /// <summary>The paths where the data as edited and its references differ from the game's packs: every entry shown that isn't a game entry as the game has it.</summary>
+    HashSet<string> ChangedPaths() =>
+        new(_session.Entries.Where(e => e.Source != EntrySource.Game || e.IsChanged).Select(e => e.Path), StringComparer.Ordinal);
+
+    /// <summary>What the data adds to a game entry the session doesn't change, when the session's entries can't change it; null to check it (any other entry too).</summary>
+    IReadOnlyList<RecordProblem>? Known(GameChecks game, EditorEntry entry, RecordToCheck record, IReadOnlySet<string> changed)
+    {
+        if (entry.Source != EntrySource.Game || entry.IsChanged || record.Value is not { } value)
+            return null;
+        var result = game.Results.TryGetValue(entry, out var known) && ReferenceEquals(known.Value, value) && known.Path == entry.Path
+            ? known
+            : game.Check(entry, value, record.Own);
+        if (result.Reads.Touches(changed))
+        {
+            GameRechecked++;
+            return null;
+        }
+        return result.Added;
+    }
+
+    /// <summary>The game's packs (the session's base) with the game's record kinds; each game entry's check over them, and the music's loading over them, once.</summary>
+    sealed class GameChecks(VirtualFileSystem data, ModCheck.KindLookup lookup)
+    {
+        public VirtualFileSystem Data { get; } = data;
+        public ConditionalWeakTable<EditorEntry, GameResult> Results { get; } = [];
+        DataReads? _musicReads;
+        DataFileException? _music;
+
+        public GameResult Check(EditorEntry entry, object value, IReadOnlyList<RecordProblem> own)
+        {
+            var added = DataReads.During(() => ModCheck.Without(ModCheck.Problems(entry.Path, value, Data, lookup), own), out var reads);
+            var result = new GameResult(value, entry.Path, added, reads);
+            Results.AddOrUpdate(entry, result);
+            return result;
+        }
+
+        public DataFileException? MusicFor(VirtualFileSystem edited, IReadOnlySet<string> changed)
+        {
+            if (_musicReads is null)
+                _music = DataReads.During(() => ModCheck.Music(Data), out _musicReads);
+            return _musicReads.Touches(changed) ? ModCheck.Music(edited) : _music;
+        }
+    }
+
+    /// <summary>A game entry's check over the game's packs: for the value and path it was made with, what it added and what it asked.</summary>
+    sealed record GameResult(object Value, string Path, IReadOnlyList<RecordProblem> Added, DataReads Reads);
 
     /// <summary>The problems an entry shows (the session's check): its own, then those across entries of the last pause, the first at each path.</summary>
     IEnumerable<RecordProblem> Shown(EditorEntry entry, object value)

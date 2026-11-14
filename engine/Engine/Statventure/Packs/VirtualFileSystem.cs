@@ -135,8 +135,15 @@ public sealed class VirtualFileSystem : IDisposable
         _table = Table.Build(_mounts);
     }
 
-    /// <summary>What is mounted, the first at the bottom.</summary>
-    public IReadOnlyList<Mount> Mounts => _mounts;
+    /// <summary>What is mounted, the first at the bottom (noted as depending on every path in a <see cref="DataReads"/> recording).</summary>
+    public IReadOnlyList<Mount> Mounts
+    {
+        get
+        {
+            DataReads.NoteEverything();
+            return _mounts;
+        }
+    }
 
     /// <summary>Raised after every <see cref="Reload"/>, for the systems that reload what they read.</summary>
     public event Action? Reloaded;
@@ -145,6 +152,7 @@ public sealed class VirtualFileSystem : IDisposable
     public bool Exists(string path)
     {
         PackPath.Check(path);
+        DataReads.NotePath(path);
         return Use(table => table.Sources.ContainsKey(path));
     }
 
@@ -152,6 +160,7 @@ public sealed class VirtualFileSystem : IDisposable
     public bool IsRecord(string path)
     {
         PackPath.Check(path);
+        DataReads.NotePath(path);
         return Use(table => Find(table, path).IsRecord(path));
     }
 
@@ -159,6 +168,7 @@ public sealed class VirtualFileSystem : IDisposable
     public byte[] ReadAllBytes(string path)
     {
         PackPath.Check(path);
+        DataReads.NotePath(path);
         return Use(table =>
         {
             var source = Find(table, path);
@@ -180,6 +190,7 @@ public sealed class VirtualFileSystem : IDisposable
     public object Load(Type type, string path)
     {
         PackPath.Check(path);
+        DataReads.NotePath(path);
         var name = RecordTypes.NameOf(type);
         var (source, content) = Use(table =>
         {
@@ -211,6 +222,7 @@ public sealed class VirtualFileSystem : IDisposable
     {
         ArgumentNullException.ThrowIfNull(kinds);
         PackPath.Check(path);
+        DataReads.NotePath(path);
         var (source, content) = Use(table =>
         {
             var source = Find(table, path);
@@ -249,6 +261,7 @@ public sealed class VirtualFileSystem : IDisposable
     public string? Origin(string path)
     {
         PackPath.Check(path);
+        DataReads.NotePath(path);
         return Use(table => table.Sources.TryGetValue(path, out var source) ? source.Origin(path) : null);
     }
 
@@ -260,6 +273,7 @@ public sealed class VirtualFileSystem : IDisposable
     public DataFileException Problem(string path, string problem, Exception? inner = null)
     {
         PackPath.Check(path);
+        DataReads.NotePath(path);
         return Use(table => Find(table, path).Problem(path, problem, inner));
     }
 
@@ -268,6 +282,7 @@ public sealed class VirtualFileSystem : IDisposable
     {
         if (folder.Length > 0)
             PackPath.Check(folder, nameof(folder));
+        DataReads.NoteFolder(folder);
         return Use(table =>
         {
             if (folder.Length == 0)

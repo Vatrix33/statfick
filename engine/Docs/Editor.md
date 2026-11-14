@@ -3136,6 +3136,20 @@ not marked imported, the session's suggestion and plan refusing it, the words; t
 whose library can't share the tests' process; one more variant, `variant.unpacked`, in `ImportVariants.cs` for the
 article).
 
+### GM1 step 6b: the checks across entries take the game's side once (2026-11-14)
+
+The shared mod check's shortcut (`Docs/Game/Foundation.md`, "How it works", step 6b) in the editor's checks across
+entries (`EntryChecks.Run`; `EntryChecks.GameSideShortcut`, on): each game entry the session doesn't change is checked over
+the game's packs alone (the session's base, the game's kinds as its lookup) once per pack opened, recording what it asked
+the data and the lookup (`Packs/DataReads.cs`), and checked with the data as edited only when the session's own entries
+(the open pack's, the new ones, the game's it changed) hold a path it asked about or one below a folder it listed (or it
+asked for the mounts); the music's loading the same way. Without the data as edited every entry is checked as before.
+Every entry shows exactly what it showed: `Editor/Checks/EntryChecksGameSideTests.cs` compares the run with the plain one
+after every change of a session. No screen or behaviour changed. The checks after an edit take about 9 ms instead of
+about 108 ms for a small mod (so does Save's check, which runs them when due); Save As's own check is unchanged.
+`EditorSession.GameEntries()` is internal now. Found on the way: `EditedData`'s third read after entries that can't be
+mounted together returns the data mounted before them (Foundation.md, step 6b, "Found"; not changed).
+
 ## Status
 
 **GM1 step 2 (2026-11-13): the game's real data library** (`Game/Statventure.Game.Data`, `GameLibrary.RepoProject`;

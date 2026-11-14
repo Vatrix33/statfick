@@ -1734,6 +1734,16 @@ Code in `Engine/Statventure/Packs/`: `ModCheck.cs` (new), `VirtualFileSystem.cs`
   its kinds the engine's and the data library's; a `ModReport` (its file, its info, its problems as `ModProblem(entry,
   problem)`, the first first). The rules, their order and their words: Foundation.md, "How it works", step 6. Its pieces
   are the editor's checks too (`Read`, `Problems`, `PathRules`, `FirstPerPath`, `CheckRecords`, `Music`, `InfoProblem`).
+- **`ModChecker`** (GM1 step 6b, `ModChecker.cs`; Foundation.md, "How it works", step 6b): several mods over the same
+  game's mounts, each report exactly `ModCheck.Check`'s, the game's side done once (the game's records read and checked
+  alone once; each checked with the game's data once, its questions to the data recorded, and checked again with a mod
+  only when the mod holds a path it asked about or one below a folder it listed; the music's loading the same way; a
+  record whose check with the data never used it walked once). The game's filter makes one per mount.
+- **`DataReads`** (GM1 step 6b, `DataReads.cs`): `DataReads.During(read, out reads)` records, on the flow that runs it,
+  what the file systems were asked (`Exists`, `IsRecord`, `ReadAllBytes`, `Load`, `Origin`, `Problem`: the path; `List`:
+  the folder; `Mounts`: everything), whether a record check asked for its data or its lookup (`CheckContext.Data`,
+  `References`) and the kinds `ModCheck.KindLookup` gave; `Touches(paths)` says whether a mount on top holding those paths
+  could change any answer (the mounts asked for: always). Nested recordings each get every question.
 
 ## Status
 

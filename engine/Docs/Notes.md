@@ -349,6 +349,22 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   - *The engine has no `float`:* don't build a fixture on floats.
   - *`0%` and `0px` were the same `Length`* until this step. A rule that asks "is it a percentage" must ask
     `HasPercent`, never `Percent != 0`.
+- 2026-11-14 (the PC, GM1 step 6b's worker on the branch `gm1-step6b`, 4019 + 223 = 4242 tests on the GPU and
+  lavapipe): **the mod check's cost at start** (`Packs/ModChecker.cs`, `Packs/DataReads.cs`, the recording hook in
+  `Records/RecordChecks.cs`'s `CheckContext`, the editor's `EntryChecks` game side; `Docs/Game/Foundation.md`, "How it
+  works", step 6b). Gotchas:
+  - *A shortcut that must give the plain result* is checked by running both over the same inputs, problem for problem:
+    each shortcut alone and all together, the mods in both orders (what one mod leaves for the next), and mods that touch
+    each kind of question a check can ask.
+  - *A recording of what the data was asked* must count the mounts as touched by any mod, even one with no entries: the
+    mount list itself is one longer.
+  - *A test of each way of asking the file system* needs a path of its own per way: the paths are a set, so a way that
+    isn't noted hides behind another asking the same path.
+  - *Timing each way of a change* on the same tree: builds from `git archive` exports with the default switched by `sed`
+    (`claude-work/gm1/step6b/timing/make-builds.sh`), interleaved starts, medians.
+  - *The editor's `EditedData`* (step 13's, M11): after entries that can't be mounted together, the third read with the
+    same entries gives the data mounted before them and clears `EditedDataProblem` (the early return for entries that
+    failed before doesn't put the mount's snapshot back). Reported to the manager, not changed here.
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

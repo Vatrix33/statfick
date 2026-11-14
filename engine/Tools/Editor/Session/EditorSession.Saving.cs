@@ -283,7 +283,7 @@ public sealed partial class EditorSession
         new([.. over.Mounts, Mount.Custom(System.IO.Path.GetFullPath(file), new SubsetEntries(this, chosen))]);
 
     /// <summary>The game's entries the open pack is seen over, each once: those shown (changed or not) and those under the pack's entries.</summary>
-    IEnumerable<EditorEntry> GameEntries() => Entries.Where(e => e.Source == EntrySource.Game).Concat(_shadowed.Values);
+    internal IEnumerable<EditorEntry> GameEntries() => Entries.Where(e => e.Source == EntrySource.Game).Concat(_shadowed.Values);
 
     /// <summary>
     /// Save As (M11-16, P24; Q3–Q5): the entries <paramref name="ticked"/> (of <see cref="SaveAsChoices"/>, offered ones)

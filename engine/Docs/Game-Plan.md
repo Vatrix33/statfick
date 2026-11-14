@@ -2051,3 +2051,10 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   - *The tests:* every game-screen test passes at its limits, and nothing is held.
   - *For the manager:* the engine has no `float`.
   - *The old game* can be unfrozen once this is on `main` (the manager's ok).
+- **2026-11-14, GM1 step 6b done (the branch `gm1-step6b`):** the mod check's cost at start, no result changed (the
+  manager's job after Q27). The game's side of the check is done once per mount: the game's records read and checked
+  alone once, each checked with the game's data once with what it asked recorded, and checked again with a mod only when
+  the mod touches that; a record whose check doesn't use the data walked once (`Docs/Game/Foundation.md`, "How it works",
+  step 6b). Every mod gets exactly the plain check's problems (compared problem for problem). The start time with the
+  check: +359 ms with one small mod, +386 ms with five, +385 ms with one of 2,056 entries (the plain check: +501, +1,666
+  and +508 ms). The editor's checks after an edit take about 9 ms instead of 108; Save As unchanged.
