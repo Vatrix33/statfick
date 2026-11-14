@@ -10,7 +10,11 @@ public enum MountKind
     Pack,
     /// <summary>A loose folder: its files as they are, at their paths below it (Q7, Q29).</summary>
     Folder,
-    /// <summary>A mods folder: every file directly in it whose name ends in ".pak" in any case, in the ordinal order of the names (Q8, Q30); none when the folder is missing.</summary>
+    /// <summary>
+    /// A mods folder: every file directly in it whose name ends in ".pak" in any case, in the ordinal order of the names (Q8,
+    /// Q30); none when the folder is missing. With a <see cref="ModFilter"/> (the game's mod check, GM1-P13), only those it
+    /// accepts.
+    /// </summary>
     Mods,
     /// <summary>Entries an object gives (<see cref="IMountEntries"/>), read as a pack's are: an editor's unsaved work (Docs/Editor.md, P38).</summary>
     Custom,
@@ -42,12 +46,13 @@ public interface IMountEntries
 /// <summary>Something for a <see cref="VirtualFileSystem"/> to mount; looked at again on every Reload.</summary>
 public sealed class Mount
 {
-    Mount(MountKind kind, string path, string at, IMountEntries? entries = null)
+    Mount(MountKind kind, string path, string at, IMountEntries? entries = null, ModFilter? filter = null)
     {
         Kind = kind;
         Path = path;
         At = at;
         Entries = entries;
+        Filter = filter;
     }
 
     public MountKind Kind { get; }
@@ -61,6 +66,9 @@ public sealed class Mount
     /// <summary>For a custom mount: what gives its entries.</summary>
     public IMountEntries? Entries { get; }
 
+    /// <summary>For a mods folder: which of its mods mount (null: all of them).</summary>
+    public ModFilter? Filter { get; }
+
     public static Mount Pack(string file) => new(MountKind.Pack, file, "");
 
     /// <summary>A loose folder, its files appearing below <paramref name="at"/> (e.g. the shipped classes/ folder at "classes").</summary>
@@ -71,7 +79,12 @@ public sealed class Mount
         return new Mount(MountKind.Folder, folder, at);
     }
 
-    public static Mount Mods(string folder) => new(MountKind.Mods, folder, "");
+    /// <summary>
+    /// The mods in <paramref name="folder"/> (Q8, Q30). With <paramref name="filter"/> (the game's mod check, GM1-P13), each
+    /// time the file system mounts it (made, and on every Reload) the filter is given the mods found and the mounts below
+    /// this one, and only the mods it accepts mount, in their order; each mod mounted is logged ("Data": "mod &lt;file&gt;").
+    /// </summary>
+    public static Mount Mods(string folder, ModFilter? filter = null) => new(MountKind.Mods, folder, "", filter: filter);
 
     /// <summary>
     /// Entries <paramref name="entries"/> gives, read as a pack's are (P38). <paramref name="name"/> stands where a
@@ -185,6 +198,44 @@ public sealed class VirtualFileSystem : IDisposable
         catch (RecordFormatException problem)
         {
             throw source.Problem(path, $"not a readable {name} record: {problem.Message}", problem);
+        }
+    }
+
+    /// <summary>
+    /// The record at <paramref name="path"/> as <see cref="Load(Type, string)"/> reads it, of whichever of
+    /// <paramref name="kinds"/>' types it holds (for a reader that doesn't know the type in advance: the mod check,
+    /// <see cref="ModCheck"/>). A record of a type not among them is a <see cref="DataFileException"/> naming the pack and
+    /// entry or the loose file ("a record of type …, which isn't a record type known here"), as one that doesn't read.
+    /// </summary>
+    public object Load(RecordTypes kinds, string path)
+    {
+        ArgumentNullException.ThrowIfNull(kinds);
+        PackPath.Check(path);
+        var (source, content) = Use(table =>
+        {
+            var source = Find(table, path);
+            if (!source.IsRecord(path))
+                throw source.Problem(path, "a file, not a record");
+            return (source, source.Read(path));
+        });
+        string held;
+        try
+        {
+            held = source.Json ? LooseRecord.RootTypeName(content) : RecordSerializer.RootTypeName(content);
+        }
+        catch (RecordFormatException problem)
+        {
+            throw source.Problem(path, $"not a readable record: {problem.Message}", problem);
+        }
+        if (kinds.Find(held) is not { } type)
+            throw source.Problem(path, $"a record of type {held}, which isn't a record type known here");
+        try
+        {
+            return source.Json ? RecordSerializer.FromJson(type, content) : RecordSerializer.FromBinary(type, content);
+        }
+        catch (RecordFormatException problem)
+        {
+            throw source.Problem(path, $"not a readable {held} record: {problem.Message}", problem);
         }
     }
 
@@ -371,8 +422,8 @@ public sealed class VirtualFileSystem : IDisposable
             var sources = new List<Source>();
             try
             {
-                foreach (var mount in mounts)
-                    Open(mount, sources);
+                for (var i = 0; i < mounts.Count; i++)
+                    Open(mounts[i], sources, mounts, i);
             }
             catch
             {
@@ -387,7 +438,8 @@ public sealed class VirtualFileSystem : IDisposable
             return new Table(sources, byPath);
         }
 
-        static void Open(Mount mount, List<Source> into)
+        /// <summary>Opens <paramref name="mount"/>, the <paramref name="index"/>th of <paramref name="mounts"/> (those before it are below it: a mods mount's filter is given them).</summary>
+        static void Open(Mount mount, List<Source> into, IReadOnlyList<Mount> mounts, int index)
         {
             switch (mount.Kind)
             {
@@ -398,7 +450,14 @@ public sealed class VirtualFileSystem : IDisposable
                     into.Add(new FolderSource(LooseFolder.Scan(mount.Path, mount.At).ToDictionary(e => e.Path, StringComparer.Ordinal)));
                     break;
                 case MountKind.Mods:
-                    foreach (var mod in ModFiles(mount.Path))
+                    var mods = ModFiles(mount.Path);
+                    if (mount.Filter is { } filter)
+                    {
+                        // Only the mods it accepts, in the order they were found (GM1-P13).
+                        var accepted = new HashSet<string>(filter(mods, [.. mounts.Take(index)]), StringComparer.Ordinal);
+                        mods = [.. mods.Where(accepted.Contains)];
+                    }
+                    foreach (var mod in mods)
                     {
                         Log.Info(LogCategory, $"mod {mod}");
                         into.Add(new PackSource(PackFile.Open(mod)));

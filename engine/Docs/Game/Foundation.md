@@ -75,13 +75,13 @@ In full, with the options not taken, in `Docs/Game-Plan.md`, GM1, "Decisions for
   window on the user's screen, nothing audible from a session ("How each step is finished", item 1; the standing rule
   in "Small tasks", "The proof cutscene's three sounds by ear").
 
-### The detail round (Q1–Q26 and Q16b, the user, 2026-11-13)
+### The detail round (Q1–Q28 and Q16b, the user, 2026-11-13 and 2026-11-14)
 
 Asked by the manager with the question tool in six rounds of four after this doc's first version, then Q24, which the
-answers raised, the same day, and Q25 and Q26, which step 5 raised, the same day (the questions as asked, with their
-facts and options: "The questions as asked" below). Every answer the recommended option (a) except **Q6, Q11, Q15, Q16
-(with its follow-up Q16b), Q18, Q22, Q23 and Q25**. Recorded in `Docs/Game-Plan.md`, "Decisions for GM1", too (GP-7).
-Nothing is open.
+answers raised, the same day, and Q25 and Q26, which step 5 raised, the same day, then Q27 and Q28, which step 6 raised,
+on 2026-11-14 (the questions as asked, with their facts and options: "The questions as asked" below). Every answer the
+recommended option (a) except **Q6, Q11, Q15, Q16 (with its follow-up Q16b), Q18, Q22, Q23 and Q25**. Recorded in
+`Docs/Game-Plan.md`, "Decisions for GM1", too (GP-7). Nothing is open.
 - **Q1, a character's name and its file:** any name up to 80 characters, kept in the save; the slot's file is named from
   it by a rule ("Ser Alrik" → `saves/ser-alrik.dat`, a second one `ser-alrik-2.dat`). (Not only the path rule's
   characters accepted; not the name encoded reversibly in the file's name.)
@@ -151,6 +151,18 @@ Nothing is open.
 - **Q26, the editor's New entry and the save** (raised by step 5: the editor offered New entry for every plain record
   kind, `save.game` too): **"Not offered"**: the editor leaves `save.game` out of New entry; the record is marked as not
   a pack kind (`[NotAPackKind]`, an engine mark). (Not offered like any kind.)
+- **Q27, the mod check's start time** (the user, 2026-11-14, asked by the manager with step 6's numbers: +73 ms with one
+  small mod, +232 ms with five, +111 ms with one of 2,056 entries, all before the window opens): **"Keep the full
+  check"**: the start checks every mod as the editor would (Q4), its cost accepted. (Not a lighter check at the start, of
+  the files and the kinds only.) After the answer, step 1a's stylesheet in `ui.pak` made each mod's check costlier (+494
+  ms with one small mod, +1,440 ms with five, +515 ms with one of 2,056 entries): measured by step 6 on 2026-11-14 and
+  gone to the manager ("How it works", step 6).
+- **Q28, the editor's Import and a character file** (the user, 2026-11-14, asked by the manager; raised by step 6, after
+  Q26 left Import open): **"Import refuses it"**: importing a record's JSON form of a kind marked as not a pack kind (the
+  save) is refused, in the editor's words ("a save game (save.game) isn't something a mod can hold"), so nothing in the
+  editor makes a save entry (New entry leaves it out, Q26; Duplicate has none to copy). The shared mod check stays as it
+  is: a hand-made mod holding a save entry isn't broken for that, and the game ignores the entry. (Not Import left as it
+  was.)
 
 **The old game is frozen for the recapture** (the user, 2026-11-13, in the chat with the manager): "Old game wont be
 touched until you give the ok, except if you need something". Nothing in `old-game/` changes while the references are
@@ -481,7 +493,7 @@ per-user folders, never the player's real ones ("How each step is finished", ite
 
 ## Design
 
-The design the steps work from, decided (Q1–Q26, Q16b; GM1-P1–GM1-P19).
+The design the steps work from, decided (Q1–Q28, Q16b; GM1-P1–GM1-P19).
 
 ### The program, the library and the repo
 
@@ -713,7 +725,14 @@ dialog (a question, a text field, OK, Cancel), in the old dialogs' look (capture
   loading with the mod, G5); `mod/info`, when there, reads. Any problem leaves the whole mod out. A mod that needs another
   mod's entries fails as the editor refuses it (P18's known limit of M11). The development folder isn't a mod.
 - **The cost:** reading every entry of every mod at start; measured with no mods, one and several; if noticeable, the
-  manager asks the user again (Q4).
+  manager asks the user again (Q4). **Measured by step 6 and accepted by the user (Q27, 2026-11-14, "Keep the full
+  check"):** +8 ms with no mods, +73 ms with one small mod, +232 ms with five, +111 ms with one of 2,056 entries (the
+  wall time, Release, medians), all before the window opens ("How it works", step 6). **Measured again on step 1a's
+  packs (2026-11-14; the game's stylesheet in `ui.pak` is checked with every mod):** −6 ms with none, +494 ms with one
+  small mod, +1,440 ms with five, +515 ms with one of 2,056 entries; gone to the manager after Q27's answer.
+- **The editor's Import** (Q28, 2026-11-14): a record's JSON form of a kind marked as not a pack kind (the save) is refused,
+  so nothing in the editor makes a save entry; the check itself treats such a kind as any kind the game knows (a
+  hand-made mod holding a save isn't broken for it; the game ignores the entry).
 - **The list** (the settings screen): each mod in mounting order: its name (`mod/info`'s, else the file name without
   `.pak`), its version and author, its description, its file name, its switch, and its state: loaded, off, or left out
   with its first problem in the editor's words and how many more; "takes effect at the next start" beside a switch changed
@@ -855,7 +874,7 @@ per-object seeds; sound effects keep `SoundEffects.Seed`. GM1 has no roll; the s
   mounting a checked mod, the list showing it), 9a (the start screen, titled "Stat Fick", after the splash), 9c (the game's
   crash triggers) change; step 11 rewrites them.
 
-## The questions as asked (Q1–Q26, answered 2026-11-13)
+## The questions as asked (Q1–Q28, answered 2026-11-13 and 2026-11-14)
 
 Each as the manager asked it with the question tool (2026-11-13), in asking order, the recommended option first; its
 answer after it and in "The detail round" above.
@@ -1093,6 +1112,26 @@ has no place in a mod.
 - **Answer (the user, 2026-11-13): (a).** The manager gave step 5 the mark (`Engine/Statventure/Records/`), the
   editor's `NewKinds()` and its kinds-list tests for it; Import and Duplicate weren't asked about (step 5 looked:
   "How it works", step 5).
+
+**Q27. The mod check's start time** (raised by step 6's measurement, asked by the manager on 2026-11-14; Q4 had the added
+time measured and asked again if noticeable). The check reads every entry of each mod and checks every record the data
+shows with it, the game's too (the 55 themes compiled against the composer), before the window opens. Measured (Release,
+the built game, against the build without it, medians): +8 ms with no mods, +73 ms with one small mod, +232 ms with five
+small mods, +111 ms with one mod of 2,056 entries.
+- (a) **Keep the full check:** as built; one rule for the editor and the game. *Recommended:* a broken mod never reaches
+  play, at a cost under a quarter of a second for several mods.
+- (b) **A lighter check at the start:** the files and the kinds only, values and references checked when used.
+- **Answer (the user, 2026-11-14): (a).**
+
+**Q28. The editor's Import and a character file** (raised by step 6, asked by the manager on 2026-11-14; Q26 left Import
+open). The editor's Import takes any record's JSON form of a kind the game knows; a character file (the save's JSON form)
+was taken as a new `save.game` entry in the mod ("Ser Alrik.json imports as a save game (its JSON form). Its entry's
+path:", then "Imported Ser Alrik.json as ser-alrik."), though no mod holds a save and the game ignores one.
+- (a) **Import refuses it:** a record of a kind marked as not a pack kind is refused through Import's refusal for a file
+  it can't take, in the editor's words. *Recommended:* nothing in the editor makes a save entry, as Q26 meant.
+- (b) **Import left as it is.**
+- **Answer (the user, 2026-11-14): (a).** Built by step 6 ("How it works", step 6); the shared mod check and the packer
+  unchanged.
 
 ## The proposals as made (GM1-P1–GM1-P19)
 
@@ -1378,6 +1417,18 @@ stays as it is until the manager's ok (the recapture's freeze).
      mod isn't checked or mounted; a switch changed this run marked; the editor refuses exactly what the game leaves out;
      the start time measured (none, one, several mods) and reported. Mutations: each rule. User approval: none (the cost, if
      noticeable, goes to the user).
+   - **Done (2026-11-13, the branch `gm1-step6`; "How it works", step 6):** the engine's shared check `Packs/ModCheck.cs`
+     (the pack opens, every entry reads, every record the data shows checked as the editor's form shows it, the music's
+     loading, `mod/info` a `mod.info` that reads), the editor's checks moved onto it (one rule new to the editor: a
+     `mod/info` that isn't a `mod.info` refuses Save), `ApplicationOptions.ModFilter` given to the mods folder's mount,
+     `GameMods` filled. The step's choices: the check's stages and order (the editor's Save's: an entry's own problems
+     first, entries in path order, the data's last), the game's data under a mod the mounts below the mods folder, the
+     filter asked once per mount with the whole list, a refused index's entry named, a switched-off mod's info read for
+     its name, `SwitchedSinceStart` as a difference from the start, blank info text as not given, the log lines' parts
+     only when given. The start time: +73 ms (one small mod), +232 ms (five), +111 ms (one of 2,056 entries) on the
+     wall time, all before the window, kept by the user (Q27); on step 1a's packs (the game's stylesheet checked with
+     every mod) +494 ms, +1,440 ms and +515 ms, gone to the manager. With it the user's Q28: the editor's Import refuses a
+     record of a kind marked as not a pack kind (the save).
 7. **The icons in the engine.** After 1a and 3 (approved); GM1-P10 decided.
    - Owns: `Engine/Statventure/Text/` (the icon face, its fallback place), `Engine/Statventure/Canvas/` where icon glyphs
      are drawn, `Game/Statventure.Game/Icons/` (the table made from `Assets/UI/icons/`), its tests and fixtures in a list of
@@ -2275,6 +2326,200 @@ own; the port's stylesheet is then compiled into `ui.pak`.
 
   The first runs' survivors were closed: tests and fixture cases added (`var()` in the shorthand, the version 1 upgrade, selections, an outside marker, the opaque analysis, the rounding spans, the shadows inside the box), an exact `rgb()` reader dropped and a redundant check removed. `make-ui-pack.sh`'s 3 rules ran through a runner of the step's own (`script-mutate.sh`), 3 killed; the unmutated script gave the same bytes. Nothing was written to the player's real folders.
 
+### Step 6: the mod check at start (2026-11-13, the branch `gm1-step6`)
+
+GM1-10, the user's Q3, Q4, Q10, Q18; GM1-P13. Every mod is checked at the start, alone over the game's packs, by one check
+in the engine that the editor's save uses too; a broken one is left out whole, named in the log and the list's model; a
+mod switched off is neither checked nor mounted; the switches are kept in the settings and take effect at the next start.
+
+**The shared check** (`Engine/Statventure/Packs/ModCheck.cs`): `ModCheck.Check(file, game, kinds)` gives a
+`ModReport(File, Info, Problems)` (`Passed` when there is none), each problem a `ModProblem(Entry, Problem)` whose text is
+"entry: problem" (the editor's refusal list's form) or the problem alone. `game` is the mounts the mods go over (the
+application gives the mounts below the mods folder: the area packs and `classes/`); `kinds` the engine's and the data
+library's (`GameMods.GameKinds`). In order, each stage ending the check when it finds something:
+1. **The pack opens** (`PackFile.Open`: the header, the index and its hash): one problem in the words the editor's Open
+   says it with (the pack's problem; "the file isn't there"; the system's message), naming the entry when the index
+   refuses one.
+2. **Every entry reads** (`ModCheck.Read`, the editor's opening reads through it: the content's hash; a record entry a
+   known kind at a version it reads): each entry that doesn't, with the editor's reason, in path order. (The editor opens
+   such a pack read-only, so Save is refused.)
+3. **The records** of the data the game would see with the mod (the game's mounts and the mod's pack, a
+   `VirtualFileSystem`): every record it shows, the mod's and the game's below them (a game record the data can't give is
+   skipped, as the editor shows it unreadable and doesn't check it), each checked as the editor's form shows it: its own
+   check first (`ModCheck.Problems(path, value)`: the kind's checks and the marks', then `PathRules`: a theme's id against
+   its path, and a record of another kind at `mod/info`), then what the data adds (`ModCheck.CheckRecords`: the same with
+   the data and the references resolved over the records' kinds, the theme against the composer with the mod's
+   instruments, G5), then, while no record under `audio/` has a problem, the game's music loading on the data
+   (`ModCheck.Music`), its problem on the record it names or the data's. Each record's first problem
+   (`ModCheck.FirstPerPath`), in path order; a file at `mod/info` among them at its place; the data's problem last.
+   Data that can't be mounted with the mod is the data's problem; anything that throws otherwise is "its check failed:
+   …", never an exception.
+
+The mod's info (`ModReport.Info`) is its `mod/info` when that is a `mod.info` record that reads, whatever else breaks.
+
+**The problems as the list will show them** (`ModEntry.Problem`, the first; the log the same, "(and n more)" after it):
+
+| The break | The first problem |
+| --- | --- |
+| A damaged header (not a pack) | `not a pack (it doesn't start with SVPK)` (`29 bytes is too short for a pack` for a short file) |
+| A damaged index | `the index doesn't match its hash (damaged)`; an index naming a bad path: `Audio/notes.txt: a path outside the rule: 'A' isn't allowed (only a–z, 0–9, '-', '_', '.' and '/')` |
+| A damaged entry | `stand-in/items/lamp: the content doesn't match its hash (damaged)` |
+| An unknown kind | `parts/arm: a record of type test.part, which isn't a record type known here` |
+| A newer version of a kind | `stand-in/items/lamp: not a readable stand-in.item record: stand-in.item version 2 is newer than this engine reads (version 1)` |
+| An entry that doesn't read | `stand-in/items/lamp: not a readable record: the type table is empty`; values its type refuses: `e/refused-values: not a readable scene.curve record: …` |
+| A value its checks refuse | `stand-in/items/lamp: "Legendary" isn't one of the choices: Common, Rare, Exotic (at $.rarity)`; `stand-in/items/a: must be 0 or more (it is -1) (at $.price)`; `audio/effects/chime: allows no voices (at $.maxVoices)` |
+| A reference to nothing | `audio/theme-order: it names the theme 'nowhere', which has no entry 'audio/themes/nowhere' (at $.themes[55])` |
+| A theme that doesn't compile | `audio/themes/alder-vale: alder-vale/intro/mel: bar 1 has 1 steps, expected 6 (at $.sections["intro"].melody)` |
+| A game theme the mod breaks (an instrument made silent) | `audio/themes/<theme>: Instrument <name> of kind <kind> makes no sound (at $.sections[…].layers[…].instrument)` |
+| What only the music's loading refuses | on a record: `audio/themes/vault: a record of type audio.room, not audio.theme`; else the data's, naming the pack and entry: `<mod file>: entry 'audio/themes/notes': …` |
+| A theme at another path | `audio/themes/alder-dale: the theme's id is 'alder-vale', but its path holds 'alder-dale' (a theme's path is made from its id) (at $.id)` |
+| An unreadable `mod/info` | a file: `mod/info: a mod's info must be a mod.info record (this is a file)`; another kind: `mod/info: a mod's info must be a mod.info record (this is a audio.room record)`; a newer version: `mod/info: not a readable mod.info record: mod.info version 2 is newer than this engine reads (version 1)`; damaged: `mod/info: the content doesn't match its hash (damaged)` |
+
+**The editor on it** (the brief: its behaviour, tests and screens unchanged): `EditorSession.ReadEntry` reads through
+`ModCheck.Read`; `EntryChecks`' own check is `ModCheck.Problems`, its checks across entries `ModCheck.CheckRecords`
+(`EntryChecks.PathRules` gone into `ModCheck.PathRules`, `EntryChecks.FirstPerPath` forwarding); Save As's check uses
+`ModCheck.Problems` and `ModCheck.Music` (its own order kept: the first of one check with the data). **The one rule new to
+the editor is the shared check's `mod/info` rule:** a record of another kind there is its problem (a path rule, shown on
+the entry), and a file there is a problem Save and Save As refuse with, among the entries' in path order
+(`EditorSession.SaveProblems`, `SaveAsProblems`). No editor test or screen changed. `Docs/Editor.md`, "GM1 step 6".
+
+**Import refuses the save (the user's Q28, 2026-11-14):** the editor's import (`Tools/Editor/Session/EditorSession.Import.cs`,
+`ReadRecord`, where every import reads a record: the path's suggestion and the plan, so the Import button and a drop
+alike) refuses a record of a kind marked `[NotAPackKind]` (today `save.game`) through Import's refusal for a file it can't
+take: "Can't import" — "Ser Alrik.json can't be imported: a save game (save.game) isn't something a mod can hold."
+(`EditorSession.NotAPackKindProblem`). Before, it offered "Ser Alrik.json imports as a save game (its JSON form). Its
+entry's path:" (`ser-alrik`) and made a `save.game` entry. The shared mod check and the packer are unchanged (a hand-made
+mod holding a save isn't broken; the game ignores the entry: `GameModsTests.AModHoldingASaveIsCheckedAsAnyKind`). No screen
+changed. **The start time (Q27, 2026-11-14):** the user kept the full check with the numbers below.
+
+**The engine's hook** (`Core/Application.cs`, `Packs/VirtualFileSystem.cs`): `ApplicationOptions.ModFilter` (a
+`ModFilter`: the mods found, in the order they mount, and the mounts below them → the mods to mount), given to the
+player's mods folder's mount (`Mount.Mods(folder, filter)`); asked at every mount (the start, a Reload); the mods it
+accepts mount in their files' name order, each logged `[Data] mod <file>` as before, the others not at all. Null (the
+editor, the sandbox, the tests' applications): every mod mounts as before. The check runs where the data mounts, before
+the window. Also `VirtualFileSystem.Load(RecordTypes, path)` (a record of whichever known kind it holds).
+
+**`GameMods`** (`Game/Statventure.Game/Mods/GameMods.cs`; the seam as step 2 built it):
+- `ApplyTo(options, snapshot)` keeps the snapshot's switches (this start's) and gives the options with its filter. At
+  the mount, for each mod in order: switched off (`SettingsSnapshot.IsModOn`, by its file's name): not checked, not
+  mounted, `[Mods] <file>: off`; else `ModCheck.Check` over the mounts below with `GameKinds` (the engine's and the data
+  library's: `RecordTypes.Of(engine, typeof(SaveGame).Assembly)`): passed, mounted, `[Mods] <file>: loaded (<name>
+  <version> by <author>)` (each part only when given: "loaded (Ember Rite by Vatrix)", "loaded (ember-rite)"); else left
+  out, `[Mods] <file>: left out: <first problem>` and ` (and n more)` when there are more, a warning.
+- `Entries`: each mod in mounting order, `ModEntry(File, Name, Author, Version, Description, State, Problem,
+  MoreProblems, SwitchedSinceStart)`; the name `mod/info`'s when given, else the file's name without its ending
+  (`ember-rite.pak` → `ember-rite`); author, version and description null when not given (empty or blank text is not
+  given); `Problem` and `MoreProblems` only when left out (the problems count one per entry, as the editor's refusal lists
+  them). A switched-off mod is still named from its `mod/info` (read alone, not checked; its file's name when it doesn't
+  read). `LeftOut`: those left out.
+- `Switch(file, on)`: `GameSettings.SetModOn` (the seam's member; before `Attach` it throws: there is nowhere to keep
+  it); nothing mounts or leaves now. `SwitchedSinceStart` is true while the settings' switch differs from this start's
+  (switched back, it is false again).
+- Each mount makes the entries anew (the game never reloads, Q18).
+
+**Choices** (internal, the step's): the check's stages and its order of problems as above (the editor's Save's order: an
+entry's own problems first, entries in path order, the data's last; Open's refusal, then the read-only entries); the
+game's data under a mod is whatever mounts lie below the mods folder (the editor's base is the area packs only: the same in
+GM1, which has no `classes/`); `ModFilter` asked once per mount with the whole list (so the base and the entries are one
+mount's); a refused index's entry named in the problem; a switched-off mod's info read for its name; `SwitchedSinceStart`
+as a difference from the start; empty or blank info text as not given; the log lines' parts left out when not given; the
+`[Mods]` lines before the file system's `[Data] mod` lines; `InternalsVisibleTo("Statventure.Game.Tests")` in
+`Engine/Statventure/Statventure.csproj` (the game's tests use `Application.DataMounts`).
+
+**The start time** (measured 2026-11-13 on this PC, under the shared lock, inside the headless cage on the GPU, OpenAL's
+null output; the built game in Release laid out by `build.sh Release`, framework-dependent; main's `a7390ad` built the same
+way from an export as the base without the check; each started `--capture <png> --frames 1` on a scratch per-user folder,
+9 starts of each, interleaved; medians; `claude-work/gm1/step6/timing/`): the mods' mount is the time from the log's
+`[Data] Mods …` line to the window's line (the check, the mount and the window's making); Load is the game's `Load` from
+the log's start (the splash's 2 s included); the wall time from the launch to the end.
+
+| Mods | Mount: base | with the check | added | Load added | Wall: base | with the check | added |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| none | 106 ms | 107 ms | +1 ms | −2 ms | 2617 ms | 2625 ms | +8 ms |
+| one small (info, an effect, an item, a file) | 106 ms | 237 ms | +131 ms | +63 ms | 2616 ms | 2689 ms | +73 ms |
+| five small | 107 ms | 403 ms | +296 ms | +226 ms | 2621 ms | 2853 ms | +232 ms |
+| one large (2,056 entries: the 55 themes at another tempo, 1,000 effects, 500 items, 500 files) | 110 ms | 288 ms | +178 ms | +98 ms | 2651 ms | 2762 ms | +111 ms |
+
+What it adds: the first mod's check about 130 ms (its own reading and the game's 126 audio records checked with it, the
+55 themes compiled against the composer, the music loaded, most of it the code's first run; the game's later music
+loading is then faster, so Load moves by about half), each further mod about 40 ms (the game's records checked again with
+it), the large mod's 2,056 entries about 50 ms more than a small one. All of it before the window opens (the splash shows
+that much later). In a trial round before the measurement (other workers' builds running, the files not in the cache) the
+first small mod's check took 334 ms. Not measured: Windows, a cold disk. **The user kept the full check on these numbers
+(Q27, 2026-11-14).**
+
+**Measured again on step 1a's packs (2026-11-14, the step rebased on `eec6576`, against `eec6576` built the same way;
+`timing/summary.txt`; the first measurement in `timing/summary-a7390ad.txt`).** Step 1a put the game's stylesheet in
+`ui.pak` (`ui/styles/game`, one record of about 84 KB stored, a compiled sheet of thousands of nested records), and every
+mod's check reads and checks it with the mod as it checks every record the data shows (alone, then with the data), so
+each mod costs about 200 ms more:
+
+| Mods | Mount: base | with the check | added | Load added | Wall: base | with the check | added |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| none | 125 ms | 124 ms | −1 ms | −17 ms | 2710 ms | 2704 ms | −6 ms |
+| one small | 124 ms | 723 ms | +599 ms | +467 ms | 2697 ms | 3191 ms | +494 ms |
+| five small | 125 ms | 1692 ms | +1567 ms | +1420 ms | 2712 ms | 4152 ms | +1440 ms |
+| one large (2,056 entries) | 128 ms | 741 ms | +613 ms | +484 ms | 2727 ms | 3242 ms | +515 ms |
+
+The first mod's check about 600 ms, each further one about 240 ms, all before the window opens. The packaged game in the
+end-to-end flow (`end-to-end.sh`, the editor's `ember-rite.pak` with its stage model and cutscene) logs 669 ms from
+`[Data] Mods …` to its `[Mods] ember-rite.pak: loaded …` line. **These are the numbers after Q27's answer; they went to the
+manager with the step's report.**
+
+**With step 5's settings** (rebased on `41df6e1`): `GameMods.Switch` keeps the switch in the real `settings.json`
+(`GameSettings.SetModOn`, its `mods` key), `GameSettings.Peek` reads it back before the next start, which then neither
+checks nor mounts the mod (a test through the real part). The save (`save.game`, `[NotAPackKind]`, Q26) is a kind the
+game knows like any other: a mod holding one is checked by the save's own check and loads when it passes (the mark is
+New entry's only; the check never reads it).
+
+**Tests** (50 in the engine's project, 17 in the game's):
+- `Tests/Statventure.Tests/Packs/ModCheckTests.cs` (16): a good mod and its info; a pack that doesn't open (too short, not
+  a pack, a damaged index, a bad path in the index, not there); each way an entry can't be read (the check stops there);
+  a record its checks refuse (its first problem, several in path order); a reference to nothing; a theme that doesn't
+  compile; a game theme the mod breaks; the music's problem on the data and on a record; the music held back by a music
+  record's problem; a record's own problems before the data's; a `mod/info` that isn't one (a file, another kind, a newer
+  version, damaged; elsewhere it isn't the mod's); the order and the data's problem last; what the game's data can't give
+  (a game record of an unknown kind skipped, a damaged game pack the data's problem, a missing one "its check failed");
+  the game's data what the mounts give; `Load(RecordTypes, path)`.
+- `Packs/ModFilterTests.cs` (4, alone: they read the log): without a filter every mod mounts; a filter given the mods in
+  order and the mounts below, only those it accepts mounting in order and logged; asked at every Reload, none accepted
+  none mounted; the application gives the mods folder its options' filter (none without it, no mods folder with the
+  game's packs only).
+- `Editor/Checks/ModCheckAgreementTests.cs` (28): the same 25 mods (good ones and each break) in the editor over the repo's
+  packs and through the game's check: Open's refusal, the entries it can't read (read-only), Save's problems, the game's
+  check's, one for one; Save As refusing a file at `mod/info`; another kind there shown on the entry; a music entry that
+  doesn't build holding the music back.
+- `Editor/Import/ImportNotAPackKindTests.cs` (2, Q28): the button's file and a drop refused with the words, nothing made,
+  a kind alike not marked imported; the session's suggestion and plan refusing it; the words' article (a variant
+  `variant.unpacked` added to `ImportVariants.cs`).
+- `Tests/Statventure.Game.Tests/Mods/GameModsTests.cs` (17, in the root namespace, step 5's rule): each break left out
+  with its exact problem and count in the model and the log while two good mods load (10 cases); a switched-off mod
+  neither checked nor mounted, named from its info; the switch kept and marked (and switched back); the switch through
+  `settings.json` to the next start; the save as any kind; the names and the log's parts; several problems counted, the
+  game's kinds; the game run for real (a hidden window) checking the mods at its start.
+- Changed: step 2's `StartSequenceTests` compares the options with the filter in them (step 2 left that to this step).
+
+**Shown able to fail** (`mutate.py` under the shared lock in a headless cage; `claude-work/gm1/step6/make-mutations.py`
+writes the lists): the first run, 91 (`mutations.json`): 88 killed, 2 survived, 1 didn't build. The survivors can't
+differ: the mod's entries read from the data rather than from the check's own reading (the data's topmost is the mod's
+own entry, the same value read again: the reading is a cache), and a game file read as a record (the catch gives null for
+it as for the test it skips: an optimization). The one that didn't build (an editor entry that doesn't build left out of
+the list) was rewritten as the same rule in the shared check, survived (`mutations-rerun.json`: a gap), and is killed by
+the new `AMusicEntryThatDoesntBuildHoldsTheMusicBack`. After the rebase on step 5 (the game's tests renamed into the root
+namespace, the settings real), the game's 35 and that one again (`mutations-rebased.json`): 36 of 36 killed. The standing list
+`mutations-standing.json` (91): 89 killed, 2 accounted for. Q28's Import refusal (`mutations-q28.json`: the refusal left
+out, every other kind refused, the article, the capital, the kind's name): 5 of 5 killed. Nothing written to the player's
+real folders.
+
+**Runs** (inside headless cages under the shared lock, scratch per-user folders, nothing audible; the step's commit rebased
+on `eec6576`): the full suite on the GPU (the engine's tests 2 min 28 s) and on lavapipe (2 min 51 s): 3920 + 217 = 4137
+tests (`main`'s 3870 + 200 and 50 + 17 new), none skipped, `Reference/editor-fixtures.json` unchanged (also passing on
+`41df6e1` before the last rebase, 3789 + 217 on both drivers); `end-to-end.sh --publish --version 2026.11.13.1` on the GPU
+(the four archives published and checked, then the flow: 157 of 157 in 97 s) and the flow on lavapipe (157 of 157, 99 s),
+the editor's `ember-rite.pak` checked and mounted (`[Mods] ember-rite.pak: loaded (Ember Rite 1.0 by Vatrix)` before its
+`[Data] mod …` line): no expectation changed; the player's real folders unchanged (this machine's game folder, which the
+user's own runs of 2026-11-12 made, and the Documents folder's top level).
+
 ## Status
 
 **Step 5 done (2026-11-13, the branch `gm1-step5`; "How it works", step 5): the save record `save.game` v1, the
@@ -2326,6 +2571,17 @@ code 1). Not checked: Windows; the single instance and the window's states on a 
   likely cause is the test's sink, which takes no more buffers after 200 and isn't reset by a pause (reported to the
   manager).
 - *Mutations:* 146 of the tests' rules on the final tree, 144 killed, 2 that can't differ ("How it works", step 1a); the pack script's 3, all killed.
+
+**Step 6 done (2026-11-13, the branch `gm1-step6`; "How it works", step 6): the mod check at start.** One check in the
+engine (`Packs/ModCheck.cs`) that the editor's save and the game's start share, so the editor refuses exactly what the game
+leaves out, in the same words (shown on 25 mods through both); the engine's hook `ApplicationOptions.ModFilter`; `GameMods`
+with its entries, log lines and switches; the user's Q28 built (the editor's Import refuses the save). The start time with
+the check: +8 ms with no mods, +73 ms with one small mod, +232 ms with five, +111 ms with one of 2,056 entries (wall time,
+medians; all before the window opens), which the user kept (Q27); on step 1a's packs, where the game's stylesheet is
+checked with every mod, +494 ms, +1,440 ms and +515 ms (gone to the manager). The full suite passes on the GPU and on
+lavapipe on the step rebased on `eec6576`: 3920 + 217 = 4137 tests, none skipped; `end-to-end.sh --publish` 157 of 157 on
+both; mutations 91 + 36 + 5 (the standing list: 89 killed, 2 that can't differ; the rest all killed); the player's real
+folders unchanged.
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,

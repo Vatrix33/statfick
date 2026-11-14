@@ -55,6 +55,15 @@ public sealed record ApplicationOptions
     /// The game doesn't set it.
     /// </summary>
     public bool GamePacksOnly { get; init; }
+    /// <summary>
+    /// The game's mod check (GM1-P13; Docs/Game/Foundation.md, "Mods: the list and the check at start"): given to the
+    /// player's mods folder's mount (<see cref="Mount.Mods"/>), so at every mount of <see cref="Application.Data"/> (the
+    /// start, and <see cref="Application.ReloadData"/>) it is given the mods found, in the order they mount, and the mounts
+    /// below them (the game's packs and <c>classes/</c>), and only the mods it accepts mount, in that order, each logged as
+    /// before ("Data": "mod &lt;file&gt;"). Null, the default: every mod mounts, as before GM1 (the editor, the sandbox and
+    /// the tests' applications). The game sets it (<c>GameMods.ApplyTo</c>).
+    /// </summary>
+    public ModFilter? ModFilter { get; init; }
 }
 
 /// <summary>Time for one update.</summary>
@@ -178,7 +187,8 @@ public abstract class Application : IDisposable
     /// folder meaning no packs), then its <c>classes/</c> folder at <c>classes</c> if there is one (so a mod
     /// or the development folder can override a class), then the mods in <paramref name="modsFolder"/>
     /// (the player's game folder's <c>mods/</c>; mounted even when missing, so a mod put there later
-    /// appears on Reload), then the development folder (<see cref="ApplicationOptions.DevelopmentFolder"/>,
+    /// appears on Reload; only those <see cref="ApplicationOptions.ModFilter"/> accepts when it is set),
+    /// then the development folder (<see cref="ApplicationOptions.DevelopmentFolder"/>,
     /// else the folder <paramref name="environment"/> gives for <see cref="DevelopmentFolderVariable"/>).
     /// With <see cref="ApplicationOptions.GamePacksOnly"/> the area packs only. Which packs and folders mount
     /// is decided here, once: Reload re-reads these.
@@ -196,7 +206,7 @@ public abstract class Application : IDisposable
         if (Directory.Exists(classes))
             mounts.Add(Mount.Folder(classes, "classes"));
         if (modsFolder is not null)
-            mounts.Add(Mount.Mods(Path.GetFullPath(modsFolder)));
+            mounts.Add(Mount.Mods(Path.GetFullPath(modsFolder), options.ModFilter));
         var development = options.DevelopmentFolder ?? (environment(DevelopmentFolderVariable) is { Length: > 0 } named ? named : null);
         if (development is not null)
             mounts.Add(Mount.Folder(Path.GetFullPath(development)));

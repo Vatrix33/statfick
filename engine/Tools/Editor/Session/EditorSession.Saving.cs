@@ -54,16 +54,27 @@ public sealed partial class EditorSession
     /// <summary>
     /// Why a save of the open pack is refused (M11-12, P18): the checks across entries run first if they are due
     /// (<see cref="EntryChecks.RunPending"/>), then each entry with a problem with its first (step 10's
-    /// <see cref="EntriesWithProblems"/>, in path order) and the data's problem no entry shows (<see cref="EntryChecks.DataProblem"/>).
-    /// Empty when it can be saved.
+    /// <see cref="EntriesWithProblems"/>, in path order; a file where a mod keeps its info among them, the shared mod check's
+    /// rule, <see cref="ModCheck.InfoProblem"/>) and the data's problem no entry shows (<see cref="EntryChecks.DataProblem"/>).
+    /// Empty when it can be saved. What the game leaves out at its start is what this refuses (GM1-P13: the same
+    /// <see cref="ModCheck"/>).
     /// </summary>
     public IReadOnlyList<SaveProblem> SaveProblems()
     {
         Checks.RunPending();
         var problems = EntriesWithProblems.Select(e => new SaveProblem(e.Path, e.Problems[0].ToString())).ToList();
+        if (Entry(ModInfo.Path) is { Content: EntryContent.File })
+            InsertByPath(problems, new SaveProblem(ModInfo.Path, ModCheck.InfoProblem(null)));
         if (Checks.DataProblem is { } data)
             problems.Add(new SaveProblem(null, data));
         return problems;
+    }
+
+    /// <summary>Puts <paramref name="problem"/> among <paramref name="problems"/> (entries' problems in path order) at its path's place.</summary>
+    static void InsertByPath(List<SaveProblem> problems, SaveProblem problem)
+    {
+        var at = problems.FindIndex(p => p.Entry is null || string.CompareOrdinal(p.Entry, problem.Entry) > 0);
+        problems.Insert(at < 0 ? problems.Count : at, problem);
     }
 
     /// <summary>
@@ -236,32 +247,17 @@ public sealed partial class EditorSession
             using var data = SaveAsData(over, chosen, file);
             var references = new SubsetReferences(this, chosen);
             foreach (var (path, value) in values)
-            {
-                IReadOnlyList<RecordProblem> problems;
-                try
-                {
-                    problems = [.. RecordChecks.Check(value, data, references), .. EntryChecks.PathRules(path, value)];
-                }
-                catch (Exception problem) when (problem is not OutOfMemoryException)
-                {
-                    problems = [new(RecordPath.Root, $"its check failed: {problem.Message}")];
-                }
-                if (problems.Count > 0)
+                if (ModCheck.Problems(path, value, data, references) is { Count: > 0 } problems)
                     found[path] = problems[0].ToString();
-            }
-            if (!found.Keys.Any(path => path.StartsWith("audio/", StringComparison.Ordinal)))
+            // A file where a mod keeps its info (the shared mod check's rule; a record of another kind there is a path rule).
+            if (chosen.TryGetValue(ModInfo.Path, out var info) && info.Content == EntryContent.File)
+                found[ModInfo.Path] = ModCheck.InfoProblem(null);
+            if (!found.Keys.Any(path => path.StartsWith("audio/", StringComparison.Ordinal)) && ModCheck.Music(data) is { } music)
             {
-                try
-                {
-                    MusicLibrary.Load(data);
-                }
-                catch (DataFileException problem)
-                {
-                    if (problem.Entry is { } entry && values.Exists(v => v.Path == entry))
-                        found[entry] = problem.Problem;
-                    else
-                        dataProblem = problem.Message;
-                }
+                if (music.Entry is { } entry && values.Exists(v => v.Path == entry))
+                    found[entry] = music.Problem;
+                else
+                    dataProblem = music.Message;
             }
         }
         catch (DataFileException problem)

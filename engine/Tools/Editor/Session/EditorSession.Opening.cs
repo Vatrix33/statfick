@@ -176,42 +176,15 @@ public sealed partial class EditorSession
     /// read-only when <paramref name="readOnly"/>), a file (<see cref="EditorEntry.ForFile"/>), or unreadable
     /// (<see cref="EditorEntry.ForUnreadable"/>) with why: its content damaged (it doesn't match its hash), a record
     /// whose binary form doesn't start as one, of a kind not known here, or that doesn't read as its kind (a newer
-    /// version than the engine reads, damaged data, values its type refuses).
+    /// version than the engine reads, damaged data, values its type refuses). Read as the shared mod check reads it
+    /// (<see cref="ModCheck.Read"/>, GM1-P13), so an entry the editor can't read leaves a mod out of the game too.
     /// </summary>
     public static EditorEntry ReadEntry(PackFile pack, PackEntry entry, EntrySource source, RecordTypes types, bool readOnly = false)
     {
-        byte[] content;
-        try
-        {
-            content = pack.Read(entry);
-        }
-        catch (DataFileException problem)
-        {
-            return EditorEntry.ForUnreadable(entry.Path, problem.Problem, source);
-        }
-        if (!entry.IsRecord)
-            return EditorEntry.ForFile(entry.Path, entry.ContentLength, source);
-        string name;
-        try
-        {
-            name = RecordSerializer.RootTypeName(content);
-        }
-        catch (RecordFormatException problem)
-        {
-            return EditorEntry.ForUnreadable(entry.Path, $"not a readable record: {problem.Message}", source);
-        }
-        if (types.Find(name) is not { } type)
-            return EditorEntry.ForUnreadable(entry.Path, $"a record of type {name}, which isn't a record type known here", source);
-        object record;
-        try
-        {
-            record = RecordSerializer.FromBinary(type, content);
-        }
-        catch (Exception problem) when (problem is RecordFormatException or ArgumentException)
-        {
-            return EditorEntry.ForUnreadable(entry.Path, $"not a readable {name} record: {problem.Message}", source);
-        }
-        return EditorEntry.ForRecord(entry.Path, record, source, readOnly);
+        var read = ModCheck.Read(pack, entry, types);
+        if (read.Problem is { } problem)
+            return EditorEntry.ForUnreadable(entry.Path, problem, source);
+        return read.Record is { } record ? EditorEntry.ForRecord(entry.Path, record, source, readOnly) : EditorEntry.ForFile(entry.Path, entry.ContentLength, source);
     }
 
     // ---------- Files dropped to import (step 12 takes them) ----------

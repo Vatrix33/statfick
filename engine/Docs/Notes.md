@@ -308,6 +308,18 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   - *A background clipped to text is clipped to its box:* a shadow outside the box shows nothing either way.
   - *`ui.pak`'s entries are listed in the editor's entry tree,* so a new folder there changes `EntryListTests` and every
     editor screen showing the tree.
+- 2026-11-13 (the PC, GM1 step 6's worker on the branch `gm1-step6`): **the mod check at start** (`Engine/Statventure/Packs/
+  ModCheck.cs`, shared by the editor's save and the game's start; `ApplicationOptions.ModFilter`; `GameMods`;
+  `Docs/Game/Foundation.md`, "How it works", step 6). Gotchas: xUnit's `Assert.Equal` on value tuples holding arrays
+  compares the arrays by reference (identical contents fail): compare the parts; `RecordTypes.Of` over the engine's tests'
+  assembly fails (its variant kinds share names on purpose): build a `RecordTypes` from a dictionary; a file under 64 bytes
+  is "too short for a pack", a longer one "not a pack"; a framework-dependent `build.sh Release` layout started from a
+  script needs `env.sh`'s `DOTNET_ROOT`; the mods are checked as the data mounts, before the window, so the log's
+  `[Data] Mods …` line to the `[Platform] window` line is the check's span; the check's first run is mostly the code's
+  first run (the game's music loading after it is faster), each further mod about 40 ms on this PC; once step 1a put the
+  compiled game stylesheet in `ui.pak`, each mod's check reads and walks it too (about 600 ms for the first mod, 240 ms
+  for each further one, Release), and the game's tests over the committed packs take 12 s instead of 3. The user's Q28:
+  the editor's Import refuses a record of a kind marked `[NotAPackKind]` (`EditorSession.ReadRecord`).
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

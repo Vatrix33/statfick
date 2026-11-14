@@ -22,7 +22,9 @@ namespace Statventure.Editor.Checks;
 /// </list>
 /// What the second adds to the first (its cross-entry problems) stays shown after a commit until the next pause
 /// replaces it (the manager's decision Q-B, 2026-11-07). Only the first problem at each path shows (the manager's
-/// decision of 2026-11-06): the kind's own, in the words the game logs.
+/// decision of 2026-11-06): the kind's own, in the words the game logs. Both checks are the engine's shared mod check's
+/// (<see cref="ModCheck"/>, GM1-P13: <see cref="ModCheck.Problems"/>, <see cref="ModCheck.CheckRecords"/>), the one the
+/// game runs on each mod at its start, so what the editor refuses to save the game leaves out.
 /// </summary>
 public sealed class EntryChecks
 {
@@ -97,16 +99,15 @@ public sealed class EntryChecks
         {
             var data = _session.EditedData;
             var references = new SessionReferences(_session);
+            // Every record entry, the game's too; one whose draft doesn't build has no value (it holds the music back).
+            var entries = _session.Entries.Where(e => e.IsRecord).ToList();
+            var records = entries.Select(e => e.Builds ? new RecordToCheck(e.Path, e.Build!.Value!, Own(e, e.Build!.Value!)) : new RecordToCheck(e.Path, null, [])).ToList();
+            var result = ModCheck.CheckRecords(records, data, references);
             var cross = new Dictionary<EditorEntry, IReadOnlyList<RecordProblem>>();
-            foreach (var entry in _session.Entries)
-            {
-                if (!entry.IsRecord || !entry.Builds)
-                    continue;
-                var value = entry.Build!.Value!;
-                var own = Own(entry, value);
-                cross[entry] = Without(Checked(entry, value, data, references), own);
-            }
-            DataProblem = data is null ? _session.EditedDataProblem : Music(data, cross);
+            for (var i = 0; i < entries.Count; i++)
+                if (records[i].Value is not null)
+                    cross[entries[i]] = result.Added[i];
+            DataProblem = data is null ? _session.EditedDataProblem : result.DataProblem;
             _cross = cross;
             // Reported when what it shows changes.
             var changed = _session.Entries.Where(e => e.Builds && !e.Problems.SequenceEqual(Shown(e, e.Build!.Value!))).ToList();
@@ -132,82 +133,12 @@ public sealed class EntryChecks
     {
         if (_own.TryGetValue(entry, out var known) && ReferenceEquals(known.Value, value) && known.Path == entry.Path)
             return known.Problems;
-        var problems = Checked(entry, value, null, null);
+        // The kind's checks and the marks' alone, and the path's rules (the shared check's, ModCheck.Problems).
+        var problems = ModCheck.Problems(entry.Path, value);
         _own.AddOrUpdate(entry, new(value, entry.Path, problems));
         return problems;
     }
 
-    /// <summary>
-    /// The kind's checks and the marks' (<see cref="RecordChecks.Check"/>) and the path's rules. A check that fails
-    /// (a kind's own check throwing: a bug, or an entry it reads that the data can't give) is the entry's problem, in
-    /// its words, rather than the end of the editor's checks.
-    /// </summary>
-    static IReadOnlyList<RecordProblem> Checked(EditorEntry entry, object value, VirtualFileSystem? data, IReferenceLookup? references)
-    {
-        try
-        {
-            return [.. RecordChecks.Check(value, data, references), .. PathRules(entry.Path, value)];
-        }
-        catch (Exception problem) when (problem is not OutOfMemoryException)
-        {
-            return [new(RecordPath.Root, $"its check failed: {problem.Message}")];
-        }
-    }
-
-    /// <summary>
-    /// The rules the game's loading keeps outside the kinds' checks because only the entry's path tells them (Docs/Editor.md,
-    /// "How it works", step 5): a theme in the music's folder must hold the id its path stores (<see cref="MusicLibrary.Load"/>'s words).
-    /// </summary>
-    internal static IEnumerable<RecordProblem> PathRules(string path, object value)
-    {
-        if (value is ThemeSpec theme && path.StartsWith(MusicNames.Themes + "/", StringComparison.Ordinal)
-            && MusicNames.FromPathName(path[(MusicNames.Themes.Length + 1)..]) is { } name && theme.Id != name)
-            yield return new(RecordPath.Root.Field(nameof(ThemeSpec.Id)), $"the theme's id is '{theme.Id}', but its path holds '{name}' (a theme's path is made from its id)");
-    }
-
-    /// <summary>
-    /// The game's music loading on the data as edited, while no music entry has a problem (what its rules hold
-    /// that no kind's check does: a music folder holding another kind or a name the music's rule can't store, music
-    /// without a theme order): its first problem, at the root of the record entry it names, or as the data's problem
-    /// when no record entry can show it.
-    /// </summary>
-    string? Music(VirtualFileSystem data, Dictionary<EditorEntry, IReadOnlyList<RecordProblem>> cross)
-    {
-        const string audio = "audio/";
-        foreach (var entry in _session.Entries)
-        {
-            if (!entry.Path.StartsWith(audio, StringComparison.Ordinal) || !entry.IsRecord)
-                continue;
-            if (!entry.Builds || Own(entry, entry.Build!.Value!).Count > 0 || cross.GetValueOrDefault(entry) is { Count: > 0 })
-                return null;
-        }
-        try
-        {
-            MusicLibrary.Load(data);
-            return null;
-        }
-        catch (DataFileException problem)
-        {
-            if (problem.Entry is { } path && _session.Entry(path) is { IsRecord: true, Builds: true } named)
-            {
-                cross[named] = [.. cross.GetValueOrDefault(named) ?? [], new(RecordPath.Root, problem.Problem)];
-                return null;
-            }
-            return problem.Message;
-        }
-    }
-
-    /// <summary>The first problem at each path, in order (the manager's decision of 2026-11-06).</summary>
-    public static IReadOnlyList<RecordProblem> FirstPerPath(IEnumerable<RecordProblem> problems)
-    {
-        var seen = new HashSet<RecordPath>();
-        return [.. problems.Where(p => seen.Add(p.Path))];
-    }
-
-    /// <summary><paramref name="all"/> without the problems of <paramref name="some"/> (by path and words).</summary>
-    static IReadOnlyList<RecordProblem> Without(IReadOnlyList<RecordProblem> all, IReadOnlyList<RecordProblem> some)
-    {
-        var known = new HashSet<RecordProblem>(some);
-        return [.. all.Where(p => !known.Contains(p))];
-    }
+    /// <summary>The first problem at each path, in order (the manager's decision of 2026-11-06; the shared check's, <see cref="ModCheck.FirstPerPath"/>).</summary>
+    public static IReadOnlyList<RecordProblem> FirstPerPath(IEnumerable<RecordProblem> problems) => ModCheck.FirstPerPath(problems);
 }

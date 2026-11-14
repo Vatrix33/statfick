@@ -49,3 +49,11 @@ public sealed record ImportHeavy : ImportShape
 {
     [Field(1)] public ImportLeaf Leaf { get; init; } = new();
 }
+
+/// <summary>A kind marked as no pack's whose name starts with a vowel (Import's refusal of such kinds, the user's Q28 of GM1: its article).</summary>
+[NotAPackKind]
+[Record("variant.unpacked", 1)]
+public sealed record UnpackedVariant
+{
+    [Field(1)] public string Name { get; init; } = "";
+}

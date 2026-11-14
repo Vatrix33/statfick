@@ -2625,7 +2625,11 @@ NaN), byte arrays byte for byte, the rest by `Equals`.
   ("Nothing imported": "notes.txt and a.ttf can't be imported: no pack is open. Open a mod or make one first."; "…: x.pak
   is read-only (<why>)…").
 - *Per file:* a file that can't be imported (its kind, the import at its trial path) is said ("Can't import": "x can't be
-  imported: <why>.", OK) and the next comes; else the **import dialog** ("Import": "Arena Stage.GLB imports as a model.
+  imported: <why>.", OK) and the next comes; since GM1 step 6 (the user's Q28 of GM1, 2026-11-14) among them a record of a
+  kind marked as not a pack kind (`[NotAPackKind]`: the save), refused wherever the import reads a record
+  (`EditorSession.NotAPackKindProblem`): "Ser Alrik.json can't be imported: a save game (save.game) isn't something a mod can
+  hold." (before: "Ser Alrik.json imports as a save game (its JSON form). Its entry's path:", then a `save.game` entry);
+  else the **import dialog** ("Import": "Arena Stage.GLB imports as a model.
   Its entry's path:" — "a file", "a room (its JSON form)", "an instrument …"; the path field with the suggestion,
   focused; a line for what is wrong; Import, Cancel). Import (or Enter in the field, without Shift, Ctrl, Alt or the Super
   key) plans the import at the path typed: a problem shows on the line (typing clears it) and the dialog stays; else it
@@ -3095,6 +3099,42 @@ editor:
   start, the application, the stand-in kind and the packer) and `Editor/About/`; `EditorHarness` takes a game and shows
   the screen in the view's place; `EditorFixture` an optional game. Five new fixtures (`game-where`, `game-where-gone`,
   `game-folder`, `about`, `about-end`), and the 19 earlier ones captured again for the top bar (at 1× each gives the count it gave before; at 1.65 the screens whose top bar shows gain the new buttons' 8 corner pixels; the new ones 0.004–0.036 %).
+
+### GM1 step 6: the checks on the shared mod check (2026-11-13)
+
+G2 is answered (GM1-10 and the user's Q4: the game checks every mod at its start and leaves out what the editor refuses
+to save), and the editor's checks moved onto the engine's shared mod check (GM1-P13, `Engine/Statventure/Packs/ModCheck.cs`;
+`Docs/Game/Foundation.md`, "How it works", step 6), which the game runs on each mod at its start, so both refuse the same in
+the same words. What moved, its behaviour as it was: `EditorSession.ReadEntry` reads through `ModCheck.Read` (the reasons
+an entry can't be read, the same words); each entry's own check is `ModCheck.Problems(path, value)` (the kind's checks and
+the marks', the path's rules, "its check failed: …"); the checks across entries are `ModCheck.CheckRecords` (each record
+with the data as edited and the session's references, what that adds to its own problems, then the music's loading while
+no music record has a problem, its problem on the record it names or the data's); `EntryChecks.PathRules` is
+`ModCheck.PathRules`, `EntryChecks.FirstPerPath` forwards to `ModCheck.FirstPerPath`; Save As's check uses the same
+`Problems` and `Music`. **One rule is new to the editor, the shared check's:** a mod's `mod/info`, when there, must be a
+`mod.info` record (the game's list names the mod from it): a record of another kind there shows "a mod's info must be a
+mod.info record (this is a audio.room record)" as its own problem (a path rule: the form's top, the list's `!`, Save
+refused naming it), and a file there refuses Save and Save As with "mod/info: a mod's info must be a mod.info record (this
+is a file)" among the entries' problems in path order. (The other ways it can't read, damaged, a newer version, not a
+record, were refused before as any entry's.) No screen changed (no fixture holds such an entry); the editor's tests pass
+unchanged. `ModCheckAgreementTests` (`Tests/Statventure.Tests/Editor/Checks/`) opens the same 25 mods in the editor and
+checks them as the game does: Open's refusal, the entries it can't read (read-only) and Save's problems are the game's
+check's, one for one.
+
+**Import refuses the save (the user's Q28 of GM1, 2026-11-14, "Import refuses it", the recommended option; not "Import left
+as it is"):** a record of a kind marked as not a pack kind (`[NotAPackKind]`, step 5's mark for the user's Q26; today only
+`save.game`) is refused wherever the import reads a record (`EditorSession.ReadRecord`: the path's suggestion and the plan,
+so the Import button's files and dropped ones alike), through the refusal Import has for any file it can't take ("Can't
+import": "Ser Alrik.json can't be imported: a save game (save.game) isn't something a mod can hold.";
+`EditorSession.NotAPackKindProblem(kind)`, "an" before a vowel). Before, the import dialog offered it ("Ser Alrik.json
+imports as a save game (its JSON form). Its entry's path:" with `ser-alrik`) and Import made a `save.game` entry
+("Imported Ser Alrik.json as ser-alrik."). With New entry leaving the kind out (Q26) and Duplicate having none to copy,
+nothing in the editor makes a save entry. The shared mod check and the packer are unchanged: a hand-made mod holding a save
+entry opens and saves as before and isn't broken for the game, which ignores the entry. No screen changed (the refusal's
+dialog is the existing one). Tests: `Editor/Import/ImportNotAPackKindTests.cs` (the button and a drop refused, a kind alike
+not marked imported, the session's suggestion and plan refusing it, the words; the tests' variant kinds stand for the save,
+whose library can't share the tests' process; one more variant, `variant.unpacked`, in `ImportVariants.cs` for the
+article).
 
 ## Status
 

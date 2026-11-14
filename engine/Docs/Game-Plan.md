@@ -507,8 +507,8 @@ and answered as recommended.
 **GM1's detail round (the user, 2026-11-13, the question tool, asked by the manager in six rounds of four after the
 design doc's first version; in full with each question's facts and options in `Docs/Game/Foundation.md`, "The detail
 round" and "The questions as asked"; Q24, raised by the answers, asked after the six rounds the same day; Q25 and Q26,
-raised by step 5, the same day):** every answer the recommended option except Q6, Q11, Q15, Q16 (and Q16b), Q18, Q22,
-Q23 and Q25. Nothing of GM1 is open.
+raised by step 5, the same day; Q27 and Q28, raised by step 6, on 2026-11-14):** every answer the recommended option
+except Q6, Q11, Q15, Q16 (and Q16b), Q18, Q22, Q23 and Q25. Nothing of GM1 is open.
 - Q1 A character's name: any name up to 80 characters, kept in the save, the slot's file named from it.
 - Q2 The name asked before the sheet, "Character <n>" filled in.
 - Q3 The mod list: an on/off switch per mod, kept in `settings.json`; the order the files' name order.
@@ -552,6 +552,12 @@ Q23 and Q25. Nothing of GM1 is open.
   <n>".)
 - Q26 (raised by step 5), the editor's New entry and the save: not offered; `save.game` is marked as not a pack kind
   (`[NotAPackKind]`). (Not offered like any kind.)
+- Q27 (2026-11-14, raised by step 6's measurement), the mod check's start time: keep the full check (+73 ms with one
+  small mod, +232 ms with five, +111 ms with one of 2,056 entries, before the window opens). (Not a lighter check of the
+  files and kinds only.)
+- Q28 (2026-11-14, raised by step 6), the editor's Import and a character file: Import refuses a record of a kind marked
+  as not a pack kind (the save), so nothing in the editor makes a save entry; the mod check unchanged. (Not Import left
+  as it was.)
 
 ## GM2 The hero: the character sheet, races and looks
 
@@ -1917,8 +1923,8 @@ Found against the repo on 2026-11-12; the repo's figures are the ones used above
 
 Every question below is about the game. Each milestone's are asked with the question tool when it begins (GP-6) and
 answered in its section (GP-7); GM1's thirteen were all answered on 2026-11-12 ("Decisions for GM1": the eleven, then
-GM1-12 and GM1-13, which came out of GM1-3's answer), and GM1's detail round (Q1–Q26 and Q16b) on 2026-11-13 ("GM1's
-detail round"), so none of GM1's is left. The sound questions are asked with their milestones (GM1-6).
+GM1-12 and GM1-13, which came out of GM1-3's answer), and GM1's detail round (Q1–Q26 and Q16b on 2026-11-13, Q27 and
+Q28 on 2026-11-14; "GM1's detail round"), so none of GM1's is left. The sound questions are asked with their milestones (GM1-6).
 
 - GM2-1 The 72 looks: faithful 3D remakes / new looks per race / a character maker.
 - GM2-2 The hero on the sheet: no figure / a live 3D figure.
@@ -2022,3 +2028,10 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
     `background-clip: text`, ported from Blink with Chromium fixtures at 1 and 1.65.
   - *The pack:* the port's stylesheet `Assets/UI/styles/game.css` is compiled into `ui.pak` as `ui/styles/game`.
   - *For 1b:* a text field's text sits 1 px low when its line-height is under the font's.
+- **2026-11-13, GM1 step 6 done (the branch `gm1-step6`):** the mod check at start (GM1-10, Q3, Q4, Q18; GM1-P13): one
+  check in the engine shared by the editor's save and the game's start, so the editor refuses exactly what the game
+  leaves out; a broken mod named in the log and the list's model and left out whole, a switched-off one neither checked
+  nor mounted, the switches kept for the next start (`Docs/Game/Foundation.md`, "How it works", step 6). The start time
+  with it: +73 ms with one small mod, +232 ms with five, +111 ms with one of 2,056 entries (before the window opens),
+  kept by the user (Q27); on step 1a's packs, the game's stylesheet checked with every mod, +494 ms, +1,440 ms and +515 ms
+  (gone to the manager). The user's Q28 built: the editor's Import refuses a save.

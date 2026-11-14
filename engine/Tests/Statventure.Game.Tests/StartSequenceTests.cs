@@ -28,7 +28,8 @@ public class StartSequenceTests
         // captures the crash window there.
         var capture = new GameOptions { Capture = scratch["shot.png"] };
         using var game = StatFickGame.Create(capture, scratch["p"]);
-        Assert.Equal(StatFickGame.OptionsFor(GameSettings.Peek(scratch["p"]), scratch["p"]), game.Options);
+        Assert.NotNull(game.Options.ModFilter);
+        Assert.Equal(StatFickGame.OptionsFor(GameSettings.Peek(scratch["p"]), scratch["p"]) with { ModFilter = game.Options.ModFilter }, game.Options);
         Assert.Equal(GameSettings.Peek(scratch["p"]), game.Snapshot);
         Assert.Equal(scratch["shot.png"], game.CrashCapture);
         Assert.Null(game.Parts);

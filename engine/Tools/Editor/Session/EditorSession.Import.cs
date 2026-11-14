@@ -316,13 +316,34 @@ public sealed partial class EditorSession
             throw new ImportException("it isn't a record's JSON form (its first key isn't $types)");
     }
 
-    /// <summary>An imported record entry read as the session reads a pack's (<see cref="ReadEntry"/>), in a kind <see cref="Types"/> knows (another is an <see cref="ImportException"/>).</summary>
+    /// <summary>
+    /// An imported record entry read as the session reads a pack's (<see cref="ReadEntry"/>), in a kind <see cref="Types"/>
+    /// knows (another is an <see cref="ImportException"/>), and one a pack may hold (the user's Q28 of GM1, 2026-11-14: a
+    /// kind marked <see cref="NotAPackKindAttribute"/>, the save, is refused, <see cref="NotAPackKindProblem"/>; with New
+    /// entry leaving it out, Q26, nothing in the editor makes such an entry). Every import reads its records here: the
+    /// path's suggestion and the plan, the Import button's files and dropped ones alike.
+    /// </summary>
     object ReadRecord(ImportedEntry entry)
     {
         var name = RecordSerializer.RootTypeName(entry.Content);
         var type = Types.Find(name) ?? throw new ImportException($"a record of type {name}, which isn't a record type known here");
+        if (NotAPackKindProblem(RecordShape.Of(type)) is { } problem)
+            throw new ImportException(problem);
         // (The importer wrote it from a value of its type in the current versions: it reads back.)
         return RecordSerializer.FromBinary(type, entry.Content);
+    }
+
+    /// <summary>
+    /// Why Import refuses a record of <paramref name="kind"/> (the user's Q28 of GM1): a kind marked
+    /// <see cref="NotAPackKindAttribute"/> isn't something a mod can hold ("a save game (save.game) isn't something a mod can
+    /// hold"); null for any other kind.
+    /// </summary>
+    public static string? NotAPackKindProblem(RecordShape kind)
+    {
+        if (kind.IsPackKind)
+            return null;
+        var words = kind.DisplayName.ToLowerInvariant();
+        return $"{(words.Length > 0 && "aeiou".Contains(words[0]) ? "an" : "a")} {words} ({kind.Name}) isn't something a mod can hold";
     }
 
     /// <summary>An entry an import replaces taken out of the set (see <see cref="Import"/>).</summary>

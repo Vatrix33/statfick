@@ -255,10 +255,18 @@ versioned.
   mod adds or replaces entries, it can't delete one; there is no in-game mod list in M9 (Q8).
 - **A mod's info** (M11 step 7; `Docs/Editor.md`, G1, M11-15): a mod may carry its name, author, version and
   description as the record entry `mod/info`, of the engine's kind `mod.info` (`Packs/ModInfo.cs`; the editor
-  writes it into every mod it makes). The game never reads it: a mod mounts and loads the same with it or
-  without it, and an entry there that can't be read is an error only when something reads it, naming the mod
-  (G2 as today). The game's own packs leave `mod/` to mods; the pack's dump and `extract` show the entry as any
-  record. A mod list in the game can read each mod file's own entry later.
+  writes it into every mod it makes). Until GM1 step 6 the game never read it (a mod mounted and loaded the same
+  with it or without it, and an entry there that couldn't be read was an error only when something read it, G2 as
+  then). The game's own packs leave `mod/` to mods; the pack's dump and `extract` show the entry as any record.
+  **Since GM1 step 6** the game's mod list names each mod from its own entry, and the mod check at start (below)
+  leaves out a mod whose `mod/info` is there but isn't a `mod.info` record that reads.
+- **The mod check at start** (GM1-10, the user's Q3, Q4, Q18; GM1-P13; `Docs/Game/Foundation.md`, "Mods: the list and
+  the check at start", and "How it works", step 6): a mods mount may be given a filter (`Mount.Mods(folder, filter)`,
+  the game's through `ApplicationOptions.ModFilter`), asked at every mount with the mods found, in their order, and the
+  mounts below them; only the mods it accepts mount, in their order, each still logged "mod <file>". The game's filter
+  leaves out a mod switched off in its settings (not checked) and one the engine's shared check refuses
+  (`Packs/ModCheck.cs`: what the editor refuses to save, checked alone over the game's packs). Without a filter (the
+  editor, the sandbox, the tests' applications) every mod mounts, as before.
 - **The development folder** (Q7): loose files in the entries' own forms (a file as it is, a record as
   its JSON form at `<path>.json`), mounted only when the game is started with a development-folder
   option (command line or environment variable), re-read on Reload; no importer runs at run time.
@@ -1710,6 +1718,22 @@ name; their words, the loaders and what they refuse are as before. Code: `Render
   base colour and emission; limits its rules hold: the sun's strength and angle, a terrain's width and depth, a
   particle effect's proportions, shares, ink line and drag (`Docs/Editor.md`, step 6, lists them); help texts and units
   on every particle effect field.
+
+### The mod check and the mods' filter (GM1 step 6; `Docs/Game/Foundation.md`, "How it works", step 6)
+
+Code in `Engine/Statventure/Packs/`: `ModCheck.cs` (new), `VirtualFileSystem.cs`; `Core/Application.cs` (the option). Tests in
+`Tests/Statventure.Tests/Packs/` (`ModCheckTests`, `ModFilterTests`) and `Editor/Checks/ModCheckAgreementTests.cs`.
+- **`ModFilter`** (a delegate: the mods found, in the order they mount, full paths; the mounts below the mods folder → the
+  mods to mount): `Mount.Mods(folder, filter)` asks it each time the file system mounts (made, and every Reload); the mods
+  it gives mount in the order they were found (anything else it gives is ignored), each logged "mod <file>" as before, and
+  the others not at all. `ApplicationOptions.ModFilter` (null by default: every mod mounts) goes to the player's mods
+  folder's mount in `Application.DataMounts`; with `GamePacksOnly` there is no mods folder.
+- **`VirtualFileSystem.Load(RecordTypes, path)`**: a record of whichever of the kinds' types it holds (one of a type not
+  among them is a `DataFileException`, "a record of type …, which isn't a record type known here").
+- **`ModCheck.Check(file, game, kinds)`**: the mod alone over the mounts `game` gives (the game's packs and `classes/`),
+  its kinds the engine's and the data library's; a `ModReport` (its file, its info, its problems as `ModProblem(entry,
+  problem)`, the first first). The rules, their order and their words: Foundation.md, "How it works", step 6. Its pieces
+  are the editor's checks too (`Read`, `Problems`, `PathRules`, `FirstPerPath`, `CheckRecords`, `Music`, `InfoProblem`).
 
 ## Status
 
