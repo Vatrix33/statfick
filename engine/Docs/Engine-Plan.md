@@ -5,8 +5,34 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-11-15): GM1 (Foundation) is done and ticked; the port waits for the user's go for GM2, whose
-questions are asked first.** GM1 ran from 2026-11-13 (the user's go) to 2026-11-15 on its design doc
+**Current task (2026-11-15): GM2 (The hero) started on the user's go; its design is decided (GM2-1–GM2-8, the detail
+round Q1–Q42, the manager's GM2-P1–P16); no step started; the first wave starts on the manager's go.** The user's
+answers (asked by
+the manager with the question tool, 2026-11-15; `Docs/Game-Plan.md`, GM2, "Decisions for GM2"): GM2-1 a character maker
+(not the recommendation), GM2-2 a live 3D figure on the sheet (not the recommendation), GM2-3 a new palette proposed with
+the first humanoid (not the recommendation), GM2-4 the Goliath and the Human left to GM17's balance pass, GM2-5 all nine
+seals as 3D emblems (not the recommendation), and the follow-ups GM2-6 presets and a random button (not the
+recommendation), GM2-7 the look changed only when the hero is made, GM2-8 everything of the look open: colours, light,
+line widths and hatching (not the recommendation). The user's word said with them is GP-8 ("I want you to note that i
+want to assign a lot of effort into the 3D Models. I really want them to look very good"; `Docs/Game-Plan.md`,
+"Decisions for the plan"). The design doc (docs only, the branch `gm2-design` from `8c7d07d`) holds what exists in the
+old game and the engine, the method, the design (the actor record and its rules, the effect records, `save.game` v2,
+the look as a parameter set, the sheet with its figure, the race picker and the maker, the humanoid rig family and its
+Blender family, the new look, the emblems, the design's way of meeting GP-8, what GM2 makes with its counts, where the
+answers pull against each other) and thirteen steps in five waves, the 3D steps the manager's own and the rules side
+running beside them. **The detail round** (the user, 2026-11-15, Q1–Q39 as the doc prepared them, the manager's Q40, and Q41–Q42, which the answers opened;
+`Docs/Game-Plan.md`, "GM2's detail round"): twelve not the recommendation: heroic proportions (Q1), stylised faces and
+mitten hands with no face bones (Q2), a sword and shield with a chain shirt as the sample gear (Q9), one plain outfit per
+race and sex (Q18), a large set of parts (Q19), presets as a list with random and no locks (Q21), the Half-Beast's parts
+free (Q22), optional marks (Q23), a race carousel (Q28), the sheet's figure idle in a fixed view (Q31) in a dark portrait
+panel (Q32), nine new emblem motifs (Q37); about six faces per race and sex (Q40). So GM2 makes 54 bodies (9 races × 2
+sexes × 3 builds), about 108 faces, 72 presets and nine emblems. **The manager's GM2-P1–P16** all as proposed, with
+Blender 5.2 pinned through `$STATVENTURE_BLENDER` (the first art step verifies the 56 references with it first). The two
+questions the answers opened were answered the same day as recommended (Q41: the carousel's and the maker's figures
+idle in the sheet's fixed view; Q42: the Goliath's and Merfolk's presets wear marks): nothing is open. Found: the PC's Flatpak Blender is now 5.3 while every reference is 5.2's
+(GM2-P10); the rig has 17 body materials, not 15; the game's screen tests mask no 3D view yet.
+
+**Before it (2026-11-15): GM1 (Foundation) is done and ticked.** GM1 ran from 2026-11-13 (the user's go) to 2026-11-15 on its design doc
 `Docs/Game/Foundation.md` (docs only, the branch `gm1-design` from `2bd4da9`, `52958e2`: GM1's section of
 `Docs/Game-Plan.md` checked against the code of the old game and the engine, the design and twelve steps, 1a, 1b and
 2–11, in four waves). Its decisions: the user's GM1-1–GM1-13 (2026-11-12) and the detail round Q1–Q34 with Q16b
@@ -53,9 +79,9 @@ Q34's task ("A text field's text 1 px low at 1 …", step 1a), which closed M11'
 closing report, the recapture on `main` since 2026-11-14, `cde21a4`; nothing in `old-game/` changed during GM1). A later
 change to the old game makes the game-screen references stale again (they would be captured again as step 1b did), and
 later milestones check against the old game as it is then. The user also said on 2026-11-13: "I dont plan to open the
-game until finished" (Foundation.md, "Decisions"). **Next, on the user's go: GM2** (The hero: the character sheet, races
-and looks; `Docs/Game-Plan.md`), its questions (GM2-1–GM2-5, "What this plan leaves open") asked first, when the go is
-given (GP-6); nothing of GM2 is begun.
+game until finished" (Foundation.md, "Decisions"). **Next was GM2** (The hero: the character sheet, races and looks;
+`Docs/Game-Plan.md`), its questions (GM2-1–GM2-5) asked first when the go was given (GP-6): started 2026-11-15 (the
+paragraph above).
 
 **Before it (2026-11-12): M12 (packaging) is done and ticked; the engine waits for the user's go for the next
 milestone.** M12 ran from 2026-11-08 (the user's go, "Then start with M12") to 2026-11-12 on its design doc
@@ -1093,7 +1119,9 @@ about the game, steps with their dependencies, status), `Docs/Packaging.md` (pac
 method, the design, the questions for the user, steps with their dependencies, status). The game's milestones (GM1 on)
 have theirs in `Docs/Game/`: `Docs/Game/Foundation.md` (GM1, the game program, its data library, saves and settings:
 decisions, what exists in the old game and the engine, method, the design, the questions for the user and the choices
-for the manager, steps with their dependencies, status). The rest of M0–M5 is described in Progress below.
+for the manager, steps with their dependencies, status); `Docs/Game/Hero.md` (GM2, the hero: the sheet and the actor
+record, the races, the character maker, the live figure, the new look, the humanoid rig family, the emblems; the same
+parts). The rest of M0–M5 is described in Progress below.
 A new area (M6 on) gets its own design doc in `Docs/`.
 
 **Method.** For the 3D areas (M6 on) the reference is Blender instead: the same scenes rendered by
@@ -1176,7 +1204,9 @@ the design and the tests):
   the faithful port"), milestones cut by aspect (GP-2), each milestone closing with its final art (GP-3), the models
   made by Blender scripts (GP-4), no early playable loop, the milestones ordered for implementation (GP-5), each
   milestone's questions asked at its start (GP-6), their answers recorded in `Docs/Game-Plan.md` under "Decisions for
-  GMn" with a line here (GP-7); all in `Docs/Game-Plan.md`, "Decisions for the plan".
+  GMn" with a line here (GP-7); all in `Docs/Game-Plan.md`, "Decisions for the plan". **GP-8 (the user, 2026-11-15,
+  said right after GM2's answers; for every milestone with 3D art):** "I want you to note that i want to assign a lot of
+  effort into the 3D Models. I really want them to look very good" (`Docs/Game-Plan.md`, "Decisions for the plan").
 - **Decisions for GM1 (2026-11-12):** `Docs/Game-Plan.md`, GM1, "Decisions for GM1" (GM1-1–GM1-13; GM1-10 answers G2;
   GM1-12 and GM1-13, from GM1-3's answer, answered the same day: Dev Mode off by default, its state in `settings.json`).
   **GM1's detail round (Q1–Q24 and Q16b; Q25 and Q26, raised by step 5) answered 2026-11-13**, Q27 and Q28 (raised by
@@ -1186,6 +1216,13 @@ the design and the tests):
   2026-11-14 too, in the same two places; the manager's GM1-P20 and GM1-P21 (raised by step 11) on 2026-11-15, in
   `Docs/Game/Foundation.md` ("The manager's decisions on the proposals"). Nothing of GM1 is open; GM1 is done
   (2026-11-15).
+- **Decisions for GM2 (2026-11-15):** `Docs/Game-Plan.md`, GM2, "Decisions for GM2" (GM2-1–GM2-5 and the three
+  follow-ups GM2-6–GM2-8, asked at once on the user's go; not the recommendation: a character maker with the old looks
+  as presets and a random button, a live 3D figure on the sheet, a new look with colours, light, line widths and
+  hatching all open, the nine seals as 3D emblems; as recommended: the Goliath and the Human left to GM17, the look
+  changed only when the hero is made). **GM2's detail round (Q1–Q39, the manager's Q40, and Q41–Q42 opened by the answers) answered 2026-11-15**, in
+  `Docs/Game-Plan.md` ("GM2's detail round") and `Docs/Game/Hero.md` ("The questions as asked", with the manager's
+  decisions GM2-P1–GM2-P16 in its "Decisions"); nothing of GM2's design is open.
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -4184,6 +4221,23 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     the branch `gm1-finish`, docs only); GM2 waits for the user's go, its questions first. The old game was frozen for
     the recapture from 2026-11-13 until the manager's ok of 2026-11-15 (`Docs/Game/Foundation.md`, "Decisions"; nothing
     in `old-game/` changed during GM1).
+  - **GM2 started: the design doc, decided (2026-11-15, docs only, on the branch `gm2-design` from `8c7d07d`):** the user's go for GM2 and the eight answers the same day (GM2-1–GM2-8, `Docs/Game-Plan.md`,
+    "Decisions for GM2": a character maker with the old looks as presets and a random button, a live 3D figure on the
+    sheet, a new look with everything open, the nine seals as 3D emblems, the Goliath and the Human left to GM17, the look
+    changed only when the hero is made), and the user's word on the 3D models recorded as GP-8. `Docs/Game/Hero.md`
+    written after checking the old game and the engine (the old sheet's rules, the races and their 22 effect types, the
+    picker and the look step, the 72 looks' parts, the seals; the renderer's look, palettes, figures, the Blender harness;
+    what GM1 left): the method, the design, 39 questions for the user's detail round and 16 proposals for the manager,
+    thirteen draft steps in five waves. Found: the PC's Flatpak Blender is now 5.3 (every reference is 5.2's; GM2-P10);
+    the rig has 17 body materials, not 15, and draws 154 part styles, 55 used by the 72 looks; the game's screen tests mask
+    no 3D view yet; gear on an actor has no palette of its own (for GM3). The same day the user answered the detail round
+    (Q1–Q39 and the manager's Q40; twelve not the recommendation: heroic proportions, stylised faces and mitten hands, a
+    sword and shield with a chain shirt, one outfit per race and sex, a large set of parts, presets as a list with random
+    and no locks, the Half-Beast's parts free, optional marks, a race carousel, the sheet's figure idle in a fixed view in
+    a dark portrait panel, nine new emblem motifs) and the manager decided GM2-P1–P16 (all as proposed; Blender 5.2 pinned
+    and verified first). The design, the counts (54 bodies, about 108 faces, 72 presets, nine emblems) and thirteen steps
+    in five waves are final; Q41 and Q42, opened by the answers, answered the same day as recommended: nothing is open.
+    No code, no tests run.
 
 ## Milestones
 

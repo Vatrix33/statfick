@@ -136,6 +136,11 @@ gotcha: `Docs/Notes.md`, 2026-11-11); everything else anywhere; the Windows PC b
   "Decisions for GMn" in the milestone's own section (dated, who decided, "**…, not the recommendation:**" where the
   user chose otherwise, the options not taken as "(Not …; not ….)", Engine-Plan's style), with a pointer line in
   `Docs/Engine-Plan.md`'s index of decisions ("Open questions for later milestones").
+- GP-8 **Effort on the 3D models** (the user, 2026-11-15, said to the manager right after GM2's eight answers, "Decisions
+  for GM2"; a standing word, recorded as said, for every milestone with 3D art, GP-3): "I want you to note that i want
+  to assign a lot of effort into the 3D Models. I really want them to look very good". How a milestone plans for it is
+  its design doc's to say (GM2's: `Docs/Game/Hero.md`, "Design", "Meeting GP-8"), and what "very good" means is asked
+  of the user there, not assumed.
 
 **Earlier decisions that bind the plan** (each where it is recorded):
 - **Old saves are never imported.** "Saves start fresh" (`Docs/Engine-Plan.md`, "User decisions (2026-10-16)",
@@ -198,9 +203,11 @@ the user's go, its questions asked first (GP-6).
     interface sounds.
   - The game's stylesheet in `ui.pak`; the game-screen references recaptured (GM1-1); the symbols outside the fonts.
 - [ ] **GM2 The hero: the character sheet, races and looks:**
-  - The sheet (attributes, levelling and EXP, HP, Mana, Armor, Evasion, the purse), the actor record every combatant
-    shares, the race picker and the appearance step, the 28 races' records and the nine playable races' passives.
-  - The humanoid rig family with its clip set, the 72 playable looks, the three new race seals.
+  - The sheet (attributes, levelling and EXP, HP, Mana, Armor, Evasion, the purse) with a live 3D figure of the hero
+    (GM2-2), the actor record every combatant shares, the race carousel and the character maker (GM2-1, GM2-6, GM2-7),
+    the 28 races' records and the nine playable races' passives.
+  - The game's new look (GM2-3, GM2-8), the humanoid rig family with its clip set and the maker's parts (the 72 old
+    looks as presets), the nine race seals as 3D emblems (GM2-5).
 - [ ] **GM3 Arms and armour: the forge, artifacts and the inventory:**
   - Every forged weapon, armour piece, caster and rune; the 37 masterworks and Exotics; natural weapons; the 85
     artifacts and their level ramp; the 5 key items; the inventory and equipment screens.
@@ -594,9 +601,19 @@ is open.
 Dexterity, Intelligence, Wisdom, Speed, Luck; 10 each at the start) raised with 5 free points a level and +1 to each a
 level; the level-up button once EXP reaches the target; HP, Mana, Armor and Evasion with their formulas shown; the purse
 (silver, gold, platinum: 100 silver a gold, 10,000 silver a platinum; 5 gold for a new hero); the five equipment slots
-(filled from GM3); the respec of free points; the Field tools rail and its drawer under 840 px. A new hero picks one of
-nine races by its seal (Human, Elf, Dark Elf, Dwarf, Hobbit, Lizardman, Half-Beast, Goliath, Merfolk), then a gender and
-one of four looks, each shown as a live 3D figure.
+(filled from GM3); the respec of free points; the whole Field tools rail, each tool disabled until its milestone, and
+its drawer under 840 px (Q34); the hero's name as the page's heading (Q30); **a live 3D figure of the hero wearing the
+equipped gear** (GM2-2): a paper doll, the figure in a framed portrait panel with a dark backdrop in the middle of the
+equipment section, idling in a fixed three-quarter view, the hands' slots at its sides, armour and artifacts below (Q29,
+Q31, Q32). A new hero, after its name (GM1), picks one of nine races in a carousel, one race at a time with a large
+figure and its emblem (Human, Elf, Dark Elf, Dwarf, Hobbit, Lizardman, Half-Beast, Goliath, Merfolk; **the nine seals as
+3D emblems on nine new motifs**, GM2-5, Q28, Q35–Q37), then **builds its look in a character maker** (GM2-1): sex, one of
+three builds, one of about six faces, hair, beard, crest, the Half-Beast's ears and tail, optional marks, head pieces, the
+one outfit's colours, swatches of the race (Q13–Q24, Q40), starting from the race's eight old looks as presets in a list
+or a random roll of everything (GM2-6, Q21); the sheet opens only with a race and a look, and the look is chosen only when
+the hero is made (GM2-7, Q26). Every figure heroic in proportion with stylised faces and mitten hands (Q1, Q2), in **the
+game's new look** (colours, light, line widths and hatching chosen anew from a mood board and three candidates, GM2-3,
+GM2-8, Q4–Q7, Q12). The design: `Docs/Game/Hero.md`.
 
 **What the old game has.**
 - `app.js` lines 1–427 (constants, DOM references; the 130 class paths go with GM8), 428–1326 (the derived values: the
@@ -614,7 +631,9 @@ one of four looks, each shown as a live 3D figure.
 - The looks: `sprite-catalog.js` `RACES` (lines 12–152: 9 races × 4 male and 4 female = 72) on the humanoid rig of
   `sprite-humanoid.js` (1,128 lines: proportions read as ratios of the old chibi rig, skins and 15 body materials, about
   76 part styles, ears including `beast` and `beast-round`, lower bodies, wing-arms, tails) and `sprite-kit.js` (299:
-  the muted palette `tone`, ink shadows, hatching, 32 metal palettes `MATERIALS` at 139–172).
+  the muted palette `tone`, ink shadows, hatching, 32 metal palettes `MATERIALS` at 139–172). (Counted again on
+  2026-11-15, `Docs/Game/Hero.md`, "What exists": 17 body materials, not 15; the rig draws 154 part styles and the 72
+  looks use 55.)
 - Screens 1 (the sheet), 2 (the drawer), 4 (the race picker and appearance step); captures `game-sheet` at 1 and 1.65.
 
 **What the engine provides.** The UI for the screens; `Render3D` (`Palette` slots such as `skin`, `cloth`,
@@ -630,51 +649,145 @@ per rig family (`Docs/Animation.md`, "Clip set"); the records.
 - Task 11's three races are in the old game already (T1); their looks and seals are placeholders to remake (T5): 24
   looks (Half-Beasts that clearly show their beast, wolf, fox, bear or lynx, T14; Merfolk recognisably sea-folk on land,
   legs and fin ears, T3; Goliaths visibly giant-blooded, stone-grey skin and rune-like markings, T4) and three seals
-  "that sit with the six older ones". Their racial classes come with GM8.
+  "that sit with the six older ones". Their racial classes come with GM8. Since GM2-1 and GM2-5 (2026-11-15) the 24 are
+  remade as the maker's parts and presets of those races, and all nine seals as 3D emblems.
 - The Goliath and Human at low levels (`../old-game/Docs/Notes.md`, "New Races": at Level 40 with the default allotted
-  stats a human has 48 HP, a Goliath 40) is "a balance point for the port's race review" (GM2-4).
+  stats a human has 48 HP, a Goliath 40) is "a balance point for the port's race review": GM17's (GM2-4).
+- New with the answers (2026-11-15): the character maker in place of the old appearance step, the race's eight old
+  looks as its presets and a random button (GM2-1, GM2-6, GM2-7); the live figure on the sheet and the sheet's changed
+  layout (GM2-2); the game's new look, colours, light, line widths and hatching all chosen anew on the first humanoid
+  (GM2-3, GM2-8); the nine emblems (GM2-5). The look a hero has is stored as its choices (a parameter set) and built
+  into a figure at run time.
 
-**The art.** The humanoid rig family: one skeleton with the `socket.<slot>` bones, bodies for the nine playable races
-and both sexes (builds, heads, hair, beards, ears, eyes, skins in palette slots), and its clip set: about 28 clips
+**The art.** The game's new look first: candidates shown on the first humanoid, the chosen one then every model's
+(GM2-3, GM2-8); the engine's earlier models (Ji'ruan's stage) follow it later. The humanoid rig family: one skeleton
+with the `socket.<slot>` bones, bodies for the nine playable races, both sexes and three builds (Q14, Q15), the maker's
+parts on them (faces, hair, beards, brows, eyes, crests, tails, markings, clothes, small head
+pieces; colours in palette slots), each race's eight old looks rebuilt as presets, and its clip set: about 28 clips
 (`Docs/Animation.md`, "Clip set": idle and stunned; advance, return, flee; seven attacks, the one-handed and two-handed
 swings, thrust, dagger stab, staff or wand strike, unarmed punch, off-hand swing; bow and crossbow; cast, skill, item,
-drink, meditate; guard and evade, entered and held; hurt, critical hurt, stumble; death, victory). The 72 looks built
-from it, the three seals as SVG. Per Decisions for M7 the first humanoid is approved "with gear and its full clip set,
-shown as renders and a playing view" before the rest: GM2 makes a sample weapon and armour piece for that approval,
-replaced by GM3's. Blender script family: `humanoid` (rig, body parts, looks as parameter sets, clips keyed by script);
-the enemies' parts (goat legs, tails, wings, elemental bodies) are added to it in GM9. Checked against Blender: the
-looks' renders (`ReferenceLimits.M6`), the clips against Blender's evaluation, the playing view by the user's eye.
+drink, meditate; guard and evade, entered and held; hurt, critical hurt, stumble; death, victory). The nine race emblems
+as 3D models, shown as pictures or live views (GM2-5). Per Decisions for M7 the first humanoid is approved "with gear and
+its full clip set, shown as renders and a playing view" before the rest: GM2 makes a sample weapon and armour piece for
+that approval. GP-8 (the user's word on the 3D models) sets the effort: several candidates and approval rounds,
+turnarounds and close-ups, detail to the bar the detail round sets (`Docs/Game/Hero.md`, "Meeting GP-8"). Blender script
+family: `humanoid` (rig, bodies, parts, presets as parameter sets, clips keyed by script, the emblems); the enemies'
+parts (goat legs, tails, wings, elemental bodies) are added to it in GM9. Checked against Blender: every model's renders
+(`ReferenceLimits.M6`), the clips against Blender's evaluation, the looks the engine builds at run time against the same
+looks assembled in Blender, the playing view by the user's eye.
 
 **How it is checked.** The formulas and EXP curves against the old game (`CombatRules` in Node for the EXP and level
 curves it holds; the sheet's formulas through the test client); the race passives against the old game's race checks
-(`new-races-browser.js`, 22 rules each shown able to fail) where they act on the sheet (their battle side in GM5); the
-sheet against `game-sheet` (its slots and buttons inert until their milestones), the race picker against a capture
-added to `Reference/game-capture.js`, with the 3D figures masked. Not checkable against the old game: the figures
-(Blender and the user only).
+(`new-races-browser.js`, 22 rules each shown able to fail) where they act on the sheet (their battle side in GM5). The
+sheet, the race carousel and the maker are changed or new screens (GM2-1, GM2-2, GM2-5): shown to the user as captures
+first, then tested against Chromium rendering the port's own markup, the 3D views masked and tested on their own (not
+against `game-sheet` or a capture of the old picker; corrected 2026-11-15). Not checkable against the old game: the
+figures, the maker's parts and the emblems (Blender and the user only).
 
 **Depends on / needed by.** Depends on GM1. Needed by everything: combat evaluates every actor through these rules;
 companions (GM11) and enemies (GM9) are actor records; the humanoid rig carries every humanoid enemy and boss.
 
-**Weight: XL.** About 1,700 old lines for the sheet and races, 1,560 for the humanoid and its kit; one rig family with
-about 28 clips and 72 looks, the first model approved before the rest.
+**Weight: XL, grown by the answers** (2026-11-15). About 1,700 old lines for the sheet and races, 1,560 for the humanoid
+and its kit; three new or changed screens (the sheet with its paper doll, the race carousel, the maker); the game's new
+look from a mood board and three candidates; one rig family with about 28 clips; 54 bodies (9 races × 2 sexes × 3 builds,
+Q15), about 108 faces (Q40), about 16–24 hair styles per sex fitted to eight races' skulls (about 40 designs, about 320
+fitted), about 12 beards, the crests, the Half-Beast's ears and tails, marks and head pieces at about twice the old
+counts (Q19), 18 outfits fitted to 54 bodies (Q18), 72 presets, 9 emblems on nine new motifs, a sword, a shield and a
+chain shirt (Q9); about 35 approval stops, each repeated as the user asks (Q6, GP-8). The art is most of the weight and
+the manager's own; the rules side runs beside it (`Docs/Game/Hero.md`, "What GM2 makes" and "Steps").
 
-**Open questions for the user.**
-- GM2-1 **The 72 looks in 3D:** (a) each old look remade as its 3D counterpart (its hair, beard, skin, ears and build
-  as the catalogue gives them), more detailed; the user approves the first humanoid (M7), then each race's eight
-  [recommended: faithful, and the catalogue already defines them]; (b) new looks designed per race, eight each,
-  proposed as renders; (c) a character maker: the player builds a look from parts (hair, face, skin, build) instead
-  of picking one of eight.
-- GM2-2 **The hero on the sheet:** (a) as the old game: no figure on the sheet (the race seal by the name), the figure
-  in the race picker and in battle [recommended: faithful]; (b) a live 3D figure on the sheet beside the equipment
-  slots, wearing the gear.
-- GM2-3 **The game's palettes, light, line widths and hatching** ("asked of the user when they come up",
-  `Docs/Renderer-3D.md`, "Method"): (a) the engine's approved look (Decisions for M6; Ji'ruan's stage, M10) with the
-  palettes taken from the old game's (`sprite-kit.js` `MATERIALS`, `forge-art.js` `PALETTES`, the skins per species),
-  shown on the first humanoid for approval [recommended]; (b) a new palette proposed with the first humanoid.
-- GM2-4 **The Goliath and the Human at low levels:** (a) kept as the old game; reviewed with every number in GM17
-  [recommended: one balance pass with the reworked classes in]; (b) reviewed now, before the looks.
-- GM2-5 **The three new race seals:** (a) SVG in the style of the six older seals, shown as captures [recommended];
-  (b) all nine seals remade as renders of 3D emblems.
+**Decisions for GM2 (the user, 2026-11-15, the question tool, asked by the manager on the user's go for GM2; GP-6):**
+the five questions this section held (GM2-1–GM2-5), then three follow-ups their answers raised (GM2-6–GM2-8), asked at
+once the same day. Two answers are the recommended option (GM2-4, GM2-7); six are not (GM2-1, GM2-2, GM2-3, GM2-5,
+GM2-6, GM2-8). The design doc is `Docs/Game/Hero.md`; its detail round (Q1–Q42) is recorded there ("The questions as asked")
+and below ("GM2's detail round").
+- GM2-1 **The 72 looks in 3D, not the recommendation: (c) a character maker.** The player builds a look from parts
+  (hair, face, skin, build) instead of picking one of eight. (Not (a) each old look remade as its 3D counterpart, its
+  hair, beard, skin, ears and build as the catalogue gives them, more detailed, the first humanoid approved and then
+  each race's eight, the recommendation: faithful, the catalogue already defines them; not (b) new looks designed per
+  race, eight each, proposed as renders.)
+- GM2-2 **The hero on the sheet, not the recommendation: (b) a live 3D figure on the sheet**, beside the equipment
+  slots, wearing the equipped gear; the sheet's layout changes to make room and is shown as captures first. (Not (a) as
+  the old game, no figure on the sheet, the race seal by the name and the figure in the race picker and in battle, the
+  recommendation: faithful.)
+- GM2-3 **The game's palettes, light, line widths and hatching, not the recommendation: (b) a new palette**, proposed
+  together with the first humanoid. (Not (a) the engine's approved look, Decisions for M6 and Ji'ruan's stage of M10,
+  with the palettes taken from the old game's, `sprite-kit.js` `MATERIALS`, `forge-art.js` `PALETTES` and the skins per
+  species, shown on the first humanoid for approval, the recommendation.) GM2-8 says what the new look opens.
+- GM2-4 **The Goliath and the Human at low levels:** (a) kept as the old game, reviewed in GM17's balance pass (the
+  recommendation: one balance pass with the reworked classes in). (Not (b) reviewed now, before the looks.)
+- GM2-5 **The race seals, not the recommendation: (b) all nine seals remade as renders of 3D emblems**, the six older
+  ones too, shown for approval. (Not (a) the three new seals as SVG in the style of the six older ones, shown as
+  captures, the recommendation.)
+- GM2-6 **The old game's 72 looks in the maker** (a follow-up of GM2-1), **not the recommendation: (c) presets and a
+  random button**: each race's eight old looks as starting points the player can then change, plus a button that rolls
+  a random look from the race's parts. (Not (a) kept as presets, the recommendation; not (b) no presets.)
+- GM2-7 **When the look can be changed** (a follow-up of GM2-1): (a) only when the hero is made, the recommendation.
+  (Not (b) any time from the sheet; not (c) later in towns for a price.)
+- GM2-8 **What the new look changes** (a follow-up of GM2-3), **not the recommendation: (c) everything**: colours,
+  light, line widths and hatching are all open again; candidates are shown on the first humanoid; the engine's earlier
+  models (Ji'ruan's stage) follow the new look later. (Not (a) colours only, the recommendation; not (b) colours and
+  light.)
+- Said by the user right after the eight (2026-11-15), recorded as GP-8 ("Decisions for the plan") since it holds for
+  every milestone with 3D art: "I want you to note that i want to assign a lot of effort into the 3D Models. I really
+  want them to look very good".
+
+**GM2's detail round (the user, 2026-11-15, the question tool, asked by the manager in ten rounds of four after the
+design doc's first version, the options as `Docs/Game/Hero.md` prepared them, then Q40, the manager's follow-up, then Q41 and Q42, which the answers opened; in full
+with each question's facts and options in `Docs/Game/Hero.md`, "The questions as asked"):** every answer the recommended
+option (a) except Q1, Q2, Q9, Q18, Q19, Q21, Q22, Q23, Q28, Q31, Q32 and Q37. The manager's decisions on the proposals
+(GM2-P1–GM2-P16, all as proposed, with notes on P7, P10 and P16) are in `Docs/Game/Hero.md`, "Decisions". Nothing of GM2's
+design is open.
+- **Q1, not the recommendation: "Heroic, realistic":** about 7.5 heads, smaller heads, longer limbs; the races differ by
+  the same ratios. (Not the old six-head proportions, the recommendation; not big heads, four to five.)
+- **Q2, not the recommendation: "Stylised":** simple eye shapes, no face bones, mitten hands (a thumb and one block).
+  (Not modelled faces with face bones and fingers, the recommendation; not modelled faces with mitten hands.)
+- Q3 Sculpted masses: hair as modelled locks; clothes with modelled folds, seams, hems, belts, buckles. (Not hair cards;
+  not smooth and simple.)
+- Q4 A mood board first: about six small renders on a rough figure, one or two picked, then full candidates. (Not the
+  user's references first; not three candidates straight away.)
+- Q5 A full sheet per model (turnaround, close-ups, beside the old sprite, clips as strips and videos, the playing
+  view). Q6 Three candidates for the look and the first humanoid, two for later families, as many rounds as wanted.
+- Q7 Today's renderer rules, any numbers; a new rule only when the user asks for one. (Not new rules from the start; not
+  the light alone reopened.) Q8 A human man and woman together, first.
+- **Q9, not the recommendation: "A sword and shield with a chain shirt"** as the first humanoid's sample gear. (Not a
+  sword and light armour, the recommendation; not a staff and a robe.)
+- Q10 The clips in four batches. Q11 The earlier models take the new look when used (Ji'ruan's stage at GM14). (Not right
+  after GM2; not within GM2.) Q12 The look in the game's data, a record a mod can restyle. (Not constants.)
+- Q13 The race fixes its body and defining traits; the player chooses the rest. Q14 Male and female, each its own body
+  per race. Q15 A few modelled builds per race and sex (slender, average, strong). (Not sliders; not one body.) Q16 A list
+  of modelled faces (asked with the note that Q2 left face bones out, so sliders would have brought them back).
+- Q17 Swatches per race. **Q18, not the recommendation: "One plain outfit per race and sex, colours only".** (Not a few
+  garments as choices, the recommendation; not none.) **Q19, not the recommendation: "A large set, about twice (a)".**
+  (Not every old part plus a few new, the recommendation; not only the old parts.) Q20 Each option named; the presets keep
+  the old labels.
+- **Q21, not the recommendation: "Presets as a list; random rolls everything; no locks".** (Not a row of presets with a
+  lock per category, the recommendation.) **Q22, not the recommendation: the Half-Beast's ears, tail and fur chosen
+  freely, no beast choice.** (Not the beast as the first choice, the recommendation.) **Q23, not the recommendation: the
+  Merfolk's and the Goliath's marks optional, "none" among the patterns.** (Not always present, the recommendation.) Q24
+  Small head pieces as choices, hidden under a helmet.
+- Q25 Name, race, maker, sheet. Q26 The sheet opens only with a race and a look. Q27 Dev Mode's old powers. **Q28, not
+  the recommendation: "A carousel": one race at a time with a large figure.** (Not the old dialog with the emblems and a
+  figure, the recommendation; not the old dialog with the emblems only.)
+- Q29 A paper doll (asked with a small layout sketch: the figure in the middle of the equipment section, the two hands'
+  slots at its sides, armour and the two artifacts below it). Q30 The name as the heading, race and level under it.
+  **Q31, not the recommendation: the figure idles in a fixed three-quarter view, nothing else.** (Not idling, turned by
+  the mouse, with a victory on level up, the recommendation; not a still pose.) **Q32, not the recommendation: "A framed
+  portrait panel with a dark backdrop".** (Not a stone plinth taking its shadow, the recommendation; not floating.)
+- Q33 The figure in its own clothes before GM3; the slots inert. Q34 The whole rail, each tool disabled until its
+  milestone. Q35 A medallion in relief. Q36 Pictures where small; a live, slowly turning emblem only for the race being
+  chosen.
+- **Q37, not the recommendation: "Nine new motifs", each proposed as a sketch first.** (Not the six older motifs kept with
+  three new, the recommendation; not the placeholders refined.) Q38 A small new set of sounds, approved by ear. Q39 Parts
+  and presets are data a mod can add to.
+- Q40 (the manager's follow-up, as Q16's "about six faces" met Q19's "about twice"): about six faces per race and sex, 108
+  in all, the large set doubling the other parts (hair about 16–24 styles per sex, about 12 beards, more crests, tails,
+  marks and head pieces). (Not about twelve, 216; not about nine, 162.)
+- Q41 (opened by Q28 and Q31, asked the same day): the carousel's and the maker's figures as the sheet's, each idling in
+  a fixed three-quarter view. (Not the maker's turnable by the mouse; not both turning slowly.)
+- Q42 (opened by Q23 with T3 and T4, asked the same day): the Goliath's and the Merfolk's presets wear marks, a rune
+  pattern on each Goliath preset and a scale pattern on each Merfolk preset; any hero can still choose "none". (Not the
+  presets without marks.)
 
 ## GM3 Arms and armour: the forge, artifacts and the inventory
 
@@ -765,7 +878,9 @@ body types, 37 unique designs, 85 artifacts.
 - GM3-3 **Armour on the different bodies** (garments are made per body type, Decisions for M7): (a) each piece fitted
   to each playable body (9 races × 2 sexes) and to each humanoid enemy body that wears forged armour [recommended: a
   close fit on every figure]; (b) a few shared builds (small, medium, large) that every body maps onto (fewer models,
-  a looser fit).
+  a looser fit). (Since GM2-1 and GM2's detail round, 2026-11-15: the playable bodies are the maker's 54, 9 races × 2
+  sexes × 3 builds (Q14, Q15), each a modelled body; under (a) each piece is fitted per build and per sex, 54 times. This
+  question is asked on that fact, nothing decided for it.)
 - GM3-4 **The Transformer** (`Docs/Notes.md`, "Game inconsistency": the old battle sprite draws a round copper shield,
   the item and its icon a kite shield): (a) the kite shield everywhere [recommended: the item's own design]; (b) the
   round copper shield.
@@ -1228,7 +1343,10 @@ model approved by the user before the rest; the humanoid rig extended for the en
 devil, impid, undead, satyr, dryad, lamia, harpy, treant, the elementals in their body materials, humans, lizardmen,
 merfolk, sirens): lower bodies (goat legs, bird legs, fish and snake tails, floating robes, roots), wing-arms, branches,
 tails, wings; every enemy's model and variants (GM9-4), the dungeon-only and new regions' types included, so each
-family is made in one pass; the Sparkling shine; their gear from GM3. Script families: `humanoid` (extended),
+family is made in one pass; the Sparkling shine; their gear from GM3. (Since GM2's detail round, 2026-11-15: the
+humanoid family's figures are heroic in proportion with stylised faces and mitten hands, Q1, Q2, and a look is a parameter
+set of parts, `Docs/Game/Hero.md`; whether the humanoid enemies' looks are built from the same parts and sets is GM9's to
+ask.) Script families: `humanoid` (extended),
 `quadruped`, `griffon`, `dragon`, `wisp`. About 146 enemies and 2 creatures, and the new types their drafts give,
 checked against Blender and approved per family.
 
@@ -1301,7 +1419,9 @@ and Collect), GM12 (the new regions' tables).
 **Open questions for the user.**
 - GM10-1 **The stages' colours:** (a) the ink look with the stages' colours muted as the figures' are (the old
   `K.tone`), since the old backgrounds were never restyled [recommended: one look for figures and stages]; (b) the old
-  scenery's bright colours kept.
+  scenery's bright colours kept. (Since GM2-3 and GM2-8, 2026-11-15: the figures don't take the old `K.tone` but the
+  game's new look, its colours, light, lines and hatching chosen in GM2; (a) is to be asked as "the stages in the
+  figures' new look".)
 - GM10-2 **Ambient sound on the stages** (GM1-6): (a) a quiet ambience per biome (wind, rain, birds,
   surf, embers) [recommended]; (b) none, the battle theme only.
 
@@ -1351,7 +1471,9 @@ classes above Level 100, `playerClasses`, except the Limitbreaker from Level 100
 here (information bought, Search quests, Escort quests and the like, GM8). The companions' Augmentation ranks (task 12).
 
 **The art.** The two guild rooms (script family `interiors`, with clickable objects named as nodes), the recruits as
-GM2's figures, the quest markers, Cull circle, Search spots and Escort ambushes on the map, the reward note.
+GM2's figures (since GM2-1, GM2-6 and GM2's detail round, 2026-11-15, a look is the maker's parameter set from its parts,
+not one of four; how a recruit's look is made from the same parts, a roll, a preset or another rule in place of the old
+random look, `companions.js` 161–162, is GM11's to ask), the quest markers, Cull circle, Search spots and Escort ambushes on the map, the reward note.
 
 **How it is checked.** `GuildQuestRules` and `GuildInformationRules` in Node; the guild's flows through the test client
 and `guild-rework-browser.js` rule by rule; the Companions window against `game-companions`, the guild's panels against
@@ -1540,7 +1662,9 @@ at the bar, 12 cutscenes.
 
 **Open questions for the user.**
 - GM14-1 **Ji'ruan's proof stage** (approved 2026-11-05 with the stand-in figure): (a) reused with the real models
-  swapped in and approved again [recommended]; (b) remade from scratch with the others.
+  swapped in and approved again [recommended]; (b) remade from scratch with the others. (Since GM2-8 and GM2's Q11,
+  2026-11-15: whichever is chosen, the stage takes the game's new look here, when GM14 uses it; its colours bake today's
+  look, `make_models.py` `jr_lit`, so it is exported again in the new one and approved again.)
 
 ## GM15 Limitless and the endgame
 
@@ -1957,14 +2081,11 @@ Found against the repo on 2026-11-12; the repo's figures are the ones used above
 Every question below is about the game. Each milestone's are asked with the question tool when it begins (GP-6) and
 answered in its section (GP-7); GM1's thirteen were all answered on 2026-11-12 ("Decisions for GM1": the eleven, then
 GM1-12 and GM1-13, which came out of GM1-3's answer), and GM1's detail round (Q1–Q26 and Q16b on 2026-11-13, Q27–Q34
-on 2026-11-14; "GM1's detail round"), so none of GM1's is left; GM1 is done (2026-11-15). The sound questions are
-asked with their milestones (GM1-6).
+on 2026-11-14; "GM1's detail round"), so none of GM1's is left; GM1 is done (2026-11-15). GM2's five were answered on
+2026-11-15 with three follow-ups their answers raised (GM2-6–GM2-8), all eight in "Decisions for GM2"; GM2's detail
+round, Q1–Q42, was answered the same day ("GM2's detail round"). The sound questions are asked with their milestones
+(GM1-6).
 
-- GM2-1 The 72 looks: faithful 3D remakes / new looks per race / a character maker.
-- GM2-2 The hero on the sheet: no figure / a live 3D figure.
-- GM2-3 Palettes, light, lines, hatching: the engine's look with the old palettes / a new palette.
-- GM2-4 Goliath and Human at low levels: in GM17's review / now.
-- GM2-5 The three new seals: SVG like the six / all nine as 3D renders.
 - GM3-1 Item models' detail: close-up / battle size / two models.
 - GM3-2 Item pictures: live 3D / 2D icons / pre-rendered pictures.
 - GM3-3 Armour on bodies: fitted per body / a few shared builds.
@@ -2016,8 +2137,9 @@ asked with their milestones (GM1-6).
 - GM18-1 The icons: new ones from the game's art / the old icon for the game.
 - GM18-2 The editor for the game's kinds: the generic form / special views.
 
-Questions per milestone: GM1 0, GM2 5, GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
-GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
+Questions per milestone still open: GM1 0, GM2 0 (5 answered, 3 follow-ups and the detail round Q1–Q42, 2026-11-15),
+GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3, GM14 1, GM15 2, GM16 3, GM17 2, GM18 2:
+50 in all (55 when the plan was written).
 
 ## Status
 
@@ -2164,3 +2286,19 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   "How to continue"), and the first real draft release, only on the user's word. The old game was frozen for the
   recapture from 2026-11-13 until the manager's ok of 2026-11-15 ("GM1's detail round"; `Docs/Game/Foundation.md`,
   "Decisions").
+- **2026-11-15, GM2 started on the user's go:** its eight questions answered the same day (GM2-1–GM2-5 and the follow-ups
+  GM2-6–GM2-8, "Decisions for GM2"; six not the recommendation: a character maker with the old looks as presets and a
+  random button, a live 3D figure on the sheet, a new look with colours, light, line widths and hatching all open, the
+  nine seals as 3D emblems), and the user's word on the 3D models recorded as GP-8 ("Decisions for the plan"). GM2's
+  section brought to the answers (what the player gets, what is new, the art, how it is checked, the weight); GM3-3,
+  GM10-1 and GM11's art noted where an answer moved them. Its design doc, `Docs/Game/Hero.md` (docs only, the branch
+  `gm2-design` from `8c7d07d`): GM2's section checked against the code (what moved: 17 body materials, 154 part
+  styles, both screens changed, no 3D mask yet, the PC's Blender now 5.3), the design, 39 questions for the detail round
+  and 16 proposals for the manager, thirteen draft steps in five waves. The detail round waits for the user; no step
+  started.
+- **2026-11-15, GM2's design decided:** the user's detail round (Q1–Q39 and the manager's follow-up Q40, "GM2's detail
+  round"; twelve not the recommendation) and the manager's GM2-P1–GM2-P16 (all as proposed; Blender 5.2 pinned through
+  `$STATVENTURE_BLENDER`). GM2's section brought to them (what the player gets, the weight: 54 bodies, about 108 faces,
+  the large set of parts, 72 presets, nine emblems on new motifs); GM3-3, GM9's art, GM11's art and GM14-1 noted where an
+  answer reaches them. `Docs/Game/Hero.md`'s design, counts and thirteen steps in five waves are final; the two questions
+  the answers opened, Q41 and Q42, answered the same day as recommended: nothing is open. No step started; the first wave starts on the manager's go.

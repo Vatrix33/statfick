@@ -515,6 +515,23 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   colours, read from its goldens (step 11); a test that fails once under load has a cause that can be forced, and for
   the link test it was the program's (the single instance's waits on a busy thread pool and its connect without end;
   the slot test's was the test's own read before the writer ran; `gm1-flaky-tests`).
+- 2026-11-15 (the PC, a design worker on the branch `gm2-design`, docs only, no tests run): **GM2 started; its design doc
+  `Docs/Game/Hero.md` decided**, after the user's eight answers (GM2-1–GM2-8: a character maker with presets and a random
+  button, a live figure on the sheet, a new look with everything open, nine 3D emblems), GP-8 (the user's word on the 3D
+  models), the user's detail round the same day (Q1–Q39 and the manager's Q40; twelve not the recommendation) and the
+  manager's GM2-P1–P16 (all as proposed). What it makes: 54 bodies (9 races × 2 sexes × 3 builds, heroic, stylised faces,
+  mitten hands), about 108 faces, a large set of parts, 72 presets, nine emblems on new motifs; Q41 and Q42, opened by the answers, answered as recommended; nothing open. A design
+  round's lesson: answers interact (six faces against "twice the set", the presets against one outfit, no beast choice
+  against T14's beasts, optional marks against T4): the doc lists each pull and how it is resolved without a choice the
+  user didn't make, and asks what remains. Gotchas for the steps: **the PC's
+  Flatpak Blender is 5.3 now** (`flatpak info org.blender.Blender`), while every reference and ported rule is 5.2's and
+  `make-blender-references.sh` falls back to the Flatpak when `$STATVENTURE_BLENDER` is unset (GM2-P10); Node 24 is in
+  `~/.cache/stat-fick-build/node-v24.21.0-linux-x64/` (not on the PATH) for the old game's pure modules; the old sprite
+  scripts load in Node too (how the looks were counted); Ji'ruan's stage bakes the old look's 0.42 and ink into its
+  colours (`make_models.py` `jr_lit`), so a new default style alone doesn't move it; gear on an actor takes the actor's
+  palette; every `View3D` allocates a 64 MB shadow atlas; the game's screen fixtures mask icons, not 3D views. The
+  research files behind the doc (the 72 looks' every field, the engine's 3D facts, GM1's leftovers) are in
+  `~/.cache/stat-fick-build/claude-work/gm2/design/`.
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).
