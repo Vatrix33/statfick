@@ -563,6 +563,19 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
 - Build and test with `Tools/Scripts/test.sh`.
 - GLFW enum gotcha: `GlfwFocusEvent.LostFocus`/`GainFocus`.
 
+- 2026-11-16 (the PC, GM2 step 12's worker on the branch `gm2-step12`, 4265 + 576 = 4841 tests on the GPU and lavapipe):
+  **the seven sounds** (`Docs/Game/Hero.md`, "How it works", step 12): candidates judged offline as GM1's (Chromium's
+  renders measured at 60 %, a band-and-envelope distance to keep any pick apart from the other sounds), the quick runs of
+  the two sounds heard most rendered as WAV files for the ear; the user picked by ear. Gotchas: a worktree made by hand
+  (`git worktree add`) can't be entered with EnterWorktree from the repo's root, absolute paths work; new entries in a
+  pack the editor's fixtures list can make a list overflow and composite at 1.65, which is how **Chromium's
+  `DrawingDisplayItem::TightenVisualRect`** was found (an item of one plain rect fill takes that rect as its visual rect;
+  `Docs/Compositing-Port.md`, "Visual rects tightened to one plain fill"): the cc layer probe with every layer, not only
+  those that draw (`claude-work/gm2/step12/lcd/layers-full.cjs`), and variants of the page in Chromium (a background, a
+  border, an outline, an integral top) found it where reading the overlap code alone didn't (that code was right); a scratch line
+  in `Golden.Match` logging every comparison's numbers, run with the rule and without, gave the table of what moved.
+  Remember `box-sizing: content-box`: a border on the status line moves its top by the border.
+
 ## Asking about design choices (user rule)
 
 On the Stat Fick engine and port work (the port notes (engine/Docs/Notes.md)), ask the user about design choices the moment they come up, with the question tool: 2–4 concrete options, the recommended one first with its reason. Then record the answer with its date under "User decisions" in `engine/Docs/Engine-Plan.md` (and in the port notes (engine/Docs/Notes.md) when it's a lasting decision).

@@ -207,6 +207,29 @@ internal sealed class PaintTarget
         /// <summary>Something was drawn (an item with nothing drawn isn't recorded).</summary>
         public bool Drew;
         public bool HasText;
+        /// <summary>How many ops Blink's record of the item holds so far (saves, clips, restores and drawings).</summary>
+        public int RecordSize;
+        /// <summary>
+        /// The first op's rect (screen) when it is a plain fill of a rect or a rounded rect (DrawingDisplayItem's
+        /// IsDrawAreaAnalysisCandidate with a DrawRect, DrawIRect or DrawRRect): an item of that one op takes it as
+        /// its visual rect (<see cref="AddItem"/>).
+        /// </summary>
+        public RectF? FirstPlainFill;
+        /// <summary>That op's own known-opaque rect, before the item's visual rect clips it.</summary>
+        public RectF FirstPlainFillOpaque;
+    }
+
+    /// <summary>
+    /// <paramref name="count"/> ops of Blink's record join the current item (or <paramref name="item"/>): the first one's
+    /// rect when it is a plain fill of a rect (<paramref name="plainFill"/>, local), for DrawingDisplayItem::TightenVisualRect.
+    /// </summary>
+    void CountOps(Item item, int count, RectF? plainFill)
+    {
+        if (count <= 0)
+            return;
+        if (item.RecordSize == 0 && count == 1)
+            item.FirstPlainFill = plainFill is { } rect ? ToScreen(rect) : null;
+        item.RecordSize += count;
     }
 
     /// <summary>The chunks recorded since <see cref="BeginChunks"/>.</summary>
@@ -387,6 +410,7 @@ internal sealed class PaintTarget
         if (_item is not { } item)
             return;
         item.SeenOp = true;
+        CountOps(item, 1, null);
         if (++item.Ops > 8 || stops)
             item.Stopped = true;
     }
@@ -403,7 +427,18 @@ internal sealed class PaintTarget
     {
         if (!item.Drew || Gfx.IsEmpty(item.Visual) || _muted > 0 || CurrentChunk(true) is not { } chunk)
             return;
-        var visual = RectF.FromEdges(MathF.Floor(item.Visual.Left), MathF.Floor(item.Visual.Top), MathF.Ceiling(item.Visual.Right), MathF.Ceiling(item.Visual.Bottom));
+        var visual = Enclosing(item.Visual);
+        // DrawingDisplayItem::TightenVisualRect (Chromium 152, drawing_display_item.h 80-100, .cc 285-321): an item whose
+        // record is one op, a plain fill of a rect or a rounded rect, takes that rect (enclosed by whole pixels) as its
+        // visual rect instead of the one it was given (a box's ink overflow); its opaqueness is clipped by that rect
+        // (CalculateRectKnownToBeOpaqueForRecord's clip is the visual rect).
+        if (item.RecordSize == 1 && item.FirstPlainFill is { } plainFill)
+        {
+            visual = Enclosing(plainFill);
+            item.Opaque = Gfx.Intersect(item.FirstPlainFillOpaque, visual);
+            if (Gfx.IsEmpty(visual))
+                return;
+        }
         chunk.UnionBounds(visual, HitTestOpaqueness.Transparent);
         chunk.DrawableBounds = Gfx.Union(chunk.DrawableBounds, visual);
         // PaintChunker::ProcessBackgroundColorCandidate.
@@ -438,12 +473,16 @@ internal sealed class PaintTarget
     /// fill its known-opaque rect (DrawingDisplayItem::CalculateRectKnownToBeOpaque: up to 8 ops,
     /// rounded rects inset by 0.3 × radius) and background colour (the first plain fill).
     /// </summary>
-    void Record(RectF bounds, Brush? fill = null, CornerRadii radii = default, RectF? fillRect = null, bool text = false)
+    /// <param name="ops">How many ops Blink records for it (<see cref="CountOps"/>; a box with a background and a border is two or more).</param>
+    /// <param name="plainFill">When those are one op that fills a rect or a rounded rect with a plain colour (no shader, filter or blend), its rect.</param>
+    void Record(RectF bounds, Brush? fill = null, CornerRadii radii = default, RectF? fillRect = null, bool text = false, int ops = 1, RectF? plainFill = null)
     {
         if (_chunks is null || _suppressed > 0)
             return;
         var own = _item is null;
         var item = _item ?? new Item { AnalyzeFirstOpOnly = true };
+        var firstOp = item.RecordSize == 0;
+        CountOps(item, ops, plainFill);
         if (!item.FixedVisual)
             item.Visual = Gfx.Union(item.Visual, ToScreen(bounds));
         item.HasText |= text;
@@ -461,6 +500,8 @@ internal sealed class PaintTarget
                     area.Left + MathF.Max(radii.TopLeft.X, radii.BottomLeft.X) * 0.3f, area.Top + MathF.Max(radii.TopLeft.Y, radii.TopRight.Y) * 0.3f,
                     area.Right - MathF.Max(radii.TopRight.X, radii.BottomRight.X) * 0.3f, area.Bottom - MathF.Max(radii.BottomLeft.Y, radii.BottomRight.Y) * 0.3f);
                 opaqueRect = RectF.FromEdges(MathF.Ceiling(opaqueRect.Left), MathF.Ceiling(opaqueRect.Top), MathF.Floor(opaqueRect.Right), MathF.Floor(opaqueRect.Bottom));
+                if (firstOp)
+                    item.FirstPlainFillOpaque = opaqueRect;
                 item.Opaque = Gfx.MaximumCoveredRect(item.Opaque, opaqueRect);
                 // Within the item's visual rect and the clips it pushed.
                 var clip = item.FixedVisual ? Enclosed(item.Visual) : (RectF?)null;
@@ -484,6 +525,9 @@ internal sealed class PaintTarget
 
     /// <summary>gfx::ToEnclosedRect: the whole pixels inside a rect.</summary>
     static RectF Enclosed(RectF r) => RectF.FromEdges(MathF.Ceiling(r.Left), MathF.Ceiling(r.Top), MathF.Floor(r.Right), MathF.Floor(r.Bottom));
+
+    /// <summary>gfx::ToEnclosingRect: the whole pixels a rect touches.</summary>
+    static RectF Enclosing(RectF r) => RectF.FromEdges(MathF.Floor(r.Left), MathF.Floor(r.Top), MathF.Ceiling(r.Right), MathF.Ceiling(r.Bottom));
 
     /// <summary>A box's scroll hit test (a chunk of its own: a composited scroller's layer).</summary>
     public void RecordScrollHitTest(PropertyState state, TransformNode scrollTranslation, LayoutBox owner, RectF rect)
@@ -527,7 +571,7 @@ internal sealed class PaintTarget
         if (fill is not null)
         {
             BeginItem(boxDecoration: true);
-            Record(rect, fill, fillRect: rect);
+            Record(rect, fill, fillRect: rect, plainFill: fill.IsGradient ? null : rect);
             EndItem();
         }
         RecordHitTestRect(rect);
@@ -644,21 +688,63 @@ internal sealed class PaintTarget
 
     public void DrawBox(RectF rect, Brush? background, CornerRadii radii, Border border)
     {
-        Record(rect, background, radii);
+        // Blink's ops: the background's fill (a plain one for a colour), then an outline's or a uniform border's stroked
+        // rect, ring or path (none of them a plain fill).
+        var ops = (background is not null ? 1 : 0) + (border.IsVisible ? 1 : 0);
+        Record(rect, background, radii, ops: ops, plainFill: ops == 1 && background is { IsGradient: false } ? rect : null);
         if (Draws)
             _canvas!.DrawBox(rect, background, radii, border);
     }
 
     public void DrawBox(RectF rect, Brush? background, CornerRadii radii, BorderSides sides)
     {
-        Record(rect, background, radii);
+        var (borderOps, borderFill) = BorderOps(rect, radii, sides);
+        var ops = (background is not null ? 1 : 0) + borderOps;
+        RectF? plainFill = ops != 1 ? null : background is not null ? (background.IsGradient ? null : rect) : borderFill;
+        Record(rect, background, radii, ops: ops, plainFill: plainFill);
         if (Draws)
             _canvas!.DrawBox(rect, background, radii, sides);
     }
 
+    /// <summary>
+    /// The ops Blink's BoxBorderPainter records for a border (Chromium 152, box_border_painter.cc): with every visible
+    /// side of one colour and style, solid, the fast path (PaintBorderFastPath, 1276-1331) draws all four sides as one
+    /// stroked rect or ring, and fewer sides with a translucent colour on a square box as one path; otherwise the
+    /// general path clips a rounded box first (Paint, 1470-1495) and draws each side, a solid side with no miter as one
+    /// FillRect of its rect (PaintSide, DrawSolidBoxSide). So a border is one plain fill only when one side is visible,
+    /// solid, on a square box, and the fast path doesn't take it: that side's rect.
+    /// </summary>
+    static (int Ops, RectF? PlainFill) BorderOps(RectF rect, CornerRadii radii, BorderSides sides)
+    {
+        if (!sides.IsVisible)
+            return (0, null);
+        BorderSide[] all = [sides.Top, sides.Right, sides.Bottom, sides.Left];
+        var visible = all.Where(s => s.IsVisible).ToList();
+        // A side with a width but no visible colour or style makes the colours (and widths) not uniform (ComputeBorderProperties).
+        var presentButInvisible = all.Any(s => s.Width > 0 && !s.IsVisible);
+        var first = visible[0];
+        var uniformColor = !presentButInvisible && visible.All(s => s.Color == first.Color);
+        var uniformStyle = visible.All(s => s.Style == first.Style);
+        var rounded = !radii.IsZero;
+        if (uniformColor && uniformStyle && first.Style == BorderStyle.Solid
+            && (visible.Count == 4 || (!rounded && visible.Any(s => s.Color.A < 1))))
+            return (1, null);
+        // The general path: a rounded box's clips (a save and its clips), then each side.
+        if (rounded || visible.Count != 1 || first.Style != BorderStyle.Solid)
+            return (visible.Count + (rounded ? 2 : 0), null);
+        // PaintSide: the box's rect cut to the side's width.
+        var side =
+            sides.Top.IsVisible ? new RectF(rect.X, rect.Y, rect.Width, first.Width)
+            : sides.Bottom.IsVisible ? new RectF(rect.X, rect.Bottom - first.Width, rect.Width, first.Width)
+            : sides.Left.IsVisible ? new RectF(rect.X, rect.Y, first.Width, rect.Height)
+            : new RectF(rect.Right - first.Width, rect.Y, first.Width, rect.Height);
+        return (1, side);
+    }
+
     public void FillRect(RectF rect, Color color)
     {
-        Record(rect, new Brush { Color = color });
+        // GraphicsContext::FillRect: one DrawRect with the colour.
+        Record(rect, new Brush { Color = color }, plainFill: rect);
         if (Draws)
             _canvas!.FillRect(rect, color);
     }

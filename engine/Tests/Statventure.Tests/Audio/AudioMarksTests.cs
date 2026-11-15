@@ -296,7 +296,8 @@ public class AudioMarksTests
         using var data = new VirtualFileSystem([Mount.Pack(TestMusic.Pack)]);
         using var pack = PackFile.Open(TestMusic.Pack);
         var kinds = new Kinds(pack);
-        Assert.Equal(126, pack.Entries.Count);
+        // The music's 118 and the game's 15 sound effects (GM1 step 4's eight, GM2 step 12's seven).
+        Assert.Equal(133, pack.Entries.Count);
         foreach (var entry in pack.Entries)
         {
             Assert.True(entry.IsRecord, entry.Path);

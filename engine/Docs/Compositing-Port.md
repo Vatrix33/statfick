@@ -384,6 +384,87 @@ against Chromium.
   page and About unchanged; the old game's states, shown by no program, 20 of 22 (all but `game-sheet`). The full
   table: `Docs/Game/Foundation.md`, "How it works", "The start dialog drawn grey".
 
+## Visual rects tightened to one plain fill (GM2 step 12, 2026-11-15)
+
+Found by GM2 step 12 (`Docs/Game/Hero.md`, "How it works", step 12): seven more sound effects made the game's
+`audio/effects` folder overflow the editor's entry list in `preview-effect`, so at 1.65 the list scrolls composited, its
+contents an overlap layer over its scrollbar, and the status line under it, whose top is at 1014.75 device px where the
+list ends, became an overlap layer of its own in the engine, not opaque, with grayscale text; Chromium keeps it in the
+page's layer with LCD text (its traces, main frame and iframe alike). 1913 pixels of text, 3489 in all (0.20 %, over the
+editor fixtures' limit). Ruled out first: the overlap test (`GeometryMapper::MightOverlapForCompositing`, ported as
+Chromium's), the paint order, composited scrolling (both sides composite it), `PendingLayer::Merge`'s scroll-range cases
+(the list's scroll is composited). Chromium's own experiments on the page (the layer probe, main frame, at 1.65): the line
+with a border alone, no background, no overflow clip, a 6 px border: no layer; with a background and the border: an
+overlap layer; a background with its top at a whole pixel: none; the line overlapping the list by 30 px: a layer.
+- **The rule (Chromium 152, saved in `~/.cache/stat-fick-build/reference-src/chromium-152-source/`):**
+  `graphics/drawing_display_item.h` 80–100, the `DrawingDisplayItem` constructor: when the record has exactly one op
+  (`ShouldTightenVisualRect`), the item's visual rect is `TightenVisualRect(visual_rect, record)` (`drawing_display_item.cc`
+  285–321): if the op is a paint op with flags that are a draw-area analysis candidate (`IsDrawAreaAnalysisCandidate`,
+  66–82: fill style, no looper, colour filter or image filter, blend src or src-over, and no shader), a DrawRect takes its
+  rect enclosed (`ToEnclosingRect`), a DrawIRect its rect, a DrawRRect its rrect's rect enclosed; anything else keeps the
+  visual rect it was given. Chunk bounds are the union of the items' visual rects and hit test rects
+  (`paint_chunker.cc` 90–110), pending layers start from them, and the overlap test reads them; and the item's
+  known-opaque rect is clipped by its visual rect (`CalculateRectKnownToBeOpaqueForRecord`'s `clip_rect`). So the status
+  line's border-top, one FillRect of the snapped side from 1015 (`box_border_painter.cc`: one visible side, solid, opaque,
+  on a square box takes the general path, `PaintSide` and `DrawSolidBoxSide`, one `FillRect`), doesn't reach the list's
+  container rect (to 1015, `ToPixelSnappedRect`, `paint_property_tree_builder.cc` 3461), while the box's ink overflow,
+  enclosed, starts at 1014.
+- **Which ops Blink records** (the engine's drawings in its terms, for the rule): a colour fill (`FillRect`, a background
+  colour alone, square or rounded) is one plain DrawRect or DrawRRect; a gradient or an image is one op with a shader; a
+  background's colour under its image is two; a border (`BoxBorderPainter`): with every visible side one colour and style,
+  solid, the fast path (`PaintBorderFastPath`, 1276–1331) draws four sides as one stroked rect or ring and fewer sides in a
+  translucent colour on a square box as one path (neither a plain fill); otherwise the general path (1470–1495) clips a
+  rounded box first and draws each side, a solid side without a miter as one FillRect; so a border is one plain fill only
+  when one side is visible, solid, on a square box, and not taken by the fast path (which takes a translucent one, unless
+  another side has a width but no visible colour or style: that makes the colours not uniform); outlines, shadows (a save,
+  a clip, a draw with a looper, a restore), text, paths and images are never one plain fill.
+- **The engine** (`UI/Paint/PaintTarget.cs`): each display item counts the ops Blink's record of it holds
+  (`Item.RecordSize`: every save, clip and restore the item records, `RecordOp`, and each drawing's own count, `Record`'s
+  `ops`) and keeps its first op's rect when that op is a plain fill (`Item.FirstPlainFill`, given by `FillRect`, `DrawBox`
+  and the scrolling contents' background); `DrawBox` with sides counts a background and a border as above
+  (`BorderOps`). An item of one op that is a plain fill takes that rect, enclosed, as its visual rect when it joins its
+  chunk (`AddItem`), and its known-opaque rect is that fill's clipped by it. Items whose visual rect was their drawings'
+  bounds already had it; the change is for items given a box's ink overflow (box decorations).
+- **Its fixture** (`Ui/VisualRectTighteningReferenceTests`, `Reference/visual-rect-fixtures.json`, captured as the main
+  frame by `make-scaled-paint-references.sh 1 1 visual-rect-fixtures.json` and `1.65 1 …`): the editor's case made
+  small, a top bar, a list that overflows and scrolls and a 25 px status line at the bottom of a 640 px page (at 1.65 the
+  line's top at 1014.75, at 1013.75 with a border on it), one fixture per case: the line with one plain fill (its border's
+  top side, a background, a rounded background: no layer of its own at either scale), with records that aren't one plain
+  fill (a background and a border, a background's colour under a gradient, a gradient, a translucent side: an overlap
+  layer at 1.65, LCD where its text is on its opaque fill), and two that the list really overlaps (6 px of it over the
+  line: with a border, an overlap layer at both scales, grayscale; with a background whose top, 1014.27 at 1.65, the
+  snapped fill rounds down where the box's whole pixels inside it start at 1015: an overlap layer from 1014 whose contents
+  are opaque, its fill clipped by its tightened visual rect). The layers (which, their kind, the status line's LCD verdict
+  and opaqueness) against Chromium's trace (the probe, 2026-11-15), the pictures at 12 levels / 0.2 %.
+- **What moved** (every one of the suite's 379 picture comparisons with Chromium, the full suite on the GPU with the rule
+  and without it, each comparison's pixels past its limit's levels logged; the layer lists' tests pass either way but for
+  the new fixture's): seven moved, all nearer, none farther; every limit unchanged.
+
+  | Comparison | Pixels past 12 levels, before → after | Of the picture |
+  | --- | --- | --- |
+  | `editor-preview-effect@1.65` | 3,489 → 1,576 | 0.200 % → 0.090 % (the step's case; the old screen, before the step's seven sounds, 1,568) |
+  | `editor-checks-problems@1.65` | 3,677 → 2,331 | 0.159 % → 0.101 % |
+  | `editor-references-list@1.65` | 3,350 → 1,910 | 0.145 % → 0.082 % |
+  | `editor-form-controls@1.65` | 6,548 → 5,733 | 0.134 % → 0.118 % |
+  | `editor-form-controls-end@1.65` | 7,458 → 6,643 | 0.153 % → 0.136 % |
+  | `editor-preview-model@1.65` | 2,202 → 235 | 0.126 % → 0.014 % |
+  | `ui-tight-border@1.65` (the new fixture) | 1,581 → 28 | 0.227 % → 0.004 % |
+
+  The editor's screens are the status line's: it is the known item "A status line's text grayscale at 1.65 beside a tall
+  scroller" (`Docs/Engine-Plan.md`, "Small tasks left from earlier milestones", found 2026-11-07), closed by this rule:
+  `checks-problems` gained the 1,346 pixels of its status line, `references-list` the 1,440 and `form-controls` the 815
+  the item measured. Not checked: the item beside it, the editor's dialog over a composited scroller (its scene isn't a
+  fixture). (The table was made on `8a761b5`; after the rebase onto GM2 step 3a, its figure mode's 84 tests pass with the
+  rule and without, their eight renders byte for byte the same: 3D views, not drawn by the painter.)
+- **Breaks** (`mutate.py`, `claude-work/gm2/step12/mutations-rule.json`): 9, 6 killed (no tightening; an item of several
+  ops tightened to its first; a shader not keeping a fill from being plain; a translucent side not taken by the fast path;
+  a background and a border counted as one op; the tightened item's opaqueness clipped by the box's whole pixels instead
+  of its visual rect). 3 accounted for: the side's own rect against the box's (the box's hit test rect, its pixel-snapped
+  border box, is in the same chunk, so the chunk's bounds can't differ; the drawable bounds only say whether it draws);
+  FillRect not a plain fill, and an item's saves, clips and restores not counted (in the suite no item given a box's ink
+  overflow holds a lone FillRect, and every item that records a save, clip or restore also draws two ops or more, so
+  neither can change a visual rect).
+
 ## Status (2026-10-25)
 
 **All 22 game screens composite exactly like Chromium** (`CompositingReferenceTests`: every screen
@@ -442,7 +523,8 @@ The old heuristics (ScanLayerEffects, grayscale scopes) and the `SV_OLD_HINT` sw
   transparency differs from the current chunk's, or joining the last chunk would be sparse
   (> 10000·dpr² + both areas) — `PaintLayerPainter::ShouldCreateSubsequence`.
 - **Display items:** a box decoration item's visual rect is the box's self ink overflow (border box +
-  outer shadows' reach of 1.5 × blur + spread, + outline), not its drawings; items that draw nothing
+  outer shadows' reach of 1.5 × blur + spread, + outline), not its drawings (unless its record is one plain fill of a
+  rect: "Visual rects tightened to one plain fill", 2026-11-15); items that draw nothing
   aren't recorded. Opaque analysis (`CalculateRectKnownToBeOpaqueForRecord`): ≤ 8 ops counting saves
   and clips, a restore or rounded clip ends it, so **any outer box shadow makes the item non-opaque**
   (Blink draws shadows first inside save/clip/restore); results are clipped to the visual rect and the

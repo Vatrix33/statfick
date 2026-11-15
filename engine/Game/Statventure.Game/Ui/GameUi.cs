@@ -176,8 +176,9 @@ public sealed class GameUi : IDisposable
 
     /// <summary>
     /// Plays the interface sound <paramref name="name"/> (<see cref="SoundNames"/>) through the effects bus: one per action,
-    /// the one of the action's sounds that says most (an event sound, else a window opening, else closing, else a switch,
-    /// else a press; Docs/Game/Foundation.md, "How it works", step 8).
+    /// the one of the action's sounds that says most (one of the hero's seven, else an event sound, else a window opening,
+    /// else closing, else a switch, else a press; Docs/Game/Foundation.md, "How it works", step 8; Docs/Game/Hero.md,
+    /// GM2-P17).
     /// </summary>
     public void Sound(string name) => _sounds.Ask(name);
 

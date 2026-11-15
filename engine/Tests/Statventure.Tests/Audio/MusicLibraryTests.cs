@@ -652,7 +652,7 @@ public class MusicLibraryTests
 
     /// <summary>
     /// The committed pack: the old game's 55 themes in MusicThemes.all()'s order, 34 instruments, 21 percussion voices,
-    /// 7 rooms (Q1, Q21), and since GM1 step 4 the game's 8 sound effects (GameSoundsTests).
+    /// 7 rooms (Q1, Q21), and the game's 15 sound effects (GM1 step 4's 8, GM2 step 12's 7; GameSoundsTests).
     /// </summary>
     [Fact]
     public void TheCommittedPackHoldsTheGamesMusic()
@@ -669,7 +669,7 @@ public class MusicLibraryTests
         Assert.Equal(GameSounds.Names.Order(StringComparer.Ordinal), library.Effects.Keys.Order(StringComparer.Ordinal));
         using var pack = PackFile.Open(TestMusic.Pack);
         Assert.All(pack.Entries, e => Assert.True(e.IsRecord, e.Path));
-        Assert.Equal(55 + 34 + 21 + 7 + 1 + 8, pack.Entries.Count);
+        Assert.Equal(55 + 34 + 21 + 7 + 1 + 15, pack.Entries.Count);
         Assert.Contains(pack.Entries, e => e.Path == "audio/themes/combat.alder-vale");
         Assert.Contains(pack.Entries, e => e.Path == "audio/instruments/low_spiccato");
     }

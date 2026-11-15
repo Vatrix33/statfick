@@ -5,20 +5,21 @@ using Statventure.Records;
 namespace Statventure.Tests.Audio;
 
 /// <summary>
-/// The game's eight interface sounds (GM1 step 4; Docs/Game/Foundation.md, "The sounds"): their sources in
-/// engine/Assets/Audio/effects/, the committed audio.pak holding exactly them, each registered under its name when the
-/// sound starts and over within 0.3 s (Q14). How each renders is its fixture against Chromium (AudioFixtures.GameSound).
+/// The game's sound effects, GM1 step 4's eight interface sounds (Docs/Game/Foundation.md, "The sounds") and GM2 step
+/// 12's seven for the hero (Docs/Game/Hero.md, "Sounds"): their sources in engine/Assets/Audio/effects/, the committed
+/// audio.pak holding exactly them, each registered under its name when the sound starts and over within 0.3 s (GM1's
+/// Q14, kept for GM2's). How each renders is its fixture against Chromium (AudioFixtures.GameSound).
 /// </summary>
 public class GameSoundsTests
 {
     public static TheoryData<string> Names => new(GameSounds.Names);
 
     /// <summary>
-    /// The sources are the eight, each a playable patch in its JSON form as the packer's extraction writes it, whose
+    /// The sources are the fifteen, each a playable patch in its JSON form as the packer's extraction writes it, whose
     /// layers all stop within 0.3 s (SoundEffects stops a layer 50 ms after its length).
     /// </summary>
     [Fact]
-    public void TheSourcesAreTheEightSounds()
+    public void TheSourcesAreTheGamesSounds()
     {
         Assert.Equal(GameSounds.Names.Select(n => n + ".json").Order(StringComparer.Ordinal),
             Directory.GetFiles(GameSounds.Folder).Select(Path.GetFileName).Order(StringComparer.Ordinal));
@@ -32,9 +33,9 @@ public class GameSoundsTests
         }
     }
 
-    /// <summary>The committed audio.pak's effects are the eight, each the record its source holds.</summary>
+    /// <summary>The committed audio.pak's effects are the fifteen, each the record its source holds.</summary>
     [Fact]
-    public void TheCommittedPackHoldsTheEightAsTheirSources()
+    public void TheCommittedPackHoldsTheSoundsAsTheirSources()
     {
         var effects = TestMusic.Library.Effects;
         Assert.Equal(GameSounds.Names.Order(StringComparer.Ordinal), effects.Keys.Order(StringComparer.Ordinal));

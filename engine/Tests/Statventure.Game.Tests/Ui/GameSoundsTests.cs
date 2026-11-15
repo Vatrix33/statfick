@@ -149,6 +149,94 @@ public class GameSoundsTests
         Assert.Equal([SoundNames.Opened], h.Sounds);
     }
 
+    public static TheoryData<string> HerosSounds => new(SoundNames.Hero);
+
+    /// <summary>
+    /// GM2's seven (Q38; GM2-P17, Docs/Game/Hero.md, "How it works", step 12) weigh 5, above GM1's event sounds' 4: each
+    /// is its action's one sound, whatever else the action asks for, before or after it.
+    /// </summary>
+    [Fact]
+    public void TheHerosSevenOutweighEverySoundOfGM1s()
+    {
+        Assert.Equal([5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 3, 2, 1, 0],
+            new[] { SoundNames.RaceChosen, SoundNames.MakerChoice, SoundNames.MakerRandom, SoundNames.PointSpent, SoundNames.LevelUp, SoundNames.Respec,
+                SoundNames.HeroConfirmed, SoundNames.Saved, SoundNames.Opened, SoundNames.Deleted, SoundNames.Refused, SoundNames.Open, SoundNames.Close,
+                SoundNames.Toggle, SoundNames.Press }.Select(GameSounds.Weight));
+        using var h = new GameUiHarness();
+        // "Begin as …": the hero confirmed while the sheet opens (game-opened) and windows open and close.
+        h.Ui.Sound(SoundNames.Press);
+        h.Ui.Sound(SoundNames.Opened);
+        h.Ui.Sound(SoundNames.Open);
+        h.Ui.Sound(SoundNames.HeroConfirmed);
+        h.Ui.Sound(SoundNames.Close);
+        h.Frame();
+        Assert.Equal([SoundNames.HeroConfirmed], h.Sounds);
+        h.Ui.Sound(SoundNames.HeroConfirmed);
+        h.Ui.Sound(SoundNames.Opened);
+        h.Ui.Sound(SoundNames.Close);
+        h.Frame();
+        Assert.Equal([SoundNames.HeroConfirmed, SoundNames.HeroConfirmed], h.Sounds);
+        // Among the seven, the first asked.
+        h.Sounds.Clear();
+        h.Ui.Sound(SoundNames.RaceChosen);
+        h.Ui.Sound(SoundNames.HeroConfirmed);
+        h.Frame();
+        Assert.Equal([SoundNames.RaceChosen], h.Sounds);
+    }
+
+    /// <summary>
+    /// A click on a button whose action asks for one of the seven (the sheet's "+", Level up, Respec; the carousel's
+    /// choice; the maker's choices, random and "Begin as …") sounds that one, not the press GM1's listener asks for first;
+    /// and when the click also opens or closes a window, still that one.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(HerosSounds))]
+    public void AClickWhoseActionAsksForOneOfTheSevenSoundsItAlone(string name)
+    {
+        using var h = new GameUiHarness();
+        var button = Button(h, "act");
+        button.AddEventListener("click", _ => h.Ui.Sound(name));
+        var opens = Button(h, "opens");
+        var layer = h.Layer("window");
+        opens.AddEventListener("click", _ =>
+        {
+            h.Ui.Windows.Open(layer);
+            h.Ui.Sound(name);
+        });
+        var closes = layer.Descendants().Single(e => e.HasClass("modal-close"));
+        closes.AddEventListener("click", _ =>
+        {
+            h.Ui.Sound(name);
+            h.Ui.Windows.Close(layer);
+        });
+        h.Frame();
+        h.Click(button);
+        Assert.Equal([name], h.Sounds);
+        h.Click(button);
+        h.Click(opens);
+        h.Click(closes);
+        Assert.Equal([name, name, name, name], h.Sounds);
+    }
+
+    /// <summary>The seven play from the committed audio.pak through the effects (GM2 step 12's patches): none is missing.</summary>
+    [Fact]
+    public void TheHerosSevenPlayFromTheCommittedPatches()
+    {
+        using var h = new GameUiHarness(sound: true);
+        var log = GameTesting.CaptureLog(() =>
+        {
+            foreach (var name in SoundNames.Hero)
+            {
+                h.Ui.Sound(name);
+                h.Frame();
+            }
+        });
+        Assert.Equal(SoundNames.Hero, h.Sounds);
+        Assert.Empty(log.Where(l => l.Contains("[Ui] sound")));
+        foreach (var name in SoundNames.Hero)
+            Assert.NotNull(h.Audio!.Effects.Find(name));
+    }
+
     [Fact]
     public void TheSoundsGoThroughTheEffectsAPatchMissingIsLoggedOnceAndNoMusicStarts()
     {

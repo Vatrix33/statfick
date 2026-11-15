@@ -102,6 +102,13 @@ Every one (a) as proposed ("The proposals as made"), with three notes:
   the per-frame cost measured on the GPU and on lavapipe and reported by the step that builds them. With Q32's dark panel
   the sheet's figure stands on no ground that takes a shadow ("Design", "The sheet").
 
+**GM2-P17, the seven sounds' wiring (the manager, 2026-11-15, on step 12's readings, which apply Q38 and GM1's one sound
+per action):** a preset picked in the maker plays `maker-choice`; `point-spent` is a free point spent, so Dev Mode's
+direct edits keep GM1's `ui-press` and a Dev Mode level up plays `level-up`; one `point-spent` per point however fast, the
+patch's four voices taking over the oldest, no rate limit, nothing once the "+" is disabled; a race chosen or changed
+(Dev Mode's too) plays `race-chosen`; nothing on hover. The seven weigh 5 in an action, above GM1's event sounds' 4
+(`Ui/GameSounds.cs`, made by step 12 with the manager's leave). Steps 7 and 8 wire them as "How it works", step 12, lists.
+
 ### Earlier decisions that bind GM2
 
 - **The look of the port** (User decisions 2026-10-16): characters, enemies and items are real-time 3D models made in
@@ -860,7 +867,10 @@ until GM9. The sheet follows the setting live.
 A small new set, approved by ear as GM1's were: a race chosen, a maker choice changed, the random roll, a point spent, a
 level up, a respec, the hero confirmed. Effect patches in `Assets/Audio/effects/`, packed into `audio.pak` by
 `make-music-data.sh` (GM1-P16), named in `SoundNames` (its test, `SoundNamesTests.cs` 11–26, extended), one sound per action
-(`GameSounds.cs` 28–66). The figure's own sounds (steps, swings) are GM5's.
+(`GameSounds.cs` 28–66). The figure's own sounds (steps, swings) are GM5's. **Made by step 12 (2026-11-15):** the user's
+picks by ear, `race-chosen` (the emblem stamped firmly), `maker-choice` (a pattern book's page flicked), `maker-random`
+(the pounce pot shaken), `point-spent` (an ink drop), `level-up` (gold leaf), `respec` (the wax tablet smoothed),
+`hero-confirmed` (the book clapped shut); which action plays which is GM2-P17 ("How it works", step 12).
 
 ### What GM2 makes, with counts
 
@@ -1536,6 +1546,14 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
       hero confirmed) in `Assets/Audio/effects/`, `audio.pak`, `SoundNames` and its test; the wiring once 7 and 8 are
       merged (or by them, named here).
     - Approval stop: each sound by ear (`play-sounds.sh --candidates`), then the fixtures.
+    - **Done (2026-11-15, the branch `gm2-step12`; "How it works", step 12):** three candidates a sound, each its own
+      paper-and-ink image, levelled as GM1's, rendered in Chromium and measured offline; the user's picks by ear "b c b a c
+      b a", no changes. The step's choices: the names (the manager's, (a) of the first report); `SoundNames.Hero` and `All`
+      (15); `point-spent` the only patch with a per-play range (±3 % pitch, a tonal sound heard many times in a row); the
+      quick runs (`@row`, `@held`) rendered as WAV files for the ear. With the manager's leave: the seven weigh 5 in
+      `Ui/GameSounds.cs` (GM2-P17), the tests that pin `audio.pak`'s content brought to it, and an engine rule the
+      editor's `preview-effect` met at 1.65 once its list overflowed: Chromium's `DrawingDisplayItem::TightenVisualRect`
+      (`Docs/Compositing-Port.md`), ported with a fixture of its own. The wiring is steps 7's and 8's (GM2-P17).
 13. **End to end, the packages and the Windows items** (the PC). After every other step.
     - Owns: `end-to-end.sh`'s new-hero flow (name, race, a preset, a random roll, confirm; a level up and a point spent,
       read from the log), the packages' listings with `data.pak` and `models.pak`, `check-packages.sh`'s rules for them,
@@ -1744,6 +1762,94 @@ laid over it as the engine lays it; the figure mode's clips in turn on one NLA l
 cage of their own on Xwayland; `--dump`'s index and scene file; the figure scene file written only on request; `--figure
 <look.json>` (a `look.hero`) left to step 5's figure builder (the mode takes a body `.glb` with garments and items now).
 
+### Step 12: the sounds (2026-11-15, the branch `gm2-step12`)
+
+The seven of Q38 as effect patches of the engine's existing nodes and rules (nothing changed in
+`Engine/Statventure/Audio/`), chosen by the user by ear as GM1's eight were (GM1 step 4 the model in every respect;
+`Docs/Audio.md`, "The game's sound effects", has their layers).
+- **Candidates first:** for each sound three (a, b, c), 21 in all, each its own image of the paper-and-ink world (a quill,
+  ink, wax, parchment, a book), so any pick of one letter per sound stays apart from the other six and from GM1's eight:
+  the emblem stamped crisply, firmly or embossed (`race-chosen`); a swatch card laid, a brush dab, a pattern book's page
+  flicked (`maker-choice`); pages riffled, the pounce pot shaken, lots drawn (`maker-random`); an ink drop, the nib tapped
+  on the inkwell's rim, a tally mark (`point-spent`); three ink drops rising, a ribbon tied, gold leaf burnished
+  (`level-up`, the reward, a little richer); the pen knife scraping, the wax tablet smoothed, the tallies rubbed out
+  (`respec`); the book clapped shut, the blotter rocked, the name signed (`hero-confirmed`). Every voice ends within 0.3 s
+  (GM1's rule, 71–292 ms). Each rendered in Chromium's OfflineAudioContext from the effect fixtures' own script at 48 kHz
+  and measured at the first start's effects 60 %: levelled as GM1's (the mean of the K- and A-weighted loudness over the
+  loudest 100 ms at −31.5 dB), the two heard many times in a row (`maker-choice`, `point-spent`) 3 dB under, as
+  `ui-press` is, so none is louder than GM1's at the same volume; peaks −14.5 to −24.4 dBFS (GM1's −14.2 to −20.5), RMS
+  over the loudest 100 ms −31.7 to −38.9 dBFS (GM1's −25.7 to −38.4). Told apart offline by a distance of octave bands and
+  envelope: every candidate at least 8.7 from any render of another sound, where GM1's own closest pair (`ui-open`,
+  `ui-toggle`) is 6.9. The two heard often were also rendered as quick runs (8 plays 120 ms apart, 12 plays 40 ms apart:
+  a key held) for the ear. The user listened with `play-sounds.sh --candidates` (the manager's wrapper
+  `claude-work/gm2/listen-sounds.sh`) and the renders' WAV files; the scratch tools, the candidates and the measurements
+  stay in `claude-work/gm2/step12/`.
+- **The user's picks (2026-11-15, by ear at the first start's volume, "b c b a c b a", no changes, the levels as heard),
+  each source a byte-identical copy of its candidate:**
+
+  | Sound | Pick | What it is | Patch level | Voice ends | At 60 %: peak, RMS-100, loudness |
+  | --- | --- | --- | --- | --- | --- |
+  | `race-chosen` | b | the race's emblem stamped firmly: a fuller, lower press held a moment, a duller peel | 0.9943 | 218 ms | −14.6, −33.4, −31.5 dB |
+  | `maker-choice` | c | a pattern book's page flicked by the thumb: a quick light flick and its snap | 0.4467 | 93 ms | −21.3, −38.9, −34.5 dB |
+  | `maker-random` | b | the pounce pot shaken over the page: three shakes of fine sand | 0.3163 | 250 ms | −17.7, −35.2, −31.5 dB |
+  | `point-spent` | a | an ink drop: one soft rising plip, its pitch ±3 % each play | 0.2065 | 96 ms | −21.3, −36.4, −34.5 dB |
+  | `level-up` | c | gold leaf laid on the initial: a rising swish and a soft shimmer (C, E, G) | 0.3199 | 292 ms | −24.4, −35.9, −31.5 dB |
+  | `respec` | b | the wax tablet smoothed: one long, soft, smooth stroke | 0.4651 | 250 ms | −19.7, −33.3, −31.5 dB |
+  | `hero-confirmed` | a | the hero's book clapped shut: the cover swinging, the clap, the air it pushes out | 0.7413 | 180 ms | −15.3, −34.3, −31.5 dB |
+
+- **Where they are:** `Assets/Audio/effects/<name>.json` (the record's exact JSON form); `audio.pak` made again by
+  `make-music-data.sh` under the shared lock inside the headless compositor (133 entries; reusing the old pack, reusing
+  again and fresh: the same bytes); `Game/Statventure.Game/Sounds/SoundNames` (`RaceChosen`, `MakerChoice`,
+  `MakerRandom`, `PointSpent`, `LevelUp`, `Respec`, `HeroConfirmed`; `Hero`, the seven in Q38's order; `All`, GM1's eight
+  then the seven). The audio system registers each under its name at the start; `play-sounds.sh` plays all fifteen with
+  no names.
+- **The wiring (GM2-P17, the manager's, 2026-11-15), for steps 7 and 8:** each action plays its one sound through
+  `parts.Ui.Sound(SoundNames.X)` when it is done (not when it is refused or does nothing), once per action, nothing on
+  hover. The seven weigh 5 in `GameSounds.Weight` (step 12), above GM1's event sounds' 4, so the action's sound is the one
+  heard over the `ui-press` or `ui-toggle` GM1's listener asks for first, and over a window opening or closing or
+  `game-opened` in the same action.
+
+  | Action | Sound | When |
+  | --- | --- | --- |
+  | A race chosen in the carousel (its choose button) | `race-chosen` | once, as the race is taken (the maker opens in the same action, unheard) |
+  | An enemy-only race chosen at once in Dev Mode; the race changed from the sheet's seal button in Dev Mode | `race-chosen` | once, as the race is set |
+  | Browsing the carousel (next, previous, the arrow keys) | GM1's: `ui-press` for its buttons, nothing for keys | — |
+  | One of the maker's choices changed (sex, build, face, hair, a colour …), by click or keys | `maker-choice` | once per change; nothing when the choice stays the same |
+  | A preset picked from the maker's list | `maker-choice` | once |
+  | The random button | `maker-random` | once per roll (not one per choice it changes) |
+  | "+" spending a free point | `point-spent` | once per point, however fast (clicks, or Enter held on the button): the patch's 4 voices take over the oldest; no rate limit; once no point is left the "+" is disabled and nothing plays |
+  | Dev Mode's direct edits ("+" with no free point, "−", the fields) | GM1's `ui-press` for the buttons | — |
+  | Level up (and Dev Mode's level up without EXP) | `level-up` | once |
+  | Respec | `respec` | once |
+  | "Begin as <race>" (the hero confirmed) | `hero-confirmed` | once; over `game-opened`, `ui-open` or `ui-close` should the sheet's opening ask for them |
+
+- **The engine rule the step met (with the manager's leave):** the new rows of the game's `audio/effects` folder made the
+  editor's `preview-effect` entry list overflow, so at 1.65 (composited scrolling) its status line, whose top is at 1014.75
+  device px where the list ends, became an overlap layer of its own in the engine with grayscale text, where Chromium keeps
+  it in the page's layer with LCD text: 3489 pixels (0.20 %) over the limit's 3484. The cause is Chromium's
+  `DrawingDisplayItem::TightenVisualRect`: a drawing item of one plain rect fill takes that rect as its visual rect (the
+  line's border-top, one FillRect from 1015), which the engine didn't have (the box's ink overflow from 1014 overlapped the
+  list's container rect to 1015). Ported in `UI/Paint/PaintTarget.cs` with a fixture of its own
+  (`Ui/VisualRectTighteningReferenceTests`); the rule and what moved: `Docs/Compositing-Port.md`, "Visual rects tightened
+  to one plain fill". `preview-effect` at 1.65 then differs from Chromium in 1576 pixels (the old screen 1568).
+- **Checks:** a fixture per sound against Chromium (`AudioFixtures.GameSound`, M8's rule; the renders the ones the user
+  heard: five sample for sample, `level-up` and `hero-confirmed` within Chromium's summing order, 5.6e-9 and 3.0e-8);
+  the engine's `GameSoundsTests` (the fifteen sources, each checked, in its JSON form, within 0.3 s; the pack holding
+  exactly them; each registered under its name and over within 0.3 s); the game's `SoundNamesTests` (the names, `Hero`,
+  `All`, the pack's patch for each) and `GameSoundsTests` (each name's weight; `hero-confirmed` over `game-opened`,
+  `ui-open` and `ui-close`; a click whose action asks for one of the seven sounding it alone, with a window opening or
+  closing too; the seven playing from the committed pack). Brought to the pack's new content (the manager's leave):
+  `MusicLibraryTests.TheCommittedPackHoldsTheGamesMusic` (8 → 15 effects), `AudioMarksTests.TheCommittedPackPasses` (126
+  → 133 entries), the editor fixture `preview-effect` (its markup and its two goldens captured again headless: seven rows
+  more and the list's scrollbar).
+- **Breaks** (`mutate.py`, lists in `claude-work/gm2/step12/`): the sound side, 14, all killed: a name changed, the
+  hero's list short of one, the seven weighing 4 (as GM1's events), one of them left out of the weight, a source and the
+  pack apart, a source not in its JSON form, a source's layer past 0.3 s, and each of the seven fixtures with the engine
+  playing that sound 1 % higher. The rule, 9 (`Docs/Compositing-Port.md`), 6 killed and 3 accounted for. The 0.3 s rule
+  also by hand on the pack (`check-time-rule.sh`: a source lengthened past it and the pack made from it, the sources'
+  check and the pack's play both fail; the pack then made again, its committed bytes). Nothing written to the player's
+  real folders.
+
 ## Status
 
 - **2026-11-15:** written on the user's go for GM2 (docs only, the branch `gm2-design` from `8c7d07d`), after the user's
@@ -1767,3 +1873,12 @@ cage of their own on Xwayland; `--dump`'s index and scene file; the figure scene
   mode with `play-figure.sh`; 4214 + 565 = 4779 tests (84 new) passing on the GPU and on lavapipe; mutations 125, 120
   killed, 5 accounted for ("How it works", step 3a). 3b, the look, is the manager's
   (the user chose "Ember, hearth" on 2026-11-15).
+- **2026-11-16, step 12 done (the branch `gm2-step12`; "How it works", step 12):** the seven sounds of Q38, approved by the
+  user's ear on 2026-11-15 ("b c b a c b a", no changes), in `Assets/Audio/effects/` and `audio.pak` (133 entries),
+  named in `SoundNames` (`Hero`, `All` 15), each a fixture against Chromium; their weight in an action (5) and the wiring
+  for steps 7 and 8 (GM2-P17). With the manager's leave, the engine rule the editor's `preview-effect` met at 1.65 once
+  its list overflowed (Chromium's `DrawingDisplayItem::TightenVisualRect`) ported with a fixture of its own; it moved
+  seven comparisons nearer to Chromium and none farther, and closed the known item "A status line's text grayscale at
+  1.65 beside a tall scroller". The full suite on the GPU and on lavapipe: 4265 + 576 = 4841 tests (`main`'s 4214 + 565
+  and 62 new), none held; mutations: the sound side 14 of 14 killed, the rule 9, 6 killed and 3 accounted for; the
+  0.3 s rule by hand on the source and the pack.

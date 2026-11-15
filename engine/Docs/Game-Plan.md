@@ -2308,3 +2308,8 @@ GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
   --check`, `look.py` with today's look as its default, `render.py`), `make-humanoid.sh`; the sandbox's figure mode
   (`play-figure.sh`), held to Blender's renders of the same scenes. 4214 + 565 = 4779 tests (84 new) on the GPU and on lavapipe
   (`Docs/Game/Hero.md`, "How it works", step 3a).
+- **2026-11-16, GM2 step 12 done (the sounds; the branch `gm2-step12`):** the seven sounds of Q38 chosen by the user's ear
+  ("b c b a c b a", 2026-11-15), in `audio.pak` and `SoundNames`, each a fixture against Chromium; the wiring for steps 7
+  and 8 written down (GM2-P17, `Docs/Game/Hero.md`, "How it works", step 12); and, with the manager's leave, an engine
+  rule the editor's screens met at 1.65 (Chromium's `DrawingDisplayItem::TightenVisualRect`, `Docs/Compositing-Port.md`).
+  4265 + 576 = 4841 tests on the GPU and on lavapipe.

@@ -8,10 +8,12 @@ namespace Statventure.Game.Ui;
 /// <summary>
 /// The interface sounds by name (GM1-11, Q13; Docs/Game/Foundation.md, "The sounds", Wiring), one per action: every sound
 /// asked for while the document handles one action (an input event's dispatch, the tasks and microtasks it runs, until
-/// the event loop's next task) is held, and when the action ends the one that says most is played: an event sound
-/// (<c>game-saved</c>, <c>game-opened</c>, <c>game-deleted</c>, <c>ui-refused</c>; the first asked of them), else a window
-/// opening, else one closing, else a switch changed, else a press. So a click that opens a window sounds only
-/// <c>ui-open</c>, Cancel only <c>ui-close</c>, a confirmed Delete only <c>game-deleted</c>. A new input event ends the
+/// the event loop's next task) is held, and when the action ends the one that says most is played: one of the hero's
+/// seven (GM2's, <see cref="SoundNames.Hero"/>; GM2-P17, Docs/Game/Hero.md, "How it works", step 12), else an event sound
+/// (<c>game-saved</c>, <c>game-opened</c>, <c>game-deleted</c>, <c>ui-refused</c>), else a window opening, else one
+/// closing, else a switch changed, else a press; of equal weight the first asked. So a click that opens a window sounds
+/// only <c>ui-open</c>, Cancel only <c>ui-close</c>, a confirmed Delete only <c>game-deleted</c>, a "+" spending a point
+/// only <c>point-spent</c>, "Begin as …" only <c>hero-confirmed</c>. A new input event ends the
 /// action before it. The sounds go through the effects bus at their patches' own level (dry); a name with no patch in
 /// the data is logged once and skipped. No music is ever started here (Q15).
 /// </summary>
@@ -27,6 +29,8 @@ sealed class GameSounds(UiDocument document, SoundEffects? effects)
     /// <summary>How much a sound says: the one of an action that says most is played.</summary>
     public static int Weight(string name) => name switch
     {
+        SoundNames.RaceChosen or SoundNames.MakerChoice or SoundNames.MakerRandom or SoundNames.PointSpent or SoundNames.LevelUp
+            or SoundNames.Respec or SoundNames.HeroConfirmed => 5,
         SoundNames.Saved or SoundNames.Opened or SoundNames.Deleted or SoundNames.Refused => 4,
         SoundNames.Open => 3,
         SoundNames.Close => 2,

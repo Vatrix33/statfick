@@ -167,9 +167,9 @@ internal static partial class AudioFixtures
     }
 
     /// <summary>
-    /// A game sound (GM1 step 4, named as the sound): Chromium plays its source's patch (engine/Assets/Audio/effects/)
-    /// once at volume 1; the engine plays the patch its audio system registered under that name from the committed
-    /// audio.pak, as the game plays it. 48 kHz, the PC's device rate, so its highs are in the render; 0.35 s, past the
+    /// A game sound (GM1 step 4's and GM2 step 12's, named as the sound): Chromium plays its source's patch
+    /// (engine/Assets/Audio/effects/) once at volume 1; the engine plays the patch its audio system registered under that
+    /// name from the committed audio.pak, as the game plays it. 48 kHz, the PC's device rate, so its highs are in the render; 0.35 s, past the
     /// 0.3 s each may last. Exact with up to two layers; three or more sum at the voice's gain in Chromium's changing
     /// order, so step 6's shuffled-sums rule.
     /// </summary>

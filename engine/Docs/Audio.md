@@ -766,6 +766,23 @@ above (nothing new in `Engine/Statventure/Audio/`), chosen by the user by ear fr
 
   Every voice ends within 0.3 s (63–283 ms), one sound per action, 4 voices a patch, no per-play ranges (a noise
   layer's start in the noise already differs on every play).
+- **GM2's seven** (GM2 step 12, 2026-11-15; `Docs/Game/Hero.md`, "Sounds" and "How it works", step 12; Q38): the hero's
+  actions, chosen by the user by ear from three candidates each ("b c b a c b a"), each its own paper-and-ink image, made
+  and judged as the eight were (levelled to the same mean of the K- and A-weighted loudness, −31.5 dB, the two heard many
+  times in a row 3 dB under as `ui-press`; peaks −14.6 to −24.4 dBFS):
+
+  | Sound | What it is | Layers | Patch level |
+  | --- | --- | --- | --- |
+  | `race-chosen` | the race's emblem stamped firmly | noise lowpass 1.1 kHz, 2/50; a press (bandpass 330 Hz Q 1.4), 3/80; a peel (bandpass 2→3 kHz Q 1.2) at 120 ms, 8/40, level 0.4 | 0.9943 |
+  | `maker-choice` | a pattern book's page flicked | noise bandpass 2.2→3.8 kHz Q 1, 8/35; a snap (bandpass 5 kHz Q 1.5) at 32 ms, 0.5/6, level 0.5 | 0.4467 |
+  | `maker-random` | the pounce pot shaken | three shakes (bandpass 5.5 kHz Q 0.6) at 0, 70, 140 ms, 8/35, 8/35, 10/50; a grain (bandpass 6.5 kHz Q 2, 0.5/4) in each | 0.3163 |
+  | `point-spent` | an ink drop | sine 620→1150 Hz over 25 ms, 1/45; a touch (bandpass 1.8 kHz), 0.5/5, level 0.2; pitch ×0.97–1.03 per play | 0.2065 |
+  | `level-up` | gold leaf burnished | noise bandpass 1.8→5 kHz over 120 ms Q 0.9, 50/120, level 0.8; sines 2093, 2637, 3136 Hz (C, E, G) at 50, 80, 110 ms, 12/120, levels 0.12, 0.1, 0.09 | 0.3199 |
+  | `respec` | the wax tablet smoothed | noise lowpass 1.4→0.7 kHz over 150 ms, 50/150; a body (bandpass 350 Hz), 50/120, level 0.5 | 0.4651 |
+  | `hero-confirmed` | the book clapped shut | a swing (bandpass 0.6→1.2 kHz Q 0.8), 40/50, level 0.4; the clap at 50 ms (lowpass 3 kHz, 0.5/20; bandpass 180 Hz, 1/70, level 1.4); the air (lowpass 500 Hz) at 60 ms, 10/60, level 0.6 | 0.7413 |
+
+  Every voice ends within 0.3 s (93–292 ms); `point-spent` is the only patch with a per-play range (a tonal sound heard
+  many times in a row). `audio.pak` holds 133 entries (the music's 118 and the fifteen).
 - **How they were made and judged** (offline, nothing heard by the session): each candidate rendered in Chromium's
   OfflineAudioContext from the effect fixtures' own script at 48 kHz and measured at the first start's effects volume
   (60 %, master 100 %): the peak, the envelope (5 and 10 ms frames), the spectrum (octave bands, the centroid) and the
@@ -786,7 +803,7 @@ above (nothing new in `Engine/Statventure/Audio/`), chosen by the user by ear fr
 - **How it is checked:** a fixture per sound against Chromium (`AudioFixtures.GameSound`, named as the sound; 48 kHz,
   0.35 s; Chromium plays the source's patch, the engine the patch its audio system registered from the committed
   `audio.pak` under that name; exact with up to two layers, step 6's shuffled-sums rule with three or more; the renders
-  `Golden/audio/<sound>.f32.gz`, the same as the renders the user heard); `GameSoundsTests`: the sources are the eight,
+  `Golden/audio/<sound>.f32.gz`, the same as the renders the user heard); `GameSoundsTests`: the sources are the fifteen (the eight before GM2 step 12),
   each checked, in its JSON form and ending within 0.3 s; the pack holds exactly them, each the record its source
   holds; each registers under its name and, played by it, sounds and is over (its last sample, its voice released)
   within 0.3 s. `play-sounds.sh`'s and `make-music-data.sh`'s rules are checked by runners of the step's own (the first

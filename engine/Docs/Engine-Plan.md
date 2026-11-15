@@ -462,6 +462,12 @@ what needs the user's machines):**
       `GeometryMapper::VisualRectForCompositingOverlap`: how it clips and snaps) against `Gfx.MightOverlapForCompositing`.
   - *Looked at on 2026-11-15 (Q34's layout units):* not that rule; it stays open. The layout units moved other parts of
     the screens nearer to Chromium (`Docs/Compositing-Port.md`, "Layout units").
+  - **Closed 2026-11-15 (GM2 step 12, the manager's leave):** Chromium's `DrawingDisplayItem::TightenVisualRect`: the
+    status line's border-top is one plain FillRect, so its item's visual rect is that rect from 1015, not the box's from
+    1014, and the line stays in the page's layer with LCD text (`Docs/Compositing-Port.md`, "Visual rects tightened to one
+    plain fill"). `checks-problems@1.65` 3,677 → 2,331 pixels past 12 levels, `references-list@1.65` 3,350 → 1,910,
+    `form-controls@1.65` 6,548 → 5,733, `form-controls-end@1.65` 7,458 → 6,643, `preview-model@1.65` 2,202 → 235. The
+    dialog item above may share the cause; its scene isn't a fixture, so it isn't checked and stays open.
 - A textarea's `line-height` (found 2026-11-08 by M11 step 11, Progress, "M11 step 11"; open, no go yet: the user decides
   when): the engine lays a textarea's lines out at the font's normal line height whatever the author's `line-height`.
   The mod info's description (`Tools/Editor/Saving/Saving.css`, Lato 13 px, `font: inherit` from a body of 24 px lines,
@@ -4257,6 +4263,38 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     (three equivalent, two that hidden windows and rigid items can't show); look.py's rules 19 breaks, all killed. Found: a worktree has no
     `env.local.sh`; Blender's glTF importer leaves an animated armature at its first clip a frame in; cage's Wayland
     windows lose 37 pixels to libdecor's title bar; a hidden window's second vsync present never returns under cage.
+  - **GM2 step 12, the sounds (2026-11-16, 4265 + 576 = 4841 tests, on its worker branch `gm2-step12`, on `3a238cc`):**
+    details in `Docs/Game/Hero.md`, "How it works", step 12, `Docs/Audio.md`, "The game's sound effects", and
+    `Docs/Compositing-Port.md`, "Visual rects tightened to one plain fill". **The sounds:** three candidates for each of Q38's
+    seven, each its own paper-and-ink image, levelled as GM1's eight (the mean of the K- and A-weighted loudness over the
+    loudest 100 ms at 60 %: −31.5 dB, the two heard often −34.5), every voice within 0.3 s, rendered in Chromium and
+    measured offline (peak, RMS, length; a band-and-envelope distance from every other sound); the user's picks by ear
+    (2026-11-15, "b c b a c b a", no changes): `race-chosen` the emblem stamped firmly, `maker-choice` a pattern book's
+    page flicked, `maker-random` the pounce pot shaken, `point-spent` an ink drop (±3 % pitch a play), `level-up` gold
+    leaf, `respec` the wax tablet smoothed, `hero-confirmed` the book clapped shut. **Made:** the sources in
+    `Assets/Audio/effects/`, `audio.pak` again by `make-music-data.sh` (133 entries; the same bytes reused or fresh),
+    `SoundNames` (the seven, `Hero`, `All` 15), a fixture per sound (five of the renders the user heard sample for sample,
+    two within Chromium's summing order); with the manager's leave the seven weigh 5 in `Ui/GameSounds.cs` (GM2-P17, the
+    wiring for steps 7 and 8 written in Hero.md), the tests that pin the pack's content brought to it (`MusicLibraryTests`,
+    `AudioMarksTests`, the editor's `preview-effect` markup and goldens). **The engine rule** (the manager's leave in
+    `UI/Paint/`): the seven new rows made `preview-effect`'s list overflow and composite at 1.65, and its status line
+    became an overlap layer with grayscale text in the engine (3,489 pixels past 12 levels, over the limit), where
+    Chromium keeps it in the page's layer: Chromium's `DrawingDisplayItem::TightenVisualRect` (an item whose record is one
+    plain fill of a rect or rounded rect takes that rect as its visual rect) ported in `PaintTarget.cs` (each item counts
+    Blink's ops and keeps a plain first fill; `DrawBox` counts a background and a border as `BoxBorderPainter` draws them),
+    with `Ui/VisualRectTighteningReferenceTests` (nine pages, cases on both sides, Chromium's layers from the probe and
+    its pictures at 1 and 1.65). **What moved** (the suite's 379 picture comparisons with the rule and without): seven, all
+    nearer, none farther, limits unchanged: `preview-effect@1.65` 3,489 → 1,576 pixels (the old screen 1,568),
+    `checks-problems@1.65` 3,677 → 2,331, `references-list@1.65` 3,350 → 1,910, `form-controls@1.65` 6,548 → 5,733,
+    `form-controls-end@1.65` 7,458 → 6,643, `preview-model@1.65` 2,202 → 235, the new `tight-border@1.65` 1,581 → 28; it
+    closes the known item "A status line's text grayscale at 1.65 beside a tall scroller" (Small tasks). **Breaks:**
+    `mutate.py`, the sound side 14 (the names, the hero's list, the weights, a source and the pack apart, a source's form,
+    the 0.3 s rule, each of the seven fixtures) all killed; the rule 9, 6 killed, 3 accounted for (the side's own rect
+    against the box's: the box's snapped hit test rect is in the same chunk, so its bounds can't differ; FillRect's
+    plainness and the non-drawing ops' count: no item in the suite holds a lone FillRect given a box's ink overflow, or a
+    save, clip or restore beside a single plain fill). The full suite passes on the GPU and on lavapipe inside a headless
+    compositor under the shared lock, none held; the player's real folders unchanged. Not checked: the sounds in the game
+    (steps 7 and 8 wire them), Windows, the cloud (Xvfb).
 
 ## Milestones
 
