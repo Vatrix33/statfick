@@ -2125,3 +2125,11 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   farther from Chromium save four renders by the summed difference alone (the slot list's buttons under a backdrop blur
   in three of step 10's screens, a shadow on the old map by 11 levels); four items left in the engine's small tasks
   (`Docs/Game/Foundation.md`, "How it works", "The engine task of Q34"; `Docs/Compositing-Port.md`, "Layout units").
+- **2026-11-15, the start dialog drawn grey (the branch `gm1-start-grey`, an engine defect step 11 found):** in the real
+  program the start screen's dialog was grey whenever Continue was greyed, and behind every window the blurred page had red
+  and blue swapped, while every screen passed against Chromium. The canvas copied a layer's backdrop (an opacity layer
+  keeping LCD text) and a backdrop blur's input by bytes from the window's B8G8R8A8 image into its R8G8B8A8 layers; the
+  tests drew into R8G8B8A8. Now the colours are copied (Skia's rule: the prior device drawn into the layer), the screen
+  comparisons draw into the window's format, and every game screen at 1 is drawn through a real window and must equal
+  the harness's picture (`Docs/Game/Foundation.md`, "How it works", "The start dialog drawn grey";
+  `Docs/Compositing-Port.md`, "The target's format"). No picture, fixture or sheet changed; nothing ticked.

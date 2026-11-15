@@ -4097,6 +4097,13 @@ eleven sheets).
 `#backup-status`, `.status-dot`), `#game-menu` (`.game-menu-item[data-command]`), `#about-modal` (`.about-content`). A
 first start's `--capture` draws the start screen (dark theme: the stone page, the dialog's ground).
 
+*Corrected (2026-11-15, the branch `gm1-start-grey`):* the program didn't draw the start screen as its fixtures and the
+approved captures show. With Continue greyed, its whole dialog came out grey (its ground (29, 28, 29) for the approved
+(37, 28, 22), the left-out line's gold light grey), and behind every window (About, the menu, the dialogs) the blurred
+page had red and blue swapped; the end-to-end numbers above (the dialog's dark ground over a fifth of the picture, the
+start screen alone 7.6 %) were measured on those pictures. The cause was the engine's (a layer's backdrop copied by
+bytes from the window's B8G8R8A8 image), not the step's screens: "The start dialog drawn grey" below.
+
 **What the parts lacked:** nothing; every member the screens use was there.
 
 **Tests** (the game's in `Tests/Statventure.Game.Tests/Screens/`, the engine's in `Tests/Statventure.Tests/Ui/`;
@@ -4216,6 +4223,113 @@ compares; the table is in the task's report, `claude-work/gm1/layout-scale/table
 - A text item 1/64 wider than Chromium's at 13 px Lato × 1.65 (the shaper's advances).
 - A `will-change: transform` box's text a device pixel from Chromium's at 1.65 in an iframe capture.
 - A themed select squeezed below its own height: its label a device pixel lower than Chromium's.
+
+### The start dialog drawn grey: the target's format (2026-11-15, the branch `gm1-start-grey`)
+
+**The defect** (found by step 11, checked by the manager on one picture): in the real program the start screen's whole
+dialog was grey whenever Continue was greyed (`disabled`, the old game's `opacity: .5`), at every window size, since step
+9; the greyed Continue itself kept its colours; with a character (nothing below opacity 1 in the dialog) it was brown as
+approved. The fixture `start-first-dark` passed against Chromium's brown golden all along.
+
+**The cause** (engine; `Docs/Compositing-Port.md`, "The target's format"). The program draws its document into the
+window's swapchain image, B8G8R8A8_UNORM (on this PC on the GPU and on lavapipe); the harness draws into an R8G8B8A8
+image of its own, the canvas's layer format. Continue's opacity layer keeps LCD text, so it starts from its backdrop
+(Skia's `kInitWithPrevious`): the canvas copied the pixels under it with `vkCmdCopyImage`, a byte copy, which from a BGRA
+image into an RGBA one trades red and blue. The layer spans the canvas clipped by the dialog, and is composited back at
+0.5 over the same pixels, so the dialog came out with R = B = (R + B) / 2: grey. A backdrop blur copied the same way, so
+behind every window's darkened ground the page had red and blue swapped. Ruled out on the way, each by a picture of its
+own drawn both ways (`claude-work/gm1/start-grey/probe/`): the canvas reused from frame to frame, the window's host and
+its painter's resources, the seven screens attached as the game attaches them; only drawing into a B8G8R8A8 image made
+the dialog grey, offscreen as in the window. Not the game's code: no screen, sheet or `StatFickGame` changed.
+
+**What the program does that the harness didn't:** it draws into its window's swapchain image (B8G8R8A8), through the
+window's `UiHost`, and its capture reads that image back; every comparison drew into R8G8B8A8, where a byte copy is
+exact. So every screen comparison passed while the program's picture was wrong.
+
+**The fix** (Chromium's rule: Skia makes a layer of its parent device's colour type and draws the prior device into it,
+`SkCanvas::internalSaveLayer`, `internalDrawDeviceWithFilter`): `CanvasRender.CopyColours` copies bytes between images of
+one format, as before, and blits between others (`CommandList.BlitImage`, `vkCmdBlitImage` one to one, nearest, each
+texel's colour converted: exact between 8-bit UNORM formats); a layer's backdrop and a backdrop blur's input go through
+it. Every harness render is unchanged (its images are of one format).
+
+**The gap closed** (the class: the harness and the program can't draw a screen differently without a test failing):
+- *The comparisons draw what the program draws:* `GameScreenTests.Render` (every game-screen fixture at 1 and 1.65), the
+  editor's `EditorScreenTests.Render`, and the engine's own screens' (`EngineScreensPaintReferenceTests.Render`: the
+  splash, the credits, and through it the crash window's) draw into `Swapchain.PreferredFormat` (B8G8R8A8, the swapchain's
+  first choice, now named). Their pictures are byte for byte those of `main`'s R8G8B8A8 renders (190 of 190 compared), so
+  no comparison moved. At no cost in run time.
+- *The program's own path:* `Ui/ProgramPathScreenTests` (the game's): every game-screen fixture at 1, its document drawn
+  by a real application in a hidden window of its size, through the window's `UiHost` (as `GameUi.Load` makes the
+  game's) into the swapchain image and saved by the application's capture (`--capture`'s path), equal pixel for pixel to
+  `GameScreenTests.Render`. 62 windows; about 24 s on the GPU and 34 s on lavapipe, in the "Game log"
+  collection (alone: GLFW is one per process, and a hidden window presents one frame). At 1.65 a window can't be had under
+  the test compositor (a fractional output scale kills GLFW windows); there the comparisons' own format is the check.
+- *The engine's:* `Ui/ProgramPathTests` (the smallest documents that showed it: a coloured box with a greyed button holding
+  text, and a window's blurred ground over a coloured page, each drawn by a real application in a hidden window against
+  the R8G8B8A8 harness, pixel for pixel; before the fix the box's ground (160, 90, 30) came out (95, 90, 95)) and
+  `Ui/TargetFormatTests` (the canvas alone: a layer from its backdrop over the whole canvas and one of bounds of its own
+  across two grounds, and a backdrop blur, each in R8G8B8A8 and B8G8R8A8, the same pixels).
+
+**What else it changed in the programs** (every game-screen fixture, the editor's and the old game's states drawn into
+both formats, `main` at `b357aef`; the program's picture before → now, the most changed pixel; now each equals the
+harness's picture; at 1, 1.65 alike):
+
+| Screen | Pixels changed | Most changed pixel, before → now |
+| --- | --- | --- |
+| The start screen with Continue greyed (`start-first`, `-left-out-*`, `-status`; both themes) | 204,924–242,605 (the whole dialog) | the line's gold (134, 139, 134) → (211, 139, 58); the ground (29, 27, 29) → (36, 27, 23) |
+| `start-continue-*`, the page (`page-*`, `page-status-light`), the tooltips (`control-tooltip-*`) | none | — |
+| New character's prompt over the start screen | 440,137 (dark), 440,339 (light) | (30, 29, 27) → (40, 29, 18); light (78, 88, 90) → (96, 88, 74) |
+| The confirm and prompt dialogs | 320,367–390,744 | dark (10, 11, 13) → (17, 11, 7); light (66, 80, 87) → (90, 80, 62) |
+| A confirm over a window | 710,529 | (35, 56, 69) → (72, 56, 31) |
+| The menu over the start screen, over the page | 295,210–326,110 | dark (17, 23, 28) → (31, 23, 15); light (46, 56, 62) → (65, 56, 42) |
+| About | 39,211 (dark), 45,691 (light) | (7, 7, 9) → (10, 7, 4); light (35, 43, 46) → (49, 43, 33) |
+| The settings screen (four), its select list | 433,810–480,025 | dark (7, 7, 9) → (11, 7, 4); light (50, 61, 66) → (70, 61, 48) |
+| The slot list (empty, several, delete) | 486,820–724,044 | delete (17, 18, 41) → (44, 18, 13); light (44, 51, 70) → (75, 51, 41) |
+| The damaged-save question | 682,577–709,644 | (17, 18, 41) → (44, 18, 13); light (44, 51, 70) → (75, 51, 41) |
+| The picker (load, save, recent, long) | 321,898 (dark), 327,381 (light) | (8, 9, 11) → (13, 9, 5); light (44, 53, 58) → (61, 53, 42) |
+| The picker's replace question | 710,893 (dark), 724,017 (light) | (16, 19, 46) → (50, 19, 13) |
+| The editor (48 renders) | none | — |
+| The sandbox's page and its About (real runs) | none (32 pixels of its glow animation's frame time, a level each) | — |
+| The old game's states (shown by no program; drawn as a window would) | 20 of 22 (all but `game-sheet`) | `game-shop` (145, 181, 145) → (232, 181, 58); `game-map` (131, 136, 126) → (213, 136, 44); `game-combat` (192, 165, 119) → (119, 165, 192) (fully swapped: under a backdrop blur, or in a layer of opacity 1 from its backdrop); `game-settings` (25, 40, 49) → (52, 40, 23) |
+
+The windows' darkened grounds differ by 5–7 levels in the dark theme and 14–35 in the light; the start screens by up to 79.
+The splash, the credits and the crash window have nothing below opacity 1 and no backdrop filter (their comparisons in
+B8G8R8A8 equal `main`'s R8G8B8A8 renders).
+
+**The three starts again** (step 11's probe with this build, headless, the window 800 × 606 and 2400 × 2363, scratch
+per-user folders; the dialog's ground and header the commonest colour of their rows, the left-out line its brightest
+glyph pixels'; pictures in `claude-work/gm1/start-grey/probe/pictures/`):
+
+| Start | Ground | Header | Left-out line | Continue |
+| --- | --- | --- | --- | --- |
+| No character, `main` → now | (29, 27, 29) → (36, 27, 23) | (36, 33, 36) → (48, 33, 24) | — | (35, 26, 20) both |
+| A character, `main` → now | (36, 27, 23) both | (48, 33, 24) both | — | (34, 25, 19) both |
+| No character, a mod left out, `main` → now | (29, 27, 29) → (36, 27, 23) | (36, 33, 36) → (48, 33, 24) | (178, 193, 178) → (226, 193, 130) | (35, 26, 20) both |
+| The goldens (`start-first-dark`, `-continue-dark`, `-left-out-one-dark` at 1) | (35, 27, 22) | (48, 34, 23) | (226, 193, 130) | (35, 27, 20), (34, 25, 19) |
+
+The same on lavapipe (the ground (30, 27, 29) → (36, 27, 23), the line (178, 193, 178) → (226, 193, 130)) and at
+2400 × 2363.
+
+**Tests and results.** 4 new in the engine's project (`ProgramPathTests` 2, `TargetFormatTests` 2: 4123 → 4127) and 62
+in the game's (`ProgramPathScreenTests`: 489 → 551); the suite 4612 → 4678. Before the fix the four engine tests failed (the
+dialog's ground (95, 90, 95), the layer's and the blur's grounds swapped). The full suite passes on the GPU (the engine's
+tests 2 min 34 s, the game's 1 min 31 s) and on lavapipe (3 min 12 s and 1 min 55 s), inside a headless compositor under
+the shared lock, none skipped. Three lavapipe runs before that one failed only on the two known flaky tests, under the
+flaky-test task's `stress-ng` load beside the user's game: `SlotsScreenTests.WithoutABackupThatReadsStartNewIsTheAction
+AndKeepsTheFilesName` (runs 1, 2 and 3) and `SingleInstanceTests.TheSameFolderReachedThroughALinkIsTheSame` (runs 2
+and 3), both early in the parallel phase, each passing alone (3 of 3); left to `gm1-flaky-tests`, not changed.
+`end-to-end.sh --publish` 157 of 157 on the GPU (106 s) and on lavapipe (212 s), step 9's credits expectation (About's
+window over the start screen) among them. Mutations (`claude-work/gm1/start-grey/mutations.json`): 13 on the final tree,
+10 killed (the byte copy kept for every format, through each program-path test, the canvas tests and the game's
+comparisons and windows (68 of 188 failing); a layer's backdrop alone; a backdrop blur's input alone; the blit's source
+offset; its source region stretched a pixel; its destination region a row short; the window's preferred format), 3 that
+can't differ: the blit's destination offset dropped (the only copies between formats come from the root target, where a
+layer's destination offset is always 0), the blit filtering linearly (one to one, every sample at a texel's centre), and
+the game's comparisons drawn in R8G8B8A8 again (equal pictures while the canvas is right; shown by hand together with the
+byte copy: `GameScreenTests` pass 126 of 126 as on `main`, `ProgramPathScreenTests` fail 55 of 62, every fixture at 1 that
+the defect changed). The first round's one more survivor, the stretched source region (two flat grounds hide a pixel's
+stretch), was closed by a line a pixel wide in both canvas tests. The player's real folders unchanged (the game folder and
+the Documents folder's top level, before the first run and after the last).
 
 ## Status
 
@@ -4393,6 +4507,19 @@ configurations, the paint at 1 and 1.65. 97 renders changed, 93 nearer Chromium,
 alone (three under a backdrop blur, one shadow by 11 levels); every layout reference that changed nearer. The full suite
 passes on the GPU and on lavapipe: 4123 + 489 = 4612 tests, 0 held, none skipped; mutations: 38, 36 killed, 2 that can't differ; the player's real folders unchanged. Left: four items
 in `Docs/Engine-Plan.md`'s small tasks. Not checked: Windows.
+
+**The start dialog drawn grey fixed (2026-11-15, the branch `gm1-start-grey`; "How it works", "The start dialog drawn
+grey"):** an engine defect step 11 found. The program drew the start dialog grey whenever Continue was greyed, and every
+window's blurred ground with red and blue swapped, since step 9: the canvas copied a layer's backdrop and a backdrop
+blur's input by bytes from the window's B8G8R8A8 image into its R8G8B8A8 layers, and every test drew into R8G8B8A8. Now the
+colours are copied (Skia's rule), the screen comparisons draw into the window's format, and every game-screen fixture at
+1 is drawn through a real window and must equal the harness's picture (`ProgramPathScreenTests`). The three starts of
+step 11's probe again: the ground (36, 27, 23) as the golden's (35, 27, 22), the left-out line gold (226, 193, 130), on
+the GPU and on lavapipe. No picture, fixture or sheet changed, no comparison moved. The full suite passes on the GPU and on lavapipe:
+4127 + 551 = 4678 tests (`main`'s 4123 + 489, 4 + 62 new), none skipped (three lavapipe runs before had the two known flaky
+tests fail under the flaky task's load; left to `gm1-flaky-tests`); `end-to-end.sh --publish` 157 of 157 on both;
+mutations 13, 10 killed, 3 that can't differ; the player's real folders unchanged. Not checked: Windows; the cloud
+(Xvfb).
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,

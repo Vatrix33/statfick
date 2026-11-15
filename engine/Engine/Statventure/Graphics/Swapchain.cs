@@ -57,11 +57,18 @@ public sealed unsafe class Swapchain : IDisposable
         ChooseFormat();
     }
 
+    /// <summary>
+    /// The format a window's images have where the surface offers it (on the reference PC, on the GPU and on lavapipe):
+    /// what a program draws its documents into. The tests' screen comparisons draw into it too (Docs/Compositing-Port.md,
+    /// "The target's format"), so a rule that holds in one format and not another can't pass there and fail in a window.
+    /// </summary>
+    public const VkFormat PreferredFormat = VkFormat.B8G8R8A8UNorm;
+
     void ChooseFormat()
     {
         var formats = new VkSurfaceFormatKHR[_device.PhysicalDevice.GetSurfaceFormatsKHR_Count(_surface)];
         _device.PhysicalDevice.GetSurfaceFormatsKHR_Write(_surface, formats);
-        var chosen = formats.FirstOrDefault(f => f.Format == VkFormat.B8G8R8A8UNorm && f.ColorSpace == VkColorSpaceKHR.SRGBNonlinearKHR,
+        var chosen = formats.FirstOrDefault(f => f.Format == PreferredFormat && f.ColorSpace == VkColorSpaceKHR.SRGBNonlinearKHR,
             formats.FirstOrDefault(f => f.Format == VkFormat.R8G8B8A8UNorm, formats[0]));
         Format = chosen.Format;
         ColorSpace = chosen.ColorSpace;

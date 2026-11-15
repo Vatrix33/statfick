@@ -107,7 +107,10 @@ public class EngineScreensPaintReferenceTests(GpuFixture gpu)
         return (document, owner);
     }
 
-    /// <summary>A document painted, its images read from its own data (PNG) as UiHost reads them.</summary>
+    /// <summary>
+    /// A document painted, its images read from its own data (PNG) as UiHost reads them, into an image of the format a
+    /// program's window draws into (<see cref="Swapchain.PreferredFormat"/>; GM1's start dialog drawn grey, 2026-11-15).
+    /// </summary>
     internal static RgbaImage Render(GpuDevice device, UiDocument document, int width, int height)
     {
         var images = new Dictionary<string, CanvasImage?>();
@@ -121,7 +124,7 @@ public class EngineScreensPaintReferenceTests(GpuFixture gpu)
         {
             using var painter = new UiPainter(document) { ImageTexture = Image };
             using var canvas = new CanvasRenderer(device);
-            using var target = GpuImage.CreateRenderTarget(device, width, height);
+            using var target = GpuImage.CreateRenderTarget(device, width, height, Swapchain.PreferredFormat);
             var frame = device.BeginFrame();
             canvas.Begin(width, height);
             painter.Paint(canvas);

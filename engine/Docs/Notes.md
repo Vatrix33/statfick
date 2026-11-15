@@ -462,6 +462,20 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   the box's offsets finds one; a case added above can move it out); `make-scaled-paint-references.sh` writes every fixture's PNG at every configuration (delete the ones
   no test compares); a pixel comparison of a blurred region moves with any 1/64 shift under it (judge the layout by its
   boxes, the paint by the same content unblurred).
+- 2026-11-15 (the PC, the grey start dialog's task on the branch `gm1-start-grey`, 4127 + 551 = 4678 tests on the GPU and lavapipe):
+  **a screen comparison in the harness didn't prove the program's picture.** The program drew the start dialog grey
+  whenever Continue was greyed (and every window's blurred ground with red and blue swapped) while all 124 game-screen
+  comparisons passed: the program draws into its window's swapchain image (B8G8R8A8), every test drew into R8G8B8A8, and
+  the canvas copied a layer's backdrop and a backdrop blur's input with `vkCmdCopyImage`, a byte copy, exact only between
+  images of one format (`Docs/Compositing-Port.md`, "The target's format"; `Docs/Game/Foundation.md`, "How it works",
+  "The start dialog drawn grey"). Facts: R = B = (R + B) / 2 over a region is a layer of opacity 0.5 holding its backdrop
+  with red and blue swapped (it looks like a grayscale filter; check the average before the luminance); Skia makes a
+  layer of its parent's colour type and draws the prior device into it. Gotchas: to find what the program does that the
+  harness doesn't, draw the fixture's document each way the program differs (its canvas reused, its window's host, the
+  real screens attached, the target's format) and keep the one that turns the picture: one probe each, offscreen first
+  (`claude-work/gm1/start-grey/probe/`); a test of the program's own path is an `Application` in a hidden window that
+  captures its first frame and quits in that update (a hidden window presents one frame), its document on a `UiHost`;
+  a 1-px stretch of a copy shows only on detail a pixel wide (two flat grounds hide it).
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

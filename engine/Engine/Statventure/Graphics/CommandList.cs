@@ -258,6 +258,26 @@ public sealed unsafe class CommandList
             }]);
     }
 
+    /// <summary>
+    /// Copies a pixel region between images whose formats may differ (a B8G8R8A8 swapchain image into an R8G8B8A8 one):
+    /// each texel's colour is converted to the destination's format, where <see cref="CopyImage"/> copies the bytes. One to
+    /// one with the nearest texel (vkCmdBlitImage), so between 8-bit UNORM formats every channel arrives exactly. Source
+    /// in TransferSrcOptimal, destination in TransferDstOptimal.
+    /// </summary>
+    public void BlitImage(GpuImage source, GpuImage destination, int sourceX, int sourceY, int width, int height, int destinationX = 0, int destinationY = 0)
+    {
+        var blit = new VkImageBlit
+        {
+            SrcSubresource = new VkImageSubresourceLayers { AspectMask = source.Aspect, LayerCount = 1 },
+            DstSubresource = new VkImageSubresourceLayers { AspectMask = destination.Aspect, LayerCount = 1 },
+        };
+        blit.SrcOffsets[0] = new VkOffset3D { X = sourceX, Y = sourceY };
+        blit.SrcOffsets[1] = new VkOffset3D { X = sourceX + width, Y = sourceY + height, Z = 1 };
+        blit.DstOffsets[0] = new VkOffset3D { X = destinationX, Y = destinationY };
+        blit.DstOffsets[1] = new VkOffset3D { X = destinationX + width, Y = destinationY + height, Z = 1 };
+        Buffer.BlitImage(source.Handle, VkImageLayout.TransferSrcOptimal, destination.Handle, VkImageLayout.TransferDstOptimal, [blit], VkFilter.Nearest);
+    }
+
     /// <summary>Fills mip levels 1.. from level 0 by halving blits; the image must be in TransferDstOptimal, and ends there.</summary>
     public void GenerateMipmaps(GpuImage image)
     {

@@ -9,7 +9,8 @@ namespace Statventure.Tests.Editor;
 /// <summary>
 /// The editor's screens look as Chromium 152 shows the same markup and stylesheets (M11-20, P36): every
 /// <see cref="EditorFixture"/> at device scales 1 and 1.65, at the paint fixtures' limits (12 levels, 0.2 % of
-/// the pixels), against <c>Golden/editor-&lt;name&gt;@&lt;scale&gt;.png</c> (Tools/Scripts/make-editor-references.sh).
+/// the pixels), against <c>Golden/editor-&lt;name&gt;@&lt;scale&gt;.png</c> (Tools/Scripts/make-editor-references.sh); drawn
+/// into the editor's window format (<see cref="Render"/>).
 /// </summary>
 [Collection("GPU")]
 public class EditorScreenTests(GpuFixture gpu)
@@ -50,12 +51,16 @@ public class EditorScreenTests(GpuFixture gpu)
         Golden.Match($"editor-{name}@{EditorFixtures.ScaleName(scale)}", Render(gpu.Device, editor, width, height), tolerance: 12, maxDifferentRatio: 0.002);
     }
 
-    /// <summary>The harness's document drawn offscreen at <paramref name="width"/> × <paramref name="height"/> device pixels (also the end-to-end flow's About picture, M12 step 8).</summary>
+    /// <summary>
+    /// The harness's document drawn offscreen at <paramref name="width"/> × <paramref name="height"/> device pixels (also the
+    /// end-to-end flow's About picture, M12 step 8), into an image of the format the editor's window draws into
+    /// (<see cref="Swapchain.PreferredFormat"/>, as the game's screens: GM1's start dialog drawn grey, 2026-11-15).
+    /// </summary>
     internal static RgbaImage Render(GpuDevice device, EditorHarness editor, int width, int height)
     {
         using var painter = new UiPainter(editor.Document);
         using var canvas = new CanvasRenderer(device);
-        using var target = GpuImage.CreateRenderTarget(device, width, height);
+        using var target = GpuImage.CreateRenderTarget(device, width, height, Swapchain.PreferredFormat);
         var frame = device.BeginFrame();
         canvas.Begin(width, height);
         painter.Paint(canvas);

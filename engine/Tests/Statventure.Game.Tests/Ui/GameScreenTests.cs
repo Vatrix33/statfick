@@ -12,7 +12,7 @@ namespace Statventure.Game.Tests;
 /// The game's screens look as Chromium 152 shows the same markup and stylesheets (GM1-P17): every
 /// <see cref="GameScreenFixture"/> at device scales 1 and 1.65, at the paint fixtures' limits (12 levels, 0.2 % of the
 /// pixels), against <c>Golden/game-screen-&lt;name&gt;@&lt;scale&gt;.png</c> (Tools/Scripts/make-game-screen-references.sh),
-/// the icons' boxes masked in both.
+/// the icons' boxes masked in both; drawn into the program's window format (<see cref="Render"/>).
 /// </summary>
 [Collection("GPU")]
 public class GameScreenTests(GpuFixture gpu)
@@ -79,12 +79,17 @@ public class GameScreenTests(GpuFixture gpu)
                     Array.Copy(from.Pixels, (y * into.Width + x) * 4, into.Pixels, (y * into.Width + x) * 4, 4);
     }
 
-    /// <summary>The harness's document drawn offscreen at <paramref name="width"/> × <paramref name="height"/> device pixels.</summary>
+    /// <summary>
+    /// The harness's document drawn offscreen at <paramref name="width"/> × <paramref name="height"/> device pixels, into an
+    /// image of the format the program's window draws into (<see cref="Swapchain.PreferredFormat"/>; the start dialog drawn
+    /// grey in the program while its fixture, drawn in R8G8B8A8, passed: 2026-11-15). <c>ProgramPathScreenTests</c> checks
+    /// that a window's frame is this picture.
+    /// </summary>
     internal static RgbaImage Render(GpuDevice device, GameUiHarness harness, int width, int height)
     {
         using var painter = new UiPainter(harness.Document);
         using var canvas = new CanvasRenderer(device);
-        using var target = GpuImage.CreateRenderTarget(device, width, height);
+        using var target = GpuImage.CreateRenderTarget(device, width, height, Swapchain.PreferredFormat);
         var frame = device.BeginFrame();
         canvas.Begin(width, height);
         painter.Paint(canvas);

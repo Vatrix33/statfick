@@ -67,7 +67,8 @@ become Overlap layers; scrollbars are their own layers (RasterInducingScroll is 
   aligns), !contents_opaque_for_text.
 - Save layers in a layer's display list: SaveLayerAlpha keeps LCD (kInitWithPrevious) unless the
   list has a SaveLayerOp (filter, blend mode); isolation groups (opacity 1) around blending
-  descendants.
+  descendants. A kInitWithPrevious layer starts with the backdrop's colours whatever the target's pixel format (Skia
+  draws the prior device into it; "The target's format", 2026-11-15).
 - Which verdict a drawing gets (2026-11-06, Engine-Plan.md Progress, "Text first in a paint chunk"): cc rasters a
   layer's tiles with or without LCD text as a whole (`TileManager`: `playback_settings.use_lcd_text =
   tile->can_use_lcd_text()`; `RasterBufferProvider`: an unknown pixel geometry turns LCD off), so every display item
@@ -334,6 +335,54 @@ the same (148.4937 against 148.5).
   - A themed select squeezed below its own height (its inner block and padding taller than its content box) has its
     label, and its baseline in a line, a device pixel lower than Chromium's: the clamped inner block with its padding
     above puts the line a pixel lower than Chromium does.
+
+## The target's format (2026-11-15, the branch `gm1-start-grey`)
+
+**What a layer reads from its target is the target's colours, whatever its pixel format.** Found by GM1 step 11: in the
+real program the start screen's whole dialog was drawn grey whenever Continue was greyed, while its fixture passed
+against Chromium.
+- **Where the canvas reads its target.** A layer that starts from its backdrop (`LayerOptions.StartsFromBackdrop`: an
+  opacity, filter or blend layer whose effect holds LCD text, cc's `SaveLayerAlpha` with `kInitWithPrevious |
+  kPreserveLCDText`) begins as a copy of the pixels under it (`CanvasRender.CopyBackdrop`), and a backdrop blur copies what
+  is under it before blurring (`BlurBackdrop`). Both copied with `vkCmdCopyImage`, which copies bytes.
+- **The program's target isn't the tests'.** A program draws into its window's swapchain image, B8G8R8A8_UNORM where the
+  surface offers it (`Swapchain.PreferredFormat`, the first choice of `ChooseFormat`; so on the reference PC, on the GPU
+  and on lavapipe). The canvas's layers are R8G8B8A8_UNORM (`LayerFormat`), and every test drew into R8G8B8A8 images. From
+  a BGRA target into an RGBA layer a byte copy trades red and blue.
+- **What it did.** A layer from its backdrop is composited back over the same pixels at its opacity, so where it draws
+  nothing the result was opacity × the swapped backdrop + (1 − opacity) × the backdrop. The greyed Continue's layer
+  (`opacity: .5`, LCD text kept) spans the canvas, clipped by the dialog's overflow, so the whole dialog came out with
+  R = B = (R + B) / 2, which looks grey: its ground (37, 28, 22) → (29, 28, 29), the left-out line's gold (226, 193, 130) →
+  (178, 193, 178); Continue itself, drawn in the layer, kept its colours. A layer of opacity 1 from its backdrop comes
+  out fully swapped, and so did every backdrop blur: behind each game window's darkened ground the page had red and blue
+  swapped (the light theme's parchment (70, 61, 48) as (50, 61, 66); the old game's combat screen, were it in a window,
+  (192, 165, 119) as (119, 165, 192)).
+- **Chromium.** Skia makes a layer of its parent device's colour type (`SkCanvas::internalSaveLayer`,
+  `image_filter_color_type`: RGBA_8888 and BGRA_8888 are kept) and, for `kInitWithPrevious` and a backdrop filter,
+  *draws* the prior device into the new one (`internalDrawDeviceWithFilter(priorDevice, newDevice, …)`), so the layer
+  holds the backdrop's colours in any format.
+- **The engine now** (`CanvasRender.CopyColours`): images of the same format copy their bytes as before (every harness's
+  render is unchanged), others are blitted (`CommandList.BlitImage`: `vkCmdBlitImage` one to one with the nearest texel,
+  each texel's colour converted; exact between 8-bit UNORM formats; B8G8R8A8 and R8G8B8A8 UNORM have `BLIT_SRC` and
+  `BLIT_DST` in Vulkan's required format support). A swapchain image is copied from only when the surface allows it as a
+  transfer source (`Swapchain` asks for that use only where supported); the canvas doesn't check it (unchanged; the
+  PC's surfaces offer it; Engine-Plan.md, "Small tasks left from earlier milestones").
+- **Why every comparison passed:** a byte copy between images of one format is exact, and every test drew into R8G8B8A8.
+  No test drew a document the way a program does: into a swapchain image, through the window's host, captured by the
+  application.
+- **The gap closed.** The comparisons with Chromium of the documents a program shows in its window (the game's screens,
+  the editor's screens, the splash, the credits and the crash window) now draw into `Swapchain.PreferredFormat`; and
+  real windows are compared with the harness: `Ui/ProgramPathTests` (the engine's: a dialog with a greyed button and a
+  blurred window ground, each drawn by a real application in a hidden window, through its `UiHost` into the swapchain
+  image and saved by its capture, against the R8G8B8A8 harness, pixel for pixel), `Ui/TargetFormatTests` (both copies
+  in both formats, a bounded layer across two grounds), and the game's `Ui/ProgramPathScreenTests` (every game-screen
+  fixture at 1 through a real window, pixel for pixel against `GameScreenTests.Render`).
+- **Every program's documents, the program's picture before (`main` at `b357aef`) and now** (the same fixtures drawn in
+  B8G8R8A8 and R8G8B8A8; now both are the harness's picture): the game's screens 110 of 124 renders changed (all but the
+  page, the tooltips and `start-continue-*`), the start screens with Continue greyed most, by up to 79 levels; every
+  window's blurred ground by 5–7 levels in the dark theme and 14–35 in the light; the editor's 48 renders, the sandbox's
+  page and About unchanged; the old game's states, shown by no program, 20 of 22 (all but `game-sheet`). The full
+  table: `Docs/Game/Foundation.md`, "How it works", "The start dialog drawn grey".
 
 ## Status (2026-10-25)
 

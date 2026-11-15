@@ -240,7 +240,22 @@ public sealed partial class Canvas
             return;
         commands.Transition(target, VkImageLayout.TransferSrcOptimal);
         commands.Transition(content, VkImageLayout.TransferDstOptimal);
-        commands.CopyImage(target, content, x0, y0, x1 - x0, y1 - y0, x0 - (int)(bounds.X - origin.X), y0 - (int)(bounds.Y - origin.Y));
+        CopyColours(commands, target, content, x0, y0, x1 - x0, y1 - y0, x0 - (int)(bounds.X - origin.X), y0 - (int)(bounds.Y - origin.Y));
+    }
+
+    /// <summary>
+    /// A region of what has been drawn copied into a layer image (a layer's backdrop, a backdrop filter's input): the
+    /// target's colours, whatever its format. A window's swapchain image is B8G8R8A8 where the layers are
+    /// <see cref="LayerFormat"/>, and a byte copy between them swaps red and blue (the program's start dialog drawn grey,
+    /// 2026-11-15); Skia draws the prior device into the layer (SkCanvas::internalSaveLayer, kInitWithPrevious and
+    /// backdrops), so the layer holds its colours. The same formats copy their bytes; others convert (a blit).
+    /// </summary>
+    static void CopyColours(CommandList commands, GpuImage source, GpuImage destination, int sourceX, int sourceY, int width, int height, int destinationX = 0, int destinationY = 0)
+    {
+        if (source.Format == destination.Format)
+            commands.CopyImage(source, destination, sourceX, sourceY, width, height, destinationX, destinationY);
+        else
+            commands.BlitImage(source, destination, sourceX, sourceY, width, height, destinationX, destinationY);
     }
 
     void BlurBackdrop(CommandList commands, GpuImage target, Vector2 origin, Backdrop backdrop)
@@ -253,7 +268,7 @@ public sealed partial class Canvas
         var copy = AcquireTarget(w, h);
         commands.Transition(target, VkImageLayout.TransferSrcOptimal);
         commands.Transition(copy, VkImageLayout.TransferDstOptimal);
-        commands.CopyImage(target, copy, x, y, w, h);
+        CopyColours(commands, target, copy, x, y, w, h);
         var temp = AcquireTarget(w, h);
         // Chromium mirrors the backdrop at its edges, so they don't darken.
         Blur(commands, copy, temp, backdrop.Result, backdrop.Sigma, alphaOnly: false, mirror: true);
