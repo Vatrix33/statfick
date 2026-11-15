@@ -18,5 +18,7 @@
     <!-- The game's music in packs/ beside it, where the game mounts its packs: the proof's theme (S7-6). -->
     <None Include="../../Assets/Packs/audio.pak" Link="packs/audio.pak" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../Tests/Statventure.Tests/Data/Models/jiruan.glb;../../Tests/Statventure.Tests/Data/Models/jiruan-acting.glb;../../Tests/Statventure.Tests/Data/Models/figure.glb" LinkBase="Data/Models" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The figure mode's looks (GM2 step 3a; Figure/): the files Tools/Models/humanoid/look.py writes, today's the default. -->
+    <None Include="../../Tools/Models/humanoid/looks/*.json" LinkBase="Data/Looks" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -17,7 +17,13 @@
 // it from a script without sound).
 // --log-visibility logs the document's visibility, page and focus events and a 250 ms timer's
 // firings (to see minimizing, restoring and closing the window: Docs/Scripting.md, "Hidden documents").
+// --figure <body.glb> plays a figure in a look (GM2-P14, GM2 step 3a; Figure/FigureSandbox.cs; Tools/Scripts/
+// play-figure.sh): [--clips <glb>] [--look <name or file>] [--garment <glb>]... [--item <glb>@<socket>]...
+// [--view front|three-quarter|side|back|close-up|<degrees>] [--size WxH] [--elevation degrees] [--margin fraction]
+// [--extent metres] [--focus <bone>] [--perspective degrees] [--dump <folder> [--fps N] [--times t,...]
+// [--scene-file <file>]]; a look by name is Data/Looks/<name>.json beside the sandbox (today's by default).
 // From a script, give it a scratch per-user folder (XDG_DATA_HOME): it writes logs/ there.
+using Statventure.Sandbox.Figure;
 using Statventure.Core;
 using Statventure.Graphics;
 using Statventure.Imaging;
@@ -32,6 +38,12 @@ var logVisibility = false;
 var about = false;
 string? cutscene = null, dump = null;
 var volume = 100.0;
+if (args.Contains("--figure"))
+{
+    using var figure = FigureMode(args);
+    figure.Run();
+    return;
+}
 for (var i = 0; i < args.Length; i++)
 {
     if (args[i] == "--capture") capture = args[++i];
@@ -55,6 +67,14 @@ using var sandbox = new Sandbox(capture, captureFrame, logVisibility, about, cra
 if (captureSplash is not null)
     _ = sandbox.CaptureNextFrame(captureSplash);
 sandbox.Run();
+
+// The figure mode (see above): its command line parsed by Figure/FigureCommandLine.cs, its logs the sandbox's.
+static FigureSandbox FigureMode(string[] args)
+{
+    var data = Path.Combine(AppContext.BaseDirectory, "Data");
+    var (spec, run) = FigureCommandLine.Parse(args, Path.Combine(data, "Looks"), Path.Combine(data, "Fonts"));
+    return new FigureSandbox(spec, run with { LogName = Sandbox.LogName });
+}
 
 sealed class Sandbox(string? capture, int captureFrame, bool logVisibility, bool about, string? crash) : Application(new ApplicationOptions
 {

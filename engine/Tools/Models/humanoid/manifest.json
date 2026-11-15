@@ -1,0 +1,6 @@
+{
+  "comment": "Every model of the humanoid family that build.py makes (GM2-P9): its name, its builder (module:function in this package, called with the .glb's path), and where its .glb goes (relative to engine/; the family's models in Assets/Models/humanoid/). The frame's sample is test data, not art.",
+  "models": [
+    {"name": "sample", "builder": "sample:cube_figure", "out": "Tests/Statventure.Tests/Data/Models/humanoid/sample.glb"}
+  ]
+}

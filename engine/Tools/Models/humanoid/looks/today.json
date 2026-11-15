@@ -1,0 +1,32 @@
+{
+  "format": "statventure.look",
+  "version": 1,
+  "name": "today",
+  "background": "#b8b0a0",
+  "sun": {
+    "direction": [
+      1,
+      1.1,
+      0.7
+    ],
+    "strength": 3,
+    "angle": 3
+  },
+  "style": {
+    "ink": "#130e0b",
+    "shadowMix": 0.42,
+    "bandEdge": 0.3,
+    "outlineWidth": 3.5,
+    "innerWidth": 2,
+    "creaseAngle": 120,
+    "hatchSpacing": 6,
+    "hatchWidth": 1,
+    "hatchAngle": 72,
+    "hatchInk": 0.35,
+    "glowWide": 8,
+    "glowCore": 2.5,
+    "glowBoost": 2.2
+  },
+  "palette": {},
+  "shadows": {}
+}

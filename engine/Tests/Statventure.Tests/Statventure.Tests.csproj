@@ -28,6 +28,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The sandbox's figure mode (GM2 step 3a), compiled in here as the sandbox compiles it: its tests are in Sandbox/. -->
+    <Compile Include="../../Samples/Statventure.Sandbox/Figure/*.cs" LinkBase="Sandbox/Figure" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
     <None Include="Golden/**" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Data/**" CopyToOutputDirectory="PreserveNewest" />

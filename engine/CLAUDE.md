@@ -44,11 +44,25 @@ the user and wait for their go-ahead before starting the next one.
   scratch `XDG_DATA_HOME`.)
 - The Documents folder (M9, character files; `Docs/Assets.md`): `Tools/Scripts/make-documents-reference.sh` captures
   Electron's `app.getPath("documents")` (and .NET's `MyDocuments` beside it) in 46 environments (about a minute).
-- Blender 5.2 for the 3D references (M6 on): `Tools/Scripts/make-blender-references.sh [scene ...]`
-  (`Docs/Renderer-3D.md`, "Reference harness"; on the PC the Flatpak, run headless). It also evaluates
+- Blender 5.2 for the 3D references (M6 on): `Tools/Scripts/make-blender-references.sh [--out <folder>] [scene ...]`
+  (`Docs/Renderer-3D.md`, "Reference harness"). On the PC the pinned official Blender 5.2.0 in
+  `~/.cache/stat-fick-build/blender-5.2/` (GM2-P10, GM2 step 3a: the references' own build; `env.sh` sets
+  `$STATVENTURE_BLENDER` to it; `Tools/Scripts/blender.sh` refuses any Blender but 5.2.x, the Flatpak's 5.3 among them,
+  and runs it headless only). It also evaluates
   the animation scenes (`Docs/Animation.md`, "Reference harness": poses, NLA stacks, gear) and the F-curve scenes
-  (`Tools/BlenderReference/evaluate_curves.py`, `Docs/Scene.md`, "How it works", step 2). Its renders,
-  evaluations and test models are committed, so the tests run where there's no Blender (the cloud).
+  (`Tools/BlenderReference/evaluate_curves.py`, `Docs/Scene.md`, "How it works", step 2), and renders the sandbox's
+  figure scenes. Its renders, evaluations and test models are committed, so the tests run where there's no Blender (the
+  cloud). `--out <folder>` makes everything into a scratch folder and `Tools/BlenderReference/compare_references.py
+  <folder>` compares it with what is committed (how a Blender build is proven: 5.2.0's, byte for byte).
+- The game's humanoid models (GM2, `Docs/Game/Hero.md`, "How it works", step 3a): the Blender script family
+  `Tools/Models/humanoid/` (`manifest.json`, `look.py` and its look files in `looks/`, `render.py`) through
+  `Tools/Scripts/make-humanoid.sh build|check [name ...]` (builds the manifest's models; `check` rebuilds them into
+  scratch and compares byte for byte), `render --out <folder> --name <stem> --model <glb> --look <look> --views
+  front,three-quarter,side,back,close-up [...]` (a figure or a scene file in a look, drawn by the references' own
+  Blender side, the ink laid over the shading as the engine lays it), `look list|write|check`, `framing`. The engine's
+  playing view of a figure in a look: the sandbox's figure mode, `Tools/Scripts/play-figure.sh <body.glb> [--clips
+  <glb>] [--look <look>] [--view ...] [--size WxH] [--dump <folder>]` (keys: Space, Right/Left, Down/Up, A/D, 1-5,
+  Escape; `--dump` writes frames and, with ffmpeg, `playing.mp4`, headless in a cage of its own).
 - Cutscenes (M10, `Docs/Scene.md`, step 7): `Tools/Scripts/play-cutscene.sh jiruan [--volume 0-100]` plays Ji'ruan's intro, the proof, with its sound in
   the sandbox's window (Escape or its Skip button skips, R replays; `--dump <folder>` writes its frames instead);
   `Tools/Scripts/make-cutscene-references.sh` captures the old game's card in Chromium at the sampled times.
@@ -104,7 +118,7 @@ the user and wait for their go-ahead before starting the next one.
 - GM2 (The hero: the sheet, races and looks), started 2026-11-15 on the user's go: its design doc `Docs/Game/Hero.md`
   (the user's GM2-1–GM2-8 and detail round Q1–Q42, GP-8 the user's word on the 3D models, the manager's GM2-P1–P16; what
   exists, the method, the design, what GM2 makes with its counts, the steps), decided; no step started. Its 3D work runs
-  in Blender 5.2 through `$STATVENTURE_BLENDER` (the PC's Flatpak is 5.3; GM2-P10).
+  in Blender 5.2 through `$STATVENTURE_BLENDER` (the PC's Flatpak is 5.3; GM2-P10): the pinned 5.2.0 since step 3a.
 - The symbols' icons (GM1-7, `Docs/Game/Foundation.md`, "How it works", step 3): the outlines and their box table in
   `Assets/UI/icons/`, written by `Tools/IconSheet/gen/build.py` (Python with shapely and fonttools; its README; `--check`
   after any change). `Tools/Scripts/make-icon-sheet.sh [--out <folder>] [--icons label=folder ...] [--symbols …]` draws

@@ -10,32 +10,42 @@
 #    compose.py), then the particles over all (in linear light), using those files up;
 # 4. Tools/BlenderReference/evaluate_animations.py evaluates the animated models' actions at the
 #    animation scenes' times (Docs/Animation.md) into Tests/Statventure.Tests/Golden/anim-*.json.
-# Run the tests once first: they write Tests/Statventure.Tests/Reference/r3d-scenes.json and
-# anim-scenes.json. Extra arguments name the scenes to render or evaluate (all by default). Blender comes from $STATVENTURE_BLENDER,
-# else `blender` on the PATH, else the Flatpak org.blender.Blender.
+# 5. The sandbox's figure mode's scenes (Reference/figure-scenes.json, GM2 step 3a: the frame's sample in looks, as
+#    the figure mode draws it) are rendered as the test scenes are, into Golden/r3d-figure-*.png.
+# Run the tests once first: they write Tests/Statventure.Tests/Reference/r3d-scenes.json,
+# anim-scenes.json and figure-scenes.json. Extra arguments name the scenes to render or evaluate (all by default).
+#
+# --out <folder> (GM2 step 3a): everything is made into <folder> instead, laid out as the test project
+# (<folder>/Data/Models, Data/Terrain, Golden, Actual/blender-glow, with the scene files copied into
+# <folder>/Reference so the models' and terrain's folders resolve there); nothing committed is
+# written. Tools/BlenderReference/compare_references.py <folder> then compares it with what is
+# committed (how a new Blender is proven: Docs/Renderer-3D.md, "Reference harness").
+#
+# Blender: Tools/Scripts/blender.sh (Blender 5.2 only, headless; $STATVENTURE_BLENDER, the pinned 5.2.0 by default).
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
 TESTS="$STATVENTURE_SOURCE/Tests/Statventure.Tests"
-if [ -n "${STATVENTURE_BLENDER:-}" ]; then
-  BLENDER=("$STATVENTURE_BLENDER")
-elif command -v blender >/dev/null; then
-  BLENDER=(blender)
-else
-  BLENDER=(flatpak run org.blender.Blender)
+OUT="$TESTS"
+if [ "${1:-}" = "--out" ]; then
+  [ -n "${2:-}" ] || { echo "--out needs a folder" >&2; exit 2; }
+  mkdir -p "$2"
+  OUT="$(cd "$2" && pwd)"
+  shift 2
+  mkdir -p "$OUT/Reference" "$OUT/Data/Models/humanoid" "$OUT/Data/Terrain" "$OUT/Golden"
+  for scenes in r3d-scenes anim-scenes node-scenes stage-scenes curve-scenes figure-scenes; do
+    [ -f "$TESTS/Reference/$scenes.json" ] && cp "$TESTS/Reference/$scenes.json" "$OUT/Reference/"
+  done
+  # The figure scenes' model is the humanoid frame's sample (Tools/Models/humanoid, make-humanoid.sh), not made here.
+  cp "$TESTS/Data/Models/humanoid/"*.glb "$OUT/Data/Models/humanoid/" 2>/dev/null || true
 fi
-# Absolute paths: the Flatpak starts in its own folder and has a private /tmp. A Python error fails
-# the run (--python-exit-code); only what the scripts wrote and errors are shown.
-run() {
-  local log
-  if ! log=$("${BLENDER[@]}" -b --factory-startup --python-exit-code 1 --python "$@" 2>&1); then
-    echo "$log" >&2
-    exit 1
-  fi
-  echo "$log" | grep -E "^wrote|Error" || true
-}
-python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/make_terrain.py" "$TESTS/Data/Terrain" >/dev/null
-run "$STATVENTURE_SOURCE/Tools/BlenderReference/make_models.py" -- "$TESTS/Data/Models"
-run "$STATVENTURE_SOURCE/Tools/BlenderReference/render_scenes.py" -- "$TESTS/Reference/r3d-scenes.json" "$TESTS/Golden" "$TESTS/Actual/blender-glow" "$@"
-python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/compose_glow.py" "$TESTS/Reference/r3d-scenes.json" "$TESTS/Golden" "$TESTS/Actual/blender-glow"
-run "$STATVENTURE_SOURCE/Tools/BlenderReference/evaluate_animations.py" -- "$TESTS/Reference/anim-scenes.json" "$TESTS/Golden" "$@"
-run "$STATVENTURE_SOURCE/Tools/BlenderReference/evaluate_curves.py" -- "$TESTS/Reference/curve-scenes.json" "$TESTS/Golden" "$@"
+source "$STATVENTURE_SCRIPTS/blender.sh"
+python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/make_terrain.py" "$OUT/Data/Terrain" >/dev/null
+blender_run "$STATVENTURE_SOURCE/Tools/BlenderReference/make_models.py" -- "$OUT/Data/Models"
+blender_run "$STATVENTURE_SOURCE/Tools/BlenderReference/render_scenes.py" -- "$OUT/Reference/r3d-scenes.json" "$OUT/Golden" "$OUT/Actual/blender-glow" "$@"
+python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/compose_glow.py" "$OUT/Reference/r3d-scenes.json" "$OUT/Golden" "$OUT/Actual/blender-glow"
+if [ -f "$OUT/Reference/figure-scenes.json" ]; then
+  blender_run "$STATVENTURE_SOURCE/Tools/BlenderReference/render_scenes.py" -- "$OUT/Reference/figure-scenes.json" "$OUT/Golden" "$OUT/Actual/blender-glow" "$@"
+  python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/compose_glow.py" "$OUT/Reference/figure-scenes.json" "$OUT/Golden" "$OUT/Actual/blender-glow"
+fi
+blender_run "$STATVENTURE_SOURCE/Tools/BlenderReference/evaluate_animations.py" -- "$OUT/Reference/anim-scenes.json" "$OUT/Golden" "$@"
+blender_run "$STATVENTURE_SOURCE/Tools/BlenderReference/evaluate_curves.py" -- "$OUT/Reference/curve-scenes.json" "$OUT/Golden" "$@"

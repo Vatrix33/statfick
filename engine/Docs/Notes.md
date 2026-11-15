@@ -532,6 +532,27 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   palette; every `View3D` allocates a 64 MB shadow atlas; the game's screen fixtures mask icons, not 3D views. The
   research files behind the doc (the 72 looks' every field, the engine's 3D facts, GM1's leftovers) are in
   `~/.cache/stat-fick-build/claude-work/gm2/design/`.
+- 2026-11-15 (the PC, GM2 step 3a's worker on the branch `gm2-step3a`, 4214 + 565 = 4779 tests on the GPU and lavapipe): **Blender
+  5.2.0 pinned and proven, the humanoid family's frame, the sandbox's figure mode** (`Docs/Game/Hero.md`, "How it works",
+  step 3a). The references' Blender was the Flatpak's 5.2.0 (`flatpak history`: installed 2026-10-16 at Flathub's
+  commit of 2026-07-14, 5.2.0's release day; updated to 5.3 only on 2026-11-14; the models' "glTF Blender I/O v5.2.39"),
+  so the pin is the official 5.2.0 in `~/.cache/stat-fick-build/blender-5.2/`, and with it every reference file comes
+  out byte for byte (`make-blender-references.sh --out` + `compare_references.py`). Gotchas: a worktree has no
+  `env.local.sh` (git-ignored), so `env.sh` finds the pin itself; the worker sandbox refuses `source` and `cd … && git`
+  in one command line (a wrapper script in scratch does it); Blender's glTF importer leaves an animated armature at its
+  first clip a frame in (clearing the animation data keeps that pose: give every joint), and adds a bone shape (an
+  icosphere in the excluded collection `glTF_not_exported`, in the scene's objects but not visible); a GLFW window under
+  cage on Wayland draws its own title bar (libdecor) inside its size, 37 px less picture, while on the cage's Xwayland
+  (`WAYLAND_DISPLAY` set to a socket that isn't there, `XDG_SESSION_TYPE=x11`) it gets the whole output; in the first
+  test runs (vsync on) a hidden 300 × 400 window's framebuffer was 300 × 363 when the dump began, later it kept its size
+  every time (a dump checks the size and writes nothing otherwise); a hidden window's second present with vsync never
+  returns under cage (dumps run without vsync); Fedora's ffmpeg 9.0.2 has libx264 but wants even sizes. Mutations:
+  125, 120 killed, 5 accounted for (three can't differ: Camera's default projection is the one the line sets, `<` for
+  `<=` with the clip's epsilon kept, a colour's truncation for its rounding at every byte; two can't show here: a skinned
+  item's placement, the engine's items being rigid, and the window's minimum size, a hidden window keeping its size
+  either way); the dump's vsync broken by hand hangs the run; look.py's 19 breaks all killed. Lesson: a mutation run
+  that rewrites a reference file the tests write (as `TheSceneFileIsUpToDate` writes `r3d-scenes.json`) hides every
+  mutation of what writes it: the figure scene file is compared and written only on request.
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).
@@ -552,9 +573,12 @@ On the Stat Fick engine and port work (the port notes (engine/Docs/Notes.md)), a
 
 ## Blender (tool notes, 2026-10-16)
 
-Blender 5.2 LTS is installed as the Flatpak `org.blender.Blender`. It has host filesystem access.
+Blender 5.2 LTS is installed as the Flatpak `org.blender.Blender`. It has host filesystem access. **Since 2026-11-14 the
+Flatpak is 5.3; the work uses the pinned official Blender 5.2.0** in `~/.cache/stat-fick-build/blender-5.2/` (GM2-P10,
+GM2 step 3a: the build every reference was made with; `env.sh` sets `$STATVENTURE_BLENDER` to it, `Tools/Scripts/
+blender.sh` refuses any other version).
 
-- **Run:** `flatpak run org.blender.Blender -b --python <ABSOLUTE path to script.py>`. A relative path fails, because the Flatpak starts in `/app`.
+- **Run:** `"$STATVENTURE_BLENDER" -b --factory-startup --python <ABSOLUTE path to script.py>` (the Flatpak's was `flatpak run org.blender.Blender -b --python …`; a relative path fails there, because the Flatpak starts in `/app`).
 - **Gotcha:** `bpy.ops.object.transform_apply()` applies location and rotation by default too. Pass `location=False, rotation=False` when only the scale should be applied.
 - **Rendering:** Cycles on CPU, 64 samples, 512×768 renders in about 2 seconds. View the PNG with Read.
 - **Work folder:** the first test, `test-sword.py`, is in `~/.cache/stat-fick-build/claude-work/blender/`. Since the BRUTAL test, Blender work goes in `/run/media/system/M.2_2TB/Stat Fick/blender/` (the BRUTAL test notes below).

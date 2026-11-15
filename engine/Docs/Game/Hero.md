@@ -1444,6 +1444,17 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
      close-up with its stylised face; the refinement, as many rounds as the user wants. Files in `claude-work/gm2/step3/approval/`.
    - Finished: the look approved and written down (palette, sun, lines, hatching); the figure mode playing a test figure
      in it; the tooling's checks.
+   - **Split in two (the manager's decision, 2026-11-15):** **3a**, everything of the step that is tooling and code
+     (Blender 5.2 pinned and proven, `Tools/Models/humanoid/`'s frame, `look.py` with today's look as its default, the
+     render entry point, `make-humanoid.sh`, the sandbox's figure mode with `play-figure.sh`), done by a worker; **3b**, the
+     blockout figure, the mood board, the three candidates and the chosen look's numbers, made in Blender with 3a's
+     tooling, the manager's own (the user chose the look "Ember, hearth" on 2026-11-15; the manager writes it into
+     `look.py`).
+   - **3a done (2026-11-15, a worker, the branch `gm2-step3a`):** the official Blender 5.2.0 (the references' own: the
+     Flatpak's build from the day the references began until 2026-11-14) in `~/.cache/stat-fick-build/blender-5.2/`,
+     its checksum checked, found by `env.sh`; all 109 reference files (16 models, 4 terrain files, 56 renders, 33
+     evaluations) made again with it byte for byte; the frame, the render entry point and the figure mode with their
+     tests and mutations. The choices made are under "How it works", step 3a.
 4. **The first humanoid** (3D, the manager; the PC; M7's "Model approval"). After 3.
    - Owns: the skeleton (mitten hands, no face bones, the sockets); the human man and woman, average build (Q8), their
      faces, hair and outfit to Q2's and Q3's bar; the sword, shield and chain shirt (Q9); the full clip set with its
@@ -1565,6 +1576,174 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
 
 Filled by the steps.
 
+### Step 3a: Blender 5.2 pinned and proven, the art's tooling, the sandbox's figure mode (2026-11-15)
+
+Step 3's tooling and code, split from the look itself (3b, the manager's; "Steps", step 3). On the PC only for what runs
+Blender; the tests run anywhere (what Blender made is committed).
+
+**Blender 5.2.0, pinned (GM2-P10).** The official build `blender-5.2.0-linux-x64.tar.xz` from
+`download.blender.org/release/Blender5.2/`, its SHA-256 checked against the published `blender-5.2.0.sha256`, unpacked
+at `~/.cache/stat-fick-build/blender-5.2/blender-5.2.0-linux-x64/blender` (the archive kept in `download/` beside it):
+"Blender 5.2.0 LTS (hash fbe6228777e7 built 2026-07-14 01:32:04)". Why 5.2.0 and not the latest 5.2.4: `flatpak
+history` shows the Flatpak installed on 2026-10-16 at commit `f97247d9e87d` and updated only on 2026-11-14 (to 5.3);
+Flathub's log dates that commit 2026-07-14, 5.2.0's release day, with no commit between it and 5.3; and every committed
+test model says "Khronos glTF Blender I/O v5.2.39", 5.2.0's own add-on. So every reference was made with 5.2.0.
+- **Found by every script:** `Tools/Scripts/env.sh` sets `$STATVENTURE_BLENDER` to the pinned build when it is there
+  and nothing set it before (as it finds Node in the cache): a worktree has no `env.local.sh` (git-ignored, one per
+  checkout), so GM2-P10's `env.local.sh` line alone would leave every worker on the Flatpak's 5.3. `env.local.sh` may
+  still name another (it is sourced after); the main checkout's holds only `STATVENTURE_GAME`.
+- **Refused otherwise:** `Tools/Scripts/blender.sh` (sourced by `make-blender-references.sh` and `make-humanoid.sh`)
+  takes `$STATVENTURE_BLENDER`, else `blender` on the PATH, else the Flatpak, and refuses any Blender whose version
+  isn't 5.2.x (the Flatpak's 5.3 among them) unless `STATVENTURE_BLENDER_ANY_VERSION=1` (to measure a move only); it
+  runs Blender headless only (`-b --factory-startup`, `DISPLAY` and `WAYLAND_DISPLAY` unset for it).
+- **The proof:** `make-blender-references.sh --out <folder>` makes everything into a scratch copy of the test project's
+  layout (the scene files copied into `<folder>/Reference` so the model and terrain folders resolve there; nothing
+  committed is written), and `Tools/BlenderReference/compare_references.py <folder>` compares every file with what is
+  committed: byte-equal, or measured (a render's pixels and levels, an evaluation's largest number difference, a model's
+  JSON and float buffers). With the pinned build: **109 of 109 byte-equal** (16 models, 4 terrain files, the 56 renders
+  with the glow composed, 33 evaluations: 21 animation, 9 F-curve, 1 node, 2 stage), 3 min 42 s on the GPU; again at
+  the step's end, 117 of 117 with the figure mode's 8 references among them (below). A move to 5.3 is an engine task of its own:
+  the same two commands with `STATVENTURE_BLENDER_ANY_VERSION=1` measure it.
+
+**The `humanoid` package (GM2-P9), `Tools/Models/humanoid/`.** Its layout as the design gives it: `rig.py` (the socket
+names M7 gives, the skeleton's bones for step 4), `bodies/`, `parts/`, `clips/`, `emblems/` (packages whose
+docstrings say what goes there and how), `gear.py` and `assemble.py` (what steps 4 and 5 write there), and the working
+parts:
+- `manifest.json`: every model the family makes, `{name, builder: "module:function", out}` (`out` relative to
+  `engine/`, the family's in `Assets/Models/humanoid/`). A builder is a function of the `.glb`'s path that builds the
+  model in an empty Blender scene and exports it with `make_models.export` (the test models' exporter: the triangles
+  in a canonical order), `make_models.ANIMATED` for clips; builders import `make_models`' helpers (`armature`,
+  `material`, `keys`, `stack_actions`, `chain_tube`, `skinned_mesh` …) and their own modules from the package.
+- `build.py`, run inside Blender by `make-humanoid.sh build [name …]`: builds every model the manifest names (or those
+  given) into its place. `make-humanoid.sh check [name …]` builds them into a scratch folder and compares each with
+  what is committed **byte for byte**: the export is deterministic (the sample built seven times, the same bytes; the 16
+  test models the same bytes from the Flatpak's 5.2.0 and the official one); a difference fails the run and names what
+  differs (`compare_references.py`'s model comparison: the JSON's values, the float buffers number by number). Shown
+  able to fail: a colour of the sample changed (the JSON's base colour, 0.00142) and a key's angle changed (the buffer,
+  0.00867), each exit 1. `check` also runs `look.py check`.
+- `look.py`: a look's numbers, everything a candidate can set within today's rules (Q7), read from the engine's code:
+  `background` (the view's, sRGB), `sun` (`direction` toward it in glTF's world, `strength`, `angle`: `SunLight`),
+  `style` (every number of `CelStyle` by its property's name in camelCase: `ink`, `shadowMix`, `bandEdge`,
+  `outlineWidth`, `innerWidth`, `creaseAngle`, `hatchSpacing`, `hatchWidth`, `hatchAngle`, `hatchInk`, `glowWide`,
+  `glowCore`, `glowBoost`; widths at device scale 1), `palette` and `shadows` (slot → sRGB colour; a slot's own shadow
+  tone). `TODAY` is the engine's look as it is, unchanged: `CelStyle.Default`, the sun of the lizardman test its numbers
+  were measured under (`Scenes3D.Lizardman`: (1, 1.1, 0.7), strength 3, `SunLight`'s angle 3), the reference scenes'
+  ground `#b8b0a0`, an empty palette (each material its own base colour). `LOOKS` names the looks (`today`; the chosen
+  one joins it in 3b), `SLOTS` the palette slot names the parts use (GM2-P7's list; the parts' steps add theirs) and
+  `GEAR_SLOTS` the gear's (GM3's, distinct; empty until step 4's sample gear); a look naming another slot is refused, so
+  a typo can't pass. `python3 look.py write <name or file> [<file>]` writes a
+  look file (`looks/<name>.json` by default: JSON, `format` "statventure.look", `version` 1, its keys in a fixed
+  order, so a look written twice is the same bytes); `list`; `check` (every look valid, `looks/today.json` as written).
+  The look file is the one both sides read: render.py and the figure mode (`--look <name or file>`). Shown able to fail:
+  19 breaks of its rules on a copy, each killed (`claude-work/gm2/step3a/pybreaks/`).
+- `render.py` with `compose.py`, run by `make-humanoid.sh render`: a figure (`--model <body.glb>`, `--garment <glb>`…,
+  `--item <glb>@<socket>`…) or a scene file (`--scene`) in a look (`--look`, today's by default) at a size and in views:
+  `front` (0°), `three-quarter` (45°: the figure's front, glTF's +Z, turned toward the screen's right), `side` (90°:
+  facing the screen's right), `back` (180°), any number of degrees, and `close-up` (45°, framed on `--focus`, the
+  `head` bone by default, else the figure's top fifth, `--extent` metres high, 0.3 of the figure by default). The figure
+  turns under a fixed camera and sun, so each side is lit alike; each view frames the figure at rest (its width or height
+  with 6 % room each side, `--margin`), so the frames of a clip share one camera; orthographic unless `--perspective
+  <degrees>`, the camera 5° down (`--elevation`; a face exactly edge-on is where Freestyle and the engine part). `--clip
+  <name> --time <s> [--clips <library.glb>]` poses the figure as Blender evaluates the clip (played by bone names on a
+  library's), the garments by the same joints, the items on their sockets as `Animation/Gear.cs` places them. It writes
+  the scene file (`<out>/layers/<stem>-scenes.json`, `render_scenes.py`'s format, the models by their paths from it)
+  and renders it with `render_scenes.py` itself (imported: its `main()` now runs only as Blender's script, the one change
+  there), so a mood-board render is drawn by exactly what the engine's references are; `compose_glow.py` composes the
+  glow, and `compose.py` lays Freestyle's ink over the shading at its coverage in linear light, as the engine draws its
+  lines over its view: `<out>/<stem>-<view>.png`, the layers kept in `<out>/layers/`. `--scenes-only` writes the scene
+  file alone. Blender's glTF importer leaves an animated armature at its first clip a frame in, which clearing the
+  animation data keeps, so render.py gives every joint explicitly (at rest when no clip is asked); and it makes a bone
+  shape (an icosphere in an excluded collection), which framing leaves out.
+- `sample.py`: the frame's sample, a cube figure (four boxes, one a nose, on the bones `lower` and `upper`, materials in
+  the slots `trousers`, `cloth`, `skin`; facing glTF's +Z; clips `bow`, 0.75 s, with a marker, and `sway`, 1 s), test
+  data at `Tests/Statventure.Tests/Data/Models/humanoid/sample.glb`, not art and not for a pack.
+
+**The figure mode (GM2-P14), `Samples/Statventure.Sandbox/Figure/`** (compiled into the engine's tests too, which link
+its files). `Statventure.Sandbox --figure <body.glb> [--clips <glb>] [--look <name or file>] [--garment <glb>]…
+[--item <glb>@<socket>]… [--view …] [--size WxH] [--elevation] [--margin] [--extent] [--focus] [--perspective]
+[--dump <folder> [--fps N] [--times t,…] [--scene-file <file>]]`, run by `Tools/Scripts/play-figure.sh <body.glb> …`
+(it compiles the shaders and builds the sandbox in Release first).
+- `FigureLook`: the look file read strictly, as `look.py` writes it (every key, nothing else, each value of its kind, an
+  `InvalidDataException` naming the first problem), into `CelStyle`, `SunLight`, the background and a `Palette`; the
+  slot names aren't checked here (look.py's list).
+- `FigureView`: the figure as the game shows one: an `Actor` on a node of a `SceneView` (rate 0: the mode's own clock
+  seeks it) in a `View3D` with the look's background, sun and style, the look's palette, the garments as
+  `ActorGarment`s and the items as `ActorItem`s on their sockets; the views and their framing are render.py's, number for
+  number (`FigureFraming`; held to render.py's cameras for the sample by the tests); the clips in turn (`FigureClips`:
+  one NLA layer of strips end to end, played round; at a meeting the stack shows the earlier clip at its end; a still clip
+  takes a frame). `SceneOf` writes the scene at the moment in `render_scenes.py`'s format (each joint's deformation, the
+  garments posed by the same joints, the items at their sockets, the look, the camera), which is how the engine's picture
+  is held to Blender's.
+- `FigureSandbox` (an `Application`, no splash, no sound, the sandbox's logs): the view fills the window (a `surface`
+  element), a caption names the clip, its time, the view and the turn. Keys (`FigureControls`): Space plays and pauses,
+  Right and Left step a frame (1/60 s, on whole frames) and pause, Down and Up go to the next and the previous clip's
+  start, A and D turn the figure 15° (the camera stays the view's), 1–5 show the five views, F11 full screen, Escape
+  quits. `--dump` writes one round of every clip in turn at `--fps` (30) or the `--times` given, `frame-NNNN.png` and
+  `frames.txt` (each frame's time, clip and time in it), with `--scene-file` every frame's scene for Blender
+  (`make-humanoid.sh render --scene <file>` renders them); it draws without vsync (a hidden window's surface, which a
+  compositor doesn't pace, would hold a waiting present for ever), quits with its last frame, and refuses to write frames
+  when the window came out of another size than the picture (exit 1). A window under the engine's usual minimum (320 ×
+  240) keeps the picture's size.
+- `play-figure.sh` with `--dump`, on the PC: inside a headless cage of its own whose output is the picture's size, on the
+  cage's Xwayland (a Wayland window there draws its own title bar inside its size, GLFW's libdecor, 37 pixels less
+  picture: cage offers no server-side decorations), a scratch per-user folder, then `ffmpeg` (9.0.2 on the PC) makes
+  `<folder>/playing.mp4` (H.264, yuv420p, CRF 16); without ffmpeg it says the frames are there.
+- **Its tests** (`Tests/Statventure.Tests/Sandbox/FigureModeTests.cs`, 84): the look file (today's is the engine's
+  unchanged; every number of `CelStyle` in it and read from its own key, by reflection over `CelStyle`; 39 broken files
+  refused; a colour back to its text at every level), the framing against render.py's cameras for the sample (`Reference/figure-framing*-scenes.json`, written by
+  `make-humanoid.sh framing`: the five views and 30°, a perspective close-up on a bone, a picture so narrow its width
+  frames the figure, a camera far enough to move the far plane; within 10⁻⁴), the clips in turn against the stack's own
+  evaluation, the keys, the command line (every option to its place; nine refused), **the figure mode's picture against
+  Blender's**: four scenes (`Reference/figure-scenes.json`, written with `STATVENTURE_FIGURE_SCENES=write`, compared
+  otherwise, so a change of the scenes or of `SceneOf` fails until the references are rendered again; rendered by
+  `make-blender-references.sh` into `Golden/r3d-figure-*.png` and `-ink.png`): the sample in today's look at
+  three-quarter swaying, in a look of numbers all its own (no two alike) from the side bowing and in a perspective
+  close-up, and the engine's test figure with its tabard and sword mid-swing; the shading within `ReferenceLimits.M6`
+  (`Compare`) and the lines (`CompareInk`); and **the window's own picture** (a hidden window dumping a frame) equal to the
+  view's picture pixel for pixel, its index and scene file what the view holds, a dump's frame count, the size guard and
+  a small picture. The gear scene is seen from the front: at three-quarter a sliver of the lit thigh under a pixel wide
+  shows between the leg's shadow and the tabard, shaded once per pixel under MSAA where Blender shades each sample (one
+  edge pixel 37 levels off; `Docs/Renderer-3D.md`, "Freestyle's limits seen": test cameras avoid such slivers).
+
+**Shown able to fail:** the figure mode's rules, 125 mutations (`claude-work/gm2/step3a/mutations.json`, made by
+`make-mutations.py` beside it; three gaps they showed closed and run again in `mutations-rerun.json`): 120 killed, 5
+accounted for: three can't differ (the line setting a perspective camera, `Camera`'s default; `<` for `<=` at a clip's
+end with the stack's epsilon kept; a colour's channel truncated for rounded, the same at every byte) and two can't show
+in the tests (the placement of a skinned item's points, the engine's items being rigid; the window's minimum size, a
+hidden window keeping its size either way: it matters where a window manager enforces it). The dump's vsync broken by
+hand hangs the run (noticed). `look.py`'s rules: 19 breaks of a copy, all killed (`claude-work/gm2/step3a/pybreaks/`);
+`build.py --check`: a colour and a key of the sample changed, each failing it.
+
+**How the manager makes and shows a model** (on the PC; Blender through the pin, headless; from the repo's `engine/`):
+1. A builder: a function in a module of `Tools/Models/humanoid/` (say `bodies/human.py`, `def male_average(path):`),
+   building in an empty scene and ending with `make_models.export(path, **make_models.ANIMATED)` (or plain `export(path)`
+   for a model without clips); a line in `manifest.json`: `{"name": "human-male-average", "builder":
+   "bodies.human:male_average", "out": "Assets/Models/humanoid/human-male-average.glb"}`; then `Tools/Scripts/make-humanoid.sh
+   build human-male-average` (and `make-humanoid.sh check` before a commit).
+2. Its turnaround and a close-up in a look: `Tools/Scripts/make-humanoid.sh render --out <folder> --name <stem> --model
+   Assets/Models/humanoid/<model>.glb --look <look file or name> --views front,three-quarter,side,back,close-up --size
+   800x1000` (`--focus <bone> --extent <metres>` for another close-up, `--clip <name> --time <s>` for a pose, `--garment`
+   and `--item <glb>@<socket>` for what it wears): `<folder>/<stem>-front.png` … `<stem>-close-up.png`.
+3. Playing in the engine's view: in a window, `Tools/Scripts/play-figure.sh <model>.glb --look <look> [--clips
+   <library.glb>]`; frames and a video, headless: `Tools/Scripts/play-figure.sh <model>.glb --look <look> --view
+   three-quarter --size 800x1000 --dump <folder> [--fps 30] [--scene-file <folder>/scenes.json]`, giving
+   `<folder>/frame-NNNN.png`, `frames.txt` and `playing.mp4`; the same frames in Blender: `make-humanoid.sh render
+   --out <folder2> --name frames --scene <folder>/scenes.json`.
+4. A look: in `look.py`, a dict like `TODAY` added to `LOOKS` under its name (or a JSON file of the same fields), then
+   `python3 Tools/Models/humanoid/look.py write <name>` writes `looks/<name>.json`, which `--look <name>` finds on both
+   sides (render.py by its name in `LOOKS` or in `looks/`, the figure mode in `looks/`, copied beside the sandbox when it
+   builds); `--look <path>` takes any look file.
+
+**Choices made (internal, recorded here):** the pin found by `env.sh` as well as named in `env.local.sh`; a Blender
+other than 5.2.x refused by the scripts; `--out` and `compare_references.py` for proving a Blender build; the sample's
+output in the tests' data, not in `Assets/Models/humanoid/` (not art, never packed); one look file format both sides
+read, `look.py` writing it with today's look as its default; a look's slot names checked against `look.py`'s list on the
+Python side; turnarounds turning the figure under a fixed camera and sun; views framed at rest; the close-up's and the
+margin's numbers (0.3 of the figure, the top fifth, 6 %, 5° down); the mood board's picture the shading with the ink
+laid over it as the engine lays it; the figure mode's clips in turn on one NLA layer; dumps without vsync and inside a
+cage of their own on Xwayland; `--dump`'s index and scene file; the figure scene file written only on request; `--figure
+<look.json>` (a `look.hero`) left to step 5's figure builder (the mode takes a body `.glb` with garments and items now).
+
 ## Status
 
 - **2026-11-15:** written on the user's go for GM2 (docs only, the branch `gm2-design` from `8c7d07d`), after the user's
@@ -1582,3 +1761,9 @@ Filled by the steps.
 - **2026-11-15, Q41 and Q42 answered** (the user, the question tool, both the recommended option): the carousel's and the
   maker's figures idle in the sheet's fixed three-quarter view; the Goliath's and the Merfolk's presets wear marks.
   Nothing is open; no step started; the first wave starts on the manager's go.
+- **2026-11-15, step 3a done** (a worker, the branch `gm2-step3a`; step 3 split into 3a and 3b by the manager): Blender
+  5.2.0 pinned in the build cache and proven (109 of 109 reference files byte-equal with it), `Tools/Models/humanoid/`'s
+  frame with `look.py` (today's look the default) and the render entry point, `make-humanoid.sh`, the sandbox's figure
+  mode with `play-figure.sh`; 4214 + 565 = 4779 tests (84 new) passing on the GPU and on lavapipe; mutations 125, 120
+  killed, 5 accounted for ("How it works", step 3a). 3b, the look, is the manager's
+  (the user chose "Ember, hearth" on 2026-11-15).

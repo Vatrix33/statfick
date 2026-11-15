@@ -2302,3 +2302,9 @@ GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
   the large set of parts, 72 presets, nine emblems on new motifs); GM3-3, GM9's art, GM11's art and GM14-1 noted where an
   answer reaches them. `Docs/Game/Hero.md`'s design, counts and thirteen steps in five waves are final; the two questions
   the answers opened, Q41 and Q42, answered the same day as recommended: nothing is open. No step started; the first wave starts on the manager's go.
+- **2026-11-15, GM2 step 3a done** (a worker, the branch `gm2-step3a`; step 3 split by the manager into 3a, the tooling
+  and code, and 3b, the look, the manager's own): Blender 5.2.0 pinned (the references' own build) and proven, every
+  reference file made again byte for byte; the `humanoid` family's frame (`Tools/Models/humanoid/`: manifest, `build.py
+  --check`, `look.py` with today's look as its default, `render.py`), `make-humanoid.sh`; the sandbox's figure mode
+  (`play-figure.sh`), held to Blender's renders of the same scenes. 4214 + 565 = 4779 tests (84 new) on the GPU and on lavapipe
+  (`Docs/Game/Hero.md`, "How it works", step 3a).

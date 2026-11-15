@@ -113,9 +113,10 @@ the map is 3D terrain seen from above.
 
 As with the UI and Chromium:
 1. **Reference first.** A test scene (models as .glb, camera, light, palette, line settings) is
-   rendered by Blender 5.2 headless (`flatpak run org.blender.Blender -b --python <absolute path>`,
-   on the user's PC; scripts in `Tools/BlenderReference/`, a `Tools/Scripts/make-blender-references.sh`
-   to run them). The renders and the .glb files are committed as references
+   rendered by Blender 5.2 headless (`"$STATVENTURE_BLENDER" -b --factory-startup --python <absolute path>`,
+   on the user's PC; since GM2 step 3a the pinned official 5.2.0 build in the build cache, GM2-P10: the
+   references were made with the Flatpak's 5.2.0, which updated to 5.3 on 2026-11-14; scripts in
+   `Tools/BlenderReference/`, a `Tools/Scripts/make-blender-references.sh` to run them). The renders and the .glb files are committed as references
    (`Tests/Statventure.Tests/Golden/r3d-*.png`, `Tests/Statventure.Tests/Data/Models/`), so the
    tests run anywhere (the cloud has no Blender).
 2. **Port the rule.** The engine reproduces what Blender computes (projection, the diffuse term,
@@ -359,9 +360,18 @@ second time), and top-level objects without a mesh.)
   shapes, each object's model matrix as four columns, the camera, the models' matrices and joint
   deformations, the style, the terrain, and each particle as the engine draws it).
 - **Blender:** `Tools/BlenderReference/render_scenes.py`, run by
-  `Tools/Scripts/make-blender-references.sh [scene ...]` (Blender from `$STATVENTURE_BLENDER`, else
-  `blender` on the PATH, else the Flatpak; always `-b --factory-startup` and absolute paths, since
-  the Flatpak starts in its own folder and has a private /tmp). It converts glTF coordinates to
+  `Tools/Scripts/make-blender-references.sh [--out <folder>] [scene ...]` (Blender through
+  `Tools/Scripts/blender.sh`: from `$STATVENTURE_BLENDER`, which `env.sh` sets to the pinned official 5.2.0 build in
+  `~/.cache/stat-fick-build/blender-5.2/` when it is there, else `blender` on the PATH, else the Flatpak; a Blender
+  that isn't 5.2.x is refused, the PC's Flatpak being 5.3 since 2026-11-14 (GM2-P10); always `-b
+  --factory-startup`, no display handed to it, and absolute paths, since the Flatpak starts in its own folder and has
+  a private /tmp). **Proving a Blender build** (GM2 step 3a): `--out <folder>` makes everything (models, terrain,
+  renders, evaluations) into a scratch copy of the test project's layout, and
+  `Tools/BlenderReference/compare_references.py <folder>` compares it with what is committed (byte-equal, or measured:
+  pixels and levels for a render, the largest number difference for an evaluation, the JSON and float buffers for a
+  model). With the pinned 5.2.0 all 109 files came out byte-equal (2026-11-15; 3 min 42 s on the GPU): the 16 models,
+  4 terrain files, 56 renders and 33 evaluations. The figure mode's scenes (`Reference/figure-scenes.json`, the
+  sandbox's tests) are rendered by the same run (`Docs/Game/Hero.md`, "How it works", step 3a). It converts glTF coordinates to
   Blender's as the glTF importer does (`(x, y, z)` → `(x, −z, y)`), bakes each object's matrix into
   its vertices, builds the camera from the look-at axes (sensor fit vertical, lens from the field of
   view, orthographic scale from the height), and renders with EEVEE: 64 samples, filter 1.0 px,

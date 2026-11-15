@@ -22,6 +22,11 @@ fi
 for node in "$STATVENTURE_CACHE"/node-v*-linux-x64/bin; do
   [ -x "$node/node" ] && export PATH="$node:$PATH" && break
 done
+# Blender for the 3D references and models: the pinned 5.2.0 in the cache (GM2-P10; GM2 step 3a), unless the caller or
+# env.local.sh names another. A worktree has no env.local.sh (it is git-ignored), so the pin is found here too.
+if [ -z "${STATVENTURE_BLENDER:-}" ] && [ -x "$STATVENTURE_CACHE/blender-5.2/blender-5.2.0-linux-x64/blender" ]; then
+  export STATVENTURE_BLENDER="$STATVENTURE_CACHE/blender-5.2/blender-5.2.0-linux-x64/blender"
+fi
 export NUGET_PACKAGES="${NUGET_PACKAGES:-$STATVENTURE_CACHE/nuget}"
 export DOTNET_CLI_HOME="${DOTNET_CLI_HOME:-$STATVENTURE_CACHE/dotnet-home}"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1

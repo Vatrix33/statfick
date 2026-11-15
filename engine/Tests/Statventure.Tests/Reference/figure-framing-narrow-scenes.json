@@ -1,0 +1,283 @@
+{
+  "modelFolder": ".",
+  "terrainFolder": "../../..",
+  "shapes": {},
+  "scenes": [
+    {
+      "name": "figure-framing-narrow-front",
+      "width": 100,
+      "height": 800,
+      "background": "#b8b0a0",
+      "camera": {
+        "near": 0.1,
+        "far": 50,
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "target": [
+          0.0,
+          0.9200000166893005,
+          0.0299999937415123
+        ],
+        "orthographicHeight": 4.48,
+        "fieldOfViewDegrees": 40,
+        "projection": "orthographic",
+        "position": [
+          0.0,
+          1.5161453485488892,
+          6.843972206115723
+        ]
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "../Data/Models/humanoid/sample.glb",
+          "matrix": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "scenery": false,
+          "pose": {
+            "lower": [
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "upper": [
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          },
+          "group": "figure",
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "objects": null,
+          "clipTime": null,
+          "palette": null
+        }
+      ],
+      "palette": {},
+      "shadows": {},
+      "sun": {
+        "direction": [
+          1,
+          1.1,
+          0.7
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#130e0b",
+        "shadowMix": 0.42,
+        "bandEdge": 0.3,
+        "outlineWidth": 3.5,
+        "innerWidth": 2.0,
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1.0,
+      "terrain": null,
+      "time": 0,
+      "particles": []
+    },
+    {
+      "name": "figure-framing-narrow-side",
+      "width": 100,
+      "height": 800,
+      "background": "#b8b0a0",
+      "camera": {
+        "near": 0.1,
+        "far": 50,
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "target": [
+          0.0299999862909317,
+          0.9200000166893005,
+          0.0
+        ],
+        "orthographicHeight": 3.0464000320434574,
+        "fieldOfViewDegrees": 40,
+        "projection": "orthographic",
+        "position": [
+          0.0299999862909317,
+          1.5161453485488892,
+          6.813971996307373
+        ]
+      },
+      "objects": [],
+      "models": [
+        {
+          "file": "../Data/Models/humanoid/sample.glb",
+          "matrix": [
+            [
+              7.549790126404332e-08,
+              0.0,
+              -1.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0,
+              7.549790126404332e-08,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "scenery": false,
+          "pose": {
+            "lower": [
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "upper": [
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          },
+          "group": "figure",
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "objects": null,
+          "clipTime": null,
+          "palette": null
+        }
+      ],
+      "palette": {},
+      "shadows": {},
+      "sun": {
+        "direction": [
+          1,
+          1.1,
+          0.7
+        ],
+        "strength": 3,
+        "angle": 3
+      },
+      "style": {
+        "ink": "#130e0b",
+        "shadowMix": 0.42,
+        "bandEdge": 0.3,
+        "outlineWidth": 3.5,
+        "innerWidth": 2.0,
+        "creaseAngle": 120,
+        "hatchSpacing": 6,
+        "hatchWidth": 1,
+        "hatchAngle": 72,
+        "hatchInk": 0.35,
+        "glowWide": 8,
+        "glowCore": 2.5,
+        "glowBoost": 2.2
+      },
+      "scale": 1.0,
+      "terrain": null,
+      "time": 0,
+      "particles": []
+    }
+  ]
+}

@@ -1226,4 +1226,7 @@ def main():
             render_ink(scene, os.path.join(output, f"r3d-{spec['name']}-ink.png"))
 
 
-main()
+# Run as Blender's script (make-blender-references.sh); imported, its look is another script's (the humanoid family's
+# render.py, GM2 step 3a), which calls main() on a scene file of its own.
+if __name__ == "__main__":
+    main()

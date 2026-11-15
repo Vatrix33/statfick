@@ -4238,6 +4238,25 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     and verified first). The design, the counts (54 bodies, about 108 faces, 72 presets, nine emblems) and thirteen steps
     in five waves are final; Q41 and Q42, opened by the answers, answered the same day as recommended: nothing is open.
     No code, no tests run.
+  - **GM2 step 3a, Blender 5.2 pinned and proven, the art's tooling, the sandbox's figure mode (2026-11-15, a worker,
+    the branch `gm2-step3a`; `Docs/Game/Hero.md`, "How it works", step 3a):** step 3 split by the manager into 3a (tooling
+    and code) and 3b (the look, the manager's). The official Blender 5.2.0, checksum checked, in
+    `~/.cache/stat-fick-build/blender-5.2/` (the references' own build: the Flatpak's 5.2.0 from 2026-07-14 until its
+    update to 5.3 on 2026-11-14; the test models' "glTF Blender I/O v5.2.39"), found by `env.sh`, any other version
+    refused by `Tools/Scripts/blender.sh`; `make-blender-references.sh --out` and `Tools/BlenderReference/
+    compare_references.py` prove a build: 109 of 109 files byte-equal (16 models, 4 terrain, 56 renders, 33
+    evaluations), and at the step's end 117 of 117 with the figure mode's 8 references among them. `Tools/Models/humanoid/` (GM2-P9): the manifest and `build.py` (`check`:
+    byte for byte, the export deterministic), `look.py` (every number of `CelStyle`, the sun, the background and the
+    palette; today's look the default, unchanged; the look file both sides read), `render.py` and `compose.py` (a figure
+    or a scene file in a look and views, drawn by `render_scenes.py` itself), a sample cube figure, the layout's stubs;
+    `Tools/Scripts/make-humanoid.sh`. The sandbox's figure mode (GM2-P14, `Samples/Statventure.Sandbox/Figure/`,
+    `Tools/Scripts/play-figure.sh`): a figure in a look playing its clips in turn in the engine's view, keys to step, turn
+    and change views, `--dump` frames headless with `playing.mp4` (ffmpeg 9.0.2); its picture held to Blender's renders
+    of the same scenes within `ReferenceLimits.M6` (8 new references) and the window's own picture to the view's. Tests:
+    4214 + 565 = 4779 on the GPU and on lavapipe (84 new), none held. Mutations: 125, 120 killed, 5 accounted for
+    (three equivalent, two that hidden windows and rigid items can't show); look.py's rules 19 breaks, all killed. Found: a worktree has no
+    `env.local.sh`; Blender's glTF importer leaves an animated armature at its first clip a frame in; cage's Wayland
+    windows lose 37 pixels to libdecor's title bar; a hidden window's second vsync present never returns under cage.
 
 ## Milestones
 
