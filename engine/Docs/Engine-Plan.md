@@ -4312,6 +4312,21 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     focused element into view, the engine's doesn't (`list-marks` made taller). 4266 + 610 = 4876 tests on the GPU and on
     lavapipe, none held; mutations 113 standing (110 killed, 3 that can't differ) and the pack script's 14 (killed);
     `check-packages.sh` and its self-test (119 of 119) and `end-to-end.sh` (241 of 241) on the GPU and on lavapipe.
+  - **GM2 step 2, the actor record, its rules and the oracles (2026-11-15 and 16, a worker on the branch `gm2-step2`,
+    rebased on `bf59d0d`; `Docs/Game/Hero.md`, "How it works", step 2):** the old game's oracle (GM2-P13):
+    `Tools/OldGameOracle/` (modules of a case list and a `run` each, in Node for the pure modules or in the old game's
+    headless test client for `app.js`'s rules, the results through the test preload's save hook) and
+    `Tools/Scripts/make-old-game-references.sh [module …]` (in a headless cage of its own on the PC), the results committed
+    in `Tests/Statventure.Game.Tests/Reference/old-game/` one case a line, reproduced byte for byte, a test failing when
+    the old game changed under them; seven modules: the levelling curves and the cap, the new hero, the races' fold and
+    loading rules (step 1's oracle folded in, its `make-race-references.sh` gone, the same values), the sheet's values and
+    actions (on the 28 races, crafted races and hand-made totals for the artifacts, equipment, classes and battle GM2
+    lacks). `actor.sheet` v1 and its parts in `Game/Statventure.Game.Data/Actors/` and `ActorRules` (GM2-P1, GM2-P2):
+    every value the sheet shows and every action (spend, Dev Mode's "−", respec, level up, HP and Mana by hand and to the
+    full, Dev Mode's fields, choosing a race) as the old functions' arithmetic, on step 1's races, keys, value types and
+    `JsValues`, with seams for GM3, GM5, GM8 and GM15 (`SheetContext`), matching the old game on every case. Found: a new
+    hero's HP is 31, not the design's 30 (corrected). 4266 + 630 = 4896 tests on the GPU and on lavapipe, none held;
+    mutations 220 standing (212 killed, 8 that can't differ) and the tooling's 20 (17 killed, 3 that can't differ).
 
 ## Milestones
 

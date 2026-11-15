@@ -1,0 +1,4 @@
+actor.purse 1
+  1 silver: int32 = 0
+  2 gold: int32 = 0
+  3 platinum: int32 = 0

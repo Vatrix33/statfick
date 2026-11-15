@@ -8,7 +8,7 @@ namespace Statventure.Game.Tests;
 /// <summary>
 /// The sheet side of the races' effects (GM2-P3; Docs/Game/Hero.md, "How it works", step 1): <see cref="RaceTotals.Of"/>
 /// and <see cref="Race.StatModifier"/> against the old game's <c>calculateRaceEffectsUncached</c> and
-/// <c>raceStatModifier</c>, measured by the oracle (<c>Reference/race-fold.json</c>) for every race of races.json and the
+/// <c>raceStatModifier</c>, measured by the oracle (<c>Reference/old-game/race-fold.json</c>) for every race of races.json and the
 /// case list's crafted races at levels 0–101, 150 and 200 and enemy counts −1, 0, 1 and 3; which effect types each side
 /// reads; and the old checks of <c>new-races-browser.js</c> that act on the sheet, named after them.
 /// </summary>

@@ -2325,3 +2325,9 @@ GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
   races in `data.pak`, the stand-in kind gone (`Docs/Game/Hero.md`, "How it works", step 1); the user answered the two
   questions it raised, Q43 (the races' order as a number of each) and Q44 (the emblem as a name), as recommended ("GM2's
   detail round").
+- **2026-11-16, GM2 step 2 (the actor record, its rules and the oracles):** the old game's oracle, the reference method of
+  every later milestone ("How each step is finished", item 3): `Tools/OldGameOracle/` and
+  `Tools/Scripts/make-old-game-references.sh`, a module per rule set (a case list and a small `run`, in Node or the old
+  game's test client), its results committed in `Tests/Statventure.Game.Tests/Reference/old-game/`; step 1's race oracle
+  folded into it. `actor.sheet` and `ActorRules` in the data library, matching the old game on every case
+  (`Docs/Game/Hero.md`, "How it works", step 2). A later milestone adds its modules and cases there.

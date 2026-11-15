@@ -1,0 +1,12 @@
+actor.sheet 1
+  1 race: string? = null
+  2 level: int32 = 1
+  3 experience: float64 = 0
+  4 freePoints: int32 = 0
+  5 classPoints: int32 = 1
+  6 attributes: actor.attributes = {"strength":10,"vitality":10,"mind":10,"dexterity":10,"intelligence":10,"wisdom":10,"speed":10,"luck":10}
+  7 spentPoints: actor.attributes = {"strength":0,"vitality":0,"mind":0,"dexterity":0,"intelligence":0,"wisdom":0,"speed":0,"luck":0}
+  8 bonuses: actor.bonuses = {"strength":0,"vitality":0,"mind":0,"dexterity":0,"intelligence":0,"wisdom":0,"speed":0,"luck":0,"armor":0,"evasion":0}
+  9 hp: int32 = 31
+  10 mana: int32 = 20
+  11 purse: actor.purse = {"silver":0,"gold":5,"platinum":0}

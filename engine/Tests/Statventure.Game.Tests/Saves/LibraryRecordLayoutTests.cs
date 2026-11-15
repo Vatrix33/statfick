@@ -18,16 +18,21 @@ public class LibraryRecordLayoutTests
 
     static int CurrentVersion(Type type) => type.GetCustomAttribute<RecordAttribute>()!.Version;
 
-    /// <summary>The library's record types: the save, and since GM2 step 1 the race with its parts and the effect union with its 23 subtypes.</summary>
+    /// <summary>
+    /// The library's record types: the save, since GM2 step 1 the race with its parts and the effect union with its 23
+    /// subtypes, since step 2 the actor record and its parts.
+    /// </summary>
     [Fact]
     public void TheGuardCoversEveryRecordTypeOfTheLibrary()
     {
         Assert.Equal(
-            ["effect", .. Data.Effects.Effect.Types.Keys.Select(t => "effect." + t).Order(StringComparer.Ordinal), "race", "race.modifiers", "race.passive", "race.swatch", "save.game"],
+            ["actor.attributes", "actor.bonuses", "actor.purse", "actor.sheet",
+             "effect", .. Data.Effects.Effect.Types.Keys.Select(t => "effect." + t).Order(StringComparer.Ordinal), "race", "race.modifiers", "race.passive", "race.swatch", "save.game"],
             LibraryRecords.Types.Keys);
         Assert.Equal(23, Data.Effects.Effect.Types.Count);
         Assert.Equal(typeof(SaveGame), LibraryRecords.Types["save.game"]);
         Assert.Equal(typeof(Data.Races.Race), LibraryRecords.Types["race"]);
+        Assert.Equal(typeof(Data.Actors.ActorSheet), LibraryRecords.Types["actor.sheet"]);
     }
 
     [Fact]

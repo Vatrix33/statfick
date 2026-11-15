@@ -88,7 +88,7 @@ public class RaceDataTests
     {
         foreach (var results in new[] { RaceOracle.Fold, RaceOracle.Rules })
             foreach (var (path, then, now) in RaceOracle.Sources(results))
-                Assert.True(then == now, $"old-game/{path} changed since the race references were made: run Tools/Scripts/make-race-references.sh");
+                Assert.True(then == now, $"old-game/{path} changed since the race references were made: run Tools/Scripts/make-old-game-references.sh race-fold race-rules");
     }
 
     [Fact]

@@ -9,7 +9,7 @@ namespace Statventure.Game.Tests;
 /// The <c>race</c> kind and the <c>effect</c> union as records (GM2-P3, GM2-P4; Docs/Game/Hero.md, "How it works", step 1):
 /// their fixtures for the layout guard (<see cref="LibraryRecordLayoutTests"/>), the kind as the editor and New entry
 /// see it, each effect subtype named after the old game's type string, and the checks refusing what the old game's
-/// <c>normalizeRaceDefinition</c> refused (its cases measured by the oracle, <c>Reference/race-rules.json</c>), in the
+/// <c>normalizeRaceDefinition</c> refused (its cases measured by the oracle, <c>Reference/old-game/race-rules.json</c>), in the
 /// editor's words, with the record's own form refusing what a record can't hold.
 /// </summary>
 public class RaceRecordTests

@@ -7,27 +7,36 @@ using Statventure.Tests.Infrastructure;
 namespace Statventure.Game.Tests;
 
 /// <summary>
-/// The race oracle's committed results (GM2 step 1; Docs/Game/Hero.md, "How it works", step 1), made from the old game by
-/// <c>Tools/Scripts/make-race-references.sh</c> in its test client and read here so the tests run where there is no
-/// Chromium: <c>Reference/race-cases.json</c> (the case list, with the crafted races in the old file's form),
-/// <c>race-fold.json</c> (each case's <c>calculateRaceEffectsUncached</c> and <c>raceStatModifier</c>, step 2's case form)
-/// and <c>race-rules.json</c> (<c>normalizeRaceDefinition</c>'s cases, <c>applyRaceText</c>'s refusals, the accents, the
-/// normalized races). Both result files name the old game's sources by SHA-256.
+/// The race oracle's committed results (GM2 step 1; Docs/Game/Hero.md, "How it works", steps 1 and 2), made from the old
+/// game in its test client by the oracle's modules <c>race-fold</c> and <c>race-rules</c> (<c>Tools/OldGameOracle/</c>,
+/// <c>Tools/Scripts/make-old-game-references.sh</c>; step 1's own script folded in at step 2) and read here so the tests
+/// run where there is no Chromium: <c>Tools/OldGameOracle/cases/race-cases.json</c> (the case list, with the crafted races
+/// in the old file's form), <c>Reference/old-game/race-fold.json</c> (each case's <c>calculateRaceEffectsUncached</c> and
+/// <c>raceStatModifier</c>) and <c>race-rules.json</c> (one case per part: <c>normalizeRaceDefinition</c>'s cases,
+/// <c>applyRaceText</c>'s refusals, the accents, the normalized races, the crafted ones; read here as one object of the
+/// parts). Both result files name the old game's sources by SHA-256.
 /// </summary>
 static class RaceOracle
 {
     static string ProjectDirectory([CallerFilePath] string path = "") => Path.GetDirectoryName(Path.GetDirectoryName(path)!)!;
 
-    public static string Folder => Path.Combine(ProjectDirectory(), "Reference");
+    public static string Folder => Path.Combine(ProjectDirectory(), "Reference", "old-game");
 
     /// <summary>The engine folder of the repo (the committed data and packs are under it).</summary>
     public static string Engine => Path.GetFullPath(Path.Combine(ProjectDirectory(), "..", ".."));
 
     public static string RacesFile => Path.Combine(TestPaths.OldGame, "objects", "races.json");
 
-    static readonly Lazy<JsonDocument> CasesDocument = new(() => JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Folder, "race-cases.json"))));
+    static readonly Lazy<JsonDocument> CasesDocument = new(() => JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Engine, "Tools", "OldGameOracle", "cases", "race-cases.json"))));
     static readonly Lazy<JsonDocument> FoldDocument = new(() => JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Folder, "race-fold.json"))));
-    static readonly Lazy<JsonDocument> RulesDocument = new(() => JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Folder, "race-rules.json"))));
+    static readonly Lazy<JsonDocument> RulesDocument = new(() =>
+    {
+        // { "sources", and each part's output by its name }, from the module's one case a part.
+        using var results = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Folder, "race-rules.json")));
+        var parts = results.RootElement.GetProperty("cases").EnumerateArray()
+            .Select(c => $"\"{c.GetProperty("input").GetProperty("part").GetString()}\":{c.GetProperty("output").GetRawText()}");
+        return JsonDocument.Parse($"{{\"sources\":{results.RootElement.GetProperty("sources").GetRawText()},{string.Join(",", parts)}}}");
+    });
 
     public static JsonElement Cases => CasesDocument.Value.RootElement;
     public static JsonElement Fold => FoldDocument.Value.RootElement;

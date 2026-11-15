@@ -1,5 +1,5 @@
 {
- "about": "The race oracle's case list (GM2 step 1; Docs/Game/Hero.md, \"How it works\", step 1): made by Tools/Scripts/make-race-references.sh in the old game's test client into race-fold.json and race-rules.json.",
+ "about": "The race oracle's case list (GM2 step 1; Docs/Game/Hero.md, \"How it works\", steps 1 and 2): read by the oracle's modules race-fold and race-rules (Tools/OldGameOracle/modules/), run in the old game's test client by Tools/Scripts/make-old-game-references.sh into Tests/Statventure.Game.Tests/Reference/old-game/race-fold.json and race-rules.json.",
  "fold": [
   {
    "enemyCount": 0,

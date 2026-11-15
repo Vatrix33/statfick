@@ -23,8 +23,11 @@ static class GameTesting
     /// <summary>The game's kind the editor's tests use (the race, GM2 step 1, in place of GM1's development-only stand-in item, GM1-P3).</summary>
     public const string RaceKind = "race";
 
-    /// <summary>How many record kinds the library brings beside the engine's: the save, the race with its three parts, the effect union and its 23 effects.</summary>
-    public const int LibraryKinds = 29;
+    /// <summary>
+    /// How many record kinds the library brings beside the engine's: the save, the race with its three parts, the effect
+    /// union and its 23 effects, and the actor record with its three parts (GM2 step 2).
+    /// </summary>
+    public const int LibraryKinds = 33;
 
     /// <summary>
     /// A game's folder at <paramref name="folder"/> as its download lays it out: <c>packs/</c> with the repo's packs, the

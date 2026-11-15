@@ -565,6 +565,16 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   doesn't (a fixture whose list overflows shows it); this session's Write and Edit tools turn `\uXXXX` in the text into
   the character itself (C# took `\x` escapes, JSON was written through Python's `chr`); in a worktree-isolated session a
   shell heredoc or a `python3 - <<EOF` with quotes is refused as too complex: write the script to a file first.
+- 2026-11-16 (the PC, GM2 step 2's worker on the branch `gm2-step2`, 4266 + 630 = 4896 tests on the GPU and lavapipe): **the
+  actor record, its rules and the oracles** (`Docs/Game/Hero.md`, "How it works", step 2). Facts of the old game: a new
+  hero's HP is 31 (`⌊(15 + 5 + 5) × 1.25⌋`), not 30; the bonus field of an attribute takes off the artifacts' and
+  classes' percentages but not the race's, which it shows (Armor's and Evasion's take off the race's); `Combat.defense`
+  with no battle floors and holds at 0; the sheet holds HP and Mana to their maxima on every update, so an action's own
+  clamp is done twice. Gotchas: an element's `style.width` read back is the CSSOM's shortened number (a percentage cut to
+  seven decimals): to get the old code's own number, define a `style` setter on the element for the one call; the test
+  client's page lets a script reassign the old game's global functions and `let` globals (stubs, a crafted race through
+  `normalizeRaceDefinition`), and runs each oracle module in a fresh page; a mutation whose code is held twice (an action's
+  clamp, then `Settle`'s) can't be killed: account for it rather than drop either.
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

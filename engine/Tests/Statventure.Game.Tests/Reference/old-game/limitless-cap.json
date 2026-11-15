@@ -1,0 +1,11 @@
+{
+  "module": "limitless-cap",
+  "made": "Tools/Scripts/make-old-game-references.sh limitless-cap",
+  "sources": {
+    "scripts/limitless-engine.js": "5de23bae05f11bd24e658ee7b46e7bf355aa86ad0f264a13d6f733b3fdc20b0e"
+  },
+  "cases": [
+    {"input":{"active":false},"output":{"cap":100,"baseCap":100,"limitlessCap":200,"pointsPerLevel":5}},
+    {"input":{"active":true},"output":{"cap":200,"baseCap":100,"limitlessCap":200,"pointsPerLevel":5}}
+  ]
+}

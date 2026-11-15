@@ -1,0 +1,9 @@
+actor.attributes 1
+  1 strength: int32 = 0
+  2 vitality: int32 = 0
+  3 mind: int32 = 0
+  4 dexterity: int32 = 0
+  5 intelligence: int32 = 0
+  6 wisdom: int32 = 0
+  7 speed: int32 = 0
+  8 luck: int32 = 0

@@ -236,7 +236,8 @@ Nothing of GM2 yet: the game's character page is GM1's top bar over an empty par
   the character's.
 - **The record** (`defaultCharacter`, 1327–1374): the hero's fields the sheet uses are `raceId` (null), `appearance`
   (null), `level` 1, `exp` 0, `availablePoints` 0, `perkPoints` 1 (`startingPerkPointGranted`), `enemyCount` 0 (the
-  battle's, read by Mud Runner), `currentHp` and `currentMana` (the maxima of the default attributes, 30 and 20),
+  battle's, read by Mud Runner), `currentHp` and `currentMana` (the maxima of the default attributes, 31 and 20:
+  ⌊(15 + 5 + 5) × 1.25⌋ = 31; "30" here until step 2's oracle read the old game's own value, `new-hero.json`),
   `manualAllocations`, `currencies`, `permanentBonuses`, `permanentDefenseBonuses`, `equipment` (five nulls), `stats`;
   the rest belongs to later milestones (`Docs/Game-Plan.md`, "The save and what goes in it"). The page holds them as
   about 45 top-level variables (1574–1616); combat evaluates any actor by swapping them (`withActor`, `combat.js` 143),
@@ -659,7 +660,8 @@ switch to `race` entries.
 
 `save.game` v2 (GM1-P5): version 1 (`name`) frozen as `SaveGame.V1` with its fixtures; version 2 adds the hero: its
 sheet (`actor.sheet`) and its look (`look.hero`, below). `Upgrade()` from v1 gives a new hero's defaults
-(`defaultCharacter`: level 1, 10 in each attribute, 5 gold, 1 class point, HP 30 and Mana 20) with no race and no look, so
+(`defaultCharacter`: level 1, 10 in each attribute, 5 gold, 1 class point, HP 31 and Mana 20, a new `ActorSheet`;
+"HP 30" here until step 2 found the old game's 31) with no race and no look, so
 a GM1 character opens on the new-hero flow (Q26). Fixtures of both versions in both forms, the layout signatures
 (`Tests/Statventure.Game.Tests/Data/Records/`). A character file is the save's JSON form, so a GM2 hero exports and
 imports with its look.
@@ -1469,6 +1471,13 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
    - Must not touch: the save, the screens, art.
    - Finished: every rule matches the old game on the named cases (Node for `CombatRules` and `LimitlessRules.cap`, the
      test client for `app.js`'s rules); each mutation killed. No approval.
+   - **Done (2026-11-15/16, the branch `gm2-step2`; "How it works", step 2).** Its choices: the oracle's modules (a case
+     list and a `run` each, Node or the test client, results committed one case a line, a test failing when the old game
+     changed under them); step 1's race oracle folded into it at the rebase (one oracle, one way to make it); hand-made
+     totals for the sources GM2 lacks and crafted races in the oracle's sheets, so every term of the formulas is checked;
+     `actor.sheet` with whole attributes, points, HP, Mana and coins, EXP and bonuses doubles, no `[Check]` (step 6's
+     question); the rules on step 1's keys, value types, fold and `JsValues` (one of each); Dev Mode's fields refusing
+     outside it; `ChooseRace`'s refusals as reasons. Found: a new hero's HP is 31, not 30.
 3. **Blender 5.2, the art's tooling and the look** (3D, the manager; the PC).
    - Owns: the official Blender 5.2 Linux build in the build cache and `$STATVENTURE_BLENDER` in `env.local.sh`; **first,
      before any new art, the proof that the engine's 56 render references and its evaluations reproduce with it**
@@ -1952,7 +1961,11 @@ packer (Release; the game's kinds known), always afresh (into a new file, then m
 over), so the same folder gives the same bytes anywhere; the tests hold the committed pack to a fresh pack of the folder.
 The engine already mounts `packs/data.pak` (`Application.AreaPacks`): `Game/Statventure.Game` is unchanged.
 
-**The oracle** (the old game's test client in Chromium 152, headless, through `chromium.sh`, as GM2-P13 lays down; step
+**The oracle** (**folded into step 2's tooling at step 2's rebase**: the modules `race-fold` and `race-rules` of
+`Tools/OldGameOracle/`, run by `Tools/Scripts/make-old-game-references.sh`, the case list moved to
+`Tools/OldGameOracle/cases/race-cases.json`, the results `Reference/old-game/race-fold.json` and `race-rules.json`, the
+same values; `make-race-references.sh` and `race-references.js` gone: "How it works", step 2. As this step made it:)
+(the old game's test client in Chromium 152, headless, through `chromium.sh`, as GM2-P13 lays down; step
 2's tooling came beside it, so this step's is its own): `Tests/Statventure.Game.Tests/Reference/race-cases.json` (the case
 list: the fold's levels and enemy counts, five crafted races in `races.json`'s form whose values reach the fold's edges,
 53 `normalizeRaceDefinition` cases, 4 whole files), `race-references.js` (the test-client script),
@@ -2021,6 +2034,161 @@ commit rebased on step 12's `f071f09`: 4266 + 610 = 4876 tests (`main`: 4265 + 5
 was made again by the tests and `preview-effect` captured again on top of step 12's (its seven new sounds push the
 `data/races` folder below the list's fold: only the scrollbar's thumb differs from step 12's picture).
 
+### Step 2: the actor record, its rules and the oracles (2026-11-15 and 16, the branch `gm2-step2`)
+
+**The oracle** (GM2-P13; `Tools/OldGameOracle/`, `Tools/Scripts/make-old-game-references.sh [module …]`). The old
+game's own code run on a case list, its results committed in `Tests/Statventure.Game.Tests/Reference/old-game/
+<module>.json`, so the port's tests compare where there is no Node or Chromium. The old game is only read.
+- **A module** is `Tools/OldGameOracle/modules/<name>.cjs` (CommonJS): `where` ("node": the old game's pure modules,
+  loaded with `require` by the cache's Node 24, which `env.sh` finds; "client": the old page in its headless test client,
+  Chromium 152 through `chromium.sh old-game/test-client --script --call=oracleMain`), `sources` (the old-game files the
+  results depend on; their SHA-256 go with the results), `cases(old)` (the case list, made in Node: `old.json(path)` reads
+  an old-game data file, `old.cases(file)` a case file of `Tools/OldGameOracle/cases/`; random spreads only from
+  mulberry32 with fixed seeds), `run(input, …)` (one case's output; in the page `run(input, setup)` with the old game's
+  globals), optionally `setup(old)` (data made in Node once and given to every run in the page: crafted races) and `uses`
+  (helper files of `shared/` put before the module in the page's scope: `sheet-page.js`). `oracle.cjs` runs a Node module
+  in place; for a client module it writes the page's script (the shared helpers, the module, the case list and the setup
+  as JSON, `oracleMain` running every case), the script runs the test client with `TMPDIR` a folder of its own (the
+  client's fresh profile), the results leave through the test preload's save hook (`saveCharacter`, which needs a `stats`
+  key and takes 10 MiB at most: a module with more splits its cases), and `oracle.cjs client-result` checks the page ran
+  exactly the case list before writing. The script runs inside a headless cage of its own when cage exists (the PC), else
+  `chromium.sh` takes Xvfb (the cloud). Results: `{ "module", "made", "sources": { path: sha256 }, "cases": [ { "input",
+  "output" } ] }`, one case a line; numbers as V8 writes them (read back as the same doubles), the non-finite ones as
+  "Infinity", "-Infinity", "NaN". The same old game and case lists give the same bytes (the script run twice on the final
+  tree: no difference). `OldGameReferenceTests` holds every module to its results file and every source's hash to the old
+  game as it is: **a change to the old game fails the suite until the script is run again** (the port is never checked
+  against an old game that is gone; chosen over a silent staleness, as the game-screen captures have).
+- **The modules now:** `combat-rules-levels` (Node: `experienceRequired`, `sameLevelVictories`, `enemyExperience` at
+  levels 1–200 and seven whole levels outside, 207 cases); `limitless-cap` (Node: `cap` off and on, the constants);
+  `new-hero` (the page's `defaultCharacter()` in the port's words); `race-fold` and `race-rules` (step 1's race oracle,
+  folded in at this step's rebase so there is one oracle and one way to make it: its case list moved to
+  `cases/race-cases.json`, its script's two parts as two modules, the same 3,696 fold cases and the same values, the
+  rules' five parts one case each; step 1's `RaceOracle` reads them there); `sheet-values` (311 cases: what the sheet shows,
+  through the old `displayedBaseStat`, `currentStats`, `effectivePermanentBonus`, `effectivePermanentDefenseBonus`,
+  `calculateMaxHpWithArtifacts`, `calculateMaxManaWithEffects`, `updateDerivedValues`' Armor and Evasion and its hold of HP
+  and Mana, `updateEditingControls`' controls, the EXP card's texts; the bar's width caught from the old code's own
+  assignment, as the CSSOM shortens a number read back); `sheet-actions` (488 cases: each handler pressed with its button
+  enabled first, so its own checks decide: the "+" and "−" steppers, respec, level up, `adjustResource`, Full HP, Full
+  Mana, Restore both, Dev Mode's attribute, bonus, Armor/Evasion bonus, purse and EXP fields, `selectRace`; the sheet
+  "settled" once shown, then after). Their sheets: the new hero, sheets with no race, every race of `races.json` (the new
+  hero, Level 40 with nothing raised as the old checks make it, and spreads), Limitless's cap, the edges (bonuses below
+  −100 %, attributes far below 0, Armor in the thousands, resources out of range), a crafted race (`stubs.race`, the old
+  file's form, id `stub-race`, put in the page's catalogue through `normalizeRaceDefinition` and converted in the tests by
+  step 1's `OldRaceFile`: the real fold reads it) and hand-made totals for the sources GM2 doesn't have (the artifacts and
+  the worn equipment GM3's, the classes GM8's, the battle's overrides GM5's), which the page puts in place of the old
+  functions (`calculateArtifactEffects`, `calculateClassEffects`, `calculateEquipmentDefense` and its kin,
+  `window.Combat`'s five) and the tests' doubles repeat: every term of every formula is reached, not only those GM2
+  fills.
+- **Adding a module or a case** (a later milestone's): write `modules/<name>.cjs` (its `where`, `sources`, `cases`,
+  `run`), run `Tools/Scripts/make-old-game-references.sh <name>`, commit the results, and test the port with
+  `OldGameReference.Load("<name>")` (its cases' inputs and outputs, `OldGameReference.Number` for the non-finite ones):
+  the tests read the cases from the results, so a case is added by changing the case list (or the shared generators of
+  `shared/`) and running the script again. A large list kept as data goes in `cases/`.
+- **Found:** a new hero's HP is **31**, not the design's 30 (`⌊(15 + 5 + 5) × 1.25⌋`; corrected in "What exists" and "The
+  save, version 2"); the EXP bar's `style.width` read back is the CSSOM's shortened number (seven decimals, cut), so the
+  oracle takes the old code's own string.
+
+**The actor record** (`Game/Statventure.Game.Data/Actors/`, GM2-P1): `actor.sheet` v1 (`ActorSheet`, `[NotAPackKind]`, no
+`[Kind]`, as `save.game`): `race` (the race's id, none for a new hero: written left out), `level` 1, `experience` (a double:
+Dev Mode's EXP form takes fractions) 0, `freePoints` 0, `classPoints` 1, `attributes` (`actor.attributes`, eight whole
+numbers) 10 each, `spentPoints` (`actor.attributes`) 0 each, `bonuses` (`actor.bonuses`: the eight attributes', Armor's and
+Evasion's percentages, doubles) 0, `hp` 31, `mana` 20, `purse` (`actor.purse`: silver, gold, platinum) 0, 5, 0: a new
+`ActorSheet` is the old `defaultCharacter`'s new hero (the oracle's `new-hero`). Each field's `[Help]` names the old field.
+The parts are `[NotAPackKind]` (never an entry). No `[Check]`: the old `normalizeCharacter` clamped rather than refused
+(a level to 1–cap, points, coins and HP to 0 or more); whether a character file outside those is refused or clamped is
+step 6's (it reads the save). Its layout and fixtures (`new-hero`, `played`) are in the library's guard.
+
+**The rules** (`ActorRules`, GM2-P2: functions of an immutable sheet and a `SheetContext`; values computed when asked):
+- **Values:** `BaseAttributes`, `CurrentAttributes` (`AttributeValues`), `ShownBonus` / `ShownDefenseBonus` (the bonus
+  fields), `MaxHp`, `MaxMana`, `Defenses` (Armor's and Evasion's base, modified and current), `ExperienceRequired`,
+  `AtLevelCap`, `LevelCap`, `CanLevelUp(devMode)`, `LevelUpAlert`, `CanRaise(devMode)`, `CanRespec`, and `Evaluate(sheet,
+  context, devMode)` with all of them for a screen (`SheetValues`, HP and Mana held, the EXP remaining and the bar's
+  percentage). `MaxHpFormula`, `MaxManaFormula`, `EvasionFormula`, `BaseArmor`, `BaseEvasion` are the old constants and
+  formulas. `RaceOf`, `RaceTotalsOf` (step 1's `RaceTotals.Of` at the sheet's level with the battle's enemies).
+- **Actions** (each a new sheet; the same instance when the old game refuses): `Raise`, `Lower`, `Respec`, `LevelUp`,
+  `ChangeResource(resource, amount)`, `RestoreResource`, `RestoreBoth`, `SetBaseAttribute`, `SetBonus`,
+  `SetDefenseBonus`, `SetPurse`, `AddExperience` (Dev Mode's: refused outside it, where the old fields are disabled),
+  `ChooseRace(race, devMode)` (`RaceChoice`: the sheet, or `NotPlayable` / `Locked` for the old status lines; the texts are
+  the screens'), and `Settle` (HP and Mana held to their maxima, as `updateDerivedValues` holds them; every action ends
+  with it, as the old handlers end with that call).
+- **The context** (`SheetContext`): `Races` (by id: `WithRaces(RaceCatalogue.Load(data))`), `Artifacts`, `Classes`,
+  `Equipment` (functions of the sheet giving `ArtifactSheetTotals`, `ClassSheetTotals`, `EquipmentSheetTotals`: zero
+  until GM3 and GM8; the equipment's defence a function of the current attributes, as an item's power reads them),
+  `Battle` (`IBattleSheet`: the battle's maximum of a resource, its stat and defence percentages, its value of an
+  attribute and of Armor or Evasion, its enemies; `NoBattle` outside one: no maximum, nothing added, Armor and Evasion
+  floored and held at 0 or more, as the old `Combat.defense` does with no battle), `Limitless` (GM15's cap of 200; level
+  ups above 100 give no class point already). `SheetContext.Plain` has none of them.
+- **Numbers:** step 1's `JsValues.ToNumber` / `ToInteger` (one helper for those; this step's own were dropped at the
+  rebase), and `JsNumbers` for what it lacks: `Round` (V8's halves toward +∞; the curve's), `OrZero` (`x || 0`), `ToInt` (a
+  whole double into an `int` field, saturated). Attributes and defences are named by step 1's keys (`AttributeKeys`,
+  `DefenseKeys`) and their numbers held in its `AttributeValues` and `DefenseValues` (this step's own enum and number types
+  were dropped at the rebase, so there is one of each). `Levelling` holds the curves and the cap (`Cap`, `BaseCap`,
+  `LimitlessCap`, `PointsPerLevel`); the curve's `pow` is the C library's, and a test shows no level's value lies near a
+  half, so any `pow` within an ulp rounds the same.
+
+**Choices made** (internal; none changes what a player sees): attributes, points, HP, Mana and coins are whole numbers in
+the record (the old save floors them on load), EXP and the bonuses doubles; Dev Mode's attribute field floors the stored
+attribute at once (the old page keeps a fraction until the next load for a race with a fractional modifier, which no race
+has); a coin count past `int` is held at its end; Dev Mode's fields refuse outside it (the old page disables them);
+`ChooseRace`'s refusals as reasons, their words left to the screens; the race-oracle fold (above); the stale-oracle test.
+
+**For later steps.** *Step 6 (the save v2):* the hero is `ActorSheet` (record `actor.sheet` v1), the save's field as
+GM2-P5 has it; `new ActorSheet()` is v1's `Upgrade()` hero (HP 31); the session's `Change(save => save with { Hero =
+ActorRules.LevelUp(save.Hero, context, settings.DevMode) })` saves each result; a character file holds it in its JSON
+form; out-of-range values (the old game clamped) are its question. *Step 7 (the sheet):* `ActorRules.Evaluate(sheet,
+context, devMode)` gives every number and control state the page shows (`SheetValues`), the texts' formats are in
+`ActorRulesOracleTests` (the old `formatValue`, "CAP 100", "/ N EXP", "MAX LEVEL", the helper lines, the bar's width and
+`aria` values, all checked against the old page) and in `sheet-values.json`'s `texts`; each control calls its action and
+hands the result to `GameSession.Change`; the context is `SheetContext.Plain.WithRaces(RaceCatalogue.Load(<the game's data>))` (`Application.Data`).
+*Step 8 (the carousel):* `ActorRules.ChooseRace` then HP and Mana are filled (`selectRace`'s), `NotPlayable`/`Locked` for
+its status lines. *GM3:* the artifacts' totals, the worn equipment (its defence, caps, HP percentage, Peace and Balance)
+and the race's equipment restrictions on choosing a race; *GM5:* `IBattleSheet` per actor (in place of `withActor`; a
+battle's fractional maximum would need HP as a double: a new version) and the battle side of the race; *GM8:* the classes'
+totals and spending class points; *GM9, GM11:* an enemy or a companion is an `ActorSheet` with its own parts beside it (a
+name and look, an enemy file's classes and gear; `maxHpPercent` and `baseArmor` of an enemy file are GM9's); *GM15:*
+`Limitless` in the context, its record (`noteSpent`, the respec clearing its count) beside the sheet.
+
+**Tests** (game; the counts in "Runs"): `LevellingTests` (the curves at every level against Node, the cap, the curve
+far from halves, `RunLevellingCurveChecks` with each expectation of `small-changes-browser.js` 102–118, JavaScript's
+round), `ActorRulesOracleTests` (every case of `sheet-values` and `sheet-actions`, number for number, every race of
+`data.pak`, the crafted races and every stub kind among them), `ActorRulesTests` (`RunMapChecksLevelIcon`:
+`map-browser.js` 15–22; `CheckGiantsBlood`: its maximum HP on the sheet, step 1's test having its race totals, and the
+human's 48 HP against the Goliath's 40 at Level 40 that task 11 found; Dev Mode's refusals; refused actions giving the same
+sheet; a race the data doesn't have; the context's races), `ActorSheetTests` (the new hero is the old one, the marks, both
+forms, the fixtures, the parts by key), `OldGameReferenceTests` (every module has its results and the results are of
+today's old game). `checkNewRaceData` and `checkNaturalClaws` are step 1's tests (race data). The library's guard covers
+`actor.attributes`, `actor.bonuses`, `actor.purse`, `actor.sheet`; the editor's `LibraryKinds` is 33.
+
+**Shown able to fail** (`mutate.py` with the game's project, under the shared lock; `claude-work/gm2/step2/`: the list
+made by `make-mutations.py` before the rebase, `make-mutations2.py` after it, `mutations2.json` the standing one): 220
+mutations of every rule: the curves and the cap; the race's lookup and fold at the sheet's level with the battle's enemies;
+the current attributes (each percentage, Peace and Balance's lock, the flat amounts, the floor, the battle's value); the
+shown bonuses; the formulas, their floors and their holds at 0; max HP and Mana (each flat amount and percentage, the
+battle's maximum); Armor and Evasion (each term, each cap, the battle's value); the controls; `Settle`; every condition and
+term of each action; Dev Mode's refusals; choosing a race (each refusal, the fill); the record's defaults and marks; the
+parts' keys; JavaScript's round, `|| 0` and the whole-number hold; the defence with no battle. The first runs (before and
+after the rebase) found gaps, each closed by cases of the oracle's own (Peace and Balance against a lowered Speed, the
+formulas below 0 under flat amounts, Armor in the thousands, armour that grows with Strength, caps below the values, every
+action drawn from each pool of sheets, a race that can't heal, the bonus fields with every source in, HP and Mana below 0
+when shown, a crafted race's modifier before it is chosen). **The standing list on the final references: 220, 212
+killed, 8 that can't differ:** the level up's heal not floored (an `int` field takes the value by truncation, and it is
+never below 0, so that floors it); the level up's heal and HP and Mana by hand past the maximum or below 0 (5: `Settle`
+holds them again at the end, as the old `updateDerivedValues` does after `adjustResource` and the level up); no damage
+to a race that can't heal (amount 0, the only one that differs, changes nothing on a shown sheet, and the old button
+never passes 0); Dev Mode's attribute field not floored (with a whole race modifier `floor(typed − m) = floor(typed) −
+m`, and every race's is whole). **The oracle tooling's own rules** (`script-rules.py`, a runner of its own: a rule broken
+in `oracle.cjs`, a shared helper, a module or the script; the script run on the modules it reaches; killed when it fails or
+its results differ by a byte; under the lock and alone): 20, **17 killed, 3 that can't differ:** the page's case-list
+check removed (it guards against a broken page: "the page skips its last case" is killed by it), the results written
+without the non-finite encoding (no Node module gives a non-finite number, and the page encodes the client modules'
+itself), the crafted races numbered from 0 (`normalizeRaceDefinition`'s index only names a race in its messages). Nothing
+written to the player's real folders.
+
+**Runs** (headless, scratch per-user folders, nothing audible; on the step's tree rebased on `bf59d0d`, `main` with steps
+1, 3a and 12): the full suite on the GPU (293 s with the build) and on lavapipe (309 s): **4266 + 630 = 4896 tests**
+(`main`: 4266 + 610 = 4876; 20 new, all the game's), none held or skipped; `make-old-game-references.sh` with every module
+run twice on the final tree: not a byte differs.
+
 ## Status
 
 - **2026-11-15:** written on the user's go for GM2 (docs only, the branch `gm2-design` from `8c7d07d`), after the user's
@@ -2061,3 +2229,11 @@ was made again by the tests and `preview-effect` captured again on top of step 1
   tests on the GPU and on lavapipe; mutations 113 standing, 110 killed, 3 that can't differ; the pack script's 14 killed;
   the end-to-end flow 241 of 241 on both. Found for later steps: a race's `spell-power-percent` is read by nothing in the
   old game (GM5's to decide), and the engine's `Focus()` doesn't scroll into view as Chromium's `focus()` does.
+- **2026-11-16, step 2 done** (the branch `gm2-step2`; "How it works", step 2): the old game's oracle
+  (`Tools/OldGameOracle/`, `make-old-game-references.sh`: seven modules, Node and the test client, results committed and
+  reproduced byte for byte; step 1's race oracle folded into it), `actor.sheet` and its rules in the data library on step
+  1's races, matching the old game on every case (the curves at levels 1–200, 311 sheets' values, 488 actions, real and
+  crafted races and hand-made totals for every source GM2 lacks). 4266 + 630 = 4896 tests on the GPU and on lavapipe;
+  mutations 220 standing, 212 killed, 8 that can't differ; the tooling's 20, 17 killed, 3 that can't differ. Found: a new
+  hero's HP is 31, not 30 (corrected above). Left for step 6: whether a character file with a sheet out of the old ranges
+  is refused or clamped (the old game clamped).
