@@ -1997,6 +1997,31 @@ reason runs alone, the problem logged at `Load`. **Checked** with the dev layout
 starts in one cage): the later start ended with 0 in 0.05–0.14 s with its line, the first logged the request, and a start
 on another per-user folder ran beside.
 
+**Corrected 2026-11-15 (the flaky tests' task, the branch `gm1-flaky-tests`):** on Linux both sides now wait only on
+their own threads, with `poll` on sockets that never block, never on .NET's thread pool. Before, the first's listener
+took a call with `AcceptAsync` and both sides read with `ReadAsync` and a cancellation timer, each awaited on its thread:
+their completions and the timer ran on the pool, so a busy pool held the first's answer and the later start's own 3 s
+(a test host's pool, busy with the tests beside it at a run's start, held a 400 ms forward 711 ms; with 8 pool threads
+held a later start "of 400 ms" came back after 2.7 s, with 16 after 10 s). And a later start's connect was blocking: when
+the first took no more calls (stopped, `SIGSTOP` or Ctrl+Z in its terminal, with its queue of five calls full) the sixth
+later start waited without end, not 3 s (the real program on `main`, headless: starts 1–5 ended with 0 after 3.08 s
+saying "… but it didn't answer.", starts 6 and 7 were still waiting when `timeout` ended them at 20 s). Now a later start's
+connect is refused at once when the queue is full and tried again until its time is over; it sends its question and
+waits for the answer with `poll` until the time is over; the first waits for a call with `poll` (looking every 250 ms
+whether its start is over), takes it on a socket that doesn't block, waits for its question a second at most
+(`SingleInstance.QuestionTime`), raises `ForwardAsked` and answers. (Blocking `Accept` and `Receive` keep off the pool
+too, a probe with the pool held showed; sockets that don't block were taken so that the connect is refused at once and
+every wait is the same `poll`.) Nothing a player sees changed: the same words, the
+same 3 s, the same exit code; the stopped first's sixth and seventh later starts now end with 0 after 3.04 s too. The
+Windows named pipe still awaits its completions (not changed: not checked there). The tests: a later start that should
+be answered has the program's own 3 s (`TheSameFolderReachedThroughALinkIsTheSame` had 400 ms), the others run on a
+thread of their own with a 30 s limit (`LaterStart`); new `ALaterStartKeepsToItsTimeWhenTheFirstTakesNoMoreCalls`,
+`ACallThatSaysNothingHoldsTheFirstASecondAtMost` (a call that hangs up, one that says nothing, then the later start served
+after a second), a first that takes the call but never answers in `AFirstThatDoesntAnswerLeavesTheLaterStartUnanswered`,
+and `SingleInstanceHeldPoolTests` (every thread of the pool held, in a collection that runs alone after the others: the
+first answers and a silent first's later start keeps its 400 ms, both before the pool is let go at 10 s; `main` fails it
+and the full-queue test).
+
 **The command line (GM1-P12; `GameOptions`):** `--capture <png> [--frames N]` (30 by default; N a whole number from 1),
 `--capture-splash <png>`, `--about`, `--open <screen>`, `--crash`, `--crash-thread`; paths made full; no usage text; a
 wrong argument (unknown, a missing value, a bad `--frames`) is ignored and logged as a warning once the log is open.
@@ -3921,6 +3946,15 @@ expectation changed; the player's real folders unchanged (this machine's game fo
 **Not checked:** Windows (the picker's roots as drive letters, the picker fixtures' paths, which are POSIX ones as the
 editor's browser fixture's; Q34's holds aside); a real window (the slider dragged with a real mouse, the picker's rows
 scrolled by a wheel); the sounds by ear in the game.
+
+**Corrected 2026-11-15 (the flaky tests' task, the branch `gm1-flaky-tests`):** `SlotsScreenTests` read the saves folder
+by hand right after Start new and Use the backup, but the slot is written, and the damaged save kept aside as
+`<slot>.dat.damaged`, by the engine's background writer, a thread of its own that starts when work comes: on a busy
+machine it hadn't run yet (`WithoutABackupThatReadsStartNewIsTheActionAndKeepsTheFilesName` failed once on lavapipe;
+forced with the writer slowed 300 ms, and 4 runs of 5 with the test host on one CPU beside four `stress-ng` workers). The
+program is right (every read of a slot waits for its pending write). The two tests and Back's comparison of the folder
+now flush the storage first, as the worker rules ask ("Since step 8"); Use the backup's passed only because the open
+list's refresh lists the slots, which flushes.
 
 ### Step 9: the start screen, the character's page and its top bar, the in-game menu, About (2026-11-14 and 2026-11-15, the branch `gm1-step9`)
 

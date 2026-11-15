@@ -26,6 +26,13 @@ public enum SingleInstanceOutcome
 /// on folders of their own never block each other; the same folder reached through a symbolic link is the same.
 /// The lock file stays in the folder (empty; the lock is the open file's, released when the program ends, also by a
 /// crash).
+/// <para>
+/// On Linux both sides wait only on their own threads, with <c>poll</c> on sockets that never block, never on the
+/// thread pool: the first answers however busy its pool is, and a later start keeps to its time whatever the first
+/// does (a call the first doesn't take, its queue of calls full, is refused at once and tried again until the time is
+/// over). Until 2026-11-15 both waited on the pool's completions, which a busy pool held past the later start's time,
+/// and a later start's connect waited without end for a first that took no more calls.
+/// </para>
 /// </summary>
 public sealed class SingleInstance : IDisposable
 {
@@ -37,6 +44,12 @@ public sealed class SingleInstance : IDisposable
 
     /// <summary>How long a later start tries to reach the first (it may be just starting) before it gives up.</summary>
     public static readonly TimeSpan DefaultAnswerTime = TimeSpan.FromSeconds(3);
+
+    /// <summary>How long the first waits for a later start's question once it called, and then to give its answer.</summary>
+    static readonly TimeSpan QuestionTime = TimeSpan.FromSeconds(1);
+
+    /// <summary>How often the first's listener looks whether its start is over while no call comes (Linux).</summary>
+    static readonly TimeSpan ListenSlice = TimeSpan.FromMilliseconds(250);
 
     readonly FileStream? _lock;
     readonly Socket? _socket;
@@ -75,7 +88,7 @@ public sealed class SingleInstance : IDisposable
                 _listener = Listen(() => ServePipe(ChannelName(folder)));
             else
             {
-                _socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+                _socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified) { Blocking = false };
                 _socket.Bind(Endpoint(folder));
                 _socket.Listen(4);
                 _listener = Listen(ServeSocket);
@@ -167,24 +180,75 @@ public sealed class SingleInstance : IDisposable
                     if (Exchange(pipe, left))
                         return SingleInstanceOutcome.Forwarded;
                 }
-                else
-                {
-                    using var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
-                    socket.Connect(Endpoint(folder));
-                    using var stream = new NetworkStream(socket);
-                    if (Exchange(stream, left))
-                        return SingleInstanceOutcome.Forwarded;
-                }
+                else if (AskOverSocket(folder, until))
+                    return SingleInstanceOutcome.Forwarded;
             }
             catch (Exception problem) when (problem is SocketException or IOException or TimeoutException or OperationCanceledException)
             {
-                // Not listening yet (the first is just starting), or gone: try again until the time is up.
+                // Not listening yet (the first is just starting), not taking calls, or gone: try again until the time is up.
             }
             Thread.Sleep(50);
         }
     }
 
-    /// <summary>Sends the question and waits for the answer.</summary>
+    /// <summary>
+    /// One call on the first's Unix socket (Linux), every wait on this thread: connected or refused at once (nobody
+    /// listens, or the first's queue of calls is full: a socket that doesn't block never waits for a call to be taken),
+    /// the question sent, the answer read until <paramref name="until"/>.
+    /// </summary>
+    static bool AskOverSocket(string folder, DateTime until)
+    {
+        using var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified) { Blocking = false };
+        socket.Connect(Endpoint(folder));
+        return Say(socket, Ask, until) && Read(socket, Answer.Length, until) == Answer;
+    }
+
+    /// <summary>The time left until <paramref name="until"/>, none when it is past.</summary>
+    static TimeSpan Left(DateTime until) => until - DateTime.UtcNow is var left && left > TimeSpan.Zero ? left : TimeSpan.Zero;
+
+    /// <summary>
+    /// Sends <paramref name="text"/> on a socket that doesn't block, waiting with <c>poll</c> on this thread while it can't
+    /// take more, until <paramref name="until"/>; whether all of it went.
+    /// </summary>
+    static bool Say(Socket socket, string text, DateTime until)
+    {
+        var bytes = Encoding.ASCII.GetBytes(text);
+        var sent = 0;
+        while (sent < bytes.Length)
+        {
+            if (!socket.Poll(Left(until), SelectMode.SelectWrite))
+                return false;
+            var n = socket.Send(bytes, sent, bytes.Length - sent, SocketFlags.None, out var error);
+            if (error is not (SocketError.Success or SocketError.WouldBlock))
+                return false;
+            sent += n;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Reads <paramref name="length"/> ASCII characters from a socket that doesn't block, waiting with <c>poll</c> on this
+    /// thread until <paramref name="until"/>; null when the time is over or the other side closed or failed first.
+    /// </summary>
+    static string? Read(Socket socket, int length, DateTime until)
+    {
+        var buffer = new byte[length];
+        var read = 0;
+        while (read < length)
+        {
+            if (!socket.Poll(Left(until), SelectMode.SelectRead))
+                return null;
+            var n = socket.Receive(buffer, read, length - read, SocketFlags.None, out var error);
+            if (error == SocketError.WouldBlock)
+                continue;
+            if (error != SocketError.Success || n == 0)
+                return null;
+            read += n;
+        }
+        return Encoding.ASCII.GetString(buffer);
+    }
+
+    /// <summary>Sends the question and waits for the answer (Windows' named pipe).</summary>
     static bool Exchange(Stream stream, TimeSpan left)
     {
         stream.Write(Encoding.ASCII.GetBytes(Ask));
@@ -223,13 +287,48 @@ public sealed class SingleInstance : IDisposable
         return thread;
     }
 
+    /// <summary>
+    /// The first's listener on Linux: waits for a call with <c>poll</c> on its own thread (looking every
+    /// <see cref="ListenSlice"/> whether the start is over), takes it on the socket that doesn't block and serves it.
+    /// </summary>
     void ServeSocket()
     {
+        var socket = _socket!;
         while (!_stop.IsCancellationRequested)
         {
-            using var client = _socket!.AcceptAsync(_stop.Token).AsTask().GetAwaiter().GetResult();
-            using var stream = new NetworkStream(client);
-            Serve(stream);
+            if (!socket.Poll(ListenSlice, SelectMode.SelectRead))
+                continue;
+            Socket call;
+            try
+            {
+                call = socket.Accept();
+            }
+            catch (SocketException none) when (none.SocketErrorCode == SocketError.WouldBlock)
+            {
+                // No call to take after all: wait again.
+                continue;
+            }
+            using (call)
+            {
+                call.Blocking = false;
+                Serve(call);
+            }
+        }
+    }
+
+    /// <summary>One later start on Linux: its question read (a second at most), the event raised, the answer sent.</summary>
+    void Serve(Socket call)
+    {
+        try
+        {
+            if (Read(call, Ask.Length, DateTime.UtcNow + QuestionTime) != Ask)
+                return;
+            ForwardAsked?.Invoke();
+            Say(call, Answer, DateTime.UtcNow + QuestionTime);
+        }
+        catch (SocketException)
+        {
+            // That start went away: the next one is served.
         }
     }
 
@@ -243,13 +342,13 @@ public sealed class SingleInstance : IDisposable
         }
     }
 
-    /// <summary>One later start: its question read (a second at most), the event raised, the answer sent.</summary>
+    /// <summary>One later start on Windows: its question read (a second at most), the event raised, the answer sent.</summary>
     void Serve(Stream stream)
     {
         try
         {
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
-            timeout.CancelAfter(TimeSpan.FromSeconds(1));
+            timeout.CancelAfter(QuestionTime);
             var buffer = new byte[Ask.Length];
             var read = 0;
             while (read < buffer.Length)

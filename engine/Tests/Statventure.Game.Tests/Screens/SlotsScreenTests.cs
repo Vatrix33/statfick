@@ -141,6 +141,8 @@ public class SlotsScreenTests
         Assert.False(h.Ui.Windows.IsOpen(again));
         Assert.True(h.Ui.Windows.IsOpen(s.Slots.Layer));
         Assert.Null(s.Session.Current);
+        // The folder as it is once everything asked of the background writer is written.
+        h.Storage.Flush();
         Assert.Equal(before, Directory.GetFiles(s.Saves).Order().Select(f => (f, File.GetLastWriteTimeUtc(f))));
     }
 
@@ -157,6 +159,8 @@ public class SlotsScreenTests
         h.Frame();
         Assert.Equal(("brother-cadfael", "Brother Cadfael"), (s.Session.CurrentSlot, s.Session.Current?.Name));
         Assert.Empty(h.Ui.Windows.Layers);
+        // The slot is written by the storage's background writer, which keeps the damaged save aside: written first.
+        h.Storage.Flush();
         Assert.True(File.Exists(Path.Combine(s.Saves, "brother-cadfael.dat.damaged")));
         Assert.DoesNotContain("game-opened", h.Sounds);
     }
@@ -178,6 +182,9 @@ public class SlotsScreenTests
         h.Frame();
         Assert.Equal(("mira-of-the-vale", "mira-of-the-vale"), (s.Session.CurrentSlot, s.Session.Current?.Name));
         Assert.Empty(h.Ui.Windows.Layers);
+        // The slot is written by the storage's background writer, which keeps the damaged save aside: written first
+        // (2026-11-15: read at once, the writer not yet run on a busy machine).
+        h.Storage.Flush();
         Assert.True(File.Exists(Path.Combine(s.Saves, "mira-of-the-vale.dat.damaged")));
     }
 
