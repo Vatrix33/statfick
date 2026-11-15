@@ -5,14 +5,57 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
-**Current task (2026-11-13): GM1 (Foundation) started on the user's go; its design is decided; no step started.** Its
-design doc `Docs/Game/Foundation.md` (docs only, the branch `gm1-design` from `2bd4da9`) checks GM1's section of
-`Docs/Game-Plan.md` against the code of the old game and the engine and records the user's answers of the detail round,
-complete (Q1–Q24 and the follow-up Q16b, 2026-11-13; also in `Docs/Game-Plan.md`, "Decisions for GM1") and the manager's
-19 decisions on the proposals (GM1-P1–GM1-P19); the design and twelve steps (1a, 1b, 2–11) in four waves are final and
-nothing is open; the first wave starts on the manager's go. **The old game is
-frozen** until the recapture (step 1b) is on `main` (the user, 2026-11-13: "Old game wont be touched until you give the
-ok, except if you need something"); the manager gives the user the ok then.
+**Current task (2026-11-15): GM1 (Foundation) is done and ticked; the port waits for the user's go for GM2, whose
+questions are asked first.** GM1 ran from 2026-11-13 (the user's go) to 2026-11-15 on its design doc
+`Docs/Game/Foundation.md` (docs only, the branch `gm1-design` from `2bd4da9`, `52958e2`: GM1's section of
+`Docs/Game-Plan.md` checked against the code of the old game and the engine, the design and twelve steps, 1a, 1b and
+2–11, in four waves). Its decisions: the user's GM1-1–GM1-13 (2026-11-12) and the detail round Q1–Q34 with Q16b
+(2026-11-13 and 2026-11-14), in `Docs/Game-Plan.md`, "Decisions for GM1" and "GM1's detail round"; the manager's
+GM1-P1–GM1-P19 (2026-11-13) and GM1-P20 and GM1-P21 (2026-11-15, raised by step 11), in Foundation.md, "Decisions";
+nothing is open. **Every step is on `main`, each one commit** (Progress, "GM1 started" to "GM1 done"; Foundation.md,
+"How it works" and Status), in the order merged: 3 the 28 icons' outlines in the "Engraved" style the user picked
+(`d5d684d`; assets and tools, no full run due); 4 the eight interface sounds, approved by ear, in `audio.pak`
+(`8acdc5a`, 3738 tests); 2 the game's program (`Game/Statventure.Game`) and its real data library
+(`Game/Statventure.Game.Data`) in place of the sandbox and the stand-in, the seams, the game's own test project
+(`a7390ad`, 3738 + 29 = 3767); 5 the save record `save.game` v1, `settings.json`, the session and the randomness service
+(`41df6e1`, 3739 + 200 = 3939); 1a today's stylesheet in the engine and in `ui.pak` (`eec6576`, 3870 + 200 = 4070); 6
+the mod check at start, shared with the editor's save (`46fc451`, 3920 + 217 = 4137); the flaky audio test, the test's
+sink paced (`714be21`, 4137); 7 the icons in the engine (`f22f048`, 3984 + 223 = 4207); 1b the recapture of the 11
+states at 1 and 1.65 from today's old game (`cde21a4`, 4010 + 223 = 4233); 6b the mod check's cost at start, no result
+changed (`cc65fcb`, 4019 + 223 = 4242); the top layer's LCD text, the user's Q31: an iframe, not the engine, and
+PaintReference's main-frame mode (`96164e7`, 4036 + 223 = 4259); 6c the checks' walk passing by what can't report
+(`8077dfa`, 4040 + 223 = 4263); 8 the game's document, windows, dialogs and commands (`acffb2a`, 4047 + 300 = 4347); 10
+the settings screen with the mod list, the slot list, the damaged-save question and the file picker (`5353034`, 4047 +
+406 = 4453, 8 held: the picker's fixtures at 1.65, Q34); 9 the start screen, the character's page and its top bar, the
+in-game menu and About (`8be4a88`, 4080 + 491 = 4571, 11 held: step 10's 8 and its own 3, the light start screens at
+1.65); the engine task of Q34, layout units at a fractional scale, every hold lifted (`b357aef`, 4123 + 489 = 4612, 0
+held); the start dialog drawn grey, a layer reading its target's colours (`9155a87`, 4127 + 551 = 4678); the flaky
+tests, the single instance's waits off the thread pool and the slot tests flushing (`37960d4`, 4127 + 554 = 4681); 11
+end to end, the package check and the Windows items (`57a88f7`, 4130 + 565 = 4695). The looks of steps 3, 8, 9 and 10
+and the sounds of step 4 were approved by the user. **The full suite on `main` (`57a88f7`) is 4130 + 565 = 4695 tests
+(the engine's project and the game's), passing on the GPU and on lavapipe, none held, none skipped** (2026-11-15, step
+11's runs, inside a headless Wayland compositor under the shared lock; M12 ended at 3720). **The end-to-end flow** is
+the game's own (`Tools/Scripts/end-to-end.sh`, with GM1-P20's `--run` and GM1-P21's lines): 241 of 241 expectations on
+the GPU (with `--publish`) and on lavapipe. **The packages at `2026.11.15.11`:** the game's Linux archive 42.8 MB (54
+files) and Windows 39.0 MB (47), the editor's Linux 41.8 MB (51) and Windows 38.0 MB (44) (`check-packages.sh`: its
+rules and the listings unchanged). **For the user, none blocking:** the eight checks by hand on Linux (Foundation.md,
+"Checks by hand on Linux"); "Windows check" below, items 1–10 (item 10 GM1's own; nothing of GM1 has run on Windows);
+M12's by-hand list, still open (the paragraph below, "For the user to check by hand"); M11's by-hand checks (a)–(e),
+still open ("Small tasks left from earlier milestones"); the end-to-end flow under the cloud's Xvfb (not run); the first
+real draft release, only on the user's word (`Tools/Scripts/release.sh`). **The small tasks GM1 found** are in "Small
+tasks left from earlier milestones": 23 open, no go yet (from "The engine's `Settings` can't make a key absent again",
+step 5, to "The audio warm-up renders three themes no one hears at every start", step 11, its question for GM4; the last
+five recorded there at GM1's close from their steps' entries: no `float` layout, the editor's fixture writer and a
+comment, a `calc()` whose percentages come to 0, `Docs/Editor.md`'s zoom limits, the audio warm-up), and one closed by
+Q34's task ("A text field's text 1 px low at 1 …", step 1a), which closed M11's "Control labels a device pixel low at
+1.65" too. **The old game was frozen** for the recapture from 2026-11-13 until the manager's ok of 2026-11-15 (the user,
+2026-11-13: "Old game wont be touched until you give the ok, except if you need something"; the ok given with GM1's
+closing report, the recapture on `main` since 2026-11-14, `cde21a4`; nothing in `old-game/` changed during GM1). A later
+change to the old game makes the game-screen references stale again (they would be captured again as step 1b did), and
+later milestones check against the old game as it is then. The user also said on 2026-11-13: "I dont plan to open the
+game until finished" (Foundation.md, "Decisions"). **Next, on the user's go: GM2** (The hero: the character sheet, races
+and looks; `Docs/Game-Plan.md`), its questions (GM2-1–GM2-5, "What this plan leaves open") asked first, when the go is
+given (GP-6); nothing of GM2 is begun.
 
 **Before it (2026-11-12): M12 (packaging) is done and ticked; the engine waits for the user's go for the next
 milestone.** M12 ran from 2026-11-08 (the user's go, "Then start with M12") to 2026-11-12 on its design doc
@@ -609,6 +652,56 @@ what needs the user's machines):**
     flaky tests' fix); the Windows named pipe still awaits its connection and reads on the pool, so a pool held by other
     work can delay the answer past the later start's 3 s (unchecked: "Windows check", item 10a).
   - *Where to start:* the same shape as Linux's: the pipe's waits on the listener's own thread.
+- No `float` layout (found 2026-11-14 by GM1 step 1b, `Docs/Game/Foundation.md`, "How it works", step 1b, "Found";
+  recorded here at GM1's close, 2026-11-15; open, no go yet).
+  - *What happens:* the engine has no `float`: floated boxes stack as blocks.
+  - *Where it shows:* nowhere in the tests: the game's sheet has none, so no captured screen meets it. It came up
+    because a first fixture of step 1b used floats.
+  - *Where to start:* a layout fixture with floats against Chromium, then `UI/Layout/` against Blink's float placement
+    (its source not read yet: start there).
+- The editor's fixture writer would throw on an HTML comment (found 2026-11-14 by GM1 step 1b,
+  `Docs/Game/Foundation.md`, "How it works", step 1b, "Found"; recorded here at GM1's close, 2026-11-15; open, no go
+  yet).
+  - *What happens:* `Tests/Statventure.Tests/Editor/EditorFixtures.cs` (`Write`, 84–93) casts every node that isn't text
+    to an element, so a comment, a node of its own since step 1b (`UiComment`), would make it throw.
+  - *Where it shows:* nowhere: the editor's markup has no comment.
+  - *Where to start:* the game's writer's case for a comment (`Tests/Statventure.Game.Tests/Ui/GameScreenFixtures.cs`,
+    a `UiComment` written as `<!--…-->`), then an editor fixture holding a comment.
+- A `calc()` whose percentages come to 0 read as no percentage (found 2026-11-14 by GM1 step 1b,
+  `Docs/Game/Foundation.md`, "How it works", step 1b, "Not ported"; recorded here at GM1's close, 2026-11-15; open, no
+  go yet).
+  - *What happens:* `calc(0%)` or `calc(10% - 10% + 5px)` is read as no percentage, because `ValueReader`
+    (`UI/Style/ValueReader.cs`) builds the term from its pixels and percent; Blink keeps such an expression
+    percentage-dependent. Step 1b's rule (a zero percentage stays a percentage, a flag in `Length`) covers a plain `0%`.
+  - *Where it shows:* nowhere: the game's sheet has none.
+  - *Where to start:* a layout fixture as step 1b's `column-basis` (`Ui/FlexDefiniteFixtures.cs`) with the basis as such
+    a `calc()`, then `ValueReader`'s calc term against `Length`'s percentage flag.
+- `Docs/Editor.md` calls the editor's zoom range "Electron's default limits" (found 2026-11-14 by GM1 step 8,
+  `Docs/Game/Foundation.md`, "Steps", step 8, "Found", and "What exists", the page zoom; recorded here at GM1's close,
+  2026-11-15; open, no go yet).
+  - *What it says:* `Docs/Editor.md`, "How it works", step 4: the zoom runs from 53 % (level −3.5) to 299 % (level 6),
+    "Electron's default limits of 50 % and 300 %".
+  - *What is so:* Electron 44's zoom roles are clamped at Blink's 0.25 and 5 (`WebContentsZoomController::SetZoomLevel`,
+    `kMinimumBrowserZoomFactor` and `kMaximumBrowserZoomFactor`, `page_zoom.cc`; read by step 8, whose game takes that
+    range). The editor's own range is unchanged.
+  - *Where to start:* the line in `Docs/Editor.md` made true; whether the editor's range changes is a design choice,
+    asked as every choice is since M12.
+- The audio warm-up renders three themes no one hears at every start (found 2026-11-15 by GM1 step 11,
+  `Docs/Game/Foundation.md`, "How it works", step 11, "Found"; recorded here at GM1's close, 2026-11-15; open, no go
+  yet; a question for GM4).
+  - *What happens:* `AudioSystem.WarmUp` (`Audio/AudioSystem.cs`; M8 step 7, `Docs/Audio.md`, "The output (step 7)"),
+    started by the AudioSystem's constructor on a thread of its own ("Statventure audio warm-up", below normal
+    priority), waits for the rooms to be prepared, then renders a second each of `alder-vale`, `combat` and
+    `great-imp-jiruan` into a throwaway graph, so the JIT has compiled the composer before the first theme change on the
+    audio thread (a cold first start cost about 60 ms there, its comment says). Every program does it at every start:
+    the game, the editor, the sandbox.
+  - *Its cost* (step 11's measurement, 2026-11-15, a Release build of the engine's tests, three fresh processes):
+    about 655 ms of its own thread's wall time (about 695 ms of CPU) after about 420 ms of preparing the rooms, which
+    the music needs anyway; 490 ms of it again when warm. Below normal priority while the splash shows, it doesn't hold
+    the start up. The game plays no music in GM1 (Q15).
+  - *The question for GM4,* when the game first plays music: whether the warm-up still earns its cost, and which themes
+    it should warm.
+  - *Where to start:* `AudioSystem.WarmUp` and the first theme change's time on the audio thread with and without it.
 - The "Known differences" lists (`Docs/Compositing-Port.md`, "Known differences left (SVG)"; `Docs/Scripting.md`, "Known
   differences left"; `Docs/Animation.md`, "Known differences from Blender's NLA"; M5's Progress, "Known differences left (not
   yet ported)") are accepted differences, not tasks, unless the port finds the game needs one.
@@ -1088,8 +1181,11 @@ the design and the tests):
   GM1-12 and GM1-13, from GM1-3's answer, answered the same day: Dev Mode off by default, its state in `settings.json`).
   **GM1's detail round (Q1–Q24 and Q16b; Q25 and Q26, raised by step 5) answered 2026-11-13**, Q27 and Q28 (raised by
   step 6) and Q29–Q31 (raised by step 8: the confirm's focus, Zoom In's keys, the tooltip's grayscale text) on 2026-11-14, in `Docs/Game-Plan.md`
-  ("Decisions for GM1", "GM1's detail round") and `Docs/Game/Foundation.md` ("The detail round", with the manager's decisions GM1-P1–GM1-P19); nothing
-  of GM1 is open.
+  ("Decisions for GM1", "GM1's detail round") and `Docs/Game/Foundation.md` ("The detail round", with the manager's decisions GM1-P1–GM1-P19);
+  Q32–Q34 (raised by step 9: the Field tools rail's room, "☰ Menu", the layout a hair off Chromium's at 1.65) on
+  2026-11-14 too, in the same two places; the manager's GM1-P20 and GM1-P21 (raised by step 11) on 2026-11-15, in
+  `Docs/Game/Foundation.md` ("The manager's decisions on the proposals"). Nothing of GM1 is open; GM1 is done
+  (2026-11-15).
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -1175,8 +1271,8 @@ the design and the tests):
 | Path | Contents |
 | --- | --- |
 | The repo (on the PC: `/run/media/system/M.2_2TB/Stat Fick Repo/`; private on GitHub) | `engine/` (this tree: engine, port, tests, tools, asset sources) and `old-game/` (the JavaScript game, the port's reference). `../CLAUDE.md` covers the machines it's worked on. |
-| `$STATVENTURE_GAME` (on the PC `/run/media/system/M.2_2TB/Stat Fick/`, set in the git-ignored `Tools/Scripts/env.local.sh`; elsewhere `runtime/` in the repo) | Only what the game needs to run (the build output): since M9 step 9 `build.sh`/`build.ps1` publish the sandbox there (the game's stand-in until the port; framework-dependent) with `packs/` beside it, a copy of exactly `Assets/Packs/*.pak` (Docs/Assets.md, S9-A). The game reads `packs/` and `classes/` beside its executable (Q2; `classes/` comes with the port). |
-| The player's game folder (Linux `$XDG_DATA_HOME/stat-fick/`, else `~/.local/share/stat-fick/`; Windows `%APPDATA%\Stat Fick\`) | `settings.json`, `saves/` and `mods/` (every `.pak` directly in it, mounted above the game's packs and classes, below the development folder: Q8, S3-4); `Application.Storage` (S9-B), `ApplicationOptions.GameFolder` points it elsewhere. The development folder (`ApplicationOptions.DevelopmentFolder` or `$STATVENTURE_DEV_FOLDER`) is wherever it's named. |
+| `$STATVENTURE_GAME` (on the PC `/run/media/system/M.2_2TB/Stat Fick/`, set in the git-ignored `Tools/Scripts/env.local.sh`; elsewhere `runtime/` in the repo) | Only what the game needs to run (the build output): since GM1 step 2 `build.sh`/`build.ps1` publish the game's program there (`Game/Statventure.Game`, framework-dependent, its data library `Statventure.Game.Data.dll` beside it; the sandbox stood in for it from M9 step 9 until then, and its leftovers are removed by name) with `packs/` beside it, a copy of exactly `Assets/Packs/*.pak` (Docs/Assets.md, S9-A). The game reads `packs/` and `classes/` beside its executable (Q2; `classes/` comes with the port, GM8). |
+| The player's game folder (Linux `$XDG_DATA_HOME/stat-fick/`, else `~/.local/share/stat-fick/`; Windows `%APPDATA%\Stat Fick\`) | `settings.json`, `saves/` and `mods/` (every `.pak` directly in it, mounted above the game's packs and classes, below the development folder: Q8, S3-4); `logs/` (M12-8), the editor's own settings in `editor/` (M11), `stat-fick.lock` (one game per folder, GM1-P14); `Application.Storage` (S9-B), `ApplicationOptions.GameFolder` points it elsewhere. The development folder (`ApplicationOptions.DevelopmentFolder` or `$STATVENTURE_DEV_FOLDER`) is wherever it's named. |
 | `~/.cache/stat-fick-build/` (Windows: `%LOCALAPPDATA%\stat-fick-build`) | The .NET SDK (unless the system has one), the NuGet cache, Electron 44.5.0 for the harnesses (`electron-44.5.0/`), and on the PC the BRUTAL source for reference. All re-downloadable. |
 | `~/.cache/stat-fick-build/reference-src/` | Upstream sources the engine ports from (Chromium 152, Skia, skrifa, read-fonts, Blender's Freestyle) and the game's cc traces; README inside. Only on the PC, not in the repo (user decision 2026-10-30). Re-downloadable. |
 
@@ -1185,10 +1281,12 @@ Source tree:
 | Folder | Contents |
 | --- | --- |
 | `Engine/Statventure/` | The engine library (one assembly; namespaces `Statventure.*`). |
-| `Tests/Statventure.Tests/` | Unit tests and headless GPU tests with golden images. |
-| `Samples/Statventure.Sandbox/` | A visual test bed. |
-| `Tools/` | Build scripts, the shader compiler, the packer and later the data editor. |
-| `Assets/` | Asset sources: Blender files, fonts, shaders, stylesheets. `Assets/Packs/`: the committed packs, the game's data's source of truth (M9; `audio.pak` since step 6), copied into `$STATVENTURE_GAME/packs/` by the build. |
+| `Game/Statventure.Game/`, `Game/Statventure.Game.Data/` | The game's program (assembly `Statventure.Game`, published as `stat-fick` / `Stat Fick.exe`; its parts in folders of their own) and its data library (`Statventure.Game.Data`: the game's record kinds, `save.game` among them; linked by the game, loaded by the editor from the game's folder); GM1 step 2, GM1-P1 (`Docs/Game/Foundation.md`). |
+| `Tests/Statventure.Tests/` | The engine's and the editor's tests: unit tests and headless GPU tests with golden images. |
+| `Tests/Statventure.Game.Tests/` | The game's tests (its program and data library referenced, the shared infrastructure linked from the engine's tests); since GM1 step 2. `test.sh` runs both projects; the suite's count is their sum. |
+| `Samples/Statventure.Sandbox/` | The engine's test bed (since GM1 step 2 not published, logging as `statventure-sandbox`). |
+| `Tools/` | Build scripts, the shader compiler, the packer, the Statventure Editor (`Tools/Editor`, M11), packaging (`Tools/Packaging`, M12), the reference harnesses, and the icon sheet's generator (`Tools/IconSheet`, GM1 step 3). |
+| `Assets/` | Asset sources: `Assets/UI/styles/` (the port's stylesheets, compiled into `ui.pak` by `make-ui-pack.sh`; GM1 step 1a on), `Assets/UI/icons/` (the 28 icons' outlines and `icons.json`, their boxes; GM1 step 3), `Assets/Audio/effects/` (the eight interface sounds' patches, packed into `audio.pak` by `make-music-data.sh`; GM1 step 4). `Assets/Packs/`: the committed packs (`audio.pak`, `ui.pak`), the game's data's source of truth (M9; `audio.pak` since step 6), copied into `$STATVENTURE_GAME/packs/` by the build. The engine's shaders are in `Engine/Statventure/Shaders/Source/`; `ui.pak`'s fonts come from `old-game/objects/fonts/`. |
 | `Docs/` | Plans and notes. `Docs/Port-Tasks/`: the user's tasks to add during the port, in number order (README inside). |
 
 ## User decisions (2026-10-16)
@@ -4061,6 +4159,31 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     41.8 MB (51), 38.0 MB (44); mutations 42 standing, all killed (a first round's survivor a redundant line, taken out);
     the flow's breaks 27, all killed; the player's real folders unchanged. Not checked: Windows (item 10), the cloud's
     Xvfb, a real window ("Checks by hand on Linux").
+  - **GM1 done (2026-11-15, 4130 + 565 = 4695 tests):** GM1 ran from 2026-11-13 (the user's go) to 2026-11-15 on
+    `Docs/Game/Foundation.md` (the user's GM1-1–GM1-13 and the detail round Q1–Q34 with Q16b; the manager's
+    GM1-P1–GM1-P21; nothing open). On `main`, each one commit, 20 in all: the design (`52958e2`), the twelve steps (1a,
+    1b, 2–11), steps 6b and 6c, and five tasks beside them (the flaky audio test `714be21`, the top layer's LCD text
+    `96164e7`, the engine task of Q34 `b357aef`, the start dialog drawn grey `9155a87`, the flaky tests `37960d4`), the
+    last step 11's `57a88f7` (the entries above, "GM1 started" to "GM1 step 11"). What it gives: the game's own program
+    and its real data library in place of the sandbox and the stand-in, one instance per per-user folder; saves in named
+    slots, character files and `settings.json`; the start screen, the character's page with its top bar, the in-game
+    menu, About, the settings screen with Dev Mode's switch and the mod list, the slot list, the damaged-save question,
+    the file picker, the confirm and prompt dialogs; every mod checked at start, a broken one named and left out;
+    today's stylesheet in `ui.pak` and the game-screen references captured again from today's old game; the 28 symbols
+    as the engine's icons; the randomness service; the eight interface sounds, no music (Q15); its looks and sounds
+    approved by the user (steps 3, 4, 8, 9, 10). The full suite passes on the GPU and on lavapipe, inside a headless
+    Wayland compositor under the shared lock: 4130 + 565 = 4695 tests, none held or skipped (GM1 started at 3720); the
+    end-to-end flow, the game's own, 241 of 241 on both; the packages at `2026.11.15.11`: the game's Linux archive 42.8
+    MB (54 files) and Windows 39.0 MB (47), the editor's Linux 41.8 MB (51) and Windows 38.0 MB (44); mutations: every
+    list killed or its survivors accounted for (each entry above; step 3 had none due); the player's real folders
+    unchanged (each entry above). Found on the way and recorded as small tasks (open, no go yet): 23, in "Small tasks
+    left from earlier milestones" (five of them added there at GM1's close from their steps' entries); closed by Q34's
+    task: a text field's text 1 px low (step 1a's) and the control labels a device pixel low at 1.65 (M11's). Not
+    checked: Windows ("Windows check", item 10 and the items GM1 rewrote), the cloud's Xvfb, a real window
+    (Foundation.md, "Checks by hand on Linux"). Ticked under `Docs/Game-Plan.md`, "Milestones" (the manager, 2026-11-15,
+    the branch `gm1-finish`, docs only); GM2 waits for the user's go, its questions first. The old game was frozen for
+    the recapture from 2026-11-13 until the manager's ok of 2026-11-15 (`Docs/Game/Foundation.md`, "Decisions"; nothing
+    in `old-game/` changed during GM1).
 
 ## Milestones
 

@@ -189,7 +189,8 @@ gotcha: `Docs/Notes.md`, 2026-11-11); everything else anywhere; the Windows PC b
 Each milestone is finished only when its tests pass and its art is final for its aspect (GP-3); the next one starts on
 the user's go, its questions asked first (GP-6).
 
-- [ ] **GM1 Foundation: the game program, its data library, saves and settings:**
+- [x] **GM1 Foundation: the game program, its data library, saves and settings** (done 2026-11-15; 4695 tests,
+  4130 + 565, on the GPU and on lavapipe; `57a88f7`):
   - The game's own program replaces the sandbox (`stat-fick`, `Stat Fick.exe`); the real `Statventure.Game.Data` library
     replaces the stand-in, with the save and settings records.
     - Save slots, autosave, character files, the start screen, the in-game menu (Save/Load Character, Open game folder,
@@ -433,7 +434,8 @@ yet: the sheet comes with GM2. The detail round: "Decisions for GM1", "GM1's det
   `styles.css`; the game-screen references recaptured once at GM1's start, the tests' stylesheet copy brought up to
   the old game's (GM1-1). Engine work comes first: today's `styles.css` doesn't compile in the engine (`@property`,
   `-webkit-text-fill-color`; `background-clip: text` ignored), and the capture script needs changes for today's old game
-  (`Shop.open` needs a settlement). The old game is frozen until the recapture is on `main` (the user, 2026-11-13).
+  (`Shop.open` needs a settlement). The old game was frozen for the recapture from 2026-11-13 (the user) until the
+  manager's ok of 2026-11-15 (the recapture on `main` since 2026-11-14).
 - The symbols the fonts lack (⚙ ✦ ⚔ ♟ …; the tests emulate Chromium with "a table of the fonts Chromium picked for the
   game's 20 symbols", `Docs/Engine-Plan.md`, Progress, M4) become vector icons drawn by the engine in the game's ink
   (GM1-7). None exists yet: ♜ ♡ ◈ ▣ ◌ ◫ ◆ were decided as icons on 2026-10-16 (`Docs/Notes.md`, "User decisions") but never
@@ -542,8 +544,13 @@ is open.
   100 %.)
 - **Q23, not the recommendation: the general message** for an old game's character file, as for any wrong file. (Not a
   message of its own.)
-- Also the user (2026-11-13, in the chat): **the old game is frozen** for the recapture, "Old game wont be touched until
-  you give the ok, except if you need something"; the manager gives the ok once the recapture is on `main`.
+- Also the user (2026-11-13, in the chat): **the old game was frozen** for the recapture, "Old game wont be touched
+  until you give the ok, except if you need something"; the manager gives the ok once the recapture is on `main`. The
+  user also said on 2026-11-13: "I dont plan to open the game until finished" (recorded on 2026-11-15, as said). **The
+  ok** (the manager, 2026-11-15, with GM1's closing report): the recapture is on `main` since 2026-11-14 (`cde21a4`), so
+  the old game was frozen from 2026-11-13 until the manager's ok of 2026-11-15. A later change to the old game makes the
+  game-screen references stale again (they would be captured again as step 1b did), and later milestones check against
+  the old game as it is then (`Docs/Game/Foundation.md`, "Decisions").
 - Q24 (raised by Q6 and Q16), Load Character from the start screen: "Load Character…" in the slot list, loading a
   character file into a new slot; the menu's Load Character and Ctrl+O stay as well. (Not a seventh start-screen button;
   not Escape and Ctrl+O only.)
@@ -1872,8 +1879,9 @@ captured again once at GM1's start, the stylesheet copy with them (GM1-1; `make-
 the stylesheet, `make-scaled-game-references.sh`, `make-layer-references.sh`; on the PC or under Xvfb). Found on
 2026-11-13 (`Docs/Game/Foundation.md`): today's stylesheet doesn't compile in the engine (`@property` at `styles.css` 3726
 and `-webkit-text-fill-color` refused, `background-clip: text` ignored), so GM1's step 1a ports those first, and the
-capture script needs changes for today's old game (step 1b; `Shop.open` needs a settlement); the old game is frozen
-until the recapture is on `main` (the user, 2026-11-13). Screens the 11
+capture script needs changes for today's old game (step 1b; `Shop.open` needs a settlement); the old game was frozen
+from 2026-11-13 (the user) until the manager's ok of 2026-11-15, the recapture (step 1b) on `main` since 2026-11-14; a
+later change to the old game makes these references stale again (captured again as step 1b did). Screens the 11
 states don't cover (the race picker, the classic battle view, the tower, the Apothecary, the guild's panels, the
 encounter prompt, the Church, the Companions picker …) are added to `Reference/game-capture.js` by the milestone that
 ports them; `Docs/Compositing-Port.md`, "Next", asks to come back to it when new screens are captured.
@@ -1887,15 +1895,17 @@ and waits for the user's go, asked when its milestone reaches it:
 - "Music switch during a fade-in": the region crossfade (GM4).
 - "A stop for sound effects": GM1-6's sounds (GM1's own don't need it: each ends by itself, `Docs/Game/Foundation.md`).
 - The CSS today's old stylesheet uses and the engine lacks (`@property`, `-webkit-text-fill-color`, `background-clip:
-  text`): GM1's step 1a, before the recapture (found 2026-11-13).
+  text`): GM1's step 1a, before the recapture (found 2026-11-13). Done by step 1a (2026-11-13).
 - The 1.65 findings in UI the game uses (control labels a device pixel low, text grayscale in a composited box, beside a
   tall scroller or under a stacking context, a select's padding, a textarea's `line-height`, a positioned box with a
-  z-index inside a scroller): the first milestone whose screen meets one (GM1 on).
+  z-index inside a scroller): the first milestone whose screen meets one (GM1 on). Control labels a device pixel low:
+  closed by GM1's engine task of Q34 (2026-11-15, `Docs/Compositing-Port.md`, "Layout units"); the others stay open.
 - `flex: 1` with a 0 % basis in a column flexbox of indefinite height (`Docs/Packaging.md`, Status, step 6). Done by
   GM1's step 1b (2026-11-14): a zero percentage stays a percentage.
 - "publish fails when the repo is reached through a symlink": GM1's step 2, which owns the build and publish scripts
-  (moved from GM18 by the manager, 2026-11-13). The "Windows check", items 1–9: GM18 (GM1's step 11 rewrites the items
-  the game changes).
+  (moved from GM18 by the manager, 2026-11-13). Fixed by step 2 (2026-11-13, `Docs/Game/Foundation.md`, Status, step
+  2). The "Windows check", items 1–10: GM18 (GM1's step 11 rewrote the items
+  the game changed and added item 10, GM1's own).
 - The proof's sounds by ear: GM13 (GM13-2); the by-hand checks (a)–(e): GM18 at the latest.
 
 ### The three decision-id collisions
@@ -1946,8 +1956,9 @@ Found against the repo on 2026-11-12; the repo's figures are the ones used above
 
 Every question below is about the game. Each milestone's are asked with the question tool when it begins (GP-6) and
 answered in its section (GP-7); GM1's thirteen were all answered on 2026-11-12 ("Decisions for GM1": the eleven, then
-GM1-12 and GM1-13, which came out of GM1-3's answer), and GM1's detail round (Q1–Q26 and Q16b on 2026-11-13, Q27–Q33
-on 2026-11-14; "GM1's detail round"), so none of GM1's is left. The sound questions are asked with their milestones (GM1-6).
+GM1-12 and GM1-13, which came out of GM1-3's answer), and GM1's detail round (Q1–Q26 and Q16b on 2026-11-13, Q27–Q34
+on 2026-11-14; "GM1's detail round"), so none of GM1's is left; GM1 is done (2026-11-15). The sound questions are
+asked with their milestones (GM1-6).
 
 - GM2-1 The 72 looks: faithful 3D remakes / new looks per race / a character maker.
 - GM2-2 The hero on the sheet: no figure / a live 3D figure.
@@ -2141,4 +2152,15 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   Found: the start screen's dialog drawn grey whenever Continue is greyed (fixed by `gm1-start-grey`); the engine's audio
   warm-up plays three themes into a graph no one hears at every start. "Windows check" rewritten for the game with a new
   item for GM1's own; a list of checks by hand on Linux (`Docs/Game/Foundation.md`, "How it works", step 11, and
-  "Checks by hand on Linux"). GM1 is ticked by the manager.
+  "Checks by hand on Linux"). GM1 is ticked by the manager (the entry below).
+- **2026-11-15, GM1 done and ticked (the manager; docs only, the branch `gm1-finish`):** every step is on `main`, each
+  one commit, from the design (`52958e2`) to step 11 (`57a88f7`), with steps 6b and 6c and the five tasks beside them
+  (`Docs/Engine-Plan.md`, "Current task" and Progress, "GM1 done"); the full suite on `main` 4130 + 565 = 4695 tests,
+  passing on the GPU and on lavapipe, none held or skipped; the end-to-end flow 241 of 241 on both; nothing of GM1 open.
+  Ticked under "Milestones". **What waits:** GM2 starts only on the user's go, its questions (GM2-1–GM2-5, "What this
+  plan leaves open") asked first, when the go is given (GP-6); nothing of GM2 is begun. **Left for the user:** the eight
+  checks by hand on Linux (`Docs/Game/Foundation.md`, "Checks by hand on Linux"), "Windows check" items 1–10
+  (`Docs/Engine-Plan.md`), M12's by-hand list and M11's by-hand checks (a)–(e), still open (`Docs/Engine-Plan.md`,
+  "How to continue"), and the first real draft release, only on the user's word. The old game was frozen for the
+  recapture from 2026-11-13 until the manager's ok of 2026-11-15 ("GM1's detail round"; `Docs/Game/Foundation.md`,
+  "Decisions").

@@ -96,8 +96,12 @@ the user and wait for their go-ahead before starting the next one.
 - The port of the game (after M12): `Docs/Game-Plan.md`, the game's milestones GM1–GM18 (what each builds, its art,
   its checks against the old game, Blender and Chromium, its questions for the user); read its "How to use this plan"
   first.
-- GM1 (Foundation), started 2026-11-13: its design doc `Docs/Game/Foundation.md` (the user's and the manager's decisions,
-  what exists, the design with the program's seams, the steps in waves); the old game is frozen until its recapture.
+- GM1 (Foundation), done 2026-11-15 (started 2026-11-13; 4130 + 565 = 4695 tests): its design doc
+  `Docs/Game/Foundation.md` (the user's and the manager's decisions, what exists, the design with the program's seams,
+  the steps, how each works, the user's "Checks by hand on Linux"). The next is GM2, only on the user's go, its
+  questions asked first. The old game was frozen for the recapture from 2026-11-13 until the manager's ok of
+  2026-11-15; a later change to it makes the game-screen references stale again (`Docs/Game/Foundation.md`,
+  "Decisions").
 - The symbols' icons (GM1-7, `Docs/Game/Foundation.md`, "How it works", step 3): the outlines and their box table in
   `Assets/UI/icons/`, written by `Tools/IconSheet/gen/build.py` (Python with shapely and fonttools; its README; `--check`
   after any change). `Tools/Scripts/make-icon-sheet.sh [--out <folder>] [--icons label=folder ...] [--symbols …]` draws

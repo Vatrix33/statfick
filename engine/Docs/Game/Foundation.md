@@ -196,11 +196,17 @@ Q18, Q22, Q23 and Q25**. Recorded in `Docs/Game-Plan.md`, "Decisions for GM1", t
   and shares as LayoutUnit divisions, the leftovers handed on, the intrinsic sums truncated, aspect ratios by MulDiv, and
   a control's one line on its inner block's line box ("How it works", "The engine task of Q34"); every hold was lifted.
 
-**The old game is frozen for the recapture** (the user, 2026-11-13, in the chat with the manager): "Old game wont be
-touched until you give the ok, except if you need something". Nothing in `old-game/` changes while the references are
-captured again (step 1b); the manager gives the user the ok once step 1b is on `main`.
+**The old game was frozen for the recapture from 2026-11-13 until the manager's ok of 2026-11-15** (the user,
+2026-11-13, in the chat with the manager): "Old game wont be touched until you give the ok, except if you need
+something". Nothing in `old-game/` changes while the references are captured again (step 1b); the manager gives the user
+the ok once step 1b is on `main`. The user also said on 2026-11-13: "I dont plan to open the game until finished"
+(recorded on 2026-11-15, as said). **The ok** (the manager, 2026-11-15, given with GM1's closing report): the recapture
+is on `main` since 2026-11-14 (`cde21a4`), so GM1 no longer needs the old game frozen. A later change to the old game
+makes the game-screen references stale again (they would be captured again as step 1b did), and later milestones check
+against the old game as it is then. Nothing in `old-game/` changed during GM1 (`git log 2bd4da9..57a88f7 -- old-game`
+is empty).
 
-### The manager's decisions on the proposals (GM1-P1–GM1-P19, 2026-11-13)
+### The manager's decisions on the proposals (GM1-P1–GM1-P21, 2026-11-13 and 2026-11-15)
 
 Every one as proposed ((a) where there were options) except GM1-P11's generator and GM1-P19, which the manager changed:
 - **GM1-P1** `Game/Statventure.Game/` (assembly `Statventure.Game`, renamed at publish) and `Game/Statventure.Game.Data/`,
@@ -544,7 +550,8 @@ per-user folders, never the player's real ones ("How each step is finished", ite
 
 ## Design
 
-The design the steps work from, decided (Q1–Q28, Q16b; GM1-P1–GM1-P19).
+The design the steps work from, decided (Q1–Q28, Q16b; GM1-P1–GM1-P19). The later answers, Q29–Q34 (2026-11-14) and
+the manager's GM1-P20 and GM1-P21 (2026-11-15), are under "Decisions" and in the steps' "How it works".
 
 ### The program, the library and the repo
 
@@ -832,8 +839,9 @@ dialog (a question, a text field, OK, Cancel), in the old dialogs' look (capture
 
 ### The recapture (GM1-1)
 
-- **The old game is frozen for it** (the user, 2026-11-13): nothing in `old-game/` changes until the manager gives the
-  user the ok, once step 1b is on `main`; a change the recapture itself needs goes to the manager first.
+- **The old game was frozen for it from 2026-11-13 until the manager's ok of 2026-11-15** (the user, 2026-11-13;
+  "Decisions"): nothing in `old-game/` changes until the manager gives the user the ok, once step 1b is on `main`; a
+  change the recapture itself needs goes to the manager first.
 - **What is captured:** the same 11 states at 1 and 1.65 with `game-capture.js`, adapted to today's old game where it no
   longer drives it (the hero placed in a settlement before `Shop.open("blacksmith")`; `startEncounter`'s arguments; the
   map's waits for task 8's charting); the layer traces at 1 and 1.65; the tests' stylesheet copy byte for byte today's.
@@ -1282,7 +1290,8 @@ against 148.5).
 ## The proposals as made (GM1-P1–GM1-P19)
 
 As proposed to the manager, the recommendation first; the manager's decisions (2026-11-13) are under "Decisions" above:
-all as recommended but GM1-P11's generator and GM1-P19.
+all as recommended but GM1-P11's generator and GM1-P19. GM1-P20 and GM1-P21 were proposed later, by step 11 when it
+stopped (2026-11-15), and decided as it recommended ("Decisions"; "How it works", step 11).
 
 - **GM1-P1 Where the game sits.** (a) `engine/Game/Statventure.Game/` (assembly `Statventure.Game`) and
   `engine/Game/Statventure.Game.Data/`, a `/Game/` folder in the solution: the engine's tree keeps `Engine/`, `Samples/`,
@@ -1407,7 +1416,8 @@ script or the tests that write the file, reruns its tests and the full suite, an
 restore it with `git checkout` after one. Every scripted start of the game (`--capture`, the end-to-end flow, a check)
 uses a scratch per-user folder (`XDG_DATA_HOME`) and OpenAL Soft's null device (`ALSOFT_DRIVERS=null`); no window on the
 user's screen (a headless compositor), never the player's real folders, never the real Documents folder. The old game
-stays as it is until the manager's ok (the recapture's freeze).
+stays as it is until the manager's ok (the recapture's freeze; frozen from 2026-11-13 until the ok of 2026-11-15,
+"Decisions").
 
 **Order:**
 - **Wave 1:** 1a (then 1b, the same worker, merged separately), 2, 3, 4.
@@ -1415,7 +1425,8 @@ stays as it is until the manager's ok (the recapture's freeze).
   worker counts while it runs: at most four at once).
 - **Wave 3:** 9 and 10 after 5, 6, 7 and 8.
 - **Wave 4:** 11 after 2–10.
-- GM1 ends when 1b and 11 are merged; then the manager ticks GM1 in `Docs/Game-Plan.md` and stops for the user.
+- GM1 ends when 1b and 11 are merged; then the manager ticks GM1 in `Docs/Game-Plan.md` and stops for the user. **Done
+  (2026-11-15):** every step merged, GM1 ticked (Status).
 - What needs the recapture: nothing but GM1's end. 1a is needed by 7 (it changes the text painting 7 builds on) and by 8
   (its document loads `ui/styles/game`), so by 9, 10 and 11 through 8. Step 7's layout check uses whatever captures are on
   `main` when it runs (`f45ca7a`'s, or 1b's once merged): the states that hold icon characters.
@@ -3924,7 +3935,9 @@ its 820 px dialog centred in 1000 px lies at 148.4937 device px in the engine an
 and 1,501 (4,240 of the 5,141 pixels of `picker-load-dark@1.65` on those four columns). `Ui/HeldScreens.cs` names them
 (why, whose word, when) and `GameScreenTests` checks a held one with each pixel allowed to meet the golden at its place or
 one device pixel either side along the row, at the same limits (549–2,417 pixels then, up to 0.10 %); turned off by
-removing its line, or for a run with `STATVENTURE_UNHOLD_SCREENS=1`; never at 1×. **The fixtures' own care:** a focus
+removing its line, or for a run with `STATVENTURE_UNHOLD_SCREENS=1`; never at 1×. **Lifted on 2026-11-15** by the engine
+task of Q34 (below): the eight pass at the unchanged limits; `HeldScreens`, its tests and the hook are gone. **The
+fixtures' own care:** a focus
 moved by a script right after a mouse press doesn't match `:focus-visible` in the engine (as in Chromium), but
 PaintReference focuses the fixture's element with no input before it, so the scenes reach their state by the keyboard or a
 command (Delete pressed with Enter, the damaged-save question by `open-slot`); PaintReference scrolls first and focuses
@@ -4139,6 +4152,8 @@ positions are written up for the layout task in `~/.cache/stat-fick-build/claude
 picker: each named with why, whose word and when; still compared with each pixel allowed to meet the golden one device
 column either side, at the unchanged limits (1,914, 1,986 and 1,445 pixels then); their 1× comparisons and every other
 fixture not held; off by removing their lines (or `STATVENTURE_UNHOLD_SCREENS=1`), and then they fail as measured.
+**Lifted on 2026-11-15** by the engine task of Q34 (below): the three pass at the unchanged limits; `HeldScreens` is
+gone.
 
 **Found for the manager (engine):** (D) an isolation group is drawn in the page's own pixels: `UiPainter` pushes a canvas
 layer only for opacity, filters and blend modes, so a blend inside `isolation: isolate` blends with what is beneath the
@@ -4698,10 +4713,25 @@ command. Sound plays at the desktop's volume: turn it down before item 5. Window
    character). Do: the game; Ctrl+Plus and Ctrl+=, Ctrl+-, Ctrl+0, F11, Escape, Ctrl+S, Ctrl+O, Ctrl+Q. Look for: each
    does what the menu shows beside it.
 
-M12's by-hand list stays open beside this one (`Docs/Engine-Plan.md`, "Current task": the crash window's Copy and "Open
-logs folder", About scrolled with the wheel, the editor's "Where is Stat Fick?" with the mouse and the keyboard).
+M12's by-hand list stays open beside this one (`Docs/Engine-Plan.md`, "How to continue", the paragraph "Before it
+(2026-11-12)", "For the user to check by hand": the crash window's Copy and "Open logs folder", About scrolled with the
+wheel, the editor's "Where is Stat Fick?" with the mouse and the keyboard).
 
 ## Status
+
+**GM1 done (2026-11-15; ticked in `Docs/Game-Plan.md`, "Milestones", by the manager, the branch `gm1-finish`, docs
+only).** Every step is on `main`, each one commit: the design `52958e2`; step 3 `d5d684d`, 4 `8acdc5a`, 2 `a7390ad`, 5
+`41df6e1`, 1a `eec6576`, 6 `46fc451`, 7 `f22f048`, 1b `cde21a4`, 6b `cc65fcb`, 6c `8077dfa`, 8 `acffb2a`, 10 `5353034`,
+9 `8be4a88`, 11 `57a88f7`; beside them the flaky audio test `714be21`, the top layer's LCD text with PaintReference's
+main-frame mode `96164e7`, the engine task of Q34 `b357aef`, the start dialog drawn grey `9155a87` and the flaky tests
+`37960d4` (each with its entry below). The full suite on `main` (`57a88f7`): 4130 + 565 = 4695 tests, passing on the GPU
+and on lavapipe, none held, none skipped (step 11's runs); the end-to-end flow 241 of 241 on both. Nothing of GM1 is
+held or open. **Open for the user:** the eight "Checks by hand on Linux" above (none run yet); "Windows check" items
+1–10 (`Docs/Engine-Plan.md`; item 10 GM1's own); M12's by-hand list and M11's by-hand checks (a)–(e), both still open
+(`Docs/Engine-Plan.md`, "How to continue": the paragraph "Before it (2026-11-12)" and "Small tasks left from earlier
+milestones"); the first real draft release, only on the user's word. GM2 starts on the user's go, its questions asked
+first (GP-6). The old game was frozen for the recapture from 2026-11-13 until the manager's ok of 2026-11-15
+("Decisions").
 
 **Step 5 done (2026-11-13, the branch `gm1-step5`; "How it works", step 5): the save record `save.game` v1, the
 settings, the session and the randomness service** filled into step 2's seams (the seams' few changed shapes listed
@@ -4764,6 +4794,14 @@ lavapipe on the step rebased on `eec6576`: 3920 + 217 = 4137 tests, none skipped
 both; mutations 91 + 36 + 5 (the standing list: 89 killed, 2 that can't differ; the rest all killed); the player's real
 folders unchanged.
 
+**The flaky audio test fixed (2026-11-14, the branch `gm1-audio-test`, `714be21`; `Docs/Engine-Plan.md`, Progress, "The
+flaky audio test"):** `Audio/ScheduledSoundTests.TheClockStandsStillWhileTheSoundIsPaused`, which failed once in step
+1a's first lavapipe run (step 1a above). The cause was the test's sink: it stopped taking buffers after 201, so under
+load the audio thread could fill it before the test's pause and nothing rendered after the resume. The sink now takes a
+buffer at most every millisecond, paused or not, and never fills up; the test also checks that nothing is written while
+paused; `Engine/Statventure/Audio/` unchanged. Mutations 6, all killed. The full suite passes on the GPU and on
+lavapipe: 3920 + 217 = 4137 tests, as on `main`; the player's real folders unchanged.
+
 **Step 7 done (2026-11-14, the branch `gm1-step7`; "How it works", step 7): the icons in the engine.** The engine's icon
 face (`FontLibrary.AddIcons`): the 28 symbols' characters taken before any font, ◌ too, each a glyph of a face per box
 and parent font (its space the parent's), measured by its box (Chromium's glyph), drawn by the canvas's path fill in the
@@ -4805,6 +4843,16 @@ ways are needed for the first mod's gain. The editor's checks after an edit (and
 the final tree 44 of 46 killed, 2 that can't differ); the player's real folders unchanged. Found: the editor's
 `EditedData` gives stale data on a third read after entries that can't be mounted together (for the manager). Not
 checked: Windows; the cloud.
+
+**The top layer's LCD text: an iframe, not the engine (2026-11-14, the branch `gm1-lcd-top-layer`, `96164e7`; the user's
+Q31; `Docs/Engine-Plan.md`, Progress, "The top layer's LCD text"; `Docs/Compositing-Port.md`, "The iframe and the main
+frame"):** step 8's tooltip text, grayscale in the engine and LCD in its Chromium fixture, is grayscale in Chromium too
+when the page is a main frame, as the game's is; only PaintReference's srcdoc iframe merged it into the page's opaque
+layer (Chromium against itself: 2,777 pixels past 12 levels at 1, 5,234 at 1.65). The engine is right for the game (the
+manager's decision: no engine change). `Tools/PaintReference` takes `mainFrame: true` (a fixture without it captured as
+before); `Ui/TopLayerReferenceTests` with `Reference/top-layer-fixtures.json`, at 1 and 1.65; the game's screen fixtures
+are captured as the main frame since step 8 (GM1-P17; Q31 above). Mutations 11: 7 killed, 4 that can't differ. The full
+suite passes on the GPU and on lavapipe: 4036 + 223 = 4259 tests; the player's real folders unchanged.
 
 **Step 6c done (2026-11-14, the branch `gm1-step6c`; "How it works", step 6c): the checks' walk passes by what can't
 report; the data as edited after a refused mount.** `RecordChecks` doesn't walk records whose type can't report anything
@@ -4890,6 +4938,18 @@ the GPU and on lavapipe. No picture, fixture or sheet changed, no comparison mov
 tests fail under the flaky task's load; left to `gm1-flaky-tests`); `end-to-end.sh --publish` 157 of 157 on both;
 mutations 13, 10 killed, 3 that can't differ; the player's real folders unchanged. Not checked: Windows; the cloud
 (Xvfb).
+
+**GM1's flaky tests fixed (2026-11-15, the branch `gm1-flaky-tests`, `37960d4`; "How it works", steps 2 and 10, each
+"Corrected 2026-11-15"; `Docs/Engine-Plan.md`, Progress, "GM1's flaky tests"):** the two tests that failed once each
+under load, their causes forced and found. `SingleInstanceTests.TheSameFolderReachedThroughALinkIsTheSame`: the single
+instance's waits completed on .NET's thread pool, busy with the test host's tests, and a later start's blocking connect
+waited without end when the first took no more calls (the program's defect); now both sides wait with `poll` on sockets
+that don't block, on their own threads (Linux; the same words, 3 s and exit code; Windows' named pipe unchanged).
+`SlotsScreenTests.WithoutABackupThatReadsStartNewIsTheActionAndKeepsTheFilesName`: the test read the damaged file before
+the storage's background writer had run (the program right); the tests flush first now. Mutations 32: 28 killed, 3 that
+can't differ, 1 written again and killed. The full suite passes on the GPU and on lavapipe: 4127 + 554 = 4681 tests (3
+new), none held or skipped; the player's real folders unchanged. Its three findings are small tasks (recorded by step
+11). Not checked: Windows.
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,
