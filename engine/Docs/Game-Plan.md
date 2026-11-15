@@ -733,7 +733,7 @@ and below ("GM2's detail round").
   want them to look very good".
 
 **GM2's detail round (the user, 2026-11-15, the question tool, asked by the manager in ten rounds of four after the
-design doc's first version, the options as `Docs/Game/Hero.md` prepared them, then Q40, the manager's follow-up, then Q41 and Q42, which the answers opened; in full
+design doc's first version, the options as `Docs/Game/Hero.md` prepared them, then Q40, the manager's follow-up, then Q41 and Q42, which the answers opened, and Q43 and Q44, which step 1 raised; in full
 with each question's facts and options in `Docs/Game/Hero.md`, "The questions as asked"):** every answer the recommended
 option (a) except Q1, Q2, Q9, Q18, Q19, Q21, Q22, Q23, Q28, Q31, Q32 and Q37. The manager's decisions on the proposals
 (GM2-P1–GM2-P16, all as proposed, with notes on P7, P10 and P16) are in `Docs/Game/Hero.md`, "Decisions". Nothing of GM2's
@@ -788,6 +788,13 @@ design is open.
 - Q42 (opened by Q23 with T3 and T4, asked the same day): the Goliath's and the Merfolk's presets wear marks, a rune
   pattern on each Goliath preset and a scale pattern on each Merfolk preset; any hero can still choose "none". (Not the
   presets without marks.)
+- Q43 (raised by step 1, the `race` kind's fields; asked by the manager the same day, 2026-11-15): the races' order as an
+  `order` number on each race, the old game's order written as 10, 20, … 280, the same number by id, so a mod's race can
+  sit anywhere among them and the order is data. (Not a separate list entry naming the ids; not the order in the game's
+  code.)
+- Q44 (raised by step 1, asked the same day): the race's emblem as `emblem`, a name ("human", "dark-elf" …; none: no
+  emblem, the ✦), step 10 placing its pictures and model by that name. (Not no field until step 10; not a path to a
+  picture in `ui.pak`.)
 
 ## GM3 Arms and armour: the forge, artifacts and the inventory
 
@@ -2313,3 +2320,8 @@ GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
   and 8 written down (GM2-P17, `Docs/Game/Hero.md`, "How it works", step 12); and, with the manager's leave, an engine
   rule the editor's screens met at 1.65 (Chromium's `DrawingDisplayItem::TightenVisualRect`, `Docs/Compositing-Port.md`).
   4265 + 576 = 4841 tests on the GPU and on lavapipe.
+- **2026-11-15, GM2 step 1 (the races, the effect records and `data.pak`; the stand-in kind removed):** the `race` kind and
+  the `effect` union in the data library, the race fold matching the old game on every case of its test client, the 28
+  races in `data.pak`, the stand-in kind gone (`Docs/Game/Hero.md`, "How it works", step 1); the user answered the two
+  questions it raised, Q43 (the races' order as a number of each) and Q44 (the emblem as a name), as recommended ("GM2's
+  detail round").

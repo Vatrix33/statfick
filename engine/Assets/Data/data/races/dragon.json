@@ -1,0 +1,55 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.all-stats-flat-per-level-up": 1,
+    "effect.defense-permanent-percent": 1,
+    "effect.incoming-spell-damage-percent": 1,
+    "effect.spell-cost-percent": 1
+  },
+  "name": "Dragon",
+  "playable": false,
+  "statModifiers": {
+    "strength": 6,
+    "vitality": 10,
+    "mind": 2,
+    "dexterity": -3,
+    "intelligence": 3,
+    "wisdom": 4,
+    "speed": 1,
+    "luck": 0
+  },
+  "passive": {
+    "id": "creature-of-legend",
+    "name": "Creature of Legend",
+    "condition": "Always active",
+    "description": "Gain +2 to every basic stat whenever you level up. Armor is increased by 60%, spell damage taken is reduced by 30%, and Dragonbreath spells cost 80% less Mana.",
+    "effects": [
+      {
+        "$type": "effect.all-stats-flat-per-level-up",
+        "amount": 2
+      },
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "armor",
+        "amount": 60
+      },
+      {
+        "$type": "effect.incoming-spell-damage-percent",
+        "element": "",
+        "amount": -30
+      },
+      {
+        "$type": "effect.spell-cost-percent",
+        "amount": 80,
+        "namePrefix": "Dragonbreath",
+        "element": ""
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "order": 190,
+  "swatches": []
+}

@@ -1,0 +1,3 @@
+effect.incoming-spell-damage-percent 1
+  1 element: string = ""
+  2 amount: float64 = 0

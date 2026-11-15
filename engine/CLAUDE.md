@@ -31,6 +31,11 @@ the user and wait for their go-ahead before starting the next one.
   `git config diff.pak.textconv engine/Tools/Packer/textconv.sh`.
   `Tools/Scripts/make-ui-pack.sh` makes `Assets/Packs/ui.pak` (the old game's five fonts and their licences, and the
   port's stylesheets from `Assets/UI/styles/*.css`, compiled as `ui/styles/<name>`; GM1 step 1a).
+  `Tools/Scripts/make-data-pack.sh` makes `Assets/Packs/data.pak` afresh from `Assets/Data/` (the game's records as JSON
+  forms at their paths: the 28 races, `data/races/<id>.json`, written from the old `races.json` by the game's tests'
+  converter with `STATVENTURE_RACE_DATA=write`; GM2 step 1, `Docs/Game/Hero.md`, "How it works", step 1);
+  `Tools/Scripts/make-race-references.sh` measures the old game's race rules in its test client (inside a headless
+  compositor on the PC) into `Tests/Statventure.Game.Tests/Reference/race-*.json`.
 - Chromium 152 for references: `Tools/Scripts/chromium.sh` (Electron 44.5.0 from npm). `Tools/PaintReference` renders a
   fixture in an iframe; a fixture with `mainFrame: true` is rendered as a page's own document, as the game's and the
   editor's documents are. Use it where a fixed box or a box composited apart sits over the page (the top layer's

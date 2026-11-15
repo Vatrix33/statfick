@@ -1,0 +1,48 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.defense-permanent-percent": 1,
+    "effect.incoming-spell-damage-percent": 1
+  },
+  "name": "Treant",
+  "playable": false,
+  "statModifiers": {
+    "strength": 4,
+    "vitality": 7,
+    "mind": -3,
+    "dexterity": -5,
+    "intelligence": -3,
+    "wisdom": 3,
+    "speed": -6,
+    "luck": -2
+  },
+  "passive": {
+    "id": "living-bark",
+    "name": "Living Bark",
+    "condition": "Always active",
+    "description": "Increase Armor by 35%. Take 50% less Nature spell damage and 50% more Fire spell damage.",
+    "effects": [
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "armor",
+        "amount": 35
+      },
+      {
+        "$type": "effect.incoming-spell-damage-percent",
+        "element": "nature",
+        "amount": -50
+      },
+      {
+        "$type": "effect.incoming-spell-damage-percent",
+        "element": "fire",
+        "amount": 50
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "order": 260,
+  "swatches": []
+}

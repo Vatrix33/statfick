@@ -1,0 +1,4 @@
+effect.spell-cost-percent 1
+  1 amount: float64 = 0
+  2 namePrefix: string = ""
+  3 element: string = ""

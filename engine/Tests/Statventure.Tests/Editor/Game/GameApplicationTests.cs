@@ -79,7 +79,7 @@ public class GameApplicationTests
             }
             if (a.View is null)
                 return false;
-            seen.Add($"update {n}: screen {a.Screen is not null}, the game in {a.Session!.Game.Folder}, its kind {a.Session.Types.Find(GameTesting.StandInKind) is not null}, \"{a.Window.Title}\"");
+            seen.Add($"update {n}: screen {a.Screen is not null}, the game in {a.Session!.Game.Folder}, its kind {a.Session.Types.Find(GameTesting.RaceKind) is not null}, \"{a.Window.Title}\"");
             return true;
         });
         Assert.Equal([

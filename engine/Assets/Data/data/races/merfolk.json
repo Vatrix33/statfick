@@ -1,0 +1,43 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.incoming-spell-damage-percent": 1
+  },
+  "name": "Merfolk",
+  "playable": true,
+  "statModifiers": {
+    "strength": 1,
+    "vitality": 3,
+    "mind": 1,
+    "dexterity": 2,
+    "intelligence": -2,
+    "wisdom": 0,
+    "speed": -1,
+    "luck": -2
+  },
+  "passive": {
+    "id": "fishman-physiology",
+    "name": "Fishman Physiology",
+    "condition": "Always active",
+    "description": "Amphibious fishmen take 20% less Water spell damage, but 10% more Fire spell damage.",
+    "effects": [
+      {
+        "$type": "effect.incoming-spell-damage-percent",
+        "element": "water",
+        "amount": -20
+      },
+      {
+        "$type": "effect.incoming-spell-damage-percent",
+        "element": "fire",
+        "amount": 10
+      }
+    ]
+  },
+  "accent": "#4c9a8a",
+  "emblem": "merfolk",
+  "order": 280,
+  "swatches": []
+}

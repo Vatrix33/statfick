@@ -1,0 +1,38 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.defense-flat-per-enemy": 1
+  },
+  "name": "Lizardman",
+  "playable": true,
+  "statModifiers": {
+    "strength": 1,
+    "vitality": 0,
+    "mind": -1,
+    "dexterity": 2,
+    "intelligence": -2,
+    "wisdom": -1,
+    "speed": 3,
+    "luck": 0
+  },
+  "passive": {
+    "id": "mud-runner",
+    "name": "Mud Runner",
+    "condition": "While in combat",
+    "description": "Increase Evasion by 2 for each enemy in combat.",
+    "effects": [
+      {
+        "$type": "effect.defense-flat-per-enemy",
+        "target": "evasion",
+        "amount": 2
+      }
+    ]
+  },
+  "accent": "#66806a",
+  "emblem": "lizardman",
+  "order": 60,
+  "swatches": []
+}

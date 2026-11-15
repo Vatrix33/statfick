@@ -1,0 +1,4 @@
+effect.equipment-restriction 1
+  1 category: string = ""
+  2 typeName: string = ""
+  3 target: string = ""

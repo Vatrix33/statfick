@@ -1,0 +1,40 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.conditional-stats-percent-vs-higher-max-hp": 1
+  },
+  "name": "Lamia",
+  "playable": false,
+  "statModifiers": {
+    "strength": 1,
+    "vitality": -4,
+    "mind": 2,
+    "dexterity": 4,
+    "intelligence": 1,
+    "wisdom": 1,
+    "speed": -3,
+    "luck": 7
+  },
+  "passive": {
+    "id": "creature-of-envy",
+    "name": "Creature of Envy",
+    "condition": "While an enemy has greater maximum HP",
+    "description": "If an enemy has more maximum HP than you, increase Strength and Intelligence by 15%.",
+    "effects": [
+      {
+        "$type": "effect.conditional-stats-percent-vs-higher-max-hp",
+        "targets": [
+          "strength",
+          "intelligence"
+        ],
+        "amount": 15
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "order": 240,
+  "swatches": []
+}

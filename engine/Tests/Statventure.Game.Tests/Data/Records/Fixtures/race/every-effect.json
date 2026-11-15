@@ -1,0 +1,176 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.max-hp-per-levels": 1,
+    "effect.max-mana-per-levels": 1,
+    "effect.max-hp-percent": 1,
+    "effect.unarmed-power-per-levels": 1,
+    "effect.unarmed-name": 1,
+    "effect.spell-cost-percent": 1,
+    "effect.trap-limit-flat": 1,
+    "effect.healing-disabled": 1,
+    "effect.spellcasting-disabled": 1,
+    "effect.debuff-immunity": 1,
+    "effect.stat-permanent-percent": 1,
+    "effect.defense-permanent-percent": 1,
+    "effect.defense-flat-per-enemy": 1,
+    "effect.defense-cap": 1,
+    "effect.equipment-restriction": 1,
+    "effect.all-stats-flat-per-level-up": 1,
+    "effect.incoming-spell-damage-percent": 1,
+    "effect.turn-start-restore-percent": 1,
+    "effect.spell-damage-mana-burn-percent": 1,
+    "effect.incoming-spell-miss-chance": 1,
+    "effect.conditional-stats-percent-vs-higher-max-hp": 1,
+    "effect.death-save-decay": 1,
+    "effect.spell-power-percent": 1,
+    "race.swatch": 1
+  },
+  "name": "Every Effect",
+  "playable": false,
+  "statModifiers": {
+    "strength": 1,
+    "vitality": -2,
+    "mind": 3.5,
+    "dexterity": -4,
+    "intelligence": 5,
+    "wisdom": -6,
+    "speed": 7,
+    "luck": -8
+  },
+  "passive": {
+    "id": "all-at-once",
+    "name": "All at Once",
+    "condition": "While testing",
+    "description": "One of each.",
+    "effects": [
+      {
+        "$type": "effect.max-hp-per-levels",
+        "amount": 2,
+        "interval": 5
+      },
+      {
+        "$type": "effect.max-mana-per-levels",
+        "amount": 1,
+        "interval": 4
+      },
+      {
+        "$type": "effect.max-hp-percent",
+        "amount": 10
+      },
+      {
+        "$type": "effect.unarmed-power-per-levels",
+        "amount": 1,
+        "interval": 10
+      },
+      {
+        "$type": "effect.unarmed-name",
+        "name": "Claws"
+      },
+      {
+        "$type": "effect.spell-cost-percent",
+        "amount": 80,
+        "namePrefix": "Dragonbreath",
+        "element": "fire"
+      },
+      {
+        "$type": "effect.trap-limit-flat",
+        "amount": 1
+      },
+      {
+        "$type": "effect.healing-disabled"
+      },
+      {
+        "$type": "effect.spellcasting-disabled"
+      },
+      {
+        "$type": "effect.debuff-immunity"
+      },
+      {
+        "$type": "effect.stat-permanent-percent",
+        "target": "strength",
+        "amount": 15
+      },
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "armor",
+        "amount": 8
+      },
+      {
+        "$type": "effect.defense-flat-per-enemy",
+        "target": "evasion",
+        "amount": 2
+      },
+      {
+        "$type": "effect.defense-cap",
+        "target": "evasion",
+        "amount": 0.5
+      },
+      {
+        "$type": "effect.equipment-restriction",
+        "category": "armor",
+        "typeName": "heavy",
+        "target": "plate"
+      },
+      {
+        "$type": "effect.all-stats-flat-per-level-up",
+        "amount": 2
+      },
+      {
+        "$type": "effect.incoming-spell-damage-percent",
+        "element": "holy",
+        "amount": 50
+      },
+      {
+        "$type": "effect.turn-start-restore-percent",
+        "hp": 5,
+        "unlessDamagedByElement": "fire",
+        "lookbackTurns": 5
+      },
+      {
+        "$type": "effect.spell-damage-mana-burn-percent",
+        "amount": 20
+      },
+      {
+        "$type": "effect.incoming-spell-miss-chance",
+        "amount": 5
+      },
+      {
+        "$type": "effect.conditional-stats-percent-vs-higher-max-hp",
+        "targets": [
+          "strength",
+          "intelligence"
+        ],
+        "amount": 15
+      },
+      {
+        "$type": "effect.death-save-decay",
+        "initialChance": 80,
+        "reduction": 20,
+        "excludedElements": [
+          "holy",
+          "nature",
+          "blood"
+        ]
+      },
+      {
+        "$type": "effect.spell-power-percent",
+        "element": "nature",
+        "amount": 20
+      }
+    ]
+  },
+  "accent": "#4c9a8a",
+  "emblem": "every-effect",
+  "order": 285,
+  "swatches": [
+    {
+      "slot": "skin",
+      "name": "Ash grey",
+      "colour": "#7d7a72"
+    }
+  ]
+}

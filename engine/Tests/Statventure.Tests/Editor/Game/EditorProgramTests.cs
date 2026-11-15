@@ -76,7 +76,7 @@ public class EditorProgramTests
         var (arguments, game) = repo.Runs.Single();
         Assert.Equal((folder["player"], folder["shot.png"], 3), (arguments.PlayerFolder, arguments.Capture, arguments.Frames));
         Assert.True(game!.DevSetup);
-        Assert.NotNull(game.Types.Find(GameTesting.StandInKind));
+        Assert.NotNull(game.Types.Find(GameTesting.RaceKind));
         var installed = Start(windows: false, "--game", GameTesting.MakeGame(folder["game"]));
         Assert.Equal(folder["game"], installed.Runs.Single().Item2!.Folder);
         // Neither: the editor looks for the game itself (the folder it remembers, or the screen).

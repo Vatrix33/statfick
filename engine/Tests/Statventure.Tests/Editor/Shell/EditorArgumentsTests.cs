@@ -26,7 +26,7 @@ public class EditorArgumentsTests
         Assert.Equal((TestPaths.Packs, true, null, GameTesting.BuiltLibrary), (game.PacksFolder, game.DevSetup, game.Folder, game.Library));
         // The library's build in the repo: Game/Statventure.Game.Data/bin/<the editor's configuration>/net10.0.
         Assert.Equal(Path.Combine(EditorHarness.EngineFolder, "Game", "Statventure.Game.Data", "bin", GameLibrary.Configuration, "net10.0", "Statventure.Game.Data.dll"), GameTesting.BuiltLibrary);
-        Assert.NotNull(game.Types.Find(GameTesting.StandInKind));
+        Assert.NotNull(game.Types.Find(GameTesting.RaceKind));
         Assert.NotNull(game.Types.Find("audio.room"));
     }
 
@@ -39,7 +39,7 @@ public class EditorArgumentsTests
         Assert.Equal((null, folder["game"], folder["player"], null), (parsed.Repo, parsed.GameFolder, parsed.PlayerFolder, parsed.Problem));
         var game = parsed.FindGame(EditorView.Version).Game!;
         Assert.Equal((folder["game/packs"], false, folder["game"], folder["game/Statventure.Game.Data.dll"]), (game.PacksFolder, game.DevSetup, game.Folder, game.Library));
-        Assert.NotNull(game.Types.Find(GameTesting.StandInKind));
+        Assert.NotNull(game.Types.Find(GameTesting.RaceKind));
         // A relative folder is taken from the working folder.
         Assert.Equal(Path.GetFullPath("player"), EditorArguments.Parse(["--player-folder", "player"]).PlayerFolder);
         Assert.Equal(Path.GetFullPath("game"), EditorArguments.Parse(["--game", "game"]).GameFolder);

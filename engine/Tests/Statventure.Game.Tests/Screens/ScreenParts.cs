@@ -1,6 +1,6 @@
 using System.Numerics;
 using Statventure.Core;
-using Statventure.Game.Data.StandIn;
+using Statventure.Game.Data.Races;
 using Statventure.Game.Mods;
 using Statventure.Game.Random;
 using Statventure.Game.Screens.Picker;
@@ -93,24 +93,24 @@ sealed class ScreenParts
         Mod("ember-rite.pak", w =>
         {
             w.AddRecord(ModInfo.Path, new ModInfo { Name = "Ember Rite", Author = "Vatrix", Version = "1.0", Description = "A rite of embers: a chime for the shrines and a lantern sold in Alderkeep." });
-            w.AddRecord("stand-in/items/lantern", new StandInItem { Title = "Lantern", Price = 12, Rarity = "Rare" });
+            w.AddRecord(RaceCatalogue.PathOf("ember-folk"), TestRaces.Good("Ember Folk"));
         });
         Mod("frost-hollow.pak", w =>
         {
             w.AddRecord(ModInfo.Path, new ModInfo { Name = "Frost Hollow", Author = "Maren", Version = "0.4.2", Description = "Colder nights in the hollow." });
-            w.AddRecord("stand-in/items/fur-cloak", new StandInItem { Title = "Fur cloak", Price = 30 });
+            w.AddRecord(RaceCatalogue.PathOf("frost-kin"), TestRaces.Good("Frost Kin"));
         });
-        Mod("lanterns.pak", w => w.AddRecord("stand-in/items/paper-lantern", new StandInItem { Title = "Paper lantern", Price = 2 }));
+        Mod("lanterns.pak", w => w.AddRecord(RaceCatalogue.PathOf("lantern-folk"), TestRaces.Good("Lantern Folk")));
         Mod("quiet-nights.pak", w =>
         {
             w.AddRecord(ModInfo.Path, new ModInfo { Name = "Quiet Nights", Author = "Vatrix", Version = "2.1" });
-            w.AddRecord("stand-in/items/candle", new StandInItem { Title = "Candle", Price = 1 });
+            w.AddRecord(RaceCatalogue.PathOf("night-folk"), TestRaces.Good("Night Folk"));
         });
         Mod("broken-vale.pak", w =>
         {
             w.AddRecord(ModInfo.Path, new ModInfo { Name = "Broken Vale", Author = "Someone", Version = "0.1", Description = "A test mod with values its checks refuse." });
-            w.AddRecord("stand-in/items/lamp", new StandInItem { Title = "Lamp", Price = 3, Rarity = "Legendary" });
-            w.AddRecord("stand-in/items/torch", new StandInItem { Title = "Torch", Price = -1 });
+            w.AddRecord(RaceCatalogue.PathOf("lamp"), TestRaces.NotANumber("Lamp Folk"));
+            w.AddRecord(RaceCatalogue.PathOf("torch"), TestRaces.Nameless());
         });
         Start(off: ["quiet-nights.pak"]);
     }

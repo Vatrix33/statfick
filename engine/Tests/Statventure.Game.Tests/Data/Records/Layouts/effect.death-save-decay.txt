@@ -1,0 +1,4 @@
+effect.death-save-decay 1
+  1 initialChance: float64? = null
+  2 reduction: float64 = 0
+  3 excludedElements: list<string> = []

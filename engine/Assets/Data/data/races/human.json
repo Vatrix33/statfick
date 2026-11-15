@@ -1,0 +1,38 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.max-hp-per-levels": 1
+  },
+  "name": "Human",
+  "playable": true,
+  "statModifiers": {
+    "strength": 2,
+    "vitality": 1,
+    "mind": -3,
+    "dexterity": -1,
+    "intelligence": 1,
+    "wisdom": 0,
+    "speed": -1,
+    "luck": 1
+  },
+  "passive": {
+    "id": "rulers-of-the-world",
+    "name": "Rulers of the World",
+    "condition": "Every fifth character level",
+    "description": "Gain 2 additional maximum HP every fifth character level.",
+    "effects": [
+      {
+        "$type": "effect.max-hp-per-levels",
+        "amount": 2,
+        "interval": 5
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "emblem": "human",
+  "order": 10,
+  "swatches": []
+}

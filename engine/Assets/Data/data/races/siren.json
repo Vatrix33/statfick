@@ -1,0 +1,36 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.spell-damage-mana-burn-percent": 1
+  },
+  "name": "Siren",
+  "playable": false,
+  "statModifiers": {
+    "strength": -2,
+    "vitality": 1,
+    "mind": 8,
+    "dexterity": -2,
+    "intelligence": 6,
+    "wisdom": 4,
+    "speed": -4,
+    "luck": 3
+  },
+  "passive": {
+    "id": "creature-of-lust",
+    "name": "Creature of Lust",
+    "condition": "When dealing spell damage",
+    "description": "Enemies damaged by your spells lose Mana equal to 20% of the damage dealt.",
+    "effects": [
+      {
+        "$type": "effect.spell-damage-mana-burn-percent",
+        "amount": 20
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "order": 210,
+  "swatches": []
+}

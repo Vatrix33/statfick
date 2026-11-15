@@ -224,7 +224,7 @@ public class SettingsScreenTests
             rows.Select(r => Text(r, ".settings-mod-description")));
         Assert.Equal(
         [
-            "Left out: stand-in/items/lamp: \"Legendary\" isn't one of the choices: Common, Rare, Exotic (at $.rarity) (and 1 more)",
+            "Left out: data/races/lamp: the strength modifier must be a number (it is NaN) (at $.statModifiers.strength) (and 1 more)",
             "Loaded", "Loaded", "Loaded", "Off",
         ], rows.Select(r => Text(r, ".settings-mod-state")));
         Assert.Equal(["is-left-out", "is-loaded", "is-loaded", "is-loaded", "is-off"], rows.Select(r => new[] { "is-left-out", "is-loaded", "is-off" }.Single(r.HasClass)));

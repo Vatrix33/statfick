@@ -1,0 +1,2 @@
+effect.max-hp-percent 1
+  1 amount: float64 = 0

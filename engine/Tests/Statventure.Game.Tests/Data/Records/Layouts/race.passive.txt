@@ -1,0 +1,6 @@
+race.passive 1
+  1 id: string = ""
+  2 name: string (required)
+  3 condition: string = "Always active"
+  4 description: string = ""
+  5 effects: list<effect> = []

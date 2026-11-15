@@ -1,0 +1,47 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.all-stats-flat-per-level-up": 1,
+    "effect.defense-permanent-percent": 1
+  },
+  "name": "Giant",
+  "playable": false,
+  "statModifiers": {
+    "strength": 8,
+    "vitality": 7,
+    "mind": -4,
+    "dexterity": -8,
+    "intelligence": 1,
+    "wisdom": -2,
+    "speed": -7,
+    "luck": -1
+  },
+  "passive": {
+    "id": "large-form",
+    "name": "Large Form",
+    "condition": "Always active",
+    "description": "Gain +2 to every basic stat whenever you level up. Evasion is reduced by 90% and Armor is increased by 20%.",
+    "effects": [
+      {
+        "$type": "effect.all-stats-flat-per-level-up",
+        "amount": 2
+      },
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "evasion",
+        "amount": -90
+      },
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "armor",
+        "amount": 20
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "order": 180,
+  "swatches": []
+}

@@ -1,0 +1,2 @@
+effect.spell-damage-mana-burn-percent 1
+  1 amount: float64 = 0

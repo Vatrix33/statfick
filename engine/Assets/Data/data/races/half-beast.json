@@ -1,0 +1,43 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.unarmed-name": 1,
+    "effect.unarmed-power-per-levels": 1
+  },
+  "name": "Half-Beast",
+  "playable": true,
+  "statModifiers": {
+    "strength": 1,
+    "vitality": 1,
+    "mind": -1,
+    "dexterity": 1,
+    "intelligence": -2,
+    "wisdom": 1,
+    "speed": 1,
+    "luck": -2
+  },
+  "passive": {
+    "id": "natural-claws",
+    "name": "Natural Claws",
+    "condition": "Always active",
+    "description": "Your unarmed attacks are claws: they gain 1 base power for every 10 character levels and count as unarmed attacks.",
+    "effects": [
+      {
+        "$type": "effect.unarmed-name",
+        "name": "Claws"
+      },
+      {
+        "$type": "effect.unarmed-power-per-levels",
+        "amount": 1,
+        "interval": 10
+      }
+    ]
+  },
+  "accent": "#9a6a3f",
+  "emblem": "half-beast",
+  "order": 70,
+  "swatches": []
+}

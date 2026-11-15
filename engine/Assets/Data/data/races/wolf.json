@@ -1,0 +1,42 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.defense-permanent-percent": 1
+  },
+  "name": "Wolf",
+  "playable": false,
+  "statModifiers": {
+    "strength": -4,
+    "vitality": -7,
+    "mind": -8,
+    "dexterity": -3,
+    "intelligence": -8,
+    "wisdom": -6,
+    "speed": -2,
+    "luck": -5
+  },
+  "passive": {
+    "id": "beast-instinct",
+    "name": "Beast Instinct",
+    "condition": "Always active",
+    "description": "Increase Evasion by 15%. Reduce Armor by 50%.",
+    "effects": [
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "evasion",
+        "amount": 15
+      },
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "armor",
+        "amount": -50
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "order": 110,
+  "swatches": []
+}

@@ -56,20 +56,22 @@ public class RecordDraftTests
     public void EveryCommittedPacksRecordsBuildBackToTheirStoredForm()
     {
         var records = 0;
+        // The game's kinds (the engine's and its data library's, loaded the editor's way): data.pak holds races (GM2 step 1).
+        var kinds = Statventure.Editor.Game.GameLibraryLoader.Run.Kinds(Statventure.Editor.Game.GameLibrary.Read(Statventure.Tests.Editor.Game.GameTesting.BuiltLibrary)).Types;
         foreach (var file in Directory.GetFiles(TestPaths.Packs, "*.pak"))
         {
             using var pack = PackFile.Open(file);
             foreach (var entry in pack.Entries.Where(e => e.IsRecord))
             {
                 var content = pack.Read(entry);
-                var type = RecordTypes.Engine.Find(RecordSerializer.RootTypeName(content))!;
+                var type = kinds.Find(RecordSerializer.RootTypeName(content))!;
                 var built = Build(RecordDraft.From(RecordSerializer.FromBinary(type, content)));
                 Assert.True(content.AsSpan().SequenceEqual(RecordSerializer.ToBinary(type, built)), $"{file}: {entry.Path} isn't built back to its stored form");
                 records++;
             }
         }
-        // audio.pak's 118 records (Docs/Assets.md, step 6).
-        Assert.True(records >= 118, $"only {records} records");
+        // audio.pak's 118 records (Docs/Assets.md, step 6) and data.pak's 28 races (GM2 step 1).
+        Assert.True(records >= 146, $"only {records} records");
     }
 
     /// <summary>A value for each required field, so the rest can be built: zeros, empty strings, the first member, one element of a list, a filled blank record.</summary>

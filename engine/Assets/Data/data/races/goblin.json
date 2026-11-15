@@ -1,0 +1,37 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.defense-permanent-percent": 1
+  },
+  "name": "Goblin",
+  "playable": false,
+  "statModifiers": {
+    "strength": -5,
+    "vitality": -7,
+    "mind": -9,
+    "dexterity": -6,
+    "intelligence": -8,
+    "wisdom": -9,
+    "speed": -4,
+    "luck": -8
+  },
+  "passive": {
+    "id": "creature-of-greed",
+    "name": "Creature of Greed",
+    "condition": "Always active",
+    "description": "Increase Evasion by 5%.",
+    "effects": [
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "evasion",
+        "amount": 5
+      }
+    ]
+  },
+  "accent": "#76904f",
+  "order": 90,
+  "swatches": []
+}

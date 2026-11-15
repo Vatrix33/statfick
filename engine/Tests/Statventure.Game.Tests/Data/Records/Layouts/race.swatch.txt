@@ -1,0 +1,4 @@
+race.swatch 1
+  1 slot: string = ""
+  2 name: string = ""
+  3 colour: string = "#000000"

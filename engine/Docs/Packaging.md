@@ -8,7 +8,9 @@ of it with the sandbox standing in for the game (M12-12); the port replaces the 
 (2026-11-13) the game's download holds the game's own program** (`Game/Statventure.Game`, published as `stat-fick` and
 `Stat Fick.exe`) and its real data library (`Game/Statventure.Game.Data`, with the development-only kind `stand-in.item`
 until GM2, GM1-P3); the sandbox is the engine's test bed, not published ("How it works", "GM1 step 2"; `Docs/Game/
-Foundation.md`).
+Foundation.md`). **Since GM2 step 1 (2026-11-15)** the library's first real kinds (`race`, `effect`) replace the stand-in,
+and the game's download carries `packs/data.pak` (the races; made by `Tools/Scripts/make-data-pack.sh`), in both game
+listings and in `licenses.txt` as the game's own data (`Docs/Game/Hero.md`, "How it works", step 1).
 
 ## Decisions (user, 2026-11-08)
 

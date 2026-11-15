@@ -1,0 +1,43 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.incoming-spell-damage-percent": 1,
+    "effect.max-hp-per-levels": 1
+  },
+  "name": "Impid",
+  "playable": false,
+  "statModifiers": {
+    "strength": -6,
+    "vitality": -7,
+    "mind": -8,
+    "dexterity": -3,
+    "intelligence": -7,
+    "wisdom": -7,
+    "speed": -2,
+    "luck": -9
+  },
+  "passive": {
+    "id": "demonic-lineage",
+    "name": "Demonic Lineage",
+    "condition": "Always active",
+    "description": "Take 50% more damage from Holy-element spells. Gain 2 additional maximum HP per character level.",
+    "effects": [
+      {
+        "$type": "effect.incoming-spell-damage-percent",
+        "element": "holy",
+        "amount": 50
+      },
+      {
+        "$type": "effect.max-hp-per-levels",
+        "amount": 2,
+        "interval": 1
+      }
+    ]
+  },
+  "accent": "#a14f61",
+  "order": 100,
+  "swatches": []
+}

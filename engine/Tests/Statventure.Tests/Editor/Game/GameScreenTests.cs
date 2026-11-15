@@ -132,7 +132,7 @@ public class GameScreenTests
         var game = Assert.Single(chosen);
         Assert.Same(game, screen.Game);
         Assert.Equal((scratch.Game, Path.Combine(scratch.Game, "packs"), false), (game.Folder, game.PacksFolder, game.DevSetup));
-        Assert.NotNull(game.Types.Find(GameTesting.StandInKind));
+        Assert.NotNull(game.Types.Find(GameTesting.RaceKind));
         Assert.Equal(scratch.Game, RememberedGame.Read(scratch.Player));
         // Its folder's place, the games folder, is the most recent place.
         Assert.Equal(scratch.Games, RecentPlacesFile.Read(scratch.Player).Folders[0]);

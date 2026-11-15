@@ -1,0 +1,45 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.max-mana-per-levels": 1,
+    "effect.spell-cost-percent": 1
+  },
+  "name": "Dark Elf",
+  "playable": true,
+  "statModifiers": {
+    "strength": -1,
+    "vitality": -2,
+    "mind": 2,
+    "dexterity": 2,
+    "intelligence": 1,
+    "wisdom": 1,
+    "speed": 1,
+    "luck": -3
+  },
+  "passive": {
+    "id": "sylvan-heritage",
+    "name": "Sylvan Heritage",
+    "condition": "Always active",
+    "description": "Gain 1 additional maximum Mana every fifth character level. All spells cost 3% less Mana.",
+    "effects": [
+      {
+        "$type": "effect.max-mana-per-levels",
+        "amount": 1,
+        "interval": 5
+      },
+      {
+        "$type": "effect.spell-cost-percent",
+        "amount": 3,
+        "namePrefix": "",
+        "element": ""
+      }
+    ]
+  },
+  "accent": "#77607e",
+  "emblem": "dark-elf",
+  "order": 30,
+  "swatches": []
+}

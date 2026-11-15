@@ -26,15 +26,8 @@ static class LibraryRecords
 
     public static bool Recording => Environment.GetEnvironmentVariable("STATVENTURE_RECORD_FIXTURES") == "1";
 
-    /// <summary>
-    /// The development-only stand-in kind (GM1-P3) goes when GM2's first real kind arrives; it is left out of the guard,
-    /// as it was before GM1 (no layout or fixture was ever committed for it).
-    /// </summary>
-    public const string StandInNamespace = "Statventure.Game.Data.StandIn";
-
-    /// <summary>Every record type of the data library the guard covers, by name.</summary>
-    public static IReadOnlyDictionary<string, Type> Types { get; } =
-        RecordSerializer.FindTypes([typeof(SaveGame).Assembly], type => type.Namespace != StandInNamespace);
+    /// <summary>Every record type of the data library, by name: the guard covers them all (GM1's development-only stand-in kind, which it left out, went with GM2 step 1).</summary>
+    public static IReadOnlyDictionary<string, Type> Types { get; } = RecordSerializer.FindTypes([typeof(SaveGame).Assembly]);
 
     public static string PathOf(string type, string label, string extension) => Path.Combine(FixtureFolder, type, label + extension);
 

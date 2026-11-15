@@ -115,7 +115,7 @@ public class GamePartTests
         Assert.True(second.Done());
         var game = Assert.Single(chosen);
         Assert.Equal((scratch.Folder["games/b"], false), (game.Folder, game.DevSetup));
-        Assert.Same(GameTesting.StandInType(), game.Types.Find(GameTesting.StandInKind));
+        Assert.Same(GameTesting.RaceType(), game.Types.Find(GameTesting.RaceKind));
         Assert.Equal(scratch.Folder["games/b"], RememberedGame.Read(scratch.Player));
     }
 

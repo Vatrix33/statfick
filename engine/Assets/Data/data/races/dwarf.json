@@ -1,0 +1,38 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.defense-permanent-percent": 1
+  },
+  "name": "Dwarf",
+  "playable": true,
+  "statModifiers": {
+    "strength": 2,
+    "vitality": 3,
+    "mind": -2,
+    "dexterity": 0,
+    "intelligence": -2,
+    "wisdom": -1,
+    "speed": -1,
+    "luck": 1
+  },
+  "passive": {
+    "id": "mountainborn",
+    "name": "Mountainborn",
+    "condition": "Always active",
+    "description": "Your Armor increases by 8%.",
+    "effects": [
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "armor",
+        "amount": 8
+      }
+    ]
+  },
+  "accent": "#8b684e",
+  "emblem": "dwarf",
+  "order": 40,
+  "swatches": []
+}

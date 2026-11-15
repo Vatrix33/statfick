@@ -1,0 +1,2 @@
+effect.all-stats-flat-per-level-up 1
+  1 amount: float64 = 0

@@ -3169,6 +3169,13 @@ and the lists of problems come out the same, problem for problem and in order (F
 
 ## Status
 
+**GM2 step 1 (2026-11-15): the game's first real kind, `race`, in place of the stand-in** (`Docs/Game/Hero.md`, "How it
+works", step 1): `stand-in.item` is gone; the editor's game tests, `GameFolderModTests` and the end-to-end mod use races
+(New entry "Race (race)", the nested passive made, an effect of the `effect` union added). The repo's packs now hold
+`data.pak`, so the screens over them show its `data/races` folder: 12 editor fixtures captured again (only the entry
+list's pane changed) and `list-marks` made 1000 × 700, as Chromium scrolls a focused element into view and the engine's
+`Focus()` doesn't (found there; the tree no longer fits at 640). Nothing of the editor's code changed.
+
 **GM1 step 2 (2026-11-13): the game's real data library** (`Game/Statventure.Game.Data`, `GameLibrary.RepoProject`;
 "Record kinds that aren't the engine's"): the editor, the packer and `editor.sh` take it in place of the stand-in; its
 kind `stand-in.item` stays as a development-only kind until GM2 (GM1-P3). Nothing else of the editor changed.

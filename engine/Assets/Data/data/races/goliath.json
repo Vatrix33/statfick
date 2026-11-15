@@ -1,0 +1,48 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.max-hp-percent": 1,
+    "effect.defense-permanent-percent": 1
+  },
+  "name": "Goliath",
+  "playable": true,
+  "statModifiers": {
+    "strength": 3,
+    "vitality": 3,
+    "mind": -2,
+    "dexterity": -2,
+    "intelligence": -1,
+    "wisdom": 0,
+    "speed": -2,
+    "luck": 1
+  },
+  "passive": {
+    "id": "giants-blood",
+    "name": "Giant's Blood",
+    "condition": "Always active",
+    "description": "Maximum HP increases by 10% and Armor by 5%, but Evasion is reduced by 10%.",
+    "effects": [
+      {
+        "$type": "effect.max-hp-percent",
+        "amount": 10
+      },
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "armor",
+        "amount": 5
+      },
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "evasion",
+        "amount": -10
+      }
+    ]
+  },
+  "accent": "#7d7a72",
+  "emblem": "goliath",
+  "order": 80,
+  "swatches": []
+}

@@ -1,0 +1,54 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.incoming-spell-damage-percent": 1,
+    "effect.max-hp-per-levels": 1,
+    "effect.max-mana-per-levels": 1
+  },
+  "name": "Demon",
+  "playable": false,
+  "statModifiers": {
+    "strength": 4,
+    "vitality": 7,
+    "mind": -2,
+    "dexterity": 1,
+    "intelligence": -3,
+    "wisdom": -5,
+    "speed": 3,
+    "luck": -10
+  },
+  "passive": {
+    "id": "voidborne",
+    "name": "Voidborne",
+    "condition": "Always active",
+    "description": "Take 80% more damage from Holy-element spells. Take no damage from Dark-element spells. Gain 3 additional maximum HP and 1 additional maximum Mana per character level.",
+    "effects": [
+      {
+        "$type": "effect.incoming-spell-damage-percent",
+        "element": "holy",
+        "amount": 80
+      },
+      {
+        "$type": "effect.incoming-spell-damage-percent",
+        "element": "dark",
+        "amount": -100
+      },
+      {
+        "$type": "effect.max-hp-per-levels",
+        "amount": 3,
+        "interval": 1
+      },
+      {
+        "$type": "effect.max-mana-per-levels",
+        "amount": 1,
+        "interval": 1
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "order": 150,
+  "swatches": []
+}

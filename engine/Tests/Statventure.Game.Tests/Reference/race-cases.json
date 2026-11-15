@@ -1,0 +1,1036 @@
+{
+ "about": "The race oracle's case list (GM2 step 1; Docs/Game/Hero.md, \"How it works\", step 1): made by Tools/Scripts/make-race-references.sh in the old game's test client into race-fold.json and race-rules.json.",
+ "fold": [
+  {
+   "enemyCount": 0,
+   "levels": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    150,
+    200,
+    0
+   ]
+  },
+  {
+   "enemyCount": 1,
+   "levels": [
+    1,
+    50,
+    100
+   ]
+  },
+  {
+   "enemyCount": 3,
+   "levels": [
+    1,
+    50,
+    100
+   ]
+  },
+  {
+   "enemyCount": -1,
+   "levels": [
+    1,
+    50
+   ]
+  }
+ ],
+ "crafted": [
+  {
+   "id": "crafted-intervals",
+   "name": "Crafted Intervals",
+   "playable": false,
+   "icon": null,
+   "statModifiers": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+   },
+   "passive": {
+    "id": "edge crafted-intervals",
+    "name": "Edge crafted-intervals",
+    "condition": "Always active",
+    "description": "A crafted passive.",
+    "effects": [
+     {
+      "type": "max-hp-per-levels",
+      "amount": 2,
+      "interval": 0
+     },
+     {
+      "type": "max-mana-per-levels",
+      "amount": 3,
+      "interval": 2.5
+     },
+     {
+      "type": "unarmed-power-per-levels",
+      "amount": 1,
+      "interval": -4
+     },
+     {
+      "type": "max-hp-per-levels",
+      "amount": 1.5,
+      "interval": 7
+     },
+     {
+      "type": "max-mana-per-levels",
+      "amount": -1
+     },
+     {
+      "type": "unarmed-power-per-levels",
+      "amount": 0.25,
+      "interval": 1e+300
+     },
+     {
+      "type": "max-hp-per-levels",
+      "interval": 3
+     }
+    ]
+   }
+  },
+  {
+   "id": "crafted-defenses",
+   "name": "Crafted Defenses",
+   "playable": false,
+   "icon": null,
+   "statModifiers": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+   },
+   "passive": {
+    "id": "edge crafted-defenses",
+    "name": "Edge crafted-defenses",
+    "condition": "Always active",
+    "description": "A crafted passive.",
+    "effects": [
+     {
+      "type": "defense-permanent-percent",
+      "target": "Armor",
+      "amount": 40
+     },
+     {
+      "type": "defense-permanent-percent",
+      "target": "evasion",
+      "amount": 12
+     },
+     {
+      "type": "defense-permanent-percent",
+      "target": "armor",
+      "amount": -7.5
+     },
+     {
+      "type": "defense-permanent-percent",
+      "target": "evasion",
+      "amount": 3
+     },
+     {
+      "type": "defense-cap",
+      "target": "armor",
+      "amount": -5
+     },
+     {
+      "type": "defense-cap",
+      "target": "armor",
+      "amount": 30
+     },
+     {
+      "type": "defense-cap",
+      "target": "evasion",
+      "amount": 40
+     },
+     {
+      "type": "defense-cap",
+      "target": "evasion",
+      "amount": 25
+     },
+     {
+      "type": "defense-cap",
+      "target": "luck",
+      "amount": 1
+     },
+     {
+      "type": "defense-flat-per-enemy",
+      "target": "armor",
+      "amount": 3
+     },
+     {
+      "type": "defense-flat-per-enemy",
+      "target": "evasion",
+      "amount": 1.5
+     },
+     {
+      "type": "defense-flat-per-enemy",
+      "target": "speed",
+      "amount": 9
+     },
+     {
+      "type": "stat-permanent-percent",
+      "target": "toString",
+      "amount": 5
+     },
+     {
+      "type": "stat-permanent-percent",
+      "target": "strength",
+      "amount": 7
+     },
+     {
+      "type": "stat-permanent-percent",
+      "target": "strength",
+      "amount": 2.5
+     },
+     {
+      "type": "stat-permanent-percent",
+      "target": "luck",
+      "amount": -3.5
+     },
+     {
+      "type": "stat-permanent-percent",
+      "target": "Strength",
+      "amount": 9
+     },
+     {
+      "type": "stat-permanent-percent",
+      "target": "armor",
+      "amount": 4
+     }
+    ]
+   }
+  },
+  {
+   "id": "crafted-names",
+   "name": "Crafted Names",
+   "playable": false,
+   "icon": null,
+   "statModifiers": {
+    "strength": 0,
+    "vitality": 0,
+    "mind": 0,
+    "dexterity": 0,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 0,
+    "luck": 0
+   },
+   "passive": {
+    "id": "edge crafted-names",
+    "name": "Edge crafted-names",
+    "condition": "Always active",
+    "description": "A crafted passive.",
+    "effects": [
+     {
+      "type": "unarmed-name",
+      "name": ""
+     },
+     {
+      "type": "unarmed-name",
+      "name": "Fangs"
+     },
+     {
+      "type": "unarmed-name",
+      "name": "Talons"
+     },
+     {
+      "type": "unarmed-name"
+     },
+     {
+      "type": "spell-cost-percent",
+      "amount": 5
+     },
+     {
+      "type": "spell-cost-percent",
+      "amount": -2.5
+     },
+     {
+      "type": "spell-cost-percent",
+      "amount": -2,
+      "element": "FIRE"
+     },
+     {
+      "type": "spell-cost-percent",
+      "amount": 4,
+      "namePrefix": "\u0130ce Lance"
+     },
+     {
+      "type": "spell-cost-percent",
+      "amount": 6,
+      "namePrefix": "Dragon",
+      "element": "Holy"
+     },
+     {
+      "type": "spell-cost-percent",
+      "amount": 1,
+      "namePrefix": "\u039f\u0394\u039f\u03a3 \u03a3\u0391\u03a3"
+     },
+     {
+      "type": "equipment-restriction",
+      "category": "Armor",
+      "typeName": "HEAVY"
+     },
+     {
+      "type": "equipment-restriction",
+      "category": "weapons",
+      "target": "Bow"
+     },
+     {
+      "type": "equipment-restriction",
+      "category": "weapons",
+      "typeName": "Staff",
+      "target": "Wand"
+     },
+     {
+      "type": "equipment-restriction"
+     },
+     {
+      "type": "trap-limit-flat",
+      "amount": 1
+     },
+     {
+      "type": "trap-limit-flat",
+      "amount": 0.5
+     }
+    ]
+   }
+  },
+  {
+   "id": "crafted-flags",
+   "name": "Crafted Flags",
+   "playable": false,
+   "icon": null,
+   "statModifiers": {
+    "strength": 1.5,
+    "luck": -2
+   },
+   "passive": {
+    "id": "edge crafted-flags",
+    "name": "Edge crafted-flags",
+    "condition": "Always active",
+    "description": "A crafted passive.",
+    "effects": [
+     {
+      "type": "healing-disabled"
+     },
+     {
+      "type": "spellcasting-disabled"
+     },
+     {
+      "type": "debuff-immunity"
+     },
+     {
+      "type": "all-stats-flat-per-level-up",
+      "amount": 1.5
+     },
+     {
+      "type": "all-stats-flat-per-level-up",
+      "amount": -1
+     },
+     {
+      "type": "max-hp-percent",
+      "amount": 12.5
+     },
+     {
+      "type": "max-hp-percent",
+      "amount": -2.5
+     }
+    ]
+   }
+  },
+  {
+   "id": "crafted-plain",
+   "name": "Crafted Plain",
+   "playable": false,
+   "icon": null,
+   "statModifiers": {},
+   "passive": {
+    "id": "edge crafted-plain",
+    "name": "Edge crafted-plain",
+    "condition": "Always active",
+    "description": "A crafted passive.",
+    "effects": []
+   }
+  }
+ ],
+ "normalize": [
+  {
+   "name": "not an object: null",
+   "index": 2,
+   "raw": null
+  },
+  {
+   "name": "not an object: a number",
+   "index": 2,
+   "raw": 5
+  },
+  {
+   "name": "not an object: a string",
+   "index": 2,
+   "raw": "Human"
+  },
+  {
+   "name": "not an object: an array",
+   "index": 2,
+   "raw": [
+    {
+     "name": "Human"
+    }
+   ]
+  },
+  {
+   "name": "no name",
+   "index": 2,
+   "raw": {
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "a name that isn't text",
+   "index": 2,
+   "raw": {
+    "name": 5,
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "an empty name",
+   "index": 2,
+   "raw": {
+    "name": "",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "a name of spaces",
+   "index": 2,
+   "raw": {
+    "name": "  \t ",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "a name of a no-break space and U+FEFF",
+   "index": 2,
+   "raw": {
+    "name": "\u00a0\ufeff",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "a name of U+2028 and an em space",
+   "index": 2,
+   "raw": {
+    "name": "\u2028\u2003",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "a name of NEL alone (JavaScript keeps it), an id given",
+   "index": 2,
+   "raw": {
+    "id": "nel",
+    "name": "\u0085",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "a name of NEL alone and no id: its slug is empty",
+   "index": 2,
+   "raw": {
+    "name": "\u0085",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "a name trimmed and its slug",
+   "index": 2,
+   "raw": {
+    "name": "  Ember  Folk \ufeff",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "an id slugged",
+   "index": 2,
+   "raw": {
+    "id": "  Dark__Elf! ",
+    "name": "x",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "an empty id: the name's slug",
+   "index": 2,
+   "raw": {
+    "id": "",
+    "name": "Stone Kin",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "an id of signs only",
+   "index": 2,
+   "raw": {
+    "id": "!!!",
+    "name": "Stone Kin",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "an id 0: the name's slug",
+   "index": 2,
+   "raw": {
+    "id": 0,
+    "name": "Zero Kin",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "a name of signs only, no id",
+   "index": 2,
+   "raw": {
+    "name": "!!! ???",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "a dotted capital I lower-cased as JavaScript does",
+   "index": 2,
+   "raw": {
+    "name": "\u0130nce",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "the Kelvin sign lower-cased to k",
+   "index": 2,
+   "raw": {
+    "name": "Kelvin \u212a",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "digits and letters kept",
+   "index": 2,
+   "raw": {
+    "name": "Clan 7 of 9",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "playable missing",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "playable false",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "playable": false,
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "playable the text false",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "playable": "false",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "playable 0",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "playable": 0,
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "playable null",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "playable": null,
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "an icon trimmed",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "icon": "  objects/race-a.svg ",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "an icon of spaces",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "icon": "   ",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "an icon that isn't text",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "icon": 5,
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "no modifiers",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "modifiers null",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "statModifiers": null,
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "modifiers an array",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "statModifiers": [
+     1,
+     2
+    ],
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "a modifier null, others missing, an extra key",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "statModifiers": {
+     "strength": null,
+     "mind": 2.5,
+     "charisma": 9
+    },
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "a modifier that is text",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "statModifiers": {
+     "strength": 1,
+     "vitality": "2"
+    },
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "a modifier that is true",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "statModifiers": {
+     "luck": true
+    },
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "the first bad modifier in the attributes' order",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "statModifiers": {
+     "luck": "x",
+     "mind": "y"
+    },
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "the name refused before the modifiers",
+   "index": 2,
+   "raw": {
+    "name": "",
+    "statModifiers": {
+     "luck": "x"
+    }
+   }
+  },
+  {
+   "name": "the modifiers refused before the passive",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "statModifiers": {
+     "speed": false
+    }
+   }
+  },
+  {
+   "name": "no passive",
+   "index": 2,
+   "raw": {
+    "name": "A"
+   }
+  },
+  {
+   "name": "a passive that isn't an object",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "passive": "Ember Blood"
+   }
+  },
+  {
+   "name": "a passive with no name",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "passive": {
+     "description": "x"
+    }
+   }
+  },
+  {
+   "name": "a passive whose name isn't text",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "passive": {
+     "name": 7
+    }
+   }
+  },
+  {
+   "name": "a passive that is an array",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "passive": [
+     "Ember Blood"
+    ]
+   }
+  },
+  {
+   "name": "a passive with an empty name",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "passive": {
+     "name": ""
+    }
+   }
+  },
+  {
+   "name": "a passive's name trimmed, its id slugged",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "passive": {
+     "id": "Ember Blood!",
+     "name": "  Ember Blood "
+    }
+   }
+  },
+  {
+   "name": "a passive's id from its name",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "passive": {
+     "name": "Ember Blood"
+    }
+   }
+  },
+  {
+   "name": "a passive's condition missing, empty and given",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "passive": {
+     "name": "x",
+     "condition": ""
+    }
+   }
+  },
+  {
+   "name": "a passive's condition and description 0: their defaults",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "passive": {
+     "name": "x",
+     "condition": 0,
+     "description": 0
+    }
+   }
+  },
+  {
+   "name": "a passive's condition given",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "passive": {
+     "name": "x",
+     "condition": "While burning",
+     "description": "Hot."
+    }
+   }
+  },
+  {
+   "name": "a passive's effects not a list",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "passive": {
+     "name": "x",
+     "effects": "fire"
+    }
+   }
+  },
+  {
+   "name": "a passive's effects: only objects kept",
+   "index": 2,
+   "raw": {
+    "name": "A",
+    "passive": {
+     "name": "x",
+     "effects": [
+      null,
+      5,
+      "healing-disabled",
+      {
+       "type": "healing-disabled"
+      },
+      {
+       "type": "max-hp-percent",
+       "amount": 3
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "an index counted from 1 in the message",
+   "index": 0,
+   "raw": {
+    "name": ""
+   }
+  },
+  {
+   "name": "an index counted from 1 in the message (a later race)",
+   "index": 27,
+   "raw": {
+    "name": ""
+   }
+  }
+ ],
+ "catalogue": [
+  {
+   "name": "not an array",
+   "text": "{}"
+  },
+  {
+   "name": "a race refused in it",
+   "text": "[{\"name\": \"A\", \"passive\": {\"name\": \"x\"}}, {\"name\": \"\", \"passive\": {\"name\": \"x\"}}]"
+  },
+  {
+   "name": "two races of one id",
+   "text": "[{\"name\": \"Stone Kin\", \"passive\": {\"name\": \"x\"}}, {\"id\": \"stone-kin\", \"name\": \"Other\", \"passive\": {\"name\": \"y\"}}]"
+  },
+  {
+   "name": "two names of one slug",
+   "text": "[{\"name\": \"Stone Kin\", \"passive\": {\"name\": \"x\"}}, {\"name\": \"stone_kin!\", \"passive\": {\"name\": \"y\"}}]"
+  }
+ ]
+}

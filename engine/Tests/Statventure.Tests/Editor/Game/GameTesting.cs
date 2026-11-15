@@ -1,5 +1,7 @@
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
+using Statventure.Records;
 using Statventure.Editor.Game;
 using Statventure.Tests.Infrastructure;
 
@@ -7,7 +9,7 @@ namespace Statventure.Tests.Editor.Game;
 
 /// <summary>
 /// Scratch game folders for the editor's lookup of the game (M12 step 6): the repo's packs and the game's data library
-/// (with its development-only kind <c>stand-in.item</c>, GM1-P3) as the repo's build makes it (what <c>--repo</c> loads;
+/// (with its kinds, the race, <c>race</c>, the first: GM2 step 1) as the repo's build makes it (what <c>--repo</c> loads;
 /// the tests build it before they run, never referencing it:
 /// the editor's loader is the only way in, the engine keeping one record kind per name), and data libraries of the
 /// tests' own (another version, another build, not a library), made with <see cref="PersistedAssemblyBuilder"/> and
@@ -18,12 +20,15 @@ static class GameTesting
     /// <summary>The game's data library as the repo's build of the tests' configuration makes it.</summary>
     public static string BuiltLibrary => GameLibrary.InRepo(EditorHarness.EngineFolder);
 
-    /// <summary>The stand-in's test kind's record name.</summary>
-    public const string StandInKind = "stand-in.item";
+    /// <summary>The game's kind the editor's tests use (the race, GM2 step 1, in place of GM1's development-only stand-in item, GM1-P3).</summary>
+    public const string RaceKind = "race";
+
+    /// <summary>How many record kinds the library brings beside the engine's: the save, the race with its three parts, the effect union and its 23 effects.</summary>
+    public const int LibraryKinds = 29;
 
     /// <summary>
     /// A game's folder at <paramref name="folder"/> as its download lays it out: <c>packs/</c> with the repo's packs, the
-    /// stand-in library beside (each left out when asked); gives the folder.
+    /// game's data library beside (each left out when asked); gives the folder.
     /// </summary>
     public static string MakeGame(string folder, bool packs = true, bool library = true)
     {
@@ -84,21 +89,20 @@ static class GameTesting
         return file;
     }
 
-    /// <summary>The stand-in kind's type as the editor loads it (the run's one build of the library).</summary>
-    public static Type StandInType()
+    /// <summary>The race kind's type as the editor loads it (the run's one build of the library).</summary>
+    public static Type RaceType()
     {
         var library = GameLibrary.Read(BuiltLibrary);
-        return GameLibraryLoader.Run.Kinds(library).Types.Find(StandInKind) ?? throw new InvalidOperationException("the game's data library has no " + StandInKind);
+        return GameLibraryLoader.Run.Kinds(library).Types.Find(RaceKind) ?? throw new InvalidOperationException("the game's data library has no " + RaceKind);
     }
 
-    /// <summary>A value of the stand-in kind.</summary>
-    public static object StandIn(string title, int price, string rarity)
-    {
-        var type = StandInType();
-        var value = Activator.CreateInstance(type)!;
-        type.GetProperty("Title")!.SetValue(value, title);
-        type.GetProperty("Price")!.SetValue(value, price);
-        type.GetProperty("Rarity")!.SetValue(value, rarity);
-        return value;
-    }
+    /// <summary>A race named <paramref name="name"/> whose passive raises maximum HP by <paramref name="percent"/> %, read from its JSON form as the library's type.</summary>
+    public static object Race(string name, double percent = 5) => RecordSerializer.FromJson(RaceType(), Encoding.UTF8.GetBytes($$"""
+        {
+          "$types": { "race": 1, "race.passive": 1, "effect": 1, "effect.max-hp-percent": 1 },
+          "name": "{{name}}",
+          "passive": { "id": "ember-blood", "name": "Ember Blood", "effects": [{ "$type": "effect.max-hp-percent", "amount": {{percent.ToString(System.Globalization.CultureInfo.InvariantCulture)}} }] },
+          "accent": "#9a6a3f"
+        }
+        """));
 }

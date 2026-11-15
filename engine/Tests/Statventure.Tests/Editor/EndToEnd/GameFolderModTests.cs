@@ -6,6 +6,7 @@ using Statventure.Editor.Shell;
 using Statventure.Imaging;
 using Statventure.Packs;
 using Statventure.Platform;
+using Statventure.Records;
 using Statventure.Tests.Editor.Form;
 using Statventure.Tests.Editor.Game;
 using Statventure.Tests.Infrastructure;
@@ -19,7 +20,8 @@ namespace Statventure.Tests.Editor.EndToEnd;
 /// works", step 8): <c>--game &lt;folder&gt;</c> read by the program's own <see cref="EditorArguments"/>, the game's data
 /// library loaded from that folder, its version the editor's (Q18); step 14's flow through the UI
 /// (<see cref="ModFromScratchTests.MakeMod"/>) and, in the same mod, an entry of the game's own kind (its library's
-/// stand-in item) made with New entry and the form; the mod mounted as the game mounts the player's mods over that
+/// race, since GM2 step 1: its name, a modifier, its passive made, an effect of the union added) made with New entry and
+/// the form; the mod mounted as the game mounts the player's mods over that
 /// folder's packs and read back, the game's kind as the library's type; and the About dialog's credits naming the
 /// editor's version. In the suite the folder is a scratch one laid out as the game's download
 /// (<see cref="GameTesting.MakeGame"/>, the suite's dev build). <c>Tools/Scripts/end-to-end.sh</c> runs this test built
@@ -42,7 +44,7 @@ public class GameFolderModTests(GpuFixture gpu)
     /// <summary>A PNG file the About dialog over the editor is drawn into (end-to-end.sh: the editor's credits captured).</summary>
     public const string AboutVariable = "STATVENTURE_END_TO_END_ABOUT";
 
-    const string Lantern = "stand-in/items/lantern";
+    const string EmberFolk = "data/races/ember-folk";
 
     [Fact]
     public void AModMadeAgainstTheGameFolderNamedWithGameLoadsInThatGame()
@@ -62,11 +64,11 @@ public class GameFolderModTests(GpuFixture gpu)
         Assert.Equal((folder, Path.Combine(folder, "packs"), false), (game.Folder, game.PacksFolder, game.DevSetup));
         var library = GameLibrary.Read(game.Library!);
         Assert.Equal((Path.Combine(folder, GameLibrary.FileName), EditorView.Version), (library.File, library.Version));
-        var standIn = game.Types.Find(GameTesting.StandInKind) ?? throw new InvalidOperationException($"the game's kinds have no {GameTesting.StandInKind}");
-        Assert.Equal(GameLibrary.AssemblyName, standIn.Assembly.GetName().Name);
+        var raceKind = game.Types.Find(GameTesting.RaceKind) ?? throw new InvalidOperationException($"the game's kinds have no {GameTesting.RaceKind}");
+        Assert.Equal(GameLibrary.AssemblyName, raceKind.Assembly.GetName().Name);
 
         Dictionary<string, (Type Type, string Binary, string Json)> shown;
-        object lantern;
+        object race;
         using (var editor = new EditorHarness(game, 1280, 900, 1))
         {
             editor.Session.PlayerFolder = scratch.Player;
@@ -74,14 +76,22 @@ public class GameFolderModTests(GpuFixture gpu)
             shown = ModFromScratchTests.MakeMod(editor, scratch);
 
             // The game's own kind in the same mod: New entry offers it (the library's), the form fills it, Save.
-            var item = editor.NewEntry(NewBy.Button, "Stand-in item (stand-in.item)", "lantern");
-            Assert.Equal(Lantern, item.Path);
-            editor.Set("$.title", "Ember Lantern");
-            editor.Set("$.price", "12");
-            editor.Pick("$.rarity", "Rare");
-            lantern = item.Built();
-            Assert.Same(standIn, lantern.GetType());
-            Assert.Equal(("Ember Lantern", 12, "Rare"), (standIn.GetProperty("Title")!.GetValue(lantern), standIn.GetProperty("Price")!.GetValue(lantern), standIn.GetProperty("Rarity")!.GetValue(lantern)));
+            var entry = editor.NewEntry(NewBy.Button, "Race (race)", "ember-folk");
+            Assert.Equal(EmberFolk, entry.Path);
+            editor.Set("$.name", "Ember Folk");
+            editor.Set("$.statModifiers.strength", "2");
+            editor.Press("$.passive", "Make");
+            editor.Set("$.passive.name", "Ember Blood");
+            editor.Press("$.passive.effects", "Add");
+            editor.Pick("$.passive.effects[0]", "Max HP percent");
+            editor.Set("$.passive.effects[0].amount", "5");
+            race = entry.Built();
+            Assert.Same(raceKind, race.GetType());
+            var passive = raceKind.GetProperty("Passive")!.GetValue(race)!;
+            var effect = Assert.Single(((System.Collections.IEnumerable)passive.GetType().GetProperty("Effects")!.GetValue(passive)!).Cast<object>());
+            Assert.Equal("Ember Folk", raceKind.GetProperty("Name")!.GetValue(race));
+            Assert.Equal("Ember Blood", passive.GetType().GetProperty("Name")!.GetValue(passive));
+            Assert.Equal(("effect.max-hp-percent", 5.0), (RecordShape.Of(effect.GetType()).Name, effect.GetType().GetProperty("Amount")!.GetValue(effect)));
             editor.Key("s", "KeyS", KeyModifiers.Control);
             Assert.Null(editor.View.Dialogs.Top);
             Assert.Equal("Saved ember-rite.pak.", editor.View.Status);
@@ -102,7 +112,7 @@ public class GameFolderModTests(GpuFixture gpu)
         {
             foreach (var (path, (type, binary, _)) in shown)
                 Assert.Equal(binary, Binary(type, data.Load(type, path)));
-            Assert.Equal(Binary(standIn, lantern), Binary(standIn, data.Load(standIn, Lantern)));
+            Assert.Equal(Binary(raceKind, race), Binary(raceKind, data.Load(raceKind, EmberFolk)));
             Assert.Equal(mod, VirtualFileSystem.ModFiles(scratch.Mods).Single());
         }
         if (Environment.GetEnvironmentVariable(ModsVariable) is { Length: > 0 } mods)

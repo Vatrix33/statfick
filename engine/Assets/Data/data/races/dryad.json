@@ -1,0 +1,43 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.incoming-spell-damage-percent": 1,
+    "effect.spell-power-percent": 1
+  },
+  "name": "Dryad",
+  "playable": false,
+  "statModifiers": {
+    "strength": -4,
+    "vitality": -2,
+    "mind": 5,
+    "dexterity": 2,
+    "intelligence": 4,
+    "wisdom": 6,
+    "speed": 2,
+    "luck": 3
+  },
+  "passive": {
+    "id": "spirit-of-the-grove",
+    "name": "Spirit of the Grove",
+    "condition": "Always active",
+    "description": "Take 50% less Nature spell damage. Nature spells gain 20% power.",
+    "effects": [
+      {
+        "$type": "effect.incoming-spell-damage-percent",
+        "element": "nature",
+        "amount": -50
+      },
+      {
+        "$type": "effect.spell-power-percent",
+        "element": "nature",
+        "amount": 20
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "order": 270,
+  "swatches": []
+}

@@ -1,0 +1,45 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.defense-permanent-percent": 1,
+    "effect.equipment-restriction": 1
+  },
+  "name": "Hobbit",
+  "playable": true,
+  "statModifiers": {
+    "strength": -3,
+    "vitality": -2,
+    "mind": 0,
+    "dexterity": 2,
+    "intelligence": 0,
+    "wisdom": 0,
+    "speed": 1,
+    "luck": 2
+  },
+  "passive": {
+    "id": "nimble-stature",
+    "name": "Nimble Stature",
+    "condition": "Always active",
+    "description": "Increase Evasion by 15%. You cannot wear Heavy Armor.",
+    "effects": [
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "evasion",
+        "amount": 15
+      },
+      {
+        "$type": "effect.equipment-restriction",
+        "category": "armor",
+        "typeName": "heavy",
+        "target": ""
+      }
+    ]
+  },
+  "accent": "#858b6c",
+  "emblem": "hobbit",
+  "order": 50,
+  "swatches": []
+}

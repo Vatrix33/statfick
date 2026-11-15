@@ -1,0 +1,2 @@
+effect.incoming-spell-miss-chance 1
+  1 amount: float64 = 0

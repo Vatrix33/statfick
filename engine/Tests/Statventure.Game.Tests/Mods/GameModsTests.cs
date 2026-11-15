@@ -1,7 +1,7 @@
 using System.Runtime.ExceptionServices;
 using Statventure.Audio;
 using Statventure.Core;
-using Statventure.Game.Data.StandIn;
+using Statventure.Game.Data.Races;
 using Statventure.Game.Mods;
 using Statventure.Game.Settings;
 using Statventure.Packs;
@@ -21,11 +21,9 @@ sealed class ModsScratch : IDisposable
 
     public ModsScratch()
     {
-        foreach (var area in new[] { "audio", "ui" })
-        {
-            Directory.CreateDirectory(this["game/packs"]);
-            File.Copy(Path.Combine(TestPaths.Packs, area + ".pak"), this[$"game/packs/{area}.pak"]);
-        }
+        Directory.CreateDirectory(this["game/packs"]);
+        foreach (var pack in Directory.GetFiles(TestPaths.Packs, "*.pak"))
+            File.Copy(pack, this[$"game/packs/{Path.GetFileName(pack)}"]);
         Directory.CreateDirectory(Mods);
     }
 
@@ -49,14 +47,14 @@ sealed class ModsScratch : IDisposable
         return path;
     }
 
-    /// <summary>A good mod: its info, a sound effect, an item of the game's data library's kind and a file.</summary>
+    /// <summary>A good mod: its info, a sound effect, a race (the game's data library's kind) and a file.</summary>
     public string Good(string file, ModInfo? info = null) => Mod(file, w =>
     {
         var name = Path.GetFileNameWithoutExtension(file).ToLowerInvariant();
         if (info is not null)
             w.AddRecord(ModInfo.Path, info);
         w.AddRecord($"audio/effects/{name}", Chime);
-        w.AddRecord($"stand-in/items/{name}", new StandInItem { Title = "Lantern", Price = 12, Rarity = "Rare" });
+        w.AddRecord(RaceCatalogue.PathOf(name), TestRaces.Good("Ember Folk"));
         w.Add($"notes/{name}.txt", "notes"u8);
     });
 
@@ -118,11 +116,11 @@ public class GameModsTests
     {
         { "header", "not a pack (it doesn't start with SVPK)", 0 },
         { "index", "the index doesn't match its hash (damaged)", 0 },
-        { "entry", "stand-in/items/lamp: the content doesn't match its hash (damaged)", 0 },
+        { "entry", "notes/lamp.txt: the content doesn't match its hash (damaged)", 0 },
         { "unknown-kind", "parts/arm: a record of type test.part, which isn't a record type known here", 0 },
-        { "newer-version", "stand-in/items/lamp: not a readable stand-in.item record: stand-in.item version 2 is newer than this engine reads (version 1)", 1 },
-        { "not-a-record", "stand-in/items/lamp: not a readable record: the type table is empty", 0 },
-        { "refused-value", "stand-in/items/lamp: \"Legendary\" isn't one of the choices: Common, Rare, Exotic (at $.rarity)", 1 },
+        { "newer-version", "data/races/lamp: not a readable race record: race version 2 is newer than this engine reads (version 1)", 1 },
+        { "not-a-record", "data/races/lamp: not a readable record: the type table is empty", 0 },
+        { "refused-value", "data/races/lamp: the strength modifier must be a number (it is NaN) (at $.statModifiers.strength)", 1 },
         { "reference-to-nothing", "audio/theme-order: it names the theme 'nowhere', which has no entry 'audio/themes/nowhere' (at $.themes[55])", 0 },
         { "theme-doesnt-compile", "audio/themes/alder-vale: alder-vale/intro/mel: bar 1 has 1 steps, expected 6 (at $.sections[\"intro\"].melody)", 0 },
         { "info", "mod/info: a mod's info must be a mod.info record (this is a file)", 0 },
@@ -131,17 +129,18 @@ public class GameModsTests
     /// <summary>Writes the broken mod <paramref name="file"/> in the way <paramref name="how"/> says.</summary>
     static void Break(ModsScratch scratch, string file, string how)
     {
-        var item = new StandInItem { Title = "Lamp", Price = 3 };
+        var race = TestRaces.Good("Lamp Folk");
         switch (how)
         {
             case "header":
                 File.WriteAllText(Path.Combine(scratch.Mods, file), "Not a pack at all, just text, long enough to be read as a pack's header and more.");
                 break;
             case "index":
-                ModsScratch.Flip(scratch.Mod(file, w => w.AddRecord("stand-in/items/lamp", item)), -1);
+                ModsScratch.Flip(scratch.Mod(file, w => w.AddRecord("data/races/lamp", race)), -1);
                 break;
             case "entry":
-                ModsScratch.DamageEntry(scratch.Mod(file, w => w.AddRecordBinary("stand-in/items/lamp", RecordSerializer.ToBinary(item))), "stand-in/items/lamp");
+                // A small entry, stored raw (a race's form is stored compressed, and a flipped byte there breaks its compression first).
+                ModsScratch.DamageEntry(scratch.Mod(file, w => w.Add("notes/lamp.txt", "A lamp's notes."u8)), "notes/lamp.txt");
                 break;
             case "unknown-kind":
                 // A record of a kind neither the engine nor the data library has (its binary form made by hand: the
@@ -150,25 +149,25 @@ public class GameModsTests
                 break;
             case "newer-version":
             {
-                var binary = RecordSerializer.ToBinary(item);
-                var version = 2 + "stand-in.item".Length;
+                var binary = RecordSerializer.ToBinary(race);
+                var version = 2 + "race".Length;
                 Assert.Equal(1, binary[version]);
                 binary[version] = 2;
                 scratch.Mod(file, w =>
                 {
-                    w.AddRecordBinary("stand-in/items/lamp", binary);
-                    w.AddRecordBinary("stand-in/items/torch", binary);
+                    w.AddRecordBinary("data/races/lamp", binary);
+                    w.AddRecordBinary("data/races/torch", binary);
                 });
                 break;
             }
             case "not-a-record":
-                scratch.Mod(file, w => w.AddRecordBinary("stand-in/items/lamp", [0]));
+                scratch.Mod(file, w => w.AddRecordBinary("data/races/lamp", [0]));
                 break;
             case "refused-value":
                 scratch.Mod(file, w =>
                 {
-                    w.AddRecord("stand-in/items/lamp", item with { Rarity = "Legendary" });
-                    w.AddRecord("stand-in/items/torch", item with { Price = -1 });
+                    w.AddRecord("data/races/lamp", TestRaces.NotANumber("Lamp Folk"));
+                    w.AddRecord("data/races/torch", TestRaces.Nameless());
                 });
                 break;
             case "reference-to-nothing":
@@ -216,10 +215,10 @@ public class GameModsTests
         using (data)
         {
             // The good ones mounted, the broken one not at all.
-            Assert.Equal(scratch["player/mods/a-good.pak"], data.Origin("stand-in/items/a-good"));
-            Assert.Equal(scratch["player/mods/c-good.pak"], data.Origin("stand-in/items/c-good"));
+            Assert.Equal(scratch["player/mods/a-good.pak"], data.Origin("data/races/a-good"));
+            Assert.Equal(scratch["player/mods/c-good.pak"], data.Origin("data/races/c-good"));
             Assert.DoesNotContain(data.List(), path => data.Origin(path) == scratch["player/mods/b-broken.pak"]);
-            Assert.Equal("Lantern", data.Load<StandInItem>("stand-in/items/c-good").Title);
+            Assert.Equal("Ember Folk", data.Load<Race>("data/races/c-good").Name);
         }
         // Its problem in the model, and the others loaded, in mounting order.
         var entries = mods.Entries;
@@ -253,8 +252,8 @@ public class GameModsTests
         var (data, log) = scratch.Mount(mods, off);
         using (data)
         {
-            Assert.False(data.Exists("stand-in/items/a-good"));
-            Assert.Equal(scratch["player/mods/c-good.pak"], data.Origin("stand-in/items/c-good"));
+            Assert.False(data.Exists("data/races/a-good"));
+            Assert.Equal(scratch["player/mods/c-good.pak"], data.Origin("data/races/c-good"));
         }
         // Off: not checked (a broken one isn't left out), still named from its info.
         Assert.Equal(
@@ -329,7 +328,7 @@ public class GameModsTests
         var next = new GameMods();
         var (data, log) = scratch.Mount(next, snapshot);
         using (data)
-            Assert.False(data.Exists("stand-in/items/b-good"));
+            Assert.False(data.Exists("data/races/b-good"));
         Assert.Equal([(ModState.Off, null), (ModState.Off, null)], next.Entries.Select(e => (e.State, e.Problem)));
         Assert.Equal(["Info [Mods] a-broken.pak: off", "Info [Mods] b-good.pak: off"], log.Where(l => l.Contains("[Mods]")));
         using (var storage = new GameStorage(scratch.Player))
@@ -342,7 +341,7 @@ public class GameModsTests
         var after = new GameMods();
         var (again, _) = scratch.Mount(after, GameSettings.Peek(scratch.Player));
         using (again)
-            Assert.Equal(scratch["player/mods/b-good.pak"], again.Origin("stand-in/items/b-good"));
+            Assert.Equal(scratch["player/mods/b-good.pak"], again.Origin("data/races/b-good"));
         Assert.Equal([ModState.Off, ModState.Loaded], after.Entries.Select(e => e.State));
     }
 
@@ -391,15 +390,15 @@ public class GameModsTests
     [Fact]
     public void SeveralProblemsAreCountedAndTheGamesKindsAreKnown()
     {
-        Assert.Equal(typeof(StandInItem), GameMods.GameKinds.Find("stand-in.item"));
+        Assert.Equal(typeof(Race), GameMods.GameKinds.Find("race"));
         Assert.Equal(typeof(ModInfo), GameMods.GameKinds.Find("mod.info"));
         Assert.Equal(typeof(EffectPatch), GameMods.GameKinds.Find("audio.effect"));
         using var scratch = new ModsScratch();
         scratch.Mod("many.pak", w =>
         {
-            w.AddRecord("stand-in/items/c", new StandInItem { Title = "c", Rarity = "Legendary" });
-            w.AddRecord("stand-in/items/a", new StandInItem { Title = "a", Price = -1 });
-            w.AddRecord("stand-in/items/b", new StandInItem { Title = "b", Price = -2 });
+            w.AddRecord("data/races/c", TestRaces.Nameless());
+            w.AddRecord("data/races/a", TestRaces.Good("A") with { Accent = "red" });
+            w.AddRecord("data/races/b", TestRaces.NotANumber("B"));
             w.AddRecord(ModInfo.Path, ModsScratch.Info);
         });
         var mods = new GameMods();
@@ -407,7 +406,7 @@ public class GameModsTests
         data.Dispose();
         var entry = Assert.Single(mods.Entries);
         Assert.Equal(("Ember Rite", ModState.LeftOut, 2), (entry.Name, entry.State, entry.MoreProblems));
-        Assert.Equal("stand-in/items/a: must be 0 or more (it is -1) (at $.price)", entry.Problem);
+        Assert.Equal("data/races/a: \"red\" isn't a colour (#rrggbb) (at $.accent)", entry.Problem);
         Assert.Equal($"Warning [Mods] many.pak: left out: {entry.Problem} (and 2 more)", Assert.Single(log, l => l.Contains("[Mods]")));
         // No mods: no entries.
         File.Delete(scratch["player/mods/many.pak"]);

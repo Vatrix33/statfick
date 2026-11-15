@@ -1,0 +1,43 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.incoming-spell-damage-percent": 1,
+    "effect.defense-cap": 1
+  },
+  "name": "Elemental",
+  "playable": false,
+  "statModifiers": {
+    "strength": -1,
+    "vitality": 5,
+    "mind": 4,
+    "dexterity": -3,
+    "intelligence": 0,
+    "wisdom": -1,
+    "speed": -6,
+    "luck": -2
+  },
+  "passive": {
+    "id": "manaborn",
+    "name": "Manaborn",
+    "condition": "Always active",
+    "description": "Take 50% less damage from spells. Evasion is always 0 and cannot be increased.",
+    "effects": [
+      {
+        "$type": "effect.incoming-spell-damage-percent",
+        "element": "",
+        "amount": -50
+      },
+      {
+        "$type": "effect.defense-cap",
+        "target": "evasion",
+        "amount": 0
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "order": 170,
+  "swatches": []
+}

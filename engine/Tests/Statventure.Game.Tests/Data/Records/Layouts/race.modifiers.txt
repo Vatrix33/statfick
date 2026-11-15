@@ -1,0 +1,9 @@
+race.modifiers 1
+  1 strength: float64 = 0
+  2 vitality: float64 = 0
+  3 mind: float64 = 0
+  4 dexterity: float64 = 0
+  5 intelligence: float64 = 0
+  6 wisdom: float64 = 0
+  7 speed: float64 = 0
+  8 luck: float64 = 0

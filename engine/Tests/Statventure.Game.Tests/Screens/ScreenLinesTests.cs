@@ -124,7 +124,7 @@ public class ScreenLinesTests
         var lines = After(log, "Settings", "the settings screen opened");
         Assert.Equal(
         [
-            "mod broken-vale.pak: Left out: stand-in/items/lamp: \"Legendary\" isn't one of the choices: Common, Rare, Exotic (at $.rarity) (and 1 more)",
+            "mod broken-vale.pak: Left out: data/races/lamp: the strength modifier must be a number (it is NaN) (at $.statModifiers.strength) (and 1 more)",
             "mod ember-rite.pak: Loaded",
             "mod frost-hollow.pak: Loaded; Takes effect when the game is next started.",
             "mod lanterns.pak: Loaded",

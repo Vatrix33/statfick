@@ -1,0 +1,35 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.debuff-immunity": 1
+  },
+  "name": "Satyr",
+  "playable": false,
+  "statModifiers": {
+    "strength": 4,
+    "vitality": 3,
+    "mind": -1,
+    "dexterity": 0,
+    "intelligence": 1,
+    "wisdom": -2,
+    "speed": 5,
+    "luck": 1
+  },
+  "passive": {
+    "id": "creature-of-sloth",
+    "name": "Creature of Sloth",
+    "condition": "Always active",
+    "description": "You cannot be debuffed.",
+    "effects": [
+      {
+        "$type": "effect.debuff-immunity"
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "order": 230,
+  "swatches": []
+}

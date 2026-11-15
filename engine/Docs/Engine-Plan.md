@@ -4295,6 +4295,23 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     save, clip or restore beside a single plain fill). The full suite passes on the GPU and on lavapipe inside a headless
     compositor under the shared lock, none held; the player's real folders unchanged. Not checked: the sounds in the game
     (steps 7 and 8 wire them), Windows, the cloud (Xvfb).
+  - **GM2 step 1, the races, the effect records and `data.pak`; the stand-in kind removed (2026-11-15, a worker on the
+    branch `gm2-step1`; `Docs/Game/Hero.md`, "How it works", step 1):** the data library's first real kinds: `race` v1 at
+    `data/races/<id>` (the fields `normalizeRaceDefinition` keeps, the accent as data, `order` and `emblem` as the user
+    answered Q43 and Q44 the same day, an empty swatches list for the approved look to fill) with checks refusing what the
+    old loader refused, in the editor's words; the `effect` union, one subtype per old type string (the 22 the races use
+    and `trap-limit-flat`); `RaceTotals`, the old race fold field for field, and the attributes' race modifiers, matching
+    the old game on all 3,696 cases of a case list run in its test client (`make-race-references.sh`: the 28 races and
+    five crafted ones at levels 0–101, 150 and 200, enemy counts −1 to 3); the converter from `races.json` (the game's
+    tests), the committed JSON forms in `Assets/Data`, `make-data-pack.sh` and `Assets/Packs/data.pak` (in the game's
+    listings and licences; no rule of `check_packages.py` changed). `stand-in.item` is gone: the editor's tests,
+    `GameFolderModTests` (the end-to-end mod) and the game's mod and screen tests use races; the user-approved
+    `settings-mods` goldens changed only in the refusal's text (accepted by the manager), and 12 editor goldens over the
+    repo's packs show the new `data/races` folder. Found: a race's `spell-power-percent` is read by nothing in the old
+    game, and the folded `spellcastingDisabled` and `debuffImmune` by nothing either; Chromium's `focus()` scrolls the
+    focused element into view, the engine's doesn't (`list-marks` made taller). 4266 + 610 = 4876 tests on the GPU and on
+    lavapipe, none held; mutations 113 standing (110 killed, 3 that can't differ) and the pack script's 14 (killed);
+    `check-packages.sh` and its self-test (119 of 119) and `end-to-end.sh` (241 of 241) on the GPU and on lavapipe.
 
 ## Milestones
 

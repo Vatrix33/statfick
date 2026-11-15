@@ -1,0 +1,2 @@
+effect.trap-limit-flat 1
+  1 amount: float64 = 0

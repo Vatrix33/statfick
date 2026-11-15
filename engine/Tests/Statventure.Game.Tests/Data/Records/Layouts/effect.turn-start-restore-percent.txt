@@ -1,0 +1,4 @@
+effect.turn-start-restore-percent 1
+  1 hp: float64 = 0
+  2 unlessDamagedByElement: string = ""
+  3 lookbackTurns: float64 = 0

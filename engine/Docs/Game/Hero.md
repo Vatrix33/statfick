@@ -109,6 +109,25 @@ patch's four voices taking over the oldest, no rate limit, nothing once the "+" 
 (Dev Mode's too) plays `race-chosen`; nothing on hover. The seven weigh 5 in an action, above GM1's event sounds' 4
 (`Ui/GameSounds.cs`, made by step 12 with the manager's leave). Steps 7 and 8 wire them as "How it works", step 12, lists.
 
+### Questions from the steps (Q43–Q44, the user, 2026-11-15)
+
+Raised by step 1 (the `race` kind's fields; the docs didn't answer them) and asked by the manager with the question tool
+the same day; both the recommended option. Recorded in `Docs/Game-Plan.md`, "GM2's detail round", too.
+- **Q43 The races' order.** One entry per race at `data/races/<id>` holds no order (a pack lists its entries by path:
+  bear, dark-elf, demon …), while the carousel shows the races in `races.json`'s order and the old recruits' random picks
+  (GM11) index the playable races in it. (a) An `order` number on each race, the old game's order written as 10, 20, …
+  280, the same number by id, so a mod's race can sit anywhere among them and the order is data. *Recommended.* (b) A
+  separate list entry naming the ids in order (a mod adding a race replaces the whole list; two such mods collide). (c)
+  The order in the game's code, a mod's races after them by id. **Answer: (a).**
+- **Q44 The emblem.** `normalizeRaceDefinition` keeps the seal's path (`icon`: `objects/race-human.svg` for the nine with a
+  seal, null for the enemy-only, which show ✦); the emblems' pictures and models are step 10's and have no paths yet. (a)
+  `emblem`, a name ("human", "dark-elf" …; none: no emblem, the ✦), step 10 placing its pictures and its model by that
+  name. *Recommended.* (b) No field until step 10 adds it (race version 2). (c) A path to a picture in `ui.pak`, filled
+  once step 10 makes them. **Answer: (a).**
+- The manager's, on step 1's report (a test fixture's sample text, not a choice about the game): the `settings-mods`
+  screens' broken mod holds two races its checks refuse, so the row shows the game's real kind and a real refusal in the
+  editor's words, still wrapping onto two lines ("How it works", step 1).
+
 ### Earlier decisions that bind GM2
 
 - **The look of the port** (User decisions 2026-10-16): characters, enemies and items are real-time 3D models made in
@@ -1435,6 +1454,13 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
    - Finished: the 28 races load from `data.pak`, their checks refuse what `normalizeRaceDefinition` refuses; the editor
      shows `race` entries; the sheet-side fold of every race at levels 1–100 against the old game (step 2's oracle, or a
      case list of its own first). No approval.
+   - **Done (2026-11-15/16, the branch `gm2-step1`; "How it works", step 1).** Its choices: `race` with `order` (Q43) and
+     `emblem` (Q44) and an empty swatches list; the union's 23 subtypes (the 22 race types and `trap-limit-flat`, which
+     the fold reads); no limits or choices the old loader didn't have, the new fields' forms checked (colours, the
+     emblem's name); the converter in C# in the game's tests (the forms written by the serializer), its output
+     `Assets/Data/data/races/`, the pack always made afresh; a case list of its own in step 2's case form, with crafted
+     races and levels 0 and enemy count −1 for the guards; `RaceTotals` without the old `passives` list (the race's own);
+     the broken mod of `settings-mods` holding two refused races (the manager's); `list-marks` made 700 px tall.
 2. **The actor record, its rules and the oracles** (rules; anywhere for the tests; the oracles on the PC or under Xvfb).
    After 1 (its oracle tooling may start beside 1).
    - Owns: `Game/Statventure.Game.Data/Actors/` (`actor.sheet` and its rules, GM2-P1, GM2-P2), `Tools/OldGameOracle/`,
@@ -1850,6 +1876,151 @@ The seven of Q38 as effect patches of the engine's existing nodes and rules (not
   check and the pack's play both fail; the pack then made again, its committed bytes). Nothing written to the player's
   real folders.
 
+### Step 1: the races, the effect records and `data.pak`; the stand-in kind removed (2026-11-15, the branch `gm2-step1`)
+
+**The kinds** (`Game/Statventure.Game.Data/Races/`, `Effects/`; the library's first real kinds, GM2-P3, GM2-P4, GM2-P7):
+- **`race` version 1** (`Race`, `[Kind("Race", "data/races")]`), one entry per race at `data/races/<id>`, the id the
+  entry's name (`RaceCatalogue.PathOf`; the path rule stands for the old `slugify`, and "Duplicate race id" can't happen
+  with one entry per path). Its fields, `normalizeRaceDefinition`'s and the decided ones: `name` (required), `playable`
+  (true when not given: the old `raw.playable !== false`), `statModifiers` (`race.modifiers`: the eight attributes, 0 when
+  not given), `passive` (required; `race.passive`: `id`, `name` (required, may be empty as there), `condition` ("Always
+  active" when not given; `ShownCondition` shows an empty one so, as the old `|| "Always active"`), `description`,
+  `effects`), `accent` (`[Colour]`, the old code's `raceAccent`, "#c7683f" when not given), `emblem` (Q44: the seal's
+  name, null for none), `order` (Q43: 10, 20, … 280 in `races.json`'s order) and `swatches` (`race.swatch`: `slot`, `name`,
+  `[Colour]` `colour`): **an empty list in all 28 races**: the swatches' values come with the approved look (step 3) and
+  the maker's records (step 6), and the slot names' list is step 6's (GM2-P7); the shape only is here. JSON names are the
+  old file's (`statModifiers`, `passive`, `effects` …).
+- **The checks** (`[Check]`, run by the editor and by the game's mod check alike, G4, G5), what the old loader refused
+  in the editor's words: a name empty once JavaScript's `trim` takes its white space ("the name is empty", at `$.name`;
+  the old "name must be a nonempty string"; JavaScript's set: U+FEFF, U+2028/9 and every space separator, not U+0085, which
+  .NET's `Trim` takes), each modifier a finite number ("the strength modifier must be a number (it is NaN)", at
+  `$.statModifiers.strength`; the old "<attribute> modifier must be a number"). What the old loader refused that a record
+  can't hold at all, its record form refuses: not an object, no name or a name that isn't text, no passive or a passive
+  without a name ("race needs the key \"name\"" and the like); not an array and a repeated id are the file's, which the
+  port doesn't have. New with the new fields, not limits on the old data (G4): the accent and a swatch's colour "#rrggbb",
+  the emblem one name of the data path rule (its pictures are found by it). No field has `[Limits]` or `[Choices]` the old
+  loader didn't have: an effect's target or element the old code doesn't know is passed by, as there.
+- **`effect` version 1** (`Effect`, a union, `[Kind("Effect")]`): 23 subtypes, tags 1–23, each `effect.<the old type
+  string>` with the fields the old code reads for that type and their defaults the old `toNumber`/`toInteger` fallbacks
+  (`amount` 0, `interval` 1; `death-save-decay`'s `initialChance` nullable, as the old code reads a missing one): the 22
+  types `races.json` uses and `trap-limit-flat`, which the old race fold reads though no race uses it (GM2-P3 named 22;
+  the design's "sheet side for … `trap-limit-flat`" needs it as a type). `equipment-restriction` keeps `typeName` and
+  `target` (the old code reads either). Display names are the type strings in words ("Max HP per levels").
+- **The sheet side** (`RaceTotals.Of(race, level, enemyCount)`, the old `calculateRaceEffectsUncached` with every field of
+  `emptyRaceEffects`: `MaxHpFlat`, `MaxHpPercent`, `MaxManaFlat`, `UnarmedPowerFlat`, `UnarmedName`, `SpellCostPercent`,
+  `SpellCostPercentModifiers`, `StatPermanentPercent` (`AttributeValues`), `DefensePermanentPercent`, `DefenseFlat`,
+  `DefenseCap` (`DefenseValues`, infinite when uncapped), `EquipmentRestrictions`, `TrapLimitFlat`, `HealingDisabled`,
+  `SpellcastingDisabled`, `DebuffImmune`; not its `passives`, which is the race's one passive) and the attributes' race
+  modifiers (`Race.StatModifier(attribute, level)` and `RaceTotals.StatModifiers(race, level)`, the old `raceStatModifier`:
+  the modifier plus `max(0, level − 1) × amount` of each `all-stats-flat-per-level-up`; a key that isn't an attribute's
+  gets the growth too, as there). Each the old arithmetic in its order: `max(1, toInteger(interval, 1))`, `floor(level /
+  interval) × amount`, `amount × max(0, enemyCount)`, a cap `min(cap, max(0, amount))`, names and elements lower-cased as
+  JavaScript does (`JsValues.ToLowerCase`: İ and the final sigma included), the last unarmed name, a target the totals
+  don't have passed by. `RaceTotals.SheetSide` (16 types) and `BattleSide` (7) say which is which; a test holds every
+  subtype to exactly one.
+- **What step 2 (and 6, 8) take:** `RaceCatalogue.Load(data)` (every race directly in `data/races`, by `order`, then id;
+  an entry there of another kind is the data's refusal), `Race.Playable`, `RaceTotals.Of` (step 2's seam's (b): maximum HP
+  flat and percent, maximum Mana flat, the stat and defence percentages, the defence flats and caps, `HealingDisabled`),
+  `Race.StatModifier` / `RaceTotals.StatModifiers` (its (c)), the attribute keys (`AttributeKeys`, `DefenseKeys`, the old
+  game's strings) and JavaScript's value rules (`JsValues`).
+
+**Which side reads what; where the table in "What exists" was wrong** (checked in the old code, 2026-11-15). The split
+holds: the fold's fifteen types and `all-stats-flat-per-level-up` on the sheet side, seven on the battle side. But:
+1. `spell-power-percent` from a race (the dryad's) is read by **nothing** in the old game: the battle's spell power takes
+   timed effects (`timedSpellPercent`, `combat.js` 2838) and the classes' totals; the passives' screen only shows its
+   label (`app.js` 5100, 5710). GM5 decides what it does.
+2. `passiveEffectsOf` (`combat.js` 1837) is the classes' passives only (`passivesOf` = `calculateClassEffects().passives`,
+   318): the battle reads a race's effects through `racePassiveEffectsOf` (174–175) and `getSelectedRace()` (1816) alone.
+3. `spellcasting-disabled` and `debuff-immunity` are folded, but nothing reads those totals: the battle reads the race's
+   own effects (`raceHasEffect`, 177–180, 323). `healing-disabled`'s total is read (`adjustResource`, the level-up
+   healing, `map.js` 987).
+4. Of the fold's totals only maximum HP and Mana, the stat and defence percentages, Evasion's flat (the sheet adds the
+   race's flat to Evasion only, 1781; Armor's in `calculateArmorForWeapon`, 3650), the caps and `HealingDisabled` act on
+   the sheet; the unarmed ones act in battle (`combat.js` 398, 2303, GM5), the spell cost on spells (`app.js` 2376, GM7),
+   the restrictions on items (3021, GM3), the trap limit on traps (1167), and the flat per enemy is 0 outside a fight.
+
+**The converter and the data** (GM2-P4): `OldRaceFile` (in the game's tests, `Tests/Statventure.Game.Tests/Races/`):
+`races.json` read as `applyRaceText` reads it and each race as `normalizeRaceDefinition` makes it, with JavaScript's own
+rules (what is text, an object, truthy; `slugify`), refusing what they refuse with their messages; the accent from the old
+`raceAccent` table, the order the file's, the seal `objects/race-<name>.svg` as the emblem. What a port record can't hold
+as the old game held it is the converter's own refusal, never a guess (an id that isn't text, an effect without `type`
+or of a type the port lacks, a field its type doesn't have or of another kind of value, a seal of another form). Its
+output is `Assets/Data/data/races/<id>.json`, the races' JSON forms, `data.pak`'s tree (what `packer extract` gives);
+`RaceDataTests` holds the committed files to the converter's output byte for byte (written with
+`STATVENTURE_RACE_DATA=write`). `Tools/Scripts/make-data-pack.sh` packs `Assets/Data` into `Assets/Packs/data.pak` with the
+packer (Release; the game's kinds known), always afresh (into a new file, then moved over the old: no stored bytes taken
+over), so the same folder gives the same bytes anywhere; the tests hold the committed pack to a fresh pack of the folder.
+The engine already mounts `packs/data.pak` (`Application.AreaPacks`): `Game/Statventure.Game` is unchanged.
+
+**The oracle** (the old game's test client in Chromium 152, headless, through `chromium.sh`, as GM2-P13 lays down; step
+2's tooling came beside it, so this step's is its own): `Tests/Statventure.Game.Tests/Reference/race-cases.json` (the case
+list: the fold's levels and enemy counts, five crafted races in `races.json`'s form whose values reach the fold's edges,
+53 `normalizeRaceDefinition` cases, 4 whole files), `race-references.js` (the test-client script),
+`Tools/Scripts/make-race-references.sh` (the run; inside a headless compositor on the PC) writing `race-fold.json` (3,696
+cases, step 2's case form `{ module, sources, cases }`: the 28 races and the crafted ones at levels 0–101, 150 and 200
+with no enemies, at 1, 50 and 100 with 1 and 3, at 1 and 50 with −1; `statModifier` and every total) and
+`race-rules.json` (the normalized races and cases, the files' refusals, the accents); both name `objects/races.json` and
+`scripts/app.js` by SHA-256, and a test fails when the old game changed under them. No rule here draws `Math.random`.
+
+**Tests** (game: 34 new, 599 in all; engine: one more, `RaceKindTests` having one test more than `StandInKindTests`): `RaceTotalsTests` (every oracle case, field by
+field; non-finite numbers as `toNumber`; the sides; the old checks that act on the sheet, named after them:
+`CheckNewRaceData`, `CheckGiantsBlood`'s race totals, `CheckNaturalClaws`' power and name), `RaceRecordTests` (the
+fixtures, the names, the kind, the checks against the oracle's cases), `RaceDataTests` (the committed forms, `data.pak`,
+the 28 in the game as it mounts its packs, the catalogue's order, each race the old game's), `OldRaceFileTests`,
+`JsValuesTests`, `AttributeValuesTests` (the keys in the old order, each its own value); the layout guard covers every record type of the library (`LibraryRecords`, `TheGuardCoversEveryRecordTypeOfTheLibrary`:
+the save, `race` and its three parts, `effect` and its 23), with the fixtures `race/goliath` and `race/every-effect`.
+
+**The stand-in kind removed** (GM1-P3): `StandIn/` gone; the editor's game tests (`GameTesting.RaceKind`, `RaceType()`,
+`Race(name)` from its JSON form, `LibraryKinds` 29; `RaceKindTests` in place of `StandInKindTests`), `GameFolderModTests`
+(New entry "Race (race)", the name, a modifier, the passive made, an effect added and chosen), the game's mod and screen
+tests (`TestRaces`) now use races. The end-to-end flow's mod is `GameFolderModTests`' output, so `end_to_end.py` is
+unchanged. **The `settings-mods` goldens** (approved by the user in GM1) changed only in their fixture text: the stand-in
+kind is gone, so the broken mod holds two races its checks refuse (lamp, its strength not a number, first, so the row
+still wraps onto two lines; torch, an empty name); the row reads "Left out: data/races/lamp: the strength modifier must
+be a number (it is NaN) (at $.statModifiers.strength) (and 1 more)". Measured before and after (the manager accepted
+them): only the pixels in that text's box differ, at 1× x 280–620, y 304–336 (5,012 pixels, dark and light alike), at
+1.65 x 462–1085, y 510–562; no other of the 62 fixtures' markup changed.
+
+**The editor's screens over the repo's packs** show `data.pak` now (its `data/races` folder in the entry list, the pack in
+the browser): 12 editor fixtures' markup changed (`checks-problems`, `import-again`, `import-path`, `import-replace`,
+`list-marks`, `list-unreadable`, `preview-cutscene`, `preview-effect`, `preview-model`, `references-list`,
+`saving-mod-info`, `saving-save-as`), captured again (only the entry list's pane differs, at 1× within x 0–280); the
+entry list's and the browser's tests name the new folder and pack. `list-marks` is 1000 × 700 now (640 before): at 640
+its tree overflowed the pane, where **Chromium scrolls the focused tree into view and the engine's `Focus()` doesn't**
+(an engine finding, reported; the fixture shows the whole tree again, as it did). Every later step that adds entries to
+the repo's packs moves these screens the same way.
+
+The engine's tests that read every committed pack (`CommittedPackTests.EveryCommittedPackIsSound`,
+`RecordDraftTests.EveryCommittedPacksRecordsBuildBackToTheirStoredForm`) read them with the game's kinds now, loaded the
+editor's way (the engine's test project never references the library).
+
+**Packaging:** `file packs/data.pak` in both game listings and `cover packs/data.pak -` in `licenses.txt` (the game's own
+data); `check_packages.py`'s rule ("the committed packs exactly") is unchanged.
+
+**Shown able to fail** (`mutate.py` with the game's project, under the shared lock in a headless cage;
+`claude-work/gm2/step1/mutations.json`, made by `make-mutations.py`): 113 mutations of every check, each effect subtype's
+names, tags, fields and defaults (the layout guard), the fold per type (intervals, `toNumber`, the enemies, the caps, the
+lower case, the fallbacks, the last name, the sides), the modifiers' growth, the catalogue, the converter's rules and
+JavaScript's value rules. The first run: 101 killed, 9 survived, 3 didn't build (they removed fields the tests set:
+written again as layout changes). Of the 9, six were gaps, closed (`AttributeValuesTests`; a second percentage on one
+attribute and one defence among the crafted races; a seven-character colour without its "#"; an id, a condition and a
+description of 0 in the case list) and killed in the rerun (`mutations-rerun.json`, 12: 9 killed). **The standing list:
+113, 110 killed, 3 that can't differ:** an interval's fallback 0 for 1 (`max(1, …)` lifts both to 1); the catalogue's
+tie by id (the data lists entries in ordinal path order, which is the ids' order); the converter reading an array's
+modifiers (an array has no named members, as JavaScript's `[1, 2].strength` is undefined). **The pack script's rules** (a
+runner of its own, `pack-script-rules.py`: a scratch engine with a stand-in `dotnet`; eleven rules: the Release packer
+built first, `Assets/Data` packed whole into `Assets/Packs/data.pak`, always afresh, an old pack replaced, a failing
+packer or build failing the script with the old pack kept and nothing left, a leftover of the run's own name removed, no
+`Assets/Data` refused): 14 mutations, **14 killed**. Nothing written to the player's real folders.
+
+**Runs** (headless, scratch per-user folders, nothing audible): the full suite on the GPU and on lavapipe, on the step's
+commit rebased on step 12's `f071f09`: 4266 + 610 = 4876 tests (`main`: 4265 + 576 = 4841), none held; `publish.sh` and
+`check-packages.sh` ok on the four archives of `2026.11.16.2` (the game's Linux archive 42.9 MB, 55 files; Windows
+39.1 MB, 48), the self-test 119 breaks, 119 caught; `end-to-end.sh` from that fresh publish: 241 of 241 on the GPU
+(118 s) and on lavapipe (222 s); the race oracle run again gives the same bytes. Rebased on step 12, `editor-fixtures.json`
+was made again by the tests and `preview-effect` captured again on top of step 12's (its seven new sounds push the
+`data/races` folder below the list's fold: only the scrollbar's thumb differs from step 12's picture).
+
 ## Status
 
 - **2026-11-15:** written on the user's go for GM2 (docs only, the branch `gm2-design` from `8c7d07d`), after the user's
@@ -1882,3 +2053,11 @@ The seven of Q38 as effect patches of the engine's existing nodes and rules (not
   1.65 beside a tall scroller". The full suite on the GPU and on lavapipe: 4265 + 576 = 4841 tests (`main`'s 4214 + 565
   and 62 new), none held; mutations: the sound side 14 of 14 killed, the rule 9, 6 killed and 3 accounted for; the
   0.3 s rule by hand on the source and the pack.
+- **2026-11-15/16, step 1 done** (the branch `gm2-step1`; "How it works", step 1): the `race` kind and the `effect` union,
+  the race fold matching the old game on all 3,696 cases of its test client, the 28 races in `data.pak` from a converter
+  and a pack script, the stand-in kind gone. It raised two questions, answered by the user as recommended (Q43 the races'
+  order as a number, Q44 the emblem as a name). The `settings-mods` screens the user approved in GM1 changed only in their
+  fixture's refusal text (accepted by the manager); 12 editor goldens show the new `data/races` folder. 4266 + 610 = 4876
+  tests on the GPU and on lavapipe; mutations 113 standing, 110 killed, 3 that can't differ; the pack script's 14 killed;
+  the end-to-end flow 241 of 241 on both. Found for later steps: a race's `spell-power-percent` is read by nothing in the
+  old game (GM5's to decide), and the engine's `Focus()` doesn't scroll into view as Chromium's `focus()` does.

@@ -1,0 +1,48 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.stat-permanent-percent": 1,
+    "effect.defense-permanent-percent": 1
+  },
+  "name": "Orc",
+  "playable": false,
+  "statModifiers": {
+    "strength": 3,
+    "vitality": 1,
+    "mind": -7,
+    "dexterity": -4,
+    "intelligence": -4,
+    "wisdom": -5,
+    "speed": -2,
+    "luck": -7
+  },
+  "passive": {
+    "id": "creature-of-wrath",
+    "name": "Creature of Wrath",
+    "condition": "Always active",
+    "description": "Increase Strength by 15%. Reduce Armor and Evasion by 30%.",
+    "effects": [
+      {
+        "$type": "effect.stat-permanent-percent",
+        "target": "strength",
+        "amount": 15
+      },
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "armor",
+        "amount": -30
+      },
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "evasion",
+        "amount": -30
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "order": 140,
+  "swatches": []
+}

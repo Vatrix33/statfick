@@ -1,0 +1,9 @@
+race 1
+  1 name: string (required)
+  2 playable: bool = true
+  3 statModifiers: race.modifiers = {"strength":0,"vitality":0,"mind":0,"dexterity":0,"intelligence":0,"wisdom":0,"speed":0,"luck":0}
+  4 passive: race.passive (required)
+  5 accent: string = "#c7683f"
+  6 emblem: string? = null
+  7 order: int32 = 0
+  8 swatches: list<race.swatch> = []

@@ -1,0 +1,42 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.defense-permanent-percent": 1,
+    "effect.incoming-spell-miss-chance": 1
+  },
+  "name": "Harpy",
+  "playable": false,
+  "statModifiers": {
+    "strength": 2,
+    "vitality": -1,
+    "mind": 3,
+    "dexterity": 5,
+    "intelligence": -1,
+    "wisdom": -2,
+    "speed": 7,
+    "luck": 3
+  },
+  "passive": {
+    "id": "creature-of-pride",
+    "name": "Creature of Pride",
+    "condition": "Always active",
+    "description": "Increase Evasion by 20%. Spells against you have a 5% chance to miss.",
+    "effects": [
+      {
+        "$type": "effect.defense-permanent-percent",
+        "target": "evasion",
+        "amount": 20
+      },
+      {
+        "$type": "effect.incoming-spell-miss-chance",
+        "amount": 5
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "order": 220,
+  "swatches": []
+}

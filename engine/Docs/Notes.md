@@ -553,6 +553,18 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   either way); the dump's vsync broken by hand hangs the run; look.py's 19 breaks all killed. Lesson: a mutation run
   that rewrites a reference file the tests write (as `TheSceneFileIsUpToDate` writes `r3d-scenes.json`) hides every
   mutation of what writes it: the figure scene file is compared and written only on request.
+- 2026-11-15 (the PC, GM2 step 1's worker on the branch `gm2-step1`, 4266 + 610 = 4876 tests on the GPU and lavapipe): **the races, the effect
+  records and `data.pak`; the stand-in kind removed** (`Docs/Game/Hero.md`, "How it works", step 1). Facts of the old
+  game: a race's `spell-power-percent` is read by nothing, `passiveEffectsOf` is the classes' passives only, the folded
+  `spellcastingDisabled` and `debuffImmune` are read by nothing (the battle reads the race's effects), `raceStatModifier`
+  gives a key that isn't an attribute's the growth too, and the old fold's `target in totals` lets `toString` through
+  (beside the eight, harmless). Gotchas: getting data out of the test client works as the 2026-11-11/12 line says, with
+  `TMPDIR` pointed at a scratch folder so the run's profile goes there; a race's binary form compresses, so a test that
+  damages a stored entry raw needs a small file entry; the editor's screens over the repo's packs move whenever a pack
+  gains a folder (12 goldens here), and Chromium's `focus()` scrolls the focused element into view where the engine's
+  doesn't (a fixture whose list overflows shows it); this session's Write and Edit tools turn `\uXXXX` in the text into
+  the character itself (C# took `\x` escapes, JSON was written through Python's `chr`); in a worktree-isolated session a
+  shell heredoc or a `python3 - <<EOF` with quotes is refused as too complex: write the script to a file first.
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

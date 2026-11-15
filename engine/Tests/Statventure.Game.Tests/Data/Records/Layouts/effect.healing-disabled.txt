@@ -1,0 +1,1 @@
+effect.healing-disabled 1

@@ -54,6 +54,8 @@ text licenses/Chromium-LICENSE.txt fixed:https://raw.githubusercontent.com/chrom
 cover NOTICE.txt -
 cover licenses/* -
 cover packs/audio.pak -
+# The game's data (GM2 step 1): its races, from the old game's races.json, ours.
+cover packs/data.pak -
 cover packs/ui.pak licenses/Lato-OFL.txt licenses/STIX-OFL.txt
 # The game's data library beside the program (M12-9, Q19; ours, the editor loads it).
 cover Statventure.Game.Data.dll -

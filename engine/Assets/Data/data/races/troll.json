@@ -1,0 +1,38 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.turn-start-restore-percent": 1
+  },
+  "name": "Troll",
+  "playable": false,
+  "statModifiers": {
+    "strength": 5,
+    "vitality": 6,
+    "mind": -3,
+    "dexterity": -4,
+    "intelligence": -2,
+    "wisdom": -3,
+    "speed": 1,
+    "luck": -4
+  },
+  "passive": {
+    "id": "creature-of-gluttony",
+    "name": "Creature of Gluttony",
+    "condition": "At the start of each turn unless recently damaged by Fire",
+    "description": "Restore 5% of maximum HP at the start of each turn unless Fire damage was taken during the previous 5 turns.",
+    "effects": [
+      {
+        "$type": "effect.turn-start-restore-percent",
+        "hp": 5,
+        "unlessDamagedByElement": "fire",
+        "lookbackTurns": 5
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "order": 200,
+  "swatches": []
+}

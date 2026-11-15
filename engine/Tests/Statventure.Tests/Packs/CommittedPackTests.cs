@@ -44,16 +44,24 @@ public class CommittedPackTests
         }
     }
 
+    /// <summary>
+    /// Each committed pack sound, its records read with the game's kinds: the engine's and, since GM2 step 1 (data.pak's
+    /// races), its data library's, loaded the editor's way (this project never references the library).
+    /// </summary>
     [Fact]
     public void EveryCommittedPackIsSound()
     {
         var packs = Directory.Exists(TestPaths.Packs) ? Directory.GetFiles(TestPaths.Packs) : [];
+        var gameKinds = Statventure.Editor.Game.GameLibraryLoader.Run.Kinds(Statventure.Editor.Game.GameLibrary.Read(Statventure.Tests.Editor.Game.GameTesting.BuiltLibrary)).Types;
         foreach (var file in packs)
         {
             Assert.Contains(Path.GetFileNameWithoutExtension(file), Application.AreaPacks);
             Assert.Equal(".pak", Path.GetExtension(file));
-            Assert.Empty(Problems(file, RecordTypes.Engine));
+            Assert.Empty(Problems(file, gameKinds));
         }
+        // The engine's own packs need nothing of the library's.
+        foreach (var file in packs.Where(f => Path.GetFileName(f) != "data.pak"))
+            Assert.Empty(Problems(file, RecordTypes.Engine));
     }
 
     [Fact]

@@ -1,0 +1,2 @@
+effect.unarmed-name 1
+  1 name: string = ""

@@ -1,0 +1,49 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.incoming-spell-damage-percent": 1,
+    "effect.max-hp-per-levels": 1,
+    "effect.max-mana-per-levels": 1
+  },
+  "name": "Devil",
+  "playable": false,
+  "statModifiers": {
+    "strength": 2,
+    "vitality": 4,
+    "mind": 8,
+    "dexterity": 1,
+    "intelligence": 3,
+    "wisdom": 1,
+    "speed": -3,
+    "luck": -10
+  },
+  "passive": {
+    "id": "hellborne",
+    "name": "Hellborne",
+    "condition": "Always active",
+    "description": "Take 60% more damage from Holy-element spells. Gain 2 additional maximum HP and 2 additional maximum Mana per character level.",
+    "effects": [
+      {
+        "$type": "effect.incoming-spell-damage-percent",
+        "element": "holy",
+        "amount": 60
+      },
+      {
+        "$type": "effect.max-hp-per-levels",
+        "amount": 2,
+        "interval": 1
+      },
+      {
+        "$type": "effect.max-mana-per-levels",
+        "amount": 2,
+        "interval": 1
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "order": 160,
+  "swatches": []
+}

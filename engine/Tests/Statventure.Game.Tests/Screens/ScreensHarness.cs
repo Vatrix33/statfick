@@ -118,7 +118,7 @@ sealed class ScreensHarness : IDisposable
     {
         var writer = new PackWriter();
         writer.AddRecord(ModInfo.Path, new ModInfo { Name = name, Author = "Vatrix", Version = "1.0" });
-        writer.AddRecordBinary("stand-in/items/lamp", [0]);
+        writer.AddRecordBinary("data/races/lamp", [0]);
         writer.Write(Path.Combine(mods, name.ToLowerInvariant().Replace(' ', '-') + ".pak"));
     }
 

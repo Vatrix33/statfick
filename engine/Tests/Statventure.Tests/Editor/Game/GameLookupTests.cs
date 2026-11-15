@@ -109,27 +109,27 @@ public class GameLookupTests
         Assert.Null(found.Problem);
         var game = found.Game!;
         Assert.Equal((folder["game/packs"], false, folder["game"], folder["game/Statventure.Game.Data.dll"]), (game.PacksFolder, game.DevSetup, game.Folder, game.Library));
-        var kind = game.Types.Find(GameTesting.StandInKind)!;
+        var kind = game.Types.Find(GameTesting.RaceKind)!;
         Assert.NotNull(game.Types.Find("audio.room"));
-        Assert.Equal(Statventure.Packs.RecordTypes.Engine.ByName.Count + 2, game.Types.ByName.Count);
+        Assert.Equal(Statventure.Packs.RecordTypes.Engine.ByName.Count + GameTesting.LibraryKinds, game.Types.ByName.Count);
         Assert.Equal(Statventure.Packs.Importers.Engine.All.Select(i => i.Name), game.Importers.All.Select(i => i.Name));
         // Its own load context, its engine the editor's: the kind's marks are the engine's attributes.
         Assert.NotSame(AssemblyLoadContext.Default, AssemblyLoadContext.GetLoadContext(kind.Assembly));
         var shape = RecordShape.Of(kind);
-        Assert.Equal(("Stand-in item", "stand-in/items"), (shape.DisplayName, shape.Folder));
-        Assert.Equal(["Title", "Price", "Rarity"], shape.Fields.Select(f => f.Name));
+        Assert.Equal(("Race", "data/races"), (shape.DisplayName, shape.Folder));
+        Assert.Equal(["Name", "Playable", "StatModifiers", "Passive", "Accent", "Emblem", "Order", "Swatches"], shape.Fields.Select(f => f.Name));
         // The run loaded that build once: another copy of it is the same library, the same kinds.
         Assert.Equal(GameLibrary.Read(GameTesting.BuiltLibrary).Build, GameLibraryLoader.Run.Loaded!.Build);
         var again = GameLookup.Find(GameTesting.MakeGame(folder["copy"]), EditorView.Version).Game!;
-        Assert.Same(kind, again.Types.Find(GameTesting.StandInKind));
-        Assert.Same(kind, GameTesting.StandInType());
+        Assert.Same(kind, again.Types.Find(GameTesting.RaceKind));
+        Assert.Same(kind, GameTesting.RaceType());
     }
 
     [Fact]
     public void ARunUsesOneBuildOfTheLibraryAnotherOnlyAfterANewStart()
     {
         using var folder = new TempFolder();
-        GameTesting.StandInType();
+        GameTesting.RaceType();
         GameTesting.MakeGame(folder["other-build"], library: false);
         var other = GameTesting.FakeLibrary(folder["other-build/Statventure.Game.Data.dll"], "dev+abc");
         var found = GameLookup.Find(folder["other-build"], EditorView.Version);
@@ -143,8 +143,8 @@ public class GameLookupTests
         var first = GameLookup.Find(folder["other-build"], EditorView.Version, loader);
         Assert.Null(first.Problem);
         Assert.Equal(folder["other-build/Statventure.Game.Data.dll"], loader.Loaded!.File);
-        Assert.Null(first.Game!.Types.Find(GameTesting.StandInKind));
-        Assert.Equal(GameProblemKind.AnotherBuild, GameLookup.Find(GameTesting.MakeGame(folder["stand-in"]), EditorView.Version, loader).Problem!.Kind);
+        Assert.Null(first.Game!.Types.Find(GameTesting.RaceKind));
+        Assert.Equal(GameProblemKind.AnotherBuild, GameLookup.Find(GameTesting.MakeGame(folder["the-game"]), EditorView.Version, loader).Problem!.Kind);
         Assert.Throws<InvalidOperationException>(() => loader.Kinds(GameLibrary.Read(GameTesting.BuiltLibrary)));
     }
 
@@ -182,7 +182,7 @@ public class GameLookupTests
         Assert.Null(found.Problem);
         Assert.Equal((folder["engine/Assets/Packs"], true, null), (found.Game!.PacksFolder, found.Game.DevSetup, found.Game.Folder));
         Assert.Equal(GameLibrary.InRepo(engine), found.Game.Library);
-        Assert.NotNull(found.Game.Types.Find(GameTesting.StandInKind));
+        Assert.NotNull(found.Game.Types.Find(GameTesting.RaceKind));
         // Not built: said with where it should be and what builds it.
         File.Delete(GameLibrary.InRepo(engine));
         var problem = GameLookup.Repo(engine, EditorView.Version).Problem!;
