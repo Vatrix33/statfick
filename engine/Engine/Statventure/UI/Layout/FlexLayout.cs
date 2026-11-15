@@ -23,7 +23,10 @@ internal sealed class FlexLayout
         public required LayoutBox Box;
         public float Base, BaseContent, Hypothetical;
         public float MinMain, MaxMain;
-        public float Target, Violation;
+        /// <summary>The share of the line's free space the item takes in LineFlexer (its free_space_fraction).</summary>
+        public double Fraction;
+        /// <summary>The last pass's min/max violation (positive a min, negative a max violation; LineFlexer's states).</summary>
+        public float Violation;
         public bool Frozen;
         public float MainMargins;
         public float Grow, Shrink;
@@ -263,11 +266,12 @@ internal sealed class FlexLayout
         var alignContent = s.AlignContent;
         if (!singleLine && lines.Count > 0)
         {
-            if (alignContent is Alignment.Normal or Alignment.Stretch && freeCross > 0)
+            if (alignContent is Alignment.Normal or Alignment.Stretch && freeCross >= 0)
             {
-                var extra = freeCross / lines.Count;
+                // Lines stretched by a LayoutUnitDiffuser: the free space's 1/64 steps shared out.
+                var extra = new LayoutUnitDiffuser(freeCross, lines.Count);
                 foreach (var line in lines)
-                    line.Cross += extra;
+                    line.Cross += extra.Next();
                 freeCross = 0;
             }
             var (start, between) = Distribute(alignContent, freeCross, lines.Count);
@@ -275,7 +279,7 @@ internal sealed class FlexLayout
             foreach (var line in lines)
             {
                 line.Offset = offset;
-                offset += line.Cross + crossGap + between;
+                offset += line.Cross + crossGap + between.Next();
             }
         }
         else if (lines.Count > 0)
@@ -307,7 +311,7 @@ internal sealed class FlexLayout
                 var marginEnd = row ? item.Box.Style.MarginBottom : item.Box.Style.MarginRight;
                 if (marginStart.IsAuto || marginEnd.IsAuto)
                 {
-                    var share = marginStart.IsAuto && marginEnd.IsAuto ? MathF.Max(0, free) / 2 : MathF.Max(0, free);
+                    var share = marginStart.IsAuto && marginEnd.IsAuto ? LayoutUnit.Divide(MathF.Max(0, free), 2) : MathF.Max(0, free);
                     item.CrossOffset = marginStart.IsAuto ? share : 0;
                     continue;
                 }
@@ -318,7 +322,7 @@ internal sealed class FlexLayout
                     Alignment.FlexEnd => wrapReverse ? 0 : free,
                     Alignment.End or Alignment.SelfEnd => free,
                     Alignment.Start or Alignment.SelfStart => 0,
-                    Alignment.Center => free / 2,
+                    Alignment.Center => LayoutUnit.Divide(free, 2),
                     Alignment.Baseline or Alignment.LastBaseline when row && !wrapReverse => line.MaxAscent - (item.Ascent + item.Box.Margin.Top),
                     _ => wrapReverse ? free : 0,
                 };
@@ -341,19 +345,19 @@ internal sealed class FlexLayout
                     autoMargins++;
             }
             // Offsets from main-start (flex-relative); reverse directions are mirrored afterwards.
-            float start = 0, between = 0;
-            var perAuto = 0f;
+            float start = 0;
+            LayoutUnitDiffuser between = default, perAuto = default;
             if (autoMargins > 0 && free > 0)
-                perAuto = free / autoMargins;
+                perAuto = new LayoutUnitDiffuser(free, autoMargins);
             else
             {
                 (start, between) = s.JustifyContent switch
                 {
-                    Alignment.FlexEnd => (free, 0f),
-                    Alignment.Start or Alignment.Left => (reverse ? free : 0f, 0f),
-                    Alignment.End or Alignment.Right => (reverse ? 0f : free, 0f),
+                    Alignment.FlexEnd => (free, default(LayoutUnitDiffuser)),
+                    Alignment.Start or Alignment.Left => (reverse ? free : 0f, default(LayoutUnitDiffuser)),
+                    Alignment.End or Alignment.Right => (reverse ? 0f : free, default(LayoutUnitDiffuser)),
                     Alignment.Center or Alignment.SpaceBetween or Alignment.SpaceAround or Alignment.SpaceEvenly => Distribute(s.JustifyContent, free, line.Items.Count),
-                    _ => (0f, 0f),
+                    _ => (0f, default(LayoutUnitDiffuser)),
                 };
             }
             var position = start;
@@ -365,12 +369,12 @@ internal sealed class FlexLayout
                 if (reverse)
                     (autoStart, autoEnd) = (autoEnd, autoStart);
                 if (autoStart)
-                    position += perAuto;
+                    position += perAuto.Next();
                 item.MainOffset = position;
                 position += item.Main + item.MainMargins;
                 if (autoEnd)
-                    position += perAuto;
-                position += mainGap + between;
+                    position += perAuto.Next();
+                position += mainGap + between.Next();
                 if (reverse)
                     item.MainOffset = mainSize - item.MainOffset - item.Main - item.MainMargins;
             }
@@ -425,23 +429,35 @@ internal sealed class FlexLayout
         return row ? cs.MarginTop.IsAuto || cs.MarginBottom.IsAuto : cs.MarginLeft.IsAuto || cs.MarginRight.IsAuto;
     }
 
-    /// <summary>Start offset and extra space between for the distributed alignment values.</summary>
-    static (float Start, float Between) Distribute(Alignment alignment, float free, int count)
+    /// <summary>
+    /// The start offset and the space between for the distributed alignment values, in LayoutUnits as Blink's
+    /// InitialContentPositionOffset and ContentDistributionSpace give them (the space between shared out by a diffuser).
+    /// </summary>
+    static (float Start, LayoutUnitDiffuser Between) Distribute(Alignment alignment, float free, int count)
     {
+        var between = free > 0 && count > 1
+            ? alignment switch
+            {
+                Alignment.SpaceBetween => new LayoutUnitDiffuser(free, count - 1),
+                Alignment.SpaceEvenly => new LayoutUnitDiffuser(free, count + 1),
+                Alignment.SpaceAround => new LayoutUnitDiffuser(free, count),
+                _ => default,
+            }
+            : default;
         switch (alignment)
         {
             case Alignment.Center:
-                return (free / 2, 0);
+                return (LayoutUnit.Divide(free, 2), between);
             case Alignment.FlexEnd or Alignment.End:
-                return (free, 0);
+                return (free, between);
             case Alignment.SpaceBetween:
-                return free > 0 && count > 1 ? (0, free / (count - 1)) : (0, 0);
+                return (0, between);
             case Alignment.SpaceAround:
-                return free > 0 ? (free / count / 2, free / count) : (free / 2, 0);
+                return (free > 0 && count > 0 ? LayoutUnit.Divide(free, 2 * count) : MathF.Max(0, LayoutUnit.Divide(free, 2)), between);
             case Alignment.SpaceEvenly:
-                return free > 0 ? (free / (count + 1), free / (count + 1)) : (free / 2, 0);
+                return (free > 0 && count > 0 ? LayoutUnit.Divide(free, count + 1) : MathF.Max(0, LayoutUnit.Divide(free, 2)), between);
             default:
-                return (0, 0);
+                return (0, between);
         }
     }
 
@@ -505,77 +521,98 @@ internal sealed class FlexLayout
         item.Ascent = measured.FirstBaseline ?? measured.Height;
     }
 
+    /// <summary>
+    /// Resolving flexible lengths as Blink's LineFlexer does (<c>core/layout/flex/line_flexer.cc</c>): items with a zero
+    /// factor or a hypothetical size on the wrong side of their base size frozen first; each pass hands the free space out
+    /// from the last unfrozen item to the first, each taking its fraction of what is left (its factor over the factors up to
+    /// it, by weighted shrink when shrinking) rounded to a LayoutUnit (<c>FromDoubleRound</c>), so the last share is the
+    /// rest and the parts add up; then the min/max violations, the items on the side of the total violation frozen
+    /// (<c>FreezeItems</c>), until a pass has none. Every size is a LayoutUnit.
+    /// </summary>
     static void ResolveFlexibleLengths(Line line, float available, float gap)
     {
         var items = line.Items;
-        var gaps = gap * Math.Max(0, items.Count - 1);
-        if (float.IsNaN(available))
-        {
-            foreach (var item in items)
-                item.Main = item.Hypothetical;
-            return;
-        }
-        var sumHypothetical = items.Sum(i => i.Hypothetical + i.MainMargins) + gaps;
-        var growing = sumHypothetical < available;
         foreach (var item in items)
         {
+            item.Main = item.Hypothetical;
             item.Frozen = false;
-            item.Target = item.Base;
-            var factor = growing ? item.Grow : item.Shrink;
-            if (factor == 0 || (growing && item.Base > item.Hypothetical) || (!growing && item.Base < item.Hypothetical))
-            {
-                item.Frozen = true;
-                item.Target = item.Hypothetical;
-            }
+            item.Violation = 0;
         }
-        float FreeSpace() => available - gaps - items.Sum(i => (i.Frozen ? i.Target : i.Base) + i.MainMargins);
-        var initialFree = FreeSpace();
-        for (var iteration = 0; iteration < items.Count + 1; iteration++)
+        if (float.IsNaN(available))
+            return;
+        // sum_hypothetical_main_size: the margin boxes and the gaps between them.
+        var grow = items.Sum(i => i.Hypothetical + i.MainMargins) + gap * Math.Max(0, items.Count - 1) < available;
+        double totalFactor = 0;
+        var free = 0f;
+        void FreezeItems(Func<Item, bool> shouldFreeze)
         {
-            var unfrozen = items.Where(i => !i.Frozen).ToList();
-            if (unfrozen.Count == 0)
-                break;
-            var free = FreeSpace();
-            var factorSum = unfrozen.Sum(i => growing ? i.Grow : i.Shrink);
-            if (factorSum < 1)
+            // (The factors summed again, not subtracted: floating point isn't associative.)
+            totalFactor = 0;
+            double totalWeightedShrink = 0;
+            free = available;
+            foreach (var item in items)
             {
-                var scaled = initialFree * factorSum;
-                if (MathF.Abs(scaled) < MathF.Abs(free))
-                    free = scaled;
+                item.Frozen = item.Frozen || shouldFreeze(item);
+                if (item.Frozen)
+                {
+                    free -= item.Main + item.MainMargins + gap;
+                    continue;
+                }
+                item.Violation = 0;
+                item.Main = item.Hypothetical;
+                double factor = grow ? item.Grow : item.Shrink;
+                totalFactor += factor;
+                if (grow)
+                    item.Fraction = factor / totalFactor;
+                else
+                {
+                    var weighted = factor * item.BaseContent;
+                    totalWeightedShrink += weighted;
+                    item.Fraction = weighted / totalWeightedShrink;
+                }
+                free -= item.Base + item.MainMargins + gap;
             }
-            if (growing)
-            {
-                foreach (var item in unfrozen)
-                    item.Target = item.Base + (factorSum > 0 ? free * item.Grow / factorSum : 0);
-            }
-            else
-            {
-                var scaledSum = unfrozen.Sum(i => i.Shrink * i.BaseContent);
-                foreach (var item in unfrozen)
-                    item.Target = item.Base + (scaledSum > 0 ? free * (item.Shrink * item.BaseContent) / scaledSum : 0);
-            }
-            // Fix min/max violations.
-            var totalViolation = 0f;
-            foreach (var item in unfrozen)
-            {
-                var clamped = Math.Clamp(item.Target, item.MinMain, item.MaxMain);
-                item.Violation = clamped - item.Target;
-                totalViolation += item.Violation;
-                item.Target = clamped;
-            }
-            if (MathF.Abs(totalViolation) < 0.001f)
-            {
-                foreach (var item in unfrozen)
-                    item.Frozen = true;
-                break;
-            }
-            foreach (var item in unfrozen)
-                if ((totalViolation > 0 && item.Violation > 0) || (totalViolation < 0 && item.Violation < 0))
-                    item.Frozen = true;
+            free += gap;
         }
-        // Blink stores flexed sizes as LayoutUnits.
-        foreach (var item in items)
-            item.Main = LayoutUnit.Truncate(item.Target);
+        FreezeItems(i => (grow ? i.Grow : i.Shrink) == 0 || (grow ? i.Base > i.Hypothetical : i.Base < i.Hypothetical));
+        var initialFree = free;
+        for (var pass = 0; pass <= items.Count; pass++)
+        {
+            // Factors summing to less than one share out only that part of the initial free space.
+            if (totalFactor > 0 && totalFactor < 1)
+            {
+                var fractional = LayoutUnit.FromRaw((long)(initialFree * 64 * totalFactor));
+                if (MathF.Abs(fractional) < MathF.Abs(free))
+                    free = fractional;
+            }
+            if (grow ? free <= 0 : free >= 0)
+                return;
+            var totalViolation = 0f;
+            for (var i = items.Count - 1; i >= 0; i--)
+            {
+                var item = items[i];
+                if (item.Frozen)
+                    continue;
+                float extra;
+                if (item.Fraction == 1.0)
+                    extra = free;
+                else
+                {
+                    var share = free * item.Fraction;
+                    extra = double.IsFinite(share) ? LayoutUnit.Round(share) : 0;
+                }
+                free -= extra;
+                var size = item.Base + extra;
+                var adjusted = Math.Clamp(size, item.MinMain, item.MaxMain);
+                item.Main = adjusted;
+                item.Violation = adjusted - size;
+                totalViolation += item.Violation;
+            }
+            if (totalViolation == 0)
+                return;
+            var max = totalViolation < 0;
+            FreezeItems(i => max ? i.Violation < 0 : i.Violation > 0);
+        }
     }
 
     /// <summary>The container's min-content or max-content content width.</summary>
@@ -585,7 +622,7 @@ internal sealed class FlexLayout
         var items = box.Children.Where(c => !c.IsOutOfFlow).ToList();
         if (items.Count == 0)
             return 0;
-        var gap = s.ColumnGap.IsNone ? 0 : s.ColumnGap.IsValue && !s.ColumnGap.HasPercent ? s.ColumnGap.Pixels : 0;
+        var gap = s.ColumnGap.IsNone ? 0 : s.ColumnGap.IsValue && !s.ColumnGap.HasPercent ? MathF.Max(0, LayoutUnit.Truncate(s.ColumnGap.Pixels)) : 0;
         if (IsRow(s))
         {
             if (min && s.FlexWrap != FlexWrap.NoWrap)
@@ -610,9 +647,9 @@ internal sealed class FlexLayout
     static float BasisOuter(LayoutBox item)
     {
         var s = item.Style;
-        var basis = s.FlexBasis.Pixels;
+        var basis = LayoutUnit.Truncate(s.FlexBasis.Pixels);
         var edges = s.BorderLeft + s.BorderRight + (s.PaddingLeft.IsValue && !s.PaddingLeft.HasPercent ? LayoutUnit.Truncate(s.PaddingLeft.Pixels) : 0) + (s.PaddingRight.IsValue && !s.PaddingRight.HasPercent ? LayoutUnit.Truncate(s.PaddingRight.Pixels) : 0);
-        var margins = (s.MarginLeft.IsValue && !s.MarginLeft.HasPercent ? s.MarginLeft.Pixels : 0) + (s.MarginRight.IsValue && !s.MarginRight.HasPercent ? s.MarginRight.Pixels : 0);
+        var margins = (s.MarginLeft.IsValue && !s.MarginLeft.HasPercent ? LayoutUnit.Truncate(s.MarginLeft.Pixels) : 0) + (s.MarginRight.IsValue && !s.MarginRight.HasPercent ? LayoutUnit.Truncate(s.MarginRight.Pixels) : 0);
         return (s.BoxSizing == BoxSizing.BorderBox ? MathF.Max(basis, edges) : basis + edges) + margins;
     }
 }

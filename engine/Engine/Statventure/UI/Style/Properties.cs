@@ -758,6 +758,7 @@ public static partial class Properties
             if (r.TryIdent("auto"))
             {
                 c.Style.AspectRatio = 0;
+                c.Style.AspectRatioTerms = default;
                 return r.AtEnd || (r.TryNumber(out _) && r.AtEnd);
             }
             if (!r.TryNumber(out var w))
@@ -766,8 +767,9 @@ public static partial class Properties
             if (r.TryDelim('/') && !r.TryNumber(out h))
                 return false;
             c.Style.AspectRatio = h > 0 ? w / h : 0;
+            c.Style.AspectRatioTerms = h > 0 ? Layout.LayoutUnit.Ratio(w, h) : default;
             return r.AtEnd;
-        }, (t, s) => t.AspectRatio = s.AspectRatio);
+        }, (t, s) => (t.AspectRatio, t.AspectRatioTerms) = (s.AspectRatio, s.AspectRatioTerms));
         Add("z-index", false, (r, c) =>
         {
             if (r.TryIdent("auto"))

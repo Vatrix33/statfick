@@ -320,6 +320,8 @@ public sealed class ComputedStyle
     public Corner RadiusTopLeft, RadiusTopRight, RadiusBottomRight, RadiusBottomLeft;
     public Length Top = Length.Auto, Right = Length.Auto, Bottom = Length.Auto, Left = Length.Auto;
     public float AspectRatio;
+    /// <summary>aspect-ratio's two terms as LayoutUnits, as Blink keeps them for layout (StyleAspectRatio's layout ratio).</summary>
+    public Vector2 AspectRatioTerms;
     public int? ZIndex;
     public Overflow OverflowX = Overflow.Visible, OverflowY = Overflow.Visible;
 

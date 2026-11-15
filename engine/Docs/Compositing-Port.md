@@ -203,6 +203,138 @@ by GM1 step 8's tooltip fixture: the engine drew the tooltip's text grayscale, t
 - **The editor's screens** have no fixed boxes. `checks-problems` and `references-list` at 1.65 composite the same in
   Chromium's main frame as in its iframe (six and eight layers).
 
+## Layout units (GM1's engine task of Q34, 2026-11-14 and 15)
+
+**Blink lays every box out in LayoutUnits, at every scale; the engine now does too.** Not compositing, but it decides which
+device pixel a border, a glyph row or a layer's edge falls on, so it is kept here beside the rules that read those pixels.
+Found by GM1 step 9's start screen at 1.65: its dialog at 263.9969 device px where Chromium has 264.0, so the buttons'
+borders at 314.4969 snapped a pixel left of Chromium's 314.5 (about 2,100 pixels a light start screen); step 10's picker
+the same (148.4937 against 148.5).
+
+- **The rule (`platform/geometry/layout_unit.h`).** A LayoutUnit is a whole number of 1/64 px. Blink lays out in device
+  pixels: its lengths are zoomed by the device scale and the page zoom first (zoom-for-DSF). The engine has done that since
+  2026-10-24 ("Zoom", Engine-Plan.md's Progress), so a CSS-px emulation was never the cause. Three things follow:
+  - A float becomes a LayoutUnit by truncation (`LayoutUnit(float)`), unless a rounding is named.
+  - `LayoutUnit / int` divides the raw count as integers, so every centring's `free_space / 2` drops its odd 1/64.
+  - Sums of LayoutUnits are exact (in a float too, under 2^18 px): what Blink sums, the engine sums once each term is a
+    LayoutUnit.
+  The engine kept floats and truncated at most of Blink's conversion points, not all. `UI/Layout/LayoutUnit.cs` has
+  `Truncate`, `Round`, `Ceil`, `Divide` (the integer division), `MulDiv`, `Ratio` and `LayoutUnitDiffuser` for the rest.
+- **The sites, each from its Blink function** (Chromium 152, files saved in
+  `reference-src/chromium-152-source/layout-scale/`):
+  - *Centring and halves, `LayoutUnit.Divide`:*
+    - Grid items: `AlignmentOffset` (`layout_utils.cc` 640, `margin_start + free_space / 2`); auto margins are its
+      centre too, never negative (`GridLayout.AlignOffset` and the item's auto margins).
+    - Grid tracks: `justify-content` and `align-content`, `start_offset += FreeSpace() / 2`; `space-between`, `-around`
+      and `-evenly` share `free / n` (`grid_track_sizing_algorithm.cc` 196–290; `GridLayout.PositionTracks`).
+    - Flex items: `align-self: center`, `offset = space / 2` (`flex_layout_algorithm.cc` 1970); cross-axis auto margins
+      `margin_space / 2` (1938); `justify-content` and `align-content` positions, `InitialContentPositionOffset` (1624;
+      `space-around` `free / (2n)`, `space-evenly` `free / (n + 1)`, the safe centre never negative).
+    - Blocks: `ResolveInlineAutoMargins` (`length_utils.cc` 1551): the start margin `(available_space / 2)` never
+      negative, the end margin the rest of the available size, whatever its sign (block and replaced boxes,
+      `LayoutEngine.ResolveInlineAutoMargins`).
+    - Out-of-flow boxes: `ComputeMargins` (`absolute_utils.cc` 256): auto margins `free_space / 2`, the end the rest;
+      inline-axis with a negative free space the start margin 0 (start dominant), the block axis halved whatever the
+      sign. A static position centred in a flex or grid container: the point `start + size / 2` (flex 582, grid
+      `grid_layout_utils.cc` 554), the inset-modified containing block grown equally to its nearer edge and the box
+      centred in it, `amount / 2` (`ComputeUnclampedIMCBInOneAxis` 128, `ComputeInsets` 326; `LayoutEngine.StaticOffset`).
+    - A button's or an input's content: `AlignBlockContent` (`block_layout_algorithm_utils.cc` 188), `free_space / 2`, a
+      button's never negative.
+    - Text: `text-align: center`, `LineOffsetForTextAlign` (`length_utils.cc` 1607, `(space_left / 2)` never negative);
+      `vertical-align: middle` (`inline_box_state.cc` 1319, `(ascent − descent) / 2` less the parent's x-height halved
+      and rounded); the top half-leading `((line_height − height) / 2).Floor()` (`line_utils.cc` 36, CalculateLeadingSpace).
+  - *Shares that hand the leftover on:*
+    - `LayoutUnitDiffuser` (`core/layout/geometry/layout_unit_diffuser.h`): the remainder's 1/64 steps spread over the
+      buckets. Flex `space-between`, `-around` and `-evenly` (`ContentDistributionSpace`, 1679), main-axis auto margins
+      (1838) and lines stretched by `align-content` (1763) use it.
+    - Flexible lengths: `LineFlexer` (`flex/line_flexer.cc`). Items with a zero factor, or a hypothetical size on the
+      wrong side of the base size, are frozen first. Then each pass shares the free space out from the last unfrozen item
+      to the first: each item takes its factor's fraction of what is left (`free_space * fraction`, by weighted shrink
+      when shrinking), rounded (`FromDoubleRound`), and the first takes the rest. Min/max violations freeze the items on
+      the total violation's side (`FreezeItems`) and the pass runs again. Factors summing to less than 1 share only that
+      part of the initial free space, truncated. (`FlexLayout.ResolveFlexibleLengths`; it replaced the spec's float
+      loop, whose truncated sums lost up to a 1/64 an item.)
+    - Grid fr tracks: `ExpandFlexibleTracks` (`grid_track_sizing_algorithm.cc` 1110). The fr size is the leftover's raw
+      count over the flex factors (1204), as a float. Each track gets fr × flex plus the fraction the tracks before it
+      lost, plus a float epsilon, truncated to a raw count; the lost fraction is carried on. GM1's combat actions (six
+      `minmax(0, 1fr)` columns) show it: the fourth column starts 1/64 later than truncated shares put it.
+    - Grid free space: `DistributeExtraSpaceToSetsEqually` (537, 776). The tracks are taken by growth potential, the
+      smallest first; each gets the space left over the tracks left, in raw integers, up to its potential, and the last
+      gets the rest. `MaximizeTracks` (1024) uses it, `StretchAutoTracks` (1054, then beyond the limits) too, and so do
+      the engine's simplified spans of intrinsic tracks (`GridLayout.DistributeEqually`).
+  - *Truncations the intrinsic sizes missed:* an input button's label width (a text item's `SnappedWidth`, rounded up),
+    a flex container's max-content gap (Blink's `gap_between_items_` is a
+    LayoutUnit), a flex basis and fixed margins in `BasisOuter`, fixed `width`, `min-width` and `max-width` and a
+    `min()`/`max()`/`clamp()` width in `LayoutEngine.IntrinsicWidth`, a grid item's fixed margins in its minimum
+    contribution. Step 9's dialog came from the first: a 16 px gap counted 26.4 at 1.65 where Blink has 26.390625. The
+    brand's max-content went off the 1/64 grid, the grid's auto column grew to it and stretched by a truncated share to
+    1240.80625 instead of 1240.8125, and the dialog was centred in that.
+  - *Aspect ratios:* `InlineSizeFromAspectRatio` and `BlockSizeFromAspectRatio` (`length_utils.cc` 281, 295) apply the
+    ratio's two LayoutUnit terms with `MulDiv`, a raw product over a raw divisor truncated (a border box never under its
+    border and padding). The terms come from `LayoutRatioFromSizeF` (`platform/geometry/physical_size.cc` 37): the terms
+    themselves when exact, 1:1 for equal ones, else a continued fraction's convergent. `ComputedStyle.AspectRatioTerms`
+    holds them for `aspect-ratio`; `ReplacedContent.NaturalRatioTerms` gives a natural size's or a viewBox's.
+- **A control's one line of text** (a second rule, in paint and in the controls' baselines; the known item "Control
+  labels a device pixel low at 1.65"):
+  - *Blink lays it out on an inner block's line box,* not centred by its glyphs' own height. An input button's value and
+    a text field's inner editor are centred by `AlignBlockContent`, a button's never above the top. A menu list's inner
+    element (`menu_list_inner_element.cc`) is centred by auto margins in the select's flex box, never above the top, with
+    a themed list's 1 × zoom padding above and below; its line-height is the font's height when the select's is initial.
+  - *The line:* the top half-leading floored, the ascent and descent rounded at the zoomed size (`InlineLayout.MetricsFor`);
+    the glyphs' baseline on a whole pixel because the text painter rounds the line's top (`ComputePhysicalBoxGeometry`,
+    `text_fragment_painter.cc` 67).
+  - *`LayoutTheme::AdjustStyle`* (`layout_theme.cc` 546, 567) resets the line-height to normal for a themed menu list
+    (menulist, menulist-button) and a push button (an `input` button). The engine does it in the style engine, so
+    `getComputedStyle` reports `normal` as Chromium's does.
+  - *A text field's inner editor* (`TextControlInnerEditorElement::CustomStyleForLayoutObject`,
+    `text_control_inner_elements.cc` 133) takes the field's line-height, or normal when the font size reaches the
+    field's computed line height in whole pixels, when a fixed height is taller than that, or when the height has a
+    percentage. The field's intrinsic height is that line as a LayoutUnit.
+  - *In the engine:* `ReplacedContent.LineMetrics` and `LineBaseline` are used by the controls' baselines in lines, the
+    input buttons' and menu lists' labels (`UiPainter.LabelTop`), the one-line fields' text, caret and selection
+    (`FieldGeometry`), and the fields' intrinsic size. A stat input (`700 26px/1.2 Lato`) now has its text at 25 px under
+    its content top, not 26 (the item step 1a recorded).
+- **Float arithmetic Blink keeps as floats too** (gone through on 2026-11-15, nothing to port):
+  - Justification's space per opportunity (`ShapeResultSpacing::SetExpansion`, float).
+  - A glyph run's advances, and the text item's `FromFloatCeil` of their sum (ported earlier).
+  - Font metrics and the x-height (floats, rounded where named).
+  - A number line-height's percentage of the rounded font size (ported earlier).
+  - An SVG's natural size from its attributes and viewBox (floats, truncated by `Units` when they become a size).
+  - A form control's average character width (fitted earlier).
+  - The scrollbar's parts (whole pixels in the theme, a float thumb position).
+  - The auto-repeat count (a floor of a division).
+  - Text offsets mapped between the DOM and the processed text.
+- **The fixtures** (`Ui/LayoutUnitReferenceTests`, `Reference/layout-unit-fixtures.json`, captured as the main frame by
+  `make-scaled-paint-references.sh <scale> <page zoom> layout-unit-fixtures.json`):
+  - *The pages:* `units-centring` (a start dialog), `units-flex` (thirteen flex rows), `units-margins` (blocks,
+    out-of-flow boxes, a static position, `vertical-align`, six grids, two aspect ratios, centred text),
+    `units-controls` (menu lists, input buttons, text fields, a button) and `units-cases` (what the mutation rounds
+    showed missing: a grid item's auto margins, three stretched flex lines, auto tracks maximized, fixed `minmax` tracks
+    maximized with one capped, a button's content, a fixed width, flex bases and a 3.3 px gap in shrink-to-fit boxes,
+    controls in a line, two of them with an odd count of 1/64 px free around their line at 1 and at 1.65, an input
+    button's own height, a line 1/64 px tighter than its font, a focused field with a selection at a height where its
+    line box's baseline and its glyphs' centre round to different pixels at 1).
+  - *Each control of `units-controls`* at 1 and 1.65: at most 60 pixels of its box past 12 levels (a label a device row
+    off moves about a thousand, 955 to 2,290 before the port; the themes' arrows and faces and a glyph a subpixel aside
+    a few dozen at most: the overflowing input button's label at 1.65 has 34 on the GPU and 44 on lavapipe).
+  - *Boxes:* every element's box against Chromium's `getBoundingClientRect`, to 0.002 device px, at 1, 1.25, 1.5,
+    1.65, 1.75 and 1.65 with a page zoom of 1.2.
+  - *Paint:* at 1 and 1.65 within 12 levels and 0.2 %.
+  - *`main` fails them:* 29 of the 30 box cases (`units-controls` at 1.25 matched before), four of the ten paintings
+    (`units-controls` at 1×, 3,174 pixels past 12 levels, and at 1.65, 6,503; `units-cases` at 1×, 1,677, and at
+    1.65, 1,097) and both per-control checks.
+- **Left, recorded in "Small tasks left from earlier milestones":**
+  - A 40 px menu list at a device scale of 1.5 has its label a device row lower than Chromium's. Its line-height is
+    the font's height; the same select with that height given explicitly matches, as do 59 and 61 device-px tall
+    ones. 1.5 is a scale the suite doesn't compare.
+  - A text item's ceil'd width at 13 px Lato × 1.65 is 1/64 wider than Chromium's ("Middle ": 70.78125 against
+    70.765625). Its glyph advances are the shaper's (`Text/`), so `units-margins` puts its inline-block first.
+  - `will-change: transform` boxes' text at 1.65 in an iframe capture lies a device pixel from Chromium's (found by
+    trying `AControlsLabelTakesItsChunksVerdict` against Chromium again; the label rows themselves matched).
+  - A themed select squeezed below its own height (its inner block and padding taller than its content box) has its
+    label, and its baseline in a line, a device pixel lower than Chromium's: the clamped inner block with its padding
+    above puts the line a pixel lower than Chromium does.
+
 ## Status (2026-10-25)
 
 **All 22 game screens composite exactly like Chromium** (`CompositingReferenceTests`: every screen

@@ -139,11 +139,24 @@ internal sealed class FieldGeometry
         };
         var layout = TextLayout.Create(document.Fonts, text, InlineLayout.TextStyleFor(style), paragraph);
         var lineHeight = ReplacedContent.FieldLineHeight(style, document.Fonts);
-        var height = layout.Lines.Count > 0 ? layout.Height : lineHeight;
         // A textarea scrolls its text (the box is the scroller); a one-line field's inner editor scrolls sideways.
         var scroll = multiline ? element.LayoutScroll : new Vector2(element.EditorScrollLeft, 0);
-        var top = multiline ? content.Y - scroll.Y : content.Y + (content.Height - height) / 2;
-        var y = layout.Lines.Count > 0 ? UiPainter.SnapBaseline(top, layout) : MathF.Round(top);
+        float top, y;
+        if (multiline)
+        {
+            top = content.Y - scroll.Y;
+            y = layout.Lines.Count > 0 ? UiPainter.SnapBaseline(top, layout) : MathF.Round(top);
+        }
+        else
+        {
+            // The inner editor's one line box as Blink lays it out (ReplacedContent.LineBaseline): the layout's top where its
+            // baseline is, the baseline on a whole pixel (the line's top rounded); an empty editor's line at its top.
+            var metrics = ReplacedContent.LineMetrics(box, document.Fonts);
+            var baseline = rect.Y + ReplacedContent.LineBaseline(box, document.Fonts);
+            lineHeight = metrics.LineHeight;
+            top = baseline - (layout.Lines.Count > 0 ? layout.FirstBaseline : metrics.Above);
+            y = layout.Lines.Count > 0 ? MathF.Floor(baseline + 0.5f) - layout.FirstBaseline : MathF.Round(top);
+        }
         var x = editor.X - scroll.X;
         // Text too wide for the field starts at the start edge.
         if (!multiline && paragraph.Align != TextAlign.Left && layout.Width <= editor.Width)

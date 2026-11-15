@@ -447,6 +447,21 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   glyphs a subpixel bucket apart; `claude-work/gm1/step9/lcd/probe.sh` gives Chromium's cc layers of any fixture list (main
   frame, the output the fixture's size); a real run's test acts in its first update (a hidden window's presents hang after
   a few frames under wlroots) and opens the per-user folder afresh after (`GameStorage` closes with the run).
+- 2026-11-15 (the PC, GM1's engine task of Q34 on the branch `gm1-layout-scale`, 4123 + 489 = 4612 tests on the GPU and
+  lavapipe): **layout units at a fractional scale** (`UI/Layout/LayoutUnit.cs`; `Docs/Compositing-Port.md`, "Layout
+  units"; `Docs/Game/Foundation.md`, "How it works", "The engine task of Q34"). Facts: Blink lays out in device px on a
+  1/64 grid; a float becomes a LayoutUnit by truncation, `LayoutUnit / int` truncates the raw count (every centring drops
+  its odd 1/64), and Blink's shares hand the leftover on (`LayoutUnitDiffuser`, `LineFlexer`, the grid's fr and equal
+  distributions), so a box 0.003 device px off is a different 1/64 step, enough to snap a border a pixel away at 1.65. A
+  control's label sits on its inner block's line box, not on its glyphs. The game's captures are rounded to 1/64 CSS px
+  (`game-capture.js`, `q()`): compare their boxes past 0.008 CSS px. Gotchas: a dropped remainder in the grid's equal
+  distribution comes back on auto tracks from the stretch's pass beyond the limits (show it with capped fixed `minmax`
+  tracks); a control's centring shows only at an odd raw free space (22 px at 1.65 and 22.3 px at 1, under a 20 px
+  line); the canvas rounds a text's baseline itself (`CanvasText.cs` 119), so a label's baseline off a whole pixel can't
+  differ in paint; a rule that differs from its mutation only by a rounding shows at some heights only (a probe scanning
+  the box's offsets finds one; a case added above can move it out); `make-scaled-paint-references.sh` writes every fixture's PNG at every configuration (delete the ones
+  no test compares); a pixel comparison of a blurred region moves with any 1/64 shift under it (judge the layout by its
+  boxes, the paint by the same content unblurred).
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

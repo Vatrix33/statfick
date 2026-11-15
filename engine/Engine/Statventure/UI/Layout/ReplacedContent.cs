@@ -73,11 +73,12 @@ public static class ReplacedContent
                     case "reset":
                     case "button":
                     {
-                        // As a button with its label: the text's width, a line of the font.
+                        // As a button with its label: the text's width, rounded up to a LayoutUnit as a text item's
+                        // (ShapeResult::SnappedWidth), and a line of the font.
                         var (_, lineHeight) = CharacterMetrics(box, context);
                         var label = InputButtonLabel(element);
                         var style = box.Style;
-                        var width = label.Length == 0 ? 0 : TextLayout.Create(context.Fonts, label, InlineLayout.TextStyleFor(style), new ParagraphStyle { WhiteSpace = WhiteSpace.Pre }).Width;
+                        var width = label.Length == 0 ? 0 : LayoutUnit.Ceil(TextLayout.Create(context.Fonts, label, InlineLayout.TextStyleFor(style), new ParagraphStyle { WhiteSpace = WhiteSpace.Pre }).Width);
                         return new Vector2(width, lineHeight);
                     }
                     default:
@@ -115,15 +116,18 @@ public static class ReplacedContent
     }
 
     /// <summary>The viewBox's aspect ratio (0 without one).</summary>
-    public static float SvgRatio(Dom.UiElement element)
+    public static float SvgRatio(Dom.UiElement element) => SvgViewBoxSize(element) is { } size ? size.X / size.Y : 0;
+
+    /// <summary>The viewBox's width and height (null without a valid one).</summary>
+    static Vector2? SvgViewBoxSize(Dom.UiElement element)
     {
         var viewBox = element.GetAttribute("viewbox");
         if (viewBox is null)
-            return 0;
+            return null;
         var parts = viewBox.Split((char[])[' ', ',', '\t', '\n'], StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length != 4 || !float.TryParse(parts[2], System.Globalization.CultureInfo.InvariantCulture, out var w) || !float.TryParse(parts[3], System.Globalization.CultureInfo.InvariantCulture, out var h) || w <= 0 || h <= 0)
-            return 0;
-        return w / h;
+            return null;
+        return new Vector2(w, h);
     }
 
     static float Attribute(Dom.UiElement element, string name, float fallback) =>
@@ -159,10 +163,11 @@ public static class ReplacedContent
         var scale = style.FontSize / face.UnitsPerEm;
         var average = face.AverageCharWidth > 0 ? face.AverageCharWidth * scale : face.GlyphFor('0') is var zero && zero != 0 ? face.HbFont.GetHorizontalGlyphAdvance(zero) * scale : style.FontSize / 2;
         var (ascent, descent, gap) = TextLayout.Metrics(face, style.FontSize, style.SubpixelPositioning);
+        // The inner editor's line box as a LayoutUnit (ComputedLineHeightAsFixed, as InlineLayout.MetricsFor).
         var lineHeight = style.LineHeight.Kind switch
         {
-            LineHeightKind.Number => style.LineHeight.Value * style.FontSize,
-            LineHeightKind.Length => style.LineHeight.Value,
+            LineHeightKind.Number => LayoutUnit.Truncate(LayoutUnit.Round(style.FontSize) * (float)(style.LineHeight.Value * 100.0) / 100f),
+            LineHeightKind.Length => LayoutUnit.Round(style.LineHeight.Value),
             _ => ascent + descent + gap,
         };
         return (average, lineHeight);
@@ -177,7 +182,9 @@ public static class ReplacedContent
     static Vector2 TextFieldSize(LayoutBox box, LayoutContext context)
     {
         var element = box.Element!;
-        var (average, lineHeight) = CharacterMetrics(box, context);
+        var (average, _) = CharacterMetrics(box, context);
+        // TextFieldIntrinsicBlockSize: the inner editor's line (its line-height normal in the cases LineMetrics names).
+        var lineHeight = LineMetrics(box, context.Fonts).LineHeight;
         var size = Attribute(element, "size", 20);
         if (size < 1)
             size = 20;
@@ -274,7 +281,12 @@ public static class ReplacedContent
 
     /// <summary>The natural aspect ratio, also for replaced content that has a ratio but no natural size (an svg with only a viewBox).</summary>
     public static float NaturalRatio(LayoutBox box, Vector2? natural) =>
-        natural is { X: > 0, Y: > 0 } n ? n.X / n.Y : box.Element?.Tag == "svg" ? SvgRatio(box.Element) : 0;
+        NaturalRatioTerms(box, natural) is { Y: > 0 } terms ? terms.X / terms.Y : 0;
+
+    /// <summary>The natural aspect ratio as its two LayoutUnit terms (LayoutRatioFromSizeF of the natural size, or of the viewBox's).</summary>
+    public static Vector2 NaturalRatioTerms(LayoutBox box, Vector2? natural) =>
+        natural is { X: > 0, Y: > 0 } n ? LayoutUnit.Ratio(n.X, n.Y)
+        : box.Element?.Tag == "svg" && SvgViewBoxSize(box.Element) is { } viewBox ? LayoutUnit.Ratio(viewBox.X, viewBox.Y) : default;
 
     /// <summary>Elements that fill their line like blocks when their width is auto.</summary>
     public static bool FillsWidth(LayoutBox box) => box.Element?.Tag == "svg" && box.NaturalSize is null;
@@ -291,16 +303,53 @@ public static class ReplacedContent
         var textLike = IsTextField(box) || IsInputButton(box) || element.Tag is "select" or "textarea" || (element.Tag == "input" && InputType(box) == "file");
         if (!textLike)
             return null;
-        var style = box.Style;
-        var font = context.Fonts.Resolve(style.FontFamilies, style.FontWeight, style.FontItalic) ?? context.Fonts.ResolveDefault(style.FontWeight, style.FontItalic);
-        if (font is not { } f)
+        if (context.Fonts.Resolve(box.Style.FontFamilies, box.Style.FontWeight, box.Style.FontItalic) is null && context.Fonts.ResolveDefault(box.Style.FontWeight, box.Style.FontItalic) is null)
             return null;
-        var (ascent, descent, gap) = TextLayout.Metrics(f.Face, style.FontSize, style.SubpixelPositioning);
-        var (_, lineHeight) = CharacterMetrics(box, context);
-        var above = ascent + MathF.Floor((lineHeight - ascent - descent) / 2);
-        // The text sits centred in the content box (single-line fields) or at its top (text areas).
-        var contentHeight = box.ContentHeight;
-        var offset = element.Tag == "textarea" ? 0 : MathF.Max(0, (contentHeight - lineHeight) / 2);
-        return box.ContentTop + offset + above;
+        return LineBaseline(box, context.Fonts);
+    }
+
+    /// <summary>
+    /// The line box a control's one line of text lies on, as Blink lays it out: the metrics rounded at the zoomed size and
+    /// the line-height a LayoutUnit (InlineLayout.MetricsFor). A text field's inner editor takes the field's line-height,
+    /// but normal when the field's font size reaches its computed line height in whole pixels, or a fixed height is taller
+    /// than that, or the height has a percentage (<c>TextControlInnerEditorElement::CreateInnerEditorStyle</c>,
+    /// <c>text_control_inner_elements.cc</c>); a themed menu list's or push button's line-height is normal already
+    /// (LayoutTheme::AdjustStyle, in the style engine).
+    /// </summary>
+    internal static InlineLayout.Metrics LineMetrics(LayoutBox box, FontLibrary fonts)
+    {
+        var style = box.Style;
+        var metrics = InlineLayout.MetricsFor(style, fonts);
+        if (!IsTextField(box) || style.LineHeight.Kind == LineHeightKind.Normal)
+            return metrics;
+        var (ascent, descent, gap) = TextLayout.Metrics(InlineLayout.FontFor(style, fonts).Face, style.FontSize, style.SubpixelPositioning);
+        // ComputedStyle::ComputedLineHeight: whole pixels (a number line-height a percentage of the font size as a LayoutUnit).
+        var computed = style.LineHeight.Kind == LineHeightKind.Number
+            ? (int)LayoutUnit.Truncate(LayoutUnit.Truncate(style.FontSize) * style.LineHeight.Value)
+            : (int)style.LineHeight.Value;
+        var height = style.Height;
+        if (style.FontSize >= computed || height.HasPercent || (height.IsValue && height.Pixels > computed))
+            metrics = metrics with { LineHeight = ascent + descent + gap };
+        return metrics;
+    }
+
+    /// <summary>
+    /// The baseline of a control's one line of text from its border box's top, as Blink lays the control's inner block out:
+    /// its line box (<see cref="LineMetrics"/>; a themed menu list's inner padding of a zoomed pixel above and below it)
+    /// placed in the content box by a LayoutUnit half of the free space (<c>free_space / 2</c>): never above the content
+    /// box's top for input buttons and menu lists (AlignBlockContent clamps a button's free space; the menu list's inner
+    /// block is centred by auto margins), anywhere for text fields (AlignBlockContent); a textarea's first line at the top.
+    /// The baseline is the line's top and its floored half-leading and ascent.
+    /// </summary>
+    internal static float LineBaseline(LayoutBox box, FontLibrary fonts)
+    {
+        var metrics = LineMetrics(box, fonts);
+        var element = box.Element!;
+        var padding = element.Tag == "select" && ControlAppearance.Effective(element, box.Style) != ControlLook.None ? (int)(1 * box.Style.Zoom) : 0;
+        var free = box.ContentHeight - (metrics.LineHeight + 2 * padding);
+        if (!IsTextField(box))
+            free = MathF.Max(0, free);
+        var offset = element.Tag == "textarea" ? 0 : LayoutUnit.Divide(free, 2);
+        return box.ContentTop + offset + padding + metrics.Above;
     }
 }

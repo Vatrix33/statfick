@@ -508,7 +508,7 @@ and answered as recommended.
 design doc's first version; in full with each question's facts and options in `Docs/Game/Foundation.md`, "The detail
 round" and "The questions as asked"; Q24, raised by the answers, asked after the six rounds the same day; Q25 and Q26,
 raised by step 5, the same day; Q27 and Q28, raised by step 6, on 2026-11-14; Q29–Q31, raised by step 8, the same
-day; Q32 and Q33, raised by step 9, the same day):** every answer the recommended option except Q6, Q11, Q15, Q16 (and Q16b), Q18, Q22, Q23 and Q25. Nothing of GM1
+day; Q32 and Q33, raised by step 9, the same day; Q34, raised by step 9 too, the same day):** every answer the recommended option except Q6, Q11, Q15, Q16 (and Q16b), Q18, Q22, Q23 and Q25. Nothing of GM1
 is open.
 - Q1 A character's name: any name up to 80 characters, kept in the save, the slot's file named from it.
 - Q2 The name asked before the sheet, "Character <n>" filled in.
@@ -576,6 +576,10 @@ is open.
   place.)
 - Q33 (2026-11-14, raised by step 9's captures), the top bar's Menu button: "☰ Menu" (the ☰ icon before the word). (Not
   the word alone.)
+- Q34 (2026-11-14, raised by step 9's start screen), the layout a hair off Chromium's at 1.65 (the start dialog at
+  263.9969 device px against 264.0, the buttons' borders a device column away): "Fix it now", as an engine task of its
+  own, GM1 ticked only after it lands. (Not held and fixed later.) The task (`gm1-layout-scale`) ported Blink's layout
+  units and lifted the holds of steps 9 and 10 (`Docs/Game/Foundation.md`, "How it works", "The engine task of Q34").
 
 ## GM2 The hero: the character sheet, races and looks
 
@@ -2114,3 +2118,10 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   start screens at 1.65, held with the user's word (Q34). Found: the engine draws no isolation group apart; its backdrop
   blur over LCD text; an icon under a CSS scale drawn hollow (`Docs/Engine-Plan.md`, small tasks)
   (`Docs/Game/Foundation.md`, "How it works", step 9).
+- **2026-11-15, GM1's engine task of Q34 done (the branch `gm1-layout-scale`):** layout units at a fractional scale, the
+  user's "Fix it now". Blink's LayoutUnit arithmetic ported site by site (halves of raw 1/64 counts, shares handing the
+  leftover on, intrinsic sums of truncated lengths, aspect ratios) and a control's one line of text on its inner block's
+  line box; step 9's start dialog and step 10's picker where Chromium has them at 1.65, every hold lifted, nothing
+  farther from Chromium save four renders by the summed difference alone (the slot list's buttons under a backdrop blur
+  in three of step 10's screens, a shadow on the old map by 11 levels); four items left in the engine's small tasks
+  (`Docs/Game/Foundation.md`, "How it works", "The engine task of Q34"; `Docs/Compositing-Port.md`, "Layout units").

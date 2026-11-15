@@ -559,8 +559,11 @@ internal sealed class GridLayout
                 var intrinsic = spanned.Where(t => t.HasIntrinsicMin).ToList();
                 var needed = (maxContentConstraint ? max : minContentConstraint ? min : minimum) - spanned.Sum(t => t.Base) - gaps;
                 if (needed > 0 && intrinsic.Count > 0)
-                    foreach (var t in intrinsic)
-                        t.Base += needed / intrinsic.Count;
+                {
+                    var increases = DistributeEqually(needed, intrinsic, _ => float.PositiveInfinity, beyondLimits: false);
+                    for (var k = 0; k < intrinsic.Count; k++)
+                        intrinsic[k].Base += increases[k];
+                }
                 foreach (var t in spanned)
                     if (t.Limit < t.Base)
                         t.Limit = t.Base;
@@ -569,11 +572,15 @@ internal sealed class GridLayout
                 var limitSum = spanned.Sum(t => float.IsInfinity(t.Limit) ? t.Base : t.Limit);
                 var neededLimit = max - limitSum - gaps;
                 if (growable.Count > 0)
-                    foreach (var t in growable)
+                {
+                    var increases = neededLimit > 0 ? DistributeEqually(neededLimit, growable, _ => float.PositiveInfinity, beyondLimits: false) : null;
+                    for (var k = 0; k < growable.Count; k++)
                     {
+                        var t = growable[k];
                         var current = float.IsInfinity(t.Limit) ? t.Base : t.Limit;
-                        t.Limit = neededLimit > 0 ? current + neededLimit / growable.Count : (float.IsInfinity(t.Limit) ? t.Base : t.Limit);
+                        t.Limit = current + (increases?[k] ?? 0);
                     }
+                }
             }
         }
         foreach (var track in tracks)
@@ -591,19 +598,14 @@ internal sealed class GridLayout
         }
         else if (definite)
         {
+            // MaximizeTracks: the free space shared out equally over every track, each up to its growth limit.
             var free = available - tracks.Sum(t => t.Base) - TotalGaps(tracks, gap);
-            for (var guard = 0; free > 0.001f && guard < tracks.Count + 2; guard++)
+            var sets = tracks.Where(t => !t.Collapsed).ToList();
+            if (free > 0 && sets.Count > 0)
             {
-                var growable = tracks.Where(t => !t.Collapsed && t.Base < t.Limit - 0.001f && !t.IsFlexible).ToList();
-                if (growable.Count == 0)
-                    break;
-                var share = MathF.Max(LayoutUnit.Truncate(free / growable.Count), LayoutUnit.Epsilon);
-                foreach (var t in growable)
-                {
-                    var grow = MathF.Min(MathF.Min(share, t.Limit - t.Base), free);
-                    t.Base += grow;
-                    free -= grow;
-                }
+                var increases = DistributeEqually(free, sets, t => t.IsFlexible ? 0 : t.Limit - t.Base, beyondLimits: false);
+                for (var k = 0; k < sets.Count; k++)
+                    sets[k].Base += increases[k];
             }
         }
 
@@ -611,17 +613,19 @@ internal sealed class GridLayout
         var flexible = tracks.Where(t => t.IsFlexible && !t.Collapsed).ToList();
         if (flexible.Count > 0)
         {
+            // ExpandFlexibleTracks: the fr size in raw 1/64 units, as a float.
             float fr;
             if (definite)
-                fr = FindFrSize(tracks, Enumerable.Range(0, tracks.Count).ToList(), available - TotalGaps(tracks, gap));
+                fr = available - tracks.Sum(t => t.Base) - TotalGaps(tracks, gap) <= 0 ? float.NaN
+                    : FindFrSize(tracks, Enumerable.Range(0, tracks.Count).ToList(), available - TotalGaps(tracks, gap));
             else if (minContentConstraint)
-                fr = 0;
+                fr = float.NaN;
             else
             {
                 // Indefinite: the largest of each flexible track's base / flex and what items need.
                 fr = 0;
                 foreach (var t in flexible)
-                    fr = MathF.Max(fr, t.Flex > 1 ? t.Base / t.Flex : t.Base);
+                    fr = MathF.Max(fr, LayoutUnit.Raw(t.Base) / MathF.Max(t.Flex, 1));
                 foreach (var item in items.Where(SpansFlexible))
                 {
                     var spannedIndexes = Enumerable.Range(Start(item), End(item) - Start(item)).ToList();
@@ -629,9 +633,22 @@ internal sealed class GridLayout
                     fr = MathF.Max(fr, FindFrSize(tracks, spannedIndexes, space));
                 }
             }
-            // A flexible track's size is LayoutUnit(fr × flex) (truncated) in Blink.
-            foreach (var t in flexible)
-                t.Base = MathF.Max(t.Base, LayoutUnit.Truncate(fr * t.Flex));
+            // Each flexible track fr × flex plus what the tracks before it lost to the truncation, the fraction carried on
+            // (a float epsilon added first rounds up values a hair below the next 1/64).
+            if (!float.IsNaN(fr))
+            {
+                var leftover = 0f;
+                foreach (var t in flexible)
+                {
+                    var share = fr * t.Flex + leftover;
+                    var expanded = (int)(share + FloatEpsilon);
+                    if (LayoutUnit.FromRaw(expanded) >= t.Base)
+                    {
+                        t.Base = LayoutUnit.FromRaw(expanded);
+                        leftover = MathF.Max(share - expanded, 0);
+                    }
+                }
+            }
         }
 
         // Stretch auto tracks (§11.8).
@@ -640,14 +657,65 @@ internal sealed class GridLayout
             var free = available - tracks.Sum(t => t.Base) - TotalGaps(tracks, gap);
             var autos = tracks.Where(t => t.MaxKind == SizingKind.Auto && !t.Collapsed).ToList();
             if (free > 0 && autos.Count > 0 && flexible.Count == 0)
-                foreach (var t in autos)
-                    t.Base += LayoutUnit.Truncate(free / autos.Count);
+            {
+                // StretchAutoTracks: shared out equally, each up to its limit and then beyond it.
+                var increases = DistributeEqually(free, autos, t => t.Limit - t.Base, beyondLimits: true);
+                for (var k = 0; k < autos.Count; k++)
+                    autos[k].Base += increases[k];
+            }
         }
     }
 
     static float Grow(float limit, float value) => float.IsInfinity(limit) ? value : MathF.Max(limit, value);
 
-    /// <summary>Finds the size of an fr (§11.7.1) for the given tracks filling <paramref name="space"/>.</summary>
+    /// <summary>std::numeric_limits&lt;float&gt;::epsilon (kFloatEpsilon of grid_track_sizing_algorithm.cc).</summary>
+    const float FloatEpsilon = 1.1920929e-7f;
+
+    /// <summary>
+    /// Blink's DistributeExtraSpaceToSetsEqually (<c>grid_track_sizing_algorithm.cc</c>, DistributeExtraSpaceToSets) for
+    /// tracks that are sets of one: the tracks taken in the order of their growth potential (the smallest first, the
+    /// unlimited ones last; those with none skipped), each getting the space left over the tracks left as raw 1/64 units
+    /// in integers (the last one all of it) up to its potential; with <paramref name="beyondLimits"/> what is left after
+    /// that is shared the same way over all of them without limits. A potential of +∞ is an unlimited one.
+    /// </summary>
+    static float[] DistributeEqually(float extra, List<Track> sets, Func<Track, float> potential, bool beyondLimits)
+    {
+        var increases = new float[sets.Count];
+        var potentials = sets.Select(potential).ToArray();
+        var order = Enumerable.Range(0, sets.Count).OrderBy(i => potentials[i]).ToList();
+        long remaining = LayoutUnit.Raw(extra);
+        var growable = potentials.Count(p => p != 0);
+        foreach (var i in order)
+        {
+            if (growable == 0)
+                break;
+            if (potentials[i] == 0)
+                continue;
+            var share = growable == 1 ? remaining : remaining / growable;
+            if (!float.IsPositiveInfinity(potentials[i]))
+                share = Math.Min(share, LayoutUnit.Raw(potentials[i]));
+            growable--;
+            remaining -= share;
+            increases[i] = LayoutUnit.FromRaw(share);
+        }
+        if (beyondLimits && remaining != 0)
+        {
+            growable = sets.Count;
+            foreach (var i in order)
+            {
+                var share = growable == 1 ? remaining : remaining / growable;
+                growable--;
+                remaining -= share;
+                increases[i] += LayoutUnit.FromRaw(share);
+            }
+        }
+        return increases;
+    }
+
+    /// <summary>
+    /// Finds the size of an fr (§11.7.1) for the given tracks filling <paramref name="space"/>: Blink's FindFrSize, the
+    /// leftover space's raw 1/64 count over the flex factors' sum (at least one), as a float in raw units.
+    /// </summary>
     static float FindFrSize(List<Track> all, List<int> indexes, float space)
     {
         var inflexible = new HashSet<int>();
@@ -665,12 +733,14 @@ internal sealed class GridLayout
                 else
                     leftover -= t.Base;
             }
-            var fr = MathF.Max(0, leftover) / MathF.Max(flexSum, 1);
+            if (leftover < 0)
+                return 0;
+            var fr = LayoutUnit.Raw(leftover) / MathF.Max(flexSum, 1);
             var restart = false;
             foreach (var i in indexes)
             {
                 var t = all[i];
-                if (t.IsFlexible && !inflexible.Contains(i) && t.Base > fr * t.Flex)
+                if (t.IsFlexible && !inflexible.Contains(i) && LayoutUnit.Raw(t.Base) > fr * t.Flex)
                 {
                     inflexible.Add(i);
                     restart = true;
@@ -754,11 +824,11 @@ internal sealed class GridLayout
             var freeX = areaWidth - child.MarginBoxWidth;
             var freeY = areaHeight - child.MarginBoxHeight;
             if (cs.MarginLeft.IsAuto || cs.MarginRight.IsAuto)
-                x += cs.MarginLeft.IsAuto && cs.MarginRight.IsAuto ? MathF.Max(0, freeX) / 2 : cs.MarginLeft.IsAuto ? MathF.Max(0, freeX) : 0;
+                x += cs.MarginLeft.IsAuto && cs.MarginRight.IsAuto ? LayoutUnit.Divide(MathF.Max(0, freeX), 2) : cs.MarginLeft.IsAuto ? MathF.Max(0, freeX) : 0;
             else
                 x += AlignOffset(justify, freeX);
             if (cs.MarginTop.IsAuto || cs.MarginBottom.IsAuto)
-                y += cs.MarginTop.IsAuto && cs.MarginBottom.IsAuto ? MathF.Max(0, freeY) / 2 : cs.MarginTop.IsAuto ? MathF.Max(0, freeY) : 0;
+                y += cs.MarginTop.IsAuto && cs.MarginBottom.IsAuto ? LayoutUnit.Divide(MathF.Max(0, freeY), 2) : cs.MarginTop.IsAuto ? MathF.Max(0, freeY) : 0;
             else
                 y += AlignOffset(align, freeY);
             child.X = box.ContentLeft + x + child.Margin.Left;
@@ -783,7 +853,7 @@ internal sealed class GridLayout
     static float AlignOffset(Alignment alignment, float free) => alignment switch
     {
         Alignment.End or Alignment.FlexEnd or Alignment.SelfEnd or Alignment.Right => free,
-        Alignment.Center => free / 2,
+        Alignment.Center => LayoutUnit.Divide(free, 2),
         _ => 0,
     };
 
@@ -791,7 +861,7 @@ internal sealed class GridLayout
     float Minimum(LayoutBox child, float minContent, bool horizontal, float basis)
     {
         var cs = child.Style;
-        var margins = (cs.MarginLeft.IsValue && !cs.MarginLeft.HasPercent ? cs.MarginLeft.Pixels : 0) + (cs.MarginRight.IsValue && !cs.MarginRight.HasPercent ? cs.MarginRight.Pixels : 0);
+        var margins = (cs.MarginLeft.IsValue && !cs.MarginLeft.HasPercent ? LayoutUnit.Truncate(cs.MarginLeft.Pixels) : 0) + (cs.MarginRight.IsValue && !cs.MarginRight.HasPercent ? LayoutUnit.Truncate(cs.MarginRight.Pixels) : 0);
         if (cs.Width.IsDefinite && !cs.Width.HasPercent)
             return minContent;
         if (!cs.MinWidth.IsAuto)
@@ -853,20 +923,20 @@ internal sealed class GridLayout
         switch (alignment)
         {
             case Alignment.Center:
-                start = free / 2;
+                start = LayoutUnit.Divide(free, 2);
                 break;
             case Alignment.End or Alignment.FlexEnd or Alignment.Right:
                 start = free;
                 break;
             case Alignment.SpaceBetween when free > 0 && count > 1:
-                between = free / (count - 1);
+                between = LayoutUnit.Divide(free, count - 1);
                 break;
             case Alignment.SpaceAround when free > 0 && count > 0:
-                between = free / count;
-                start = between / 2;
+                between = LayoutUnit.Divide(free, count);
+                start = LayoutUnit.Divide(between, 2);
                 break;
             case Alignment.SpaceEvenly when free > 0:
-                between = free / (count + 1);
+                between = LayoutUnit.Divide(free, count + 1);
                 start = between;
                 break;
         }

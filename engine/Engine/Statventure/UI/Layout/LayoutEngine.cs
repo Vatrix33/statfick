@@ -432,7 +432,7 @@ public sealed partial class LayoutEngine
         {
             // A button centres its content in its height (Chromium lays buttons out as centring flex boxes).
             if (IsButton(b) && b.ContentHeight > contentHeight + 0.001f)
-                ShiftContents(b, (b.ContentHeight - contentHeight) / 2);
+                ShiftContents(b, LayoutUnit.Divide(b.ContentHeight - contentHeight, 2));
         });
         PlaceMarker(box);
     }
@@ -545,35 +545,70 @@ public sealed partial class LayoutEngine
         width = ClampWidth(box, width, space.PercentWidth, available);
         box.Width = width;
         if (!space.ShrinkToFit && (marginLeftAuto || marginRightAuto) && !box.Style.IsInlineLevel)
-        {
-            var remaining = space.AvailableWidth - width - box.Margin.Left - box.Margin.Right;
-            if (remaining < 0)
-                remaining = 0;
-            if (marginLeftAuto && marginRightAuto)
-                box.Margin.Left = box.Margin.Right = remaining / 2;
-            else if (marginLeftAuto)
-                box.Margin.Left = remaining;
-            else
-                box.Margin.Right += remaining;
-        }
+            ResolveInlineAutoMargins(box, space.AvailableWidth, marginLeftAuto, marginRightAuto);
     }
 
+    /// <summary>
+    /// The start of an out-of-flow box's margin box at its static position in one axis, as Blink places it
+    /// (<c>absolute_utils.cc</c>, ComputeUnclampedIMCBInOneAxis and ComputeInsets): at the area's start (align 0), its end
+    /// (1), or centred (0.5): the static point the area's start and a LayoutUnit half of its size (the flex and grid
+    /// algorithms' <c>container_size / 2</c>), the inset-modified containing block growing from it equally to the nearer
+    /// edge of the containing block, the box centred in that by a LayoutUnit half of what is left.
+    /// </summary>
+    static float StaticOffset(float start, float size, float marginBoxSize, float align, float available)
+    {
+        if (align == 0)
+            return start;
+        if (align == 1)
+            return start + size - marginBoxSize;
+        var point = start + LayoutUnit.Divide(size, 2);
+        var half = MathF.Min(point, available - point);
+        return point - half + LayoutUnit.Divide(2 * half - marginBoxSize, 2);
+    }
+
+    /// <summary>
+    /// Blink's ResolveInlineAutoMargins (<c>length_utils.cc</c>): the free space (the auto margins counting as zero) gives a
+    /// start margin of a LayoutUnit half of it, never negative, and the end margin the rest of the available size; one
+    /// auto start margin takes it all, never negative; one auto end margin the rest.
+    /// </summary>
+    static void ResolveInlineAutoMargins(LayoutBox box, float available, bool startAuto, bool endAuto)
+    {
+        var free = available - box.Width - box.Margin.Left - box.Margin.Right;
+        if (startAuto && endAuto)
+        {
+            box.Margin.Left = MathF.Max(0, LayoutUnit.Divide(free, 2));
+            box.Margin.Right = available - box.Width - box.Margin.Left;
+        }
+        else if (startAuto)
+            box.Margin.Left = MathF.Max(0, free);
+        else if (endAuto)
+            box.Margin.Right = available - box.Width - box.Margin.Left;
+    }
+
+    /// <summary>
+    /// The border-box width aspect-ratio gives a height (Blink's InlineSizeFromAspectRatio, <c>length_utils.cc</c>): the
+    /// ratio's LayoutUnit terms applied with MulDiv, to the border box (never under the border and padding) or the content
+    /// box as box-sizing says.
+    /// </summary>
     internal static float RatioWidth(LayoutBox box, float borderBoxHeight)
     {
-        var ratio = box.Style.AspectRatio;
+        var terms = box.Style.AspectRatioTerms;
+        var edgesH = box.Border.Horizontal + box.Padding.Horizontal;
         if (box.Style.BoxSizing == BoxSizing.BorderBox)
-            return borderBoxHeight * ratio;
+            return MathF.Max(edgesH, LayoutUnit.MulDiv(borderBoxHeight, terms.X, terms.Y));
         var edgesV = box.Border.Vertical + box.Padding.Vertical;
-        return (borderBoxHeight - edgesV) * ratio + box.Border.Horizontal + box.Padding.Horizontal;
+        return LayoutUnit.MulDiv(borderBoxHeight - edgesV, terms.X, terms.Y) + edgesH;
     }
 
+    /// <summary>The border-box height aspect-ratio gives a width (Blink's BlockSizeFromAspectRatio), as <see cref="RatioWidth"/>.</summary>
     internal static float RatioHeight(LayoutBox box, float borderBoxWidth)
     {
-        var ratio = box.Style.AspectRatio;
+        var terms = box.Style.AspectRatioTerms;
+        var edgesV = box.Border.Vertical + box.Padding.Vertical;
         if (box.Style.BoxSizing == BoxSizing.BorderBox)
-            return borderBoxWidth / ratio;
+            return MathF.Max(edgesV, LayoutUnit.MulDiv(borderBoxWidth, terms.Y, terms.X));
         var edgesH = box.Border.Horizontal + box.Padding.Horizontal;
-        return (borderBoxWidth - edgesH) / ratio + box.Border.Vertical + box.Padding.Vertical;
+        return LayoutUnit.MulDiv(borderBoxWidth - edgesH, terms.Y, terms.X) + edgesV;
     }
 
     /// <summary>The block's own definite height (from height, a fixed size or aspect-ratio), as a border-box height; NaN if auto.</summary>
@@ -760,7 +795,9 @@ public sealed partial class LayoutEngine
         var s = box.Style;
         var edgesH = HorizontalEdges(box);
         var edgesV = VerticalEdges(box);
-        var ratio = s.AspectRatio > 0 ? s.AspectRatio : ReplacedContent.HasNaturalRatio(box) ? ReplacedContent.NaturalRatio(box, natural) : 0;
+        // The ratio as its two LayoutUnit terms (the style's, else the natural one): sizes from it go through MulDiv.
+        var terms = s.AspectRatio > 0 ? s.AspectRatioTerms : ReplacedContent.HasNaturalRatio(box) ? ReplacedContent.NaturalRatioTerms(box, natural) : default;
+        var ratio = terms.Y > 0 ? terms.X / terms.Y : 0;
         var width = !float.IsNaN(space.FixedWidth) ? space.FixedWidth : SpecifiedWidth(box, s.Width, space.PercentWidth, space.AvailableWidth);
         var height = !float.IsNaN(space.FixedHeight) ? space.FixedHeight : SpecifiedHeight(box, s.Height, space.PercentHeight);
         if (float.IsNaN(width) && float.IsNaN(height))
@@ -771,13 +808,13 @@ public sealed partial class LayoutEngine
             if (ReplacedContent.FillsWidth(box))
             {
                 width = MathF.Max(edgesH, space.AvailableWidth - box.Margin.Horizontal);
-                height = ratio > 0 ? (width - edgesH) / ratio + edgesV : 150 + edgesV;
+                height = ratio > 0 ? LayoutUnit.MulDiv(width - edgesH, terms.Y, terms.X) + edgesV : 150 + edgesV;
             }
         }
         else if (float.IsNaN(width))
-            width = ratio > 0 ? (height - edgesV) * ratio + edgesH : (natural?.X ?? 0) + edgesH;
+            width = ratio > 0 ? LayoutUnit.MulDiv(height - edgesV, terms.X, terms.Y) + edgesH : (natural?.X ?? 0) + edgesH;
         else if (float.IsNaN(height))
-            height = ratio > 0 ? (width - edgesH) / ratio + edgesV : (natural?.Y ?? 0) + edgesV;
+            height = ratio > 0 ? LayoutUnit.MulDiv(width - edgesH, terms.Y, terms.X) + edgesV : (natural?.Y ?? 0) + edgesV;
         box.Width = float.IsNaN(space.FixedWidth) ? ClampWidth(box, width, space.PercentWidth, space.AvailableWidth) : width;
         box.Height = float.IsNaN(space.FixedHeight) ? ClampHeight(box, height, space.PercentHeight) : height;
         box.FirstBaseline = box.LastBaseline = ReplacedContent.Baseline(box, Context);
@@ -787,13 +824,7 @@ public sealed partial class LayoutEngine
         else
             box.VerticalScrollbar = box.HorizontalScrollbar = 0;
         if (s.Display is not (Display.Inline or Display.InlineBlock) && (s.MarginLeft.IsAuto || s.MarginRight.IsAuto) && !space.ShrinkToFit)
-        {
-            var remaining = MathF.Max(0, space.AvailableWidth - box.Width - box.Margin.Horizontal);
-            if (s.MarginLeft.IsAuto && s.MarginRight.IsAuto)
-                box.Margin.Left = box.Margin.Right = remaining / 2;
-            else if (s.MarginLeft.IsAuto)
-                box.Margin.Left = remaining;
-        }
+            ResolveInlineAutoMargins(box, space.AvailableWidth, s.MarginLeft.IsAuto, s.MarginRight.IsAuto);
     }
 
     /// <summary>
@@ -956,9 +987,9 @@ public sealed partial class LayoutEngine
             if (box.StaticArea is { } area && box.StaticContainer is { } areaContainer)
             {
                 var areaOrigin = (fixedToViewport ? areaContainer.ViewportPosition : OffsetIn(areaContainer, container)) - new Vector2(cbLeft, cbTop);
-                staticPosition = areaOrigin + new Vector2(
-                    area.X + (area.Width - box.MarginBoxWidth) * box.StaticAlign.X,
-                    area.Y + (area.Height - box.MarginBoxHeight) * box.StaticAlign.Y);
+                staticPosition = new Vector2(
+                    StaticOffset(areaOrigin.X + area.X, area.Width, box.MarginBoxWidth, box.StaticAlign.X, cbWidth),
+                    StaticOffset(areaOrigin.Y + area.Y, area.Height, box.MarginBoxHeight, box.StaticAlign.Y, cbHeight));
             }
 
             // Horizontal position and auto margins.
@@ -972,7 +1003,10 @@ public sealed partial class LayoutEngine
                     if (free < 0)
                         box.Margin.Right += free;
                     else
-                        box.Margin.Left = box.Margin.Right = free / 2;
+                    {
+                        box.Margin.Left = LayoutUnit.Divide(free, 2);
+                        box.Margin.Right = free - box.Margin.Left;
+                    }
                 }
                 else if (s.MarginLeft.IsAuto)
                     box.Margin.Left = free;
@@ -990,10 +1024,9 @@ public sealed partial class LayoutEngine
                 var free = cbHeight - top - bottom - height - box.Margin.Vertical;
                 if (s.MarginTop.IsAuto && s.MarginBottom.IsAuto)
                 {
-                    if (free < 0)
-                        box.Margin.Bottom += free;
-                    else
-                        box.Margin.Top = box.Margin.Bottom = free / 2;
+                    // In the block direction the halves hold whatever the free space's sign (absolute_utils.cc, ComputeMargins).
+                    box.Margin.Top = LayoutUnit.Divide(free, 2);
+                    box.Margin.Bottom = free - box.Margin.Top;
                 }
                 else if (s.MarginTop.IsAuto)
                     box.Margin.Top = free;

@@ -41,17 +41,17 @@ public sealed partial class LayoutEngine
             };
             result = content + edges;
             if (s.MaxWidth.IsValue && !s.MaxWidth.HasPercent)
-                result = MathF.Min(result, s.BoxSizing == BoxSizing.BorderBox ? s.MaxWidth.Pixels : s.MaxWidth.Pixels + edges);
+                result = MathF.Min(result, s.BoxSizing == BoxSizing.BorderBox ? FixedPixels(s.MaxWidth) : FixedPixels(s.MaxWidth) + edges);
             result = MathF.Max(result, edges);
             if (min)
                 box.CachedContentMin = result;
             return result;
         }
         if (s.Width.IsValue && !s.Width.HasPercent)
-            result = s.BoxSizing == BoxSizing.BorderBox ? MathF.Max(s.Width.Pixels, edges) : s.Width.Pixels + edges;
+            result = s.BoxSizing == BoxSizing.BorderBox ? MathF.Max(FixedPixels(s.Width), edges) : FixedPixels(s.Width) + edges;
         else if (s.Width.Kind is LengthKind.Min or LengthKind.Max or LengthKind.Clamp && !s.Width.HasPercent)
         {
-            var value = s.Width.Resolve(0);
+            var value = LayoutUnit.Truncate(s.Width.Resolve(0));
             result = s.BoxSizing == BoxSizing.BorderBox ? MathF.Max(value, edges) : value + edges;
         }
         else if (s.AspectRatio > 0 && s.Height.IsValue && !s.Height.HasPercent)
@@ -78,9 +78,9 @@ public sealed partial class LayoutEngine
 
         // Fixed min-width / max-width.
         if (s.MaxWidth.IsValue && !s.MaxWidth.HasPercent)
-            result = MathF.Min(result, s.BoxSizing == BoxSizing.BorderBox ? s.MaxWidth.Pixels : s.MaxWidth.Pixels + edges);
+            result = MathF.Min(result, s.BoxSizing == BoxSizing.BorderBox ? FixedPixels(s.MaxWidth) : FixedPixels(s.MaxWidth) + edges);
         if (s.MinWidth.IsValue && !s.MinWidth.HasPercent)
-            result = MathF.Max(result, s.BoxSizing == BoxSizing.BorderBox ? s.MinWidth.Pixels : s.MinWidth.Pixels + edges);
+            result = MathF.Max(result, s.BoxSizing == BoxSizing.BorderBox ? FixedPixels(s.MinWidth) : FixedPixels(s.MinWidth) + edges);
         result = MathF.Max(result, edges);
 
         if (min)
@@ -122,8 +122,8 @@ public sealed partial class LayoutEngine
         if (s.Height.IsValue && !s.Height.HasPercent && natural is { X: > 0, Y: > 0 } n)
         {
             var height = s.BoxSizing == BoxSizing.BorderBox ? s.Height.Pixels - s.BorderTop - s.BorderBottom - FixedPixels(s.PaddingTop) - FixedPixels(s.PaddingBottom) : s.Height.Pixels;
-            var ratio = s.AspectRatio > 0 ? s.AspectRatio : n.X / n.Y;
-            return MathF.Max(0, height) * ratio;
+            var terms = s.AspectRatio > 0 ? s.AspectRatioTerms : LayoutUnit.Ratio(n.X, n.Y);
+            return LayoutUnit.MulDiv(MathF.Max(0, height), terms.X, terms.Y);
         }
         return natural?.X ?? 0;
     }

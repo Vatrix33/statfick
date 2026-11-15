@@ -210,6 +210,19 @@ public sealed partial class UiPainter
         return baseline - layout.FirstBaseline;
     }
 
+    /// <summary>
+    /// Where a control's one-line label (an input button's value, a menu list's selected option, a text field's text) is
+    /// drawn from: the text layout's top for the baseline Blink gives it (ReplacedContent.LineBaseline: the inner block's
+    /// line box centred in the content box by a LayoutUnit half), the box placed where layout put it (not snapped), and the
+    /// baseline on a whole pixel as Blink's text painter rounds the line's top (ComputePhysicalBoxGeometry; the line's
+    /// half-leading and ascent are whole pixels).
+    /// </summary>
+    float LabelTop(LayoutBox box, TextLayout layout)
+    {
+        var baseline = box.ViewportRect.Offset(_shift).Y + ReplacedContent.LineBaseline(box, _document.Fonts);
+        return MathF.Floor(baseline + 0.5f) - layout.FirstBaseline;
+    }
+
     /// <summary>A label centred in the content box (input buttons), clipped to it.</summary>
     void PaintCenteredLabel(LayoutBox box, string label, RectF content)
     {
@@ -219,7 +232,7 @@ public sealed partial class UiPainter
         var layout = TextLayout.Create(_document.Fonts, label, InlineLayout.TextStyleFor(style), new ParagraphStyle { WhiteSpace = Text.WhiteSpace.Pre });
         var exact = ExactContent(box, _shift);
         var x = exact.X + (exact.Width - layout.Width) / 2;
-        var y = SnapBaseline(exact.Y + (exact.Height - layout.Height) / 2, layout);
+        var y = LabelTop(box, layout);
         _canvas.PushClip(content);
         _canvas.DrawText(layout, new Vector2(x, y), FillOf(style));
         _canvas.PopClip();
@@ -397,12 +410,12 @@ public sealed partial class UiPainter
             return;
         }
         var layout = TextLayout.Create(_document.Fonts, text, InlineLayout.TextStyleFor(textStyle) with { Color = color, Underline = false }, paragraph);
-        var lineHeight = layout.Height;
-        // The text sits where layout put the editor, not on the snapped content box.
+        // The text sits where layout put the editor, not on the snapped content box: a textarea's from its top, a one-line
+        // field's on its inner editor's line box (LabelTop).
         var (exactContent, exactEditor) = FieldGeometry.EditorRects(box, element, _shift);
         if (multiline)
             exactEditor = exactContent;
-        var y = SnapBaseline(multiline ? exactContent.Y - element.LayoutScroll.Y : exactContent.Y + (exactContent.Height - lineHeight) / 2, layout);
+        var y = multiline ? SnapBaseline(exactContent.Y - element.LayoutScroll.Y, layout) : LabelTop(box, layout);
         var x = exactEditor.X - (multiline ? element.LayoutScroll.X : element.EditorScrollLeft);
         // Text too wide for the field starts at the start edge.
         if (!multiline && paragraph.Align != TextAlign.Left && layout.Width <= exactEditor.Width)
@@ -552,7 +565,7 @@ public sealed partial class UiPainter
         // The text sits where layout put the inner block; the clip is on whole pixels.
         var exact = ExactContent(box, _shift);
         _canvas.PushClip(textArea);
-        _canvas.DrawText(layout, new Vector2(exact.X + start, SnapBaseline(exact.Y + (exact.Height - layout.Height) / 2, layout)), FillOf(style));
+        _canvas.DrawText(layout, new Vector2(exact.X + start, LabelTop(box, layout)), FillOf(style));
         _canvas.PopClip();
     }
 

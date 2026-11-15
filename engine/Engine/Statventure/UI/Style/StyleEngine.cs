@@ -646,6 +646,11 @@ public sealed class StyleEngine
             // The user agent rounds only controls' corners: any other element's radius is the author's.
             style.HasAuthorBorderRadius = true;
         }
+        // LayoutTheme::AdjustStyle (layout_theme.cc): a themed menu list's line-height is reset ("height is locked to auto",
+        // AdjustMenuListStyle), and so is a push button's (AdjustPushButtonStyle).
+        if (authored is not null && style.LineHeight.Kind != LineHeightKind.Normal
+            && ControlAppearance.Effective(element, style) is ControlLook.Menulist or ControlLook.MenulistButton or ControlLook.PushButton)
+            style.LineHeight = LineHeight.Normal;
         var pseudoRootFontSize = isRoot ? style.SpecifiedFontSize : rootFontSize;
         ComputedStyle? Box(List<Entry>? entries)
         {

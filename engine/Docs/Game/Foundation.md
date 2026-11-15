@@ -75,12 +75,12 @@ In full, with the options not taken, in `Docs/Game-Plan.md`, GM1, "Decisions for
   window on the user's screen, nothing audible from a session ("How each step is finished", item 1; the standing rule
   in "Small tasks", "The proof cutscene's three sounds by ear").
 
-### The detail round (Q1–Q33 and Q16b, the user, 2026-11-13 and 2026-11-14)
+### The detail round (Q1–Q34 and Q16b, the user, 2026-11-13 and 2026-11-14)
 
 Asked by the manager with the question tool in six rounds of four after this doc's first version, then Q24, which the
 answers raised, the same day, and Q25 and Q26, which step 5 raised, the same day, then Q27 and Q28, which step 6 raised,
-on 2026-11-14, Q29–Q31, which step 8 raised, the same day, and Q32 and Q33, which step 9 raised, the same day (the
-questions as asked, with their facts and options: "The questions as asked" below). Every answer the recommended option (a) except **Q6, Q11, Q15, Q16 (with its follow-up Q16b),
+on 2026-11-14, Q29–Q31, which step 8 raised, the same day, Q32 and Q33, which step 9 raised, the same day, and Q34, which
+step 9 raised too, the same day (the questions as asked, with their facts and options: "The questions as asked" below). Every answer the recommended option (a) except **Q6, Q11, Q15, Q16 (with its follow-up Q16b),
 Q18, Q22, Q23 and Q25**. Recorded in `Docs/Game-Plan.md`, "Decisions for GM1", too (GP-7). Nothing is open.
 - **Q1, a character's name and its file:** any name up to 80 characters, kept in the save; the slot's file is named from
   it by a rule ("Ser Alrik" → `saves/ser-alrik.dat`, a second one `ser-alrik-2.dat`). (Not only the path rule's
@@ -189,6 +189,12 @@ Q18, Q22, Q23 and Q25**. Recorded in `Docs/Game-Plan.md`, "Decisions for GM1", t
   together. (Not kept at the old place.)
 - **Q33, the top bar's Menu button** (the user, 2026-11-14, asked with step 9's captures): **"☰ Menu"**, the ☰ one of the
   28 icons (the symbol on the old Field tools button) before the word. (Not the word alone.)
+- **Q34, the layout a hair off Chromium's at 1.65** (the user, 2026-11-14, asked by the manager after step 9 found it: the
+  start dialog at 263.9969 device px where Chromium has 264.0, the buttons' borders a device column away): **"Fix it
+  now"**, as an engine task of its own; GM1 is ticked only after it lands, the comparisons failing on it held until then.
+  (Not "Hold it, fix later".) The task (`gm1-layout-scale`, 2026-11-14 and 15) ported Blink's layout units: the halves
+  and shares as LayoutUnit divisions, the leftovers handed on, the intrinsic sums truncated, aspect ratios by MulDiv, and
+  a control's one line on its inner block's line box ("How it works", "The engine task of Q34"); every hold was lifted.
 
 **The old game is frozen for the recapture** (the user, 2026-11-13, in the chat with the manager): "Old game wont be
 touched until you give the ok, except if you need something". Nothing in `old-game/` changes while the references are
@@ -924,7 +930,7 @@ per-object seeds; sound effects keep `SoundEffects.Seed`. GM1 has no roll; the s
   mounting a checked mod, the list showing it), 9a (the start screen, titled "Stat Fick", after the splash), 9c (the game's
   crash triggers) change; step 11 rewrites them.
 
-## The questions as asked (Q1–Q33, answered 2026-11-13 and 2026-11-14)
+## The questions as asked (Q1–Q34, answered 2026-11-13 and 2026-11-14)
 
 Each as the manager asked it with the question tool (2026-11-13), in asking order, the recommended option first; its
 answer after it and in "The detail round" above.
@@ -1239,6 +1245,19 @@ opened from a button of the top bar, a `.backup-button` beside the old ones.
   the symbol says "menu" at a glance, in the top bar's own look.
 - (b) **"Menu":** the word alone.
 - **Answer (the user, 2026-11-14): (a).** Built by step 9.
+**Q34. The layout a hair off Chromium's at 1.65** (raised by step 9's start screen, asked by the manager on 2026-11-14).
+At a device scale of 1.65 the engine put the start dialog at x = 263.9969 device px where Chromium has 264.0, and its
+buttons at 314.4969 against 314.5, so each button's side borders and its shadow row snapped a device pixel away from
+Chromium's. The light start screens failed the paint limit (start-first 4,011, start-continue 4,077, left-out-one 3,550
+pixels past 12 levels; the limit 2,962); at 1 everything matched. It was the family of 1.65 items already on the
+engine's small-task list (the control labels a device pixel low among them). Step 10's picker met it too (148.4937
+against 148.5).
+- (a) **Fix it now,** as an engine task of its own; GM1 is ticked only after it lands. *Recommended:* the game's screens
+  at 1.65 are compared box for box and pixel for pixel, and more screens will meet it.
+- (b) **Hold it, fix later:** the comparisons failing on it held with the user's word.
+- **Answer (the user, 2026-11-14, the question tool): (a), "Fix it now".** The task (`gm1-layout-scale`) found the engine
+  already laid out in device pixels and the cause in Blink's LayoutUnit arithmetic, ported site by site ("How it works",
+  "The engine task of Q34"); the holds of steps 9 and 10 were lifted.
 
 ## The proposals as made (GM1-P1–GM1-P19)
 
@@ -1626,7 +1645,8 @@ stays as it is until the manager's ok (the recapture's freeze).
        element's isolation group with the Root Element Group, a decomposited blend's merge; their fixtures
        (`LcdTextRuleReferenceTests`). No existing reference moved; four old-game screens slightly worse under the backdrop
        blur, accepted as a finding.
-     - *Held (Q34):* the three light start screens at 1.65, in `Ui/HeldScreens.cs`.
+     - *Held (Q34):* the three light start screens at 1.65, in `Ui/HeldScreens.cs` (lifted on 2026-11-15 by the engine
+       task of Q34, the file gone with its last line).
      - *Outside the step's folders, with the manager's leave:* step 2's `StartSequenceTests` and `GameRunTests`, step 8's
        `GameDocumentTests` (one name), `UiResourcesTests.Stylesheets`, `GameUiHarness` (`Scratch`), `HeldScreens.cs`,
        `end_to_end.py`'s credits expectation; the engine's `CanvasText.cs`, `Layerizer.cs`, `PropertyTreeBuilder.cs` and
@@ -1657,7 +1677,8 @@ stays as it is until the manager's ok (the recapture's freeze).
         10 made beyond the view each side.
       - *Outside the step's folders, with the manager's leave:* `GameUiHarness` (`PlayerFolder`, `Storage`, `Game`),
         step 2's `StartSequenceTests` (one test), the engine's `UiResourcesTests.Stylesheets`, and the one hook in
-        `GameScreenTests` for `Ui/HeldScreens.cs` (Q34's holds: the picker's eight fixtures at 1.65).
+        `GameScreenTests` for `Ui/HeldScreens.cs` (Q34's holds: the picker's eight fixtures at 1.65; lifted on 2026-11-15
+        by the engine task of Q34, the hook and the file gone).
       - *Found:* the engine's `ch` and `ex` are half an em (Blink measures the font); the 1.65 layout precision (Q34) met
         by the picker; PaintReference's focus after its scroll scrolls a focused element back into view.
 11. **End to end, the package check and the Windows items.** After 2–10; GM1-P12 decided.
@@ -4099,6 +4120,102 @@ slot list's line alone and after it closed on the start screen's, the menu's and
 `game-opened` once per character whichever screen opened it), the 21 fixtures at both scales in `GameScreenTests`, the three holds in `HeldScreensTests`;
 `LcdTextRuleReferenceTests` (the fixture list, each fixture's picture, each case's verdict, the layers, Skia's limit
 itself under translations, scales, skews and a mirror, the Root Element Group's chunks). **Results:** the full suite on the GPU (the engine's tests 2 min 47 s, the game's 1 min 15 s) and on lavapipe (2 min 54 s and 1 min 18 s) on `3be1bf9` rebased on `5353034`: 4080 + 491 = 4571 tests (`main`'s 4047 + 406 and 33 + 85 new), 3 held (step 9's, beside step 10's 8: 11 held in all, each still checked under its rule), none skipped; `end-to-end.sh --publish` 157 of 157 on the GPU (101 s) and on lavapipe (155 s); mutations: the code's 109 (the engine's 22: (A) 10, (B) 12; the start screen 35, the page 18, the menu 23, About 7, the holds 4) all killed but 1 that can't differ (a pseudo-element of the root taken as the document element: it never has a blending descendant, so it is never an isolation group); the first round's 114, 97 killed: of its 17 survivors 11 gaps closed (a scale's matrix through the size fixture's scaled lines; the Root Element Group's base and transform through a check of its chunks; the start-screen command on the start screen; the prompt's words; the dot going out with the page; the menu asked again while open, closing before its command, taking its keys, its log line; About's log line once) and 5 redundant lines removed (the save-layer rule's two checks of the chunk's own effects, which the layer's record already covers and a backdrop filter never reaches; Continue's subscription to the slots, each change of it a change of `lastCharacter` too; the menu's empty-group check; About's scroll to its top, the window being taken out of the document when it closes); the sheets' 30 all killed (5 by computed-style checks added for rules under the comparisons' limits); `end_to_end.py`'s credits expectation broken (About never opening): both its checks failed, 155 of 157; the player's real folders unchanged (the game folder; the Documents folder's top level changed once by the user's own folder on 2026-11-14 at 23:58, nothing of the game's, its hash `cf73041b…` the before since).
+### The engine task of Q34: layout units at a fractional scale (2026-11-14 and 15, the branch `gm1-layout-scale`)
+
+**Decided on the way.** The user's Q34 (2026-11-14): "Fix it now", an engine task of its own, GM1 ticked only after it
+lands. After the task's early report the manager (2026-11-14):
+- Blink's rule is ported at every place Blink has it and at every scale. No reference may come out farther from
+  Chromium at 1 or 1.65, every test passes at its unchanged limits, and nothing is captured again.
+- The control-label rule is in, with `LayoutTheme::AdjustStyle`'s line-height reset, and so is the text field's line box.
+- The holds of steps 9 and 10 are lifted.
+- `AControlsLabelTakesItsChunksVerdict` may go back to Chromium if it then passes.
+
+**What it found.** The engine already laid out in device pixels with the zoom in every length (2026-10-24), so step 9's
+"LayoutUnit in CSS px" reading was not the cause. Blink keeps every layout value a LayoutUnit (1/64 px): floats become
+one by truncation, a division by a whole number truncates the raw count (`free_space / 2`), and sums are exact. The engine
+kept floats and missed some of those points. Step 9's dialog: a flex row's 16 px gap entered the brand's max-content
+untruncated (26.4 at 1.65, Blink's 26.390625). The grid's auto column grew to that off-grid size and stretched by a
+truncated share to 1240.80625, not 1240.8125, and the dialog sat at 263.9969, not 264. Step 10's picker had the same
+cause.
+
+**How it works now** (`Docs/Compositing-Port.md`, "Layout units", names every site's Blink function and line, and the
+float arithmetic Blink keeps as floats too):
+- `UI/Layout/LayoutUnit.cs`: `Divide` (Blink's `LayoutUnit / int`), `MulDiv`, `Ratio` (`LayoutRatioFromSizeF`),
+  `Round(double)`, `Raw`/`FromRaw`, and `LayoutUnitDiffuser`.
+- *Halves:* grid item alignment and auto margins, grid track distributions, flex alignment, cross-axis auto margins and
+  `justify-content`/`align-content` positions, block and replaced auto margins (`ResolveInlineAutoMargins`, the end margin
+  the rest), out-of-flow auto margins and the centred static position, a button's content, `text-align: center`,
+  `vertical-align: middle`, the top half-leading.
+- *Shares handing the leftover on:* the diffuser (flex `space-*`, main-axis auto margins, stretched lines), Blink's
+  `LineFlexer` for flexible lengths, grid fr tracks with the lost fraction carried on, grid free space shared out equally
+  in raw integers by growth potential.
+- *Intrinsic sums of truncated lengths:* a flex row's gap, flex basis and margins; fixed, min and max widths; grid
+  minimum contributions' margins.
+- *Aspect ratios* with `MulDiv` on their LayoutUnit terms (`ComputedStyle.AspectRatioTerms`, a natural size's or a
+  viewBox's).
+- *A control's one line of text* on its inner block's line box (`ReplacedContent.LineMetrics` and `LineBaseline`): the
+  controls' baselines in lines, input buttons' and menu lists' labels (`UiPainter.LabelTop`), one-line fields' text,
+  caret and selection (`FieldGeometry`), and the fields' intrinsic height.
+  - A themed menu list's and push button's line-height becomes `normal` in the style engine (`LayoutTheme::AdjustStyle`).
+  - A text field's inner editor follows `CreateInnerEditorStyle`'s line-height rules.
+  - The stat input's text sits 25 px under its content top, as Chromium's.
+- *The holds:* `Tests/Statventure.Game.Tests/Ui/HeldScreens.cs`, its tests and `GameScreenTests`' hook are gone. Nothing
+  is held, so the mechanism went with its last line; a future hold needs the user's word and can bring it back.
+
+**Fixtures** (`Tests/Statventure.Tests/Ui/LayoutUnitReferenceTests.cs`, `Reference/layout-unit-fixtures.json`, captured
+as the main frame with `make-scaled-paint-references.sh`): `units-centring`, `units-flex`, `units-margins`,
+`units-controls` and `units-cases` (the cases the mutation rounds found missing). Every box is checked against Chromium's
+to 0.002 device px at 1, 1.25, 1.5, 1.65, 1.75 and 1.65 × 1.2, and the paint at 1 and 1.65 within 12 levels and 0.2 %;
+each control of `units-controls` at 1 and 1.65 within 60 pixels past 12 levels of its own box (a label a device row off
+moves about a thousand; a glyph a subpixel aside 34 on the GPU and 44 on lavapipe). `main` fails 29 of the 30 box cases (all but `units-controls` at 1.25), four of the ten
+paintings (`units-controls` and `units-cases` at both scales) and both per-control checks.
+
+**Results** (`main` at `8be4a88`, step 9 merged, against the branch, every render and layout reference the suite
+compares; the table is in the task's report, `claude-work/gm1/layout-scale/table4.md`):
+- *The eleven held comparisons,* now plain ones at 12 levels and 0.2 %, pixels past 12 levels on `main` unheld → on the
+  branch: the picker at 1.65, `picker-save` 6,245 → 1,048 (dark) and 9,461 → 1,112 (light), `picker-load` 5,141 → 98 and
+  8,359 → 161, `picker-load-long` 6,672 → 878 and 9,744 → 898, `picker-load-recent` 5,002 → 97 and 8,231 → 161 (the
+  limit 4,682); the light start screens at 1.65, `start-first` 4,011 → 1,007, `start-continue` 4,077 → 1,033,
+  `start-left-out-one` 3,550 → 1,003 (the limit 2,962). All eleven pass.
+- *Renders:* 97 changed (34 of them at 1), 93 nearer Chromium by the summed difference. Besides the eleven, the dark start
+  screens at 1.65 went from 2,216–2,467 pixels past 12 levels to 83–293, step 8's prompt dialog at 1.65 from 841–943 to
+  180–279, and the five `units-*` pages to 0–215. Step 9's `LcdTextRuleReferenceTests` fixtures didn't change. Four came
+  out farther by the summed difference alone, their counts past 12 and 24 levels and their worst unchanged:
+  - Three of step 10's at 1 (+0.04 to +0.07 %): the slot list's Open and Delete under the damaged-save question's and
+    the delete question's backdrop blur, in the dark theme. The same buttons unblurred came out nearer (`slots-several`,
+    181 → 67 past 12 levels), so the labels moved to Chromium's place and the blur, already off, spreads it under a level
+    a pixel.
+  - `game-map` at 1.65: 33 pixels of a dark shadow changed by one level each, 11 levels more in all.
+- *Pixel counts:* one render came out nearer by the sum with one pixel more past 12 levels, `game-settings` at 1 (175 →
+  176). The shop and the sheet at 1.65, which on `5353034` had gained pixels past 24 levels, are no farther by any measure
+  on step 9's tree.
+- *Layout references:* all 57 that changed came out nearer. The game's captures are rounded to 1/64 CSS px
+  (`game-capture.js`, `q()`), so a box within 0.008 CSS px is within their own rounding; past that, `combat@1.65` went from
+  101 boxes to 5 (one more box past 0.001 CSS px, 269 → 270, inside the capture's rounding). The fr shares with the
+  lost fraction carried on put its six action columns where Chromium has them.
+- *The text fields:* no input fixture's caret or selection moved.
+- *`AControlsLabelTakesItsChunksVerdict`* against Chromium again failed at 1.65 in a `will-change: transform` box's text
+  (1,634 pixels; the label rows matched), so it stays the engine-only check; that text is an item left.
+- *The 1.5 selects:* a 40 px menu list at line-height initial puts its label a device row low at 1.5 only (an item left).
+- *Breaks* (`mutate.py`, one per site kind): 37 in the first round, 22 killed. The gaps were closed with `units-cases`
+  and the per-control check; the 13 that could differ and a fourteenth (an input button's width rounded up) were run
+  again, 11 killed. The last three needed cases of their own: fixed `minmax` tracks with one capped (on auto tracks a
+  dropped remainder comes back from the stretch's pass beyond the limits, to the same track), a 3.3 px gap in an
+  inline-flex, and two controls with an odd 1/64 count of free space around their line; all three killed. 2 can't
+  differ: a label's baseline off a whole pixel (the canvas rounds a text's baseline itself, `CanvasText.cs` 119) and a
+  themed menu list's padding (it differs only when the inner block overflows the content box, the squeezed select left
+  open). All 38 again on the final tree (rebased on step 9): 36 killed, the same 2 that can't differ. The field's text
+  on its inner editor's line was killed again only after `units-cases`' focused field was moved 0.25 px down: the new
+  cases above it had put it at a height where its line box's baseline and its glyphs' centre round to the same pixel
+  (the two differ by under a pixel, so the rule shows at some heights only; a probe scanning the field's offsets found
+  them).
+- *The suite:* The full suite passes on the GPU (the engine's tests 2 min 37 s) and on lavapipe (2 min 53 s) inside a headless Wayland compositor under the shared lock: 4123 + 489 = 4612 tests (`main`'s 4080 + 491, 43 new, `HeldScreensTests`' 2 gone), 0 held, none skipped; the player's real game folder and the Documents folder's top level unchanged. The first pair of runs had three failures: lavapipe's per-control check (the overflowing button's label 44 pixels against the first limit of 40, now 60), and two tests outside the layout that passed alone (3 of 3) and in the second pair, `SingleInstanceTests.TheSameFolderReachedThroughALinkIsTheSame` on the GPU (its forward has 400 ms) and `SlotsScreenTests.WithoutABackupThatReadsStartNewIsTheActionAndKeepsTheFilesName` on lavapipe. Not checked: Windows, the cloud (Xvfb).
+
+**Left** (Engine-Plan.md, "Small tasks left from earlier milestones"):
+- A 40 px menu list at 1.5 a device row low, at line-height initial only.
+- A text item 1/64 wider than Chromium's at 13 px Lato × 1.65 (the shaper's advances).
+- A `will-change: transform` box's text a device pixel from Chromium's at 1.65 in an iframe capture.
+- A themed select squeezed below its own height: its label a device pixel lower than Chromium's.
 
 ## Status
 
@@ -4264,6 +4381,18 @@ light start screens at 1.65** (`start-first-light`, `start-continue-light`, `sta
 and 3,550 pixels against 2,962; the dialog a hair left of Chromium's, the buttons' borders a device column apart), in
 `Ui/HeldScreens.cs` beside step 10's eight, until `gm1-layout-scale` lands. Found: the engine draws no isolation group
 apart; its backdrop blur over LCD text; an icon under a CSS scale drawn hollow. The full suite passes on the GPU and on lavapipe: 4080 + 491 = 4571 tests (`main`'s 4453 and 118 new), 3 held (Q34), none skipped; `end-to-end.sh --publish` 157 of 157 on both; the code's 109 mutations all killed but 1 that can't differ, the sheets' 30 all killed; the player's real folders unchanged. Not checked: Windows; a real window; the sounds by ear in the game.
+**The engine task of Q34 done (2026-11-15, the branch `gm1-layout-scale`; "How it works", "The engine task of Q34"):
+layout units at a fractional scale.** The user's Q34 ("Fix it now"). Blink's LayoutUnit arithmetic ported site by site
+from Chromium 152 (halves divided as raw integers, the shares that hand the leftover on, intrinsic sums of truncated
+lengths, aspect ratios by `MulDiv`), and a control's one line of text on its inner block's line box (the themed
+line-height reset, a text field's inner editor). Step 9's start dialog lies at 264.0 device px as Chromium's, step 10's
+picker at 148.5. Every hold lifted (`HeldScreens` gone): step 10's eight and step 9's three comparisons at 1.65 pass at
+the unchanged limits (1,048 pixels past 12 levels at most against 4,682 for the picker, 1,033 against 2,962 for the
+start screens). `Ui/LayoutUnitReferenceTests`: five main-frame fixtures, every box to 0.002 device px at six
+configurations, the paint at 1 and 1.65. 97 renders changed, 93 nearer Chromium, 4 farther by the summed difference
+alone (three under a backdrop blur, one shadow by 11 levels); every layout reference that changed nearer. The full suite
+passes on the GPU and on lavapipe: 4123 + 489 = 4612 tests, 0 held, none skipped; mutations: 38, 36 killed, 2 that can't differ; the player's real folders unchanged. Left: four items
+in `Docs/Engine-Plan.md`'s small tasks. Not checked: Windows.
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,

@@ -30,22 +30,31 @@ internal sealed class InlineLayout
 
     // ---------- Fonts and metrics ----------
 
-    internal ResolvedFont FontFor(ComputedStyle style) =>
-        Fonts.Resolve(style.FontFamilies, style.FontWeight, style.FontItalic)
-        ?? Fonts.ResolveDefault(style.FontWeight, style.FontItalic)
+    internal ResolvedFont FontFor(ComputedStyle style) => FontFor(style, Fonts);
+
+    internal static ResolvedFont FontFor(ComputedStyle style, FontLibrary fonts) =>
+        fonts.Resolve(style.FontFamilies, style.FontWeight, style.FontItalic)
+        ?? fonts.ResolveDefault(style.FontWeight, style.FontItalic)
         ?? throw new InvalidOperationException("no fonts are loaded");
 
     /// <summary>A box's font metrics (rounded) and its line-height.</summary>
     internal readonly record struct Metrics(float Ascent, float Descent, float LineHeight, float XHeight)
     {
-        /// <summary>Distance from the baseline up to the top of the box's layout bounds (Blink floors the top half-leading).</summary>
-        public float Above => Ascent + MathF.Floor((LineHeight - (Ascent + Descent)) / 2f);
+        /// <summary>
+        /// Distance from the baseline up to the top of the box's layout bounds: Blink's CalculateLeadingSpace
+        /// (<c>inline_box_state.cc</c>) takes the top half-leading as the leading's LayoutUnit half floored to a pixel,
+        /// <c>(leading / 2).Floor()</c>.
+        /// </summary>
+        public float Above => Ascent + MathF.Floor(LayoutUnit.Divide(LineHeight - (Ascent + Descent), 2));
         public float Below => LineHeight - Above;
     }
 
-    internal Metrics MetricsFor(ComputedStyle style)
+    internal Metrics MetricsFor(ComputedStyle style) => MetricsFor(style, Fonts);
+
+    /// <summary>A box's font metrics (rounded at its zoomed size) and its line-height as a LayoutUnit (a line box's).</summary>
+    internal static Metrics MetricsFor(ComputedStyle style, FontLibrary fonts)
     {
-        var font = FontFor(style);
+        var font = FontFor(style, fonts);
         var (ascent, descent, gap) = TextLayout.Metrics(font.Face, style.FontSize, style.SubpixelPositioning);
         // ComputedLineHeightAsFixed: a number line-height is a percentage of the font size rounded to
         // a LayoutUnit (ComputedFontSizeAsFixed), the result truncated; a length is rounded.
@@ -662,7 +671,7 @@ internal sealed class InlineLayout
             if (!float.IsInfinity(availableWidth) && free > 0)
                 offset = s.TextAlign switch
                 {
-                    TextAlignment.Center => free / 2,
+                    TextAlignment.Center => LayoutUnit.Divide(free, 2),
                     TextAlignment.Right or TextAlignment.End => free,
                     _ => 0f,
                 };
@@ -897,7 +906,7 @@ internal sealed class InlineLayout
                 var align = box.Style.VerticalAlign;
                 var shift = align switch
                 {
-                    VerticalAlignKind.Middle => parent.Shift - parent.Metrics.XHeight / 2 - (descent - ascent) / 2,
+                    VerticalAlignKind.Middle => parent.Shift + MiddleShift(ascent, descent, parent.Metrics.XHeight),
                     VerticalAlignKind.TextTop => parent.Shift - parent.Metrics.Ascent + ascent,
                     VerticalAlignKind.TextBottom => parent.Shift + parent.Metrics.Descent - descent,
                     VerticalAlignKind.Sub => parent.Shift + SubShift(parent.Box.Style.FontSize),
@@ -1012,6 +1021,13 @@ internal sealed class InlineLayout
     }
 
     /// <summary>Blink's sub/super baseline shifts: a fifth / third of the parent's font size in LayoutUnits (1/64 px, truncated), plus one.</summary>
+    /// <summary>
+    /// vertical-align: middle as Blink shifts the box (<c>inline_box_state.cc</c>, kMiddle): a LayoutUnit half of its ascent
+    /// less its descent, less the parent font's x-height halved and rounded to a LayoutUnit (downward positive here).
+    /// </summary>
+    static float MiddleShift(float ascent, float descent, float parentXHeight) =>
+        LayoutUnit.Round(parentXHeight / 2) * -1 + LayoutUnit.Divide(ascent - descent, 2);
+
     static float SubShift(float parentFontSize) => MathF.Floor(parentFontSize / 5 * 64) / 64 + 1;
     static float SuperShift(float parentFontSize) => MathF.Floor(parentFontSize / 3 * 64) / 64 + 1;
 
@@ -1039,7 +1055,7 @@ internal sealed class InlineLayout
             VerticalAlignKind.Super => parent.Shift - superShift,
             VerticalAlignKind.TextTop => parent.Shift - p.Ascent + m.Above,
             VerticalAlignKind.TextBottom => parent.Shift + p.Descent - m.Below,
-            VerticalAlignKind.Middle => parent.Shift - p.XHeight / 2 - (m.Below - m.Above) / 2,
+            VerticalAlignKind.Middle => parent.Shift + MiddleShift(m.Above, m.Below, p.XHeight),
             VerticalAlignKind.Length => parent.Shift - LayoutUnit.Truncate(style.VerticalAlignLength.ResolveOr(m.LineHeight, 0)),
             _ => parent.Shift,
         };
