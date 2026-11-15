@@ -494,6 +494,18 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   (the worker rules, "Since step 8"). Recipes: `claude-work/gm1/flaky/` (`loop.sh` runs a
   filter N times, `PIN=<cpus>` and `STRESS="--cpu 4 --taskset <cpus>"` load it; `real-starts.sh` drives the real program's
   single instance headless, its first stopped with `SIGSTOP`).
+- 2026-11-15 (the PC, GM1 step 11's worker on the branch `gm1-step11`, 4130 + 565 = 4695 tests on the GPU and lavapipe):
+  **end to end, the package check and the Windows items** (`Tools/Packaging/end_to_end.py`, `--run`, the lines the flow
+  reads; `Docs/Game/Foundation.md`, "How it works", step 11). Facts: the engine's `AudioSystem.WarmUp` plays three themes
+  into a throwaway graph at every start of every program (about 655 ms of its own thread in Release, once the rooms are
+  ready): a log line on `Soundtrack.Play` must skip it (only an AudioSystem's music, which has a dispatcher, logs); the
+  packaged game drew its start screen's dialog grey whenever Continue was greyed, a defect the harness's fixtures and
+  "the stone page most" didn't see (`gm1-start-grey`): judge a screen by the approved look's own colours, read from its
+  goldens. Gotchas: the PC's only virtual input that reaches a Wayland seat is `ydotool` (uinput: the user's session),
+  so a headless flow drives the game by its command line (`--run`, GM1-P20); a region's lettering colour is the most
+  common of its brightest pixels (LCD text's coloured fringes dominate a short word otherwise); mod rows' stripes are
+  bars of one exact colour, counted as runs in one column (the same sage fills the sliders and boxes); a flow break run
+  on a `main` whose flow already fails is judged by the lines it names, not the exit code.
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

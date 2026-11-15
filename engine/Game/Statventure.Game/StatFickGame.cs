@@ -29,7 +29,7 @@ namespace Statventure.Game;
 /// given the settings, <see cref="GameSession"/>, <see cref="GameRandom.FromSystem"/> (its seed logged),
 /// <see cref="GameUi.Load"/>, every screen attached, the three volumes put on the sound and the window's maximized and
 /// full screen states on the window (both following <see cref="GameSettings.Changed"/>), the command <c>start-screen</c>,
-/// then the command line's <c>--open</c> and <c>--about</c>. Each update keeps the window's state in the settings and
+/// then the command line's <c>--open</c>, <c>--about</c> and <c>--run</c>. Each update keeps the window's state in the settings and
 /// brings the window forward when a later start asked (<see cref="SingleInstance"/>); <c>Unload</c> leaves the open
 /// character (saved), whether the run ends by Quit or by the window's close (which agrees at once: no question). No
 /// theme is started (Q15), and the data is read at the start only (Q18: no Reload).
@@ -169,6 +169,9 @@ public sealed class StatFickGame : Application
             ui.Commands.Run(open);
         if (_options.About)
             ui.Commands.Run("about");
+        // --run (GM1-P20): each command as a click runs it, its own rule saying whether it can run now.
+        foreach (var run in _options.Run)
+            ui.Commands.Run(run.Command, run.Argument);
         return parts;
     }
 

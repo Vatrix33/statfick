@@ -66,7 +66,11 @@ the user and wait for their go-ahead before starting the next one.
   the eight steps. `Tools/Scripts/publish.sh [--version <v>]` (Windows: `publish.ps1`) makes the four archives
   (`stat-fick-<v>-linux.tar.gz`, `-windows.zip`, `statventure-editor-…`) into `release/` and checks them with
   `Tools/Scripts/check-packages.sh` (`--self-test` breaks each one rule at a time); `Tools/Scripts/end-to-end.sh
-  [--publish] --version <v>` runs the two Linux packages as a player and a modder would, headless (about 90 s; not in
+  [--publish] --version <v>` runs the two Linux packages as a player and a modder would, headless (since GM1 step 11 the
+  game's own flow: its first start, settings, About, crashes, a second start, the editor's mod and two broken ones, a
+  character made in-process by the game's `PlayerFolderTests` continued and loaded with `--run`, a mod switched off;
+  the start screen and the windows judged by the approved look's colours read from their Chromium goldens; about 115 s
+  on the GPU, 215 s on lavapipe; not in
   `test.sh`); the listings, licence texts and the Visual C++ runtime's pin are in `Tools/Packaging/`;
   `Tools/Scripts/editor.ps1` is `editor.sh` for Windows. Every M12 choice is asked, the editor's packaging too (M11's
   exception ended with M11).
@@ -108,7 +112,9 @@ the user and wait for their go-ahead before starting the next one.
 - The game's program (GM1 step 2, `Docs/Game/Foundation.md`, "How it works", step 2): `Game/Statventure.Game`
   (`StatFickGame`, its parts in folders of their own, each a later step's; one instance per per-user folder), and its
   data library `Game/Statventure.Game.Data`; its command line for checks only (`--capture <png> [--frames N]`,
-  `--capture-splash <png>`, `--about`, `--open <screen>`, `--crash`, `--crash-thread`); run it from a script as
+  `--capture-splash <png>`, `--about`, `--open <screen>`, `--run <command>[=<argument>]` (GM1-P20: any command as a
+  click runs it, e.g. `--run continue`, `--run load-character=<file>`; never `open-game-folder` from a script, it opens
+  a file manager), `--crash`, `--crash-thread`); run it from a script as
   `build.sh` lays it out (`$STATVENTURE_GAME/Statventure.Game`) with a scratch `XDG_DATA_HOME` and `ALSOFT_DRIVERS=null`,
   inside a headless cage.
 - The game's screens against Chromium (GM1-P17, `Docs/Game/Foundation.md`, "How it works", step 8): the game's tests

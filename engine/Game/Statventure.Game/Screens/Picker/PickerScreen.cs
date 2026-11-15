@@ -11,7 +11,7 @@ namespace Statventure.Game.Screens.Picker;
 /// "Save Character and Load Character"; step 10), in place of the old native Save and Open dialogs (<c>main.cjs</c> 46–62,
 /// titled "Save Character" and "Load Character", their filter "Stat Fick character", <c>.json</c>); its commands
 /// <c>save-character</c> (Ctrl+S; while a character is open) and <c>load-character</c> (Ctrl+O; the slot list's "Load
-/// Character…"). Save starts in the Documents folder (<see cref="DocumentsFolder"/>) with
+/// Character…"; with a file as its argument, that file loaded without the picker, GM1-P20). Save starts in the Documents folder (<see cref="DocumentsFolder"/>) with
 /// <see cref="CharacterFile.DefaultName"/> in the name field, replaces a file only after a question, writes the open
 /// character's JSON form (<see cref="GameSession.Export"/>) and says "Character saved" or "Character could not be saved"
 /// (the old texts). Load starts in the most recent place (else Documents) and loads the file into a new slot, which opens
@@ -68,7 +68,13 @@ public sealed class PickerScreen : IGameScreen, IPickerHost
         _parts = parts;
         parts.Ui.UseStylesheet(Stylesheet);
         parts.Ui.Commands.Register(SaveCommand, _ => Run(Save), () => parts.Session.Current is not null);
-        parts.Ui.Commands.Register(LoadCommand, _ => Run(Load));
+        // With a file (--run load-character=<file>, GM1-P20): that file loaded as one the picker gave, no picker shown (a
+        // path from the program's folder is read from there; one that can't be a path is the session's to refuse).
+        parts.Ui.Commands.Register(LoadCommand, file => Run(file is null ? Load : () =>
+        {
+            LoadFile(file);
+            return Task.CompletedTask;
+        }));
     }
 
     /// <summary>Runs <paramref name="action"/> as a task of the document's loop, so what follows the picker runs there.</summary>
@@ -99,6 +105,7 @@ public sealed class PickerScreen : IGameScreen, IPickerHost
         var file = await Pick(PickerMode.Save, Documents(), CharacterFile.DefaultName);
         if (file is null)
             return;
+        RememberPlace(file);
         if (parts.Session.Export(file))
         {
             parts.Ui.Status(SavedText);
@@ -111,11 +118,7 @@ public sealed class PickerScreen : IGameScreen, IPickerHost
         }
     }
 
-    /// <summary>
-    /// Load Character: the picker in the most recent place (else Documents); the file loaded into a new slot that opens,
-    /// "Loaded &lt;file&gt;" (the page that follows the session's <c>Opened</c> plays <c>game-opened</c>, step 9's), or the
-    /// session's problem (<c>ui-refused</c>).
-    /// </summary>
+    /// <summary>Load Character: the picker in the most recent place (else Documents); the file picked loaded (<see cref="LoadFile"/>).</summary>
     async Task Load()
     {
         var parts = _parts!;
@@ -125,6 +128,18 @@ public sealed class PickerScreen : IGameScreen, IPickerHost
         var file = await Pick(PickerMode.Load, start, "");
         if (file is null)
             return;
+        LoadFile(file);
+    }
+
+    /// <summary>
+    /// The character file <paramref name="file"/> loaded, picked or given to <c>load-character</c>: its folder the first
+    /// recent place; its character a new slot that opens, "Loaded &lt;file&gt;" (the page that follows the session's
+    /// <c>Opened</c> plays <c>game-opened</c>, step 9's), or the session's problem (<c>ui-refused</c>).
+    /// </summary>
+    void LoadFile(string file)
+    {
+        var parts = _parts!;
+        RememberPlace(file);
         var result = parts.Session.Import(file);
         if (result.Slot is not null)
             parts.Ui.Status(LoadedText(file));
@@ -135,7 +150,7 @@ public sealed class PickerScreen : IGameScreen, IPickerHost
         }
     }
 
-    /// <summary>The picker as a window: the file picked (its folder the first recent place), or null; closed before this finishes.</summary>
+    /// <summary>The picker as a window: the file picked, or null; closed before this finishes.</summary>
     async Task<string?> Pick(PickerMode mode, string? start, string name)
     {
         var parts = _parts!;
@@ -164,9 +179,14 @@ public sealed class PickerScreen : IGameScreen, IPickerHost
             Open = null;
             parts.Ui.Windows.Close(picker.Layer);
         }
-        if (file is not null && Path.GetDirectoryName(file) is { Length: > 0 } folder)
-            parts.Settings.AddRecentPlace(folder);
         return file;
+    }
+
+    /// <summary>The folder of a file picked (or given) becomes the first recent place.</summary>
+    void RememberPlace(string file)
+    {
+        if (Path.GetDirectoryName(file) is { Length: > 0 } folder)
+            _parts!.Settings.AddRecentPlace(folder);
     }
 
     // ---------- IPickerHost ----------

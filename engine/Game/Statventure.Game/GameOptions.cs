@@ -17,8 +17,10 @@ public enum CrashOnPurpose
 /// <c>--capture &lt;png&gt; [--frames N]</c> saves the window at the N-th frame after the splash (30 by default) and quits (a
 /// run that crashes saves the crash window's first frame there instead); <c>--capture-splash &lt;png&gt;</c> saves the
 /// splash's first frame; <c>--about</c> runs the command <c>about</c>; <c>--open &lt;screen&gt;</c> runs the command that opens
-/// that screen (<see cref="OpenCommand"/>); <c>--crash</c> and <c>--crash-thread</c> crash on purpose. Nothing here stops a
-/// start: a wrong argument is a problem logged once the run's log is open, and the run goes on without it.
+/// that screen (<see cref="OpenCommand"/>); <c>--run &lt;command&gt;[=&lt;argument&gt;]</c>, as often as wanted, runs a command
+/// after those, as a click runs it (<see cref="Run"/>; GM1-P20); <c>--crash</c> and <c>--crash-thread</c> crash on purpose.
+/// Nothing here stops a start: a wrong argument is a problem logged once the run's log is open, and the run goes on
+/// without it.
 /// </summary>
 public sealed record GameOptions
 {
@@ -37,6 +39,12 @@ public sealed record GameOptions
     public string? Open { get; init; }
     /// <summary><c>--crash</c>, <c>--crash-thread</c>.</summary>
     public CrashOnPurpose Crash { get; init; }
+    /// <summary>
+    /// <c>--run</c>: the commands run at the start after <c>start-screen</c>, <c>--open</c>'s and <c>--about</c>'s, in the
+    /// order given, each with its argument (what follows the first <c>=</c>; null without one). Each runs as a click
+    /// runs it: one not registered, or not possible then, is logged and does nothing (GM1-P20).
+    /// </summary>
+    public IReadOnlyList<CommandRun> Run { get; init; } = [];
     /// <summary>What was wrong with the command line, each ignored (logged at the start).</summary>
     public IReadOnlyList<string> Problems { get; init; } = [];
 
@@ -92,6 +100,17 @@ public sealed record GameOptions
                     if (Value(ref i, "--open") is { } screen)
                         options = options with { Open = screen };
                     break;
+                case "--run":
+                    if (Value(ref i, "--run") is { } run)
+                    {
+                        var equals = run.IndexOf('=');
+                        var command = equals < 0 ? run : run[..equals];
+                        if (command.Length == 0)
+                            problems.Add($"--run needs a command, not '{run}'");
+                        else
+                            options = options with { Run = [.. options.Run, new CommandRun(command, equals < 0 ? null : run[(equals + 1)..])] };
+                    }
+                    break;
                 case "--crash":
                     options = options with { Crash = CrashOnPurpose.MainThread };
                     break;
@@ -106,3 +125,6 @@ public sealed record GameOptions
         return options with { Problems = problems };
     }
 }
+
+/// <summary>A command <c>--run</c> runs at the start, and its argument (null without one).</summary>
+public sealed record CommandRun(string Command, string? Argument);

@@ -1,20 +1,27 @@
 #!/usr/bin/env bash
-# The packages end to end, as a player and a modder use them (M12 step 8; Docs/Packaging.md, "How it works", step 8):
+# The packages end to end, as a player and a modder use them (M12 step 8, made the game's by GM1 step 11;
+# Docs/Packaging.md, "How it works", step 8; Docs/Game/Foundation.md, "How it works", step 11):
 #   Tools/Scripts/end-to-end.sh [--publish] --version <v> [--work <folder>]
 #   Tools/Scripts/end-to-end.sh [--work <folder>] <stat-fick-<v>-linux.tar.gz> <statventure-editor-<v>-linux.tar.gz>
 # With --version, the four archives of that version in release/: made first with --publish (publish.sh, which checks
 # them), else checked first with check-packages.sh (the Windows two checked, the Linux two run); with two archives
 # named, those (the caller's check). Then the two Linux archives unpacked and their programs started headless (cage on
 # wlroots' headless backend at 2400 x 2400, else Xvfb; the user's displays unset), on a scratch per-user folder,
-# OpenAL Soft on its null device: the stand-in's splash, page, credits, crashes (the crash file and the crash window),
-# the editor's first start ("Where is Stat Fick?"), --game, the remembered folder, a game of another version refused,
-# a mod made by the editor against the unpacked game (its in-process flow, GameFolderModTests, built from this tree with
-# the packages' version) and mounted by the packaged stand-in, both programs' logs (one per run, the version and commit
-# first; after eleven runs ten kept). One line per expectation, "ok" or "FAIL"; it fails if any fails. Its pictures and
-# logs stay in <work>/run/ (by default $STATVENTURE_CACHE/end-to-end/; <work>/build and <work>/other-build keep its two
-# builds for the next run). Linux only, never the player's real folders (compared before and after). Not part of
-# test.sh, and release.sh doesn't run it (Q27: the release runs no tests); run it before a release. Needs python3 with
-# Pillow, and cage with wlr-randr (or xvfb-run).
+# OpenAL Soft on its null device: the game's first start (the splash, the start screen in its approved look with
+# Continue greyed, no theme started), its settings screen (--open settings), About, its crashes (the crash file and the
+# crash window), a second start while the first runs; the editor's first start ("Where is Stat Fick?"), --game, the
+# remembered folder, a game of another version refused; the editor's mod (its in-process flow, GameFolderModTests)
+# checked and mounted by the packaged game and in its mod list; a character, a setting, a character file and a mod of an
+# unknown kind made through the game's parts (the game's in-process PlayerFolderTests), then with that mod and one whose
+# index has a byte flipped both left out and named, Continue enabled and run (--run continue: the slot written back on
+# quit), the character file loaded into a new slot (--run load-character=<file>), the good mod switched off; both
+# programs' logs (one per run, the version and commit first; after eleven runs ten kept; no game run starts a theme).
+# The two in-process tests are built from this tree with the packages' version. One line per expectation, "ok" or
+# "FAIL"; it fails if any fails. Its pictures and logs stay in <work>/run/ (by default $STATVENTURE_CACHE/end-to-end/;
+# <work>/build and <work>/other-build keep its two builds for the next run). Linux only, never the player's real
+# folders (compared before and after; the character file stays in <work>/run/files). Not part of test.sh, and
+# release.sh doesn't run it (Q27: the release runs no tests); run it before a release. Needs python3 with Pillow, and
+# cage with wlr-randr (or xvfb-run).
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
 usage() {

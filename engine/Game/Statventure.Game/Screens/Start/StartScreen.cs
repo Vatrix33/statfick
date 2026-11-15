@@ -141,7 +141,8 @@ public sealed class StartScreen : IGameScreen
     /// <summary>
     /// The screen shown when no character is open and it isn't showing: its status line emptied, Continue as the slots
     /// say, the mods left out at this start named, the focus on the first button that can act (Continue, else New
-    /// character), as a window takes it.
+    /// character), as a window takes it. Logged with what it shows (GM1-P21): Continue's state from the slot the button
+    /// was given, the left-out line's text as the line holds it.
     /// </summary>
     void Show()
     {
@@ -149,7 +150,7 @@ public sealed class StartScreen : IGameScreen
             return;
         _status!.TextContent = "";
         _status.ClassName = "backup-status start-status";
-        UpdateContinue();
+        var continueSlot = UpdateContinue();
         // The two sentences, the second kept whole on its line (start.css).
         var named = LeftOutNames([.. _parts.Mods.LeftOut.Select(mod => mod.Name)]);
         _leftOut!.TextContent = named is null ? "" : named + " ";
@@ -158,6 +159,9 @@ public sealed class StartScreen : IGameScreen
         _leftOut.Hidden = named is null;
         _screen.Hidden = false;
         Log.Info("Game", "the start screen shown");
+        Log.Info("Game", ContinueLine(continueSlot));
+        if (!_leftOut.Hidden)
+            Log.Info("Game", $"the left-out line: {_leftOut.TextContent}");
         _parts.Ui.Document.UpdateLayout();
         _parts.Ui.Document.QuerySelectorAll("#start-screen button").FirstOrDefault(b => b.IsFocusable)?.Focus();
     }
@@ -168,14 +172,19 @@ public sealed class StartScreen : IGameScreen
             screen.Hidden = true;
     }
 
-    /// <summary>Continue greyed (disabled) while there is nothing to continue (Q16b).</summary>
-    void UpdateContinue()
+    /// <summary>Continue greyed (disabled) while there is nothing to continue (Q16b); the slot it opens (null: greyed).</summary>
+    string? UpdateContinue()
     {
-        if (_parts!.Session.ContinueSlot() is null)
+        var slot = _parts!.Session.ContinueSlot();
+        if (slot is null)
             _continue!.SetAttribute("disabled", "");
         else
             _continue!.RemoveAttribute("disabled");
+        return slot;
     }
+
+    /// <summary>The log's line for Continue as the button was given it: "Continue greyed", or "Continue opens &lt;slot&gt;".</summary>
+    static string ContinueLine(string? slot) => slot is null ? "Continue greyed" : $"Continue opens {slot}";
 
     /// <summary>
     /// <c>continue</c>: the last character's slot opened; when its save can't be read, step 10's <c>open-slot</c> asks the

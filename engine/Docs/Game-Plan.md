@@ -2133,3 +2133,12 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   comparisons draw into the window's format, and every game screen at 1 is drawn through a real window and must equal
   the harness's picture (`Docs/Game/Foundation.md`, "How it works", "The start dialog drawn grey";
   `Docs/Compositing-Port.md`, "The target's format"). No picture, fixture or sheet changed; nothing ticked.
+- **2026-11-15, GM1 step 11 done (the branch `gm1-step11`):** end to end, the package check and the Windows items. The
+  end-to-end flow is the game's own (`Tools/Scripts/end-to-end.sh`: a first start in the approved look, the settings
+  screen, About, the crashes, a second start, the editor's mod and two broken ones, a character made in-process
+  continued and loaded, a mod switched off, no music started); for it the manager's GM1-P20 (`--run <command>`, a check
+  option) and GM1-P21 (the lines the flow reads: the engine's theme starts, what the start and settings screens show).
+  Found: the start screen's dialog drawn grey whenever Continue is greyed (fixed by `gm1-start-grey`); the engine's audio
+  warm-up plays three themes into a graph no one hears at every start. "Windows check" rewritten for the game with a new
+  item for GM1's own; a list of checks by hand on Linux (`Docs/Game/Foundation.md`, "How it works", step 11, and
+  "Checks by hand on Linux"). GM1 is ticked by the manager.

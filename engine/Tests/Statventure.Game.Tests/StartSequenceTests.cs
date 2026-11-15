@@ -121,12 +121,65 @@ public class StartSequenceTests
     {
         using var scratch = new ScratchFolder();
         var record = new List<string>();
-        using var game = GameTesting.Game(scratch["p"], new GameOptions { Open = "slots", About = true },
-            [new RecordingScreen("all", record, "about", "open-slots", StatFickGame.StartCommand)]);
+        var options = GameOptions.Parse(["--run", "load-character=/x/a.json", "--open", "slots", "--run", "continue", "--about", "--run", "load-character"]);
+        using var game = GameTesting.Game(scratch["p"], options,
+            [new RecordingScreen("all", record, "about", "open-slots", "continue", "load-character", StatFickGame.StartCommand)]);
         using var storage = new GameStorage(scratch["p"]);
         using var data = new VirtualFileSystem([]);
         game.Compose(storage, data);
-        Assert.Equal(["attach all", "run start-screen", "run open-slots", "run about"], record);
+        // --open and --about first, then --run's in the order given, each with its argument (GM1-P20).
+        Assert.Equal(["attach all", "run start-screen", "run open-slots", "run about", "run load-character /x/a.json", "run continue", "run load-character"], record);
+    }
+
+    [Fact]
+    public void ACommandRunFromTheCommandLineKeepsItsOwnRules()
+    {
+        // --run runs a command as a click does: one not registered, or not possible now, is logged and does nothing.
+        using var scratch = new ScratchFolder();
+        using var game = GameTesting.Game(scratch["p"], GameOptions.Parse(["--run", "nowhere=1", "--run", "continue", "--run", "save-character"]));
+        using var storage = new GameStorage(scratch["p"]);
+        using var data = new VirtualFileSystem([]);
+        var log = GameTesting.CaptureLog(() => game.Compose(storage, data));
+        Assert.Contains("Info [Commands] nowhere: not registered yet, nothing done", log);
+        Assert.Contains("Info [Commands] continue: not possible now, nothing done", log);
+        Assert.Contains("Info [Commands] save-character: not possible now, nothing done", log);
+        Assert.Null(game.Parts!.Session.Current);
+        Assert.Empty(game.Parts.Ui.Windows.Layers);
+    }
+
+    [Fact]
+    public void ContinueAndLoadCharacterFromTheCommandLineOpenTheirCharacters()
+    {
+        // The game's own screens: --run continue opens the last character; --run load-character=<file> loads the file
+        // into a new slot without the picker (GM1-P20), its folder the first recent place.
+        using var scratch = new ScratchFolder();
+        using (var storage = new GameStorage(scratch["p"]))
+        {
+            var settings = GameSettings.Load(storage);
+            var session = new Statventure.Game.Session.GameSession(storage, settings);
+            session.New("Ser Alrik");
+            storage.Flush();
+            Directory.CreateDirectory(scratch["files"]);
+            Assert.True(session.Export(scratch["files/alrik.json"]));
+            session.Leave();
+            storage.Flush();
+        }
+        using var game = GameTesting.Game(scratch["p"], GameOptions.Parse(["--run", "continue"]));
+        using var gameStorage = new GameStorage(scratch["p"]);
+        using var data = new VirtualFileSystem([]);
+        var log = GameTesting.CaptureLog(() => game.Compose(gameStorage, data));
+        Assert.Equal("ser-alrik", game.Parts!.Session.CurrentSlot);
+        Assert.Contains("Info [Session] opened ser-alrik", log);
+        Assert.Contains("Info [Game] Continue opens ser-alrik", log);
+
+        using var second = GameTesting.Game(scratch["q"], GameOptions.Parse(["--run", "load-character=" + scratch["files/alrik.json"]]));
+        using var secondStorage = new GameStorage(scratch["q"]);
+        log = GameTesting.CaptureLog(() => second.Compose(secondStorage, data));
+        Assert.Equal(("ser-alrik", "Ser Alrik"), (second.Parts!.Session.CurrentSlot, second.Parts.Session.Current?.Name));
+        Assert.Contains($"Info [Session] {scratch["files/alrik.json"]} loaded into ser-alrik", log);
+        Assert.Contains("Info [Ui] status (Info): Loaded alrik.json", log);
+        Assert.Equal(scratch["files"], second.Parts.Settings.RecentPlaces[0]);
+        Assert.Null(second.Parts.Ui.Windows.Top);
     }
 
     [Fact]

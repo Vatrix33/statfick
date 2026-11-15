@@ -305,7 +305,8 @@ against Chromium as the editor's screens are (M11-20).
   the editor's `--player-folder`), nothing playing; each shows the splash, draws and ends by itself
   (`--capture <png> --frames N`, the sandbox's and now the editor's, Q20), and its log is read back from the
   scratch folder; a mod made with the editor against the unpacked game's folder is mounted by the packaged
-  stand-in (its log names it).
+  stand-in (its log names it). Since GM1 step 11 the packaged game is the game's own program, and the flow runs it as
+  a player meets it ("How it works", "GM1 step 11").
 - **The Windows packages** are built and checked on Linux (Q15: listing, formats, imports); they run only on the
   user's Windows PC, through the items step 8 adds to "Windows check". `publish.ps1` and `editor.ps1` can't run
   here (no PowerShell on the PC or in the cloud).
@@ -1907,6 +1908,9 @@ mouse and the keyboard, Game folder… and its restart message, About scrolled w
 
 ### Step 8: end to end, and the Windows items (2026-11-12)
 
+(As M12 built it, with the sandbox standing in for the game. GM1 step 11 made the flow the game's: "GM1 step 11"
+below; the commands, the headless runs, the editor's part and the logs' rotation are as here.)
+
 - **Commands.** `Tools/Scripts/end-to-end.sh [--publish] --version <v> [--work <folder>]` takes the four archives of
   that version in `release/` (made first with `--publish`, which runs `publish.sh --version <v>` and so checks them;
   else checked first with `check-packages.sh --version <v>`: the Windows two checked, the Linux two run); `end-to-end.sh
@@ -2102,7 +2106,37 @@ GM1's step, recorded in full in `Docs/Game/Foundation.md`, "How it works", step 
   157 of 157 on the GPU (91 s) and on lavapipe (96 s); each of the changed expectations put back to the stand-in's
   fails the flow on its own line (5 breaks, all killed).
 
+### GM1 step 11: the flow made the game's (2026-11-15)
+
+GM1's step, recorded in full in `Docs/Game/Foundation.md`, "How it works", step 11; what it changed here:
+- **The flow** (`end_to_end.py`, `end-to-end.sh`; the commands, the headless runs, the editor's part and the logs'
+  rotation as step 8 made them): the game's 13 runs in the order a player and a modder meet them (a first start, the
+  settings screen, About, the two crashes, a second start while the first runs, the editor's mod mounted and listed, a
+  character, a setting and a character file made in-process by the game's `PlayerFolderTests` built with the packages'
+  version, two broken mods left out and named, Continue run and the slot written back on quit, the file loaded into a
+  new slot, a mod switched off), each read from the log's lines (GM1-P21: the start screen's Continue and left-out
+  line, the settings screen's values and rows, `[Mods]`, `[Session]`, no `[Audio] theme`) and its picture (the start
+  screen's dialog in the approved look's colours read from its Chromium goldens; Continue greyed or enabled; the
+  left-out line's ink; the windows' own ground and the page darkened behind them against their fixtures' goldens; the
+  mod rows by their stripes; the character's page by its top bar). The game is driven by
+  GM1-P20's `--run <command>[=<argument>]` (`--run continue`, `--run load-character=<file>`). 241 expectations (157
+  before); about 115 s on the GPU, 215 s on lavapipe. The character file stays in `<work>/run/files`, never the real Documents; the flow
+  never runs `open-game-folder`.
+- **The package check:** its rules unchanged; ok on the four archives of every publish of the step; the listings
+  unchanged (no file of the game's added, removed or renamed since GM1 step 2); its self-test 119 breaks, 119
+  caught.
+- **The release's text:** read again, unchanged ("nothing to play yet" holds after GM1).
+- **The Windows items:** `Docs/Engine-Plan.md`, "Windows check", items 1, 2a, 2b, 2d, 5, 8g, 9a–9c, 9i rewritten for the
+  game, item 10 new (GM1's own).
+
 ## Status
+
+**GM1 step 11 (2026-11-15):** `end-to-end.sh` is the game's flow (241 expectations, GM1-P20's `--run`, GM1-P21's lines,
+the start screen and the windows judged by their approved looks), 241 of 241 on the GPU (114 s) and on lavapipe (215 s)
+from a fresh publish on `37960d4`; on the packages from before the start dialog's fix (`gm1-start-grey`) nine fail, as
+they should (the start dialog's ground and labels with Continue greyed, the page behind every window); `check-packages.sh` and its self-test (119 breaks, 119 caught) pass on the four archives, the
+listings and the release's text unchanged.
+("How it works", "GM1 step 11"; `Docs/Game/Foundation.md`, step 11.)
 
 **GM1 step 2 (2026-11-13):** the game's download holds the game's own program (`Game/Statventure.Game`) and its real
 data library; the sandbox is no longer packaged. The four `2026.11.13.1` archives pass the check and its self-test; the

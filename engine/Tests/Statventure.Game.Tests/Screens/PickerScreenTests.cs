@@ -266,6 +266,45 @@ public class PickerScreenTests
     }
 
     [Fact]
+    public void LoadCharacterGivenAFileLoadsItAsAPickedOneWithoutThePicker()
+    {
+        // GM1-P20 (--run load-character=<file>): the file given loaded by the path a picked file takes; no picker shown.
+        using var scene = new Scene();
+        var h = scene.H;
+        var file = scene.CharacterFile(Path.Combine("..", "Downloads", "ser alrik.json"), "Ser Alrik");
+        var log = GameTesting.CaptureLog(() => scene.S.Run(PickerScreen.LoadCommand, file));
+        scene.Settle();
+        Assert.Null(scene.S.Picker.Open);
+        Assert.Empty(h.Ui.Windows.Layers);
+        Assert.DoesNotContain("ui-open", h.Sounds);
+        Assert.DoesNotContain(log, line => line.Contains("[Picker] the file picker opened", StringComparison.Ordinal));
+        Assert.Equal(("ser-alrik", "Ser Alrik"), (scene.S.Session.CurrentSlot, scene.S.Session.Current?.Name));
+        Assert.Equal(["Info: Loaded ser alrik.json"], scene.Statuses);
+        // Its folder the first recent place, as a picked file's.
+        var downloads = Path.GetFullPath(Path.Combine(scene.Home, "Downloads"));
+        Assert.Equal(downloads, h.Settings.RecentPlaces[0]);
+        // A file that isn't a character: the session's words and the refusal's sound, as from the picker.
+        File.WriteAllText(Path.Combine(downloads, "notes.json"), "{}");
+        h.Sounds.Clear();
+        scene.S.Run(PickerScreen.LoadCommand, Path.Combine(downloads, "notes.json"));
+        scene.Settle();
+        Assert.Equal("Problem: That file is not a valid character save", scene.Statuses[^1]);
+        Assert.Equal(["ui-refused"], h.Sounds);
+        Assert.Equal("ser-alrik", scene.S.Session.CurrentSlot);
+        // A path given from where the program runs is made full; one that can't be a path refused in the same words.
+        h.Settings.AddRecentPlace(scene.Home);
+        scene.S.Run(PickerScreen.LoadCommand, Path.GetRelativePath(Environment.CurrentDirectory, file));
+        scene.Settle();
+        Assert.Equal(("ser-alrik-2", "Info: Loaded ser alrik.json"), (scene.S.Session.CurrentSlot, scene.Statuses[^1]));
+        Assert.Equal(downloads, h.Settings.RecentPlaces[0]);
+        scene.S.Run(PickerScreen.LoadCommand, "a\0b");
+        scene.S.Run(PickerScreen.LoadCommand, "");
+        scene.Settle();
+        Assert.Equal(["Problem: That file is not a valid character save", "Problem: That file is not a valid character save"], scene.Statuses[^2..]);
+        Assert.Null(scene.S.Picker.Open);
+    }
+
+    [Fact]
     public void AFileThatIsntACharacterIsRefusedInTheSessionsWords()
     {
         using var scene = new Scene();

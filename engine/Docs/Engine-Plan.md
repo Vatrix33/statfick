@@ -592,6 +592,23 @@ what needs the user's machines):**
     GPU and on lavapipe) offer it; Xvfb and Windows aren't checked.
   - *Where to start:* where the target can't be copied from, draw the frame into an image of the layer format and blit
     it to the swapchain image at the end (which needs only `TRANSFER_DST`, always asked for).
+- A `stat-fick.lock` that can't be opened for writing (found 2026-11-15 by the flaky tests' task, `gm1-flaky-tests`;
+  recorded by GM1 step 11; open, no go yet).
+  - *What happens:* `SingleInstance.Claim` opens the per-user folder's `stat-fick.lock` for writing to lock it; a lock
+    file made read-only can't be opened so, and every start then runs alone without the lock, as the design says ("a
+    folder that can't be locked for another reason runs alone", GM1-P14): two games can then run on one folder.
+  - *Where to start:* opening the file read-only for the lock would close it; whether to is the user's to decide.
+- The later start's 3 s deadline on the system clock (found 2026-11-15 by `gm1-flaky-tests`; recorded by GM1 step 11;
+  open, no go yet).
+  - *What happens:* `SingleInstance`'s later start tries for 3 s by `DateTime.UtcNow`, so a clock set back during the
+    wait lengthens it (set forward, shortens it).
+  - *Where to start:* a monotonic clock (`Stopwatch`, `Environment.TickCount64`) for the deadline.
+- Windows' named-pipe path of the single instance awaits its completions on the thread pool (found 2026-11-15 by
+  `gm1-flaky-tests`; recorded by GM1 step 11; open, no go yet).
+  - *What happens:* on Linux both sides now wait with `poll` on sockets that don't block, on their own threads (the
+    flaky tests' fix); the Windows named pipe still awaits its connection and reads on the pool, so a pool held by other
+    work can delay the answer past the later start's 3 s (unchecked: "Windows check", item 10a).
+  - *Where to start:* the same shape as Linux's: the pipe's waits on the listener's own thread.
 - The "Known differences" lists (`Docs/Compositing-Port.md`, "Known differences left (SVG)"; `Docs/Scripting.md`, "Known
   differences left"; `Docs/Animation.md`, "Known differences from Blender's NLA"; M5's Progress, "Known differences left (not
   yet ported)") are accepted differences, not tasks, unless the port finds the game needs one.
@@ -602,24 +619,45 @@ solution built for `win-x64` from Linux with 0 errors and the Windows natives co
 `engine\` in PowerShell, in this order; for each item: what to do, what passes, where it came from.
 1. **Set up, build, test.** Do: `Tools\Scripts\setup.ps1` once, then `Tools\Scripts\build.ps1`, then
    `Tools\Scripts\test.ps1`. Passes: `build.ps1` ends without errors and leaves in `$STATVENTURE_GAME` the published
-   sandbox with `packs\` (`audio.pak`, `ui.pak`) beside it, stale files removed and changed packs put in place with
-   `File.Replace` (run it twice: the second run copies nothing); `test.ps1` gives the same results as Linux (3496 tests
-   on `main` at M11's end, 2026-11-08), all passing (the goldens are platform-pinned: the tests act as Chromium on Linux with the
-   reference PC's font settings, `ReferencePlatform.cs`, `SystemFonts.cs`, so Windows must not need its own). From:
-   `build.ps1` never run (M9 step 9, `Docs/Assets.md`, "How it works", step 9, and Status, step 9); the setup scripts
-   from the move to GitHub (Progress, "Moved to one git repo for GitHub").
-2. **M9's per-step items.** (a) *Packs* (step 1): a running game with a pack open; replace the pack (`build.ps1` again
-   with a changed pack, or a rename over it) and Reload. Passes: the rename over the open pack succeeds (the pack is
-   opened with delete sharing for this), and the tests on read sharing pass. From: `Docs/Assets.md`, "How it works",
-   step 1, "Not checked". (b) *Storage* (step 4): save a slot twice, export and import a character, use "Open game
-   folder". Passes: the second save keeps the first as the backup (`File.Replace`, one call on Windows); the game folder
-   is the RoamingAppData known folder's `Stat Fick\`; export and import use the Documents known folder; "Open game
-   folder" opens Explorer there. From: `Docs/Assets.md`, "How it works", step 4, and Status, step 4. (c) *`textconv.sh`*
+   game (`Statventure.Game.exe` and `Statventure.Game.dll`, framework-dependent, its data library
+   `Statventure.Game.Data.dll` beside it; GM1 step 2) with `packs\` (`audio.pak`, `ui.pak`) beside it, stale packs removed
+   and changed ones put in place with `File.Replace` (run it twice: the second run copies nothing); a folder where the
+   sandbox was published before GM1 loses only the sandbox's program files and its `Data\Fonts`, `Data\Cutscenes`,
+   `Data\Models` (and `Data\` when nothing else is in it). `test.ps1` runs both test projects one after the other,
+   `Tests\Statventure.Tests` (the engine's and the editor's) then `Tests\Statventure.Game.Tests` (the game's), the second
+   also when the first failed, and fails if either failed; it gives the same results as Linux, every test passing, none
+   skipped, none held (the count of the `main` tested: `Docs/Game/Foundation.md`, Status, gives it at each GM1 step; GM1
+   step 11's own run was 4130 + 565 = 4695; the goldens are platform-pinned: the tests act as Chromium on Linux with the reference
+   PC's font settings, `ReferencePlatform.cs`, `SystemFonts.cs`, so Windows must not need its own). From: `build.ps1`
+   never run (M9 step 9, `Docs/Assets.md`, "How it works", step 9, and Status, step 9); the game in place of the sandbox
+   and the second test project (GM1 step 2, `Docs/Game/Foundation.md`, "How it works", step 2); the setup scripts from the
+   move to GitHub (Progress, "Moved to one git repo for GitHub").
+2. **M9's per-step items.** (a) *Packs* (step 1): the game running from `$STATVENTURE_GAME` (its packs open); replace
+   `packs\ui.pak` while it runs (`build.ps1` again after a change to a pack, or a copy renamed over it). The game has no
+   Reload (GM1, the user's Q18: data and mods are read at the start only), so what the item can still test is the file
+   system's side. Passes: the rename over the open pack succeeds (the pack is opened with delete sharing for this), the
+   running game goes on drawing (it keeps the old file open), its next start reads the new pack, and the tests on read
+   sharing pass. From: `Docs/Assets.md`, "How it works", step 1, "Not checked"; Q18 (`Docs/Game/Foundation.md`). (b)
+   *Storage* (step 4), through the game's own screens (GM1 steps 5, 9, 10): start the game (`Tools\Scripts\build.ps1`
+   then `$env:STATVENTURE_GAME\Statventure.Game.exe`, or the packaged `Stat Fick.exe`), New character "Ser Alrik" (OK),
+   then Menu › Start screen and Continue (the slot written twice); Menu › Save Character (Ctrl+S) into Documents as
+   `stat-fick-character.json`; Menu › Start screen, Load, "Load Character…" and that file; Menu › Open game folder.
+   Passes: `%APPDATA%\Stat Fick\saves\ser-alrik.dat` and `ser-alrik.dat.bak` (the second save keeps the first as the
+   backup: `File.Replace`, one call on Windows); the file picker opens in the Documents known folder (the folder Explorer
+   calls Documents, OneDrive's when it holds Documents) and lists it; the file written there, the save's indented JSON
+   form naming "Ser Alrik"; loaded, it opens as a new slot `ser-alrik-2` ("Loaded stat-fick-character.json" under the
+   top bar); "Open game folder" opens Explorer on `%APPDATA%\Stat Fick` (the RoamingAppData known folder's `Stat
+   Fick\`). A shortcut that saves the picker's clicks: `Stat Fick.exe --run load-character=<the file>` loads a file
+   without the picker (GM1-P20; started as item 9 says, so its exit code shows). From: `Docs/Assets.md`, "How it works",
+   step 4, and Status, step 4; `Docs/Game/Foundation.md`, "How it works", steps 5, 9 and 10. (c) *`textconv.sh`*
    (step 3): `git diff` or `git show` on a commit that changes a pack, in Git for Windows. Passes: the pack shows as its
    dump (git runs the script with its own bash; the script needs `env.sh` to find dotnet). From: `Docs/Assets.md`,
-   "How it works", step 3. (d) *The build's game folder* (step 9): start the sandbox from `$STATVENTURE_GAME`. Passes:
-   it mounts `packs\` and `classes\` beside the executable and the player's `mods\` from the game folder. From:
-   `Docs/Assets.md`, "How it works", step 9.
+   "How it works", step 3. (d) *The build's game folder* (step 9): start the game from `$STATVENTURE_GAME`
+   (`Statventure.Game.exe`; the sandbox isn't published there since GM1 step 2), with a mod in `%APPDATA%\Stat
+   Fick\mods\` (item 8g's). Passes: its log (`%APPDATA%\Stat Fick\logs\stat-fick-<date>_<time>.log`) names `[Data]
+   Pack <the folder>\packs\audio.pak` and `ui.pak`, `[Data] Mods %APPDATA%\Stat Fick\mods`, the mod's `[Mods] <file>:
+   loaded (…)` and `[Data] mod …`; no `classes\` yet (GP-1: the game ships none until GM8). From: `Docs/Assets.md`, "How
+   it works", step 9; GM1 step 2.
 3. **FreeType's Windows DLL.** Do: check whether `FT_Library_SetLcdFilter` works there (whether the DLL the package ships
    is built with subpixel rendering; the call's error code says it), and run `Text/FreeTypeThreadingTests` and the text
    goldens (part of item 1). Passes: the tests pass whatever the answer; record the answer. The engine's text doesn't
@@ -631,11 +669,17 @@ solution built for `win-x64` from Linux with 0 errors and the Windows natives co
    Tools\PlayTheme -c Release`, then `dotnet Tools\PlayTheme\bin\Release\net10.0\PlayTheme.dll <the script's
    arguments>`. Passes: it sounds as it did on Linux on 2026-11-02 (the math is ported, so results should match) and the
    audio tests pass in item 1. From: `Docs/Audio.md`, Status, "Heard, but not run on Windows".
-5. **Hidden documents and minimizing.** Do: run the sandbox in a window, minimize it and restore it, with sound playing
-   and with none. Passes: GLFW's iconify reports the minimize; the document goes hidden as under X11 (the window's blur,
-   then the visibility change; on restore the visibility change, then the focus), its timers are throttled, and the sound
-   pauses unless the page is audible. From: Small tasks above, "Window host" ("Not checked: ... Windows");
-   `Docs/Scripting.md`, "Hidden documents"; `Docs/Audio.md`, Status, "Not checked automatically".
+5. **Hidden documents and minimizing.** Do: two runs. (1) The sandbox, which logs what a minimize does: `dotnet run
+   --project Samples\Statventure.Sandbox -- --log-visibility` (it logs as `statventure-sandbox` in `%APPDATA%\Stat
+   Fick\logs`); minimize it and restore it, with sound playing (`--cutscene jiruan --volume <a level of your choosing>`)
+   and with none. (2) The game (the packaged `Stat Fick.exe`): resized, minimized from the taskbar and restored, quit,
+   started again. Passes: (1) GLFW's iconify reports the minimize; the document goes hidden as under X11 (the window's
+   blur, then the visibility change; on restore the visibility change, then the focus), its timers are throttled, and
+   the sound pauses unless the page is audible. (2) the game's window comes back as it was, and its next start opens at
+   the size it had before the minimize (the game keeps the window's state only while it is neither minimized nor full
+   screen, Q19: `settings.json`'s `window`). The game plays no music in GM1 (Q15): its sounds are the interface's. From:
+   Small tasks above, "Window host" ("Not checked: ... Windows"); `Docs/Scripting.md`, "Hidden documents";
+   `Docs/Audio.md`, Status, "Not checked automatically"; GM1 step 2 (the window's state).
 6. **GPU renders on a Windows GPU.** Do: item 1's `test.ps1` on the Windows PC's GPU (the M6 and M7 goldens are in it).
    Passes: every render golden passes as on this PC's AMD GPU and on lavapipe; a failure is reported as it is, its rule
    found, not given a wider margin. From: the Small tasks' Windows bullet ("M6, M7 and M8 never did").
@@ -680,10 +724,15 @@ solution built for `win-x64` from Linux with 0 errors and the Windows natives co
    on Linux, with Windows' own roots and folders. From: `Docs/Editor.md`, "How it works", steps 3 and 8. (f) *The preview's
    sound* (step 13): a sound effect and a theme played in the editor through OpenAL Soft (at a volume of the user's
    choosing). Passes: as on Linux (item 4 for the music). From: `Docs/Editor.md`, "How it works", step 13, "Not checked
-   here". (g) *A mod made and loaded* (steps 11 and 14): a mod made in the editor (New mod, an entry, Save) into
-   `%APPDATA%\Stat Fick\mods\`, then the sandbox started from `$STATVENTURE_GAME`. Passes: the editor's save swaps the file
-   in while it is open (8a), the sandbox mounts the mod (its log names it); the end-to-end tests pass in item 1's
-   `test.ps1`. From: `Docs/Editor.md`, "How it works", steps 11 and 14.
+   here". (g) *A mod made and loaded* (steps 11 and 14; the game since GM1): a mod made in the editor (`editor.ps1`: New
+   mod with its info, a Stand-in item entry, Save) into `%APPDATA%\Stat Fick\mods\`, then the game started from
+   `$STATVENTURE_GAME` (`Statventure.Game.exe`), then its Settings (the start screen's button). Passes: the editor's save
+   swaps the file in while it is open (8a); the game's log has `[Mods] <file>: loaded (<name> <version> by <author>)`
+   and then `[Data] mod <path>` (GM1 step 6's check at the start); the settings screen's mod list shows the mod with its
+   name, version, author and file, "Loaded", its switch on; switched off there, the row says "Takes effect when the
+   game is next started.", and at the next start the log says `[Mods] <file>: off` and has no `[Data] mod` line for it,
+   the list "Off"; switched on again, loaded again. The end-to-end tests pass in item 1's `test.ps1`. From:
+   `Docs/Editor.md`, "How it works", steps 11 and 14; `Docs/Game/Foundation.md`, "How it works", steps 6 and 10.
 9. **M12's items (recorded 2026-11-12 by M12 step 8; `Docs/Packaging.md`, "How it works", step 8, and Status gather
    them).** The four archives of one version: made with `Tools\Scripts\publish.ps1 -Version <v>` (9h), or the draft
    release's downloads (they carry the Mark of the Web, for 9f); both Windows zips unpacked with Explorer's Extract All
@@ -692,21 +741,26 @@ solution built for `win-x64` from Linux with 0 errors and the Windows natives co
    double quotes). Linux's counterpart of these is `Tools/Scripts/end-to-end.sh` (step 8). (a) *Started from Explorer*
    (steps 3 and 5): double-click `Stat Fick.exe` in `stat-fick-<v>\` and `Statventure Editor.exe` in
    `statventure-editor-<v>\`. Passes: no console window beside either (GUI programs, Q6); the names with their spaces;
-   the BRUTAL splash for 2 s first (a key or a click skips it after its first second, Q29); then the sandbox's page
-   (titled "Statventure Sandbox"; About shows the credits with the version) and the editor's "Where is Stat Fick?" (its
-   text naming `Stat Fick.exe`; titled "Statventure Editor <v>"); in the `.exe` files' Properties no version details and
-   the system's generic icon (Q15, M12-5: as decided). From: `Docs/Packaging.md`, "How it works", steps 3 and 5. (b)
-   *The logs* (step 2): `%APPDATA%\Stat Fick\logs`. Passes: one `stat-fick-<date>_<time>.log` per start of the sandbox
-   and one `statventure-editor-…` per start of the editor, each starting with the program, `<v>` and the commit, the
+   the BRUTAL splash for 2 s first (a key or a click skips it after its first second, Q29); then the game's start screen
+   (since GM1: the window titled "Stat Fick", 1440 × 950 on a first start; the dialog in the game's dark look, as its
+   approved captures, with Continue greyed and New character focused, then Load, Settings, Quit, About; About, from the
+   start screen and, once a character is open, from Menu › About Stat Fick, shows the credits with the version in the
+   game's own window) and the editor's "Where is Stat Fick?" (its text naming `Stat Fick.exe`; titled "Statventure
+   Editor <v>"); in the `.exe` files' Properties no version details and the system's generic icon (Q15, M12-5: as
+   decided). From: `Docs/Packaging.md`, "How it works", steps 3 and 5; `Docs/Game/Foundation.md`, "How it works", step
+   9. (b) *The logs* (step 2): `%APPDATA%\Stat Fick\logs`. Passes: one `stat-fick-<date>_<time>.log` per start of the
+   game and one `statventure-editor-…` per start of the editor, each starting with the program, `<v>` and the commit, the
    start time and the system (Windows' own description); after 11 starts of one program its 10 newest are kept and the
-   other's untouched; a second sandbox started while the first runs leaves the first's open log in place (a warning in
-   the second's log) and nothing else fails. From: step 2. (c) *The crash window and the exit code* (steps 2 and 5): the
-   sandbox started with `--crash`, then with `--crash-thread`. Passes: the crash window ("Statventure Sandbox stopped
-   because of an error", the error's line, the crash file's path selected; Copy puts the path on the clipboard, "Open
-   logs folder" opens Explorer on `logs\`, Close ends it), exit code 1, a `crash-<date>_<time>.txt` naming where; **no
-   Windows Error Reporting dialog** ("… has stopped working") and no "Application Error" event for it in Event Viewer
-   (Windows Logs, Application). From: step 5 (a crash rethrown at once went to WER; it is now kept and thrown after the
-   window). (d) *The editor finding the game* (step 6): its first start's "Where is Stat Fick?" with Windows' places
+   other's untouched. Since GM1 a second `Stat Fick.exe` on the same per-user folder doesn't run beside the first
+   (GM1-P14, item 10a), so it makes no log of its own; the sandbox, no longer packaged, logs as `statventure-sandbox`
+   (its own logs, kept apart). From: step 2; GM1 step 2. (c) *The crash window and the exit code* (steps 2 and 5):
+   `Stat Fick.exe` started with `--crash`, then with `--crash-thread`. Passes: the crash window ("Stat Fick stopped
+   because of an error", the error's line, "the game crashed on purpose (--crash)" or "… on a thread of its own
+   (--crash-thread)", the crash file's path selected; Copy puts the path on the clipboard, "Open logs folder" opens
+   Explorer on `logs\`, Close ends it), exit code 1, a `crash-<date>_<time>.txt` naming where ("on the main thread",
+   'on the thread "Game crash"'); **no Windows Error Reporting dialog** ("… has stopped working") and no "Application
+   Error" event for it in Event Viewer (Windows Logs, Application). From: step 5 (a crash rethrown at once went to WER;
+   it is now kept and thrown after the window); GM1 step 2 (the game's crash words). (d) *The editor finding the game* (step 6): its first start's "Where is Stat Fick?" with Windows' places
    (the drive roots, Documents, the mods folder), the unpacked game's folder chosen with the mouse and once typed with
    `\`; the editor then on the game; started again: the remembered folder (`%APPDATA%\Stat Fick\editor\game.json`);
    started with `--game "<the game's folder>"` (each start's log naming the game's data library, its version and kinds);
@@ -729,15 +783,67 @@ solution built for `win-x64` from Linux with 0 errors and the Windows natives co
    there; `editor.ps1` as item 8d (it builds the data library too since step 6). Passes: `publish.ps1` ends without
    errors and makes the four; the check passes on them (their listings the committed ones); `editor.ps1` starts the dev
    editor on the repo, its exit code passed on. From: step 3, "Not checked". (i) *A mod made and loaded, packaged* (step
-   8): in the packaged editor on the unpacked game, New mod, a Stand-in item (the game's own kind) and a sound effect,
-   Save (into `%APPDATA%\Stat Fick\mods\`); then the packaged sandbox started. Passes: the mod saved; the sandbox's log
-   names it (`mod …\mods\<name>.pak`) and the sandbox runs, the mod's sound loaded at its start. From: step 8 (on Linux
-   the mod is made in-process: `GameFolderModTests`).
+   8; the game since GM1): in the packaged editor on the unpacked game, New mod, a Stand-in item (the game's own kind)
+   and a sound effect, Save (into `%APPDATA%\Stat Fick\mods\`); then the packaged game started, and its Settings.
+   Passes: the mod saved; the game's log checks and mounts it (`[Mods] <name>.pak: loaded (<name> <version> by
+   <author>)`, then `[Data] mod …\mods\<name>.pak`); its settings screen's mod list shows it loaded (as 8g). A copy of
+   the mod beside it with its last byte changed (in a hex editor; its index's hash then fails): at the next start the log
+   has `[Mods] <copy>.pak: left out: the index doesn't match its hash (damaged)` (a warning), the start screen's line "1
+   mod was left out: <copy>. Settings › Mods tells why.", the list "Left out: …", and the good mod still loaded. From:
+   step 8 (on Linux the mod is made in-process: `GameFolderModTests`); GM1 steps 6, 9, 10 and 11 (`end-to-end.sh` does
+   the same on Linux).
+
+10. **GM1's items (recorded 2026-11-15 by GM1 step 11; `Docs/Game/Foundation.md`, "How it works", step 11, gathers
+   them).** Nothing of GM1 has run on Windows. With the packaged `Stat Fick.exe` (item 9's zip) unless said. (a) *One
+   instance per player* (GM1-P14, step 2): start `Stat Fick.exe`, then start it again while the first runs (Explorer,
+   or item 9's `Start-Process … -Wait -PassThru` for the exit code), once, then several times quickly one after another.
+   The named-pipe path is Windows' own and unchanged by the flaky tests' fix (it still awaits on the thread pool: "Small
+   tasks left from earlier milestones"), so nothing of it has run. Passes: each later start shows no window and ends by
+   itself within a few seconds (at most the 3 s it tries) with exit code 0, also when started several times quickly; the first comes forward (restored if minimized; Windows may only flash its taskbar button when another
+   program has the focus: record what it did); the first's log has `[Game] another start asked for the window:
+   focused` (`restored, focused` when it was minimized); `%APPDATA%\Stat Fick\stat-fick.lock` stays after both end, and with the first ended by Task Manager (End
+   task) a new start runs (the lock went with the process). The channel is a named pipe for the current user only
+   (`stat-fick-<16 hex digits>`, from the folder's path in capitals). From: `Docs/Game/Foundation.md`, "How it works",
+   step 2, "Not checked". (b) *The file picker's places* (GM1-P15, step 10): Menu › Load Character (Ctrl+O), and Save
+   Character (Ctrl+S) with a character open. Passes: the places "Documents" (the Documents known folder, OneDrive's when
+   it holds it), "Home" (`%USERPROFILE%`), each ready drive by its letter (`C:\`, `D:\` …), then "Recent" with the
+   folders a file was picked in; Up disabled at a drive's root; a path typed with `\` or `/` and a drive letter read, a
+   name completed by Tab; the names sorted as the picker sorts them and compared ignoring case; a file ending in
+   `.JSON` listed. From: `Docs/Game/Foundation.md`, "How it works", step 10, "Not checked". (c) *Slot file names on a
+   file system that ignores case* (Q1, step 5): New character "Ser Alrik", then New character "SER ALRIK", then "Con".
+   Passes: `saves\ser-alrik.dat`, then `ser-alrik-2.dat` (a name that meets another in the rule takes the next number,
+   never the same file in another case), then `con-2.dat` (a Windows device name starts at `-2`); the slot list (Load)
+   shows the three by their names. From: `Docs/Game/Foundation.md`, "How it works", step 5, "Not checked". (d) *The
+   window between runs* (Q19, step 2): resize the window and quit (Menu › Exit: on Windows the role's label, no keys);
+   start again; maximize it and quit; start again; F11 (full screen) and quit; start again; F11 again. Passes: each
+   start opens as the window was left: the size, then maximized (restored to that size), then full screen (the splash
+   first, then the window's state put in place after it: a jump), and F11 back to the window as it was; `%APPDATA%\Stat
+   Fick\settings.json`'s `window` and `fullscreen` say so. From: `Docs/Game/Foundation.md`, "How it works", step 2 ("The
+   window"), "Not checked". (e) *The PowerShell scripts edited by reading only* (GM1 step 2): `build.ps1` (the game
+   published in place of the sandbox, the sandbox's leftovers removed by name), `test.ps1` (both test projects),
+   `editor.ps1` (the game's data library built beside the editor, from `Game\Statventure.Game.Data`). Do: item 1, then
+   `Tools\Scripts\editor.ps1`. Passes: as items 1 and 8d say; `editor.ps1` starts the dev editor on the repo with the
+   real data library (its log names `Game\Statventure.Game.Data\bin\Release\net10.0\Statventure.Game.Data.dll` and
+   counts its kinds), its exit code passed on. From: `Docs/Game/Foundation.md`, "How it works", step 2, "Not checked".
+   (f) *The game's keys and sounds* (steps 8 and 10): on the start screen Escape opens the menu (its last item "Exit",
+   no keys); Ctrl+0, Ctrl+= and Ctrl+Plus, Ctrl+- zoom the page; a button pressed, a window opening and closing, a
+   character opened sound softly (the effects volume at 60 % on a first start); the settings screen's sliders dragged
+   with the mouse. Passes: as on Linux (`Docs/Game/Foundation.md`, "Checks by hand on Linux"). From:
+   `Docs/Game/Foundation.md`, "How it works", steps 8 and 10, "Not checked". (g) *The colours a window draws in* (the
+   start dialog drawn grey, `gm1-start-grey`: the program draws into its swapchain image, B8G8R8A8 on Linux, and the
+   canvas now blits a layer's backdrop between formats; the swapchain's format there and its use as a copy's source are
+   unchecked on Windows): a first start of `Stat Fick.exe` on a fresh `%APPDATA%\Stat Fick` (rename the folder aside
+   first), then Settings, then About. Passes: the start screen's dialog brown parchment with its leather header as its
+   approved captures, not grey, Continue greyed and New character's lettering cream; behind the settings window and
+   About the page darkened in its warm brown, not blue-grey (red and blue the right way round); the same with a character
+   (Continue enabled). From: `Docs/Game/Foundation.md`, "How it works", "The start dialog drawn grey" and step 11;
+   `Docs/Compositing-Port.md`, "The target's format".
 
 When done, record: a Progress entry "Windows check" (date, what ran, results, anything that failed and why), a dated line
 in `Docs/Notes.md`, and the "Not checked: Windows" lines in `Docs/Assets.md`, Status (and its "How it works" notes),
 and in `Docs/Editor.md`, Status and "How it works" (item 8), and in `Docs/Packaging.md`, Status and "How it works"
-(item 9), turned into "checked on Windows <date>"; then this subsection marked done.
+(item 9), and in `Docs/Game/Foundation.md`, Status and "How it works" (item 10), turned into "checked on Windows <date>";
+then this subsection marked done.
 
 **How each step is finished** (the user's standing rules, for every step of every milestone):
 1. Tests: `Tools/Scripts/test.sh` passes in full on the GPU and on lavapipe (the variables are in `CLAUDE.md`). Don't
@@ -3923,6 +4029,38 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     (3 min 8 s and 1 min 54 s) inside a headless Wayland compositor under the shared lock: 4127 + 554 = 4681 tests
     (`main`'s 4127 + 551, 3 new), none held or skipped; the player's real game folder and the Documents folder's top level
     unchanged. Not checked: Windows (the named pipe unchanged), the cloud.
+  - **GM1 step 11, end to end, the package check and the Windows items (2026-11-15, 4130 + 565 = 4695 tests, on its worker
+    branch `gm1-step11` rebased on `37960d4`):** details in `Docs/Game/Foundation.md`, "How it works", step 11, and
+    "Checks by hand on Linux"; `Docs/Packaging.md`, "GM1 step 11". **The stop and the manager's decisions:** the step
+    stopped before writing code (the packaged game, headless, couldn't press Continue or pick a file; nothing logged a
+    theme start; a picture judged by colour can't read a name); the manager (2026-11-15) decided GM1-P20 (`--run
+    <command>[=<argument>]`, a checks-only option; `load-character` given a file loads it with no picker) and GM1-P21
+    (the lines the flow reads), and gave leave for `GameOptions.cs`, `StatFickGame.cs`, `StartScreen.cs`,
+    `PickerScreen.cs`, `SettingsScreen.cs` and the engine's `Audio/Music/Soundtrack.cs`. **Built:** `--run` (run after
+    `start-screen`, `--open` and `--about`, through `GameCommands.Run`, the commands' own rules kept); `load-character
+    <file>` through the picker's own `LoadFile`; the start screen's `[Game] Continue greyed` / `Continue opens <slot>` and
+    `the left-out line: <text>`, the settings screen's values line and mod rows read from its window; the soundtrack's
+    `[Audio] theme <id> started` / `scheduled at <t> s` for the music an AudioSystem plays (a line only: no timing
+    changed, so no `test-themes.sh`); `Tools/Packaging/end_to_end.py` the game's flow (241 expectations, 157 before: a first
+    start, the settings screen, About, the crashes, a second start while the first runs, the editor's mod and two broken
+    ones (an index byte flipped, a kind the game doesn't know), a character, a setting and a character file made by the
+    game's new in-process `PlayerFolderTests` built with the packages' version, `--run continue` with the slot written
+    back on quit, `--run load-character`, a mod switched off; the pictures by the approved look's colours read from the
+    Chromium goldens: the start dialog, the windows' grounds and the page behind them, the mod rows' stripes).
+    **Found:** the packaged game drew the start dialog grey whenever Continue was greyed and the page behind every window
+    with red and blue swapped (since step 9; reported, fixed by `gm1-start-grey`); the engine's audio warm-up
+    (`AudioSystem.WarmUp`, M8) plays three themes into a graph no one hears at every start of every program, about 655 ms
+    of its own thread in Release (the first theme line logged it; its gate now leaves it out; a note, no change). **The
+    package check:** rules and listings unchanged (no file of the game's added, removed or renamed since GM1 step 2), ok
+    on every publish of the step, its self-test 119 of 119; the release's text read and unchanged. **The Windows check**
+    rewritten for the game (items 1, 2a, 2b, 2d, 5, 8g, 9a–9c, 9i) with a new item 10 for GM1's own (a). **Results:** the
+    full suite on the GPU (the engine's tests 2 min 40 s, the game's 1 min 34 s) and on lavapipe (3 min 9 s and 1 min 54 s) inside a headless
+    Wayland compositor under the shared lock: 4130 + 565 = 4695 tests (`main`'s 4127 + 554, 3 + 11 new), none held or
+    skipped; `end-to-end.sh --publish --version 2026.11.15.11` 241 of 241 on the GPU (114 s, 138 s with the publish) and
+    `end-to-end.sh --version 2026.11.15.11` 241 of 241 on lavapipe (215 s); the archives 42.8 MB (54 files), 39.0 MB (47),
+    41.8 MB (51), 38.0 MB (44); mutations 42 standing, all killed (a first round's survivor a redundant line, taken out);
+    the flow's breaks 27, all killed; the player's real folders unchanged. Not checked: Windows (item 10), the cloud's
+    Xvfb, a real window ("Checks by hand on Linux").
 
 ## Milestones
 

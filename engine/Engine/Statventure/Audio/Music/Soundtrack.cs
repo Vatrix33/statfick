@@ -1,3 +1,5 @@
+using Statventure.Core;
+
 namespace Statventure.Audio;
 
 /// <summary>
@@ -74,6 +76,18 @@ public sealed class Soundtrack
     /// <summary>The theme playing (as the audio thread last applied the calls), or null.</summary>
     public string? Theme { get; private set; }
 
+    /// <summary>
+    /// A theme started or scheduled, logged when this is the music an <see cref="AudioSystem"/> plays (its calls go to the
+    /// audio thread: <see cref="_dispatch"/>), the music a program's player hears. Not for the soundtracks made apart, which
+    /// no one hears: <see cref="AudioSystem.WarmUp"/>'s throwaway graph (it plays three themes into it at every start),
+    /// the offline renders, the tests' graphs.
+    /// </summary>
+    void Started(string line)
+    {
+        if (_dispatch != null)
+            Log.Info("Audio", line);
+    }
+
     /// <summary>Runs <paramref name="action"/> on the audio thread before its next quantum, or now without one.</summary>
     void Dispatch(Action action)
     {
@@ -111,12 +125,14 @@ public sealed class Soundtrack
     /// Plays <paramref name="themeId"/> from its start (music.js's sync when the desired theme changes):
     /// the old bus fades out, the new performance's bus fades in from 0 over 0.8 s, its first step 60 ms
     /// from now. Playing the theme that is playing does nothing. A theme the library doesn't have is an
-    /// <see cref="ArgumentException"/>.
+    /// <see cref="ArgumentException"/>. The music an <see cref="AudioSystem"/> plays logs it, "[Audio] theme &lt;id&gt;
+    /// started" (GM1-P21: a program's log says every theme it starts, so a check can read that none was).
     /// </summary>
     public void Play(string themeId)
     {
         if (Library.Compiled(themeId) is not { } compiled)
             throw new ArgumentException($"No theme '{themeId}'", nameof(themeId));
+        Started($"theme {themeId} started");
         // If the worker is still preparing this room (just after start), the caller waits for it, not the audio thread.
         _preparedRooms?.Invoke(compiled.Room);
         _requested = themeId;
@@ -127,13 +143,15 @@ public sealed class Soundtrack
     /// <see cref="Play(string)"/> at <paramref name="time"/> on the audio clock (<see cref="AudioSystem.Time"/>; a
     /// time past when the audio thread takes the call: at once): in the quantum it falls in, music.js's fades
     /// from that time (the old bus held there and ramped to 0 over 0.55 s, the new one from 0 to 1 over 0.8 s,
-    /// its first step 60 ms after it); the theme playing then does nothing. The handle cancels it until then.
+    /// its first step 60 ms after it); the theme playing then does nothing. The handle cancels it until then. The music
+    /// an <see cref="AudioSystem"/> plays logs it, "[Audio] theme &lt;id&gt; scheduled at &lt;time&gt; s" (GM1-P21).
     /// </summary>
     public ScheduledSound PlayAt(double time, string themeId)
     {
         if (!double.IsFinite(time))
             throw new ArgumentOutOfRangeException(nameof(time), time, "a time on the audio clock is a finite number");
         var compiled = Prepared(themeId);
+        Started($"theme {themeId} scheduled at {time:0.###} s");
         var sound = NewSound(time);
         Dispatch(() => Schedule(sound, themeId, compiled));
         return sound;

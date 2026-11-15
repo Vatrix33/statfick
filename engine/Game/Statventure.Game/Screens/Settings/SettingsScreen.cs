@@ -69,7 +69,10 @@ public sealed class SettingsScreen : IGameScreen
         parts.Ui.Commands.Register(OpenCommand, _ => Open());
     }
 
-    /// <summary>Opens the screen (its values as they are now, the focus on the first slider as the old window's), or leaves it as it is when open.</summary>
+    /// <summary>
+    /// Opens the screen (its values as they are now, the focus on the first slider as the old window's), or leaves it as it
+    /// is when open. Logged with what it shows (GM1-P21), read from the window itself: <see cref="ShownLines"/>.
+    /// </summary>
     public void Open()
     {
         var parts = _parts ?? throw new InvalidOperationException("the screen isn't attached");
@@ -78,6 +81,32 @@ public sealed class SettingsScreen : IGameScreen
         Show();
         parts.Ui.Windows.Open(Layer, Find("master-volume"));
         Log.Info("Settings", "the settings screen opened");
+        foreach (var line in ShownLines())
+            Log.Info("Settings", line);
+    }
+
+    /// <summary>
+    /// What the window shows, as the log says it, read from its elements (so the log can't say one thing and the screen
+    /// another): the values ("master 100%, music 100%, effects 60%, theme Dark, zoom 100%, full screen off, Dev Mode off":
+    /// the percentages' texts, the theme's option, the boxes), then the mod list: "the mod list: none" when it says there
+    /// are none, else a line per row in its order, "mod &lt;file&gt;: &lt;its state's words&gt;", and "; &lt;the next-start
+    /// line&gt;" where the row shows it.
+    /// </summary>
+    internal IEnumerable<string> ShownLines()
+    {
+        static string OnOff(bool on) => on ? "on" : "off";
+        yield return $"master {Find("master-volume-value").TextContent}, music {Find("music-volume-value").TextContent}, " +
+            $"effects {Find("effects-volume-value").TextContent}, theme {Find("game-theme").SelectedOption?.TextContent}, " +
+            $"zoom {Find("zoom-value").TextContent}, full screen {OnOff(Find("game-fullscreen").Checked)}, Dev Mode {OnOff(Find("dev-mode").Checked)}";
+        var list = Find("settings-mod-list");
+        if (list.ElementChildren.Any(e => e.HasClass("settings-mods-empty")))
+            yield return "the mod list: none";
+        foreach (var row in list.ElementChildren.Where(e => e.HasClass("settings-mod")))
+        {
+            string? Text(string name) => row.Descendants().FirstOrDefault(e => e.HasClass(name))?.TextContent;
+            var next = Text("settings-mod-next-start");
+            yield return $"mod {row.GetAttribute("data-mod")}: {Text("settings-mod-state")}{(next is null ? "" : "; " + next)}";
+        }
     }
 
     UiElement Find(string id) => Layer.Descendants().First(e => e.Id == id);

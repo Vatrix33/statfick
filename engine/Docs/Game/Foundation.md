@@ -223,7 +223,7 @@ Every one as proposed ((a) where there were options) except GM1-P11's generator 
 - **GM1-P11, changed: the randomness service** in the game program; its generator `xoshiro256**` **seeded through
   SplitMix64 from one 64-bit seed**, `Next()` the top 53 bits as a double in [0, 1) (one draw per number, a long
   period). (Not `xoshiro128**`; not the engine's `Mulberry32`.)
-- **GM1-P12** the game's command line: `--capture <png> [--frames N]`, `--capture-splash <png>`, `--about`,
+- **GM1-P12** the game's command line (with GM1-P20's `--run` since step 11): `--capture <png> [--frames N]`, `--capture-splash <png>`, `--about`,
   `--open <screen>`, `--crash`, `--crash-thread`, not in a usage text. **GM1-P13** the engine's mod hook in
   `ApplicationOptions` and a shared mod check in the engine's `Packs/` used by the editor's save and the game's start.
   **GM1-P14** single instance by a lock file and a local socket per per-user folder.
@@ -237,6 +237,23 @@ Every one as proposed ((a) where there were options) except GM1-P11's generator 
   two steps of one wave change one generated file's sources (a pack, `Reference/game-screen-fixtures.json`), the one
   merged second rebases on `main`, reruns the script or the tests that make it, reruns its tests and the full suite, and
   only then is merged ("Steps").
+
+Two more, decided by the manager on 2026-11-15 when step 11 found the end-to-end flow needed what the program didn't
+offer (internal choices, as step 11 recommended; "How it works", step 11):
+- **GM1-P20, `--run <command>[=<argument>]`** (extending GM1-P12): a checks-only option like the others (no usage text,
+  nothing in the release's text), repeatable; the commands run at the start after `start-screen`, `--open`'s and
+  `--about`'s, in the order given, each with what follows its first `=` as its argument, by the path a click takes (the
+  commands' own rules hold: one not registered or not possible then is logged and does nothing); `--open` stays.
+  `load-character` given a file loads it by the code a file the picker gave goes through (no picker shown); without one,
+  as before; `save-character` takes none. **Reason:** a headless display has no input, so the packaged game's flow can't
+  press Continue or pick a file; one option reaches any command as a click does, and later milestones' checks need no
+  option of their own.
+- **GM1-P21, the lines the flow reads:** the engine logs each theme an AudioSystem's music starts (`[Audio] theme <id>
+  started`, `[Audio] theme <id> scheduled at <t> s`); the start screen logs what it shows (`[Game] Continue greyed` or
+  `[Game] Continue opens <slot>`, and the left-out line's text) and the settings screen its values and its mod list's
+  rows, each line written from the value the element is given (or read from the element), so the log can't say one thing
+  and the screen another. **Reason:** a picture judged by colour can't read a name or a number, and an expectation that
+  nothing logs ("no theme started") can't fail.
 
 ## What exists (checked against the code, 2026-11-13)
 
@@ -929,6 +946,9 @@ per-object seeds; sound effects keep `SoundEffects.Seed`. GM1 has no roll; the s
   in `$STATVENTURE_GAME`), 5 (minimizing with the game, or the sandbox's `--log-visibility`), 8g and 9i (the packaged game
   mounting a checked mod, the list showing it), 9a (the start screen, titled "Stat Fick", after the splash), 9c (the game's
   crash triggers) change; step 11 rewrites them.
+- **Built by step 11** ("How it works", step 11): the flow with GM1-P20's `--run` and GM1-P21's lines, the start
+  screen judged by its approved look; the package check unchanged; "Windows check" rewritten with a new item 10 for
+  GM1's own; "Checks by hand on Linux" below.
 
 ## The questions as asked (Q1–Q34, answered 2026-11-13 and 2026-11-14)
 
@@ -1687,6 +1707,25 @@ stays as it is until the manager's ok (the recapture's freeze).
       `Docs/Engine-Plan.md`'s "Windows check" items, this doc's Status.
     - Finished: the flow passes on the PC on the GPU and on lavapipe (Xvfb in the cloud if it can run there), the real
       folders unchanged; its expectations shown able to fail by breaks; the Windows items rewritten.
+    - **Done (2026-11-15, the branch `gm1-step11`; "How it works", step 11):** the end-to-end flow is the game's (241
+      expectations, 157 before; about 115 s on the GPU, 215 s on lavapipe), the package check's rules and listings unchanged, the release's
+      text read and unchanged, "Windows check" rewritten with a new item 10, "Checks by hand on Linux" written.
+      - *Decided on the way (the manager, 2026-11-15):* GM1-P20 (`--run <command>[=<argument>]`, `load-character`'s
+        file) and GM1-P21 (the lines the flow reads), as the step proposed when it stopped; the start screen's
+        expectations the approved look's colours (failing on `8be4a88` and `b357aef`, the grey dialog, fixed by
+        `gm1-start-grey`); the theme lines only for an AudioSystem's music.
+      - *Outside the step's folders, with the manager's leave:* `GameOptions.cs`, `StatFickGame.cs`, `StartScreen.cs`,
+        `PickerScreen.cs`, `SettingsScreen.cs`, the engine's `Soundtrack.cs`, and their tests.
+      - *The choices:* the flow's order (the first starts before anything the editor or the player makes); the second
+        start launched once the first's log says its start screen shows, the first drawing 120 frames; the pictures
+        judged by regions of lettering and stripes, the approved colours read from the goldens at run time; a setting
+        changed in-process the effects volume (no picture changes with it; the settings screen's line shows it); the
+        broken index the last byte of `ember-rite.pak`; the unknown kind a record type of the test assembly
+        (`e2e.charm`); the 10th and 11th runs' checks wherever they fall; the recent place added by Save and the load
+        right after the picker closes; the start screen's lines only when it shows; the settings screen's read from the
+        window at opening; the theme lines' gate the soundtrack's dispatcher.
+      - *Found:* the start screen's dialog drawn grey whenever Continue is greyed (since step 9); the audio warm-up's
+        three silent themes at every start (a note, no change).
 
 | Step | Part | Depends on | Owns (main) | User approves |
 | --- | --- | --- | --- | --- |
@@ -3858,6 +3897,12 @@ opened to save|load in <folder>`, `[Ui] status (Info|Problem): <text>`. Markup: 
 `.slot-damaged`; `#slots-load-file`, `#slots-status`), the question (`.damaged-save-layer`: `.damaged-save-back`,
 `.damaged-save-new`, `.damaged-save-backup`), the picker (`.picker-layer`: `#picker-name`, `#picker-accept`,
 `#picker-listing`, `.picker-row[data-index]`). Step 9's status lines follow the manager's rule (no window open).
+**Added by step 11 (GM1-P20, GM1-P21):** `load-character <file>` loads that file with no picker (`--run
+load-character=<file>`); after `[Settings] the settings screen opened` the screen's values as it shows them, `[Settings]
+master 100%, music 100%, effects 60%, theme Dark, zoom 100%, full screen off, Dev Mode off` (the percentages' texts, the
+theme's option, the boxes "on" or "off"), then its mod list, `[Settings] the mod list: none` or a line per row in its
+order, `[Settings] mod <file>: <its state's words>` (`Loaded`, `Off`, `Left out: <problem> (and n more)`) and `;
+Takes effect when the game is next started.` where the row shows it; all read from the window's elements.
 
 **What the parts lacked:** nothing; every member the screens use was there (`GameSettings`' setters, `IsModOn`,
 `RecentPlaces`/`AddRecentPlace`; `GameSession`'s `Slots`, `Open`, `UseBackup`, `StartNew`, `Delete`, `Export`,
@@ -4123,8 +4168,10 @@ alone 7.6 % and 0.014 %; the log line kept); the engine's `Canvas/CanvasText.cs`
 root's isolation group; reported). **`ui.pak`** made again under the shared lock: 18 entries (the five faces, two licences,
 eleven sheets).
 
-**What step 11 needs.** Commands: `start-screen` (run at the start), `continue`, `new-character`, `open-menu`, `about`
-(`--about`), `--open menu` (`open-menu`). Log lines: `[Game] the start screen shown`, `[Game] a new character, <slot>`,
+**What step 11 needs.** Commands: `start-screen` (run at the start), `continue` (`--run continue`, GM1-P20), `new-character`, `open-menu`, `about`
+(`--about`), `--open menu` (`open-menu`). Log lines: `[Game] the start screen shown`, then (step 11, GM1-P21) `[Game]
+Continue greyed` or `[Game] Continue opens <slot>` (from the slot the button was given) and, when mods were left out,
+`[Game] the left-out line: <the line's text as it holds it>`; `[Game] a new character, <slot>`,
 `[Game] the menu opened (a character open|the start screen)`, `[Game] the credits view opened`. Markup: `#start-screen`
 (`#start-continue`, `#start-new`, `#start-load`, `#start-settings`, `#start-quit`, `#start-about`, `#start-left-out` with
 `.start-left-out-where`, `#start-status`), the page `main.game-page` (`#menu-button`, `#settings-open-button`,
@@ -4364,6 +4411,295 @@ byte copy: `GameScreenTests` pass 126 of 126 as on `main`, `ProgramPathScreenTes
 the defect changed). The first round's one more survivor, the stretched source region (two flat grounds hide a pixel's
 stretch), was closed by a line a pixel wide in both canvas tests. The player's real folders unchanged (the game folder and
 the Documents folder's top level, before the first run and after the last).
+### Step 11: end to end, the package check and the Windows items (2026-11-15, the branch `gm1-step11`)
+
+**Decided on the way.** The step stopped before changing anything (the brief's rule for a hook the program doesn't offer):
+headless, the packaged game couldn't run Continue or load a character file (`--open` runs only `start-screen` and
+`open-<screen>`; the picker needs a click or a key; the PC has no virtual input that stays inside a headless cage:
+`ydotool` is the kernel's uinput, which reaches the user's session, excluded since M12, and `xdotool` reaches X11 clients
+only); nothing logged a theme start, so "no theme started" couldn't fail; a picture judged by colour can't read the
+start screen's names or the settings' values. The manager (2026-11-15) decided **GM1-P20** (`--run`) and **GM1-P21** (the
+lines), both as the step recommended ("The manager's decisions on the proposals"), and gave leave for `GameOptions.cs`,
+`StatFickGame.cs`, `StartScreen.cs`, `PickerScreen.cs`, `SettingsScreen.cs` and the engine's `Soundtrack.cs` with their
+tests. Then, after the flow's first runs: the start screen's expectations are the approved look's colours (read from the
+Chromium goldens the user approved), which fail on `8be4a88` (the grey dialog, below; its fix a task of its own,
+`gm1-start-grey`), and, once that fix found the page behind every window wrong too, the windows' grounds are judged
+against their fixtures' goldens as well; the theme lines written only for the music an AudioSystem plays (the warm-up,
+below); the "Windows check" given an item on the colours a window draws in and the second start's named pipe; three
+findings of the flaky tests' task recorded as small tasks (a read-only lock file, the 3 s on the system clock, Windows'
+pipe on the thread pool).
+
+**`--run <command>[=<argument>]`** (GM1-P20; `GameOptions.Run`, a list of `CommandRun(Command, Argument)`):
+repeatable, the argument what follows the first `=` (`load-character=/a=b.json` gives the file `/a=b.json`; `x=` an
+empty argument; none without `=`), a missing value or an empty command a problem logged and ignored as the other
+options' (`--run needs a value`, `--run needs a command, not '=x.json'`). `StatFickGame.Compose` runs each after
+`start-screen`, `--open`'s and `--about`'s, in the order given, through `GameCommands.Run(command, argument)`: the path
+a click takes, so a command not registered or not possible then is logged ("continue: not possible now, nothing done")
+and does nothing. `--open` is unchanged. **`load-character <file>`** (`PickerScreen`): with a file, that file is loaded
+by `LoadFile`, the one method a picked file goes through too (its folder made the first recent place, the session's
+`Import`, "Loaded <file>" or the problem with `ui-refused`), no picker shown; a path from the program's folder is
+read from there (the recent places keep full paths themselves), one that can't be a path is the session's to refuse
+("That file is not a valid character save"). Without one, as before. Choice (internal): the recent place, which `Pick` added for both of its
+modes, is added by `Save` and `LoadFile` right after the picker closes (`RememberPlace`; the same moment as before), so
+the given file's folder becomes one too. `save-character` takes no argument.
+
+**The lines the flow reads** (GM1-P21), each written from what the element was given or read from the element itself:
+- *The start screen* (`StartScreen.Show`), after `[Game] the start screen shown`: `[Game] Continue greyed` or `[Game]
+  Continue opens <slot>`, from the slot `UpdateContinue` gave the button (it now returns it); then, while the line shows,
+  `[Game] the left-out line: <its text>` (the element's `TextContent`, "2 mods were left out: broken-index and Odd
+  Charms. Settings › Mods tells why."). Only when the screen is shown (a `lastCharacter` change while it shows changes the
+  button and says nothing: chosen, so opening a character from it logs no "Continue opens" just before it hides).
+- *The settings screen* (`SettingsScreen.Open`), after `[Settings] the settings screen opened`, `ShownLines()` read from
+  the window: `master 100%, music 100%, effects 60%, theme Dark, zoom 100%, full screen off, Dev Mode off` (the
+  percentages' texts, the theme select's option, the boxes), then `the mod list: none` or a line per row, `mod <file>:
+  <its state's words>` and `; Takes effect when the game is next started.` where the row shows it. Only at opening.
+- *The soundtrack* (`Engine/Statventure/Audio/Music/Soundtrack.cs`): `Play` logs `[Audio] theme <id> started` and
+  `PlayAt` `[Audio] theme <id> scheduled at <t> s` (after the theme's lookup, so a theme the library hasn't is refused
+  without a line), only for the music an AudioSystem plays (`Started`: a soundtrack with a dispatcher, whose calls go to
+  the audio thread). A line only: no behaviour or timing changes, so `test-themes.sh` wasn't needed.
+
+**Found: the engine's audio warm-up plays three themes at every start, into a graph no one hears.** The first version of
+the theme line logged `theme alder-vale started`, `theme combat started` and `theme great-imp-jiruan started` in every
+run of the game (and of the editor and the sandbox): `AudioSystem.WarmUp()` (M8 step 7, 2026-11-02), started by the
+AudioSystem's constructor on a thread of its own ("Statventure audio warm-up", below normal priority) once the rooms are
+prepared, makes a throwaway graph with a soundtrack of its own and plays one second of a region, a battle and a boss
+theme into it, so the JIT has compiled the composer before the first real theme change. Nothing of it reaches the
+output, and the game's own music never plays (step 8's `GameSoundsTests` checks the game's soundtrack). Hence the line's
+gate. Its cost (measured 2026-11-15 in a Release build of the engine's tests, three fresh processes): about 655 ms of
+its own thread's wall time (about 695 ms of CPU) once the rooms are prepared (about 420 ms, which the music needs anyway),
+490 ms of it again when warm (the rest the code's first run); on a thread below normal priority while the splash shows,
+so it doesn't hold the start up. Whether a game that plays no music until GM4 needs it is left as a note for the manager (no
+change).
+
+**Found: the start screen's dialog drawn grey whenever Continue is greyed** (in the packaged game; on `main` since step
+9). With nothing to continue (a first start, or any start with no character) the whole dialog was drawn neutral grey:
+its ground (28, 27, 28) where Chromium's approved capture has (34, 25, 19), the labels' lettering (216, 224, 216) for
+(236, 224, 196), the left-out line light grey for gold, only the greyed Continue itself brown; with Continue enabled it
+was the approved look. The same at 800 × 643, 1600 × 1163 and 2400 × 2363; step 9's own flow capture
+(`claude-work/gm1/step9/e2e/final-gpu/run/captures/stand-in-page.png`) shows it; the screen fixture `start-first-dark`
+(the harness, no window host) passed against the golden. The flow had passed it ("the stone page most"). Reported to the
+manager and fixed by a task of its own ("The start dialog drawn grey" above, `9155a87`: the canvas copied a layer's
+backdrop and a backdrop blur's input byte for byte from the window's B8G8R8A8 image into R8G8B8A8 layers, trading red and
+blue, so the page behind every window had them swapped too; the probes in `claude-work/gm1/step11/probe/`). The flow's
+expectations now hold the approved colours, and the packages from before the fix (`b357aef`'s, as `8be4a88`'s) fail
+nine of them: the start dialog's ground and its labels' lettering at both starts with Continue greyed (four), and the
+page behind every window (five: the settings screen's four pictures and About's, the page behind (7, 6, 6), red and blue
+the wrong way round, for the approved (9, 6, 4)); Continue's greyed lettering holds before and after (the defect spared
+the greyed button itself); on `9155a87` and after, all pass.
+
+**The flow** (`Tools/Packaging/end_to_end.py`, `Tools/Scripts/end-to-end.sh`; commands, headless runs and the editor's
+part as M12 step 8 made them, `Docs/Packaging.md`): the game's 13 runs and the editor's 11, on one scratch per-user
+folder, in this order:
+1. *A first start* (`--capture-splash`, `--capture`): the splash's first frame; the start screen in the approved look
+   (below); its lines (`the start screen shown`, `Continue greyed`, no left-out line, no `[Mods]` line, no `[Data] mod`
+   line); no `[Audio] theme` line.
+2. *`--open settings`*: `the settings screen opened` with the first start's values (Q22, GM1-4, GM1-12) and `the mod list:
+   none`; the picture the settings window over the start screen (the page darkened by its backdrop over half the
+   picture, its dialog's ground over a twelfth), its two grounds the approved ones, and no mod row's stripe (each
+   settings picture below is judged the same way).
+3. *`--about`*: as before, with its window's two grounds the approved ones; 4–5. *`--crash`, `--crash-thread`*: as
+   before (the game's words since step 2).
+6. *A second start while the first runs*: the first started with `--capture --frames 120` and, once its log says the
+   start screen shows, the second (in a headless cage of its own): the second ends with 0, prints "Stat Fick is already
+   running for this player: its window was asked to come forward." and leaves no log; the first logs `[Game] another
+   start asked for the window: focused, attention requested (Wayland)` after its start screen and captures after it.
+7. *The editor's runs* (unchanged), then the editor's mod in-process (`GameFolderModTests`, unchanged).
+8. *With the mod*: `[Mods] ember-rite.pak: loaded (Ember Rite 1.0 by Vatrix)` then `[Data] mod <mods>/ember-rite.pak`
+   (the file system's lines after the check's); the start screen as at 1; `--open settings`: `mod ember-rite.pak:
+   Loaded`, one row striped as loaded.
+9. *What a player's runs leave* (`PlayerFolderTests`, the game's test project built with the packages' version, below):
+   a character "Ser Alrik" in `saves/ser-alrik.dat` with its backup, the effects volume 0.4 in `settings.json`,
+   `stat-fick-character.json` and `odd-charms.pak` in `<work>/run/files` (never the real Documents).
+10. *Two broken mods beside the good one*: `odd-charms.pak` (an entry of the kind `e2e.charm`, which the game doesn't
+    know) and `broken-index.pak` (`ember-rite.pak` with its last byte flipped: the index's last entry's hash, so the
+    index's own hash fails). The log: `[Mods] broken-index.pak: left out: the index doesn't match its hash (damaged)`
+    (WARN), `[Mods] ember-rite.pak: loaded (…)`, `[Mods] odd-charms.pak: left out: charms/lucky: a record of type
+    e2e.charm, which isn't a record type known here` (WARN), `[Data] mod` for the good one only; the start screen's
+    `Continue opens ser-alrik` and `the left-out line: 2 mods were left out: broken-index and Odd Charms. Settings ›
+    Mods tells why.`; the picture in the approved look with Continue enabled and the line in its gold ink; the slot not
+    written (nothing opened). `--open settings`: `effects 40%` (the setting the session wrote), the three rows' lines,
+    one row striped as loaded and two as left out.
+11. *`--run continue`*: `[Session] opened ser-alrik` after `Continue opens ser-alrik`, the picture the character's page
+    (the top bar's lettering along the top, no dialog); on quit the slot written back (`ser-alrik.dat` newer, its
+    backup the save before it, by their files' times).
+12. *`--run load-character=<work>/run/files/stat-fick-character.json`*: `[Session] <file> loaded into ser-alrik-2`,
+    `[Ui] status (Info): Loaded stat-fick-character.json`, `ser-alrik-2.dat` with its backup, `lastCharacter`
+    `ser-alrik-2`, the file's folder the first recent place; the character's page.
+13. *The good mod switched off in `settings.json`* (`mods: { "ember-rite.pak": { "on": false } }`, what the list's
+    switch writes) with `--open settings`: `[Mods] ember-rite.pak: off` (INFO; not checked: neither loaded nor left out),
+    no `[Data] mod` line; `Continue opens ser-alrik-2`, the left-out line as before; `mod ember-rite.pak: Off`, one row
+    striped as off, two as left out, none as loaded.
+Then the editor topped up to 11 runs; each program's 10th and 11th runs check the logs kept (10, the oldest gone, the
+crash files and the other program's logs untouched), wherever in the flow they fall (the game reaches them at steps 10
+and 11); no `[Audio] theme` line in any of the game's 13 logs; one commit; the real folders unchanged.
+
+**How the pictures are judged** (as M12 judges them: colours, with M12's tolerance of 6 levels a channel; the output
+2400 × 2400, the window 2400 × 2363 at 1): the start screen is found by its lettering: bands of rows holding pixels over
+90 in every channel within 260 px of the picture's middle, the six button labels being the first six bands a line high
+(5–20 px) centred within 120 px (the header's lines start further left, the buttons' edges are a pixel high), the lines
+under them the left-out line; a band's colour is the most common of its pixels within 12 levels of its brightest (the
+ink's core, the LCD text's coloured fringes aside). **The approved look** is read at run time from Chromium's captures the
+user approved (`Golden/game-screen-start-first-dark@1.png`, `start-continue-dark@1.png`, `start-left-out-one-dark@1.png`)
+by the same functions: the dialog's ground (the most common colour around the buttons, (34, 25, 19)), the labels'
+lettering ((236, 224, 196)), Continue's greyed ((136, 126, 109)) and enabled ((236, 224, 196)), the left-out line's ink
+((226, 193, 130)); the capture's must be within 6 levels of each. The character's page: the top bar's lettering (over 180)
+in the top 120 rows and no start dialog. A mod row's state: its stripe, a bar 3 px wide of one colour exactly, counted as
+the runs of at least 60 px in the column holding most of that colour: loaded (156, 188, 161), off (168, 151, 122), left
+out (176, 58, 46), measured in the packaged game's pictures (the Gothic theme's `--sage`, `--soft`, `--blood`; the sliders
+and boxes are sage too, but never a 60 px bar). A window over the start screen: the page darkened by its backdrop (every
+channel at most 14) over half the picture, the dialog's ground over a twelfth; and **the window's two grounds** against
+Chromium's captures of the approved fixtures (`settings-first-start-dark@1.png`, `about-top-dark@1.png`, read the same
+way): the dialog's (the most common colour in a 400 × 600 px box at the middle, its darkest pixels left out: a slider's
+track) within 6 levels of the fixture's ((35, 27, 22)), and the page behind the window's backdrop (the most common
+colour of an 80 px strip down the left edge) within 6 levels of the settings fixture's ((9, 6, 4)) with its channels in
+the same order: so dark a ground is within 6 levels of itself with red and blue swapped ((7, 6, 6) before the fix), so
+the order is what tells.
+
+**`PlayerFolderTests`** (`Tests/Statventure.Game.Tests/EndToEnd/`, 1 test, in the suite): on a scratch per-user folder in
+the suite; with the flow's variables (`STATVENTURE_END_TO_END_PLAYER`, `_FILES`, `_VERSION`) on the flow's player folder,
+its version the packages'. Through the game's parts as its start makes them (`GameSettings.Load`, `GameSession` on a
+`GameStorage`): a new character (`New("Ser Alrik")`), the effects volume set, the character file written
+(`Export`), the character left as Quit leaves it; then read back as the next start reads them (the slot with its
+backup, `lastCharacter`, Continue's slot, the setting in `settings.json`, the character file's JSON form byte for byte
+the design's); and the mod of an unknown kind (`Charm`, `[Record("e2e.charm", 1)]` in the test assembly), which the
+game's check (`ModCheck` with `GameMods.GameKinds`) leaves out naming the entry.
+
+**The package check and the listings.** `check-packages.sh` passes on the four archives of every publish of the step
+(the Linux two run); the listings are unchanged: no file of the game's download was added, removed or renamed since
+step 2 (only contents changed: the program, the packs), so none was made again. Its self-test on the four archives of the step's publish on `b357aef` (the check's code unchanged since): 119 breaks,
+119 caught.
+The archives: "Runs" below.
+
+**The release's text, read again** (`Tools/Packaging/release-text.md`, step 2's wording): unchanged. "There is nothing to
+play yet" is still true after GM1 (the sheet comes with GM2); the game's bullet "Stat Fick on the Statventure engine, as
+far as the port has come", the folders, the per-user files (`saves/`, `mods/` "the mods the editor makes, which the game
+loads", `logs/`, `settings.json`, `editor/`), the editor needing the game of its own version, the system needs and the
+licences ("each program's About lists them": the game's About shows the credits since step 9) all hold. Nothing of
+`--run` or the other check options is in it (GM1-P12, P20).
+
+**"Windows check"** (`Docs/Engine-Plan.md`) rewritten where GM1 changed it: item 1 (the game published by `build.ps1`,
+`test.ps1` running both projects, the count), 2a (no Reload: the rename over an open pack and the next start), 2b
+(saves, character files and "Open game folder" through the game's screens; `--run load-character` as a shortcut), 2d
+(the game in `$STATVENTURE_GAME`), 5 (the sandbox's `--log-visibility`, and the game's window state around a minimize),
+8g and 9i (the game checking and mounting a mod, the list, a switch, a broken copy), 9a (the splash, then the start
+screen titled "Stat Fick"; About from the start screen and the menu), 9b (the second start; the sandbox's own logs), 9c
+(the game's crash words); a new item 10 for what GM1 added that nothing has run on Windows (the second `Stat Fick.exe` and
+the named pipe, the picker's places with drive letters and the Documents known folder, slot names on a file system that
+ignores case, the window kept between runs, the PowerShell scripts edited by reading only, the keys and sounds). **The
+by-hand list for Linux:** "Checks by hand on Linux" below.
+
+**Tests** (11 new in the game's project, 3 in the engine's): `GameOptionsTests` (`--run`'s commands in order, each
+with what follows its first `=`, an empty argument, no command and no value refused); `StartSequenceTests` (3: `--run`
+after `start-screen`, `--open` and `--about` in order with their arguments; a command not registered or not possible
+logged and nothing done; Continue and `load-character=<file>` opening their characters on the real screens, the file's
+folder a recent place, no window open); `PickerScreenTests` (`load-character` given a file: no picker, the slot made and
+opened, "Loaded …", the recent place, a refused file's words and sound, a path from the program's folder, a path that
+can't be one and an empty one refused); `ScreenLinesTests` (6, run alone: the start screen's `Continue greyed` and
+`Continue opens <slot>` against the button's state, said again at the next showing; the left-out line as the element
+holds it, one mod and five; the settings screen's values line against the window's own texts and boxes in three sets
+of values, and nothing said when asked to open again; each mod row's line against the row's file, state and next-start
+line); `PlayerFolderTests` (1, above); the engine's `SoundtrackLogTests` (3, run alone: each theme started and scheduled
+logged in its words, a theme the library hasn't refused without a line, the music no one hears (a soundtrack made apart,
+an AudioSystem's warm-up) not logged while the AudioSystem's own music is).
+
+**Shown able to fail.** *The code's rules* (`mutate.py`, `claude-work/gm1/step11/mutations.json`, made by
+`make-mutations.py`): 42 (`--run`'s parsing 6 and its running 4, one of them through `GameCommands`: `--run` keeps a
+command's own rule; `load-character`'s file 5; the start screen's lines 6; the settings screen's 14; the soundtrack's 7):
+the first run 37 killed, 1 survived (the given file made a full path: redundant, the recent places make paths full
+themselves; the line taken out) and 4 no longer applying (the soundtrack's lines moved behind their gate after the
+first flow run); the changed code's 12 again (`mutations-rerun.json`): 12 of 12 killed. The standing list: 42, all
+killed; nothing written to the player's real folders. *The flow's expectations* (`flow-breaks.py`, M12 step 8's runner
+adapted: each break alone, the game's Linux package published again for a break of the game, the flow run under the
+lock, the break undone; `breaks.json` and `breaks2.json`, made by `make-breaks.py` and `make-breaks2.py`): 27 breaks,
+**all killed** on the lines they name. The first 21 on `b357aef` (where the start screen's look already failed, so a
+break counts by its own lines): the game's (published again) a theme started at the start, `--run` not run,
+`load-character`'s file ignored, Continue's line always greyed, the left-out line not logged and hidden, Continue always
+greyed on the screen (its command as it was: only the picture tells), the values line's effects the master's, the mod
+rows' lines not logged, a later start not forwarded, its request not taken, the character not left on quit, a
+switched-off mod checked and mounted, a mod that fails its check loaded all the same, the loaded row's stripe in the
+left-out colour (`settings.css`, `ui.pak` made again); the flow's inputs: the game's in-process test without the
+player's folder or built without the packages' version, the index's byte not flipped, the odd mod not put in `mods/`,
+the mod's switch not written, the second start after the first ended. The other 6 on the final flow (`9155a87`): the
+packages from before the start dialog's fix (nine lines fail: the start dialog's ground and labels at both greyed
+starts, the page behind all five windows; Continue's greyed lettering holds, as it should), the settings window's,
+About's and the start dialog's grounds changed in their sheets, the left-out line hidden and Continue always greyed again
+with the lettering's final rule. *The package check's self-test:* 119 breaks, 119 caught.
+
+**Runs** (inside headless cages under the shared lock, scratch per-user folders, nothing audible; on the step's tree
+rebased on `37960d4`): `end-to-end.sh --publish --version 2026.11.15.11` on the GPU: the four archives published and
+checked, then 241 of 241 in 114 s (138 s with the publish); `end-to-end.sh --version 2026.11.15.11` on lavapipe (the
+check, the Linux two run, then the flow): 241 of 241 in 215 s; the full suite on the GPU (the engine's tests 2 min 40 s, the
+game's 1 min 34 s) and on lavapipe (3 min 9 s and 1 min 54 s): 4130 + 565 = 4695 tests (`main`'s 4127 + 554 and 3 + 11 new), none held
+or skipped; the player's real folders unchanged (`~/.local/share/stat-fick`, the user's own, whole, and the Documents
+folder's top level `cf73041b…`, before the first run and after the last). The archives at `2026.11.15.11`: the game's
+Linux 42.8 MB (44,929,346 bytes, 54 files), Windows 39.0 MB (40,916,294 bytes, 47), the editor's Linux 41.8 MB
+(43,873,965 bytes, 51), Windows 38.0 MB (39,856,639 bytes, 44).
+
+**Not checked:** Windows (item 10 and the rest of the list); the cloud's Xvfb (the flow's headless display there; not
+run on this PC, which has no Xvfb); a real window (the by-hand list); the flow's pictures at a scale other than 1.
+
+## Checks by hand on Linux
+
+What only a person at a real window can check, gathered by step 11 (2026-11-15) from steps 2–10's "Not checked" and
+their reports; none of it has been run. Every check runs the game as `build.sh` lays it out, from `engine/` in a real
+terminal on the desktop: `source Tools/Scripts/env.sh && Tools/Scripts/build.sh Release` once, then the command given.
+A first start on a folder of its own leaves the player's own folder alone: `XDG_DATA_HOME=/tmp/stat-fick-check
+"$STATVENTURE_GAME/Statventure.Game"` (delete `/tmp/stat-fick-check` to start afresh); "the game" below means that
+command. Sound plays at the desktop's volume: turn it down before item 5. Windows has its own list (`Docs/Engine-Plan.md`,
+"Windows check", items 1–10).
+
+1. **The splash, then the start screen** (steps 2, 9; M12 Q29). Do: the game, on a fresh folder. Look for: the BRUTAL
+   splash for 2 s (a key or a click skips it after its first second), then the window titled "Stat Fick" at 1440 × 950
+   with the start screen: the dialog in the approved dark look (a brown parchment dialog with its leather header, as the
+   approved captures; not grey, step 11's finding), Continue greyed, New character focused (its ring), the six buttons
+   in Q16's order; no music. Then New character, OK, Menu › Start screen: Continue enabled and focused.
+2. **A second start brings the window forward, and what Wayland does** (GM1-P14, step 2). Do: the game; in a second
+   terminal the same command, once with the first window behind another window and once with it minimized. Look for:
+   the second prints "Stat Fick is already running for this player: its window was asked to come forward." and ends;
+   the first comes forward, or (Wayland lets the compositor refuse the focus) its taskbar entry asks for attention:
+   write down which, and whether a minimized one is restored. Its log (`/tmp/stat-fick-check/stat-fick/logs/`) has
+   `[Game] another start asked for the window: focused, attention requested (Wayland)` (`restored, focused, …` when it
+   was minimized).
+3. **Maximized and full screen restored after the splash** (Q19, step 2). Do: the game; resize it and quit (Menu ›
+   Quit, Ctrl+Q); start it again; maximize it and quit; start again; F11 and quit; start again; F11. Look for: each start
+   opens as the window was left (the size; maximized, restored to that size; full screen), maximize and full screen put
+   in place just after the splash (a jump, as designed); F11 back to the window as it was; nothing else moves.
+4. **A slider dragged with the mouse, the picker scrolled with the wheel** (steps 8, 10). Do: the game; Settings; drag
+   the Master volume slider and let go; then make a folder of many files (`mkdir -p /tmp/stat-fick-check/many && for i in
+   $(seq 1 400); do echo '{}' > /tmp/stat-fick-check/many/c-$i.json; done`), New character, Menu › Load Character, type
+   `/tmp/stat-fick-check/many` in the name field and Enter, scroll the listing with the wheel, then use the arrow keys.
+   Look for: the percentage follows the slider while it moves, one soft press when it is let go; the listing scrolls
+   smoothly to its end and back with its rows always there (only those near the view are made, step 10); a click on a
+   row shows no focus ring where a key's selection shows one (a script focus after a mouse press).
+5. **The sounds by ear at the first start's level** (GM1-11, Q13, Q22; step 4's patches approved by ear, never heard in
+   the game). Do: the game on a fresh folder (the effects volume 60 %, Q22), the desktop at a comfortable level: press
+   buttons; open and close Settings, toggle Dev Mode, change the theme; New character; Menu › Save Character and Save;
+   Menu › Load Character and a file that isn't a character (`/tmp/stat-fick-check/many/c-1.json`); Load, Delete a
+   character and confirm. Look for (listen): a soft quill tick per press, a crinkle and a fold for a window opening and
+   closing, a stroke for a switch, the heavy page when a character opens, the seal thump for the file saved, the muted
+   double knock for the refused file, a crumpled sheet for the delete; one sound per action (a click that opens a window
+   only its opening), nothing on hover, no music anywhere (Q15). `Tools/Scripts/play-sounds.sh` plays them alone.
+6. **Save and Load Character on the real Documents folder** (Q9, Q24, step 10; the tests use a scratch one). Do: the
+   game; New character "Hand Check"; Menu › Save Character (Ctrl+S): the picker opens in Documents with
+   `stat-fick-character.json`; Save. Then Menu › Load Character (Ctrl+O) and that file. Look for: the picker's
+   Documents is `~/Documents` (the folder Electron's `app.getPath("documents")` gives, M9); "Character saved" under the
+   top bar; the file in `~/Documents`, its text the save's JSON form naming "Hand Check"; loading it makes a new character
+   `hand-check-2`, "Loaded stat-fick-character.json". Delete `~/Documents/stat-fick-character.json` afterwards if it isn't
+   wanted.
+7. **The mod list with a real mod made in the editor** (GM1-10, Q3, Q10, Q18; steps 6, 9, 10). Do:
+   `XDG_DATA_HOME=/tmp/stat-fick-check Tools/Scripts/editor.sh --player-folder /tmp/stat-fick-check/stat-fick`, New
+   mod with its info, a Stand-in item, Save; close it; the game; Settings. Then switch the mod off and quit; start
+   again; Settings; switch it on; quit. Then copy the mod and cut the copy (`head -c 100 <mod>.pak >
+   /tmp/stat-fick-check/stat-fick/mods/cut.pak`) and start again. Look for: the mod's row with its name, version, author,
+   file and "Loaded"; switched off, "Takes effect when the game is next started." beside it; at the next start "Off";
+   with the cut copy the start screen's line "1 mod was left out: cut. Settings › Mods tells why." in its gold ink, the
+   list's row "Left out: …" with its blood stripe, the good mod still loaded.
+8. **The keys on your keyboard's layout** (step 8: Electron takes a key's code from the layout, the engine its
+   character). Do: the game; Ctrl+Plus and Ctrl+=, Ctrl+-, Ctrl+0, F11, Escape, Ctrl+S, Ctrl+O, Ctrl+Q. Look for: each
+   does what the menu shows beside it.
+
+M12's by-hand list stays open beside this one (`Docs/Engine-Plan.md`, "Current task": the crash window's Copy and "Open
+logs folder", About scrolled with the wheel, the editor's "Where is Stat Fick?" with the mouse and the keyboard).
 
 ## Status
 
@@ -4566,3 +4902,24 @@ engine: what exists, the method, the design, 23 questions for the user, 19 propo
 waves. Found on the way: no symbol icon exists in the engine yet; today's old stylesheet doesn't compile in the engine
 (`@property`, `-webkit-text-fill-color`) and the capture script no longer drives today's old game unchanged; slot names
 follow the path rule; Force encounter isn't Dev Mode's.
+
+**Step 11 done (2026-11-15, the branch `gm1-step11`; "How it works", step 11): end to end, the package check and the
+Windows items.** `end-to-end.sh` is the game's flow: 241 expectations (157 before) over the game's 13 runs and the
+editor's 11 on one scratch per-user folder (a first start in the approved look with Continue greyed and no theme
+started; the settings screen with the first start's values; About; the two crashes; a second start while the first
+runs; the editor's mod checked, mounted and listed; a character, a setting, a character file and a mod of an unknown
+kind made in-process by `PlayerFolderTests`; with that mod and one whose index has a byte flipped both left out and
+named in the log, the list and the start screen's line; `--run continue` and the slot written back on quit; `--run
+load-character=<file>` into a new slot; the good mod switched off; the logs kept), the pictures judged by the approved
+look's colours read from the Chromium goldens (the start dialog, the windows' grounds and the page behind them, the mod
+rows' stripes). For it the manager's GM1-P20 (`--run`) and GM1-P21 (the lines the flow reads: the engine's theme
+starts, what the start and settings screens show). Found: the start dialog drawn grey whenever Continue is greyed, and
+the page behind every window with red and blue swapped (since step 9; fixed by `gm1-start-grey`); the engine's audio
+warm-up plays three themes into a graph no one hears at every start (about 655 ms of its own thread in Release; a note,
+no change). The package check's rules, the listings and the release's text unchanged; its self-test 119 of 119.
+"Windows check" items 1, 2a, 2b, 2d, 5, 8g, 9a–9c, 9i rewritten for the game and a new item 10 (GM1's own: the second
+`Stat Fick.exe`, the picker's places, slot names ignoring case, the window between runs, the PowerShell scripts, the
+keys and sounds, the colours a window draws in); "Checks by hand on Linux" written. The flow passes on the GPU (241 of
+241, 114 s) and on lavapipe (215 s) from a fresh publish on `37960d4`; the full suite passes on the GPU and on lavapipe:
+4130 + 565 = 4695 tests, none held or skipped; mutations 42 standing, all killed; the flow's breaks 27, all killed; the
+player's real folders unchanged. Not checked: Windows; the cloud's Xvfb; a real window (the by-hand list).
