@@ -47,10 +47,10 @@ public class GameDocumentTests
         var log = GameTesting.CaptureLog(() =>
         {
             h.Ui.UseStylesheet("ui/styles/controls");
-            h.Ui.UseStylesheet("ui/styles/start");
+            h.Ui.UseStylesheet("ui/styles/nowhere");
         });
         Assert.Equal(GameUi.Stylesheets, h.Ui.Sheets);
-        Assert.Equal(["Error [Ui] the stylesheet ui/styles/start isn't in the game's data: left out"], log.Where(l => l.Contains("[Ui]")));
+        Assert.Equal(["Error [Ui] the stylesheet ui/styles/nowhere isn't in the game's data: left out"], log.Where(l => l.Contains("[Ui]")));
         // A sheet with no data at all: none of the port's sheets, each logged, the document still made.
         List<string> empty = [];
         var bare = GameTesting.CaptureLog(() =>

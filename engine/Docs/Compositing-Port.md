@@ -110,6 +110,36 @@ become Overlap layers; scrollbars are their own layers (RasterInducingScroll is 
     item's own offset as the parent offset to its children.
   - *Before:* the engine rounded every text against its line's top, so text in a relatively placed span could be one
     device pixel off at fractional scales.
+- Four rules ported by GM1 step 9 (2026-11-14; `Docs/Game/Foundation.md`, "How it works", step 9; the fixtures
+  `Ui/LcdTextRuleReferenceTests`, main frames at 1 and 1.65, each case's LCD verdict read from Chromium's pixels and its
+  cc trace):
+  - *Skia's 48 px limit* (`SkScalerContext.cpp` `too_big_for_lcd`, `SK_MAX_SIZE_FOR_LCDTEXT`): a glyph run larger than 48
+    device px is no LCD mask. With a matrix that only translates, the text size past 48 (48 itself keeps LCD); with one
+    that scales or skews, the size squared times the signed area of the 2×2 part (each entry `sk_relax`ed to 1/1024) past
+    48². One verdict per run (`Canvas/CanvasText.cs`, `TooBigForLcd`). Skia then draws it exactly as text in a layer
+    without LCD, which the engine already had; Fontations ignores `kGenA8FromLCD`; Skia's full-to-normal hinting for
+    non-LCD text changes nothing, the engine's Full and Medium loading alike.
+  - *cc's save layers* (in place of the rule two items up, which made all of a layer's text grayscale when the layer held
+    a filter or a blend): Blink's `StartEffect` (`paint_chunks_to_cc_layer.cc`) records a filter and a blend mode as a
+    `SaveLayerOp` and opacity alone (an isolation group too) as a `SaveLayerAlphaOp` (a backdrop filter's, a
+    `SaveLayerFiltersOp`, is a layer's own: a backdrop filter is a direct compositing reason). A `SaveLayerOp` in a layer's
+    record sets `has_effects_preventing_lcd_text_for_save_layer_alpha` (`paint_op_buffer.cc`), and only then do the
+    record's `SaveLayerAlphaOp`s lose `kPreserveLCDText | kInitWithPrevious` (`paint_op.cc`; a `SaveLayerOp` never has
+    them); Skia gives a layer without `kPreserveLCDText` an unknown pixel geometry (`SkCanvas.cpp`), so its text is
+    grayscale. So: text in no save layer keeps its layer's verdict; text in save layers is grayscale when the layer's
+    record holds a `SaveLayerOp` (its own among them), else keeps LCD (`Layerizer.TextKeepsLcdInLayer`).
+  - *The root element is a stacking context* (`StyleAdjuster`'s `ForcesStackingContext` for `is_document_element`), so
+    it is the isolation group around blending descendants no nearer stacking context holds
+    (`NeedsEffectIgnoringClipPathAnd2DScale`: a stacking context whose layer `HasNonIsolatedDescendantWithBlendMode`), an
+    effect node under the root effect; not the body's, not the view's (`PropertyTreeBuilder.CreatesStackingContext`).
+    With it, `ViewPainter::PaintRootGroup`: the view's base background alone (the Root Group's backdrop) in the view's
+    contents state, then the root's background in the Root Element Group's state, the root's border-box state without
+    its own transform, without the base (`UiPainter.PaintCanvasBackground`, `RootElementGroup`).
+  - *A decomposited blend mode's merge* (`PendingLayer::CanMerge` with `force_merge`): it merges whatever the sparsity
+    or the text, and the merged layer keeps `Merge`'s defaults: nothing known opaque and no text known to be on an opaque
+    background (the engine had kept the home layer's text verdict). Where LCD text is strongly preferred (below 1.5)
+    the next layer with text on an opaque ground then refuses to merge into it: in `lcd-blend` at 1 an opacity box after
+    the root's blend is a layer of its own (Overlap) and keeps LCD, at 1.65 one layer (`Layerizer.Merge`).
 
 ## The iframe and the main frame (2026-11-14)
 

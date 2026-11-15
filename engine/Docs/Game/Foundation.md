@@ -75,12 +75,12 @@ In full, with the options not taken, in `Docs/Game-Plan.md`, GM1, "Decisions for
   window on the user's screen, nothing audible from a session ("How each step is finished", item 1; the standing rule
   in "Small tasks", "The proof cutscene's three sounds by ear").
 
-### The detail round (Q1–Q31 and Q16b, the user, 2026-11-13 and 2026-11-14)
+### The detail round (Q1–Q33 and Q16b, the user, 2026-11-13 and 2026-11-14)
 
 Asked by the manager with the question tool in six rounds of four after this doc's first version, then Q24, which the
 answers raised, the same day, and Q25 and Q26, which step 5 raised, the same day, then Q27 and Q28, which step 6 raised,
-on 2026-11-14, and Q29–Q31, which step 8 raised, the same day (the questions as asked, with their facts and options: "The
-questions as asked" below). Every answer the recommended option (a) except **Q6, Q11, Q15, Q16 (with its follow-up Q16b),
+on 2026-11-14, Q29–Q31, which step 8 raised, the same day, and Q32 and Q33, which step 9 raised, the same day (the
+questions as asked, with their facts and options: "The questions as asked" below). Every answer the recommended option (a) except **Q6, Q11, Q15, Q16 (with its follow-up Q16b),
 Q18, Q22, Q23 and Q25**. Recorded in `Docs/Game-Plan.md`, "Decisions for GM1", too (GP-7). Nothing is open.
 - **Q1, a character's name and its file:** any name up to 80 characters, kept in the save; the slot's file is named from
   it by a rule ("Ser Alrik" → `saves/ser-alrik.dat`, a second one `ser-alrik-2.dat`). (Not only the path rule's
@@ -183,6 +183,12 @@ Q18, Q22, Q23 and Q25**. Recorded in `Docs/Game-Plan.md`, "Decisions for GM1", t
   draws that text grayscale too; only `Tools/PaintReference`'s fixture frame (a srcdoc iframe) drew it in LCD (Chromium
   against itself: 2,777 pixels at 1, 5,234 at 1.65). So the game's screen fixtures are captured as the main frame (the
   manager, 2026-11-14), and no hold remained.
+- **Q32, the room for GM2's Field tools rail** (the user, 2026-11-14, asked by the manager with step 9's captures; the old
+  page's body keeps a 300 px empty strip on the left for the rail): **not kept in GM1**: the page's frame is centred, as
+  the start screen and the windows are (`sheet.css`, `body { padding-left: 0 }`); GM2 brings the rail and its room
+  together. (Not kept at the old place.)
+- **Q33, the top bar's Menu button** (the user, 2026-11-14, asked with step 9's captures): **"☰ Menu"**, the ☰ one of the
+  28 icons (the symbol on the old Field tools button) before the word. (Not the word alone.)
 
 **The old game is frozen for the recapture** (the user, 2026-11-13, in the chat with the manager): "Old game wont be
 touched until you give the ok, except if you need something". Nothing in `old-game/` changes while the references are
@@ -918,7 +924,7 @@ per-object seeds; sound effects keep `SoundEffects.Seed`. GM1 has no roll; the s
   mounting a checked mod, the list showing it), 9a (the start screen, titled "Stat Fick", after the splash), 9c (the game's
   crash triggers) change; step 11 rewrites them.
 
-## The questions as asked (Q1–Q31, answered 2026-11-13 and 2026-11-14)
+## The questions as asked (Q1–Q33, answered 2026-11-13 and 2026-11-14)
 
 Each as the manager asked it with the question tool (2026-11-13), in asking order, the recommended option first; its
 answer after it and in "The detail round" above.
@@ -1217,6 +1223,22 @@ findings ("Small tasks left from earlier milestones").
   right: in a main frame, as the game's page is, Chromium draws that text grayscale too; only the harness's fixture frame
   (a srcdoc iframe) drew it in LCD. The manager (2026-11-14): the game's screen fixtures captured as the main frame; no
   hold remained ("How it works", step 8).
+
+**Q32. The room for GM2's Field tools rail** (raised by step 9's captures, asked by the manager on 2026-11-14). The old
+page's body keeps a 300 px empty strip on the left for the Field tools rail, which GM2 brings with the sheet; in GM1 the
+page has no rail.
+- (a) **Not kept in GM1:** the page's frame centred, as the start screen and the windows are, with no blank strip; GM2
+  brings the rail and its room together (`body { padding-left: 0 }` in `sheet.css`). *Recommended:* no empty strip for
+  a rail that isn't there yet.
+- (b) **Kept:** the top bar exactly where the old page has it.
+- **Answer (the user, 2026-11-14): (a).** Built by step 9 ("How it works", step 9).
+
+**Q33. The top bar's Menu button** (raised by step 9's captures, asked on 2026-11-14). The in-game menu (Q7, Q8) is
+opened from a button of the top bar, a `.backup-button` beside the old ones.
+- (a) **"☰ Menu":** ☰, one of the 28 icons (the symbol on the old Field tools button), before the word. *Recommended:*
+  the symbol says "menu" at a glance, in the top bar's own look.
+- (b) **"Menu":** the word alone.
+- **Answer (the user, 2026-11-14): (a).** Built by step 9.
 
 ## The proposals as made (GM1-P1–GM1-P19)
 
@@ -1596,6 +1618,20 @@ stays as it is until the manager's ok (the recapture's freeze).
      (first start, Continue, New character, Start screen, Quit and the window's close saving) on scratch folders, the
      screens matching Chromium (12 levels / 0.2 %), the left-out mods' line. Mutations: each rule. User approval: those
      screens.
+   - **Done (2026-11-15, the branch `gm1-step9`; "How it works", step 9):** the looks and wordings approved by the user as
+     captured (both themes); Q32 (the rail's room not kept) and Q33 ("☰ Menu") answered on the way, and Q34 (the 1.65
+     layout precision an engine task of its own) raised by the step's fixtures; the manager's choices accepted and the
+     status lines' rule; rebased onto step 10, the flows across both steps tested.
+     - *The engine, with the manager's leave:* (A) Skia's 48 px limit for LCD text, (B) cc's save layers, the root
+       element's isolation group with the Root Element Group, a decomposited blend's merge; their fixtures
+       (`LcdTextRuleReferenceTests`). No existing reference moved; four old-game screens slightly worse under the backdrop
+       blur, accepted as a finding.
+     - *Held (Q34):* the three light start screens at 1.65, in `Ui/HeldScreens.cs`.
+     - *Outside the step's folders, with the manager's leave:* step 2's `StartSequenceTests` and `GameRunTests`, step 8's
+       `GameDocumentTests` (one name), `UiResourcesTests.Stylesheets`, `GameUiHarness` (`Scratch`), `HeldScreens.cs`,
+       `end_to_end.py`'s credits expectation; the engine's `CanvasText.cs`, `Layerizer.cs`, `PropertyTreeBuilder.cs` and
+       `UiPainter.cs` (the Root Element Group).
+     - *Found:* the engine draws no isolation group apart; the backdrop blur over LCD text; the 1.65 layout precision (C).
 10. **The settings screen with the mod list, the slot list, the damaged-save question, the file picker.** After 5, 6, 7
     and 8; Q1, Q3, Q9, Q15, Q17, Q18, Q19, Q21, Q22, Q23, Q24, GM1-P15 decided.
     - Owns: `Game/Statventure.Game/Screens/Settings/`, `Screens/Slots/`, `Screens/Picker/`, their sheets
@@ -3865,6 +3901,205 @@ expectation changed; the player's real folders unchanged (this machine's game fo
 editor's browser fixture's; Q34's holds aside); a real window (the slider dragged with a real mouse, the picker's rows
 scrolled by a wheel); the sounds by ear in the game.
 
+### Step 9: the start screen, the character's page and its top bar, the in-game menu, About (2026-11-14 and 2026-11-15, the branch `gm1-step9`)
+
+**Decided on the way.** The user (2026-11-14, the question tool, through the manager, after the step's 16 scenes captured
+at 1× in both themes): **the looks and the wordings approved as captured** (every wording below), **Q32** (the 300 px
+room for GM2's Field tools rail not kept: the page's frame centred) and **Q33** ("☰ Menu"), and **Q34** (raised by this
+step's fixtures, (C) below: the engine's layout at a fractional scale fixed as an engine task of its own,
+`gm1-layout-scale`; the comparisons failing on it held until it lands; recorded by that task). The manager (2026-11-14):
+the step's behaviour choices accepted (the first usable button focused when the start screen shows; the menu's arrow keys;
+the darkened ground closing the menu or About; About opening at its top; Continue opening the slot itself and running
+`open-slot` for a damaged one; `game-opened` from the page on every open, whoever opened the character); **one rule for
+the status lines** (a line shows a `StatusShown` message only while its owner is the topmost surface: the page's and the
+start screen's only while no window is open and their screen shows); the engine rules (A) and (B) below ported, with the
+root element's isolation group (`PropertyTreeBuilder.cs`, granted for that rule) and what follows from it; the four
+old-game screens slightly worse under the backdrop blur accepted as a finding, not a fix; the leave for step 2's tests,
+`UiResourcesTests.Stylesheets`, `GameDocumentTests`' missing sheet's name, `end_to_end.py`'s one credits expectation and
+`GameUiHarness` (additive); `make-ui-pack.sh` under the shared lock. Rebased onto step 10 (`5353034`): the three holds put
+in step 10's `Ui/HeldScreens.cs`, the flows across both steps tested against step 10's real screens.
+
+**The approved wordings** (the user, 2026-11-14).
+- *The start screen:* the eyebrow "RPG / PERSONAL RECORD" (the old sheet's hero eyebrow), the title "Stat Fick" after the
+  top bar's ✦ mark; the buttons "Continue", "New character", "Load", "Settings", "Quit", "About" (Q16's order).
+- *The left-out line* (the mods left out at this start, in mounting order; the second sentence kept whole on its line):
+  "1 mod was left out: Ember Rite. Settings › Mods tells why."; "2 mods were left out: Ember Rite and Frost Pack. Settings
+  › Mods tells why."; "3 mods were left out: A, B and C. …"; four or more: "5 mods were left out: Bone Choir, Ember Rite,
+  Frost Pack and 2 more. Settings › Mods tells why."
+- *New character's prompt* (step 8's dialog): "Name your character", the next default name filled in and selected, "OK"
+  and "Cancel"; its bubble: "Your character needs a name." (empty or spaces), "A name can be at most 80 characters
+  long." (reached only by pasting past the field's limit), "A name can't hold a tab or another control character."
+- *The top bar:* the old one (`index.html` 65–88) without the theme toggle and the three character buttons, with "☰ Menu"
+  (Q33) as a `.backup-button`; ⚙ Settings at the bottom right (`index.html` 23–25).
+- *The menu:* the eyebrow "STAT FICK", the title "Game *menu*"; its items in groups split by rules: "Save Character"
+  Ctrl+S, "Load Character" Ctrl+O, "Open game folder", "Settings", "Start screen" | "Actual Size" Ctrl+0, "Zoom In"
+  Ctrl+Plus, "Zoom Out" Ctrl+-, "Toggle Full Screen" F11 | "About Stat Fick" | "Quit" Ctrl+Q ("Exit" with no keys on
+  Windows); Save Character and Start screen only while a character is open.
+- *About:* the eyebrow "HELP", the title "About *Stat Fick*"; the credits `Credits.Markup` unchanged (the same text the
+  credits tests check), their headings in the eyebrows' look, capitals by the sheet only.
+
+**The start screen** (`Game/Statventure.Game/Screens/Start/StartScreen.cs`, `Assets/UI/styles/start.css`; the command
+`start-screen`, which the program runs at the start, and `continue`, `new-character`): a section on the page itself (no
+darkened ground: nothing is under it) holding the old dialogs' look (`.spell-picker-dialog` with its leather
+`.dialog-header`), the buttons the alert dialogs' `.backup-button`s (New character in the old "＋ New Character" button's
+ember), the left-out line and a status line. Each button runs its command (`data-command`: `continue`, `new-character`,
+`open-slots`, `open-settings`, `quit`, `about`). **Shown** when no character is open and it is hidden: by
+`start-screen` (which leaves the open character first), and a microtask after the session's `Closed` (so a character
+closed for another, New or Load, never shows it in between); its status line emptied, Continue updated, the left-out line
+written (`GameMods.LeftOut`), "[Game] the start screen shown" logged, the focus on its first button that can act
+(Continue, else New character). **Hidden** on the session's `Opened`. **Continue** is possible while
+`GameSession.ContinueSlot()` names a slot (greyed otherwise, Q16b), updated when the screen shows and on the
+`lastCharacter` setting's change (every change of what Continue opens changes it: a character opened, its slot
+deleted, under the slot list too); it opens that slot (`GameSession.Open`) and, when its save doesn't read, runs step 10's
+`open-slot <slot>` for the damaged-save question. **New character** asks step 8's prompt with `NextDefaultName()`
+(Q2), refusing what `GameSession.NameProblem` refuses in the words above, then `GameSession.New` (logged "[Game] a new
+character, <slot>"). **The status line** follows the rule above.
+
+**The character's page** (`Screens/Sheet/SheetScreen.cs`, `Assets/UI/styles/sheet.css`): GM1's page is the old page's
+frame with its top bar (the brand with the ✦ mark, the day line, the autosave dot, the status line `#backup-status`,
+"☰ Menu") and the ⚙ Settings button, the page below empty until GM2. Shown on the session's `Opened` (its status line
+emptied, `game-opened` played: every open, whoever opened it), hidden on `Closed`; ⚙ runs `open-settings`, Menu runs
+`open-menu`. **The autosave dot** lights ember (`is-saving`) on the session's `Saved` for 350 ms, the timer started again
+by each save (the old `markBackupSaved`). **The status line** (the old `setBackupStatus`): `is-success` for news, `is-error`
+for a problem, the rule above. `sheet.css`: `body { padding-left: 0 }` (Q32).
+
+**The menu** (`Screens/Menu/MenuScreen.cs`, `Assets/UI/styles/menu.css`; `open-menu`, which Escape runs with no window
+open, step 8): a window of the old dialogs' look, its items made at each opening from `MenuScreen.Items` (the keys from
+`GameCommands.KeysOf`), the first focused; an item closes the menu, then runs its command; Up, Down (both wrapping), Home
+and End move among the items; ×, the backdrop and Escape close it; logged "[Game] the menu opened (a character open|the
+start screen)".
+
+**About** (`Screens/About/AboutScreen.cs`, `Assets/UI/styles/about.css`; `about`, so `--about`): a window of the old
+dialogs' look holding the engine's credits for "Stat Fick" and the program's version, at its top each time it opens, its
+content scrolling within; logged "[Game] the credits view opened" (the line step 2's stub had). Step 2's stub, its
+engine view and the rule step 8 gave it are gone.
+
+**Quit and the window's close** (`quit`, the window's close): both end the run at once with no question, the open
+character saved to its slot on the way out (the program's own, step 2); tested in real runs.
+
+**The engine: four of Chromium's rules** (`Docs/Compositing-Port.md`, "Blink rules collected", the last item; the
+fixtures `Tests/Statventure.Tests/Ui/LcdTextRuleReferenceTests.cs`, main frames at 1 and 1.65, the goldens
+`Golden/ui-lcd-*` made by `make-scaled-paint-references.sh` from `Reference/lcd-text-rule-fixtures.json`):
+- **(A) Skia's 48 px limit** (`Engine/Statventure/Canvas/CanvasText.cs`, `TooBigForLcd`): a glyph run larger than 48
+  device px is no LCD mask (`too_big_for_lcd`: the size past 48 under a matrix that only translates, else the size squared
+  times the 2×2 part's signed area, each entry to 1/1024, past 48²). Found by the start dialog's 43 px title at 1.65
+  (71 device px), which the engine drew in LCD and Chromium grayscale (the old game's 52 px h1 meets it too). Alone it
+  moves none of the old game's screens (their page text was already grayscale under the old (B)).
+- **(B) cc's save layers** (`UI/Paint/Compositing/Layerizer.cs`, `TextKeepsLcdInLayer`): text in no save layer keeps its
+  layer's verdict; text in a filter's or a blend mode's `SaveLayerOp` is grayscale; text in opacity layers only keeps LCD
+  unless the layer's record holds a `SaveLayerOp`. The engine had made all of a layer's text grayscale when the layer
+  held a filter or a blend anywhere: the page's disabled "Return to combat" (a filter) turned the whole page grayscale.
+  Pixels past 12 levels / past 24, every render of the full suite that moved, the old rule → the new (at 1; at 1.65):
+
+  | Render | at 1 | at 1.65 |
+  | --- | --- | --- |
+  | `game-sheet` | 24,983 / 18,120 → 2,833 / 1,309 | 43,030 / 28,839 → 6,485 / 3,018 |
+  | `game-combat` | 7,678 / 5,611 → 178 / 60 | 11,992 / 8,361 → 905 / 338 |
+  | `ui-decorations` (zoom 1.2) | — | 2,740 / 1,475 → 1,402 / 377 |
+  | step 9's page (`page-dark`, `page-light`, `page-status-light`) | 1,801–2,166 → 13–18 | 3,138–3,859 → 130–180 |
+  | step 9's About (three fixtures) | — | 2,374–2,497 → 200–318 |
+  | step 9's start screens (dark) | — | 3,547–3,792 → 2,216–2,467 |
+  | `game-shop` (worse) | 4,688 / 678 → 5,124 / 894 | 7,512 / 556 → 8,753 / 1,535 |
+  | `game-passives`, `game-settings`, `game-skills` (worse) | 4 more each | 12 more each |
+
+  Every other render the same. The four worse ones all have a window open whose `.modal-layer` blurs the page
+  (`backdrop-filter: blur(2px)`); the shop's extra pixels are the Field tools rail's "FIELD TOOLS" under the blur
+  (vanished in the engine before, blocky smears now, faint letters in Chromium): the engine's backdrop blur over a layer
+  with LCD text, accepted by the manager as a finding ("Small tasks left from earlier milestones").
+- **The root element's isolation group** (`PropertyTreeBuilder.CreatesStackingContext`; `UiPainter.PaintCanvasBackground`):
+  Blink always makes the document element a stacking context, so it is the isolation group (an opacity-1
+  `SaveLayerAlphaOp`) around blending descendants no nearer stacking context holds, and ViewPainter then paints the base
+  background alone in the view's contents state and the root's background in the Root Element Group. Without it the new
+  (B) had turned `TextHintingReferenceTests`' `text-opacity-blend` (a blend under the root beside plain page text) from 0
+  to 912 pixels past 12 levels; with it, 0 again (one layer, its text grayscale, as Chromium's trace); no other reference
+  moved and every `CompositingReferenceTests` layer comparison stayed as it was.
+- **A decomposited blend mode's merge** (`Layerizer.Merge`; Blink's `PendingLayer::CanMerge` with `force_merge`): the
+  merged layer knows no text on an opaque ground (the engine had kept the home layer's). Found by the step's own fixture
+  `lcd-blend` at 1: Chromium's trace three layers (the base backdrop, the root's group, the opacity box after the blend a
+  layer of its own, Overlap, its text LCD), the engine's one; at 1.65 one layer in both (LCD text not strongly preferred).
+  No other reference moved.
+
+**The fixtures of the rules** (5, each at 1 and 1.65; each case's LCD verdict read from Chromium's pixels, a line's
+fringes off the line from its ground to its ink, and checked against the case's expectation, the engine's against
+Chromium's; the layers against Chromium's cc trace, the layer probe of 2026-11-14): `lcd-size` (Lato lines of 47, 48, 49
+and 72 px, and of 28.4849, 29.091 and 29.697 px, 47, 48 and 49 device px at 1.65, each with an icon, and of 24 and 25 px
+under `scale(2)`, 48 and 50 device px at 1: Skia's size is the font's, the matrix the scale), `lcd-filter` (the page's
+text beside a filter and an opacity box), `lcd-opacity`, `lcd-blend` (a blend under the root), `lcd-blend-isolated` (the
+same blend in a stacking context of its own: the page's text keeps LCD). Every one within the paint fixtures' limits.
+Beside them, a check of ViewPainter's two groups as Blink's source has them (a translucent, scaled root: the base apart,
+opaque, in the root effect; the root's background in its own effect, over the whole canvas, nothing of it opaque).
+
+**(C) and the hold** (Q34). At 1.65 the start dialog lands at 263.9969 device px in the engine and at 264.0 in Chromium
+(Chromium lays out in device-pixel layout units), so the buttons (314.4969 against 314.5) snap their side borders a
+device column left: 2,221–2,283 pixels of the light start screens, with the dialog's 1 px ring (842, the canvas's own
+antialiasing the user kept on 2026-10-25) and the buttons' shadow and focus rows: 4,011 (`start-first-light`), 4,077
+(`start-continue-light`), 3,550 (`start-left-out-one-light`) against 2,962 (0.2 %); the dark ones pass (2,216–2,467). The
+positions are written up for the layout task in `~/.cache/stat-fick-build/claude-work/gm1/step9/C-layout-hair.md`.
+**Held exactly those three at 1.65**, with the user's word (Q34, 2026-11-14), in `Ui/HeldScreens.cs` beside step 10's
+picker: each named with why, whose word and when; still compared with each pixel allowed to meet the golden one device
+column either side, at the unchanged limits (1,914, 1,986 and 1,445 pixels then); their 1× comparisons and every other
+fixture not held; off by removing their lines (or `STATVENTURE_UNHOLD_SCREENS=1`), and then they fail as measured.
+
+**Found for the manager (engine):** (D) an isolation group is drawn in the page's own pixels: `UiPainter` pushes a canvas
+layer only for opacity, filters and blend modes, so a blend inside `isolation: isolate` blends with what is beneath the
+group, where Chromium's sees only the group (17,212 pixels at 1 on `lcd-blend-isolated` with a transparent group; the
+fixture's group has an opaque ground, as the game's isolation groups have; "Small tasks left from earlier milestones");
+the backdrop blur over LCD text (above); (E) an icon under a CSS scale is drawn hollow (✦ in a line under `scale(2)`, its
+outline with most of its inside left out, where Chromium fills it; the size fixture's scaled lines were left without
+it; small tasks). And the 1.65 layout precision (C), now Q34's task.
+
+**The screens against Chromium** (GM1-P17): `Tests/Statventure.Game.Tests/Screens/ScreenFixtures.cs` (21: the start
+screen, New character's prompt, the page, the menu and About in both themes, their variants in one: 800 × 680, the page
+1200 × 400, wide enough for the top bar on one line), on `ScreensHarness.cs` (the four screens attached to the real parts
+on `GameUiHarness`'s scratch per-user folder; step 10's commands as stand-ins there, so the fixtures are the approval's
+scenes); captured with `make-game-screen-references.sh` as the main frame. Pixels past 12 levels: the start screens 36–220
+at 1 and 2,216–2,467 at 1.65 (dark), the prompt 59–304 and 102–777, the page 13–18 and 130–180, the menu 18–35 and 84–138,
+About 12–14 and 200–318; the three light start screens at 1.65 held (above).
+
+**Changed outside the step's folders** (the manager's leave): step 2's `StartSequenceTests` (the not-registered test on
+`--open nowhere` with the start screen shown; the two About-stub tests replaced by one on step 9's About) and
+`GameRunTests` (the start screen shown); step 8's `GameDocumentTests` (the missing sheet named `ui/styles/nowhere`); the
+engine's `UiResourcesTests.Stylesheets` (the eleven sheets); `GameUiHarness` (`Scratch`, beside step 10's `PlayerFolder`,
+`Storage` and `Game`); `Ui/HeldScreens.cs` (the three lines) and `Screens/HeldScreensTests.cs` (their checks);
+`Tools/Packaging/end_to_end.py` (the credits expectation: About's window over the start screen, its dialog's dark ground
+over a fifth of the picture, 28 % on the GPU, and the credits' light lettering over 0.15 %, 0.37 %; the start screen
+alone 7.6 % and 0.014 %; the log line kept); the engine's `Canvas/CanvasText.cs`, `Compositing/Layerizer.cs`,
+`Compositing/PropertyTreeBuilder.cs` (granted) and `UI/Paint/UiPainter.cs` (the Root Element Group, which follows from the
+root's isolation group; reported). **`ui.pak`** made again under the shared lock: 18 entries (the five faces, two licences,
+eleven sheets).
+
+**What step 11 needs.** Commands: `start-screen` (run at the start), `continue`, `new-character`, `open-menu`, `about`
+(`--about`), `--open menu` (`open-menu`). Log lines: `[Game] the start screen shown`, `[Game] a new character, <slot>`,
+`[Game] the menu opened (a character open|the start screen)`, `[Game] the credits view opened`. Markup: `#start-screen`
+(`#start-continue`, `#start-new`, `#start-load`, `#start-settings`, `#start-quit`, `#start-about`, `#start-left-out` with
+`.start-left-out-where`, `#start-status`), the page `main.game-page` (`#menu-button`, `#settings-open-button`,
+`#backup-status`, `.status-dot`), `#game-menu` (`.game-menu-item[data-command]`), `#about-modal` (`.about-content`). A
+first start's `--capture` draws the start screen (dark theme: the stone page, the dialog's ground).
+
+**What the parts lacked:** nothing; every member the screens use was there.
+
+**Tests** (the game's in `Tests/Statventure.Game.Tests/Screens/`, the engine's in `Tests/Statventure.Tests/Ui/`;
+85 new in the game's project, 406 → 491; 33 in the engine's, 4047 → 4080): `StartScreenTests` (a first start: the buttons in Q16's order, Continue greyed and New character focused,
+a greyed Continue's click doing nothing; Continue enabled, focused and opening the last character; a damaged save through
+`open-slot`; Continue following the slots and the last character; New character's prompt with the approved words and
+the next default name, the character made and opened, `game-opened` once; the refusals' words and Cancel; the left-out
+line's forms; each button's command; `start-screen` leaving the open character saved, and changing nothing on the start
+screen; a character left for another never showing the start screen between; Escape opening the menu), `PageTests` (the
+top bar as the old one's frame with "☰ Menu" and the mark not a button; the page while a character is open, whoever
+opened it, with `game-opened`; the dot lit 350 ms after each save, going out with the page; ⚙ and Menu; no room for the
+rail), `MenuTests` (the items in the old menu's order and words; on the start screen without those needing a character;
+"Exit" on Windows; opened by the button and Escape, once at a time; an item closing the menu, then running; the sounds;
+the arrows, Home and End), `AboutTests` (the engine's credits text unchanged; at its top, once at a time, closed by ×,
+Escape and the ground; the game's lettering), `StatusLineTests` (both lines under the rule, with a stand-in window),
+`QuitAndCloseTests` (real runs: the menu's Quit and the window's close end at once and save the open character, its
+files removed first), `ScreenFlowTests` (across steps 9 and 10 with step 10's real screens: Load and Settings from the
+start screen, ⚙ and the menu's Settings over the page, the picker from the menu and Ctrl+S and Ctrl+O, Continue on a
+damaged slot answered with the backup, Continue greyed when its character is deleted in the slot list, a refusal on the
+slot list's line alone and after it closed on the start screen's, the menu's and About's log lines once per opening,
+`game-opened` once per character whichever screen opened it), the 21 fixtures at both scales in `GameScreenTests`, the three holds in `HeldScreensTests`;
+`LcdTextRuleReferenceTests` (the fixture list, each fixture's picture, each case's verdict, the layers, Skia's limit
+itself under translations, scales, skews and a mirror, the Root Element Group's chunks). **Results:** the full suite on the GPU (the engine's tests 2 min 47 s, the game's 1 min 15 s) and on lavapipe (2 min 54 s and 1 min 18 s) on `3be1bf9` rebased on `5353034`: 4080 + 491 = 4571 tests (`main`'s 4047 + 406 and 33 + 85 new), 3 held (step 9's, beside step 10's 8: 11 held in all, each still checked under its rule), none skipped; `end-to-end.sh --publish` 157 of 157 on the GPU (101 s) and on lavapipe (155 s); mutations: the code's 109 (the engine's 22: (A) 10, (B) 12; the start screen 35, the page 18, the menu 23, About 7, the holds 4) all killed but 1 that can't differ (a pseudo-element of the root taken as the document element: it never has a blending descendant, so it is never an isolation group); the first round's 114, 97 killed: of its 17 survivors 11 gaps closed (a scale's matrix through the size fixture's scaled lines; the Root Element Group's base and transform through a check of its chunks; the start-screen command on the start screen; the prompt's words; the dot going out with the page; the menu asked again while open, closing before its command, taking its keys, its log line; About's log line once) and 5 redundant lines removed (the save-layer rule's two checks of the chunk's own effects, which the layer's record already covers and a backdrop filter never reaches; Continue's subscription to the slots, each change of it a change of `lastCharacter` too; the menu's empty-group check; About's scroll to its top, the window being taken out of the document when it closes); the sheets' 30 all killed (5 by computed-style checks added for rules under the comparisons' limits); `end_to_end.py`'s credits expectation broken (About never opening): both its checks failed, 155 of 157; the player's real folders unchanged (the game folder; the Documents folder's top level changed once by the user's own folder on 2026-11-14 at 23:58, nothing of the game's, its hash `cf73041b…` the before since).
+
 ## Status
 
 **Step 5 done (2026-11-13, the branch `gm1-step5`; "How it works", step 5): the save record `save.game` v1, the
@@ -4013,6 +4248,22 @@ eight at 1.65, held with the user's word (Q34: the engine's layout a hair off Ch
 and 106 new), none skipped; `end-to-end.sh --publish` 157 of 157 on both; mutations: the code's 150 all killed (4 gaps closed, 2 rewritten), the sheets'
 16: 15 killed, 1 that can't differ in the engine; the player's real folders unchanged. Not checked: Windows; a real
 window; the sounds by ear in the game.
+
+**Step 9 done (2026-11-15, the branch `gm1-step9`; "How it works", step 9): the start screen, the character's page and
+its top bar, the in-game menu, About.** The looks and wordings approved by the user as captured (both themes); Q32 (the
+Field tools rail's room not kept) and Q33 ("☰ Menu") answered. The start screen (`start-screen` at the start, Continue
+greyed while there is nothing to continue and a damaged slot through step 10's question, New character's prompt, Load,
+Settings, Quit, About, the left-out mods' line, its status line); the page with the old top bar ("☰ Menu", the autosave
+dot, its status line) and ⚙ Settings, `game-opened` on every open; the in-game menu; About in the game's window; quit
+and the window's close saving the open character. The engine, with the manager's leave: (A) Skia's 48 px limit for LCD
+text, (B) cc's save layers (the sheet's screen from 24,983 to 2,833 pixels past 12 levels at 1 and from 43,030 to 6,485
+at 1.65), the root element's isolation group and a decomposited blend's merge, with fixtures of their own; no existing
+reference moved; four old-game screens with a window open slightly worse under its backdrop blur (accepted as a finding).
+21 Chromium fixtures captured as the main frame, all within the limits but **three held with the user's word (Q34): the
+light start screens at 1.65** (`start-first-light`, `start-continue-light`, `start-left-out-one-light`: 4,011, 4,077
+and 3,550 pixels against 2,962; the dialog a hair left of Chromium's, the buttons' borders a device column apart), in
+`Ui/HeldScreens.cs` beside step 10's eight, until `gm1-layout-scale` lands. Found: the engine draws no isolation group
+apart; its backdrop blur over LCD text; an icon under a CSS scale drawn hollow. The full suite passes on the GPU and on lavapipe: 4080 + 491 = 4571 tests (`main`'s 4453 and 118 new), 3 held (Q34), none skipped; `end-to-end.sh --publish` 157 of 157 on both; the code's 109 mutations all killed but 1 that can't differ, the sheets' 30 all killed; the player's real folders unchanged. Not checked: Windows; a real window; the sounds by ear in the game.
 
 **GM1's design decided (2026-11-13, docs only, the branch `gm1-design` from `2bd4da9`):** the user answered the detail
 round, complete: Q1–Q24 and the follow-up Q16b (every answer the recommended option except Q6, Q11, Q15, Q16 with Q16b,

@@ -434,6 +434,19 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   fixture's own; a sheet rule whose pixels stay under the comparison's 0.2 % needs a computed-style check of its own
   (`element.Style`) to be shown able to fail; a mutation's `new` inside a `_ =>` lambda can't use the discard `_`
   (it is the parameter); a scratch script run as a program needs its execute bit (`css-mutate.py` ran `run.sh`).
+- 2026-11-15 (the PC, GM1 step 9's worker on the branch `gm1-step9`, 4080 + 491 = 4571 tests on the GPU and lavapipe, 3 held):
+  **the start screen, the character's page and its top bar, the in-game menu, About** (`Game/Statventure.Game/Screens/
+  Start/`, `Sheet/`, `Menu/`, `About/`; `Docs/Game/Foundation.md`, "How it works", step 9). Facts: Skia draws no glyph
+  over 48 device px in LCD; cc keeps LCD in a `SaveLayerAlpha` only while the layer's record holds no `SaveLayerOp`
+  (filter, blend), and text in no save layer keeps its layer's verdict; Blink always makes `<html>` a stacking context
+  (the isolation group of the root's blends; the view's background painted in it, the base backdrop apart); a
+  decomposited blend's merge knows no text on an opaque ground; at 1 Chromium keeps layers apart for LCD text (strongly
+  preferred), so a fixture's layers can differ between 1 and 1.65; the engine draws no isolation group apart (small
+  tasks). Gotchas: a case's LCD verdict reads from its pixels (grayscale text lies on the line from its ground to its ink
+  whatever opacity, filter or blend it is in; LCD fringes leave it), where "no pixel past 12 levels" per line fails on
+  glyphs a subpixel bucket apart; `claude-work/gm1/step9/lcd/probe.sh` gives Chromium's cc layers of any fixture list (main
+  frame, the output the fixture's size); a real run's test acts in its first update (a hidden window's presents hang after
+  a few frames under wlroots) and opens the per-user folder afresh after (`GameStorage` closes with the run).
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

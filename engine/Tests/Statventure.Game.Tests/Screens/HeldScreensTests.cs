@@ -18,6 +18,15 @@ public class HeldScreensTests
         Assert.Null(HeldScreens.Held("picker-save-replace-dark", 1.65f));
         Assert.Null(HeldScreens.Held("settings-mods-dark", 1.65f));
         Assert.Null(HeldScreens.Held("dialog-confirm-dark", 1.65f));
+        // Step 9's: the three light start screens at 1.65, not their dark forms, not at 1×.
+        foreach (var name in new[] { "start-first-light", "start-continue-light", "start-left-out-one-light" })
+        {
+            Assert.Contains("Q34", HeldScreens.Held(name, 1.65f));
+            Assert.Null(HeldScreens.Held(name, 1));
+        }
+        Assert.Null(HeldScreens.Held("start-first-dark", 1.65f));
+        Assert.Null(HeldScreens.Held("start-left-out-two-dark", 1.65f));
+        Assert.Null(HeldScreens.Held("start-new-character-refused-light", 1.65f));
     }
 
     /// <summary>A 6 × 2 image with one bright column at <paramref name="column"/> in row <paramref name="row"/>.</summary>

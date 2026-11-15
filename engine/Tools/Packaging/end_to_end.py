@@ -45,6 +45,7 @@ TEST = "Statventure.Tests.Editor.EndToEnd.GameFolderModTests.AModMadeAgainstTheG
 GROUND = (0x1a, 0x1c, 0x1a)         # the dark ground of the splash, the credits, the crash window and the editor (P4)
 PANES = (0x29, 0x2c, 0x28)          # the editor's panes
 STONE = (0x11, 0x0c, 0x09)          # the game's page: the game's document in its first start's dark theme (GM1 step 8: html.dark-mode's --paper)
+ABOUT_GROUND = (0x25, 0x1c, 0x16)   # the game's About window's dialog in the first start's dark theme (GM1 step 9)
 BRUTAL_YELLOW = (0xf1, 0xc4, 0x0f)  # the BRUTAL logo's yellow
 EMBER = (0xd7, 0x7a, 0x50)          # the editor's accent: a focused field's border, the main button
 
@@ -241,8 +242,11 @@ def stand_in_runs(flow, p):
 
     output, log, _ = p.start("stand-in credits", "stat-fick", ["--about", "--capture", p.capture("stand-in-credits")])
     flow.check("stand-in credits: the credits view opened (--about)", "[Game] the credits view opened" in log)
-    picture(flow, "stand-in credits", p.capture("stand-in-credits"), "the credits view: light text on the dark ground",
-            lambda f: near(f[0][1], GROUND) and share(f, lambda c: min(c) > 200) > 0.002)
+    # GM1 step 9: About is a window of the game's over the start screen, in the first start's dark theme: its dialog's
+    # ground over a fifth of the picture (28 % on 2026-11-14; the start screen alone 7.6 %) and the credits' light
+    # lettering (236, 224, 196) over 0.15 % (0.37 %; the start screen alone 0.014 %).
+    picture(flow, "stand-in credits", p.capture("stand-in-credits"), "About's window: the credits' light lettering on its dark ground",
+            lambda f: share(f, lambda c: near(c, ABOUT_GROUND)) > 0.2 and share(f, lambda c: min(c) > 180) > 0.0015)
 
     for kind, where, message in (("--crash", "on the main thread", "the game crashed on purpose (--crash)"),
                                  ("--crash-thread", 'on the thread "Game crash"',

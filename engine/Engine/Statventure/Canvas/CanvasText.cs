@@ -27,6 +27,36 @@ public sealed partial class Canvas
         && ColorFilter is null && Blend == Graphics.BlendMode.Premultiplied && MathF.Abs(m.M12) < 1e-5f && MathF.Abs(m.M21) < 1e-5f;
 
     /// <summary>
+    /// SK_MAX_SIZE_FOR_LCDTEXT (Skia's <c>SkScalerContext.cpp</c>, Chromium 152's pin): no glyph larger than this many device
+    /// pixels is made as an LCD mask ("Beyond this size, LCD doesn't appreciably improve quality").
+    /// </summary>
+    internal const float MaxLcdTextSize = 48;
+
+    /// <summary>
+    /// Skia's <c>too_big_for_lcd</c> (<c>SkScalerContext::MakeRecAndEffects</c>): with a device matrix that only translates,
+    /// the text size past <see cref="MaxLcdTextSize"/>; with one that scales or skews, the text size squared times the
+    /// area of the matrix's 2×2 part (each entry relaxed to 1/1024, <c>sk_relax</c>) past its square. Such text gets
+    /// Skia's A8 mask (with <c>kGenA8FromLCD</c>, which Fontations, every web font's scaler on Linux, ignores): the same
+    /// grayscale glyph as text where the layer allows no LCD, its mask gamma the grayscale one. Nothing else changes
+    /// with it: the glyph's subpixel position is the font's (<c>kSubpixelPositioning</c>), and the full hinting Skia
+    /// lowers to normal for a mask that isn't LCD is already the engine's normal hinting (both FreeType's light-less
+    /// <c>LOAD_TARGET_NORMAL</c>, <c>SkiaGlyphs.Outline</c>).
+    /// </summary>
+    /// <param name="textSize">The font's size as Skia gets it (Blink's effective size: to 0.01 px, truncated).</param>
+    /// <param name="m">The device matrix the glyphs are drawn with (the canvas's transform and scale).</param>
+    internal static bool TooBigForLcd(float textSize, Matrix3x2 m)
+    {
+        // SkMatrix's type mask: kScale_Mask when a diagonal entry isn't 1, kAffine_Mask when a skew entry isn't 0.
+        if (m.M11 == 1 && m.M22 == 1 && m.M12 == 0 && m.M21 == 0)
+            return textSize > MaxLcdTextSize;
+        static float Relax(float x) => MathF.Floor(x * 1024 + 0.5f) / 1024;
+        // fPost2x2: [0][0] scaleX, [1][1] scaleY, [0][1] skewX, [1][0] skewY (System.Numerics: M11, M22, M21, M12).
+        var area = Relax(m.M11) * Relax(m.M22) - Relax(m.M12) * Relax(m.M21);
+        area *= textSize * textSize;
+        return area > MaxLcdTextSize * MaxLcdTextSize;
+    }
+
+    /// <summary>
     /// Place glyphs at quarter-pixel positions (as the game's Chromium does) instead of whole pixels.
     /// </summary>
     public bool SubpixelText { get; set; } = true;
@@ -68,10 +98,13 @@ public sealed partial class Canvas
         var pixelScale = MathF.Sqrt(MathF.Abs(m.GetDeterminant()));
         // Glyphs are made at the font's size as Blink's font cache keeps it, to 0.01 px truncated
         // (FontDescription::EffectiveFontSize: 12 px at 1.65 is 19.79), then scaled by the canvas.
-        var size = (int)(run.Style.Size * 100f) / 100f * pixelScale;
+        var textSize = (int)(run.Style.Size * 100f) / 100f;
+        var size = textSize * pixelScale;
         if (size < 0.5f || color.A <= 0)
             return;
-        var lcd = UseLcd(m);
+        // One verdict for the run (one font size and matrix, as Skia makes one scaler context for a run): LCD where the
+        // canvas allows it, unless the glyphs are too big for LCD masks.
+        var lcd = UseLcd(m) && !TooBigForLcd(textSize, m);
         var previousBlend = Blend;
         if (lcd)
             Blend = Graphics.BlendMode.DualSourceLcd;

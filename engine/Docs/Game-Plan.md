@@ -508,7 +508,7 @@ and answered as recommended.
 design doc's first version; in full with each question's facts and options in `Docs/Game/Foundation.md`, "The detail
 round" and "The questions as asked"; Q24, raised by the answers, asked after the six rounds the same day; Q25 and Q26,
 raised by step 5, the same day; Q27 and Q28, raised by step 6, on 2026-11-14; Q29–Q31, raised by step 8, the same
-day):** every answer the recommended option except Q6, Q11, Q15, Q16 (and Q16b), Q18, Q22, Q23 and Q25. Nothing of GM1
+day; Q32 and Q33, raised by step 9, the same day):** every answer the recommended option except Q6, Q11, Q15, Q16 (and Q16b), Q18, Q22, Q23 and Q25. Nothing of GM1
 is open.
 - Q1 A character's name: any name up to 80 characters, kept in the save, the slot's file named from it.
 - Q2 The name asked before the sheet, "Character <n>" filled in.
@@ -571,6 +571,11 @@ is open.
   task found the engine right the same day: in a main frame, as the game's page is, Chromium draws that text grayscale
   too; only the harness's srcdoc iframe drew it in LCD. So the game's screens are captured as the main frame (the
   manager) and no hold remained.
+- Q32 (2026-11-14, raised by step 9's captures), the room for GM2's Field tools rail: not kept in GM1; the page's frame
+  centred, as the start screen and the windows are; GM2 brings the rail and its room together. (Not kept at the old
+  place.)
+- Q33 (2026-11-14, raised by step 9's captures), the top bar's Menu button: "☰ Menu" (the ☰ icon before the word). (Not
+  the word alone.)
 
 ## GM2 The hero: the character sheet, races and looks
 
@@ -1937,7 +1942,7 @@ Found against the repo on 2026-11-12; the repo's figures are the ones used above
 
 Every question below is about the game. Each milestone's are asked with the question tool when it begins (GP-6) and
 answered in its section (GP-7); GM1's thirteen were all answered on 2026-11-12 ("Decisions for GM1": the eleven, then
-GM1-12 and GM1-13, which came out of GM1-3's answer), and GM1's detail round (Q1–Q26 and Q16b on 2026-11-13, Q27–Q31
+GM1-12 and GM1-13, which came out of GM1-3's answer), and GM1's detail round (Q1–Q26 and Q16b on 2026-11-13, Q27–Q33
 on 2026-11-14; "GM1's detail round"), so none of GM1's is left. The sound questions are asked with their milestones (GM1-6).
 
 - GM2-1 The 72 looks: faithful 3D remakes / new looks per race / a character maker.
@@ -2099,3 +2104,13 @@ GM14 1, GM15 2, GM16 3, GM17 2, GM18 2: 55 in all.
   made). Against Chromium: 28 fixtures as the main frame, all within the limits but the picker's eight at 1.65, held
   with the user's word (Q34). Found: the engine's `ch` and `ex` are half an em (`Docs/Engine-Plan.md`, small tasks)
   (`Docs/Game/Foundation.md`, "How it works", step 10).
+- **2026-11-15, GM1 step 9 done (the branch `gm1-step9`):** the start screen, the character's page and its top bar, the
+  in-game menu and About (GM1-2, GM1-P12; Q2, Q5–Q8, Q10, Q11, Q16, Q16b, Q20), their looks and wordings approved by the
+  user as captured; Q32 (the Field tools rail's room not kept in GM1) and Q33 ("☰ Menu") answered. Continue, New character,
+  the left-out mods' line, the status lines' rule, the autosave dot, the menu's items and keys, About in the game's
+  window, quit and close saving. Four engine rules ported with the manager's leave (Skia's 48 px limit for LCD text, cc's
+  save layers, the root element's isolation group, a decomposited blend's merge): the old game's sheet and combat screens
+  far closer to Chromium. Against Chromium: 21 fixtures as the main frame, all within the limits but the three light
+  start screens at 1.65, held with the user's word (Q34). Found: the engine draws no isolation group apart; its backdrop
+  blur over LCD text; an icon under a CSS scale drawn hollow (`Docs/Engine-Plan.md`, small tasks)
+  (`Docs/Game/Foundation.md`, "How it works", step 9).

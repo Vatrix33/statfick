@@ -1,0 +1,7 @@
+/* The character's page in GM1 (GM1 step 9; Docs/Game/Foundation.md, "What the player sees in a character in GM1" and
+   "The top bar"): the old page's frame, its markup the old HTML (the top bar, the status line, the ⚙ Settings button),
+   so game.css draws it as the old page; these rules only add what GM1 changes. Loaded after the step 8 sheets. */
+
+/* GM1 has no Field tools rail (GM2's, with the sheet): the room the old page keeps for it on the left isn't kept, so the
+   page's frame sits in the middle of the window, as the start screen and the windows do. */
+body { padding-left: 0; }

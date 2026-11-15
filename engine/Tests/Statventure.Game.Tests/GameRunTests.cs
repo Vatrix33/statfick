@@ -4,7 +4,7 @@ using Statventure.Imaging;
 namespace Statventure.Game.Tests;
 
 /// <summary>
-/// The game run for real on the parts' stubs (a hidden window, no log, no sound, a scratch per-user folder): the engine's
+/// The game run for real with its screens (a hidden window, no log, no sound, a scratch per-user folder): the engine's
 /// start, the game's start sequence, its first frame drawn and captured, and its end leaving the open character.
 /// Needs a display (the suite runs in a headless compositor).
 /// </summary>
@@ -66,7 +66,8 @@ public class GameRunTests
             ExceptionDispatchInfo.Capture(failed).Throw();
 
         Assert.Equal(["title Stat Fick", "window EngineGameWindow", "host True", "quit"], record);
-        Assert.Contains("Info [Commands] start-screen: not registered yet, nothing done", log);
+        // Step 9's start screen ran at the start (and left the probe's character, saved).
+        Assert.Contains("Info [Game] the start screen shown", log);
         Assert.Contains(log, line => line.StartsWith("Info [Game] the run's random seed ", StringComparison.Ordinal));
         Assert.Contains(log, line => line.StartsWith("Info [Game] another start asked for the window: ", StringComparison.Ordinal));
         // The window's state kept in the settings by the update.

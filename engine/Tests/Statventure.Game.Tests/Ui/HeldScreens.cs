@@ -33,6 +33,14 @@ static class HeldScreens
         ["picker-load-long-light"] = LayoutAtScale,
         ["picker-load-recent-dark"] = LayoutAtScale,
         ["picker-load-recent-light"] = LayoutAtScale,
+        // GM1 step 9: the start dialog lies at 263.9969 device px in the engine, 264.0 in Chromium, so its buttons (at
+        // 314.4969 against 314.5) snap their side borders a device pixel left: 2,221–2,283 pixels past 12 levels, with the
+        // dialog's 1 px ring (842, the canvas's own antialiasing) and the buttons' shadow and focus rows 3,550–4,077 in all
+        // against 2,962 (0.2 %). Only the light theme's parchment shows the borders past the limit; the dark start screens
+        // pass in full (2,216–2,467).
+        ["start-first-light"] = LayoutAtScale,
+        ["start-continue-light"] = LayoutAtScale,
+        ["start-left-out-one-light"] = LayoutAtScale,
     };
 
     /// <summary>Why the comparison of <paramref name="fixture"/> at <paramref name="scale"/> is held, or null when it isn't.</summary>

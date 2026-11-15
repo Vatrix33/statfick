@@ -93,8 +93,20 @@ internal sealed class PropertyTreeBuilder
             Visit(child, _boxes[viewport].Contents, RootEffect);
     }
 
+    /// <summary>
+    /// Blink's <c>IsStackingContext</c> for a box that can have a layer: its style makes one, or it is the document
+    /// element's, which Blink always makes one (StyleAdjuster's <c>ForcesStackingContext</c> for
+    /// <c>is_document_element</c>; not the body's, not the view's). So the root element is the isolation group around
+    /// blending descendants that no nearer stacking context holds (<c>NeedsEffectIgnoringClipPathAnd2DScale</c>: a
+    /// stacking context with a layer whose <c>HasNonIsolatedDescendantWithBlendMode</c>), an effect node of its own under
+    /// the root effect (GM1 step 9).
+    /// </summary>
     static bool CreatesStackingContext(LayoutBox box) =>
-        box.Type is not (BoxType.Text or BoxType.LineBreak or BoxType.Inline) && box.Style.CreatesStackingContext;
+        box.Type is not (BoxType.Text or BoxType.LineBreak or BoxType.Inline) && (box.Style.CreatesStackingContext || IsDocumentElement(box));
+
+    /// <summary>The document element's own box (the root element's, not a pseudo-element's).</summary>
+    static bool IsDocumentElement(LayoutBox box) =>
+        box.Pseudo == PseudoKind.None && box.Element is { } element && element == element.Document?.Root;
 
     /// <summary>A stacking context with a blending descendant (not inside a nearer stacking context) is an isolation group.</summary>
     void FindBlendIsolation(LayoutBox box, LayoutBox context)

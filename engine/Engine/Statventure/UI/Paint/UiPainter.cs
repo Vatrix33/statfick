@@ -956,18 +956,60 @@ public sealed partial class UiPainter : IDisposable
     void PaintCanvasBackground(LayoutBox viewport, LayoutBox root)
     {
         // The root scroller's hit test, then the document background in its scrolling contents.
+        PropertyState? group = null;
         if (PropertiesOf(viewport) is { ScrollTranslation: { } rootScroll } view)
         {
             _canvas.UseState(view.BorderBox, viewport);
             _canvas.RecordScrollHitTest(view.BorderBox, rootScroll, viewport, rootScroll.Scroll!.ContainerRect);
             _canvas.UseState(view.Contents, viewport);
+            group = RootElementGroup(view.Contents, root);
+        }
+        if (group is { } state)
+        {
+            // ViewPainter::PaintRootGroup: the base background alone, the Root Group's backdrop, in the view's contents
+            // state; then the root's background in the Root Element Group, without the base.
+            if (_document.BaseBackground.A > 0)
+            {
+                _canvas.BeginItem(boxDecoration: true);
+                _canvas.FillRect(CanvasRect(viewport), _document.BaseBackground);
+                _canvas.EndItem();
+            }
+            _canvas.UseState(state, viewport);
+            _canvas.BeginItem(boxDecoration: true);
+            PaintCanvasBackgroundItem(viewport, root, baseBackground: false);
+            _canvas.EndItem();
+            return;
         }
         _canvas.BeginItem(boxDecoration: true);
         PaintCanvasBackgroundItem(viewport, root);
         _canvas.EndItem();
     }
 
-    void PaintCanvasBackgroundItem(LayoutBox viewport, LayoutBox root)
+    /// <summary>
+    /// ViewPainter's Root Element Group (the compositing spec's "pagebackdrop"): the root element's own border box state
+    /// with its pre-transform (its own transform not applied) when it differs from the view's contents state, an effect
+    /// (opacity, a filter, a blend mode, the isolation group around blending descendants, GM1 step 9) or a clip of its
+    /// own: the document background is painted there. Null when the two are the same (the usual case).
+    /// </summary>
+    PropertyState? RootElementGroup(PropertyState contents, LayoutBox root)
+    {
+        if (PropertiesOf(root)?.BorderBox is not { } border)
+            return null;
+        var transform = border.Transform;
+        if (transform.Owner == root && transform.Kind == "transform" && transform.Parent is { } pre)
+            transform = pre;
+        var state = new PropertyState(transform, border.Clip, border.Effect);
+        return state == contents ? null : state;
+    }
+
+    /// <summary>The document's background rect: its scrolling contents, the viewport at least.</summary>
+    RectF CanvasRect(LayoutBox viewport)
+    {
+        var scroll = _document.Layout.ViewportScroll;
+        return Snap(new RectF(0, 0, MathF.Max(viewport.Width, viewport.ScrollWidth), MathF.Max(viewport.Height, viewport.ScrollHeight)).Offset(-scroll));
+    }
+
+    void PaintCanvasBackgroundItem(LayoutBox viewport, LayoutBox root, bool baseBackground = true)
     {
         _backgroundSource = null;
         var source = root;
@@ -975,11 +1017,10 @@ public sealed partial class UiPainter : IDisposable
             && root.Children.FirstOrDefault(c => c.Element?.Tag == "body") is { } body)
             source = body;
         var s = source.Style;
-        // The document's background rect: its scrolling contents, the viewport at least.
-        var scroll = _document.Layout.ViewportScroll;
-        var canvasRect = Snap(new RectF(0, 0, MathF.Max(viewport.Width, viewport.ScrollWidth), MathF.Max(viewport.Height, viewport.ScrollHeight)).Offset(-scroll));
-        // Under everything, the page's base colour (a browser's white), unless an opaque background covers it (ViewPainter).
-        if (_document.BaseBackground.A > 0 && s.BackgroundColor.A < 1)
+        var canvasRect = CanvasRect(viewport);
+        // Under everything, the page's base colour (a browser's white), unless an opaque background covers it (ViewPainter)
+        // or the Root Group painted it apart.
+        if (baseBackground && _document.BaseBackground.A > 0 && s.BackgroundColor.A < 1)
             _canvas.FillRect(canvasRect, _document.BaseBackground);
         if (s.BackgroundColor.A <= 0 && s.Backgrounds.Length == 0)
             return;

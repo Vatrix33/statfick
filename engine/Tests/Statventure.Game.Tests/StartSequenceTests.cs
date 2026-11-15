@@ -77,13 +77,14 @@ public class StartSequenceTests
     public void ACommandNotRegisteredYetDoesNothingAndIsLogged()
     {
         using var scratch = new ScratchFolder();
-        // The program's own screens: no screen registers start-screen yet, and none a screen named "nowhere" (step 10's
-        // registers open-settings).
+        // The program's own screens (step 9's start screen registers start-screen; step 10's open-settings): --open
+        // naming a screen none registers.
         using var game = GameTesting.Game(scratch["p"], new GameOptions { Open = "nowhere" });
         using var storage = new GameStorage(scratch["p"]);
         using var data = new VirtualFileSystem([]);
         var log = GameTesting.CaptureLog(() => game.Compose(storage, data));
-        Assert.Contains("Info [Commands] start-screen: not registered yet, nothing done", log);
+        Assert.Contains("Info [Game] the start screen shown", log);
+        Assert.DoesNotContain(log, line => line.StartsWith("Info [Commands] start-screen", StringComparison.Ordinal));
         Assert.Contains("Info [Commands] open-nowhere: not registered yet, nothing done", log);
         Assert.False(game.Parts!.Ui.Commands.Run("not-a-command"));
     }
@@ -129,51 +130,22 @@ public class StartSequenceTests
     }
 
     [Fact]
-    public void AboutShowsTheEnginesCreditsViewUntilStep9()
+    public void AboutShowsTheCreditsInTheGamesWindow()
     {
+        // --about (GM1-P12) runs about after the start screen: step 9's About, a window of the game's over the start screen.
         using var scratch = new ScratchFolder();
         using var game = GameTesting.Game(scratch["p"], new GameOptions { About = true });
         using var storage = new GameStorage(scratch["p"]);
         using var data = new VirtualFileSystem([]);
         var log = GameTesting.CaptureLog(() => game.Compose(storage, data));
         var document = game.Parts!.Ui.Document;
-        var view = document.QuerySelector(".engine-credits");
-        Assert.NotNull(view);
-        Assert.Equal("Stat Fick", document.QuerySelector(".engine-credits .credits h1")!.TextContent);
-        Assert.Equal("Version dev", document.QuerySelector(".engine-credits .credits .version")!.TextContent);
+        var about = document.QuerySelector("#about-modal")!;
+        Assert.Equal([about], game.Parts.Ui.Windows.Layers);
+        Assert.Equal("Stat Fick", document.QuerySelector("#about-modal .credits h1")!.TextContent);
+        Assert.Equal("Version dev", document.QuerySelector("#about-modal .credits .version")!.TextContent);
         Assert.Contains("Info [Game] the credits view opened", log);
-        // Once at a time; Close takes it away.
-        game.Parts.Ui.Commands.Run("about");
-        Assert.Single(document.QuerySelectorAll(".engine-credits"));
-        document.QuerySelector(".engine-credits .credits-close")!.Click();
+        Assert.False(document.QuerySelector("#start-screen")!.Hidden);
         Assert.Null(document.QuerySelector(".engine-credits"));
-    }
-
-    [Fact]
-    public void AboutsCreditsKeepTheirOwnHeadingsOverTheGamesSheets()
-    {
-        // The game's document with the port's sheets (ui.pak): game.css's bare heading rules (the title font, the ink, the
-        // letter spacing, the dark theme's shadow) don't reach the credits' headings, which stay the credits' own (M12).
-        using var scratch = new ScratchFolder();
-        using var game = GameTesting.Game(scratch["p"], new GameOptions { About = true });
-        using var storage = new GameStorage(scratch["p"]);
-        using var data = new VirtualFileSystem([Mount.Pack(Path.Combine(Statventure.Tests.Infrastructure.TestPaths.Packs, "ui.pak"))]);
-        game.Compose(storage, data);
-        var document = game.Parts!.Ui.Document;
-        Assert.Contains("ui/styles/game", game.Parts.Ui.Sheets);
-        Assert.True(document.Root.HasClass(Statventure.Game.Ui.GameUi.DarkModeClass));
-        document.Update(0);
-        var credits = document.QuerySelector(".engine-credits .credits")!.Style!;
-        Assert.Equal(["Lato"], credits.FontFamilies);
-        foreach (var selector in new[] { ".engine-credits .credits h1", ".engine-credits .credits h2" })
-        {
-            var heading = document.QuerySelector(selector)!.Style!;
-            Assert.Equal(credits.FontFamilies, heading.FontFamilies);
-            Assert.Equal(credits.Color, heading.Color);
-            Assert.Equal(0, heading.LetterSpacing);
-            Assert.Empty(heading.TextShadows);
-            Assert.Equal(700, heading.FontWeight);
-        }
     }
 
     [Fact]

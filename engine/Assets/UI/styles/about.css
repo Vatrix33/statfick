@@ -1,0 +1,21 @@
+/* About (Q20; GM1 step 9): the engine's credits (Credits.Markup: the same text the credits tests check) in a window of the
+   old dialogs' look (game.css: the .modal-layer, the .spell-picker-dialog with its leather .dialog-header and × close),
+   on the dialog's parchment in the game's lettering in place of the engine's dark view: the name in the titles' STIX, the
+   section headings as the eyebrows, the components in the sheet's Lato. The content scrolls within the window. Loaded
+   after the step 8 sheets. */
+
+.about-dialog.spell-picker-dialog { display: flex; flex-direction: column; }
+.about-content { min-height: 0; padding: 24px 30px 28px; overflow-y: auto; background: var(--grain) 0 0 / 240px 240px, var(--surface); }
+
+.about-content .credits { color: var(--ink); font: 400 .8125rem/1.6 var(--font-ui); }
+.about-content .credits :is(h1, h2, h3, p) { margin: 0; }
+.about-content .credits h1 { font: 400 1.875rem/1.15 var(--font-title); letter-spacing: -.025em; }
+.about-content .credits .version { margin-top: 4px; color: var(--muted); }
+.about-content .credits h2 {
+  margin: 26px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
+  color: var(--ember); font: 400 .8125rem/1.4 var(--font-title); letter-spacing: .2em; text-transform: uppercase; text-shadow: none;
+}
+.about-content .credits .notice { white-space: pre-wrap; }
+.about-content .credits .component { margin-bottom: 12px; }
+.about-content .credits h3 { font: 700 .875rem/1.5 var(--font-ui); letter-spacing: normal; }
+.about-content .credits .licence { color: var(--muted); }

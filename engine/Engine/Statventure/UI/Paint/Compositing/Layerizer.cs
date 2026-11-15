@@ -336,10 +336,13 @@ internal sealed class Layerizer(List<PaintChunk> chunks, LcdTextPreference prefe
             if (visibilityLimit is { } l2)
                 newGuest = newGuest with { Rect = Gfx.Intersect(newGuest.Rect, l2) };
             mergedBounds = Gfx.Union(newHome.Rect, newGuest.Rect);
+            // A decomposited blend mode merges unconditionally, and the merged layer knows nothing opaque and no text
+            // on an opaque background (PendingLayer::Merge's defaults, which CanMerge leaves when it forces the merge).
             mergedOpaque = RectF.Empty;
-            mergedTextKnown = home.TextKnownToBeOnOpaqueBackground;
+            mergedTextKnown = false;
             if (!guest.HasDecompositedBlendMode)
             {
+                mergedTextKnown = home.TextKnownToBeOnOpaqueBackground;
                 static float Area(RectF r) => MathF.Max(0, r.Width) * MathF.Max(0, r.Height);
                 var sum = Area(newHome.Rect) + Area(newGuest.Rect);
                 if (Area(mergedBounds) - sum > MergeSparsityAreaTolerance * devicePixelRatio * devicePixelRatio)
@@ -550,19 +553,33 @@ internal sealed class Layerizer(List<PaintChunk> chunks, LcdTextPreference prefe
     }
 
     /// <summary>
-    /// Whether a chunk's text keeps LCD in its layer's display list: the effects between it and the
-    /// layer are opacity layers (SaveLayerAlpha, started from the backdrop) and the list has no
-    /// filter or blend layer (a SaveLayerOp, which would stop that).
+    /// Whether a chunk's text keeps LCD in its layer's display list (the layer allowing it), as cc rasters the list
+    /// Blink's <c>PaintChunksToCcLayer</c> makes (<c>ConversionContext::StartEffect</c>): each effect between the chunk and
+    /// its layer is a save layer around it, a filter's or a blend mode's a <c>SaveLayerOp</c>, any other (opacity, an
+    /// isolation group) a <c>SaveLayerAlphaOp</c>. (A backdrop filter's, a <c>SaveLayerFiltersOp</c>, is never among them:
+    /// a backdrop filter is a direct compositing reason, so its effect is a layer's own.)
+    /// <list type="bullet">
+    /// <item>Text straight on the layer, in no save layer, keeps the layer's verdict.</item>
+    /// <item>Text in save layers is grayscale when the list holds a <c>SaveLayerOp</c> anywhere, its own among them:
+    /// cc gives Skia neither <c>kPreserveLCDText</c> nor <c>kInitWithPrevious</c> for a <c>SaveLayerOp</c>
+    /// (<c>paint_op.cc</c>, its <c>RasterWithFlags</c>), and for the list's <c>SaveLayerAlphaOp</c>s only while the list
+    /// holds no op with effects preventing it, which only a <c>SaveLayerOp</c> is
+    /// (<c>HasEffectsPreventingLCDTextForSaveLayerAlpha</c>, <c>paint_op_buffer.cc</c>'s
+    /// <c>save_layer_alpha_should_preserve_lcd_text</c>); Skia makes a layer without the flag's pixel geometry unknown
+    /// (<c>SkCanvas::internalSaveLayer</c>). Else it keeps LCD (opacity layers alone, started from the backdrop).</item>
+    /// </list>
     /// </summary>
     static bool TextKeepsLcdInLayer(PaintChunk chunk, PendingLayer layer)
     {
-        for (var e = chunk.State.Effect; e is not null && e != layer.State.Effect; e = e.Parent)
-            if (e.HasFilter || e.ExoticBlendMode)
-                return false;
+        if (chunk.State.Effect == layer.State.Effect)
+            return true;
         foreach (var other in layer.Chunks)
             for (var e = other.State.Effect; e is not null && e != layer.State.Effect; e = e.Parent)
-                if (e.HasFilter || e.ExoticBlendMode)
+                if (IsSaveLayer(e))
                     return false;
         return true;
     }
+
+    /// <summary>An effect painted as a <c>SaveLayerOp</c> (<c>ConversionContext::StartEffect</c>): a filter or a blend mode.</summary>
+    static bool IsSaveLayer(EffectNode effect) => effect.HasFilter || effect.ExoticBlendMode;
 }

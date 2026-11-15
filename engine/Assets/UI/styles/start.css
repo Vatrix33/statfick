@@ -1,0 +1,25 @@
+/* The start screen (GM1-2, Q10, Q16, Q16b; GM1 step 9): the game's name and its six buttons in the old game's dialogs'
+   look, on the page itself (no darkened ground: nothing is under it). The dialog is game.css's (.spell-picker-dialog with
+   its leather .dialog-header and the ✦ .brand-mark of the top bar), the buttons its brass-edged .backup-buttons laid out
+   as the alert dialogs lay theirs (.map-encounter-actions), New character in the old New Character button's ember
+   (.new-character-button); these rules only place them. Loaded after the step 8 sheets. */
+
+/* In the page's flow, the dialog in the middle of the window (a short window scrolls the page, as the old page did). */
+.start-screen { display: grid; min-height: 100vh; place-items: center; padding: 24px; }
+.start-dialog.spell-picker-dialog { width: min(480px, 100%); max-height: none; }
+/* The brand as the top bar has it: the ✦ mark (always lit, Q11) before the name. */
+.start-brand { gap: 16px; }
+.start-brand .brand-mark { flex: 0 0 auto; }
+
+/* The dialog's parchment, as the settings window's content. */
+.start-content { padding: 26px 30px 28px; background: var(--grain) 0 0 / 240px 240px, var(--surface); }
+.start-actions { display: grid; gap: 10px; }
+.start-actions .backup-button { justify-content: center; margin: 0; padding: 12px; }
+
+/* The mods left out at this start (Q10): a line under the buttons, in the status line's error ink. */
+.start-left-out { margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--line); color: var(--ember-dark); font-size: .8125rem; line-height: 1.6; text-align: center; }
+.start-left-out-where { white-space: nowrap; }
+
+/* The file messages taken from the start screen (Ctrl+O, Escape's menu): the page's status line, under the buttons. */
+.start-status { margin: 14px 0 0; text-align: center; white-space: normal; }
+.start-status:empty { display: none; }

@@ -1,0 +1,21 @@
+/* The in-game menu (Q7, Q8, Q18; GM1 step 9) in place of the old Electron menu bar: a window in the old dialogs' look
+   (game.css: the .modal-layer's darkened ground, the .spell-picker-dialog with its leather .dialog-header and × close),
+   its items in groups as the old menu's separators made them, each its words and, at the right, its keys. Loaded after
+   the step 8 sheets. */
+
+.game-menu-dialog.spell-picker-dialog { display: flex; width: min(400px, 100%); flex-direction: column; }
+
+/* The dialog's parchment, as the settings window's content; a long menu (a large zoom) scrolls within the window. */
+.game-menu-content { min-height: 0; padding: 14px 16px 16px; overflow-y: auto; background: var(--grain) 0 0 / 240px 240px, var(--surface); }
+.game-menu-group + .game-menu-group { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+
+/* An item: a row of the dialog that lights as the brass-edged buttons do. */
+.game-menu-item {
+  display: flex; width: 100%; align-items: baseline; justify-content: space-between; gap: 16px;
+  padding: 8px 12px; border: 1px solid transparent; border-radius: 2px;
+  color: var(--ink); background: none; font: 400 .9375rem/1.45 var(--font-ui); text-align: left;
+  transition: border-color 140ms, color 140ms, background 140ms;
+}
+.game-menu-item:hover { border-color: var(--ember); color: var(--ember-dark); background: linear-gradient(180deg, var(--surface-hi), var(--ember-pale)); }
+.game-menu-item:focus-visible { outline-offset: -3px; }
+.game-menu-keys { flex: 0 0 auto; color: var(--muted); font: 400 .8125rem/1.45 var(--font-ui); letter-spacing: .02em; }

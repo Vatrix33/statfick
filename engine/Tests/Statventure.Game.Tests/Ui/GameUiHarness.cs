@@ -63,6 +63,9 @@ sealed class GameUiHarness : IDisposable
 
     /// <summary>The game the document was loaded for (no window; a screen's <c>GameParts.Game</c>, GM1 step 10).</summary>
     public StatFickGame Game => _game;
+
+    /// <summary>The test's scratch folder (the per-user folder is its <c>p</c>; step 9 puts mods beside it).</summary>
+    public ScratchFolder Scratch => _folder;
     public AudioSystem? Audio { get; }
     public UiDocument Document => Ui.Document;
     public UiInput Input => Document.Input;
