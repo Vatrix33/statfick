@@ -1,0 +1,5 @@
+look.body 1
+  1 race: string = ""
+  2 sex: string = "male"
+  3 build: string = "average"
+  4 model: string = ""

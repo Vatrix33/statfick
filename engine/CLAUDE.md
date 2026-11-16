@@ -33,14 +33,20 @@ the user and wait for their go-ahead before starting the next one.
   port's stylesheets from `Assets/UI/styles/*.css`, compiled as `ui/styles/<name>`; GM1 step 1a).
   `Tools/Scripts/make-data-pack.sh` makes `Assets/Packs/data.pak` afresh from `Assets/Data/` (the game's records as JSON
   forms at their paths: the 28 races, `data/races/<id>.json`, written from the old `races.json` by the game's tests'
-  converter with `STATVENTURE_RACE_DATA=write`; GM2 step 1, `Docs/Game/Hero.md`, "How it works", step 1).
+  converter with `STATVENTURE_RACE_DATA=write`, each race's swatches kept from its file; GM2 step 1, `Docs/Game/Hero.md`,
+  "How it works", step 1). The maker's records (`data/looks/bodies|parts|presets`, GM2 step 6) enter it only with their
+  models (GM2-P18): `STATVENTURE_LOOK_DATA=write` (the game's tests, `LookDataTests`) writes a body for each
+  `models/humanoid/bodies/<race>-<sex>-<build>` in `models.pak` and the old game's preset of each race and sex with its
+  average body (`Docs/Game/Hero.md`, "How it works", step 6), then `make-data-pack.sh`.
 - The old game's oracle (GM2-P13, GM2 step 2; `Docs/Game/Hero.md`, "How it works", step 2):
   `Tools/Scripts/make-old-game-references.sh [module ...]` runs the old game's own code on each module's case list
   (`Tools/OldGameOracle/modules/<module>.cjs`: its pure modules in Node, the cache's; the rules inside `app.js` in its
   headless test client, inside a headless cage of its own on the PC) into `Tests/Statventure.Game.Tests/Reference/
   old-game/<module>.json`, committed, the same bytes on every run (a test fails when the old game changed under them).
   The modules now: the levelling curves and the cap, the races' fold and loading rules (step 1's oracle, folded in), the
-  new hero, the sheet's values and actions. A later milestone adds a module (a case list and a small `run`) and its test.
+  new hero, the sheet's values and actions, a loaded character's correction (`save-correction`, Q45) and the old game's
+  72 looks (`look-catalogue`, Node over `sprite-catalog.js`; GM2 step 6). A later milestone adds a module (a case list
+  and a small `run`) and its test.
 - Chromium 152 for references: `Tools/Scripts/chromium.sh` (Electron 44.5.0 from npm). `Tools/PaintReference` renders a
   fixture in an iframe; a fixture with `mainFrame: true` is rendered as a page's own document, as the game's and the
   editor's documents are. Use it where a fixed box or a box composited apart sits over the page (the top layer's

@@ -305,4 +305,18 @@ public class StartSequenceTests
         Assert.Equal(["forward"], window.Done);
         Assert.Contains("Info [Game] another start asked for the window: brought forward (the test's window)", log);
     }
+
+    /// <summary>The session the start makes checks a loaded character file against the game's data (GM2 step 6: its look, G4).</summary>
+    [Fact]
+    public void TheStartsSessionChecksACharacterFileAgainstTheGamesData()
+    {
+        using var scratch = new ScratchFolder();
+        using var game = GameTesting.Game(scratch["p"], screens: []);
+        using var storage = new GameStorage(scratch["p"]);
+        using var looks = new TestLooks();
+        var session = game.Compose(storage, looks.Data).Session;
+        var hero = new Data.Actors.ActorSheet { Race = TestLooks.Human };
+        CharacterFile.Export(scratch["strong.json"], new Data.Saves.SaveGame { Name = "Bram", Hero = hero, Look = TestLooks.WayfarerLook with { Body = TestLooks.HumanMaleStrong } });
+        Assert.Equal("That file is not a valid character save: \"hair-braid\" has no model for the body \"human-male-strong\"", session.Import(scratch["strong.json"]).Problem);
+    }
 }

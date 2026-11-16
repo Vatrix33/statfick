@@ -98,6 +98,25 @@ public sealed record Race
             check.Report(RecordPath.Root.Field(nameof(Emblem)), $"\"{emblem}\" isn't an emblem's name (one name of small letters a–z, digits, '-', '_' and '.')");
     }
 
+    /// <summary>
+    /// The swatches are named, and no slot has two of one name (a hero's look names its colour by the swatch's name, GM2
+    /// step 6; the slot's own choices are its mark's).
+    /// </summary>
+    [Check]
+    static void SwatchesNamedOnce(Race race, CheckContext check)
+    {
+        var seen = new HashSet<(string, string)>();
+        for (var i = 0; i < race.Swatches.Count; i++)
+        {
+            var swatch = race.Swatches[i];
+            var at = RecordPath.Root.Field(nameof(Swatches)).Index(i).Field(nameof(RaceSwatch.Name));
+            if (string.IsNullOrWhiteSpace(swatch.Name))
+                check.Report(at, "the swatch's name is empty");
+            else if (!seen.Add((swatch.Slot, swatch.Name)))
+                check.Report(at, $"the race has another {swatch.Slot} colour \"{swatch.Name}\"");
+        }
+    }
+
     /// <summary>Whether <paramref name="text"/> is "#rrggbb".</summary>
     public static bool IsColour(string text) => text.Length == 7 && text[0] == '#' && text.Skip(1).All(char.IsAsciiHexDigit);
 
@@ -148,8 +167,10 @@ public sealed record RacePassive
 [Help("A colour the character maker offers for this race: named, for one palette slot.")]
 public sealed record RaceSwatch
 {
-    [Field(1)] [Help("The palette slot it colours (skin, hair, eyes …).")] public string Slot { get; init; } = "";
-    [Field(2)] [Help("The colour's name as players see it.")] public string Name { get; init; } = "";
+    [Field(1)] [Help("The palette slot it colours (skin, hair, eyes …).")]
+    [Choices("skin", "hair", "hair.tie", "eyes", "brows", "lips", "cloth", "cloth.trim", "trousers", "crest", "marking", "claws", "eye.white", "leather", "buckle")]
+    public string Slot { get; init; } = "";
+    [Field(2)] [Help("The colour's name as players see it; a hero's look names the swatch by it.")] public string Name { get; init; } = "";
     [Field(3)] [Help("The colour (#rrggbb).")] [Colour] public string Colour { get; init; } = "#000000";
 
     [Check]

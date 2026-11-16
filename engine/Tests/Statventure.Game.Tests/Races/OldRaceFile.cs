@@ -111,35 +111,8 @@ static class OldRaceFile
         return new RaceEntry(id, race);
     }
 
-    /// <summary>
-    /// <c>slugify(value)</c> (<c>app.js</c> 2218–2220): JavaScript's lower case, trimmed, every run of characters other
-    /// than a–z and 0–9 one "-", none at either end.
-    /// </summary>
-    public static string Slugify(string value)
-    {
-        var lower = JsValues.Trim(JsValues.ToLowerCase(value));
-        var slug = new StringBuilder(lower.Length);
-        var run = false;
-        foreach (var c in lower)
-        {
-            if (c is >= 'a' and <= 'z' or >= '0' and <= '9')
-            {
-                slug.Append(c);
-                run = false;
-            }
-            else if (!run)
-            {
-                slug.Append('-');
-                run = true;
-            }
-        }
-        var text = slug.ToString();
-        if (text.StartsWith('-'))
-            text = text[1..];
-        if (text.EndsWith('-'))
-            text = text[..^1];
-        return text;
-    }
+    /// <summary><c>slugify(value)</c> (<c>app.js</c> 2218–2220): the data library's <see cref="JsValues.Slugify"/>, the one copy (GM2 step 6 moved it there for the save's correction).</summary>
+    public static string Slugify(string value) => JsValues.Slugify(value);
 
     /// <summary>The emblem's name of a seal's path, <c>objects/race-&lt;name&gt;.svg</c> (Q44).</summary>
     static string EmblemOf(string icon, string problem) =>

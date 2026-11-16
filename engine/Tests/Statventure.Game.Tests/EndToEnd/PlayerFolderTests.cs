@@ -83,7 +83,7 @@ public class PlayerFolderTests
         }
         var written = JsonNode.Parse(File.ReadAllText(Path.Combine(player, "settings.json")))!.AsObject();
         Assert.Equal((Slot, EffectsVolume), (written["lastCharacter"]!.GetValue<string>(), written["effectsVolume"]!.GetValue<double>()));
-        Assert.Equal($"{{\n  \"$types\": {{\n    \"save.game\": 1\n  }},\n  \"name\": \"{Name}\"\n}}", File.ReadAllText(characterFile).ReplaceLineEndings("\n").TrimEnd());
+        Assert.Equal(Statventure.Records.RecordSerializer.ToJson(new SaveGame { Name = Name }).TrimEnd(), File.ReadAllText(characterFile).ReplaceLineEndings("\n").TrimEnd());
 
         // The mod: its info and an entry of a kind the game doesn't know; the game's check leaves it out naming the entry.
         var mod = Path.Combine(files, ModFileName);

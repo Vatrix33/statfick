@@ -180,11 +180,11 @@ public class RaceRecordTests
     public void TheAccentAndASwatchAreColoursAndTheEmblemAName()
     {
         string[] Problems(Race race) => [.. RecordChecks.Check(race).Select(p => p.ToString())];
-        Assert.Empty(Problems(TestRaces.Good("x") with { Accent = "#A0b1C2", Emblem = "dark-elf_2.b", Swatches = [new() { Colour = "#ffffff" }] }));
+        Assert.Empty(Problems(TestRaces.Good("x") with { Accent = "#A0b1C2", Emblem = "dark-elf_2.b", Swatches = [new() { Slot = "skin", Name = "Fair", Colour = "#ffffff" }] }));
         foreach (var accent in new[] { "red", "#12345", "#1234567", "12345678", "#12345g", "x123456", "" })
             Assert.Equal([$"\"{accent}\" isn't a colour (#rrggbb) (at $.accent)"], Problems(TestRaces.Good("x") with { Accent = accent }));
         Assert.Equal(["\"#fff\" isn't a colour (#rrggbb) (at $.swatches[1].colour)"],
-            Problems(TestRaces.Good("x") with { Swatches = [new() { Colour = "#000000" }, new() { Colour = "#fff" }] }));
+            Problems(TestRaces.Good("x") with { Swatches = [new() { Slot = "skin", Name = "Ink", Colour = "#000000" }, new() { Slot = "skin", Name = "Snow", Colour = "#fff" }] }));
         foreach (var emblem in new[] { "", "Human", "dark elf", "race/human", "human.", "..", "a/" })
             Assert.Equal([$"\"{emblem}\" isn't an emblem's name (one name of small letters a–z, digits, '-', '_' and '.') (at $.emblem)"],
                 Problems(TestRaces.Good("x") with { Emblem = emblem }));

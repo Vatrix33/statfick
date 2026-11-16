@@ -1,0 +1,72 @@
+{
+  "$types": {
+    "save.game": 2,
+    "actor.sheet": 1,
+    "actor.attributes": 1,
+    "actor.bonuses": 1,
+    "actor.purse": 1,
+    "look.hero": 1
+  },
+  "name": "Ser Alrik",
+  "hero": {
+    "race": "human",
+    "level": 40,
+    "experience": 1234.5,
+    "freePoints": 3,
+    "classPoints": 2,
+    "attributes": {
+      "strength": 52,
+      "vitality": 61,
+      "mind": 40,
+      "dexterity": 45,
+      "intelligence": 49,
+      "wisdom": 49,
+      "speed": 48,
+      "luck": -2
+    },
+    "spentPoints": {
+      "strength": 3,
+      "vitality": 12,
+      "mind": 0,
+      "dexterity": 1,
+      "intelligence": 0,
+      "wisdom": 0,
+      "speed": 0,
+      "luck": 0
+    },
+    "bonuses": {
+      "strength": 12.5,
+      "vitality": 0,
+      "mind": 0,
+      "dexterity": 0,
+      "intelligence": 0,
+      "wisdom": 0,
+      "speed": 0,
+      "luck": -7.25,
+      "armor": 0.3333333333333333,
+      "evasion": -10
+    },
+    "hp": 118,
+    "mana": 41,
+    "purse": {
+      "silver": 99,
+      "gold": 1205,
+      "platinum": 2
+    }
+  },
+  "look": {
+    "race": "human",
+    "sex": "male",
+    "body": "human-male-average",
+    "parts": {
+      "face": "face-human-male-1",
+      "hair": "hair-braid",
+      "beard": "beard-none"
+    },
+    "colours": {
+      "skin": "Fair",
+      "hair": "Ash"
+    },
+    "preset": "human-male-1"
+  }
+}

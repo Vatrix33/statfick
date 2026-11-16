@@ -1,6 +1,9 @@
+using System.Reflection;
 using Statventure.Core;
 using Statventure.Game.Data.Saves;
+using Statventure.Game.Mods;
 using Statventure.Game.Settings;
+using Statventure.Packs;
 using Statventure.Records;
 using Statventure.Storage;
 
@@ -67,12 +70,19 @@ public sealed class GameSession
 
     readonly GameStorage _storage;
     readonly GameSettings _settings;
+    readonly VirtualFileSystem? _data;
 
-    /// <summary>The session over <paramref name="storage"/>'s slots; a <see cref="GameSettings.LastCharacter"/> that names no slot there is taken as none.</summary>
-    public GameSession(GameStorage storage, GameSettings settings)
+    /// <summary>
+    /// The session over <paramref name="storage"/>'s slots; a <see cref="GameSettings.LastCharacter"/> that names no slot
+    /// there is taken as none. <paramref name="data"/> is the game's data a loaded character file is checked against (its
+    /// look's parts, body and colours, and every name it holds there: G4); without it a file's checks that need the data
+    /// are passed by.
+    /// </summary>
+    public GameSession(GameStorage storage, GameSettings settings, VirtualFileSystem? data = null)
     {
         _storage = storage;
         _settings = settings;
+        _data = data;
         if (settings.LastCharacter is { } last && !storage.Saves.Exists(last))
         {
             Log.Info("Session", $"the last character's slot {last} isn't there: nothing to continue");
@@ -160,7 +170,7 @@ public sealed class GameSession
         if (reading.Loaded)
         {
             Leave();
-            Enter(slot, reading.Value);
+            Enter(slot, Corrected(slot, reading.Value));
             Log.Info("Session", $"opened {slot}");
             return new OpenResult(slot, true, Name: name, NameFrom: from);
         }
@@ -186,7 +196,7 @@ public sealed class GameSession
             throw new InvalidOperationException($"{slot}'s backup can't be read");
         Leave();
         Log.Info("Session", $"{slot}: its backup used");
-        Make(slot, backup.Value);
+        Make(slot, Corrected(slot, backup.Value));
     }
 
     /// <summary>
@@ -286,7 +296,8 @@ public sealed class GameSession
             Log.Info("Session", $"{file} isn't a character: {e.Message}");
             return new ImportResult(null, NotACharacterSave);
         }
-        if (RecordChecks.Check(save) is [var problem, ..])
+        save = Corrected(file, save);
+        if (RecordChecks.Check(save, _data, _data is null ? null : new DataKinds(_data)) is [var problem, ..])
         {
             Log.Info("Session", $"{file} refused: {problem}");
             return new ImportResult(null, $"{NotACharacterSave}: {problem.Message}");
@@ -296,6 +307,50 @@ public sealed class GameSession
         Log.Info("Session", $"{file} loaded into {slot}");
         Make(slot, save);
         return new ImportResult(slot, null);
+    }
+
+    /// <summary>
+    /// <paramref name="save"/> as the game opens it (the user's Q45: out-of-range numbers corrected silently, as the old game's
+    /// <c>normalizeCharacter</c>; <see cref="SaveGame.Corrected"/>): no message, nothing refused, nothing written until the
+    /// next save; a line in the log when anything changed (<paramref name="from"/> the slot or the file).
+    /// </summary>
+    static SaveGame Corrected(string from, SaveGame save)
+    {
+        var corrected = save.Corrected();
+        if (corrected != save)
+            Log.Info("Session", $"{from}: numbers out of range corrected as the old game did");
+        return corrected;
+    }
+
+    /// <summary>
+    /// The kinds of the record entries of the game's data, by path: what a loaded character file's names are checked against
+    /// (as the editor's and the mod check's lookups). Each entry asked about is read once (a model's whole record: a file's
+    /// look names a body and some parts, so a few).
+    /// </summary>
+    sealed class DataKinds(VirtualFileSystem data) : IReferenceLookup
+    {
+        readonly Dictionary<string, string?> _kinds = new(StringComparer.Ordinal);
+
+        public string? KindAt(string path)
+        {
+            if (_kinds.TryGetValue(path, out var known))
+                return known;
+            return _kinds[path] = Read(path);
+        }
+
+        string? Read(string path)
+        {
+            if (PackPath.Problem(path) is not null || !data.Exists(path) || !data.IsRecord(path))
+                return null;
+            try
+            {
+                return data.Load(GameMods.GameKinds, path).GetType().GetCustomAttribute<RecordAttribute>()?.Name;
+            }
+            catch (DataFileException)
+            {
+                return null;
+            }
+        }
     }
 
     /// <summary>A slot's name and where it came from: the save's, else the backup's when it reads, else the slot's file name.</summary>

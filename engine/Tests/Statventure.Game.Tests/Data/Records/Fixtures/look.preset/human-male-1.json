@@ -1,0 +1,22 @@
+{
+  "$types": {
+    "look.preset": 1,
+    "look.hero": 1
+  },
+  "label": "Wayfarer",
+  "order": 10,
+  "look": {
+    "race": "human",
+    "sex": "male",
+    "body": "human-male-average",
+    "parts": {
+      "face": "face-human-male-1",
+      "hair": "hair-braid",
+      "beard": "beard-none"
+    },
+    "colours": {
+      "skin": "Fair",
+      "hair": "Ash"
+    }
+  }
+}

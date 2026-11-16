@@ -147,7 +147,7 @@ public sealed class StatFickGame : Application
         var settings = GameSettings.Load(storage);
         SettingsLoaded?.Invoke(settings);
         _mods.Attach(settings);
-        var session = new GameSession(storage, settings);
+        var session = new GameSession(storage, settings, data);
         var random = GameRandom.FromSystem();
         Log.Info("Game", $"the run's random seed {random.Seed}");
         var ui = GameUi.Load(this, settings, data);

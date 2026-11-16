@@ -25,9 +25,10 @@ static class GameTesting
 
     /// <summary>
     /// How many record kinds the library brings beside the engine's: the save, the race with its three parts, the effect
-    /// union and its 23 effects, and the actor record with its three parts (GM2 step 2).
+    /// union and its 23 effects, the actor record with its three parts (GM2 step 2), and the maker's five: the look, the
+    /// body, the part and its model, the preset (GM2 step 6).
     /// </summary>
-    public const int LibraryKinds = 33;
+    public const int LibraryKinds = 38;
 
     /// <summary>
     /// A game's folder at <paramref name="folder"/> as its download lays it out: <c>packs/</c> with the repo's packs, the

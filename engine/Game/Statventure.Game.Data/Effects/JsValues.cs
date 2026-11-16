@@ -38,6 +38,37 @@ public static class JsValues
     }
 
     /// <summary>
+    /// The old game's <c>slugify(value)</c> (<c>app.js</c> 2218–2220): <see cref="ToLowerCase"/>, <see cref="Trim"/>, every run
+    /// of UTF-16 units other than a–z and 0–9 one "-" (the regular expression has no <c>u</c> flag), then one "-" taken off
+    /// each end. An id made of nothing it keeps is "" (not null).
+    /// </summary>
+    public static string Slugify(string value)
+    {
+        var lower = Trim(ToLowerCase(value));
+        var slug = new StringBuilder(lower.Length);
+        var run = false;
+        foreach (var c in lower)
+        {
+            if (c is >= 'a' and <= 'z' or >= '0' and <= '9')
+            {
+                slug.Append(c);
+                run = false;
+            }
+            else if (!run)
+            {
+                slug.Append('-');
+                run = true;
+            }
+        }
+        var text = slug.ToString();
+        if (text.StartsWith('-'))
+            text = text[1..];
+        if (text.EndsWith('-'))
+            text = text[..^1];
+        return text;
+    }
+
+    /// <summary>
     /// <c>text.toLowerCase()</c>: Unicode's lower case, with JavaScript's two special mappings that .NET's simple mapping
     /// lacks: U+0130 (İ) becomes "i" and a combining dot above (U+0307), and a capital sigma ending a word (a letter before
     /// it, none after) becomes the final sigma ς (Unicode's Final_Sigma, read here without its case-ignorable characters

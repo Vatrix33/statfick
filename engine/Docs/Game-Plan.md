@@ -733,11 +733,11 @@ and below ("GM2's detail round").
   want them to look very good".
 
 **GM2's detail round (the user, 2026-11-15, the question tool, asked by the manager in ten rounds of four after the
-design doc's first version, the options as `Docs/Game/Hero.md` prepared them, then Q40, the manager's follow-up, then Q41 and Q42, which the answers opened, and Q43 and Q44, which step 1 raised; in full
-with each question's facts and options in `Docs/Game/Hero.md`, "The questions as asked"):** every answer the recommended
+design doc's first version, the options as `Docs/Game/Hero.md` prepared them, then Q40, the manager's follow-up, then Q41 and Q42, which the answers opened, and Q43 and Q44, which step 1 raised, and Q45, asked for step 6; in full
+with each question's facts and options in `Docs/Game/Hero.md`, "The questions as asked" and "Questions from the steps"):** every answer the recommended
 option (a) except Q1, Q2, Q9, Q18, Q19, Q21, Q22, Q23, Q28, Q31, Q32 and Q37. The manager's decisions on the proposals
-(GM2-P1–GM2-P16, all as proposed, with notes on P7, P10 and P16) are in `Docs/Game/Hero.md`, "Decisions". Nothing of GM2's
-design is open.
+(GM2-P1–GM2-P16, all as proposed, with notes on P7, P10 and P16; GM2-P17 on step 12's sounds and GM2-P18 on step 6's
+models, 2026-11-16) are in `Docs/Game/Hero.md`, "Decisions". Nothing of GM2's design is open.
 - **Q1, not the recommendation: "Heroic, realistic":** about 7.5 heads, smaller heads, longer limbs; the races differ by
   the same ratios. (Not the old six-head proportions, the recommendation; not big heads, four to five.)
 - **Q2, not the recommendation: "Stylised":** simple eye shapes, no face bones, mitten hands (a thumb and one block).
@@ -795,6 +795,10 @@ design is open.
 - Q44 (raised by step 1, asked the same day): the race's emblem as `emblem`, a name ("human", "dark-elf" …; none: no
   emblem, the ✦), step 10 placing its pictures and model by that name. (Not no field until step 10; not a path to a
   picture in `ui.pak`.)
+- Q45 (left open by step 2, asked by the manager for step 6 on 2026-11-16): a save or a character file whose numbers are
+  out of range opens with them corrected silently, as the old game's `normalizeCharacter` (the level into 1 to the cap,
+  points, coins and HP to 0 or more), with no message and without refusing the file; the look stays as designed (its
+  checks refuse what the maker couldn't make, G4). (Not "correct and say so"; not "refuse the file".)
 
 ## GM3 Arms and armour: the forge, artifacts and the inventory
 
@@ -2331,3 +2335,9 @@ GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
   game's test client), its results committed in `Tests/Statventure.Game.Tests/Reference/old-game/`; step 1's race oracle
   folded into it. `actor.sheet` and `ActorRules` in the data library, matching the old game on every case
   (`Docs/Game/Hero.md`, "How it works", step 2). A later milestone adds its modules and cases there.
+- **2026-11-16, GM2 step 6 (the save v2 and the maker's records):** `save.game` v2 with the hero's sheet and look (version
+  1 upgrading to a new hero), a loaded character's numbers corrected silently as the old game's `normalizeCharacter` (the
+  user's Q45, checked against the old game), the maker's records (`look.hero`, `look.body`, `look.part`, `look.preset`)
+  with their checks, a look's models references refused when missing (the manager's GM2-P18), and the 72 old looks waiting
+  in the oracle's catalogue with a one-step writer into `data.pak` for when their models land (`Docs/Game/Hero.md`, "How
+  it works", step 6).

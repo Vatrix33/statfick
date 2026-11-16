@@ -575,6 +575,15 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   client's page lets a script reassign the old game's global functions and `let` globals (stubs, a crafted race through
   `normalizeRaceDefinition`), and runs each oracle module in a fresh page; a mutation whose code is held twice (an action's
   clamp, then `Settle`'s) can't be killed: account for it rather than drop either.
+- 2026-11-16 (the PC, GM2 step 6's worker on the branch `gm2-step6`, 4266 + 659 = 4925 tests on the GPU and lavapipe): **the save v2 and the maker's records**
+  (`Docs/Game/Hero.md`, "How it works", step 6). Facts of the old game: `normalizeCharacter` also slugifies the race's id,
+  drops the EXP at the cap and makes a bonus that isn't a finite number 0 (Q45's words named only the level, points, coins
+  and HP); the old sprite scripts load in Node with `globalThis.window = globalThis` (`Sprites.forActor(…).spec` is a look's
+  merged spec). Gotchas: the mod check checks the game's own records under every mod, so one shipped entry with a problem
+  (a model reference to a file not there yet) leaves out every mod: the reason for GM2-P18; a map key in a record path
+  prints as `$.parts["hair"]`, not `$.parts.hair`; a frozen past version (`SaveGame.V1`) can't be written by the serializer,
+  so a test of an old save takes the committed fixture's bytes; a test of an old version's "newer save" (a version byte
+  bumped by hand) has to move on when the record gains a version (3 now).
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

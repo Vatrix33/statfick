@@ -22,8 +22,14 @@ public class GameSessionTests
     sealed class Player : IDisposable
     {
         readonly ScratchFolder _scratch = new();
+        readonly Statventure.Packs.VirtualFileSystem? _data;
 
-        public Player() => Start();
+        /// <summary>A player whose game's data is <paramref name="data"/> (none: the session checks a loaded file without it).</summary>
+        public Player(Statventure.Packs.VirtualFileSystem? data = null)
+        {
+            _data = data;
+            Start();
+        }
 
         public GameStorage Storage { get; private set; } = null!;
         public GameSettings Settings { get; private set; } = null!;
@@ -42,7 +48,7 @@ public class GameSessionTests
             Storage?.Dispose();
             Storage = new GameStorage(_scratch["p"]);
             Settings = GameSettings.Load(Storage);
-            Session = new GameSession(Storage, Settings);
+            Session = new GameSession(Storage, Settings, _data);
             Session.Opened += () => Events.Add("opened");
             Session.Closed += () => Events.Add("closed");
             Session.Saved += () => Events.Add("saved");
@@ -104,9 +110,9 @@ public class GameSessionTests
     static byte[] Newer(string name)
     {
         var payload = RecordSerializer.ToBinary(new SaveGame { Name = name });
-        // The type table: count 1, "save.game" (length 9), then its version.
-        Assert.Equal(1, payload[11]);
-        payload[11] = 2;
+        // The type table: its count, "save.game" (length 9) first, then its version: 2 now (GM2), so 3 is one this game can't read.
+        Assert.Equal(("save.game", 2), (Encoding.UTF8.GetString(payload, 2, 9), (int)payload[11]));
+        payload[11] = 3;
         return Statventure.Storage.SaveFile.Wrap(payload);
     }
 
@@ -561,7 +567,8 @@ public class GameSessionTests
         Assert.False(File.Exists(file));
         player.Session.New("Ser Alrik");
         Assert.True(player.Session.Export(file));
-        Assert.Equal("{\n  \"$types\": {\n    \"save.game\": 1\n  },\n  \"name\": \"Ser Alrik\"\n}\n", File.ReadAllText(file));
+        Assert.Equal(RecordSerializer.ToJson(new SaveGame { Name = "Ser Alrik" }), File.ReadAllText(file));
+        Assert.StartsWith("{\n  \"$types\": {\n    \"save.game\": 2,", File.ReadAllText(file));
         // An existing file replaced.
         player.Session.Change(s => s with { Name = "Ser Alrik the Bold" });
         Assert.True(player.Session.Export(file));
@@ -623,7 +630,7 @@ public class GameSessionTests
             }
             """) },
         { "another kind", "{ \"$types\": { \"mod.info\": 1 }, \"name\": \"Ser Alrik\", \"author\": \"\", \"version\": \"\", \"description\": \"\" }"u8.ToArray() },
-        { "a newer save", "{ \"$types\": { \"save.game\": 2 }, \"name\": \"Ser Alrik\" }"u8.ToArray() },
+        { "a newer save", "{ \"$types\": { \"save.game\": 3 }, \"name\": \"Ser Alrik\" }"u8.ToArray() },
         { "an unknown key", "{ \"$types\": { \"save.game\": 1 }, \"name\": \"Ser Alrik\", \"race\": \"elf\" }"u8.ToArray() },
         { "a wrong type", "{ \"$types\": { \"save.game\": 1 }, \"name\": 7 }"u8.ToArray() },
         { "a slot's binary save", Good("Ser Alrik") },
@@ -675,5 +682,115 @@ public class GameSessionTests
         Assert.Equal("That file is not a valid character save: the name has 81 characters, more than 80", player.Session.Import(player["long.json"]).Problem);
         Assert.Empty(player.Files());
         Assert.Null(player.Session.Current);
+    }
+
+    // ---------- GM2 step 6: the save's version 2, its correction on opening (Q45) and its look's checks ----------
+
+    /// <summary>A hero whose numbers are all out of range, and the same hero as the old game corrected it.</summary>
+    static readonly Data.Actors.ActorSheet OutOfRange = new()
+    {
+        Race = " Dark Elf ", Level = 140, Experience = 900, FreePoints = -2, ClassPoints = -1, Hp = -5, Mana = -6,
+        SpentPoints = Data.Actors.AttributeSet.All(-1), Purse = new Data.Actors.Purse { Silver = -1, Gold = -2, Platinum = -3 },
+        Bonuses = new Data.Actors.ActorBonuses { Armor = double.NaN },
+    };
+
+    static readonly Data.Actors.ActorSheet AsCorrected = OutOfRange with
+    {
+        Race = "dark-elf", Level = 100, Experience = 0, FreePoints = 0, ClassPoints = 0, Hp = 0, Mana = 0,
+        SpentPoints = Data.Actors.AttributeSet.All(0), Purse = new Data.Actors.Purse(), Bonuses = new Data.Actors.ActorBonuses(),
+    };
+
+    /// <summary>
+    /// Q45 (the user, 2026-11-16): a save or a character file whose numbers are out of range opens corrected, silently (no
+    /// message, nothing refused), as the old game's normalizeCharacter; written so at the next save; a line in the log.
+    /// </summary>
+    [Fact]
+    public void AnOutOfRangeHeroOpensCorrectedSilently()
+    {
+        using var player = new Player();
+        // A slot's save.
+        player.Put("mira", ".dat", Statventure.Storage.SaveFile.Write(new SaveGame { Name = "Mira", Hero = OutOfRange }));
+        var log = GameTesting.CaptureLog(() => Assert.True(player.Session.Open("mira").Opened));
+        Assert.Equal(new SaveGame { Name = "Mira", Hero = AsCorrected }, player.Session.Current);
+        Assert.Contains("Info [Session] mira: numbers out of range corrected as the old game did", log);
+        // Nothing written on opening; the corrected hero at the next save.
+        Assert.Equal(OutOfRange, player.Read("mira").Value.Hero);
+        player.Session.Leave();
+        Assert.Equal(AsCorrected, player.Read("mira").Value.Hero);
+        // A character file: loaded corrected, not refused.
+        CharacterFile.Export(player["bram.json"], new SaveGame { Name = "Bram", Hero = OutOfRange });
+        log = GameTesting.CaptureLog(() => Assert.Equal(new ImportResult("bram", null), player.Session.Import(player["bram.json"])));
+        Assert.Equal(AsCorrected, player.Read("bram").Value.Hero);
+        Assert.Contains(log, l => l.StartsWith("Info [Session] ", StringComparison.Ordinal) && l.EndsWith("bram.json: numbers out of range corrected as the old game did", StringComparison.Ordinal));
+        // A damaged slot's backup used: corrected too.
+        player.Put("wren", ".dat", Damaged("Wren"));
+        player.Put("wren", ".dat.bak", Statventure.Storage.SaveFile.Write(new SaveGame { Name = "Wren", Hero = OutOfRange }));
+        player.Session.UseBackup("wren");
+        Assert.Equal(AsCorrected, player.Session.Current!.Hero);
+        // A value the record can't hold at all (a fraction for the level, text for HP) is the record's refusal, as any file it can't read.
+        var json = RecordSerializer.ToJson(new SaveGame { Name = "Odo" });
+        File.WriteAllText(player["fraction.json"], json.Replace("\"level\": 1,", "\"level\": 1.5,", StringComparison.Ordinal));
+        File.WriteAllText(player["text.json"], json.Replace("\"hp\": 31,", "\"hp\": \"31\",", StringComparison.Ordinal));
+        Assert.NotEqual(json, File.ReadAllText(player["fraction.json"]));
+        Assert.NotEqual(json, File.ReadAllText(player["text.json"]));
+        Assert.Equal(new ImportResult(null, GameSession.NotACharacterSave), player.Session.Import(player["fraction.json"]));
+        Assert.Equal(new ImportResult(null, GameSession.NotACharacterSave), player.Session.Import(player["text.json"]));
+        // A hero in range: opened as it is, no line.
+        player.Put("ser-alrik", ".dat", Good("Ser Alrik"));
+        log = GameTesting.CaptureLog(() => player.Session.Open("ser-alrik"));
+        Assert.Equal(new SaveGame { Name = "Ser Alrik" }, player.Session.Current);
+        Assert.DoesNotContain(log, l => l.Contains("corrected", StringComparison.Ordinal));
+    }
+
+    /// <summary>GM1's saves and character files (version 1) open as a new hero with no race and no look: on the new hero's flow (Q26).</summary>
+    [Fact]
+    public void AVersion1SaveOpensAsANewHero()
+    {
+        using var player = new Player();
+        // GM1's save as GM1 wrote it: the version-1 fixture's binary form behind the header.
+        player.Put("ser-alrik", ".dat", Statventure.Storage.SaveFile.Wrap(LibraryRecords.Read("save.game", "ser-alrik", ".rec")));
+        Assert.True(player.Session.Open("ser-alrik").Opened);
+        Assert.Equal(new SaveGame { Name = "Ser Alrik", Hero = new Data.Actors.ActorSheet(), Look = null }, player.Session.Current);
+        File.WriteAllText(player["v1.json"], "{ \"$types\": { \"save.game\": 1 }, \"name\": \"Bram\" }");
+        Assert.Equal(new ImportResult("bram", null), player.Session.Import(player["v1.json"]));
+        Assert.Equal(new SaveGame { Name = "Bram" }, player.Session.Current);
+        // Saved again as version 2.
+        player.Session.Leave();
+        Assert.Equal(new SaveGame { Name = "Bram" }, player.Read("bram").Value);
+        Assert.Equal((byte)2, player.Bytes("bram")[Statventure.Storage.SaveFile.HeaderLength + 11]);
+    }
+
+    /// <summary>
+    /// A character file's look is checked against the game's data (G4): a look the maker couldn't make is refused with the
+    /// check's words; one it could is loaded. A slot's save opens as it is (its look isn't checked on opening, as GM1's
+    /// session checks a slot's save only when it changes).
+    /// </summary>
+    [Fact]
+    public void ACharacterFilesLookIsCheckedAgainstTheData()
+    {
+        using var looks = new TestLooks();
+        using var player = new Player(looks.Data);
+        var hero = new Data.Actors.ActorSheet { Race = "human" };
+        CharacterFile.Export(player["good.json"], new SaveGame { Name = "Wren", Hero = hero, Look = TestLooks.WayfarerLook });
+        Assert.Equal(new ImportResult("wren", null), player.Session.Import(player["good.json"]));
+        // The braid on the strong body (no model fitted to it), a part that isn't there, a model the data hasn't.
+        CharacterFile.Export(player["strong.json"], new SaveGame { Name = "Bram", Hero = hero, Look = TestLooks.WayfarerLook with { Body = TestLooks.HumanMaleStrong } });
+        Assert.Equal(new ImportResult(null, "That file is not a valid character save: \"hair-braid\" has no model for the body \"human-male-strong\""), player.Session.Import(player["strong.json"]));
+        CharacterFile.Export(player["missing.json"], new SaveGame { Name = "Bram", Hero = hero,
+            Look = TestLooks.WayfarerLook with { Parts = new Dictionary<string, string>(TestLooks.WayfarerLook.Parts) { ["hair"] = "hair-mohawk" } } });
+        Assert.Equal(new ImportResult(null, "That file is not a valid character save: no look part \"hair-mohawk\" (data/looks/parts/hair-mohawk)"), player.Session.Import(player["missing.json"]));
+        // The race corrected before the check: " Human " is the human.
+        CharacterFile.Export(player["spaced.json"], new SaveGame { Name = "Ash", Hero = hero with { Race = " Human " }, Look = TestLooks.WayfarerLook });
+        Assert.Equal(new ImportResult("ash", null), player.Session.Import(player["spaced.json"]));
+        // A look of another race than the hero's: the save's own check, with or without the data.
+        CharacterFile.Export(player["other.json"], new SaveGame { Name = "Odo", Hero = hero with { Race = "dwarf" }, Look = TestLooks.WayfarerLook });
+        Assert.Equal(new ImportResult(null, "That file is not a valid character save: the look is a human's, but the hero is a dwarf"), player.Session.Import(player["other.json"]));
+        // A slot's save with a look the data doesn't allow still opens.
+        player.Put("bram", ".dat", Statventure.Storage.SaveFile.Write(new SaveGame { Name = "Bram", Hero = hero, Look = TestLooks.WayfarerLook with { Body = TestLooks.HumanMaleStrong } }));
+        Assert.True(player.Session.Open("bram").Opened);
+        // Without the data the look's parts aren't checked (the session of a test, or a check that can't reach them).
+        using var plain = new Player();
+        CharacterFile.Export(plain["strong.json"], new SaveGame { Name = "Bram", Hero = hero, Look = TestLooks.WayfarerLook with { Body = TestLooks.HumanMaleStrong } });
+        Assert.Equal(new ImportResult("bram", null), plain.Session.Import(plain["strong.json"]));
     }
 }

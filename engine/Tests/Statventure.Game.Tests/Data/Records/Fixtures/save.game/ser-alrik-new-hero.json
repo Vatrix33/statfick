@@ -1,0 +1,55 @@
+{
+  "$types": {
+    "save.game": 2,
+    "actor.sheet": 1,
+    "actor.attributes": 1,
+    "actor.bonuses": 1,
+    "actor.purse": 1
+  },
+  "name": "Ser Alrik",
+  "hero": {
+    "level": 1,
+    "experience": 0,
+    "freePoints": 0,
+    "classPoints": 1,
+    "attributes": {
+      "strength": 10,
+      "vitality": 10,
+      "mind": 10,
+      "dexterity": 10,
+      "intelligence": 10,
+      "wisdom": 10,
+      "speed": 10,
+      "luck": 10
+    },
+    "spentPoints": {
+      "strength": 0,
+      "vitality": 0,
+      "mind": 0,
+      "dexterity": 0,
+      "intelligence": 0,
+      "wisdom": 0,
+      "speed": 0,
+      "luck": 0
+    },
+    "bonuses": {
+      "strength": 0,
+      "vitality": 0,
+      "mind": 0,
+      "dexterity": 0,
+      "intelligence": 0,
+      "wisdom": 0,
+      "speed": 0,
+      "luck": 0,
+      "armor": 0,
+      "evasion": 0
+    },
+    "hp": 31,
+    "mana": 20,
+    "purse": {
+      "silver": 0,
+      "gold": 5,
+      "platinum": 0
+    }
+  }
+}

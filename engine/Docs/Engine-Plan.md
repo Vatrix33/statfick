@@ -1228,7 +1228,11 @@ the design and the tests):
   hatching all open, the nine seals as 3D emblems; as recommended: the Goliath and the Human left to GM17, the look
   changed only when the hero is made). **GM2's detail round (Q1–Q39, the manager's Q40, and Q41–Q42 opened by the answers) answered 2026-11-15**, in
   `Docs/Game-Plan.md` ("GM2's detail round") and `Docs/Game/Hero.md` ("The questions as asked", with the manager's
-  decisions GM2-P1–GM2-P16 in its "Decisions"); nothing of GM2's design is open.
+  decisions GM2-P1–GM2-P16 in its "Decisions"); nothing of GM2's design is open. **Q45 (2026-11-16, asked by the manager
+  for step 6):** a save or character file whose numbers are out of range is corrected silently, as the old game's
+  `normalizeCharacter`, never refused for them; in the same two places ("GM2's detail round"; Hero.md, "Questions from
+  the steps"), with the manager's GM2-P18 of the same day (a look's models are references, refused when missing; bodies,
+  parts and presets enter `data.pak` with their models) in Hero.md's "Decisions".
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -4327,6 +4331,20 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     `JsValues`, with seams for GM3, GM5, GM8 and GM15 (`SheetContext`), matching the old game on every case. Found: a new
     hero's HP is 31, not the design's 30 (corrected). 4266 + 630 = 4896 tests on the GPU and on lavapipe, none held;
     mutations 220 standing (212 killed, 8 that can't differ) and the tooling's 20 (17 killed, 3 that can't differ).
+  - **GM2 step 6, the save v2 and the maker's records (2026-11-16, a worker on the branch `gm2-step6`;
+    `Docs/Game/Hero.md`, "How it works", step 6):** `save.game` v2 (GM2-P5: the hero's `actor.sheet` and its `look.hero`;
+    version 1 frozen as `SaveGame.V1`, upgrading to the old game's new hero with no race and no look, its fixtures kept);
+    a loaded character corrected silently as the old game's `normalizeCharacter` (the user's Q45: the level, the EXP at and
+    below the cap, the race's id through `slugify`, points, coins, HP and Mana, bonuses that aren't finite; matching the old
+    game on 102 cases of a new oracle module, `save-correction`), applied by the session on opening a slot, a backup or a
+    character file; the maker's records in `Game/Statventure.Game.Data/Looks/` (GM2-P6, GM2-P7): `look.hero`, `look.body`,
+    `look.part` with `look.part.model` (one model for several bodies) and `look.preset`, their checks refusing what the
+    maker couldn't make (G4) and a missing model (the manager's GM2-P18: a look's models are references; bodies, parts and
+    presets enter `data.pak` with their models), the session checking a loaded file's look against the game's data; the
+    race's swatches checked and kept by the converter; the 72 old looks as the oracle's `look-catalogue` (Node over
+    `sprite-catalog.js`) with a one-step writer (`STATVENTURE_LOOK_DATA=write`, then `make-data-pack.sh`) for when the
+    models land. 4266 + 659 = 4925 tests on the GPU and on lavapipe, none held; mutations 114 standing (109 killed, 5
+    that can't differ) and the oracle modules' 18 (killed); no pack or golden changed.
 
 ## Milestones
 

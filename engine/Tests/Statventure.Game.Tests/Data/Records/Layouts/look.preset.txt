@@ -1,0 +1,4 @@
+look.preset 1
+  1 label: string = ""
+  2 order: int32 = 0
+  3 look: look.hero = {"race":"","sex":"male","body":"","parts":{},"colours":{}}

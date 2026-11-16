@@ -20,19 +20,23 @@ public class LibraryRecordLayoutTests
 
     /// <summary>
     /// The library's record types: the save, since GM2 step 1 the race with its parts and the effect union with its 23
-    /// subtypes, since step 2 the actor record and its parts.
+    /// subtypes, since step 2 the actor record and its parts, since step 6 the maker's records (the look, the body, the
+    /// part and its model, the preset).
     /// </summary>
     [Fact]
     public void TheGuardCoversEveryRecordTypeOfTheLibrary()
     {
         Assert.Equal(
             ["actor.attributes", "actor.bonuses", "actor.purse", "actor.sheet",
-             "effect", .. Data.Effects.Effect.Types.Keys.Select(t => "effect." + t).Order(StringComparer.Ordinal), "race", "race.modifiers", "race.passive", "race.swatch", "save.game"],
+             "effect", .. Data.Effects.Effect.Types.Keys.Select(t => "effect." + t).Order(StringComparer.Ordinal),
+             "look.body", "look.hero", "look.part", "look.part.model", "look.preset",
+             "race", "race.modifiers", "race.passive", "race.swatch", "save.game"],
             LibraryRecords.Types.Keys);
         Assert.Equal(23, Data.Effects.Effect.Types.Count);
         Assert.Equal(typeof(SaveGame), LibraryRecords.Types["save.game"]);
         Assert.Equal(typeof(Data.Races.Race), LibraryRecords.Types["race"]);
         Assert.Equal(typeof(Data.Actors.ActorSheet), LibraryRecords.Types["actor.sheet"]);
+        Assert.Equal(typeof(Data.Looks.LookHero), LibraryRecords.Types["look.hero"]);
     }
 
     [Fact]
@@ -68,18 +72,34 @@ public class LibraryRecordLayoutTests
         Assert.True(problems.Count == 0, string.Join("\n\n", problems));
     }
 
+    /// <summary>The save's versions (GM2-P5): 1 its name (GM1, frozen as <see cref="SaveGame.V1"/>), 2 the hero's sheet and look added after it.</summary>
     [Fact]
-    public void TheSavesVersion1LayoutIsItsName()
+    public void TheSavesLayoutsAreItsNameThenTheHerosSheetAndLook()
     {
-        Assert.Equal("save.game 1\n  1 name: string = \"\"\n", RecordSerializer.LayoutText(typeof(SaveGame)));
+        var blocks = Blocks(RecordSerializer.LayoutText(typeof(SaveGame)));
+        Assert.Equal(2, blocks.Count);
+        Assert.Equal("save.game 1\n  1 name: string = \"\"", blocks[0]);
+        Assert.Equal(3, blocks[1].Split('\n').Length - 1);
+        Assert.StartsWith("save.game 2\n  1 name: string = \"\"\n  2 hero: actor.sheet = {\"level\":1,", blocks[1]);
+        Assert.EndsWith("\n  3 look: look.hero? = null", blocks[1]);
         Assert.Equal(RecordSerializer.LayoutText(typeof(SaveGame)), File.ReadAllText(Path.Combine(LibraryRecords.LayoutFolder, "save.game.txt")));
     }
+
+    /// <summary>A played hero with a look, GM2's save (the version-2 fixture).</summary>
+    internal static SaveGame Played => new()
+    {
+        Name = "Ser Alrik",
+        Hero = ActorSheetTests.Played with { Race = "human" },
+        Look = TestLooks.WayfarerLook with { Preset = "human-male-1" },
+    };
 
     [Fact]
     public void EveryVersionOfEveryTypeHasAFixtureInBothForms()
     {
-        // The save's version-1 fixture (the design's example character file).
+        // The save's version-1 fixture (the design's example character file), and version 2's: a new hero and a played one.
         LibraryRecords.Ensure("ser-alrik", new SaveGame { Name = "Ser Alrik" });
+        LibraryRecords.Ensure("ser-alrik-new-hero", new SaveGame { Name = "Ser Alrik" });
+        LibraryRecords.Ensure("ser-alrik-played", Played);
         var read = new Dictionary<string, HashSet<(string, int)>> { [".rec"] = [], [".json"] = [] };
         foreach (var (type, label, form) in LibraryRecords.All())
         {
@@ -138,5 +158,21 @@ public class LibraryRecordLayoutTests
             System.Text.Encoding.UTF8.GetString(LibraryRecords.Read("save.game", "ser-alrik", ".json")));
         Assert.Equal(new SaveGame { Name = "Ser Alrik" }, LibraryRecords.Load("save.game", "ser-alrik", ".rec"));
         Assert.Equal(new SaveGame { Name = "Ser Alrik" }, LibraryRecords.Load("save.game", "ser-alrik", ".json"));
+    }
+
+    /// <summary>GM1's character file read today is GM2's new hero with no race and no look (version 1's upgrade), the same as version 2's fixture of it; the played one keeps every choice.</summary>
+    [Fact]
+    public void TheVersion1FixtureUpgradesToVersion2s()
+    {
+        foreach (var form in new[] { ".rec", ".json" })
+        {
+            Assert.Equal(LibraryRecords.Load("save.game", "ser-alrik-new-hero", form), LibraryRecords.Load("save.game", "ser-alrik", form));
+            Assert.Equal(Played, LibraryRecords.Load("save.game", "ser-alrik-played", form));
+            Assert.Equal(("save.game", 1), LibraryRecords.Table("save.game", "ser-alrik", form)[0]);
+            Assert.Equal(("save.game", 2), LibraryRecords.Table("save.game", "ser-alrik-new-hero", form)[0]);
+        }
+        var file = System.Text.Encoding.UTF8.GetString(LibraryRecords.Read("save.game", "ser-alrik-played", ".json"));
+        Assert.Contains("\"look.hero\": 1", file);
+        Assert.Contains("\"preset\": \"human-male-1\"", file);
     }
 }

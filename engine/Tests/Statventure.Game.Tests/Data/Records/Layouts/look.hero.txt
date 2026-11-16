@@ -1,0 +1,7 @@
+look.hero 1
+  1 race: string = ""
+  2 sex: string = "male"
+  3 body: string = ""
+  4 parts: map<string, string> = {}
+  5 colours: map<string, string> = {}
+  6 preset: string? = null

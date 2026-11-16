@@ -109,10 +109,24 @@ patch's four voices taking over the oldest, no rate limit, nothing once the "+" 
 (Dev Mode's too) plays `race-chosen`; nothing on hover. The seven weigh 5 in an action, above GM1's event sounds' 4
 (`Ui/GameSounds.cs`, made by step 12 with the manager's leave). Steps 7 and 8 wire them as "How it works", step 12, lists.
 
-### Questions from the steps (Q43–Q44, the user, 2026-11-15)
+**GM2-P18, a look's models are references, refused when missing; bodies, parts and presets enter `data.pak` with their
+models (the manager, 2026-11-16, on step 6's question):** a model named by a `look.body` or a `look.part` is a
+`[References]` to the engine's `model` kind, so a missing one is "no model …" at the field in the editor and in the mod
+check, exactly as a sequence's stage; the checks know only "a model that is there" and the record's own rules (race, sex,
+build, category), no path form (step 4a's `models/humanoid/bodies/<race>-<sex>-<build>` and
+`models/humanoid/parts/<category>/<part>/<body>` are examples they accept). Since the mod check checks the game's records
+under every mod, nothing in `data.pak` may name a model before its file is in `models.pak`: step 6 commits the kinds, their
+checks and tests on the tests' own data, and the 72 presets' catalogue data waits outside `data.pak` (in the oracle's
+results), moved in by one step when the models land ("How it works", step 6). (Not a model path checked for its form only,
+a missing file drawn as nothing: a typo would show only as a missing piece of a figure; not the game's own data excused
+from the model check until GM2's end: no temporary rule in the mod checker.)
 
-Raised by step 1 (the `race` kind's fields; the docs didn't answer them) and asked by the manager with the question tool
-the same day; both the recommended option. Recorded in `Docs/Game-Plan.md`, "GM2's detail round", too.
+### Questions from the steps (Q43–Q45, the user, 2026-11-15 and 2026-11-16)
+
+Q43 and Q44 raised by step 1 (the `race` kind's fields; the docs didn't answer them) and asked by the manager with the
+question tool the same day; both the recommended option. Q45 asked by the manager on 2026-11-16 for step 6 (step 2 had
+left it open: whether a character file with a sheet out of the old ranges is refused or corrected). Recorded in
+`Docs/Game-Plan.md`, "GM2's detail round", too.
 - **Q43 The races' order.** One entry per race at `data/races/<id>` holds no order (a pack lists its entries by path:
   bear, dark-elf, demon …), while the carousel shows the races in `races.json`'s order and the old recruits' random picks
   (GM11) index the playable races in it. (a) An `order` number on each race, the old game's order written as 10, 20, …
@@ -124,6 +138,14 @@ the same day; both the recommended option. Recorded in `Docs/Game-Plan.md`, "GM2
   `emblem`, a name ("human", "dark-elf" …; none: no emblem, the ✦), step 10 placing its pictures and its model by that
   name. *Recommended.* (b) No field until step 10 adds it (race version 2). (c) A path to a picture in `ui.pak`, filled
   once step 10 makes them. **Answer: (a).**
+- **Q45 A character's numbers out of range** (2026-11-16, the question tool, asked by the manager). A save or a character
+  file can hold a sheet whose numbers the game never makes (a level of 0 or above the cap, points, coins or HP below 0: a
+  file edited by hand); the old game's `normalizeCharacter` corrected them on every load. **Answer: corrected silently,
+  as the old game** (its `normalizeCharacter`: the level into 1 to the cap, points, coins and HP to 0 or more), with no
+  message and without refusing the file. (Not "correct and say so"; not "refuse the file".) The look is different and
+  stays as designed: its checks refuse a part the race, the sex or the build doesn't allow (G4). Built by step 6 ("How it
+  works", step 6), field for field as the old function, its other corrections named there (the race's id through
+  `slugify`, the EXP 0 at the cap and 0 or more, a bonus that isn't a finite number 0).
 - The manager's, on step 1's report (a test fixture's sample text, not a choice about the game): the `settings-mods`
   screens' broken mod holds two races its checks refuse, so the row shows the game's real kind and a real refusal in the
   editor's words, still wrapping onto two lines ("How it works", step 1).
@@ -1529,6 +1551,15 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
      catalogue (as data; their parts arrive with 4 and 9).
    - Must not touch: the screens, art.
    - Finished: round trips, the v1 fixture upgrading, every check against a case. No approval.
+   - **Done (2026-11-16, the branch `gm2-step6`; "How it works", step 6).** With the user's Q45 (a character's numbers
+     out of range corrected silently, as the old `normalizeCharacter`, checked against it in the test client) and the
+     manager's GM2-P18 (a look's models are references, refused when missing; nothing of the maker's enters `data.pak`
+     before its models, so the presets' data waits in the oracle's catalogue with a one-step writer). Its choices: the
+     look's colours by swatch name; "none" a part with no model; the categories (face, brows, hair, beard, crest, ears,
+     tail, marks, head-piece) and step 4a's fifteen slots as `[Choices]`; a part offered by its races, sexes and the bodies
+     its models are fitted to, one model for several bodies; the presets `<race>-<sex>-<n>`, ordered 10–80; the correction
+     in the data library, applied by the session on opening, with a log line; the session given the game's data to check
+     a loaded file; the race converter keeping the swatches.
 7. **The sheet** (rules and screen; captures on the PC or under Xvfb). After 2 and 6.
    - Owns: `Screens/Sheet/` (the old page's markup; the paper doll with the dark panel, Q29, Q32, its view empty until 11;
      the name as the heading, Q30; the seal button's emblem picture, a placeholder until 10), `Assets/UI/styles/sheet.css`,
@@ -2189,6 +2220,202 @@ written to the player's real folders.
 (`main`: 4266 + 610 = 4876; 20 new, all the game's), none held or skipped; `make-old-game-references.sh` with every module
 run twice on the final tree: not a byte differs.
 
+### Step 6: the save v2 and the maker's records (2026-11-16, the branch `gm2-step6`)
+
+**Decided on the way.** The user's Q45 (a character's numbers out of range corrected silently, as the old game) and the
+manager's GM2-P18 (a look's models are references, refused when missing; bodies, parts and presets enter `data.pak` with
+their models): "Decisions".
+
+**The save, version 2** (`Game/Statventure.Game.Data/Saves/SaveGame.cs`, GM2-P5): `save.game` v2 holds `name` (1),
+`hero` (2, `actor.sheet`, a new hero by default) and `look` (3, `look.hero`, null until the maker confirms one; a Dev Mode
+hero of an enemy-only race has none, Q27). Version 1 is frozen as `SaveGame.V1` (its name only); its `Upgrade()` keeps the
+name and gives the old game's new hero with no race and no look (HP 31, Mana 20, 5 gold, a class point), so a GM1
+character opens on the new hero's flow (Q26). Its new check: a look is the hero's race's ("the look is a human's, but the
+hero is a dwarf", or "… has no race", at `$.look.race`); the look's own checks run inside it, at `$.look…`. Its layout's
+two versions are in `Data/Records/Layouts/save.game.txt`; fixtures: GM1's `ser-alrik` (version 1, both forms, untouched,
+still GM1's character file byte for byte) and version 2's `ser-alrik-new-hero` (what version 1 upgrades to, equal to it)
+and `ser-alrik-played` (a played hero with a look). A character file is the save's JSON form: GM2's carries the sheet and
+the look (`{ "$types": { "save.game": 2, "actor.sheet": 1, …, "look.hero": 1 }, "name": …, "hero": { … }, "look": { … } }`;
+no look: the key left out).
+
+**The correction on opening (the user's Q45)** (`Actors/SheetCorrection.cs`, `SaveGame.Corrected()`): the old
+`normalizeCharacter` (`app.js` 1399–1563) for the record's fields, in its order: the race's id through `slugify` (now
+`JsValues.Slugify`, the one copy: the converter's moved there), the level into 1 to the cap (100; `limitless` gives 200,
+GM15's), the EXP 0 at the cap (the old L18) else 0 or more and 0 when it isn't finite, the free points, class points,
+points spent on each attribute, coins, HP and Mana 0 or more, a bonus that isn't finite 0; the attributes as they are.
+**What the old function does beyond Q45's words, ported and named here:** the race's id slugified ("Dark Elf" is the
+`dark-elf`; nothing kept is ""), the EXP dropped at the cap and held at 0 or more, the class points and the points spent
+held at 0 or more, a bonus that isn't a finite number made 0. **What it does that the port doesn't do** (nothing a player
+of the port meets): the old save's other keys (`stats` at the top, `modifiers`, `defenseModifiers`), the starting class
+point of a save without `startingPerkPointGranted`, the Barbarian's old choice reward (GM8's), the fields of later
+milestones. A value the record can't hold at all (a fraction in a whole-number field, text for a number) is the record's
+form's refusal ("That file is not a valid character save"), as for any file the game can't read; a field a file leaves
+out takes the record's default (HP 31, Mana 20, where the old game took the maxima of the file's attributes). HP and Mana
+above their maxima are held by the sheet's rules when shown and after every action (step 2's `Settle`, as the old
+`updateDerivedValues`), not here. **Where:** the session (`Session/GameSession.cs`) corrects a slot's save on `Open`, a
+backup on `UseBackup` and a character file on `Import` before its checks; silently (no message, nothing refused), nothing
+written until the next save, and one log line when anything changed (`[Session] <slot or file>: numbers out of range
+corrected as the old game did`). **Checked against the old game:** the oracle module `save-correction` (the test client:
+the old `normalizeCharacter` given each case in the old save's keys, its result read back; 102 cases: every edge by hand,
+the race's slugs among them, and a seeded spread), `SheetCorrectionTests` case for case.
+
+**The maker's records** (`Game/Statventure.Game.Data/Looks/`, GM2-P6, GM2-P7; each with `[Help]` on the kind and every
+field):
+- **`look.hero` v1** (`LookHero`, `[NotAPackKind]`, in the save and in each preset): `race` (`[References]` a race),
+  `sex` (`[Choices]` male, female), `body` (a `look.body`), `parts` (a map from category to a `look.part`), `colours` (a map
+  from palette slot to **the name of a swatch of the race's** for that slot: Q17 left no free colour, so P6's "a swatch or a
+  colour" is the swatch), `preset` (a `look.preset`, for the maker's display, none: none). Two looks with the same choices
+  are equal whatever their maps' order.
+- **`look.body` v1** (`LookBody`, `[Kind("Look body", "data/looks/bodies")]`): `race`, `sex`, `build` (`[Choices]`
+  slender, average, strong, Q15), `model` (a model, by its whole path under `models/`). One body per race, sex and build.
+- **`look.part` v1** (`LookPart`, `[Kind("Look part", "data/looks/parts")]`): `category` (`[Choices]` face, brows, hair,
+  beard, crest, ears, tail, marks, head-piece: the maker's categories as Q16, Q19 and Q22–Q24 name them, in the maker's
+  order), `name` (shown, Q20), `races`, `sexes`, `models` (a list of `look.part.model`: a `model` and the `bodies` it is
+  fitted to, **so several bodies can wear one model file**, a part fitted once per race and sex serving its three builds),
+  `slots` (`[Choices]` the figure's palette slots its materials use). A part is **offered on a body** when the body's race
+  and sex are among the part's and a model of it is fitted to that body; **a part with no model at all is an option drawn
+  as nothing** ("None", "Bald", "Clean-shaven": Q23, Q24), offered on every body of its races and sexes. So a category has
+  "none" where such a part is among its options and is a choice every look makes where it isn't (the Half-Beast's ears and
+  tail, Q13): data, for steps 4 and 9 to make with their lists.
+- **`look.preset` v1** (`LookPreset`, `[Kind("Look preset", "data/looks/presets")]`): `label` (the old label, Q20),
+  `order` (the race's list: lower first, the same number by name; the old looks the male 10–40 then the female 50–80,
+  the old dialog's order, written as Q43 wrote the races'), `look` (every choice; its `preset` none). The game's are named
+  `<race>-<sex>-<n>` (n from 1 in the old order).
+- **The lists** (`LookNames`): each set of choices written once as one field's `[Choices]` and read from it (sexes, builds,
+  categories, slots); the other fields with the same choices held to it by the tests. **The palette slots are step 4a's
+  final fifteen** (`skin`, `hair`, `hair.tie`, `eyes`, `brows`, `lips`, `cloth`, `cloth.trim`, `trousers`, `crest`,
+  `marking`, `claws`, `eye.white`, `leather`, `buckle`); the gear's (`metal.*`, `wood`, `grip`) are GM3's and not a look's,
+  `pupil` and `glint` fixed. They are written twice for now, here and in `look.py`'s `SLOTS` (GM2-P7's "one list both
+  sides read" isn't made: no test reads `look.py`).
+- **The race's swatches** (step 1's `race.swatch`, the swatches staying in `race`, GM2-P7): the slot `[Choices]` the
+  fifteen, and the race's new check: each swatch named, no slot with two of one name ("the race has another skin colour
+  \"Fair\""). The converter from `races.json` now keeps each committed race's swatches (`RaceDataTests.Converted`), so the
+  steps that fill them (9, with their approvals) write them into the races' JSON forms and run `make-data-pack.sh`.
+- **`LookData`**: the bodies, parts and presets of the data by name (`Load`, the game's: an entry of another kind there is
+  the data's error, as the races'; `Read`, the checks': such an entry passed over), `Offered(body)` (each category's options
+  in the maker's order), `BodyOf(race, sex, build)`, `PresetsOf(race)` (the maker's list), and the checks' lookups.
+
+**The checks** (`[Check]`s, the game's and the editor's alike, G4, G5; the words as the editor shows them):
+- **A look's, with the data** (G4: what the maker couldn't make): a body of another race ("the body \"x\" is the dwarf's, not
+  the human's") or sex; a part of another category ("\"x\" is a beard, not a hair"); a part not offered on the body: "isn't
+  for the dwarf", "isn't for a female body", "has no model for the body \"human-male-strong\"" (the build); a category the
+  body offers left out ("no beard chosen (the body \"x\" has 1 to choose from)", at `$.parts`); a colour for a slot the race
+  has no swatches of ("the human has no cloth colours"), a swatch name the race hasn't, a slot the race has swatches of left
+  out ("no skin colour chosen"). **Without the data** only its keys: a category that isn't one, a slot that isn't one.
+  Whether the race, body, parts and preset are there at all is the references' check, so a name that points at nothing is
+  reported once: "no look part \"hair-mohawk\" (data/looks/parts/hair-mohawk)".
+- **A part's:** a name; one race and one sex at least, none twice, no slot twice; each model for one body at least, each
+  body one model's ("the body \"x\" has a model already (models[0])"); with the data, each model's body of the part's races
+  and sexes. **A body's:** one per race, sex and build in the data ("2 bodies are the human male average body (a, b): the
+  maker takes one"). **A preset's:** a label; its look names no preset; its look checked as a hero's.
+- **A missing model (GM2-P18):** the bodies' and parts' `model` fields are `[References(typeof(ModelData), Folder =
+  "models", Rule = typeof(PathNames))]`, so a model that isn't in the data is "no model \"models/humanoid/bodies/x\"
+  (models/humanoid/bodies/x)" at the field, in the editor and in the mod check (which checks the game's records under every
+  mod: a shipped body without its model would leave out every mod), and a path that isn't one under `models/` is "\"x\"
+  can't name a model in models". Nothing checks a path's form beyond that: 4a's names are examples.
+
+**The session and the data** (`GameSession(storage, settings, data)`; the start gives it the game's data): a loaded
+character file is corrected (Q45), then checked with the data and the references resolved over it (a lookup of the data's
+record kinds, as the editor's and the mod check's), so a file's look the maker couldn't make is refused in the check's
+words ("That file is not a valid character save: \"hair-braid\" has no model for the body \"human-male-strong\""). A slot's
+save opens as it is (GM1's session checks a slot's save only when it changes, and `Change` checks without the data), so a
+hero whose look names what the data no longer has (a mod switched off) still opens: what its figure shows then is the
+figure's (step 5, 11).
+
+**Where the presets wait, and the one step that moves them into `data.pak` (GM2-P18).** The 72 old looks are
+`Tests/Statventure.Game.Tests/Reference/old-game/look-catalogue.json`: the oracle module `look-catalogue` (Node: the old
+sprite scripts loaded with a window of their own, `Sprites.forActor`'s spec and `Sprites.lookLabel` for each race of the
+catalogue, male then female, four each), every field the old rig drew (hair style and colour, beard, eyes, crest, ears,
+tail, head piece, marks, skin, outfit), a test failing when `sprite-catalog.js` changes. A preset is made of a look by
+`LookDataTests.Preset(look, body, kept)`: its name `<race>-<sex>-<n>`, label, order, race, sex and the race and sex's
+average body, its parts and colours those of the committed preset (none before). **The step, for 4a, 9 or whoever lands
+bodies' models:** run the game's tests with `STATVENTURE_LOOK_DATA=write` (`--filter LookDataTests` is enough): it writes
+into `Assets/Data/data/looks/` (1) a `look.body` for each model `models/humanoid/bodies/<race>-<sex>-<build>` in
+`Assets/Packs/models.pak` whose race is a race of `Assets/Data`, sex one of the two and build one of the three (4a's naming;
+a body named otherwise is written by hand into `bodies/` and kept), and (2) a `look.preset` for each old look whose race and
+sex have an average body, keeping the parts and colours of a preset file already there; then
+`Tools/Scripts/make-data-pack.sh`. The parts (`data/looks/parts/<name>.json`, `look.part`) and the races' swatches are the
+art steps' own records, written with their approved lists; once a race's parts are there its presets must name them (each
+category its bodies offer) and its swatches (each slot): fill each preset's `parts` and `colours` in its file and run the
+writer again (it keeps them). The guards: `TheCommittedLooksAreTheWritersOutput` (each committed body and preset is what
+the writer makes of it: a preset's name, label, order, race, sex and body the catalogue's), `TheShippedLooksPassTheirChecks`
+(every `data/looks` entry of the game's packs, mounted as the game mounts them, passes its checks with the references:
+a missing model or an unchosen category fails here first), `AssetsDataHoldsTheRacesAndTheMakersRecords`. The editor's
+screens over the repo's packs then show the new `data/looks` folder: their goldens are captured again as step 1's were
+(12 fixtures; GM1-P19). Nothing of this is committed now: `models.pak` isn't on `main` (step 4a).
+
+**The cost of the checks**, measured (a scratch test, Release, on the PC) at GM2's counts (54 bodies, 220 parts with a model
+each for three bodies, 72 presets, nine races of 30 swatches, from a pack): checking all 346 records with the data and the
+references takes about 190 ms, the presets' looks 135 ms of it (each reads every part to know what its body offers). Once
+the data is in `data.pak` the mod check at start pays it once per start with mods on (GM1 step 6b's shortcuts check the
+game's side once); a step that finds it too much at start (GM2 step 13's end-to-end, GM1-6b's measure) has this number.
+
+**For later steps.** *Step 7 (the sheet):* the hero is `save.Hero`, its look `save.Look` (null for a hero without one);
+`GameSession.Change(save => save with { Hero = … })` as step 2 said; a hero opened is already corrected. *Step 8 (the
+carousel and the maker):* `LookData.Load(Application.Data)`: the race's presets `PresetsOf(race)` (each preset's
+`Label`, its `Look` to copy, then `Look with { Preset = <its name> }`), the bodies `BodyOf(race, sex, build)`, the choices
+`Offered(body name, body)` (categories in the maker's order, a part's shown name `LookPart.Name`, "none" being one of the
+options where the data has one), the colours from the race's `Swatches` (a choice for every slot the race has swatches of,
+**set even when the chosen parts don't show that slot**: the check asks for every one), the random roll uniform over each
+offered list and each slot's swatches; "Begin as <race>": `Change(save => save with { Hero = <ActorRules.ChooseRace …>,
+Look = <the look> })`, the look's race the hero's (the save's check); a look the maker makes passes every check by
+construction, and `RecordChecks.Check(look, data)` says why one doesn't. *Step 5 (figures from looks):* a look's body
+`LookData.Body(data, look.Body)` → its `Model`; each part `look.Parts[category]` → `LookPart.Models`, the entry whose
+`Bodies` holds the look's body → its `Model` (none: the part draws nothing); the palette from `look.Colours` (slot → the
+race's swatch of that name → its `Colour`) and the parts' `Slots`; a look naming something the data hasn't (a mod gone)
+reaches the figure only from a slot's save (opened unchecked). *Steps 4 and 9:* the one step above; part names are theirs
+(4a's `swept-back`, `long-tied`, `human-male-1` are fine names), and a hair style fitted per race and sex to its three
+builds is one `look.part.model` with three bodies.
+
+**Choices made** (internal; recorded here): the look's colours by swatch name; "none" as a part with no model rather than a
+missing key; categories and slots as `[Choices]` (a mod can't add a category or slot; a new one is a change of the list);
+a part offered by its races, sexes and fitted bodies (no `builds` field: the models say it); the presets' order 10–80 in
+Q43's way and their names `<race>-<sex>-<n>`; the save's correction in the data library and applied by the session (Open,
+UseBackup, Import before its checks) with a log line; `Slugify` moved into `JsValues`; the session given the game's data
+for loading files (an optional third argument; the tests' sessions without data check what needs none); the look checks
+reading the data afresh each time (no cache: the mod check's shortcuts follow every read); the converter keeping the
+swatches; the writer in the game's tests as step 1's converter, writing on request only (the move into `data.pak` is a
+deliberate step, not forced by a test when `models.pak` gains bodies).
+
+**Tests** (game; the counts in "Runs"): `SheetCorrectionTests` (every oracle case; each rule alone; Limitless's cap;
+the save's hero only), `SaveGameTests` (version 2's fields and help, version 1's upgrade from both forms, the look's race,
+both forms with a hero and a look), `LibraryRecordLayoutTests` (the guard over the five new types; the save's two layouts;
+version 1's fixture upgrading to version 2's), `LookRecordTests` (the kinds, folders, marks and references; one list of
+each choice; the test data passing; every refusal of a look, a part, a body, a preset and the race's swatches; what a body
+is offered; the checks without the data; equality; the fixtures `look.body/human-male-average`, `look.part/hair-braid`,
+`look.preset/human-male-1`), `LookDataTests` (the catalogue's 72; a preset of its look; the writer on made-up models; the
+committed data the writer's; the shipped looks passing their checks; `Assets/Data`'s folders), `GameSessionTests` (Q45 on
+opening, a backup and a file, with its log line and nothing written early; a version-1 save and file opening as a new
+hero; a file's look checked with the data, the race corrected before it; a newer version now 3), `StartSequenceTests` (the
+start's session checking a file against the game's data); `RaceDataTests` with the swatches kept. The test data
+(`Looks/TestLooks.cs`): two races with swatches, stand-in `model` records at the paths the bodies and parts name, four
+bodies, five parts (a face for two bodies, a braid on two, three with no model), a preset. The engine's project:
+`GameTesting.LibraryKinds` 38.
+
+**Shown able to fail** (`mutate.py` with the game's project, under the shared lock in a headless cage;
+`claude-work/gm2/step6/mutations.json`, made by `make-mutations.py`): 114 mutations of every rule the step adds: each
+correction of Q45 and the cap's Limitless, `slugify`'s steps, the save's upgrade, correction and look-race check, the
+session's corrections (opening, backup, file, before its checks), its data and references for a file and the start giving
+them, its log line, every check of the look, the part, the body, the preset and the swatches, the look's equality, every
+`[References]` and `[Choices]` mark (a missing model among them), `LookData`'s offers, bodies, presets' order and its strict
+and lenient reading. The first run: 108 killed, 6 survived; one a gap, closed (two looks whose colours one holds and the
+other holds with one more) and killed in the rerun (`mutations-rerun.json`). **The standing list: 114, 109 killed, 5 that
+can't differ:** `slugify` without its trim, or with .NET's (white space at either end becomes one "-", which slugify takes
+off anyway; the two trims differ only in U+0085, a dash either way); `slugify` keeping capitals (after JavaScript's lower
+case none is left); the data's kinds without the "is a record" guard (a file there makes the load throw, caught as none:
+the guard only saves the load); the presets' list without its tie by name (the presets are held in name order and the sort
+is stable). **The two oracle modules' rules** (`module-rules.py`, a runner of its own as step 2's `script-rules.py`, under
+the lock and alone: a module broken, run again by `make-old-game-references.sh`, then the port's tests that read its
+results; killed when the script fails or a port test does): 18, the old function fed or read back wrongly (the starting
+class point, the race, the EXP, the free points, the attributes, the allocations, the defence bonuses, Mana; the level,
+EXP, class points, bonuses, HP and purse read back) and the catalogue's labels, sexes, count and specs: **18 killed**. Each
+module run twice gives the same bytes. Nothing written to the player's real folders.
+
+**Runs** (headless, scratch per-user folders, nothing audible; on `main`'s `1253451`, which hadn't moved): the full suite
+on the GPU (263 s with the build) and on lavapipe (308 s): **4266 + 659 = 4925 tests** (`main`: 4266 + 630 = 4896; 29 new,
+all the game's), none held or skipped; `make-old-game-references.sh save-correction look-catalogue` run again on the final
+tree: not a byte differs. No pack, golden or editor fixture changed (nothing enters `data.pak`, GM2-P18).
+
 ## Status
 
 - **2026-11-15:** written on the user's go for GM2 (docs only, the branch `gm2-design` from `8c7d07d`), after the user's
@@ -2237,3 +2464,13 @@ run twice on the final tree: not a byte differs.
   mutations 220 standing, 212 killed, 8 that can't differ; the tooling's 20, 17 killed, 3 that can't differ. Found: a new
   hero's HP is 31, not 30 (corrected above). Left for step 6: whether a character file with a sheet out of the old ranges
   is refused or clamped (the old game clamped).
+- **2026-11-16, step 6 done** (the branch `gm2-step6`; "How it works", step 6): `save.game` v2 (the hero's sheet and look;
+  version 1 frozen, upgrading to a new hero with no race and no look), the correction of a loaded character as the old
+  game's `normalizeCharacter` (the user's Q45: silently; matching the old game on 102 cases of its test client), the
+  maker's records `look.hero`, `look.body`, `look.part` (with `look.part.model`) and `look.preset` with their checks (what
+  the maker couldn't make refused, a missing model refused: the manager's GM2-P18), the race's swatches checked and kept
+  by the converter, the 72 old looks as the oracle's catalogue with the one-step writer that moves bodies and presets into
+  `data.pak` when their models land. 4266 + 659 = 4925 tests on the GPU and on lavapipe, none held; mutations 114
+  standing (109 killed, 5 that can't differ) and the oracle modules' 18 (killed). Found: the old function corrects more
+  than Q45 named (the race's id, the EXP, a bonus that isn't finite: ported, "How it works", step 6), and nothing of the
+  maker's could enter `data.pak` before its models (the mod check checks the game's records under every mod: GM2-P18).

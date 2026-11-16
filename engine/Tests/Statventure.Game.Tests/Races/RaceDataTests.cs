@@ -34,10 +34,20 @@ public class RaceDataTests
         "treant", "dryad", "merfolk",
     ];
 
+    /// <summary>
+    /// The races as the game holds them: races.json converted, each with the swatches its committed file has (the old game
+    /// has none: the maker's colours are given by the steps that make each race's parts, GM2 step 9, in the race's file
+    /// itself; GM2 step 6), so writing the races again keeps them.
+    /// </summary>
+    internal static IReadOnlyList<RaceEntry> Converted =>
+        [.. RaceOracle.FileRaces.Select(r => File.Exists(Path.Combine(RacesFolder, r.Id + ".json"))
+            ? r with { Race = r.Race with { Swatches = RecordSerializer.FromJson<Race>(File.ReadAllBytes(Path.Combine(RacesFolder, r.Id + ".json"))).Swatches } }
+            : r)];
+
     [Fact]
     public void TheCommittedRacesAreRacesJsonConverted()
     {
-        var forms = OldRaceFile.Forms(RaceOracle.FileRaces);
+        var forms = OldRaceFile.Forms(Converted);
         if (Environment.GetEnvironmentVariable(WriteVariable) == "write")
         {
             if (Directory.Exists(RacesFolder))
@@ -46,8 +56,9 @@ public class RaceDataTests
             foreach (var (id, bytes) in forms)
                 File.WriteAllBytes(Path.Combine(RacesFolder, id + ".json"), bytes);
         }
-        var committed = Directory.Exists(DataFolder)
-            ? Directory.GetFiles(DataFolder, "*", SearchOption.AllDirectories).Select(f => Path.GetRelativePath(DataFolder, f).Replace('\\', '/')).Order(StringComparer.Ordinal).ToList()
+        // (Assets/Data's other folder, data/looks, is LookDataTests'.)
+        var committed = Directory.Exists(RacesFolder)
+            ? Directory.GetFiles(RacesFolder, "*", SearchOption.AllDirectories).Select(f => Path.GetRelativePath(DataFolder, f).Replace('\\', '/')).Order(StringComparer.Ordinal).ToList()
             : [];
         Assert.Equal(forms.Keys.Select(id => $"data/races/{id}.json").Order(StringComparer.Ordinal), committed);
         foreach (var (id, bytes) in forms)
@@ -102,7 +113,9 @@ public class RaceDataTests
             "Assets/Packs/data.pak isn't what the packer makes of Assets/Data: run Tools/Scripts/make-data-pack.sh");
         using var pack = PackFile.Open(DataPak);
         Assert.Empty(pack.Verify());
-        Assert.Equal(OldOrder.Select(RaceCatalogue.PathOf).Order(StringComparer.Ordinal), pack.Entries.Select(e => e.Path));
+        Assert.Equal(OldOrder.Select(RaceCatalogue.PathOf).Order(StringComparer.Ordinal), pack.Entries.Select(e => e.Path).Where(p => p.StartsWith(RaceCatalogue.Folder + "/", StringComparison.Ordinal)));
+        // Besides the races only the maker's records (LookDataTests).
+        Assert.All(pack.Entries, e => Assert.True(e.Path.StartsWith(RaceCatalogue.Folder + "/", StringComparison.Ordinal) || e.Path.StartsWith("data/looks/", StringComparison.Ordinal), e.Path));
         Assert.All(pack.Entries, e => Assert.True(e.IsRecord, e.Path));
     }
 
@@ -121,7 +134,7 @@ public class RaceDataTests
         foreach (var (id, race) in races)
         {
             Assert.Empty(RecordChecks.Check(race, data));
-            Assert.Equal(RaceOracle.FileRaces.Single(r => r.Id == id).Race with { }, race, RaceComparer.Instance);
+            Assert.Equal(Converted.Single(r => r.Id == id).Race, race, RaceComparer.Instance);
         }
     }
 
