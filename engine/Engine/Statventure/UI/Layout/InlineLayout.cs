@@ -56,11 +56,11 @@ internal sealed class InlineLayout
     {
         var font = FontFor(style, fonts);
         var (ascent, descent, gap) = TextLayout.Metrics(font.Face, style.FontSize, style.SubpixelPositioning);
-        // ComputedLineHeightAsFixed: a number line-height is a percentage of the font size rounded to
-        // a LayoutUnit (ComputedFontSizeAsFixed), the result truncated; a length is rounded.
+        // ComputedLineHeightAsFixed: a number line-height is its percentage (Blink's, LineHeight) of the font size rounded
+        // to a LayoutUnit (ComputedFontSizeAsFixed), the result truncated; a length is rounded.
         var lineHeight = style.LineHeight.Kind switch
         {
-            LineHeightKind.Number => LayoutUnit.Truncate(LayoutUnit.Round(style.FontSize) * (float)(style.LineHeight.Value * 100.0) / 100f),
+            LineHeightKind.Number => style.LineHeight.Resolve(LayoutUnit.Round(style.FontSize)),
             LineHeightKind.Length => LayoutUnit.Round(style.LineHeight.Value),
             _ => ascent + descent + gap,
         };
@@ -183,7 +183,12 @@ internal sealed class InlineLayout
         public bool Space;
         public bool Collapsible;
         public bool BreakAfter;
+        /// <summary>A word that doesn't fit may break after this cluster when lines are laid out (break_anywhere_if_overflow_ in Blink's content mode).</summary>
         public bool Anywhere;
+        /// <summary>The same for the min-content size (overflow-wrap: break-word doesn't count there).</summary>
+        public bool AnywhereMin;
+        /// <summary>word-break: break-all (LineBreakType::kBreakAll): opportunities between letters where the line wraps.</summary>
+        public bool BreakAll;
         public bool Wraps;
         /// <summary>Removed at a line start or end (collapsible spaces there).</summary>
         public bool Removed;
@@ -381,7 +386,15 @@ internal sealed class InlineLayout
         var preferred = FontFor(style);
         var collapsible = style.WhiteSpace is Text.WhiteSpace.Normal or Text.WhiteSpace.NoWrap or Text.WhiteSpace.PreLine;
         var wraps = Wraps(style);
-        var anywhere = style.OverflowWrap == Text.OverflowWrap.Anywhere;
+        // Blink's LineBreaker::SetCurrentStyleForce (line_breaker.cc): words break only on a line that can wrap
+        // (auto_wrap_, white-space normal, pre-wrap, pre-line), so under nowrap or pre a word overflows whole whatever
+        // overflow-wrap and word-break say. There, word-break: break-word breaks a word that doesn't fit (also for the
+        // min-content size), overflow-wrap: anywhere too, overflow-wrap: break-word only when lines are laid out (its
+        // mode_ == kContent), and word-break: break-all adds opportunities between letters (MarkBreaks).
+        var anywhere = wraps && (style.WordBreak == WordBreak.BreakWord || style.OverflowWrap is OverflowWrapping.Anywhere or OverflowWrapping.BreakWord);
+        var anywhereMin = wraps && (style.WordBreak == WordBreak.BreakWord || style.OverflowWrap == OverflowWrapping.Anywhere);
+        // (MarkBreaks gives pieces that don't wrap no opportunity at all, break-all's among them.)
+        var breakAll = style.WordBreak == WordBreak.BreakAll;
         // Runs of characters one font can show.
         var runStart = 0;
         ResolvedFont? runFont = null;
@@ -419,6 +432,8 @@ internal sealed class InlineLayout
                             Collapsible = ch == ' ' && collapsible,
                             Wraps = wraps,
                             Anywhere = anywhere,
+                            AnywhereMin = anywhereMin,
+                            BreakAll = breakAll,
                         });
                     }
                 }
@@ -469,6 +484,8 @@ internal sealed class InlineLayout
                     }
                     else if (next is { Kind: PieceKind.Atomic, Wraps: true } && !char.IsPunctuation(piece.Char))
                         piece.BreakAfter = true;
+                    if (piece.BreakAll && !piece.BreakAfter && next is { Kind: PieceKind.Cluster, Space: false })
+                        piece.BreakAfter = BreakAllAllows(piece.Char, next.Char);
                     break;
                 case PieceKind.Atomic:
                     if (piece.Wraps && next is not null && !(next.Kind == PieceKind.Cluster && (next.Space || char.IsPunctuation(next.Char))))
@@ -476,6 +493,55 @@ internal sealed class InlineLayout
                     break;
             }
         }
+    }
+
+    /// <summary>The UAX #14 line-break classes word-break: break-all looks at, for the scripts the game uses.</summary>
+    enum BreakClass { None, AL, NU, IS, EX, CL, CP, OP, PR, PO, SY, HY, BA }
+
+    /// <summary>
+    /// A character's line-break class as Blink's break-all reads it (LineBreakPropertyValue, <c>text_break_iterator.cc</c>:
+    /// ICU's, with '+' made alphabetic): letters AL, digits NU, and the ASCII punctuation's own classes; anything else
+    /// (quotation marks, CJK, other scripts' punctuation) adds no opportunity here.
+    /// </summary>
+    static BreakClass BreakAllClass(char c) => c switch
+    {
+        ',' or '.' or ':' or ';' => BreakClass.IS,
+        '!' or '?' => BreakClass.EX,
+        '}' => BreakClass.CL,
+        ')' or ']' => BreakClass.CP,
+        '(' or '[' or '{' => BreakClass.OP,
+        '$' or '\\' => BreakClass.PR,
+        '%' => BreakClass.PO,
+        '/' => BreakClass.SY,
+        '-' => BreakClass.HY,
+        '|' => BreakClass.BA,
+        '+' or '#' or '&' or '*' or '@' or '^' or '_' or '`' or '~' or '<' or '=' or '>' => BreakClass.AL,
+        _ when char.IsDigit(c) && c < 128 => BreakClass.NU,
+        _ when char.IsLetter(c) => BreakClass.AL,
+        _ => BreakClass.None,
+    };
+
+    /// <summary>
+    /// word-break: break-all's opportunity between two characters (ShouldBreakAfterBreakAll and
+    /// kBreakAllLineBreakClassTable, <c>text_break_iterator.cc</c>; LineBreakType::kBreakAll, which
+    /// LineBreaker::SetCurrentStyleForce picks): after a letter, a digit, a solidus or a break-after character before a
+    /// letter, a digit, an opening punctuation or a prefix; after closing punctuation, an exclamation, an infix separator
+    /// or a postfix before a letter or a digit (and a few prefix and postfix pairs). (Its LB21 check keeps breaks away
+    /// from before break-after characters but the vertical line, the one break-after character classed here.)
+    /// </summary>
+    static bool BreakAllAllows(char last, char current)
+    {
+        var after = BreakAllClass(current);
+        return BreakAllClass(last) switch
+        {
+            BreakClass.AL or BreakClass.NU or BreakClass.SY or BreakClass.BA => after is BreakClass.AL or BreakClass.BA or BreakClass.NU or BreakClass.OP or BreakClass.PR,
+            BreakClass.CL or BreakClass.CP => after is BreakClass.AL or BreakClass.BA or BreakClass.NU or BreakClass.PR,
+            BreakClass.EX or BreakClass.PO => after is BreakClass.AL or BreakClass.BA or BreakClass.NU or BreakClass.PO or BreakClass.PR,
+            BreakClass.IS => after is BreakClass.AL or BreakClass.BA or BreakClass.NU,
+            BreakClass.PR => after is BreakClass.PO,
+            BreakClass.HY => after is BreakClass.NU,
+            _ => false,
+        };
     }
 
     // ---------- Atomic inlines ----------
@@ -1251,7 +1317,7 @@ internal sealed class InlineLayout
                 if (piece.Kind is PieceKind.Cluster or PieceKind.Atomic)
                     atLineStart = false;
             }
-            if (min && (piece.BreakAfter || (piece.Anywhere && piece.Kind == PieceKind.Cluster)))
+            if (min && (piece.BreakAfter || (piece.AnywhereMin && piece.Kind == PieceKind.Cluster)))
             {
                 CloseItem();
                 best = MathF.Max(best, width);

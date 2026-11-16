@@ -166,7 +166,7 @@ public static class ReplacedContent
         // The inner editor's line box as a LayoutUnit (ComputedLineHeightAsFixed, as InlineLayout.MetricsFor).
         var lineHeight = style.LineHeight.Kind switch
         {
-            LineHeightKind.Number => LayoutUnit.Truncate(LayoutUnit.Round(style.FontSize) * (float)(style.LineHeight.Value * 100.0) / 100f),
+            LineHeightKind.Number => style.LineHeight.Resolve(LayoutUnit.Round(style.FontSize)),
             LineHeightKind.Length => LayoutUnit.Round(style.LineHeight.Value),
             _ => ascent + descent + gap,
         };
@@ -323,9 +323,10 @@ public static class ReplacedContent
         if (!IsTextField(box) || style.LineHeight.Kind == LineHeightKind.Normal)
             return metrics;
         var (ascent, descent, gap) = TextLayout.Metrics(InlineLayout.FontFor(style, fonts).Face, style.FontSize, style.SubpixelPositioning);
-        // ComputedStyle::ComputedLineHeight: whole pixels (a number line-height a percentage of the font size as a LayoutUnit).
+        // ComputedStyle::ComputedLineHeight made an int: whole pixels (a number line-height its percentage of the font size as
+        // a LayoutUnit, LayoutUnit(ComputedSize()) truncated; a 20 px field at 1.05 keeps its 21 px line).
         var computed = style.LineHeight.Kind == LineHeightKind.Number
-            ? (int)LayoutUnit.Truncate(LayoutUnit.Truncate(style.FontSize) * style.LineHeight.Value)
+            ? (int)style.LineHeight.Resolve(LayoutUnit.Truncate(style.FontSize))
             : (int)style.LineHeight.Value;
         var height = style.Height;
         if (style.FontSize >= computed || height.HasPercent || (height.IsValue && height.Pixels > computed))

@@ -620,6 +620,16 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   border, an outline, an integral top) found it where reading the overlap code alone didn't (that code was right); a scratch line
   in `Golden.Match` logging every comparison's numbers, run with the rule and without, gave the table of what moved.
   Remember `box-sizing: content-box`: a border on the status line moves its top by the border.
+- 2026-11-17 (the PC, GM2's engine fixes' worker on the branch `gm2-engine-fixes`, 4392 + 659 = 5051 tests on the GPU and lavapipe):
+  **three of Chromium's rules step 7 met** (`Docs/Compositing-Port.md`, "Three text rules"): breaking inside words only
+  where lines wrap, the spin button's room under any appearance, a number line-height kept from the double. Gotchas: a
+  float is not the double Blink computes from (1.05f × 100 is 104.99999, a 1/64 px short line at font sizes that are
+  multiples of 5); a min-content box shows only its widest unbreakable part, so test a break opportunity with an
+  unbreakable wider head before it ("(((n(n"), and keep the widest part first (Blink measures later words from ceiled
+  positions); a line that breaks inside a word is reshaped by Blink (the kerning to the next letter goes); a test page's
+  size in multiples of 100 px for whole device pixels at 1.65 with a page zoom of 1.2; GitHub's raw mirror answers 429
+  after many fetches, googlesource's `?format=TEXT` (base64) works; `--filter FullyQualifiedName~X` matches every class
+  whose name contains X (`TextRuleReferenceTests` caught `LcdTextRuleReferenceTests` too).
 
 ## Asking about design choices (user rule)
 

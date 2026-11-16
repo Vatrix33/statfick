@@ -2372,3 +2372,9 @@ GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
   `models.pak`; the figures held to Blender's under `ReferenceLimits.DetailedFigure` (the user's Q55), with an engine task
   for the ink and three more for the battle's cost ("Engine items the port will meet"; `Docs/Game/Hero.md`, "How it
   works", step 4a).
+- **2026-11-17, GM2's engine fixes (three of Chromium's rules, the branch `gm2-engine-fixes`):** what step 7 found on the
+  sheet's screen, ported from Blink 152 before steps 7 and 8 (which rebase onto it): a word kept whole under nowrap, a
+  number field's spin button keeping its room under `appearance: textfield`, a number line-height kept exactly; five
+  differences found beside recorded, one an engine task before the first screen with a number field that has a min and a
+  max (the combat quantity, the companions' resource fields; `Docs/Engine-Plan.md`, the small tasks;
+  `Docs/Compositing-Port.md`, "Three text rules").

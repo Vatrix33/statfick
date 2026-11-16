@@ -56,9 +56,41 @@ public enum ScrollBehavior { Auto, Smooth }
 public enum OverscrollBehavior { Auto, Contain, None }
 public enum LineHeightKind { Normal, Number, Length }
 
+/// <summary>
+/// word-break (CSS Text 3): where lines may break inside words. Blink's LineBreaker::SetCurrentStyleForce
+/// (<c>line_breaker.cc</c>) reads it only on a line that can wrap: break-all adds break opportunities between letters
+/// (LineBreakType::kBreakAll), break-word breaks a word that doesn't fit, also for the min-content size (as
+/// overflow-wrap: anywhere), keep-all keeps CJK ideographs together (which the engine never breaks: as normal).
+/// </summary>
+public enum WordBreak { Normal, BreakAll, BreakWord, KeepAll }
+
+/// <summary>
+/// overflow-wrap (word-wrap): anywhere breaks a word that doesn't fit, also for the min-content size; break-word only when
+/// lines are laid out (Blink's LineBreaker::SetCurrentStyleForce takes it in its content mode alone). Only on a line that
+/// can wrap, as word-break. (The text layout's own <see cref="Text.OverflowWrap"/> is a paragraph's, set by code.)
+/// </summary>
+public enum OverflowWrapping { Normal, Anywhere, BreakWord }
+
+/// <summary>
+/// A computed line-height: normal, a number or a length (CSS px times the zoom). A number keeps what Blink keeps
+/// (StyleBuilderConverter::ConvertLineHeight, <c>style_builder_converter.cc</c>): a percentage of the font size,
+/// <c>Length::Percent(ClampTo&lt;float&gt;(number × 100.0))</c> from the parsed double, so <see cref="Value"/> is the
+/// percentage (1.05 is 105 exactly, where 1.05 as a float times 100 is 104.99999 and a 40 px font's line 41.984375 px
+/// instead of 42). A length's <see cref="Value"/> is its pixels.
+/// </summary>
 public readonly record struct LineHeight(LineHeightKind Kind, float Value)
 {
     public static readonly LineHeight Normal = new(LineHeightKind.Normal, 0);
+
+    /// <summary>A number line-height from its parsed (double) value: its percentage as Blink makes it.</summary>
+    public static LineHeight FromNumber(double number) =>
+        new(LineHeightKind.Number, (float)Math.Clamp(number * 100.0, float.MinValue, float.MaxValue));
+
+    /// <summary>
+    /// A number line-height of a size (Blink's MinimumValueForLength of the percentage, <c>length_functions.cc</c>): the
+    /// size (a LayoutUnit) times the percentage over 100 in float, truncated to a LayoutUnit.
+    /// </summary>
+    public float Resolve(float size) => Layout.LayoutUnit.Truncate(size * Value / 100f);
 }
 
 public readonly record struct Corner(Length X, Length Y);
@@ -367,7 +399,8 @@ public sealed class ComputedStyle
     public TextAlignment TextAlign = TextAlignment.Start;
     public Text.TextTransform TextTransform;
     public Text.WhiteSpace WhiteSpace = Text.WhiteSpace.Normal;
-    public Text.OverflowWrap OverflowWrap = Text.OverflowWrap.Normal;
+    public OverflowWrapping OverflowWrap = OverflowWrapping.Normal;
+    public WordBreak WordBreak = WordBreak.Normal;
     public ShadowValue[] TextShadows = [];
     public Visibility Visibility = Visibility.Visible;
     public PointerEvents PointerEvents = PointerEvents.Auto;
@@ -573,7 +606,7 @@ public sealed class ComputedStyle
         if (Color != other.Color || FontSize != other.FontSize || FontWeight != other.FontWeight || FontItalic != other.FontItalic
             || LineHeight != other.LineHeight || LetterSpacing != other.LetterSpacing || WordSpacing != other.WordSpacing
             || TextAlign != other.TextAlign || TextTransform != other.TextTransform || WhiteSpace != other.WhiteSpace
-            || OverflowWrap != other.OverflowWrap || Visibility != other.Visibility || PointerEvents != other.PointerEvents || Interactivity != other.Interactivity || IsInert != other.IsInert
+            || OverflowWrap != other.OverflowWrap || WordBreak != other.WordBreak || Visibility != other.Visibility || PointerEvents != other.PointerEvents || Interactivity != other.Interactivity || IsInert != other.IsInert
             || Cursor != other.Cursor || !CursorImages.AsSpan().SequenceEqual(other.CursorImages) || UserSelect != other.UserSelect || AccentColor != other.AccentColor || CaretColor != other.CaretColor
             || TextFillColor != other.TextFillColor
             || TabularNumbers != other.TabularNumbers || ListStyleType != other.ListStyleType || ListStyleInside != other.ListStyleInside
@@ -642,9 +675,23 @@ public sealed class ComputedStyle
         Underline = Underline,
         LineHeight = LineHeight.Kind switch
         {
-            LineHeightKind.Number => LineHeight.Value * FontSize,
+            // FloatValueForLength: the font size times the percentage over 100 (a number's, LineHeight).
+            LineHeightKind.Number => FontSize * LineHeight.Value / 100f,
             LineHeightKind.Length => LineHeight.Value,
             _ => null,
         },
+    };
+
+    /// <summary>
+    /// The line height the lh unit refers to (CSSToLengthConversionData::LineHeightSize::Lh,
+    /// <c>css_to_length_conversion_data.cc</c>: ComputedStyle::ComputedLineHeight, a number's percentage of the font's
+    /// computed size as a LayoutUnit, then unzoomed by the font's zoom and zoomed by the zoom, in float); a length's
+    /// pixels; for normal 1.2 times the font size.
+    /// </summary>
+    internal float LineHeightForUnits => LineHeight.Kind switch
+    {
+        LineHeightKind.Number => LineHeight.Resolve(Layout.LayoutUnit.Truncate(FontSize)) / Zoom * Zoom,
+        LineHeightKind.Length => LineHeight.Value,
+        _ => FontSize * 1.2f,
     };
 }

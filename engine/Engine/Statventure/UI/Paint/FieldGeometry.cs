@@ -108,7 +108,7 @@ internal sealed class FieldGeometry
         var content = new RectF(rect.X + box.ContentLeft, rect.Y + box.ContentTop, box.ContentWidth, box.ContentHeight);
         var editor = content;
         if (element.InputType == "number" && UiPainter.SpinButtonOf(box, element, shift) is { } spin)
-            editor = editor with { Width = MathF.Max(0, editor.Width - spin.Width) };
+            editor = editor with { Width = MathF.Max(0, editor.Width - spin.Room) };
         else if (element.InputType == "search" && UiPainter.CancelButtonOf(box, element, shift) is { } cancel)
             editor = editor with { Width = MathF.Max(0, cancel.Button.X - cancel.MarginLeft - editor.X) };
         return (content, editor);

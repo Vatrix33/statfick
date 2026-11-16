@@ -734,6 +734,22 @@ what needs the user's machines):**
   - *The question for GM4,* when the game first plays music: whether the warm-up still earns its cost, and which themes
     it should warm.
   - *Where to start:* `AudioSystem.WarmUp` and the first theme change's time on the audio thread with and without it.
+- Five differences found beside GM2's engine fixes (2026-11-17, `gm2-engine-fixes`; each with its Blink source and
+  numbers in `Docs/Compositing-Port.md`, "Three text rules", "Left as they were"). The manager's word (2026-11-17): known
+  differences, not fixed there; the fifth an engine task.
+  - *A min-content word after a text item's first* 1/64 px wider than Chromium's (Blink measures it from ceiled
+    positions, `ShapeResult::CachedWidth`; the engine ceils each word). Open, no go yet.
+  - *The kerning to the next letter kept where a line breaks inside a word* (Blink reshapes the line's end,
+    `ShapingLineBreaker::ShapeLine`): 7/64 px on such a line. Open, no go yet.
+  - *A focused field's focus ring at 1.65* a fraction of a device pixel off Chromium's (615 pixels past 12 levels in one
+    bordered field; at 1× it matches). Cause not sought. Open, no go yet.
+  - *A percentage line-height* resolved exactly where Blink cuts it to a whole percentage (`ConvertLineHeight`'s
+    `ClampTo<int>`): 150.5 % at 16 px 24.078125 px against 24. Open, no go yet; the game's sheets use none.
+  - **An engine task, before the first screen with such a field (the manager's word, 2026-11-17):** *a number field's
+    own width* from its min, max and step with the spin button (`NumberInputType::GetSizeWithDecoration`,
+    `TextFieldIntrinsicInlineSize`); the engine gives every field 20 characters (`min="1" max="50" step="1"` at 16 px:
+    Chromium 62 px, the engine 209). The old game's combat quantity (`#combat-enemy-quantity`) and the companions'
+    resource fields (`companions.js`, min 0 and max the HP or Mana) are such fields.
 - The "Known differences" lists (`Docs/Compositing-Port.md`, "Known differences left (SVG)"; `Docs/Scripting.md`, "Known
   differences left"; `Docs/Animation.md`, "Known differences from Blender's NLA"; M5's Progress, "Known differences left (not
   yet ported)") are accepted differences, not tasks, unless the port finds the game needs one.
@@ -4365,6 +4381,18 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     Q55); four engine tasks recorded for later (the ink's depth allowance, figures in the shadow pass, skinning once per
     mesh, a 2016-class card). 4364 + 659 = 5023 tests on the GPU and on lavapipe; mutations 22 of 22 killed, the scripts' breaks 26 of 26 (and the look's and the clip library's 43 of 43); 18 editor goldens captured
     again for `models.pak`.
+  - **GM2's engine fixes, three of Chromium's rules (2026-11-16 and 17, a worker on the branch `gm2-engine-fixes`;
+    `Docs/Compositing-Port.md`, "Three text rules"; `Docs/Game/Hero.md`, "How it works", "The engine fixes"):** found by
+    step 7 on the sheet's screen, ported from Blink 152 with their neighbours: words broken inside only on a line that can
+    wrap (`LineBreaker::SetCurrentStyleForce`; `overflow-wrap: break-word` not for the min-content size; `word-break` a
+    property of its own, its break-all with `kBreakAllLineBreakClassTable` for the game's scripts); a number field's spin
+    button kept whatever the field's appearance, its room its margin box (`TextFieldInputType::CreateShadowSubtree`,
+    `LayoutTheme`); a number line-height kept as Blink's percentage from the parsed double, every reader following
+    (`StyleBuilderConverter::ConvertLineHeight`, `MinimumValueForLength`). `Ui/TextRulesReferenceTests`: three Chromium
+    pages at six scales and zooms. Only the old game's screens moved, all nearer to Chromium (the sheet's defence
+    bonus fields given the spin button's room); five differences found beside recorded as known, not fixed, one an
+    engine task ("Small tasks left": a number field's own width from its min and max). 4392 + 659 = 5051 tests on the GPU
+    and on lavapipe, none held; breaks 79 (78 killed, one that can't differ).
 
 ## Milestones
 

@@ -247,7 +247,7 @@ public sealed partial class UiPainter
     {
         var type = element.InputType;
         if (type == "number" && SpinButtonOf(box, element, _shift) is { } spin)
-            PaintSpinButton(element, spin);
+            PaintSpinButton(element, spin.Box);
         else if (type == "search" && CancelButtonOf(box, element, _shift) is { } cancel)
             PaintCancelButton(element, cancel.Button);
         PaintFieldText(box, element, content, EditorOf(box, element, content), element.EditorText);
@@ -258,7 +258,7 @@ public sealed partial class UiPainter
     RectF EditorOf(LayoutBox box, UiElement element, RectF content)
     {
         if (element.InputType == "number" && SpinButtonOf(box, element, _shift) is { } spin)
-            return content with { Width = MathF.Max(0, content.Width - spin.Width) };
+            return content with { Width = MathF.Max(0, content.Width - spin.Room) };
         if (element.InputType == "search" && CancelButtonOf(box, element, _shift) is { } cancel)
             return content with { Width = MathF.Max(0, cancel.Button.X - cancel.MarginLeft - content.X) };
         return content;
@@ -294,14 +294,25 @@ public sealed partial class UiPainter
         }
     }
 
-    /// <summary>The number field's spin button (null when its part has appearance or display none, or the field's look is textfield).</summary>
-    internal static RectF? SpinButtonOf(LayoutBox box, UiElement element, Vector2 shift = default)
+    /// <summary>
+    /// The number field's spin button: its border box (where the theme paints it and the pointer hits it) and the room it
+    /// takes from the editor, its margin box; null when its part has display none. Blink makes the button for every
+    /// steppable field (TextFieldInputType::CreateShadowSubtree, <c>text_field_input_type.cc</c>: the number field among
+    /// the engine's) as the last flex item of the field's decoration container, and its look is its own: html.css gives
+    /// ::-webkit-inner-spin-button appearance: auto, and LayoutTheme::AdjustAppearanceWithElementType
+    /// (<c>layout_theme.cc</c>) maps a number field's textfield to the field's auto look anyway, so the field's
+    /// appearance (auto, textfield, none or any other) leaves the button and its room as they are. Its width is the
+    /// theme's 15 px times the zoom whatever the author sets (LayoutTheme::AdjustInnerSpinButtonStyle sets width and
+    /// min-width), or under its own appearance: none the author's (auto: none); its margins, borders and paddings add to
+    /// its room (the flexible editing view port takes what is left).
+    /// </summary>
+    internal static (RectF Box, float Room)? SpinButtonOf(LayoutBox box, UiElement element, Vector2 shift = default)
     {
         var s = box.Style;
-        if (element.InputType != "number" || s.Appearance is "none" or "textfield")
+        if (element.InputType != "number")
             return null;
         var part = element.Styles?.Part(PseudoElement.InnerSpinButton);
-        if (part is not null && (part.Display == Display.None || part.Appearance == "none"))
+        if (part is not null && part.Display == Display.None)
             return null;
         var rect = box.ViewportRect.Offset(shift);
         var content = new RectF(rect.X + box.ContentLeft, rect.Y + box.ContentTop, box.ContentWidth, box.ContentHeight);
@@ -311,13 +322,25 @@ public sealed partial class UiPainter
         var top = MathF.Floor((content.Height - height) / 2 * 64) / 64;
         // LayoutTheme::AdjustInnerSpinButtonStyle: the theme's 15 px, zoomed.
         var width = Layout.LayoutUnit.Truncate(SpinButtonWidth * s.Zoom);
-        return new RectF(content.Right - width, content.Y + top, width, height);
+        float marginLeft = 0, marginRight = 0;
+        if (part is not null)
+        {
+            if (part.Appearance == "none")
+                width = part.Width.IsAuto ? 0 : MathF.Max(0, part.Width.ResolveOr(content.Width, 0));
+            var edges = part.BorderLeft + part.BorderRight
+                + MathF.Max(0, part.PaddingLeft.ResolveOr(content.Width, 0)) + MathF.Max(0, part.PaddingRight.ResolveOr(content.Width, 0));
+            width = part.BoxSizing == BoxSizing.BorderBox ? MathF.Max(width, edges) : width + edges;
+            marginLeft = part.MarginLeft.IsAuto ? 0 : part.MarginLeft.ResolveOr(content.Width, 0);
+            marginRight = part.MarginRight.IsAuto ? 0 : part.MarginRight.ResolveOr(content.Width, 0);
+        }
+        return (new RectF(content.Right - marginRight - width, content.Y + top, width, height), marginLeft + width + marginRight);
     }
 
     void PaintSpinButton(UiElement element, RectF spin)
     {
         var part = element.Styles?.Part(PseudoElement.InnerSpinButton);
-        if (!_canvas.Drawing || part is null || part.Opacity <= 0 || part.Visibility != Visibility.Visible)
+        // Under its own appearance: none the button has no look (the theme paints only kInnerSpinButton).
+        if (!_canvas.Drawing || part is null || part.Appearance == "none" || part.Opacity <= 0 || part.Visibility != Visibility.Visible || spin.Width <= 0)
             return;
         var state = element.IsDisabled || element.ReadOnly ? ThemeState.Disabled
             : _document.SpinButtonPressed == element ? ThemeState.Pressed

@@ -2665,6 +2665,40 @@ draws over the game's and the battle's models alike; the lean test's pose and ru
 counted as cover, rims and inner sides left out, 50 mm); the stray pixels' shares as "one in N" like `StrayEvery`; the
 bite test setting each widened limit just under the measure on both drivers.
 
+### The engine fixes: three of Chromium's rules (2026-11-17, the branch `gm2-engine-fixes`)
+
+An engine task inside GM2, on its own branch so that steps 7 and 8 rebase onto it (the manager's, 2026-11-16). **Step 7
+found the three** comparing the sheet's screen with Chromium (its worker measured candidate fixes and put them back): the
+word PLATINUM (a currency's name in the sidebar: `.currency-name`'s `overflow-wrap: anywhere` under
+`.sidebar-currency .currency-name`'s `white-space: nowrap`) drawn broken as PLATINU/M in a sheet up to
+1350 px wide where Chromium keeps it whole and overflowing; the numbers in the sheet's stat fields (`appearance:
+textfield`) 7.5 px (centred) or 15 px (at the end) off, the engine having given such a field no spin button; the 40 px
+heading at `line-height: 1.05` 41.984375 px high where Chromium's is 42 (the number kept as a float). Step 8's carousel
+and maker meet the same. Each rule is ported from Blink 152 with its neighbours (`Docs/Compositing-Port.md`, "Three text
+rules", has the sources): words break inside only on a line that can wrap (`LineBreaker::SetCurrentStyleForce`), and
+there `overflow-wrap: break-word` (not for the min-content size), `word-break` as a property of its own (break-word,
+break-all with its class table, keep-all); a number field's spin button made whatever the field's appearance, its room its
+margin box (the theme's 15 px, the author's paddings, borders and margins; none under its own appearance: none or display:
+none); a number line-height kept as Blink's percentage from the parsed double, and every reader (line boxes, controls'
+lines, a text field's inner editor rule, the lh unit, the text style). The fixtures: `Ui/TextRulesReferenceTests`, three
+Chromium pages at six scales and zooms. **What moved in the suite** (the full suite with the rules and without, every
+comparison's numbers logged; Compositing-Port's table): only the old game's screens (`game-*`), all nearer to Chromium,
+through the sheet's defence bonus fields (`appearance: textfield`, now with the spin button's room: `game-sheet` 2,375 →
+2,263 pixels past 12 levels at 1×, 5,120 → 4,874 at 1.65; the screens with the sheet under a dimmed overlay a few levels);
+no layout, no editor screen (step 4a's 18 goldens among them) and none of the port's game screens moved. **Found beside,
+left as they are** (the manager's word, 2026-11-17): five differences, in Compositing-Port's "Left as they were" (a
+min-content word after an item's first 1/64 px wide, the kerning kept across a break inside a word, the focus ring at
+1.65, percentage line-heights not cut to whole percents; a number field's own width from its min and max, an engine
+task before the first screen with such a field: the combat quantity, the companions' resource fields).
+- **What steps 7 and 8 do at their rebase:** take the branch as it is; recapture nothing of theirs for these rules (their
+  goldens are Chromium's); run their screen fixtures again: the PLATINUM rows, the stat fields and the 1.05 headings
+  should now match without their workarounds; drop any of their own changes to the engine's `InlineLayout`,
+  `UiPainter.Controls`, `ComputedStyle`, `Properties` or `ReplacedContent` for these rules; then
+  `Reference/game-screen-fixtures.json` is made again by the game's tests if their fixtures changed. Nothing of theirs
+  was run here (their branches aren't merged): if a fixture of theirs still fails after the rebase, the five differences
+  above are the first to look at (each with its numbers in Compositing-Port's "Left as they were"; none can reach the
+  sheet's number fields, which have no max, or its line-heights, which are numbers).
+
 ## Status
 
 - **2026-11-15:** written on the user's go for GM2 (docs only, the branch `gm2-design` from `8c7d07d`), after the user's
@@ -2738,3 +2772,10 @@ bite test setting each widened limit just under the measure on both drivers.
   sleeve's seam, more lines on the sword, the shield's rim edge-on; then the humanoid scenes measured again and the
   limits tightened); figures in the shadow pass (each drawn into the sun's 16 maps: sixteen figures 5.60 ms with a stage,
   1.99 without); skinning once per mesh instead of per primitive; a measurement on a real 2016-class card.
+- **2026-11-17, the engine fixes done** (a worker, the branch `gm2-engine-fixes`; "How it works", "The engine fixes"):
+  three of Blink's rules step 7 found on the sheet ported with their neighbours (words broken only where lines wrap; the
+  spin button's room under any appearance of the field; a number line-height kept from the double), with
+  `Ui/TextRulesReferenceTests` against Chromium; the old game's screens moved nearer, nothing farther; five differences
+  found beside recorded, not fixed (the manager's word), one of them an engine task before the first screen with a
+  number field that has a min and a max. Steps 7 and 8 rebase onto it. 4392 + 659 = 5051 tests on the GPU and on
+  lavapipe (`main`: 4364 + 659 = 5023; 28 new); breaks 79, 78 killed, one that can't differ.

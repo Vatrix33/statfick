@@ -50,7 +50,7 @@ public sealed partial class UiInput
                 var part = element.Styles?.Part(PseudoElement.InnerSpinButton);
                 if (part is null || part.UsedPointerEvents == PointerEvents.None || part.Visibility != Visibility.Visible)
                     return ControlPart.None;
-                return UiPainter.SpinButtonOf(box, element) is { } spin && spin.Contains(local) ? ControlPart.SpinButton : ControlPart.None;
+                return UiPainter.SpinButtonOf(box, element) is { } spin && spin.Box.Contains(local) ? ControlPart.SpinButton : ControlPart.None;
             }
             case "search":
             {
@@ -165,7 +165,7 @@ public sealed partial class UiInput
     /// <summary>The upper half of the spin button is under the point (Blink rounds the point to whole pixels).</summary>
     static bool SpinUpAt(UiElement element, Vector2 position)
     {
-        if (element.Box is not { } box || UiPainter.SpinButtonOf(box, element) is not { } spin)
+        if (element.Box is not { } box || UiPainter.SpinButtonOf(box, element) is not { Box: var spin })
             return false;
         var local = LocalPoint(element, position);
         var y = MathF.Round(local.Y - spin.Y, MidpointRounding.AwayFromZero);

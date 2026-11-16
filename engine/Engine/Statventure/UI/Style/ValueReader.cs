@@ -136,6 +136,24 @@ public sealed class ValueReader
         return false;
     }
 
+    /// <summary>
+    /// A number as the parser holds it (a double, as Blink's CSSNumericLiteralValue), for the properties Blink computes
+    /// from the double (line-height); a calc() number as the calc evaluator gives it.
+    /// </summary>
+    public bool TryNumberValue(out double value)
+    {
+        var token = Peek();
+        if (token.Type == CssTokenType.Number)
+        {
+            _at++;
+            value = token.Number;
+            return true;
+        }
+        var found = TryNumber(out var single);
+        value = single;
+        return found;
+    }
+
     public bool TryPercentage(out float value)
     {
         var token = Peek();

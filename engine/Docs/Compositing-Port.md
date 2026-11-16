@@ -465,6 +465,139 @@ overlap layer; a background with its top at a whole pixel: none; the line overla
   overflow holds a lone FillRect, and every item that records a save, clip or restore also draws two ops or more, so
   neither can change a visual rect).
 
+## Three text rules (GM2's engine fixes, 2026-11-17, the branch `gm2-engine-fixes`)
+
+Found by GM2 step 7 (the character sheet's screen against Chromium; `Docs/Game/Hero.md`, "How it works", "The engine
+fixes"): in a narrow sheet the word PLATINUM drew broken as PLATINU/M, the numbers of the sheet's stat fields sat 7.5 or
+15 px off, and a 40 px heading at `line-height: 1.05` was 41.984375 px high where Chromium's is 42. Ported on their own
+branch, merged before steps 7 and 8, which rebase onto it. Every rule from Chromium 152's source (saved in
+`~/.cache/stat-fick-build/reference-src/chromium-152-source/`, `fetched-gm2-step7/` and `fetched-gm2-engine-fixes/`).
+- **Words break only on a line that can wrap** (`LineBreaker::SetCurrentStyleForce`, `line_breaker.cc`): everything
+  about breaking inside words is set only when the style wraps (`auto_wrap_`: white-space normal, pre-wrap, pre-line), so
+  under nowrap or pre a word overflows whole whatever overflow-wrap or word-break say. Where it wraps: word-break:
+  break-word sets `break_anywhere_if_overflow_` in every mode (a word that doesn't fit breaks, and its letters count apart
+  for the min-content size); otherwise overflow-wrap: anywhere does the same, overflow-wrap: break-word only in the line
+  breaker's content mode (lines, not the min-content size); word-break: break-all picks `LineBreakType::kBreakAll`, whose
+  break iterator (`NextBreakablePosition` with `ShouldBreakAfterBreakAll` and `kBreakAllLineBreakClassTable`,
+  `text_break_iterator.cc`) adds an opportunity between two characters whose UAX #14 classes the table allows (after a
+  letter, digit, solidus or break-after character: before a letter, digit, opening bracket, prefix sign or break-after
+  character; after a closing bracket or brace: before a letter, digit or prefix; after an exclamation or postfix sign:
+  before a letter, digit, prefix or postfix; after an infix stop: before a letter or digit; prefix before postfix;
+  hyphen before digit; '+' read as a letter); keep-all keeps ideographs together. The engine (`UI/Layout/InlineLayout.cs`,
+  `AddClusters` and `MarkBreaks`): pieces carry `Anywhere` (lines), `AnywhereMin` (the min-content size) and `BreakAll`,
+  all from a style that wraps; `word-break` is a property of its own (`ComputedStyle.WordBreak`; it was folded into
+  overflow-wrap, so a later `overflow-wrap: normal` cancelled `word-break: break-word`); `overflow-wrap: break-word` is
+  its own value (`OverflowWrapping.BreakWord`; it was read as anywhere); break-all's table for the classes of the
+  scripts the game uses (`BreakAllClass`: letters, digits and the ASCII punctuation; anything else adds no opportunity);
+  keep-all is normal here (the engine breaks no ideographs).
+- **A number field's spin button keeps its room** (`TextFieldInputType::CreateShadowSubtree`, `text_field_input_type.cc`:
+  every steppable field gets the button, the last flex item of its decoration container, beside the flexible editing
+  view port; `html.css`: `::-webkit-inner-spin-button { appearance: auto; display: inline-block; flex: none }`, its
+  `-internal-auto-base()` branch only under the experimental AppearanceBase; `LayoutTheme::AdjustAppearanceWithElementType`,
+  `layout_theme.cc`: a number field's `textfield` is its auto look anyway; `LayoutTheme::AdjustInnerSpinButtonStyle`: width
+  and min-width the theme's 15 px times the zoom): the button's look is its own, so the field's appearance (auto,
+  textfield, none, menulist-button, `-webkit-appearance`; `-moz-appearance` isn't Blink's) changes nothing. The room is the
+  button's margin box: the theme's width whatever the author's (an author width under the button's own appearance: none,
+  auto then none), its paddings and borders (inside the width under box-sizing: border-box), its margins (auto 0); display:
+  none takes the button away. The theme paints it in its border box (nothing under its own appearance: none). The old
+  game's stat inputs (`appearance: textfield`, the button's margin 0) keep their 15 px. The engine
+  (`UI/Paint/UiPainter.Controls.cs`, `SpinButtonOf`: the box and the room) dropped its rule that a field's textfield or
+  none look had no button; the editor's width (`EditorOf`, `FieldGeometry.EditorRects`), hit testing and painting read it.
+- **A number line-height keeps its exact value** (`StyleBuilderConverter::ConvertLineHeight`,
+  `style_builder_converter.cc`: a number is kept as `Length::Percent(ClampTo<float>(number × 100.0))` from the parsed
+  double; `ComputedStyle::ComputedLineHeightAsFixed`, `computed_style.cc`: the percentage of `ComputedFontSizeAsFixed`
+  through `MinimumValueForLength`, `length_functions.cc`: a LayoutUnit times the percentage over 100 in float, truncated;
+  `ComputedLineHeight`: the same of `LayoutUnit(ComputedSize())`; `CSSToLengthConversionData::LineHeightSize::Lh`: the lh
+  unit, `ComputedLineHeight` unzoomed by the font's zoom and zoomed again; `ComputedStyleUtils::ValueForLineHeight`'s
+  `FloatValueForLength` for a float). The engine kept the number as a float (1.05 is 1.0499999523, its percentage
+  104.99999, so a 40 px heading's line 41.984375; of the old game's numbers 1.05 and 1.06 lose so, on font sizes that are
+  multiples of 5 and 25); now `LineHeight.FromNumber` keeps the percentage from the parser's double
+  (`ValueReader.TryNumberValue`) and `LineHeight.Resolve` is `MinimumValueForLength`. Its readers: line boxes
+  (`InlineLayout.MetricsFor`), controls' lines (`ReplacedContent.CharacterMetrics`: a text field's editor line, the spin
+  button's height, a text area's rows), a text field's inner editor rule (`ReplacedContent.LineMetrics`: its line-height
+  normal when the font size reaches the int `ComputedLineHeight`; a 20 px field at 1.05 keeps its 21 px line, 3 px
+  shorter than normal), the lh unit (`ComputedStyle.LineHeightForUnits`, both places the style engine sets it) and
+  `ComputedStyle.ToTextStyle`. (A calc() number line-height still goes through the calc evaluator's float.)
+- **Its fixtures** (`Ui/TextRulesReferenceTests`, `Reference/text-rules-fixtures.json`, three Chromium 152 main-frame pages
+  captured through `Tools/PaintReference` with the flags of `make-scaled-paint-references.sh`, inside a headless cage, at
+  1, 1.25, 1.5, 1.65, 1.75 and 1.65 with a page zoom of 1.2): `textrule-nowrap` (the four properties under nowrap and pre,
+  a nowrap span in a breaking block, the same where lines wrap, the two properties against each other, keep-all, the
+  min-content sizes and a flex item's automatic minimum, break-all in lines and pair by pair in 27 min-content boxes),
+  `textrule-spin-room` (23 number fields: the field's appearance values, the button's appearance none, display none,
+  margins, paddings, a border, border-box, author widths, the game's rule, buttons painted by an author opacity, a
+  focused field), `textrule-line-height` (40 px headings at 1.05, 20 px at 1.06, the font shorthand, an inherited number,
+  the lh unit, text fields and an empty text area at 1.05). Every box Chromium's to 0.002 device px at the six
+  configurations, the pages at 1 and 1.65 within 12 levels and 0.2 %, each spin field within 60 pixels past 12 levels, and
+  the text style's line height Chromium's 42 px. Sizes multiples of 100 px (whole device pixels at 1.65 × 1.2 too).
+- **Shaped around differences that aren't these rules** (found here, left as they are; the manager's word, 2026-11-17):
+  the min-content words of `textrule-nowrap` measured letter by letter have their widest letter first ("MILL", not
+  "GOLD"); its break-all lines break only between letters that don't kern; the spin page's focused field has no focus
+  ring; the text area is empty. Each below, under "Left as they were".
+- **What moved** (the full suite on the GPU with the three rules and without them, on `3c22527` with the branch's tests,
+  every one of its 385 picture comparisons with Chromium and its 80 layout comparisons with a loose limit logged by a
+  scratch line, every render kept; after the rebase onto GM2 step 4a's `86c75c5`, the editor's and the UI's 1,780 tests
+  again both ways, step 4a's 18 editor goldens among them): no layout comparison moved (each box and line the same to
+  the 1/1000 px logged, the tight ones passing both ways), no editor screen and none of the port's game screens moved (not
+  a byte of their renders), and the old game's screens (`game-*`, `Ui/GamePaintTests`, the old stylesheet) moved, all
+  nearer to Chromium, none farther, every limit unchanged. The cause is the second rule: the sheet's defence bonus fields
+  (`.defense-bonus-input`, `appearance: textfield`, the number at the end) had their "0" at the field's edge, now 15 px in
+  as Chromium draws it; in the screens that show the sheet under a dimmed overlay it is a few levels only.
+
+  | Comparison (1× and 1.65) | Pixels past 24 levels (the limit's), before → after | Past 12 levels, before → after |
+  | --- | --- | --- |
+  | `game-sheet` | 884 → 781; 1,925 → 1,696 | 2,375 → 2,263; 5,120 → 4,874 |
+  | `game-settings` | 18 → 18; 111 → 111 | 176 → 170; 906 → 877 |
+  | `game-passives` | 76 → 76; 156 → 156 | 108 → 100; 214 → 185 |
+  | `game-skills` | 50 → 50; 156 → 156 | 70 → 62; 212 → 183 |
+  | `game-classes`, `-inventory`, `-map`, `-shop`, `-spellbook` | unchanged | unchanged; in the fields' strip the pixels past 3 levels 386, 488, 21, 144, 488 → 0, 0, 0, 2, 0 at 1× (1,018, 1,260, 16, 310, 1,260 → 0, 0, 0, 11, 0 at 1.65) |
+
+  Without the rules the new fixtures fail 17 of their 28 tests (every box of `textrule-nowrap` and `textrule-line-height`
+  at every configuration, the nowrap and spin pages' pictures, each spin field); with them all pass.
+- **Breaks** (`mutate.py` under the lock, `claude-work/gm2/engine-fixes/mutations.json` and `mutations-rerun.json`, the
+  new tests' class): 79. The first rule's 54: the nowrap gate for lines and for the min-content size; each property's
+  part in each mode (anywhere, break-word, word-break: break-word; the min-content size reading the lines' flag);
+  break-all off and its flag never set; each class of each row of its table taken out (19), each row's first classes
+  taken out of the row (7), each character class unclassed (11), '+' and '&' not letters; the four values parsed wrongly,
+  break-word read as anywhere (the old mapping). The second's 15: the old rule (no button under textfield or none) and
+  under textfield alone; display: none ignored; the theme's width under the button's appearance: none, no author width
+  there, the author's width over the theme's; borders, paddings, box-sizing, each margin not counted; the box placed
+  without its right margin; the editor's clip and the field's text less the box instead of the room; the theme painted
+  under the button's appearance: none. The third's 10: the number's percentage from its float, the parser's number as a
+  float, each reader through the float (line boxes, controls' lines, the inner editor's rule, the lh unit, the text
+  style), the lh unit as the old reader, `Resolve` truncating nothing, the text style reading the percentage as the
+  number. **78 killed, 1 that can't differ:** the text style's line height through the number's float (its only
+  difference is a float's last step, 21.1999989 against 21.2000008 px for 20 px at 1.06, the same 42 px for 40 px at
+  1.05; Chromium shows its own only as a computed value serialized to "21.2px", and no code of the engine reads it).
+  The first run's other survivor, the editor's clip less the button's box instead of its room, was a gap: the spin page
+  gained a long number clipped at the editor's end beside a button with 12 px margins, and it is killed. Nothing written
+  to the player's real folders.
+- **Left as they were** (differences from Chromium found beside the three rules; known differences, not fixed here, the
+  manager's word of 2026-11-17; also listed in `Docs/Engine-Plan.md` with the small tasks left):
+  - *Min-content words after an item's first:* Blink measures the min-content size word by word from the item's shaping
+    (`LineBreaker::HandleTextForFastMinContent`, `FastMinTextContext::Add`, `ShapeResult::CachedWidth`, `shape_result.cc`:
+    the difference of two character positions, each the run's advance up to it ceiled to a LayoutUnit,
+    `ComputePositionData`); the engine ceils each word's own width (`InlineLayout.IntrinsicWidth`, `CloseItem`). A word
+    after the first can come out 1/64 px wider: "GOLD" letter by letter (overflow-wrap: anywhere) 12.8125 px where Chromium
+    has 12.796875 at 1× (1/64 device px at every scale), a box's width only.
+  - *Kerning across a break inside a word:* Blink shapes the end of a line that breaks where it isn't safe to break
+    again (`ShapingLineBreaker::ShapeLine`, `shaping_line_breaker.cc`: from the last safe-to-break offset to the break), so
+    the kerning to the next letter goes; the engine keeps the cluster widths of the whole word.
+    break-all's "12ab.c|d(e)f%…" at 50 px: the first line 46.78125 px, Chromium's 46.890625 ("12ab.c" alone), 7/64 px.
+  - *The focus ring at 1.65:* a bordered number field with no appearance at 220 px, focused: its ring's top and bottom
+    rows a fraction of a device pixel from Chromium's (`OutlinePainter`, `outline_painter.cc`; the engine's
+    `UI/Paint/UiPainter.Outlines.cs`), 615 pixels past 12 levels in that field's box; at 1× it matches. Cause not sought.
+  - *Percentage line-heights:* `ConvertLineHeight` makes a percentage a fixed length from the font size times the
+    percentage *as an int* (`ClampTo<int>`), so 150.5 % is 150 %; the engine resolves the exact percentage. 150.5 % at
+    16 px: Chromium 24 px, the engine 24.078125; 133.9 % at 20 px: 26.59375 against 26.78125. The game's sheets use none.
+  - *A number field's own width:* with a finite min and max (and a step that isn't any) Blink sizes it to the digits of
+    min, max and step plus the spin button (`NumberInputType::GetSizeWithDecoration`, `number_input_type.cc`;
+    `TextFieldIntrinsicInlineSize`, `layout_box.cc`); the engine gives every field 20 characters
+    (`ReplacedContent.TextFieldSize`). `min="1" max="50" step="1"` at 16 px Lato: Chromium 62 px, the engine 209 (147
+    more). The old game's combat quantity and companion resource fields have both; GM2's screens none. **An engine task
+    before the first screen with such a field** (the manager's word, 2026-11-17; `Docs/Engine-Plan.md`, the small tasks).
+  - (Known before: a text area lays its text out at the normal line height whatever its line-height,
+    `Docs/Editor.md`, step 11.)
+
 ## Status (2026-10-25)
 
 **All 22 game screens composite exactly like Chromium** (`CompositingReferenceTests`: every screen

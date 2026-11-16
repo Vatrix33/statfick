@@ -983,8 +983,9 @@ public static partial class Properties
         {
             if (r.TryIdent("normal"))
                 c.Style.LineHeight = LineHeight.Normal;
-            else if (r.TryNumber(out var n))
-                c.Style.LineHeight = new LineHeight(LineHeightKind.Number, n);
+            // A number as Blink keeps it: its percentage from the parsed double (LineHeight.FromNumber).
+            else if (r.TryNumberValue(out var n))
+                c.Style.LineHeight = LineHeight.FromNumber(n);
             else if (r.TryLength(c.Units, out var length))
                 c.Style.LineHeight = new LineHeight(LineHeightKind.Length, length.Resolve(c.Style.FontSize));
             else
@@ -1025,19 +1026,16 @@ public static partial class Properties
             ["normal"] = TextNs.WhiteSpace.Normal, ["nowrap"] = TextNs.WhiteSpace.NoWrap, ["pre"] = TextNs.WhiteSpace.Pre, ["pre-wrap"] = TextNs.WhiteSpace.PreWrap,
             ["pre-line"] = TextNs.WhiteSpace.PreLine, ["break-spaces"] = TextNs.WhiteSpace.PreWrap,
         }, (s, v) => s.WhiteSpace = v), (t, s) => t.WhiteSpace = s.WhiteSpace);
-        Add("overflow-wrap", true, Enum(new Dictionary<string, TextNs.OverflowWrap>
+        Add("overflow-wrap", true, Enum(new Dictionary<string, OverflowWrapping>
         {
-            ["normal"] = TextNs.OverflowWrap.Normal, ["anywhere"] = TextNs.OverflowWrap.Anywhere, ["break-word"] = TextNs.OverflowWrap.Anywhere,
+            ["normal"] = OverflowWrapping.Normal, ["anywhere"] = OverflowWrapping.Anywhere, ["break-word"] = OverflowWrapping.BreakWord,
         }, (s, v) => s.OverflowWrap = v), (t, s) => t.OverflowWrap = s.OverflowWrap);
         Alias("word-wrap", "overflow-wrap");
-        Add("word-break", true, (r, c) =>
+        // A property of its own (Blink's EWordBreak; how a line breaks reads both, InlineLayout.AddClusters).
+        Add("word-break", true, Enum(new Dictionary<string, WordBreak>
         {
-            if (r.TryIdent("break-all") || r.TryIdent("break-word"))
-                c.Style.OverflowWrap = TextNs.OverflowWrap.Anywhere;
-            else if (!r.TryIdent("normal") && !r.TryIdent("keep-all"))
-                return false;
-            return r.AtEnd;
-        }, (t, s) => { });
+            ["normal"] = WordBreak.Normal, ["break-all"] = WordBreak.BreakAll, ["break-word"] = WordBreak.BreakWord, ["keep-all"] = WordBreak.KeepAll,
+        }, (s, v) => s.WordBreak = v), (t, s) => t.WordBreak = s.WordBreak);
         Add("text-shadow", true, ShadowsOf((s, v) => s.TextShadows = v), (t, s) => t.TextShadows = s.TextShadows);
         Add("visibility", true, Enum(new Dictionary<string, Visibility> { ["visible"] = Visibility.Visible, ["hidden"] = Visibility.Hidden, ["collapse"] = Visibility.Collapse }, (s, v) => s.Visibility = v), (t, s) => t.Visibility = s.Visibility);
         Add("pointer-events", true, (r, c) =>

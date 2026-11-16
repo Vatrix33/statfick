@@ -1082,12 +1082,7 @@ public sealed class StyleEngine
             context.Units = context.Units with { RootFontSize = style.SpecifiedFontSize };
         Apply(Properties.Get("color")!);
         Apply(Properties.Get("line-height")!);
-        context.Units = context.Units with { LineHeight = style.LineHeight.Kind switch
-        {
-            LineHeightKind.Number => style.LineHeight.Value * style.FontSize,
-            LineHeightKind.Length => style.LineHeight.Value,
-            _ => style.FontSize * 1.2f,
-        } };
+        context.Units = context.Units with { LineHeight = style.LineHeightForUnits };
         foreach (var property in Properties.Ordered)
             if (property.Name is not ("font-size" or "color" or "line-height") && winners.ContainsKey(property.Name))
                 Apply(property);
@@ -1238,12 +1233,7 @@ public sealed class StyleEngine
                 property.Copy(style, property.Inherited ? parent : Initial);
                 return true;
         }
-        var lineHeight = style.LineHeight.Kind switch
-        {
-            LineHeightKind.Number => style.LineHeight.Value * style.FontSize,
-            LineHeightKind.Length => style.LineHeight.Value,
-            _ => style.FontSize * 1.2f,
-        };
+        var lineHeight = style.LineHeightForUnits;
         var context = new StyleContext
         {
             Units = Units(property.Name == "font-size" ? parent.SpecifiedFontSize : style.SpecifiedFontSize, rootFontSize, lineHeight),
