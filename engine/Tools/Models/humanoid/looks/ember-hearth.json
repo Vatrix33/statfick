@@ -1,0 +1,49 @@
+{
+  "format": "statventure.look",
+  "version": 1,
+  "name": "ember-hearth",
+  "background": "#2a1f1a",
+  "sun": {
+    "direction": [
+      -0.8,
+      0.6,
+      0.75
+    ],
+    "strength": 3,
+    "angle": 3
+  },
+  "style": {
+    "ink": "#080605",
+    "shadowMix": 0.58,
+    "bandEdge": 0.36,
+    "outlineWidth": 3.0,
+    "innerWidth": 1.8,
+    "creaseAngle": 120,
+    "hatchSpacing": 5,
+    "hatchWidth": 1.2,
+    "hatchAngle": 72,
+    "hatchInk": 0.5,
+    "glowWide": 8,
+    "glowCore": 2.5,
+    "glowBoost": 2.2
+  },
+  "palette": {
+    "brows": "#130c08",
+    "buckle": "#bb8d3c",
+    "cloth": "#74211d",
+    "cloth.trim": "#bb8d3c",
+    "eye.white": "#d2c7b2",
+    "eyes": "#0a0706",
+    "grip": "#3a261b",
+    "hair": "#3a2416",
+    "leather": "#3a261b",
+    "lips": "#7c4238",
+    "metal.base": "#80848c",
+    "metal.shade": "#3a3c42",
+    "metal.trim": "#bb8d3c",
+    "skin": "#aa7a5a",
+    "trousers": "#292320",
+    "wood": "#5a2a1e"
+  },
+  "shadows": {}
+}

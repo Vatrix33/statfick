@@ -1232,7 +1232,12 @@ the design and the tests):
   for step 6):** a save or character file whose numbers are out of range is corrected silently, as the old game's
   `normalizeCharacter`, never refused for them; in the same two places ("GM2's detail round"; Hero.md, "Questions from
   the steps"), with the manager's GM2-P18 of the same day (a look's models are references, refused when missing; bodies,
-  parts and presets enter `data.pak` with their models) in Hero.md's "Decisions".
+  parts and presets enter `data.pak` with their models) in Hero.md's "Decisions". **Q54 and Q55 (2026-11-16, asked by
+  the manager for step 4a):** the lighter figures ("Yes, use the lighter ones"; with the manager's GM2-P19, a model's
+  pieces joined per ink flag, and GM2-P20, a "full" level shipped and a "battle" level for GM5) and the limits for
+  detailed figures ("Approve limits now, refine the lines after": `ReferenceLimits.DetailedFigure` from the measurement
+  plus about a twentieth, an engine task for the ink's depth allowance later, then the limits tightened); in the same two
+  places, the engine items in `Docs/Game-Plan.md`, "Engine items the port will meet".
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -4345,6 +4350,21 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     `sprite-catalog.js`) with a one-step writer (`STATVENTURE_LOOK_DATA=write`, then `make-data-pack.sh`) for when the
     models land. 4266 + 659 = 4925 tests on the GPU and on lavapipe, none held; mutations 114 standing (109 killed, 5
     that can't differ) and the oracle modules' 18 (killed); no pack or golden changed.
+  - **GM2 step 4a, the first humanoid's scripts and models in the repo (2026-11-16/17, a worker on the branch
+    `gm2-step4a`; `Docs/Game/Hero.md`, "How it works", step 4a):** the manager's approved scratch scripts ported into
+    `Tools/Models/humanoid/` without changing the art (kit, forms, lighten, levels, rig, outfit, gear, materials, bodies,
+    parts, the clip library; the manifest naming each model's level), proven against his models within micrometres with
+    equal counts; ten models in `Assets/Models/humanoid/` at the full level (the human man and woman with their plain
+    outfit, their faces and hair, the chain shirts, the sword and the shield), the geared man at the battle level in the
+    tests' data, every model's pieces joined per ink flag (the user's Q54 and the manager's GM2-P19, GM2-P20); the same
+    bytes every build (8 Blender threads, cut lists in the mesh's order); the game's look `EMBER_HEARTH`; the clip frame
+    (`clips/library.py`, `make-humanoid.sh clips`, the test clip `rest-sway` in the tests' data, three evaluated scenes);
+    `models.pak` (`make-models-pack.sh`, in both games' listings); the tests (structure, skeleton, weights, materials,
+    one primitive per material and ink flag, the battle level's bounds, the outfit under the mail in a lean, the pack, the
+    cost as a measurement) and the 14 humanoid scenes against Blender under `ReferenceLimits.DetailedFigure` (the user's
+    Q55); four engine tasks recorded for later (the ink's depth allowance, figures in the shadow pass, skinning once per
+    mesh, a 2016-class card). 4364 + 659 = 5023 tests on the GPU and on lavapipe; mutations 22 of 22 killed, the scripts' breaks 26 of 26 (and the look's and the clip library's 43 of 43); 18 editor goldens captured
+    again for `models.pak`.
 
 ## Milestones
 

@@ -419,10 +419,12 @@ public class Render3DReferenceTests(GpuFixture gpu)
     /// neighbourhood's range), 3.1 levels on average. An edge half a pixel out differs by about 9 on
     /// average; a missing or extra feature by about the whole contrast. So each edge pixel within 0.7
     /// of its local contrast (or 8 levels), and all of them within 4 on average. Returns what failed,
-    /// or "".
+    /// or "". Stray pixels may be allowed: `strays` of either kind together (a shadowed scene's edges), or `insideStrays`
+    /// inside and `edgeStrays` on edges apart (a profile's <see cref="ReferenceLimits.InsideEvery"/> and
+    /// <see cref="ReferenceLimits.EdgeEvery"/>; none under M6).
     /// </summary>
     internal static string Compare(RgbaImage expected, RgbaImage actual, int insideTolerance = 2, double edgeContrast = 0.7, int edgeFloor = 8, double edgeMean = 4,
-        Func<int, int, bool>? only = null, int strays = 0)
+        Func<int, int, bool>? only = null, int strays = 0, int insideStrays = 0, int edgeStrays = 0)
     {
         if (expected.Width != actual.Width || expected.Height != actual.Height)
             return $"size {actual.Width}x{actual.Height}, reference {expected.Width}x{expected.Height}";
@@ -475,6 +477,10 @@ public class Render3DReferenceTests(GpuFixture gpu)
         var text = new StringBuilder();
         if (insideBad + edgeBad <= strays)
             insideBad = edgeBad = 0;
+        if (insideBad <= insideStrays)
+            insideBad = 0;
+        if (edgeBad <= edgeStrays)
+            edgeBad = 0;
         if (insideBad > 0)
             text.Append($"{insideBad} inside pixels differ (worst {worstInside}) ");
         if (edgeBad > 0)
@@ -483,6 +489,11 @@ public class Render3DReferenceTests(GpuFixture gpu)
             text.Append($"edges differ by {(double)edgeSum / edgeCount:F1} on average ");
         return text.ToString().Trim();
     }
+
+    /// <summary>A scene without shadows under a profile's limits: its stray inside and edge pixels and its edges' mean.</summary>
+    internal static string Compare(RgbaImage expected, RgbaImage actual, ReferenceLimits limits) =>
+        Compare(expected, actual, edgeMean: limits.EdgeMean, insideStrays: (int)((long)expected.Width * expected.Height / limits.InsideEvery),
+            edgeStrays: (int)((long)expected.Width * expected.Height / limits.EdgeEvery));
 
     /// <summary>
     /// What each joint of a posed model does to what it moves (glTF model space, columns): back from

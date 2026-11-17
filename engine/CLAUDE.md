@@ -79,6 +79,13 @@ the user and wait for their go-ahead before starting the next one.
   playing view of a figure in a look: the sandbox's figure mode, `Tools/Scripts/play-figure.sh <body.glb> [--clips
   <glb>] [--look <look>] [--view ...] [--size WxH] [--dump <folder>]` (keys: Space, Right/Left, Down/Up, A/D, 1-5,
   Escape; `--dump` writes frames and, with ffmpeg, `playing.mp4`, headless in a cage of its own).
+  Since step 4a (`Docs/Game/Hero.md`, "How it works", step 4a) the first humanoid's models are built by the family's
+  scripts (`manifest.json`: each model's builder, arguments and detail level, `levels.py`'s "full", which the game
+  ships, or "battle", the geared man's in the tests' data) into `Assets/Models/humanoid/`, always with 8 Blender threads
+  (QuadriFlow follows the count), every model's pieces joined per ink flag; `make-humanoid.sh clips <folder>
+  <library.glb>` keys a folder of clip files (`clips/library.py` gives their form; the frame's test clip `rest-sway` is the
+  tests' data); `Tools/Scripts/make-models-pack.sh` makes `Assets/Packs/models.pak` afresh from `Assets/Models/`. The
+  figures are held to Blender's under `ReferenceLimits.DetailedFigure` (the user's Q55).
 - Cutscenes (M10, `Docs/Scene.md`, step 7): `Tools/Scripts/play-cutscene.sh jiruan [--volume 0-100]` plays Ji'ruan's intro, the proof, with its sound in
   the sandbox's window (Escape or its Skip button skips, R replays; `--dump <folder>` writes its frames instead);
   `Tools/Scripts/make-cutscene-references.sh` captures the old game's card in Chromium at the sampled times.

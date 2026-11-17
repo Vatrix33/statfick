@@ -6,6 +6,10 @@
 #   make-humanoid.sh check [name ...]    builds them into a scratch folder and proves each equals what is committed
 #                                        (byte for byte); and that every look in look.py is valid and looks/today.json
 #                                        is what look.py writes. Fails on any difference.
+#   make-humanoid.sh clips <folder> <library.glb>
+#                                        keys every clip file of <folder> (<name>.json, the form clips/library.py gives)
+#                                        on the human man's skeleton and exports them as a clip library (to try clips
+#                                        before they join the family's clips/ and the manifest's library)
 #   make-humanoid.sh render --out <folder> --name <stem> [render.py's options]
 #                                        renders a figure or a scene file in a look (render.py: --look, --model,
 #                                        --garment, --item, --scene, --views, --size, --scale, --elevation, --focus,
@@ -14,9 +18,14 @@
 #                                        them), with the scene file and the separate layers in <folder>/layers/.
 #   make-humanoid.sh look list | write <name or file> [<file>] | check
 #                                        look.py's command line (a look's numbers as the file both sides read).
+# Blender runs with 8 threads, always (GM2 step 4a, the manager's decision of 2026-11-16): QuadriFlow's remesh and the
+# order of the edges Blender makes (which the weights' smoothing sums over) follow the thread count, so another count
+# builds other meshes and weights; 8 is what the committed models were built with (the PC's default). The models are
+# committed and rebuilt only on the PC with the pinned Blender: the cloud and Windows use what is committed.
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
 HUMANOID="$STATVENTURE_SOURCE/Tools/Models/humanoid"
+BLENDER_THREADS=8
 command="${1:-}"
 [ -n "$command" ] && shift
 case "$command" in
@@ -33,6 +42,14 @@ case "$command" in
     scratch="$(mktemp -d "${TMPDIR:-/tmp}/statventure-humanoid-check.XXXXXX")"
     trap 'rm -rf "$scratch"' EXIT
     blender_run "$HUMANOID/build.py" -- "$STATVENTURE_SOURCE" --check "$scratch" "$@"
+    ;;
+  clips)
+    [ $# -eq 2 ] || { echo "clips needs <folder> <library.glb>" >&2; exit 2; }
+    folder="$(cd "$1" && pwd)"
+    mkdir -p "$(dirname "$2")"
+    library="$(cd "$(dirname "$2")" && pwd)/$(basename "$2")"
+    source "$STATVENTURE_SCRIPTS/blender.sh"
+    blender_run "$HUMANOID/build.py" -- "$STATVENTURE_SOURCE" --library "$folder" "$library"
     ;;
   render)
     out="" name=""
@@ -69,7 +86,7 @@ case "$command" in
       --views three-quarter --size 320x240 --perspective 20 --extent 30
     ;;
   *)
-    echo "usage: make-humanoid.sh build [name ...] | check [name ...] | render --out <folder> --name <stem> [options] | look ... | framing" >&2
+    echo "usage: make-humanoid.sh build [name ...] | check [name ...] | clips <folder> <library.glb> | render --out <folder> --name <stem> [options] | look ... | framing" >&2
     exit 2
     ;;
 esac

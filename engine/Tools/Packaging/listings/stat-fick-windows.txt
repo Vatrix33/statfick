@@ -43,6 +43,7 @@ file msvcp140.dll
 dir packs/
 file packs/audio.pak
 file packs/data.pak
+file packs/models.pak
 file packs/ui.pak
 file png18.dll
 file stb.dll

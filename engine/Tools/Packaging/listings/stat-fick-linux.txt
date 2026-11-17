@@ -55,6 +55,7 @@ file licenses/openal-soft-gsl-LICENSE.txt
 dir packs/
 file packs/audio.pak
 file packs/data.pak
+file packs/models.pak
 file packs/ui.pak
 exec stat-fick
 bundle Brutal.Collections.dll

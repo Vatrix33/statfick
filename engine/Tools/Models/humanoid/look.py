@@ -12,10 +12,11 @@
 # One look file (JSON, written by `write`) drives both sides: Blender's renders (render.py, through render_scenes.py)
 # and the engine's view (the sandbox's figure mode, --look). TODAY is the engine's look as it is: CelStyle.Default and
 # the sun of the lizardman test its numbers were measured under (Decisions for M6; Tests/.../Render3D/Scenes3D.cs,
-# "Lizardman"), unchanged; the palette empty. The chosen look's numbers join LOOKS when step 3b has them.
+# "Lizardman"), unchanged; the palette empty; the engine's tests' default. EMBER_HEARTH is the game's look, the user's
+# choice ("Ember, hearth").
 #   python3 look.py list
 #   python3 look.py write <name> [<file>]     (default: looks/<name>.json beside this file)
-#   python3 look.py check                     (every look in LOOKS valid; looks/today.json as written)
+#   python3 look.py check                     (every look in LOOKS valid and its looks/<name>.json as written)
 # Plain Python: Blender's scripts and the system's Python import it alike.
 import json
 import os
@@ -26,11 +27,18 @@ VERSION = 1
 
 # The palette slot names the humanoid family's parts use (GM2-P7's list; the parts' steps add theirs here, one list both
 # the scripts and the game read), and the gear's (GM3's slots, distinct from the figure's: one actor palette for figure
-# and gear; step 4 adds the sample gear's). A look's palette and shadows may name only these (a typo is refused).
+# and gear). A look's palette and shadows may name only these (a typo is refused). Step 4's: the eyes' whites, the
+# outfit's leather (boots, belt) and the belt's buckle; the sample gear's metals (base, trim, the shade of its drawn
+# lines), the shield's wood and the sword's grip.
 SLOTS = [
     "skin", "hair", "hair.tie", "eyes", "brows", "lips", "cloth", "cloth.trim", "trousers", "crest", "marking", "claws",
+    "eye.white", "leather", "buckle",
 ]
-GEAR_SLOTS = []
+GEAR_SLOTS = ["metal.base", "metal.trim", "metal.shade", "wood", "grip"]
+
+# Materials of a fixed colour in every look (sRGB; no slot, so no look can recolour them): the pupils and the eyes'
+# glints (unlit).
+FIXED = {"pupil": "#060404", "glint": "#efe6d0"}
 
 # The style's numbers, in the order of CelStyle's properties (the tests check this list against the engine's).
 STYLE_KEYS = [
@@ -58,8 +66,32 @@ TODAY = {
     "shadows": {},
 }
 
-# Every look by name. Candidates (step 3b) are added here or written as files of their own.
-LOOKS = {"today": TODAY}
+# The game's look, "Ember, hearth" (the user's choice, 2026-11-15: candidate 1 of three within the mood board's F; GM2-3,
+# GM2-8), its numbers as the manager wrote them (look-ember.json; the crease angle and the glow, which it doesn't set,
+# today's): a dark warm ground, the sun from the viewer's left and front, a near-black ink, shadows mixed 0.58 toward
+# the ink, the band at 0.36, hatching 5 px apart. Its palette is the look's default colours (a hero's own come from its
+# race's swatches). The manager's renders lit each view by a sun of its own (Docs/Game/Hero.md, "How it works", step
+# 4a); the look file holds one.
+EMBER_HEARTH = {
+    "name": "ember-hearth",
+    "background": "#2a1f1a",
+    "sun": {"direction": [-0.8, 0.6, 0.75], "strength": 3, "angle": 3},
+    "style": {
+        "ink": "#080605", "shadowMix": 0.58, "bandEdge": 0.36,
+        "outlineWidth": 3.0, "innerWidth": 1.8, "creaseAngle": 120,
+        "hatchSpacing": 5, "hatchWidth": 1.2, "hatchAngle": 72, "hatchInk": 0.5,
+        "glowWide": 8, "glowCore": 2.5, "glowBoost": 2.2,
+    },
+    "palette": {
+        "skin": "#aa7a5a", "lips": "#7c4238", "hair": "#3a2416", "brows": "#130c08", "eye.white": "#d2c7b2", "eyes": "#0a0706",
+        "cloth": "#74211d", "cloth.trim": "#bb8d3c", "trousers": "#292320", "leather": "#3a261b", "buckle": "#bb8d3c",
+        "metal.base": "#80848c", "metal.trim": "#bb8d3c", "metal.shade": "#3a3c42", "wood": "#5a2a1e", "grip": "#3a261b",
+    },
+    "shadows": {},
+}
+
+# Every look by name, each written as looks/<name>.json. Candidates are added here or written as files of their own.
+LOOKS = {"today": TODAY, "ember-hearth": EMBER_HEARTH}
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOOK_FOLDER = os.path.join(HERE, "looks")
@@ -150,17 +182,20 @@ def load(name_or_path):
 
 
 def check():
-    """Every look in LOOKS is valid, and looks/today.json is what write gives today's look (the file the engine's tests
-    and the sandbox read)."""
+    """Every look in LOOKS is valid, named as its key, and its looks/<name>.json is what write gives it (the files the
+    engine's tests and the sandbox read)."""
     problems = []
     for name, look in LOOKS.items():
         try:
-            validate(look)
+            written = text(look)
         except ValueError as error:
             problems.append(f"{name}: {error}")
-    path = os.path.join(LOOK_FOLDER, "today.json")
-    if not os.path.exists(path) or open(path).read() != text(TODAY):
-        problems.append(f"{path} is not what look.py writes for today's look: python3 look.py write today")
+            continue
+        if look["name"] != name:
+            problems.append(f"{name}: named {look['name']!r}")
+        path = os.path.join(LOOK_FOLDER, name + ".json")
+        if not os.path.exists(path) or open(path).read() != written:
+            problems.append(f"{path} is not what look.py writes for the look {name}: python3 look.py write {name}")
     return problems
 
 

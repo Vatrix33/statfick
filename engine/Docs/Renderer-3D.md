@@ -523,6 +523,29 @@ second time), and top-level objects without a mesh.)
   The stray pixels lie on the ground at trunk bases, on the plates, the mid trees and the king. Each widened
   limit put back to M6's fails the comparison. The user approved these limits exactly as set (2026-11-05;
   `Docs/Scene.md`, "Step details", S7-13).
+- **Detailed figures** (GM2 step 4a, the user's Q55; `ReferenceLimits.DetailedFigure`): the game's humanoid figures in
+  its look (`HumanoidReferenceTests`, 14 scenes, shading by `Compare` with a profile and ink by `CompareInk`), set the
+  same way from the measurement on the GPU and on lavapipe (2026-11-16). Two things part the engine from Blender there:
+  MSAA's edges on the figures' many small forms, and the ink drawing a feature edge that lies a little under what covers
+  it (`ink_edges.frag`: up to half a pixel, two when the cover is seen nearly edge-on, plus 1e-4 of the depth behind the
+  covering surface's plane), where Freestyle hides it: the hairline's crease, the jaw's underside, lines along the
+  hair's locks, a mail sleeve's seam, the sword's lines, the shield's rim edge-on. Without shadows the stray pixels are
+  counted apart, inside and on edges (`InsideEvery`, `EdgeEvery`; M6: none):
+
+  | Measure | M6 | Measured | Detailed figure |
+  | --- | --- | --- | --- |
+  | Inside pixels off by more than 2 levels | none | 1–23 (23 of 102,400) | 1 in 4,200 |
+  | Edge pixels beyond the edge rule | none | 12–88 (88 of 102,400) | 1 in 1,100 |
+  | Freestyle line pixels missed | 2 % | 0.13–2.50 % | 2.7 % |
+  | Engine line pixels where Freestyle has none | 3 % | 0.46–7.68 % | 8 % |
+  | Freestyle line pixels with unlike ink about them | 3 % | 1.39–12.71 % | 13.5 % |
+  | Mean coverage difference | 0.12 | 0.075–0.134 | 0.14 |
+  | Total ink off Freestyle's | 10 % | 0.70–4.94 % | 10 % (M6's) |
+  | Edges' mean difference | 4 | 2.06–2.81 | 4 (M6's) |
+
+  Each widened limit set just under what its worst scene measured fails that scene (`EachWidenedLimitBites`). Approved
+  "now, the lines refined after": an engine task brings the ink nearer Freestyle's (a line hidden under another piece
+  stays hidden), then the limits are measured again and tightened (`Docs/Game/Hero.md`, "How it works", step 4a).
 - **Terrain chunks** (`TheTerrainsLevelsMeetWithoutCracks`): the reference scenes draw every chunk
   at stride 1 (cells 4-6 pixels on screen), so the levels are checked on their own: both terrain
   views drawn with the four chunks at strides 1, 2, 4 and 8 over a magenta background and without

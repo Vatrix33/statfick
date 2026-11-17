@@ -327,6 +327,13 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   frames around, plus 2·10⁻⁵ m. Points in model space would mix a chain's bones, whose curvatures
   can cancel (an IK chain's end follows its smooth target while each bone's rotation bends), so the
   measure is per bone.
+- **The game's humanoid clips** (GM2 step 4a; `Tools/Models/humanoid/clips/library.py`, `Docs/Game/Hero.md`, "How it
+  works", step 4a): a clip is a JSON file (its frames at 60 fps, loop, markers, keys of XYZ Euler degrees and metres in
+  each bone's own axes, bezier or linear), checked, then keyed on the human man's skeleton as the manager's previews key
+  it (quaternions with the sign nearer the previous key, data frame n at Blender frame n + 1, the action's range the
+  clip's length, markers as events) and exported with `ANIMATED`. The evaluation builds a model named `humanoid/<name>`
+  through the family's manifest; three scenes play the frame's test clip `rest-sway` (the tests' data) on its own
+  skeleton and on the two bodies. A location is applied in metres as it is, from each body's own rest.
 - **Hand-written files** (`AnimationClipTests`): what Blender's sampled export doesn't produce and
   the formulas themselves, against values worked out by hand: STEP holding, slerp the short way and
   exactly (24° a fifth of the way through 120°, which a normalised lerp misses by 2°), CUBICSPLINE

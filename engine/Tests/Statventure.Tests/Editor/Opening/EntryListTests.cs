@@ -62,7 +62,7 @@ public class EntryListTests
         Assert.True(editor.Q(".entries-notice").HasAttribute("hidden"));
         // Folders first, then entries, each by name; the top folders open, the rest closed.
         Assert.Equal(["audio", "audio/effects", "audio/instruments", "audio/percussion", "audio/rooms", "audio/themes", "audio/theme-order",
-            "data", "data/races", "notes", "notes/todo.txt", "ui", "ui/fonts", "ui/styles"], list.Visible());
+            "data", "data/races", "models", "models/humanoid", "notes", "notes/todo.txt", "ui", "ui/fonts", "ui/styles"], list.Visible());
         Assert.True(list.IsOpen("audio"));
         Assert.False(list.IsOpen("audio/rooms"));
         var rooms = list.Folder("audio/rooms")!;
@@ -98,7 +98,7 @@ public class EntryListTests
         Assert.Equal("audio/rooms/hall", hall.GetAttribute("title"));
         // Closing a folder hides what it holds and keeps across rebuilds.
         list.Toggle("audio");
-        Assert.Equal(["audio", "data", "data/races", "notes", "notes/todo.txt", "ui", "ui/fonts", "ui/styles"], list.Visible());
+        Assert.Equal(["audio", "data", "data/races", "models", "models/humanoid", "notes", "notes/todo.txt", "ui", "ui/fonts", "ui/styles"], list.Visible());
         editor.Session.Add("notes/more", RecordDraft.Blank(typeof(RoomSpec)));
         Assert.False(list.IsOpen("audio"));
         // An entry added in a closed folder opens it (and its folders).
@@ -107,7 +107,7 @@ public class EntryListTests
         Assert.True(list.IsOpen("audio/percussion"));
         Assert.Contains("audio/percussion/new", list.Visible());
         list.Toggle("audio");
-        Assert.Equal(["audio", "data", "data/races", "notes", "notes/more", "notes/todo.txt", "ui", "ui/fonts", "ui/styles"], list.Visible());
+        Assert.Equal(["audio", "data", "data/races", "models", "models/humanoid", "notes", "notes/more", "notes/todo.txt", "ui", "ui/fonts", "ui/styles"], list.Visible());
     }
 
     [Fact]
@@ -395,7 +395,7 @@ public class EntryListTests
         editor.Key("Escape", "Escape");
         Assert.Equal("", list.Filter.Value);
         Assert.Equal(["audio", "audio/effects", "audio/instruments", "audio/percussion", "audio/rooms", "audio/themes", "audio/theme-order",
-            "data", "data/races", "notes", "notes/todo.txt", "ui", "ui/fonts", "ui/styles"], list.Visible());
+            "data", "data/races", "models", "models/humanoid", "notes", "notes/todo.txt", "ui", "ui/fonts", "ui/styles"], list.Visible());
         Assert.Same(list.Filter, editor.Document.FocusedElement);
     }
 
@@ -416,7 +416,7 @@ public class EntryListTests
         list.Toggle("rooms/many");
         editor.Frame();
         var shown = list.Visible();
-        Assert.Equal(316, shown.Count);
+        Assert.Equal(318, shown.Count);
         // The rows made: those whose box meets the pane's view, and ten more on either side, between two spacers.
         void Check()
         {

@@ -4,6 +4,8 @@
 # the PC's Flatpak is 5.3 since 2026-11-13): another version is refused unless STATVENTURE_BLENDER_ANY_VERSION=1 (for
 # measuring a move only). Always headless (-b, and no display handed to it), always --factory-startup.
 #   blender_run <absolute script.py> [-- arguments]   (a Python error fails the run; shows what the script wrote and errors)
+# A caller that sets BLENDER_THREADS runs Blender with that many threads (-t; make-humanoid.sh pins it: the humanoid
+# family's remeshing follows the thread count).
 if [ -n "${STATVENTURE_BLENDER:-}" ]; then
   BLENDER=("$STATVENTURE_BLENDER")
 elif command -v blender >/dev/null; then
@@ -20,7 +22,7 @@ echo "using $BLENDER_VERSION (${BLENDER[*]})"
 # Absolute paths: the Flatpak starts in its own folder and has a private /tmp.
 blender_run() {
   local log
-  if ! log=$(env -u DISPLAY -u WAYLAND_DISPLAY "${BLENDER[@]}" -b --factory-startup --python-exit-code 1 --python "$@" 2>&1); then
+  if ! log=$(env -u DISPLAY -u WAYLAND_DISPLAY "${BLENDER[@]}" -b --factory-startup ${BLENDER_THREADS:+-t "$BLENDER_THREADS"} --python-exit-code 1 --python "$@" 2>&1); then
     echo "$log" >&2
     exit 1
   fi

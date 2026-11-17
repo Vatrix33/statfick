@@ -27,6 +27,8 @@ using PreviewPart = Statventure.Editor.Preview.PreviewPart;
 public class CutscenePreviewTests(GpuFixture gpu)
 {
     public const string CutscenePath = "world/cutscenes/jiruan", FigurePath = "models/figure", ActingPath = "models/jiruan-acting";
+    /// <summary>The game's own models of the humanoid family (models.pak, GM2 step 4a), which every model role offers too, by path.</summary>
+    static readonly string[] GameHumanoids = [.. Humanoid.HumanoidFiles.Names().Select(n => "models/humanoid/" + n).Order(StringComparer.Ordinal)];
 
     static ModelData Glb(string name) => ModelData.Load(System.IO.Path.Combine(Render3DReferenceTests.ModelDirectory, name + ".glb"));
 
@@ -101,7 +103,7 @@ public class CutscenePreviewTests(GpuFixture gpu)
         using var p = Open();
         p.Select(CutscenePath);
         var preview = (CutscenePreview)p.Preview.Shown!;
-        Assert.Equal(["(no figure)", FigurePath, ActingPath, StagePath], RoleSelect(p, King, "model").Options.Select(o => o.TextContent));
+        Assert.Equal(["(no figure)", FigurePath, .. GameHumanoids, ActingPath, StagePath], RoleSelect(p, King, "model").Options.Select(o => o.TextContent));
         Assert.Equal(["(its own clips)", FigurePath, ActingPath, StagePath], RoleSelect(p, King, "clips").Options.Select(o => o.TextContent));
         p.Editor.Choose(RoleSelect(p, King, "model"), FigurePath);
         Assert.IsType<Actor>(preview.Bound[King]);
@@ -394,7 +396,7 @@ public class CutscenePreviewTests(GpuFixture gpu)
         Assert.IsType<SceneNode>(preview.Bound["spot"]);
         Assert.False(preview.Bound.ContainsKey("crowd"));
         Assert.Equal([(3, "no model chosen for crowd")], preview.LeftOut);
-        Assert.Equal(["(no model)", "models/figure", "models/stages/dolly"], RoleSelect(p, "crowd", "model").Options.Select(o => o.TextContent));
+        Assert.Equal(["(no model)", "models/figure", .. GameHumanoids, "models/stages/dolly"], RoleSelect(p, "crowd", "model").Options.Select(o => o.TextContent));
         Assert.Equal("An empty host with the elements its cues name", p.Document.QuerySelector(".preview-part [data-role=card] .preview-about")!.TextContent);
         // The palette's slots: its particle cue's effect's, then those of what its palette track colours (once chosen).
         Assert.Equal(["spark", "ash"], preview.PaletteOf(preview.Sequence!, "glow", p.Preview.StandInsOf("world/cutscenes/demo")).Select(s => s.Slot));

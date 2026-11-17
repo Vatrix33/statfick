@@ -119,7 +119,7 @@ public class BrowserTests
         Assert.True(dialog.PlaceButtons[0].HasClass("current"));
         editor.Click(dialog.PlaceButtons[1]);
         Assert.Equal(editor.Session.Game.PacksFolder, dialog.Folder);
-        Assert.Equal(["audio.pak", "data.pak", "ui.pak"], Names(dialog));
+        Assert.Equal(["audio.pak", "data.pak", "models.pak", "ui.pak"], Names(dialog));
         Assert.Equal("Game packs", editor.Q(".browser-where").TextContent);
         Assert.True(dialog.PlaceButtons[1].HasClass("current"));
         Assert.False(dialog.PlaceButtons[0].HasClass("current"));

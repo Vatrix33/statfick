@@ -4,7 +4,8 @@ namespace Statventure.Tests.Render3D;
 /// The limits a render is held to against Blender's (Docs/Renderer-3D.md, "Reference harness"): the shading's
 /// on the geometry's edges and inside surfaces (<see cref="Render3DReferenceTests.CompareShadowed"/>) and the ink
 /// lines' (<see cref="Render3DReferenceTests.CompareInk"/>). <see cref="M6"/> is M6's, measured over the test
-/// scenes, for every scene but a detailed stage. <see cref="DetailedStage"/> (Docs/Scene.md, S7-12) is set from
+/// scenes, for every scene but a detailed stage or figure (<see cref="DetailedFigure"/>, GM2 step 4a: the humanoid
+/// family's figures). <see cref="DetailedStage"/> (Docs/Scene.md, S7-12) is set from
 /// the measurement of Ji'ruan's stage (step 7's ink study), where two things part the engine from Freestyle
 /// that M6's scenes don't have: Freestyle drops the far scenery's sub-pixel detail (bark, branches and foliage
 /// 30 m away: about 56 % of the extra lines), and it draws no line where separate objects meet or rest in each
@@ -27,6 +28,10 @@ internal sealed record ReferenceLimits
 
     /// <summary>On the geometry's edges (as the engine draws the scene without shadows), one pixel in this many of the frame may differ beyond <see cref="Render3DReferenceTests.Compare"/>'s rule.</summary>
     public int StrayEvery { get; init; } = 10000;
+    /// <summary>A scene without shadows (Render3DReferenceTests.Compare with a profile): one pixel in this many of the frame may be an inside pixel off by more than 2 levels (M6: none).</summary>
+    public int InsideEvery { get; init; } = int.MaxValue;
+    /// <summary>A scene without shadows: one pixel in this many of the frame may be an edge pixel off beyond 0.7 of its contrast and 8 levels (M6: none).</summary>
+    public int EdgeEvery { get; init; } = int.MaxValue;
     /// <summary>The mean difference over edge pixels, in levels.</summary>
     public double EdgeMean { get; init; } = 4;
     /// <summary>Inside surfaces, the share of pixels that may differ by more than 16 levels.</summary>
@@ -58,5 +63,37 @@ internal sealed record ReferenceLimits
         // Measured 63–246 pixels of 204,000 (one in 829; the ground at trunk bases, the plates, the mid trees, the
         // king): one in 800 allows 255.
         StrayEvery = 800,
+    };
+
+    /// <summary>
+    /// Detailed figures (GM2 step 4a; Docs/Game/Hero.md, "How it works", step 4a, "The detailed figures' limits"): the
+    /// humanoid family's figures in the game's look (HumanoidReferenceTests' 14 scenes, 360 × 480 and the 320 × 320
+    /// close-ups), measured on the PC's GPU and on lavapipe on 2026-11-16 with the lighter models (the user's approval of
+    /// 2026-11-16, GM2-P20, and the manager's two addenda); each limit the scenes exceed under M6 is the worst measured
+    /// plus about a twentieth, rounded as the detailed stages' were (S7-13). What parts the engine from Blender here: the
+    /// engine's ink draws a feature edge lying up to half a pixel (two when the cover is seen nearly edge-on) plus 1e-4
+    /// of the depth under what covers it (ink_edges.frag), where Freestyle hides it (the hairline's crease, the jaw's
+    /// underside, lines along the hair's locks, the mail sleeve's seam, the sword's and the shield's rims), and MSAA's
+    /// edges on the figures' many small forms. The rest stay M6's: the edges' mean (measured 2.06–2.81 levels, 4) and
+    /// the total ink (0.70–4.94 % off Freestyle's, 10 %). Approved by the user (2026-11-16, "approve the limits now,
+    /// refine the lines after"); an engine task brings the ink nearer Freestyle's and the limits are measured again and
+    /// tightened then.
+    /// </summary>
+    public static readonly ReferenceLimits DetailedFigure = M6 with
+    {
+        // Measured 1–23 inside pixels off by more than 2 levels; the worst share 23 of 102,400 (the man's close-up, one
+        // in 4,452): one in 4,200 allows 24 there, 41 in a full view.
+        InsideEvery = 4200,
+        // Measured 12–88 edge pixels beyond; the worst share 88 of 102,400 (the man's close-up on lavapipe, one in 1,164):
+        // one in 1,100 allows 93 there, 157 in a full view.
+        EdgeEvery = 1100,
+        // Measured 0.13–2.50 % of Freestyle's line pixels missed (the woman's close-up).
+        Missed = 0.027,
+        // Measured 0.46–7.68 % (the man's close-up on lavapipe: the hair's locks and hairline, the jaw).
+        Extra = 0.08,
+        // Measured 1.39–12.71 % (the woman's gear from the side on lavapipe: the sword's and the shield's lines).
+        Unlike = 0.135,
+        // Measured 0.075–0.134 (the woman's close-up).
+        Coverage = 0.14,
     };
 }

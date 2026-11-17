@@ -121,7 +121,29 @@ results), moved in by one step when the models land ("How it works", step 6). (N
 a missing file drawn as nothing: a typo would show only as a missing piece of a figure; not the game's own data excused
 from the model check until GM2's end: no temporary rule in the mod checker.)
 
-### Questions from the steps (Q43–Q45, the user, 2026-11-15 and 2026-11-16)
+**GM2-P19, a model's pieces joined per ink flag (the manager, 2026-11-16, on step 4a's cost study):** every model joins its
+pieces at export into one object per ink flag (the pieces the ink draws, and those marked `ink = 0`), so it has one
+primitive per material and ink flag (`kit.join_by_ink`). Blender's reference joins a model's meshes for Freestyle anyway,
+so the look is the same; a geared figure's 101 primitives become 23.
+
+**GM2-P20, two detail levels from one sculpt (the manager, 2026-11-16, with Q54):** `levels.py`'s "full" (the sheet, the
+maker and the carousel: one figure seen large with no scenery, lightened only where it can't be seen) and "battle" (the
+stage: up to sixteen small figures with shadows), built by the same scripts from the same sculpt; the screen that builds
+an actor chooses the level, the engine gets no level-of-detail machinery. GM2 ships the full level; the battle level is
+proven and measured on the first humanoid (the tests' data) and every body's battle models are built when the battle
+comes (GM5).
+
+**The manager's answers to step 4a (2026-11-16):** Blender runs with 8 threads for the family's models, always
+(`make-humanoid.sh`; QuadriFlow and the order of the edges Blender makes follow the thread count); the clip frame's test
+clip `rest-sway` stays out of the packs (the tests' data; the family's `clips.glb` comes with its first real clips); the
+tunic as the outfit sheet's state; the slot table as built, held by a test that fails on a material that is neither a
+look's slot nor a fixed colour; a figure's own hair and iris colours are step 5's; the cost of a frame's animation work a
+measurement without a bound; a comparison over M6's limits stops for the manager (no limit or scene changed by the
+worker: then Q55). The two addenda after the hand-over (the manager's, 2026-11-16): a garment cut from the body takes the
+body's weights at the nearest point of its surface and every skirt the body's own heights; the hair cap's edge turned in
+under the skin, every skirt's rings at the body's own heights and the mail's skirt flared clear ("How it works", step 4a).
+
+### Questions from the steps (Q43–Q45, Q54–Q55, the user, 2026-11-15 and 2026-11-16)
 
 Q43 and Q44 raised by step 1 (the `race` kind's fields; the docs didn't answer them) and asked by the manager with the
 question tool the same day; both the recommended option. Q45 asked by the manager on 2026-11-16 for step 6 (step 2 had
@@ -149,6 +171,23 @@ left it open: whether a character file with a sheet out of the old ranges is ref
 - The manager's, on step 1's report (a test fixture's sample text, not a choice about the game): the `settings-mods`
   screens' broken mod holds two races its checks refuse, so the row shows the game's real kind and a real refusal in the
   editor's words, still wrapping onto two lines ("How it works", step 1).
+
+Q54 and Q55 raised by step 4a and asked by the manager with the question tool on 2026-11-16 (numbers fixed by the manager
+so the steps' don't collide: steps 7 and 8 hold Q46–Q53).
+- **Q54 The lighter figures** (2026-11-16, the question tool, asked by the manager on step 4a's cost study: about 152,000
+  triangles and 100 primitives a geared figure). The first figures and the same figures rebuilt lighter on the same
+  sculpted forms, side by side; named to the user as differing on purpose: the hairline (a clean arc; it was the jagged
+  edge where the closed cap dived into the skull) and the collars and hems (smooth; they were crumpled). **Answer: "Yes,
+  use the lighter ones."** Built by step 4a with GM2-P19 and GM2-P20 ("How it works", step 4a): a geared figure 57,546
+  triangles in 23 primitives (the man; the woman 59,986 in 24).
+- **Q55 The limits for detailed figures** (2026-11-16, the question tool, asked by the manager with step 4a's measurement
+  and pictures). The 14 humanoid scenes pass none of M6's shading limits and seven fail its ink limits, on both drivers:
+  the figures' many small forms on MSAA's edges, and the engine's ink drawing an edge that lies a little under what
+  covers it where Freestyle hides it. **Answer: "Approve limits now, refine the lines after"** (chosen over "approve the
+  limits, leave the lines" and "fix the lines first"): `ReferenceLimits.DetailedFigure` set from that day's measurement
+  plus about a twentieth, as the detailed stages' were (S7-13), so the figures go into the repo; then an engine task makes
+  the game's ink agree better with Blender's (a line hidden under another piece stays hidden), and the limits are
+  measured again and tightened ("How it works", step 4a, "The detailed figures' limits"; Status).
 
 ### Earlier decisions that bind GM2
 
@@ -1536,6 +1575,14 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
    - Finished: approved; every model, render and clip against Blender (`ReferenceLimits.M6`, or a limit the user
      approved); `build.py --check` equal; the counts (vertices, bones, materials) and a playing view's cost measured on the
      GPU and lavapipe and reported.
+   - **Split (the manager, 2026-11-16):** the art, its approvals and the clips stay the manager's (in scratch scripts
+     under `claude-work/gm2/step4/`); **4a**, the approved figures' scripts and models in the repo, done by a worker.
+   - **4a done (2026-11-16/17, a worker, the branch `gm2-step4a`; "How it works", step 4a):** the manager's approved
+     scripts ported into `Tools/Models/humanoid/` without changing the art (proven against his models within
+     micrometres, with equal counts), split as GM2-P8 (the bodies with the rig and the plain outfit, faces and hair as
+     garments on `head`, the chain shirt per body, the sword and the shield as items); the lighter figures (Q54) at two
+     levels (GM2-P20) joined per ink flag (GM2-P19); the game's look `EMBER_HEARTH`; the clip frame with its test clip;
+     `models.pak`; the figures against Blender under `ReferenceLimits.DetailedFigure` (Q55); the counts and the cost.
 5. **The game's look in the engine and figures built from looks** (engine and game; the PC for the Blender side). After 3's
    look and 4's skeleton.
    - Owns: `render.style` in the engine's `Render3D/` with its tests and the game's entry in `data.pak` (Q12, GM2-P11);
@@ -2416,6 +2463,208 @@ on the GPU (263 s with the build) and on lavapipe (308 s): **4266 + 659 = 4925 t
 all the game's), none held or skipped; `make-old-game-references.sh save-correction look-catalogue` run again on the final
 tree: not a byte differs. No pack, golden or editor fixture changed (nothing enters `data.pak`, GM2-P18).
 
+### Step 4a: the first humanoid's scripts and models in the repo (2026-11-16/17, the branch `gm2-step4a`)
+
+The manager's approved scratch scripts (`claude-work/gm2/step4/`) ported into `Tools/Models/humanoid/` without changing the
+art, the models built from them into `Assets/Models/humanoid/` and `models.pak`, held against the manager's models and
+against Blender. On the PC only for what runs Blender (the pinned 5.2.0, `-t 8`); the tests run anywhere.
+
+**The scripts** (`Tools/Models/humanoid/`; each module's header says what it holds):
+- `kit.py` (lofts, tubes, quad spheres, modifiers, the lit and unlit materials; `join` and `join_by_ink`, GM2-P19),
+  `materials.py` (every material by its slot), `forms.py` (the body's and the head's forms fused by voxels, smoothed and
+  given their masses: the sculpt; the head's flat pieces laid on by rays; the hair as an open cap and sculpted locks),
+  `lighten.py` (the sculpt remade lighter: `light_body` remeshes the whole body and each hand apart and stitches them,
+  `light_head` remeshes the head finer over the face; every new vertex put back onto the sculpt and the remesh tried again
+  with more faces while the result strays too far), `levels.py` (GM2-P20's two levels' numbers), `rig.py` (the skeleton:
+  23 deforming bones and 7 sockets, the roll rule; `bind`, `bind_rigid`, `bind_like`), `outfit.py` (the `Maker` that cuts
+  garments from the dressed body: `cut`, `shell`, `paint`, `outline`, `skirt`, `buckle`; the tunic), `gear.py` (the sword,
+  the shield and the chain shirt; the battle's lighter sword and shield), `bodies/` (`params(name, level)`, `build`,
+  `body_model`; `human.py`'s `male_average` and `female_average`, candidate A as the user chose it), `parts/face.py` and
+  `parts/hair.py` (the two faces and the two hair styles approved), `clips/library.py` (the clip frame, below), `look.py`
+  with `EMBER_HEARTH` (the game's look as the user chose it; `looks/ember-hearth.json`) and the slots (`SLOTS` gains
+  `eye.white`, `leather`, `buckle`; `GEAR_SLOTS` `metal.base`, `metal.trim`, `metal.shade`, `wood`, `grip`; `FIXED` the
+  pupils `#060404` and the glints `#efe6d0`, unlit, their own colour in every look).
+- **`manifest.json`** names 18 models, each with its builder, its arguments, its **level** (`"full"` or `"battle"`, passed
+  as `level=`) and its file: the 10 game models in `Assets/Models/humanoid/` at the full level (`bodies/human-<sex>-average`,
+  `parts/face/human-<sex>-1/human-<sex>-average`, `parts/hair/swept-back/human-male-average`,
+  `parts/hair/long-tied/human-female-average`, `gear/chain-shirt/human-<sex>-average`, `gear/sword`, `gear/shield`), and as
+  the tests' data, never packed: the frame's `sample`, `test-clips` (below) and `battle/…`, the geared man's six models at
+  the battle level in `Tests/Statventure.Tests/Data/Models/humanoid/battle/`.
+- **The split (GM2-P8):** a body's model is its skeleton, its surface and its plain outfit, joined; a face and a hair
+  style are made on a body and bound wholly to `head`, exported with that body's skeleton (garments); the chain shirt is
+  made on each body over its outfit and exported alone with the skeleton (a garment, bound by bone names); the sword and
+  the shield are rigid items in their sockets' axes, the grip at the origin.
+- **One model, one primitive per material and ink flag** (GM2-P19): each builder joins its pieces with
+  `kit.join_by_ink` before the export, the inked ones as one object (named after the model: `<body>`, `<body>-<face>`,
+  `<body>-<style>`, `<body>-chain-shirt`, `sword`, `shield`) and those marked `ink = 0` (the mail's rows of rings, the
+  sword's fuller) as `<name>-unlined`.
+- **The same bytes every build.** `make-humanoid.sh check` builds every model again into scratch and compares byte for
+  byte (`build.py --check`): 18 of 18 equal, twice. Two things made that hold: Blender runs with 8 threads
+  (`make-humanoid.sh` sets `BLENDER_THREADS=8`, `blender.sh` passes `-t`; QuadriFlow and the order of the edges Blender
+  makes, which the weights' smoothing sums over, follow the thread count: at `-t 4` and `-t 1` the body differs), and the
+  element lists given to a cut are in the mesh's own order (`lighten.geometry`: the indices brought up to date, then
+  sorted; a Python set's order follows the elements' addresses, which differ run to run: the manager's hand-over scripts
+  gave the wrists a different triangulation on every build, 33–92 triangles of the skin; shown by building them twice,
+  and twice the same with the order fixed).
+- `evaluate_animations.py` builds a model named `humanoid/<name>` through the manifest's builder (the clip scenes);
+  `make-blender-references.sh` renders `Reference/humanoid-scenes.json` (with `--out`, its model folder rewritten to the
+  committed `Assets/Models`).
+
+**The lighter figures (Q54, GM2-P20) and the two addenda.** The sculpt is an intermediate inside the build; each model
+is built at its level: `levels.LEVELS["full"]` (the body 6,500 quads and each hand 1,000, the head 4,500 with the face
+enlarged ×1.9 for the remesh, the hair's cap cut from a quad sphere of 14 and its locks of 10 sides subdivided once, a
+skirt at most 72 faces around and 9 rings, the mail's rows every 22 mm) and `"battle"` (1,900 and 150, the body within
+25 mm of the sculpt, 900 at ×1.6 with the face within 12 mm, 8, 6 sides unsubdivided, 36 and 5, 44 mm; the sword without
+its fuller and binding, the shield's face in two rings, its boss and rivets cut coarser). Then, from the manager on
+2026-11-16 after the hand-over: **(1)** `rig.bind_like` gives a garment cut from the body the body's weights at the
+nearest point of its surface, mixed from that face's corners (the four strongest, summing to one), not the nearest
+vertex's; and `Maker.skirt_weights` binds every skirt by the body's own heights (`Maker.skirt_band`: from the belt's line
+to the middle of the thigh), not its own: on the lighter meshes the tunic showed through the mail in a twist or a lean.
+**(2)** `forms.open_cap`: the cap's edge stands 1.2 % outside the skin on the hairline and one more ring of faces turns
+straight in to an open edge at 0.95 of the skull's radius (so no open edge lies just under the skin, where the engine's
+ink drew it); `Maker.skirt`: every skirt's rings at the body's own heights, on one grid between the skirt's own top and
+hem (two skirts worn over each other fold at the same heights), the hem's band from the first ring at or above its
+height; `gear.chain_shirt`: the mail's skirt flared 32 mm (was 16; the tunic's skirt with its pleats reaches 38 mm off the
+body at the mail's hem).
+
+**The proof.** The repo's models against the manager's at each stage, assembled as the game assembles a figure and posed
+as his were (`claude-work/gm2/step4a/proof/`: his scripts run again, the scenes rendered both ways, every vertex against
+the nearest of the other's, the pictures compared): the first models within 2.4 µm; the lighter ones within 2.5 µm of
+the hand-over's files (whose own scripts give other bytes on every run, as above); after the addenda within 1.1 µm at
+rest and 18 µm posed (the weights mixed at sub-µm different points), the counts equal his (the man geared 57,546
+triangles in 23 primitives, the woman 59,986 in 24, the battle man 16,686 in 22); the pictures differ in 0.04–0.7 % of
+pixels, all in the posed folds' shading (his frozen normals against the skinned ones the engine recomputes) and a few ink
+fragments.
+
+**The models** (vertices / triangles / primitives / bytes; the full level, the battle level beside the man's):
+
+| Model | Full | Battle |
+|---|---|---|
+| `bodies/human-male-average` | 12,066 / 23,716 / 6 / 689,420 | 3,971 / 7,692 / 6 / 237,048 |
+| `bodies/human-female-average` | 11,764 / 23,148 / 6 / 672,516 | |
+| `parts/face/human-male-1/…` | 4,367 / 8,554 / 6 / 259,576 | 1,030 / 1,880 / 6 / 72,672 |
+| `parts/face/human-female-1/…` | 5,009 / 9,808 / 7 / 296,180 | |
+| `parts/hair/swept-back/…` | 3,588 / 7,038 / 1 / 211,032 | 736 / 1,366 / 1 / 51,496 |
+| `parts/hair/long-tied/…` | 4,586 / 9,014 / 1 / 266,596 | |
+| `gear/chain-shirt/human-male-average` | 12,680 / 12,024 / 3 / 643,268 | 4,118 / 4,158 / 3 / 219,328 |
+| `gear/chain-shirt/human-female-average` | 12,248 / 11,802 / 3 / 622,724 | |
+| `gear/sword` | 1,303 / 1,734 / 4 / 45,136 | 315 / 358 / 3 / 12,268 |
+| `gear/shield` | 2,254 / 4,480 / 3 / 83,548 | 630 / 1,232 / 3 / 25,080 |
+
+`Assets/Models/humanoid/` 3,789,996 bytes (the first figures: 9,295,040); `models.pak` 1,740,366 (4,187,845), 0.46 of
+the files. At the design's counts the 54 bodies come to about 37 MB of `.glb` (17 MB packed), with about 108 faces (324
+if each is fitted to the three builds) and 320 fitted hair styles 143–203 MB (66–93 MB packed; the first figures'
+estimate 430–550 and 240–300), chain shirts for every body 34 MB more.
+
+**The cost** (`HumanoidCostTests`, a measurement without a bound, the manager's answer; and a scratch probe for the
+study, 1080p, Release, medians of seven runs; the lighter figures as of the first addendum, which the second moved by
+under 0.3 % of a figure's triangles): sixteen geared figures (eight men, eight women) **1.99 ms on the GPU** (the first
+figures 3.03 ms, of which the main pass 1.06 and the feature edges 0.83, the frame alone 0.45–0.60), sixteen geared men
+at the full level 1.94, at the battle level 1.25; with the stage in view (scenery, so the shadow pass draws every figure
+into the sun's 16 maps) 5.60 and 2.59 (the stage alone 0.89; the first figures about 11.8); one figure at 600 × 800 0.24
+ms; on lavapipe 330, 283 and 124 ms, with the stage 1,065 and 361 (the first figures 1,079 without it). The CPU about 21
+µs a figure a frame at either level, about 0.35 ms for sixteen, nearly all of it building the draw items (each
+primitive's posed bounds, its joint matrices and tones): it follows the primitives, not the triangles. The study's fit
+over the first figures: 0.73 ms + 16 × (0.06–0.10 µs a primitive + 0.89 ns a triangle).
+
+**The clip frame** (`clips/library.py`; its header gives the file's form and the keying): a clip is a JSON file (`name`,
+`frames` at 60 fps, `loop`, `markers`, `keys` of XYZ Euler degrees and metres in each bone's own axes, `ease` bezier or
+linear), checked before anything is keyed (the file's own keys only, the bones the skeleton's, frames rising, a loop's
+last key repeating its first); keyed as the manager's previews key them (each rotation the quaternion of its Euler
+angles with the sign nearer the bone's previous key, data frame n at Blender frame n + 1, the action's range the clip's
+length, its markers the animation's events) on the human man's skeleton and exported as the engine's animated models
+are. `make-humanoid.sh clips <folder> <library.glb>` makes a library of any folder (to try clips). The frame's test clip
+`rest-sway` (120 frames, a loop, a slow sway and a breath, `inhale` at 0 and `exhale` at 60, the hips' location among its
+keys) is the tests' data (`Tests/Statventure.Tests/Data/Models/humanoid/test-clips/`, built into `test-clips.glb` beside
+it), never in a pack: the family's `clips.glb` comes with its first real clips (`HumanoidPackTests` has the line to flip).
+A location is applied in metres as it is, from each body's own rest, in its hips' axes (3 mm comes out as 2.991 on the man
+and 2.989 on the woman): a body of shorter legs sinks and a longer one floats by the clip's own amount, nothing scaled.
+Three animation scenes (`humanoid-rest-sway`, on the man and on the woman) evaluated by Blender hold the engine's
+sampling to it.
+
+**`models.pak`** (`Tools/Scripts/make-models-pack.sh`): `Assets/Models` copied to a scratch `models/` folder and packed
+afresh by the packer (its model importer: each `.glb` the record at its path without the ending), the same bytes every
+run; listed in both games' listings (`file packs/models.pak`) with its licence cover. The game mounts it as its other
+packs.
+
+**The detailed figures' limits (Q55; `ReferenceLimits.DetailedFigure`).** The 14 scenes (`HumanoidReferenceTests`: each
+body from the front, three-quarter, side and back at 360 × 480, a 320 × 320 close-up of the face, and geared at
+three-quarter and from the side posed by `rest-sway`) measured on the PC's GPU and on lavapipe on 2026-11-16 with the
+final models; each measure past M6's set to the worst plus about a twentieth, rounded as S7-13's were; the rest M6's.
+Two new fields: the share of the picture that may be inside pixels off by more than 2 levels (`InsideEvery`) or edge
+pixels beyond the edge rule (`EdgeEvery`), apart (M6: none); `Render3DReferenceTests.Compare(expected, actual, limits)`
+reads them.
+
+| Measure | Measured (both drivers) | Worst | Limit (M6's) |
+|---|---|---|---|
+| Inside pixels off by more than 2 levels | 1–23 a scene | 23 of 102,400 (the man's close-up), one in 4,452 | one in 4,200 (none) |
+| Edge pixels beyond the edge rule | 12–88 | 88 of 102,400 (the man's close-up, lavapipe), one in 1,164 | one in 1,100 (none) |
+| The edges' mean | 2.06–2.81 levels | | 4 (4) |
+| Freestyle's line pixels missed | 0.13–2.50 % | the woman's close-up | 2.7 % (2 %) |
+| Extra line pixels | 0.46–7.68 % | the man's close-up, lavapipe | 8 % (3 %) |
+| Total ink off Freestyle's | 0.70–4.94 % | | 10 % (10 %) |
+| Mean coverage difference | 0.075–0.134 | the woman's close-up | 0.14 (0.12) |
+| Unlike ink about a line | 1.39–12.71 % | the woman geared from the side, lavapipe | 13.5 % (3 %) |
+
+What parts the engine from Blender here: MSAA's edges on the figures' many small forms, and the engine's ink drawing a
+feature edge that lies under what covers it, where Freestyle hides it (`ink_edges.frag`: an edge point is drawn when it
+lies no more than half a pixel, two when the covering surface is seen nearly edge-on, plus 1e-4 of the depth behind that
+surface's plane: about 1.5 mm in the close-ups and 2.8 mm in the full views, 4 to 9 mm edge-on). What shows because of
+it, in the pictures the manager judged (`claude-work/gm2/step4a/look/`): the hairline's crease, the jaw's underside
+against the neck, lines along the hair's locks, the mail sleeve's seam at the shoulder, more lines on the sword and the
+shield's rim seen edge-on. An engine task makes the ink agree better (Status), then the limits are measured again and
+tightened.
+
+**Tests** (engine; the counts in "Runs"): `HumanoidModelTests` (the manifest names every committed model; every skinned
+model carries the family's skeleton, the bones' parents as `rig.py` has them, at its body's rest; every vertex follows
+at most four deforming bones, never a socket, its weights summing to one; the face and the hair follow the head alone;
+every material a slot of the game's look or a fixed colour, the eyes unlit, the drawn lines unhatched; the strips of
+drawn lines the model's one piece without ink; one primitive per material and ink flag; the battle level the full figure
+lighter: the same skeleton at the same rest, the same materials but the fuller's, at most the triangles and primitives
+measured plus a tenth; **the outfit stays under the mail in a deep lean with a twist, a lunge and the arms raised**: an
+outfit vertex facing out and sideways is covered where the line along its normal meets the mail or the belt within 40
+mm at rest, and posed it shows through where that line meets nothing within 50 mm and the mail lies behind it: none on
+the full man, the full woman and the battle man (the models before the first addendum: 17 and 14); the items rigid with
+the grip at the origin, the sword's blade 0.88 m along the socket's Y, the shield off the arm; the clip library holding
+every clip of its folder, `rest-sway` as its data says, a loop), `HumanoidReferenceTests` (the 14 scenes' file what the
+figure mode writes, `STATVENTURE_HUMANOID_SCENES=write`; each scene's shading and ink against Blender's under
+`DetailedFigure`; the limit set pinned; each widened limit failing its worst scene when set just under what it measured),
+`HumanoidPackTests` (the pack exactly what the packer makes of `Assets/Models`, one record a model, no clips and nothing of
+the battle; the game finds every model in it), `HumanoidCostTests` (the counts and sizes of both levels, sixteen geared
+figures' animation work, the GPU on request: `STATVENTURE_MEASURE=1`), `EmberHearthLookTests` (the game's look the one
+chosen), and the three animation scenes.
+
+**Shown able to fail:** the step adds no engine or game code; its rules are the scripts', the models' and the limits'. **The C# side**
+(`mutate.py` under the shared lock in a headless cage; `claude-work/gm2/step4a/mutations.json`): 22 mutations, **22
+killed**: the comparison's stray pixels (inside and on edges, loosened, not dropped, their shares read from each other's
+field, the edges' mean not passed), each widened limit put back to M6's and each set just under what its worst scene
+measured, the humanoid scenes held to M6's, `list-marks` back to 700 px. (M6's own `InsideEvery` and `EdgeEvery` can't
+show: no M6 comparison reads them.) **The scripts** (each rule broken in a copy of the scripts and the committed models,
+then `make-humanoid.sh check` of the models it touches, which must differ: `claude-work/gm2/step4a/pybreaks/models.py`):
+26, **26 killed** (the joining per ink flag and its names; the battle's sword and shield; a builder, the manifest and
+`build.py` losing the level; a body's parameters, the locks' fineness; the hair cap's edge outside the skin, its inner edge
+and its turn; the head's enlarged face; the hands' faces; `bind_like`'s four bones, their sum and the surface's mix; the
+skirt band, the skirts' rings on the body's grid, the mail's flare, its rows' spacing and joining, the collar's
+relaxing, a cut's reach); with step 4a's earlier breaks of `look.py` and the clip library, 43 of 43. **The models**: the
+per-ink-flag test fails on the first, unjoined models (`bodies/human-male-average`: leather 5 times, cloth 2, cloth.trim
+5), the lean test on the models before the first addendum (17 vertices through on the man, 14 on the woman). Nothing
+written to the player's real folders.
+
+**Runs** (headless, scratch per-user folders, nothing audible; on `main`'s `3c22527`): the full suite on the GPU and on
+lavapipe, 4364 + 659 = 5023 tests (`main`: 4266 + 659 = 4925; 98 new, all the engine's), none held; `make-humanoid.sh check` 18 of 18
+the same bytes, twice; `models.pak` the same bytes twice; `publish.sh` and `check-packages.sh` ok on the four archives of
+`2026.11.17.1` (the game's Linux archive 44.6 MB, 56 files; Windows 40.8 MB, 49), the self-test 119 breaks, 119 caught;
+`end-to-end.sh` from that publish: 241 of 241 on the GPU (118 s) and on lavapipe (222 s). Editor goldens: the game's packs
+now list `models.pak`, so 18 captured again (9 fixtures at both scales; `list-marks` made 760 px tall, as step 1 made it
+700, so its tree still fits without scrolling) and six editor tests' expectations given the new pack and folder.
+
+**Choices made (internal, recorded here):** the manifest's level as its own field, given to the builder as `level=`; the
+battle models named `battle/` and the full model's name; the joined objects named after their model; `levels.py` holding
+only what differs between the levels; the cut lists in the mesh's order after an index update; the test of a model's
+draws over the game's and the battle's models alike; the lean test's pose and rule (a ray along the normal, the belt
+counted as cover, rims and inner sides left out, 50 mm); the stray pixels' shares as "one in N" like `StrayEvery`; the
+bite test setting each widened limit just under the measure on both drivers.
+
 ## Status
 
 - **2026-11-15:** written on the user's go for GM2 (docs only, the branch `gm2-design` from `8c7d07d`), after the user's
@@ -2474,3 +2723,18 @@ tree: not a byte differs. No pack, golden or editor fixture changed (nothing ent
   standing (109 killed, 5 that can't differ) and the oracle modules' 18 (killed). Found: the old function corrects more
   than Q45 named (the race's id, the EXP, a bonus that isn't finite: ported, "How it works", step 6), and nothing of the
   maker's could enter `data.pak` before its models (the mod check checks the game's records under every mod: GM2-P18).
+- **2026-11-17, step 4a done** (a worker, the branch `gm2-step4a`; "How it works", step 4a): the manager's approved first
+  humanoid in the repo: `Tools/Models/humanoid/`'s scripts (proven against his models within micrometres, equal counts),
+  the human man and woman with their faces, hair and plain outfit, the chain shirt, the sword and the shield as ten models
+  in `Assets/Models/humanoid/` and `models.pak`, the battle level's geared man in the tests' data, the game's look
+  `EMBER_HEARTH`, the clip frame with its test clip `rest-sway`. The user approved the lighter figures (Q54; the manager's
+  GM2-P19 and GM2-P20) and the detailed figures' limits (Q55, `ReferenceLimits.DetailedFigure`), under which the 14 scenes
+  pass on both drivers. A geared figure 57,546 triangles in 23 primitives (the first figures about 152,000 in 100); sixteen
+  of them 1.99 ms a 1080p frame on the GPU. 4364 + 659 = 5023 tests on the GPU and on lavapipe; mutations 22 of 22 killed, the scripts' breaks 26 of 26 (and the look's and the clip library's 43 of 43). 18 editor
+  goldens captured again (the game's packs list `models.pak`; `list-marks` 760 px tall). **Engine tasks for later, not
+  GM2's** (`Docs/Game-Plan.md`, "Engine items the port will meet"): the ink's depth allowance (`ink_edges.frag` draws a
+  feature edge lying up to half a pixel, two edge-on, plus 1e-4 of the depth under what covers it, about 1.5–9 mm in the
+  humanoid scenes; what shows because of it: the hairline's crease, the jaw's underside, lines along the locks, the mail
+  sleeve's seam, more lines on the sword, the shield's rim edge-on; then the humanoid scenes measured again and the
+  limits tightened); figures in the shadow pass (each drawn into the sun's 16 maps: sixteen figures 5.60 ms with a stage,
+  1.99 without); skinning once per mesh instead of per primitive; a measurement on a real 2016-class card.

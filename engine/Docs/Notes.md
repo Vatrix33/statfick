@@ -584,6 +584,20 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   prints as `$.parts["hair"]`, not `$.parts.hair`; a frozen past version (`SaveGame.V1`) can't be written by the serializer,
   so a test of an old save takes the committed fixture's bytes; a test of an old version's "newer save" (a version byte
   bumped by hand) has to move on when the record gains a version (3 now).
+- 2026-11-17 (the PC, GM2 step 4a's worker on the branch `gm2-step4a`, 4364 + 659 = 5023 tests on the GPU and lavapipe): **the
+  first humanoid's scripts and models in the repo** (`Docs/Game/Hero.md`, "How it works", step 4a). Blender gotchas met
+  making the build the same bytes every time: QuadriFlow, and the order of the edges Blender makes (which a weight
+  smoothing sums over), follow the thread count (`-t`), so the family's builds pin 8; a Python set of BMesh elements
+  iterates by the elements' addresses, which differ run to run, and a cut given its geometry in that order makes other
+  elements (a different triangulation each build): give operators their elements in the mesh's order; `bm.from_mesh`
+  appending a second mesh gives the new elements the indices 0…n again (refresh with `index_update()` before sorting by
+  index); `view_layer.objects` yields `None` for objects removed a moment ago until `view_layer.update()`; `bpy.ops.object.join`
+  removes the joined objects, so group them before joining any. Measuring: a frozen (posed and applied) model's normals and
+  a skinned one's differ in the folds by design (the engine recomputes skinned normals), so compare positions there and
+  normals at rest; `pgrep -f <pattern>` in a watcher matches the watcher's own command line. A new pack moves the editor's
+  fixtures that list the game's packs (a tree that overflows its pane scrolls in Chromium and not in the engine: make the
+  fixture taller). The engine's ink draws a feature edge up to half a pixel (two edge-on) plus 1e-4 of the depth under
+  what covers it (`ink_edges.frag`), so an open edge a millimetre under the skin shows: model a hidden edge well inside.
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).

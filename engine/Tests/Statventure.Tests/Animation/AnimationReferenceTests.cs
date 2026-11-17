@@ -88,9 +88,9 @@ public class AnimationReferenceTests(ITestOutputHelper output)
     internal static Comparison Compare(AnimationScene scene)
     {
         var reference = Load(scene.Name);
-        var source = ModelData.Load(Path.Combine(Render3DReferenceTests.ModelDirectory, scene.Model + ".glb"));
+        var source = ModelData.Load(AnimationScenes.ModelPath(scene.Model));
         var clips = AnimationClip.AllOf(source);
-        var model = scene.Target == null ? source : ModelData.Load(Path.Combine(Render3DReferenceTests.ModelDirectory, scene.Target + ".glb"));
+        var model = scene.Target == null ? source : ModelData.Load(AnimationScenes.ModelPath(scene.Target));
         var skeleton = new Skeleton(model);
         if (scene.Layers != null)
             return CompareLayers(scene, reference, clips, model, skeleton);
@@ -279,7 +279,7 @@ public class AnimationReferenceTests(ITestOutputHelper output)
         if (scene.Layers != null)
             return;
         var reference = Load(name);
-        var source = ModelData.Load(Path.Combine(Render3DReferenceTests.ModelDirectory, scene.Model + ".glb"));
+        var source = ModelData.Load(AnimationScenes.ModelPath(scene.Model));
         var clip = AnimationClip.AllOf(source).Single(c => c.Name == scene.Clip);
         Assert.NotNull(reference.Markers);
         Assert.Equal(reference.Markers!.Select(m => (m.Name, Math.Round(m.Frame / AnimationScenes.Fps, 9))), clip.Events.Select(e => (e.Name, Math.Round(e.Time, 9))));

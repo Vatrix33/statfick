@@ -32,6 +32,22 @@ sys.dont_write_bytecode = True  # no __pycache__ in the repo
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import make_models  # noqa: E402
 
+HUMANOID = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Models", "humanoid")
+
+
+def build(name):
+    """Builds the model `name` again from its source without exporting it: a test model of make_models.py, or with
+    "humanoid/" one of the humanoid family's (Tools/Models/humanoid, its manifest's builder: GM2 step 4a)."""
+    if name.startswith("humanoid/"):
+        sys.path.insert(0, os.path.normpath(HUMANOID))
+        import build as humanoid  # noqa: E402  (the family's build.py: its manifest and builders)
+        spec = next((m for m in humanoid.manifest() if m["name"] == name[len("humanoid/"):]), None)
+        if spec is None:
+            raise SystemExit(f"no model {name} in the humanoid family's manifest")
+        humanoid.builder(spec)(None, *spec.get("args", []))
+    else:
+        make_models.BUILDERS[name](None)
+
 TO_GLTF = Matrix(((1, 0, 0, 0), (0, 0, 1, 0), (0, -1, 0, 0), (0, 0, 0, 1)))
 # The exporter turns a camera's and a light's world by this (tree.py: a quarter turn about X after it)
 # before the axis conversion, so that glTF's -Z and +Y are the Blender camera's (or light's) own.
@@ -44,12 +60,12 @@ def numbers(values):
 
 def evaluate(scene, folder):
     make_models.reset()
-    make_models.BUILDERS[scene["model"]](None)
+    build(scene["model"])
     rig = next(o for o in bpy.data.objects if o.type == "ARMATURE")
     if scene.get("target"):
         # Another model of the rig family plays the model's action: Blender finds each F-curve's bone
         # by name (pose.bones["name"]) and applies its channels on that bone's own rest.
-        make_models.BUILDERS[scene["target"]](None)
+        build(scene["target"])
         rig = next(o for o in bpy.data.objects if o.type == "ARMATURE" and o is not rig)
     if rig.animation_data is None:
         rig.animation_data_create()
@@ -128,7 +144,7 @@ def attach_items(rig, specs):
     roots = {}
     for spec in specs:
         before = set(bpy.data.objects)
-        make_models.BUILDERS[spec["model"]](None)
+        build(spec["model"])
         bone = rig.data.bones[spec["socket"]]
         for obj in sorted(set(bpy.data.objects) - before, key=lambda o: o.name):
             if obj.animation_data:
@@ -236,7 +252,7 @@ def evaluate_nodes(scene, folder):
     Written as Golden/nodes-<scene>.json: per node name, per time, the 3×4 part row by row (column
     vectors)."""
     make_models.reset()
-    make_models.BUILDERS[scene["model"]](None)
+    build(scene["model"])
     blender_scene = bpy.context.scene
     fps = blender_scene.render.fps / blender_scene.render.fps_base
     owners = {}
@@ -290,7 +306,7 @@ def evaluate_stage(scene, folder):
     each sun's direction toward it (its local +Z), strength and angle in degrees; and the scene's
     timeline markers, if it has any (Ji'ruan's stage, step 7). Written as Golden/stage-<scene>.json."""
     make_models.reset()
-    make_models.BUILDERS[scene["model"]](None)
+    build(scene["model"])
     blender_scene = bpy.context.scene
     fps = blender_scene.render.fps / blender_scene.render.fps_base
     start = blender_scene.frame_start

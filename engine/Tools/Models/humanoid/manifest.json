@@ -1,6 +1,36 @@
 {
-  "comment": "Every model of the humanoid family that build.py makes (GM2-P9): its name, its builder (module:function in this package, called with the .glb's path), and where its .glb goes (relative to engine/; the family's models in Assets/Models/humanoid/). The frame's sample is test data, not art.",
+  "comment": "Every model of the humanoid family that build.py makes (GM2-P9): its name (its path under Assets/Models/humanoid without .glb, so models.pak's entry is models/humanoid/<name>; the sample's apart), its builder (module:function in this package, called with the .glb's path, then the args, then its detail level, levels.py, as `level`), its level and where its .glb goes (relative to engine/). Bodies carry their skeleton and plain outfit; a part made on a body is parts/<category>/<part>/<body>, a garment of gear gear/<item>/<body>, a rigid item gear/<item>; the family's clip library (clips/*.json) comes as clips, Assets/Models/humanoid/clips.glb, with its first clips. The game ships the full level (GM2-P20). Test data, not art and never packed: the frame's sample, test-clips (the clip frame's test clip, rest-sway, from the tests' data) and battle/ (the first humanoid's geared man at the battle's level, proven and measured until the battle comes, GM5).",
   "models": [
-    {"name": "sample", "builder": "sample:cube_figure", "out": "Tests/Statventure.Tests/Data/Models/humanoid/sample.glb"}
+    {"name": "sample", "builder": "sample:cube_figure", "out": "Tests/Statventure.Tests/Data/Models/humanoid/sample.glb"},
+    {"name": "bodies/human-male-average", "builder": "bodies:body_model", "args": ["human-male-average"], "level": "full",
+     "out": "Assets/Models/humanoid/bodies/human-male-average.glb"},
+    {"name": "bodies/human-female-average", "builder": "bodies:body_model", "args": ["human-female-average"], "level": "full",
+     "out": "Assets/Models/humanoid/bodies/human-female-average.glb"},
+    {"name": "parts/face/human-male-1/human-male-average", "builder": "parts.face:face_model", "args": ["human-male-1", "human-male-average"], "level": "full",
+     "out": "Assets/Models/humanoid/parts/face/human-male-1/human-male-average.glb"},
+    {"name": "parts/face/human-female-1/human-female-average", "builder": "parts.face:face_model", "args": ["human-female-1", "human-female-average"], "level": "full",
+     "out": "Assets/Models/humanoid/parts/face/human-female-1/human-female-average.glb"},
+    {"name": "parts/hair/swept-back/human-male-average", "builder": "parts.hair:hair_model", "args": ["swept-back", "human-male-average", "human-male-1"], "level": "full",
+     "out": "Assets/Models/humanoid/parts/hair/swept-back/human-male-average.glb"},
+    {"name": "parts/hair/long-tied/human-female-average", "builder": "parts.hair:hair_model", "args": ["long-tied", "human-female-average", "human-female-1"], "level": "full",
+     "out": "Assets/Models/humanoid/parts/hair/long-tied/human-female-average.glb"},
+    {"name": "gear/chain-shirt/human-male-average", "builder": "gear:chain_shirt_on", "args": ["human-male-average"], "level": "full",
+     "out": "Assets/Models/humanoid/gear/chain-shirt/human-male-average.glb"},
+    {"name": "gear/chain-shirt/human-female-average", "builder": "gear:chain_shirt_on", "args": ["human-female-average"], "level": "full",
+     "out": "Assets/Models/humanoid/gear/chain-shirt/human-female-average.glb"},
+    {"name": "gear/sword", "builder": "gear:sword_item", "level": "full", "out": "Assets/Models/humanoid/gear/sword.glb"},
+    {"name": "gear/shield", "builder": "gear:shield_item", "level": "full", "out": "Assets/Models/humanoid/gear/shield.glb"},
+    {"name": "test-clips", "builder": "clips.library:library", "args": ["Tests/Statventure.Tests/Data/Models/humanoid/test-clips"],
+     "out": "Tests/Statventure.Tests/Data/Models/humanoid/test-clips.glb"},
+    {"name": "battle/bodies/human-male-average", "builder": "bodies:body_model", "args": ["human-male-average"], "level": "battle",
+     "out": "Tests/Statventure.Tests/Data/Models/humanoid/battle/bodies/human-male-average.glb"},
+    {"name": "battle/parts/face/human-male-1/human-male-average", "builder": "parts.face:face_model", "args": ["human-male-1", "human-male-average"], "level": "battle",
+     "out": "Tests/Statventure.Tests/Data/Models/humanoid/battle/parts/face/human-male-1/human-male-average.glb"},
+    {"name": "battle/parts/hair/swept-back/human-male-average", "builder": "parts.hair:hair_model", "args": ["swept-back", "human-male-average", "human-male-1"], "level": "battle",
+     "out": "Tests/Statventure.Tests/Data/Models/humanoid/battle/parts/hair/swept-back/human-male-average.glb"},
+    {"name": "battle/gear/chain-shirt/human-male-average", "builder": "gear:chain_shirt_on", "args": ["human-male-average"], "level": "battle",
+     "out": "Tests/Statventure.Tests/Data/Models/humanoid/battle/gear/chain-shirt/human-male-average.glb"},
+    {"name": "battle/gear/sword", "builder": "gear:sword_item", "level": "battle", "out": "Tests/Statventure.Tests/Data/Models/humanoid/battle/gear/sword.glb"},
+    {"name": "battle/gear/shield", "builder": "gear:shield_item", "level": "battle", "out": "Tests/Statventure.Tests/Data/Models/humanoid/battle/gear/shield.glb"}
   ]
 }

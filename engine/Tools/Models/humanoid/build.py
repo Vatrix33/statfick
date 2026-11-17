@@ -2,7 +2,9 @@
 # names (manifest.json beside this file), by its builder, exported as .glb where the manifest puts it (the engine's test
 # models' way: make_models.export, the triangles in their canonical order, so an unchanged model is the same bytes).
 # Run inside Blender 5.2, headless, by Tools/Scripts/make-humanoid.sh:
-#   blender -b --factory-startup --python build.py -- <engine folder> [--check <scratch folder>] [name ...]
+#   blender -b --factory-startup -t 8 --python build.py -- <engine folder> [--check <scratch folder>] [name ...]
+#   blender -b --factory-startup -t 8 --python build.py -- <engine folder> --library <clips folder> <library.glb>
+# A builder is called with the .glb's path, then the manifest entry's "args", and its "level" (levels.py) as `level`.
 # --check builds into the scratch folder instead and proves each result equals what is committed: byte for byte (the
 # export is deterministic: Docs/Game/Hero.md, "How it works", step 3a, measured); a difference is reported with what
 # differs (Tools/BlenderReference/compare_references.py's model comparison: the JSON, and the float buffers number by
@@ -31,13 +33,23 @@ def manifest():
 
 
 def builder(spec):
+    """The entry's builder, bound to its detail level (levels.py) when the entry names one."""
     module, function = spec["builder"].split(":")
-    return getattr(importlib.import_module(module), function)
+    made = getattr(importlib.import_module(module), function)
+    if "level" in spec:
+        return lambda path, *args: made(path, *args, level=spec["level"])
+    return made
 
 
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:]
     engine = argv.pop(0)
+    if argv[:1] == ["--library"]:
+        # A clip library of any folder of clip files (make-humanoid.sh clips: how clips are tried before they join the
+        # family's clips/ folder and the manifest's library).
+        make_models.reset()
+        importlib.import_module("clips.library").library(argv[2], argv[1])
+        return
     scratch = None
     if argv[:1] == ["--check"]:
         scratch = argv[1]
@@ -53,7 +65,7 @@ def main():
         path = os.path.join(scratch, spec["out"]) if scratch else committed
         os.makedirs(os.path.dirname(path), exist_ok=True)
         make_models.reset()
-        builder(spec)(path)
+        builder(spec)(path, *spec.get("args", []))
         if scratch is None:
             continue
         if not os.path.exists(committed):

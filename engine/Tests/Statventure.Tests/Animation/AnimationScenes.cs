@@ -143,5 +143,21 @@ public static class AnimationScenes
         new("acting-fly-out", "jiruan-acting", "fly-out", TimesFor(102), Target: "figure"),
         new("acting-hover", "jiruan-acting", "hover", TimesFor(48), Target: "figure"),
         new("acting-idle-imp", "jiruan-acting", "idle-imp", TimesFor(96), Target: "figure"),
+        // The humanoid family's clip frame (GM2 step 4a; Tools/Models/humanoid/clips/library.py, keying each clip's JSON
+        // form on the human man's skeleton): its test library's clip (rest-sway, test data), a two-second loop with
+        // Blender's eased keys, rotations and a location, as the library holds it and played by bone names on the man's
+        // and the woman's bodies.
+        new("humanoid-rest-sway", "humanoid/test-clips", "rest-sway", TimesFor(120)),
+        new("humanoid-rest-sway-male", "humanoid/test-clips", "rest-sway", TimesFor(120), Target: "humanoid/bodies/human-male-average"),
+        new("humanoid-rest-sway-female", "humanoid/test-clips", "rest-sway", TimesFor(120), Target: "humanoid/bodies/human-female-average"),
     ];
+
+    /// <summary>
+    /// A scene's model file: a test model (Data/Models, made by make_models.py), or with "humanoid/" a model of the humanoid
+    /// family's manifest by its name (Tools/Models/humanoid/manifest.json: the game's in engine/Assets/Models/humanoid,
+    /// its test data beside the sample).
+    /// </summary>
+    public static string ModelPath(string name) => name.StartsWith("humanoid/", StringComparison.Ordinal)
+        ? Humanoid.HumanoidFiles.Glb(name["humanoid/".Length..])
+        : Path.Combine(Render3D.Render3DReferenceTests.ModelDirectory, name + ".glb");
 }

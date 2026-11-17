@@ -20,12 +20,13 @@ namespace Statventure.Tests.Editor.Opening;
 /// </summary>
 public sealed class OpeningScreens : IEditorFixtures
 {
-    // list-marks is 700 px tall since GM2 step 1 (640 before): the repo's data.pak added the data/races folder, and at 640
-    // the tree overflowed its pane, where Chromium scrolls the focused tree into view and the engine's Focus() doesn't
-    // (Docs/Game/Hero.md, "How it works", step 1). At 700 the whole tree shows, as it did.
+    // list-marks is 760 px tall since GM2 step 4a (640 until step 1, then 700): the repo's data.pak added the data/races
+    // folder and its models.pak the models/humanoid folder, and where the tree overflows its pane Chromium scrolls the
+    // focused tree into view and the engine's Focus() doesn't (Docs/Game/Hero.md, "How it works", step 1). At 760 the whole
+    // tree shows, as it did.
     public IEnumerable<EditorFixture> Fixtures =>
     [
-        new("list-marks", 1000, 700, Marks),
+        new("list-marks", 1000, 760, Marks),
         new("list-unreadable", 1000, 800, Unreadable),
         new("browser", 1000, 640, Browser),
     ];

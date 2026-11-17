@@ -733,11 +733,12 @@ and below ("GM2's detail round").
   want them to look very good".
 
 **GM2's detail round (the user, 2026-11-15, the question tool, asked by the manager in ten rounds of four after the
-design doc's first version, the options as `Docs/Game/Hero.md` prepared them, then Q40, the manager's follow-up, then Q41 and Q42, which the answers opened, and Q43 and Q44, which step 1 raised, and Q45, asked for step 6; in full
+design doc's first version, the options as `Docs/Game/Hero.md` prepared them, then Q40, the manager's follow-up, then Q41 and Q42, which the answers opened, and Q43 and Q44, which step 1 raised, and Q45, asked for step 6, and Q54 and Q55, asked for step 4a; in full
 with each question's facts and options in `Docs/Game/Hero.md`, "The questions as asked" and "Questions from the steps"):** every answer the recommended
 option (a) except Q1, Q2, Q9, Q18, Q19, Q21, Q22, Q23, Q28, Q31, Q32 and Q37. The manager's decisions on the proposals
-(GM2-P1–GM2-P16, all as proposed, with notes on P7, P10 and P16; GM2-P17 on step 12's sounds and GM2-P18 on step 6's
-models, 2026-11-16) are in `Docs/Game/Hero.md`, "Decisions". Nothing of GM2's design is open.
+(GM2-P1–GM2-P16, all as proposed, with notes on P7, P10 and P16; GM2-P17 on step 12's sounds, GM2-P18 on step 6's
+models, GM2-P19 and GM2-P20 on step 4a's figures, 2026-11-16) are in `Docs/Game/Hero.md`, "Decisions". Nothing of GM2's
+design is open.
 - **Q1, not the recommendation: "Heroic, realistic":** about 7.5 heads, smaller heads, longer limbs; the races differ by
   the same ratios. (Not the old six-head proportions, the recommendation; not big heads, four to five.)
 - **Q2, not the recommendation: "Stylised":** simple eye shapes, no face bones, mitten hands (a thumb and one block).
@@ -799,6 +800,16 @@ models, 2026-11-16) are in `Docs/Game/Hero.md`, "Decisions". Nothing of GM2's de
   out of range opens with them corrected silently, as the old game's `normalizeCharacter` (the level into 1 to the cap,
   points, coins and HP to 0 or more), with no message and without refusing the file; the look stays as designed (its
   checks refuse what the maker couldn't make, G4). (Not "correct and say so"; not "refuse the file".)
+- Q54 (asked by the manager for step 4a on 2026-11-16, on its cost study: about 152,000 triangles and 100 primitives a
+  geared figure): **the lighter figures, "Yes, use the lighter ones"**, the same sculpted forms remade lighter (named to
+  the user as differing on purpose: the hairline a clean arc, the collars and hems smooth); with the manager's GM2-P19
+  (one primitive per material and ink flag) and GM2-P20 (a "full" level, shipped, and a "battle" level for GM5, from one
+  sculpt): a geared figure about 58,000 triangles in 23 primitives.
+- Q55 (asked by the manager for step 4a on 2026-11-16, with its measurement and pictures): **the limits for detailed
+  figures, "Approve limits now, refine the lines after"** (not "approve the limits, leave the lines"; not "fix the
+  lines first"): `ReferenceLimits.DetailedFigure` from that day's measurement plus about a twentieth, as S7-13's; an
+  engine task then brings the game's ink nearer Blender's (a line hidden under another piece stays hidden) and the limits
+  are measured again and tightened ("Engine items the port will meet").
 
 ## GM3 Arms and armour: the forge, artifacts and the inventory
 
@@ -2042,6 +2053,19 @@ and waits for the user's go, asked when its milestone reaches it:
   2). The "Windows check", items 1–10: GM18 (GM1's step 11 rewrote the items
   the game changed and added item 10, GM1's own).
 - The proof's sounds by ear: GM13 (GM13-2); the by-hand checks (a)–(e): GM18 at the latest.
+- Found by GM2 step 4a (2026-11-16; `Docs/Game/Hero.md`, Status), for the manager to bring to the user:
+  - **The ink's depth allowance** (Q55: the detailed figures' limits approved now, the lines refined after): the ink
+    draws a feature edge lying under a covering surface by up to half a pixel (two pixels when the cover is seen nearly
+    edge-on) plus 1e-4 of the depth (`ink_edges.frag`, the feature edges' visibility test), about 1.5 to 9 mm at the
+    humanoid scenes' scale, where Freestyle hides it. What shows because of it: the hairline's crease, the jaw's
+    underside against the neck, lines along the hair's locks, the mail sleeve's seam at the shoulder, more lines on the
+    sword, the shield's rim seen edge-on. When it is done, the humanoid scenes are measured again and
+    `ReferenceLimits.DetailedFigure` tightened. Before GM5's battle figures at the latest.
+  - **Figures in the shadow pass:** with scenery in view every figure is drawn into the sun's 16 maps (sixteen geared
+    figures 1.99 ms without a stage, 5.60 ms with one; the first, heavier figures 8.8 ms more): GM5's battle.
+  - **Skinning once per mesh** instead of once per primitive (the compute passes and the CPU's draw items follow the
+    primitives): GM5.
+  - **A measurement on a real 2016-class card** (the PC's GPU and lavapipe only so far; Decisions for M6's target): GM5.
 
 ### The three decision-id collisions
 
@@ -2341,3 +2365,10 @@ GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
   with their checks, a look's models references refused when missing (the manager's GM2-P18), and the 72 old looks waiting
   in the oracle's catalogue with a one-step writer into `data.pak` for when their models land (`Docs/Game/Hero.md`, "How
   it works", step 6).
+- **2026-11-17, GM2 step 4a (the first humanoid's scripts and models in the repo):** the manager's approved figures in
+  `Tools/Models/humanoid/` and `Assets/Models/humanoid/` (the human man and woman with their faces, hair and plain outfit,
+  the chain shirt, the sword and the shield), lighter on the user's Q54 at two detail levels (GM2-P20; the full level
+  shipped) and joined per ink flag (GM2-P19); the game's look `EMBER_HEARTH`; the clip frame with its test clip;
+  `models.pak`; the figures held to Blender's under `ReferenceLimits.DetailedFigure` (the user's Q55), with an engine task
+  for the ink and three more for the battle's cost ("Engine items the port will meet"; `Docs/Game/Hero.md`, "How it
+  works", step 4a).
