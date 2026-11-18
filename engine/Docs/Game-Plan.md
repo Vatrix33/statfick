@@ -2081,6 +2081,15 @@ and waits for the user's go, asked when its milestone reaches it:
   - **`surface` in the engine and in Chromium:** the engine lays it out as a replaced element (a 300 × 150 natural size, its
     children never drawn), Chromium as an unknown inline element; a view's box is sized fully (`display: block`, a width
     and a height) until the two agree. Known, not changed.
+- Found by GM2 step 8 (2026-11-17; step 8's own entry for it is on its branch): **round 1 px borders on small circles**
+  (the race strip's 28 medallions). **Done** on 2026-11-18 by GM2's engine task (the branch `gm2-round-borders`;
+  `Docs/Compositing-Port.md`, "Thin rounded borders"): Skia's hairline for a ring one device pixel wide, the background
+  shrunk under a rounded border, an opaque box's shadow cut a pixel inside it, the radii constrained to the snapped box.
+  The strip on the engine's page, light at 1: 2,715 pixels past 12 levels → 11 (step 8's band was 2,746). Step 8 marks its
+  entry done when it rebases. Found beside it, known and not fixed (same section, "Left as they were"): Skia's curve fills
+  (the shown medallion's ring of shadow), a translucent border over a fill, a hairline under a 2D scale, SVG strokes under
+  a pixel (the corner brackets), focus rings, and **the theme ignoring `color-scheme: dark`** (the game's dark settings and
+  dialogs draw their checkboxes light where Chromium draws them dark: about 500 pixels of `settings-mods-dark` at 1).
 
 ### The three decision-id collisions
 
@@ -2405,3 +2414,10 @@ GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
   own colours until step 9a's swatches: the manager's answer), Blender's assembly of looks and six samples held to it, the
   structural walk, the 3D views masked in the screen fixtures; two engine items found ("Engine items the port will
   meet"; `Docs/Game/Hero.md`, "How it works", step 5).
+- **2026-11-18, GM2's engine task for step 8's race strip done (thin rounded borders, the branch `gm2-round-borders`):**
+  1 px rounded borders, outlines and the theme's frames painted as Chromium paints them (Skia's hairline), the background
+  shrunk under a rounded border, an opaque box's shadow cut inside it, radii constrained to the snapped box
+  (`Docs/Compositing-Port.md`, "Thin rounded borders"); step 8's strip brought from 2,715 to 11 pixels past 12 levels on
+  the engine's page (light at 1); of the suite's 419 comparisons with Chromium 263 moved, all nearer but one, by 14 pixels
+  (a dark settings screen's light checkboxes); no limit or golden changed. 4465 + 796 = 5261 tests. Step 8 rebases onto
+  it.

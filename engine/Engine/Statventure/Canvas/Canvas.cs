@@ -136,6 +136,7 @@ public sealed partial class Canvas : IDisposable
     public void Begin(int pixelWidth, int pixelHeight, float scale = 1f)
     {
         ReturnUnrendered();
+        TrimHairlineAtlas();
         _primitives.Clear();
         _gradients.Clear();
         _matrices.Clear();
@@ -423,7 +424,10 @@ public sealed partial class Canvas : IDisposable
     /// sigma times SkMatrix::mapRadius's factor (at most 128 px), the same in every direction there
     /// (canvas_common.glsl, shadowBlur).
     /// </summary>
-    public void DrawBoxShadow(RectF rect, CornerRadii radii, BoxShadow shadow)
+    /// <param name="clipInset">How far inside the box an outer shadow's cut-out starts, in the box's units (Blink's
+    /// ClipToBorderEdge insets it by one pixel under an opaque background, so no seam shows at the box's edge): the box's
+    /// rounded rect inset by it, each radius less it.</param>
+    public void DrawBoxShadow(RectF rect, CornerRadii radii, BoxShadow shadow, float clipInset = 0)
     {
         if (shadow.Color.A <= 0 || rect.IsEmpty)
             return;
@@ -431,6 +435,7 @@ public sealed partial class Canvas : IDisposable
         SetRadii(ref primitive, radii.Fit(rect.Size));
         primitive.Color = shadow.Color.Premultiplied;
         primitive.Params = new Vector4(shadow.Offset.X, shadow.Offset.Y, shadow.Spread, MathF.Max(shadow.Blur / 2f, 0f));
+        primitive.Border = new Vector4(shadow.Inset ? 0 : clipInset, 0, 0, 0);
         Add(primitive);
     }
 

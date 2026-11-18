@@ -1673,6 +1673,13 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
    - Approval stops: the screens' captures (both themes; Dev Mode's carousel too) in `claude-work/gm2/step8/approval/`;
      then the fixtures.
    - Finished: approved; the screens against Chromium (views masked); the flow's rules tested.
+   - **The engine fix it waits for is done** (2026-11-18, the branch `gm2-round-borders`; `Docs/Compositing-Port.md`, "Thin
+     rounded borders"): the strip's approved 1 px round borders as Chromium paints them (Skia's hairline, the background
+     shrunk under the border, the shown medallion's ring of shadow cut a pixel inside it). On the engine's page of the
+     strip (`Ui/RoundBorderReferenceTests`, `rborder-strip`, its `races.css` rules as test content) the pixels past 12
+     levels go from 2,715 to 11 (light at 1; the step's band had 2,746), 1,927 to 29 (dark at 1), 3,359 to 74 and 1,156 to
+     65 (light and dark at 1.65). Step 8 rebases onto it, recaptures nothing (its goldens are Chromium's), and marks its
+     engine item done.
 9. **The builds, the races and the parts** (3D, the manager; the PC). After 4 is approved.
    - **9a The shared sets and the human:** the human's slender and strong builds, its other faces, the outfit fitted to
      the builds; the shared sets designed and fitted to the human: hair (about 16–24 styles per sex), beards (about 12),
@@ -3210,3 +3217,10 @@ garments and items; `make-humanoid.sh assemble` draws a look on Blender's side.
   element (300 × 150, children not drawn) where Chromium's is an unknown inline element. 4425 + 796 = 5221 tests on the
   GPU and on lavapipe (`main`: 4392 + 748 = 5140; 81 new); mutations 78 standing, 77 killed, one that can't show on this
   branch; `assemble.py`'s breaks 16 of 16; 18 editor goldens captured again (`data.pak`'s new folders).
+- **2026-11-18, the engine fix for step 8's race strip done** (a worker, the branch `gm2-round-borders`;
+  `Docs/Compositing-Port.md`, "Thin rounded borders"; "Steps", step 8): thin rounded borders, outlines and the theme's
+  frames as Chromium paints them, with the background shrunk under a rounded border, an opaque box's shadow cut a pixel
+  inside it and radii constrained to the snapped box; the strip's page 2,715 → 11 pixels past 12 levels (light at 1). The
+  sheet's screens moved nearer (`sheet-played-light` 848 → 214 pixels past 12 levels at 1, `sheet-dev-light` 2,888 → 1,676
+  at 1.65; the port's 150 screens that moved, 149 nearer and one farther by 14 pixels, a dark settings screen over the
+  theme's light checkboxes). Step 8 rebases onto it.

@@ -97,7 +97,12 @@ void main()
         float corner = max(max(p.radiiX.x, p.radiiX.y), max(p.radiiX.z, p.radiiX.w));
         corner = corner > 0.0 ? max(corner + p.params.z, 0.0) : 0.0;
         float shadow = blurredBox(lower, upper, local, shadowBlur(p), corner);
-        float box = boxCoverage(local, p.size, p.radiiX, p.radiiY);
+        // Cut out where the box is: its rounded rect inset by border.x (Blink's ClipToBorderEdge, one pixel under an
+        // opaque background; nothing is cut when the inset leaves no rect).
+        float cut = p.border.x;
+        vec2 cutSize = p.size - 2.0 * cut;
+        float box = cutSize.x > 0.0 && cutSize.y > 0.0
+            ? boxCoverage(local - vec2(cut), cutSize, max(p.radiiX - cut, 0.0), max(p.radiiY - cut, 0.0)) : 0.0;
         color = p.color * shadow * (1.0 - box);
     }
     else if (p.kind == KIND_INSET_SHADOW)

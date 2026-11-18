@@ -168,13 +168,14 @@ internal static class ControlTheme
     /// <summary>NativeTheme::AdjustBorderWidthByZoom: a stroke width times the zoom, floored, at least 1.</summary>
     internal static float BorderWidthByZoom(float width, float zoom) => MathF.Max(MathF.Floor(width * zoom), 1);
 
-    /// <summary>A round rect stroked <paramref name="width"/> wide along <paramref name="outer"/> inset by half the width (as Skia strokes it).</summary>
+    /// <summary>A round rect stroked <paramref name="width"/> wide along <paramref name="outer"/> inset by half the width (as
+    /// Skia strokes it: drawRoundRect, a hairline at one device pixel; <see cref="PaintTarget.StrokeRoundRect"/>).</summary>
     static void StrokeRoundRect(PaintTarget target, RectF outer, float radius, Color color, float width = BorderWidth)
     {
         var centerline = Inset(outer, width / 2, width / 2);
         var r = Fit(centerline, radius);
         var outerRadius = r.TopLeft.X > 0 ? r.TopLeft.X + width / 2 : 0;
-        target.DrawBox(outer, null, new CornerRadii(outerRadius), new Border(width, color, BorderStyle.Solid));
+        target.StrokeRoundRect(outer, new CornerRadii(outerRadius), width, color);
     }
 
     static void FillRoundRect(PaintTarget target, RectF rect, float radius, Color color) =>

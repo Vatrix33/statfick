@@ -120,6 +120,7 @@ public sealed partial class Canvas
 
         _atlas?.Upload(frame);
         _lcdAtlas?.Upload(frame);
+        _hairlineAtlas?.Upload(frame);
         _push.Primitives = frame.Upload<CanvasPrimitive>(_primitives.Count > 0 ? CollectionsMarshal.AsSpan(_primitives) : [default]);
         _push.Gradients = frame.Upload<GpuGradient>(_gradients.Count > 0 ? CollectionsMarshal.AsSpan(_gradients) : [default]);
         _push.Matrices = frame.Upload<GpuColorMatrix>(_matrices.Count > 0 ? CollectionsMarshal.AsSpan(_matrices) : [default]);
@@ -368,6 +369,7 @@ public sealed partial class Canvas
         _device.WaitIdle();
         _atlas?.Dispose();
         _lcdAtlas?.Dispose();
+        _hairlineAtlas?.Dispose();
         lock (_pool)
         {
             foreach (var stack in _pool.Values)

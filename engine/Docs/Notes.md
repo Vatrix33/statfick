@@ -652,6 +652,15 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   border box; the engine's `surface` is a replaced element (300 × 150, children not drawn) where Chromium's is an
   unknown inline element; this session's command checker refuses heredocs and backslash-heavy one-liners in the worktree
   (write a script file, or use the edit tool). A view without receivers runs no shadow pass but keeps the 64 MiB atlas.
+- 2026-11-18 (the PC, GM2's round borders worker on the branch `gm2-round-borders`, 4465 + 796 = 5261 tests on the GPU and
+  lavapipe): **thin rounded
+  borders as Chromium paints them** (`Docs/Compositing-Port.md`, "Thin rounded borders"). Gotchas: Skia draws any stroke
+  one device pixel wide or less as a hairline, rrects and paths alike (not rects: `drawRect` frames them); a Python model
+  of a Skia scan routine (`claude-work/gm2/round-borders/scripts/hairsim.py`) checked against Chromium's pixels before the
+  port found the geometry questions fast (the pill's radius from the snapped box); the shared coverage atlas is cleared
+  when it fills, which spoils the draws made from it earlier in the same frame (anything that adds many masks needs an
+  atlas of its own, cleared between frames); a translucent border over a fill is Blink's clip layer, not a ring; the
+  game's dark screens draw themed checkboxes light (`color-scheme` ignored), a known difference now listed.
 
 ## Asking about design choices (user rule)
 

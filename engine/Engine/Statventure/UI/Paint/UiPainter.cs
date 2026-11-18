@@ -316,7 +316,7 @@ public sealed partial class UiPainter : IDisposable
             var inset = RectF.FromEdges(
                 rect.X + clipPath.Left.ResolveOr(rect.Width, 0), rect.Y + clipPath.Top.ResolveOr(rect.Height, 0),
                 rect.Right - clipPath.Right.ResolveOr(rect.Width, 0), rect.Bottom - clipPath.Bottom.ResolveOr(rect.Height, 0));
-            var radii = clipPath.Radii.Length == 4 ? ResolveRadii(clipPath.Radii[0], clipPath.Radii[1], clipPath.Radii[2], clipPath.Radii[3], inset.Size) : CornerRadii.Zero;
+            var radii = clipPath.Radii.Length == 4 ? ResolveRadii(clipPath.Radii[0], clipPath.Radii[1], clipPath.Radii[2], clipPath.Radii[3], inset.Size).Fit(inset.Size) : CornerRadii.Zero;
             _canvas.PushClip(inset, radii);
             clipped++;
         }
@@ -612,11 +612,20 @@ public sealed partial class UiPainter : IDisposable
     {
         var s = box.Style;
         var size = new Vector2(box.Width, box.Height);
-        var radii = ResolveRadii(s.RadiusTopLeft, s.RadiusTopRight, s.RadiusBottomRight, s.RadiusBottomLeft, size).Shrink(box.Border.Top, box.Border.Right, box.Border.Bottom, box.Border.Left);
+        var radii = ResolveRadii(s.RadiusTopLeft, s.RadiusTopRight, s.RadiusBottomRight, s.RadiusBottomLeft, size).Fit(size).Shrink(box.Border.Top, box.Border.Right, box.Border.Bottom, box.Border.Left);
         return !radii.IsZero;
     }
 
-    CornerRadii BorderRadii(LayoutBox box, Vector2 size)
+    CornerRadii BorderRadii(LayoutBox box, Vector2 size) => BorderRadiiUnconstrained(box, size).Fit(size);
+
+    /// <summary>
+    /// The radii as Blink's CalcRadiiFor resolves them against the box's (unsnapped) size, before a rounded rect constrains
+    /// them: a box's decorations are painted on its snapped border box, which ContouredBorderGeometry's
+    /// PixelSnappedContouredBorder constrains them to (FloatRoundedRect::ConstrainRadii; the canvas's Fit). Constrained to
+    /// the unsnapped size first, a radius as large as the box (a pill, 50 %) came out a fraction of a pixel short wherever
+    /// snapping grew the box.
+    /// </summary>
+    CornerRadii BorderRadiiUnconstrained(LayoutBox box, Vector2 size)
     {
         var s = box.Style;
         return ResolveRadii(s.RadiusTopLeft, s.RadiusTopRight, s.RadiusBottomRight, s.RadiusBottomLeft, size);
@@ -625,7 +634,7 @@ public sealed partial class UiPainter : IDisposable
     static CornerRadii ResolveRadii(Corner tl, Corner tr, Corner br, Corner bl, Vector2 size)
     {
         Vector2 R(Corner c) => new(MathF.Max(0, c.X.ResolveOr(size.X, 0)), MathF.Max(0, c.Y.ResolveOr(size.Y, 0)));
-        return new CornerRadii(R(tl), R(tr), R(br), R(bl)).Fit(size);
+        return new CornerRadii(R(tl), R(tr), R(br), R(bl));
     }
 
     static CanvasBorderStyle ToCanvas(BorderLineStyle style) => style switch
@@ -656,12 +665,14 @@ public sealed partial class UiPainter : IDisposable
         if (properties is not null)
             _canvas.UseState(properties.BorderBox, box);
         var radii = BorderRadii(box, rect.Size);
+        // (The decorations constrain theirs to the snapped border box.)
+        var paintRadii = BorderRadiiUnconstrained(box, rect.Size);
         // The root's (or the propagating body's) background is the canvas's.
         var isRoot = box.Element is { Parent: null } && box.Pseudo == PseudoKind.None;
         // A scroller whose background goes into its scrolling contents doesn't paint it opaque here.
         _canvas.NotOpaque = properties is { ScrollTranslation: not null } && (properties.BackgroundLocation & BackgroundPaintLocation.BorderBox) == 0;
         _canvas.BeginItem(boxDecoration: true, InkOverflowRect(s, rect));
-        PaintBoxDecorations(box, s, rect, radii, SidesOf(s), box == _backgroundSource || isRoot);
+        PaintBoxDecorations(box, s, rect, paintRadii, SidesOf(s), box == _backgroundSource || isRoot);
         _canvas.EndItem();
         _canvas.NotOpaque = false;
         // An inline SVG's shapes decide where it takes input (HitSvg), which measures from layout's
@@ -761,13 +772,7 @@ public sealed partial class UiPainter : IDisposable
     {
         var unsnapped = rect;
         rect = Snap(rect);
-        // Outer shadows: the first one listed is on top.
-        for (var i = s.BoxShadows.Length - 1; i >= 0; i--)
-        {
-            var shadow = s.BoxShadows[i];
-            if (!shadow.Inset)
-                _canvas.DrawBoxShadow(rect, radii, new BoxShadow(new Vector2(shadow.OffsetX, shadow.OffsetY), shadow.Blur, shadow.Spread, shadow.Color));
-        }
+        PaintOuterShadows(s, rect, radii, skipBackground);
         // A control with its native look: the theme paints instead of the CSS background and border.
         var look = box.Pseudo == PseudoKind.None && box.Element is { } control ? ControlAppearance.Effective(control, s) : ControlLook.None;
         if (look is not (ControlLook.None or ControlLook.MenulistButton or ControlLook.Listbox or ControlLook.Meter))
@@ -787,13 +792,25 @@ public sealed partial class UiPainter : IDisposable
     {
         var unsnapped = rect;
         rect = Snap(rect);
+        PaintOuterShadows(s, rect, radii, skipBackground: false);
+        PaintStyledFill(s, unsnapped, rect, radii, sides, false);
+    }
+
+    /// <summary>
+    /// A box's outer shadows (BoxPainterBase::PaintNormalBoxShadow), the first one listed on top, each cut out where the
+    /// box is (ClipToBorderEdge): under a background that paints an opaque colour the cut starts one device pixel inside
+    /// the box, so the shadow reaches under its antialiased edge and no seam shows there.
+    /// </summary>
+    void PaintOuterShadows(ComputedStyle s, RectF rect, CornerRadii radii, bool skipBackground)
+    {
+        var opaqueBackground = !skipBackground && s.BackgroundColor.A >= 1;
+        var clipInset = opaqueBackground ? 1 / _canvas.Scale : 0;
         for (var i = s.BoxShadows.Length - 1; i >= 0; i--)
         {
             var shadow = s.BoxShadows[i];
             if (!shadow.Inset)
-                _canvas.DrawBoxShadow(rect, radii, new BoxShadow(new Vector2(shadow.OffsetX, shadow.OffsetY), shadow.Blur, shadow.Spread, shadow.Color));
+                _canvas.DrawBoxShadow(rect, radii, new BoxShadow(new Vector2(shadow.OffsetX, shadow.OffsetY), shadow.Blur, shadow.Spread, shadow.Color), clipInset);
         }
-        PaintStyledFill(s, unsnapped, rect, radii, sides, false);
     }
 
     /// <summary>The background (colour and layers), inset shadows and border, for a border box at <paramref name="unsnapped"/> snapped to <paramref name="rect"/>.</summary>
@@ -806,21 +823,88 @@ public sealed partial class UiPainter : IDisposable
         var layers = skipBackground ? [] : s.Backgrounds;
         // A colour clipped to the box's text goes through the background layers' painting (PaintFillLayerTextFillBox).
         var colorThroughText = box is not null && background.A > 0 && s.BackgroundColorClip == BackgroundClip.Text;
-        if (layers.Length == 0 && !hasInset && !colorThroughText)
+        // Bleed avoidance (ComputeBleedAvoidance, for a box that paints a background): under a rounded border that hides
+        // the background's edge, the background shrinks by half the border; under one that doesn't, the background and the
+        // border are clipped as a layer, where the border is a fill of everything outside its inner edge (the band here).
+        var bleed = background.A > 0 || layers.Length > 0 ? BleedAvoidanceOf(s, radii, sides, background, layers) : BleedAvoidance.None;
+        var ring = bleed == BleedAvoidance.ClipLayer ? null : BorderRing(s, rect, radii, sides);
+        var shrinks = bleed == BleedAvoidance.ShrinkBackground && background.A > 0;
+        if (layers.Length == 0 && !hasInset && !colorThroughText && ring is null && !shrinks)
         {
             // The common case: one primitive for background and border.
             if (background.A > 0 || sides.IsVisible)
                 _canvas.DrawBox(rect, background.A > 0 ? Brush.Solid(background) : null, radii, sides);
             return;
         }
-        if (layers.Length > 0 || colorThroughText)
+        if (layers.Length > 0 || colorThroughText || shrinks)
             PaintBoxBackground(s, unsnapped, rect, radii, sides, background, layers, box, appearance);
         else if (background.A > 0)
             _canvas.DrawBox(rect, Brush.Solid(background), radii, Border.None);
         if (hasInset)
             PaintInsetShadows(s, rect, radii);
-        if (sides.IsVisible)
+        if (ring is { } stroke)
+            _canvas.StrokeRoundRect(rect, radii, stroke.Width, stroke.Color);
+        else if (sides.IsVisible)
             _canvas.DrawBox(rect, null, radii, sides);
+    }
+
+    /// <summary>
+    /// A border Blink draws as one ring (BoxBorderPainter::PaintBorderFastPath, then FillDRRect's simple case,
+    /// IsSimpleDRRect): every side visible in one colour, solid (BorderEdge's effective style: a double under 3 px, a ridge
+    /// or groove of 1 px is solid), on a rounded box, of one width in device pixels, its inner edge renderable, and at each
+    /// corner a circle's radius whose inner radius is the outer one less the width (or both square). Such a border is one
+    /// stroked rrect, a hairline at one device pixel (<see cref="PaintTarget.StrokeRoundRect"/>). Null otherwise: a square
+    /// box's frame, elliptical or tight corners (a fill of the ring's path), other styles and the general path keep the
+    /// band.
+    /// </summary>
+    (float Width, Color Color)? BorderRing(ComputedStyle s, RectF rect, CornerRadii radii, BorderSides sides)
+    {
+        if (radii.IsZero || !(sides.Top.IsVisible && sides.Right.IsVisible && sides.Bottom.IsVisible && sides.Left.IsVisible))
+            return null;
+        var color = sides.Top.Color;
+        if (sides.Right.Color != color || sides.Bottom.Color != color || sides.Left.Color != color)
+            return null;
+        var k = _canvas.Scale;
+        // Every width in whole device pixels (ComputedStyle's), one of them.
+        var device = MathF.Round(sides.Top.Width * k * 1024) / 1024;
+        foreach (var side in new[] { sides.Right, sides.Bottom, sides.Left })
+            if (MathF.Round(side.Width * k * 1024) / 1024 != device)
+                return null;
+        if (!EffectivelySolid(s.BorderTopStyle, device) || !EffectivelySolid(s.BorderRightStyle, device)
+            || !EffectivelySolid(s.BorderBottomStyle, device) || !EffectivelySolid(s.BorderLeftStyle, device))
+            return null;
+        return IsSimpleRing(rect, radii, sides.Top.Width) ? (sides.Top.Width, color) : null;
+    }
+
+    /// <summary>BorderEdge's effective style is solid: solid, a double under 3 device px, a ridge or groove of 1.</summary>
+    static bool EffectivelySolid(BorderLineStyle style, float deviceWidth) =>
+        style == BorderLineStyle.Solid || style == BorderLineStyle.Double && deviceWidth < 3 || style is BorderLineStyle.Ridge or BorderLineStyle.Groove && deviceWidth <= 1;
+
+    /// <summary>
+    /// The ring of <paramref name="width"/> inside a rounded rect is a simple DRRect (IsSimpleDRRect): its outer radii as
+    /// FloatRoundedRect constrains them to the snapped rect, the inner ones the outer less the width (clamped at zero, as
+    /// gfx::SizeF keeps them), the inner rect holding its radii (BoxBorderPainter's inner_.IsRenderable()), and at each
+    /// corner a circle's radius whose inner radius is the outer one less the width, or both square. Compared in device
+    /// pixels on Blink's grid (the canvas's float noise off; WebCoreFloatNearlyEqual).
+    /// </summary>
+    bool IsSimpleRing(RectF rect, CornerRadii radii, float width)
+    {
+        var k = _canvas.Scale;
+        var outer = radii.Fit(rect.Size);
+        var inner = outer.Shrink(width, width, width, width);
+        var innerSize = new System.Numerics.Vector2(rect.Width - 2 * width, rect.Height - 2 * width);
+        const float renderable = 1.0001f;
+        if (inner.TopLeft.X + inner.TopRight.X > innerSize.X * renderable || inner.BottomLeft.X + inner.BottomRight.X > innerSize.X * renderable
+            || inner.TopLeft.Y + inner.BottomLeft.Y > innerSize.Y * renderable || inner.TopRight.Y + inner.BottomRight.Y > innerSize.Y * renderable)
+            return false;
+        float D(float v) => MathF.Round(v * k * 1024) / 1024;
+        static bool Near(float a, float b) => MathF.Abs(a - b) <= 1f / 512;
+        var device = D(width);
+        bool Simple(System.Numerics.Vector2 o, System.Numerics.Vector2 i) =>
+            o == System.Numerics.Vector2.Zero && i == System.Numerics.Vector2.Zero
+            || Near(D(o.X), D(o.Y)) && Near(D(i.X), D(i.Y)) && Near(D(o.X), D(i.X) + device);
+        return Simple(outer.TopLeft, inner.TopLeft) && Simple(outer.TopRight, inner.TopRight)
+            && Simple(outer.BottomRight, inner.BottomRight) && Simple(outer.BottomLeft, inner.BottomLeft);
     }
 
     void PaintInsetShadows(ComputedStyle s, RectF rect, CornerRadii radii)

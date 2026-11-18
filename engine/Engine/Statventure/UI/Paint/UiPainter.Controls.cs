@@ -639,7 +639,7 @@ public sealed partial class UiPainter
     {
         if (part.Visibility != Visibility.Visible || rect.Width <= 0 && rect.Height <= 0)
             return;
-        var radii = ResolveRadii(part.RadiusTopLeft, part.RadiusTopRight, part.RadiusBottomRight, part.RadiusBottomLeft, rect.Size);
+        var radii = ResolveRadii(part.RadiusTopLeft, part.RadiusTopRight, part.RadiusBottomRight, part.RadiusBottomLeft, rect.Size).Fit(rect.Size);
         var layered = part.Opacity < 1;
         if (layered)
             _canvas.PushLayer(new LayerOptions { Opacity = part.Opacity });

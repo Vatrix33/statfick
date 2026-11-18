@@ -688,6 +688,8 @@ internal sealed class PaintTarget
 
     public void DrawBox(RectF rect, Brush? background, CornerRadii radii, Border border)
     {
+        // The rounded rect as drawn: its radii constrained to it (an op's rrect, for the opaqueness analysis).
+        radii = radii.Fit(rect.Size);
         // Blink's ops: the background's fill (a plain one for a colour), then an outline's or a uniform border's stroked
         // rect, ring or path (none of them a plain fill).
         var ops = (background is not null ? 1 : 0) + (border.IsVisible ? 1 : 0);
@@ -698,12 +700,24 @@ internal sealed class PaintTarget
 
     public void DrawBox(RectF rect, Brush? background, CornerRadii radii, BorderSides sides)
     {
+        radii = radii.Fit(rect.Size);
         var (borderOps, borderFill) = BorderOps(rect, radii, sides);
         var ops = (background is not null ? 1 : 0) + borderOps;
         RectF? plainFill = ops != 1 ? null : background is not null ? (background.IsGradient ? null : rect) : borderFill;
         Record(rect, background, radii, ops: ops, plainFill: plainFill);
         if (Draws)
             _canvas!.DrawBox(rect, background, radii, sides);
+    }
+
+    /// <summary>
+    /// A rounded rect's ring of this width, as GraphicsContext::FillDRRect draws a simple one: one stroked rrect (a hairline
+    /// at one device pixel or less; <see cref="CanvasRenderer.StrokeRoundRect"/>). One op, not a plain fill.
+    /// </summary>
+    public void StrokeRoundRect(RectF outer, CornerRadii radii, float width, Color color)
+    {
+        Record(outer, ops: 1);
+        if (Draws)
+            _canvas!.StrokeRoundRect(outer, radii, width, color);
     }
 
     /// <summary>
@@ -749,7 +763,7 @@ internal sealed class PaintTarget
             _canvas!.FillRect(rect, color);
     }
 
-    public void DrawBoxShadow(RectF rect, CornerRadii radii, BoxShadow shadow)
+    public void DrawBoxShadow(RectF rect, CornerRadii radii, BoxShadow shadow, float clipInset = 0)
     {
         var reach = shadow.Blur * 1.5f + MathF.Max(0, shadow.Spread);
         // Blink draws a shadow between a save with a clip and a restore, which ends the item's opaqueness analysis.
@@ -758,7 +772,7 @@ internal sealed class PaintTarget
         Record(rect.Offset(shadow.Offset).Inflate(reach));
         RecordOp(true);
         if (Draws)
-            _canvas!.DrawBoxShadow(rect, radii, shadow);
+            _canvas!.DrawBoxShadow(rect, radii, shadow, clipInset);
     }
 
     public void DrawBackdropBlur(RectF rect, CornerRadii radii, float blurRadius)

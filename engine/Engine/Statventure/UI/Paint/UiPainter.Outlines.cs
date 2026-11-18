@@ -39,7 +39,7 @@ public sealed partial class UiPainter
             PaintFocusRing(box, rects, rect);
             return;
         }
-        DrawOutline(s, rect, BorderRadii(box, rect.Size));
+        DrawOutline(s, rect, BorderRadiiUnconstrained(box, rect.Size));
     }
 
     void PaintInlineOutline(LayoutBox root, LayoutBox inlineBox)
@@ -63,6 +63,8 @@ public sealed partial class UiPainter
     void DrawOutline(ComputedStyle s, RectF rect, CornerRadii radii)
     {
         rect = Snap(rect);
+        // The border radii constrained to the snapped border box (PixelSnappedContouredBorder).
+        radii = radii.Fit(rect.Size);
         // Outlines follow the border radius, grown by the offset (as Chromium draws them).
         var grow = s.OutlineOffset + s.OutlineWidth;
         var outer = RectF.FromEdges(rect.Left - grow, rect.Top - grow, rect.Right + grow, rect.Bottom + grow);
@@ -71,6 +73,14 @@ public sealed partial class UiPainter
         var outerRadii = radii.IsZero ? CornerRadii.Zero : new CornerRadii(
             Grow(radii.TopLeft, grow), Grow(radii.TopRight, grow), Grow(radii.BottomRight, grow), Grow(radii.BottomLeft, grow));
         var color = s.OutlineColor ?? s.Color;
+        // BoxBorderPainter::PaintSingleRectOutline: the outline is a border of its own, so a solid one around rounded
+        // corners is a simple ring Blink strokes (a hairline at one device pixel).
+        if (!outerRadii.IsZero && EffectivelySolid(s.OutlineStyle, MathF.Round(s.OutlineWidth * _canvas.Scale * 1024) / 1024)
+            && IsSimpleRing(outer, outerRadii, s.OutlineWidth))
+        {
+            _canvas.StrokeRoundRect(outer, outerRadii, s.OutlineWidth, color);
+            return;
+        }
         _canvas.DrawBox(outer, null, outerRadii, new Border(s.OutlineWidth, color, ToCanvas(s.OutlineStyle)));
     }
 

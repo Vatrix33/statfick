@@ -35,6 +35,8 @@ public sealed class TextureAtlas : IDisposable
     /// <summary>Increases whenever the atlas is cleared; entries from older generations are invalid.</summary>
     public int Generation { get; private set; }
     public int PageCount => _pages.Count;
+    /// <summary>The pages holding anything since the last clear.</summary>
+    public int UsedPages => _pages.Count(p => p.NextShelfY > 0);
 
     public TextureAtlas(GpuDevice device, int pageSize = 2048, int maxPages = 4, int bytesPerPixel = 1)
     {

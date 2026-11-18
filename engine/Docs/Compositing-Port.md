@@ -598,6 +598,151 @@ branch, merged before steps 7 and 8, which rebase onto it. Every rule from Chrom
   - (Known before: a text area lays its text out at the normal line height whatever its line-height,
     `Docs/Editor.md`, step 11.)
 
+## Thin rounded borders (GM2's engine task for step 8's race strip, 2026-11-18, the branch `gm2-round-borders`)
+
+Found by GM2 step 8 (the race carousel; `Docs/Game/Hero.md`, step 8): the strip of 28 small medallions under the stage
+(circles of 30 and 38 px, `border: 1px solid` over a fill and an inset shadow, `border-radius: 50%`, the enemy-only ones at
+`opacity: .8`, the shown one with a 2 px ring of `box-shadow`, on the dialog's grain) differed from Chromium all along its
+rims: Dev Mode's light fixture at 1 had 3,337 pixels past 12 levels (the limit 2,579), 2,746 of them in the strip's band.
+Every rule from Chromium 152's and Skia's source (Skia at Chromium 152's pin; saved in `~/.cache/stat-fick-build/
+reference-src/skia/`, among them `SkScan_Antihair.cpp`, `SkScan_Hairline.cpp` and `SkScaleToSides.h` fetched for this, and
+`chromium-152-source/`, `offset/` and `round-borders/`: `float_rounded_rect.cc/.h`, `contoured_rect.cc/.h`,
+`border_edge.cc/.h`). A Python model of Skia's hairline (`claude-work/gm2/round-borders/scripts/hairsim.py`) drew
+Chromium's rings to 2 levels before the port.
+- **A border Blink draws as one ring is a stroke, and Skia draws a stroke one device pixel wide as a hairline.**
+  `BoxBorderPainter::PaintBorderFastPath` (`box_border_painter.cc` 1276–1331): with every side visible in one colour, of
+  one style that is solid (`BorderEdge::EffectiveStyle`: a double under 3 device px, a ridge or groove of 1 is solid) and
+  an inner edge that is renderable, a rounded box's border is `DrawBleedAdjustedDRRect` (282–318): an inverse fill of the
+  inner rrect when the background is clipped as a layer, otherwise `GraphicsContext::FillDRRect` (`graphics_context.cc`
+  792–870), which strokes the outer rrect inset by half the width (`SkRRect::inset`) when the pair is simple
+  (`IsSimpleDRRect`: one width all round, and at each corner a circle's radius whose inner radius is the outer one less
+  the width, or both square; inner radii are the outer ones less the widths, kept at zero by `gfx::SizeF`), and else fills
+  the even-odd path of the two. `SkCanvas::onDrawRRect` (`SkCanvas.cpp` 2167) draws an oval as `drawOval`; `skcpu::Draw::
+  drawRRect` and `drawPath` (`SkDraw.cpp` 849–1080) draw a stroke as a hairline when the matrix keeps it at most one pixel
+  wide along both axes (`DrawTreatAAStrokeAsHairline`, `fast_len`), a narrower one with the paint's alpha scaled by its width
+  (`modifyPaintForHairlines`); a square rect never (`drawRect` frames it, `AntiFrameRect`: the band). A 1 px border is one
+  device px at every scale under 2 (`ClampLineWidth`), so such a ring is a hairline at 1, 1.25, 1.5, 1.65 and 1.75. The
+  hairline (`SkScan::AntiHairPath`: `hair_path` with butt caps; `do_anti_hairline`): the path `SkPath::Oval` (clockwise from
+  the right end's middle) or `SkPath::RRect` (from the left side's lower end) makes; each quarter conic cut into 2^n quads
+  within a quarter pixel (`SkConic::computeQuadPOW2`, `chopIntoQuadsPOW2`), each quad into 2^level lines
+  (`compute_quad_level`, `hair_quad`); every line in 26.6 fixed point, a column (or row) at a time two pixels across it split
+  by the fraction of its 16.16 position, its end pixels weighed by its part of them; every blit one src-over, so a pixel two
+  lines share is covered twice. The canvas drew the ring as the band between the two rounded rects (distance ramps), which
+  spreads it over two pixels where the hairline puts most of it in one.
+- **The background under a rounded border that hides its edge shrinks by half the border** (bleed avoidance,
+  `BoxDecorationData::ComputeBleedAvoidance`'s `kBackgroundBleedShrinkBackground`; `BackgroundContouredRectAdjustedForBleed
+  Avoidance`, `box_painter_base.cc` 1161–1193, a sixth only for a side whose effective style is double): the painter did it
+  for image layers only, and a colour went under the whole border box (a known difference since 2026-11-05: "the fill shows
+  in the border's outer edge pixels"), which the hairline now uncovered. (A thin double border shrank it by a sixth: its
+  effective style is solid.)
+- **An outer shadow under an opaque background is cut out one device pixel inside the box** (`ClipToBorderEdge`,
+  `box_painter_base.cc` 175–198; a known difference since 2026-11-05): the shown medallion's ring of `box-shadow` reaches
+  under the border's outer pixels; cut at the box's edge, a light seam showed between it and the hairline, which Chromium
+  hasn't.
+- **A box's radii are constrained to its snapped border box** (`ContouredBorderGeometry::PixelSnappedContouredBorder`,
+  `CalcRadiiFor` against the unsnapped size, then `FloatRoundedRect::ConstrainRadii` against the snapped rect): the painter
+  fitted them to the unsnapped size, so a radius as large as the box (a pill, 50 %) came out a fraction of a pixel short
+  where snapping grew it (24.75 for 25 px), which a hairline shows.
+- **The engine.** `Canvas/SkiaHairline.cs`: `SkRRect` (setRectRadii's fitting with `SkScaleToSides::AdjustRadii`, `inset`,
+  the type) and the hairline, ported line for line into a coverage mask whose blits compose as src-over of the paint's
+  alpha. Two of Skia's branches aren't there, as they can't show: `chopIntoQuadsPOW2`'s pair of lines (a quarter circle
+  never cuts so) and `do_anti_hairline`'s halving of a line over 511 px (Chromium rasters in tiles and clips a line to its
+  tile first; halved, the halves would share a pixel, which Chromium's pictures don't show). `Canvas.StrokeRoundRect`
+  (`Canvas/CanvasHairlines.cs`): the rrect in Blink's units (the canvas's units times its scale, put back on 1/1024 px:
+  the floats' noise would move a point across a 1/64 px), its conversion and inset, the hairline test, the transform
+  (a translation folds into the rect; anything else maps the path's points, `SkPathData::MakeTransform`); the mask cut into
+  16 px tiles, the curved ones in an atlas of the hairlines' own and the straight ones (one value along each row, or down
+  each column) as plain pixel boxes merged along their line; a wider stroke, or a rect the inset leaves square, is the band
+  as before. The hairlines' atlas is cleared between frames only, once half of it is used (`TrimHairlineAtlas`): the shared
+  coverage atlas is cleared when it fills, which spoils the draws made from it earlier in the frame; with the hairlines in
+  it, the old game's shop (`game-shop`, its page behind the dialog) filled it and drew stray blocks (44,479 pixels past 12
+  levels, within its 3 % at 24 levels). `PaintTarget.StrokeRoundRect` records one op, not a plain fill. The painter:
+  `UiPainter.BorderRing` and `IsSimpleRing` decide Blink's ring (`PaintStyledFill`; a clip layer keeps the band),
+  `BleedAvoidanceOf` (out of `PaintBoxBackground`, for a box that paints a background) and a colour under a shrinking
+  border through `PaintBoxBackground`, `PaintOuterShadows` with the cut's inset (the canvas's outer shadow: `border.x`,
+  `canvas.frag`), `BorderRadiiUnconstrained` for the decorations and outlines (their consumers constrain to the snapped
+  box; `PaintTarget.DrawBox` records the constrained radii). The same Skia rule's neighbours: a solid outline round rounded
+  corners (`PaintSingleRectOutline` is a `BoxBorderPainter`: `DrawOutline`), and the theme's rounded frames
+  (`ControlTheme.StrokeRoundRect`, NativeThemeBase's `drawRoundRect`, 1 device px at both scales).
+- **Its fixtures** (`Ui/RoundBorderReferenceTests`, `Reference/round-border-fixtures.json`, four Chromium 152 main-frame
+  pages captured through `Tools/PaintReference` with the flags of `make-scaled-paint-references.sh`, inside a headless cage,
+  at 1, 1.25, 1.5, 1.65 and 1.75): `rborder-circles` (circles of six sizes on a light and a dark ground: a 1 px border
+  alone, over a fill, over a fill and an inset shadow, translucent, at opacity .8, with a 2 px ring of `box-shadow`, an
+  outline alone and with an offset, a .5 px border, scaled by half), `rborder-radii` (rounded boxes of eight radii, a pill
+  and 15 px circles among them, with a fill, without, square, tall, translucent, double, groove and ridge; guards that
+  aren't rings: a 2 px border, a 3 px bottom, a side of another colour, a left side alone, a radius under the width, an
+  elliptical corner, a translucent border over a fill; an outline round radii that overflow their box; a bar 581 px wide),
+  `rborder-strip` (step 8's strip of 28 in Dev Mode, its `races.css` rules as test content, light and dark, without the
+  emblems' glyphs), `rborder-theme` (buttons, a text field, a checkbox and a radio). Every box Chromium's to 0.002 device
+  px at the five scales, the pages at 1 and 1.65 within 12 levels and 0.2 %, box by box the rule's with no pixel past 12
+  levels (at 1 only for the scaled circles and the theme's field, checkbox and radio; the radius under the width, the
+  translucent border over a fill and the outline among them) and the other guards within the per-control limit (60,
+  `LayoutUnitReferenceTests`'); a pill's known-opaque rect from its constrained radii (`APillIsKnownOpaqueToItsConstrainedRadii`).
+  `Canvas/HairlineAtlasTests`: the hairlines keep out of the shared atlas, theirs is cleared between frames only, a long
+  straight side takes no room in it, and the draws reproduce the mask (a rounded rect a quarter pixel off the grid, within a
+  level). Sizes are multiples of 20 px. **The strip on its page** (the step 8 fixtures' numbers in brackets): light at 1,
+  2,715 pixels past 12 levels → 11 (2,746 in step 8's band); dark at 1, 1,927 → 29 (1,977); light at 1.65, 3,359 → 74
+  (3,133); dark at 1.65, 1,156 → 65 (1,072). What is left is the shown medallion's ring of shadow (its outer edge, Skia's
+  curve fill: below).
+- **What moved** (the full suite on the GPU on `main`, `c043ad3`, and with the change, every picture comparison's pixels
+  past its limit's levels and past 12 logged by a scratch line, every render kept): of the 419 comparisons with Chromium
+  that both runs make, 263 moved, 262 nearer Chromium and one farther; no limit, tolerance, mask or reference changed, and
+  no golden of the engine's own pictures moved (the ten compared at 1–4 levels).
+
+  | Comparisons | Moved | Pixels past 12 levels, summed, before → after |
+  | --- | --- | --- |
+  | The UI fixtures (`ui-*`, `input-*`; the focus rings' fixtures by the theme's frames) | 47, all nearer | 24,838 → 14,790 |
+  | The editor's screens | 44, all nearer | 31,256 → 29,016 |
+  | The old game's screens (`game-*`) | 22, all nearer | 31,903 → 24,569 |
+  | The port's screens (`game-screen-*`; the sheet's among them) | 150: 149 nearer, 1 farther | 56,894 → 39,282 |
+
+  The most: `ui-shadow-rotate` 2,771 → 752 at 1 and 4,545 → 1,219 at 1.65 (the shadow's cut), `game-sheet` 2,263 → 1,098
+  and 4,874 → 2,531 (past its 24 levels 781 → 545 and 1,696 → 1,103), the port's sheet (`sheet-played-light` 848 → 214 at
+  1, `sheet-dev-light` 2,888 → 1,676 at 1.65), `game-map` 1,516 → 482 at 1.65. The one farther: `settings-mods-dark` at 1,
+  663 → 677, where the theme's checkboxes are light and Chromium's dark (below): their rounded frames' corners now
+  Chromium's hairline over the wrong fill. Step 8's screens aren't on `main`; its strip is the `rborder-strip` page.
+- **Breaks** (`mutate.py` under the lock, `claude-work/gm2/round-borders/mutations.json` and its reruns): 46. Killed 38: in
+  the hairline every line orientation's two pixels swapped, a line's first pixel whole and its last part pixel left out,
+  quads cut once more, conics within half a pixel, a cut conic's weight kept, blits not composited, the coverage not over
+  the paint's alpha, an rrect's sides left out, the inset not taking half the stroke off the radii; in the canvas a 1 px
+  stroke not a hairline, a narrower one's alpha kept, the shared atlas, the hairline atlas never cleared, straight pieces
+  into the atlas (rows, columns), runs not merged, a run's coverage left out, the theme's frames as the band; in the
+  painter no ring, a ring under a clip layer, a colour not shrunk, bleed avoidance without a background, sides of other
+  colours or widths a ring, a thin double or a 1 px groove not solid, a corner tighter than the width a ring, an opaque
+  box's shadow cut at its edge (in the painter and in the shader), radii constrained to the unsnapped box (decorations and
+  outlines), the records' radii unconstrained (both boxes), an outline never a ring, a thin double's background shrunk by a
+  sixth. **8 standing:** three move a point by a 1/64 px at most, which no pixel shows past 12 levels (4 levels a blit):
+  the 26.6 points rounded instead of truncated, the first column's y not rounded, Blink's units off the 1/1024 grid (the
+  float noise of the canvas's units); three can't happen to a rounded rect: a cut quarter circle's y order (its control
+  point stays between its ends), radii scaled to fit after the inset (the canvas fits them first, and the inset keeps them
+  fitting), the inner edge's renderability (it holds whenever the outer radii fit); one draws the same: an oval as
+  `SkPath::RRect`'s path instead of `SkPath::Oval`'s (the same four quarter conics; the rrect's lines have no length); and
+  one gap left: an elliptical 1 px border drawn as a hairline moves its guard from 6 to 14 pixels past 12 levels at 1 and
+  from 14 to 26 at 1.65, under the guards' per-control limit (an elliptical guard large enough to pass it is past the limit
+  already: 12 px / 5 px, 63 at 1.65, Skia's even-odd fill against the band). Nothing written to the player's real folders.
+- **Left as they were** (differences from Chromium found beside the rule; known, not fixed here):
+  - *Skia's curve fills:* Skia fills a curved edge (a rounded fill, a ring wider than a pixel, a shadow's spread, an
+    elliptical border's even-odd path) through quads within a quarter pixel of the curve, the canvas by its distance; a
+    curve's edge pixels differ by up to about 0.2 of a pixel's coverage (the shown medallion's 2 px ring of shadow at 1:
+    up to 39 levels on a high contrast; the circles page's 2 px rings, avoided; the radii page's guards 0–15 pixels a box).
+    The known difference "rounded-corner antialiasing differs from Skia" for everything but the hairline.
+  - *A translucent border over a fill:* Blink clips background and border as one layer and fills everything outside the
+    inner rrect; the canvas composes the band over the clipped fill (the circles' translucent rows over a fill: 337 pixels
+    of a row at 1, avoided; one small guard box kept).
+  - *A hairline under a 2D scale at 1.65:* a scaled circle's extreme pixels up to 14 levels (4 pixels); a scaled rounded
+    box's straight sides a quarter pixel from Chromium's at 1 too (up to 28 pixels a box, worst 20): the path the model of
+    Skia draws there isn't Chromium's, cause not found (the transformed box's own geometry is the suspect). Not in the
+    game's screens.
+  - *SVG strokes under a pixel:* Skia draws them as hairlines too (the panels' corner brackets in game.css and sheet.css,
+    `stroke-width='.9'` at 1); the canvas fills a stroke's polygon. Not measured: on the half pixels the brackets' lines
+    lie on, a hairline and a polygon cover alike, so it is their joins and ends (a few pixels a bracket).
+  - *Focus rings:* `DrawFocusRingRect` strokes the ring's inner 1 px at 1 as a hairline; routed through the hairline, a
+    focused button's ring at 1 came no nearer Chromium's, so it stays the band (and the focus ring's known difference at
+    1.65, "Three text rules", stays).
+  - *`color-scheme: dark` ignored by the theme:* the game's dark settings and dialogs draw their checkboxes light where
+    Chromium draws them dark (`game-screen-settings-mods-dark@1`: about 500 of its 663 pixels past 12 levels, 196 levels
+    apart; `color-scheme` is parsed and ignored).
+
 ## Status (2026-10-25)
 
 **All 22 game screens composite exactly like Chromium** (`CompositingReferenceTests`: every screen

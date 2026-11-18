@@ -161,41 +161,50 @@ public sealed partial class UiPainter
             ObscuresBottom = presentBottom && Obscures(s.BorderBottomStyle, s.BorderBottom, s.BorderBottomColor ?? s.Color, edge: false),
             ObscuresLeft = presentLeft && Obscures(s.BorderLeftStyle, s.BorderLeft, s.BorderLeftColor ?? s.Color, edge: false),
         };
-        // Bleed avoidance: clipping the whole background to the rounded border box (a layer, approximated
-        // by the same clip on each draw), or shrinking it under an opaque border.
-        var bleed = BleedAvoidance.None;
-        var hasRadius = !radii.IsZero;
-        var paintsBorder = s.BorderTop > 0 || s.BorderRight > 0 || s.BorderBottom > 0 || s.BorderLeft > 0;
-        if (!paintsBorder || !hasRadius)
-        {
-            // (A gradient or an SVG never occludes the layers below: its size without a box is empty or it isn't known opaque.)
-            if (hasRadius && layers.Length > 0 && (background.A > 0 || layers.Length > 1))
-                bleed = BleedAvoidance.ClipLayer;
-        }
-        else
-        {
-            var obscuresEdges = (!presentTop || Obscures(s.BorderTopStyle, s.BorderTop, s.BorderTopColor ?? s.Color, edge: true))
-                && (!presentRight || Obscures(s.BorderRightStyle, s.BorderRight, s.BorderRightColor ?? s.Color, edge: true))
-                && (!presentBottom || Obscures(s.BorderBottomStyle, s.BorderBottom, s.BorderBottomColor ?? s.Color, edge: true))
-                && (!presentLeft || Obscures(s.BorderLeftStyle, s.BorderLeft, s.BorderLeftColor ?? s.Color, edge: true));
-            // (A side a fragment doesn't have isn't present, so it doesn't obscure.)
-            obscuresEdges &= presentTop && presentRight && presentBottom && presentLeft;
-            bleed = obscuresEdges ? BleedAvoidance.ShrinkBackground : BleedAvoidance.ClipLayer;
-        }
+        var bleed = BleedAvoidanceOf(s, radii, sides, background, layers);
         // The rounded rect a rounded fill is clipped to (ContouredBorderRectForClip): the border box's,
         // inset by half the borders' widths when shrinking (a sixth with a double border).
         var clipRect = snapped;
         var clipRadii = radii;
         if (bleed == BleedAvoidance.ShrinkBackground)
         {
-            var fraction = s.BorderTopStyle == BorderLineStyle.Double || s.BorderRightStyle == BorderLineStyle.Double
-                || s.BorderBottomStyle == BorderLineStyle.Double || s.BorderLeftStyle == BorderLineStyle.Double ? 1f / 6 : 1f / 2;
+            // (A double border's own style: BorderEdge's effective one, solid under 3 device px.)
+            static bool Double(BorderLineStyle style, float deviceWidth) => style == BorderLineStyle.Double && deviceWidth >= 3;
+            var fraction = Double(s.BorderTopStyle, MathF.Round(s.BorderTop * k)) || Double(s.BorderRightStyle, MathF.Round(s.BorderRight * k))
+                || Double(s.BorderBottomStyle, MathF.Round(s.BorderBottom * k)) || Double(s.BorderLeftStyle, MathF.Round(s.BorderLeft * k)) ? 1f / 6 : 1f / 2;
             float top = MathF.Truncate(sides.Top.Width * k) * fraction / k, right = MathF.Truncate(sides.Right.Width * k) * fraction / k;
             float bottom = MathF.Truncate(sides.Bottom.Width * k) * fraction / k, left = MathF.Truncate(sides.Left.Width * k) * fraction / k;
             clipRect = Contract(snapped, new Edges(top, right, bottom, left));
             clipRadii = radii.Shrink(top, right, bottom, left);
         }
         PaintFillLayers(s, box, snapped, radii, clipRect, clipRadii, bleed, background, layers, owner);
+    }
+
+    /// <summary>
+    /// BoxDecorationData::ComputeBleedAvoidance: a rounded box with a border shrinks its background under the border when
+    /// every side hides the background's edge (BorderObscuresBackgroundEdge), and is clipped as a layer otherwise; without
+    /// a border, a rounded box whose image is over a colour or another layer is clipped as a layer. Clipping the whole
+    /// background to the rounded border box is a layer in Blink, approximated by the same clip on each draw.
+    /// </summary>
+    static BleedAvoidance BleedAvoidanceOf(ComputedStyle s, CornerRadii radii, BorderSides sides, Color background, BackgroundLayer[] layers)
+    {
+        if (radii.IsZero)
+            return BleedAvoidance.None;
+        // A side is there unless the box is a fragment without it (its width cut to zero).
+        bool Present(float styleWidth, float width) => !(styleWidth > 0 && width <= 0);
+        bool presentTop = Present(s.BorderTop, sides.Top.Width), presentRight = Present(s.BorderRight, sides.Right.Width);
+        bool presentBottom = Present(s.BorderBottom, sides.Bottom.Width), presentLeft = Present(s.BorderLeft, sides.Left.Width);
+        var paintsBorder = s.BorderTop > 0 || s.BorderRight > 0 || s.BorderBottom > 0 || s.BorderLeft > 0;
+        if (!paintsBorder)
+            // (A gradient or an SVG never occludes the layers below: its size without a box is empty or it isn't known opaque.)
+            return layers.Length > 0 && (background.A > 0 || layers.Length > 1) ? BleedAvoidance.ClipLayer : BleedAvoidance.None;
+        var obscuresEdges = (!presentTop || Obscures(s.BorderTopStyle, s.BorderTop, s.BorderTopColor ?? s.Color, edge: true))
+            && (!presentRight || Obscures(s.BorderRightStyle, s.BorderRight, s.BorderRightColor ?? s.Color, edge: true))
+            && (!presentBottom || Obscures(s.BorderBottomStyle, s.BorderBottom, s.BorderBottomColor ?? s.Color, edge: true))
+            && (!presentLeft || Obscures(s.BorderLeftStyle, s.BorderLeft, s.BorderLeftColor ?? s.Color, edge: true));
+        // (A side a fragment doesn't have isn't present, so it doesn't obscure.)
+        obscuresEdges &= presentTop && presentRight && presentBottom && presentLeft;
+        return obscuresEdges ? BleedAvoidance.ShrinkBackground : BleedAvoidance.ClipLayer;
     }
 
     /// <summary>
