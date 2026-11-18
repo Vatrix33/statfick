@@ -18,8 +18,9 @@ file system's [Data] mod line) and shown in the mod list. Then what a player's o
 game's test PlayerFolderTests through the game's real parts (a character in its slot, a setting changed, the
 character's file, a mod of a kind the game doesn't know): with that mod and one whose index has a byte flipped, both
 left out (named in the log, in the start screen's line and in the mod list) and the good mod still loaded, Continue
-enabled; Continue run (--run continue: the slot opened and written back on quit); the character file loaded into a new
-slot (--run load-character=<file>); the good mod switched off in settings.json (not checked, not mounted, shown as off).
+enabled; Continue run (--run continue: the slot opened and written back on quit; its hero, with no race and no look, asks
+for the new hero's flow and gets no sheet, Q26); the character file loaded into a new slot (--run load-character=<file>,
+the same); the good mod switched off in settings.json (not checked, not mounted, shown as off).
 The editor (statventure-editor): its first start asking "Where is Stat Fick?", --game naming the unpacked game (its data
 library loaded, the versions the same), the remembered folder (editor/game.json), a game of another version refused on
 the command line (exit 2, both versions named) and as the remembered folder (the screen saying why). Every run's log:
@@ -73,6 +74,10 @@ FORWARDED = "Stat Fick is already running for this player: its window was asked 
 CHARACTER, SLOT, CHARACTER_FILE, ODD_MOD = "Ser Alrik", "ser-alrik", "stat-fick-character.json", "odd-charms.pak"
 CHANGED_VALUES = FIRST_VALUES.replace("effects 60%", "effects 40%")
 GOOD_MOD, BROKEN_MOD = "ember-rite.pak", "broken-index.pak"
+# GM2 step 7 (Q26): the sheet opens only for a hero with a race and a look; PlayerFolderTests' character has neither (a new
+# hero), so opening it asks for the new hero's flow (GM2 step 8's race carousel) and the sheet stays hidden. Step 13 makes
+# the flow GM2's whole.
+NEW_HERO_FLOW = "the hero has no race: the new hero's flow asked for"
 LOADED = "[Mods] ember-rite.pak: loaded (Ember Rite 1.0 by Vatrix)"
 BROKEN_PROBLEM = "the index doesn't match its hash (damaged)"
 ODD_PROBLEM = "charms/lucky: a record of type e2e.charm, which isn't a record type known here"
@@ -391,12 +396,23 @@ def start_screen(path):
 
 def character_page(path):
     """The character's page: the stone page most, the top bar's lettering along the top ("Stat Fick", the clock, Menu), no
-    dialog in the middle."""
+    dialog in the middle. (Since GM2 step 7 only a hero with a race and a look gets it: GM2 step 13's flow.)"""
     found, _ = colours(path)
     if not found or not near(found[0][1], STONE):
         return False
     image = Image.open(path).convert("RGB")
     return bool(text_bands(image, (0, 0, image.width, 120), bright=180)) and start_dialog(path) is None
+
+
+def page_alone(path):
+    """Neither the start screen nor the character's page: the stone page most and no lettering anywhere (Q26: a hero
+    without a race and a look doesn't get the sheet; GM2 step 8's new-hero flow, not in this package yet, shows nothing
+    of its own)."""
+    found, _ = colours(path)
+    if not found or not near(found[0][1], STONE):
+        return False
+    image = Image.open(path).convert("RGB")
+    return not text_bands(image, (0, 0, image.width, image.height), bright=180) and start_dialog(path) is None
 
 
 def lettering(image, band):
@@ -782,7 +798,10 @@ def player_runs(flow, p, build, logs):
     flow.check(f"game --run continue: Continue opened {SLOT} (the log)",
                session == [f"opened {SLOT}"] and log.find(f"Continue opens {SLOT}") < log.find(f"opened {SLOT}") and "continue: not possible" not in log,
                " | ".join(session) or "nothing opened")
-    judged(flow, "game --run continue", p.capture("game-continued"), "the character's page (its top bar), not the start screen", character_page)
+    flow.check(f"game --run continue: {SLOT}'s hero has no race, so the new hero's flow is asked for (the log; Q26)",
+               NEW_HERO_FLOW in messages(log, "Game") and log.find(f"Continue opens {SLOT}") < log.find(NEW_HERO_FLOW) < log.find(f"opened {SLOT}"),
+               " | ".join(messages(log, "Game")))
+    judged(flow, "game --run continue", p.capture("game-continued"), "neither the start screen nor the character's page: the stone page alone (Q26)", page_alone)
     now = slot_times(p, SLOT)
     flow.check(f"game --run continue: the slot written back on quit ({SLOT}.dat newer, the save before kept as its backup)",
                None not in now and now[0] > saved[0] and now[1] == saved[0], f"{saved} -> {now}")
@@ -795,7 +814,9 @@ def player_runs(flow, p, build, logs):
     flow.check(f"game --run load-character: {SLOT}-2 saved and the last character, the file's folder the first recent place (settings.json)",
                all(slot_times(p, SLOT + "-2")) and settings.get("lastCharacter") == f"{SLOT}-2" and (settings.get("recentPlaces") or [None])[0] == p.files,
                f"lastCharacter {settings.get('lastCharacter')}, recentPlaces {settings.get('recentPlaces')}")
-    judged(flow, "game --run load-character", p.capture("game-loaded"), "the character's page (its top bar)", character_page)
+    flow.check(f"game --run load-character: the file's hero has no race, so the new hero's flow is asked for (the log; Q26)",
+               NEW_HERO_FLOW in messages(log, "Game") and log.find(f"loaded into {SLOT}-2") < log.find(NEW_HERO_FLOW), " | ".join(messages(log, "Game")))
+    judged(flow, "game --run load-character", p.capture("game-loaded"), "neither the start screen nor the character's page: the stone page alone (Q26)", page_alone)
 
     # The good mod switched off in settings.json (Q3; what the mod list's switch writes), at the next start.
     settings = json.load(open(os.path.join(p.player, "settings.json"), encoding="utf-8"))

@@ -12,7 +12,8 @@ namespace Statventure.Game.Tests;
 /// The game's screens look as Chromium 152 shows the same markup and stylesheets (GM1-P17): every
 /// <see cref="GameScreenFixture"/> at device scales 1 and 1.65, at the paint fixtures' limits (12 levels, 0.2 % of the
 /// pixels), against <c>Golden/game-screen-&lt;name&gt;@&lt;scale&gt;.png</c> (Tools/Scripts/make-game-screen-references.sh),
-/// the icons' boxes masked in both; drawn into the program's window format (<see cref="Render"/>).
+/// the icons' boxes and the boxes a fixture names (<see cref="GameScreenFixture.Masks"/>) masked in both; drawn into the
+/// program's window format (<see cref="Render"/>).
 /// </summary>
 [Collection("GPU")]
 public class GameScreenTests(GpuFixture gpu)
@@ -59,8 +60,10 @@ public class GameScreenTests(GpuFixture gpu)
         var height = (int)MathF.Round(fixture.Height * scale);
         var render = Render(gpu.Device, harness, width, height);
         var golden = Golden.GoldenPath($"game-screen-{name}@{GameScreenFixtures.ScaleName(scale)}");
-        // The icons are step 7's to compare (on their own sheet): their boxes are the golden's in the render.
+        // The icons are step 7's to compare (on their own sheet): their boxes are the golden's in the render; so are the
+        // boxes the fixture names (a part compared on its own elsewhere).
         var masks = GameScreenFixtures.IconBoxes(harness.Document);
+        masks.AddRange(GameScreenFixtures.MaskBoxes(harness.Document, fixture.Masks ?? []));
         if (masks.Count > 0 && File.Exists(golden))
         {
             var reference = ImageFile.Load(golden);
@@ -97,6 +100,37 @@ public class GameScreenTests(GpuFixture gpu)
         device.EndFrame(frame);
         device.WaitIdle();
         return new RgbaImage(width, height, target.ReadPixels());
+    }
+
+    /// <summary>
+    /// A fixture's named boxes: each element its selectors match masked as its ink laid out (its border box and its shadow,
+    /// before its own transform), a pixel around, in device pixels; nothing else.
+    /// </summary>
+    [Fact]
+    public void AFixturesNamedBoxesAreTheirInkAsLaidOut()
+    {
+        foreach (var scale in GameScreenFixtures.Scales)
+        {
+            using var harness = new GameUiHarness(800, 600, scale);
+            var round = harness.Document.Body.Append("div", "round");
+            round.SetAttribute("style", "position: absolute; left: 30px; top: 40px; width: 100px; height: 100px; border-radius: 50%; box-shadow: 0 0 0 6px black; transform: rotate(11deg)");
+            harness.Document.Body.Append("p", "other", "beside").SetAttribute("style",
+                "position: absolute; left: 300px; top: 40px; width: 50px; height: 20px; margin: 0; box-shadow: 3px 5px 2px 1px black, inset 0 0 30px red");
+            harness.Frame();
+            var mask = Assert.Single(GameScreenFixtures.MaskBoxes(harness.Document, [".round"]));
+            Assert.Equal(new RectF(24 * scale - 1, 34 * scale - 1, 112 * scale + 2, 112 * scale + 2), mask, new RectComparer());
+            Assert.Empty(GameScreenFixtures.MaskBoxes(harness.Document, ["#nothing"]));
+            // A shadow's reach past its offset (blur 2, spread 1, offset 3 and 5): left 0, top 0, right 6, bottom 8; an inset one adds nothing.
+            var other = GameScreenFixtures.MaskBoxes(harness.Document, [".round", ".other"]);
+            Assert.Equal(2, other.Count);
+            Assert.Equal(RectF.FromEdges(300 * scale - 1, 40 * scale - 1, 356 * scale + 1, 68 * scale + 1), other[1], new RectComparer());
+        }
+    }
+
+    sealed class RectComparer : IEqualityComparer<RectF>
+    {
+        public bool Equals(RectF a, RectF b) => MathF.Abs(a.X - b.X) < 0.02f && MathF.Abs(a.Y - b.Y) < 0.02f && MathF.Abs(a.Width - b.Width) < 0.02f && MathF.Abs(a.Height - b.Height) < 0.02f;
+        public int GetHashCode(RectF rect) => 0;
     }
 
     /// <summary>The masks' rule: an icon's characters are found on the laid-out lines and their boxes taken from the golden.</summary>

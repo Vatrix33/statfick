@@ -33,7 +33,7 @@ sealed class GameUiHarness : IDisposable
             Settings.Theme = t;
         before?.Invoke(Settings);
         _game = GameTesting.Game(_folder["p"]);
-        List<Mount> mounts = packs ? [Mount.Pack(Path.Combine(TestPaths.Packs, "ui.pak")), Mount.Pack(Path.Combine(TestPaths.Packs, "audio.pak"))] : [];
+        List<Mount> mounts = packs ? [Mount.Pack(Path.Combine(TestPaths.Packs, "ui.pak")), Mount.Pack(Path.Combine(TestPaths.Packs, "audio.pak")), Mount.Pack(Path.Combine(TestPaths.Packs, "data.pak"))] : [];
         if (extra is not null)
             mounts.Add(Mount.Pack(extra));
         _data = new VirtualFileSystem(mounts);

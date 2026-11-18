@@ -36,8 +36,7 @@ public class StatusLineTests
     public void ThePagesLineSaysWhatIsSaidWhileNoWindowIsOpenAndIsEmptiedForANewCharacter()
     {
         using var s = new ScreensHarness(1200, 400);
-        s.Session.New("Ser Alrik");
-        s.H.Frame();
+        s.NewHero("Ser Alrik");
         var line = s.Q("#backup-status");
         s.H.Ui.Status("Character saved");
         Assert.Equal(("Character saved", "backup-status topbar-file-status is-success"), (line.TextContent, line.ClassName));

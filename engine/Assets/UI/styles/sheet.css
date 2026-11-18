@@ -1,7 +1,53 @@
-/* The character's page in GM1 (GM1 step 9; Docs/Game/Foundation.md, "What the player sees in a character in GM1" and
-   "The top bar"): the old page's frame, its markup the old HTML (the top bar, the status line, the ⚙ Settings button),
-   so game.css draws it as the old page; these rules only add what GM1 changes. Loaded after the step 8 sheets. */
+/* The character's page (GM1 step 9; GM2 step 7, the sheet: Docs/Game/Hero.md, "The sheet with the live figure"): the old
+   page's markup, so game.css draws it as the old page; these rules only add what the port changes. Loaded after the
+   step 8 sheets. */
 
-/* GM1 has no Field tools rail (GM2's, with the sheet): the room the old page keeps for it on the left isn't kept, so the
-   page's frame sits in the middle of the window, as the start screen and the windows do. */
+/* The Field tools rail's room on the page's left (the old body's padding, Q34) while the sheet shows; with no character
+   (the start screen, its windows) the page's frame stays in the middle of the window (GM1's Q32). Under 840 px the rail
+   is a drawer and takes no room. */
 body { padding-left: 0; }
+body.has-field-tools { padding-left: var(--field-menu-width); }
+@media (max-width: 840px) { body.has-field-tools { padding-left: 0; } }
+
+/* The page's end clears the ⚙ Settings button fixed at the window's bottom right (16 px up, 38 px tall): scrolled to
+   its end, the footer's line reads whole above it. */
+main.game-page { padding-bottom: 72px; }
+
+/* The heading (Q30): the hero's name in the old heading's place and lettering, its race and level under it. */
+.hero-title { flex: 1 1 320px; min-width: 0; }
+.hero-name { overflow-wrap: anywhere; }
+.hero-standing { margin: 16px 0 0; color: var(--ember-dark); font: 400 1rem/1.4 var(--font-title); letter-spacing: .16em; text-transform: uppercase; }
+/* The race's seal is inert outside Dev Mode (its race locked, Q27) but keeps its emblem in full colour (the old page
+   dimmed a disabled seal to half with every disabled button). */
+:root .hero-sigil:disabled { opacity: 1; }
+
+/* The paper doll (Q29): the portrait panel in the middle of the equipment, the hands' slots at its sides, the armour and
+   the two artifacts below it. */
+.paper-doll { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: center; gap: 12px; }
+.paper-doll > .equipment-slot { align-self: stretch; }
+.paper-doll > .paper-doll-hand { align-self: center; }
+
+/* The portrait panel (Q32): a framed panel with a dark backdrop, the same in both themes; the hero's 3D view fills its
+   window (GM2 step 11 draws the figure there, on the panel's ground: --portrait-ground). */
+.portrait-panel {
+  --portrait-ground: #2a1f1a;
+  --portrait-corners:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Cpath d='M1 17V1h16' fill='none' stroke='%23a8834b' stroke-width='1.6'/%3E%3Cpath d='M4.5 12V4.5H12' fill='none' stroke='%23a8834b' stroke-width='.9'/%3E%3Crect x='3' y='3' width='3' height='3' transform='rotate(45 4.5 4.5)' fill='%23a8834b'/%3E%3C/svg%3E") top 5px left 5px / 18px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Cpath d='M17 17V1H1' fill='none' stroke='%23a8834b' stroke-width='1.6'/%3E%3Cpath d='M13.5 12V4.5H6' fill='none' stroke='%23a8834b' stroke-width='.9'/%3E%3Crect x='12' y='3' width='3' height='3' transform='rotate(45 13.5 4.5)' fill='%23a8834b'/%3E%3C/svg%3E") top 5px right 5px / 18px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Cpath d='M1 1v16h16' fill='none' stroke='%23a8834b' stroke-width='1.6'/%3E%3Cpath d='M4.5 6v7.5H12' fill='none' stroke='%23a8834b' stroke-width='.9'/%3E%3Crect x='3' y='12' width='3' height='3' transform='rotate(45 4.5 13.5)' fill='%23a8834b'/%3E%3C/svg%3E") bottom 5px left 5px / 18px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Cpath d='M17 1v16H1' fill='none' stroke='%23a8834b' stroke-width='1.6'/%3E%3Cpath d='M13.5 6v7.5H6' fill='none' stroke='%23a8834b' stroke-width='.9'/%3E%3Crect x='12' y='12' width='3' height='3' transform='rotate(45 13.5 13.5)' fill='%23a8834b'/%3E%3C/svg%3E") bottom 5px right 5px / 18px no-repeat;
+  position: relative; height: 480px; margin: 0; padding: 0;
+  border: 1px solid #6e5538; border-radius: 3px;
+  background: var(--portrait-corners), radial-gradient(ellipse at 10% 0%, #6b3c1a40, transparent 60%), linear-gradient(180deg, #2a1d14, #170f0a);
+  box-shadow: inset 0 0 0 1px #000, var(--shadow);
+}
+.portrait-view { position: absolute; top: 20px; left: 20px; display: block; width: calc(100% - 40px); height: calc(100% - 40px); background: var(--portrait-ground); }
+.portrait-panel::after { content: ""; position: absolute; top: 19px; right: 19px; bottom: 19px; left: 19px; border: 1px solid #a8834b80; box-shadow: inset 0 0 0 1px #000000a0, inset 0 0 48px #000000b0; pointer-events: none; }
+
+@media (max-width: 760px) {
+  .paper-doll { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .portrait-panel { grid-column: 1 / -1; order: -1; }
+}
+@media (max-width: 470px) {
+  .paper-doll { grid-template-columns: minmax(0, 1fr); }
+}

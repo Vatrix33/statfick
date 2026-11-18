@@ -65,8 +65,7 @@ public class MenuTests
     public void TheMenuOpensByTheButtonByEscapeAndOnceAtATime()
     {
         using var s = new ScreensHarness(1200, 680);
-        s.Session.New("Ser Alrik");
-        s.H.Frame();
+        s.NewHero("Ser Alrik");
         s.H.Sounds.Clear();
         s.H.Click(s.Q("#menu-button"));
         Assert.True(s.H.Ui.Windows.IsOpen(s.Menu.Layer));
@@ -96,8 +95,7 @@ public class MenuTests
     public void AnItemClosesTheMenuThenRunsItsCommand()
     {
         using var s = new ScreensHarness(800, 680);
-        s.Session.New("Ser Alrik");
-        s.H.Frame();
+        s.NewHero("Ser Alrik");
         // The menu closes before the item's command runs.
         s.H.Ui.Windows.Closed += layer =>
         {

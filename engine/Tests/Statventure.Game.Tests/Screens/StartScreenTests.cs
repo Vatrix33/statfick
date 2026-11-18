@@ -1,3 +1,4 @@
+using Statventure.Game.Screens.Sheet;
 using Statventure.Game.Screens.Start;
 using Statventure.Game.Sounds;
 
@@ -45,7 +46,7 @@ public class StartScreenTests
     [Fact]
     public void WithACharacterToContinueContinueIsEnabledFocusedAndOpensIt()
     {
-        using var s = new ScreensHarness(before: ScreensHarness.WithCharacter("Ser Alrik"));
+        using var s = new ScreensHarness(before: ScreensHarness.WithHero("Ser Alrik"));
         Assert.False(s.Q("#start-continue").IsDisabled);
         Assert.Same(s.Q("#start-continue"), s.Document.FocusedElement);
         s.H.Sounds.Clear();
@@ -106,7 +107,9 @@ public class StartScreenTests
         Assert.Equal("ser-alrik", s.Session.CurrentSlot);
         Assert.Equal("Ser Alrik", s.Session.Current!.Name);
         Assert.Equal("ser-alrik", s.Parts.Settings.LastCharacter);
-        Assert.True(s.Sheet.Showing);
+        // A new hero has no race and no look: not the sheet, the new hero's flow asked for (Q25, Q26; GM2 step 8's).
+        Assert.False(s.Sheet.Showing);
+        Assert.Equal([SheetScreen.RacesCommand], s.Ran);
         Assert.False(s.Start.Showing);
         Assert.Equal([SoundNames.Opened], s.H.Sounds);
         Assert.Empty(s.H.Ui.Windows.Layers);
@@ -241,7 +244,8 @@ public class StartScreenTests
         s.H.Document.RunScript(() => s.Session.New("Mira"));
         s.H.Frame();
         Assert.False(s.Start.Showing);
-        Assert.True(s.Sheet.Showing);
+        // Each new hero went on to the new hero's flow (Q26), the start screen never between.
+        Assert.Equal([SheetScreen.RacesCommand, SheetScreen.RacesCommand], s.Ran);
         Assert.Equal(0, shown);
     }
 

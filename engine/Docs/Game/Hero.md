@@ -143,12 +143,28 @@ worker: then Q55). The two addenda after the hand-over (the manager's, 2026-11-1
 body's weights at the nearest point of its surface and every skirt the body's own heights; the hair cap's edge turned in
 under the skin, every skirt's rings at the body's own heights and the mail's skirt flared clear ("How it works", step 4a).
 
-### Questions from the steps (Q43–Q45, Q54–Q55, the user, 2026-11-15 and 2026-11-16)
+### Questions from the steps (Q43–Q50, Q54–Q55, the user, 2026-11-15 and 2026-11-16)
 
 Q43 and Q44 raised by step 1 (the `race` kind's fields; the docs didn't answer them) and asked by the manager with the
 question tool the same day; both the recommended option. Q45 asked by the manager on 2026-11-16 for step 6 (step 2 had
-left it open: whether a character file with a sheet out of the old ranges is refused or corrected). Recorded in
-`Docs/Game-Plan.md`, "GM2's detail round", too.
+left it open: whether a character file with a sheet out of the old ranges is refused or corrected). Q46–Q49 the user's
+verdict on step 7's approval captures and Q50 raised by step 7's comparisons, asked by the manager with the question tool
+on 2026-11-16, every one the recommended option. Recorded in `Docs/Game-Plan.md`, "GM2's detail round", too.
+- **Q46 The sheet's captures: "Yes, approved"** (2026-11-16): the layout and look of step 7's captures stand
+  (`claude-work/gm2/step7/approval/`, the old game's page beside each).
+- **Q47 Under the hero's name: the race and the level** ("HUMAN · LEVEL 30", in the lettering of the race's name under
+  the seal); the old copy line ("A quiet place to keep track of what makes your hero extraordinary.") dropped. (Not the
+  old line kept; not both.)
+- **Q48 The seal outside Dev Mode: in full colour.** Inert ("<race> · Race locked") but not dimmed. (Not dimmed to half
+  as the old game's disabled buttons are.)
+- **Q49 The paper doll as shown:** three equal columns; the portrait panel in the middle in its dark leather frame with
+  brass corner brackets and a brass hairline, its window the Ember look's dark brown (`#2a1f1a`, the "hearth"
+  candidate's background), 480 px tall, the same in both themes; the hands' slots at its sides at its middle; Armor and
+  the two Artifacts in a row below. (Not a larger panel.)
+- **Q50 The race seal in the sheet's picture comparisons: left out** ("Leave the seal out"): the seal's box is masked in
+  every comparison of the sheet with Chromium; its emblem is compared on its own against Blender (step 10), and its 11°
+  tilt is the canvas's known difference on slanted box edges (decided 2026-11-05; measured by `box-slant`). (Not those
+  pictures at the rotated-box limit, 12 levels / 1 %; not an engine port of Skia's coverage for tilted boxes.)
 - **Q43 The races' order.** One entry per race at `data/races/<id>` holds no order (a pack lists its entries by path:
   bear, dark-elf, demon …), while the carousel shows the races in `races.json`'s order and the old recruits' random picks
   (GM11) index the playable races in it. (a) An `order` number on each race, the old game's order written as 10, 20, …
@@ -168,6 +184,18 @@ left it open: whether a character file with a sheet out of the old ranges is ref
   stays as designed: its checks refuse a part the race, the sex or the build doesn't allow (G4). Built by step 6 ("How it
   works", step 6), field for field as the old function, its other corrections named there (the race's id through
   `slugify`, the EXP 0 at the cap and 0 or more, a bonus that isn't a finite number 0).
+- **The manager's, on step 7's reports (2026-11-16):** the 3D view's mask in the screen fixtures stays step 5's
+  (GM2-P12); the sheet's panel draws nothing on either side until step 11, so its fixtures compare it unmasked, and the
+  mask must be in place before a view draws there (steps 5, 11). The fixtures' mask hook (a fixture names boxes to mask
+  by selector, nothing wider) added by step 7 for the seal (Q50), for step 5 to use for the `surface` boxes unchanged.
+  `data.pak` mounted in the game's test harness (`GameUiHarness`), step 8's line the same. Step 7's leave to restate
+  GM1's tests that expected the page after "New character" for Q26, and `end_to_end.py`'s Continue and load
+  expectations, as small as the rule allows. The three engine differences step 7's comparisons found (`overflow-wrap`
+  breaking a word under `white-space: nowrap`; a number field's spin button left out under `appearance: textfield`; a
+  number `line-height` kept as a float) fixed once on a branch of their own, `gm2-engine-fixes`, merged before step 7,
+  which rebases onto it. Accepted as step 7 did them: the page's end clearing the ⚙ button (`padding-bottom: 72px`), the
+  fixture list carrying the page's scroll (step 8's fixtures get the same field), `SheetScreen.Ready` as Q26's rule
+  until step 8's `HeroFlow.Needs` is merged (whoever merges second makes them one).
 - The manager's, on step 1's report (a test fixture's sample text, not a choice about the game): the `settings-mods`
   screens' broken mod holds two races its checks refuse, so the row shows the game's real kind and a real refusal in the
   editor's words, still wrapping onto two lines ("How it works", step 1).
@@ -1616,6 +1644,13 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
      `claude-work/gm2/step7/approval/`; then the fixtures.
    - Finished: approved; the screen against Chromium of the port's markup (12 levels / 0.2 %, the view masked); every
      sheet action through the rules and saved.
+   - **Done (2026-11-16/17, the branch `gm2-step7`; "How it works", step 7).** Approved by the user (Q46–Q49: the
+     captures, the race and level under the name, the seal in full colour, the paper doll as shown), the seal left out of
+     the picture comparisons (Q50) through the fixtures' new mask hook (by selector; step 5's for the views). Q26's rule
+     is `SheetScreen.Ready` until step 8's `HeroFlow.Needs` makes it one (step 8 rebases onto step 7). Three engine
+     differences its comparisons found fixed first on `gm2-engine-fixes` ("The engine fixes"). GM1's tests that expected
+     the page after "New character" restated for Q26, and `end_to_end.py`'s Continue and load. Its choices are under "How
+     it works", step 7 ("Choices made"). The view stays empty (11), the seal's emblem a placeholder (10).
 8. **The race carousel and the maker's screens** (screen; captures on the PC or under Xvfb). After 1 and 6.
    - Owns: `Screens/Races/` (the carousel, Q28) and `Screens/Maker/` (presets as a list, the choices, the random button
      with no locks, Q21; GM2-P15's helper), their sheets, the flow from New character to the sheet (Q25, Q26), Dev Mode's
@@ -2699,6 +2734,174 @@ task before the first screen with such a field: the combat quantity, the compani
   above are the first to look at (each with its numbers in Compositing-Port's "Left as they were"; none can reach the
   sheet's number fields, which have no max, or its line-heights, which are numbers).
 
+### Step 7: the sheet (2026-11-16/17, the branch `gm2-step7`)
+
+**Decided on the way.** The user (2026-11-16, the question tool, through the manager): Q46–Q49 (the captures approved;
+the race and level under the name; the seal in full colour; the paper doll as shown) and Q50 (the seal left out of the
+picture comparisons); the manager's decisions of the same day ("Decisions", "Questions from the steps").
+
+**The screen** (`Game/Statventure.Game/Screens/Sheet/`), on GM1's character page (the same `SheetScreen`, its folder):
+- `SheetMarkup`: the old page's markup (`old-game/index.html` 21–25 and 64–299, and its footer, 556–559, inside the old
+  `main.shell`), with what the decisions change: the hero's name as the heading (`h1#page-title.hero-name`) and the race
+  and level under it (`p#hero-standing`, Q30, Q47) in place of the old copy line; the seal button (`#race-select-button`)
+  with the emblem's `<img id="race-icon">` and the old ✦ fallback; the equipment as a paper doll (`.paper-doll`, Q29): the
+  Primary hand slot, `figure.portrait-panel` holding `<surface id="hero-view" class="portrait-view">` (step 11's view),
+  the Off-hand slot, then Armor, Artifact I and II, each slot the old page's inert "future" slot
+  (`equipment-slot-future`, "Empty slot", Q33, the old ids kept); the whole rail (`aside#field-tools-menu`, Q34): the
+  purse, "COMPANIONS · 0 / 3" and "No companions recruited yet." (GM11's), the eight tools disabled (Combat
+  `data-dev-only`, as the old), the "☰ Field tools" toggle and its shade before the page (the old body's); the eight
+  attribute cards as the old `createStatCards` writes them (`SheetMarkup.Attributes`: the old `statDefinitions`). The
+  Limitless toggle (GM15) and the old dialogs aren't there.
+- `SheetScreen`: **Q26's rule** `Ready(save)`: the hero has a race, and a look unless its race is one the data has as
+  enemy-only (Dev Mode's hero, Q27, has none); a race the data doesn't have (a mod's, switched off) can't be told apart
+  and gets the sheet ("Unknown race"). On every open of a character (`GameSession.Opened`: `game-opened` played, the
+  status line emptied, as GM1) and on **`open-sheet`** (registered here, possible while a character is open; the flow's
+  end runs it): the sheet shown when ready, else the page hidden, `[Game] the hero has no race|look: the new hero's flow
+  asked for` logged and **`open-races`** run (step 8's; not registered on this branch, so the commands log it as not
+  registered). Shown: the page, ⚙, the drawer's toggle, `body.has-field-tools` (the rail's room); hidden on `Closed`.
+  Every save of the open character (`Saved`, the dot as GM1) and every change of Dev Mode (`Settings.Changed`) shows it
+  again. **What it shows** is `ActorRules.Evaluate(hero, context, devMode)`, the context `SheetContext.Plain.WithRaces(
+  RaceCatalogue.Load(<the document's data>))` (the game's data: the same `VirtualFileSystem` as `Application.Data`), every
+  number written as the old `updateDerivedValues` writes it (`formatValue` or `String(n)` where the old code has each), a
+  field written only when its text differs. **Every control calls its rule** (the old handlers): "+" `Raise`, "−" `Lower`,
+  the attribute, bonus, Armor/Evasion bonus and purse fields on `input` (`SetBaseAttribute`, `SetBonus`,
+  `SetDefenseBonus`, `SetPurse`, the field's text read as JavaScript's `Number`), HP and Mana's − and + with the amount's
+  whole value (`ChangeResource`; nothing below 1; the field emptied), Full HP, Full Mana, Restore both, the EXP form
+  (`AddExperience`, the field emptied when added), Respec, Level up; **an action the rule refuses (the same sheet back)
+  saves nothing and sounds nothing of its own**, else the result goes to `GameSession.Change` and GM2-P17's sound plays:
+  `point-spent` when the "+" spends a free point (Dev Mode's "+" with none left and "−" keep GM1's press), `level-up`
+  (Dev Mode's too), `respec`. The seal: in Dev Mode it runs `open-races` (Q27), outside it is disabled with "<race> · Race
+  locked"; in full colour either way (Q48: `sheet.css`).
+- `SheetTexts`: JavaScript's `String(n)` (ECMA-262's Number::toString: shortest round-trip digits, plain from 10⁻⁶ to
+  below 10²¹), the old `formatValue`, the EXP card's lines (checked against every case of `sheet-values.json`'s `texts`),
+  the meters' `scaleX`, the attribute bars, the race's name ("Unknown race"), the seal's title, the line under the name.
+- `EmblemPictures`: the seal's picture, a placeholder until step 10 (the old seals' brass rim with 24 ticks and an inner
+  ring round the game's four-pointed star, the same for every race with an emblem; an SVG data URL, so the engine, the
+  program's window and Chromium draw it alike); a race with no emblem shows the ✦. **Step 10 replaces `For(race)`** (by
+  `Race.Emblem`'s name).
+- `FieldTools`: the old `interface.js` (its first part) line by line: under 840 px (`matchMedia`) the rail is a drawer,
+  inert and `aria-hidden` while closed, opened by the toggle (the focus on its first enabled control: the purse in Dev
+  Mode, else the toggle keeps it), closed by the toggle, the shade, Escape (the focus back on the toggle), a tool's click
+  (not taking the focus back) and the page widening past 840 px; Tab and Shift+Tab kept among its controls and the
+  toggle. A window over the page takes the keys (its Escape closes it, not the drawer).
+
+**`Assets/UI/styles/sheet.css`:** the rail's room only while the sheet shows (`body.has-field-tools { padding-left:
+var(--field-menu-width) }`, none under 840 px; the start screen and its windows stay centred, GM1's Q32); the drawer's
+toggle and shade hidden with the page by their `hidden` (the old stylesheet's `[hidden] { display: none !important }`
+outweighs game.css's display for them under 840 px); the page's end clearing
+the ⚙ button (`main.game-page { padding-bottom: 72px }`: the button 16 px up and 38 px tall, so the footer's line reads
+whole scrolled to the end, checked at 1440 and 820 px); the heading (`.hero-title { flex: 1 1 320px; min-width: 0 }`, so
+a long name wraps beside the seal; `.hero-standing`); the seal undimmed (`:root .hero-sigil:disabled { opacity: 1 }`,
+Q48); the paper doll (three equal columns, the hands centred on the panel, two columns under 760 px with the panel on
+top, one under 470) and the portrait panel (480 px, a 1 px `#6e5538` border, the leather gradient with brass corner
+brackets in both themes, the view's window 20 px in on `--portrait-ground: #2a1f1a` with a brass hairline and a soft
+vignette drawn over it: `::after`). `ui.pak` made again.
+
+**For later steps.** *Step 8:* the flow starts on `open-races` (asked by the sheet for a hero that isn't ready, and by the
+seal in Dev Mode) and ends with `GameSession.Change(save => save with { Hero = …, Look = … })` then `open-sheet`;
+`SheetScreen.Ready(save)` is Q26's rule here, `HeroFlow.Needs` step 8's: the step merged second makes them one. The
+tests' stand-in for the flow is `ScreensHarness.NewHero` (New, `Ready`, `open-sheet`). *Step 11:* the view is
+`surface#hero-view` in `figure.portrait-panel`, positioned 20 px inside the panel's border (480 px tall at every width;
+the panel's width the middle column's); its ground the surface's computed `background-color` (`--portrait-ground`,
+`#2a1f1a`, the same in both themes); the view must pause while the page is hidden (`SheetScreen.Showing`) or covered
+(GM2-P16); the screens' fixtures compare the panel unmasked until step 5's mask is in place, which must come before a
+view draws there. *Step 10:* `EmblemPictures.For(race)`, by the race's `Emblem`; the seal is 172 px (138 under 840 px, 123
+under 760, 93 under 470), its picture 72 % of it, turned 11° with the button and back. *Step 5:* the fixtures' mask hook
+below. *Step 13:* `end_to_end.py`'s Continue and load now expect the new hero's flow for PlayerFolderTests' character
+(no race): the log line and the page alone; GM2's whole flow (a race and a look, then the sheet) is step 13's to write.
+*GM3:* the slots' `equipment-slot-future` and their ids are the old page's; *GM8:* class points (the Classes tool's
+flash); *GM11:* the companions' list; *GM15:* the Limitless toggle and the cap's text.
+
+**The fixtures' mask hook** (`Tests/Statventure.Game.Tests/Ui/`; the user's Q50, the manager's leave): a
+`GameScreenFixture` names boxes to mask by selector (`Masks`); `GameScreenFixtures.MaskBoxes` gives each matching
+element's border box as laid out, before its own transform (a box turned in place about its centre, as the round seal,
+keeps its footprint), with the reach of its outer box shadows past their offsets, a pixel around, in device pixels;
+`GameScreenTests` takes those boxes from the golden as it takes the icons'. The sheet's and the page's fixtures name
+`#race-select-button` (`SheetScreenFixtures.SealMask`); step 5 names the `surface` boxes the same way (GM2-P12). The
+fixture list also carries the page's own scroll now (`scrollX`, `scrollY`: the root's offsets), so a long page's lower
+part is a fixture of the window's size.
+
+**GM1's tests restated for Q26** (the manager's leave; each keeps its point; helpers in `ScreensHarness`: `open-races`
+among the recording stand-ins, `WithHero`, `Ready`, `NewHero`): `StartScreenTests` (Continue opens a hero with a race and
+a look onto its sheet; New character makes and opens the character and asks for the new hero's flow, the sheet not
+shown; a character left for another never shows the start screen between, both new heroes asking for the flow);
+`PageTests` (the page for a hero with a race and a look, whoever opens it; Menu and ⚙; the rail test now proves the room
+kept while the sheet shows, 260 px at 1200, none under 840 px and none with no character); `MenuTests` (two, on a
+ready hero), `StatusLineTests` (one), `ScreenFlowTests` (four: its `Saved` helper and the imported character file give a
+race and a look); the fixtures `page-*` (1200 × 400: the rail and the sheet's top beside the top bar) and `menu-page-*`
+open a ready hero, their goldens captured again. **`end_to_end.py`:** `--run continue` and `--run load-character` expect
+the log line `the hero has no race: the new hero's flow asked for` (after `Continue opens`, before `opened`; after `loaded
+into`) and the picture "the stone page alone" (`page_alone`: the page's colour most, no lettering anywhere, no start
+dialog) where they expected the character's page; `character_page` stays for step 13.
+
+**Tests** (game): `SheetScreenTests` (Q26 and Q27's rule with the flow asked for and logged; `open-sheet`; every number
+shown against `Evaluate`; the races' bonuses in the fields; Dev Mode live; a save shown again; the seal and its emblem;
+every control's rule and save and sound; refusals saving nothing; typed fields outside Dev Mode; a long word in the name;
+the race and level line's colour; the paper doll, its slots' rows and its panel's frame, corners and ground; the rail; the
+drawer; the EXP texts on every oracle case; JavaScript's number text, `formatValue`, the
+meters, bars and race words; the fixture list's scroll; the seal's mask against the seal's box), `SheetHeroes`,
+`SheetScreenFixtures` (13: the played page at its top, its doll and its end in both themes, Dev Mode at the top and the
+attributes, a new hero, a long name, 820 px with the drawer closed and open and its doll; the seal masked; through the
+real hidden window too, `ProgramPathScreenTests`), `GameScreenTests.AFixturesNamedBoxesAreTheirInkAsLaidOut`.
+
+**Shown able to fail** (`mutate.py` with the game's project, under the shared lock in a headless cage;
+`claude-work/gm2/step7/mutations.json`, made by `make-mutations.py`; the filter the sheet's, the page's, GM1's restated
+classes, the mask hook's test, the fixture list and one fixture's comparison): 168 mutations of every rule the step adds:
+Q26's rule and its flow (the race, the look, the enemy-only race, the log line, `open-races`, `open-sheet`), showing and
+hiding (the page, ⚙, the toggle, the rail's room, the drawer closed on leaving), every value written (each field, meter,
+bar, alert, Dev Mode's controls, the seal's state and title, the race's line), every action (its rule, its arguments, the
+save, the sound, a refusal), the texts (`String(n)`'s ranges, `formatValue`, the EXP lines, the meters' clamp, the bars'
+bounds), the emblem's seam, the drawer (`interface.js`'s every branch), the mask hook (the pixel around, the shadow's
+reach and offset, inset shadows left out, only the named boxes, the boxes masked at all) and the fixture list's scroll. The first full run: 159 killed, 9
+survived; six were gaps, closed and killed in the rerun (`mutations-rerun.json`): a field's text as JavaScript's `Number`
+reads it (white space alone is 0, a no-break space is white space, an infinity is no number), HP and Mana's amount
+counted by its size (`Math.abs` of the floor: "-5.5" takes 6), the focus back on the drawer's toggle from inside it, and
+a disabled control not the drawer's to focus (outside Dev Mode the toggle is its only stop); one showed a redundant line
+(`Show` updating the drawer, which every change already updates), taken out with its mutation. **The standing list: 167,
+165 killed, 2 that can't differ:** the level's cap not written (it is 100 for every hero until GM15's Limitless, and the
+markup says "CAP 100"); Dev Mode's level-up rule always called as Dev Mode's (the button is disabled exactly when the
+rule outside Dev Mode refuses, the old `app.js` 1823, so the rule is never reached with too little EXP). Nothing written
+to the player's real folders. **The stylesheet** (`css-mutate.py`, a runner of its own as GM1 step 10's: each mutation of
+`sheet.css` packed into `ui.pak` before its tests, the source and the pack put back after; on `main` with the engine
+fixes): 26 mutations, one per rule (the rail's room, the page's end, the heading, the race and level line, the seal
+undimmed, the paper doll's columns, hands and slots, the panel's height, frame, corners, border, shadow, ground and
+window, the narrow layouts). The first run: 20 killed, 6 survived; five were gaps, closed with computed-style and layout
+checks (a single long word in the name kept inside the heading; the race and level line in the race name's colour, not
+the ink; the slots below stretched to one height when one holds more; the panel's four corner brackets; its border's
+own brown in both themes: each too small for the pictures' 0.2 %) and killed in the rerun (`css-mutations-rerun.json`);
+one showed a redundant rule (the drawer's toggle and shade hidden by their `hidden`, which the old stylesheet's
+`[hidden] { display: none !important }` already does), taken out with its mutation. **The standing list: 25, 25
+killed.** **`end_to_end.py`** (2026-11-17, on `6a33ced`, before the rebase): 243 of 243 on the GPU
+(122 s, `--publish`) and on lavapipe (266 s); its Q26 checks broken one at a time on the same archives (the log line's
+words; the two pictures judged as the character's page, what they expected before): each break fails its two checks
+and only those (241 of 243).
+
+**The comparisons** (pixels past 12 levels against the limit, 0.2 %; the seal masked, Q50, which took 1,150–1,360 pixels
+off each fixture showing it). Before `gm2-engine-fixes` (2026-11-16) eight failed, each for the engine difference named
+(the fixtures neither loosened nor resized): *the spin button's room* (a number field under `appearance: textfield`
+keeps Blink's 15 px spin button, transparent; the engine left it out): `sheet-attributes-dark` 3,924 at 1× (limit 2,764)
+and 8,955 at 1.65 (7,527), `sheet-attributes-light` 3,879 and 9,610, `sheet-dev-attributes-dark` 4,096 and 10,027;
+*`overflow-wrap` under `nowrap`* (the purse's "PLATINUM" broken in the engine at a 260 px rail, whole in Chromium):
+`page-dark` 5,558 at 1× (limit 960) and 12,533 at 1.65 (2,613), `page-light` 5,678 and 12,849, `page-status-light` 5,666
+and 12,809; *a number line-height kept as a float* (a 40 px heading at 1.05 laid 41.984375 high, Blink's 42):
+`sheet-drawer-closed-light` 1,321 at 1× (limit 1,148). **On `main` with the fixes** (2026-11-17, rebased on `55ed6b0`,
+nothing of the step's changed for them): those eight 555 and 1,079, 621 and 1,892, 592 and 2,026; 80 and 177, 90 and 275,
+78 and 235; 155 (and 504 at 1.65); every sheet and page fixture at 31 % of its limit or less at 1× and 38 % or less at
+1.65 (`sheet-dev-light` 840 and 2,888 the most; the `menu-page` pair 21–48); the real hidden window's frames the
+harness's (`ProgramPathScreenTests`).
+
+**Runs** (headless, scratch per-user folders, nothing audible; on `main`'s `55ed6b0`, 2026-11-18): the full suite on the
+GPU (323 s with the build) and on lavapipe (371 s): **4392 + 748 = 5140 tests** (`main`: 4392 + 659 = 5051; 89 new, all
+the game's), none held or skipped; `end_to_end.py` on the final tree 243 of 243 on the GPU (118 s, `--publish`). Goldens: the 13 sheet fixtures at 1 and
+1.65 (26, Chromium's), GM1's `page-*` and `menu-page-*` captured again for a ready hero (10); `ui.pak` with `sheet.css`.
+
+**Choices made** (internal; recorded here): the Q26 rule's unknown race getting the sheet; the page hidden whole for a hero
+that isn't ready (step 8's screens show what the flow shows); `game-opened` on every open as GM1; an action saved only
+when its rule didn't refuse it (the old handlers' early returns), the purse's field shown again after its input as the
+old; the emblem's placeholder an SVG data URL in the program; the races read from the document's data; `open-sheet`
+showing nothing new when the sheet already shows but writing it again; the fixtures at the game's first window (1440 ×
+960) scrolled to the sheet's parts, and 820 × 700 for the drawer; the drawer's open fixture waiting for its slide.
+
 ## Status
 
 - **2026-11-15:** written on the user's go for GM2 (docs only, the branch `gm2-design` from `8c7d07d`), after the user's
@@ -2779,3 +2982,15 @@ task before the first screen with such a field: the combat quantity, the compani
   found beside recorded, not fixed (the manager's word), one of them an engine task before the first screen with a
   number field that has a min and a max. Steps 7 and 8 rebase onto it. 4392 + 659 = 5051 tests on the GPU and on
   lavapipe (`main`: 4364 + 659 = 5023; 28 new); breaks 79, 78 killed, one that can't differ.
+- **2026-11-18, step 7 done** (a worker, the branch `gm2-step7`, rebased on the engine fixes; "How it works", step 7): the
+  character sheet on the engine, on GM1's page: the old page's markup with the hero's name as its heading and the race
+  and level under it, the race seal (a placeholder emblem until step 10) in full colour, the paper doll round the dark
+  portrait panel whose view stays empty until step 11, the whole Field tools rail with its tools disabled and its drawer
+  under 840 px (`interface.js` line by line); every number the sheet's rules' (`ActorRules.Evaluate`, written as the old
+  page writes it) and every control through its rule, saved with its sound; the sheet only for a hero with a race and a
+  look (Q26; `open-races` asked otherwise), `open-sheet`. Approved by the user (Q46–Q49), the seal masked in the
+  comparisons (Q50) through the fixtures' new mask hook; 13 fixtures in both themes and at 820 px, all passing with the
+  engine fixes (the eight that waited at most 27 % of their limit). GM1's tests and `end_to_end.py` restated for Q26.
+  4392 + 748 = 5140 tests on the GPU and on lavapipe (`main`: 4392 + 659 = 5051; 89 new); mutations 167 standing (165
+  killed, 2 that can't differ) and the stylesheet's 25 (all killed); `end_to_end.py` 243 of 243 on both drivers, its two
+  breaks caught. Found: the three engine differences fixed on `gm2-engine-fixes`.

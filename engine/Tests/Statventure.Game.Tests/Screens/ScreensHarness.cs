@@ -1,4 +1,6 @@
 using Statventure.Core;
+using Statventure.Game.Data.Looks;
+using Statventure.Game.Data.Saves;
 using Statventure.Game.Mods;
 using Statventure.Game.Random;
 using Statventure.Game.Screens.About;
@@ -27,8 +29,8 @@ namespace Statventure.Game.Tests;
 /// </summary>
 sealed class ScreensHarness : IDisposable
 {
-    /// <summary>Step 10's commands the screens run, as stand-ins where a test sees step 9's screens alone.</summary>
-    public static readonly string[] StandIns = ["open-settings", "open-slots", "open-slot", "save-character", "load-character"];
+    /// <summary>Step 10's commands the screens run, and GM2 step 8's race carousel the sheet asks for (Q26), as stand-ins where a test sees step 9's screens alone.</summary>
+    public static readonly string[] StandIns = ["open-settings", "open-slots", "open-slot", "save-character", "load-character", SheetScreen.RacesCommand];
 
     readonly bool _owned;
 
@@ -106,12 +108,38 @@ sealed class ScreensHarness : IDisposable
     public List<string> MenuItems() =>
         [.. Document.QuerySelectorAll("#game-menu .game-menu-item").Select(item => string.Join(" | ", item.ElementChildren.Select(c => c.TextContent)))];
 
-    /// <summary>A save made in the folder before the screens are attached (a slot to continue), then left.</summary>
+    /// <summary>A save made in the folder before the screens are attached (a slot to continue), then left: a new hero with no race and no look (GM1's; Q26: it opens on the new hero's flow).</summary>
     public static Action<GameSession> WithCharacter(string name) => session =>
     {
         session.New(name);
         session.Leave();
     };
+
+    /// <summary>A hero with a race and a look made in the folder before the screens are attached (a slot to continue whose sheet opens, Q26), then left.</summary>
+    public static Action<GameSession> WithHero(string name) => session =>
+    {
+        session.New(name);
+        session.Change(Ready);
+        session.Leave();
+    };
+
+    /// <summary>A save's hero given what the new hero's flow (GM2 step 8) gives it: a race (a human) and its look (Q26: the sheet opens only with both).</summary>
+    public static SaveGame Ready(SaveGame save) =>
+        save with { Hero = save.Hero with { Race = "human" }, Look = new LookHero { Race = "human", Sex = LookNames.Male, Body = "human-male-average" } };
+
+    /// <summary>
+    /// A new character through the new hero's flow as GM2 step 8 runs it, stood in here: made (the sheet asks for the race
+    /// carousel: recorded, then taken off <see cref="Ran"/> again), given a race and a look, then <c>open-sheet</c>; its slot.
+    /// </summary>
+    public string NewHero(string name)
+    {
+        var slot = Session.New(name);
+        Session.Change(Ready);
+        H.Ui.Commands.Run(SheetScreen.OpenCommand);
+        H.Frame();
+        Ran.Remove(SheetScreen.RacesCommand);
+        return slot;
+    }
 
     /// <summary>A mod named <paramref name="name"/> (its <c>mod/info</c>) that the game's check leaves out (an entry that doesn't read).</summary>
     public static void BrokenMod(string mods, string name)

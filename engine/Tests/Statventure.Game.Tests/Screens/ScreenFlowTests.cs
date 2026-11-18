@@ -44,10 +44,11 @@ public class ScreenFlowTests
     static UiElement MenuItem(ScreensHarness s, string label) =>
         s.Document.QuerySelectorAll("#game-menu .game-menu-item").Single(i => i.ElementChildren.First().TextContent == label);
 
-    /// <summary>A character made and left in its slot, flushed, so it has a save and a backup on disk; its slot.</summary>
+    /// <summary>A hero with a race and a look (Q26: its sheet opens) made and left in its slot, flushed, so it has a save and a backup on disk; its slot.</summary>
     static string Saved(ScreensHarness s, string name)
     {
         var slot = s.Session.New(name);
+        s.Session.Change(ScreensHarness.Ready);
         s.H.Storage.Flush();
         s.Session.Leave();
         s.H.Storage.Flush();
@@ -78,7 +79,7 @@ public class ScreenFlowTests
     public void ThePagesGearAndTheMenusSettingsOpenTheSettingsScreenOverThePage()
     {
         using var s = Seven();
-        s.Session.New("Ser Alrik");
+        s.NewHero("Ser Alrik");
         Settle(s);
         Assert.False(s.Q("main.game-page").Hidden);
         var log = GameTesting.CaptureLog(() => Click(s, s.Q("#settings-open-button")));
@@ -100,7 +101,7 @@ public class ScreenFlowTests
     public void TheMenusSaveAndLoadCharacterAndCtrlSAndCtrlOOpenThePicker()
     {
         using var s = Seven();
-        s.Session.New("Ser Alrik");
+        s.NewHero("Ser Alrik");
         Settle(s);
         void Opens(string mode, Action open)
         {
@@ -224,7 +225,7 @@ public class ScreenFlowTests
         using var s = Seven();
         Saved(s, "Ser Alrik");
         Saved(s, "Wren");
-        CharacterFile.Export(Path.Combine(s.Documents!, "mira.json"), new Data.Saves.SaveGame { Name = "Mira" });
+        CharacterFile.Export(Path.Combine(s.Documents!, "mira.json"), ScreensHarness.Ready(new Data.Saves.SaveGame { Name = "Mira" }));
         s.H.Sounds.Clear();
         // Continue (the start screen's own open).
         Click(s, s.Q("#start-continue"));

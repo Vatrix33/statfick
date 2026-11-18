@@ -19,9 +19,12 @@ namespace Statventure.Game.Tests;
 /// the root's and the body's classes);
 /// <c>Tools/Scripts/make-game-screen-references.sh</c> screenshots it in Chromium at 1 and 1.65 into
 /// <c>Golden/game-screen-&lt;name&gt;@1.png</c> and <c>@1.65.png</c>, which the engine's paint of the live document must match
-/// at the paint fixtures' limits (12 levels, 0.2 % of the pixels), the icons' boxes masked (step 7 tests the icons).
+/// at the paint fixtures' limits (12 levels, 0.2 % of the pixels), the icons' boxes masked (step 7 tests the icons), and the
+/// boxes of the elements <see cref="Masks"/> names (selectors) masked too: a part compared on its own elsewhere (GM2 step 7:
+/// the sheet's race seal, the user's Q50; GM2-P12: the 3D views' <c>surface</c> boxes, GM2 step 5), each its ink as laid
+/// out (<see cref="GameScreenFixtures.MaskBoxes"/>).
 /// </summary>
-sealed record GameScreenFixture(string Name, int Width, int Height, GameTheme Theme, Action<GameUiHarness> Setup);
+sealed record GameScreenFixture(string Name, int Width, int Height, GameTheme Theme, Action<GameUiHarness> Setup, IReadOnlyList<string>? Masks = null);
 
 /// <summary>A part's screen fixtures, in a file of its own beside its tests: every class of the test assembly implementing this is found (steps 9 and 10 add theirs).</summary>
 interface IGameScreenFixtures
@@ -93,7 +96,9 @@ static class GameScreenFixtures
     /// <c>engine/Assets/UI/styles/&lt;name&gt;.css</c>) without their <c>@font-face</c> rules (PaintReference gives the game's
     /// five faces: <c>gameFonts</c>) and puts after it; <c>htmlByScale</c> the markup at a scale where it isn't 1's (the
     /// engine places the top layer's pieces in whole device pixels at each scale: a select's list, a tooltip, a bubble);
-    /// the root's and the body's classes and the body's style; <c>mainFrame</c>, captured as a page's own document, as the
+    /// the root's and the body's classes and the body's style; the page's own scroll (<c>scrollX</c>, <c>scrollY</c>: the
+    /// root's offsets, so a long page's lower part is a fixture of the window's size, GM2 step 7); <c>mainFrame</c>,
+    /// captured as a page's own document, as the
     /// game's is (in PaintReference's iframe the top layer and the fixed dialogs would merge into the page's layer and keep
     /// LCD text where the game's document gives them a layer of their own: Docs/Compositing-Port.md, "The iframe and the
     /// main frame"), so a fixture's size is whole device pixels at each scale (multiples of 20 px).
@@ -114,7 +119,7 @@ static class GameScreenFixtures
         {
             name = f.Name, width = f.Width, height = f.Height, css = TopLayerCss, sheets = harness.Ui.Sheets, html, htmlByScale = byScale,
             htmlClass = document.Root.ClassName, bodyClass = document.Body.ClassName, bodyStyle = document.Body.GetAttribute("style") ?? "",
-            gameFonts = true, mainFrame = true, scrollX = 0, scrollY = 0, windowFocused = true,
+            gameFonts = true, mainFrame = true, scrollX = document.Root.ScrollLeft, scrollY = document.Root.ScrollTop, windowFocused = true,
         };
     }).ToList(), new JsonSerializerOptions { WriteIndented = false });
 
@@ -213,6 +218,38 @@ static class GameScreenFixtures
                     return true;
             return false;
         });
+    }
+
+    /// <summary>
+    /// The boxes (device pixels, a pixel's margin around) of every element <paramref name="selectors"/> match: each its border
+    /// box as laid out, before its own transform (so a box turned in place about its centre, as the round race seal is, keeps
+    /// its footprint), with the reach of its outer box shadows (spread and blur, past their offsets). What the element holds
+    /// stays inside its box (the seal's emblem, a 3D view's picture). Elements with no box mask nothing.
+    /// </summary>
+    public static List<RectF> MaskBoxes(UiDocument document, IEnumerable<string> selectors)
+    {
+        document.UpdateLayout();
+        var boxes = new List<RectF>();
+        foreach (var selector in selectors)
+            foreach (var element in document.QuerySelectorAll(selector))
+            {
+                if (element.Box is not { } box)
+                    continue;
+                var at = box.ViewportRect;
+                float left = 0, top = 0, right = 0, bottom = 0;
+                foreach (var shadow in box.Style.BoxShadows)
+                {
+                    if (shadow.Inset)
+                        continue;
+                    var reach = shadow.Spread + shadow.Blur;
+                    left = MathF.Max(left, reach - shadow.OffsetX);
+                    right = MathF.Max(right, reach + shadow.OffsetX);
+                    top = MathF.Max(top, reach - shadow.OffsetY);
+                    bottom = MathF.Max(bottom, reach + shadow.OffsetY);
+                }
+                boxes.Add(RectF.FromEdges(at.Left - left - 1, at.Top - top - 1, at.Right + right + 1, at.Bottom + bottom + 1));
+            }
+        return boxes;
     }
 
     /// <summary>The cluster boxes on the lines of <paramref name="roots"/> and every box under them whose text <paramref name="which"/> takes.</summary>

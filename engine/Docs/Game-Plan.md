@@ -733,7 +733,7 @@ and below ("GM2's detail round").
   want them to look very good".
 
 **GM2's detail round (the user, 2026-11-15, the question tool, asked by the manager in ten rounds of four after the
-design doc's first version, the options as `Docs/Game/Hero.md` prepared them, then Q40, the manager's follow-up, then Q41 and Q42, which the answers opened, and Q43 and Q44, which step 1 raised, and Q45, asked for step 6, and Q54 and Q55, asked for step 4a; in full
+design doc's first version, the options as `Docs/Game/Hero.md` prepared them, then Q40, the manager's follow-up, then Q41 and Q42, which the answers opened, and Q43 and Q44, which step 1 raised, and Q45, asked for step 6, and Q46–Q50, step 7's, and Q54 and Q55, asked for step 4a; in full
 with each question's facts and options in `Docs/Game/Hero.md`, "The questions as asked" and "Questions from the steps"):** every answer the recommended
 option (a) except Q1, Q2, Q9, Q18, Q19, Q21, Q22, Q23, Q28, Q31, Q32 and Q37. The manager's decisions on the proposals
 (GM2-P1–GM2-P16, all as proposed, with notes on P7, P10 and P16; GM2-P17 on step 12's sounds, GM2-P18 on step 6's
@@ -800,6 +800,14 @@ design is open.
   out of range opens with them corrected silently, as the old game's `normalizeCharacter` (the level into 1 to the cap,
   points, coins and HP to 0 or more), with no message and without refusing the file; the look stays as designed (its
   checks refuse what the maker couldn't make, G4). (Not "correct and say so"; not "refuse the file".)
+- Q46–Q49 (the user's verdict on GM2 step 7's sheet captures, asked by the manager on 2026-11-16, each the recommended
+  option): the sheet approved as captured (Q46); under the hero's name its race and level, the old copy line dropped
+  (Q47; not the old line, not both); the seal outside Dev Mode in full colour (Q48; not dimmed as the old game's); the
+  paper doll as shown, three equal columns, the 480 px dark leather portrait panel in the middle on the Ember look's dark
+  brown, the same in both themes (Q49; not a larger panel).
+- Q50 (raised by step 7's comparisons, asked the same day): the race seal is left out of the sheet's picture comparisons,
+  its box masked; its emblem compared on its own against Blender (step 10), its tilt the canvas's known slanted-box
+  difference (`box-slant`). (Not those pictures at 12 levels / 1 %; not an engine port of Skia's tilted-box coverage.)
 - Q54 (asked by the manager for step 4a on 2026-11-16, on its cost study: about 152,000 triangles and 100 primitives a
   geared figure): **the lighter figures, "Yes, use the lighter ones"**, the same sculpted forms remade lighter (named to
   the user as differing on purpose: the hairline a clean arc, the collars and hems smooth); with the manager's GM2-P19
@@ -2378,3 +2386,9 @@ GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
   differences found beside recorded, one an engine task before the first screen with a number field that has a min and a
   max (the combat quantity, the companions' resource fields; `Docs/Engine-Plan.md`, the small tasks;
   `Docs/Compositing-Port.md`, "Three text rules").
+- **2026-11-18, GM2 step 7 (the sheet):** the character sheet on the engine (the old page's markup with the hero's name as
+  its heading, the race seal, the paper doll round a dark portrait panel waiting for step 11's figure, the whole Field
+  tools rail and its drawer under 840 px), every number the sheet's rules' and every control through them and saved, the
+  sheet only for a hero with a race and a look (Q26), approved by the user (Q46–Q49) with the seal left out of the
+  picture comparisons (Q50); three engine differences its comparisons found fixed on `gm2-engine-fixes` first
+  (`Docs/Game/Hero.md`, "How it works", step 7).

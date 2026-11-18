@@ -1248,8 +1248,11 @@ the design and the tests):
   for step 6):** a save or character file whose numbers are out of range is corrected silently, as the old game's
   `normalizeCharacter`, never refused for them; in the same two places ("GM2's detail round"; Hero.md, "Questions from
   the steps"), with the manager's GM2-P18 of the same day (a look's models are references, refused when missing; bodies,
-  parts and presets enter `data.pak` with their models) in Hero.md's "Decisions". **Q54 and Q55 (2026-11-16, asked by
-  the manager for step 4a):** the lighter figures ("Yes, use the lighter ones"; with the manager's GM2-P19, a model's
+  parts and presets enter `data.pak` with their models) in Hero.md's "Decisions". **Q46–Q50 (2026-11-16, step 7's, all
+  as recommended):** the sheet's captures approved, the race and level under the hero's name, the seal in full colour,
+  the paper doll as shown, and the seal left out of the sheet's picture comparisons (its box masked); in the same two
+  places, with the manager's decisions on step 7 (the fixtures' mask hook, the engine fixes on `gm2-engine-fixes`).
+  **Q54 and Q55 (2026-11-16, asked by the manager for step 4a):** the lighter figures ("Yes, use the lighter ones"; with the manager's GM2-P19, a model's
   pieces joined per ink flag, and GM2-P20, a "full" level shipped and a "battle" level for GM5) and the limits for
   detailed figures ("Approve limits now, refine the lines after": `ReferenceLimits.DetailedFigure` from the measurement
   plus about a twentieth, an engine task for the ink's depth allowance later, then the limits tightened); in the same two
@@ -4393,6 +4396,19 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     bonus fields given the spin button's room); five differences found beside recorded as known, not fixed, one an
     engine task ("Small tasks left": a number field's own width from its min and max). 4392 + 659 = 5051 tests on the GPU
     and on lavapipe, none held; breaks 79 (78 killed, one that can't differ).
+  - **GM2 step 7, the sheet (2026-11-16 to 18, a worker on the branch `gm2-step7`; `Docs/Game/Hero.md`, "How it works",
+    step 7):** `Game/Statventure.Game/Screens/Sheet/` on GM1's page: the old page's markup (`SheetMarkup`) with the hero's
+    name as the heading and the race and level under it (Q30, Q47), the race seal in full colour (Q48) with a placeholder
+    emblem (`EmblemPictures`, step 10's to replace), the paper doll round the dark portrait panel holding step 11's empty
+    `surface#hero-view` (Q29, Q32, Q49), the whole Field tools rail with its drawer under 840 px (`FieldTools`, the old
+    `interface.js`); `SheetScreen` showing `ActorRules.Evaluate` as the old page writes it (`SheetTexts`: JavaScript's
+    `String(n)`, `formatValue`) and calling a rule for every control, saved through `GameSession.Change` with GM2-P17's
+    sounds; Q26's rule (`SheetScreen.Ready`, `open-races` asked for a hero without a race or a look; step 8's
+    `HeroFlow.Needs` to be made one with it), `open-sheet`; `Assets/UI/styles/sheet.css`. The fixtures' mask hook (a
+    fixture names boxes by selector; the seal masked, Q50; step 5's for the views) and the fixture list's page scroll; 13
+    sheet fixtures, all passing on the engine fixes; GM1's tests and `end_to_end.py` restated for Q26; `data.pak` in the
+    game's test harness. 4392 + 748 = 5140 tests on the GPU and on lavapipe, none held; mutations 167 standing (165
+    killed, 2 that can't differ) and the stylesheet's 25 (all killed); `end_to_end.py` 243 of 243 on both drivers.
 
 ## Milestones
 

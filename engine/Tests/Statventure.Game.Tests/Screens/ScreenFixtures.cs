@@ -7,7 +7,8 @@ namespace Statventure.Game.Tests;
 /// <summary>
 /// Step 9's screens compared with Chromium (GM1-P17), as the user approved them (2026-11-14): the start screen (a first
 /// start with Continue greyed, a character to continue, the line naming one, two and five mods left out, its status line),
-/// New character's prompt (filled in, and refusing an empty name), the character's page with its top bar (the autosave dot
+/// New character's prompt (filled in, and refusing an empty name), the character's page with its top bar (since GM2 a
+/// hero with a race and a look, Q26: the sheet's top and the Field tools rail beside it; the autosave dot
 /// lit, and a file message on its status line), the menu (on the page and on the start screen) and About (at its top and
 /// scrolled to its end). The main screens in both themes, their variants in one. The windows are opened by their commands
 /// (as Escape, <c>--about</c> and <c>--open</c> open them), so their first control has the focus as a script gives it; the
@@ -35,8 +36,8 @@ sealed class ScreenFixtures : IGameScreenFixtures
                     s.H.Click(s.Q(".game-dialog-accept"));
                     Away(s);
                 });
-                yield return Page($"page-{t}", theme, s => s.Session.New("Ser Alrik"));
-                yield return Start($"menu-page-{t}", theme, before: ScreensHarness.WithCharacter("Ser Alrik"), setup: s =>
+                yield return Page($"page-{t}", theme, s => s.NewHero("Ser Alrik"));
+                yield return Start($"menu-page-{t}", theme, before: ScreensHarness.WithHero("Ser Alrik"), masks: [SheetScreenFixtures.SealMask], setup: s =>
                 {
                     s.H.Ui.Commands.Run("continue");
                     s.H.Frame();
@@ -50,7 +51,7 @@ sealed class ScreenFixtures : IGameScreenFixtures
             yield return Start("start-new-character-dark", GameTheme.Dark, setup: s => s.H.Ui.Commands.Run("new-character"));
             yield return Page("page-status-light", GameTheme.Light, s =>
             {
-                s.Session.New("Ser Alrik");
+                s.NewHero("Ser Alrik");
                 s.H.Wait(0.5);
                 s.H.Ui.Status("Character saved");
             });
@@ -65,12 +66,13 @@ sealed class ScreenFixtures : IGameScreenFixtures
     }
 
     /// <summary>A fixture of the screens at the start screen's size, put in its state by <paramref name="setup"/>.</summary>
-    static GameScreenFixture Start(string name, GameTheme theme, IReadOnlyList<string>? leftOut = null, Action<Session.GameSession>? before = null, Action<ScreensHarness>? setup = null) =>
-        new(name, Width, Height, theme, h => Screens(h, leftOut, before, setup));
+    static GameScreenFixture Start(string name, GameTheme theme, IReadOnlyList<string>? leftOut = null, Action<Session.GameSession>? before = null, Action<ScreensHarness>? setup = null,
+        IReadOnlyList<string>? masks = null) =>
+        new(name, Width, Height, theme, h => Screens(h, leftOut, before, setup), masks);
 
-    /// <summary>A fixture of the character's page at the page's size.</summary>
+    /// <summary>A fixture of the character's page at the page's size (the sheet's race seal masked, the user's Q50: compared on its own).</summary>
     static GameScreenFixture Page(string name, GameTheme theme, Action<ScreensHarness> setup) =>
-        new(name, PageWidth, PageHeight, theme, h => Screens(h, null, null, setup));
+        new(name, PageWidth, PageHeight, theme, h => Screens(h, null, null, setup), [SheetScreenFixtures.SealMask]);
 
     /// <summary>
     /// The screens attached to the fixture's own document (<see cref="GameScreenFixtures.Build"/> makes it) with the real

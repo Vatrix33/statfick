@@ -8,7 +8,7 @@ namespace Statventure.Game.Tests;
 /// GM1", "The top bar"; step 9): the old page's frame without the theme toggle and Save, Load and New Character, with
 /// "☰ Menu" at the top bar's right end and the ✦ a mark, not a button; shown while a character is open, whoever opened
 /// it, with <c>game-opened</c>; the autosave dot lit 350 ms on every save; the ⚙ Settings button and the Menu button
-/// running their commands; no room kept for GM2's Field tools rail (Q32).
+/// running their commands; since GM2 (Q26, Q34) shown for a hero with a race and a look, with the Field tools rail's room.
 /// </summary>
 public class PageTests
 {
@@ -45,7 +45,7 @@ public class PageTests
     [Fact]
     public void ThePageShowsWhileACharacterIsOpenWhoeverOpenedItWithTheOpenedSound()
     {
-        using var s = new ScreensHarness(1200, 400, before: ScreensHarness.WithCharacter("Ser Alrik"));
+        using var s = new ScreensHarness(1200, 400, before: ScreensHarness.WithHero("Ser Alrik"));
         Assert.False(s.Sheet.Showing);
         s.H.Sounds.Clear();
         // Another part opens it (step 10's slot list, say).
@@ -95,8 +95,7 @@ public class PageTests
     public void TheMenuAndSettingsButtonsRunTheirCommands()
     {
         using var s = new ScreensHarness(1200, 400);
-        s.Session.New("Ser Alrik");
-        s.H.Frame();
+        s.NewHero("Ser Alrik");
         s.H.Click(s.Q("#settings-open-button"));
         Assert.Equal(["open-settings"], s.Ran);
         s.H.Click(s.Q("#menu-button"));
@@ -104,14 +103,29 @@ public class PageTests
     }
 
     [Fact]
-    public void ThePageKeepsNoRoomForTheFieldToolsRailInGM1()
+    public void ThePageKeepsTheFieldToolsRailsRoomWhileTheSheetShows()
     {
-        // Q32 (2026-11-14): the old body's room for GM2's rail (game.css: padding-left: var(--field-menu-width)) isn't kept.
+        // Q34 (GM2): the whole rail and its room (game.css: the body's padding-left, var(--field-menu-width), 260 px at
+        // 1350 px or less); GM1's Q32 kept none. The start screen, with no character, stays in the middle of the window.
         using var s = new ScreensHarness(1200, 400);
-        s.Session.New("Ser Alrik");
-        s.H.Frame();
         Assert.Equal(0, s.Document.Body.Style!.PaddingLeft.ResolveOr(1200, -1));
+        s.NewHero("Ser Alrik");
+        Assert.True(s.Document.Body.HasClass(SheetScreen.RailRoomClass));
+        Assert.Equal(260, s.Document.Body.Style!.PaddingLeft.ResolveOr(1200, -1));
+        var rail = s.Q("#field-tools-menu").GetBoundingClientRect();
+        Assert.Equal((0, 260), (rail.Left, rail.Width));
+        // The page's frame in the middle of the rest (beside the page's own scrollbar).
         var page = s.Q("main.game-page").GetBoundingClientRect();
-        Assert.Equal(1200 - page.Right, page.Left, 0.5);
+        Assert.Equal(s.Document.Root.ClientWidth - page.Right, page.Left - 260, 0.5);
+        // Under 840 px the rail is a drawer and takes no room.
+        s.Document.SetViewport(820, 400);
+        s.H.Frame();
+        Assert.Equal(0, s.Document.Body.Style!.PaddingLeft.ResolveOr(820, -1));
+        // The character left: the room goes with the sheet.
+        s.Document.SetViewport(1200, 400);
+        s.Session.Leave();
+        s.H.Frame();
+        Assert.False(s.Document.Body.HasClass(SheetScreen.RailRoomClass));
+        Assert.Equal(0, s.Document.Body.Style!.PaddingLeft.ResolveOr(1200, -1));
     }
 }

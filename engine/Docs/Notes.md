@@ -598,6 +598,18 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   fixtures that list the game's packs (a tree that overflows its pane scrolls in Chromium and not in the engine: make the
   fixture taller). The engine's ink draws a feature edge up to half a pixel (two edge-on) plus 1e-4 of the depth under
   what covers it (`ink_edges.frag`), so an open edge a millimetre under the skin shows: model a hidden edge well inside.
+- 2026-11-17 (the PC, GM2 step 7's worker on the branch `gm2-step7`): **the sheet** (`Docs/Game/Hero.md`, "How it works",
+  step 7). Gotchas: the old game's `transform: rotate(11deg)` seal is the canvas's known slanted-box difference (1,150–1,360
+  pixels at 1×; GM1's captures of the old sheet froze transforms, so it never showed), masked in the sheet's comparisons
+  (Q50) through the fixtures' new mask hook; a game-screen fixture can show a long page's lower part (the fixture list
+  carries the root's scroll now); the drawer's 180 ms slide must have ended before a fixture's frame; a laid-out box's
+  `InkOverflow` is the painter's (empty before a paint): take shadows from the computed style; the old old-game captures
+  are made with `captureTestScreen(name, width, height)` in the test client (any size from 360 × 600), animations frozen
+  by a style, never transforms (the drawer and the seal are transforms). Found in the engine (fixed on
+  `gm2-engine-fixes`): `overflow-wrap: anywhere` broke words under `white-space: nowrap` (Blink's `LineBreaker` honours
+  it only where the line wraps); a number field lost its 15 px spin button under `appearance: textfield` (Blink keeps it
+  for every steppable input); a number `line-height` kept as a float (1.05 → a 40 px line 41.984375 high; Blink stores the
+  number ×100 from its double). `xunit`'s `--filter "DisplayName~<fixture>"` picks one fixture's comparisons.
 - **Input references:** `Tools/InputReference` is an Electron harness run by the old test client's Electron (Chromium 152, unpacked to `~/.cache/stat-fick-build/chromium-152`) via `Tools/Scripts/make-input-references.sh`: real trusted input (`sendInputEvent`, held buttons as modifiers, wheel ticks), window shown offscreen for real focus. Fixtures in `Tests/.../Ui/InputFixtures.cs`; `InputReferenceTests` replays them at 60 Hz frames and compares event logs, states and snapshots. Probe one-off questions by writing ad-hoc fixture JSON and running the harness binary directly (much of Chromium's event timing was settled this way, e.g. an emptied focused field fires no selectionchange).
 - Reference sources (Chromium 152 files, Skia, skrifa, read-fonts, cc traces) live in `~/.cache/stat-fick-build/reference-src/` (README there); always save new downloads there, never in a chat temp folder. Chromium source for exact behaviour: fetch from `https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.89/<path>?format=TEXT` (base64) — the game's Electron is Chromium 152. Used for scrollbars, scroll curves, wheel, sticky, overflow. Wheel: 120 px/notch on Linux, 100 on Windows (not 53⅓).
 - Performance tool: `Tools/Scripts/benchmark.sh [state ...]`. Profiling: `dotnet-trace` is in `~/.cache/stat-fick-build/tools` (`--format speedscope`; self time shows as CPU_TIME frames, use inclusive time).
