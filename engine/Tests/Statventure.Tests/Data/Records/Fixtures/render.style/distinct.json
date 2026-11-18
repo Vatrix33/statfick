@@ -1,0 +1,24 @@
+{
+  "$types": {
+    "render.style": 1,
+    "render.style.sun": 1
+  },
+  "ink": "#1a2b3c",
+  "shadowMix": 0.11,
+  "bandEdge": 0.22,
+  "outlineWidth": 3.3,
+  "innerWidth": 4.4,
+  "creaseAngle": 105.5,
+  "hatchSpacing": 6.6,
+  "hatchWidth": 7.7,
+  "hatchAngle": 88.8,
+  "hatchInk": 0.99,
+  "glowWide": 10.1,
+  "glowCore": 12.2,
+  "glowBoost": 13.3,
+  "sun": {
+    "direction": [-0.25, 0.5, 0.75],
+    "strength": 14.4,
+    "angle": 15.5
+  }
+}

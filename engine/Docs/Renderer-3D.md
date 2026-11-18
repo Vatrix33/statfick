@@ -708,3 +708,12 @@ Started 2026-10-30.
 - **M6 done (2026-10-31, 573 tests).** Measured on this PC's Radeon RX 9070: 0.8-1.4 ms a 1080p
   frame for the terrain, particle and glow scenes (`Renderer3D.Render` with submission and wait); a
   2016-class GPU (the target) is untested.
+- **A look as data (GM2 step 5, 2026-11-18; `Docs/Game/Hero.md`, "How it works", step 5).** `RenderStyle`
+  (`Render3D/RenderStyle.cs`, record `render.style` at `render/styles`, with `render.style.sun`): every number of
+  `CelStyle` and the sun's (`SunLight`) under the names of a look file's `style` and `sun` (the humanoid scripts'
+  `look.py`), its rules the look file's (the ink a colour, every number finite, the sun's direction not 0, its strength
+  and angle 0 or more), `Cel` and `SunLight` for a view, `Of(style, sun)` back, `Load(data, path)` checked; a new one is
+  the engine's look (`CelStyle.Default` under the lizardman test's sun). The game's look is its entry
+  `render/styles/game` (data.pak); the engine's test scenes keep `CelStyle.Default` (GM2's Q11). Measured beside: a view
+  with nothing that receives shadows runs no shadow pass (`FitShadow` finds no receiver), yet its render target allocates
+  the 4096² atlas (64 MiB) all the same: an engine task (the atlas only where something receives).

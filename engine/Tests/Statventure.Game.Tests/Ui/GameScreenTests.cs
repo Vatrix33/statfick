@@ -63,7 +63,7 @@ public class GameScreenTests(GpuFixture gpu)
         // The icons are step 7's to compare (on their own sheet): their boxes are the golden's in the render; so are the
         // boxes the fixture names (a part compared on its own elsewhere).
         var masks = GameScreenFixtures.IconBoxes(harness.Document);
-        masks.AddRange(GameScreenFixtures.MaskBoxes(harness.Document, fixture.Masks ?? []));
+        masks.AddRange(GameScreenFixtures.MaskBoxes(harness.Document, [.. GameScreenFixtures.Views, .. fixture.Masks ?? []]));
         if (masks.Count > 0 && File.Exists(golden))
         {
             var reference = ImageFile.Load(golden);
@@ -131,6 +131,32 @@ public class GameScreenTests(GpuFixture gpu)
     {
         public bool Equals(RectF a, RectF b) => MathF.Abs(a.X - b.X) < 0.02f && MathF.Abs(a.Y - b.Y) < 0.02f && MathF.Abs(a.Width - b.Width) < 0.02f && MathF.Abs(a.Height - b.Height) < 0.02f;
         public int GetHashCode(RectF rect) => 0;
+    }
+
+    /// <summary>
+    /// Every 3D view's box is what every fixture masks besides what it names (GM2-P12, GM2 step 5): each <c>surface</c>
+    /// element's border box, wherever it is and however many; nothing else of the page. (The fixture
+    /// <c>view-masked-dark</c> shows the mask in a comparison: <see cref="ViewScreenFixtures"/>.)
+    /// </summary>
+    [Fact]
+    public void EveryViewsBoxIsMasked()
+    {
+        Assert.Equal(["surface"], GameScreenFixtures.Views);
+        foreach (var scale in GameScreenFixtures.Scales)
+        {
+            using var harness = new GameUiHarness(800, 600, scale);
+            var panel = harness.Document.Body.Append("div");
+            panel.SetAttribute("style", "position: absolute; left: 100px; top: 60px; width: 300px; height: 400px; padding: 20px");
+            panel.Append("surface").SetAttribute("style", "display: block; width: 260px; height: 360px; border: 2px solid red");
+            harness.Document.Body.Append("surface").SetAttribute("style", "position: absolute; left: 500px; top: 300px; display: block; width: 120px; height: 80px");
+            harness.Document.Body.Append("p", text: "not a view").SetAttribute("style", "position: absolute; left: 500px; top: 40px; margin: 0");
+            harness.Frame();
+            var boxes = GameScreenFixtures.MaskBoxes(harness.Document, GameScreenFixtures.Views);
+            Assert.Equal(2, boxes.Count);
+            // Its border box (the game's sheets size boxes by their borders: 260 × 360 with the border).
+            Assert.Equal(RectF.FromEdges(120 * scale - 1, 80 * scale - 1, 380 * scale + 1, 440 * scale + 1), boxes[0], new RectComparer());
+            Assert.Equal(RectF.FromEdges(500 * scale - 1, 300 * scale - 1, 620 * scale + 1, 380 * scale + 1), boxes[1], new RectComparer());
+        }
     }
 
     /// <summary>The masks' rule: an icon's characters are found on the laid-out lines and their boxes taken from the golden.</summary>

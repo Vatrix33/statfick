@@ -1256,7 +1256,9 @@ the design and the tests):
   pieces joined per ink flag, and GM2-P20, a "full" level shipped and a "battle" level for GM5) and the limits for
   detailed figures ("Approve limits now, refine the lines after": `ReferenceLimits.DetailedFigure` from the measurement
   plus about a twentieth, an engine task for the ink's depth allowance later, then the limits tightened); in the same two
-  places, the engine items in `Docs/Game-Plan.md`, "Engine items the port will meet".
+  places, the engine items in `Docs/Game-Plan.md`, "Engine items the port will meet". **The manager's answer to step 5
+  (2026-11-18):** the human race's swatches are step 9a's, approved there with its builds, faces and presets; until then
+  the human presets draw their models' own colours (`Docs/Game/Hero.md`, "Decisions").
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -4409,6 +4411,22 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     sheet fixtures, all passing on the engine fixes; GM1's tests and `end_to_end.py` restated for Q26; `data.pak` in the
     game's test harness. 4392 + 748 = 5140 tests on the GPU and on lavapipe, none held; mutations 167 standing (165
     killed, 2 that can't differ) and the stylesheet's 25 (all killed); `end_to_end.py` 243 of 243 on both drivers.
+  - **GM2 step 5, the game's look in the engine and figures built from looks (2026-11-17/18, a worker on the branch
+    `gm2-step5`; `Docs/Game/Hero.md`, "How it works", step 5):** the engine's `render.style` record (`Render3D/
+    RenderStyle.cs`: CelStyle's numbers and the sun under a look file's names, the look file's rules; the user's Q12,
+    GM2-P11) and the game's entry `render/styles/game` in `data.pak`, written from `ember-hearth.json`; the game's figure
+    builder (`Game/Statventure.Game/Figures/HeroFigure.cs`, GM2-P8: a `look.hero` to one `Actor`, the parts as garments,
+    the gear's items on sockets, the palette from the race's swatches; every missing thing a look names refused, GM2-P18);
+    the first humanoid's two bodies, four parts and eight human presets in `data.pak` (the presets in their models' own
+    colours until step 9a gives the human its swatches: the manager's answer, 2026-11-18); `Tools/Models/humanoid/
+    assemble.py` (a look read against the data in Blender; `make-blender-references.sh` step 6, `make-humanoid.sh
+    assemble`) and six sample looks held to it on both drivers under `ReferenceLimits.DetailedFigure` (unchanged); the
+    structural walk over every combination by pairs; every `surface` box masked in the game's screen fixtures (GM2-P12,
+    through step 7's hook), with a fixture that needs it. Measured: a view with no scenery runs no shadow pass
+    but allocates the 64 MiB atlas (an engine task); found: the engine's `surface` is a replaced element (300 × 150, its
+    children not drawn) where Chromium's is an unknown inline one. 18 editor goldens captured again for `data.pak`'s new
+    folders (`list-marks` 840 px tall). 4425 + 796 = 5221 tests on the GPU and on lavapipe, none held; mutations 78 (77
+    killed, one that can't show on this branch), `assemble.py`'s breaks 16 of 16.
 
 ## Milestones
 

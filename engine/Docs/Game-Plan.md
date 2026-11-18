@@ -2074,6 +2074,13 @@ and waits for the user's go, asked when its milestone reaches it:
   - **Skinning once per mesh** instead of once per primitive (the compute passes and the CPU's draw items follow the
     primitives): GM5.
   - **A measurement on a real 2016-class card** (the PC's GPU and lavapipe only so far; Decisions for M6's target): GM5.
+- Found by GM2 step 5 (2026-11-18; `Docs/Game/Hero.md`, "How it works", step 5), for the manager:
+  - **The shadow atlas only where something receives shadows:** a view with no scenery (the sheet's, the carousel's and
+    the maker's figure) runs no shadow pass, but every view's render target allocates the 4096² atlas (64 MiB) all the
+    same (`RenderTarget3D`): 64 of a portrait view's 76 MiB at 240 × 440. GM2 step 11's live views (GM2-P16's memory).
+  - **`surface` in the engine and in Chromium:** the engine lays it out as a replaced element (a 300 × 150 natural size, its
+    children never drawn), Chromium as an unknown inline element; a view's box is sized fully (`display: block`, a width
+    and a height) until the two agree. Known, not changed.
 
 ### The three decision-id collisions
 
@@ -2392,3 +2399,9 @@ GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
   sheet only for a hero with a race and a look (Q26), approved by the user (Q46–Q49) with the seal left out of the
   picture comparisons (Q50); three engine differences its comparisons found fixed on `gm2-engine-fixes` first
   (`Docs/Game/Hero.md`, "How it works", step 7).
+- **2026-11-18, GM2 step 5 (the game's look in the engine and figures built from looks, the branch `gm2-step5`):** the
+  game's look as the engine's `render.style` (`render/styles/game` in `data.pak`), the figure builder (a hero's look to one
+  figure, everything missing refused), the first humanoid's bodies, parts and human presets in `data.pak` (in their models'
+  own colours until step 9a's swatches: the manager's answer), Blender's assembly of looks and six samples held to it, the
+  structural walk, the 3D views masked in the screen fixtures; two engine items found ("Engine items the port will
+  meet"; `Docs/Game/Hero.md`, "How it works", step 5).

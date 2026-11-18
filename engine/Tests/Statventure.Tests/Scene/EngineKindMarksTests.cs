@@ -17,7 +17,7 @@ namespace Statventure.Tests.Scene;
 
 /// <summary>
 /// The marks and checks of the engine's scene, model, particle, terrain, state machine and stylesheet kinds
-/// (M11 step 6; Docs/Editor.md, "The engine's kinds: checks and marks"): every kind's names, folders, help
+/// (M11 step 6; Docs/Editor.md, "The engine's kinds: checks and marks"), and the render style's (GM2 step 5): every kind's names, folders, help
 /// texts, units, limits, colours, bulk fields and references as recorded in Data/Records/Marks (a changed
 /// mark fails until the file is written again, as a layout does); every declared limit one the kind's own
 /// check already holds, so the game refuses nothing it loaded before (G4); everything that loads today
@@ -30,7 +30,7 @@ public class EngineKindMarksTests
     {
         ["scene.sequence"] = typeof(Sequence), ["scene.curve"] = typeof(FCurve), ["particle.effect"] = typeof(ParticleEffect),
         ["model"] = typeof(ModelData), ["terrain"] = typeof(TerrainData), ["animation.state-machine"] = typeof(StateMachineDefinition),
-        ["ui.stylesheet"] = typeof(StylesheetRecord),
+        ["ui.stylesheet"] = typeof(StylesheetRecord), ["render.style"] = typeof(RenderStyle),
     };
 
     public static TheoryData<string> KindNames => [.. Kinds.Keys];

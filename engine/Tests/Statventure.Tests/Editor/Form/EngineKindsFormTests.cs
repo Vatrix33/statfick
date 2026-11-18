@@ -92,8 +92,10 @@ public class EngineKindsFormTests(ITestOutputHelper output)
             var value = field.Value;
             if (value.IsNumber)
             {
-                editor.Enter(row.Control("input", "number"), "3");
-                return (path, DraftValue.Of(Convert.ChangeType(3, value.Type)));
+                // 3, or 4 where the field holds 3 already (a render style's sun, GM2 step 5): an edit changes the value.
+                var number = editor.Session.Selected!.Draft![field] is DraftLeaf { Value: var now } && Convert.ToDouble(now) == 3 ? 4 : 3;
+                editor.Enter(row.Control("input", "number"), number.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                return (path, DraftValue.Of(Convert.ChangeType(number, value.Type)));
             }
             if (value.Kind == ValueKind.String && field.Choices is null)
             {

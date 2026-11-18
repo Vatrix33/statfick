@@ -1,0 +1,18 @@
+{
+  "$types": {
+    "look.preset": 1,
+    "look.hero": 1
+  },
+  "label": "Courtier",
+  "order": 40,
+  "look": {
+    "race": "human",
+    "sex": "male",
+    "body": "human-male-average",
+    "parts": {
+      "face": "face-human-male-1",
+      "hair": "hair-swept-back"
+    },
+    "colours": {}
+  }
+}

@@ -1,0 +1,38 @@
+render.style "Render style" in render/styles by PlainNames
+  help: How the 3D views look: the ink, the lit and shadow tones, the lines, the hatching, the glow and the sun. The figures' colours are their palettes'.
+  ink "Ink": colour
+    help: The ink's colour (#rrggbb): the lines and the hatching, and what the shadow tones lean toward.
+  shadowMix "Shadow mix"
+    help: How far a shadow tone leans from its lit tone toward the ink (0: not at all, 1: the ink itself).
+  bandEdge "Band edge"
+    help: How much of the sun's light a surface needs to take its lit tone; with less it takes its shadow tone.
+  outlineWidth "Outline width": unit px
+    help: The outline's width around each model (0: none), at a device scale of 1.
+  innerWidth "Inner width": unit px
+    help: The inner lines' width (creases, open edges and where surfaces cross; 0: none), at a device scale of 1.
+  creaseAngle "Crease angle": unit °
+    help: Faces of a model meeting at less than this angle get an inner line.
+  hatchSpacing "Hatch spacing": unit px
+    help: How far apart the hatching's lines are in shadow, at a device scale of 1.
+  hatchWidth "Hatch width": unit px
+    help: How wide the hatching's lines are, at a device scale of 1.
+  hatchAngle "Hatch angle": unit °
+    help: The hatching's angle on screen, clockwise from the right.
+  hatchInk "Hatch ink"
+    help: How far the hatching's lines lean from the shadow tone toward the ink (0: unseen, 1: the ink).
+  glowWide "Glow wide": unit px
+    help: The glow's wide halo: how far it spreads (its blur's radius), at a device scale of 1.
+  glowCore "Glow core": unit px
+    help: The glow's bright core: how far it spreads (its blur's radius), at a device scale of 1.
+  glowBoost "Glow boost"
+    help: How strongly the glow's wide halo shows.
+  sun "Sun"
+    help: The sun: the one white light, far away.
+render.style.sun "Render sun"
+  help: The one white light of a render style, far away.
+  direction "Direction"
+    help: The direction toward the sun (x right, y up, z toward the front a model faces); any length but 0.
+  strength "Strength"
+    help: How strong the sun is, as a Blender sun's strength (a white surface facing it shows the strength divided by π).
+  angle "Angle": unit °
+    help: The sun's size in the sky: the larger, the softer the shadows' edges.

@@ -37,7 +37,10 @@ the user and wait for their go-ahead before starting the next one.
   "How it works", step 1). The maker's records (`data/looks/bodies|parts|presets`, GM2 step 6) enter it only with their
   models (GM2-P18): `STATVENTURE_LOOK_DATA=write` (the game's tests, `LookDataTests`) writes a body for each
   `models/humanoid/bodies/<race>-<sex>-<build>` in `models.pak` and the old game's preset of each race and sex with its
-  average body (`Docs/Game/Hero.md`, "How it works", step 6), then `make-data-pack.sh`.
+  average body (`Docs/Game/Hero.md`, "How it works", step 6), then `make-data-pack.sh`. Since GM2 step 5 `data.pak` also
+  holds the first humanoid's bodies, parts and human presets and the game's look, `render/styles/game` (the engine's
+  `render.style`, written from `Tools/Models/humanoid/looks/ember-hearth.json` with `STATVENTURE_STYLE_DATA=write`,
+  `GameStyleTests`).
 - The old game's oracle (GM2-P13, GM2 step 2; `Docs/Game/Hero.md`, "How it works", step 2):
   `Tools/Scripts/make-old-game-references.sh [module ...]` runs the old game's own code on each module's case list
   (`Tools/OldGameOracle/modules/<module>.cjs`: its pure modules in Node, the cache's; the rules inside `app.js` in its
@@ -86,6 +89,11 @@ the user and wait for their go-ahead before starting the next one.
   <library.glb>` keys a folder of clip files (`clips/library.py` gives their form; the frame's test clip `rest-sway` is the
   tests' data); `Tools/Scripts/make-models-pack.sh` makes `Assets/Packs/models.pak` afresh from `Assets/Models/`. The
   figures are held to Blender's under `ReferenceLimits.DetailedFigure` (the user's Q55).
+  Since step 5 (`Docs/Game/Hero.md`, "How it works", step 5) the game builds a hero's figure from its look
+  (`Game/Statventure.Game/Figures/HeroFigure.cs`), and `Tools/Models/humanoid/assemble.py` assembles the same look in
+  Blender from the data: `make-humanoid.sh assemble --out <folder> --name <stem> --look-hero <look.json> --data <folder>
+  [...]` for pictures; `make-blender-references.sh` assembles and renders the game's tests' samples
+  (`Reference/assembly-looks.json`, written with `STATVENTURE_ASSEMBLY_LOOKS=write`, `AssemblyTests`).
 - Cutscenes (M10, `Docs/Scene.md`, step 7): `Tools/Scripts/play-cutscene.sh jiruan [--volume 0-100]` plays Ji'ruan's intro, the proof, with its sound in
   the sandbox's window (Escape or its Skip button skips, R replays; `--dump <folder>` writes its frames instead);
   `Tools/Scripts/make-cutscene-references.sh` captures the old game's card in Chromium at the sampled times.

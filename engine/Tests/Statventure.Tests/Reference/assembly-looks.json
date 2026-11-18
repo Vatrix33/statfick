@@ -1,0 +1,260 @@
+{
+  "format": "statventure.assembly",
+  "version": 1,
+  "data": [
+    "../../../Assets/Data",
+    "assembly-data"
+  ],
+  "models": "../../../Assets/Models",
+  "background": "#2a1f1a",
+  "scenes": [
+    {
+      "name": "assembly-human-male-ember",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-average",
+        "parts": {
+          "face": "face-human-male-1",
+          "hair": "hair-swept-back"
+        },
+        "colours": {
+          "skin": "Ember",
+          "hair": "Ember",
+          "eyes": "Ember",
+          "brows": "Ember",
+          "eye.white": "Ember",
+          "cloth": "Ember",
+          "cloth.trim": "Ember",
+          "trousers": "Ember",
+          "leather": "Ember",
+          "buckle": "Ember"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null
+    },
+    {
+      "name": "assembly-human-female-ember",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-average",
+        "parts": {
+          "face": "face-human-female-1",
+          "hair": "hair-long-tied"
+        },
+        "colours": {
+          "skin": "Ember",
+          "hair": "Ember",
+          "eyes": "Ember",
+          "brows": "Ember",
+          "eye.white": "Ember",
+          "cloth": "Ember",
+          "cloth.trim": "Ember",
+          "trousers": "Ember",
+          "leather": "Ember",
+          "buckle": "Ember",
+          "lips": "Ember"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "front",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null
+    },
+    {
+      "name": "assembly-human-male-red-back",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-average",
+        "parts": {
+          "face": "face-human-male-1",
+          "hair": "hair-swept-back"
+        },
+        "colours": {
+          "skin": "Pale",
+          "hair": "Red",
+          "eyes": "Green",
+          "brows": "Red",
+          "eye.white": "Ember",
+          "cloth": "Blue",
+          "cloth.trim": "Silver",
+          "trousers": "Tan",
+          "leather": "Black",
+          "buckle": "Silver"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "back",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null
+    },
+    {
+      "name": "assembly-human-female-red",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-average",
+        "parts": {
+          "face": "face-human-female-1",
+          "hair": "hair-long-tied"
+        },
+        "colours": {
+          "skin": "Pale",
+          "hair": "Red",
+          "eyes": "Green",
+          "brows": "Red",
+          "lips": "Rose",
+          "eye.white": "Ember",
+          "cloth": "Blue",
+          "cloth.trim": "Silver",
+          "trousers": "Tan",
+          "leather": "Black",
+          "buckle": "Silver"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "side",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null
+    },
+    {
+      "name": "assembly-human-female-red-close-up",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-average",
+        "parts": {
+          "face": "face-human-female-1",
+          "hair": "hair-long-tied"
+        },
+        "colours": {
+          "skin": "Pale",
+          "hair": "Red",
+          "eyes": "Green",
+          "brows": "Red",
+          "lips": "Rose",
+          "eye.white": "Ember",
+          "cloth": "Blue",
+          "cloth.trim": "Silver",
+          "trousers": "Tan",
+          "leather": "Black",
+          "buckle": "Silver"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "close-up",
+      "width": 320,
+      "height": 320,
+      "clip": null,
+      "time": 0,
+      "clips": null
+    },
+    {
+      "name": "assembly-human-male-geared",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-average",
+        "parts": {
+          "face": "face-human-male-1",
+          "hair": "hair-swept-back"
+        },
+        "colours": {
+          "skin": "Deep",
+          "hair": "Ash",
+          "eyes": "Blue",
+          "brows": "Ember",
+          "eye.white": "Ember",
+          "cloth": "Green",
+          "cloth.trim": "Ember",
+          "trousers": "Tan",
+          "leather": "Black",
+          "buckle": "Ember"
+        }
+      },
+      "gear": {
+        "garments": [
+          "models/humanoid/gear/chain-shirt/human-male-average"
+        ],
+        "items": [
+          {
+            "model": "models/humanoid/gear/sword",
+            "socket": "socket.hand.R"
+          },
+          {
+            "model": "models/humanoid/gear/shield",
+            "socket": "socket.shield.L"
+          }
+        ],
+        "colours": {
+          "grip": "#3a261b",
+          "metal.base": "#80848c",
+          "metal.shade": "#3a3c42",
+          "metal.trim": "#bb8d3c",
+          "wood": "#5a2a1e"
+        }
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": "rest-sway",
+      "time": 0.5,
+      "clips": "../Data/Models/humanoid/test-clips.glb"
+    }
+  ]
+}

@@ -252,6 +252,13 @@ static class GameScreenFixtures
         return boxes;
     }
 
+    /// <summary>
+    /// What every fixture masks besides what it names (GM2-P12, GM2 step 5): each 3D view's box, a <c>surface</c> element, whose
+    /// picture (the engine's view; in Chromium the element's own content) is compared on its own against Blender (the figures:
+    /// Figures/AssemblyTests).
+    /// </summary>
+    public static readonly IReadOnlyList<string> Views = ["surface"];
+
     /// <summary>The cluster boxes on the lines of <paramref name="roots"/> and every box under them whose text <paramref name="which"/> takes.</summary>
     static List<RectF> TextBoxes(IEnumerable<LayoutBox> roots, SpanPredicate which)
     {

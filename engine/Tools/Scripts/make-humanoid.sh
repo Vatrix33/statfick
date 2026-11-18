@@ -16,6 +16,14 @@
 #                                        --extent, --margin, --perspective, --clip, --time, --clips) into
 #                                        <folder>/<stem>-<view>.png (the ink over the shading, as the engine draws
 #                                        them), with the scene file and the separate layers in <folder>/layers/.
+#   make-humanoid.sh assemble --out <folder> --name <stem> --look-hero <look.json> --data <folder> [--data <folder>]...
+#                         [--models <folder>] [--background #rrggbb] [--garment models/<path>]... [--item models/<path>@<socket>]...
+#                         [--gear-colour <slot>=#rrggbb]... [render.py's --views, --size, --scale, --elevation, --focus,
+#                         --extent, --margin, --perspective, --clip, --time, --clips]
+#                                        a hero's look (look.hero's JSON form) assembled from the game's data as the game
+#                                        builds it (assemble.py, GM2 step 5: the data folders' records, a later folder's
+#                                        over an earlier's; the models from Assets/Models by default; the data's
+#                                        render/styles/game), rendered as `render` renders a figure: <folder>/<stem>-<view>.png
 #   make-humanoid.sh look list | write <name or file> [<file>] | check
 #                                        look.py's command line (a look's numbers as the file both sides read).
 # Blender runs with 8 threads, always (GM2 step 4a, the manager's decision of 2026-11-16): QuadriFlow's remesh and the
@@ -69,6 +77,24 @@ case "$command" in
     python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/compose_glow.py" "$out/layers/$name-scenes.json" "$out/layers" "$out/layers/glow"
     python3 "$HUMANOID/compose.py" "$out/layers/$name-scenes.json" "$out/layers" "$out"
     ;;
+  assemble)
+    out="" name=""
+    pass=()
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --out) out="$2"; shift 2 ;;
+        --name) name="$2"; pass+=("$1" "$2"); shift 2 ;;
+        *) pass+=("$1"); shift ;;
+      esac
+    done
+    [ -n "$out" ] && [ -n "$name" ] || { echo "assemble needs --out <folder> and --name <stem>" >&2; exit 2; }
+    mkdir -p "$out/layers"
+    out="$(cd "$out" && pwd)"
+    source "$STATVENTURE_SCRIPTS/blender.sh"
+    blender_run "$HUMANOID/assemble.py" -- --work "$out/layers" "${pass[@]}"
+    python3 "$STATVENTURE_SOURCE/Tools/BlenderReference/compose_glow.py" "$out/layers/$name-scenes.json" "$out/layers" "$out/layers/glow"
+    python3 "$HUMANOID/compose.py" "$out/layers/$name-scenes.json" "$out/layers" "$out"
+    ;;
   framing)
     # render.py's cameras for the frame's sample, which the sandbox's figure mode must frame alike (the engine's tests,
     # Sandbox/FigureFramingTests): Tests/Statventure.Tests/Reference/figure-framing*-scenes.json.
@@ -86,7 +112,7 @@ case "$command" in
       --views three-quarter --size 320x240 --perspective 20 --extent 30
     ;;
   *)
-    echo "usage: make-humanoid.sh build [name ...] | check [name ...] | clips <folder> <library.glb> | render --out <folder> --name <stem> [options] | look ... | framing" >&2
+    echo "usage: make-humanoid.sh build [name ...] | check [name ...] | clips <folder> <library.glb> | render --out <folder> --name <stem> [options] | assemble --out <folder> --name <stem> --look-hero <file> --data <folder> [options] | look ... | framing" >&2
     exit 2
     ;;
 esac

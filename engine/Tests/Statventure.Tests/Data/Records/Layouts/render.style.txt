@@ -1,0 +1,15 @@
+render.style 1
+  1 ink: string = "#130e0b"
+  2 shadowMix: float32 = 0.42
+  3 bandEdge: float32 = 0.3
+  4 outlineWidth: float32 = 3.5
+  5 innerWidth: float32 = 2
+  6 creaseAngle: float32 = 120
+  7 hatchSpacing: float32 = 6
+  8 hatchWidth: float32 = 1
+  9 hatchAngle: float32 = 72
+  10 hatchInk: float32 = 0.35
+  11 glowWide: float32 = 8
+  12 glowCore: float32 = 2.5
+  13 glowBoost: float32 = 2.2
+  14 sun: render.style.sun = {"direction":[1, 1.1, 0.7],"strength":3,"angle":3}

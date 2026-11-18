@@ -1,0 +1,4 @@
+render.style.sun 1
+  1 direction: vector3 = [1, 1.1, 0.7]
+  2 strength: float32 = 3
+  3 angle: float32 = 3

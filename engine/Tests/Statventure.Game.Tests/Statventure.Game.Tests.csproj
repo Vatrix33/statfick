@@ -37,6 +37,16 @@
     <Compile Include="../Statventure.Tests/Canvas/TestFonts.cs" Link="Infrastructure/TestFonts.cs" />
   </ItemGroup>
 
+  <!-- For the figures built from looks against Blender's assembly of them (GM2 step 5, Figures/): the comparisons of a
+       render with Blender's and their limits, as the engine's 3D tests hold them, and the sandbox's figure mode's look
+       file and framing (render.py's views, number for number). -->
+  <ItemGroup>
+    <Compile Include="../Statventure.Tests/Render3D/ReferenceLimits.cs" Link="Infrastructure/ReferenceLimits.cs" />
+    <Compile Include="../Statventure.Tests/Render3D/Render3DReferenceTests.Comparison.cs" Link="Infrastructure/Render3DReferenceTests.Comparison.cs" />
+    <Compile Include="../../Samples/Statventure.Sandbox/Figure/FigureLook.cs" Link="Infrastructure/FigureLook.cs" />
+    <Compile Include="../../Samples/Statventure.Sandbox/Figure/FigureView.cs" Link="Infrastructure/FigureView.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <Using Include="Xunit" />
     <None Include="Data/**" CopyToOutputDirectory="PreserveNewest" />

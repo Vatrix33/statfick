@@ -213,13 +213,14 @@ public class LookDataTests
             }
     }
 
-    /// <summary>Assets/Data holds the races and the maker's records only, each kind in its folder.</summary>
+    /// <summary>Assets/Data holds the races and the maker's records only, each kind in its folder, and the game's style (GM2 step 5, GameStyleTests).</summary>
     [Fact]
     public void AssetsDataHoldsTheRacesAndTheMakersRecords()
     {
         foreach (var file in Directory.GetFiles(DataFolder, "*", SearchOption.AllDirectories).Select(f => Path.GetRelativePath(DataFolder, f).Replace('\\', '/')))
             Assert.True(file.StartsWith("data/races/", StringComparison.Ordinal) || file.StartsWith("data/looks/bodies/", StringComparison.Ordinal)
-                || file.StartsWith("data/looks/parts/", StringComparison.Ordinal) || file.StartsWith("data/looks/presets/", StringComparison.Ordinal), file);
+                || file.StartsWith("data/looks/parts/", StringComparison.Ordinal) || file.StartsWith("data/looks/presets/", StringComparison.Ordinal)
+                || file == "render/styles/game.json", file);
     }
 
     /// <summary>

@@ -143,6 +143,11 @@ worker: then Q55). The two addenda after the hand-over (the manager's, 2026-11-1
 body's weights at the nearest point of its surface and every skirt the body's own heights; the hair cap's edge turned in
 under the skin, every skirt's rings at the body's own heights and the mail's skirt flared clear ("How it works", step 4a).
 
+**The manager's answer to step 5 (2026-11-18):** the human race's swatches are step 9a's, approved there with the human's
+builds, faces and presets (step 5's "Finished": the sample looks now, the presets as 9 lands them); until then the eight
+human presets draw their models' own placeholder colours, the expected state, and no comparison or golden holds those
+colours as a look ("How it works", step 5).
+
 ### Questions from the steps (Q43–Q50, Q54–Q55, the user, 2026-11-15 and 2026-11-16)
 
 Q43 and Q44 raised by step 1 (the `race` kind's fields; the docs didn't answer them) and asked by the manager with the
@@ -1620,6 +1625,15 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
    - Must not touch: the engine's test scenes' style (Q11), the screens' markup.
    - Finished: an assembled look renders as Blender's (sample looks now, the presets as 9 lands them); the walk over every
      combination; the mask in place. No approval (the look was approved in 3).
+   - **Done (2026-11-17/18, a worker, the branch `gm2-step5`; "How it works", step 5).** With the manager's answer of
+     2026-11-18 (the human's swatches are 9a's: its presets draw their models' own colours until then). Its choices:
+     `render.style` at `render/styles` under a look file's names, its rules the look file's, the game's entry
+     `render/styles/game` written from `ember-hearth.json`; the builder's plan apart from its build, every missing thing a
+     look names refused, a category it leaves out drawn as nothing, look parts all garments and the gear's items the rigid
+     ones; the first humanoid's four parts and the writer's two bodies and eight presets in `data.pak`; `assemble.py`
+     resolving looks on its own, six samples in the tests' colours against it under `DetailedFigure`; the walk by pairs;
+     step 7's mask hook (on `main` first) naming every `surface` for every fixture. Measured: no shadow pass in a view with no
+     scenery, its 64 MiB atlas allocated all the same (an engine task).
 6. **The save v2 and the maker's records** (rules; anywhere). After 2.
    - Owns: `save.game` v2 (GM2-P5) with `Upgrade()` and fixtures, `look.hero`, `look.body`, `look.part`, `look.preset`
      with their checks (GM2-P6, GM2-P7; the swatches in `race`), the guard tests' change, the presets' data from the
@@ -2901,6 +2915,195 @@ when its rule didn't refuse it (the old handlers' early returns), the purse's fi
 old; the emblem's placeholder an SVG data URL in the program; the races read from the document's data; `open-sheet`
 showing nothing new when the sheet already shows but writing it again; the fixtures at the game's first window (1440 ×
 960) scrolled to the sheet's parts, and 820 × 700 for the drawer; the drawer's open fixture waiting for its slide.
+### Step 5: the game's look in the engine and figures built from looks (2026-11-17/18, the branch `gm2-step5`)
+
+**Decided on the way.** The manager (2026-11-18, on this step's question): the human race's swatches are **step 9a's**,
+approved there with the human's builds, faces and presets; until then the eight human presets draw their models' own
+placeholder colours, the expected state (below, "The look data"). Nothing else was asked: the record's path and fields,
+the builder's refusals and the samples are this step's internal choices (below).
+
+**`render.style`** (`Engine/Statventure/Render3D/RenderStyle.cs`; the user's Q12, GM2-P11): the engine's record of a look
+of the 3D views, `[Kind("Render style", "render/styles")]`, version 1: every number of `CelStyle` under its property's name
+in camelCase (`ink` "#rrggbb" `[Colour]`, `shadowMix`, `bandEdge`, `outlineWidth`, `innerWidth`, `creaseAngle`,
+`hatchSpacing`, `hatchWidth`, `hatchAngle`, `hatchInk`, `glowWide`, `glowCore`, `glowBoost`, with their units) and `sun`
+(`render.style.sun`: `direction` (x, y, z) toward it, `strength`, `angle`), exactly a look file's `style` and `sun`
+(`look.py`), so one look reads the same on both sides. `Cel` and `SunLight` give a view its style and sun; `Of(CelStyle,
+SunLight)` the record of them (the ink to its nearest level). A new style is the engine's own look (`CelStyle.Default`
+under `look.py`'s `today` sun). Its rules are the look file's (the figure mode's `FigureLook`, step 3a), no more: the ink a
+colour, every number finite, the sun's direction not 0, its strength and angle 0 or more (`[Check]`s, no `[Limits]`
+marks: G4); `Load(data, path)` refuses a broken one naming the entry. The background and the figures' colours are not a
+style's (the view's own ground, the palettes). The engine's test scenes keep `CelStyle.Default` (Q11).
+**The game's entry** is `render/styles/game` in `data.pak` (`Assets/Data/render/styles/game.json`), the look the user chose,
+"Ember, hearth", written from `Tools/Models/humanoid/looks/ember-hearth.json` by the game's tests
+(`STATVENTURE_STYLE_DATA=write`, `GameStyleTests`, then `make-data-pack.sh`); `GameStyle.Load(data)`
+(`Game/Statventure.Game/Figures/`) is how a game view takes it (step 11's views). A mod restyles the game by an entry of
+its own at that path.
+
+**The figure builder** (`Game/Statventure.Game/Figures/HeroFigure.cs`; GM2-P8). `HeroFigure.Resolve(data, look, gear?)`
+reads the records only and gives the plan: the body's model; each part the look chooses with its model for the look's body
+(a part with no model drawn as nothing), in the maker's order of categories (a key that isn't one after them by name); the
+palette's colours, each the race's swatch of the name the look chose for its slot; the gear's garments, items (model and
+socket) and colours. A look naming anything the data hasn't is refused with all of it named
+(`LookRefusedException`, GM2-P18): no body, the body's model, no part, a part with models but none for the body (moot
+without the body), a part's model, the race (when it chooses colours), a swatch; the gear's models likewise. What a look
+leaves out it may leave out: a category the body offers that the look doesn't choose draws nothing (a mod that adds a
+category mustn't refuse older heroes; the maker's check still asks for every one). `HeroFigure.Build(device, data, look,
+gear?)` makes one `Actor` of the body's model (its skeleton and plain outfit) with an empty `AnimationStack` (the screens
+add their clips, step 11), every part's model and the gear's garments as `ActorGarment`s bound to the body's bones by name
+(no refit: a part is fitted to the bodies its models name), the gear's items as `ActorItem`s on their sockets, and the
+palette of the plan's colours; it owns its models (disposing it frees them) and leaves nothing made when it fails (a
+refusal, a model that doesn't read, an item on a socket the body hasn't). `FigureGear` is GM3's seam: its colours may
+name only the gear's own slots (never a look's, GM2-P7: one actor palette colours figure and gear). Look parts are all
+garments: the look records name no socket, and step 4a made the faces and hair bound wholly to `head`; rigid items on
+sockets are the gear's (GM2-P8's "rigid parts" there).
+
+**The look data** (`Assets/Data/data/looks/`, the one-step writer of step 6, run for what the first humanoid has): the four
+parts written by hand (`face-human-male-1` and `face-human-female-1`, shown as "Face 1"; `hair-swept-back` "Swept back"
+and `hair-long-tied` "Long, tied"; each for its sex, its model fitted to its sex's average body, its `slots` its
+materials'); then `STATVENTURE_LOOK_DATA=write` wrote the two bodies (`human-male-average`, `human-female-average`) and the
+eight human presets, each preset's parts the face and hair of its sex (filled in its file, then the writer again, which
+keeps them); `make-data-pack.sh`: `data.pak` 43 entries (28 races, 2 bodies, 4 parts, 8 presets, the style). **The
+presets have no colours: the human race has no swatches yet**, so every human figure draws its models' own placeholder
+colours (`materials.py`'s, not the approved palette); that is the expected state until **step 9a, which adds the human
+race's swatches** (in `Assets/Data/data/races/human.json`, kept by the race converter) **and each preset's colours** (its
+`colours` filled in its file, the writer run again), then `make-data-pack.sh`; the shared parts' names and lists (the
+provisional "Face 1", "Swept back", "Long, tied" among them) are 9a's too. No comparison or golden of this step holds the
+placeholder colours as a look (below: every sample is coloured by swatches of the tests').
+
+**`assemble.py` and the comparisons.** `Tools/Models/humanoid/assemble.py` reads a `look.hero` against the game's data on its
+own (the records' JSON forms in data folders, a later folder's entry over an earlier's as a mod's over the game's; a model
+`models/<path>` as `<models>/<path>.glb`; the style and sun the data's `render/styles/game`) and refuses what the game
+refuses, then poses, frames and writes the scene as render.py frames a figure (render_scenes.py's format). Two ways in:
+`make-blender-references.sh` (its step 6: `Reference/assembly-looks.json` into `Reference/assembly-scenes.json`, then
+rendered into `Golden/r3d-assembly-*.png` and `-ink.png`; `--out` too) and `make-humanoid.sh assemble --out <folder>
+--name <stem> --look-hero <file> --data <folder>… [render.py's view options, --garment, --item, --gear-colour]` (a look's
+pictures for approvals, the ink laid over the shading as `render` does). **The game's tests' side**
+(`Tests/Statventure.Game.Tests/Figures/AssemblyTests.cs`): six samples, each the parts of the game's first presets in
+colours of the tests' own swatches (a human race of the tests' over the game's data, `Reference/assembly-data/`, as a mod's
+data would be; the game's look's colours among them, so `assembly-human-male-ember` is the approved man): the man and the
+woman in the game's look's colours at three-quarter and from the front, others in every slot from the back and the side
+and the woman's face in a close-up, and the man in the sample gear (the chain shirt a garment, the sword and the shield on
+their sockets, the look file's metals) posed by `rest-sway` at 0.5 s. `STATVENTURE_ASSEMBLY_LOOKS=write` writes the list and
+the tests' race; a change of a sample, a preset or a swatch fails `TheListIsUpToDate` until they are written and assembled
+again. Then each figure built by `HeroFigure.Build` in the game's style (data.pak's) on the portrait panel's ground, framed
+by the figure mode's `FigureFraming` (render.py's numbers), is held to Blender's: **the same models in the same order, the
+same palette, the camera within 10⁻⁴, each item at its socket within 10⁻⁵** (`TheFiguresHoldWhatBlendersAssemblyHolds`),
+then the shading and the lines under `ReferenceLimits.DetailedFigure` (unchanged). Measured on both drivers (PC GPU /
+lavapipe; the limits for 172,800 px: 41 inside, 157 edge pixels; for the close-up's 102,400: 24 and 93):
+
+| Sample | Inside | Edge | Edges' mean | Missed | Extra | Ink off | Coverage | Unlike |
+|---|---|---|---|---|---|---|---|---|
+| man, game's colours, ¾ | 6 / 6 | 35 / 30 | 2.1 / 2.2 | 0.41 % | 1.11 / 1.20 % | −1.4 % | 0.082 | 1.93 % |
+| woman, game's colours, front | 5 / 5 | 33 / 30 | 2.3 / 2.4 | 0.45 % | 0.57 / 0.61 % | −1.5 % | 0.075 | 1.60 % |
+| man, other colours, back | 17 / 17 | 31 / 35 | 2.8 | 0.13 % | 1.19 / 1.26 % | −0.7 / −0.8 % | 0.086 | 2.07 % |
+| woman, other colours, side | 6 / 8 | 17 / 19 | 2.7 | 0.66 / 0.71 % | 1.35 / 1.42 % | −2.9 / −3.0 % | 0.093 | 2.97 % |
+| woman's face, close-up | 18 / 16 | 60 / 61 | 3.4 / 3.5 | **2.50 %** | 5.95 / 6.23 % | +1.1 % | **0.134** | 6.78 / 6.81 % |
+| man geared, posed, ¾ | 8 / 11 | 67 / 56 | 2.6 | 0.16 % | 0.78 / 0.83 % | −2.5 % | 0.085 | 3.01 / 3.03 % |
+| limit (`DetailedFigure`) | 1 in 4,200 | 1 in 1,100 | 4 | 2.7 % | 8 % | 10 % | 0.14 | 13.5 % |
+
+The close-up is the nearest to its limits, as step 4a's woman's close-up was (the same face from the same view: missed 2.50
+%, coverage 0.134). `TheAssemblysCategoriesAreTheMakers` holds `assemble.py`'s order of categories to `LookNames`.
+
+**The structural walk** (`Figures/FigureWalkTests.cs`): over the game's packs, every body with every option offered on it
+(each pair) and every slot of its race's swatches: each option resolves, each model reads, each part's model binds to the
+body's bones (every joint a bone of the body's, at the body's rest within 10⁻⁵: made on that body), no model is drawn by two
+categories, every material is a look's slot or a fixed colour (the pupils, the glints) and a part's materials' slots are
+its `slots`, every slot the body and its options use is filled by the race's swatches, and every preset builds. Whether a
+figure builds whole is decided by its body and each option and slot apart (no option reaches into another), so the pairs
+walk every combination (reported as their count: the product of each category's options and each slot's swatches). Now:
+two bodies, four pairs, two combinations; **the human is listed as drawn in its models' own colours** (no swatches; the
+test pins that list, so step 9a empties it). `EachBreakIsFound` shows each rule finding its break with a record of the
+test's over the game's data (another body's model, a model without bones, a slot left out or one too many, a model drawn
+twice, an unfilled slot, a part drawn as nothing with slots, a preset naming nothing, a missing model).
+
+**The 3D views' mask in the game's screen fixtures (GM2-P12).** The same mechanism as step 7's mask hook (built from its
+branch line for line while it wasn't merged; step 7 merged first, so the rebase met one conflicting line):
+`GameScreenFixture.Masks` (selectors), `GameScreenFixtures.MaskBoxes` (each match's border box as laid out, before its own
+transform, with its outer shadows' reach, a pixel around, device pixels) and its test, step 7's; this step names the views
+for every fixture, `GameScreenFixtures.Views` (`surface`), masked besides what a fixture names (`[.. Views, ..
+fixture.Masks ?? []]` in `TheScreenPaintsLikeChromium`; the sheet's `surface#hero-view` among them, empty until step 11), the test
+`EveryViewsBoxIsMasked`, and the fixture `view-masked-dark` (`Ui/ViewScreenFixtures.cs`, captured in Chromium at 1 and
+1.65): a framed panel holding a `surface` that the engine draws empty and Chromium fills with its red child, so the
+comparison passes only with the mask (and `ProgramPathScreenTests` draws it in a window as the harness does). **Engine
+and Chromium differ on `surface`** (met here, not changed): the engine lays it out as a replaced element (a 300 × 150
+natural size, as a canvas; its children never drawn), Chromium as an unknown element (inline, no natural size, its children
+drawn). So a view's box must be sized fully (`display: block`, a width and a height), as step 7's `surface#hero-view` is.
+
+**The measurement of a view with no scenery** (one figure as the sheet shows it: the man in the game's style at 240 × 440,
+the portrait view's window, at 396 × 726, its size at 1.65, and at 600 × 800; a scratch probe, medians of 200 frames, the
+machine loaded by other workers; `claude-work/gm2/step5/measure-view-*.txt`): **the shadow pass doesn't run** (the figure's
+13 draw items cast and none receives: `FitShadow` gives nothing to fit), so no frame time goes there: `View3D.Update` 0.22
+/ 0.26–0.30 / 0.45–0.49 ms on the GPU, `Renderer3D.Render` alone 0.17 / 0.19–0.24 / 0.28 ms (the lines about 0.06–0.15 of
+it); on lavapipe 19.4 / 20.9 / 38.2 ms (the lines about 4.7). Were the figure to receive (scenery in the view), the pass
+into the sun's 16 maps would add about 0.45 ms on the GPU and 77 ms on lavapipe. **But the 4096² shadow atlas (64 MiB) is
+allocated for every view's render target all the same** (`RenderTarget3D`), unused: 64 of the view's 76 MiB at 240 × 440,
+of 97 at 396 × 726, of 119 at 600 × 800 (the rest the MSAA colour, depth and surface records, the edges and features, the
+picture and the records' readback). An engine task for the manager: the atlas made only for a view with something that
+receives shadows (GM2-P16's memory).
+
+**What moved beside.** `data.pak` gains the `data/looks` and `render/styles` folders, so the editor's screens over the
+repo's packs show them: 18 goldens captured again (9 fixtures at both scales; every changed pixel in the entry list's
+pane, at 1× within x 0–280: `claude-work/gm2/step5/editor-goldens/diff.txt`), `list-marks` made 840 px tall (760 since
+step 4a) so its tree still fits without scrolling (Chromium scrolls a focused tree into view, the engine's `Focus()`
+doesn't); `EntryListTests` name the new folders (321 rows); `EngineKindsFormTests` enters 4 where a number field holds 3
+already (the sun's strength), so an edit changes the value; `EngineKindMarksTests.Kinds` has `render.style` (its marks in
+`Data/Records/Marks/render.style.txt`); `RaceDataTests` and `LookDataTests` allow the game's style beside the races and the
+maker's records; the comparisons of a render with Blender's moved into `Render3DReferenceTests.Comparison.cs` (a part of
+the class), linked into the game's tests with `ReferenceLimits.cs` and the figure mode's `FigureLook.cs` and
+`FigureView.cs`.
+
+**Tests** (engine, 33: `RenderStyleTests` 28 and the kinds' theories' cases for the new kind; game, 48: `GameStyleTests` 3,
+`HeroFigureTests` 16, `FigureWalkTests` 10, `AssemblyTests` 15, `GameScreenTests`' `EveryViewsBoxIsMasked` and the
+fixture's 2, `ProgramPathScreenTests` 1 more).
+
+**Shown able to fail.** *The C# rules* (`mutate.py` under the shared lock in a headless cage;
+`claude-work/gm2/step5/mutations.json`, made by `make-mutations.py`): 78 mutations of `render.style` (each number's field
+both ways, the sun's, the ink's rounding, every rule and default, the kind's folder and colour mark), the game's style (its
+path, its check), the builder (every refusal, the fit by body, swatches by slot and name, the race read only for colours,
+the gear's models, slots and colours, the parts' order, the gear's garments after the parts', the palette, the garments
+bound to the body's skeleton, the items on their sockets), the walk's own rules, and the mask (no view, another tag, the
+named boxes, a pixel around, inset shadows, an offset, a spread, only the first match). The first run: 74 killed, 4
+survived. Three were gaps, closed and killed in the reruns (`mutations-rerun.json`, `mutations-rerun2.json`; the
+garments' test now poses each bone its own way): the ink's levels truncated (every ink read from "#rrggbb" sits on a level;
+now an ink between levels made in code), the game's style loaded unchecked (now a broken style in its place, a mod's,
+refused), the garments bound to their own skeleton (the family's models list their bones in the body's order, so the
+indices agree; now a part whose model has a node of its own first still follows the body's bones by name). **The standing
+list: 78, 77 killed, one that can't show here:** the fixture's named boxes ignored (no fixture on this branch names a mask; step 7's sheet fixtures do, and its
+own mutations hold them). *`assemble.py`'s rules* (a runner of its own, `assemble-rules.py`: each break applied to a copy
+of the scripts, nine cases run through the pinned Blender, headless: the committed list assembled as committed, six
+refusals with their exact words, a part with two models the first another body's under a later data folder's style, a
+look listing hair before its face): **16 of 16 killed** (a swatch by name whatever its slot, the first model whatever its
+bodies, each refusal unreported, a fit reported without a body, the gear's models, colours and items, the data folders'
+order, the style not the data's, the parts' order, framing posed, the background). Nothing written to the player's real
+folders.
+
+**Runs** (headless, scratch per-user folders, nothing audible): the full suite on the GPU and on lavapipe on `main`'s
+`feb869f` (step 7 merged; the rebase met step 7's mask hook on one line, its fixture list made again by the tests):
+**4425 + 796 = 5221 tests** (`main`: 4392 + 748 = 5140; 81 new, 33 the engine's and 48 the game's), none held; before
+the rebase the same on `55ed6b0` (4425 + 708); `view-masked-dark` captured again after the rebase, the same bytes.
+`make-blender-references.sh --out` with `compare_references.py`: **160 of 160 byte-equal**, the 12 assembly renders among
+them. The player's real folders unchanged through every run.
+
+**Choices made (internal, recorded here):** the style's path `render/styles/game` in a kind folder `render/styles`, its
+fields named as a look file's, the sun a nested record, its rules the look file's with no `[Limits]`, its defaults the
+engine's look; the builder in the program (`Figures/`), its plan apart from the build (the walk and the comparisons read
+it); refusing every missing thing a look names, never a category it leaves out; look parts all garments, the gear's
+items the only rigid pieces; gear colours only in the gear's slots; the four parts' entry names category-prefixed (as step
+6's test data) and their provisional names; samples only in the tests' colours, from the presets' parts; the comparison
+code made a partial class to be linked; Blender's side resolving the look on its own and its scene file committed and
+compared with the engine's figure; the walk by pairs; step 7's mask hook with `surface` named for every fixture; the view fixture's red child
+as what Chromium draws in a view's box.
+
+**For later steps.** *Step 11:* `HeroFigure.Build(device, Application.Data, save.Look)` (catch `LookRefusedException`: a
+mod gone under a slot's save), its `Skeleton` for the idle clip's layer, `GameStyle.Load(data)` for the view's `Style` and
+`Sun`, the view's `Background` the panel's ground (`--portrait-ground`); the view's `surface` sized fully (above); the
+fixtures need nothing (their `surface` boxes are masked). *Step 9a:* the human race's swatches and the human presets'
+colours (then the walk's list of uncoloured races empties and every slot is held to the swatches), the shared parts' lists
+and names; a preset whose parts change changes `AssemblyTests`' list: write it (`STATVENTURE_ASSEMBLY_LOOKS=write`) and
+run `make-blender-references.sh` (or its step 6 alone) for the `assembly-*` scenes. *Step 8 (and any screen with a view):*
+nothing to name: every `surface` box is masked already. *Not done here (not in the step's brief):* the sandbox's figure mode
+taking a `look.hero` (`--figure <look.json>`, which step 3a left to this builder) still takes a body `.glb` with its
+garments and items; `make-humanoid.sh assemble` draws a look on Blender's side.
 
 ## Status
 
@@ -2994,3 +3197,16 @@ showing nothing new when the sheet already shows but writing it again; the fixtu
   4392 + 748 = 5140 tests on the GPU and on lavapipe (`main`: 4392 + 659 = 5051; 89 new); mutations 167 standing (165
   killed, 2 that can't differ) and the stylesheet's 25 (all killed); `end_to_end.py` 243 of 243 on both drivers, its two
   breaks caught. Found: the three engine differences fixed on `gm2-engine-fixes`.
+- **2026-11-18, step 5 done** (a worker, the branch `gm2-step5`; "How it works", step 5): the game's look as the engine's
+  `render.style` record (CelStyle's numbers and the sun under a look file's names) with the game's entry
+  `render/styles/game` in `data.pak` ("Ember, hearth"); the figure builder (`HeroFigure`: a `look.hero` to one `Actor`,
+  every missing thing it names refused); the first humanoid's bodies, four parts and eight human presets in `data.pak`;
+  `assemble.py` reading looks against the data in Blender, six sample looks held to it under
+  `ReferenceLimits.DetailedFigure` on both drivers (the woman's close-up nearest its limits, as in step 4a); the structural
+  walk; every `surface` box masked in the game's screen fixtures. **The eight human presets draw their models' own
+  placeholder colours until step 9a adds the human race's swatches and the presets' colours** (the manager's answer,
+  2026-11-18); no comparison or golden holds them as a look. Found: a view with no scenery runs no shadow pass but
+  allocates its 64 MiB shadow atlas (an engine task, GM2-P16's memory); the engine lays a `surface` out as a replaced
+  element (300 × 150, children not drawn) where Chromium's is an unknown inline element. 4425 + 796 = 5221 tests on the
+  GPU and on lavapipe (`main`: 4392 + 748 = 5140; 81 new); mutations 78 standing, 77 killed, one that can't show on this
+  branch; `assemble.py`'s breaks 16 of 16; 18 editor goldens captured again (`data.pak`'s new folders).

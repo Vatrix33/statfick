@@ -1,0 +1,18 @@
+{
+  "$types": {
+    "look.preset": 1,
+    "look.hero": 1
+  },
+  "label": "Duelist",
+  "order": 60,
+  "look": {
+    "race": "human",
+    "sex": "female",
+    "body": "human-female-average",
+    "parts": {
+      "face": "face-human-female-1",
+      "hair": "hair-long-tied"
+    },
+    "colours": {}
+  }
+}

@@ -642,6 +642,16 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   size in multiples of 100 px for whole device pixels at 1.65 with a page zoom of 1.2; GitHub's raw mirror answers 429
   after many fetches, googlesource's `?format=TEXT` (base64) works; `--filter FullyQualifiedName~X` matches every class
   whose name contains X (`TextRuleReferenceTests` caught `LcdTextRuleReferenceTests` too).
+- 2026-11-18 (the PC, GM2 step 5's worker on the branch `gm2-step5`, 4425 + 796 = 5221 tests on the GPU and lavapipe): **the game's look in the
+  engine and figures built from looks** (`Docs/Game/Hero.md`, "How it works", step 5). Gotchas: the engine test project
+  can't call the game's code (one record kind per name per process), so a comparison against Blender of a game feature
+  lives in the game's tests, linking `ReferenceLimits.cs` and the comparison's partial class
+  (`Render3DReferenceTests.Comparison.cs`); Blender's side should resolve the game's records on its own (else the test
+  only renders what the C# already decided); a record field whose default equals the editor test's typed number (3) makes
+  no edit; the game's sheets size boxes by their borders (`box-sizing: border-box`), so a box's expected mask is its
+  border box; the engine's `surface` is a replaced element (300 × 150, children not drawn) where Chromium's is an
+  unknown inline element; this session's command checker refuses heredocs and backslash-heavy one-liners in the worktree
+  (write a script file, or use the edit tool). A view without receivers runs no shadow pass but keeps the 64 MiB atlas.
 
 ## Asking about design choices (user rule)
 

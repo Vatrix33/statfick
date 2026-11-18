@@ -114,8 +114,9 @@ public class RaceDataTests
         using var pack = PackFile.Open(DataPak);
         Assert.Empty(pack.Verify());
         Assert.Equal(OldOrder.Select(RaceCatalogue.PathOf).Order(StringComparer.Ordinal), pack.Entries.Select(e => e.Path).Where(p => p.StartsWith(RaceCatalogue.Folder + "/", StringComparison.Ordinal)));
-        // Besides the races only the maker's records (LookDataTests).
-        Assert.All(pack.Entries, e => Assert.True(e.Path.StartsWith(RaceCatalogue.Folder + "/", StringComparison.Ordinal) || e.Path.StartsWith("data/looks/", StringComparison.Ordinal), e.Path));
+        // Besides the races only the maker's records (LookDataTests) and the game's style (GameStyleTests, GM2 step 5).
+        Assert.All(pack.Entries, e => Assert.True(e.Path.StartsWith(RaceCatalogue.Folder + "/", StringComparison.Ordinal) || e.Path.StartsWith("data/looks/", StringComparison.Ordinal)
+            || e.Path == "render/styles/game", e.Path));
         Assert.All(pack.Entries, e => Assert.True(e.IsRecord, e.Path));
     }
 

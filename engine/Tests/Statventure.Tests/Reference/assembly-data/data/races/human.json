@@ -1,0 +1,165 @@
+{
+  "$types": {
+    "race": 1,
+    "race.modifiers": 1,
+    "race.passive": 1,
+    "effect": 1,
+    "effect.max-hp-per-levels": 1,
+    "race.swatch": 1
+  },
+  "name": "Human",
+  "playable": true,
+  "statModifiers": {
+    "strength": 2,
+    "vitality": 1,
+    "mind": -3,
+    "dexterity": -1,
+    "intelligence": 1,
+    "wisdom": 0,
+    "speed": -1,
+    "luck": 1
+  },
+  "passive": {
+    "id": "rulers-of-the-world",
+    "name": "Rulers of the World",
+    "condition": "Every fifth character level",
+    "description": "Gain 2 additional maximum HP every fifth character level.",
+    "effects": [
+      {
+        "$type": "effect.max-hp-per-levels",
+        "amount": 2,
+        "interval": 5
+      }
+    ]
+  },
+  "accent": "#c7683f",
+  "emblem": "human",
+  "order": 10,
+  "swatches": [
+    {
+      "slot": "skin",
+      "name": "Ember",
+      "colour": "#aa7a5a"
+    },
+    {
+      "slot": "skin",
+      "name": "Pale",
+      "colour": "#e8c4a8"
+    },
+    {
+      "slot": "skin",
+      "name": "Deep",
+      "colour": "#6a4430"
+    },
+    {
+      "slot": "hair",
+      "name": "Ember",
+      "colour": "#3a2416"
+    },
+    {
+      "slot": "hair",
+      "name": "Red",
+      "colour": "#a8452a"
+    },
+    {
+      "slot": "hair",
+      "name": "Ash",
+      "colour": "#b8b0a0"
+    },
+    {
+      "slot": "eyes",
+      "name": "Ember",
+      "colour": "#0a0706"
+    },
+    {
+      "slot": "eyes",
+      "name": "Green",
+      "colour": "#3f7a3a"
+    },
+    {
+      "slot": "eyes",
+      "name": "Blue",
+      "colour": "#3a5f9a"
+    },
+    {
+      "slot": "brows",
+      "name": "Ember",
+      "colour": "#130c08"
+    },
+    {
+      "slot": "brows",
+      "name": "Red",
+      "colour": "#6e2a18"
+    },
+    {
+      "slot": "lips",
+      "name": "Ember",
+      "colour": "#7c4238"
+    },
+    {
+      "slot": "lips",
+      "name": "Rose",
+      "colour": "#a85a5a"
+    },
+    {
+      "slot": "eye.white",
+      "name": "Ember",
+      "colour": "#d2c7b2"
+    },
+    {
+      "slot": "cloth",
+      "name": "Ember",
+      "colour": "#74211d"
+    },
+    {
+      "slot": "cloth",
+      "name": "Blue",
+      "colour": "#2a4a7a"
+    },
+    {
+      "slot": "cloth",
+      "name": "Green",
+      "colour": "#3a5a2a"
+    },
+    {
+      "slot": "cloth.trim",
+      "name": "Ember",
+      "colour": "#bb8d3c"
+    },
+    {
+      "slot": "cloth.trim",
+      "name": "Silver",
+      "colour": "#a0a4aa"
+    },
+    {
+      "slot": "trousers",
+      "name": "Ember",
+      "colour": "#292320"
+    },
+    {
+      "slot": "trousers",
+      "name": "Tan",
+      "colour": "#8a6a48"
+    },
+    {
+      "slot": "leather",
+      "name": "Ember",
+      "colour": "#3a261b"
+    },
+    {
+      "slot": "leather",
+      "name": "Black",
+      "colour": "#1a1614"
+    },
+    {
+      "slot": "buckle",
+      "name": "Ember",
+      "colour": "#bb8d3c"
+    },
+    {
+      "slot": "buckle",
+      "name": "Silver",
+      "colour": "#a0a4aa"
+    }
+  ]
+}
