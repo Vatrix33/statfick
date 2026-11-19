@@ -111,9 +111,9 @@ public class SheetScreenTests
         Assert.Equal(("Unknown race", "Unknown race · Level 1", "Race locked"),
             (s.Q("#hero-race-name").TextContent, s.Q("#hero-standing").TextContent, s.Q("#race-select-button").GetAttribute("title")));
         Assert.Empty(s.Ran);
-        // The sheet's own rule, as step 8's will be made one with it.
-        var ready = s.Sheet.Ready;
+        // Q26's rule, the sheet's and the flow's (one place: HeroFlow.Needs), on the game's races.
         var races = Context(s);
+        bool ready(SaveGame save) => !Screens.Races.HeroFlow.Needs(save, races);
         Assert.False(ready(new SaveGame()));
         Assert.False(ready(new SaveGame { Hero = new ActorSheet { Race = "" } }));
         Assert.False(ready(new SaveGame { Hero = new ActorSheet { Race = "human" } }));

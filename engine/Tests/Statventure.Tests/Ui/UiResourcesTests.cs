@@ -171,7 +171,7 @@ public class UiResourcesTests
     ];
 
     /// <summary>The port's stylesheets in the pack (GM1-P8): each compiled from engine/Assets/UI/styles/&lt;name&gt;.css (GM1 step 8's document, dialogs and controls beside step 1a's game; step 10's picker, settings and slots; step 9's start, sheet, menu and about).</summary>
-    public static readonly string[] Stylesheets = ["about", "controls", "dialogs", "document", "game", "menu", "picker", "settings", "sheet", "slots", "start"];
+    public static readonly string[] Stylesheets = ["about", "controls", "dialogs", "document", "game", "maker", "menu", "picker", "races", "settings", "sheet", "slots", "start"];
 
     static string StylesheetSource(string name) => Path.Combine(TestPaths.Packs, "..", "UI", "styles", name + ".css");
 

@@ -148,13 +148,14 @@ builds, faces and presets (step 5's "Finished": the sample looks now, the preset
 human presets draw their models' own placeholder colours, the expected state, and no comparison or golden holds those
 colours as a look ("How it works", step 5).
 
-### Questions from the steps (Q43–Q50, Q54–Q55, Q58, Q60, the user, 2026-11-15 to 2026-11-18)
+### Questions from the steps (Q43–Q55, Q58, Q60, the user, 2026-11-15 to 2026-11-18)
 
 Q43 and Q44 raised by step 1 (the `race` kind's fields; the docs didn't answer them) and asked by the manager with the
 question tool the same day; both the recommended option. Q45 asked by the manager on 2026-11-16 for step 6 (step 2 had
 left it open: whether a character file with a sheet out of the old ranges is refused or corrected). Q46–Q49 the user's
 verdict on step 7's approval captures and Q50 raised by step 7's comparisons, asked by the manager with the question tool
-on 2026-11-16, every one the recommended option. Recorded in `Docs/Game-Plan.md`, "GM2's detail round", too.
+on 2026-11-16, every one the recommended option. Q51–Q53 asked by the manager on 2026-11-16 on step 8's approval
+stop, each answered as recommended. Recorded in `Docs/Game-Plan.md`, "GM2's detail round", too.
 - **Q46 The sheet's captures: "Yes, approved"** (2026-11-16): the layout and look of step 7's captures stand
   (`claude-work/gm2/step7/approval/`, the old game's page beside each).
 - **Q47 Under the hero's name: the race and the level** ("HUMAN · LEVEL 30", in the lettering of the race's name under
@@ -189,6 +190,18 @@ on 2026-11-16, every one the recommended option. Recorded in `Docs/Game-Plan.md`
   stays as designed: its checks refuse a part the race, the sex or the build doesn't allow (G4). Built by step 6 ("How it
   works", step 6), field for field as the old function, its other corrections named there (the race's id through
   `slugify`, the EXP 0 at the cap and 0 or more, a bonus that isn't a finite number 0).
+- **Q51 The race carousel's captures** (2026-11-16, the question tool, asked by the manager on step 8's approval set,
+  `claude-work/gm2/step8/approval/`): **"Yes, approved"** as captures 01–03 and 09 show it (a playable race, another
+  race than the hero's own outside Dev Mode, Dev Mode on an enemy-only race; the smallest window), beside the old picker.
+- **Q52 The character maker's captures** (the same day, the same set): **"Yes, approved"** as captures 04–07 and 10 show
+  it (the presets' list, a category open, after the random button, a race with ears and a tail; the smallest window).
+- **Q53 A playable race with no looks in the data** (the same day; raised by step 8: the shipped data has no body yet
+  until steps 4a and 9, and a mod's playable race may have none; the old game took a race without looks at once, with no
+  look step, `hasPlayableLooks`, where Q26 opens the sheet only with a race and a look). **Answer: "Shown, but not
+  choosable"**, the recommended option: the race is in the carousel, its button disabled, the line "No looks for the
+  <race> yet"; `open-maker` for it refuses the same way, with a log line. (Not the old game's "taken at once without a
+  look"; not the maker opening with Begin disabled.) Dev Mode's enemy-only races stay as Q27 has them (taken at once, no
+  look). Built by step 8 ("How it works", step 8).
 - **The manager's, on step 7's reports (2026-11-16):** the 3D view's mask in the screen fixtures stays step 5's
   (GM2-P12); the sheet's panel draws nothing on either side until step 11, so its fixtures compare it unmasked, and the
   mask must be in place before a view draws there (steps 5, 11). The fixtures' mask hook (a fixture names boxes to mask
@@ -200,7 +213,8 @@ on 2026-11-16, every one the recommended option. Recorded in `Docs/Game-Plan.md`
   number `line-height` kept as a float) fixed once on a branch of their own, `gm2-engine-fixes`, merged before step 7,
   which rebases onto it. Accepted as step 7 did them: the page's end clearing the ⚙ button (`padding-bottom: 72px`), the
   fixture list carrying the page's scroll (step 8's fixtures get the same field), `SheetScreen.Ready` as Q26's rule
-  until step 8's `HeroFlow.Needs` is merged (whoever merges second makes them one).
+  until step 8's `HeroFlow.Needs` is merged (whoever merges second makes them one: step 8 did, `HeroFlow.Needs` with
+  `Ready`'s words, the sheet asking it).
 - The manager's, on step 1's report (a test fixture's sample text, not a choice about the game): the `settings-mods`
   screens' broken mod holds two races its checks refuse, so the row shows the game's real kind and a real refusal in the
   editor's words, still wrapping onto two lines ("How it works", step 1).
@@ -1685,7 +1699,7 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
    - **Done (2026-11-16/17, the branch `gm2-step7`; "How it works", step 7).** Approved by the user (Q46–Q49: the
      captures, the race and level under the name, the seal in full colour, the paper doll as shown), the seal left out of
      the picture comparisons (Q50) through the fixtures' new mask hook (by selector; step 5's for the views). Q26's rule
-     is `SheetScreen.Ready` until step 8's `HeroFlow.Needs` makes it one (step 8 rebases onto step 7). Three engine
+     was `SheetScreen.Ready` until step 8 made it one, `HeroFlow.Needs` (step 8 rebased onto step 7). Three engine
      differences its comparisons found fixed first on `gm2-engine-fixes` ("The engine fixes"). GM1's tests that expected
      the page after "New character" restated for Q26, and `end_to_end.py`'s Continue and load. Its choices are under "How
      it works", step 7 ("Choices made"). The view stays empty (11), the seal's emblem a placeholder (10).
@@ -1697,6 +1711,14 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
    - Approval stops: the screens' captures (both themes; Dev Mode's carousel too) in `claude-work/gm2/step8/approval/`;
      then the fixtures.
    - Finished: approved; the screens against Chromium (views masked); the flow's rules tested.
+   - **Done (2026-11-16 to 19, the branch `gm2-step8`; "How it works", step 8).** Approved by the user as captured (Q51, Q52), a
+     playable race with no looks shown but not choosable (Q53). Its choices (the manager accepted them): both screens on
+     the page itself, as the start screen; × to the start screen while the hero is unfinished, else back to the sheet;
+     each screen hides itself before it runs the next one's command; the race and the look saved together only at the
+     end; the preset kept as where the look started, a part the new body doesn't offer taking the category's first
+     option; the random roll's fixed order (sex, build, each category, each colour; one draw a list); `open-races` and
+     `open-maker` only for a hero who still needs the flow, or in Dev Mode. The views (the figures, the live emblem) are a
+     seam for step 11 (`IHeroViews`), none in the program until then; the views' mask stays step 5's (the manager's).
    - **The engine fix it waits for is done** (2026-11-18, the branch `gm2-round-borders`; `Docs/Compositing-Port.md`, "Thin
      rounded borders"): the strip's approved 1 px round borders as Chromium paints them (Skia's hairline, the background
      shrunk under the border, the shown medallion's ring of shadow cut a pixel inside it). On the engine's page of the
@@ -2806,9 +2828,10 @@ picture comparisons); the manager's decisions of the same day ("Decisions", "Que
   `data-dev-only`, as the old), the "☰ Field tools" toggle and its shade before the page (the old body's); the eight
   attribute cards as the old `createStatCards` writes them (`SheetMarkup.Attributes`: the old `statDefinitions`). The
   Limitless toggle (GM15) and the old dialogs aren't there.
-- `SheetScreen`: **Q26's rule** `Ready(save)`: the hero has a race, and a look unless its race is one the data has as
-  enemy-only (Dev Mode's hero, Q27, has none); a race the data doesn't have (a mod's, switched off) can't be told apart
-  and gets the sheet ("Unknown race"). On every open of a character (`GameSession.Opened`: `game-opened` played, the
+- `SheetScreen`: **Q26's rule** `Ready(save)` (since step 8 `HeroFlow.Needs(save, context)`, the one place both screens
+  ask, with these words): the hero has a race, and a look unless its race is one the data has as enemy-only (Dev Mode's
+  hero, Q27, has none); a race the data doesn't have (a mod's, switched off) can't be told apart and gets the sheet
+  ("Unknown race"). On every open of a character (`GameSession.Opened`: `game-opened` played, the
   status line emptied, as GM1) and on **`open-sheet`** (registered here, possible while a character is open; the flow's
   end runs it): the sheet shown when ready, else the page hidden, `[Game] the hero has no race|look: the new hero's flow
   asked for` logged and **`open-races`** run (step 8's; not registered on this branch, so the commands log it as not
@@ -2853,8 +2876,8 @@ vignette drawn over it: `::after`). `ui.pak` made again.
 
 **For later steps.** *Step 8:* the flow starts on `open-races` (asked by the sheet for a hero that isn't ready, and by the
 seal in Dev Mode) and ends with `GameSession.Change(save => save with { Hero = …, Look = … })` then `open-sheet`;
-`SheetScreen.Ready(save)` is Q26's rule here, `HeroFlow.Needs` step 8's: the step merged second makes them one. The
-tests' stand-in for the flow is `ScreensHarness.NewHero` (New, `Ready`, `open-sheet`). *Step 11:* the view is
+`SheetScreen.Ready(save)` is Q26's rule here, `HeroFlow.Needs` step 8's: the step merged second makes them one (step 8
+did). The tests' stand-in for the flow is `ScreensHarness.NewHero` (New, `Ready`, `open-sheet`). *Step 11:* the view is
 `surface#hero-view` in `figure.portrait-panel`, positioned 20 px inside the panel's border (480 px tall at every width;
 the panel's width the middle column's); its ground the surface's computed `background-color` (`--portrait-ground`,
 `#2a1f1a`, the same in both themes); the view must pause while the page is hidden (`SheetScreen.Showing`) or covered
@@ -3214,6 +3237,258 @@ a rod's contour 7 mm under a sheet hidden. `HumanoidReferenceTests` and the game
 `EachWidenedLimitBites` with Q60's rows. Mutations 25, 20 killed, 5 that no test tells apart (accounted for in
 `Docs/Renderer-3D.md`, Status).
 
+### Step 8: the race carousel and the character maker (2026-11-16/17, the branch `gm2-step8`)
+
+**Decided on the way.** The user (2026-11-16, the question tool, through the manager, on the approval set in
+`claude-work/gm2/step8/approval/`: the captures at 1440 × 950 in both themes, the carousel beside the old picker in the
+same state from its test client): the carousel and the maker **approved as captured** (Q51, Q52), and **a playable race
+with no looks in the data shown but not choosable** (Q53; "Decisions", "Questions from the steps"). The manager
+(2026-11-16): the step's choices accepted as listed under "Steps", step 8; the views' mask left to step 5 (GM2-P12, as
+step 7 does); the "← All races" button given the room of the game's other small buttons (it hugged its text in the
+approved capture 05: now 5 × 11 px of padding, the arrow 6 px from its words).
+
+**The flow** (`Screens/Races/HeroFlow.cs`; Q25–Q28, GM2-7): name, race, maker, sheet. GM1's New character makes and opens
+a hero with no race and no look; step 7's sheet asks for `open-races` on every open of a hero that **`HeroFlow.Needs`,
+Q26's one rule** (made one with step 7's `SheetScreen.Ready` on the rebase, 2026-11-18, in `Ready`'s words; the sheet,
+the carousel's and the maker's openings and their × all ask it): no race, or no look for a race the data has as playable;
+a Dev Mode hero of an enemy-only race has none and needs none (Q27); a race the data hasn't (a mod's, switched off) can't
+be told from an enemy-only one and gets the sheet. **A playable race the data has no looks for needs the flow too**
+(Q26's words, "the sheet opens only with a race and a look"; the carousel shows that race not choosable, Q53, so such a
+hero, who comes only from a file or a mod switched off, can leave only for the start screen until the looks are there):
+before the rebase this step followed the old `needsAppearanceChoice` there (none needed), which Q26 and step 7's tests
+don't. The commands, fixed by the manager: **`open-races [race]`** and **`open-maker <race>`** (this step's),
+**`open-sheet`** (step 7's, asked at the end; `HeroFlow.SheetCommand` is `SheetScreen.OpenCommand` and the sheet's
+`RacesCommand` the flow's). Both are possible only for a hero who still needs the flow, or in Dev Mode
+(`HeroFlow.CanOpen`; outside it the look is final, GM2-7). Each screen hides itself before it runs the next one's
+command (screens reach each other only through commands), and both hide when the character is left (`Session.Closed`;
+a character opened while one shows was opened after the shown one was left). `HeroFlow.Finish` is the only save: the
+race chosen as the old `selectRace` (`ActorRules.ChooseRace`: refused outside Dev Mode for an enemy-only race or a hero
+who has another race; HP and Mana filled; a look for the hero's own race, the old "Use this look", chooses nothing again
+and keeps them, as the old appearance step), then `GameSession.Change` with the sheet and the look together. Leaving (each
+screen's ×, `HeroFlow.LeaveCommand`): `start-screen` while the hero needs the flow (Q26: it opens on the flow again, the
+hero saved as it was), else `open-sheet` (Dev Mode's change given up); its label and tooltip say which ("Back to the start
+screen", "Back to the character sheet"). `HeroData` is the game's data as the flow reads it (the races in their order,
+`LookData`, `HasLooks` = a body of the race), read at each opening from the document's data (`GameUi.Document.Files`, the
+application's; the screens' internal `Data` gives the tests theirs).
+
+**The race carousel** (`Screens/Races/RacesScreen.cs`, `Assets/UI/styles/races.css`; Q28, Q36, Q41): a section on the page
+itself as the start screen (no sheet under it, Q26), the old race dialog's look (`.spell-picker-dialog.race-dialog`, the
+leather header "ANCESTRY", "Choose a *race*", the old intro line; the browser's "↻ Refresh file" not carried). One race at
+a time: the dark portrait panel with the figure's `surface` (`#races-figure`), the emblem's medallion with its own
+`surface` (`#races-emblem-view`) and the ✦ in the race's colour, the name, the kind ("Playable", "Selected" for the hero's
+own, "Non-playable · Dev Mode"), the old list's eight modifiers ("STR +2" …, the old `formatValue`: `HeroTexts`) and the
+passive's name and description in a well, "Choose <race>". ‹ and › (CSS chevrons: no font has to carry them), Left and
+Right anywhere on the page while it shows and no window is over it (taken from the page; a key with a modifier, or one
+the page took, does nothing), round from one end to the other; the strip of small medallions under the stage (the list
+in order, a rule wherever it goes from playable to enemy-only and back, the shown one ringed, `aria-current`, a click
+shows it; each names its race's emblem, `data-emblem`, for step 10's pictures). The list: the playable races, every race
+in Dev Mode (Q27) in the races' order (Q43: the Merfolk last, after the enemy-only ones, as `races.json` has it),
+following the setting while it shows. Its button: a playable race opens the maker (`race-chosen`; nothing saved yet); an
+enemy-only race (Dev Mode) is taken at once with no look, saved, and `open-sheet` asked for (`race-chosen`); for another
+race than the hero's own outside Dev Mode it is "Race locked", disabled, the old refusal on the status line ("A chosen
+race can only be changed in Dev Mode", the error's look); for a playable race with no looks it is disabled with "No looks
+for the <race> yet" (Q53). The focus: on the button at opening (on × when the button is disabled); lost when the button is
+disabled under it, it comes back at the next race that can be taken. No race in the data: the old empty list ("No races
+loaded.").
+
+**The character maker** (`Screens/Maker/MakerScreen.cs`, `LookMaker.cs`, `Assets/UI/styles/maker.css`; GM2-1, GM2-6,
+Q13–Q24, Q21, Q41): a section on the page itself, the old appearance step's words ("<RACE> · APPEARANCE", "Choose your
+*look*", "← All races", the summary, "Begin as <race>" or "Use this look") in the dialogs' look, three columns: the presets
+(men's then women's under "MALE" and "FEMALE", by their labels, the one the look started from marked; "No presets" for a
+race without) and "Random look" under them; the dark portrait panel with the figure's `surface` (`#maker-figure`); the
+choices: Sex and Build each in a line, then a row per category the body offers (Face, Brows, Hair, Beard, Crest, Ears,
+Tail, Marks, Head piece, in `LookNames.Categories`' order) and, under "COLOURS", per slot the race has swatches for (in
+`LookNames.Slots`' order, each with its swatch's disc), each row showing its choice and opening to its named options, one
+row open at a time (the list scrolls within the panel's height when long). Under 1080 px the presets go above the figure
+and the choices. A choice by click, or by the arrow keys among a group's options (the old step's: Right and Down the
+next, Left and Up the previous, round, the focus following; the presets are groups too), `maker-choice` when it changes
+the look and nothing else when it doesn't (GM1's press); the random button `maker-random` once a roll; Begin saves and
+asks for the sheet (`hero-confirmed`), a refusal (Dev Mode turned off meanwhile, for another race) on its status line in
+the old words with `ui-refused`; "← All races" runs `open-races <race>`; ×. The rows are made again on every change, the
+focus kept on the same control (a `data-key` each). `open-maker` refuses with a log line and shows nothing for no race, a
+race the data hasn't, an enemy-only race, a race with no looks (Q53) and a race `selectRace` refuses ("[Maker] open-maker:
+<why>, nothing done").
+
+**The maker's rules** (`LookMaker`, pure, on step 6's `LookData` and the race): the sexes and builds the race has bodies
+for; the start: the hero's own look when its body is the race's (Dev Mode), else the race's first preset (`Preset` its
+name), else a plain look (the first sex, its average build or else its first, each category's first option, each slot's
+first swatch); none for a race with no body. A preset sets every choice; a changed sex keeps the build when that sex has
+it (else its first), a changed build keeps the sex; either way each part the new body offers is kept and a category's
+first option taken otherwise, the categories it doesn't offer dropped (a woman has no beard), the colours unchanged. A
+part or swatch not offered is refused. The look's `Preset` is where it started, kept through later changes (the maker's
+display: the list's mark, the summary's label). **The random roll** (Q21): one uniform draw a list in a fixed order: the
+sex (over the sexes with a body), the build (over that sex's), each category the body then offers (in the maker's order,
+"none" an option like the others: Q23, Q24), each slot (in the slots' order); no preset. Every look the maker makes
+passes every check of `look.hero` with the data (G4), tested over the presets, each sex and build, and rolled looks.
+
+**GM2-P15's helpers** (`Game/Statventure.Game/Random/RandomPicks.cs`): `Pick` (`items[Math.floor(Math.random() *
+items.length)]`, one draw; an empty list refused before drawing), `WeightedIndex` and `PickWeighted` (the old engines'
+form, `forge-engine.js` 305–310 with `encounter-engine.js` 929–938's weight rule: the roll a draw times the total, a weight
+below 0 or not a number counted as 0, each taken off in turn, the first taking the roll below 0 picked, else the last).
+The maker uses `Pick` only (no weights were asked).
+
+**The views: stand-ins, and what replaces them** (GP-3: nothing of this ships). `IHeroViews` (`Screens/Races/HeroViews.cs`)
+is the seam step 11 fills: `ShowFigure(surface, race, look)` (the carousel: the hero's own look for its own race in Dev
+Mode, else the race's first preset, else none; the maker: the look on every change), `ShowEmblem(surface, race, emblem)`
+(true when a live view shows: the medallion's ✦ then hides, `is-live`), `Hide(surface)` (each screen lets its views go
+when it hides, and the carousel's when the list is empty). **In the program the screens have `NoHeroViews`: the figure
+panels are empty (their dark colour) and the emblem shows the ✦ in the race's colour.** The approval captures drew the
+engine's stand-in test figure (`figure.glb`, `stocky.glb` for a strong body, the look's skin and cloth on its two
+materials) through a capture program's own `IHeroViews` (`claude-work/gm2/step8/capture/`), never in the program. **Step
+11** replaces the views (the look's figure from step 5's builder on step 9's bodies and parts, idling in the fixed
+three-quarter view, Q41; the live emblem, Q36; pausing when hidden; the memory and the cost measured, GM2-P16); **step 10**
+the ✦ by the emblems' pictures (the strip's and, until the live one shows, the medallion's), found by `data-emblem`;
+**step 9** the test data by the real bodies, parts, presets and swatches (no code change: the screens read the data).
+**The shipped data today has no body**: every playable race shows "No looks for the <race> yet" and none can be taken, so
+the program can't make a hero until step 4a lands the human's bodies (and step 9 the rest); Dev Mode's enemy-only races
+can be taken.
+
+**Sounds** (GM2-P17, step 12's names): `race-chosen` (a race taken, playable or enemy-only), `maker-choice` (a choice that
+changes the look, a preset), `maker-random` (once a roll), `hero-confirmed` (Begin); browsing the carousel GM1's press for
+its buttons, nothing for keys; a refused Begin `ui-refused`.
+
+**Log lines** (for step 13): `[Races] the race carousel opened on <race> (<n> races[, Dev Mode])`, `[Races] <race> chosen:
+its look next`, `[Maker] the maker opened for the <race> (<body>[, preset <preset>])`, `[Maker] a random look: <body>,
+<parts>; <slot> <swatch>, …`, `[Maker] open-maker: <why>, nothing done` (a warning), `[Hero] <slot>: the hero is a <race>,
+<sex>, body <body>` or `… a <race> with no look`.
+
+**The screens' test data** (`Tests/Statventure.Game.Tests/Screens/HeroTestData.cs`; GM2-P18: nothing of the maker's is in
+`data.pak` before its models): the committed `data.pak` **without its own looks** (since step 5 it holds the human's two
+bodies, four parts and eight presets: `data/looks/` left out by a custom mount over the pack, so the tests and the
+fixtures don't move as steps 9 and 9a fill the real data; one test of the carousel and one of the flow's data look at
+the shipped data itself: the human the one race with looks, choosable, its maker on its eight presets) with a scratch
+folder on top holding swatches for the human, the
+Half-Beast and the lizardman (the crest's listed first: the maker shows the slots' order, not the race's) and the maker's
+records, every name "Test …": the human's six bodies, eight presets (the old labels after "Test"), six categories (a
+required face, brows and hair; a beard for men with "none"; marks and a head piece with "none"); the Half-Beast's ears
+and tail (required) and a man's slender body before the average; the lizardman's crest; the dwarf's one body with a beard
+and no swatches; the elf none (Q53's case). Models: empty `model` records at `models/test/figure` and `models/test/stocky`
+(the checks ask only that one is there).
+
+**Fixtures** (`Screens/HeroScreenFixtures.cs`, 15; GM1-P17, 12 levels / 0.2 %, as the main frame; on
+`HeroScreensHarness`, the game's sheets asked in the game's order before the flow's, the other screens not attached):
+the carousel (`races-playable`,
+`races-locked`, `races-dev-mode` in both themes, `races-no-looks-light`), the maker (`maker-presets`,
+`maker-category-open` in both themes, `maker-random-dark`, `maker-half-beast-light`) at 1240 × 900 (Dev Mode's
+1240 × 1040) and 1480 × 900, and both at the smallest width (`races-smallest-window-dark`, `maker-smallest-window-light`, 820 × 1000). Every one passes at
+1 and 1.65. Since step 5 every fixture masks the `surface` boxes (`GameScreenFixtures.Views`, GM2-P12): here the
+carousel's figure (`#races-figure`) and its emblem's view (`#races-emblem-view`, which covers the medallion's inside and
+its ✦ placeholder, held by `HeroViewsTests` instead) and the maker's figure (`#maker-figure`); the frames, the panels'
+padding and borders round them and everything else still compared, and every fixture still passes as it did unmasked.
+Each also through the real hidden window (`ProgramPathScreenTests`
+picks them up). Found on the way, each kept to the fixture's side: (1) the headless compositor's pointer rests at its
+output's middle (1200 device px), at 1.65 the page's 727 px: over the maker at 1240 px it lit a row's hover (1.67 % at
+1.65, dark): the maker's fixtures are 1480 px wide, so it rests on the portrait; and over Dev Mode's carousel at 900 px
+high it rested on a medallion of the strip, whose hover ring was in Chromium's references at 1.65 in both themes and
+not in the engine's picture, under the limit (seen on the final recapture, 2026-11-17): Dev Mode's carousel is 1040 px
+high, so it rests in the stage beside "Choose", and `HeroScreenFixturesTests` holds the premise for every fixture (each
+drawn at a scale where the pointer falls on its page, with the pointer there and without it, pixel for pixel; at 900
+px the two Dev Mode fixtures lit 27,412 and 37,832 pixels); (2) a focus a script moves after a mouse
+press shows no ring in the engine (as Chromium), while PaintReference focuses with no input before (a ring): the
+fixtures open rows and roll by the keyboard (focus, Enter); (3) the strip's 28 small rims in Dev Mode, the approved
+1 px round borders, come out past the limit at 1, all along the small circles' outlines: the canvas antialiases a thin
+round border on a small circle otherwise than Chromium (an engine finding: `Docs/Game-Plan.md`, "Engine items the port
+will meet"). For a while they were drawn as inset rings (`box-shadow: inset 0 0 0 1px`), which passed, with the
+enemy-only medallions' dimming (opacity .8) taken out in the same guess; beside the approved borders, both drawn by the
+engine (`claude-work/gm2/step8/approval/medallions-compare-*.png`: the playable strip and Dev Mode's, both themes, at 1
+and 1.65, enlarged 4×), the rings were the same at 1 (no pixel past 12 levels, the worst 8–12) but not at 1.65, where a
+border's width is snapped to whole device pixels (1) and a shadow's spread isn't (1.65), in Chromium as in the engine:
+the rims heavier and a dark seam between the shown medallion's two rings (2,238–5,908 pixels past 12 levels, the worst
+66–125). **A look the user approved is not changed to make a comparison pass (the manager, 2026-11-17 and 18):** the
+borders and the dimming are back exactly as approved (`eaea66b`'s strip rules); the comparison that failed was neither
+masked nor loosened: an engine worker ported Chromium's painting of thin rounded borders on its own branch
+(`gm2-round-borders`, "The engine fix it waits for is done" under "Steps", step 8), and this step merged after it. Before
+the fix (on `c043ad3`, with step 5's view masks; `claude-work/gm2/step8/borders-numbers-c043ad3.txt`):
+`races-dev-mode-light` at 1 2,949 pixels past 12 levels (0.229 %, the worst 81, the limit 2,579 of 1240 × 1040; 2,746
+of them in the strip's band), dark at 1 2,125 (0.165 %), at 1.65 dark 1,402 and light 5,152 (the limit 7,021). **With
+the fix** (`0eca9e5`, `numbers-0eca9e5.txt`): light at 1 **160** (0.012 %, 85 in the band), dark at 1 136 (0.011 %, 91),
+at 1.65 light 1,985 (0.057 %, 160 in the band) and dark 301 (0.009 %, 170); the goldens (Chromium's) the same bytes;
+every one of the step's 30 comparisons under its limit, the most 0.124 % (`races-locked-light` at 1.65); (4) with the page scrolling (820 × 600) the only differing pixels were the root scrollbar's thumb, about 15 px
+shorter in the engine than in Chromium for a page 974 px high (both lay it out 974 px high; `maker-smallest-window-light`
+3,854 pixels past 12 levels at 1, 0.78 %, and 12,784 at 1.65, 0.95 %, all in the scrollbar's column): an engine finding,
+listed and not fixed (the same list), the smallest-window fixtures made 1000 px high instead.
+
+**Tests** (the game's; the counts in "Runs"): `RandomPicksTests` (the picks draw for draw on a scripted source, their
+edges and refusals, a uniform spread), `LookMakerTests` (what a race offers, each start, each choice and refit, the roll
+draw for draw, every look made passing its checks), `HeroTextsTests` (`formatValue` and the modifiers, the rows' values
+from the old function in Node; the refusals' words against the oracle's `sheet-actions` chooseRace cases; the screens'
+words), `RacesScreenTests` (`CheckNewRacePicker`: the three new races offered with their emblems, as
+`new-races-browser.js` checks the seals; the list and its content, browsing, Dev Mode and the setting followed, the lock,
+Q53, taking a playable and an enemy-only race, ×, hiding, who may open it, no races), `MakerScreenTests` (the opening,
+presets, rows, sex and build, the arrow keys, the focus kept, the roll, Begin and what it saves, "Use this look", a
+refusal, "← All races" and ×, who may open it for which race, no presets, no swatches), `HeroFlowTests` (name, race, maker,
+sheet from GM1's New character on its real start screen; an unfinished hero and a GM1 character opening on the flow
+again; `Needs`; the flow's data; the commands; `Finish`'s refusals and its choosing again), `HeroFlowLogTests` (the log
+lines, and an arrow key off a group's options failing nothing; in the "Game log" collection), `HeroViewsTests` (what each
+surface is asked to show and when it is let go), `HeroSheetsTests` (the sheets' rules under the comparisons' limits, as
+computed, Dev Mode's dimming among them), `HeroScreenFixturesTests` (the compositor's pointer lights nothing in a
+fixture), and the 15 fixtures in `GameScreenTests` and `ProgramPathScreenTests`. The whole flow (`HeroFlowTests`' first
+two) runs on the game's own start screen and step 7's sheet (`HeroScreensHarness(sheet: true)`): New character, the
+sheet asking for the carousel and staying hidden, the maker, Begin, the sheet shown with the hero; Continue on an
+unfinished hero opening the carousel again; the other tests keep the sheet's stand-in, and step 7's tests keep theirs
+for the flow (`ScreensHarness.NewHero`, beside the real one). **No GM1 test changed** by this step. Of step 7's, one
+line: its test of Q26's rule asks `HeroFlow.Needs` (the same cases). The engine's `UiResourcesTests.Stylesheets` names the two new sheets; `ui.pak` 20
+entries.
+
+**Shown able to fail** (`claude-work/gm2/step8/`: `make-mutations.py` writes `mutations.json`, run in two halves,
+`mutate.sh`; the sheets' `make-css-mutations.py`, `css-mutate.sh`, `ui.pak` made again for each). **The code: 174, all
+killed** (the step's functional tests only, so none rests on a golden): the picks (their arithmetic, edges and refusals),
+the maker's rules (what is offered, each start, each choice and refit, the roll's draws and order), the words, the flow
+(`Needs`, `Refusal`, `Finish`, leaving, who may open), the game's two screens attached, the carousel (the list, Dev Mode,
+the rule, the strip, the kind, the lock, Q53, the focus, the keys and their refusals, taking a race, hiding, the views) and
+the maker (its refusals at opening, the rows, the presets, the choices, the keys, Begin and its refusal, "← All races",
+×, the views). The first run: 87 of the first half, 79 killed, 6 survived, 2 rewritten (they didn't build); the second:
+those 8 again and the other 87, 92 killed, 3 survived; each survivor a gap, closed and killed in the last run
+(`mutations-rerun.json`, 11 of 11): the weighted pick's NaN and below-0 weights in the roll and the total; a start look
+whose sex disagrees with its body (a slot's save opens unchecked); an enemy-only race with a body still needing no look
+(an orc's body in the test data); a race with an emblem followed by one without; the focus fixup's blur a task later
+before the focus comes back; a taken key on a build that would change; a focus off a group's options (the handler now
+passes it by, `at < 0`, where it had divided by an empty group's count: a logged listener failure the tests now look for);
+the maker's × for a finished hero. **The sheets: 14, all killed**: 9 by the screen comparisons; 5 under their limits (the
+stage's chevron, the strip's ring, a swatch's colour, the chosen preset's ring, an open row's chevron) killed by their
+computed values (`HeroSheetsTests`). With the dimming back (2026-11-17) the list was 16 (`css-dimming.json`: the
+strip's ring again and the dimming's two rules, the enemy-only medallions and the shown one, killed by their computed
+values), with the borders back (2026-11-18) **17, all killed** on step 5's `main` (`c043ad3`, `css-mutations.json`):
+the shown medallion's border in its race's colour added and the ring's strings the approved rule's, both held by their
+computed values, and the stage's chevron, the swatch's colour, the chosen preset's ring and an open row's chevron on
+theirs too (under the limits, as before: on step 7's `main` the chevron's had been "killed" by `races-dev-mode-dark` at
+1 standing at 0.198 % before step 5's masks); while the border fix wasn't on `main` the screens' filter left
+`races-dev-mode-light` out (it failed at 1 unmutated, so it would have "killed" every mutation); **on the fix
+(`0eca9e5`) with it back in: 17 of 17 killed** (7 by the screens, 9 by `HeroSheetsTests`' computed values, the live emblem's placeholder by `HeroViewsTests`; the
+race's kind in capitals moved to a computed check there: with every comparison far under its limit after the fix, its
+few hundred pixels of small text no longer reach the screens' 0.2 %). The pointer's premise broken (Dev Mode's carousel back at 900 px) is killed by
+`HeroScreenFixturesTests` (`mutations-pointer.json`). **Q26's one rule** (on step 7's `main` and again on step 5's,
+`mutations-q26.json`, the step's tests and step 7's `SheetScreenTests`): **10 of 10 killed**: an empty race taken for a race, an enemy-only race or
+a race the data hasn't needing a look, a hero with a look needing the flow, the flow's data without the races, the sheet
+asking the rule the other way or without the races, leaving the other way, Dev Mode or the rule not opening the flow
+(the code's list is 177 now, `make-mutations.py`, every old text found on the rebased tree). Nothing written to the player's real folders.
+
+**Runs** (headless, scratch per-user folders, nothing audible; on `main` `01d256d`, with steps 7 and 5, the round
+borders and the ink's cover merged): the full suite on the GPU (388 s with the build) and on lavapipe (457 s): **4472 +
+948 = 5420 tests** (`main`: 4472 + 796 = 5268; 152 new, all the game's), none held or skipped. The step's 30 comparisons
+recaptured on the round borders' `main` (`0eca9e5`): the same bytes, every one under its limit. The player's real
+folders unchanged by every run (`claude-work/gm2/step8/real-folders.txt`).
+
+**For later steps.** *Step 7 (the sheet), done on the rebase:* the sheet asks `HeroFlow.Needs(save, context)` (Q26's
+one rule) on every open and on `open-sheet`, runs `open-races` for a hero who needs the flow, and the seal's Dev Mode
+change runs it too. *Step 11:* implement `IHeroViews` and give it to both screens (their `Views`); the surfaces are `#races-figure`,
+`#races-emblem-view`, `#maker-figure`; the carousel asks for the race's first preset (none: no preset, an enemy-only race),
+the maker for every change; `Hide` comes when each screen hides; add the views' mask (step 5) before a view draws in a
+fixture. *Step 10:* the pictures by `data-emblem` (the strip's buttons, the medallion `#races-emblem`); the medallion's ✦
+hides once `ShowEmblem` returns true. *Step 9:* real records replace `HeroTestData` with no code change; the category and
+slot names the maker shows are `HeroTexts.Category` and `Slot`. *Step 13:* the commands and log lines above; the flow
+needs bodies in the data to finish a playable hero.
+
+**Choices made** (internal; recorded here, the player-facing ones accepted by the manager): the shared flow as `HeroFlow`
+and `HeroData` in `Screens/Races/`; the data read from the document's data at each opening (no cache), a seam for the
+tests; Q26's rule one with step 7's in `HeroFlow.Needs` (its words: a playable race with no looks needs the flow; **the
+manager's reading of Q26, 2026-11-19:** a hero with a race but no look needs the flow even when that race has no looks
+in the data, as follows from the user's Q26, "the sheet opens only with a race and a look", and Q53; the old game's
+`needsAppearanceChoice` opened the sheet there, a difference recorded as such); the views as a
+seam (`IHeroViews`), not a stand-in model in the game's packs; the old success line ("<race> selected") not shown (the
+screen hides at once, as the old dialog closed); the rows made again on each change with the focus kept by a key; the
+fixtures' widths for the compositor's pointer, their rows opened by the keyboard; the weighted pick refusing an empty list.
+
 ## Status
 
 - **2026-11-15:** written on the user's go for GM2 (docs only, the branch `gm2-design` from `8c7d07d`), after the user's
@@ -3337,3 +3612,17 @@ a rod's contour 7 mm under a sheet hidden. `HumanoidReferenceTests` and the game
   1.72 ms (+7 %), with the stage 5.02 → 5.13 ms. 4472 + 796 = 5268 tests on the GPU and on lavapipe (`main` `0eca9e5`:
   4465 + 796 = 5261; 10 new, 3 bite rows fewer). Mutations 25, 20 killed, 5 that no test tells apart (accounted for in
   `Docs/Renderer-3D.md`, Status).
+- **2026-11-19, step 8 done** (the branch `gm2-step8`; "How it works", step 8): the race carousel and the character
+  maker, approved by the user as captured (Q51, Q52), a playable race with no looks shown but not choosable (Q53): the new
+  hero's flow from GM1's name to `open-sheet` (`open-races`, `open-maker`), the race and the look saved together, Dev
+  Mode's enemy-only races taken at once, the random roll on GM2-P15's `RandomPicks`, the sounds of GM2-P17; the views a
+  seam for step 11 (none in the program yet: empty panels, the ✦ for the emblem); 15 fixtures against Chromium (the views'
+  boxes masked since step 5), on test data without the shipped looks,
+  each through the real window; Q26's rule one with step 7's (`HeroFlow.Needs`, which the sheet asks). 4472 + 948 = 5420 tests on the GPU and on lavapipe
+  (`main`: 4472 + 796 = 5268; 152 new). Found: the
+  headless compositor's pointer and a script's focus after a mouse press
+  bear on a fixture's picture; the strip's approved 1 px round borders differed past the limit at 1 in Dev Mode's light
+  fixture (2,949 pixels, the engine's antialiasing of thin round borders; the inset rings tried instead weren't the
+  approved picture at 1.65): fixed first on `gm2-round-borders`, the manager's word of 2026-11-18, now 160; the root
+  scrollbar's thumb is about 15 px shorter in the engine than in Chromium (both engine findings in `Docs/Game-Plan.md`,
+  "Engine items the port will meet"; the thumb listed, not fixed).

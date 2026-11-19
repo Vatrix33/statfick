@@ -99,7 +99,7 @@ public sealed class StatFickGame : Application
 
     /// <summary>One of each screen, in the order they attach (Docs/Game/Foundation.md, "The seams").</summary>
     internal static IReadOnlyList<IGameScreen> NewScreens() =>
-        [new StartScreen(), new SheetScreen(), new MenuScreen(), new AboutScreen(), new SettingsScreen(), new SlotsScreen(), new PickerScreen()];
+        [new StartScreen(), new SheetScreen(), new MenuScreen(), new AboutScreen(), new SettingsScreen(), new SlotsScreen(), new PickerScreen(), new Screens.Races.RacesScreen(), new Screens.Maker.MakerScreen()];
 
     /// <summary>What the settings said before <c>Run</c>.</summary>
     public SettingsSnapshot Snapshot { get; }

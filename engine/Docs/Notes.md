@@ -673,6 +673,20 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   anyway: the flat lock in `InkCoverTests`); a scratch mutation restored with `mv` from a `cp` keeps the copy's older
   time, so MSBuild keeps the mutant build: restore by writing the file (as `mutate.py` does) or touch it; the Vulkan
   standard 4× sample positions are (−⅛, −⅜), (⅜, −⅛), (−⅜, ⅛), (⅛, ⅜) of a pixel.
+- 2026-11-19 (the PC, GM2 step 8's worker on the branch `gm2-step8`, 4472 + 948 = 5420 tests on the GPU and lavapipe): **the race carousel and the character
+  maker** (`Docs/Game/Hero.md`, "How it works", step 8). Gotchas for a screen's fixtures: the headless compositor's pointer
+  rests at its output's middle (1200 device px: at 1.65 the page's 727 px), so a hover look there differs from the engine
+  (choose the fixture's size so it rests on nothing that lights); a focus a script moves after a mouse press shows no
+  ring (as Chromium) while PaintReference focuses with no input before it: reach a state by the keyboard (focus, Enter);
+  many small 1 px round borders together differed past 0.2 % at 1 (the canvas's antialiasing of round borders, fixed by
+  `gm2-round-borders` before step 8 merged: Skia's hairline): an inset ring (`box-shadow`) matches Chromium, but it is the border's picture at 1
+  only (at 1.65 a border's width is snapped to whole device pixels, a shadow's spread isn't: heavier, so a look change,
+  and the approved borders stay); a page that scrolls shows the
+  root scrollbar's thumb about 15 px shorter in the engine (both in `Docs/Game-Plan.md`, "Engine items the port will
+  meet"). Don't change an approved look to pass a comparison: stop and report the fixture, the scale and the numbers. Recipes: an approval capture of a screen with a 3D view drawn through the screen's own
+  views seam and a `SurfaceViews` with the painter's `SurfaceTexture` (`claude-work/gm2/step8/capture/`); the old game's
+  picker in any state through its test client (`claude-work/gm2/step8/old-picker/`). This session's sandbox refuses a
+  shell heredoc with quotes and `cd` with `git` in one command: write the script to a file and run it.
 
 ## Asking about design choices (user rule)
 

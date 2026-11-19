@@ -1264,6 +1264,8 @@ the design and the tests):
   as recommended):** the sheet's captures approved, the race and level under the hero's name, the seal in full colour,
   the paper doll as shown, and the seal left out of the sheet's picture comparisons (its box masked); in the same two
   places, with the manager's decisions on step 7 (the fixtures' mask hook, the engine fixes on `gm2-engine-fixes`).
+  **Q51–Q53 (2026-11-16, asked by the manager on step 8's approval stop):** the race carousel and the character maker approved as captured; a playable race
+  with no looks in the data shown but not choosable; in the same two places.
   **Q54 and Q55 (2026-11-16, asked by the manager for step 4a):** the lighter figures ("Yes, use the lighter ones"; with the manager's GM2-P19, a model's
   pieces joined per ink flag, and GM2-P20, a "full" level shipped and a "battle" level for GM5) and the limits for
   detailed figures ("Approve limits now, refine the lines after": `ReferenceLimits.DetailedFigure` from the measurement
@@ -4476,6 +4478,29 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     lock): 16 geared figures at 1080p 1.61 → 1.72 ms (+7 %), with the stage 5.02 → 5.13 ms. 4472 + 796 = 5268 tests on
     the GPU and on lavapipe (`main` `0eca9e5`: 4465 + 796 = 5261; 10 new, 3 bite rows fewer). Mutations 25, 20 killed, 5
     that no test tells apart (accounted for in `Docs/Renderer-3D.md`, Status).
+  - **GM2 step 8, the race carousel and the character maker (2026-11-16 to 19, a worker on the branch `gm2-step8`;
+    `Docs/Game/Hero.md`, "How it works", step 8):** the new hero's flow from GM1's name to the sheet: the race carousel
+    (`Game/Statventure.Game/Screens/Races/`, `open-races [race]`: one race at a time with the old list's content, the
+    figure's dark panel and the emblem's medallion, browsing by buttons, keys and a strip of medallions, Dev Mode's
+    enemy-only races taken at once, another race "Race locked" outside Dev Mode, a playable race with no looks shown but
+    not choosable, Q53) and the character maker (`Screens/Maker/`, `open-maker <race>`: the presets as a list, the choices
+    by rows that open, the random button with no locks, "Begin as" saving the race and the look together and asking for
+    step 7's `open-sheet`), approved by the user as captured (Q51, Q52); `HeroFlow` (who needs the flow, Q26; the one
+    save; where it is left to); GM2-P15's `RandomPicks` (the uniform and the weighted pick, the old code's form); the
+    views a seam for step 11 (`IHeroViews`, none in the program yet); the sheets `races.css`, `maker.css` in `ui.pak`
+    (20 entries); the screens on test data over `data.pak` without its looks (step 5's human looks left out, so the
+    tests don't move as steps 9 and 9a fill them). 15 fixtures against Chromium of the port's markup, the views'
+    `surface` boxes masked since step 5, each through the real hidden window. Found (for the manager): the headless
+    compositor's pointer rests at its output's middle and can light a hover at 1.65; a script's focus after a mouse press
+    shows no ring (as Chromium) while PaintReference's does; the strip's approved 1 px round borders differed past the
+    limit at 1 in Dev Mode's light fixture (the canvas's antialiasing of thin round borders: fixed first on
+    `gm2-round-borders`, the manager's word of 2026-11-18, 2,949 pixels → 160); the root scrollbar's thumb is about 15 px shorter in the engine than in Chromium (listed
+    there, not fixed). Rebased onto step 7: Q26's rule one (`HeroFlow.Needs`, in step 7's words, the sheet asking it),
+    the whole flow tested on the real start screen and sheet. 4472 + 948 = 5420 tests on the GPU and on lavapipe, none
+    held (`main` `01d256d`: 4472 + 796 = 5268; 152 new); mutations: the code's 174, all killed (every
+    survivor of the first runs a gap, closed), Q26's one rule 10 of 10 (on `c043ad3`), and the sheets' 17, all killed
+    (on the border fix, `0eca9e5`). The manager's reading of Q26 (2026-11-19): a hero with a race but no look needs the
+    flow even when the race has no looks in the data (Q26 and Q53; the old `needsAppearanceChoice` differs).
 
 ## Milestones
 

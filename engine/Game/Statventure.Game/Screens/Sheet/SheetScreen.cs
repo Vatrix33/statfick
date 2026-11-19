@@ -4,6 +4,7 @@ using Statventure.Game.Data.Actors;
 using Statventure.Game.Data.Effects;
 using Statventure.Game.Data.Races;
 using Statventure.Game.Data.Saves;
+using Statventure.Game.Screens.Races;
 using Statventure.Game.Settings;
 using Statventure.Game.Sounds;
 using Statventure.Game.Ui;
@@ -19,9 +20,10 @@ namespace Statventure.Game.Screens.Sheet;
 /// <see cref="FieldTools"/>). Every number and control state is the sheet's rules' (<see cref="ActorRules.Evaluate"/>), every
 /// control calls its rule's action and the result is saved (<see cref="Session.GameSession.Change"/>, which lights the
 /// dot as the old <c>saveCharacter</c> did), with GM2-P17's sounds. Dev Mode's controls follow the setting live (GM1-12,
-/// GM1-13). <b>The sheet opens only with a race and a look</b> (Q26): a character opened without them (a GM1 save, the
-/// new-hero flow left unfinished) asks for <c>open-races</c>, the new-hero flow's (GM2 step 8), and the page stays hidden;
-/// a hero of an enemy-only race chosen in Dev Mode has no look and opens on the sheet (Q27). <c>open-sheet</c> shows it
+/// GM1-13). <b>The sheet opens only with a race and a look</b> (Q26, <see cref="HeroFlow.Needs(SaveGame, SheetContext)"/>,
+/// the rule's one place): a character opened without them (a GM1 save, the new-hero flow left unfinished) asks for
+/// <c>open-races</c>, the new-hero flow's (GM2 step 8), and the page stays hidden; a hero of an enemy-only race chosen in
+/// Dev Mode has no look and opens on the sheet (Q27). <c>open-sheet</c> shows it
 /// (the flow's end runs it). It shows while a character is open (<c>game-opened</c> on every open), the dot lights for
 /// 350 ms on every save, and the status line says what <see cref="GameUi.Status"/> says.
 /// </summary>
@@ -34,7 +36,7 @@ public sealed class SheetScreen : IGameScreen
     public const string OpenCommand = "open-sheet";
 
     /// <summary>The new-hero flow's first screen, the race carousel (GM2 step 8's), asked for a hero without a race or a look, and by the seal button in Dev Mode.</summary>
-    public const string RacesCommand = "open-races";
+    public const string RacesCommand = HeroFlow.RacesCommand;
 
     /// <summary>How long the autosave dot stays lit after a save (the old <c>saveCharacter</c>'s 350 ms).</summary>
     public const double SavingMilliseconds = 350;
@@ -96,14 +98,6 @@ public sealed class SheetScreen : IGameScreen
     /// <summary>The drawer of the Field tools rail.</summary>
     internal FieldTools Tools => _tools!;
 
-    /// <summary>
-    /// Whether <paramref name="save"/>'s hero can have the sheet (Q26): a race, and a look unless the race is one the data
-    /// has as enemy-only (Dev Mode's hero of such a race has none, Q27). A race the data doesn't have (a mod's, switched
-    /// off) can't be told apart, so a hero of it opens on the sheet too ("Unknown race").
-    /// </summary>
-    public bool Ready(SaveGame save) =>
-        save.Hero.Race is { Length: > 0 } race && (save.Look is not null || !(_context.Races.TryGetValue(race, out var known) && known.Playable));
-
     /// <summary>A character opened: the sheet shown when its hero has a race and a look, else the new-hero flow asked for.</summary>
     void Opened()
     {
@@ -119,7 +113,7 @@ public sealed class SheetScreen : IGameScreen
     {
         if (_parts!.Session.Current is not { } save)
             return;
-        if (Ready(save))
+        if (!HeroFlow.Needs(save, _context))
         {
             Show();
             return;

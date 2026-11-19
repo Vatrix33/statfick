@@ -733,7 +733,7 @@ and below ("GM2's detail round").
   want them to look very good".
 
 **GM2's detail round (the user, 2026-11-15, the question tool, asked by the manager in ten rounds of four after the
-design doc's first version, the options as `Docs/Game/Hero.md` prepared them, then Q40, the manager's follow-up, then Q41 and Q42, which the answers opened, and Q43 and Q44, which step 1 raised, and Q45, asked for step 6, and Q46–Q50, step 7's, and Q54 and Q55, asked for step 4a, and Q58 and Q60, asked with the ink task; in full
+design doc's first version, the options as `Docs/Game/Hero.md` prepared them, then Q40, the manager's follow-up, then Q41 and Q42, which the answers opened, and Q43 and Q44, which step 1 raised, and Q45, asked for step 6, and Q46–Q50, step 7's, Q51–Q53, asked on step 8, and Q54 and Q55, asked for step 4a, and Q58 and Q60, asked with the ink task; in full
 with each question's facts and options in `Docs/Game/Hero.md`, "The questions as asked" and "Questions from the steps"):** every answer the recommended
 option (a) except Q1, Q2, Q9, Q18, Q19, Q21, Q22, Q23, Q28, Q31, Q32 and Q37. The manager's decisions on the proposals
 (GM2-P1–GM2-P16, all as proposed, with notes on P7, P10 and P16; GM2-P17 on step 12's sounds, GM2-P18 on step 6's
@@ -808,6 +808,12 @@ design is open.
 - Q50 (raised by step 7's comparisons, asked the same day): the race seal is left out of the sheet's picture comparisons,
   its box masked; its emblem compared on its own against Blender (step 10), its tilt the canvas's known slanted-box
   difference (`box-slant`). (Not those pictures at 12 levels / 1 %; not an engine port of Skia's tilted-box coverage.)
+- Q51 and Q52 (asked by the manager on step 8's approval stop, 2026-11-16): the race carousel and the character maker
+  approved as captured.
+- Q53 (raised by step 8, asked the same day): a playable race with no looks in the data (no body: the shipped data until
+  steps 4a and 9, or a mod's race) is shown in the carousel but not choosable, its button disabled with "No looks for the
+  <race> yet"; Dev Mode's enemy-only races stay taken at once (Q27). (Not the old game's "taken at once without a look";
+  not the maker opening with Begin disabled.)
 - Q54 (asked by the manager for step 4a on 2026-11-16, on its cost study: about 152,000 triangles and 100 primitives a
   geared figure): **the lighter figures, "Yes, use the lighter ones"**, the same sculpted forms remade lighter (named to
   the user as differing on purpose: the hairline a clean arc, the collars and hems smooth); with the manager's GM2-P19
@@ -2101,15 +2107,20 @@ and waits for the user's go, asked when its milestone reaches it:
   - **`surface` in the engine and in Chromium:** the engine lays it out as a replaced element (a 300 × 150 natural size, its
     children never drawn), Chromium as an unknown inline element; a view's box is sized fully (`display: block`, a width
     and a height) until the two agree. Known, not changed.
-- Found by GM2 step 8 (2026-11-17; step 8's own entry for it is on its branch): **round 1 px borders on small circles**
-  (the race strip's 28 medallions). **Done** on 2026-11-18 by GM2's engine task (the branch `gm2-round-borders`;
-  `Docs/Compositing-Port.md`, "Thin rounded borders"): Skia's hairline for a ring one device pixel wide, the background
-  shrunk under a rounded border, an opaque box's shadow cut a pixel inside it, the radii constrained to the snapped box.
-  The strip on the engine's page, light at 1: 2,715 pixels past 12 levels → 11 (step 8's band was 2,746). Step 8 marks its
-  entry done when it rebases. Found beside it, known and not fixed (same section, "Left as they were"): Skia's curve fills
-  (the shown medallion's ring of shadow), a translucent border over a fill, a hairline under a 2D scale, SVG strokes under
-  a pixel (the corner brackets), focus rings, and **the theme ignoring `color-scheme: dark`** (the game's dark settings and
-  dialogs draw their checkboxes light where Chromium draws them dark: about 500 pixels of `settings-mods-dark` at 1).
+- Found by GM2 step 8 (2026-11-17; `Docs/Game/Hero.md`, "How it works", step 8, "Tests", (3) and (4)):
+  - **Round 1 px borders on small circles** (the race strip's 28 medallions; Dev Mode's light fixture at 1 was 2,949
+    pixels past 12 levels, 0.229 %, against its limit of 2,579). **Done** on 2026-11-18 by GM2's engine task (the branch `gm2-round-borders`;
+    `Docs/Compositing-Port.md`, "Thin rounded borders"): Skia's hairline for a ring one device pixel wide, the background
+    shrunk under a rounded border, an opaque box's shadow cut a pixel inside it, the radii constrained to the snapped box.
+    The strip on the engine's page, light at 1: 2,715 pixels past 12 levels → 11 (step 8's band was 2,746); step 8's own
+    comparisons on it (2026-11-19): `races-dev-mode-light` at 1 2,949 → 160, every one of its 30 under the limit. Found beside it, known and not fixed (same section, "Left as they were"): Skia's curve fills
+    (the shown medallion's ring of shadow), a translucent border over a fill, a hairline under a 2D scale, SVG strokes under
+    a pixel (the corner brackets), focus rings, and **the theme ignoring `color-scheme: dark`** (the game's dark settings and
+    dialogs draw their checkboxes light where Chromium draws them dark: about 500 pixels of `settings-mods-dark` at 1).
+  - **The root scrollbar's thumb** (listed, not fixed): with the page scrolling (the carousel and the maker at 820 × 600, the page 974 px high
+    in both, laid out alike) the engine's thumb is about 15 px shorter than Chromium's (`maker-smallest-window-light`:
+    3,854 pixels past 12 levels at 1, 0.78 %; 12,784 at 1.65, 0.95 %; all in the scrollbar's column). The step's
+    smallest-window fixtures are 1000 px high meanwhile, so the page doesn't scroll.
 
 ### The three decision-id collisions
 
@@ -2445,3 +2456,8 @@ GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
   items the port will meet"): each sample's piece, an edge under another piece hidden as Freestyle hides it, the crease
   only within a piece, the meshes' silhouettes; the humanoid figures nearer Freestyle in every scene, and their limits
   tightened by the user's Q58 and Q60 (`Docs/Game/Hero.md`, "How it works", "The ink's cover").
+- **2026-11-19, GM2 step 8 (the race carousel and the character maker):** the new hero's flow from GM1's name to the
+  sheet (`open-races`, `open-maker`, then step 7's `open-sheet`), the carousel and the maker approved by the user as
+  captured (Q51, Q52), a playable race with no looks shown but not choosable (Q53), the random button on GM2-P15's picks,
+  the views a seam for step 11 (none shown in the program yet), the screens on test data until the real looks land
+  (`Docs/Game/Hero.md`, "How it works", step 8).
