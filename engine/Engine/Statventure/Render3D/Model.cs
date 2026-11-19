@@ -16,9 +16,10 @@ struct SkinVertex
 }
 
 /// <summary>
-/// A primitive's feature edges (Docs/Renderer-3D.md, "Ink lines"): its creases and open edges as
-/// feature.vert reads them (vertex indices, and the cosine between the two faces' normals, −2 for an
-/// open or non-manifold edge), found at rest with the mesh's primitives welded by position.
+/// A primitive's edges for the ink (Docs/Renderer-3D.md, "Ink lines"), every one, as feature.vert reads them to find
+/// the creases, open edges and silhouettes (vertex indices, the vertex opposite the edge in each of its two faces, the
+/// cosine between the faces' normals, −2 for an open or non-manifold edge, and the island it lies on),
+/// found at rest with the mesh's primitives welded by position.
 /// </summary>
 public sealed class FeatureEdges(GpuBuffer buffer, int count)
 {
@@ -26,12 +27,28 @@ public sealed class FeatureEdges(GpuBuffer buffer, int count)
     public int Count { get; } = count;
 }
 
+/// <summary>
+/// A primitive's islands (Docs/Renderer-3D.md, "Ink lines", "Feature edges"): each vertex's piece of its mesh, the
+/// mesh's primitives welded by position and joined by their triangles, numbered from 0 in the order first met. The ink
+/// tells an edge's own piece from another surface by it: a piece is one connected surface, so a model joined from many
+/// pieces (GM2-P19) still has them apart. <see cref="Mesh"/> is shared by the primitives of one mesh.
+/// </summary>
+public sealed class SurfaceIslands(GpuBuffer buffer, object mesh)
+{
+    internal GpuBuffer Buffer { get; } = buffer;
+    internal object Mesh { get; } = mesh;
+}
+
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
 struct FeatureEdge
 {
     public uint A;
     public uint B;
+    /// <summary>The vertex opposite the edge in its first face, and in its second (<see cref="uint.MaxValue"/>: none, an open edge or one whose second face lies in another primitive with no vertex there).</summary>
+    public uint C;
+    public uint D;
     public float Cosine;
+    public uint Island;
 }
 
 /// <summary>
@@ -68,6 +85,7 @@ public sealed class Model : IDisposable
 
     readonly Mesh[][] _meshes;
     readonly FeatureEdges?[][] _features;
+    readonly SurfaceIslands[][] _islands;
     /// <summary>Per mesh and primitive: its skinning data, or null when it has no joints.</summary>
     readonly SkinData?[][] _skins;
     readonly Matrix4x4[] _rest;
@@ -94,7 +112,9 @@ public sealed class Model : IDisposable
         var drawn = data.Meshes.Select(mesh => new ModelMesh(mesh.Name, mesh.Primitives.Select(p => p.Joints != null ? FlatFacesApart(p) : p).ToArray())).ToArray();
         _meshes = drawn.Select(mesh => mesh.Primitives.Select(p => Upload(device, p)).ToArray()).ToArray();
         _skins = drawn.Select(mesh => mesh.Primitives.Select(p => SkinOf(device, p)).ToArray()).ToArray();
-        _features = drawn.Select(mesh => FeaturesOf(device, mesh)).ToArray();
+        var surfaces = drawn.Select(mesh => FeaturesOf(device, mesh)).ToArray();
+        _features = surfaces.Select(s => s.Features).ToArray();
+        _islands = surfaces.Select(s => s.Islands).ToArray();
     }
 
     /// <summary>
@@ -158,16 +178,46 @@ public sealed class Model : IDisposable
     /// A mesh's feature edges, as Freestyle finds them on a mesh: its primitives welded by position
     /// (glTF splits a mesh by material and at seams), every edge with one face (open) or more than two
     /// kept, and every edge between two faces with the cosine of their normals' angle (the crease
-    /// test is the style's, at draw). Each edge goes with the primitive of its first face.
+    /// test is the style's, at draw). Each edge goes with the primitive of its first face, with the vertex
+    /// opposite it in each of its faces (by which the ink finds its silhouettes) and its island. And the mesh's
+    /// islands (<see cref="SurfaceIslands"/>): the welded vertices joined by their triangles.
     /// </summary>
-    static FeatureEdges?[] FeaturesOf(GpuDevice device, ModelMesh mesh)
+    static (FeatureEdges?[] Features, SurfaceIslands[] Islands) FeaturesOf(GpuDevice device, ModelMesh mesh)
     {
         var welded = new Dictionary<Vector3, int>();
-        var edges = new Dictionary<(int, int), List<(int Primitive, uint A, uint B, Vector3 Normal)>>();
+        var weldOf = mesh.Primitives.Select(primitive => primitive.Positions.Select(position =>
+            welded.TryGetValue(position, out var w) ? w : welded[position] = welded.Count).ToArray()).ToArray();
+        // The islands: welded vertices joined by every triangle (union by the smaller id, so roots are the first met).
+        var root = Enumerable.Range(0, welded.Count).ToArray();
+        int Find(int w)
+        {
+            while (root[w] != w)
+                w = root[w] = root[root[w]];
+            return w;
+        }
+        for (var p = 0; p < mesh.Primitives.Count; p++)
+            for (var t = 0; t + 2 < mesh.Primitives[p].Indices.Length; t += 3)
+                for (var k = 1; k < 3; k++)
+                {
+                    int x = Find(weldOf[p][mesh.Primitives[p].Indices[t]]), y = Find(weldOf[p][mesh.Primitives[p].Indices[t + k]]);
+                    if (x != y)
+                        root[Math.Max(x, y)] = Math.Min(x, y);
+                }
+        var islandOf = new Dictionary<int, uint>();
+        uint Island(int w) => islandOf.TryGetValue(Find(w), out var i) ? i : islandOf[Find(w)] = (uint)islandOf.Count;
+        var islands = weldOf.Select(weld => weld.Select(Island).ToArray()).ToArray();
+        // Each primitive's vertex at a welded position (the first), for a face's opposite vertex lying in another primitive.
+        var local = weldOf.Select(weld =>
+        {
+            var map = new Dictionary<int, uint>();
+            for (var i = 0; i < weld.Length; i++)
+                map.TryAdd(weld[i], (uint)i);
+            return map;
+        }).ToArray();
+        var edges = new Dictionary<(int, int), List<(int Primitive, uint A, uint B, uint Opposite, Vector3 Normal)>>();
         for (var p = 0; p < mesh.Primitives.Count; p++)
         {
             var primitive = mesh.Primitives[p];
-            int Weld(uint index) => welded.TryGetValue(primitive.Positions[index], out var w) ? w : welded[primitive.Positions[index]] = welded.Count;
             for (var t = 0; t + 2 < primitive.Indices.Length; t += 3)
             {
                 uint i0 = primitive.Indices[t], i1 = primitive.Indices[t + 1], i2 = primitive.Indices[t + 2];
@@ -175,13 +225,13 @@ public sealed class Model : IDisposable
                 if (normal.LengthSquared() == 0)
                     continue;
                 normal = Vector3.Normalize(normal);
-                foreach (var (a, b) in new[] { (i0, i1), (i1, i2), (i2, i0) })
+                foreach (var (a, b, c) in new[] { (i0, i1, i2), (i1, i2, i0), (i2, i0, i1) })
                 {
-                    int wa = Weld(a), wb = Weld(b);
+                    int wa = weldOf[p][a], wb = weldOf[p][b];
                     var key = wa < wb ? (wa, wb) : (wb, wa);
                     if (!edges.TryGetValue(key, out var faces))
                         edges[key] = faces = [];
-                    faces.Add((p, a, b, normal));
+                    faces.Add((p, a, b, c, normal));
                 }
             }
         }
@@ -190,10 +240,16 @@ public sealed class Model : IDisposable
         {
             var first = faces[0];
             var cosine = faces.Count == 2 ? Vector3.Dot(faces[0].Normal, faces[1].Normal) : -2f;
-            lists[first.Primitive].Add(new FeatureEdge { A = first.A, B = first.B, Cosine = cosine });
+            var d = uint.MaxValue;
+            if (faces.Count >= 2)
+                d = faces[1].Primitive == first.Primitive ? faces[1].Opposite
+                    : local[first.Primitive].GetValueOrDefault(weldOf[faces[1].Primitive][faces[1].Opposite], uint.MaxValue);
+            lists[first.Primitive].Add(new FeatureEdge { A = first.A, B = first.B, C = first.Opposite, D = d, Cosine = cosine, Island = islands[first.Primitive][first.A] });
         }
-        return lists.Select(list => list.Count == 0 ? null
-            : new FeatureEdges(GpuBuffer.CreateWithData<FeatureEdge>(device, list.ToArray(), VkBufferUsageFlags.StorageBufferBit), list.Count)).ToArray();
+        var meshKey = new object();
+        return (lists.Select(list => list.Count == 0 ? null
+                : new FeatureEdges(GpuBuffer.CreateWithData<FeatureEdge>(device, list.ToArray(), VkBufferUsageFlags.StorageBufferBit), list.Count)).ToArray(),
+            islands.Select(ids => new SurfaceIslands(GpuBuffer.CreateWithData<uint>(device, ids, VkBufferUsageFlags.StorageBufferBit), meshKey)).ToArray());
     }
 
     public static Model Create(GpuDevice device, ModelData data) => new(device, data);
@@ -300,7 +356,7 @@ public sealed class Model : IDisposable
                 {
                     Shading = Shading.Cel, Shadow = shadow, Group = group, Part = node + 1, Ink = Data.Nodes[node].Ink,
                     CastsShadow = true, ReceivesShadows = scenery, Hatch = material.Hatch, Anchor = anchor ?? transform.Translation,
-                    Glow = material.Emission, Features = _features[meshIndex][p],
+                    Glow = material.Emission, Features = _features[meshIndex][p], Islands = _islands[meshIndex][p],
                 };
                 // Unlit (a Background shader): flat in its colour. An Emission shader alone: flat in
                 // its emission, glowing. Neither is hatched (Docs/Renderer-3D.md, "Glow").
@@ -333,6 +389,8 @@ public sealed class Model : IDisposable
             mesh.Dispose();
         foreach (var features in _features.SelectMany(f => f))
             features?.Buffer.Dispose();
+        foreach (var islands in _islands.SelectMany(i => i))
+            islands.Buffer.Dispose();
         foreach (var data in _skins.SelectMany(s => s))
         {
             data?.Influences.Dispose();

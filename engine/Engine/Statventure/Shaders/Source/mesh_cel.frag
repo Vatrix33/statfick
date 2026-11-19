@@ -5,7 +5,7 @@
 // (double-sided surfaces) shade with the normal flipped, as Blender does. The band edge is
 // antialiased: the lit share of the pixel is how far the light is past the edge over how much it
 // changes across the pixel (fwidth), as Blender's filtered samples smooth it. Also writes the
-// surface record for the ink pass. Scenery takes the sun's shadow: Blender thresholds each of its
+// surface record and the sheet for the ink pass. Scenery takes the sun's shadow: Blender thresholds each of its
 // samples, which sees a hard shadow from one point of the sun, and averages them, so the tone the
 // light gives blends toward the shadow tone by the share of the sun hidden (sunVisibility).
 #include "common.glsl"
@@ -15,8 +15,10 @@
 layout(location = 0) centroid in vec3 vNormal;
 layout(location = 1) in vec3 vView;
 layout(location = 2) in vec3 vWorld;
+layout(location = 3) flat in uint vSheet;
 layout(location = 0) out vec4 outColor;
 layout(location = 1) out uvec2 outSurface;
+layout(location = 2) out uint outSheet;
 
 #include "mesh_lighting.glsl"
 
@@ -27,4 +29,5 @@ void main()
         n = -n;
     outColor = celTone(n, pc.draw.color, pc.draw.shadow);
     outSurface = surfaceRecord(vView);
+    outSheet = vSheet;
 }

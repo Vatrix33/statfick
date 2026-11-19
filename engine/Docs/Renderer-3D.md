@@ -163,7 +163,13 @@ come up.
     R32G32_UINT, MSAA 4×, `mesh_surface.glsl`): the model id (10 bits, per `DrawItem.Group`; ids
     repeat past 1023 models in a view), the part (8 bits, the node), the ink flag, the face normal
     in view space turned toward the viewer (octahedral, 6+6 bits; from the screen derivatives of the
-    view position, so it's the triangle's own) and the view depth.
+    view position, so it's the triangle's own) and the view depth. And beside it the sample's sheet
+    (`RenderTarget3D.Sheets`, R16_UINT, MSAA 4×; GM2's ink task): which piece of which mesh it shows, a
+    16-bit hash (`mesh_types.glsl`, `sheetOf`) of the mesh drawn (the renderer numbers each mesh of each
+    model on each node; its primitives share the number) and the triangle's island (`Model`'s
+    `SurfaceIslands`: the mesh's primitives welded by position and joined by their triangles, a flat
+    vertex attribute read in `mesh.vert`). A model joined from many pieces (GM2-P19) keeps them apart,
+    and so do two meshes of one model whose nodes share a number (garments exported with one skeleton).
   - Pass 1 decides, for each pixel and its right and lower neighbours (sample 0 of each), whether
     their boundary carries a line: the nearer side owns it and needs ink; another model or the
     background on the other side: the outline; within a model, a break in the surface (neither
@@ -171,7 +177,9 @@ come up.
     within two pixels' worth): an inner line; two parts meeting without a break: none (Freestyle
     draws no intersections, nor where two surfaces cross between the pixels, as water meets a bank,
     while both face the viewer, |N·V| > 0.2); within a part, face normals more than 180° minus the
-    crease angle apart: an inner line. Faces less than the crease angle apart with one nearly
+    crease angle apart: an inner line, but only within one sheet (two pieces of a part meeting
+    without a break are an intersection too: the hair's cap and the forehead, the jaw and the neck,
+    a lock on the cap). Faces less than the crease angle apart with one nearly
     edge-on (|N·V| < 0.25) count as continuous (their planes predict nothing) unless their depths
     lie further apart than twice the depth a surface at that angle runs across a pixel (a pixel's
     width over |N·V|): a fold, as a hill's crest before the slope behind it. All eight samples of the two
@@ -223,12 +231,40 @@ come up.
 - **Feature edges, how they're drawn** (`Model.FeaturesOf`, `feature.vert/.frag`): at load a mesh's
   primitives are welded by position; every edge with one face (open) or more than two is kept, every
   edge between two faces keeps the cosine of their normals' angle (the crease test is the style's, at
-  draw; crease status is taken at rest). Each frame (after skinning) every edge is a thin quad on
-  screen; a pixel within 0.75 px of it records the nearest point (its offset), its view depth and
-  the edge's part; the depth test keeps the nearest edge. `ink_edges.frag` keeps the point where it
-  isn't behind the visible surface (that surface's plane carried to the point, half a pixel's worth
-  of depth; two pixels' worth where the surface is seen nearly edge-on) and its part has ink;
-  `ink_lines.frag` inks it as an inner line.
+  draw; crease status is taken at rest), and each edge the vertex opposite it in each of its two faces
+  (the second one's looked up by position when that face lies in another primitive) and its island.
+  Each frame (after skinning) every edge is a thin quad on screen when it is open, a crease or a
+  silhouette (its two faces' normals, from the posed vertices in view space, one toward the viewer and
+  one away: Freestyle's contour on a mesh, `use_smoothness` being off in the reference); a pixel within
+  0.75 px of it records the nearest point (its offset), its view depth, the edge's sheet, ink flag,
+  model and part, and whether it is a silhouette alone. The depth test keeps the nearest edge.
+  `ink_edges.frag` keeps the point where its part has ink and nothing covers it: the covering surface,
+  judged by the pixel's sample nearest the point when it is another sheet (else sample 0, as before), is
+  its plane carried to the point (GM2's ink task, 2026-11-18; Status, "GM2's ink task"):
+  - **another sheet** (another model, another mesh, the same mesh on another node, or another island
+    of the edge's own mesh): hidden as Freestyle hides an edge under any other surface, however close:
+    in front of the point by more than what its normal's precision leaves after carrying it that far
+    (6 bits a coordinate, 3.8° at worst, measured over the octahedral code: the offset × 0.067 / |N·V|²
+    pixels' worth of depth, never more than half a pixel's); a surface seen nearly edge-on
+    (|N·V| ≤ 0.25) predicts nothing, and there two pixels' worth, as before;
+  - **its own sheet**: as before, within half a pixel's worth of depth (its normal is coarse, and the
+    face seen may be a neighbour of the edge's own); two pixels' worth where the surface is seen nearly
+    edge-on;
+  - **a silhouette alone** (neither open nor a crease) is dropped where another part of its model shows
+    about the point (the pixel's four samples and its four neighbours): the per-pixel tests decide
+    there, as M6's scenes were measured (Freestyle judges a long contour by its middle: the tube's
+    contour running along the fin in `pose-side` comes out hidden whole, where the engine sees most
+    of it).
+  `ink_lines.frag` inks it as an inner line. **The one case it can't hide:** another surface seen nearly
+  edge-on lying within about a pixel's depth of the edge (a steep slab 15 mm over a crease at 25 mm a
+  pixel): its plane, carried even half a pixel, can be off by more than the gap (a coarse normal's slope
+  over a grazing angle), and the surface record holds each triangle's depth at the pixel's centre only, so
+  the old two pixels stand there. (Its own sheet keeps the old half pixel, so an edge under a fold of
+  its own piece, the same island, within half a pixel is drawn too; neither case shows in the humanoid
+  scenes.) Tried and left out (the measurement, Status): the exact planes of the edge's own two faces
+  compared with the cover's at the pixel's centre (a plane carried a pixel off the edge put a cover
+  "behind" it: a rod's contour under a sheet was drawn, and the figures came out farther from
+  Freestyle than with the rule above).
 - **GPU skinning, how it's done** (`Renderer3D.Skin`, `skin.comp`, `normals.comp`): `Model.Draw`
   takes a `ModelPose` (local transforms for some nodes) and gives each skinned primitive a
   `SkinJob` (its joint matrices: inverse bind matrix, then the joint's posed transform; posed bounds
@@ -523,29 +559,65 @@ second time), and top-level objects without a mesh.)
   The stray pixels lie on the ground at trunk bases, on the plates, the mid trees and the king. Each widened
   limit put back to M6's fails the comparison. The user approved these limits exactly as set (2026-11-05;
   `Docs/Scene.md`, "Step details", S7-13).
-- **Detailed figures** (GM2 step 4a, the user's Q55; `ReferenceLimits.DetailedFigure`): the game's humanoid figures in
-  its look (`HumanoidReferenceTests`, 14 scenes, shading by `Compare` with a profile and ink by `CompareInk`), set the
-  same way from the measurement on the GPU and on lavapipe (2026-11-16). Two things part the engine from Blender there:
-  MSAA's edges on the figures' many small forms, and the ink drawing a feature edge that lies a little under what covers
-  it (`ink_edges.frag`: up to half a pixel, two when the cover is seen nearly edge-on, plus 1e-4 of the depth behind the
-  covering surface's plane), where Freestyle hides it: the hairline's crease, the jaw's underside, lines along the
-  hair's locks, a mail sleeve's seam, the sword's lines, the shield's rim edge-on. Without shadows the stray pixels are
-  counted apart, inside and on edges (`InsideEvery`, `EdgeEvery`; M6: none):
+- **Detailed figures** (GM2 step 4a, the user's Q55, tightened by Q58; `ReferenceLimits.DetailedFigure`): the game's
+  humanoid figures in its look (`HumanoidReferenceTests`, 14 scenes, shading by `Compare` with a profile and ink by
+  `CompareInk`), set the same way from the measurement on the GPU and on lavapipe. Without shadows the stray pixels are
+  counted apart, inside and on edges (`InsideEvery`, `EdgeEvery`; M6: none). First set on 2026-11-16 (Q55: "approve the
+  limits now, refine the lines after"), when the ink drew many lines Freestyle doesn't. Step 4a put them down to the
+  feature edges' depth allowance (an edge drawn up to half a pixel under what covers it); in fact most were the per-pixel
+  crease rule within a part: a model joined from many pieces (GM2-P19) is one part, and so are the garments exported with
+  the body's skeleton (their nodes share its numbers), so where two pieces met at a steep angle without a break in depth
+  (the hair's cap and the forehead, the jaw and the neck, a lock on the cap) the rule drew a crease, an intersection
+  Freestyle never draws; the allowance itself drew less, mostly on the gear (the shield's rim over its field, the sword's
+  pieces; the exact test alone took the gear's unlike ink from 12.7 to 10.7 % and left the close-ups' extra lines as
+  they were). And lines Freestyle draws went missing where a piece's contour lies on another piece of its part without
+  a break in depth (a lock on the cap), which only the mesh's silhouette edges find. GM2's ink
+  task (2026-11-18; the sheets, a covered edge hidden as Freestyle hides it and the meshes' silhouettes, "Ink lines, how
+  they're found" and "Feature edges, how they're drawn" above) brought them near Freestyle's, and the limits were
+  measured again and tightened: by the user's Q58 (2026-11-18, on the task's first rule), then by Q60 (the same day, on
+  the final rule, which replaces Q58 for the extra lines and the unlike ink; "Tighten as proposed"), by the rule put to
+  the user: a limit stays widened only where a scene measures past M6's, at the worst plus about a tenth. Step 5's six
+  assembled looks (the game's `AssemblyTests`) are held to them too and were measured with them:
 
-  | Measure | M6 | Measured | Detailed figure |
-  | --- | --- | --- | --- |
-  | Inside pixels off by more than 2 levels | none | 1–23 (23 of 102,400) | 1 in 4,200 |
-  | Edge pixels beyond the edge rule | none | 12–88 (88 of 102,400) | 1 in 1,100 |
-  | Freestyle line pixels missed | 2 % | 0.13–2.50 % | 2.7 % |
-  | Engine line pixels where Freestyle has none | 3 % | 0.46–7.68 % | 8 % |
-  | Freestyle line pixels with unlike ink about them | 3 % | 1.39–12.71 % | 13.5 % |
-  | Mean coverage difference | 0.12 | 0.075–0.134 | 0.14 |
-  | Total ink off Freestyle's | 10 % | 0.70–4.94 % | 10 % (M6's) |
-  | Edges' mean difference | 4 | 2.06–2.81 | 4 (M6's) |
+  | Measure | M6 | Measured 2026-11-16 | Then (Q55) | Measured 2026-11-18, final | Detailed figure (Q60) |
+  | --- | --- | --- | --- | --- | --- |
+  | Inside pixels off by more than 2 levels | none | 1–23 (23 of 102,400) | 1 in 4,200 | the same | 1 in 4,200 |
+  | Edge pixels beyond the edge rule | none | 12–88 (88 of 102,400) | 1 in 1,100 | the same | 1 in 1,100 |
+  | Freestyle line pixels missed | 2 % | 0.13–2.50 % | 2.7 % | 0–0.09 % | 2 % (M6's) |
+  | Engine line pixels where Freestyle has none | 3 % | 0.46–7.68 % | 8 % | 0.09–1.82 % | 3 % (M6's) |
+  | Freestyle line pixels with unlike ink about them | 3 % | 1.39–12.71 % | 13.5 % | 0.13–7.56 % | 8.3 % |
+  | Mean coverage difference | 0.12 | 0.075–0.134 | 0.14 | 0.067–0.093 | 0.12 (M6's) |
+  | Total ink off Freestyle's | 10 % | 0.70–4.94 % | 10 % (M6's) | 0.10–6.56 % | 10 % (M6's) |
+  | Edges' mean difference | 4 | 2.06–2.81 | 4 (M6's) | the same | 4 (M6's) |
 
-  Each widened limit set just under what its worst scene measured fails that scene (`EachWidenedLimitBites`). Approved
-  "now, the lines refined after": an engine task brings the ink nearer Freestyle's (a line hidden under another piece
-  stays hidden), then the limits are measured again and tightened (`Docs/Game/Hero.md`, "How it works", step 4a).
+  (Q58, on the first rule's worst of 3.00 % extra and 8.51 % unlike, had set 3.3 % and 9.4 %.) The 14 scenes with the
+  final rule, each measure on the GPU / lavapipe where they differ (the shading's stray pixels, inside / on edges,
+  untouched by the ink; `claude-work/gm2/ink-cover/final/` holds every comparison's log):
+
+  | Scene | Missed % | Extra % | Unlike % | Coverage | Ink off % | Inside / edge px |
+  | --- | --- | --- | --- | --- | --- | --- |
+  | man, front | 0.00 | 0.15 / 0.16 | 0.13 | 0.069 / 0.070 | −1.86 / −1.90 | 11 / 58–61 |
+  | man, three-quarter | 0.00 | 0.27 / 0.29 | 0.25 / 0.27 | 0.069 | −1.31 / −1.36 | 6 / 30–35 |
+  | man, side | 0.04 | 0.22 / 0.24 | 0.24 | 0.070 | −1.71 / −1.79 | 6–8 / 12–14 |
+  | man, back | 0.03 | 0.31 / 0.33 | 0.71 | 0.073 | −1.69 / −1.73 | 18 / 27–29 |
+  | man, close-up | 0.00 | 1.55 / 1.65 | 0.90 | 0.080 | +0.56 | 23 / 86–88 |
+  | man geared, ¾, posed | 0.04 | 0.15 | 2.55 | 0.077 | −2.91 / −2.95 | 5 / 55–66 |
+  | man geared, side, posed | 0.05 | 0.23 / 0.24 | 7.19 / 7.13 | 0.093 | −6.37 / −6.40 | 5–7 / 30–31 |
+  | woman, front | 0.00 | 0.09 | 0.32 | 0.067 | −1.71 / −1.77 | 5 / 30–33 |
+  | woman, three-quarter | 0.00 | 0.25 / 0.24 | 0.47 | 0.070 | −1.55 / −1.64 | 1–2 / 22–24 |
+  | woman, side | 0.00 | 0.38 / 0.41 | 0.17 | 0.071 | −1.31 / −1.37 | 3–4 / 21–26 |
+  | woman, back | 0.01 | 0.49 / 0.53 | 0.97 / 0.96 | 0.073 | −0.80 / −0.86 | 9–10 / 38–42 |
+  | woman, close-up | 0.00 | 1.74 / 1.82 | 0.86 | 0.086 | +0.19 / +0.10 | 12–15 / 51–53 |
+  | woman geared, ¾, posed | 0.02 | 0.19 / 0.20 | 2.50 / 2.49 | 0.078 | −3.13 / −3.19 | 3–4 / 42–47 |
+  | woman geared, side, posed | 0.09 | 0.20 / 0.21 | 7.56 | 0.093 | −6.51 / −6.56 | 2 / 29–31 |
+
+  Step 5's six looks: missed 0–0.04 %, extra 0.09–1.82 % (the woman's face close-up), unlike 0.17–2.55 % (the man
+  geared), coverage 0.067–0.086. What still parts them from Blender: MSAA's edges on the figures' many small forms (the
+  shading's stray pixels; the ink task drew nothing there), and lines Freestyle judges by a long edge's middle where the
+  engine sees them pixel by pixel (the sword's and the shield's seen from the side, the unlike ink's worst; the engine
+  now draws a little less ink there than Freestyle, 6.5 % less). Each widened limit set just under what its worst scene
+  measured fails that scene (`EachWidenedLimitBites`: the stray pixels on the man's close-up, the unlike ink on the
+  woman geared from the side).
 - **Terrain chunks** (`TheTerrainsLevelsMeetWithoutCracks`): the reference scenes draw every chunk
   at stride 1 (cells 4-6 pixels on screen), so the levels are checked on their own: both terrain
   views drawn with the four chunks at strides 1, 2, 4 and 8 over a magenta background and without
@@ -717,3 +789,29 @@ Started 2026-10-30.
   `render/styles/game` (data.pak); the engine's test scenes keep `CelStyle.Default` (GM2's Q11). Measured beside: a view
   with nothing that receives shadows runs no shadow pass (`FitShadow` finds no receiver), yet its render target allocates
   the 4096² atlas (64 MiB) all the same: an engine task (the atlas only where something receives).
+- **GM2's ink task (2026-11-17/18, a worker on the branch `gm2-ink-cover`; `Docs/Game/Hero.md`, "How it works", "The
+  ink's cover").** The engine item step 4a recorded (the feature edges' depth allowance). Each sample's sheet
+  (`RenderTarget3D.Sheets`, R16_UINT MSAA: a 16-bit hash of the mesh drawn and the triangle's island; `Model`'s islands,
+  a mesh's primitives welded by position and joined by their triangles, a flat attribute in `mesh.vert`); the per-pixel
+  crease only within one sheet ("Ink lines, how they're found": two pieces of a part meeting are an intersection);
+  feature edges that know their two faces and draw the meshes' silhouettes (`feature.vert`); a point under another sheet
+  hidden as Freestyle hides it, within only its cover's normal's precision ("Feature edges, how they're drawn", with the
+  case it can't hide). Measured before and after over every 3D comparison on both drivers: the humanoid scenes nearer
+  Freestyle in all fourteen (worst missed 2.50 → 0.09 %, extra 7.68 → 1.82 %, unlike 12.71 → 7.56 %, coverage 0.134 →
+  0.093; "Detailed figures", with the table), Ji'ruan's stage and nine other ink comparisons nearer, four a little
+  farther in a measure or two, far under their limits, no shading moved, no golden changed;
+  `ReferenceLimits.DetailedFigure` tightened by the user's Q58, then Q60 (unlike ink 8.3 %, extra lines back to M6's
+  3 %). The frame's cost (the RX 9070, step 4a's probe, three alternating rounds before and after of seven runs each,
+  medians, holding the full-run lock; the load 3.8–6.9, mostly the measure's own builds, no Blender, the GPU 7–31 % busy
+  as each measure began): 16 geared figures at 1080p 1.61 → 1.72 ms (+0.11, +7 %), with Ji'ruan's stage 5.02 → 5.13 ms,
+  16 battle-level men 1.00 → 1.07 ms, one figure at 600 × 800 0.24 → 0.25 ms, an empty 1080p frame 0.46 → 0.48 ms (the
+  sheet attachment). `InkCoverTests` (10: an edge under another piece, mesh, model or node hidden; an edge on its own
+  faces at a grazing angle drawn; two pieces meeting draw nothing; a piece's contour on another drawn, in one primitive
+  or across two; a rod's sides drawn over its own curve; a contour under a sheet hidden). 4472 + 796 = 5268 tests on the
+  GPU and on lavapipe (`main` `0eca9e5`: 4465 + 796 = 5261; 10 new, 3 bite rows fewer). Mutations: 25 on the final rule,
+  20 killed; 5 no test tells apart, each accounted for: the precision's allowance not grown over |N·V|², and no
+  allowance against a cover seen edge-on (M6's two pixels, untested before too), matter only for an edge within a
+  pixel's depth of another piece's slanted or grazing surface, which no scene has; the cover always judged by sample 0,
+  or the edge's own sheet by the nearest sample too, differ only where a cover's border crosses the point's pixel; every
+  primitive numbered a mesh of its own differs only where one primitive of a piece covers another's edge within half a
+  pixel (a fold).

@@ -10,8 +10,10 @@
 layout(location = 0) centroid in vec3 vNormal;
 layout(location = 1) in vec3 vView;
 layout(location = 2) in vec3 vWorld;
+layout(location = 3) flat in uint vSheet;
 layout(location = 0) out vec4 outColor;
 layout(location = 1) out uvec2 outSurface;
+layout(location = 2) out uint outSheet;
 
 #include "mesh_lighting.glsl"
 
@@ -30,4 +32,5 @@ void main()
     vec3 n = normalize(vec3(-gradient.x, 1.0, -gradient.y));
     outColor = celTone(n, pc.draw.color, pc.draw.shadow);
     outSurface = surfaceRecord(vView);
+    outSheet = vSheet;
 }

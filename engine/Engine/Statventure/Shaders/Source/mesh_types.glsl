@@ -12,11 +12,25 @@ layout(buffer_reference, scalar) readonly buffer TerrainShade
 {
     vec2 origin; float cellSize; uint covers; uvec2 grid; uint coverCount; uint pad0; vec4 tones[];
 };
-// extra: a terrain's cover blending (TerrainShade), else 0.
+// extra: a terrain's cover blending (TerrainShade), else 0. islands: each vertex's island (Model's SurfaceIslands),
+// else 0 (one piece); sheet: the number of the mesh drawn (its primitives share it), which with the island makes each
+// sample's sheet (sheetOf) for the ink's feature edges (Docs/Renderer-3D.md, "Feature edges").
+layout(buffer_reference, scalar) readonly buffer IslandIds { uint items[]; };
 layout(buffer_reference, scalar) readonly buffer MeshDraw
 {
     mat4 model; mat4 normalMatrix; vec4 color; vec4 shadow; uint surface; uint receivesShadows; vec3 anchor; uint hatch; TerrainShade extra;
+    uint64_t islands; uint sheet;
 };
+
+// A sheet: a piece of one drawn mesh (its number and the island), hashed to the 16 bits the sheet records keep.
+uint sheetOf(uint mesh, uint island)
+{
+    uint h = mesh * 0x9E3779B1u ^ (island + 0x7F4A7C15u) * 0x85EBCA77u;
+    h ^= h >> 15;
+    h *= 0x2C1B3C6Du;
+    h ^= h >> 12;
+    return h & 0xFFFFu;
+}
 // sun.xyz: the direction toward the light; sun.w: the diffuse light it gives a white surface facing
 // it (Blender: strength / π); band: the cel band edge on that diffuse light; orthographic: 1 when
 // the camera is. The shadow map (Docs/Renderer-3D.md, "Shadows"): lightViewProjection, world to

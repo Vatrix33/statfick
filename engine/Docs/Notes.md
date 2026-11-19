@@ -661,6 +661,18 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   when it fills, which spoils the draws made from it earlier in the same frame (anything that adds many masks needs an
   atlas of its own, cleared between frames); a translucent border over a fill is Blink's clip layer, not a ring; the
   game's dark screens draw themed checkboxes light (`color-scheme` ignored), a known difference now listed.
+- 2026-11-18 (the PC, GM2's ink task's worker on the branch `gm2-ink-cover`, 4472 + 796 = 5268 tests on the GPU and lavapipe):
+  **the ink's cover** (`Docs/Game/Hero.md`, "How it works", "The ink's cover"; `Docs/Renderer-3D.md`, "Feature edges, how
+  they're drawn"). Gotchas: before blaming a rule for a line, switch the rule off and look again (step 4a blamed the
+  feature edges' allowance; with them off the lines stayed: the per-pixel crease between two pieces of one part); Freestyle
+  hides an edge under any other surface in front of it, however close (`ViewMapBuilder.cpp`, `computeVisibility`: only the
+  edge's own coincident faces are skipped); the octahedral normal in the surface record (6 bits a coordinate) is off by
+  up to 3.8° (measured over the code), so a plane carried from a sample is good to the offset × 0.067 / |N·V|²; a plane
+  carried a pixel off its edge lies (a face's plane extended past the face put a cover "behind" it); a test of a feature
+  edge must be one only that edge can draw (a rod three pixels across has its contour drawn by the per-pixel creases
+  anyway: the flat lock in `InkCoverTests`); a scratch mutation restored with `mv` from a `cp` keeps the copy's older
+  time, so MSBuild keeps the mutant build: restore by writing the file (as `mutate.py` does) or touch it; the Vulkan
+  standard 4× sample positions are (−⅛, −⅜), (⅜, −⅛), (−⅜, ⅛), (⅛, ⅜) of a pixel.
 
 ## Asking about design choices (user rule)
 

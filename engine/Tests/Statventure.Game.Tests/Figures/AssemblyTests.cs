@@ -30,7 +30,7 @@ namespace Statventure.Game.Tests;
 /// rendered into <c>Golden/r3d-assembly-*.png</c> and <c>-ink.png</c>); the game's figure builder (<see cref="HeroFigure"/>)
 /// builds each in the game's style (data.pak's <c>render/styles/game</c>), framed as the figure mode frames a figure
 /// (render.py's views), and is held to Blender's assembly: the same models and colours, then the shading and the lines
-/// under the detailed figures' limits (<see cref="ReferenceLimits.DetailedFigure"/>, the user's Q55).
+/// under the detailed figures' limits (<see cref="ReferenceLimits.DetailedFigure"/>, the user's Q55, tightened by Q58 and Q60).
 /// </summary>
 [Collection("GPU")]
 public class AssemblyTests(GpuFixture gpu)

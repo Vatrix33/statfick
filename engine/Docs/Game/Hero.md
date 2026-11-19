@@ -148,7 +148,7 @@ builds, faces and presets (step 5's "Finished": the sample looks now, the preset
 human presets draw their models' own placeholder colours, the expected state, and no comparison or golden holds those
 colours as a look ("How it works", step 5).
 
-### Questions from the steps (Q43–Q50, Q54–Q55, the user, 2026-11-15 and 2026-11-16)
+### Questions from the steps (Q43–Q50, Q54–Q55, Q58, Q60, the user, 2026-11-15 to 2026-11-18)
 
 Q43 and Q44 raised by step 1 (the `race` kind's fields; the docs didn't answer them) and asked by the manager with the
 question tool the same day; both the recommended option. Q45 asked by the manager on 2026-11-16 for step 6 (step 2 had
@@ -221,6 +221,30 @@ so the steps' don't collide: steps 7 and 8 hold Q46–Q53).
   plus about a twentieth, as the detailed stages' were (S7-13), so the figures go into the repo; then an engine task makes
   the game's ink agree better with Blender's (a line hidden under another piece stays hidden), and the limits are
   measured again and tightened ("How it works", step 4a, "The detailed figures' limits"; Status).
+
+Q58 and Q60 raised by GM2's engine task on the ink ("How it works", "The ink's cover") and asked by the manager with the
+question tool on 2026-11-18 (the numbers the manager's, so as not to collide with the steps' own).
+- **Q58 The detailed figures' limits tightened** (2026-11-18, the question tool, asked by the manager with the ink task's
+  measurement on the GPU and on lavapipe; Q55's "refine the lines after" done). The 14 scenes' worst, before the task →
+  after: Freestyle's lines missed 2.50 → 0.09 %, extra lines 7.68 → 3.00 %, unlike ink 12.71 → 8.51 %, the mean coverage
+  difference 0.134 → 0.103; the shading's stray pixels unchanged (23 inside, 88 on edges). **Answer: "Tighten as proposed
+  (Recommended)":** `ReferenceLimits.DetailedFigure` is M6's with extra lines 3.3 % (was 8 %) and unlike ink 9.4 % (was
+  13.5 %), each the worst plus about a tenth; missed lines and the coverage difference back to M6's 2 % and 0.12 (were
+  2.7 % and 0.14); the stray pixels' one in 4,200 and one in 1,100 kept. `EachWidenedLimitBites` holds the two widened ink
+  limits on their new worst scenes (extra just under 2.87–3.00 % on the woman's close-up, unlike under 8.50–8.51 % on her
+  gear from the side) and the stray pixels' on the man's close-up as before. *Replaced by Q60 for the extra lines and the
+  unlike ink.*
+- **Q60 The detailed figures' limits on the ink task's final rule** (2026-11-18, the question tool, asked by the manager).
+  After Q58 the task's mutation run found a flaw in its first rule (an edge's own faces' planes, carried a pixel off the
+  edge, put a covering surface "behind": a rod's contour under a sheet was drawn); the final rule judges another piece's
+  cover by its own plane within its normal's precision, and measured nearer Freestyle everywhere ("How it works", "The
+  ink's cover"). Shown the worst of the 14 scenes and step 5's six assembled looks on both drivers: missed 0.09 %, extra
+  1.82 % (Q58's numbers: 3.00 %), unlike 7.56 % (8.51 %), coverage 0.093, the stray pixels unchanged; and the rule put to
+  the user: a limit stays widened only where a scene measures past M6's, at the worst plus about a tenth. **Answer:
+  "Tighten as proposed":** `ReferenceLimits.DetailedFigure` is M6's with unlike ink 8.3 % (Q58: 9.4 %) and the stray
+  pixels' one in 4,200 and one in 1,100; extra lines back to M6's 3 % (Q58: 3.3 %), missed lines and the coverage
+  difference M6's as Q58 had them. `EachWidenedLimitBites`: the stray pixels on the man's close-up as before (4,500 and
+  1,200), the unlike ink just under 7.56 % on the woman geared from the side (7.5 %); no extra row (not widened).
 
 ### Earlier decisions that bind GM2
 
@@ -2671,6 +2695,15 @@ against the neck, lines along the hair's locks, the mail sleeve's seam at the sh
 shield's rim seen edge-on. An engine task makes the ink agree better (Status), then the limits are measured again and
 tightened.
 
+*Corrected by the engine task (2026-11-18, "The ink's cover" below):* the allowance was not what drew most of those lines.
+With the feature edges switched off, the hairline, the jaw's underside and the lines along the locks were still drawn:
+they were the per-pixel crease rule within a part, where two pieces met at a steep angle without a break in depth (the
+hair's cap and the forehead, the jaw and the neck, a lock on the cap). A model joined per ink flag (GM2-P19) is one part,
+and so are the face, the hair and the chain shirt over the body, garments exported with its skeleton, whose nodes share
+the body's numbers. The allowance itself drew the doubled lines of the gear (the shield's rim over its field, the
+sword's pieces). The limits were tightened by the user's Q58 and Q60 (2026-11-18): unlike ink 8.3 %; extra lines, missed
+lines and the coverage difference M6's.
+
 **Tests** (engine; the counts in "Runs"): `HumanoidModelTests` (the manifest names every committed model; every skinned
 model carries the family's skeleton, the bones' parents as `rig.py` has them, at its body's rest; every vertex follows
 at most four deforming bones, never a socket, its weights summing to one; the face and the hair follow the head alone;
@@ -3011,6 +3044,13 @@ lavapipe; the limits for 172,800 px: 41 inside, 157 edge pixels; for the close-u
 The close-up is the nearest to its limits, as step 4a's woman's close-up was (the same face from the same view: missed 2.50
 %, coverage 0.134). `TheAssemblysCategoriesAreTheMakers` holds `assemble.py`'s order of categories to `LookNames`.
 
+*Since the ink's engine task ("The ink's cover", 2026-11-18, rebased onto this step):* the six measured again on both
+drivers with its final rule, the shading unchanged (the ink task draws nothing there), the ink under the user's Q60
+limits (missed 2 %, extra 3 %, coverage 0.12, unlike 8.3 %): missed 0–0.04 %, extra 0.09–1.82 % (the face's close-up,
+1.74 % on the GPU), coverage 0.067–0.086, unlike 0.17–2.55 % (the man geared, from 3.01 / 3.03 %); the face's close-up
+from 2.50 % missed, 5.95 / 6.23 % extra, 0.134 coverage and 6.78 / 6.81 % unlike to 0 %, 1.74 / 1.82 %, 0.086 and
+0.86 %.
+
 **The structural walk** (`Figures/FigureWalkTests.cs`): over the game's packs, every body with every option offered on it
 (each pair) and every slot of its race's swatches: each option resolves, each model reads, each part's model binds to the
 body's bones (every joint a bone of the body's, at the body's rest within 10⁻⁵: made on that body), no model is drawn by two
@@ -3111,6 +3151,68 @@ run `make-blender-references.sh` (or its step 6 alone) for the `assembly-*` scen
 nothing to name: every `surface` box is masked already. *Not done here (not in the step's brief):* the sandbox's figure mode
 taking a `look.hero` (`--figure <look.json>`, which step 3a left to this builder) still takes a body `.glb` with its
 garments and items; `make-humanoid.sh assemble` draws a look on Blender's side.
+
+### The ink's cover: what hides a line, as Freestyle hides it (2026-11-17/18, the branch `gm2-ink-cover`)
+
+The engine task step 4a recorded ("The ink's depth allowance", `Docs/Game-Plan.md`, "Engine items the port will meet";
+Q55's "refine the lines after"), done in the engine's ink (`Docs/Renderer-3D.md`, "Ink lines, how they're found",
+"Feature edges, how they're drawn", "Detailed figures"). **What it found first:** the lines step 4a put down to the
+feature edges' allowance were mostly another rule's (step 4a's note, corrected where it stands): the per-pixel crease
+within a part drew where two pieces of one part meet at a steep angle without a break in depth (the hair's cap and the
+forehead, the jaw and the neck, a lock on the cap), an intersection Freestyle never draws; a model joined per ink flag
+is one part, and the face, the hair and the chain shirt are garments exported with the body's skeleton, their mesh nodes
+numbered as the body's. The allowance drew the gear's doubled lines (the shield's rim over its field, the sword's
+pieces). **What it does** (the manager accepted the design on 2026-11-18): the main pass writes each sample's sheet, a
+16-bit hash of the mesh drawn (by model, mesh and node) and the triangle's island (`Model`: a mesh's primitives welded
+by position and joined by their triangles); a feature edge knows its two faces (their opposite vertices at load) and its
+island; a point of it is hidden when another sheet, the pixel's sample nearest the point, lies in front of it by more
+than that surface's coarse normal leaves unsure when its plane is carried to the point (Freestyle's rule: any other
+surface in front, however close, hides an edge), and keeps the old allowance against its own sheet; the per-pixel
+crease is drawn only within one sheet; and the meshes' silhouette edges (their two faces, from the posed vertices each
+frame, one toward the viewer and one away: Freestyle's contour with face smoothness off, as the reference renders) draw
+a piece's contour lying on another piece of its part, which no break in depth shows, but not beside another part of the
+model, where the per-pixel tests decide as M6's scenes were measured (`pose-side`: Freestyle judges the tube's long
+contour along the fin by its middle and hides it whole). The choices made inside the task (internal, the worker's): a
+sheet attachment of its own (R16_UINT, 16-bit hash: two pieces share a number one time in 65,536) rather than the
+surface record's bits, so the per-pixel rules keep their part; the sheet's mesh number per model, mesh and node; an
+island per vertex (a flat attribute) rather than per triangle; the cover judged by the pixel's sample nearest the
+point, against another sheet only (against its own, sample 0 as before); the cover's plane carried within its normal's
+precision (3.8° at worst, measured over the octahedral code), never more than the old half pixel, and a cover seen
+nearly edge-on (|N·V| ≤ 0.25) still allowed the old two pixels; silhouettes kept only where no other part shows about
+the point. **Tried and left out:** the edge's own two faces' exact planes from the posed vertices, the cover compared
+with them on the pixel's ray (the first design, accepted by the manager and measured: Q58 was set on it); the faces'
+planes carried a pixel off the edge put a cover "behind" them, so a rod's contour under a sheet was drawn
+(`AContourUnderAnotherSurfaceIsHidden`, which the mutation run asked for, found it), and without them every humanoid
+scene came out nearer Freestyle (Q60). **What it can't hide:** another surface seen nearly edge-on lying within about a
+pixel's depth of the edge (its plane, carried even half a pixel, may be off by more than the gap, and the surface record
+holds each sample's depth at the pixel's centre only), where the old two pixels stand; and an edge under a fold of its
+own piece (the same island) within half a pixel, where its own sheet's old allowance stands. Neither shows in the 14
+scenes or the six assembled looks.
+
+**The measurement** (every 3D comparison of the suite logged before and with the final rule on both drivers;
+`claude-work/gm2/ink-cover/before|final`, the per-scene table in `final/humanoid-table.md` and in `Docs/Renderer-3D.md`,
+"Detailed figures"): the 14 humanoid scenes' worst, before → after: Freestyle's lines missed 2.50 → 0.09 %, extra lines
+7.68 → 1.82 %, unlike ink 12.71 → 7.56 %, the mean coverage difference 0.134 → 0.093, the total ink 4.94 → 6.56 % off
+(the woman geared from the side: the engine now draws less than Freestyle on the sword and the shield, where Freestyle
+judges a long edge by its middle), the shading's stray pixels unchanged (23 inside, 88 on edges: the ink task drew
+nothing in them). Missed lines, extra lines, unlike ink and the coverage difference fell in all fourteen scenes on both
+drivers. Then the user's Q60 tightened the limits (Q58 had, on the first rule's numbers). **Every other comparison**
+passes under its own unchanged limits; no shading comparison moved, and of the ink: nearer to Freestyle on both drivers
+Ji'ruan's stage at its six times (extra lines 9.5–11.9 → 8.2–10.7 %, unlike ink 5.9–8.0 → 4.1–5.4 %, missed halved),
+`cel-closeup`, `cel-shapes`, `gear-swing`, `figure-gear` (unlike 2.84 → 1.99 %), `ink-models`, `scene-objects`,
+`shadow-map`, `terrain-map`, `terrain-oblique`; a little farther, each far under its limit: `model-blocks` (missed 0.02
+→ 0.10 %, four pixels where an outline's gap at a corner widens; unlike 1.04 → 1.10 %), `figure-today` (missed 0.04 →
+0.12 %, while its extra lines went 0.46 → 0), `cel-side` (unlike 0.04 → 0.08 %), `terrain-oblique`'s total ink (0.11 →
+0.35 % off); `pose-side` unchanged (2.85 % extra on the GPU, 1.72 → 1.73 % on lavapipe). No golden changed.
+
+**Tests** (engine): `InkCoverTests`, small scenes built in code with the lines drawn alone, each checked where its rule
+decides and with a control that the line is drawn without what covers it: an edge under another piece of its mesh,
+another mesh, another model or its mesh on another node, 2 mm over it (a quarter of a pixel's depth), hidden; a drum's
+rim crease against its own faces at 6° drawn unbroken; a post through the plate draws no line where they meet; a flat
+lock's contour lying on the plate drawn, in one primitive or across two; a round rod's sides drawn over its own curve;
+a rod's contour 7 mm under a sheet hidden. `HumanoidReferenceTests` and the game's `AssemblyTests` under Q60's limits;
+`EachWidenedLimitBites` with Q60's rows. Mutations 25, 20 killed, 5 that no test tells apart (accounted for in
+`Docs/Renderer-3D.md`, Status).
 
 ## Status
 
@@ -3224,3 +3326,14 @@ garments and items; `make-humanoid.sh assemble` draws a look on Blender's side.
   sheet's screens moved nearer (`sheet-played-light` 848 → 214 pixels past 12 levels at 1, `sheet-dev-light` 2,888 → 1,676
   at 1.65; the port's 150 screens that moved, 149 nearer and one farther by 14 pixels, a dark settings screen over the
   theme's light checkboxes). Step 8 rebases onto it.
+- **2026-11-18, the ink's engine task done** (a worker, the branch `gm2-ink-cover`, rebased on steps 7 and 5 and the
+  round borders; "How it works", "The ink's cover"): what step 4a put down to the feature edges' allowance was mostly the per-pixel crease
+  meeting two pieces of one part (step 4a's note corrected); each sample now knows its piece (sheet), an edge under
+  another piece is hidden as Freestyle hides it, the crease is drawn only within a piece and the meshes' silhouettes draw
+  a piece's contour lying on another. The 14 humanoid scenes and step 5's six looks nearer Freestyle in every scene on
+  both drivers (worst missed 2.50 → 0.09 %, extra 7.68 → 1.82 %, unlike 12.71 → 7.56 %), every other comparison under its
+  own limits, no golden changed; the detailed figures' limits tightened by the user's Q58 and then Q60 (unlike ink 8.3 %;
+  extra, missed and coverage M6's). The frame's cost on the RX 9070 (under the lock): 16 geared figures at 1080p 1.61 →
+  1.72 ms (+7 %), with the stage 5.02 → 5.13 ms. 4472 + 796 = 5268 tests on the GPU and on lavapipe (`main` `0eca9e5`:
+  4465 + 796 = 5261; 10 new, 3 bite rows fewer). Mutations 25, 20 killed, 5 that no test tells apart (accounted for in
+  `Docs/Renderer-3D.md`, Status).

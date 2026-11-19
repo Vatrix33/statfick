@@ -68,16 +68,16 @@ internal sealed record ReferenceLimits
     /// <summary>
     /// Detailed figures (GM2 step 4a; Docs/Game/Hero.md, "How it works", step 4a, "The detailed figures' limits"): the
     /// humanoid family's figures in the game's look (HumanoidReferenceTests' 14 scenes, 360 × 480 and the 320 × 320
-    /// close-ups), measured on the PC's GPU and on lavapipe on 2026-11-16 with the lighter models (the user's approval of
-    /// 2026-11-16, GM2-P20, and the manager's two addenda); each limit the scenes exceed under M6 is the worst measured
-    /// plus about a twentieth, rounded as the detailed stages' were (S7-13). What parts the engine from Blender here: the
-    /// engine's ink draws a feature edge lying up to half a pixel (two when the cover is seen nearly edge-on) plus 1e-4
-    /// of the depth under what covers it (ink_edges.frag), where Freestyle hides it (the hairline's crease, the jaw's
-    /// underside, lines along the hair's locks, the mail sleeve's seam, the sword's and the shield's rims), and MSAA's
-    /// edges on the figures' many small forms. The rest stay M6's: the edges' mean (measured 2.06–2.81 levels, 4) and
-    /// the total ink (0.70–4.94 % off Freestyle's, 10 %). Approved by the user (2026-11-16, "approve the limits now,
-    /// refine the lines after"); an engine task brings the ink nearer Freestyle's and the limits are measured again and
-    /// tightened then.
+    /// close-ups; step 5's six assembled looks are held to them too), measured on the PC's GPU and on lavapipe; a limit
+    /// stays widened only where a scene measures past M6's, at the worst plus about a tenth, the rest M6's. First set on
+    /// 2026-11-16 (the user's Q55, "approve the limits now, refine the lines after"), then tightened after GM2's ink task
+    /// (the user's Q58 and Q60, 2026-11-18: each sample's sheet, a covered edge hidden as Freestyle hides it, the
+    /// meshes' silhouettes; Docs/Renderer-3D.md, "Feature edges, how they're drawn"). What still parts the engine from
+    /// Blender here: MSAA's edges on the figures' many small forms (the shading's stray pixels, untouched by the ink
+    /// task), and lines Freestyle judges by a long edge's middle where the engine sees them pixel by pixel (the sword's
+    /// and the shield's seen from the side). M6's: missed lines (measured 0–0.09 %), extra lines (0.09–1.82 %), the
+    /// mean coverage difference (0.067–0.093), the total ink (0.10–6.56 % off Freestyle's) and the edges' mean
+    /// (2.06–2.81 levels).
     /// </summary>
     public static readonly ReferenceLimits DetailedFigure = M6 with
     {
@@ -87,13 +87,8 @@ internal sealed record ReferenceLimits
         // Measured 12–88 edge pixels beyond; the worst share 88 of 102,400 (the man's close-up on lavapipe, one in 1,164):
         // one in 1,100 allows 93 there, 157 in a full view.
         EdgeEvery = 1100,
-        // Measured 0.13–2.50 % of Freestyle's line pixels missed (the woman's close-up).
-        Missed = 0.027,
-        // Measured 0.46–7.68 % (the man's close-up on lavapipe: the hair's locks and hairline, the jaw).
-        Extra = 0.08,
-        // Measured 1.39–12.71 % (the woman's gear from the side on lavapipe: the sword's and the shield's lines).
-        Unlike = 0.135,
-        // Measured 0.075–0.134 (the woman's close-up).
-        Coverage = 0.14,
+        // Measured 0.13–7.56 % (the woman geared from the side, both drivers: the sword's and the shield's lines; 12.71 %
+        // before the ink task).
+        Unlike = 0.083,
     };
 }

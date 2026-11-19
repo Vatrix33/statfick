@@ -7,14 +7,16 @@
 // - Within a model, the surface breaking off (neither side's plane runs on to the other's depth):
 //   a silhouette, an inner line.
 // - Two parts of a model meeting without a break: no line (Freestyle draws no intersections).
-// - Within a part, face normals further apart than the crease angle allows: a crease, an inner line.
+// - Within a part, face normals further apart than the crease angle allows: a crease, an inner line;
+//   but two pieces of the part (two sheets: RenderTarget3D.Sheets) meeting so meet, as two parts do.
 // All eight samples of the two pixels place it: a straight edge crossing the two-pixel strip leaves
 // as much of the strip on the first pixel's side as the distance at which it crosses the strip's
 // middle, and the samples on that side count that in quarters.
-// A mesh's feature edges (feature.frag: creases and open edges, as Freestyle finds them on the mesh)
-// add the nearest point on an edge at a pixel, kept where the edge lies on the visible surface
-// (within two pixels' worth of depth) and its part has ink: a plate's edge lying on a body, which
-// the per-pixel tests above see as one continuous surface.
+// A mesh's feature edges (feature.frag: creases, open edges and silhouettes, as Freestyle finds them
+// on the mesh) add the nearest point on an edge at a pixel, kept where its part has ink and nothing
+// covers it: against another sheet within only its coarse normal's precision (as Freestyle hides an edge
+// under any other surface), against its own with the allowance it needs; a plate's edge lying on a body,
+// which the per-pixel tests above see as one continuous surface.
 // Out: bits 0-1, the line to the right neighbour (1 inner, 2 outline); bits 2-4, the samples of
 // the two pixels on this pixel's side, less one (the crossing at (count) / 4 from this pixel's
 // left); bits 5-9 the same toward the pixel below (crossing from its top); bit 10, a feature edge
@@ -32,6 +34,7 @@ layout(push_constant, scalar) uniform Push
     vec2 halfExtent;
     float creaseCos;
     uint features;
+    uint sheets;
 } pc;
 
 layout(location = 0) in vec2 vUv;
@@ -53,6 +56,12 @@ Surface load(ivec2 p, int sampleIndex)
     s.normal = normalize(n);
     s.depth = uintBitsToFloat(r.y);
     return s;
+}
+
+// The sheet sample 0 of a pixel shows (RenderTarget3D.Sheets: which mesh drawn and which piece of it).
+uint sheetAt(ivec2 p)
+{
+    return texelFetch(usampler2DMS(SurfaceSamples[nonuniformEXT(pc.sheets)], Samplers[SAMPLER_NEAREST_CLAMP]), p, 0).x;
 }
 
 // The view ray through a point on screen (pixels): origin and direction (z −1, so the distance along it is the depth).
@@ -156,9 +165,12 @@ uint classify(Surface a, ivec2 pa, Surface b, ivec2 pb)
         return 2u;
     if (broken(a, pa, b, pb))
         return 1u;
-    if (a.part != b.part)
+    if (a.part != b.part || dot(a.normal, b.normal) >= pc.creaseCos)
         return 0u;
-    return dot(a.normal, b.normal) < pc.creaseCos ? 1u : 0u;
+    // A crease only within one piece: two pieces of a part (the islands of a mesh joined from many, GM2-P19, or two
+    // meshes whose nodes share a number in one model) meeting without a break are an intersection, as two parts are
+    // (a piece's contour lying on another is a feature edge of its mesh: feature.vert).
+    return sheetAt(pa) == sheetAt(pb) ? 1u : 0u;
 }
 
 // How unlike two surface records are: another model, another part, the faces' angle, the depths.
@@ -198,26 +210,64 @@ void main()
     uvec4 feature = texelFetch(usampler2D(UintTextures[nonuniformEXT(pc.features)], Samplers[SAMPLER_NEAREST_CLAMP]), p, 0);
     if (feature.w != 0u && ((feature.x >> 18) & 1u) != 0u)
     {
-        // The edge point is seen when it isn't behind the visible surface: that surface's plane, carried
-        // to the point, within half a pixel's worth of depth (Freestyle's visibility is exact). A
-        // surface seen nearly edge-on predicts nothing; there, within two pixels' worth.
         float depth = uintBitsToFloat(feature.y);
         vec2 offset = (vec2(feature.z & 31u, (feature.z >> 5) & 31u) / 31.0 * 2.0 - 1.0) * 0.75;
-        bool visible = s.model == 0u;
+        // What covers the point: the pixel's sample nearest it (Vulkan's standard 4× positions; every sample's
+        // record holds its triangle at the pixel's centre).
+        const vec2 positions[4] = vec2[](vec2(-0.125, -0.375), vec2(0.375, -0.125), vec2(-0.375, 0.125), vec2(0.125, 0.375));
+        int nearest = 0;
+        for (int i = 1; i < 4; i++)
+            if (distance(positions[i], offset) < distance(positions[nearest], offset))
+                nearest = i;
+        Surface cover = load(p, nearest);
+        bool another = texelFetch(usampler2DMS(SurfaceSamples[nonuniformEXT(pc.sheets)], Samplers[SAMPLER_NEAREST_CLAMP]), p, nearest).x
+            != (feature.x & 0xFFFFu);
+        if (!another)
+            cover = s;
+        bool visible = cover.model == 0u;
         if (!visible)
         {
+            // The point is seen when it isn't behind the covering surface: that surface's plane carried to the
+            // point. Against the edge's own sheet within half a pixel's worth of depth (its normal is coarse, and the
+            // face seen may be a neighbour of the edge's own); against another sheet (another mesh, or another piece
+            // of the edge's own) as Freestyle hides an edge under any other surface, however close: only within what
+            // the normal's precision leaves after carrying it that far (6 bits a coordinate: 3.8° at worst, a slope
+            // off by that over the square of how squarely it faces), never more than half a pixel's worth. A surface
+            // seen nearly edge-on predicts nothing; there, within two pixels' worth.
             vec3 origin, direction, pointOrigin, pointDirection;
             ray(p, origin, direction);
             rayAt(vec2(p) + 0.5 + offset, pointOrigin, pointDirection);
-            float across = dot(s.normal, pointDirection);
-            float pixel = pixelSize(min(depth, s.depth));
-            if (abs(across) > 0.25 * length(pointDirection))
+            float across = dot(cover.normal, pointDirection);
+            float pixel = pixelSize(min(depth, cover.depth));
+            float squarely = abs(across) / length(pointDirection);
+            if (squarely > 0.25)
             {
-                float surface = dot(s.normal, origin + direction * s.depth - pointOrigin) / across;
-                visible = depth <= surface + 0.5 * pixel + 1e-4 * depth;
+                float surface = dot(cover.normal, origin + direction * cover.depth - pointOrigin) / across;
+                float slack = another ? min(0.5, length(offset) * 0.067 / (squarely * squarely)) : 0.5;
+                visible = depth <= surface + slack * pixel + 1e-4 * depth;
             }
             else
-                visible = depth <= s.depth + 2.0 * pixel + 1e-4 * depth;
+                visible = depth <= cover.depth + 2.0 * pixel + 1e-4 * depth;
+        }
+        // A silhouette alone (neither open nor a crease: Freestyle's contour of a mesh, faces toward the viewer on one
+        // side and away on the other) adds what the per-pixel tests can't see, a piece's contour lying on another piece
+        // of its part without a break in depth (a lock on the hair's cap). Beside another part of its model it is left
+        // to the per-pixel tests, as M6's scenes were measured: there Freestyle judges a long contour by its middle (a
+        // contour running along another part's edge, the tube's along the fin in pose-side, comes out hidden whole).
+        if (visible && (feature.z & (1u << 11)) != 0u)
+        {
+            uint model = (feature.z >> 12) & 1023u, part = (feature.z >> 22) & 255u;
+            bool other = false;
+            for (int i = 0; i < 8 && !other; i++)
+            {
+                ivec2 n = i < 4 ? p : p + ivec2[](ivec2(1, 0), ivec2(-1, 0), ivec2(0, 1), ivec2(0, -1))[i - 4];
+                int sampleIndex = i < 4 ? i : 0;
+                if (any(lessThan(n, ivec2(0))) || any(greaterThanEqual(n, size)))
+                    continue;
+                Surface t = load(n, sampleIndex);
+                other = t.model == model && t.part != part;
+            }
+            visible = !other;
         }
         if (visible)
             result |= 1u << 10 | (feature.z & 1023u) << 11;

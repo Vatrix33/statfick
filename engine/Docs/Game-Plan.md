@@ -733,7 +733,7 @@ and below ("GM2's detail round").
   want them to look very good".
 
 **GM2's detail round (the user, 2026-11-15, the question tool, asked by the manager in ten rounds of four after the
-design doc's first version, the options as `Docs/Game/Hero.md` prepared them, then Q40, the manager's follow-up, then Q41 and Q42, which the answers opened, and Q43 and Q44, which step 1 raised, and Q45, asked for step 6, and Q46–Q50, step 7's, and Q54 and Q55, asked for step 4a; in full
+design doc's first version, the options as `Docs/Game/Hero.md` prepared them, then Q40, the manager's follow-up, then Q41 and Q42, which the answers opened, and Q43 and Q44, which step 1 raised, and Q45, asked for step 6, and Q46–Q50, step 7's, and Q54 and Q55, asked for step 4a, and Q58 and Q60, asked with the ink task; in full
 with each question's facts and options in `Docs/Game/Hero.md`, "The questions as asked" and "Questions from the steps"):** every answer the recommended
 option (a) except Q1, Q2, Q9, Q18, Q19, Q21, Q22, Q23, Q28, Q31, Q32 and Q37. The manager's decisions on the proposals
 (GM2-P1–GM2-P16, all as proposed, with notes on P7, P10 and P16; GM2-P17 on step 12's sounds, GM2-P18 on step 6's
@@ -818,6 +818,16 @@ design is open.
   lines first"): `ReferenceLimits.DetailedFigure` from that day's measurement plus about a twentieth, as S7-13's; an
   engine task then brings the game's ink nearer Blender's (a line hidden under another piece stays hidden) and the limits
   are measured again and tightened ("Engine items the port will meet").
+- Q58 (asked by the manager on 2026-11-18 with GM2's ink task's measurement, Q55's "refine the lines after" done):
+  **"Tighten as proposed (Recommended)"**: the detailed figures' extra lines 8 → 3.3 % and unlike ink 13.5 → 9.4 % (the
+  worst measured 3.00 % and 8.51 %, from 7.68 % and 12.71 %), missed lines and the coverage difference back to M6's 2 %
+  and 0.12 (measured 0.09 % and 0.103, from 2.50 % and 0.134); the shading's stray pixels as before. Replaced by Q60
+  for the extra lines and the unlike ink.
+- Q60 (asked by the manager on 2026-11-18 on the ink task's final rule, measured over the 14 scenes and step 5's six
+  assembled looks on both drivers): **"Tighten as proposed"**, by the rule put to the user (a limit stays widened only
+  where a scene measures past M6's, at the worst plus about a tenth): unlike ink 8.3 % (the worst 7.56 %), extra lines
+  back to M6's 3 % (the worst 1.82 %), missed lines and the coverage difference M6's (0.09 % and 0.093), the shading's
+  stray pixels as before.
 
 ## GM3 Arms and armour: the forge, artifacts and the inventory
 
@@ -2068,7 +2078,17 @@ and waits for the user's go, asked when its milestone reaches it:
     humanoid scenes' scale, where Freestyle hides it. What shows because of it: the hairline's crease, the jaw's
     underside against the neck, lines along the hair's locks, the mail sleeve's seam at the shoulder, more lines on the
     sword, the shield's rim seen edge-on. When it is done, the humanoid scenes are measured again and
-    `ReferenceLimits.DetailedFigure` tightened. Before GM5's battle figures at the latest.
+    `ReferenceLimits.DetailedFigure` tightened. Before GM5's battle figures at the latest. **Done 2026-11-18** (a worker on
+    the branch `gm2-ink-cover`; `Docs/Game/Hero.md`, "How it works", "The ink's cover"; `Docs/Renderer-3D.md`, "Feature
+    edges, how they're drawn"): most of those lines were in fact the per-pixel crease rule meeting two pieces of one part
+    (a model joined per ink flag; the garments' nodes numbered as the body's), the allowance only the gear's; now each
+    sample knows its piece (sheet), an edge under another piece is hidden as Freestyle hides it (within only the cover's
+    normal's precision), the crease is drawn only within a piece, and the meshes' silhouettes draw a piece's contour
+    lying on another. The limits tightened by the user's Q58 and Q60 (unlike ink 8.3 %; extra lines, missed lines and the
+    coverage difference M6's). **What remains:** lines Freestyle judges by a long edge's middle where the engine sees them
+    pixel by pixel (the sword's and the shield's from the side: unlike ink 7.6 %; `pose-side`'s fin); another surface
+    seen nearly edge-on within about a pixel's depth of an edge (the one case the rule can't hide, `Docs/Renderer-3D.md`);
+    and MSAA's edges on the small forms (the shading's stray pixels, unchanged).
   - **Figures in the shadow pass:** with scenery in view every figure is drawn into the sun's 16 maps (sixteen geared
     figures 1.99 ms without a stage, 5.60 ms with one; the first, heavier figures 8.8 ms more): GM5's battle.
   - **Skinning once per mesh** instead of once per primitive (the compute passes and the CPU's draw items follow the
@@ -2421,3 +2441,7 @@ GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
   the engine's page (light at 1); of the suite's 419 comparisons with Chromium 263 moved, all nearer but one, by 14 pixels
   (a dark settings screen's light checkboxes); no limit or golden changed. 4465 + 796 = 5261 tests. Step 8 rebases onto
   it.
+- **2026-11-18, GM2's engine task on the ink (the branch `gm2-ink-cover`):** "The ink's depth allowance" done ("Engine
+  items the port will meet"): each sample's piece, an edge under another piece hidden as Freestyle hides it, the crease
+  only within a piece, the meshes' silhouettes; the humanoid figures nearer Freestyle in every scene, and their limits
+  tightened by the user's Q58 and Q60 (`Docs/Game/Hero.md`, "How it works", "The ink's cover").

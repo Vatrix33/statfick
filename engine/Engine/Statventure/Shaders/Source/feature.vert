@@ -1,35 +1,62 @@
 #version 460
-// Ink lines, feature edges (Docs/Renderer-3D.md, "Ink lines"): each crease or open edge of a mesh
-// (found at load by Model, welded across the mesh's primitives) drawn as a thin quad around it on
+// Ink lines, feature edges (Docs/Renderer-3D.md, "Ink lines"): each crease, open edge or silhouette of a
+// mesh (found at load by Model, welded across the mesh's primitives) drawn as a thin quad around it on
 // screen, so feature.frag can mark the pixels it passes with the nearest point on it. Creases no
-// sharper than the crease angle are dropped. Six vertices an edge, pulled by gl_VertexIndex.
+// sharper than the crease angle are dropped. Six vertices an edge, pulled by gl_VertexIndex. Each also
+// carries the sheet it lies on (mesh_types.glsl, sheetOf), for the test of what covers it (ink_edges.frag), and
+// whether it is drawn only as a silhouette.
 #include "common.glsl"
 #include "mesh_types.glsl"
 
-struct FeatureEdge { uint a; uint b; float cosine; };
+struct FeatureEdge { uint a; uint b; uint c; uint d; float cosine; uint island; };
 layout(buffer_reference, scalar) readonly buffer FeatureEdges { FeatureEdge items[]; };
 layout(push_constant, scalar) uniform FeaturePush { MeshVertices vertices; FeatureEdges edges; MeshDraw draw; MeshScene scene; float creaseCos; } pc;
 
 layout(location = 0) flat out vec2 vA;
 layout(location = 1) flat out vec2 vB;
 layout(location = 2) flat out vec2 vDepth;
+layout(location = 3) flat out uint vSheet;
+// 1 for an edge drawn only as a silhouette (neither open nor a crease).
+layout(location = 4) flat out uint vContour;
+
+// The normal (view space, not unit) of the face of the edge (a, b) with its third corner, as they wind it; zero for none.
+vec3 faceNormal(vec3 a, vec3 b, uint corner)
+{
+    if (corner == 0xFFFFFFFFu)
+        return vec3(0.0);
+    vec3 c = (pc.scene.view * (pc.draw.model * vec4(pc.vertices.items[corner].position, 1.0))).xyz;
+    return cross(b - a, c - a);
+}
 
 void main()
 {
     FeatureEdge e = pc.edges.items[gl_VertexIndex / 6];
-    // Open edges (cosine −2) always; creases when their faces are further apart than the crease angle allows.
-    if (e.cosine >= pc.creaseCos)
-    {
-        gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
-        return;
-    }
     vec4 worldA = pc.draw.model * vec4(pc.vertices.items[e.a].position, 1.0);
     vec4 worldB = pc.draw.model * vec4(pc.vertices.items[e.b].position, 1.0);
+    vec3 viewA = (pc.scene.view * worldA).xyz, viewB = (pc.scene.view * worldB).xyz;
+    // Open edges (cosine −2) always; creases when their faces are further apart than the crease angle allows; else
+    // silhouettes, one face toward the viewer and the other away (Freestyle's on a mesh, its face smoothness off: the
+    // contour of a piece lying on another, which the per-pixel tests see as one surface). The second face's normal,
+    // made from the edge as the first face runs it, points against its own winding: the two face the same way when
+    // their normals don't.
+    bool contour = e.cosine >= pc.creaseCos;
+    if (contour)
+    {
+        vec3 nA = faceNormal(viewA, viewB, e.c), nB = faceNormal(viewA, viewB, e.d);
+        vec3 toward = pc.scene.orthographic != 0u ? vec3(0.0, 0.0, 1.0) : -viewA;
+        if (dot(nA, nA) == 0.0 || dot(nB, nB) == 0.0 || (dot(nA, toward) > 0.0) != (dot(nB, toward) > 0.0))
+        {
+            gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+            return;
+        }
+    }
     vec4 a = pc.scene.viewProjection * worldA, b = pc.scene.viewProjection * worldB;
     vec2 sa = (a.xy / a.w * 0.5 + 0.5) * pc.scene.viewport, sb = (b.xy / b.w * 0.5 + 0.5) * pc.scene.viewport;
     vA = sa;
     vB = sb;
-    vDepth = vec2(-(pc.scene.view * worldA).z, -(pc.scene.view * worldB).z);
+    vDepth = vec2(-viewA.z, -viewB.z);
+    vContour = contour ? 1u : 0u;
+    vSheet = sheetOf(pc.draw.sheet, e.island);
     vec2 along = sb - sa;
     float length2 = dot(along, along);
     vec2 dir = length2 > 1e-8 ? along * inversesqrt(length2) : vec2(1.0, 0.0);

@@ -11,13 +11,16 @@ namespace Statventure.Render3D;
 /// is sRGB: shaders work with linear values and the hardware encodes them (and averages the MSAA
 /// samples), as Blender converts its linear render for display. The ink lines read every sample's
 /// surface record (<see cref="Surface"/>; integer MSAA images are sampled directly, which Vulkan 1.3
-/// GPUs support for this format) and mark line boundaries in <see cref="Edges"/>.
+/// GPUs support for this format) and the piece of surface each sample shows (<see cref="Sheets"/>), and mark
+/// line boundaries in <see cref="Edges"/>.
 /// </summary>
 public sealed class RenderTarget3D : IDisposable
 {
     public const VkFormat ColorFormat = VkFormat.R8G8B8A8SRGB;
     public const VkFormat DepthFormat = VkFormat.D32SFloat;
     public const VkFormat SurfaceFormat = VkFormat.R32G32UInt;
+    /// <summary>A sample's sheet: a 16-bit hash of the mesh drawn and its island (mesh_types.glsl, sheetOf).</summary>
+    public const VkFormat SheetFormat = VkFormat.R16UInt;
     public const VkFormat EdgeFormat = VkFormat.R32UInt;
     public const VkFormat FeatureFormat = VkFormat.R32G32B32A32UInt;
     /// <summary>The particle layer: premultiplied linear colour, blended and resolved at 16-bit float.</summary>
@@ -36,6 +39,11 @@ public sealed class RenderTarget3D : IDisposable
     public GpuImage Depth { get; }
     public GpuImage Resolved { get; }
     public GpuImage Surface { get; }
+    /// <summary>
+    /// Each sample's sheet (MSAA 4×, beside <see cref="Surface"/>): which piece of which mesh it shows, so the ink can
+    /// tell a feature edge's own surface from another one lying over it (Docs/Renderer-3D.md, "Feature edges").
+    /// </summary>
+    public GpuImage Sheets { get; }
     public GpuImage Edges { get; }
     public GpuImage ShadowMap { get; }
     /// <summary>The nearest feature edge point at each pixel (feature.frag) and its depth test.</summary>
@@ -100,6 +108,14 @@ public sealed class RenderTarget3D : IDisposable
             Samples = Samples,
             Usage = VkImageUsageFlags.ColorAttachmentBit | VkImageUsageFlags.SampledBit,
         });
+        Sheets = GpuImage.Create(device, new ImageDesc
+        {
+            Width = width,
+            Height = height,
+            Format = SheetFormat,
+            Samples = Samples,
+            Usage = VkImageUsageFlags.ColorAttachmentBit | VkImageUsageFlags.SampledBit,
+        });
         Edges = GpuImage.CreateRenderTarget(device, width, height, EdgeFormat);
         ShadowMap = GpuImage.CreateDepth(device, ShadowSize * ShadowTiles, ShadowSize * ShadowTiles, DepthFormat, sampled: true);
         Features = GpuImage.CreateRenderTarget(device, width, height, FeatureFormat);
@@ -112,6 +128,7 @@ public sealed class RenderTarget3D : IDisposable
         Depth.Dispose();
         Resolved.Dispose();
         Surface.Dispose();
+        Sheets.Dispose();
         Edges.Dispose();
         ShadowMap.Dispose();
         Features.Dispose();
@@ -165,6 +182,11 @@ public readonly record struct DrawItem(Mesh Mesh, Matrix4x4 Model, Vector4 Color
     public SkinJob? Skin { get; init; }
     /// <summary>Its mesh's creases and open edges for the ink lines.</summary>
     public FeatureEdges? Features { get; init; }
+    /// <summary>
+    /// Its vertices' islands (a model's primitive; none: one piece): with its group and part they make each sample's
+    /// sheet, by which the ink tells a feature edge's own surface from another lying over it.
+    /// </summary>
+    public SurfaceIslands? Islands { get; init; }
     /// <summary>A terrain chunk's cover blending (<see cref="Shading.Terrain"/>).</summary>
     public TerrainShade? Terrain { get; init; }
 }
@@ -233,6 +255,8 @@ public sealed class Renderer3D(GpuDevice device)
         public Vector3 Anchor;
         public uint Hatch;
         public ulong Extra;
+        public ulong Islands;
+        public uint Sheet;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -301,6 +325,7 @@ public sealed class Renderer3D(GpuDevice device)
         public Vector2 HalfExtent;
         public float CreaseCos;
         public uint Features;
+        public uint Sheets;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -474,7 +499,7 @@ public sealed class Renderer3D(GpuDevice device)
                 _ => "mesh_flat.frag",
             },
             Blend = BlendMode.Opaque,
-            ColorFormats = [RenderTarget3D.ColorFormat, RenderTarget3D.SurfaceFormat],
+            ColorFormats = [RenderTarget3D.ColorFormat, RenderTarget3D.SurfaceFormat, RenderTarget3D.SheetFormat],
             DepthFormat = RenderTarget3D.DepthFormat,
             DepthTest = true,
             DepthWrite = true,
@@ -857,6 +882,7 @@ public sealed class Renderer3D(GpuDevice device)
             [
                 new ColorAttachment(target.Color, LoadAction.Clear, background, target.Resolved, Store: false),
                 new ColorAttachment(target.Surface, LoadAction.Clear, Vector4.Zero, target.KeepRecords ? target.Records : null),
+                new ColorAttachment(target.Sheets, LoadAction.Clear, Vector4.Zero),
             ],
             new DepthAttachment(target.Depth, LoadAction.Clear, 0f, Store: quads.Length > 0));
         commands.SetViewport(0, 0, target.Width, target.Height);
@@ -869,6 +895,17 @@ public sealed class Renderer3D(GpuDevice device)
         var owners = new object?[MaxModels + 1];
         for (var index = 0; index < items.Count; index++)
             owners[models[index]] ??= items[index].Group ?? items[index];
+        // Each mesh drawn (its model, its mesh and its node: the primitives of one mesh share it) a number of its own; with
+        // a vertex's island it makes the sample's sheet (mesh.vert).
+        var meshes = new Dictionary<(uint, object, int), uint>();
+        var sheets = new uint[items.Count];
+        for (var index = 0; index < items.Count; index++)
+        {
+            var item = items[index];
+            sheets[index] = item.Islands is { } islands
+                ? meshes.TryGetValue((models[index], islands.Mesh, item.Part), out var known) ? known : meshes[(models[index], islands.Mesh, item.Part)] = (uint)index
+                : (uint)index;
+        }
         var ink = false;
         var drawAddresses = new ulong[items.Count];
         for (var index = 0; index < items.Count; index++)
@@ -889,6 +926,8 @@ public sealed class Renderer3D(GpuDevice device)
                 Anchor = item.Anchor,
                 Hatch = item.Hatch ? 1u : 0,
                 Extra = item.Terrain is { } terrain ? UploadTerrain(frame, terrain) : 0,
+                Islands = item.Islands?.Buffer.Address ?? 0,
+                Sheet = sheets[index],
             }]);
             drawAddresses[index] = draw;
             commands.BindIndexBuffer(item.Mesh.Indices);
@@ -938,7 +977,7 @@ public sealed class Renderer3D(GpuDevice device)
         var commands = frame.Commands;
         var aspect = (float)target.Width / target.Height;
         var orthographic = camera.Projection == Projection.Orthographic;
-        // Feature edges: the meshes' creases and open edges, each pixel near one recording its nearest point.
+        // Feature edges: the meshes' creases, open edges and silhouettes, each pixel near one recording its nearest point.
         var creaseCos = MathF.Cos((180 - style.CreaseAngle) * MathF.PI / 180);
         commands.BeginRendering(new ColorAttachment(target.Features, LoadAction.Clear, Vector4.Zero), new DepthAttachment(target.FeatureDepth, LoadAction.Clear, 0f));
         commands.BindPipeline(FeaturePipeline);
@@ -953,6 +992,7 @@ public sealed class Renderer3D(GpuDevice device)
         var tanY = MathF.Tan(camera.VerticalFieldOfView / 2);
         var halfExtent = orthographic ? new Vector2(camera.OrthographicHeight / 2 * aspect, camera.OrthographicHeight / 2) : new Vector2(tanY * aspect, tanY);
         commands.Transition(target.Surface, VkImageLayout.ShaderReadOnlyOptimal);
+        commands.Transition(target.Sheets, VkImageLayout.ShaderReadOnlyOptimal);
         commands.BeginRendering(new ColorAttachment(target.Edges, LoadAction.DontCare));
         commands.BindPipeline(EdgesPipeline);
         commands.Push(new EdgesPush
@@ -964,6 +1004,7 @@ public sealed class Renderer3D(GpuDevice device)
             // Faces meeting at less than the crease angle: their normals are more than 180° minus it apart.
             CreaseCos = creaseCos,
             Features = (uint)target.Features.BindlessIndex,
+            Sheets = (uint)target.Sheets.BindlessIndex,
         });
         commands.Draw(3);
         commands.EndRendering();

@@ -88,7 +88,10 @@ the user and wait for their go-ahead before starting the next one.
   (QuadriFlow follows the count), every model's pieces joined per ink flag; `make-humanoid.sh clips <folder>
   <library.glb>` keys a folder of clip files (`clips/library.py` gives their form; the frame's test clip `rest-sway` is the
   tests' data); `Tools/Scripts/make-models-pack.sh` makes `Assets/Packs/models.pak` afresh from `Assets/Models/`. The
-  figures are held to Blender's under `ReferenceLimits.DetailedFigure` (the user's Q55).
+  figures are held to Blender's under `ReferenceLimits.DetailedFigure` (the user's Q55, tightened by Q58 and Q60 after
+  GM2's ink task: each sample's sheet, a covered edge hidden as Freestyle hides it and the meshes' silhouettes,
+  `Docs/Renderer-3D.md`, "Feature edges, how they're drawn"; a limit stays widened only where a scene measures past M6's,
+  at the worst plus about a tenth).
   Since step 5 (`Docs/Game/Hero.md`, "How it works", step 5) the game builds a hero's figure from its look
   (`Game/Statventure.Game/Figures/HeroFigure.cs`), and `Tools/Models/humanoid/assemble.py` assembles the same look in
   Blender from the data: `make-humanoid.sh assemble --out <folder> --name <stem> --look-hero <look.json> --data <folder>

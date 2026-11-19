@@ -1270,7 +1270,13 @@ the design and the tests):
   plus about a twentieth, an engine task for the ink's depth allowance later, then the limits tightened); in the same two
   places, the engine items in `Docs/Game-Plan.md`, "Engine items the port will meet". **The manager's answer to step 5
   (2026-11-18):** the human race's swatches are step 9a's, approved there with its builds, faces and presets; until then
-  the human presets draw their models' own colours (`Docs/Game/Hero.md`, "Decisions").
+  the human presets draw their models' own colours (`Docs/Game/Hero.md`, "Decisions"). **Q58 (2026-11-18, asked by the
+  manager with the ink's engine task's measurement):** "Tighten as proposed (Recommended)": the detailed figures' extra
+  lines 3.3 % (was 8 %) and unlike ink 9.4 % (was 13.5 %), missed lines and the coverage difference back to M6's 2 % and
+  0.12; in the same two places and `Docs/Renderer-3D.md`, "Detailed figures". **Q60 (2026-11-18, asked by the manager on
+  the task's final rule; replaces Q58 for the extra lines and the unlike ink):** "Tighten as proposed", by the rule put to
+  the user (a limit stays widened only where a scene measures past M6's, at the worst plus about a tenth): unlike ink
+  8.3 % (the worst 7.56 %), extra lines back to M6's 3 % (the worst 1.82 %); in the same three places.
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -4458,6 +4464,18 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     coverage atlas spoils a frame's earlier draws when it fills (the hairlines have their own). 4465 + 796 = 5261 tests on
     the GPU and on lavapipe (`main`: 4425 + 796 = 5221; 40 new); breaks 46, 38 killed, 7 that can't show (a 1/64 px at
     most, or not on a rounded rect), one gap left (an elliptical border drawn as a ring stays within its guard's limit).
+  - **GM2's engine task on the ink, "The ink's depth allowance" (2026-11-17/18, a worker on the branch `gm2-ink-cover`,
+    rebased on steps 7 and 5 and the round borders; `Docs/Game/Hero.md`, "How it works", "The ink's cover";
+    `Docs/Renderer-3D.md`, Status):**
+    each sample's sheet (`RenderTarget3D.Sheets`: the mesh drawn and the triangle's island, `Model`'s islands), the
+    per-pixel crease only within one sheet, feature edges that know their two faces and draw the meshes' silhouettes,
+    and a point under another sheet hidden as Freestyle hides it, within only its cover's normal's precision (a cover seen
+    nearly edge-on within about a pixel is the case it can't hide). The 14 humanoid scenes and step 5's six looks nearer
+    Freestyle in every scene on both drivers; every other comparison under its own limits; no golden changed;
+    `ReferenceLimits.DetailedFigure` tightened by the user's Q58 and Q60. The frame's cost on the RX 9070 (under the
+    lock): 16 geared figures at 1080p 1.61 → 1.72 ms (+7 %), with the stage 5.02 → 5.13 ms. 4472 + 796 = 5268 tests on
+    the GPU and on lavapipe (`main` `0eca9e5`: 4465 + 796 = 5261; 10 new, 3 bite rows fewer). Mutations 25, 20 killed, 5
+    that no test tells apart (accounted for in `Docs/Renderer-3D.md`, Status).
 
 ## Milestones
 

@@ -17,7 +17,7 @@ namespace Statventure.Tests.Humanoid;
 /// the sandbox's figure mode (the engine's own view of a figure) and written as Blender's harness reads them
 /// (Reference/humanoid-scenes.json; make-blender-references.sh renders them into Golden/r3d-humanoid-*.png and -ink.png);
 /// held to the detailed figures' limits (<see cref="ReferenceLimits.DetailedFigure"/>, measured on these scenes and
-/// approved by the user, 2026-11-16): the shading (lines off) by <see cref="Render3DReferenceTests.Compare"/>, the lines
+/// approved by the user, 2026-11-16, Q55, and tightened after GM2's ink task, 2026-11-18, Q58 and Q60): the shading (lines off) by <see cref="Render3DReferenceTests.Compare"/>, the lines
 /// by <see cref="Render3DReferenceTests.CompareInk"/>.
 /// </summary>
 [Collection("GPU")]
@@ -114,27 +114,22 @@ public class HumanoidReferenceTests(GpuFixture gpu)
     }
 
     /// <summary>
-    /// The detailed figures' limits are M6's but where these scenes were measured past them (2026-11-16, the PC's GPU and
-    /// lavapipe; each the worst plus about a twentieth: ReferenceLimits.DetailedFigure's comments).
+    /// The detailed figures' limits are M6's but where these scenes were measured past them (the PC's GPU and lavapipe;
+    /// each the worst plus about a tenth: ReferenceLimits.DetailedFigure's comments; the user's Q55, Q58 and Q60).
     /// </summary>
     [Fact]
     public void TheDetailedFiguresLimitsAreM6sWidenedWhereMeasured() =>
-        Assert.Equal(ReferenceLimits.M6 with { InsideEvery = 4200, EdgeEvery = 1100, Missed = 0.027, Extra = 0.08, Unlike = 0.135, Coverage = 0.14 },
-            ReferenceLimits.DetailedFigure);
+        Assert.Equal(ReferenceLimits.M6 with { InsideEvery = 4200, EdgeEvery = 1100, Unlike = 0.083 }, ReferenceLimits.DetailedFigure);
 
     /// <summary>
     /// Each widened limit bites: the scene that measured worst for it fails once that limit is set just under what the
-    /// scene measured on both drivers (the man's close-up: 23 inside pixels, 86–88 edge pixels, 7.46–7.68 % extra lines;
-    /// the woman's close-up: 2.50 % missed, a mean coverage difference of 0.134; her gear from the side: 12.67–12.71 %
-    /// unlike), and passes under the limits as set.
+    /// scene measured on both drivers (the man's close-up: 23 inside pixels, 86–88 edge pixels; the woman geared from the
+    /// side: 7.56 % unlike), and passes under the limits as set.
     /// </summary>
     [Theory]
     [InlineData("inside", "humanoid-male-close-up")]
     [InlineData("edge", "humanoid-male-close-up")]
-    [InlineData("missed", "humanoid-female-close-up")]
-    [InlineData("extra", "humanoid-male-close-up")]
     [InlineData("unlike", "humanoid-female-gear-side")]
-    [InlineData("coverage", "humanoid-female-close-up")]
     public void EachWidenedLimitBites(string limit, string name)
     {
         var limits = ReferenceLimits.DetailedFigure;
@@ -142,10 +137,7 @@ public class HumanoidReferenceTests(GpuFixture gpu)
         {
             "inside" => limits with { InsideEvery = 4500 },          // allows 22 of 102,400
             "edge" => limits with { EdgeEvery = 1200 },              // allows 85
-            "missed" => limits with { Missed = 0.0245 },
-            "extra" => limits with { Extra = 0.073 },
-            "unlike" => limits with { Unlike = 0.125 },
-            "coverage" => limits with { Coverage = 0.132 },
+            "unlike" => limits with { Unlike = 0.075 },
             _ => throw new ArgumentException(limit),
         };
         var scene = Scenes.Single(s => s.Name == name);
