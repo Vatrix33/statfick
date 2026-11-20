@@ -1296,7 +1296,8 @@ the design and the tests):
 - **Port task 15, Weather (2026-11-20, the user's new task):** "Decisions for task 15, Weather" below (WX1–WX9): a
   climate per region as weather fronts that drift and ease, one shared set with Control Weather, snow, sand and heavy
   rain slowing travel, visibility in looks only, 22 approved events (`Docs/Port-Tasks/15_Weather/weather-list.md`); built
-  across GM4, GM5, GM7, GM10 and GM17 (`Docs/Game-Plan.md`, GP-10).
+  across GM4, GM5, GM7, GM10 and GM17 (`Docs/Game-Plan.md`, GP-10); Control Weather castable on the map too (WX10); three
+  weather classes, Forecast, Cloudstrider and Natural Disaster, designed at GM8's start (WX11, GM8-4).
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -2605,6 +2606,22 @@ Torrential Rain, Blizzard, Drought, Sunny Day, Thunderstorm for 15 turns, `comba
   events move (the local ones such as Abyssal Gloom, Marsh Miasma or the night skies need not) and each one's easing
   are drafted and approved. (Not (b) region by region, one weather per region stepping along a chain and passing to
   the downwind neighbour.)
+- WX10 **Control Weather expanded to the new system** (the user: "Make a note that Control Weather should be expanded to
+  encompass the new system"; then the question tool): (a) battle and the map: in battle as WX4 has it (every event of
+  the list, retuned, overriding the natural weather for 15 turns), and castable outside battle on the map, setting the
+  weather around the hero for a few game hours (a blizzard cleared to travel faster), after which the natural fronts
+  take over again; how long and how far it reaches are drafted and approved with GM7. (Not (b) also pushing or steering
+  fronts; not (c) battle only.)
+- WX11 **Three new classes for the weather** (the user, 2026-11-20: "i want to add 3 new classes which are to be designed
+  and implemented along all other classes"), the user's identities word for word: **Forecast**, "a travel based class
+  that predicts weather and reduces the debuffs suffered from weather events"; **Cloudstrider**, "a mage based class
+  that enhances spells further depending on weather"; **Natural Disaster**, "a direct upgrade to Cloudstrider that
+  requires some sort of nature-element based requirements". Asked: **designed at GM8's start, not the
+  recommendation** (their levels, requirements, rarity and features asked then, under task 10's rules, and added to the
+  end of the class drafts, 259 classes, 255 for players; not designed now like task 14's two, the recommendation); built
+  in GM8 with every other class. **Natural Disaster's requirement:** Cloudstrider at its top level and levels in
+  Botanomancer, the Nature mage (how many asked at GM8's start). (Not Nature spells known, the recommendation; not
+  spells across the weather's elements.) In `Docs/Game-Plan.md` as GM8-4.
 
 **Decisions for task 14, Dungeons (2026-11-12, a cloud session; the task is `Docs/Port-Tasks/14_Dungeons.txt`).**
 Asked after reading the task, the earlier tasks' decisions and the old game's systems it touches (below). The port

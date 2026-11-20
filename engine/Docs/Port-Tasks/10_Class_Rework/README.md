@@ -35,6 +35,11 @@ players. Task 14 itself is built by the port (DG1); only these two were designed
 drafted in `../14_Dungeons/Classes.md` (the task's record). The dungeon and throwing rules they use are task 14's
 answers.
 
+**To be added by task 15** (2026-11-20, WX11 in `Engine-Plan.md`, "Decisions for task 15, Weather"): three weather
+classes, Forecast, Cloudstrider and Natural Disaster, named with their identities by the user and **designed at GM8's
+start** (levels, requirements, rarity, features), then added at the end of both files (259 classes, 255 for players).
+Until then they stand as a placeholder at the end of `Class-Rework-Draft.md`.
+
 **What the port must do with them** (the user, 2026-11-11, C32):
 1. The classes are unchanged in the old game. During the port, the classes in these drafts are added.
 2. During porting, every class is inspected for possible errors and inconsistencies.

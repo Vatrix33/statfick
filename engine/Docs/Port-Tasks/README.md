@@ -90,7 +90,9 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
     **Designed for the port, built during it (the user, 2026-11-20, WX1):** nothing in the old game. Decisions WX1–WX9
     in `Engine-Plan.md`, "Decisions for task 15, Weather"; the approved 22 weather events in
     `15_Weather/weather-list.md`. Built across GM4 (the world's weather fronts, travel, the map), GM5 (the battle
-    effects), GM7 (Control Weather), GM10 (the stages) and GM17 (the numbers' balance); `Game-Plan.md`, GP-10.
+    effects), GM7 (Control Weather, castable on the map too, WX10), GM8 (three weather classes, Forecast,
+    Cloudstrider and Natural Disaster, designed at GM8's start, WX11), GM10 (the stages) and GM17 (the numbers'
+    balance); `Game-Plan.md`, GP-10.
 
 **How to use them:** read them when the port starts (`Engine-Plan.md`, "Open questions for later milestones", "At port
 time" points here). Before each task's code, ask its design questions with the question tool and record the answers

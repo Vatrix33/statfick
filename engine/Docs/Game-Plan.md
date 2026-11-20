@@ -163,7 +163,9 @@ gotcha: `Docs/Notes.md`, 2026-11-11); everything else anywhere; the Windows PC b
   drift with a prevailing wind and ease as they go, WX2, WX8, WX9), its looks on the map (rain and fog in looks only, WX3)
   and its travel effects (snow, sand and heavy rain slowing travel, WX5); GM5 starts a battle in the weather where it
   starts and applies the events' battle effects (WX4); GM7 gives Control Weather the shared set, retuned (WX4, WX6);
-  GM10's stages show every event; GM17 balances its numbers. (Not a milestone of its own; not after the port.)
+  GM10's stages show every event; GM17 balances its numbers. (Not a milestone of its own; not after the port.) Added
+  the same day: Control Weather castable on the map too (WX10, GM7 with GM4's fronts), and three weather classes,
+  Forecast, Cloudstrider and Natural Disaster, designed at GM8's start and built there (WX11, GM8-4).
 
 **Earlier decisions that bind the plan** (each where it is recorded):
 - **Old saves are never imported.** "Saves start fresh" (`Docs/Engine-Plan.md`, "User decisions (2026-10-16)",
@@ -258,12 +260,13 @@ the user's go, its questions asked first (GP-6).
 - [ ] **GM7 Spells and magic: the spell book, Spell Augmentation and the Magic Towers:**
   - Task 12's 549 learnable spells and the 7 enemy-only ones, casting, summons, the spell book; Spell Augmentation and
     its menu; the Magic Tower and the Institute of Magic with their interiors; Control Weather offering port task 15's
-    shared set, retuned (GP-10).
+    shared set, retuned, and castable on the map (GP-10, WX10).
   - The spells' effects per element, the 12 Tier 10 animations reworked (SP47), the Augmentation menu's 12 circles.
 - [ ] **GM8 Classes: the 256:**
   - Task 10's drafts (with tasks 11–14's classes at their end): every class's requirements, levels, passives and
     skills; the new counts, requirement kinds and the Moonfang; the class files in `classes/`.
   - The Classes, Skills, Passives and class spell choice windows; the red rarity; C32's duties (1) and (2).
+  - Port task 15's three weather classes, Forecast, Cloudstrider and Natural Disaster, designed at its start (GM8-4).
 - [ ] **GM9 The bestiary: every enemy revamped and modelled:**
   - The general enemy revamp drafted, approved and built for the 146 non-boss enemy files and the two new summoned
     creatures; Empowered and Sparkling enemies.
@@ -1435,6 +1438,10 @@ counts and kinds.
 - GM8-3 **The drafts' numbers** ("proposals to tune when built", `10_Class_Rework/README.md`): (a) built as drafted and
   tuned in GM17 by simulation, each change approved [recommended: one balance pass with every system in]; (b) tuned per
   class while it is built, each change approved.
+- GM8-4 **Port task 15's three weather classes** (WX11, the user, 2026-11-20: named with their identities, designed at
+  GM8's start): Forecast's, Cloudstrider's and Natural Disaster's levels, requirements (Natural Disaster's: Cloudstrider
+  at its top level and how many Botanomancer levels) and rarity, then their features level by level, drafted under
+  task 10's rules and approved, as task 14's two were (DG75–DG78).
 
 ## GM9 The bestiary: every enemy revamped and modelled
 
@@ -2316,6 +2323,7 @@ The sound questions are asked with their milestones (GM1-6).
 - GM8-1 Class files: the engine's record JSON / the old shape.
 - GM8-2 The red rarity: still red like the others / a moving wave / designs to choose from.
 - GM8-3 The drafts' numbers: tuned in GM17 / tuned while built.
+- GM8-4 Task 15's three weather classes: their levels, requirements, rarity and features, drafted and approved.
 - GM9-1 The revamp's drafts: by family, sample then batches / by region / all at once.
 - GM9-2 The revamp's difficulty: as the old game by simulation / free, checked in GM17.
 - GM9-3 The Earth Spirit: left out / placed in a table.
@@ -2342,8 +2350,8 @@ The sound questions are asked with their milestones (GM1-6).
 - GM18-2 The editor for the game's kinds: the generic form / special views.
 
 Questions per milestone still open: GM1 0, GM2 0 (5 answered, 3 follow-ups and the detail round Q1–Q42, 2026-11-15),
-GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detail round comes with its design doc), GM4 0 (GM4-4 answered by GP-9, the rest and GM4-2b on 2026-11-20 before GM4 starts), GM5 4, GM6 2, GM7 3, GM8 3, GM9 6 (GM9-6 moved from GM12), GM10 2, GM11 2, GM12 dissolved (GP-9), GM13 3, GM14 1, GM15 2, GM16 3, GM17 2, GM18 2:
-35 in all (55 when the plan was written).
+GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detail round comes with its design doc), GM4 0 (GM4-4 answered by GP-9, the rest and GM4-2b on 2026-11-20 before GM4 starts), GM5 4, GM6 2, GM7 3, GM8 4 (GM8-4 added by WX11), GM9 6 (GM9-6 moved from GM12), GM10 2, GM11 2, GM12 dissolved (GP-9), GM13 3, GM14 1, GM15 2, GM16 3, GM17 2, GM18 2:
+36 in all (55 when the plan was written).
 
 ## Status
 
@@ -2595,3 +2603,6 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
   `Docs/Engine-Plan.md`): a climate per region as weather fronts that drift and ease, one shared set with Control
   Weather, snow, sand and heavy rain slowing travel, visibility in looks only, 22 approved events; built across GM4,
   GM5, GM7, GM10 and GM17.
+- **2026-11-20, task 15's additions (WX10, WX11):** Control Weather castable on the map too; three weather classes,
+  Forecast, Cloudstrider and Natural Disaster (an upgrade of Cloudstrider with Botanomancer levels), named by the user,
+  designed at GM8's start (GM8-4); 36 questions open.

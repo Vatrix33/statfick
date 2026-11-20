@@ -286,7 +286,8 @@ side's Speed, two gusts in one spell.
 - **Changed by port task 15 (the user, 2026-11-20, WX4 in `Engine-Plan.md`):** the weathers are now the world's shared
   set: their definitions are retuned to the weather rules (rain powering up water and weakening fire, heat powering up
   fire and weakening ice, and so on), and Control Weather offers every event of `15_Weather/weather-list.md`, overriding
-  the natural weather for its 15 turns.
+  the natural weather for its 15 turns; and it is castable outside battle on the map, setting the weather around the
+  hero for a few game hours before the natural fronts take over again (WX10).
 
 ### Skyfall Chorus: Tier 7, offensive, all enemies
 

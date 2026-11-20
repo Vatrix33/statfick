@@ -8,7 +8,10 @@ How it works (decided, WX2–WX6 and WX9): weather comes as fronts that form fro
 seed), drift across the continent with a prevailing wind and weaken as they go (Torrential Rain to Light Rain to
 Overcast, Blizzard to Snowfall, Heavy Ash to Ashfall), changed by mountains (rain to snow on the Stoneveil heights); a
 front can cover part of a region, and a battle takes the weather where it starts. Which events move and how each one
-eases are drafted and approved when the task is built (the user: "for all weather events where it makes sense"). Every event here can also be cast with Control Weather (one shared set); a battle starts in the region's current
+eases are drafted and approved when the task is built (the user: "for all weather events where it makes sense"). Control
+Weather is also castable on the map, setting the weather around the hero for a few game hours (WX10). Three classes go
+with it, designed at GM8's start (WX11): Forecast (travel: predicts the weather, lessens its debuffs), Cloudstrider (a
+mage whose spells grow with the weather) and Natural Disaster (Cloudstrider's upgrade, with Botanomancer levels). Every event here can also be cast with Control Weather (one shared set); a battle starts in the region's current
 weather and Control Weather overrides it for its turns. Snow, sand and heavy rain slow travel; rain and fog change only
 the looks of travel. The battle effects below are directions only; their numbers, each region's climate table (which
 events, how often, by time of day) and the travel slowdowns are drafted and approved when the task is built.
