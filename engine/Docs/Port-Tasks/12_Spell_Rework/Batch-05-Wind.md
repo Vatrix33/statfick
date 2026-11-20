@@ -283,6 +283,10 @@ side's Speed, two gusts in one spell.
 - **Description:** "Choose Torrential Rain, Blizzard, Drought, Sunny Day, or Thunderstorm. The chosen weather lasts 15 turns or until replaced."
 - **Augments:** Mana cost.
 - **Why:** Already one of a kind; nothing about it is dated.
+- **Changed by port task 15 (the user, 2026-11-20, WX4 in `Engine-Plan.md`):** the weathers are now the world's shared
+  set: their definitions are retuned to the weather rules (rain powering up water and weakening fire, heat powering up
+  fire and weakening ice, and so on), and Control Weather offers every event of `15_Weather/weather-list.md`, overriding
+  the natural weather for its 15 turns.
 
 ### Skyfall Chorus: Tier 7, offensive, all enemies
 

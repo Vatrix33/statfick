@@ -157,6 +157,14 @@ gotcha: `Docs/Notes.md`, 2026-11-11); everything else anywhere; the Windows PC b
   in GM4 and GM12 a smaller milestone after GM11 adding the rest in one go; not GM4-4's (b), GM12 whole with the three
   shown as plain uncharted land until then.)
 
+- GP-10 **Port task 15, Weather, built across the milestones** (the user, 2026-11-20, the question tool, WX1 in
+  `Docs/Engine-Plan.md`, "Decisions for task 15, Weather"; the task `Docs/Port-Tasks/15_Weather.txt`, its 22 approved
+  events `15_Weather/weather-list.md`): GM4 builds the world's weather (each region's climate as weather fronts that
+  drift with a prevailing wind and ease as they go, WX2, WX8, WX9), its looks on the map (rain and fog in looks only, WX3)
+  and its travel effects (snow, sand and heavy rain slowing travel, WX5); GM5 starts a battle in the weather where it
+  starts and applies the events' battle effects (WX4); GM7 gives Control Weather the shared set, retuned (WX4, WX6);
+  GM10's stages show every event; GM17 balances its numbers. (Not a milestone of its own; not after the port.)
+
 **Earlier decisions that bind the plan** (each where it is recorded):
 - **Old saves are never imported.** "Saves start fresh" (`Docs/Engine-Plan.md`, "User decisions (2026-10-16)",
   Data); "old saves aren't imported, decided 2026-10-16" (Decisions for M9, "Character export and import";
@@ -233,9 +241,12 @@ the user's go, its questions asked first (GP-6).
   - The region music with the 4-second crossfade; settlements and sites as places on the map.
   - The three new regions (W27) designed and built as far as the map goes (GP-9): names, identity, level bands, terrain,
     roads and connections, their towns on the map, their region themes.
+  - Port task 15's world weather (GP-10): the regions' climates as drifting, easing weather fronts, shown on the map,
+    snow, sand and heavy rain slowing travel.
 - [ ] **GM5 Combat core: the battle, its rules and its stage:**
   - The turn meter, 5 AP, every action, damage, hit and crit, reactions, the old timed effects and task 12's 12
-    statuses and 12 reactions, items in battle, loot, EXP and defeat, the ordinary AI, a battle saved and resumed.
+    statuses and 12 reactions, items in battle, loot, EXP and defeat, the ordinary AI, a battle saved and resumed;
+    port task 15's weather in battle (GP-10): a battle starts in the weather where it starts, with its effects.
   - The battle screen (the 3D stage view and the classic view), formations, the humanoid clips at work, the battle's
     effects, status looks, the battle settings, Dev Mode's combat setup.
 - [ ] **GM6 Towns: the shops, the Apothecary and resting:**
@@ -246,7 +257,8 @@ the user's go, its questions asked first (GP-6).
     anvil, the cauldron, the potion, poison, ingredient, trap and carriage models.
 - [ ] **GM7 Spells and magic: the spell book, Spell Augmentation and the Magic Towers:**
   - Task 12's 549 learnable spells and the 7 enemy-only ones, casting, summons, the spell book; Spell Augmentation and
-    its menu; the Magic Tower and the Institute of Magic with their interiors.
+    its menu; the Magic Tower and the Institute of Magic with their interiors; Control Weather offering port task 15's
+    shared set, retuned (GP-10).
   - The spells' effects per element, the 12 Tier 10 animations reworked (SP47), the Augmentation menu's 12 circles.
 - [ ] **GM8 Classes: the 256:**
   - Task 10's drafts (with tasks 11–14's classes at their end): every class's requirements, levels, passives and
@@ -260,7 +272,7 @@ the user's go, its questions asked first (GP-6).
   - The creature rig families and every enemy's model, the Sparkling shine, task 6's Rift enemies remade.
 - [ ] **GM10 Regions in battle: encounters, foraging and battle stages:**
   - The 89 zone tables and 567 groups, travel encounters and the encounter prompt, foraging, the regional battle themes.
-  - The 33 battle biomes as 3D stages with time of day and weather.
+  - The 33 battle biomes as 3D stages with time of day and weather (every event of port task 15, GP-10).
   - The three new regions' encounter and forage tables, battle stages and battle arrangements (GP-9).
 - [ ] **GM11 Companions and the Adventurers Guild:**
   - Up to three companions with full sheets, recruits and imports; the 15 guild halls, the seven quest types, the
@@ -289,7 +301,7 @@ the user's go, its questions asked first (GP-6).
   - The three masterworks, the Exotic, the eleven consumables and the smithing materials.
 - [ ] **GM17 Balance and the class tests:**
   - C32's duty (3): every level, passive and skill of the 256 classes exercised in play.
-  - The balance pass by simulation (bosses, zones, races, classes, items); the user's playtest.
+  - The balance pass by simulation (bosses, zones, races, classes, items, port task 15's weather); the user's playtest.
 - [ ] **GM18 The release:**
   - The real game in both downloads (the data library with every kind, `packs/`, `classes/`), icons, the editor knowing
     the game's kinds.
@@ -2579,3 +2591,7 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
   their own (GM4-2b), a marker for the hero (GM4-3), the old clock (GM4-5), blank parchment over unentered regions
   (GM4-6, not the recommendation), an inked gauntlet cursor (GM4-7), a small set of map sounds (GM4-8), the new regions
   drafted by the port and approved (GM4-9), two new themes each (GM4-10); 35 questions open.
+- **2026-11-20, port task 15, Weather (GP-10):** the user's new task, designed the same day (WX1–WX9 in
+  `Docs/Engine-Plan.md`): a climate per region as weather fronts that drift and ease, one shared set with Control
+  Weather, snow, sand and heavy rain slowing travel, visibility in looks only, 22 approved events; built across GM4,
+  GM5, GM7, GM10 and GM17.

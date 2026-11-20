@@ -1293,6 +1293,10 @@ the design and the tests):
   three sites each their own (GM4-2b), a marker (GM4-3), the old clock (GM4-5), blank parchment for unentered regions,
   not the recommendation (GM4-6), an inked gauntlet (GM4-7), a small set of map sounds (GM4-8), the new regions drafted
   and approved (GM4-9), two themes each (GM4-10). GM4-7 answers "the grabbing cursor's design" below.
+- **Port task 15, Weather (2026-11-20, the user's new task):** "Decisions for task 15, Weather" below (WX1–WX9): a
+  climate per region as weather fronts that drift and ease, one shared set with Control Weather, snow, sand and heavy
+  rain slowing travel, visibility in looks only, 22 approved events (`Docs/Port-Tasks/15_Weather/weather-list.md`); built
+  across GM4, GM5, GM7, GM10 and GM17 (`Docs/Game-Plan.md`, GP-10).
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -2552,6 +2556,55 @@ Asked after the regression run (2026-11-06):
 - L33 **The victory screen's EXP at your level cap** (Level 100 without Limitless, 200 with it), where you gain none
   (L18): it reads 0 EXP; companions below their cap still gain the battle's EXP. (Not the number with a note, not left
   showing the battle's EXP.)
+
+**Decisions for task 15, Weather (2026-11-20, a cloud session; the user asked for it that day, "I want to add a dynamic
+weather- and environment system that affects both travel (visibility decreases during rain/fog, slower travel during
+snow) and combat (rain powers up water spells and weakens fire or desert heat powers up fire spells and weakens ice).
+Would this be easily possible and if so, how?"; the task is `Docs/Port-Tasks/15_Weather.txt`, the approved list
+`Docs/Port-Tasks/15_Weather/weather-list.md`).** Asked with the question tool after a look at what the old game has:
+fixed weather only (Stormwake always rains, thunder from 18:00 to 06:00, `map.js` `renderClock`; the battle biomes'
+fixed rain, snow, sand, embers and mist, `battle-scenery.js`), and the battle spell Control Weather (task 12 keeps it:
+Torrential Rain, Blizzard, Drought, Sunny Day, Thunderstorm for 15 turns, `combat.js` `applyWeather`, `objects/spells.json`;
+`12_Spell_Rework/Batch-05-Wind.md`). Built during the port, nothing in the old game.
+- WX1 **Where it goes:** (a) a new port task, 15, designed with the user and built where its parts live: the world's
+  weather, its fronts, the travel effects and the map's looks in GM4; the battle effects and a battle starting in the
+  current weather in GM5; Control Weather offering the set in GM7; the stages showing it in GM10; its numbers in GM17's
+  balance pass (`Docs/Game-Plan.md`, GP-10). (Not (b) a milestone of its own after GM10; not (c) after the port.)
+- WX2 **How the weather is decided:** (a) a climate per region (which events, how often), changing every few game
+  hours, rolled from the save's seed so a reload changes nothing, shown in the map's header; WX9 makes it fronts. (Not
+  (b) per zone; not (c) one fixed weather per region.)
+- WX3 **Visibility, not the recommendation: looks only.** Rain and fog are shown on the map and change nothing in play.
+  (Not less warning before a fight, the recommendation; not shorter sight on the map; not more ambushes.)
+- WX4 **The natural weather and Control Weather:** (a) one shared set: a battle starts in the weather where it starts,
+  using the same weather definitions as Control Weather, retuned to the user's rules (rain powers up water and weakens
+  fire, heat powers up fire and weakens ice, and so on); the spell overrides it for its 15 turns, then the natural
+  weather returns. This changes task 12's "Control Weather stays as it is" (its five definitions are retuned and it
+  offers every event of the list, WX6; noted in `Batch-05-Wind.md`). (Not (b) a milder natural set beside the spell's;
+  not (c) the two separate and stacking.)
+- WX5 **What slows travel, not the recommendation: snow, sand and heavy rain**: Snowfall and Blizzard (Blizzard more),
+  Sandstorm, and Torrential Rain and Thunderstorm off the roads (mud); the amounts drafted and approved. (Not snow and
+  sandstorms only, the recommendation; not snow only.)
+- WX6 **Which weathers exist, the user's own answer:** "The spells five, plus make a short list of all possible weather
+  events that can occur. I'll look it over and approve it." Every event can occur naturally and be cast with Control
+  Weather (WX4).
+- WX7 **The list, approved after two drafts:** draft 1 (13 events); the user: "Can you make a proper list, its hard to
+  read the answers list" (so drafts are documents from then on), then "Can you add some more weather phenomena? Also,
+  make Ashfall also rarely possible on coast regions facing Cinder Isle"; draft 2 (26 events), approved "except 14, 16
+  and 18 and 21" (Heatwave, Sleet, Heat Haze, Grave Mist) with "Change Mana Storm to be a rare weather event that can
+  appear anywhere. Chance Eruption to Heavy Ash, an even rarer version of Ashfall that blankets a huge area around
+  cinder isle"; the result, 22 events, approved with Heavy Ash read as Ashfall stronger, no effect on travel, the regions
+  it reaches drafted with the climates. The battle effects are directions; their numbers, the climates and the travel
+  amounts are drafted and approved when the task is built.
+- WX8 **The user's word on how weather behaves** (said with WX7's approval): "i want weather to behave properly. For
+  example, if a region has Torrential Rain, make it so it travels in a realistic direction and becomes Light Rain. I want
+  this behaviour for all weather events where it makes sense."
+- WX9 **Moving weather:** (a) weather fronts on the map: fronts form from each region's climate and drift across the
+  continent with a prevailing wind, weakening over time (Torrential Rain to Light Rain to Overcast; Blizzard to
+  Snowfall; Heavy Ash to Ashfall), changed by mountains (rain turning to snow on the Stoneveil heights); a front can
+  cover part of a region, the 3D map shows it moving, and a battle takes the weather where it starts; seeded. Which
+  events move (the local ones such as Abyssal Gloom, Marsh Miasma or the night skies need not) and each one's easing
+  are drafted and approved. (Not (b) region by region, one weather per region stepping along a chain and passing to
+  the downwind neighbour.)
 
 **Decisions for task 14, Dungeons (2026-11-12, a cloud session; the task is `Docs/Port-Tasks/14_Dungeons.txt`).**
 Asked after reading the task, the earlier tasks' decisions and the old game's systems it touches (below). The port

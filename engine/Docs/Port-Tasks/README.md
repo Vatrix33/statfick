@@ -4,7 +4,7 @@ The user's tasks to add to the game during the port (user decision 2026-11-05), 
 file listing puts `10_` before `1_`; the list below is the order). The `.txt` files are the user's own text, unchanged
 (only their line endings were made LF, as the repo stores text), except three names in task 7 the user confirmed on
 2026-11-05: "Laila" is Juila, "Zik" is Zik Lun, "Mythium" is Mythilium; and one in task 10 the user confirmed on
-2026-11-10: "Ascendend" is Ascended. Fourteen tasks.
+2026-11-10: "Ascendend" is Ascended. Fifteen tasks.
 
 1. `1_Masterwork_Elementals.txt`: six masterworks remade from the elementals' former unique items (Plasma Blade,
    Tidepiercer, First Comet, Peace and Balance, Kugelblitz, Avalanche); the elementals' placeholder weapons stay.
@@ -84,6 +84,13 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
     before the port; its design questions are asked and answered beforehand, in `Engine-Plan.md`, "Decisions for task
     14, Dungeons" (DG1 onward), and the port builds it from this file and those answers. See "Built by the port from
     the decisions" below.
+15. `15_Weather.txt`: a dynamic weather system affecting travel (visibility, slower travel in snow) and battle (rain
+    powering up water and weakening fire, desert heat powering up fire and weakening ice). (The user's message of
+    2026-11-20, kept as written.)
+    **Designed for the port, built during it (the user, 2026-11-20, WX1):** nothing in the old game. Decisions WX1–WX9
+    in `Engine-Plan.md`, "Decisions for task 15, Weather"; the approved 22 weather events in
+    `15_Weather/weather-list.md`. Built across GM4 (the world's weather fronts, travel, the map), GM5 (the battle
+    effects), GM7 (Control Weather), GM10 (the stages) and GM17 (the numbers' balance); `Game-Plan.md`, GP-10.
 
 **How to use them:** read them when the port starts (`Engine-Plan.md`, "Open questions for later milestones", "At port
 time" points here). Before each task's code, ask its design questions with the question tool and record the answers
