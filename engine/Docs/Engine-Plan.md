@@ -1297,7 +1297,8 @@ the design and the tests):
   climate per region as weather fronts that drift and ease, one shared set with Control Weather, snow, sand and heavy
   rain slowing travel, visibility in looks only, 22 approved events (`Docs/Port-Tasks/15_Weather/weather-list.md`); built
   across GM4, GM5, GM7, GM10 and GM17 (`Docs/Game-Plan.md`, GP-10); Control Weather castable on the map too (WX10); three
-  weather classes, Forecast, Cloudstrider and Natural Disaster, designed at GM8's start (WX11, GM8-4).
+  weather classes, Forecast, Cloudstrider and Natural Disaster, designed at GM8's start (WX11, GM8-4); the list's battle
+  effects are examples, designed properly when the weather is built (WX12).
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -2622,6 +2623,11 @@ Torrential Rain, Blizzard, Drought, Sunny Day, Thunderstorm for 15 turns, `comba
   in GM8 with every other class. **Natural Disaster's requirement:** Cloudstrider at its top level and levels in
   Botanomancer, the Nature mage (how many asked at GM8's start). (Not Nature spells known, the recommendation; not
   spells across the weather's elements.) In `Docs/Game-Plan.md` as GM8-4.
+- WX12 **The weather's buffs and debuffs are examples** (the user, 2026-11-20): "Also note down that the current weather
+  buffs and debuffs are only example-buffs. I want them to be properly designed when weather is implemented." The
+  battle effects in `weather-list.md` (and the old Control Weather's five, which WX4 retunes) are not a design: what
+  each event does in battle is designed properly when the weather is built (GM5; Control Weather in GM7), asked and
+  approved then. WX7's list stands for the events, where they occur and the travel effects (WX5).
 
 **Decisions for task 14, Dungeons (2026-11-12, a cloud session; the task is `Docs/Port-Tasks/14_Dungeons.txt`).**
 Asked after reading the task, the earlier tasks' decisions and the old game's systems it touches (below). The port

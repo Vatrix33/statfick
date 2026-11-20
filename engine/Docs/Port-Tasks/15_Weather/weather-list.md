@@ -16,6 +16,11 @@ weather and Control Weather overrides it for its turns. Snow, sand and heavy rai
 the looks of travel. The battle effects below are directions only; their numbers, each region's climate table (which
 events, how often, by time of day) and the travel slowdowns are drafted and approved when the task is built.
 
+**The battle effects below are examples only** (the user, 2026-11-20, WX12): "the current weather buffs and debuffs are
+only example-buffs. I want them to be properly designed when weather is implemented." What each event does in battle
+is designed properly, asked and approved when the weather is built (GM5, with GM7 for Control Weather); the lines below
+show only the kind of effect meant. The events themselves, where they occur and what slows travel stay as approved.
+
 ---
 
 ## Everyday weather

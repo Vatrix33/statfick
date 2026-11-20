@@ -165,7 +165,9 @@ gotcha: `Docs/Notes.md`, 2026-11-11); everything else anywhere; the Windows PC b
   starts and applies the events' battle effects (WX4); GM7 gives Control Weather the shared set, retuned (WX4, WX6);
   GM10's stages show every event; GM17 balances its numbers. (Not a milestone of its own; not after the port.) Added
   the same day: Control Weather castable on the map too (WX10, GM7 with GM4's fronts), and three weather classes,
-  Forecast, Cloudstrider and Natural Disaster, designed at GM8's start and built there (WX11, GM8-4).
+  Forecast, Cloudstrider and Natural Disaster, designed at GM8's start and built there (WX11, GM8-4). The list's battle
+  effects are examples only: each event's buffs and debuffs are designed properly, asked and approved when GM5 builds
+  the weather in battle (WX12).
 
 **Earlier decisions that bind the plan** (each where it is recorded):
 - **Old saves are never imported.** "Saves start fresh" (`Docs/Engine-Plan.md`, "User decisions (2026-10-16)",
