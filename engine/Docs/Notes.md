@@ -759,4 +759,4 @@ Related: the Blender notes below, the old game's notes (old-game/Docs/Notes.md)
 - **`prepare-assets.py`:** builds `assets/` and `combat-preview.png`, with the player at the game's spot: feet at 71.5% of the stage height, body at 29.5% of its width, 40% of the stage tall.
 - **`Program.cs`:** textured quads, sRGB blending through UNORM like a browser, CPU mipmaps, premultiplied alpha, and alpha 0 meaning additive. He breathes, the glow pulses, Space lunges. `--screenshot`/`--time`/`--lunge` exist for tests.
 
-**Game inconsistency:** the battle sprite (`sprite-equipment.js` `MASTERWORK_SHIELDS.transformer`) still draws the Transformer as the old round copper shield, while the forged item and its icon are a kite shield. The user was told; nothing has been changed.
+**Game inconsistency:** the battle sprite (`sprite-equipment.js` `MASTERWORK_SHIELDS.transformer`) still draws the Transformer as the old round copper shield, while the forged item and its icon are a kite shield. The user was told; nothing has been changed. (Settled 2026-11-20 for the port: the round copper shield everywhere, the user's GM3-4 in `Docs/Game-Plan.md`, "Decisions for GM3".)

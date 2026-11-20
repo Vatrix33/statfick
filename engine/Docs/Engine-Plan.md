@@ -1279,6 +1279,12 @@ the design and the tests):
   the task's final rule; replaces Q58 for the extra lines and the unlike ink):** "Tighten as proposed", by the rule put to
   the user (a limit stays widened only where a scene measures past M6's, at the worst plus about a tenth): unlike ink
   8.3 % (the worst 7.56 %), extra lines back to M6's 3 % (the worst 1.82 %); in the same three places.
+- **Decisions for GM3 (2026-11-20, asked early at the user's request, before GM3 starts):** `Docs/Game-Plan.md`, GM3,
+  "Decisions for GM3": GM3-1 the item models made for close-up, GM3-2 live 3D item pictures, GM3-3 armour fitted to
+  every body, GM3-5 the hintless masterworks and Exotics designed by the port for approval (all as recommended); GM3-4,
+  not the recommendation, the Transformer the round copper shield everywhere; and the user's word GM3-6: the higher an
+  item's rarity, the more fantasy its look (common and uncommon realistic, rare and up fantastic). GM3-1 answers "the
+  level of detail of the item models" below. GM3's detail round comes with its design doc.
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
