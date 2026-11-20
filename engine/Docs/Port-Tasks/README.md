@@ -87,12 +87,9 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 15. `15_Weather.txt`: a dynamic weather system affecting travel (visibility, slower travel in snow) and battle (rain
     powering up water and weakening fire, desert heat powering up fire and weakening ice). (The user's message of
     2026-11-20, kept as written.)
-    **Designed for the port, built during it (the user, 2026-11-20, WX1):** nothing in the old game. Decisions WX1–WX9
-    in `Engine-Plan.md`, "Decisions for task 15, Weather"; the approved 23 weather events in
-    `15_Weather/weather-list.md` (their battle effects and locations examples, designed when built, WX12, WX13; Stormwake always rains, WX15; weather-touching bosses integrated when ported, WX16). Built across GM4 (the world's weather fronts, travel, the map), GM5 (the battle
-    effects), GM7 (Control Weather, castable on the map too, WX10), GM8 (three weather classes, Forecast,
-    Cloudstrider and Natural Disaster, designed at GM8's start, WX11), GM10 (the stages) and GM17 (the numbers'
-    balance); `Game-Plan.md`, GP-10.
+    **Built during the port, like task 14 (the user, 2026-11-20, WX1):** nothing in the old game. Decisions WX1–WX16 in
+    `Engine-Plan.md`, "Decisions for task 15, Weather"; the 23 approved weather events in `15_Weather/weather-list.md`.
+    See "Built by the port from the decisions" below.
 
 **How to use them:** read them when the port starts (`Engine-Plan.md`, "Open questions for later milestones", "At port
 time" points here). Before each task's code, ask its design questions with the question tool and record the answers
@@ -133,7 +130,8 @@ waited, into the same pull request, P1; P2 kept its art placeholder). Task 11 (a
 in task 10's drafts for the port. Tasks 10, 12 and 13 are not built in the old game at all: designed in drafts and
 built by the port (C23, 2026-11-10; SP1, 2026-11-11; NC1, 2026-11-12), with task 12's two classes and task 13's 79
 added to task 10's drafts. Task 14 is built during the port itself (the user, 2026-11-12, DG1): not in the old game and
-not drafted beforehand; only its design questions are answered before the port.
+not drafted beforehand; only its design questions are answered before the port. Task 15 (asked for on 2026-11-20) is
+built during the port in the same way (WX1).
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
@@ -283,6 +281,22 @@ not drafted beforehand; only its design questions are answered before the port.
   (DG26, DG29–DG32); Nocturne Keep as the vampire dungeon, whose unique quest from Ravenwatch opens the keep to
   players who aren't vampires (DG52–DG64, DG73, DG74); the harpy dungeon in the rocky highlands, one of task 8's new
   regions (DG65); and a 3D dungeon overview (DG69).
+- Task 15, Weather (2026-11-20, a cloud session, WX1–WX16 in `Engine-Plan.md`, "Decisions for task 15, Weather"; the
+  23 approved events in `15_Weather/weather-list.md`): nothing in the old game but Stormwake's fixed rain, the battle
+  biomes' fixed weather and the Control Weather spell. **Decided:** a climate per region as weather fronts that drift
+  with a prevailing wind and ease as they go (WX2, WX8, WX9; Torrential Rain to Heavy Rain to Light Rain to Overcast),
+  seeded from the save; snow, sand and heavy rain (Heavy Rain a little, Torrential Rain and Thunderstorm more) slowing
+  travel off the roads or everywhere (WX5, WX14); rain and fog changing visibility in looks only (WX3); a battle starting
+  in the weather where it starts; one shared set with Control Weather, retuned, which offers every event and is
+  castable on the map too, for a few game hours (WX4, WX6, WX10); Stormwake Hills always raining, at least Light Rain,
+  one level heavier at night, Thunderstorm at most, Control Weather overriding it (WX15); three weather classes,
+  Forecast, Cloudstrider and Natural Disaster (Cloudstrider's upgrade, with Botanomancer levels), designed at GM8's
+  start (WX11); every boss whose mechanic does or could touch the weather integrated with it when ported (WX16:
+  Tankina's storm, Juila's seasons, others to look at). **Drafted when built, for the user's approval:** each event's
+  battle effects (examples only, WX12), each region's climate (the locations examples only, WX13), the travel amounts,
+  which events move and how each eases (WX9), Control Weather's reach and length on the map (WX10). **Where it is
+  built** (GP-10 in `Game-Plan.md`): GM4 (the fronts, the map, travel, the climates), GM5 (battle), GM7 (Control
+  Weather), GM8 (the classes), GM10 (the stages), GM13, GM14 and GM16 (the bosses), GM17 (the numbers).
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and

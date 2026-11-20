@@ -5,6 +5,13 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
+**The plan's changes of 2026-11-20 (a cloud session, docs only, while GM2 goes on; nothing built):** GM3's and GM4's
+questions answered ahead of their starts at the user's request, with the user's word GM3-6 (the higher an item's rarity,
+the more fantasy its look) and the follow-up GM4-2b (`Docs/Game-Plan.md`, "Decisions for GM3" and "Decisions for GM4");
+GM12 dissolved, the three new regions built by GM4 and filled in by GM6, GM9, GM10 and GM11 (GP-9); port task 15,
+Weather, the user's new task, designed (WX1–WX16, "Decisions for task 15, Weather" below; `Docs/Port-Tasks/15_Weather/`;
+GP-10), with three weather classes for GM8 (GM8-4). 36 of the plan's questions remain open.
+
 **Current task (2026-11-15): GM2 (The hero) started on the user's go; its design is decided (GM2-1–GM2-8, the detail
 round Q1–Q42, the manager's GM2-P1–P16); no step started; the first wave starts on the manager's go.** The user's
 answers (asked by
@@ -1293,10 +1300,10 @@ the design and the tests):
   three sites each their own (GM4-2b), a marker (GM4-3), the old clock (GM4-5), blank parchment for unentered regions,
   not the recommendation (GM4-6), an inked gauntlet (GM4-7), a small set of map sounds (GM4-8), the new regions drafted
   and approved (GM4-9), two themes each (GM4-10). GM4-7 answers "the grabbing cursor's design" below.
-- **Port task 15, Weather (2026-11-20, the user's new task):** "Decisions for task 15, Weather" below (WX1–WX9): a
+- **Port task 15, Weather (2026-11-20, the user's new task):** "Decisions for task 15, Weather" below (WX1–WX16): a
   climate per region as weather fronts that drift and ease, one shared set with Control Weather, snow, sand and heavy
   rain slowing travel, visibility in looks only, 23 approved events (`Docs/Port-Tasks/15_Weather/weather-list.md`; Heavy Rain added, WX14); built
-  across GM4, GM5, GM7, GM10 and GM17 (`Docs/Game-Plan.md`, GP-10); Control Weather castable on the map too (WX10); three
+  across GM4, GM5, GM7, GM8, GM10, GM13, GM14, GM16 and GM17 (`Docs/Game-Plan.md`, GP-10); Control Weather castable on the map too (WX10); three
   weather classes, Forecast, Cloudstrider and Natural Disaster, designed at GM8's start (WX11, GM8-4); the list's battle
   effects and locations are examples, designed properly when the weather is built (WX12, WX13); Stormwake always rains
   (WX15); bosses whose mechanics touch the weather are integrated with it when ported (WX16).
@@ -1305,7 +1312,7 @@ the design and the tests):
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
   decision 2026-11-03 in "Decisions for M8", the rune slotting sound among them); UI symbols outside Lato and STIX (⚙ ✦ ☾ ↓ ＋ ⚔ ♟ …); how the inline SVG art and its
   transforms map to the Blender remakes; the grabbing cursor's design; the level of detail of the item
-  models. **First read `Docs/Port-Tasks/`:** the user's tasks to add during the port, in their number order
+  models (these two answered on 2026-11-20: GM4-7, an inked gauntlet; GM3-1, made for close-up). **First read `Docs/Port-Tasks/`:** the user's tasks to add during the port, in their number order
   (decided 2026-11-05); ask whether they come after the faithful port or while porting (left open by the user). Tasks 1
   (Masterwork Elementals), 2 (Guild Rework), 3 (Shop Rework), 4 (Artifact Rework), 5 (New Masterworks) and 6 (New Areas)
   are already done in the old game, so the faithful port brings them over: don't build them again, only remake their

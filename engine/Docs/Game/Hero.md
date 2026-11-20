@@ -1099,7 +1099,7 @@ Each resolved here without a choice the user didn't make; the two that needed on
 12. **Nine new motifs (Q37) and T5's "seals that sit with the six older ones":** the six are replaced too (GM2-5), so the
     nine are drawn as one new set.
 13. **Three builds (Q15) and GM3's armour:** each armour piece is fitted to 54 bodies (9 races, 2 sexes, 3 builds),
-    noted for GM3-3, which is asked on that fact.
+    noted for GM3-3, which is asked on that fact (answered 2026-11-20: each piece fitted to every body).
 
 ## The questions as asked (Q1–Q42, answered 2026-11-15)
 
@@ -1247,7 +1247,7 @@ hips wider).
 don't follow other proportions.
 - (a) **A few builds per race and sex** (slender, average, strong), each a modelled body; GM3 fits each piece of armour to
   each build. *Recommended:* every body modelled to the bar, every piece fitting. Each build adds a body and its fitted
-  clothes and armour (GM3-3 is asked on that fact).
+  clothes and armour (GM3-3 is asked on that fact; answered 2026-11-20: fitted to every body).
 - (b) **Sliders** for height and build, done by bone scales; clothes follow the bones, fitting roughly; engine work (a
   build layer under the clips).
 - (c) **One body per race and sex,** no build choice.

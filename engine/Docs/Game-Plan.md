@@ -43,7 +43,8 @@ copying it:
    the answers with their dates in this file under "Decisions for GMn" (opened in the milestone's own section), with a
    pointer line in `Docs/Engine-Plan.md`'s index of decisions ("Open questions for later milestones"; GP-7).
 4. Where the milestone's content is not approved yet (the enemy revamp, task 14's drafts, the three new regions, new
-   music themes, the sound list), write the drafts and have them approved first, as task 14's DG2 and "At port time" lay
+   music themes, the sound list, task 15's weather drafts: the climates, the battle effects, the travel amounts, which
+   events move and how they ease, WX9, WX12, WX13; the three weather classes, GM8-4), write the drafts and have them approved first, as task 14's DG2 and "At port time" lay
    down ("Where an answer leaves a draft to port time, that draft is written and approved then"): a sample first, then
    batches, each approved, as tasks 10, 12 and 13 were.
 5. Write the milestone's design doc, `Docs/Game/<Aspect>.md` (decisions; what exists, checked against the code of both
@@ -73,7 +74,7 @@ game adds):
      preload's save hook (`Docs/Notes.md`, 2026-11-11/12, "getting data out of the old game's headless test client").
    - the old game's own checks (`old-game/test-client/tests/`, 49 `*-browser.js` files and the suites): every rule one
      of them checks has a port test with the same expectation, named after it.
-   Where a rework changes a rule (tasks 10, 12, 13, 14, the enemy revamp, the three new regions), the approved draft and
+   Where a rework changes a rule (tasks 10, 12, 13, 14, 15, the enemy revamp, the three new regions), the approved draft and
    its decision ids are the reference, and the test says so.
 4. **Screens against Chromium.** A screen the old game still has unchanged is compared with Chromium captures of the
    old game (`Tools/Scripts/make-game-references.sh`, `make-scaled-game-references.sh`, `make-layer-references.sh`;
@@ -1063,6 +1064,14 @@ dungeon in the rocky highlands at Levels 50–56 whatever band the region gets, 
 the region crossfade in the engine's soundtrack (an engine change, tested against `music.js` in Chromium; the small task
 "Music switch during a fade-in" touches the same code).
 
+**Port task 15, Weather (GP-10).** The world's weather is built here: each region's climate (its events and how often,
+drafted and approved, WX13) as weather fronts that form, drift with a prevailing wind and ease (WX2, WX8, WX9: which
+events move and how they ease drafted and approved), changed by mountains; Stormwake's rule (always rain, one level
+heavier at night, WX15); the fronts and every event on the 3D map, with rain and fog changing only the looks (WX3); the
+header showing the weather; snow, sand and heavy rain slowing travel by drafted amounts (WX5, WX14); the weather's seed
+and state in the save; the three new regions' climates with their drafts (GP-9). GM4-6's blank parchment over unentered
+regions is the map's unexplored land, not task 15's Fog. GM4-8's map sounds take in the weather's. The 23 events:
+`Docs/Port-Tasks/15_Weather/weather-list.md`.
 **The art.** Terrain for 20 regions (a 16-bit height image and a cover image each; "first versions can be generated
 from today's field functions", Decisions for M6) on the baked land; the coast, the two inland waters, lakes, rivers,
 roads; the 41 feature kinds of `map-terrain.js` (trees by kind, rocks, ruins, farms, windmills, towers, wrecks, pyramids
@@ -1201,6 +1210,9 @@ made in the port". Spells never crit (SP20); bosses can't be defeated outright b
 interpreter is built here for every effect type the old game's battle reads, so GM7 and GM8 add only the types their
 drafts mark "(new)".
 
+**Port task 15, Weather (GP-10).** A battle starts in the weather where it starts, and every event's battle effects
+apply to every combatant (WX4), designed properly here, asked and approved (the list's are examples only, WX12); a saved
+battle keeps its weather. Control Weather's override in battle is GM7's.
 **The art.** The battle camera (the fixed orthographic side view) and formations in 3D; the humanoid clips at work
 through a battle state machine (the lunge without root motion, hurt, death); particle effects for hits, criticals,
 misses, projectiles (arrows, bolts, thrown flasks), Guard and Evade, Meditate, fleeing, drinking, traps set and sprung,
@@ -1350,6 +1362,10 @@ SP13; the ranks saved per hero and per companion, the enemies' in their definiti
 follows (SP17–SP22); the 140 "(new)" marks across the folder. The Augmentation menu's look as SP25 gives it. The Tier 10
 animations reworked (SP47, the form GM7-2). The Institute's own room (task 3, R1).
 
+**Port task 15, Weather (GP-10).** Control Weather offers every event of the shared set, retuned to GM5's weather
+effects, overriding the natural weather for its 15 turns (WX4, WX6), and is castable on the map, setting the weather
+around the hero for a few game hours (its reach and length drafted and approved), Stormwake's rain included (WX10, WX15;
+`12_Spell_Rework/Batch-05-Wind.md`'s note).
 **The art.** The spells' effects for 12 elements (GM7-1); the 12 Tier 10 animations; the Augmentation menu (SP25: an
 empty circle with one open slot, two lists, the player's spells and the companions'; a lit-up magic circle per element
 with a small animation and a sound, a symbol for offensive, summon and defensive spells, a spot per attribute, an
@@ -1424,6 +1440,10 @@ every class inspected (its findings asked as they come); duty (3) is GM17's. A r
 system is built with that system and listed there: Sparkling defeats and the Moonfang (GM9), the guild's counts and
 class information (GM11), Great Hunts completed (GM14), the Limitbreaker (GM15), the dungeons' classes (GM16).
 
+**Port task 15, Weather (GP-10).** Three more classes, named with their identities by the user (WX11): Forecast,
+Cloudstrider and Natural Disaster (Cloudstrider at its top level and Botanomancer levels); their levels, requirements,
+rarity and features asked at this milestone's start (GM8-4), so the drafts hold 259 classes, 255 for players
+(`10_Class_Rework/Class-Rework-Draft.md`, its last section).
 **The art.** The red rarity's look (GM8-2); the skills' battle effects (the `skill` clip with an effect per kind, as
 the old `battle-effects.js`'s skills); the creatures classes call up are GM9's models.
 
@@ -1567,6 +1587,9 @@ the soundtrack's 17 regional battle arrangements in `audio.pak`.
 
 **What is new.** The 33 biome stages in 3D (the 2026-10-16 decision: battles on a 3D stage built in Blender).
 
+**Port task 15, Weather (GP-10).** Every stage shows the weather the battle starts in, each of the 23 events with its
+particles and light, instead of the old biomes' fixed rain, snow, sand and embers; GM10-2's ambience takes in the
+weather's.
 **The art.** 33 battle stages with their town and road variants, seeded per region and zone, by day, dusk and night,
 with ambient weather as particles. Script family `battle-stages` (a kit per biome: ground, middle, far hills, sky,
 foreground). Each stage against Blender's render (`ReferenceLimits.DetailedStage`) and approved by the user.
@@ -1746,6 +1769,10 @@ drafted with them (applied by GM15); bosses immune to instant death (SP46); Augm
 boss clips (their rig's set plus phase change, transform, an intro entrance and their specials, "asked per boss at port
 time", Decisions for M7).
 
+**Port task 15, Weather (WX16).** Before Tankina's and Ornn's mechanics are built, each is looked at for the weather
+(Tankina's gathering storm fed by lightning spells; Ornn's eruption, beside Heavy Ash and Ashfall) and its integration
+asked and approved; Tankina's church stands in Stormwake's rain (WX15). The machinery lets a boss's rule read and set
+the battle's weather.
 **The art.** Tankina (and her chosen look), the Apostles, Gorthok (quadruped), Ornn (and his erupting look), the
 Vulcanic Ram (quadruped); the badges and overlays (the storm, the tempers); 4 cutscenes to Ji'ruan's bar (a detailed
 stage composed like the old SVG scene, acting clips per cutscene, particles, the card, sound per GM13-2), each approved
@@ -1811,6 +1838,9 @@ GM15); bosses immune to instant death (SP46); the boss clips: "their rig's set p
 entrance and their specials (asked per boss at port time)" (Decisions for M7), asked as each boss's model is made; the
 models at the user's bar (2026-11-05).
 
+**Port task 15, Weather (WX16).** Juila's cycle of seasons is integrated with the weather, asked and approved first;
+the Deep Sea King, Gaian and Anatemis's Sunfall are looked at the same way, and any boss whose mechanic could touch the
+weather.
 **The art.** Eight boss models and their looks (Juila's four seasons, Nygheir scarred, Gaian severed, Ur-Mat lucid,
 Anatemis's three forms), their retinues and spirits from the rosters (Jungle Core, the first model of the core family;
 Juila's Rime Wolf, Sunhorn Stag, Blossom Sprite and Harvest Wisp …), the mechanic overlays and badges (seasons, orders,
@@ -1939,6 +1969,8 @@ chance per board, DG18; the time a stage and a camp take, DG12; Ravenwatch's que
 Ool moved "unchanged" (DG33) and revamped with every enemy; an active Saffron or Ool hunt in the port's own saves
 withdrawn with a note. The Dungeon Delver's and Throwing Specialist's two counts (GM8's classes).
 
+**Port task 15, Weather (WX16).** The dungeon bosses whose mechanics do or could touch the weather are integrated with
+it, asked first. The masterworks and the Exotic follow GM3-6 (the higher the rarity, the more fantasy the look).
 **The art.** Twelve 3D overviews (GM16-3); the dungeons' battle stages (GM16-2); eleven new boss models at the bar with
 their intros; Saffron, his three servants, Ool, the Phylactery (the core family) and their three scenes; the three
 masterworks, the Exotic, the eleven consumables and the material items; the entrances on the map; 23 new themes (12
@@ -1984,6 +2016,8 @@ skill exercised in a battle set up for it, a report per class. The balance pass:
 when built"), the race review (GM2-4), zone difficulty by level, the bosses' and dungeons' win rates, item and spell
 power on task 12's curve. The user's playtest.
 
+**Port task 15, Weather (GP-10).** The weather's numbers are part of the balance pass: its battle effects, Control
+Weather and the weather classes, by simulation, each change approved.
 **The art.** None of its own.
 
 **How it is checked.** The simulations and the class tests are themselves checks; each change they lead to goes to the
@@ -2085,7 +2119,9 @@ companions (each a full record), recruit offers, pending class spell choices, th
 The port's save adds: Spell Augmentation's ranks and weavings per hero and companion (task 12, `Spell-Augmentation.md`
 §10); tasks 10, 13 and 14's new counts and the Moonfang; the smithing materials; the dungeon state (the dungeon, its
 stage, the stages cleared, bomb stuns used, Waylight, bosses met; the battle and stage resumed on load: "Decisions for
-task 14", "Following from the answers"). It doesn't hold Dev Mode's state or the theme, which are game settings in
+task 14", "Following from the answers"); the weather (task 15, GM4: the weather's seed and the fronts' state, so a
+reload changes nothing, WX2; a Control Weather cast on the map with its end, WX10; a battle's weather and its override
+with the battle). It doesn't hold Dev Mode's state or the theme, which are game settings in
 `settings.json` (GM1-13, GM1-4), nor the random state (GM1-5). Its form is M9's: a binary versioned record behind the
 `SVSV` header, named slots with a `.bak`, a damaged slot set aside and the player asked, written on every request by
 the background writer. Each milestone adds its part as a new version with its `Upgrade()` and committed fixtures, so a
@@ -2111,7 +2147,9 @@ boards); its checks stub `Math.random`. Its art randomness is seeded (interiors 
 mulberry32 `0x5eed`. The port draws every gameplay roll from one random service (GM1), seeded per run, its state not
 saved (fresh draws on every load, GM1-5); a test seeds it or hands it the exact draws the old check's stub gives, so a
 battle can be replayed against the old game's result draw for draw; art keeps its per-object seeds; sound effects vary
-from `SoundEffects.Seed` (M8). Nothing reproduces `Math.random` itself. Its generator (the manager, 2026-11-13, GM1-P11):
+from `SoundEffects.Seed` (M8). Nothing reproduces `Math.random` itself.
+The weather (task 15) is the exception to fresh draws on load: its fronts come from a weather seed kept in the save, so
+a reload changes nothing (WX2); GM4 designs that seed apart from the random service. Its generator (the manager, 2026-11-13, GM1-P11):
 `xoshiro256**` seeded through SplitMix64 from one 64-bit seed, a draw's top 53 bits as a double in [0, 1).
 
 ### The real-time clock
@@ -2121,7 +2159,8 @@ The old clock: `advanceAmbientTime` every 250 ms, 0.5 game minutes a real second
 `advanceWorldTime` regenerates 5 % of HP and Mana a game hour, resets daily skills and restocks shops. GM4 ports it on
 the engine's event loop (`SetInterval` with DOMTimer's clamp, `Docs/Scripting.md`), the game listening to the
 `visibilitychange` the engine sends for a minimized window (a hidden document is throttled as Chromium throttles it);
-GM4-5 asks whether time keeps passing off the map. Tests drive the clock by hand, never by real time (as the script
+GM4-5 asks whether time keeps passing off the map (answered: as the old game). Task 15's weather fronts move and
+ease on this clock (GM4), and Stormwake's night rain follows its hours (18:00–06:00 as the old game, WX15). Tests drive the clock by hand, never by real time (as the script
 fixtures use 0 ms timers).
 
 ### Sound
@@ -2130,7 +2169,9 @@ The music is the engine's already (M8: 55 themes, 34 instruments, 21 percussion 
 by ear on 2026-11-02); the game ports `desiredTheme` (region theme, else `alder-vale`; in battle `combat@<region>` if it
 exists, else `combat`; a boss's theme, else `combat`) in GM4 and GM5, and the crossfade in GM4. New themes: two per new
 region (GM4-10, was GM12-3) and 23 for the dungeons and their bosses (GM16), written in the composer's notation, checked against
-Chromium renders of the old composer (which plays any score) and approved by ear. Sound effects: none in the old game;
+Chromium renders of the old composer (which plays any score) and approved by ear. Task 15's weather gets its sounds with
+the map's (GM4-8: rain and thunder for every rain event, wind, sand, hail …, its list asked then) and the stages'
+ambience (GM10-2). Sound effects: none in the old game;
 the port adds them (2026-11-03); the engine's `SoundEffects` (patches as data at `audio/effects/<name>`, `Actor.Sounds`
 for clip events, seeded variation, voice limits of 4 per patch and 32 in all; no stop yet: the small task "A stop for
 sound effects"). When and which (GM1-6): each milestone makes its own aspect's sounds, their list asked with its
@@ -2253,7 +2294,8 @@ and waits for the user's go, asked when its milestone reaches it:
 Three prefixes mean two things in `Docs/Engine-Plan.md`: `G` (task 2's G1–G34 and the editor's G1–G6 of M11), `P` (task
 9's P1–P31 and the editor's P1–P38), `M` (task 5's M1–M26, the milestones M0–M12 and their questions such as M10-2). The
 docs always cite them with their source ("task 9's P11", "G2 of M11"), and so does this plan. `GP-n` and `GMn-k` are
-free (checked 2026-11-12; "Decisions for the plan").
+free (checked 2026-11-12; "Decisions for the plan"). Task 15's are `WX1`–`WX16` (2026-11-20), apart from task 8's
+`W1`–`W33`.
 
 ### What the port never does
 
@@ -2613,7 +2655,7 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
   drafted by the port and approved (GM4-9), two new themes each (GM4-10); 35 questions open.
 - **2026-11-20, port task 15, Weather (GP-10):** the user's new task, designed the same day (WX1–WX9 in
   `Docs/Engine-Plan.md`): a climate per region as weather fronts that drift and ease, one shared set with Control
-  Weather, snow, sand and heavy rain slowing travel, visibility in looks only, 22 approved events; built across GM4,
+  Weather, snow, sand and heavy rain slowing travel, visibility in looks only, 22 approved events (23 since WX14; WX10–WX16 followed the same day); built across GM4,
   GM5, GM7, GM10 and GM17.
 - **2026-11-20, task 15's additions (WX10, WX11):** Control Weather castable on the map too; three weather classes,
   Forecast, Cloudstrider and Natural Disaster (an upgrade of Cloudstrider with Botanomancer levels), named by the user,
