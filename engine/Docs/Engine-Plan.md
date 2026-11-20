@@ -1295,10 +1295,10 @@ the design and the tests):
   and approved (GM4-9), two themes each (GM4-10). GM4-7 answers "the grabbing cursor's design" below.
 - **Port task 15, Weather (2026-11-20, the user's new task):** "Decisions for task 15, Weather" below (WX1–WX9): a
   climate per region as weather fronts that drift and ease, one shared set with Control Weather, snow, sand and heavy
-  rain slowing travel, visibility in looks only, 22 approved events (`Docs/Port-Tasks/15_Weather/weather-list.md`); built
+  rain slowing travel, visibility in looks only, 23 approved events (`Docs/Port-Tasks/15_Weather/weather-list.md`; Heavy Rain added, WX14); built
   across GM4, GM5, GM7, GM10 and GM17 (`Docs/Game-Plan.md`, GP-10); Control Weather castable on the map too (WX10); three
   weather classes, Forecast, Cloudstrider and Natural Disaster, designed at GM8's start (WX11, GM8-4); the list's battle
-  effects are examples, designed properly when the weather is built (WX12).
+  effects and locations are examples, designed properly when the weather is built (WX12, WX13).
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -2627,7 +2627,14 @@ Torrential Rain, Blizzard, Drought, Sunny Day, Thunderstorm for 15 turns, `comba
   buffs and debuffs are only example-buffs. I want them to be properly designed when weather is implemented." The
   battle effects in `weather-list.md` (and the old Control Weather's five, which WX4 retunes) are not a design: what
   each event does in battle is designed properly when the weather is built (GM5; Control Weather in GM7), asked and
-  approved then. WX7's list stands for the events, where they occur and the travel effects (WX5).
+  approved then. WX7's list stands for the events and the travel effects (WX5); where they occur, see WX13.
+- WX13 **The locations are examples too** (the user, 2026-11-20: "Do the same for the locations"): where each event
+  occurs in `weather-list.md` is an example; each region's climate (which events, how often, by time of day) is
+  designed properly when the weather is built (GM4), asked and approved then.
+- WX14 **Heavy Rain added** (the user, 2026-11-20: "add a new weather event called Heavy Rain, which is a step above
+  Light Rain but below Torrential Rain"): 23 events; Torrential Rain eases through Heavy Rain to Light Rain (WX9). Asked:
+  (a) it slows travel a little off the roads, less than Torrential Rain (WX5's heavy rain), Light Rain still not. (Not
+  (b) no effect on travel.)
 
 **Decisions for task 14, Dungeons (2026-11-12, a cloud session; the task is `Docs/Port-Tasks/14_Dungeons.txt`).**
 Asked after reading the task, the earlier tasks' decisions and the old game's systems it touches (below). The port

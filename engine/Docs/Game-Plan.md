@@ -158,7 +158,7 @@ gotcha: `Docs/Notes.md`, 2026-11-11); everything else anywhere; the Windows PC b
   shown as plain uncharted land until then.)
 
 - GP-10 **Port task 15, Weather, built across the milestones** (the user, 2026-11-20, the question tool, WX1 in
-  `Docs/Engine-Plan.md`, "Decisions for task 15, Weather"; the task `Docs/Port-Tasks/15_Weather.txt`, its 22 approved
+  `Docs/Engine-Plan.md`, "Decisions for task 15, Weather"; the task `Docs/Port-Tasks/15_Weather.txt`, its 23 approved
   events `15_Weather/weather-list.md`): GM4 builds the world's weather (each region's climate as weather fronts that
   drift with a prevailing wind and ease as they go, WX2, WX8, WX9), its looks on the map (rain and fog in looks only, WX3)
   and its travel effects (snow, sand and heavy rain slowing travel, WX5); GM5 starts a battle in the weather where it
@@ -166,8 +166,9 @@ gotcha: `Docs/Notes.md`, 2026-11-11); everything else anywhere; the Windows PC b
   GM10's stages show every event; GM17 balances its numbers. (Not a milestone of its own; not after the port.) Added
   the same day: Control Weather castable on the map too (WX10, GM7 with GM4's fronts), and three weather classes,
   Forecast, Cloudstrider and Natural Disaster, designed at GM8's start and built there (WX11, GM8-4). The list's battle
-  effects are examples only: each event's buffs and debuffs are designed properly, asked and approved when GM5 builds
-  the weather in battle (WX12).
+  effects and locations are examples only: each event's buffs and debuffs (GM5) and each region's climate (GM4) are
+  designed properly, asked and approved when the weather is built (WX12, WX13). Heavy Rain added between Light and
+  Torrential Rain, slowing travel a little off the roads (WX14).
 
 **Earlier decisions that bind the plan** (each where it is recorded):
 - **Old saves are never imported.** "Saves start fresh" (`Docs/Engine-Plan.md`, "User decisions (2026-10-16)",
