@@ -935,6 +935,32 @@ body types, 37 unique designs, 85 artifacts.
   name, effect and maker, shown as renders a few at a time for approval [recommended]; (b) each described by the user
   first.
 
+**Decisions for GM3 (the user, 2026-11-20, the question tool, a cloud session; asked before GM3 starts at the user's
+request, "ask me all five questions", ahead of GP-6's "at its start"):** the five questions above, four the
+recommended option, GM3-4 not; and the user's word on the rarities, said with the request (GM3-6). GM3's detail round
+comes with its design doc when GM3 starts.
+- GM3-1 **How detailed the item models are:** (a) made for close-up: each part modelled for the item details and the
+  shops, the same model small in a hand in battle. (Not (b) made for battle size with the pictures kept small; not (c)
+  two models per part.)
+- GM3-2 **Item pictures in the inventory, the shops and the details:** (a) live 3D views of the item's own model in its
+  materials and runes. (Not (b) 2D icons per kind drawn in code with 3D only in the details; not (c) pictures rendered
+  when the game is built.)
+- GM3-3 **Armour on the different bodies:** (a) each piece fitted to each playable body (the maker's 54, per race, sex
+  and build) and to each humanoid enemy body that wears forged armour. (Not (b) a few shared builds.)
+- GM3-4 **The Transformer, not the recommendation: (b) the round copper shield**, the old battle sprite's look
+  (`sprite-equipment.js` `MASTERWORK_SHIELDS.transformer`), everywhere: the model, the item's live picture (GM3-2) and
+  battle; the kite shield of the forged item's old icon is not kept. (Not (a) the kite shield everywhere, the
+  recommendation: the item's own design.)
+- GM3-5 **Masterworks and Exotics without a design hint:** (a) designed by the port from each one's name, effect and
+  maker, shown as renders a few at a time for approval (redone as the user asks, GP-8). (Not (b) each described by the
+  user first.)
+- GM3-6 **The higher the rarity, the more fantasy the look** (the user's word, 2026-11-20, said unasked with the request
+  for the five; for every item the port models, GM3's and later milestones' alike): "The higher rarity an item is, the
+  more fantasy-style i want them to look. For example, common and uncommon armors may look realistic, but rare or higher
+  armors get a more fantasy-style look." So common and uncommon items look realistic; rare, epic, legendary, masterwork
+  and Exotic items (and GM8's red rarity) look more fantastic the higher they go. How this meets the makers' styles, the
+  materials and the artifacts' four rarity styles is for GM3's design doc and its detail round to propose and ask.
+
 ## GM4 The continent and travel
 
 **What the player gets.** The map window over the sheet: one continent of 20 regions in 3D seen straight down (zoom
@@ -2173,14 +2199,16 @@ answered in its section (GP-7); GM1's thirteen were all answered on 2026-11-12 (
 GM1-12 and GM1-13, which came out of GM1-3's answer), and GM1's detail round (Q1–Q26 and Q16b on 2026-11-13, Q27–Q34
 on 2026-11-14; "GM1's detail round"), so none of GM1's is left; GM1 is done (2026-11-15). GM2's five were answered on
 2026-11-15 with three follow-ups their answers raised (GM2-6–GM2-8), all eight in "Decisions for GM2"; GM2's detail
-round, Q1–Q42, was answered the same day ("GM2's detail round"). The sound questions are asked with their milestones
-(GM1-6).
+round, Q1–Q42, was answered the same day ("GM2's detail round"). GM3's five were answered early, on 2026-11-20 at the
+user's request, with the user's word GM3-6 on the rarities ("Decisions for GM3"); they stay in the list below, marked.
+The sound questions are asked with their milestones (GM1-6).
 
-- GM3-1 Item models' detail: close-up / battle size / two models.
-- GM3-2 Item pictures: live 3D / 2D icons / pre-rendered pictures.
-- GM3-3 Armour on bodies: fitted per body / a few shared builds.
-- GM3-4 The Transformer: kite shield / round copper shield.
-- GM3-5 Masterworks and Exotics without a hint: designed by the port and approved / described by the user.
+- GM3-1 Item models' detail: close-up / battle size / two models. Answered: close-up.
+- GM3-2 Item pictures: live 3D / 2D icons / pre-rendered pictures. Answered: live 3D.
+- GM3-3 Armour on bodies: fitted per body / a few shared builds. Answered: fitted per body.
+- GM3-4 The Transformer: kite shield / round copper shield. Answered: round copper shield.
+- GM3-5 Masterworks and Exotics without a hint: designed by the port and approved / described by the user. Answered:
+  designed by the port and approved.
 - GM4-1 The map's finish: with parchment frame, compass, scale, inked labels / labels only.
 - GM4-2 Settlements on the map: each its own from a kit / two shared models.
 - GM4-3 The hero on the map: a marker / a 3D figure.
@@ -2228,8 +2256,8 @@ round, Q1–Q42, was answered the same day ("GM2's detail round"). The sound que
 - GM18-2 The editor for the game's kinds: the generic form / special views.
 
 Questions per milestone still open: GM1 0, GM2 0 (5 answered, 3 follow-ups and the detail round Q1–Q42, 2026-11-15),
-GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3, GM14 1, GM15 2, GM16 3, GM17 2, GM18 2:
-50 in all (55 when the plan was written).
+GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detail round comes with its design doc), GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3, GM14 1, GM15 2, GM16 3, GM17 2, GM18 2:
+45 in all (55 when the plan was written).
 
 ## Status
 
@@ -2461,3 +2489,9 @@ GM3 5, GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3,
   captured (Q51, Q52), a playable race with no looks shown but not choosable (Q53), the random button on GM2-P15's picks,
   the views a seam for step 11 (none shown in the program yet), the screens on test data until the real looks land
   (`Docs/Game/Hero.md`, "How it works", step 8).
+- **2026-11-20, GM3's five questions answered early** (the user's request, a cloud session, before GM3 starts): GM3-1
+  close-up models, GM3-2 live 3D item pictures, GM3-3 armour fitted to every body, GM3-5 the hintless masterworks and
+  Exotics designed by the port for approval, all as recommended; GM3-4 the Transformer the round copper shield
+  everywhere (not the recommendation); and the user's word GM3-6, the higher an item's rarity the more fantasy its look
+  (common and uncommon realistic, rare and up fantastic). GM3, "Decisions for GM3". GM2 goes on; GM3 starts on the
+  user's go.
