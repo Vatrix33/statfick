@@ -1288,6 +1288,11 @@ the design and the tests):
 - **GP-9, GM12 dissolved (the user, 2026-11-20):** `Docs/Game-Plan.md`, "Decisions for the plan": the three new
   regions designed and built by GM4 as far as the map goes and filled in by GM6, GM9, GM10 and GM11 with their systems;
   GM4-4 answered by it, GM12's questions moved (GM4-9, GM4-10, GM9-6); 17 milestones, the numbers kept.
+- **Decisions for GM4 (2026-11-20, asked early at the user's request, before GM4 starts):** `Docs/Game-Plan.md`, GM4,
+  "Decisions for GM4": the old map's frame (GM4-1), two shared settlement models, not the recommendation (GM4-2), the
+  three sites each their own (GM4-2b), a marker (GM4-3), the old clock (GM4-5), blank parchment for unentered regions,
+  not the recommendation (GM4-6), an inked gauntlet (GM4-7), a small set of map sounds (GM4-8), the new regions drafted
+  and approved (GM4-9), two themes each (GM4-10). GM4-7 answers "the grabbing cursor's design" below.
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user

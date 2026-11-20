@@ -1090,6 +1090,35 @@ quests), GM13 (sites), GM16 (dungeon entrances, DG5, DG72).
   composer's notation and approved by ear, the battle arrangements wired by GM10 [recommended: every region has its
   own]; (b) the neighbours' themes reused.
 
+**Decisions for GM4 (the user, 2026-11-20, the question tool, a cloud session; asked before GM4 starts at the user's
+request, "Can i already answer GM4s questions?", ahead of GP-6's "at its start"):** GM4-4 answered by GP-9 (above,
+"Decisions for the plan"); the other nine and one follow-up asked at once. Seven are the recommended option; GM4-2 and
+GM4-6 are not. GM4's detail round comes with its design doc when GM4 starts.
+- GM4-1 **The map's finish:** (a) the 3D terrain in the game's look ("Ember, hearth", GM2) with the old map's parchment
+  frame, compass, scale bar and inked labels. (Not (b) the terrain with its labels only.)
+- GM4-2 **Settlements on the map, not the recommendation: (b) two shared models**, one castle-city model for the 11
+  castle cities and one town model for the 16 towns (and the three new regions' towns, GP-9). (Not (a) each its own
+  small model from a kit, seeded per settlement, the recommendation.)
+- GM4-2b (a follow-up of GM4-2) **The three sites** (the Church of Talos, the Institute of Magic, Hearth Home): (a) each
+  its own small model, after the old map's own site icons (`SITE_ICONS`: a domed tower, a forge with a flame). (Not (b)
+  the shared town model or one shared site model.)
+- GM4-3 **The hero on the map:** (a) a marker, as the old game. (Not (b) a small 3D figure of the hero walking the
+  route.)
+- GM4-5 **The clock:** (a) as the old game: 0.5 game minutes a second on the sheet and in windows, 36 while
+  travelling, stopped by battles and a minimized window. (Not (b) only while travelling, resting and camping.)
+- GM4-6 **The fog over unentered regions, not the recommendation: (b) blank parchment**: an unentered region is drawn
+  as blank parchment until it is first entered. (Not (a) drifting cloud in the 3D look lifting on entry, the
+  recommendation.)
+- GM4-7 **The grabbing cursor:** (a) an inked gauntlet, open over the map and closed while dragging. (Not (b) an inked
+  bare hand; not (c) the system's cursor.)
+- GM4-8 **Map sounds:** (a) a small set: steps or hooves while travelling, waves on the boat, wagon wheels, rain and
+  thunder over Stormwake (the list asked in GM4's detail round, GM1-6). (Not (b) none.)
+- GM4-9 **How the three new regions are made:** (a) drafted by the port region by region (name, identity, terrain,
+  band, towns, roads, and the outline of their enemies, encounters, forage and music) and approved, as task 14's content
+  is (DG2). (Not (b) the user giving the names and identities first.)
+- GM4-10 **Their music:** (a) a region theme and a battle arrangement each, written in the composer's notation and
+  approved by ear, the battle arrangements wired by GM10. (Not (b) the neighbours' themes reused.)
+
 ## GM5 Combat core: the battle, its rules and its stage
 
 **What the player gets.** Turn-based battles between the party (the hero, up to three companions from GM11, their
@@ -2240,7 +2269,8 @@ GM1-12 and GM1-13, which came out of GM1-3's answer), and GM1's detail round (Q1
 on 2026-11-14; "GM1's detail round"), so none of GM1's is left; GM1 is done (2026-11-15). GM2's five were answered on
 2026-11-15 with three follow-ups their answers raised (GM2-6–GM2-8), all eight in "Decisions for GM2"; GM2's detail
 round, Q1–Q42, was answered the same day ("GM2's detail round"). GM3's five were answered early, on 2026-11-20 at the
-user's request, with the user's word GM3-6 on the rarities ("Decisions for GM3"); they stay in the list below, marked.
+user's request, with the user's word GM3-6 on the rarities ("Decisions for GM3"), and GM4's the same day (GM4-4 by GP-9,
+the rest with a follow-up, GM4-2b; "Decisions for GM4"); they stay in the list below, marked.
 The sound questions are asked with their milestones (GM1-6).
 
 - GM3-1 Item models' detail: close-up / battle size / two models. Answered: close-up.
@@ -2249,17 +2279,19 @@ The sound questions are asked with their milestones (GM1-6).
 - GM3-4 The Transformer: kite shield / round copper shield. Answered: round copper shield.
 - GM3-5 Masterworks and Exotics without a hint: designed by the port and approved / described by the user. Answered:
   designed by the port and approved.
-- GM4-1 The map's finish: with parchment frame, compass, scale, inked labels / labels only.
-- GM4-2 Settlements on the map: each its own from a kit / two shared models.
-- GM4-3 The hero on the map: a marker / a 3D figure.
+- GM4-1 The map's finish: with parchment frame, compass, scale, inked labels / labels only. Answered: with the frame.
+- GM4-2 Settlements on the map: each its own from a kit / two shared models. Answered: two shared models (the three
+  sites each their own, GM4-2b).
+- GM4-3 The hero on the map: a marker / a 3D figure. Answered: a marker.
 - GM4-4 The new regions' land: designed in GM4 / all in GM12. Answered by GP-9: GM12 dissolved, the regions built
   by GM4 and filled in by GM6, GM9, GM10 and GM11.
-- GM4-5 The clock: as the old game / only while travelling, resting, camping.
-- GM4-6 Fog over unentered regions: drifting cloud / blank parchment.
-- GM4-7 The grabbing cursor: an inked gauntlet / an inked hand / the system's.
-- GM4-8 Map sounds: a small set / none.
-- GM4-9 (was GM12-1) The new regions: drafted by the port and approved / the user names them first.
-- GM4-10 (was GM12-3) Their music: two new themes each / neighbours' themes.
+- GM4-5 The clock: as the old game / only while travelling, resting, camping. Answered: as the old game.
+- GM4-6 Fog over unentered regions: drifting cloud / blank parchment. Answered: blank parchment.
+- GM4-7 The grabbing cursor: an inked gauntlet / an inked hand / the system's. Answered: an inked gauntlet.
+- GM4-8 Map sounds: a small set / none. Answered: a small set.
+- GM4-9 (was GM12-1) The new regions: drafted by the port and approved / the user names them first. Answered: drafted
+  and approved.
+- GM4-10 (was GM12-3) Their music: two new themes each / neighbours' themes. Answered: two new themes each.
 - GM5-1 Battle views: both / the 3D stage only.
 - GM5-2 A battle on save or quit: resumed / dropped.
 - GM5-3 Statuses and reactions: on the figure, icons and bursts / icons and log only.
@@ -2298,8 +2330,8 @@ The sound questions are asked with their milestones (GM1-6).
 - GM18-2 The editor for the game's kinds: the generic form / special views.
 
 Questions per milestone still open: GM1 0, GM2 0 (5 answered, 3 follow-ups and the detail round Q1–Q42, 2026-11-15),
-GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detail round comes with its design doc), GM4 9 (GM4-4 answered by GP-9; GM4-9 and GM4-10 moved from GM12), GM5 4, GM6 2, GM7 3, GM8 3, GM9 6 (GM9-6 moved from GM12), GM10 2, GM11 2, GM12 dissolved (GP-9), GM13 3, GM14 1, GM15 2, GM16 3, GM17 2, GM18 2:
-44 in all (55 when the plan was written).
+GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detail round comes with its design doc), GM4 0 (GM4-4 answered by GP-9, the rest and GM4-2b on 2026-11-20 before GM4 starts), GM5 4, GM6 2, GM7 3, GM8 3, GM9 6 (GM9-6 moved from GM12), GM10 2, GM11 2, GM12 dissolved (GP-9), GM13 3, GM14 1, GM15 2, GM16 3, GM17 2, GM18 2:
+35 in all (55 when the plan was written).
 
 ## Status
 
@@ -2542,3 +2574,8 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
   identity, bands, terrain, roads, their towns on the map, their region themes), and GM6, GM9, GM10 and GM11 fill them in
   with their systems; GM12's number kept, 17 milestones. GM4-4 answered by it; GM12-1 and GM12-3 moved to GM4 (GM4-9,
   GM4-10), GM12-2 to GM9 (GM9-6); 44 questions open. "Decisions for the plan", GP-9.
+- **2026-11-20, GM4's questions answered early** (the user's request, before GM4 starts; "Decisions for GM4"): the map
+  framed as the old one (GM4-1), two shared settlement models (GM4-2, not the recommendation) with the three sites each
+  their own (GM4-2b), a marker for the hero (GM4-3), the old clock (GM4-5), blank parchment over unentered regions
+  (GM4-6, not the recommendation), an inked gauntlet cursor (GM4-7), a small set of map sounds (GM4-8), the new regions
+  drafted by the port and approved (GM4-9), two new themes each (GM4-10); 35 questions open.
