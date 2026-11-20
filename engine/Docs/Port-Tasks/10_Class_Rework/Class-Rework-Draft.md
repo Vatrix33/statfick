@@ -1829,3 +1829,31 @@ Supplies, the throwing items) are task 14's answers.
 
 What the port would add for these requirements: different dungeons finished (Dungeon Delver); throwing items thrown
 in battle, the thrown poisons among them (Throwing Specialist).
+
+## Task 15's three weather classes (named, designed at GM8's start)
+
+Named by the user on 2026-11-20 with their identities (WX11 in `engine/Docs/Engine-Plan.md`, "Decisions for task 15,
+Weather"); their levels, requirements, rarity and features are asked at GM8's start, under task 10's rules, and written
+here and in `Class-Rework-Features.md` then. The weather they read is task 15's (`../15_Weather/weather-list.md`).
+
+### Forecast
+
+levels, rarity: at GM8's start
+
+- **Requires:** at GM8's start
+- **Identity (the user's):** a travel based class that predicts weather and reduces the debuffs suffered from weather
+  events.
+
+### Cloudstrider
+
+levels, rarity: at GM8's start
+
+- **Requires:** at GM8's start
+- **Identity (the user's):** a mage based class that enhances spells further depending on weather.
+
+### Natural Disaster
+
+levels, rarity: at GM8's start
+
+- **Requires:** Cloudstrider at its top level · levels in Botanomancer (how many: at GM8's start)
+- **Identity (the user's):** a direct upgrade to Cloudstrider.

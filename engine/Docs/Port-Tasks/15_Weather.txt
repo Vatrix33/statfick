@@ -1,0 +1,1 @@
+I want to add a dynamic weather- and environment system that affects both travel (visibility decreases during rain/fog, slower travel during snow) and combat (rain powers up water spells and weakens fire or desert heat powers up fire spells and weakens ice). Would this be easily possible and if so, how?

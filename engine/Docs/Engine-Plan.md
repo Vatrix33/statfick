@@ -5,6 +5,13 @@ The engine is finished, fully tested, before the game is ported onto it.
 
 ## How to continue (read this first)
 
+**The plan's changes of 2026-11-20 (a cloud session, docs only, while GM2 goes on; nothing built):** GM3's and GM4's
+questions answered ahead of their starts at the user's request, with the user's word GM3-6 (the higher an item's rarity,
+the more fantasy its look) and the follow-up GM4-2b (`Docs/Game-Plan.md`, "Decisions for GM3" and "Decisions for GM4");
+GM12 dissolved, the three new regions built by GM4 and filled in by GM6, GM9, GM10 and GM11 (GP-9); port task 15,
+Weather, the user's new task, designed (WX1–WX17, "Decisions for task 15, Weather" below; `Docs/Port-Tasks/15_Weather/`;
+GP-10), with three weather classes for GM8 (GM8-4). 36 of the plan's questions remain open.
+
 **Current task (2026-11-15): GM2 (The hero) started on the user's go; its design is decided (GM2-1–GM2-8, the detail
 round Q1–Q42, the manager's GM2-P1–P16); no step started; the first wave starts on the manager's go.** The user's
 answers (asked by
@@ -117,7 +124,7 @@ run on Windows ("Windows check"). The project is one git repo (`../`, see `../CL
 `github.com/Vatrix33/statfick`; the user's tasks for the port are in `Docs/Port-Tasks/`, read when the port starts
 ("Decision on the user's tasks for the port"; "Open questions for later milestones", "At port time"); tasks 1–9 are done
 in the old game, task 11 in the old game for its races, and tasks 10, 12 and 13 are designed and approved for the port
-to build (the paragraphs below); task 14 (Dungeons), the last, is built during the port itself (DG1).
+to build (the paragraphs below); task 14 (Dungeons) is built during the port itself (DG1), and so is task 15 (Weather), the last (WX1).
 **The game's milestone plan was written on 2026-11-12 (`Docs/Game-Plan.md`, GM1–GM18, after a survey of the whole
 repo; its GP-1 answers the open question above: the reworks are built in while porting), its open questions are being
 asked, and GM1 starts on the user's go.**
@@ -131,7 +138,7 @@ time"). What the old game has for it and what it lacks (checked 2026-11-12) are 
 bosses, items, numbers) drafted at port time for the user's approval (DG2; the list at the section's end). **Its two
 classes were then designed at the user's request and approved (DG75–DG78):** the Dungeon Delver (5 levels, blue) and
 the Throwing Specialist (6 levels, no colour) are at the end of task 10's drafts, which now hold 256 classes, 252 for
-players; `Docs/Port-Tasks/14_Dungeons/Classes.md` is their record. Among the answers: the nine dungeons' places (DG5) and three more (harpies in the rocky highlands, Nocturne Keep as the
+players (259 and 255 once task 15's three are designed at GM8's start, WX11); `Docs/Port-Tasks/14_Dungeons/Classes.md` is their record. Among the answers: the nine dungeons' places (DG5) and three more (harpies in the rocky highlands, Nocturne Keep as the
 vampire dungeon with Ravenwatch's quest opening the keep to non-vampires, dragons on the Stoneveil Summit; DG51–DG74);
 the smithing materials made into items that cut reforging to them by 75% (DG26, DG29–DG32); a 3D dungeon overview
 (DG69).
@@ -1285,12 +1292,28 @@ the design and the tests):
   not the recommendation, the Transformer the round copper shield everywhere; and the user's word GM3-6: the higher an
   item's rarity, the more fantasy its look (common and uncommon realistic, rare and up fantastic). GM3-1 answers "the
   level of detail of the item models" below. GM3's detail round comes with its design doc.
+- **GP-9, GM12 dissolved (the user, 2026-11-20):** `Docs/Game-Plan.md`, "Decisions for the plan": the three new
+  regions designed and built by GM4 as far as the map goes and filled in by GM6, GM9, GM10 and GM11 with their systems;
+  GM4-4 answered by it, GM12's questions moved (GM4-9, GM4-10, GM9-6); 17 milestones, the numbers kept.
+- **Decisions for GM4 (2026-11-20, asked early at the user's request, before GM4 starts):** `Docs/Game-Plan.md`, GM4,
+  "Decisions for GM4" (with GM4-9b, castle cities allowed in the new regions, from the review the same day): the old map's frame (GM4-1), two shared settlement models, not the recommendation (GM4-2), the
+  three sites each their own (GM4-2b), a marker (GM4-3), the old clock (GM4-5), blank parchment for unentered regions,
+  not the recommendation (GM4-6), an inked gauntlet (GM4-7), a small set of map sounds (GM4-8), the new regions drafted
+  and approved (GM4-9), two themes each (GM4-10). GM4-7 answers "the grabbing cursor's design" below.
+- **Port task 15, Weather (2026-11-20, the user's new task):** "Decisions for task 15, Weather" below (WX1–WX17): a
+  climate per region as weather fronts that drift and ease, one shared set with Control Weather, snow, sand and heavy
+  rain slowing travel, visibility in looks only, 23 approved events (`Docs/Port-Tasks/15_Weather/weather-list.md`; Heavy Rain added, WX14); built
+  across GM4, GM5, GM7, GM8, GM10, GM13, GM14, GM16 and GM17 (`Docs/Game-Plan.md`, GP-10); Control Weather castable on the map too (WX10); three
+  weather classes, Forecast, Cloudstrider and Natural Disaster, designed at GM8's start (WX11, GM8-4); the list's battle
+  effects and locations are examples, designed properly when the weather is built (WX12, WX13); Stormwake always rains
+  (WX15); bosses whose mechanics touch the weather are integrated with it when ported (WX16); only battles in the open take the
+  weather (WX17).
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
   decision 2026-11-03 in "Decisions for M8", the rune slotting sound among them); UI symbols outside Lato and STIX (⚙ ✦ ☾ ↓ ＋ ⚔ ♟ …); how the inline SVG art and its
   transforms map to the Blender remakes; the grabbing cursor's design; the level of detail of the item
-  models. **First read `Docs/Port-Tasks/`:** the user's tasks to add during the port, in their number order
+  models (these two answered on 2026-11-20: GM4-7, an inked gauntlet; GM3-1, made for close-up). **First read `Docs/Port-Tasks/`:** the user's tasks to add during the port, in their number order
   (decided 2026-11-05); ask whether they come after the faithful port or while porting (left open by the user). Tasks 1
   (Masterwork Elementals), 2 (Guild Rework), 3 (Shop Rework), 4 (Artifact Rework), 5 (New Masterworks) and 6 (New Areas)
   are already done in the old game, so the faithful port brings them over: don't build them again, only remake their
@@ -1348,10 +1371,10 @@ the design and the tests):
   their full rework is not part of task 10's design.
   From task 10 (the user, 2026-11-11, C32), three requirements for the port: **(1) the classes are unchanged in the old
   game; during the port, the classes in the drafts are added** (`Docs/Port-Tasks/10_Class_Rework/`:
-  `Class-Rework-Draft.md` and `Class-Rework-Features.md`, all 170, and the 86 tasks 11–14 added at their end: 256);
+  `Class-Rework-Draft.md` and `Class-Rework-Features.md`, all 170, and the 86 tasks 11–14 added at their end: 256; 259 with task 15's three, WX11);
   **(2) during porting, every class is inspected for possible errors and inconsistencies** (in the drafts and against
   the game's rules, before or while it is built); **(3) after the port, every class feature is tested so that it works
-  as intended** (every level of all 256 classes, passives and skills included).
+  as intended** (every level of all 256 classes, 259 with task 15's, passives and skills included).
   From task 13 (the user, 2026-11-12, NC1, NC19): **the port builds task 13's 79 new classes** from the end of task
   10's drafts ("Classes added by task 13", "Task 13's classes"), with the three duties above, and adds the counts,
   requirement kinds and the Moonfang key item their requirements use (listed there).
@@ -1364,6 +1387,13 @@ the design and the tests):
   From task 13 (the user, 2026-11-12, NC7): **the hooded man never offers information on a red class while the player
   is Level 99 or lower;** from Level 100 the red classes (Unreality, Limitbreaker) join his class offers, the
   Limitbreaker despite needing Level 110 (his old rule leaving out classes above Level 100 doesn't apply to it).
+  From task 15 (the user, 2026-11-20, WX1): **the port builds task 15, Weather, itself**, across GM4, GM5, GM7, GM8,
+  GM10, GM13, GM14, GM16 and GM17 (`Docs/Game-Plan.md`, GP-10), from `Docs/Port-Tasks/15_Weather.txt`, its 23 events
+  (`15_Weather/weather-list.md`) and "Decisions for task 15, Weather" (WX1–WX17); nothing of it is in the old game. Left
+  to port time, drafted and approved then: each region's climate (WX13), which events move and how they ease (WX9),
+  each event's battle effects (WX12), the travel amounts (WX5, WX14), Control Weather's reach and length on the map
+  (WX10), each dungeon's and site's weather (WX17), the three weather classes (WX11, GM8-4) and each weather-touching
+  boss's integration (WX16).
 
 ## Folders
 
@@ -1945,7 +1975,7 @@ at port time). The rune slotting sound was left out of the old game; the port ad
 **Decision on the user's tasks for the port (2026-11-05):** the task files the user wrote are kept unchanged in
 `Docs/Port-Tasks/` (named by their order: 1 Masterwork Elementals, 2 Guild, 3 Shop Rework, 4 Artifact Rework, 5 New
 Masterworks, 6 New Areas, 7 New Game Plus, 8 Map Rework, 9 Potion Rework, 10 Class Rework, 11 New Races, 12 Spell
-Rework, 13 New Classes, 14 Dungeons; its README sums them up and notes what the order means for them). The text is
+Rework, 13 New Classes, 14 Dungeons, and since 2026-11-20 15 Weather; its README sums them up and notes what the order means for them). The text is
 kept as written except three names in task 7 the user confirmed the same day (Laila → Juila, Zik → Zik Lun, Mythium →
 Mythilium); task 7's Limitless scaling is meant to cover every later kind of enemy too (task 14's dungeon enemies), and
 the class count going past 250 with task 14's two classes is intended. A general port task added on 2026-11-11 (the
@@ -2544,6 +2574,106 @@ Asked after the regression run (2026-11-06):
 - L33 **The victory screen's EXP at your level cap** (Level 100 without Limitless, 200 with it), where you gain none
   (L18): it reads 0 EXP; companions below their cap still gain the battle's EXP. (Not the number with a note, not left
   showing the battle's EXP.)
+
+**Decisions for task 15, Weather (2026-11-20, a cloud session; the user asked for it that day, "I want to add a dynamic
+weather- and environment system that affects both travel (visibility decreases during rain/fog, slower travel during
+snow) and combat (rain powers up water spells and weakens fire or desert heat powers up fire spells and weakens ice).
+Would this be easily possible and if so, how?"; the task is `Docs/Port-Tasks/15_Weather.txt`, the approved list
+`Docs/Port-Tasks/15_Weather/weather-list.md`).** Asked with the question tool after a look at what the old game has:
+fixed weather only (Stormwake always rains, thunder from 18:00 to 06:00, `map.js` `renderClock`; the battle biomes'
+fixed rain, snow, sand, embers and mist, `battle-scenery.js`), and the battle spell Control Weather (task 12 keeps it:
+Torrential Rain, Blizzard, Drought, Sunny Day, Thunderstorm for 15 turns, `combat.js` `applyWeather`, `objects/spells.json`;
+`12_Spell_Rework/Batch-05-Wind.md`). Built during the port, nothing in the old game.
+- WX1 **Where it goes:** (a) a new port task, 15, designed with the user and built where its parts live: the world's
+  weather, its fronts, the travel effects and the map's looks in GM4; the battle effects and a battle starting in the
+  current weather in GM5; Control Weather offering the set in GM7; the stages showing it in GM10; its numbers in GM17's
+  balance pass (`Docs/Game-Plan.md`, GP-10). (Not (b) a milestone of its own after GM10; not (c) after the port.)
+- WX2 **How the weather is decided:** (a) a climate per region (which events, how often), changing every few game
+  hours, rolled from the save's seed so a reload changes nothing, shown in the map's header; WX9 makes it fronts. (Not
+  (b) per zone; not (c) one fixed weather per region.)
+- WX3 **Visibility, not the recommendation: looks only.** Rain and fog are shown on the map and change nothing in play.
+  (Not less warning before a fight, the recommendation; not shorter sight on the map; not more ambushes.)
+- WX4 **The natural weather and Control Weather:** (a) one shared set: a battle starts in the weather where it starts,
+  using the same weather definitions as Control Weather, retuned to the user's rules (rain powers up water and weakens
+  fire, heat powers up fire and weakens ice, and so on); the spell overrides it for its 15 turns, then the natural
+  weather returns. This changes task 12's "Control Weather stays as it is" (its five definitions are retuned and it
+  offers every event of the list, WX6; noted in `Batch-05-Wind.md`). (Not (b) a milder natural set beside the spell's;
+  not (c) the two separate and stacking.)
+- WX5 **What slows travel, not the recommendation: snow, sand and heavy rain**: Snowfall and Blizzard (Blizzard more),
+  Sandstorm, and Torrential Rain and Thunderstorm off the roads (mud); the amounts drafted and approved. (Not snow and
+  sandstorms only, the recommendation; not snow only.)
+- WX6 **Which weathers exist, the user's own answer:** "The spells five, plus make a short list of all possible weather
+  events that can occur. I'll look it over and approve it." Every event can occur naturally and be cast with Control
+  Weather (WX4).
+- WX7 **The list, approved after two drafts:** draft 1 (13 events); the user: "Can you make a proper list, its hard to
+  read the answers list" (so drafts are documents from then on), then "Can you add some more weather phenomena? Also,
+  make Ashfall also rarely possible on coast regions facing Cinder Isle"; draft 2 (26 events), approved "except 14, 16
+  and 18 and 21" (Heatwave, Sleet, Heat Haze, Grave Mist) with "Change Mana Storm to be a rare weather event that can
+  appear anywhere. Chance Eruption to Heavy Ash, an even rarer version of Ashfall that blankets a huge area around
+  cinder isle"; the result, 22 events, approved with Heavy Ash read as Ashfall stronger, no effect on travel, the regions
+  it reaches drafted with the climates. The battle effects are directions; their numbers, the climates and the travel
+  amounts are drafted and approved when the task is built.
+- WX8 **The user's word on how weather behaves** (said with WX7's approval): "i want weather to behave properly. For
+  example, if a region has Torrential Rain, make it so it travels in a realistic direction and becomes Light Rain. I want
+  this behaviour for all weather events where it makes sense."
+- WX9 **Moving weather:** (a) weather fronts on the map: fronts form from each region's climate and drift across the
+  continent with a prevailing wind, weakening over time (Torrential Rain to Light Rain to Overcast; Blizzard to
+  Snowfall; Heavy Ash to Ashfall), changed by mountains (rain turning to snow on the Stoneveil heights); a front can
+  cover part of a region, the 3D map shows it moving, and a battle takes the weather where it starts; seeded. Which
+  events move (the local ones such as Abyssal Gloom, Marsh Miasma or the night skies need not) and each one's easing
+  are drafted and approved. (Not (b) region by region, one weather per region stepping along a chain and passing to
+  the downwind neighbour.)
+- WX10 **Control Weather expanded to the new system** (the user: "Make a note that Control Weather should be expanded to
+  encompass the new system"; then the question tool): (a) battle and the map: in battle as WX4 has it (every event of
+  the list, retuned, overriding the natural weather for 15 turns), and castable outside battle on the map, setting the
+  weather around the hero for a few game hours (a blizzard cleared to travel faster), after which the natural fronts
+  take over again; how long and how far it reaches are drafted and approved with GM7. (Not (b) also pushing or steering
+  fronts; not (c) battle only.)
+- WX11 **Three new classes for the weather** (the user, 2026-11-20: "i want to add 3 new classes which are to be designed
+  and implemented along all other classes"), the user's identities word for word: **Forecast**, "a travel based class
+  that predicts weather and reduces the debuffs suffered from weather events"; **Cloudstrider**, "a mage based class
+  that enhances spells further depending on weather"; **Natural Disaster**, "a direct upgrade to Cloudstrider that
+  requires some sort of nature-element based requirements". Asked: **designed at GM8's start, not the
+  recommendation** (their levels, requirements, rarity and features asked then, under task 10's rules, and added to the
+  end of the class drafts, 259 classes, 255 for players; not designed now like task 14's two, the recommendation); built
+  in GM8 with every other class. **Natural Disaster's requirement:** Cloudstrider at its top level and levels in
+  Botanomancer, the Nature mage (how many asked at GM8's start). (Not Nature spells known, the recommendation; not
+  spells across the weather's elements.) In `Docs/Game-Plan.md` as GM8-4.
+- WX12 **The weather's buffs and debuffs are examples** (the user, 2026-11-20): "Also note down that the current weather
+  buffs and debuffs are only example-buffs. I want them to be properly designed when weather is implemented." The
+  battle effects in `weather-list.md` (and the old Control Weather's five, which WX4 retunes) are not a design: what
+  each event does in battle is designed properly when the weather is built (GM5; Control Weather in GM7), asked and
+  approved then. WX7's list stands for the events and the travel effects (WX5); where they occur, see WX13.
+- WX13 **The locations are examples too** (the user, 2026-11-20: "Do the same for the locations"): where each event
+  occurs in `weather-list.md` is an example; each region's climate (which events, how often, by time of day) is
+  designed properly when the weather is built (GM4), asked and approved then.
+- WX14 **Heavy Rain added** (the user, 2026-11-20: "add a new weather event called Heavy Rain, which is a step above
+  Light Rain but below Torrential Rain"): 23 events; Torrential Rain eases through Heavy Rain to Light Rain (WX9). Asked:
+  (a) it slows travel a little off the roads, less than Torrential Rain (WX5's heavy rain), Light Rain still not. (Not
+  (b) no effect on travel.)
+- WX15 **Stormwake Hills always rains** (the user, 2026-11-20, after asking which region always rains in the old game:
+  only Stormwake, `weather: "rainstorm"`, "Rain" by day and "Thunderstorm" from 18:00 to 06:00): "Stormwake Hills should
+  always have at least one kind of rain, with the minimum being Light Rain. During night, the rain intensifies one level,
+  with the cap being Thunderstorm." So its weather is always one of the rains, in order Light Rain, Heavy Rain,
+  Torrential Rain, Thunderstorm; whatever its climate or a front brings, at least Light Rain; at night (the old game's
+  18:00–06:00; GM4 asks the user if it wants another span) one level heavier, never past Thunderstorm. A fixed rule beside WX13's
+  example locations. Asked: **Control Weather overrides it, not the recommendation**: cast on the map in Stormwake it
+  sets any weather for its few hours, clear skies too, and the rain returns afterwards. (Not the spell choosing only
+  among the rains there, the recommendation.)
+- WX16 **Bosses that influence the weather** (the user, 2026-11-20): "some bosses (Like Tankina with the Storm mechanic
+  or Leila with the seasons mechanic) directly influence weather/environment. Make a note during the boss port that
+  bosses with similar mechanic than can or could influence weather should be touched upon to integrate it." ("Leila" is
+  Juila, the Grand Forest Matriarch, whose cycle of seasons it is; task 7's names, 2026-11-05.) When a boss is ported
+  (GM13, GM14, GM16), every boss whose mechanic does or could touch the weather or the environment is looked at and its
+  mechanic integrated with task 15's weather, each such integration asked and approved then. Today's candidates, for
+  that look and nothing decided: Tankina's gathering storm (GM13), Juila's seasons (GM14), and possibly Ornn's eruption
+  at the volcano (GM13; Heavy Ash and Ashfall), the Deep Sea King, Gaian, Avatar of the Land, Anatemis's Sunfall (GM14),
+  and task 14's dungeon bosses (GM16).
+- WX17 **Which battles take the world's weather** (raised by the review of 2026-11-20; the question tool): (a) outdoors
+  only: a battle in the open takes the weather where it starts; a battle indoors or underground (a dungeon's interior,
+  Hearth Home's forge) has no weather unless its dungeon or boss gives its own; each dungeon's and site's case listed
+  and approved when GM13 and GM16 build them; Control Weather still works in every battle. (Not (b) every battle taking
+  its region's weather; not (c) each place decided later with nothing assumed.)
 
 **Decisions for task 14, Dungeons (2026-11-12, a cloud session; the task is `Docs/Port-Tasks/14_Dungeons.txt`).**
 Asked after reading the task, the earlier tasks' decisions and the old game's systems it touches (below). The port
@@ -4568,4 +4698,4 @@ Each milestone is finished only when its tests pass.
   - Pack editing.
 - [x] **M12 Packaging** (done 2026-11-12):
   - Linux and Windows publish into the shipped folder layout, crash logs.
-- The game's milestones (GM1–GM18) are in `Docs/Game-Plan.md`.
+- The game's milestones (GM1–GM18; GM12 dissolved by GP-9, 2026-11-20) are in `Docs/Game-Plan.md`.

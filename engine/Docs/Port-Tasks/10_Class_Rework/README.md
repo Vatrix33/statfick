@@ -5,7 +5,8 @@ Class Rework", C1–C32; the task is `../10_Class_Rework.txt`). Unlike tasks 1�
 (C23): the old game's classes stay as they are, and the port builds the reworked set from these two files.
 
 - `Class-Rework-Draft.md`: all 170 classes of task 10 (the 130 in the old game, each reviewed, and 40 new), and the
-  86 that tasks 11–14 added at its end (256 in all), with each one's identity (a short playstyle), number of levels,
+  86 that tasks 11–14 added at its end (256 in all; task 15's three stand as placeholders after them, 259 once
+  designed at GM8's start), with each one's identity (a short playstyle), number of levels,
   requirements and rarity (no colour, blue, purple, gold, and red, above gold, for Unreality and, since task 13, the
   Limitbreaker). Where a current class changes (levels, rarity, a sharpened identity, a rename), the
   entry shows the old value, the new one and why; the user's review notes stand word for word under their classes.
@@ -34,6 +35,11 @@ and the Throwing Specialist (no colour), at the end of both files, so the drafts
 players. Task 14 itself is built by the port (DG1); only these two were designed beforehand, at the user's request,
 drafted in `../14_Dungeons/Classes.md` (the task's record). The dungeon and throwing rules they use are task 14's
 answers.
+
+**To be added by task 15** (2026-11-20, WX11 in `Engine-Plan.md`, "Decisions for task 15, Weather"): three weather
+classes, Forecast, Cloudstrider and Natural Disaster, named with their identities by the user and **designed at GM8's
+start** (levels, requirements, rarity, features), then added at the end of both files (259 classes, 255 for players).
+Until then they stand as a placeholder at the end of `Class-Rework-Draft.md`.
 
 **What the port must do with them** (the user, 2026-11-11, C32):
 1. The classes are unchanged in the old game. During the port, the classes in these drafts are added.

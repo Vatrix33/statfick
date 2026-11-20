@@ -4,7 +4,7 @@ The user's tasks to add to the game during the port (user decision 2026-11-05), 
 file listing puts `10_` before `1_`; the list below is the order). The `.txt` files are the user's own text, unchanged
 (only their line endings were made LF, as the repo stores text), except three names in task 7 the user confirmed on
 2026-11-05: "Laila" is Juila, "Zik" is Zik Lun, "Mythium" is Mythilium; and one in task 10 the user confirmed on
-2026-11-10: "Ascendend" is Ascended. Fourteen tasks.
+2026-11-10: "Ascendend" is Ascended. Fifteen tasks.
 
 1. `1_Masterwork_Elementals.txt`: six masterworks remade from the elementals' former unique items (Plasma Blade,
    Tidepiercer, First Comet, Peace and Balance, Kugelblitz, Avalanche); the elementals' placeholder weapons stay.
@@ -84,6 +84,12 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
     before the port; its design questions are asked and answered beforehand, in `Engine-Plan.md`, "Decisions for task
     14, Dungeons" (DG1 onward), and the port builds it from this file and those answers. See "Built by the port from
     the decisions" below.
+15. `15_Weather.txt`: a dynamic weather system affecting travel (visibility, slower travel in snow) and battle (rain
+    powering up water and weakening fire, desert heat powering up fire and weakening ice). (The user's message of
+    2026-11-20, kept as written.)
+    **Built during the port, like task 14 (the user, 2026-11-20, WX1):** nothing in the old game. Decisions WX1–WX17 in
+    `Engine-Plan.md`, "Decisions for task 15, Weather"; the 23 approved weather events in `15_Weather/weather-list.md`.
+    See "Built by the port from the decisions" below.
 
 **How to use them:** read them when the port starts (`Engine-Plan.md`, "Open questions for later milestones", "At port
 time" points here). Before each task's code, ask its design questions with the question tool and record the answers
@@ -107,7 +113,7 @@ remember (the user's answers, 2026-11-05):
 - Task 7's "dungeon enemies" is meant to be future-proof: Limitless scales every kind of enemy, also those added later.
   Dungeons only come with task 14 (which needs task 7's Exotic rarity), so task 14 gives its dungeon enemies the
   Limitless scaling.
-- Task 13 adds classes until there are 250; task 14's two classes come on top (252 in the end), as intended. (Done:
+- Task 13 adds classes until there are 250; task 14's two classes come on top (252 in the end), as intended, and task 15's three (255, WX11). (Done:
   task 13's 79 bring the classes players can acquire to 250, NC2, and task 14's two, approved 2026-11-12, to 252,
   DG78.)
 
@@ -124,7 +130,8 @@ waited, into the same pull request, P1; P2 kept its art placeholder). Task 11 (a
 in task 10's drafts for the port. Tasks 10, 12 and 13 are not built in the old game at all: designed in drafts and
 built by the port (C23, 2026-11-10; SP1, 2026-11-11; NC1, 2026-11-12), with task 12's two classes and task 13's 79
 added to task 10's drafts. Task 14 is built during the port itself (the user, 2026-11-12, DG1): not in the old game and
-not drafted beforehand; only its design questions are answered before the port.
+not drafted beforehand; only its design questions are answered before the port. Task 15 (asked for on 2026-11-20) is
+built during the port in the same way (WX1).
 
 **Done in the old game so far:**
 - Task 1, Masterwork Elementals (2026-11-05): the six masterworks, their drops and effects, all in the old game's code
@@ -242,7 +249,7 @@ not drafted beforehand; only its design questions are answered before the port.
   status), **every spell players can learn reworked** (381, `Batch-01-Basic.md` to `Batch-12-Blood.md`; the seven boss
   and enemy-only spells left as they are, SP4) and **168 new spells** (`New-01-Basic.md` to `New-12-Blood.md`, fourteen
   per element, every element keeping at least one summon and one Dragonbreath spell). Its two classes, the Spellweaver
-  and the Ritual Caster, are in task 10's drafts (`10_Class_Rework/`, 175 classes then, 254 with task 13's, 256 with task 14's). Also for
+  and the Ritual Caster, are in task 10's drafts (`10_Class_Rework/`, 175 classes then, 254 with task 13's, 256 with task 14's, 259 with task 15's). Also for
   the port: the mechanics the drafts mark "(new)"; two new creatures for the new summons, the Mana Golem (Basic) and
   the Storm Roc (Wind), with their looks and stats (Nature's Dryad and Death's Wraith use creatures the game has); the
   Tier 10 spell animations reworked (SP47); bosses can't be defeated outright by instant death (SP46); and every
@@ -274,6 +281,23 @@ not drafted beforehand; only its design questions are answered before the port.
   (DG26, DG29–DG32); Nocturne Keep as the vampire dungeon, whose unique quest from Ravenwatch opens the keep to
   players who aren't vampires (DG52–DG64, DG73, DG74); the harpy dungeon in the rocky highlands, one of task 8's new
   regions (DG65); and a 3D dungeon overview (DG69).
+- Task 15, Weather (2026-11-20, a cloud session, WX1–WX17 in `Engine-Plan.md`, "Decisions for task 15, Weather"; the
+  23 approved events in `15_Weather/weather-list.md`): nothing in the old game but Stormwake's fixed rain, the battle
+  biomes' fixed weather and the Control Weather spell. **Decided:** a climate per region as weather fronts that drift
+  with a prevailing wind and ease as they go (WX2, WX8, WX9; Torrential Rain to Heavy Rain to Light Rain to Overcast),
+  seeded from the save; snow, sand and heavy rain (Heavy Rain a little, Torrential Rain and Thunderstorm more) slowing
+  travel off the roads or everywhere (WX5, WX14); rain and fog changing visibility in looks only (WX3); a battle starting
+  in the weather where it starts; one shared set with Control Weather, retuned, which offers every event and is
+  castable on the map too, for a few game hours (WX4, WX6, WX10); Stormwake Hills always raining, at least Light Rain,
+  one level heavier at night, Thunderstorm at most, Control Weather overriding it (WX15); three weather classes,
+  Forecast, Cloudstrider and Natural Disaster (Cloudstrider's upgrade, with Botanomancer levels), designed at GM8's
+  start (WX11); every boss whose mechanic does or could touch the weather integrated with it when ported (WX16:
+  Tankina's storm, Juila's seasons, others to look at); only battles in the open taking the weather, indoors and
+  underground none unless the place gives its own (WX17). **Drafted when built, for the user's approval:** each event's
+  battle effects (examples only, WX12), each region's climate (the locations examples only, WX13), the travel amounts,
+  which events move and how each eases (WX9), Control Weather's reach and length on the map (WX10). **Where it is
+  built** (GP-10 in `Game-Plan.md`): GM4 (the fronts, the map, travel, the climates), GM5 (battle), GM7 (Control
+  Weather), GM8 (the classes), GM10 (the stages), GM13, GM14 and GM16 (the bosses), GM17 (the numbers).
 
 **Placeholder art the port remakes fully** (the user wants it fully visually remade during the port; in the old game's
 code task 1's and task 3's masterwork definitions and task 4's artifacts carry `placeholderArt: true`, and task 2's and
