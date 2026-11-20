@@ -20,6 +20,8 @@ static class FigureFiles
     static string ProjectDirectory([CallerFilePath] string path = "") => Path.GetDirectoryName(Path.GetDirectoryName(path)!)!;
 
     public static string Models => Path.Combine(ProjectDirectory(), "Data", "Models");
+    /// <summary>The tests' fonts (Lato among them, the caption's).</summary>
+    public static string Fonts => Path.Combine(ProjectDirectory(), "Data", "Fonts");
     public static string Reference => Path.Combine(ProjectDirectory(), "Reference");
     /// <summary>The frame's sample (Tools/Models/humanoid/sample.py, made by make-humanoid.sh build): two clips, bow (0.75 s) and sway (1 s).</summary>
     public static string Sample => Path.Combine(Models, "humanoid", "sample.glb");
@@ -283,6 +285,77 @@ public class FigureFramingTests
                     && Math.Abs(expected[n].M12 - actual[n].M12) < 1e-6f && Math.Abs(expected[n].M23 - actual[n].M23) < 1e-6f, $"node {n} at {t}");
         }
     }
+
+    /// <summary>
+    /// A play list (--play, GM2 step 4b): its turns in its order, each its clip as many times in a row as it says (round the
+    /// clip as the strip's repeats play it, the turn's very end its clip's end), a clip laid over another replacing only
+    /// what it keys for the turn's length and nothing outside it; a name the library hasn't is refused.
+    /// </summary>
+    [Fact]
+    public void APlayListPlaysItsTurnsInItsOrder()
+    {
+        var model = ModelData.Load(FigureFiles.Sample);
+        var library = AnimationClip.AllOf(model);
+        var clips = new FigureClips(library, FigurePlay.Parse("sway:2,bow+sway,bow"), "sample.glb");
+        Assert.Equal(["sway", "bow", "bow"], clips.Clips.Select(c => c.Name));
+        Assert.Equal([2, 1, 1], clips.Repeats);
+        Assert.Equal([null, "sway", null], clips.Overs.Select(o => o?.Name));
+        Assert.Equal(["sway", "bow+sway", "bow"], Enumerable.Range(0, 3).Select(clips.NameOf));
+        Assert.Equal([0, 2, 2.75], clips.Starts.Select(s => Math.Round(s, 6)));
+        Assert.Equal(3.5, clips.Cycle, 6);
+        Assert.Equal((0, 0.25), Rounded(clips.At(0.25)));
+        // The second time round: the clip from its start again (a whole round in, as Blender's strip counts), its end at the turn's.
+        Assert.Equal((0, 0.25), Rounded(clips.At(1.25)));
+        Assert.Equal((0, 0.0), Rounded(clips.At(1.0)));
+        Assert.Equal((0, 1.0), Rounded(clips.At(2.0)));
+        Assert.Equal((1, 0.1), Rounded(clips.At(2.1)));
+        Assert.Equal((2, 0.5), Rounded(clips.At(3.25)));
+        Assert.Equal((0, 0.5), Rounded(clips.At(3.5 + 0.5)));
+        // Without a list, every clip once; a name the library hasn't is refused, laid over or not.
+        Assert.Equal(["bow", "sway"], new FigureClips(library, null, "sample.glb").Clips.Select(c => c.Name));
+        Assert.Contains("no clip nod in sample.glb", Assert.Throws<ArgumentException>(() => new FigureClips(library, FigurePlay.Parse("sway,nod"), "sample.glb")).Message);
+        Assert.Contains("no clip nod in sample.glb", Assert.Throws<ArgumentException>(() => new FigureClips(library, FigurePlay.Parse("sway+nod"), "sample.glb")).Message);
+
+        // The stack: the turn's clip at its time; over the second turn sway turns the upper body (it keys "upper" alone) while
+        // bow's dip of the hips ("lower"'s place) goes on beneath; outside its turn (the third, bow alone) it acts nothing.
+        var skeleton = new Skeleton(model);
+        var stack = new AnimationStack(skeleton);
+        stack.Layers.Add(clips.Layer(skeleton));
+        var over = clips.OverLayer(skeleton);
+        Assert.NotNull(over);
+        stack.Layers.Add(over);
+        Assert.Null(new FigureClips(library).OverLayer(skeleton));
+        var buffer = new PoseBuffer(skeleton);
+        var (lower, upper) = (skeleton.Find("lower"), skeleton.Find("upper"));
+        foreach (var t in new[] { 0.3, 1.3, 1.999, 2.1, 2.4, 2.7, 2.8, 3.1, 3.4 })
+        {
+            stack.Evaluate(t, buffer);
+            var actual = model.WorldMatrices(buffer.ToPose());
+            var (turn, at) = clips.At(t);
+            var expected = model.WorldMatrices(new ClipBinding(clips.Clips[turn], skeleton).Pose(at));
+            if (clips.Overs[turn] is { } laid)
+            {
+                var top = model.WorldMatrices(new ClipBinding(laid, skeleton).Pose((t - clips.Starts[turn]) % laid.Duration));
+                // (its place is lower's, which bow moves: the turn alone is compared)
+                Assert.True(SameTurn(top[upper], actual[upper]) && !SameTurn(expected[upper], actual[upper]), $"upper at {t}: not sway's");
+                Assert.True(Same(expected[lower], actual[lower]), $"lower at {t}: not bow's");
+            }
+            else
+                for (var n = 0; n < expected.Length; n++)
+                    Assert.True(Same(expected[n], actual[n]), $"node {n} at {t}");
+        }
+
+        static (int, double) Rounded((int Clip, double Time) at) => (at.Clip, Math.Round(at.Time, 6));
+        static bool Same(Matrix4x4 a, Matrix4x4 b) => (a - b).Translation.Length() < 1e-6f && SameTurn(a, b);
+        static bool SameTurn(Matrix4x4 a, Matrix4x4 b)
+        {
+            for (var r = 0; r < 3; r++)
+                for (var c = 0; c < 3; c++)
+                    if (Math.Abs(a[r, c] - b[r, c]) > 1e-6f)
+                        return false;
+            return true;
+        }
+    }
 }
 
 /// <summary>
@@ -437,6 +510,30 @@ public class FigureReferenceTests(GpuFixture gpu)
         Assert.Equal((expected.Target, expected.OrthographicHeight), (closeUp.View.Camera.Target, closeUp.View.Camera.OrthographicHeight));
     }
 
+    /// <summary>
+    /// The view plays the spec's play list (--play): its turns' clips in their order on its clock, the clip laid over a turn
+    /// on the layer above, named so in the caption; a play list naming a clip the library hasn't is refused.
+    /// </summary>
+    [Fact]
+    public void TheViewPlaysItsPlayList()
+    {
+        var spec = new FigureSpec { Body = FigureFiles.Sample, Look = FigureFiles.Today, Width = 320, Height = 400, Play = FigurePlay.Parse("sway:2,bow+sway,bow") };
+        using var figure = new FigureView(gpu.Device, spec);
+        Assert.Equal(3.5, figure.Clips.Cycle, 6);
+        var model = ModelData.Load(FigureFiles.Sample);
+        var skeleton = new Skeleton(model);
+        var (lower, upper) = (skeleton.Find("lower"), skeleton.Find("upper"));
+        figure.Seek(2.1);
+        Assert.Equal("bow+sway 0.100 s", figure.Describe());
+        var posed = model.WorldMatrices(figure.Actor.Animator.Pose());
+        var (sway, bow) = (model.WorldMatrices(new ClipBinding(figure.Clips.Overs[1]!, skeleton).Pose(0.1)), model.WorldMatrices(new ClipBinding(figure.Clips.Clips[1], skeleton).Pose(0.1)));
+        Assert.True(Math.Abs(posed[upper].M12 - sway[upper].M12) < 1e-6f && Math.Abs(posed[upper].M12 - bow[upper].M12) > 1e-4f, "the upper body isn't sway's");
+        Assert.True(Vector3.Distance(posed[lower].Translation, bow[lower].Translation) < 1e-6f, "the hips aren't bow's");
+        figure.Seek(1.25);
+        Assert.Equal("sway 0.250 s", figure.Describe());
+        Assert.Contains("no clip nod in sample.glb", Assert.Throws<ArgumentException>(() => new FigureView(gpu.Device, spec with { Play = FigurePlay.Parse("bow,nod") })).Message);
+    }
+
     /// <summary>The scene file's colours are the look file's text again, every level (0–255) of each channel.</summary>
     [Fact]
     public void ColoursGoBackToTheirText()
@@ -530,9 +627,11 @@ public class FigureCommandLineTests
             "--garment", Path.Combine(models, "tabard.glb"), "--item", Path.Combine(models, "sword.glb") + "@socket.hand.R", "--item", "a@b@socket.back",
             "--view", "side", "--size", "640x360", "--elevation", "7.5", "--margin", "0.1", "--extent", "1.25", "--focus", "chest",
             "--perspective", "35", "--dump", "/tmp/frames", "--fps", "24", "--times", "0,0.5,1.25", "--scene-file", "/tmp/s.json",
-            "--capture", "/tmp/c.png", "--frames", "12",
+            "--capture", "/tmp/c.png", "--frames", "12", "--play", "idle:2,swing,idle+hold-bow:3", "--label",
         ];
         var (spec, run) = FigureCommandLine.Parse(args, FigureFiles.Looks, "/fonts");
+        Assert.Equal([new FigurePlay("idle", 2), new FigurePlay("swing"), new FigurePlay("idle", 3, "hold-bow")], spec.Play!);
+        Assert.True(run.Label);
         Assert.Equal(Path.Combine(models, "figure.glb"), spec.Body);
         Assert.Equal(Path.Combine(models, "jiruan-acting.glb"), spec.Clips);
         Assert.Equal(("today", CelStyle.Default), (spec.Look.Name, spec.Look.Style));
@@ -554,6 +653,8 @@ public class FigureCommandLineTests
         Assert.Empty(spec.Garments);
         Assert.Empty(spec.Items);
         Assert.Equal(((string?)null, 30.0, (IReadOnlyList<double>?)null, (string?)null, (string?)null, 30), (run.Dump, run.Fps, run.Times, run.SceneFile, run.Capture, run.CaptureFrame));
+        Assert.Null(spec.Play);
+        Assert.False(run.Label);
         // A look file by its path, and by its name in the looks' folder.
         using var folder = new StorageFolder();
         var file = folder.Write("mine.json", System.Text.Encoding.UTF8.GetBytes(FigureFiles.TestLookJson));
@@ -572,6 +673,16 @@ public class FigureCommandLineTests
         { ["--figure", FigureFiles.Sample, "--item", "sword.glb@"], "<glb>@<socket>" },
         { ["--figure", FigureFiles.Sample, "--view", "above"], "no view above" },
         { ["--figure", FigureFiles.Sample, "--loop"], "no option --loop" },
+        { ["--figure", FigureFiles.Sample, "--play"], "--play needs a value" },
+        { ["--figure", FigureFiles.Sample, "--play", "swing:0"], "whole number from 1" },
+        { ["--figure", FigureFiles.Sample, "--play", "swing:-1"], "whole number from 1" },
+        { ["--figure", FigureFiles.Sample, "--play", "swing:2.5"], "whole number from 1" },
+        { ["--figure", FigureFiles.Sample, "--play", "swing:"], "whole number from 1" },
+        { ["--figure", FigureFiles.Sample, "--play", "idle,:2"], "<clip>[+<clip over it>][:times]" },
+        { ["--figure", FigureFiles.Sample, "--play", "idle,,swing"], "<clip>[+<clip over it>][:times]" },
+        { ["--figure", FigureFiles.Sample, "--play", "idle+"], "<clip>[+<clip over it>][:times]" },
+        { ["--figure", FigureFiles.Sample, "--play", "+hold-bow"], "<clip>[+<clip over it>][:times]" },
+        { ["--figure", FigureFiles.Sample, "--play", "a+b+c"], "<clip>[+<clip over it>][:times]" },
     };
 
     [Theory]
@@ -673,6 +784,56 @@ public class FigureWindowTests(GpuFixture gpu) : IClassFixture<GpuFixture>
         Assert.Equal((240, 180), (frame.Width, frame.Height));
     }
 
+    /// <summary>
+    /// A dump with --label (GM2 step 4b) names the clip, its time in it and the view in a caption at the top left
+    /// (<see cref="FigureSandbox.Label"/>) and is the view's picture everywhere else; without it a dump has no caption even
+    /// with the fonts there (the window's picture is the view's alone: <see cref="TheWindowShowsTheFigureModesView"/>).
+    /// </summary>
+    [Fact]
+    public void ALabelledDumpNamesItsClipInACaption()
+    {
+        if (!HasDisplay)
+            return;
+        var scene = FigureReferenceTests.Scenes.Single(s => s.Name == "figure-test-side");
+        RgbaImage drawn;
+        using (var figure = new FigureView(gpu.Device, scene.Spec))
+        {
+            figure.Seek(scene.Time);
+            Assert.Equal("bow 0.367 s · side", FigureSandbox.Label(figure));
+            drawn = FigureReferenceTests.Render(gpu.Device, figure);
+        }
+        using var folder = new StorageFolder();
+        RgbaImage Dump(string name, bool label)
+        {
+            using (var program = new FigureSandbox(scene.Spec, new FigureRun
+            {
+                Dump = folder[name], Times = [scene.Time], Visible = false, GameFolder = folder["player"], Fonts = FigureFiles.Fonts, Label = label,
+            }))
+                program.Run();
+            return ImageFile.Load(Path.Combine(folder[name], "frame-0000.png"));
+        }
+        var (plain, labelled) = (Dump("plain", false), Dump("labelled", true));
+        var (differing, outside, right) = (0, 0, 0);
+        for (var y = 0; y < plain.Height; y++)
+            for (var x = 0; x < plain.Width; x++)
+            {
+                var i = 4 * (y * plain.Width + x);
+                Assert.True(plain.Pixels[i] == drawn.Pixels[i] && plain.Pixels[i + 1] == drawn.Pixels[i + 1] && plain.Pixels[i + 2] == drawn.Pixels[i + 2], $"the plain dump differs from the view at {x}, {y}");
+                if (plain.Pixels[i] != labelled.Pixels[i] || plain.Pixels[i + 1] != labelled.Pixels[i + 1] || plain.Pixels[i + 2] != labelled.Pixels[i + 2])
+                {
+                    differing++;
+                    right = Math.Max(right, x);
+                    if (y >= 34 || x >= 200)
+                        outside++;
+                }
+            }
+        Assert.True(differing > 300, $"only {differing} pixels of the labelled frame differ: no caption");
+        Assert.True(outside == 0, $"{outside} pixels outside the caption's box differ");
+        // The caption holds its words (an empty one is a box 16 pixels wide).
+        Assert.True(right > 100, $"the caption ends at x {right}: no words in it");
+        Assert.Equal(File.ReadAllLines(Path.Combine(folder["plain"], "frames.txt")), File.ReadAllLines(Path.Combine(folder["labelled"], "frames.txt")));
+    }
+
     /// <summary>Without times, a dump is one round of every clip in turn at its frame rate: the sample's 1.75 s at 4 fps, 7 frames.</summary>
     [Fact]
     public void ADumpIsOneRoundOfTheClipsAtItsRate()
@@ -687,5 +848,12 @@ public class FigureWindowTests(GpuFixture gpu) : IClassFixture<GpuFixture>
         Assert.Equal(["frame-0000.png 0 bow 0", "frame-0001.png 0.25 bow 0.25", "frame-0002.png 0.5 bow 0.5", "frame-0003.png 0.75 bow 0.75",
             "frame-0004.png 1 sway 0.25", "frame-0005.png 1.25 sway 0.5", "frame-0006.png 1.5 sway 0.75"], File.ReadAllLines(Path.Combine(dump, "frames.txt")));
         Assert.True(File.Exists(Path.Combine(dump, "frame-0006.png")));
+        // A play list's round (--play, GM2 step 4b): sway twice, then bow with sway laid over it; 2.75 s at 4 fps, 11 frames.
+        var listed = folder["listed"];
+        using (var program = new FigureSandbox(scene.Spec with { Play = FigurePlay.Parse("sway:2,bow+sway") }, new FigureRun { Dump = listed, Fps = 4, Visible = false, GameFolder = folder["player"] }))
+            program.Run();
+        Assert.Equal(["frame-0000.png 0 sway 0", "frame-0001.png 0.25 sway 0.25", "frame-0002.png 0.5 sway 0.5", "frame-0003.png 0.75 sway 0.75",
+            "frame-0004.png 1 sway 0", "frame-0005.png 1.25 sway 0.25", "frame-0006.png 1.5 sway 0.5", "frame-0007.png 1.75 sway 0.75",
+            "frame-0008.png 2 sway 1", "frame-0009.png 2.25 bow+sway 0.25", "frame-0010.png 2.5 bow+sway 0.5"], File.ReadAllLines(Path.Combine(listed, "frames.txt")));
     }
 }

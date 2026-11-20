@@ -133,6 +133,50 @@ an actor chooses the level, the engine gets no level-of-detail machinery. GM2 sh
 proven and measured on the first humanoid (the tests' data) and every body's battle models are built when the battle
 comes (GM5).
 
+**GM2-P21, a stance is a loop of the arms (the manager, 2026-11-17, with the clips; recorded by step 4b):** a stance is a
+loop of the arms only (shoulders, upper arms, forearms, hands, fingers, thumbs), as long as the idle (120 frames), made on
+the idle's body. The battle lays it over the arms of whatever else plays (idle, moving, reactions, guard, evade), its own
+time running; a weapon's own attack is the whole body's and starts and ends in its stance's first frame. The one-handed
+stance has no loop: its arms are the clips' own. GM2 only puts the loops in the library and proves they play; laying one
+over another clip by a bone mask is the battle's (GM5), an engine item for it (`Docs/Game-Plan.md`, "Engine items the port
+will meet"). (Over the idle alone the engine's NLA layering does it already: a Replace layer changes only the channels
+its clip keys; step 4b's figure mode shows it, "How it works", step 4b.)
+
+**GM2-P22, the hips' place scaled by the legs' length; the figure's ground (the manager, 2026-11-17, widened 2026-11-18;
+recorded by step 4b):** a clip's hips' place is metres keyed on the man; on a body with shorter or longer legs it must be
+scaled by the legs' length (the low stance, the crouches and the leaps would otherwise sink a small body's feet into the
+ground or lift a large one's off it). An engine task of its own before step 11's live figures. Widened on 2026-11-18 with
+what step 4b measured: the ground is where a body's soles are at rest, and the man's and the woman's boots' soles reach
+24.0 mm under the plane of their origin (the bare feet stand on it; `outfit.boots` displaces the sole down and its shell is
+10 mm thick), so a figure must be placed with its soles on the ground, not its origin; the task becomes "the figure's
+ground" (`Docs/Game-Plan.md`, "Engine items the port will meet").
+
+**GM2-P23, the keying scripts into the repo later (the manager, 2026-11-18; recorded by step 4b):** the manager's keying
+scripts (`claude-work/gm2/step4/handover-clips/kit/`) go into the repo in a task of their own after step 4b, so a clip can
+be keyed again there; until then the data in `Tools/Models/humanoid/clips/` is the clips.
+
+**Two things the clips' pictures did that the game must do (the manager, 2026-11-18; recorded by step 4b, with their
+milestones in `Docs/Game-Plan.md`):** GM5: `evade` has no root motion; the battle moves the figure back between the markers
+`leap` and `land` (0.85 m in the pictures the user approved: "i want the character to fully jump back") and brings it back
+afterwards. GM3: a real bow's string runs from the limbs' tips to the drawing hand's socket while the hand holds it (in the
+bow's stance and in `bow` up to the marker `shoot`), straight between the tips otherwise, and an arrow lies on it until
+`shoot` (the user: "The bow string does not move").
+
+**The manager's tooling choice on the clips' ease (2026-11-18, on step 4b's measurement):** every clip keyed at every frame
+is written `"ease": "linear"` (23 clips; `flee` and `meditate` keyed at every frame for it), the sparse ones (idle,
+stunned, stand, death, guard-hold, evade-hold, the five holds) stay `"bezier"`. With a key at every frame and Bézier keys,
+Blender's auto-clamped handles bend each quaternion component inside a frame, where the engine draws the exported frame
+samples straight (glTF's rule); the game only ever sees the frame samples, so nothing it shows changed, and Blender's
+in-betweens now agree with the engine's under Animation.md's rule as it stands ("How it works", step 4b).
+
+**GM2-P24, a posed mesh's normals the whole object's (the manager, 2026-11-18, on step 4b's posed samples):** two of step
+4b's posed samples, the geared man and woman at the swing's hit, pass `ReferenceLimits.DetailedFigure` in every measure but
+the edge pixels' (on the chain shirt's skirt in the lunge). No limit changes and no view is swapped: a task of its own
+after step 4b's merge makes a posed mesh's normals the whole object's, across its primitives, as Blender's evaluated mesh
+has them (the engine recomputes them per primitive); it proves that cause first (suspected, not proven), then adds the two
+samples back under the user's limits, or comes back with numbers for the user. Step 4b leaves them out of its tests and
+references and hands over everything they need (`claude-work/gm2/step4b/pending-samples/`; "How it works", step 4b).
+
 **The manager's answers to step 4a (2026-11-16):** Blender runs with 8 threads for the family's models, always
 (`make-humanoid.sh`; QuadriFlow and the order of the edges Blender makes follow the thread count); the clip frame's test
 clip `rest-sway` stays out of the packs (the tests' data; the family's `clips.glb` comes with its first real clips); the
@@ -148,7 +192,7 @@ builds, faces and presets (step 5's "Finished": the sample looks now, the preset
 human presets draw their models' own placeholder colours, the expected state, and no comparison or golden holds those
 colours as a look ("How it works", step 5).
 
-### Questions from the steps (Q43–Q55, Q58, Q60, the user, 2026-11-15 to 2026-11-18)
+### Questions from the steps (Q43–Q60, the user, 2026-11-15 to 2026-11-18)
 
 Q43 and Q44 raised by step 1 (the `race` kind's fields; the docs didn't answer them) and asked by the manager with the
 question tool the same day; both the recommended option. Q45 asked by the manager on 2026-11-16 for step 6 (step 2 had
@@ -235,6 +279,52 @@ so the steps' don't collide: steps 7 and 8 hold Q46–Q53).
   plus about a twentieth, as the detailed stages' were (S7-13), so the figures go into the repo; then an engine task makes
   the game's ink agree better with Blender's (a line hidden under another piece stays hidden), and the limits are
   measured again and tightened ("How it works", step 4a, "The detailed figures' limits"; Status).
+
+Q56, Q57 and Q59, and the user's manner for every clip, came with the first humanoid's clips (step 4, the manager's; the
+user's answers by the question tool and words to the manager, 2026-11-16 to 18; recorded by step 4b from the manager's
+hand-over, `claude-work/gm2/step4/handover-clips/HANDOVER.md`; numbers fixed by the manager: Q58 is the ink fix's).
+- **Q56 A ready stance per weapon kind** (2026-11-16: "A stance per weapon kind"); the six as approved on 2026-11-17 ("Yes,
+  all six"): one-handed (sword, axe, mace, dagger; a shield or a second weapon in the left), two-handed (greatsword, great
+  axe, spear), staff or wand, unarmed, bow, crossbow (the manager added the crossbow's: it can't be held as a bow). The
+  one-handed stance is the clips' own arms; the other five are the stance loops `hold-*` (GM2-P21).
+- **Q57 The sheet's, the maker's and the carousel's figure stands relaxed, at ease** (2026-11-16: "Relaxed, at ease"); the
+  stand as approved on 2026-11-17 ("Yes, as shown"): the clip `stand`, which the figures' small state machine loops
+  ("How it works", step 4b).
+- **The user's manner for every clip** (2026-11-17, feedback to keep for every later clip of any rig): not stiff, not like a
+  drill: ready to fight, the whole body moving, nothing held still. Said of the first stances ("The stances look very
+  stiff. Make them seem more genuine, as if the character is ready to fight and not look like training"), the stand
+  ("These are too stiff as well") and the attacks ("Make it also less stiff"); everything was rekeyed on a second stance
+  (wide, low, turned side-on, leaning in, the rear heel up, the shield up, the weapon cocked) in that manner (the body
+  loads, drives, goes through and settles; the trunk, the neck and the head follow the hips late; nothing is held still).
+  The user's later words, each answered by a rework and approved after it (2026-11-17 and 18): the bow ("The hand movement
+  of the bow is too weird", then "The bow string does not move"), the drink ("The drink animation does not put the drink to
+  the mouth", then "During potion drink, the arm twists weird"), the skill ("the main hand does not move and gets
+  twisted"), the evade ("Nothing much happens in the Evade, i want the character to fully jump back. The Evade hold seems
+  very twitchy"), the guard ("During the guard hold, i want the shield to be fully in front of the character"), the
+  victory ("In the victory pose, the arm twists weird").
+- **The clips approved** (the question tool): 2026-11-17 the six stances, the relaxed stand and the seven melee attacks
+  ("Yes, all seven"); 2026-11-18 moving and reacting on the second stance ("Yes, all eight"), guard, guard-hold, evade,
+  evade-hold, victory and death ("Yes, all right now"), the bow ("Yes, the bow is right"), the drink with skill and
+  victory ("Yes, the drink is right"); cast, item, meditate and crossbow shown in the third batch and not objected to;
+  `strike` and `swing-off-hand` corrected by the manager after their approval (a wrist folded 135° for ten frames; an
+  elbow buckled for a frame) and approved again ("Yes, both are right"); the woman playing the man's clips ("Yes, she
+  moves right": one clip set for both). Then the ground (step 4b's measure, the manager's re-bake of 2026-11-18, "The ground
+  and the in-betweens" in the hand-over): the ground is where the boots' soles are at rest; a foot is raised by what its
+  boot would dip under that level past 2 mm (no clip more than 2.2 mm under it on any frame; the legs' angles moved by at
+  most 2.5°, victory's push-off 10°: advance, critical-hurt, evade, flee, punch, swing, swing-two-handed, thrust, strike,
+  victory); `meditate` a real kneel on the right knee (before, the knee hung 16 cm over the ground and the toe was 7 cm in
+  it); `death`'s fallen body lying on the ground (heels, thighs, fist and head within a few mm of it, the back and seat 1.5
+  cm over it under the mail; before, all of it 7 to 9 cm above; a key more at 54); every clip keyed at every frame written
+  linear. The corrected `death` and `meditate`, shown on a floor, approved on 2026-11-18 ("Yes, both are right";
+  `claude-work/gm2/step4/approval/clips-ground/`): the 34 files are final. **The playing view approved** (2026-11-19, the
+  question tool, shown step 4b's twelve videos, `claude-work/gm2/step4b/playing/`): "Yes, it plays right". With it every
+  approval stop of step 4 is passed.
+- **Q59 When the clips are checked on the smallest and largest bodies** (2026-11-18; it changes Q10 (a), which said each clip
+  batch is also played on the hobbit's slender and the Goliath's strong body): those bodies are made in step 9 and need the
+  engine's scaling of the hips' place by the legs' length first (GM2-P22). Asked when to check the clips on them, the user
+  chose **"In step 9, on the real bodies"** (not now on rough blockouts): when step 9 has made the two bodies and the engine
+  scales the hips' place, the manager shows the user the clips on them and fixes what looks wrong then (an approval stop
+  of step 9's, "Steps").
 
 Q58 and Q60 raised by GM2's engine task on the ink ("How it works", "The ink's cover") and asked by the manager with the
 question tool on 2026-11-18 (the numbers the manager's, so as not to collide with the steps' own).
@@ -1654,6 +1744,14 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
      garments on `head`, the chain shirt per body, the sword and the shield as items); the lighter figures (Q54) at two
      levels (GM2-P20) joined per ink flag (GM2-P19); the game's look `EMBER_HEARTH`; the clip frame with its test clip;
      `models.pak`; the figures against Blender under `ReferenceLimits.DetailedFigure` (Q55); the counts and the cost.
+   - **4b done (2026-11-18, a worker, the branch `gm2-step4b`; "How it works", step 4b):** the 34 approved clips as data
+     in `Tools/Models/humanoid/clips/` and their library `clips.glb` in `models.pak`, held to the hand-over's list and the
+     keying's rules, to Blender on both bodies (on frames within 0.005 mm, between frames under Animation.md's rule once
+     the clips keyed at every frame were linear) and as six posed pictures under `DetailedFigure` (two more owed,
+     GM2-P24); the figures' small state machine (`models/humanoid/machines/figure`, `stand` looped, Q57); the figure
+     mode's `--play` and `--label`; the playing view. With the user's Q56, Q57 and Q59 (the clips checked on the smallest
+     and largest bodies in step 9), the manager's GM2-P21–GM2-P24, the ground (the soles' rest level, 24 mm under a body's
+     origin; the clips re-keyed to it) and the clips' ease. Its choices: "How it works", step 4b ("Choices made").
 5. **The game's look in the engine and figures built from looks** (engine and game; the PC for the Blender side). After 3's
    look and 4's skeleton.
    - Owns: `render.style` in the engine's `Render3D/` with its tests and the game's entry in `data.pak` (Q12, GM2-P11);
@@ -1741,6 +1839,10 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
      presets, its race's records filled. Must not touch: the skeleton and the clips (4's: a change there goes back to 4
      and is approved again), another race's parts.
    - Finished (each): approved; every model and preset against Blender; `build.py --check` equal.
+   - **An approval stop added (2026-11-18, the user's Q59):** the clips checked on the smallest and largest bodies (the
+     hobbit's slender, the Goliath's strong) happens here, on the real bodies, not on blockouts in step 4: once 9c and 9e
+     have made those bodies and the engine scales the hips' place by the legs' length (GM2-P22), the manager shows the user
+     the clips played on them and fixes what looks wrong then.
 10. **The nine emblems** (3D, the manager; the PC). Its sketches any time; its models after 3's look.
     - Owns: the nine motifs' sketches (Q37), the emblems' scripts and models (medallions in relief, Q35), their pictures in
       `ui.pak` at each size and scale (Q36), their Blender references, the live emblem's scene for the carousel.
@@ -3489,6 +3591,221 @@ seam (`IHeroViews`), not a stand-in model in the game's packs; the old success l
 screen hides at once, as the old dialog closed); the rows made again on each change with the focus kept by a key; the
 fixtures' widths for the compositor's pointer, their rows opened by the keyboard; the weighted pick refusing an empty list.
 
+### Step 4b: the first humanoid's clip library in the repo (2026-11-18, the branch `gm2-step4b`)
+
+The 34 clips the manager keyed on the human man and the user approved (the hand-over, `claude-work/gm2/step4/
+handover-clips/`: `HANDOVER.md`, `list.txt`, `clips/`) in the family's library and `models.pak`, held to Blender on both
+bodies and to the rules they were keyed by; the figures' small state machine; the figure mode playing the clips in the
+game's look. On the PC only for what runs Blender (the pinned 5.2.0); the tests run anywhere. Decided on the way: the
+user's Q56, Q57 and Q59, the manager's GM2-P21–GM2-P24, the ground and the clips' ease ("Decisions").
+
+**The data.** `Tools/Models/humanoid/clips/<name>.json`, the 34 files copied from the hand-over byte for byte (their sha256
+the manager's `checksums.txt`; `claude-work/gm2/step4b/checksums-*.txt`), library.py's form (step 4a), unchanged by this
+step. They came twice: the first set measured here (the ground, the in-betweens, below), the manager's re-bake of the same
+day the final one (24 files changed; `death` and `meditate` approved again on a floor). **GM2-P23:** the keying scripts
+(`handover-clips/kit/`) come into the repo in a task of their own; until then these files are the clips.
+
+**The library.** The manifest's `clips` entry: `clips.library:library` with no folder (its own, `clips/`) into
+`Assets/Models/humanoid/clips.glb` (757,796 bytes: 31 nodes, the man's skeleton and its sockets, no mesh; 34 animations,
+each its markers as events), keyed in about 3 s by library.py as step 4a made it; `make-humanoid.sh check clips` the same
+bytes, twice. `models.pak` (`make-models-pack.sh`) holds it at `models/humanoid/clips` beside the ten figure models and the
+state machine: 12 entries, 2,171,138 bytes. The frame's test clip `rest-sway` stays the tests' data, never packed.
+
+**The clip set** (the hand-over's list; frames at 60 fps; "loop": its last key its first; the markers are the clip's events
+at those frames; what plays it from the hand-over and M7's list):
+
+| Clip | Frames | Seconds | Loop | Markers (frame) | Played for |
+|---|---|---|---|---|---|
+| `idle` | 120 | 2.00 | yes | | standing in battle, every weapon kind (a stance loop laid over its arms, GM2-P21) |
+| `stunned` | 90 | 1.50 | yes | | stunned |
+| `advance` | 28 | 0.47 | | step 11, step2 18 | the lunge to a target (the battle moves the figure, no root motion) |
+| `return` | 28 | 0.47 | | land 19 | back to its place |
+| `flee` | 32 | 0.53 | yes | step 0, step2 16 | fleeing |
+| `stand` | 240 | 4.00 | yes | | the sheet's, the maker's and the carousel's figure, relaxed (Q57; not a battle clip) |
+| `hurt` | 24 | 0.40 | | | hit |
+| `critical-hurt` | 44 | 0.73 | | | hit critically |
+| `stumble` | 46 | 0.77 | | step 8 | stumbling |
+| `death` | 60 | 1.00 | | fall 26, down 34 | dying; its last frame held |
+| `swing` | 46 | 0.77 | | hit 17, step 15 | one-handed (sword, axe, mace, club, hammer; the stance is the clips' own) |
+| `thrust` | 40 | 0.67 | | hit 14, step 13 | one-handed thrust (spear, trident, rapier) |
+| `stab` | 30 | 0.50 | | hit 9, step 8 | dagger |
+| `strike` | 48 | 0.80 | | hit 18, step 16 | staff or wand, from `hold-staff` |
+| `punch` | 32 | 0.53 | | hit 9, step 8 | unarmed (the Half-Beast's claws too), from `hold-unarmed` |
+| `swing-off-hand` | 40 | 0.67 | | hit 13, step 12 | a second weapon in the left hand |
+| `swing-two-handed` | 48 | 0.80 | | hit 17, step 15 | two-handed (greatsword, great axe, spear), from `hold-two-handed` |
+| `bow` | 70 | 1.17 | | shoot 36 | bow, from `hold-bow` (the string held to frame 34) |
+| `crossbow` | 58 | 0.97 | | shoot 26 | crossbow, from `hold-crossbow` |
+| `cast` | 54 | 0.90 | | cast 24 | casting a spell |
+| `skill` | 50 | 0.83 | | skill 17 | a class skill |
+| `item` | 46 | 0.77 | | use 23 | using an item |
+| `drink` | 76 | 1.27 | | drink 32 | drinking a potion |
+| `meditate` | 86 | 1.43 | | restore 42 | meditating (a kneel on the right knee) |
+| `guard` | 14 | 0.23 | | guard 9 | entering guard, then `guard-hold` |
+| `guard-hold` | 120 | 2.00 | yes | | guard held (the shield fully before the body) |
+| `evade` | 30 | 0.50 | | leap 6, land 15, evade 19 | entering evade (the battle moves the figure 0.85 m back between `leap` and `land`), then `evade-hold` |
+| `evade-hold` | 96 | 1.60 | yes | | evade held |
+| `victory` | 68 | 1.13 | | cheer 14, land 22 | victory |
+| `hold-two-handed` | 120 | 2.00 | yes | | the two-handed stance, the arms alone (GM2-P21) |
+| `hold-staff` | 120 | 2.00 | yes | | the staff's or wand's stance, the arms alone |
+| `hold-unarmed` | 120 | 2.00 | yes | | the unarmed stance, the arms alone |
+| `hold-bow` | 120 | 2.00 | yes | | the bow's stance, the arms alone |
+| `hold-crossbow` | 120 | 2.00 | yes | | the crossbow's stance, the arms alone |
+
+Every whole-body clip turns the trunk, the head, both legs and both arms and moves the hips (19 to 23 bones); the five
+stance loops turn the 12 bones of the arms (shoulders, upper arms, forearms, hands, fingers, thumbs) and move nothing. 23
+clips have a key at every frame and are linear (the manager's choice, "Decisions"), the 11 sparse ones Bézier.
+
+**Held to the hand-over's list and the keying's rules** (`Tests/Statventure.Tests/Humanoid/HumanoidClipTests.cs`; the list
+as a table, `HumanoidClipList`, so a clip added, dropped or renamed, or one whose length, loop, bones or markers move,
+fails until the list changes with it): the library holds the list's clips and no others, as the folder does, each its
+length, its markers as events at their frames, its bones turned, no scale, a location on the hips alone (none in a stance
+loop), each file's own length, loop and markers the list's; a loop's last key is its first, in its file (as library.py
+checks) and in the library (every channel's sample at its end its start's: the angle computed in double with an atan2, as
+an arccosine of float32 keys reads 0.02° where nothing differs); the stance loops turn the 12 arm bones alone and every
+other clip the whole body; `guard` ends where `guard-hold` begins and `evade` where `evade-hold` does (measured 0.097° and
+0.369°, the left upper arm, the hips to the micrometre; **bounds 0.4° and 0.1 mm**); a stance laid over the idle turns the
+arms as the stance does and leaves the rest to the idle, on both bodies (below, "The figure mode").
+
+**The ground** (`TheManStaysOnTheGround`; the manager, 2026-11-18): the ground is where a body's soles are at rest, its
+lowest point there, **24.0 mm under the plane of its origin on both bodies**: the bare feet stand on the origin's plane
+(the skin's lowest +0.5 mm) and the boots' soles reach 24 mm under it (`outfit.boots` displaces the sole to −14 mm, then
+its 7 + 3 mm shell). So a figure must be placed with its soles on the ground, not its origin (GM2-P22, "the figure's
+ground"). On the man, skinned on the CPU as `skin.comp` skins, at every frame of every whole-body clip: **at most 2.21 mm
+under the ground** (meditate's kneeling knee at frame 22), 2.00–2.01 mm in the clips whose feet the re-bake raised, the
+rest under 1.6 mm; death's last frame 1.92 mm under it (heels, thighs, fist and head on it). **Bounds: 3 mm under; death's
+end from 3 mm under to 5 mm over** (the manager's). Measured first on the hand-over's first set (its numbers sent to the
+manager, who re-keyed): meditate's boot toe 68.8 mm under (the knee hanging 16 cm over the ground), victory 25.3, the
+attacks' and advance's front toe 9 to 11, death's fallen body 66 mm over the ground. **The woman** (no bound, her legs
+shorter and a clip's hips' place not scaled yet, GM2-P22): her standing frames about 4.0 mm under her soles' rest level
+(idle 4.02), the attacks 6 to 8 mm (swing-two-handed 7.81, thrust 7.71, swing-off-hand 7.59, swing 7.18), stumble 8.14,
+meditate 18.14 and **death's fallen body 24.11 mm under at its end** (the thigh): what GM2-P22 must scale.
+
+**Held to Blender on both bodies** (`AnimationScenes`: `humanoid-<clip>-male` and `-female`, 68 scenes, the library played
+by bone names on each body as `rest-sway` is; `make-blender-references.sh` evaluates them, about 5 minutes, 26 MB of
+`Golden/anim-humanoid-*.json`): at times lighter than `TimesFor`'s (every other frame and the last, each marker's frame,
+the middle of every other frame, one before and one after: 4,962 in all; `EveryClipIsHeldToBlenderOnBothBodiesAtItsMarkers`
+holds that every marker's frame is among them and that Blender's reference is at those very times). **On frames within
+0.0048 mm** (limit 0.02), **between frames at most 0.98 of Animation.md's allowance** (death's left upper arm at frame 3.5,
+Bézier; the 23 linear clips at most 0.08, 0.002 mm). The markers are Blender's pose markers (`ClipEventsAreTheActionsMarkers`). **The
+in-betweens** (found here, the manager's choice): on the first set, keyed at every frame with Bézier keys, 44 of the 68
+scenes were over the allowance by 1.01 to 2.42 times (strike 2.42, crossbow 2.26, bow 1.86, swing-two-handed 1.84 …; the
+largest error 42 mm at swing's right elbow mid-frame within an allowance of 77): Blender's auto-clamped handles flatten
+each quaternion component at its turning points, so its curve bends inside a frame, where the engine draws the exported
+frame samples straight. The game only sees the frame samples; written linear, Blender's in-betweens are the engine's and
+the rule holds unchanged.
+
+**Posed figures against Blender** (`HumanoidReferenceTests`, six scenes beside step 4a's 14, written into
+`Reference/humanoid-scenes.json` by the figure mode, the clip played twice in turn so its last frame is a meeting, not the
+cycle's start; rendered by `make-blender-references.sh`): the man geared (chain shirt, sword, shield) in guard-hold (frame
+60, three-quarter), at death's last frame (from the side, 720 × 400) and in evade's leap (frame 11, the side), in the chain
+shirt with empty hands (their weapons are GM3's) in swing-two-handed with the arms overhead (frame 12, three-quarter) and
+in bow at full draw (frame 34, the side, 480 × 480); the woman geared in `stand` (1 s, three-quarter). All under
+`ReferenceLimits.DetailedFigure` as main has it after the ink's engine task (the user's Q58 and Q60: M6's with inside one
+in 4,200, edge one in 1,100 and unlike 8.3 %), on both drivers (GPU / lavapipe; measured 2026-11-19 on `01d256d`):
+
+| Sample | Inside | Edge | Edges' mean | Missed | Extra | Unlike | Coverage |
+|---|---|---|---|---|---|---|---|
+| man, swing-two-handed overhead | 4 / 10 | 118 / 111 | 2.8 | 0.08 % | 0.91 / 0.96 % | 1.30 / 1.32 % | 0.080 |
+| man, bow at full draw | 9 / 8 | 93 / 87 | 2.5 / 2.6 | 0.05 % | 0.83 / 0.87 % | 1.68 % | 0.081 |
+| man, guard-hold | 20 / 20 | 137 / 136 | 2.7 | 0.02 % | 0.44 / 0.46 % | 1.44 % | 0.080 |
+| man, death's last frame | 13 / 14 | 108 / 97 | 2.9 | 0.14 % | 0.35 / 0.36 % | 7.06 / 7.08 % | 0.096 |
+| man, evade's leap | 3 / 2 | 76 / 80 | 2.6 | 0.08 % | 0.33 / 0.34 % | 2.45 % | 0.081 |
+| woman, stand | 18 / 24 | 77 / 75 | 2.5 / 2.6 | 0.21 % | 0.20 / 0.21 % | 4.44 / 4.49 % | 0.084 |
+| limit (`DetailedFigure`; at 172,800 px) | 1 in 4,200 (41) | 1 in 1,100 (157) | 4 | 2 % | 3 % | 8.3 % | 0.12 |
+
+(Before the ink task, on `c043ad3` under Q55's limits, the same shading and inside numbers, the ink farther: death's last
+frame's unlike ink 11.1 % and coverage 0.120, the others' unlike at most 6.4 %.) The nearest to its limit is death's
+unlike ink (7.06 % of 8.3 %).
+
+**Owed (GM2-P24):** the geared man and woman at the swing's hit (frame 17, three-quarter, 360 × 480) pass every measure
+but the edge pixels' (the man 178 on the GPU and 179 on lavapipe, the woman 160 and 155; the limit 157; measured again
+after the ink task, the same: the shading's, its ink now well inside, unlike 2.1–2.3 %), about 80 of them in one place,
+the chain shirt's skirt at its front in the lunge, where the edge between its lit and shadowed band runs a few pixels
+apart; suspected, not proven: `normals.comp` recomputes a posed mesh's normals per primitive where Blender's evaluated
+mesh averages across the object, and the fold lies at the mail's seams. Left out of the tests and references; their
+scenes, Blender's references, the engine's renders on both drivers (before and after the ink task), the difference
+pictures, the measures and the steps to add them back are in `claude-work/gm2/step4b/pending-samples/` for GM2-P24's task.
+
+**The figures' small state machine** ("GM5 builds the battle's state machine, GM2 a small one for its figures"; Q57):
+`models/humanoid/machines/figure` in `models.pak`, from its JSON form `Assets/Models/humanoid/machines/figure.json`
+(Docs/Assets.md's `animation.state-machine`, the serializer's own form): named `figure`, no parameters, one layer `base`
+(Replace) entering `stand`, its one state `stand` looping the clip `stand` at speed 1, no transitions. Step 11's live
+figures (the sheet, the maker, the carousel, Q31, Q41) play it: `StateMachineDefinition.Load(data,
+"models/humanoid/machines/figure")`, an `AnimationStack` on the body's skeleton, `new StateMachine(definition, stack, name
+=> new ClipBinding(clip of models/humanoid/clips by name, skeleton))`, an `Animator(stack, machine)`. `HumanoidMachineTests`:
+it loads from `models.pak` mounted as the game mounts its packs (M7's rules), its content, its file the record's own JSON
+form, every clip it names in the library, and on both bodies an animator with it poses the body as `stand` at the time
+round its 4 s, past the first round, the clock in uneven steps. The family's machines live in `machines/` beside the
+models (`HumanoidModelTests` names every file of the folder: a manifest model or a machine).
+
+**The figure mode** (GM2-P14; `Samples/Statventure.Sandbox/Figure/`): **`--play <clip>[+<clip>][:times],…`** (`FigurePlay`,
+`FigureSpec.Play`): the clips to play in turn instead of the library's every clip once, each turn its clip `times` in a
+row (one strip of that many repeats, its time round the clip as Blender's strip counts it, its very end the clip's end), a
+`+<clip>` laid over it on a layer above for the turn's length (Replace, `Extrapolation.Nothing` outside it), named
+`<clip>+<clip>` in the caption and the dump's index; a name the library hasn't is refused. **`--label`**: a dump's frames
+name the clip, its time and the view in the caption (`FigureSandbox.Label`; without it a dump stays the view's picture
+alone). **A stance over the idle needs no engine code:** a stance loop keys the arms alone, so the layer above changes the
+arms and leaves the rest to the idle (Blender's blend domain); held bone by bone to the two clips on both bodies
+(`AStanceLaidOverTheIdleTurnsTheArmsAlone`); laying one over clips by a bone mask is GM5's (GM2-P21). Tests in
+`FigureModeTests`: the play list's turns, repeats and laid-over clip on the sample against the stack, the view playing
+it, the command line, the label's dump (the caption's box alone differs from the plain dump, its words there) and a play
+list's dump index.
+
+**The playing view** (the user's, GM2-P14; `claude-work/gm2/step4b/playing/`, its `LIST.md` says what is where): the man
+and the woman in the chain shirt with the sword and the shield playing the one-handed set in turn (31 s), in the chain
+shirt with empty hands each stance over the idle then its attack, with stab, swing-off-hand, item and drink (26.6 s), and
+`stand` in the plain outfit (8 s); each from the battle's side and from three-quarter, 1200 × 800, 30 fps, labelled:
+`playing.mp4` (`play-figure.sh --dump`, headless, a cage of its own). **Approved by the user on 2026-11-19 ("Yes, it plays
+right"), the last approval stop of step 4.** In a window: `Tools/Scripts/play-figure.sh
+Assets/Models/humanoid/bodies/human-male-average.glb --clips Assets/Models/humanoid/clips.glb --look ember-hearth --garment
+<face> --garment <hair> --garment <chain shirt> --item Assets/Models/humanoid/gear/sword.glb@socket.hand.R --item
+Assets/Models/humanoid/gear/shield.glb@socket.shield.L --play '<list>' --view side --size 1200x800` (the full command in
+`LIST.md`). **Its cost** (a scratch probe, the figure mode's view of the geared man playing `swing` from the side, medians
+of 200 frames, the machine shared with other workers): 36,258 vertices, 57,546 triangles, 23 primitives (draw items), 17
+material slots, 30 joints (23 deforming, 7 sockets) in 6 models; posing 0.10–0.35 ms of CPU a frame; `View3D.Update`
+(render, submit, wait) **0.40 ms at 600 × 800 and 0.48 ms at 1200 × 800 on the GPU**, **29.7 and 45.3 ms on lavapipe**.
+
+**Shown able to fail** (`mutate.py` under the shared lock in a headless cage; `claude-work/gm2/step4b/mutations.json`, made by
+`make-mutations.py` beside it): **54 mutations, 54 killed.** The library swapped for a broken one (each keyed by
+library.py from the clip files with one rule broken, `make-breaks.py`: a loop's end not its start, a marker a frame late,
+a clip a frame longer, one dropped, one added, a stance loop moving the hips or turning the chest, a whole-body clip
+leaving a foot alone, guard's end 1° and evade's 1 mm from their holds, advance's feet 8 mm into the ground, death's body
+8 mm over it): 12; the list (a clip renamed, dropped, a frame longer, a marker late, a loop not looping, its bones): 6;
+the clip files (a loop's last key, a marker, the length, the loop flag): 4; the scenes Blender evaluates (no time at the
+markers' frames, the man's body twice): 2; the state machine (`models.pak` built with it holding, playing the idle, at
+1.5 times; its file not looping): 4; the manifest without the library: 1; the posed samples with the clip once: 1; the
+figure mode's play list, layers, names, command line, caption and index: 24. Nothing written to the player's real folders.
+
+**What moved beside.** `HumanoidFiles.Names()` holds `clips` (`Figures()` leaves it out); `HumanoidPackTests` expects the
+library and the machine in `models.pak` (the test clip still out); the editor's cutscene preview offers the game's clip
+library in every clips role, so `CutscenePreviewTests` names it (`GameLibraries`), as step 4a's figures are named in the
+model roles; the editor's fixture `preview-cutscene` lists it among its role's options (`Reference/editor-fixtures.json`),
+its Chromium goldens captured again the same bytes (a closed select shows its chosen option only); the editor's entry
+list is unchanged (`models/humanoid` stays folded).
+
+**Runs** (headless, scratch per-user folders, nothing audible): the full suite on the GPU and on lavapipe on `main`'s
+`1768286` (the round borders, the ink's task, step 8 and a docs-only plan merge), **4645 + 948 = 5593 tests** (`main`:
+4472 + 948 = 5420; 173 new, all the engine's), none held; before, the same on `c043ad3` (4598 + 796, both drivers), on
+`01d256d` (4645 + 796, the GPU) and on `5857ff2` (4645 + 948, the GPU); `make-humanoid.sh check` 19 of 19 the same bytes,
+twice; `models.pak` the same bytes three times (before and after the rebases); `make-blender-references.sh --out` with
+`compare_references.py`: **240 of 240 byte-equal** (the 68 clip evaluations and the six posed scenes among them); the six
+posed samples measured again on both drivers on `01d256d` (the table above; nothing of the engine, the models or the
+references moved after it).
+
+**Choices made (internal, recorded here):** the library's manifest name `clips` and the machine's place
+`models/humanoid/machines/figure`, named `figure`, its layer `base`; the clip list as a C# table in the tests; "the whole
+body" as the trunk, the head, both legs and both arms' upper arms and forearms with the hips moved (every clip keys
+more); the ground the soles' rest level (the manager's); the lighter time set for 68 scenes; the posed samples' views,
+sizes and frames, the empty hands for the clips whose weapons are GM3's, the clip played twice in a sample so its last
+frame is a meeting; `--play`'s syntax (`:` for the times, `+` for the clip laid over) and `--label`; the playing view at
+1200 × 800 so a lying body stays in the frame, each weapon's stance shown over the idle before its attack.
+
+**For later steps.** *Step 11:* the machine above with the library `models/humanoid/clips`; a figure placed by its soles
+(GM2-P22: until that task, the soles are 24 mm under a figure's origin). *GM2-P22's task:* the woman's numbers above (her
+fallen body 24 mm under); then Q59's check on the hobbit's and the Goliath's bodies in step 9. *GM2-P24's task:* the two
+owed samples. *GM5:* the stance loops' mask (GM2-P21), `evade`'s move between `leap` and `land`, the battle's machine
+beside `figure` in `machines/`. *GM3:* the bow's string and arrow; the weapons the clips were shown with.
+
 ## Status
 
 - **2026-11-15:** written on the user's go for GM2 (docs only, the branch `gm2-design` from `8c7d07d`), after the user's
@@ -3626,3 +3943,15 @@ fixtures' widths for the compositor's pointer, their rows opened by the keyboard
   approved picture at 1.65): fixed first on `gm2-round-borders`, the manager's word of 2026-11-18, now 160; the root
   scrollbar's thumb is about 15 px shorter in the engine than in Chromium (both engine findings in `Docs/Game-Plan.md`,
   "Engine items the port will meet"; the thumb listed, not fixed).
+- **2026-11-19, step 4b done** (a worker, the branch `gm2-step4b`; "How it works", step 4b): the first humanoid's 34
+  approved clips in the repo as data and as the family's library in `models.pak`, held to the hand-over's list, to the
+  rules they were keyed by, to the ground and to Blender on both bodies; six posed figures under `DetailedFigure` on both
+  drivers, two more owed to GM2-P24's task; the figures' small state machine (`stand` looped); the figure mode's play list
+  and label; the playing view for the user. The step's measuring sent the first set back once (the boots' toes up to 69 mm
+  under the ground, the fallen body 66 mm over it; the clips keyed at every frame bending between frames in Blender), the
+  manager re-keyed, and the user approved `death` and `meditate` again, then the playing view ("Yes, it plays right",
+  2026-11-19): every approval stop of step 4 passed. Recorded: the user's Q56, Q57, Q59, the manager's GM2-P21–GM2-P24.
+  Found: a body's soles are 24 mm under its origin (GM2-P22's "figure's ground"); the woman's fallen body 24 mm under her
+  soles' level until the hips' place is scaled. The six posed samples measured again after the ink's task, inside Q60's
+  limits (the nearest death's unlike ink, 7.06 % of 8.3 %). 4645 + 948 = 5593 tests on the GPU and on lavapipe (`main`
+  `1768286`: 4472 + 948 = 5420; 173 new); mutations 54 of 54 killed.

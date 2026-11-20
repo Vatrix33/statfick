@@ -687,6 +687,15 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   views seam and a `SurfaceViews` with the painter's `SurfaceTexture` (`claude-work/gm2/step8/capture/`); the old game's
   picker in any state through its test client (`claude-work/gm2/step8/old-picker/`). This session's sandbox refuses a
   shell heredoc with quotes and `cd` with `git` in one command: write the script to a file and run it.
+- 2026-11-18 (the PC, GM2 step 4b's worker on the branch `gm2-step4b`): **the first humanoid's clip library**
+  (`Docs/Game/Hero.md`, "How it works", step 4b). Gotchas: a clip keyed at every frame with Bézier keys fails
+  Animation.md's between-frames rule (Blender's auto-clamped handles bend each quaternion component inside a frame; the
+  game only sees the frame samples): key such clips linear; the humanoid bodies' boots' soles are 24 mm under the
+  origin's plane, so "the ground" for a clip is the soles' rest level; an angle between float32 quaternions by an
+  arccosine of their dot reads about 0.02° where nothing differs (use an atan2 in double); the figure mode wraps the
+  cycle's end to its start, so a single clip's last frame needs the clip twice in turn; a static property initializer
+  that reads a static field declared below it sees null; filtered runs of the figure mode's window tests open (hidden)
+  windows: run them inside the headless cage as full runs are (`claude-work/gm2/step4b/filtered-headless.sh`).
 
 ## Asking about design choices (user rule)
 

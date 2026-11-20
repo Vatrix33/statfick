@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 # Plays a figure in a look in the sandbox's figure mode (GM2-P14; Docs/Game/Hero.md, "How it works", step 3a): the
 # engine's own view of the figure playing its clips in turn, the playing view an approval shows.
-#   Tools/Scripts/play-figure.sh <body.glb> [--clips <glb>] [--look <name or file>] [--garment <glb>]...
-#       [--item <glb>@<socket>]... [--view front|three-quarter|side|back|close-up|<degrees>] [--size WxH]
-#       [--elevation degrees] [--margin fraction] [--extent metres] [--focus <bone>] [--perspective degrees]
-#       [--dump <folder> [--fps N] [--times t,...] [--scene-file <file>]]
+#   Tools/Scripts/play-figure.sh <body.glb> [--clips <glb>] [--play <clip>[+<clip>][:times],...] [--look <name or file>]
+#       [--garment <glb>]... [--item <glb>@<socket>]... [--view front|three-quarter|side|back|close-up|<degrees>]
+#       [--size WxH] [--elevation degrees] [--margin fraction] [--extent metres] [--focus <bone>] [--perspective degrees]
+#       [--dump <folder> [--fps N] [--times t,...] [--scene-file <file>] [--label]]
 # In a window of --size (600x800 by default; keys: Space play/pause, Right/Left a frame, Down/Up the next/previous
-# clip, A/D turn 15°, 1-5 the views, F11 full screen, Escape quits), no sound. --dump writes the frames instead
+# clip, A/D turn 15°, 1-5 the views, F11 full screen, Escape quits), no sound. --play (GM2 step 4b) plays the named
+# clips in turn instead of every clip of the library once: "idle:2,swing:3" plays the idle twice then the swing three
+# times; "idle+hold-bow" lays the second clip over the first (a layer above that replaces only what it keys, as the
+# stance loops of the arms over the idle). --label names the clip on a dump's frames. --dump writes the frames instead
 # (frame-NNNN.png at --size and frames.txt; one cycle of every clip at --fps, 30 by default, or the --times given) and,
 # when ffmpeg is installed, the video <folder>/playing.mp4 from them (H.264); on a machine with cage (the PC) a dump
 # runs inside a headless cage of its own with an output of --size (no window on the user's screen) and a scratch

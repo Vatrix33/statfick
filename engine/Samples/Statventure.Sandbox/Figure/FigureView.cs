@@ -23,6 +23,8 @@ public sealed record FigureSpec
     public IReadOnlyList<(string Model, string Socket)> Items { get; init; } = [];
     /// <summary>A clip library (.glb) played by bone names; null: the body's own clips.</summary>
     public string? Clips { get; init; }
+    /// <summary>The clips to play in turn, by name (--play); null: every clip of the library once, in its order.</summary>
+    public IReadOnlyList<FigurePlay>? Play { get; init; }
     public required FigureLook Look { get; init; }
     /// <summary>front, three-quarter, side, back, close-up, or a turn in degrees.</summary>
     public string View { get; init; } = "three-quarter";
@@ -146,54 +148,145 @@ public static class FigureFraming
     }
 }
 
-/// <summary>Clips in turn on one clock (an NLA layer of strips end to end, played round): which clip acts at a time and when, as the stack's layer picks it.</summary>
+/// <summary>
+/// One turn of the figure mode's play list (--play, GM2 step 4b): a clip played <see cref="Times"/> times in a row, and
+/// optionally another clip laid over it (<see cref="Over"/>: a layer above that replaces only the channels its clip keys,
+/// Blender's NLA rule; a stance loop of the arms over the idle, GM2-P21), looping on its own time for as long.
+/// </summary>
+public sealed record FigurePlay(string Clip, int Times = 1, string? Over = null)
+{
+    /// <summary>
+    /// A play list as the command line gives it: turns split by commas, each <c>clip[+over][:times]</c> ("idle:2",
+    /// "idle+hold-bow", "swing:3"); an <see cref="ArgumentException"/> names what is wrong.
+    /// </summary>
+    public static IReadOnlyList<FigurePlay> Parse(string text)
+    {
+        var list = new List<FigurePlay>();
+        foreach (var turn in text.Split(','))
+        {
+            var (name, times) = (turn, 1);
+            if (turn.LastIndexOf(':') is var colon and >= 0)
+            {
+                name = turn[..colon];
+                if (!int.TryParse(turn[(colon + 1)..], System.Globalization.NumberStyles.None, CultureInfo.InvariantCulture, out times) || times < 1)
+                    throw new ArgumentException($"--play {turn}: the times after ':' must be a whole number from 1");
+            }
+            var parts = name.Split('+');
+            if (parts.Length > 2 || parts.Any(p => p.Length == 0))
+                throw new ArgumentException($"--play {turn}: <clip>[+<clip over it>][:times]");
+            list.Add(new FigurePlay(parts[0], times, parts.Length == 2 ? parts[1] : null));
+        }
+        return list;
+    }
+}
+
+/// <summary>
+/// Clips in turn on one clock (an NLA layer of strips end to end, played round, and a layer above for the clips laid
+/// over them): which clip acts at a time and when, as the stack's layer picks it.
+/// </summary>
 public sealed class FigureClips
 {
-    public FigureClips(IReadOnlyList<AnimationClip> clips)
+    /// <summary>Every clip once, in its order.</summary>
+    public FigureClips(IReadOnlyList<AnimationClip> clips) : this(clips.Select(c => (c, 1, (AnimationClip?)null)).ToList())
     {
-        Clips = clips;
+    }
+
+    /// <summary>A play list over a library's clips (null: every clip once, in the library's order); a name the library hasn't is refused.</summary>
+    public FigureClips(IReadOnlyList<AnimationClip> library, IReadOnlyList<FigurePlay>? play, string where) : this(play is null
+        ? library.Select(c => (c, 1, (AnimationClip?)null)).ToList()
+        : play.Select(p => (Find(library, p.Clip, where), p.Times, p.Over is { } over ? Find(library, over, where) : null)).ToList())
+    {
+    }
+
+    FigureClips(List<(AnimationClip Clip, int Times, AnimationClip? Over)> turns)
+    {
+        Clips = turns.Select(t => t.Clip).ToArray();
+        Repeats = turns.Select(t => t.Times).ToArray();
+        Overs = turns.Select(t => t.Over).ToArray();
         var start = 0.0;
-        Starts = clips.Select(c =>
+        Starts = turns.Select((t, i) =>
         {
             var at = start;
-            start += Length(c);
+            start += TurnLength(i);
             return at;
         }).ToArray();
         Cycle = start;
     }
 
+    static AnimationClip Find(IReadOnlyList<AnimationClip> library, string name, string where) =>
+        library.FirstOrDefault(c => c.Name == name) ?? throw new ArgumentException($"no clip {name} in {where}");
+
+    /// <summary>Each turn's clip.</summary>
     public IReadOnlyList<AnimationClip> Clips { get; }
-    /// <summary>Each clip's start on the cycle.</summary>
+    /// <summary>How many times each turn plays its clip in a row.</summary>
+    public IReadOnlyList<int> Repeats { get; }
+    /// <summary>The clip laid over each turn's, or null.</summary>
+    public IReadOnlyList<AnimationClip?> Overs { get; }
+    /// <summary>Each turn's start on the cycle.</summary>
     public IReadOnlyList<double> Starts { get; }
-    /// <summary>All the clips once, in seconds (0 without clips).</summary>
+    /// <summary>All the turns once, in seconds (0 without clips).</summary>
     public double Cycle { get; }
 
     /// <summary>A clip's length on the cycle: its duration, a still clip a frame.</summary>
     public static double Length(AnimationClip clip) => Math.Max(clip.Duration, 1.0 / 60);
 
+    /// <summary>A turn's length: its clip's times its repeats.</summary>
+    public double TurnLength(int turn) => Length(Clips[turn]) * Repeats[turn];
+
     /// <summary>A playing time on the cycle (played round, before 0 too).</summary>
     public double Wrap(double time) => Cycle <= 0 ? 0 : time - Math.Floor(time / Cycle) * Cycle;
 
-    /// <summary>The clip acting at a playing time and its time in it: a clip from its start to its end, ends included (the stack's rule: at a meeting the earlier at its end).</summary>
+    /// <summary>
+    /// The turn acting at a playing time and its clip's time: a turn from its start to its end, ends included (the stack's
+    /// rule: at a meeting the earlier at its end), its clip's time as the strip's (AnimationStrip.ClipTimeAt: the time
+    /// round the clip, its end at the turn's very end).
+    /// </summary>
     public (int Clip, double Time) At(double time)
     {
         if (Clips.Count == 0)
             return (-1, 0);
         var t = Wrap(time);
         for (var i = 0; i < Clips.Count; i++)
-            if (t <= Starts[i] + Length(Clips[i]) + AnimationStrip.Epsilon)
-                return (i, Math.Min(t - Starts[i], Clips[i].Duration));
+            if (t <= Starts[i] + TurnLength(i) + AnimationStrip.Epsilon)
+            {
+                var into = t - Starts[i];
+                if (Math.Abs(into - TurnLength(i)) <= AnimationStrip.Epsilon)
+                    return (i, Clips[i].Duration);
+                var round = into % Length(Clips[i]);
+                return (i, Math.Min(Length(Clips[i]) - round <= AnimationStrip.Epsilon ? 0 : round, Clips[i].Duration));
+            }
         return (Clips.Count - 1, Clips[^1].Duration);
     }
 
-    /// <summary>The layer that plays them so on a skeleton.</summary>
+    /// <summary>The layer that plays the turns' clips so on a skeleton.</summary>
     public AnimationLayer Layer(Skeleton skeleton)
     {
         var layer = new AnimationLayer();
         for (var i = 0; i < Clips.Count; i++)
-            layer.Strips.Add(new AnimationStrip(new ClipBinding(Clips[i], skeleton)) { Start = Starts[i] });
+            layer.Strips.Add(new AnimationStrip(new ClipBinding(Clips[i], skeleton)) { Start = Starts[i], Repeat = Repeats[i] });
         return layer;
     }
+
+    /// <summary>
+    /// The layer above that plays the clips laid over the turns (null: none is): each over its turn, from its start, round
+    /// for the turn's length, and nothing outside it (so the turns without one show their own clip whole).
+    /// </summary>
+    public AnimationLayer? OverLayer(Skeleton skeleton)
+    {
+        if (Overs.All(o => o is null))
+            return null;
+        var layer = new AnimationLayer();
+        for (var i = 0; i < Clips.Count; i++)
+            if (Overs[i] is { } over)
+                layer.Strips.Add(new AnimationStrip(new ClipBinding(over, skeleton))
+                {
+                    Start = Starts[i], Repeat = TurnLength(i) / Length(over), Extrapolation = Extrapolation.Nothing,
+                });
+        return layer;
+    }
+
+    /// <summary>A turn's name: its clip's, with the one laid over it after a "+" (as --play names it).</summary>
+    public string NameOf(int turn) => Overs[turn] is { } over ? $"{Clips[turn].Name}+{over.Name}" : Clips[turn].Name;
 }
 
 /// <summary>The figure in its scene: models loaded, the actor posed at a playing time, turned for the view, framed, in the look.</summary>
@@ -212,9 +305,11 @@ public sealed class FigureView : IDisposable
         Body = Load(device, spec.Body);
         var skeleton = new Skeleton(Body.Data);
         var clips = spec.Clips is { } library ? AnimationClip.AllOf(ModelData.Load(library)) : AnimationClip.AllOf(Body.Data);
-        Clips = new FigureClips(clips);
+        Clips = new FigureClips(clips, spec.Play, Path.GetFileName(spec.Clips ?? spec.Body));
         var stack = new AnimationStack(skeleton);
         stack.Layers.Add(Clips.Layer(skeleton));
+        if (Clips.OverLayer(skeleton) is { } over)
+            stack.Layers.Add(over);
         Actor = new Actor(Body, new Animator(stack)) { Palette = spec.Look.Palette };
         _restPoints.AddRange(FigureFraming.RestPoints(Body.Data, Matrix4x4.Identity));
         foreach (var path in spec.Garments)
@@ -294,7 +389,7 @@ public sealed class FigureView : IDisposable
     public string Describe()
     {
         var (clip, at) = Clips.At(_time);
-        return clip < 0 ? "at rest (no clips)" : $"{Clips.Clips[clip].Name} {at:0.000} s";
+        return clip < 0 ? "at rest (no clips)" : string.Create(CultureInfo.InvariantCulture, $"{Clips.NameOf(clip)} {at:0.000} s");
     }
 
     /// <summary>

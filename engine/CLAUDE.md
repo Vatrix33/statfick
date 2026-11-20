@@ -80,14 +80,21 @@ the user and wait for their go-ahead before starting the next one.
   front,three-quarter,side,back,close-up [...]` (a figure or a scene file in a look, drawn by the references' own
   Blender side, the ink laid over the shading as the engine lays it), `look list|write|check`, `framing`. The engine's
   playing view of a figure in a look: the sandbox's figure mode, `Tools/Scripts/play-figure.sh <body.glb> [--clips
-  <glb>] [--look <look>] [--view ...] [--size WxH] [--dump <folder>]` (keys: Space, Right/Left, Down/Up, A/D, 1-5,
-  Escape; `--dump` writes frames and, with ffmpeg, `playing.mp4`, headless in a cage of its own).
+  <glb>] [--play <clip>[+<clip>][:times],...] [--look <look>] [--view ...] [--size WxH] [--dump <folder> [--label]]`
+  (keys: Space, Right/Left, Down/Up, A/D, 1-5, Escape; `--dump` writes frames and, with ffmpeg, `playing.mp4`, headless
+  in a cage of its own; `--play` plays the named clips in turn, `idle+hold-bow` one laid over another, `--label` names
+  the clip on a dump's frames: GM2 step 4b).
   Since step 4a (`Docs/Game/Hero.md`, "How it works", step 4a) the first humanoid's models are built by the family's
   scripts (`manifest.json`: each model's builder, arguments and detail level, `levels.py`'s "full", which the game
   ships, or "battle", the geared man's in the tests' data) into `Assets/Models/humanoid/`, always with 8 Blender threads
   (QuadriFlow follows the count), every model's pieces joined per ink flag; `make-humanoid.sh clips <folder>
   <library.glb>` keys a folder of clip files (`clips/library.py` gives their form; the frame's test clip `rest-sway` is the
-  tests' data); `Tools/Scripts/make-models-pack.sh` makes `Assets/Packs/models.pak` afresh from `Assets/Models/`. The
+  tests' data); `Tools/Scripts/make-models-pack.sh` makes `Assets/Packs/models.pak` afresh from `Assets/Models/`. Since step 4b
+  (`Docs/Game/Hero.md`, "How it works", step 4b) the family's 34 approved clips are data in `Tools/Models/humanoid/clips/`
+  (the manager's, as keyed; the keying scripts come later, GM2-P23), built by the manifest's `clips` into
+  `Assets/Models/humanoid/clips.glb` (`models.pak`'s `models/humanoid/clips`), held to Blender on both bodies
+  (`AnimationScenes`' `humanoid-<clip>-male|female`); the figures' small state machine is
+  `Assets/Models/humanoid/machines/figure.json` (`models/humanoid/machines/figure`: `stand` looped, Q57). The
   figures are held to Blender's under `ReferenceLimits.DetailedFigure` (the user's Q55, tightened by Q58 and Q60 after
   GM2's ink task: each sample's sheet, a covered edge hidden as Freestyle hides it and the meshes' silhouettes,
   `Docs/Renderer-3D.md`, "Feature edges, how they're drawn"; a limit stays widened only where a scene measures past M6's,

@@ -33,11 +33,14 @@ public class HumanoidPackTests
             "Assets/Packs/models.pak isn't what the packer makes of Assets/Models: run Tools/Scripts/make-models-pack.sh");
         using var pack = PackFile.Open(ModelsPak);
         Assert.Empty(pack.Verify());
-        Assert.Equal(HumanoidFiles.Names().Select(n => "models/humanoid/" + n).Order(StringComparer.Ordinal), pack.Entries.Select(e => e.Path));
+        Assert.Equal(HumanoidFiles.Names().Select(n => "models/humanoid/" + n).Concat(HumanoidFiles.MachineNames().Select(m => "models/humanoid/machines/" + m))
+            .Order(StringComparer.Ordinal), pack.Entries.Select(e => e.Path));
         Assert.All(pack.Entries, e => Assert.True(e.IsRecord, e.Path));
-        // No clip library yet: the test clip stays out of a pack a player gets (the manager, 2026-11-16), and the family's
-        // clips, models/humanoid/clips, come with the first real ones. Then this line says Contains.
-        Assert.DoesNotContain("models/humanoid/clips", pack.Entries.Select(e => e.Path));
+        // The family's clip library (GM2 step 4b) and the figures' state machine are in it; the frame's test clip stays out
+        // of a pack a player gets (the manager, 2026-11-16).
+        Assert.Contains("models/humanoid/clips", pack.Entries.Select(e => e.Path));
+        Assert.Contains("models/humanoid/machines/figure", pack.Entries.Select(e => e.Path));
+        Assert.DoesNotContain(pack.Entries, e => e.Path.Contains("test-clips", StringComparison.Ordinal));
         // The game ships the full level alone (GM2-P20): the battle's models are the tests' data until the battle comes.
         Assert.DoesNotContain(pack.Entries, e => e.Path.Contains("battle", StringComparison.Ordinal));
     }

@@ -48,8 +48,39 @@ public class HumanoidReferenceTests(GpuFixture gpu)
             scenes.Add(new($"humanoid-{sex}-gear", Spec(sex, "three-quarter", gear: true, 360, 480), 0.5));
             scenes.Add(new($"humanoid-{sex}-gear-side", Spec(sex, "side", gear: true, 360, 480), 1.25));
         }
+        scenes.AddRange(Posed());
         return scenes;
     }
+
+    /// <summary>
+    /// The figures posed by the family's clips (GM2 step 4b; the library models.pak holds, the clip played twice in turn so
+    /// that its last frame is a meeting, where the first is at its end, not the cycle's start again): the skin in the most
+    /// bent poses. The man in the chain shirt with the sword and the shield in guard-hold, at death's last frame (lying, so
+    /// a wider picture from the side) and in evade's leap; in the chain shirt with empty hands (their weapons are GM3's) in
+    /// swing-two-handed with the arms overhead and in bow at full draw (the string held to frame 34, loosed at 36); the
+    /// woman geared and standing relaxed (stand). The man and the woman geared at swing's hit (frame 17, three-quarter,
+    /// 360 × 480) are owed (the manager's GM2-P24, 2026-11-18): they pass every limit of DetailedFigure but the edge pixels'
+    /// (the man 178 on the GPU, 179 on lavapipe; the woman 160 on the GPU; the limit 157), on the chain shirt's skirt in the
+    /// lunge, so they are left out until GM2-P24's task (a posed mesh's normals the whole object's) adds them back
+    /// (Docs/Game/Hero.md, "How it works", step 4b).
+    /// </summary>
+    static FigureReferenceTests.FigureScene[] Posed() =>
+    [
+        PosedScene("male", "swing-two-handed-overhead", "swing-two-handed", 12, "three-quarter", 360, 480, items: false),
+        PosedScene("male", "bow-draw", "bow", 34, "side", 480, 480, items: false),
+        PosedScene("male", "guard-hold", "guard-hold", 60, "three-quarter", 360, 480),
+        PosedScene("male", "death-down", "death", 60, "side", 720, 400),
+        PosedScene("male", "evade-leap", "evade", 11, "side", 360, 480),
+        PosedScene("female", "stand", "stand", 60, "three-quarter", 360, 480),
+    ];
+
+    static FigureReferenceTests.FigureScene PosedScene(string sex, string name, string clip, int frame, string view, int width, int height, bool items = true) =>
+        new($"humanoid-{sex}-{name}", Spec(sex, view, gear: true, width, height) with
+        {
+            Items = items ? [(HumanoidFiles.Sword, "socket.hand.R"), (HumanoidFiles.Shield, "socket.shield.L")] : [],
+            Clips = HumanoidClipList.Library,
+            Play = [new FigurePlay(clip), new FigurePlay(clip)],
+        }, frame / 60.0);
 
     public static TheoryData<string> SceneNames => new(Scenes.Select(s => s.Name));
 

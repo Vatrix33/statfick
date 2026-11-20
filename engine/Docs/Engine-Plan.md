@@ -1286,6 +1286,13 @@ the design and the tests):
   the task's final rule; replaces Q58 for the extra lines and the unlike ink):** "Tighten as proposed", by the rule put to
   the user (a limit stays widened only where a scene measures past M6's, at the worst plus about a tenth): unlike ink
   8.3 % (the worst 7.56 %), extra lines back to M6's 3 % (the worst 1.82 %); in the same three places.
+  **Q56, Q57 and Q59 (2026-11-16 to 18, asked by the manager with the first humanoid's clips; recorded by step 4b):** a
+  ready stance per weapon kind (the six approved), the sheet's, maker's and carousel's figure standing relaxed, and (changing Q10 (a)) the clips checked on the
+  smallest and largest bodies in step 9 on the real bodies; with the user's manner for every clip (not stiff, not like a
+  drill: ready to fight, the whole body moving), the manager's GM2-P21 (a stance a loop of the arms, laid over by a bone
+  mask in GM5), GM2-P22 (the hips' place scaled by the legs' length, and a figure placed by its soles: "the figure's
+  ground", an engine task before step 11), GM2-P23 (the keying scripts into the repo later) and the clips' ease; in
+  `Docs/Game-Plan.md` ("GM2's detail round") and `Docs/Game/Hero.md` ("Questions from the steps", "Decisions").
 - **Decisions for GM3 (2026-11-20, asked early at the user's request, before GM3 starts):** `Docs/Game-Plan.md`, GM3,
   "Decisions for GM3": GM3-1 the item models made for close-up, GM3-2 live 3D item pictures, GM3-3 armour fitted to
   every body, GM3-5 the hintless masterworks and Exotics designed by the port for approval (all as recommended); GM3-4,
@@ -4637,6 +4644,22 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     survivor of the first runs a gap, closed), Q26's one rule 10 of 10 (on `c043ad3`), and the sheets' 17, all killed
     (on the border fix, `0eca9e5`). The manager's reading of Q26 (2026-11-19): a hero with a race but no look needs the
     flow even when the race has no looks in the data (Q26 and Q53; the old `needsAppearanceChoice` differs).
+  - **GM2 step 4b, the first humanoid's clip library in the repo (2026-11-18, a worker on the branch `gm2-step4b`;
+    `Docs/Game/Hero.md`, "How it works", step 4b):** the 34 clips the manager keyed and the user approved, as data in
+    `Tools/Models/humanoid/clips/` (byte for byte the hand-over's), built by the manifest's `clips` into
+    `Assets/Models/humanoid/clips.glb` and `models.pak` (`models/humanoid/clips`); held to the hand-over's list (a table in
+    the tests), a loop's end its start, the stance loops the arms alone, guard and evade ending where their holds begin
+    (within 0.4°), the man's lowest point at most 3 mm under the ground (the soles' rest level, found 24 mm under the
+    origin: GM2-P22 becomes "the figure's ground"), and Blender's evaluation of every clip on both bodies (68 scenes, on
+    frames within 0.005 mm); the first set's ground and in-betweens sent back and re-keyed by the manager (a foot raised by
+    its boot's dip, a real kneel, death lying on the ground, clips keyed at every frame linear), death and meditate
+    approved again. Six posed figures under `DetailedFigure` (Q60's, after the ink's task) on both drivers; two (the
+    swing's hit) owed to GM2-P24's task (a posed mesh's normals the whole object's). The figures' small state machine
+    `models/humanoid/machines/figure` (`stand` looped, Q57). The figure mode's `--play` (clips in turn, repeated, one laid
+    over another: a stance over the idle needs no engine code) and `--label`; the playing view (12 videos), approved by the
+    user on 2026-11-19 ("Yes, it plays right"). Decisions recorded: the user's Q56, Q57, Q59, the manager's
+    GM2-P21–GM2-P24. 4645 + 948 = 5593 tests (`main` `1768286`: 4472 + 948 = 5420; 173 new, the engine's); mutations 54
+    of 54 killed.
 
 ## Milestones
 

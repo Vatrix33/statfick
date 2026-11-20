@@ -18,10 +18,11 @@
 // --log-visibility logs the document's visibility, page and focus events and a 250 ms timer's
 // firings (to see minimizing, restoring and closing the window: Docs/Scripting.md, "Hidden documents").
 // --figure <body.glb> plays a figure in a look (GM2-P14, GM2 step 3a; Figure/FigureSandbox.cs; Tools/Scripts/
-// play-figure.sh): [--clips <glb>] [--look <name or file>] [--garment <glb>]... [--item <glb>@<socket>]...
-// [--view front|three-quarter|side|back|close-up|<degrees>] [--size WxH] [--elevation degrees] [--margin fraction]
-// [--extent metres] [--focus <bone>] [--perspective degrees] [--dump <folder> [--fps N] [--times t,...]
-// [--scene-file <file>]]; a look by name is Data/Looks/<name>.json beside the sandbox (today's by default).
+// play-figure.sh): [--clips <glb>] [--play <clip>[+<clip>][:times],...] [--look <name or file>] [--garment <glb>]...
+// [--item <glb>@<socket>]... [--view front|three-quarter|side|back|close-up|<degrees>] [--size WxH]
+// [--elevation degrees] [--margin fraction] [--extent metres] [--focus <bone>] [--perspective degrees]
+// [--dump <folder> [--fps N] [--times t,...] [--scene-file <file>] [--label]]; a look by name is Data/Looks/<name>.json
+// beside the sandbox (today's by default); --play (GM2 step 4b) the clips in turn, --label the clip named on a dump.
 // From a script, give it a scratch per-user folder (XDG_DATA_HOME): it writes logs/ there.
 using Statventure.Sandbox.Figure;
 using Statventure.Core;

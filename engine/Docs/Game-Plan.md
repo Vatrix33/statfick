@@ -886,6 +886,15 @@ design is open.
   where a scene measures past M6's, at the worst plus about a tenth): unlike ink 8.3 % (the worst 7.56 %), extra lines
   back to M6's 3 % (the worst 1.82 %), missed lines and the coverage difference M6's (0.09 % and 0.093), the shading's
   stray pixels as before.
+- Q56, Q57 and Q59 came with the first humanoid's clips (asked by the manager with the question tool, 2026-11-16 to 18;
+  recorded by step 4b; in full in `Docs/Game/Hero.md`, "Questions from the steps", with the user's manner for every clip
+  and the clips' approvals). Q56 (2026-11-16): **a ready stance per weapon kind** ("A stance per weapon kind"); the six
+  approved on 2026-11-17 ("Yes, all six"): one-handed, two-handed, staff or wand, unarmed, bow, crossbow. Q57
+  (2026-11-16): **the sheet's, the maker's and the carousel's figure stands relaxed, at ease** ("Relaxed, at ease"); the
+  stand approved on 2026-11-17 ("Yes, as shown"). The user's manner for every clip (2026-11-17, for every later clip of any
+  rig): not stiff, not like a drill: ready to fight, the whole body moving, nothing held still. **Q59 (2026-11-18),
+  changing Q10 (a): the clips on the smallest and largest bodies are checked "In step 9, on the real bodies"** (not now
+  on rough blockouts), once the engine scales the hips' place by the legs' length (GM2-P22).
 
 ## GM3 Arms and armour: the forge, artifacts and the inventory
 
@@ -950,6 +959,11 @@ shapes in four rarity styles, 5 masterwork designs); 5 key items; the maker logo
 Blender script families: `weapon-parts`, `caster-parts`, `garments`, `shields`, `masterworks` (one script per design),
 `artifacts`, `key-items`. The Blender reference checks each part and design rendered alone and worn by a GM2 figure
 (`ReferenceLimits.M6`), and gear on sockets against Blender's evaluation (`Docs/Animation.md`, "Rendered gear").
+**A requirement from GM2's clips (the manager, 2026-11-18; `Docs/Game/Hero.md`, "Decisions"):** a real bow's string runs
+from the limbs' tips to the drawing hand's socket while the hand holds it (in the bow's stance `hold-bow` and in `bow` up
+to the marker `shoot`), straight between the tips otherwise, and an arrow lies on it until `shoot` (the user: "The bow
+string does not move"). The weapons the GM2 clips were shown with as stand-ins (a dagger, a staff, a greatsword, a bow, a
+crossbow, a flask in the left hand, a dagger as an off-hand weapon) are GM3's to make.
 
 **How it is checked.** `ForgeRules` in Node, exhaustively over what the tests name: every id format encoded and decoded,
 generation by level, tier odds, prices, names, `armCharacter`; the item rules of `app.js` (power, hit and crit chance,
@@ -1233,6 +1247,11 @@ drafts mark "(new)".
 none, unless the place gives its own, WX17), and every event's battle effects apply to every combatant (WX4), designed properly here, asked and approved (the list's are examples only, WX12); a saved
 battle keeps its weather. Control Weather's override in battle is GM7's.
 
+**A requirement from GM2's clips (the manager, 2026-11-18; `Docs/Game/Hero.md`, "Decisions"):** `evade` has no root
+motion; the battle moves the figure back between the markers `leap` and `land` (0.85 m in the pictures the user approved:
+"i want the character to fully jump back") and brings it back afterwards. With it the stance loops laid over the arms
+(GM2-P21, a bone mask: "Engine items the port will meet") and a figure placed with its soles on the ground, its clips'
+hips scaled by its legs (GM2-P22, done before GM2 step 11).
 **The art.** The battle camera (the fixed orthographic side view) and formations in 3D; the humanoid clips at work
 through a battle state machine (the lunge without root motion, hurt, death); particle effects for hits, criticals,
 misses, projectiles (arrows, bolts, thrown flasks), Guard and Evade, Meditate, fleeing, drinking, traps set and sprung,
@@ -2323,6 +2342,24 @@ and waits for the user's go, asked when its milestone reaches it:
     in both, laid out alike) the engine's thumb is about 15 px shorter than Chromium's (`maker-smallest-window-light`:
     3,854 pixels past 12 levels at 1, 0.78 %; 12,784 at 1.65, 0.95 %; all in the scrollbar's column). The step's
     smallest-window fixtures are 1000 px high meanwhile, so the page doesn't scroll.
+- Found or set by GM2 step 4b (2026-11-18; `Docs/Game/Hero.md`, "How it works", step 4b, and the manager's GM2-P21,
+  GM2-P22), for the manager:
+  - **The figure's ground (GM2-P22, widened):** a clip's hips' place is metres keyed on the human man and must be scaled by
+    a body's legs' length (a shorter body sinks, a longer one floats: the woman's standing frames sit about 4 mm under her
+    soles' rest level already); and a figure is placed with its soles on the ground, not its origin: the human bodies'
+    boots' soles reach 24.0 mm under the plane of their origin at rest (the bare feet stand on it). One engine task, before
+    GM2 step 11's live figures (then the clips are shown on the hobbit's and the Goliath's bodies in step 9, Q59).
+  - **A bone mask for the stance loops (GM2-P21):** the five `hold-*` loops key the arms alone, and the battle lays its
+    weapon kind's over the arms of whatever else plays (idle, moving, reactions, guard, evade), its own time running, and
+    not over the weapon's own attack: laying one over another clip by a bone mask is the battle's, GM5. What exists: the
+    engine's NLA layering (a Replace layer changes only the channels its clip keys) lays a stance over the idle with no
+    engine code, as GM2 step 4b's figure mode shows (`--play idle+hold-bow`, held to the two clips bone by bone).
+  - **A posed mesh's normals the whole object's (GM2-P24, the manager, 2026-11-18):** as Blender's evaluated mesh has
+    them, across its primitives (the engine's `normals.comp` recomputes them per primitive). Two posed samples of step 4b,
+    the geared man and woman at the swing's hit, pass `DetailedFigure` in every measure but the edge pixels' (178 / 179
+    and 160 / 155 on the GPU / lavapipe, the limit 157; the same after the ink's task), on the chain shirt's skirt in the
+    lunge; the cause is suspected, not proven. A task of its own right after step 4b's merge: it proves the cause, then
+    adds the two back under the user's limits (`claude-work/gm2/step4b/pending-samples/`), or comes back with numbers for the user.
 
 ### The three decision-id collisions
 
@@ -2704,3 +2741,10 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
   GM3-6's stray "red rarity" removed (red is a class rarity), `SITE_ICONS` with the Church's chapel; two questions it
   raised asked and answered: castle cities allowed in the new regions (GM4-9b, GM7 joining GP-9) and only battles in
   the open taking the weather (WX17).
+- **2026-11-18, GM2 step 4b (the first humanoid's clip library, the branch `gm2-step4b`):** the 34 clips the user approved
+  as data in `Tools/Models/humanoid/clips/`, their library in `models.pak` (`models/humanoid/clips`), held to the
+  hand-over's list, the keying's rules, the ground and Blender on both bodies, six posed figures under `DetailedFigure`
+  (two owed to GM2-P24's task); the figures' small state machine (`stand` looped, Q57); the figure mode's play list and
+  label; the playing view for the user. The user's Q56, Q57, Q59 and the manager's GM2-P21–GM2-P24 recorded ("GM2's
+  detail round"; `Docs/Game/Hero.md`); two requirements for GM3 and GM5 under their sections; three engine items
+  ("Engine items the port will meet": the figure's ground, the stance loops' mask, a posed mesh's normals).

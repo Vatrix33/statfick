@@ -815,3 +815,14 @@ Started 2026-10-30.
   or the edge's own sheet by the nearest sample too, differ only where a cover's border crosses the point's pixel; every
   primitive numbered a mesh of its own differs only where one primitive of a piece covers another's edge within half a
   pixel (a fold).
+- **Posed figures (GM2 step 4b, 2026-11-18; `Docs/Game/Hero.md`, "How it works", step 4b).** Six figures posed by the
+  game's clips join the humanoid scenes under `DetailedFigure` (Q60's, after the ink's task) and pass it on both drivers,
+  the nearest death's last frame's unlike ink (7.06 % of 8.3 %; 11.1 % before the ink's task). Two more, the geared man and
+  woman at the swing's hit (three-quarter, 360 × 480), pass every measure but the edge pixels' (the man 178 on the GPU
+  and 179 on lavapipe, the woman 160 on the GPU and 155 on lavapipe; the limit 157; the same after the ink's task, which
+  brought their ink well inside Q60's limits), about 80 of them in one place: the
+  chain shirt's skirt at its front in the lunge, where the edge between the lit and the shadowed band runs a few pixels
+  apart. **Owed by the task of GM2-P24 (the manager, 2026-11-18):** a posed mesh's normals the whole object's, across its
+  primitives, as Blender's evaluated mesh has them (`normals.comp` recomputes them per primitive; that this is the cause
+  is suspected, not proven, and the task proves it first), then the two added back under the user's limits or numbers
+  brought to the user (their scenes, references, renders and measures: `claude-work/gm2/step4b/pending-samples/`).

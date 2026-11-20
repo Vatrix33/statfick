@@ -1,0 +1,25 @@
+{
+  "$types": {
+    "animation.state-machine": 1,
+    "animation.layer": 1,
+    "animation.state": 1
+  },
+  "name": "figure",
+  "parameters": [],
+  "layers": [
+    {
+      "name": "base",
+      "mode": "replace",
+      "entry": "stand",
+      "states": [
+        {
+          "name": "stand",
+          "clip": "stand",
+          "speed": 1,
+          "loop": true
+        }
+      ],
+      "transitions": []
+    }
+  ]
+}

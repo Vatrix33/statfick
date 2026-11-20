@@ -334,6 +334,23 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   clip's length, markers as events) and exported with `ANIMATED`. The evaluation builds a model named `humanoid/<name>`
   through the family's manifest; three scenes play the frame's test clip `rest-sway` (the tests' data) on its own
   skeleton and on the two bodies. A location is applied in metres as it is, from each body's own rest.
+- **The family's clips** (GM2 step 4b; `Docs/Game/Hero.md`, "How it works", step 4b): the 34 approved clips
+  (`Tools/Models/humanoid/clips/`, their library `Assets/Models/humanoid/clips.glb`, models.pak's `models/humanoid/clips`)
+  each played on the man's and the woman's bodies, 68 scenes (`humanoid-<clip>-male|female`) at lighter times than
+  `TimesFor` (every other frame and the last, each marker's frame, the middle of every other frame, one before and one
+  after): on frames within 0.005 mm, between frames within the rule above. Learned there: **a clip keyed at every frame
+  must be keyed linear.** With Bézier keys at every frame Blender's auto-clamped handles flatten each quaternion component
+  at its turning points, so its curve bends inside a frame where the engine draws the exported samples straight; the
+  rule's allowance (from the second differences at the frames around) fell short by up to 2.42 times (44 of 68 scenes).
+  The game only ever sees the frame samples, so linear keys change nothing it shows and make Blender's in-betweens the
+  engine's (the manager's choice, 2026-11-18: every clip keyed at every frame is `"ease": "linear"`, the sparse ones
+  Bézier). **Layering over the arms:** a stance loop keys the arms alone, so a Replace layer above the idle changes the
+  arms and leaves the rest to it, Blender's blend domain, with no engine code (the figure mode's `--play idle+hold-bow`);
+  laying a stance over clips by a bone mask is GM5's (GM2-P21).
+- **The figure mode's play list** (GM2 step 4b; `Samples/Statventure.Sandbox/Figure/`): `--play <clip>[+<clip>][:times],…`
+  plays the named clips in turn, each `times` in a row (one strip with that many repeats, its time round the clip as
+  Blender's strip counts it, its very end the clip's end), a `+<clip>` laid over it on a layer above for the turn's length
+  (`Extrapolation.Nothing` outside it); `--label` names the clip, its time and the view on a dump's frames.
 - **Hand-written files** (`AnimationClipTests`): what Blender's sampled export doesn't produce and
   the formulas themselves, against values worked out by hand: STEP holding, slerp the short way and
   exactly (24° a fifth of the way through 120°, which a normalised lerp misses by 2°), CUBICSPLINE

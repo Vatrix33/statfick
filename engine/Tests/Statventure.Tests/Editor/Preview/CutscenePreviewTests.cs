@@ -29,6 +29,8 @@ public class CutscenePreviewTests(GpuFixture gpu)
     public const string CutscenePath = "world/cutscenes/jiruan", FigurePath = "models/figure", ActingPath = "models/jiruan-acting";
     /// <summary>The game's own models of the humanoid family (models.pak, GM2 step 4a), which every model role offers too, by path.</summary>
     static readonly string[] GameHumanoids = [.. Humanoid.HumanoidFiles.Names().Select(n => "models/humanoid/" + n).Order(StringComparer.Ordinal)];
+    /// <summary>The game's clip libraries (models with animations in models.pak: the humanoid family's, GM2 step 4b), which every clips role offers too.</summary>
+    static readonly string[] GameLibraries = ["models/humanoid/clips"];
 
     static ModelData Glb(string name) => ModelData.Load(System.IO.Path.Combine(Render3DReferenceTests.ModelDirectory, name + ".glb"));
 
@@ -104,7 +106,7 @@ public class CutscenePreviewTests(GpuFixture gpu)
         p.Select(CutscenePath);
         var preview = (CutscenePreview)p.Preview.Shown!;
         Assert.Equal(["(no figure)", FigurePath, .. GameHumanoids, ActingPath, StagePath], RoleSelect(p, King, "model").Options.Select(o => o.TextContent));
-        Assert.Equal(["(its own clips)", FigurePath, ActingPath, StagePath], RoleSelect(p, King, "clips").Options.Select(o => o.TextContent));
+        Assert.Equal(["(its own clips)", FigurePath, .. GameLibraries, ActingPath, StagePath], RoleSelect(p, King, "clips").Options.Select(o => o.TextContent));
         p.Editor.Choose(RoleSelect(p, King, "model"), FigurePath);
         Assert.IsType<Actor>(preview.Bound[King]);
         // Its own clips: the figure has none of the cutscene's.

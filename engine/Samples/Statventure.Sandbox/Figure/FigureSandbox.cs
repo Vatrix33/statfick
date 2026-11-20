@@ -6,7 +6,9 @@
 // side, back and close-up; F11 full screen; Escape quits. A caption at the top left names the clip and its time.
 // --dump writes frames instead and quits: one cycle of every clip in turn at --fps (30 by default), or the --times
 // given, each frame-NNNN.png with frames.txt (each frame's time, clip and clip time), and with --scene-file the
-// frames' scenes as Blender's harness renders them (Tools/Models/humanoid/render.py --scene renders that file).
+// frames' scenes as Blender's harness renders them (Tools/Models/humanoid/render.py --scene renders that file); with
+// --label (GM2 step 4b) each frame names its clip, its time and the view in the caption (otherwise a dump is the view's
+// picture alone). The clips in turn are the library's, or those --play names (FigurePlay).
 using System.Globalization;
 using Statventure.Core;
 using Statventure.Graphics;
@@ -29,6 +31,8 @@ public sealed record FigureRun
     public string? SceneFile { get; init; }
     /// <summary>The fonts' folder for the caption (null: no caption).</summary>
     public string? Fonts { get; init; }
+    /// <summary>--label: a dump's frames name the clip, its time and the view in a caption (the window's caption without the keys' line).</summary>
+    public bool Label { get; init; }
     public bool Visible { get; init; } = true;
     public string? GameFolder { get; init; }
     public string? LogName { get; init; }
@@ -76,8 +80,10 @@ public sealed class FigureSandbox(FigureSpec spec, FigureRun run) : Application(
     protected override void Load()
     {
         var fonts = new FontLibrary();
-        if (run.Fonts is { } folder && run.Dump is null)
-            fonts.AddFile(Path.Combine(folder, "Lato-Regular.ttf"), "Lato", 400);
+        // A caption in the window, and on a dump's frames only when asked (--label): a dump is otherwise the view's picture alone.
+        var captioned = run.Fonts is not null && (run.Dump is null || run.Label);
+        if (captioned)
+            fonts.AddFile(Path.Combine(run.Fonts!, "Lato-Regular.ttf"), "Lato", 400);
         _document = new UiDocument(fonts);
         _document.AddStylesheet($$"""
             html { background: {{spec.Look.Background}}; }
@@ -85,7 +91,7 @@ public sealed class FigureSandbox(FigureSpec spec, FigureRun run) : Application(
             surface { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
             .caption { position: absolute; left: 8px; top: 8px; padding: 3px 8px; border-radius: 3px; font: 12px/16px Lato; color: #f3e8cc; background: rgba(18, 13, 10, 0.72); white-space: pre; }
             """, "figure");
-        Markup.SetInnerHtml(_document.Body, run.Fonts is not null && run.Dump is null ? """<surface></surface><div class="caption"></div>""" : "<surface></surface>");
+        Markup.SetInnerHtml(_document.Body, captioned ? """<surface></surface><div class="caption"></div>""" : "<surface></surface>");
         _document.Update(0);
         var surface = _document.AllElements().Single(e => e.Tag == "surface");
         _caption = _document.AllElements().SingleOrDefault(e => e.HasClass("caption"));
@@ -156,7 +162,9 @@ public sealed class FigureSandbox(FigureSpec spec, FigureRun run) : Application(
         _figure.Seek(at);
         var (clip, clipTime) = _figure.Clips.At(at);
         _index.Add(string.Create(CultureInfo.InvariantCulture,
-            $"{file} {at:0.######} {(clip < 0 ? "-" : _figure.Clips.Clips[clip].Name)} {clipTime:0.######}"));
+            $"{file} {at:0.######} {(clip < 0 ? "-" : _figure.Clips.NameOf(clip))} {clipTime:0.######}"));
+        if (_caption is not null)
+            _caption.TextContent = Label(_figure);
         if (run.SceneFile is { } path)
             _scenes.Add(_figure.SceneOf(Path.GetFileNameWithoutExtension(file), Path.GetDirectoryName(Path.GetFullPath(path))!, _document.Zoom));
         // Each frame a step on the document's clock (its own, as the cutscene mode's dump keeps).
@@ -174,6 +182,9 @@ public sealed class FigureSandbox(FigureSpec spec, FigureRun run) : Application(
         Log.Info("Figure", $"dumped {_index.Count} frames into {run.Dump}");
         Quit();
     }
+
+    /// <summary>A dumped frame's caption (--label): the clip (with the one laid over it), its time in it and the view.</summary>
+    public static string Label(FigureView figure) => $"{figure.Describe()} · {figure.ViewName}";
 
     protected override void Render(Frame frame, GpuImage target, in GameTime time) => _host.Render(frame, target);
 

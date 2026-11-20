@@ -1,9 +1,11 @@
 // The figure mode's command line (GM2-P14; GM2 step 3a; Program.cs, Tools/Scripts/play-figure.sh):
-//   --figure <body.glb> [--clips <glb>] [--look <name or file>] [--garment <glb>]... [--item <glb>@<socket>]...
-//   [--view front|three-quarter|side|back|close-up|<degrees>] [--size WxH] [--elevation degrees] [--margin fraction]
-//   [--extent metres] [--focus <bone>] [--perspective degrees] [--dump <folder> [--fps N] [--times t,...]
-//   [--scene-file <file>]] [--capture <file.png> [--frames N]]
+//   --figure <body.glb> [--clips <glb>] [--play <clip>[+<clip>][:times],...] [--look <name or file>] [--garment <glb>]...
+//   [--item <glb>@<socket>]... [--view front|three-quarter|side|back|close-up|<degrees>] [--size WxH]
+//   [--elevation degrees] [--margin fraction] [--extent metres] [--focus <bone>] [--perspective degrees]
+//   [--dump <folder> [--fps N] [--times t,...] [--scene-file <file>] [--label]] [--capture <file.png> [--frames N]]
 // A look by name is <looks>/<name>.json (the sandbox's Data/Looks: the files look.py writes), today's by default.
+// --play (GM2 step 4b) names the clips to play in turn, each as often as its ":times" says, a "+<clip>" laid over it
+// (FigurePlay); --label names the clip on a dump's frames.
 using System.Globalization;
 
 namespace Statventure.Sandbox.Figure;
@@ -21,6 +23,8 @@ public static class FigureCommandLine
         float? extent = null, perspective = null;
         double fps = 30;
         List<double>? times = null;
+        IReadOnlyList<FigurePlay>? play = null;
+        var label = false;
         static float F(string text) => float.Parse(text, CultureInfo.InvariantCulture);
         for (var i = 0; i < args.Count; i++)
         {
@@ -30,6 +34,8 @@ public static class FigureCommandLine
             {
                 case "--figure": body = Next(); break;
                 case "--clips": clips = Next(); break;
+                case "--play": play = FigurePlay.Parse(Next()); break;
+                case "--label": label = true; break;
                 case "--look": look = Next(); break;
                 case "--garment": garments.Add(Next()); break;
                 case "--item":
@@ -65,10 +71,13 @@ public static class FigureCommandLine
         var lookFile = look is null ? Path.Combine(looks, "today.json") : File.Exists(look) ? look : Path.Combine(looks, look + ".json");
         var spec = new FigureSpec
         {
-            Body = body, Clips = clips, Look = FigureLook.Load(lookFile), Garments = garments, Items = items, View = view ?? "three-quarter",
+            Body = body, Clips = clips, Play = play, Look = FigureLook.Load(lookFile), Garments = garments, Items = items, View = view ?? "three-quarter",
             Width = width, Height = height, Elevation = elevation, Margin = margin, Extent = extent, Focus = focus, Perspective = perspective,
         };
         FigureFraming.TurnOf(spec.View);
-        return (spec, new FigureRun { Dump = dump, Fps = fps, Times = times, SceneFile = sceneFile, Capture = capture, CaptureFrame = frame, Fonts = fonts });
+        return (spec, new FigureRun
+        {
+            Dump = dump, Fps = fps, Times = times, SceneFile = sceneFile, Capture = capture, CaptureFrame = frame, Fonts = fonts, Label = label,
+        });
     }
 }

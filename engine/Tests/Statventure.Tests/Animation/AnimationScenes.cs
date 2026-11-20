@@ -1,4 +1,5 @@
 using Statventure.Animation;
+using Statventure.Tests.Humanoid;
 
 namespace Statventure.Tests.Animation;
 
@@ -150,7 +151,29 @@ public static class AnimationScenes
         new("humanoid-rest-sway", "humanoid/test-clips", "rest-sway", TimesFor(120)),
         new("humanoid-rest-sway-male", "humanoid/test-clips", "rest-sway", TimesFor(120), Target: "humanoid/bodies/human-male-average"),
         new("humanoid-rest-sway-female", "humanoid/test-clips", "rest-sway", TimesFor(120), Target: "humanoid/bodies/human-female-average"),
+        // The family's clips (GM2 step 4b; Tools/Models/humanoid/clips/, the library models.pak holds), every one played by
+        // bone names on the man's body (whose skeleton they are keyed on) and on the woman's, as the frame's test clip is.
+        .. HumanoidClipList.All.SelectMany(clip => new[] { "male", "female" }.Select(sex =>
+            new AnimationScene($"humanoid-{clip.Name}-{sex}", "humanoid/clips", clip.Name, ClipTimes(clip), Target: $"humanoid/bodies/human-{sex}-average"))),
     ];
+
+    /// <summary>
+    /// Times for one of the family's clips (lighter than <see cref="TimesFor"/>, as 34 clips on two bodies are 4,728 frames):
+    /// every other frame and the last, each marker's frame (where the game hears it), the middle of every other frame
+    /// (between the exported samples, where Blender evaluates its curves), and one time before the start and one after the
+    /// end (clamped).
+    /// </summary>
+    static double[] ClipTimes(HumanoidClipList.Entry clip)
+    {
+        var times = new SortedSet<double> { -0.05, (clip.Frames + 3.0) / Fps, (double)clip.Frames / Fps };
+        for (var k = 0; k <= clip.Frames; k += 2)
+            times.Add((double)k / Fps);
+        foreach (var (_, frame) in clip.Markers)
+            times.Add((double)frame / Fps);
+        for (var k = 1; k < clip.Frames; k += 2)
+            times.Add((k + 0.5) / Fps);
+        return [.. times];
+    }
 
     /// <summary>
     /// A scene's model file: a test model (Data/Models, made by make_models.py), or with "humanoid/" a model of the humanoid

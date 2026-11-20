@@ -56,12 +56,22 @@ static class HumanoidFiles
     /// <summary>The game's look, "Ember, hearth" (Tools/Models/humanoid/look.py's EMBER_HEARTH, written as looks/ember-hearth.json).</summary>
     public static FigureLook Ember => FigureLook.Load(Path.Combine(FigureFiles.Looks, "ember-hearth.json"));
 
-    /// <summary>The game's models of the family by name (those the manifest puts in Assets/Models/humanoid; its test data left out).</summary>
+    /// <summary>The game's models of the family by name (those the manifest puts in Assets/Models/humanoid; its test data left out): the figures' and the clip library, "clips".</summary>
     public static IReadOnlyList<string> Names() =>
         Manifest().Where(m => m.Value.StartsWith("Assets/Models/humanoid/", StringComparison.Ordinal)).Select(m => m.Key).ToList();
 
-    /// <summary>Every figure model the manifest makes: the game's and the battle's (the tests' data).</summary>
-    public static IReadOnlyList<string> Figures() => [.. Names(), .. BattleMan];
+    /// <summary>Every figure model the manifest makes (the clip library left out): the game's and the battle's (the tests' data).</summary>
+    public static IReadOnlyList<string> Figures() => [.. Names().Where(n => n != "clips"), .. BattleMan];
+
+    /// <summary>
+    /// The family's state machines' JSON forms (GM2 step 4b), Assets/Models/humanoid/machines/&lt;name&gt;.json, so models.pak's
+    /// records models/humanoid/machines/&lt;name&gt;: the figures' small one, "figure".
+    /// </summary>
+    public static string Machines => Path.Combine(Family, "machines");
+
+    /// <summary>The machines' names (their files' without .json).</summary>
+    public static IReadOnlyList<string> MachineNames() =>
+        Directory.GetFiles(Machines, "*.json").Select(f => Path.GetFileNameWithoutExtension(f)).Order(StringComparer.Ordinal).ToList();
 
     static readonly Dictionary<string, ModelData> Loaded = [];
 
@@ -123,12 +133,16 @@ public class HumanoidModelTests
     /// <summary>The body a part or garment is made on: the last part of its name (parts/&lt;category&gt;/&lt;part&gt;/&lt;body&gt;), at its level.</summary>
     static string BodyOf(string name) => name[..(name.Length - Unlevelled(name).Length)] + "bodies/" + name.Split('/')[^1];
 
+    /// <summary>Every file in Assets/Models/humanoid is a model of the manifest or, in machines/, a state machine's JSON form (GM2 step 4b).</summary>
     [Fact]
     public void TheManifestNamesEveryCommittedModel()
     {
         var committed = Directory.GetFiles(HumanoidFiles.Family, "*", SearchOption.AllDirectories)
             .Select(f => Path.GetRelativePath(HumanoidFiles.Family, f).Replace('\\', '/')).Order(StringComparer.Ordinal);
-        Assert.Equal(HumanoidFiles.Names().Select(n => n + ".glb").Order(StringComparer.Ordinal), committed);
+        Assert.Equal(HumanoidFiles.Names().Select(n => n + ".glb").Concat(HumanoidFiles.MachineNames().Select(m => $"machines/{m}.json"))
+            .Order(StringComparer.Ordinal), committed);
+        Assert.Equal(["figure"], HumanoidFiles.MachineNames());
+        Assert.Contains("clips", HumanoidFiles.Names());
         Assert.All(HumanoidFiles.Names(), n => Assert.Equal(Path.Combine(HumanoidFiles.Family, n + ".glb"), HumanoidFiles.Glb(n)));
         Assert.Equal(["bodies/human-female-average", "bodies/human-male-average"], HumanoidFiles.Names().Where(n => n.StartsWith("bodies/")).Order(StringComparer.Ordinal));
     }
