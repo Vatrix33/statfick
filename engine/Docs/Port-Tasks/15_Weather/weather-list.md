@@ -11,8 +11,8 @@ front can cover part of a region, and a battle takes the weather where it starts
 eases are drafted and approved when the task is built (the user: "for all weather events where it makes sense"). Control
 Weather is also castable on the map, setting the weather around the hero for a few game hours (WX10). Three classes go
 with it, designed at GM8's start (WX11): Forecast (travel: predicts the weather, lessens its debuffs), Cloudstrider (a
-mage whose spells grow with the weather) and Natural Disaster (Cloudstrider's upgrade, with Botanomancer levels). Every event here can also be cast with Control Weather (one shared set); a battle starts in the region's current
-weather and Control Weather overrides it for its turns. Snow, sand and heavy rain slow travel; rain and fog change only
+mage whose spells grow with the weather) and Natural Disaster (Cloudstrider's upgrade, with Botanomancer levels). Every event here can also be cast with Control Weather (one shared set); a battle starts in the weather where it
+starts and Control Weather overrides it for its turns. Snow, sand and heavy rain slow travel; rain and fog change only
 the looks of travel. The battle effects below are directions only; their numbers, each region's climate table (which
 events, how often, by time of day) and the travel slowdowns are drafted and approved when the task is built.
 
@@ -25,7 +25,8 @@ stay as approved.
 
 **Two fixed rules beside the examples:** Stormwake Hills always rains, at least Light Rain, one level heavier at night,
 Thunderstorm at most; Control Weather cast on the map overrides it for its hours (WX15). Bosses whose mechanics do or
-could touch the weather (Tankina's storm, Juila's seasons, …) are integrated with it when they are ported (WX16).
+could touch the weather (Tankina's storm, Juila's seasons, …) are integrated with it when they are ported (WX16). Only battles in the open take the weather; indoors and
+underground none, unless the dungeon or boss gives its own (WX17).
 
 ---
 

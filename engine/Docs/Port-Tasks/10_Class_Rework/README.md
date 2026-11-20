@@ -5,7 +5,8 @@ Class Rework", C1–C32; the task is `../10_Class_Rework.txt`). Unlike tasks 1�
 (C23): the old game's classes stay as they are, and the port builds the reworked set from these two files.
 
 - `Class-Rework-Draft.md`: all 170 classes of task 10 (the 130 in the old game, each reviewed, and 40 new), and the
-  86 that tasks 11–14 added at its end (256 in all), with each one's identity (a short playstyle), number of levels,
+  86 that tasks 11–14 added at its end (256 in all; task 15's three stand as placeholders after them, 259 once
+  designed at GM8's start), with each one's identity (a short playstyle), number of levels,
   requirements and rarity (no colour, blue, purple, gold, and red, above gold, for Unreality and, since task 13, the
   Limitbreaker). Where a current class changes (levels, rarity, a sharpened identity, a rename), the
   entry shows the old value, the new one and why; the user's review notes stand word for word under their classes.

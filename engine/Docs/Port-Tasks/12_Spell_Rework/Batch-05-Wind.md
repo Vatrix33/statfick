@@ -22,7 +22,7 @@ The element of speed and of time in battle:
   Veil (enemy spells and ranged attacks may miss).
 - Gale Step and Cyclone Guard used their power as an Evasion percentage, which grew to about +150% at Level 100; they
   give set amounts now. Backwind was Tailwind at twice the Mana. Four spells all hit and raised your Speed; only Sky
-  Cutter still does. Control Weather stays as it is.
+  Cutter still does. Control Weather stays as it is (changed since by port task 15, WX4 and WX10; see its entry).
 
 New mechanics this batch adds for the port: turns brought sooner or pushed back (the turn gauge), immunity to Speed
 loss, damage from a Speed difference, AP returned on a kill, striking back at a missed attack, a summon that raises its
@@ -56,7 +56,7 @@ side's Speed, two gusts in one spell.
 | 6 | Hurricane Choir | offensive, all enemies | 3 | 96 | every enemy Off-Balance for certain |
 | 6 | Zephyr Execution | offensive, one target | 3 | 104 | a kill gives you 2 AP back |
 | 6 | Aerial Riposte | defensive and offensive, yourself | 3 | 100 | Evasion +20%; every miss against you is struck back |
-| 7 | Control Weather | the whole field | 3 | 160 | kept: choose the weather for 15 turns |
+| 7 | Control Weather | the whole field | 3 | 160 | kept: choose the weather for 15 turns (changed by port task 15, WX4, WX10; see its entry) |
 | 7 | Skyfall Chorus | offensive, all enemies | 3 | 130 | every ally's next turn comes 20% sooner |
 | 7 | Tempest Needle | offensive, one target | 2 | 98 | 2 AP, Speed −25% kept |
 | 8 | Dragonbreath - Sky Rupture | offensive, all enemies | 3 | 170 | Evasion −30% kept (Dragonbreath), 30% Off-Balance |
@@ -287,7 +287,8 @@ side's Speed, two gusts in one spell.
   set: their definitions are retuned to the weather rules (rain powering up water and weakening fire, heat powering up
   fire and weakening ice, and so on), and Control Weather offers every event of `15_Weather/weather-list.md`, overriding
   the natural weather for its 15 turns; and it is castable outside battle on the map, setting the weather around the
-  hero for a few game hours before the natural fronts take over again (WX10). Its weathers' effects, the five above
+  hero for a few game hours before the natural fronts take over again (WX10). Its in-game description is rewritten
+  for the 23 events and the map cast, and the "Reworked" line above stands only for its AP and Mana. Its weathers' effects, the five above
   included, are designed properly when the weather is built (WX12).
 
 ### Skyfall Chorus: Tier 7, offensive, all enemies

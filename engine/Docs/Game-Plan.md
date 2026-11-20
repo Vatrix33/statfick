@@ -44,7 +44,8 @@ copying it:
    pointer line in `Docs/Engine-Plan.md`'s index of decisions ("Open questions for later milestones"; GP-7).
 4. Where the milestone's content is not approved yet (the enemy revamp, task 14's drafts, the three new regions, new
    music themes, the sound list, task 15's weather drafts: the climates, the battle effects, the travel amounts, which
-   events move and how they ease, WX9, WX12, WX13; the three weather classes, GM8-4), write the drafts and have them approved first, as task 14's DG2 and "At port time" lay
+   events move and how they ease, Control Weather's reach and length on the map, each dungeon's and site's weather, WX9,
+   WX10, WX12, WX13, WX17; the three weather classes, GM8-4), write the drafts and have them approved first, as task 14's DG2 and "At port time" lay
    down ("Where an answer leaves a draft to port time, that draft is written and approved then"): a sample first, then
    batches, each approved, as tasks 10, 12 and 13 were.
 5. Write the milestone's design doc, `Docs/Game/<Aspect>.md` (decisions; what exists, checked against the code of both
@@ -149,10 +150,11 @@ gotcha: `Docs/Notes.md`, 2026-11-11); everything else anywhere; the Windows PC b
   everything of GM12 can move into GM4: their enemies, encounters, forage, stages, shops and quests need systems built
   after GM4 (GM6, GM9, GM10, GM11), and GM4 must stay early (GM5 and GM6 need the map and the towns). So: **GM4 designs
   and builds the three regions whole as far as the map goes** (names, identity, level bands, terrain, roads and
-  connections, the towns' places and their map models, the region themes), and **each later milestone fills them in
-  while it builds its system for every region**: GM6 their towns' shops and Apothecaries, GM9 their enemy types (drafted
-  with the revamp), GM10 their encounter tables, forage tables and battle stages (and their battle arrangements wired
-  with the other regions'), GM11 their guild services and quests. No milestone comes back to them afterwards. GM12 is
+  connections, the settlements' places and their map models, the region themes and battle arrangements, GM4-10), and
+  **each later milestone fills them in while it builds its system for every region**: GM6 their settlements' shops and
+  Apothecaries, GM7 the Magic Tower of any castle city among them (GM4-9b), GM9 their enemy types (drafted with the
+  revamp), GM10 their encounter tables, forage tables and battle stages (and wires their battle arrangements with the
+  other regions'), GM11 their guild services and quests. No milestone comes back to them afterwards. GM12 is
   removed; the milestones keep their numbers (17 milestones, GM12 marked dissolved). This answers GM4-4 (its (a),
   widened); GM12-1 and GM12-3 move to GM4 (GM4-9, GM4-10), GM12-2 to GM9 (GM9-6). (Not GM4-4's (a) as written, the land
   in GM4 and GM12 a smaller milestone after GM11 adding the rest in one go; not GM4-4's (b), GM12 whole with the three
@@ -172,7 +174,8 @@ gotcha: `Docs/Notes.md`, 2026-11-11); everything else anywhere; the Windows PC b
   Torrential Rain, slowing travel a little off the roads (WX14). Stormwake Hills always rains, at least Light Rain, one
   level heavier at night up to Thunderstorm, Control Weather overriding it for its hours (WX15). Bosses whose mechanics
   do or could touch the weather (Tankina's storm, Juila's seasons, and others GM13, GM14 and GM16 find) are integrated
-  with it when ported, each asked then (WX16).
+  with it when ported, each asked then (WX16). Only battles in the open take the weather; indoors and underground none
+  unless the place gives its own (WX17).
 
 **Earlier decisions that bind the plan** (each where it is recorded):
 - **Old saves are never imported.** "Saves start fresh" (`Docs/Engine-Plan.md`, "User decisions (2026-10-16)",
@@ -183,7 +186,7 @@ gotcha: `Docs/Notes.md`, 2026-11-11); everything else anywhere; the Windows PC b
 - **C32, the three duties for the classes** (the user, 2026-11-11; "At port time"): (1) the classes are unchanged in
   the old game and during the port the classes in the drafts are added; (2) during porting every class is inspected for
   errors and inconsistencies (in the drafts and against the game's rules, before or while it is built); (3) after the
-  port every class feature is tested so that it works as intended (every level of all 256 classes, passives and skills
+  port every class feature is tested so that it works as intended (every level of all 256 classes, 259 with task 15's, passives and skills
   included). Task 13's classes come under them too (NC1, NC19).
 - **DG1 and DG2:** task 14 is built during the port itself; its rules and main choices are answered (DG1–DG74), its
   content (dungeon enemies and stages, bosses, items, numbers) is drafted at port time and approved by the user then
@@ -249,7 +252,8 @@ the user's go, its questions asked first (GP-6).
     unentered regions, the mountain's fog and clouds, the boat, caravans and the carriage's rules.
   - The region music with the 4-second crossfade; settlements and sites as places on the map.
   - The three new regions (W27) designed and built as far as the map goes (GP-9): names, identity, level bands, terrain,
-    roads and connections, their towns on the map, their region themes.
+    roads and connections, their settlements on the map (castle cities allowed, GM4-9b), their region themes and battle
+    arrangements (GM4-10; GM10 wires the arrangements).
   - Port task 15's world weather (GP-10): the regions' climates as drifting, easing weather fronts, shown on the map,
     snow, sand and heavy rain slowing travel.
 - [ ] **GM5 Combat core: the battle, its rules and its stage:**
@@ -283,7 +287,8 @@ the user's go, its questions asked first (GP-6).
 - [ ] **GM10 Regions in battle: encounters, foraging and battle stages:**
   - The 89 zone tables and 567 groups, travel encounters and the encounter prompt, foraging, the regional battle themes.
   - The 33 battle biomes as 3D stages with time of day and weather (every event of port task 15, GP-10).
-  - The three new regions' encounter and forage tables, battle stages and battle arrangements (GP-9).
+  - The three new regions' encounter and forage tables and battle stages, and GM4's battle arrangements for them wired
+    (GP-9, GM4-10).
 - [ ] **GM11 Companions and the Adventurers Guild:**
   - Up to three companions with full sheets, recruits and imports; the 15 guild halls, the seven quest types, the
     board, counter, tavern, hooded man (NC7), artifacts and trophies, the Quests card.
@@ -316,7 +321,7 @@ the user's go, its questions asked first (GP-6).
   - Port task 15 (WX16): the dungeon bosses whose mechanics do or could touch the weather integrated with it, asked
     first.
 - [ ] **GM17 Balance and the class tests:**
-  - C32's duty (3): every level, passive and skill of the 256 classes exercised in play.
+  - C32's duty (3): every level, passive and skill of the 259 classes (with task 15's) exercised in play.
   - The balance pass by simulation (bosses, zones, races, classes, items, port task 15's weather); the user's playtest.
 - [ ] **GM18 The release:**
   - The real game in both downloads (the data library with every kind, `packs/`, `classes/`), icons, the editor knowing
@@ -1005,13 +1010,13 @@ comes with its design doc when GM3 starts.
   for the five; for every item the port models, GM3's and later milestones' alike): "The higher rarity an item is, the
   more fantasy-style i want them to look. For example, common and uncommon armors may look realistic, but rare or higher
   armors get a more fantasy-style look." So common and uncommon items look realistic; rare, epic, legendary, masterwork
-  and Exotic items (and GM8's red rarity) look more fantastic the higher they go. How this meets the makers' styles, the
+  and Exotic items look more fantastic the higher they go. How this meets the makers' styles, the
   materials and the artifacts' four rarity styles is for GM3's design doc and its detail round to propose and ask.
 
 ## GM4 The continent and travel
 
 **What the player gets.** The map window over the sheet: one continent of 20 regions in 3D seen straight down (zoom
-1–10× of the fit, pan, Fit and Follow), regions under fog until first entered (W12), travel by clicking a place or a
+1–10× of the fit, pan, Fit and Follow), regions under fog until first entered (W12; drawn as blank parchment, GM4-6), travel by clicking a place or a
 numbered destination along the fastest route (roads fastest; rivers, marsh, sand and volcanic slopes slow; off the roads
 only through entered regions, W30), the clock running while travelling (36 game minutes a real second at 1×, buttons
 for 0.5×, 1.5× and 2×) and idling (0.5), day, dusk and night with lanterns in windows, rain and lightning over
@@ -1057,27 +1062,34 @@ the soundtrack (`Soundtrack.Play`, which still switches themes as `music.js` did
 **What is new.** The 3D map (W1: every 2D look of the continent is placeholder), draft 6 its reference
 (`Docs/Port-Tasks/8_Map_Rework/continent-draft-6.png`, W26); task 8's placeholders remade (the continent's painting,
 the fog, the boat and its waves, the caravan's wagon and route line, the carriage's switch, the mountain's fog and
-clouds); task 3's Mirrormere island and bridge and the site icons (`SITE_ICONS`: a domed tower, a forge with a flame);
+clouds); task 3's Mirrormere island and bridge and the site icons (`SITE_ICONS`, `map.js` 377–381: the Church's spired chapel, the Institute's domed tower, Hearth
+Home's forge with a flame);
 task 6's Rift on Gloamfen's map ("a dark violet scar with a red-glowing heart"); the three new regions (W27), designed and built whole as far as the map goes (GP-9: names, identity, level bands, terrain,
-roads and connections, their towns' places and map models, their region themes; within what decisions fix: the harpy
+roads and connections, their settlements' places and map models (castle cities allowed, GM4-9b; a castle city's
+caravan stop here), their region themes and battle arrangements (GM4-10; GM10 wires the arrangements); the facts in
+GM12's kept section, "What the player gets" and "What the old game has"; within what decisions fix: the harpy
 dungeon in the rocky highlands at Levels 50–56 whatever band the region gets, DG65; the carriage may cross them, W33);
 the region crossfade in the engine's soundtrack (an engine change, tested against `music.js` in Chromium; the small task
 "Music switch during a fade-in" touches the same code).
 
 **Port task 15, Weather (GP-10).** The world's weather is built here: each region's climate (its events and how often,
 drafted and approved, WX13) as weather fronts that form, drift with a prevailing wind and ease (WX2, WX8, WX9: which
-events move and how they ease drafted and approved), changed by mountains; Stormwake's rule (always rain, one level
-heavier at night, WX15); the fronts and every event on the 3D map, with rain and fog changing only the looks (WX3); the
+events move and how they ease drafted and approved), changed by mountains; Stormwake's rule (always rain, at least
+Light Rain, one level heavier at night, never past Thunderstorm; a Control Weather cast on the map overrides it for its
+hours; WX15); the fronts and every event on the 3D map, with rain and fog changing only the looks (WX3); the
 header showing the weather; snow, sand and heavy rain slowing travel by drafted amounts (WX5, WX14); the weather's seed
 and state in the save; the three new regions' climates with their drafts (GP-9). GM4-6's blank parchment over unentered
 regions is the map's unexplored land, not task 15's Fog. GM4-8's map sounds take in the weather's. The 23 events:
 `Docs/Port-Tasks/15_Weather/weather-list.md`.
+
 **The art.** Terrain for 20 regions (a 16-bit height image and a cover image each; "first versions can be generated
 from today's field functions", Decisions for M6) on the baked land; the coast, the two inland waters, lakes, rivers,
 roads; the 41 feature kinds of `map-terrain.js` (trees by kind, rocks, ruins, farms, windmills, towers, wrecks, pyramids
 …) as placed models; 27 settlements and 3 sites (GM4-2); exits and waymarkers; the Abyssal Rift and the Vampire
-Citadel; the boat, the caravan wagon and the carriage; lanterns, rain, lightning, the mountain's fog and clouds, the fog
-of unentered regions (GM4-6); the labels and the map's finish (GM4-1); the hero's place (GM4-3); the grabbing cursor
+Citadel; the boat, the caravan wagon and the carriage; lanterns, rain, lightning, the mountain's fog and clouds, the blank
+parchment of unentered regions (GM4-6); task 15's weather on the map: the fronts and the 23 events' looks (rain of four
+strengths, thunder, fog, gale, snow and blizzard, sand, hail, frost, ash, spores, miasma, the Rift's gloom, the Mana
+Storm, aurora, Blood Moon, starfall); the labels and the map's finish (GM4-1); the hero's place (GM4-3); the grabbing cursor
 (GM4-7). Blender script families: `terrain` (field functions to heights and covers, as `make_terrain.py` makes the test
 terrain), `map-features`, `settlements`, `sites`, `vehicles`. Checked against Blender's terrain renders (Render3D's
 terrain scenes) and by the user against draft 6.
@@ -1085,13 +1097,16 @@ terrain scenes) and by the user against draft 6.
 **How it is checked.** `WorldRules`, `WorldRegionData`, `ContinentRules` and `ContinentShape` in Node, exhaustively
 over what the tests name (routes, `zoneAt`, speeds, the carriage's ground, caravan fares and times, lighting,
 `regionAt`, `landAt`); `map-rework-browser.js` rule by rule; the crossfade against `music.js` rendered in Chromium (as
-M8's fixtures are); the map's header, actions and destinations against `game-map` (the 3D view masked). Not checkable
-against the old game: the 3D map's look.
+M8's fixtures are); the map's header, actions and destinations against `game-map` (the 3D view masked). Task 15's weather (new, against
+its approved drafts): the fronts the same from the same seed and after a reload, their drift and easing, Stormwake's
+rule at every hour, the travel slowdowns on the routes, the header's weather. Not checkable against the old game: the
+3D map's look.
 
 **Depends on / needed by.** Depends on GM1 and GM2 (the clock's regeneration acts on actors); nothing from GM3 or the
-battle. Needed by GM5 (a defeat carries the party to the nearest settlement), GM6 (settlements, the clock's stock
-windows), GM8 (the counts of caravan trips, boat trips and regions entered), GM9 (the new regions' identities their enemy
-types are drafted on, GP-9), GM10 (encounters, foraging; the feature models reused on the battle stages), GM11 (markers,
+battle. Needed by GM5 (a defeat carries the party to the nearest settlement; the weather a battle starts in), GM6 (settlements, the clock's stock
+windows), GM7 (the fronts and the map Control Weather is cast on), GM8 (the counts of caravan trips, boat trips and
+regions entered; the weather Forecast predicts), GM9 (the new regions' identities their enemy
+types are drafted on, GP-9), GM10 (encounters, foraging; the feature models reused on the battle stages; the weather the stages show), GM11 (markers,
 quests), GM13 (sites), GM16 (dungeon entrances, DG5, DG72).
 
 **Weight: XL.** About 5,800 old lines; terrain for 20 regions, 41 feature kinds, 30 places, the vehicles.
@@ -1133,10 +1148,10 @@ GM4-6 are not. GM4's detail round comes with its design doc when GM4 starts.
 - GM4-1 **The map's finish:** (a) the 3D terrain in the game's look ("Ember, hearth", GM2) with the old map's parchment
   frame, compass, scale bar and inked labels. (Not (b) the terrain with its labels only.)
 - GM4-2 **Settlements on the map, not the recommendation: (b) two shared models**, one castle-city model for the 11
-  castle cities and one town model for the 16 towns (and the three new regions' towns, GP-9). (Not (a) each its own
+  castle cities and one town model for the 16 towns (the three new regions' settlements each on the model of its kind, GP-9, GM4-9b). (Not (a) each its own
   small model from a kit, seeded per settlement, the recommendation.)
 - GM4-2b (a follow-up of GM4-2) **The three sites** (the Church of Talos, the Institute of Magic, Hearth Home): (a) each
-  its own small model, after the old map's own site icons (`SITE_ICONS`: a domed tower, a forge with a flame). (Not (b)
+  its own small model, after the old map's own site icons (`SITE_ICONS`: a spired chapel, a domed tower, a forge with a flame). (Not (b)
   the shared town model or one shared site model.)
 - GM4-3 **The hero on the map:** (a) a marker, as the old game. (Not (b) a small 3D figure of the hero walking the
   route.)
@@ -1154,6 +1169,10 @@ GM4-6 are not. GM4's detail round comes with its design doc when GM4 starts.
   is (DG2). (Not (b) the user giving the names and identities first.)
 - GM4-10 **Their music:** (a) a region theme and a battle arrangement each, written in the composer's notation and
   approved by ear, the battle arrangements wired by GM10. (Not (b) the neighbours' themes reused.)
+- GM4-9b (a follow-up of GM4-9, raised by the review of 2026-11-20) **The new regions' settlements:** (a) castle cities
+  allowed beside towns, as each region's identity needs; each on the shared model of its kind (GM4-2); a castle city's
+  caravan stop made in GM4 and its Magic Tower in GM7, so GM7 joins the milestones that fill the regions in (GP-9).
+  (Not (b) towns only.)
 
 ## GM5 Combat core: the battle, its rules and its stage
 
@@ -1210,9 +1229,10 @@ made in the port". Spells never crit (SP20); bosses can't be defeated outright b
 interpreter is built here for every effect type the old game's battle reads, so GM7 and GM8 add only the types their
 drafts mark "(new)".
 
-**Port task 15, Weather (GP-10).** A battle starts in the weather where it starts, and every event's battle effects
-apply to every combatant (WX4), designed properly here, asked and approved (the list's are examples only, WX12); a saved
+**Port task 15, Weather (GP-10).** A battle in the open starts in the weather where it starts (indoors and underground
+none, unless the place gives its own, WX17), and every event's battle effects apply to every combatant (WX4), designed properly here, asked and approved (the list's are examples only, WX12); a saved
 battle keeps its weather. Control Weather's override in battle is GM7's.
+
 **The art.** The battle camera (the fixed orthographic side view) and formations in 3D; the humanoid clips at work
 through a battle state machine (the lunge without root motion, hurt, death); particle effects for hits, criticals,
 misses, projectiles (arrows, bolts, thrown flasks), Guard and Evade, Meditate, fleeing, drinking, traps set and sprung,
@@ -1230,7 +1250,7 @@ The battle screen's UI against `game-combat` (3D masked) and a capture of the cl
 old game: the statuses' looks (new) and the 3D stage (Blender and the user).
 
 **Depends on / needed by.** Depends on GM2 (actors, clips), GM3 (weapons, armour, artifacts, `armCharacter`) and GM4
-(the settlement a defeat carries the party to). Needed by GM6 (its consumables' battle rules) and every milestone with
+(the settlement a defeat carries the party to; the weather a battle starts in, task 15). Needed by GM6 (its consumables' battle rules) and every milestone with
 a fight: GM7–GM16.
 
 **Weight: XL.** About 5,000 of `combat.js`'s lines, `combat-engine.js` 114, `combat-ai.js` 130, `battle-stage.js` 666
@@ -1365,7 +1385,10 @@ animations reworked (SP47, the form GM7-2). The Institute's own room (task 3, R1
 **Port task 15, Weather (GP-10).** Control Weather offers every event of the shared set, retuned to GM5's weather
 effects, overriding the natural weather for its 15 turns (WX4, WX6), and is castable on the map, setting the weather
 around the hero for a few game hours (its reach and length drafted and approved), Stormwake's rain included (WX10, WX15;
-`12_Spell_Rework/Batch-05-Wind.md`'s note).
+`12_Spell_Rework/Batch-05-Wind.md`'s note, which also has its description rewritten for the 23 events and the map
+cast). The map cast and its end are saved, a save version of this milestone. A Magic Tower in each of the new regions'
+castle cities (GM4-9b).
+
 **The art.** The spells' effects for 12 elements (GM7-1); the 12 Tier 10 animations; the Augmentation menu (SP25: an
 empty circle with one open slot, two lists, the player's spells and the companions'; a lit-up magic circle per element
 with a small animation and a sound, a symbol for offensive, summon and defensive spells, a spot per attribute, an
@@ -1381,8 +1404,9 @@ against `game-spellbook` (its list differing by content), the tower against a ca
 `Reference/game-capture.js`. Not checkable against the old game: Augmentation, the new spells and the 28 borrowings
 (drafts only), the effects and the Tier 10 animations (Blender and the user).
 
-**Depends on / needed by.** Depends on GM3 (casters, runes), GM5 (casting rules, statuses), GM6 (the shop window, the
-towns). Needed by GM8 (class spell choices, the Spellweaver and the Ritual Caster), GM9 (enemies' spells and their
+**Depends on / needed by.** Depends on GM3 (casters, runes), GM4 (the map and the weather fronts the map cast
+overrides; the new regions' castle cities, GM4-9b), GM5 (casting rules, statuses, the weather in battle), GM6 (the shop
+window, the towns). Needed by GM8 (class spell choices, the Spellweaver and the Ritual Caster), GM9 (enemies' spells and their
 augmentations, SP16), GM11 (companions learn spells at a tower), GM13 (the Storm Reliquary).
 
 **Weight: XL.** About 2,000 old lines; 556 spell records from 25 draft files; the Augmentation system; 140 "(new)"
@@ -1426,7 +1450,7 @@ old name would fail the mount); `Publish.cs` to copy `classes/` beside the game 
 
 **What is new.** Task 10's drafts in `Docs/Port-Tasks/10_Class_Rework/` (`Class-Rework-Draft.md`, 1,831 lines: identity,
 levels, requirements, rarity; `Class-Rework-Features.md`, 4,388 lines: the features level by level), holding **256
-classes**: task 10's 170 (the 130 current, each reviewed, and 40 new), task 11's 3 (Wildheart, Deepcaller, Peakwarden),
+classes** (259 with port task 15's three, designed at this milestone's start, GM8-4): task 10's 170 (the 130 current, each reviewed, and 40 new), task 11's 3 (Wildheart, Deepcaller, Peakwarden),
 task 12's 2 (Spellweaver, Ritual Caster), task 13's 79, task 14's 2 (Dungeon Delver, Throwing Specialist); 252 for
 players (Raid Boss, Beast, Great Beast and Monster are enemy-only); rarity 164 without a colour, 66 blue, 18 purple, 6
 gold, 2 red (Unreality, Limitbreaker). Their rules: one passive and one skill per class with the listed exceptions (C21,
@@ -1444,19 +1468,20 @@ class information (GM11), Great Hunts completed (GM14), the Limitbreaker (GM15),
 Cloudstrider and Natural Disaster (Cloudstrider at its top level and Botanomancer levels); their levels, requirements,
 rarity and features asked at this milestone's start (GM8-4), so the drafts hold 259 classes, 255 for players
 (`10_Class_Rework/Class-Rework-Draft.md`, its last section).
+
 **The art.** The red rarity's look (GM8-2); the skills' battle effects (the `skill` clip with an effect per kind, as
 the old `battle-effects.js`'s skills); the creatures classes call up are GM9's models.
 
 **How it is checked.** Requirement kinds and effect types the old classes share through the test client, the old class
-files as fixtures (a level's effect on the sheet, a skill's in battle); every feature of the 256 against its draft's
+files as fixtures (a level's effect on the sheet, a skill's in battle); every feature of the 256 (259 with task 15's) against its draft's
 text, a test per feature; the class windows against `game-classes`, `game-skills` and `game-passives` (the rows
-differing by content). Not checkable against the old game: the 126 new classes and every changed feature (drafts only).
+differing by content). Not checkable against the old game: the 126 new classes (129 with task 15's) and every changed feature (drafts only).
 
 **Depends on / needed by.** Depends on GM2, GM5, GM7 (spell choices, Augmentation for the Spellweaver, rituals), GM4 and
 GM6 (the counts of caravans, regions, reforging, potions). Needed by GM9 (enemies' class levels, C2), GM11 (companions'
 classes, the hooded man), GM13 (respecs), GM15 (Limitless class rules), GM17.
 
-**Weight: XL.** About 1,900 old lines of class code; 256 classes from 6,219 lines of drafts; 282 new mechanics; the
+**Weight: XL.** About 1,900 old lines of class code; 256 classes from 6,219 lines of drafts (259 with task 15's); 282 new mechanics; the
 counts and kinds.
 
 **Open questions for the user.**
@@ -1569,8 +1594,8 @@ and on roads; 15–62 % elsewhere), less when the hero is 10 or 20 levels above 
 the enemies (Sparkling ones marked) with Fight or Run (a pre-fight escape with +25 %); the group's level near the hero's
 within the zone's range (weights 72/14/2 by distance); Force encounter (not Dev Mode's: shown in an encounter area or
 for a rematch, `map.js` 582–584; corrected 2026-11-13). Foraging on the map (an hour, 45 % to
-find something from the zone's table, rivers adding two, then the zone's encounter roll; not in towns, on roads, at
-sites or in the uncharted regions, P11). Each battle on its region's and zone's stage, by day, dusk or night, with its
+find something from the zone's table, rivers adding two, then the zone's encounter roll; not in towns, on roads or at
+sites, P11; the old game's "Forage off" in the uncharted regions is replaced by the new regions' tables, GP-9). Each battle on its region's and zone's stage, by day, dusk or night, with its
 weather, and the region's battle theme (`combat@<region>`). From here a new hero meets revamped enemies on the map.
 
 **What the old game has.** `encounter-engine.js` (1,023, pure, `EncounterRules`: 1–904 data, `enemyLevels`,
@@ -1585,12 +1610,14 @@ original scenery", never ink-restyled, `../old-game/Docs/Notes.md`). Screen 28 (
 **What the engine provides.** Stages from glTF (`model` 2, cameras and one sun; `export_stage`), particles for weather,
 the soundtrack's 17 regional battle arrangements in `audio.pak`.
 
-**What is new.** The 33 biome stages in 3D (the 2026-10-16 decision: battles on a 3D stage built in Blender).
+**What is new.** The 33 biome stages in 3D (the 2026-10-16 decision: battles on a 3D stage built in Blender), and the
+three new regions' stages, encounter tables and forage tables, their count set by GM4's drafts (GP-9).
 
 **Port task 15, Weather (GP-10).** Every stage shows the weather the battle starts in, each of the 23 events with its
-particles and light, instead of the old biomes' fixed rain, snow, sand and embers; GM10-2's ambience takes in the
-weather's.
-**The art.** 33 battle stages with their town and road variants, seeded per region and zone, by day, dusk and night,
+particles and light, instead of the old biomes' fixed rain, snow, sand and embers; if GM10-2 is answered (a), its
+ambience takes in the weather's.
+
+**The art.** 33 battle stages (and the three new regions', GP-9) with their town and road variants, seeded per region and zone, by day, dusk and night,
 with ambient weather as particles. Script family `battle-stages` (a kit per biome: ground, middle, far hills, sky,
 foreground). Each stage against Blender's render (`ReferenceLimits.DetailedStage`) and approved by the user.
 
@@ -1599,11 +1626,11 @@ test client (`AlchemyRules` is window-only); the encounter prompt against a capt
 `Reference/game-capture.js`. Not checkable against the old game: the stages.
 
 **Depends on / needed by.** Depends on GM4, GM5, GM6 (ingredients), GM9. Needed by GM11 (Cull, Search, Escort fights
-and Collect). The three new regions' encounter and forage tables, battle stages and battle arrangements are made here
-with the rest (GP-9; the tables on GM4's drafts and GM9's types, the old game's empty rule sets and P11's "Forage off"
+and Collect). The three new regions' encounter and forage tables and battle stages are made here with the rest, and
+their battle arrangements (written in GM4, GM4-10) wired (GP-9; the tables on GM4's drafts and GM9's types, the old game's empty rule sets and P11's "Forage off"
 replaced).
 
-**Weight: L.** About 1,650 old lines; 33 stages.
+**Weight: L.** About 1,650 old lines; 33 stages and the new regions'.
 
 **Open questions for the user.**
 - GM10-1 **The stages' colours:** (a) the ink look with the stages' colours muted as the figures' are (the old
@@ -1655,7 +1682,7 @@ sections 10, 17, 18: a large, elaborate castle-city hall and a modest, compact t
 G21 (the guild on the left, the bulletin board beside the counter and its clerk; the tavern on the right with a hearth,
 a table of adventurers and, in castle cities only, the hooded man alone at a corner table; trophies on the back wall),
 G22 (the room above a panel docked along the bottom) and G23 (every object clickable, a candle-gold outline glow and its
-name on hover or keyboard focus). NC7. The hooded man's class information for 256 classes (the old rule leaving out
+name on hover or keyboard focus). NC7. The hooded man's class information for 256 classes (259 with task 15's) (the old rule leaving out
 classes above Level 100, `playerClasses`, except the Limitbreaker from Level 100, NC7). The class requirements counted
 here (information bought, Search quests, Escort quests and the like, GM8). The companions' Augmentation ranks (task 12).
 
@@ -1707,8 +1734,10 @@ encounters; the header "Uncharted land"; the last region's music kept, W28; Fora
 at Levels 50–56 "whatever band the region is given" (DG65); the carriage may cross the uncharted land (W33); forage
 tables needed (P11).
 
-**The art.** Their terrain if GM4-4 left it here; their towns (map models and rooms from the kits); their new enemy
-types' models (made in GM9 when GM4-4 is (a), here otherwise; GM12-2); their battle stages; two themes each (GM12-3).
+**The art.** (Superseded by GP-9: written when GM4-4 was open; now GM4 makes their terrain, settlements on the map and
+two themes each, GM9 their new enemy types' models, GM6 and GM7 their rooms, GM10 their battle stages.) Their terrain if
+GM4-4 left it here; their towns (map models and rooms from the kits); their new enemy types' models (made in GM9 when
+GM4-4 is (a), here otherwise; GM12-2); their battle stages; two themes each (GM12-3).
 
 **How it is checked.** Their rules are the ported ones (GM4, GM10, GM11), checked with this content; the content
 against its approved drafts; models and stages against Blender; music against Chromium renders of the composer and by
@@ -1771,8 +1800,10 @@ time", Decisions for M7).
 
 **Port task 15, Weather (WX16).** Before Tankina's and Ornn's mechanics are built, each is looked at for the weather
 (Tankina's gathering storm fed by lightning spells; Ornn's eruption, beside Heavy Ash and Ashfall) and its integration
-asked and approved; Tankina's church stands in Stormwake's rain (WX15). The machinery lets a boss's rule read and set
+asked and approved; whether the Church of Talos's and Hearth Home's fights are in the open, taking the weather (Stormwake's
+rain, WX15), or indoors without it is listed and approved here (WX17: outdoors only). The machinery lets a boss's rule read and set
 the battle's weather.
+
 **The art.** Tankina (and her chosen look), the Apostles, Gorthok (quadruped), Ornn (and his erupting look), the
 Vulcanic Ram (quadruped); the badges and overlays (the storm, the tempers); 4 cutscenes to Ji'ruan's bar (a detailed
 stage composed like the old SVG scene, acting clips per cutscene, particles, the card, sound per GM13-2), each approved
@@ -1841,6 +1872,7 @@ models at the user's bar (2026-11-05).
 **Port task 15, Weather (WX16).** Juila's cycle of seasons is integrated with the weather, asked and approved first;
 the Deep Sea King, Gaian and Anatemis's Sunfall are looked at the same way, and any boss whose mechanic could touch the
 weather.
+
 **The art.** Eight boss models and their looks (Juila's four seasons, Nygheir scarred, Gaian severed, Ur-Mat lucid,
 Anatemis's three forms), their retinues and spirits from the rosters (Jungle Core, the first model of the core family;
 Juila's Rime Wolf, Sunhorn Stag, Blossom Sprite and Harvest Wisp …), the mechanic overlays and badges (seasons, orders,
@@ -1969,8 +2001,10 @@ chance per board, DG18; the time a stage and a camp take, DG12; Ravenwatch's que
 Ool moved "unchanged" (DG33) and revamped with every enemy; an active Saffron or Ool hunt in the port's own saves
 withdrawn with a note. The Dungeon Delver's and Throwing Specialist's two counts (GM8's classes).
 
-**Port task 15, Weather (WX16).** The dungeon bosses whose mechanics do or could touch the weather are integrated with
-it, asked first. The masterworks and the Exotic follow GM3-6 (the higher the rarity, the more fantasy the look).
+**Port task 15, Weather (WX16, WX17).** The dungeon bosses whose mechanics do or could touch the weather are integrated
+with it, asked first. Each dungeon's stages are listed as open (taking the weather) or indoors and underground (none,
+unless the dungeon gives its own) and approved (WX17: outdoors only). The masterworks and the Exotic follow GM3-6 (the higher the rarity, the more fantasy the look).
+
 **The art.** Twelve 3D overviews (GM16-3); the dungeons' battle stages (GM16-2); eleven new boss models at the bar with
 their intros; Saffron, his three servants, Ool, the Phylactery (the core family) and their three scenes; the three
 masterworks, the Exotic, the eleven consumables and the material items; the entrances on the map; 23 new themes (12
@@ -2011,13 +2045,14 @@ regressions (`../old-game/Docs/Notes.md`, the "Regression" entries).
 **What the engine provides.** Headless battles on the port's own rules (GM5 on), which the simulations run on.
 
 **What is new.** C32's duty (3): "after the port, every class feature is tested so that it works as intended (every
-level of all 256 classes, passives and skills included)": each class level taken by a test hero and each passive and
+level of all 256 classes, passives and skills included)" (259 with task 15's three): each class level taken by a test hero and each passive and
 skill exercised in a battle set up for it, a report per class. The balance pass: the class numbers ("proposals to tune
 when built"), the race review (GM2-4), zone difficulty by level, the bosses' and dungeons' win rates, item and spell
 power on task 12's curve. The user's playtest.
 
 **Port task 15, Weather (GP-10).** The weather's numbers are part of the balance pass: its battle effects, Control
-Weather and the weather classes, by simulation, each change approved.
+Weather, the weather classes, the travel slowdowns and the climates' frequencies, by simulation, each change approved.
+
 **The art.** None of its own.
 
 **How it is checked.** The simulations and the class tests are themselves checks; each change they lead to goes to the
@@ -2025,7 +2060,7 @@ user (GM17-1) and its milestone's tests.
 
 **Depends on / needed by.** Depends on everything before. Needed by GM18.
 
-**Weight: XL.** 256 classes' levels (from 4,388 lines of features) exercised; the whole game simulated.
+**Weight: XL.** 259 classes' levels (from 4,388 lines of features and task 15's three) exercised; the whole game simulated.
 
 **Open questions for the user.**
 - GM17-1 **How balance changes are approved:** (a) the simulations report each imbalance with a proposed change, the
@@ -2120,8 +2155,8 @@ The port's save adds: Spell Augmentation's ranks and weavings per hero and compa
 §10); tasks 10, 13 and 14's new counts and the Moonfang; the smithing materials; the dungeon state (the dungeon, its
 stage, the stages cleared, bomb stuns used, Waylight, bosses met; the battle and stage resumed on load: "Decisions for
 task 14", "Following from the answers"); the weather (task 15, GM4: the weather's seed and the fronts' state, so a
-reload changes nothing, WX2; a Control Weather cast on the map with its end, WX10; a battle's weather and its override
-with the battle). It doesn't hold Dev Mode's state or the theme, which are game settings in
+reload changes nothing, WX2, GM4's; a Control Weather cast on the map with its end, WX10, GM7's; a battle's weather and
+its override with the battle, GM5's and GM7's). It doesn't hold Dev Mode's state or the theme, which are game settings in
 `settings.json` (GM1-13, GM1-4), nor the random state (GM1-5). Its form is M9's: a binary versioned record behind the
 `SVSV` header, named slots with a `.bak`, a damaged slot set aside and the player asked, written on every request by
 the background writer. Each milestone adds its part as a new version with its `Upgrade()` and committed fixtures, so a
@@ -2170,8 +2205,8 @@ by ear on 2026-11-02); the game ports `desiredTheme` (region theme, else `alder-
 exists, else `combat`; a boss's theme, else `combat`) in GM4 and GM5, and the crossfade in GM4. New themes: two per new
 region (GM4-10, was GM12-3) and 23 for the dungeons and their bosses (GM16), written in the composer's notation, checked against
 Chromium renders of the old composer (which plays any score) and approved by ear. Task 15's weather gets its sounds with
-the map's (GM4-8: rain and thunder for every rain event, wind, sand, hail …, its list asked then) and the stages'
-ambience (GM10-2). Sound effects: none in the old game;
+the map's (GM4-8: rain and thunder for every rain event, wind, sand, hail …, its list asked then) and, if GM10-2 gives them ambience,
+the stages' (GM10-2). Sound effects: none in the old game;
 the port adds them (2026-11-03); the engine's `SoundEffects` (patches as data at `audio/effects/<name>`, `Actor.Sounds`
 for clip events, seeded variation, voice limits of 4 per patch and 32 in all; no stop yet: the small task "A stop for
 sound effects"). When and which (GM1-6): each milestone makes its own aspect's sounds, their list asked with its
@@ -2294,8 +2329,8 @@ and waits for the user's go, asked when its milestone reaches it:
 Three prefixes mean two things in `Docs/Engine-Plan.md`: `G` (task 2's G1–G34 and the editor's G1–G6 of M11), `P` (task
 9's P1–P31 and the editor's P1–P38), `M` (task 5's M1–M26, the milestones M0–M12 and their questions such as M10-2). The
 docs always cite them with their source ("task 9's P11", "G2 of M11"), and so does this plan. `GP-n` and `GMn-k` are
-free (checked 2026-11-12; "Decisions for the plan"). Task 15's are `WX1`–`WX16` (2026-11-20), apart from task 8's
-`W1`–`W33`.
+free (checked 2026-11-12; "Decisions for the plan"). Task 15's are `WX1`–`WX17` (2026-11-20), apart from task 8's
+`W1`–`W35`.
 
 ### What the port never does
 
@@ -2663,3 +2698,9 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
 - **2026-11-20, task 15's Stormwake rule and the bosses (WX15, WX16):** Stormwake Hills always rains (at least Light
   Rain, one level heavier at night, Thunderstorm at most; Control Weather overrides it for its hours); bosses whose
   mechanics do or could touch the weather are integrated with it when GM13, GM14 and GM16 port them, each asked then.
+- **2026-11-20, the review before merging** (a fresh read of the branch): every milestone section's part of task 15 made
+  complete (GM4's art, checks and needs, GM5's and GM7's needs, GM10's counts, GM17's numbers), the class counts at 259
+  wherever task 15's three count, the new regions' battle arrangements GM4's (GM10 wires them), task 8's ids `W1`–`W35`,
+  GM3-6's stray "red rarity" removed (red is a class rarity), `SITE_ICONS` with the Church's chapel; two questions it
+  raised asked and answered: castle cities allowed in the new regions (GM4-9b, GM7 joining GP-9) and only battles in
+  the open taking the weather (WX17).

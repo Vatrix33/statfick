@@ -87,7 +87,7 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
 15. `15_Weather.txt`: a dynamic weather system affecting travel (visibility, slower travel in snow) and battle (rain
     powering up water and weakening fire, desert heat powering up fire and weakening ice). (The user's message of
     2026-11-20, kept as written.)
-    **Built during the port, like task 14 (the user, 2026-11-20, WX1):** nothing in the old game. Decisions WX1–WX16 in
+    **Built during the port, like task 14 (the user, 2026-11-20, WX1):** nothing in the old game. Decisions WX1–WX17 in
     `Engine-Plan.md`, "Decisions for task 15, Weather"; the 23 approved weather events in `15_Weather/weather-list.md`.
     See "Built by the port from the decisions" below.
 
@@ -113,7 +113,7 @@ remember (the user's answers, 2026-11-05):
 - Task 7's "dungeon enemies" is meant to be future-proof: Limitless scales every kind of enemy, also those added later.
   Dungeons only come with task 14 (which needs task 7's Exotic rarity), so task 14 gives its dungeon enemies the
   Limitless scaling.
-- Task 13 adds classes until there are 250; task 14's two classes come on top (252 in the end), as intended. (Done:
+- Task 13 adds classes until there are 250; task 14's two classes come on top (252 in the end), as intended, and task 15's three (255, WX11). (Done:
   task 13's 79 bring the classes players can acquire to 250, NC2, and task 14's two, approved 2026-11-12, to 252,
   DG78.)
 
@@ -249,7 +249,7 @@ built during the port in the same way (WX1).
   status), **every spell players can learn reworked** (381, `Batch-01-Basic.md` to `Batch-12-Blood.md`; the seven boss
   and enemy-only spells left as they are, SP4) and **168 new spells** (`New-01-Basic.md` to `New-12-Blood.md`, fourteen
   per element, every element keeping at least one summon and one Dragonbreath spell). Its two classes, the Spellweaver
-  and the Ritual Caster, are in task 10's drafts (`10_Class_Rework/`, 175 classes then, 254 with task 13's, 256 with task 14's). Also for
+  and the Ritual Caster, are in task 10's drafts (`10_Class_Rework/`, 175 classes then, 254 with task 13's, 256 with task 14's, 259 with task 15's). Also for
   the port: the mechanics the drafts mark "(new)"; two new creatures for the new summons, the Mana Golem (Basic) and
   the Storm Roc (Wind), with their looks and stats (Nature's Dryad and Death's Wraith use creatures the game has); the
   Tier 10 spell animations reworked (SP47); bosses can't be defeated outright by instant death (SP46); and every
@@ -281,7 +281,7 @@ built during the port in the same way (WX1).
   (DG26, DG29–DG32); Nocturne Keep as the vampire dungeon, whose unique quest from Ravenwatch opens the keep to
   players who aren't vampires (DG52–DG64, DG73, DG74); the harpy dungeon in the rocky highlands, one of task 8's new
   regions (DG65); and a 3D dungeon overview (DG69).
-- Task 15, Weather (2026-11-20, a cloud session, WX1–WX16 in `Engine-Plan.md`, "Decisions for task 15, Weather"; the
+- Task 15, Weather (2026-11-20, a cloud session, WX1–WX17 in `Engine-Plan.md`, "Decisions for task 15, Weather"; the
   23 approved events in `15_Weather/weather-list.md`): nothing in the old game but Stormwake's fixed rain, the battle
   biomes' fixed weather and the Control Weather spell. **Decided:** a climate per region as weather fronts that drift
   with a prevailing wind and ease as they go (WX2, WX8, WX9; Torrential Rain to Heavy Rain to Light Rain to Overcast),
@@ -292,7 +292,8 @@ built during the port in the same way (WX1).
   one level heavier at night, Thunderstorm at most, Control Weather overriding it (WX15); three weather classes,
   Forecast, Cloudstrider and Natural Disaster (Cloudstrider's upgrade, with Botanomancer levels), designed at GM8's
   start (WX11); every boss whose mechanic does or could touch the weather integrated with it when ported (WX16:
-  Tankina's storm, Juila's seasons, others to look at). **Drafted when built, for the user's approval:** each event's
+  Tankina's storm, Juila's seasons, others to look at); only battles in the open taking the weather, indoors and
+  underground none unless the place gives its own (WX17). **Drafted when built, for the user's approval:** each event's
   battle effects (examples only, WX12), each region's climate (the locations examples only, WX13), the travel amounts,
   which events move and how each eases (WX9), Control Weather's reach and length on the map (WX10). **Where it is
   built** (GP-10 in `Game-Plan.md`): GM4 (the fronts, the map, travel, the climates), GM5 (battle), GM7 (Control
