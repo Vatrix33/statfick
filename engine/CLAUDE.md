@@ -141,7 +141,7 @@ the user and wait for their go-ahead before starting the next one.
 - On the PC a step is also checked on the CPU Vulkan the cloud uses (Mesa's lavapipe):
   `VK_DRIVER_FILES=/usr/share/vulkan/icd.d/lvp_icd.x86_64.json VK_ICD_FILENAMES=$VK_DRIVER_FILES Tools/Scripts/test.sh`.
 - Reference sources: `~/.cache/stat-fick-build/reference-src/` (save new downloads there).
-- The port of the game (after M12): `Docs/Game-Plan.md`, the game's milestones GM1–GM18 (what each builds, its art,
+- The port of the game (after M12): `Docs/Game-Plan.md`, the game's milestones GM1–GM18, GM12 dissolved into GM4, GM6, GM9, GM10 and GM11 by the user's GP-9 (what each builds, its art,
   its checks against the old game, Blender and Chromium, its questions for the user); read its "How to use this plan"
   first.
 - GM1 (Foundation), done 2026-11-15 (started 2026-11-13; 4130 + 565 = 4695 tests): its design doc

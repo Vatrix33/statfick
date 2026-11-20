@@ -142,6 +142,21 @@ gotcha: `Docs/Notes.md`, 2026-11-11); everything else anywhere; the Windows PC b
   its design doc's to say (GM2's: `Docs/Game/Hero.md`, "Design", "Meeting GP-8"), and what "very good" means is asked
   of the user there, not assumed.
 
+- GP-9 **GM12 dissolved: the three new regions built with the systems that hold them** (the user, 2026-11-20, a cloud
+  session, the question tool, the recommended option; the user asked: "I have noticed that GM4 is the continent port and
+  GM12 are the 3 new regions. Cant both of them be done at once? Would that not make it easier to do at once?"). Not
+  everything of GM12 can move into GM4: their enemies, encounters, forage, stages, shops and quests need systems built
+  after GM4 (GM6, GM9, GM10, GM11), and GM4 must stay early (GM5 and GM6 need the map and the towns). So: **GM4 designs
+  and builds the three regions whole as far as the map goes** (names, identity, level bands, terrain, roads and
+  connections, the towns' places and their map models, the region themes), and **each later milestone fills them in
+  while it builds its system for every region**: GM6 their towns' shops and Apothecaries, GM9 their enemy types (drafted
+  with the revamp), GM10 their encounter tables, forage tables and battle stages (and their battle arrangements wired
+  with the other regions'), GM11 their guild services and quests. No milestone comes back to them afterwards. GM12 is
+  removed; the milestones keep their numbers (17 milestones, GM12 marked dissolved). This answers GM4-4 (its (a),
+  widened); GM12-1 and GM12-3 move to GM4 (GM4-9, GM4-10), GM12-2 to GM9 (GM9-6). (Not GM4-4's (a) as written, the land
+  in GM4 and GM12 a smaller milestone after GM11 adding the rest in one go; not GM4-4's (b), GM12 whole with the three
+  shown as plain uncharted land until then.)
+
 **Earlier decisions that bind the plan** (each where it is recorded):
 - **Old saves are never imported.** "Saves start fresh" (`Docs/Engine-Plan.md`, "User decisions (2026-10-16)",
   Data); "old saves aren't imported, decided 2026-10-16" (Decisions for M9, "Character export and import";
@@ -216,6 +231,8 @@ the user's go, its questions asked first (GP-6).
   - The 3D map of the continent (draft 6), travel along routes, the real-time clock, day and night, weather, fog over
     unentered regions, the mountain's fog and clouds, the boat, caravans and the carriage's rules.
   - The region music with the 4-second crossfade; settlements and sites as places on the map.
+  - The three new regions (W27) designed and built as far as the map goes (GP-9): names, identity, level bands, terrain,
+    roads and connections, their towns on the map, their region themes.
 - [ ] **GM5 Combat core: the battle, its rules and its stage:**
   - The turn meter, 5 AP, every action, damage, hit and crit, reactions, the old timed effects and task 12's 12
     statuses and 12 reactions, items in battle, loot, EXP and defeat, the ordinary AI, a battle saved and resumed.
@@ -223,7 +240,8 @@ the user's go, its questions asked first (GP-6).
     effects, status looks, the battle settings, Dev Mode's combat setup.
 - [ ] **GM6 Towns: the shops, the Apothecary and resting:**
   - Blacksmith, Tailor, General Store and Apothecary in every settlement, stock windows, selling, the reforge anvil,
-    brewing and recipes, resting and camping; the 71 consumables, 56 ingredients and 62 recipes.
+    brewing and recipes, resting and camping; the 71 consumables, 56 ingredients and 62 recipes; the new regions'
+    towns' shops with the rest (GP-9).
   - Seven interiors (Blacksmith and General Store, castle and town; the Tailor; the Apothecary, castle and town), the
     anvil, the cauldron, the potion, poison, ingredient, trap and carriage models.
 - [ ] **GM7 Spells and magic: the spell book, Spell Augmentation and the Magic Towers:**
@@ -237,20 +255,20 @@ the user's go, its questions asked first (GP-6).
 - [ ] **GM9 The bestiary: every enemy revamped and modelled:**
   - The general enemy revamp drafted, approved and built for the 146 non-boss enemy files and the two new summoned
     creatures; Empowered and Sparkling enemies.
-  - Every other regular enemy kind drafted with it: task 14's dungeon-only types (DG9) and, if GM4 designed the three
-    new regions (GM4-4), their new types.
+  - Every other regular enemy kind drafted with it: task 14's dungeon-only types (DG9) and the three new regions' new
+    types (GP-9, GM9-6).
   - The creature rig families and every enemy's model, the Sparkling shine, task 6's Rift enemies remade.
 - [ ] **GM10 Regions in battle: encounters, foraging and battle stages:**
   - The 89 zone tables and 567 groups, travel encounters and the encounter prompt, foraging, the regional battle themes.
   - The 33 battle biomes as 3D stages with time of day and weather.
+  - The three new regions' encounter and forage tables, battle stages and battle arrangements (GP-9).
 - [ ] **GM11 Companions and the Adventurers Guild:**
   - Up to three companions with full sheets, recruits and imports; the 15 guild halls, the seven quest types, the
     board, counter, tavern, hooded man (NC7), artifacts and trophies, the Quests card.
   - The two guild interiors as the detailed, clickable rooms task 2 asks for.
-- [ ] **GM12 The three new regions:**
-  - W27's regions drafted and approved where GM4 left them: names, identity, level bands, towns, roads and connections.
-  - Built whole: terrain (unless GM4 made it), encounters, forage, towns and guild services, music, battle stages; their
-    enemy types from GM9 (or drafted here by the revamp's rules if GM4-4 left their design here).
+  - The three new regions' guild services and quests with the rest (GP-9).
+- **GM12, dissolved (GP-9, the user, 2026-11-20):** the three new regions are built by GM4 (the land, the towns on the
+  map, the region themes) and filled in by GM6, GM9, GM10 and GM11 with their systems; the number is kept.
 - [ ] **GM13 The Church of Talos and Hearth Home, and the boss machinery:**
   - The boss machinery (phases, badges, boss music, intros held by the AI, the game's cutscene path, the boss
     simulator), built on the two site bosses: Tankina and Ornn with their mechanics, AI, retinues and four cutscenes.
@@ -293,8 +311,8 @@ The Institute of Magic sits with the Magic Towers in GM7, because in the code it
 (`magic-tower.js`, venues `tower` and `institute`). Companions go with the guild (GM11) because the tavern is where they
 are hired (the only other way in is a character file) and recruits are one of the guild's own rules (`GuildQuestRules`'
 `RECRUITS`). Music needs no milestone of its own: the soundtrack is already the engine's (M8), and each milestone wires
-the themes its aspect plays (GM4 regions, GM5 battle, GM13 and GM14 bosses) or makes the new ones it needs (GM12,
-GM16). Sound effects are made by each milestone for its own aspect (GM1-6).
+the themes its aspect plays (GM4 regions, GM5 battle, GM13 and GM14 bosses) or makes the new ones it needs (GM4
+for the three new regions, GP-9; GM16). Sound effects are made by each milestone for its own aspect (GM1-6).
 
 **The order is made for implementation** (GP-5): each milestone needs only what the ones before it built; nothing is
 built twice, or built on a stand-in rule a later milestone has to replace; the reworked content comes before what
@@ -324,14 +342,14 @@ before every interior). What each milestone needs from the ones before it:
 - **GM9** needs GM7 and GM8 (the revamp gives enemies the reworked spells and classes, C2, SP16), GM3 (their gear) and
   GM2 (the humanoid rig every humanoid enemy is built on). It drafts every regular enemy kind at once, the existing
   ones, task 14's dungeon-only types (DG9: "drafted at port time with the general enemy revamp") and the new regions'
-  types when GM4 designed them, so each creature family is opened once.
+  types on GM4's identities (GP-9), so each creature family is opened once.
 - **GM10** needs GM9 (the tables name enemies), GM4 (zones, travel) and GM6 (foraging finds ingredients).
 - **GM11** needs GM8 (companions' classes, the hooded man's class information), GM10 (the Hunt, Cull, Search and
   Escort fights) and GM6 (Collect). It comes before every boss because boss balance is simulated with parties (the old
   simulators play parties, `../old-game/Docs/Notes.md`).
-- **GM12** needs GM4–GM11, everything a region holds (land, towns, enemies, encounters, forage, guild services); after
-  it the world is whole, before the bosses and the dungeons placed in it (the harpy dungeon in the rocky highlands,
-  DG65).
+- **GM12** is dissolved (GP-9, 2026-11-20): the three new regions are made by GM4 and filled in by GM6, GM9, GM10 and
+  GM11, so after GM11 the world is whole, before the bosses and the dungeons placed in it (the harpy dungeon in the rocky
+  highlands, DG65).
 - **GM13** builds the boss machinery on the two site bosses, each with one mechanic and one phase scene and neither
   needing the guild; it needs GM6 (the shop window, reforging), GM7 (Augmentation at the Reliquary), GM8 (respecs), GM9
   (Gorthok and the Vulcanic Ram are quadrupeds, the Apostles humanoid) and GM11 (parties for the simulations).
@@ -341,14 +359,15 @@ before every interior). What each milestone needs from the ones before it:
   and GM14, and the systems it scales (GM2, GM3, GM5, GM8, GM11).
 - **GM16** needs everything before it: task 14 builds on tasks 2, 3, 5, 7, 8, 9, 10 and 13 and on the revamp; its
   enemies are GM9's and scale through Limitless (GM15), its Exotic drops only under Limitless (DG36), its harpy dungeon
-  lies in GM12's highlands, its bosses run on GM13's machinery.
+  lies in the rocky highlands (GM4's land, GM10's stages; GP-9), its bosses run on GM13's machinery.
 - **GM17** is C32's "after the port"; **GM18** ships what is done.
 
 What this order changed from the first one (written the same day, before GP-5, for a loop after the first few
 milestones): the continent moved ahead of combat (GM4, GM5); the three new regions moved up to follow the guild
-(GM12); the Church of Talos and Hearth Home moved ahead of the Great Hunts and took the boss machinery with them (GM13,
+(GM12; dissolved on 2026-11-20 by GP-9, the regions now made with GM4 and filled in by GM6, GM9, GM10 and GM11); the Church of Talos and Hearth Home moved ahead of the Great Hunts and took the boss machinery with them (GM13,
 GM14), with the two questions that apply to every boss (GM13-1, GM13-2); and the dungeon-only enemy types moved into
-the bestiary, as DG9 has them drafted. The count stays 18: no merge or split was clearly better.
+the bestiary, as DG9 has them drafted. The count stays 18: no merge or split was clearly better. (17 since GP-9, 2026-11-20: GM12 dissolved, the numbers
+kept.)
 
 ## GM1 Foundation: the game program, its data library, saves and settings
 
@@ -1011,7 +1030,9 @@ the soundtrack (`Soundtrack.Play`, which still switches themes as `music.js` did
 (`Docs/Port-Tasks/8_Map_Rework/continent-draft-6.png`, W26); task 8's placeholders remade (the continent's painting,
 the fog, the boat and its waves, the caravan's wagon and route line, the carriage's switch, the mountain's fog and
 clouds); task 3's Mirrormere island and bridge and the site icons (`SITE_ICONS`: a domed tower, a forge with a flame);
-task 6's Rift on Gloamfen's map ("a dark violet scar with a red-glowing heart"); the three new regions' land (GM4-4);
+task 6's Rift on Gloamfen's map ("a dark violet scar with a red-glowing heart"); the three new regions (W27), designed and built whole as far as the map goes (GP-9: names, identity, level bands, terrain,
+roads and connections, their towns' places and map models, their region themes; within what decisions fix: the harpy
+dungeon in the rocky highlands at Levels 50–56 whatever band the region gets, DG65; the carriage may cross them, W33);
 the region crossfade in the engine's soundtrack (an engine change, tested against `music.js` in Chromium; the small task
 "Music switch during a fade-in" touches the same code).
 
@@ -1033,9 +1054,9 @@ against the old game: the 3D map's look.
 
 **Depends on / needed by.** Depends on GM1 and GM2 (the clock's regeneration acts on actors); nothing from GM3 or the
 battle. Needed by GM5 (a defeat carries the party to the nearest settlement), GM6 (settlements, the clock's stock
-windows), GM8 (the counts of caravan trips, boat trips and regions entered), GM9 (the new regions' enemy types, if
-GM4-4 designs them here), GM10 (encounters, foraging; the feature models reused on the battle stages), GM11 (markers,
-quests), GM12, GM13 (sites), GM16 (dungeon entrances, DG5, DG72).
+windows), GM8 (the counts of caravan trips, boat trips and regions entered), GM9 (the new regions' identities their enemy
+types are drafted on, GP-9), GM10 (encounters, foraging; the feature models reused on the battle stages), GM11 (markers,
+quests), GM13 (sites), GM16 (dungeon entrances, DG5, DG72).
 
 **Weight: XL.** About 5,800 old lines; terrain for 20 regions, 41 feature kinds, 30 places, the vehicles.
 
@@ -1048,7 +1069,7 @@ quests), GM12, GM13 (sites), GM16 (dungeon entrances, DG5, DG72).
   shared by all.
 - GM4-3 **The hero on the map:** (a) a marker, as the old game [recommended: faithful]; (b) a small 3D figure of the
   hero walking the route.
-- GM4-4 **The three new regions' land** (W27): (a) designed here (names, identity, terrain, level bands, roads, the
+- GM4-4 **The three new regions' land** (W27; **answered by GP-9, 2026-11-20: (a), widened**, GM12 dissolved): (a) designed here (names, identity, terrain, level bands, roads, the
   towns' places: drafted by the port, approved by the user) and built with the map; their enemy types drafted with the
   revamp in GM9, their encounters, services, forage and music in GM12 [recommended: the map closes whole, GP-3, and
   each creature family is opened once]; (b) all in GM12, the map showing them as plain uncharted land until then.
@@ -1061,6 +1082,13 @@ quests), GM12, GM13 (sites), GM16 (dungeon entrances, DG5, DG72).
   over the map and closed while dragging [recommended]; (b) an inked bare hand; (c) the system's cursor.
 - GM4-8 **Map sounds** (GM1-6): (a) a small set: steps or hooves while travelling, waves on the boat,
   wagon wheels, rain and thunder over Stormwake [recommended]; (b) none, the music only.
+- GM4-9 (was GM12-1, moved by GP-9) **How the three new regions are made:** (a) drafted by the port region by region
+  (name, identity, terrain, band, towns, roads; and the outline of their enemies, encounters, forage and music, which
+  the later milestones fill in) and approved, as task 14's content is (DG2) [recommended]; (b) the user gives the names
+  and identities first, the port drafts the rest.
+- GM4-10 (was GM12-3, moved by GP-9) **Their music:** (a) a region theme and a battle arrangement each, written in the
+  composer's notation and approved by ear, the battle arrangements wired by GM10 [recommended: every region has its
+  own]; (b) the neighbours' themes reused.
 
 ## GM5 Combat core: the battle, its rules and its stage
 
@@ -1154,7 +1182,8 @@ and part of `battle-effects.js`; 24 new status and reaction rules; the battle's 
 
 ## GM6 Towns: the shops, the Apothecary and resting
 
-**What the player gets.** In every settlement (11 castle cities, 16 towns): the **Blacksmith** (forged weapons and
+**What the player gets.** In every settlement (11 castle cities, 16 towns, and the three new regions' towns that GM4
+makes, GP-9): the **Blacksmith** (forged weapons and
 non-clothing armour at the hero's level, castle 9 pieces with 5 weapons, town 6 with 3; regional masterwork offers such
 as Bloody Mary in Ravenwatch for 5 Blood Crystals; buying weapons and armour; Reforge), the **Tailor** (clothing, castle
 6, town 4; Reforge), the **General Store** (consumables, traps and Camping Supplies, castle 8 kinds, town 5, 3–6 or 2–4
@@ -1370,8 +1399,8 @@ counts and kinds.
 
 **What the player gets.** Every enemy kind met in the regions (136), the summoned creatures (9 old, 2 new) and the
 Earth Spirit if kept (GM9-3), revamped for the reworked classes and spells, each with its own 3D model in its family,
-with every enemy kind the later milestones place: task 14's dungeon-only types and, when GM4 designs the three new
-regions (GM4-4), their new types;
+with every enemy kind the later milestones place: task 14's dungeon-only types and the three new regions' new types
+(GP-9, GM9-6);
 Empowered enemies (guild targets, artifact guardians: ×1.3 attributes) and Sparkling ones (0.1 % each, 2 % for a Cull
 target; ×1.4 attributes, double HP, 11× EXP, masterwork rolls of 70 % and 5 %) that visibly shine; enemies' gear forged
 when they spawn (one level below to three above theirs), dropping at 40 % (not uniques); their ingredient drops.
@@ -1408,7 +1437,7 @@ Storm Roc (Level 50, about 600 HP), "made by the port with its look and stats". 
 "drafted at port time with the general enemy revamp" (DG9): types of their own for each dungeon's theme (goblins up to
 Level 46 where today's stop at 17, water and earth elementals, demons and impids, devils, undead, harpies above Level 46
 (DG57), vampires, dragons), drafted here with the rest and placed in the stages' pools by GM16. The three new regions'
-new types when GM4-4 is (a). The bar: as detailed as the cutscene scenes.
+new types on GM4's identities (GP-9, GM9-6). The bar: as detailed as the cutscene scenes.
 
 **The art.** The creature rig families quadruped, griffon, dragon and wisp (the core family with GM14), each's first
 model approved by the user before the rest; the humanoid rig extended for the enemy races (goblin, orc, troll, giant,
@@ -1427,9 +1456,9 @@ through `ForgeRules.armCharacter` in Node); `validateEnemy`'s checks as the enem
 cost per decision with the real enemies against the old enemies suite; each enemy's difficulty by simulation (GM9-2).
 Not checkable against the old game: the revamped content (drafts) and the models (Blender and the user).
 
-**Depends on / needed by.** Depends on GM2 (the humanoid rig), GM3 (gear), GM4 (the new regions' identities, if
-GM4-4 is (a)), GM5, GM7 and GM8 (C2, SP16). Needed by GM10 (the tables name them), GM11 (hunts, artifact guardians),
-GM12 (the new regions' types), GM13 and GM14 (retinues on its families; the bosses revamped by its rules), GM16 (the
+**Depends on / needed by.** Depends on GM2 (the humanoid rig), GM3 (gear), GM4 (the new regions' identities,
+GP-9), GM5, GM7 and GM8 (C2, SP16). Needed by GM10 (the tables name them), GM11 (hunts, artifact guardians),
+GM13 and GM14 (retinues on its families; the bosses revamped by its rules), GM16 (the
 dungeon-only types in the stages' pools).
 
 **Weight: XL.** About 1,300 old lines (loading and validation 350, `sprite-creatures.js` 648, the catalogue's 309) but
@@ -1449,6 +1478,9 @@ new regions' types (their count set by the drafts); four new rig families.
   with their own parts and palettes, as the old catalogue's presets [recommended]; (b) each enemy a model of its own.
 - GM9-5 **Creature sounds** (GM1-6): (a) a voice per family (growl, screech, hiss, rattle) on attack,
   hurt and death [recommended]; (b) none.
+- GM9-6 (was GM12-2, moved by GP-9) **New enemy types for the three new regions:** (a) where a region's identity (GM4's
+  approved drafts) needs them, drafted by the revamp's rules (task 8 section 3 allows "new enemy types if needed")
+  [recommended]; (b) existing enemy types only.
 
 ## GM10 Regions in battle: encounters, foraging and battle stages
 
@@ -1484,7 +1516,9 @@ test client (`AlchemyRules` is window-only); the encounter prompt against a capt
 `Reference/game-capture.js`. Not checkable against the old game: the stages.
 
 **Depends on / needed by.** Depends on GM4, GM5, GM6 (ingredients), GM9. Needed by GM11 (Cull, Search, Escort fights
-and Collect), GM12 (the new regions' tables).
+and Collect). The three new regions' encounter and forage tables, battle stages and battle arrangements are made here
+with the rest (GP-9; the tables on GM4's drafts and GM9's types, the old game's empty rule sets and P11's "Forage off"
+replaced).
 
 **Weight: L.** About 1,650 old lines; 33 stages.
 
@@ -1552,7 +1586,8 @@ and `guild-rework-browser.js` rule by rule; the Companions window against `game-
 captures added to `Reference/game-capture.js` (the room masked); the room against Blender and the user's approval.
 
 **Depends on / needed by.** Depends on GM4 (routes, markers), GM6 (Collect), GM8 (classes, information), GM9 and GM10
-(hunts, Cull, Search, Escort fights). Needed by GM12 (the new regions' guild services), GM13 and GM14 (parties for the
+(hunts, Cull, Search, Escort fights). The three new regions' guild services and quests are made here with
+the rest (GP-9). Needed by GM13 and GM14 (parties for the
 bosses' simulations; Great Hunts offered and their trophies), GM15 (companions under Limitless), GM16 (Delve,
 Ravenwatch's quest, Collect counting dungeon finds, DG71).
 
@@ -1564,7 +1599,12 @@ Ravenwatch's quest, Collect counting dungeon finds, DG71).
 - GM11-2 **A companion from a character file:** (a) kept, with the port's own character files (the new format; old
   files are not read) [recommended: the feature stays as M9 kept character files]; (b) dropped.
 
-## GM12 The three new regions
+## GM12 The three new regions (dissolved)
+
+**Dissolved by GP-9 (the user, 2026-11-20).** The three regions are designed and built as far as the map goes by GM4,
+and filled in by GM6 (their towns' shops), GM9 (their enemy types), GM10 (their encounters, forage, stages and battle
+arrangements) and GM11 (their guild services and quests). Its questions moved: GM12-1 to GM4-9, GM12-3 to GM4-10,
+GM12-2 to GM9-6. The facts below are kept for those milestones.
 
 **What the player gets.** Three regions where the old game has empty, walkable "Uncharted land": the rocky highlands
 (`uncharted-highlands`, origin (2484, −56) in continent units: east of the Alder Vale, south of the Sunward Coast; the
@@ -1595,7 +1635,7 @@ ear.
 
 **Weight: L.** No old code; three regions' drafts and their art (the size follows the drafts).
 
-**Open questions for the user.**
+**Its questions, moved by GP-9** (as they were written; asked now as GM4-9, GM9-6 and GM4-10).
 - GM12-1 **How the regions are made:** (a) drafted by the port region by region (name, identity, terrain, band, towns,
   roads, enemies, encounters, forage, music) and approved, as task 14's content is (DG2) [recommended]; (b) the user
   gives the names and identities first, the port drafts the rest.
@@ -2029,7 +2069,7 @@ fixtures use 0 ms timers).
 The music is the engine's already (M8: 55 themes, 34 instruments, 21 percussion voices, 7 rooms in `audio.pak`, approved
 by ear on 2026-11-02); the game ports `desiredTheme` (region theme, else `alder-vale`; in battle `combat@<region>` if it
 exists, else `combat`; a boss's theme, else `combat`) in GM4 and GM5, and the crossfade in GM4. New themes: two per new
-region (GM12-3) and 23 for the dungeons and their bosses (GM16), written in the composer's notation, checked against
+region (GM4-10, was GM12-3) and 23 for the dungeons and their bosses (GM16), written in the composer's notation, checked against
 Chromium renders of the old composer (which plays any score) and approved by ear. Sound effects: none in the old game;
 the port adds them (2026-11-03); the engine's `SoundEffects` (patches as data at `audio/effects/<name>`, `Actor.Sounds`
 for clip events, seeded variation, voice limits of 4 per patch and 32 in all; no stop yet: the small task "A stop for
@@ -2212,11 +2252,14 @@ The sound questions are asked with their milestones (GM1-6).
 - GM4-1 The map's finish: with parchment frame, compass, scale, inked labels / labels only.
 - GM4-2 Settlements on the map: each its own from a kit / two shared models.
 - GM4-3 The hero on the map: a marker / a 3D figure.
-- GM4-4 The new regions' land: designed in GM4 / all in GM12.
+- GM4-4 The new regions' land: designed in GM4 / all in GM12. Answered by GP-9: GM12 dissolved, the regions built
+  by GM4 and filled in by GM6, GM9, GM10 and GM11.
 - GM4-5 The clock: as the old game / only while travelling, resting, camping.
 - GM4-6 Fog over unentered regions: drifting cloud / blank parchment.
 - GM4-7 The grabbing cursor: an inked gauntlet / an inked hand / the system's.
 - GM4-8 Map sounds: a small set / none.
+- GM4-9 (was GM12-1) The new regions: drafted by the port and approved / the user names them first.
+- GM4-10 (was GM12-3) Their music: two new themes each / neighbours' themes.
 - GM5-1 Battle views: both / the 3D stage only.
 - GM5-2 A battle on save or quit: resumed / dropped.
 - GM5-3 Statuses and reactions: on the figure, icons and bursts / icons and log only.
@@ -2234,13 +2277,12 @@ The sound questions are asked with their milestones (GM1-6).
 - GM9-3 The Earth Spirit: left out / placed in a table.
 - GM9-4 Enemy variants: shared models with parts and palettes / a model each.
 - GM9-5 Creature sounds: a voice per family / none.
+- GM9-6 (was GM12-2) New enemy types in the new regions: where needed / existing only.
 - GM10-1 Stage colours: muted like the figures / the old bright colours.
 - GM10-2 Stage ambience: per biome / none.
 - GM11-1 Companions: commanded by the player / an AI option too.
 - GM11-2 Companions from character files: kept / dropped.
-- GM12-1 The new regions: drafted by the port and approved / the user names them first.
-- GM12-2 New enemy types there: where needed / existing only (asked with GM9's questions if GM4-4 is (a)).
-- GM12-3 Their music: two new themes each / neighbours' themes.
+- GM12's three moved by GP-9 (GM12 dissolved): GM12-1 to GM4-9, GM12-2 to GM9-6, GM12-3 to GM4-10.
 - GM13-1 Boss difficulty: the old targets re-measured / new targets from the user.
 - GM13-2 Cutscene sound: their own sounds / silent with the theme.
 - GM13-3 The site windows: illustrated / plain panels.
@@ -2256,8 +2298,8 @@ The sound questions are asked with their milestones (GM1-6).
 - GM18-2 The editor for the game's kinds: the generic form / special views.
 
 Questions per milestone still open: GM1 0, GM2 0 (5 answered, 3 follow-ups and the detail round Q1–Q42, 2026-11-15),
-GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detail round comes with its design doc), GM4 8, GM5 4, GM6 2, GM7 3, GM8 3, GM9 5, GM10 2, GM11 2, GM12 3, GM13 3, GM14 1, GM15 2, GM16 3, GM17 2, GM18 2:
-45 in all (55 when the plan was written).
+GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detail round comes with its design doc), GM4 9 (GM4-4 answered by GP-9; GM4-9 and GM4-10 moved from GM12), GM5 4, GM6 2, GM7 3, GM8 3, GM9 6 (GM9-6 moved from GM12), GM10 2, GM11 2, GM12 dissolved (GP-9), GM13 3, GM14 1, GM15 2, GM16 3, GM17 2, GM18 2:
+44 in all (55 when the plan was written).
 
 ## Status
 
@@ -2495,3 +2537,8 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
   everywhere (not the recommendation); and the user's word GM3-6, the higher an item's rarity the more fantasy its look
   (common and uncommon realistic, rare and up fantastic). GM3, "Decisions for GM3". GM2 goes on; GM3 starts on the
   user's go.
+- **2026-11-20, GP-9: GM12 dissolved** (the user's question whether GM4 and GM12 could be done at once, then the
+  question tool, the recommended option): GM4 designs and builds the three new regions as far as the map goes (names,
+  identity, bands, terrain, roads, their towns on the map, their region themes), and GM6, GM9, GM10 and GM11 fill them in
+  with their systems; GM12's number kept, 17 milestones. GM4-4 answered by it; GM12-1 and GM12-3 moved to GM4 (GM4-9,
+  GM4-10), GM12-2 to GM9 (GM9-6); 44 questions open. "Decisions for the plan", GP-9.

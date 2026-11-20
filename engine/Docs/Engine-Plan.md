@@ -1285,6 +1285,9 @@ the design and the tests):
   not the recommendation, the Transformer the round copper shield everywhere; and the user's word GM3-6: the higher an
   item's rarity, the more fantasy its look (common and uncommon realistic, rare and up fantastic). GM3-1 answers "the
   level of detail of the item models" below. GM3's detail round comes with its design doc.
+- **GP-9, GM12 dissolved (the user, 2026-11-20):** `Docs/Game-Plan.md`, "Decisions for the plan": the three new
+  regions designed and built by GM4 as far as the map goes and filled in by GM6, GM9, GM10 and GM11 with their systems;
+  GM4-4 answered by it, GM12's questions moved (GM4-9, GM4-10, GM9-6); 17 milestones, the numbers kept.
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -4568,4 +4571,4 @@ Each milestone is finished only when its tests pass.
   - Pack editing.
 - [x] **M12 Packaging** (done 2026-11-12):
   - Linux and Windows publish into the shipped folder layout, crash logs.
-- The game's milestones (GM1–GM18) are in `Docs/Game-Plan.md`.
+- The game's milestones (GM1–GM18; GM12 dissolved by GP-9, 2026-11-20) are in `Docs/Game-Plan.md`.
