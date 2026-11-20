@@ -1298,7 +1298,8 @@ the design and the tests):
   rain slowing travel, visibility in looks only, 23 approved events (`Docs/Port-Tasks/15_Weather/weather-list.md`; Heavy Rain added, WX14); built
   across GM4, GM5, GM7, GM10 and GM17 (`Docs/Game-Plan.md`, GP-10); Control Weather castable on the map too (WX10); three
   weather classes, Forecast, Cloudstrider and Natural Disaster, designed at GM8's start (WX11, GM8-4); the list's battle
-  effects and locations are examples, designed properly when the weather is built (WX12, WX13).
+  effects and locations are examples, designed properly when the weather is built (WX12, WX13); Stormwake always rains
+  (WX15); bosses whose mechanics touch the weather are integrated with it when ported (WX16).
 - **At port time:** a requirement, not a question (the user, 2026-11-05, approving Ji'ruan's cutscene stage): the boss and
   enemy models are to be as detailed and high-quality as the cutscene scenes; the stand-in test figure is not the bar
   (`Docs/Scene.md`, "The bar for the port's cutscenes"). The questions: which sounds the game gets (sound effect patches; the port must add proper sound effects, user
@@ -2635,6 +2636,24 @@ Torrential Rain, Blizzard, Drought, Sunny Day, Thunderstorm for 15 turns, `comba
   Light Rain but below Torrential Rain"): 23 events; Torrential Rain eases through Heavy Rain to Light Rain (WX9). Asked:
   (a) it slows travel a little off the roads, less than Torrential Rain (WX5's heavy rain), Light Rain still not. (Not
   (b) no effect on travel.)
+- WX15 **Stormwake Hills always rains** (the user, 2026-11-20, after asking which region always rains in the old game:
+  only Stormwake, `weather: "rainstorm"`, "Rain" by day and "Thunderstorm" from 18:00 to 06:00): "Stormwake Hills should
+  always have at least one kind of rain, with the minimum being Light Rain. During night, the rain intensifies one level,
+  with the cap being Thunderstorm." So its weather is always one of the rains, in order Light Rain, Heavy Rain,
+  Torrential Rain, Thunderstorm; whatever its climate or a front brings, at least Light Rain; at night (the old game's
+  18:00–06:00 unless GM4 decides otherwise) one level heavier, never past Thunderstorm. A fixed rule beside WX13's
+  example locations. Asked: **Control Weather overrides it, not the recommendation**: cast on the map in Stormwake it
+  sets any weather for its few hours, clear skies too, and the rain returns afterwards. (Not the spell choosing only
+  among the rains there, the recommendation.)
+- WX16 **Bosses that influence the weather** (the user, 2026-11-20): "some bosses (Like Tankina with the Storm mechanic
+  or Leila with the seasons mechanic) directly influence weather/environment. Make a note during the boss port that
+  bosses with similar mechanic than can or could influence weather should be touched upon to integrate it." ("Leila" is
+  Juila, the Grand Forest Matriarch, whose cycle of seasons it is; task 7's names, 2026-11-05.) When a boss is ported
+  (GM13, GM14, GM16), every boss whose mechanic does or could touch the weather or the environment is looked at and its
+  mechanic integrated with task 15's weather, each such integration asked and approved then. Today's candidates, for
+  that look and nothing decided: Tankina's gathering storm (GM13), Juila's seasons (GM14), and possibly Ornn's eruption
+  at the volcano (GM13; Heavy Ash and Ashfall), the Deep Sea King, Gaian, Avatar of the Land, Anatemis's Sunfall (GM14),
+  and task 14's dungeon bosses (GM16).
 
 **Decisions for task 14, Dungeons (2026-11-12, a cloud session; the task is `Docs/Port-Tasks/14_Dungeons.txt`).**
 Asked after reading the task, the earlier tasks' decisions and the old game's systems it touches (below). The port

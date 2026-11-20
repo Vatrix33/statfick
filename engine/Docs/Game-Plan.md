@@ -168,7 +168,10 @@ gotcha: `Docs/Notes.md`, 2026-11-11); everything else anywhere; the Windows PC b
   Forecast, Cloudstrider and Natural Disaster, designed at GM8's start and built there (WX11, GM8-4). The list's battle
   effects and locations are examples only: each event's buffs and debuffs (GM5) and each region's climate (GM4) are
   designed properly, asked and approved when the weather is built (WX12, WX13). Heavy Rain added between Light and
-  Torrential Rain, slowing travel a little off the roads (WX14).
+  Torrential Rain, slowing travel a little off the roads (WX14). Stormwake Hills always rains, at least Light Rain, one
+  level heavier at night up to Thunderstorm, Control Weather overriding it for its hours (WX15). Bosses whose mechanics
+  do or could touch the weather (Tankina's storm, Juila's seasons, and others GM13, GM14 and GM16 find) are integrated
+  with it when ported, each asked then (WX16).
 
 **Earlier decisions that bind the plan** (each where it is recorded):
 - **Old saves are never imported.** "Saves start fresh" (`Docs/Engine-Plan.md`, "User decisions (2026-10-16)",
@@ -291,11 +294,15 @@ the user's go, its questions asked first (GP-6).
   - The boss machinery (phases, badges, boss music, intros held by the AI, the game's cutscene path, the boss
     simulator), built on the two site bosses: Tankina and Ornn with their mechanics, AI, retinues and four cutscenes.
   - Respecs, the Storm Reliquary (with Augmentation), Hearth Home's forge; the storm chapel and Hearth Home's own room.
+  - Port task 15 (WX16): every boss whose mechanic does or could touch the weather looked at and integrated with it,
+    asked first (here Tankina's gathering storm, Ornn's eruption); the same in GM14 and GM16.
 - [ ] **GM14 Bosses and Great Hunts:**
   - The eight Great Hunt bosses on GM13's machinery, with their seven mechanics and ten AI profiles, revamped and
     balanced by simulation; offered on the guild's boards, with trophies and rematches.
   - Their models at the cutscene bar, their phase looks and retinues (the core rig family's first model), their 12
     cutscenes (8 intros, 4 phase scenes).
+  - Port task 15 (WX16): the bosses whose mechanics do or could touch the weather (Juila's seasons; the Deep Sea King,
+    Gaian and Anatemis's Sunfall to look at) integrated with it, asked first.
 - [ ] **GM15 Limitless and the endgame:**
   - Task 7's Limitless: Levels to 200, enemy scaling, keep-aside, doubled masterwork drops, Exotic drops, the Level-200
     reward.
@@ -305,6 +312,8 @@ the user's go, its questions asked first (GP-6).
     GM9's enemies, warning, penalties, Delve and Nocturne Keep's quest.
   - Eleven new bosses and Saffron and Ool moved in, with their intros and themes; the dungeon themes.
   - The three masterworks, the Exotic, the eleven consumables and the smithing materials.
+  - Port task 15 (WX16): the dungeon bosses whose mechanics do or could touch the weather integrated with it, asked
+    first.
 - [ ] **GM17 Balance and the class tests:**
   - C32's duty (3): every level, passive and skill of the 256 classes exercised in play.
   - The balance pass by simulation (bosses, zones, races, classes, items, port task 15's weather); the user's playtest.
@@ -2609,3 +2618,6 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
 - **2026-11-20, task 15's additions (WX10, WX11):** Control Weather castable on the map too; three weather classes,
   Forecast, Cloudstrider and Natural Disaster (an upgrade of Cloudstrider with Botanomancer levels), named by the user,
   designed at GM8's start (GM8-4); 36 questions open.
+- **2026-11-20, task 15's Stormwake rule and the bosses (WX15, WX16):** Stormwake Hills always rains (at least Light
+  Rain, one level heavier at night, Thunderstorm at most; Control Weather overrides it for its hours); bosses whose
+  mechanics do or could touch the weather are integrated with it when GM13, GM14 and GM16 port them, each asked then.

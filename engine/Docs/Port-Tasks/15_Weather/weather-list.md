@@ -23,6 +23,10 @@ designed properly, asked and approved when the weather is built (GM4 for the cli
 Weather); the "Where" and "Battle" lines below show only the kind meant. The events themselves and what slows travel
 stay as approved.
 
+**Two fixed rules beside the examples:** Stormwake Hills always rains, at least Light Rain, one level heavier at night,
+Thunderstorm at most; Control Weather cast on the map overrides it for its hours (WX15). Bosses whose mechanics do or
+could touch the weather (Tankina's storm, Juila's seasons, …) are integrated with it when they are ported (WX16).
+
 ---
 
 ## Everyday weather

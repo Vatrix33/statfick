@@ -89,7 +89,7 @@ file listing puts `10_` before `1_`; the list below is the order). The `.txt` fi
     2026-11-20, kept as written.)
     **Designed for the port, built during it (the user, 2026-11-20, WX1):** nothing in the old game. Decisions WX1–WX9
     in `Engine-Plan.md`, "Decisions for task 15, Weather"; the approved 23 weather events in
-    `15_Weather/weather-list.md` (their battle effects and locations examples, designed when built, WX12, WX13). Built across GM4 (the world's weather fronts, travel, the map), GM5 (the battle
+    `15_Weather/weather-list.md` (their battle effects and locations examples, designed when built, WX12, WX13; Stormwake always rains, WX15; weather-touching bosses integrated when ported, WX16). Built across GM4 (the world's weather fronts, travel, the map), GM5 (the battle
     effects), GM7 (Control Weather, castable on the map too, WX10), GM8 (three weather classes, Forecast,
     Cloudstrider and Natural Disaster, designed at GM8's start, WX11), GM10 (the stages) and GM17 (the numbers'
     balance); `Game-Plan.md`, GP-10.
