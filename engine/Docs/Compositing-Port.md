@@ -741,7 +741,120 @@ Chromium's rings to 2 levels before the port.
     1.65, "Three text rules", stays).
   - *`color-scheme: dark` ignored by the theme:* the game's dark settings and dialogs draw their checkboxes light where
     Chromium draws them dark (`game-screen-settings-mods-dark@1`: about 500 of its 663 pixels past 12 levels, 196 levels
-    apart; `color-scheme` is parsed and ignored).
+    apart; `color-scheme` is parsed and ignored). **Done 2026-11-22** ("Colour schemes" below).
+
+## Colour schemes (GM2's engine task, 2026-11-21 and 22, the branch `gm2-color-scheme`)
+
+**The engine honours `color-scheme` as Chromium 152 does** (listed as "the theme ignores `color-scheme: dark`" by the
+round borders' task: the game's dark screens drew their checkboxes and the theme's other parts light). The game asks for
+it in one place, `html.dark-mode { color-scheme: dark; background: var(--paper); }` (`Assets/UI/styles/game.css`, as the
+old game's `old-game/styles.css` line 34); the light theme leaves it `normal`, and the editor never sets it (its
+convention 2). Every rule from Chromium 152.0.7977.89's source (the reference PC's Electron is .130, whose `html.css`
+is the same bytes), saved in `~/.cache/stat-fick-build/reference-src/chromium-152-source/color-scheme/` (and `early/`,
+the colour mixers), and every value checked against the reference PC's Chromium.
+
+- **The property** (`longhands_custom.cc`: `ColorScheme::ParseSingleValue`, `ApplyColorSchemeValue`;
+  `ComputedStyleBuilder::SetUsedColorScheme`, `computed_style.cc`): `normal`, or idents (`light`, `dark` in lower case, a
+  custom ident as written, never a CSS-wide keyword or `default`), with `only` once, first or last, moved to the end;
+  inherited (`ComputedStyle.ColorScheme`, the list, and `DarkColorScheme`, the used scheme, both copied to children).
+  The used scheme is dark when `dark` is listed and either `light` isn't or the preferred scheme is dark; `normal` takes
+  the page's schemes, which only a `<meta name="color-scheme">` gives: the engine's documents have no head, so it is
+  light. Forced darkening isn't the engine's. Computed first of all (Blink's priority 2), before `font-size` and `color`.
+- **The preferred scheme** (`prefers-color-scheme`, and the scheme of `color-scheme: light dark`):
+  `MediaEnvironment.PrefersDark`, from `PlatformBehaviour.PrefersDarkColorScheme`, light unless set (the engine doesn't
+  read the desktop's); the tests act as the reference PC, whose Chromium prefers dark (`ReferencePlatform`). The media
+  feature was unknown to the engine (false either way); a change of the preference restyles the document.
+- **Colours** (`StyleBuilderConverter::ResolveColorValue`, `style_builder_converter.cc`): system colours, `light-dark()`
+  (CSS Color 5, `css_parsing_utils`' `ConsumeLightDark`: two colours, nested anywhere a colour goes, color-mix()
+  included) and Blink's `-webkit-link`, `-webkit-activelink` and `-webkit-focus-ring-color` resolve at computed-value time
+  against the element's own used scheme, and inherit as the colour they gave (a light child of a dark parent keeps the
+  parent's white `CanvasText`). `ValueReader.TryColor(current, dark, …)`; `SystemColors` holds both schemes' values as the
+  reference PC's Chromium resolves them through its colour provider (`LayoutTheme::SystemColor`,
+  `color_provider_utils.cc`'s `CompleteDefaultCssSystemColorDefinition`; `DefaultSystemColor` for those it has no
+  provider colour for): Canvas #ffffff/#121212, CanvasText, ButtonText, FieldText, ButtonBorder #000000/#ffffff (the
+  provider's button text: the engine's light #767676 was `DefaultSystemColor`'s, wrong), ButtonFace #efefef/#6b6b6b, Field
+  #ffffff/#3b3b3b, LinkText and `-webkit-link` #0000ee/#9e9eff, VisitedText #551a8b/#d0adf0, `-webkit-activelink`
+  #ff0000/#ff9e9e, SelectedItem #1967d2/#99c8ff, SelectedItemText #ffffff/#3b3b3b, the focus ring #e59700/#eeeeee
+  (`FocusRingRespectExplicitOutlineColorInDarkMode`, stable); ActiveText, GrayText, Mark, MarkText, Highlight
+  (#0041c6cc) and HighlightText the same in both. The root's colour, when nothing sets it, and `color: initial` are white
+  in the dark scheme (Blink's `DocumentElementUserAgentDeclarations` and `InitialColorForColorScheme`). SVG paints in an
+  element's scheme too. A registered `<color>` custom property still computes in the light scheme (not used by the game).
+- **The user agent's colours** (`html.css`, and `linux.css` after it on Linux): fields', text areas' and selects' borders
+  `light-dark(#767676, #858585)`; disabled buttons `light-dark()` of their three colours; disabled fields and text areas
+  their background and `light-dark(#545454, #aaaaaa)`; a disabled select's colour `light-dark(GrayText, #aaa)`; a
+  range's colour `#9d968e` (`linux.css`; not painted) and its background `Field` (unpainted under its look; the engine had
+  transparent); a dialog `Canvas` and `CanvasText`; a fieldset's groove `ButtonFace` (was #c0c0c0; `ThreeDFace`, which
+  Chromium resolves as ButtonFace); a colour input `ButtonFace`, `ButtonText`, `ButtonBorder`; links `-webkit-link`.
+  Placeholders stay #757575 in both (as `html.css`).
+- **The native look** (`ThemePainterDefault` gives `NativeThemeBase` the colour provider of `style.UsedColorScheme()`;
+  `color_provider_utils.cc`'s `CompleteDefaultWebNativeRendererColorIdsDefinition`, which `ControlTheme`'s dark palette
+  already held for the accent's flip): buttons, fields, text areas, menu lists, checkboxes, radios, slider tracks and
+  thumbs and progress bars paint the scheme's palette; an accent next to a checked box, a slider or a progress bar flips
+  the scheme both ways now (`CalculateColorSchemeForAccentColor`: a dark scheme turns light for an accent under 3:1 with
+  #3b3b3b, as a light one turns dark for one under 3:1 with white), and a translucent accent is made opaque over the
+  scheme's Canvas (#121212 in dark; `GetAccentColor`). The number field's spin button and every scrollbar are Fluent's in
+  the scheme (`fluent_ui_color_mixer.cc`: dark track, corner and arrow buttons #2c2c2c, thumb and arrows #9f9f9f, hovered
+  and pressed #d1d1d1; `scrollbar-color` the same in both); a scrollbar's scheme is its box's (`Scrollbar::UsedColorScheme`),
+  the viewport's the root's (the LayoutView takes `DarkColorScheme` from it; the root-scrollbar exception for a page of
+  `normal` under a dark preference needs the browser's own preference, light in Electron). The search field's cancel
+  button takes Chromium's dark images (`IDR_SEARCH_CANCEL_DARK_MODE`, `…_PRESSED_DARK_MODE`, now in `UI/Resources/`).
+  The focus ring's outer stroke is #101010 in the dark scheme (`outline_painter.cc`'s `PaintFocusRing`), its inner the
+  outline colour (the scheme's `-webkit-focus-ring-color`). The menu list's arrow already took the text colour.
+- **The canvas:** under a dark root the page's base is #121212 (`UiDocument.UsedBaseBackground`;
+  `StyleEngine::UpdateColorSchemeBackground` and `LocalFrameView::BaseBackgroundColor`: a main frame's base when it isn't
+  transparent; an iframe of another scheme than its element's paints the same colour, so the paint fixtures' iframes
+  agree). The game's dark theme gives its root a background, so nothing of it shows there.
+- **The select's list** (`internal_popup_menu.cc` writes the owner's `DarkColorScheme` into the popup's
+  `<meta name="color-scheme" content="only dark|light">`): the engine's `sv-select-popup` gets the select's scheme as
+  `color-scheme: only dark` or `only light` in its style. The title tooltip and the validation bubble are the browser's,
+  drawn in its own theme, not the page's: unchanged.
+- **Not the scheme's, found on the way and left** (each the same in both schemes): a read-only field painted as disabled
+  (Blink 152's `GetWebThemeState` counts only disabled; read-only disables only the spin button); inset, outset, groove
+  and ridge borders painted solid (Blink shades a side, `CalculateInsetOutsetColor`: a button with its own background keeps
+  the user agent's `2px outset ButtonBorder`, black now as in Chromium, which Chromium draws #a8a8a8 and #545454); a
+  drop-down select's background `ButtonFace` on Linux (`linux.css`, `select:not(:-internal-list-box)`, which the engine's
+  selectors can't say; only a select without its look and without a background of its own shows it); the search field's
+  cancel button a device pixel off and filtered otherwise (both schemes: 56 pixels past 40 levels at 1, about 160 at
+  1.65, worst 152–217); text areas one pixel narrower from `cols`, a text field from `size` and a fieldset's own width; the
+  engine's meter (its own green bar, Chromium's is styled by `html.css`; the game has none) not switched.
+- **Its pages** (`Ui/ColorSchemeReferenceTests`, `Ui/ColorSchemeFixtures`, `Reference/color-scheme-fixtures.json`, captured
+  through `Tools/PaintReference` with the flags of `make-scaled-paint-references.sh` inside a headless cage, at 1 and
+  1.65, each with Chromium's computed values of its elements with an id): `colors-light|dark` (every system colour as a
+  swatch, `light-dark()` seven ways (four of them invalid), the root's colour, `color: initial`, a link, a focused field's ring colour, the user
+  agent's colours of a dialog, fieldset, disabled field, text area, button, select and a range, the preference's media
+  query, `light dark`, 30 values of `color-scheme`'s grammar, a system colour inherited into the other scheme, an SVG's
+  system colour and `light-dark()`, the canvas), `controls-light|dark` (checkboxes, radios, ranges, progress bars,
+  fields, selects, buttons, text areas, disabled, with accents that flip the scheme and a translucent one),
+  `focus-number|button-light|dark` (a focused window's focus rings and spin button), `scrollbars-light|dark` (bars,
+  corners, a thin one, `scrollbar-color`, the root's bars) and `nested` (a dark root, a light section, a dark one in it,
+  `light dark` and `only light`, with controls and scrollers in each). Within the paint fixtures' limits (12 levels, the
+  controls' 40, 0.2 %). The input fixture `scheme-states-dark` (`Ui/InputFixtures.cs`, Chromium's screenshots at 1 and its
+  results at 1 and 1.65): a pressed button, checkbox, range thumb and scrollbar thumb in the dark scheme (the harness's
+  offscreen page paints no hovered look, Blink's `GetWebThemeState` without a pointer that can hover; its light twin
+  isn't there: in a headless cage the harness captures the first fixture of a run at the output's size).
+  `Ui/ColorSchemeTests`: the engine's light default for the preference and a change of it (with and without a media query
+  depending on it), a scheme change restyling the children and only painting, the select's list in the select's scheme,
+  the dark cancel image, the spin button's dark arrows against Chromium's page (their greys within the controls' 40
+  levels), the dark base under a dark root and not under a transparent base.
+- **What moved** (the full suite on the GPU on `main`, `b8b2e28`, and with the change, every picture comparison's pixels
+  past its limit's levels and past 12 logged by a scratch line, every render kept): of the 451 comparisons with Chromium
+  both runs make, 6 moved, all nearer, and only their 6 renders differ byte for byte (of 626 kept): every light page, the
+  editor's screens, the old game's and every other dark screen of the port (the emblems' sheet and carousel among them)
+  the same bytes. No limit, tolerance, mask or golden changed (the two `control-select` screens captured again for their
+  list's style came out the same bytes). The dark settings screens' unchecked boxes are now the scheme's #3b3b3b, as
+  Chromium's; nothing else of a game screen changed.
+
+  | Screen | At 1: pixels past 12 levels (worst) | At 1.65 |
+  | --- | --- | --- |
+  | `game-screen-settings-mods-dark` | 677 → 29 (196 → 76) | 1,786 → 162 (196 → 59) |
+  | `game-screen-settings-no-mods-dark` | 649 → 1 (196 → 14) | 1,641 → 99 (196 → 44) |
+  | `game-screen-settings-dev-mode-dark` | 326 → 2 (196 → 16) | 913 → 113 (196 → 44) |
+- **Breaks** (`mutate.py` under the lock, `claude-work/gm2/color-scheme/mutations.json` and its rerun): 77. Killed 71,
+  then the 4 gaps they showed closed and killed (a `light-dark()` argument followed by more, a change of the preference
+  where no media query depends on it, the spin button's arrows, a pressed scrollbar thumb). **2 standing**, both unable to
+  differ: `color-scheme` computed again in the loop after its early place (the same value twice), and the used scheme left
+  out of `AffectsChildrenEquals` beside the computed list (the used scheme changes only with the list or with the
+  preference, which restyles everything). Nothing written to the player's real folders.
 
 ## Status (2026-10-25)
 

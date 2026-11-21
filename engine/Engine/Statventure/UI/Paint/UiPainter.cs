@@ -75,21 +75,21 @@ public sealed partial class UiPainter : IDisposable
         _controlImages.Clear();
     }
 
-    readonly Dictionary<bool, GpuImage?> _controlImages = [];
+    readonly Dictionary<(bool Pressed, bool Dark), GpuImage?> _controlImages = [];
 
-    /// <summary>The search cancel image in a rect (as a texture made on first use).</summary>
-    void DrawSearchCancel(RectF rect, bool pressed)
+    /// <summary>The search cancel image in a rect (as a texture made on first use), the dark scheme's when <paramref name="dark"/>.</summary>
+    void DrawSearchCancel(RectF rect, bool pressed, bool dark)
     {
         if (!_canvas.HasCanvas)
         {
             _canvas.FillRect(rect, Color.Transparent);
             return;
         }
-        if (!_controlImages.TryGetValue(pressed, out var image))
+        if (!_controlImages.TryGetValue((pressed, dark), out var image))
         {
-            var rgba = ControlImages.SearchCancel(pressed);
+            var rgba = ControlImages.SearchCancel(pressed, dark);
             image = _canvas.CreateTexture(rgba.Width, rgba.Height, rgba.Pixels);
-            _controlImages[pressed] = image;
+            _controlImages[(pressed, dark)] = image;
         }
         if (image is not null)
             _canvas.DrawImage(image, rect);
@@ -1052,10 +1052,10 @@ public sealed partial class UiPainter : IDisposable
         {
             // ViewPainter::PaintRootGroup: the base background alone, the Root Group's backdrop, in the view's contents
             // state; then the root's background in the Root Element Group, without the base.
-            if (_document.BaseBackground.A > 0)
+            if (_document.UsedBaseBackground.A > 0)
             {
                 _canvas.BeginItem(boxDecoration: true);
-                _canvas.FillRect(CanvasRect(viewport), _document.BaseBackground);
+                _canvas.FillRect(CanvasRect(viewport), _document.UsedBaseBackground);
                 _canvas.EndItem();
             }
             _canvas.UseState(state, viewport);
@@ -1104,8 +1104,8 @@ public sealed partial class UiPainter : IDisposable
         var canvasRect = CanvasRect(viewport);
         // Under everything, the page's base colour (a browser's white), unless an opaque background covers it (ViewPainter)
         // or the Root Group painted it apart.
-        if (baseBackground && _document.BaseBackground.A > 0 && s.BackgroundColor.A < 1)
-            _canvas.FillRect(canvasRect, _document.BaseBackground);
+        if (baseBackground && _document.UsedBaseBackground.A > 0 && s.BackgroundColor.A < 1)
+            _canvas.FillRect(canvasRect, _document.UsedBaseBackground);
         if (s.BackgroundColor.A <= 0 && s.Backgrounds.Length == 0)
             return;
         _backgroundSource = source;

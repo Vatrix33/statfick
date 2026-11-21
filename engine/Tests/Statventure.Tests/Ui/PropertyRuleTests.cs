@@ -178,7 +178,7 @@ public class PropertyRuleTests
     static Statventure.Core.Color? Color(string text)
     {
         var reader = new ValueReader(CssTokenizer.Tokenize(text));
-        return reader.TryColor(Statventure.Core.Color.Black, out var color) && reader.AtEnd ? color : null;
+        return reader.TryColor(Statventure.Core.Color.Black, dark: false, out var color) && reader.AtEnd ? color : null;
     }
 
     // ---------- Compiling and the record ----------

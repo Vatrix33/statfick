@@ -108,6 +108,7 @@ public sealed class MediaQuery
                     "max-height" => environment.Height <= value,
                     "min-height" => environment.Height >= value,
                     "prefers-reduced-motion" => (keyword == "reduce") == environment.ReducedMotion,
+                    "prefers-color-scheme" => keyword == (environment.PrefersDark ? "dark" : "light"),
                     "hover" => keyword == "hover",
                     "pointer" => keyword == "fine",
                     "orientation" => (keyword == "landscape") == (environment.Width >= environment.Height),
@@ -126,9 +127,10 @@ public sealed class MediaQuery
 /// <summary>
 /// What media queries are evaluated against: the viewport in CSS px, the reduced-motion preference,
 /// and the zoom (device pixels per CSS px: the screen's scale times the page zoom), which lengths are
-/// computed with, and the screen's scale alone (text positioning depends on it).
+/// computed with, and the screen's scale alone (text positioning depends on it). <see cref="PrefersDark"/> is the
+/// preferred colour scheme (prefers-color-scheme), which also decides <c>color-scheme: light dark</c>.
 /// </summary>
-public readonly record struct MediaEnvironment(float Width, float Height, bool ReducedMotion = false, float Zoom = 1, float DeviceScale = 1);
+public readonly record struct MediaEnvironment(float Width, float Height, bool ReducedMotion = false, float Zoom = 1, float DeviceScale = 1, bool PrefersDark = false);
 
 /// <summary>
 /// What parsing a stylesheet left out, as the UI importer checks it (Docs/Assets.md, "UI"; S7-2): rules

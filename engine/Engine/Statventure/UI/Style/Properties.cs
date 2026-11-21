@@ -10,6 +10,8 @@ public sealed class StyleContext
     public required UnitContext Units;
     public required ComputedStyle Parent;
     public required ComputedStyle Style;
+    /// <summary>The preferred colour scheme is dark (prefers-color-scheme; <see cref="Css.MediaEnvironment.PrefersDark"/>), which picks the scheme of <c>color-scheme: light dark</c>.</summary>
+    public bool PrefersDark;
 }
 
 /// <summary>
@@ -31,7 +33,7 @@ public static partial class Properties
         "counter-reset", "counter-increment", "-webkit-font-smoothing", "-moz-osx-font-smoothing", "text-rendering",
         "font-feature-settings", "font-kerning", "-webkit-tap-highlight-color", "touch-action",
         "content-visibility", "contain-intrinsic-size", "text-size-adjust", "-webkit-text-size-adjust", "speak", "forced-color-adjust",
-        "color-scheme", "print-color-adjust", "-webkit-print-color-adjust", "tab-size", "hyphens", "orphans", "widows", "image-rendering",
+        "print-color-adjust", "-webkit-print-color-adjust", "tab-size", "hyphens", "orphans", "widows", "image-rendering",
         "font-optical-sizing", "font-synthesis", "-webkit-user-drag", "scroll-snap-type", "scroll-snap-align",
         "unicode-range", "background-origin",
         "table-layout", "border-collapse", "border-spacing", "quotes", "direction",
@@ -126,11 +128,72 @@ public static partial class Properties
     static Parser ColorOf(Action<ComputedStyle, Color?> set) =>
         (r, c) =>
         {
-            if (!r.TryColor(c.Style.Color, out var color) || !r.AtEnd)
+            if (!r.TryColor(c.Style.Color, c.Style.DarkColorScheme, out var color) || !r.AtEnd)
                 return false;
             set(c.Style, color);
             return true;
         };
+
+    /// <summary>
+    /// color-scheme's value (ColorScheme::ParseSingleValue, longhands_custom.cc): <c>normal</c> (no idents), or idents, each
+    /// <c>light</c>, <c>dark</c> or a custom ident (as written; not a CSS-wide keyword or <c>default</c>), with <c>only</c>
+    /// once, first or last, moved to the end. Null when invalid.
+    /// </summary>
+    static string[]? ParseColorScheme(ValueReader r)
+    {
+        if (r.Peek().IsIdent("normal"))
+        {
+            r.Next();
+            return r.AtEnd ? [] : null;
+        }
+        var values = new List<string>();
+        var only = false;
+        while (!r.AtEnd)
+        {
+            var token = r.Peek();
+            if (token.Type != CssTokenType.Ident)
+                return null;
+            var id = token.Value.ToLowerInvariant();
+            if (id == "normal")
+                return null;
+            r.Next();
+            if (id == "only")
+            {
+                if (only)
+                    return null;
+                // After a scheme, only ends the list.
+                if (values.Count > 0)
+                {
+                    values.Add("only");
+                    return r.AtEnd ? [.. values] : null;
+                }
+                only = true;
+                continue;
+            }
+            if (id is "light" or "dark")
+                values.Add(id);
+            else if (id is "initial" or "inherit" or "unset" or "revert" or "revert-layer" or "default")
+                return null;
+            else
+                values.Add(token.Value);
+        }
+        if (values.Count == 0)
+            return null;
+        if (only)
+            values.Add("only");
+        return [.. values];
+    }
+
+    /// <summary>
+    /// The used scheme of a computed color-scheme (ComputedStyleBuilder::SetUsedColorScheme without forced darkening): dark
+    /// when dark is listed and light isn't, or both are and the preferred scheme is dark. <c>normal</c> takes the page's
+    /// schemes, which only a color-scheme meta element gives (the engine's documents have none): light.
+    /// </summary>
+    internal static bool UsesDarkScheme(string[] schemes, bool prefersDark)
+    {
+        var dark = schemes.Contains("dark");
+        return dark && (prefersDark || !schemes.Contains("light"));
+    }
 
     static bool BorderWidth(ValueReader r, StyleContext c, out float width)
     {
@@ -254,7 +317,7 @@ public static partial class Properties
                     inset = true;
                 else if (r.TryLength(c.Units, out var length))
                     lengths.Add(length.Pixels);
-                else if (r.TryColor(c.Style.Color, out var parsed))
+                else if (r.TryColor(c.Style.Color, c.Style.DarkColorScheme, out var parsed))
                     color = parsed;
                 else
                     return null;
@@ -317,7 +380,7 @@ public static partial class Properties
         {
             if (r.TryLength(c.Units, out var length))
                 lengths.Add(length.Pixels);
-            else if (r.TryColor(c.Style.Color, out var parsed))
+            else if (r.TryColor(c.Style.Color, c.Style.DarkColorScheme, out var parsed))
                 color = parsed;
             else
                 return null;
@@ -548,7 +611,7 @@ public static partial class Properties
             var positions = new List<Length>();
             while (!p.AtEnd)
             {
-                if (p.TryColor(c.Style.Color, out var parsed))
+                if (p.TryColor(c.Style.Color, c.Style.DarkColorScheme, out var parsed))
                     color = parsed;
                 else if (p.TryLength(c.Units, out var position))
                     positions.Add(position);
@@ -890,8 +953,18 @@ public static partial class Properties
         Add("grid-row-start", false, (r, c) => ParseGridLine(r.Remaining()) is { } l && Set(() => c.Style.GridRowStart = l), (t, s) => t.GridRowStart = s.GridRowStart);
         Add("grid-row-end", false, (r, c) => ParseGridLine(r.Remaining()) is { } l && Set(() => c.Style.GridRowEnd = l), (t, s) => t.GridRowEnd = s.GridRowEnd);
 
+        // color-scheme first of all (the cascade computes it before color, whose system colours and light-dark() it decides).
+        Add("color-scheme", true, (r, c) =>
+        {
+            if (ParseColorScheme(r) is not { } schemes)
+                return false;
+            c.Style.ColorScheme = schemes;
+            c.Style.DarkColorScheme = UsesDarkScheme(schemes, c.PrefersDark);
+            return true;
+        }, (t, s) => (t.ColorScheme, t.DarkColorScheme) = (s.ColorScheme, s.DarkColorScheme));
+
         // Text (inherited).
-        Add("color", true, (r, c) => r.TryColor(c.Parent.Color, out var color) && r.AtEnd && Set(() => c.Style.Color = color), (t, s) => t.Color = s.Color);
+        Add("color", true, (r, c) => r.TryColor(c.Parent.Color, c.Style.DarkColorScheme, out var color) && r.AtEnd && Set(() => c.Style.Color = color), (t, s) => t.Color = s.Color);
         Add("font-family", true, (r, c) =>
         {
             var families = new List<string>();
@@ -1222,7 +1295,7 @@ public static partial class Properties
                 return false;
             return r.AtEnd;
         }, (t, s) => t.Opacity = s.Opacity);
-        Add("background-color", false, (r, c) => r.TryColor(c.Style.Color, out var color) && r.AtEnd && Set(() => c.Style.BackgroundColor = color), (t, s) => t.BackgroundColor = s.BackgroundColor);
+        Add("background-color", false, (r, c) => r.TryColor(c.Style.Color, c.Style.DarkColorScheme, out var color) && r.AtEnd && Set(() => c.Style.BackgroundColor = color), (t, s) => t.BackgroundColor = s.BackgroundColor);
         Add("background-image", false, (r, c) =>
         {
             var images = new List<ImageValue>();
@@ -1499,7 +1572,7 @@ public static partial class Properties
                 (c.Style.ScrollbarThumb, c.Style.ScrollbarTrack) = (null, null);
                 return r.AtEnd;
             }
-            if (!r.TryColor(c.Style.Color, out var thumb) || !r.TryColor(c.Style.Color, out var track))
+            if (!r.TryColor(c.Style.Color, c.Style.DarkColorScheme, out var thumb) || !r.TryColor(c.Style.Color, c.Style.DarkColorScheme, out var track))
                 return false;
             (c.Style.ScrollbarThumb, c.Style.ScrollbarTrack) = (thumb, track);
             return r.AtEnd;

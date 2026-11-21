@@ -131,17 +131,22 @@ internal static class ControlTheme
     }
 
     /// <summary>
-    /// Whether an accent colour turns the control dark (Blink's CalculateColorSchemeForAccentColor):
-    /// when it contrasts too little (under 3:1) with the light background and less than with the dark one.
+    /// The scheme a control adjacent to its accent colour paints in (Blink's CalculateColorSchemeForAccentColor,
+    /// theme_painter_default.cc): its own (<paramref name="dark"/>), flipped when the accent contrasts too little (under
+    /// 3:1) with that scheme's background part and less than with the other scheme's.
     /// </summary>
-    static bool DarkForAccent(Color? accent, Color lightBackground, Color darkBackground)
+    static bool SchemeForAccent(bool dark, Color? accent, Color lightBackground, Color darkBackground)
     {
         if (accent is not { } color)
-            return false;
+            return dark;
         var withLight = ContrastRatio(color, lightBackground);
         var withDark = ContrastRatio(color, darkBackground);
+        if (dark)
+            return !(withDark < 3 && withDark < withLight);
         return withLight < 3 && withLight < withDark;
     }
+
+    static Palette PaletteOf(bool dark) => dark ? Dark : Light;
 
     static float Luminance(Color c)
     {
@@ -208,10 +213,14 @@ internal static class ControlTheme
         return square;
     }
 
-    public static void PaintCheckbox(PaintTarget target, RectF rect, ThemeState state, bool isChecked, bool indeterminate, Color? accent)
+    /// <param name="dark">The control's used colour scheme is dark (ComputedStyle::UsedColorScheme).</param>
+    public static void PaintCheckbox(PaintTarget target, RectF rect, ThemeState state, bool isChecked, bool indeterminate, Color? accent, bool dark)
     {
-        var dark = isChecked && state != ThemeState.Disabled && DarkForAccent(accent, (state == ThemeState.Disabled ? Light.CheckboxBackground[0] : Light.CheckboxBackground[2]), Dark.CheckboxBackground[2]);
-        var palette = dark ? Dark : Light;
+        // A checked box next to its accent may take the other scheme (GetColorSchemeForAccentColor against kPartCheckbox's
+        // background in each scheme).
+        if (isChecked && state != ThemeState.Disabled)
+            dark = SchemeForAccent(dark, accent, Light.CheckboxBackground[2], Dark.CheckboxBackground[2]);
+        var palette = PaletteOf(dark);
         const float radius = 2;
         if (CheckboxRadioCommon(target, rect, state, true, isChecked, indeterminate, radius, accent, palette, dark) is not { } r)
             return;
@@ -233,10 +242,11 @@ internal static class ControlTheme
         }
     }
 
-    public static void PaintRadio(PaintTarget target, RectF rect, ThemeState state, bool isChecked, Color? accent)
+    public static void PaintRadio(PaintTarget target, RectF rect, ThemeState state, bool isChecked, Color? accent, bool dark)
     {
-        var dark = isChecked && state != ThemeState.Disabled && DarkForAccent(accent, Light.CheckboxBackground[2], Dark.CheckboxBackground[2]);
-        var palette = dark ? Dark : Light;
+        if (isChecked && state != ThemeState.Disabled)
+            dark = SchemeForAccent(dark, accent, Light.CheckboxBackground[2], Dark.CheckboxBackground[2]);
+        var palette = PaletteOf(dark);
         var radius = MathF.Max(rect.Width, rect.Height) * 0.5f;
         if (CheckboxRadioCommon(target, rect, state, false, isChecked, false, radius, accent, palette, dark) is not { } r || !isChecked)
             return;
@@ -246,9 +256,9 @@ internal static class ControlTheme
     // ---------- Buttons and fields ----------
 
     /// <summary>NativeThemeBase::PaintButton: the border width and radius zoomed (AdjustBorderWidthByZoom, AdjustBorderRadiusByZoom).</summary>
-    public static void PaintButton(PaintTarget target, RectF rect, ThemeState state, float zoom = 1)
+    public static void PaintButton(PaintTarget target, RectF rect, ThemeState state, float zoom, bool dark)
     {
-        var palette = Light;
+        var palette = PaletteOf(dark);
         var fill = palette.ButtonFill[(int)state];
         if (rect.Width < 5 || rect.Height < 5)
         {
@@ -269,9 +279,9 @@ internal static class ControlTheme
     /// 1 px border, both without antialiasing (its paint flags leave it off), so the corners are
     /// notched pixels; only the disabled lighten layer is antialiased.
     /// </summary>
-    public static void PaintTextField(PaintTarget target, RectF rect, ThemeState state, Color background, bool hasBorder, float zoom = 1)
+    public static void PaintTextField(PaintTarget target, RectF rect, ThemeState state, Color background, bool hasBorder, float zoom, bool dark)
     {
-        var palette = Light;
+        var palette = PaletteOf(dark);
         var border = BorderWidthByZoom(BorderWidth, zoom);
         var inner = Inset(rect, border / 2, border / 2);
         var radius = BorderWidthByZoom(2, zoom);
@@ -374,10 +384,11 @@ internal static class ControlTheme
     }
 
     /// <summary>NativeThemeBase::PaintSliderTrack: the track's thickness and border zoomed.</summary>
-    public static void PaintSliderTrack(PaintTarget target, RectF rect, ThemeState state, float thumbX, Color? accent, float zoom = 1)
+    public static void PaintSliderTrack(PaintTarget target, RectF rect, ThemeState state, float thumbX, Color? accent, float zoom, bool dark)
     {
-        var dark = state != ThemeState.Disabled && DarkForAccent(accent, Light.Fill[2], Dark.Fill[2]);
-        var palette = dark ? Dark : Light;
+        if (state != ThemeState.Disabled)
+            dark = SchemeForAccent(dark, accent, Light.Fill[2], Dark.Fill[2]);
+        var palette = PaletteOf(dark);
         var thickness = SliderTrackThickness * zoom;
         var track = AlignTrack(rect, false, 0, thickness);
         const float radius = 40;
@@ -389,19 +400,21 @@ internal static class ControlTheme
         StrokeRoundRect(target, track, radius, palette.SliderBorder[(int)state], BorderWidthByZoom(BorderWidth, zoom));
     }
 
-    public static void PaintSliderThumb(PaintTarget target, RectF rect, ThemeState state, Color? accent)
+    public static void PaintSliderThumb(PaintTarget target, RectF rect, ThemeState state, Color? accent, bool dark)
     {
-        var dark = state != ThemeState.Disabled && DarkForAccent(accent, Light.Fill[2], Dark.Fill[2]);
-        var palette = dark ? Dark : Light;
+        if (state != ThemeState.Disabled)
+            dark = SchemeForAccent(dark, accent, Light.Fill[2], Dark.Fill[2]);
+        var palette = PaletteOf(dark);
         var radius = MathF.Max(rect.Width, rect.Height) * 0.5f;
         FillRoundRect(target, Inset(rect, 0.5f, 0.5f), radius, AccentOrControl(accent, palette.Slider, state, dark));
     }
 
     /// <summary>NativeThemeBase::PaintProgressBar: a track half as thick as the bar, the value clipped to it, a 1 px border.</summary>
-    public static void PaintProgressBar(PaintTarget target, RectF rect, ThemeState state, float position, bool determinate, Color? accent, float zoom = 1)
+    public static void PaintProgressBar(PaintTarget target, RectF rect, ThemeState state, float position, bool determinate, Color? accent, float zoom, bool dark)
     {
-        var dark = DarkForAccent(accent, Light.Fill[2], Dark.Fill[2]);
-        var palette = dark ? Dark : Light;
+        // A progress bar always may take the other scheme for its accent (whatever its state).
+        dark = SchemeForAccent(dark, accent, Light.Fill[2], Dark.Fill[2]);
+        var palette = PaletteOf(dark);
         var thickness = rect.Height * SliderTrackThickness / SliderThumbThickness;
         var track = AlignTrack(rect, false, 0, thickness);
         const float radius = 40;
@@ -430,7 +443,7 @@ internal static class ControlTheme
     /// buttons): the upper half steps up, the lower half down; only the hovered or pressed half
     /// shows its state.
     /// </summary>
-    public static void PaintInnerSpinButton(PaintTarget target, RectF rect, ThemeState state, bool upHovered)
+    public static void PaintInnerSpinButton(PaintTarget target, RectF rect, ThemeState state, bool upHovered, bool dark)
     {
         var up = state;
         var down = state;
@@ -439,15 +452,15 @@ internal static class ControlTheme
         else
             up = state == ThemeState.Disabled ? ThemeState.Disabled : ThemeState.Normal;
         var half = (int)(rect.Height / 2);
-        PaintArrowButton(target, new RectF(rect.X, rect.Y, rect.Width, half), ScrollbarPart.BackButton, up);
-        PaintArrowButton(target, new RectF(rect.X, rect.Y + half, rect.Width, half), ScrollbarPart.ForwardButton, down);
+        PaintArrowButton(target, new RectF(rect.X, rect.Y, rect.Width, half), ScrollbarPart.BackButton, up, dark);
+        PaintArrowButton(target, new RectF(rect.X, rect.Y + half, rect.Width, half), ScrollbarPart.ForwardButton, down, dark);
     }
 
-    static void PaintArrowButton(PaintTarget target, RectF rect, ScrollbarPart part, ThemeState state)
+    static void PaintArrowButton(PaintTarget target, RectF rect, ScrollbarPart part, ThemeState state, bool dark)
     {
         if (rect.Width <= 0 || rect.Height <= 0)
             return;
-        target.FillRect(rect, ScrollbarTheme.Track);
+        target.FillRect(rect, ScrollbarTheme.ButtonBackground(null, dark));
         var arrowState = state switch
         {
             ThemeState.Disabled => ScrollbarPartState.Disabled,
@@ -455,7 +468,7 @@ internal static class ControlTheme
             ThemeState.Pressed => ScrollbarPartState.Pressed,
             _ => ScrollbarPartState.Normal,
         };
-        var color = ScrollbarTheme.ArrowColor(null, null, arrowState);
+        var color = ScrollbarTheme.ArrowColor(null, null, arrowState, dark);
         foreach (var span in ScrollbarTheme.ArrowPixels(rect, part, vertical: true, arrowState))
             target.FillRect(span, color);
     }

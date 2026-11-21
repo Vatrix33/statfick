@@ -21,7 +21,10 @@ public sealed partial class UiPainter
         : element.IsHovered ? ThemeState.Hovered
         : ThemeState.Normal;
 
-    /// <summary>The accent colour (accent-color, made opaque over the canvas colour), or null for the theme's.</summary>
+    /// <summary>
+    /// The accent colour (accent-color, made opaque over the Canvas system colour of the element's used scheme:
+    /// ThemePainterDefault's GetAccentColor), or null for the theme's.
+    /// </summary>
     static Color? AccentOf(ComputedStyle s)
     {
         if (s.AccentColor is not { } accent)
@@ -29,7 +32,8 @@ public sealed partial class UiPainter
         if (accent.A >= 1)
             return accent;
         var a = accent.A;
-        return new Color(accent.R * a + (1 - a), accent.G * a + (1 - a), accent.B * a + (1 - a), 1);
+        var canvas = SystemColors.Resolve("canvas", s.DarkColorScheme)!.Value;
+        return new Color(accent.R * a + canvas.R * (1 - a), accent.G * a + canvas.G * (1 - a), accent.B * a + canvas.B * (1 - a), 1);
     }
 
     // ---------- The native look (the box decoration phase) ----------
@@ -52,37 +56,37 @@ public sealed partial class UiPainter
                 if (zoom != 1)
                     _canvas.PushTransform(Matrix3x2.CreateTranslation(-rect.X, -rect.Y) * Matrix3x2.CreateScale(zoom) * Matrix3x2.CreateTranslation(rect.X, rect.Y));
                 if (look == ControlLook.Checkbox)
-                    ControlTheme.PaintCheckbox(_canvas, unzoomed, state, element.Checked, element.Indeterminate, AccentOf(s));
+                    ControlTheme.PaintCheckbox(_canvas, unzoomed, state, element.Checked, element.Indeterminate, AccentOf(s), s.DarkColorScheme);
                 else
-                    ControlTheme.PaintRadio(_canvas, unzoomed, state, element.Checked, AccentOf(s));
+                    ControlTheme.PaintRadio(_canvas, unzoomed, state, element.Checked, AccentOf(s), s.DarkColorScheme);
                 if (zoom != 1)
                     _canvas.PopTransform();
                 break;
             }
             case ControlLook.PushButton:
             case ControlLook.Button:
-                ControlTheme.PaintButton(_canvas, rect, state, s.Zoom);
+                ControlTheme.PaintButton(_canvas, rect, state, s.Zoom, s.DarkColorScheme);
                 break;
             case ControlLook.TextField:
             case ControlLook.SearchField:
             case ControlLook.TextArea:
-                ControlTheme.PaintTextField(_canvas, rect, state, s.BackgroundColor, hasBorder: true, s.Zoom);
+                ControlTheme.PaintTextField(_canvas, rect, state, s.BackgroundColor, hasBorder: true, s.Zoom, s.DarkColorScheme);
                 break;
             case ControlLook.Menulist:
                 if (!s.HasBorderRadius)
-                    ControlTheme.PaintTextField(_canvas, rect, state, s.BackgroundColor, hasBorder: s.BorderTop > 0 || s.BorderRight > 0 || s.BorderBottom > 0 || s.BorderLeft > 0, s.Zoom);
+                    ControlTheme.PaintTextField(_canvas, rect, state, s.BackgroundColor, hasBorder: s.BorderTop > 0 || s.BorderRight > 0 || s.BorderBottom > 0 || s.BorderLeft > 0, s.Zoom, s.DarkColorScheme);
                 PaintMenuListArrow(box, s, rect);
                 break;
             case ControlLook.ProgressBar:
             {
                 var position = ProgressPosition(element);
-                ControlTheme.PaintProgressBar(_canvas, rect, state, MathF.Max(0, position), position >= 0, AccentOf(s), s.Zoom);
+                ControlTheme.PaintProgressBar(_canvas, rect, state, MathF.Max(0, position), position >= 0, AccentOf(s), s.Zoom, s.DarkColorScheme);
                 break;
             }
             case ControlLook.SliderHorizontal:
             {
                 var thumb = RangeThumb(box, element, _shift);
-                ControlTheme.PaintSliderTrack(_canvas, rect, state, MathF.Round(thumb.X - rect.X, MidpointRounding.AwayFromZero), AccentOf(s), s.Zoom);
+                ControlTheme.PaintSliderTrack(_canvas, rect, state, MathF.Round(thumb.X - rect.X, MidpointRounding.AwayFromZero), AccentOf(s), s.Zoom, s.DarkColorScheme);
                 break;
             }
         }
@@ -193,7 +197,7 @@ public sealed partial class UiPainter
             : _document.RangeThumbActive == element ? ThemeState.Pressed
             : _document.RangeThumbHovered == element ? ThemeState.Hovered
             : ThemeState.Normal;
-        ControlTheme.PaintSliderThumb(_canvas, thumb, state, AccentOf(box.Style));
+        ControlTheme.PaintSliderThumb(_canvas, thumb, state, AccentOf(box.Style), box.Style.DarkColorScheme);
     }
 
     /// <summary>A box's content box where layout put it (not snapped to pixels): text inside controls is painted from there.</summary>
@@ -349,7 +353,7 @@ public sealed partial class UiPainter
         var layered = part.Opacity < 1;
         if (layered)
             _canvas.PushLayer(new LayerOptions { Opacity = part.Opacity });
-        ControlTheme.PaintInnerSpinButton(_canvas, Snap(spin), state, _document.SpinButtonUpHalf);
+        ControlTheme.PaintInnerSpinButton(_canvas, Snap(spin), state, _document.SpinButtonUpHalf, part.DarkColorScheme);
         if (layered)
             _canvas.PopLayer();
     }
@@ -388,7 +392,7 @@ public sealed partial class UiPainter
         var layered = part.Opacity < 1;
         if (layered)
             _canvas.PushLayer(new LayerOptions { Opacity = part.Opacity });
-        DrawSearchCancel(painting, pressed);
+        DrawSearchCancel(painting, pressed, part.DarkColorScheme);
         if (layered)
             _canvas.PopLayer();
     }

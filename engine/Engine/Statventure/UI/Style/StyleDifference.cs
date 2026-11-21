@@ -37,7 +37,7 @@ public static class StyleDifference
     [
         nameof(ComputedStyle.BorderTopColor), nameof(ComputedStyle.BorderRightColor), nameof(ComputedStyle.BorderBottomColor), nameof(ComputedStyle.BorderLeftColor),
         nameof(ComputedStyle.RadiusTopLeft), nameof(ComputedStyle.RadiusTopRight), nameof(ComputedStyle.RadiusBottomRight), nameof(ComputedStyle.RadiusBottomLeft),
-        nameof(ComputedStyle.ZIndex), nameof(ComputedStyle.Color), nameof(ComputedStyle.TextShadows), nameof(ComputedStyle.Visibility),
+        nameof(ComputedStyle.ZIndex), nameof(ComputedStyle.Color), nameof(ComputedStyle.ColorScheme), nameof(ComputedStyle.DarkColorScheme), nameof(ComputedStyle.TextShadows), nameof(ComputedStyle.Visibility),
         nameof(ComputedStyle.PointerEvents), nameof(ComputedStyle.Interactivity), nameof(ComputedStyle.IsInert), nameof(ComputedStyle.Cursor), nameof(ComputedStyle.CursorImages), nameof(ComputedStyle.UserSelect), nameof(ComputedStyle.AccentColor),
         nameof(ComputedStyle.CaretColor), nameof(ComputedStyle.ScrollbarThumb), nameof(ComputedStyle.ScrollbarTrack),
         nameof(ComputedStyle.Underline), nameof(ComputedStyle.LineThrough), nameof(ComputedStyle.Overline), nameof(ComputedStyle.TextDecorationColor),

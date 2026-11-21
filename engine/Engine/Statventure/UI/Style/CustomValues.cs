@@ -66,7 +66,7 @@ static class CustomValues
         if (value is null)
             return null;
         var reader = new ValueReader(value);
-        if (!reader.TryColor(current, out var color) || !reader.AtEnd)
+        if (!reader.TryColor(current, dark: false, out var color) || !reader.AtEnd)
             return null;
         return (color.R * 255.0, color.G * 255.0, color.B * 255.0, color.A);
     }

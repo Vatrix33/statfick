@@ -713,7 +713,7 @@ public sealed partial class UiPainter
         var stops = gradient.ElementChildren.Where(e => e.Tag == "stop").Select(stop =>
         {
             var offset = stop.GetAttribute("offset") is { } o ? (o.EndsWith('%') ? Parse(o[..^1]) / 100 : Parse(o)) : 0;
-            var color = SvgColor(stop.GetAttribute("stop-color") ?? StyleValue(stop, "stop-color") ?? "black", Color.Black) ?? Color.Black;
+            var color = SvgColor(stop.GetAttribute("stop-color") ?? StyleValue(stop, "stop-color") ?? "black", Color.Black, stop.Style?.DarkColorScheme ?? false) ?? Color.Black;
             var opacity = Parse(stop.GetAttribute("stop-opacity") ?? StyleValue(stop, "stop-opacity") ?? "1");
             return new GradientStop(Math.Clamp(offset, 0, 1), color with { A = color.A * opacity });
         }).ToArray();
@@ -797,12 +797,14 @@ public sealed partial class UiPainter
     SvgPaint Inherit(SvgPaint parent, UiElement e, Dictionary<string, UiElement> ids)
     {
         var paint = parent;
-        var current = Attribute(e, "color") is { } colorText && SvgColor(colorText, parent.CurrentColor) is { } colorValue ? colorValue : parent.CurrentColor;
+        // System colours and light-dark() in the element's used colour scheme (its style's, as Blink computes presentation attributes).
+        var dark = e.Style?.DarkColorScheme ?? false;
+        var current = Attribute(e, "color") is { } colorText && SvgColor(colorText, parent.CurrentColor, dark) is { } colorValue ? colorValue : parent.CurrentColor;
         paint = paint with { CurrentColor = current };
         if (Attribute(e, "fill") is { } fill)
-            paint = ParseSvgPaint(fill, current, out var fillUrl) is var brush ? paint with { Fill = brush, FillUrl = fillUrl } : paint;
+            paint = ParseSvgPaint(fill, current, dark, out var fillUrl) is var brush ? paint with { Fill = brush, FillUrl = fillUrl } : paint;
         if (Attribute(e, "stroke") is { } stroke)
-            paint = ParseSvgPaint(stroke, current, out var strokeUrl) is var brush ? paint with { Stroke = brush, StrokeUrl = strokeUrl } : paint;
+            paint = ParseSvgPaint(stroke, current, dark, out var strokeUrl) is var brush ? paint with { Stroke = brush, StrokeUrl = strokeUrl } : paint;
         if (Attribute(e, "fill-opacity") is { } fo)
             paint = paint with { FillOpacity = Math.Clamp(Parse(fo), 0, 1) };
         if (Attribute(e, "stroke-opacity") is { } so)
@@ -821,7 +823,7 @@ public sealed partial class UiPainter
         return paint;
     }
 
-    static Brush? ParseSvgPaint(string value, Color current, out string? url)
+    static Brush? ParseSvgPaint(string value, Color current, bool dark, out string? url)
     {
         url = null;
         var text = value.Trim();
@@ -834,15 +836,15 @@ public sealed partial class UiPainter
             url = inner.StartsWith('#') ? inner[1..] : inner;
             // A fallback after the url, else black.
             var rest = close >= 0 ? text[(close + 1)..].Trim() : "";
-            return rest.Length > 0 && SvgColor(rest, current) is { } fallback ? Brush.Solid(fallback) : Brush.Solid(Color.Black);
+            return rest.Length > 0 && SvgColor(rest, current, dark) is { } fallback ? Brush.Solid(fallback) : Brush.Solid(Color.Black);
         }
-        return SvgColor(text, current) is { } color ? Brush.Solid(color) : null;
+        return SvgColor(text, current, dark) is { } color ? Brush.Solid(color) : null;
     }
 
-    static Color? SvgColor(string text, Color current)
+    static Color? SvgColor(string text, Color current, bool dark)
     {
         var reader = new ValueReader(CssParser.Trim(CssTokenizer.Tokenize(text)));
-        return reader.TryColor(current, out var color) ? color : null;
+        return reader.TryColor(current, dark, out var color) ? color : null;
     }
 
     static float Number(UiElement e, string name) => e.GetAttribute(name) is { } v ? Parse(v.Replace("px", "")) : 0;

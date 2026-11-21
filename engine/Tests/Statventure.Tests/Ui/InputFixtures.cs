@@ -481,5 +481,31 @@ public static class InputFixtures
                 Move(50, 30), Wait(500), Move(150, 30), Wait(100), Move(250, 30), Wait(380), Move(350, 30), Wait(480),
                 Move(50, 100), Wait(300), Click(150, 100), Wait(300), Move(250, 100), Wait(200),
                 Set("#holder", "innerHTML", ""), Wait(100), Move(150, 170), Wait(500))),
+
+        // The native look's pressed states in the dark scheme (GM2's colour-scheme task): a button, a checkbox, a range's
+        // thumb, a scrollbar's thumb (only clicks and values logged: the page's mouseup over a scrollbar has another
+        // detail in Chromium, which isn't the scheme's). (Chromium paints no hovered look here: the harness's offscreen page has no pointer that can hover,
+        // ThemePainterDefault's GetWebThemeState, so hovered states aren't among the screenshots. The light scheme's
+        // twin isn't here: inside a headless cage the harness captured its page at the output's size, 2400 × 2400.)
+        SchemeStates("dark"),
     ];
+
+    static InputFixture SchemeStates(string scheme) => new($"scheme-states-{scheme}", 400, 160, $$"""
+        :root { color-scheme: {{scheme}}; }
+        * { caret-color: transparent; }
+        .s { overflow: auto; box-sizing: border-box; border: 1px solid #888; }
+        """, """
+        <button id="b" class="a" style="left: 10px; top: 10px; width: 90px; height: 30px">Button</button>
+        <input id="c" class="a" type="checkbox" checked style="left: 120px; top: 18px">
+        <input id="r" class="a" type="range" style="left: 160px; top: 15px; width: 120px">
+        <input id="n" class="a" type="number" value="12" style="left: 300px; top: 10px; width: 80px; height: 26px">
+        <input id="t" class="a" type="text" value="field" style="left: 10px; top: 60px; width: 120px; height: 26px">
+        <select id="s" class="a" style="left: 150px; top: 60px; width: 100px; height: 28px"><option>One</option><option>Two</option></select>
+        <div id="sc" class="a s" style="left: 280px; top: 60px; width: 100px; height: 80px"><div style="height: 400px"></div></div>
+        <span hidden data-log="click input change"></span>
+        """, Steps(
+            Move(55, 25), Down(55, 25), Screenshot("button-pressed"), Up(55, 25),
+            Move(126, 24), Down(126, 24), Screenshot("checkbox-pressed"), Up(126, 24),
+            Move(220, 23), Down(220, 23), Screenshot("thumb-pressed"), Up(220, 23),
+            Move(371, 90), Down(371, 90), Screenshot("scrollbar-pressed"), Up(371, 90), Move(10, 150)));
 }

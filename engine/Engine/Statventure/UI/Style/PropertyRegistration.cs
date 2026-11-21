@@ -100,7 +100,7 @@ public sealed class PropertyRegistration
         if (value is [{ Type: CssTokenType.Ident } keyword] && keyword.IsIdent("currentcolor"))
             return [new CssToken(CssTokenType.Ident, "currentcolor")];
         var reader = new ValueReader(value);
-        if (!reader.TryColor(Color.Black, out var color) || !reader.AtEnd)
+        if (!reader.TryColor(Color.Black, dark: false, out var color) || !reader.AtEnd)
             return null;
         if (value.Any(t => t.IsIdent("currentcolor")))
             return value;

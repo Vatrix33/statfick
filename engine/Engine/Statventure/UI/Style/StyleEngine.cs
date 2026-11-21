@@ -219,12 +219,14 @@ public sealed class StyleEngine
         if (environment != _environment)
             _shared.Clear();
         var zoomed = environment.Zoom != _environment.Zoom || environment.DeviceScale != _environment.DeviceScale;
+        // The preferred scheme decides the used scheme of color-scheme: light dark (and every colour it resolves).
+        var preference = environment.PrefersDark != _environment.PrefersDark;
         _environment = environment;
         if (zoomed)
             _initial = null;
         var key = MediaKey();
         // Every length is computed with the zoom: a new zoom restyles everything.
-        if (key != _mediaKey || zoomed)
+        if (key != _mediaKey || zoomed || preference)
             Invalidate();
     }
 
@@ -1005,6 +1007,7 @@ public sealed class StyleEngine
             Units = Units(parentStyle.SpecifiedFontSize, rootFontSize),
             Parent = parentStyle,
             Style = style,
+            PrefersDark = _environment.PrefersDark,
         };
         Dictionary<string, List<(string, List<CssToken>)>?>? expansions = null;
 
@@ -1064,6 +1067,10 @@ public sealed class StyleEngine
                 case "inherit":
                     property.Copy(style, parentStyle);
                     break;
+                case "initial" when property.Name == "color":
+                    // Color::ApplyInitial: the initial colour of the element's used scheme.
+                    style.Color = InitialColor(style);
+                    break;
                 case "initial":
                     property.Copy(style, initial);
                     break;
@@ -1073,8 +1080,13 @@ public sealed class StyleEngine
             }
         }
 
-        // font-size first (em and the other font-relative units depend on it), then color
-        // (currentColor), then line-height (lh), then everything else.
+        // color-scheme first (Blink's priority 2: it decides the colours), font-size (em and the other font-relative units
+        // depend on it), then color (currentColor), then line-height (lh), then everything else.
+        Apply(Properties.Get("color-scheme")!);
+        // The root's colour is the initial colour of its used scheme unless something sets it (StyleResolver's
+        // DocumentElementUserAgentDeclarations: an initial colour first in the root's cascade, below every rule).
+        if (isRoot)
+            style.Color = InitialColor(style);
         if (Properties.Get("font-size") is { } fontSize)
             Apply(fontSize);
         context.Units = context.Units with { FontSize = style.SpecifiedFontSize };
@@ -1084,7 +1096,7 @@ public sealed class StyleEngine
         Apply(Properties.Get("line-height")!);
         context.Units = context.Units with { LineHeight = style.LineHeightForUnits };
         foreach (var property in Properties.Ordered)
-            if (property.Name is not ("font-size" or "color" or "line-height") && winners.ContainsKey(property.Name))
+            if (property.Name is not ("color-scheme" or "font-size" or "color" or "line-height") && winners.ContainsKey(property.Name))
                 Apply(property);
 
         // Blockification (CSS Display 3 §2.7): the root, absolutely positioned boxes and flex/grid items.
@@ -1096,6 +1108,9 @@ public sealed class StyleEngine
         style.Finish();
         return style;
     }
+
+    /// <summary>ComputedStyle::InitialColorForColorScheme: white in the dark scheme, black in the light one.</summary>
+    internal static Core.Color InitialColor(ComputedStyle style) => style.DarkColorScheme ? Core.Color.White : Core.Color.Black;
 
     /// <summary>
     /// The decorations a box takes from its layout parent (StyleAdjuster's base text decoration data):
@@ -1226,6 +1241,9 @@ public sealed class StyleEngine
             case "inherit":
                 property.Copy(style, parent);
                 return true;
+            case "initial" when property.Name == "color":
+                style.Color = InitialColor(style);
+                return true;
             case "initial":
                 property.Copy(style, Initial);
                 return true;
@@ -1239,6 +1257,7 @@ public sealed class StyleEngine
             Units = Units(property.Name == "font-size" ? parent.SpecifiedFontSize : style.SpecifiedFontSize, rootFontSize, lineHeight),
             Parent = parent,
             Style = style,
+            PrefersDark = _environment.PrefersDark,
         };
         return property.Parse(new ValueReader(tokens), context);
     }

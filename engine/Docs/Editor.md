@@ -1387,7 +1387,8 @@ below needs a shared file edited.
    inside the root), no `will-change`, no transform or opacity animations (the editor runs as a main frame, whose
    root scroller is composited, while Chromium's captures are made in an iframe, whose root isn't, so such a box
    is a layer of its own, with grayscale text, only in the editor; see "Found" below); no `color-scheme` (the
-   engine ignores it, Chromium would draw its native controls dark): give controls their own colours, and
+   engine ignored it until 2026-11-22 and honours it as Chromium does since, `Docs/Compositing-Port.md`, "Colour
+   schemes": with it the native controls would be drawn dark): give controls their own colours, and
    `font: inherit` (the shell does it for buttons).
 3. **Commands** (`View.Commands`, `EditorCommand`): `Handle(command, request => acted, () => canRun)`. A command runs
    its handlers that can run in the order they were registered until one returns true. The top bar's button of a

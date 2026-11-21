@@ -1,6 +1,9 @@
 namespace Statventure.UI.Style;
 
-/// <summary>The engine's default styles for HTML-like elements (the parts of Chromium's html.css the UI uses).</summary>
+/// <summary>
+/// The engine's default styles for HTML-like elements (the parts of Chromium's html.css the UI uses). Colours that
+/// html.css switches by the used colour scheme are its system colours and light-dark() pairs, resolved for each element.
+/// </summary>
 public static class UserAgentStyles
 {
     public const string Css = """
@@ -38,20 +41,20 @@ public static class UserAgentStyles
         sup { vertical-align: super; font-size: smaller; }
         u, ins { text-decoration: underline; }
         s, del, strike { text-decoration: line-through; }
-        a:any-link, a[href] { color: #0000ee; text-decoration: underline; cursor: pointer; }
+        a:any-link, a[href] { color: -webkit-link; text-decoration: underline; cursor: pointer; }
         label { cursor: default; }
         legend { padding-left: 2px; padding-right: 2px; border: none; }
-        fieldset { margin-left: 2px; margin-right: 2px; padding: 0.35em 0.75em 0.625em; border: 2px groove #c0c0c0; min-width: min-content; }
+        fieldset { margin-left: 2px; margin-right: 2px; padding: 0.35em 0.75em 0.625em; border: 2px groove ButtonFace; min-width: min-content; }
         details > summary:first-of-type { display: list-item; list-style: inside disclosure-closed; }
         details[open] > summary:first-of-type { list-style-type: disclosure-open; }
         dialog:not([open]) { display: none; }
-        dialog { position: absolute; left: 0; right: 0; width: fit-content; height: fit-content; margin: auto; border: solid; padding: 1em; background-color: white; color: black; }
+        dialog { position: absolute; left: 0; right: 0; width: fit-content; height: fit-content; margin: auto; border: solid; padding: 1em; background-color: Canvas; color: CanvasText; }
 
         input, textarea, select, button {
             margin: 0; font: 13.333333px sans-serif; color: FieldText; letter-spacing: normal; word-spacing: normal;
             line-height: normal; text-transform: none; text-indent: 0; text-shadow: none; display: inline-block; text-align: start;
         }
-        input { padding: 1px 2px; border: 2px inset #767676; background-color: Field; cursor: text; }
+        input { padding: 1px 2px; border: 2px inset light-dark(#767676, #858585); background-color: Field; cursor: text; }
         input[type="hidden"] { display: none; }
         button, input[type="button"], input[type="submit"], input[type="reset"] {
             padding: 1px 6px; border: 2px outset ButtonBorder; background-color: ButtonFace; color: ButtonText; text-align: center;
@@ -61,21 +64,27 @@ public static class UserAgentStyles
         input[type="button"]:active, input[type="submit"]:active, input[type="reset"]:active, button:active { border-style: inset; }
         input[type="button"]:active:disabled, input[type="submit"]:active:disabled, input[type="reset"]:active:disabled, button:active:disabled { border-style: outset; }
         input[type="button"]:disabled, input[type="submit"]:disabled, input[type="reset"]:disabled, button:disabled {
-            background-color: rgba(239, 239, 239, 0.3); border-color: rgba(118, 118, 118, 0.3); color: rgba(16, 16, 16, 0.3);
+            background-color: light-dark(rgba(239, 239, 239, 0.3), rgba(19, 1, 1, 0.3)); border-color: light-dark(rgba(118, 118, 118, 0.3), rgba(195, 195, 195, 0.3));
+            color: light-dark(rgba(16, 16, 16, 0.3), rgba(255, 255, 255, 0.3));
         }
         input[type="checkbox"] { margin: 3px 3px 3px 4px; padding: 0; border: none; background-color: transparent; box-sizing: border-box; cursor: default; }
         input[type="radio"] { margin: 3px 3px 0 5px; padding: 0; border: none; background-color: transparent; box-sizing: border-box; cursor: default; }
-        input[type="range"] { margin: 2px; padding: 0; border: none; background-color: transparent; color: #101010; cursor: default; }
+        input[type="range"] { margin: 2px; padding: 0; border: none; color: light-dark(#101010, #ffffff); cursor: default; }
+        /* Blink's linux.css (after html.css on Linux): a range's colour. */
+        input[type="range"] { color: #9d968e; }
         input[type="checkbox"]:disabled, input[type="radio"]:disabled, input[type="range"]:disabled, input[type="file"]:disabled { background-color: transparent; }
         input[type="range"]:disabled { color: #c5c5c5; }
         input[type="file"] { padding: 0; border: none; background-color: transparent; cursor: default; }
-        input[type="color"] { padding: 1px 2px; background-color: #efefef; border: 1px solid #767676; box-sizing: border-box; cursor: default; }
+        input[type="color"] { padding: 1px 2px; background-color: ButtonFace; color: ButtonText; border: 1px solid ButtonBorder; box-sizing: border-box; cursor: default; }
         input[type="search"] { box-sizing: border-box; }
-        input:disabled, textarea:disabled { cursor: default; background-color: rgba(239, 239, 239, 0.3); color: #545454; border-color: rgba(118, 118, 118, 0.3); }
-        select { box-sizing: border-box; border: 1px solid #767676; border-radius: 0; background-color: Field; color: FieldText; cursor: default; white-space: pre; }
+        input:disabled, textarea:disabled {
+            cursor: default; background-color: light-dark(rgba(239, 239, 239, 0.3), rgba(59, 59, 59, 0.3)); color: light-dark(#545454, #aaaaaa);
+            border-color: rgba(118, 118, 118, 0.3);
+        }
+        select { box-sizing: border-box; border: 1px solid light-dark(#767676, #858585); border-radius: 0; background-color: Field; color: FieldText; cursor: default; white-space: pre; }
         select:disabled { border-color: rgba(118, 118, 118, 0.3); opacity: 0.7; }
-        select:disabled, optgroup:disabled, option:disabled, select[disabled] > option { color: GrayText; }
-        textarea { font-family: monospace; padding: 2px; border: 1px solid #767676; background-color: Field; white-space: pre-wrap; overflow-wrap: break-word; overflow: auto; cursor: text; resize: -internal-textarea-auto; }
+        select:disabled, optgroup:disabled, option:disabled, select[disabled] > option { color: light-dark(GrayText, #aaa); }
+        textarea { font-family: monospace; padding: 2px; border: 1px solid light-dark(#767676, #858585); background-color: Field; white-space: pre-wrap; overflow-wrap: break-word; overflow: auto; cursor: text; resize: -internal-textarea-auto; }
         progress { display: inline-block; box-sizing: border-box; width: 10em; height: 1em; vertical-align: -0.2em; }
         meter { display: inline-block; box-sizing: border-box; width: 5em; height: 1em; vertical-align: -0.2em; }
         :focus-visible { outline: auto 1px -webkit-focus-ring-color; }

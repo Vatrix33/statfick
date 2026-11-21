@@ -747,6 +747,16 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   inside a round button takes the pointer at its corners, outside the button's circle (hit-testing follows the border's
   curve, not a child's box): give it `pointer-events: none`, or the headless compositor's resting pointer lights a hover
   and a tooltip in a fixture (`HeroScreenFixturesTests`) and makes Chromium's goldens differ run to run.
+- 2026-11-22 (the PC, GM2's engine task "colour schemes" on the branch `gm2-color-scheme`): **`color-scheme` honoured as
+  Chromium 152 does** (`Docs/Compositing-Port.md`, "Colour schemes"). Gotchas: the reference PC's Chromium prefers dark
+  (its harness inside the cage reads the desktop's preference), so `color-scheme: light dark` is dark in the references;
+  Chromium resolves system colours through its colour provider, not `LayoutTheme::DefaultSystemColor` (ButtonBorder is
+  black, not #767676): measure a keyword with PaintReference's `computed` list rather than read it from one function;
+  Blink's `linux.css` follows `html.css` on Linux (a range's colour, a drop-down select's ButtonFace); a compiled sheet in
+  a pack drops the properties the engine ignores, so a property newly taken needs `make-ui-pack.sh` again; inside a
+  headless cage the input harness captures the first fixture of a run at the output's size (2400 × 2400: put another
+  fixture first) and paints no hovered look (offscreen: no pointer that can hover); a capture script that moves only
+  `ui-<name>@<scale>.json` loses the `.styles.json` beside it.
 
 ## Asking about design choices (user rule)
 

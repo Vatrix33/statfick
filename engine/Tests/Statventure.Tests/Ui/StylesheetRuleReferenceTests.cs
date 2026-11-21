@@ -149,7 +149,7 @@ public class StylesheetRuleReferenceTests(GpuFixture gpu)
     /// Equal values: the same text, or for a standard property a colour Chromium keeps in sRGB (a color-mix()'s,
     /// printed as color(srgb r g b)) that the engine's rgb() rounds to (its colours carry no colour space).
     /// </summary>
-    static bool Same(string property, string expected, string actual)
+    internal static bool Same(string property, string expected, string actual)
     {
         if (expected == actual)
             return true;

@@ -75,7 +75,7 @@ public sealed partial class UiPainter
         _canvas.FillRect(new RectF(x + 1, y, w - 1, 1), grey);
     }
 
-    /// <summary>The viewport's scrollbars, over everything, styled by the root element.</summary>
+    /// <summary>The viewport's scrollbars, over everything, styled by the root element (its colour scheme too: the LayoutView takes DarkColorScheme from it).</summary>
     void PaintViewportScrollbars(LayoutBox viewport, LayoutBox root)
     {
         if (root.Element is not { } element)
@@ -118,11 +118,11 @@ public sealed partial class UiPainter
         PaintScrollbarButton(bar, ScrollbarPart.BackButton, offset <= 0 ? ScrollbarPartState.Disabled : StateOf(ScrollbarPart.BackButton), s);
         PaintScrollbarButton(bar, ScrollbarPart.ForwardButton, offset >= max ? ScrollbarPartState.Disabled : StateOf(ScrollbarPart.ForwardButton), s);
         if (bar.Track.Width > 0 && bar.Track.Height > 0)
-            _canvas.FillRect(bar.Track, ScrollbarTheme.TrackColor(s.ScrollbarTrack));
+            _canvas.FillRect(bar.Track, ScrollbarTheme.TrackColor(s.ScrollbarTrack, s.DarkColorScheme));
         if (bar.HasThumb)
         {
             var thumb = bar.Thumb;
-            var color = ScrollbarTheme.ThumbColor(s.ScrollbarThumb, s.ScrollbarTrack, StateOf(ScrollbarPart.Thumb));
+            var color = ScrollbarTheme.ThumbColor(s.ScrollbarThumb, s.ScrollbarTrack, StateOf(ScrollbarPart.Thumb), s.DarkColorScheme);
             // Fully rounded: Skia fits the 999 px radii to the rect's shorter side.
             _canvas.DrawBox(thumb, Brush.Solid(color), new CornerRadii(MathF.Min(thumb.Width, thumb.Height) / 2), Border.None);
         }
@@ -133,8 +133,8 @@ public sealed partial class UiPainter
         var rect = bar.RectOf(part);
         if (rect.Width <= 0 || rect.Height <= 0)
             return;
-        _canvas.FillRect(rect, ScrollbarTheme.ButtonBackground(s.ScrollbarTrack));
-        var color = ScrollbarTheme.ArrowColor(s.ScrollbarThumb, s.ScrollbarTrack, state);
+        _canvas.FillRect(rect, ScrollbarTheme.ButtonBackground(s.ScrollbarTrack, s.DarkColorScheme));
+        var color = ScrollbarTheme.ArrowColor(s.ScrollbarThumb, s.ScrollbarTrack, state, s.DarkColorScheme);
         foreach (var span in ScrollbarTheme.ArrowPixels(rect, part, bar.Vertical, state))
             _canvas.FillRect(span, color);
     }
@@ -142,6 +142,6 @@ public sealed partial class UiPainter
     void PaintScrollCorner(RectF corner, ComputedStyle s)
     {
         if (corner.Width > 0 && corner.Height > 0 && _canvas.Drawing)
-            _canvas.FillRect(corner, ScrollbarTheme.CornerColor(s.ScrollbarTrack));
+            _canvas.FillRect(corner, ScrollbarTheme.CornerColor(s.ScrollbarTrack, s.DarkColorScheme));
     }
 }

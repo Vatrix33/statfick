@@ -298,8 +298,13 @@ public sealed class ValueReader
         return false;
     }
 
-    /// <summary>A colour; "currentcolor" gives <paramref name="current"/>.</summary>
-    public bool TryColor(Color current, out Color color)
+    /// <summary>
+    /// A colour; "currentcolor" gives <paramref name="current"/>. System colours and light-dark() resolve against the element's
+    /// used colour scheme (<paramref name="dark"/>), as Blink resolves them at computed-value time
+    /// (StyleBuilderConverter's ResolveColorValue, style_builder_converter.cc): the element's own scheme, inherited as the
+    /// colour it gave.
+    /// </summary>
+    public bool TryColor(Color current, bool dark, out Color color)
     {
         var token = Peek();
         switch (token.Type)
@@ -336,13 +341,33 @@ public sealed class ValueReader
                     color = Color.FromHex(named);
                     return true;
                 }
+                if (SystemColors.Resolve(name, dark) is { } system)
+                {
+                    _at++;
+                    color = system;
+                    return true;
+                }
+                break;
+            }
+            case CssTokenType.Function when token.Value.Equals("light-dark", StringComparison.OrdinalIgnoreCase):
+            {
+                // CSS Color 5's light-dark(<color>, <color>) (css_parsing_utils' ConsumeLightDark): both colours must parse;
+                // the used scheme picks one (ResolveLightDarkPair).
+                var save = _at;
+                var parts = CssParser.SplitOnCommas(FunctionArguments());
+                if (parts.Count == 2 && Single(parts[0], current, dark) is { } light && Single(parts[1], current, dark) is { } darkColor)
+                {
+                    color = dark ? darkColor : light;
+                    return true;
+                }
+                _at = save;
                 break;
             }
             case CssTokenType.Function when token.Value is "rgb" or "rgba" or "hsl" or "hsla" or "color-mix" or "color":
             {
                 var save = _at;
                 var arguments = FunctionArguments();
-                if (ColorFunction(token.Value, arguments, current) is { } value)
+                if (ColorFunction(token.Value, arguments, current, dark) is { } value)
                 {
                     color = value;
                     return true;
@@ -362,10 +387,17 @@ public sealed class ValueReader
         _ => float.NaN,
     };
 
-    static Color? ColorFunction(string name, List<CssToken> arguments, Color current)
+    /// <summary>A token list that is one colour and nothing else (a light-dark() argument).</summary>
+    static Color? Single(List<CssToken> tokens, Color current, bool dark)
+    {
+        var reader = new ValueReader(tokens);
+        return reader.TryColor(current, dark, out var color) && reader.AtEnd ? color : null;
+    }
+
+    static Color? ColorFunction(string name, List<CssToken> arguments, Color current, bool dark)
     {
         if (name == "color-mix")
-            return ColorMix(arguments, current);
+            return ColorMix(arguments, current, dark);
         if (name == "color")
             return ColorInSpace(arguments);
         var values = arguments.Where(t => t.Type is not (CssTokenType.Whitespace or CssTokenType.Comma) && !t.IsDelim('/')).ToList();
@@ -442,7 +474,7 @@ public sealed class ValueReader
     }
 
     /// <summary>color-mix(in srgb, a [p%], b [p%]) (CSS Color 5): premultiplied mix in sRGB.</summary>
-    static Color? ColorMix(List<CssToken> arguments, Color current)
+    static Color? ColorMix(List<CssToken> arguments, Color current, bool dark)
     {
         var parts = CssParser.SplitOnCommas(arguments);
         if (parts.Count != 3)
@@ -456,7 +488,7 @@ public sealed class ValueReader
             float? percent = null;
             if (reader.TryPercentage(out var p1))
                 percent = p1;
-            if (!reader.TryColor(current, out var color))
+            if (!reader.TryColor(current, dark, out var color))
                 return null;
             if (reader.TryPercentage(out var p2))
                 percent = p2;
@@ -748,11 +780,35 @@ public static class NamedColors
         ["springgreen"] = "#00ff7f", ["steelblue"] = "#4682b4", ["tan"] = "#d2b48c", ["teal"] = "#008080", ["thistle"] = "#d8bfd8",
         ["tomato"] = "#ff6347", ["turquoise"] = "#40e0d0", ["violet"] = "#ee82ee", ["wheat"] = "#f5deb3", ["white"] = "#ffffff",
         ["whitesmoke"] = "#f5f5f5", ["yellow"] = "#ffff00", ["yellowgreen"] = "#9acd32",
-        // CSS system colours as Chromium's light scheme has them.
-        ["canvas"] = "#ffffff", ["canvastext"] = "#000000", ["linktext"] = "#0000ee", ["visitedtext"] = "#551a8b",
-        ["activetext"] = "#ff0000", ["buttonface"] = "#efefef", ["buttontext"] = "#000000", ["buttonborder"] = "#767676",
-        ["field"] = "#ffffff", ["fieldtext"] = "#000000", ["graytext"] = "#808080", ["mark"] = "#ffff00", ["marktext"] = "#000000",
-        ["selecteditem"] = "#1967d2", ["selecteditemtext"] = "#ffffff", ["highlight"] = "#0041c6cc", ["highlighttext"] = "#ffffff",
-        ["-webkit-focus-ring-color"] = "#e59700",
     };
+}
+
+/// <summary>
+/// The CSS system colours the engine knows, in the light and the dark scheme, as Chromium 152 on Linux resolves them
+/// (StyleColor::ColorFromKeyword: LayoutTheme::SystemColor through the page's colour provider, layout_theme.cc, whose CSS
+/// system colours are ui/color/color_provider_utils.cc's CompleteDefaultCssSystemColorDefinition; the keywords it has no
+/// provider colour for from LayoutTheme::DefaultSystemColor; Highlight blended with white, Color::BlendWithWhite), with
+/// Blink's link and focus ring keywords (ResolveQuirkOrLinkOrFocusRingColor: TextLinkColors' defaults, text_link_colors.cc;
+/// LayoutTheme::FocusRingColor, an off-white in dark since FocusRingRespectExplicitOutlineColorInDarkMode). Every
+/// value is the one Chromium's getComputedStyle gave on the reference PC (Reference/scaled/ui-color-scheme-*.styles.json).
+/// </summary>
+public static class SystemColors
+{
+    static readonly Dictionary<string, (string Light, string Dark)> Table = new()
+    {
+        ["canvas"] = ("#ffffff", "#121212"), ["canvastext"] = ("#000000", "#ffffff"),
+        ["linktext"] = ("#0000ee", "#9e9eff"), ["visitedtext"] = ("#551a8b", "#d0adf0"), ["activetext"] = ("#ff0000", "#ff0000"),
+        // ButtonBorder is the provider's button text colour (kColorCssSystemBtnText), not DefaultSystemColor's grey.
+        ["buttonface"] = ("#efefef", "#6b6b6b"), ["buttontext"] = ("#000000", "#ffffff"), ["buttonborder"] = ("#000000", "#ffffff"),
+        ["field"] = ("#ffffff", "#3b3b3b"), ["fieldtext"] = ("#000000", "#ffffff"), ["graytext"] = ("#808080", "#808080"),
+        ["mark"] = ("#ffff00", "#ffff00"), ["marktext"] = ("#000000", "#000000"),
+        ["selecteditem"] = ("#1967d2", "#99c8ff"), ["selecteditemtext"] = ("#ffffff", "#3b3b3b"),
+        ["highlight"] = ("#0041c6cc", "#0041c6cc"), ["highlighttext"] = ("#ffffff", "#ffffff"),
+        ["-webkit-link"] = ("#0000ee", "#9e9eff"), ["-webkit-activelink"] = ("#ff0000", "#ff9e9e"),
+        ["-webkit-focus-ring-color"] = ("#e59700", "#eeeeee"),
+    };
+
+    /// <summary>The system colour <paramref name="name"/> (lower case) in the light or the dark scheme; null when it isn't one.</summary>
+    public static Color? Resolve(string name, bool dark) =>
+        Table.TryGetValue(name, out var pair) ? Color.FromHex(dark ? pair.Dark : pair.Light) : null;
 }

@@ -251,6 +251,9 @@ public sealed partial class UiInput
             popup.SetStyle("font-family", string.Join(", ", style.FontFamilies.Select(f => "\"" + f + "\"")));
             popup.SetStyle("font-size", style.SpecifiedFontSize.ToString(CultureInfo.InvariantCulture) + "px");
             popup.SetStyle("font-weight", style.FontWeight.ToString(CultureInfo.InvariantCulture));
+            // The list in the select's used colour scheme (InternalPopupMenu writes the owner's DarkColorScheme into the
+            // popup's color-scheme meta as "only dark" or "only light"; internal_popup_menu.cc).
+            popup.SetStyle("color-scheme", style.DarkColorScheme ? "only dark" : "only light");
         }
         if (select.Id is { Length: > 0 } id)
             popup.SetAttribute("for", id);

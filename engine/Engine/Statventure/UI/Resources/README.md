@@ -3,6 +3,9 @@
 - `search_cancel.png`, `search_cancel_pressed.png`: the search field's cancel button images from
   Chromium 152 (`third_party/blink/public/default_100_percent/blink/`), drawn as Chromium draws
   them. Chromium is under a BSD-style license (Copyright The Chromium Authors).
+  `search_cancel_dark_mode.png`, `search_cancel_pressed_dark_mode.png` (GM2's colour-scheme task, 2026-11-21): the same
+  folder's dark-scheme images (`IDR_SEARCH_CANCEL_DARK_MODE`, `IDR_SEARCH_CANCEL_PRESSED_DARK_MODE`), byte for byte
+  from Chromium 152.0.7977.89.
 - `lato-regular.ttf`, `lato-bold.ttf`, `lato-ofl.txt` (M12 step 4, `UI/EngineFonts.cs`): the old game's
   `objects/fonts/Lato-Regular.ttf`, `Lato-Bold.ttf` and `Lato-OFL.txt`, byte for byte (the files
   `Tools/Scripts/make-ui-pack.sh` packs into ui.pak's `ui/fonts/`). Lato is under the SIL Open Font License 1.1

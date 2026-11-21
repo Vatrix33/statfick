@@ -28,6 +28,9 @@ public static class ComputedValues
             "color" => Color(s.Color),
             "background-color" => Color(s.BackgroundColor),
             "border-top-color" => Color(s.BorderTopColor ?? s.Color),
+            "outline-color" => Color(s.OutlineColor ?? s.Color),
+            // Its idents as computed, else normal (ColorScheme::CSSValueFromComputedStyleInternal).
+            "color-scheme" => s.ColorScheme.Length == 0 ? "normal" : string.Join(" ", s.ColorScheme),
             "-webkit-text-fill-color" => Color(s.TextFillColor ?? s.Color),
             // One per layer: as many as the images, the clips repeated (Blink's FillLayer::CullEmptyLayers, FillUnsetProperties).
             "background-clip" or "-webkit-background-clip" => string.Join(", ", Enumerable.Range(0, s.BackgroundImages.Length).Select(i => Clip(s.BackgroundClips[i % s.BackgroundClips.Length]))),

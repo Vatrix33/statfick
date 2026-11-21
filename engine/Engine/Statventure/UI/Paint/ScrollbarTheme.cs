@@ -13,40 +13,52 @@ public enum ScrollbarPartState
 }
 
 /// <summary>
-/// The colours and arrow shapes of Chromium 152's Fluent scrollbars in the light colour scheme
-/// (ui/native_theme/native_theme_fluent.cc, ui/color/fluent_ui_color_mixer.cc): a #FCFCFC track,
-/// a #8B8B8B thumb and arrows that darken to #636363 when hovered or pressed. With scrollbar-color,
-/// the thumb and arrows take the thumb colour and the track and buttons the track colour; hovered
-/// and pressed parts are then blended for contrast as Chromium does (color_utils::BlendForMinContrast).
+/// The colours and arrow shapes of Chromium 152's Fluent scrollbars (ui/native_theme/native_theme_fluent.cc,
+/// ui/color/fluent_ui_color_mixer.cc and color_provider_utils.cc's CompleteFluentScrollbarColorsDefinition), in the
+/// scrolling box's used colour scheme (Scrollbar::UsedColorScheme; the viewport's is the root's): in the light scheme a
+/// #FCFCFC track, a #8B8B8B thumb and arrows that darken to #636363 when hovered or pressed; in the dark one a #2C2C2C
+/// track, a #9F9F9F thumb and arrows that lighten to #D1D1D1. With scrollbar-color, the thumb and arrows take the thumb
+/// colour and the track and buttons the track colour, whatever the scheme; hovered and pressed parts are then blended
+/// for contrast as Chromium does (color_utils::BlendForMinContrast).
 /// </summary>
 public static class ScrollbarTheme
 {
     public static readonly Color Track = Color.FromBytes(0xFC, 0xFC, 0xFC);
     public static readonly Color Thumb = Color.FromBytes(0x8B, 0x8B, 0x8B);
     public static readonly Color ThumbActive = Color.FromBytes(0x63, 0x63, 0x63);
+    public static readonly Color DarkTrack = Color.FromBytes(0x2C, 0x2C, 0x2C);
+    public static readonly Color DarkThumb = Color.FromBytes(0x9F, 0x9F, 0x9F);
+    public static readonly Color DarkThumbActive = Color.FromBytes(0xD1, 0xD1, 0xD1);
 
     /// <summary>Fluent's contrast ratio for hovered and pressed parts, and Chromium's minimum visible contrast.</summary>
     const float PartContrastRatio = 1.8f, MinimumVisibleContrast = 3f;
 
-    public static Color TrackColor(Color? custom) => custom ?? Track;
+    /// <summary>The scheme's track, which is also its corner and its arrow buttons' background (kColorWebNativeControlScrollbarCorner).</summary>
+    static Color TrackOf(bool dark) => dark ? DarkTrack : Track;
 
-    public static Color CornerColor(Color? customTrack) => customTrack ?? Track;
+    public static Color TrackColor(Color? custom, bool dark) => custom ?? TrackOf(dark);
 
-    public static Color ButtonBackground(Color? customTrack) => customTrack ?? Track;
+    public static Color CornerColor(Color? customTrack, bool dark) => customTrack ?? TrackOf(dark);
 
-    public static Color ThumbColor(Color? customThumb, Color? customTrack, ScrollbarPartState state)
+    public static Color ButtonBackground(Color? customTrack, bool dark) => customTrack ?? TrackOf(dark);
+
+    static Color PartColor(ScrollbarPartState state, bool dark) => state is ScrollbarPartState.Hovered or ScrollbarPartState.Pressed
+        ? (dark ? DarkThumbActive : ThumbActive)
+        : (dark ? DarkThumb : Thumb);
+
+    public static Color ThumbColor(Color? customThumb, Color? customTrack, ScrollbarPartState state, bool dark)
     {
-        var background = customTrack ?? Track;
+        var background = customTrack ?? TrackOf(dark);
         if (Contrasting(customThumb, background, state) is { } color)
             return color;
-        return state is ScrollbarPartState.Hovered or ScrollbarPartState.Pressed ? ThumbActive : Thumb;
+        return PartColor(state, dark);
     }
 
-    public static Color ArrowColor(Color? customThumb, Color? customTrack, ScrollbarPartState state)
+    public static Color ArrowColor(Color? customThumb, Color? customTrack, ScrollbarPartState state, bool dark)
     {
-        if (Contrasting(customThumb, ButtonBackground(customTrack), state) is { } color)
+        if (Contrasting(customThumb, ButtonBackground(customTrack, dark), state) is { } color)
             return color;
-        return state is ScrollbarPartState.Hovered or ScrollbarPartState.Pressed ? ThumbActive : Thumb;
+        return PartColor(state, dark);
     }
 
     /// <summary>NativeThemeBase::GetContrastingColorForScrollbarPart.</summary>

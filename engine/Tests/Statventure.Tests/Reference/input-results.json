@@ -4842,5 +4842,65 @@
     "pageSelection": null
    }
   ]
+ },
+ "scheme-states-dark": {
+  "pageSelection": null,
+  "log": [
+   "click #b detail=1",
+   "click #c detail=1 checked=false",
+   "input #c value=\"on\" checked=false",
+   "change #c value=\"on\" checked=false",
+   "click #r detail=1"
+  ],
+  "states": {
+   "#b": {
+    "states": ":valid"
+   },
+   "#c": {
+    "value": "on",
+    "checked": false,
+    "states": ":valid :user-valid"
+   },
+   "#r": {
+    "value": "50",
+    "states": ":focus :valid"
+   },
+   "#n": {
+    "value": "12",
+    "scroll": [
+     0,
+     0
+    ],
+    "states": ":valid"
+   },
+   "#t": {
+    "value": "field",
+    "scroll": [
+     0,
+     0
+    ],
+    "selection": [
+     0,
+     0,
+     "forward"
+    ],
+    "states": ":valid"
+   },
+   "#s": {
+    "value": "One",
+    "selectedIndex": 0,
+    "states": ":valid"
+   },
+   "#sc": {
+    "states": ""
+   }
+  },
+  "activeElement": "#r",
+  "hasFocus": true,
+  "scroll": [
+   0,
+   0
+  ],
+  "snapshots": []
  }
 }

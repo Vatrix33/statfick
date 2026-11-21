@@ -381,6 +381,17 @@ public sealed class ComputedStyle
     public GridLine GridRowStart = GridLine.Auto, GridRowEnd = GridLine.Auto;
 
     // Text (inherited)
+    /// <summary>
+    /// color-scheme as computed (Blink's ColorScheme(): the idents as written, keywords in lower case, <c>only</c> last;
+    /// empty for normal).
+    /// </summary>
+    public string[] ColorScheme = [];
+    /// <summary>
+    /// The used colour scheme is dark (Blink's DarkColorScheme, ComputedStyleBuilder::SetUsedColorScheme): dark is listed and
+    /// either light isn't or the preferred scheme is dark. System colours and light-dark() resolve against it, the root's
+    /// initial colour follows it, and the native controls, scrollbars and focus rings paint in its variants.
+    /// </summary>
+    public bool DarkColorScheme;
     public Color Color = Color.Black;
     public string[] FontFamilies = ["serif"];
     /// <summary>The computed font size (device pixels: <see cref="SpecifiedFontSize"/> times the zoom).</summary>
@@ -603,7 +614,7 @@ public sealed class ComputedStyle
     {
         if (ReferenceEquals(this, other))
             return true;
-        if (Color != other.Color || FontSize != other.FontSize || FontWeight != other.FontWeight || FontItalic != other.FontItalic
+        if (Color != other.Color || DarkColorScheme != other.DarkColorScheme || !ColorScheme.AsSpan().SequenceEqual(other.ColorScheme) || FontSize != other.FontSize || FontWeight != other.FontWeight || FontItalic != other.FontItalic
             || LineHeight != other.LineHeight || LetterSpacing != other.LetterSpacing || WordSpacing != other.WordSpacing
             || TextAlign != other.TextAlign || TextTransform != other.TextTransform || WhiteSpace != other.WhiteSpace
             || OverflowWrap != other.OverflowWrap || WordBreak != other.WordBreak || Visibility != other.Visibility || PointerEvents != other.PointerEvents || Interactivity != other.Interactivity || IsInert != other.IsInert

@@ -297,9 +297,11 @@ public sealed partial class UiPainter
 
     // ---------- Painting the focus ring ----------
 
+    static readonly Color FocusRingOuterDark = Color.FromBytes(0x10, 0x10, 0x10);
+
     /// <summary>
-    /// Blink's PaintFocusRing: an outer white ring (offset by the inner ring's width) under an
-    /// inner ring in the outline colour, both strokes of the outer ring's width.
+    /// Blink's PaintFocusRing: an outer ring (offset by the inner ring's width) under an inner ring in the outline colour,
+    /// both strokes of the outer ring's width; the outer ring white, or #101010 in the dark scheme (outline_painter.cc).
     /// </summary>
     void PaintFocusRing(LayoutBox box, List<RectF> outlineRects, RectF reference)
     {
@@ -319,7 +321,7 @@ public sealed partial class UiPainter
         if (MathF.Min(MathF.Min(s.BorderTop, s.BorderBottom), MathF.Min(s.BorderLeft, s.BorderRight)) >= insideBorder)
             offset -= insideBorder;
         var radii = FocusRingRadii(box, s, Snap(reference));
-        PaintSingleFocusRing(rects, FocusRingOuterWidth(s), offset + MathF.Ceiling(FocusRingInnerWidth(s)), radii, Color.White);
+        PaintSingleFocusRing(rects, FocusRingOuterWidth(s), offset + MathF.Ceiling(FocusRingInnerWidth(s)), radii, s.DarkColorScheme ? FocusRingOuterDark : Color.White);
         PaintSingleFocusRing(rects, FocusRingOuterWidth(s), offset, radii, s.OutlineColor ?? s.Color);
     }
 

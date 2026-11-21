@@ -76,6 +76,15 @@ public sealed partial class UiDocument
 
     /// <summary>The colour under the page (a browser's white; transparent to show what is behind the UI).</summary>
     public Core.Color BaseBackground { get; set; } = Core.Color.FromBytes(255, 255, 255);
+
+    /// <summary>
+    /// The colour painted under the page (LocalFrameView::BaseBackgroundColor): <see cref="BaseBackground"/>, or, when
+    /// the root's used colour scheme is dark and that isn't transparent, the dark scheme's canvas, #121212
+    /// (StyleEngine::UpdateColorSchemeBackground: a main frame's colour-adjust background).
+    /// </summary>
+    public Core.Color UsedBaseBackground => BaseBackground.A > 0 && Root.Style?.DarkColorScheme == true ? DarkCanvas : BaseBackground;
+
+    static readonly Core.Color DarkCanvas = Core.Color.FromBytes(0x12, 0x12, 0x12);
     public FontLibrary Fonts { get; }
     public LayoutEngine Layout { get; }
     public UiElement? FocusedElement { get; internal set; }
@@ -108,7 +117,7 @@ public sealed partial class UiDocument
         Root.Attach(this);
         Body = Root.Append("body");
         Styles.Add(UserAgentStyles.Sheet);
-        Styles.SetEnvironment(new MediaEnvironment(_viewport.X, _viewport.Y));
+        Styles.SetEnvironment(new MediaEnvironment(_viewport.X, _viewport.Y, PrefersDark: Platform.PlatformBehaviour.PrefersDarkColorScheme));
         Layout = new LayoutEngine(new LayoutContext { Fonts = fonts, ViewportWidth = _viewport.X, ViewportHeight = _viewport.Y });
         Input = new UiInput(this);
     }
@@ -400,7 +409,7 @@ public sealed partial class UiDocument
         // media queries see CSS px.
         _viewport = new Vector2(MathF.Round(_viewportUnits.X * _deviceScale, MidpointRounding.AwayFromZero), MathF.Round(_viewportUnits.Y * _deviceScale, MidpointRounding.AwayFromZero));
         var zoomChanged = Styles.Environment.Zoom != zoom;
-        Styles.SetEnvironment(new MediaEnvironment(_viewport.X / zoom, _viewport.Y / zoom, _reducedMotion, zoom, _deviceScale));
+        Styles.SetEnvironment(new MediaEnvironment(_viewport.X / zoom, _viewport.Y / zoom, _reducedMotion, zoom, _deviceScale, Platform.PlatformBehaviour.PrefersDarkColorScheme));
         if (zoomChanged)
             _rootFontSize = Styles.Initial.SpecifiedFontSize;
         Layout.Context.ViewportWidth = _viewport.X;

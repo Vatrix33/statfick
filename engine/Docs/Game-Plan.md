@@ -2350,6 +2350,9 @@ and waits for the user's go, asked when its milestone reaches it:
     (the shown medallion's ring of shadow), a translucent border over a fill, a hairline under a 2D scale, SVG strokes under
     a pixel (the corner brackets), focus rings, and **the theme ignoring `color-scheme: dark`** (the game's dark settings and
     dialogs draw their checkboxes light where Chromium draws them dark: about 500 pixels of `settings-mods-dark` at 1).
+    **The last done** on 2026-11-22 by GM2's engine task (the branch `gm2-color-scheme`; `Docs/Compositing-Port.md`,
+    "Colour schemes"): `color-scheme` honoured as Chromium 152 does, the system colours, `light-dark()`, the user agent's
+    colours, the native controls, scrollbars, focus rings and the canvas in the used scheme.
   - **The root scrollbar's thumb** (listed, not fixed): with the page scrolling (the carousel and the maker at 820 × 600, the page 974 px high
     in both, laid out alike) the engine's thumb is about 15 px shorter than Chromium's (`maker-smallest-window-light`:
     3,854 pixels past 12 levels at 1, 0.78 %; 12,784 at 1.65, 0.95 %; all in the scrollbar's column). The step's

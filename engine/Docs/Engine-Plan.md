@@ -12,8 +12,14 @@ GM12 dissolved, the three new regions built by GM4 and filled in by GM6, GM9, GM
 Weather, the user's new task, designed (WX1–WX17, "Decisions for task 15, Weather" below; `Docs/Port-Tasks/15_Weather/`;
 GP-10), with three weather classes for GM8 (GM8-4). 36 of the plan's questions remain open.
 
-**Current task (2026-11-15): GM2 (The hero) started on the user's go; its design is decided (GM2-1–GM2-8, the detail
-round Q1–Q42, the manager's GM2-P1–P16); no step started; the first wave starts on the manager's go.** The user's
+**Current task (2026-11-22): GM2 (The hero) is being built; no step waits on the user. On `main`: steps 1, 2, 3a, 4
+(4a, 4b), 5, 6, 7, 8, 9a (the human), 10 (the emblems) and 12, with the engine tasks they needed (thin rounded borders,
+the ink's cover, the figure's ground, the colour scheme, a model pack per race (Q77)). In work, each by a worker of the
+manager on a branch of its own: step 11 (the live figures; the user approved its videos on 2026-11-22), steps 9b to 9e
+(the other eight races: the user approved all their art on 2026-11-21), the engine task "contacts kept"
+(GM2-P37). Left after them: the clips shown to the user on the hobbit's and the Goliath's bodies (Q59), the engine task
+that brings back four pending comparison samples (GM2-P24, GM2-P35), the keying kit into the repo (GM2-P23), step 13
+(end to end) and GM2's tick. Each step's state: `Docs/Game/Hero.md`, "Steps" and Status.** The user's
 answers (asked by
 the manager with the question tool, 2026-11-15; `Docs/Game-Plan.md`, GM2, "Decisions for GM2"): GM2-1 a character maker
 (not the recommendation), GM2-2 a live 3D figure on the sheet (not the recommendation), GM2-3 a new palette proposed with
@@ -767,8 +773,9 @@ what needs the user's machines):**
     box at 1), a scaled circle's extreme pixels at 1.65; cause not found. Open; no game screen scales a bordered box.
   - *SVG strokes under a device pixel* (Skia's hairline; the panels' corner brackets at 1). Open, not measured.
   - *The theme ignores `color-scheme: dark`:* the game's dark screens draw checkboxes (and the theme's other parts) light
-    where Chromium draws them dark (about 500 pixels of `game-screen-settings-mods-dark@1`, 196 levels). Open, no go yet:
-    a candidate before the game's settings are judged by eye.
+    where Chromium draws them dark (about 500 pixels of `game-screen-settings-mods-dark@1`, 196 levels). **Done
+    2026-11-22** (GM2's engine task, the branch `gm2-color-scheme`; `Docs/Compositing-Port.md`, "Colour schemes";
+    Progress, "GM2's engine task: colour schemes").
 - The "Known differences" lists (`Docs/Compositing-Port.md`, "Known differences left (SVG)"; `Docs/Scripting.md`, "Known
   differences left"; `Docs/Animation.md`, "Known differences from Blender's NLA"; M5's Progress, "Known differences left (not
   yet ported)") are accepted differences, not tasks, unless the port finds the game needs one.
@@ -4740,6 +4747,26 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     beards' rims extruded in one order (`kit.extrude_edges`), so a model's build gives the same bytes every time (Blender's
     extrusion ordered its faces by address, the exporter's four-decimal rounding of normals showed it now and then), the
     171 committed models unchanged. Recorded: Q77, GM2-P44–GM2-P46 (GM2-P46 an engine item for GM3). 5289 + 1084 = 6373 tests on the GPU and lavapipe (`main` `b8b2e28`: 5285 + 1084 = 6369; 4 new, the engine's).
+  - **GM2's engine task: colour schemes (2026-11-21 and 22, a worker on the branch `gm2-color-scheme`;
+    `Docs/Compositing-Port.md`, "Colour schemes"):** the engine honours `color-scheme` as Chromium 152 does (listed by the
+    round borders' task as "the theme ignores `color-scheme: dark`": the game's dark screens drew their checkboxes and the
+    theme's other parts light). The property (its grammar, inheritance, `only`, the used scheme; `normal` light: the
+    engine's documents have no `<meta name="color-scheme">`); the preferred scheme (`prefers-color-scheme` and `light
+    dark`), `PlatformBehaviour.PrefersDarkColorScheme`, light unless set, the tests acting as the reference PC, whose
+    Chromium prefers dark; system colours, `light-dark()` and Blink's link and focus ring colours resolved at
+    computed-value time against the element's own scheme (every value measured on the reference PC: ButtonBorder black and
+    white, as Chromium's colour provider gives it, where the engine had `DefaultSystemColor`'s grey); the root's colour and
+    `color: initial` white in dark; the user agent's colours from `html.css` and `linux.css`; every native control, the
+    spin button, the scrollbars, the focus ring's outer stroke, the search field's cancel images and the canvas (#121212
+    under a dark root) in the used scheme; an accent flipping the scheme both ways; the select's list in the select's
+    scheme. `ui.pak` made again (`ui/styles/game` keeps `color-scheme` now). Eleven Chromium pages at 1 and 1.65 with
+    their computed values, a dark input fixture of pressed states, ten engine tests. Of the suite's 451 comparisons with
+    Chromium 6 moved, all nearer (the dark settings screens: `settings-mods-dark` at 1, 677 pixels past 12 levels → 29),
+    every other render the same bytes. Found and left (each the same in both schemes): a read-only field painted as
+    disabled, inset and outset borders painted solid, Linux's drop-down select background, the search cancel button's
+    place and filtering, a text area's and text field's width from `cols` and `size`. Breaks 77, 71 killed and the 4 gaps
+    closed and killed, 2 unable to differ. 5347 + 1084 = 6431 tests on the GPU and lavapipe (`main` `e92a634`: 5289 + 1084 =
+    6373; 58 new, the engine's).
 
 ## Milestones
 
