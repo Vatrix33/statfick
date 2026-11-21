@@ -81,6 +81,26 @@ public class HeroFigureTests(GpuFixture gpu)
         Assert.Empty(HeroFigure.Resolve(looks.Data, TestLooks.WayfarerLook with { Race = "nobody", Colours = new Dictionary<string, string>() }).Colours);
     }
 
+    /// <summary>
+    /// A part made for each face (a mark, the user's Q65) draws its model for the look's body and face; a look whose face
+    /// has no model of it, or that has no face, is refused naming it.
+    /// </summary>
+    [Fact]
+    public void APartMadeForEachFaceDrawsTheModelOfTheLooksFace()
+    {
+        using var looks = new TestLooks();
+        looks.WriteByFace();
+        var look = TestLooks.WayfarerLook with { Parts = new Dictionary<string, string>(TestLooks.WayfarerLook.Parts) { ["marks"] = "marks-scar" } };
+        Assert.Equal("models/humanoid/parts/marks/scar/human-male-1/human-male", HeroFigure.Resolve(looks.Data, look).Parts.Single(p => p.Category == "marks").Model);
+        var second = look with { Parts = new Dictionary<string, string>(look.Parts) { ["face"] = "face-human-male-2" } };
+        Assert.Equal(["models/humanoid/parts/face/human-male-2/human-male", "models/humanoid/parts/hair/braid/human-male", "models/humanoid/parts/marks/scar/human-male-2/human-male"],
+            HeroFigure.Resolve(looks.Data, second).GarmentModels);
+        Assert.Equal(["\"face-human-male-2\" has no model for the body \"human-male-strong\"", "\"marks-scar\" has no model for the face \"face-human-male-2\" on the body \"human-male-strong\""],
+            Assert.Throws<LookRefusedException>(() => HeroFigure.Resolve(looks.Data, second with { Body = TestLooks.HumanMaleStrong, Parts = new Dictionary<string, string>(second.Parts) { ["hair"] = "hair-bald" } })).Problems);
+        Assert.Equal(["\"marks-scar\" has no model for the body \"human-male-average\" without a face"],
+            Assert.Throws<LookRefusedException>(() => HeroFigure.Resolve(looks.Data, look with { Parts = new Dictionary<string, string> { ["marks"] = "marks-scar" } })).Problems);
+    }
+
     public static TheoryData<string, string[], string> Refusals => new()
     {
         { "no body", [], "body=nobody" },
@@ -183,15 +203,18 @@ public class HeroFigureTests(GpuFixture gpu)
     {
         using var folder = new ScratchFolder();
         using var data = GameData(folder);
-        var look = LookData.Load(data).Presets["human-female-2"].Look;
+        var look = LookData.Load(data).Presets["human-female-4"].Look;
         using var figure = HeroFigure.Build(gpu.Device, data, look);
         Assert.Equal("models/humanoid/bodies/human-female-average", figure.Plan.Body);
         Assert.Equal(figure.Models[0], figure.Actor.Model);
         Assert.Equal(ModelData.Load(data, "models/humanoid/bodies/human-female-average").Nodes.Select(n => n.Name), figure.Actor.Model.Data.Nodes.Select(n => n.Name));
-        Assert.Equal(["models/humanoid/parts/face/human-female-1/human-female-average", "models/humanoid/parts/hair/long-tied/human-female-average"], figure.Plan.GarmentModels);
+        // The Scholar (GM2 step 9a): the third face, the braid and the freckles made for that face (Q65).
+        Assert.Equal(["models/humanoid/parts/face/human-female-3/human-female-average", "models/humanoid/parts/hair/braid/human-female-average",
+            "models/humanoid/parts/marks/freckles/human-female-3/human-female-average"], figure.Plan.GarmentModels);
         Assert.Equal(figure.Models.Skip(1), figure.Actor.Garments.Select(g => g.Model));
         Assert.Empty(figure.Actor.Items);
-        // The palette the preset's colours, whatever they are (none until the human has swatches, GM2 step 9a).
+        // The palette the preset's colours: a colour of every slot the human has swatches of (GM2 step 9a).
+        Assert.Equal(13, figure.Plan.Colours.Count);
         Assert.Equal(figure.Plan.Colours.Keys.Order(StringComparer.Ordinal), figure.Actor.Palette!.Slots.Keys.Order(StringComparer.Ordinal));
         Assert.All(figure.Plan.Colours, c => Assert.Equal(Colors.LinearFromHex(c.Value), figure.Actor.Palette.Slots[c.Key].Lit));
         Assert.Same(figure.Skeleton.Model, figure.Actor.Model.Data);
@@ -240,7 +263,7 @@ public class HeroFigureTests(GpuFixture gpu)
         foreach (var pack in Directory.GetFiles(TestPaths.Packs, "*.pak"))
             File.Copy(pack, Path.Combine(folder["game/packs"], Path.GetFileName(pack)));
         using var data = new VirtualFileSystem(Core.Application.DataMounts(new Core.ApplicationOptions { DevelopmentFolder = folder["dev"] }, folder["game"], _ => null));
-        using var figure = HeroFigure.Build(gpu.Device, data, LookData.Load(data).Presets["human-male-1"].Look);
+        using var figure = HeroFigure.Build(gpu.Device, data, LookData.Load(data).Presets["human-male-4"].Look);
         var hairGarment = figure.Actor.Garments.Single(g => g.Model.Data.Nodes[0].Name == "extra");
         Assert.NotEqual(Index(figure.Actor.Model.Data, "head"), Index(hairGarment.Model.Data, "head"));
         var bodyRest = figure.Actor.Model.Data.WorldMatrices();
@@ -259,9 +282,11 @@ public class HeroFigureTests(GpuFixture gpu)
     {
         using var folder = new ScratchFolder();
         using var data = AssemblyTests.Data(folder);
-        foreach (var (name, preset) in LookData.Load(data).Presets.OrderBy(p => p.Key, StringComparer.Ordinal))
+        // The presets in the game's own data (their colours the game's human's swatches, GM2 step 9a).
+        using var games = AssemblyTests.Data(folder, gamesOwn: true);
+        foreach (var (name, preset) in LookData.Load(games).Presets.OrderBy(p => p.Key, StringComparer.Ordinal))
         {
-            using var figure = HeroFigure.Build(gpu.Device, data, preset.Look);
+            using var figure = HeroFigure.Build(gpu.Device, games, preset.Look);
             var expected = Actor.GroundOf(figure.Actor.Model.Data, figure.Actor.Garments.Select(g => g.Model.Data));
             Assert.Equal(expected, figure.Actor.Ground);
             Assert.True(MathF.Abs(figure.Actor.Ground + 0.024f) < 0.00001f, $"{name}: the ground {figure.Actor.Ground * 1000} mm");
@@ -329,12 +354,13 @@ public class HeroFigureTests(GpuFixture gpu)
         using var data = AssemblyTests.Data(folder);
         var sample = AssemblyTests.Samples.Single(s => s.Name == "assembly-human-male-geared");
         using var figure = HeroFigure.Build(gpu.Device, data, sample.Look, sample.Gear);
-        Assert.Equal(3, figure.Actor.Garments.Count);
+        // The preset's face, crop and stubble, then the chain shirt.
+        Assert.Equal(4, figure.Actor.Garments.Count);
         Assert.Equal("models/humanoid/gear/chain-shirt/human-male-average", figure.Plan.GarmentModels.Last());
         Assert.Equal([("socket.hand.R", figure.Skeleton.Find("socket.hand.R")), ("socket.shield.L", figure.Skeleton.Find("socket.shield.L"))],
             figure.Actor.Items.Select(i => (i.Socket.Name, i.Socket.Node)));
         Assert.All(figure.Actor.Items, i => Assert.True(i.Socket.Node >= 0));
-        Assert.Equal(figure.Models.Skip(4), figure.Actor.Items.Select(i => i.Model));
+        Assert.Equal(figure.Models.Skip(5), figure.Actor.Items.Select(i => i.Model));
         var palette = figure.Actor.Palette!;
         Assert.Equal(Colors.LinearFromHex("#6a4430"), palette.Slots["skin"].Lit);
         Assert.Equal(Colors.LinearFromHex("#80848c"), palette.Slots["metal.base"].Lit);

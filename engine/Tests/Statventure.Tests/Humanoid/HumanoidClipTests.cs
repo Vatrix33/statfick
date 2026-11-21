@@ -342,20 +342,29 @@ public class HumanoidClipTests(ITestOutputHelper output)
     /// whole body, at every frame, the lowest point of the body (its skin and plain outfit as the engine skins them) is at
     /// most <see cref="GroundDepth"/> under it; death's fallen body lies on it (its last frame's lowest point from
     /// <see cref="GroundDepth"/> under it to <see cref="LyingHeight"/> over it). The woman's are the man's bounds: scaled,
-    /// she measured within them (Docs/Game/Hero.md, "How it works", "The figure's ground", her table).
+    /// she measured within them (Docs/Game/Hero.md, "How it works", "The figure's ground", her table). Since GM2 step 9a the
+    /// four builds too, the slender and strong man and woman (their average body's skeleton and legs: the same ratios), on
+    /// the same bounds.
     /// </summary>
     [Fact]
     public void BothBodiesStayOnTheGround()
     {
-        var lines = new List<string>();
-        foreach (var sex in new[] { "male", "female" })
+        var (lines, problems) = (new List<string>(), new List<string>());
+        // Every human body: each sex's average one, bounded, and its slender and strong builds (GM2 step 9a: the average's
+        // skeleton and legs, other girths), their soles' rest held and their depths measured with no bound: the thicker
+        // builds' thighs and shins reach under the man's bounds lying in death and kneeling in meditate (Docs/Game/Hero.md,
+        // "How it works", step 9a), the manager's to judge with Q59's check of the clips on the builds.
+        foreach (var sex in from s in new[] { "male", "female" } from build in new[] { "average", "slender", "strong" } select $"{s}-{build}")
         {
-            var body = HumanoidFiles.Load($"bodies/human-{sex}-average");
+            var bounded = sex.EndsWith("-average", StringComparison.Ordinal);
+            var body = HumanoidFiles.Load($"bodies/human-{sex}");
             var skin = new Skinner(body);
             var ground = (double)Statventure.Scene.Actor.GroundOf(body, []);
             lines.Add($"{sex}: the soles at rest {ground * 1000:F2} mm (the ground)");
-            Assert.True(Math.Abs(ground - skin.LowestWhere(body.WorldMatrices()).Y) < 0.000001, $"{sex}: the ground isn't the body's lowest point at rest");
-            Assert.True(Math.Abs(ground + 0.024) < 0.0005, $"the {sex} body's soles rest at {ground * 1000:F2} mm, not -24.0");
+            if (Math.Abs(ground - skin.LowestWhere(body.WorldMatrices()).Y) >= 0.000001)
+                problems.Add($"{sex}: the ground isn't the body's lowest point at rest");
+            if (Math.Abs(ground + 0.024) >= 0.0005)
+                problems.Add($"the {sex} body's soles rest at {ground * 1000:F2} mm, not -24.0");
             var skeleton = new Skeleton(body);
             foreach (var entry in HumanoidClipList.All.Where(e => !e.Stance))
             {
@@ -370,13 +379,16 @@ public class HumanoidClipTests(ITestOutputHelper output)
                 }
                 var (depth, end) = (ground - lowest, last - ground);
                 lines.Add($"{sex} {entry.Name}: at most {depth * 1000:F2} mm under the ground (frame {at}, {where}), at its end {end * 1000:F2} mm over it");
-                Assert.True(depth <= GroundDepth, $"{entry.Name}: the {sex} body's lowest point {depth * 1000:F2} mm under the ground at frame {at} ({where})");
-                if (entry.Name == "death")
-                    Assert.True(end >= -GroundDepth && end <= LyingHeight, $"death: the fallen {sex} body's lowest point {end * 1000:F2} mm over the ground");
+                if (bounded && depth > GroundDepth)
+                    problems.Add($"{entry.Name}: the {sex} body's lowest point {depth * 1000:F2} mm under the ground at frame {at} ({where})");
+                if (bounded && entry.Name == "death" && !(end >= -GroundDepth && end <= LyingHeight))
+                    problems.Add($"death: the fallen {sex} body's lowest point {end * 1000:F2} mm over the ground");
             }
         }
         foreach (var line in lines)
             output.WriteLine(line);
+        // Every body's and clip's problem at once (each body's numbers in the output).
+        Assert.True(problems.Count == 0, string.Join("\n", problems));
     }
 
     /// <summary>

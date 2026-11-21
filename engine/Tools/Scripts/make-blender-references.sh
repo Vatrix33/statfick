@@ -65,6 +65,8 @@ data["models"] = os.path.normpath(os.path.join(reference, data["models"]))
 for scene in data["scenes"]:
     if scene.get("clips"):
         scene["clips"] = os.path.normpath(os.path.join(reference, scene["clips"]))
+    if scene.get("data"):
+        scene["data"] = [os.path.normpath(os.path.join(reference, folder)) for folder in scene["data"]]
 json.dump(data, open(path, "w"), indent=2)
 PY
   fi

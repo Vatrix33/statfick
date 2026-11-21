@@ -895,6 +895,18 @@ design is open.
   rig): not stiff, not like a drill: ready to fight, the whole body moving, nothing held still. **Q59 (2026-11-18),
   changing Q10 (a): the clips on the smallest and largest bodies are checked "In step 9, on the real bodies"** (not now
   on rough blockouts), once the engine scales the hips' place by the legs' length (GM2-P22).
+- Q61–Q65 came with step 9a's art, the shared sets and the human (asked by the manager with the question tool, 2026-11-18
+  to 20; recorded by step 9a; in full in `Docs/Game/Hero.md`, "Questions from the steps", with the approvals). Q61
+  (2026-11-18): **the shared sets' lists, each "Yes" as proposed**: men's hair 20, women's hair 20, beards 12, head pieces
+  8, marks 6, each list with "None". Q62 (2026-11-19): **the woman's Side braid hangs before the right shoulder** ("Mirror
+  it to the right"). Q63 (2026-11-20): **the human's swatches**, "Yes, all four lists" (skin 8, hair 10, eyes 8, lips 4),
+  "Yes, all of them" (cloth 10, trim 5, trousers 6, leather 3, buckle 2), "Yes, both" (hair tie 6, marking 5). Q64
+  (2026-11-20): **a tied style's tie has a colour chosen on its own** (not the hair's colour). Q65 (2026-11-20): **a mark is
+  made for each face** ("A model per face"; a mod that adds a face supplies marks for it, or that face offers none).
+- Q73 (2026-11-21, asked by the manager with the question tool on step 9a's report): **a colour row with a single swatch is
+  hidden** ("Hide the row"): a colour row is shown only when its slot has two or more swatches (the human's brows and eye
+  whites disappear from the maker; a race or a mod that gives them more swatches gets the row); the look still holds the
+  swatch.
 
 ## GM3 Arms and armour: the forge, artifacts and the inventory
 
@@ -2366,6 +2378,13 @@ and waits for the user's go, asked when its milestone reaches it:
     and 160 / 155 on the GPU / lavapipe, the limit 157; the same after the ink's task), on the chain shirt's skirt in the
     lunge; the cause is suspected, not proven. A task of its own right after step 4b's merge: it proves the cause, then
     adds the two back under the user's limits (`claude-work/gm2/step4b/pending-samples/`), or comes back with numbers for the user.
+  - **The hair locks' seams up close (GM2-P35, the manager, 2026-11-21; found by GM2 step 9a):** two assembled close-ups
+    (320 × 320) pass `DetailedFigure` in every measure but the shading's inside pixels: step 5's woman with the Ranger's
+    long hair 31 / 39 on the GPU / lavapipe and the slender woman with the twin braids 26 / 22, the limit 24; faint seams 3
+    to 28 levels darker along where two hair locks meet on lit hair, which Blender draws flat (suspected: the shading normals
+    where two locks of one joined model cross; not proven). A task of its own finds the cause and brings both back under the
+    user's limits before GM2 is ticked (`claude-work/gm2/step9a-repo/pending-samples/`, its README; `Docs/Game/Hero.md`,
+    "Decisions", GM2-P35).
 
 ### The three decision-id collisions
 
@@ -2759,3 +2778,10 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
   clip's hips' place follows the playing body's legs and a figure stands by its soles, in the engine, the game's figure
   builder, the figure mode and Blender's side; the woman's references made again by the rule, the man's clips the same
   to the bit; the ground test bounds both bodies.
+- **2026-11-21, GM2 step 9a (the shared sets and the human, the branch `gm2-step9a`):** the manager's approved art in the
+  repo: the human's slender and strong builds, ten more faces, 38 hair styles, 12 beards, 16 head pieces, 72 marks (one per
+  face), its 69 swatches and eight presets, in `models.pak` and `data.pak`; the user's Q65 as the faces a part's model fits
+  (`look.part.model` version 2), the manager's GM2-P29 in the maker, GM2-P36 (each list in the approved order, "None"
+  first) and the user's Q73 (a colour of one swatch shows no row). The user's Q61–Q65, Q73 and the approvals recorded
+  ("GM2's detail round"; `Docs/Game/Hero.md`, "How it works", step 9a); one engine item ("Engine items the port will
+  meet": the hair locks' seams up close, GM2-P35).

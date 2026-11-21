@@ -1,10 +1,10 @@
 {
   "$types": {
-    "look.part": 1,
-    "look.part.model": 1
+    "look.part": 2,
+    "look.part.model": 2
   },
   "category": "hair",
-  "name": "Long, tied",
+  "name": "Long tied",
   "races": [
     "human"
   ],
@@ -15,11 +15,15 @@
     {
       "model": "models/humanoid/parts/hair/long-tied/human-female-average",
       "bodies": [
-        "human-female-average"
-      ]
+        "human-female-slender",
+        "human-female-average",
+        "human-female-strong"
+      ],
+      "faces": []
     }
   ],
   "slots": [
     "hair"
-  ]
+  ],
+  "order": 20
 }

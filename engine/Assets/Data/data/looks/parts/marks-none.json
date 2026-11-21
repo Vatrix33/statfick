@@ -1,0 +1,17 @@
+{
+  "$types": {
+    "look.part": 2
+  },
+  "category": "marks",
+  "name": "None",
+  "races": [
+    "human"
+  ],
+  "sexes": [
+    "male",
+    "female"
+  ],
+  "models": [],
+  "slots": [],
+  "order": 0
+}

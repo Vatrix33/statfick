@@ -1,3 +1,8 @@
 look.part.model 1
   1 model: string = ""
   2 bodies: list<string> = []
+
+look.part.model 2
+  1 model: string = ""
+  2 bodies: list<string> = []
+  3 faces: list<string> = []

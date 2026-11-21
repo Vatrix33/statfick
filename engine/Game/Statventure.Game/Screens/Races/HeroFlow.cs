@@ -5,6 +5,7 @@ using Statventure.Game.Data.Races;
 using Statventure.Game.Data.Saves;
 using Statventure.Game.Screens.Sheet;
 using Statventure.Packs;
+using Statventure.Render3D;
 using Statventure.UI.Dom;
 
 namespace Statventure.Game.Screens.Races;
@@ -17,8 +18,34 @@ public sealed record HeroData(IReadOnlyList<RaceEntry> Races, LookData Looks)
 {
     static readonly HeroData None = new([], LookData.Load(new VirtualFileSystem([])));
 
+    VirtualFileSystem? _files;
+    readonly Dictionary<string, IReadOnlySet<string>> _bodySlots = new(StringComparer.Ordinal);
+
     /// <summary>What <paramref name="data"/> (the game's) holds for the flow.</summary>
-    public static HeroData Of(VirtualFileSystem? data) => data is null ? None : new(RaceCatalogue.Load(data), LookData.Load(data));
+    public static HeroData Of(VirtualFileSystem? data) => data is null ? None : new(RaceCatalogue.Load(data), LookData.Load(data)) { _files = data };
+
+    /// <summary>
+    /// The palette slots the body <paramref name="body"/>'s model draws in (its materials' slots: what the body itself uses,
+    /// GM2-P29's "the body uses its slot"; a part's are its record's <see cref="LookPart.Slots"/>), read from the model in
+    /// the data once; none for a body the data hasn't or whose model doesn't read (its figure is refused anyway).
+    /// </summary>
+    public IReadOnlySet<string> SlotsOfBody(string body)
+    {
+        if (_bodySlots.TryGetValue(body, out var slots))
+            return slots;
+        slots = new HashSet<string>(StringComparer.Ordinal);
+        if (_files is { } files && Looks.Bodies.TryGetValue(body, out var record))
+        {
+            try
+            {
+                slots = ModelData.Load(files, record.Model).Materials.Select(m => m.Slot).ToHashSet(StringComparer.Ordinal);
+            }
+            catch (DataFileException)
+            {
+            }
+        }
+        return _bodySlots[body] = slots;
+    }
 
     /// <summary>The race <paramref name="id"/>, or null when the data hasn't it.</summary>
     public Race? Race(string id) => Races.FirstOrDefault(r => r.Id == id)?.Race;

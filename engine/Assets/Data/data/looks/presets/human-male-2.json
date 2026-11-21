@@ -10,9 +10,26 @@
     "sex": "male",
     "body": "human-male-average",
     "parts": {
-      "face": "face-human-male-1",
-      "hair": "hair-swept-back"
+      "face": "face-human-male-3",
+      "hair": "hair-spiky",
+      "beard": "beard-none",
+      "marks": "marks-none",
+      "head-piece": "head-piece-none"
     },
-    "colours": {}
+    "colours": {
+      "skin": "Bronze",
+      "hair": "Dark brown",
+      "eyes": "Dark",
+      "lips": "Natural",
+      "cloth": "Blue",
+      "cloth.trim": "Gold",
+      "trousers": "Brown",
+      "leather": "Brown",
+      "buckle": "Brass",
+      "hair.tie": "Red",
+      "marking": "Brown",
+      "brows": "Dark",
+      "eye.white": "Ivory"
+    }
   }
 }

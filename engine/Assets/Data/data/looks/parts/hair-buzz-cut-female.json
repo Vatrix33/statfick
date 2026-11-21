@@ -1,0 +1,29 @@
+{
+  "$types": {
+    "look.part": 2,
+    "look.part.model": 2
+  },
+  "category": "hair",
+  "name": "Buzz cut",
+  "races": [
+    "human"
+  ],
+  "sexes": [
+    "female"
+  ],
+  "models": [
+    {
+      "model": "models/humanoid/parts/hair/buzz-cut/human-female-average",
+      "bodies": [
+        "human-female-slender",
+        "human-female-average",
+        "human-female-strong"
+      ],
+      "faces": []
+    }
+  ],
+  "slots": [
+    "hair"
+  ],
+  "order": 200
+}

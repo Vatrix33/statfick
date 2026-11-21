@@ -18,13 +18,20 @@ namespace Statventure.Game.Screens.Maker;
 public sealed class LookMaker
 {
     readonly LookData _looks;
+    readonly Func<string, IReadOnlySet<string>>? _bodySlots;
 
-    /// <summary>The maker for <paramref name="raceId"/> (<paramref name="race"/>) on <paramref name="looks"/>, starting from <see cref="Initial"/>.</summary>
-    public LookMaker(string raceId, Race race, LookData looks, LookHero? start = null)
+    /// <summary>
+    /// The maker for <paramref name="raceId"/> (<paramref name="race"/>) on <paramref name="looks"/>, starting from
+    /// <see cref="Initial"/>; <paramref name="bodySlots"/> gives the palette slots a body's model draws in (by the body's
+    /// name: the screen's <see cref="Races.HeroData.SlotsOfBody"/>), which with the chosen parts' decide which colours the
+    /// maker offers (<see cref="OfferedSlots"/>, GM2-P29); none given: every slot the race has swatches for is offered.
+    /// </summary>
+    public LookMaker(string raceId, Race race, LookData looks, LookHero? start = null, Func<string, IReadOnlySet<string>>? bodySlots = null)
     {
         RaceId = raceId;
         Race = race;
         _looks = looks;
+        _bodySlots = bodySlots;
         Look = Initial(start);
     }
 
@@ -55,15 +62,43 @@ public sealed class LookMaker
     /// <summary>The look's build (null without a look).</summary>
     public string? Build => Body?.Build;
 
-    /// <summary>The categories the look's body offers, each with its options (part names), in the maker's order (<see cref="LookData.Offered"/>).</summary>
+    /// <summary>
+    /// The categories the look's body offers with the look's face, each with its options (part names), in the maker's order
+    /// (<see cref="LookData.Offered"/>: a part made for each face, a mark, is offered when it has a model for the face, Q65).
+    /// </summary>
     public IReadOnlyDictionary<string, IReadOnlyList<string>> Categories =>
-        Look is { } look ? _looks.Offered(look.Body, _looks.Bodies[look.Body]) : new Dictionary<string, IReadOnlyList<string>>();
+        Look is { } look ? _looks.Offered(look.Body, _looks.Bodies[look.Body], LookData.FaceOf(look)) : new Dictionary<string, IReadOnlyList<string>>();
 
     /// <summary>A part's record (an option of <see cref="Categories"/>).</summary>
     public LookPart Part(string name) => _looks.Parts[name];
 
-    /// <summary>The palette slots the race has swatches for, in the slots' order (<see cref="LookNames.Slots"/>): a colour is chosen for each.</summary>
+    /// <summary>The palette slots the race has swatches for, in the slots' order (<see cref="LookNames.Slots"/>): the look holds a colour for each.</summary>
     public IReadOnlyList<string> Slots => [.. LookNames.Slots.Where(slot => Race.Swatches.Any(s => s.Slot == slot))];
+
+    /// <summary>
+    /// The colours the maker offers (GM2-P29, the manager's, 2026-11-20): of <see cref="Slots"/>, those the look's body or
+    /// one of its chosen parts uses (the body's model's materials, a part's <see cref="LookPart.Slots"/>), in the slots'
+    /// order: a man shows no lip colour, a tie's colour comes with a tied style, a mark's with a mark; and of those only the
+    /// slots the race has two swatches of or more (the user's Q73, 2026-11-21: a colour with one swatch is no choice, its
+    /// row hidden; the human's brows and eye whites). The look still holds a colour for every slot of <see cref="Slots"/>
+    /// (its check asks for each), kept while it isn't shown.
+    /// </summary>
+    public IReadOnlyList<string> OfferedSlots
+    {
+        get
+        {
+            if (Look is not { } look)
+                return [];
+            var choices = Slots.Where(slot => SwatchesOf(slot).Count >= 2);
+            if (_bodySlots is null)
+                return [.. choices];
+            var used = new HashSet<string>(_bodySlots(look.Body), StringComparer.Ordinal);
+            foreach (var part in look.Parts.Values)
+                if (_looks.Parts.TryGetValue(part, out var record))
+                    used.UnionWith(record.Slots);
+            return [.. choices.Where(used.Contains)];
+        }
+    }
 
     /// <summary>The race's swatches for <paramref name="slot"/>, in the race's order.</summary>
     public IReadOnlyList<RaceSwatch> SwatchesOf(string slot) => [.. Race.Swatches.Where(s => s.Slot == slot)];
@@ -105,7 +140,8 @@ public sealed class LookMaker
         var look = Look ?? throw new InvalidOperationException($"the {RaceId} has no body");
         if (!Categories.TryGetValue(category, out var options) || !options.Contains(part, StringComparer.Ordinal))
             throw new ArgumentException($"\"{part}\" isn't a {category} the body \"{look.Body}\" offers", nameof(part));
-        return Set(look with { Parts = With(look.Parts, category, part) });
+        // Another face may lack a part's model (a mod's face without marks, Q65): the look fitted again, as for a new body.
+        return Set(Fit(look with { Parts = With(look.Parts, category, part) }));
     }
 
     /// <summary>A swatch chosen for its slot; false when it is the choice already.</summary>
@@ -130,9 +166,7 @@ public sealed class LookMaker
             return;
         var sex = random.Pick(Sexes);
         var body = _looks.BodyOf(RaceId, sex, random.Pick(BuildsOf(sex)))!;
-        var parts = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var (category, options) in _looks.Offered(body, _looks.Bodies[body]))
-            parts[category] = random.Pick(options);
+        var parts = Choose(body, (_, options) => random.Pick(options));
         var colours = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var slot in Slots)
             colours[slot] = random.Pick(SwatchesOf(slot)).Name;
@@ -168,9 +202,8 @@ public sealed class LookMaker
     LookHero Fit(LookHero look)
     {
         var body = look.Body;
-        var parts = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var (category, options) in _looks.Offered(body, _looks.Bodies[body]))
-            parts[category] = look.Parts.TryGetValue(category, out var part) && options.Contains(part, StringComparer.Ordinal) ? part : options[0];
+        var parts = Choose(body, (category, options) =>
+            look.Parts.TryGetValue(category, out var part) && options.Contains(part, StringComparer.Ordinal) ? part : options[0]);
         var colours = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var slot in Slots)
         {
@@ -178,6 +211,20 @@ public sealed class LookMaker
             colours[slot] = look.Colours.TryGetValue(slot, out var name) && swatches.Any(s => s.Name == name) ? name : swatches[0].Name;
         }
         return look with { Race = RaceId, Sex = _looks.Bodies[body].Sex, Body = body, Parts = parts, Colours = colours };
+    }
+
+    /// <summary>
+    /// A part for each category <paramref name="body"/> offers, category by category in the maker's order, each offered with
+    /// the face chosen before it (the face is the first category: a part made for each face, a mark, follows it, Q65), each
+    /// chosen by <paramref name="choose"/> from its options.
+    /// </summary>
+    Dictionary<string, string> Choose(string body, Func<string, IReadOnlyList<string>, string> choose)
+    {
+        var parts = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var category in LookNames.Categories)
+            if (_looks.Offered(body, _looks.Bodies[body], parts.GetValueOrDefault(LookNames.Face)).TryGetValue(category, out var options))
+                parts[category] = choose(category, options);
+        return parts;
     }
 
     bool Set(LookHero look)

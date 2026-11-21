@@ -116,6 +116,8 @@ public sealed class HeroFigure : IDisposable
         else
             Model(body.Model, $"the body \"{look.Body}\"");
         var parts = new List<FigurePart>();
+        // A part's model is the one fitted to the look's body and its face (a mark is made for each face, Q65).
+        var face = LookData.FaceOf(look);
         foreach (var (category, name) in look.Parts.OrderBy(p => Order(p.Key)).ThenBy(p => p.Key, StringComparer.Ordinal))
         {
             if (LookData.Part(data, name) is not { } part)
@@ -128,11 +130,13 @@ public sealed class HeroFigure : IDisposable
                 parts.Add(new FigurePart(category, name, null));
                 continue;
             }
-            if (part.Models.FirstOrDefault(m => m.Bodies.Contains(look.Body, StringComparer.Ordinal)) is not { } model)
+            if (part.ModelFor(look.Body, face) is not { } model)
             {
                 // Without the body its fit is moot: the body is named missing already.
                 if (body is not null)
-                    problems.Add($"\"{name}\" has no model for the body \"{look.Body}\"");
+                    problems.Add(!part.Models.Any(m => m.Bodies.Contains(look.Body, StringComparer.Ordinal)) ? $"\"{name}\" has no model for the body \"{look.Body}\""
+                        : face is null ? $"\"{name}\" has no model for the body \"{look.Body}\" without a face"
+                        : $"\"{name}\" has no model for the face \"{face}\" on the body \"{look.Body}\"");
                 continue;
             }
             Model(model.Model, $"\"{name}\"");

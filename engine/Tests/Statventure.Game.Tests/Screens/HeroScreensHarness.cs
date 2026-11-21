@@ -1,4 +1,5 @@
 using System.Numerics;
+using Statventure.Game.Data.Races;
 using Statventure.Game.Mods;
 using Statventure.Game.Random;
 using Statventure.Game.Screens.Maker;
@@ -16,7 +17,7 @@ namespace Statventure.Game.Tests;
 /// The race carousel and the character maker (GM2 step 8) attached as the game attaches them, on the game's document
 /// without a window (<see cref="GameUiHarness"/>) with the real parts on its scratch per-user folder: the settings, a
 /// session on its storage, the mods, a randomness of the test's (seeded, or scripted). Their data is the screens' test
-/// data over the committed <c>data.pak</c> (<see cref="HeroTestData"/>), or the shipped data alone. The game's sheets are
+/// data over the committed <c>data.pak</c> (<see cref="HeroTestData"/>), or the shipped data alone (<c>models.pak</c> and <c>data.pak</c>). The game's sheets are
 /// asked in the game's order before theirs, and the commands the flow hands over to are stand-ins recording their runs
 /// (<see cref="Ran"/>): <c>open-sheet</c> (GM2 step 7's) and <c>start-screen</c>, unless the test attaches the real start
 /// screen (<c>start: true</c>) or the real start screen and sheet (<c>sheet: true</c>: the whole flow as the game runs it,
@@ -44,18 +45,19 @@ sealed class HeroScreensHarness : IDisposable
 
     /// <summary>The screens on a document of their own (<paramref name="width"/> × <paramref name="height"/> CSS px).</summary>
     public HeroScreensHarness(float width = 1240, float height = 900, float scale = 1, GameTheme? theme = null, Action<GameSettings>? before = null,
-        bool shipped = false, IGameRandom? random = null, bool start = false, bool sheet = false)
-        : this(new GameUiHarness(width, height, scale, theme, before: before), shipped: shipped, random: random, start: start, sheet: sheet, own: true) => _owned = true;
+        bool shipped = false, IGameRandom? random = null, bool start = false, bool sheet = false, IReadOnlyDictionary<string, IReadOnlyList<RaceSwatch>>? races = null)
+        : this(new GameUiHarness(width, height, scale, theme, before: before), shipped: shipped, random: random, start: start, sheet: sheet, own: true, races: races) => _owned = true;
 
     /// <summary>The screens on <paramref name="harness"/>'s document (a screen fixture's, which stays the caller's), on the shared test data.</summary>
-    public HeroScreensHarness(GameUiHarness harness, bool shipped = false, IGameRandom? random = null, bool start = false, bool sheet = false, bool own = false)
+    public HeroScreensHarness(GameUiHarness harness, bool shipped = false, IGameRandom? random = null, bool start = false, bool sheet = false, bool own = false,
+        IReadOnlyDictionary<string, IReadOnlyList<RaceSwatch>>? races = null)
     {
         start |= sheet;
         H = harness;
         if (shipped)
-            _shipped = new VirtualFileSystem([Mount.Pack(Path.Combine(TestPaths.Packs, "data.pak"))]);
+            _shipped = new VirtualFileSystem([Mount.Pack(Path.Combine(TestPaths.Packs, "models.pak")), Mount.Pack(Path.Combine(TestPaths.Packs, "data.pak"))]);
         else if (own)
-            _ownData = new HeroTestData(Path.Combine(TestPaths.Packs, "data.pak"));
+            _ownData = new HeroTestData(Path.Combine(TestPaths.Packs, "data.pak"), races);
         Data = _shipped ?? (_ownData ?? Shared).Data;
         foreach (var stylesheet in GameSheets)
             H.Ui.UseStylesheet(stylesheet);

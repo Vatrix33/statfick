@@ -182,6 +182,8 @@ after step 4b's merge makes a posed mesh's normals the whole object's, across it
 has them (the engine recomputes them per primitive); it proves that cause first (suspected, not proven), then adds the two
 samples back under the user's limits, or comes back with numbers for the user. Step 4b leaves them out of its tests and
 references and hands over everything they need (`claude-work/gm2/step4b/pending-samples/`; "How it works", step 4b).
+**Owed beside it (GM2-P35, 2026-11-21):** two assembled close-ups of step 9a, the hair locks' seams; their files in
+`claude-work/gm2/step9a-repo/pending-samples/` ("The manager's answers to step 9a" below).
 
 **The manager's answers to step 4a (2026-11-16):** Blender runs with 8 threads for the family's models, always
 (`make-humanoid.sh`; QuadriFlow and the order of the edges Blender makes follow the thread count); the clip frame's test
@@ -198,7 +200,44 @@ builds, faces and presets (step 5's "Finished": the sample looks now, the preset
 human presets draw their models' own placeholder colours, the expected state, and no comparison or golden holds those
 colours as a look ("How it works", step 5).
 
-### Questions from the steps (Q43–Q60, the user, 2026-11-15 to 2026-11-18)
+**The manager's decisions with step 9a's art (GM2-P25–GM2-P30, 2026-11-18 to 20; recorded by step 9a from the manager's
+hand-over, `claude-work/gm2/step9a/handover/HANDOVER.md`):**
+- **GM2-P25 (2026-11-18):** a race's three builds share one skeleton per sex; so a face, a hair style, a beard, a head
+  piece and a mark are made once per sex (on the average body) and serve all three builds: one `look.part.model` with
+  three bodies. Checked: long hair made on the average body lies right on the slender and the strong one.
+- **GM2-P26 (2026-11-19):** a beard is made to the widest jaw, fullest chin and highest cheekbones among its race's and
+  sex's faces, so one model fits all of them; beards are offered to men only, as in the old game, and take the hair's
+  colour (the slot `hair`).
+- **GM2-P27 (2026-11-19):** one-sided parts (the flower, hair beads, the feather, one-sided marks, the side braid) are on
+  the figure's right, the side the battle and the sheet's three-quarter view show. A band (circlet, headband, wreath) lies
+  close to the skull (1.05 of its radius) so it never floats on a shaved head; full hair covers part of it.
+- **GM2-P28 (2026-11-20):** head pieces take the outfit's slots (`cloth`, `cloth.trim`, `leather`), none of their own.
+  `brows` (which the lashes and the mouth's line share) and `eye.white` have one swatch each: no choice.
+- **GM2-P29 (2026-11-20):** the maker offers a colour only when the body or a chosen part uses its slot (a man has no lip
+  colour; a tie colour only with a tied style; a mark colour only with a mark). A look still holds a swatch for every slot
+  its race has swatches of, as step 6 checks.
+- **GM2-P30 (2026-11-20):** against Blender, 9a compares the eight presets, the four new bodies and a handful of looks
+  chosen for their demanding parts; every other model is proven by the structural walk and `make-humanoid.sh check`.
+  (Comparing every one of some 150 models would add tens of megabytes of references.)
+
+**The manager's answers to step 9a (2026-11-21, on the worker's report):**
+- **GM2-P35, two close-ups owed to an engine task:** two of 9a's assembled close-ups pass `DetailedFigure` in every measure
+  but the shading's inside pixels (step 5's woman close-up with the Ranger's long hair 31 / 39 of 24 allowed, the slender
+  woman's twin braids close-up 26 / 22: faint seams 3 to 28 levels darker where hair locks meet on lit hair, Blender flat).
+  No limit is touched: the twin braids close-up leaves the tests, step 5's red close-up goes back to the long tied hair it
+  passed with (18 / 16), both failing samples' files wait in `claude-work/gm2/step9a-repo/pending-samples/` (README there),
+  and an engine task of its own finds the cause and brings both back before GM2 is ticked (`Docs/Game-Plan.md`, "Engine
+  items the port will meet"; owed beside GM2-P24's). The twin braids' look is compared at the sheet's three-quarter view
+  instead (it passes honestly: 2 / 3), so none of the six demanding looks is missing.
+- **GM2-P36, a part's place in its category's list:** `look.part` gains an `order` (version 2), as a preset has in its race's
+  list; each category's options by it, the same place by name; the game's in the approved lists' order (`parts.json`) with
+  "None" first (0, then 10, 20 …). The maker, the random button and a refit use it (a hero switched to a man takes "None"
+  for the beard). The form: "How it works", step 6 ("The maker's records"), and step 9a.
+- **The hair beads' slot** (step 9a's one word, `metal.trim` to `cloth.trim`): agreed, GM2-P28's; the manager's own copy
+  follows. **`hair.tie` and `marking` in the game's look file:** left as they are (the figure mode shows its placeholders for
+  them; the model test names them as the swatches' alone).
+
+### Questions from the steps (Q43–Q65 and Q73, the user, 2026-11-15 to 2026-11-21)
 
 Q43 and Q44 raised by step 1 (the `race` kind's fields; the docs didn't answer them) and asked by the manager with the
 question tool the same day; both the recommended option. Q45 asked by the manager on 2026-11-16 for step 6 (step 2 had
@@ -355,6 +394,30 @@ question tool on 2026-11-18 (the numbers the manager's, so as not to collide wit
   pixels' one in 4,200 and one in 1,100; extra lines back to M6's 3 % (Q58: 3.3 %), missed lines and the coverage
   difference M6's as Q58 had them. `EachWidenedLimitBites`: the stray pixels on the man's close-up as before (4,500 and
   1,200), the unlike ink just under 7.56 % on the woman geared from the side (7.5 %); no extra row (not widened).
+
+Q61–Q65 and the approvals of step 9a came with the shared sets and the human (the manager's art, asked with the question
+tool, 2026-11-18 to 20; recorded by step 9a from the manager's hand-over, `claude-work/gm2/step9a/handover/HANDOVER.md`;
+the sheets the user saw: `claude-work/gm2/step9a/approval/` `builds-faces/`, `sets/`, `colours/`, `presets/`).
+- **Q61 (2026-11-18): the shared sets' lists**, each "Yes" as proposed: men's hair 20, women's hair 20, beards 12, head
+  pieces 8, marks 6, each list with "None" (the lists with their names: "How it works", step 9a).
+- **Q62 (2026-11-19): the woman's Side braid hangs before the right shoulder** ("Mirror it to the right": the battle and the
+  sheet show the hero's right side).
+- **Q63 (2026-11-20): the human's swatches**: body colours "Yes, all four lists" (skin 8, hair 10, eyes 8, lips 4), outfit
+  colours "Yes, all of them" (cloth 10, trim 5, trousers 6, leather 3, buckle 2), ties and marks "Yes, both" (hair tie 6,
+  marking 5).
+- **Q64 (2026-11-20): every tied hair style carries a tie whose colour is chosen on its own** (the slot `hair.tie`; asked
+  with Q63's ties: the other option was ties in the hair's colour).
+- **Q65 (2026-11-20): a mark is made for each face** ("A model per face": a mark lies exactly on the skin; in the data a
+  mark's model names the faces it fits; a mod that adds a face supplies marks for it, or that face offers none). Its form
+  in the data: "How it works", step 9a ("Q65 in the data").
+- **The approvals of step 9a:** the builds ("Yes, both builds are right") and the ten new faces ("Yes, all five" each sex),
+  2026-11-18; the 40 hair styles ("Yes, all twenty" each sex) and the 12 beards ("Yes, all twelve"), 2026-11-19; the 8
+  head pieces ("Yes, all eight") and the 6 marks ("Yes, all six"), 2026-11-19; the swatches, the ties and the eight
+  presets ("Yes, all eight"), 2026-11-20. With them every approval stop of 9a is passed.
+- **Q73 (2026-11-21, the question tool, asked by the manager on step 9a's report): a colour row with a single swatch is
+  hidden** ("Hide the row"): a colour row is shown only when its slot has two or more swatches; the human's brows and eye
+  whites disappear from the maker, and a race or a mod that gives them more swatches gets the row. The look still holds the
+  swatch (step 6's check). Built by step 9a (`LookMaker.OfferedSlots`, "How it works", step 9a).
 
 ### Earlier decisions that bind GM2
 
@@ -1853,6 +1916,15 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
      presets, its race's records filled. Must not touch: the skeleton and the clips (4's: a change there goes back to 4
      and is approved again), another race's parts.
    - Finished (each): approved; every model and preset against Blender; `build.py --check` equal.
+   - **9a done (2026-11-20/21, a worker, the branch `gm2-step9a`; "How it works", step 9a):** the manager's approved art
+     in the repo: the twelve script files (one word changed: the hair beads in the outfit's trim, GM2-P28), 152 models
+     (the four builds, ten faces, 38 hair styles, 12 beards, 16 head pieces, 72 marks) in `models.pak`, the human's 69
+     swatches, 82 parts with their approved names and places, six bodies and the eight presets in `data.pak`; Q65 as `look.part.model`
+     version 2's `faces`, GM2-P29 in the maker; the presets held to the old looks by a table of names, the 18 samples of
+     GM2-P30 against Blender. With the user's Q61–Q65 and the approvals, the manager's GM2-P25–GM2-P30, and on its report the
+     manager's GM2-P35 (two close-ups owed to an engine task), GM2-P36 (`look.part`'s `order`) and the user's Q73 (a colour
+     of one swatch shows no row). Its choices:
+     "How it works", step 9a ("Choices made"). What a race of 9b–9e now needs: there, "For later steps".
    - **An approval stop added (2026-11-18, the user's Q59):** the clips checked on the smallest and largest bodies (the
      hobbit's slender, the Goliath's strong) happens here, on the real bodies, not on blockouts in step 4: once 9c and 9e
      have made those bodies and the engine scales the hips' place by the legs' length (GM2-P22), the manager shows the user
@@ -2551,6 +2623,14 @@ field):
   as nothing** ("None", "Bald", "Clean-shaven": Q23, Q24), offered on every body of its races and sexes. So a category has
   "none" where such a part is among its options and is a choice every look makes where it isn't (the Half-Beast's ears and
   tail, Q13): data, for steps 4 and 9 to make with their lists.
+  **Since step 9a (2026-11-21):** **`look.part` v2** adds `order` (an int, field 7; the manager's GM2-P36): the part's place
+  in its category's list, lower first, the same place by name, as a preset's in its race's (no check, as the presets' has
+  none); version 1 frozen (`LookPart.V1`), upgrading to place 0, so version-1 parts keep their names' order. The game's:
+  "None" 0, then 10, 20 … in the approved list's order. **`look.part.model` v2** adds `faces` (a list of `look.part`
+  references, field 3; the user's Q65): the faces the model fits, none: any face; version 1 frozen (`LookPartModel.V1`,
+  upgrading to no faces). A part is then offered on a body **with a face** when a model of it fits that body and that face
+  (a model naming faces fits only them; with no face chosen only a model naming none); a look draws the first model that
+  fits its body and its face. Their checks and words: "How it works", step 9a ("Q65 in the data").
 - **`look.preset` v1** (`LookPreset`, `[Kind("Look preset", "data/looks/presets")]`): `label` (the old label, Q20),
   `order` (the race's list: lower first, the same number by name; the old looks the male 10–40 then the female 50–80,
   the old dialog's order, written as Q43 wrote the races'), `look` (every choice; its `preset` none). The game's are named
@@ -3992,6 +4072,288 @@ library keyed again by `library.py` carries the measure by itself; every figure 
 (`humanoid-scenes.json`, `figure-scenes.json`) or `assemble.py` assembles (`assembly-looks.json` → `assembly-scenes.json`)
 written again and its Blender references made again (the figures now stand by their soles, their cameras with them);
 a scene posing the woman (or any other body) by a clip made again too (her clips' hips scaled).
+### Step 9a: the shared sets and the human in the repo (2026-11-20/21, the branch `gm2-step9a`)
+
+The manager's art of step 9a (made in a scratch mirror of the family's scripts, every stop approved by the user; the
+hand-over `claude-work/gm2/step9a/handover/`: `HANDOVER.md`, the twelve script files, `parts.json`, `swatches.py`,
+`presets.py`) brought into the repo: the scripts, the models, the data, the user's Q65 in the data forms, the manager's
+GM2-P29 in the maker, the tests. On the PC only for what runs Blender (the pinned 5.2.0, 8 threads); the tests run
+anywhere. Decided on the way: the user's Q61–Q65 and the approvals, the manager's GM2-P25–GM2-P30 ("Decisions"); then, on
+the step's report, the manager's GM2-P35 (two close-ups owed to an engine task), GM2-P36 (a part's place in its list) and
+the user's Q73 (a colour of one swatch shows no row). Rebased on the figure's ground (`a6eb02a`): `models.pak` made again
+(every model record at `model.animation` version 2), the scene files written again, the assembled figures standing by
+their soles.
+
+**The scripts** (`Tools/Models/humanoid/`): the twelve files as handed over (`bodies/__init__.py` with `as_build`,
+`bodies/human.py` with the four builds, `forms.py`, `rig.py`, `outfit.py`, `gear.py`, `materials.py` with the slots
+`hair.tie` and `marking`, `parts/face.py` with the ten new faces, `parts/hair.py` with the 38 new styles, and the new
+`parts/beard.py`, `parts/headpiece.py`, `parts/mark.py`; what each change does: the hand-over's "What the tools' changes
+do"), **one word changed**: the hair beads' two beads took the gear's slot `metal.trim` where GM2-P28 and `parts.json`
+name the outfit's `cloth.trim` (the structural walk found it: a look's part in a gear's slot, which a hero's palette never
+fills, so the beads would have shown the model's placeholder colour). In the sheets the user approved, drawn in the game's
+look file, `metal.trim` and `cloth.trim` are the same gold (`#bb8d3c`): nothing the user saw changed. With the new files
+the 19 committed models build the same bytes (`make-humanoid.sh check`, 28 s).
+
+**The models** (`manifest.json`: 152 entries added, 171 in all, each at the full level; `make-humanoid.sh build`: 7 min 24
+s for the 152; `make-humanoid.sh check`: 171 of 171 the same bytes, twice before the rebase and again after it, about 9
+minutes a check). **One flake found:** with the machine loaded (three heavy jobs at once, or four builds side by side) the
+woman's `twin-braids` comes out with one normal of one vertex of its hair cap (vertex 291) 5.35e-05 off the committed one,
+2 builds in 24 (`claude-work/gm2/step9a-repo/flaky/`, `tools/flaky-build.sh`, `tools/glb-diff.py`): Blender's normals
+summed in another order under thread load, a picture no one can tell apart; the check fails on it now and then. For the
+manager (a determinism fix in the family's scripts, or a check that measures normals, is a tooling choice beyond this
+step). Paths as step 4a's, a part made on its sex's average body (GM2-P25), the marks with their face in the path:
+- `bodies/human-<sex>-slender` and `-strong` (4): the average body's skeleton at its rest, every deforming bone where the
+  average has it, the hip and back sockets moved with the build (`HumanoidModelTests.ABuildHasItsAverageBodysBones`);
+- `parts/face/human-<sex>-<2..6>/human-<sex>-average` (10), on the first face's skull;
+- `parts/hair/<style>/human-<sex>-average` (38: 19 a sex; `long`, `curly`, `shaggy` and `buzz-cut` on each sex's head),
+  made with the sex's first face (as step 4a's two);
+- `parts/beard/<style>/human-male-average` (12), made to the man's widest jaw, fullest chin and highest cheekbones
+  (GM2-P26, `beard.made_to`);
+- `parts/head-piece/<piece>/human-<sex>-average` (16);
+- `parts/marks/<mark>/<face>/human-<sex>-average` (72: six marks on each of the twelve faces, Q65), each one piece in
+  `marking` without ink.
+
+| Kind | Models | Bytes | Triangles (most) |
+|---|---|---|---|
+| bodies (6, 4 new) | 6 | 4,692,728 | 33,848 (the woman strong) |
+| faces | 12 | 3,744,828 | 14,732 |
+| hair | 40 | 10,219,128 | 16,304 (the man's `curly`) |
+| beards | 12 | 1,196,564 | 5,928 |
+| head pieces | 16 | 694,076 | 4,416 |
+| marks | 72 | 984,976 | 164 |
+| gear, clips | 5 | 2,152,472 | 12,024 |
+
+`Assets/Models/humanoid/` 23,684,772 bytes in 163 models (was 4,547,792 in 11; the figure's ground then made `clips.glb`
+1,492 bytes longer); `models.pak` (`make-models-pack.sh`, 164 entries) 2,170,661 (`main` `a6eb02a`) → 10,425,256 bytes. The largest models: the strong bodies (976,084 and 936,464 bytes, 33,848 and
+32,442 triangles), then the slender (712,308; 705,936), the average ones, the chain shirts and the man's curly hair
+(472,808, 16,304 triangles).
+
+**The lists with their names** (Q61; `parts.json`; each list with "None"): *the man's hair:* Crop, Swept back, Spiky,
+Curly, Messy, Shaggy, Long, Ponytail (tied), Topknot, Buzz cut, Side part, Fringe, Slicked back, Undercut, Mohawk, Warrior
+braids, Half-tied (tied), Mane, Receding, Curtains. *The woman's hair:* Long, Long tied, Braid (tied), Curls, Bun, High
+ponytail (tied), Twin braids (tied), Wavy, Bob, Curly, Pixie crop, Side braid (tied), Crown braid, Half-up (tied), Long with
+fringe, Top bun, Shaggy, Undercut (`side-undercut`), Twin buns, Buzz cut. *Beards* (men): Stubble, Short trimmed, Full,
+Goatee, Moustache, Moustache with chin tuft, Mutton chops, Chin strap, Long, Braided, Forked, Twin braids. *Head pieces*
+(both): Circlet, Flower, Headband, Hair beads, Feather, Leaf wreath, Hairpin, Earrings. *Marks* (both, a model per face):
+Freckles, Beauty mark, Scar over the brow, Scar on the cheek, Scar across the nose, Scar on the lip. *Faces:* Face 1–6 a
+sex. The provisional names of step 5 replaced: "Long, tied" is "Long tied" ("Face 1" and "Swept back" stay).
+
+**The data** (`Assets/Data/`, written from the hand-over's three files by a script of the step's,
+`claude-work/gm2/step9a-repo/tools/write_data.py`, then the race converter and the look writer, `STATVENTURE_RACE_DATA` and
+`STATVENTURE_LOOK_DATA=write`, which keep what it wrote and write it as the serializer does; `make-data-pack.sh`: 125
+entries, `data.pak` 10,653 → 29,642 bytes):
+- `data/races/human.json`: the 69 swatches of `swatches.py` in its order (skin 8, hair 10, eyes 8, lips 4, cloth 10, trim
+  5, trousers 6, leather 3, buckle 2, hair tie 6, marking 5, brows 1, eye whites 1; Q63).
+- `data/looks/bodies/`: the six (the writer's, step 6).
+- `data/looks/parts/`: 82 parts named `<category>-<key>` (the hand-over's keys), each at `look.part` version 2 with its
+  place: 12 faces, 41 hair styles, 13 beards (men only), 9 head pieces, 7 marks, each list's "None" `<category>-none`
+  (the step 6 way, a part with no model). A style both sexes' lists hold (`long`, `curly`, `shaggy`, `buzz-cut`) comes at
+  another place in each, so it is a part a sex, `hair-<style>-male` and `-female`. Each model is fitted to its sex's three
+  bodies (GM2-P25); a part's `slots` are its models' materials' (the walk holds them to it), written in the slots' order.
+  A mark's twelve models each name their face (Q65).
+- `data/looks/presets/`: the eight of `presets.py`: its face, hair, beard (the men: its style or `beard-none`), mark (or
+  `marks-none`), `head-piece-none`, and a colour of every slot the human has swatches of, the slots it names its own and
+  the others `swatches.DEFAULT`'s (the approved look's own colours).
+
+**GM2-P36: a part's place in its category's list** (`look.part` version 2, its form in step 6's "The maker's records";
+`LookData.Offered`): each category's options by `order`, the same place by name. The game's in the approved lists' order
+(`parts.json`) with "None" first: 0, then 10, 20 … (a face Face 1–6 at 10–60; the man's hair None, Crop, Swept back …
+Curtains; the woman's None, Long, Long tied … Buzz cut; the beards None, Stubble … Twin braids; the head pieces and marks
+likewise). The maker lists them so, the random button draws over the same lists, and a refit takes the category's first
+option, "None" where a category has it: the Ranger made a man gets no beard, no hair and the first face (`LookMakerTests.
+TheOptionsComeInTheApprovedOrderNoneFirst`). A version-1 part reads as place 0, so a mod's older parts keep their names'
+order (`LookRecordTests.ACategorysOptionsComeByTheirPlaces`).
+
+**Q65 in the data: a part's model by face** (`look.part.model` version 2, `Game/Statventure.Game.Data/Looks/LookPart.cs`;
+version 1 frozen as `LookPartModel.V1`, upgrading to a model that names no faces; fixtures `look.part/hair-braid` version 1
+and `look.part/marks-scar` version 2; the layout recorded):
+- **The field:** `faces`, a list of `look.part` references (`[References(typeof(LookPart))]`): the faces the model fits;
+  none: it fits any face. `LookPartModel.Fits(body, face)`: fitted to the body, and naming the face or no face.
+  `LookPart.ModelFor(body, face)`: the first model that fits. A look's face is its part of the category `face`
+  (`LookData.FaceOf`, `LookNames.Face`).
+- **Offered:** `LookPart.IsFor`/`Refusal(name, body, face)` and `LookData.Offered(name, body, face)`: a part whose models
+  name faces is offered on a body only with a face it has a model for there; with no face chosen only a model naming none
+  fits. The refusals' words: "has no model for the face \"face-human-male-2\" on the body \"human-male-strong\"", "has no
+  model for the body \"human-male-average\" without a face" (after step 6's race, sex and body).
+- **The checks** (a part's, the game's and the editor's alike): each face once a model ("\"x\" is there twice"); each body
+  and face one model's, a model naming no faces every face's on its bodies ("the body \"x\" has a model already
+  (models[0])", "the face \"f\" on the body \"x\" has a model already (models[0])"); a face's own models name no faces ("a
+  face's model names no faces (it is the face)"); with the data, a face that isn't one ("\"x\" is a hair, not a face") or
+  isn't offered on a body of the model ("the face \"f\" has no model for the body \"x\""); a face that isn't there is the
+  reference's ("no look part …"). A look's check asks what its body offers with its face, and refuses a part with no model
+  for its face in those words.
+- **The figure builder** (`HeroFigure.Resolve`) and **`assemble.py`** take each part's model for the look's body and face,
+  and refuse in the same words; the maker (`LookMaker`) offers the categories with the look's face, chooses (a preset
+  fitted, a sex or build changed, the roll) category by category in the maker's order with the face chosen first, and fits
+  the look again when a part changes (a face without a part's model takes the category's first option, as a new body does).
+  A mod that adds a face supplies its marks or that face offers none (Q65's words): the walk and the maker's tests show both.
+
+**GM2-P29 in the maker** (`LookMaker.OfferedSlots`, `MakerScreen`'s colours): of the slots the race has swatches of, those
+the look's body or one of its chosen parts uses, in the slots' order; the look still holds every slot (kept while hidden,
+the roll still draws every one, every look passing its checks). A part's slots are its record's `slots`; the body's are its
+model's materials' (`HeroData.SlotsOfBody`, read from the model in the data once a body: the record has no slots field,
+and the model is where they are). **And the user's Q73:** of those, only the slots the race has two swatches of or more
+(a colour with one swatch is no choice: the human's brows and eye whites, GM2-P28, show no row; a race or a mod that gives
+them more gets it). On the human: a man shows eight colours (no lips, tie or marking), the Duelist ten (her lips, her
+ponytail's tie), the Scholar's freckles their marking. No markup or stylesheet changed. The screens' test data's stand-in
+body models now have the materials `skin` and `cloth` (`HeroTestData.BodySlots`), so GM2-P29 changes no fixture; Q73 hides
+the Half-Beast's one skin colour in `maker-half-beast-light`, whose fixture and Chromium goldens were made again
+(`Golden/game-screen-maker-half-beast-light@1.png`, `@1.65.png`: its Skin row gone, the Hair row under the title).
+
+**The presets against the old looks** (`LookDataTests.EachPresetKeepsItsOldLooksHairBeardMarksAndTie`, over the oracle's
+`look-catalogue`, the old `sprite-catalog.js` run in Node): each committed preset's hair, beard and marks the old look's by
+this table, a tie exactly when the old style had one (the new style's slots hold `hair.tie`), and an old look's own tie
+colour as the race's tie swatch nearest it (the Duelist's `#c43a4a`: Red):
+
+| Old (`sprite-humanoid.js`) | New part |
+|---|---|
+| hair `bald`, `crop`, `spiky`, `swept`, `curly`, `curls`, `topknot` | `hair-none`, `hair-crop`, `hair-spiky`, `hair-swept-back`, `hair-curly-<sex>`, `hair-curls`, `hair-topknot` |
+| hair `ponytail`, `highponytail`, `long`, `wavy`, `bob`, `bun` | `hair-ponytail`, `hair-high-ponytail`, `hair-long-<sex>`, `hair-wavy`, `hair-bob`, `hair-bun` |
+| hair `braid`, `twinbraids`, `messy`, `shaggy` | `hair-braid`, `hair-twin-braids`, `hair-messy`, `hair-shaggy-<sex>` |
+| beard none, `stubble`, `full`, `long`, `braided`, `forked` | `beard-none`, `beard-stubble`, `beard-full`, `beard-long`, `beard-braided`, `beard-forked` |
+| marks none, `freckles`, `scar` | `marks-none`, `marks-freckles`, `marks-scar-brow` (the old scar ran from over the eye down across it, `sprite-humanoid.js` 234) |
+| tied: `ponytail`, `highponytail`, `braid`, `twinbraids` | a style with `hair.tie` |
+
+The human's eight: Wayfarer crop and stubble, Sellsword spiky, Smith curly and full, Courtier swept back; Ranger long,
+Duelist high ponytail with the red tie, Healer curls, Scholar braid and freckles. (The old scar and the styles no human
+wears are the other races' presets', 9b–9e.)
+
+**Against Blender** (GM2-P30; `AssemblyTests`, `Reference/assembly-looks.json` written with `STATVENTURE_ASSEMBLY_LOOKS=write`,
+assembled and rendered by `make-blender-references.sh`): 18 samples of the game's own data and swatches (a sample may name
+its own data folders: `"data"` in the list, which `assemble.py` and `make-blender-references.sh --out` read): the eight
+presets at three-quarter (360 × 480); the four new bodies plain from the front (the first face and the first humanoid's
+hair, the approved look's own colours); six looks: the man strong with `mane` and the `long` beard (three-quarter), the man
+slender with `mohawk`, the circlet and the brow scar (a close-up, 320 × 320), the man average with `warrior-braids` and the
+`braided` beard (side), the woman strong with `curls` and the leaf wreath (three-quarter), the woman slender with
+`twin-braids`, the flower and freckles (three-quarter), the woman average with `side-braid`, the feather and the cheek
+scar (three-quarter). Step 5's samples (the tests' race over the game's data) take the presets' new parts (the man crop and
+stubble, the woman the Ranger's long hair, the figure's ground's kneeling woman too), but for the woman's close-up, which
+keeps the first humanoid's long tied hair (GM2-P35). `TheGamesOwnSamplesAreTheHumansPresetsBodiesAndLooks` holds each a look
+the maker could make and every part named above among them. Measured under `ReferenceLimits.DetailedFigure` on both drivers
+after the rebase (GPU / lavapipe; `claude-work/gm2/step9a-repo/measure-*.txt`, `measure-table.md`; the limits for 172,800
+pixels 41 inside and 157 edge pixels, for a close-up's 102,400 24 and 93; edges' mean 4, missed 2 %, extra 3 %, unlike
+8.3 %, coverage 0.12):
+
+| Sample | Inside | Edge | Edges' mean | Missed | Extra | Unlike | Coverage |
+|---|---|---|---|---|---|---|---|
+| human-male-ember | 8 / 12 | 74 / 78 | 2.2 / 2.3 | 0.01 % | 0.12 / 0.13 % | 0.45 / 0.44 % | 0.074 |
+| human-female-ember | 8 / 7 | 35 / 38 | 2.3 | 0.02 % | 0.04 % | 0.38 / 0.39 % | 0.069 |
+| human-male-red-back | 15 / 17 | 23 / 22 | 2.8 | 0.04 % | 0.48 / 0.51 % | 0.84 % | 0.076 |
+| human-female-red | 10 / 9 | 9 | 2.8 / 2.9 | 0.02 % | 0.16 / 0.17 % | 0.28 % | 0.072 |
+| human-female-red-close-up (long tied) | 18 / 16 | 60 / 61 | 3.4 / 3.5 | 0.00 % | 1.74 / 1.82 % | 0.86 % | 0.086 |
+| human-male-geared | 9 / 5 | 146 / 144 | 2.7 | 0.00 % | 0.05 % | 2.13 / 2.14 % | 0.080 |
+| human-female-meditate | 26 | 73 / 69 | 2.5 / 2.6 | 0.05 % | 0.39 / 0.41 % | 0.88 % | 0.077 |
+| preset-human-male-1 … 4 | 5–10 / 4–9 | 39–73 / 36–77 | 1.9–2.2 | 0–0.01 % | 0.12–0.27 / 0.13–0.29 % | 0.18–0.45 % | 0.069–0.074 |
+| preset-human-female-1 … 4 | 0–3 / 0–4 | 24–36 / 27–38 | 2.0–2.4 / 2.0–2.5 | 0–0.01 % | 0.14–0.37 / 0.15–0.40 % | 0.19–0.84 % | 0.068–0.073 |
+| human-male-slender, -strong | 9, 7 | 49 / 50, 39 / 38 | 2.3–2.5 | 0.00 % | 0.12–0.16 % | 0.06, 0.13 % | 0.067, 0.070 |
+| human-female-slender, -strong | 2 / 3, 5 | 33 / 32, 16 / 18 | 2.3–2.4 | 0–0.01 % | 0.09–0.22 % | 0.21 / 0.20, 0.32 % | 0.068 |
+| human-male-strong-mane | 5 | 21 / 23 | 2.0 / 2.1 | 0.01 % | 0.26 / 0.28 % | 0.32 % | 0.071 |
+| human-male-slender-mohawk (close-up) | 0 / 1 | 26 / 24 | 2.1 / 2.0 | 0.00 % | 0.74 / 0.77 % | 1.09 / 1.07 % | 0.081 |
+| human-male-warrior-braids | 6 / 8 | 25 / 31 | 2.5 | 0.00 % | 0.13 / 0.14 % | 0.24 / 0.22 % | 0.070 |
+| human-female-strong-curls | 2 | 25 / 26 | 2.0 | 0.00 % | 0.22 / 0.24 % | 0.44 / 0.43 % | 0.074 / 0.073 |
+| human-female-slender-twin-braids | 2 / 3 | 33 / 30 | 2.4 / 2.5 | 0.00 % | 0.04 % | 0.32 % | 0.069 |
+| human-female-side-braid | 1 / 0 | 19 / 18 | 2.0 | 0.00 % | 0.30 / 0.32 % | 0.35 % | 0.071 |
+
+The nearest to its limit is the geared man's edge pixels (146 of 157), as before 9a. **Owed (GM2-P35):** two close-ups
+passed every measure but the inside pixels: the woman's close-up with the Ranger's long hair 31 / 39 and the twin braids'
+close-up 26 / 22 (24 allowed): faint seams 3 to 28 levels darker along where two hair locks meet on lit hair, which Blender
+draws flat (suspected: the shading normals where the locks of one joined hair model cross; not proven). Both out of the
+tests, no limit touched; their files (list and scene entries, Blender's and the engine's pictures on both drivers, the
+numbers, the pixels marked) in `claude-work/gm2/step9a-repo/pending-samples/` (its README says how to bring them back); an
+engine task of its own before GM2 is ticked (`Docs/Game-Plan.md`, "Engine items the port will meet"). The twin braids' look
+is compared at three-quarter instead, the sheet's own view, where it passes (2 / 3), so none of the six looks is missing.
+
+**The builds on the ground** (`HumanoidClipTests.BothBodiesStayOnTheGround`, the figure's ground's test, over the six bodies;
+every body's numbers in `claude-work/gm2/step9a-repo/ground-builds.txt`): the four builds' soles rest at −24.0 mm as the
+average bodies' (held), their legs the average's, so the clips' hips scale by the same ratios; their lowest points are
+measured with no bound, since the thicker builds' thighs and shins reach under the man's bounds (3 mm under; death's end 3
+mm under to 5 over) where the body lies or kneels: the strong man's death 14.77 mm under at its end (the right thigh),
+meditate 7.43 (the kneeling shin), flee 3.74, advance 3.59, victory 3.26; the strong woman's death 9.04, meditate 4.40; the
+slender man's death 4.38 (his right foot), meditate 3.42; the slender woman within them everywhere (at most 2.49, bow). The
+two average bodies keep their bounds. Reported to the manager with Q59's check of the clips on the builds (not widened).
+
+**Tests** (5266 + 1000 = 6266; on `main` `a6eb02a` 4660 + 951 = 5611): `LookRecordTests` (both new versions' fields and the faces' reference;
+`APartMadeForEachFaceIsOfferedWithItsFaces`, `APartsFacesChecks`, `ACategorysOptionsComeByTheirPlaces`; the fixtures of
+every version), `LibraryRecordLayoutTests` (the layouts), `LookDataTests` (the presets against the old looks;
+`TheMakersRecordsAreTheSerializersForms`), `LookMakerTests` (`TheMakerOffersAColourOnlyWhereTheBodyOrAChosenPartUsesIt`,
+`TheOptionsComeInTheApprovedOrderNoneFirst`, `AMarkFollowsTheChosenFace`, on the game's own data), `MakerScreenTests`
+(`AColourRowShowsOnlyWhereTheBodyOrAChosenPartUsesItsSlot`, `AColourWithOneSwatchShowsNoRow`, on the shipped data, whose
+harness now mounts `models.pak` too, and on the test data with a race's own swatches, `HeroScreensHarness`'s `races`),
+`HeroFigureTests` (`APartMadeForEachFaceDrawsTheModelOfTheLooksFace`; the game's preset tests on the Scholar, the
+Courtier and the new Wayfarer; the figure's ground's soles test over the game's own presets), `FigureWalkTests` (below),
+`AssemblyTests` (25 samples), the screens' `maker-half-beast-light` (Q73), `HumanoidClipTests.BothBodiesStayOnTheGround`
+over the six bodies (above), and the engine's
+`HumanoidModelTests` over the 152 new models (each body and part's skeleton and rest, weights, materials, inkless pieces,
+one primitive per material and ink flag; `ABuildHasItsAverageBodysBones`; every part follows the head alone; the marks
+one inkless piece in `marking`, unhatched; `hair.tie` and `marking` the two slots the game's look file doesn't colour).
+**The structural walk** (`FigureWalkTests`): every body with every option offered on it, a part made for each face walked
+with each face it is offered with (the pairs: 86 on each of the man's bodies, 73 on each of the woman's, 477 in all);
+a part's model bound by the joints its vertices follow (a part made on the average body is worn on the three builds,
+whose hip and back sockets lie elsewhere, GM2-P25); the races drawn in their models' own colours none now (the human's
+swatches fill every slot its figures use). A break of its own: a mark's model missing for its last face.
+
+**Shown able to fail.** *The C# rules and the data* (`mutate.py` under the shared lock in a headless cage;
+`claude-work/gm2/step9a-repo/mutations.json`, made by `tools/make-mutations.py`): 47 mutations of Q65's field and its
+rules (the fit by body and face, the refusals and their words, the first model that fits, each check of a part's faces,
+version 1's upgrade, the faces' reference), the data's offers and a look's check with the face, the figure builder, the
+maker (its categories and choices with the face, the refit on a part's change), GM2-P29 (the body's and the parts'
+slots, the order, no look, the screen's rows and title, the bodies' slots given and read), the walk (the face pairing, the
+joints followed) and the data (the presets' hair, beard, marks and tie, the braid's tie, a part's form). The first run: 43
+killed, 4 survived; two were gaps, closed and killed in the rerun (`mutations-rerun.json`: a maker with no look offering no
+colours, a race whose swatches nothing uses showing no colours' title). After the manager's answers and the rebase the list
+grew by GM2-P36 (`mutations-2.json`: the order by name alone, the same place in reverse name, the highest first, version
+1's place not 0, version 1's slots lost in the upgrade) and Q73 (a colour of one swatch offered, one of two hidden too, the
+rule only with or only without the bodies' slots; and "no bodies' slots" offering none, which replaced "every one").
+**The standing list: 56, 54 killed, 2 that can't differ:** the first model that fits against the last (a part's checks
+leave one model a body and face, so they are the same), and the walk following a joint of weight 0 (every unused
+influence of the family's models names the skin's first joint, the hips, which every build has at its average's rest).
+*`assemble.py`'s rules* (`tools/assemble-rules.py`, step 5's
+runner with 9a's cases: a mark by face on two faces, a face with no model of it, a look with no face, a scene's own data):
+**25 of 25 killed** (step 5's 16 and 9 new: the first model whatever its faces, a model naming faces fitting no face or any
+face, the face not the look's, each refusal unreported or put the other way, a scene's data ignored or put under the
+list's; the same 25 after the rebase, `assemble-rules-2.log`). *The engine's model tests* (`tools/model-breaks.py`: a
+committed model changed, the tests run, the file put back): 7 of 8 killed (a slender body that is the average's, a
+build's spine moved, a mark inked, a mark hatched, a beard and a head piece following the neck, and for the ground test
+over the builds a build standing 1 cm lower, its `hips` joint moved, since a skinned mesh ignores its node's place); the
+eighth, a tie in a gear's slot, is the walk's rule, not the engine's (the engine's tests take the gear's slots, which the
+gear's models use; the walk refuses a part in one, and found the hair beads so). Nothing written to the player's real
+folders (the game's folder and `~/Documents` the same before and after every run).
+
+**Runs** (each full run under the shared lock in a headless cage, a scratch per-user folder, sound to the null device;
+logs in `claude-work/gm2/step9a-repo/`): the first ones, before the manager's answers, found the two close-ups (GM2-P35).
+The final ones on the rebased branch (`602dde1` on `a6eb02a`; only the docs' last words after them): the GPU 5266 + 1000
+= 6266 passed (`full-final-gpu.log`), lavapipe 6266 passed (`full-final-lavapipe.log`). The editor's `preview-cutscene`
+fixture lists `models.pak`'s models, so the new ones changed `Reference/editor-fixtures.json`; captured again in Chromium
+(`make-editor-references.sh preview-cutscene`), its goldens came out the same bytes (a closed list). `make-humanoid.sh
+check` after the rebase: 171 of 171 equal twice on a quiet machine (`check-final-1.log`, `-3.log`; the flake above in
+`-2.log`). `make-blender-references.sh --out` (20 min) and `compare_references.py`: 278 files byte-equal, none different
+or missing. The player's real folders the same before and after every run.
+
+**Choices made (internal, recorded here):** the hair beads' slot (above, the manager agreed); the data written by a script
+from the hand-over's files, then the converter and the writer; part names `<category>-<key>`, "None" `<category>-none`, a
+style of both lists a part a sex (`hair-<style>-<sex>`: GM2-P36's places differ in each list); `order` a field of
+`look.part` version 2 appended as field 7, no check (as the presets' has none); a part's slots in the slots' order;
+Q73 in `LookMaker.OfferedSlots` (the maker's colours), the look and the roll untouched; the marks' paths with the face before the body; Q65's field on `look.part.model`
+(version 2) with its checks and words as above, the face a look's `face` part; a model naming faces fitting no look without
+a face; the maker fitting the look again on any part's change; the body's slots read from its model's materials
+(`HeroData.SlotsOfBody`), the screens' stand-in body models given `skin` and `cloth`; the shipped harness mounting
+`models.pak`; the walk's binding by the joints followed and its face pairing; the table of old names; the six looks' views
+and colours, the bodies plain from the front, the twin braids at three-quarter (GM2-P35); a sample's own data folders in
+the assembly list; the measurement probe outside the repo (`claude-work/gm2/step9a-repo/tools/ZzScratchMeasureAssembly.cs`);
+the ground test's builds measured with no bound and its problems all reported at once.
+
+**For later steps.** *9b–9e (each race):* its three builds by `bodies.as_build` from its average body (the same skeleton,
+the girths and the masses' and sockets' ratios); six faces a sex on one skull (`parts/face.py`, `flat` and the head's
+frame shared), so the shared hair styles and head pieces fit all of them; the shared sets fitted to its heads (hair made
+with the sex's first face, `hair_model`; beards made to the race's widest jaw, fullest chin and highest cheekbones,
+`beard.made_to`; head pieces; marks one model per face); its swatches in its race file (every slot its figures use) and
+its presets in the old looks' names, held to the old looks by the table above (the scar is `marks-scar-brow`; an old style
+a sex's list lacks is the step's to place); parts with their slots in the slots' order, their places in their approved
+lists ("None" 0, then 10, 20 …; GM2-P36), its models fitted to its three bodies; the walk, the maker and `AssemblyTests` take
+them with no code change. Its builds' ground: measured by `BothBodiesStayOnTheGround`'s way (the human's thicker builds
+lie and kneel under the man's bounds: the manager's to judge with Q59). *Step 11:* the figures' parts by body and
+face (`HeroFigure` does it). *GM2-P22's task and step 11:* the four new bodies are in `models.pak` (Q59's check is on the
+hobbit's and the Goliath's).
 
 ## Status
 
@@ -4152,3 +4514,17 @@ a scene posing the woman (or any other body) by a clip made again too (her clips
   kneeling). Every later body, the smallest and largest included, plays the clips by this rule (Q59: the user sees it in
   step 9). 4660 + 951 = 5611 tests on the GPU and on lavapipe (`main` `d2752e5`: 4645 + 948 = 5593; 18 new); mutations
   32 of 32 killed (one survivor of the first run closed by a test), Blender's side 7 of 7.
+- **2026-11-21, step 9a done** (a worker, the branch `gm2-step9a`, rebased on the figure's ground; "How it works", step 9a):
+  the manager's approved art of the shared sets and the human in the repo: the twelve script files (the hair beads moved
+  into the outfit's trim, one word, GM2-P28, agreed), 152 new models (171 in the manifest, the same bytes on every build,
+  twice) in `models.pak` (2,170,661 → 10,425,256 bytes), the human's 69 swatches, six bodies, 82 parts under the approved
+  names in the approved order and the eight presets in `data.pak` (10,653 → 29,642 bytes); the user's Q65 as
+  `look.part.model` version 2's `faces` (a mark's model by face, in the checks, the offers, the figure builder,
+  `assemble.py` and the maker), the manager's GM2-P29 in the maker (a colour offered only where the body or a chosen part
+  uses it) and GM2-P36 (`look.part` version 2's `order`: each list in the approved order, "None" first), the user's Q73 (a
+  colour of one swatch shows no row); the presets held to the old looks by a table of names; the walk over every body,
+  option and face, the human coloured; 18 samples against Blender (GM2-P30), two close-ups owed to an engine task
+  (GM2-P35). Recorded: the user's Q61–Q65 and Q73 and the approvals, the manager's GM2-P25–GM2-P30, GM2-P35, GM2-P36.
+  4660 + 951 → 5266 + 1000 = 6266 tests, on the GPU and lavapipe. Found: the hair beads in a gear's slot (the walk); the hair locks' seams up close (GM2-P35); the thicker builds
+  lying and kneeling under the man's ground bounds (measured, for the manager with Q59); the woman's twin braids' hair cap
+  one normal off now and then when Blender builds it under load (`make-humanoid.sh check` flaky on it).

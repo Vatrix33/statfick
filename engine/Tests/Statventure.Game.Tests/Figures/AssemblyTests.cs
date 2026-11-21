@@ -51,11 +51,12 @@ public class AssemblyTests(GpuFixture gpu)
     const string Background = "#2a1f1a";
 
     /// <summary>
-    /// A sample: its scene's name, the look, the gear, the view and its size, and a clip at a time (none: at rest) of a
-    /// library (<see cref="TestLibrary"/> by default).
+    /// A sample: its scene's name, the look, the gear, the view and its size, a clip at a time (none: at rest) of a library
+    /// (<see cref="TestLibrary"/> by default), and whether it is read against the game's data alone
+    /// (<paramref name="GamesOwn"/>: the game's human and its swatches, GM2 step 9a) or with the tests' race over it.
     /// </summary>
     public sealed record Sample(string Name, LookHero Look, FigureGear Gear, string View, int Width, int Height, string? Clip = null, double Time = 0,
-        string Library = TestLibrary);
+        string Library = TestLibrary, bool GamesOwn = false);
 
     /// <summary>The swatches the tests' human has (none of them the game's: the game's are the art steps', GM2 step 9).</summary>
     static readonly RaceSwatch[] Swatches =
@@ -86,6 +87,13 @@ public class AssemblyTests(GpuFixture gpu)
     static LookHero Man(params (string Slot, string Swatch)[] colours) => Preset("human-male-1") with { Colours = colours.ToDictionary(c => c.Slot, c => c.Swatch) };
 
     static LookHero Woman(params (string Slot, string Swatch)[] colours) => Preset("human-female-1") with { Colours = colours.ToDictionary(c => c.Slot, c => c.Swatch) };
+
+    /// <summary>
+    /// The woman with the first humanoid's long tied hair, as step 5's close-up passed with (the manager's GM2-P35: the
+    /// Ranger's long hair shows faint seams up close where its locks meet, an engine task's; the sample waits for it).
+    /// </summary>
+    static LookHero WomanLongTied(params (string Slot, string Swatch)[] colours) =>
+        Woman(colours) with { Parts = new Dictionary<string, string> { ["face"] = "face-human-female-1", ["hair"] = "hair-long-tied", ["marks"] = "marks-none", ["head-piece"] = "head-piece-none" } };
 
     static readonly (string, string)[] Ember =
     [
@@ -118,7 +126,7 @@ public class AssemblyTests(GpuFixture gpu)
         new("assembly-human-female-ember", Woman([.. Ember, ("lips", "Ember")]), new(), "front", 360, 480),
         new("assembly-human-male-red-back", Man([.. Red.Where(c => c.Item1 != "lips")]), new(), "back", 360, 480),
         new("assembly-human-female-red", Woman(Red), new(), "side", 360, 480),
-        new("assembly-human-female-red-close-up", Woman(Red), new(), "close-up", 320, 320),
+        new("assembly-human-female-red-close-up", WomanLongTied(Red), new(), "close-up", 320, 320),
         // Gear on it: a garment of the gear, two items on sockets, the gear's colours, posed.
         new("assembly-human-male-geared",
             Man(("skin", "Deep"), ("hair", "Ash"), ("eyes", "Blue"), ("brows", "Ember"), ("eye.white", "Ember"), ("cloth", "Green"), ("cloth.trim", "Ember"),
@@ -127,7 +135,60 @@ public class AssemblyTests(GpuFixture gpu)
         // The woman kneeling in meditate (the family's library, its marker "restore"): the clip's hips' place scaled by her
         // legs on both sides (GM2-P22; render.py's pose_at in Blender), her knee on the ground, standing by her soles.
         new("assembly-human-female-meditate", Woman([.. Ember, ("lips", "Ember")]), new(), "three-quarter", 360, 480, "meditate", 42 / 60.0, GameLibrary),
+        // GM2 step 9a (GM2-P30), in the game's own data and swatches: the human's eight presets in the sheet's three-quarter
+        // view; the four new bodies plain (the first face and hair, the approved look's own colours) from the front; and six
+        // looks chosen for their demanding parts. (The twin braids' look at three-quarter: its close-up, and step 5's red
+        // close-up with the Ranger's long hair, show faint seams where hair locks meet, an engine task's before GM2 is ticked,
+        // GM2-P35; their files wait in claude-work/gm2/step9a-repo/pending-samples/.)
+        .. new[] { "human-male-1", "human-male-2", "human-male-3", "human-male-4", "human-female-1", "human-female-2", "human-female-3", "human-female-4" }
+            .Select(p => new Sample($"assembly-preset-{p}", Preset(p), new(), "three-quarter", 360, 480, GamesOwn: true)),
+        .. new[] { ("male", "slender"), ("male", "strong"), ("female", "slender"), ("female", "strong") }
+            .Select(b => new Sample($"assembly-human-{b.Item1}-{b.Item2}", Plain(b.Item1, b.Item2), new(), "front", 360, 480, GamesOwn: true)),
+        new("assembly-human-male-strong-mane", Human("male", "strong", "face-human-male-2", "hair-mane", "beard-long", null, null,
+            ("skin", "Bronze"), ("hair", "Auburn"), ("eyes", "Green"), ("cloth", "Forest"), ("cloth.trim", "Bone"), ("trousers", "Brown"), ("leather", "Tan")), new(), "three-quarter", 360, 480, GamesOwn: true),
+        new("assembly-human-male-slender-mohawk", Human("male", "slender", "face-human-male-3", "hair-mohawk", "beard-none", "marks-scar-brow", "head-piece-circlet",
+            ("skin", "Olive"), ("hair", "Black"), ("eyes", "Grey"), ("marking", "Pale"), ("cloth", "Black"), ("cloth.trim", "Silver"), ("buckle", "Steel")), new(), "close-up", 320, 320, GamesOwn: true),
+        new("assembly-human-male-warrior-braids", Human("male", "average", "face-human-male-5", "hair-warrior-braids", "beard-braided", null, null,
+            ("skin", "Fair"), ("hair", "Copper"), ("eyes", "Blue"), ("cloth", "Blue"), ("cloth.trim", "Crimson"), ("trousers", "Navy")), new(), "side", 360, 480, GamesOwn: true),
+        new("assembly-human-female-strong-curls", Human("female", "strong", "face-human-female-2", "hair-curls", null, null, "head-piece-leaf-wreath",
+            ("skin", "Deep"), ("hair", "Black"), ("eyes", "Amber"), ("lips", "Plum"), ("cloth", "Ochre"), ("cloth.trim", "Gold"), ("trousers", "Olive")), new(), "three-quarter", 360, 480, GamesOwn: true),
+        new("assembly-human-female-slender-twin-braids", Human("female", "slender", "face-human-female-4", "hair-twin-braids", null, "marks-freckles", "head-piece-flower",
+            ("skin", "Porcelain"), ("hair", "Ash blond"), ("hair.tie", "Blue"), ("eyes", "Green"), ("lips", "Rose"), ("marking", "Brown"), ("cloth", "Violet"),
+            ("cloth.trim", "Bone")), new(), "three-quarter", 360, 480, GamesOwn: true),
+        new("assembly-human-female-side-braid", Human("female", "average", "face-human-female-5", "hair-side-braid", null, "marks-scar-cheek", "head-piece-feather",
+            ("skin", "Tan"), ("hair", "Chestnut"), ("hair.tie", "Gold"), ("eyes", "Hazel"), ("lips", "Red"), ("marking", "Rose"), ("cloth", "Teal"), ("cloth.trim", "Silver"),
+            ("trousers", "Grey"), ("leather", "Black")), new(), "three-quarter", 360, 480, GamesOwn: true),
     ];
+
+    /// <summary>
+    /// The colours of the approved look itself (the human's swatch of each slot whose colour is the game's look file's,
+    /// GM2 step 9a's <c>swatches.DEFAULT</c>; the tie and the marking have none there: Red and Brown, the first of theirs
+    /// the pictures used), with <paramref name="colours"/> over them: a colour for every slot the human has swatches of.
+    /// </summary>
+    static Dictionary<string, string> GameColours(params (string Slot, string Swatch)[] colours)
+    {
+        var all = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["skin"] = "Tan", ["hair"] = "Brown", ["hair.tie"] = "Red", ["eyes"] = "Dark", ["brows"] = "Dark", ["lips"] = "Natural", ["cloth"] = "Red", ["cloth.trim"] = "Gold",
+            ["trousers"] = "Charcoal", ["marking"] = "Brown", ["eye.white"] = "Ivory", ["leather"] = "Brown", ["buckle"] = "Brass",
+        };
+        foreach (var (slot, swatch) in colours)
+            all[slot] = swatch;
+        return all;
+    }
+
+    /// <summary>A human look on <paramref name="sex"/>'s <paramref name="build"/> body with its face, hair, beard (a man's), marks and head piece (none: "None") in the game's swatches.</summary>
+    static LookHero Human(string sex, string build, string face, string hair, string? beard, string? marks, string? head, params (string Slot, string Swatch)[] colours)
+    {
+        var parts = new Dictionary<string, string> { ["face"] = face, ["hair"] = hair, ["marks"] = marks ?? "marks-none", ["head-piece"] = head ?? "head-piece-none" };
+        if (beard is not null)
+            parts["beard"] = beard;
+        return new LookHero { Race = "human", Sex = sex, Body = $"human-{sex}-{build}", Parts = parts, Colours = GameColours(colours) };
+    }
+
+    /// <summary>A new body plain: the first face and the first humanoid's hair (swept back, long tied), nothing else, in the approved look's own colours.</summary>
+    static LookHero Plain(string sex, string build) =>
+        Human(sex, build, $"face-human-{sex}-1", sex == "male" ? "hair-swept-back" : "hair-long-tied", sex == "male" ? "beard-none" : null, null, null);
 
     public static TheoryData<string> SampleNames => new(Samples.Select(s => s.Name));
 
@@ -136,7 +197,8 @@ public class AssemblyTests(GpuFixture gpu)
     {
         var scenes = new JsonArray();
         foreach (var s in Samples)
-            scenes.Add(new JsonObject
+        {
+            var scene = new JsonObject
             {
                 ["name"] = s.Name,
                 ["look"] = JsonNode.Parse(RecordSerializer.ToJson(s.Look)),
@@ -152,7 +214,12 @@ public class AssemblyTests(GpuFixture gpu)
                 ["clip"] = s.Clip,
                 ["time"] = s.Time,
                 ["clips"] = s.Clip is null ? null : s.Library,
-            });
+            };
+            // A sample of the game's own data reads the game's folder alone (assemble.py: a scene's "data" over the list's).
+            if (s.GamesOwn)
+                scene["data"] = new JsonArray("../../../Assets/Data");
+            scenes.Add(scene);
+        }
         var list = new JsonObject
         {
             ["format"] = "statventure.assembly",
@@ -163,6 +230,33 @@ public class AssemblyTests(GpuFixture gpu)
             ["scenes"] = scenes,
         };
         return list.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + "\n";
+    }
+
+    /// <summary>
+    /// GM2 step 9a's samples (GM2-P30): the eight presets as the game's data holds them, the four new bodies and six looks,
+    /// each a look the maker could make (every check of <c>look.hero</c> with the game's data passes), each new part's kind
+    /// among them (every head piece and mark named in the hand-over's list of looks, the faces of both sexes).
+    /// </summary>
+    [Fact]
+    public void TheGamesOwnSamplesAreTheHumansPresetsBodiesAndLooks()
+    {
+        using var folder = new ScratchFolder();
+        using var data = Data(folder, gamesOwn: true);
+        var own = Samples.Where(s => s.GamesOwn).ToList();
+        Assert.Equal(18, own.Count);
+        foreach (var sample in own)
+        {
+            var problems = RecordChecks.Check(sample.Look, data, TestLooks.Lookup(data));
+            Assert.True(problems.Count == 0, $"{sample.Name}: {string.Join("; ", problems)}");
+        }
+        var looks = LookData.Load(data);
+        Assert.Equal(looks.PresetsOf("human").Select(p => looks.Presets[p].Look), own.Where(s => s.Name.StartsWith("assembly-preset-")).Select(s => s.Look));
+        Assert.All(own.Where(s => s.Name.StartsWith("assembly-preset-")), s => Assert.Equal("three-quarter", s.View));
+        Assert.Equal(["human-female-slender", "human-female-strong", "human-male-slender", "human-male-strong"],
+            own.Where(s => !s.Name.StartsWith("assembly-preset-")).Select(s => s.Look.Body).Where(b => !b.EndsWith("-average")).Distinct().Order(StringComparer.Ordinal));
+        string[] demanding = ["hair-mane", "beard-long", "hair-mohawk", "head-piece-circlet", "marks-scar-brow", "hair-warrior-braids", "beard-braided", "hair-curls",
+            "head-piece-leaf-wreath", "hair-twin-braids", "head-piece-flower", "marks-freckles", "hair-side-braid", "head-piece-feather", "marks-scar-cheek"];
+        Assert.All(demanding, part => Assert.Contains(own, s => s.Look.Parts.Values.Contains(part)));
     }
 
     /// <summary>
@@ -186,13 +280,14 @@ public class AssemblyTests(GpuFixture gpu)
         Assert.Equal(["human.json"], Directory.GetFiles(Overlay, "*", SearchOption.AllDirectories).Select(Path.GetFileName));
     }
 
-    /// <summary>The game's data with the tests' on top (the development folder's place: over the packs, as a mod's data would be).</summary>
-    internal static VirtualFileSystem Data(ScratchFolder folder)
+    /// <summary>The game's data with the tests' on top (the development folder's place: over the packs, as a mod's data would be), or the game's alone (<paramref name="gamesOwn"/>).</summary>
+    internal static VirtualFileSystem Data(ScratchFolder folder, bool gamesOwn = false)
     {
         Directory.CreateDirectory(folder["game/packs"]);
         foreach (var pack in Directory.GetFiles(TestPaths.Packs, "*.pak"))
-            File.Copy(pack, Path.Combine(folder["game/packs"], Path.GetFileName(pack)));
-        return new VirtualFileSystem(Application.DataMounts(new ApplicationOptions { DevelopmentFolder = Overlay }, folder["game"], _ => null));
+            if (!File.Exists(Path.Combine(folder["game/packs"], Path.GetFileName(pack))))
+                File.Copy(pack, Path.Combine(folder["game/packs"], Path.GetFileName(pack)));
+        return new VirtualFileSystem(Application.DataMounts(new ApplicationOptions { DevelopmentFolder = gamesOwn ? null : Overlay }, folder["game"], _ => null));
     }
 
     /// <summary>A model's data path (<c>models/…</c>) as Blender's scene names its file (its .glb under the models' folder).</summary>
@@ -276,11 +371,12 @@ public class AssemblyTests(GpuFixture gpu)
         Assert.Equal("../../../Assets/Models", scenes.RootElement.GetProperty("modelFolder").GetString());
         Assert.Equal(Samples.Select(s => s.Name), scenes.RootElement.GetProperty("scenes").EnumerateArray().Select(s => s.GetProperty("name").GetString()));
         using var folder = new ScratchFolder();
-        using var data = Data(folder);
+        using var tests = Data(folder);
+        using var games = Data(folder, gamesOwn: true);
         foreach (var sample in Samples)
         {
             var scene = scenes.RootElement.GetProperty("scenes").EnumerateArray().Single(s => s.GetProperty("name").GetString() == sample.Name);
-            using var shown = new Shown(gpu.Device, data, sample);
+            using var shown = new Shown(gpu.Device, sample.GamesOwn ? games : tests, sample);
             var plan = shown.Figure.Plan;
             var models = scene.GetProperty("models").EnumerateArray().ToList();
             Assert.Equal([FileOf(plan.Body), .. plan.GarmentModels.Select(FileOf), .. plan.Items.Select(i => FileOf(i.Model))], models.Select(m => m.GetProperty("file").GetString()));
@@ -318,7 +414,7 @@ public class AssemblyTests(GpuFixture gpu)
         var reference = Golden.GoldenPath("r3d-" + name);
         Assert.True(File.Exists(reference), $"no Blender reference for {name}: run the tests, then Tools/Scripts/make-blender-references.sh {name}");
         using var folder = new ScratchFolder();
-        using var data = Data(folder);
+        using var data = Data(folder, sample.GamesOwn);
         using var shown = new Shown(gpu.Device, data, sample);
         var actual = Render(gpu.Device, shown.View, sample.Width, sample.Height, lines: false);
         var problems = Render3DReferenceTests.Compare(ImageFile.Load(reference), actual, ReferenceLimits.DetailedFigure);
@@ -336,7 +432,7 @@ public class AssemblyTests(GpuFixture gpu)
         var reference = Golden.GoldenPath("r3d-" + name + "-ink");
         Assert.True(File.Exists(reference), $"no Freestyle reference for {name}: run the tests, then Tools/Scripts/make-blender-references.sh {name}");
         using var folder = new ScratchFolder();
-        using var data = Data(folder);
+        using var data = Data(folder, sample.GamesOwn);
         using var shown = new Shown(gpu.Device, data, sample);
         var actual = Render(gpu.Device, shown.View, sample.Width, sample.Height, inkOnly: true);
         var problems = Render3DReferenceTests.CompareInk(Render3DReferenceTests.InkCoverage(ImageFile.Load(reference), alpha: true),

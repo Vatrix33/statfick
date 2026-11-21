@@ -49,6 +49,20 @@ def pose_arms(p, degrees):
     p["arm"] = out
 
 
+def as_build(p, shape):
+    """A body's parameters as another build of it (Q15: slender, strong; Hero.md, "the slender and strong builds made from
+    it by the script and refined"): the same skeleton, every joint where the average has it, so the clips, the grips and
+    the head's parts fit as on the average; other girths. `shape`: "torso" {section: (width, depth) factors}, "arm" and
+    "leg" {point: radius factor}, and the ratios the masses and the sockets follow (forms.build_ratios, rig.bone_table):
+    "muscle", "w", "d", "a", "l", "bust", "seat", "hips", "back"."""
+    p = dict(p)
+    p["spine"] = [(n, y, z, rx * shape["torso"].get(n, (1.0, 1.0))[0], ry * shape["torso"].get(n, (1.0, 1.0))[1]) for n, y, z, rx, ry in p["spine"]]
+    p["arm"] = [(n, x, y, z, radius * shape["arm"].get(n, 1.0)) for n, x, y, z, radius in p["arm"]]
+    p["leg"] = [(n, x, y, z, radius * shape["leg"].get(n, 1.0)) for n, x, y, z, radius in p["leg"]]
+    p["build"] = {key: shape[key] for key in ("muscle", "w", "d", "a", "l", "bust", "seat", "hips", "back") if key in shape}
+    return p
+
+
 def build(name, level):
     """The body `name` at the detail `level` in the scene: its surface bound to its skeleton and dressed in its plain
     outfit. Returns {"p", "body", "rig", "joints", "maker"} (the maker, outfit.Maker, cuts more garments from the dressed

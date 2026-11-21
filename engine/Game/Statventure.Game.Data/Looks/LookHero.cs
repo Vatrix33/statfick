@@ -73,6 +73,8 @@ public sealed record LookHero
             else if (body.Sex != look.Sex)
                 check.Report(RecordPath.Root.Field(nameof(Body)), $"the body \"{look.Body}\" is a {body.Sex} body, not a {look.Sex} one");
         }
+        // A part lying on a face (a mark, Q65) is offered with the look's face only.
+        var face = LookData.FaceOf(look);
         foreach (var (category, name) in look.Parts)
         {
             if (!LookNames.Categories.Contains(category, StringComparer.Ordinal) || LookData.Part(data, name) is not { } part)
@@ -80,12 +82,12 @@ public sealed record LookHero
             var at = RecordPath.Root.Field(nameof(Parts)).Key(category);
             if (part.Category != category)
                 check.Report(at, $"\"{name}\" is a {part.Category}, not a {category}");
-            else if (body is not null && part.Refusal(look.Body, body) is { } refusal)
+            else if (body is not null && part.Refusal(look.Body, body, face) is { } refusal)
                 check.Report(at, $"\"{name}\" {refusal}");
         }
         if (body is null)
             return;
-        var offered = LookData.Offered(LookData.PartsIn(data), look.Body, body);
+        var offered = LookData.Offered(LookData.PartsIn(data), look.Body, body, face);
         foreach (var category in LookNames.Categories)
             if (offered.TryGetValue(category, out var options) && !look.Parts.ContainsKey(category))
                 check.Report(RecordPath.Root.Field(nameof(Parts)), $"no {category} chosen (the body \"{look.Body}\" has {options.Count} to choose from)");

@@ -28,6 +28,8 @@ def make():
         "pupil": k.unlit_material("pupil", linear(FIXED["pupil"])),
         "glint": k.unlit_material("glint", linear(FIXED["glint"])),
         "hair": k.lit_material("hair", (0.2, 0.12, 0.07)),
+        "hair.tie": k.lit_material("hair.tie", (0.35, 0.1, 0.08)),
+        "marking": k.lit_material("marking", (0.30, 0.17, 0.11), hatch=False),
         "cloth": k.lit_material("cloth", (0.35, 0.1, 0.08)),
         "cloth.trim": k.lit_material("cloth.trim", (0.6, 0.45, 0.2)),
         "trousers": k.lit_material("trousers", (0.15, 0.13, 0.12)),

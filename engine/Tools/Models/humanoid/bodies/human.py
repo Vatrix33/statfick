@@ -9,7 +9,7 @@
 #   head    the head's frame (its centre and half sizes; the face, parts/face.py, gives the rest)
 #   masses  the muscle masses (forms.MASSES); outfit: the plain outfit (outfit.OUTFITS)
 # Blender's coordinates: Z up, the figure faces −Y, its left is +X; metres.
-from bodies import pose_arms
+from bodies import as_build, pose_arms
 
 
 def male_average():
@@ -60,4 +60,35 @@ def female_average():
     return p
 
 
-BODIES = {"human-male-average": male_average, "human-female-average": female_average}
+# The builds (Q15): the average body's skeleton with other girths (bodies.as_build). Slender: narrow through the chest and
+# the waist, long thin limbs, the masses faint. Strong: a deep chest and a thick neck, heavy shoulders, arms and legs, the
+# masses full.
+SLENDER_MAN = {
+    "torso": {"groin": (0.94, 0.94), "pelvis": (0.92, 0.92), "belly": (0.88, 0.88), "waist": (0.88, 0.89), "ribs": (0.88, 0.88),
+              "chest": (0.88, 0.87), "clavicle": (0.90, 0.90), "yoke": (0.92, 0.92), "neck0": (0.91, 0.91), "neck1": (0.92, 0.92)},
+    "arm": {"armroot": 0.88, "shoulder": 0.85, "upperarm": 0.80, "elbow": 0.88, "forearm": 0.82, "wrist": 0.91},
+    "leg": {"legroot": 0.93, "hip": 0.91, "thigh": 0.84, "knee": 0.91, "calf": 0.84, "shin": 0.90, "ankle": 0.94},
+    "muscle": 0.4, "w": 0.88, "d": 0.87, "a": 0.82, "l": 0.85, "seat": 0.78, "hips": 0.92, "back": 0.87}
+STRONG_MAN = {
+    "torso": {"groin": (1.05, 1.06), "pelvis": (1.06, 1.08), "belly": (1.10, 1.12), "waist": (1.12, 1.12), "ribs": (1.12, 1.14),
+              "chest": (1.10, 1.15), "clavicle": (1.09, 1.14), "yoke": (1.18, 1.16), "neck0": (1.20, 1.16), "neck1": (1.17, 1.14)},
+    "arm": {"armroot": 1.12, "shoulder": 1.26, "upperarm": 1.32, "elbow": 1.16, "forearm": 1.24, "wrist": 1.10},
+    "leg": {"legroot": 1.06, "hip": 1.08, "thigh": 1.17, "knee": 1.10, "calf": 1.19, "shin": 1.12, "ankle": 1.07},
+    "muscle": 1.7, "w": 1.10, "d": 1.15, "a": 1.30, "l": 1.17, "seat": 1.18, "hips": 1.06, "back": 1.15}
+SLENDER_WOMAN = {
+    "torso": {"groin": (0.94, 0.94), "pelvis": (0.92, 0.93), "belly": (0.89, 0.89), "waist": (0.90, 0.90), "ribs": (0.89, 0.89),
+              "chest": (0.89, 0.89), "clavicle": (0.91, 0.91), "yoke": (0.93, 0.93), "neck0": (0.92, 0.92), "neck1": (0.93, 0.93)},
+    "arm": {"armroot": 0.90, "shoulder": 0.87, "upperarm": 0.82, "elbow": 0.89, "forearm": 0.84, "wrist": 0.92},
+    "leg": {"legroot": 0.94, "hip": 0.92, "thigh": 0.85, "knee": 0.92, "calf": 0.85, "shin": 0.91, "ankle": 0.95},
+    "muscle": 0.5, "w": 0.89, "d": 0.89, "a": 0.84, "l": 0.86, "bust": 0.78, "seat": 0.74, "hips": 0.92, "back": 0.89}
+STRONG_WOMAN = {
+    "torso": {"groin": (1.05, 1.05), "pelvis": (1.06, 1.07), "belly": (1.09, 1.10), "waist": (1.13, 1.12), "ribs": (1.11, 1.12),
+              "chest": (1.10, 1.12), "clavicle": (1.10, 1.12), "yoke": (1.15, 1.14), "neck0": (1.15, 1.13), "neck1": (1.12, 1.11)},
+    "arm": {"armroot": 1.10, "shoulder": 1.22, "upperarm": 1.26, "elbow": 1.14, "forearm": 1.20, "wrist": 1.08},
+    "leg": {"legroot": 1.06, "hip": 1.07, "thigh": 1.16, "knee": 1.09, "calf": 1.17, "shin": 1.11, "ankle": 1.06},
+    "muscle": 1.9, "w": 1.10, "d": 1.12, "a": 1.26, "l": 1.16, "bust": 1.0, "seat": 1.15, "hips": 1.06, "back": 1.12}
+
+BODIES = {"human-male-average": male_average, "human-female-average": female_average,
+          "human-male-slender": lambda: as_build(male_average(), SLENDER_MAN), "human-male-strong": lambda: as_build(male_average(), STRONG_MAN),
+          "human-female-slender": lambda: as_build(female_average(), SLENDER_WOMAN),
+          "human-female-strong": lambda: as_build(female_average(), STRONG_WOMAN)}

@@ -1,0 +1,153 @@
+{
+  "$types": {
+    "look.part": 2,
+    "look.part.model": 2
+  },
+  "category": "marks",
+  "name": "Scar on the lip",
+  "races": [
+    "human"
+  ],
+  "sexes": [
+    "male",
+    "female"
+  ],
+  "models": [
+    {
+      "model": "models/humanoid/parts/marks/scar-lip/human-male-1/human-male-average",
+      "bodies": [
+        "human-male-slender",
+        "human-male-average",
+        "human-male-strong"
+      ],
+      "faces": [
+        "face-human-male-1"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-lip/human-male-2/human-male-average",
+      "bodies": [
+        "human-male-slender",
+        "human-male-average",
+        "human-male-strong"
+      ],
+      "faces": [
+        "face-human-male-2"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-lip/human-male-3/human-male-average",
+      "bodies": [
+        "human-male-slender",
+        "human-male-average",
+        "human-male-strong"
+      ],
+      "faces": [
+        "face-human-male-3"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-lip/human-male-4/human-male-average",
+      "bodies": [
+        "human-male-slender",
+        "human-male-average",
+        "human-male-strong"
+      ],
+      "faces": [
+        "face-human-male-4"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-lip/human-male-5/human-male-average",
+      "bodies": [
+        "human-male-slender",
+        "human-male-average",
+        "human-male-strong"
+      ],
+      "faces": [
+        "face-human-male-5"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-lip/human-male-6/human-male-average",
+      "bodies": [
+        "human-male-slender",
+        "human-male-average",
+        "human-male-strong"
+      ],
+      "faces": [
+        "face-human-male-6"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-lip/human-female-1/human-female-average",
+      "bodies": [
+        "human-female-slender",
+        "human-female-average",
+        "human-female-strong"
+      ],
+      "faces": [
+        "face-human-female-1"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-lip/human-female-2/human-female-average",
+      "bodies": [
+        "human-female-slender",
+        "human-female-average",
+        "human-female-strong"
+      ],
+      "faces": [
+        "face-human-female-2"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-lip/human-female-3/human-female-average",
+      "bodies": [
+        "human-female-slender",
+        "human-female-average",
+        "human-female-strong"
+      ],
+      "faces": [
+        "face-human-female-3"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-lip/human-female-4/human-female-average",
+      "bodies": [
+        "human-female-slender",
+        "human-female-average",
+        "human-female-strong"
+      ],
+      "faces": [
+        "face-human-female-4"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-lip/human-female-5/human-female-average",
+      "bodies": [
+        "human-female-slender",
+        "human-female-average",
+        "human-female-strong"
+      ],
+      "faces": [
+        "face-human-female-5"
+      ]
+    },
+    {
+      "model": "models/humanoid/parts/marks/scar-lip/human-female-6/human-female-average",
+      "bodies": [
+        "human-female-slender",
+        "human-female-average",
+        "human-female-strong"
+      ],
+      "faces": [
+        "face-human-female-6"
+      ]
+    }
+  ],
+  "slots": [
+    "marking"
+  ],
+  "order": 60
+}

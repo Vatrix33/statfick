@@ -68,6 +68,34 @@ sealed class TestLooks : IDisposable
             Models = [new() { Model = "models/humanoid/parts/beard/full/dwarf-male", Bodies = [DwarfMale] }] },
     };
 
+    /// <summary>
+    /// Parts by face (the user's Q65, GM2 step 9a), written over the data only by the tests that ask
+    /// (<see cref="WriteByFace"/>): a second face for the human man's average body, a scar made for each of his two faces
+    /// (the first face's model fitted to his two bodies, the second's to the average one; each model names its face), and
+    /// marks' "none".
+    /// </summary>
+    public static IReadOnlyDictionary<string, LookPart> ByFace { get; } = new Dictionary<string, LookPart>
+    {
+        ["face-human-male-2"] = new() { Category = "face", Name = "Weathered", Races = [Human], Sexes = [LookNames.Male], Slots = ["skin", "eyes"],
+            Models = [new() { Model = "models/humanoid/parts/face/human-male-2/human-male", Bodies = [HumanMale] }] },
+        ["marks-scar"] = new() { Category = "marks", Name = "Scar", Races = [Human], Sexes = [LookNames.Male], Slots = ["marking"], Order = 10,
+            Models =
+            [
+                new() { Model = "models/humanoid/parts/marks/scar/human-male-1/human-male", Bodies = [HumanMale, HumanMaleStrong], Faces = ["face-human-male-1"] },
+                new() { Model = "models/humanoid/parts/marks/scar/human-male-2/human-male", Bodies = [HumanMale], Faces = ["face-human-male-2"] },
+            ] },
+        ["marks-none"] = new() { Category = "marks", Name = "None", Races = [Human], Sexes = [LookNames.Male] },
+    };
+
+    /// <summary>The parts by face (<see cref="ByFace"/>) and their stand-in models written over the data.</summary>
+    public void WriteByFace()
+    {
+        foreach (var model in ByFace.Values.SelectMany(p => p.Models.Select(m => m.Model)))
+            Write(model, StandInModel());
+        foreach (var (name, part) in ByFace)
+            Write($"{LookNames.PartsFolder}/{name}", part);
+    }
+
     public static IReadOnlyDictionary<string, LookPreset> Presets { get; } = new Dictionary<string, LookPreset>
     {
         ["human-male-1"] = new() { Label = "Wayfarer", Order = 10, Look = WayfarerLook },

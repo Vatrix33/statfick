@@ -1,0 +1,40 @@
+{
+  "$types": {
+    "look.part": 2,
+    "look.part.model": 2
+  },
+  "category": "head-piece",
+  "name": "Flower",
+  "races": [
+    "human"
+  ],
+  "sexes": [
+    "male",
+    "female"
+  ],
+  "models": [
+    {
+      "model": "models/humanoid/parts/head-piece/flower/human-male-average",
+      "bodies": [
+        "human-male-slender",
+        "human-male-average",
+        "human-male-strong"
+      ],
+      "faces": []
+    },
+    {
+      "model": "models/humanoid/parts/head-piece/flower/human-female-average",
+      "bodies": [
+        "human-female-slender",
+        "human-female-average",
+        "human-female-strong"
+      ],
+      "faces": []
+    }
+  ],
+  "slots": [
+    "cloth",
+    "cloth.trim"
+  ],
+  "order": 20
+}

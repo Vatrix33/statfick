@@ -29,15 +29,19 @@ sealed class HeroTestData : IDisposable
     readonly string _pack;
     VirtualFileSystem? _data;
 
-    /// <summary>The test data over the committed <paramref name="dataPack"/> (the game's <c>data.pak</c>).</summary>
-    public HeroTestData(string dataPack)
+    /// <summary>
+    /// The test data over the committed <paramref name="dataPack"/> (the game's <c>data.pak</c>); <paramref name="races"/>
+    /// gives a race of the pack's other swatches than <see cref="Swatches"/> (a test's own case).
+    /// </summary>
+    public HeroTestData(string dataPack, IReadOnlyDictionary<string, IReadOnlyList<RaceSwatch>>? races = null)
     {
         _pack = dataPack;
         using (var real = new VirtualFileSystem([Mount.Pack(dataPack)]))
-            foreach (var (id, swatches) in Swatches)
+            foreach (var (id, swatches) in races is null ? Swatches : Swatches.Where(s => !races.ContainsKey(s.Key)).Concat(races))
                 Write(RaceCatalogue.PathOf(id), real.Load<Race>(RaceCatalogue.PathOf(id)) with { Swatches = swatches });
+        // The bodies' models draw in the skin and the cloth (the maker offers a colour the body or a chosen part uses, GM2-P29).
         foreach (var model in new[] { Figure, Stocky })
-            Write(model, new ModelData { Nodes = [], Meshes = [], Materials = [], Skins = [], Roots = [] });
+            Write(model, new ModelData { Nodes = [], Meshes = [], Materials = [.. BodySlots.Select(s => new ModelMaterial(s, System.Numerics.Vector4.One, false))], Skins = [], Roots = [] });
         foreach (var (name, body) in Bodies)
             Write($"{LookNames.BodiesFolder}/{name}", body);
         foreach (var (name, part) in Parts)
@@ -64,6 +68,9 @@ sealed class HeroTestData : IDisposable
 
         public void Dispose() => _pack.Dispose();
     }
+
+    /// <summary>The palette slots the stand-in models' materials are in: a body's model is what draws the skin and the cloth (GM2-P29: the maker offers those colours on every body).</summary>
+    public static readonly string[] BodySlots = ["skin", "cloth"];
 
     /// <summary>The model file the approval captures draw for a model path (the engine's test figure).</summary>
     public static string ModelFile(string engine, string model) =>

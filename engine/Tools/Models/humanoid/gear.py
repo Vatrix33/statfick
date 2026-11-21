@@ -147,7 +147,10 @@ def chain_shirt(mk):
     # it stands clear of the outfit's own skirt under it, pleats and all (the tunic's reaches 38 mm off the body at this
     # hem's height; with a flare of 16 mm the two were 2 to 4 mm apart there and crossed in a stride: the manager, 2026-11-16)
     mk.skirt("mail-skirt", waist + 0.004, hem, m["metal.base"], flare=0.032, pleats=6, depth=0.004, ease=0.030, rings=6)
-    mk.shell("mail-collar", lambda c, bone: not bone.startswith(("upper_arm", "forearm")) and high - 0.016 < c.z < high + 0.004, 0.015, m["metal.trim"],
+    # (no further out than four fifths of the way to the shoulder's joint: a strong build's shoulder caps reach up into
+    # the collar's band, and the collar grew wings over them; the average bodies' collars end well inside)
+    reach = outfit.COLLAR_REACH * j["shoulderL"].x
+    mk.shell("mail-collar", lambda c, bone: not bone.startswith(("upper_arm", "forearm")) and high - 0.016 < c.z < high + 0.004 and abs(c.x) < reach, 0.015, m["metal.trim"],
              heights=(high + 0.004, high - 0.016), thickness=0.003, taut=outfit.COLLAR_TAUT)
     # the rows of rings: the mail's surface cut by level planes, each cut drawn as a thin dark ribbon
     made = mk.pieces[before:before + 2]

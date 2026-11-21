@@ -160,46 +160,57 @@ def joints_of(p):
     return joints
 
 
-def shape_man(m, j):
-    """The man's masses: named by what they stand for, placed from the joints."""
+def build_ratios(b):
+    """A build's ratios to its average body (bodies.as_build; all 1 for the average): the masses' strength, their reach
+    across the chest, through it, on the arm and on the leg, the bust's and the seat's fullness."""
+    b = b or {}
+    return [b.get(key, 1.0) for key in ("muscle", "w", "d", "a", "l", "bust", "seat")]
+
+
+def shape_man(m, j, b=None):
+    """The man's masses: named by what they stand for, placed from the joints, as strong and as far out as the build is."""
+    s, w, d, a, l, _, seat = build_ratios(b)
     sh, el, wr = j["shoulderL"], j["elbowL"], j["wristL"]
     hip, kn, an = j["hipL"], j["kneeL"], j["ankleL"]
     chest, waist, pelvis, clav = j["chest"], j["waist"], j["pelvis"], j["clavicle"]
-    mass(m, (0.080, chest.y - 0.100, chest.z + 0.012), (0.105, 0.075, 0.090), 0.017, (0, -1, 0.15))      # pectorals
-    mass(m, (0.090, clav.y - 0.070, clav.z + 0.030), (0.090, 0.040, 0.018), 0.004, (0, -1, 0.3))          # collarbones
-    mass(m, (0.0, waist.y - 0.094, waist.z + 0.010), (0.014, 0.030, 0.120), -0.003, (0, -1, 0), mirror=False)  # the belly's middle
-    mass(m, (0.150, chest.y + 0.030, chest.z - 0.060), (0.075, 0.110, 0.150), 0.012, (1, 0.3, 0))        # lats
-    mass(m, (0.064, chest.y + 0.105, chest.z + 0.020), (0.110, 0.060, 0.140), 0.010, (0, 1, 0))          # shoulder blades
-    mass(m, (0.0, waist.y + 0.092, waist.z + 0.070), (0.036, 0.050, 0.240), -0.006, (0, 1, 0))           # the spine's groove
-    mass(m, (0.072, clav.y + 0.030, clav.z + 0.052), (0.090, 0.075, 0.060), 0.014, (0.2, 0.3, 1))        # trapezius
-    mass(m, (0.0, waist.y - 0.088, waist.z - 0.040), (0.105, 0.050, 0.150), 0.005, (0, -1, 0))           # the belly's wall
+    # (the pectorals and the belly's middle no fuller than a third over the average's: fuller, the cleft between them
+    # draws a line and a shadow through the cloth laid over it)
+    mass(m, (0.080 * w, chest.y - 0.100 * d, chest.z + 0.012), (0.105 * w, 0.075, 0.090), 0.017 * min(s, 1.3), (0, -1, 0.15))      # pectorals
+    mass(m, (0.090 * w, clav.y - 0.070 * d, clav.z + 0.030), (0.090, 0.040, 0.018), 0.004 * s, (0, -1, 0.3))          # collarbones
+    mass(m, (0.0, waist.y - 0.094 * d, waist.z + 0.010), (0.014, 0.030, 0.120), -0.003 * min(s, 1.0), (0, -1, 0), mirror=False)  # the belly's middle
+    mass(m, (0.150 * w, chest.y + 0.030 * d, chest.z - 0.060), (0.075, 0.110, 0.150), 0.012 * s, (1, 0.3, 0))        # lats
+    mass(m, (0.064 * w, chest.y + 0.105 * d, chest.z + 0.020), (0.110, 0.060, 0.140), 0.010 * s, (0, 1, 0))          # shoulder blades
+    mass(m, (0.0, waist.y + 0.092 * d, waist.z + 0.070), (0.036, 0.050, 0.240), -0.006 * s, (0, 1, 0))           # the spine's groove
+    mass(m, (0.072 * w, clav.y + 0.030 * d, clav.z + 0.052), (0.090, 0.075, 0.060), 0.014 * min(s, 1.3), (0.2, 0.3, 1))        # trapezius
+    mass(m, (0.0, waist.y - 0.088 * d, waist.z - 0.040), (0.105, 0.050, 0.150), 0.005 * s, (0, -1, 0))           # the belly's wall
     mid = sh.lerp(el, 0.50)
-    mass(m, mid + V((0, -0.024, 0.004)), (0.080, 0.052, 0.110), 0.008, (0, -1, 0.2))                     # biceps
-    mass(m, mid + V((0, 0.028, 0.0)), (0.080, 0.052, 0.120), 0.006, (0, 1, 0))                           # triceps
-    mass(m, el.lerp(wr, 0.26), (0.075, 0.060, 0.085), 0.007)                                             # the forearm's belly
-    mass(m, (hip.x + 0.008, pelvis.y + 0.090, hip.z + 0.030), (0.105, 0.075, 0.105), 0.018, (0, 1, 0.1)) # glutes
-    mass(m, hip.lerp(kn, 0.40) + V((0.004, -0.044, 0)), (0.088, 0.066, 0.200), 0.010, (0, -1, 0))        # quadriceps
-    mass(m, hip.lerp(kn, 0.55) + V((0, 0.042, 0)), (0.082, 0.060, 0.180), 0.006, (0, 1, 0))              # hamstrings
-    mass(m, kn + V((0, -0.044, 0.004)), (0.050, 0.035, 0.050), 0.006, (0, -1, 0))                        # the kneecap
-    mass(m, kn.lerp(an, 0.30) + V((0.004, 0.040, 0)), (0.066, 0.056, 0.130), 0.014, (0.15, 1, 0))        # the calf
+    mass(m, mid + V((0, -0.024 * a, 0.004)), (0.080, 0.052, 0.110), 0.008 * s, (0, -1, 0.2))                     # biceps
+    mass(m, mid + V((0, 0.028 * a, 0.0)), (0.080, 0.052, 0.120), 0.006 * s, (0, 1, 0))                           # triceps
+    mass(m, el.lerp(wr, 0.26), (0.075, 0.060, 0.085), 0.007 * s)                                             # the forearm's belly
+    mass(m, (hip.x + 0.008, pelvis.y + 0.090 * d, hip.z + 0.030), (0.105, 0.075, 0.105), 0.018 * seat, (0, 1, 0.1)) # glutes
+    mass(m, hip.lerp(kn, 0.40) + V((0.004, -0.044 * l, 0)), (0.088, 0.066, 0.200), 0.010 * s, (0, -1, 0))        # quadriceps
+    mass(m, hip.lerp(kn, 0.55) + V((0, 0.042 * l, 0)), (0.082, 0.060, 0.180), 0.006 * s, (0, 1, 0))              # hamstrings
+    mass(m, kn + V((0, -0.044 * l, 0.004)), (0.050, 0.035, 0.050), 0.006, (0, -1, 0))                        # the kneecap
+    mass(m, kn.lerp(an, 0.30) + V((0.004, 0.040 * l, 0)), (0.066, 0.056, 0.130), 0.014 * s, (0.15, 1, 0))        # the calf
 
 
-def shape_woman(m, j):
+def shape_woman(m, j, b=None):
     """The woman's masses."""
+    s, w, d, a, l, bust, seat = build_ratios(b)
     el, wr = j["elbowL"], j["wristL"]
     hip, kn, an = j["hipL"], j["kneeL"], j["ankleL"]
     chest, waist, pelvis, clav = j["chest"], j["waist"], j["pelvis"], j["clavicle"]
-    mass(m, (0.066, chest.y - 0.088, chest.z - 0.022), (0.072, 0.072, 0.076), 0.030, (0.1, -1, -0.1))    # the bust
-    mass(m, (0.052, chest.y + 0.090, chest.z + 0.020), (0.095, 0.055, 0.130), 0.006, (0, 1, 0))          # shoulder blades
-    mass(m, (0.0, waist.y + 0.078, waist.z + 0.070), (0.030, 0.045, 0.220), -0.005, (0, 1, 0))           # the spine's groove
-    mass(m, (0.056, clav.y + 0.025, clav.z + 0.042), (0.072, 0.062, 0.050), 0.007, (0.2, 0.3, 1))        # trapezius
-    mass(m, el.lerp(wr, 0.26), (0.060, 0.048, 0.075), 0.004)                                             # the forearm's belly
-    mass(m, (hip.x + 0.012, pelvis.y + 0.090, hip.z + 0.025), (0.105, 0.078, 0.110), 0.022, (0, 1, 0.1)) # glutes
-    mass(m, (hip.x + 0.052, pelvis.y + 0.004, hip.z + 0.040), (0.075, 0.105, 0.115), 0.012, (1, 0, 0))   # the hips' breadth
-    mass(m, hip.lerp(kn, 0.40) + V((0.004, -0.040, 0)), (0.082, 0.060, 0.200), 0.006, (0, -1, 0))        # quadriceps
-    mass(m, hip.lerp(kn, 0.55) + V((0, 0.040, 0)), (0.076, 0.056, 0.180), 0.005, (0, 1, 0))              # hamstrings
-    mass(m, kn + V((0, -0.040, 0.004)), (0.045, 0.032, 0.045), 0.004, (0, -1, 0))                        # the kneecap
-    mass(m, kn.lerp(an, 0.30) + V((0.004, 0.036, 0)), (0.058, 0.050, 0.125), 0.010, (0.15, 1, 0))        # the calf
+    mass(m, (0.066 * w, chest.y - 0.088 * d, chest.z - 0.022), (0.072, 0.072, 0.076), 0.030 * bust, (0.1, -1, -0.1))    # the bust
+    mass(m, (0.052 * w, chest.y + 0.090 * d, chest.z + 0.020), (0.095, 0.055, 0.130), 0.006 * s, (0, 1, 0))          # shoulder blades
+    mass(m, (0.0, waist.y + 0.078 * d, waist.z + 0.070), (0.030, 0.045, 0.220), -0.005 * s, (0, 1, 0))           # the spine's groove
+    mass(m, (0.056 * w, clav.y + 0.025 * d, clav.z + 0.042), (0.072, 0.062, 0.050), 0.007 * s, (0.2, 0.3, 1))        # trapezius
+    mass(m, el.lerp(wr, 0.26), (0.060, 0.048, 0.075), 0.004 * s)                                             # the forearm's belly
+    mass(m, (hip.x + 0.012, pelvis.y + 0.090 * d, hip.z + 0.025), (0.105, 0.078, 0.110), 0.022 * seat, (0, 1, 0.1)) # glutes
+    mass(m, (hip.x + 0.052, pelvis.y + 0.004, hip.z + 0.040), (0.075, 0.105, 0.115), 0.012 * seat, (1, 0, 0))   # the hips' breadth
+    mass(m, hip.lerp(kn, 0.40) + V((0.004, -0.040 * l, 0)), (0.082, 0.060, 0.200), 0.006 * s, (0, -1, 0))        # quadriceps
+    mass(m, hip.lerp(kn, 0.55) + V((0, 0.040 * l, 0)), (0.076, 0.056, 0.180), 0.005 * s, (0, 1, 0))              # hamstrings
+    mass(m, kn + V((0, -0.040 * l, 0.004)), (0.045, 0.032, 0.045), 0.004, (0, -1, 0))                        # the kneecap
+    mass(m, kn.lerp(an, 0.30) + V((0.004, 0.036 * l, 0)), (0.058, 0.050, 0.125), 0.010 * s, (0.15, 1, 0))        # the calf
 
 
 MASSES = {"man": shape_man, "woman": shape_woman}
@@ -231,7 +242,7 @@ def build_body(p, material, voxel=0.0065):
         blend += [sh + V((-side * 0.02, 0, 0.01)), sh + V((-side * 0.035, -0.03, -0.075)), sh + V((-side * 0.035, 0.04, -0.075)),
                   hip + V((side * 0.02, 0, 0.03)), hip + V((-side * 0.05, 0, -0.02))]
     relax_near(obj, blend, 0.095, round(70 * 0.005 / voxel))
-    MASSES[p["masses"]](obj.data, joints)
+    MASSES[p["masses"]](obj.data, joints, p.get("build"))
     relax(obj, 10)
     detail = p["detail"]
     wrists = [(joints["wrist" + tag], joints["wrist" + tag] - joints["elbow" + tag]) for tag in "LR"]
@@ -418,9 +429,10 @@ def open_cap(p, shape, material, style):
     return k.new_object(p["name"] + "-hair-cap", bm, material)
 
 
-def build_hair(p, shape, material, style):
+def build_hair(p, shape, material, style, tie=None):
     """A hair style (parts/hair.py) on the head of `shape`, at p's level's fineness: an open cap over the skull and
-    sculpted locks, each lock its own piece so the ink draws it."""
+    sculpted locks, each lock its own piece so the ink draws it. A lock marked "tie" (its fourth value) is what ties the
+    hair, in the material `tie` (the slot `hair.tie`: its colour is a choice of its own)."""
     centre = V(p["head"]["centre"])
     style = dict(style, **p["detail"]["hair"])
 
@@ -429,12 +441,157 @@ def build_hair(p, shape, material, style):
         return centre + (shape(d) - centre) * out
 
     parts = [open_cap(p, shape, material, style)]
-    for index, (points, radius, flat) in enumerate(style["locks"]):
+    for index, (points, radius, flat, *more) in enumerate(style["locks"]):
         path = [on(*q) for q in points]
         count = len(path)
         taper = style.get("taper", 0.75)
         radii = [(radius * (1.0 - taper * (i / (count - 1)) ** 1.8), radius * flat * (1.0 - taper * (i / (count - 1)) ** 1.8)) for i in range(count)]
-        lock = k.tube(f"{p['name']}-lock{index}", path, radii, side=Z, n=style["lock_sides"], bulge=(0.006, 0.004), material=material)
+        tied = bool(more) and more[0] == "tie"
+        if more and not tied:                      # the lock's own thickness along its length, a share per point (a braid's plaits)
+            radii = [(rx * share, ry * share) for (rx, ry), share in zip(radii, more[0])]
+        lock = k.tube(f"{p['name']}-lock{index}", path, radii, side=Z, n=style["lock_sides"], bulge=(0.006, 0.004),
+                      material=tie if tied and tie is not None else material)
         parts.append(k.subdivide(lock, style["lock_levels"]))
     k.apply_modifiers(parts)
     return parts
+
+
+# ---- beards: sculpted masses on the jaw (GM2 step 9a) ----------------------------------------------------------------
+def build_beard(p, m, style):
+    """A beard (parts/beard.py) on the head of `p`: a shell cut from a quad sphere by the style's region, lying on the skin
+    at its edge and rising to its thickness inside, and the style's locks (a hanging beard, a braid). The head it is laid
+    on is built and dropped again; `p`'s face is the one the beard is made to (parts/beard.py: the race's widest jaw and
+    fullest chin for that sex, so one beard fits every face)."""
+    h = p["head"]
+    centre = V(h["centre"])
+    head_parts, shape = build_head(p, m)
+    tree = BVHTree.FromObject(head_parts[0], bpy.context.evaluated_depsgraph_get())
+    for part in head_parts:
+        mesh = part.data
+        bpy.data.objects.remove(part)
+        bpy.data.meshes.remove(mesh)
+
+    def surface(d):
+        hit = tree.ray_cast(centre, d)[0]
+        return hit if hit is not None else shape(d)
+
+    def angles(d):
+        return math.degrees(math.atan2(d.x, -d.y)), math.degrees(math.asin(max(-1.0, min(1.0, d.z))))
+
+    region = style["region"]
+    parts = []
+    if "flecks" in style:
+        # stubble: short flecks of hair laid on the skin all over the region, each a small flat piece (a shell in the
+        # hair's colour, however thin, reads as a beard)
+        step, long_, wide = style["flecks"]
+        bm = bmesh.new()
+        yaw = -100.0
+        while yaw <= 100.0:
+            pitch = -74.0
+            while pitch <= 14.0:
+                y = yaw + step * 0.38 * math.sin(yaw * 12.9898 + pitch * 78.233)
+                q = pitch + step * 0.38 * math.cos(yaw * 4.1414 + pitch * 9.7373)
+                if region(y, q) > 1.0:
+                    turn = math.radians((yaw * 37.0 + pitch * 53.0) % 180.0)
+                    along, across = (math.cos(turn), math.sin(turn)), (-math.sin(turn), math.cos(turn))
+                    corners = []
+                    for a, b in ((long_, 0.0), (0.0, wide), (-long_, 0.0), (0.0, -wide)):
+                        d = k.direction(y + (a * along[0] + b * across[0]) / max(0.3, math.cos(math.radians(q))), q + a * along[1] + b * across[1])
+                        corners.append(bm.verts.new(surface(d) + d * 0.0007))
+                    bm.faces.new(corners)
+                pitch += step
+            yaw += step
+        parts.append(k.new_object(p["name"] + "-stubble", bm, m["hair"], smooth=False))
+        return parts
+    lift, rise = style["lift"], style.get("rise", 6.0)
+    anchors = [k.direction(*a) for a in style["anchors"]]
+    bm = k.quad_sphere(style.get("cuts", p["detail"]["hair"]["cap_cuts"] * 2))
+    inside = {v: region(*angles(v.co.normalized())) for v in bm.verts}
+    drop = [f for f in bm.faces if not any(inside[v] > 0 for v in f.verts)]
+    bmesh.ops.delete(bm, geom=drop, context="FACES")
+    for v in bm.verts:
+        d = v.co.normalized()
+        depth = region(*angles(d))
+        if depth <= 0:                               # an edge vertex: slid along the arc to the nearest anchor onto the region's edge
+            anchor = max(anchors, key=lambda a: a.dot(d))
+            low, high = 0.0, 1.0
+            for _ in range(30):
+                mid = (low + high) / 2
+                if region(*angles((d + (anchor - d) * mid).normalized())) > 0:
+                    high = mid
+                else:
+                    low = mid
+            d = (d + (anchor - d) * high).normalized()
+            depth = 0.0
+        v.co = surface(d) + d * (0.0008 + lift * smooth(min(1.0, depth / rise)))
+    rim = [e for e in bm.edges if e.is_boundary]
+    for elements in (bm.verts, bm.edges, bm.faces):
+        elements.index_update()
+    made = bmesh.ops.extrude_edge_only(bm, edges=sorted(rim, key=lambda e: e.index))
+    for v in made["geom"]:
+        if isinstance(v, bmesh.types.BMVert):
+            v.co = centre + (v.co - centre) * 0.93   # the edge turns in under the skin
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+    parts.append(k.new_object(p["name"] + "-beard", bm, m["hair"]))
+
+    def on(yaw, pitch, out=1.0):
+        d = k.direction(yaw, pitch)
+        return centre + (shape(d) - centre) * out
+
+    detail = p["detail"]["hair"]
+    for index, (points, radius, flat, *more) in enumerate(style.get("locks", [])):
+        path = [on(*q) for q in points]
+        count = len(path)
+        taper = style.get("taper", 0.6)
+        radii = [(radius * (1.0 - taper * (i / (count - 1)) ** 1.8), radius * flat * (1.0 - taper * (i / (count - 1)) ** 1.8)) for i in range(count)]
+        if more:
+            radii = [(rx * share, ry * share) for (rx, ry), share in zip(radii, more[0])]
+        lock = k.tube(f"{p['name']}-beard-lock{index}", path, radii, side=X, n=detail["lock_sides"], bulge=(0.006, 0.004), material=m["hair"])
+        parts.append(k.subdivide(lock, detail["lock_levels"]))
+    k.apply_modifiers(parts)
+    return parts
+
+
+# ---- marks: flat pieces on the face's skin (GM2 step 9a) -------------------------------------------------------------
+def build_marks(p, m, pieces):
+    """A mark (parts/mark.py) on the head of `p`, whose face is the one the mark is made for (a mark lies on the skin, so it
+    is made per face): each piece of `pieces` a strip ("strip": points (yaw, pitch, half width in degrees), laid as quads
+    across its line) or a spot ("spot": yaw, pitch, radius in degrees, sides), lifted `lift` off the skin. The head it is
+    laid on is built and dropped again."""
+    centre = V(p["head"]["centre"])
+    head_parts, shape = build_head(p, m)
+    tree = BVHTree.FromObject(head_parts[0], bpy.context.evaluated_depsgraph_get())
+    for part in head_parts:
+        mesh = part.data
+        bpy.data.objects.remove(part)
+        bpy.data.meshes.remove(mesh)
+
+    def at(yaw, pitch, lift):
+        d = k.direction(yaw, pitch)
+        hit = tree.ray_cast(centre, d)[0]
+        return (hit if hit is not None else shape(d)) + d * lift
+
+    bm = bmesh.new()
+    for piece in pieces:
+        lift = piece.get("lift", 0.0010)
+        if "strip" in piece:
+            points = piece["strip"]
+            pairs = []
+            for i, (yaw, pitch, half) in enumerate(points):
+                a, b = points[max(0, i - 1)], points[min(len(points) - 1, i + 1)]
+                dy, dp = b[0] - a[0], b[1] - a[1]
+                size = math.hypot(dy, dp) or 1.0
+                ny, np_ = -dp / size, dy / size
+                pairs.append((bm.verts.new(at(yaw + ny * half, pitch + np_ * half, lift)), bm.verts.new(at(yaw - ny * half, pitch - np_ * half, lift))))
+            for (a0, a1), (b0, b1) in zip(pairs, pairs[1:]):
+                bm.faces.new((a0, b0, b1, a1))
+        else:
+            yaw, pitch, radius, sides = piece["spot"]
+            rim = [bm.verts.new(at(yaw + radius * math.cos(2 * math.pi * i / sides) / max(0.4, math.cos(math.radians(pitch))),
+                                   pitch + radius * math.sin(2 * math.pi * i / sides), lift)) for i in range(sides)]
+            bm.faces.new(rim)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+    mark = k.new_object(p["name"] + "-mark", bm, m["marking"], smooth=True)
+    mark["ink"] = 0                 # a mark is its colour alone: outlined, a thin scar or a freckle is all outline
+    return [mark]
+

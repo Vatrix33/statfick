@@ -34,6 +34,9 @@ public static class LookNames
     /// <summary>The build a preset takes (the old looks had one build per race, Q15's middle one).</summary>
     public const string Average = "average";
 
+    /// <summary>The faces' category: a part whose models name faces (a mark, Q65) is drawn by the model of the look's face.</summary>
+    public const string Face = "face";
+
     /// <summary>The two sexes (Q14), as a body's <see cref="LookBody.Sex"/> chooses them.</summary>
     public static IReadOnlyList<string> Sexes { get; } = Choices(typeof(LookBody), nameof(LookBody.Sex));
 

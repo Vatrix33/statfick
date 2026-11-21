@@ -1,0 +1,17 @@
+{
+  "$types": {
+    "look.part": 2
+  },
+  "category": "head-piece",
+  "name": "None",
+  "races": [
+    "human"
+  ],
+  "sexes": [
+    "male",
+    "female"
+  ],
+  "models": [],
+  "slots": [],
+  "order": 0
+}

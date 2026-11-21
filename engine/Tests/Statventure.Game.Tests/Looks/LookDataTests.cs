@@ -245,4 +245,100 @@ public class LookDataTests
         using var looksData = new TestLooks($"models/humanoid/bodies/{TestLooks.HumanMale}");
         Assert.Contains("no model \"models/humanoid/bodies/human-male-average\" (models/humanoid/bodies/human-male-average) (at $.model)", looksData.Problems(TestLooks.Bodies[TestLooks.HumanMale]));
     }
+
+    /// <summary>
+    /// The old game's hair styles, beards and marks (<c>sprite-humanoid.js</c>'s names, as the catalogue holds them) as the
+    /// shared sets' parts (GM2 step 9a; Docs/Game/Hero.md, "How it works", step 9a, the table): what a preset keeps of its
+    /// old look (Hero.md, "The maker's parts model"). No hair is "None" (bald), no beard and no mark too; the old scar ran
+    /// from over the eye down across it (<c>sprite-humanoid.js</c> 234): the scar over the brow.
+    /// </summary>
+    internal static IReadOnlyDictionary<string, string> OldHair { get; } = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["bald"] = "hair-none", ["crop"] = "hair-crop", ["spiky"] = "hair-spiky", ["swept"] = "hair-swept-back", ["curly"] = "hair-curly", ["curls"] = "hair-curls",
+        ["topknot"] = "hair-topknot", ["ponytail"] = "hair-ponytail", ["highponytail"] = "hair-high-ponytail", ["long"] = "hair-long", ["wavy"] = "hair-wavy",
+        ["bob"] = "hair-bob", ["bun"] = "hair-bun", ["braid"] = "hair-braid", ["twinbraids"] = "hair-twin-braids", ["messy"] = "hair-messy", ["shaggy"] = "hair-shaggy",
+    };
+
+    /// <inheritdoc cref="OldHair"/>
+    internal static IReadOnlyDictionary<string, string> OldBeards { get; } = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["none"] = "beard-none", ["stubble"] = "beard-stubble", ["full"] = "beard-full", ["long"] = "beard-long", ["braided"] = "beard-braided", ["forked"] = "beard-forked",
+    };
+
+    /// <inheritdoc cref="OldHair"/>
+    internal static IReadOnlyDictionary<string, string> OldMarks { get; } = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["none"] = "marks-none", ["freckles"] = "marks-freckles", ["scar"] = "marks-scar-brow",
+    };
+
+    /// <summary>
+    /// The styles both sexes' lists hold, each a part a sex (the manager's GM2-P36: each comes at another place in each list):
+    /// <c>hair-long-male</c> and <c>hair-long-female</c> for the old <c>long</c>.
+    /// </summary>
+    internal static readonly string[] HairOfEachSex = ["hair-long", "hair-curly", "hair-shaggy", "hair-buzz-cut"];
+
+    /// <summary>The part an old hair style is for a sex (<see cref="OldHair"/>, a style of both lists a part of each sex's).</summary>
+    internal static string HairPart(string old, string sex) => HairOfEachSex.Contains(OldHair[old]) ? $"{OldHair[old]}-{sex}" : OldHair[old];
+
+    /// <summary>The old styles the old rig draws with a tie (<c>sprite-humanoid.js</c> 276–294: the ponytails and the braids).</summary>
+    internal static readonly string[] OldTied = ["ponytail", "highponytail", "braid", "twinbraids"];
+
+    /// <summary>
+    /// The presets keep their old looks (Hero.md, "The maker's parts model": checked against the catalogue's data, the old
+    /// game's own scripts run by the oracle, <c>look-catalogue</c>): each committed preset's hair style, beard and marks the
+    /// old look's by the table (<see cref="OldHair"/>, <see cref="OldBeards"/>, <see cref="OldMarks"/>); a tie when the old
+    /// style had one (the new style's slots hold the tie's), and the old look's own tie colour, where it named one, as the
+    /// race's tie swatch nearest it.
+    /// </summary>
+    [Fact]
+    public void EachPresetKeepsItsOldLooksHairBeardMarksAndTie()
+    {
+        var presets = Committed<LookPreset>("presets");
+        var parts = Committed<LookPart>("parts");
+        var races = Directory.GetFiles(Path.Combine(DataFolder, "data", "races"), "*.json")
+            .ToDictionary(f => Path.GetFileNameWithoutExtension(f), f => RecordSerializer.FromJson<Race>(File.ReadAllBytes(f)), StringComparer.Ordinal);
+        Assert.True(presets.Count >= 8, $"{presets.Count} presets");
+        foreach (var (name, preset) in presets)
+        {
+            var old = Catalogue.Single(l => l.Name == name);
+            var look = preset.Look;
+            var hair = old.Spec.TryGetProperty("hair", out var h) && h.ValueKind == JsonValueKind.Object ? h.GetProperty("style").GetString()! : null;
+            if (hair is not null)
+                Assert.True(look.Parts.TryGetValue("hair", out var part) && part == HairPart(hair, old.Sex), $"{name}: hair {look.Parts.GetValueOrDefault("hair")}, the old look's {hair}");
+            var beard = old.Spec.TryGetProperty("beard", out var b) && b.ValueKind == JsonValueKind.Object ? b.GetProperty("style").GetString()! : "none";
+            if (old.Sex == LookNames.Male)
+                Assert.True(look.Parts.GetValueOrDefault("beard") == OldBeards[beard], $"{name}: beard {look.Parts.GetValueOrDefault("beard")}, the old look's {beard}");
+            else
+                Assert.False(look.Parts.ContainsKey("beard"), $"{name}: a woman's beard");
+            var mark = old.Spec.TryGetProperty("scar", out _) ? "scar" : old.Spec.TryGetProperty("freckles", out _) ? "freckles" : "none";
+            Assert.True(look.Parts.GetValueOrDefault("marks") == OldMarks[mark], $"{name}: marks {look.Parts.GetValueOrDefault("marks")}, the old look's {mark}");
+            if (hair is null)
+                continue;
+            Assert.True(parts[look.Parts["hair"]].Slots.Contains("hair.tie") == OldTied.Contains(hair), $"{name}: {look.Parts["hair"]} and the old {hair} disagree on a tie");
+            if (h.TryGetProperty("tie", out var tie))
+            {
+                var nearest = races[old.Race].Swatches.Where(s => s.Slot == "hair.tie").MinBy(s => Distance(s.Colour, tie.GetString()!))!;
+                Assert.True(look.Colours.GetValueOrDefault("hair.tie") == nearest.Name, $"{name}: the tie {look.Colours.GetValueOrDefault("hair.tie")}, the old {tie.GetString()}'s nearest is {nearest.Name}");
+            }
+        }
+
+        static double Distance(string a, string b)
+        {
+            int Channel(string c, int i) => Convert.ToInt32(c.Substring(1 + 2 * i, 2), 16);
+            return Enumerable.Range(0, 3).Sum(i => Math.Pow(Channel(a, i) - Channel(b, i), 2));
+        }
+    }
+
+    /// <summary>The maker's records in Assets/Data are their records' JSON forms as the serializer writes them (written by hand or by a script, read back to the same bytes).</summary>
+    [Fact]
+    public void TheMakersRecordsAreTheSerializersForms()
+    {
+        foreach (var folder in new[] { "bodies", "parts", "presets" })
+            foreach (var file in Directory.GetFiles(Path.Combine(LooksFolder, folder), "*.json"))
+            {
+                var bytes = File.ReadAllBytes(file);
+                var type = folder switch { "bodies" => typeof(LookBody), "parts" => typeof(LookPart), _ => typeof(LookPreset) };
+                Assert.True(RecordSerializer.ToJsonUtf8(type, RecordSerializer.FromJson(type, bytes)).AsSpan().SequenceEqual(bytes), $"{folder}/{Path.GetFileName(file)} isn't the serializer's form of its record");
+            }
+    }
 }

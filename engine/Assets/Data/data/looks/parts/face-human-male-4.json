@@ -1,0 +1,32 @@
+{
+  "$types": {
+    "look.part": 2,
+    "look.part.model": 2
+  },
+  "category": "face",
+  "name": "Face 4",
+  "races": [
+    "human"
+  ],
+  "sexes": [
+    "male"
+  ],
+  "models": [
+    {
+      "model": "models/humanoid/parts/face/human-male-4/human-male-average",
+      "bodies": [
+        "human-male-slender",
+        "human-male-average",
+        "human-male-strong"
+      ],
+      "faces": []
+    }
+  ],
+  "slots": [
+    "skin",
+    "eyes",
+    "brows",
+    "eye.white"
+  ],
+  "order": 40
+}

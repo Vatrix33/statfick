@@ -19,7 +19,10 @@
         "body": "human-male-average",
         "parts": {
           "face": "face-human-male-1",
-          "hair": "hair-swept-back"
+          "hair": "hair-crop",
+          "beard": "beard-stubble",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
         },
         "colours": {
           "skin": "Ember",
@@ -57,7 +60,9 @@
         "body": "human-female-average",
         "parts": {
           "face": "face-human-female-1",
-          "hair": "hair-long-tied"
+          "hair": "hair-long-female",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
         },
         "colours": {
           "skin": "Ember",
@@ -96,7 +101,10 @@
         "body": "human-male-average",
         "parts": {
           "face": "face-human-male-1",
-          "hair": "hair-swept-back"
+          "hair": "hair-crop",
+          "beard": "beard-stubble",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
         },
         "colours": {
           "skin": "Pale",
@@ -134,7 +142,9 @@
         "body": "human-female-average",
         "parts": {
           "face": "face-human-female-1",
-          "hair": "hair-long-tied"
+          "hair": "hair-long-female",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
         },
         "colours": {
           "skin": "Pale",
@@ -173,7 +183,9 @@
         "body": "human-female-average",
         "parts": {
           "face": "face-human-female-1",
-          "hair": "hair-long-tied"
+          "hair": "hair-long-tied",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
         },
         "colours": {
           "skin": "Pale",
@@ -212,7 +224,10 @@
         "body": "human-male-average",
         "parts": {
           "face": "face-human-male-1",
-          "hair": "hair-swept-back"
+          "hair": "hair-crop",
+          "beard": "beard-stubble",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
         },
         "colours": {
           "skin": "Deep",
@@ -267,7 +282,9 @@
         "body": "human-female-average",
         "parts": {
           "face": "face-human-female-1",
-          "hair": "hair-long-tied"
+          "hair": "hair-long-female",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
         },
         "colours": {
           "skin": "Ember",
@@ -294,6 +311,843 @@
       "clip": "meditate",
       "time": 0.7,
       "clips": "../../../Assets/Models/humanoid/clips.glb"
+    },
+    {
+      "name": "assembly-preset-human-male-1",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-average",
+        "parts": {
+          "face": "face-human-male-1",
+          "hair": "hair-crop",
+          "beard": "beard-stubble",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Tan",
+          "hair": "Brown",
+          "eyes": "Brown",
+          "lips": "Natural",
+          "cloth": "Forest",
+          "cloth.trim": "Gold",
+          "trousers": "Grey",
+          "leather": "Brown",
+          "buckle": "Brass",
+          "hair.tie": "Red",
+          "marking": "Brown",
+          "brows": "Dark",
+          "eye.white": "Ivory"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-preset-human-male-2",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-average",
+        "parts": {
+          "face": "face-human-male-3",
+          "hair": "hair-spiky",
+          "beard": "beard-none",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Bronze",
+          "hair": "Dark brown",
+          "eyes": "Dark",
+          "lips": "Natural",
+          "cloth": "Blue",
+          "cloth.trim": "Gold",
+          "trousers": "Brown",
+          "leather": "Brown",
+          "buckle": "Brass",
+          "hair.tie": "Red",
+          "marking": "Brown",
+          "brows": "Dark",
+          "eye.white": "Ivory"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-preset-human-male-3",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-average",
+        "parts": {
+          "face": "face-human-male-2",
+          "hair": "hair-curly-male",
+          "beard": "beard-full",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Brown",
+          "hair": "Black",
+          "eyes": "Dark",
+          "lips": "Natural",
+          "cloth": "Rust",
+          "cloth.trim": "Gold",
+          "trousers": "Brown",
+          "leather": "Brown",
+          "buckle": "Brass",
+          "hair.tie": "Red",
+          "marking": "Brown",
+          "brows": "Dark",
+          "eye.white": "Ivory"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-preset-human-male-4",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-average",
+        "parts": {
+          "face": "face-human-male-6",
+          "hair": "hair-swept-back",
+          "beard": "beard-none",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Fair",
+          "hair": "Blond",
+          "eyes": "Blue",
+          "lips": "Natural",
+          "cloth": "Plum",
+          "cloth.trim": "Gold",
+          "trousers": "Navy",
+          "leather": "Brown",
+          "buckle": "Brass",
+          "hair.tie": "Red",
+          "marking": "Brown",
+          "brows": "Dark",
+          "eye.white": "Ivory"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-preset-human-female-1",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-average",
+        "parts": {
+          "face": "face-human-female-1",
+          "hair": "hair-long-female",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Rosy",
+          "hair": "Auburn",
+          "eyes": "Green",
+          "lips": "Natural",
+          "cloth": "Teal",
+          "cloth.trim": "Gold",
+          "trousers": "Grey",
+          "leather": "Brown",
+          "buckle": "Brass",
+          "hair.tie": "Red",
+          "marking": "Brown",
+          "brows": "Dark",
+          "eye.white": "Ivory"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-preset-human-female-2",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-average",
+        "parts": {
+          "face": "face-human-female-6",
+          "hair": "hair-high-ponytail",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Bronze",
+          "hair": "Black",
+          "eyes": "Dark",
+          "lips": "Natural",
+          "cloth": "Rust",
+          "cloth.trim": "Gold",
+          "trousers": "Brown",
+          "leather": "Brown",
+          "buckle": "Brass",
+          "hair.tie": "Red",
+          "marking": "Brown",
+          "brows": "Dark",
+          "eye.white": "Ivory"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-preset-human-female-3",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-average",
+        "parts": {
+          "face": "face-human-female-5",
+          "hair": "hair-curls",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Deep",
+          "hair": "Dark brown",
+          "eyes": "Dark",
+          "lips": "Natural",
+          "cloth": "Ochre",
+          "cloth.trim": "Gold",
+          "trousers": "Brown",
+          "leather": "Brown",
+          "buckle": "Brass",
+          "hair.tie": "Red",
+          "marking": "Brown",
+          "brows": "Dark",
+          "eye.white": "Ivory"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-preset-human-female-4",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-average",
+        "parts": {
+          "face": "face-human-female-3",
+          "hair": "hair-braid",
+          "marks": "marks-freckles",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Porcelain",
+          "hair": "Blond",
+          "eyes": "Blue",
+          "lips": "Natural",
+          "cloth": "Violet",
+          "cloth.trim": "Gold",
+          "trousers": "Brown",
+          "leather": "Brown",
+          "buckle": "Brass",
+          "hair.tie": "Red",
+          "marking": "Brown",
+          "brows": "Dark",
+          "eye.white": "Ivory"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-human-male-slender",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-slender",
+        "parts": {
+          "face": "face-human-male-1",
+          "hair": "hair-swept-back",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none",
+          "beard": "beard-none"
+        },
+        "colours": {
+          "skin": "Tan",
+          "hair": "Brown",
+          "hair.tie": "Red",
+          "eyes": "Dark",
+          "brows": "Dark",
+          "lips": "Natural",
+          "cloth": "Red",
+          "cloth.trim": "Gold",
+          "trousers": "Charcoal",
+          "marking": "Brown",
+          "eye.white": "Ivory",
+          "leather": "Brown",
+          "buckle": "Brass"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "front",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-human-male-strong",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-strong",
+        "parts": {
+          "face": "face-human-male-1",
+          "hair": "hair-swept-back",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none",
+          "beard": "beard-none"
+        },
+        "colours": {
+          "skin": "Tan",
+          "hair": "Brown",
+          "hair.tie": "Red",
+          "eyes": "Dark",
+          "brows": "Dark",
+          "lips": "Natural",
+          "cloth": "Red",
+          "cloth.trim": "Gold",
+          "trousers": "Charcoal",
+          "marking": "Brown",
+          "eye.white": "Ivory",
+          "leather": "Brown",
+          "buckle": "Brass"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "front",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-human-female-slender",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-slender",
+        "parts": {
+          "face": "face-human-female-1",
+          "hair": "hair-long-tied",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Tan",
+          "hair": "Brown",
+          "hair.tie": "Red",
+          "eyes": "Dark",
+          "brows": "Dark",
+          "lips": "Natural",
+          "cloth": "Red",
+          "cloth.trim": "Gold",
+          "trousers": "Charcoal",
+          "marking": "Brown",
+          "eye.white": "Ivory",
+          "leather": "Brown",
+          "buckle": "Brass"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "front",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-human-female-strong",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-strong",
+        "parts": {
+          "face": "face-human-female-1",
+          "hair": "hair-long-tied",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none"
+        },
+        "colours": {
+          "skin": "Tan",
+          "hair": "Brown",
+          "hair.tie": "Red",
+          "eyes": "Dark",
+          "brows": "Dark",
+          "lips": "Natural",
+          "cloth": "Red",
+          "cloth.trim": "Gold",
+          "trousers": "Charcoal",
+          "marking": "Brown",
+          "eye.white": "Ivory",
+          "leather": "Brown",
+          "buckle": "Brass"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "front",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-human-male-strong-mane",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-strong",
+        "parts": {
+          "face": "face-human-male-2",
+          "hair": "hair-mane",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none",
+          "beard": "beard-long"
+        },
+        "colours": {
+          "skin": "Bronze",
+          "hair": "Auburn",
+          "hair.tie": "Red",
+          "eyes": "Green",
+          "brows": "Dark",
+          "lips": "Natural",
+          "cloth": "Forest",
+          "cloth.trim": "Bone",
+          "trousers": "Brown",
+          "marking": "Brown",
+          "eye.white": "Ivory",
+          "leather": "Tan",
+          "buckle": "Brass"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-human-male-slender-mohawk",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-slender",
+        "parts": {
+          "face": "face-human-male-3",
+          "hair": "hair-mohawk",
+          "marks": "marks-scar-brow",
+          "head-piece": "head-piece-circlet",
+          "beard": "beard-none"
+        },
+        "colours": {
+          "skin": "Olive",
+          "hair": "Black",
+          "hair.tie": "Red",
+          "eyes": "Grey",
+          "brows": "Dark",
+          "lips": "Natural",
+          "cloth": "Black",
+          "cloth.trim": "Silver",
+          "trousers": "Charcoal",
+          "marking": "Pale",
+          "eye.white": "Ivory",
+          "leather": "Brown",
+          "buckle": "Steel"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "close-up",
+      "width": 320,
+      "height": 320,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-human-male-warrior-braids",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "male",
+        "body": "human-male-average",
+        "parts": {
+          "face": "face-human-male-5",
+          "hair": "hair-warrior-braids",
+          "marks": "marks-none",
+          "head-piece": "head-piece-none",
+          "beard": "beard-braided"
+        },
+        "colours": {
+          "skin": "Fair",
+          "hair": "Copper",
+          "hair.tie": "Red",
+          "eyes": "Blue",
+          "brows": "Dark",
+          "lips": "Natural",
+          "cloth": "Blue",
+          "cloth.trim": "Crimson",
+          "trousers": "Navy",
+          "marking": "Brown",
+          "eye.white": "Ivory",
+          "leather": "Brown",
+          "buckle": "Brass"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "side",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-human-female-strong-curls",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-strong",
+        "parts": {
+          "face": "face-human-female-2",
+          "hair": "hair-curls",
+          "marks": "marks-none",
+          "head-piece": "head-piece-leaf-wreath"
+        },
+        "colours": {
+          "skin": "Deep",
+          "hair": "Black",
+          "hair.tie": "Red",
+          "eyes": "Amber",
+          "brows": "Dark",
+          "lips": "Plum",
+          "cloth": "Ochre",
+          "cloth.trim": "Gold",
+          "trousers": "Olive",
+          "marking": "Brown",
+          "eye.white": "Ivory",
+          "leather": "Brown",
+          "buckle": "Brass"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-human-female-slender-twin-braids",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-slender",
+        "parts": {
+          "face": "face-human-female-4",
+          "hair": "hair-twin-braids",
+          "marks": "marks-freckles",
+          "head-piece": "head-piece-flower"
+        },
+        "colours": {
+          "skin": "Porcelain",
+          "hair": "Ash blond",
+          "hair.tie": "Blue",
+          "eyes": "Green",
+          "brows": "Dark",
+          "lips": "Rose",
+          "cloth": "Violet",
+          "cloth.trim": "Bone",
+          "trousers": "Charcoal",
+          "marking": "Brown",
+          "eye.white": "Ivory",
+          "leather": "Brown",
+          "buckle": "Brass"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
+    },
+    {
+      "name": "assembly-human-female-side-braid",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-average",
+        "parts": {
+          "face": "face-human-female-5",
+          "hair": "hair-side-braid",
+          "marks": "marks-scar-cheek",
+          "head-piece": "head-piece-feather"
+        },
+        "colours": {
+          "skin": "Tan",
+          "hair": "Chestnut",
+          "hair.tie": "Gold",
+          "eyes": "Hazel",
+          "brows": "Dark",
+          "lips": "Red",
+          "cloth": "Teal",
+          "cloth.trim": "Silver",
+          "trousers": "Grey",
+          "marking": "Rose",
+          "eye.white": "Ivory",
+          "leather": "Black",
+          "buckle": "Brass"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": null,
+      "time": 0,
+      "clips": null,
+      "data": [
+        "../../../Assets/Data"
+      ]
     }
   ]
 }

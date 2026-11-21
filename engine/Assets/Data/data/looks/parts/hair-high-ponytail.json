@@ -1,0 +1,30 @@
+{
+  "$types": {
+    "look.part": 2,
+    "look.part.model": 2
+  },
+  "category": "hair",
+  "name": "High ponytail",
+  "races": [
+    "human"
+  ],
+  "sexes": [
+    "female"
+  ],
+  "models": [
+    {
+      "model": "models/humanoid/parts/hair/high-ponytail/human-female-average",
+      "bodies": [
+        "human-female-slender",
+        "human-female-average",
+        "human-female-strong"
+      ],
+      "faces": []
+    }
+  ],
+  "slots": [
+    "hair",
+    "hair.tie"
+  ],
+  "order": 60
+}

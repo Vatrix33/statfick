@@ -687,6 +687,24 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   views seam and a `SurfaceViews` with the painter's `SurfaceTexture` (`claude-work/gm2/step8/capture/`); the old game's
   picker in any state through its test client (`claude-work/gm2/step8/old-picker/`). This session's sandbox refuses a
   shell heredoc with quotes and `cd` with `git` in one command: write the script to a file and run it.
+- 2026-11-21 (the PC, GM2 step 9a's worker on the branch `gm2-step9a`, 5266 + 1000 = 6266 tests on the GPU and lavapipe): **the shared
+  sets and the human in the repo** (`Docs/Game/Hero.md`, "How it works", step 9a). Gotchas: a material's name may hold a
+  dot (`eye.white`, `hair.tie`, `cloth.trim`): strip only Blender's `.001` suffix, never at the first dot; a part with no
+  models has no `look.part.model` in its `$types` (the serializer's form; `LookDataTests.TheMakersRecordsAreTheSerializersForms`
+  holds the data to it); the structural walk is what finds a look's part in a gear's slot (the engine's model tests take
+  the gear's slots); a part made on the average body is worn on the builds, whose hip and back sockets rest elsewhere, so
+  a part's binding is judged by the joints its vertices follow; a new build of the test project in a fresh worktree needs
+  `build.sh` once (the shaders) before a filtered GPU run; the maker's options come by the parts' places (`look.part`'s
+  `order`, GM2-P36), so a style two lists hold at different places must be a part a sex; a glTF skinned mesh ignores its
+  node's transform (move the root bone to move it); a test that stops at its first failure hides the other bodies'
+  numbers: collect them, then assert; Blender can build a model's normals a hair apart under heavy load (the woman's twin
+  braids' hair cap, one normal by 5e-05, 2 builds in 24 four at a time): a `make-humanoid.sh check` that fails on one
+  float of one normal while the machine is loaded, run it again quiet before trusting it either way; the model list in
+  the editor's `preview-cutscene` fixture is `models.pak`'s, so new models change `Reference/editor-fixtures.json`.
+  Recipes: `claude-work/gm2/step9a-repo/tools/` (`write_data.py` and `make-data.sh`: the data from a hand-over;
+  `manifest_entries.py`; `model-stats.py`; `ZzScratchMeasureAssembly.cs` and `measure-table.py`: every assembly measure
+  on both drivers; `inside-diff.py`: where a shading comparison's inside pixels are; `assemble-rules.py`,
+  `model-breaks.py`; `flaky-build.sh` and `glb-diff.py`: a model built many times under load and where two `.glb` differ).
 - 2026-11-18 (the PC, GM2 step 4b's worker on the branch `gm2-step4b`): **the first humanoid's clip library**
   (`Docs/Game/Hero.md`, "How it works", step 4b). Gotchas: a clip keyed at every frame with Bézier keys fails
   Animation.md's between-frames rule (Blender's auto-clamped handles bend each quaternion component inside a frame; the

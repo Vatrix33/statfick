@@ -1,0 +1,29 @@
+{
+  "$types": {
+    "look.part": 2,
+    "look.part.model": 2
+  },
+  "category": "hair",
+  "name": "Wavy",
+  "races": [
+    "human"
+  ],
+  "sexes": [
+    "female"
+  ],
+  "models": [
+    {
+      "model": "models/humanoid/parts/hair/wavy/human-female-average",
+      "bodies": [
+        "human-female-slender",
+        "human-female-average",
+        "human-female-strong"
+      ],
+      "faces": []
+    }
+  ],
+  "slots": [
+    "hair"
+  ],
+  "order": 80
+}

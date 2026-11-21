@@ -1293,6 +1293,17 @@ the design and the tests):
   mask in GM5), GM2-P22 (the hips' place scaled by the legs' length, and a figure placed by its soles: "the figure's
   ground", an engine task before step 11), GM2-P23 (the keying scripts into the repo later) and the clips' ease; in
   `Docs/Game-Plan.md` ("GM2's detail round") and `Docs/Game/Hero.md` ("Questions from the steps", "Decisions").
+  **Q61–Q65 (2026-11-18 to 20, asked by the manager with step 9a's art; recorded by step 9a):** the shared sets' lists
+  (Q61: men's and women's hair 20 each, beards 12, head pieces 8, marks 6, each with "None"), the Side braid before the
+  right shoulder (Q62), the human's 69 swatches (Q63), a tie's colour chosen on its own (Q64), a mark made for each face
+  (Q65: a mark's model names the faces it fits); the approvals of the builds, the faces, the sets, the swatches and the
+  eight presets; the manager's GM2-P25–GM2-P30 (a part made once a sex for the three builds, beards to the widest jaw,
+  one-sided parts on the right, head pieces in the outfit's slots, the maker offering a colour only where it is used, the
+  Blender comparisons of 9a); in `Docs/Game-Plan.md` ("GM2's detail round") and `Docs/Game/Hero.md` ("Questions from the
+  steps", "Decisions"). **Q73 (2026-11-21, asked by the manager on step 9a's report):** "Hide the row": a colour row is
+  shown only when its slot has two or more swatches (the human's brows and eye whites gone from the maker), the look still
+  holding the swatch; with the manager's GM2-P35 (two close-ups of hair locks owed to an engine task, no limit touched) and
+  GM2-P36 (a part's place in its category's list, `look.part`'s `order`, "None" first); in the same two places.
 - **Decisions for GM3 (2026-11-20, asked early at the user's request, before GM3 starts):** `Docs/Game-Plan.md`, GM3,
   "Decisions for GM3": GM3-1 the item models made for close-up, GM3-2 live 3D item pictures, GM3-3 armour fitted to
   every body, GM3-5 the hintless masterworks and Exotics designed by the port for approval (all as recommended); GM3-4,
@@ -4675,6 +4686,21 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     seventh assembled sample, the woman kneeling. 4660 + 951 = 5611 tests (`main` `d2752e5`: 4645 + 948 = 5593; 18 new);
     mutations 32 of 32 killed, Blender's side broken 7 ways, 7 killed; the Blender references 242 of 242 byte-equal when
     made again into scratch.
+  - **GM2 step 9a, the shared sets and the human in the repo (2026-11-20/21, a worker on the branch `gm2-step9a`, rebased
+    on the figure's ground; `Docs/Game/Hero.md`, "How it works", step 9a):** the manager's approved art from his hand-over:
+    the twelve files of `Tools/Models/humanoid/` (`as_build` and the four builds, ten faces, 38 hair styles, the beards,
+    head pieces and marks; one word changed, the hair beads in the outfit's trim, GM2-P28, agreed), 152 models built (171
+    in the manifest, the same bytes twice; `models.pak` 2,170,661 → 10,425,256 bytes), the human's 69 swatches, six bodies,
+    82 parts under the approved names in the approved order and the eight presets in `data.pak` (10,653 → 29,642 bytes);
+    the user's Q65 as `look.part.model` version 2 (`faces`: a mark's model by face, in the checks, the offers,
+    `HeroFigure`, `assemble.py` and the maker), the manager's GM2-P29 in the maker (a colour offered only where the body
+    or a chosen part uses it; the body's slots read from its model), GM2-P36 (`look.part` version 2's `order`, "None"
+    first) and the user's Q73 (a colour of one swatch shows no row; `maker-half-beast-light` captured again); the presets
+    held to the old looks by a table of names; the structural walk over every body, option and face, the human coloured;
+    18 samples against Blender (GM2-P30), two close-ups owed to an engine task (GM2-P35, the hair locks' seams up close);
+    the ground test over the six bodies (the builds measured: the strong ones lie and kneel under the man's bounds, for
+    the manager). Recorded: the user's Q61–Q65, Q73 and the approvals of 9a, the manager's GM2-P25–GM2-P30, GM2-P35,
+    GM2-P36. 4660 + 951 → 5266 + 1000 = 6266 tests, on the GPU and lavapipe.
 
 ## Milestones
 

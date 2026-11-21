@@ -323,7 +323,8 @@ public class MakerScreenTests
         using var s = Opened(HeroTestData.HalfBeast);
         Assert.Equal("No presets", s.Q("#maker-presets .maker-none").TextContent);
         Assert.Empty(s.Document.QuerySelectorAll("#maker-presets .maker-preset-group"));
-        Assert.Equal(["sex", "build", "part:face", "part:hair", "part:ears", "part:tail", "colour:skin", "colour:hair"],
+        // (Its one skin swatch is no choice: no row for it, the user's Q73.)
+        Assert.Equal(["sex", "build", "part:face", "part:hair", "part:ears", "part:tail", "colour:hair"],
             s.Document.QuerySelectorAll("#maker-choices .maker-row").Select(r => r.GetAttribute("data-choice")));
         Assert.Same(s.Q("#maker-begin"), s.Document.FocusedElement);
         Assert.Equal("Half-Beast · Male · Average", s.Q("#maker-summary").TextContent);
@@ -340,6 +341,74 @@ public class MakerScreenTests
         Assert.Equal(["Average"], s.Row("build").Descendants().Where(e => e.GetAttribute("role") == "radio").Select(e => e.TextContent));
         using var human = Opened();
         Assert.Equal("COLOURS", human.Q("#maker-choices .maker-colours-title").TextContent);
+        // A race whose swatches neither its body nor any part it offers uses (the dwarf given two crest colours, GM2-P29):
+        // the look holds the colour, the maker offers none and shows no colours' title.
+        using var unused = new HeroScreensHarness(races: new Dictionary<string, IReadOnlyList<RaceSwatch>>
+        {
+            [HeroTestData.Dwarf] = [new RaceSwatch { Slot = "crest", Name = "Test ochre", Colour = "#c08a2a" }, new RaceSwatch { Slot = "crest", Name = "Test moss", Colour = "#556b2f" }],
+        });
+        unused.NewHero();
+        unused.Run(HeroFlow.MakerCommand, HeroTestData.Dwarf);
+        Assert.Equal("Test ochre", unused.Maker.Look!.Colours["crest"]);
+        Assert.Equal(["sex", "build", "part:beard"], unused.Document.QuerySelectorAll("#maker-choices .maker-row").Select(r => r.GetAttribute("data-choice")));
+        Assert.Null(unused.Find("#maker-choices .maker-colours-title"));
+    }
+
+    /// <summary>
+    /// The colours a look shows (GM2-P29, on the shipped human, GM2 step 9a): a row for each slot its body or a chosen part
+    /// uses, made again on each change: the man has no lips, the Duelist's high ponytail brings its tie, the Scholar's
+    /// freckles their colour, gone with the mark, the colour kept.
+    /// </summary>
+    [Fact]
+    public void AColourRowShowsOnlyWhereTheBodyOrAChosenPartUsesItsSlot()
+    {
+        using var s = new HeroScreensHarness(shipped: true);
+        s.NewHero();
+        s.Run(HeroFlow.MakerCommand, "human");
+        List<string> Colours() => [.. s.Document.QuerySelectorAll("#maker-choices .maker-row").Select(r => r.GetAttribute("data-choice")!).Where(c => c.StartsWith("colour:"))];
+        Assert.Equal("human-male-1", s.Maker.Look!.Preset);
+        Assert.Equal(["colour:skin", "colour:hair", "colour:eyes", "colour:cloth", "colour:cloth.trim", "colour:trousers", "colour:leather", "colour:buckle"], Colours());
+        s.Click(s.Q("#maker-presets .maker-preset[data-preset=\"human-female-2\"]"));
+        Assert.Equal(["colour:skin", "colour:hair", "colour:hair.tie", "colour:eyes", "colour:lips", "colour:cloth", "colour:cloth.trim", "colour:trousers",
+            "colour:leather", "colour:buckle"], Colours());
+        Assert.Equal(("Hair ties", "Red"), (s.Row("colour:hair.tie").Q(".maker-row-label").TextContent, s.Row("colour:hair.tie").Q(".maker-row-value").TextContent));
+        s.Click(s.Q("#maker-presets .maker-preset[data-preset=\"human-female-4\"]"));
+        Assert.Contains("colour:marking", Colours());
+        s.Click(s.Row("part:marks").Q(".maker-row-head"));
+        s.Click(s.Row("part:marks").Descendants().First(e => e.GetAttribute("data-value") == "marks-none"));
+        Assert.DoesNotContain("colour:marking", Colours());
+        Assert.Equal("Brown", s.Maker.Look!.Colours["marking"]);
+        Assert.Equal(13, s.Maker.Look.Colours.Count);
+    }
+
+    /// <summary>
+    /// A colour with one swatch is no choice (the user's Q73, 2026-11-21): its row hidden, the look holding the swatch. The
+    /// shipped human's brows and eye whites; the test data's Half-Beast's one skin, whose row comes back when the race has
+    /// two.
+    /// </summary>
+    [Fact]
+    public void AColourWithOneSwatchShowsNoRow()
+    {
+        using var shipped = new HeroScreensHarness(shipped: true);
+        shipped.NewHero();
+        shipped.Run(HeroFlow.MakerCommand, "human");
+        Assert.Null(shipped.Find("#maker-choices .maker-row[data-choice=\"colour:brows\"]"));
+        Assert.Null(shipped.Find("#maker-choices .maker-row[data-choice=\"colour:eye.white\"]"));
+        Assert.Equal(("Dark", "Ivory"), (shipped.Maker.Look!.Colours["brows"], shipped.Maker.Look.Colours["eye.white"]));
+        using var one = Opened(HeroTestData.HalfBeast);
+        Assert.Null(one.Find("#maker-choices .maker-row[data-choice=\"colour:skin\"]"));
+        Assert.Equal("Test tawny", one.Maker.Look!.Colours["skin"]);
+        using var two = new HeroScreensHarness(races: new Dictionary<string, IReadOnlyList<RaceSwatch>>
+        {
+            [HeroTestData.HalfBeast] =
+            [
+                new RaceSwatch { Slot = "skin", Name = "Test tawny", Colour = "#c08a5a" }, new RaceSwatch { Slot = "skin", Name = "Test ash", Colour = "#9a978c" },
+                new RaceSwatch { Slot = "hair", Name = "Test russet", Colour = "#9a4a22" }, new RaceSwatch { Slot = "hair", Name = "Test grey", Colour = "#8a8a84" },
+            ],
+        });
+        two.NewHero();
+        two.Run(HeroFlow.MakerCommand, HeroTestData.HalfBeast);
+        Assert.Equal(["colour:skin", "colour:hair"], two.Document.QuerySelectorAll("#maker-choices .maker-row").Select(r => r.GetAttribute("data-choice")!).Where(c => c.StartsWith("colour:")));
     }
 
     [Fact]

@@ -5,3 +5,12 @@ look.part 1
   4 sexes: list<string> = ["male","female"]
   5 models: list<look.part.model> = []
   6 slots: list<string> = []
+
+look.part 2
+  1 category: string = "hair"
+  2 name: string = ""
+  3 races: list<string> = []
+  4 sexes: list<string> = ["male","female"]
+  5 models: list<look.part.model> = []
+  6 slots: list<string> = []
+  7 order: int32 = 0

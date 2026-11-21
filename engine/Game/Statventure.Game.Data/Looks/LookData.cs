@@ -39,23 +39,29 @@ public sealed class LookData
         new(BodiesIn(data), PartsIn(data), Entries<LookPreset>(data, LookNames.PresetsFolder, strict: false));
 
     /// <summary>
-    /// The parts offered on the body <paramref name="name"/> (<paramref name="body"/>), by category in the maker's order
-    /// (<see cref="LookNames.Categories"/>), each category's in the parts' names' order; a category with none is left out.
+    /// The parts offered on the body <paramref name="name"/> (<paramref name="body"/>) with the face <paramref name="face"/>
+    /// (the look's face part, null: none chosen; a part whose models name faces is offered only with one of them, Q65), by
+    /// category in the maker's order (<see cref="LookNames.Categories"/>), each category's by its parts'
+    /// <see cref="LookPart.Order"/>, the same place by name (GM2-P36); a category with none is left out.
     /// </summary>
-    public IReadOnlyDictionary<string, IReadOnlyList<string>> Offered(string name, LookBody body) => Offered(Parts, name, body);
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> Offered(string name, LookBody body, string? face = null) => Offered(Parts, name, body, face);
 
-    /// <summary><see cref="Offered(string, LookBody)"/> among <paramref name="parts"/>.</summary>
-    public static IReadOnlyDictionary<string, IReadOnlyList<string>> Offered(IReadOnlyDictionary<string, LookPart> parts, string name, LookBody body)
+    /// <summary><see cref="Offered(string, LookBody, string?)"/> among <paramref name="parts"/>.</summary>
+    public static IReadOnlyDictionary<string, IReadOnlyList<string>> Offered(IReadOnlyDictionary<string, LookPart> parts, string name, LookBody body, string? face = null)
     {
         var offered = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
         foreach (var category in LookNames.Categories)
         {
-            var options = parts.Where(p => p.Value.Category == category && p.Value.IsFor(name, body)).Select(p => p.Key).ToList();
+            var options = parts.Where(p => p.Value.Category == category && p.Value.IsFor(name, body, face))
+                .OrderBy(p => p.Value.Order).ThenBy(p => p.Key, StringComparer.Ordinal).Select(p => p.Key).ToList();
             if (options.Count > 0)
                 offered[category] = options;
         }
         return offered;
     }
+
+    /// <summary>The face a look chose (its part of the category <see cref="LookNames.Face"/>), or null.</summary>
+    public static string? FaceOf(LookHero look) => look.Parts.TryGetValue(LookNames.Face, out var face) ? face : null;
 
     /// <summary>The bodies in <paramref name="data"/> as the checks read them (one that doesn't read passed over).</summary>
     public static IReadOnlyDictionary<string, LookBody> BodiesIn(VirtualFileSystem data) => Entries<LookBody>(data, LookNames.BodiesFolder, strict: false);

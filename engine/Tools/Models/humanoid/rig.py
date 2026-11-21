@@ -36,6 +36,8 @@ def bone_table(p, j):
     head_centre = V(p["head"]["centre"])
     sz = p["head"]["size"][2]
     hand = p["hand"]
+    # a build's hips and back are further out or in than its average body's, and the sockets on them with them (1 for the average)
+    hips_out, back_out = p.get("build", {}).get("hips", 1.0), p.get("build", {}).get("back", 1.0)
     rows = [("hips", j["pelvis"], j["belly"], None, True),
             ("spine", j["belly"], j["ribs"], "hips", True),
             ("chest", j["ribs"], j["neck0"], "spine", True),
@@ -63,14 +65,14 @@ def bone_table(p, j):
                  # edge) runs along the forearm
                  (f"socket.hand.{tag}", wr + along * (hand["length"] * 0.36) + flat * (hand["thick"] * 0.9),
                   wr + along * (hand["length"] * 0.36) + flat * (hand["thick"] * 0.9) + front * 0.05, f"hand.{tag}", False, along),
-                 (f"socket.hip.{tag}", j["pelvis"] + V((s * 0.165, 0.0, 0.03)), j["pelvis"] + V((s * 0.165, 0.0, -0.02)), "hips", False)]
+                 (f"socket.hip.{tag}", j["pelvis"] + V((s * 0.165 * hips_out, 0.0, 0.03)), j["pelvis"] + V((s * 0.165 * hips_out, 0.0, -0.02)), "hips", False)]
     fore = (j["wristL"] - j["elbowL"]).normalized()
     fore_front = (V((0, -1, 0)) - fore * V((0, -1, 0)).dot(fore)).normalized()
     outer = -fore.cross(fore_front).normalized()       # the forearm's outer side, away from the palm
     grip = j["elbowL"].lerp(j["wristL"], 0.50) + outer * 0.050
     # the shield: its Y runs along the forearm, its Z (the face) looks out from the arm's outer side
     rows += [("socket.shield.L", grip, grip + fore * 0.05, "forearm.L", False, outer),
-             ("socket.back", j["chest"] + V((0, 0.125, 0.05)), j["chest"] + V((0, 0.125, 0.10)), "chest", False),
+             ("socket.back", j["chest"] + V((0, 0.125 * back_out, 0.05)), j["chest"] + V((0, 0.125 * back_out, 0.10)), "chest", False),
              ("socket.head", head_centre + V((0, 0, sz)), head_centre + V((0, 0, sz + 0.05)), "head", False)]
     assert [r[0] for r in rows if r[4]] == BONES and [r[0] for r in rows if not r[4]] == SOCKETS, "the skeleton's bones aren't BONES and SOCKETS"
     return rows

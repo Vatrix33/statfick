@@ -133,7 +133,7 @@ public sealed class MakerScreen : IGameScreen
             return;
         }
         _data = data;
-        _maker = new LookMaker(entry!.Id, entry.Race, data.Looks, parts.Session.Current!.Look);
+        _maker = new LookMaker(entry!.Id, entry.Race, data.Looks, parts.Session.Current!.Look, data.SlotsOfBody);
         _open = null;
         _status!.TextContent = "";
         _status.ClassName = "spellbook-status maker-status";
@@ -211,10 +211,10 @@ public sealed class MakerScreen : IGameScreen
                 button.AddEventListener("click", _ => Change(() => maker.SetPart(category, option)));
             }
         }
-        if (maker.Slots.Count == 0)
+        if (maker.OfferedSlots.Count == 0)
             return;
         _choices.Append("p", "eyebrow maker-colours-title", "COLOURS");
-        foreach (var slot in maker.Slots)
+        foreach (var slot in maker.OfferedSlots)
         {
             var chosen = maker.SwatchesOf(slot).First(s => s.Name == look.Colours[slot]);
             var row = Row(_choices, $"colour:{slot}", HeroTexts.Slot(slot), chosen.Name, chosen.Colour);

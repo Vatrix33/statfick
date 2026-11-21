@@ -1,7 +1,7 @@
 {
   "$types": {
-    "look.part": 1,
-    "look.part.model": 1
+    "look.part": 2,
+    "look.part.model": 2
   },
   "category": "face",
   "name": "Face 1",
@@ -15,8 +15,11 @@
     {
       "model": "models/humanoid/parts/face/human-male-1/human-male-average",
       "bodies": [
-        "human-male-average"
-      ]
+        "human-male-slender",
+        "human-male-average",
+        "human-male-strong"
+      ],
+      "faces": []
     }
   ],
   "slots": [
@@ -24,5 +27,6 @@
     "eyes",
     "brows",
     "eye.white"
-  ]
+  ],
+  "order": 10
 }

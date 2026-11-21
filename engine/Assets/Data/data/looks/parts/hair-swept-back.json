@@ -1,7 +1,7 @@
 {
   "$types": {
-    "look.part": 1,
-    "look.part.model": 1
+    "look.part": 2,
+    "look.part.model": 2
   },
   "category": "hair",
   "name": "Swept back",
@@ -15,11 +15,15 @@
     {
       "model": "models/humanoid/parts/hair/swept-back/human-male-average",
       "bodies": [
-        "human-male-average"
-      ]
+        "human-male-slender",
+        "human-male-average",
+        "human-male-strong"
+      ],
+      "faces": []
     }
   ],
   "slots": [
     "hair"
-  ]
+  ],
+  "order": 20
 }

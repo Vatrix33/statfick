@@ -18,18 +18,18 @@ public class LookRecordTests
     public void TheKindsTheirFoldersAndMarks()
     {
         Assert.Equal(("look.body", 1, "data/looks/bodies", true), Kind(typeof(LookBody)));
-        Assert.Equal(("look.part", 1, "data/looks/parts", true), Kind(typeof(LookPart)));
+        Assert.Equal(("look.part", 2, "data/looks/parts", true), Kind(typeof(LookPart)));
         Assert.Equal(("look.preset", 1, "data/looks/presets", true), Kind(typeof(LookPreset)));
         // The look is a save's part (and a preset's), never an entry; a part's model is a part of a part.
         Assert.False(RecordShape.Of(typeof(LookHero)).IsPackKind);
         Assert.Null(typeof(LookHero).GetCustomAttribute<KindAttribute>());
         Assert.Null(typeof(LookPartModel).GetCustomAttribute<KindAttribute>());
         Assert.Equal(("look.hero", 1), (RecordShape.Of(typeof(LookHero)).Name, RecordShape.Of(typeof(LookHero)).Version));
-        Assert.Equal(("look.part.model", 1), (RecordShape.Of(typeof(LookPartModel)).Name, RecordShape.Of(typeof(LookPartModel)).Version));
+        Assert.Equal(("look.part.model", 2), (RecordShape.Of(typeof(LookPartModel)).Name, RecordShape.Of(typeof(LookPartModel)).Version));
         Assert.Equal(["Race", "Sex", "Body", "Parts", "Colours", "Preset"], RecordShape.Of(typeof(LookHero)).Fields.Select(f => f.Name));
         Assert.Equal(["Race", "Sex", "Build", "Model"], RecordShape.Of(typeof(LookBody)).Fields.Select(f => f.Name));
-        Assert.Equal(["Category", "Name", "Races", "Sexes", "Models", "Slots"], RecordShape.Of(typeof(LookPart)).Fields.Select(f => f.Name));
-        Assert.Equal(["Model", "Bodies"], RecordShape.Of(typeof(LookPartModel)).Fields.Select(f => f.Name));
+        Assert.Equal(["Category", "Name", "Races", "Sexes", "Models", "Slots", "Order"], RecordShape.Of(typeof(LookPart)).Fields.Select(f => f.Name));
+        Assert.Equal(["Model", "Bodies", "Faces"], RecordShape.Of(typeof(LookPartModel)).Fields.Select(f => f.Name));
         Assert.Equal(["Label", "Order", "Look"], RecordShape.Of(typeof(LookPreset)).Fields.Select(f => f.Name));
         foreach (var type in new[] { typeof(LookHero), typeof(LookBody), typeof(LookPart), typeof(LookPartModel), typeof(LookPreset) })
         {
@@ -66,6 +66,7 @@ public class LookRecordTests
         Assert.Equal(("race", "data/races"), Reference(typeof(LookPart), "races"));
         Assert.Equal(("model", "models"), Reference(typeof(LookPartModel), "model"));
         Assert.Equal(("look.body", "data/looks/bodies"), Reference(typeof(LookPartModel), "bodies"));
+        Assert.Equal(("look.part", "data/looks/parts"), Reference(typeof(LookPartModel), "faces"));
         Assert.Null(RecordShape.Of(typeof(LookHero)).Field("colours")!.References.FirstOrDefault());
 
         static (string, string)? Reference(Type type, string field) =>
@@ -230,6 +231,113 @@ public class LookRecordTests
         Assert.False(braid.IsFor(TestLooks.HumanMaleStrong, data.Bodies[TestLooks.HumanMaleStrong]));
     }
 
+    /// <summary>
+    /// A category's options come by their parts' places (<see cref="LookPart.Order"/>, the manager's GM2-P36), the same place
+    /// by name; a version-1 part (no place) upgrades to place 0, so a list of them keeps their names' order.
+    /// </summary>
+    [Fact]
+    public void ACategorysOptionsComeByTheirPlaces()
+    {
+        using var looks = new TestLooks();
+        string Hair() => string.Join(", ", LookData.Load(looks.Data).Offered(TestLooks.HumanMale, LookData.Load(looks.Data).Bodies[TestLooks.HumanMale])["hair"]);
+        Assert.Equal("hair-bald, hair-braid", Hair());
+        looks.Write($"{LookNames.PartsFolder}/hair-bald", TestLooks.Parts["hair-bald"] with { Order = 20 });
+        looks.Write($"{LookNames.PartsFolder}/hair-braid", TestLooks.Parts["hair-braid"] with { Order = 10 });
+        Assert.Equal("hair-braid, hair-bald", Hair());
+        looks.Write($"{LookNames.PartsFolder}/hair-plait", TestLooks.Parts["hair-braid"] with { Name = "Plait", Order = 10 });
+        looks.Write($"{LookNames.PartsFolder}/hair-a", TestLooks.Parts["hair-braid"] with { Name = "A", Order = 10 });
+        Assert.Equal("hair-a, hair-braid, hair-plait, hair-bald", Hair());
+        looks.Write($"{LookNames.PartsFolder}/hair-first", TestLooks.Parts["hair-bald"] with { Order = -5 });
+        Assert.Equal("hair-first, hair-a, hair-braid, hair-plait, hair-bald", Hair());
+        // Version 1 had no place: read as 0.
+        Assert.Equal(("look.part", 1), LibraryRecords.Table("look.part", "hair-braid", ".json")[0]);
+        Assert.Equal(0, ((LookPart)LibraryRecords.Load("look.part", "hair-braid", ".json")).Order);
+        Assert.Equal(0, ((LookPart)LibraryRecords.Load("look.part", "hair-braid", ".rec")).Order);
+    }
+
+    /// <summary>
+    /// A model naming faces (the user's Q65: a mark lies on a face's skin, so it is made for each face): a part whose models
+    /// name faces is offered on a body with one of them, and its model is the one for the body and the face; a model naming
+    /// none fits any face; without a face chosen only such a model fits.
+    /// </summary>
+    [Fact]
+    public void APartMadeForEachFaceIsOfferedWithItsFaces()
+    {
+        using var looks = new TestLooks();
+        looks.WriteByFace();
+        var data = LookData.Load(looks.Data);
+        var (male, strong) = (data.Bodies[TestLooks.HumanMale], data.Bodies[TestLooks.HumanMaleStrong]);
+        string Offer(string body, string? face) => string.Join("; ", data.Offered(body, data.Bodies[body], face).Select(c => $"{c.Key}: {string.Join(", ", c.Value)}"));
+        Assert.Equal("face: face-human-male-1, face-human-male-2; hair: hair-bald, hair-braid; beard: beard-none; marks: marks-none, marks-scar", Offer(TestLooks.HumanMale, "face-human-male-1"));
+        Assert.Equal("face: face-human-male-1, face-human-male-2; hair: hair-bald, hair-braid; beard: beard-none; marks: marks-none, marks-scar", Offer(TestLooks.HumanMale, "face-human-male-2"));
+        Assert.Equal("face: face-human-male-1; hair: hair-bald; beard: beard-none; marks: marks-none, marks-scar", Offer(TestLooks.HumanMaleStrong, "face-human-male-1"));
+        // The second face has no scar on the strong body; with no face chosen, nothing made for a face is offered.
+        Assert.Equal("face: face-human-male-1; hair: hair-bald; beard: beard-none; marks: marks-none", Offer(TestLooks.HumanMaleStrong, "face-human-male-2"));
+        Assert.Equal("face: face-human-male-1, face-human-male-2; hair: hair-bald, hair-braid; beard: beard-none; marks: marks-none", Offer(TestLooks.HumanMale, null));
+        var scar = data.Parts["marks-scar"];
+        Assert.Equal("models/humanoid/parts/marks/scar/human-male-1/human-male", scar.ModelFor(TestLooks.HumanMale, "face-human-male-1")!.Model);
+        Assert.Equal("models/humanoid/parts/marks/scar/human-male-2/human-male", scar.ModelFor(TestLooks.HumanMale, "face-human-male-2")!.Model);
+        Assert.Equal("models/humanoid/parts/marks/scar/human-male-1/human-male", scar.ModelFor(TestLooks.HumanMaleStrong, "face-human-male-1")!.Model);
+        Assert.Null(scar.ModelFor(TestLooks.HumanMaleStrong, "face-human-male-2"));
+        Assert.Null(scar.ModelFor(TestLooks.HumanMale, null));
+        // A model naming no face fits any face, and none.
+        var braid = data.Parts["hair-braid"];
+        Assert.Equal(braid.Models[0], braid.ModelFor(TestLooks.HumanMale, "face-human-male-2"));
+        Assert.Equal(braid.Models[0], braid.ModelFor(TestLooks.HumanMale, null));
+        // The refusals' words.
+        Assert.Equal("has no model for the face \"face-human-male-2\" on the body \"human-male-strong\"", scar.Refusal(TestLooks.HumanMaleStrong, strong, "face-human-male-2"));
+        Assert.Equal("has no model for the body \"human-male-average\" without a face", scar.Refusal(TestLooks.HumanMale, male));
+        Assert.Equal("has no model for the body \"human-female-average\"", scar.Refusal(TestLooks.HumanFemale, data.Bodies[TestLooks.HumanFemale] with { Sex = LookNames.Male }, "face-human-male-1"));
+        Assert.Null(scar.Refusal(TestLooks.HumanMale, male, "face-human-male-2"));
+        Assert.True(scar.IsFor(TestLooks.HumanMaleStrong, strong, "face-human-male-1"));
+        Assert.False(scar.IsFor(TestLooks.HumanMaleStrong, strong, "face-human-male-2"));
+        // A look: the scar with a face it has a model for passes; with another, refused in the check's words.
+        var look = TestLooks.WayfarerLook with { Parts = new Dictionary<string, string>(TestLooks.WayfarerLook.Parts) { ["marks"] = "marks-scar" } };
+        Assert.Empty(looks.Problems(look));
+        Assert.Empty(looks.Problems(look with { Parts = new Dictionary<string, string>(look.Parts) { ["face"] = "face-human-male-2" } }));
+        Assert.Equal(["\"face-human-male-2\" has no model for the body \"human-male-strong\" (at $.parts[\"face\"])",
+            "\"marks-scar\" has no model for the face \"face-human-male-2\" on the body \"human-male-strong\" (at $.parts[\"marks\"])"],
+            looks.Problems(look with { Body = TestLooks.HumanMaleStrong, Parts = new Dictionary<string, string> { ["face"] = "face-human-male-2", ["hair"] = "hair-bald", ["beard"] = "beard-none", ["marks"] = "marks-scar" } }));
+        // A category offered only with the face (marks here) must be chosen as any other.
+        Assert.Equal(["no marks chosen (the body \"human-male-average\" has 2 to choose from) (at $.parts)"], looks.Problems(TestLooks.WayfarerLook));
+        Assert.Equal(["\"marks-scar\" has no model for the body \"human-male-average\" without a face (at $.parts[\"marks\"])"],
+            looks.Problems(look with { Parts = new Dictionary<string, string> { ["hair"] = "hair-braid", ["beard"] = "beard-none", ["marks"] = "marks-scar" } }).Where(p => p.Contains("marks-scar")));
+    }
+
+    /// <summary>A part's models naming faces: each face once a model and each body and face one model's, a face's own models naming none; with the data, each face a face fitted to the model's bodies.</summary>
+    [Fact]
+    public void APartsFacesChecks()
+    {
+        using var looks = new TestLooks();
+        looks.WriteByFace();
+        var scar = TestLooks.ByFace["marks-scar"];
+        Assert.Empty(looks.Problems(scar));
+        var (first, second) = (scar.Models[0], scar.Models[1]);
+        Assert.Equal(["\"face-human-male-1\" is there twice (at $.models[0].faces[1])"],
+            looks.Problems(scar with { Models = [first with { Faces = ["face-human-male-1", "face-human-male-1"] }, second] }));
+        Assert.Equal(["the face \"face-human-male-1\" on the body \"human-male-average\" has a model already (models[0]) (at $.models[1].faces[0])"],
+            looks.Problems(scar with { Models = [first, second with { Faces = ["face-human-male-1"] }] }));
+        // A model for every face and another for the same body: either way round.
+        Assert.Equal(["the body \"human-male-average\" has a model already (models[0]) (at $.models[1].bodies[0])"],
+            looks.Problems(scar with { Models = [first with { Faces = [] }, second] }));
+        Assert.Equal(["the body \"human-male-average\" has a model already (models[0]) (at $.models[1].bodies[0])"],
+            looks.Problems(scar with { Models = [first, second with { Faces = [] }] }));
+        // Two models naming other faces on one body are right (the data's marks: a model per face).
+        Assert.Empty(looks.Problems(scar with { Models = [first with { Bodies = [TestLooks.HumanMale] }, second] }));
+        // A face's own model names no faces.
+        var face = TestLooks.Parts["face-human-male-1"];
+        Assert.Equal(["a face's model names no faces (it is the face) (at $.models[0].faces)"],
+            looks.Problems(face with { Models = [face.Models[0] with { Faces = ["face-human-male-1"] }] }));
+        // With the data: a face that isn't one, one not fitted to a body of the model, one that isn't there.
+        Assert.Equal(["\"hair-braid\" is a hair, not a face (at $.models[1].faces[0])"], looks.Problems(scar with { Models = [first, second with { Faces = ["hair-braid"] }] }));
+        Assert.Equal(["the face \"face-human-male-2\" has no model for the body \"human-male-strong\" (at $.models[1].faces[0])"],
+            looks.Problems(scar with { Models = [first with { Bodies = [TestLooks.HumanMale] }, second with { Bodies = [TestLooks.HumanMaleStrong] }] }));
+        Assert.Equal(["no look part \"face-human-male-9\" (data/looks/parts/face-human-male-9) (at $.models[1].faces[0])"],
+            looks.Problems(scar with { Models = [first, second with { Faces = ["face-human-male-9"] }] }));
+        // Without the data: the record's own rules only.
+        Assert.Empty(RecordChecks.Check(scar with { Models = [first, second with { Faces = ["hair-braid"] }] }));
+    }
+
     [Fact]
     public void ABodysChecks()
     {
@@ -309,5 +417,15 @@ public class LookRecordTests
         Assert.Equal(TestLooks.Presets["human-male-1"], LibraryRecords.Load("look.preset", "human-male-1", ".rec"));
         var braid = (LookPart)LibraryRecords.Load("look.part", "hair-braid", ".json");
         Assert.Equal(LibraryRecords.Json(typeof(LookPart), TestLooks.Parts["hair-braid"]), LibraryRecords.Json(typeof(LookPart), braid));
+        // look.part.model's version 2 (Q65: the faces a model fits), beside version 1's braid, which upgrades to a model naming no faces.
+        LibraryRecords.Ensure("marks-scar", TestLooks.ByFace["marks-scar"]);
+        foreach (var form in new[] { ".rec", ".json" })
+        {
+            Assert.Equal(LibraryRecords.Json(typeof(LookPart), TestLooks.ByFace["marks-scar"]), LibraryRecords.Json(typeof(LookPart), LibraryRecords.Load("look.part", "marks-scar", form)));
+            Assert.Contains(("look.part.model", 2), LibraryRecords.Table("look.part", "marks-scar", form));
+            Assert.Contains(("look.part.model", 1), LibraryRecords.Table("look.part", "hair-braid", form));
+            Assert.All(((LookPart)LibraryRecords.Load("look.part", "hair-braid", form)).Models, m => Assert.Empty(m.Faces));
+        }
+        Assert.Contains("\"faces\": [\n        \"face-human-male-1\"\n      ]", System.Text.Encoding.UTF8.GetString(LibraryRecords.Read("look.part", "marks-scar", ".json")));
     }
 }

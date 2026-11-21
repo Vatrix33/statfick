@@ -1,0 +1,30 @@
+{
+  "$types": {
+    "look.part": 2,
+    "look.part.model": 2
+  },
+  "category": "hair",
+  "name": "Ponytail",
+  "races": [
+    "human"
+  ],
+  "sexes": [
+    "male"
+  ],
+  "models": [
+    {
+      "model": "models/humanoid/parts/hair/ponytail/human-male-average",
+      "bodies": [
+        "human-male-slender",
+        "human-male-average",
+        "human-male-strong"
+      ],
+      "faces": []
+    }
+  ],
+  "slots": [
+    "hair",
+    "hair.tie"
+  ],
+  "order": 80
+}

@@ -1,0 +1,29 @@
+{
+  "$types": {
+    "look.part": 2,
+    "look.part.model": 2
+  },
+  "category": "hair",
+  "name": "Crop",
+  "races": [
+    "human"
+  ],
+  "sexes": [
+    "male"
+  ],
+  "models": [
+    {
+      "model": "models/humanoid/parts/hair/crop/human-male-average",
+      "bodies": [
+        "human-male-slender",
+        "human-male-average",
+        "human-male-strong"
+      ],
+      "faces": []
+    }
+  ],
+  "slots": [
+    "hair"
+  ],
+  "order": 10
+}

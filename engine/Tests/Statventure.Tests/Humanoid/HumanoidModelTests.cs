@@ -144,7 +144,38 @@ public class HumanoidModelTests
         Assert.Equal(["figure"], HumanoidFiles.MachineNames());
         Assert.Contains("clips", HumanoidFiles.Names());
         Assert.All(HumanoidFiles.Names(), n => Assert.Equal(Path.Combine(HumanoidFiles.Family, n + ".glb"), HumanoidFiles.Glb(n)));
-        Assert.Equal(["bodies/human-female-average", "bodies/human-male-average"], HumanoidFiles.Names().Where(n => n.StartsWith("bodies/")).Order(StringComparer.Ordinal));
+        // The human's six bodies (GM2 step 9a: the slender and strong builds beside step 4a's average ones).
+        Assert.Equal(["bodies/human-female-average", "bodies/human-female-slender", "bodies/human-female-strong", "bodies/human-male-average", "bodies/human-male-slender",
+            "bodies/human-male-strong"], HumanoidFiles.Names().Where(n => n.StartsWith("bodies/")).Order(StringComparer.Ordinal));
+    }
+
+    /// <summary>
+    /// The builds of a body (GM2 step 9a; Tools/Models/humanoid/bodies, as_build; GM2-P25): a slender and a strong body
+    /// have their average body's skeleton, every deforming bone where the average has it (so its clips, grips and the parts
+    /// made on the average body fit them as they fit it), only the hip and back sockets moved out or in with the build.
+    /// </summary>
+    [Theory]
+    [InlineData("male")]
+    [InlineData("female")]
+    public void ABuildHasItsAverageBodysBones(string sex)
+    {
+        var average = HumanoidFiles.Load($"bodies/human-{sex}-average");
+        var rest = average.WorldMatrices();
+        foreach (var build in new[] { "slender", "strong" })
+        {
+            var body = HumanoidFiles.Load($"bodies/human-{sex}-{build}");
+            var other = body.WorldMatrices();
+            var moved = new List<string>();
+            foreach (var joint in average.Skins[0].Joints)
+            {
+                var bone = average.Nodes[joint].Name;
+                var at = body.Skins[0].Joints.Single(j => body.Nodes[j].Name == bone);
+                if (!Matrix4x4Close(rest[joint], other[at]))
+                    moved.Add(bone);
+            }
+            Assert.Equal(["socket.back", "socket.hip.L", "socket.hip.R"], moved.Order(StringComparer.Ordinal));
+            Assert.NotEqual(Triangles(average), Triangles(body));
+        }
     }
 
     [Theory]
@@ -215,14 +246,12 @@ public class HumanoidModelTests
         Assert.True(vertices > 0, $"{name} has no vertices");
     }
 
-    /// <summary>A face and a hair style move with the head as a whole (Q2: no face bones).</summary>
+    /// <summary>Every part (the faces, hair styles, beards, head pieces and marks, both levels): all of them lie on the head.</summary>
+    public static TheoryData<string> Parts() => new(HumanoidFiles.Figures().Where(n => Unlevelled(n).StartsWith("parts/", StringComparison.Ordinal)));
+
+    /// <summary>A part (a face, a hair style, a beard, a head piece, a mark) moves with the head as a whole (Q2: no face bones).</summary>
     [Theory]
-    [InlineData("parts/face/human-male-1/human-male-average")]
-    [InlineData("parts/face/human-female-1/human-female-average")]
-    [InlineData("parts/hair/swept-back/human-male-average")]
-    [InlineData("parts/hair/long-tied/human-female-average")]
-    [InlineData("battle/parts/face/human-male-1/human-male-average")]
-    [InlineData("battle/parts/hair/swept-back/human-male-average")]
+    [MemberData(nameof(Parts))]
     public void APartOfTheHeadFollowsTheHeadAlone(string name)
     {
         var model = HumanoidFiles.Load(name);
@@ -239,9 +268,16 @@ public class HumanoidModelTests
     static readonly Dictionary<string, string> Fixed = new() { ["pupil"] = "#060404", ["glint"] = "#efe6d0" };
 
     /// <summary>
+    /// The look's slots of GM2 step 9a that the game's look file doesn't colour: the hair's tie and the marks (a figure shows
+    /// them only in its race's swatches; the look file, made before them, colours the first humanoid's slots).
+    /// </summary>
+    static readonly string[] SwatchesOnly = ["hair.tie", "marking"];
+
+    /// <summary>
     /// Every material is a slot the game's look colours (so a figure shows in the look's colours, a hero's swatches over
-    /// them) or a fixed colour (the pupils and the glints, their own colour in every look); the eyes are unlit, the drawn
-    /// lines (brows, lashes and mouth; the mail's rows and the sword's fuller) unhatched, everything else lit and hatched.
+    /// them), a slot only the swatches colour (<see cref="SwatchesOnly"/>) or a fixed colour (the pupils and the glints,
+    /// their own colour in every look); the eyes are unlit, the drawn lines (brows, lashes and mouth; the mail's rows and the
+    /// sword's fuller) and the marks (a mark is its colour alone) unhatched, everything else lit and hatched.
     /// </summary>
     [Fact]
     public void EveryMaterialIsASlotOfTheLookOrAFixedColour()
@@ -259,17 +295,19 @@ public class HumanoidModelTests
                     Assert.True(Vector4.Distance(Colors.LinearFromHex(colour), material.BaseColor) < 1e-6f, $"{name}: {slot} isn't {colour}");
                 }
                 else
-                    Assert.True(look.Colours.ContainsKey(slot), $"{name}: the material {material.Name} is no slot of the game's look and no fixed colour");
+                    Assert.True(look.Colours.ContainsKey(slot) != SwatchesOnly.Contains(slot), $"{name}: the material {material.Name} is no slot of the game's look and no fixed colour");
                 Assert.True(material.Unlit == slot is "eye.white" or "eyes" or "pupil" or "glint", $"{name}: {slot} {(material.Unlit ? "is" : "isn't")} unlit");
-                Assert.True(material.Hatch == slot is not ("brows" or "metal.shade"), $"{name}: {slot} {(material.Hatch ? "is" : "isn't")} hatched");
+                Assert.True(material.Hatch == slot is not ("brows" or "metal.shade" or "marking"), $"{name}: {slot} {(material.Hatch ? "is" : "isn't")} hatched");
                 Assert.Equal(Vector3.Zero, material.Emission);
             }
-        Assert.Equal(look.Colours.Keys.Concat(Fixed.Keys).Order(StringComparer.Ordinal), seen.Order(StringComparer.Ordinal));
+        Assert.Equal(look.Colours.Keys.Concat(Fixed.Keys).Concat(SwatchesOnly).Order(StringComparer.Ordinal), seen.Order(StringComparer.Ordinal));
     }
 
     /// <summary>
     /// The drawn lines made as thin strips (the mail's rows of rings, the sword's fuller, which the battle's sword hasn't)
-    /// have no outline of their own: they are their model's one piece without ink, named so (-unlined).
+    /// have no outline of their own: they are their model's one piece without ink, named so (-unlined). A mark (GM2 step
+    /// 9a: a freckle, a scar) is a flat piece on the skin with no outline at all: its model's one piece, without ink, in the
+    /// slot <c>marking</c>.
     /// </summary>
     [Fact]
     public void TheStripsOfDrawnLinesHaveNoInk()
@@ -278,10 +316,13 @@ public class HumanoidModelTests
         {
             var model = HumanoidFiles.Load(name);
             var inkless = model.Nodes.Where(n => n.Mesh >= 0 && !n.Ink).ToList();
-            var strips = Unlevelled(name).StartsWith("gear/chain-shirt/") || name == "gear/sword";
+            var mark = Unlevelled(name).StartsWith("parts/marks/", StringComparison.Ordinal);
+            var strips = Unlevelled(name).StartsWith("gear/chain-shirt/") || name == "gear/sword" || mark;
             Assert.True(inkless.Count == (strips ? 1 : 0), $"{name}: {string.Join(", ", inkless.Select(n => n.Name))} without ink");
             Assert.Equal(model.Nodes.Where(n => n.Mesh >= 0 && n.Name.EndsWith("-unlined", StringComparison.Ordinal)).Select(n => n.Name), inkless.Select(n => n.Name));
-            Assert.All(inkless.SelectMany(n => model.Meshes[n.Mesh].Primitives), p => Assert.Equal("metal.shade", model.Materials[p.Material].Slot));
+            Assert.All(inkless.SelectMany(n => model.Meshes[n.Mesh].Primitives), p => Assert.Equal(mark ? "marking" : "metal.shade", model.Materials[p.Material].Slot));
+            if (mark)
+                Assert.Equal(inkless, model.Nodes.Where(n => n.Mesh >= 0));
         }
     }
 

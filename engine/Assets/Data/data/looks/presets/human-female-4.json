@@ -10,9 +10,25 @@
     "sex": "female",
     "body": "human-female-average",
     "parts": {
-      "face": "face-human-female-1",
-      "hair": "hair-long-tied"
+      "face": "face-human-female-3",
+      "hair": "hair-braid",
+      "marks": "marks-freckles",
+      "head-piece": "head-piece-none"
     },
-    "colours": {}
+    "colours": {
+      "skin": "Porcelain",
+      "hair": "Blond",
+      "eyes": "Blue",
+      "lips": "Natural",
+      "cloth": "Violet",
+      "cloth.trim": "Gold",
+      "trousers": "Brown",
+      "leather": "Brown",
+      "buckle": "Brass",
+      "hair.tie": "Red",
+      "marking": "Brown",
+      "brows": "Dark",
+      "eye.white": "Ivory"
+    }
   }
 }

@@ -67,51 +67,67 @@ public class FigureWalkTests(ITestOutputHelper output)
                 else
                     used.Add(slot);
             var drawn = new Dictionary<string, string>(StringComparer.Ordinal) { [body.Model] = "the body" };
-            var product = 1.0;
-            foreach (var (category, options) in looks.Offered(name, body))
+            // A part made for each face (a mark, Q65) is walked with each face it is offered with, every other option once:
+            // its model is the same whatever the face.
+            var faces = looks.Offered(name, body).TryGetValue(LookNames.Face, out var faceOptions) ? faceOptions.Select(f => (string?)f).ToList() : [null];
+            var walked = new HashSet<(string, string?)>();
+            var product = 0.0;
+            foreach (var face in faces)
             {
-                product *= options.Count;
-                foreach (var option in options)
+                var withFace = 1.0;
+                foreach (var (category, options) in looks.Offered(name, body, face))
                 {
-                    pairs++;
-                    var at = $"{name} with {category} {option}";
-                    FigurePlan plan;
-                    try
+                    if (category != LookNames.Face)
+                        withFace *= options.Count;
+                    foreach (var option in options)
                     {
-                        plan = HeroFigure.Resolve(data, new LookHero { Race = body.Race, Sex = body.Sex, Body = name, Parts = new Dictionary<string, string> { [category] = option } });
+                        var byFace = looks.Parts[option].Models.Any(m => m.Faces.Count > 0);
+                        if (!walked.Add((option, byFace ? face : null)))
+                            continue;
+                        pairs++;
+                        var at = byFace ? $"{name} with {category} {option} on {face}" : $"{name} with {category} {option}";
+                        var parts = new Dictionary<string, string> { [category] = option };
+                        if (byFace && face is not null)
+                            parts[LookNames.Face] = face;
+                        FigurePlan plan;
+                        try
+                        {
+                            plan = HeroFigure.Resolve(data, new LookHero { Race = body.Race, Sex = body.Sex, Body = name, Parts = parts });
+                        }
+                        catch (LookRefusedException refused)
+                        {
+                            problems.Add($"{at}: refused ({string.Join("; ", refused.Problems)})");
+                            continue;
+                        }
+                        var part = looks.Parts[option];
+                        if (plan.Parts.Single(p => p.Category == category).Model is not { } path)
+                        {
+                            if (part.Slots.Count > 0)
+                                problems.Add($"{at}: drawn as nothing, yet its slots are {string.Join(", ", part.Slots)}");
+                            continue;
+                        }
+                        if (!drawn.TryAdd(path, $"{category} {option}"))
+                            problems.Add($"{at}: its model {path} is drawn by {drawn[path]} too");
+                        ModelData model;
+                        try
+                        {
+                            model = ModelData.Load(data, path);
+                        }
+                        catch (DataFileException problem)
+                        {
+                            problems.Add($"{at}: its model doesn't read ({problem.Message})");
+                            continue;
+                        }
+                        problems.AddRange(Binding(model, bodyRest, bones).Select(p => $"{at}: {p}"));
+                        var slots = SlotsOf(model).Where(s => !Fixed.Contains(s)).ToHashSet(StringComparer.Ordinal);
+                        foreach (var slot in slots.Where(s => !LookNames.Slots.Contains(s, StringComparer.Ordinal)).Order(StringComparer.Ordinal))
+                            problems.Add($"{at}: a material in \"{slot}\", which is neither a look's slot nor a fixed colour");
+                        if (!slots.SetEquals(part.Slots))
+                            problems.Add($"{at}: its materials' slots are {string.Join(", ", slots.Order(StringComparer.Ordinal))}, its record's {string.Join(", ", part.Slots.Order(StringComparer.Ordinal))}");
+                        used.UnionWith(slots.Where(s => LookNames.Slots.Contains(s, StringComparer.Ordinal)));
                     }
-                    catch (LookRefusedException refused)
-                    {
-                        problems.Add($"{at}: refused ({string.Join("; ", refused.Problems)})");
-                        continue;
-                    }
-                    var part = looks.Parts[option];
-                    if (plan.Parts.Single().Model is not { } path)
-                    {
-                        if (part.Slots.Count > 0)
-                            problems.Add($"{at}: drawn as nothing, yet its slots are {string.Join(", ", part.Slots)}");
-                        continue;
-                    }
-                    if (!drawn.TryAdd(path, $"{category} {option}"))
-                        problems.Add($"{at}: its model {path} is drawn by {drawn[path]} too");
-                    ModelData model;
-                    try
-                    {
-                        model = ModelData.Load(data, path);
-                    }
-                    catch (DataFileException problem)
-                    {
-                        problems.Add($"{at}: its model doesn't read ({problem.Message})");
-                        continue;
-                    }
-                    problems.AddRange(Binding(model, bodyRest, bones).Select(p => $"{at}: {p}"));
-                    var slots = SlotsOf(model).Where(s => !Fixed.Contains(s)).ToHashSet(StringComparer.Ordinal);
-                    foreach (var slot in slots.Where(s => !LookNames.Slots.Contains(s, StringComparer.Ordinal)).Order(StringComparer.Ordinal))
-                        problems.Add($"{at}: a material in \"{slot}\", which is neither a look's slot nor a fixed colour");
-                    if (!slots.SetEquals(part.Slots))
-                        problems.Add($"{at}: its materials' slots are {string.Join(", ", slots.Order(StringComparer.Ordinal))}, its record's {string.Join(", ", part.Slots.Order(StringComparer.Ordinal))}");
-                    used.UnionWith(slots.Where(s => LookNames.Slots.Contains(s, StringComparer.Ordinal)));
                 }
+                product += withFace;
             }
             var swatchSlots = race.Swatches.Select(s => s.Slot).Distinct(StringComparer.Ordinal).ToList();
             if (swatchSlots.Count == 0)
@@ -140,7 +156,11 @@ public class FigureWalkTests(ITestOutputHelper output)
     /// <summary>Every material's slot (a material's name without Blender's ".001").</summary>
     static IEnumerable<string> SlotsOf(ModelData model) => model.Materials.Select(m => m.Slot).Distinct(StringComparer.Ordinal);
 
-    /// <summary>How a part's model fails to bind to the body: skinned at all, each joint a bone of the body's, at the body's rest.</summary>
+    /// <summary>
+    /// How a part's model fails to bind to the body: skinned at all, each joint its vertices follow a bone of the body's, at
+    /// the body's rest. (A part is made on its race and sex's average body and worn on the three builds, GM2-P25: they
+    /// share every deforming bone; a build's hip and back sockets, which no vertex follows, lie further out or in.)
+    /// </summary>
     static IEnumerable<string> Binding(ModelData model, Matrix4x4[] bodyRest, Dictionary<string, int> bones)
     {
         if (model.Skins.Count == 0)
@@ -149,7 +169,14 @@ public class FigureWalkTests(ITestOutputHelper output)
             yield break;
         }
         var rest = model.WorldMatrices();
-        foreach (var joint in model.Skins.SelectMany(s => s.Joints).Distinct().Order())
+        var followed = new HashSet<int>();
+        foreach (var node in model.Nodes.Where(n => n.Mesh >= 0 && n.Skin >= 0))
+            foreach (var primitive in model.Meshes[node.Mesh].Primitives)
+                for (var v = 0; v < primitive.Positions.Length && primitive.Joints is { } joints && primitive.Weights is { } weights; v++)
+                    foreach (var (j, w) in new[] { (joints[v].J0, weights[v].X), (joints[v].J1, weights[v].Y), (joints[v].J2, weights[v].Z), (joints[v].J3, weights[v].W) })
+                        if (w > 0)
+                            followed.Add(model.Skins[node.Skin].Joints[j]);
+        foreach (var joint in followed.Order())
         {
             var bone = model.Nodes[joint].Name;
             if (!bones.TryGetValue(bone, out var index))
@@ -177,7 +204,10 @@ public class FigureWalkTests(ITestOutputHelper output)
         return new VirtualFileSystem(Application.DataMounts(new ApplicationOptions { DevelopmentFolder = overlay }, folder["game"], _ => null));
     }
 
-    /// <summary>Every figure the game's data allows builds whole; the races not coloured yet are the human alone (its swatches are GM2 step 9a's, approved with its presets).</summary>
+    /// <summary>
+    /// Every figure the game's data allows builds whole, and every race with bodies is coloured by its swatches (GM2 step 9a
+    /// gave the human its own: every slot its figures use is held to them).
+    /// </summary>
     [Fact]
     public void EveryFigureTheGamesDataAllowsBuildsWhole()
     {
@@ -185,11 +215,11 @@ public class FigureWalkTests(ITestOutputHelper output)
         using var data = Data(folder);
         var walk = Over(data);
         Assert.True(walk.Problems.Count == 0, string.Join("\n", walk.Problems));
-        // The expected state until GM2 step 9a gives the human its swatches (with its presets' colours): its figures draw
-        // their models' own colours, and every slot is held to the swatches from then on (this list then empty).
-        Assert.Equal(["human"], walk.Uncoloured);
-        // The first humanoid at least: two bodies, a face and a hair style each.
-        Assert.True(walk.Pairs >= 4 && walk.Combinations >= 2, $"{walk.Pairs} pairs, {walk.Combinations} combinations");
+        Assert.Empty(walk.Uncoloured);
+        // The human at least (GM2 step 9a): on each of the man's three bodies 6 faces, 21 hair styles, 13 beards, 9 head
+        // pieces, the marks' "none" and its 6 marks on each of the 6 faces (86 pairs); on each of the woman's the same
+        // without the beards (73).
+        Assert.True(walk.Pairs >= 3 * 86 + 3 * 73, $"{walk.Pairs} pairs walked");
         output.WriteLine($"{LookData.Load(data).Bodies.Count} bodies, {walk.Pairs} pairs walked, {walk.Combinations} combinations");
     }
 
@@ -202,7 +232,8 @@ public class FigureWalkTests(ITestOutputHelper output)
 
     static LookPart Hair(VirtualFileSystem data) => LookData.Load(data).Parts["hair-swept-back"];
 
-    public static TheoryData<string> Breaks => new(["another body's model", "no bones", "a slot left out", "a slot too many", "drawn twice", "unfilled", "drawn as nothing with slots", "a preset naming nothing", "a missing model"]);
+    public static TheoryData<string> Breaks => new(["another body's model", "no bones", "a slot left out", "a slot too many", "drawn twice", "unfilled", "drawn as nothing with slots", "a preset naming nothing", "a missing model",
+        "a mark's model missing for its last face"]);
 
     /// <summary>Each rule of the walk finds its break: the game's data with one record of the test's over it.</summary>
     [Theory]
@@ -261,6 +292,15 @@ public class FigureWalkTests(ITestOutputHelper output)
                 case "a missing model":
                     Put(folder, "data/looks/parts/hair-swept-back", hair with { Models = [new() { Model = "models/humanoid/parts/hair/gone", Bodies = ["human-male-average"] }] });
                     expected = "human-male-average with hair hair-swept-back: refused (\"hair-swept-back\": no model \"models/humanoid/parts/hair/gone\")";
+                    break;
+                case "a mark's model missing for its last face":
+                    // A mark is walked with each face it is made for (Q65): the sixth face's freckles gone.
+                    var freckles = LookData.Load(game).Parts["marks-freckles"];
+                    Put(folder, "data/looks/parts/marks-freckles", freckles with
+                    {
+                        Models = [.. freckles.Models.Select(m => m.Faces.SequenceEqual(["face-human-male-6"]) ? m with { Model = "models/humanoid/parts/marks/gone" } : m)],
+                    });
+                    expected = "human-male-strong with marks marks-freckles on face-human-male-6: refused (\"marks-freckles\": no model \"models/humanoid/parts/marks/gone\")";
                     break;
                 default:
                     throw new ArgumentException(what);

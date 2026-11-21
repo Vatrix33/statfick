@@ -6,8 +6,8 @@
 # render.py's figure, views and framing), so the engine's figure built from the same look (Game/Statventure.Game/Figures/
 # HeroFigure.cs) is held to Blender's picture of it, and to what this assembly holds (its models and its palette).
 # The figure: the look's body model (its skeleton and plain outfit); each part the look chooses, its model for the look's
-# body, bound to the body's armature by bone names as a garment ("Rendered gear", Docs/Animation.md); the gear's garments
-# likewise and its rigid items on their sockets; the palette: each colour the look chooses (by slot, a swatch's name) the
+# body and face (a model naming faces fits only those, Q65), bound to the body's armature by bone names as a garment
+# ("Rendered gear", Docs/Animation.md); the gear's garments likewise and its rigid items on their sockets; the palette: each colour the look chooses (by slot, a swatch's name) the
 # race's swatch of that name, then the gear's own colours. The style and the sun: the data's render.style entry
 # render/styles/game (the game's look); the background the caller's (the view's own). A look naming what the data
 # hasn't is refused, every missing thing named (as the game refuses it, GM2-P18).
@@ -31,6 +31,7 @@ sys.path.insert(0, HERE)
 # The maker's categories in its order (Game/Statventure.Game.Data/Looks/LookPart.cs, the [Choices] of its category): the
 # figure's parts in this order, a category that isn't one after them by name, as the game orders them.
 CATEGORIES = ["face", "brows", "hair", "beard", "crest", "ears", "tail", "marks", "head-piece"]
+FACE = "face"
 STYLE = "render/styles/game"
 
 
@@ -89,6 +90,9 @@ def resolve(look, records, models, gear=None):
         body_glb = model(body["model"], f"the body \"{look['body']}\"")
     order = {c: i for i, c in enumerate(CATEGORIES)}
     parts = []
+    # A part's model is the one fitted to the look's body and its face: a model naming faces fits only those (a mark is
+    # made for each face, the user's Q65), one naming none fits any face.
+    face = look.get("parts", {}).get(FACE)
     for category, name in sorted(look.get("parts", {}).items(), key=lambda p: (order.get(p[0], len(CATEGORIES)), p[0])):
         part = record(records, f"data/looks/parts/{name}")
         if part is None:
@@ -97,11 +101,16 @@ def resolve(look, records, models, gear=None):
         if not part.get("models"):
             parts.append((category, name, None))
             continue
-        fitted = next((m for m in part["models"] if look["body"] in m["bodies"]), None)
+        fitted = next((m for m in part["models"] if look["body"] in m["bodies"] and (not m.get("faces") or face in m["faces"])), None)
         if fitted is None:
             # Without the body its fit is moot: the body is named missing already.
             if body is not None:
-                problems.append(f"\"{name}\" has no model for the body \"{look['body']}\"")
+                if not any(look["body"] in m["bodies"] for m in part["models"]):
+                    problems.append(f"\"{name}\" has no model for the body \"{look['body']}\"")
+                elif face is None:
+                    problems.append(f"\"{name}\" has no model for the body \"{look['body']}\" without a face")
+                else:
+                    problems.append(f"\"{name}\" has no model for the face \"{face}\" on the body \"{look['body']}\"")
             continue
         model(fitted["model"], f"\"{name}\"")
         parts.append((category, name, fitted["model"]))
@@ -165,19 +174,27 @@ def scene_of(name, look, gear, records, models, background, view, size, pose_opt
 
 def from_list(list_path, out_path):
     """Every scene of an assembly list (AssemblyTests' Reference/assembly-looks.json) into a scene file at out_path, its
-    models by their paths from the models folder, named relative to the file's folder."""
+    models by their paths from the models folder, named relative to the file's folder. A scene read against other data
+    folders than the list's names its own ("data": the game's alone, say, where the list's add the tests' race)."""
     base =os.path.dirname(os.path.abspath(list_path))
     with open(list_path) as f:
         listed = json.load(f)
     if listed.get("format") != "statventure.assembly" or listed.get("version") != 1:
         raise SystemExit(f"{list_path}: not a statventure.assembly file of version 1")
-    folders = [os.path.normpath(os.path.join(base, folder)) for folder in listed["data"]]
     models = os.path.normpath(os.path.join(base, listed["models"]))
-    records = data_records(folders)
+    known = {}
+
+    def records_of(names):
+        folders = tuple(os.path.normpath(os.path.join(base, folder)) for folder in names)
+        if folders not in known:
+            known[folders] = data_records(folders)
+        return known[folders]
+
     scenes = []
     for item in listed["scenes"]:
         pose = {"clip": item.get("clip"), "time": item.get("time"),
                 "clips": os.path.normpath(os.path.join(base, item["clips"])) if item.get("clips") else None}
+        records = records_of(item.get("data") or listed["data"])
         scenes.append(scene_of(item["name"], item["look"], item.get("gear"), records, models, listed["background"], item["view"],
                                f"{item['width']}x{item['height']}", pose))
     out_dir = os.path.dirname(os.path.abspath(out_path))

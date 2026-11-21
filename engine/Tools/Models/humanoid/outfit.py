@@ -16,6 +16,8 @@ import rig as r
 V = Vector
 # A collar's band is relaxed twice: it lies where the neck runs into the shoulders, and large faces fold sharply there.
 COLLAR_TAUT = 2
+# How far out a collar may lie, as a share of the way from the middle to the shoulder's joint (the builds, GM2 step 9a).
+COLLAR_REACH = 0.80
 
 
 def ripple(a, b):
@@ -331,7 +333,8 @@ def top(mk, sleeve=0.72):
 
     sleeve_ends = [(head.lerp(tail, sleeve), (tail - head).normalized()) for head, tail in arms.values()]
     mk.paint(keep, 0.006, mk.m["cloth"], displace=folds, planes=sleeve_ends, heights=(high,))
-    mk.shell("collar", lambda c, bone: bone in TRUNK and high - 0.022 < c.z < high + 0.004, 0.005, mk.m["cloth.trim"],
+    reach = COLLAR_REACH * j["shoulderL"].x
+    mk.shell("collar", lambda c, bone: bone in TRUNK and high - 0.022 < c.z < high + 0.004 and abs(c.x) < reach, 0.005, mk.m["cloth.trim"],
              heights=(high + 0.004, high - 0.022), thickness=0.003, taut=COLLAR_TAUT)
     cuffs = [(head.lerp(tail, sleeve + 0.02), (tail - head).normalized()) for head, tail in arms.values()] + \
             [(head.lerp(tail, sleeve - 0.06), (tail - head).normalized()) for head, tail in arms.values()]

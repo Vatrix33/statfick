@@ -1,0 +1,16 @@
+{
+  "$types": {
+    "look.part": 2
+  },
+  "category": "beard",
+  "name": "None",
+  "races": [
+    "human"
+  ],
+  "sexes": [
+    "male"
+  ],
+  "models": [],
+  "slots": [],
+  "order": 0
+}
