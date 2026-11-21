@@ -209,12 +209,32 @@ public sealed record ModelAnimationEvent([property: Field(1)] string Name, [prop
 
 /// <summary>
 /// A glTF animation: one clip (a Blender action, Docs/Animation.md), with the events its extras
-/// list (the action's pose markers, which the export script copies there), in time order.
+/// list (the action's pose markers, which the export script copies there), in time order. Since
+/// version 2 (GM2-P22, "the figure's ground"; Docs/Animation.md, "A clip's translations follow the
+/// body's size") its <see cref="Measure"/>, also from its extras: the joints whose rest lengths
+/// measure a body for its translations.
 /// </summary>
-[Record("model.animation", 1)]
+[Record("model.animation", 2)]
 public sealed record ModelAnimation([property: Field(1)] string Name, [property: Field(2), Bulk("{0} channels")] IReadOnlyList<ModelAnimationChannel> Channels)
 {
     [Field(3)] public IReadOnlyList<ModelAnimationEvent> Events { get; init; } = [];
+
+    /// <summary>
+    /// A chain of joints by name, top first (the humanoid family's: its left leg's thigh, shin and foot), whose length at
+    /// rest (the distances from joint to joint) measures a body for the clip's translations: on a body whose chain is
+    /// another length a bone's place is scaled by the ratio of its length to the length on the model the clip was keyed on
+    /// (<see cref="Statventure.Animation.ClipBinding"/>). Empty: the translations are played as keyed on every body.
+    /// </summary>
+    [Field(4), Bulk("{0} joints")] public IReadOnlyList<string> Measure { get; init; } = [];
+
+    /// <summary>Version 1 (M9): no measure.</summary>
+    [Record("model.animation", 1)]
+    public sealed record V1([property: Field(1)] string Name, [property: Field(2)] IReadOnlyList<ModelAnimationChannel> Channels)
+    {
+        [Field(3)] public IReadOnlyList<ModelAnimationEvent> Events { get; init; } = [];
+
+        public ModelAnimation Upgrade() => new(Name, Channels) { Events = Events };
+    }
 }
 
 /// <summary>
@@ -288,7 +308,8 @@ public sealed class ModelData
     /// joints; a channel's values as many as its keys need, a cubic spline at least two keys, and key
     /// times that increase; nodes' cameras and lights that exist, one light at most and on one node at
     /// most (one sun per view), and cameras and lights whose values make a projection and a sun
-    /// (<see cref="ModelCamera.Problem"/>, <see cref="ModelLight.Problem"/>; Docs/Scene.md, step 3). A model
+    /// (<see cref="ModelCamera.Problem"/>, <see cref="ModelLight.Problem"/>; Docs/Scene.md, step 3); an animation's
+    /// measure two joints or more, each a node of the model (GM2-P22). A model
     /// from a pack or a loose folder breaks them only if it was edited. Also the limits its fields declare
     /// (G4). The first of <see cref="RecordChecks.Check"/>'s problems.
     /// </summary>
@@ -433,10 +454,72 @@ public sealed class ModelData
                         break;
                     }
             }
+        // A clip's measure (GM2-P22): a chain of two joints or more, each a node of the model it was keyed on.
+        var names = nodes.Select(n => n.Name).ToHashSet(StringComparer.Ordinal);
+        for (var a = 0; a < model.Animations.Count; a++)
+        {
+            var measure = model.Animations[a].Measure;
+            if (measure.Count == 0)
+                continue;
+            var at = F("animations").Index(a).Field("measure");
+            var where = $"animation {a} ({model.Animations[a].Name})";
+            if (measure.Count < 2)
+                check.Report(at, $"{where} is measured by {measure.Count} joint: a measure is a chain of two joints or more");
+            for (var k = 0; k < measure.Count; k++)
+                if (!names.Contains(measure[k]))
+                    check.Report(at.Index(k), $"{where} is measured by the joint {measure[k]}, which isn't a node of the model");
+        }
     }
 
     public ModelMaterial MaterialOf(ModelPrimitive primitive) =>
         primitive.Material < 0 ? ModelMaterial.Default : Materials[primitive.Material];
+
+    /// <summary>
+    /// Every vertex of the model's meshes where its rest pose puts it, then <paramref name="placement"/>: a skinned mesh's by
+    /// its joints at rest as the renderer skins it (glTF ignores a skinned mesh node's own transform), any other's by its node.
+    /// </summary>
+    public List<Vector3> RestPoints(Matrix4x4 placement)
+    {
+        var world = WorldMatrices();
+        var points = new List<Vector3>();
+        for (var n = 0; n < Nodes.Count; n++)
+        {
+            var node = Nodes[n];
+            if (node.Mesh < 0)
+                continue;
+            foreach (var primitive in Meshes[node.Mesh].Primitives)
+                for (var v = 0; v < primitive.Positions.Length; v++)
+                {
+                    var p = primitive.Positions[v];
+                    if (node.Skin >= 0 && primitive.Joints is { } joints && primitive.Weights is { } weights)
+                    {
+                        var skin = Skins[node.Skin];
+                        var (j, w) = (joints[v], weights[v]);
+                        var sum = Vector3.Zero;
+                        foreach (var (joint, weight) in new[] { (j.J0, w.X), (j.J1, w.Y), (j.J2, w.Z), (j.J3, w.W) })
+                            if (weight != 0)
+                                sum += weight * Vector3.Transform(p, skin.InverseBindMatrices[joint] * world[skin.Joints[joint]]);
+                        points.Add(Vector3.Transform(sum, placement));
+                    }
+                    else
+                        points.Add(Vector3.Transform(p, world[n] * placement));
+                }
+        }
+        return points;
+    }
+
+    /// <summary>
+    /// The lowest point of the model's meshes at rest (glTF's Y, model space; <see cref="RestPoints"/>), or null without a
+    /// mesh: a body's is where its soles are, its ground (GM2-P22, "the figure's ground"; <see cref="Statventure.Scene.Actor.Ground"/>).
+    /// </summary>
+    public float? LowestAtRest()
+    {
+        float? lowest = null;
+        foreach (var point in RestPoints(Matrix4x4.Identity))
+            if (lowest is not { } y || point.Y < y)
+                lowest = point.Y;
+        return lowest;
+    }
 
     /// <summary>
     /// Every node's transform to model space (its local transform after its ancestors'), in

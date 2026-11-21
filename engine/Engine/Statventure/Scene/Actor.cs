@@ -7,10 +7,10 @@ namespace Statventure.Scene;
 
 /// <summary>
 /// A figure in a scene (Docs/Animation.md, "Animated views"; Docs/Scene.md, Q1): a model posed by its
-/// animator, placed by the node it hangs on (its model space is the node's), coloured by
-/// <see cref="Palette"/>, with gear: items on its sockets (with their own clips, if any) and garments
-/// on its bones. The figure and its gear are one model for the renderer (one outline, one glow mask;
-/// the hatching anchored at the node's origin); picking gives the actor back. Its bones aren't scene
+/// animator, placed by the node it hangs on (its model space is the node's, raised by its
+/// <see cref="Ground"/>), coloured by <see cref="Palette"/>, with gear: items on its sockets (with their own clips, if
+/// any) and garments on its bones. The figure and its gear are one model for the renderer (one outline, one glow mask;
+/// the hatching anchored at its placement's origin); picking gives the actor back. Its bones aren't scene
 /// nodes. The scene advances its animator by the frame's time times the scene's rate.
 /// </summary>
 public sealed class Actor : SceneAttachment
@@ -20,6 +20,7 @@ public sealed class Actor : SceneAttachment
     ActorItem[] _shownItems = [];
     ActorGarment[] _shownGarments = [];
     Palette? _palette;
+    float _ground;
 
     public Actor(Model model, Animator animator)
     {
@@ -40,6 +41,43 @@ public sealed class Actor : SceneAttachment
     public Palette? Palette { get => _palette; set => Set(ref _palette, value); }
     public List<ActorItem> Items { get; } = [];
     public List<ActorGarment> Garments { get; } = [];
+
+    /// <summary>
+    /// Where the figure's ground is in its model space (GM2-P22, "the figure's ground"; Docs/Animation.md): the height of
+    /// its soles at rest (<see cref="GroundOf"/>; the human bodies' booted soles 24 mm under their origin). The figure is
+    /// drawn raised by it (<see cref="Placement"/>), so the node it hangs on is where it stands: a node on a ground puts its
+    /// soles on that ground, whatever the body's origin. 0 (the default): it stands by its model's origin.
+    /// </summary>
+    public float Ground { get => _ground; set => Set(ref _ground, value); }
+
+    /// <summary>
+    /// A figure's ground as its models say it: the lowest point at rest (<see cref="ModelData.LowestAtRest"/>) of its body
+    /// and of the garments it wears (footwear among them; a bare sole, a claw or a hoof alike: whatever reaches lowest), its
+    /// rigid items left out (a staff or a blade may reach lower than the feet without the figure standing on it); 0 when
+    /// none has a mesh. To the micrometre (the vertices skinned at rest carry float noise far under it; Blender's side,
+    /// Tools/Models/humanoid/render.py's figure_ground, rounds alike, so both raise a figure by the same number).
+    /// </summary>
+    public static float GroundOf(ModelData body, IEnumerable<ModelData> garments)
+    {
+        float? lowest = body.LowestAtRest();
+        foreach (var garment in garments)
+            if (garment.LowestAtRest() is { } y && (lowest is not { } low || y < low))
+                lowest = y;
+        return lowest is { } ground ? (float)(Math.Round(ground * 1e6) / 1e6) : 0;
+    }
+
+    /// <summary>
+    /// What the figure is drawn by: its node's world (identity without a node), its model space first raised by
+    /// <see cref="Ground"/>'s negation so its soles are on the node's origin. Its hatching is anchored at its origin.
+    /// </summary>
+    public Matrix4x4 Placement
+    {
+        get
+        {
+            var world = Node?.World ?? Matrix4x4.Identity;
+            return _ground == 0 ? world : Matrix4x4.CreateTranslation(0, -_ground, 0) * world;
+        }
+    }
 
     /// <summary>
     /// Evaluates the figure's and its items' poses at the animator's time: whether anything differs
@@ -78,7 +116,7 @@ public sealed class Actor : SceneAttachment
     /// <summary>Adds the figure's and its gear's draw items for the last evaluated poses, placed by its node.</summary>
     internal override void Draw(List<DrawItem> items, SceneDrawing drawing)
     {
-        var placement = Node?.World ?? Matrix4x4.Identity;
+        var placement = Placement;
         var style = drawing.Style;
         var pose = _pose.ToPose();
         var data = Model.Data;

@@ -60,8 +60,12 @@ public sealed class LookRefusedException(IReadOnlyList<string> problems)
 /// plain outfit), every part chosen made on that body as an <see cref="ActorGarment"/> (bound to its bones by name: no
 /// refit, a part is fitted to the bodies its models name), the gear's garments likewise and its rigid items on their
 /// sockets as <see cref="ActorItem"/>s, the palette made of the look's colours (each a swatch of the race's by its name,
-/// into its slot) and the gear's. The actor's animator has no clips yet (the screens add theirs, GM2 step 11); a new
-/// figure is built when the look or the gear changes (a new body means a new actor). A look that names anything the data
+/// into its slot) and the gear's. The actor stands by its soles (GM2-P22, "the figure's ground"): its
+/// <see cref="Actor.Ground"/> is the lowest point at rest of its body and its garments (<see cref="Actor.GroundOf"/>; the
+/// human bodies' boots 24 mm under their origin), so the node it hangs on is where its soles are, and a clip's hips' place
+/// follows the body's legs (<see cref="ClipBinding.Scale"/>). The actor's animator has no clips yet (the screens add
+/// theirs, GM2 step 11); a new figure is built when the look or the gear changes (a new body means a new actor). A look
+/// that names anything the data
 /// hasn't (a race, a body, a part, a model, a swatch: a mod switched off under a slot's save) is refused with what is
 /// missing (<see cref="LookRefusedException"/>), never drawn with a piece left out; what it leaves out it may leave out
 /// (a category the body offers that it doesn't choose draws nothing: a mod adding a category mustn't refuse older heroes).
@@ -82,7 +86,7 @@ public sealed class HeroFigure : IDisposable
     /// <summary>What the look came to in the data.</summary>
     public FigurePlan Plan { get; }
 
-    /// <summary>The figure, to attach to a scene node.</summary>
+    /// <summary>The figure, to attach to a scene node: the node is where its soles stand (<see cref="Actor.Ground"/>).</summary>
     public Actor Actor { get; }
 
     /// <summary>The body's skeleton (its clips are bound to it by bone names).</summary>
@@ -205,6 +209,8 @@ public sealed class HeroFigure : IDisposable
                 var model = Load(item.Model);
                 actor.Items.Add(new ActorItem(model, new Socket(skeleton, item.Socket)));
             }
+            // It stands by its soles (GM2-P22): the lowest point at rest of the body and what it wears on its bones.
+            actor.Ground = Actor.GroundOf(body.Data, actor.Garments.Select(g => g.Model.Data));
             return new HeroFigure(plan, actor, skeleton, models);
         }
         catch

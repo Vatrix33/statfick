@@ -696,6 +696,15 @@ The 43 MP3s in `Stats/music/` are not referenced by the game; music is composed 
   cycle's end to its start, so a single clip's last frame needs the clip twice in turn; a static property initializer
   that reads a static field declared below it sees null; filtered runs of the figure mode's window tests open (hidden)
   windows: run them inside the headless cage as full runs are (`claude-work/gm2/step4b/filtered-headless.sh`).
+- 2026-11-20 (the PC, GM2's engine task "the figure's ground" on the branch `gm2-figure-ground`): **a clip's hips by the
+  body's legs, a figure by its soles** (`Docs/Game/Hero.md`, "How it works", "The figure's ground"; `Docs/Animation.md`).
+  Gotchas: a field added to a record is a new version (frozen copy, upgrade, layout, a fixture of it, the marks file,
+  and an editor form showing the record gets a row: `preview-model`'s Chromium goldens again); moving a figure and its
+  camera together by millimetres gives Blender's renders a few pixels of rounding (at most 25 a picture here), so
+  "the same picture" still means the references made again; scaling an F-curve's keys means its handles too (the
+  sparse Bézier clips bend between keys by them); Blender exports a list of strings as an action's custom property
+  into the animation's extras as a JSON list; a test that builds its own game data with a development folder must not
+  copy the packs twice (`GameData` copies them).
 
 ## Asking about design choices (user rule)
 

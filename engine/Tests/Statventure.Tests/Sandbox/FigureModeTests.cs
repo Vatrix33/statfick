@@ -534,6 +534,52 @@ public class FigureReferenceTests(GpuFixture gpu)
         Assert.Contains("no clip nod in sample.glb", Assert.Throws<ArgumentException>(() => new FigureView(gpu.Device, spec with { Play = FigurePlay.Parse("bow,nod") })).Message);
     }
 
+    /// <summary>
+    /// The figure mode stands its figure by its soles on its node (GM2-P22), as the game's figures stand: the actor's ground
+    /// is the lowest point at rest of the body and its garments (the human man's booted soles, 24.0 mm under his origin;
+    /// the sword he holds left out), and the view frames the figure as it stands (the camera raised with it: the same
+    /// picture), the scene file it writes for Blender placing the models, the items and the hatching's anchor raised alike.
+    /// A body whose origin is its soles' level (the frame's sample) stands where it stood.
+    /// </summary>
+    [Fact]
+    public void TheFigureStandsByItsSoles()
+    {
+        var spec = new FigureSpec
+        {
+            Body = Humanoid.HumanoidFiles.Body("male"), Garments = [Humanoid.HumanoidFiles.ChainShirt("male")], Items = [(Humanoid.HumanoidFiles.Sword, "socket.hand.R")],
+            Look = FigureFiles.Today, View = "three-quarter", Width = 300, Height = 400,
+        };
+        using var figure = new FigureView(gpu.Device, spec);
+        Assert.Equal(-0.023997f, figure.Actor.Ground, 6);
+        var lift = new Vector3(0, 0.023997f, 0);
+        Assert.Equal(Matrix4x4.CreateTranslation(lift), figure.Lift);
+        Assert.True(Vector3.Distance(lift, figure.Actor.Placement.Translation) < 1e-7f);
+        // Framed as it stands: the camera over the points at rest is raised by the figure's lift.
+        var body = ModelData.Load(spec.Body);
+        var points = FigureFraming.RestPoints(body, Matrix4x4.Identity);
+        points.AddRange(FigureFraming.RestPoints(ModelData.Load(spec.Garments[0]), Matrix4x4.Identity));
+        points.AddRange(FigureFraming.RestPoints(ModelData.Load(spec.Items[0].Model), new Statventure.Animation.Socket(new Skeleton(body), "socket.hand.R").ItemTransform(body.WorldMatrices(), Matrix4x4.Identity)));
+        var unraised = FigureFraming.CameraFor(spec, "three-quarter", points, FigureFraming.FocusPoint(body, "head"));
+        Assert.True(Vector3.Distance(unraised.Target + lift, figure.View.Camera.Target) < 1e-5f, $"the camera's target {figure.View.Camera.Target}, not {unraised.Target + lift}");
+        Assert.True(Vector3.Distance(unraised.Position + lift, figure.View.Camera.Position) < 1e-5f);
+        Assert.Equal(unraised.OrthographicHeight, figure.View.Camera.OrthographicHeight, 5);
+        using var json = JsonDocument.Parse(JsonSerializer.Serialize(figure.SceneOf("standing", FigureFiles.Models)));
+        foreach (var model in json.RootElement.GetProperty("models").EnumerateArray())
+            Assert.Equal(0.023997f, model.GetProperty("anchor")[1].GetSingle(), 6);
+        Assert.Equal(0.023997f, json.RootElement.GetProperty("models")[0].GetProperty("matrix")[3][1].GetSingle(), 6);
+        var socket = figure.Actor.Items[0].Socket.ItemTransform(body.WorldMatrices(figure.Actor.Animator.Pose()), figure.Actor.Placement);
+        Assert.Equal(socket.Translation.Y, json.RootElement.GetProperty("models")[2].GetProperty("matrix")[3][1].GetSingle(), 6);
+        // The sample's origin is its soles' level: nothing raised.
+        using var sample = new FigureView(gpu.Device, new FigureSpec { Body = FigureFiles.Sample, Look = FigureFiles.Today });
+        Assert.Equal((0f, Matrix4x4.Identity), (sample.Actor.Ground, sample.Lift));
+        // A garment reaching under the body's soles is what the figure stands on: M7's test figure (its feet 10 mm over its
+        // origin) wearing the human man's booted body as a garment (bound by the bones' names) stands on the boots.
+        var m7 = Path.Combine(FigureFiles.Models, "figure.glb");
+        Assert.Equal(0.01f, Statventure.Scene.Actor.GroundOf(ModelData.Load(m7), []), 4);
+        using var worn = new FigureView(gpu.Device, new FigureSpec { Body = m7, Garments = [Humanoid.HumanoidFiles.Body("male")], Look = FigureFiles.Today });
+        Assert.Equal(-0.023997f, worn.Actor.Ground, 6);
+    }
+
     /// <summary>The scene file's colours are the look file's text again, every level (0–255) of each channel.</summary>
     [Fact]
     public void ColoursGoBackToTheirText()

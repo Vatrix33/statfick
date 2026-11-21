@@ -96,7 +96,12 @@ public class ModelValidationTests
         ["two keys at one time"] = (() => Channel(0, c => c with { Times = [0.5f, 0.5f] }), "animation 0 (swing), channel 0 has key times that don't increase", "$.animations[0].channels[0].times"),
         ["key times going back"] = (() => Channel(1, c => c with { Times = [0.5f, 0] }), "animation 0 (swing), channel 1 has key times that don't increase", "$.animations[0].channels[1].times"),
         ["a key time that isn't a number"] = (() => Channel(0, c => c with { Times = [0, float.NaN] }), "animation 0 (swing), channel 0 has key times that don't increase", "$.animations[0].channels[0].times"),
+        // A clip's measure (GM2-P22): a chain of two joints or more, each a node of the model it was keyed on.
+        ["a measure of one joint"] = (() => Measure(["Bone"]), "animation 0 (swing) is measured by 1 joint: a measure is a chain of two joints or more", "$.animations[0].measure"),
+        ["a measure by a joint the model hasn't"] = (() => Measure(["Rig", "Bone", "Tail"]), "animation 0 (swing) is measured by the joint Tail, which isn't a node of the model", "$.animations[0].measure[2]"),
     };
+
+    static ModelData Measure(IReadOnlyList<string> chain) => With(animations: [Small.Animations[0] with { Measure = chain }, Small.Animations[1]]);
 
     public static TheoryData<string> BrokenNames => [.. Broken.Keys];
 
@@ -104,6 +109,7 @@ public class ModelValidationTests
     public void TheSmallModelAndEveryTestModelKeepTheRules()
     {
         Small.Validate();
+        ModelRecordSamples.Measured().Validate();
         foreach (var name in TestModelPack.Names)
             GltfImport.Load(TestModelPack.SourceOf(name)).Validate();
     }

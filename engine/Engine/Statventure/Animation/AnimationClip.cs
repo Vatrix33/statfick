@@ -149,16 +149,25 @@ public sealed class AnimationCurve
 public sealed record AnimationTrack(string Node, bool Relative, AnimationCurve? Translation, AnimationCurve? Rotation, AnimationCurve? Scale);
 
 /// <summary>
+/// What a clip's translations are keyed for (GM2-P22, "the figure's ground"; Docs/Animation.md, "A clip's translations
+/// follow the body's size"): the chain of joints that measures a body (<see cref="ModelAnimation.Measure"/>) and its
+/// length on the body the clip was keyed on (<see cref="Skeleton.ChainLength(ModelData, IReadOnlyList{string})"/>, in
+/// metres).
+/// </summary>
+public sealed record ClipMeasure(IReadOnlyList<string> Chain, double Length);
+
+/// <summary>
 /// A clip: one glTF animation (one Blender action), its tracks per node, keyed channels only (the
 /// clips are exported with unkeyed bones dropped, Docs/Animation.md).
 /// </summary>
 public sealed class AnimationClip
 {
-    public AnimationClip(string name, IReadOnlyList<AnimationTrack> tracks, IReadOnlyList<ModelAnimationEvent>? events = null)
+    public AnimationClip(string name, IReadOnlyList<AnimationTrack> tracks, IReadOnlyList<ModelAnimationEvent>? events = null, ClipMeasure? measure = null)
     {
         Name = name;
         Tracks = tracks;
         Events = events ?? [];
+        Measure = measure;
         Duration = tracks.SelectMany(t => new[] { t.Translation, t.Rotation, t.Scale }).Where(c => c != null).Select(c => c!.End).DefaultIfEmpty(0).Max();
     }
 
@@ -168,6 +177,12 @@ public sealed class AnimationClip
     public IReadOnlyList<ModelAnimationEvent> Events { get; }
     /// <summary>Seconds from the clip's start (time 0, as glTF counts) to its last key.</summary>
     public float Duration { get; }
+    /// <summary>
+    /// The body its translations are keyed for, measured (GM2-P22): a <see cref="ClipBinding"/> on a body whose chain is
+    /// another length scales them by the ratio. Null: played as keyed on every body (a clip whose animation names no
+    /// measure, or whose chain its own model hasn't or has no length on).
+    /// </summary>
+    public ClipMeasure? Measure { get; }
 
     /// <summary>Every animation of a model as a clip.</summary>
     public static AnimationClip[] AllOf(ModelData model) => model.Animations.Select(a => From(model, a)).ToArray();
@@ -177,7 +192,8 @@ public sealed class AnimationClip
     /// is turned into its rest-relative value: Blender's exporter writes a bone's local transform as
     /// its rest transform times its pose channels (rest · basis), so the keys are taken back through
     /// the inverse of the node's rest translation, rotation and scale (tangents through the linear
-    /// part only). Sampling commutes with this, as the rest is fixed.
+    /// part only). Sampling commutes with this, as the rest is fixed. Its measure (GM2-P22) is the
+    /// animation's chain with its length on this model, the body the clip was keyed on.
     /// </summary>
     public static AnimationClip From(ModelData model, ModelAnimation animation)
     {
@@ -201,7 +217,9 @@ public sealed class AnimationClip
             }
             tracks.Add(new AnimationTrack(node.Name, relative, translation, rotation, scale));
         }
-        return new AnimationClip(animation.Name, tracks, animation.Events);
+        var measure = animation.Measure.Count > 0 && Skeleton.ChainLength(model, animation.Measure) is { } length and > 0
+            ? new ClipMeasure(animation.Measure, length) : null;
+        return new AnimationClip(animation.Name, tracks, animation.Events, measure);
     }
 
     /// <summary>A bone channel's keys relative to the node's rest: t_b = S⁻¹·R⁻¹·(t − t_rest), q_b = q_rest⁻¹·q, s_b = s / s_rest.</summary>

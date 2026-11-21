@@ -2349,6 +2349,12 @@ and waits for the user's go, asked when its milestone reaches it:
     soles' rest level already); and a figure is placed with its soles on the ground, not its origin: the human bodies'
     boots' soles reach 24.0 mm under the plane of their origin at rest (the bare feet stand on it). One engine task, before
     GM2 step 11's live figures (then the clips are shown on the hobbit's and the Goliath's bodies in step 9, Q59).
+    **Done** on 2026-11-20 (a worker, the branch `gm2-figure-ground`; `Docs/Game/Hero.md`, "How it works", "The figure's
+    ground"; `Docs/Animation.md`): a clip's bone places scaled by the playing body's measure over the keyed body's (the
+    family's clips measured by the left leg, thigh and shin; `model.animation` version 2's `measure`; exactly 1 on the
+    man, his references the same), Blender's side alike; an actor drawn standing by its soles (`Actor.Ground`, the lowest
+    point at rest of its body and garments), set by the game's figure builder and the figure mode, Blender's renders and
+    assemblies alike. The woman's lowest point now at most 2.43 mm under her ground in any clip (was 24.11).
   - **A bone mask for the stance loops (GM2-P21):** the five `hold-*` loops key the arms alone, and the battle lays its
     weapon kind's over the arms of whatever else plays (idle, moving, reactions, guard, evade), its own time running, and
     not over the weapon's own attack: laying one over another clip by a bone mask is the battle's, GM5. What exists: the
@@ -2748,3 +2754,8 @@ GM3 0 (5 answered 2026-11-20 before GM3 starts, with the user's GM3-6; its detai
   label; the playing view for the user. The user's Q56, Q57, Q59 and the manager's GM2-P21–GM2-P24 recorded ("GM2's
   detail round"; `Docs/Game/Hero.md`); two requirements for GM3 and GM5 under their sections; three engine items
   ("Engine items the port will meet": the figure's ground, the stance loops' mask, a posed mesh's normals).
+- **2026-11-20, GM2's engine task "the figure's ground" (GM2-P22, the branch `gm2-figure-ground`):** the engine item of
+  that name done ("Engine items the port will meet"; `Docs/Game/Hero.md`, "How it works", "The figure's ground"): a
+  clip's hips' place follows the playing body's legs and a figure stands by its soles, in the engine, the game's figure
+  builder, the figure mode and Blender's side; the woman's references made again by the rule, the man's clips the same
+  to the bit; the ground test bounds both bodies.

@@ -255,6 +255,45 @@
       "clip": "rest-sway",
       "time": 0.5,
       "clips": "../Data/Models/humanoid/test-clips.glb"
+    },
+    {
+      "name": "assembly-human-female-meditate",
+      "look": {
+        "$types": {
+          "look.hero": 1
+        },
+        "race": "human",
+        "sex": "female",
+        "body": "human-female-average",
+        "parts": {
+          "face": "face-human-female-1",
+          "hair": "hair-long-tied"
+        },
+        "colours": {
+          "skin": "Ember",
+          "hair": "Ember",
+          "eyes": "Ember",
+          "brows": "Ember",
+          "eye.white": "Ember",
+          "cloth": "Ember",
+          "cloth.trim": "Ember",
+          "trousers": "Ember",
+          "leather": "Ember",
+          "buckle": "Ember",
+          "lips": "Ember"
+        }
+      },
+      "gear": {
+        "garments": [],
+        "items": [],
+        "colours": {}
+      },
+      "view": "three-quarter",
+      "width": 360,
+      "height": 480,
+      "clip": "meditate",
+      "time": 0.7,
+      "clips": "../../../Assets/Models/humanoid/clips.glb"
     }
   ]
 }

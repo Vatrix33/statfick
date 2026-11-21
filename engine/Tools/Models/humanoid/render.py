@@ -17,7 +17,10 @@
 # FigureView.cs), so the frames of a clip share one camera. Orthographic unless --perspective gives a vertical field of
 # view; the camera looks --elevation degrees down (5 by default: a face exactly edge-on is where Freestyle and the
 # engine part, Docs/Renderer-3D.md, "Freestyle's limits seen"). A clip poses the figure at --time (its own or the clip
-# library's, played by bone names), evaluated by Blender. With --scene, every scene of the file is rendered, the look (if given)
+# library's, played by bone names), evaluated by Blender, its locations scaled by the body's measure (GM2-P22: the
+# engine's ClipBinding.Scale, clip_measure.py). The figure stands by its soles (GM2-P22: raised by its lowest point at
+# rest, its body's and garments', to the micrometre, the hatching anchored at its raised origin: the engine's
+# Actor.Ground), framed as it stands. With --scene, every scene of the file is rendered, the look (if given)
 # replacing its background, sun, style and palette. Writes <work>/<stem>-scenes.json (the scenes as render_scenes.py
 # reads them: render them again, or compare the engine's with them) and r3d-<stem>-<view>.png and -ink.png beside it;
 # with --scenes-only the scene file alone (how the engine's tests hold the figure mode's framing to this one's:
@@ -36,6 +39,7 @@ sys.dont_write_bytecode = True  # no __pycache__ in the repo
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.normpath(os.path.join(HERE, "..", "..", "BlenderReference")))
 
+import clip_measure  # noqa: E402
 import look as looks  # noqa: E402
 import render_scenes  # noqa: E402
 
@@ -129,14 +133,26 @@ def glb_rest_worlds(path, children=None):
     return {names[i]: world(i) for i in range(len(nodes))}
 
 
+def glb_json(path):
+    data = open(path, "rb").read()
+    length = struct.unpack_from("<I", data, 12)[0]
+    return json.loads(data[20:20 + length])
+
+
 def rest_pose(body):
     """Every joint at rest (no deformation). Given explicitly: Blender's importer leaves an animated armature at its
     first clip's pose a frame in, which clearing the animation data keeps."""
-    data = open(body, "rb").read()
-    length = struct.unpack_from("<I", data, 12)[0]
-    gltf = json.loads(data[20:20 + length])
+    gltf = glb_json(body)
     nodes = gltf.get("nodes", [])
     return {nodes[j].get("name", str(j)): flat_columns(Matrix.Identity(4)) for skin in gltf.get("skins", []) for j in skin["joints"]}
+
+
+def clip_scale(keyed, body, clip):
+    """What the clip's locations are multiplied by on the body (GM2-P22; clip_measure.py, the engine's ClipBinding.Scale):
+    its measure (the animation's extras in the .glb it was keyed in) at rest on the body over on the keyed model."""
+    animation = next((a for a in glb_json(keyed).get("animations", []) if a.get("name") == clip), None)
+    chain = (animation or {}).get("extras", {}).get("measure")
+    return clip_measure.ratio(clip_measure.glb_chain(glb_rest_worlds(keyed), chain), clip_measure.glb_chain(glb_rest_worlds(body), chain))
 
 
 def pose_at(body, options):
@@ -161,6 +177,8 @@ def pose_at(body, options):
         or next((a for a in actions if a.name.startswith(options["clip"] + "_")), None)
     if action is None:
         raise SystemExit(f"no clip {options['clip']} (clips: {', '.join(sorted(a.name for a in actions))})")
+    # A clip's locations follow the body's size (GM2-P22): scaled by its measure on this body over the keyed one's.
+    clip_measure.scale_locations(action, clip_scale(options.get("clips") or body, body, options["clip"]))
     if rig.animation_data is None:
         rig.animation_data_create()
     for track in list(rig.animation_data.nla_tracks):
@@ -178,13 +196,15 @@ def pose_at(body, options):
     return pose
 
 
-def figure_models(options, pose):
+def figure_models(options, pose, lift=None):
     """The figure as the scene file's models (one group: one outline, the hatching anchored at its origin), placed
-    unturned: the body, its garments (posed by the same joints), its items on their sockets (their grip the socket's
-    posed world after the object axes' conversion is undone, as Animation/Gear.cs's Socket places them)."""
+    unturned and raised by `lift` (standing by its soles: figure_ground): the body, its garments (posed by the same
+    joints), its items on their sockets (their grip the socket's posed world after the object axes' conversion is
+    undone, as Animation/Gear.cs's Socket places them)."""
+    lift = lift if lift is not None else Matrix.Identity(4)
     body = os.path.abspath(options["models"][0])
-    models = [{"file": body, "pose": pose}]
-    models += [{"file": os.path.abspath(g), "pose": pose} for g in options["garments"]]
+    models = [{"file": body, "pose": pose, "local": lift}]
+    models += [{"file": os.path.abspath(g), "pose": pose, "local": lift} for g in options["garments"]]
     if options["items"]:
         rest = glb_rest_worlds(body)
         object_axes_to_bone = TO_BLENDER  # C⁻¹: glTF object axes back to Blender's, as a bone's are
@@ -196,8 +216,22 @@ def figure_models(options, pose):
             if pose and socket in pose:
                 p = pose[socket]
                 deformation = Matrix([[p[c * 4 + r] for c in range(4)] for r in range(4)])
-            models.append({"file": os.path.abspath(path), "pose": None, "local": deformation @ rest[socket] @ object_axes_to_bone})
+            models.append({"file": os.path.abspath(path), "pose": None, "local": lift @ deformation @ rest[socket] @ object_axes_to_bone})
     return models
+
+
+def figure_ground(options):
+    """Where the figure stands (GM2-P22, "the figure's ground"; the engine's Actor.GroundOf): the lowest point at rest
+    (glTF's Y) of its body and garments, its items left out, to the micrometre (as the engine rounds it, so both sides
+    lift a figure alike)."""
+    rest = rest_pose(options["models"][0])
+    points = figure_points([{"file": os.path.abspath(m), "pose": rest} for m in options["models"][:1] + options["garments"]])
+    return round(min(p.y for p in points) * 1e6) / 1e6
+
+
+def lift_of(ground):
+    """The figure raised so its soles are on its origin's plane (a ground of 0: not at all)."""
+    return Matrix.Translation((0, -ground, 0)) if ground != 0 else Matrix.Identity(4)
 
 
 def figure_points(models):
@@ -242,7 +276,9 @@ def bone_point(body, bone):
     return head.lerp(tail, 0.5)
 
 
-def view_spec(options, name, view, look, models, points, focus):
+def view_spec(options, name, view, look, models, points, focus, ground=0.0):
+    """One view's scene: the figure (standing by its soles on the origin's plane: raised by -`ground`, its hatching
+    anchored at its raised origin, as the engine's Actor.Placement) turned for the view and framed at rest."""
     width, height = (int(v) for v in options["size"].lower().split("x"))
     turn = VIEWS[view] if view in VIEWS else float(view)
     rotation = Matrix.Rotation(math.radians(turn), 4, "Y")
@@ -275,7 +311,8 @@ def view_spec(options, name, view, look, models, points, focus):
         "name": f"{name}-{view}", "width": width, "height": height, "background": look["background"], "camera": camera,
         "objects": [],
         "models": [{"file": m["file"], "matrix": columns(rotation @ m.get("local", Matrix.Identity(4))), "scenery": False,
-                    "pose": m["pose"], "group": "figure", "anchor": [0, 0, 0], "objects": None, "clipTime": None, "palette": None}
+                    "pose": m["pose"], "group": "figure", "anchor": [0, -ground if ground != 0 else 0, 0], "objects": None,
+                    "clipTime": None, "palette": None}
                    for m in models],
         "palette": look["palette"], "shadows": look["shadows"], "sun": look["sun"], "style": style, "scale": scale,
         "terrain": None, "time": 0, "particles": [],
@@ -315,17 +352,21 @@ def main():
     else:
         look = look or looks.load("today")
         pose = pose_at(options["models"][0], options)
-        models = figure_models(options, pose)
+        # Standing by its soles (GM2-P22), as the engine's figures stand.
+        ground = figure_ground(options)
+        lift = lift_of(ground)
+        models = figure_models(options, pose, lift)
         # Framed at rest: the camera doesn't follow the pose.
-        points = figure_points(figure_models(options, rest_pose(options["models"][0])))
+        points = figure_points(figure_models(options, rest_pose(options["models"][0]), lift))
         focus = bone_point(options["models"][0], options.get("focus") or "head")
         if options.get("focus") and focus is None:
             raise SystemExit(f"no bone {options['focus']} to frame")
+        focus = (lift @ focus.to_4d()).xyz if focus is not None else None
         views = [v.strip() for v in options["views"].split(",") if v.strip()]
         for view in views:
             if view not in VIEWS:
                 float(view)
-        scenes = [view_spec(options, options["name"], view, look, models, points, focus) for view in views]
+        scenes = [view_spec(options, options["name"], view, look, models, points, focus, ground) for view in views]
     path = os.path.join(work, options["name"] + "-scenes.json")
     # The models by their paths from the file's folder (a file to keep, not this machine's paths).
     for spec in scenes:

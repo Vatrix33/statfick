@@ -29,6 +29,39 @@ public sealed class Skeleton
     public int Find(string name) => _byName.TryGetValue(name, out var node) ? node : -1;
 
     public ModelNode this[int node] => Model.Nodes[node];
+
+    Matrix4x4[]? _rest;
+
+    /// <summary>
+    /// The length of a chain of joints at rest (GM2-P22: a clip's measure, <see cref="ClipMeasure"/>): the distances from
+    /// each joint's place in model space to the next's, added up, in double precision; null when a joint isn't here or the
+    /// chain has fewer than two.
+    /// </summary>
+    public double? ChainLength(IReadOnlyList<string> chain)
+    {
+        if (chain.Count < 2)
+            return null;
+        _rest ??= Model.WorldMatrices();
+        var length = 0.0;
+        Vector3? last = null;
+        foreach (var name in chain)
+        {
+            var node = Find(name);
+            if (node < 0)
+                return null;
+            var place = _rest[node].Translation;
+            if (last is { } previous)
+            {
+                double dx = (double)place.X - previous.X, dy = (double)place.Y - previous.Y, dz = (double)place.Z - previous.Z;
+                length += Math.Sqrt(dx * dx + dy * dy + dz * dz);
+            }
+            last = place;
+        }
+        return length;
+    }
+
+    /// <summary>The length of a chain of joints at rest on a model (<see cref="ChainLength(IReadOnlyList{string})"/>).</summary>
+    public static double? ChainLength(ModelData model, IReadOnlyList<string> chain) => new Skeleton(model).ChainLength(chain);
 }
 
 /// <summary>
@@ -156,7 +189,13 @@ public sealed class PoseBuffer
 [Flags]
 public enum ChannelSet : byte { None = 0, Translation = 1, Rotation = 2, Scale = 4 }
 
-/// <summary>A clip bound to a skeleton: each track found by its node's name (tracks for nodes the skeleton lacks are left out).</summary>
+/// <summary>
+/// A clip bound to a skeleton: each track found by its node's name (tracks for nodes the skeleton lacks are left out).
+/// A clip's translations follow the body's size (GM2-P22, "the figure's ground"; Docs/Animation.md): a bone's place is
+/// metres keyed on one body, and on a body whose measure (<see cref="AnimationClip.Measure"/>: its legs, for the
+/// humanoids) is another length it is scaled by <see cref="Scale"/>, so the legs fold by that body's lengths under hips
+/// that move by that body's too.
+/// </summary>
 public sealed class ClipBinding
 {
     readonly (AnimationTrack Track, int Node)[] _tracks;
@@ -166,10 +205,19 @@ public sealed class ClipBinding
         Clip = clip;
         Skeleton = skeleton;
         _tracks = clip.Tracks.Select(t => (t, skeleton.Find(t.Node))).Where(t => t.Item2 >= 0).ToArray();
+        Scale = clip.Measure is { } measure && skeleton.ChainLength(measure.Chain) is { } length and > 0 ? length / measure.Length : 1;
     }
 
     public AnimationClip Clip { get; }
     public Skeleton Skeleton { get; }
+
+    /// <summary>
+    /// What a bone's place keyed in the clip is multiplied by on this skeleton: the clip's measure's chain length here over
+    /// its length on the body the clip was keyed on (exactly 1 on that body, whose chain is the same numbers); 1 when the
+    /// clip has no measure or this skeleton hasn't its chain. Rotations and scales are angles and ratios, never scaled;
+    /// nor is a plain node's place (its local transform itself, not a bone's place from its rest).
+    /// </summary>
+    public double Scale { get; }
 
     /// <summary>The skeleton's nodes whose given channel the clip drives.</summary>
     public IEnumerable<int> NodesDriving(ChannelSet channel) => _tracks.Where(t => channel switch
@@ -190,6 +238,9 @@ public sealed class ClipBinding
             if (track.Translation is { } translation)
             {
                 translation.Evaluate(time, value);
+                if (track.Relative && Scale != 1)
+                    for (var c = 0; c < 3; c++)
+                        value[c] *= Scale;
                 value[..3].CopyTo(into.Translation.AsSpan(3 * node, 3));
                 into.Set[node] |= ChannelSet.Translation;
             }

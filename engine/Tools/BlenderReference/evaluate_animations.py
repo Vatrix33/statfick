@@ -1,7 +1,8 @@
 # Evaluates the test models' actions in Blender at the times the tests ask and writes every bone's
 # pose (Docs/Animation.md, "Method"): Tests/Statventure.Tests/Golden/anim-<scene>.json. A scene with
 # a "target" plays the model's action on the target model's armature instead (clips shared by bone
-# names) and writes the target's bones.
+# names) and writes the target's bones; an action with a measure (GM2-P22, clip_measure.py) has its
+# locations scaled there by the target's measure over the model's own, as the engine's ClipBinding.
 # Run by Tools/Scripts/make-blender-references.sh:
 #   blender -b --factory-startup --python evaluate_animations.py -- <anim-scenes.json> <golden folder> [scene ...]
 #
@@ -30,6 +31,7 @@ from mathutils import Matrix, Quaternion, Vector
 
 sys.dont_write_bytecode = True  # no __pycache__ in the repo
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import clip_measure  # noqa: E402
 import make_models  # noqa: E402
 
 HUMANOID = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Models", "humanoid")
@@ -61,12 +63,18 @@ def numbers(values):
 def evaluate(scene, folder):
     make_models.reset()
     build(scene["model"])
-    rig = next(o for o in bpy.data.objects if o.type == "ARMATURE")
+    rig = keyed = next(o for o in bpy.data.objects if o.type == "ARMATURE")
     if scene.get("target"):
         # Another model of the rig family plays the model's action: Blender finds each F-curve's bone
         # by name (pose.bones["name"]) and applies its channels on that bone's own rest.
         build(scene["target"])
         rig = next(o for o in bpy.data.objects if o.type == "ARMATURE" and o is not rig)
+
+    def follow_the_body(action):
+        # A clip's locations follow the body's size (GM2-P22; clip_measure.py): scaled on a body whose measure differs
+        # from the one the clip was keyed on (the model's own armature), as the engine's ClipBinding scales them.
+        chain = clip_measure.measure_of(action)
+        clip_measure.scale_locations(action, clip_measure.ratio(clip_measure.armature_chain(keyed, chain), clip_measure.armature_chain(rig, chain)))
     if rig.animation_data is None:
         rig.animation_data_create()
     blender_scene = bpy.context.scene
@@ -79,10 +87,12 @@ def evaluate(scene, folder):
         rig.animation_data.action = None
         for name in sorted({strip["clip"] for layer in scene["layers"] for strip in layer}):
             bake_rotations(bpy.data.actions[name])
+            follow_the_body(bpy.data.actions[name])
         build_layers(rig, scene["layers"], fps, scene.get("transitions") or ())
         start = 0
     else:
         action = bpy.data.actions[scene["clip"]]
+        follow_the_body(action)
         rig.animation_data.action = action
         rig.animation_data.action_slot = action.slots[0]
         start = action.frame_range[0]

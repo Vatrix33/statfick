@@ -140,7 +140,9 @@ def style_of(records):
 
 def scene_of(name, look, gear, records, models, background, view, size, pose_options):
     """One scene of render_scenes.py's format: the assembled figure in the data's style, posed (a clip at a time, or at
-    rest), turned for the view and framed at rest as render.py frames a figure (the sandbox's figure mode alike)."""
+    rest; a clip's locations following the body's size, render.py's pose_at), standing by its soles (GM2-P22, as the
+    game's HeroFigure stands), turned for the view and framed at rest as render.py frames a figure (the sandbox's figure
+    mode alike)."""
     import render
     assembled = resolve(look, records, models, gear)
     style, sun = style_of(records)
@@ -149,11 +151,14 @@ def scene_of(name, look, gear, records, models, background, view, size, pose_opt
                "size": size, "scale": 1.0, "elevation": 5.0, "margin": 0.06}
     options.update({k: v for k, v in pose_options.items() if v is not None})
     pose = render.pose_at(assembled["body"], options)
-    figure = render.figure_models(options, pose)
-    points = render.figure_points(render.figure_models(options, render.rest_pose(assembled["body"])))
+    ground = render.figure_ground(options)
+    lift = render.lift_of(ground)
+    figure = render.figure_models(options, pose, lift)
+    points = render.figure_points(render.figure_models(options, render.rest_pose(assembled["body"]), lift))
     focus = render.bone_point(assembled["body"], options.get("focus") or "head")
+    focus = (lift @ focus.to_4d()).xyz if focus is not None else None
     the_look = {"background": background, "style": style, "sun": sun, "palette": assembled["palette"], "shadows": {}}
-    spec = render.view_spec(options, name, view, the_look, figure, points, focus)
+    spec = render.view_spec(options, name, view, the_look, figure, points, focus, ground)
     spec["name"] = name
     return spec
 

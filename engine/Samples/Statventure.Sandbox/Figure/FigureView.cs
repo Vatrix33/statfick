@@ -59,37 +59,8 @@ public static class FigureFraming
         : float.TryParse(view, NumberStyles.Float, CultureInfo.InvariantCulture, out var degrees) ? degrees
         : throw new ArgumentException($"no view {view} (front, three-quarter, side, back, close-up or degrees)");
 
-    /// <summary>The figure's surface points at rest (model space): each mesh's positions where the rest pose puts them.</summary>
-    public static List<Vector3> RestPoints(ModelData model, Matrix4x4 placement)
-    {
-        var world = model.WorldMatrices();
-        var points = new List<Vector3>();
-        for (var n = 0; n < model.Nodes.Count; n++)
-        {
-            var node = model.Nodes[n];
-            if (node.Mesh < 0)
-                continue;
-            foreach (var primitive in model.Meshes[node.Mesh].Primitives)
-                for (var v = 0; v < primitive.Positions.Length; v++)
-                {
-                    var p = primitive.Positions[v];
-                    if (node.Skin >= 0 && primitive.Joints is { } joints && primitive.Weights is { } weights)
-                    {
-                        // Skinned: placed by its joints (glTF ignores the mesh node's own transform).
-                        var skin = model.Skins[node.Skin];
-                        var (j, w) = (joints[v], weights[v]);
-                        var sum = Vector3.Zero;
-                        foreach (var (joint, weight) in new[] { (j.J0, w.X), (j.J1, w.Y), (j.J2, w.Z), (j.J3, w.W) })
-                            if (weight != 0)
-                                sum += weight * Vector3.Transform(p, skin.InverseBindMatrices[joint] * world[skin.Joints[joint]]);
-                        points.Add(Vector3.Transform(sum, placement));
-                    }
-                    else
-                        points.Add(Vector3.Transform(p, world[n] * placement));
-                }
-        }
-        return points;
-    }
+    /// <summary>The figure's surface points at rest (model space, then <paramref name="placement"/>): each mesh's positions where the rest pose puts them (<see cref="ModelData.RestPoints"/>).</summary>
+    public static List<Vector3> RestPoints(ModelData model, Matrix4x4 placement) => model.RestPoints(placement);
 
     /// <summary>A bone's middle at rest (model space): halfway to its first child, or 0.1 m up its own Y without one; null without that bone.</summary>
     public static Vector3? FocusPoint(ModelData model, string bone)
@@ -311,22 +282,23 @@ public sealed class FigureView : IDisposable
         if (Clips.OverLayer(skeleton) is { } over)
             stack.Layers.Add(over);
         Actor = new Actor(Body, new Animator(stack)) { Palette = spec.Look.Palette };
-        _restPoints.AddRange(FigureFraming.RestPoints(Body.Data, Matrix4x4.Identity));
         foreach (var path in spec.Garments)
         {
             var garment = Load(device, path);
             Actor.Garments.Add(new ActorGarment(garment, new Garment(garment.Data, skeleton)));
-            _restPoints.AddRange(FigureFraming.RestPoints(garment.Data, Matrix4x4.Identity));
         }
-        var rest = Body.Data.WorldMatrices();
         foreach (var (path, socketName) in spec.Items)
-        {
-            var item = Load(device, path);
-            var socket = new Socket(skeleton, socketName);
-            Actor.Items.Add(new ActorItem(item, socket));
-            _restPoints.AddRange(FigureFraming.RestPoints(item.Data, socket.ItemTransform(rest, Matrix4x4.Identity)));
-        }
-        _focus = FigureFraming.FocusPoint(Body.Data, spec.Focus ?? "head");
+            Actor.Items.Add(new ActorItem(Load(device, path), new Socket(skeleton, socketName)));
+        // The figure stands by its soles on its node (GM2-P22), as the game's figures do; the view frames it as it stands.
+        Actor.Ground = Actor.GroundOf(Body.Data, Actor.Garments.Select(g => g.Model.Data));
+        Lift = Matrix4x4.CreateTranslation(0, -Actor.Ground, 0);
+        _restPoints.AddRange(FigureFraming.RestPoints(Body.Data, Lift));
+        foreach (var garment in Actor.Garments)
+            _restPoints.AddRange(FigureFraming.RestPoints(garment.Model.Data, Lift));
+        var rest = Body.Data.WorldMatrices();
+        foreach (var item in Actor.Items)
+            _restPoints.AddRange(FigureFraming.RestPoints(item.Model.Data, item.Socket.ItemTransform(rest, Lift)));
+        _focus = FigureFraming.FocusPoint(Body.Data, spec.Focus ?? "head") is { } point ? Vector3.Transform(point, Lift) : null;
         if (spec.Focus is { } focus && _focus is null)
             throw new ArgumentException($"{spec.Body} has no bone {focus} to frame");
         View = new View3D(device) { Background = spec.Look.BackgroundLinear, Sun = spec.Look.Sun, Style = spec.Look.Style };
@@ -348,6 +320,8 @@ public sealed class FigureView : IDisposable
     public FigureSpec Spec { get; }
     public Model Body { get; }
     public Actor Actor { get; }
+    /// <summary>The figure raised so it stands by its soles on its node (<see cref="Actor.Ground"/>; identity when its origin is its ground).</summary>
+    public Matrix4x4 Lift { get; }
     public FigureClips Clips { get; }
     public View3D View { get; }
     public SceneView Scene { get; }
@@ -403,7 +377,7 @@ public sealed class FigureView : IDisposable
         static float[][] Columns(Matrix4x4 m) => [[m.M11, m.M12, m.M13, m.M14], [m.M21, m.M22, m.M23, m.M24], [m.M31, m.M32, m.M33, m.M34], [m.M41, m.M42, m.M43, m.M44]];
         string File(string path) => Path.GetRelativePath(modelFolder, Path.GetFullPath(path)).Replace('\\', '/');
         var data = Body.Data;
-        var placement = _node.World;
+        var placement = Actor.Placement;
         var world = data.WorldMatrices(Actor.Animator.Pose());
         var rest = data.WorldMatrices();
         var pose = new Dictionary<string, float[]>();

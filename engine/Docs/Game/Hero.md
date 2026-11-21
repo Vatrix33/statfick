@@ -149,7 +149,13 @@ ground or lift a large one's off it). An engine task of its own before step 11's
 what step 4b measured: the ground is where a body's soles are at rest, and the man's and the woman's boots' soles reach
 24.0 mm under the plane of their origin (the bare feet stand on it; `outfit.boots` displaces the sole down and its shell is
 10 mm thick), so a figure must be placed with its soles on the ground, not its origin; the task becomes "the figure's
-ground" (`Docs/Game-Plan.md`, "Engine items the port will meet").
+ground" (`Docs/Game-Plan.md`, "Engine items the port will meet"). **Done 2026-11-20** (a worker, the branch
+`gm2-figure-ground`; "How it works", "The figure's ground"): every clip of the family carries its measure, the left leg
+(`thigh.L` → `shin.L` → `foot.L`), and a clip's bone places are scaled by its length on the playing body over the man's
+(the woman 0.968; exactly 1 on the man, nothing of his changed); an actor stands by its soles (`Actor.Ground`, the lowest
+point at rest of its body and garments: −23.997 mm on both human bodies), which the game's figures and the figure mode
+set; Blender's side the same where it evaluates, renders or assembles a figure. Every later body, the smallest and the
+largest included, plays the clips by this rule; the user sees them on the hobbit and the Goliath in step 9 (Q59).
 
 **GM2-P23, the keying scripts into the repo later (the manager, 2026-11-18; recorded by step 4b):** the manager's keying
 scripts (`claude-work/gm2/step4/handover-clips/kit/`) go into the repo in a task of their own after step 4b, so a clip can
@@ -1000,9 +1006,12 @@ M7's rules made concrete for the game's first family (GM2-P8, GM2-P9):
   every clip plays on all of them.
 - **Bodies:** 54 (9 races × 2 sexes × 3 builds), heroic (Q1), differing in proportions only (M7); each body's `.glb`
   carries the skeleton in that body's rest; parts made on it bind by bone names as garments, rigid ones on sockets. A clip's
-  translations keep their distance on every body (`Skeleton.cs` 122–145), so the hips' bob and the lunge's steps are
-  authored on the human average body and checked on the hobbit's slender and the Goliath's strong body in the clip
-  approval.
+  translations were kept at their distance on every body until GM2-P22's task (2026-11-20, "How it works", "The figure's
+  ground"): since then a clip's hips' place follows the playing body's legs (the clips' measure, the left leg's thigh and
+  shin; the woman's 0.968 of the man's), so the hips' bob and the lunge's steps are authored on the human average body
+  and every other body, the smallest and largest included, plays them by that rule; the user sees them on the hobbit's
+  slender and the Goliath's strong body in step 9 (Q59). A figure stands by its soles (its lowest point at rest), not by
+  its model's origin.
 - **The clip set** (M7's list, about 28): idle, stunned; advance, return, flee; one-handed swing, two-handed swing,
   thrust, dagger stab, staff or wand strike, unarmed punch, off-hand swing; bow, crossbow; cast, skill, item, drink,
   meditate; guard and evade (enter, hold); hurt, critical hurt, stumble; death, victory; with their markers. None needs
@@ -1752,6 +1761,11 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
      mode's `--play` and `--label`; the playing view. With the user's Q56, Q57 and Q59 (the clips checked on the smallest
      and largest bodies in step 9), the manager's GM2-P21–GM2-P24, the ground (the soles' rest level, 24 mm under a body's
      origin; the clips re-keyed to it) and the clips' ease. Its choices: "How it works", step 4b ("Choices made").
+   - **GM2-P22's engine task done (2026-11-20, a worker, the branch `gm2-figure-ground`; "How it works", "The figure's
+     ground"):** the clips' hips' place scaled by the playing body's legs (the library's clips measured by the left leg),
+     the man's poses and references unchanged to the bit, the woman's 35 evaluations made again by the rule (her lowest
+     point now at most 2.43 mm under her ground, death's end 2.48 mm over it; before, 24.11 mm under), the ground test
+     bounding both bodies; figures standing by their soles in the game's builder, the figure mode and Blender's renders.
 5. **The game's look in the engine and figures built from looks** (engine and game; the PC for the Blender side). After 3's
    look and 4's skeleton.
    - Owns: `render.style` in the engine's `Render3D/` with its tests and the game's entry in `data.pak` (Q12, GM2-P11);
@@ -1842,7 +1856,11 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
    - **An approval stop added (2026-11-18, the user's Q59):** the clips checked on the smallest and largest bodies (the
      hobbit's slender, the Goliath's strong) happens here, on the real bodies, not on blockouts in step 4: once 9c and 9e
      have made those bodies and the engine scales the hips' place by the legs' length (GM2-P22), the manager shows the user
-     the clips played on them and fixes what looks wrong then.
+     the clips played on them and fixes what looks wrong then. **The engine's part done (2026-11-20, GM2-P22's task, the
+     branch `gm2-figure-ground`; "How it works", "The figure's ground"):** every body plays the clips with their hips'
+     place scaled by its left leg's length over the man's, and stands by its soles; a body built so needs nothing more
+     (its skeleton's `thigh.L`, `shin.L`, `foot.L` are its measure). Made-up legs of 0.6 and 1.2 of the man's keep every
+     leg joint at that ratio of his place to 0.3 µm; whether the clips *look* right on those proportions is the user's, here.
 10. **The nine emblems** (3D, the manager; the PC). Its sketches any time; its models after 3's look.
     - Owns: the nine motifs' sketches (Q37), the emblems' scripts and models (medallions in relief, Q35), their pictures in
       `ui.pak` at each size and scale (Q36), their Blender references, the live emblem's scene for the carousel.
@@ -1858,6 +1876,11 @@ an empty panel, placeholder emblem pictures), never shipped (GP-3).
     - Approval stops: the three screens with their live views (videos); then the tests.
     - Finished: approved; each view against Blender's render of the same scene; the memory and the per-frame cost measured
       on the GPU and on lavapipe and reported.
+    - **What GM2-P22's task gives it (2026-11-20, "How it works", "The figure's ground"):** a `HeroFigure`'s actor stands by
+      its soles on the node it hangs on (`Actor.Ground`, set by the builder: drawn 23.997 mm up from the node for the
+      human bodies), so its node goes where its soles should be; its clips, bound by `ClipBinding` as step 4b says, follow
+      its body's legs with nothing to add. A view framed on the figure (`FigureFraming.CameraFor`) frames it as it stands:
+      its rest points raised by `-Ground`, as the figure mode and `AssemblyTests` do.
 12. **The sounds** (anywhere; the user's ear on the PC). Any time.
     - Owns: the patches (Q38: a race chosen, a maker choice, the random roll, a point spent, a level up, a respec, the
       hero confirmed) in `Assets/Audio/effects/`, `audio.pak`, `SoundNames` and its test; the wiring once 7 and 8 are
@@ -3666,7 +3689,7 @@ other clip the whole body; `guard` ends where `guard-hold` begins and `evade` wh
 0.369°, the left upper arm, the hips to the micrometre; **bounds 0.4° and 0.1 mm**); a stance laid over the idle turns the
 arms as the stance does and leaves the rest to the idle, on both bodies (below, "The figure mode").
 
-**The ground** (`TheManStaysOnTheGround`; the manager, 2026-11-18): the ground is where a body's soles are at rest, its
+**The ground** (`TheManStaysOnTheGround`, since GM2-P22's task `BothBodiesStayOnTheGround`; the manager, 2026-11-18): the ground is where a body's soles are at rest, its
 lowest point there, **24.0 mm under the plane of its origin on both bodies**: the bare feet stand on the origin's plane
 (the skin's lowest +0.5 mm) and the boots' soles reach 24 mm under it (`outfit.boots` displaces the sole to −14 mm, then
 its 7 + 3 mm shell). So a figure must be placed with its soles on the ground, not its origin (GM2-P22, "the figure's
@@ -3805,6 +3828,170 @@ frame is a meeting; `--play`'s syntax (`:` for the times, `+` for the clip laid 
 fallen body 24 mm under); then Q59's check on the hobbit's and the Goliath's bodies in step 9. *GM2-P24's task:* the two
 owed samples. *GM5:* the stance loops' mask (GM2-P21), `evade`'s move between `leap` and `land`, the battle's machine
 beside `figure` in `machines/`. *GM3:* the bow's string and arrow; the weapons the clips were shown with.
+
+### The figure's ground: a clip's hips by the body's legs, a figure by its soles (2026-11-20, the branch `gm2-figure-ground`)
+
+The engine task of GM2-P22 as the manager widened it on 2026-11-18 (`Docs/Game-Plan.md`, "Engine items the port will
+meet"), before step 11's live figures. Two rules, each the same on the engine's and on Blender's side; the rule and its
+code in `Docs/Animation.md`, "How it's done" ("A clip's translations follow the body's size", "A figure stands by its
+soles"). Every choice here is internal (none changes what the player sees beyond putting the feet on the ground); none
+was asked.
+
+**A clip's hips by the body's legs.** A clip's only translation is the hips' place, metres keyed on the man; its legs are
+rotations. Played on a body with other legs, the hips moved by his centimetres over legs that fold by its own, so the
+feet sank or floated. Now a clip carries its **measure**, the chain of joints whose rest length measures a body for its
+translations, and a `ClipBinding` multiplies every bone's sampled place by that chain's length on the playing body over
+its length on the body the clip was keyed on. *The measure:* the left leg, `thigh.L` → `shin.L` → `foot.L`, its length
+the hip joint to the knee plus the knee to the ankle at rest (the bones that fold under the hips; the bodies are
+symmetric, the right leg the same to the micrometre). Taken over the hip joint's height (it carries the ankle's height,
+which doesn't fold) and over the hips' own height (it carries the pelvis): on a body built as the man scaled they all
+give the same ratio, and on the woman they differ by under 0.2 % (under 2 mm on death's fall), the chain naming the two
+bones that fold. The man 0.81515 m, the woman 0.78918: **0.968**. *Where the measure is:* the keyed body's length needs
+no new data (the library's `.glb` carries the man's skeleton, so `AnimationClip.From` measures the chain on it), but
+which joints measure a family does: `model.animation` version 2's `measure`, from the animation's extras (library.py sets
+each action's custom property `measure` to its `MEASURE`), because the engine is the family's and not the humanoid's: a
+rule by bone names would also have scaled M7's test figures' clips on the stocky figure (its legs 0.64 of the figure's)
+and so changed references that are not this task's; with the measure in the data, a clip without one (M7's, Ji'ruan's
+acting, an item's own clips) plays as before, and a family whose rig has no legs names another chain or none (then it
+plays unscaled). *Exact and free on the man:* the same skeleton numbers give the same length, the ratio is exactly 1 and
+the product is skipped, so his poses are his clips' samples to the bit (`TheManPlaysTheClipsExactlyAsKeyed`) and his 34
+evaluations against Blender and `rest-sway`'s on him are the same files. *Everywhere a clip is bound:* layers, fades,
+the state machine, sequences, the editor's preview, and the gear (garments and items follow the posed bones). Blender's
+side (`Tools/BlenderReference/clip_measure.py`): the reference evaluation (`evaluate_animations.py`, the 68 scenes and
+`rest-sway`'s) and `render.py --clip` (so `assemble.py`) multiply the action's location keys and their handles by the same
+ratio, measured on the armatures or the `.glb`s' rest; 1 on the man, nothing touched.
+
+**A figure by its soles.** A body's ground is its lowest point at rest, measured when it is loaded: `ModelData.LowestAtRest`
+(the meshes skinned at rest as the renderer skins them) of the body and the garments it wears, its rigid items left out,
+to the micrometre (`Actor.GroundOf`): −23.997 mm on both human bodies (their booted soles). *Measured, not stored:* no new
+data and no format change, it always agrees with the model's shape, and a bare sole, a claw or a hoof is whatever reaches
+lowest (made-up feet in `BareSolesClawsAndHoovesStandOnWhatReachesLowest`); a garment reaching lower (boots made apart, a
+long robe) sets it. *Placed by it:* `Actor.Ground` (default 0: nothing changes for any other actor) raises the figure's
+model space by its negation (`Actor.Placement`), so the node an actor hangs on is where its soles stand; its gear and its
+hatching's anchor go with it. The game's `HeroFigure` sets it (every preset and the geared man: −23.997 mm); the figure mode
+sets it and frames the figure as it stands (its camera raised with it: the same picture), writing the scene for Blender
+raised alike; Blender's side, `render.py`'s `figure_ground` (so `assemble.py`'s), raises its figure by the same rounded
+number and anchors its hatching there. GM2's screens have no ground and frame their figures, so no figure moves in its
+view; no game screen's golden changed (the sheet's, the maker's and the carousel's views draw nothing until step 11).
+
+**The woman's ground** (`BothBodiesStayOnTheGround`, the step 4b test now bounding both bodies; her lowest point, skin and
+plain outfit skinned on the CPU at every frame of every whole-body clip, under her soles' rest level):
+
+| Clip | The woman before (mm under, frame) | After | The man |
+|---|---|---|---|
+| `idle` | 4.02 (14) | 0.72 (71, foot.L) | 0.28 |
+| `stunned` | 5.80 (37) | 1.45 (38, foot.L) | 1.53 |
+| `advance` | 4.93 (8) | 0.96 (8, foot.L) | 2.00 |
+| `return` | 5.42 (19) | 0.56 (24, foot.L) | 0.23 |
+| `flee` | 2.43 (11) | 1.24 (11, foot.L) | 2.00 |
+| `stand` | 2.32 (123) | 1.70 (123, foot.L) | 0.34 |
+| `hurt` | 4.54 (10) | 0.44 (0, foot.L) | 0.15 |
+| `critical-hurt` | 5.64 (17) | 0.51 (38, foot.L) | 2.00 |
+| `stumble` | 8.14 (18) | 0.91 (7, foot.L) | 0.21 |
+| `death` | 24.11 (60) | 1.60 (2, foot.L) | 1.98 |
+| `swing` | 7.18 (20) | 2.23 (3, foot.L) | 2.00 |
+| `thrust` | 7.71 (19) | 2.32 (2, foot.L) | 2.00 |
+| `stab` | 6.77 (13) | 0.51 (25, foot.L) | 1.15 |
+| `strike` | 6.92 (21) | 2.12 (7, foot.L) | 2.00 |
+| `punch` | 6.00 (9) | 0.55 (4, foot.L) | 2.00 |
+| `swing-off-hand` | 7.59 (16) | 1.27 (16, foot.L) | 0.23 |
+| `swing-two-handed` | 7.81 (21) | 2.18 (7, foot.L) | 2.00 |
+| `bow` | 4.22 (36) | 2.43 (34, foot.L) | 0.14 |
+| `crossbow` | 4.10 (52) | 1.67 (28, foot.L) | 0.14 |
+| `cast` | 5.87 (32) | 0.62 (18, foot.L) | 0.17 |
+| `skill` | 5.62 (8) | 0.44 (0, foot.L) | 0.21 |
+| `item` | 5.56 (23) | 0.89 (23, foot.L) | 0.21 |
+| `drink` | 4.17 (64) | 1.08 (32, foot.L) | 0.14 |
+| `meditate` | 18.14 (22) | 1.58 (22, the kneeling shin) | 2.21 |
+| `guard` | 5.63 (9) | 0.44 (0, foot.L) | 0.14 |
+| `guard-hold` | 5.18 (7) | 0.21 (62, foot.L) | 0.08 |
+| `evade` | 6.08 (5) | 0.91 (5, foot.L) | 2.00 |
+| `evade-hold` | 0.34 (76) | 2.48 *over* (77: both feet off the ground throughout) | 1.07 over |
+| `death`'s last frame, over the ground | 24.11 *under* | 2.48 over | 1.92 under |
+
+Scaled, she is within the man's bounds everywhere: at most **2.43 mm** under (bow's front foot at full draw), death's
+fallen body 2.48 mm over the ground. **Her bounds are the man's** (3 mm under; death's end from 3 mm under to 5 mm over:
+the manager's); the scaling alone brought her within a few millimetres, so nothing else was needed. Her lighter standing
+dip (0.4–0.7 mm against his 0.1–0.3) is her other proportions (her feet and ankles smaller than her legs' ratio).
+
+**Held** (`Tests/Statventure.Tests/Humanoid/FigureGroundTests.cs` unless named): every clip of both libraries measured by
+the man's left leg, its length his (0.81515 m), the right leg the same on both bodies, the woman's ratio 0.968; the man's
+scale exactly 1 and his hips' place the clip's sample to the bit, at and between frames; **made-up legs of 0.6 and 1.2 of
+the man's** (the hips' height, the hip joints' offsets, thighs, shins and feet that many times, the trunk as it is): every
+leg joint and the hips at that many times the man's place at every frame of every whole-body clip, **within 0.01 mm**
+(measured 0.12 and 0.24 µm); a clip without a measure (M7's idle on the stocky figure) and a body without the chain (the
+frame's sample) play as keyed, a chain of one joint or with a joint the skeleton hasn't measures nothing; only a bone's
+place is scaled (a hand-made clip: its rotation and scale, and a plain node's place, as keyed); the scale in a stance laid
+over the idle, a cross-fade, the figures' machine and for the gear (the woman's chain shirt and sword at death's end where
+an unscaled pose with the hips' place scaled by hand puts them, and not where the unscaled clip does: 24 mm apart); the
+bodies' ground −24.0 mm (to 0.01 mm), their worn parts reaching no lower; made-up bare soles, claws, hooves, a garment
+lower than the soles, a model without a mesh, the micrometre's rounding (`BareSolesClawsAndHoovesStandOnWhatReachesLowest`);
+an actor drawn raised by its ground, gear and hatching anchor alike, and exactly as before at 0 (`ActorGroundTests`); the
+figure mode standing the geared man by his soles and framing him so (`FigureModeTests.TheFigureStandsByItsSoles`); every
+game preset standing by its soles, and a figure on a garment sunk under them (`HeroFigureTests.AGameFigureStandsByItsSoles`);
+a clip's measure read from its extras, a broken one refused, the record's version 2 in both forms
+(`ModelPackTests.AClipsMeasureIsReadFromItsExtras`, `model/clips`), the model's check (`ModelValidationTests`, two rules);
+both bodies on the ground (`HumanoidClipTests.BothBodiesStayOnTheGround`); the woman's evaluations against Blender's
+(`AnimationReferenceTests`, the 34 + `rest-sway`: on frames within 0.0049 mm, between frames at most 0.98 of
+Animation.md's allowance, death's left upper arm at frame 3.5 as before); a new assembled sample, the woman kneeling in
+`meditate` at its marker (`assembly-human-female-meditate`, the family's library), which holds `render.py`'s scaling and
+its ground against the game's builder.
+
+**What moved in the references.** The man's: his 34 clip evaluations and `rest-sway`'s on him and on its own skeleton
+**the same files** (not a byte). The woman's: 30 evaluations made again by the rule (`rest-sway` and her 29 whole-body
+clips; her five stance loops move nothing and are the same files); her `stand` sample and her two geared samples posed by
+`rest-sway` drawn again. Standing by the soles moved every figure the figure mode or Blender's assembly writes 23.997 mm
+up with its camera (M7's figure in `figure-gear` 10 mm down: its feet 10 mm over its origin; the frame's sample not at
+all): the same picture, made again by Blender because its numbers moved. Those that only moved with their camera (the
+man's 12 figure scenes and 3 assembled looks, the woman's 5 unposed scenes and 3 assembled looks, M7's `figure-gear`)
+differ from before in at most 25 pixels a picture, by at most 8 levels, but one ink pixel of the man's
+`swing-two-handed-overhead` (Freestyle's rounding); 3 of the man's 30 pictures came out the same bytes. `clips.glb` and `test-clips.glb` (the measure in each
+animation's extras; their keys the same bytes), `models.pak` (every model record at `model.animation` version 2), the
+scene files (`figure-scenes.json`, `humanoid-scenes.json`, `assembly-looks.json` and `assembly-scenes.json`); the
+editor's `preview-model` shows the animation's new row "Measure: 0 joints" (`Reference/editor-fixtures.json`; its
+Chromium goldens captured again at 1 and 1.65: only the scroller's thumb moved, 24 and 40 pixels, the form a row longer
+with the row itself below the view).
+
+**Shown able to fail** (`claude-work/gm2/figure-ground/mutations.json`, made by `make-mutations.py` beside it; `mutate.py`
+under the shared lock in a headless cage): **32 mutations, 32 killed**: the scaling (never, upside down, a plain node's
+place, rotations or scales scaled too, 0 without a measure, the keyed length 1 % off, no clip measured), the chain (its
+first segment alone, without Z, one joint a chain, a missing joint skipped), the measure's data (not read, a broken one
+taken as none, the check's two rules), the ground (a skinned mesh by its node, the highest point, the garments left out,
+not rounded, to the millimetre), the placement (lowered, by the node alone, by the ground alone), the figure mode (no
+ground, the body's alone, framed by its origin, the close-up's focus not raised, the scene file by its node) and the
+game's builder (no ground, the garments left out, the items taken in). The first run left one survivor, the figure mode's
+ground from the body alone (no figure of the tests wore anything lower than its body): closed by a figure that does (M7's
+figure in the human man's booted body as a garment, `TheFigureStandsByItsSoles`) and killed on the second run, with the
+one mutation the first run couldn't build (written again). Blender's side by a runner of its own (`blender-breaks.sh`: each
+break made the references it feeds again, ran the tests on them, put everything back): **7 breaks, 7 killed**: the
+evaluation not scaling (the woman's death and meditate off Blender's), the ratio upside down, the keys scaled without
+their handles (the Bézier `stand` and `death` bend between keys by them), `render.py`'s `pose_at` not scaling (the
+kneeling woman's assembly), the figure not raised, the hatching's anchor not raised, the ground taken from the garments
+without the body.
+
+**Runs** (headless, scratch per-user folders, nothing audible): the full suite on the GPU and on lavapipe on `main`'s
+`d2752e5`, **4660 + 951 = 5611 tests** (`main`: 4645 + 948 = 5593; 18 new: the engine's 15, the game's 3), none held;
+`make-humanoid.sh check` 19 of 19 the same bytes (`clips` and `test-clips` with their measure); `make-blender-references.sh
+--out` with `compare_references.py`: **242 of 242 byte-equal** (step 4b's 240 and the new sample's two); the player's
+real folders the same before and after.
+
+**Choices made (internal, recorded here):** the measure the left leg's thigh and shin (above); the measure in the clip's
+data, per animation, and no number stored; a clip without a measure or a body without its chain unscaled; only a bone's
+place scaled; the ground measured when loaded from the body and its garments, items left out, to the micrometre; the
+ground on the `Actor` (any node it hangs on is where it stands) rather than a node the figure builder adds; the figure
+mode and Blender's renders standing their figures too and framing them as they stand; a seventh assembled sample to hold
+`render.py`'s scaling; the woman's bounds the man's.
+
+**For later steps.** *Step 11:* hang a `HeroFigure`'s actor on the node where its soles go; nothing else (its ground is
+set, its clips scale themselves). *Step 9 (Q59):* a new body needs its `thigh.L`, `shin.L` and `foot.L` (every body has
+every bone) and nothing more; its ground is its lowest point (boots, bare soles, claws or hooves). *GM5:* a stage's marks
+are where figures' soles go. *Any later family:* its clip library names its own measure (or none). *A branch made
+before this one and rebased onto it:* `models.pak` made again with `make-models-pack.sh` (every model record is written
+at `model.animation` version 2; a pack made before fails `EveryCommittedPacksRecordsBuildBackToTheirStoredForm`); a clip
+library keyed again by `library.py` carries the measure by itself; every figure scene the figure mode writes
+(`humanoid-scenes.json`, `figure-scenes.json`) or `assemble.py` assembles (`assembly-looks.json` → `assembly-scenes.json`)
+written again and its Blender references made again (the figures now stand by their soles, their cameras with them);
+a scene posing the woman (or any other body) by a clip made again too (her clips' hips scaled).
 
 ## Status
 
@@ -3955,3 +4142,13 @@ beside `figure` in `machines/`. *GM3:* the bow's string and arrow; the weapons t
   soles' level until the hips' place is scaled. The six posed samples measured again after the ink's task, inside Q60's
   limits (the nearest death's unlike ink, 7.06 % of 8.3 %). 4645 + 948 = 5593 tests on the GPU and on lavapipe (`main`
   `1768286`: 4472 + 948 = 5420; 173 new); mutations 54 of 54 killed.
+- **2026-11-20, GM2-P22's engine task done** (a worker, the branch `gm2-figure-ground`; "How it works", "The figure's
+  ground"): a clip's hips' place follows the playing body's legs (the clips measured by the left leg; the woman 0.968 of
+  the man; exactly 1 on him, nothing of his clips' references changed) and a figure stands by its soles (the lowest point
+  at rest of its body and garments, −23.997 mm on both human bodies), in the engine, the game's figure builder, the
+  figure mode and Blender's side. The woman's lowest point at most 2.43 mm under her ground in any clip (was 24.11 at
+  death's end), within the man's bounds, which the ground test now holds her to; her 30 evaluations made again by the
+  rule, the figure scenes made again standing by the soles (the same pictures), a seventh assembled sample (the woman
+  kneeling). Every later body, the smallest and largest included, plays the clips by this rule (Q59: the user sees it in
+  step 9). 4660 + 951 = 5611 tests on the GPU and on lavapipe (`main` `d2752e5`: 4645 + 948 = 5593; 18 new); mutations
+  32 of 32 killed (one survivor of the first run closed by a test), Blender's side 7 of 7.

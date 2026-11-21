@@ -4660,6 +4660,21 @@ each, Druid, Ki Warrior, Paladin, Psykic, Sharpshooter, Summoner). 174 enemy fil
     user on 2026-11-19 ("Yes, it plays right"). Decisions recorded: the user's Q56, Q57, Q59, the manager's
     GM2-P21–GM2-P24. 4645 + 948 = 5593 tests (`main` `1768286`: 4472 + 948 = 5420; 173 new, the engine's); mutations 54
     of 54 killed.
+  - **GM2's engine task "the figure's ground" (GM2-P22; 2026-11-20, a worker on the branch `gm2-figure-ground`;
+    `Docs/Game/Hero.md`, "How it works", "The figure's ground"; `Docs/Animation.md`):** a clip's bone places scaled by
+    the playing body's measure over the body it was keyed on (`ClipBinding.Scale`; the measure a chain of joints in
+    `model.animation` version 2, from the animation's extras: the humanoid clips' the left leg, thigh and shin; the woman
+    0.968 of the man), exactly 1 on the man (his 35 evaluations the same files), unscaled for a clip without one (M7's,
+    Ji'ruan's); Blender's side the same (`Tools/BlenderReference/clip_measure.py`: the reference evaluation,
+    `render.py --clip`, `assemble.py`); made-up legs of 0.6 and 1.2 of the man's keep every leg joint at that ratio of
+    his place within 0.3 µm. A figure stands by its soles (`Actor.Ground`, the lowest point at rest of its body and
+    garments, −23.997 mm on both human bodies; `Actor.Placement`), set by the game's `HeroFigure` and the figure mode,
+    Blender's renders and assemblies alike. The woman's lowest point at most 2.43 mm under her ground in any clip (was
+    24.11, death's end), held to the man's bounds; her 30 evaluations and the figure scenes made again (the pictures that
+    only moved up 24 mm with their camera at most 25 pixels apart, by Blender's rounding: the same picture); a
+    seventh assembled sample, the woman kneeling. 4660 + 951 = 5611 tests (`main` `d2752e5`: 4645 + 948 = 5593; 18 new);
+    mutations 32 of 32 killed, Blender's side broken 7 ways, 7 killed; the Blender references 242 of 242 byte-equal when
+    made again into scratch.
 
 ## Milestones
 

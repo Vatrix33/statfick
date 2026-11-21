@@ -95,7 +95,8 @@ public static class HumanoidClipList
 /// <summary>
 /// The clip library against the hand-over's list and the rules the clips were keyed by (GM2 step 4b): every clip of the
 /// list with its frames, loop and markers; a loop's end its start; the stance loops the arms alone, every other clip
-/// the whole body; guard and evade ending where their holds begin; the man's lowest point never under the ground.
+/// the whole body; guard and evade ending where their holds begin; the man's and the woman's lowest points never under the
+/// ground (the woman's with the clips' hips' place scaled by her legs, GM2-P22).
 /// </summary>
 public class HumanoidClipTests(ITestOutputHelper output)
 {
@@ -334,26 +335,27 @@ public class HumanoidClipTests(ITestOutputHelper output)
     }
 
     /// <summary>
-    /// The man (the body the clips are keyed on) never goes under the ground: the ground is where his soles are at rest
-    /// (his body's lowest point there, 24.0 mm under the origin's plane: the boots' soles, which reach under the bare feet;
-    /// the manager, 2026-11-18), and in every clip that moves the whole body, at every frame, the lowest point of his body
-    /// (its skin and plain outfit as the engine skins them) is at most <see cref="GroundDepth"/> under it; death's fallen
-    /// body lies on it (its last frame's lowest point from <see cref="GroundDepth"/> under it to <see cref="LyingHeight"/>
-    /// over it). Measured on the woman too and written out, with no bound: her legs are another length and a clip's hips'
-    /// place isn't scaled by it yet (GM2-P22).
+    /// Both bodies stay on the ground: the man (the body the clips are keyed on) and the woman (her legs 0.968 of his, the
+    /// clips' hips' place scaled by it: GM2-P22, <see cref="ClipBinding.Scale"/>). The ground is where a body's soles are
+    /// at rest (its lowest point there, <see cref="Statventure.Scene.Actor.GroundOf"/>: 24.0 mm under the origin's plane on
+    /// both, the boots' soles, which reach under the bare feet; the manager, 2026-11-18), and in every clip that moves the
+    /// whole body, at every frame, the lowest point of the body (its skin and plain outfit as the engine skins them) is at
+    /// most <see cref="GroundDepth"/> under it; death's fallen body lies on it (its last frame's lowest point from
+    /// <see cref="GroundDepth"/> under it to <see cref="LyingHeight"/> over it). The woman's are the man's bounds: scaled,
+    /// she measured within them (Docs/Game/Hero.md, "How it works", "The figure's ground", her table).
     /// </summary>
     [Fact]
-    public void TheManStaysOnTheGround()
+    public void BothBodiesStayOnTheGround()
     {
         var lines = new List<string>();
         foreach (var sex in new[] { "male", "female" })
         {
             var body = HumanoidFiles.Load($"bodies/human-{sex}-average");
             var skin = new Skinner(body);
-            var ground = skin.LowestWhere(body.WorldMatrices()).Y;
+            var ground = (double)Statventure.Scene.Actor.GroundOf(body, []);
             lines.Add($"{sex}: the soles at rest {ground * 1000:F2} mm (the ground)");
-            if (sex == "male")
-                Assert.True(Math.Abs(ground + 0.024) < 0.0005, $"the man's soles rest at {ground * 1000:F2} mm, not -24.0");
+            Assert.True(Math.Abs(ground - skin.LowestWhere(body.WorldMatrices()).Y) < 0.000001, $"{sex}: the ground isn't the body's lowest point at rest");
+            Assert.True(Math.Abs(ground + 0.024) < 0.0005, $"the {sex} body's soles rest at {ground * 1000:F2} mm, not -24.0");
             var skeleton = new Skeleton(body);
             foreach (var entry in HumanoidClipList.All.Where(e => !e.Stance))
             {
@@ -368,11 +370,9 @@ public class HumanoidClipTests(ITestOutputHelper output)
                 }
                 var (depth, end) = (ground - lowest, last - ground);
                 lines.Add($"{sex} {entry.Name}: at most {depth * 1000:F2} mm under the ground (frame {at}, {where}), at its end {end * 1000:F2} mm over it");
-                if (sex != "male")
-                    continue;
-                Assert.True(depth <= GroundDepth, $"{entry.Name}: the man's lowest point {depth * 1000:F2} mm under the ground at frame {at} ({where})");
+                Assert.True(depth <= GroundDepth, $"{entry.Name}: the {sex} body's lowest point {depth * 1000:F2} mm under the ground at frame {at} ({where})");
                 if (entry.Name == "death")
-                    Assert.True(end >= -GroundDepth && end <= LyingHeight, $"death: the fallen man's lowest point {end * 1000:F2} mm over the ground");
+                    Assert.True(end >= -GroundDepth && end <= LyingHeight, $"death: the fallen {sex} body's lowest point {end * 1000:F2} mm over the ground");
             }
         }
         foreach (var line in lines)
@@ -380,13 +380,16 @@ public class HumanoidClipTests(ITestOutputHelper output)
     }
 
     /// <summary>
-    /// How far under the ground the man's lowest point may go (2026-11-18, the clips as re-baked that day, the manager's
-    /// keying raising a foot by what its boot would dip past 2 mm): measured at most 2.21 mm (meditate's kneeling knee,
-    /// frame 22), 2.00–2.01 in the clips the re-bake raised a foot in, death's end 1.92 mm under; the bound 3 mm.
+    /// How far under the ground a body's lowest point may go (2026-11-18, the clips as re-baked that day, the manager's
+    /// keying raising a foot by what its boot would dip past 2 mm): the man measured at most 2.21 mm (meditate's kneeling
+    /// knee, frame 22), 2.00–2.01 in the clips the re-bake raised a foot in, death's end 1.92 mm under; the bound 3 mm. The
+    /// woman, the hips' place scaled by her legs (GM2-P22, 2026-11-20), at most 2.43 mm (bow, her front foot at frame 34),
+    /// 2.12–2.32 in swing, thrust, strike and swing-two-handed, death's end 2.48 mm over; the same bound (before the
+    /// scaling: 24.11 mm under at death's end, meditate 18.14, stumble 8.14).
     /// </summary>
     public const double GroundDepth = 0.003;
 
-    /// <summary>How far over the ground death's fallen body may end (measured 1.92 mm under it; the bound the manager set, 5 mm).</summary>
+    /// <summary>How far over the ground death's fallen body may end (the man measured 1.92 mm under it, the woman 2.48 mm over; the bound the manager set, 5 mm).</summary>
     public const double LyingHeight = 0.005;
 
     /// <summary>A body's vertices skinned on the CPU as skin.comp skins them (linear blend, four joints), for its lowest point.</summary>

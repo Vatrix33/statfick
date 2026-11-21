@@ -6,6 +6,7 @@ using Statventure.Packs;
 using Statventure.Records;
 using Statventure.Render3D;
 using Statventure.Sandbox.Figure;
+using Statventure.Scene;
 using Statventure.Tests.Infrastructure;
 
 namespace Statventure.Game.Tests;
@@ -246,6 +247,57 @@ public class HeroFigureTests(GpuFixture gpu)
         var posed = Posed(bodyRest);
         var world = hairGarment.Garment.WorldMatrices(bodyRest, posed);
         Assert.True(Close(posed[figure.Skeleton.Find("head")], world[Index(hairGarment.Model.Data, "head")]), "the shifted hair's head doesn't follow the body's");
+    }
+
+    /// <summary>
+    /// A game figure stands by its soles (GM2-P22): its actor's ground is the lowest point at rest of its body and the
+    /// garments it wears (every human preset's: the booted soles, 24.0 mm under the body's origin; the chain shirt and the
+    /// sword, which reach no lower, leave it so), so it is drawn raised by it and the node it hangs on is where it stands.
+    /// </summary>
+    [Fact]
+    public void AGameFigureStandsByItsSoles()
+    {
+        using var folder = new ScratchFolder();
+        using var data = AssemblyTests.Data(folder);
+        foreach (var (name, preset) in LookData.Load(data).Presets.OrderBy(p => p.Key, StringComparer.Ordinal))
+        {
+            using var figure = HeroFigure.Build(gpu.Device, data, preset.Look);
+            var expected = Actor.GroundOf(figure.Actor.Model.Data, figure.Actor.Garments.Select(g => g.Model.Data));
+            Assert.Equal(expected, figure.Actor.Ground);
+            Assert.True(MathF.Abs(figure.Actor.Ground + 0.024f) < 0.00001f, $"{name}: the ground {figure.Actor.Ground * 1000} mm");
+            Assert.Equal(Matrix4x4.CreateTranslation(0, -figure.Actor.Ground, 0), figure.Actor.Placement);
+        }
+        var sample = AssemblyTests.Samples.Single(s => s.Name == "assembly-human-male-geared");
+        using var geared = HeroFigure.Build(gpu.Device, data, sample.Look, sample.Gear);
+        Assert.Equal(-0.023997f, geared.Actor.Ground, 6);
+
+        // A garment reaching under the soles (a made-up one: the chain shirt sunk a metre, as a mod's long robe or boots
+        // made apart might) is what the figure stands on; its rigid items never are.
+        using var modFolder = new ScratchFolder();
+        using (var game = GameData(modFolder))
+        {
+            var shirt = ModelData.Load(game, "models/humanoid/gear/chain-shirt/human-male-average");
+            ModelData sunk = new()
+            {
+                Nodes = shirt.Nodes, Materials = shirt.Materials, Skins = shirt.Skins, Roots = shirt.Roots,
+                Meshes = [.. shirt.Meshes.Select(m => m with
+                {
+                    Primitives = [.. m.Primitives.Select(p => new ModelPrimitive
+                    {
+                        Positions = [.. p.Positions.Select(v => v - Vector3.UnitY)], Normals = p.Normals, TexCoords = p.TexCoords, Joints = p.Joints, Weights = p.Weights,
+                        Indices = p.Indices, Material = p.Material,
+                    })],
+                })],
+            };
+            Directory.CreateDirectory(modFolder["dev/models/test"]);
+            File.WriteAllText(modFolder["dev/models/test/sunk-shirt.json"], RecordSerializer.ToJson(sunk));
+        }
+        // The game's packs GameData copied, with the development folder over them.
+        using var modded = new VirtualFileSystem(Core.Application.DataMounts(new Core.ApplicationOptions { DevelopmentFolder = modFolder["dev"] }, modFolder["game"], _ => null));
+        using var robed = HeroFigure.Build(gpu.Device, modded, sample.Look with { Colours = new Dictionary<string, string>() }, sample.Gear with { Garments = ["models/test/sunk-shirt"] });
+        var lowest = ModelData.Load(modded, "models/test/sunk-shirt").LowestAtRest()!.Value;
+        Assert.True(lowest < -0.1f);
+        Assert.Equal((float)(Math.Round(lowest * 1e6) / 1e6), robed.Actor.Ground);
     }
 
     /// <summary>A pose turning each of the body's nodes its own way about its own place (no two alike), so a joint matched to the wrong bone shows.</summary>

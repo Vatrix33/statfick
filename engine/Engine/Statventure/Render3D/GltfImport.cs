@@ -33,7 +33,7 @@ public static class GltfImport
             if (!SupportedRequired.Contains(extension))
                 throw new NotSupportedException($"{path} requires the glTF extension {extension}");
         var reader = new AccessorReader(loader, path);
-        var (inkless, unhatched, events, angles) = ExtrasOf(path);
+        var (inkless, unhatched, events, angles, measures) = ExtrasOf(path);
         var cameras = (gltf.Cameras ?? []).Select((c, i) => ReadCamera(c, i, path)).ToArray();
         var lights = ReadLights(gltf, angles, path);
         var nodes = ReadNodes(gltf, path, cameras.Length, lights.Length);
@@ -53,6 +53,7 @@ public static class GltfImport
             Animations = (gltf.Animations ?? []).Select((a, i) => ReadAnimation(reader, a, i, nodes.Length) with
             {
                 Events = events.TryGetValue(i, out var list) ? list : [],
+                Measure = measures.TryGetValue(i, out var measure) ? measure : [],
             }).ToArray(),
             Roots = gltf.Scenes is { Length: > 0 } scenes
                 ? scenes[gltf.Scene ?? 0].Nodes ?? []
@@ -132,9 +133,12 @@ public static class GltfImport
     /// <c>{name, time}</c> (the action's pose markers copied by the export script), sorted by time
     /// (stable, so two markers at one frame keep their order); and each punctual light's <c>"angle"</c>
     /// (a number: the sun's size in degrees, Blender's sun angle copied by the stage export into the
-    /// light's custom property).
+    /// light's custom property); and each animation's <c>"measure"</c>, a list of joint names (the action's custom
+    /// property, which a family's clip library sets: GM2-P22, <see cref="ModelAnimation.Measure"/>), anything else there
+    /// refused.
     /// </summary>
-    static (HashSet<int> Inkless, HashSet<int> Unhatched, Dictionary<int, ModelAnimationEvent[]> Events, Dictionary<int, double> Angles) ExtrasOf(string path)
+    static (HashSet<int> Inkless, HashSet<int> Unhatched, Dictionary<int, ModelAnimationEvent[]> Events, Dictionary<int, double> Angles,
+        Dictionary<int, string[]> Measures) ExtrasOf(string path)
     {
         var bytes = File.ReadAllBytes(path);
         ReadOnlySpan<byte> json = bytes;
@@ -144,18 +148,27 @@ public static class GltfImport
         using var document = JsonDocument.Parse(json.ToArray());
         var root = document.RootElement;
         var events = new Dictionary<int, ModelAnimationEvent[]>();
+        var measures = new Dictionary<int, string[]>();
         if (root.TryGetProperty("animations"u8, out var animations))
         {
             var index = 0;
             foreach (var animation in animations.EnumerateArray())
             {
-                if (animation.TryGetProperty("extras"u8, out var extras) && extras.ValueKind == JsonValueKind.Object
-                    && extras.TryGetProperty("events"u8, out var list) && list.ValueKind == JsonValueKind.Array)
-                    events[index] = list.EnumerateArray()
-                        .Where(e => e.ValueKind == JsonValueKind.Object && e.TryGetProperty("name"u8, out var n) && n.ValueKind == JsonValueKind.String
-                            && e.TryGetProperty("time"u8, out var t) && t.ValueKind == JsonValueKind.Number)
-                        .Select(e => new ModelAnimationEvent(e.GetProperty("name"u8).GetString()!, e.GetProperty("time"u8).GetDouble()))
-                        .OrderBy(e => e.Time).ToArray();
+                if (animation.TryGetProperty("extras"u8, out var extras) && extras.ValueKind == JsonValueKind.Object)
+                {
+                    if (extras.TryGetProperty("events"u8, out var list) && list.ValueKind == JsonValueKind.Array)
+                        events[index] = list.EnumerateArray()
+                            .Where(e => e.ValueKind == JsonValueKind.Object && e.TryGetProperty("name"u8, out var n) && n.ValueKind == JsonValueKind.String
+                                && e.TryGetProperty("time"u8, out var t) && t.ValueKind == JsonValueKind.Number)
+                            .Select(e => new ModelAnimationEvent(e.GetProperty("name"u8).GetString()!, e.GetProperty("time"u8).GetDouble()))
+                            .OrderBy(e => e.Time).ToArray();
+                    if (extras.TryGetProperty("measure"u8, out var measure))
+                    {
+                        if (measure.ValueKind != JsonValueKind.Array || measure.EnumerateArray().Any(j => j.ValueKind != JsonValueKind.String))
+                            throw new InvalidDataException($"{path}: animation {index}'s measure isn't a list of joints' names");
+                        measures[index] = measure.EnumerateArray().Select(j => j.GetString()!).ToArray();
+                    }
+                }
                 index++;
             }
         }
@@ -173,7 +186,7 @@ public static class GltfImport
                 index++;
             }
         }
-        return (Off(root, "nodes"u8, "ink"u8), Off(root, "materials"u8, "hatch"u8), events, angles);
+        return (Off(root, "nodes"u8, "ink"u8), Off(root, "materials"u8, "hatch"u8), events, angles, measures);
 
         static HashSet<int> Off(JsonElement root, ReadOnlySpan<byte> list, ReadOnlySpan<byte> property)
         {

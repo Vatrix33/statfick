@@ -1175,7 +1175,7 @@ No pack is committed (Q1).
   joints and weights (null when absent), indices, material (default −1)); `model.joints` (j0–j3, the four
   `uint16` joint indices of a vertex); `model.material` (name, baseColor, doubleSided, emission, unlit, hatch
   (default true)); `model.skin` (name, joints, inverseBindMatrices, skeleton); `model.animation` (name, channels,
-  events (default none)); `model.channel` (node, path `translation`/`rotation`/`scale`, interpolation
+  events (default none), since version 2 measure (default none)); `model.channel` (node, path `translation`/`rotation`/`scale`, interpolation
   `step`/`linear`/`cubicSpline`, times and values as the file stores them, `float32`); `model.event` (name, time in
   seconds). Derived values aren't stored: a material's slot and whether it is emission only, a primitive's
   `FlatVertices` (made by `Model`). Floats go bit for bit, so a model from a pack, or from its JSON form (shortest
@@ -1188,6 +1188,13 @@ No pack is committed (Q1).
   nodes carrying none; the version-1 fixture `model/model` stays (its upgrade is tested) beside the version-2 fixture
   `model/stage`. `ModelData.Validate` adds: nodes' cameras and lights that exist, one light at most and on one node
   at most, and cameras' and suns' values that make a projection and a sun.
+- **`model.animation`, version 2** (GM2-P22, "the figure's ground", 2026-11-20; `Docs/Animation.md`, "A clip's
+  translations follow the body's size"): adds `measure` (a list of joint names, top first, empty by default; marked bulk,
+  "{0} joints": only an import sets it), read from the animation's extras `"measure"` (anything there but a list of names
+  is refused at import), the chain whose rest length measures a body for the clip's bone places. Version 1 is a frozen
+  copy (`ModelAnimation.V1`) whose upgrade gives no measure; the fixtures `model/model` and `model/stage` hold version 1,
+  `model/clips` (the small model with its swing measured by Rig → Bone) version 2. `ModelData.Validate` adds: a measure
+  of two joints or more, each a node of the model. The editor's model page shows the row "Measure" (`preview-model`).
 - **The importer** (`ModelImporter`, `[Importer("models", ".glb")]`; S3-3): each `.glb` of a folder being packed
   becomes one record entry at its path without the ending (`models/figure.glb` → `models/figure`) holding
   `GltfImport.Load` of the file, checked as a loaded model is (`ModelData.Validate`, below), so no pack holds a

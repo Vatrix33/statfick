@@ -3,9 +3,14 @@
 # on the human man's skeleton (the average build: clips are authored there, Hero.md) and exported as the engine's
 # animated models are (make_models.ANIMATED: sampled every frame from 0 s, each clip a glTF animation, only the channels
 # it keys, its markers as the animation's events). Any body of the family plays them by bone names on its own rest; a
-# location (the hips') is applied in metres as it is, from that body's own rest, on every body (Animation/Skeleton.cs,
-# Blender's pose channels alike). The family's clips go in this folder (clips/; the first come with the manager's
-# hand-over) and their library into Assets/Models/humanoid/clips.glb, so into models.pak.
+# location (the hips') is metres keyed on the man, so each clip carries its measure (GM2-P22, "the figure's ground";
+# Docs/Animation.md, "A clip's translations follow the body's size"): the action's custom property "measure", the
+# exporter's animation extras, MEASURE below, the left leg's thigh, shin and foot. On a body whose leg is another length
+# (the distances hip joint to knee and knee to ankle at rest, added) a location is scaled by that length over the man's,
+# on the engine's side (Animation/Skeleton.cs, ClipBinding.Scale) and on Blender's wherever a clip is evaluated or
+# rendered (BlenderReference/evaluate_animations.py, render.py's pose_at, so assemble.py's). The family's clips go in
+# this folder (clips/; the first come with the manager's hand-over) and their library into
+# Assets/Models/humanoid/clips.glb, so into models.pak.
 #
 # A clip's file (JSON), its keys exactly these:
 #   name      the clip's name, the file's own ("idle" in clips/idle.json)
@@ -43,6 +48,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ENGINE = os.path.normpath(os.path.join(HERE, "..", "..", "..", ".."))
 # The skeleton clips are keyed on (Hero.md: authored on the human average body).
 SKELETON = "human-male-average"
+# What measures a body for a clip's locations (GM2-P22): the joints of the left leg, top first. Its length at rest, the
+# hip joint to the knee and the knee to the ankle, is the legs' that fold under the hips (the bodies are symmetric: the
+# right leg's is the same).
+MEASURE = ["thigh.L", "shin.L", "foot.L"]
 KEYS = {"name", "frames", "loop", "markers", "keys", "ease"}
 
 
@@ -133,6 +142,7 @@ def key(rig, clip):
         action.pose_markers.new(event).frame = frame + 1
     action.use_frame_range = True
     action.frame_start, action.frame_end = 1, clip["frames"] + 1
+    action["measure"] = MEASURE
     return action
 
 

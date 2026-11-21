@@ -44,13 +44,18 @@ public class AssemblyTests(GpuFixture gpu)
     /// <summary>The tests' own data on top of the game's (the human race with swatches of the tests'), as a mod's would be.</summary>
     static string Overlay => Path.Combine(Reference, "assembly-data");
     static string OverlayRace => Path.Combine(Overlay, "data", "races", "human.json");
-    static string TestClips => Path.Combine(RaceOracle.Engine, "Tests", "Statventure.Tests", "Data", "Models", "humanoid", "test-clips.glb");
+    /// <summary>The clip libraries a sample may be posed by, as the list names them (relative to Reference/): the clip frame's test library and the family's.</summary>
+    const string TestLibrary = "../Data/Models/humanoid/test-clips.glb", GameLibrary = "../../../Assets/Models/humanoid/clips.glb";
 
     /// <summary>The view's background: the sheet's portrait panel's ground, the game's look file's.</summary>
     const string Background = "#2a1f1a";
 
-    /// <summary>A sample: its scene's name, the look, the gear, the view and its size, and a clip of the test library at a time (none: at rest).</summary>
-    public sealed record Sample(string Name, LookHero Look, FigureGear Gear, string View, int Width, int Height, string? Clip = null, double Time = 0);
+    /// <summary>
+    /// A sample: its scene's name, the look, the gear, the view and its size, and a clip at a time (none: at rest) of a
+    /// library (<see cref="TestLibrary"/> by default).
+    /// </summary>
+    public sealed record Sample(string Name, LookHero Look, FigureGear Gear, string View, int Width, int Height, string? Clip = null, double Time = 0,
+        string Library = TestLibrary);
 
     /// <summary>The swatches the tests' human has (none of them the game's: the game's are the art steps', GM2 step 9).</summary>
     static readonly RaceSwatch[] Swatches =
@@ -119,6 +124,9 @@ public class AssemblyTests(GpuFixture gpu)
             Man(("skin", "Deep"), ("hair", "Ash"), ("eyes", "Blue"), ("brows", "Ember"), ("eye.white", "Ember"), ("cloth", "Green"), ("cloth.trim", "Ember"),
                 ("trousers", "Tan"), ("leather", "Black"), ("buckle", "Ember")),
             Geared, "three-quarter", 360, 480, "rest-sway", 0.5),
+        // The woman kneeling in meditate (the family's library, its marker "restore"): the clip's hips' place scaled by her
+        // legs on both sides (GM2-P22; render.py's pose_at in Blender), her knee on the ground, standing by her soles.
+        new("assembly-human-female-meditate", Woman([.. Ember, ("lips", "Ember")]), new(), "three-quarter", 360, 480, "meditate", 42 / 60.0, GameLibrary),
     ];
 
     public static TheoryData<string> SampleNames => new(Samples.Select(s => s.Name));
@@ -143,7 +151,7 @@ public class AssemblyTests(GpuFixture gpu)
                 ["height"] = s.Height,
                 ["clip"] = s.Clip,
                 ["time"] = s.Time,
-                ["clips"] = s.Clip is null ? null : "../Data/Models/humanoid/test-clips.glb",
+                ["clips"] = s.Clip is null ? null : s.Library,
             });
         var list = new JsonObject
         {
@@ -190,15 +198,19 @@ public class AssemblyTests(GpuFixture gpu)
     /// <summary>A model's data path (<c>models/…</c>) as Blender's scene names its file (its .glb under the models' folder).</summary>
     static string FileOf(string model) => model["models/".Length..] + ".glb";
 
-    /// <summary>The figure's surface points at rest (render.py's framing): the body's, each garment's and each item's at its socket.</summary>
+    /// <summary>The figure standing by its soles on its node's origin (GM2-P22; <see cref="Actor.Ground"/>): its model space raised by its ground.</summary>
+    static Matrix4x4 Lift(HeroFigure figure) => Matrix4x4.CreateTranslation(0, -figure.Actor.Ground, 0);
+
+    /// <summary>The figure's surface points at rest as it stands (render.py's framing): the body's, each garment's and each item's at its socket.</summary>
     static List<Vector3> RestPoints(HeroFigure figure)
     {
-        var points = FigureFraming.RestPoints(figure.Actor.Model.Data, Matrix4x4.Identity);
+        var lift = Lift(figure);
+        var points = FigureFraming.RestPoints(figure.Actor.Model.Data, lift);
         foreach (var garment in figure.Actor.Garments)
-            points.AddRange(FigureFraming.RestPoints(garment.Model.Data, Matrix4x4.Identity));
+            points.AddRange(FigureFraming.RestPoints(garment.Model.Data, lift));
         var rest = figure.Actor.Model.Data.WorldMatrices();
         foreach (var item in figure.Actor.Items)
-            points.AddRange(FigureFraming.RestPoints(item.Model.Data, item.Socket.ItemTransform(rest, Matrix4x4.Identity)));
+            points.AddRange(FigureFraming.RestPoints(item.Model.Data, item.Socket.ItemTransform(rest, lift)));
         return points;
     }
 
@@ -210,13 +222,14 @@ public class AssemblyTests(GpuFixture gpu)
             Figure = HeroFigure.Build(device, data, sample.Look, sample.Gear);
             if (sample.Clip is { } clip)
             {
-                var library = AnimationClip.AllOf(ModelData.Load(TestClips)).Single(c => c.Name == clip);
+                var library = AnimationClip.AllOf(ModelData.Load(Path.GetFullPath(Path.Combine(Reference, sample.Library)))).Single(c => c.Name == clip);
                 Figure.Actor.Animator.Stack.Layers.Add(new FigureClips([library]).Layer(Figure.Skeleton));
             }
             Style = GameStyle.Load(data);
             View = new View3D(device) { Background = Colors.LinearFromHex(Background), Sun = Style.SunLight, Style = Style.Cel };
             var spec = new FigureSpec { Body = "", Look = GameStyleTests.Look, View = sample.View, Width = sample.Width, Height = sample.Height };
-            View.Camera = FigureFraming.CameraFor(spec, sample.View, RestPoints(Figure), FigureFraming.FocusPoint(Figure.Actor.Model.Data, "head"));
+            var focus = FigureFraming.FocusPoint(Figure.Actor.Model.Data, "head") is { } head ? Vector3.Transform(head, Lift(Figure)) : (Vector3?)null;
+            View.Camera = FigureFraming.CameraFor(spec, sample.View, RestPoints(Figure), focus);
             Scene = new SceneView(View) { Rate = 0 };
             var node = Scene.Root.Add("figure");
             node.Attach(Figure.Actor);
@@ -279,12 +292,12 @@ public class AssemblyTests(GpuFixture gpu)
             Near(sample.Name, V(camera.GetProperty("target")), view.Target, 1e-4f);
             Assert.True(MathF.Abs(camera.GetProperty("orthographicHeight").GetSingle() - view.OrthographicHeight) < 1e-4f, $"{sample.Name}: the framed height");
             Assert.Equal(view.Projection.ToString().ToLowerInvariant(), camera.GetProperty("projection").GetString());
-            // Each item where Blender put it: its socket's posed world, turned for the view.
+            // Each item where Blender put it: its socket's posed world, the figure standing by its soles, turned for the view.
             var turn = Matrix4x4.CreateRotationY(FigureFraming.TurnOf(sample.View) * MathF.PI / 180);
             var world = shown.Figure.Actor.Model.Data.WorldMatrices(shown.Figure.Actor.Animator.Pose());
             for (var i = 0; i < plan.Items.Count; i++)
             {
-                var placed = shown.Figure.Actor.Items[i].Socket.ItemTransform(world, turn);
+                var placed = shown.Figure.Actor.Items[i].Socket.ItemTransform(world, Lift(shown.Figure) * turn);
                 var matrix = models[1 + plan.GarmentModels.Count() + i].GetProperty("matrix").EnumerateArray().Select(c => c.EnumerateArray().Select(v => v.GetSingle()).ToArray()).ToArray();
                 Near(sample.Name, new Vector3(matrix[3][0], matrix[3][1], matrix[3][2]), placed.Translation, 1e-5f);
                 Near(sample.Name, new Vector3(matrix[1][0], matrix[1][1], matrix[1][2]), new Vector3(placed.M21, placed.M22, placed.M23), 1e-5f);

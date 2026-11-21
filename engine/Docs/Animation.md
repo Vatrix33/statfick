@@ -48,7 +48,8 @@ Asked before the milestone started; the answers are also in `Docs/Engine-Plan.md
 - **Clips are shared by bone names**, as Blender applies an action to another armature: one clip set
   per rig family (humanoid, quadruped, griffon, dragon, wisp, core); models of a family share bone
   names and differ in proportions (races, sexes, builds); a clip plays on any of them with each
-  channel taken relative to that bone's rest pose. Bosses and odd enemies can add clips of their own.
+  channel taken relative to that bone's rest pose (since GM2-P22 a bone's place scaled by the body's measure, "How it's
+  done"). Bosses and odd enemies can add clips of their own.
 - **Gear:** rigid items (weapons, shields, helmets, quivers) are their own models attached to socket
   bones in the rig (hand.R, hand.L, back, head …); armour and clothing that bends are meshes skinned
   to the wearer's skeleton by bone names.
@@ -164,6 +165,42 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   (Blender's blend domain), rotations as four free numbers; `ToPose` builds the `ModelPose`: a bone's
   local transform is rest · T(t_b)·R(q_b normalised)·S(s_b), composed as translation, rotation and
   scale (exact while the rest scale is uniform; Blender's bones have none); unset channels are rest.
+- **A clip's translations follow the body's size** (GM2-P22, "the figure's ground"; 2026-11-20, the branch
+  `gm2-figure-ground`; `Docs/Game/Hero.md`, "How it works", "The figure's ground"). A bone's place in a clip is metres
+  keyed on one body, its legs keyed as rotations: on a body with shorter legs the hips would drop by the keyed body's
+  centimetres while the legs fold by its own, the feet sinking (longer legs: floating). So a clip may carry its **measure**
+  (`ModelAnimation.Measure`, version 2 of `model.animation`: a chain of joints by name, top first; from the animation's
+  extras `"measure"`, the action's custom property, which a family's clip library sets; anything but a list of names
+  refused at import; the model's check wants two joints or more, each a node of the model). Its length at rest is the
+  distances from joint to joint, added, in double (`Skeleton.ChainLength`); `AnimationClip.Measure` holds the chain and its
+  length on the model the clip was read from, the body it was keyed on (a library's `.glb` carries that skeleton: no
+  number is stored). A `ClipBinding` on a skeleton whose chain is another length has `Scale` = its length over the keyed
+  one, and every **bone's** sampled place (a rest-relative track's translation) is multiplied by it before it goes into
+  the buffer; rotations and scales are never touched, nor a plain node's place (its local transform itself, not a
+  bone's place from its rest). Exactly 1 on the body the clip was keyed on (the same numbers give the same length, and
+  the product is skipped at 1: the man's poses and references the same to the bit); 1 for a clip without a measure (M7's
+  test figures, Ji'ruan's acting, an item's own clips: everything made before plays as before) and on a skeleton without
+  the chain (a rig with no legs: such a family plays unscaled, or names another chain). Every path binds clips through
+  `ClipBinding`, so it holds in layers (a stance over the idle: the idle's hips scaled), fades (a mix of scaled places is
+  the scaled mix), state machines, sequences and the editor's preview, and for the gear (garments and items read the
+  posed skeleton). The humanoid family's measure is its left leg, `thigh.L` → `shin.L` → `foot.L` (the hip joint to the
+  knee and the knee to the ankle: the bones that fold under the hips; the bodies are symmetric): the woman's is 0.968 of
+  the man's. A body uniformly k times the man's below the hips plays every clip as k times his pose, feet included (0.6
+  and 1.2 within 0.3 µm). Blender's side is `Tools/BlenderReference/clip_measure.py`: wherever Blender evaluates or
+  renders a clip on another body (the reference evaluation, `render.py --clip`, `assemble.py`) the action's location
+  F-curves' keys and handles are multiplied by the same ratio (a Bézier curve whose control points are scaled is the curve
+  scaled).
+- **A figure stands by its soles** (GM2-P22; the same task): a body's model has its origin where its maker put it (the
+  humanoid bodies' at the bare feet's level, their boots' soles 24 mm under it), so placing a figure by its origin puts
+  it into the ground or over it. `Actor.Ground` is where the figure's ground is in its model space, the height of its soles
+  at rest: `Actor.GroundOf(body, garments)` is the lowest point at rest (`ModelData.LowestAtRest`, the meshes skinned at
+  rest as the renderer skins them) of the body and the garments it wears, its rigid items left out (a staff may reach
+  lower), to the micrometre (−0.023997 m on both human bodies). A bare sole, a claw or a hoof alike: whatever reaches
+  lowest. The actor is drawn by `Actor.Placement`, its node's world after its model space is raised by −Ground, so its node
+  is where it stands; 0 (the default) changes nothing. The game's figures (`HeroFigure`) and the sandbox's figure mode set
+  it; Blender's side (`render.py`'s `figure_ground`, so `assemble.py`'s) raises its figure by the same rounded number and
+  anchors the hatching at the raised origin. A view that frames its figure (every GM2 view) frames it as it stands: the
+  same picture.
 
 - **Layers** (`Animation/AnimationStack.cs`): an `AnimationStack` holds `AnimationLayer`s (NLA
   tracks, bottom first), each a time-ordered list of `AnimationStrip`s (Blender's strip settings in
@@ -245,7 +282,7 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   Q1: `Scene/Actor.cs`, `Scene/SceneView.cs`): an `Actor` is a model with its animator, palette,
   items (`ActorItem`: a model on a socket, optionally an `ItemAnimation`) and garments
   (`ActorGarment`), hanging on a scene node, whose world matrix places it (M7's `Actor.Transform` is
-  gone); `Refresh` evaluates its pose (and its items') at the animator's time and says whether any
+  gone; since GM2-P22 its model space first raised by its `Ground`, "A figure stands by its soles" above); `Refresh` evaluates its pose (and its items') at the animator's time and says whether any
   channel value or its gear changed; drawn, it adds its draw items (the figure, items at their
   sockets, garments from their world matrices, all with the actor as their owner and the node's
   origin as their hatch anchor). A `SceneView` (an `IUiFrameClient` holding a `View3D`, what M7's
@@ -333,7 +370,10 @@ As in M6 (`Docs/Renderer-3D.md`, "Method"), Blender 5.2 is the reference:
   it (quaternions with the sign nearer the previous key, data frame n at Blender frame n + 1, the action's range the
   clip's length, markers as events) and exported with `ANIMATED`. The evaluation builds a model named `humanoid/<name>`
   through the family's manifest; three scenes play the frame's test clip `rest-sway` (the tests' data) on its own
-  skeleton and on the two bodies. A location is applied in metres as it is, from each body's own rest.
+  skeleton and on the two bodies. A location is applied from each body's own rest, scaled by its legs since GM2-P22's
+  task (every clip's action carries `measure`, library.py's `MEASURE`; "A clip's translations follow the body's size"
+  above): the evaluation (`evaluate_animations.py`) scales the action's locations on a target whose chain differs from
+  the model's own armature's, as the engine does.
 - **The family's clips** (GM2 step 4b; `Docs/Game/Hero.md`, "How it works", step 4b): the 34 approved clips
   (`Tools/Models/humanoid/clips/`, their library `Assets/Models/humanoid/clips.glb`, models.pak's `models/humanoid/clips`)
   each played on the man's and the woman's bodies, 68 scenes (`humanoid-<clip>-male|female`) at lighter times than
@@ -496,3 +536,8 @@ Started 2026-10-31 (decisions asked and recorded); done 2026-10-31.
   a frame late each fail a test. (M10 step 1 replaced `AnimatedView` with the scene, `SceneView`, and
   moved these tests to `Tests/Scene/SceneViewTests.cs`: `Docs/Scene.md`, "How it works", step 1.)
 - **M7 done (2026-10-31, 635 tests).**
+- **2026-11-20, GM2's engine task "the figure's ground" (GM2-P22; the branch `gm2-figure-ground`):** a clip's bone places
+  scaled by the playing body's measure over the keyed body's (`model.animation` version 2's `measure`, `ClipBinding.Scale`;
+  Blender's side `clip_measure.py`), exactly 1 on the keyed body; an actor drawn standing by its soles (`Actor.Ground`,
+  `Actor.GroundOf`, `Actor.Placement`). "How it's done", the two bullets after "Skeletons and poses"; `Docs/Game/Hero.md`,
+  "How it works", "The figure's ground".
